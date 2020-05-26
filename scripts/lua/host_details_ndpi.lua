@@ -89,11 +89,8 @@ for _k in pairsByKeys(vals , desc) do
   if filter_pass(host["ndpi"][k]) then
     print("<tr><td>")
 
-    if(areHostL7TimeseriesEnabled(ifid, host)) then
-      print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:ndpi&protocol=".. k .."\">"..k.." "..formatBreed(host["ndpi"][k]["breed"]).."</A>")
-    else
-      print(k.." "..formatBreed(host["ndpi"][k]["breed"]))
-    end
+    local host_href = hostinfo2detailshref(host_info, {page = "historical", ts_schema = "host:ndpi", protocol = k}, k.." "..formatBreed(host["ndpi"][k]["breed"]))
+    print(host_href)
 
     t = host["ndpi"][k]["bytes.sent"]+host["ndpi"][k]["bytes.rcvd"]
 

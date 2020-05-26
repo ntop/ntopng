@@ -59,18 +59,6 @@ if((ifid ~= nil) and (isAdministrator())) then
           local host_key, is_network = host_pools_utils.getMemberKey(member.key)
           local is_host = (not is_network) and (not is_mac)
           local mac_info = interface.getMacInfo(host_key)
-          local link
-
-          if active_hosts[host_key] then
-            link = ntop.getHttpPrefix() .. "/lua/host_details.lua?" .. hostinfo2url(active_hosts[host_key])
-          elseif is_mac and mac_info ~= nil then
-            link = ntop.getHttpPrefix() .. "/lua/mac_details.lua?host=" .. host_key
-          elseif is_network and network_stats[host_key] ~= nil then
-            link = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?network=" .. network_stats[host_key].network_id
-          else
-            link = ""
-          end
-
           local alias = ""
           local icon = ""
           if is_mac then
@@ -114,7 +102,6 @@ if((ifid ~= nil) and (isAdministrator())) then
             column_alias = alias,
             column_icon = icon,
             column_vlan = tostring(member.vlan),
-            column_link = link,
             column_editable = tostring(tonumber(member.residual) == nil),
             column_residual = tonumber(member.residual) and secondsToTime(member.residual) or "Persistent",
             column_icon_label = discover.devtype2string(icon),

@@ -223,7 +223,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    local symkey = hostinfo2jqueryid(hosts_stats[key])
    record["key"] = symkey
 
-   local url = ntop.getHttpPrefix().."/lua/host_details.lua?" ..hostinfo2url(hosts_stats[key])
+   local url = hostinfo2detailsurl(hosts_stats[key])
 
    local drop_traffic = false
    if have_nedge and ntop.getHashCache("ntopng.prefs.drop_host_traffic", key) == "true" then
@@ -335,10 +335,7 @@ for _key, _value in pairsByKeys(vals, funct) do
       record["column_thpt"] = "0 "..throughput_type
    end
 
-   local column_info = "<a href='"
-      ..ntop.getHttpPrefix().."/lua/host_details.lua?page=flows&"..hostinfo2url(value).."'>"
-      .."<span class='badge badge-info'>"..i18n("flows").."</span>"
-      .."</a>"
+   local column_info = hostinfo2detailshref(value, {page = "flows"}, "<span class='badge badge-info'>"..i18n("flows").."</span>")
 
    if have_nedge and (host ~= nil) and (host.localhost or host.systemhost) then
       column_info = column_info.." <span title='"..

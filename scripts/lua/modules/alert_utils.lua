@@ -514,7 +514,6 @@ local function formatRawFlow(record, flow_json, skip_add_links)
    require "flow_utils"
    local time_bounds
    local add_links = (not skip_add_links)
-   local host_page = "&page=alerts"
 
    if interfaceHasNindexSupport() and not skip_add_links then
       -- only add links if nindex is present
@@ -559,7 +558,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       ["srv.blacklisted"] = tostring(record["srv_blacklisted"]) == "1",
       ["vlan"] = record["vlan_id"]}
 
-   flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds, host_page) or "").."] "
+   flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds, {page = "alerts"}) or "").."] "
    local l4_proto_label = l4_proto_to_string(record["proto"] or 0) or ""
 
    if not isEmptyString(l4_proto_label) then

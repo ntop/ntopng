@@ -803,7 +803,7 @@ elseif page == "networks" and interface.isPacketInterface() then
 	    host = interface.getHostInfo(t[1])
 
 	    if(host ~= nil) then
-	       addresses[#addresses+1] = "<a href=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..t[1].."\">".. t[1].."</a>".."/"..t[2]
+	       addresses[#addresses+1] = hostinfo2detailshref(host, nil, t[1]).."/"..t[2]
 	    else
 	       addresses[#addresses+1] = s
 	    end

@@ -169,9 +169,7 @@ function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
       value = resolveAddress(host_info)
 
       if host_info ~= nil then
-	 value = "<a href='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifid..
-	    "&host="..hostinfo2hostkey(host_info).."&page=historical&epoch_begin="..
-	    epoch_begin .."&epoch_end=".. epoch_end .."'>"..value.."</a>"
+	 value = hostinfo2detailshref(host_info, {page = "historical", epoch_begin = epoch_begin, epoch_end = epoch_end}, value)
       end
    elseif entity_type == "interface" then
       value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid..
@@ -211,7 +209,7 @@ end
 -- ##############################################
 
 function getHostUrl(host, vlan_id)
-   return ntop.getHttpPrefix() .. "/lua/host_details.lua?" .. hostinfo2url({host = host, vlan = vlan_id})
+   return hostinfo2detailsurl({host = host, vlan = vlan_id})
 end
 
 -- ##############################################

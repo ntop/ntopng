@@ -43,7 +43,7 @@ local function proc_branch(host, proc)
 end
 
 local function host_branch(host_name, host, procs)
-   local link = ntop.getHttpPrefix().."/lua/host_details.lua?host=".. host .."&page=flows"
+   local link = hostinfo2detailsurl(host, {page = "flows"})
 
    local children = {}
    for _, proc in pairs(procs) do
@@ -69,24 +69,24 @@ if flow then
       if flow["cli.ip"] ~= flow["srv.ip"] then
 	 tree = {name = "", type = "root",
 		 children = {
-		    host_branch(flowinfo2hostname(flow, "cli"), flow["cli.ip"],
+		    host_branch(flowinfo2hostname(flow, "cli"), flow2hostinfo(flow, "cli"),
 				{proc_branch(flow["cli.ip"], flow.client_process)}),
-		    host_branch(flowinfo2hostname(flow, "srv"), flow["srv.ip"],
+		    host_branch(flowinfo2hostname(flow, "srv"), flow2hostinfo(flow, "srv"),
 				{proc_branch(flow["srv.ip"], flow.server_process)})
 		 }
 	 }
       else
-	 tree = host_branch(flowinfo2hostname(flow, "cli"), flow["cli.ip"],
+	 tree = host_branch(flowinfo2hostname(flow, "cli"), flow2hostinfo(flow, "cli"),
 			    {proc_branch(flow["cli.ip"], flow.client_process),
 			     proc_branch(flow["srv.ip"], flow.server_process)})
       end
 
    elseif flow.client_process then
-      tree = host_branch(flowinfo2hostname(flow, "cli"), flow["cli.ip"],
+      tree = host_branch(flowinfo2hostname(flow, "cli"), flow2hostinfo(flow, "cli"),
 			 {proc_branch(flow["cli.ip"], flow.client_process)})
 
    elseif flow.server_process then
-      tree = host_branch(flowinfo2hostname(flow, "srv"), flow["srv.ip"],
+      tree = host_branch(flowinfo2hostname(flow, "srv"), flow2hostinfo(flow, "srv"),
 			 {proc_branch(flow["srv.ip"], flow.server_process)})
    end
 end

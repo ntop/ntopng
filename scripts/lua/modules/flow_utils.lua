@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 require "voip_utils"
+require "lua_utils"
 local graph_utils = require "graph_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local format_utils = require("format_utils")
@@ -265,7 +266,7 @@ function handleCustomFlowField(key, value, snmpdevice)
       local hinfo = hostkey2hostinfo(value)
       local res = hostinfo2label(hinfo)
 
-      local ret = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..value.."\">"
+      local ret = ip2detailshref(value, nil, nil, value)
 
       if((res == "") or (res == nil)) then
 	 ret = ret .. ipaddr
@@ -350,7 +351,6 @@ function handleCustomFlowField(key, value, snmpdevice)
 
    return value
 end
-
 
 -- #######################
 
@@ -511,14 +511,15 @@ end
 -- #######################
 
 local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suffix)
-  local host_name = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow, cli_or_srv)
+  local hyperlink_params
 
   if historical_bounds then
-    host_name = host_name .. string.format("&page=historical&epoch_begin=%u&epoch_end=%u&detail_view=top_l7_contacts", historical_bounds[1], historical_bounds[2])
-  else
-    host_name = host_name .. hyperlink_suffix
+     hyperlink_params = {page = "historical", epoch_begin = historical_bounds[1], epoch_end = historical_bounds[2], detail_view = "top_l7_contacts"}
+  elseif type(hyperlink_suffix) == "table" then
+     hyperlink_params = hyperlink_suffix
   end
-  host_name = host_name.."\">"..shortenString(flowinfo2hostname(flow,cli_or_srv))
+
+  local host_name = shortenString(flowinfo2hostname(flow,cli_or_srv))
 
   if(flow[cli_or_srv .. ".systemhost"] == true) then
      host_name = host_name.." <i class='fas fa-flag' aria-hidden='true'></i>"
@@ -526,9 +527,8 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
   if(flow[cli_or_srv ..  ".blacklisted"] == true) then
      host_name = host_name.." <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
   end
-  host_name = host_name.."</A>"
 
-  return host_name
+  return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name)
 end
 
 local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
@@ -537,15 +537,11 @@ local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
     end
 
     -- TODO port filter
-    local port_url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(flow,cli_or_srv)
-    port_url = port_url .. string.format("&page=historical&epoch_begin=%u&epoch_end=%u&detail_view=flows&port=%u", historical_bounds[1], historical_bounds[2], port)
-    port_url = port_url .. "\">" .. port .. "</A>"
-    return port_url
+    return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), {page = "historical", epoch_begin = historical_bounds[1], epoch_end = historical_bounds[2], detail_view = "flows", port = port}, port)
 end
 
 function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperlink_suffix, add_flag)
    if flow == nil then return "" end
-   hyperlink_suffix = hyperlink_suffix or ""
 
    local cli_name = flowinfo2hostname(flow, "cli")
    local srv_name = flowinfo2hostname(flow, "srv")
@@ -925,9 +921,7 @@ function getSIPTableRows(info)
          interface.select(ifname)
          rtp_host = interface.getHostInfo(string_table_1)
          if(rtp_host ~= nil) then
-           string_table_1 = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..string_table_1.. "\">"
-           string_table_1 = string_table_1..sip_rtp_src_address_ip
-           string_table_1 = string_table_1.."</A>"
+           string_table_1 = hostinfo2detailshref(rtp_host, nil, sip_rtp_src_address_ip)
          end
        end
        show_rtp_stream = 1
@@ -955,9 +949,7 @@ function getSIPTableRows(info)
          interface.select(ifname)
          rtp_host = interface.getHostInfo(string_table_4)
          if(rtp_host ~= nil) then
-           string_table_4 = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?host="..string_table_4.. "\">"
-           string_table_4 = string_table_4..sip_rtp_dst_address_ip
-           string_table_4 = string_table_4.."</A>"
+           string_table_4 = hostinfo2detailshref(rtp_host, nil, sip_rtp_dst_address_ip)
          end
        end
        show_rtp_stream = 1

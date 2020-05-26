@@ -20,7 +20,7 @@ local ip_version = _GET["version"]
 -- #####################################################################
 
 function formatPeer(peer)
-   return '<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..peer..'">'..peer..'</A>'
+   return ip2detailshref(peer, nil, peer)
 end
 
 -- #####################################################################

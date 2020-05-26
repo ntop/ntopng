@@ -396,9 +396,7 @@ else
             interface.select(ifname)
             rtp_host = interface.getHostInfo(address_ip)
             if(rtp_host ~= nil) then
-              print('<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..address_ip.. '\\\">')
-              print(address_ip)
-              print('</A>')
+              print(hostinfo2detailshref(rtp_host, nil, address_ip))
             end
           else
             print(address_ip)
@@ -420,9 +418,7 @@ else
             interface.select(ifname)
             rtp_host = interface.getHostInfo(address_ip)
             if(rtp_host ~= nil) then
-              print('<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..address_ip.. '\\\">')
-              print(address_ip)
-              print('</A>')
+	      print(hostinfo2detailshref(rtp_host, nil, address_ip))
             end
           else
             print(address_ip)

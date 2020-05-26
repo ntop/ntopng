@@ -127,10 +127,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    if value["cli.allowed_host"] and not ifstats.isViewed then
-      src_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?" .. hostinfo2url(value,"cli").. "' data-toggle='tooltip' title='" ..cli_tooltip.. "' >".. shortenString(stripVlan(cli_name))
-      if(value["cli.systemhost"] == true) then src_key = src_key .. "&nbsp;<i class='fas fa-flag'></i>" end
-
-      src_key = src_key .. "</A>"
+      local src_name = shortenString(stripVlan(cli_name))
+      if(value["cli.systemhost"] == true) then src_name = src_name .. "&nbsp;<i class='fas fa-flag'></i>" end
+      src_key = hostinfo2detailshref(flow2hostinfo(value, "cli"), nil, src_name, cli_tooltip)
 
       if value["cli.port"] > 0 then
 	 src_port="<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
@@ -148,9 +147,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    end
 
    if value["srv.allowed_host"] and not ifstats.isViewed then
-      dst_key="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?".. hostinfo2url(value,"srv").. "' data-toggle='tooltip' title='" ..srv_tooltip.. "' >".. shortenString(stripVlan(srv_name))
-      if(value["srv.systemhost"] == true) then dst_key = dst_key .. "&nbsp;<i class='fas fa-flag'></i>" end
-      dst_key = dst_key .. "</A>"
+      local dst_name = shortenString(stripVlan(srv_name))
+      if(value["srv.systemhost"] == true) then dst_name = dst_name .. "&nbsp;<i class='fas fa-flag'></i>" end
+      dst_key = hostinfo2detailshref(flow2hostinfo(value, "srv"), nil, dst_name, srv_tooltip)
 
       if value["srv.port"] > 0 then
 	 dst_port="<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"

@@ -123,14 +123,8 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    print(url.."'>")
 	    print("<i class='fas fa-search-plus fa-lg'></i>")
 	    print("</A>")
-
 	    print("\",\n")
-	    print(" \"column_server_ip\" : \"<A HREF='")
-	    url = ntop.getHttpPrefix().."/lua/host_details.lua?" ..hostinfo2url(value["server.ip"]) .. "&page=http"
-	    print(url.."'>")
-	    print(value["server.ip"])
-	    print("</A>\"")
-	    print(",\n \"column_url\" : \""..url.."\"")
+	    print(" \"column_server_ip\" : \""..ip2detailshref(value["server.ip"], value["server.vlan"], {page = "http"}, value["server.ip"]).."\"")
 	    print(",\n \"column_bytes_sent\" : \"" .. bytesToSize(value["bytes.sent"]))
 	    print("\",\n \"column_bytes_rcvd\" : \"" .. bytesToSize(value["bytes.rcvd"]))
 	    print("\",\n \"column_http_requests\" : \"" .. formatValue(value["http.requests"]))

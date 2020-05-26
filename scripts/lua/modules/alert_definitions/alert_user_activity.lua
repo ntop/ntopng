@@ -87,7 +87,7 @@ local function userActivityFormatter(ifid, alert, info)
         local host = decoded.params[1]
         local hostinfo = hostkey2hostinfo(host)
         local hostname = hostinfo2label(hostinfo)
-        local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
+        local host_url = hostinfo2detailshref(hostinfo, {ifid = decoded.ifid}, hostname)
         return i18n('user_activity.deleted_host_data', {user=user, ifname=ifname, host=host_url})
 
       elseif decoded.name == 'delete_network' and decoded.params[1] ~= nil then
@@ -129,7 +129,7 @@ local function userActivityFormatter(ifid, alert, info)
           local host = decoded.params[1]
           local hostinfo = hostkey2hostinfo(host)
           local hostname = hostinfo2label(hostinfo)
-          local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
+	  local host_url = hostinfo2detailshref(hostinfo, {ifid = decoded.ifid}, hostname)
           return i18n('user_activity.exported_data_host', {user=user, mode=mode, host=host_url})
         else
           return i18n('user_activity.exported_data', {user=user, mode=mode})
@@ -139,7 +139,7 @@ local function userActivityFormatter(ifid, alert, info)
         local host = decoded.params[1]
         local hostinfo = hostkey2hostinfo(host)
         local hostname = hostinfo2label(hostinfo)
-        local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..(decoded.ifid or ifid).."&host="..host.."\">"..hostname .."</a>" 
+	local host_url = hostinfo2detailshref(hostinfo, {ifid = decoded.ifid}, hostname)
         return i18n('user_activity.host_json_downloaded', {user=user, host=host_url})
 
       elseif decoded.name == 'live_flows_extraction' and decoded.params[1] ~= nil and decoded.params[2] ~= nil then
@@ -154,7 +154,8 @@ local function userActivityFormatter(ifid, alert, info)
           local host = decoded.params[1]
           local hostinfo = hostkey2hostinfo(host)
           local hostname = hostinfo2label(hostinfo)
-          local host_url = "<a href=\"".. ntop.getHttpPrefix() .. "/lua/host_details.lua?ifid="..decoded.ifid.."&host="..host.."\">"..hostname .."</a>" 
+	  local host_url = hostinfo2detailshref(hostinfo, {ifid = decoded.ifid}, hostname)
+
           if not isEmptyString(decoded.params[3]) then
             local filter = decoded.params[3]
             return i18n('user_activity.live_capture_host_with_filter', {user=user, host=host_url, filter=filter, ifname=ifname})

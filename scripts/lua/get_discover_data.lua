@@ -214,8 +214,7 @@ for idx, _ in pairsByValues(sorted, sOrder) do
 
   local rec = {}
 
-  rec.column_ip = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/host_details.lua?host=]]
-    ..tostring(el["ip"]).. [[">]] ..tostring(el["ip"]).. [[</a>]]
+  rec.column_ip = ip2detailshref(el["ip"], nil, nil, el["ip"])
     ..ternary(el["icon"], "&nbsp;" ..(el["icon"] or "").. "&nbsp;", "")
     ..ternary(el["ghost"], " <font color=red>" ..(discover.ghost_icon or "").. "</font>", "")
 

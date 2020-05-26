@@ -254,11 +254,6 @@ else
       print('<div style=\"display:none;\" id=\"host_purged\" class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle"></i>&nbsp;'..i18n("details.host_purged")..'</div>')
    end
 
-   local url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info)
-   if _GET["tskey"] ~= nil then
-      url = url .. "&tskey=" .. _GET["tskey"]
-   end
-
    local title = i18n("host_details.host")..": "..host_info["host"]
    if host["broadcast_domain_host"] then
       title = title.." <i class='fas fa-sitemap' aria-hidden='true' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
@@ -268,8 +263,8 @@ else
       title = title.." <i class='fas fa-flash' aria-hidden='true' title='DHCP Host'></i>"
    end
 
-local url = ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(host_info)
-local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(host["mac"])
+   local url = hostinfo2detailsurl(host_info, {tskey = _GET["tskey"]})
+   local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(host["mac"])
 
    page_utils.print_navbar(title, url,
 			   {
@@ -457,11 +452,8 @@ if((page == "overview") or (page == nil)) then
 	 print('</td></tr>')
       end
 
-      local snmp_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=snmp";
-
       if has_snmp_location then
-         local url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=snmp";
-         print_host_snmp_location(host["mac"], url)
+         print_host_snmp_location(host["mac"], hostinfo2detailsurl(host_info, {page = "snmp"}))
       end
 
       print("</tr>")
@@ -485,8 +477,8 @@ if((page == "overview") or (page == nil)) then
 
       print[[</td><td><span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
       print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
-      print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
-      print[[<i class="fas fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
+      print[[&nbsp;]]
+      print(hostinfo2detailshref(host, {page = "config"}, '<i class="fas fa-sm fa-cog" aria-hidden="true"></i>'))
       print("</td></tr>")
    else
       if(host["mac"] ~= nil) then
@@ -543,8 +535,7 @@ if((page == "overview") or (page == nil)) then
 	 print(" <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>")
       end
 
-      print[[ <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
-      print[[<i class="fas fa-sm fa-cog" aria-hidden="true" title="Set Host Alias"></i></a></span> ]]
+      print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))
 
       if(host["localhost"] == true) then
 	 print('<span class="badge badge-success">'..i18n("details.label_local_host")..'</span>')
@@ -572,15 +563,14 @@ if((page == "overview") or (page == nil)) then
    end
 
 if(host["num_alerts"] > 0) then
-   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li> <A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=alerts'><span id=num_alerts>"..host["num_alerts"] .. "</span></a> <span id=alerts_trend></span></td></tr>\n")
+   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host_info, {page = "alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").."<span id=alerts_trend></span></td></tr>\n")
 end
 
 if isScoreEnabled() then
    local score_chart = ""
 
    if charts_available then
-      score_chart = '<a href="'.. ntop.getHttpPrefix() ..'/lua/host_details.lua?page=historical&ifid='.. ifId ..
-	 '&host='.. hostinfo2hostkey(host_info) .. '&tskey=' .. tskey ..'&ts_schema=host:score"><i class="fas fa-chart-area fa-sm"></i></a>'
+      score_chart = hostinfo2detailshref(host_info, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
    end
 
    print("<tr><th>"..i18n("score").." " .. score_chart .."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
@@ -693,20 +683,19 @@ if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.
       print('<i class="fas fa-circle fa-sm" title="'.. i18n("host_config.mud_is_recording") ..'" style="margin-left: 0.5em; color: #FC2222"></i>')
    end
 
-   print('<a style="margin-left: 0.7em" href="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..hostinfo2hostkey(host_info)..'&page=config"><i class="fas fa-cog"></i></a>\n')
    printMudRecordingActions()
    print("</td></tr>\n")
 end
 
 if(host["active_alerted_flows"] > 0) then
-  print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li> <a href='".. ntop.getHttpPrefix() .."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=flows&flow_status=alerted'><span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span></a> <span id=flow_alerts_trend></span></td></tr>\n")
+   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host_info, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
 end
 
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
 
    local msg = ""
    local target = ""
-   local quotas_page = "/lua/host_details.lua?"..hostinfo2url(host).."&page=quotas&ifid="..ifId
+   local quotas_page = hostinfo2detailsurl(host, {page = "quota"})
    local policies_page = "/lua/if_stats.lua?ifid="..ifId.."&page=filtering&pool="..host_pool_id
 
       if host["has_blocking_quota"] then
@@ -1189,9 +1178,8 @@ end
 print (ntop.getHttpPrefix())
 print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
 
-
       if(num_expired_client_flows > 0) then
-print [[
+	 print [[
   	   do_pie("#flowsDistributionClientDuration", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/get_host_flow_stats.lua', { mode: "client_duration", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
@@ -1231,7 +1219,7 @@ print [[/lua/get_host_flow_stats.lua', { mode: "server_frequency", ifid: "]] pri
 	if((sent > 0) or (rcvd > 0)) then
 	    print("<tr><th>")
 	    if(charts_available) then
-	       print("<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info) .. "&page=historical&ts_schema=host:l4protos&l4proto=".. k .."\">".. label .."</A>")
+	       print(hostinfo2detailshref(host_info, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, label))
 	    else
 	       print(label)
 	    end
@@ -1310,7 +1298,6 @@ elseif((page == "ndpi")) then
   </table>]]
 
       local direction_filter = ""
-      local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."&page=ndpi";
 
       if(direction ~= nil) then
 	 direction_filter = '<span class="fas fa-filter"></span>'
@@ -1318,9 +1305,9 @@ elseif((page == "ndpi")) then
 
       print('<div class="dt-toolbar btn-toolbar float-right">')
       print('<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="direction_dropdown">')
-      print('<li><a href="'..base_url..'">'..i18n("all")..'</a></li>')
-      print('<li><a href="'..base_url..'&direction=sent">'..i18n("ndpi_page.sent_only")..'</a></li>')
-      print('<li><a href="'..base_url..'&direction=recv">'..i18n("ndpi_page.received_only")..'</a></li>')
+      print('<li>'..hostinfo2detailshref(host_info, {page = "ndpi"}, i18n("all"))..'</li>')
+      print('<li>'..hostinfo2detailshref(host_info, {page = "ndpi", direction = "sent"}, i18n("ndpi_page.sent_only"))..'</li>')
+      print('<li>'..hostinfo2detailshref(host_info, {page = "ndpi", direction = "recv"}, i18n("ndpi_page.received_only"))..'</li>')
       print('</ul></div></div>')
 
       print [[
@@ -1437,7 +1424,7 @@ setInterval(update_ndpi_categories_table, 5000);
 	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fas fa-flask\"></i>"}).." ")
       end
 
-      print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fas fa-exclamation-triangle\" style=\"color: orange;\"></i>",url=ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&host=".._GET["host"].."&page=historical"}))
+      print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fas fa-exclamation-triangle\" style=\"color: orange;\"></i>",url = hostinfo2detailsurl(host_info, {page = "historical"})}))
       print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
       print("</ul>")
 
@@ -2020,7 +2007,7 @@ if(num > 0) then
 
    if(info ~= nil) then
       if(info["name"] ~= nil) then n = info["name"] else n = hostinfo2label(info) end
-      url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(info).."\">"..n.."</A>"
+      url = hostinfo2detailshref(info, nil, n)
    else
       url = k
    end
@@ -2049,7 +2036,7 @@ if(num > 0) then
    info = interface.getHostInfo(k)
 	 if(info ~= nil) then
 	    if(info["name"] ~= nil) then n = info["name"] else n = hostinfo2label(info) end
-	    url = "<A HREF=\""..ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&"..hostinfo2url(info).."\">"..n.."</A>"
+	    url = hostinfo2detailshref(info, nil, n)
 	 else
 	    url = k
 	 end
@@ -2247,7 +2234,7 @@ local tags = {
    l4proto = _GET["l4proto"],
 }
 
-local url = ntop.getHttpPrefix()..'/lua/host_details.lua?ifid='..ifId..'&'..host_url..'&page=historical'
+local url = hostinfo2detailsurl(host_info, {page = "historical"})
 
 graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_protocols = "top:host:ndpi",

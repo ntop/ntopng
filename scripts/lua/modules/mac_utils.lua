@@ -19,7 +19,7 @@ function printMacHosts(mac)
       end
 
       local url = ntop.getHttpPrefix().."/lua/hosts_stats.lua?mac="..mac
-      local host_url = ntop.getHttpPrefix().."/lua/host_details.lua?"..hostinfo2url(first_host)
+      local host_url = hostinfo2detailsurl(first_host)
       local host_label = first_host["ip"]
 
       if num_hosts > 2 then

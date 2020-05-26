@@ -85,10 +85,7 @@ end
 -- In case there is some leftover do print it as "Other"
 if accumulate < tot then
    local other_label = i18n("other")
-   local url = ntop.getHttpPrefix().."/lua/host_details.lua?page=flows"
-   if host_key then
-      url = url.."&host="..host_key
-   end
+   local url = hostinfo2detailsurl(host_info, {page = "flows"})
 
    if(num > 0) then
       print (",\n")

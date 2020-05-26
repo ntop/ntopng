@@ -45,18 +45,16 @@ function isVoip(key,value)
         return 0
       end
 
-
-
 function spiltSipID( id )
-  id = string.gsub(id, "<sip:", "")
-  id = string.gsub(id, ">", "")
-  port = split(id,":")
-  sip_party = split(port[1],"@")
-  host = interface.getHostInfo(sip_party[2])
-  if (host ~= nil) then
-    return('<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='.. sip_party[2]..'">'.. id.. '</A>')
-  end
-  return(id)
+   id = string.gsub(id, "<sip:", "")
+   id = string.gsub(id, ">", "")
+   port = split(id,":")
+   sip_party = split(port[1],"@")
+   host = interface.getHostInfo(sip_party[2])
+   if (host ~= nil) then
+      return(hostinfo2detailshref(host, nil, id))
+   end
+   return(id)
 end
 
 -- RTP

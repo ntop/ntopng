@@ -64,7 +64,7 @@ for peer,value in pairsByValues(peers, rev) do
           host["name"] = resolveAddress(hostinfo)
         end
 
-	      local r = {host=peer, name=host.name, url="<A HREF='"..ntop.getHttpPrefix().."/lua/host_details.lua?host=".. hostinfo2hostkey(hostinfo) .."'>"..host.name .."</A>", l7proto=proto, l7proto_url="<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?host=".. hostinfo2hostkey(hostinfo) .."&application="..proto.."'>"..proto.."</A>", traffic=peers_proto[peer][proto]}
+	local r = {host=peer, name=host.name, url=hostinfo2detailshref(hostinfo, nil, host.name), l7proto=proto, l7proto_url="<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?host=".. hostinfo2hostkey(hostinfo) .."&application="..proto.."'>"..proto.."</A>", traffic=peers_proto[peer][proto]}
 
 	      res[#res + 1] = r
 	    end

@@ -257,6 +257,7 @@ function top_talkers_utils.enrichRecordInformation(class_key, rec, show_vlan)
       url_target = url_target .. "&tskey=" .. rec.address
 
       url = ntop.getHttpPrefix()..'/lua/host_details.lua?always_show_hist=true&host='
+
       -- Use the host alias as label, if set
       local alt_name = ip2label(address)
       if not isEmptyString(alt_name) and (alt_name ~= address) then

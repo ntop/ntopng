@@ -17,13 +17,13 @@ custom_column_utils.available_custom_columns = {
    { "traffic_sent", i18n("flows_page.total_bytes_sent"), "bytes.sent", bytesToSize, "right" },
    { "traffic_rcvd", i18n("flows_page.total_bytes_rcvd"), "bytes.rcvd", bytesToSize, "right" },
    { "traffic_unknown", i18n("flows_page.total_bytes_unknown"), "bytes.ndpi.unknown", bytesToSize, "right" },
-   { "num_flows_as_client", i18n("flows_page.flows_as_client"), "active_flows.as_client", format_utils.formatValue, "center", "page=flows" },
-   { "num_flows_as_server", i18n("flows_page.flows_as_server"), "active_flows.as_server", format_utils.formatValue, "center", "page=flows" },
+   { "num_flows_as_client", i18n("flows_page.flows_as_client"), "active_flows.as_client", format_utils.formatValue, "center", {page = "flows"} },
+   { "num_flows_as_server", i18n("flows_page.flows_as_server"), "active_flows.as_server", format_utils.formatValue, "center", {page = "flows"} },
    { "total_num_misbehaving_flows_as_client", i18n("total_outgoing_misbehaving_flows"), "misbehaving_flows.as_client", format_utils.formatValue, "center" },
    { "total_num_misbehaving_flows_as_server", i18n("total_incoming_misbehaving_flows"), "misbehaving_flows.as_server", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_client", i18n("total_outgoing_unreachable_flows"), "unreachable_flows.as_client", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_server", i18n("total_incoming_unreachable_flows"), "unreachable_flows.as_server", format_utils.formatValue, "center" },
-   { "alerts", i18n("show_alerts.engaged_alerts"), "num_alerts", format_utils.formatValue, "center", "page=alerts" },
+   { "alerts", i18n("show_alerts.engaged_alerts"), "num_alerts", format_utils.formatValue, "center", {page = "alerts"} },
    { "total_alerts", i18n("alerts_dashboard.total_alerts"), "total_alerts", format_utils.formatValue, "center" },
    { "score", i18n("score"), "score", format_utils.formatValue, "center", nil, (not isScoreEnabled()) }
 }
@@ -47,10 +47,7 @@ function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatte
 	    end
 
 	   if((c[6] ~= nil) and (tonumber(val) ~= 0)) then
-	      local url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host=" ..
-		 hostinfo2hostkey({host = host_stats["ip"], vlan = host_stats["vlan"]}) .. "&" .. c[6]
-
-	      val = '<a href="' .. url .. '">' .. val .. '</a>'
+	      val = hostinfo2detailshref(host_stats, c[6], val)
 	   end
 	 else
 	    val = host_stats[c[3]]

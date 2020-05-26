@@ -1424,6 +1424,85 @@ function isSpecialMac(mac)
   return false
 end
 
+-- ##############################################
+
+local function params_page_equals(href_params, page_name)
+   return href_params and href_params["page"] == page_name
+end
+
+-- ##############################################
+
+-- @brief Implements the logic to decide whether to show or not the url for a given `host_info`
+local function hostdetails_exists(host_info, hostdetails_params)
+   if params_page_equals(hostdetails_params, "historical") then
+      if not areHostL7TimeseriesEnabled(interface.getId()) then
+	 return false
+      end
+   end
+
+   return true
+end
+
+-- ##############################################
+
+-- @brief Generates an host_details.lua url (if available)
+-- @param host_info A lua table containing at least keys `host` and `vlan` or a full lua table generated with Host::lua
+-- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
+-- @return A string containing the url (if available) or an empty string when the url is not available
+function hostinfo2detailsurl(host_info, href_params)
+   local res = ''
+
+   if hostdetails_exists(host_info, href_params) then
+      local url_params = table.tconcat(href_params or {}, "=", "&")
+
+      res = string.format("%s/lua/host_details.lua?%s%s%s",
+			  ntop.getHttpPrefix(),
+			  hostinfo2url(host_info),
+			  isEmptyString(url_params) and '' or '&',
+			  url_params,
+			  href_value)
+
+   end
+
+   return res
+end
+
+-- ##############################################
+
+-- @brief Generates an host_details.lua a href link (if availble), starting from an `host_info` structure
+-- @param host_info A lua table containing at least keys `host` and `vlan` or a full lua table generated with Host::lua
+-- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
+-- @param href_value A string containing the visible value shown between a href tags
+-- @param href_tooltip A string containing a tooltip shown when hovering the mouse on the link
+-- @return A string containing the a href link or a plain string without a href
+function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip)
+   local hostdetails_url = hostinfo2detailsurl(host_info, href_params)
+
+   if not isEmptyString(hostdetails_url) then
+      res = string.format("<a href='%s' data-toggle='tooltip' title='%s'>%s</a>",
+			  hostdetails_url, href_tooltip or '', href_value or '')
+   else
+      res = href_value or ''
+   end
+
+   return res
+end
+
+-- ##############################################
+
+-- @brief Generates an host_details.lua a href link (if available), starting from an ip and a vlan
+-- @param ip A string with a valid ip address
+-- @param vlan A string or a number with a VLAN or nil when VLAN information is not available
+-- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
+-- @param href_value A string containing the visible value shown between a href tags
+-- @param href_tooltip A string containing a tooltip shown when hovering the mouse on the link
+-- @return A string containing the a href link or a plain string without a href
+function ip2detailshref(ip, vlan, href_params, href_value, href_tooltip)
+   return hostinfo2detailshref({host = ip, vlan = tonumber(vlan) or 0}, href_params, href_value, href_tooltip)
+end
+
+-- ##############################################
+
 -- Flow Utils --
 
 function flowinfo2hostname(flow_info, host_type, alerts_view)
@@ -1557,6 +1636,16 @@ end
 
 -- ##############################################
 
+function flow2hostinfo(host_info, host_type)
+   if host_type == "cli" then
+      return({host = host_info["cli.ip"], vlan = host_info["cli.vlan"]})
+   elseif host_type == "srv" then
+      return({host = host_info["srv.ip"], vlan = host_info["srv.vlan"]})
+   end
+end
+
+-- ##############################################
+
 -- URL Util --
 
 --
@@ -1670,50 +1759,50 @@ end
 --
 
 function hostinfo2url(host_info, host_type, novlan)
-  local rsp = ''
-  -- local version = 0
-  local version = 1
+   local rsp = ''
+   -- local version = 0
+   local version = 1
 
-  if(host_type == "cli") then
-    if(host_info["cli.ip"] ~= nil) then
-      rsp = rsp..'host='..host_info["cli.ip"]
-    end
-
-  elseif(host_type == "srv") then
-    if(host_info["srv.ip"] ~= nil) then
-      rsp = rsp..'host='..host_info["srv.ip"]
-    end
-  else
-
-    if((type(host_info) ~= "table")) then
-      host_info = hostkey2hostinfo(host_info)
-    end
-
-    if(host_info["host"] ~= nil) then
-      rsp = rsp..'host='..host_info["host"]
-    elseif(host_info["ip"] ~= nil) then
-      rsp = rsp..'host='..host_info["ip"]
-    elseif(host_info["mac"] ~= nil) then
-      rsp = rsp..'host='..host_info["mac"]
-    --Note: the host'name' is not supported (not accepted by lint)
-    --elseif(host_info["name"] ~= nil) then
-    --  rsp = rsp..'host='..host_info["name"]
-    end
-  end
-
-  if(novlan == nil) then
-    if((host_info["vlan"] ~= nil) and (tonumber(host_info["vlan"]) ~= 0)) then
-      if(version == 0) then
-        rsp = rsp..'&vlan='..tostring(host_info["vlan"])
-      elseif(version == 1) then
-        rsp = rsp..'@'..tostring(host_info["vlan"])
+   if(host_type == "cli") then -- TODO: change with flow2hostinfo(host_info, "cli")
+      if(host_info["cli.ip"] ~= nil) then
+	 rsp = rsp..'host='..host_info["cli.ip"]
       end
-    end
-  end
 
-  if(debug_host) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"HOST2URL => ".. rsp .. "\n") end
+   elseif(host_type == "srv") then -- TODO: change with flow2hostinfo(host_info, "srv")
+      if(host_info["srv.ip"] ~= nil) then
+	 rsp = rsp..'host='..host_info["srv.ip"]
+      end
+   else
 
-  return rsp
+      if((type(host_info) ~= "table")) then
+	 host_info = hostkey2hostinfo(host_info)
+      end
+
+      if(host_info["host"] ~= nil) then
+	 rsp = rsp..'host='..host_info["host"]
+      elseif(host_info["ip"] ~= nil) then
+	 rsp = rsp..'host='..host_info["ip"]
+      elseif(host_info["mac"] ~= nil) then
+	 rsp = rsp..'host='..host_info["mac"]
+	 --Note: the host'name' is not supported (not accepted by lint)
+	 --elseif(host_info["name"] ~= nil) then
+	 --  rsp = rsp..'host='..host_info["name"]
+      end
+   end
+
+   if(novlan == nil) then
+      if((host_info["vlan"] ~= nil) and (tonumber(host_info["vlan"]) ~= 0)) then
+	 if(version == 0) then
+	    rsp = rsp..'&vlan='..tostring(host_info["vlan"])
+	 elseif(version == 1) then
+	    rsp = rsp..'@'..tostring(host_info["vlan"])
+	 end
+      end
+   end
+
+   if(debug_host) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"HOST2URL => ".. rsp .. "\n") end
+
+   return rsp
 end
 
 
