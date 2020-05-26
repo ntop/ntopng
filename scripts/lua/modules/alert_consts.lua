@@ -169,7 +169,7 @@ function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
       value = resolveAddress(host_info)
 
       if host_info ~= nil then
-	 value = hostinfo2detailshref(host_info, {page = "historical", epoch_begin = epoch_begin, epoch_end = epoch_end}, value)
+	 value = hostinfo2detailshref(host_info, {page = "historical", epoch_begin = epoch_begin, epoch_end = epoch_end}, value, nil, true --[[ check if the link brings to an active page]])
       end
    elseif entity_type == "interface" then
       value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid..

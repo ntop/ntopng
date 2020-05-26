@@ -528,7 +528,7 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
      host_name = host_name.." <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
   end
 
-  return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name)
+  return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name, nil, true --[[ perform link existance checks --]])
 end
 
 local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
@@ -537,7 +537,7 @@ local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
     end
 
     -- TODO port filter
-    return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), {page = "historical", epoch_begin = historical_bounds[1], epoch_end = historical_bounds[2], detail_view = "flows", port = port}, port)
+    return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), {page = "historical", epoch_begin = historical_bounds[1], epoch_end = historical_bounds[2], detail_view = "flows", port = port}, port, port, true --[[ check href existance --]])
 end
 
 function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperlink_suffix, add_flag)
