@@ -1426,18 +1426,17 @@ end
 
 -- ##############################################
 
-local function params_page_equals(href_params, page_name)
-   return href_params and href_params["page"] == page_name
-end
-
--- ##############################################
-
 -- @brief Implements the logic to decide whether to show or not the url for a given `host_info`
 local function hostdetails_exists(host_info, hostdetails_params)
-   if params_page_equals(hostdetails_params, "historical") then
+   if not hostdetails_params then
+      hostdetails_params = {}
+   end
+
+   if hostdetails_params["page"] == "historical" then
       if not areHostL7TimeseriesEnabled(interface.getId()) then
 	 return false
       end
+
    end
 
    return true

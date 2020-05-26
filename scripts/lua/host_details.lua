@@ -1708,7 +1708,7 @@ print [[
    var url_update = "]]
 
 -- NOTE: host parameter already contained in page_params below
-local base_url = ntop.getHttpPrefix().."/lua/host_details.lua?ifid="..ifId.."&page=flows";
+local base_url = hostinfo2detailsurl(host_info, {page = "flows", tskey = _GET["tskey"]})
 
 local page_params = {
    application = _GET["application"],
@@ -1720,8 +1720,6 @@ local page_params = {
    traffic_type = _GET["traffic_type"],
    version = _GET["version"],
    l4proto = _GET["l4proto"],
-   host = hostinfo2hostkey(host_info),
-   tskey = _GET["tskey"],
 }
 
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
