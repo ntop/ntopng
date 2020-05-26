@@ -359,6 +359,23 @@ end
 
 -- #################################
 
+function alert_utils.getNumAlertsPerHour(what, epoch_begin, epoch_end, alert_type, alert_severity)
+   local results = {}
+
+   local opts = {
+      epoch_begin = epoch_begin,
+      epoch_end = epoch_end,
+      alert_type = alert_type,
+      alert_severity = alert_severity,
+   }
+
+   results = performAlertsQuery("select (alert_tstamp - alert_tstamp % 3600) as hour, count(*) count", what, opts, nil, "hour")
+
+   return results
+end
+
+-- #################################
+
 local function refreshAlerts(ifid)
    ntop.delCache(string.format("ntopng.cache.alerts.ifid_%d.has_alerts", ifid))
    ntop.delCache("ntopng.cache.update_alerts_stats_time")
