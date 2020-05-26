@@ -1763,14 +1763,14 @@ function hostinfo2url(host_info, host_type, novlan)
    -- local version = 0
    local version = 1
 
-   if(host_type == "cli") then -- TODO: change with flow2hostinfo(host_info, "cli")
+   if(host_type == "cli") then
       if(host_info["cli.ip"] ~= nil) then
-	 rsp = rsp..'host='..host_info["cli.ip"]
+	 rsp = rsp..'host='..hostinfo2hostkey(flow2hostinfo(host_info, "cli"))
       end
 
-   elseif(host_type == "srv") then -- TODO: change with flow2hostinfo(host_info, "srv")
+   elseif(host_type == "srv") then
       if(host_info["srv.ip"] ~= nil) then
-	 rsp = rsp..'host='..host_info["srv.ip"]
+	 rsp = rsp..'host='..hostinfo2hostkey(flow2hostinfo(host_info, "srv"))
       end
    else
 
