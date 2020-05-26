@@ -1456,8 +1456,10 @@ local function hostdetails_exists(host_info, hostdetails_params)
       if hostdetails_params["ts_schema"] then
 	 -- A ts_schema has been requested, let's see if it exists
 	 local ts_utils = require("ts_utils_core")
+	 local tags = table.merge(host_info, hostdetails_params)
+	 if not tags["ifid"] then tags["ifid"] = interface.getId() end
 
-	 if not ts_utils.exists(hostdetails_params["ts_schema"], hostdetails_params) then
+	 if not ts_utils.exists(hostdetails_params["ts_schema"], tags) then
 	    -- If here, the requested schema, along with its hostdetails_params doesn't exist
 	    return false
 	 end
