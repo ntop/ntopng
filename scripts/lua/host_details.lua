@@ -263,7 +263,8 @@ else
       title = title.." <i class='fas fa-flash' aria-hidden='true' title='DHCP Host'></i>"
    end
 
-   local url = hostinfo2detailsurl(host_info, {tskey = _GET["tskey"]})
+   local url = hostinfo2detailsurl(host, {tskey = _GET["tskey"]})
+
    local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(host["mac"])
 
    page_utils.print_navbar(title, url,
@@ -453,7 +454,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if has_snmp_location then
-         print_host_snmp_location(host["mac"], hostinfo2detailsurl(host_info, {page = "snmp"}))
+         print_host_snmp_location(host["mac"], hostinfo2detailsurl(host, {page = "snmp"}))
       end
 
       print("</tr>")
@@ -563,14 +564,14 @@ if((page == "overview") or (page == nil)) then
    end
 
 if(host["num_alerts"] > 0) then
-   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host_info, {page = "alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").."<span id=alerts_trend></span></td></tr>\n")
+   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("show_alerts.engaged_alerts").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "alerts"}, "<span id=num_alerts>"..host["num_alerts"] .. "</span>").."<span id=alerts_trend></span></td></tr>\n")
 end
 
 if isScoreEnabled() then
    local score_chart = ""
 
    if charts_available then
-      score_chart = hostinfo2detailshref(host_info, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
+      score_chart = hostinfo2detailshref(host, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
    end
 
    print("<tr><th>"..i18n("score").." " .. score_chart .."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
@@ -688,7 +689,7 @@ if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.
 end
 
 if(host["active_alerted_flows"] > 0) then
-   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host_info, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
+   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
 end
 
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
@@ -1219,7 +1220,7 @@ print [[/lua/get_host_flow_stats.lua', { mode: "server_frequency", ifid: "]] pri
 	if((sent > 0) or (rcvd > 0)) then
 	    print("<tr><th>")
 	    if(charts_available) then
-	       print(hostinfo2detailshref(host_info, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, label))
+	       print(hostinfo2detailshref(host, {page = "historical", ts_schema = "host:l4protos", l4proto = k}, label))
 	    else
 	       print(label)
 	    end
@@ -1305,9 +1306,9 @@ elseif((page == "ndpi")) then
 
       print('<div class="dt-toolbar btn-toolbar float-right">')
       print('<div class="btn-group float-right"><button class="btn btn-link dropdown-toggle" data-toggle="dropdown">Direction ' .. direction_filter .. '<span class="caret"></span></button> <ul class="dropdown-menu scrollable-dropdown" role="menu" id="direction_dropdown">')
-      print('<li>'..hostinfo2detailshref(host_info, {page = "ndpi"}, i18n("all"))..'</li>')
-      print('<li>'..hostinfo2detailshref(host_info, {page = "ndpi", direction = "sent"}, i18n("ndpi_page.sent_only"))..'</li>')
-      print('<li>'..hostinfo2detailshref(host_info, {page = "ndpi", direction = "recv"}, i18n("ndpi_page.received_only"))..'</li>')
+      print('<li>'..hostinfo2detailshref(host, {page = "ndpi"}, i18n("all"))..'</li>')
+      print('<li>'..hostinfo2detailshref(host, {page = "ndpi", direction = "sent"}, i18n("ndpi_page.sent_only"))..'</li>')
+      print('<li>'..hostinfo2detailshref(host, {page = "ndpi", direction = "recv"}, i18n("ndpi_page.received_only"))..'</li>')
       print('</ul></div></div>')
 
       print [[
@@ -1424,7 +1425,7 @@ setInterval(update_ndpi_categories_table, 5000);
 	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fas fa-flask\"></i>"}).." ")
       end
 
-      print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fas fa-exclamation-triangle\" style=\"color: orange;\"></i>",url = hostinfo2detailsurl(host_info, {page = "historical"})}))
+      print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fas fa-exclamation-triangle\" style=\"color: orange;\"></i>",url = hostinfo2detailsurl(host, {page = "historical"})}))
       print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
       print("</ul>")
 
@@ -1708,7 +1709,7 @@ print [[
    var url_update = "]]
 
 -- NOTE: host parameter already contained in page_params below
-local base_url = hostinfo2detailsurl(host_info, {page = "flows", tskey = _GET["tskey"]})
+local base_url = hostinfo2detailsurl(host, {page = "flows", tskey = _GET["tskey"]})
 
 local page_params = {
    application = _GET["application"],
@@ -2232,7 +2233,7 @@ local tags = {
    l4proto = _GET["l4proto"],
 }
 
-local url = hostinfo2detailsurl(host_info, {page = "historical"})
+local url = hostinfo2detailsurl(host, {page = "historical"})
 
 graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_protocols = "top:host:ndpi",
