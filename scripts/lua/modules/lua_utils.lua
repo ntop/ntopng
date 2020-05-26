@@ -1432,11 +1432,36 @@ local function hostdetails_exists(host_info, hostdetails_params)
       hostdetails_params = {}
    end
 
-   if hostdetails_params["page"] == "historical" then
+   if hostdetails_params["page"] ~= "historical" and not hostdetails_params["ts_schema"] then
+      -- If the requested host_details.lua page is not the "historical" page
+      -- and if no ts_schema has been requested
+      -- then we check for host existance in memory, to make sure the page host_details.lua
+      -- won't bring to an empty page.
+      if not host_info["ipkey"] then
+	 -- host_info hasn't been generated with Host::lua so we can try and
+	 -- see if the host is active
+	 local active_host = interface.getHostInfo(hostinfo2hostkey(host_info))
+	 if not active_host then
+	    return false
+	 end
+      end
+   else
+      -- If the requested page is the "historical" page, or if a ts_schema has been requested,
+      -- then we assume page host_details.lua
+      -- exists if the timeseries are enabled and if the requested timeseries exists for the host
       if not areHostL7TimeseriesEnabled(interface.getId()) then
 	 return false
       end
 
+      if hostdetails_params["ts_schema"] then
+	 -- A ts_schema has been requested, let's see if it exists
+	 local ts_utils = require("ts_utils_core")
+
+	 if not ts_utils.exists(hostdetails_params["ts_schema"], hostdetails_params) then
+	    -- If here, the requested schema, along with its hostdetails_params doesn't exist
+	    return false
+	 end
+      end
    end
 
    return true
@@ -1447,11 +1472,12 @@ end
 -- @brief Generates an host_details.lua url (if available)
 -- @param host_info A lua table containing at least keys `host` and `vlan` or a full lua table generated with Host::lua
 -- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
+-- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
 -- @return A string containing the url (if available) or an empty string when the url is not available
-function hostinfo2detailsurl(host_info, href_params)
+function hostinfo2detailsurl(host_info, href_params, href_check)
    local res = ''
 
-   if hostdetails_exists(host_info, href_params) then
+   if not href_check or hostdetails_exists(host_info, href_params) then
       local url_params = table.tconcat(href_params or {}, "=", "&")
 
       res = string.format("%s/lua/host_details.lua?%s%s%s",
@@ -1473,9 +1499,10 @@ end
 -- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
 -- @param href_value A string containing the visible value shown between a href tags
 -- @param href_tooltip A string containing a tooltip shown when hovering the mouse on the link
+-- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
 -- @return A string containing the a href link or a plain string without a href
-function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip)
-   local hostdetails_url = hostinfo2detailsurl(host_info, href_params)
+function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, href_check)
+   local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
 
    if not isEmptyString(hostdetails_url) then
       res = string.format("<a href='%s' data-toggle='tooltip' title='%s'>%s</a>",
@@ -1495,9 +1522,10 @@ end
 -- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
 -- @param href_value A string containing the visible value shown between a href tags
 -- @param href_tooltip A string containing a tooltip shown when hovering the mouse on the link
+-- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
 -- @return A string containing the a href link or a plain string without a href
-function ip2detailshref(ip, vlan, href_params, href_value, href_tooltip)
-   return hostinfo2detailshref({host = ip, vlan = tonumber(vlan) or 0}, href_params, href_value, href_tooltip)
+function ip2detailshref(ip, vlan, href_params, href_value, href_tooltip, href_check)
+   return hostinfo2detailshref({host = ip, vlan = tonumber(vlan) or 0}, href_params, href_value, href_tooltip, href_check)
 end
 
 -- ##############################################
