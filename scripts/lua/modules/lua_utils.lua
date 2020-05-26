@@ -1452,17 +1452,19 @@ local function hostdetails_exists(host_info, hostdetails_params)
       if not areHostL7TimeseriesEnabled(interface.getId()) then
 	 return false
       end
+      if not hostdetails_params["ts_schema"] then
+	 -- Default schema for hosts
+	 hostdetails_params["ts_schema"] = "host:traffic"
+      end
 
-      if hostdetails_params["ts_schema"] then
-	 -- A ts_schema has been requested, let's see if it exists
-	 local ts_utils = require("ts_utils_core")
-	 local tags = table.merge(host_info, hostdetails_params)
-	 if not tags["ifid"] then tags["ifid"] = interface.getId() end
+      -- A ts_schema has been requested, let's see if it exists
+      local ts_utils = require("ts_utils_core")
+      local tags = table.merge(host_info, hostdetails_params)
+      if not tags["ifid"] then tags["ifid"] = interface.getId() end
 
-	 if not ts_utils.exists(hostdetails_params["ts_schema"], tags) then
-	    -- If here, the requested schema, along with its hostdetails_params doesn't exist
-	    return false
-	 end
+      if not ts_utils.exists(hostdetails_params["ts_schema"], tags) then
+	 -- If here, the requested schema, along with its hostdetails_params doesn't exist
+	 return false
       end
    end
 
