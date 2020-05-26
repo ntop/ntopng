@@ -48,6 +48,8 @@ local function alertTypeDescription(v)
   if(alert_key) then
     return(alert_consts.alert_types[alert_key].i18n_description)
   end
+
+  return nil
 end
 
 -- ##############################################
@@ -2076,7 +2078,6 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   else
     msg = alert_json
     local description = alertTypeDescription(alert.alert_type)
-
     if(type(description) == "string") then
       -- localization string
       msg = i18n(description, msg)
@@ -2096,8 +2097,8 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
       local host = active_monitoring_utils.key2host(alert.alert_entity_val)
 
       if host and host.measurement then
-	 msg = msg .. ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='..
-	    host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
+	 msg = msg .. ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='
+           .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
       end
     else
       msg = msg .. alert_utils.getConfigsetAlertLink(alert_json)

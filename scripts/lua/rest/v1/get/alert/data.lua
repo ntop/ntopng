@@ -78,7 +78,10 @@ for _key,_value in ipairs(alerts) do
 
    local column_severity = alert_consts.alertSeverityLabel(tonumber(_value["alert_severity"]), true)
    local column_type     = alert_consts.alertTypeLabel(tonumber(_value["alert_type"]), true)
-   local column_msg      = alert_utils.formatAlertMessage(ifid, _value)
+   local column_count    = tonumber(_value["alert_counter"])
+   local column_score    = tonumber(_value["score"])
+   local alert_info      = alert_utils.getAlertInfo(_value)
+   local column_msg      = alert_utils.formatAlertMessage(ifid, _value, alert_info)
    local column_id = tostring(_value["rowid"])
    local column_date = _value["alert_tstamp"]
 
@@ -87,6 +90,8 @@ for _key,_value in ipairs(alerts) do
    record["duration"] = column_duration
    record["severity"] = column_severity
    record["type"] = column_type
+   record["count"] = column_count
+   record["score"] = column_score
    record["msg"] = column_msg
    record["entity"] = alert_entity
    record["entity_val"] = alert_entity_val
