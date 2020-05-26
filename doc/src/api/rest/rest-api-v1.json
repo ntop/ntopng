@@ -14,18 +14,18 @@
          "name":"Hosts",
          "description":"Everything about hosts"
       },
-	  {
-	     "name":"Alerts",
-	     "description":"Everything about alerts"
-	  },
-	  {
-	     "name":"Flows",
-	     "description":"Everything about flows"
-	  },
-	  {
-	     "name":"PCAP",
-	     "description":"Raw PCAP traffic"
-	  }
+      {
+         "name":"Alerts",
+         "description":"Everything about alerts"
+      },
+      {
+         "name":"Flows",
+         "description":"Everything about flows"
+      },
+      {
+         "name":"PCAP",
+         "description":"Raw PCAP traffic"
+      }
    ],
    "schemes":[
       "https",
@@ -227,7 +227,66 @@
             }
          }
       },
-
+      "/lua/rest/v1/get/flow/l4/counters.lua":{
+         "get":{
+            "tags":[
+               "Flows"
+            ],
+            "summary":"Get flow counters for L4 protocols",
+            "description":"Number of active flows per L4 protocol",
+            "operationId":"get_flow_l4_counters",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"ifid",
+                  "in":"query",
+                  "description":"Interface identifier",
+                  "required":true,
+                  "type":"integer",
+                  "format":"int32"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               },
+               "-2":{"description":"INVALID_INTERFACE"},
+               "-6":{"description":"INTERNAL_ERROR"}
+            }
+         }
+      },
+      "/lua/rest/v1/get/flow/l7/counters.lua":{
+         "get":{
+            "tags":[
+               "Flows"
+            ],
+            "summary":"Get flow counters for L7 protocols",
+            "description":"Number of active flows per L7 application protocol",
+            "operationId":"get_flow_l7_counters",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"ifid",
+                  "in":"query",
+                  "description":"Interface identifier",
+                  "required":true,
+                  "type":"integer",
+                  "format":"int32"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               },
+               "-2":{"description":"INVALID_INTERFACE"},
+               "-6":{"description":"INTERNAL_ERROR"}
+            }
+         }
+      },
       "/lua/pro/rest/v1/get/db/flows.lua":{
          "get":{
             "tags":[
