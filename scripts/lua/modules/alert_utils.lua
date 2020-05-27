@@ -360,8 +360,6 @@ end
 -- #################################
 
 function alert_utils.getNumAlertsPerHour(what, epoch_begin, epoch_end, alert_type, alert_severity)
-   local results = {}
-
    local opts = {
       epoch_begin = epoch_begin,
       epoch_end = epoch_end,
@@ -369,9 +367,15 @@ function alert_utils.getNumAlertsPerHour(what, epoch_begin, epoch_end, alert_typ
       alert_severity = alert_severity,
    }
 
-   results = performAlertsQuery("select (alert_tstamp - alert_tstamp % 3600) as hour, count(*) count", what, opts, nil, "hour")
+   return performAlertsQuery("select (alert_tstamp - alert_tstamp % 3600) as hour, count(*) count", what, opts, nil, "hour")
+end
 
-   return results
+-- #################################
+
+function alert_utils.getNumAlertsPerType(what)
+   local opts = {}
+
+   return performAlertsQuery("select alert_type id, count(*) count", what, opts, nil, "alert_type" --[[ group by ]])
 end
 
 -- #################################
