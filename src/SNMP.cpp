@@ -38,7 +38,7 @@ SNMP::SNMP() {
 
   if((udp_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     throw("Unable to start network discovery");
-  
+
   Utils::maximizeSocketBuffer(udp_sock, true /* RX */, 2 /* MB */);
   snmp_version = atoi(version);
   if(snmp_version > 1 /* v2c */) snmp_version = 1;
@@ -60,7 +60,7 @@ void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
   int len;
   u_char buf[1500];
   int operation = isGetNext ? SNMP_GETNEXT_REQUEST_TYPE : SNMP_GET_REQUEST_TYPE;
-  
+
   if((message = snmp_create_message())) {
     snmp_set_version(message, version);
     snmp_set_community(message, community);
@@ -87,7 +87,7 @@ void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
 
 int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
   int i = 0;
-  
+
   if(ntop->getGlobals()->isShutdown()
      || input_timeout(udp_sock, timeout) == 0) {
     /* Timeout or shutdown in progress */
@@ -126,7 +126,7 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param) {
   char *agent_host, *community;
   u_int timeout = 5, version = snmp_version, oid_idx = 0, idx = skip_first_param ? 2 : 1;
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
-    
+
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
   agent_host = (char*)lua_tostring(vm, idx++);
 
@@ -135,34 +135,37 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param) {
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
   oid[oid_idx++] = (char*)lua_tostring(vm, idx++);
-  
+
   /* Optional timeout: take the minimum */
   if(lua_type(vm, idx) == LUA_TNUMBER) {
     timeout = min(timeout, (u_int)lua_tointeger(vm, idx));
     idx++;
   }
-  
+
   /* Optional version */
   if(lua_type(vm, idx) == LUA_TNUMBER) {
     version = (u_int)lua_tointeger(vm, idx);
     idx++;
   }
-  
+
   /* Add additional OIDs */
   while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, idx) == LUA_TSTRING)) {
     oid[oid_idx++] = (char*)lua_tostring(vm, idx);
-    idx++;  
+    idx++;
   }
-  
+
   send_snmp_request(agent_host, community, isGetNext, oid, version);
-  
-  return(snmp_read_response(vm, timeout));
+
+  if(skip_first_param)
+    return(CONST_LUA_OK); /* This is an async call */
+  else
+    return(snmp_read_response(vm, timeout));
 }
 
 /* ******************************************* */
 
-int SNMP::get(lua_State* vm) {
-  return(snmp_get_fctn(vm, false, false /* don't skip first param */));
+int SNMP::get(lua_State* vm, bool skip_first_param) {
+  return(snmp_get_fctn(vm, false, skip_first_param));
 }
 
 /* ******************************************* */
@@ -176,37 +179,38 @@ int SNMP::getnext(lua_State* vm, bool skip_first_param) {
 void SNMP::snmp_fetch_responses(lua_State* vm) {
   int i = 0;
 
-  lua_newtable(vm);
+  if(ntop->getGlobals()->isShutdown()
+     || input_timeout(udp_sock, 1 /* 1 sec wait */) == 0) {
+    /* Timeout or shutdown in progress */
+  } else {
+    char buf[BUFLEN];
+    SNMPMessage *message;
+    char *sender_host, *oid_str, *value_str = NULL;
+    int sender_port, len;
 
-  while(true) {
-    if(ntop->getGlobals()->isShutdown()
-       || input_timeout(udp_sock, 0) == 0) {
-      /* Timeout or shutdown in progress */
-      break;
-    } else {
-      char buf[BUFLEN];
-      SNMPMessage *message;
-      char *sender_host, *oid_str, *value_str = NULL;
-      int sender_port, len;
+    len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
 
-      len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
-      if((message = snmp_parse_message(buf, len))) {
-
+    if((message = snmp_parse_message(buf, len))) {
       i = 0;
+
+      lua_newtable(vm);
+
       while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
 	if(value_str && (value_str[0] != '\0')) {
-	  lua_push_str_table_entry(vm, sender_host /* Sender IP */, value_str);
+	  lua_push_str_table_entry(vm, oid_str, value_str);
 	  free(value_str), value_str = NULL; /* malloc'd by snmp_get_varbind_as_string */
 	}
-	
+
 	i++;
-      }
-    
+      } /* while */
+
       snmp_destroy_message(message);
       free(message); /* malloc'd by snmp_parse_message */
-      }
+      return;
     }
   }
+
+  lua_pushnil(vm);
 }
 
 #endif /* HAVE_NEDGE */

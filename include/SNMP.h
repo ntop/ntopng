@@ -47,7 +47,7 @@ class SNMP {
 			 char *oid[SNMP_MAX_NUM_OIDS], u_int version);
   void snmp_fetch_responses(lua_State* vm);
   
-  int get(lua_State* vm);
+  int get(lua_State* vm, bool skip_first_param);
   int getnext(lua_State* vm, bool skip_first_param);
 };
   
