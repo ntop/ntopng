@@ -72,7 +72,7 @@
             ],
             "summary":"Get host data",
             "description":"Host data is returned",
-            "operationId":"host_get_json",
+            "operationId":"get_host_json",
             "produces":[
                "application/json"
             ],
@@ -118,7 +118,7 @@
             ],
             "summary":"Get alerts data",
             "description":"Alerts are returned",
-            "operationId":"get_alerts_data",
+            "operationId":"get_alert_data",
             "produces":[
                "application/json"
             ],
@@ -164,7 +164,7 @@
             ],
             "summary":"Get alerts timeseries",
             "description":"Number of alerts per hour divided by day are returned",
-            "operationId":"get_alerts_ts",
+            "operationId":"get_alert_ts",
             "produces":[
                "application/json"
             ],
@@ -213,6 +213,60 @@
                    "in":"query",
                    "description":"Alert Severity (optional)",
                    "required":false,
+                   "type":"integer",
+                   "format":"int32"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               },
+               "-2":{"description":"INVALID_INTERFACE"},
+               "-5":{"description":"INVALID_ARGUMENTS"},
+               "-6":{"description":"INTERNAL_ERROR"}
+            }
+         }
+      },
+      "/lua/rest/v1/get/alert/type/counters.lua":{
+         "get":{
+            "tags":[
+               "Alerts"
+            ],
+            "summary":"Get counters per type",
+            "description":"Number of alerts per alert type",
+            "operationId":"get_alert_type_counters",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"ifid",
+                  "in":"query",
+                  "description":"Interface identifier",
+                  "required":true,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"status",
+                  "in":"query",
+                  "description":"Status filter (historical, historical-flows)",
+                  "required":true,
+                  "type":"string"
+               },
+               {
+                   "name":"epoch_begin",
+                   "in":"query",
+                   "description":"Start time (epoch)",
+                   "required":true,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"epoch_end",
+                   "in":"query",
+                   "description":"Start time (epoch)",
+                   "required":true,
                    "type":"integer",
                    "format":"int32"
                }
