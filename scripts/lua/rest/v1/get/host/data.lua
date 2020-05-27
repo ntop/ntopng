@@ -23,6 +23,7 @@ local rc = rest_utils.consts_ok
 local res = {}
 
 local ifid = _GET["ifid"]
+local host_info = url2hostinfo(_GET)
 
 -- whether to return host statistics: on by default
 local host_stats           = _GET["host_stats"]
@@ -31,15 +32,24 @@ local host_stats           = _GET["host_stats"]
 local host_stats_flows     = _GET["host_stats_flows"]
 local host_stats_flows_num = _GET["limit"]
 
-local host_info = url2hostinfo(_GET)
-
 if isEmptyString(ifid) then
    print(rest_utils.rc(rest_utils.consts_invalid_interface))
    return
 end
 
+if isEmptyString(host_info["host"]) then
+   print(rest_utils.rc(rest_utils.consts_invalid_args))
+   return
+end
+
 interface.select(ifid)
-local if_name = getInterfaceName(ifid)
+
+local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
+
+if not host then
+   print(rest_utils.rc(rest_utils.consts_not_found))
+   return
+end
 
 local function flows2protocolthpt(flows)
    local protocol_thpt = {}
@@ -68,61 +78,54 @@ local function flows2protocolthpt(flows)
    return protocol_thpt
 end
 
-if host_info["host"] then
-   interface.select(if_name)
-   local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
-
-   if host then
-      local hj = host
-
-      -- hosts stats are on by default, one must explicitly disable them
-      if not (host_stats == nil or host_stats == "" or host_stats == "true" or host_stats == "1") then
-	 hj = {}
-      end
-
-      -- host flow stats are off by default and must be explicitly enabled
-      if host_stats_flows ~= nil and host_stats_flows ~= "" then
-	 if host_stats_flows_num == nil or tonumber(host_stats_flows_num) == nil then
-	    -- default: do not limit the number of flows
-	    host_stats_flows_num = 99999
-	 else
-	    -- ... unless otherwise specified
-	    host_stats_flows_num = tonumber(host_stats_flows_num)
-	 end
-	 local total = 0
-
-	 local pageinfo = {["sortColumn"]="column_bytes", ["a2zSortOrder"]=false,
-	    ["maxHits"]=host_stats_flows_num, ["toSkip"]=0, ["detailedResults"]=true}
-	 --local flows = interface.getFlowsInfo(host_info["host"], nil, "column_bytes", host_stats_flows_num, 0, false)
-	 local flows = interface.getFlowsInfo(host_info["host"], pageinfo)
-	 flows = flows["flows"]
-	 for i, fl in ipairs(flows) do
-	    flows[i] = {
-	       ["srv.ip"] = fl["srv.ip"], ["cli.ip"] = fl["cli.ip"],
-	       ["srv.port"] = fl["srv.port"], ["cli.port"] = fl["cli.port"],
-	       ["proto.ndpi_id"] = fl["proto.ndpi_id"], ["proto.ndpi"] = fl["proto.ndpi"],
-	       ["bytes"] = fl["bytes"],
-	       ["cli2srv.throughput_bps"] = round(fl["throughput_cli2srv_bps"], 2),
-	       ["srv2cli.throughput_bps"] = round(fl["throughput_srv2cli_bps"], 2),
-	       ["cli2srv.throughput_pps"] = round(fl["throughput_cli2srv_pps"], 2),
-	       ["srv2cli.throughput_pps"] = round(fl["throughput_srv2cli_pps"], 2),
-	    }
-	    if fl["proto.l4"] == "TCP" then
-	       flows[i]["cli2srv.tcp_flags"] = TCPFlags2table(fl["cli2srv.tcp_flags"])
-	       flows[i]["srv2cli.tcp_flags"] = TCPFlags2table(fl["srv2cli.tcp_flags"])
-	       flows[i]["tcp_established"]   = fl["tcp_established"]
-	    end
-	 end
-	 hj["ndpiThroughputStats"] = flows2protocolthpt(flows)
-	 hj["flows"] = flows
-	 hj["flows_count"] = total
-      end
-
-      res = hj
-   else
-      rc = rest_utils.consts_not_found
-   end
+-- hosts stats are on by default, one must explicitly disable them
+if not (host_stats == nil or host_stats == "" or host_stats == "true" or host_stats == "1") then
+   host = {}
 end
+
+-- host flow stats are off by default and must be explicitly enabled
+if host_stats_flows ~= nil and host_stats_flows ~= "" then
+   if host_stats_flows_num == nil or tonumber(host_stats_flows_num) == nil then
+      -- default: do not limit the number of flows
+      host_stats_flows_num = 99999
+   else
+      -- ... unless otherwise specified
+      host_stats_flows_num = tonumber(host_stats_flows_num)
+   end
+
+   local total = 0
+
+   local pageinfo = {["sortColumn"]="column_bytes", ["a2zSortOrder"]=false,
+      ["maxHits"]=host_stats_flows_num, ["toSkip"]=0, ["detailedResults"]=true}
+
+   --local flows = interface.getFlowsInfo(host_info["host"], nil, "column_bytes", host_stats_flows_num, 0, false)
+   local flows = interface.getFlowsInfo(host_info["host"], pageinfo)
+   flows = flows["flows"]
+   for i, fl in ipairs(flows) do
+      flows[i] = {
+            ["srv.ip"] = fl["srv.ip"], ["cli.ip"] = fl["cli.ip"],
+            ["srv.port"] = fl["srv.port"], ["cli.port"] = fl["cli.port"],
+            ["proto.ndpi_id"] = fl["proto.ndpi_id"], ["proto.ndpi"] = fl["proto.ndpi"],
+            ["bytes"] = fl["bytes"],
+            ["cli2srv.throughput_bps"] = round(fl["throughput_cli2srv_bps"], 2),
+            ["srv2cli.throughput_bps"] = round(fl["throughput_srv2cli_bps"], 2),
+            ["cli2srv.throughput_pps"] = round(fl["throughput_cli2srv_pps"], 2),
+            ["srv2cli.throughput_pps"] = round(fl["throughput_srv2cli_pps"], 2),
+      }
+
+      if fl["proto.l4"] == "TCP" then
+         flows[i]["cli2srv.tcp_flags"] = TCPFlags2table(fl["cli2srv.tcp_flags"])
+         flows[i]["srv2cli.tcp_flags"] = TCPFlags2table(fl["srv2cli.tcp_flags"])
+         flows[i]["tcp_established"]   = fl["tcp_established"]
+      end
+   end
+
+   host["ndpiThroughputStats"] = flows2protocolthpt(flows)
+   host["flows"] = flows
+   host["flows_count"] = total
+end
+
+res = host
 
 tracker.log("host_get_json", {host_info["host"], host_info["vlan"]})
 
