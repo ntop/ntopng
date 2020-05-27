@@ -137,6 +137,38 @@
                   "description":"Status filter (historical, historical-flows, engaged)",
                   "required":true,
                   "type":"string"
+               },
+               {
+                   "name":"epoch_begin",
+                   "in":"query",
+                   "description":"Start time (epoch) (optional)",
+                   "required":true,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"epoch_end",
+                   "in":"query",
+                   "description":"Start time (epoch) (optional)",
+                   "required":true,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"alert_type",
+                   "in":"query",
+                   "description":"Alert Type (optional)",
+                   "required":false,
+                   "type":"integer",
+                   "format":"int32"
+               },
+               {
+                   "name":"alert_severity",
+                   "in":"query",
+                   "description":"Alert Severity (optional)",
+                   "required":false,
+                   "type":"integer",
+                   "format":"int32"
                }
             ],
             "responses":{
