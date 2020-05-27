@@ -27,6 +27,10 @@ local res = {}
 
 local ifid = _GET["ifid"]
 local what = _GET["status"]
+local epoch_begin = _GET["epoch_begin"]
+local epoch_end = _GET["epoch_end"]
+local alert_type = _GET["alert_type"]
+local alert_severity = _GET["alert_severity"]
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts_invalid_interface
@@ -47,7 +51,13 @@ if what == "engaged" then
    engaged = true
 end
 
-local alert_options = _GET
+local alert_options = {
+   epoch_begin = epoch_begin,
+   epoch_end = epoch_end,
+   alert_type = alert_type,
+   alert_severity = alert_severity,
+}
+
 local alerts = alert_utils.getAlerts(what, alert_options)
 
 if alerts == nil then alerts = {} end
