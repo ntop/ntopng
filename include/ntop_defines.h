@@ -424,7 +424,6 @@
 #define MAX_NUM_PACKETS             5000
 
 #define NUM_IFACE_STATS_HASH        1024
-#define MAX_NUM_FLOW_DEVICES          48
 #define MAX_NUM_VLAN                4096
 #define MAX_NUM_VIRTUAL_INTERFACES    32
 #define PASS_ALL_SHAPER_ID             0

@@ -132,8 +132,8 @@ bool InterfaceStatsHash::set(const sFlowInterfaceStats * const stats) {
 /* ************************************ */
 
 void InterfaceStatsHash::luaDeviceList(lua_State *vm) {
-  u_int32_t flowDevices[MAX_NUM_FLOW_DEVICES] = { 0 };
-  u_int16_t numDevices = 0;
+  std::set<u_int32_t> flowDevices; /* Set size automatically limited by max_hash_size */
+  std::set<u_int32_t>::const_iterator it;
 
   lua_newtable(vm);
 
@@ -144,29 +144,18 @@ void InterfaceStatsHash::luaDeviceList(lua_State *vm) {
     
     if(head) {
       bool found = false;
-      
-      for(int j=0; j<numDevices; j++) {
-	if(flowDevices[j] == head->deviceIP) {
-	  found = true;
-	  break;
-	}
-      }
-      
+
+      if(flowDevices.find(head->deviceIP) != flowDevices.end())
+	found = true;
+
       if(!found) {
 	char a[64];
-	
-	flowDevices[numDevices++] = head->deviceIP;
-	
-	if(numDevices == MAX_NUM_FLOW_DEVICES) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING,
-				       "Internal error: too many devices %u",
-				       numDevices);
-	  break;
-	}
+
+	flowDevices.insert(head->deviceIP);
 
 	lua_push_uint64_table_entry(vm, 
-				 Utils::intoaV4(head->deviceIP, a, sizeof(a)),
-				 head->deviceIP);
+				    Utils::intoaV4(head->deviceIP, a, sizeof(a)),
+				    head->deviceIP);
       }
     }
   }
