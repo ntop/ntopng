@@ -62,8 +62,7 @@ end
 -- ########################################################
 
 function ts_dump.run_5sec_dump(ifid, when, periodic_ht_state_update_stats)
-   local iface_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
-      and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
+   local iface_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
    local internals_rrd_creation_enabled = ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
 
    if not iface_rrd_creation_enabled or not internals_rrd_creation_enabled then

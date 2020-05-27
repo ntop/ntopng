@@ -3558,17 +3558,9 @@ end
 
 -- ###########################################
 
-local function arePerInterfaceTsEnabled(ifid)
-   if(ifid == nil) then
-      tprint(debug.traceback())
-   end
-
-   return(ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
-end
-
 -- NOTE: '~= "0"' is used for prefs which are enabled by default
 function areInterfaceTimeseriesEnabled(ifid)
-   return((ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0") and arePerInterfaceTsEnabled(ifid))
+   return((ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0"))
 end
 
 function areInterfaceL7TimeseriesEnabled(ifid)
@@ -3612,33 +3604,33 @@ function areSystemTimeseriesEnabled()
 end
 
 function areHostPoolsTimeseriesEnabled(ifid)
-   return(arePerInterfaceTsEnabled(ifid) and ntop.isPro() and (ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1"))
+   return(ntop.isPro() and (ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1"))
 end
 
 function areASTimeseriesEnabled(ifid)
-   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1"))
+   return(ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1")
 end
 
 function areInternalTimeseriesEnabled(ifid)
    -- NOTE: no separate preference so far
-   return(arePerInterfaceTsEnabled(ifid) and areSystemTimeseriesEnabled())
+   return(areSystemTimeseriesEnabled())
 end
 
 function areCountryTimeseriesEnabled(ifid)
-   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"))
+   return((ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"))
 end
 
 function areVlanTimeseriesEnabled(ifid)
-   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.vlan_rrd_creation") == "1"))
+   return(ntop.getPref("ntopng.prefs.vlan_rrd_creation") == "1")
 end
 
 function areMacsTimeseriesEnabled(ifid)
-   return(arePerInterfaceTsEnabled(ifid) and (ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1"))
+   return(ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1")
 end
 
 function areContainersTimeseriesEnabled(ifid)
    -- NOTE: no separate preference so far
-   return(arePerInterfaceTsEnabled(ifid))
+   return(true)
 end
 
 function areSnmpTimeseriesEnabled(device, port_idx)

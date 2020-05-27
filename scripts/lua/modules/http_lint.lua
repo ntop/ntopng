@@ -1438,6 +1438,7 @@ local known_parameters = {
    ["toggle_midnight_stats_reset"]                 = validateBool,
    ["toggle_ndpi_flows_rrds"]                      = validateBool,
    ["toggle_internals_rrds"]                       = validateBool,
+   ["toggle_local_hosts_one_way_ts"]               = validateBool,
 
    -- Input fields
    ["companion_interface"]                         = validateEmptyOr(validateInterface),

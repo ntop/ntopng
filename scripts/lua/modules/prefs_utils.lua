@@ -657,6 +657,18 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
     print('</div>\n')
     print('<input type="hidden" id="id-toggle-'..submit_field..'" name="'..submit_field..'" value="'..value..'" />\n')
     print('<script>\n')
+
+    -- showElementArray can be either:
+    --  1. a simple table (e.g. {true, false}): it affects all the elements in elementToSwitch
+    --  2. a nested table (e.g. {{true, false}, {false, false}}): each element in the table
+    --     affects the corresponding element in the elementToSwitch (e.g. {true, false} affects
+    --     elementToSwitch[1], whereas {false, false} affects elementToSwitch[2])
+    if(showElementArray and (type(showElementArray[1]) ~= "table")) then
+      -- This is simple table (case 1.) above, convert it to case 2 to handle
+      -- both cases consinstenly below.
+      showElementArray = {showElementArray, }
+    end
+
     for nameCount = 1, #array_labels do
       print('$("#id_'..submit_field..'_'..array_values[nameCount]..'").click(function() {\n')
       print(' var field = $(\'#id-toggle-'..submit_field..'\');\n')
@@ -682,11 +694,15 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
 
       -- Show/Hide all the elementToSwitch items at once
       if (showElementArray ~= nil) then
-        for indexSwitch = 1, #showElementArray do
+        for indexSwitch = 1, #showElementArray[1] do
           if (indexSwitch == nameCount) then
             if elementToSwitch ~= nil then
               for element = 1, #elementToSwitch do
-                if (showElementArray[indexSwitch] == true) then
+                -- Try to get the element-specific configuration if available,
+                -- otherwise fallback to the default configuration (at index 1)
+                local to_apply = showElementArray[element] or showElementArray[1]
+
+                if (to_apply[indexSwitch] == true) then
                   -- NOTE: this is executed into the js change callback
                   print('$("#'..elementToSwitch[element]..'").css("display","table-row");\n')
                 else

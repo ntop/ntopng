@@ -1146,8 +1146,8 @@ function printStatsTimeseries()
 
   local hosts_rrd_labels = {i18n("off"), i18n("light"), i18n("full")}
   local hosts_rrd_values = {"off", "light", "full"}
-  local hostElemsToSwitch = { "row_hosts_ndpi_timeseries_creation" }
-  local hostShowElementArray = {false, false, true}
+  local hostElemsToSwitch = { "row_hosts_ndpi_timeseries_creation", "row_toggle_local_hosts_one_way_ts" }
+  local hostShowElementArray = {{false, false, true} --[[ ndpi ]], {false, true, true} --[[ one-way traffic ]]}
 
   multipleTableButtonPrefs(subpage_active.entries["toggle_local_hosts_ts_creation"].title,
 				    subpage_active.entries["toggle_local_hosts_ts_creation"].description,
@@ -1158,7 +1158,15 @@ function printStatsTimeseries()
 				    "ntopng.prefs.hosts_ts_creation", nil,
 				    hostElemsToSwitch, hostShowElementArray, nil, true)
 
-  local show_host_l7 = (ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full")
+  local hosts_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation")
+  local show_host_l7 = (hosts_ts_creation == "full")
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_local_hosts_one_way_ts",
+    default = "0",
+    pref = "hosts_one_way_traffic_rrd_creation",
+    hidden = (hosts_ts_creation == "off"),
+  })
 
   retVal = multipleTableButtonPrefs(subpage_active.entries["toggle_ndpi_timeseries_creation"].title,
 				    subpage_active.entries["toggle_ndpi_timeseries_creation"].description,

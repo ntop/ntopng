@@ -417,7 +417,6 @@ end
 
 -- NOTE: this is executed every minute if ts_utils.hasHighResolutionTs() is true
 function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
-  local is_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_rrd_creation") ~= "false")
   local num_processed_hosts = 0
   local min_instant = when - (when % 60) - 60
 
@@ -425,8 +424,8 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
   local dumped_hosts = {}
 
   -- Save hosts stats (if enabled from the preferences)
-  if is_rrd_creation_enabled and config.host_ts_creation ~= "off" then
-     local is_one_way_hosts_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.ifid_"..ifstats.id..".interface_one_way_hosts_rrd_creation") ~= "false")
+  if config.host_ts_creation ~= "off" then
+     local is_one_way_hosts_rrd_creation_enabled = (ntop.getPref("ntopng.prefs.hosts_one_way_traffic_rrd_creation") == "1")
 
      local in_time = callback_utils.foreachLocalRRDHost(_ifname, true --[[ timeseries ]], is_one_way_hosts_rrd_creation_enabled, function (hostname, host_ts)
       local host_key = host_ts.tskey
@@ -471,47 +470,45 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
 
   --tprint("Dump of ".. num_processed_hosts .. " hosts: completed in " .. (os.time() - dump_tstart) .. " seconds")
 
-  if is_rrd_creation_enabled then
-    if config.l2_device_rrd_creation ~= "0" then
-      local in_time = callback_utils.foreachDevice(_ifname, function (devicename, device)
-        ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, verbose)
+  if config.l2_device_rrd_creation ~= "0" then
+    local in_time = callback_utils.foreachDevice(_ifname, function (devicename, device)
+      ts_dump.l2_device_update_stats_rrds(when, devicename, device, ifstats, verbose)
 
-        if config.l2_device_ndpi_timeseries_creation == "per_category" then
-          ts_dump.l2_device_update_categories_rrds(when, devicename, device, ifstats, verbose)
-        end
-      end)
-
-      if not in_time then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, i18n("error_rrd_cannot_complete_dump"))
-        return false
+      if config.l2_device_ndpi_timeseries_creation == "per_category" then
+        ts_dump.l2_device_update_categories_rrds(when, devicename, device, ifstats, verbose)
       end
-    end
+    end)
 
-    -- create RRD for ASN
-    if config.asn_rrd_creation == "1" then
-      ts_dump.asn_update_rrds(when, ifstats, verbose)
+    if not in_time then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, i18n("error_rrd_cannot_complete_dump"))
+      return false
     end
+  end
 
-    -- create RRD for Countries
-    if config.country_rrd_creation == "1" then
-      ts_dump.country_update_rrds(when, ifstats, verbose)
-    end
+  -- create RRD for ASN
+  if config.asn_rrd_creation == "1" then
+    ts_dump.asn_update_rrds(when, ifstats, verbose)
+  end
 
-    -- Create RRD for vlans
-    if config.vlan_rrd_creation == "1" then
-      ts_dump.vlan_update_rrds(when, ifstats, verbose)
-    end
+  -- create RRD for Countries
+  if config.country_rrd_creation == "1" then
+    ts_dump.country_update_rrds(when, ifstats, verbose)
+  end
 
-    -- Create RRDs for flow and sFlow devices
-    if(config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM()) then
-      ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
-      ts_dump.flow_device_update_rrds(when, ifstats, verbose)
-    end
+  -- Create RRD for vlans
+  if config.vlan_rrd_creation == "1" then
+    ts_dump.vlan_update_rrds(when, ifstats, verbose)
+  end
 
-    -- Save Host Pools stats every 5 minutes
-    if((ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1")) then
-      host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
-    end
+  -- Create RRDs for flow and sFlow devices
+  if(config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM()) then
+    ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
+    ts_dump.flow_device_update_rrds(when, ifstats, verbose)
+  end
+
+  -- Save Host Pools stats every 5 minutes
+  if((ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1")) then
+    host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
   end
 end
 

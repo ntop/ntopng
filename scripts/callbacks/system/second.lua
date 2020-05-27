@@ -19,8 +19,7 @@ local ifnames = interface.getIfNames()
 local when = _now
 
 local function interface_rrd_creation_enabled(ifid)
-   return (ntop.getPref("ntopng.prefs.ifid_"..ifid..".interface_rrd_creation") ~= "false")
-      and (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
+   return (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
 end
 
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(ifname, ifstats)
