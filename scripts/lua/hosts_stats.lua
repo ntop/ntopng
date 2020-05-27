@@ -79,8 +79,7 @@ end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-prefs = ntop.getPrefs()
-ifstats = interface.getStats()
+local ifstats = interface.getStats()
 
 -- Parameters necessary for the page title
 local protocol_name = nil
