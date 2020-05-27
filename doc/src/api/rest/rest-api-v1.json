@@ -259,7 +259,27 @@
             }
          }
       },
-      "/lua/rest/v1/get/alert/type/counters.lua":{
+      "/lua/rest/v1/get/alert/type/consts.lua":{
+         "get":{
+            "tags":[
+               "Alerts"
+            ],
+            "summary":"Get alert type constants",
+            "description":"Alert type string and integer alert key for each defined alert",
+            "operationId":"get_alert_type_consts",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               }
+            }
+         }
+      },
+       "/lua/rest/v1/get/alert/type/counters.lua":{
          "get":{
             "tags":[
                "Alerts"

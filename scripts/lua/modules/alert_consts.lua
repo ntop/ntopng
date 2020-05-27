@@ -3,6 +3,7 @@
 --
 -- This file contains the alert constats
 
+local dirs = ntop.getDirs()
 local alert_consts = {}
 local alert_keys = require "alert_keys"
 local format_utils  = require "format_utils"

@@ -3,7 +3,7 @@ Prerequisites
 
 - curl
 - jq
-
+- redis-cli
 
 
 How to Run The Tests

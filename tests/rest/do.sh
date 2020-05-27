@@ -21,13 +21,16 @@ check_results() {
     for f in $TESTS; do 
 	if [ -f result/$f.out ]; then
 	    CMD=`bash tests/$f | jq -cS . > /tmp/test.out`
-	    NUM_DIFF=`diff result/$f.out /tmp/test.out | wc -l`
+
+	    # Comparison of two JSONs in bash, see
+	    # https://stackoverflow.com/questions/31930041/using-jq-or-alternative-command-line-tools-to-compare-json-files/31933234#31933234
+	    JSON_EQUAL=`jq --argfile a result/$f.out --argfile b /tmp/test.out -n 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); ($a | (post_recurse | arrays) |= sort) as $a | ($b | (post_recurse | arrays) |= sort) as $b | $a == $b'`
 	    
-	    if [ $NUM_DIFF -eq 0 ]; then
+	    if [ "${JSON_EQUAL}" = "true" ]; then
 		printf "%-32s\tOK\n" "$f"
 	    else
 		printf "%-32s\tERROR\n" "$f"
-		echo "$CMD"
+		echo `diff result/$f.out /tmp/test.out | wc -l`
 		diff result/$f.out /tmp/test.out
 		RC=1
 	    fi
