@@ -423,7 +423,10 @@
 //#define DEMO_WIN32                   1
 #define MAX_NUM_PACKETS             5000
 
-#define NUM_IFACE_STATS_HASH        1024
+/* Hanldes ad most 4096 interfaces across all sFlow devices.
+   Considering 48 devices with 48 interfaces each as an upper bound,
+   this number is reasonable. */
+#define NUM_IFACE_STATS_HASH        4096
 #define MAX_NUM_VLAN                4096
 #define MAX_NUM_VIRTUAL_INTERFACES    32
 #define PASS_ALL_SHAPER_ID             0
