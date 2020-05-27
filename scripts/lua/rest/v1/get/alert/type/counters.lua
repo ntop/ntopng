@@ -25,6 +25,9 @@ local rc = rest_utils.consts_ok
 local res = {}
 
 local ifid = _GET["ifid"]
+local what = _GET["status"] -- historical, historical-flows
+local epoch_begin = _GET["epoch_begin"]
+local epoch_end = _GET["epoch_end"]
 
 if isEmptyString(ifid) then
    print(rest_utils.rc(rest_utils.consts_invalid_interface))
@@ -33,17 +36,21 @@ end
 
 interface.select(ifid)
 
-local h_by_type = alert_utils.getNumAlertsPerType("historical")
-for k,v in pairs(h_by_type, asc) do
-  v.label = alert_consts.alertTypeLabel(v.id, true)
+if isEmptyString(what) or what == "historical" then
+   local h_by_type = alert_utils.getNumAlertsPerType("historical", epoch_begin, epoch_end)
+   for k,v in pairs(h_by_type, asc) do
+      v.label = alert_consts.alertTypeLabel(v.id, true)
+   end
+   res['historical'] = h_by_type
 end
-res['historical'] = h_by_type
 
-local hf_by_type = alert_utils.getNumAlertsPerType("historical-flows")
-for k,v in pairs(hf_by_type, asc) do
-  v.label = alert_consts.alertTypeLabel(v.id, true)
+if isEmptyString(what) or what == "historical-flows" then
+   local hf_by_type = alert_utils.getNumAlertsPerType("historical-flows", epoch_begin, epoch_end)
+   for k,v in pairs(hf_by_type, asc) do
+      v.label = alert_consts.alertTypeLabel(v.id, true)
+   end
+   res['historical-flows'] = hf_by_type
 end
-res['historical-flows'] = hf_by_type
 
 print(rest_utils.rc(rc, res))
 

@@ -372,8 +372,11 @@ end
 
 -- #################################
 
-function alert_utils.getNumAlertsPerType(what)
-   local opts = {}
+function alert_utils.getNumAlertsPerType(what, epoch_begin, epoch_end)
+   local opts = {
+     epoch_begin = epoch_begin,
+     epoch_end = epoch_end,
+   }
 
    return performAlertsQuery("select alert_type id, count(*) count", what, opts, nil, "alert_type" --[[ group by ]])
 end
