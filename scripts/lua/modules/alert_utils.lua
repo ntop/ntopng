@@ -383,6 +383,17 @@ end
 
 -- #################################
 
+function alert_utils.getNumAlertsPerSeverity(what, epoch_begin, epoch_end)
+   local opts = {
+     epoch_begin = epoch_begin,
+     epoch_end = epoch_end,
+   }
+
+   return performAlertsQuery("select alert_severity severity, count(*) count", what, opts, nil, "alert_severity" --[[ group by ]])
+end
+
+-- #################################
+
 local function refreshAlerts(ifid)
    ntop.delCache(string.format("ntopng.cache.alerts.ifid_%d.has_alerts", ifid))
    ntop.delCache("ntopng.cache.update_alerts_stats_time")
