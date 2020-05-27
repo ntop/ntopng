@@ -1090,7 +1090,13 @@ function printStatsTimeseries()
   local resolutions_values = {"60", "300"}
 
   multipleTableButtonPrefs(subpage_active.entries["timeseries_resolution_resolution"].title,
-				    subpage_active.entries["timeseries_resolution_resolution"].description,
+				    subpage_active.entries["timeseries_resolution_resolution"].description .. "<br><b>" .. i18n("notes") .. [[</b>:<ul>
+      <li>]] .. i18n("prefs.ts_resolution_note1", {url="prefs.lua?tab=retention"}) .. [[</li>
+      <li>]] .. i18n("prefs.ts_resolution_note2", {
+        external_icon = "<i class='fas fa-external-link-alt'></i>",
+        url="https://docs.influxdata.com/influxdb/v1.8/query_language/manage-database/#delete-a-database-with-drop-database"
+      }) .. [[</li>
+      </ul>]],
 				    resolutions_labels, resolutions_values,
 				    "60",
 				    "primary",
