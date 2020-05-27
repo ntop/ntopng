@@ -142,6 +142,7 @@ for app, _ in pairsByValues(sorter, sOrder) do
    record["column_ndpi_application"] = app["app_name"]
    record["column_num_hosts"] = proto_to_num_rules[app["app_name"]] or 0
    record["column_application_hosts"] = makeApplicationHostsList(app["app_name"])
+   record["column_is_custom"] = ntop.isCustomApplication(tonumber(app["app_id"]))
 
    cat_select_dropdown = '<select class="form-control" style="width:320px;" name="proto_' .. app["app_id"] .. '">'
    local current_id = tostring(app["cat"]["id"])

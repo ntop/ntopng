@@ -5347,6 +5347,19 @@ static int ntop_pop_internal_alerts(lua_State* vm) {
 
 /* **************************************************************** */
 
+static int ndpi_is_custom_application(lua_State* vm) {
+  int app_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  app_id = lua_tonumber(vm, 1);
+
+  lua_pushboolean(vm, app_id >= NDPI_MAX_SUPPORTED_PROTOCOLS);
+
+  return(CONST_LUA_OK);
+}
+
+/* **************************************************************** */
+
 static const luaL_Reg ntop_reg[] = {
   { "getDirs",          ntop_get_dirs },
   { "getInfo",          ntop_get_info },
@@ -5627,6 +5640,7 @@ static const luaL_Reg ntop_reg[] = {
   /* nDPI */
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },
   { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },
+  { "isCustomApplication",    ndpi_is_custom_application      },
 
   /* Patricia Tree */
   { "ptreeClear",             ntop_ptree_clear             },

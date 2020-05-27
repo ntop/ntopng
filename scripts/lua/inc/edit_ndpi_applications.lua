@@ -35,10 +35,10 @@ if not isEmptyString(category_filter) then
 end
 
 local app_warnings = {}
+local action = _POST["action"]
 
-if (_POST["action"] == "add") or (_POST["action"] == "edit") then
-  local action = _POST["action"]
-  local hosts_list = _POST["custom_hosts"]
+if((action == "add") or (action == "edit") or (action == "delete")) then
+  local hosts_list = _POST["custom_hosts"] or ""
   local application = _POST["new_application"] or _POST["l7proto"]
   local hosts = string.split(hosts_list, ",") or {ternary(hosts_list ~= "", hosts_list, nil)}
   local rules = {}
@@ -70,6 +70,18 @@ if (_POST["action"] == "add") or (_POST["action"] == "edit") then
         app = existing_app,
       })
     }
+  elseif(action == "delete") then
+    if protos_utils.deleteAppRules(application) then
+      app_warnings[#app_warnings + 1] = {
+        type = "success",
+        text = i18n("custom_categories.app_deleted", {product=info.product, app = application})
+      }
+    else
+      app_warnings[#app_warnings + 1] = {
+        type = "danger",
+        text = i18n("custom_categories.app_delete_error", {product=info.product, app = application})
+      }
+    end
   else
     for _, host in ipairs(hosts) do
       -- TODO implement match logic on existing hosts to avoid duplicates
@@ -162,6 +174,19 @@ print(
   })
 )
 
+print(
+  template.gen("modal_confirm_dialog.html", {
+    dialog={
+      id      = "delete_app_dialog",
+      action  = "deleteCustomApp(delete_app_name)",
+      title   = i18n("custom_categories.delete_app"),
+      message = i18n("custom_categories.delete_app_confirm", {app = "<span id=\"delete_dialog_app_name\"></span>"}),
+      confirm = i18n("delete"),
+      confirm_button = "btn-danger",
+    }
+  })
+)
+
 -- NOTE: having some rules is required for the application
 print[[
   <div id="add-application-dialog" class="modal fade in" role="dialog">
@@ -173,7 +198,7 @@ print[[
         </div>
         <div class="modal-body">
           <div class="container-fluid">
-            <form id="add-application-form" method="post" data-toggle="validator" onsubmit="$('#new-custom_hosts').val(getSanitizedHosts($('#new-application-hosts-list')))">
+            <form id="add-application-form" method="post" data-toggle="validator" onsubmit="return addApplication()">
               <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
               <input type="hidden" name="action" value="add">
               <input id="new-custom_hosts" type="hidden" name="custom_hosts">
@@ -257,11 +282,9 @@ print[[
   </form>
   ]]
 
-print(i18n("notes"))
-print[[<ul>]]
-if has_protos_file then
-  print[[<li>]] print(i18n("custom_categories.delete_note")) print[[</li>]]
-else
+if not has_protos_file then
+  print(i18n("notes"))
+  print[[<ul>]]
   print[[<li>]] print(i18n("custom_categories.option_needed", {
     option="-p", url="https://www.ntop.org/guides/ntopng/web_gui/categories.html#custom-applications"
   })) print[[</li>]]
@@ -277,6 +300,8 @@ print[[
 
   var change_cat_csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
   var selected_application = 0;
+  var selected_is_custom = false;
+  let delete_app_name = null;
 
   var select_data = {
 ]]
@@ -375,7 +400,10 @@ print [[
             var app_name = data.column_ndpi_application;
 
             datatableAddActionButtonCallback.bind(row)(actions_td_idx,
-            "loadApplications('"+ app_name +"'); $('#selected_application_name').html('"+ app_name +"'); selected_application = '"+ app_name +"'; $('#edit_application_rules').modal('show')", "]] print(i18n("custom_categories.edit_hosts")) print[[");
+            "loadApplications('"+ app_name +"'); $('#selected_application_name').html('"+ app_name +"'); selected_application = '"+ app_name +"'; selected_is_custom = " + data.column_is_custom + "; $('#edit_application_rules').modal('show')", "]] print(i18n("custom_categories.edit_hosts")) print[[");
+
+            if(data.column_is_custom)
+              datatableAddDeleteButtonCallback.bind(row)(actions_td_idx, "delete_app_name ='" + app_name + "'; $('#delete_dialog_app_name').html('" + app_name + "'); $('#delete_app_dialog').modal('show');", "]] print(i18n('delete')) print[[");
 
             return row;
           }
@@ -400,6 +428,33 @@ print [[
     params.l7proto = selected_application;
     params.action = "edit";
     params.custom_hosts = getSanitizedHosts($("#application-hosts-list"));
+    params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+
+    if(selected_is_custom && !params.custom_hosts) {
+      /* Custom applications must have a non-empty rules list as otherwise they
+       * would be removed from the protos.txt file. */
+      alert("]] print(i18n("custom_categories.non_empty_list_required")) print[[");
+      return;
+    }
+
+    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+  }
+
+  function addApplication() {
+    const custom_hosts = getSanitizedHosts($('#new-application-hosts-list'));
+
+    if(!custom_hosts) {
+      alert("]] print(i18n("custom_categories.non_empty_list_required")) print[[");
+      return(false);
+    }
+
+    $('#new-custom_hosts').val(custom_hosts);
+  }
+
+  function deleteCustomApp(app_name) {
+    var params = {};
+    params.l7proto = app_name;
+    params.action = "delete";
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
     paramsToForm('<form method="post"></form>', params).appendTo('body').submit();

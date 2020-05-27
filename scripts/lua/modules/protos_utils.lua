@@ -51,7 +51,10 @@ end
 
 -- ##############################################
 
--- Parses a nDPI protos.txt file and returns a mapping application -> rules
+-- Parses a nDPI protos.txt file and returns an a key-based table
+-- with the mappings app->rules mappings. Also an index based tabled of the
+-- defined protocols is returned to ensure that the protocols are always appended to the
+-- end of the file as nDPI assigns the custom protocol IDs sequentially.
 function protos_utils.parseProtosTxt()
   local path = getProtosFile()
 
@@ -60,10 +63,15 @@ function protos_utils.parseProtosTxt()
   end
 
   local f = io.open(path, "r")
+  local defined_protos = {}
   local rules = {}
 
   local function addRule(proto, rule)
-    rules[proto] = rules[proto] or {}
+    if(rules[proto] == nil) then
+      rules[proto] = {}
+      defined_protos[#defined_protos + 1] = proto
+    end
+
     rules[proto][#rules[proto] + 1] = rule
   end
 
@@ -127,7 +135,8 @@ function protos_utils.parseProtosTxt()
   end
 
   f:close()
-  return(rules)
+
+  return rules, defined_protos
 end
 
 -- ##############################################
@@ -169,20 +178,25 @@ end
 -- ##############################################
 
 function protos_utils.overwriteAppRules(app, rules)
-  local current_rules = protos_utils.parseProtosTxt()
+  local current_rules, defined_protos = protos_utils.parseProtosTxt()
 
   if(current_rules == nil) or (type("app") ~= "string") then
     return false
   end
 
+  if(not current_rules[app]) then
+    -- This is a new app, append it to the end
+    defined_protos[#defined_protos + 1] = app
+  end
+
   current_rules[app] = rules
-  return protos_utils.generateProtosTxt(current_rules)
+  return protos_utils.generateProtosTxt(current_rules, defined_protos)
 end
 
 -- ##############################################
 
 function protos_utils.addAppRule(app, rule)
-  local current_rules = protos_utils.parseProtosTxt()
+  local current_rules, defined_protos = protos_utils.parseProtosTxt()
   local app_rules
 
   if(current_rules == nil) or (type("app") ~= "string") then
@@ -198,15 +212,37 @@ function protos_utils.addAppRule(app, rule)
     end
   end
 
+  if(not current_rules[app]) then
+    -- This is a new app, append it to the end
+    defined_protos[#defined_protos + 1] = app
+  end
+
   app_rules[#app_rules + 1] = rule
   current_rules[app] = app_rules
-  return protos_utils.generateProtosTxt(current_rules)
+  return protos_utils.generateProtosTxt(current_rules, defined_protos)
+end
+
+-- ##############################################
+
+function protos_utils.deleteAppRules(app)
+  local current_rules, defined_protos = protos_utils.parseProtosTxt()
+
+  if(not current_rules[app]) then
+    -- App does not exist
+    return false
+  end
+
+  current_rules[app] = nil
+  return protos_utils.generateProtosTxt(current_rules, defined_protos)
 end
 
 -- ##############################################
 
 -- Generates a protos.txt file based on the supplied rules
-function protos_utils.generateProtosTxt(rules)
+-- The defined_protos is used to ensure that the protocols are written
+-- in the specified order as nDPI assigns IDs sequentially and existing
+-- IDs must not be changed.
+function protos_utils.generateProtosTxt(rules, defined_protos)
   local path = getProtosFile()
   local backup_file = path .. ".bak"
 
@@ -226,20 +262,25 @@ function protos_utils.generateProtosTxt(rules)
     f:write(string.format("%s\n", rule))
   end
 
-  for proto, proto_rules in pairsByKeys(rules) do
-    writeRule(string.format("# %s", proto))
+  -- Important: iterate by index to ensure that new protocols are always appended
+  for _, proto in ipairs(defined_protos) do
+    local proto_rules = rules[proto]
 
-    for _, rule in ipairs(proto_rules) do
-      if rule.match == "port" then
-        writeRule(string.format("%s@%s", rule.value, proto))
-      elseif rule.match == "host" then
-        writeRule(string.format("host:\"%s\"@%s", rule.value, proto))
-      elseif rule.match == "ip" then
-        writeRule(string.format("ip:%s@%s", rule.value, proto))
+    if proto_rules then
+      writeRule(string.format("# %s", proto))
+
+      for _, rule in ipairs(proto_rules) do
+        if rule.match == "port" then
+          writeRule(string.format("%s@%s", rule.value, proto))
+        elseif rule.match == "host" then
+          writeRule(string.format("host:\"%s\"@%s", rule.value, proto))
+        elseif rule.match == "ip" then
+          writeRule(string.format("ip:%s@%s", rule.value, proto))
+        end
       end
-    end
 
-    writeRule("")
+      writeRule("")
+    end
   end
 
   f:close()
