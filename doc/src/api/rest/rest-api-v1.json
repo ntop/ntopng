@@ -468,7 +468,7 @@
                {
                   "name":"status",
                   "in":"query",
-                  "description":"Status filter (historical, historical-flows)",
+                  "description":"Status filter: 'historical' or 'historical-flows'",
                   "required":true,
                   "type":"string"
                },
@@ -499,6 +499,97 @@
             }
          }
       },
+      "/lua/rest/v1/get/flow/active.lua":{
+         "get":{
+            "tags":[
+               "Flows"
+            ],
+            "summary":"Get active flows",
+            "description":"List of active flows",
+            "operationId":"get_flow_active",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"ifid",
+                  "in":"query",
+                  "description":"Interface identifier",
+                  "required":true,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"currentPage",
+                  "in":"query",
+                  "description":"Pagination: page (optional)",
+                  "required":false,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"perPage",
+                  "in":"query",
+                  "description":"Pagination: items per page (optional)",
+                  "required":false,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"sortColumn",
+                  "in":"query",
+                  "description":"Pagination: column for sorting (e.g. 'column_score') (optional)",
+                  "required":false,
+                  "type":"string"
+               },
+               {
+                  "name":"sortOrder",
+                  "in":"query",
+                  "description":"Pagination: sorting order: 'asc' or 'desc' (optional)",
+                  "required":false,
+                  "type":"string"
+               },
+               {
+                  "name":"host",
+                  "in":"query",
+                  "description":"Host address filter (optional)",
+                  "required":true,
+                  "type":"string"
+               },
+               {
+                  "name":"vlan",
+                  "in":"query",
+                  "description":"VLAN ID filter (optional)",
+                  "required":false,
+                  "type":"integer",
+                  "format":"int16"
+               },
+               {
+                  "name":"l4proto",
+                  "in":"query",
+                  "description":"L4 protocol filter (optional)",
+                  "required":false,
+                  "type":"string"
+               },
+               {
+                  "name":"application",
+                  "in":"query",
+                  "description":"Application protocol filter (optional)",
+                  "required":false,
+                  "type":"string"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               },
+               "-1":{"description":"NOT_FOUND"},
+               "-2":{"description":"INVALID_INTERFACE"},
+               "-6":{"description":"INTERNAL_ERROR"}
+            }
+         }
+      },
+
       "/lua/rest/v1/get/flow/l4/counters.lua":{
          "get":{
             "tags":[
