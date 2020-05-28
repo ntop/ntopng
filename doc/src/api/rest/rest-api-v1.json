@@ -391,6 +391,26 @@
             }
          }
       },
+      "/lua/rest/v1/get/alert/severity/consts.lua":{
+         "get":{
+            "tags":[
+               "Alerts"
+            ],
+            "summary":"Get alert severity constants",
+            "description":"Alert severity string and integer severity id for each defined severity",
+            "operationId":"get_alert_severity_consts",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               }
+            }
+         }
+      },
        "/lua/rest/v1/get/alert/type/counters.lua":{
          "get":{
             "tags":[
