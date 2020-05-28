@@ -9,8 +9,8 @@ require "lua_utils"
 local rest_utils = require("rest_utils")
 
 --
--- Read statistics about nDPI application protocols on an interface
--- Example: curl -u admin:admin -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/interface/l7/stats.lua
+-- Read statistics about nDPI application protocols for a hsot
+-- Example: curl -u admin:admin -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/host/l7/stats.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
@@ -21,7 +21,7 @@ local rc = rest_utils.consts_ok
 local res = {}
 
 local ifid = _GET["ifid"]
-local ndpistats_mode = _GET["ndpistats_mode"]
+local host_info = url2hostinfo(_GET)
 local breed = _GET["breed"]
 local ndpi_category = _GET["ndpi_category"]
 
@@ -52,63 +52,16 @@ local function getAppUrl(app)
    return nil
 end
 
-local stats
 local tot = 0
 
-if ndpistats_mode == "sinceStartup" then
-   stats = interface.getStats()
-   tot = stats.stats.bytes
-elseif ndpistats_mode == "count" then
-   stats = interface.getnDPIFlowsCount()
-else
-   print(rest_utils.rc(rest_utils.consts_invalid_args))
-   return
-end
+local stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
 
 if stats == nil then
-   print(rest_utils.rc(rest_utils.consts_internal_error))
+   print(rest_utils.rc(rest_utils.consts_not_found))
    return
 end
 
-if(ndpistats_mode == "count") then
-   tot = 0
-
-   for k, v in pairs(stats) do
-      tot = tot + v
-      stats[k] = tonumber(v)
-   end
-
-   local threshold = (tot * 3) / 100
-   local num = 0
-   for k, v in pairsByValues(stats, rev) do
-      if((num < 5) and (v > threshold)) then
-         res[#res + 1] = {
-            label = k,
-            value = v,
-            url = getAppUrl(k),
-         }
-         num = num + 1
-         tot = tot - v
-      else
-         break
-      end
-   end
-
-   if(tot > 0) then
-      res[#res + 1] = {
-         label = i18n("other"),
-         value = tot,
-      }
-   elseif(num == 0) then
-      res[#res + 1] = {
-         label = i18n("no_flows"),
-         value = 0,
-      }
-   end
-
-   print(rest_utils.rc(rc, res))
-   return
-end
+tot = stats["bytes.sent"] + stats["bytes.rcvd"]
 
 local _ifstats = computeL7Stats(stats)
 
@@ -126,10 +79,16 @@ for key, value in pairsByValues(_ifstats, rev) do
       break
    end
 
+   local duration = 0
+
+   if(stats["ndpi"][key] ~= nil) then
+      duration = stats["ndpi"][key]["duration"]
+   end
+
    res[#res + 1] = {
       label = key,
       value = value,
-      url = getAppUrl(key),
+      duration = duration,
    }
 
    accumulate = accumulate + value
