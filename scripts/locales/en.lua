@@ -3289,7 +3289,7 @@ local lang = {
     ["snmp_alerts"] = "SNMP Alerts",
     ["snmp_port_load_threshold_description"] = "Set a threshold (as percentage of the port speed) to trigger alerts when the port load exceeds the specified limit (on a 5-min average).",
     ["snmp_port_load_threshold_title"] = "Interface Load Threshold Alerts",
-    ["snmp_timeseries_config_link"] = "SNMP timeseries can be enabled from the <a href=\"%{url}\">SNMP section</a>.",
+    ["snmp_timeseries_config_link"] = "SNMP timeseries can be enabled from the <a href=\"%{url}\">SNMP section</a> in 'Expert View' mode.",
     ["stats_reset"] = "Stats Reset",
     ["status_alerts"] = "Status Alerts",
     ["successfully_connected_influxdb"] = "Successfully initialized database \"%{db}\" on InfluxDB(%{version})",

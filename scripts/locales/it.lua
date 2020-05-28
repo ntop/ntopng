@@ -3186,7 +3186,7 @@ local lang = {
     ["snmp_alerts"] = "Allarme SNMP",
     ["snmp_port_load_threshold_description"] = "Imposta una soglia (come percentuale della velocità dell'interfaccia) per emettere allarmi quando il traffico dell'interfaccia supera la soglia durante gli ultimi 5 minuti.",
     ["snmp_port_load_threshold_title"] = "Allarme sul Traffico Dell'Interfaccia SNMP",
-    ["snmp_timeseries_config_link"] = "Le serie temporali per l'SNMP possono essere abilitate dalla <a href=\"%{url}\">sezione SNMP</a> delle preferenze.",
+    ["snmp_timeseries_config_link"] = "Le serie temporali per l'SNMP possono essere abilitate dalla <a href=\"%{url}\">sezione SNMP</a> delle preferenze sotto la vista esperta.",
     ["stats_reset"] = "Reset Statistiche",
     ["status_alerts"] = "Allarmi di Stato",
     ["successfully_connected_influxdb"] = "Database \"%{db}\" inizializzato con successo su InfluxDB(%{version})",
