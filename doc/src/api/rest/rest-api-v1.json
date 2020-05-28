@@ -150,7 +150,38 @@
             }
          }
       },
-      "/lua/rest/v1/get/host/data.lua":{
+      "/lua/rest/v1/get/host/interfaces.lua":{
+         "get":{
+            "tags":[
+               "Hosts"
+            ],
+            "summary":"Get host interfaces",
+            "description":"All interface ids of a given host are returned",
+            "operationId":"get_host_interfaces",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"host",
+                  "in":"query",
+                  "description":"Host address",
+                  "required":true,
+                  "type":"string"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK",
+                  "schema":{
+                     "$ref":"#/definitions/Host"
+                  }
+               },
+               "-5":{"description":"INVALID_ARGUMENTS"},
+            }
+         }
+      },
+       "/lua/rest/v1/get/host/data.lua":{
          "get":{
             "tags":[
                "Hosts"
