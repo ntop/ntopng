@@ -36,6 +36,11 @@ end
 
 interface.select(ifid)
 
+if not isEmptyString(_GET["sortColumn"]) then
+   -- Backward compatibility
+   _GET["sortColumn"] = "column_" .. _GET["sortColumn"]
+end
+
 -- This is using GET parameters to handle:
 --
 -- Pagination:
@@ -90,7 +95,7 @@ for _key, value in ipairs(flows_stats) do
 
    local info = interface.getHostInfo(value["cli.ip"], value["cli.vlan"])
    if info then
-      client["is_broadcast"] = info.broadcast_domain_host
+      client["is_broadcast_domain"] = info.broadcast_domain_host
       client["is_dhcp"] = info.dhcpHost
       client["is_blacklisted"] = info.is_blacklisted
    end
