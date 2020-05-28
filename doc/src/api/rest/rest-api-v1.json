@@ -65,6 +65,58 @@
             }
          }
       },
+      "/lua/rest/v1/get/interface/l7/stats.lua":{
+         "get":{
+            "tags":[
+               "Interfaces"
+            ],
+            "summary":"Get L7 statistics for an interface",
+            "description":"nDPI statistics",
+            "operationId":"get_interface_l7_stats",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"ifid",
+                  "in":"query",
+                  "description":"Interface identifier",
+                  "required":true,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"ndpistats_mode",
+                  "in":"query",
+                  "description":"Stats mode: 'sinceStartup' or 'count'",
+                  "required":true,
+                  "type":"string"
+               },
+               {
+                  "name":"breed",
+                  "in":"query",
+                  "description":"Show breed",
+                  "required":false,
+                  "type":"boolean"
+               },
+               {
+                  "name":"ndpi_category",
+                  "in":"query",
+                  "description":"Show nDPI category",
+                  "required":false,
+                  "type":"boolean"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               },
+               "-2":{"description":"INVALID_INTERFACE"},
+               "-5":{"description":"INVALID_ARGUMENTS"},
+               "-6":{"description":"INTERNAL_ERROR"}
+            }
+         }
+      },
       "/lua/rest/v1/get/host/data.lua":{
          "get":{
             "tags":[
@@ -108,6 +160,66 @@
                "-6":{"description":"INTERNAL_ERROR"},
                "-7":{"description":"BAD_FORMAT"},
                "-8":{"description":"BAD_CONTENT"}
+            }
+         }
+      },
+      "/lua/rest/v1/get/host/l7/stats.lua":{
+         "get":{
+            "tags":[
+               "Hosts"
+            ],
+            "summary":"Get L7 statistics for a host",
+            "description":"nDPI statistics",
+            "operationId":"get_host_l7_stats",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"ifid",
+                  "in":"query",
+                  "description":"Interface identifier",
+                  "required":true,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"host",
+                  "in":"query",
+                  "description":"Host address",
+                  "required":true,
+                  "type":"string"
+               },
+               {
+                  "name":"vlan",
+                  "in":"query",
+                  "description":"VLAN ID",
+                  "required":false,
+                  "type":"integer",
+                  "format":"int16"
+               },
+               {
+                  "name":"breed",
+                  "in":"query",
+                  "description":"Show breed",
+                  "required":false,
+                  "type":"boolean"
+               },
+               {
+                  "name":"ndpi_category",
+                  "in":"query",
+                  "description":"Show nDPI category",
+                  "required":false,
+                  "type":"boolean"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               },
+               "-2":{"description":"INVALID_INTERFACE"},
+               "-5":{"description":"INVALID_ARGUMENTS"},
+               "-6":{"description":"INTERNAL_ERROR"}
             }
          }
       },
