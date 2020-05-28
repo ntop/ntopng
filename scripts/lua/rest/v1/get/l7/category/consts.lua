@@ -23,8 +23,8 @@ local res = {}
 
 local categories = interface.getnDPICategories()
 
-for category, category_id in pairs(categories) do
-   res[category] = {category_id = tonumber(category_id)}
+for category, cat_id in pairs(categories) do
+   res[category] = {cat_id = tonumber(cat_id)}
 end
 
 print(rest_utils.rc(rc, res))
