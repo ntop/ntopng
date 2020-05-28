@@ -110,7 +110,7 @@ if(ndpistats_mode == "count") then
    return
 end
 
-local _ifstats = computeL7Stats(stats)
+local _ifstats = computeL7Stats(stats, show_breed, show_ndpi_category)
 
 -- Print up to this number of entries
 local max_num_entries = 5

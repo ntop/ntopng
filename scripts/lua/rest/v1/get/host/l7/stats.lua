@@ -63,7 +63,7 @@ end
 
 tot = stats["bytes.sent"] + stats["bytes.rcvd"]
 
-local _ifstats = computeL7Stats(stats)
+local _ifstats = computeL7Stats(stats, show_breed, show_ndpi_category)
 
 -- Print up to this number of entries
 local max_num_entries = 5

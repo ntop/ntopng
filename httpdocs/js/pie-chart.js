@@ -76,6 +76,9 @@ function PieChart(name, update_url, url_params, units, refresh) {
     }
 
     function update_pie_chart(data) {
+        if (data.rsp) // detect REST API v1
+          data = data.rsp;
+
         data.sort(compare_by_label);
 	streakerDataAdded = data;
 	oldPieData = filteredPieData;

@@ -975,19 +975,19 @@ print [[
 
    print[[do_pie("#topApplicationProtocols", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/rest/v1/get/interface/l7/stats.lua', { ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topApplicationBreeds", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/rest/v1/get/interface/l7/stats.lua', { breed: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topApplicationCategories", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { ndpi_category: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/rest/v1/get/interface/l7/stats.lua', { ndpi_category: "true", ndpistats_mode: "sinceStartup", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topFlowsCount", ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/iface_ndpi_stats.lua', { breed: "true", ndpistats_mode: "count", ifid: "]] print(ifid) print [[" }, "", refresh);
+   print [[/lua/rest/v1/get/interface/l7/stats.lua', { breed: "true", ndpistats_mode: "count", ifid: "]] print(ifid) print [[" }, "", refresh);
 
        do_pie("#topTCPFlowsStats", ']]
    print (ntop.getHttpPrefix())
