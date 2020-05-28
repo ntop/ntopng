@@ -150,6 +150,81 @@
             }
          }
       },
+      "/lua/rest/v1/get/host/active.lua":{
+         "get":{
+            "tags":[
+               "Hosts"
+            ],
+            "summary":"Get active hosts",
+            "description":"List of active hosts",
+            "operationId":"get_host_active",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+               {
+                  "name":"ifid",
+                  "in":"query",
+                  "description":"Interface identifier",
+                  "required":true,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"currentPage",
+                  "in":"query",
+                  "description":"Pagination: page (optional)",
+                  "required":false,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"perPage",
+                  "in":"query",
+                  "description":"Pagination: items per page (optional)",
+                  "required":false,
+                  "type":"integer",
+                  "format":"int32"
+               },
+               {
+                  "name":"sortColumn",
+                  "in":"query",
+                  "description":"Pagination: column for sorting (e.g. ip, name, since, last, alerts, country, vlan, num_flows, traffic, thpt) (optional)",
+                  "required":false,
+                  "type":"string"
+               },
+               {
+                  "name":"sortOrder",
+                  "in":"query",
+                  "description":"Pagination: sorting order: 'asc' or 'desc' (optional)",
+                  "required":false,
+                  "type":"string"
+               },
+               {
+                  "name":"all",
+                  "in":"query",
+                  "description":"Get all hosts (optional)",
+                  "required":false,
+                  "type":"boolean"
+               },
+               {
+                  "name":"mode",
+                  "in":"query",
+                  "description":"Mode filter: all, local, remote, broadcast_domain, filtered, blacklisted, dhcp (optional)",
+                  "required":false,
+                  "type":"string"
+               }
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               },
+               "-1":{"description":"NOT_FOUND"},
+               "-2":{"description":"INVALID_INTERFACE"},
+               "-6":{"description":"INTERNAL_ERROR"}
+            }
+         }
+      },
       "/lua/rest/v1/get/host/interfaces.lua":{
          "get":{
             "tags":[
@@ -177,7 +252,7 @@
                      "$ref":"#/definitions/Host"
                   }
                },
-               "-5":{"description":"INVALID_ARGUMENTS"},
+               "-5":{"description":"INVALID_ARGUMENTS"}
             }
          }
       },
@@ -682,7 +757,7 @@
                {
                   "name":"sortColumn",
                   "in":"query",
-                  "description":"Pagination: column for sorting (e.g. 'column_score') (optional)",
+                  "description":"Pagination: column for sorting (e.g. 'score') (optional)",
                   "required":false,
                   "type":"string"
                },
@@ -733,7 +808,6 @@
             }
          }
       },
-
       "/lua/rest/v1/get/flow/l4/counters.lua":{
          "get":{
             "tags":[
