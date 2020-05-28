@@ -558,8 +558,28 @@
                "L7 Application Protocols"
             ],
             "summary":"Get L7 application protocol constants",
-            "description":"L7 Application protocol names and integer identifiers",
+            "description":"L7 application protocol names and integer identifiers",
             "operationId":"get_l7_application_consts",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               }
+            }
+         }
+      },
+      "/lua/rest/v1/get/l7/category/consts.lua":{
+         "get":{
+            "tags":[
+               "L7 Application Categories"
+            ],
+            "summary":"Get L7 application category constants",
+            "description":"L7 application category names and integer identifiers",
+            "operationId":"get_l7_category_consts",
             "produces":[
                "application/json"
             ],
