@@ -63,13 +63,6 @@ local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recor
 local disk_space = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.disk_space')
 local storage_info = recording_utils.storageInfo(ifid)
 local max_space = recording_utils.recommendedSpace(ifid, storage_info)
-if record_traffic == "true" then
-  record_traffic_checked = 'checked="checked"'
-  record_traffic_value = "false" -- Opposite
-else
-  record_traffic_checked = ""
-  record_traffic_value = "true" -- Opposite
-end
 
 max_space = math.floor(max_space/(1024*1024*1024))*1024
 if isEmptyString(disk_space) then
@@ -118,6 +111,7 @@ print [[
 
   print(template.gen("on_off_switch.html", {
     id = "record_traffic",
+    checked = record_traffic,
     icon = [[<i class="fas fa-hdd fa-lg"></i> ]] .. ternary(recording_utils.isSupportedZMQInterface(ifid), i18n("traffic_recording.continuous_recording_and_flows"), i18n("traffic_recording.continuous_recording"))
   }))
 
