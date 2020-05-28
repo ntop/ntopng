@@ -552,7 +552,27 @@
             }
          }
       },
-      "/lua/rest/v1/get/flow/active.lua":{
+      "/lua/rest/v1/get/l7/application/consts.lua":{
+         "get":{
+            "tags":[
+               "L7 Application Protocols"
+            ],
+            "summary":"Get L7 application protocol constants",
+            "description":"L7 Application protocol names and integer identifiers",
+            "operationId":"get_l7_application_consts",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               }
+            }
+         }
+      },
+       "/lua/rest/v1/get/flow/active.lua":{
          "get":{
             "tags":[
                "Flows"
