@@ -79,30 +79,30 @@ for _key,_value in ipairs(alerts) do
       alert_entity_val = ""
    end
 
-   local column_duration
+   local duration
    if engaged == true then
-      column_duration = os.time() - tonumber(_value["alert_tstamp"])
+      duration = os.time() - tonumber(_value["alert_tstamp"])
    elseif tonumber(_value["alert_tstamp_end"]) ~= nil then
-      column_duration = tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"])
+      duration = tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"])
    end
 
-   local column_severity = alert_consts.alertSeverityLabel(tonumber(_value["alert_severity"]), true)
-   local column_type     = alert_consts.alertTypeLabel(tonumber(_value["alert_type"]), true)
-   local column_count    = tonumber(_value["alert_counter"])
-   local column_score    = tonumber(_value["score"])
+   local severity = alert_consts.alertSeverityLabel(tonumber(_value["alert_severity"]), true)
+   local atype = alert_consts.alertTypeLabel(tonumber(_value["alert_type"]), true)
+   local count    = tonumber(_value["alert_counter"])
+   local score    = tonumber(_value["score"])
    local alert_info      = alert_utils.getAlertInfo(_value)
-   local column_msg      = alert_utils.formatAlertMessage(ifid, _value, alert_info)
-   local column_id = tostring(_value["rowid"])
-   local column_date = _value["alert_tstamp"]
+   local msg      = alert_utils.formatAlertMessage(ifid, _value, alert_info)
+   local id = tostring(_value["rowid"])
+   local date = _value["alert_tstamp"]
 
-   record["key"] = column_id
-   record["date"] = column_date
-   record["duration"] = column_duration
-   record["severity"] = column_severity
-   record["type"] = column_type
-   record["count"] = column_count
-   record["score"] = column_score
-   record["msg"] = column_msg
+   record["key"] = id
+   record["date"] = date
+   record["duration"] = duration
+   record["severity"] = severity
+   record["type"] = atype
+   record["count"] = count
+   record["score"] = score
+   record["msg"] = msg
    record["entity"] = alert_entity
    record["entity_val"] = alert_entity_val
    -- record["value"] = _value
