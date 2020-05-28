@@ -552,7 +552,27 @@
             }
          }
       },
-      "/lua/rest/v1/get/l7/application/consts.lua":{
+      "/lua/rest/v1/get/l4/protocol/consts.lua":{
+         "get":{
+            "tags":[
+               "L4 Protocols"
+            ],
+            "summary":"Get L4 protocol constants",
+            "description":"L4 protocol names and integer identifiers",
+            "operationId":"get_l4_protocol_consts",
+            "produces":[
+               "application/json"
+            ],
+            "parameters":[
+            ],
+            "responses":{
+               "0":{
+                  "description":"OK"
+               }
+            }
+         }
+      },
+       "/lua/rest/v1/get/l7/application/consts.lua":{
          "get":{
             "tags":[
                "L7 Application Protocols"

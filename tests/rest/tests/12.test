@@ -1,0 +1,1 @@
+curl -s -u admin:admin http://localhost:3000/lua/rest/v1/get/l4/protocol/consts.lua
