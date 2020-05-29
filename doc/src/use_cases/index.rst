@@ -11,6 +11,7 @@ to setup ntopng to solve it.
 
     mikrotik
     suricata
+    large_networks
     processes_monitoring
     snmp_monitoring
     netflow_sflow_monitoring
