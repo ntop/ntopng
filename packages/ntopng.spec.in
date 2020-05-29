@@ -51,9 +51,6 @@ cp -Lr $HOME/ntopng/httpdocs $HOME/ntopng/scripts $RPM_BUILD_ROOT/usr/share/ntop
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-config $RPM_BUILD_ROOT/usr/bin
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-updates $RPM_BUILD_ROOT/usr/bin
 %if 0%{?centos_ver} != 6
-if test -f "${HOME}/nIndex/nindex"; then
-    cp ${HOME}/nIndex/nindex $RPM_BUILD_ROOT/usr/bin;
-fi
 %endif
 cp $HOME/ntopng/packages/usr/bin/ntopctl $RPM_BUILD_ROOT/usr/bin/
 # Make sure .mmdb files are not packaged by ntopng as they belong to ntopng-data
@@ -105,7 +102,6 @@ rm -fr $RPM_BUILD_ROOT
 %config(noreplace) /etc/ntopng/ntopng.conf
 /etc/ntopng/ntopng.conf.nprobe.sample
 %if 0%{?centos_ver} != 6
-/usr/bin/nindex
 /usr/lib/systemd/system/ntopng.service
 /usr/lib/systemd/system/ntopng@.service
 %else
