@@ -1,14 +1,21 @@
 Examples v1
 ===========
 
+This section contains examples of API requests and responses. Please note that the 
+JSON response in some case does not contain the full response (e.g. in case of long
+lists).
+
+Interfaces
+----------
+
 Get Interface Data
-------------------
+~~~~~~~~~~~~~~~~~~
 
 *curl*
 
 .. code:: bash
 
-   curl -s -u admin:admin "http://192.168.1.1:3000/lua/rest/v1/get/interface/data.lua?ifid=3"
+   curl -s -u admin:admin "http://localhost:3000/lua/rest/v1/get/interface/data.lua?ifid=0"
 
 Response:
 
@@ -89,7 +96,7 @@ Response:
      "dropped_alerts": 0,
      "ts_alerts": [],
      "epoch": 1590160482,
-     "ifid": "6",
+     "ifid": "0",
      "hosts_pctg": 1,
      "speed": 1000,
      "num_hosts": 3,
@@ -103,15 +110,85 @@ Response:
     },
    }
 
-
-Get Flows Data
---------------
+Get interface IP addresses
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *curl*
 
 .. code:: bash
 
-   curl -u admin:admin -d '{"ifid": 1, "select_clause": "*", "where_clause": "IPV4_SRC_ADDR = 192.168.56.1", "begin_time_clause": 1590480290, "end_time_clause": 1590480590, "flow_clause": "flows", "maxhits_clause": 10}' http://192.168.56.103:3000/lua/pro/rest/v1/get/db/flows.lua
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/interface/address.lua?ifid=0"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rsp": {
+       "addresses": [
+         "192.168.1.1/32",
+         "fe80::a00:27ff:fe80:f433/128"
+       ]
+     },
+     "rc": 0
+   }
+
+Get L7 statistics for an interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/interface/l7/stats.lua?ifid=0&ndpistats_mode=count"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rsp": [
+       {
+         "value": 62,
+         "label": "TLS"
+       },
+       {
+         "value": 36,
+         "label": "DNS"
+       },
+       {
+         "value": 34,
+         "label": "HTTP"
+       },
+       {
+         "value": 20,
+         "label": "Google"
+       },
+       {
+         "value": 11,
+         "label": "Facebook"
+       },
+       {
+         "value": 15,
+         "label": "Other"
+       }
+     ],
+     "rc": 0
+   }
+
+Flows
+-----
+
+Get Flows Data
+~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "select_clause": "*", "where_clause": "IPV4_SRC_ADDR = 192.168.56.1", "begin_time_clause": 1590480290, "end_time_clause": 1590480590, "flow_clause": "flows", "maxhits_clause": 10}' http://localhost:3000/lua/pro/rest/v1/get/db/flows.lua
 
 Response:
 
@@ -152,3 +229,212 @@ Response:
          }
       ]
    }
+
+Alerts
+------
+
+Get alerts timeseries
+~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "0", "status": "historical-flows", "epoch_begin": 1590710400, "epoch_end": 1590796800}' http://localhost:3000/lua/rest/v1/get/alert/ts.lua
+
+Response:
+
+.. code:: json
+
+   {
+     "rsp": {
+       "data": {
+         "1590710400": [
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           37,
+           3,
+           4,
+           6,
+           13,
+           9,
+           0,
+           15,
+           0,
+           3,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0,
+           0
+         ],
+         "1590796800": [
+           0,
+           0,
+           1,
+           0,
+           0,
+           2,
+           0,
+           0,
+           0,
+           1,
+           0,
+           0,
+           0,
+           16,
+           0,
+           0,
+           3,
+           34,
+           48,
+           13,
+           0,
+           0,
+           2,
+           0
+         ]
+       }
+     },
+     "rc": 0,
+     "rc_str": "OK"
+   }
+
+L7 Application Categories
+-------------------------
+
+Get L7 application category constants
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin http://localhost:3000/lua/rest/v1/get/l7/category/consts.lua
+
+Response:
+
+.. code:: json
+
+      {
+     "rsp": {
+       "Media": {
+         "cat_id": 1
+       },
+       "Shopping": {
+         "cat_id": 27
+       },
+       "Database": {
+         "cat_id": 11
+       },
+       "Web": {
+         "cat_id": 5
+       },
+       "Media": {
+         "cat_id": 1
+       },
+       "SoftwareUpdate": {
+         "cat_id": 19
+       },
+       "Cloud": {
+         "cat_id": 13
+       },
+       "Productivity": {
+         "cat_id": 28
+       },
+       "VPN": {
+         "cat_id": 2
+       },
+       "RemoteAccess": {
+         "cat_id": 12
+       },
+       "Unspecified": {
+         "cat_id": 0
+       },
+       "System": {
+         "cat_id": 18
+       }
+     },
+     "rc_str": "OK",
+     "rc": 0
+   }
+
+L4 Protocols
+------------
+
+Get L4 protocol constants
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin http://localhost:3000/lua/rest/v1/get/l4/protocol/consts.lua
+
+Response:
+
+.. code:: json
+
+   {
+     "rc": 0,
+     "rsp": {
+       "Other IP": {
+         "proto_id": -1
+       },
+       "ICMPv6": {
+         "proto_id": 58
+       },
+       "HIP": {
+         "proto_id": 139
+       },
+       "VRRP": {
+         "proto_id": 112
+       },
+       "GRE": {
+         "proto_id": 47
+       },
+       "RSVP": {
+         "proto_id": 46
+       },
+       "ICMP": {
+         "proto_id": 1
+       },
+       "TCP": {
+         "proto_id": 6
+       },
+       "IPv6-ICMP": {
+         "proto_id": 58
+       },
+       "UDP": {
+         "proto_id": 17
+       },
+       "ESP": {
+         "proto_id": 50
+       },
+       "PIM": {
+         "proto_id": 103
+       },
+       "IP": {
+         "proto_id": 0
+       },
+       "IGMP": {
+         "proto_id": 2
+       },
+       "OSPF": {
+         "proto_id": 89
+       },
+       "IPv6": {
+         "proto_id": 41
+       }
+     },
+     "rc_str": "OK"
+   }
+
+
