@@ -87,7 +87,7 @@ end
 
 res.data = {}
 for day=1,days do
-   local day_epoch = epoch_begin + (day * day_secs)
+   local day_epoch = epoch_begin + ((day-1) * day_secs)
    res.data[day_epoch] = {}
    for hour=1,24 do
       res.data[day_epoch][hour] = 0
@@ -99,7 +99,7 @@ local curr_epoch = epoch_begin
 for k,v in ipairs(counters) do
    local day_epoch = v.hour - (v.hour % day_secs)
    local hour = (v.hour - day_epoch) / hour_secs
-   res.data[day_epoch][hour] = v.count
+   res.data[day_epoch][hour] = tonumber(v.count)
 end -- for
 
 print(rest_utils.rc(rc, res))
