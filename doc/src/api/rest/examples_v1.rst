@@ -893,7 +893,6 @@ Response:
        {
          "entity": "flow",
          "type": "alert_potentially_dangerous_protocol",
-         "key": "1",
          "score": 100,
          "date": "1590742735",
          "severity": "error",
@@ -904,7 +903,6 @@ Response:
        {
          "entity": "flow",
          "type": "alert_potentially_dangerous_protocol",
-         "key": "37",
          "score": 50,
          "date": "1590742735",
          "severity": "error",
