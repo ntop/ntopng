@@ -39,7 +39,7 @@ interface.select(ifid)
 if isEmptyString(what) or what == "historical" then
    local h_by_severity = alert_utils.getNumAlertsPerSeverity("historical", epoch_begin, epoch_end)
    for k,v in pairs(h_by_severity, asc) do
-      v.label = alert_consts.alertSeverityLabel(v.severity, true)
+      v.severity = alert_consts.alertSeverityRaw(v.severity)
    end
    res['historical'] = h_by_severity
 end
@@ -47,7 +47,7 @@ end
 if isEmptyString(what) or what == "historical-flows" then
    local hf_by_severity = alert_utils.getNumAlertsPerSeverity("historical-flows", epoch_begin, epoch_end)
    for k,v in pairs(hf_by_severity, asc) do
-      v.label = alert_consts.alertSeverityLabel(v.severity, true)
+      v.severity = alert_consts.alertSeverityRaw(v.severity)
    end
    res['historical-flows'] = hf_by_severity
 end

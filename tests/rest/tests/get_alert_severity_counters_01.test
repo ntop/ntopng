@@ -1,1 +1,1 @@
-curl -s -u admin:admin "http://localhost:3000/lua/rest/v1/get/alert/type/counters.lua?ifid=0"
+curl -s -u admin:admin "http://localhost:3000/lua/rest/v1/get/alert/severity/counters.lua?ifid=0"

@@ -1014,9 +1014,8 @@ Response:
      "rsp": {
        "historical-flows": [
          {
-           "severity": "2",
            "count": "37",
-           "label": "Error"
+           "severity": "error"
          }
        ],
        "historical": []
