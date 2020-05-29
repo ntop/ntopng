@@ -9,4 +9,6 @@ mem_ntopng_resident
 mem_shmem
 mem_sreclaimable
 mem_used
+mem_ntopng_virtual
+mem_total
 written_alerts
