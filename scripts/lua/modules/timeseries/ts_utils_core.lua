@@ -64,22 +64,6 @@ function ts_utils.getSchema(name)
     if((schema.options.step == 300) and (schema.options.is_system_schema ~= true)) then
       schema.options.insertion_step = 60
       schema.options.step = 60
-
-      if starts(name, "host:") then
-	local write_steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
-
-	if write_steps > 0 then
-	  schema.options.step = 5 * write_steps
-	end
-      end
-    elseif schema.options.step == 60 then
-      if starts(name, "iface:") then
-	local write_steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
-
-	if write_steps > 0 then
-	  schema.options.step = 5 * write_steps
-	end
-      end
     end
   end
 

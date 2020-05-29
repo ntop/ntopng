@@ -165,8 +165,6 @@ if(info["version.nindex"] ~= nil) then
    print("<tr><th>nIndex</th><td colspan=2>"..info["version.nindex"].."</td></tr>\n")
 end
 
-local l7_resolution = "5m"
-
 if ts_utils.getDriverName() == "influxdb" then
    print("<tr><th><a href=\"http://www.influxdata.com\" target=\"_blank\">InfluxDB</A></th><td colspan=2><img id=\"influxdb-info-load\" border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber><span id=\"influxdb-info-text\"></span></td></tr>\n")
    print[[<script>
@@ -182,12 +180,12 @@ $(function() {
 ]]
 
    -- NOTE: need to calculate this dynamically as it can be temporary disabled at runtime
-   local steps = tonumber(ntop.getPref("ntopng.prefs.ts_write_steps"))
+   local resolution = tonumber(ntop.getPref("ntopng.prefs.ts_resolution"))
 
-   if steps and steps > 0 then
-      l7_resolution = (steps * 5) .. "s"
-   else
+   if hasHighResolutionTs() then
       l7_resolution = "1m"
+   else
+      l7_resolution = "5m"
    end
 end
 

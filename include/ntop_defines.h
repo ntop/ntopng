@@ -633,8 +633,6 @@
 #define CONST_RUNTIME_PREFS_IFACE_FLOW_COLLECTION      NTOPNG_PREFS_PREFIX".dynamic_flow_collection_mode" /* {"none", "vlan", "probe_ip","ingress_iface_idx"} */
 #define CONST_RUNTIME_PREFS_IGNORED_INTERFACES         NTOPNG_PREFS_PREFIX".ignored_interfaces"
 #define CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS      NTOPNG_PREFS_PREFIX".l2_device_ndpi_timeseries_creation"
-#define CONST_RUNTIME_TS_NUM_SLOTS                     NTOPNG_PREFS_PREFIX".ts_write_slots"
-#define CONST_RUNTIME_TS_NUM_STEPS                     NTOPNG_PREFS_PREFIX".ts_write_steps"
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"
 #define DISAGGREGATION_IFACE_ID                        "iface_idx"
 #define DISAGGREGATION_INGRESS_IFACE_ID                "ingress_iface_idx"
