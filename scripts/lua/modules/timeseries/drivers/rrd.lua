@@ -621,7 +621,7 @@ local function touchRRD(rrdname)
     elseif(ds_count == 3) then
       ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0")
     elseif(ds_count == 4) then
-      ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0")
+      ntop.rrd_update(rrdname, tdiff.."", "0", "0", "0", "0")
     end
   end
 end
