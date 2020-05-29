@@ -59,7 +59,7 @@ function protos_utils.parseProtosTxt()
   local path = getProtosFile()
 
   if not ntop.exists(path) then
-    return {}
+    return {}, {}
   end
 
   local f = io.open(path, "r")
@@ -77,7 +77,7 @@ function protos_utils.parseProtosTxt()
 
   if f == nil then
     traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("[protos.txt] Could not open '%s' (invalid permissions?)", path))
-    return {}
+    return {}, {}
   end
 
   for full_line in f:lines() do
