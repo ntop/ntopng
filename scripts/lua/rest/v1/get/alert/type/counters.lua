@@ -39,7 +39,8 @@ interface.select(ifid)
 if isEmptyString(what) or what == "historical" then
    local h_by_type = alert_utils.getNumAlertsPerType("historical", epoch_begin, epoch_end)
    for k,v in pairs(h_by_type, asc) do
-      v.label = alert_consts.alertTypeLabel(v.id, true)
+      v.type = alert_consts.alertTypeRaw(v.id)
+      v.id = nil
    end
    res['historical'] = h_by_type
 end
@@ -47,7 +48,8 @@ end
 if isEmptyString(what) or what == "historical-flows" then
    local hf_by_type = alert_utils.getNumAlertsPerType("historical-flows", epoch_begin, epoch_end)
    for k,v in pairs(hf_by_type, asc) do
-      v.label = alert_consts.alertTypeLabel(v.id, true)
+      v.type = alert_consts.alertTypeRaw(v.id)
+      v.id = nil
    end
    res['historical-flows'] = hf_by_type
 end

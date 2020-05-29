@@ -1039,9 +1039,8 @@ Response:
      "rsp": {
        "historical-flows": [
          {
-           "id": "36",
            "count": "37",
-           "label": "Potentially Dangerous Protocol"
+           "type": "alert_potentially_dangerous_protocol"
          }
        ],
        "historical": []
