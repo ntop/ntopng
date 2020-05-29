@@ -36,7 +36,7 @@ local l7_proto = flowstats["ndpi"]
 
 for k,v in pairsByKeys(l7_proto, asc) do
    res[#res + 1] = {
-      id = k,
+      name = k,
       count = v.num_flows,
    }
 end
