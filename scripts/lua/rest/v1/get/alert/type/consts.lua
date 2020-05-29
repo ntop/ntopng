@@ -23,7 +23,10 @@ local rc = rest_utils.consts_ok
 local res = {}
 
 for alert_type, alert in pairs(alert_consts.alert_types) do
-   res[alert_type] = {alert_key = alert.alert_key}
+   res[#res + 1] = {
+      type = alert_type, 
+      key = alert.alert_key,
+   }
 end
 
 print(rest_utils.rc(rc, res))

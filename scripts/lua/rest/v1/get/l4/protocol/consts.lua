@@ -32,7 +32,10 @@ for _, l4_key in pairs(l4_keys) do
    -- 2.1 string ICMP
    -- 2.2 string icmp
    -- 2.3 number 1
-   res[l4_key[1]] = {proto_id = l4_key[3]}
+   res[#res + 1] = {
+     name = l4_key[1], 
+     id = l4_key[3],
+   }
 end
 
 print(rest_utils.rc(rc, res))

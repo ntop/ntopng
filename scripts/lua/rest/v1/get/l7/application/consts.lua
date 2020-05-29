@@ -27,7 +27,11 @@ for application, appl_id in pairs(applications) do
    appl_id = tonumber(appl_id)
    local cat = ntop.getnDPIProtoCategory(appl_id)
 
-   res[application] = {appl_id = appl_id, cat_id = cat.id}
+   res[#res + 1] = {
+     name = application, 
+     appl_id = appl_id,
+     cat_id = cat.id,
+   }
 end
 
 print(rest_utils.rc(rc, res))

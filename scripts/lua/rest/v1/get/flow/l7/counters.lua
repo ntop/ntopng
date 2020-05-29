@@ -34,9 +34,11 @@ interface.select(ifid)
 local flowstats = interface.getActiveFlowsStats()
 local l7_proto = flowstats["ndpi"]
 
-res.counters = {}
 for k,v in pairsByKeys(l7_proto, asc) do
-  res.counters[k] = v.num_flows
+   res[#res + 1] = {
+      id = k,
+      count = v.num_flows,
+   }
 end
 
 print(rest_utils.rc(rc, res))
