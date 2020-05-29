@@ -29,7 +29,7 @@ local ifid = _GET["ifid"]
 local all = _GET["all"]
 local currentPage = _GET["currentPage"]
 local perPage     = _GET["perPage"]
-local sortColumn  = _GET["sortColumn"]
+local sortColumn  = _GET["sortColumn"] -- ip, name, since, last, alerts, country, vlan, num_flows, traffic, thpt
 local sortOrder   = _GET["sortOrder"]
 
 -- Filters
