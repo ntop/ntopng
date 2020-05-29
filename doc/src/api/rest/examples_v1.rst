@@ -587,14 +587,18 @@ Response:
 .. code:: json
 
    {
-     "rc_str": "OK",
      "rc": 0,
-     "rsp": {
-       "counters": {
-         "6": 132,
-         "17": 46
+     "rc_str": "OK",
+     "rsp": [
+       {
+         "id": 6,
+         "count": 132
+       },
+       {
+         "id": 17,
+         "count": 46
        }
-     }
+     ]
    }
 
 Get flow counters for L7 protocols
@@ -612,21 +616,32 @@ Response:
 
    {
      "rc_str": "OK",
-     "rsp": {
-       "counters": {
-         "Amazon": 1,
-         "Google": 20,
-         "Telegram": 1,
-         "DNS": 45,
-         "MDNS": 1,
-         "Cloudflare": 1,
-         "GoogleServices": 10,
-         "Unknown": 82,
-         "HTTP": 34,
-         "TLS": 96,
-         "Facebook": 11
+     "rsp": [
+       {
+         "count": 1,
+         "id": "Cloudflare"
+       },
+       {
+         "count": 45,
+         "id": "DNS"
+       },
+       {
+         "count": 11,
+         "id": "Facebook"
+       },
+       {
+         "count": 20,
+         "id": "Google"
+       },
+       {
+         "count": 96,
+         "id": "TLS"
+       },
+       {
+         "count": 82,
+         "id": "Unknown"
        }
-     },
+     ],
      "rc": 0
    }
 
@@ -646,14 +661,6 @@ Response:
    {
      "rc": 0,
      "rsp": {
-       "currentPage": 1,
-       "totalRows": 178,
-       "sort": [
-         [
-           "column_",
-           "desc"
-         ]
-       ],
        "data": [
          {
            "thpt": {
@@ -732,7 +739,15 @@ Response:
            }
          }
        ],
-       "perPage": 10
+       "currentPage": 1,
+       "perPage": 10,
+       "totalRows": 178,
+       "sort": [
+         [
+           "column_",
+           "desc"
+         ]
+       ]
      },
      "rc_str": "OK"
    }
@@ -803,7 +818,6 @@ Response:
 
    {
      "rsp": {
-       "data": {
          "1590710400": [
            0,
            0,
@@ -856,7 +870,6 @@ Response:
            2,
            0
          ]
-       }
      },
      "rc": 0,
      "rc_str": "OK"
@@ -918,19 +931,22 @@ Response:
 .. code:: json
 
    {
-     "rsp": {
-       "warning": {
-         "severity_id": 1
+     "rsp": [
+       {
+         "severity": "info",
+         "id": 0
        },
-       "info": {
-         "severity_id": 0
+       {
+         "severity": "error",
+         "id": 2
        },
-       "error": {
-         "severity_id": 2
+       {
+         "severity": "warning",
+         "id": 1
        }
-     },
-     "rc_str": "OK",
-     "rc": 0
+     ],
+     "rc": 0,
+     "rc_str": "OK"
    }
 
 Get alert type constants
@@ -947,37 +963,38 @@ Response:
 .. code:: json
 
    {
-     "rc": 0,
      "rc_str": "OK",
-     "rsp": {
-       "alert_periodic_activity_not_executed": {
-         "alert_key": 29
+     "rc": 0,
+     "rsp": [
+       {
+         "key": 9,
+         "type": "alert_flow_blocked"
        },
-       "alert_device_connection": {
-         "alert_key": 3
+       {
+         "key": 40,
+         "type": "alert_request_reply_ratio"
        },
-       "alert_ip_outsite_dhcp_range": {
-         "alert_key": 19
+       {
+         "key": 18,
+         "type": "alert_internals"
        },
-       "alert_list_download_failed": {
-         "alert_key": 20
+       {
+         "key": 38,
+         "type": "alert_quota_exceeded"
        },
-       "alert_blacklisted_country": {
-         "alert_key": 1
+       {
+         "key": 21,
+         "type": "alert_login_failed"
        },
-       "alert_dropped_alerts": {
-         "alert_key": 6
+       {
+         "key": 53,
+         "type": "alert_user_activity"
        },
-       "alert_port_duplexstatus_change": {
-         "alert_key": 31
-       },
-       "alert_ghost_network": {
-         "alert_key": 12
-       },
-       "alert_process_notification": {
-         "alert_key": 37
+       {
+         "key": 47,
+         "type": "alert_tcp_syn_scan"
        }
-     }
+     ]
    }
 
 Get counters per severity
@@ -1052,40 +1069,42 @@ Response:
 
 .. code:: json
 
-   {
+  {
      "rc_str": "OK",
-     "rsp": {
-       "Webex": {
-         "appl_id": 141,
-         "cat_id": 10
+     "rsp": [
+       {
+         "name": "PS_VUE",
+         "cat_id": 26,
+         "appl_id": 64
        },
-       "SMTPS": {
-         "appl_id": 29,
-         "cat_id": 3
+       {
+         "name": "Lando",
+         "cat_id": 0,
+         "appl_id": 254
        },
-       "Dofus": {
-         "appl_id": 106,
-         "cat_id": 8
+       {
+         "name": "MapleStory",
+         "cat_id": 8,
+         "appl_id": 113
        },
-       "Usenet": {
-         "appl_id": 93,
-         "cat_id": 5
+       {
+         "name": "Spotify",
+         "cat_id": 25,
+         "appl_id": 156
        },
-       "GMail": {
-         "appl_id": 122,
-         "cat_id": 3
+       {
+         "name": "DNS",
+         "cat_id": 14,
+         "appl_id": 5
        },
-       "AMQP": {
-         "appl_id": 192,
-         "cat_id": 16
-       },
-       "MPEG_TS": {
-         "appl_id": 198,
-         "cat_id": 1
+       {
+         "name": "SMTP",
+         "cat_id": 3,
+         "appl_id": 3
        }
-     },
+     ],
      "rc": 0
-   }
+   } 
 
 L7 Application Categories
 -------------------------
@@ -1104,45 +1123,37 @@ Response:
 .. code:: json
 
    {
-     "rsp": {
-       "Media": {
-         "cat_id": 1
-       },
-       "Shopping": {
-         "cat_id": 27
-       },
-       "Database": {
-         "cat_id": 11
-       },
-       "Web": {
+     "rc_str": "OK",
+     "rsp": [
+       {
+         "name": "Web",
          "cat_id": 5
        },
-       "Media": {
-         "cat_id": 1
+       {
+         "name": "Database",
+         "cat_id": 11
        },
-       "SoftwareUpdate": {
-         "cat_id": 19
+       {
+         "name": "Malware",
+         "cat_id": 100
        },
-       "Cloud": {
+       {
+         "name": "User custom category 3",
+         "cat_id": 22
+       },
+       {
+         "name": "DataTransfer",
+         "cat_id": 4
+       },
+       {
+         "name": "SocialNetwork",
+         "cat_id": 6
+       },
+       {
+         "name": "Cloud",
          "cat_id": 13
-       },
-       "Productivity": {
-         "cat_id": 28
-       },
-       "VPN": {
-         "cat_id": 2
-       },
-       "RemoteAccess": {
-         "cat_id": 12
-       },
-       "Unspecified": {
-         "cat_id": 0
-       },
-       "System": {
-         "cat_id": 18
        }
-     },
-     "rc_str": "OK",
+     ],
      "rc": 0
    }
 
@@ -1164,56 +1175,76 @@ Response:
 
    {
      "rc": 0,
-     "rsp": {
-       "Other IP": {
-         "proto_id": -1
+     "rsp": [
+       {
+         "name": "IP",
+         "id": 0
        },
-       "ICMPv6": {
-         "proto_id": 58
+       {
+         "name": "ICMP",
+         "id": 1
        },
-       "HIP": {
-         "proto_id": 139
+       {
+         "name": "IGMP",
+         "id": 2
        },
-       "VRRP": {
-         "proto_id": 112
+       {
+         "name": "TCP",
+         "id": 6
        },
-       "GRE": {
-         "proto_id": 47
+       {
+         "name": "UDP",
+         "id": 17
        },
-       "RSVP": {
-         "proto_id": 46
+       {
+         "name": "IPv6",
+         "id": 41
        },
-       "ICMP": {
-         "proto_id": 1
+       {
+         "name": "RSVP",
+         "id": 46
        },
-       "TCP": {
-         "proto_id": 6
+       {
+         "name": "GRE",
+         "id": 47
        },
-       "IPv6-ICMP": {
-         "proto_id": 58
+       {
+         "name": "ESP",
+         "id": 50
        },
-       "UDP": {
-         "proto_id": 17
+       {
+         "name": "IPv6-ICMP",
+         "id": 58
        },
-       "ESP": {
-         "proto_id": 50
+       {
+         "name": "OSPF",
+         "id": 89
        },
-       "PIM": {
-         "proto_id": 103
+       {
+         "name": "PIM",
+         "id": 103
        },
-       "IP": {
-         "proto_id": 0
+       {
+         "name": "VRRP",
+         "id": 112
        },
-       "IGMP": {
-         "proto_id": 2
+       {
+         "name": "HIP",
+         "id": 139
        },
-       "OSPF": {
-         "proto_id": 89
+       {
+         "name": "ICMPv6",
+         "id": 58
        },
-       "IPv6": {
-         "proto_id": 41
+       {
+         "name": "IGMP",
+         "id": 2
+       },
+       {
+         "name": "Other IP",
+         "id": -1
        }
-     },
+     ],
      "rc_str": "OK"
    }
 

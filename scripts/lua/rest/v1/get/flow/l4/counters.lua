@@ -34,9 +34,11 @@ interface.select(ifid)
 local flowstats = interface.getActiveFlowsStats()
 local l4_proto = flowstats["l4_protocols"]
 
-res.counters = {}
 for k,v in pairs(l4_proto, asc) do
-  res.counters[k] = v.count
+   res[#res + 1] = {
+      id = k,
+      count = v.count,
+   }
 end
 
 print(rest_utils.rc(rc, res))

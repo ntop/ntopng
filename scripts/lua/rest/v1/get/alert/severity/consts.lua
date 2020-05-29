@@ -23,7 +23,10 @@ local rc = rest_utils.consts_ok
 local res = {}
 
 for severity, severity_descr in pairs(alert_consts.alert_severities) do
-   res[severity] = {severity_id = severity_descr.severity_id}
+   res[#res + 1] = {
+     severity = severity,
+     id = severity_descr.severity_id,
+   }
 end
 
 print(rest_utils.rc(rc, res))
