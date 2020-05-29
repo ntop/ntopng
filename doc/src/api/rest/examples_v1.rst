@@ -178,11 +178,567 @@ Response:
      "rc": 0
    }
 
+Hosts
+-----
+
+Get active hosts
+~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/host/active.lua?ifid=0"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rc": 0,
+     "rsp": {
+       "data": [
+         {
+           "is_localhost": false,
+           "last_seen": 1589741869,
+           "thpt": {
+             "bps": 0,
+             "pps": 0
+           },
+           "is_broadcast": false,
+           "country": "US",
+           "num_alerts": 0,
+           "is_multicast": false,
+           "num_flows": {
+             "total": 1,
+             "as_client": 0,
+             "as_server": 1
+           },
+           "key": "8__241__92__250",
+           "bytes": {
+             "total": 2356772,
+             "recvd": 34148,
+             "sent": 2322624
+           },
+           "vlan": 0,
+           "is_broadcast_domain": false,
+           "name": 0,
+           "ip": "8.241.92.250",
+           "is_blacklisted": false,
+           "os": 0,
+           "first_seen": 1589741868
+         },
+         {
+           "is_localhost": false,
+           "last_seen": 1589741869,
+           "thpt": {
+             "bps": 0,
+             "pps": 0
+           },
+           "is_broadcast": false,
+           "country": "",
+           "num_alerts": 0,
+           "is_multicast": false,
+           "num_flows": {
+             "total": 34,
+             "as_client": 0,
+             "as_server": 34
+           },
+           "key": "2__23__155__233",
+           "bytes": {
+             "total": 41945,
+             "recvd": 23013,
+             "sent": 18932
+           },
+           "vlan": 0,
+           "is_broadcast_domain": false,
+           "name": 0,
+           "ip": "2.23.155.233",
+           "is_blacklisted": false,
+           "os": 0,
+           "first_seen": 1589741865
+         }
+       ],
+       "currentPage": 1,
+       "perPage": 10,
+       "sort": [
+         []
+       ]
+     }
+   }  
+
+Get host data
+~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/host/data.lua?ifid=0&host=8.241.92.250"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rc": 0,
+     "rsp": {
+       "icmp.bytes.rcvd.anomaly_index": 0,
+       "tcp.bytes.sent.anomaly_index": 0,
+       "packets.rcvd": 494,
+       "childSafe": false,
+       "os": 0,
+       "tcpPacketStats.rcvd": {
+         "retransmissions": 0,
+         "keep_alive": 0,
+         "lost": 0,
+         "out_of_order": 0
+       },
+       "throughput_bps": 0,
+       "icmp.packets.rcvd": 0,
+       "other_ip.bytes.sent.anomaly_index": 0,
+       "tcp.packets.seq_problems": false,
+       "systemhost": false,
+       "active_alerted_flows": 0,
+       "udp.bytes.rcvd": 0,
+       "flows.as_client": 0,
+       "icmp.bytes.rcvd": 0,
+       "num_triggered_alerts": {
+         "hour": 0,
+         "5mins": 0,
+         "day": 0,
+         "min": 0
+       },
+       "privatehost": false,
+       "packets.rcvd.anomaly_index": 0,
+       "udp.bytes.sent.anomaly_index": 0,
+       "ip": "8.241.92.250",
+       "has_blocking_shaper": false,
+       "num_alerts": 0,
+       "tcp.packets.sent": 1556,
+       "active_http_hosts": 0,
+       "asn": 3356,
+       "hassh_fingerprint": [],
+       "ja3_fingerprint": {
+         "5d79edf64e03689ff559a54e9d9487bc": {
+           "num_uses": 1,
+           "app_name": ""
+         }
+       },
+       "is_blacklisted": false,
+       "flows.as_server": 1,
+       "asname": "LEVEL3",
+       "udp.bytes.sent": 0,
+       "seen.last": 1589741869,
+       "seen.first": 1589741868,
+       "tcp.bytes.rcvd.anomaly_index": 0,
+       "throughput_pps": 0,
+       "bins": {
+         "server": {
+           "frequency": {
+             "> 300": 0,
+             "<= 300": 0,
+             "<= 60": 0,
+             "<= 3": 0,
+             "<= 30": 0,
+             "<= 5": 0,
+             "<= 1": 0,
+             "<= 10": 0
+           },
+           "duration": {
+             "> 300": 0,
+             "<= 300": 0,
+             "<= 60": 0,
+             "<= 3": 0,
+             "<= 30": 0,
+             "<= 5": 0,
+             "<= 1": 0,
+             "<= 10": 0
+           }
+         },
+         "client": {
+           "frequency": {
+             "> 300": 0,
+             "<= 300": 0,
+             "<= 60": 0,
+             "<= 3": 0,
+             "<= 30": 0,
+             "<= 5": 0,
+             "<= 1": 0,
+             "<= 10": 0
+           },
+           "duration": {
+             "> 300": 0,
+             "<= 300": 0,
+             "<= 60": 0,
+             "<= 3": 0,
+             "<= 30": 0,
+             "<= 5": 0,
+             "<= 1": 0,
+             "<= 10": 0
+           }
+         }
+       },
+       "host_unreachable_flows.as_client": 0,
+       "total_flows.as_server": 1,
+       "bytes.ndpi.unknown": 0,
+       "vlan": 0,
+       "other_ip.bytes.sent": 0,
+       "tskey": "8.241.92.250",
+       "broadcast_domain_host": false,
+       "mac": "10:13:31:F1:39:76",
+       "city": "",
+       "icmp.bytes.sent.anomaly_index": 0,
+       "packets.sent.anomaly_index": 0,
+       "latitude": 37.750999450684,
+       "udp.packets.sent": 0,
+       "pktStats.recv": {
+         "size": {
+           "upTo128": 487,
+           "upTo256": 5,
+           "above9000": 0,
+           "upTo2500": 0,
+           "upTo64": 0,
+           "upTo9000": 0,
+           "upTo512": 2,
+           "upTo1024": 0,
+           "upTo6500": 0,
+           "upTo1518": 0
+         },
+         "tcp_flags": {
+           "finack": 0,
+           "syn": 1,
+           "rst": 0,
+           "synack": 0
+         }
+       },
+       "drop_all_host_traffic": false,
+       "localhost": false,
+       "bytes.sent.anomaly_index": 0,
+       "misbehaving_flows.as_server": 0,
+       "continent": "NA",
+       "names": [],
+       "num_flow_alerts": 0,
+       "os_detail": "",
+       "host_pool_id": 0,
+       "ifid": 0,
+       "icmp.bytes.sent": 0,
+       "other_ip.packets.rcvd": 0,
+       "throughput_trend_pps": 0,
+       "name": "",
+       "contacts.as_server": 0,
+       "tcpPacketStats.sent": {
+         "retransmissions": 0,
+         "keep_alive": 0,
+         "lost": 0,
+         "out_of_order": 0
+       },
+       "contacts.as_client": 0,
+       "is_broadcast": false,
+       "total_activity_time": 5,
+       "misbehaving_flows_status_map.as_server": 0,
+       "active_flows.as_server": 1,
+       "active_flows.as_client": 0,
+       "udpBytesSent.non_unicast": 0,
+       "udpBytesSent.unicast": 0,
+       "score": 0,
+       "longitude": -97.821998596191,
+       "bytes.sent": 2322624,
+       "hiddenFromTop": false,
+       "other_ip.packets.sent": 0,
+       "icmp.packets.sent": 0,
+       "udp.packets.rcvd": 0,
+       "misbehaving_flows_status_map.as_client": 0,
+       "tcp.bytes.sent": 2322624,
+       "total_alerts": 0,
+       "other_ip.bytes.rcvd.anomaly_index": 0,
+       "ndpi_categories": {
+         "Web": {
+           "bytes.sent": 2322624,
+           "bytes": 2356772,
+           "bytes.rcvd": 34148,
+           "category": 5,
+           "duration": 5
+         }
+       },
+       "tcp.packets.rcvd": 494,
+       "packets.sent": 1556,
+       "host_unreachable_flows.as_server": 0,
+       "unreachable_flows.as_server": 0,
+       "dhcpHost": false,
+       "ndpi": {
+         "TLS": {
+           "bytes.sent": 2322624,
+           "num_flows": 0,
+           "packets.sent": 1556,
+           "bytes.rcvd": 34148,
+           "packets.rcvd": 494,
+           "duration": 5,
+           "breed": "Safe"
+         }
+       },
+       "unreachable_flows.as_client": 0,
+       "misbehaving_flows.as_client": 0,
+       "ipkey": 150035706,
+       "throughput_trend_bps": 0,
+       "bytes.rcvd": 34148,
+       "other_ip.bytes.rcvd": 0,
+       "total_flows.as_client": 0,
+       "udp.bytes.rcvd.anomaly_index": 0,
+       "tcp.bytes.rcvd": 34148,
+       "has_blocking_quota": false,
+       "bytes.rcvd.anomaly_index": 0,
+       "pktStats.sent": {
+         "size": {
+           "upTo128": 8,
+           "upTo256": 2,
+           "above9000": 0,
+           "upTo2500": 0,
+           "upTo64": 0,
+           "upTo9000": 0,
+           "upTo512": 0,
+           "upTo1024": 7,
+           "upTo6500": 0,
+           "upTo1518": 1539
+         },
+         "tcp_flags": {
+           "finack": 0,
+           "syn": 0,
+           "rst": 0,
+           "synack": 1
+         }
+       },
+       "country": "US",
+       "is_multicast": false,
+       "devtype": 0,
+       "duration": 2
+     }
+   }
+
+Get L7 statistics for a host
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/host/l7/stats.lua?ifid=0&host=8.241.92.250"
+
+Response:
+
+.. code:: json
+
+   {
+     "rsp": [
+       {
+         "duration": 5,
+         "value": 2356772,
+         "label": "TLS"
+       }
+     ],
+     "rc_str": "OK",
+     "rc": 0
+   }
+   
+Get host interfaces
+~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/host/interfaces.lua?host=8.241.92.250"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rsp": {
+       "8.241.92.250": [
+         {
+           "ifid": 1
+         },
+         {
+           "ifid": 0
+         }
+       ]
+     },
+     "rc": 0
+   }
+
 Flows
 -----
 
-Get Flows Data
-~~~~~~~~~~~~~~
+Get flow counters for L4 protocols
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/flow/l4/counters.lua?ifid=0"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rc": 0,
+     "rsp": {
+       "counters": {
+         "6": 132,
+         "17": 46
+       }
+     }
+   }
+
+Get flow counters for L7 protocols
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/flow/l7/counters.lua?ifid=0"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rsp": {
+       "counters": {
+         "Amazon": 1,
+         "Google": 20,
+         "Telegram": 1,
+         "DNS": 45,
+         "MDNS": 1,
+         "Cloudflare": 1,
+         "GoogleServices": 10,
+         "Unknown": 82,
+         "HTTP": 34,
+         "TLS": 96,
+         "Facebook": 11
+       }
+     },
+     "rc": 0
+   }
+
+Get active flows
+~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/flow/active.lua?ifid=0" 
+
+Response:
+
+.. code:: json
+
+   {
+     "rc": 0,
+     "rsp": {
+       "currentPage": 1,
+       "totalRows": 178,
+       "sort": [
+         [
+           "column_",
+           "desc"
+         ]
+       ],
+       "data": [
+         {
+           "thpt": {
+             "pps": 0,
+             "bps": 0
+           },
+           "hash_id": "163",
+           "client": {
+             "name": "192.168.1.93",
+             "port": 61683,
+             "is_blacklisted": false,
+             "is_dhcp": false,
+             "ip": "192.168.1.93",
+             "is_broadcast_domain": false
+           },
+           "first_seen": 1589741868,
+           "score": "0",
+           "vlan": 0,
+           "server": {
+             "name": "8.241.92.250",
+             "port": 443,
+             "is_blacklisted": false,
+             "is_dhcp": false,
+             "ip": "8.241.92.250",
+             "is_broadcast": false
+           },
+           "last_seen": 1589741869,
+           "bytes": 2356772,
+           "key": "3382381902",
+           "protocol": {
+             "l4": "TCP",
+             "l7": "TLS"
+           },
+           "duration": 1,
+           "breakdown": {
+             "srv2cli": 99,
+             "cli2srv": 1
+           }
+         },
+         {
+           "thpt": {
+             "pps": 0,
+             "bps": 0
+           },
+           "hash_id": "23",
+           "client": {
+             "name": "192.168.1.93",
+             "port": 61567,
+             "is_blacklisted": false,
+             "is_dhcp": false,
+             "ip": "192.168.1.93",
+             "is_broadcast_domain": false
+           },
+           "first_seen": 1589741865,
+           "score": "0",
+           "vlan": 0,
+           "server": {
+             "name": "31.13.86.4",
+             "port": 443,
+             "is_blacklisted": false,
+             "is_dhcp": false,
+             "ip": "31.13.86.4",
+             "is_broadcast": false
+           },
+           "last_seen": 1589741865,
+           "bytes": 188958,
+           "key": "3753284184",
+           "protocol": {
+             "l4": "TCP",
+             "l7": "TLS.Facebook"
+           },
+           "duration": 0,
+           "breakdown": {
+             "srv2cli": 96,
+             "cli2srv": 4
+           }
+         }
+       ],
+       "perPage": 10
+     },
+     "rc_str": "OK"
+   }
+
+Get historical flows
+~~~~~~~~~~~~~~~~~~~~
 
 *curl*
 
@@ -224,8 +780,7 @@ Response:
             "INTERFACE_ID":"6",
             "PROFILE":"",
             "STATUS":"0",
-            "INFO":"",
-            "JSON":"{ \"8\": \"192.168.56.1\", \"12\": \"192.168.56.103\", \"7\": 61900, \"11\": 22, \"4\": 6, \"57590\": 92, \"57591\": \"SSH\", \"6\": 24, \"2\": 12, \"1\": 908, \"24\": 10, \"23\": 2968, \"22\": 1590480420, \"21\": 1590480421, \"57595\": 0.000000, \"57596\": 0.000000, \"SRC_IP_COUNTRY\": \"\", \"SRC_IP_LOCATION\": [ 0.000000, 0.000000 ], \"DST_IP_COUNTRY\": \"\", \"DST_IP_LOCATION\": [ 0.000000, 0.000000 ], \"NTOPNG_INSTANCE_NAME\": \"mastrubuntu16\", \"INTERFACE\": \"enp0s8\" }"
+            "INFO":""
          }
       ]
    }
@@ -307,6 +862,231 @@ Response:
      "rc_str": "OK"
    }
 
+Get alerts data
+~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "0", "status": "historical-flows"}' http://localhost:3000/lua/rest/v1/get/alert/data.lua
+
+Response:
+
+.. code:: json
+
+   {
+     "rsp": [
+       {
+         "entity": "flow",
+         "type": "Potentially Dangerous Protocol",
+         "key": "1",
+         "score": 100,
+         "date": "1590742735",
+         "severity": "Error",
+         "count": 1,
+         "entity_val": "",
+         "msg": "TLS Certificate Expired [24/08/2019 18:04:13 - 22/11/2019 18:04:13] [Flow: <A HREF='/lua/flow_details.lua?flow_key=2169606404&flow_hash_id=131'><span class='badge badge-info'>Info</span></A> <a href='/lua/host_details.lua?host=192.168.1.93' data-toggle='tooltip' title=''>192.168.1.93</a>:<A HREF=\"/lua/port_details.lua?port=61650\">61650</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=28:37:37:00:6D:C8\">28:37:37:00:6D:C8</A> ] <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> <a href='/lua/host_details.lua?host=192.168.1.176' data-toggle='tooltip' title=''>192.168.1.176</a>:<A HREF=\"/lua/port_details.lua?port=443\">443</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=00:80:8F:9A:AE:BD\">00:80:8F:9A:AE:BD</A> ]] <a href=\"/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&user_script=tls_certificate_expired#all\"><i class=\"fas fa-cog\" title=\"Edit Configuration\"></i></a>"
+       },
+       {
+         "entity": "flow",
+         "type": "Potentially Dangerous Protocol",
+         "key": "37",
+         "score": 50,
+         "date": "1590742735",
+         "severity": "Error",
+         "count": 1,
+         "entity_val": "",
+         "msg": "TLS Certificate Mismatch [Client Requested: cdn.gigya.com] [Server Names: a248.e.akamai.net,*.akamaized-staging.net,*.akamaized.net,*.akamaihd-staging.net,*.akamaihd.net] [Flow: <A HREF='/lua/flow_details.lua?flow_key=2027748492&flow_hash_id=118'><span class='badge badge-info'>Info</span></A> <a href='/lua/host_details.lua?host=192.168.1.93' data-toggle='tooltip' title=''>192.168.1.93</a>:<A HREF=\"/lua/port_details.lua?port=61632\">61632</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=28:37:37:00:6D:C8\">28:37:37:00:6D:C8</A> ] <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> <a href='/lua/host_details.lua?host=184.51.127.56' data-toggle='tooltip' title=''>184.51.127.56</a>:<A HREF=\"/lua/port_details.lua?port=443\">443</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=10:13:31:F1:39:76\">10:13:31:F1:39:76</A> ]] <a href=\"/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&user_script=tls_certificate_mismatch#all\"><i class=\"fas fa-cog\" title=\"Edit Configuration\"></i></a>"
+       }
+     ],
+     "rc": 0,
+     "rc_str": "OK"
+   }
+
+Get alert severity constants
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin http://localhost:3000/lua/rest/v1/get/alert/severity/consts.lua
+
+Response:
+
+.. code:: json
+
+   {
+     "rsp": {
+       "warning": {
+         "severity_id": 1
+       },
+       "info": {
+         "severity_id": 0
+       },
+       "error": {
+         "severity_id": 2
+       }
+     },
+     "rc_str": "OK",
+     "rc": 0
+   }
+
+Get alert type constants
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin http://localhost:3000/lua/rest/v1/get/alert/type/consts.lua
+
+Response:
+
+.. code:: json
+
+   {
+     "rc": 0,
+     "rc_str": "OK",
+     "rsp": {
+       "alert_periodic_activity_not_executed": {
+         "alert_key": 29
+       },
+       "alert_device_connection": {
+         "alert_key": 3
+       },
+       "alert_ip_outsite_dhcp_range": {
+         "alert_key": 19
+       },
+       "alert_list_download_failed": {
+         "alert_key": 20
+       },
+       "alert_blacklisted_country": {
+         "alert_key": 1
+       },
+       "alert_dropped_alerts": {
+         "alert_key": 6
+       },
+       "alert_port_duplexstatus_change": {
+         "alert_key": 31
+       },
+       "alert_ghost_network": {
+         "alert_key": 12
+       },
+       "alert_process_notification": {
+         "alert_key": 37
+       }
+     }
+   }
+
+Get counters per severity
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/alert/severity/counters.lua?ifid=0"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc": 0,
+     "rc_str": "OK",
+     "rsp": {
+       "historical-flows": [
+         {
+           "severity": "2",
+           "count": "37",
+           "label": "Error"
+         }
+       ],
+       "historical": []
+     }
+   }
+
+Get counters per type
+~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/alert/type/counters.lua?ifid=0"
+
+Response:
+
+.. code:: json
+
+   {
+     "rsp": {
+       "historical-flows": [
+         {
+           "id": "36",
+           "count": "37",
+           "label": "Potentially Dangerous Protocol"
+         }
+       ],
+       "historical": []
+     },
+     "rc": 0,
+     "rc_str": "OK"
+   }
+
+L7 Application Protocols
+------------------------
+
+Get L7 application protocol constants
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin http://localhost:3000/lua/rest/v1/get/l7/application/consts.lua
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rsp": {
+       "Webex": {
+         "appl_id": 141,
+         "cat_id": 10
+       },
+       "SMTPS": {
+         "appl_id": 29,
+         "cat_id": 3
+       },
+       "Dofus": {
+         "appl_id": 106,
+         "cat_id": 8
+       },
+       "Usenet": {
+         "appl_id": 93,
+         "cat_id": 5
+       },
+       "GMail": {
+         "appl_id": 122,
+         "cat_id": 3
+       },
+       "AMQP": {
+         "appl_id": 192,
+         "cat_id": 16
+       },
+       "MPEG_TS": {
+         "appl_id": 198,
+         "cat_id": 1
+       }
+     },
+     "rc": 0
+   }
+
 L7 Application Categories
 -------------------------
 
@@ -323,7 +1103,7 @@ Response:
 
 .. code:: json
 
-      {
+   {
      "rsp": {
        "Media": {
          "cat_id": 1
@@ -436,5 +1216,4 @@ Response:
      },
      "rc_str": "OK"
    }
-
 
