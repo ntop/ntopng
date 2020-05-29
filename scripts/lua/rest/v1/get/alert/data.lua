@@ -86,16 +86,14 @@ for _key,_value in ipairs(alerts) do
       duration = tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"])
    end
 
-   local severity = alert_consts.alertSeverityLabel(tonumber(_value["alert_severity"]), true)
-   local atype = alert_consts.alertTypeLabel(tonumber(_value["alert_type"]), true)
+   local severity = alert_consts.alertSeverityRaw(tonumber(_value["alert_severity"]))
+   local atype = alert_consts.alertTypeRaw(tonumber(_value["alert_type"]))
    local count    = tonumber(_value["alert_counter"])
    local score    = tonumber(_value["score"])
    local alert_info      = alert_utils.getAlertInfo(_value)
    local msg      = alert_utils.formatAlertMessage(ifid, _value, alert_info)
-   local id = tostring(_value["rowid"])
    local date = _value["alert_tstamp"]
 
-   record["key"] = id
    record["date"] = date
    record["duration"] = duration
    record["severity"] = severity
