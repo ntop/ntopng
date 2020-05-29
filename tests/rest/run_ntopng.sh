@@ -1,6 +1,6 @@
 #!/bin/sh
 
-NTOPNG_TEST_DATADIR="/var/lib/ntopng_test"
+NTOPNG_TEST_DATADIR="${PWD}/data"
 NTOPNG_TEST_CUSTOM_PROTOS="${NTOPNG_TEST_DATADIR}/protos.txt"
 NTOPNG_TEST_REDIS="2"
 NTOPNG_TEST_LOCALNETS="192.168.1.0/24"
@@ -28,4 +28,13 @@ host:"lando"@Lando
 EOF
 
 # Start the test
-cd ../../; ./ntopng -d "${NTOPNG_TEST_DATADIR}" -r "@${NTOPNG_TEST_REDIS}" -p "${NTOPNG_TEST_CUSTOM_PROTOS}" -N "ntopng_test" -m "${NTOPNG_TEST_LOCALNETS}" -i tests/rest/pcap/test_01.pcap -i tests/rest/pcap/test_02.pcap --disable-login 1
+cd ../../;					\
+./ntopng					\
+	-d "${NTOPNG_TEST_DATADIR}"		\
+	-r "@${NTOPNG_TEST_REDIS}"		\
+	-p "${NTOPNG_TEST_CUSTOM_PROTOS}"	\
+	-N "ntopng_test"			\
+	-m "${NTOPNG_TEST_LOCALNETS}"		\
+	-i tests/rest/pcap/test_01.pcap		\
+	-i tests/rest/pcap/test_02.pcap		\
+	--disable-login 1
