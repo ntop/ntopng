@@ -329,7 +329,7 @@ void usage() {
 #ifndef HAVE_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 #ifdef HAVE_NINDEX
-	 "                                    | nindex        Dump in nIndex (Enterprise only)\n\n"
+	 "                                    | nindex        Dump in nIndex (Enterprise only)\n"
 #endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
