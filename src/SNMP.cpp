@@ -176,11 +176,11 @@ int SNMP::getnext(lua_State* vm, bool skip_first_param) {
 
 /* ******************************************* */
 
-void SNMP::snmp_fetch_responses(lua_State* vm) {
+void SNMP::snmp_fetch_responses(lua_State* vm, u_int sec_timeout) {
   int i = 0;
 
   if(ntop->getGlobals()->isShutdown()
-     || input_timeout(udp_sock, 1 /* 1 sec wait */) == 0) {
+     || input_timeout(udp_sock, sec_timeout) == 0) {
     /* Timeout or shutdown in progress */
   } else {
     char buf[BUFLEN];
@@ -197,7 +197,11 @@ void SNMP::snmp_fetch_responses(lua_State* vm) {
 
       while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
 	if(value_str && (value_str[0] != '\0')) {
-	  lua_push_str_table_entry(vm, oid_str, value_str);
+	  /*
+	    The key is the IP address as this is used when contacting multiple
+	    hosts so we need to know who has sent back the response
+	   */
+	  lua_push_str_table_entry(vm, sender_host /* Sender IP */, value_str);
 	  free(value_str), value_str = NULL; /* malloc'd by snmp_get_varbind_as_string */
 	}
 

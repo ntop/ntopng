@@ -45,7 +45,7 @@ class SNMP {
 
   void send_snmp_request(char *agent_host, char *community, bool isGetNext,
 			 char *oid[SNMP_MAX_NUM_OIDS], u_int version);
-  void snmp_fetch_responses(lua_State* vm);
+  void snmp_fetch_responses(lua_State* vm, u_int timeout);
   
   int get(lua_State* vm, bool skip_first_param);
   int getnext(lua_State* vm, bool skip_first_param);

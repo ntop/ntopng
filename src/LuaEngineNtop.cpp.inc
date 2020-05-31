@@ -2871,7 +2871,7 @@ static int ntop_snmpreadasyncrsp(lua_State* vm) {
      || (snmpAsyncEngine[slot_id] == NULL))
     return(CONST_LUA_ERROR); /* Invalid slot selected */
   
-  snmpAsyncEngine[slot_id]->snmp_fetch_responses(vm);
+  snmpAsyncEngine[slot_id]->snmp_fetch_responses(vm, 0 /* Don't wait */);
   return(CONST_LUA_OK);
 }
 
@@ -2917,13 +2917,17 @@ static int ntop_snmp_batch_get(lua_State* vm) {
 static int ntop_snmp_read_responses(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   SNMP *snmp = getLuaVMUserdata(vm, snmpBatch);
-
+  int timeout = 0;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if((!ntop_interface) || (!snmp))
     return(CONST_LUA_ERROR);
 
-  snmp->snmp_fetch_responses(vm);
+  /* Optional timeout */
+  if(lua_type(vm, 1) == LUA_TNUMBER) timeout = lua_tonumber(vm, 1);
+
+  snmp->snmp_fetch_responses(vm, timeout);
   return(CONST_LUA_OK);
 }
 
