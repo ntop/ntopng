@@ -92,10 +92,11 @@ for key, value in ipairs(flows_stats) do
    end
 
    info = shortenString(info)
-   flows_stats[key]["info"] = "<span title='"..alt_info.."'>"..info.."</span>"
+
+   flows_stats[key]["info"] = "<span data-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
 
    if(flows_stats[key]["profile"] ~= nil) then
-      flows_stats[key]["info"] = "<span class='badge badge-primary'>"..flows_stats[key]["profile"].."</span> "..info
+      flows_stats[key]["info"] = "<span class='badge badge-primary'>"..flows_stats[key]["profile"].."</span> "..flows_stats[key]["info"]
    end
 end
 
