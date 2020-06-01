@@ -444,7 +444,7 @@ function mud_utils.getHostMUD(host_key)
    local ifid = interface.getId()
    local mud = {}
    local host_name = hostinfo2label(hostkey2hostinfo(host_key))
-   local mud_url = _SERVER["HTTP_HOST"] .. ntop.getHttpPrefix() .. "/lua/rest/get/host/mud.lua?host=" .. host_key
+   local mud_url = _SERVER["HTTP_HOST"] .. ntop.getHttpPrefix() .. "/lua/rest/v1/get/host/mud.lua?host=" .. host_key
 
    -- https://tools.ietf.org/html/rfc8520
    mud["ietf-mud:mud"] = {
