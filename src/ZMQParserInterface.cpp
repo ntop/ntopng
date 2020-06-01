@@ -1606,13 +1606,19 @@ u_int8_t ZMQParserInterface::parseCounter(const char * const payload, int payloa
 
 /* **************************************************** */
 
-/* NOTE: the following fields may or may not appear depending on the traffic:
- * "IPV4_SRC_ADDR", "IPV4_DST_ADDR", "IPV6_SRC_ADDR", "IPV6_DST_ADDR" */
+/* 
+ * Minimum set of fields expected by ntopng
+ * NOTE: 
+ * - the following fields may or may not appear depending on the traffic:
+ *   "IPV4_SRC_ADDR", "IPV4_DST_ADDR", "IPV6_SRC_ADDR", "IPV6_DST_ADDR" 
+ * - some fields may not appear when nprobe runs with --collector-passthrough
+ *   "L7_PROTO"
+ */
 static std::string mandatory_template_fields[] = {
+  "FIRST_SWITCHED", "LAST_SWITCHED",
   "L4_SRC_PORT", "L4_DST_PORT",
-  "IP_PROTOCOL_VERSION", "PROTOCOL", "L7_PROTO",
-  "IN_BYTES", "IN_PKTS", "OUT_BYTES", "OUT_PKTS",
-  "FIRST_SWITCHED", "LAST_SWITCHED"
+  "IP_PROTOCOL_VERSION", "PROTOCOL",
+  "IN_BYTES", "IN_PKTS", "OUT_BYTES", "OUT_PKTS"
 };
 
 u_int8_t ZMQParserInterface::parseTemplate(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
