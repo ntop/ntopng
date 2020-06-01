@@ -350,8 +350,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 								   flow->get_srv_port(),
 								   &is_proto_user_defined);
 
-    if (zflow->l7_proto.app_protocol    == PROTOCOL_UNKNOWN && 
-        zflow->l7_proto.master_protocol == PROTOCOL_UNKNOWN) {
+    if (zflow->l7_proto.app_protocol    == NDPI_PROTOCOL_UNKNOWN && 
+        zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN) {
       /* If nprobe acts is in collector-passthrough mode L7_PROTO is not present,
        * using the protocol guess on the ntopng side is desirable in this case */
       p.master_protocol = guessed_protocol.master_protocol;
