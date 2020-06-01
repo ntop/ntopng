@@ -1708,7 +1708,7 @@ print [[
 	 <script>
    var url_update = "]]
 
--- NOTE: host parameter already contained in page_params below
+
 local base_url = hostinfo2detailsurl(host, {page = "flows", tskey = _GET["tskey"]})
 
 local page_params = {
@@ -1717,10 +1717,11 @@ local page_params = {
    flow_status = _GET["flow_status"],
    tcp_flow_state = _GET["tcp_flow_state"],
    flowhosts_type = _GET["flowhosts_type"],
-   vlan = _GET["vlan"],
    traffic_type = _GET["traffic_type"],
    version = _GET["version"],
    l4proto = _GET["l4proto"],
+   host = hostinfo2hostkey(host),
+   tskey = _GET["tskey"],
 }
 
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
@@ -1740,7 +1741,7 @@ local active_flows_msg = getFlowsTableTitle()
 print [[
 	 $("#table-flows").datatable({
          url: url_update,
-         buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
+         buttons: [ ]] printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
          tableCallback: function()  {
 	    ]] initFlowsRefreshRows() print[[
 	 },
@@ -1832,7 +1833,7 @@ print [[
                              {
                              title: "]] print(i18n("breakdown")) print[[",
                                  field: "column_breakdown",
-                                 sortable: true,
+                                 sortable: false,
                              css: {
                                 textAlign: 'center'
                                }
