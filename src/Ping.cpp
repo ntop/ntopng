@@ -172,11 +172,13 @@ void Ping::pollResults() {
   while(running) {
     int bytes, fd_max = max(sd, sd6);
     fd_set mask;
-    struct timeval wait_time = { 1, 0 };
+    struct timeval wait_time;
 
     FD_ZERO(&mask);
     if(sd != -1)  FD_SET(sd, &mask);
     if(sd6 != -1) FD_SET(sd6, &mask);
+
+    wait_time.tv_sec = 1, wait_time.tv_usec = 0;
 
     if(select(fd_max+1, &mask, 0, 0, &wait_time) > 0) {
       unsigned char buf[1024];
