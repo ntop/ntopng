@@ -42,7 +42,6 @@ local application = _GET["application"]
 local category    = _GET["category"]
 local host_info   = url2hostinfo(_GET)
 local host_ip     = host_info["host"]
-local host_name   = hostinfo2hostkey(host_info)
 local host_vlan   = host_info["vlan"] or 0
 local always_show_hist = _GET["always_show_hist"]
 local format_utils = require("format_utils")
@@ -71,7 +70,7 @@ local prefs = ntop.getPrefs()
 local hostkey = hostinfo2hostkey(host_info, nil, true --[[ force show vlan --]])
 local hostkey_compact = hostinfo2hostkey(host_info) -- do not force vlan
 
-if((host_name == nil) or (host_ip == nil)) then
+if not host_ip then
    sendHTTPContentTypeHeader('text/html')
 
    page_utils.print_header()
@@ -235,11 +234,6 @@ else
    if host == nil then
       -- only_historical = true here
       host = hostkey2hostinfo(host_info["host"] .. "@" .. host_vlan)
-   end
-
-   if(host["ip"] ~= nil) then
-      host_name = hostinfo2hostkey(host)
-      host_info["host"] = host["ip"]
    end
 
    if(_POST["custom_name"] ~=nil) and isAdministrator() then
@@ -525,7 +519,7 @@ if((page == "overview") or (page == nil)) then
 	 print("<td colspan=2>")
       end
 
-      if((host_name == host_label) and ntop.shouldResolveHost(host["ip"])) then
+      if ntop.shouldResolveHost(host["ip"]) then
 	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
       end
 
@@ -1708,9 +1702,6 @@ print [[
 	 <script>
    var url_update = "]]
 
-
-local base_url = hostinfo2detailsurl(host, {page = "flows", tskey = _GET["tskey"]})
-
 local page_params = {
    application = _GET["application"],
    category = _GET["category"],
@@ -2059,8 +2050,8 @@ end
 elseif(page == "alerts") then
    alert_utils.printAlertTables("host", hostkey,
       "host_details.lua", {ifid=ifId, host=hostkey},
-      host_name, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"]),
-         enable_label = i18n("show_alerts.trigger_host_alert_descr", {host = host_name})})
+      host_label, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"]),
+			   enable_label = i18n("show_alerts.trigger_host_alert_descr", {host = hostinfo2hostkey(host)})})
 
 elseif (page == "quotas" and ntop.isEnterpriseM() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
@@ -2121,7 +2112,7 @@ elseif (page == "config") then
          <th>]] print(i18n("host_config.host_alias")) print[[</th>
          <td>
                <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]]
-   if(ip_alias ~= host_name) then print(ip_alias) end
+   if(ip_alias ~= host_label) then print(ip_alias) end
    print[["></input> ]]
 
    print [[
