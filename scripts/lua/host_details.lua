@@ -422,7 +422,7 @@ end
 
 local function printMudRecordingActions()
    if mud_utils.hasRecordedMUD(ifId, host_info.host) then
-      print(" <a style=\"margin-left: 0.5em\" href=\""..ntop.getHttpPrefix().."/lua/rest/get/host/mud.lua?host=".. host_info.host .."\"><i class=\"fas fa-download\"></i></a>")
+      print(" <a style=\"margin-left: 0.5em\" href=\""..ntop.getHttpPrefix().."/lua/rest/v1/get/host/mud.lua?host=".. host_info.host .."\"><i class=\"fas fa-download\"></i></a>")
 
       if isAdministrator() then
 	 print("<a style=\"margin-left: 1em\" href=\"#\" onclick=\"$('#delete-mud-form').submit();\"><i class=\"fas fa-trash\"></i></a>")
@@ -856,7 +856,7 @@ end
    print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td")
    local show_live_capture = ntop.isPcapDownloadAllowed()
    if(not show_live_capture) then print(" colspan=2") end
-   print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
+   print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/v1/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
    print [[<td>]]
    if (show_live_capture and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
       local live_traffic_utils = require("live_traffic_utils")
