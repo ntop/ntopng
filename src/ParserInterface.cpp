@@ -332,7 +332,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 		     zflow->pkt_sampling_rate*zflow->out_fragments,
 		     zflow->last_switched);
 
-  p.app_protocol = zflow->l7_proto.app_protocol, p.master_protocol = zflow->l7_proto.master_protocol;
+  p.app_protocol = zflow->l7_proto.app_protocol;
+  p.master_protocol = zflow->l7_proto.master_protocol;
   p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
 
   if(!flow->isDetectionCompleted()) {
@@ -346,6 +347,15 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 								   flow->get_cli_port(),
 								   flow->get_srv_port(),
 								   &is_proto_user_defined);
+
+    if (zflow->l7_proto.app_protocol    == NDPI_PROTOCOL_UNKNOWN && 
+        zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN) {
+      /* If nprobe acts is in collector-passthrough mode L7_PROTO is not present,
+       * using the protocol guess on the ntopng side is desirable in this case */
+      p.master_protocol = guessed_protocol.master_protocol;
+      p.app_protocol = guessed_protocol.app_protocol;
+    }
+
     if(guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS) {
       /* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it means it is
          a custom protocol so the application protocol received from nprobe can be
@@ -355,7 +365,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 
     if(zflow->hasParsedeBPF()) {
       /* nProbe Agent does not perform nDPI detection*/
-      p.master_protocol = guessed_protocol.app_protocol;
+      p.master_protocol = guessed_protocol.master_protocol;
       p.app_protocol = guessed_protocol.app_protocol;
     }
 
