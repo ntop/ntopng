@@ -404,7 +404,7 @@ else
         end
         if((getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_SRC_PORT")~="") and (sip_rtp_src_addr == 1)) then
           --print(':'..getFlowValue(info, "SIP_RTP_L4_SRC_PORT"))
-          print(':<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/port_details.lua?port='..getFlowValue(info, "SIP_RTP_L4_SRC_PORT").. '\\\">')
+          print(':<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/flows_stats.lua?port='..getFlowValue(info, "SIP_RTP_L4_SRC_PORT").. '\\\">')
           print(getFlowValue(info, "SIP_RTP_L4_SRC_PORT"))
           print('</A>')
         end
@@ -426,7 +426,7 @@ else
         end
         if((getFlowValue(info, "SIP_RTP_L4_DST_PORT")~=nil) and (getFlowValue(info, "SIP_RTP_L4_DST_PORT")~="") and (sip_rtp_dst_addr == 1)) then
           --print(':'..getFlowValue(info, "SIP_RTP_L4_DST_PORT"))
-          print(':<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/port_details.lua?port='..getFlowValue(info, "SIP_RTP_L4_DST_PORT").. '\\\">')
+          print(':<A HREF=\\\"'..ntop.getHttpPrefix()..'/lua/flows_stats.lua?port='..getFlowValue(info, "SIP_RTP_L4_DST_PORT").. '\\\">')
           print(getFlowValue(info, "SIP_RTP_L4_DST_PORT"))
           print('</A>')
         end

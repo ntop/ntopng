@@ -1787,6 +1787,7 @@ local lang = {
     ["one_way_multicast"] = "Multicast a Singola Direzione/Broadcast",
     ["one_way_non_multicast"] = "A Singola Direzione Non-Multicast/Non-Broadcast",
     ["outIfIdx"] = "Interfaccia di Output",
+    ["port"] = " [ Porta %{port} ]",
     ["recently_active_flows"] = "Flussi recentemente attivi %{filter}",
     ["remote_only"] = "Solo Remoti",
     ["server_as"] = "AS Server",

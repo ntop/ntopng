@@ -1721,6 +1721,7 @@ local page_params = {
    traffic_type = _GET["traffic_type"],
    version = _GET["version"],
    l4proto = _GET["l4proto"],
+   host = _GET["host"]
 }
 
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))

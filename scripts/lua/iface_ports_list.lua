@@ -71,7 +71,7 @@ for key, value in pairsByValues(_ports, rev) do
       print ",\n"
    end
 
-   print("\t { \"label\": \"" .. key .."\", \"value\": ".. value ..", \"url\": \""..ntop.getHttpPrefix().."/lua/port_details.lua?port="..key)
+   print("\t { \"label\": \"" .. key .."\", \"value\": ".. value ..", \"url\": \""..ntop.getHttpPrefix().."/lua/flows_stats.lua?port="..key)
    if host_key then
       print("&host="..host_key)
    end

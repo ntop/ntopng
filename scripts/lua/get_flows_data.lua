@@ -132,7 +132,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       src_key = hostinfo2detailshref(flow2hostinfo(value, "cli"), nil, src_name, cli_tooltip)
 
       if value["cli.port"] > 0 then
-	 src_port="<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["cli.port"] .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
+	 src_port = "<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?port=" .. value["cli.port"]
+	 if(host ~= nil) then src_port = src_port .. "&host="..host end
+	 src_port = src_port .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
       end
 
       --record["column_client_process"] = flowinfo2process(value["client_process"], hostinfo2url(value,"cli"))
@@ -152,7 +154,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       dst_key = hostinfo2detailshref(flow2hostinfo(value, "srv"), nil, dst_name, srv_tooltip)
 
       if value["srv.port"] > 0 then
-	 dst_port="<A HREF='"..ntop.getHttpPrefix().."/lua/port_details.lua?port=" .. value["srv.port"] .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
+	 dst_port="<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?port=" .. value["srv.port"]
+	 if(host ~= nil) then dst_port = dst_port .. "&host="..host end
+	 dst_port = dst_port .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
       else
 	 dst_port=""
       end

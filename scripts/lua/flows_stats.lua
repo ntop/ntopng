@@ -23,7 +23,6 @@ local have_nedge = ntop.isnEdge()
 
 sendHTTPContentTypeHeader('text/html')
 
-
 page_utils.set_active_menu_entry(ternary(have_nedge, page_utils.menu_entries.nedge_flows, page_utils.menu_entries.flows))
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -39,6 +38,7 @@ local flowhosts_type = _GET["flowhosts_type"]
 local ipversion = _GET["version"]
 local l4proto = _GET["l4proto"]
 local vlan = _GET["vlan"]
+local port = _GET["port"]
 local icmp_type = _GET["icmp_type"]
 local icmp_code = _GET["icmp_cod"]
 local traffic_profile = _GET["traffic_profile"]
@@ -49,14 +49,12 @@ local inIfIdx  = _GET["inIfIdx"]
 local outIfIdx = _GET["outIfIdx"]
 
 local traffic_type = _GET["traffic_type"]
-local flow_status = _GET["flow_status"]
-local tcp_state   = _GET["tcp_flow_state"]
-local port = _GET["port"]
-
-local network_id = _GET["network"]
-
-local client_asn = _GET["client_asn"]
-local server_asn = _GET["server_asn"]
+local flow_status  = _GET["flow_status"]
+local tcp_state    = _GET["tcp_flow_state"]
+local port         = _GET["port"]
+local network_id   = _GET["network"]
+local client_asn   = _GET["client_asn"]
+local server_asn   = _GET["server_asn"]
 
 local prefs = ntop.getPrefs()
 local ifstats = interface.getStats()
@@ -70,8 +68,8 @@ local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {}
 
 if (page == "flows" or page == nil) then
-
    local active_msg = getFlowsTableTitle()
+
    page_utils.print_page_title(active_msg)
 
 print [[
@@ -89,6 +87,10 @@ end
 
 if(host ~= nil) then
   page_params["host"] = host
+end
+
+if(port ~= nil) then
+  page_params["port"] = port
 end
 
 if(vhost ~= nil) then

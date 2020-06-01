@@ -533,7 +533,7 @@ end
 
 local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
     if not historical_bounds then
-	return "<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port=" ..port.. "\">"..port.."</A>"
+	return "<A HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?port=" ..port.. "\">"..port.."</A>"
     end
 
     -- TODO port filter
@@ -931,7 +931,7 @@ function getSIPTableRows(info)
        --string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")
 	--string_table_2 = ":"..getFlowValue(info, "SIP_RTP_L4_SRC_PORT")
 	sip_rtp_src_port = getFlowValue(info, "SIP_RTP_L4_SRC_PORT")
-	string_table_2 = ":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port="..sip_rtp_src_port.. "\">"
+	string_table_2 = ":<A HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?port="..sip_rtp_src_port.. "\">"
 	string_table_2 = string_table_2..sip_rtp_src_port
 	string_table_2 = string_table_2.."</A>"
 	show_rtp_stream = 1
@@ -959,7 +959,7 @@ function getSIPTableRows(info)
 	--string_table = string_table ..":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
 	--string_table_5 = ":"..getFlowValue(info, "SIP_RTP_L4_DST_PORT")
 	sip_rtp_dst_port = getFlowValue(info, "SIP_RTP_L4_DST_PORT")
-	string_table_5 = ":<A HREF=\""..ntop.getHttpPrefix().."/lua/port_details.lua?port="..sip_rtp_dst_port.. "\">"
+	string_table_5 = ":<A HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?port="..sip_rtp_dst_port.. "\">"
 	string_table_5 = string_table_5..sip_rtp_dst_port
 	string_table_5 = string_table_5.."</A>"
 	show_rtp_stream = 1
@@ -1858,6 +1858,7 @@ end
 
 function getFlowsTableTitle()
    local status_type
+
    if _GET["flow_status"] then
       local flow_status_id = tonumber(_GET["flow_status"])
 
@@ -1889,6 +1890,14 @@ function getFlowsTableTitle()
 
    if(_GET["network_name"] ~= nil) then
       active_msg = active_msg .. i18n("network", {network=_GET["network_name"]})
+   end
+
+   if(_GET["host"] ~= nil) then
+      active_msg = active_msg .. i18n("flows_page.host", {host=_GET["host"]})
+   end
+
+   if(_GET["port"] ~= nil) then
+      active_msg = active_msg .. i18n("flows_page.port", {port=_GET["port"]})
    end
 
    if(_GET["inIfIdx"] ~= nil) then
