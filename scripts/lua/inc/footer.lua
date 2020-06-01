@@ -253,10 +253,15 @@ let updatingChart_total = $(".network-load-chart-total").show().peity("line", { 
 const footerRefresh = function() {
     $.ajax({
       type: 'GET',
-	  url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/get/interface/data.lua',
+	  url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/interface/data.lua',
 	  data: { ifid: ]] print(tostring(ifid)) print[[ },
 	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]] print (ntop.getHttpPrefix()) print [[/lua/logout.lua");  }, */
-	  success: function(rsp) {
+	  success: function(content) {
+          if(content["rc_str"] != "OK") {
+            return;
+          }
+
+          const rsp = content["rsp"];
 	  try {
 	      var values = updatingChart_upload.text().split(",")
 	      var values1 = updatingChart_download.text().split(",")

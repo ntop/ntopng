@@ -422,7 +422,7 @@ end
 
 local function printMudRecordingActions()
    if mud_utils.hasRecordedMUD(ifId, host_info.host) then
-      print(" <a style=\"margin-left: 0.5em\" href=\""..ntop.getHttpPrefix().."/lua/rest/get/host/mud.lua?host=".. host_info.host .."\"><i class=\"fas fa-download\"></i></a>")
+      print(" <a style=\"margin-left: 0.5em\" href=\""..ntop.getHttpPrefix().."/lua/rest/v1/get/host/mud.lua?host=".. host_info.host .."\"><i class=\"fas fa-download\"></i></a>")
 
       if isAdministrator() then
 	 print("<a style=\"margin-left: 1em\" href=\"#\" onclick=\"$('#delete-mud-form').submit();\"><i class=\"fas fa-trash\"></i></a>")
@@ -856,7 +856,7 @@ end
    print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td")
    local show_live_capture = ntop.isPcapDownloadAllowed()
    if(not show_live_capture) then print(" colspan=2") end
-   print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
+   print("><A HREF='"..ntop.getHttpPrefix().."/lua/rest/v1/get/host/data.lua?ifid="..ifId.."&"..hostinfo2url(host_info).."'>JSON</A></td>")
    print [[<td>]]
    if (show_live_capture and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
       local live_traffic_utils = require("live_traffic_utils")
@@ -1708,7 +1708,7 @@ print [[
 	 <script>
    var url_update = "]]
 
--- NOTE: host parameter already contained in page_params below
+
 local base_url = hostinfo2detailsurl(host, {page = "flows", tskey = _GET["tskey"]})
 
 local page_params = {
@@ -1717,11 +1717,11 @@ local page_params = {
    flow_status = _GET["flow_status"],
    tcp_flow_state = _GET["tcp_flow_state"],
    flowhosts_type = _GET["flowhosts_type"],
-   vlan = _GET["vlan"],
    traffic_type = _GET["traffic_type"],
    version = _GET["version"],
    l4proto = _GET["l4proto"],
-   host = _GET["host"]
+   host = hostinfo2hostkey(host),
+   tskey = _GET["tskey"],
 }
 
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
@@ -1741,7 +1741,7 @@ local active_flows_msg = getFlowsTableTitle()
 print [[
 	 $("#table-flows").datatable({
          url: url_update,
-         buttons: [ ]] printActiveFlowsDropdown(base_url, page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
+         buttons: [ ]] printActiveFlowsDropdown("host_details.lua?page=flows", page_params, interface.getStats(), interface.getActiveFlowsStats(hostinfo2hostkey(host_info))) print[[ ],
          tableCallback: function()  {
 	    ]] initFlowsRefreshRows() print[[
 	 },
@@ -1833,7 +1833,7 @@ print [[
                              {
                              title: "]] print(i18n("breakdown")) print[[",
                                  field: "column_breakdown",
-                                 sortable: true,
+                                 sortable: false,
                              css: {
                                 textAlign: 'center'
                                }

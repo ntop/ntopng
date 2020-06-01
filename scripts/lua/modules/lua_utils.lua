@@ -1779,7 +1779,7 @@ end
 --    host_info = interface.getHostInfo("127.0.0.1",0)
 --    key = hostinfo2hostkey(host_info)
 --
-function hostinfo2hostkey(host_info,host_type,show_vlan)
+function hostinfo2hostkey(host_info, host_type, show_vlan)
   local rsp = ""
 
   if(host_type == "cli") then
@@ -1795,15 +1795,15 @@ function hostinfo2hostkey(host_info,host_type,show_vlan)
     end
   else
 
-    if(host_info["host"] ~= nil) then
-      rsp = rsp..host_info["host"]
-    elseif(host_info["name"] ~= nil) then
-      rsp = rsp..host_info["name"]
-    elseif(host_info["ip"] ~= nil) then
-      rsp = rsp..host_info["ip"]
-    elseif(host_info["mac"] ~= nil) then
-      rsp = rsp..host_info["mac"]
-    end
+   if(host_info["ip"] ~= nil) then
+     rsp = rsp..host_info["ip"]
+   elseif(host_info["mac"] ~= nil) then
+     rsp = rsp..host_info["mac"]
+   elseif(host_info["host"] ~= nil) then
+     rsp = rsp..host_info["host"]
+   elseif(host_info["name"] ~= nil) then
+     rsp = rsp..host_info["name"]
+   end
   end
 
   if((host_info["vlan"] ~= nil and host_info["vlan"] ~= 0) or show_vlan)  then
