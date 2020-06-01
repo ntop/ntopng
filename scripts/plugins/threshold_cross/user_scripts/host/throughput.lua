@@ -31,7 +31,13 @@ local script = {
 
 function script.hooks.all(params)
   local host_bytes = host.getBytes()
-  local value = alerts_api.host_delta_val(script.key, params.granularity, host_bytes["bytes.sent"] + host_bytes["bytes.rcvd"]) * 8 / granularity2sec(params.granularity)
+
+  -- Delta
+  local value = alerts_api.host_delta_val(script.key, params.granularity, host_bytes["bytes.sent"] + host_bytes["bytes.rcvd"])
+  -- Granularity
+  value = value / alert_consts.granularity2sec(params.granularity)
+  -- Bytes to Mbit
+  value = (value * 8) / 1000000
 
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert
   alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_threshold_cross, value)
