@@ -515,15 +515,15 @@ print[[
                         $button.removeAttr("disabled");
                     } else {
                         // Submit configuration file
-                        $.post(`${http_prefix}/lua/rest/set/pool/config.lua`, {
+                        $.post(`${http_prefix}/lua/rest/v1/set/pool/config.lua`, {
                             csrf: import_csrf,
                             JSON: JSON.stringify(json_conf)
                         })
                         .done((d, status, xhr) => {
-                            if (xhr.status != 200)
-                                $("#import-error").text("]] print(i18n("request_failed_message")) print [[" + xhr.statusText).show();
-                            if (!d.success) {
-                                $("#import-error").text(d.error).show();
+                            if(xhr.status != 200) {
+                              $("#import-error").text("]] print(i18n("request_failed_message")) print [[" + xhr.statusText).show();
+                            } else if(d["rc_str"] != "OK") {
+                                $("#import-error").text(d.rc_str).show();
                             } else {
                                 location.reload();
                             }
