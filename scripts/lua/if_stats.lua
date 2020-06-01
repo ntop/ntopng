@@ -1162,24 +1162,24 @@ print [[
    </table>
 
    <script>
-   var last_profile = [];
-   var traffic_profiles_interval = window.setInterval(function() {
+   let last_profile = [];
+   const traffic_profiles_interval = window.setInterval(function() {
 	  $.ajax({
 		    type: 'GET',
 		    url: ']]
    print (ntop.getHttpPrefix())
-   print [[/lua/rest/get/interface/data.lua',
+   print [[/lua/rest/v1/get/interface/data.lua',
 		    data: { iffilter: "]] print(tostring(interface.name2id(if_name))) print [[" },
 		    success: function(content) {
-			var profiles = content;
+			if(content["rc_str"] == "OK" && content["rsp"] && content["rsp"]["profiles"] != null) {
+			   const profiles = content["rsp"];
 
-			if(profiles["profiles"] != null) {
 			   for (key in profiles["profiles"]) {
-			     k = '#profile_'+key.replace(" ", "");
-			     v = profiles["profiles"][key];
+			     let k = '#profile_'+key.replace(" ", "");
+			     const v = profiles["profiles"][key];
 			     $(k).html(bytesToVolume(v));
 			     k += "_trend";
-			     last = last_profile[key];
+			     let last = last_profile[key];
 			     if(last == null) { last = 0; }
 			     $(k).html(get_trend(last, v));
 			   }
@@ -1978,11 +1978,15 @@ setInterval(function() {
 	  type: 'GET',
 	  url: ']]
 print (ntop.getHttpPrefix())
-print [[/lua/rest/get/interface/data.lua',
+print [[/lua/rest/v1/get/interface/data.lua',
 	  data: { iffilter: "]] print(tostring(interface.name2id(ifstats.name))) print [[" },
-	  success: function(rsp) {
+	  success: function(content) {
+        if(content["rc_str"] != "OK") {
+          return;
+        }
 
-	var v = bytesToVolume(rsp.bytes);
+        const rsp = content["rsp"];
+	const v = bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
 
    $('#if_in_bytes').html(bytesToVolume(rsp.bytes_download));
