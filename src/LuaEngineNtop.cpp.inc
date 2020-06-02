@@ -2871,7 +2871,7 @@ static int ntop_snmpreadasyncrsp(lua_State* vm) {
      || (snmpAsyncEngine[slot_id] == NULL))
     return(CONST_LUA_ERROR); /* Invalid slot selected */
   
-  snmpAsyncEngine[slot_id]->snmp_fetch_responses(vm, 0 /* Don't wait */);
+  snmpAsyncEngine[slot_id]->snmp_fetch_responses(vm, 0 /* Don't wait */, false /* Don't add Host IP */);
   return(CONST_LUA_OK);
 }
 
@@ -2927,7 +2927,7 @@ static int ntop_snmp_read_responses(lua_State* vm) {
   /* Optional timeout */
   if(lua_type(vm, 1) == LUA_TNUMBER) timeout = lua_tonumber(vm, 1);
 
-  snmp->snmp_fetch_responses(vm, timeout);
+  snmp->snmp_fetch_responses(vm, timeout, true /* Add Host IP */);
   return(CONST_LUA_OK);
 }
 
