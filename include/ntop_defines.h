@@ -922,6 +922,7 @@
 #define NTOP_GROUP_MAXLEN           33
 #define NTOP_SESSION_ID_LENGTH      33
 #define NTOP_CSRF_TOKEN_LENGTH      33
+#define NTOP_CSRF_TOKEN_NO_SESSION  "CSRF_TOKEN_NO_SESSION"
 #define NTOP_UNKNOWN_GROUP "unknown"
 #define PREF_NTOP_LDAP_AUTH           NTOPNG_PREFS_PREFIX".ldap.auth_enabled"
 #define PREF_LDAP_ACCOUNT_TYPE        NTOPNG_PREFS_PREFIX".ldap.account_type"

@@ -384,6 +384,9 @@ static int getAuthorizedUser(struct mg_connection *conn,
   username[0] = '\0';
   group[0] = '\0';
   *localuser = false;
+  /* Default assumes a token not associated to a session. When the user logs 
+     using a session, the session CSRF token read from Redis is used instead. */
+  snprintf(csrf, NTOP_CSRF_TOKEN_LENGTH, "%s", NTOP_CSRF_TOKEN_NO_SESSION);
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] [%s][%s]",

@@ -668,7 +668,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   /* Check for POST requests */
   if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {
-    int content_len = mg_get_content_len(conn)+1;
+    int content_len = mg_get_content_len(conn) + 1;
 
     if (content_len > HTTP_MAX_POST_DATA_LEN)
       content_len = HTTP_MAX_POST_DATA_LEN;
@@ -684,13 +684,17 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     } else {
       post_data[post_data_len] = '\0';
 
-      /* CSRF is mandatory in POST request */
-      mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
-
-      if(strstr(content_type, "application/json"))
+      if(!strcmp(session_csrf, NTOP_CSRF_TOKEN_NO_SESSION)) {
+	/* Authentication has taken place with direct username:password submission, without the use of a session,
+	   hence, this request cannot be the result of a CSRF attack which, by construction, relies on a valid session. */
 	valid_csrf = 1;
-      else {
-	if(strcmp(session_csrf, csrf))
+      } else {
+	/* If here, authentication has taken place using a session, thus CSRF is mandatory in POST request and must
+	   be checked for validity.
+	   Note that session_csrf is trusted, that it it comes from ntopng, whereas csrf read from the POST is untrusted. */
+	mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
+
+	if(strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH))
 	  valid_csrf = 0;
       }
     }
