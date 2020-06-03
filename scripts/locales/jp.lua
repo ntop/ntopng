@@ -2370,7 +2370,6 @@ local lang = {
     ["informative_captive_portal_tos"] = "私は <a target='_blank' href='%{url}'>サービス利用条件</a>を読み合意します",
     ["internet_redirecting"] = "インターネットにリダイレクトしています...",
     ["license"] = "%{product}は<a href=\"%{license_url}\">%{license}</a>のライセンスでリリースされています.",
-    ["logging_out"] = "ログアウト中...",
     ["login"] = "ログイン",
     ["logout"] = "ログアウト",
     ["logout_message"] = "ログアウトしますか？",
