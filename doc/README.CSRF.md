@@ -10,6 +10,12 @@ ntopng implements token-based CSRF protection. Upon user authentication, a rando
 
 ntopng UI pages containing forms for the modification of ntopng status and data, are already served with forms carrying the `csrf` token. Hence, CSRF protection takes place transparently from the point of view of the UI user.
 
+### CSRF Token Lifetime
+
+A token is randomly generated upon session creation, that is, when a user logs in successfully. Token duration equals session duration. Session duration can be tuned from the ntopng preferences. As the token is never added to the session cookie, it is never stored client-side, thus making it virtually impossible for an attacker to guess it for a CSRF attack. Indeed, [having static CSRF tokens throughout the session provides adequate CSRF protection](https://www.sjoerdlangkemper.nl/2019/12/18/different-csrf-token-for-each-form/).
+
+Reducing token lifetime can be beneficial if the token is stolen. [However, this may result in usability concerns. For example, the "Back" button browser capability is often hindered as the previous page may contain a token that is no longer valid.](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#synchronizer-token-pattern)
+
 
 ## CSRF Protection in the ntopng REST API
 
