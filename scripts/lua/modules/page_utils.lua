@@ -219,8 +219,9 @@ end
 -- @return The string with HTML entities properly escaped
 function page_utils.safe_html(s)
    if not s then
-      tprint(debug.traceback())
+      return ''
    end
+
    return string.gsub(s, "[}{\">/<'&]", {
 			 ["&"] = "&amp;",
 			 ["<"] = "&lt;",
