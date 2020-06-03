@@ -1055,14 +1055,6 @@ function getTopInterfaceHosts(howmany, localHostsOnly)
   return(ret)
 end
 
-function http_escape(s)
-  s = string.gsub(s, "([&=+%c])", function (c)
-    return string.format("%%%02X", string.byte(c))
-  end)
-  s = string.gsub(s, " ", "+")
-  return s
-end
-
 -- Windows fixes for interfaces with "uncommon chars"
 function purifyInterfaceName(interface_name)
   -- io.write(debug.traceback().."\n")
@@ -2039,16 +2031,6 @@ function getHumanReadableInterfaceName(interface_name)
       -- print(interface_name.."=".._ifstats.name)
       return(shortenCollapse(nm or ''))
    end
-end
-
--- ##############################################
-
-function escapeHTML(s)
-   s = string.gsub(s, "([&=+%c])", function (c)
-				      return string.format("%%%02X", string.byte(c))
-				   end)
-   s = string.gsub(s, " ", "+")
-   return s
 end
 
 -- ##############################################

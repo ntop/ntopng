@@ -433,7 +433,7 @@ local function printAddCustomHostRule(full_url)
       local cat_name = interface.getnDPICategoryName(matched_category)
 
       existing_note = existing_note .. "<br><br>" .. i18n("details.note") .. ": " ..
-	 i18n("custom_categories.similar_host_found", {host=full_url, category=(i18n("ndpi_categories." .. cat_name) or cat_name)}) ..
+	 i18n("custom_categories.similar_host_found", {host=page_utils.safe_html(full_url), category=(i18n("ndpi_categories." .. cat_name) or cat_name)}) ..
 	 "<br><br>"
    end
 
@@ -626,7 +626,7 @@ else
    print(getCategoryLabel(flow["proto.ndpi_cat"]))
    print("</A>) ".. formatBreed(flow["proto.ndpi_breed"]))
    if(flow["verdict.pass"] == false) then print("</strike>") end
-   historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], flow["protos.tls.certificate"])
+   historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
 
    if((flow["protos.tls_version"] ~= nil)
       and (flow["protos.tls_version"] ~= 0)) then
@@ -856,9 +856,9 @@ else
    if(flow["protos.tls.client_requested_server_name"] ~= nil) then
       print("<tr><th width=30%><i class='fas fa-lock fa-lg'></i> "..i18n("flow_details.tls_certificate").."</th><td>")
       print(i18n("flow_details.client_requested")..":<br>")
-      print("<A HREF=\"http://"..flow["protos.tls.client_requested_server_name"].."\">"..flow["protos.tls.client_requested_server_name"].."</A> <i class=\"fas fa-external-link-alt\"></i>")
+      print("<A HREF=\"http://"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).."\">"..page_utils.safe_html(flow["protos.tls.client_requested_server_name"]).."</A> <i class=\"fas fa-external-link-alt\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["protos.tls.client_requested_server_name"], flow["category"])) end
-      historicalProtoHostHref(ifid, nil, nil, nil, flow["protos.tls.client_requested_server_name"])
+      historicalProtoHostHref(ifid, nil, nil, nil, page_utils.safe_html(flow["protos.tls.client_requested_server_name"] or ''))
       printAddCustomHostRule(flow["protos.tls.client_requested_server_name"])
       print("</td>")
 
@@ -917,11 +917,11 @@ else
    end
 
    if(flow["protos.tls.client_alpn"] ~= nil) then
-      print('<tr><th width=30%><a href="https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation" data-toggle="tooltip" title="ALPN">TLS ALPN</A></th><td colspan=2>'..flow["protos.tls.client_alpn"]..'</td></tr>\n')
+      print('<tr><th width=30%><a href="https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation" data-toggle="tooltip" title="ALPN">TLS ALPN</A></th><td colspan=2>'..page_utils.safe_html(flow["protos.tls.client_alpn"])..'</td></tr>\n')
    end
 
    if(flow["protos.tls.client_tls_supported_versions"] ~= nil) then
-      print('<tr><th width=30%><a href="https://tools.ietf.org/html/rfc7301" data-toggle="tooltip">'.. i18n("flow_details.client_tls_supported_versions") ..'</A></th><td colspan=2>'..flow["protos.tls.client_tls_supported_versions"]..'</td></tr>\n')
+      print('<tr><th width=30%><a href="https://tools.ietf.org/html/rfc7301" data-toggle="tooltip">'.. i18n("flow_details.client_tls_supported_versions") ..'</A></th><td colspan=2>'..page_utils.safe_html(flow["protos.tls.client_tls_supported_versions"])..'</td></tr>\n')
    end
    
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
@@ -1126,7 +1126,7 @@ else
       if(string.ends(flow["protos.dns.last_query"], "arpa")) then
 	 print(shortHostName(flow["protos.dns.last_query"]))
       else
-	 print("<A HREF=\"http://"..flow["protos.dns.last_query"].."\">"..shortHostName(flow["protos.dns.last_query"]).."</A> <i class='fas fa-external-link-alt'></i>")
+	 print("<A HREF=\"http://"..page_utils.safe_html(flow["protos.dns.last_query"]).."\">"..page_utils.safe_html(shortHostName(flow["protos.dns.last_query"])).."</A> <i class='fas fa-external-link-alt'></i>")
       end
 
       if(flow["category"] ~= nil) then
@@ -1170,7 +1170,7 @@ else
       if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
       end
-      print("<A HREF=\"http://"..s.."\">"..s.."</A> <i class=\"fas fa-external-link-alt\"></i>")
+      print("<A HREF=\"http://"..page_utils.safe_html(s).."\">"..page_utils.safe_html(s).."</A> <i class=\"fas fa-external-link-alt\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
       printAddCustomHostRule(s)
       print("</td></tr>\n")
@@ -1178,7 +1178,7 @@ else
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
       print("<A HREF=\"http://")
       if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-      print(flow["protos.http.last_url"].."\">"..shortenString(flow["protos.http.last_url"] or '', 64).."</A> <i class=\"fas fa-external-link-alt\">")
+      print(page_utils.safe_html(flow["protos.http.last_url"]).."\">"..page_utils.safe_html(flow["protos.http.last_url"]).."</A> <i class=\"fas fa-external-link-alt\">")
       print("</td></tr>\n")
 
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then
@@ -1186,7 +1186,7 @@ else
       end
    else
       if((flow["host_server_name"] ~= nil) and (flow["protos.dns.last_query"] == nil)) then
-	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..flow["host_server_name"].."\">"..flow["host_server_name"].."</A> <i class=\"fas fa-external-link-alt\"></i>")
+	 print("<tr><th width=30%>"..i18n("flow_details.server_name").."</th><td colspan=2><A HREF=\"http://"..page_utils.safe_html(flow["host_server_name"]).."\">"..page_utils.safe_html(flow["host_server_name"]).."</A> <i class=\"fas fa-external-link-alt\"></i>")
 	 if not isEmptyString(flow["protos.http.server_name"]) then
 	    printAddCustomHostRule(flow["protos.http.server_name"])
 	 end
