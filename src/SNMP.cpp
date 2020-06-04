@@ -191,12 +191,15 @@ void SNMP::snmp_fetch_responses(lua_State* vm, u_int sec_timeout, bool add_sende
     len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
 
     if((message = snmp_parse_message(buf, len))) {
+      bool table_added = false;
+      
       i = 0;
 
-      lua_newtable(vm);
-
       while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
-	if(value_str && (value_str[0] != '\0')) {
+	if(value_str /* && (value_str[0] != '\0') */) {
+	  if(!table_added)
+	    lua_newtable(vm), table_added = true;
+	  
 	  if(add_sender_ip /* Used in batch mode */) {
 	    /*
 	      The key is the IP address as this is used when contacting multiple
@@ -214,7 +217,8 @@ void SNMP::snmp_fetch_responses(lua_State* vm, u_int sec_timeout, bool add_sende
 
       snmp_destroy_message(message);
       free(message); /* malloc'd by snmp_parse_message */
-      return;
+      if(table_added)
+	return;
     }
   }
 
