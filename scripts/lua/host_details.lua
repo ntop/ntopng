@@ -1868,7 +1868,8 @@ print[[
    ]]
 
 elseif(page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) then
-   local snmp_devices = get_snmp_devices()
+   local snmp_config = require "snmp_config"
+   local snmp_devices = snmp_config.get_all_configured_devices()
 
    if snmp_devices[host_ip] == nil then -- host has not been configured
       if not has_snmp_location then
@@ -1878,19 +1879,12 @@ elseif(page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) t
          print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
       end
    else
-      local snmp_device = require "snmp_device"
+      local snmp_dev = require "snmp_dev"
+      local snmp_ui_system = require "snmp_ui_system"
       local snmp_device_ip = snmp_devices[host_ip]["ip"]
-      snmp_device.init(snmp_device_ip)
+      local device = snmp_dev:create_from_cache(snmp_device_ip)
 
-      local cache_status = snmp_device.get_cache_status()
-      if not cache_status["system"] or cache_status["system"]["last_updated"] < os.time() - 86400 then
-	 local res = snmp_device.cache_system()
-	 if res["status"] ~= "OK" then
-	    snmp_handle_cache_errors(snmp_device_ip, res)
-	 end
-      end
-
-      print_snmp_device_system_table(snmp_device.get_device())
+      snmp_ui_system.print_snmp_device_system_table(device.cache)
    end
 
    if has_snmp_location then
