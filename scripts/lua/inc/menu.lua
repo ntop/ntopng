@@ -765,7 +765,12 @@ for round = 1, 2 do
             print("<a class=\"dropdown-item active\" href=\"#\">")
          else
             -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
-            local action_url = ntop.getHttpPrefix() .. '/' .. url_query
+            local action_url = ""
+            if(is_system_interface) then
+               action_url = ntop.getHttpPrefix() .. '/' .. url_query
+            else
+               action_url = url_query
+            end
 
             print[[<form id="switch_interface_form_]] print(tostring(k)) print([[" method="post" action="]].. action_url ..[[]]) print[[">]]
             print[[<input name="switch_interface" type="hidden" value="1" />]]

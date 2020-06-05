@@ -115,7 +115,7 @@ print([[
 			 csrf: "]].. ntop.getRandomCSRFValue() ..[["
 		  }, function(data) {
 
-			 if (data.success && $form == null) location.href = '/';
+			 if (data.success && $form == null) location.href =  http_prefix + '/';
 			 if (data.success && $form != null) $form.submit();
 			 if (!data.success) {
 				console.error("An error has occurred!");
