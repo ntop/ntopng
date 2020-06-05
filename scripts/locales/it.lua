@@ -3682,6 +3682,7 @@ local lang = {
     ["multiple_macs_non_trunk"] = "MAC multipli su una porta non di trunk",
     ["no_answer"] = "Nessuna risposta dall'host %{host}: assicurasi che SNMP sia attivo e che la comunità impostata sia corretta",
     ["no_host_discovered"] = "Nessun host trovato in %{host}/%{cidr}",
+    ["no_polling_yet"] = "Non ancora",
     ["note"] = "NOTE",
     ["object_id"] = "ObjectID",
     ["out_bytes"] = "Bytes Out",
