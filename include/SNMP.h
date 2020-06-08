@@ -33,6 +33,7 @@ class SNMP {
  private:
   int udp_sock;
   u_int snmp_version;
+  u_int32_t request_id;
   
   int _get(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
   int _getnext(char *agentIP, char *community, char *oid, u_int8_t snmp_version);

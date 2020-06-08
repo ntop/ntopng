@@ -42,6 +42,7 @@ SNMP::SNMP() {
   Utils::maximizeSocketBuffer(udp_sock, true /* RX */, 2 /* MB */);
   snmp_version = atoi(version);
   if(snmp_version > 1 /* v2c */) snmp_version = 1;
+  request_id = 1;
 }
 
 /* ******************************* */
@@ -54,7 +55,7 @@ SNMP::~SNMP() {
 
 void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
 			     char *oid[SNMP_MAX_NUM_OIDS], u_int version) {
-  u_int agent_port = 161, request_id = (u_int)time(NULL);
+  u_int agent_port = 161;
   int i = 0;
   SNMPMessage *message;
   int len;
@@ -65,7 +66,7 @@ void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
     snmp_set_version(message, version);
     snmp_set_community(message, community);
     snmp_set_pdu_type(message, operation);
-    snmp_set_request_id(message, request_id);
+    snmp_set_request_id(message, request_id++);
     snmp_set_error(message, 0);
     snmp_set_error_index(message, 0);
 
@@ -140,20 +141,20 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param) {
   if(lua_type(vm, idx) == LUA_TNUMBER) {
     timeout = min(timeout, (u_int)lua_tointeger(vm, idx));
     idx++;
-  }
 
-  /* Optional version */
-  if(lua_type(vm, idx) == LUA_TNUMBER) {
-    version = (u_int)lua_tointeger(vm, idx);
-    idx++;
+    /* Optional version */
+    if(lua_type(vm, idx) == LUA_TNUMBER) {
+      version = (u_int)lua_tointeger(vm, idx);
+      idx++;
+      
+      /* Add additional/optional OIDs */
+      while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, idx) == LUA_TSTRING)) {
+	oid[oid_idx++] = (char*)lua_tostring(vm, idx);
+	idx++;
+      }
+    }
   }
-
-  /* Add additional OIDs */
-  while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, idx) == LUA_TSTRING)) {
-    oid[oid_idx++] = (char*)lua_tostring(vm, idx);
-    idx++;
-  }
-
+  
   send_snmp_request(agent_host, community, isGetNext, oid, version);
 
   if(skip_first_param)
