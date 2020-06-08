@@ -12525,8 +12525,16 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   if(send_redirect) {
     char buf[512];
+    char uri[512];
+    char *http_prefix = ntop->getPrefs()->get_http_prefix();
+    int http_prefix_len = strlen(ntop->getPrefs()->get_http_prefix());
 
-    build_redirect(request_info->uri, request_info->query_string, buf, sizeof(buf));
+    if (http_prefix_len > 0) {
+      snprintf(uri, 512, "%s%s", http_prefix, request_info->uri);
+      build_redirect(uri, request_info->query_string, buf, sizeof(buf));
+    } else {
+      build_redirect(request_info->uri, request_info->query_string, buf, sizeof(buf));
+    }
 
     /* Redirect the page and terminate this request */
     mg_printf(conn, "%s", buf);
