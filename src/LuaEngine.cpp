@@ -742,8 +742,9 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   if(send_redirect) {
     char buf[512];
-
-    build_redirect(request_info->uri, request_info->query_string, buf, sizeof(buf));
+    char uri[512];
+    snprintf(uri, sizeof(uri), "%s%s", ntop->getPrefs()->get_http_prefix(), request_info->uri);
+    build_redirect(uri, request_info->query_string, buf, sizeof(buf));
 
     /* Redirect the page and terminate this request */
     mg_printf(conn, "%s", buf);
