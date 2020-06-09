@@ -11,6 +11,8 @@ require "snmp_utils"
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
+local snmp_config = require "snmp_config"
+local snmp_cached_dev = require "snmp_cached_dev"
 
 local do_benchmark = true          -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
@@ -51,12 +53,10 @@ end
 
 local cur_granularity
 
-local function snmp_device_run_user_scripts(snmp_device)
+local function snmp_device_run_user_scripts(cached_device)
    local granularity = cur_granularity
-   local device_ip  = snmp_device.get_device_info()["host"]
-   local device = snmp_device.get_device()
+   local device_ip  = cached_device["host_ip"]
    local snmp_device_entity = alerts_api.snmpDeviceEntity(device_ip)
-   local device_interfaces = snmp_device.merge_interfaces_data()
    local all_modules = available_modules.modules
    local now = os.time()
    now = now - now % 300
@@ -64,9 +64,8 @@ local function snmp_device_run_user_scripts(snmp_device)
    local info = {
       granularity = granularity,
       alert_entity = snmp_device_entity,
-      interfaces = device_interfaces,
       user_script = check,
-      system = device["system"],
+      cached_device = cached_device,
       now = now,
    }
 
@@ -88,7 +87,7 @@ local function snmp_device_run_user_scripts(snmp_device)
       local conf = user_scripts.getTargetHookConfig(device_conf, script)
 
       -- For each interface of the current device...
-      for snmp_interface_index, snmp_interface in pairs(device_interfaces) do
+      for snmp_interface_index, snmp_interface in pairs(cached_device.interfaces) do
 	 local if_type = snmp_iftype(snmp_interface.type)
 
 	 if(script.skip_virtual_interfaces and
@@ -128,12 +127,11 @@ function runScripts(granularity)
 
    -- NOTE: don't use foreachSNMPDevice, we want to get all the SNMP
    -- devices, not only the active ones, without changing the device state
-   local snmpdevs = get_snmp_devices()
+   local snmpdevs = snmp_config.get_all_configured_devices()
 
-   for _, device in pairs(snmpdevs) do
-      local snmp_device = require "snmp_device"
-      snmp_device.init(device["ip"])
+   for device_ip, device in pairs(snmpdevs) do
+      local cached_device = snmp_cached_dev:create(device_ip)
 
-      snmp_device_run_user_scripts(snmp_device)
+      snmp_device_run_user_scripts(cached_device)
    end
 end
