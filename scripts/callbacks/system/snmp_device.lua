@@ -136,6 +136,8 @@ function runScripts(granularity)
    for device_ip, device in pairs(snmpdevs) do
       local cached_device = snmp_cached_dev:create(device_ip)
 
-      snmp_device_run_user_scripts(cached_device)
+      if cached_device then
+	 snmp_device_run_user_scripts(cached_device)
+      end
    end
 end
