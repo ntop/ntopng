@@ -15,7 +15,7 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPHeader('application/json')
 
 local rc = rest_utils.consts_ok
 local res = {}
