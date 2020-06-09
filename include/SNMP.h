@@ -25,7 +25,7 @@
 
 #include "ntop_includes.h"
 
-#define SNMP_MAX_NUM_OIDS          5
+#define SNMP_MAX_NUM_OIDS          8
 
 /* ******************************* */
 
