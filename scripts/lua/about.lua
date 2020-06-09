@@ -189,7 +189,6 @@ $(function() {
    end
 end
 
-print("<tr><th>".. i18n("prefs.timeseries_resolution_resolution_title") .."</th><td colspan=2>"..l7_resolution.."</td></tr>\n")
 print("<tr><th><a href=\"http://www.redis.io\" target=\"_blank\">Redis</A> Server</th><td colspan=2>"..info["version.redis"].."</td></tr>\n")
 print("<tr><th><a href=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server</A></th><td colspan=2>"..info["version.httpd"].."</td></tr>\n")
 print("<tr><th><a href=\"http://www.luajit.org\" target=\"_blank\">LuaJIT</A></th><td colspan=2>"..info["version.luajit"].."</td></tr>\n")
