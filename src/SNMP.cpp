@@ -135,11 +135,12 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param) {
   community = (char*)lua_tostring(vm, idx++);
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
-  timeout = min(timeout, (u_int)lua_tointeger(vm, idx++));
+  timeout = min(timeout, (u_int)lua_tointeger(vm, idx));
+  idx++; // Do not out idx++ above as min is a #define and on some platforms it will increase idx twice
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
   version = (u_int)lua_tointeger(vm, idx++);
-
+      
   /* Add additional/optional OIDs */
   while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, idx) == LUA_TSTRING)) {
     oid[oid_idx++] = (char*)lua_tostring(vm, idx);
