@@ -213,6 +213,28 @@ schema:addTag("if_index")
 schema:addMetric("packets_disc")
 schema:addMetric("packets_err")
 
+schema = ts_utils.newSchema("snmp_dev:cpu_states", {step = 300, metrics_type = ts_utils.metrics.gauge, is_system_schema = true})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addMetric("user_pct")
+schema:addMetric("system_pct")
+schema:addMetric("idle_pct")
+
+schema = ts_utils.newSchema("snmp_dev:avail_memory", {step = 300, metrics_type = ts_utils.metrics.gauge, is_system_schema = true})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addMetric("avail_bytes")
+
+schema = ts_utils.newSchema("snmp_dev:swap_memory", {step = 300, metrics_type = ts_utils.metrics.gauge, is_system_schema = true})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addMetric("swap_bytes")
+
+schema = ts_utils.newSchema("snmp_dev:total_memory", {step = 300, metrics_type = ts_utils.metrics.gauge, is_system_schema = true})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addMetric("total_bytes")
+
 -------------------------------------------------------
 -- HOSTS SCHEMAS
 -------------------------------------------------------

@@ -793,7 +793,29 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
         local value = v[1]
         local toadd = false
 
-        if wildcard_tag == "l4proto" then
+	if wildcard_tag == "if_index" then
+	   -- NOTE: needed to add this crazy exception. Don't now what it is
+	   -- but it's needed, otherwise this function is tricked into thinking
+	   -- other timeseries (such as snmp_dev:cpu_states) are if_index
+	   --
+	   -- This is what we get:
+	   -- 1.device string 192.168.2.1
+	   -- 1.ifid string -1
+	   -- 1.if_index string 5
+	   -- 2 table
+	   -- 2.device string 192.168.2.1
+	   -- 2.ifid string -1
+	   -- 2.if_index string 2
+	   -- 3 table
+	   -- 3.device string 192.168.2.1
+	   -- 3.ifid string -1
+	   -- 3.if_index string cpu_states <<<<<<<<<<<<<<<<< don't know why this happens to be here
+	   -- 4 table
+	   --
+	   if tonumber(value) then
+	      toadd = true
+	   end
+	elseif wildcard_tag == "l4proto" then
           if L4_PROTO_KEYS[value] ~= nil then
             toadd = true
           end
