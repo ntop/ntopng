@@ -222,11 +222,24 @@ end
 -- ##############################################
 
 function snmpDeviceUrl(snmp_device)
-  if not snmp_device then
-   return "#"
-  end
+   local show_url = true
 
-  return ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_device)
+   if ntop.isPro() then
+      local snmp_config = require "snmp_config"
+      local device_config = snmp_config.get_device_config(snmp_device)
+
+      if not device_config then
+	 show_url = false
+      end
+   elseif not snmp_device then
+      show_url = false
+   end
+
+   if show_url then
+      return ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_device)
+   else
+      return "#"
+   end
 end
 
 -- ##############################################
