@@ -135,23 +135,32 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
     content = log_line;
   }
  
-  if (producer_name == NULL && parsed_client_ip != NULL)
+  if (producer_name == NULL && parsed_client_ip != NULL) {
+    Utils::stringtolower(parsed_client_ip); /* normalize */
     producer_name = getProducerName(parsed_client_ip);
+  }
 
-  if (producer_name == NULL && device != NULL)
+  if (producer_name == NULL && device != NULL) {
+    Utils::stringtolower(device); /* normalize */
     producer_name = getProducerName(device);
+  }
 
-  if (producer_name == NULL && client_ip != NULL)
+  if (producer_name == NULL && client_ip != NULL) {
     producer_name = getProducerName(client_ip);
+  }
 
-  if (producer_name == NULL && application != NULL)
+  if (producer_name == NULL && application != NULL) {
+    Utils::stringtolower(application); /* normalize */
     producer_name = application;
+  }
 
-  if (producer_name == NULL)
+  if (producer_name == NULL) {
     producer_name = getProducerName("*");
+  }
 
-  if (producer_name == NULL)
+  if (producer_name == NULL) {
     return 0;
+  }
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Application: %s Message: %s",
@@ -202,6 +211,7 @@ void SyslogParserInterface::doProducersMappingUpdate() {
     for (int i = 0; i < rc; i++) {
       if (keys[i] && values[i]) {
         ntop->getTrace()->traceEvent(TRACE_INFO, "Adding syslog producer %s (%s)", keys[i], values[i]);
+        Utils::stringtolower(keys[i]); /* normalize */
         addProducerMapping(keys[i], values[i]);
       }
 

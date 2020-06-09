@@ -74,6 +74,7 @@ public:
   static double pearsonValueCorrelation(activity_bitmap *x, activity_bitmap *y);
   static double JaccardSimilarity(activity_bitmap *x, activity_bitmap *y);
   static int ifname2id(const char *name);
+  static char* stringtolower(char *str);
   static char* sanitizeHostName(char *str);
   static char* urlDecode(const char *src, char *dst, u_int dst_len);
   static bool purifyHTTPparam(char * const param, bool strict, bool allowURL, bool allowDots);

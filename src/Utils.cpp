@@ -1019,6 +1019,19 @@ int Utils::ifname2id(const char *name) {
   return INVALID_INTERFACE_ID; /* This can't happen, hopefully */
 }
 
+/* **************************************************** */ 
+
+char* Utils::stringtolower(char *str) {
+  int i = 0;
+
+  while (str[i] != '\0') {
+    str[i] = tolower(str[i]);
+    i++;
+  }
+
+  return str;
+}
+
 /* **************************************************** */
 
 /* http://en.wikipedia.org/wiki/Hostname */
