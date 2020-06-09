@@ -311,6 +311,12 @@ local function validateNdpiStatsMode(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateDeviceResponsiveness(r)
+   local modes = {"all", "responsive", "unresponsive"}
+
+   return validateChoice(modes, r)
+end
+
 local function validateCounterSince(mode)
    local modes = {"actual", "absolute"}
 
@@ -1265,6 +1271,7 @@ local known_parameters = {
    ["ifid"]                    = validateInterface,             -- An ntopng interface ID
    ["iffilter"]                = validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    = validateMode,                  -- Remote or Local users
+   ["device_responsiveness"]   = validateDeviceResponsiveness,  -- Device responsiveness
    ["counters_since"]          = validateCounterSince,          -- Select actual or absolute counters
    ["err_counters_filter"]     = validateErrorsFilter,          -- Filter by errrrs, discards, both
    ["country"]                 = validateCountry,               -- Country code
