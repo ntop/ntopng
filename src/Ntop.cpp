@@ -214,7 +214,8 @@ void Ntop::lockNtopInstance() {
   lock.l_pid    = getpid(); /* process id */
 
   if((startupLockFile = open(lockPath, O_RDWR | O_CREAT, 0666)) < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open lock file: %s", strerror(errno));
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open lock file %s [%s]",
+				 lockPath, strerror(errno));
     exit(EXIT_FAILURE);
   }
 
