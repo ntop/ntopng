@@ -97,6 +97,9 @@ local function snmp_device_run_user_scripts(cached_device)
 
 	 if(conf.enabled) then
 	    local iface_entity = alerts_api.snmpInterfaceEntity(device_ip, snmp_interface_index)
+	    -- Augment data with counters and status
+	    snmp_interface["if_counters"] = cached_device.if_counters[snmp_interface_index]
+	    snmp_interface["interfaces_status"] = cached_device.interfaces_status[snmp_interface_index]
 
 	    alerts_api.invokeScriptHook(script, confset_id, hook_fn, device_ip, snmp_interface_index, table.merge(snmp_interface, {
 	       granularity = granularity,
