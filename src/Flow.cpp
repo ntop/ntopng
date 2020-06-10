@@ -1907,6 +1907,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	lua_get_tls_info(vm);
     }
 
+    if(!getInterface()->isPacketInterface())
+      lua_snmp_info(vm);
+
     if(get_json_info()) {
       lua_push_str_table_entry(vm, "moreinfo.json", json_object_to_json_string(get_json_info()));
       has_json_info = true;
@@ -4347,6 +4350,13 @@ void Flow::lua_duration_info(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "first_seen", get_first_seen());
   lua_push_uint64_table_entry(vm, "last_seen", get_first_seen());
   lua_push_bool_table_entry(vm, "twh_over", twh_over);
+}
+
+/* ***************************************************** */
+
+void Flow::lua_snmp_info(lua_State *vm) {
+  lua_push_uint64_table_entry(vm, "in_index", flow_device.in_index);
+  lua_push_uint64_table_entry(vm, "out_index", flow_device.out_index);
 }
 
 /* ***************************************************** */

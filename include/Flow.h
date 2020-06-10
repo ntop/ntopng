@@ -503,6 +503,7 @@ class Flow : public GenericHashEntry {
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
   void lua_get_min_info(lua_State* vm);
   void lua_duration_info(lua_State* vm);
+  void lua_snmp_info(lua_State* vm);
   void lua_device_protocol_allowed_info(lua_State *vm);
   void lua_get_tcp_stats(lua_State *vm) const;
 
