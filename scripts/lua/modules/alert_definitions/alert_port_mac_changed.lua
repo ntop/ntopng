@@ -34,8 +34,6 @@ end
 -- #######################################################
 
 local function portMacChangedFormatter(ifid, alert, info)
-   if ntop.isPro() then local snmp_utils = require "snmp_utils" end
-
    return(i18n("alerts_dashboard.alert_snmp_interface_mac_changed_description",
 	       {mac_url = getMacUrl(info.mac),
 		mac = info.mac,

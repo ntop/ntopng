@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local alert_utils = require "alert_utils"
 local snmp_utils = require "snmp_utils"
+local snmp_consts = require "snmp_consts"
 
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
@@ -88,7 +89,7 @@ local function snmp_device_run_user_scripts(cached_device)
 
       -- For each interface of the current device...
       for snmp_interface_index, snmp_interface in pairs(cached_device.interfaces) do
-	 local if_type = snmp_utils.snmp_iftype(snmp_interface.type)
+	 local if_type = snmp_consts.snmp_iftype(snmp_interface.type)
 
 	 if(script.skip_virtual_interfaces and
 	       ((if_type == "propVirtual") or (if_type == "softwareLoopback"))) then
