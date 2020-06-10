@@ -1882,9 +1882,7 @@ elseif(page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) t
    else
       local snmp_cached_dev = require "snmp_cached_dev"
       local snmp_ui_system = require "snmp_ui_system"
-      local snmp_device_ip = snmp_devices[host_ip]["ip"]
-      local cached_device = snmp_cached_dev:create(snmp_device_ip)
-
+      local cached_device = snmp_cached_dev:create(host_ip)
       snmp_ui_system.print_snmp_device_system_table(cached_device)
    end
 
