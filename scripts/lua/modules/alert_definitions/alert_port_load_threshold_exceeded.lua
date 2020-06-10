@@ -34,7 +34,7 @@ end
 -- #######################################################
 
 local function snmpPortLoadThresholdFormatter(ifid, alert, info)
-  if ntop.isPro() then require "snmp_utils" end
+  if ntop.isPro() then local snmp_utils = require "snmp_utils" end
 
   local fmt = {
      device = info.device,

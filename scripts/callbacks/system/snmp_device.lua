@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local alert_utils = require "alert_utils"
-require "snmp_utils"
+local snmp_utils = require "snmp_utils"
 
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")

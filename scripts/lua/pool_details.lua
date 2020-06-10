@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if(ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-    require "snmp_utils"
+    local snmp_utils = require "snmp_utils"
     shaper_utils = require "shaper_utils"
 end
 

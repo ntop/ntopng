@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.p
 
 -- io.write ("Session:".._SESSION["session"].."\n")
 require "lua_utils"
-require "snmp_utils"
+local snmp_utils = require "snmp_utils"
 local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
@@ -24,7 +24,7 @@ if true then
    local config = ts_dump.getConfig()
    local time_threshold = when - (when % 60) + 60 - 10 -- safe margin
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-   require "snmp_utils"
+   local snmp_utils = require "snmp_utils"
 
    local res = snmp_walk_table("192.168.2.169", "ntop", "1.3.6.1.6.3.16.1.2.1.3.1", 2, 3600)
    tprint(res)

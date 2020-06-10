@@ -36,7 +36,7 @@ local function formatTopologyChanged(ifid, alert, alert_info)
     return ""
   end
 
-  require("snmp_utils")
+  local snmp_utils = require "snmp_utils"
 
   if(alert.alert_subtype == "arc_added") then
     return(i18n("alert_messages.lldp_arc_added", {

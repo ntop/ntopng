@@ -4,7 +4,7 @@
 
 local alert_consts = require("alert_consts")
 local alerts_api = require("alerts_api")
-require("snmp_utils")
+local snmp_utils = require "snmp_utils"
 
 -- This is a user script executed by scripts/callbacks/system/snmp_device.lua .
 -- The SNMP devices must be already configured from the System -> SNMP page.

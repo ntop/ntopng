@@ -26,7 +26,7 @@ end
 -- #######################################################
 
 local function snmpDeviceResetFormatter(ifid, alert, info)
-  if ntop.isPro() then require "snmp_utils" end
+  if ntop.isPro() then local snmp_utils = require "snmp_utils" end
 
   return(i18n("alerts_dashboard.alert_snmp_device_reset_description",
     {device = info.device,

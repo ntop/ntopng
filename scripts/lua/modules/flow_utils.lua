@@ -17,7 +17,7 @@ local json = require("dkjson")
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
-   require "snmp_utils"
+   local snmp_utils = require "snmp_utils"
 end
 
 local json = require ("dkjson")
@@ -1453,7 +1453,7 @@ end
 local function printFlowDevicesFilterDropdown(base_url, page_params)
    if (ntop.isPro()) then
       package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-      require "snmp_utils"
+      local snmp_utils = require "snmp_utils"
    end
 
    local flowdevs = interface.getFlowDevices()

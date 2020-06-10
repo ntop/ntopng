@@ -28,7 +28,7 @@ end
 -- #######################################################
 
 local function snmpInterfaceErrorsFormatter(ifid, alert, info)
-  if ntop.isPro() then require "snmp_utils" end
+  if ntop.isPro() then local snmp_utils = require "snmp_utils" end
 
   return(i18n("alerts_dashboard.snmp_port_errors_increased",
     {device = info.device,

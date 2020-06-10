@@ -10,7 +10,7 @@ local json = require "dkjson"
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
-   require("snmp_utils")
+   local snmp_utils = require "snmp_utils"
 end
 
 sendHTTPHeader('application/json')

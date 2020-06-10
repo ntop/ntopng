@@ -8,7 +8,7 @@ local alert_consts = require("alert_consts")
 local json = require("dkjson")
 
 if ntop.isPro() then
-   require("snmp_utils")
+   local snmp_utils = require "snmp_utils"
 end
 
 local script = {

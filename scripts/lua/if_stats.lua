@@ -9,7 +9,7 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
-   require "snmp_utils"
+   local snmp_utils = require "snmp_utils"
 end
 
 local json = require "dkjson"
