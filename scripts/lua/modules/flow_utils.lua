@@ -17,7 +17,6 @@ local json = require("dkjson")
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    shaper_utils = require("shaper_utils")
-   local snmp_utils = require "snmp_utils"
 end
 
 local json = require ("dkjson")
@@ -1321,6 +1320,11 @@ end
 -- #######################
 
 function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
+   if not ntop.isPro() then
+      return
+   end
+
+   local snmp_utils = require "snmp_utils"
    local available_devices = snmp_utils.get_snmp_devices()
    if available_devices == nil then available_devices = {} end
 
@@ -1451,11 +1455,7 @@ end
 -- #######################
 
 local function printFlowDevicesFilterDropdown(base_url, page_params)
-   if (ntop.isPro()) then
-      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-      local snmp_utils = require "snmp_utils"
-   end
-
+   local snmp_utils = require "snmp_utils"
    local flowdevs = interface.getFlowDevices()
    local vlans = interface.getVLANsList()
 
