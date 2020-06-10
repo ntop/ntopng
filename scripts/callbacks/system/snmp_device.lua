@@ -88,7 +88,7 @@ local function snmp_device_run_user_scripts(cached_device)
 
       -- For each interface of the current device...
       for snmp_interface_index, snmp_interface in pairs(cached_device.interfaces) do
-	 local if_type = snmp_iftype(snmp_interface.type)
+	 local if_type = snmp_utils.snmp_iftype(snmp_interface.type)
 
 	 if(script.skip_virtual_interfaces and
 	       ((if_type == "propVirtual") or (if_type == "softwareLoopback"))) then

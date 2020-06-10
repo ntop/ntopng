@@ -415,7 +415,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 local ports = find_mac_snmp_ports(host["mac"], _GET["snmp_recache"] == "true")
+	 local ports = snmp_utils.find_mac_snmp_ports(host["mac"], _GET["snmp_recache"] == "true")
 
 	 if(ports ~= nil) then
 	    local rsps = 1
@@ -428,7 +428,7 @@ if((page == "overview") or (page == nil)) then
 	       print('<tr><td width=35% rowspan='..rsps..'><b>Host SNMP Localization <a href="'..url..'&snmp_recache=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></b><p><small>NOTE: Hosts are located in SNMP devices using the <A HREF=https://tools.ietf.org/html/rfc4188>Bridge MIB</A>.</small></td>')
 	       print("<th>SNMP Device</th><th>Device Port</th></tr>\n")
 		    for snmp_device_ip,port in pairs(ports) do
-		       local community = get_snmp_community(snmp_device_ip)
+		       local community = snmp_utils.get_snmp_community(snmp_device_ip)
 		       local trunk
 
 		       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip.."'>"..getResolvedAddress(hostkey2hostinfo(snmp_device_ip)).."</A></td>")
@@ -1673,9 +1673,9 @@ print [[
 ]]
 elseif(page == "snmp" and ntop.isPro()) then
    local sys_object_id = true
-   local community = get_snmp_community(host_ip)
+   local community = snmp_utils.get_snmp_community(host_ip)
 
-   local snmp_devices = get_snmp_devices()
+   local snmp_devices = snmp_utils.get_snmp_devices()
    if snmp_devices[host_ip] == nil then -- host has not been configured
 
       local msg = "Host "..host_ip.. " has not been configured as an SNMP device."

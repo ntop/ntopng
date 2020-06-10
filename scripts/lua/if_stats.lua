@@ -6,10 +6,11 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 
+local snmp_utils
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
-   local snmp_utils = require "snmp_utils"
+   snmp_utils = require "snmp_utils"
 end
 
 local json = require "dkjson"
@@ -1768,9 +1769,9 @@ elseif(page == "snmp_bind") then
 
    if (snmp_host ~= nil) then
       -- snmp_host can be empty
-      set_snmp_bound_interface(ifstats.id, snmp_host, snmp_interface)
+      snmp_utils.set_snmp_bound_interface(ifstats.id, snmp_host, snmp_interface)
    else
-      local value = get_snmp_bound_interface(ifstats.id)
+      local value = snmp_utils.get_snmp_bound_interface(ifstats.id)
 
       if value ~= nil then
          snmp_host = value.snmp_device
@@ -1778,7 +1779,7 @@ elseif(page == "snmp_bind") then
       end
    end
 
-   local snmp_devices = get_snmp_devices(ifstats.id)
+   local snmp_devices = snmp_utils.get_snmp_devices(ifstats.id)
 
    print[[
 <form id="snmp_bind_form" method="post" style="margin-bottom:3em;">

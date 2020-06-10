@@ -5,9 +5,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local snmp_utils
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-   local snmp_utils = require "snmp_utils"
+   snmp_utils = require "snmp_utils"
    shaper_utils = require("shaper_utils")
    host_pools_utils = require "host_pools_utils"
 end
@@ -259,7 +260,7 @@ else
 
    local url = hostinfo2detailsurl(host, {tskey = _GET["tskey"]})
 
-   local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(host["mac"])
+   local has_snmp_location = info["version.enterprise_edition"] and snmp_utils.host_has_snmp_location(host["mac"])
 
    page_utils.print_navbar(title, url,
 			   {
@@ -402,7 +403,7 @@ else
    -- tprint(host.bins)
 local macinfo = interface.getMacInfo(host["mac"])
 local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
-   and (info["version.enterprise_edition"]) and host_has_snmp_location(host["mac"])
+   and (info["version.enterprise_edition"]) and snmp_utils.host_has_snmp_location(host["mac"])
    and isAllowedSystemInterface()
 
 print[[<form id="delete-mud-form" method="post">]]
@@ -448,7 +449,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if has_snmp_location then
-         print_host_snmp_location(host["mac"], hostinfo2detailsurl(host, {page = "snmp"}))
+         snmp_utils.print_host_snmp_location(host["mac"], hostinfo2detailsurl(host, {page = "snmp"}))
       end
 
       print("</tr>")
@@ -1889,7 +1890,7 @@ elseif(page == "snmp" and ntop.isEnterpriseM() and isAllowedSystemInterface()) t
 
    if has_snmp_location then
       print[[<table class="table table-bordered table-striped">]]
-      print_host_snmp_localization_table_entry(host["mac"])
+      snmp_utils.print_host_snmp_localization_table_entry(host["mac"])
       print[[</table>]]
    end
 elseif(page == "processes") then

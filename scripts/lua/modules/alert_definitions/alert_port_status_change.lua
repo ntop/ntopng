@@ -30,14 +30,18 @@ end
 -- #######################################################
 
 local function portStatusChangeFormatter(ifid, alert, info)
-  if ntop.isPro() then local snmp_utils = require "snmp_utils" end
+  local snmp_utils
+
+  if ntop.isPro() then
+    snmp_utils = require "snmp_utils"
+  end
 
   return(i18n("alerts_dashboard.snmp_port_changed_operational_status",
     {device = info.device,
      port = info.interface_name or info.interface,
      url = snmpDeviceUrl(info.device),
      port_url = snmpIfaceUrl(info.device, info.interface),
-     new_op = snmp_ifstatus(info.status)}))
+     new_op = snmp_utils.snmp_ifstatus(info.status)}))
 end
 
 -- #######################################################

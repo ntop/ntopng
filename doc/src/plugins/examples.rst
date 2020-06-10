@@ -518,7 +518,7 @@ Here is an analysis of the user script reponsible for the alert generation.
 	 old_arcs = {}
       end
 
-      local nodes, arcs = snmp_load_devices_topology(device_ip)
+      local nodes, arcs = snmp_utils.snmp_load_devices_topology(device_ip)
       local is_first_run = table.empty(old_arcs)
       local new_arcs = {}
 
@@ -556,7 +556,7 @@ Here is a description of the general structure:
   on the device (use `tprint(info)` to get a list of fields). See below for a detailed description of this example.
 - :code:`storeTopologyChangedAlert`: this function is responsible for the alert triggering part.
 
-The `script.hooks.snmpDevice` function uses the `snmp_load_devices_topology` function to retrieve the
+The `script.hooks.snmpDevice` function uses the `snmp_utils.snmp_load_devices_topology` function to retrieve the
 latest LLDP information for the current SNMP device. The function returns a list of nodes and arcs involved
 in this particular SNMP device topology. The `nodes` are a lua table which maps `node_name` -> `node_ip`, for example:
 

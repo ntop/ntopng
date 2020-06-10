@@ -69,7 +69,7 @@ function script.hooks.snmpDevice(device_ip, info)
       old_arcs = {}
    end
 
-   local nodes, arcs = snmp_load_devices_topology(device_ip)
+   local nodes, arcs = snmp_utils.snmp_load_devices_topology(device_ip)
    local is_first_run = table.empty(old_arcs)
    local new_arcs = {}
 

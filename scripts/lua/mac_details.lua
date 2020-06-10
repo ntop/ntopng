@@ -5,9 +5,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local snmp_utils
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-   local snmp_utils = require "snmp_utils"
+   snmp_utils = require "snmp_utils"
 end
 
 require "lua_utils"
@@ -108,7 +109,7 @@ if(mac_info == nil) and not only_historical then
 end
 
 local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
-local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(mac)
+local has_snmp_location = info["version.enterprise_edition"] and snmp_utils.host_has_snmp_location(mac)
 local title = i18n("mac_details.mac")..": "..mac
 
 page_utils.print_navbar(title, url,
@@ -190,7 +191,7 @@ if((page == "overview") or (page == nil)) then
    end
 
    if has_snmp_location then
-      print_host_snmp_location(mac, url .. [[&page=snmp]])
+      snmp_utils.print_host_snmp_location(mac, url .. [[&page=snmp]])
    end
 
    print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
@@ -370,7 +371,7 @@ elseif(page == "packets") then
 
 elseif(page == "snmp") then
    print[[<table class="table table-bordered table-striped">]]
-   print_host_snmp_localization_table_entry(mac)
+   snmp_utils.print_host_snmp_localization_table_entry(mac)
    print[[</table>]]
 elseif(page == "historical") then
    local schema = _GET["ts_schema"] or "mac:traffic"

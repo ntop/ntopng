@@ -7,10 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require "dkjson"
+local snmp_utils
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
-   local snmp_utils = require "snmp_utils"
+   snmp_utils = require "snmp_utils"
 end
 
 sendHTTPHeader('application/json')
@@ -97,7 +98,7 @@ if not hosts_only then
    -- there's a dot then we're sure it can't be a mac
    if ntop.isEnterpriseM() and not query:find("%.") then
       local mac = string.upper(query)
-      local matches = find_mac_snmp_ports(mac, true)
+      local matches = snmp_utils.find_mac_snmp_ports(mac, true)
       cur_results = 0
 
       for _, snmp_port in ipairs(matches) do
@@ -110,7 +111,7 @@ if not hosts_only then
          local snmp_port_idx = snmp_port["id"]
          local snmp_port_name = snmp_port["name"]
 
-         local title = get_localized_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = snmp_port_name})
+         local title = snmp_utils.get_localized_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = snmp_port_name})
 
          results[#results + 1] = {
             type = "snmp",
@@ -125,7 +126,7 @@ if not hosts_only then
    -- Look by SNMP interface name
    if ntop.isEnterpriseM() then
       local name = string.upper(query)
-      local matches = find_snmp_ports_by_name(name, true)
+      local matches = snmp_utils.find_snmp_ports_by_name(name, true)
       cur_results = 0
 
       for _, snmp_port in ipairs(matches) do
@@ -138,7 +139,7 @@ if not hosts_only then
          local snmp_port_name = snmp_port["name"]
          local snmp_port_index_match = snmp_port["index_match"]
 
-         local title = get_localized_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = ternary(snmp_port_index_match, nil, snmp_port_name) })
+         local title = snmp_utils.get_localized_snmp_device_and_interface_label(snmp_device_ip, {index = snmp_port_idx, name = ternary(snmp_port_index_match, nil, snmp_port_name) })
 
          results[#results + 1] = {
             type = "snmp",
@@ -153,7 +154,7 @@ if not hosts_only then
    -- Look by SNMP device
    if ntop.isEnterpriseM() then
       local name = string.upper(query)
-      local matches = find_snmp_devices(name, true)
+      local matches = snmp_utils.find_snmp_devices(name, true)
       cur_results = 0
 
       for _, snmp_device in ipairs(matches) do
@@ -161,7 +162,7 @@ if not hosts_only then
 	    break
          end
 
-         local title = get_snmp_device_label(snmp_device["ip"])
+         local title = snmp_utils.get_snmp_device_label(snmp_device["ip"])
          results[#results + 1] = {
             type = "snmp_device",
 	    name = title.." ["..i18n("snmp.snmp_device").."]", 

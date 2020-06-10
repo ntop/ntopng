@@ -1321,7 +1321,7 @@ end
 -- #######################
 
 function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
-   local available_devices = get_snmp_devices()
+   local available_devices = snmp_utils.get_snmp_devices()
    if available_devices == nil then available_devices = {} end
 
    for dev, _ in pairs(available_devices) do
@@ -1329,7 +1329,7 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
       snmp_device.init(dev)
 
       if dev == snmpdevice then
-	 local community = get_snmp_community(dev)
+	 local community = snmp_utils.get_snmp_community(dev)
 	 local port_indexes = get_snmp_device_port_indexes(dev, community)
 	 if port_indexes == nil then port_indexes = {} end
 
@@ -1486,7 +1486,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
    for _, dev_ip in ipairs(devips) do
       local dev_name = dev_ip
       dev_params["deviceIP"] = dev_name
-      local snmp_community = get_snmp_community(dev_name, true --[[ no default --]])
+      local snmp_community = snmp_utils.get_snmp_community(dev_name, true --[[ no default --]])
       if not isEmptyString(snmp_community) then
 	 local snmp_name = get_snmp_device_name(dev_name, snmp_community)
 	 if not isEmptyString(snmp_name) and snmp_name ~= dev_name then
