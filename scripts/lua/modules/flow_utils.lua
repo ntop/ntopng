@@ -267,12 +267,11 @@ function handleCustomFlowField(key, value, snmpdevice)
 
       local ret = ip2detailshref(value, nil, nil, value)
 
-      if((res == "") or (res == nil)) then
-	 ret = ret .. ipaddr
-      else
-	 ret = ret .. res
+      if((res == "") or (res == nil)) and ret ~= ipaddr then
+	 ret = string.format("%s [%s]", ret, ipaddr)
+      elseif value ~= res then
+	 ret = string.format("%s [%s]", ret, res)
       end
-
       return(ret .. "</A>")
    elseif key == 'FLOW_USER_NAME' then
       elems = string.split(value, ';')
@@ -1443,7 +1442,7 @@ end
 -- #######################
 
 local function printFlowDevicesFilterDropdown(base_url, page_params)
-   local snmp_utils = require "snmp_utils"
+   local snmp_cached_dev = require "snmp_cached_dev"
    local flowdevs = interface.getFlowDevices()
    local vlans = interface.getVLANsList()
 
@@ -1473,19 +1472,17 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
    for _, dev_ip in ipairs(devips) do
       local dev_name = dev_ip
+      local cached_device = snmp_cached_dev:create(dev_ip)
       dev_params["deviceIP"] = dev_name
-      local snmp_community = snmp_utils.get_snmp_community(dev_name, true --[[ no default --]])
-      if not isEmptyString(snmp_community) then
-	 local snmp_name = get_snmp_device_name(dev_name, snmp_community)
-	 if not isEmptyString(snmp_name) and snmp_name ~= dev_name then
-	    dev_name = dev_name .. "["..shortenString(snmp_name).."]"
-	 end
+
+      if cached_device and not isEmptyString(cached_device["name"]) then
+	 dev_name = dev_name .. " ["..shortenString(cached_device["name"]).."]"
       else
 	 local hinfo = hostkey2hostinfo(dev_name)
 	 local resname = hostinfo2label(hinfo)
 
 	 if not isEmptyString(resname) and resname ~= dev_name then
-	    dev_name = dev_name .. "["..shortenString(resname).."]"
+	    dev_name = dev_name .. " ["..shortenString(resname).."]"
 	 end
       end
 

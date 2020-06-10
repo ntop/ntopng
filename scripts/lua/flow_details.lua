@@ -1305,6 +1305,7 @@ else
 	 if(num == 0) then
 	    print("<tr><th colspan=3 class=\"info\">"..i18n("flow_details.additional_flow_elements").."</th></tr>\n")
 	 end
+
 	 if(value ~= "") then
 	    print("<tr><th width=30%>" .. getFlowKey(key) .. "</th><td colspan=2>" .. handleCustomFlowField(key, value, snmpdevice) .. "</td></tr>\n")
 	 end
