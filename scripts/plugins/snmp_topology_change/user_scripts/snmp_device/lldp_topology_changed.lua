@@ -7,10 +7,6 @@ local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
 local json = require("dkjson")
 
-if ntop.isPro() then
-   local snmp_utils = require "snmp_utils"
-end
-
 local script = {
    category = user_scripts.script_categories.network,
 
@@ -59,6 +55,7 @@ end
 -- between SNMP devices (arcs in the topology chart) are compared with
 -- the previosly saved connections.
 function script.hooks.snmpDevice(device_ip, info)
+   local snmp_utils = require "snmp_utils"
    -- The previos arcs are saved to be compared with the current arcs
    local arcs_key = "ntopng.cache.snmp_topology_arcs_monitor." .. device_ip
    local old_arcs = ntop.getPref(arcs_key)
