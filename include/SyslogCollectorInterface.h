@@ -34,23 +34,31 @@ typedef struct {
   char ip_str[INET_ADDRSTRLEN];
 } syslog_client;
 
+typedef struct {
+  bool enable;
+  struct sockaddr_in addr;
+  int sock;
+} syslog_socket;
+
 class SyslogCollectorInterface : public SyslogParserInterface {
  private:
   char *endpoint;
-  struct sockaddr_in listen_addr;
-  int listen_sock;
-  bool use_udp;
-  syslog_client connections[MAX_SYSLOG_SUBSCRIBERS];
+  syslog_socket udp_socket;
+  syslog_socket tcp_socket;
+  syslog_client tcp_connections[MAX_SYSLOG_SUBSCRIBERS];
 
   struct {
     u_int32_t num_flows;
   } recvStats;
 
+  bool openSocket(syslog_socket *ss, const char *server_address, int server_port, int protocol);
+  void closeSocket(syslog_socket *ss, int protocol);
+  int  initFDSetsSocket(syslog_socket *ss, fd_set *read_fds, fd_set *write_fds, fd_set *except_fds, int protocol);
+  int  initFDSets(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds);
+
  public:
   SyslogCollectorInterface(const char *_endpoint);
   ~SyslogCollectorInterface();
-
-  int initFDSets(fd_set *read_fds, fd_set *write_fds, fd_set *except_fds);
 
   int handleNewConnection();
   void closeConnection(syslog_client *client);
@@ -58,12 +66,12 @@ class SyslogCollectorInterface : public SyslogParserInterface {
 
   int receive(int socket, char *client_ip);
 
-  inline const char* get_type()         { return(CONST_INTERFACE_TYPE_SYSLOG); };
+  inline const char* get_type()           { return(CONST_INTERFACE_TYPE_SYSLOG); };
   virtual InterfaceType getIfType() const { return(interface_type_SYSLOG); }
   virtual bool is_ndpi_enabled() const    { return(false);      };
   inline char* getEndpoint(u_int8_t id)   { return(endpoint);   };
   virtual bool isPacketInterface() const  { return(false);      };
-  void collect_flows();
+  void collect_events();
 
   void startPacketPolling();
   void shutdown();

@@ -36,8 +36,9 @@ Example:
    -i=syslog://*:9999
    -i=eth1
 
-By default, ntopng uses the TCP protocol, in order to switch to UDP, the :code:`@udp`
-suffix should be appended to the interface name (example :code:`syslog://*:9999@udp`).
+By default, ntopng listens both on UDP and TCP, in order to listen on UDP only or TCP
+only, the :code:`@udp` or :code:`@tcp` suffix should be appended to the interface name
+(example :code:`syslog://*:9999@udp`).
 
 Note:
 
