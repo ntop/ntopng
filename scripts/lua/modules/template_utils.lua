@@ -30,12 +30,17 @@ function template.gen(template_file, context, is_full_path)
   local path
 
   if is_full_path then
-    path = template_file
+     path = os_utils.fixPath(template_file)
   else
-    path = dirs.installdir.."/httpdocs/templates/"..template_file
+     path = os_utils.fixPath(dirs.installdir.."/httpdocs/templates/"..template_file)
+
+     if not ntop.exists(path) and ntop.isPro() then
+	-- Try in the pro dir
+	path = os_utils.fixPath(dirs.installdir.."/pro/httpdocs/templates/"..template_file)
+     end
   end
 
-  return template.compile(os_utils.fixPath(path), nil, nil)(context)
+  return template.compile(path, nil, nil)(context)
 end
 
 return template
