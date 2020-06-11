@@ -1347,6 +1347,14 @@ function getHostAltNamesKey()
    return "ntopng.host_labels"
 end
 
+function getHostAltName(host_ip)
+   return ntop.getHashCache(getHostAltNamesKey(), host_ip)
+end
+
+function setHostAltName(host_ip, alt_name)
+   ntop.setHashCache(getHostAltNamesKey(), host_ip, alt_name)
+end
+
 -- ##############################################
 
 function getDhcpNameKey(ifid, mac)
@@ -1369,14 +1377,14 @@ function hostinfo2label(host_info)
    -- If local broadcast domain host and DHCP, try to get the label associated
    -- to the MAC address
    if host_info["mac"] and (host_info["broadcast_domain_host"] ~= false) and (host_info["dhcpHost"] ~= false) then
-      alt_name = ntop.getHashCache(getHostAltNamesKey(), host_info["mac"])
+      alt_name = getHostAltName(host_info["mac"])
 
       if not isEmptyString(alt_name) then
          return(alt_name)
       end
    end
 
-   alt_name = ntop.getHashCache(getHostAltNamesKey(), ip)
+   alt_name = getHostAltName(ip)
 
    if not isEmptyString(alt_name) then
       return(alt_name)
@@ -1409,7 +1417,7 @@ end
 -- ##############################################
 
 function mac2label(mac)
-   local alt_name = ntop.getHashCache(getHostAltNamesKey(), mac)
+   local alt_name = getHostAltName(mac)
 
    if not isEmptyString(alt_name) and (alt_name ~= mac) then
       return(alt_name)
@@ -1426,10 +1434,6 @@ function mac2label(mac)
 end
 
 -- ##############################################
-
-function setHostAltName(host_ip, alt_name)
-   ntop.setHashCache(getHostAltNamesKey(), host_ip, alt_name)
-end
 
 -- Mac Addresses --
 

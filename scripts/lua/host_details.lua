@@ -2095,7 +2095,7 @@ elseif (page == "config") then
    end
 
    -- NOTE: this only configures the alias associated to the IP address, not to the MAC
-   local ip_alias = ntop.getHashCache(getHostAltNamesKey(), host_info["host"])
+   local ip_alias = getHostAltName(host_info["host"])
 
    print[[
    <form id="host_config" class="form-inline" method="post">
@@ -2105,7 +2105,7 @@ elseif (page == "config") then
          <th>]] print(i18n("host_config.host_alias")) print[[</th>
          <td>
                <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]]
-   if(ip_alias ~= host_label) then print(ip_alias) end
+   print(ip_alias)
    print[["></input> ]]
 
    print [[
