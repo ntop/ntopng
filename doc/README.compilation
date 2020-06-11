@@ -47,7 +47,7 @@ On Fedora 30/31/32:
 - dnf install libtool m4
 - dnf install autoconf automake
 - dnf group install "Development Tools"
-- dnf install libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mariadb-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect
+- dnf install libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mariadb-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect readline-devel
 - dnf install redis
 
 On (Older) Fedora/CentOS 6-7
