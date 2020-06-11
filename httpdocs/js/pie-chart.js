@@ -43,16 +43,24 @@ function PieChart(name, update_url, url_params, units, refresh) {
     // to run each time data is generated
 
     this.update = function() {
-      // console.log(this.name);
-      // console.log(this.url_params);
+	// console.log(this.name);
+	// console.log(this.url_params);
 	$.ajax({
-		type: 'GET',
-		    url: this.update_url,
-		    data: this.url_params,
-		    success: function(content) {
- 		      update_pie_chart(jQuery.parseJSON(content));
-		}
-	    });
+	    type: 'GET',
+	    url: this.update_url,
+	    data: this.url_params,
+	    success: function(content) {
+		let parsed_content;
+
+		if(typeof(content) == "object")
+		    parsed_content = content;
+		else if(typeof(content) == "string")
+		    parsed_content = jQuery.parseJSON(content);
+
+		if(parsed_content)
+ 		    update_pie_chart(parsed_content);
+	    }
+	});
     }
 
     ///////////////////////////////////////////////////////////
