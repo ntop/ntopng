@@ -461,12 +461,30 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
     flow->outIndex = value->int_num;
     break;
   case POST_NAT_SRC_IPV4_ADDR:
-    if(ntop->getPrefs()->do_override_src_with_post_nat_src())
-      flow->src_ip.set((char *) value->string);
+    if(ntop->getPrefs()->do_override_src_with_post_nat_src()) {
+      if(value->string) {
+	IpAddress tmp;
+	tmp.set(value->string);
+	if(!tmp.isEmpty()) {
+	  flow->src_ip.set((char *) value->string);
+	}
+      } else if(value->int_num) {
+	flow->src_ip.set(ntohl(value->int_num));
+      }
+    }
     break;
   case POST_NAT_DST_IPV4_ADDR:
-    if(ntop->getPrefs()->do_override_dst_with_post_nat_dst())
-      flow->dst_ip.set((char *) value->string);
+    if(ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
+      if(value->string) {
+	IpAddress tmp;
+	tmp.set(value->string);
+	if(!tmp.isEmpty()) {
+	  flow->dst_ip.set((char *) value->string);
+	}
+      } else if(value->int_num) {
+	flow->dst_ip.set(ntohl(value->int_num));
+      }
+    }
     break;
   case POST_NAPT_SRC_TRANSPORT_PORT:
     if(ntop->getPrefs()->do_override_src_with_post_nat_src())
@@ -694,8 +712,10 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
   }
 
   case IP_PROTOCOL_VERSION:
-    if (value->string) return (flow->version == atoi(value->string));
-    else return (flow->version == value->int_num);
+    if (value->string)
+      return (flow->version == atoi(value->string));
+    else
+      return (flow->version == value->int_num);
 
   case IPV4_DST_ADDR:
   case IPV6_DST_ADDR:
@@ -996,25 +1016,22 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 
   /* Handle zero IPv4/IPv6 discrepacies */
   if(!flow->hasParsedeBPF()) {
-    if(flow->version == 0) {
-      if(flow->src_ip.getVersion() != flow->dst_ip.getVersion()) {
-	if(flow->dst_ip.isIPv4() && flow->src_ip.isIPv6() && flow->src_ip.isEmpty())
-	  flow->src_ip.setVersion(4);
-	else if(flow->src_ip.isIPv4() && flow->dst_ip.isIPv6() && flow->dst_ip.isEmpty())
-	  flow->dst_ip.setVersion(4);
-	else if(flow->dst_ip.isIPv6() && flow->src_ip.isIPv4() && flow->src_ip.isEmpty())
-	  flow->src_ip.setVersion(6);
-	else if(flow->src_ip.isIPv6() && flow->dst_ip.isIPv4() && flow->dst_ip.isEmpty())
-	  flow->dst_ip.setVersion(6);
-	else {
-	  invalid_flow = true;
-	  ntop->getTrace()->traceEvent(TRACE_WARNING,
-				       "IP version mismatch: client:%d server:%d - flow will be ignored",
-				       flow->src_ip.getVersion(), flow->dst_ip.getVersion());
-	}
+    if(flow->src_ip.getVersion() != flow->dst_ip.getVersion()) {
+      if(flow->dst_ip.isIPv4() && flow->src_ip.isIPv6() && flow->src_ip.isEmpty())
+	flow->src_ip.setVersion(4);
+      else if(flow->src_ip.isIPv4() && flow->dst_ip.isIPv6() && flow->dst_ip.isEmpty())
+	flow->dst_ip.setVersion(4);
+      else if(flow->dst_ip.isIPv6() && flow->src_ip.isIPv4() && flow->src_ip.isEmpty())
+	flow->src_ip.setVersion(6);
+      else if(flow->src_ip.isIPv6() && flow->dst_ip.isIPv4() && flow->dst_ip.isEmpty())
+	flow->dst_ip.setVersion(6);
+      else {
+	invalid_flow = true;
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "IP version mismatch: client:%d server:%d - flow will be ignored",
+				     flow->src_ip.getVersion(), flow->dst_ip.getVersion());
       }
-    } else
-      flow->src_ip.setVersion(flow->version), flow->dst_ip.setVersion(flow->version);
+    }
   }
 
   if(!invalid_flow) {
