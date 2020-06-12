@@ -3696,7 +3696,7 @@ local lang = {
     ["snmp_all_interfaces"] = "Tutte le Interfacce",
     ["snmp_also_seen_on"] = "Visto anche su",
     ["snmp_and_n_more_interfaces"] = "e <a href='%{url}'>%{count} altre interfacce</a>",
-    ["snmp_community"] = "Comunità SNMP",
+    ["snmp_community"] = "Comunità",
     ["snmp_device"] = "Dispositivo SNMP",
     ["snmp_device_does_not_respond"] = "Il dispositivo SNMP non ripsonde.",
     ["snmp_device_last_poll"] = "Tempo dall'Ultimo Poll",
