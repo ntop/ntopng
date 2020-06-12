@@ -380,11 +380,11 @@ class Host : public GenericHashEntry, public AlertableEntity {
     return(os_unknown);
   }
 
-  virtual void incCliContactedHosts(IpAddress *peer) { ; }
-  virtual void incCliContactedPorts(u_int16_t port)  { ; }
-  virtual void incSrvHostContacts(IpAddress *peer)   { ; }
-  virtual void incSrvPortsContacts(u_int16_t port)   { ; }
-  virtual void incServicesContacted(char *name)      { ; }
+  void incCliContactedHosts(IpAddress *peer) { stats->incCliContactedHosts(peer); }
+  void incCliContactedPorts(u_int16_t port)  { stats->incCliContactedPorts(port); }
+  void incSrvHostContacts(IpAddress *peer)   { stats->incSrvHostContacts(peer);   }
+  void incSrvPortsContacts(u_int16_t port)   { stats->incSrvPortsContacts(port);  }
+  void incServicesContacted(char *name)      { stats->incServicesContacted(name); }
 };
 
 #endif /* _HOST_H_ */

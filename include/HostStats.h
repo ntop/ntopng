@@ -136,6 +136,12 @@ class HostStats: public GenericTrafficElement {
   virtual HTTPstats* getHTTPstats()  const { return(NULL); }
   virtual DnsStats*  getDNSstats()   const { return(NULL); }
   virtual ICMPstats* getICMPstats()  const { return(NULL); }
+
+  virtual void incCliContactedPorts(u_int16_t port)  { ; }
+  virtual void incSrvPortsContacts(u_int16_t port)   { ; }
+  virtual void incServicesContacted(char *name)      { ; }
+  virtual void incCliContactedHosts(IpAddress *peer) { ; }
+  virtual void incSrvHostContacts(IpAddress *peer)   { ; }
 };
 
 #endif

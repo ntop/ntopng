@@ -35,11 +35,16 @@ class LocalHostStats: public HostStats {
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
 
+  Cardinality *num_contacted_hosts_as_client, /* # of hosts contacted by this host   */
+    *num_host_contacts_as_server,             /* # of hosts that contacted this host */
+    *num_contacted_services_as_client,        /* DNS, TLS, HTTP....                  */
+    *num_contacted_ports_as_client,           /* # of different ports this host has contacted          */
+    *num_host_contacted_ports_as_server;      /* # of different server ports contacted by remote peers */
+
  public:
   LocalHostStats(Host *_host);
   LocalHostStats(LocalHostStats &s);
   virtual ~LocalHostStats();
-
 
   inline ICMPstats* getICMPStats()  const  { return(icmp); }
 
@@ -68,6 +73,12 @@ class LocalHostStats: public HostStats {
   virtual ICMPstats* getICMPstats() const { return(icmp); };
   virtual u_int16_t getNumActiveContactsAsClient() { return contacts_as_cli.size(); }
   virtual u_int16_t getNumActiveContactsAsServer() { return contacts_as_srv.size(); }
+
+  virtual void incCliContactedPorts(u_int16_t port)  { if(num_contacted_ports_as_client) num_contacted_ports_as_client->addElement(port);       }
+  virtual void incSrvPortsContacts(u_int16_t port)   { if(num_host_contacted_ports_as_server) num_host_contacted_ports_as_server->addElement(port);           }
+  virtual void incServicesContacted(char *name)      { if(num_contacted_services_as_client) num_contacted_services_as_client->addElement(name, strlen(name)); }
+  virtual void incCliContactedHosts(IpAddress *peer) { if(num_contacted_hosts_as_client) peer->incCardinality(num_contacted_hosts_as_client);   }
+  virtual void incSrvHostContacts(IpAddress *peer)   { if(num_host_contacts_as_server) peer->incCardinality(num_host_contacts_as_server);       }  
 };
 
 #endif

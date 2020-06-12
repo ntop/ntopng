@@ -46,12 +46,6 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
 LocalHost::~LocalHost() {
   if(initial_ts_point) delete(initial_ts_point);
   freeLocalHostData();
-
-  delete num_contacted_hosts_as_client;
-  delete num_host_contacts_as_server;
-  delete num_contacted_services_as_client;
-  delete num_contacted_ports_as_client;
-  delete num_host_contacted_ports_as_server;
 }
 
 /* *************************************** */
@@ -134,12 +128,6 @@ void LocalHost::initialize() {
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->incNumHosts();
 
-  num_contacted_hosts_as_client      = new Cardinality(14);
-  num_host_contacts_as_server        = new Cardinality(14);
-  num_contacted_services_as_client   = new Cardinality(14);
-  num_contacted_ports_as_client      = new Cardinality(4);
-  num_host_contacted_ports_as_server = new Cardinality(4);
-  
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
 			       ip.print(buf, sizeof(buf)),
@@ -252,17 +240,6 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
-  lua_push_int32_table_entry(vm, "num_contacted_hosts_as_client",
-			     num_contacted_hosts_as_client->getEstimate()); 
-  lua_push_int32_table_entry(vm, "num_host_contacts_as_server",
-			     num_host_contacts_as_server->getEstimate());
-  lua_push_int32_table_entry(vm, "num_contacted_services_as_client",
-			     num_contacted_services_as_client->getEstimate());
-  lua_push_int32_table_entry(vm, "num_contacted_ports_as_client",
-			     num_contacted_ports_as_client->getEstimate());
-  lua_push_int32_table_entry(vm, "num_host_contacted_ports_as_server",
-			     num_host_contacted_ports_as_server->getEstimate());
-
   local_net = ntop->getLocalNetworkName(local_network_id);
 
   if(local_net == NULL)
@@ -277,21 +254,6 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
-
-  lua_newtable(vm);
-  lua_push_int32_table_entry(vm, "num_contacted_hosts_as_client",
-			     num_contacted_hosts_as_client->getEstimate()); 
-  lua_push_int32_table_entry(vm, "num_host_contacts_as_server",
-			     num_host_contacts_as_server->getEstimate());
-  lua_push_int32_table_entry(vm, "num_contacted_services_as_client",
-			     num_contacted_services_as_client->getEstimate());
-  lua_push_int32_table_entry(vm, "num_contacted_ports_as_client",
-			     num_contacted_ports_as_client->getEstimate());
-  lua_push_int32_table_entry(vm, "num_host_contacted_ports_as_server",
-			     num_host_contacted_ports_as_server->getEstimate());
-  lua_pushstring(vm, "cardinality");
-  lua_insert(vm, -2);
-  lua_rawset(vm, -3);  
 }
 
 /* *************************************** */

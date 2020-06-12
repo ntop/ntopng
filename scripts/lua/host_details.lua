@@ -945,13 +945,13 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
 
    elseif((page == "ports")) then
       print('<table class="table table-bordered table-striped">\n')
-
       if(host.cardinality) then
-	 print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><span id="num_contacted_ports_as_client">'.. host.cardinality.num_contacted_ports_as_client ..'</div></td></tr>')
-	 print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><span id="num_host_contacted_ports_as_server">'.. host.cardinality.num_host_contacted_ports_as_server ..'</div></td></tr>')
-	    
+	 print('<tr><th class="text-left">'..i18n("ports_page.num_contacted_ports")..'</th>')
+	 print('<th class="text-left">'..i18n("ports_page.num_contacted_ports_as_client")..'</th><td><span id="num_contacted_ports_as_client">'.. formatValue(host.cardinality.num_contacted_ports_as_client) ..'</span> <span id="num_contacted_ports_as_client_trend"></span></td>')
+	 print('<th class="text-left">'..i18n("ports_page.num_host_contacted_ports_as_server")..'</th><td><span id="num_host_contacted_ports_as_server">'.. formatValue(host.cardinality.num_host_contacted_ports_as_server) ..'</span> <span id="num_host_contacted_ports_as_server_trend"></span></td>')
+	 print('</tr>')	    
       end
-      print('<tr><th class="text-left" rowspan=2>'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
+      print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
       print('<tr><th class="text-left">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
 
       print [[
@@ -970,7 +970,6 @@ print [[/lua/iface_ports_list.lua', { clisrv: "server", ifid: "]] print(ifId..""
 	print [[
 
 		}
-
 	    </script><p>
 	]]
 
@@ -2323,6 +2322,11 @@ if(not only_historical) and (host ~= nil) then
       print("var last_http_response_num_5xx = " .. http["receiver"]["response"]["num_5xx"] .. ";\n")
    end
 
+  if(host.cardinality) then
+     print("var last_num_contacted_ports_as_client = " .. host.cardinality.num_contacted_ports_as_client .. ";\n")   
+     print("var last_num_host_contacted_ports_as_server = " .. host.cardinality.num_host_contacted_ports_as_server .. ";\n")   
+   end
+
    print [[
    var host_details_interval = window.setInterval(function() {
    	  $.ajax({
@@ -2339,6 +2343,7 @@ if(not only_historical) and (host ~= nil) then
          } else {
    			var host = jQuery.parseJSON(content);
                         var http = host.http;
+                        var card = host.cardinality;
    			$('#first_seen').html(epoch2Seen(host["seen.first"]));
    			$('#last_seen').html(epoch2Seen(host["seen.last"]));
    			$('#pkts_sent').html(formatPackets(host["packets.sent"]));
@@ -2355,6 +2360,15 @@ if(not only_historical) and (host ~= nil) then
    			$('#pkt_ooo_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]));
    			$('#pkt_lost_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["lost"]));
    			$('#pkt_keep_alive_rcvd').html(formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]));
+
+                        if(card) {
+                          $('#num_contacted_ports_as_client').html(formatValue(card.num_contacted_ports_as_client));
+                          $('#num_contacted_ports_as_client_trend').html(drawTrend(card.num_contacted_ports_as_client, last_num_contacted_ports_as_client, ""));
+                          $('#num_host_contacted_ports_as_server').html(formatValue(card.num_host_contacted_ports_as_server));
+                          $('#num_host_contacted_ports_as_server_trend').html(drawTrend(card.num_host_contacted_ports_as_server, last_num_host_contacted_ports_as_server, ""));
+                          last_num_contacted_ports_as_client = card.num_contacted_ports_as_client;
+                          last_num_host_contacted_ports_as_server = card.num_host_contacted_ports_as_server;
+                        }
 
    			if(!host["name"]) {
    			   $('#name').html(host["ip"]);

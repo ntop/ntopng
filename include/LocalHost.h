@@ -30,11 +30,6 @@ class LocalHost : public Host, public SerializableElement {
   bool systemHost;
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
-  Cardinality *num_contacted_hosts_as_client, /* # of hosts contacted by this host   */
-    *num_host_contacts_as_server,             /* # of hosts that contacted this host */
-    *num_contacted_services_as_client,        /* DNS, TLS, HTTP....                  */
-    *num_contacted_ports_as_client,           /* # of different ports this host has contacted          */
-    *num_host_contacted_ports_as_server;      /* # of different server ports contacted by remote peers */
 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   OperatingSystem os;
@@ -89,12 +84,6 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void lua_get_timeseries(lua_State* vm);
-
-  void incCliContactedPorts(u_int16_t port)  { num_contacted_ports_as_client->addElement(port);       }
-  void incSrvPortsContacts(u_int16_t port)   { num_host_contacted_ports_as_server->addElement(port);  }
-  void incServicesContacted(char *name)      { num_contacted_services_as_client->addElement(name, strlen(name)); }
-  void incCliContactedHosts(IpAddress *peer) { peer->incCardinality(num_contacted_hosts_as_client); }
-  void incSrvHostContacts(IpAddress *peer)   { peer->incCardinality(num_host_contacts_as_server);   }  
 };
 
 #endif /* _LOCAL_HOST_H_ */
