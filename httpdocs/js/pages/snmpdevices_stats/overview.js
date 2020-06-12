@@ -25,14 +25,17 @@ $(document).ready(function () {
             },
             {
                 data: "column_ip",
+                type: 'ip-address',
                 render: function(data, type, row) {
 
                     if (type == "display" && row.column_device_status == "unreachable") {
                         return (`
-                            <span class='badge-warning badge' title='${i18n.snmp.snmp_device_does_not_respond}'>
-                                <i class="fas fa-exclamation-triangle"></i>
+                            <span>
+                                ${data}
+                                <span class='badge-warning badge' title='${i18n.snmp.snmp_device_does_not_respond}'>
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </span>
                             </span>
-                            ${data}
                         `);
                     }
 
@@ -52,7 +55,8 @@ $(document).ready(function () {
                 }
             },
             { data: "column_last_update", className: "text-center" },
-            { data: "column_last_poll_duration" },
+            { data: "column_last_poll_duration", className: "text-center" },
+            { data: "column_delta_errors", className: "text-center" },
             {
                 targets: -1,
                 visible: isAdministrator,
