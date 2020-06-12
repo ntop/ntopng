@@ -1,10 +1,9 @@
 $(document).ready(function () {
 
-    const addStatsSinceFilter = (tableAPI) => {
-        DataTableUtils.addFilterDropdown(i18n.snmp.stats_since, statsSinceFilters, 0, '#table-devices_filter', tableAPI);
+    const addResponsivenessFilter = (tableAPI) => {
+        DataTableUtils.addFilterDropdown(i18n.snmp.device_responsiveness, responsivenessFilters, 0, '#table-devices_filter', tableAPI);
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
     let dtConfig = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
         {
             text: '<i class="fas fa-plus"></i>',
@@ -31,11 +30,6 @@ $(document).ready(function () {
         dtConfig,
         "/lua/pro/enterprise/get_snmp_devices_list.lua",
         'data',
-        'get',
-        {
-            device_responsiveness: urlParams.get('device_responsiveness'),
-            counters_since: urlParams.get('counters_since')
-        }
     );
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
@@ -60,11 +54,19 @@ $(document).ready(function () {
                 }
             },
             { data: "column_community" },
-            { data: "column_chart" },
+            { data: "column_chart", className: "text-center" },
             { data: "column_name" },
             { data: "column_descr" },
-            { data: "column_err_interfaces" },
-            { data: "column_last_update" },
+            {
+                data: "column_err_interfaces",
+                className: "text-right",
+                render: function(data, type, row) {
+                    if (type == "display" && data === 0) return "";
+                    return data;
+                }
+            },
+            { data: "column_last_update", className: "text-center" },
+            { data: "column_last_poll_duration" },
             {
                 targets: -1,
                 visible: isAdministrator,
@@ -83,8 +85,7 @@ $(document).ready(function () {
         initComplete: function(settings, json) {
 
             const tableAPI = settings.oInstance.api();
-            addStatsSinceFilter(tableAPI);
-
+            addResponsivenessFilter(tableAPI);
         }
     });
 
