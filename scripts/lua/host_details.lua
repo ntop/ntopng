@@ -944,12 +944,14 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
 	]]
 
    elseif((page == "ports")) then
-      print [[
+      print('<table class="table table-bordered table-striped">\n')
 
-      <table class="table table-bordered table-striped">
-	 ]]
-
-      print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
+      if(host.cardinality) then
+	 print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><span id="num_contacted_ports_as_client">'.. host.cardinality.num_contacted_ports_as_client ..'</div></td></tr>')
+	 print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><span id="num_host_contacted_ports_as_server">'.. host.cardinality.num_host_contacted_ports_as_server ..'</div></td></tr>')
+	    
+      end
+      print('<tr><th class="text-left" rowspan=2>'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
       print('<tr><th class="text-left">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
 
       print [[

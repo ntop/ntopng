@@ -252,6 +252,17 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
+  lua_push_int32_table_entry(vm, "num_contacted_hosts_as_client",
+			     num_contacted_hosts_as_client->getEstimate()); 
+  lua_push_int32_table_entry(vm, "num_host_contacts_as_server",
+			     num_host_contacts_as_server->getEstimate());
+  lua_push_int32_table_entry(vm, "num_contacted_services_as_client",
+			     num_contacted_services_as_client->getEstimate());
+  lua_push_int32_table_entry(vm, "num_contacted_ports_as_client",
+			     num_contacted_ports_as_client->getEstimate());
+  lua_push_int32_table_entry(vm, "num_host_contacted_ports_as_server",
+			     num_host_contacted_ports_as_server->getEstimate());
+
   local_net = ntop->getLocalNetworkName(local_network_id);
 
   if(local_net == NULL)
