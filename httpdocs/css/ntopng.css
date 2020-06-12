@@ -515,8 +515,8 @@ path.link {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.01), 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-.table td,
-.table th {
+.table:not(.dataTable) td ,
+.table:not(.dataTable) th {
   padding: 0.50rem !important;
 }
 

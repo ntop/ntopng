@@ -3836,6 +3836,7 @@ local lang = {
     ["snmp_interface_type"] = "Interface Type",
     ["snmp_interface_x"] = "Interface: %{interface}",
     ["snmp_interfaces"] = "Interfaces",
+    ["snmp_last_poll_errors"] = "Interfaces with Errors (lLast Poll)",
     ["snmp_lldp_descr"] = "Device topology information is available when the <A HREF=\"https://en.wikipedia.org/wiki/Link_Layer_Discovery_Protocol\">LLDP</A> protocol is enabled on the monitored devices and readeable via SNMP.",
     ["snmp_lldp_node_color"] = "The node color represents the device model.",
     ["snmp_lldp_zoom_descr"] = "Click on a node to explore the device, use the mouse wheel to zoom, drag clicking on an empty area.",
