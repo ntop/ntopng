@@ -10,20 +10,6 @@ $(document).ready(function () {
             action: function(e, dt, node, config) {
                 $('#add-snmp-modal').modal('show');
             }
-        },
-        {
-            text: `<i class="fas fa-trash"></i> ${i18n.snmp.delete_all_devices}`,
-            className: `${buttonsVisibility.deleteAllDevices ? "" : "d-none"}`,
-            action: function(e, dt, node, config) {
-                $(`#delete_all_devices_dialog`).modal('show');
-            }
-        },
-        {
-            text: `<i class="fas fa-eraser"></i> ${i18n.snmp.delete_unresponsive_devices}`,
-            className: `${buttonsVisibility.pruneDevices ? "" : "d-none"}`,
-            action: function(e, dt, node, config) {
-                $('#prune_unsresponsive_devices_dialog').modal('show')
-            }
         }
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(
