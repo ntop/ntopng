@@ -3343,7 +3343,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t asn_filter;
   char* username_filter;
   char* pidname_filter;
-  u_int32_t deviceIP;
+  u_int32_t deviceIP = 0;
   u_int16_t inIndex, outIndex;
   u_int8_t icmp_type, icmp_code;
 #ifdef NTOPNG_PRO
