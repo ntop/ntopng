@@ -572,6 +572,10 @@ path.link {
   transform: scale(1.5);
 }
 
+.dt-search label {
+  margin-right: 0.5rem;
+  margin-top: 0.25rem;
+}
 
 /* New Sidebar and container */
 
