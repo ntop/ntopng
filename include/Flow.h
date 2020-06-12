@@ -637,15 +637,9 @@ class Flow : public GenericHashEntry {
       +((float)(serverNwLatency.tv_usec + clientNwLatency.tv_usec)) / (float)1000000;
   }
   inline void setFlowApplLatency(float latency_msecs) { applLatencyMsec = latency_msecs; }
-  inline bool      setFlowDevice(u_int32_t device_ip, u_int16_t inidx, u_int16_t outidx) {
-    if((flow_device.device_ip > 0 && flow_device.device_ip != device_ip)
-       || (flow_device.in_index > 0 && flow_device.in_index != inidx)
-       || (flow_device.out_index > 0 && flow_device.out_index != outidx))
-      return false;
-    if(device_ip) flow_device.device_ip = device_ip;
-    if(inidx)     flow_device.in_index = inidx;
-    if(outidx)    flow_device.out_index = outidx;
-    return true;
+  inline void setFlowDevice(u_int32_t device_ip, u_int16_t inidx, u_int16_t outidx) {
+    flow_device.device_ip = device_ip;
+    flow_device.in_index = inidx, flow_device.out_index = outidx;
   }
   inline u_int32_t getFlowDeviceIp()       { return flow_device.device_ip; };
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };

@@ -236,17 +236,9 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
     flow->updateSeen();
   }
 
-  /* Update flow device stats */
-  if(!flow->setFlowDevice(zflow->device_ip,
-			  src2dst_direction ? zflow->inIndex  : zflow->outIndex,
-			  src2dst_direction ? zflow->outIndex : zflow->inIndex)) {
-    static bool flow_device_already_set = false;
-    if(!flow_device_already_set) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "A flow has been seen from multiple exporters or from "
-				   "multiple IN/OUT interfaces. Check exporters configuration.");
-      flow_device_already_set = true;
-    }
-  }
+  flow->setFlowDevice(zflow->device_ip,
+		      src2dst_direction ? zflow->inIndex  : zflow->outIndex,
+		      src2dst_direction ? zflow->outIndex : zflow->inIndex);
 
 #ifdef MAC_DEBUG
   char bufm1[32], bufm2[32];
