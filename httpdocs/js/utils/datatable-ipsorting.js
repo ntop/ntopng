@@ -1,3 +1,8 @@
+/**
+ * This is a pluginf for the Spyrmedia Datatables.
+ * This plugins sort the columns containing IP Addresses.
+ * Thanks to: https://datatables.net/plug-ins/sorting/ip-address
+ */
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {
     "ip-address-pre": function ( a ) {
         var i, item;
