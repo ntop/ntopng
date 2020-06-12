@@ -50,6 +50,12 @@ $(document).ready(function () {
                 className: "text-right",
                 render: function(data, type, row) {
                     if (type == "display" && data === 0) return "";
+                    if (type == "display" && data > 0) {
+                        return (`
+                            <a href="#">
+                            </a>
+                        `);
+                    }
                     return data;
                 }
             },
@@ -74,6 +80,7 @@ $(document).ready(function () {
         initComplete: function(settings, json) {
 
             const tableAPI = settings.oInstance.api();
+            $(`th`).removeClass(`text-center`).removeClass(`text-right`);
             addResponsivenessFilter(tableAPI);
         }
     });
