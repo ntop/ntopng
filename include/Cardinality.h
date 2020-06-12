@@ -51,6 +51,10 @@ public:
   u_int32_t getEstimate() {
     return((u_int32_t)ndpi_hll_count(&hll));
   }
+
+  void reset() {
+    memset(hll.registers, 0, hll.size); /* A lock might help here... */
+  }
 };
 
 #endif /* _CARDINALITY_H_ */

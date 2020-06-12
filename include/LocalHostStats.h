@@ -29,9 +29,9 @@ class LocalHostStats: public HostStats {
   HTTPstats *http;
   ICMPstats *icmp;
   FrequentStringItems *top_sites;
-  time_t nextSitesUpdate;
-  std::map<Host*, u_int16_t> contacts_as_cli, contacts_as_srv;
-
+  time_t nextSitesUpdate, nextContactsUpdate;
+  u_int32_t num_contacts_as_cli, num_contacts_as_srv;
+  
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
 
@@ -40,7 +40,10 @@ class LocalHostStats: public HostStats {
     *num_contacted_services_as_client,        /* DNS, TLS, HTTP....                  */
     *num_contacted_ports_as_client,           /* # of different ports this host has contacted          */
     *num_host_contacted_ports_as_server;      /* # of different server ports contacted by remote peers */
+  Cardinality *contacts_as_cli, *contacts_as_srv; /* Minute reset host contacts */
 
+  void updateHostContacts();
+  
  public:
   LocalHostStats(Host *_host);
   LocalHostStats(LocalHostStats &s);
@@ -71,14 +74,25 @@ class LocalHostStats: public HostStats {
   virtual HTTPstats* getHTTPstats() const { return(http); };
   virtual DnsStats*  getDNSstats()  const { return(dns);  };
   virtual ICMPstats* getICMPstats() const { return(icmp); };
-  virtual u_int16_t getNumActiveContactsAsClient() { return contacts_as_cli.size(); }
-  virtual u_int16_t getNumActiveContactsAsServer() { return contacts_as_srv.size(); }
+  virtual u_int16_t getNumActiveContactsAsClient() { return(num_contacts_as_cli); }
+  virtual u_int16_t getNumActiveContactsAsServer() { return(num_contacts_as_srv); }
 
-  virtual void incCliContactedPorts(u_int16_t port)  { if(num_contacted_ports_as_client) num_contacted_ports_as_client->addElement(port);       }
-  virtual void incSrvPortsContacts(u_int16_t port)   { if(num_host_contacted_ports_as_server) num_host_contacted_ports_as_server->addElement(port);           }
-  virtual void incServicesContacted(char *name)      { if(num_contacted_services_as_client) num_contacted_services_as_client->addElement(name, strlen(name)); }
-  virtual void incCliContactedHosts(IpAddress *peer) { if(num_contacted_hosts_as_client) peer->incCardinality(num_contacted_hosts_as_client);   }
-  virtual void incSrvHostContacts(IpAddress *peer)   { if(num_host_contacts_as_server) peer->incCardinality(num_host_contacts_as_server);       }  
+  virtual void incCliContactedPorts(u_int16_t port)  { if(num_contacted_ports_as_client) num_contacted_ports_as_client->addElement(port);           }
+  virtual void incSrvPortsContacts(u_int16_t port)   { if(num_host_contacted_ports_as_server) num_host_contacted_ports_as_server->addElement(port); }
+
+  virtual void incCliContactedHosts(IpAddress *peer) {
+    if(num_contacted_hosts_as_client) peer->incCardinality(num_contacted_hosts_as_client);
+    if(contacts_as_cli)               peer->incCardinality(contacts_as_cli);
+  }
+  virtual void incSrvHostContacts(IpAddress *peer)   {
+    if(num_host_contacts_as_server) peer->incCardinality(num_host_contacts_as_server);
+    if(contacts_as_srv)             peer->incCardinality(contacts_as_srv);
+  }
+
+  virtual void incContactedService(char *name)       {
+    if(num_contacted_services_as_client && name && (name[0] != '\0'))
+      num_contacted_services_as_client->addElement(name, strlen(name));
+  }
 };
 
 #endif

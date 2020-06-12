@@ -29,13 +29,16 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   dns  = new (std::nothrow) DnsStats();
   http = new (std::nothrow) HTTPstats(_host);
   icmp = new (std::nothrow) ICMPstats();
-  nextSitesUpdate = 0;
-
+  nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
+  contacts_as_cli = contacts_as_srv = 0;
+  
   num_contacted_hosts_as_client      = new Cardinality(14);
   num_host_contacts_as_server        = new Cardinality(14);
   num_contacted_services_as_client   = new Cardinality(14);
   num_contacted_ports_as_client      = new Cardinality(4);
-  num_host_contacted_ports_as_server = new Cardinality(4);  
+  num_host_contacted_ports_as_server = new Cardinality(4);
+  contacts_as_cli                    = new Cardinality(4);
+  contacts_as_srv                    = new Cardinality(4);
 }
 
 /* *************************************** */
@@ -46,13 +49,16 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;
   icmp = NULL;
-  nextSitesUpdate = 0;
-
+  nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
+  contacts_as_cli = contacts_as_srv = 0;
+  
   num_contacted_hosts_as_client      = NULL;
   num_host_contacts_as_server        = NULL;
   num_contacted_services_as_client   = NULL;
   num_contacted_ports_as_client      = NULL;
   num_host_contacted_ports_as_server = NULL;
+  contacts_as_cli                    = NULL;
+  contacts_as_srv                    = NULL;
 }
 
 /* *************************************** */
@@ -69,6 +75,8 @@ LocalHostStats::~LocalHostStats() {
   if(num_contacted_services_as_client)   delete num_contacted_services_as_client;
   if(num_contacted_ports_as_client)      delete num_contacted_ports_as_client;
   if(num_host_contacted_ports_as_server) delete num_host_contacted_ports_as_server;
+  if(contacts_as_cli)                    delete contacts_as_cli;
+  if(contacts_as_srv)                    delete contacts_as_srv;
 }
 
 /* *************************************** */
@@ -105,6 +113,11 @@ void LocalHostStats::updateStats(struct timeval *tv) {
   if(icmp) icmp->updateStats(tv);
   if(http) http->updateStats(tv);
 
+  if(tv->tv_sec >= nextContactsUpdate) {
+    updateHostContacts();
+    nextContactsUpdate = tv->tv_sec+HOST_CONTACTS_REFRESH;
+  }
+  
   if(top_sites && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
     if(nextSitesUpdate > 0) {
       if(old_sites)
@@ -114,6 +127,13 @@ void LocalHostStats::updateStats(struct timeval *tv) {
 
     nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
+}
+
+/* *************************************** */
+
+void LocalHostStats::updateHostContacts() {
+  num_contacts_as_cli = contacts_as_cli->getEstimate(), num_contacts_as_srv = contacts_as_srv->getEstimate();
+  contacts_as_cli->reset(), contacts_as_srv->reset();
 }
 
 /* *************************************** */
@@ -223,50 +243,12 @@ void LocalHostStats::deserialize(json_object *o) {
 
 void LocalHostStats::incNumFlows(bool as_client, Host *peer) {
   HostStats::incNumFlows(as_client, peer);
-
-  map<Host*, u_int16_t> *contacts_map;
-
-  if(as_client)
-    contacts_map = &contacts_as_cli;
-  else
-    contacts_map = &contacts_as_srv;
-
-  if(peer) {
-    (*contacts_map)[peer] += 1;
-
-#if 0
-      char buf1[64], buf2[64];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "INC contacts: %s %s %s, now %u",
-	get_string_key(buf1, sizeof(buf1)), as_client ? "->" : "<-",
-	peer->get_string_key(buf2, sizeof(buf2)), (*contacts_map)[peer]);
-#endif
-  }
 }
 
 /* *************************************** */
 
 void LocalHostStats::decNumFlows(bool as_client, Host *peer) {
   HostStats::decNumFlows(as_client, peer);
-
-  if(peer) {
-    map<Host*, u_int16_t> *contacts_map = as_client ? &contacts_as_cli : &contacts_as_srv;
-    map<Host*, u_int16_t>::iterator it;
-
-    if((it = contacts_map->find(peer)) != contacts_map->end()) {
-      if(it->second)
-	it->second -= 1;
-
-#if 0
-      char buf1[64], buf2[64];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "DEC contacts: %s %s %s, now %u",
-	get_string_key(buf1, sizeof(buf1)), as_client ? "->" : "<-",
-	peer->get_string_key(buf2, sizeof(buf2)), it->second);
-#endif
-
-      if(!it->second)
-	contacts_map->erase(it);
-    }
-  }
 }
 
 /* *************************************** */

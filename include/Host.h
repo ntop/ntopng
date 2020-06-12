@@ -384,7 +384,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void incCliContactedPorts(u_int16_t port)  { stats->incCliContactedPorts(port); }
   void incSrvHostContacts(IpAddress *peer)   { stats->incSrvHostContacts(peer);   }
   void incSrvPortsContacts(u_int16_t port)   { stats->incSrvPortsContacts(port);  }
-  void incServicesContacted(char *name)      { stats->incServicesContacted(name); }
+  void incContactedService(char *name)       { stats->incContactedService(name);  }
 };
 
 #endif /* _HOST_H_ */

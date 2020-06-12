@@ -95,7 +95,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
-    
+
     cli_host->incUses();
     cli_host->incNumFlows(last_seen, true, srv_host, this);
     if(network_stats) network_stats->incNumFlows(last_seen, true);
@@ -293,24 +293,25 @@ Flow::~Flow() {
     if(protos.tls.ja3.server_hash)     free(protos.tls.ja3.server_hash);
     if(protos.tls.client_alpn)                   free(protos.tls.client_alpn);
     if(protos.tls.client_tls_supported_versions) free(protos.tls.client_tls_supported_versions);
-    if(protos.tls.issuerDN)  free(protos.tls.issuerDN);
-    if(protos.tls.subjectDN) free(protos.tls.subjectDN);
+    if(protos.tls.issuerDN)                      free(protos.tls.issuerDN);
+    if(protos.tls.subjectDN)                     free(protos.tls.subjectDN);
   }
 
-  if(bt_hash)                free(bt_hash);
+  if(bt_hash)
+    free(bt_hash);
 
   if(status_infos) {
     for(int i=0; i<BITMAP_NUM_BITS; i++) {
       if(status_infos[i].script_key)
 	free(status_infos[i].script_key);
     }
-    
+
     free(status_infos);
   }
 
   if(packet_payload_match.payload)
     free(packet_payload_match.payload);
-  
+
   freeDPIMemory();
   if(icmp_info) delete(icmp_info);
   if(external_alert) free(external_alert);
@@ -395,16 +396,18 @@ void Flow::processDetectedProtocol() {
        && cli_host
        && cli_host->isLocalHost())
       cli_host->incrVisitedWebSite(protos.tls.client_requested_server_name);
+
+    cli_host->incContactedService(protos.tls.client_requested_server_name);
     break;
 
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
-
     if(ndpiFlow->http.url) {
       if(protos.http.last_url) free(protos.http.last_url);
       protos.http.last_url = strdup(ndpiFlow->http.url);
-      
+
       if(protos.http.last_method) free(protos.http.last_method);
+      
       switch(ndpiFlow->http.method) {
       case NDPI_HTTP_METHOD_OPTIONS:
 	protos.http.last_method = strdup("OPTIONS");
@@ -439,6 +442,7 @@ void Flow::processDetectedProtocol() {
 	break;
       }
     }
+
     if(ndpiFlow->host_server_name[0] != '\0') {
       char *doublecol, delimiter = ':';
 
@@ -447,6 +451,8 @@ void Flow::processDetectedProtocol() {
 	doublecol[0] = '\0';
 
       if(cli_host) {
+	cli_host->incContactedService((char*)ndpiFlow->host_server_name);
+					  
 	if(ndpiFlow->protos.http.detected_os[0] != '\0')
 	  cli_host->inlineSetOSDetail((char*)ndpiFlow->protos.http.detected_os);
 
@@ -520,7 +526,7 @@ void Flow::processExtraDissectedInformation() {
 
       if((protos.tls.subjectDN == NULL) && (ndpiFlow->protos.stun_ssl.ssl.subjectDN != NULL))
 	protos.tls.subjectDN= strdup(ndpiFlow->protos.stun_ssl.ssl.subjectDN);
-      
+
       if((protos.tls.ja3.client_hash == NULL) && (ndpiFlow->protos.stun_ssl.ssl.ja3_client[0] != '\0')) {
 	protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.stun_ssl.ssl.ja3_client);
 	updateCliJA3();
@@ -547,7 +553,7 @@ void Flow::processExtraDissectedInformation() {
 	if(risk != NDPI_NO_RISK)
 	  ndpi_flow_risk_bitmap |= risk;
       }
-      
+
       break;
     }
   }
@@ -628,7 +634,7 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 
 /* *************************************** */
 
-void Flow::setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len) { 
+void Flow::setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len) {
   if((payload_len > 0) && (packet_payload_match.payload_len == 0)) {
     if((packet_payload_match.payload = (u_int8_t*)malloc(payload_len*sizeof(u_int8_t))) != NULL) {
       memcpy(packet_payload_match.payload, payload, payload_len);
@@ -668,6 +674,8 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
     ndpiDetectedProtocol = proto_id; /* Override! */
 
     if(ndpiFlow->host_server_name[0] != '\0') {
+      cli_host->incContactedService((char*)ndpiFlow->host_server_name);
+      
       if(ndpiFlow->protos.dns.is_query) {
 	char *q = strdup((const char*)ndpiFlow->host_server_name);
 
@@ -1922,17 +1930,17 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       has_json_info = true;
     } else if (get_tlv_info()) {
       ndpi_deserializer deserializer;
-      
+
       if (ndpi_init_deserializer(&deserializer, get_tlv_info()) == 0) {
         ndpi_serializer serializer;
-	
+
         if (ndpi_init_serializer(&serializer, ndpi_serialization_format_json) >= 0) {
           char *buffer;
           u_int32_t buffer_len;
-	  
+
           ndpi_deserialize_clone_all(&deserializer, &serializer);
           buffer = ndpi_serializer_get_buffer(&serializer, &buffer_len);
-	  
+
           if (buffer) {
             lua_push_str_table_entry(vm, "moreinfo.json", buffer);
             has_json_info = true;
@@ -1981,10 +1989,10 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 void Flow::lua_get_risk_info(lua_State* vm, bool as_table) {
   if(ndpi_flow_risk_bitmap != 0) {
     u_int i;
-    
+
     if(as_table)
       lua_newtable(vm);
-    
+
     for(i = 0; i < NDPI_MAX_RISK; i++)
       if(hasRisk((ndpi_risk_enum)i))
 	lua_push_uint64_table_entry(vm, ndpi_risk2str((ndpi_risk_enum)i), i);
@@ -2394,11 +2402,11 @@ json_object* Flow::flow2json() {
 
     if(cli_ip) {
       if (cli_ip->isIPv4()) {
-        json_object_object_add(my_object, 
+        json_object_object_add(my_object,
           Utils::jsonLabel(IP_PROTOCOL_VERSION, "IP_PROTOCOL_VERSION", jsonbuf, sizeof(jsonbuf)),
           json_object_new_int(4));
       } else if(cli_ip->isIPv6()) {
-        json_object_object_add(my_object, 
+        json_object_object_add(my_object,
           Utils::jsonLabel(IP_PROTOCOL_VERSION, "IP_PROTOCOL_VERSION", jsonbuf, sizeof(jsonbuf)),
           json_object_new_int(6));
       }
@@ -4078,7 +4086,7 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
     int rc;
     ndpi_protocol_match_result tmp;
     ndpi_protocol_category_t c;
-    
+
     /* Match for custom protocols (protos.txt) */
     if((rc = ndpi_match_string_subprotocol(ndpi_struct, (char*)dst_name, strlen(dst_name), &tmp, 1 /* host match */)) != 0) {
       if(rc >= NDPI_MAX_SUPPORTED_PROTOCOLS) {

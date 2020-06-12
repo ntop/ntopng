@@ -213,7 +213,6 @@ if(host == nil) and (not only_historical) then
 else
    sendHTTPContentTypeHeader('text/html')
 
-
    page_utils.set_active_menu_entry(page_utils.menu_entries.hosts, nil, i18n("host", { host = host_info["host"] }))
 
    print("<link href=\""..ntop.getHttpPrefix().."/css/tablesorted.css\" rel=\"stylesheet\">\n")
@@ -261,6 +260,7 @@ else
    local url = hostinfo2detailsurl(host, {tskey = _GET["tskey"]})
 
    local has_snmp_location = info["version.enterprise_edition"] and snmp_utils.host_has_snmp_location(host["mac"])
+   local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
 
    page_utils.print_navbar(title, url,
 			   {
@@ -295,7 +295,7 @@ else
 				 label = i18n("peers"),
 			      },
 			      {
-				 hidden = have_nedge or only_historical or not host["localhost"] or (not host["ICMPv4"] and not host["ICMPv6"]),
+				 hidden = have_nedge or only_historical or not(has_icmp),
 				 active = page == "ICMP",
 				 page_name = "ICMP",
 				 label = i18n("icmp"),
@@ -554,7 +554,7 @@ if((page == "overview") or (page == nil)) then
       if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
 	 print(' <A HREF="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'..ntop.getHttpPrefix()..'/img/virustotal.svg\"></A> <i class=\"fas fa-external-link-alt\"></i>')
    end
-      
+
       print("</td><td></td>\n")
    end
 
@@ -949,7 +949,7 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
 	 print('<tr><th class="text-left">'..i18n("ports_page.num_contacted_ports")..'</th>')
 	 print('<th class="text-left">'..i18n("ports_page.num_contacted_ports_as_client")..'</th><td><span id="num_contacted_ports_as_client">'.. formatValue(host.cardinality.num_contacted_ports_as_client) ..'</span> <span id="num_contacted_ports_as_client_trend"></span></td>')
 	 print('<th class="text-left">'..i18n("ports_page.num_host_contacted_ports_as_server")..'</th><td><span id="num_host_contacted_ports_as_server">'.. formatValue(host.cardinality.num_host_contacted_ports_as_server) ..'</span> <span id="num_host_contacted_ports_as_server_trend"></span></td>')
-	 print('</tr>')	    
+	 print('</tr>')
       end
       print('<tr><th class="text-left">'..i18n("ports_page.client_ports")..'</th><td colspan=5><div class="pie-chart" id="clientPortsDistro"></div></td></tr>')
       print('<tr><th class="text-left">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
@@ -1105,8 +1105,6 @@ dc.renderAll();
 
 </script>
    ]]
-
-
 else
    print("<disv class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("peers_page.no_active_flows_message").."</div>")
 end
@@ -1122,8 +1120,18 @@ end
 	print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("traffic_page.no_traffic_observed_message").."</div>")
      else
       print [[
+      <table class="table table-bordered table-striped">]]
 
-      <table class="table table-bordered table-striped">
+      if(host.cardinality) then
+	 print('<tr><th colspan="2" class="text-left">'..i18n("traffic_page.hosts_contacts_cardinality")..'</th>')
+	 print('<th class="text-left">'..i18n("traffic_page.num_contacted_hosts_as_client")..'</th><td><span id="num_contacted_hosts_as_client">'
+		  .. formatValue(host.cardinality.num_contacted_hosts_as_client) ..'</span> <span id="num_contacted_hosts_as_client_trend"></span></td>')
+	 print('<th class="text-left">'..i18n("traffic_page.num_host_contacts_as_server")..'</th><td><span id="num_host_contacts_as_server">'..
+		  formatValue(host.cardinality.num_host_contacts_as_server) ..'</span> <span id="num_host_contacts_as_server_trend"></span></td>')
+	 print('</tr>')
+      end
+
+      print [[
       	<tr><th colspan="2" class="text-left">]] print(i18n("traffic_page.l4_proto_overview"))
         print[[</th><td colspan=4><div class="pie-chart" id="topApplicationProtocols"></div></td></tr>]]
 
@@ -1276,6 +1284,13 @@ elseif((page == "ndpi")) then
     <div id="applications" class="tab-pane in active">
       <br>
   <table class="table table-bordered table-striped">]]
+
+      if(host.cardinality) then
+	 print('<tr><th class="text-left" colspan=2>'..i18n("ndpi_page.num_contacted_services_as_client")..'</th>')
+	 print('<td align=right><span id="num_contacted_services_as_client">'.. formatValue(host.cardinality.num_contacted_services_as_client))
+	 print('</span> <span id="num_contacted_services_as_client_trend"></span></td><td>'..i18n("ndpi_page.num_contacted_services_as_client_descr")..'</td></tr>')
+      end
+
 
       if ntop.isPro() and host["custom_apps"] then
 	 print[[
@@ -2323,8 +2338,11 @@ if(not only_historical) and (host ~= nil) then
    end
 
   if(host.cardinality) then
-     print("var last_num_contacted_ports_as_client = " .. host.cardinality.num_contacted_ports_as_client .. ";\n")   
-     print("var last_num_host_contacted_ports_as_server = " .. host.cardinality.num_host_contacted_ports_as_server .. ";\n")   
+     print("var last_num_contacted_ports_as_client = " .. host.cardinality.num_contacted_ports_as_client .. ";\n")
+     print("var last_num_host_contacted_ports_as_server = " .. host.cardinality.num_host_contacted_ports_as_server .. ";\n")
+     print("var last_num_contacted_hosts_as_client = " .. host.cardinality.num_contacted_hosts_as_client .. ";\n")
+     print("var last_num_host_contacts_as_server = " .. host.cardinality.num_host_contacts_as_server .. ";\n")
+     print("var last_num_contacted_services_as_client = " .. host.cardinality.num_contacted_services_as_client .. ";\n")
    end
 
    print [[
@@ -2368,6 +2386,17 @@ if(not only_historical) and (host ~= nil) then
                           $('#num_host_contacted_ports_as_server_trend').html(drawTrend(card.num_host_contacted_ports_as_server, last_num_host_contacted_ports_as_server, ""));
                           last_num_contacted_ports_as_client = card.num_contacted_ports_as_client;
                           last_num_host_contacted_ports_as_server = card.num_host_contacted_ports_as_server;
+
+                          $('#num_contacted_hosts_as_client').html(formatValue(card.num_contacted_hosts_as_client));
+                          $('#num_host_contacts_as_server').html(formatValue(card.num_host_contacts_as_server));
+                          $('#num_contacted_hosts_as_client_trend').html(drawTrend(card.num_contacted_hosts_as_client, last_num_contacted_hosts_as_client, ""));
+                          $('#num_host_contacts_as_server_trend').html(drawTrend(card.num_host_contacts_as_server, last_num_host_contacts_as_server, ""));
+                          last_num_contacted_hosts_as_client = card.num_contacted_hosts_as_client;
+                          last_num_host_contacts_as_server = card.num_host_contacts_as_server;
+
+                          $('#num_contacted_services_as_client').html(formatValue(card.num_contacted_services_as_client));
+                          $('#num_contacted_services_as_client_trend').html(drawTrend(card.num_contacted_services_as_client, last_num_contacted_services_as_client, ""));
+                          last_num_contacted_services_as_client = card.num_contacted_services_as_client;
                         }
 
    			if(!host["name"]) {
