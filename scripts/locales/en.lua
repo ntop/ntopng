@@ -3822,7 +3822,7 @@ local lang = {
     ["snmp_all_interfaces"] = "All Interfaces",
     ["snmp_also_seen_on"] = "Also seen on",
     ["snmp_and_n_more_interfaces"] = "and <a href='%{url}'>%{count} more interfaces</a>",
-    ["snmp_community"] = "SNMP Community",
+    ["snmp_community"] = "Community",
     ["snmp_device"] = "SNMP Device",
     ["snmp_device_does_not_respond"] = "The SNMP device does not respond.",
     ["snmp_device_last_poll"] = "Time Since Last Poll",
