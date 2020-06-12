@@ -379,6 +379,12 @@ class Host : public GenericHashEntry, public AlertableEntity {
       return(os);
     return(os_unknown);
   }
+
+  virtual void incCliContactedHosts(IpAddress *peer) { ; }
+  virtual void incCliContactedPorts(u_int16_t port)  { ; }
+  virtual void incSrvHostContacts(IpAddress *peer)   { ; }
+  virtual void incSrvPortsContacts(u_int16_t port)   { ; }
+  virtual void incServicesContacted(char *name)      { ; }
 };
 
 #endif /* _HOST_H_ */

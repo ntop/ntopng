@@ -372,6 +372,15 @@ char* IpAddress::intoa(char* buf, u_short bufLen, u_int8_t bitmask) const {
 
 /* ****************************** */
 
+void IpAddress::incCardinality(Cardinality *c) {
+  if(isIPv4())
+    c->addElement(get_ipv4());
+  else
+    c->addElement((const char *)get_ipv6(), sizeof(struct ndpi_in6_addr));
+}
+
+/* ****************************** */
+
 void IpAddress::dump() {
   int16_t network_id;
   char buf[48];

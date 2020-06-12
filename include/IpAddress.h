@@ -92,6 +92,7 @@ class IpAddress {
   bool match(const AddressTree * const tree) const;
   void* findAddress(AddressTree *ptree);
   void dump();
+  void incCardinality(Cardinality *c);
 };
 
 #endif /* _IP_ADDRESS_H_ */

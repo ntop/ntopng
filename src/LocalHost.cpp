@@ -23,17 +23,21 @@
 
 /* *************************************** */
 
-LocalHost::LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip) : Host(_iface, _mac, _vlanId, _ip) {
+LocalHost::LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId,
+		     IpAddress *_ip) : Host(_iface, _mac, _vlanId, _ip) {
 #ifdef LOCALHOST_DEBUG
   char buf[48];
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Instantiating local host %s", _ip ? _ip->print(buf, sizeof(buf)) : "");
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Instantiating local host %s",
+			       _ip ? _ip->print(buf, sizeof(buf)) : "");
 #endif
   initialize();
 }
 
 /* *************************************** */
 
-LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Host(_iface, ipAddress, _vlanId) {
+LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
+		     u_int16_t _vlanId) : Host(_iface, ipAddress, _vlanId) {
   initialize();
 }
 
@@ -42,6 +46,12 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanI
 LocalHost::~LocalHost() {
   if(initial_ts_point) delete(initial_ts_point);
   freeLocalHostData();
+
+  delete num_contacted_hosts_as_client;
+  delete num_host_contacts_as_server;
+  delete num_contacted_services_as_client;
+  delete num_contacted_ports_as_client;
+  delete num_host_contacted_ports_as_server;
 }
 
 /* *************************************** */
@@ -124,6 +134,12 @@ void LocalHost::initialize() {
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->incNumHosts();
 
+  num_contacted_hosts_as_client      = new Cardinality(14);
+  num_host_contacts_as_server        = new Cardinality(14);
+  num_contacted_services_as_client   = new Cardinality(14);
+  num_contacted_ports_as_client      = new Cardinality(4);
+  num_host_contacted_ports_as_server = new Cardinality(4);
+  
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
 			       ip.print(buf, sizeof(buf)),
@@ -164,7 +180,8 @@ void LocalHost::deserialize(json_object *o) {
     if((mac = iface->getMac(mac_buf, true /* create if not exists */, true /* Inline call */)) != NULL)
       mac->incUses();
     else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: NULL mac. Are you running out of memory or MAC hash is full?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Internal error: NULL mac. Are you running out of memory or MAC hash is full?");
   }
 
   GenericHashEntry::deserialize(o);
@@ -249,6 +266,17 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+
+  lua_push_int32_table_entry(vm, "num_contacted_hosts_as_client",
+			     num_contacted_hosts_as_client->getEstimate()); 
+  lua_push_int32_table_entry(vm, "num_host_contacts_as_server",
+			     num_host_contacts_as_server->getEstimate());
+  lua_push_int32_table_entry(vm, "num_contacted_services_as_client",
+			     num_contacted_services_as_client->getEstimate());
+  lua_push_int32_table_entry(vm, "num_contacted_ports_as_client",
+			     num_contacted_ports_as_client->getEstimate());
+  lua_push_int32_table_entry(vm, "num_host_contacted_ports_as_server",
+			     num_host_contacted_ports_as_server->getEstimate());
 }
 
 /* *************************************** */
@@ -367,7 +395,8 @@ char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
 /*
  * Reload non-critical host prefs. Such prefs are not reloaded inline to
  * avoid slowing down the packet capture. The default value (set into the
- * host initializer) will be returned until this delayed method is called. */
+ * host initializer) will be returned until this delayed method is called. 
+ */
 void LocalHost::reloadPrefs() {
   char keybuf[128], buf[64], rsp[32];
 

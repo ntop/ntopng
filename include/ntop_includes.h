@@ -199,6 +199,7 @@ using namespace std;
 #include "VlanAddressTree.h"
 #include "AddressList.h"
 #include "BroadcastDomains.h"
+#include "Cardinality.h"
 #include "IpAddress.h"
 #include "Ping.h"
 #include "ContinuousPingStats.h"
