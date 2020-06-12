@@ -267,6 +267,7 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_settable(vm, -3);
   }
 
+  lua_newtable(vm);
   lua_push_int32_table_entry(vm, "num_contacted_hosts_as_client",
 			     num_contacted_hosts_as_client->getEstimate()); 
   lua_push_int32_table_entry(vm, "num_host_contacts_as_server",
@@ -277,6 +278,9 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 			     num_contacted_ports_as_client->getEstimate());
   lua_push_int32_table_entry(vm, "num_host_contacted_ports_as_server",
 			     num_host_contacted_ports_as_server->getEstimate());
+  lua_pushstring(vm, "cardinality");
+  lua_insert(vm, -2);
+  lua_rawset(vm, -3);  
 }
 
 /* *************************************** */
