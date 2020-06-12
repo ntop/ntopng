@@ -16,9 +16,11 @@ local confirm_new_password = _POST["confirm_password"]
 local is_admin = isAdministrator()
 
 if(is_admin) then
+   -- Only admins are allowed to change passwords for all the users, depending on the username sent in the _POST
    old_password = ""
 else
-   -- Check to avoid that this user changes password for other users
+   -- For non-admin users, the username written into the session is used to prevent a non-admin to change the password
+   -- for any other user
    username = _SESSION["user"]
 end
 
@@ -34,7 +36,7 @@ if(new_password ~= confirm_new_password) then
    return
 end
 
-if(ntop.resetUserPassword(_SESSION["user"], username, unescapeHTML(old_password), unescapeHTML(new_password))) then
+if(ntop.resetUserPassword(_SESSION["user"], username, old_password, new_password)) then
    print ("{ \"result\" : 0, \"message\" : \"Password changed successfully\" }")
 else
    print ("{ \"result\" : -1, \"message\" : \"Unable to set the new user password: perhaps the old password was invalid ?\" }")
