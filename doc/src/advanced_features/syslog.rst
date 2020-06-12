@@ -44,6 +44,10 @@ Note:
 
 - Multiple syslog clients can connect simultaneously to the same ntopng instance.
 - Remember to *restart* the *ntopng* service to apply the change.
+- Please make sure the firewall (including iptables on the same box) is not blocking 
+  connections to the configured port.
+- Please note that log demultiplexing should be configured in order to parse and diaplay 
+  logs as described in the next section.
 
 Logs Demultiplexing
 ~~~~~~~~~~~~~~~~~~~
