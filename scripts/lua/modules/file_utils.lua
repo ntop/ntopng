@@ -33,6 +33,7 @@ function file_utils.copy_file(fname, src_path, dst_path)
    if(ntop.exists(dst)) then
       -- NOTE: overwriting is not allowed as it means that a file was already provided by
       -- another plugin
+      == io.write(debug.traceback())
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Trying to overwrite existing file %s", dst))
       return(false)
    end
@@ -61,14 +62,26 @@ end
 
 -- #########################################################
 
-function file_utils.recursive_copy(src_path, dst_path, path_map)
+function file_utils.recursive_copy(src_path, dst_path, path_map, required_extension)
    for fname in pairs(ntop.readdir(src_path)) do
-      if not file_utils.copy_file(fname, src_path, dst_path) then
-	 return(false)
+      local do_copy = true
+
+      if((required_extension ~= nil) and not(ends(fname, ".lua"))) then
+	 -- Don't copy
+	 do_copy = false
+	 traceError(TRACE_INFO, TRACE_CONSOLE, "SKIP file_utils.recursive_copy("..fname.." ["..src_path.." -> "..dst_path.."])\n")
       end
 
-      if path_map then
-	 path_map[os_utils.fixPath(dst_path .. "/" .. fname)] = os_utils.fixPath(src_path .. "/" .. fname)
+      if(do_copy) then
+	 traceError(TRACE_INFO, TRACE_CONSOLE, "COPY file_utils.recursive_copy("..fname.." ["..src_path.." -> "..dst_path.."])\n")
+
+	 if not file_utils.copy_file(fname, src_path, dst_path) then
+	    return(false)
+	 end
+
+	 if path_map then
+	    path_map[os_utils.fixPath(dst_path .. "/" .. fname)] = os_utils.fixPath(src_path .. "/" .. fname)
+	 end
       end
    end
 

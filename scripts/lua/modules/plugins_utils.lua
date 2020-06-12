@@ -310,15 +310,15 @@ end
 local function load_plugin_user_scripts(paths_to_plugin, plugin)
   local scripts_path = os_utils.fixPath(plugin.path .. "/user_scripts")
   local paths_map = {}
-
+  local extn = ".lua"
   local rv = (
-    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/interface"), RUNTIME_PATHS.interface_scripts, paths_map) and
-    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/host"), RUNTIME_PATHS.host_scripts, paths_map) and
-    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/network"), RUNTIME_PATHS.network_scripts, paths_map) and
-    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/flow"), RUNTIME_PATHS.flow_scripts, paths_map) and
-    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/syslog"), RUNTIME_PATHS.syslog, paths_map) and
-    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/snmp_device"), RUNTIME_PATHS.snmp_scripts, paths_map) and
-    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/system"), RUNTIME_PATHS.system_scripts, paths_map)
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/interface"), RUNTIME_PATHS.interface_scripts, paths_map, extn) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/host"), RUNTIME_PATHS.host_scripts, paths_map, extn) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/network"), RUNTIME_PATHS.network_scripts, paths_map, extn) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/flow"), RUNTIME_PATHS.flow_scripts, paths_map, extn) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/syslog"), RUNTIME_PATHS.syslog, paths_map, extn) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/snmp_device"), RUNTIME_PATHS.snmp_scripts, paths_map, extn) and
+    file_utils.recursive_copy(os_utils.fixPath(scripts_path .. "/system"), RUNTIME_PATHS.system_scripts, paths_map, extn)
   )
 
   for runtime_path, source_path in pairs(paths_map) do
@@ -374,14 +374,14 @@ local function load_plugin_alert_endpoints(endpoints_prefs_entries, plugin)
    end
 
    for fname in pairs(ntop.readdir(endpoints_path)) do
-      if fname ~= "prefs_entries.lua" then
+      if((fname ~= "prefs_entries.lua") and ends(fname, ".lua")) then
 	 -- Execute the alert endpoint and call its method onLoad, if present
 	 local fname_path = os_utils.fixPath(endpoints_path .. "/" .. fname)
 	 local endpoint = dofile(fname_path)
 	 if endpoint and endpoint.onLoad then
 	    endpoint.onLoad()
 	 end
-
+	 
 	 if not file_utils.copy_file(fname, endpoints_path, RUNTIME_PATHS.alert_endpoints) then
 	    return false
 	 end
