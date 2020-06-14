@@ -2906,7 +2906,8 @@ static int ntop_snmp_batch_get(lua_State* vm) {
   snmp->send_snmp_request((char*)lua_tostring(vm, 1),
 			  (char*)lua_tostring(vm, 2),
 			  false /* SNMP GET */, oid,
-			  (u_int)lua_tonumber(vm, 4));
+			  (u_int)lua_tonumber(vm, 4),
+			  true /* batch */);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);

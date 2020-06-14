@@ -1,12 +1,12 @@
-#ifndef ASN1_H
-#define ASN1_H
+#ifndef _NTOP_ASN1_H_
+#define _NTOP_ASN1_H_
 
 enum {
-  ASN1_INTEGER_TYPE = 0x02,
-  ASN1_STRING_TYPE = 0x04,
-  ASN1_NULL_TYPE = 0x05,
-  ASN1_OID_TYPE = 0x06,
-  ASN1_SEQUENCE_TYPE = 0x30
+  NTOP_ASN1_INTEGER_TYPE = 0x02,
+  NTOP_ASN1_STRING_TYPE = 0x04,
+  NTOP_ASN1_NULL_TYPE = 0x05,
+  NTOP_ASN1_OID_TYPE = 0x06,
+  NTOP_ASN1_SEQUENCE_TYPE = 0x30
 };
 
 typedef union {
@@ -26,7 +26,6 @@ int string_length(char *str);
 int oid_length(char *oid);
 
 int object_length(int data_len);
-
 
 void *render_header(int type, int len, void *dest);
 
@@ -63,4 +62,4 @@ int asn1_parse_primitive_value(ASN1Parser *parser, int *type, Value *value);
 int asn1_parse_pop(ASN1Parser *parser);
 void asn1_destroy_parser(ASN1Parser *parser);
 
-#endif
+#endif /* _NTOP_ASN1_H_ */

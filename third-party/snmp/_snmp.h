@@ -1,19 +1,19 @@
-#ifndef SNMP_H
-#define SNMP_H
+#ifndef _NTOP_SNMP_H_
+#define _NTOP_SNMP_H_
 
 #include <stdio.h>
 
 enum {
-  SNMP_COUNTER_TYPE = 0x41,
-  SNMP_COUNTER64_TYPE = 0x46, /* SMIv2 only */
-  SNMP_GAUGE_TYPE = 0x42,
-  SNMP_TIMETICKS_TYPE = 0x43,
-  SNMP_NOSUCHOBJECT = 0x80, /*   SMIv2 IMPLICIT NULL TYPE */
-  SNMP_NOSUCHINSTANCE = 0x81, /* SMIv2 IMPLICIT NULL TYPE */
-  SNMP_GET_REQUEST_TYPE = 0xA0,
-  SNMP_GETNEXT_REQUEST_TYPE = 0xA1,
-  SNMP_GET_RESPONSE_TYPE = 0xA2,
-  SNMP_SET_REQUEST_TYPE = 0xA3
+  NTOP_SNMP_COUNTER_TYPE = 0x41,
+  NTOP_SNMP_COUNTER64_TYPE = 0x46, /* SMIv2 only */
+  NTOP_SNMP_GAUGE_TYPE = 0x42,
+  NTOP_SNMP_TIMETICKS_TYPE = 0x43,
+  NTOP_SNMP_NOSUCHOBJECT = 0x80, /*   SMIv2 IMPLICIT NULL TYPE */
+  NTOP_SNMP_NOSUCHINSTANCE = 0x81, /* SMIv2 IMPLICIT NULL TYPE */
+  NTOP_SNMP_GET_REQUEST_TYPE = 0xA0,
+  NTOP_SNMP_GETNEXT_REQUEST_TYPE = 0xA1,
+  NTOP_SNMP_GET_RESPONSE_TYPE = 0xA2,
+  NTOP_SNMP_SET_REQUEST_TYPE = 0xA3
 };
 
 typedef struct SNMPMessage SNMPMessage;
@@ -41,4 +41,4 @@ int snmp_get_varbind_integer(SNMPMessage *message, int num, char **oid, int *typ
 int snmp_get_varbind_string(SNMPMessage *message, int num, char **oid, int *type, char **str_value);
 int snmp_get_varbind_as_string(SNMPMessage *message, int num, char **oid, int *type, char **value_str);
 
-#endif
+#endif /* _NTOP_SNMP_H_ */

@@ -1,11 +1,11 @@
-#include "snmp.h"
+#include "_snmp.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
 
-#include "asn1.h"
+#include "_asn1.h"
 
 
 typedef struct VarbindList
@@ -51,7 +51,7 @@ static void destroy_varbind_list(VarbindList *list)
     return;
     
   free(list->oid);
-  if (list->render_as_type == ASN1_STRING_TYPE)
+  if (list->render_as_type == NTOP_ASN1_STRING_TYPE)
     free(list->value.str_value);
   destroy_varbind_list(list->next);
   free(list);
@@ -113,8 +113,8 @@ void snmp_add_varbind_null(SNMPMessage *message, char *oid)
 {
   VarbindList *vb = (VarbindList*)malloc(sizeof (VarbindList));
   vb->oid = strdup(oid);
-  vb->value_type = ASN1_NULL_TYPE;
-  vb->render_as_type = ASN1_NULL_TYPE;
+  vb->value_type = NTOP_ASN1_NULL_TYPE;
+  vb->render_as_type = NTOP_ASN1_NULL_TYPE;
   vb->next = NULL;
     
   snmp_add_varbind(message, vb);
@@ -125,7 +125,7 @@ void snmp_add_varbind_integer_type(SNMPMessage *message, char *oid, int type, in
   VarbindList *vb = (VarbindList*)malloc(sizeof (VarbindList));
   vb->oid = strdup(oid);
   vb->value_type = type;
-  vb->render_as_type = ASN1_INTEGER_TYPE;
+  vb->render_as_type = NTOP_ASN1_INTEGER_TYPE;
   vb->value.int_value = value;
   vb->next = NULL;
     
@@ -134,15 +134,15 @@ void snmp_add_varbind_integer_type(SNMPMessage *message, char *oid, int type, in
 
 void snmp_add_varbind_integer(SNMPMessage *message, char *oid, int value)
 {
-  snmp_add_varbind_integer_type(message, oid, ASN1_INTEGER_TYPE, value);
+  snmp_add_varbind_integer_type(message, oid, NTOP_ASN1_INTEGER_TYPE, value);
 }
 
 void snmp_add_varbind_string(SNMPMessage *message, char *oid, char *value)
 {
   VarbindList *vb = (VarbindList*)malloc(sizeof (VarbindList));
   vb->oid = strdup(oid);
-  vb->value_type = ASN1_STRING_TYPE;
-  vb->render_as_type = ASN1_STRING_TYPE;
+  vb->value_type = NTOP_ASN1_STRING_TYPE;
+  vb->render_as_type = NTOP_ASN1_STRING_TYPE;
   vb->value.str_value = strdup(value);
   vb->next = NULL;
     
@@ -236,29 +236,29 @@ SNMPMessage *snmp_parse_message(void *buffer, int len)
         
       switch (type)
         {
-	case SNMP_NOSUCHINSTANCE:
-	case SNMP_NOSUCHOBJECT:
-	case ASN1_NULL_TYPE:
+	case NTOP_SNMP_NOSUCHINSTANCE:
+	case NTOP_SNMP_NOSUCHOBJECT:
+	case NTOP_ASN1_NULL_TYPE:
 	  asn1_parse_primitive_value(parser, NULL, &value);
 	  snmp_add_varbind_null(message, oid);
 	  break;
 
-	case ASN1_OID_TYPE:
+	case NTOP_ASN1_OID_TYPE:
 	  asn1_parse_oid(parser, &oid1);
 	  asn1_parse_primitive_value(parser, NULL, &value);
 	  snmp_add_varbind_string(message, oid, oid1);
 	  break;
 
-	case SNMP_GAUGE_TYPE:
-	case SNMP_COUNTER_TYPE:
-	case SNMP_COUNTER64_TYPE:
-	case SNMP_TIMETICKS_TYPE:
-	case ASN1_INTEGER_TYPE:
+	case NTOP_SNMP_GAUGE_TYPE:
+	case NTOP_SNMP_COUNTER_TYPE:
+	case NTOP_SNMP_COUNTER64_TYPE:
+	case NTOP_SNMP_TIMETICKS_TYPE:
+	case NTOP_ASN1_INTEGER_TYPE:
 	  asn1_parse_integer_type(parser, NULL, &value.int_value);
 	  snmp_add_varbind_integer_type(message, oid, type, value.int_value);
 	  break;
             
-	case ASN1_STRING_TYPE:
+	case NTOP_ASN1_STRING_TYPE:
 	  asn1_parse_string_type(parser, NULL, &value.str_value);
 	  snmp_add_varbind_string(message, oid, value.str_value);
 	  free(value.str_value);
@@ -299,13 +299,13 @@ void snmp_print_message(SNMPMessage *message, FILE *stream)
       fprintf(stream, "        OID: %s\n", vb->oid);
       switch (vb->render_as_type)
         {
-	case ASN1_NULL_TYPE:
+	case NTOP_ASN1_NULL_TYPE:
 	  fprintf(stream, "            Null%s\n", type_str);
 	  break;
-	case ASN1_INTEGER_TYPE:
+	case NTOP_ASN1_INTEGER_TYPE:
 	  fprintf(stream, "            Integer%s: %lu PRId64\n", type_str, (unsigned long)vb->value.int_value);
 	  break;
-	case ASN1_STRING_TYPE:
+	case NTOP_ASN1_STRING_TYPE:
 	  fprintf(stream, "            String%s: %s\n", type_str, vb->value.str_value);
 	  break;
 	default:
@@ -368,7 +368,7 @@ int snmp_get_varbind_integer(SNMPMessage *message, int num, char **oid, int *typ
     
   //TODO return value of 0 also indicates end of list
   //handle non-integer data differently?
-  if (render_as_type != ASN1_INTEGER_TYPE)
+  if (render_as_type != NTOP_ASN1_INTEGER_TYPE)
     return 0;
 
   if (int_value)
@@ -387,7 +387,7 @@ int snmp_get_varbind_string(SNMPMessage *message, int num, char **oid, int *type
     
   //TODO return value of 0 also indicates end of list
   //handle non-string data differently?
-  if (render_as_type != ASN1_STRING_TYPE)
+  if (render_as_type != NTOP_ASN1_STRING_TYPE)
     return 0;
 
   if (str_value)
@@ -410,16 +410,16 @@ int snmp_get_varbind_as_string(SNMPMessage *message, int num, char **oid, int *t
 
   switch (render_as_type)
     {
-    case ASN1_NULL_TYPE:
+    case NTOP_ASN1_NULL_TYPE:
       *value_str = strdup("");
       break;
-    case ASN1_INTEGER_TYPE:
+    case NTOP_ASN1_INTEGER_TYPE:
       // snprintf(buf, sizeof(buf), "%d", value.int_value);
       // FIX: integer types always assumed unsigned
       snprintf(buf, sizeof(buf), "%lu", (unsigned long)value.int_value);
       *value_str = strdup(buf);
       break;
-    case ASN1_STRING_TYPE:
+    case NTOP_ASN1_STRING_TYPE:
       *value_str = strdup(value.str_value);
       break;
     default:

@@ -6,7 +6,7 @@ Standards-Version: @NTOPNG_VERS@
 Build-Depends:
 Build-Conflicts:
 
-Depends: libsqlite3-0, libexpat1, redis-server, librrd8, libjson-c3, logrotate, libcurl3, libpcap0.8, libhiredis0.13, libssl1.0.2, lsb-release, tar, ethtool, libcap2, bridge-utils, libnetfilter-conntrack3, isc-dhcp-server, udev, at, iptables, ebtables, nfacct, conntrack, libnetfilter-queue1, libsasl2-modules, wireless-tools, n2n, libradcli4, libmaxminddb0, net-tools
+Depends: libsqlite3-0, libexpat1, redis-server, librrd8, libjson-c3, logrotate, libcurl3, libpcap0.8, libhiredis0.13, libssl1.0.2, lsb-release, tar, ethtool, libcap2, bridge-utils, libnetfilter-conntrack3, isc-dhcp-server, udev, at, iptables, ebtables, nfacct, conntrack, libnetfilter-queue1, libsasl2-modules, wireless-tools, n2n, libradcli4, libmaxminddb0, net-tools, libsnmp30
 Package: nedge
 Architecture: @EXTN@
 Suggests: ntopng-data

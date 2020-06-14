@@ -27,25 +27,43 @@
 
 #define SNMP_MAX_NUM_OIDS          8
 
+#ifdef HAVE_LIBSNMP
+#include <net-snmp/net-snmp-config.h>
+#include <net-snmp/net-snmp-includes.h>
+#endif
+
 /* ******************************* */
 
 class SNMP {
  private:
-  int udp_sock;
   u_int snmp_version;
+  int udp_sock;
   u_int32_t request_id;
-  
+#ifdef HAVE_LIBSNMP
+  struct snmp_session session, *ss;
+  void *session_ptr;
+  /* Variables below are used for the async callback */
+  lua_State* vm;
+  bool add_sender_ip;
+#endif
+
   int _get(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
   int _getnext(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
   int snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param);  
   int snmp_read_response(lua_State* vm, u_int timeout);
   
-  public:
+ public:
   SNMP();
   ~SNMP();
 
+#ifdef HAVE_LIBSNMP
+  void handle_async_response(struct snmp_pdu *pdu);
+  void send_snmp_request_netsnmp(char *agent_host, char *community, bool isGetNext,
+				 char *oid[SNMP_MAX_NUM_OIDS], u_int version);
+#endif  
   void send_snmp_request(char *agent_host, char *community, bool isGetNext,
-			 char *oid[SNMP_MAX_NUM_OIDS], u_int version);
+			 char *oid[SNMP_MAX_NUM_OIDS], u_int version,
+			 bool batch_mode);
   void snmp_fetch_responses(lua_State* vm, u_int timeout, bool add_sender_ip);
   
   int get(lua_State* vm, bool skip_first_param);

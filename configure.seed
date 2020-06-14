@@ -416,6 +416,15 @@ else
  fi
 fi
 
+SNMP_LIB=
+SNMP_INC=
+if test "${with_nedge+set}" != set; then
+  AC_CHECK_LIB([snmp], [init_snmp])
+  if test "x$ac_cv_lib_snmp_init_snmp" = xyes; then :
+   SNMP_LIB="-lsnmp"
+  fi
+fi
+
 if test "${with_nedge+set}" != set; then
  PFRING_GIT_RELEASE=""
  if test -d $HOME/PF_RING; then
@@ -713,6 +722,8 @@ AC_SUBST(MYSQL_INC)
 AC_SUBST(MYSQL_DEP)
 AC_SUBST(JSON_INC)
 AC_SUBST(JSON_LIB)
+AC_SUBST(SNMP_INC)
+AC_SUBST(SNMP_LIB)
 AC_SUBST(PFRING_GIT_RELEASE)
 AC_SUBST(PFRING_VERSION)
 AC_SUBST(NEDGE)
@@ -767,3 +778,4 @@ dnl> 2.0		2015-06-01
 dnl> 2.2		2015-11-30
 dnl> 2.4		2016-06-27
 dnl> 3.0		2017-06-01
+dnl> 4.0		2020-03-24
