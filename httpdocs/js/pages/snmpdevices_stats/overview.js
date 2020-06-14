@@ -30,11 +30,10 @@ $(document).ready(function () {
 
                     if (type == "display" && row.column_device_status == "unreachable") {
                         return (`
-                            <span class="d-block">
-                                <span class='badge badge-warning' title='${i18n.snmp.snmp_device_does_not_respond}'>
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                </span>
-                            </span> ${data}
+                            <span class='badge badge-warning' title='${i18n.snmp.snmp_device_does_not_respond}'>
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span>
+                            ${data}
                         `);
                     }
 
@@ -49,6 +48,7 @@ $(document).ready(function () {
                 data: "column_err_interfaces",
                 className: "text-right",
                 render: function(data, type, row) {
+                    // if the cell contains zero then doesn't show it
                     if (type == "display" && data === 0) return "";
                     if (type == "display" && data > 0) {
                         return (`
@@ -64,6 +64,7 @@ $(document).ready(function () {
                 data: "column_delta_errors",
                 className: "text-center",
                 render: function(data, type, row) {
+                    // if the cell contains zero then doesn't show it
                     if (type == "display" && data === 0) return "";
                     return data;
                 }
@@ -74,6 +75,9 @@ $(document).ready(function () {
                 className: 'text-center',
                 data: null,
                 render: function() {
+
+                    if (!isAdministrator) return "";
+
                     return (`
                         <a data-toggle="modal" class="badge badge-danger" href="#delete_device_dialog">
                             ${i18n.delete}
@@ -86,11 +90,14 @@ $(document).ready(function () {
         initComplete: function(settings, json) {
 
             const tableAPI = settings.oInstance.api();
+            // remove these styles from the table headers
             $(`th`).removeClass(`text-center`).removeClass(`text-right`);
+            // append the responsive filter for the table
             addResponsivenessFilter(tableAPI);
         }
     });
 
+    // initialize the DataTable with the created config
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
 
     $(`#table-devices`).on('click', `a[href='#delete_device_dialog']`, function (e) {
