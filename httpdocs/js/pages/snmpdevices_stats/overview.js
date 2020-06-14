@@ -51,24 +51,13 @@ $(document).ready(function () {
                     // if the cell contains zero then doesn't show it
                     if (type == "display" && data === 0) return "";
                     if (type == "display" && data > 0) {
-                        return (`
-                            <a href="#">${data}</a>
-                        `);
+                        return data;
                     }
                     return data;
                 }
             },
             { data: "column_last_update", className: "text-center" },
             { data: "column_last_poll_duration", className: "text-center" },
-            {
-                data: "column_delta_errors",
-                className: "text-center",
-                render: function(data, type, row) {
-                    // if the cell contains zero then doesn't show it
-                    if (type == "display" && data === 0) return "";
-                    return data;
-                }
-            },
             {
                 targets: -1,
                 visible: isAdministrator,
