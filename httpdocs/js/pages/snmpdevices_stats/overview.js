@@ -89,12 +89,25 @@ $(document).ready(function () {
     // initialize the DataTable with the created config
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
 
+    setInterval(() => { $snmpTable.ajax.reload(); }, 10000);
+
     $(`#table-devices`).on('click', `a[href='#delete_device_dialog']`, function (e) {
 
         const rowData = $snmpTable.row($(this).parent()).data();
         $('#snmp_device_to_delete').text(rowData.column_key);
 
         delete_device_id = rowData.column_key;
+    });
+
+    importModalHelper({
+        load_config_xhr: (jsonConf) => {
+          return $.post(`${http_prefix}/`, {
+            csrf: importCsrf,
+            JSON: jsonConf,
+          });
+        }, reset_csrf: (newCsrf) => {
+            importCsrf = newCsrf;
+        }
     });
 
 });
