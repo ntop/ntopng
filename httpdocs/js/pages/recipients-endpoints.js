@@ -29,47 +29,18 @@ $(document).ready(function () {
         return $(template);
     }
 
-    const $recipientsTable = $(`table#recipient-list`).DataTable({
-        lengthChange: false,
-        pagingType: 'full_numbers',
-        stateSave: true,
-        dom: 'lfBrtip',
-        language: {
-            info: i18n.showing_x_to_y_rows,
-            search: i18n.search,
-            infoFiltered: "",
-            paginate: {
-                previous: '&lt;',
-                next: '&gt;',
-                first: '«',
-                last: '»'
-            },
-            emptyTable: i18n.createEndpointFirst
-        },
-        buttons: {
-            buttons: [
-                {
-                    text: '<i class="fas fa-plus"></i>',
-                    className: 'btn-link',
-                    action: function (e, dt, node, config) {
-                        $('#add-recipient-modal').modal('show');
-                    }
-                }
-            ],
-            dom: {
-                button: {
-                    className: 'btn btn-link'
-                },
-                container: {
-                    className: 'float-right'
-                }
+
+    let dtConfig = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
+        {
+            text: '<i class="fas fa-plus"></i>',
+            className: 'btn-link',
+            action: function (e, dt, node, config) {
+                $('#add-recipient-modal').modal('show');
             }
-        },
-        ajax: {
-            url: `${http_prefix}/lua/get_recipients_endpoint.lua`,
-            type: 'GET',
-            dataSrc: ''
-        },
+        }
+    ]);
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_recipients_endpoint.lua`);
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             {
                 data: 'recipient_name'
@@ -90,6 +61,8 @@ $(document).ready(function () {
             }
         ]
     });
+
+    const $recipientsTable = $(`table#recipient-list`).DataTable(dtConfig);
 
     let cur_row_data = null;
 

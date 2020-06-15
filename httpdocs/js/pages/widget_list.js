@@ -1,53 +1,19 @@
 $(document).ready(function() {
 
-    const $widgets_table = $(`#widgets-list`).DataTable({
-        pagingType: 'full_numbers',
-        lengthChange: false,
-        stateSave: true,
-        dom: 'lfBrtip',
-        initComplete: function() {
-
-        },
-        buttons: {
-            buttons: [
-                {
-                    text: '<i class="fas fa-plus"></i>',
-                    className: 'btn-link',
-                    action: function(e, dt, node, config) {
-                        $('#add-widget-modal').modal('show');
-                    }
-                }
-            ],
-            dom: {
-                button: {
-                    className: 'btn btn-link'
-                },
-                container: {
-                    className: 'float-right'
-                }
+    let dtConfig = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
+        {
+            text: '<i class="fas fa-plus"></i>',
+            className: 'btn-link',
+            action: function(e, dt, node, config) {
+                $('#add-widget-modal').modal('show');
             }
-        },
-        language: {
-            info: i18n.showing_x_to_y_rows,
-            search: i18n.search,
-            infoFiltered: "",
-            paginate: {
-                previous: '&lt;',
-                next: '&gt;',
-                first: '«',
-                last: '»'
-            }
-        },
-        ajax: {
-            url: `${http_prefix}/lua/get_widgets.lua`,
-            type: 'GET',
-            dataSrc: ''
-        },
+        }
+    ]);
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_widgets.lua`);
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             { data: 'name' },
-            {
-                data: 'key',
-	    },
+            { data: 'key' },
             { data: 'type', render: (type) => `${capitaliseFirstLetter(type)}` },
             {
                 data: 'params',
@@ -57,16 +23,18 @@ $(document).ready(function() {
                 targets: -1,
                 className: 'text-center',
                 data: null,
-                render: function() {
+                render: function () {
                     return (`
-                        <a href='#edit-widget-modal' data-toggle='modal' class="badge badge-info">Edit</a>
-                        <a href='#embed-widget-modal' data-toggle='modal' class="badge badge-info">Embed</a>
-                        <a href='#remove-widget-modal' data-toggle='modal' class="badge badge-danger">Delete</a>
-                    `);
+                    <a href='#edit-widget-modal' data-toggle='modal' class="badge badge-info">Edit</a>
+                    <a href='#embed-widget-modal' data-toggle='modal' class="badge badge-info">Embed</a>
+                    <a href='#remove-widget-modal' data-toggle='modal' class="badge badge-danger">Delete</a>
+                `);
                 }
             }
         ]
     });
+
+    const $widgets_table = $(`#widgets-list`).DataTable(dtConfig);
 
     $(`#widgets-list`).on('click', `a[href='#embed-widget-modal']`, function(e) {
         const rowData = $widgets_table.row($(this).parent()).data();
