@@ -1,8 +1,5 @@
 $(document).ready(function() {
 
-    // TODO: inserire una funzione per le regex dell'am
-    // key -> regex, (OR sta hostname e IP)
-
     let am_alert_timeout = null;
     let row_data = null;
 
