@@ -1,10 +1,29 @@
 $(document).ready(function () {
 
+    const red_marker = L.icon({
+        iconUrl: `${http_prefix}/leaflet/images/marker-icon-red.png`,
+        shadowUrl: '${http_prefix}/leaflet/images/marker-shadow.png',
+    });
+
     const default_coords = [41.9, 12.4833333];
     const zoom_level = 4;
 
     // initialize alert api
     $('#geomap-alert').alert();
+
+    const create_marker = (title, lat, lng, html, is_red = false) => {
+
+        const settings = { title: title };
+        if (is_red) settings.icon = red_marker;
+
+        return L.marker([lat, lng], settings).bindPopup(`
+            <div class='infowin'>
+                <a href='/lua/host_details.lua?host=${title}'>${title}</a>
+                <hr>
+                ${html}
+            </div>
+        `);
+    }
 
     // return true if the status code is different from 200
     const check_status_code = (status_code, status_text, $error_label) => {
@@ -48,36 +67,57 @@ $(document).ready(function () {
     const init_map = () => {
 
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(show_positions, display_errors, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            navigator.geolocation.getCurrentPosition(show_positions, display_errors,
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
         }
     }
 
     const draw_markers = (json, map_markers, map) => {
 
-        const { center, objects } = json;
-        const response_hosts = new Set();
-        objects.forEach((hosts) => {
-            hosts.host.forEach((h) => {
-                response_hosts.add({
-                    lat: h.lat,
-                    lng: h.lng,
-                    html: h.html,
-                    ip_address: h.name
-                });
-            })
-        });
-        const hosts = [...response_hosts];
+        const { hosts, flows } = json;
+        console.log(json);
+
+        // if there are no hosts then draw flows
+        if (hosts.length == 0) {
+            draw_flows(flows, map_markers, map);
+            return;
+        }
 
         hosts.forEach(h => {
-            const marker = L.marker([h.lat, h.lng], { title: h.ip_address }).bindPopup(`
-            <div class='infowin'>
-              <a href='/lua/host_details.lua?host=${h.ip_address}'>${h.ip_address}</a>
-              <hr>
-              ${h.html}
-            </div>
-          `);
-            map_markers.addLayer(marker);
+            map_markers.addLayer(create_marker(h.name, h.lat, h.lng, h.html));
         });
+
+        map.addLayer(map_markers);
+    }
+
+    const draw_flows = (flows, map_markers, map) => {
+
+        // if there aren't any flows then don't draw them
+        if (flows.length == 0) return;
+
+        const client = flows[0].client;
+        const servers = flows.map((flow) => flow.server);
+
+        // draw only drawable server markers
+        servers.filter(s => s.isDrawable).forEach(s => {
+
+            // if the current server is the root then center the map to him
+            if (s.isRoot) {
+                map.flyTo([s.lat, s.lng], zoom_level);
+            }
+
+            map_markers.addLayer(create_marker(s.name, s.lat, s.lng, s.html, s.isRoot));
+        });
+
+        // draw client marker
+        if (client.isDrawable) {
+            map_markers.addLayer(create_marker(client.name, client.lat, client.lng, client.html));
+        }
 
         map.addLayer(map_markers);
     }
