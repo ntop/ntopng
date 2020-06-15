@@ -291,3 +291,8 @@ text, g text.tick {
 .btn-primary, .primary {
   color: #000;
 }
+
+.nvd3 .nv-axis line, .nvd3 .nv-axis path {
+  stroke-width: 0.8px !important;
+  stroke: #2C2C2C !important;
+}
