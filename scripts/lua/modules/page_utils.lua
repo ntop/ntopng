@@ -242,7 +242,7 @@ function page_utils.print_header(title)
 
   local dark_mode = false
 
-  if((theme == nil) or (theme == "")) then
+  if ((theme == nil) or (theme == "")) then
     dark_mode = false
   end
 
@@ -297,10 +297,10 @@ function page_utils.print_header(title)
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(startup_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(startup_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js?]] print(startup_epoch) print[["></script>
-  </head>
-  <body>
-
-  ]]
+  </head>]]
+  print([[
+     <body class="]].. (dark_mode and "dark" or "") ..[[">
+  ]])
 end
 
 -- #################################
@@ -422,7 +422,7 @@ function page_utils.print_menubar()
 
    print('<div id="n-sidebar" class="bg-'.. navbar_style ..' py-0 px-2">')
 
-   print("<h3 class='muted'><a href='"..ntop.getHttpPrefix().."/'>")	
+   print("<h3 class='muted'><a href='"..ntop.getHttpPrefix().."/'>")
 
    if (logo_path ~= nil) then
       print("<img class=\"logo-brand\" height=\"52px\" src=\""..logo_path.."\" alt='Custom Logo' />")
