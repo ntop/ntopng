@@ -2,7 +2,7 @@
 -- (C) 2013-20 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
@@ -17,46 +17,11 @@ local host_info = url2hostinfo(_GET)
 
 local MAX_HOSTS = 100
 
-local function load_hosts()
-
-   local hosts = {}
-
-   if (host_info["host"] == nil) then
-
-      local hosts_stats = interface.getHostsInfo(true, "column_traffic", MAX_STATS)
-      hosts_stats = hosts_stats["hosts"]
-
-      for key, value in pairs(hosts_stats) do
-
-	 local is_singlecast = value["ip"] and
-	    not value["privatehost"] and
-	    not value["is_multicast"] and
-	    not value["is_broadcast"] and
-	    not isBroadMulticast(value["ip"])
-
-	 if is_singlecast then
-
-	    local host = {
-	       lat = value["latitude"],
-	       lng = value["longitude"],
-	       name = key,
-	       html = getFlag(value["country"])
-	    }
-
-	    if not isEmptyString(value["city"]) then
-	       host["city"] = value["city"]
-	    end
-
-	    table.insert(hosts, host)
-	 end
-      end
-   end
-
-   return hosts
+local function is_localizable(host)
+   return host and host["ip"] and not host["privatehost"] and not host["is_multicast"] and not host["is_broadcast"] and not isBroadMulticast(host["ip"])
 end
 
 local function get_max_bytes_from_peers(peers)
-
    local max = 0
    for key, value in pairs(peers) do
       if (value["bytes"] > max) then
@@ -67,15 +32,42 @@ local function get_max_bytes_from_peers(peers)
    return max
 end
 
-local function load_flows(hosts_count, host_key)
+local function load_hosts()
+   local hosts = {}
 
+   if (host_info["host"] == nil) then
+      local hosts_stats = interface.getHostsInfo(true, "column_traffic", MAX_HOSTS)
+      hosts_stats = hosts_stats["hosts"]
+
+      for host_ip, host in pairs(hosts_stats) do
+	 if is_localizable(host) then
+	    local res = {
+	       lat = host["latitude"],
+	       lng = host["longitude"],
+	       name = host_ip,
+	       html = getFlag(host["country"])
+	    }
+
+	    if not isEmptyString(host["city"]) then
+	       host["city"] = host["city"]
+	    end
+
+	    table.insert(hosts, res)
+	 end
+      end
+   end
+
+   return hosts
+end
+
+local function load_flows(hosts_count, host_key)
    local flows = {}
    local peers = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, {detailsLevel="max"})
+
    local max_bytes = get_max_bytes_from_peers(peers)
    local min_threshold = 0
 
    for key, value in pairs(peers) do
-
       local flow = {}
       local bytes = value["bytes"]
       local percentage = (bytes * 100) / max_bytes
