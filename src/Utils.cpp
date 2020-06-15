@@ -436,6 +436,25 @@ u_int32_t Utils::timeval2usec(const struct timeval *tv) {
 
 /* ****************************************************** */
 
+u_int32_t Utils::usecTimevalDiff(const struct timeval *end, const struct timeval *begin) {
+  if((end->tv_sec == 0) && (end->tv_usec == 0))
+    return(0);
+  else {
+    struct timeval res;
+    
+    res.tv_sec = end->tv_sec - begin->tv_sec;
+    if(begin->tv_usec > end->tv_usec) {
+      res.tv_usec = end->tv_usec + 1000000 - begin->tv_usec;
+      res.tv_sec--;
+    } else
+      res.tv_usec = end->tv_usec - begin->tv_usec;
+
+    return((res.tv_sec*1000000) + (res.tv_usec));
+  }
+}
+
+/* ****************************************************** */
+
 float Utils::msTimevalDiff(const struct timeval *end, const struct timeval *begin) {
   if((end->tv_sec == 0) && (end->tv_usec == 0))
     return(0);

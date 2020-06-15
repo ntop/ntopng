@@ -547,7 +547,7 @@ void Ntop::start() {
   _usleep((5 - begin.tv_sec % 5) * 1e6 - begin.tv_usec);
 
   while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
-    u_long nap = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
+    const u_int32_t nap_usec = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
 
     gettimeofday(&begin, NULL);
 
@@ -566,35 +566,39 @@ void Ntop::start() {
 
     runHousekeepingTasks();
 
+#ifndef __linux__
+    gettimeofday(&end, NULL);
+    
+    usec_diff = Utils::usecTimevalDiff(&end, &begin);
+
+    if(usec_diff < nap_usec)
+      _usleep(nap_usec-usec_diff);
+#else
     do {
       gettimeofday(&end, NULL);
+      usec_diff = Utils::usecTimevalDiff(&end, &begin);
 
-      usec_diff = (end.tv_sec * 1e6) + end.tv_usec - (begin.tv_sec * 1e6) - begin.tv_usec;
-
-      if(usec_diff < nap) {
+      if(usec_diff < nap_usec) {
         int maxfd = 0;
         fd_set rset;
         struct timeval tv;
 
 #if 0
-        ntop->getTrace()->traceEvent(TRACE_DEBUG,
+        ntop->getTrace()->traceEvent(TRACE_NORMAL,
             "Sleeping %i microsecods before doing the chores.",
-            (nap - usec_diff));
+            (nap_usec - usec_diff));
 #endif
 
         FD_ZERO(&rset);
 
-#ifdef __linux__
         if(inotify_fd > 0) {
           FD_SET(inotify_fd, &rset);
           maxfd = inotify_fd;
         }
-#endif
 
-        tv.tv_sec = 0, tv.tv_usec = (nap - usec_diff);
+        tv.tv_sec = 0, tv.tv_usec = (nap_usec - usec_diff);
 
         if(select(maxfd + 1, &rset, NULL, NULL, &tv) > 0) {
-#ifdef __linux__
           if(FD_ISSET(inotify_fd, &rset)) {
             char buffer[EVENT_BUF_LEN];
 
@@ -604,10 +608,10 @@ void Ntop::start() {
             ntop->getTrace()->traceEvent(TRACE_DEBUG, "Directory changed");
             reloadPeriodicScripts();
           }
-#endif
         }
       }
-    } while(usec_diff < nap);
+    } while(usec_diff < nap_usec);
+#endif    
   }
 }
 
