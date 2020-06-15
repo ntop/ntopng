@@ -19,121 +19,121 @@ local MAX_HOSTS = 100
 
 local function load_hosts()
 
-	local hosts = {}
+   local hosts = {}
 
-	if (host_info["host"] == nil) then
+   if (host_info["host"] == nil) then
 
-		local hosts_stats = interface.getHostsInfo(true, "column_traffic", MAX_STATS)
-		hosts_stats = hosts_stats["hosts"]
+      local hosts_stats = interface.getHostsInfo(true, "column_traffic", MAX_STATS)
+      hosts_stats = hosts_stats["hosts"]
 
-		for key, value in pairs(hosts_stats) do
+      for key, value in pairs(hosts_stats) do
 
-			local is_singlecast = value["ip"] and
-				not value["privatehost"] and
-				not value["is_multicast"] and
-				not value["is_broadcast"] and
-				not isBroadMulticast(value["ip"])
+	 local is_singlecast = value["ip"] and
+	    not value["privatehost"] and
+	    not value["is_multicast"] and
+	    not value["is_broadcast"] and
+	    not isBroadMulticast(value["ip"])
 
-			if is_singlecast then
+	 if is_singlecast then
 
-				local host = {
-					lat = value["latitude"],
-					lng = value["longitude"],
-					name = key,
-					html = getFlag(value["country"])
-				}
+	    local host = {
+	       lat = value["latitude"],
+	       lng = value["longitude"],
+	       name = key,
+	       html = getFlag(value["country"])
+	    }
 
-				if not isEmptyString(value["city"]) then
-					host["city"] = value["city"]
-				end
+	    if not isEmptyString(value["city"]) then
+	       host["city"] = value["city"]
+	    end
 
-				table.insert(hosts, host)
-			end
-		end
-	end
+	    table.insert(hosts, host)
+	 end
+      end
+   end
 
-	return hosts
+   return hosts
 end
 
 local function get_max_bytes_from_peers(peers)
 
-	local max = 0
-	for key, value in pairs(peers) do
-		if (value["bytes"] > max) then
-			max = value["bytes"]
-		end
-	end
+   local max = 0
+   for key, value in pairs(peers) do
+      if (value["bytes"] > max) then
+	 max = value["bytes"]
+      end
+   end
 
-	return max
+   return max
 end
 
 local function load_flows(hosts_count, host_key)
 
-	local flows = {}
-	local peers = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, {detailsLevel="max"})
-	local max_bytes = get_max_bytes_from_peers(peers)
-	local min_threshold = 0
+   local flows = {}
+   local peers = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, {detailsLevel="max"})
+   local max_bytes = get_max_bytes_from_peers(peers)
+   local min_threshold = 0
 
-	for key, value in pairs(peers) do
+   for key, value in pairs(peers) do
 
-		local flow = {}
-		local bytes = value["bytes"]
-		local percentage = (bytes * 100) / max_bytes
+      local flow = {}
+      local bytes = value["bytes"]
+      local percentage = (bytes * 100) / max_bytes
 
-		local client = {
-			lat = value["cli.latitude"],
-			lng = value["cli.longitude"]
-		}
+      local client = {
+	 lat = value["cli.latitude"],
+	 lng = value["cli.longitude"]
+      }
 
-		local is_public = (not(value["cli.private"] and value["srv.private"]) and
-			not(isBroadMulticast(value["cli.ip"])) and
-			not(isBroadMulticast(value["srv.ip"])))
+      local is_public = (not(value["cli.private"] and value["srv.private"]) and
+			    not(isBroadMulticast(value["cli.ip"])) and
+			    not(isBroadMulticast(value["srv.ip"])))
 
-		if not is_public then goto continue end
+      if not is_public then goto continue end
 
-		if (percentage >= min_threshold) and (client.lat ~= nil) and (client.lng ~= nil) then
+      if (percentage >= min_threshold) and (client.lat ~= nil) and (client.lng ~= nil) then
 
-			-- set up the client informations
+	 -- set up the client informations
 
-			-- if the client is private then disable his rendering
-			client["isDrawable"] = not(value["cli.private"])
-			-- check if the client is the root
-			client["isRoot"] = (value["cli.ip"] == host_key);
+	 -- if the client is private then disable his rendering
+	 client["isDrawable"] = not(value["cli.private"])
+	 -- check if the client is the root
+	 client["isRoot"] = (value["cli.ip"] == host_key);
 
-			if not isEmptyString(value["cli.city"]) then
-				client["city"] = value["cli.city"]
-			end
+	 if not isEmptyString(value["cli.city"]) then
+	    client["city"] = value["cli.city"]
+	 end
 
-			client["html"] = getFlag(value["cli.country"])
-			client["name"] = hostinfo2hostkey(value, "cli")
+	 client["html"] = getFlag(value["cli.country"])
+	 client["name"] = hostinfo2hostkey(value, "cli")
 
-			-- set up the server informations
-			local server = {
-				lat = value["srv.latitude"],
-				lng = value["srv.longitude"],
-				isDrawable = not(value["srv.private"]),
-				isRoot = (value["srv.ip"] == host_key),
-				html = getFlag(value["srv.country"]),
-				name = hostinfo2hostkey(value, "srv")
-			}
+	 -- set up the server informations
+	 local server = {
+	    lat = value["srv.latitude"],
+	    lng = value["srv.longitude"],
+	    isDrawable = not(value["srv.private"]),
+	    isRoot = (value["srv.ip"] == host_key),
+	    html = getFlag(value["srv.country"]),
+	    name = hostinfo2hostkey(value, "srv")
+	 }
 
-			if not isEmptyString(value["srv.city"]) then
-				server["city"] = value["srv.city"]
-			end
+	 if not isEmptyString(value["srv.city"]) then
+	    server["city"] = value["srv.city"]
+	 end
 
-			flow["client"] = client
-			flow["server"] = server
+	 flow["client"] = client
+	 flow["server"] = server
 
-			flow["flow"] = percentage
-			flow["html"] = hostinfo2hostkey(value, "cli").." -> "..hostinfo2hostkey(value, "srv")
+	 flow["flow"] = percentage
+	 flow["html"] = hostinfo2hostkey(value, "cli").." -> "..hostinfo2hostkey(value, "srv")
 
-		end
+      end
 
-		table.insert(flows, flow)
-		::continue::
-	end
+      table.insert(flows, flow)
+      ::continue::
+   end
 
-	return flows
+   return flows
 end
 
 -- Initialize host array object
