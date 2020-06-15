@@ -80,7 +80,6 @@ $(document).ready(function () {
     const draw_markers = (json, map_markers, map) => {
 
         const { hosts, flows } = json;
-        console.log(json);
 
         // if there are no hosts then draw flows
         if (hosts.length == 0) {
@@ -103,7 +102,6 @@ $(document).ready(function () {
         const client = flows[0].client;
         const servers_flow = flows.map((flow) => flow.server);
         const servers = [... new Set(servers_flow)];
-        console.log(servers);
 
         // draw only drawable server markers
         servers.filter(s => s.isDrawable).forEach(s => {
