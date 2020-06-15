@@ -61,7 +61,7 @@ end
 -- ##############################################
 
 -- See also getHumanReadableInterfaceName
-function getInterfaceName(interface_id, windows_skip_description)   
+function getInterfaceName(interface_id, windows_skip_description)
    if(interface_id == getSystemInterfaceId()) then
       return(getSystemInterfaceName())
    end
@@ -2360,7 +2360,7 @@ function getFlag(country)
    if((country == nil) or (country == "")) then
       return("")
    else
-      return(" <A HREF='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country=".. country .."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(country) .."'></A> ")
+      return("<a href='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country=".. country .."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(country) .."'></a>")
    end
 end
 

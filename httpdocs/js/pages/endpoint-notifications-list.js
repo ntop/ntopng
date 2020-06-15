@@ -28,46 +28,17 @@ $(document).ready(function () {
         return $(template);
     }
 
-    const $endpointsTable = $(`table#notification-list`).DataTable({
-        lengthChange: false,
-        pagingType: 'full_numbers',
-        stateSave: true,
-        dom: 'lfBrtip',
-        language: {
-            info: i18n.showing_x_to_y_rows,
-            search: i18n.search,
-            infoFiltered: "",
-            paginate: {
-                previous: '&lt;',
-                next: '&gt;',
-                first: '«',
-                last: '»'
+    let dtConfig = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
+        {
+            text: '<i class="fas fa-plus"></i>',
+            className: 'btn-link',
+            action: function (e, dt, node, config) {
+                $('#add-endpoint-modal').modal('show');
             }
-        },
-        buttons: {
-            buttons: [
-                {
-                    text: '<i class="fas fa-plus"></i>',
-                    className: 'btn-link',
-                    action: function (e, dt, node, config) {
-                        $('#add-endpoint-modal').modal('show');
-                    }
-                }
-            ],
-            dom: {
-                button: {
-                    className: 'btn btn-link'
-                },
-                container: {
-                    className: 'float-right'
-                }
-            }
-        },
-        ajax: {
-            url: `${http_prefix}/lua/get_notification_configs.lua`,
-            type: 'GET',
-            dataSrc: ''
-        },
+        }
+    ]);
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_notification_configs.lua`);
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             {
                 data: 'endpoint_conf_name'
@@ -88,6 +59,8 @@ $(document).ready(function () {
             }
         ]
     });
+
+    const $endpointsTable = $(`table#notification-list`).DataTable(dtConfig);
 
     let rowData = null;
 

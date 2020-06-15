@@ -34,7 +34,7 @@ class DataTableUtils {
         }
     }
 
-    static setAjaxConfig(config, url, dataSrc, method = "get", params = {}) {
+    static setAjaxConfig(config, url, dataSrc = '', method = "get", params = {}) {
 
         config.ajax = {
             url: url,

@@ -2,134 +2,134 @@
 -- (C) 2013-20 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local json = require("dkjson")
 
---sendHTTPContentTypeHeader('text/html')
 sendHTTPHeader('application/json')
-
-host_key = _GET["host"]
-host_info = url2hostinfo(_GET)
 interface.select(ifname)
 
-center = "[0, 0]"
-print [[
-{
- "objects":
- []]
+local response = {}
+local host_key = _GET["host"] or ""
+local host_info = url2hostinfo(_GET)
 
+local MAX_HOSTS = 100
 
-local max_num = 100
-num = 0
+local function is_localizable(host)
+   return host and host["ip"] and not host["privatehost"] and not host["is_multicast"] and not host["is_broadcast"] and not isBroadMulticast(host["ip"])
+end
 
-if (host_info["host"] == nil) then
-   -- here no host has been specified
-   hosts_stats = interface.getHostsInfo(true, "column_traffic", max_num)
-   hosts_stats = hosts_stats["hosts"]
-
-   for key, value in pairs(hosts_stats) do
-      if value["ip"] and not value["privatehost"] and not value["is_multicast"] and not value["is_broadcast"] and not isBroadMulticast(value["ip"]) then
-	 if(num > 0) then print(",") end
-	 print('{\n"host": [ { ')
-	 print('"lat": '..value["latitude"]..',\n')
-	 print('"lng": '..value["longitude"]..',\n')
-
-	 print('"html": "')
-	 if((value["city"] ~= nil) and (value["city"] ~= "")) then
-	    print('City: '..value["city"])
-	 end
-
-	 print(getFlag(value["country"]))
-	 print('",\n')
-
-	 print('"name": "'..key..'"\n')
-	 print('} ] }\n')
-	 num = num + 1
-	 
+local function get_max_bytes_from_peers(peers)
+   local max = 0
+   for key, value in pairs(peers) do
+      if (value["bytes"] > max) then
+	 max = value["bytes"]
       end
    end
 
-   print ("\n]\n}\n")
-   
-   return
+   return max
 end
 
--- Flows with trajectory
+local function load_hosts()
+   local hosts = {}
 
-interface.select(ifname)
-peers = getTopFlowPeers(hostinfo2hostkey(host_info), max_num - num, nil, {detailsLevel="max"})
+   if (host_info["host"] == nil) then
+      local hosts_stats = interface.getHostsInfo(true, "column_traffic", MAX_HOSTS)
+      hosts_stats = hosts_stats["hosts"]
 
-maxval = 0
-for key, values in pairs(peers) do
-   t = values["bytes"]
+      for host_ip, host in pairs(hosts_stats) do
+	 if is_localizable(host) then
+	    local res = {
+	       lat = host["latitude"],
+	       lng = host["longitude"],
+	       name = host_ip,
+	       html = getFlag(host["country"])
+	    }
 
-   if(t > maxval) then maxval = t end
-end
+	    if not isEmptyString(host["city"]) then
+	       host["city"] = host["city"]
+	    end
 
-min_threshold = 0 --  0.5%
-for key, values in pairs(peers) do
-   t = values["bytes"]
-   pctg = (t*100)/maxval
-
-   if(not(values["cli.private"] and values["srv.private"]) -- at least one of the two must be public
-	 and not(isBroadMulticast(values["cli.ip"])) 
-      and not(isBroadMulticast(values["srv.ip"]))) then
-      if((pctg >= min_threshold)
-	    and (values["cli.latitude"] ~= nil)
-	 and (values["cli.longitude"] ~= nil)) then
-	 if(num > 0) then print(",") end
-	 print('\n{\n"host":\n[	\n{\n')
-	 print('"lat": '..values["cli.latitude"]..',\n')
-	 print('"lng": '..values["cli.longitude"]..',\n')
-
-	 if(values["cli.private"] == true) then
-	    print('"isDrawable": "false",\n')
+	    table.insert(hosts, res)
 	 end
-
-	 if(values["cli.ip"] == host_key) then
-	    print('"isRoot": "true",\n')
-	    center = "[".. values["cli.latitude"] .. "," .. values["cli.longitude"] .. "]"
-	 end
-	 
-	 print('"html": "')
-	 if((values["cli.city"] ~= nil) and (values["cli.city"] ~= "")) then
-	    print('City: '..values["cli.city"])
-	 end
-
-	 print(getFlag(values["cli.country"]))
-	 print('",\n')
-
-	 print('"name": "'..hostinfo2hostkey(values, "cli")..'"\n')
-	 print('},\n{\n')
-	 print('"lat": '..values["srv.latitude"]..',\n')
-	 print('"lng": '..values["srv.longitude"]..',\n')
-	 
-	 if(values["srv.private"] == true) then
-	    print('"isDrawable": "false",\n')
-	 end
-
-	 if(values["srv.ip"] == host_key) then
-	    print('"isRoot": "true",\n')
-	    center = "[".. values["srv.latitude"] .. "," .. values["srv.longitude"] .. "]"
-	 end
-	
-	 print('"html": "')
-	 if((values["srv.city"] ~= nil) and (values["srv.city"] ~= "")) then
-	    print('City: '..values["srv.city"])
-	 end
-	 print(getFlag(values["srv.country"]))
-	 print('",\n')
-
-	 print('"name": "'..hostinfo2hostkey(values, "srv")..'"\n')
-	 print('}\n],\n"flusso": '.. pctg..',"html":"Flow '.. hostinfo2hostkey(values, "cli").." "..hostinfo2hostkey(values, "srv") .. '"\n')
-	 print('}\n')
-	 num = num + 1
       end
    end
+
+   return hosts
 end
 
+local function load_flows(hosts_count, host_key)
+   local flows = {}
+   local peers = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, {detailsLevel="max"})
 
-print (' ],\n"center": '..center..'\n}\n')
+   local max_bytes = get_max_bytes_from_peers(peers)
+   local min_threshold = 0
 
+   for key, value in pairs(peers) do
+      local flow = {}
+      local bytes = value["bytes"]
+      local percentage = (bytes * 100) / max_bytes
+
+      local client = {
+	 lat = value["cli.latitude"],
+	 lng = value["cli.longitude"]
+      }
+
+      local is_public = (not(value["cli.private"] and value["srv.private"]) and
+			    not(isBroadMulticast(value["cli.ip"])) and
+			    not(isBroadMulticast(value["srv.ip"])))
+
+      if not is_public then goto continue end
+
+      if (percentage >= min_threshold) and (client.lat ~= nil) and (client.lng ~= nil) then
+
+	 -- set up the client informations
+
+	 -- if the client is private then disable his rendering
+	 client["isDrawable"] = not(value["cli.private"])
+	 -- check if the client is the root
+	 client["isRoot"] = (value["cli.ip"] == host_key);
+
+	 if not isEmptyString(value["cli.city"]) then
+	    client["city"] = value["cli.city"]
+	 end
+
+	 client["html"] = getFlag(value["cli.country"])
+	 client["name"] = hostinfo2hostkey(value, "cli")
+
+	 -- set up the server informations
+	 local server = {
+	    lat = value["srv.latitude"],
+	    lng = value["srv.longitude"],
+	    isDrawable = not(value["srv.private"]),
+	    isRoot = (value["srv.ip"] == host_key),
+	    html = getFlag(value["srv.country"]),
+	    name = hostinfo2hostkey(value, "srv")
+	 }
+
+	 if not isEmptyString(value["srv.city"]) then
+	    server["city"] = value["srv.city"]
+	 end
+
+	 flow["client"] = client
+	 flow["server"] = server
+
+	 flow["flow"] = percentage
+	 flow["html"] = hostinfo2hostkey(value, "cli").." -> "..hostinfo2hostkey(value, "srv")
+
+      end
+
+      table.insert(flows, flow)
+      ::continue::
+   end
+
+   return flows
+end
+
+-- Initialize host array object
+response["hosts"] = load_hosts()
+response["flows"] = load_flows(table.len(response["hosts"]), host_key)
+
+print(json.encode(response))

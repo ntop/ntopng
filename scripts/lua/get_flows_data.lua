@@ -34,7 +34,6 @@ local total = 0
 
 if not flows_to_update then
    flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
-
    total = flows_stats["numFlows"]
    flows_stats = flows_stats["flows"]
 else

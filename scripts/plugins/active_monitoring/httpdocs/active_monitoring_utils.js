@@ -1,7 +1,25 @@
 $(document).ready(function() {
 
+    // TODO: inserire una funzione per le regex dell'am
+    // key -> regex, (OR sta hostname e IP)
+
     let am_alert_timeout = null;
     let row_data = null;
+
+    const get_measurement_regex = (measurement) => {
+
+        switch (measurement) {
+            default:
+            case "http":
+            case "https":
+            case "icmp":
+            case "cicmp":
+                return `${REGEXES["ipv4"]}|${REGEXES["domainName"]}`
+            case "cicmp6":
+            case "icmp6":
+                return `${REGEXES["ipv6"]}|${REGEXES["domainName"]}`
+        }
+    }
 
     const delete_host_modal = $(`#am-delete-modal form`).modalHandler({
         method: 'post',
@@ -35,6 +53,10 @@ $(document).ready(function() {
     let edit_host_data = null;
 
     $("#select-edit-measurement").on('change', function(event) {
+        const selected_measurement = $(this).val();
+        // change the pattern depending on the selected measurement
+        $(`#input-edit-host`).attr('pattern', get_measurement_regex(selected_measurement));
+
         dialogRefreshMeasurement($("#am-edit-modal"));
     });
 
@@ -347,7 +369,16 @@ $(document).ready(function() {
         addFilterDropdown(i18n.alert_status, filters, ALERTED_COLUMN_INDEX, "#am-table_filter", table_api);
     }
 
+    // select the first pattern based to the first selected measurement
+    // on the input-add-host
+    $(`#input-add-host`).attr('pattern', get_measurement_regex($("#select-add-measurement").val()));
+
     $("#select-add-measurement").on('change', function(event) {
+
+        const selected_measurement = $(this).val();
+        // change the pattern depending on the selected measurement
+        $(`#input-add-host`).attr('pattern', get_measurement_regex(selected_measurement));
+
         dialogRefreshMeasurement($("#am-add-modal"));
     });
 
@@ -398,21 +429,20 @@ $(document).ready(function() {
         }
     });
 
-    const $am_table = $("#am-table").DataTable({
-        pagingType: 'full_numbers',
-        lengthChange: false,
-        dom: 'lfBrtip',
-        language: {
-            info: i18n.showing_x_to_y_rows,
-            search: i18n.search,
-            infoFiltered: "",
-            paginate: {
-               previous: '&lt;',
-               next: '&gt;',
-               first: '«',
-               last: '»'
+    let dt_config = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
+        {
+            text: '<i class="fas fa-plus"></i>',
+            className: 'btn-link',
+            action: function(e, dt, node, config) {
+                add_host_modal.invokeModalInit();
             }
-        },
+        }
+    ]);
+    dt_config = DataTableUtils.setAjaxConfig(
+        dt_config,
+        `${http_prefix}/plugins/get_active_monitoring_hosts.lua`,
+    );
+    dt_config = DataTableUtils.extendConfig(dt_config, {
         initComplete: function(settings, data) {
 
             if (get_host != "") {
@@ -430,30 +460,6 @@ $(document).ready(function() {
                     updateAlertFilter(data);
                 });
             }, 15000);
-        },
-        ajax: {
-            url: `${http_prefix}/plugins/get_active_monitoring_hosts.lua`,
-            type: 'get',
-            dataSrc: ''
-        },
-        buttons: {
-            buttons: [
-                {
-                    text: '<i class="fas fa-plus"></i>',
-                    className: 'btn-link',
-                    action: function(e, dt, node, config) {
-                        add_host_modal.invokeModalInit();
-                    }
-                }
-            ],
-            dom: {
-                button: {
-                    className: 'btn btn-link'
-                },
-                container: {
-                    className: 'float-right'
-                }
-            }
         },
         columns: [
             {
@@ -566,6 +572,8 @@ $(document).ready(function() {
             }
         ]
     });
+
+    const $am_table = $("#am-table").DataTable(dt_config);
 
     importModalHelper({
         load_config_xhr: (json_conf) => {

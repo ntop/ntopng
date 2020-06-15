@@ -213,49 +213,20 @@ $(document).ready(function () {
 
     const timeseriesSourceBuilder = new TimeserieSourceBuilder();
 
-    const $datasources_table = $(`#datasources-list`).DataTable({
-        lengthChange: false,
-        pagingType: 'full_numbers',
-        stateSave: true,
-        dom: 'lfBrtip',
-        initComplete: function () {
-
-        },
-        language: {
-            info: i18n.showing_x_to_y_rows,
-            search: i18n.search,
-            infoFiltered: "",
-            paginate: {
-                previous: '&lt;',
-                next: '&gt;',
-                first: '«',
-                last: '»'
+    let dtConfig = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
+        {
+            text: '<i class="fas fa-plus"></i>',
+            className: 'btn-link',
+            action: function (e, dt, node, config) {
+                $('#add-datasource-modal').modal('show');
             }
-        },
-        buttons: {
-            buttons: [
-                {
-                    text: '<i class="fas fa-plus"></i>',
-                    className: 'btn-link',
-                    action: function (e, dt, node, config) {
-                        $('#add-datasource-modal').modal('show');
-                    }
-                }
-            ],
-            dom: {
-                button: {
-                    className: 'btn btn-link'
-                },
-                container: {
-                    className: 'float-right'
-                }
-            }
-        },
-        ajax: {
-            url: `${http_prefix}/lua/get_datasources.lua`,
-            type: 'GET',
-            dataSrc: ''
-        },
+        }
+    ]);
+    dtConfig = DataTableUtils.setAjaxConfig(
+        dtConfig,
+        `${http_prefix}/lua/get_datasources.lua`,
+    );
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             { data: 'alias' },
             {
@@ -284,6 +255,8 @@ $(document).ready(function () {
             }
         ]
     });
+
+    const $datasources_table = $(`#datasources-list`).DataTable(dtConfig);
 
     const prepareFormData = (form) => {
 
