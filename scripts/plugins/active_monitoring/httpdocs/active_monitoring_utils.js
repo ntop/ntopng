@@ -1,7 +1,25 @@
 $(document).ready(function() {
 
+    // TODO: inserire una funzione per le regex dell'am
+    // key -> regex, (OR sta hostname e IP)
+
     let am_alert_timeout = null;
     let row_data = null;
+
+    const get_measurement_regex = (measurement) => {
+
+        switch (measurement) {
+            default:
+            case "http":
+            case "https":
+            case "icmp":
+            case "cicmp":
+                return `${REGEXES["ipv4"]}|${REGEXES["domainName"]}`
+            case "cicmp6":
+            case "icmp6":
+                return `${REGEXES["ipv6"]}|${REGEXES["domainName"]}`
+        }
+    }
 
     const delete_host_modal = $(`#am-delete-modal form`).modalHandler({
         method: 'post',
@@ -35,6 +53,10 @@ $(document).ready(function() {
     let edit_host_data = null;
 
     $("#select-edit-measurement").on('change', function(event) {
+        const selected_measurement = $(this).val();
+        // change the pattern depending on the selected measurement
+        $(`#input-edit-host`).attr('pattern', get_measurement_regex(selected_measurement));
+
         dialogRefreshMeasurement($("#am-edit-modal"));
     });
 
@@ -347,7 +369,16 @@ $(document).ready(function() {
         addFilterDropdown(i18n.alert_status, filters, ALERTED_COLUMN_INDEX, "#am-table_filter", table_api);
     }
 
+    // select the first pattern based to the first selected measurement
+    // on the input-add-host
+    $(`#input-add-host`).attr('pattern', get_measurement_regex($("#select-add-measurement").val()));
+
     $("#select-add-measurement").on('change', function(event) {
+
+        const selected_measurement = $(this).val();
+        // change the pattern depending on the selected measurement
+        $(`#input-add-host`).attr('pattern', get_measurement_regex(selected_measurement));
+
         dialogRefreshMeasurement($("#am-add-modal"));
     });
 
