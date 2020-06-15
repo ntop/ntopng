@@ -83,13 +83,15 @@ $(document).ready(function () {
             $(`th`).removeClass(`text-center`).removeClass(`text-right`);
             // append the responsive filter for the table
             addResponsivenessFilter(tableAPI);
+
+            setInterval(() => { tableAPI.ajax.reload(); }, 30000);
+
         }
     });
 
     // initialize the DataTable with the created config
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
 
-    setInterval(() => { $snmpTable.ajax.reload(); }, 10000);
 
     $(`#table-devices`).on('click', `a[href='#delete_device_dialog']`, function (e) {
 
@@ -101,7 +103,7 @@ $(document).ready(function () {
 
     importModalHelper({
         load_config_xhr: (jsonConf) => {
-          return $.post(`${http_prefix}/`, {
+          return $.post(`${http_prefix}/lua/pro/import_snmp_devices_config.lua`, {
             csrf: importCsrf,
             JSON: jsonConf,
           });
