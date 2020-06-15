@@ -35,9 +35,37 @@ extern "C" {
 /* ******************************* */
 /* ******************************* */
 
+/* ******************************* */
+
+SNMPSession::SNMPSession() {
+  session_ptr = NULL;
+}
+
+/* ******************************* */
+
+SNMPSession::~SNMPSession() {
+  if(session_ptr)
+    snmp_sess_close(session_ptr);
+}
+
+/* ******************************* */
+
+SNMP::SNMP() {  
+  init_snmp("ntopng");
+}
+
+/* ******************************* */
+
+SNMP::~SNMP() {
+  for(unsigned int i=0; i<sessions.size(); i++)
+    delete sessions.at(i);  
+}
+
+/* ******************************* */
+
 /* http://www.net-snmp.org/docs/README.thread.html */
 
-void SNMP::handle_async_response(struct snmp_pdu *pdu) {
+void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
   netsnmp_variable_list *vp = pdu->variables;
   bool table_added = false;
 
@@ -45,13 +73,26 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu) {
     /* OID */
     char rsp_oid[128];
     int offset = 0;
-    
-    for(u_int i=0; i<vp->name_length; i++) {
-      int rc = snprintf(&rsp_oid[offset], sizeof(rsp_oid)-offset, "%s%d", (offset > 0) ? "." : "", (int)vp->name_loc[i]);
-      
-      if(rc > 0) offset += rc; else break;
+
+    if(add_sender_ip)
+      snprintf(rsp_oid, sizeof(rsp_oid), "%s", agent_ip);
+    else {
+      for(u_int i=0; i<vp->name_length; i++) {
+	int rc = snprintf(&rsp_oid[offset], sizeof(rsp_oid)-offset, "%s%d", (offset > 0) ? "." : "", (int)vp->name_loc[i]);
+	
+	if(rc > 0) offset += rc; else break;
+      }
     }
 
+    switch(vp->type) {
+    case SNMP_NOSUCHOBJECT:
+    case SNMP_NOSUCHINSTANCE:
+    case SNMP_ENDOFMIBVIEW:
+      vp = vp->next_variable;
+      continue; /* Error found */
+      break;
+    }
+    
     if(!table_added)
       lua_newtable(vm), table_added = true;
     
@@ -63,7 +104,7 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu) {
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %d", rsp_oid, vp->val.integer);
       lua_push_int32_table_entry(vm, rsp_oid, (u_int32_t)*vp->val.integer);
       break;
-      
+
     case ASN_OCTET_STR:
       {
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", rsp_oid, vp->val.string);
@@ -95,10 +136,14 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu) {
 
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing %d type handler", vp->type);
+      
     }
     
     vp = vp->next_variable;
   } /* while */
+
+  if(!table_added)
+    lua_pushnil(vm);
 }
 
 /* ******************************* */
@@ -108,37 +153,59 @@ int asynch_response(int operation, struct snmp_session *sp, int reqid,
   SNMP *s = (SNMP*)magic;
 
   if(operation == NETSNMP_CALLBACK_OP_RECEIVED_MESSAGE)
-    s->handle_async_response(pdu);
+    s->handle_async_response(pdu, sp->peername);
      
   return(0);
 }
 
 /* ******************************* */
   
-void SNMP::send_snmp_request_netsnmp(char *agent_host, char *community, bool isGetNext,
-				     char *_oid[SNMP_MAX_NUM_OIDS], u_int version) {
+void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
+			     char *_oid[SNMP_MAX_NUM_OIDS], u_int version,
+			     bool batch_mode) {
   int rc;
   struct snmp_pdu *pdu;
-
-  /* Initialize the session */
-  snmp_sess_init(&session);
-  session.peername = agent_host;
-
-  /* set the SNMP version number */
-  session.version = (version == 0) ? SNMP_VERSION_1 : SNMP_VERSION_2c;
-
-  /* set the SNMP community name used for authentication */
-  session.community = (u_char*)community;
-  session.community_len = strlen(community);
-  session.callback = asynch_response;
-  session.callback_magic = this;
+  SNMPSession *snmpSession;
+  bool initSession = false;
   
-  /* Open the session */
-  session_ptr = snmp_sess_open(&session);
-
+  if(batch_mode) {
+  create_snmp_session:
+    try {
+      snmpSession = new SNMPSession;
+      sessions.push_back(snmpSession);
+      initSession = true;
+    } catch(std::bad_alloc& ba) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to allocate SNMP session");
+      return;
+    }    
+  } else {
+    if(sessions.size() == 0) {
+      goto create_snmp_session;
+    } else {
+      snmpSession = sessions.at(0);
+    }
+  }
+  
+  /* Initialize the session */
+  if(initSession) {
+    snmp_sess_init(&snmpSession->session);
+    snmpSession->session.peername = agent_host;
+    
+    /* set the SNMP version number */
+    snmpSession->session.version = (version == 0) ? SNMP_VERSION_1 : SNMP_VERSION_2c;
+    
+    /* set the SNMP community name used for authentication */
+    snmpSession->session.community = (u_char*)community;
+    snmpSession->session.community_len = strlen(community);
+    snmpSession->session.callback = asynch_response;
+    snmpSession->session.callback_magic = this;
+  
+    /* Open the session */
+    snmpSession->session_ptr = snmp_sess_open(&snmpSession->session);
+  }
+  
   /* Create the PDU */
   if((pdu = snmp_pdu_create(isGetNext ? SNMP_MSG_GETNEXT : SNMP_MSG_GET)) == NULL) {
-    // snmp_sess_close(ss);
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU create error");
     return;
   }
@@ -155,41 +222,46 @@ void SNMP::send_snmp_request_netsnmp(char *agent_host, char *community, bool isG
   }
 
   /* Send the request */
-  if((rc = snmp_sess_send(session_ptr, pdu)) == 0) {
+  if((rc = snmp_sess_send(snmpSession->session_ptr, pdu)) == 0) {
     snmp_perror("snmp_sess_send");
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send error [rc: %d]", rc);
   }
 
-  snmp_free_pdu(pdu);
-  pdu = NULL;
+  //snmp_free_pdu(pdu); /* TODO: this is apparently freed when we close the session */
 }
 
 /* ******************************************* */
 
-int SNMP::snmp_read_response(lua_State* _vm, u_int timeout) {
+void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout, bool _add_sender_ip) {
   bool add_nil = true;
   
-  if(session_ptr) {
+  for(unsigned int i=0; i<sessions.size(); i++) {
     int numfds;
     fd_set fdset;
     struct timeval tvp;
     int count, block;
+    SNMPSession *snmpSession = sessions.at(i);
     
     numfds = 0;
     FD_ZERO(&fdset);
     tvp.tv_sec = timeout, tvp.tv_usec = 0;
     
-    snmp_sess_select_info(session_ptr, &numfds, &fdset, &tvp, &block);
+    snmp_sess_select_info(snmpSession->session_ptr, &numfds, &fdset, &tvp, &block);
     count = select(numfds, &fdset, NULL, NULL, &tvp);
     if(count > 0) {
-      vm = _vm, add_sender_ip = false;
-      snmp_sess_read(session_ptr, &fdset); /* Will trigger asynch_response() */
+      vm = _vm, add_sender_ip = _add_sender_ip;
+      snmp_sess_read(snmpSession->session_ptr, &fdset); /* Will trigger asynch_response() */
       add_nil = false;
     }
   }
+  
+  if(add_nil) lua_pushnil(_vm);
+}
 
-  if(add_nil) lua_pushnil(vm);
+/* ******************************************* */
 
+int SNMP::snmp_read_response(lua_State* _vm, u_int timeout) {
+  snmp_fetch_responses(_vm, timeout, false);
   return(CONST_LUA_OK);
 }
 
@@ -240,22 +312,97 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
   return(CONST_LUA_OK);
 }
 
-/* ******************************* */
-/* ******************************* */
+/* ******************************************* */
 
-#endif /* HAVE_LIBSNMP */
+void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
+			     char *oid[SNMP_MAX_NUM_OIDS], u_int version,
+			     bool batch_mode) {
+  u_int agent_port = 161;
+  int i = 0;
+  SNMPMessage *message;
+  int len;
+  u_char buf[1500];
+  int operation = isGetNext ? NTOP_SNMP_GETNEXT_REQUEST_TYPE : NTOP_SNMP_GET_REQUEST_TYPE;
 
-/* Common code */
+  if((message = snmp_create_message())) {
+    snmp_set_version(message, version);
+    snmp_set_community(message, community);
+    snmp_set_pdu_type(message, operation);
+    snmp_set_request_id(message, request_id++);
+    snmp_set_error(message, 0);
+    snmp_set_error_index(message, 0);
+
+    for(i=0; i<SNMP_MAX_NUM_OIDS; i++) {
+      if(oid[i] != NULL)
+	snmp_add_varbind_null(message, oid[i]);
+      else
+	break;
+    }
+
+    len = snmp_message_length(message);
+    snmp_render_message(message, buf);
+    snmp_destroy_message(message);
+    free(message); /* malloc'd by snmp_create_message */
+
+    send_udp_datagram(buf, len, udp_sock, agent_host, agent_port);
+  }
+}
+
+/* ******************************************* */
+
+void SNMP::snmp_fetch_responses(lua_State* vm, u_int sec_timeout, bool add_sender_ip) {
+   int i = 0;
+
+   if(ntop->getGlobals()->isShutdown()
+      || input_timeout(udp_sock, sec_timeout) == 0) {
+     /* Timeout or shutdown in progress */
+   } else {
+     char buf[BUFLEN];
+     SNMPMessage *message;
+     char *sender_host, *oid_str, *value_str = NULL;
+     int sender_port, len;
+
+     len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
+
+     if((message = snmp_parse_message(buf, len))) {
+       bool table_added = false;
+
+       i = 0;
+
+       while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
+	 if(value_str /* && (value_str[0] != '\0') */) {
+	   if(!table_added)
+	     lua_newtable(vm), table_added = true;
+
+	   if(add_sender_ip /* Used in batch mode */) {
+	     /*
+	       The key is the IP address as this is used when contacting multiple
+	       hosts so we need to know who has sent back the response
+	     */
+	     lua_push_str_table_entry(vm, sender_host /* Sender IP */, value_str);
+	   } else
+	     lua_push_str_table_entry(vm, oid_str, value_str);
+
+	   free(value_str), value_str = NULL; /* malloc'd by snmp_get_varbind_as_string */
+	 }
+
+	 i++;
+       } /* while */
+
+       snmp_destroy_message(message);
+       free(message); /* malloc'd by snmp_parse_message */
+       if(table_added)
+	 return;
+     }
+   }
+
+   lua_pushnil(vm);
+ }
 
 /* ******************************* */
 
 SNMP::SNMP() {
   char version[4] = { '\0' };
-
-#ifdef HAVE_LIBSNMP
-  init_snmp("ntopng");
-  ss = NULL;
-#endif
 
   ntop->getRedis()->get((char*)CONST_RUNTIME_PREFS_SNMP_PROTO_VERSION, version, sizeof(version));
 
@@ -273,6 +420,13 @@ SNMP::SNMP() {
 SNMP::~SNMP() {
   if(udp_sock != -1) closesocket(udp_sock);
 }
+
+/* ******************************* */
+/* ******************************* */
+
+#endif /* HAVE_LIBSNMP */
+
+/* Common code */
 
 /* ******************************************* */
 
@@ -326,100 +480,6 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param) {
     return(snmp_read_response(vm, timeout));
 }
 
-/* ******************************************* */
-
-void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
-			     char *oid[SNMP_MAX_NUM_OIDS], u_int version,
-			     bool batch_mode) {
-#ifdef HAVE_LIBSNMP
-  if(!batch_mode) {
-    /* NET-SNMP does not support batch mode */
-    send_snmp_request_netsnmp(agent_host, community, isGetNext, oid, version);
-    return;
-  }
-#endif
-  
-  u_int agent_port = 161;
-  int i = 0;
-  SNMPMessage *message;
-  int len;
-  u_char buf[1500];
-  int operation = isGetNext ? NTOP_SNMP_GETNEXT_REQUEST_TYPE : NTOP_SNMP_GET_REQUEST_TYPE;
-
-  if((message = snmp_create_message())) {
-    snmp_set_version(message, version);
-    snmp_set_community(message, community);
-    snmp_set_pdu_type(message, operation);
-    snmp_set_request_id(message, request_id++);
-    snmp_set_error(message, 0);
-    snmp_set_error_index(message, 0);
-
-    for(i=0; i<SNMP_MAX_NUM_OIDS; i++) {
-      if(oid[i] != NULL)
-	snmp_add_varbind_null(message, oid[i]);
-      else
-	break;
-    }
-
-    len = snmp_message_length(message);
-    snmp_render_message(message, buf);
-    snmp_destroy_message(message);
-    free(message); /* malloc'd by snmp_create_message */
-
-    send_udp_datagram(buf, len, udp_sock, agent_host, agent_port);
-  }
-}
-
-/* ******************************************* */
-
- void SNMP::snmp_fetch_responses(lua_State* vm, u_int sec_timeout, bool add_sender_ip) {
-   int i = 0;
-
-   if(ntop->getGlobals()->isShutdown()
-      || input_timeout(udp_sock, sec_timeout) == 0) {
-     /* Timeout or shutdown in progress */
-   } else {
-     char buf[BUFLEN];
-     SNMPMessage *message;
-     char *sender_host, *oid_str, *value_str = NULL;
-     int sender_port, len;
-
-     len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
-
-     if((message = snmp_parse_message(buf, len))) {
-       bool table_added = false;
-
-       i = 0;
-
-       while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
-	 if(value_str /* && (value_str[0] != '\0') */) {
-	   if(!table_added)
-	     lua_newtable(vm), table_added = true;
-
-	   if(add_sender_ip /* Used in batch mode */) {
-	     /*
-	       The key is the IP address as this is used when contacting multiple
-	       hosts so we need to know who has sent back the response
-	     */
-	     lua_push_str_table_entry(vm, sender_host /* Sender IP */, value_str);
-	   } else
-	     lua_push_str_table_entry(vm, oid_str, value_str);
-
-	   free(value_str), value_str = NULL; /* malloc'd by snmp_get_varbind_as_string */
-	 }
-
-	 i++;
-       } /* while */
-
-       snmp_destroy_message(message);
-       free(message); /* malloc'd by snmp_parse_message */
-       if(table_added)
-	 return;
-     }
-   }
-
-   lua_pushnil(vm);
- }
 
 
 

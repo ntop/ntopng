@@ -34,17 +34,28 @@
 
 /* ******************************* */
 
+#ifdef HAVE_LIBSNMP
+class SNMPSession {
+ public:
+  struct snmp_session session;
+  void *session_ptr;
+
+  SNMPSession();
+  ~SNMPSession();
+};
+#endif
+
 class SNMP {
  private:
   u_int snmp_version;
-  int udp_sock;
-  u_int32_t request_id;
 #ifdef HAVE_LIBSNMP
-  struct snmp_session session, *ss;
-  void *session_ptr;
+  std::vector<SNMPSession*> sessions;
   /* Variables below are used for the async callback */
   lua_State* vm;
   bool add_sender_ip;
+#else
+  int udp_sock;
+  u_int32_t request_id;
 #endif
 
   int _get(char *agentIP, char *community, char *oid, u_int8_t snmp_version);
@@ -57,7 +68,7 @@ class SNMP {
   ~SNMP();
 
 #ifdef HAVE_LIBSNMP
-  void handle_async_response(struct snmp_pdu *pdu);
+  void handle_async_response(struct snmp_pdu *pdu, const char *agent_ip);
   void send_snmp_request_netsnmp(char *agent_host, char *community, bool isGetNext,
 				 char *oid[SNMP_MAX_NUM_OIDS], u_int version);
 #endif  
