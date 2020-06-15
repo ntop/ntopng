@@ -160,10 +160,11 @@ int asynch_response(int operation, struct snmp_session *sp, int reqid,
 
 /* ******************************* */
   
-void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
+void SNMP::send_snmp_request(char *agent_host, char *community,
+			     u_int8_t pduType,
 			     char *_oid[SNMP_MAX_NUM_OIDS], u_int version,
 			     bool batch_mode) {
-  int rc;
+  int rc, pdu_type;
   struct snmp_pdu *pdu;
   SNMPSession *snmpSession;
   bool initSession = false;
@@ -205,11 +206,28 @@ void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
   }
   
   /* Create the PDU */
-  if((pdu = snmp_pdu_create(isGetNext ? SNMP_MSG_GETNEXT : SNMP_MSG_GET)) == NULL) {
+  switch(pduType) {
+  case 0:
+    pdu_type = SNMP_MSG_GET;
+    break;
+  case 1:
+    pdu_type = SNMP_MSG_GETNEXT;
+    break;
+  case 2:
+    pdu_type = SNMP_MSG_GETBULK;
+    break;
+  }
+  
+  if((pdu = snmp_pdu_create(pdu_type)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU create error");
     return;
   }
 
+  if(pduType == SNMP_MSG_GETBULK) {
+    pdu->non_repeaters   = 0; /* GET      */
+    pdu->max_repetitions = 3; /* GET-NEXT */
+  }
+  
   for(u_int i=0; i<SNMP_MAX_NUM_OIDS; i++) {
     if(_oid[i] != NULL) {
       size_t name_length = MAX_OID_LEN;
@@ -314,7 +332,8 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
 
 /* ******************************************* */
 
-void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
+void SNMP::send_snmp_request(char *agent_host, char *community,
+			     u_int8_t pduType,
 			     char *oid[SNMP_MAX_NUM_OIDS], u_int version,
 			     bool batch_mode) {
   u_int agent_port = 161;
@@ -322,7 +341,7 @@ void SNMP::send_snmp_request(char *agent_host, char *community, bool isGetNext,
   SNMPMessage *message;
   int len;
   u_char buf[1500];
-  int operation = isGetNext ? NTOP_SNMP_GETNEXT_REQUEST_TYPE : NTOP_SNMP_GET_REQUEST_TYPE;
+  int operation = (pduType == 0) ? NTOP_SNMP_GET_REQUEST_TYPE : NTOP_SNMP_GETNEXT_REQUEST_TYPE;
 
   if((message = snmp_create_message())) {
     snmp_set_version(message, version);
@@ -431,18 +450,30 @@ SNMP::~SNMP() {
 /* ******************************************* */
 
 int SNMP::get(lua_State* vm, bool skip_first_param) {
-  return(snmp_get_fctn(vm, false, skip_first_param));
+  return(snmp_get_fctn(vm, 0 /* GET */, skip_first_param));
 }
 
 /* ******************************************* */
 
 int SNMP::getnext(lua_State* vm, bool skip_first_param) {
-  return(snmp_get_fctn(vm, true, skip_first_param));
+  return(snmp_get_fctn(vm, 1 /* GET-NEXT */, skip_first_param));
 }
 
 /* ******************************************* */
 
-int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param) {
+int SNMP::getnextbulk(lua_State* vm, bool skip_first_param) {
+  return(snmp_get_fctn(vm,
+#ifdef HAVE_LIBSNMP
+		       2 /* GET-BULK (next only) */,
+#else
+		       1 /* GET-NEXT (no bulk) */, 
+#endif
+		       skip_first_param));
+}
+
+/* ******************************************* */
+
+int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param) {
   char *agent_host, *community;
   u_int timeout = 5, version = snmp_version, oid_idx = 0, idx = skip_first_param ? 2 : 1;
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
@@ -460,7 +491,7 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param) {
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
   version = (u_int)lua_tointeger(vm, idx++);
 
-  /* Add additional/optional OIDs */
+  /* Add OIDs */
   while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, idx) == LUA_TSTRING)) {
     oid[oid_idx++] = (char*)lua_tostring(vm, idx);
     idx++;
@@ -471,7 +502,7 @@ int SNMP::snmp_get_fctn(lua_State* vm, bool isGetNext, bool skip_first_param) {
     return(CONST_LUA_ERROR);
   }
 
-  send_snmp_request(agent_host, community, isGetNext, oid, version,
+  send_snmp_request(agent_host, community, pduType, oid, version,
 		    skip_first_param /* batch mode */);
 
   if(skip_first_param)

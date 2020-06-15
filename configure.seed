@@ -418,12 +418,13 @@ fi
 
 SNMP_LIB=
 SNMP_INC=
-if test "${with_nedge+set}" != set; then
-  AC_CHECK_LIB([snmp], [init_snmp])
-  if test "x$ac_cv_lib_snmp_init_snmp" = xyes; then :
-   SNMP_LIB="-lsnmp"
-  fi
-fi
+dnl> if test "${with_nedge+set}" != set; then
+dnl> Work in progress
+dnl>   AC_CHECK_LIB([snmp], [init_snmp])
+dnl>   if test "x$ac_cv_lib_snmp_init_snmp" = xyes; then :
+dnl>    SNMP_LIB="-lsnmp"
+dnl>   fi
+dnl> fi
 
 if test "${with_nedge+set}" != set; then
  PFRING_GIT_RELEASE=""
