@@ -101,7 +101,9 @@ $(document).ready(function () {
         if (flows.length == 0) return;
 
         const client = flows[0].client;
-        const servers = flows.map((flow) => flow.server);
+        const servers_flow = flows.map((flow) => flow.server);
+        const servers = [... new Set(servers_flow)];
+        console.log(servers);
 
         // draw only drawable server markers
         servers.filter(s => s.isDrawable).forEach(s => {
