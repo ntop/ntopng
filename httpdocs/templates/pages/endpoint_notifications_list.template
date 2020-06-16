@@ -13,7 +13,7 @@
 </div>
 
 <template id="email-template">
-{{ plugins_utils.renderTemplate("email_alert_endpoint", "email_endpoint.template") }}
+{* plugins_utils.renderTemplate("email_alert_endpoint", "email_endpoint.template") *}
 </template>
 
 {* template_utils.gen("pages/modals/endpoint_notifications/add.template", notifications) *}
