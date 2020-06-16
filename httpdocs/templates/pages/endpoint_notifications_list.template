@@ -12,26 +12,9 @@
     </div>
 </div>
 
-{# Generate a template for each endpoint entry #}
-{% for endpoint_key, endpoint in pairs(notifications.endpoints) do %}
-    <template id="{{ endpoint_key }}-template">
-        {% for i, param in ipairs(endpoint.conf_params) do %}
-        <div class="form-group row">
-            <label class="col-form-label col-sm-3">
-                {{ param.param_name }}
-            </label>
-            <div class="col-sm-5">
-                <input
-                    name="{{ param.param_name }}"
-                    type="{{ param.param_type }}"
-                    class="form-control"
-                    {{ (param.regex and 'pattern='..param.regex..'' or '') }}
-                    {{ (param.optional and '' or 'required') }}>
-            </div>
-        </div>
-        {% end %}
-    </template>
-{% end %}
+<template id="email-template">
+{{ plugins_utils.renderTemplate("email_alert_endpoint", "templates/email_endpoint.template") }}
+</template>
 
 {* template_utils.gen("pages/modals/endpoint_notifications/add.template", notifications) *}
 {* template_utils.gen("pages/modals/endpoint_notifications/remove.template", notifications) *}

@@ -1,0 +1,32 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("email_alert_endpoint.smtpx_server") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input pattern="[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+" name="smtp_server" type="text" class="form-control" required />
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("email_alert_endpoint.email_sender") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input name="email_sender" type="email" class="form-control" required />
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("email_alert_endpoint.smtp_username") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input name="smtp_username" type="email" class="form-control" />
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("email_alert_endpoint.smtp_password") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input name="smtp_password" type="password" class="form-control" />
+    </div>
+</div>

@@ -1008,6 +1008,14 @@ local lang = {
     ["reply_breakdown"] = "Reply Breakdown",
     ["request_vs_reply"] = "Request vs Reply Ratio",
   },
+  ["email_alert_endpoint"] = {
+    ["carbon_copy"] = "CC",
+    ["email_recipient"] = "Email Recipient",
+    ["email_sender"] = "Email Sender",
+    ["smtp_password"] = "SMTP Password",
+    ["smtp_server"] = "SMTP Server",
+    ["smtp_username"] = "SMTP Username",
+  },
   ["endpoint_notifications"] = {
     ["actions"] = "Actions",
     ["add_new_endpoint"] = "Add New Endpoint",

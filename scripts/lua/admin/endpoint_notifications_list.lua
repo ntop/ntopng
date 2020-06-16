@@ -30,6 +30,7 @@ local context = {
         endpoints = notification_configs.get_types(),
     },
     template_utils = template,
+    plugins_utils = plugins_utils,
     page_utils = page_utils,
     json = json,
     info = ntop.getInfo()
