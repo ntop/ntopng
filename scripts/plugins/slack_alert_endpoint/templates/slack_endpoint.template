@@ -1,0 +1,16 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("slack_alert_endpoint.sender_username") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input name="sender_username" type="text" class="form-control" required />
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("slack_alert_endpoint.notification_webhook") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input name="notification_webhook" type="text" class="form-control" required />
+    </div>
+</div>

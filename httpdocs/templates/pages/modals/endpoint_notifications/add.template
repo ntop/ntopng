@@ -28,6 +28,9 @@
                                 {% for endpoint_key, endpoint in pairs(endpoints) do %}
                                     <option value="{{ endpoint_key }}">{{ endpoint_key }}</option>
                                 {% end %}
+                                    <option value="slack">Slack</option>
+                                    <option value="webhook">Webhook</option>
+                                    <option value="syslog">Syslog</option>
                             </select>
                         </div>
                     </div>

@@ -3743,6 +3743,10 @@ local lang = {
     ["top_sites_not_seen"] = "Current local host has not visited any website yet.",
     ["top_visited_sites"] = "Top Visited Sites",
   },
+  ["slack_alert_endpoint"] = {
+    ["notification_webhook"] = "Notification Webhook",
+    ["sender_username"] = "Sender Username",
+  },
   ["snmp"] = {
     ["AlertDescription"] = "Alert Description",
     ["ConsoleDisplayBufferText"] = "Display Text",
@@ -3930,6 +3934,11 @@ local lang = {
     ["producer_host"] = "Log Producer IP",
     ["producer_type"] = "Log Producer Type",
     ["producers"] = "Syslog Log Producers",
+  },
+  ["syslog_alert_endpoint"] = {
+    ["content"] = "Content",
+    ["text"] = "Text",
+    ["type"] = "Type",
   },
   ["system_interfaces_stats"] = {
     ["local_hosts"] = "Local Hosts",
@@ -4287,6 +4296,12 @@ local lang = {
   ["vlan_stats"] = {
     ["vlan_id"] = "VLAN ID",
     ["vlans"] = "VLANs",
+  },
+  ["webhook_alert_endpoint"] = {
+    ["password"] = "Password",
+    ["shared_secret"] = "Shared Secret",
+    ["url"] = "URL",
+    ["username"] = "Username",
   },
 }
 

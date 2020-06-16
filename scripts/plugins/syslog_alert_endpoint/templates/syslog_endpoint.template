@@ -1,0 +1,19 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("syslog_alert_endpoint.type") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <select name="type" class="form-control" required>
+            <option value="text">{{ i18n("syslog_alert_endpoint.text") }}</option>
+            <option value="json">JSON</option>
+        </select>
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("syslog_alert_endpoint.content") }}</b>
+    </label>
+    <div class="col-sm-7">
+        <textarea name="content" rows="5" class="form-control" required></textarea>
+    </div>
+</div>
