@@ -2306,6 +2306,7 @@ function haveAdminPrivileges(isJsonResponse)
 
    if (isJson) then
       local json = require("dkjson")
+      sendHTTPContentTypeHeader('application/json')
       print(json.encode({}))
    else
       local page_utils = require("page_utils")

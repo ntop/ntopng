@@ -103,7 +103,7 @@ $(document).ready(function () {
 
     importModalHelper({
         load_config_xhr: (jsonConf) => {
-          return $.post(`${http_prefix}/lua/pro/import_snmp_devices_config.lua`, {
+          return $.post(`${http_prefix}/lua/pro/enterprise/import_snmp_devices_config.lua`, {
             csrf: importCsrf,
             JSON: jsonConf,
           });
