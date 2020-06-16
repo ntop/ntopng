@@ -219,7 +219,7 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local name = value["name"]
    if isEmptyString(name) then
-      local hinfo = hostkey2hostinfo(word)
+      local hinfo = hostkey2hostinfo(key)
       name = hostinfo2label(hinfo)
    end
    if isEmptyString(name) then
@@ -228,9 +228,10 @@ for _key, _value in pairsByKeys(vals, funct) do
    if value["ip"] ~= nil then
       local label = hostinfo2label(value)
       if label ~= value["ip"] and name ~= label then
-      name = name .. " ["..label.."]"
+         name = name .. " ["..label.."]"
       end
    end
+
    record["name"] = name
 
    record["thpt"] = {}

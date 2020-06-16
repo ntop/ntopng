@@ -274,7 +274,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if(value["name"] == nil) then
-      local hinfo = hostkey2hostinfo(word)
+      local hinfo = hostkey2hostinfo(key)
       value["name"] = hostinfo2label(hinfo)
    end
 
