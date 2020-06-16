@@ -40,7 +40,7 @@ int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type) 
 				 lua_typename(vm, lua_type(vm,pos)));
     return(CONST_LUA_PARAM_ERROR);
   }
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -520,7 +520,7 @@ static int ntop_startCustomCategoriesReload(lua_State* vm) {
     lua_pushboolean(vm, false);
     return(CONST_LUA_OK);
   }
-  
+
   lua_pushboolean(vm, true /* can now start reloading */);
   return(CONST_LUA_OK);
 }
@@ -538,7 +538,7 @@ static int ntop_loadCustomCategoryIp(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
   ntop->nDPILoadIPCategory(net, catid);
-  
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -555,8 +555,8 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
   host = (char*)lua_tostring(vm, 1);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   catid = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
-  ntop->nDPILoadHostnameCategory(host, catid);  
-  
+  ntop->nDPILoadHostnameCategory(host, catid);
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -565,10 +565,10 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
 
 /* NOTE: ntop.startCustomCategoriesReload() must be called before this */
 static int ntop_reloadCustomCategories(lua_State* vm) {
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Starting category lists reload");
   ntop->reloadCustomCategories();
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists reload done");
   ntop->setLastInterfacenDPIReload(time(NULL));
   ntop->setnDPICleanupNeeded(true);
@@ -880,7 +880,7 @@ static int ntop_list_dir_files(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  path = (char*)lua_tostring(vm, 1);  
+  path = (char*)lua_tostring(vm, 1);
   ntop->fixPath(path);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Listing directory %s", path);
@@ -1334,7 +1334,7 @@ static int ntop_speedtest(lua_State* vm) {
     json_object_put(rc);
   } else
     lua_pushnil(vm);
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -1512,7 +1512,7 @@ static int ntop_ping_host(lua_State* vm) {
   char *host;
   bool is_v6;
   bool continuous = false;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -1522,11 +1522,11 @@ static int ntop_ping_host(lua_State* vm) {
   is_v6 = (bool)lua_toboolean(vm, 2);
 
   if(lua_type(vm, 3) == LUA_TBOOLEAN)
-    continuous = lua_toboolean(vm, 3) ? true : false;  
+    continuous = lua_toboolean(vm, 3) ? true : false;
 
   if(!continuous) {
     /* Pin one shot */
-    
+
     if(getLuaVMUservalue(vm, ping) == NULL) {
       Ping *ping;
 
@@ -1536,7 +1536,7 @@ static int ntop_ping_host(lua_State* vm) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
 	ping = NULL;
       }
-    
+
       if(ping == NULL) {
 	lua_pushnil(vm);
 	return(CONST_LUA_OK);
@@ -1548,7 +1548,7 @@ static int ntop_ping_host(lua_State* vm) {
   } else {
     /* This is a continuous ping instead */
     ContinuousPing *c = ntop->getContinuousPing();
-    
+
     if(c)
       c->ping(host, is_v6);
     else {
@@ -1556,7 +1556,7 @@ static int ntop_ping_host(lua_State* vm) {
       return(CONST_LUA_OK);
     }
   }
-  
+
   return(CONST_LUA_OK);
 #endif
 }
@@ -1575,8 +1575,8 @@ static int ntop_collect_ping_results(lua_State* vm) {
   v6 = lua_toboolean(vm, 1) ? true : false;
 
   if(lua_type(vm, 2) == LUA_TBOOLEAN)
-    continuous = lua_toboolean(vm, 2) ? true : false;  
-  
+    continuous = lua_toboolean(vm, 2) ? true : false;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!continuous) {
@@ -1584,14 +1584,14 @@ static int ntop_collect_ping_results(lua_State* vm) {
       lua_pushnil(vm);
       return(CONST_LUA_OK);
     } else {
-      getLuaVMUservalue(vm, ping)->collectResponses(vm, v6);  
+      getLuaVMUservalue(vm, ping)->collectResponses(vm, v6);
       return(CONST_LUA_OK);
     }
   } else {
-    ntop->getContinuousPing()->collectResponses(vm, v6);  
+    ntop->getContinuousPing()->collectResponses(vm, v6);
     return(CONST_LUA_OK);
   }
-  
+
   #endif
 }
 
@@ -2119,6 +2119,16 @@ void lua_push_uint64_table_entry(lua_State *L, const char *key, u_int64_t value)
 
 /* ****************************************** */
 
+void lua_push_uint32_table_entry(lua_State *L, const char *key, u_int32_t value) {
+  if(L) {
+    lua_pushstring(L, key);
+    lua_pushinteger(L, (lua_Integer)value);
+    lua_settable(L, -3);
+  }
+}
+  
+/* ****************************************** */
+
 void lua_push_int32_table_entry(lua_State *L, const char *key, int32_t value) {
   if(L) {
     lua_pushstring(L, key);
@@ -2431,7 +2441,7 @@ static int ntop_get_current_plugins_dir(lua_State* vm) {
 
   lua_pushstring(vm, ntop->get_plugins_dir());
 
-  return(CONST_LUA_OK); 
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -2441,7 +2451,7 @@ static int ntop_get_shadow_plugins_dir(lua_State* vm) {
 
   lua_pushstring(vm, ntop->get_shadow_plugins_dir());
 
-  return(CONST_LUA_OK); 
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -2452,7 +2462,7 @@ static int ntop_swap_plugins_dir(lua_State* vm) {
   ntop->swap_plugins_dir();
   lua_pushstring(vm, ntop->get_plugins_dir());
 
-  return(CONST_LUA_OK); 
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -2563,14 +2573,14 @@ static int ntop_get_info(lua_State* vm) {
     verbose = lua_toboolean(vm, 1) ? true : false;
 
   lua_newtable(vm);
-  lua_push_str_table_entry(vm, "product", 
+  lua_push_str_table_entry(vm, "product",
 #ifdef NTOPNG_PRO
                            ntop->getPro()->get_product_name()
 #else
                            (char*)"ntopng"
 #endif
   );
-  lua_push_bool_table_entry(vm, "oem", 
+  lua_push_bool_table_entry(vm, "oem",
 #ifdef NTOPNG_PRO
                             ntop->getPro()->is_oem()
 #else
@@ -2778,8 +2788,9 @@ static int ntop_resolve_host(lua_State* vm) {
 #ifndef HAVE_NEDGE
 
 /* Synchronous calls */
-static int ntop_snmpget(lua_State* vm)          { SNMP s; return(s.get(vm, false));     }
-static int ntop_snmpgetnext(lua_State* vm)      { SNMP s; return(s.getnext(vm, false)); }
+static int ntop_snmpget(lua_State* vm)          { SNMP s; return(s.get(vm, false));         }
+static int ntop_snmpgetnext(lua_State* vm)      { SNMP s; return(s.getnext(vm, false));     }
+static int ntop_snmpgetnextbulk(lua_State* vm)  { SNMP s; return(s.getnextbulk(vm, false)); }
 
 /* ****************************************** */
 
@@ -2788,7 +2799,7 @@ static int ntop_allocasnyncengine(lua_State* vm) {
   SNMP **snmpAsyncEngine       = getLuaVMUserdata(vm, snmpAsyncEngine);
   u_int8_t slot_id;
   bool found_empty_slot = false;
-  
+
   for(slot_id=0; slot_id<MAX_NUM_ASYNC_SNMP_ENGINES; slot_id++) {
     if(snmpAsyncEngine[slot_id] == NULL) {
       found_empty_slot = true;
@@ -2796,7 +2807,7 @@ static int ntop_allocasnyncengine(lua_State* vm) {
     }
   } /* for */
 
-  if(found_empty_slot) {    
+  if(found_empty_slot) {
     if((snmpAsyncEngine[slot_id] = new SNMP()) != NULL) {
       lua_pushinteger(vm, slot_id);
       return(CONST_LUA_OK);
@@ -2804,7 +2815,7 @@ static int ntop_allocasnyncengine(lua_State* vm) {
   }
 
   lua_pushnil(vm);
-  return(CONST_LUA_OK);      
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -2838,7 +2849,7 @@ static int ntop_snmpgetasync(lua_State* vm) {
   if((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES)
      || (snmpAsyncEngine[slot_id] == NULL))
     return(CONST_LUA_ERROR); /* Invalid slot selected */
-  
+
   return(snmpAsyncEngine[slot_id]->get(vm, true /* Skip first param */));
 }
 
@@ -2854,8 +2865,24 @@ static int ntop_snmpgetnextasync(lua_State* vm) {
   if((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES)
      || (snmpAsyncEngine[slot_id] == NULL))
     return(CONST_LUA_ERROR); /* Invalid slot selected */
-  
+
   return(snmpAsyncEngine[slot_id]->getnext(vm, true /* Skip first param */));
+}
+
+/* ****************************************** */
+
+static int ntop_snmpgetnextbulkasync(lua_State* vm) {
+  SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
+  u_int8_t slot_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  slot_id = (u_int8_t)lua_tonumber(vm, 1);
+
+  if((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES)
+     || (snmpAsyncEngine[slot_id] == NULL))
+    return(CONST_LUA_ERROR); /* Invalid slot selected */
+
+  return(snmpAsyncEngine[slot_id]->getnextbulk(vm, true /* Skip first param */));
 }
 
 /* ****************************************** */
@@ -2870,8 +2897,8 @@ static int ntop_snmpreadasyncrsp(lua_State* vm) {
   if((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES)
      || (snmpAsyncEngine[slot_id] == NULL))
     return(CONST_LUA_ERROR); /* Invalid slot selected */
-  
-  snmpAsyncEngine[slot_id]->snmp_fetch_responses(vm, 0 /* Don't wait */, false /* Don't add Host IP */);
+
+  snmpAsyncEngine[slot_id]->snmp_fetch_responses(vm, 0 /* Don't wait */);
   return(CONST_LUA_OK);
 }
 
@@ -2903,10 +2930,10 @@ static int ntop_snmp_batch_get(lua_State* vm) {
     getLuaVMUservalue(vm, snmpBatch) = snmp;
   }
 
-  snmp->send_snmp_request((char*)lua_tostring(vm, 1),
-			  (char*)lua_tostring(vm, 2),
+  snmp->send_snmp_request((char*)lua_tostring(vm, 1), /* agent_host */
+			  (char*)lua_tostring(vm, 2), /* community */
 			  false /* SNMP GET */, oid,
-			  (u_int)lua_tonumber(vm, 4),
+			  (u_int)lua_tonumber(vm, 4), /* version */
 			  true /* batch */);
 
   lua_pushnil(vm);
@@ -2919,7 +2946,7 @@ static int ntop_snmp_read_responses(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   SNMP *snmp = getLuaVMUserdata(vm, snmpBatch);
   int timeout = 0;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if((!ntop_interface) || (!snmp))
@@ -2928,7 +2955,7 @@ static int ntop_snmp_read_responses(lua_State* vm) {
   /* Optional timeout */
   if(lua_type(vm, 1) == LUA_TNUMBER) timeout = lua_tonumber(vm, 1);
 
-  snmp->snmp_fetch_responses(vm, timeout, true /* Add Host IP */);
+  snmp->snmp_fetch_responses(vm, timeout);
   return(CONST_LUA_OK);
 }
 
@@ -3649,7 +3676,7 @@ static int ntop_delete_old_rrd_files(lua_State *vm) {
 static int ntop_mkdir_tree(lua_State* vm) {
   char *dir;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushnil(vm);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
@@ -3661,7 +3688,7 @@ static int ntop_mkdir_tree(lua_State* vm) {
   }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Trying to created directory %s", dir);
-    
+
   lua_pushboolean(vm, Utils::mkdir_tree(dir));
   return(CONST_LUA_OK);
 }
@@ -4350,7 +4377,7 @@ static int ntop_reload_traffic_profiles(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_set_redis(lua_State* vm) {
-  char *key, *value;
+  char *key, *value, buf[16];
   u_int expire_secs = 0;  // default 0 = no expiration
   Redis *redis = ntop->getRedis();
 
@@ -4359,8 +4386,14 @@ static int ntop_set_redis(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((value = (char*)lua_tostring(vm, 2)) == NULL)     return(CONST_LUA_PARAM_ERROR);
+  if(lua_type(vm, 2) == LUA_TSTRING) {
+    if((value = (char*)lua_tostring(vm, 2)) == NULL)   return(CONST_LUA_PARAM_ERROR);
+  } else if(lua_type(vm, 2) == LUA_TNUMBER) {
+    u_int v = (u_int)lua_tonumber(vm, 2);
+    snprintf(buf, sizeof(buf), "%u", v);
+    value = buf;
+  } else
+    return(CONST_LUA_PARAM_ERROR);
 
   /* Optional key expiration in SECONDS */
   if(lua_type(vm, 3) == LUA_TNUMBER)
@@ -4441,7 +4474,7 @@ static int ntop_lua_http_print(lua_State* vm) {
   case LUA_TTABLE:
     {
       lua_pushnil(vm);
-      
+
       while(lua_next(vm, -2) != 0) {
 	const char *key = lua_tostring(vm, -2);
 
@@ -4457,7 +4490,7 @@ static int ntop_lua_http_print(lua_State* vm) {
       }
     }
   break;
-  
+
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled",
 				 __FUNCTION__, t);
@@ -5457,7 +5490,7 @@ static const luaL_Reg ntop_reg[] = {
   { "hasPluginsReloaded",  ntop_has_plugins_reloaded  },
   { "setAlertsTemporaryDisabled", ntop_temporary_disable_alerts },
   { "setDefaultFilePermissions",  ntop_set_default_file_permissions },
-  
+
 #ifdef NTOPNG_PRO
 #ifndef WIN32
   { "sendNagiosAlert",        ntop_nagios_send_alert     },
@@ -5526,7 +5559,7 @@ static const luaL_Reg ntop_reg[] = {
   { "isPingAvailable",	    ntop_is_ping_available      },
   { "pingHost",             ntop_ping_host              },
   { "collectPingResults",   ntop_collect_ping_results   },
-  
+
   /* HTTP utils */
   { "httpRedirect",         ntop_http_redirect          },
   { "getHttpPrefix",        ntop_http_get_prefix        },
@@ -5590,17 +5623,19 @@ static const luaL_Reg ntop_reg[] = {
   /* Synchronous */
   { "snmpget",             ntop_snmpget                      },
   { "snmpgetnext",         ntop_snmpgetnext                  },
+  { "snmpgetnextbulk",     ntop_snmpgetnextbulk              },
 
   /* Asynchronous */
   { "snmpallocasnyncengine", ntop_allocasnyncengine,         },
   { "snmpfreeasnycengine",   ntop_freeasnyncengine,          },
   { "snmpgetasync",          ntop_snmpgetasync               },
-  { "snmpgetnextasync",      ntop_snmpgetnextasync           },	
+  { "snmpgetnextasync",      ntop_snmpgetnextasync           },
+  { "snmpgetnextbulkasync",  ntop_snmpgetnextbulkasync       },
   { "snmpreadasyncrsp",      ntop_snmpreadasyncrsp           },
 
   /* Batch */
-  { "snmpGetBatch",        ntop_snmp_batch_get               },
-  { "snmpReadResponses",   ntop_snmp_read_responses          },
+  { "snmpGetBatch",          ntop_snmp_batch_get             },
+  { "snmpReadResponses",     ntop_snmp_read_responses        },
 #endif
 
   /* Runtime */
@@ -5683,7 +5718,7 @@ static const luaL_Reg ntop_reg[] = {
 
   /* System User Scripts */
   { "checkSystemScriptsMin",     ntop_check_system_scripts_min       },
-  { "checkSystemScripts5Min",    ntop_check_system_scripts_5min      }, 
+  { "checkSystemScripts5Min",    ntop_check_system_scripts_5min      },
   { "checkSystemScriptsHour",    ntop_check_system_scripts_hour      },
   { "checkSystemScriptsDay",     ntop_check_system_scripts_day       },
   { "checkSNMPDeviceAlerts5Min", ntop_check_snmp_device_alerts_5min  },
@@ -5694,7 +5729,6 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Speedtest */
   { "speedtest",                 ntop_speedtest                      },
-  
+
   { NULL,          NULL}
 };
-

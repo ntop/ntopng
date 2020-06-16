@@ -48,37 +48,37 @@ class SNMPSession {
 class SNMP {
  private:
   u_int snmp_version;
+  bool batch_mode;
 #ifdef HAVE_LIBSNMP
   std::vector<SNMPSession*> sessions;
   /* Variables below are used for the async callback */
   lua_State* vm;
-  bool add_sender_ip;
 #else
   int udp_sock;
   u_int32_t request_id;
 #endif
 
-  int snmp_get_fctn(lua_State* vm,  u_int8_t pduType, bool skip_first_param);  
+  int snmp_get_fctn(lua_State* vm,  u_int8_t pduType, bool skip_first_param, bool _batch_mode);
   int snmp_read_response(lua_State* vm, u_int timeout);
-  
+
  public:
   SNMP();
   ~SNMP();
 
 #ifdef HAVE_LIBSNMP
   void handle_async_response(struct snmp_pdu *pdu, const char *agent_ip);
-#endif  
+#endif
   void send_snmp_request(char *agent_host, char *community,
 			 u_int8_t pduType,
 			 char *oid[SNMP_MAX_NUM_OIDS], u_int version,
 			 bool batch_mode);
-  void snmp_fetch_responses(lua_State* vm, u_int timeout, bool add_sender_ip);
-  
+  void snmp_fetch_responses(lua_State* vm, u_int timeout);
+
   int get(lua_State* vm, bool skip_first_param);
   int getnext(lua_State* vm, bool skip_first_param);
   int getnextbulk(lua_State* vm, bool skip_first_param);
 };
-  
+
 #endif /* _SNMP_H_ */
 
 #endif /* HAVE_NEDGE */

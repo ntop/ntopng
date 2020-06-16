@@ -52,6 +52,7 @@ SNMPSession::~SNMPSession() {
 
 SNMP::SNMP() {  
   init_snmp("ntopng");
+  batch_mode = false;
 }
 
 /* ******************************* */
@@ -71,18 +72,8 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
 
   while(vp != NULL) {
     /* OID */
-    char rsp_oid[128];
+    char rsp_oid[128], buf[128];
     int offset = 0;
-
-    if(add_sender_ip)
-      snprintf(rsp_oid, sizeof(rsp_oid), "%s", agent_ip);
-    else {
-      for(u_int i=0; i<vp->name_length; i++) {
-	int rc = snprintf(&rsp_oid[offset], sizeof(rsp_oid)-offset, "%s%d", (offset > 0) ? "." : "", (int)vp->name_loc[i]);
-	
-	if(rc > 0) offset += rc; else break;
-      }
-    }
 
     switch(vp->type) {
     case SNMP_NOSUCHOBJECT:
@@ -93,18 +84,56 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       break;
     }
     
+    if(batch_mode)
+      snprintf(rsp_oid, sizeof(rsp_oid), "%s", agent_ip);
+    else {
+      for(u_int i=0; i<vp->name_length; i++) {
+	int rc = snprintf(&rsp_oid[offset], sizeof(rsp_oid)-offset, "%s%d", (offset > 0) ? "." : "", (int)vp->name_loc[i]);
+	
+	if(rc > 0) offset += rc; else break;
+      }
+    }
+
     if(!table_added)
       lua_newtable(vm), table_added = true;
-    
+
+
     switch(vp->type) {
     case ASN_INTEGER:
+      /* case ASN_GAUGE: */ /* Alias of ASN_INTEGER */
+#ifdef NATIVE_TYPE
+      lua_push_int32_table_entry(vm, rsp_oid, (long)*vp->val.integer);
+#else
+      snprintf(buf, sizeof(buf), "%ld", (long)*vp->val.integer);
+      lua_push_str_table_entry(vm, rsp_oid, buf);
+#endif
+      break;
+      
     case ASN_UNSIGNED:
     case ASN_TIMETICKS:
     case ASN_COUNTER:
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %d", rsp_oid, vp->val.integer);
-      lua_push_int32_table_entry(vm, rsp_oid, (u_int32_t)*vp->val.integer);
+#ifdef NATIVE_TYPE
+      lua_push_uint32_table_entry(vm, rsp_oid, (u_int32_t)*vp->val.integer);
+#else
+      snprintf(buf, sizeof(buf), "%u", (u_int32_t)*vp->val.integer);
+      lua_push_str_table_entry(vm, rsp_oid, buf);
+#endif
       break;
 
+    case ASN_COUNTER64:
+      {
+	u_int64_t v = (vp->val.counter64->high << 32) + vp->val.counter64->low;
+
+#ifdef NATIVE_TYPE
+	lua_push_uint32_table_entry(vm, rsp_oid, v);
+#else
+	snprintf(buf, sizeof(buf), "%llu", (long long unsigned int)v);
+	lua_push_str_table_entry(vm, rsp_oid, buf);
+#endif
+      }
+      break;
+	
     case ASN_OCTET_STR:
       {
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", rsp_oid, vp->val.string);
@@ -163,12 +192,14 @@ int asynch_response(int operation, struct snmp_session *sp, int reqid,
 void SNMP::send_snmp_request(char *agent_host, char *community,
 			     u_int8_t pduType,
 			     char *_oid[SNMP_MAX_NUM_OIDS], u_int version,
-			     bool batch_mode) {
+			     bool _batch_mode) {
   int rc, pdu_type;
   struct snmp_pdu *pdu;
   SNMPSession *snmpSession;
   bool initSession = false;
-  
+
+  batch_mode = _batch_mode;
+
   if(batch_mode) {
   create_snmp_session:
     try {
@@ -213,8 +244,8 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
   case 1:
     pdu_type = SNMP_MSG_GETNEXT;
     break;
-  case 2:
-    pdu_type = SNMP_MSG_GETBULK;
+  case 2:    
+    pdu_type = (version == 0 /* SNMPv1 */) ? SNMP_MSG_GETNEXT : SNMP_MSG_GETBULK;
     break;
   }
   
@@ -223,9 +254,9 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
     return;
   }
 
-  if(pduType == SNMP_MSG_GETBULK) {
-    pdu->non_repeaters   = 0; /* GET      */
-    pdu->max_repetitions = 3; /* GET-NEXT */
+  if(pdu_type == SNMP_MSG_GETBULK) {
+    pdu->non_repeaters   = 0;  /* GET      */
+    pdu->max_repetitions = 10; /* GET-NEXT */
   }
   
   for(u_int i=0; i<SNMP_MAX_NUM_OIDS; i++) {
@@ -250,8 +281,10 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
 
 /* ******************************************* */
 
-void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout, bool _add_sender_ip) {
+void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout) {
   bool add_nil = true;
+
+  // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%u)", __FUNCTION__, batch_mode ? 1 : 0);
   
   for(unsigned int i=0; i<sessions.size(); i++) {
     int numfds;
@@ -267,7 +300,7 @@ void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout, bool _add_sender_
     snmp_sess_select_info(snmpSession->session_ptr, &numfds, &fdset, &tvp, &block);
     count = select(numfds, &fdset, NULL, NULL, &tvp);
     if(count > 0) {
-      vm = _vm, add_sender_ip = _add_sender_ip;
+      vm = _vm;
       snmp_sess_read(snmpSession->session_ptr, &fdset); /* Will trigger asynch_response() */
       add_nil = false;
     }
@@ -279,7 +312,7 @@ void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout, bool _add_sender_
 /* ******************************************* */
 
 int SNMP::snmp_read_response(lua_State* _vm, u_int timeout) {
-  snmp_fetch_responses(_vm, timeout, false);
+  snmp_fetch_responses(_vm, timeout);
   return(CONST_LUA_OK);
 }
 
@@ -335,7 +368,7 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
 void SNMP::send_snmp_request(char *agent_host, char *community,
 			     u_int8_t pduType,
 			     char *oid[SNMP_MAX_NUM_OIDS], u_int version,
-			     bool batch_mode) {
+			     bool _batch_mode) {
   u_int agent_port = 161;
   int i = 0;
   SNMPMessage *message;
@@ -343,6 +376,8 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
   u_char buf[1500];
   int operation = (pduType == 0) ? NTOP_SNMP_GET_REQUEST_TYPE : NTOP_SNMP_GETNEXT_REQUEST_TYPE;
 
+  batch_mode = _batch_mode;
+  
   if((message = snmp_create_message())) {
     snmp_set_version(message, version);
     snmp_set_community(message, community);
@@ -369,7 +404,7 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
 
 /* ******************************************* */
 
-void SNMP::snmp_fetch_responses(lua_State* vm, u_int sec_timeout, bool add_sender_ip) {
+void SNMP::snmp_fetch_responses(lua_State* vm, u_int sec_timeout) {
    int i = 0;
 
    if(ntop->getGlobals()->isShutdown()
@@ -393,7 +428,7 @@ void SNMP::snmp_fetch_responses(lua_State* vm, u_int sec_timeout, bool add_sende
 	   if(!table_added)
 	     lua_newtable(vm), table_added = true;
 
-	   if(add_sender_ip /* Used in batch mode */) {
+	   if(batch_mode /* Used in batch mode */) {
 	     /*
 	       The key is the IP address as this is used when contacting multiple
 	       hosts so we need to know who has sent back the response
@@ -450,13 +485,13 @@ SNMP::~SNMP() {
 /* ******************************************* */
 
 int SNMP::get(lua_State* vm, bool skip_first_param) {
-  return(snmp_get_fctn(vm, 0 /* GET */, skip_first_param));
+  return(snmp_get_fctn(vm, 0 /* GET */, skip_first_param, false));
 }
 
 /* ******************************************* */
 
 int SNMP::getnext(lua_State* vm, bool skip_first_param) {
-  return(snmp_get_fctn(vm, 1 /* GET-NEXT */, skip_first_param));
+  return(snmp_get_fctn(vm, 1 /* GET-NEXT */, skip_first_param, false));
 }
 
 /* ******************************************* */
@@ -468,12 +503,12 @@ int SNMP::getnextbulk(lua_State* vm, bool skip_first_param) {
 #else
 		       1 /* GET-NEXT (no bulk) */, 
 #endif
-		       skip_first_param));
+		       skip_first_param, false));
 }
 
 /* ******************************************* */
 
-int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param) {
+int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param, bool _batch_mode) {
   char *agent_host, *community;
   u_int timeout = 5, version = snmp_version, oid_idx = 0, idx = skip_first_param ? 2 : 1;
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
@@ -502,8 +537,7 @@ int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param) 
     return(CONST_LUA_ERROR);
   }
 
-  send_snmp_request(agent_host, community, pduType, oid, version,
-		    skip_first_param /* batch mode */);
+  send_snmp_request(agent_host, community, pduType, oid, version, _batch_mode);		    
 
   if(skip_first_param)
     return(CONST_LUA_OK); /* This is an async call */

@@ -419,7 +419,6 @@ fi
 SNMP_LIB=
 SNMP_INC=
 dnl> if test "${with_nedge+set}" != set; then
-dnl> Work in progress
 dnl>   AC_CHECK_LIB([snmp], [init_snmp])
 dnl>   if test "x$ac_cv_lib_snmp_init_snmp" = xyes; then :
 dnl>    SNMP_LIB="-lsnmp"

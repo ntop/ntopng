@@ -146,6 +146,15 @@ extern void lua_push_uint64_table_entry(lua_State *L, const char *key, u_int64_t
 void lua_push_int32_table_entry(lua_State *L, const char *key, int32_t value);
 
 /**
+ * @brief Push uint32 value to table entry specify the key.
+ * 
+ * @param L The lua state.
+ * @param key The key of hash table.
+ * @param value The value of hash table.
+ */
+void lua_push_uint32_table_entry(lua_State *L, const char *key, u_int32_t value);
+
+/**
  * @brief Push bool value to table entry specify the key.
  * @details Using LUA_NUMBER (double: 64 bit) in place of LUA_INTEGER (ptrdiff_t: 32 or 64 bit
    * according to the platform) to handle big counters. (luaconf.h)
