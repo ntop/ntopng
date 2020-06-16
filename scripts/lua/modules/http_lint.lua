@@ -587,6 +587,7 @@ local function validateIpAddress(p)
       return false
    end
 end
+http_lint.validateIpAddress = validateIpAddress
 
 local function validateIpRange(p)
    local range = string.split(p, "%-")
@@ -788,6 +789,7 @@ local function validateHost(p)
       return validateNetwork(p)
    end
 end
+http_lint.validateHost = validateHost
 
 local function validateNetworkWithVLAN(i)
    if not string.find(i, "/") then
@@ -1021,6 +1023,7 @@ end
 local function validateSNMPversion(m)
    return validateChoice({"0", "1"}, m)
 end
+http_lint.validateSNMPversion = validateSNMPversion
 
 -- #################################################################
 
