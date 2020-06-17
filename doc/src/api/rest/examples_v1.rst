@@ -1244,3 +1244,40 @@ Response:
      "rc_str": "OK"
    }
 
+SNMP
+----
+
+Add an SNMP Device
+~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"ubnt", "community":"public", "snmp_version": "1"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
+
+Response:
+
+.. code:: json
+   {
+	  "rc": 0,
+	  "rc_str": "OK",
+	  "rsp": []
+   }
+
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"192.168.2.169", "community":"public", "snmp_version": "1", "cidr":"32"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
+
+Response:
+
+.. code:: json
+   {
+	  "rc": 0,
+	  "rc_str": "OK",
+	  "rsp": []
+   }
+

@@ -1031,6 +1031,56 @@
             }
          }
       },
+       "lua/pro/rest/v1/add/snmp/device.lua":{
+           "get":{
+               "tags":[
+		   "SNMP"
+               ],
+               "summary":"Add SNMP devices",
+               "description":"Add devices to the monitored SNMP devices",
+               "operationId":"add_snmp_device",
+               "produces":[
+               ],
+               "parameters":[
+		   {
+                       "name":"snmp_host",
+                       "in":"query",
+                       "description":"IP address or symbolic name of and an SNMP device",
+                       "required": true,
+                       "type":"string"
+		   },
+		   {
+                       "name":"community",
+                       "in":"query",
+                       "description":"The SNMP community to use",
+                       "required":true,
+                       "type":"string"
+		   },
+		   {
+                       "name":"snmp_version",
+                       "in":"query",
+                       "description":"The SNMP version to use, either 1 (v2c) or 0 (v1)",
+                       "required":true,
+                       "type":"string"
+		   },
+		   {
+                       "name":"cidr",
+                       "in":"query",
+                       "description":"Either 24 or 32. If 32, snmp_host is treated as single host. If 24 snmp_host is treated as as CIDR address",
+                       "required":false,
+                       "type":"string"
+		   }
+               ],
+               "responses":{
+		   "-3":{"description":"NOT_GRANTED"},
+		   "-4":{"description":"INVALID_HOST"},
+		   "-5":{"description":"INVALID_ARGUMENTS"},
+		   "-9":{"description":"NAME_RESOLUTION_FAILED"},
+		   "-10":{"description":"SNMP_DEVICE_ALREADY_ADDED"},
+		   "-11":{"description":"SNMP_DEVICE_ALREADY_ADDED"}
+               }
+           }
+       },
       "/lua/rest/v1/get/pcap/live_extraction.lua":{
          "get":{
             "tags":[
