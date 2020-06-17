@@ -92,15 +92,26 @@ $(document).ready(function () {
     // initialize the DataTable with the created config
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
 
-
     $(`#table-devices`).on('click', `a[href='#delete_device_dialog']`, function (e) {
 
         const rowData = $snmpTable.row($(this).parent()).data();
         $('#snmp_device_to_delete').text(rowData.column_key);
-
         delete_device_id = rowData.column_key;
     });
 
+    $(`input[name='host']`).keyup(function(e) {
+
+        const value = $(this).val();
+        if (new RegExp(REGEXES.domainName).test(value)) {
+            $('#select-cidr').attr("disabled", "disabled");
+        }
+        else {
+            $('#select-cidr').removeAttr("disabled");
+        }
+
+    });
+
+    // configure import config modal
     importModalHelper({
         load_config_xhr: (jsonConf) => {
           return $.post(`${http_prefix}/lua/pro/enterprise/import_snmp_devices_config.lua`, {

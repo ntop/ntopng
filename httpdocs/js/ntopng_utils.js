@@ -9,6 +9,25 @@ const REGEXES = {
   macAddress: "^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$"
 }
 
+$(document).ready(function() {
+
+	// for each input with the data-pattern attribute
+	// substitute the data-pattern with the right regexes
+  $(`input[data-pattern]`).each(function() {
+
+		// if the pattern is empty thenk skip
+		const data_pattern = $(this).data('pattern');
+		if (!data_pattern) return;
+
+		// build the regexp pattern for the input
+		const pattern = data_pattern.split('|').map(p => REGEXES[p]).join('|');
+		$(this).attr('pattern', pattern);
+		// remove the data-pattern from the input
+		$(this).removeAttr('data-pattern');
+
+  });
+
+});
 
 function is_good_ipv4(ipv4) {
   return new RegExp(REGEXES.ipv4).test(ipv4);
