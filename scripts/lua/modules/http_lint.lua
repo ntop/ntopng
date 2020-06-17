@@ -1020,6 +1020,12 @@ end
 
 -- #################################################################
 
+local function validateSNMPhost(m)
+   return validateIpAddress(m) or validateSingleWord(m)
+end
+
+-- #################################################################
+
 local function validateSNMPversion(m)
    return validateChoice({"0", "1"}, m)
 end
@@ -1311,6 +1317,7 @@ local known_parameters = {
    ["community"]               = validateSingleWord,            -- SNMP community
    ["lldp_mode"]               = validateBool,                  -- LLDP mode
    ["default_snmp_community"]  = validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
+   ["snmp_host"]               = validateSNMPhost,              -- Either an IPv4/v6 or a hostname
    ["default_snmp_version"]    = validateSNMPversion,           -- Default SNMP protocol version
    ["snmp_version"]            = validateSNMPversion,           -- 0:v1 1:v2c
    ["cidr"]                    = validateCIDR,                  -- /32 or /24
