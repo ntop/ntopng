@@ -1739,7 +1739,9 @@ if  test -f /usr/bin/lsb_release ; then
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
 
-  if test "$UBUNTU_SUB_RELEASE" = "9"; then
+  if test "$UBUNTU_SUB_RELEASE" = "8"; then
+    UBUNTU_RELEASE="debian"
+  elif test "$UBUNTU_SUB_RELEASE" = "9"; then
     UBUNTU_RELEASE="debian9"
   else
     # Debian buster
@@ -1772,9 +1774,6 @@ if  test -f /usr/bin/lsb_release ; then
   if test "$UBUNTU_RELEASE" = "12.04"; then
      EXTRA_DEPS=", libnuma1, libnetfilter-queue1"
   else
-    if test "$UBUNTU_SUB_RELEASE" = "8"; then
-       UBUNTU_RELEASE="14.04"
-    fi
     if test "$UBUNTU_SUB_RELEASE" = "7"; then
        UBUNTU_RELEASE="12.04"
     fi
