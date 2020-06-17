@@ -11,18 +11,19 @@ local json = require ("dkjson")
 
 local rest_utils = {}
 
-rest_utils.consts_ok                        =  0
-rest_utils.consts_not_found                 = -1
-rest_utils.consts_invalid_interface         = -2
-rest_utils.consts_not_granted               = -3
-rest_utils.consts_invalid_host              = -4
-rest_utils.consts_invalid_args              = -5
-rest_utils.consts_internal_error            = -6
-rest_utils.consts_bad_format                = -7
-rest_utils.consts_bad_content               = -8
-rest_utils.consts_resolution_failed         = -9
-rest_utils.consts_snmp_device_already_added = -10
-rest_utils.consts_snmp_device_unreachable   = -11
+rest_utils.consts_ok                               =  0
+rest_utils.consts_not_found                        = -1
+rest_utils.consts_invalid_interface                = -2
+rest_utils.consts_not_granted                      = -3
+rest_utils.consts_invalid_host                     = -4
+rest_utils.consts_invalid_args                     = -5
+rest_utils.consts_internal_error                   = -6
+rest_utils.consts_bad_format                       = -7
+rest_utils.consts_bad_content                      = -8
+rest_utils.consts_resolution_failed                = -9
+rest_utils.consts_snmp_device_already_added        = -10
+rest_utils.consts_snmp_device_unreachable          = -11
+rest_utils.consts_snmp_device_no_device_discovered = -12
 
 local rc_str_consts = {
    [rest_utils.consts_ok] = "OK",
@@ -37,6 +38,7 @@ local rc_str_consts = {
    [rest_utils.consts_resolution_failed] = "NAME_RESOLUTION_FAILED",
    [rest_utils.consts_snmp_device_already_added] = "SNMP_DEVICE_ALREADY_ADDED",
    [rest_utils.consts_snmp_device_unreachable] = "SNMP_DEVICE_UNREACHABLE",
+   [rest_utils.consts_snmp_device_no_device_discovered] = "NO_SNMP_DEVICE_DISCOVERED",
 }
 
 function rest_utils.rc(ret_code, response)
