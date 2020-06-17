@@ -15,11 +15,14 @@ $(document).ready(function () {
     }
 
     function createTemplateOnSelect(formSelector) {
+
         const $templateContainer = $(`${formSelector} .endpoint-template-container`);
         $(`${formSelector} select[name='type']`).change(function(e) {
             const template = $(`template#${$(this).val()}-template`).html();
             const $cloned = $(template);
             $templateContainer.empty().append($cloned).fadeIn();
+            // init the patterns inside the input boxes
+            init_data_patterns();
         });
     }
 
@@ -80,6 +83,8 @@ $(document).ready(function () {
             /* load the right template from templates */
             $(`#edit-endpoint-modal form .endpoint-template-container`)
                 .empty().append(loadTemplate(data.endpoint_key));
+            // init the patterns inside the input boxes
+            init_data_patterns();
             /* load the values inside the template */
             $(`#edit-endpoint-modal form [name='name']`).val(data.endpoint_conf_name);
             $(`#edit-endpoint-modal form .endpoint-template-container [name]`).each(function(i, input) {
