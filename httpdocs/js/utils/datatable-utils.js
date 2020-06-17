@@ -49,6 +49,35 @@ class DataTableUtils {
     }
 
     static extendConfig(config, extension) {
+
+        // if there are custom filters then manage state in this way
+        if (extension.hasFilters) {
+
+            extension.stateSaveCallback = function(settings,data) {
+                localStorage.setItem('DataTables_' + settings.sInstance, JSON.stringify(data))
+            };
+
+            extension.stateLoadCallback = function(settings) {
+                return JSON.parse(localStorage.getItem('DataTables_' + settings.sInstance));
+            };
+
+            // on saving the table state store the selected filters
+            extension.stateSaveParams = function(settings, data) {
+
+                // save the filters selected from the user inside the state
+                $('[data-filter]').each(function() {
+
+                    const activeFilter = $(this).find(`li.active`).data('filter-key');
+                    if (!activeFilter) return;
+
+                    // if the filters object is not allocated then initizializes it
+                    if (!data.filters) data.filters = {};
+                    data.filters[$(this).data('filter')] = activeFilter;
+
+                });
+            };
+        }
+
         return $.extend({}, config, extension);
     }
 
@@ -71,7 +100,7 @@ class DataTableUtils {
                 if ($dropdownTitle.parent().find(`i.fas`).length == 0) {
                     $dropdownTitle.parent().prepend(`<i class='fas fa-filter'></i>`);
                 }
-                $dropdownTitle.html($entry.html());
+                $dropdownTitle.text($entry.text());
                 $dropdownTitle.attr(`data-filter-key`, key);
                 // remove the active class from the li elements
                 $menuContainer.find('li').removeClass(`active`);
@@ -83,13 +112,14 @@ class DataTableUtils {
             return $entry;
         }
 
-        const dropdownId = `${title}-filter-menu`;
+        const filterKey = title.toLowerCase().split(" ").join("_");
+        const dropdownId = `${filterKey}-filter-menu`;
         const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline'></div>`);
         const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
         const $dropdownTitle = $(`<span>${title}</span>`);
         $dropdownButton.append($dropdownTitle);
 
-        const $menuContainer = $(`<ul class='dropdown-menu' id='${title}-filter'></ul>`);
+        const $menuContainer = $(`<ul class='dropdown-menu' data-filter='${filterKey}' id='${filterKey}-filter'></ul>`);
 
         // for each filter defined in filters create a dropdown item <li>
         for (let filter of filters) {
@@ -103,6 +133,7 @@ class DataTableUtils {
 
         // add all filter
         const $allEntry = createEntry(i18n.all, 'all', (e) => {
+
             $dropdownTitle.parent().find('i.fas.fa-filter').remove();
             $dropdownTitle.html(`${title}`).removeAttr(`data-filter-key`);
             tableAPI.columns(columnIndex).search('').draw(true);
@@ -115,6 +146,31 @@ class DataTableUtils {
             )
         );
 
+        DataTableUtils.setCurrentFilter(tableAPI);
+    }
+
+    /**
+     * For each filter object set the previous filter's state
+     * @param {object} tableAPI
+     */
+    static setCurrentFilter(tableAPI) {
+
+        const filters = tableAPI.state.loaded().filters;
+        if (!filters) return;
+
+        for (let [key, value] of Object.entries(filters)) {
+
+            // if the all value was selected the do nothing
+            if (value == "all") continue;
+
+            const entry = $(`li[data-filter-key='${value}']`);
+            entry.addClass('active');
+            // change the dropdown main content
+            $(`#${key}-filter-menu button`).prepend(`<i class='fas fa-filter'></i>`).find(`span`).html(entry.text());
+        }
+
+        // save the current table state
+        tableAPI.state.save();
     }
 
 }

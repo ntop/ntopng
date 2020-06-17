@@ -1,7 +1,9 @@
 $(document).ready(function () {
 
     const addResponsivenessFilter = (tableAPI) => {
-        DataTableUtils.addFilterDropdown(i18n.snmp.device_responsiveness, responsivenessFilters, 0, '#table-devices_filter', tableAPI);
+        DataTableUtils.addFilterDropdown(
+            i18n.snmp.device_responsiveness, responsivenessFilters, 0, '#table-devices_filter', tableAPI
+        );
     }
 
     let dtConfig = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
@@ -76,6 +78,7 @@ $(document).ready(function () {
             }
         ],
         stateSave: true,
+        hasFilters: true,
         initComplete: function(settings, json) {
 
             const tableAPI = settings.oInstance.api();
