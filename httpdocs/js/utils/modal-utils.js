@@ -12,7 +12,7 @@
         constructor(element, options) {
             /* Check mandatory options */
             if(typeof options.csrf === "undefined")
-                throw "modalHandler: Missing CSRF";
+                throw "ModalHandler: Missing CSRF token!";
 
             this.element = element;
             this.dialog = $(element).closest(".modal");
@@ -32,6 +32,7 @@
 
             /* Are you sure */
             if(!this.dontDisableSubmit) {
+
                 const modal_id = modal_id_ctr++;
 
                 $(this.element).attr("data-modal-handler-id", modal_id);
@@ -53,7 +54,8 @@
                         else
                             aysResetForm(self.form_sel);
                     }
-                }).on("shown.bs.modal", function(e) {
+                })
+                .on("shown.bs.modal", function(e) {
                     // add focus to btn apply to enable focusing on the modal hence user can press escape button to
                     // close the modal
                     $(self.element).find("[type='submit']").trigger('focus');
@@ -77,13 +79,20 @@
             this.bindFormValidation();
             const self = this;
             this.submitHandler = function(e) {
-                e.preventDefault(); e.stopPropagation();
-                self.makeRequest();
+                if (!self.options.isSyncRequest) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    self.makeRequest();
+                }
+                else {
+                    aysResetForm(self.form_sel);
+                }
             };
             $(this.element).on('submit', this.submitHandler);
         }
 
         bindFormValidation() {
+
             $(this.element).find(`input,textarea,select`).each(function(i, input) {
 
                 const $input = $(this);
@@ -119,7 +128,7 @@
 
         cleanForm() {
             /* remove validation fields and tracks */
-            $(this.element).find('input,select,textarea').each(function(i, input) {
+            $(this.element).find('input:visible,textarea:visible,select').each(function(i, input) {
                 $(this).removeClass(`is-valid`).removeClass(`is-invalid`);
             });
             /* reset all the values */
@@ -166,7 +175,7 @@
             const self = this;
             if (!resetButton) return;
             resetButton.click(function(event) {
-                /* TODO: finisch the reset logic */
+                /* TODO: finish the reset logic */
                 if(!self.dontDisableSubmit)
                     aysResetForm(self.form_sel);
             });
@@ -181,7 +190,10 @@
             csrf:               '',
             endpoint:           '',
             resetAfterSubmit:   true,
-            dontDisableSubmit:  false, /* True to skip the are-you-sure check on the dialog */
+            /* True to skip the are-you-sure check on the dialog */
+            dontDisableSubmit:  false,
+            /* True if the request isn't done by AJAX request */
+            isSyncRequest:      false,
             method:             'get',
             /**
              * Fetch data asynchronusly from the server or

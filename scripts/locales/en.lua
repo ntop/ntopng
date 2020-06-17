@@ -3767,6 +3767,7 @@ local lang = {
     ["absolute_stats"] = "Stats Since Boot",
     ["actual_stats"] = "Stats Since Last Poll",
     ["add_device"] = "Add New Device",
+    ["add_devices"] = "Add Devices",
     ["add_snmp_devices"] = "Add SNMP Devices",
     ["alerted_interfaces"] = "Interfaces With Errors",
     ["all_interfaces"] = "All Interfaces",

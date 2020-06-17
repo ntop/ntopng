@@ -296,3 +296,7 @@ text, g text.tick {
   stroke-width: 0.8px !important;
   stroke: #2C2C2C !important;
 }
+
+.modal-header .close {
+  color: white;
+}

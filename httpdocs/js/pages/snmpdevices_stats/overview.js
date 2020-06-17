@@ -99,17 +99,24 @@ $(document).ready(function () {
         delete_device_id = rowData.column_key;
     });
 
-    $(`input[name='host']`).keyup(function(e) {
+    $(`#add-snmp-modal form`).modalHandler({
+        isSyncRequest: true,
+        method: 'post',
+        csrf: $(`#add-snmp-modal input[name='csrf']`).val(),
+        onModalInit: function() {
 
-        const value = $(this).val();
-        if (new RegExp(REGEXES.domainName).test(value)) {
-            $('#select-cidr').attr("disabled", "disabled");
+            // disable dropdown if the user inputs an hostname
+            $(`input[name='host']`).keyup(function(e) {
+                const value = $(this).val();
+                if (new RegExp(REGEXES.domainName).test(value)) {
+                    $('#select-cidr').attr("disabled", "disabled");
+                }
+                else {
+                    $('#select-cidr').removeAttr("disabled");
+                }
+            });
         }
-        else {
-            $('#select-cidr').removeAttr("disabled");
-        }
-
-    });
+    }).invokeModalInit();
 
     // configure import config modal
     importModalHelper({
