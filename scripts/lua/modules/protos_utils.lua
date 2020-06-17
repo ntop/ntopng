@@ -3,7 +3,7 @@
 --
 
 local os_utils = require("os_utils")
-
+local http_lint = require "http_lint"
 local protos_utils = {}
 
 -- ##############################################
@@ -86,9 +86,9 @@ function protos_utils.parseProtosTxt()
       for _, rule in ipairs(rules) do
         parts = string.split(rule, ":")
 
-        if((parts ~= nil) and (#parts == 2)) then
+        if((parts ~= nil) and (#parts == 2 or #parts == 3)) then
           local filter = parts[1]
-          local value = parts[2]
+          local value = rule:gsub(filter..":", "")
           local is_port_based, port_based_rule = parsePortBasedRule(filter, value, line)
 
           if is_port_based then
@@ -141,17 +141,29 @@ end
 function protos_utils.getProtosTxtRule(line)
   line = trimString(line)
 
-  if isIPv4(line) then
-    return {
-      match = "host",
-      value = line,
-    }
+  if isIPv4(line) or http_lint.validateNetwork(line) then
+     return {
+	match = "ip",
+	value = line
+     }
   else
     local parts = string.split(line, ":")
 
     if((parts ~= nil) and (#parts == 2)) then
       local filter = parts[1]
       local value = parts[2]
+
+      if tonumber(value) then
+	 if isIPv4(filter) or http_lint.validateNetwork(filter) then
+	    -- e.g., 8.248.73.247:443
+	    -- e.g., 213.75.170.11/32:443
+	    return {
+	       match = "ip",
+	       value = line
+	    }
+	 end
+      end
+
       local is_port_based, port_based_rule = parsePortBasedRule(filter, value, line)
 
       if is_port_based then
