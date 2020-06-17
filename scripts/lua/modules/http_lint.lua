@@ -778,6 +778,7 @@ local function validateNetwork(i)
       return false
    end
 end
+http_lint.validateNetwork = validateNetwork
 
 local function validateHost(p)
    local host = hostkey2hostinfo(p)
