@@ -513,7 +513,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(host["ip"] == host["name"]) then
-	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
+         print('<div id="throbber" class="spinner-border spinner-border-sm text-primary" role="status"><span class="sr-only">Loading...</span></div>')
       end
 
 --tprint(host) io.write("\n")
@@ -1682,7 +1682,7 @@ elseif(page == "snmp" and ntop.isPro()) then
       msg = msg.." Visit page <a href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua'>SNMP</a> to add this host to the list of configured SNMP devices."
 
       local trying =  "<span id='trying_default_community'> Trying to retrieve host SNMP MIB using the default community '"..community.."'"
-      trying = trying.. " <img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style='vertical-align:text-top;' id=throbber></span>"
+      trying = trying.. " <span id='throbber' class='spinner-border spinner-border-sm text-primary' role='status'><span class='sr-only'>Loading...</span></span></span>"
       if ntop.isEnterprise() then
         print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
       end

@@ -521,7 +521,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if ntop.shouldResolveHost(host["ip"]) then
-	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
+         print('<div id="throbber" class="spinner-border spinner-border-sm text-primary" role="status"><span class="sr-only">Loading...</span></div> ')
       end
 
       -- tprint(host) io.write("\n")

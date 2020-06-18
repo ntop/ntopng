@@ -109,6 +109,7 @@ $(document).ready(function () {
         endpoint: `${ http_prefix }/lua/pro/rest/v1/add/snmp/device.lua`,
         beforeSumbit: function() {
             $(`#add-snmp-feedback`).hide();
+            $(`#snmp-add-spinner`).fadeIn();
             return serializeFormArray($(`#add-snmp-modal form`).serializeArray());
         },
         onModalInit: function() {
@@ -127,9 +128,12 @@ $(document).ready(function () {
         onSubmitSuccess: function (response) {
 
             if (response.rc < 0) {
-                $(`#add-snmp-feedback`).html(i18n.rest[response.rc_str]).show();
+                $(`#snmp-add-spinner`).fadeOut(() => {
+                    $(`#add-snmp-feedback`).html(i18n.rest[response.rc_str]).fadeIn()
+                });
                 return;
             }
+            $(`#snmp-add-spinner`).hide();
 
             $snmpTable.ajax.reload();
             $(`#add-snmp-modal`).modal('hide');
