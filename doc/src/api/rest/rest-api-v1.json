@@ -1077,7 +1077,8 @@
 		   "-5":{"description":"INVALID_ARGUMENTS"},
 		   "-9":{"description":"NAME_RESOLUTION_FAILED"},
 		   "-10":{"description":"SNMP_DEVICE_ALREADY_ADDED"},
-		   "-11":{"description":"SNMP_DEVICE_ALREADY_ADDED"}
+		   "-11":{"description":"SNMP_DEVICE_UNREACHABLE"},
+		   "-12":{"description":"NO_SNMP_DEVICE_DISCOVERED"},
                }
            }
        },
