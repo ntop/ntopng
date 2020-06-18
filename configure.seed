@@ -191,7 +191,7 @@ else
   exit -1
 fi
 
-dnl> Temporary using json-c from third party on Ubuntu 18/20 
+dnl> Temporary using json-c from third party on Ubuntu 18/20
 dnl> due to https://bugs.launchpad.net/ubuntu/+source/json-c/+bug/1878738
 dnl> if test -f "/usr/bin/lsb_release"; then
 dnl>   UBUNTU_RELEASE=`lsb_release -r|cut -f 2|cut -f 1 -d '.'`
@@ -307,7 +307,7 @@ PRO_INCS="${PRO_INCS} -I${PWD}/pro -I${PWD}/pro/utils -I${PWD}/pro/third-party/l
 if test -r "../license/systemId.c"; then :
   LICENSELIBS="-L`pwd`/../license -llicense"
   AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
-  PRO_LIBS="${PRO_LIBS} ${LICENSELIBS}" 
+  PRO_LIBS="${PRO_LIBS} ${LICENSELIBS}"
 fi
 else
   AC_MSG_RESULT(not found)
@@ -419,9 +419,25 @@ fi
 SNMP_LIB=
 SNMP_INC=
 if test "${with_nedge+set}" != set; then
-  AC_CHECK_LIB([snmp], [init_snmp])
-  if test "x$ac_cv_lib_snmp_init_snmp" = xyes; then :
-   SNMP_LIB="-lsnmp"
+  if test $SYSTEM = "Darwin"; then
+    dnl>
+    dnl> MacOS Note on NET-SNMP
+    dnl>
+    dnl> Note MacOS support can be enbled by uncommenting the lines below
+    dnl> however net-snmp threaded API seems to be bugged on MacOS thus
+    dnl> we better keep it commented unless you know what you are doing
+    dnl>
+    dnl> if test -d "/usr/local/opt/net-snmp/lib/"; then
+    dnl>   SNMP_LIB="-L/usr/local/opt/net-snmp/lib/ -lsnmp"
+    dnl>   SNMP_INC="-I/usr/local/opt/net-snmp/include/"
+    dnl>   AC_DEFINE_UNQUOTED(HAVE_LIBSNMP, 1, [has net-snmp])
+    dnl> fi
+  else
+    AC_CHECK_LIB([snmp], [init_snmp])
+
+    if test "x$ac_cv_lib_snmp_init_snmp" = xyes; then :
+     SNMP_LIB="-lsnmp"
+    fi
   fi
 fi
 

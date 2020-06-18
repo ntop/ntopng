@@ -23,7 +23,7 @@
 
 #ifndef HAVE_NEDGE
 
-/* Code needed by both implementations for batch mode */ 
+/* Code needed by both implementations for batch mode */
 extern "C" {
 #include "../third-party/snmp/snmp.c"
 #include "../third-party/snmp/asn1.c"
@@ -50,16 +50,18 @@ SNMPSession::~SNMPSession() {
 
 /* ******************************* */
 
-SNMP::SNMP() {  
-  init_snmp("ntopng");
+SNMP::SNMP() {
   batch_mode = false;
+#ifdef HAVE_LIBSNMP
+  init_snmp("ntopng");
+#endif
 }
 
 /* ******************************* */
 
 SNMP::~SNMP() {
   for(unsigned int i=0; i<sessions.size(); i++)
-    delete sessions.at(i);  
+    delete sessions.at(i);
 }
 
 /* ******************************* */
@@ -83,13 +85,13 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       continue; /* Error found */
       break;
     }
-    
+
     if(batch_mode)
       snprintf(rsp_oid, sizeof(rsp_oid), "%s", agent_ip);
     else {
       for(u_int i=0; i<vp->name_length; i++) {
 	int rc = snprintf(&rsp_oid[offset], sizeof(rsp_oid)-offset, "%s%d", (offset > 0) ? "." : "", (int)vp->name_loc[i]);
-	
+
 	if(rc > 0) offset += rc; else break;
       }
     }
@@ -108,7 +110,7 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       lua_push_str_table_entry(vm, rsp_oid, buf);
 #endif
       break;
-      
+
     case ASN_UNSIGNED:
     case ASN_TIMETICKS:
     case ASN_COUNTER:
@@ -133,16 +135,16 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
 #endif
       }
       break;
-	
+
     case ASN_OCTET_STR:
       {
       // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s", rsp_oid, vp->val.string);
 	char buf[512];
 	u_int len = min(sizeof(buf)-1, vp->val_len);
-	
+
 	strncpy(buf, (const char*)vp->val.string, len);
 	buf[len] = '\0';
-	
+
 	lua_push_str_table_entry(vm, rsp_oid, buf);
       }
       break;
@@ -151,23 +153,23 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       {
 	char response[128];
 	int rsp_offset = 0;
-	
+
 	for(u_int i=0; i<vp->val_len/8; i++) {
 	  int rc = snprintf(&response[rsp_offset], sizeof(response)-rsp_offset,
 			    "%s%d", (rsp_offset > 0) ? "." : "", (int)vp->val.objid[i]);
-	  
+
 	  if(rc > 0) rsp_offset += rc; else break;
 	}
-	
+
 	lua_push_str_table_entry(vm, rsp_oid, response);
       }
       break;
 
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing %d type handler", vp->type);
-      
+
     }
-    
+
     vp = vp->next_variable;
   } /* while */
 
@@ -181,17 +183,23 @@ int asynch_response(int operation, struct snmp_session *sp, int reqid,
 		    struct snmp_pdu *pdu, void *magic) {
   SNMP *s = (SNMP*)magic;
 
-  if(operation == NETSNMP_CALLBACK_OP_RECEIVED_MESSAGE)
-    s->handle_async_response(pdu, sp->peername);
-     
+  if(operation == NETSNMP_CALLBACK_OP_RECEIVED_MESSAGE) {
+    if(pdu->command == SNMP_MSG_RESPONSE) {
+      s->handle_async_response(pdu, sp->peername);
+    }
+  }
+
   return(0);
 }
 
 /* ******************************* */
-  
+
+/* See https://raw.githubusercontent.com/winlibs/net-snmp/master/snmplib/snmp_client.c */
+
 void SNMP::send_snmp_request(char *agent_host, char *community,
 			     u_int8_t pduType,
-			     char *_oid[SNMP_MAX_NUM_OIDS], u_int version,
+			     u_int version,
+			     char *_oid[SNMP_MAX_NUM_OIDS],
 			     bool _batch_mode) {
   int rc, pdu_type;
   struct snmp_pdu *pdu;
@@ -209,7 +217,7 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
     } catch(std::bad_alloc& ba) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to allocate SNMP session");
       return;
-    }    
+    }
   } else {
     if(sessions.size() == 0) {
       goto create_snmp_session;
@@ -217,25 +225,25 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
       snmpSession = sessions.at(0);
     }
   }
-  
+
   /* Initialize the session */
   if(initSession) {
     snmp_sess_init(&snmpSession->session);
     snmpSession->session.peername = agent_host;
-    
+
     /* set the SNMP version number */
     snmpSession->session.version = (version == 0) ? SNMP_VERSION_1 : SNMP_VERSION_2c;
-    
+
     /* set the SNMP community name used for authentication */
     snmpSession->session.community = (u_char*)community;
     snmpSession->session.community_len = strlen(community);
     snmpSession->session.callback = asynch_response;
     snmpSession->session.callback_magic = this;
-  
+
     /* Open the session */
     snmpSession->session_ptr = snmp_sess_open(&snmpSession->session);
   }
-  
+
   /* Create the PDU */
   switch(pduType) {
   case 0:
@@ -244,11 +252,11 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
   case 1:
     pdu_type = SNMP_MSG_GETNEXT;
     break;
-  case 2:    
+  case 2:
     pdu_type = (version == 0 /* SNMPv1 */) ? SNMP_MSG_GETNEXT : SNMP_MSG_GETBULK;
     break;
   }
-  
+
   if((pdu = snmp_pdu_create(pdu_type)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU create error");
     return;
@@ -258,7 +266,7 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
     pdu->non_repeaters   = 0;  /* GET      */
     pdu->max_repetitions = 10; /* GET-NEXT */
   }
-  
+
   for(u_int i=0; i<SNMP_MAX_NUM_OIDS; i++) {
     if(_oid[i] != NULL) {
       size_t name_length = MAX_OID_LEN;
@@ -272,6 +280,7 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
 
   /* Send the request */
   if((rc = snmp_sess_send(snmpSession->session_ptr, pdu)) == 0) {
+    snmp_free_pdu(pdu);
     snmp_perror("snmp_sess_send");
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send error [rc: %d]", rc);
   }
@@ -281,22 +290,98 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
 
 /* ******************************************* */
 
+void SNMP::send_snmp_set_request(char *agent_host, char *community,
+				 u_int8_t pduType,
+				 u_int version,
+				 char *_oid[SNMP_MAX_NUM_OIDS],
+				 char value_types[SNMP_MAX_NUM_OIDS],
+				 char *values[SNMP_MAX_NUM_OIDS]) {
+  int rc;
+  struct snmp_pdu *pdu;
+  SNMPSession *snmpSession;
+  bool initSession = false;
+
+  batch_mode = false;
+
+  if(batch_mode) {
+  create_snmp_session:
+    try {
+      snmpSession = new SNMPSession;
+      sessions.push_back(snmpSession);
+      initSession = true;
+    } catch(std::bad_alloc& ba) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to allocate SNMP session");
+      return;
+    }
+  } else {
+    if(sessions.size() == 0) {
+      goto create_snmp_session;
+    } else {
+      snmpSession = sessions.at(0);
+    }
+  }
+
+  /* Initialize the session */
+  if(initSession) {
+    snmp_sess_init(&snmpSession->session);
+    snmpSession->session.peername = agent_host;
+
+    /* set the SNMP version number */
+    snmpSession->session.version = (version == 0) ? SNMP_VERSION_1 : SNMP_VERSION_2c;
+
+    /* set the SNMP community name used for authentication */
+    snmpSession->session.community = (u_char*)community;
+    snmpSession->session.community_len = strlen(community);
+    snmpSession->session.callback = asynch_response;
+    snmpSession->session.callback_magic = this;
+
+    /* Open the session */
+    snmpSession->session_ptr = snmp_sess_open(&snmpSession->session);
+  }
+
+  /* Create the PDU */
+  if((pdu = snmp_pdu_create(SNMP_MSG_SET)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU create error");
+    return;
+  }
+
+  for(u_int i=0; i<SNMP_MAX_NUM_OIDS; i++) {
+    if(_oid[i] != NULL) {
+      size_t name_length = MAX_OID_LEN;
+      oid name[MAX_OID_LEN];
+
+      if(snmp_parse_oid(_oid[i], name, &name_length))
+	snmp_add_var(pdu, name, name_length, value_types[i], values[i]);
+    } else
+      break;
+  }
+
+  /* Send the request */
+  if((rc = snmp_sess_send(snmpSession->session_ptr, pdu)) == 0) {
+    snmp_free_pdu(pdu);
+    snmp_perror("snmp_sess_send");
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send error [rc: %d]", rc);
+  }
+}
+
+/* ******************************************* */
+
 void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout) {
   bool add_nil = true;
 
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%u)", __FUNCTION__, batch_mode ? 1 : 0);
-  
+
   for(unsigned int i=0; i<sessions.size(); i++) {
     int numfds;
     fd_set fdset;
     struct timeval tvp;
     int count, block;
     SNMPSession *snmpSession = sessions.at(i);
-    
+
     numfds = 0;
     FD_ZERO(&fdset);
     tvp.tv_sec = timeout, tvp.tv_usec = 0;
-    
+
     snmp_sess_select_info(snmpSession->session_ptr, &numfds, &fdset, &tvp, &block);
     count = select(numfds, &fdset, NULL, NULL, &tvp);
     if(count > 0) {
@@ -305,7 +390,7 @@ void SNMP::snmp_fetch_responses(lua_State* _vm, u_int timeout) {
       add_nil = false;
     }
   }
-  
+
   if(add_nil) lua_pushnil(_vm);
 }
 
@@ -367,7 +452,8 @@ int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
 
 void SNMP::send_snmp_request(char *agent_host, char *community,
 			     u_int8_t pduType,
-			     char *oid[SNMP_MAX_NUM_OIDS], u_int version,
+			     u_int version,
+			     char *oid[SNMP_MAX_NUM_OIDS],
 			     bool _batch_mode) {
   u_int agent_port = 161;
   int i = 0;
@@ -377,7 +463,7 @@ void SNMP::send_snmp_request(char *agent_host, char *community,
   int operation = (pduType == 0) ? NTOP_SNMP_GET_REQUEST_TYPE : NTOP_SNMP_GETNEXT_REQUEST_TYPE;
 
   batch_mode = _batch_mode;
-  
+
   if((message = snmp_create_message())) {
     snmp_set_version(message, version);
     snmp_set_community(message, community);
@@ -501,9 +587,19 @@ int SNMP::getnextbulk(lua_State* vm, bool skip_first_param) {
 #ifdef HAVE_LIBSNMP
 		       2 /* GET-BULK (next only) */,
 #else
-		       1 /* GET-NEXT (no bulk) */, 
+		       1 /* GET-NEXT (no bulk) */,
 #endif
 		       skip_first_param, false));
+}
+
+/* ******************************************* */
+
+int SNMP::set(lua_State* vm, bool skip_first_param) {
+#ifdef HAVE_LIBSNMP
+  return(snmp_get_fctn(vm, 3 /* SET */, skip_first_param, false));
+#else
+  return(-1);
+#endif
 }
 
 /* ******************************************* */
@@ -511,7 +607,7 @@ int SNMP::getnextbulk(lua_State* vm, bool skip_first_param) {
 int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param, bool _batch_mode) {
   char *agent_host, *community;
   u_int timeout = 5, version = snmp_version, oid_idx = 0, idx = skip_first_param ? 2 : 1;
-  char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
+  char *oid[SNMP_MAX_NUM_OIDS] = { NULL }, value_types[SNMP_MAX_NUM_OIDS] = { '\0' }, *values[SNMP_MAX_NUM_OIDS] = { NULL };
 
   if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
   agent_host = (char*)lua_tostring(vm, idx++);
@@ -528,8 +624,21 @@ int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param, 
 
   /* Add OIDs */
   while((oid_idx < SNMP_MAX_NUM_OIDS) && (lua_type(vm, idx) == LUA_TSTRING)) {
-    oid[oid_idx++] = (char*)lua_tostring(vm, idx);
-    idx++;
+    if(pduType == 3) {
+      /* SET */
+      oid[oid_idx] = (char*)lua_tostring(vm, idx);
+
+      if(lua_type(vm, idx+1) != LUA_TSTRING) return(CONST_LUA_ERROR);
+      value_types[oid_idx] = ((char*)lua_tostring(vm, idx+1))[0];
+
+      if(lua_type(vm, idx+2) != LUA_TSTRING) return(CONST_LUA_ERROR);
+      values[oid_idx] = (char*)lua_tostring(vm, idx+2);
+
+      oid_idx += 3, idx += 3;
+    } else {
+      oid[oid_idx++] = (char*)lua_tostring(vm, idx);
+      idx++;
+    }
   }
 
   if(oid_idx == 0) {
@@ -537,7 +646,12 @@ int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param, 
     return(CONST_LUA_ERROR);
   }
 
-  send_snmp_request(agent_host, community, pduType, oid, version, _batch_mode);		    
+  if(pduType == 3) {
+    /* SET */
+    send_snmp_set_request(agent_host, community, pduType, version, oid, value_types, values);
+  } else {
+    send_snmp_request(agent_host, community, pduType, version, oid, _batch_mode);
+  }
 
   if(skip_first_param)
     return(CONST_LUA_OK); /* This is an async call */

@@ -18,7 +18,14 @@ page_utils.print_header()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if true then
+local up   = "1"
+local down = "2"
+local ifIdx = "1"
+rsp = ntop.snmpset("127.0.0.1", "private", 5, 1, "1.3.6.1.2.1.2.2.1.7."..ifIdx, "i", down)
+tprint(res)
+
+
+if false then
    local ts_dump = require "ts_5min_dump_utils"
    local when = os.time()
    local config = ts_dump.getConfig()
@@ -29,9 +36,11 @@ if true then
    local res = snmp_walk_table("192.168.2.169", "ntop", "1.3.6.1.6.3.16.1.2.1.3.1", 2, 3600)
    tprint(res)
 else
-   community = _GET["community"]
-   host      = _GET["host"]
-   
+   community = _GET["community"] or "public"
+   host      = _GET["host"] or "127.0.0.1"
+   maxtime   = 5
+   version   = 1
+      
    print('Host: '..host.."<p>\n")
    print('Community: '..community.."<p>\n")
    
@@ -41,7 +50,7 @@ else
    syscontact = "1.3.6.1.2.1.1.4.0"
    sysdescr   = "1.3.6.1.2.1.1.5.0"
 
-   rsp = ntop.snmpget(host, community, sysname, syscontact, sysdescr)
+   rsp = ntop.snmpget(host, community, maxtime, version, sysname, syscontact, sysdescr)
    if (rsp ~= nil) then
       for k, v in pairs(rsp) do
 	 print('<tr><th width=35%>'..k..'</th><td colspan=2>'.. v..'</td></tr>\n')
@@ -49,7 +58,7 @@ else
    end
 
    if(false) then
-      rsp = ntop.snmpgetnext(host, community, syscontact)
+      rsp = ntop.snmpgetnext(host, community, maxtime, version, syscontact)
       if (rsp ~= nil) then
 	 for k, v in pairs(rsp) do
 	    print('<tr><th width=35%>'..k..'</th><td colspan=2>'.. v..'</td></tr>\n')

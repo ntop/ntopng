@@ -20,8 +20,8 @@ ntopng-build:
 	cp /usr/local/opt/libmaxminddb/lib/libmaxminddb.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/libsodium/lib/libsodium.23.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/mysql/lib/libmysqlclient.21.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/mysql/lib/libssl.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/mysql/lib/libcrypto.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/openssl@1.1/lib/libssl.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/zstd/lib/libzstd.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/libpng/lib/libpng16.16.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/Cellar/pango/1.44.7/lib/libpangocairo-1.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
@@ -39,6 +39,7 @@ ntopng-build:
 	cp /usr/local/opt/freetype/lib/libfreetype.6.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/graphite2/lib/libgraphite2.3.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/pixman/lib/libpixman-1.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/net-snmp/lib/libnetsnmp.35.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 
 	cp /usr/local/bin/redis-server ${NTOPNG_BUILD}/usr/local/bin/ntopng-redis-server
 

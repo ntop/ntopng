@@ -2791,6 +2791,7 @@ static int ntop_resolve_host(lua_State* vm) {
 static int ntop_snmpget(lua_State* vm)          { SNMP s; return(s.get(vm, false));         }
 static int ntop_snmpgetnext(lua_State* vm)      { SNMP s; return(s.getnext(vm, false));     }
 static int ntop_snmpgetnextbulk(lua_State* vm)  { SNMP s; return(s.getnextbulk(vm, false)); }
+static int ntop_snmpset(lua_State* vm)          { SNMP s; return(s.set(vm, false));         }
 
 /* ****************************************** */
 
@@ -2932,8 +2933,9 @@ static int ntop_snmp_batch_get(lua_State* vm) {
 
   snmp->send_snmp_request((char*)lua_tostring(vm, 1), /* agent_host */
 			  (char*)lua_tostring(vm, 2), /* community */
-			  false /* SNMP GET */, oid,
+			  false /* SNMP GET */,
 			  (u_int)lua_tonumber(vm, 4), /* version */
+			  oid,			
 			  true /* batch */);
 
   lua_pushnil(vm);
@@ -5624,7 +5626,8 @@ static const luaL_Reg ntop_reg[] = {
   { "snmpget",             ntop_snmpget                      },
   { "snmpgetnext",         ntop_snmpgetnext                  },
   { "snmpgetnextbulk",     ntop_snmpgetnextbulk              },
-
+  { "snmpset",             ntop_snmpset                      },
+  
   /* Asynchronous */
   { "snmpallocasnyncengine", ntop_allocasnyncengine,         },
   { "snmpfreeasnycengine",   ntop_freeasnyncengine,          },

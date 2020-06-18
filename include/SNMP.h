@@ -70,13 +70,21 @@ class SNMP {
 #endif
   void send_snmp_request(char *agent_host, char *community,
 			 u_int8_t pduType,
-			 char *oid[SNMP_MAX_NUM_OIDS], u_int version,
+			 u_int version,
+			 char *oid[SNMP_MAX_NUM_OIDS],
 			 bool batch_mode);
+  void send_snmp_set_request(char *agent_host, char *community,
+			     u_int8_t pduType,
+			     u_int version,
+			     char *oid[SNMP_MAX_NUM_OIDS],
+			     char value_types[SNMP_MAX_NUM_OIDS],
+			     char *values[SNMP_MAX_NUM_OIDS]);
   void snmp_fetch_responses(lua_State* vm, u_int timeout);
 
   int get(lua_State* vm, bool skip_first_param);
   int getnext(lua_State* vm, bool skip_first_param);
   int getnextbulk(lua_State* vm, bool skip_first_param);
+  int set(lua_State* vm, bool skip_first_param);
 };
 
 #endif /* _SNMP_H_ */
