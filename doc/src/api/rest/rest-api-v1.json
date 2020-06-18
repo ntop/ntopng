@@ -1040,6 +1040,7 @@
                "description":"Add devices to the monitored SNMP devices",
                "operationId":"add_snmp_device",
                "produces":[
+		   "application/json"
                ],
                "parameters":[
 		   {
