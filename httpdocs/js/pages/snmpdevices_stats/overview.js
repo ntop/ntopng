@@ -43,12 +43,13 @@ $(document).ready(function () {
                 }
             },
             { data: "column_community" },
-            { data: "column_chart", className: "text-center" },
+            { data: "column_chart", className: "text-center", width: "5%" },
             { data: "column_name" },
-            { data: "column_descr" },
+            { data: "column_descr", width: "20%" },
             {
                 data: "column_err_interfaces",
                 className: "text-right",
+                width: "5%",
                 render: function(data, type, row) {
                     // if the cell contains zero then doesn't show it
                     if (type == "display" && data === 0) return "";

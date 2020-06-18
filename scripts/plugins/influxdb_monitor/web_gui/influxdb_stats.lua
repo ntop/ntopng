@@ -65,7 +65,7 @@ if(page == "overview") then
    local tags = {ifid=getSystemInterfaceId()}
     print("<table class=\"table table-bordered table-striped\">\n")
 
-    print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.health") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_health").."</small></td><td></td><td><span id='throbber' class='spinner-border spinner-border-sm text-primary redis-info-load' role='status'><span class='sr-only'>Loading...</span></span> <span id=\"influxdb-health\"></span></td></tr>\n")
+    print("<tr><td nowrap width='30%'><b>".. i18n("system_stats.health") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_health").."</small></td><td></td><td><span id='throbber' class='spinner-border spinner-border-sm text-primary influxdb-info-load' role='status'><span class='sr-only'>Loading...</span></span> <span id=\"influxdb-health\"></span></td></tr>\n")
 
     print("<tr><td nowrap width='30%'><b>".. i18n("traffic_recording.storage_utilization") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_storage_utilization").."</small></td>")
     print("<td class='text-center' width=5%>")
