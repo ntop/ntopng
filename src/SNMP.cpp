@@ -165,6 +165,10 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       }
       break;
 
+    case ASN_NULL:
+      lua_push_nil_table_entry(vm, rsp_oid);
+      break;
+      
     default:
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing %d type handler", vp->type);
 
