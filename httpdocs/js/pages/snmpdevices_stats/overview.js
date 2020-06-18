@@ -114,8 +114,9 @@ $(document).ready(function () {
         onModalInit: function() {
 
             // disable dropdown if the user inputs an hostname
-            $(`input[name='host']`).keyup(function(e) {
+            $(`input[name='snmp_host']`).keyup(function(e) {
                 const value = $(this).val();
+                console.log(value);
                 if (new RegExp(REGEXES.domainName).test(value)) {
                     $('#select-cidr').attr("disabled", "disabled");
                 }
@@ -127,7 +128,7 @@ $(document).ready(function () {
         onSubmitSuccess: function (response) {
 
             if (response.rc < 0) {
-                $(`#add-snmp-feedback`).html(i18n.rest[response.rc_str.toLowerCase()]).show();
+                $(`#add-snmp-feedback`).html(i18n.rest[response.rc_str]).show();
                 return;
             }
 
