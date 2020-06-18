@@ -132,7 +132,7 @@ $(document).ready(function () {
             }
 
             $snmpTable.ajax.reload();
-            $(`#add-snmp-modal`).modal('close');
+            $(`#add-snmp-modal`).modal('hide');
         }
     }).invokeModalInit();
 
