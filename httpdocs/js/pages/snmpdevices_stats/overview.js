@@ -116,7 +116,6 @@ $(document).ready(function () {
             // disable dropdown if the user inputs an hostname
             $(`input[name='snmp_host']`).keyup(function(e) {
                 const value = $(this).val();
-                console.log(value);
                 if (new RegExp(REGEXES.domainName).test(value)) {
                     $('#select-cidr').attr("disabled", "disabled");
                 }
