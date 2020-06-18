@@ -184,7 +184,7 @@
 
     $.fn.modalHandler = function(args) {
 
-        if (this.length != 1) throw new Error("Only an element can by initialized!");
+        if (this.length != 1) throw new Error("Only a form element can by initialized!");
 
         const options = $.extend({
             csrf:               '',
@@ -250,7 +250,7 @@
              * }
              * ```
              */
-            beforeSumbit:       function() {},
+            beforeSumbit:       function() { return {} },
 
             /**
              * This function is invoked when the request to the endpoint

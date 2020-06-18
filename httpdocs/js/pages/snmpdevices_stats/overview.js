@@ -103,9 +103,14 @@ $(document).ready(function () {
     });
 
     $(`#add-snmp-modal form`).modalHandler({
-        isSyncRequest: true,
-        method: 'post',
-        csrf: $(`#add-snmp-modal input[name='csrf']`).val(),
+        method: 'get',
+        csrf: addCsrf,
+        resetAfterSubmit: false,
+        endpoint: `${ http_prefix }/lua/pro/rest/v1/add/snmp/device.lua`,
+        beforeSumbit: function() {
+            $(`#add-snmp-feedback`).hide();
+            return serializeFormArray($(`#add-snmp-modal form`).serializeArray());
+        },
         onModalInit: function() {
 
             // disable dropdown if the user inputs an hostname
@@ -118,6 +123,16 @@ $(document).ready(function () {
                     $('#select-cidr').removeAttr("disabled");
                 }
             });
+        },
+        onSubmitSuccess: function (response) {
+
+            if (response.rc < 0) {
+                $(`#add-snmp-feedback`).html(i18n.rest[response.rc_str.toLowerCase()]).show();
+                return;
+            }
+
+            $snmpTable.ajax.reload();
+            $(`#add-snmp-modal`).modal('close');
         }
     }).invokeModalInit();
 

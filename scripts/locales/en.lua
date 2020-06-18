@@ -3555,6 +3555,14 @@ local lang = {
     ["traffic_report"] = "Traffic Report",
     ["use_server_timezone"] = "Use Server Timezone",
   },
+  ["rest_consts"] = {
+    ["device_unreachable"] = "The device is not reachable!",
+    ["invalid_arguments"] = "The passed CIDR or SNMP Version are not valid!",
+    ["invalid_host"] = "The passed host is not valid!",
+    ["name_resolution_failed"] = "The name resolution failed!",
+    ["not_granted"] = "You don't have the permission to access to this resource!",
+    ["snmp_device_already_added"] = "This SNMP Device has been already added!",
+  },
   ["restart"] = {
     ["confirm"] = "Do you want to restart %{product} now?",
     ["restart"] = "Restart",
@@ -3746,21 +3754,6 @@ local lang = {
   ["slack_alert_endpoint"] = {
     ["notification_webhook"] = "Notification Webhook",
     ["sender_username"] = "Sender Username",
-  },
-  ["rest_consts"] = {
-     ["OK"] = "Success",
-     ["NOT_FOUND"] = "Not found",
-     ["INVALID_INTERFACE"] = "Invalid interface",
-     ["NOT_GRANTED"] = "Not authorized",
-     ["INVALID_HOST"] = "Invalid host",
-     ["INVALID_ARGUMENTS"] = "Invalid arguments",
-     ["INTERNAL_ERROR"] = "Internal error",
-     ["BAD_FORMAT"] = "Bad format",
-     ["BAD_CONTENT"] = "Bad content",
-     ["NAME_RESOLUTION_FAILED"] = "Unable to resolve the host name to an IP address",
-     ["SNMP_DEVICE_ALREADY_ADDED"] = "SNMP device already added",
-     ["SNMP_DEVICE_UNREACHABLE"] = "No answer from the SNMP device",
-     ["NO_SNMP_DEVICE_DISCOVERED"] = "No SNMP device discovered",
   },
   ["snmp"] = {
     ["AlertDescription"] = "Alert Description",
