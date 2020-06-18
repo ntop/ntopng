@@ -25,12 +25,9 @@
                         <div class="col-sm-5">
                             <select required name="type" class="form-control" id="endpoint-type-select">
                                 <option selected disabled></option>
-                                {% for endpoint_key, endpoint in pairs(endpoints) do %}
+                                {% for endpoint_key, endpoint in pairsByKeys(endpoints, asc) do %}
                                     <option value="{{ endpoint_key }}">{{ endpoint_key }}</option>
                                 {% end %}
-                                    <option value="slack">Slack</option>
-                                    <option value="webhook">Webhook</option>
-                                    <option value="syslog">Syslog</option>
                             </select>
                         </div>
                     </div>

@@ -7,7 +7,23 @@ local json = require "dkjson"
 local alert_consts = require("alert_consts")
 local alert_utils = require "alert_utils"
 
-local slack = {}
+local slack = {
+   conf_params = {
+      { param_name = "slack_sender_username" },
+      { param_name = "slack_webhook" },
+   },
+   conf_template = {
+      plugin_key = "slack_alert_endpoint",
+      template_name = "slack_endpoint.template"
+   },
+   recipient_params = {
+      -- TODO: add channel
+   },
+   recipient_template = {
+      plugin_key = "slack_alert_endpoint",
+      template_name = "slack_recipient.template" -- TODO: add template
+   },
+}
 
 slack.EXPORT_FREQUENCY = 60
 slack.prio = 500

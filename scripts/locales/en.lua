@@ -3955,7 +3955,7 @@ local lang = {
   ["syslog_alert_endpoint"] = {
     ["content"] = "Content",
     ["text"] = "Text",
-    ["type"] = "Type",
+    ["syslog_alert_format"] = "Format",
   },
   ["system_interfaces_stats"] = {
     ["local_hosts"] = "Local Hosts",

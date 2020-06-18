@@ -5,7 +5,25 @@
 require "lua_utils"
 local json = require "dkjson"
 
-local webhook = {}
+local webhook = {
+   conf_params = {
+      { param_name = "webhook_url" },
+      { param_name = "webhook_sharedsecret", optional = true },
+      { param_name = "webhook_username", optional = true },
+      { param_name = "webhook_password", optional = true },
+   },
+   conf_template = {
+      plugin_key = "webhook_alert_endpoint",
+      template_name = "webhook_endpoint.template"
+   },
+   recipient_params = {
+      -- TODO: add recipient params
+   },
+   recipient_template = {
+      plugin_key = "webhook_alert_endpoint",
+      template_name = "webhook_recipient.template" -- TODO: add template
+   },
+}
 
 webhook.EXPORT_FREQUENCY = 60
 webhook.API_VERSION = "0.2"

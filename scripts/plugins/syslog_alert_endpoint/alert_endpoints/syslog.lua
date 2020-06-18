@@ -7,7 +7,22 @@ local json = require "dkjson"
 local alert_utils = require "alert_utils"
 local alert_consts = require "alert_consts"
 
-local syslog = {}
+local syslog = {
+   conf_params = {
+      { param_name = "syslog_alert_format" },
+   },
+   conf_template = {
+      plugin_key = "syslog_alert_endpoint",
+      template_name = "syslog_endpoint.template"
+   },
+   recipient_params = {
+      -- TODO: add channel
+   },
+   recipient_template = {
+      plugin_key = "syslog_alert_endpoint",
+      template_name = "syslog_recipient.template" -- TODO: add template
+   },
+}
 
 syslog.DEFAULT_SEVERITY = "info"
 syslog.EXPORT_FREQUENCY = 1 -- 1 second, i.e., as soon as possible

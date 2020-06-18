@@ -12,12 +12,12 @@
     </div>
 </div>
 
-<template id="email-template">
-{* plugins_utils.renderTemplate("email_alert_endpoint", "email_endpoint.template") *}
-</template>
-<template id="slack-template">
-    {* plugins_utils.renderTemplate("slack_alert_endpoint", "slack_endpoint.template") *}
-</template>
+{% for endpoint_key, endpoint in pairsByKeys(notifications.endpoints, asc) do %}
+    <template id="{{ endpoint_key }}-template">
+        {* plugins_utils.renderTemplate(endpoint.conf_template.plugin_key, endpoint.conf_template.template_name) *}
+    </template>
+{% end %}
+
 <template id="webhook-template">
     {* plugins_utils.renderTemplate("webhook_alert_endpoint", "webhook_endpoint.template") *}
 </template>

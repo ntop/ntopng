@@ -2,17 +2,27 @@
 -- (C) 2017-20 - ntop.org
 --
 
+local plugins_utils = require "plugins_utils"
+
 local email = {
    conf_params = {
-      { param_name = "smtp_server", param_type = "text", regex="[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\\.[a-zA-Z]{2,})+" },
-      { param_name = "email_sender", param_type = "email" },
-      { param_name = "smtp_username", param_type = "text", optional = true },
-      { param_name = "smtp_password", param_type = "password", optional = true },
+      { param_name = "smtp_server" },
+      { param_name = "email_sender"},
+      { param_name = "smtp_username", optional = true },
+      { param_name = "smtp_password", optional = true },
+   },
+   conf_template = {
+      plugin_key = "email_alert_endpoint",
+      template_name = "email_endpoint.template"
    },
    recipient_params = {
-      { param_name = "email_recipient", param_type = "email" },
-      { param_name = "cc", param_type = "email", optional = true },
-   }
+      { param_name = "email_recipient" },
+      { param_name = "cc", optional = true },
+   },
+   recipient_template = {
+      plugin_key = "email_alert_endpoint",
+      template_name = "email_recipient.template"
+   },
 }
 
 local json = require("dkjson")

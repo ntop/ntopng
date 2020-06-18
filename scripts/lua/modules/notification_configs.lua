@@ -54,9 +54,17 @@ function notification_configs.get_types()
    -- Eventually, when the migration between alert endpoints and generic notification endpoints
    -- will be completed, all the available endpoints will have `conf_params` and `recipient_params`.
    for _, endpoint in ipairs(available_endpoints) do
-      if endpoint.conf_params and endpoint.recipient_params then
+      if endpoint.conf_params and endpoint.recipient_params and endpoint.conf_template and endpoint.recipient_template then
+	 for _, k in pairs({"plugin_key", "template_name"}) do
+	    if not endpoint.conf_template[k] or not endpoint.recipient_template[k] then
+	       goto continue
+	    end
+	 end
+
 	 endpoint_types[endpoint.key] = endpoint
       end
+
+      ::continue::
    end
 
    return endpoint_types
