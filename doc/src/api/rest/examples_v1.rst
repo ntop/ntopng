@@ -1259,6 +1259,7 @@ Add an SNMP Device
 Response:
 
 .. code:: json
+
    {
 	  "rc": 0,
 	  "rc_str": "OK",
@@ -1275,6 +1276,7 @@ Response:
 Response:
 
 .. code:: json
+
    {
 	  "rc": 0,
 	  "rc_str": "OK",
@@ -1290,6 +1292,7 @@ Response:
 Response:
 
 .. code:: json
+
    {
 	  "rc": 0,
 	  "rc_str": "OK",
