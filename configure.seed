@@ -436,7 +436,14 @@ if test "${with_nedge+set}" != set; then
     AC_CHECK_LIB([snmp], [init_snmp])
 
     if test "x$ac_cv_lib_snmp_init_snmp" = xyes; then :
-     SNMP_LIB="-lsnmp"
+      SNMP_LIB="-lsnmp"
+     else
+      AC_CHECK_LIB([netsnmp], [init_snmp])
+
+      if test "x$ac_cv_lib_netsnmp_init_snmp" = xyes; then :
+         SNMP_LIB="-lnetsnmp"
+         AC_DEFINE_UNQUOTED(HAVE_LIBSNMP, 1, [has net-snmp])
+      fi
     fi
   dnl> fi
 fi
