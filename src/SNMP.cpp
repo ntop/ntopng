@@ -417,23 +417,6 @@ int SNMP::snmp_read_response(lua_State* _vm, u_int timeout) {
 
 /* ******************************************* */
 
-void SNMP::send_snmp_set_request(char *agent_host, char *community,
-				 u_int8_t pduType,
-				 u_int version,
-				 char *oid[SNMP_MAX_NUM_OIDS],
-				 char value_types[SNMP_MAX_NUM_OIDS],
-				 char *values[SNMP_MAX_NUM_OIDS]) {
-  // Function unsupported without HAVE_LIBSNMP
-  // TODO: add support if necessary
-  static bool unsupported_pdu_warning_sent = false;
-  if(!unsupported_pdu_warning_sent) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported function for pdu with type %d", pduType);
-    unsupported_pdu_warning_sent = true;
-  }
-}
-
-/* ******************************************* */
-
 int SNMP::snmp_read_response(lua_State* vm, u_int timeout) {
   int i = 0;
 
@@ -669,7 +652,11 @@ int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param, 
 
   if(pduType == 3) {
     /* SET */
+#ifdef HAVE_LIBSNMP
     send_snmp_set_request(agent_host, community, pduType, version, oid, value_types, values);
+#else
+    return(CONST_LUA_ERROR); /* not supported */
+#endif
   } else {
     send_snmp_request(agent_host, community, pduType, version, oid, _batch_mode);
   }

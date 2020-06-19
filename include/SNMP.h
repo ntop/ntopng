@@ -67,18 +67,18 @@ class SNMP {
 
 #ifdef HAVE_LIBSNMP
   void handle_async_response(struct snmp_pdu *pdu, const char *agent_ip);
-#endif
-  void send_snmp_request(char *agent_host, char *community,
-			 u_int8_t pduType,
-			 u_int version,
-			 char *oid[SNMP_MAX_NUM_OIDS],
-			 bool batch_mode);
   void send_snmp_set_request(char *agent_host, char *community,
 			     u_int8_t pduType,
 			     u_int version,
 			     char *oid[SNMP_MAX_NUM_OIDS],
 			     char value_types[SNMP_MAX_NUM_OIDS],
 			     char *values[SNMP_MAX_NUM_OIDS]);
+#endif
+  void send_snmp_request(char *agent_host, char *community,
+			 u_int8_t pduType,
+			 u_int version,
+			 char *oid[SNMP_MAX_NUM_OIDS],
+			 bool batch_mode);
   void snmp_fetch_responses(lua_State* vm, u_int timeout);
 
   int get(lua_State* vm, bool skip_first_param);
