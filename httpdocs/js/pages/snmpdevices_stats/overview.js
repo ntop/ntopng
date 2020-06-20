@@ -12,14 +12,20 @@ $(document).ready(function () {
             action: function(e, dt, node, config) {
                 $('#add-snmp-modal').modal('show');
             }
+        },
+        {
+            text: '<i class="fas fa-sync"></i>',
+            action: function(e, dt, node, config) {
+                $snmpTable.ajax.reload();
+            }
         }
     ]);
-    dtConfig = DataTableUtils.setAjaxConfig(
+    DataTableUtils.setAjaxConfig(
         dtConfig,
         "/lua/pro/enterprise/get_snmp_devices_list.lua",
         'data',
     );
-    dtConfig = DataTableUtils.extendConfig(dtConfig, {
+    DataTableUtils.extendConfig(dtConfig, {
         columns: [
             {
                 data: "column_device_status",
@@ -126,17 +132,21 @@ $(document).ready(function () {
                 }
             });
         },
-        onSubmitSuccess: function (response) {
+        onSubmitSuccess: function (response, textStatus, cleanForm) {
 
             if (response.rc < 0) {
+                // hide the spinner and show a localized error
                 $(`#snmp-add-spinner`).fadeOut(() => {
                     $(`#add-snmp-feedback`).html(i18n.rest[response.rc_str]).fadeIn()
                 });
                 return;
             }
-            $(`#snmp-add-spinner`).hide();
 
+            // clean the form if the response was successful
+            cleanForm();
             $snmpTable.ajax.reload();
+            // hide the spinner and the add modal
+            $(`#snmp-add-spinner`).hide();
             $(`#add-snmp-modal`).modal('hide');
         }
     }).invokeModalInit();

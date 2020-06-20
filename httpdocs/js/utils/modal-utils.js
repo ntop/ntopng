@@ -152,7 +152,7 @@
             method(this.options.endpoint, dataToSend)
                 .done(function (response, textStatus) {
                     if (self.options.resetAfterSubmit) self.cleanForm();
-                    self.options.onSubmitSuccess(response, dataToSend);
+                    self.options.onSubmitSuccess(response, dataToSend, self.cleanForm);
                     /* unbind the old closure on submit event and bind a new one */
                     $(self.element).off('submit', self.submitHandler);
                     self.delegateSubmit();
