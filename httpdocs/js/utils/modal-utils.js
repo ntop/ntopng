@@ -64,6 +64,7 @@
                     aysResetForm(self.form_sel);
                 });
             }
+
         }
 
         fillFormModal() {
@@ -72,6 +73,7 @@
 
         invokeModalInit() {
             this.options.onModalInit(this.fillFormModal());
+            this.delegateResetButton();
         }
 
         delegateSubmit() {
@@ -171,12 +173,24 @@
 
         delegateResetButton() {
 
-            const resetButton = $form.find(`[type='reset']`);
             const self = this;
-            if (!resetButton) return;
-            resetButton.click(function(event) {
-                /* TODO: finish the reset logic */
-                if(!self.dontDisableSubmit)
+            const resetButton = $(this.element).find(`[type='reset']`);
+            if (resetButton.length == 0) return;
+
+            const defaultValues = serializeFormArray($(this.element).serializeArray());
+
+            resetButton.click(function(e) {
+
+                e.preventDefault();
+
+                // reset the previous values
+                $(self.element).find('input:visible,select').each(function(i, input) {
+                    const key = $(input).attr('name');
+                    $(input).val(defaultValues[key])
+                        .removeClass('is-invalid').removeClass('is-valid');
+                });
+
+                if (!self.dontDisableSubmit)
                     aysResetForm(self.form_sel);
             });
         }
