@@ -20,12 +20,12 @@ $(document).ready(function () {
             }
         }
     ]);
-    DataTableUtils.setAjaxConfig(
+    dtConfig = DataTableUtils.setAjaxConfig(
         dtConfig,
         "/lua/pro/enterprise/get_snmp_devices_list.lua",
         'data',
     );
-    DataTableUtils.extendConfig(dtConfig, {
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             {
                 data: "column_device_status",
