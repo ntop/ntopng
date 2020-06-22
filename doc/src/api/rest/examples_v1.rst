@@ -1263,7 +1263,11 @@ Response:
    {
 	  "rc": 0,
 	  "rc_str": "OK",
-	  "rsp": []
+	  "rsp": {
+		  "added_devices": [
+			  {"ip": "192.168.2.1", "name": "ubnt"}
+		  ]
+	  }
    }
 
 
@@ -1280,7 +1284,11 @@ Response:
    {
 	  "rc": 0,
 	  "rc_str": "OK",
-	  "rsp": []
+	  "rsp": {
+		  "added_devices": [
+			  {"ip": "192.168.2.169"}
+		  ]
+	  }
    }
 
 *curl*
@@ -1296,6 +1304,11 @@ Response:
    {
 	  "rc": 0,
 	  "rc_str": "OK",
-	  "rsp": []
+	  "rsp": {
+		  "added_devices": [
+			  {"ip": "192.168.2.169"},
+			  {"ip": "192.168.2.1"}
+		  ]
+	  }
    }
 
