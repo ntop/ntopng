@@ -170,8 +170,8 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       break;
       
     default:
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing %d type handler", vp->type);
-
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing %d type handler [agent: %s]",
+				   vp->type, agent_ip);
     }
 
     vp = vp->next_variable;
