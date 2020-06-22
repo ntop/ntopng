@@ -597,7 +597,7 @@ int SNMP::getnextbulk(lua_State* vm, bool skip_first_param) {
 }
 
 /* ******************************************* */
-
+ 
 int SNMP::set(lua_State* vm, bool skip_first_param) {
 #ifdef HAVE_LIBSNMP
   return(snmp_get_fctn(vm, 3 /* SET */, skip_first_param, false));
@@ -632,6 +632,12 @@ int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param, 
       /* SET */
       oid[oid_idx] = (char*)lua_tostring(vm, idx);
 
+
+      /* Types
+	 i: INTEGER, u: unsigned INTEGER, t: TIMETICKS, a: IPADDRESS
+	 o: OBJID, s: STRING, x: HEX STRING, d: DECIMAL STRING
+	 U: unsigned int64, I: signed int64, F: float, D: double
+      */
       if(lua_type(vm, idx+1) != LUA_TSTRING) return(CONST_LUA_ERROR);
       value_types[oid_idx] = ((char*)lua_tostring(vm, idx+1))[0];
 
