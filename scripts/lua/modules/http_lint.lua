@@ -100,7 +100,7 @@ http_lint.validateEmptyOr = validateEmptyOr
 local function validateNumber(p)
    -- integer number validation
    local num = tonumber(p)
-   
+
    if(num == nil) then
       return false
    end
@@ -530,6 +530,21 @@ local function validateSnmpAction(mode)
 		  "addNewDevice", "startPolling", "prune"}
 
    return validateChoice(modes, mode)
+end
+
+local function validateSnmpLevel(level)
+   local levels = {"authPriv", "authNoPriv", "noAuthNoPriv"}
+   return validateChoice(levels, level)
+end
+
+local function validateSnmpAuthProtocol(protocol)
+   local protocols = {"md5", "sha"}
+   return validateChoice(protocols, protocol)
+end
+
+local function validateSnmpPrivacyProtocol(protocol)
+   local protocols = {"des", "aes"}
+   return validateChoice(protocols, protocol)
 end
 
 local function validateExtractionJobAction(mode)
@@ -1316,6 +1331,13 @@ local known_parameters = {
    ["num_minutes"]             = validateNumMinutes,            -- number of minutes
    ["zoom"]                    = validateZoom,                  -- a graph zoom specifier
    ["community"]               = validateSingleWord,            -- SNMP community
+   ["snmp_read_community"]     = validateSingleWord,            -- SNMP Read community
+   ["snmp_write_community"]    = validateSingleWord,            -- SNMP Write community
+   ["snmp_level"]              = validateSnmpLevel,             -- SNMP Level
+   ["snmp_auth_protocol"]      = validateSnmpAuthProtocol,
+   ["snmp_auth_passphrase"]    = validateSingleWord,
+   ["snmp_privacy_protocol"]   = validateSnmpPrivacyProtocol,
+   ["snmp_privacy_passphrase"] = validateSingleWord,
    ["lldp_mode"]               = validateBool,                  -- LLDP mode
    ["default_snmp_community"]  = validateSingleWord,            -- Default SNMP community for non-SNMP-configured local hosts
    ["snmp_host"]               = validateSNMPhost,              -- Either an IPv4/v6 or a hostname
@@ -1852,7 +1874,7 @@ end
 
 local function validateSpecialParameter(param, value)
    -- These parameters are made up of one string prefix plus a string suffix
-  
+
    for k, v in pairs(special_parameters) do
       if starts(param, k) then
          local suffix = split(param, k)[2]
@@ -1883,7 +1905,7 @@ function http_lint.validationError(t, param, value, message)
 
    -- Remove the param which failed the validation
    t[param] = nil
-   
+
    -- Must use urlencode to print these values or an attacker could perform XSS.
    -- Indeed, the web page returned by mongoose will show the error below and
    -- one could place something like '><script>alert(1)</script> in the value

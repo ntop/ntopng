@@ -1,1381 +1,1487 @@
 {
-   "swagger":"2.0",
-   "info":{
-      "version":"3.9",
-      "title":"ntopng",
-      "description":"ntopng RESTful API documentation"
-   },
-   "tags":[
-      {
-         "name":"Interfaces",
-         "description":"Everything about interfaces"
-      },
-      {
-         "name":"Hosts",
-         "description":"Everything about hosts"
-      },
-      {
-         "name":"Alerts",
-         "description":"Everything about alerts"
-      },
-      {
-         "name":"Flows",
-         "description":"Everything about flows"
-      },
-      {
-         "name":"PCAP",
-         "description":"Raw PCAP traffic"
-      }
-   ],
-   "schemes":[
-      "https",
-      "http"
-   ],
-   "paths":{
-      "/lua/rest/v1/get/interface/data.lua":{
-         "get":{
-            "tags":[
-               "Interfaces"
-            ],
-            "summary":"Get interface data",
-            "description":"Interface data is returned",
-            "operationId":"get_interface_data",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK",
-                  "schema":{
-                     "$ref":"#/definitions/Interface"
-                  }
-               },
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/interface/address.lua":{
-         "get":{
-            "tags":[
-               "Interfaces"
-            ],
-            "summary":"Get interface IP addresses",
-            "description":"List of interface IP addresses is returned",
-            "operationId":"get_interface_address",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK",
-                  "schema":{
-                     "$ref":"#/definitions/Interface"
-                  }
-               },
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/interface/l7/stats.lua":{
-         "get":{
-            "tags":[
-               "Interfaces"
-            ],
-            "summary":"Get L7 statistics for an interface",
-            "description":"nDPI statistics",
-            "operationId":"get_interface_l7_stats",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"ndpistats_mode",
-                  "in":"query",
-                  "description":"Stats mode: 'sinceStartup' or 'count'",
-                  "required":true,
-                  "type":"string"
-               },
-               {
-                  "name":"breed",
-                  "in":"query",
-                  "description":"Show breed",
-                  "required":false,
-                  "type":"boolean"
-               },
-               {
-                  "name":"ndpi_category",
-                  "in":"query",
-                  "description":"Show nDPI category",
-                  "required":false,
-                  "type":"boolean"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/host/active.lua":{
-         "get":{
-            "tags":[
-               "Hosts"
-            ],
-            "summary":"Get active hosts",
-            "description":"List of active hosts",
-            "operationId":"get_host_active",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"currentPage",
-                  "in":"query",
-                  "description":"Pagination: page (optional)",
-                  "required":false,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"perPage",
-                  "in":"query",
-                  "description":"Pagination: items per page (optional)",
-                  "required":false,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"sortColumn",
-                  "in":"query",
-                  "description":"Pagination: column for sorting (e.g. ip, name, since, last, alerts, country, vlan, num_flows, traffic, thpt) (optional)",
-                  "required":false,
-                  "type":"string"
-               },
-               {
-                  "name":"sortOrder",
-                  "in":"query",
-                  "description":"Pagination: sorting order: 'asc' or 'desc' (optional)",
-                  "required":false,
-                  "type":"string"
-               },
-               {
-                  "name":"all",
-                  "in":"query",
-                  "description":"Get all hosts (optional)",
-                  "required":false,
-                  "type":"boolean"
-               },
-               {
-                  "name":"mode",
-                  "in":"query",
-                  "description":"Mode filter: all, local, remote, broadcast_domain, filtered, blacklisted, dhcp (optional)",
-                  "required":false,
-                  "type":"string"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-1":{"description":"NOT_FOUND"},
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/host/interfaces.lua":{
-         "get":{
-            "tags":[
-               "Hosts"
-            ],
-            "summary":"Get host interfaces",
-            "description":"All interface ids of a given host are returned",
-            "operationId":"get_host_interfaces",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"host",
-                  "in":"query",
-                  "description":"Host address",
-                  "required":true,
-                  "type":"string"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK",
-                  "schema":{
-                     "$ref":"#/definitions/Host"
-                  }
-               },
-               "-5":{"description":"INVALID_ARGUMENTS"}
-            }
-         }
-      },
-       "/lua/rest/v1/get/host/data.lua":{
-         "get":{
-            "tags":[
-               "Hosts"
-            ],
-            "summary":"Get host data",
-            "description":"Host data is returned",
-            "operationId":"get_host_json",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"host",
-                  "in":"query",
-                  "description":"Host address",
-                  "required":true,
-                  "type":"string"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK",
-                  "schema":{
-                     "$ref":"#/definitions/Host"
-                  }
-               },
-               "-1":{"description":"NOT_FOUND"},
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-3":{"description":"NOT_GRANTED"},
-               "-4":{"description":"INVALID_HOST"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"},
-               "-7":{"description":"BAD_FORMAT"},
-               "-8":{"description":"BAD_CONTENT"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/host/l7/stats.lua":{
-         "get":{
-            "tags":[
-               "Hosts"
-            ],
-            "summary":"Get L7 statistics for a host",
-            "description":"nDPI statistics",
-            "operationId":"get_host_l7_stats",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"host",
-                  "in":"query",
-                  "description":"Host address",
-                  "required":true,
-                  "type":"string"
-               },
-               {
-                  "name":"vlan",
-                  "in":"query",
-                  "description":"VLAN ID",
-                  "required":false,
-                  "type":"integer",
-                  "format":"int16"
-               },
-               {
-                  "name":"breed",
-                  "in":"query",
-                  "description":"Show breed",
-                  "required":false,
-                  "type":"boolean"
-               },
-               {
-                  "name":"ndpi_category",
-                  "in":"query",
-                  "description":"Show nDPI category",
-                  "required":false,
-                  "type":"boolean"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/alert/data.lua":{
-         "get":{
-            "tags":[
-               "Alerts"
-            ],
-            "summary":"Get alerts data",
-            "description":"Alerts are returned",
-            "operationId":"get_alert_data",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"status",
-                  "in":"query",
-                  "description":"Status filter (historical, historical-flows, engaged)",
-                  "required":true,
-                  "type":"string"
-               },
-               {
-                   "name":"epoch_begin",
-                   "in":"query",
-                   "description":"Start time (epoch) (optional)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"epoch_end",
-                   "in":"query",
-                   "description":"Start time (epoch) (optional)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"alert_type",
-                   "in":"query",
-                   "description":"Alert Type (optional)",
-                   "required":false,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"alert_severity",
-                   "in":"query",
-                   "description":"Alert Severity (optional)",
-                   "required":false,
-                   "type":"integer",
-                   "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK",
-                  "schema":{
-                     "$ref":"#/definitions/Host"
-                  }
-               },
-               "-1":{"description":"NOT_FOUND"},
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-3":{"description":"NOT_GRANTED"},
-               "-4":{"description":"INVALID_HOST"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"},
-               "-7":{"description":"BAD_FORMAT"},
-               "-8":{"description":"BAD_CONTENT"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/alert/ts.lua":{
-         "get":{
-            "tags":[
-               "Alerts"
-            ],
-            "summary":"Get alerts timeseries",
-            "description":"Number of alerts per hour divided by day are returned",
-            "operationId":"get_alert_ts",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"status",
-                  "in":"query",
-                  "description":"Status filter (historical, historical-flows)",
-                  "required":true,
-                  "type":"string"
-               },
-               {
-                   "name":"epoch_begin",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"epoch_end",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"alert_type",
-                   "in":"query",
-                   "description":"Alert Type (optional)",
-                   "required":false,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"alert_severity",
-                   "in":"query",
-                   "description":"Alert Severity (optional)",
-                   "required":false,
-                   "type":"integer",
-                   "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/alert/type/consts.lua":{
-         "get":{
-            "tags":[
-               "Alerts"
-            ],
-            "summary":"Get alert type constants",
-            "description":"Alert type string and integer alert key for each defined alert",
-            "operationId":"get_alert_type_consts",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               }
-            }
-         }
-      },
-      "/lua/rest/v1/get/alert/severity/consts.lua":{
-         "get":{
-            "tags":[
-               "Alerts"
-            ],
-            "summary":"Get alert severity constants",
-            "description":"Alert severity string and integer severity id for each defined severity",
-            "operationId":"get_alert_severity_consts",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               }
-            }
-         }
-      },
-       "/lua/rest/v1/get/alert/type/counters.lua":{
-         "get":{
-            "tags":[
-               "Alerts"
-            ],
-            "summary":"Get counters per type",
-            "description":"Number of alerts per alert type",
-            "operationId":"get_alert_type_counters",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"status",
-                  "in":"query",
-                  "description":"Status filter (historical, historical-flows)",
-                  "required":true,
-                  "type":"string"
-               },
-               {
-                   "name":"epoch_begin",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"epoch_end",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/alert/severity/counters.lua":{
-         "get":{
-            "tags":[
-               "Alerts"
-            ],
-            "summary":"Get counters per severity",
-            "description":"Number of alerts per alert severity",
-            "operationId":"get_alert_severity_counters",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"status",
-                  "in":"query",
-                  "description":"Status filter: 'historical' or 'historical-flows'",
-                  "required":true,
-                  "type":"string"
-               },
-               {
-                   "name":"epoch_begin",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"epoch_end",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/l4/protocol/consts.lua":{
-         "get":{
-            "tags":[
-               "L4 Protocols"
-            ],
-            "summary":"Get L4 protocol constants",
-            "description":"L4 protocol names and integer identifiers",
-            "operationId":"get_l4_protocol_consts",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               }
-            }
-         }
-      },
-       "/lua/rest/v1/get/l7/application/consts.lua":{
-         "get":{
-            "tags":[
-               "L7 Application Protocols"
-            ],
-            "summary":"Get L7 application protocol constants",
-            "description":"L7 application protocol names and integer identifiers",
-            "operationId":"get_l7_application_consts",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               }
-            }
-         }
-      },
-      "/lua/rest/v1/get/l7/category/consts.lua":{
-         "get":{
-            "tags":[
-               "L7 Application Categories"
-            ],
-            "summary":"Get L7 application category constants",
-            "description":"L7 application category names and integer identifiers",
-            "operationId":"get_l7_category_consts",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               }
-            }
-         }
-      },
-       "/lua/rest/v1/get/flow/active.lua":{
-         "get":{
-            "tags":[
-               "Flows"
-            ],
-            "summary":"Get active flows",
-            "description":"List of active flows",
-            "operationId":"get_flow_active",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"currentPage",
-                  "in":"query",
-                  "description":"Pagination: page (optional)",
-                  "required":false,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"perPage",
-                  "in":"query",
-                  "description":"Pagination: items per page (optional)",
-                  "required":false,
-                  "type":"integer",
-                  "format":"int32"
-               },
-               {
-                  "name":"sortColumn",
-                  "in":"query",
-                  "description":"Pagination: column for sorting (e.g. 'score') (optional)",
-                  "required":false,
-                  "type":"string"
-               },
-               {
-                  "name":"sortOrder",
-                  "in":"query",
-                  "description":"Pagination: sorting order: 'asc' or 'desc' (optional)",
-                  "required":false,
-                  "type":"string"
-               },
-               {
-                  "name":"host",
-                  "in":"query",
-                  "description":"Host address filter (optional)",
-                  "required":true,
-                  "type":"string"
-               },
-               {
-                  "name":"vlan",
-                  "in":"query",
-                  "description":"VLAN ID filter (optional)",
-                  "required":false,
-                  "type":"integer",
-                  "format":"int16"
-               },
-               {
-                  "name":"l4proto",
-                  "in":"query",
-                  "description":"L4 protocol filter (optional)",
-                  "required":false,
-                  "type":"string"
-               },
-               {
-                  "name":"application",
-                  "in":"query",
-                  "description":"Application protocol filter (optional)",
-                  "required":false,
-                  "type":"string"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-1":{"description":"NOT_FOUND"},
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/flow/l4/counters.lua":{
-         "get":{
-            "tags":[
-               "Flows"
-            ],
-            "summary":"Get flow counters for L4 protocols",
-            "description":"Number of active flows per L4 protocol",
-            "operationId":"get_flow_l4_counters",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/rest/v1/get/flow/l7/counters.lua":{
-         "get":{
-            "tags":[
-               "Flows"
-            ],
-            "summary":"Get flow counters for L7 protocols",
-            "description":"Number of active flows per L7 application protocol",
-            "operationId":"get_flow_l7_counters",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                  "name":"ifid",
-                  "in":"query",
-                  "description":"Interface identifier",
-                  "required":true,
-                  "type":"integer",
-                  "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/pro/rest/v1/get/db/flows.lua":{
-         "get":{
-            "tags":[
-               "Flows"
-            ],
-            "summary":"Get flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO.",
-            "description":"Executes a query to the flows database",
-            "operationId":"get_flows_data",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                   "name":"ifid",
-                   "in":"query",
-                   "description":"Interface identifier",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"begin_time_clause",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"end_time_clause",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"select_clause",
-                   "in":"query",
-                   "description":"Select clause (default: *)",
-                   "required":false,
-                   "type":"string"
-               },
-               {
-                   "name":"where_clause",
-                   "in":"query",
-                   "description":"Where clause (default: none)",
-                   "required":false,
-                   "type":"string"
-               },
-               {
-                   "name":"maxhits_clause",
-                   "in":"query",
-                   "description":"Max hits (default: 10)",
-                   "required":false,
-                   "type":"integer",
-                   "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-1":{"description":"NOT_FOUND"},
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-3":{"description":"NOT_GRANTED"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-      "/lua/pro/rest/v1/get/db/topk_flows.lua":{
-         "get":{
-            "tags":[
-               "Flows"
-            ],
-            "summary":"Get Top-K flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO",
-            "description":"Executes a top-k query to the flows database",
-            "operationId":"get_topk_data",
-            "produces":[
-               "application/json"
-            ],
-            "parameters":[
-               {
-                   "name":"ifid",
-                   "in":"query",
-                   "description":"Interface identifier",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"begin_time_clause",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"end_time_clause",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"select_keys_clause",
-                   "in":"query",
-                   "description":"Select keys (default: IPV4_SRC_ADDR,IPV4_DST_ADDR,L7_PROTO)",
-                   "required":false,
-                   "type":"string"
-               },
-               {
-                   "name":"select_values_clause",
-                   "in":"query",
-                   "description":"Select values (default: BYTES)",
-                   "required":false,
-                   "type":"string"
-               },
-               {
-                   "name":"where_clause",
-                   "in":"query",
-                   "description":"Where clause (default: none)",
-                   "required":false,
-                   "type":"string"
-               },
-               {
-                   "name":"topk_clause",
-                   "in":"query",
-                   "description":"Top-K clause (default: SUM)",
-                   "required":false,
-                   "type":"string"
-               },
-               {
-                   "name":"approx_search",
-                   "in":"query",
-                   "description":"Approximate search (default: true)",
-                   "required":false,
-                   "type":"string"
-               },
-               {
-                   "name":"maxhits_clause",
-                   "in":"query",
-                   "description":"Max hits (default: 10)",
-                   "required":false,
-                   "type":"integer",
-                   "format":"int32"
-               }
-            ],
-            "responses":{
-               "0":{
-                  "description":"OK"
-               },
-               "-1":{"description":"NOT_FOUND"},
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-3":{"description":"NOT_GRANTED"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"}
-            }
-         }
-      },
-       "lua/pro/rest/v1/add/snmp/device.lua":{
-           "get":{
-               "tags":[
-		   "SNMP"
-               ],
-               "summary":"Add SNMP devices",
-               "description":"Add devices to the monitored SNMP devices",
-               "operationId":"add_snmp_device",
-               "produces":[
-		   "application/json"
-               ],
-               "parameters":[
-		   {
-                       "name":"snmp_host",
-                       "in":"query",
-                       "description":"IP address or symbolic name of and an SNMP device",
-                       "required": true,
-                       "type":"string"
-		   },
-		   {
-                       "name":"community",
-                       "in":"query",
-                       "description":"The SNMP community to use",
-                       "required":true,
-                       "type":"string"
-		   },
-		   {
-                       "name":"snmp_version",
-                       "in":"query",
-                       "description":"The SNMP version to use, either 1 (v2c) or 0 (v1)",
-                       "required":true,
-                       "type":"string"
-		   },
-		   {
-                       "name":"cidr",
-                       "in":"query",
-                       "description":"Either 24 or 32. If 32, snmp_host is treated as single host. If 24 snmp_host is treated as as CIDR address",
-                       "required":false,
-                       "type":"string"
-		   }
-               ],
-               "responses":{
-		   "-3":{"description":"NOT_GRANTED"},
-		   "-4":{"description":"INVALID_HOST"},
-		   "-5":{"description":"INVALID_ARGUMENTS"},
-		   "-9":{"description":"NAME_RESOLUTION_FAILED"},
-		   "-10":{"description":"SNMP_DEVICE_ALREADY_ADDED"},
-		   "-11":{"description":"SNMP_DEVICE_UNREACHABLE"},
-		   "-12":{"description":"NO_SNMP_DEVICE_DISCOVERED"},
-               }
-           }
-       },
-      "/lua/rest/v1/get/pcap/live_extraction.lua":{
-         "get":{
-            "tags":[
-               "PCAP"
-            ],
-            "summary":"Live PCAP traffic extraction",
-            "description":"Raw PCAP data is returned",
-            "operationId":"live_traffic_extraction",
-            "produces":[
-               "application/vnd.tcpdump.pcap"
-            ],
-            "parameters":[
-               {
-                   "name":"ifid",
-                   "in":"query",
-                   "description":"Interface identifier",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"epoch_begin",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"epoch_end",
-                   "in":"query",
-                   "description":"Start time (epoch)",
-                   "required":true,
-                   "type":"integer",
-                   "format":"int32"
-               },
-               {
-                   "name":"bpf_filter",
-                   "in":"query",
-                   "description":"BPF filter",
-                   "required":false,
-                   "type":"string"
-               }
-            ],
-            "responses":{
-               "FILE":{ "description":"OK" },
-               "-1":{"description":"NOT_FOUND"},
-               "-2":{"description":"INVALID_INTERFACE"},
-               "-3":{"description":"NOT_GRANTED"},
-               "-5":{"description":"INVALID_ARGUMENTS"},
-               "-6":{"description":"INTERNAL_ERROR"},
-               "-7":{"description":"BAD_FORMAT"}
-            }
-         }
-      }
-   },
-   "definitions":{
-      "Interface":{
-         "type":"object",
-         "properties":{
-            "ifname":{
-               "type":"string"
-            },
-            "is_view":{
-               "type":"boolean",
-               "default":false
-            },
-            "id":{
-               "type":"integer",
-               "format":"int64"
-            },
-            "speed":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "epoch":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "packets":{
-               "type":"integer",
-               "format":"int64"
-            },
-            "packets":{
-               "type":"integer",
-               "format":"int64"
-            },
-            "bytes":{
-               "type":"integer",
-               "format":"int64"
-            },
-            "drops":{
-               "type":"integer",
-               "format":"int64"
-            },
-            "num_devices":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "num_hosts":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "num_flows":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "remote_bps":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "remote_pps":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "remote2local":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "local2remote":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "num_local_hosts":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "alerts_stored":{
-               "type":"boolean"
-            },
-            "engaged_alerts":{
-               "type":"integer",
-               "format":"int32"
-            },
-            "tcpPacketStats":{
-               "type":"object",
-			   "properties":{
-	              "retransmissions":{
-	                 "type":"integer",
-	                 "format":"int32"
-	              },
-	              "lost":{
-	                 "type":"integer",
-	                 "format":"int32"
-	              },
-	              "out_of_order":{
-	                 "type":"integer",
-	                 "format":"int32"
-	              }
-			   }
-            }
-         }
-      },
-      "Host":{
-          "type":"object",
-          "properties":{
-             "localHost":{
-                "type":"boolean"
-             },
-             "ifid":{
-                 "type":"integer",
-                 "format":"int32"
-             },
-             "mac_address":{
-                "type":"string"
-             },
-             "symbolic_name":{
-                "type":"string"
-             },
-             "seen.first":{
-                "type":"integer",
-                "format":"int32"
-             },
-             "seen.last":{
-                "type":"integer",
-                "format":"int32"
-             },
-             "flows.as_client":{
-                 "type":"integer",
-                 "format":"int32"
-             },
-             "flows.as_server":{
-                 "type":"integer",
-                 "format":"int32"
-             },
-             "throughput_pps":{
-                 "type":"number"
-             },
-             "throughput_bps":{
-                 "type":"number"
-             },
-             "os":{
-                "type":"string"
-             },
-             "systemHost":{
-                "type":"boolean"
-             },
-             "throughput_trend_pps":{
-                "type":"string"
-             },
-             "throughput_trend_bps":{
-                "type":"string"
-             },
-             "total_activity_time":{
-                "type":"integer",
-                "format":"int32"
-             },
-             "num_alerts":{
-                "type":"integer",
-                "format":"int32"
-             },
-             "is_blacklisted":{
-                "type":"boolean"
-             },
-             "asn":{
-                "type":"integer",
-                "format":"int32"
-             },
-             "rcvd":{
-                "type":"object",
-                "properties":{
-	                "packets":{
-	                   "type":"integer",
-	                   "format":"int32"
-	                },
-	                "bytes":{
-	                   "type":"integer",
-	                   "format":"int32"
-	                }
-				}
-             },
-             "sent":{
-                "type":"object",
-                "properties":{
-	                "packets":{
-	                   "type":"integer",
-	                   "format":"int32"
-	                },
-	                "bytes":{
-	                   "type":"integer",
-	                   "format":"int32"
-	                }
-				}
-             },
-             "ip":{
-                "type":"object",
-                "properties":{
-	                "localHost":{
-	                   "type":"boolean"
-	                },
-	                "ip":{
-	                   "type":"string"
-	                },
-	                "ipVersion":{
-	                   "type":"integer",
-	                   "format":"int32"
-	                }
-				}
-             }
-		 }
-      },
-      "Alert":{
-         "type":"array",
-	 "items":{
-            "type":"object",
-	    "properties":{
-	       "entity":{
-	          "type":"string"
-	       },
-  	       "msg":{
-  	          "type":"string"
-  	       },
-  	       "duration":{
-  	          "type":"string"
-  	       },
-  	       "date":{
-  	          "type":"string"
-  	       },
-  	       "type":{
-  	          "type":"string"
-  	       },
-  	       "key":{
-  	          "type":"string"
-  	       },
-  	       "entity_val":{
-  	          "type":"string"
-  	       },
-  	       "severity":{
-  	          "type":"string"
-  	       }
-            }
-	 }
-      }
-   }
+    "swagger": "2.0",
+    "info": {
+	"version": "3.9",
+	"title": "ntopng",
+	"description": "ntopng RESTful API documentation"
+    },
+    "tags": [{
+	"name": "Interfaces",
+	"description": "Everything about interfaces"
+    },
+	     {
+		 "name": "Hosts",
+		 "description": "Everything about hosts"
+	     },
+	     {
+		 "name": "Alerts",
+		 "description": "Everything about alerts"
+	     },
+	     {
+		 "name": "Flows",
+		 "description": "Everything about flows"
+	     },
+	     {
+		 "name": "PCAP",
+		 "description": "Raw PCAP traffic"
+	     }
+	    ],
+    "schemes": [
+	"https",
+	"http"
+    ],
+    "paths": {
+	"/lua/rest/v1/get/interface/data.lua": {
+	    "get": {
+		"tags": [
+		    "Interfaces"
+		],
+		"summary": "Get interface data",
+		"description": "Interface data is returned",
+		"operationId": "get_interface_data",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		}],
+		"responses": {
+		    "0": {
+			"description": "OK",
+			"schema": {
+			    "$ref": "#/definitions/Interface"
+			}
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/interface/address.lua": {
+	    "get": {
+		"tags": [
+		    "Interfaces"
+		],
+		"summary": "Get interface IP addresses",
+		"description": "List of interface IP addresses is returned",
+		"operationId": "get_interface_address",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		}],
+		"responses": {
+		    "0": {
+			"description": "OK",
+			"schema": {
+			    "$ref": "#/definitions/Interface"
+			}
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/interface/l7/stats.lua": {
+	    "get": {
+		"tags": [
+		    "Interfaces"
+		],
+		"summary": "Get L7 statistics for an interface",
+		"description": "nDPI statistics",
+		"operationId": "get_interface_l7_stats",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "ndpistats_mode",
+				   "in": "query",
+				   "description": "Stats mode: 'sinceStartup' or 'count'",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "breed",
+				   "in": "query",
+				   "description": "Show breed",
+				   "required": false,
+				   "type": "boolean"
+			       },
+			       {
+				   "name": "ndpi_category",
+				   "in": "query",
+				   "description": "Show nDPI category",
+				   "required": false,
+				   "type": "boolean"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/host/active.lua": {
+	    "get": {
+		"tags": [
+		    "Hosts"
+		],
+		"summary": "Get active hosts",
+		"description": "List of active hosts",
+		"operationId": "get_host_active",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "currentPage",
+				   "in": "query",
+				   "description": "Pagination: page (optional)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "perPage",
+				   "in": "query",
+				   "description": "Pagination: items per page (optional)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "sortColumn",
+				   "in": "query",
+				   "description": "Pagination: column for sorting (e.g. ip, name, since, last, alerts, country, vlan, num_flows, traffic, thpt) (optional)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "sortOrder",
+				   "in": "query",
+				   "description": "Pagination: sorting order: 'asc' or 'desc' (optional)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "all",
+				   "in": "query",
+				   "description": "Get all hosts (optional)",
+				   "required": false,
+				   "type": "boolean"
+			       },
+			       {
+				   "name": "mode",
+				   "in": "query",
+				   "description": "Mode filter: all, local, remote, broadcast_domain, filtered, blacklisted, dhcp (optional)",
+				   "required": false,
+				   "type": "string"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-1": {
+			"description": "NOT_FOUND"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/host/interfaces.lua": {
+	    "get": {
+		"tags": [
+		    "Hosts"
+		],
+		"summary": "Get host interfaces",
+		"description": "All interface ids of a given host are returned",
+		"operationId": "get_host_interfaces",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "host",
+		    "in": "query",
+		    "description": "Host address",
+		    "required": true,
+		    "type": "string"
+		}],
+		"responses": {
+		    "0": {
+			"description": "OK",
+			"schema": {
+			    "$ref": "#/definitions/Host"
+			}
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/host/data.lua": {
+	    "get": {
+		"tags": [
+		    "Hosts"
+		],
+		"summary": "Get host data",
+		"description": "Host data is returned",
+		"operationId": "get_host_json",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "host",
+				   "in": "query",
+				   "description": "Host address",
+				   "required": true,
+				   "type": "string"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK",
+			"schema": {
+			    "$ref": "#/definitions/Host"
+			}
+		    },
+		    "-1": {
+			"description": "NOT_FOUND"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-3": {
+			"description": "NOT_GRANTED"
+		    },
+		    "-4": {
+			"description": "INVALID_HOST"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    },
+		    "-7": {
+			"description": "BAD_FORMAT"
+		    },
+		    "-8": {
+			"description": "BAD_CONTENT"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/host/l7/stats.lua": {
+	    "get": {
+		"tags": [
+		    "Hosts"
+		],
+		"summary": "Get L7 statistics for a host",
+		"description": "nDPI statistics",
+		"operationId": "get_host_l7_stats",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "host",
+				   "in": "query",
+				   "description": "Host address",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "vlan",
+				   "in": "query",
+				   "description": "VLAN ID",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int16"
+			       },
+			       {
+				   "name": "breed",
+				   "in": "query",
+				   "description": "Show breed",
+				   "required": false,
+				   "type": "boolean"
+			       },
+			       {
+				   "name": "ndpi_category",
+				   "in": "query",
+				   "description": "Show nDPI category",
+				   "required": false,
+				   "type": "boolean"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/alert/data.lua": {
+	    "get": {
+		"tags": [
+		    "Alerts"
+		],
+		"summary": "Get alerts data",
+		"description": "Alerts are returned",
+		"operationId": "get_alert_data",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "status",
+				   "in": "query",
+				   "description": "Status filter (historical, historical-flows, engaged)",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "epoch_begin",
+				   "in": "query",
+				   "description": "Start time (epoch) (optional)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "epoch_end",
+				   "in": "query",
+				   "description": "Start time (epoch) (optional)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "alert_type",
+				   "in": "query",
+				   "description": "Alert Type (optional)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "alert_severity",
+				   "in": "query",
+				   "description": "Alert Severity (optional)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK",
+			"schema": {
+			    "$ref": "#/definitions/Host"
+			}
+		    },
+		    "-1": {
+			"description": "NOT_FOUND"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-3": {
+			"description": "NOT_GRANTED"
+		    },
+		    "-4": {
+			"description": "INVALID_HOST"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    },
+		    "-7": {
+			"description": "BAD_FORMAT"
+		    },
+		    "-8": {
+			"description": "BAD_CONTENT"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/alert/ts.lua": {
+	    "get": {
+		"tags": [
+		    "Alerts"
+		],
+		"summary": "Get alerts timeseries",
+		"description": "Number of alerts per hour divided by day are returned",
+		"operationId": "get_alert_ts",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "status",
+				   "in": "query",
+				   "description": "Status filter (historical, historical-flows)",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "epoch_begin",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "epoch_end",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "alert_type",
+				   "in": "query",
+				   "description": "Alert Type (optional)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "alert_severity",
+				   "in": "query",
+				   "description": "Alert Severity (optional)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/alert/type/consts.lua": {
+	    "get": {
+		"tags": [
+		    "Alerts"
+		],
+		"summary": "Get alert type constants",
+		"description": "Alert type string and integer alert key for each defined alert",
+		"operationId": "get_alert_type_consts",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/alert/severity/consts.lua": {
+	    "get": {
+		"tags": [
+		    "Alerts"
+		],
+		"summary": "Get alert severity constants",
+		"description": "Alert severity string and integer severity id for each defined severity",
+		"operationId": "get_alert_severity_consts",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/alert/type/counters.lua": {
+	    "get": {
+		"tags": [
+		    "Alerts"
+		],
+		"summary": "Get counters per type",
+		"description": "Number of alerts per alert type",
+		"operationId": "get_alert_type_counters",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "status",
+				   "in": "query",
+				   "description": "Status filter (historical, historical-flows)",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "epoch_begin",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "epoch_end",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/alert/severity/counters.lua": {
+	    "get": {
+		"tags": [
+		    "Alerts"
+		],
+		"summary": "Get counters per severity",
+		"description": "Number of alerts per alert severity",
+		"operationId": "get_alert_severity_counters",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "status",
+				   "in": "query",
+				   "description": "Status filter: 'historical' or 'historical-flows'",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "epoch_begin",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "epoch_end",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/l4/protocol/consts.lua": {
+	    "get": {
+		"tags": [
+		    "L4 Protocols"
+		],
+		"summary": "Get L4 protocol constants",
+		"description": "L4 protocol names and integer identifiers",
+		"operationId": "get_l4_protocol_consts",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/l7/application/consts.lua": {
+	    "get": {
+		"tags": [
+		    "L7 Application Protocols"
+		],
+		"summary": "Get L7 application protocol constants",
+		"description": "L7 application protocol names and integer identifiers",
+		"operationId": "get_l7_application_consts",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/l7/category/consts.lua": {
+	    "get": {
+		"tags": [
+		    "L7 Application Categories"
+		],
+		"summary": "Get L7 application category constants",
+		"description": "L7 application category names and integer identifiers",
+		"operationId": "get_l7_category_consts",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/flow/active.lua": {
+	    "get": {
+		"tags": [
+		    "Flows"
+		],
+		"summary": "Get active flows",
+		"description": "List of active flows",
+		"operationId": "get_flow_active",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "currentPage",
+				   "in": "query",
+				   "description": "Pagination: page (optional)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "perPage",
+				   "in": "query",
+				   "description": "Pagination: items per page (optional)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "sortColumn",
+				   "in": "query",
+				   "description": "Pagination: column for sorting (e.g. 'score') (optional)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "sortOrder",
+				   "in": "query",
+				   "description": "Pagination: sorting order: 'asc' or 'desc' (optional)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "host",
+				   "in": "query",
+				   "description": "Host address filter (optional)",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "vlan",
+				   "in": "query",
+				   "description": "VLAN ID filter (optional)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int16"
+			       },
+			       {
+				   "name": "l4proto",
+				   "in": "query",
+				   "description": "L4 protocol filter (optional)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "application",
+				   "in": "query",
+				   "description": "Application protocol filter (optional)",
+				   "required": false,
+				   "type": "string"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-1": {
+			"description": "NOT_FOUND"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/flow/l4/counters.lua": {
+	    "get": {
+		"tags": [
+		    "Flows"
+		],
+		"summary": "Get flow counters for L4 protocols",
+		"description": "Number of active flows per L4 protocol",
+		"operationId": "get_flow_l4_counters",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		}],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/flow/l7/counters.lua": {
+	    "get": {
+		"tags": [
+		    "Flows"
+		],
+		"summary": "Get flow counters for L7 protocols",
+		"description": "Number of active flows per L7 application protocol",
+		"operationId": "get_flow_l7_counters",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		}],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/pro/rest/v1/get/db/flows.lua": {
+	    "get": {
+		"tags": [
+		    "Flows"
+		],
+		"summary": "Get flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO.",
+		"description": "Executes a query to the flows database",
+		"operationId": "get_flows_data",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "begin_time_clause",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "end_time_clause",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "select_clause",
+				   "in": "query",
+				   "description": "Select clause (default: *)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "where_clause",
+				   "in": "query",
+				   "description": "Where clause (default: none)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "maxhits_clause",
+				   "in": "query",
+				   "description": "Max hits (default: 10)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-1": {
+			"description": "NOT_FOUND"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-3": {
+			"description": "NOT_GRANTED"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"/lua/pro/rest/v1/get/db/topk_flows.lua": {
+	    "get": {
+		"tags": [
+		    "Flows"
+		],
+		"summary": "Get Top-K flows data. Columns include (but are not limited to) IP_PROTOCOL_VERSION, FLOW_TIME, FIRST_SEEN, LAST_SEEN, VLAN_ID, PACKETS, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, IPV4_SRC_ADDR, IPV4_DST_ADDR, IPV6_SRC_ADDR, IPV6_DST_ADDR, PROTOCOL, L7_PROTO",
+		"description": "Executes a top-k query to the flows database",
+		"operationId": "get_topk_data",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "begin_time_clause",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "end_time_clause",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "select_keys_clause",
+				   "in": "query",
+				   "description": "Select keys (default: IPV4_SRC_ADDR,IPV4_DST_ADDR,L7_PROTO)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "select_values_clause",
+				   "in": "query",
+				   "description": "Select values (default: BYTES)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "where_clause",
+				   "in": "query",
+				   "description": "Where clause (default: none)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "topk_clause",
+				   "in": "query",
+				   "description": "Top-K clause (default: SUM)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "approx_search",
+				   "in": "query",
+				   "description": "Approximate search (default: true)",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "maxhits_clause",
+				   "in": "query",
+				   "description": "Max hits (default: 10)",
+				   "required": false,
+				   "type": "integer",
+				   "format": "int32"
+			       }
+			      ],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    },
+		    "-1": {
+			"description": "NOT_FOUND"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-3": {
+			"description": "NOT_GRANTED"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    }
+		}
+	    }
+	},
+	"lua/pro/rest/v1/add/snmp/device.lua": {
+	    "get": {
+		"tags": [
+		    "SNMP"
+		],
+		"summary": "Add SNMP devices",
+		"description": "Add devices to the monitored SNMP devices",
+		"operationId": "add_snmp_device",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [{
+		    "name": "snmp_host",
+		    "in": "query",
+		    "description": "IP address or symbolic name of and an SNMP device",
+		    "required": true,
+		    "type": "string"
+		},
+			       {
+				   "name": "community",
+				   "in": "query",
+				   "description": "The SNMP community to use",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "snmp_version",
+				   "in": "query",
+				   "description": "The SNMP version to use, either 1 (v2c) or 0 (v1)",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "cidr",
+				   "in": "query",
+				   "description": "Either 24 or 32. If 32, snmp_host is treated as single host. If 24 snmp_host is treated as as CIDR address",
+				   "required": false,
+				   "type": "string"
+			       }
+			      ],
+		"responses": {
+		    "-3": {
+			"description": "NOT_GRANTED"
+		    },
+		    "-4": {
+			"description": "INVALID_HOST"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-9": {
+			"description": "NAME_RESOLUTION_FAILED"
+		    },
+		    "-10": {
+			"description": "SNMP_DEVICE_ALREADY_ADDED"
+		    },
+		    "-11": {
+			"description": "SNMP_DEVICE_UNREACHABLE"
+		    },
+		    "-12": {
+			"description": "NO_SNMP_DEVICE_DISCOVERED"
+		    }
+		}
+	    }
+	},
+	"/lua/rest/v1/get/pcap/live_extraction.lua": {
+	    "get": {
+		"tags": [
+		    "PCAP"
+		],
+		"summary": "Live PCAP traffic extraction",
+		"description": "Raw PCAP data is returned",
+		"operationId": "live_traffic_extraction",
+		"produces": [
+		    "application/vnd.tcpdump.pcap"
+		],
+		"parameters": [{
+		    "name": "ifid",
+		    "in": "query",
+		    "description": "Interface identifier",
+		    "required": true,
+		    "type": "integer",
+		    "format": "int32"
+		},
+			       {
+				   "name": "epoch_begin",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "epoch_end",
+				   "in": "query",
+				   "description": "Start time (epoch)",
+				   "required": true,
+				   "type": "integer",
+				   "format": "int32"
+			       },
+			       {
+				   "name": "bpf_filter",
+				   "in": "query",
+				   "description": "BPF filter",
+				   "required": false,
+				   "type": "string"
+			       }
+			      ],
+		"responses": {
+		    "FILE": {
+			"description": "OK"
+		    },
+		    "-1": {
+			"description": "NOT_FOUND"
+		    },
+		    "-2": {
+			"description": "INVALID_INTERFACE"
+		    },
+		    "-3": {
+			"description": "NOT_GRANTED"
+		    },
+		    "-5": {
+			"description": "INVALID_ARGUMENTS"
+		    },
+		    "-6": {
+			"description": "INTERNAL_ERROR"
+		    },
+		    "-7": {
+			"description": "BAD_FORMAT"
+		    }
+		}
+	    }
+	}
+    },
+    "definitions": {
+	"Interface": {
+	    "type": "object",
+	    "properties": {
+		"ifname": {
+		    "type": "string"
+		},
+		"is_view": {
+		    "type": "boolean",
+		    "default": false
+		},
+		"id": {
+		    "type": "integer",
+		    "format": "int64"
+		},
+		"speed": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"epoch": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"packets": {
+		    "type": "integer",
+		    "format": "int64"
+		},
+		"bytes": {
+		    "type": "integer",
+		    "format": "int64"
+		},
+		"drops": {
+		    "type": "integer",
+		    "format": "int64"
+		},
+		"num_devices": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"num_hosts": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"num_flows": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"remote_bps": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"remote_pps": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"remote2local": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"local2remote": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"num_local_hosts": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"alerts_stored": {
+		    "type": "boolean"
+		},
+		"engaged_alerts": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"tcpPacketStats": {
+		    "type": "object",
+		    "properties": {
+			"retransmissions": {
+			    "type": "integer",
+			    "format": "int32"
+			},
+			"lost": {
+			    "type": "integer",
+			    "format": "int32"
+			},
+			"out_of_order": {
+			    "type": "integer",
+			    "format": "int32"
+			}
+		    }
+		}
+	    }
+	},
+	"Host": {
+	    "type": "object",
+	    "properties": {
+		"localHost": {
+		    "type": "boolean"
+		},
+		"ifid": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"mac_address": {
+		    "type": "string"
+		},
+		"symbolic_name": {
+		    "type": "string"
+		},
+		"seen.first": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"seen.last": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"flows.as_client": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"flows.as_server": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"throughput_pps": {
+		    "type": "number"
+		},
+		"throughput_bps": {
+		    "type": "number"
+		},
+		"os": {
+		    "type": "string"
+		},
+		"systemHost": {
+		    "type": "boolean"
+		},
+		"throughput_trend_pps": {
+		    "type": "string"
+		},
+		"throughput_trend_bps": {
+		    "type": "string"
+		},
+		"total_activity_time": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"num_alerts": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"is_blacklisted": {
+		    "type": "boolean"
+		},
+		"asn": {
+		    "type": "integer",
+		    "format": "int32"
+		},
+		"rcvd": {
+		    "type": "object",
+		    "properties": {
+			"packets": {
+			    "type": "integer",
+			    "format": "int32"
+			},
+			"bytes": {
+			    "type": "integer",
+			    "format": "int32"
+			}
+		    }
+		},
+		"sent": {
+		    "type": "object",
+		    "properties": {
+			"packets": {
+			    "type": "integer",
+			    "format": "int32"
+			},
+			"bytes": {
+			    "type": "integer",
+			    "format": "int32"
+			}
+		    }
+		},
+		"ip": {
+		    "type": "object",
+		    "properties": {
+			"localHost": {
+			    "type": "boolean"
+			},
+			"ip": {
+			    "type": "string"
+			},
+			"ipVersion": {
+			    "type": "integer",
+			    "format": "int32"
+			}
+		    }
+		}
+	    }
+	},
+	"Alert": {
+	    "type": "array",
+	    "items": {
+		"type": "object",
+		"properties": {
+		    "entity": {
+			"type": "string"
+		    },
+		    "msg": {
+			"type": "string"
+		    },
+		    "duration": {
+			"type": "string"
+		    },
+		    "date": {
+			"type": "string"
+		    },
+		    "type": {
+			"type": "string"
+		    },
+		    "key": {
+			"type": "string"
+		    },
+		    "entity_val": {
+			"type": "string"
+		    },
+		    "severity": {
+			"type": "string"
+		    }
+		}
+	    }
+	}
+    }
 }
-

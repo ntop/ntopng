@@ -18,6 +18,24 @@ if not haveAdminPrivileges() then
     return
 end
 
+local function get_max_configs_available()
+
+    local availables = {}
+    local types = notification_configs.get_types()
+
+    for endpoint_key, endpoint in pairsByKeys(types, asc) do
+
+        local conf_max_num = endpoint.conf_max_num
+        if conf_max_num ~= nil then
+            availables[endpoint_key] = conf_max_num
+        else
+            availables[endpoint_key] = -1
+        end
+    end
+
+    return availables
+end
+
 page_utils.set_active_menu_entry(page_utils.menu_entries.endpoint_notifications)
 
 -- append the menu above the page
@@ -28,6 +46,7 @@ page_utils.print_page_title(i18n("endpoint_notifications.endpoint_list"))
 local context = {
     notifications = {
         endpoints = notification_configs.get_types(),
+        endpoints_info = get_max_configs_available()
     },
     template_utils = template,
     plugins_utils = plugins_utils,

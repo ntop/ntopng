@@ -11,6 +11,6 @@
         <b>{{ i18n("slack_alert_endpoint.notification_webhook") }}</b>
     </label>
     <div class="col-sm-5">
-        <input name="slack_webhook" type="text" class="form-control" required />
+        <input data-pattern="https" name="slack_webhook" type="text" class="form-control" required />
     </div>
 </div>

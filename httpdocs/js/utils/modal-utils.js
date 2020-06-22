@@ -64,6 +64,7 @@
                     aysResetForm(self.form_sel);
                 });
             }
+
         }
 
         fillFormModal() {
@@ -72,6 +73,7 @@
 
         invokeModalInit() {
             this.options.onModalInit(this.fillFormModal());
+            this.delegateResetButton();
         }
 
         delegateSubmit() {
@@ -93,9 +95,10 @@
 
         bindFormValidation() {
 
-            $(this.element).find(`input,textarea,select`).each(function(i, input) {
+            $(this.element).find(`input,select,textarea`).each(function(i, input) {
 
                 const $input = $(this);
+
                 function checkValidation(insertError) {
 
                     const $parent = $input.parent();
@@ -116,18 +119,23 @@
 
                 }
 
-                $(this).on('input', function(e) { checkValidation(false); });
+                $(this).off('input').on('input', function(e) {
+                    if (!$input.attr("formnovalidate"))
+                        checkValidation(false);
+                });
 
-                $(this).on('invalid', function(e) {
+                $(this).off('invalid').on('invalid', function(e) {
+
                     e.preventDefault();
-                    checkValidation(true);
+                    if (!$input.attr("formnovalidate"))
+                        checkValidation(true);
                 });
 
             });
         }
 
         cleanForm() {
-            /* remove validation fields and tracks */
+            /* remove validation fields */
             $(this.element).find('input:visible,textarea:visible,select').each(function(i, input) {
                 $(this).removeClass(`is-valid`).removeClass(`is-invalid`);
             });
@@ -152,7 +160,7 @@
             method(this.options.endpoint, dataToSend)
                 .done(function (response, textStatus) {
                     if (self.options.resetAfterSubmit) self.cleanForm();
-                    self.options.onSubmitSuccess(response, dataToSend);
+                    self.options.onSubmitSuccess(response, dataToSend, self);
                     /* unbind the old closure on submit event and bind a new one */
                     $(self.element).off('submit', self.submitHandler);
                     self.delegateSubmit();
@@ -171,12 +179,24 @@
 
         delegateResetButton() {
 
-            const resetButton = $form.find(`[type='reset']`);
             const self = this;
-            if (!resetButton) return;
-            resetButton.click(function(event) {
-                /* TODO: finish the reset logic */
-                if(!self.dontDisableSubmit)
+            const resetButton = $(this.element).find(`[type='reset']`);
+            if (resetButton.length == 0) return;
+
+            const defaultValues = serializeFormArray($(this.element).serializeArray());
+
+            resetButton.click(function(e) {
+
+                e.preventDefault();
+
+                // reset the previous values
+                $(self.element).find('input:visible,select').each(function(i, input) {
+                    const key = $(input).attr('name');
+                    $(input).val(defaultValues[key])
+                        .removeClass('is-invalid').removeClass('is-valid');
+                });
+
+                if (!self.dontDisableSubmit)
                     aysResetForm(self.form_sel);
             });
         }

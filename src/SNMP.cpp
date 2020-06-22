@@ -170,8 +170,8 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       break;
       
     default:
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing %d type handler", vp->type);
-
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing %d type handler [agent: %s]",
+				   vp->type, agent_ip);
     }
 
     vp = vp->next_variable;
@@ -658,7 +658,11 @@ int SNMP::snmp_get_fctn(lua_State* vm, u_int8_t pduType, bool skip_first_param, 
 
   if(pduType == 3) {
     /* SET */
+#ifdef HAVE_LIBSNMP
     send_snmp_set_request(agent_host, community, pduType, version, oid, value_types, values);
+#else
+    return(CONST_LUA_ERROR); /* not supported */
+#endif
   } else {
     send_snmp_request(agent_host, community, pduType, version, oid, _batch_mode);
   }

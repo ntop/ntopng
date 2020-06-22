@@ -1,12 +1,45 @@
 $(document).ready(function () {
 
+    function getTypesCount(configs) {
+
+        const currentTypesCount = {};
+        for (let i = 0; i < configs.length; i++) {
+
+            const config = configs[i];
+            if (!currentTypesCount[config.endpoint_key]) {
+                currentTypesCount[config.endpoint_key] = 1;
+            }
+            else {
+                currentTypesCount[config.endpoint_key]++;
+            }
+        }
+
+        return currentTypesCount;
+    }
+
+    function disableTypes(configs) {
+
+        // count the current types inside the datatable
+        const currentTypesCount = getTypesCount(configs);
+        for (let [key, max] of Object.entries(endpoints_info)) {
+            if (max != -1 && currentTypesCount[key] >= max) {
+                $(`#endpoint-type-select option[value='${key}']`).hide();
+            }
+            else {
+                $(`#endpoint-type-select option[value='${key}']`).show();
+            }
+        }
+    }
+
     function makeFormData(formSelector) {
 
         const $inputsTemplate = $(`${formSelector} .endpoint-template-container [name]`);
+
         const params = {
             endpoint_conf_name: $(`${formSelector} [name='name']`).val(),
             endpoint_conf_type: $(`${formSelector} [name='type']`).val(),
         };
+
         $inputsTemplate.each(function(i, input){
             params[$(this).attr('name')] = $(this).val().trim();
         });
@@ -60,7 +93,13 @@ $(document).ready(function () {
                     `);
                 }
             }
-        ]
+        ],
+        initComplete: function(settings) {
+
+            const tableAPI = settings.oInstance.api();
+            disableTypes(tableAPI.rows().data());
+
+        }
     });
 
     const $endpointsTable = $(`table#notification-list`).DataTable(dtConfig);
@@ -83,6 +122,7 @@ $(document).ready(function () {
             /* load the right template from templates */
             $(`#edit-endpoint-modal form .endpoint-template-container`)
                 .empty().append(loadTemplate(data.endpoint_key));
+            $(`#endpoint-type`).html(data.endpoint_key);
             // init the patterns inside the input boxes
             init_data_patterns();
             /* load the values inside the template */
@@ -130,7 +170,9 @@ $(document).ready(function () {
                 $(`#add-endpoint-modal`).modal('hide');
                 $(`#add-endpoint-modal form .endpoint-template-container`).hide();
                 cleanForm(`#add-endpoint-modal form`);
-                $endpointsTable.ajax.reload();
+                $endpointsTable.ajax.reload(function(data) {
+                    disableTypes(data);
+                });
                 return;
             }
 
@@ -162,7 +204,9 @@ $(document).ready(function () {
         onSubmitSuccess: function (response) {
             if (response.result.status == "OK") {
                 $(`#remove-endpoint-modal`).modal('hide');
-                $endpointsTable.ajax.reload();
+                $endpointsTable.ajax.reload(function(data) {
+                    disableTypes(data);
+                });
             }
         }
     });
@@ -175,3 +219,5 @@ $(document).ready(function () {
 
 
 });
+
+
