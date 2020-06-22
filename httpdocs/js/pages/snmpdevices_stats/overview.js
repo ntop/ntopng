@@ -1,5 +1,23 @@
 $(document).ready(function () {
 
+    // define a constant for the snmp version dropdown value
+    const SNMP_VERSION_THREE = 3;
+    const requiredFieldsAdd = {
+        community: [],
+        nonCommunity: []
+    };
+
+    $(`.community-field input[required], .community-field select[required]`)
+    .each(function() {
+        requiredFieldsAdd.community.push($(this));
+    });
+
+    $(`.non-community-field input[required], .non-community-field select[required]`)
+    .each(function() {
+        requiredFieldsAdd.nonCommunity.push($(this));
+        $(this).removeAttr("required");
+    });
+
     const addResponsivenessFilter = (tableAPI) => {
         DataTableUtils.addFilterDropdown(
             i18n.snmp.device_responsiveness, responsivenessFilters, 0, '#table-devices_filter', tableAPI
@@ -110,7 +128,7 @@ $(document).ready(function () {
     });
 
     $(`#add-snmp-modal form`).modalHandler({
-        method: 'get',
+        method: 'post',
         csrf: addCsrf,
         resetAfterSubmit: false,
         endpoint: `${ http_prefix }/lua/pro/rest/v1/add/snmp/device.lua`,
@@ -145,11 +163,44 @@ $(document).ready(function () {
             // clean the form if the response was successful
             modalHandler.cleanForm();
             $snmpTable.ajax.reload();
-            // hide the spinner and the add modal
             $(`#snmp-add-spinner`).hide();
             $(`#add-snmp-modal`).modal('hide');
+
         }
     }).invokeModalInit();
+
+    $(`#select-snmp_version`).change(function() {
+
+        const value = $(this).val();
+
+        // if the selected snmp version is the third one
+        // then show the necessary fields (.non-community-field)
+
+        if (value == SNMP_VERSION_THREE) {
+
+            $(`.community-field`).fadeOut(500, function() {
+                requiredFieldsAdd.community.forEach(($input) => {
+                    $input.removeAttr("required");
+                });
+                requiredFieldsAdd.nonCommunity.forEach(($input) => {
+                    $input.attr("required", "");
+                });
+                $(`.non-community-field`).fadeIn(500);
+            });
+            return;
+        }
+
+        $(`.non-community-field`).fadeOut(500, function() {
+            requiredFieldsAdd.nonCommunity.forEach(($input) => {
+                $input.removeAttr("required");
+            });
+            requiredFieldsAdd.community.forEach(($input) => {
+                $input.attr("required", "");
+            });
+            $(`.community-field`).fadeIn(500);
+        });
+
+    });
 
     // configure import config modal
     importModalHelper({

@@ -95,9 +95,10 @@
 
         bindFormValidation() {
 
-            $(this.element).find(`input,textarea,select`).each(function(i, input) {
+            $(this.element).find(`input,select,textarea`).each(function(i, input) {
 
                 const $input = $(this);
+
                 function checkValidation(insertError) {
 
                     const $parent = $input.parent();
@@ -118,18 +119,23 @@
 
                 }
 
-                $(this).on('input', function(e) { checkValidation(false); });
+                $(this).off('input').on('input', function(e) {
+                    if (!$input.attr("formnovalidate"))
+                        checkValidation(false);
+                });
 
-                $(this).on('invalid', function(e) {
+                $(this).off('invalid').on('invalid', function(e) {
+
                     e.preventDefault();
-                    checkValidation(true);
+                    if (!$input.attr("formnovalidate"))
+                        checkValidation(true);
                 });
 
             });
         }
 
         cleanForm() {
-            /* remove validation fields and tracks */
+            /* remove validation fields */
             $(this.element).find('input:visible,textarea:visible,select').each(function(i, input) {
                 $(this).removeClass(`is-valid`).removeClass(`is-invalid`);
             });
