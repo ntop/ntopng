@@ -2787,6 +2787,30 @@ static int ntop_resolve_host(lua_State* vm) {
 
 #ifndef HAVE_NEDGE
 
+static int ntop_snmpv3available(lua_State* vm) {
+  lua_pushboolean(vm,
+#ifdef HAVE_LIBSNMP
+		  true
+#else
+		  false
+#endif
+		  );
+  
+  return(CONST_LUA_OK);  
+}
+
+static int ntop_snmpsetavailable(lua_State* vm) {
+  lua_pushboolean(vm,
+#ifdef HAVE_LIBSNMP
+		  true
+#else
+		  false
+#endif
+		  );
+  
+  return(CONST_LUA_OK);  
+}
+
 /* Synchronous calls */
 static int ntop_snmpget(lua_State* vm)          { SNMP s; return(s.get(vm, false));         }
 static int ntop_snmpgetnext(lua_State* vm)      { SNMP s; return(s.getnext(vm, false));     }
@@ -5622,6 +5646,9 @@ static const luaL_Reg ntop_reg[] = {
 
   /* SNMP */
 #ifndef HAVE_NEDGE
+  { "snmpv3available",     ntop_snmpv3available              },
+  { "snmpsetavailable",    ntop_snmpsetavailable             },
+  
   /* Synchronous */
   { "snmpget",             ntop_snmpget                      },
   { "snmpgetnext",         ntop_snmpgetnext                  },
