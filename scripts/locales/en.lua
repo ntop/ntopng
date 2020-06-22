@@ -1024,6 +1024,7 @@ local lang = {
     ["create_endpoint_first"] = "Please create a notification endpoint first!",
     ["edit_endpoint"] = "Edit Endpoint",
     ["edit_recipient"] = "Edit Recipient",
+    ["endpoint"] = "Endpoint",
     ["endpoint_config_already_existing"] = "There is already a config with that name!",
     ["endpoint_list"] = "Notification Endpoints",
     ["endpoint_recipient_already_existing"] = "There is already a recipient with that name",
@@ -1037,6 +1038,7 @@ local lang = {
     ["remove_endpoint_message"] = "Are you really sure to remove this notification endpoint?",
     ["remove_recipient"] = "Remove Recipient",
     ["remove_recipient_message"] = "Are you really sure to remove this recipient notification endpoint?",
+    ["select_type"] = "Select an Endpoint Type",
     ["type"] = "Endpoint Type",
   },
   ["entity_thresholds"] = {
