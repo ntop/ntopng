@@ -155,6 +155,8 @@ class DataTableUtils {
      */
     static setCurrentFilter(tableAPI) {
 
+        if (tableAPI.state.loaded().filters == undefined) return;
+
         const filters = tableAPI.state.loaded().filters;
         if (!filters) return;
 

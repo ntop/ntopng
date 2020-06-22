@@ -132,7 +132,7 @@ $(document).ready(function () {
                 }
             });
         },
-        onSubmitSuccess: function (response, textStatus, cleanForm) {
+        onSubmitSuccess: function (response, textStatus, modalHandler) {
 
             if (response.rc < 0) {
                 // hide the spinner and show a localized error
@@ -143,7 +143,7 @@ $(document).ready(function () {
             }
 
             // clean the form if the response was successful
-            cleanForm();
+            modalHandler.cleanForm();
             $snmpTable.ajax.reload();
             // hide the spinner and the add modal
             $(`#snmp-add-spinner`).hide();
