@@ -129,7 +129,6 @@
         }
 
         cleanForm() {
-            console.log(this);
             /* remove validation fields and tracks */
             $(this.element).find('input:visible,textarea:visible,select').each(function(i, input) {
                 $(this).removeClass(`is-valid`).removeClass(`is-invalid`);
