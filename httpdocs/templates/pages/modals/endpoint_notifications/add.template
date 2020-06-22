@@ -24,7 +24,7 @@
                         </label>
                         <div class="col-sm-5">
                             <select required name="type" class="form-control" id="endpoint-type-select">
-                                <option selected disabled></option>
+                                <option selected disabled>{{ i18n("endpoint_notifications.select_type") }}</option>
                                 {% for endpoint_key, endpoint in pairsByKeys(endpoints, asc) do %}
                                     <option value="{{ endpoint_key }}">{{ endpoint_key }}</option>
                                 {% end %}

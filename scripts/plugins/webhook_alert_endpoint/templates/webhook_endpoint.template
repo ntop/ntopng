@@ -3,7 +3,7 @@
         <b>{{ i18n("webhook_alert_endpoint.url") }}</b>
     </label>
     <div class="col-sm-5">
-        <input name="webhook_url" type="text" class="form-control" required />
+        <input data-pattern="https" name="webhook_url" type="text" class="form-control" required />
     </div>
 </div>
 <div class="form-group row">
@@ -19,7 +19,7 @@
         {{ i18n("webhook_alert_endpoint.username") }}
     </label>
     <div class="col-sm-5">
-        <input name="webhook_username" type="text" class="form-control" />
+        <input data-pattern="noSpace" name="webhook_username" type="text" class="form-control" />
     </div>
 </div>
 <div class="form-group row">
@@ -27,6 +27,6 @@
         {{ i18n("webhook_alert_endpoint.password") }}
     </label>
     <div class="col-sm-5">
-        <input name="webhook_password" type="password" class="form-control" />
+        <input data-pattern="noSpace" name="webhook_password" type="password" class="form-control" />
     </div>
 </div>
