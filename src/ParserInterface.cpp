@@ -332,30 +332,29 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 
   if(!flow->isDetectionCompleted()) {
     ndpi_protocol guessed_protocol = Flow::ndpiUnknownProtocol;
-    u_int8_t is_proto_user_defined;
 
     /* First, there's an attempt to guess the protocol so that custom protocols
        defined in ntopng will still be applied to the protocols detected by nprobe. */
-    guessed_protocol.app_protocol = (int16_t)ndpi_guess_protocol_id(get_ndpi_struct(),
-								   NULL, flow->get_protocol(),
-								   flow->get_cli_port(),
-								   flow->get_srv_port(),
-								   &is_proto_user_defined);
+    guessed_protocol = ndpi_guess_undetected_protocol(get_ndpi_struct(),
+						      flow->get_ndpi_flow(),
+						      flow->get_protocol(),
+						      ntohl(flow->get_cli_ip_addr()->get_ipv4()),
+						      (flow->get_cli_port()),
+						      ntohl(flow->get_srv_ip_addr()->get_ipv4()),
+						      (flow->get_srv_port()));
 
-    if (zflow->l7_proto.app_protocol    == NDPI_PROTOCOL_UNKNOWN && 
-        zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN) {
-      /* If nprobe acts is in collector-passthrough mode L7_PROTO is not present,
-       * using the protocol guess on the ntopng side is desirable in this case */
-      p.master_protocol = guessed_protocol.master_protocol;
-      p.app_protocol = guessed_protocol.app_protocol;
-    }
-
-    if(guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS) {
-      /* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it means it is
-         a custom protocol so the application protocol received from nprobe can be
-         overridden */
-      p.app_protocol = guessed_protocol.app_protocol;
-    }
+    if (
+	/* If nprobe acts is in collector-passthrough mode L7_PROTO is not present,
+	   using the protocol guess on the ntopng side is desirable in this case */
+	(zflow->l7_proto.app_protocol    == NDPI_PROTOCOL_UNKNOWN &&
+	 zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+	||
+	/* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it means it is
+	   a custom protocol so the application protocol received from nprobe can be
+	   overridden */
+	(guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS)
+	)
+      p = guessed_protocol;
 
     if(zflow->hasParsedeBPF()) {
       /* nProbe Agent does not perform nDPI detection*/
