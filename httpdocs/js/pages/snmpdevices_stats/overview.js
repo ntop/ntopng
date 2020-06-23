@@ -151,14 +151,24 @@ $(document).ready(function () {
             });
 
             // Disable passhphrase if the user selects none
-            $(`select#select-privacy-protocol-snmp`).change(function(e) {
+            $(`select#select-level-snmp`).change(function(e) {
 
-                const value = $(this).val();
-                if (value == "none") {
-                    $(`#input-privacy-passphrase`).attr("disabled", "disabled");
-                }
-                else {
-                    $(`#input-privacy-passphrase`).removeAttr("disabled");
+                const usernameSelector = `#input-snmp-username`;
+                const privacySelector = `#select-privacy-protocol-snmp,#input-privacy-passphrase`;
+                const authSelector = `#input-auth-passphrase,#select-auth-protocol-snmp`
+
+                switch ($(this).val()) {
+                    case "authPriv":
+                        $(`${privacySelector},${usernameSelector}`).removeAttr("disabled");
+                        $(authSelector).attr("disabled", "disabled");
+                        break;
+                    case "noAuthNoPriv":
+                        $(`${authSelector},${privacySelector},${usernameSelector}`).attr("disabled", "disabled");
+                        break;
+                    case "authNoPriv":
+                        $(`${authSelector},${usernameSelector}`).removeAttr("disabled");
+                        $(privacySelector).attr("disabled", "disabled");
+                        break;
                 }
 
             });
