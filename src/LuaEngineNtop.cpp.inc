@@ -2929,6 +2929,57 @@ static int ntop_snmpreadasyncrsp(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_snmpv3_batch_get(lua_State* vm) {
+#ifdef HAVE_LIBSNMP
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
+  SNMP *snmp;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 7, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 8, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+
+  oid[0] = (char*)lua_tostring(vm, 8);
+  
+  snmp = getLuaVMUserdata(vm, snmpBatch);
+
+  if(snmp == NULL) {
+    snmp = new SNMP();
+
+    if(!snmp) return(CONST_LUA_ERROR);
+    getLuaVMUservalue(vm, snmpBatch) = snmp;
+  }
+
+  snmp->send_snmpv3_request((char*)lua_tostring(vm, 1), /* agent_host */
+			    (char*)lua_tostring(vm, 2), /* level */
+			    (char*)lua_tostring(vm, 3), /* username */
+			    (char*)lua_tostring(vm, 4), /* auth_protocol */
+			    (char*)lua_tostring(vm, 5), /* auth_passphrase */
+			    (char*)lua_tostring(vm, 6), /* privacy_protocol */
+			    (char*)lua_tostring(vm, 7), /* privacy_passphrase */
+			    snmp_get_pdu,
+			    oid, /* oid */			    
+			    true /* batch */);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+#else
+  return(CONST_LUA_ERROR);
+#endif
+}
+
+/* ****************************************** */
+
 static int ntop_snmp_batch_get(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
@@ -2938,6 +2989,9 @@ static int ntop_snmp_batch_get(lua_State* vm) {
 
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 8, LUA_TSTRING) == CONST_LUA_OK)
+    return(ntop_snmpv3_batch_get(vm));
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -2955,13 +3009,13 @@ static int ntop_snmp_batch_get(lua_State* vm) {
     getLuaVMUservalue(vm, snmpBatch) = snmp;
   }
 
-  snmp->send_snmp_request((char*)lua_tostring(vm, 1), /* agent_host */
-			  (char*)lua_tostring(vm, 2), /* community */
-			  false /* SNMP GET */,
-			  (u_int)lua_tonumber(vm, 4), /* version */
-			  oid,			
-			  true /* batch */);
-
+  snmp->send_snmpv1v2c_request((char*)lua_tostring(vm, 1), /* agent_host */
+			       (char*)lua_tostring(vm, 2), /* community */
+			       snmp_get_pdu,
+			       (u_int)lua_tonumber(vm, 4), /* version */
+			       oid,			
+			       true /* batch */);
+  
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -5664,7 +5718,7 @@ static const luaL_Reg ntop_reg[] = {
   { "snmpreadasyncrsp",      ntop_snmpreadasyncrsp           },
 
   /* Batch */
-  { "snmpGetBatch",          ntop_snmp_batch_get             },
+  { "snmpGetBatch",          ntop_snmp_batch_get             }, /* v1/v2c/v3 */
   { "snmpReadResponses",     ntop_snmp_read_responses        },
 #endif
 

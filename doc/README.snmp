@@ -19,4 +19,4 @@ In short (as root) do:
 
 Query example:
 - snmpget -v 3 -u myuser -l authNoPriv -a MD5 -A my_password localhost sysUpTime.0
-=  snmpget -v 3 -u myuser -l authPriv   -a MD5 -A my_password localhost sysUpTime.0
+- snmpget -v 3 -u myuser -l authPriv   -a MD5 -A my_password localhost sysUpTime.0
