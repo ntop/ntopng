@@ -3839,6 +3839,7 @@ local lang = {
     ["no_answer"] = "No answer from host %{host}: please check that SNMP is up and the community is set to the correct value",
     ["no_host_discovered"] = "No host discovered in %{host}/%{cidr}",
     ["no_polling_yet"] = "Not yet polled",
+    ["none"] = "None",
     ["note"] = "NOTE",
     ["object_id"] = "ObjectID",
     ["out_bytes"] = "Out Bytes",

@@ -50,12 +50,7 @@ $(document).ready(function () {
 
         const error_code = error_messages[errors.code];
 
-        show_positions({
-            coords: {
-                latitude: 0,
-                longitude: 0
-            }
-        });
+        show_positions({ coords: { latitude: 0, longitude: 0 }});
 
         if (errors.code == 2) {
             /* Do not even report the info/error to the user, this is

@@ -1,7 +1,7 @@
 $(document).ready(function () {
 
     // define a constant for the snmp version dropdown value
-    const SNMP_VERSION_THREE = 3;
+    const SNMP_VERSION_THREE = 2;
     const requiredFieldsAdd = {
         community: [],
         nonCommunity: []
@@ -148,6 +148,19 @@ $(document).ready(function () {
                 else {
                     $('#select-cidr').removeAttr("disabled");
                 }
+            });
+
+            // Disable passhphrase if the user selects none
+            $(`select#select-privacy-protocol-snmp`).change(function(e) {
+
+                const value = $(this).val();
+                if (value == "none") {
+                    $(`#input-privacy-passphrase`).attr("disabled", "disabled");
+                }
+                else {
+                    $(`#input-privacy-passphrase`).removeAttr("disabled");
+                }
+
             });
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
