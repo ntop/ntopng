@@ -77,6 +77,8 @@ discover.apple_osx_versions = {
    ['15'] = 'OS X 10.11 (El Capitan)',
    ['16'] = 'OS X 10.12 (Sierra)',
    ['17'] = 'OS X 10.13 (High Sierra)',
+   ['18'] = 'macOS 10.14 (Mojave)',
+   ['19'] = 'macOS 10.15 (Catalina)'
 }
 
 discover.apple_products = {

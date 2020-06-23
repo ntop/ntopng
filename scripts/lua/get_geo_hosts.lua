@@ -150,11 +150,11 @@ local function handlePeer(prefix, value)
 	 html = getFlag(value[prefix..".country"]),
 	 name = hostinfo2hostkey(value, prefix)
       }
-      
+
       if not isEmptyString(value[prefix..".city"]) then
 	 host["city"] = value[prefix..".city"]
       end
-      
+
       return(host)
    end
 
@@ -172,11 +172,11 @@ local function handleHost(address, value)
 	 html = getFlag(value["country"]),
 	 name = address
       }
-      
+
       if not isEmptyString(value["city"]) then
 	 host["city"] = value["city"]
       end
-      
+
       return(host)
    end
 
@@ -192,28 +192,28 @@ local function show_hosts(hosts_count, host_key)
 
       for key,value in pairs(what.hosts) do
 	 local h = handleHost(key, value)
-	 
+
 	 if(h ~= nil) then table.insert(hosts, h) end
       end
    else
       local what = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, {detailsLevel="max"})
       local keys = {}
-      
+
       for key, value in pairs(what) do
 	 if(keys[value["cli.ip"]] == nil) then
 	    local h = handlePeer("cli", value)
-	    
+
 	    keys[value["cli.ip"]] = true
 	    if(h ~= nil) then table.insert(hosts, h) end
 	 end
-	 
+
 	 if(keys[value["srv.ip"]] == nil) then
 	    local h = handlePeer("srv", value)
-	    
+
 	    keys[value["srv.ip"]] = true
 	    if(h ~= nil) then table.insert(hosts, h) end
 	 end
-      end   
+      end
    end
 
    return(hosts)

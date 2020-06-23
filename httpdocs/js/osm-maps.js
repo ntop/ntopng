@@ -28,7 +28,7 @@ $(document).ready(function () {
     // return true if the status code is different from 200
     const check_status_code = (status_code, status_text, $error_label) => {
 
-        const is_different = status_code != 200;
+        const is_different = (status_code != 200);
 
         if (is_different && $error_label != null) {
             $error_label.find('p').text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
@@ -52,11 +52,9 @@ $(document).ready(function () {
 
         show_positions({ coords: { latitude: 0, longitude: 0 }});
 
-        if (errors.code == 2) {
-            /* Do not even report the info/error to the user, this is
-             * not relevant as the map functionality is not impacted */
-        } else if (errors.code != 1)
+        if (errors.code != 1) {
             display_localized_error(error_code);
+        }
     }
 
     const init_map = () => {
@@ -74,45 +72,19 @@ $(document).ready(function () {
 
     const draw_markers = (json, map_markers, map) => {
 
-        const { hosts, flows } = json;
-
-        // if there are no hosts then draw flows
-        if (hosts.length == 0) {
-            draw_flows(flows, map_markers, map);
-            return;
-        }
+        const hosts = json;
 
         hosts.forEach(h => {
-            map_markers.addLayer(create_marker(h.name, h.lat, h.lng, h.html));
-        });
 
-        map.addLayer(map_markers);
-    }
+            map_markers.addLayer(
+                create_marker(h.name, h.lat, h.lng, h.html, h.isRoot)
+            );
 
-    const draw_flows = (flows, map_markers, map) => {
-
-        // if there aren't any flows then don't draw them
-        if (flows.length == 0) return;
-
-        const client = flows[0].client;
-        const servers_flow = flows.map((flow) => flow.server);
-        const servers = [... new Set(servers_flow)];
-
-        // draw only drawable server markers
-        servers.filter(s => s.isDrawable).forEach(s => {
-
-            // if the current server is the root then center the map to him
-            if (s.isRoot) {
-                map.flyTo([s.lat, s.lng], zoom_level);
+            // make a transitions to the root host
+            if (h.isRoot) {
+                map.flyTo([h.lat, h.lng], zoom_level);
             }
-
-            map_markers.addLayer(create_marker(s.name, s.lat, s.lng, s.html, s.isRoot));
         });
-
-        // draw client marker
-        if (client.isDrawable) {
-            map_markers.addLayer(create_marker(client.name, client.lat, client.lng, client.html));
-        }
 
         map.addLayer(map_markers);
     }

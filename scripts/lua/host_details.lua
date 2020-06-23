@@ -497,7 +497,6 @@ if((page == "overview") or (page == nil)) then
         if not isEmptyString(host["os_detail"]) then
           os_detail = os_detail .. " [" .. host["os_detail"] .. "]"
         end
-
          print("<th>"..i18n("os").."</th><td> <A HREF='"..ntop.getHttpPrefix().."/lua/hosts_stats.lua?os=" .. host["os"] .."'>".. discover.getOsAndIcon(host["os"])  .."</A>".. os_detail .."</td><td></td>\n")
       else
          print("<th></th><td></td>\n")
@@ -1918,9 +1917,6 @@ elseif page == "geomap" then
       <div class="container-fluid">
         <div class="row">
           <div class='col-md-12 col-lg-12 col-xs-12'>
-            <div class='mb-4'>
-              <h2 class='h2'>]].. i18n("geo_map.hosts_geomap").. [[</h2>
-            </div>
             <div id='geomap-alert' style="display: none" role="alert" class='alert alert-danger'>
               <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
