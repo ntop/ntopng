@@ -1241,3 +1241,8 @@ td.dt-body-right {
 .bigger-icon {
   font-size: 12rem;
 }
+
+.scrollable-log {
+  height: 16rem;
+  overflow-y: scroll;
+}

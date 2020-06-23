@@ -119,14 +119,14 @@ if(page == "overview") then
    print("</td></tr>")
 
    if not info.oem then
-      print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
+      print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><div class='scrollable-log'><code>\n")
       for i=0,32 do
          msg = ntop.listIndexCache("ntopng.trace", i)
          if(msg ~= nil) then
             print(noHtml(msg).."<br>\n")
          end
       end
-      print("</code></td></tr>\n")
+      print("</code></div></td></tr>\n")
    end
 
    print("</table>\n")
