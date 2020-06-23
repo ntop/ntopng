@@ -3,6 +3,9 @@ $(document).ready(function () {
     const red_marker = L.icon({
         iconUrl: `${http_prefix}/leaflet/images/marker-icon-red.png`,
         shadowUrl: '${http_prefix}/leaflet/images/marker-shadow.png',
+        iconSize: [25, 41],
+        popupAnchor: [1, -34],
+        tooltipAnchor: [16, -28]
     });
 
     const default_coords = [41.9, 12.4833333];
@@ -73,6 +76,7 @@ $(document).ready(function () {
     const draw_markers = (json, map_markers, map) => {
 
         const hosts = json;
+        console.log(json);
 
         hosts.forEach(h => {
 
