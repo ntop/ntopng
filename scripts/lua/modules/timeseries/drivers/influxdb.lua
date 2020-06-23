@@ -566,7 +566,7 @@ local function where_tags(tags)
     return " WHERE"
   end
 end
- 
+
  --##############################################
 
 local function getTotalSerieQuery(schema, query_schema, raw_step, tstart, tend, tags, time_step, data_type, label)
@@ -1530,7 +1530,7 @@ local function getInfluxdbVersion(url, username, password)
 
   local content = res.CONTENT or ""
   -- case-insensitive match as HAProxy transforms headers to lowercase (see #3964)
-  return string.match(content:lower(), "\nx%-influxdb%-version: ([%d|%.]+)")
+  return string.match(content:lower(), "\nx%-influxdb%-version: v([%d|%.]+)")
 end
 
 function driver:getInfluxdbVersion()
@@ -1560,7 +1560,7 @@ end
 
 function driver:getMemoryUsage()
   --[[
-     This function attempts to match the memory used by the process, memory which is 
+     This function attempts to match the memory used by the process, memory which is
      the top/htop RSS (Resident Stack Size) which is what it actually matters.
 
      InfluxDB docs leak explanations of how to interpred memory-related numbers:
