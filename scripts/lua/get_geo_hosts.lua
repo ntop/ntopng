@@ -139,7 +139,7 @@ end
 
 -- ############################################################
 
-local function handlePeer(prefix, value)
+local function handlePeer(prefix, host_key, value)
    if((value[prefix..".latitude"] ~= 0) or (value[prefix..".longitude"] ~= 0)) then
       -- set up the host informations
       local host = {
@@ -183,10 +183,12 @@ local function handleHost(address, value)
    return(nil)
 end
 
+-- ##############
+
 local function show_hosts(hosts_count, host_key)
    local hosts = {}
 
-   if(host_key ~= nil) then
+   if(host_key == nil) then
       local what = interface.getHostsInfo(true, "column_traffic", MAX_HOSTS)
 
 
@@ -201,14 +203,14 @@ local function show_hosts(hosts_count, host_key)
 
       for key, value in pairs(what) do
 	 if(keys[value["cli.ip"]] == nil) then
-	    local h = handlePeer("cli", value)
+	    local h = handlePeer("cli", host_key, value)
 
 	    keys[value["cli.ip"]] = true
 	    if(h ~= nil) then table.insert(hosts, h) end
 	 end
 
 	 if(keys[value["srv.ip"]] == nil) then
-	    local h = handlePeer("srv", value)
+	    local h = handlePeer("srv", host_key, value)
 
 	    keys[value["srv.ip"]] = true
 	    if(h ~= nil) then table.insert(hosts, h) end
