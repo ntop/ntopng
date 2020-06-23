@@ -60,6 +60,8 @@ local function load_hosts()
    return hosts
 end
 
+-- BEGIN OLD CODE
+
 local function load_flows(hosts_count, host_key)
    local flows = {}
    local peers = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, {detailsLevel="max"})
@@ -129,7 +131,93 @@ local function load_flows(hosts_count, host_key)
 end
 
 -- Initialize host array object
-response["hosts"] = load_hosts()
-response["flows"] = load_flows(table.len(response["hosts"]), host_key)
+-- response["hosts"] = load_hosts()
+-- response["flows"] = load_flows(table.len(response["hosts"]), host_key)
+-- print(json.encode(response))
 
-print(json.encode(response))
+-- END OLD CODE
+
+-- ############################################################
+
+local function handlePeer(prefix, value)
+   if((value[prefix..".latitude"] ~= 0) or (value[prefix..".longitude"] ~= 0)) then
+      -- set up the host informations
+      local host = {
+	 lat = value[prefix..".latitude"],
+	 lng = value[prefix..".longitude"],
+	 -- isDrawable = not(value[prefix..".private"]),
+	 isRoot = (value[prefix..".ip"] == host_key),
+	 html = getFlag(value[prefix..".country"]),
+	 name = hostinfo2hostkey(value, prefix)
+      }
+      
+      if not isEmptyString(value[prefix..".city"]) then
+	 host["city"] = value[prefix..".city"]
+      end
+      
+      return(host)
+   end
+
+   return(nil)
+end
+
+
+local function handleHost(address, value)
+   if((value["latitude"] ~= 0) or (value["longitude"] ~= 0)) then
+      -- set up the host informations
+      local host = {
+	 lat = value["latitude"],
+	 lng = value["longitude"],
+	 isRoot = false,
+	 html = getFlag(value["country"]),
+	 name = address
+      }
+      
+      if not isEmptyString(value["city"]) then
+	 host["city"] = value["city"]
+      end
+      
+      return(host)
+   end
+
+   return(nil)
+end
+
+local function show_hosts(hosts_count, host_key)
+   local hosts = {}
+
+   if(host_key ~= nil) then
+      local what = interface.getHostsInfo(true, "column_traffic", MAX_HOSTS)
+
+
+      for key,value in pairs(what.hosts) do
+	 local h = handleHost(key, value)
+	 
+	 if(h ~= nil) then table.insert(hosts, h) end
+      end
+   else
+      local what = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, {detailsLevel="max"})
+      local keys = {}
+      
+      for key, value in pairs(what) do
+	 if(keys[value["cli.ip"]] == nil) then
+	    local h = handlePeer("cli", value)
+	    
+	    keys[value["cli.ip"]] = true
+	    if(h ~= nil) then table.insert(hosts, h) end
+	 end
+	 
+	 if(keys[value["srv.ip"]] == nil) then
+	    local h = handlePeer("srv", value)
+	    
+	    keys[value["srv.ip"]] = true
+	    if(h ~= nil) then table.insert(hosts, h) end
+	 end
+      end   
+   end
+
+   return(hosts)
+end
+
+
+print(json.encode(show_hosts(table.len(response["hosts"]), host_key)))
