@@ -2126,7 +2126,7 @@ void lua_push_uint32_table_entry(lua_State *L, const char *key, u_int32_t value)
     lua_settable(L, -3);
   }
 }
-  
+
 /* ****************************************** */
 
 void lua_push_int32_table_entry(lua_State *L, const char *key, int32_t value) {
@@ -2795,8 +2795,8 @@ static int ntop_snmpv3available(lua_State* vm) {
 		  false
 #endif
 		  );
-  
-  return(CONST_LUA_OK);  
+
+  return(CONST_LUA_OK);
 }
 
 static int ntop_snmpsetavailable(lua_State* vm) {
@@ -2807,8 +2807,8 @@ static int ntop_snmpsetavailable(lua_State* vm) {
 		  false
 #endif
 		  );
-  
-  return(CONST_LUA_OK);  
+
+  return(CONST_LUA_OK);
 }
 
 /* Synchronous calls */
@@ -2933,8 +2933,9 @@ static int ntop_snmpv3_batch_get(lua_State* vm) {
 #ifdef HAVE_LIBSNMP
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *oid[SNMP_MAX_NUM_OIDS] = { NULL };
+  char value_types[SNMP_MAX_NUM_OIDS];
   SNMP *snmp;
-
+   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(!ntop_interface)
@@ -2950,10 +2951,10 @@ static int ntop_snmpv3_batch_get(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 8, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
 
   oid[0] = (char*)lua_tostring(vm, 8);
-  
+
   snmp = getLuaVMUserdata(vm, snmpBatch);
 
-  if(snmp == NULL) {
+  if(snmp == NULL) {   
     snmp = new SNMP();
 
     if(!snmp) return(CONST_LUA_ERROR);
@@ -2968,7 +2969,9 @@ static int ntop_snmpv3_batch_get(lua_State* vm) {
 			    (char*)lua_tostring(vm, 6), /* privacy_protocol */
 			    (char*)lua_tostring(vm, 7), /* privacy_passphrase */
 			    snmp_get_pdu,
-			    oid, /* oid */			    
+			    oid, /* oid */
+			    value_types,
+			    NULL,
 			    true /* batch */);
 
   lua_pushnil(vm);
@@ -2990,7 +2993,7 @@ static int ntop_snmp_batch_get(lua_State* vm) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, 8) == CONST_LUA_OK)
+  if(lua_type(vm, 4) != LUA_TNUMBER)
     return(ntop_snmpv3_batch_get(vm));
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -3013,9 +3016,9 @@ static int ntop_snmp_batch_get(lua_State* vm) {
 			       (char*)lua_tostring(vm, 2), /* community */
 			       snmp_get_pdu,
 			       (u_int)lua_tonumber(vm, 4), /* version */
-			       oid,			
+			       oid,
 			       true /* batch */);
-  
+
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
@@ -5702,13 +5705,13 @@ static const luaL_Reg ntop_reg[] = {
 #ifndef HAVE_NEDGE
   { "snmpv3available",     ntop_snmpv3available              },
   { "snmpsetavailable",    ntop_snmpsetavailable             },
-  
+
   /* Synchronous */
   { "snmpget",             ntop_snmpget                      },
   { "snmpgetnext",         ntop_snmpgetnext                  },
   { "snmpgetnextbulk",     ntop_snmpgetnextbulk              },
   { "snmpset",             ntop_snmpset                      },
-  
+
   /* Asynchronous */
   { "snmpallocasnyncengine", ntop_allocasnyncengine,         },
   { "snmpfreeasnycengine",   ntop_freeasnyncengine,          },

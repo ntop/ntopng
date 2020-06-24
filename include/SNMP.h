@@ -76,7 +76,12 @@ class SNMP {
 			 char *privacy_passphrase,
 			 snmp_pdu_primitive pduType,
 			 char *oid[SNMP_MAX_NUM_OIDS],
+			 char value_types[SNMP_MAX_NUM_OIDS],
+			 char *values[SNMP_MAX_NUM_OIDS],
 			 bool _batch_mode);
+#ifdef HAVE_LIBSNMP
+  int snmpv3_get_fctn(lua_State* vm, snmp_pdu_primitive pduType, bool skip_first_param, bool _batch_mode);
+#endif
   int snmp_get_fctn(lua_State* vm, snmp_pdu_primitive pduType, bool skip_first_param, bool _batch_mode);
   int snmp_read_response(lua_State* vm, u_int timeout);
 
@@ -102,6 +107,8 @@ class SNMP {
 			   char *privacy_passphrase,
 			   snmp_pdu_primitive pduType,
 			   char *oid[SNMP_MAX_NUM_OIDS],
+			   char value_types[SNMP_MAX_NUM_OIDS],
+			   char *values[SNMP_MAX_NUM_OIDS],
 			   bool _batch_mode);
 #endif
   void send_snmpv1v2c_request(char *agent_host, char *community,
