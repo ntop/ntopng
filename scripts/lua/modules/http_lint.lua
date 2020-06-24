@@ -206,6 +206,22 @@ local function passwordCleanup(p)
    return p -- don't touch passwords (checks against valid fs paths already performed)
 end
 
+local function webhookCleanup(p)
+   local allowed_prefixes = { "https://", "http://" }
+
+   for _, prefix in pairs(allowed_prefixes) do
+      if p and p:match("^"..prefix) then
+	 -- Only allow the prefix to go through unpurified
+	 local purified = prefix..ntop.httpPurifyParam(p:gsub("^"..prefix, ''))
+
+	 return purified
+      end
+   end
+
+   -- If there's no matching prefix, purify everything
+   return ntop.httpPurifyParam(p)
+end
+
 local function jsonCleanup(json_payload)
    -- can't touch the json payload or it could be broken
    return json_payload
@@ -1160,7 +1176,7 @@ local known_parameters = {
    ["full_name"]               = validateUnquoted,             -- A user full name
    ["manufacturer"]            = validateUnquoted,             -- A MAC manufacturer
    ["slack_sender_username"]   = validateUnquoted,
-   ["slack_webhook"]           = validateUnquoted,
+   ["slack_webhook"]           = { webhookCleanup, validateUnquoted },
    ["nagios_nsca_host"]        = validateUnquoted,
    ["nagios_host_name"]        = validateUnquoted,
    ["nagios_service_name"]     = validateUnquoted,
