@@ -1053,14 +1053,14 @@
 			       {
 				   "name": "select_keys_clause",
 				   "in": "query",
-				   "description": "Select keys (default: IPV4_SRC_ADDR,IPV4_DST_ADDR,L7_PROTO)",
+				   "description": "Select comma-separated keys list (default: IPV4_SRC_ADDR,IPV4_DST_ADDR,L7_PROTO)",
 				   "required": false,
 				   "type": "string"
 			       },
 			       {
 				   "name": "select_values_clause",
 				   "in": "query",
-				   "description": "Select values (default: BYTES)",
+				   "description": "Select value (default: BYTES)",
 				   "required": false,
 				   "type": "string"
 			       },
