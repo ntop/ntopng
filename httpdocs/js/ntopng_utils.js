@@ -10,7 +10,6 @@ const REGEXES = {
   username: "^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$",
   email: "^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$",
   https: "^https?://.+$",
-  noSpace: "[^\s]+"
 };
 
 function init_data_patterns() {
