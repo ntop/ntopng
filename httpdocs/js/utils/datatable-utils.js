@@ -155,6 +155,7 @@ class DataTableUtils {
      */
     static setCurrentFilter(tableAPI) {
 
+        if (!tableAPI.state) return;
         if (!tableAPI.state.loaded()) return;
         if (!tableAPI.state.loaded().filters) return;
 
