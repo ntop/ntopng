@@ -897,7 +897,10 @@ int SNMP::snmp_get_fctn(lua_State* vm, snmp_pdu_primitive pduType, bool skip_fir
     {
     char *agent_host, *community;
     u_int timeout = 5, version = snmp_version, oid_idx = 0, idx = skip_first_param ? 2 : 1;
-    char *oid[SNMP_MAX_NUM_OIDS] = { NULL }, value_types[SNMP_MAX_NUM_OIDS] = { '\0' }, *values[SNMP_MAX_NUM_OIDS] = { NULL };
+    char *oid[SNMP_MAX_NUM_OIDS] = { NULL }; 
+#ifdef HAVE_LIBSNMP
+    char value_types[SNMP_MAX_NUM_OIDS] = { '\0' }, *values[SNMP_MAX_NUM_OIDS] = { NULL };
+#endif
 
     if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK)  return(CONST_LUA_ERROR);
     agent_host = (char*)lua_tostring(vm, idx++);
@@ -918,17 +921,20 @@ int SNMP::snmp_get_fctn(lua_State* vm, snmp_pdu_primitive pduType, bool skip_fir
 	/* SET */
 	oid[oid_idx] = (char*)lua_tostring(vm, idx);
 
-
 	/* Types
 	   i: INTEGER, u: unsigned INTEGER, t: TIMETICKS, a: IPADDRESS
 	   o: OBJID, s: STRING, x: HEX STRING, d: DECIMAL STRING
 	   U: unsigned int64, I: signed int64, F: float, D: double
 	*/
 	if(lua_type(vm, idx+1) != LUA_TSTRING) return(CONST_LUA_ERROR);
+#ifdef HAVE_LIBSNMP
 	value_types[oid_idx] = ((char*)lua_tostring(vm, idx+1))[0];
+#endif
 
 	if(lua_type(vm, idx+2) != LUA_TSTRING) return(CONST_LUA_ERROR);
+#ifdef HAVE_LIBSNMP
 	values[oid_idx] = (char*)lua_tostring(vm, idx+2);
+#endif
 
 	oid_idx += 3, idx += 3;
       } else {
