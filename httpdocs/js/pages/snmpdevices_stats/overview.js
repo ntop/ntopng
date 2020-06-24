@@ -3,6 +3,22 @@ $(document).ready(function () {
     // define a constant for the snmp version dropdown value
     const SNMP_VERSION_THREE = 2;
 
+    const requiredFieldsAdd = {
+        community: [],
+        nonCommunity: []
+    };
+
+    $(`.community-field input[required], .community-field select[required]`)
+    .each(function() {
+        requiredFieldsAdd.community.push($(this));
+    });
+
+    $(`.non-community-field input[required], .non-community-field select[required]`)
+    .each(function() {
+        requiredFieldsAdd.nonCommunity.push($(this));
+        $(this).removeAttr("required");
+    });
+
     const addResponsivenessFilter = (tableAPI) => {
         DataTableUtils.addFilterDropdown(
             i18n.snmp.device_responsiveness, responsivenessFilters, 0, '#table-devices_filter', tableAPI
@@ -143,12 +159,15 @@ $(document).ready(function () {
         resetAfterSubmit: false,
         endpoint: `${ http_prefix }/lua/pro/rest/v1/add/snmp/device.lua`,
         beforeSumbit: function() {
+
             const data = {};
+
+            // show the spinner and hide the errors
             $(`#add-snmp-feedback`).hide();
             $(`#snmp-add-spinner`).fadeIn();
 
+            // build the post params
             $(`#add-snmp-modal form`).find('input,select,textarea').each((idx, element) => {
-                console.log(element);
                 data[$(element).attr("name")] = $(element).val();
             });
             return data;
@@ -156,7 +175,7 @@ $(document).ready(function () {
         onModalInit: function() {
 
             // disable dropdown if the user inputs an hostname
-            /* $(`input[name='snmp_host']`).keyup(function(e) {
+            $(`input[name='snmp_host']`).keyup(function(e) {
                 const value = $(this).val();
 
                 if (new RegExp(REGEXES.domainName).test(value)) {
@@ -171,7 +190,7 @@ $(document).ready(function () {
                     $(`#select-cidr`).removeAttr("disabled");
                 }
 
-            }); */
+            });
 
             // Disable passhphrase if the user selects none
             $(`select#select-level-snmp`).change(function(e) {
@@ -224,6 +243,13 @@ $(document).ready(function () {
 
         if (value == SNMP_VERSION_THREE) {
 
+            requiredFieldsAdd.community.forEach(($input) => {
+                $input.removeAttr("required");
+            });
+            requiredFieldsAdd.nonCommunity.forEach(($input) => {
+                $input.attr("required", "");
+            });
+
             $(`.community-field`).fadeOut(500, function() {
                 $(`.non-community-field`).fadeIn(500);
             });
@@ -231,6 +257,14 @@ $(document).ready(function () {
         }
 
         $(`.non-community-field`).fadeOut(500, function() {
+
+            requiredFieldsAdd.nonCommunity.forEach(($input) => {
+                $input.removeAttr("required");
+            });
+            requiredFieldsAdd.community.forEach(($input) => {
+                $input.attr("required", "");
+            });
+
             $(`.community-field`).fadeIn(500);
         });
 

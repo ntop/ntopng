@@ -1073,7 +1073,7 @@ end
 -- #################################################################
 
 local function validateCIDR(m)
-   return validateChoice({"24", "32"}, m)
+   return validateChoice({"24", "32", "128"}, m)
 end
 
 local function validateOperatingMode(m)
