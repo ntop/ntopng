@@ -19,7 +19,7 @@
         {{ i18n("email_alert_endpoint.smtp_username") }}
     </label>
     <div class="col-sm-5">
-        <input name="smtp_username" type="email" class="form-control" />
+        <input data-pattern="username|email" name="smtp_username" type="text" class="form-control" />
     </div>
 </div>
 <div class="form-group row">
