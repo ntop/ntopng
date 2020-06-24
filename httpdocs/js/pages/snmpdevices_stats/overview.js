@@ -142,12 +142,19 @@ $(document).ready(function () {
             // disable dropdown if the user inputs an hostname
             $(`input[name='snmp_host']`).keyup(function(e) {
                 const value = $(this).val();
+
                 if (new RegExp(REGEXES.domainName).test(value)) {
                     $('#select-cidr').attr("disabled", "disabled");
                 }
-                else {
-                    $('#select-cidr').removeAttr("disabled");
+                else if (new RegExp(REGEXES.ipv6).test(value)) {
+                    $(`#select-cidr option[value!='128']`).attr("disabled", "disabled");
+                    $(`#select-cidr`).val(128);
                 }
+                else {
+                    $(`#select-cidr option[value!='128']`).removeAttr("disabled");
+                    $(`#select-cidr`).removeAttr("disabled");
+                }
+
             });
 
             // Disable passhphrase if the user selects none
