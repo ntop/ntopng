@@ -24,6 +24,30 @@ $(document).ready(function () {
         );
     }
 
+    const toggleSnmpTableButtons = (response) => {
+
+        const thereAreUnresponsiveDevices = response.data.some(
+            (device) => (device.column_device_status == "unreachable")
+        );
+
+        const thereSnmpDevices = response.data.length > 0;
+
+        if (thereAreUnresponsiveDevices) {
+            $(`#btn-prune-devices`).show();
+        }
+        else {
+            $(`#btn-prune-devices`).hide();
+        }
+
+        if (thereSnmpDevices) {
+            $(`#btn-delete-devices`).show();
+        }
+        else {
+            $(`#btn-delete-devices`).hide();
+        }
+
+    }
+
     let dtConfig = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
         {
             text: '<i class="fas fa-plus"></i>',
@@ -34,7 +58,7 @@ $(document).ready(function () {
         {
             text: '<i class="fas fa-sync"></i>',
             action: function(e, dt, node, config) {
-                $snmpTable.ajax.reload(null, false);
+                $snmpTable.ajax.reload(toggleSnmpTableButtons, false);
             }
         }
     ]);
@@ -113,7 +137,7 @@ $(document).ready(function () {
             // append the responsive filter for the table
             addResponsivenessFilter(tableAPI);
 
-            setInterval(() => { tableAPI.ajax.reload(null, false); }, 30000);
+            setInterval(() => { tableAPI.ajax.reload(toggleSnmpTableButtons, false); }, 30000);
 
         }
     });
@@ -193,7 +217,7 @@ $(document).ready(function () {
 
             // clean the form if the response was successful
             modalHandler.cleanForm();
-            $snmpTable.ajax.reload(null, false);
+            $snmpTable.ajax.reload(toggleSnmpTableButtons, false);
             $(`#snmp-add-spinner`).hide();
             $(`#add-snmp-modal`).modal('hide');
 

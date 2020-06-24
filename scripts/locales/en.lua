@@ -3914,6 +3914,18 @@ local lang = {
     ["unable_to_delete_snmp_device"] = "Unable to delete SNMP device %{device}",
     ["unresponsive_device"] = "The SNMP walk is too slow. Displayed data may be outdated or missing. Check network connectivity and device responsiveness. A new scan attempt will be performed in 15 minutes.",
     ["view_device"] = "View Device",
+    ["descriptions"] = {
+      ["authentication_passphrase"] = "Lorem Ipsum Dolor Sit Amet...",
+      ["authentication_protocol"] = "Lorem Ipsum Dolor Sit Amet...",
+      ["host"] = "Lorem Ipsum Dolor Sit Amet...",
+      ["level"] = "Lorem Ipsum Dolor Sit Amet...",
+      ["privacy_passphrase"] = "Lorem Ipsum Dolor Sit Amet...",
+      ["privacy_protocol"] = "Lorem Ipsum Dolor Sit Amet...",
+      ["read_community"] = "Lorem Ipsum Dolor Sit Amet...",
+      ["username"] = "Lorem Ipsum Dolor Sit Amet...",
+      ["version"] = "Lorem Ipsum Dolor Sit Amet...",
+      ["write_community"] = "Lorem Ipsum Dolor Sit Amet...",
+    },
   },
   ["snmp_page"] = {
     ["guide_snmp_page_message"] = "Visit page <a href='%{url}'> SNMP</a> to add this host to the list of configured SNMP devices.",
