@@ -409,57 +409,48 @@ if((page == "overview") or (page == nil)) then
 	 cur_i = cur_i + 1
       end
 
-      print("</tr>")
-
       local has_drops_export_queue_full = (tonumber(ifstats["zmq.drops.export_queue_full"]) and tonumber(ifstats["zmq.drops.export_queue_full"]) > 0)
       local has_drops_flow_collection_drops = (tonumber(ifstats["zmq.drops.flow_collection_drops"]) or 0) > 0
       local has_drops_flow_collection_udp_socket_drops = (tonumber(ifstats["zmq.drops.flow_collection_udp_socket_drops"]) or 0) > 0
       local has_remote_drops = (has_drops_export_queue_full or has_drops_flow_collection_drops)
 
-      if not has_remote_drops then
-	 --print('<tr style="display: none;">')
-      else
-	 print("<tr>")
-	 local cur_i = 0
-
-	 if has_drops_export_queue_full then
-	    local num_full = tonumber(ifstats["zmq.drops.export_queue_full"])
-	    local span_class = ' '
-	    if num_full > 0 then
-	       span_class = 'class="badge badge-danger"'
-	    end
-
-	    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	    print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."'></i></sup></th>")
-	    print("<td nowrap><span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span></td>")
-	    cur_i = cur_i + 1
+      if has_drops_export_queue_full then
+	 local num_full = tonumber(ifstats["zmq.drops.export_queue_full"])
+	 local span_class = ' '
+	 if num_full > 0 then
+	    span_class = 'class="badge badge-danger"'
 	 end
 
-	 if has_drops_flow_collection_drops then
-	    local num_full = tonumber(ifstats["zmq.drops.flow_collection_drops"])
-	    local span_class = ' '
-	    if num_full > 0 then
-	       span_class = 'class="badge badge-danger"'
-	    end
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."'></i></sup></th>")
+	 print("<td nowrap><span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span></td>")
+	 cur_i = cur_i + 1
+      end
 
-	    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	    print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></th>")
-	    print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span></td>")
-	    cur_i = cur_i + 1
+      if has_drops_flow_collection_drops then
+	 local num_full = tonumber(ifstats["zmq.drops.flow_collection_drops"])
+	 local span_class = ' '
+	 if num_full > 0 then
+	    span_class = 'class="badge badge-danger"'
 	 end
 
-	 if has_drops_flow_collection_udp_socket_drops then
-	    local num_full = tonumber(ifstats["zmq.drops.flow_collection_udp_socket_drops"])
-	    local span_class = ' '
-	    if num_full > 0 then
-	       span_class = 'class="badge badge-danger"'
-	    end
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></th>")
+	 print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span></td>")
+	 cur_i = cur_i + 1
+      end
 
-	    if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	    print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_udp_socket_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_udp_socket_drops").."'></i></sup></th>")
-	    print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_udp_socket_drops>"..formatValue(ifstats["zmq.drops.flow_collection_udp_socket_drops"]).."</span></td>")
-	    cur_i = cur_i + 1
+      if has_drops_flow_collection_udp_socket_drops then
+	 local num_full = tonumber(ifstats["zmq.drops.flow_collection_udp_socket_drops"])
+	 local span_class = ' '
+	 if num_full > 0 then
+	    span_class = 'class="badge badge-danger"'
 	 end
+
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_udp_socket_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_udp_socket_drops").."'></i></sup></th>")
+	 print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_udp_socket_drops>"..formatValue(ifstats["zmq.drops.flow_collection_udp_socket_drops"]).."</span></td>")
+	 cur_i = cur_i + 1
       end
 
       print("</tr>")
