@@ -627,12 +627,7 @@ local function validateSMTPServer(v)
       return false
    end
 
-   if validateIpAddress(v) then
-      return true
-   end
-
-   return string.match(v, '^[%d%a_.]+$') ~= nil and string.sub(v, 0, 1) ~= '.' and
-           string.sub(v, -1) ~= '.' and string.find(v, '%.%.') == nil
+   return validateIpAddress(v) or validateSingleWord(v)
 end
 
 local function validateDate(p)
