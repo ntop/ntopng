@@ -37,6 +37,8 @@ class ParserInterface : public NetworkInterface {
   ParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ParserInterface();
 
+  virtual bool is_ndpi_enabled() const    { return(false);      };
+
   void processFlow(ParsedFlow *zflow);
 
   void deliverFlowToCompanions(ParsedFlow * const flow);

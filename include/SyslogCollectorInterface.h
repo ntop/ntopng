@@ -56,7 +56,6 @@ class SyslogCollectorInterface : public SyslogParserInterface {
 
   inline const char* get_type()         { return(CONST_INTERFACE_TYPE_SYSLOG); };
   virtual InterfaceType getIfType() const { return(interface_type_SYSLOG); }
-  virtual bool is_ndpi_enabled() const    { return(false);      };
   inline char* getEndpoint(u_int8_t id)   { return(endpoint);   };
   virtual bool isPacketInterface() const  { return(false);      };
   void collect_flows();
