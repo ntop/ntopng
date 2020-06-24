@@ -172,17 +172,6 @@ local function validateSingleWord(w)
 end
 http_lint.validateSingleWord = validateSingleWord
 
-local function validateDomainName(v)
-
-   -- thanks to https://stackoverflow.com/questions/35467680/lua-pattern-to-validate-a-dns-address
-   if (isEmptyString(v)) then
-      return false
-   end
-
-   return string.match(v, '^[%d%a_.]+$') ~= nil and string.sub(v, 0, 1) ~= '.' and
-           string.sub(v, -1) ~= '.' and string.find(v, '%.%.') == nil
-end
-
 local function validateMessage(w)
    return true
 end
@@ -630,6 +619,20 @@ local function validateIpVersion(p)
    else
       return false
    end
+end
+
+local function validateSMTPServer(v)
+   -- thanks to https://stackoverflow.com/questions/35467680/lua-pattern-to-validate-a-dns-address
+   if (isEmptyString(v)) then
+      return false
+   end
+
+   if validateIpAddress(v) then
+      return true
+   end
+
+   return string.match(v, '^[%d%a_.]+$') ~= nil and string.sub(v, 0, 1) ~= '.' and
+           string.sub(v, -1) ~= '.' and string.find(v, '%.%.') == nil
 end
 
 local function validateDate(p)
@@ -1531,7 +1534,7 @@ local known_parameters = {
    ["redirection_url"]                             = validateEmptyOr(validateSingleWord),
    ["email_sender"]                                = validateSingleWord,
    ["email_recipient"]                             = validateSingleWord,
-   ["smtp_server"]                                 = validateDomainName,
+   ["smtp_server"]                                 = validateSMTPServer,
    ["smtp_username"]                               = validateEmptyOr(validateSingleWord),
    ["smtp_password"]                               = validateEmptyOr(validatePassword),
    ["influx_dbname"]                               = validateSingleWord,

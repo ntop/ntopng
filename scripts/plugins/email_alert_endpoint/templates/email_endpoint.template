@@ -3,7 +3,7 @@
         <b>{{ i18n("email_alert_endpoint.smtp_server") }}</b>
     </label>
     <div class="col-sm-5">
-        <input data-pattern="ipv4|domainName" name="smtp_server" type="text" class="form-control" required />
+        <input data-pattern="ipv4|ipv6|domainName" name="smtp_server" type="text" class="form-control" required />
     </div>
 </div>
 <div class="form-group row">
