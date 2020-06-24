@@ -34,7 +34,7 @@ $(document).ready(function () {
         {
             text: '<i class="fas fa-sync"></i>',
             action: function(e, dt, node, config) {
-                $snmpTable.ajax.reload();
+                $snmpTable.ajax.reload(null, false);
             }
         }
     ]);
@@ -44,6 +44,7 @@ $(document).ready(function () {
         'data',
     );
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        order: [[1, "asc"]],
         columns: [
             {
                 data: "column_device_status",
@@ -112,7 +113,7 @@ $(document).ready(function () {
             // append the responsive filter for the table
             addResponsivenessFilter(tableAPI);
 
-            setInterval(() => { tableAPI.ajax.reload(); }, 30000);
+            setInterval(() => { tableAPI.ajax.reload(null, false); }, 30000);
 
         }
     });
@@ -192,7 +193,7 @@ $(document).ready(function () {
 
             // clean the form if the response was successful
             modalHandler.cleanForm();
-            $snmpTable.ajax.reload();
+            $snmpTable.ajax.reload(null, false);
             $(`#snmp-add-spinner`).hide();
             $(`#add-snmp-modal`).modal('hide');
 
