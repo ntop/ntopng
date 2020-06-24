@@ -37,6 +37,7 @@ class ParserInterface : public NetworkInterface {
   ParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ParserInterface();
 
+  virtual bool is_ndpi_enabled() const    { return(false);      };
   virtual u_int getPacketOverhead() { return 0; /* Can't determine this for non-packet interfaces */ }
   void processFlow(ParsedFlow *zflow);
 
