@@ -655,18 +655,37 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
 				  u_int version,
 				  char *oid[SNMP_MAX_NUM_OIDS],
 				  bool _batch_mode) {
-  send_snmp_request(agent_host,
-		    version,
-		    community,
-		    NULL,
-		    NULL,
-		    NULL,
-		    NULL,
-		    NULL,
-		    NULL,
-		    pduType,
-		    oid,
-		    _batch_mode);
+  u_int agent_port = 161;
+  int i = 0;
+  SNMPMessage *message;
+  int len;
+  u_char buf[1500];
+  int operation = (pduType == snmp_get_pdu) ? NTOP_SNMP_GET_REQUEST_TYPE : NTOP_SNMP_GETNEXT_REQUEST_TYPE;
+
+  batch_mode = _batch_mode;
+
+  if((message = snmp_create_message())) {
+    snmp_set_version(message, version);
+    snmp_set_community(message, community);
+    snmp_set_pdu_type(message, operation);
+    snmp_set_request_id(message, request_id++);
+    snmp_set_error(message, 0);
+    snmp_set_error_index(message, 0);
+
+    for(i=0; i<SNMP_MAX_NUM_OIDS; i++) {
+      if(oid[i] != NULL)
+	snmp_add_varbind_null(message, oid[i]);
+      else
+	break;
+    }
+
+    len = snmp_message_length(message);
+    snmp_render_message(message, buf);
+    snmp_destroy_message(message);
+    free(message); /* malloc'd by snmp_create_message */
+
+    send_udp_datagram(buf, len, udp_sock, agent_host, agent_port);
+  }
 }
 
 /* ******************************************* */
