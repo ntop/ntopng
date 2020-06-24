@@ -58,15 +58,28 @@ end
 --! @note error condition is determined from the command exit status
 --! @note redirect the stderr of the command if the command is expected to fail
 function os_utils.execWithOutput(c, ret_code_success)
-   if is_windows then
+   local debug = false
+   
+   if(is_windows) then
       return nil
    end
 
-   local f = assert(io.popen(c, 'r'))
+   if(debug) then tprint(c) end
+   
+   local f = io.popen(c, 'r')
+   if(f == nil) then
+      return nil, -1
+   end
+   
    ret_code_success = ret_code_success or 0
   
-   local s = assert(f:read('*a'))
-   local rv = {f:close()}
+   local ret_string = f:read('*a')
+
+   if(s ~= nil) then
+      if(debug) then tprint(s) end
+   end
+   
+   local rv = { f:close() }
    local retcode = rv[3]
 
    if retcode ~= ret_code_success then
