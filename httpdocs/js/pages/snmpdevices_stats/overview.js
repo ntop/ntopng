@@ -156,7 +156,7 @@ $(document).ready(function () {
         onModalInit: function() {
 
             // disable dropdown if the user inputs an hostname
-            $(`input[name='snmp_host']`).keyup(function(e) {
+            /* $(`input[name='snmp_host']`).keyup(function(e) {
                 const value = $(this).val();
 
                 if (new RegExp(REGEXES.domainName).test(value)) {
@@ -171,7 +171,7 @@ $(document).ready(function () {
                     $(`#select-cidr`).removeAttr("disabled");
                 }
 
-            });
+            }); */
 
             // Disable passhphrase if the user selects none
             $(`select#select-level-snmp`).change(function(e) {
