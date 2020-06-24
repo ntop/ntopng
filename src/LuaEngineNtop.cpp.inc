@@ -2990,7 +2990,7 @@ static int ntop_snmp_batch_get(lua_State* vm) {
   if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  if(ntop_lua_check(vm, __FUNCTION__, 8, LUA_TSTRING) == CONST_LUA_OK)
+  if(lua_type(vm, 8) == CONST_LUA_OK)
     return(ntop_snmpv3_batch_get(vm));
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
