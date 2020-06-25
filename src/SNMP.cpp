@@ -433,11 +433,30 @@ void SNMP::send_snmp_request(char *agent_host,
 
 	  if(!strcasecmp(level, "authPriv")) {
 	    /* TODO */
+	    //privacy_passphrase;
+
+	    if(!strcasecmp(privacy_protocol, "DES")) {
+	      snmpSession->session.securityPrivProto = snmp_duplicate_objid(usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
+	      snmpSession->session.securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
+	    } else if(!strncasecmp(privacy_protocol, "AES", 3)) {
+	      snmpSession->session.securityPrivProto = snmp_duplicate_objid(usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
+	      snmpSession->session.securityPrivProtoLen = USM_PRIV_PROTO_AES_LEN;		
+	    }
+	    
+	    snmpSession->session.securityPrivKeyLen = USM_PRIV_KU_LEN;
+	    if(generate_Ku(snmpSession->session.securityAuthProto,
+			   snmpSession->session.securityAuthProtoLen,
+			   (u_char *)privacy_passphrase, strlen(privacy_passphrase),
+			   snmpSession->session.securityPrivKey,
+			   &snmpSession->session.securityPrivKeyLen) != SNMPERR_SUCCESS) {
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU security privacy error");
+	      return;
+	    }
 	  }
 	}
       }
     }
-
+    
     snmpSession->session.callback = asynch_response;
     snmpSession->session.callback_magic = this;
 

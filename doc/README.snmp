@@ -10,7 +10,11 @@ The SNMP GUI is available obly in the ntopng Enterprise edition, while engine SN
 NET-SNMP v3 Agent configuration
 ===============================
 
-You can read hera http://net-snmp.sourceforge.net/docs/README.snmpv3.html about how to configure the agent.
+You can read here http://net-snmp.sourceforge.net/docs/README.snmpv3.html about how to configure the agent.
+
+This is the command to useL
+net-snmp-create-v3-user [-ro] [-A authpass] [-X privpass] [-a MD5|SHA] [-x DES|AES] [username]
+
 
 In short (as root) do:
 - service snmpd stop
@@ -19,4 +23,4 @@ In short (as root) do:
 
 Query example:
 - snmpget -v 3 -u myuser -l authNoPriv -a MD5 -A my_password localhost sysUpTime.0
-- snmpget -v 3 -u myuser -l authPriv   -a MD5 -A my_password localhost sysUpTime.0
+- snmpget -v 3 -u myuser -l authPriv   -a MD5 -A my_password -X privpass localhost sysUpTime.0
