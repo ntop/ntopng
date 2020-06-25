@@ -69,7 +69,7 @@ $(document).ready(function () {
         'data',
     );
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
-        order: [[1, "asc"]],
+        orderFixed: { post: [[1, "asc"]] },
         columns: [
             {
                 data: "column_device_status",
