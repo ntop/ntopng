@@ -201,8 +201,7 @@ $(document).ready(function () {
 
                 switch ($(this).val()) {
                     case "authPriv":
-                        $(`${privacySelector},${usernameSelector}`).removeAttr("disabled");
-                        $(authSelector).attr("disabled", "disabled");
+                        $(`${privacySelector},${usernameSelector},${authSelector}`).removeAttr("disabled");
                         break;
                     case "noAuthNoPriv":
                         $(`${authSelector},${privacySelector},${usernameSelector}`).attr("disabled", "disabled");
