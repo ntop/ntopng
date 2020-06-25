@@ -200,7 +200,7 @@ Response:
        },
        {
          "ifid": 1,
-         "label": "test_02.pcap"
+         "ifname": "test_02.pcap"
        }
      ],
      "rc": 0
