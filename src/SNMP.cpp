@@ -66,7 +66,10 @@ SNMP::~SNMP() {
 
 /* ******************************* */
 
-/* http://www.net-snmp.org/docs/README.thread.html */
+/* 
+   http://www.net-snmp.org/docs/README.thread.html 
+   https://github.com/bluecmd/python3-netsnmp/blob/master/netsnmp/client_intf.c
+*/
 
 void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
   netsnmp_variable_list *vp = pdu->variables;
@@ -165,13 +168,15 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
       }
       break;
 
+    case ASN_APPLICATION:
     case ASN_NULL:
       lua_push_nil_table_entry(vm, rsp_oid);
       break;
 
     default:
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing %d type handler [agent: %s]",
-				   vp->type, agent_ip);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing %d type handler [agent: %s]", vp->type, agent_ip);
+      lua_push_nil_table_entry(vm, rsp_oid);
+      break;
     }
 
     vp = vp->next_variable;
