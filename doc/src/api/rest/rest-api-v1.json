@@ -776,6 +776,25 @@
 		}
 	    }
 	},
+	"/lua/rest/v1/get/ntopng/interfaces.lua": {
+	    "get": {
+		"tags": [
+		    "Interfaces"
+		],
+		"summary": "Get ntopng actively monitored interfaces names and ids",
+		"description": "Interface name and integer interface id for each actively monitored ntopng interface",
+		"operationId": "get_ntopng_interfaces",
+		"produces": [
+		    "application/json"
+		],
+		"parameters": [],
+		"responses": {
+		    "0": {
+			"description": "OK"
+		    }
+		}
+	    }
+	},
 	"/lua/rest/v1/get/flow/active.lua": {
 	    "get": {
 		"tags": [

@@ -1,0 +1,1 @@
+curl -s -u admin:admin "http://localhost:3000/lua/rest/v1/get/ntopng/interfaces.lua"

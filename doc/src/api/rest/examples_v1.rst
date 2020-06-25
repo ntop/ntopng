@@ -178,6 +178,35 @@ Response:
      "rc": 0
    }
 
+Get actively monitored interfaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/ntopng/interfaces.lua"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rsp": [
+       {
+         "ifid": 0,
+         "ifname": "test_01.pcap"
+       },
+       {
+         "ifid": 1,
+         "label": "test_02.pcap"
+       }
+     ],
+     "rc": 0
+   }
+
+
 Hosts
 -----
 
