@@ -188,7 +188,7 @@ end
 local function show_hosts(hosts_count, host_key)
    local hosts = {}
 
-   if(host_key == nil) then
+   if((host_key == nil) or (host_key == "")) then
       local what = interface.getHostsInfo(true, "column_traffic", MAX_HOSTS)
 
 
