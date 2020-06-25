@@ -42,6 +42,7 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
+  u_int8_t cli_tos, srv_tos; /* RFC 2474, 3168 */
   u_int16_t cli_port, srv_port, vlanId;
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
@@ -272,7 +273,8 @@ class Flow : public GenericHashEntry {
    * @param periodic_ht_state_update_user_data Pointer to a structure holding update-related data (including the lua engine)
    */
   void performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data);
-
+  void lua_tos(lua_State* vm);
+  
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -703,6 +705,8 @@ class Flow : public GenericHashEntry {
   inline void getnDPIMatchPacket(u_int16_t *payload_len, u_int8_t **payload) {
     *payload_len = packet_payload_match.payload_len, *payload = packet_payload_match.payload;
   }
+
+  inline void setTOS(u_int8_t tos, bool is_cli_tos) { if(is_cli_tos) cli_tos = tos; srv_tos = tos; }
 };
 
 #endif /* _FLOW_H_ */

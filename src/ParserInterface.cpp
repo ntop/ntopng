@@ -223,6 +223,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->tcp.serverNwLatency.tv_sec || zflow->tcp.serverNwLatency.tv_usec)
     flow->setFlowNwLatency(&zflow->tcp.serverNwLatency, !src2dst_direction);
 
+  flow->setTOS(zflow->src_tos, true), flow->setTOS(zflow->dst_tos, false);
   flow->setRtt();
 
   if(src2dst_direction)

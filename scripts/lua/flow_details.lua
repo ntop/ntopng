@@ -295,6 +295,39 @@ local tls_cipher_suites = {
    SSL2_RC4_64_WITH_MD5=0x080080,
 }
 
+local DSCP = {
+   [0x00] = "Best Effort (CS0)",
+   [0x01] = "LE",
+   [0x08] = "Priority (CS1)",
+   [0x0A] = "Priority (AF11)",
+   [0x0C] = "Priority (AF12)",
+   [0x0E] = "Priority (AF13)",
+   [0x10] = "Immediate (CS2)",
+   [0x12] = "Immediate (AF21)",
+   [0x14] = "Immediate (AF22)",
+   [0x16] = "Immediate (AF23)",
+   [0x18] = "Flash/Voice (CS3)",
+   [0x1A] = "Flash/Voice (AF31)",
+   [0x1C] = "Flash/Voice (AF32)",
+   [0x1E] = "Flash/Voice (AF33)",
+   [0x20] = "Flash Override (CS4)",
+   [0x22] = "Flash Override (AF41)",
+   [0x24] = "Flash Override (AF42)",
+   [0x26] = "Flash Override (AF43)",
+   [0x28] = "Critical (CS5)",
+   [0x2E] = "Critical(EF)",
+   [0x30] = "Internetwork Control (CS6)",
+   [0x38] = " Network Control (CS7)"
+}
+
+local ECN = {
+   [0x00] = "Disabled (0)",
+   [0x01] = "Enabled (1)",
+   [0x02] = "Default (2)",
+   [0x03] = "CE"
+}
+
+   
 function tlsVersion2Str(v)
    -- TODO: Use ndpi_ssl_version2str()
    if(v == 768) then
@@ -756,7 +789,7 @@ else
       else
 	 print("<td>&nbsp;</td></tr>\n")
       end
-
+      
       print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-arrow-right\"></i> " .. i18n("server") .. ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-arrow-left\"></i> " .. i18n("server") .. ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
       print("<tr><td colspan=2>")
@@ -773,6 +806,11 @@ else
       print("</td></tr>\n")
    end
 
+   print("<tr><th width=30%>"..i18n("flow_details.tos").."</th>")
+   print("<td>"..DSCP[flow.tos.client.DSCP].." / ".. ECN[flow.tos.client.ECN] .."</td>")
+   print("<td>"..DSCP[flow.tos.server.DSCP].." / ".. ECN[flow.tos.server.ECN] .."</td>")
+   print("</tr>")
+	 
    if(flow["tcp.nw_latency.client"] ~= nil) then
       local rtt = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
 

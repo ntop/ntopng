@@ -1101,6 +1101,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
   u_int16_t l4_len = 0;
+  u_int8_t tos;
+  
   *hostFlow = NULL;
 
   if(!isSubInterface()) {
@@ -1208,7 +1210,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     /* NOTE: ip_tot_len is not trusted as may be forged */
     ip_tot_len = ntohs(iph->tot_len);
-
+    tos = iph->tos;
+    
     /* Use the actual h->len and not the h->caplen to determine
        whether a packet is fragmented. */
     if(ip_len > (int)h->len - ip_offset
@@ -1228,10 +1231,13 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
      * should not be accounted in the L4 size. */
     if(packet + h->caplen > ip + ip_tot_len)
       frame_padding = packet + h->caplen - ip - ip_tot_len;
+
+    tos = iph->tos;
   } else {
     /* IPv6 */
     u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
-
+    u_int32_t *tos_ptr = (u_int32_t*)ip6;
+    
     if(trusted_ip_len < sizeof(const struct ndpi_ipv6hdr)) {
       incStats(ingressPacket,
 	       when->tv_sec, ETHERTYPE_IPV6,
@@ -1263,6 +1269,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     l4 = (u_int8_t*)ip6 + ipv6_shift;
     l4_len = packet + h->len - l4;
     ip = (u_int8_t*)ip6;
+
+    tos = ((ntohl(*tos_ptr) & 0xFF00000) >> 20) & 0xFF;
   }
 
   trusted_l4_packet_len = packet + h->caplen - l4;
@@ -1373,6 +1381,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     *dstHost = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
     *hostFlow = flow;
 
+    flow->setTOS(tos, src2dst_direction);
+    
     switch(l4_proto) {
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
@@ -1647,6 +1657,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t len_on_wire = h->len * scalingFactor;
+
   *flow = NULL;
 
   /* Note summy ethernet is always 0 unless sender_mac is set (Netfilter only) */
@@ -1805,7 +1816,7 @@ decode_packet_eth:
 	goto dissect_packet_end;
       } else
 	frag_off = ntohs(iph->frag_off);
-
+      
       if(ntop->getGlobals()->decode_tunnels() && (iph->protocol == IPPROTO_GRE)
 	 && ((frag_off & 0x3FFF /* IP_MF | IP_OFFSET */ ) == 0)
 	 && h->caplen >= ip_offset + ip_len + sizeof(struct grev1_header)) {
@@ -2022,7 +2033,7 @@ decode_packet_eth:
 	  l4_proto = options[0];
 	  ipv6_shift = 8 * (options[1] + 1);
 	}
-
+		  
 	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_GRE)
 	   && h->caplen >= ip_offset + ipv6_shift + sizeof(struct grev1_header)) {
 	  struct grev1_header gre;
@@ -2134,7 +2145,6 @@ decode_packet_eth:
 				       ip_offset,
 				       len_on_wire,
 				       h, packet, ndpiProtocol, srcHost, dstHost, flow);
-	  
 	} catch(std::bad_alloc& ba) {
 	  static bool oom_warning_sent = false;
 
