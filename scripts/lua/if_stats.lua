@@ -651,7 +651,7 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th colspan=7 nowrap>"..dump_to.." "..i18n("if_stats_overview.flows_export_statistics").."</th></tr>\n")
 
       print("<tr>")
-      print("<th nowrap>"..i18n("if_stats_overview.exported_flows").."</th>")
+      print("<th nowrap>"..i18n("if_stats_overview.exported_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:dumped_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
       print("<td><span id=exported_flows>"..formatValue(export_count).."</span>")
       if export_rate == nil then
 	 export_rate = 0
@@ -659,7 +659,7 @@ if((page == "overview") or (page == nil)) then
       print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).."</span> Flows/s]</td>")
 
       print("<th><span id='if_flow_drops_drop'<i class='fas fa-tint' aria-hidden='true'></i></span> ")
-      print(i18n("if_stats_overview.dropped_flows").."</th>")
+      print(i18n("if_stats_overview.dropped_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:dumped_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
 
       local span_danger = ""
       if export_drops == nil then

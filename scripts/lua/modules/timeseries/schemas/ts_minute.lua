@@ -279,6 +279,13 @@ schema:addMetric("dropped_alerts")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:dumped_flows", {step = 60, is_critical_ts = true})
+schema:addTag("ifid")
+schema:addMetric("dumped_flows")
+schema:addMetric("dropped_flows")
+
+-- ##############################################
+
 -------------------------------------------------------
 -- CONTAINERS SCHEMAS
 -------------------------------------------------------

@@ -133,6 +133,16 @@ function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
   end
 end
 
+function ts_dump.iface_update_flow_dump_stats(when, ifstats, verbose)
+   ts_utils.append("iface:dumped_flows",
+		   {
+		      ifid = ifstats.id,
+		      dumped_flows = ifstats.stats.flow_export_count or 0,
+		      dropped_flows = ifstats.stats.flow_export_drops or 0
+		   },
+		   when)
+end
+
 function ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
   ts_utils.append("iface:tcp_retransmissions", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.retransmissions}, when)
   ts_utils.append("iface:tcp_out_of_order", {ifid=ifstats.id, packets=ifstats.tcpPacketStats.out_of_order}, when)
@@ -330,6 +340,12 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when)
   ts_dump.iface_update_general_stats(when, ifstats, verbose)
   ts_dump.iface_update_l4_stats(when, ifstats, verbose)
 
+  -- Check both if global flows dump is enabled (config.is_dump_flows_enabled)
+  -- and also if flows dump is enabled for the current interface (ifstats.isFlowDumpDisabled)
+  if config.is_dump_flows_enabled and ifstats.isFlowDumpDisabled == false then
+     ts_dump.iface_update_flow_dump_stats(when, ifstats, verbose)
+  end
+
   if not ifstats.has_seen_ebpf_events then
      ts_dump.iface_update_tcp_flags(when, ifstats, verbose)
      ts_dump.iface_update_tcp_stats(when, ifstats, verbose)
@@ -384,10 +400,12 @@ end
 
 function ts_dump.getConfig()
   local config = {}
+  local prefs = ntop.getPrefs() -- runtime ntopng preferences
 
   config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
   config.internals_rrd_creation = ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
+  config.is_dump_flows_enabled = ntop.getPrefs()["is_dump_flows_enabled"]
 
   -- Interface RRD creation is on, with per-protocol nDPI
   if isEmptyString(config.interface_ndpi_timeseries_creation) then config.interface_ndpi_timeseries_creation = "per_protocol" end
