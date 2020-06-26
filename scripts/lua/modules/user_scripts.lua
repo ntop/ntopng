@@ -482,6 +482,11 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
       return(nil)
    end
 
+   if((not return_all) and user_script.external_alerts_only and (not interface.hasExternalAlerts())) then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping module '%s' for interface with no external alerts", mod_fname))
+      return(nil)
+   end
+
    if((not return_all) and ((user_script.nedge_exclude and ntop.isnEdge()) or (user_script.nedge_only and (not ntop.isnEdge())))) then
       return(nil)
    end

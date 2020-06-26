@@ -266,6 +266,21 @@ static int ntop_interface_has_ebpf(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_has_external_alerts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    lua_pushboolean(vm, ntop_interface->hasSeenExternalAlerts());
+  else
+    lua_pushboolean(vm, 0);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // *** API ***
 static int ntop_interface_is_packet_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -4418,6 +4433,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMaxIfSpeed",            ntop_get_max_if_speed },
   { "hasVLANs",                 ntop_interface_has_vlans },
   { "hasEBPF",                  ntop_interface_has_ebpf  },
+  { "hasExternalAlerts",        ntop_interface_has_external_alerts  },
   { "getStats",                 ntop_get_interface_stats },
   { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
   { "updateDirectionStats",     ntop_update_interface_direction_stats },

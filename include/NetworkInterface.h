@@ -195,7 +195,7 @@ class NetworkInterface : public AlertableEntity {
   HostPools *host_pools;
   VlanAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
-  bool has_seen_pods, has_seen_containers;
+  bool has_seen_pods, has_seen_containers, has_external_alerts;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge, next_idle_other_purge;
   bool running, is_idle;
@@ -353,6 +353,8 @@ class NetworkInterface : public AlertableEntity {
   inline void setSeenPods()                    { has_seen_pods = true; }
   inline bool hasSeenContainers() const        { return(has_seen_containers); }
   inline void setSeenContainers()              { has_seen_containers = true; }
+  inline bool hasSeenExternalAlerts() const    { return(has_external_alerts);  }
+  inline void setSeenExternalAlerts()          { has_external_alerts = true;   }
   struct ndpi_detection_module_struct* get_ndpi_struct() const;
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f, bool no_time_left);

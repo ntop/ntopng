@@ -4854,6 +4854,9 @@ void Flow::clearStatus(FlowStatus status) {
 /* *************************************** */
 
 void Flow::setExternalAlert(json_object *a) {
+  if(!iface->hasSeenExternalAlerts())
+    iface->setSeenExternalAlerts();
+
   if(!external_alert) {
     /* In order to avoid concurrency issues with the getter, at most
      * 1 pending external alert is supported. */

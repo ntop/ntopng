@@ -12,6 +12,7 @@ local alert_consts = require("alert_consts")
 local script = {
   -- NOTE: hooks defined below
   hooks = {},
+  external_alerts_only = true, -- Only execute for interfaces which have seen external alerts (either companion or syslog)
   periodic_update_seconds = 30,
 
   gui = {

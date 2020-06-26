@@ -229,6 +229,7 @@ void NetworkInterface::init() {
     has_vlan_packets = false, has_ebpf_events = false,
     has_seen_dhcp_addresses = false,
     has_seen_containers = false, has_seen_pods = false,
+    has_external_alerts = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL, 
@@ -2386,6 +2387,7 @@ void NetworkInterface::cleanup() {
   has_seen_dhcp_addresses = false;
   running = false, inline_interface = false;
   has_seen_containers = false, has_seen_pods = false;
+  has_external_alerts = false;
 
   getStats()->cleanup();
   if(flows_hash)      flows_hash->cleanup();
@@ -5222,6 +5224,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_traffic_directions", (areTrafficDirectionsSupported() && (!is_traffic_mirrored)));
   lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
+  lua_push_bool_table_entry(vm, "has_seen_external_alerts", hasSeenExternalAlerts());
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
   lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
