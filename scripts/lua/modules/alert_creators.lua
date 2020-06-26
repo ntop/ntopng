@@ -54,15 +54,14 @@ end
 
 -- @brief Prepare an alert table used to generate the alert
 -- @param alert_severity A severity as defined in `alert_consts.alert_severities`
--- @param host_pool The a string with the host pool details
+-- @param host_pool A string with the host pool id
 -- @return A table with the alert built
 function alert_creators.createPoolConnectionDisconnection(alert_severity, host_pool)
    local host_pools_utils = require("host_pools_utils")
-
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
-	 host_pools_utils.getPoolName(interface.getId(), host_pool),
+	 pool = host_pools_utils.getPoolName(interface.getId(), host_pool),
       },
    }
 

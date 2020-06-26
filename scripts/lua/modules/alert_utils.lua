@@ -1961,13 +1961,13 @@ function alert_utils.check_host_pools_alerts(ifid)
 	       ntop.setMembersCache(active_pools_set, pool)
 
 	       if alert_pool_connection_enabled then
-            alerts_api.store(
-	       alerts_api.hostPoolEntity(pool),
-	       alert_consts.alert_types.alert_host_pool_connection.create(
-		  alert_consts.alert_severities.info,
-		  pool
-	       )
-	    )
+		  alerts_api.store(
+		     alerts_api.hostPoolEntity(pool),
+		     alert_consts.alert_types.alert_host_pool_connection.create(
+			alert_consts.alert_severities.info,
+			pool
+		     )
+		  )
 	       end
 	    end
 	 end
