@@ -102,6 +102,10 @@ end
 print([[
 	<script type="text/javascript">
 
+		$(document).ready(function() {
+			AlertNotificationUtils.initAlerts();
+		});
+
 	   const toggle_system_flag = (is_system_switch = false, $form = null) => {
 		  // if form it's empty it means the call was not invoked
 		  // by a form request
@@ -147,7 +151,6 @@ local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTi
 
 print [[
 <script type="text/javascript">
-
 ]]
 
 if not info.oem then

@@ -14,6 +14,7 @@ local ts_utils = require("ts_utils_core")
 local blog_utils = require("blog_utils")
 local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
+local menu_alert_notifications = require("menu_alert_notifications")
 
 local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
@@ -772,7 +773,7 @@ for round = 1, 2 do
          page_params.ifid = k
          -- ntop.g`tHttpPrefix()
          local url_query = getPageUrl("", page_params)
-	 
+
          print([[<li class="nav-item">]])
 
          if(v == ifname and not is_system_interface) then
@@ -1115,6 +1116,10 @@ print([[
 
 -- begging of #n-container
 print([[<div class='p-md-4 extended p-xs-1 mt-5 p-sm-2' id='n-container'>]])
+
+-- ###################################################
+menu_alert_notifications.render_notifications()
+-- ###################################################
 
 print("<div class='main-alerts'>")
 

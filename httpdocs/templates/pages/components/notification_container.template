@@ -1,0 +1,5 @@
+<div class="notification-container">
+    {% for key, notification in ipairs(notifications) do %}
+    {* notification:render() *}
+    {% end %}
+</div>

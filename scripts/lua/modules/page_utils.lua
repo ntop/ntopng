@@ -234,21 +234,28 @@ end
 
 -- #################################
 
+function page_utils.is_dark_mode_enabled(theme)
+
+   local dark_mode
+   local theme = theme or ntop.getPref("ntopng.prefs.theme")
+
+   if (isEmptyString(theme)) then
+      dark_mode = false
+   else
+      dark_mode = (theme == "dark")
+   end
+
+   return dark_mode
+end
+
+-- #################################
+
 function page_utils.print_header(title)
+
   local http_prefix = ntop.getHttpPrefix()
   local startup_epoch = ntop.getStartupEpoch()
 
-  local theme = _POST["toggle_theme"] or ntop.getPref("ntopng.prefs.theme")
-
-  local dark_mode = false
-
-  if ((theme == nil) or (theme == "")) then
-    dark_mode = false
-  end
-
-  if (theme == "dark") then
-    dark_mode = true
-  end
+  local dark_mode = page_utils.is_dark_mode_enabled(_POST["toggle_theme"])
 
   local page_title = i18n("welcome_to", { product=info.product })
   if title ~= nil then

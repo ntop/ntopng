@@ -18,13 +18,6 @@
     </template>
 {% end %}
 
-<template id="webhook-template">
-    {* plugins_utils.renderTemplate("webhook_alert_endpoint", "webhook_endpoint.template") *}
-</template>
-<template id="syslog-template">
-    {* plugins_utils.renderTemplate("syslog_alert_endpoint", "syslog_endpoint.template") *}
-</template>
-
 {* template_utils.gen("pages/modals/endpoint_notifications/add.template", notifications) *}
 {* template_utils.gen("pages/modals/endpoint_notifications/remove.template", notifications) *}
 {* template_utils.gen("pages/modals/endpoint_notifications/edit.template", notifications) *}

@@ -1246,3 +1246,11 @@ td.dt-body-right {
   height: 16rem;
   overflow-y: scroll;
 }
+
+.toast:not(:last-child) {
+  margin-bottom: .2rem;
+}
+
+.notification-container {
+  position: absolute; top: 4rem; right: 1rem; z-index: 1000; width: 20%;
+}
