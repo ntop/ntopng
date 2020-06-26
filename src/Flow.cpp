@@ -1107,7 +1107,7 @@ char* Flow::print(char *buf, u_int buf_len) const {
 
 /* *************************************** */
 
-bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper, bool no_time_left) {
+bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper_iface, bool no_time_left) {
   bool rc = false;
 
   if(ntop->getPrefs()->is_runtime_flows_dump_enabled() /* Check if dump has been disabled at runtime from a UI preference */
@@ -1134,7 +1134,7 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper, bool no_
     }
 
     if(!idle()) {
-      if((dumper->getIfType() == interface_type_PCAP_DUMP && !dumper->read_from_pcap_dump_done())
+      if((dumper_iface->getIfType() == interface_type_PCAP_DUMP && !dumper_iface->read_from_pcap_dump_done())
          || tv->tv_sec - get_first_seen() < CONST_DB_DUMP_FREQUENCY
 	 || tv->tv_sec - get_partial_last_seen() < CONST_DB_DUMP_FREQUENCY) {
 	return(rc);
@@ -1153,10 +1153,10 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper, bool no_
 
 #ifdef NTOPNG_PRO
     if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_m_edition())
-      dumper->aggregatePartialFlow(tv, this);
+      dumper_iface->aggregatePartialFlow(tv, this);
 #endif
 
-    dumper->dumpFlow(last_seen, this, no_time_left);
+    dumper_iface->dumpFlow(last_seen, this, no_time_left);
 
 #ifndef HAVE_NEDGE
     if(ntop->get_export_interface()) {
