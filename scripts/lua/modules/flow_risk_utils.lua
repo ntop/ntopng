@@ -22,6 +22,11 @@ local id2name = {
    [11] = "ndpi_http_suspicious_user_agent",
    [12] = "ndpi_http_numeric_ip_host",
    [13] = "ndpi_http_suspicious_url",
+   [14] = "ndpi_http_suspicious_header",
+   [15] = "ndpi_tls_not_carrying_https",
+   [16] = "ndpi_suspicious_dga_domain",
+   [17] = "ndpi_malformed_packet",
+   
 }
 
 -- ##############################################

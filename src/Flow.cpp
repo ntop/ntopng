@@ -189,16 +189,22 @@ Flow::Flow(NetworkInterface *_iface,
       set_hash_entry_state_flow_notyetdetected();
     break;
 
-  case IPPROTO_ICMP:
+  case IPPROTO_ICMP:   
     ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_IP_ICMP,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    setDetectedProtocol(ndpiDetectedProtocol);
+
+    /* Use nDPI to check potential flow risks */
+    if(iface->is_ndpi_enabled()) allocDPIMemory();
+    set_hash_entry_state_flow_notyetdetected();
     break;
 
   case IPPROTO_ICMPV6:
     ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_IP_ICMPV6,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-    setDetectedProtocol(ndpiDetectedProtocol);
+
+    /* Use nDPI to check potential flow risks */
+    if(iface->is_ndpi_enabled()) allocDPIMemory();    
+    set_hash_entry_state_flow_notyetdetected();
     break;
 
   default:
@@ -238,6 +244,7 @@ Flow::~Flow() {
 				 isFlowAlerted() ? 1 : 0, print(buf, sizeof(buf)));
   }
 #endif
+
   if(cli_host)
     cli_host->decUses();
   else if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
@@ -782,7 +789,10 @@ void Flow::setExtraDissectionCompleted() {
     return;
   }
 
-  if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) {
+  if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)
+     || (protocol == IPPROTO_ICMP)
+     || (protocol == IPPROTO_ICMPV6)
+     ) {
     /* nDPI is not allocated for non-TCP non-UDP flows so, in order to
        make sure custom cateories are properly populated, function ndpi_fill_ip_protocol_category
        must be called explicitly. */
@@ -1356,6 +1366,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     if(iface) {
       if(partial->get_cli2srv_packets())
 	iface->incICMPStats(false /* icmp v4 */ , partial->get_cli2srv_packets(), protos.icmp.cli2srv.icmp_type, protos.icmp.cli2srv.icmp_code, true);
+
       if(partial->get_srv2cli_packets())
 	iface->incICMPStats(false /* icmp v4 */ , partial->get_srv2cli_packets(), protos.icmp.srv2cli.icmp_type, protos.icmp.srv2cli.icmp_code, true);
     }
@@ -1365,6 +1376,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     if(iface) {
       if(partial->get_cli2srv_packets())
 	iface->incICMPStats(true /* icmp v6 */ , partial->get_cli2srv_packets(), protos.icmp.cli2srv.icmp_type, protos.icmp.cli2srv.icmp_code, true);
+
       if(partial->get_srv2cli_packets())
 	iface->incICMPStats(true /* icmp v6 */ , partial->get_srv2cli_packets(), protos.icmp.srv2cli.icmp_type, protos.icmp.srv2cli.icmp_code, true);
     }
@@ -1425,12 +1437,14 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     if(cli_host && cli_host->getICMPstats()) {
       if(partial->get_cli2srv_packets())
 	cli_host->getICMPstats()->incStats(partial->get_cli2srv_packets(), protos.icmp.cli2srv.icmp_type, protos.icmp.cli2srv.icmp_code, true  /* Sent */, srv_host);
+
       if(partial->get_srv2cli_packets())
 	cli_host->getICMPstats()->incStats(partial->get_srv2cli_packets(), protos.icmp.srv2cli.icmp_type, protos.icmp.srv2cli.icmp_code, false /* Rcvd */, srv_host);
     }
     if(srv_host && srv_host->getICMPstats()) {
       if(partial->get_cli2srv_packets())
 	srv_host->getICMPstats()->incStats(partial->get_cli2srv_packets(), protos.icmp.cli2srv.icmp_type, protos.icmp.cli2srv.icmp_code, false /* Rcvd */, cli_host);
+
       if(partial->get_srv2cli_packets())
 	srv_host->getICMPstats()->incStats(partial->get_srv2cli_packets(), protos.icmp.srv2cli.icmp_type, protos.icmp.srv2cli.icmp_code, true  /* Sent */, cli_host);
     }
@@ -1851,7 +1865,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       if(isBidirectional()) {
 	lua_push_uint64_table_entry(vm, "type", protos.icmp.srv2cli.icmp_type);
 	lua_push_uint64_table_entry(vm, "code", protos.icmp.srv2cli.icmp_code);
-      }else {
+      } else {
 	lua_push_uint64_table_entry(vm, "type", protos.icmp.cli2srv.icmp_type);
 	lua_push_uint64_table_entry(vm, "code", protos.icmp.cli2srv.icmp_code);
       }

@@ -82,8 +82,7 @@ void ICMPinfo::dissectICMP(u_int16_t const payload_len, const u_int8_t * const p
   reset();
 
   if(payload_len > 2) {
-    icmp_type = payload_data[0];
-    icmp_code = payload_data[1];
+    icmp_type = payload_data[0], icmp_code = payload_data[1];
 
     if(icmp_type == ICMP_DEST_UNREACH && icmp_code == ICMP_PORT_UNREACH
        && payload_len >= sizeof(struct ndpi_iphdr)) {
