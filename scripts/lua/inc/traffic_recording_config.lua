@@ -19,8 +19,11 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   local record_traffic = false
   if not isEmptyString(_POST["record_traffic"]) then
     record_traffic = true
+    ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.enabled', "1")
+  else
+    ntop.delCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.enabled')
   end
-  ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.traffic_recording.enabled', ternary(record_traffic, "true", "false"))
+  
 
   local disk_space = recording_utils.default_disk_space
   if not isEmptyString(_POST["disk_space"]) then
@@ -59,7 +62,11 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   end
 end
 
-local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
+local record_traffic = false
+if ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled') == "1" then
+  record_traffic = true
+end
+
 local disk_space = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.disk_space')
 local storage_info = recording_utils.storageInfo(ifid)
 local max_space = recording_utils.recommendedSpace(ifid, storage_info)
