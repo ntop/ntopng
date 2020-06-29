@@ -75,7 +75,7 @@ function prefsGetActiveSubpage(show_advanced_prefs, tab)
   for _, subpage in ipairs(menu_subpages) do
     if not isSubpageAvailable(subpage, show_advanced_prefs) then
       subpage.hidden = true
-      
+
       if subpage.id == tab then
         -- will set to default
         tab = nil
@@ -104,7 +104,7 @@ function printMenuSubpages(tab)
   for _, subpage in ipairs(menu_subpages) do
     if not subpage.hidden then
       local url = ternary(subpage.disabled, "#", ntop.getHttpPrefix() .. [[/lua/admin/prefs.lua?tab=]] .. (subpage.id))
-      print[[<a href="]] print(url) print[[" class="list-group-item menu-item]]
+      print[[<a href="]] print(url) print[[" class="list-group-item list-group-item-action]]
 
       if(tab == subpage.id) then
         print(" active")
@@ -127,7 +127,7 @@ function notifyNtopng(key)
         if verbose then io.write('notifying ntopng upon nagios pref change\n') end
         ntop.reloadNagiosConfig()
     elseif string.starts(key, 'toggle_logging_level') then
-        if verbose then io.write('notifying ntopng upon logging level pref change\n') end 
+        if verbose then io.write('notifying ntopng upon logging level pref change\n') end
         ntop.setLoggingLevel(value)
     end
 end
@@ -149,7 +149,7 @@ function prefsResolutionButtons(fmt, value, fixed_id, format_spec, max_val)
   local res = makeResolutionButtons(format_spec or FMT_TO_DATA_TIME, ctrl_id, fmt, value, {classes={"float-right"}}, max_val)
 
   res.value = truncate(res.value)
-  
+
   print(res.html)
   print("<script>")
   if not options_script_loaded then
@@ -456,8 +456,8 @@ local function toggleTableButtonPrefs(label, comment, on_label, on_value, on_col
                                 redis_key, default_value, disabled, elementToSwitch, hideOn, showElement, nested_to_switch)
 
 
- local value 
- 
+ local value
+
  if not skip_redis then
   value = ntop.getPref(redis_key)
   if(_POST[submit_field] ~= nil) then
@@ -514,11 +514,11 @@ local function toggleTableButtonPrefs(label, comment, on_label, on_value, on_col
     $("#check-]].. submit_field.. [[").change(function(e) {
 
       const value = $(this).is(":checked");
-      
+
       if (value) {
         ]]..submit_field..[[_functionOn();
       }
-      else { 
+      else {
         ]]..submit_field..[[_functionOff();
       }
     });

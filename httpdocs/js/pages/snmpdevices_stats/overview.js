@@ -49,7 +49,7 @@ $(document).ready(function () {
 
     }
 
-    let dtConfig = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
+    let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
             action: function(e, dt, node, config) {
@@ -109,8 +109,16 @@ $(document).ready(function () {
                     return data;
                 }
             },
-            { data: "column_last_update", className: "text-center" },
-            { data: "column_last_poll_duration", className: "text-center" },
+            {
+                data: "column_last_update",
+                className: "text-center",
+                render: $.fn.dataTableExt.formatSecondsToHHMMSS
+            },
+            {
+                data: "column_last_poll_duration",
+                className: "text-center",
+                render: $.fn.dataTableExt.formatSecondsToHHMMSS
+            },
             {
                 targets: -1,
                 visible: isAdministrator,

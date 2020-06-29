@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-    let dtConfig = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
+    let dtConfig = DataTableUtils.getStdDatatableConfig([
         {
             text: '<i class="fas fa-plus"></i>',
             className: 'btn-link',

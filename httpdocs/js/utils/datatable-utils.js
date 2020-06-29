@@ -1,9 +1,16 @@
+jQuery.fn.dataTableExt.sErrMode = 'console';
+jQuery.fn.dataTableExt.formatSecondsToHHMMSS = (data, type, row) => {
+    if (isNaN(data)) return data;
+    if (type == "display") return DataTableUtils.secondsToHHMMSS(data);
+    return data;
+};
+
 class DataTableUtils {
 
     /**
      * Return a standard config for the Sprymedia (c) DataTables
      */
-    static getStdDatatableConfig(dom = "lBfrtip", dtButtons = []) {
+    static getStdDatatableConfig(dtButtons = [], dom = "<'d-flex'<'mr-auto'l><'dt-search'f>B>rtip") {
         return {
             dom: dom,
             pagingType: 'full_numbers',
@@ -175,6 +182,21 @@ class DataTableUtils {
 
         // save the current table state
         tableAPI.state.save();
+    }
+
+    /**
+     * Format the passed seconds into the "HH:MM:SS" string.
+     * @param {number} seconds
+     */
+    static secondsToHHMMSS(seconds) {
+
+        const padZeroes = n => `${n}`.padStart(2, '0');
+
+        const sec = seconds % 60;
+        const mins = Math.floor(seconds / 60) % 60;
+        const hours = Math.floor(seconds / 3600);
+
+        return `${padZeroes(hours)}:${padZeroes(mins)}:${padZeroes(sec)}`;
     }
 
 }

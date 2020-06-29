@@ -594,7 +594,7 @@ path.link {
 }
 
 #n-container {
-  margin-left: 13.5rem;
+  margin-left: var(--sidebar-width);
   height: calc(100% - 56px);
   overflow-y: auto;
   max-height: fit-content;
@@ -610,8 +610,7 @@ path.link {
   flex-direction: column;
   color: white;
   transition: width .5s;
-  z-index: 1050;
-  box-shadow: 0px 0px 6px #2f2f2f52;
+  z-index: 1000;
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
@@ -861,10 +860,6 @@ path.link {
   text-decoration: none;
 }
 
-#n-container.extended {
-	margin-left: var(--sidebar-width);
-}
-
 #ntop-logo {
   height: 3.2rem;
   width: 100%;
@@ -913,16 +908,7 @@ path.link {
 #network-load {
   display: contents;
 }
-#network-load > li.nav-item {
-  max-width: 60rem;
-}
-#network-load div.d-flex {
-  width: 100%;
-  flex-wrap: wrap;
-  height: 100%;
-  align-items: center;
-}
-#network-load div.d-flex a {
+#network-load a {
   margin: 0 0.1em;
 }
 
@@ -930,16 +916,11 @@ path.link {
   max-width: 12rem;
 }
 
-
 #n-navbar {
-  left: 13.5rem;
-  z-index: 1020;
+  left: var(--sidebar-width);
+  z-index: 1000;
   transition: 0.5s left;
   box-shadow: 8px 1px 3px rgba(0,0,0,0.10), 2px 1px 2px rgba(0,0,0,0.15);
-}
-
-#n-navbar.extended {
-  left: var(--sidebar-width);
 }
 
 /* scrollbar theme */
@@ -983,7 +964,7 @@ path.link {
 
 @media (min-width: 480px) and (max-width: 800px) {
   #n-container {
-    padding-top: 9.8% !important;
+    padding-top: 2% !important;
   }
 }
 @media (min-width: 800px) and (max-width: 992px) {
@@ -1018,12 +999,10 @@ path.link {
   }
 
   #n-container {
-    margin-left: 0;
+    margin-left: var(--sidebar-width);
     padding: 0rem 0.2rem;
     padding-top: 14rem !important;
-
   }
-  #n-container.extended { margin-left: 0; }
 
   #n-sidebar.active { width: 0; }
   #n-sidebar {
@@ -1253,4 +1232,8 @@ td.dt-body-right {
 
 .notification-container {
   position: absolute; top: 4rem; right: 1rem; z-index: 1000; width: 20%;
+}
+
+.blog-section {
+  width: 30rem;
 }

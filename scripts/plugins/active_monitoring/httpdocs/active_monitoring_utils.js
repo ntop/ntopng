@@ -426,7 +426,7 @@ $(document).ready(function() {
         }
     });
 
-    let dt_config = DataTableUtils.getStdDatatableConfig(`lB<'dt-search'f>rtip`, [
+    let dt_config = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
             className: 'btn-link',
