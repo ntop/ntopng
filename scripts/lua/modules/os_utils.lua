@@ -75,7 +75,7 @@ function os_utils.execWithOutput(c, ret_code_success)
   
    local ret_string = f:read('*a')
 
-   if(s ~= nil) then
+   if(ret_string ~= nil) then
       if(debug) then tprint(s) end
    end
    
@@ -86,7 +86,7 @@ function os_utils.execWithOutput(c, ret_code_success)
       return nil, retcode
    end
 
-   return s, retcode
+   return ret_string, retcode
 end
 
 -- ########################################################
