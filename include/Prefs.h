@@ -92,7 +92,7 @@ class Prefs {
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
   bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_nindex,
-    dump_flows_on_disk, load_flows_from_disk, dump_ext_json;
+    dump_json_flows_on_disk, load_json_flows_from_disk_to_nindex, dump_ext_json;
   bool read_flows_from_mysql;
   bool enable_runtime_flows_dump; /**< runtime preference to enable/disable flows dump from the UI */
   InterfaceInfo *ifNames;
@@ -200,8 +200,8 @@ class Prefs {
   inline bool  do_dump_flows_on_ls()                    { return(dump_flows_on_ls);       };
   inline bool  do_dump_flows_on_nindex()                { return(dump_flows_on_nindex);   };
   inline bool  do_dump_extended_json()                  { return(dump_ext_json);          };
-  inline bool  do_dump_flows_on_disk()                  { return(dump_flows_on_disk);     };
-  inline bool  do_load_flows_from_disk()                { return(load_flows_from_disk);     };
+  inline bool  do_dump_json_flows_on_disk()             { return(dump_json_flows_on_disk);   };
+  inline bool  do_load_json_flows_from_disk_to_nindex() { return(load_json_flows_from_disk_to_nindex); };
   inline bool  do_dump_flows()                          { return(dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls || dump_flows_on_nindex); };
   inline bool is_runtime_flows_dump_enabled()     const { return(enable_runtime_flows_dump); };
     
