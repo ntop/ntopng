@@ -605,14 +605,19 @@ NetworkInterface::~NetworkInterface() {
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
   int rc = -1;
-
 #ifndef HAVE_NEDGE
-  char *json;
+  char *json = NULL;
+  bool dump_json = true;
   bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() ||
     ntop->getPrefs()->do_dump_flows_on_ls();
 
   if(!db)
     return -1;
+
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX) && !defined(NINDEX_DUMP_COLUMN_JSON)
+  if (ntop->getPrefs()->do_dump_flows_on_nindex())
+    dump_json = false;
+#endif
 
   if(no_time_left) {
     /* There is no time to dump the flow, however this is not yet
@@ -623,13 +628,17 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
     return -1;
   }
 
-  json = f->serialize(use_labels);
+  if (dump_json) {
+    json = f->serialize(use_labels);
 
-  if(json) {
-    rc = db->dumpFlow(when, f, json);
+    if (json == NULL)
+      return -1;
+  }
+
+  rc = db->dumpFlow(when, f, json);
+
+  if (json != NULL)
     free(json);
-  } else
-    rc = -1;
 #endif
 
   return(rc);
