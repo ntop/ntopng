@@ -614,9 +614,13 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
   if(!db)
     return -1;
 
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX) && !defined(NINDEX_DUMP_COLUMN_JSON)
-  if (ntop->getPrefs()->do_dump_flows_on_nindex())
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+  if (ntop->getPrefs()->do_dump_flows_on_nindex()) {
+    /* JSON is not generated in case of nindex dump for
+     * performance reason (it actually contains duplicated
+     * information which are useless) */
     dump_json = false;
+  }
 #endif
 
   if(no_time_left) {
