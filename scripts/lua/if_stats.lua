@@ -313,7 +313,7 @@ page_utils.print_navbar(title, url,
 				 label = "<i class=\"fas fa-lg fa-hand-holding\"></i>",
 			      },
 			      {
-				 hidden = not isAdministrator() or have_nedge,
+				 hidden = not isAdministrator() or not ifstats.has_macs or have_nedge,
 				 active = page == "unassigned_pool_devices",
 				 page_name = "unassigned_pool_devices",
 				 label = "<i class=\"fas fa-lg fa-user-slash\"></i>",
