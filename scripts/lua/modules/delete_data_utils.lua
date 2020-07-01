@@ -72,7 +72,7 @@ local function delete_host_redis_keys(interface_id, host_info)
       serialized_k = string.format("ntopng.serialized_hosts.ifid_%d__%s@%d", interface_id, host_info["host"], host_info["vlan"] or "0")
       dns_k = string.format("ntopng.dns.cache.%s", host_info["host"]) -- neither vlan nor ifid implemented for the dns cache
       drop_k = "ntopng.prefs.drop_host_traffic"
-      label_k = "ntopng.host_labels"
+      label_k = getHostAltNamesKey(hostkey)
    else
       -- is a mac address, see MAC_SERIALIED_KEY (see ntop_defines.h)
       serialized_k = string.format("ntopng.serialized_macs.ifid_%d__%s", interface_id, host_info["host"])
@@ -88,7 +88,7 @@ local function delete_host_redis_keys(interface_id, host_info)
       if dns_k        then ntop.delCache(dns_k) end
       if dhcp_k       then ntop.delCache(dhcp_k) end
       if drop_k       then ntop.delHashCache(drop_k, hostkey) end
-      if label_k      then ntop.delHashCache(label_k, hostkey) end
+      if label_k      then ntop.delCache(label_k) end
    end
 
    return {status = status}

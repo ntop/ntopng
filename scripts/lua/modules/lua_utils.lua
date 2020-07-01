@@ -1343,16 +1343,16 @@ end
 
 -- ##############################################
 
-function getHostAltNamesKey()
-   return "ntopng.host_labels"
+function getHostAltNamesKey(ip)
+   return "ntopng.cache.host_labels."..ip
 end
 
 function getHostAltName(host_ip)
-   return ntop.getHashCache(getHostAltNamesKey(), host_ip)
+   return ntop.getCache(getHostAltNamesKey(host_ip))
 end
 
 function setHostAltName(host_ip, alt_name)
-   ntop.setHashCache(getHostAltNamesKey(), host_ip, alt_name)
+   ntop.setCache(getHostAltNamesKey(host_ip), alt_name)
 end
 
 -- ##############################################

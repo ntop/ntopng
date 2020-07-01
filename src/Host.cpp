@@ -766,12 +766,16 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 /* Retrieve the host label. This should only be used to store persistent
  * information from C. In lua use hostinfo2label instead. */
 char * Host::get_host_label(char * const buf, ssize_t buf_len) {
-  /* Try to get a label first */
-  char ip_buf[64], *host = ip.print(ip_buf, sizeof(ip_buf));
+  char redis_key[CONST_MAX_LEN_REDIS_KEY];
+  char ip_buf[64];
 
-  if(ntop->getRedis()->hashGet((char*)HOST_LABEL_NAMES, host, buf, buf_len) != 0)
+  /* Try to get a label first */
+  snprintf(redis_key, sizeof(redis_key), HOST_LABEL_NAMES_KEY, ip.print(ip_buf, sizeof(ip_buf)));
+  if(ntop->getRedis()->get(redis_key, buf, buf_len) != 0) {
+
     /* Not found, use the internal names instead */
     get_name(buf, buf_len, false /* don't resolve */);
+  }
 
   return buf;
 }
