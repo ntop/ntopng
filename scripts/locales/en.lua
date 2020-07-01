@@ -1969,7 +1969,6 @@ local lang = {
     ["echo_reply_packets"] = "Echo Reply Packets",
     ["echo_request_packets"] = "Echo Request Packets",
     ["export_flows_as_txt"] = "Export flows as TXT file",
-    ["exported_vs_dropped_flows"] = "Exported vs Dropped Flows",
     ["flows_status_overview"] = "%{protocol} Flows Status Overview",
     ["flows_vs_local_hosts"] = "Active Flows vs Local Hosts",
     ["flows_vs_traffic"] = "Active Flows vs Traffic",

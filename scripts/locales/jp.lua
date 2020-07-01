@@ -1878,7 +1878,6 @@ local lang = {
     ["echo_reply_packets"] = "応答パケットを表示する",
     ["echo_request_packets"] = "リクエストパケットを表示する",
     ["export_flows_as_txt"] = "フローをテキストファイルでエクスポート",
-    ["exported_vs_dropped_flows"] = "エクスポートフロー vs ドロップフロー",
     ["flows_status_overview"] = "%{protocol}フローステータスの概要",
     ["flows_vs_local_hosts"] = "アクティブな フロー vs ローカル ホスト",
     ["flows_vs_traffic"] = "アクティブな フロー vs トラフィック",

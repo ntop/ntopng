@@ -1853,7 +1853,6 @@ local lang = {
     ["echo_reply_packets"] = "Pacchetti ICMP Echo Reply",
     ["echo_request_packets"] = "Pacchetti ICMP Echo Request",
     ["export_flows_as_txt"] = "Esporta flussi come file TXT",
-    ["exported_vs_dropped_flows"] = "Flussi Esportati vs Flussi Persi",
     ["flows_status_overview"] = "Sommario Stato dei Flussi per %{protocol}",
     ["flows_vs_local_hosts"] = "Flussi Attivi vs Host Locali",
     ["flows_vs_traffic"] = "Flussi Attivi vs Traffico",

@@ -56,13 +56,6 @@ schema:addMetric("drops")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("iface:exported_vs_dropped_flows", {step=1, is_critical_ts=true})
-schema:addTag("ifid")
-schema:addMetric("exported")
-schema:addMetric("dropped")
-
--- ##############################################
-
 schema = ts_utils.newSchema("iface:packets_vs_drops", {step=1, is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("packets")

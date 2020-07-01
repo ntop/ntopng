@@ -53,11 +53,6 @@ callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, functio
       ts_utils.append("iface:disc_prob_pkts", {ifid = ifstats.id,
 					       packets = ifstats.discarded_probing_packets}, when)
    end
-
-   -- Flow export stats
-   if(ifstats.stats.flow_export_count ~= nil) then
-      ts_utils.append("iface:exported_vs_dropped_flows", {ifid=ifstats.id, exported=ifstats.stats.flow_export_count, dropped=ifstats.stats.flow_export_drops}, when)
-   end
 end, true --[[ update direction stats ]])
 
 -- Uncomment this to simulate slow downs
