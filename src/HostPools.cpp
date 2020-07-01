@@ -519,7 +519,7 @@ void HostPools::addToPool(char *host_or_mac,
 
   else {
     snprintf(pool_buf, sizeof(pool_buf), "%u", user_pool_id);
-    snprintf(key, sizeof(key), HOST_POOL_MEMBERS_KEY, iface->get_id(), pool_buf);
+    snprintf(key, sizeof(key), HOST_POOL_MEMBERS_KEY, pool_buf);
     ntop->getRedis()->sadd(key, host_or_mac); /* New member added */
   }
 
@@ -655,7 +655,7 @@ void HostPools::reloadPools() {
   for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)
     new_stats[i] = NULL;
 
-  snprintf(kname, sizeof(kname), HOST_POOL_IDS_KEY, iface->get_id());
+  snprintf(kname, sizeof(kname), HOST_POOL_IDS_KEY);
 
   /* Always allocate default pool stats */
   if(stats && stats[0]) /* Duplicate existing statistics */
@@ -687,7 +687,7 @@ void HostPools::reloadPools() {
 	new_stats[_pool_id] = new HostPoolStats(iface);
     }
 
-    snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, iface->get_id(), _pool_id);
+    snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, _pool_id);
 
 #ifdef NTOPNG_PRO
     char rsp[16] = { 0 };
@@ -725,7 +725,7 @@ void HostPools::reloadPools() {
 
 #endif /* NTOPNG_PRO */
 
-    snprintf(kname, sizeof(kname), HOST_POOL_MEMBERS_KEY, iface->get_id(), pools[i]);
+    snprintf(kname, sizeof(kname), HOST_POOL_MEMBERS_KEY, pools[i]);
 
     /* Pool members are the elements of the list */
     if((num_members = redis->smembers(kname, &pool_members)) > 0) {

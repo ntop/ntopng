@@ -184,7 +184,7 @@ function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
          .."&epoch_end=".. epoch_end .."'>" ..value.."</a>"
    elseif entity_type == "host_pool" then
       host_pools_utils = require("host_pools_utils")
-      value = host_pools_utils.getPoolName(ifid, entity_value)
+      value = host_pools_utils.getPoolName(entity_value)
    else
       -- fallback
       value = entity_value

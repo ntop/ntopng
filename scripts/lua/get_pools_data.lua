@@ -69,7 +69,7 @@ for pool_id, pool_stats in pairs(pools_stats) do
    elseif sortColumn == "column_traffic" then
       sort_helper[pool_id] = pool_stats["bytes.sent"] + pool_stats["bytes.rcvd"]
    else
-      sort_helper[pool_id] = host_pools_utils.getPoolName(ifid, pool_id)
+      sort_helper[pool_id] = host_pools_utils.getPoolName(pool_id)
    end
 end
 

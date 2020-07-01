@@ -21,7 +21,7 @@ local function createPoolQuotaExceeded(alert_severity, alert_subtype, pool, prot
       alert_subtype = alert_subtype,
       alert_severity = alert_severity,
       alert_type_params = {
-	 pool = host_pools_utils.getPoolName(interface.getId(), pool),
+	 pool = host_pools_utils.getPoolName(pool),
 	 proto = proto,
 	 value = value,
 	 quota = quota,

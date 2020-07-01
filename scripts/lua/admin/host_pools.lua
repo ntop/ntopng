@@ -28,7 +28,7 @@ if _POST["edit_pools"] ~= nil then
   for pool_id, pool_name in pairs(config) do
     -- Filter pool ids only
     if tonumber(pool_id) ~= nil then
-      host_pools_utils.createPool(ifId, pool_id, pool_name,
+      host_pools_utils.createPool(pool_id, pool_name,
 				  nil --[[ children_safe ]],
 				  nil --[[ enforce_quotas_per_pool_member ]],
 				  nil --[[ enforce_shapers_per_pool_member ]],
@@ -37,13 +37,13 @@ if _POST["edit_pools"] ~= nil then
   end
 
   -- Reload is required here to load the new metadata
-  interface.reloadHostPools()
+  ntop.reloadHostPools()
 elseif _POST["pool_to_delete"] ~= nil then
   local pool_id = _POST["pool_to_delete"]
-  host_pools_utils.deletePool(ifId, pool_id)
+  host_pools_utils.deletePool(pool_id)
 
   -- Note: this will also reload the shaping rules
-  interface.reloadHostPools()
+  ntop.reloadHostPools()
 elseif (_POST["edit_members"] ~= nil) then
   local pool_to_edit = _POST["pool"]
   local config = paramsPairsDecode(_POST, true)
@@ -125,7 +125,7 @@ elseif (_POST["edit_members"] ~= nil) then
         -- Do not delete and re-add members which have only changed their list key
         config[old_member].old_member = old_member
       else
-        host_pools_utils.deletePoolMember(ifId, pool_to_edit, old_member)
+        host_pools_utils.deletePoolMember(pool_to_edit, old_member)
       end
     end
   end
@@ -137,14 +137,14 @@ elseif (_POST["edit_members"] ~= nil) then
     local is_new_member = (k ~= new_member)
 
     if is_new_member then
-      local res, info = host_pools_utils.addPoolMember(ifId, pool_to_edit, new_member)
+      local res, info = host_pools_utils.addPoolMember(pool_to_edit, new_member)
 
       if (res == false) and (info.existing_member_pool ~= nil) then
         -- remove @0
         local member_to_print = hostinfo2hostkey(hostkey2hostinfo(new_member))
         pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.member_exists", {
           member_name = member_to_print,
-          member_pool = host_pools_utils.getPoolName(ifId, info.existing_member_pool)
+          member_pool = host_pools_utils.getPoolName(info.existing_member_pool)
         })
       end
     end
@@ -174,24 +174,24 @@ elseif (_POST["edit_members"] ~= nil) then
             and isMacAddress(new_member)
             and new_member ~= "00:00:00:00:00:00" then
         setCustomDeviceType(new_member, icon)
-        interface.setMacDeviceType(new_member, icon, true --[[ overwrite ]])
+        ntop.setMacDeviceType(new_member, icon, true --[[ overwrite ]])
       end
     end
   end
 
-  interface.reloadHostPools()
+  ntop.reloadHostPools()
 elseif _POST["member_to_delete"] ~= nil then
   local pool_to_edit = _POST["pool"]
 
-  host_pools_utils.deletePoolMember(ifId, pool_to_edit, _POST["member_to_delete"])
-  interface.reloadHostPools()
+  host_pools_utils.deletePoolMember(pool_to_edit, _POST["member_to_delete"])
+  ntop.reloadHostPools()
 elseif _POST["empty_pool"] ~= nil then
-  host_pools_utils.emptyPool(ifId, _POST["empty_pool"])
-  interface.reloadHostPools()
+  host_pools_utils.emptyPool(_POST["empty_pool"])
+  ntop.reloadHostPools()
 elseif (_POST["member"] ~= nil) and (_POST["pool"] ~= nil) then
   -- change member pool
-  host_pools_utils.changeMemberPool(ifId, _POST["member"], _POST["pool"], nil, true --[[do not consider host MAC]])
-  interface.reloadHostPools()
+  host_pools_utils.changeMemberPool(_POST["member"], _POST["pool"], nil, true --[[do not consider host MAC]])
+  ntop.reloadHostPools()
 end
 
 function printPoolNameField(pool_id_str)
@@ -232,7 +232,7 @@ end
 local selected_pool_id = _GET["pool"]
 
 local selected_pool = nil
-local available_pools = host_pools_utils.getPoolsList(ifId)
+local available_pools = host_pools_utils.getPoolsList()
 
 for _, pool in ipairs(available_pools) do
   if pool.id == selected_pool_id then

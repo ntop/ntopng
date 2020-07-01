@@ -593,10 +593,10 @@
 #define CONST_PREFS_INFORM_CAPTIVE_PORTAL   NTOPNG_PREFS_PREFIX".enable_informative_captive_portal"
 #define CONST_PREFS_DEFAULT_L7_POLICY       NTOPNG_PREFS_PREFIX".default_l7_policy"
 #define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED NTOPNG_PREFS_PREFIX".global_dns_forging"
-#define HOST_POOL_IDS_KEY                   NTOPNG_PREFS_PREFIX".%u.host_pools.pool_ids"
-#define HOST_POOL_MEMBERS_KEY               NTOPNG_PREFS_PREFIX".%u.host_pools.members.%s"
+#define HOST_POOL_IDS_KEY                   NTOPNG_PREFS_PREFIX".host_pools.pool_ids"
+#define HOST_POOL_MEMBERS_KEY               NTOPNG_PREFS_PREFIX".host_pools.members.%s"
 #define HOST_POOL_SHAPERS_KEY               NTOPNG_PREFS_PREFIX".%u.l7_policies.%s"
-#define HOST_POOL_DETAILS_KEY               NTOPNG_PREFS_PREFIX".%u.host_pools.details.%u"
+#define HOST_POOL_DETAILS_KEY               NTOPNG_PREFS_PREFIX".host_pools.details.%u"
 #define CONST_SUBINTERFACES_PREFS           NTOPNG_PREFS_PREFIX".%u.sub_interfaces"
 
 #define CONST_PREFS_CLIENT_X509_AUTH        NTOPNG_PREFS_PREFIX".is_client_x509_auth_enabled"

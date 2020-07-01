@@ -172,7 +172,7 @@ if(pool ~= nil) then
    end
 
    pool_title = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
-		     {poolname=host_pools_utils.getPoolName(ifstats.id, pool)})
+		     {poolname=host_pools_utils.getPoolName(pool)})
       .."<small>".. pool_edit ..
       ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool="..pool.."'><i class='fas fa-chart-area fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
       "</small>"
@@ -387,7 +387,7 @@ if (_GET["page"] ~= "historical") then
       hosts_filter_params.mode = nil
       hosts_filter_params.pool = nil
       print('<li role="separator" class="divider"></li>')
-      for _, _pool in ipairs(host_pools_utils.getPoolsList(ifstats.id)) do
+      for _, _pool in ipairs(host_pools_utils.getPoolsList()) do
 	 hosts_filter_params.pool = _pool.id
 	 print('<li ')
 	 print('"><a class="dropdown-item ' .. ternary(pool == _pool.id, "active", "") ..'" href="')

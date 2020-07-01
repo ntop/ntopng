@@ -32,6 +32,15 @@ function ntop.getLocalNetworks()
 --! @param network_cidr the network to add in CIDR format.
 function ntop.addLocalNetwork(string network_cidr)
 
+--! @brief Set L2 device type.
+--! @param mac device MAC address
+--! @param device_type the device type id to set.
+--! @param overwrite if true, the existing device type, if any, will be overwritten.
+function ntop.setMacDeviceType(string mac, int device_type, bool overwrite)
+
+--! @brief Reload Host Pool membership information after changes from Lua.
+function interface.reloadHostPools()
+
 --! @brief Retrieves a ntopng local network by its id.
 --! @param network_id the local network id.
 --! @return the network address on success, an empty string otherwise.

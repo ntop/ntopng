@@ -30,11 +30,11 @@ end
 interface.select(ifname)
 local ifstats = interface.getStats()
 local ifId = ifstats.id
-local pool_name = host_pools_utils.getPoolName(ifId, pool_id)
+local pool_name = host_pools_utils.getPoolName(pool_id)
 local username = host_pools_utils.poolIdToUsername(pool_id)
 
 if _POST["reset_quotas"] ~= nil then
-  host_pools_utils.resetPoolsQuotas(ifId, tonumber(pool_id))
+  host_pools_utils.resetPoolsQuotas(tonumber(pool_id))
 end
 
 sendHTTPContentTypeHeader('text/html')

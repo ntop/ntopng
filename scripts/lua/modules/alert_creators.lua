@@ -61,7 +61,7 @@ function alert_creators.createPoolConnectionDisconnection(alert_severity, host_p
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
-	 pool = host_pools_utils.getPoolName(interface.getId(), host_pool),
+	 pool = host_pools_utils.getPoolName(host_pool),
       },
    }
 

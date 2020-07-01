@@ -9,50 +9,50 @@ local ntop_info = ntop.getInfo()
 
 local os_utils = require "os_utils"
 
-local host_pools_utils = {}
-host_pools_utils.DEFAULT_POOL_ID = "0"
-host_pools_utils.DEFAULT_ROUTING_POLICY_ID = "1"
-host_pools_utils.FIRST_AVAILABLE_POOL_ID = "1"
-host_pools_utils.DEFAULT_POOL_NAME = "Not Assigned"
-host_pools_utils.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
+local host_pools_migration = {}
+host_pools_migration.DEFAULT_POOL_ID = "0"
+host_pools_migration.DEFAULT_ROUTING_POLICY_ID = "1"
+host_pools_migration.FIRST_AVAILABLE_POOL_ID = "1"
+host_pools_migration.DEFAULT_POOL_NAME = "Not Assigned"
+host_pools_migration.MAX_NUM_POOLS = 128 -- Note: keep in sync with C
 
 --
 -- BEGIN NEDGE specific code
 --
-function host_pools_utils.usernameToPoolId(username)
+function host_pools_migration.usernameToPoolId(username)
   local res = ntop.getPref("ntopng.user."..string.lower(username)..".host_pool_id")
   return ternary(not isEmptyString(res), res, nil)
 end
 
-function host_pools_utils.poolIdToUsername(pool_id)
-  local ifid = getInterfaceId(ifname) -- in nEdge this always takes one interface
-  return host_pools_utils.getPoolName(pool_id)
+function host_pools_migration.poolIdToUsername(pool_id)
+  local ifid = getInterfaceId(ifname)
+  return host_pools_migration.getPoolName(ifid, pool_id)
 end
 
-function host_pools_utils.getUserUrl(pool_id)
+function host_pools_migration.getUserUrl(pool_id)
   return ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
-    ternary(tostring(pool_id) == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(pool_id))
+    ternary(tostring(pool_id) == host_pools_migration.DEFAULT_POOL_ID, "", host_pools_migration.poolIdToUsername(pool_id))
 end
 --
 -- END NEDGE specific code
 --
 
-host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
+host_pools_migration.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
 -- this takes into account the special pools
-host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"]
+host_pools_migration.LIMITED_NUMBER_TOTAL_HOST_POOLS = ntop_info["constants.max_num_host_pools"]
 -- this does not take into account the special pools
-host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS = host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS - 1
+host_pools_migration.LIMITED_NUMBER_USER_HOST_POOLS = host_pools_migration.LIMITED_NUMBER_TOTAL_HOST_POOLS - 1
 
-local function get_pool_members_key(pool_id)
-  return "ntopng.prefs.host_pools.members." .. pool_id
+local function get_pool_members_key(ifid, pool_id)
+  return "ntopng.prefs." .. ifid .. ".host_pools.members." .. pool_id
 end
 
-local function get_pool_ids_key()
-  return "ntopng.prefs.host_pools.pool_ids"
+local function get_pool_ids_key(ifid)
+  return "ntopng.prefs." .. ifid .. ".host_pools.pool_ids"
 end
 
-local function get_pool_details_key(pool_id)
-  return "ntopng.prefs.host_pools.details." .. pool_id
+local function get_pool_details_key(ifid, pool_id)
+  return "ntopng.prefs." .. ifid .. ".host_pools.details." .. pool_id
 end
 
 local function get_pools_serialized_key(ifid)
@@ -60,18 +60,18 @@ local function get_pools_serialized_key(ifid)
 end
 
 -- It is safe to call this multiple times
-local function initInterfacePools()
-  host_pools_utils.createPool(host_pools_utils.DEFAULT_POOL_ID, host_pools_utils.DEFAULT_POOL_NAME)
+local function initInterfacePools(ifid)
+  host_pools_migration.createPool(ifid, host_pools_migration.DEFAULT_POOL_ID, host_pools_migration.DEFAULT_POOL_NAME)
 end
 
-function host_pools_utils.getPoolDetail(pool_id, detail)
-  local details_key = get_pool_details_key(pool_id)
+function host_pools_migration.getPoolDetail(ifid, pool_id, detail)
+  local details_key = get_pool_details_key(ifid, pool_id)
 
   return ntop.getHashCache(details_key, detail)
 end
 
-function host_pools_utils.setPoolDetail(pool_id, detail, value)
-  local details_key = get_pool_details_key(pool_id)
+function host_pools_migration.setPoolDetail(ifid, pool_id, detail, value)
+  local details_key = get_pool_details_key(ifid, pool_id)
 
   return ntop.setHashCache(details_key, detail, tostring(value))
 end
@@ -89,20 +89,20 @@ local function traceHostPoolEvent(severity, event)
     traceError(severity, TRACE_CONSOLE, string.format("%s%s", f_name or '', event))
 end
 
-local function addMemberToRedisPool(pool_id, member_key)
-  if pool_id == host_pools_utils.DEFAULT_POOL_ID then
+local function addMemberToRedisPool(ifid, pool_id, member_key)
+  if pool_id == host_pools_migration.DEFAULT_POOL_ID then
     -- avoid adding default pool members explicitly
     traceHostPoolEvent(TRACE_NORMAL,
 		       string.format("Setting DEFAULT_POOL_ID (aka 'Not Assigned'). [pool_id: %d][member: %s]",
-				     host_pools_utils.DEFAULT_POOL_ID, member_key))
+				     host_pools_migration.DEFAULT_POOL_ID, member_key))
     return true
   end
 
-  local members_key = get_pool_members_key(pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
   local n = table.len(ntop.getMembersCache(members_key) or {})
 
-  if n >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then
-    traceHostPoolEvent(TRACE_ERROR, string.format("Unable to set host pool, maximum number of pool members hit. [max num pool members: %d][member: %s] [members_key: %s]", host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS, member_key, members_key))
+  if n >= host_pools_migration.LIMITED_NUMBER_POOL_MEMBERS then
+    traceHostPoolEvent(TRACE_ERROR, string.format("Unable to set host pool, maximum number of pool members hit. [max num pool members: %d][member: %s] [members_key: %s]", host_pools_migration.LIMITED_NUMBER_POOL_MEMBERS, member_key, members_key))
     return false
   end
 
@@ -113,17 +113,17 @@ end
 
 --------------------------------------------------------------------------------
 
-function host_pools_utils.getPoolMembersRaw(pool_id)
-  local members_key = get_pool_members_key(pool_id)
+function host_pools_migration.getPoolMembersRaw(ifid, pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
   return ntop.getMembersCache(members_key) or {}
 end
 
 -- Export host pools
-function host_pools_utils.export()
+function host_pools_migration.export(ifid)
   local pools = {}
 
-  for _,pool in pairs(host_pools_utils.getPoolsList()) do
-    pool.members = host_pools_utils.getPoolMembersRaw(pool.id)
+  for _,pool in pairs(host_pools_migration.getPoolsList(ifid)) do
+    pool.members = host_pools_migration.getPoolMembersRaw(ifid, pool.id)
     pools[pool.id] = pool
   end
 
@@ -131,8 +131,8 @@ function host_pools_utils.export()
 end
 
 -- Import host pools, in case of conflict (same name) the pool is replaced
-function host_pools_utils.import(pools)
-  local existing_pools = host_pools_utils.getPoolsList()
+function host_pools_migration.import(pools, ifid)
+  local existing_pools = host_pools_migration.getPoolsList(ifid)
   local retval = true
 
   -- Import pools
@@ -142,19 +142,19 @@ function host_pools_utils.import(pools)
       if pool.name == existing_pool.name then
         -- Same name, delete the old pool and reuse the id
         pool.id = existing_pool.id
-        host_pools_utils.emptyPool(existing_pool.id) 
-        host_pools_utils.deletePool(existing_pool.id)
+        host_pools_migration.emptyPool(ifid, existing_pool.id) 
+        host_pools_migration.deletePool(ifid, existing_pool.id)
       end
     end
 
     -- Add pool
-    host_pools_utils.createPool(pool.id, pool.name, pool.children_safe,
+    host_pools_migration.createPool(ifid, pool.id, pool.name, pool.children_safe,
       pool.enforce_quotas_per_pool_member, pool. enforce_shapers_per_pool_member,
       true)
 
     -- Add members
     for _,member in ipairs(pool.members) do
-      local success = addMemberToRedisPool(pool.id, member)
+      local success = addMemberToRedisPool(ifid, pool.id, member)
       if not success then
         retval = false
       end
@@ -166,15 +166,15 @@ end
 
 --------------------------------------------------------------------------------
 
-function host_pools_utils.createPool(pool_id, pool_name, children_safe,
+function host_pools_migration.createPool(ifid, pool_id, pool_name, children_safe,
 				     enforce_quotas_per_pool_member, enforce_shapers_per_pool_member, ignore_exist)
-  local details_key = get_pool_details_key(pool_id)
-  local ids_key = get_pool_ids_key()
+  local details_key = get_pool_details_key(ifid, pool_id)
+  local ids_key = get_pool_ids_key(ifid)
   local members = ntop.getMembersCache(ids_key) or {}
 
   local n = table.len(members)
 
-  if n >= host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS then
+  if n >= host_pools_migration.LIMITED_NUMBER_TOTAL_HOST_POOLS then
     return false
   end
 
@@ -195,23 +195,20 @@ function host_pools_utils.createPool(pool_id, pool_name, children_safe,
   return true
 end
 
-function host_pools_utils.deletePool(pool_id)
+function host_pools_migration.deletePool(ifid, pool_id)
   local ts_utils = require "ts_utils"
-  local ids_key = get_pool_ids_key()
-  local details_key = get_pool_details_key(pool_id)
-  local members_key = get_pool_members_key(pool_id)
+  local rrd_base = host_pools_migration.getRRDBase(ifid, pool_id)
+  local ids_key = get_pool_ids_key(ifid)
+  local details_key = get_pool_details_key(ifid, pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
+  local serialized_key = get_pools_serialized_key(ifid)
 
-  host_pools_utils.emptyPool(pool_id)
+  host_pools_migration.emptyPool(ifid, pool_id)
   ntop.delMembersCache(ids_key, pool_id)
   ntop.delCache(details_key)
   ntop.delCache(members_key)
-
-  -- Delete serialized values and timeseries across all interfaces
-  for ifid, ifname in pairs(interface.getIfNames()) do
-     local serialized_key = get_pools_serialized_key(ifid)
-     ntop.delHashCache(serialized_key, pool_id)
-     ts_utils.delete("host_pool", {ifid = tonumber(ifid), pool = pool_id})
-  end
+  ntop.delHashCache(serialized_key, pool_id)
+  ts_utils.delete("host_pool", {ifid = ifid, pool = pool_id})
 end
 
 function getMembershipInfo(member_and_vlan)
@@ -258,13 +255,13 @@ end
 -- MAC address changed instead of the IP address when their MAC address is already bound to
 -- a pool.
 --
-function host_pools_utils.changeMemberPool(member_and_vlan, new_pool, info --[[optional]], strict_host_mode --[[optional]])
+function host_pools_migration.changeMemberPool(ifid, member_and_vlan, new_pool, info --[[optional]], strict_host_mode --[[optional]])
   traceHostPoolEvent(TRACE_NORMAL,
 		     string.format("Pool change requested. [member: %s][new_pool: %s][strict_host_mode: %s]",
 				   member_and_vlan, new_pool, tostring(strict_host_mode)))
 
   if not strict_host_mode then
-    local hostkey, is_network = host_pools_utils.getMemberKey(member_and_vlan)
+    local hostkey, is_network = host_pools_migration.getMemberKey(member_and_vlan)
 
     if (not is_network) and (not isMacAddress(member_and_vlan)) then
       -- this is a single host, try to get the MAC address
@@ -280,7 +277,7 @@ function host_pools_utils.changeMemberPool(member_and_vlan, new_pool, info --[[o
         --  1. if we are moving to a well defined pool, we must set the mac pool
         --  2. if we are moving to the default pool, we must set the mac pool only
         --     if the mac already has a pool, otherwise we set the ip pool
-        if (new_pool ~= host_pools_utils.DEFAULT_POOL_ID) or mac_has_pool then
+        if (new_pool ~= host_pools_migration.DEFAULT_POOL_ID) or mac_has_pool then
           -- we must change the MAC address in order to change the host pool
           member_and_vlan = info["mac"]
         end
@@ -296,7 +293,7 @@ function host_pools_utils.changeMemberPool(member_and_vlan, new_pool, info --[[o
     member_and_vlan = info.key
     prev_pool = info.existing_member_pool
   else
-    prev_pool = host_pools_utils.DEFAULT_POOL_ID
+    prev_pool = host_pools_migration.DEFAULT_POOL_ID
   end
 
   if prev_pool == new_pool then
@@ -310,12 +307,12 @@ function host_pools_utils.changeMemberPool(member_and_vlan, new_pool, info --[[o
 		     string.format("Pool change prepared. [member: %s][info.key: %s][prev_pool: %s][new_pool: %s]",
 				   member_and_vlan, tostring(info.key), prev_pool, new_pool))
 
-  host_pools_utils.deletePoolMember(prev_pool, info.key)
-  addMemberToRedisPool(new_pool, info.key)
+  host_pools_migration.deletePoolMember(ifid, prev_pool, info.key)
+  addMemberToRedisPool(ifid, new_pool, info.key)
   return true
 end
 
-function host_pools_utils.addPoolMember(pool_id, member_and_vlan)
+function host_pools_migration.addPoolMember(ifid, pool_id, member_and_vlan)
   traceHostPoolEvent(TRACE_NORMAL,
 		     string.format("Pool member addition requested. [member: %s][pool_id: %s]",
 				   member_and_vlan, pool_id))
@@ -326,17 +323,17 @@ function host_pools_utils.addPoolMember(pool_id, member_and_vlan)
      traceHostPoolEvent(TRACE_NORMAL, string.format("Member already in pool. [pool_id: %d] [member: %s]", pool_id, member_and_vlan))
     return false, info
   else
-    local rv = addMemberToRedisPool(pool_id, info.key)
+    local rv = addMemberToRedisPool(ifid, pool_id, info.key)
     return rv, info
   end
 end
 
-function host_pools_utils.deletePoolMember(pool_id, member_and_vlan)
+function host_pools_migration.deletePoolMember(ifid, pool_id, member_and_vlan)
   traceHostPoolEvent(TRACE_NORMAL,
 		     string.format("Pool member deletion requested. [member: %s][pool_id: %s]",
 				   member_and_vlan, pool_id))
 
-  local members_key = get_pool_members_key(pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
 
   -- Possible delete volatile member
   if ntop.isPro() then
@@ -347,8 +344,8 @@ function host_pools_utils.deletePoolMember(pool_id, member_and_vlan)
   ntop.delMembersCache(members_key, member_and_vlan)
 end
 
-function host_pools_utils.getPoolsList(without_info)
-  local ids_key = get_pool_ids_key()
+function host_pools_migration.getPoolsList(ifid, without_info)
+  local ids_key = get_pool_ids_key(ifid)
   local ids = ntop.getMembersCache(ids_key)
 
   if not ids then ids = {} end
@@ -358,7 +355,7 @@ function host_pools_utils.getPoolsList(without_info)
 
   local pools = {}
 
-  initInterfacePools()
+  initInterfacePools(ifid)
 
   for _, pool_id in pairsByValues(ids, asc) do
     pool_id = tostring(pool_id)
@@ -369,10 +366,10 @@ function host_pools_utils.getPoolsList(without_info)
     else
       pool = {
         id = pool_id,
-        name = host_pools_utils.getPoolName(pool_id),
-        children_safe = host_pools_utils.getChildrenSafe(pool_id),
-	enforce_quotas_per_pool_member  = host_pools_utils.getEnforceQuotasPerPoolMember(pool_id),
-	enforce_shapers_per_pool_member = host_pools_utils.getEnforceShapersPerPoolMember(pool_id),
+        name = host_pools_migration.getPoolName(ifid, pool_id),
+        children_safe = host_pools_migration.getChildrenSafe(ifid, pool_id),
+	enforce_quotas_per_pool_member  = host_pools_migration.getEnforceQuotasPerPoolMember(ifid, pool_id),
+	enforce_shapers_per_pool_member = host_pools_migration.getEnforceShapersPerPoolMember(ifid, pool_id),
       }
     end
 
@@ -382,8 +379,8 @@ function host_pools_utils.getPoolsList(without_info)
   return pools
 end
 
-function host_pools_utils.getPoolMembers(pool_id)
-  local members_key = get_pool_members_key(pool_id)
+function host_pools_migration.getPoolMembers(ifid, pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
   local members = {}
 
   local all_members = ntop.getMembersCache(members_key) or {}
@@ -411,7 +408,7 @@ function host_pools_utils.getPoolMembers(pool_id)
   return members
 end
 
-function host_pools_utils.getMemberKey(member)
+function host_pools_migration.getMemberKey(member)
   -- handle vlan
   local is_network
   local host_key
@@ -438,38 +435,46 @@ function host_pools_utils.getMemberKey(member)
   return host_key, is_network
 end
 
-function host_pools_utils.getPoolName(pool_id)
-  return host_pools_utils.getPoolDetail(pool_id, "name")
+function host_pools_migration.getPoolName(ifid, pool_id)
+  return host_pools_migration.getPoolDetail(ifid, pool_id, "name")
 end
 
-function host_pools_utils.getChildrenSafe(pool_id)
-  return toboolean(host_pools_utils.getPoolDetail(pool_id, "children_safe"))
+function host_pools_migration.getChildrenSafe(ifid, pool_id)
+  return toboolean(host_pools_migration.getPoolDetail(ifid, pool_id, "children_safe"))
 end
 
-function host_pools_utils.setChildrenSafe(pool_id, value)
-  host_pools_utils.setPoolDetail(pool_id, "children_safe", ternary(value, "true", "false"))
+function host_pools_migration.setChildrenSafe(ifid, pool_id, value)
+  host_pools_migration.setPoolDetail(ifid, pool_id, "children_safe", ternary(value, "true", "false"))
 end
 
-function host_pools_utils.getRoutingPolicyId(pool_id)
-  local routing_policy_id = host_pools_utils.getPoolDetail(pool_id, "routing_policy_id")
-  if isEmptyString(routing_policy_id) then routing_policy_id = host_pools_utils.DEFAULT_ROUTING_POLICY_ID end
+function host_pools_migration.getForgeGlobalDNS(ifid, pool_id)
+  return toboolean(host_pools_migration.getPoolDetail(ifid, pool_id, "forge_global_dns"))
+end
+
+function host_pools_migration.setForgeGlobalDNS(ifid, pool_id, value)
+  host_pools_migration.setPoolDetail(ifid, pool_id, "forge_global_dns", ternary(value, "true", "false"))
+end
+
+function host_pools_migration.getRoutingPolicyId(ifid, pool_id)
+  local routing_policy_id = host_pools_migration.getPoolDetail(ifid, pool_id, "routing_policy_id")
+  if isEmptyString(routing_policy_id) then routing_policy_id = host_pools_migration.DEFAULT_ROUTING_POLICY_ID end
   return routing_policy_id
 end
 
-function host_pools_utils.setRoutingPolicyId(pool_id, routing_policy_id)
-  return host_pools_utils.setPoolDetail(pool_id, "routing_policy_id", routing_policy_id)
+function host_pools_migration.setRoutingPolicyId(ifid, pool_id, routing_policy_id)
+  return host_pools_migration.setPoolDetail(ifid, pool_id, "routing_policy_id", routing_policy_id)
 end
 
-function host_pools_utils.getEnforceQuotasPerPoolMember(pool_id)
-  return toboolean(host_pools_utils.getPoolDetail(pool_id, "enforce_quotas_per_pool_member"))
+function host_pools_migration.getEnforceQuotasPerPoolMember(ifid, pool_id)
+  return toboolean(host_pools_migration.getPoolDetail(ifid, pool_id, "enforce_quotas_per_pool_member"))
 end
 
-function host_pools_utils.getEnforceShapersPerPoolMember(pool_id)
-  return toboolean(host_pools_utils.getPoolDetail(pool_id, "enforce_shapers_per_pool_member"))
+function host_pools_migration.getEnforceShapersPerPoolMember(ifid, pool_id)
+  return toboolean(host_pools_migration.getPoolDetail(ifid, pool_id, "enforce_shapers_per_pool_member"))
 end
 
-function host_pools_utils.emptyPool(pool_id)
-  local members_key = get_pool_members_key(pool_id)
+function host_pools_migration.emptyPool(ifid, pool_id)
+  local members_key = get_pool_members_key(ifid, pool_id)
 
   if ntop.isPro() then
     -- Remove volatile members
@@ -482,38 +487,38 @@ function host_pools_utils.emptyPool(pool_id)
   ntop.delCache(members_key)
 end
 
-function host_pools_utils.emptyPools()
+function host_pools_migration.emptyPools()
   for _, ifname in pairs(interface.getIfNames()) do
     local ifid = getInterfaceId(ifname)
     local ifstats = interface.getStats()
 
-    local pools_list = host_pools_utils.getPoolsList()
+    local pools_list = host_pools_migration.getPoolsList(ifid)
     for _, pool in pairs(pools_list) do
-       host_pools_utils.emptyPool(pool["id"])
+       host_pools_migration.emptyPool(ifid, pool["id"])
     end
   end
 end
 
-function host_pools_utils.initPools()
+function host_pools_migration.initPools()
   for _, ifname in pairs(interface.getIfNames()) do
     local ifid = getInterfaceId(ifname)
     local ifstats = interface.getStats()
 
     -- Note: possible shapers are initialized in shaper_utils::initShapers
-    initInterfacePools()
+    initInterfacePools(ifid)
   end
 end
 
-function host_pools_utils.getMacPool(mac_address)
+function host_pools_migration.getMacPool(mac_address)
   local exists, info = getMembershipInfo(mac_address)
   if exists then
     return tostring(info.existing_member_pool)
   else
-    return host_pools_utils.DEFAULT_POOL_ID
+    return host_pools_migration.DEFAULT_POOL_ID
   end
 end
 
-function host_pools_utils.getUndeletablePools()
+function host_pools_migration.getUndeletablePools(ifid)
   local pools = {}
 
   for user_key,_ in pairs(ntop.getKeysCache("ntopng.user.*.host_pool_id") or {}) do
@@ -533,7 +538,24 @@ function host_pools_utils.getUndeletablePools()
   return pools
 end
 
-function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
+function host_pools_migration.purgeExpiredPoolsMembers()
+   local ifnames = interface.getIfNames()
+
+   for _, ifname in pairs(ifnames) do
+      interface.select(ifname)
+
+      -- Currently, volatile pool members are no longer used,
+      -- so there's no need to purge them.
+      -- interface.purgeExpiredPoolsMembers()
+   end
+end
+
+function host_pools_migration.getRRDBase(ifid, pool_id)
+  local dirs = ntop.getDirs()
+  return os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/host_pools/" .. pool_id)
+end
+
+function host_pools_migration.updateRRDs(ifid, dump_ndpi, verbose)
   local ts_utils = require "ts_utils"
   require "ts_5min"
 
@@ -542,7 +564,7 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
     ts_utils.append("host_pool:traffic", {ifid=ifid, pool=pool_id,
               bytes_sent=pool_stats["bytes.sent"], bytes_rcvd=pool_stats["bytes.rcvd"]}, when)
 
-    if pool_id ~= tonumber(host_pools_utils.DEFAULT_POOL_ID) then
+    if pool_id ~= tonumber(host_pools_migration.DEFAULT_POOL_ID) then
        local flows_dropped = pool_stats["flows.dropped"] or 0
 
        ts_utils.append("host_pool:blocked_flows", {ifid=ifid, pool=pool_id,
@@ -566,11 +588,11 @@ function host_pools_utils.updateRRDs(ifid, dump_ndpi, verbose)
   end
 end
 
-function host_pools_utils.hostpool2record(ifid, pool_id, pool)
+function host_pools_migration.hostpool2record(ifid, pool_id, pool)
    local record = {}
    record["key"] = tostring(pool_id)
 
-   local pool_name = host_pools_utils.getPoolName(pool_id)
+   local pool_name = host_pools_migration.getPoolName(ifid, pool_id)
    local pool_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?pool='..pool_id.."' title='"..pool_name.."'>"..pool_name..'</A>'
    record["column_id"] = pool_link
 
@@ -599,13 +621,12 @@ function host_pools_utils.hostpool2record(ifid, pool_id, pool)
    return record
 end
 
-function host_pools_utils.printQuotas(pool_id, host, page_params)
+function host_pools_migration.printQuotas(pool_id, host, page_params)
   local pools_stats = interface.getHostPoolsStats()
   local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 
   local ndpi_stats = pool_stats.ndpi
   local category_stats = pool_stats.ndpi_categories
-  -- ifId is a global variable here
   local quota_and_protos = shaper_utils.getPoolProtoShapers(ifId, pool_id)
   local cross_traffic_quota, cross_time_quota = shaper_utils.getCrossApplicationQuotas(ifId, pool_id)
 
@@ -623,7 +644,7 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
   end
 
   if empty then
-    local url = "/lua/pro/nedge/admin/nf_edit_user.lua?page=protocols&username=" .. host_pools_utils.poolIdToUsername(pool_id)
+    local url = "/lua/pro/nedge/admin/nf_edit_user.lua?page=protocols&username=" .. host_pools_migration.poolIdToUsername(pool_id)
 
     print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>"..i18n("shaping.no_quota_data")..
       ". " .. i18n("host_pools.create_new_quotas_here", {url=ntop.getHttpPrefix()..url}) .. "</div>")
@@ -665,15 +686,15 @@ function host_pools_utils.printQuotas(pool_id, host, page_params)
 
 end
 
-function host_pools_utils.getFirstAvailablePoolId()
-  local ids_key = get_pool_ids_key()
+function host_pools_migration.getFirstAvailablePoolId(ifid)
+  local ids_key = get_pool_ids_key(ifid)
   local ids = ntop.getMembersCache(ids_key) or {}
 
   for i, id in pairs(ids) do
     ids[i] = tonumber(id)
   end
 
-  local host_pool_id = tonumber(host_pools_utils.FIRST_AVAILABLE_POOL_ID)
+  local host_pool_id = tonumber(host_pools_migration.FIRST_AVAILABLE_POOL_ID)
 
   for _, pool_id in pairsByValues(ids, asc) do
     if pool_id > host_pool_id then
@@ -686,85 +707,8 @@ function host_pools_utils.getFirstAvailablePoolId()
   return tostring(host_pool_id)
 end
 
--- @brief Perform migration from the old host pools which were configured per-interface
---        to global host pools which are now system-wide
-function host_pools_utils.migrateHostPools()
-   -- Migration is only performed when host pools are configured for 1 and only 1 interface (this always cover the case of nEdge)
-   -- https://github.com/ntop/ntopng/issues/4086
-   if ntop.getKeysCache(get_pool_ids_key()) then
-      -- Already migrated
-      return
-   end
-
-   local host_pools_migration = require "host_pools_migration"
-   local delete_data_utils = require "delete_data_utils"
-   local json = require "dkjson"
-   local migration_ifid
-
-   -- The migration is only done when there's 1 active interface
-   if table.len(interface.getIfNames()) == 1 then
-      -- Avoid calling interface.getId() as this migration function
-      -- can be executed too early
-      for ifid, ifname in pairs(interface.getIfNames()) do
-	 migration_ifid = ifid
-	 break
-      end
-   end
-
-   -- Do the actual migration
-   if migration_ifid then
-      -- Call the `new` import with the `old` export which takes ifid as argument
-      host_pools_utils.import(host_pools_migration.export(migration_ifid))
-
-      traceError(TRACE_WARNING, TRACE_CONSOLE, "Host pools configuration migrated.")
-   end
-
-   for ifid, ifname in pairs(delete_data_utils.list_all_interfaces()) do
-      if ifid == migration_ifid then
-	 -- Don't delete migrated elements
-	 goto continue
-      end
-
-      local if_pools = host_pools_migration.getPoolsList(ifid)
-
-      if table.len(if_pools) <= 1 then
-	 -- Nothing to migrate, only the default pool is present
-	 goto continue
-      end
-
-      -- Copy the pool configuration
-      local base_dir = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/migration/host_pools/")
-      ntop.mkdir(base_dir)
-      local config_filename = os_utils.fixPath(base_dir.."/".."pools_configuration.json")
-      local config_file = assert(io.open(config_filename, "w"))
-      config_file:write(json.encode(host_pools_migration.export(ifid)))
-      config_file:close()
-
-      -- Delete data
-      for _, pool in ipairs(if_pools) do
-	 host_pools_migration.deletePool(ifid, pool.id)
-      end
-
-      -- Print out a message
-      traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("[%s] host pools configuration backed up to file %s due to major changes. It is possible to take the file and re-import it manually.", ifname, config_filename))
-
-      ::continue::
-   end
-
-
-   -- Cleanup old host-pool related keys
-   local old_keys_pattern = string.format("ntopng.prefs.*.host_pools.*")
-   local old_keys = ntop.getKeysCache(old_keys_pattern)
-
-   for old_key in pairs(old_keys) do
-      ntop.delCache(old_key)
-   end
-
-   ntop.reloadHostPools()
-end
-
-function host_pools_utils.resetPoolsQuotas(pool_filter)
-  local serialized_key = get_pools_serialized_key(tostring(interface.getId()))
+function host_pools_migration.resetPoolsQuotas(ifid, pool_filter)
+  local serialized_key = get_pools_serialized_key(ifid)
   local keys_to_del
 
   if pool_filter ~= nil then
@@ -782,6 +726,6 @@ function host_pools_utils.resetPoolsQuotas(pool_filter)
   interface.resetPoolsQuotas(pool_filter)
 end
 
-host_pools_utils.traceHostPoolEvent = traceHostPoolEvent
+host_pools_migration.traceHostPoolEvent = traceHostPoolEvent
 
-return host_pools_utils
+return host_pools_migration

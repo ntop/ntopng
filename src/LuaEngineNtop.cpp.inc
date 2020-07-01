@@ -358,6 +358,51 @@ static int ntop_reload_ja3_hashes(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_mac_device_type(lua_State* vm) {
+  char *mac = NULL;
+  DeviceType dtype = device_unknown;
+  bool overwriteType;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  mac = (char*)lua_tostring(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  dtype = (DeviceType)lua_tonumber(vm, 2);
+  if(dtype >= device_max_type)
+    dtype = device_unknown;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  overwriteType = (bool)lua_toboolean(vm, 3);
+
+  for(int i = 0; i < ntop->get_num_interfaces(); i++) {
+    NetworkInterface *ntop_interface = ntop->getInterface(i);
+
+    if(ntop_interface && mac)
+      ntop_interface->setMacDeviceType(mac, dtype, overwriteType);
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_reload_host_pools(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  for(int i = 0; i < ntop->get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+
+    if((iface = ntop->getInterface(i)) != NULL)
+      iface->getHostPools()->reloadPools();
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 static int ntop_set_routing_mode(lua_State* vm) {
   bool routing_enabled;
@@ -5759,6 +5804,12 @@ static const luaL_Reg ntop_reg[] = {
   /* JA3 */
   { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
   { "reloadJA3Hashes",      ntop_reload_ja3_hashes       },
+
+  /* Mac */
+  { "setMacDeviceType",     ntop_set_mac_device_type     },
+
+  /* Host pools */
+  { "reloadHostPools",      ntop_reload_host_pools       },
 
   /* Device Protocols */
   { "reloadDeviceProtocols", ntop_reload_device_protocols },

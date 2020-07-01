@@ -56,9 +56,9 @@ end
 
 -- ################################################
 
-local success = host_pools_utils.import(data, ifid)
+local success = host_pools_utils.import(data)
 
-interface.reloadHostPools()
+ntop.reloadHostPools()
 
 if not success then
    result.error = "internal-failure"

@@ -58,9 +58,9 @@ end
 
 -- ################################################
 
-local success = host_pools_utils.import(data, ifid)
+local success = host_pools_utils.import(data)
 
-interface.reloadHostPools()
+ntop.reloadHostPools()
 
 if not success then
   print(rest_utils.rc(rest_utils.consts_internal_error))

@@ -47,17 +47,17 @@ if isAdministrator() then
 
       local devtype = tonumber(_POST["device_type"])
       setCustomDeviceType(mac, devtype)
-      interface.setMacDeviceType(mac, devtype, true --[[ overwrite ]])
+      ntop.setMacDeviceType(mac, devtype, true --[[ overwrite ]])
 
       pool_id = _POST["pool"]
       local prev_pool = host_pools_utils.getMacPool(mac)
 
       if pool_id ~= prev_pool then
          local key = mac
-         if not host_pools_utils.changeMemberPool(ifId, key, pool_id) then
+         if not host_pools_utils.changeMemberPool(key, pool_id) then
             pool_id = nil
          else
-            interface.reloadHostPools()
+            ntop.reloadHostPools()
          end
       end
    end
@@ -209,14 +209,14 @@ if((page == "overview") or (page == nil)) then
 
    print[[<span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
    if not ifstats.isView then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, pool_id)) print[[</a></span>]]
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_utils.getPoolName(pool_id)) print[[</a></span>]]
          if isAdministrator() then
           print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
           print[[<i class="fas fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
          end
       else
         -- no link for view interfaces
-        print(host_pools_utils.getPoolName(ifId, pool_id))
+        print(host_pools_utils.getPoolName(pool_id))
       end
       print("</td></tr>")
 

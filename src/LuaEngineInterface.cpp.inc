@@ -1947,34 +1947,6 @@ static int ntop_get_num_local_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_set_mac_device_type(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *mac = NULL;
-  DeviceType dtype = device_unknown;
-  bool overwriteType;
-  int i;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  mac = (char*)lua_tostring(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  i = lua_tonumber(vm, 2);
-  dtype = (DeviceType)i;
-  if(dtype > device_max_type) dtype = device_unknown;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  overwriteType = (bool)lua_toboolean(vm, 3);
-
-  if((!ntop_interface)
-     || (!mac)
-     || (!ntop_interface->setMacDeviceType(mac, dtype, overwriteType)))
-    return(CONST_LUA_ERROR);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_mac_device_types(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int16_t maxHits = CONST_MAX_NUM_HITS;
@@ -4047,22 +4019,6 @@ static int ntop_checkpoint_host_talker(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_reload_host_pools(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_interface) {
-    ntop_interface->getHostPools()->reloadPools();
-    lua_pushnil(vm);
-
-    return(CONST_LUA_OK);
-  } else
-    return(CONST_LUA_ERROR);
-}
-
-/* ****************************************** */
-
 #ifdef NTOPNG_PRO
 
 #ifdef HAVE_NEDGE
@@ -4533,7 +4489,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getMacInfo",                       ntop_get_interface_mac_info  },
   { "getMacHosts",                      ntop_get_interface_mac_hosts },
   { "getMacManufacturers",              ntop_get_interface_macs_manufacturers },
-  { "setMacDeviceType",                 ntop_set_mac_device_type },
   { "getMacDeviceTypes",                ntop_get_mac_device_types },
 
   /* Autonomous Systems */
@@ -4550,7 +4505,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getVLANInfo",                      ntop_get_interface_vlan_info } ,
 
   /* Host pools */
-  { "reloadHostPools",                  ntop_reload_host_pools                },
   { "findMemberPool",                   ntop_find_member_pool                 },
   { "findMacPool",                      ntop_find_mac_pool                    },
   { "getHostPoolsInfo",                 ntop_get_host_pools_info              },

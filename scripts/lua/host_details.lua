@@ -140,10 +140,10 @@ if (host ~= nil) then
 
       if host_pool_id ~= prev_pool then
          local key = host2member(host["ip"], host["vlan"])
-         if not host_pools_utils.changeMemberPool(ifId, key, host_pool_id, host) then
+         if not host_pools_utils.changeMemberPool(key, host_pool_id, host) then
             host_pool_id = nil
          else
-            interface.reloadHostPools()
+            ntop.reloadHostPools()
          end
       end
 
@@ -474,7 +474,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       print[[</td><td><span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(host_pool_id)) print[[</a></span>]]
       print[[&nbsp;]]
       print(hostinfo2detailshref(host, {page = "config"}, '<i class="fas fa-sm fa-cog" aria-hidden="true"></i>'))
       print("</td></tr>")

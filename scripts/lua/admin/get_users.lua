@@ -19,7 +19,7 @@ local host_pools_utils = nil
 local pool_names = nil
 if captivePortal then
    local host_pools_utils = require "host_pools_utils"
-   local names = host_pools_utils.getPoolsList(getInterfaceId(ifname), false)
+   local names = host_pools_utils.getPoolsList(false)
    pool_names = {}
    for _, p in pairs(names) do
       pool_names[tonumber(p["id"])] = p["name"]

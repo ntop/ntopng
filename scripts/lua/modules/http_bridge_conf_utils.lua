@@ -139,7 +139,7 @@ function http_bridge_conf_utils.configureBridge()
 	 end
 
 	 -- must leave it here as well to make sure the C part has updated with the new pools
-	 interface.reloadHostPools()
+	 ntop.reloadHostPools()
 
 	 -- SETUP ASSOCIATIONS
 	 for member, info in pairs(rsp["associations"] or {}) do
@@ -154,7 +154,7 @@ function http_bridge_conf_utils.configureBridge()
 	       host_pools_utils.traceHostPoolEvent(TRACE_ERROR, ifname..": pool: "..pool.. " not existing. Unable to set association with: "..member)
 	    else
 	       if connectivity == "pass" then
-		  if host_pools_utils.addPoolMember(ifid, pool_id, member) == true then
+		  if host_pools_utils.addPoolMember(pool_id, member) == true then
 		     host_pools_utils.traceHostPoolEvent(TRACE_NORMAL, ifname..": member  "..member.. " successfully associated to pool: "..pool)
 		  else
 		     host_pools_utils.traceHostPoolEvent(TRACE_ERROR, ifname..": Unable to associate member "..member.. " to pool: "..pool)
@@ -164,7 +164,7 @@ function http_bridge_conf_utils.configureBridge()
 	 end
       end
 
-      interface.reloadHostPools()
+      ntop.reloadHostPools()
    end
 
 end

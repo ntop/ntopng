@@ -140,7 +140,7 @@ local function print_single_group(value)
       if(manufacturer == nil) then manufacturer = "" end
       print(manufacturer..'</A>", ')
    elseif(group_col == "pool_id") then
-      local pool_name = host_pools_utils.getPoolName(getInterfaceId(ifname), tostring(value["id"]))
+      local pool_name = host_pools_utils.getPoolName(tostring(value["id"]))
 
       print(pool_name..'</A> " , ')
       print('"column_chart": "')

@@ -897,7 +897,7 @@ function graph_utils.poolDropdown(ifId, pool_id, exclude)
    local output = {}
    exclude = exclude or {}
 
-   for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
+   for _,pool in ipairs(host_pools_utils.getPoolsList()) do
       if (not exclude[pool.id]) or (pool.id == pool_id) then
          output[#output + 1] = '<option value="' .. pool.id .. '"'
 
@@ -908,7 +908,7 @@ function graph_utils.poolDropdown(ifId, pool_id, exclude)
          local limit_reached = false
 
          if not ntop.isEnterpriseM() then
-            local n_members = table.len(host_pools_utils.getPoolMembers(ifId, pool.id) or {})
+            local n_members = table.len(host_pools_utils.getPoolMembers(pool.id) or {})
 
             if n_members >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then
                limit_reached = true

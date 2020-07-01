@@ -27,8 +27,8 @@ end
 
 if isAdministrator() and (_POST["member"] ~= nil) and (_POST["pool"] ~= nil) then
   -- change member pool
-  host_pools_utils.changeMemberPool(ifstats.id, _POST["member"], _POST["pool"])
-  interface.reloadHostPools()
+  host_pools_utils.changeMemberPool(_POST["member"], _POST["pool"])
+  ntop.reloadHostPools()
 end
 
 print(
@@ -47,7 +47,7 @@ print(
   })
 )
 
-local pools = host_pools_utils.getPoolsList(ifstats.id, true --[[no info]])
+local pools = host_pools_utils.getPoolsList(true --[[no info]])
 local no_pools = (#pools < 2)
 
 print [[

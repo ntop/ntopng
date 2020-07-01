@@ -87,10 +87,10 @@ if (host ~= nil) then
 
       if host_pool_id ~= prev_pool then
          local key = host2member(host["ip"], host["vlan"])
-         if not host_pools_utils.changeMemberPool(ifId, key, prev_pool, host_pool_id) then
+         if not host_pools_utils.changeMemberPool(key, prev_pool, host_pool_id) then
             host_pool_id = nil
          else
-            interface.reloadHostPools()
+            ntop.reloadHostPools()
          end
       end
 
@@ -456,12 +456,12 @@ if((page == "overview") or (page == nil)) then
 
       print[[</td><td><span>Host Pool: ]]
       if not ifstats.isView then
-	 print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
+	 print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(host_pool_id)) print[[</a></span>]]
 	 print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
 	 print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Change Host Pool"></i></a></span>]]
       else
         -- no link for view interfaces
-        print(host_pools_utils.getPoolName(ifId, host_pool_id))
+        print(host_pools_utils.getPoolName(host_pool_id))
       end
       print("</td></tr>")
    else
@@ -2040,7 +2040,7 @@ elseif (page == "config") then
          <td>
             <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
                <select name="pool" class="form-control" style="width:20em; display:inline;">]]
-   for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
+   for _,pool in ipairs(host_pools_utils.getPoolsList()) do
       print[[<option value="]] print(pool.id) print[["]]
       if pool.id == host_pool_id then
          print[[ selected]]

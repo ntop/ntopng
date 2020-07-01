@@ -20,7 +20,7 @@ query = string.lower(query)
 local pool_id = _GET["pool"] or host_pools_utils.DEFAULT_POOL_ID
 
 interface.select(ifname)
-local members = host_pools_utils.getPoolMembers(getInterfaceId(ifname), pool_id)
+local members = host_pools_utils.getPoolMembers(pool_id)
 local matched_manufacturers = {}
 
 for _,member in ipairs(members) do

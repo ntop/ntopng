@@ -34,6 +34,7 @@ local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
 local blog_utils = require("blog_utils")
 
+host_pools_utils.migrateHostPools()
 host_pools_utils.initPools()
 
 if(ntop.isPro()) then

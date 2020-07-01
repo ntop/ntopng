@@ -1418,7 +1418,7 @@ function discover.discover2table(interface_name, recache)
 	 entry["os_type"] = mac_info.operatingSystem
       end
 
-      interface.setMacDeviceType(mac, discover.devtype2id(device_type), false) -- false means don't overwrite if already set to ~= unknown
+      ntop.setMacDeviceType(mac, discover.devtype2id(device_type), false) -- false means don't overwrite if already set to ~= unknown
 
       entry["device_type"] = device_type
       entry["device_label"] = device_label

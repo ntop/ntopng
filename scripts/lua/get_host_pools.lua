@@ -49,7 +49,7 @@ if((ifid ~= nil) and (isAdministrator())) then
   if pool_id ~= nil then
     local active_hosts = interface.getHostsInfo(false, nil, nil, nil, nil, nil, nil, nil, nil, nil, true--[[no macs]], tonumber(pool_id)).hosts
     local network_stats = interface.getNetworksStats()
-    local pool_members = host_pools_utils.getPoolMembers(ifid, pool_id) or {}
+    local pool_members = host_pools_utils.getPoolMembers(pool_id) or {}
 
     for _,member in ipairs(pool_members) do
       local is_mac = isMacAddress(member.address)
@@ -117,7 +117,7 @@ if((ifid ~= nil) and (isAdministrator())) then
   else
     local by_pool_name = {}
 
-    for _,pool in pairs(host_pools_utils.getPoolsList(ifid)) do
+    for _,pool in pairs(host_pools_utils.getPoolsList()) do
       if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
         by_pool_name[pool.name] = pool
       end
@@ -125,7 +125,7 @@ if((ifid ~= nil) and (isAdministrator())) then
 
     for _,pool in pairsByKeys(by_pool_name, asc_insensitive) do
       if (i >= start_i) and (i <= stop_i) then
-        local undeletable_pools = host_pools_utils.getUndeletablePools(ifid)
+        local undeletable_pools = host_pools_utils.getUndeletablePools()
 
         res.data[#res.data + 1] = {
           column_pool_id = pool.id,

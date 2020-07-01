@@ -40,7 +40,7 @@ if isEmptyString(ifid) then
    return
 end
 
-local res = host_pools_utils.export(ifid)
+local res = host_pools_utils.export()
 
 if isEmptyString(download) then
   sendHTTPHeader('application/json')

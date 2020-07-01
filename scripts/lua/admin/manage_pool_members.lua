@@ -29,7 +29,7 @@ for _, ifname in pairs(interface.getIfNames()) do
    local ifid = getInterfaceId(ifname)
 
    local pools_list = {} 
-   for _, pool in pairs(host_pools_utils.getPoolsList(ifid) or {}) do
+   for _, pool in pairs(host_pools_utils.getPoolsList()) do
       pools_list[pool["name"]] = pool
    end
 
@@ -51,11 +51,11 @@ for _, ifname in pairs(interface.getIfNames()) do
       else
 	 local pool_id = pools_list[pool]["id"]
 	 if connectivity == "pass" then
-	    if host_pools_utils.addPoolMember(ifid, pool_id, member) == true then
+	    if host_pools_utils.addPoolMember(pool_id, member) == true then
 	       res["associations"][member]["status"] = "OK"
 	    end
 	 elseif info["connectivity"] == "reject" then
-	    host_pools_utils.deletePoolMember(ifid, pool_id, member)
+	    host_pools_utils.deletePoolMember(pool_id, member)
 	    res["associations"][member]["status"] = "OK"
 	 else
 	    res["associations"][member]["status"] = "ERROR"
@@ -68,7 +68,7 @@ for _, ifname in pairs(interface.getIfNames()) do
 
    end
 
-   interface.reloadHostPools()
+   ntop.reloadHostPools()
    r[ifname] = res
 end
 

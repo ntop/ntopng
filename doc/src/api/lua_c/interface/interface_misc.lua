@@ -132,9 +132,6 @@ function interface.getVLANsList()
 --! @return VLAN information on success (see VLAN::lua), nil otherwise.
 function interface.getVLANInfo(int vlan_id)
 
---! @brief Reload Host Pool membership information after changes from Lua.
-function interface.reloadHostPools()
-
 --! @brief Get host pools information, like the number of members in the pool.
 --! @return host pools information on success, nil otherwise.
 function interface.getHostPoolsInfo()
