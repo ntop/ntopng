@@ -228,6 +228,7 @@ local lang = {
   ["tls_certificate"] = "TLS Certificate",
   ["today"] = "Today",
   ["tools"] = "Tools",
+  ["pools"] = "Pools",
   ["total"] = "Total",
   ["total_incoming_misbehaving_flows"] = "Total Misbehaving Flows As Server",
   ["total_incoming_unreachable_flows"] = "Total Port Unreachable Flows As Server",
@@ -4223,7 +4224,7 @@ local lang = {
     ["last_seen"] = "Last Seen",
     ["no_pools"] = "An host pool must be created in order to assign unknown devices to.",
     ["select_pool"] = "Please select an host pool from the dropdown below to assign '%{mac}' to:",
-    ["unassigned_devices"] = "Unassigned Devices",
+    ["unassigned_devices"] = "Unassigned Host Pool Devices",
   },
   ["updates"] = {
     ["available"] = "New",

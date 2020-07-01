@@ -32,6 +32,7 @@ page_utils.menu_sections = {
    snmp         = {key = "snmp", i18n_title = "prefs.snmp", icon = "fas fa-tablet"},
    health       = {key = "system_health", i18n_title = "health", icon = "fas fa-heartbeat"},
    tools        = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
+   pools        = {key = "pools", i18n_title = "pools", icon = "fas fa-users"},
 
    -- nEdge
    views	= {key = "hosts", i18n_title = "views", icon = "fas fa-bars"},
@@ -110,6 +111,9 @@ page_utils.menu_entries = {
     -- Tools
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
     remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "tools", help_link = "https://www.ntop.org/guides/ntopng/remote_assistance.html"},
+
+    -- Pools
+    pools_host	     	 = {key = "pools_host", i18n_title = "host_pools.host_pools", section = "pools", visible_iface = false, visible_system = true},
 
     -- Home
     live_capture   	 = {key = "live_capture", i18n_title = "live_capture.active_live_captures", section = "home"},

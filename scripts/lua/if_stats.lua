@@ -214,13 +214,6 @@ local has_traffic_recording_page =  (recording_utils.isAvailable()
 
 local dismiss_recording_providers_reminder = recording_utils.isExternalProvidersReminderDismissed(ifstats.id)
 
-local num_pool_hosts = ifstats.num_members.num_hosts
-if ifstats.num_members_per_pool[host_pools_utils.DEFAULT_POOL_ID] then
-   -- don't show unassigned hosts in the counter
-   num_pool_hosts = num_pool_hosts - ifstats.num_members_per_pool[host_pools_utils.DEFAULT_POOL_ID].num_hosts
-end
-
-
 local url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 
 --  Added global javascript variable, in order to disable the refresh of pie chart in case
@@ -321,10 +314,9 @@ page_utils.print_navbar(title, url,
 			      },
 			      {
 				 hidden = not isAdministrator() or have_nedge,
-				 active = page == "pools",
-				 page_name = "pools",
-				 label = "<i class=\"fas fa-lg fa-users\"></i>",
-				 badge_num = num_pool_hosts,
+				 active = page == "unassigned_pool_devices",
+				 page_name = "unassigned_pool_devices",
+				 label = "<i class=\"fas fa-lg fa-user-slash\"></i>",
 			      },
 			      {
 				 hidden = not isAdministrator() or is_pcap_dump,
@@ -1915,8 +1907,8 @@ elseif(page == "syslog_producers") then
    if(isAdministrator()) then
       dofile(dirs.installdir .. "/scripts/lua/syslog_producers.lua")
    end
-elseif(page == "pools") then
-    dofile(dirs.installdir .. "/scripts/lua/admin/host_pools.lua")
+elseif(page == "unassigned_pool_devices") then
+   dofile(dirs.installdir .. "/scripts/lua/unknown_devices.lua")
 elseif(page == "dhcp") then
     dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
 elseif page == "traffic_report" then

@@ -394,6 +394,22 @@ page_utils.add_menubar_section({
 
 -- ##############################################
 
+-- Tools
+
+page_utils.add_menubar_section({
+   hidden = not is_system_interface,
+   section = page_utils.menu_sections.pools,
+   entries = {
+      {
+         entry = page_utils.menu_entries.pools_host,
+         hidden = not is_admin,
+         url = '/lua/admin/manage_pools.lua',
+      },
+   }
+})
+
+-- ##############################################
+
 local inactive_interfaces = delete_data_utils.list_inactive_interfaces()
 local num_inactive_interfaces = ternary(not ntop.isnEdge(), table.len(inactive_interfaces or {}), 0)
 local delete_active_interface_requested_system = delete_data_utils.delete_active_interface_data_requested(getSystemInterfaceId())
