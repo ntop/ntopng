@@ -98,6 +98,7 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
   log_line++;
 
   if (strncmp(log_line, "date=", 5) == 0) { /* Parse custom Fortinet format */
+    producer_name = "fortinet"; /* fortinet detected */
     content = log_line;
   } else if ((tmp = strstr(log_line, "]: ")) != NULL) { /* Parse APPLICATION[PID]: */
     content = &tmp[3];
