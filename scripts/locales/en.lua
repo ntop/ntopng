@@ -3876,7 +3876,7 @@ local lang = {
     ["snmp_device_last_poll"] = "Time Since Last Poll",
     ["snmp_device_last_poll_duration"] = "Last Poll Duration",
     ["snmp_device_polling_disabled"] = "Periodic device polling is disabled. Information shown may be missing or outdated. Polling can be enabled from the <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>.",
-    ["snmp_device_x"] = "SNMP Device: %{device}",
+    ["snmp_device_x"] = "%{device}",
     ["snmp_devices"] = "SNMP Devices",
     ["snmp_host"] = "Host",
     ["snmp_interface"] = "SNMP Interface",
