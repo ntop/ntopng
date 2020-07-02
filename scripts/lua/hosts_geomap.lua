@@ -70,7 +70,7 @@ if (num > 0) then
       const display_localized_position = (position) => {
           $('#my-location').html(`
           ]].. i18n("geo_map.browser_reported_home_map")..[[:
-          <a href='https://www.openstreetmap.org/#map=6/${position[0]}/${position[1]}'>
+          <a href='https://www.openstreetmap.org/#map=4/${position[0]}/${position[1]}'>
           ]]..i18n("geo_map.latitude").. [[: ${position[0]}, ]].. i18n("geo_map.longitude").. [[: ${position[1]} </a>
         `);
       }
