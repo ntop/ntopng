@@ -3701,7 +3701,7 @@ local lang = {
     ["snmp_device_does_not_respond"] = "Il dispositivo SNMP non ripsonde.",
     ["snmp_device_last_poll"] = "Tempo dall'Ultimo Poll",
     ["snmp_device_polling_disabled"] = "Il polling periodico del dispositivo è disabilitato. Le informazioni visualizzate potrebbero essere parziali o vecchie. Il polling può essere abilitato dalle <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferenze</a>.",
-    ["snmp_device_x"] = "Dispositivo SNMP %{device}",
+    ["snmp_device_x"] = "%{device}",
     ["snmp_devices"] = "Dispositivi SNMP",
     ["snmp_interface"] = "Interfaccia SNMP",
     ["snmp_interface_type"] = "Tipo Interfaccia",

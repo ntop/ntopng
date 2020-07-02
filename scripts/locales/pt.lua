@@ -2782,7 +2782,7 @@ local lang = {
     ["snmp_device_does_not_respond"] = "O dispositivo SNMP não responde.",
     ["snmp_device_last_poll"] = "Tempo desde a última pesquisa",
     ["snmp_device_polling_disabled"] = "A consulta periódica de dispositivos está desativada. As informações mostradas podem estar ausentes ou desatualizadas. A pesquisa pode ser ativada a partir do <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>.",
-    ["snmp_device_x"] = "Dispositivo SNMP: %{device}",
+    ["snmp_device_x"] = "%{device}",
     ["snmp_devices"] = "Dispositivo SNMP",
     ["snmp_interface"] = "Interface SNMP",
     ["snmp_interface_type"] = "Tipo de interface",

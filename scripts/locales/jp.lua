@@ -3712,7 +3712,7 @@ local lang = {
     ["snmp_device_does_not_respond"] = "SNMPデバイスは応答しません",
     ["snmp_device_last_poll"] = "前回の調査からの時間",
     ["snmp_device_polling_disabled"] = "周期デバイスポーリングは無効化されています。表示されている情報はないか古いかのどちらかです。 ポーリングは次から有効化できます <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> 設定</a>.",
-    ["snmp_device_x"] = "SNMPデバイス:%{device}",
+    ["snmp_device_x"] = "%{device}",
     ["snmp_devices"] = "SNMPデバイス",
     ["snmp_interface"] = "SNMPインターフェイス",
     ["snmp_interface_type"] = "インターフェイスタイプ",

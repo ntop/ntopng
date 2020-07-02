@@ -3191,7 +3191,7 @@ local lang = {
     ["snmp_device_does_not_respond"] = "Zařízení SNMP neodpovídá.",
     ["snmp_device_last_poll"] = "4as od posledního Poll",
     ["snmp_device_polling_disabled"] = "Periodické Polling zařízení je zakázáno. Zobrazené informace mohou chybět nebo mohou být neaktuální. Polling lze povolit pomocí <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preference</a>.",
-    ["snmp_device_x"] = "Zařízení SNMP: %{device}",
+    ["snmp_device_x"] = "%{device}",
     ["snmp_devices"] = "Zařízení SNMP",
     ["snmp_interface"] = "Rozhraní SNMP",
     ["snmp_interface_type"] = "Typ rozhraní",
