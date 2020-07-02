@@ -340,9 +340,11 @@ void ContinuousPing::runPingCampaign() {
     if(ntop->getGlobals()->isShutdownRequested()) return;
     /* Collect ping results */
     readPingResults();
+    sleep(1);
+  } else {
+    /* Nothing to do */
+    sleep(10);
   }
-
-  sleep(1);
 }
 
 #endif /* WIN32 */
