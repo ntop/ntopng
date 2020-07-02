@@ -26,10 +26,11 @@ function menu_alert_notifications.dispose_notification(notification_id)
     return response
 end
 
-function menu_alert_notifications.render_notifications()
+function menu_alert_notifications.render_notifications(container_id, notifications)
     -- render the notifications
     print(template.gen('pages/components/notification_container.template', {
-        notifications = load_notifications()
+        notifications = notifications or load_notifications(),
+        container_id = container_id
     }))
 end
 
