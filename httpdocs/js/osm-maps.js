@@ -19,7 +19,7 @@ $(document).ready(function () {
         const settings = { title: title };
         if (is_red) settings.icon = red_marker;
 
-        return L.marker([lat, lng], settings).bindPopup(`
+        return L.marker(L.latLng(lat, lng), settings).bindPopup(`
             <div class='infowin'>
                 <a href='/lua/host_details.lua?host=${title}'>${title}</a>
                 <hr>
@@ -73,10 +73,7 @@ $(document).ready(function () {
         }
     }
 
-    const draw_markers = (json, map_markers, map) => {
-
-        const hosts = json;
-        console.log(json);
+    const draw_markers = (hosts, map_markers, map) => {
 
         hosts.forEach(h => {
 
@@ -114,7 +111,12 @@ $(document).ready(function () {
         }
 
         const hosts_map = L.map('map-canvas').setView(user_coords || default_coords, zoom_level);
-        const map_markers = L.markerClusterGroup();
+        const map_markers = L.markerClusterGroup({
+            maxClusterRadius: 100,
+            spiderLegPolylineOptions: {
+                opacity: 0
+            }
+        });
 
         display_localized_position(user_coords || default_coords);
 
