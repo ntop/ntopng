@@ -64,7 +64,8 @@ class Redis {
   bool expireCache(char *key, u_int expire_sec);
 
   void checkDumpable(const char * const key);
-	  
+  int _set(bool use_nx, const char * const key, const char * const value, u_int expire_secs);
+  
  public:
   Redis(const char *redis_host = (char*)"127.0.0.1",
 	const char *redis_password = NULL,
@@ -86,7 +87,9 @@ class Redis {
   int hashDel(const char * const key, const char * const field);
   int hashSet(const char * const key, const char * const field, const char * const value);
   int delHash(char *key, char *member);
-  int set(const char * const key, const char * const value, u_int expire_secs=0);
+  inline int set(const char * const key, const char * const value, u_int expire_secs=0) { return(_set(false, key, value, expire_secs)); }
+  /* setnx = set if not existing */
+  inline int setnx(const char * const key, const char * const value, u_int expire_secs=0) { return(_set(true, key, value, expire_secs)); }
   int keys(const char *pattern, char ***keys_p);
   int hashKeys(const char *pattern, char ***keys_p);
   int hashGetAll(const char *key, char ***keys_p, char ***values_p);

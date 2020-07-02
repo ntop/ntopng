@@ -489,10 +489,11 @@ int Redis::hashDel(const char * const key, const char * const field) {
 
 /* **************************************** */
 
-int Redis::set(const char * const key, const char * const value, u_int expire_secs) {
-  int rc;
+int Redis::_set(bool use_nx, const char * const key, const char * const value, u_int expire_secs) {
+  int rc, ret_code = 0;
   redisReply *reply;
-
+  const char* cmd = use_nx ? "SETNX" : "SET";
+    
   if((value == NULL) || (value[0] == '\0')) {    
     if(strncmp(key, NTOPNG_PREFS_PREFIX, sizeof(NTOPNG_PREFS_PREFIX)) == 0) {
       /* This is an empty preference value that we can discard*/
@@ -506,13 +507,23 @@ int Redis::set(const char * const key, const char * const value, u_int expire_se
     addToCache(key, value, expire_secs);
 
   stats.num_set++;
-  reply = (redisReply*)redisCommand(redis, "SET %s %s", key, value);
+  reply = (redisReply*)redisCommand(redis, "%s %s %s", cmd, key, value);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-  if(reply) freeReplyObject(reply), rc = 0; else rc = -1;
+  if(reply) {
+    if(reply->type == REDIS_REPLY_INTEGER) {
+      /* SETNX */
+      ret_code = reply->integer; /* 1=value not existing, 0=value already existing */
+    }
+    
+    freeReplyObject(reply), rc = 0;
+  } else
+    rc = -1;
 
-  if((rc == 0) && (expire_secs != 0)) {
+  if((expire_secs != 0)
+     && ((use_nx && (ret_code == 1))
+	 || ((!use_nx) && (rc == 0)))) {
     stats.num_expire++;
     reply = (redisReply*)redisCommand(redis, "EXPIRE %s %u", key, expire_secs);
     if(!reply) reconnectRedis(true);
@@ -525,6 +536,9 @@ int Redis::set(const char * const key, const char * const value, u_int expire_se
   if(reply && expire_secs == 0)
     checkDumpable(key);
 
+  if(use_nx)
+    rc = ret_code;
+  
   return(rc);
 }
 

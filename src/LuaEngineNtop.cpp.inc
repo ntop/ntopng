@@ -4504,7 +4504,7 @@ static int ntop_reload_traffic_profiles(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_set_redis(lua_State* vm) {
+static int _ntop_set_redis(bool do_setnx, lua_State* vm) {
   char *key, *value, buf[16];
   u_int expire_secs = 0;  // default 0 = no expiration
   Redis *redis = ntop->getRedis();
@@ -4527,9 +4527,18 @@ static int ntop_set_redis(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TNUMBER)
     expire_secs = (u_int)lua_tonumber(vm, 3);
 
-  lua_pushboolean(vm, (redis->set(key, value, expire_secs) == 0));
+  if(do_setnx)
+    lua_pushboolean(vm, (redis->setnx(key, value, expire_secs) == 1 /* value added (not existing) */) ? true : false);
+  else
+    lua_pushboolean(vm, (redis->set(key, value, expire_secs) == 0));
+  
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
+
+static int ntop_set_redis(lua_State* vm)   { return(_ntop_set_redis(false, vm)); }
+static int ntop_setnx_redis(lua_State* vm) { return(_ntop_set_redis(true, vm)); }
 
 /* ****************************************** */
 
@@ -5569,6 +5578,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getCacheStatus",    ntop_info_redis },
   { "getCache",          ntop_get_redis },
   { "setCache",          ntop_set_redis },
+  { "setnxCache",        ntop_setnx_redis },
   { "incrCache",         ntop_incr_redis },
   { "getCacheStats",     ntop_get_redis_stats },
   { "delCache",          ntop_delete_redis_key },
