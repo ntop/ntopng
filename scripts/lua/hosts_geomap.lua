@@ -32,7 +32,7 @@ if (num > 0) then
   print ([[
     <div class="container-fluid">
       <div class="row">
-        <div class='col-md-12 col-lg-12 col-xs-12'>
+        <div class='col-md-12 col-lg-12 col-xs-12 mb-4'>
   ]])
   page_utils.print_page_title(i18n("geo_map.hosts_geomap"))
   print([[
@@ -43,9 +43,6 @@ if (num > 0) then
             <p id='error-message'></p>
           </div>
           <div style="height: 720px" id="map-canvas"></div>
-          <div class='mt-5'>
-            <p id='my-location'></p>
-          </div>
         </div>
       </div>
     </div>
@@ -65,14 +62,6 @@ if (num > 0) then
       const display_localized_error = (error_code) => {
         $('#geomap-alert p').html(`]].. i18n("geo_map.geolocation_error") ..[[[${error_code}]: ]].. i18n("geo_map.using_default_location") ..[[`);
         $('#geomap-alert').removeClass('alert-info').addClass('alert-danger').show();
-      }
-
-      const display_localized_position = (position) => {
-          $('#my-location').html(`
-          ]].. i18n("geo_map.browser_reported_home_map")..[[:
-          <a href='https://www.openstreetmap.org/#map=4/${position[0]}/${position[1]}'>
-          ]]..i18n("geo_map.latitude").. [[: ${position[0]}, ]].. i18n("geo_map.longitude").. [[: ${position[1]} </a>
-        `);
       }
 
       const display_localized_no_geolocation_msg = () => {

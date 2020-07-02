@@ -118,8 +118,6 @@ $(document).ready(function () {
             }
         });
 
-        display_localized_position(user_coords || default_coords);
-
         L.tileLayer(layer, {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(hosts_map);

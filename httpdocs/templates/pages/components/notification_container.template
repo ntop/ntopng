@@ -1,4 +1,4 @@
-<div class="notification-container">
+<div class="notification-container" {{ (container_id == nil and "" or "id='".. container_id .."'") }}>
     {% for key, notification in ipairs(notifications) do %}
     {* notification:render() *}
     {% end %}
