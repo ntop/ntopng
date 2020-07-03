@@ -42,6 +42,8 @@ if(ntop.isPro()) then
    shaper_utils.initShapers()
 end
 
+traceError(TRACE_NORMAL, TRACE_CONSOLE, "Processing startup.lua: please hold on...")
+
 -- Load the default user scripts configuration
 user_scripts.loadDefaultConfig()
 
@@ -206,3 +208,5 @@ end
 ntop.delCache("ntopng.cache.rrd_format_change_warning_shown")
 
 blog_utils.fetchLatestPosts()
+
+traceError(TRACE_NORMAL, TRACE_CONSOLE, "Startup completed")
