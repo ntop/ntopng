@@ -32,7 +32,7 @@ page_utils.menu_sections = {
    snmp         = {key = "snmp", i18n_title = "prefs.snmp", icon = "fas fa-tablet"},
    health       = {key = "system_health", i18n_title = "health", icon = "fas fa-heartbeat"},
    tools        = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
-   pools        = {key = "pools", i18n_title = "pools", icon = "fas fa-users"},
+   pools        = {key = "pools", i18n_title = "pools.pools", icon = "fas fa-users"},
 
    -- nEdge
    views	= {key = "hosts", i18n_title = "views", icon = "fas fa-bars"},
@@ -462,9 +462,9 @@ function page_utils.print_menubar()
       local section_has_submenu = (section.entries and #section.entries > 0)
 
       if(not section.hidden) then
-	if not section_has_submenu then
+	      if not section_has_submenu then
 	    show_section = true
-	else
+	   else
 	    -- The section is shown only if at least one of its sub entries
 	    -- is shown
 	    for _, section_entry in pairs(section.entries or {}) do

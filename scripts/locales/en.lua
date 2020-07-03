@@ -265,8 +265,8 @@ local lang = {
     ["copyright"] = "Copyright",
     ["cpu_load"] = "CPU Load",
     ["cpu_states"] = "CPU States",
-    ["create_license"] = "We advise you create as well ntopng.license file (according to the instructions you received) to avoid loosing your license in case of redis cleanup",
-    ["create_license_l"] = "Please be aware that you need also to create <code>/etc/ntopng.license</code> file as this file is used by the other companion applications. See <a href='https://www.ntop.org/support/faq/what-is-included-in-ntopng-enterprise-l/'>https://www.ntop.org/support/faq/what-is-included-in-ntopng-enterprise-l/</a> for details",
+    ["create_license"] = "We advise you create as well <i>ntopng.license</i> file (according to the instructions you received) to avoid loosing your license in case of redis cleanup",
+    ["create_license_l"] = "Please be aware that you need also to create <i>/etc/ntopng.license</i> file as this file is used by the other companion applications. See <a href='https://www.ntop.org/support/faq/what-is-included-in-ntopng-enterprise-l/'>https://www.ntop.org/support/faq/what-is-included-in-ntopng-enterprise-l/</a> for details",
     ["data_directory"] = "Data",
     ["datadir_warning"] = "Data directory migration notice",
     ["defs_directories"] = "Definitions Directories",
@@ -3073,6 +3073,7 @@ local lang = {
     ["members"] = "Members",
     ["name"] = "Name",
     ["pool"] = "Pool",
+    ["pools"] = "Pools",
     ["pool_names"] = {
       ["interface"] = "Interface Pools",
       ["snmp"] = "SNMP Pools",
