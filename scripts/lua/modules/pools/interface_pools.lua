@@ -14,7 +14,7 @@ function interface_pools.list_available_members()
    local res = {}
 
    for ifid, ifname in pairs(interface.getIfNames()) do
-      res[#res + 1] = ifid
+      res[#res + 1] = {id = ifid, name = ifname}
    end
 
    return res
