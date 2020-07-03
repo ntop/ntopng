@@ -51,7 +51,7 @@ class Prefs {
     enable_ixia_timestamps, enable_vss_apcon_timestamps,
     enable_users_login, disable_localhost_login, online_license_check,
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
-    flow_aggregation_enabled, enable_mac_ndpi_stats, enable_activities_debug;
+    enable_mac_ndpi_stats, enable_activities_debug;
   TsDriver timeseries_driver;
 
   u_int32_t auth_session_duration;
@@ -66,7 +66,7 @@ class Prefs {
   bool disable_alerts, enable_top_talkers, enable_idle_local_hosts_cache,
     enable_active_local_hosts_cache;
   bool enable_flow_device_port_rrd_creation;
-  bool enable_tiny_flows_export, enable_aggregated_flows_export_limit;
+  bool enable_tiny_flows_export;
   bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
   bool enable_ip_reassignment_alerts;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
@@ -78,7 +78,6 @@ class Prefs {
   int32_t max_num_alerts_per_entity, max_num_flow_alerts;
   u_int32_t safe_search_dns_ip, global_primary_dns_ip, global_secondary_dns_ip;
   u_int32_t max_num_packets_per_tiny_flow, max_num_bytes_per_tiny_flow;
-  u_int32_t max_num_aggregated_flows_per_export;
   u_int32_t max_extracted_pcap_bytes;
   u_int32_t max_ui_strlen;
   u_int8_t default_l7policy;
@@ -180,8 +179,6 @@ class Prefs {
   inline bool decode_dns_responses()                    { return(sniff_dns_responses);    };
   inline void enable_categorization()                   { categorization_enabled = true;  };
   inline bool is_categorization_enabled()               { return(categorization_enabled); };
-  inline void enable_flow_aggregation()                 { flow_aggregation_enabled = true;                                  };
-  inline bool is_flow_aggregation_enabled()             { return(flow_aggregation_enabled);                                 };
   inline bool do_change_user()                          { return(change_user);            };
   inline void dont_change_user()                        { change_user = false;            };
   inline bool is_sql_log_enabled()                      { return(enable_sql_log);         };
@@ -314,7 +311,6 @@ class Prefs {
   inline u_int32_t get_auth_session_duration()          { return(auth_session_duration);  };
   inline bool get_auth_session_midnight_expiration()    { return(auth_session_midnight_expiration);  };
   inline u_int32_t get_housekeeping_frequency()         { return(housekeeping_frequency); };
-  inline u_int32_t flow_aggregation_frequency()         { return(get_housekeeping_frequency() * FLOW_AGGREGATION_DURATION); };
   inline u_int32_t get_host_max_idle(bool localHost)    { return(localHost ? local_host_max_idle : non_local_host_max_idle);  };
   inline u_int32_t get_local_host_cache_duration()      { return(local_host_cache_duration);   };
   inline u_int32_t get_pkt_ifaces_flow_max_idle()       { return(pkt_ifaces_flow_max_idle);    };
@@ -325,7 +321,6 @@ class Prefs {
   inline bool  is_active_local_host_cache_enabled()     { return(enable_active_local_hosts_cache);  };
 
   inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);            };
-  inline bool is_aggregated_flows_export_limit_enabled() { return(enable_aggregated_flows_export_limit);};
   inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation);};
   inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
   inline bool is_arp_matrix_generation_enabled()         { return(enable_arp_matrix_generation);        };
@@ -350,7 +345,6 @@ class Prefs {
 
   inline u_int32_t get_max_num_packets_per_tiny_flow()       const { return(max_num_packets_per_tiny_flow);       };
   inline u_int32_t get_max_num_bytes_per_tiny_flow()         const { return(max_num_bytes_per_tiny_flow);         };
-  inline u_int32_t get_max_num_aggregated_flows_per_export() const { return(max_num_aggregated_flows_per_export); };
 
   inline u_int64_t get_max_extracted_pcap_bytes() { return max_extracted_pcap_bytes; };
 

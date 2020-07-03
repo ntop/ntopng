@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 require "lua_utils"
-require "flow_aggregation_utils"
 
 local db_debug = false
 
@@ -53,12 +52,6 @@ local function flowsTableName(version, force_raw)
    end
 
    local tblname = "flowsv"..version
-
-   if force_raw ~= true and ntop.isEnterpriseM() == true then
-      if useAggregatedFlows() == true then
-	 tblname = "aggr"..tblname
-      end
-   end
 
    -- return "flowsv"..version -- FIXX: remove this line when ready
    return tblname
@@ -782,10 +775,6 @@ end
 
 function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
    local dbtables = {"flowsv4", "flowsv6"}
-   if useAggregatedFlows() then
-      dbtables[#dbtables+1] = "aggrflowsv4"
-      dbtables[#dbtables+1] = "aggrflowsv6"
-   end
 
    if tonumber(ifname) == nil then
       ifname = getInterfaceId(ifname)

@@ -72,7 +72,5 @@ for k,v in pairs(versions) do
    ::continue::
 end
 
-totals["aggregated_flows"] = (prefs.is_flow_aggregation_enabled == true)
-
 sendHTTPHeader('application/json')
 print(json.encode(totals, nil))

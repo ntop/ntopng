@@ -696,11 +696,8 @@
 
 /* Tiny Flows */
 #define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED        true  /* disabled by default */
-#define CONST_DEFAULT_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED false /* exports all the aggregated flows by default */
 #define CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW 3
 #define CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW   64 /* Empty TCP */
-#define CONST_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED   NTOPNG_PREFS_PREFIX".aggregated_flows_export_limit_enabled"
-#define CONST_MAX_NUM_AGGR_FLOWS_PER_EXPORT        NTOPNG_PREFS_PREFIX".max_num_aggregated_flows_per_export"
 #define CONST_IS_TINY_FLOW_EXPORT_ENABLED          NTOPNG_PREFS_PREFIX".tiny_flows_export_enabled"
 #define CONST_MAX_NUM_PACKETS_PER_TINY_FLOW        NTOPNG_PREFS_PREFIX".max_num_packets_per_tiny_flow"
 #define CONST_MAX_NUM_BYTES_PER_TINY_FLOW          NTOPNG_PREFS_PREFIX".max_num_bytes_per_tiny_flow"
@@ -815,7 +812,6 @@
 #define MYSQL_TOP_TALKERS_HOUR_TABLE   "talkersv4_hour"
 #define MYSQL_TOP_TALKERS_DAY_TABLE    "talkersv4_day"
 
-#define MYSQL_AGGREGATION_TABLES_PREFIX "aggr"
 #define MYSQL_INSERT_PROFILE ",PROFILE"
 #define MYSQL_PROFILE_VALUE ",'%s'"
 #else
@@ -1025,12 +1021,6 @@
 #define MARKER_DROP                     2
 
 #define NO_HOST_POOL_ID                 0
-/* Flow aggregation duration is expressed in housekeeping periods. If housekeeping frequency
-   is 5 secs, a flow aggregation duration of 12 equals to 1 minute. */
-#define FLOW_AGGREGATION_DURATION       300  /* seconds, 5 minutes */
-#define FLOW_AGGREGATION_MAX_AGGREGATES 1000
-#define FLOW_AGGREGATION_NUM_TOP_AGGRS  1000
-#define FLOW_AGGREGATION_NUM_TOP_HOSTS  100
 
 extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define getLuaVMContext(a)      (a ? getUserdata(a) : NULL)

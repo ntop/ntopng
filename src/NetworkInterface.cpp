@@ -100,10 +100,6 @@ NetworkInterface::NetworkInterface(const char *name,
   else
     ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
 
-#ifdef NTOPNG_PRO
-  aggregated_flows_hash = NULL;
-#endif
-
   if(strchr(name, ':')
      || strchr(name, '@')
      || (!strcmp(name, "dummy"))
@@ -266,11 +262,6 @@ void NetworkInterface::init() {
   num_active_misbehaving_flows = num_idle_misbehaving_flows = 0;
   hosts_to_restore = new FifoStringsQueue(64);
 
-#ifdef NTOPNG_PRO
-  gettimeofday(&aggregated_flows_dump_last_dump, NULL);
-  aggregated_flows_dump_ready = false;
-#endif
-
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
   hide_from_top = hide_from_top_shadow = NULL;
@@ -289,7 +280,7 @@ void NetworkInterface::init() {
   db = NULL;
 #ifdef NTOPNG_PRO
   custom_app_stats = NULL;
-  aggregated_flows_hash = NULL, flow_interfaces_stats = NULL;
+  flow_interfaces_stats = NULL;
   policer = NULL;
 #endif
   ndpiStats = NULL;
@@ -325,13 +316,6 @@ void NetworkInterface::init() {
 void NetworkInterface::initL7Policer() {
   /* Instantiate the policer */
   policer = new L7Policer(this);
-}
-
-/* **************************************** */
-
-void NetworkInterface::aggregatePartialFlow(const struct timeval *tv, Flow *flow) {
-  if(flow && aggregated_flows_hash)
-    aggregated_flows_hash->aggregatePartialFlow(tv, flow);
 }
 
 #endif
@@ -498,14 +482,6 @@ void NetworkInterface::deleteDataStructures() {
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
 
-#ifdef NTOPNG_PRO
-  if(aggregated_flows_hash) {
-    aggregated_flows_hash->cleanup(time(NULL) + 10, false);
-    delete(aggregated_flows_hash);
-    aggregated_flows_hash = NULL;
-  }
-#endif
-
   if(companionQueue) {
     for(u_int16_t i = 0; i < COMPANION_QUEUE_LEN; i++)
       if(companionQueue[i])
@@ -542,7 +518,6 @@ NetworkInterface::~NetworkInterface() {
   deleteDataStructures();
 
   if(db) {
-    /* note: keep this after deleteDataStructures to flush aggregated flows */
     db->shutdown();
     delete db;
   }
@@ -652,61 +627,6 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-
-void NetworkInterface::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv) {
-  if(db
-     && f && (f->get_packets() > 0)
-     && ntop->getPrefs()->is_enterprise_m_edition()) {
-#ifdef DUMP_AGGREGATED_FLOW_DEBUG
-    char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Going to dump AggregatedFlow to database [%s][is_top: %u]",
-				 f->print(buf, sizeof(buf)), is_top_aggregated_flow ? 1 : 0);
-#endif
-
-    if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && f->isTiny()) {
-#ifdef DUMP_AGGREGATED_FLOW_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Skipping tiny aggregated flow [flow: %s]",
-				   f->print(buf, sizeof(buf)));
-#endif
-    } else {
-      db->dumpAggregatedFlow(when, f, is_top_aggregated_flow, is_top_cli, is_top_srv);
-    }
-  }
-}
-
-/* **************************************************** */
-
-void NetworkInterface::dumpAggregatedFlows(const struct timeval *tv, time_t deadline, bool no_time_left) {
-  if(aggregated_flows_hash)
-    aggregated_flows_hash->cleanup(deadline, no_time_left);
-
-#ifdef AGGREGATED_FLOW_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Aggregated flows exported. "
-			       "Aggregated flows hash cleared. [num_items: %i]",
-			       aggregated_flows_hash->getNumEntries());
-#endif
-
-  memcpy(&aggregated_flows_dump_last_dump, tv, sizeof(aggregated_flows_dump_last_dump));
-  aggregated_flows_dump_ready = false;
-}
-
-/* **************************************************** */
-
-void NetworkInterface::set_aggregated_flows_dump_update(const struct timeval *tv) {
-  if(tv->tv_sec - aggregated_flows_dump_last_dump.tv_sec >= FLOW_AGGREGATION_DURATION)
-    aggregated_flows_dump_ready = true;
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::is_aggregated_flows_dump_ready() const {
-  return aggregated_flows_dump_ready;
-}
-
-/* **************************************************** */
 
 void NetworkInterface::flushFlowDump() {
   if(db) db->flush();
@@ -2754,10 +2674,6 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
      is necessary as hash table states changes and periodic lua scripts call assume the time flows normally. */
   gettimeofday(&tv, NULL);
   
-#ifdef NTOPNG_PRO
-  set_aggregated_flows_dump_update(&tv);
-#endif
-
   periodic_ht_state_update_user_data.acle = NULL,
     periodic_ht_state_update_user_data.iface = this,
     periodic_ht_state_update_user_data.tv = &tv,
@@ -2780,11 +2696,6 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
       }
     }
   }
-
-#ifdef NTOPNG_PRO
-  if(is_aggregated_flows_dump_ready()) 
-    dumpAggregatedFlows(&tv, deadline, periodic_ht_state_update_user_data.no_time_left);
-#endif
 
   if(db) {
 #ifdef NTOPNG_PRO
@@ -5346,9 +5257,6 @@ void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
   /* Hash tables stats */
   GenericHash *gh[] = {flows_hash, hosts_hash, macs_hash,
 		       vlans_hash, ases_hash, countries_hash
-#ifdef NTOPNG_PRO
-		       , aggregated_flows_hash
-#endif
   };
 
   lua_newtable(vm);
@@ -6732,7 +6640,6 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 				   "Interface will continue to work without nIndex support.");
     } else {
       db = new NIndexFlowDB(this);
-      goto enable_aggregation;
     }
   }
 #endif
@@ -6741,22 +6648,11 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     if(ntop->getPrefs()->do_dump_flows_on_mysql()
        || ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef NTOPNG_PRO
-      if(ntop->getPrefs()->is_enterprise_m_edition()
-	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql()) {
 #ifdef HAVE_MYSQL
+      if(ntop->getPrefs()->is_enterprise_m_edition()
+	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql())
 	db = new BatchedMySQLDB(this);
 #endif
-
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-      enable_aggregation:
-#endif
-	aggregated_flows_hash = new AggregatedFlowHash(this,
-						       max_val(4096, ntop->getPrefs()->get_max_num_flows()/4) /* num buckets */,
-						       ntop->getPrefs()->get_max_num_flows());
-
-	ntop->getPrefs()->enable_flow_aggregation();
-      } else
-	aggregated_flows_hash = NULL;
 #endif
 
 #ifdef HAVE_MYSQL

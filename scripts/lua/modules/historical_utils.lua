@@ -3,7 +3,6 @@
 --
 
 require "lua_utils"
-require "flow_aggregation_utils"
 
 local json = require ("dkjson")
 local graph_common = require "graph_common"
@@ -223,9 +222,6 @@ function printFlowsCountColumn()
    -- hides the flows count column when aggregated database flows are being used
    local col = '{title: "'..i18n("flows")
    local hide_count = ""
-   if useAggregatedFlows() == true then
-      hide_count = " hidden :true, "
-   end
    col = col..'", field: "column_flows", '..hide_count..' sortable: true, css: {textAlign:\'right\'}}'
    return col
 end
@@ -579,7 +575,7 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
 	title: "",]]
 	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..interface_talkers_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id")
 
-	if not useAggregatedFlows() and not allowedNetworksRestrictions() then
+	if not allowedNetworksRestrictions() then
 	   -- speed up by passing the number of flows that is already calculated when browsing raw flows
 	   print("+ '&limit=' + num_flows")
 	end
@@ -977,7 +973,7 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
 	title: "",]]
 	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..top_apps_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id")
 	
-	if not useAggregatedFlows() and not allowedNetworksRestrictions() then
+	if not allowedNetworksRestrictions() then
 	   -- speed up by passing the number of flows that is already calculated when browsing raw flows
 	   print("+ '&limit=' + num_flows")
 	end
@@ -1221,9 +1217,7 @@ print [[
            <tr>
              <th>&nbsp;</th>]]
 
-if not useAggregatedFlows() then -- pointless to show counters for aggregations to the user
    print[[<th>]] print(i18n("db_explorer.total_flows"))print[[</th>]]
-end
 
 print[[<th>]] print(i18n("db_explorer.traffic_volume")) print[[</th>
              <th>]] print(i18n("db_explorer.total_packets")) print[[</th><th>]] print(i18n("db_explorer.traffic_rate")) print[[</th><th>]] print(i18n("db_explorer.packet_rate")) print[[</th>
@@ -1349,11 +1343,9 @@ print[[
         tr += "<tr><th>" + ipvers + "</th>"
 ]]
 
-if not useAggregatedFlows() then -- only show flow counters when querying from raw flows
 print[[
         tr += "<td align='right'>" + item.tot_flows + " Flows</td>"
 ]]
-end
 
 print[[
         tr += "<td align='right'>" + bytesToVolume(item.tot_bytes) + "</td>"
@@ -1363,9 +1355,6 @@ print[[
         tr += "</tr>"
       });
 
-//      if(msg.aggregated_flows) {
-//        $("#results-from-aggregated-flows").html("]] print(i18n("flow_search_from_aggregated")) print[[");
-//      }
       $("#flows-summary-table").append(tr)
       $("#historical-flows-summary-body").remove()
       $("#flows-summary-table").show();
@@ -1443,7 +1432,7 @@ print [[
 print [[
   var url_update4 = "]] print(url_update) print [[&version=4]]
 
-if not useAggregatedFlows() and not allowedNetworksRestrictions() then
+if not allowedNetworksRestrictions() then
    print[[&limit=" + $("#tab-ipv4").attr("num_flows")]]
 else
    -- limit computed dynamically
@@ -1594,7 +1583,7 @@ print [[
 
 	    var url_update6 = "]] print(url_update) print [[&version=6]]
 
-if not useAggregatedFlows() and not allowedNetworksRestrictions() then
+if not allowedNetworksRestrictions() then
    print[[&limit=" + $("#tab-ipv6").attr("num_flows")]]
 else
    -- limit computed dynamically

@@ -38,13 +38,13 @@ Prefs::Prefs(Ntop *_ntop) {
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
   ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
-  enable_access_log = false, enable_sql_log = false, flow_aggregation_enabled = false;
+  enable_access_log = false, enable_sql_log = false;
   enable_flow_device_port_rrd_creation = false;
   reproduce_at_original_speed = false;
   enable_ip_reassignment_alerts = false;
   enable_top_talkers = false, enable_idle_local_hosts_cache = false;
   enable_active_local_hosts_cache = false,
-    enable_tiny_flows_export = true, enable_aggregated_flows_export_limit = false,
+    enable_tiny_flows_export = true,
     enable_captive_portal = false, mac_based_captive_portal = false,
     enable_arp_matrix_generation = false,
     enable_informative_captive_portal = false,
@@ -575,8 +575,6 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED),
     enable_tiny_flows_export        = getDefaultBoolPrefsValue(CONST_IS_TINY_FLOW_EXPORT_ENABLED,
 							       CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED),
-    enable_aggregated_flows_export_limit  = getDefaultBoolPrefsValue(CONST_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED,
-								     CONST_DEFAULT_IS_AGGR_FLOWS_EXPORT_LIMIT_ENABLED),
 
     max_num_alerts_per_entity = getDefaultPrefsValue(CONST_MAX_NUM_ALERTS_PER_ENTITY, ALERTS_MANAGER_MAX_ENTITY_ALERTS),
     max_num_flow_alerts = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS, ALERTS_MANAGER_MAX_FLOW_ALERTS),
@@ -597,8 +595,6 @@ void Prefs::reloadPrefsFromRedis() {
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
     max_num_bytes_per_tiny_flow   = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
-    max_num_aggregated_flows_per_export = getDefaultPrefsValue(CONST_MAX_NUM_AGGR_FLOWS_PER_EXPORT,
-							       FLOW_AGGREGATION_MAX_AGGREGATES),
     max_extracted_pcap_bytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_BYTES,
                                                      CONST_DEFAULT_MAX_EXTR_PCAP_BYTES); 
 
@@ -1680,10 +1676,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "max_num_flows", max_num_flows);
   lua_push_bool_table_entry(vm, "is_dump_flows_enabled", do_dump_flows());
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql || read_flows_from_mysql);
-  lua_push_bool_table_entry(vm, "is_flow_aggregation_enabled", is_flow_aggregation_enabled());
-
-  if(is_flow_aggregation_enabled())
-    lua_push_uint64_table_entry(vm, "flow_aggregation_frequency", flow_aggregation_frequency());
 
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   lua_push_bool_table_entry(vm, "is_nindex_enabled", do_dump_flows_on_nindex());
@@ -1735,7 +1727,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_active_local_hosts_cache_enabled", enable_active_local_hosts_cache);
 
   lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",             enable_tiny_flows_export);
-  lua_push_bool_table_entry(vm,"is_aggregated_flows_export_limit_enabled", enable_aggregated_flows_export_limit);
   lua_push_uint64_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
   lua_push_uint64_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
 
@@ -1747,7 +1738,6 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_uint64_table_entry(vm, "max_num_packets_per_tiny_flow", max_num_packets_per_tiny_flow);
   lua_push_uint64_table_entry(vm, "max_num_bytes_per_tiny_flow",   max_num_bytes_per_tiny_flow);
-  lua_push_uint64_table_entry(vm, "max_num_aggregated_flows_per_export", max_num_aggregated_flows_per_export);
 
   lua_push_uint64_table_entry(vm, "max_extracted_pcap_bytes", max_extracted_pcap_bytes);
 

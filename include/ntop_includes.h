@@ -384,10 +384,6 @@ using namespace std;
 #include "AutonomousSystemHash.h"
 #include "CountriesHash.h"
 #include "HostHash.h"
-#ifdef NTOPNG_PRO
-#include "AggregatedFlow.h"
-#include "AggregatedFlowHash.h"
-#endif
 #include "ThreadedActivityStats.h"
 #include "ThreadedActivity.h"
 #include "ThreadPool.h"

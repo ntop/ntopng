@@ -24,10 +24,6 @@
 
 #include "ntop_includes.h"
 
-#ifdef NTOPNG_PRO
-class AggregatedFlow;
-#endif
-
 class DB {
  private:
   struct timeval lastUpdateTime;
@@ -62,9 +58,6 @@ class DB {
   virtual void shutdown();
   virtual void flush() {};
   virtual void lua(lua_State* vm, bool since_last_checkpoint) const;
-#ifdef NTOPNG_PRO
-  virtual bool dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
-#endif
 };
 
 #endif /* _DB_CLASS_H_ */

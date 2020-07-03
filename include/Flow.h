@@ -70,7 +70,6 @@ class Flow : public GenericHashEntry {
   bool iface_alert_inc, iface_alert_dec;
 #endif
 #ifdef NTOPNG_PRO
-  bool counted_in_aggregated_flow, status_counted_in_aggregated_flow;
   bool ingress2egress_direction;
   u_int8_t routing_table_id;
 #ifndef HAVE_NEDGE
@@ -382,12 +381,6 @@ class Flow : public GenericHashEntry {
   u_int16_t getStatsProtocol() const;
   void setJSONInfo(json_object *json);
   void setTLVInfo(ndpi_serializer *tlv);
-#ifdef NTOPNG_PRO
-  inline bool is_status_counted_in_aggregated_flow()    const { return(status_counted_in_aggregated_flow); };
-  inline bool is_counted_in_aggregated_flow()           const { return(counted_in_aggregated_flow);        };
-  inline void set_counted_in_aggregated_flow(bool val)        { counted_in_aggregated_flow  = val;         };
-  inline void set_status_counted_in_aggregated_flow(bool val) { status_counted_in_aggregated_flow = val;   };
-#endif
   void incStats(bool cli2srv_direction, u_int pkt_len,
 		u_int8_t *payload, u_int payload_len, 
                 u_int8_t l4_proto, u_int8_t is_fragment,

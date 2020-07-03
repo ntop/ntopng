@@ -3402,7 +3402,7 @@ static int ntop_get_l7_policy_info(lua_State* vm) {
 static int ntop_nindex_select(lua_State* vm) {
   u_int8_t id = 1;
   char *select = NULL, *where = NULL;
-  bool use_aggregated_flows, export_results = false;
+  bool export_results = false;
   char *timestamp_begin, *timestamp_end;
   unsigned long skip_initial_records, max_num_hits;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -3415,9 +3415,6 @@ static int ntop_nindex_select(lua_State* vm) {
     nindex = ntop_interface->getNindex();
     if(!nindex) return(CONST_LUA_ERROR);
   }
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  use_aggregated_flows = lua_toboolean(vm, id++) ? true : false;
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((timestamp_begin = (char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -3442,7 +3439,7 @@ static int ntop_nindex_select(lua_State* vm) {
 
   conn = getLuaVMUserdata(vm, conn);
 
-  return(nindex->select(vm, use_aggregated_flows,
+  return(nindex->select(vm,
 			timestamp_begin, timestamp_end, select,
 			where, skip_initial_records, max_num_hits,
 			export_results ? conn : NULL));
@@ -3453,7 +3450,6 @@ static int ntop_nindex_select(lua_State* vm) {
 static int ntop_nindex_topk(lua_State* vm) {
   u_int8_t id = 1;
   char *select_keys = NULL, *select_values = NULL,*where = NULL;
-  bool use_aggregated_flows;
   char *timestamp_begin, *timestamp_end;
   unsigned long skip_initial_records, max_num_hits;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -3468,9 +3464,6 @@ static int ntop_nindex_topk(lua_State* vm) {
     nindex = ntop_interface->getNindex();
     if(!nindex) return(CONST_LUA_ERROR);
   }
-
-  if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  use_aggregated_flows = lua_toboolean(vm, id++) ? true : false;
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((timestamp_begin = (char*)lua_tostring(vm, id++)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -3507,7 +3500,7 @@ static int ntop_nindex_topk(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   useApproxQuery = lua_toboolean(vm, id++) ? true : false;
 
-  return(nindex->topk(vm, use_aggregated_flows,
+  return(nindex->topk(vm,
 		      timestamp_begin, timestamp_end,
 		      select_keys, select_values,
 		      where, topkOperator,

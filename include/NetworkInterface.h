@@ -46,8 +46,6 @@ class NetworkInterfaceTsPoint;
 class ViewInterface;
 
 #ifdef NTOPNG_PRO
-class AggregatedFlow;
-class AggregatedFlowHash;
 class L7Policer;
 class FlowInterfacesStats;
 class TrafficShaper;
@@ -143,9 +141,6 @@ class NetworkInterface : public AlertableEntity {
 #endif
   CustomAppStats *custom_app_stats;
   FlowInterfacesStats *flow_interfaces_stats;
-  AggregatedFlowHash *aggregated_flows_hash; /**< Hash used to store aggregated flows information. */
-  struct timeval aggregated_flows_dump_last_dump;
-  bool aggregated_flows_dump_ready;
 #endif
   EthStats ethStats;
   std::map<u_int32_t, u_int64_t> ip_mac; /* IP (network byte order) <-> MAC association [2 bytes are unused] */
@@ -359,12 +354,7 @@ class NetworkInterface : public AlertableEntity {
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f, bool no_time_left);
 #ifdef NTOPNG_PRO
-  void dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv);
-  void dumpAggregatedFlows(const struct timeval *tv, time_t deadline, bool no_time_left);
   void flushFlowDump();
-  void set_aggregated_flows_dump_update(const struct timeval *tv);
-  bool is_aggregated_flows_dump_ready() const;
-
 #endif
   void checkPointHostTalker(lua_State* vm, char *host_ip, u_int16_t vlan_id);
   int dumpLocalHosts2redis(bool disable_purge);
@@ -727,7 +717,6 @@ class NetworkInterface : public AlertableEntity {
   virtual void addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) { ; };
   virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
 				 char *label, int32_t lifetime_sec) { ; };
-  void aggregatePartialFlow(const struct timeval *tv, Flow *flow);
 #endif
 
   inline char* mdnsResolveIPv4(u_int32_t ipv4addr /* network byte order */,

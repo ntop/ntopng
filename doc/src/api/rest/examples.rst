@@ -327,7 +327,7 @@ Get Flows Data
 
 .. code:: bash
 	  
-   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/pro/rest/get/db/flows.lua?select_clause=*&where_clause=%28IPV4_SRC_ADDR%3D192.168.1.1+OR+IPV4_DST_ADDR%3D192.168.1.1%29&begin_time_clause=1547223290&end_time_clause=1547225090&flow_clause=flows&maxhits_clause=10"
+   curl -s --cookie "user=admin; password=admin" "http://192.168.1.1:3000/lua/pro/rest/get/db/flows.lua?select_clause=*&where_clause=%28IPV4_SRC_ADDR%3D192.168.1.1+OR+IPV4_DST_ADDR%3D192.168.1.1%29&begin_time_clause=1547223290&end_time_clause=1547225090&maxhits_clause=10"
 
 Response:
 

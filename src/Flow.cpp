@@ -134,8 +134,6 @@ Flow::Flow(NetworkInterface *_iface,
     if(cli_host) routing_table_id = hp->getRoutingPolicy(cli_host->get_host_pool());
     if(srv_host) routing_table_id = max_val(routing_table_id, hp->getRoutingPolicy(srv_host->get_host_pool()));
   }
-
-  counted_in_aggregated_flow = status_counted_in_aggregated_flow = false;
 #endif
 
   passVerdict = true, quota_exceeded = false;
@@ -1160,11 +1158,6 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper_iface, bo
        there are not packet counters, just bytes. */
     if(!get_partial_bytes())
       return rc; /* Nothing to dump */
-
-#ifdef NTOPNG_PRO
-    if(ntop->getPro()->has_valid_license() && ntop->getPrefs()->is_enterprise_m_edition())
-      dumper_iface->aggregatePartialFlow(tv, this);
-#endif
 
     dumper_iface->dumpFlow(last_seen, this, no_time_left);
 

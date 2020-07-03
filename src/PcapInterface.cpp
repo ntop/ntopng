@@ -160,8 +160,7 @@ void PcapInterface::cleanupPcapDumpDir() {
 
 	  if((strcmp(d_name, "..") != 0) &&
 	     (strcmp(d_name, ".") != 0) &&
-	     (strcmp(d_name, "flows") != 0) &&
-	     (strcmp(d_name, "aggregatedflows") != 0)) {
+	     (strcmp(d_name, "flows") != 0)) {
 	    if(snprintf(sub_dir, sizeof(base_dir), "%s/%s", base_dir, d_name) < (int)sizeof(base_dir)) {
 	      ntop->fixPath(sub_dir);
 	      Utils::remove_recursively(sub_dir);
