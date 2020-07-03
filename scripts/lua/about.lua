@@ -25,9 +25,9 @@ if(_POST["ntopng_license"] ~= nil) then
    ntop.checkLicense()
    ntop.setCache('ntopng.cache.force_reload_plugins', '1') -- housekeeping.lua will reload plugins
 
-   if (not info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
+   if (info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
       table.insert(notifications, alert_notification:create(0, i18n("info"), i18n("about.create_license_l"), "info"))
-   elseif (info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
+   elseif (not info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
       table.insert(notifications, alert_notification:create(0, i18n("info"), i18n("about.create_license"), "info"))
    end
 
