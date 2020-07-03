@@ -16,7 +16,7 @@
         </button>
     </div>
     <div class="toast-body bg-{{ style.bg_color }} {{ style.body_text_color }}">
-        <span>{{content.body}}</span>
+        <span>{* content.body *}</span>
         {% if (content.action) then %}
         <a class="{{ style.title_text_color }} float-right border-white" href="{{ content.action.url }}">
             <b>{{ content.action.title }}</b>

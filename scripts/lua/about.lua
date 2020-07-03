@@ -15,9 +15,9 @@ local alert_notification = require("alert_notification")
 
 local notifications = {}
 
-if (info["version.enterprise_l_edition"] and info["pro.use_redis_license"]) then
+if (info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
    table.insert(notifications, alert_notification:create(0, i18n("info"), i18n("about.create_license_l"), "info"))
-elseif (not info["version.enterprise_l_edition"] and info["pro.use_redis_license"]) then
+elseif (not info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
    table.insert(notifications, alert_notification:create(0, i18n("info"), i18n("about.create_license"), "info"))
 end
 
