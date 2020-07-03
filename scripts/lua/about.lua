@@ -17,13 +17,13 @@ local notifications = {}
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.about, { product=info.product })
-dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-
 if(_POST["ntopng_license"] ~= nil) then
+
    ntop.setCache('ntopng.license', trimSpace(_POST["ntopng_license"]))
    ntop.checkLicense()
    ntop.setCache('ntopng.cache.force_reload_plugins', '1') -- housekeeping.lua will reload plugins
+
+   info = ntop.getInfo()
 
    if (info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
       table.insert(notifications, alert_notification:create(0, i18n("info"), i18n("about.create_license_l"), "info"))
@@ -33,6 +33,8 @@ if(_POST["ntopng_license"] ~= nil) then
 
 end
 
+page_utils.set_active_menu_entry(page_utils.menu_entries.about, { product=info.product })
+dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 menu_alert_notifications.render_notifications("about", notifications)
 
