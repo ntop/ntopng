@@ -13,7 +13,10 @@ function interface_pools:create()
    local _interface_pools = base_pools:create()
 
    -- Subclass using the base class instance
-   local _interface_pools_instance = _interface_pools:create({key = "interface"})
+   self.key = "interface"
+   -- self is passed as argument so it will be set as base class metatable
+   -- and this will actually make it possible to override functions
+   local _interface_pools_instance = _interface_pools:create(self)
 
    -- Return the instance
    return _interface_pools_instance
@@ -21,13 +24,12 @@ end
 
 -- ##############################################
 
--- @brief Returns members which doesn't belong to any pool
-function interface_pools.list_available_members()
-   -- STUB: currently returns all members
+-- @brief Returns an array of all possible interface ids, both assigned and unassigned to pool members
+function interface_pools:get_all_members()
    local res = {}
 
    for ifid, ifname in pairs(interface.getIfNames()) do
-      res[#res + 1] = {id = ifid, name = ifname}
+      res[#res + 1] = ifid
    end
 
    return res

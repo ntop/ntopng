@@ -70,8 +70,8 @@ function base_pools:_get_pool_details_key(pool_id)
       return nil
    end
 
-   local key = string.format("%s.pool_id_%d.next_pool_id", self:_get_pools_prefix_key(), pool_id)
-   tprint(key)
+   local key = string.format("%s.pool_id_%d.details", self:_get_pools_prefix_key(), pool_id)
+
    return key
 end
 
@@ -206,6 +206,26 @@ end
 
 -- ##############################################
 
+-- @brief Returns a flattened table with pool_member->pool_id pairs
+function base_pools:get_assigned_members()
+   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+   local res = {}
+
+   for _, pool_id in pairs(cur_pool_ids) do
+      local pool_details = self:get_pool(pool_id)
+
+      if pool_details and pool_details["members"] then
+	 for _, member in pairs(pool_details["members"]) do
+	    res[member] = pool_id
+	 end
+      end
+   end
+
+   return res
+end
+
+-- ##############################################
+
 function base_pools:cleanup()
    -- TODO: LOCK
 
@@ -224,8 +244,33 @@ end
 
 -- ##############################################
 
+-- @brief Returns available members which don't already belong to any defined pool
+function base_pools:get_available_members()
+   local assigned_members = self:get_assigned_members()
+   local all_members = self:get_all_members()
+
+   -- Just convert the array into a table so checks will be faster
+   local assigned_members_set = {}
+   for assigned_member, pool_id in pairs(assigned_members) do
+      assigned_members_set[assigned_member] = true
+   end
+
+   local res = {}
+   for _, member in pairs(all_members) do
+--      tprint("checking.."..member)
+--      tprint(member)
+      if not assigned_members_set[member] then
+	 res[#res + 1] = member
+      end
+   end
+
+   return res
+end
+
+-- ##############################################
+
 -- @brief Returns available confset ids which can be added to a pool
-function base_pools:list_available_configset_ids()
+function base_pools:get_available_configset_ids()
    -- Currently, confset_ids are shared across pools of all types
    -- so all the confset_ids can be returned here without distinction
    local config_sets = user_scripts.getConfigsets()
@@ -237,5 +282,7 @@ function base_pools:list_available_configset_ids()
 
    return res
 end
+
+-- ##############################################
 
 return base_pools
