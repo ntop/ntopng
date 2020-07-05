@@ -8,19 +8,12 @@ local interface_pools = {}
 
 -- ##############################################
 
-function interface_pools:create(name, members, configset_id)
+function interface_pools:create()
    -- Instance of the base class
    local _interface_pools = base_pools:create()
-   -- Subclass using the base class instance
-   local _interface_pools_instance = _interface_pools:create({key = "interface", name = name or '', members = members or {}, configset_id = configset_id or 0})
 
-   -- In the instance has been created successfully, we can persist it
-   if _interface_pools_instance then
-      if not _interface_pools_instance:_persist() then
-	 -- Failed to persist the instance, unable to create
-	 return nil
-      end
-   end
+   -- Subclass using the base class instance
+   local _interface_pools_instance = _interface_pools:create({key = "interface"})
 
    -- Return the instance
    return _interface_pools_instance
