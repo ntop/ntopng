@@ -35,12 +35,4 @@ end
 
 -- ##############################################
 
--- @brief Returns available confset ids which can be added to a pool
-function interface_pools.list_available_configset_ids()
-   -- Just call the function in base_pools, see if it can be done with inheritance
-   return base_pools.list_available_configset_ids()
-end
-
--- ##############################################
-
 return interface_pools

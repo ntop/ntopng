@@ -224,7 +224,8 @@ end
 
 -- ##############################################
 
-function base_pools.list_available_configset_ids()
+-- @brief Returns available confset ids which can be added to a pool
+function base_pools:list_available_configset_ids()
    -- Currently, confset_ids are shared across pools of all types
    -- so all the confset_ids can be returned here without distinction
    local config_sets = user_scripts.getConfigsets()
@@ -236,7 +237,5 @@ function base_pools.list_available_configset_ids()
 
    return res
 end
-
--- ##############################################
 
 return base_pools
