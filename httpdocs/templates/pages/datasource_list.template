@@ -94,6 +94,7 @@ i18n.warning ="{{ i18n('warning', {}) }}";
 i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
 i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
 i18n.search = "{{ i18n('search') }}";
+i18n.source_exists = "{{ i18n('datasources.source_exists') }}";
 const ds_csrf = "{{ csrf }}";
 
 const timeseriesFamilies = {* json.encode(datasources_list.timeseries) *};
