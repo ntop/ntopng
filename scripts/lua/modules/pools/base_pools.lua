@@ -236,6 +236,8 @@ function base_pools:delete_pool(pool_id)
 
       -- Remove the pool_id from the set of all currently existing pool ids
       ntop.delMembersCache(self:_get_pool_ids_key(), string.format("%d", pool_id))
+
+      ret = true
    end
 
    -- TODO: UNLOCK

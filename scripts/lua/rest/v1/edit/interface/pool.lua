@@ -44,6 +44,7 @@ local res = s:edit_pool(pool_id, name, members --[[ an array of valid interface 
 
 if not res then
    print(rest_utils.rc(rest_utils.consts_edit_pool_failed))
+   return
 end
 
 local rc = rest_utils.consts_ok

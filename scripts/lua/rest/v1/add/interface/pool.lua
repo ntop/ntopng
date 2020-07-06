@@ -41,6 +41,7 @@ local new_pool_id = s:add_pool(name, members --[[ an array of valid interface id
 
 if not new_pool_id then
    print(rest_utils.rc(rest_utils.consts_add_pool_failed))
+   return
 end
 
 local rc = rest_utils.consts_ok

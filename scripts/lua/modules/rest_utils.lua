@@ -26,6 +26,7 @@ rest_utils.consts_snmp_device_unreachable          = -11
 rest_utils.consts_snmp_device_no_device_discovered = -12
 rest_utils.consts_add_pool_failed                  = -13
 rest_utils.consts_edit_pool_failed                 = -14
+rest_utils.consts_delete_pool_failed               = -15
 
 local rc_str_consts = {
    [rest_utils.consts_ok] = "OK",
@@ -43,6 +44,7 @@ local rc_str_consts = {
    [rest_utils.consts_snmp_device_no_device_discovered] = "NO_SNMP_DEVICE_DISCOVERED",
    [rest_utils.consts_add_pool_failed] = "ADD_POOL_FAILED",
    [rest_utils.consts_edit_pool_failed] = "EDIT_POOL_FAILED",
+   [rest_utils.consts_delete_pool_failed] = "DELETE_POOL_FAILED",
 }
 
 function rest_utils.rc(ret_code, response)
