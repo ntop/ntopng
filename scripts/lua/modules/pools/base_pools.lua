@@ -247,6 +247,24 @@ end
 
 -- ##############################################
 
+-- @brief Returns all the defined pools. Pools are returned in a lua table with pool ids as keys
+function base_pools:get_all_pools()
+   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+   local res = {}
+
+   for _, pool_id in pairs(cur_pool_ids) do
+      local pool_details = self:get_pool(pool_id)
+
+      if pool_details then
+	 res[tonumber(pool_id)] = pool_details
+      end
+   end
+
+   return res
+end
+
+-- ##############################################
+
 function base_pools:get_pool(pool_id)
    local pool_details
    local pool_details_key = self:_get_pool_details_key(pool_id)

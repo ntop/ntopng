@@ -64,7 +64,7 @@ assert(second_pool_id == 2)
 -- tprint(pool_details)
 -- tprint(s:get_available_configset_ids())
 -- s:delete_pool(new_pool_id)
--- s:cleanup()
+-- tprint(s:get_all_pools())
 
 s:cleanup()
 

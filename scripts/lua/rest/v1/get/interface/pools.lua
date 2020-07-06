@@ -12,38 +12,34 @@ local rest_utils = require "rest_utils"
 local interface_pools = require "interface_pools"
 
 --
--- Delete an existing pool
+-- Pools getter
 --
 
 local pool_id = _GET["pool"]
 
 sendHTTPHeader('application/json')
 
-if not isAdministrator() then
-   print(rest_utils.rc(rest_utils.consts_not_granted))
-   return
-end
-
-if not pool_id then
-   print(rest_utils.rc(rest_utils.consts_invalid_args))
-   return
-end
-
 -- pool_id as number
 pool_id = tonumber(pool_id)
 
-local s = interface_pools:create()
-local res = s:delete_pool(pool_id)
+local res = {}
 
-if not res then
-   print(rest_utils.rc(rest_utils.consts_pool_not_found))
-   return
+local s = interface_pools:create()
+
+if pool_id then
+   -- Return only one pool
+   local cur_pool = s:get_pool(pool_id)
+
+   if cur_pool then
+      res[pool_id] = cur_pool
+   else
+      print(rest_utils.rc(rest_utils.consts_pool_not_found))
+      return
+   end
+else
+   -- Return all pool ids
+   res = s:get_all_pools()
 end
 
 local rc = rest_utils.consts_ok
-local res = {
-   pool_id = new_pool_id
-}
-
 print(rest_utils.rc(rc, res))
-
