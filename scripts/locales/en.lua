@@ -3590,6 +3590,7 @@ local lang = {
     ["NOT_GRANTED"] = "Not authorized",
     ["NO_SNMP_DEVICE_DISCOVERED"] = "No SNMP device discovered",
     ["ADD_POOL_FAILED"] = "Unable to add a pool with the submitted params",
+    ["EDIT_POOL_FAILED"] = "Unable to edit a pool with the submitted params",
     ["OK"] = "Success",
     ["SNMP_DEVICE_ALREADY_ADDED"] = "SNMP device already added",
     ["SNMP_DEVICE_UNREACHABLE"] = "No answer from the SNMP device",

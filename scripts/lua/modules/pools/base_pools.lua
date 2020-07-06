@@ -178,8 +178,7 @@ function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
 
       -- Check if new_name is not the name of any other existing pool
       local same_name_pool = self:get_pool_by_name(new_name)
-
-      if same_name_pool and same_name_pool.id ~= pool_id then checks_ok = false end
+      if same_name_pool and same_name_pool.pool_id ~= pool_id then checks_ok = false end
 
       -- Check if members are valid
       if not self:are_valid_members(new_members) then checks_ok = false end
@@ -254,6 +253,10 @@ function base_pools:get_pool(pool_id)
    if pool_details_key then
       local pool_details_str = ntop.getCache(pool_details_key)
       pool_details = json.decode(pool_details_str)
+
+      if pool_details then
+	 pool_details["pool_id"] = tonumber(pool_id)
+      end
    end
 
    -- Upon success, pool details are returned, otherwise nil
