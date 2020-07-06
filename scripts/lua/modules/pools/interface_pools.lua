@@ -24,12 +24,12 @@ end
 
 -- ##############################################
 
--- @brief Returns an array of all possible interface ids, both assigned and unassigned to pool members
+-- @brief Returns a table of all possible interface ids, both assigned and unassigned to pool members
 function interface_pools:get_all_members()
    local res = {}
 
    for ifid, ifname in pairs(interface.getIfNames()) do
-      res[#res + 1] = ifid
+      res[ifid] = true
    end
 
    return res

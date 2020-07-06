@@ -26,12 +26,22 @@ s:cleanup()
 local new_pool_id = s:add_pool('my_pool', {"0"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
 assert(new_pool_id == 1)
 
--- Getter
+-- Getter (by id)
 local pool_details = s:get_pool(new_pool_id)
 assert(pool_details["name"] == "my_pool")
 
+-- Getter (a non-existing id)
+assert(not s:get_pool(999))
+
+-- Getter (by name)
+pool_details = s:get_pool_by_name('my_pool')
+assert(pool_details["name"] == "my_pool")
+
+-- Getter (a non-existing name)
+assert(not s:get_pool_by_name('my_non_existing_name'))
+
 -- Edit
-s:edit_pool(new_pool_id, 'my_renewed_pool', {0}, 0)
+s:edit_pool(new_pool_id, 'my_renewed_pool', {"0"}, 0)
 pool_details = s:get_pool(new_pool_id)
 assert(pool_details["name"] == "my_renewed_pool")
 
