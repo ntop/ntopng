@@ -406,11 +406,11 @@ function base_pools:get_available_members()
    local all_members = self:get_all_members()
 
    local res = {}
-   for member, _ in pairs(all_members) do
+   for member, member_details in pairs(all_members) do
 --      tprint("checking.."..member)
 --      tprint(member)
       if not assigned_members[member] then
-	 res[member] = true
+	 res[member] = member_details
       end
    end
 

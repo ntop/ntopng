@@ -29,7 +29,7 @@ function interface_pools:get_all_members()
    local res = {}
 
    for ifid, ifname in pairs(interface.getIfNames()) do
-      res[ifid] = true
+      res[ifid] = {ifid = ifid, ifname = ifname}
    end
 
    return res
