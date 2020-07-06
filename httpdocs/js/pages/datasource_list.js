@@ -63,18 +63,22 @@ $(document).ready(function () {
 
             this.setSourceId(name);
             this.setAccordionParent(this.parentName);
-            this.setEventListeners();
+            this.bindEventListeners();
         }
 
         get getDomElement() {
             return this.$domElement;
         }
 
+        get identifierSource() {
+            return `${this.$familiesSelect.val()}-${this.$schemasSelect.val()}-${this.$metricsSelect.val()}`;
+        }
+
         setAccordionParent(parentName) {
             this.$domElement.find('.collapse').attr('data-parent', parentName);
         }
 
-        setEventListeners() {
+        bindEventListeners() {
             const self = this;
             this.$familiesSelect.change(function (e) {
                 self.onFamilySelect(e);
@@ -127,7 +131,7 @@ $(document).ready(function () {
             }
         }
 
-        generateSelectOptions($select, values, generateEmpty = true) {
+        generateSelectOptions($select, values, generateEmpty = true, titleDummy = "Select ...") {
 
             const generateOption = (val, label, disabled = false) => {
                 const $option = $(`<option value ${disabled ? 'disabled hidden selected' : ''}>${label}</option>`);
@@ -142,19 +146,23 @@ $(document).ready(function () {
 
             if (generateEmpty) generateOption(undefined, '', true);
 
+            // generate dummy option
+            generateOption(null, titleDummy, true);
+
             if (values.length > 0) {
                 for (const val of values) generateOption(val, val);
                 return;
             }
 
-            for (const [key, value] of Object.entries(values).sort((a, b) => a[0].localeCompare(b[0])))
+            for (const [key, _] of Object.entries(values).sort((a, b) => a[0].localeCompare(b[0])))
                 generateOption(key, key);
+
         }
 
         onFamilySelect(event) {
             /* render only schema which belongs to the selected family */
             const schemas = this.timeseriesFamilies[this.$familiesSelect.val()];
-            this.generateSelectOptions(this.$schemasSelect, schemas);
+            this.generateSelectOptions(this.$schemasSelect, schemas, "Select a schema...");
             /* show step one inside the card */
             if (!this.stepsCompleted[0]) {
                 this.steps[0].fadeIn();
@@ -171,14 +179,38 @@ $(document).ready(function () {
             /* render only schema which belongs to the selected family */
             const schema = this.timeseriesFamilies[this.$familiesSelect.val()][this.$schemasSelect.val()];
             const { metrics, tags } = schema;
-            this.generateSelectOptions(this.$metricsSelect, metrics, false);
+            this.generateSelectOptions(this.$metricsSelect, metrics, false, "Select a metric...");
             if (!this.preCreated) this.generateTags(tags);
 
             this.steps[1].fadeIn();
             this.stepsCompleted[1] = true;
+
         }
 
         onMetricSelect(event) {
+
+            // check if exists a source with the same id
+            const self = this;
+            const exists = this.builder.currentSources.some((source) => {
+                if (source == self) return false;
+                return (source.identifierSource == self.identifierSource);
+            });
+
+            if (exists) {
+                event.stopPropagation();
+                event.preventDefault();
+                this.$metricsSelect
+                    .removeClass('is-valid').addClass('is-invalid');
+
+                this.$metricsSelect.parent().append("<span class='invalid-feedback'>${i18n.source_exists}</span>");
+                this.$metricsSelect.parents('form').find(`button[type='submit']`).attr("disabled", "disabled");
+                return;
+            }
+            else {
+                this.$metricsSelect.parent().find(`span.invalid-feedback`).remove();
+                this.$metricsSelect.parents('form').find(`button[type='submit']`).removeAttr("disabled");
+            }
+
             this.setCardTitle(`${this.$schemasSelect.val()} / ${this.$metricsSelect.val()}`);
         }
 

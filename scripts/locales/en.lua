@@ -809,6 +809,7 @@ local lang = {
     ["select_schema_first"] = "Select a schema first",
     ["select_series"] = "Select a series",
     ["series"] = "Series",
+    ["source_exists"] = "There is already a source like this!",
   },
   ["db_explorer"] = {
     ["abort"] = "Abort",
