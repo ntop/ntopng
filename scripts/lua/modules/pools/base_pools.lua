@@ -292,7 +292,7 @@ function base_pools:get_all_pools()
       local pool_details = self:get_pool(pool_id)
 
       if pool_details then
-	 res[tonumber(pool_id)] = pool_details
+	 res[#res + 1] = pool_details
       end
    end
 
