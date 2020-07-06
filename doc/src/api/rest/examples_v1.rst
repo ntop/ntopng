@@ -1283,7 +1283,7 @@ Add an SNMP Device
 
 .. code:: bash
 
-   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"ubnt", "community":"public", "snmp_version": "1"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"ubnt", "snmp_read_community":"public", "snmp_version": "1"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
 
 Response:
 
@@ -1304,7 +1304,7 @@ Response:
 
 .. code:: bash
 
-   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"192.168.2.169", "community":"public", "snmp_version": "1", "cidr":"32"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"192.168.2.169", "snmp_read_community":"public", "snmp_version": "1", "cidr":"32"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
 
 Response:
 
@@ -1324,7 +1324,7 @@ Response:
 
 .. code:: bash
 
-   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"192.168.2.0", "community":"public", "snmp_version": "1", "cidr":"24"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"192.168.2.0", "snmp_read_community":"public", "snmp_version": "1", "cidr":"24"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
 
 Response:
 

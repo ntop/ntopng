@@ -44,11 +44,6 @@ end
 
 interface.select(ifid)
 
-if _POST["payload"] ~= nil then
-  -- REST request, use extended mode
-  extended_times = true
-end
-
 -- Epochs in _GET are assumed to be adjusted to UTC. This is always the case when the browser submits epoch using a
 -- datetimepicker (e.g., from any chart page).
 

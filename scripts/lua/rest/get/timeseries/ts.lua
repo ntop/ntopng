@@ -29,11 +29,6 @@ local extended_times  = _GET["extended"]
 local ts_aggregation  = _GET["ts_aggregation"]
 local no_fill = tonumber(_GET["no_fill"])
 
-if _POST["payload"] ~= nil then
-  -- REST request, use extended mode
-  extended_times = true
-end
-
 -- Epochs in _GET are assumed to be adjusted to UTC. This is always the case when the browser submits epoch using a
 -- datetimepicker (e.g., from any chart page).
 

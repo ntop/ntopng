@@ -1866,7 +1866,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- #################################################################
 
-local function validateParameter(k, v)
+local function validateParameter(k, v)   
    if(known_parameters[k] == nil) then
       return false, nil
    else
@@ -1996,15 +1996,24 @@ end
 
 -- #################################################################
 
+--
+-- In case of forms submitted as "application/x-www-form-urlencoded" the received JSON is
+-- stored in _POST["payload"] unverified. The function below, parses JSON and puts it
+-- in the corresponding _GET/_POST parameters
+-- See also https://github.com/ntop/ntopng/issues/4113
+--
 local function parsePOSTpayload()
    if((_POST ~= nil) and (_POST["payload"] ~= nil)) then
       local info, pos, err = json.decode(_POST["payload"], 1, nil)
 
       if(info ~= nil) then
 	 for k,v in pairs(info) do
-	    _GET[k] = v
+	    _GET[k] = v -- TODO: remove as soon as REST API is clean
+	    _POST[k] = v
 	 end
       end
+
+      -- _POST["payload"] = nil -- Remove the payload field
    end
 end
 

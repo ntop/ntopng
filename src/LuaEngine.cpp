@@ -708,7 +708,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	/* application/json" */
 
 	lua_newtable(L);
-	lua_push_str_table_entry(L, "payload", post_data);
+	lua_push_str_table_entry(L, "payload", post_data); /* This payload is NOT parsed, checked or verified against attacks */
 	lua_setglobal(L, "_POST");
       }
 

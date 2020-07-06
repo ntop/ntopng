@@ -3532,12 +3532,12 @@ static void* pcapDumpLoop(void* ptr) {
     if(rc > 0) {
       pcap_dump((u_char*)c->pkt_capture.dumper, (const struct pcap_pkthdr*)h, pkt);
 
-      if(h->ts.tv_sec > c->pkt_capture.end_capture)
+      if(h->ts.tv_sec > (time_t)c->pkt_capture.end_capture)
 	break;
     } else if(rc < 0) {
       break;
     } else if(rc == 0) {
-      if(time(NULL) > c->pkt_capture.end_capture)
+      if(time(NULL) > (time_t)c->pkt_capture.end_capture)
 	break;
     }
   } /* while */

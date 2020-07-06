@@ -1154,17 +1154,59 @@
 		    "type": "string"
 		},
 			       {
-				   "name": "community",
+				   "name": "snmp_read_community",
 				   "in": "query",
-				   "description": "The SNMP community to use",
+				   "description": "The SNMP read community to use (SNMP v1/v2c only)",
 				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "snmp_write_community",
+				   "in": "query",
+				   "description": "The SNMP write community to use (SNMP v1/v2c only)",
+				   "required": false,
 				   "type": "string"
 			       },
 			       {
 				   "name": "snmp_version",
 				   "in": "query",
-				   "description": "The SNMP version to use, either 1 (v2c) or 0 (v1)",
+				   "description": "The SNMP version to use: 2 (SNMP v3), 1 (v2c) or 0 (v1)",
 				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "snmp_level",
+				   "in": "query",
+				   "description": "Used only with SNMP v3: noAuthNoPriv, authNoPriv, or authPriv)",
+				   "required": true,
+				   "type": "string"
+			       },
+			       {
+				   "name": "snmp_auth_protocol",
+				   "in": "query",
+				   "description": "Used only with SNMP v3 and level not set to noAuthNoPriv: MD5 or SHA",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "snmp_auth_passphrase",
+				   "in": "query",
+				   "description": "Used only with SNMP v3 and level not set to noAuthNoPriv: 8 chars+ passphrase",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "snmp_privacy_protocol",
+				   "in": "query",
+				   "description": "Used only with SNMP v3 and level set to autPriv: DES or AES",
+				   "required": false,
+				   "type": "string"
+			       },
+			       {
+				   "name": "snmp_privacy_passphrase",
+				   "in": "query",
+				   "description": "Used only with SNMP v3 and level set to autPriv: 8 chars+ passphrase",
+				   "required": false,
 				   "type": "string"
 			       },
 			       {

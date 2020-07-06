@@ -19,9 +19,6 @@ local ret = {associations = {
 return ret
 --]]
 
-local assn = _POST["payload"]
-assn = json.decode(assn) or {}
-
 local r = {}
 for _, ifname in pairs(interface.getIfNames()) do
    interface.select(ifname)
@@ -33,9 +30,9 @@ for _, ifname in pairs(interface.getIfNames()) do
       pools_list[pool["name"]] = pool
    end
 
-   local res = {associations = assn["associations"]}
+   local res = {associations = _POST["associations"]}
 
-   for member, info in pairs(assn["associations"] or {}) do
+   for member, info in pairs(_POST["associations"] or {}) do
       local pool = info["group"]
       local connectivity = info["connectivity"]
 
