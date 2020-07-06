@@ -66,5 +66,7 @@ assert(second_pool_id == 2)
 -- s:delete_pool(new_pool_id)
 -- s:cleanup()
 
+s:cleanup()
+
 print("OK\n")
 

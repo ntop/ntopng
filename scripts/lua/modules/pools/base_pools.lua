@@ -148,7 +148,6 @@ function base_pools:add_pool(name, members, configset_id)
 	 end
       end
 
-
       if checks_ok then
 	 -- All the checks have succeeded
 	 -- Now that everything is ok, the id can be assigned and the pool can be persisted with the assigned id

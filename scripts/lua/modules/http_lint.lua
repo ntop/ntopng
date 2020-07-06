@@ -1305,7 +1305,8 @@ local known_parameters = {
    ["endpoint_conf_type"]     = validateUnquoted,
    ["cc"]                     = validateEmptyOr(validateSingleWord),
 
-
+-- POOLS
+   ["pool_members"]           = validateListOfTypeInline(validateSingleWord),
 
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
