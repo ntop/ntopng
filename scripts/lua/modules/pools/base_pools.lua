@@ -64,6 +64,16 @@ end
 
 -- ##############################################
 
+function base_pools:_get_pool_lock_key()
+   local key = string.format("%s.pool_lock", self:_get_pools_prefix_key())
+   -- e.g.:
+   --  ntopng.pools.interface_pools.pool_lock
+
+   return key
+end
+
+-- ##############################################
+
 function base_pools:_get_pool_details_key(pool_id)
    if not pool_id then
       -- A pool id is always needed
@@ -91,6 +101,32 @@ end
 
 -- ##############################################
 
+function base_pools:_lock()
+   local max_lock_duration = 5 -- seconds
+   local max_lock_attempts = 5 -- give up after at most this number of attempts
+   local lock_key = self:_get_pool_lock_key()
+
+   for i = 1, max_lock_attempts do
+      local value_set = ntop.setnxCache(lock_key, "1", max_lock_duration)
+
+      if value_set then
+	 return true -- lock acquired
+      end
+
+      ntop.msleep(1000)
+   end
+
+   return false -- lock not acquired
+end
+
+-- ##############################################
+
+function base_pools:_unlock()
+   ntop.delCache(self:_get_pool_lock_key())
+end
+
+-- ##############################################
+
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
 function base_pools:_persist(pool_id, name, members, configset_id)
@@ -113,9 +149,9 @@ end
 function base_pools:add_pool(name, members, configset_id)
    local pool_id
 
-   -- TODO: LOCK
+   local locked = self:_lock()
 
-   if name and members and configset_id then
+   if locked and name and members and configset_id then
       local checks_ok = true
 
       -- Check if duplicate names exist
@@ -157,7 +193,7 @@ function base_pools:add_pool(name, members, configset_id)
       end
    end
 
-   -- TODO: UNLOCK
+   self:_unlock()
 
    return pool_id
 end
@@ -167,13 +203,13 @@ end
 function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
    local ret = false
 
-   -- TODO: LOCK
+   local locked = self:_lock()
 
    -- Make sure the pool exists
    local cur_pool_details = self:get_pool(pool_id)
 
    -- If here, pool_id has been found
-   if cur_pool_details and new_name and new_members and new_configset_id then
+   if locked and cur_pool_details and new_name and new_members and new_configset_id then
       local checks_ok = true
 
       -- Check if new_name is not the name of any other existing pool
@@ -215,7 +251,7 @@ function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
       end
    end
 
-   -- TODO: UNLOCK
+   self:_unlock()
 
    return ret
 end
@@ -225,12 +261,12 @@ end
 function base_pools:delete_pool(pool_id)
    local ret = false
 
-   -- TODO: LOCK
+   local locked = self:_lock()
 
    -- Make sure the pool exists
    local cur_pool_details = self:get_pool(pool_id)
 
-   if cur_pool_details then
+   if locked and cur_pool_details then
       -- Remove the key with all the pool details (e.g., with members, and configset_id)
       ntop.delCache(self:_get_pool_details_key(pool_id))
 
@@ -240,7 +276,7 @@ function base_pools:delete_pool(pool_id)
       ret = true
    end
 
-   -- TODO: UNLOCK
+   self:_unlock()
 
    return ret
 end
@@ -323,19 +359,21 @@ end
 -- ##############################################
 
 function base_pools:cleanup()
-   -- TODO: LOCK
+   local locked = self:_lock()
 
-   -- Delete pool details
-   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
-   for _, pool_id in pairs(cur_pool_ids) do
-      ntop.delCache(self:_get_pool_details_key(pool_id))
+   if locked then
+      -- Delete pool details
+      local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+      for _, pool_id in pairs(cur_pool_ids) do
+	 ntop.delCache(self:_get_pool_details_key(pool_id))
+      end
+
+      -- Delete pool ids
+      ntop.delCache(self:_get_pool_ids_key())
+      ntop.delCache(self:_get_next_pool_id_key())
    end
 
-   -- Delete pool ids
-   ntop.delCache(self:_get_pool_ids_key())
-   ntop.delCache(self:_get_next_pool_id_key())
-
-   -- TODO: UNLOCK
+   self:_unlock()
 end
 
 -- ##############################################
