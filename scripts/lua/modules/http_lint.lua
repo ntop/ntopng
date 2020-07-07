@@ -1108,6 +1108,22 @@ end
 
 -- #################################################################
 
+local function validateKeyValuePair(key_value_pair)
+   -- Validates parameters such as:
+   -- packets.sent=tpd
+   -- bytes.rcvd=rbd
+
+   local kv = key_value_pair:split("=")
+
+   if not kv or not #kv == 2 then
+      return false
+   end
+
+   return validateSingleWord(kv[1]) and validateSingleWord(kv[2])
+end
+
+-- #################################################################
+
 local function validateListItems(script, conf, key)
    local item_type = script.gui.item_list_type or ""
    local item_validator = validateUnchecked
@@ -1395,6 +1411,7 @@ local known_parameters = {
    ["script_type"]             = validateSingleWord,
    ["script_subdir"]           = validateSingleWord,
    ["script_key"]              = validateSingleWord,
+   ["field_alias"]             = validateListOfTypeInline(validateKeyValuePair),
 
    -- Widget and Datasources
    ["ds_hash"]                 = validateSingleWord,
