@@ -313,6 +313,15 @@ function base_pools:get_pool(pool_id)
       if pool_details then
 	 -- Add the integer pool id
 	 pool_details["pool_id"] = tonumber(pool_id)
+
+	 if pool_details["members"] then
+	    -- Add a new table with member details
+	    -- Table keys are members, table values are member details
+	    pool_details["member_details"] = {}
+	    for _, member in pairs(pool_details["members"]) do
+	       pool_details["member_details"][member] = self:get_member_details(member)
+	    end
+	 end
       end
    end
 
