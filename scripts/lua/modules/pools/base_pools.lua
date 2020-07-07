@@ -311,6 +311,7 @@ function base_pools:get_pool(pool_id)
       pool_details = json.decode(pool_details_str)
 
       if pool_details then
+	 -- Add the integer pool id
 	 pool_details["pool_id"] = tonumber(pool_id)
       end
    end

@@ -61,6 +61,7 @@ assert(second_pool_id == 2)
 
 -- tprint(s:get_all_members())
 -- tprint(s:get_available_members())
+-- tprint(s:get_assigned_members())
 -- tprint(pool_details)
 -- tprint(s:get_available_configset_ids())
 -- s:delete_pool(new_pool_id)

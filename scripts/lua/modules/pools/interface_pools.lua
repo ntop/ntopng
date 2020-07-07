@@ -24,12 +24,21 @@ end
 
 -- ##############################################
 
+-- @brief Given a member key, returns a table of member details such as member name.
+function interface_pools:get_member_details(member)
+   -- Only the name is relevant for interfaces
+   return {name = getInterfaceName(member)}
+end
+
+-- ##############################################
+
 -- @brief Returns a table of all possible interface ids, both assigned and unassigned to pool members
 function interface_pools:get_all_members()
    local res = {}
 
    for ifid, ifname in pairs(interface.getIfNames()) do
-      res[ifid] = {ifid = ifid, ifname = ifname}
+      -- The key is the member id itself, which in this case is the interface id
+      res[ifid] = self:get_member_details(ifid)
    end
 
    return res
