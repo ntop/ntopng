@@ -34,8 +34,6 @@ local context = {
     }
 }
 
-tprint(context.pool.members)
-
 print(template_utils.gen("pages/table_pools.template", context))
 
 -- ************************************* ------
