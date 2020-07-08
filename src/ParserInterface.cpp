@@ -70,6 +70,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 
   if(!isSubInterface()) {
+    bool processed = false;
+
     /* Deliver eBPF info to companion queues */
     if(zflow->process_info_set || 
        zflow->container_info_set || 
@@ -79,19 +81,15 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
       deliverFlowToCompanions(zflow);
     }
 
-    if(flowHashingMode == flowhashing_none) {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
-      /* Custom disaggregation */
-      if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
-        bool processed = sub_interfaces->processFlow(zflow);
-     
-        if(processed && !showDynamicInterfaceTraffic()) 
-          return;
-      }
+    /* Custom disaggregation */
+    if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
+      processed = sub_interfaces->processFlow(zflow);
+    }
 #endif
 #endif
-    } else {
+    if(!processed && flowHashingMode != flowhashing_none) {
       NetworkInterface *vIface = NULL, *vIfaceEgress = NULL;
 
       switch(flowHashingMode) {
@@ -132,9 +130,11 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
         vPIface->processFlow(zflow);
       }
 
-      if (!showDynamicInterfaceTraffic())
-        return;
+      processed = true;
     }
+
+    if (processed && !showDynamicInterfaceTraffic())
+      return;
   }
 
   if(!ntop->getPrefs()->do_ignore_macs()) {

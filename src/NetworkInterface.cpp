@@ -362,8 +362,7 @@ void NetworkInterface::checkDisaggregationMode() {
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
-  if (flowHashingMode == flowhashing_none)
-    sub_interfaces = ntop->getPrefs()->is_enterprise_m_edition() ? new SubInterfaces(this) : NULL;
+  sub_interfaces = ntop->getPrefs()->is_enterprise_m_edition() ? new SubInterfaces(this) : NULL;
 #endif
 #endif
 }
@@ -1041,59 +1040,49 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   *hostFlow = NULL;
 
   if(!isSubInterface()) {
-    if(flowHashingMode == flowhashing_none) {
+    bool processed = false;
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
-      /* Custom disaggregation */
-      if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
-        bool processed = sub_interfaces->processPacket(bridge_iface_idx,
-						       ingressPacket, when, packet_time,
-						       eth, vlan_id,
-						       iph, ip6,
-						       ip_offset,
-						       len_on_wire,
-						       h, packet, ndpiProtocol,
-						       srcHost, dstHost, hostFlow);
-     
-        if(processed && !showDynamicInterfaceTraffic()) { 
-          incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
-	           NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	           0,
-	           len_on_wire, 1);
-
-          return(pass_verdict);
-        }
-      }
+    /* Custom disaggregation */
+    if(sub_interfaces && sub_interfaces->getNumSubInterfaces() > 0) {
+      processed = sub_interfaces->processPacket(bridge_iface_idx,
+						ingressPacket, when, packet_time,
+						eth, vlan_id,
+						iph, ip6,
+						ip_offset,
+						len_on_wire,
+						h, packet, ndpiProtocol,
+						srcHost, dstHost, hostFlow);
+    }
 #endif
 #endif
-    } else {
+    if(!processed && flowHashingMode != flowhashing_none) {
       /* VLAN disaggregation */
       if(flowHashingMode == flowhashing_vlan && vlan_id > 0) {
         NetworkInterface *vIface;
 
         if((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
-          bool ret;
-
           vIface->setTimeLastPktRcvd(h->ts.tv_sec);
-          ret = vIface->processPacket(bridge_iface_idx,
-				      ingressPacket, when, packet_time,
-				      eth, vlan_id,
-				      iph, ip6,
-				      ip_offset,
-				      len_on_wire,
-				      h, packet, ndpiProtocol,
-				      srcHost, dstHost, hostFlow);
-
-          if (!showDynamicInterfaceTraffic()) {
-            incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
-	             NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
-	             0,
-	             len_on_wire, 1);
-
-            return(ret);
-          }
+          pass_verdict = vIface->processPacket(bridge_iface_idx,
+					       ingressPacket, when, packet_time,
+					       eth, vlan_id,
+					       iph, ip6,
+					       ip_offset,
+					       len_on_wire,
+					       h, packet, ndpiProtocol,
+					       srcHost, dstHost, hostFlow);
+          processed = true;
         }
       }
+    }
+
+    if (processed && !showDynamicInterfaceTraffic()) {
+      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
+	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
+	       0,
+	       len_on_wire, 1);
+
+      return(pass_verdict);
     }
   }
 
