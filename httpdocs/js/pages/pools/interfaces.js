@@ -183,7 +183,6 @@ $(document).ready(function() {
             const members = poolRowData.members.map(m => {
                 return { id: m, name: poolRowData.member_details[m].name }
             });
-            console.log(members);
             addMembersIntoModal(`#add-pool form select[name='members']`, members);
             addMembersIntoModal(`#edit-pool form select[name='members']`, members);
 

@@ -154,27 +154,39 @@
             /* clean previous state and disable button */
             submitButton.attr("disabled", "disabled");
 
+            let request;
             const self = this;
-            const method = (this.options.method == 'post') ? $.post : $.get;
 
-            method(this.options.endpoint, dataToSend)
-                .done(function (response, textStatus) {
-                    if (self.options.resetAfterSubmit) self.cleanForm();
-                    self.options.onSubmitSuccess(response, dataToSend, self);
-                    /* unbind the old closure on submit event and bind a new one */
-                    $(self.element).off('submit', self.submitHandler);
-                    self.delegateSubmit();
-
-                    /* Allow the form to be closed */
-                    if(!self.dontDisableSubmit)
-                        aysResetForm(self.form_sel);
-                })
-                .fail(function (jqxhr, textStatus, errorThrown) {
-                    self.options.onSubmitError(dataToSend, textStatus, errorThrown);
-                })
-                .always(function (d) {
-                    submitButton.removeAttr("disabled");
+            if (self.options.method == "post") {
+                request = $.ajax({
+                    url: this.options.endpoint,
+                    data: JSON.stringify(dataToSend),
+                    method: self.options.method,
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8"
                 });
+            }
+            else {
+                request = $.get(this.options.endpoint, dataToSend);
+            }
+
+            request.done(function (response, textStatus) {
+                if (self.options.resetAfterSubmit) self.cleanForm();
+                self.options.onSubmitSuccess(response, dataToSend, self);
+                /* unbind the old closure on submit event and bind a new one */
+                $(self.element).off('submit', self.submitHandler);
+                self.delegateSubmit();
+
+                /* Allow the form to be closed */
+                if (!self.dontDisableSubmit)
+                    aysResetForm(self.form_sel);
+            })
+            .fail(function (jqxhr, textStatus, errorThrown) {
+                self.options.onSubmitError(dataToSend, textStatus, errorThrown);
+            })
+            .always(function (d) {
+                submitButton.removeAttr("disabled");
+            });
         }
 
         delegateResetButton() {
