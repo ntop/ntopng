@@ -179,6 +179,9 @@ table.tablesorter tbody td {
   background-color: #ff7500 !important;
   color: #fff !important;
 }
+ul.navbar-nav li.nav-item.active>a.active {
+  color: #ff7500 !important;
+}
 
 .list-group-item.active {
   background-color: #ff8a26 !important;
