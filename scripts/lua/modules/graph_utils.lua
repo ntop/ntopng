@@ -457,12 +457,12 @@ for k,v in ipairs(graph_common.zoom_vals) do
    elseif graph_common.zoom_vals[k][1] == '5m' and min_zoom ~= '1m' and min_zoom ~= '5m' then
       goto continue
    end
-   print('<label class="btn btn-link ')
 
    if(graph_common.zoom_vals[k][1] == zoomLevel) then
-      print("active")
+      print([[<label class="btn bg-primary text-white">]])
+   else
+      print([[<label class="btn btn-link">]])
    end
-   print('">')
 
    local params = table.merge(page_params, {zoom=graph_common.zoom_vals[k][1]})
 
