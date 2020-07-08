@@ -39,7 +39,10 @@ Custom Disaggregation
 In addition to the dynamic disaggregation, it is also possible to use custom BPF-like filters to 
 disaggregate incoming traffic and divert it to logical sub-interfaces. This can be achieved by
 disabling Dynamic Traffic Disaggregation (setting it to 'None') and creating new rules in the 
-Custom Traffic Disaggregation tab.
+Custom Traffic Disaggregation tab. Alternatively you can use both disaggregation methods at the
+same time, by selecting a Dynamic disaggregation criteria and configuring custom rules at the 
+same time. Custom rules have higher priority: traffic matching custom rules will not be
+processed by the dynamic disaggregation.
 
 .. figure:: ./../img/custom_interface_disaggregation.png
   :align: center
