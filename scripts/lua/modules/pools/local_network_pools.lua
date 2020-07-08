@@ -2,6 +2,7 @@
 -- (C) 2017-20 - ntop.org
 --
 
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 local base_pools = require "base_pools"
 local local_network_pools = {}
@@ -27,7 +28,7 @@ end
 -- @brief Given a member key, returns a table of member details such as member name.
 function local_network_pools:get_member_details(member)
    -- Only the name is relevant for local_networks
-   local details =  {name = ntop.getNetworkIdByName(member), name = member}
+   local details = {local_network_id = ntop.getNetworkIdByName(member)}
 
    local alias = getLocalNetworkAlias(member)
    if alias ~= member then

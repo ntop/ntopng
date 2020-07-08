@@ -2,6 +2,7 @@
 -- (C) 2017-20 - ntop.org
 --
 
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 local base_pools = require "base_pools"
 local interface_pools = {}
