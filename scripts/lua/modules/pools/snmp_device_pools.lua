@@ -4,9 +4,12 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+if ntop.isPro() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+end
+
 local base_pools = require "base_pools"
 local snmp_config = require "snmp_config"
-local snmp_cached_dev = require "snmp_cached_dev"
 
 local snmp_device_pools = {}
 
@@ -30,13 +33,7 @@ end
 
 -- @brief Given a member key, returns a table of member details such as member name.
 function snmp_device_pools:get_member_details(member)
-   local cached_device = snmp_cached_dev:create(member)
-
-   local res = {name = member}
-
-   if cached_device and cached_device["system"] and cached_device["system"]["name"] then
-      res["name"] = cached_device["system"]["name"]
-   end
+   local res = {host_ip = member}
 
    return res
 end
