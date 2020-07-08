@@ -9,4 +9,4 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local local_network_pools = require "local_network_pools"
 local pools_rest_utils = require "pools_rest_utils"
 
-pools_rest_utils.add_pool(local_network_pools)
+pools_rest_utils.get_pools(local_network_pools)
