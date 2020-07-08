@@ -4,6 +4,8 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
+require "lua_utils" -- needed by am_utils
 local plugins_utils = require "plugins_utils"
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 local base_pools = require "base_pools"
