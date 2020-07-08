@@ -16,6 +16,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local interface_pools = require "interface_pools"
 local local_network_pools = require "local_network_pools"
 local snmp_device_pools = require "snmp_device_pools"
+local active_monitoring_pools = require "active_monitoring_pools"
 
 -- interface_pools.get_available_members()
 
@@ -158,6 +159,52 @@ assert(second_pool_id == 2)
 
 -- Edit of the second pool
 s:edit_pool(second_pool_id, 'my_snmp_device_second_pool_edited', {"192.168.2.169"}, 0)
+pool_details = s:get_pool(second_pool_id)
+assert(second_pool_id == 2)
+
+-- Cleanup
+s:cleanup()
+
+-- TEST active monitoring pools
+local s = active_monitoring_pools:create()
+
+-- Cleanup
+s:cleanup()
+
+-- Creation
+local new_pool_id = s:add_pool('my_am_pool', {"https@ntop.org"} --[[ an array of valid active monitoring keys ]], 0 --[[ a valid configset_id --]])
+assert(new_pool_id == 1)
+
+-- Getter (by id)
+local pool_details = s:get_pool(new_pool_id)
+assert(pool_details["name"] == "my_am_pool")
+
+-- Getter (a non-existing id)
+assert(not s:get_pool(999))
+
+-- Getter (by name)
+pool_details = s:get_pool_by_name('my_am_pool')
+assert(pool_details["name"] == "my_am_pool")
+
+-- Getter (a non-existing name)
+assert(not s:get_pool_by_name('my_am_non_existing_name'))
+
+-- Edit
+s:edit_pool(new_pool_id, 'my_am_renewed_pool', {"icmp@9.9.9.9"}, 0)
+pool_details = s:get_pool(new_pool_id)
+assert(pool_details["name"] == "my_am_renewed_pool")
+
+-- Delete
+s:delete_pool(new_pool_id)
+pool_details = s:get_pool(new_pool_id)
+assert(pool_details == nil)
+
+-- Addition of another pool
+local second_pool_id = s:add_pool('my_am_second_pool', {"https@ntop.org"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+assert(second_pool_id == 2)
+
+-- Edit of the second pool
+s:edit_pool(second_pool_id, 'my_am_second_pool_edited', {"https@ntop.org"}, 0)
 pool_details = s:get_pool(second_pool_id)
 assert(second_pool_id == 2)
 
