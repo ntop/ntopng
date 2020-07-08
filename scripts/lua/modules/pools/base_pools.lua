@@ -409,6 +409,22 @@ end
 
 -- ##############################################
 
+-- @brief Parses members submitted via HTTP (validated as `pool_members` in `http_lint.lua`) into a table of members
+function base_pools:parse_members(members_string)
+   local members = {}
+
+   if isEmptyString(members_string) then
+      return members
+   end
+
+   -- Unfold the members csv
+   members = members_string:split(",") or {members_string}
+
+   return members
+end
+
+-- ##############################################
+
 -- @brief Returns available members which don't already belong to any defined pool
 function base_pools:get_available_members()
    local assigned_members = self:get_assigned_members()

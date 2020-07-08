@@ -1322,7 +1322,7 @@ local known_parameters = {
    ["cc"]                     = validateEmptyOr(validateSingleWord),
 
 -- POOLS
-   ["pool_members"]           = validateListOfTypeInline(validateSingleWord),
+   ["pool_members"]           = validateEmptyOr(validateListOfTypeInline(validateSingleWord)),
 
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching

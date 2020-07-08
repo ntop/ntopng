@@ -32,14 +32,15 @@ if not pool_id or not name or not members or not confset_id then
    return
 end
 
+local s = interface_pools:create()
+
+members = s:parse_members(members)
 -- pool_id as number
 pool_id = tonumber(pool_id)
--- Unfold the members csv
-members = members:split(",") or {members}
 -- confset_id as number
 confset_id = tonumber(confset_id)
 
-local s = interface_pools:create()
+
 local res = s:edit_pool(pool_id, name, members --[[ an array of valid interface ids]], confset_id --[[ a valid configset_id --]])
 
 if not res then
