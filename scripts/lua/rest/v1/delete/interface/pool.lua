@@ -13,9 +13,8 @@ local interface_pools = require "interface_pools"
 
 --
 -- Delete an existing pool
---
 
-local pool_id = _GET["pool"]
+local pool_id = _POST["pool"]
 
 sendHTTPHeader('application/json')
 

@@ -15,9 +15,9 @@ local interface_pools = require "interface_pools"
 -- Add a new pool
 --
 
-local name = _GET["pool_name"]
-local members = _GET["pool_members"]
-local confset_id = _GET["confset_id"]
+local name = _POST["pool_name"]
+local members = _POST["pool_members"]
+local confset_id = _POST["confset_id"]
 
 sendHTTPHeader('application/json')
 

@@ -1,0 +1,69 @@
+<div class="modal show fade" tabindex="-1" role="dialog" id="{{ modal_type }}-pool">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ i18n(modal_type) }} {{ i18n(pool.name) }} {{ i18n("pools.pool") }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form role="form">
+                <div class="modal-body">
+                    {% if modal_type == "edit" then %}
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-id-input">
+                            <b>{{ i18n("pools.id") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <input disabled name="pool_id" type="text" class="form-control" id="{{ modal_type }}-pool-id-input">
+                        </div>
+                    </div>
+                    {% end %}
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-name-input">
+                            <b>{{ i18n("pools.name") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <input pattern="^\S+" maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="{{ modal_type }}-pool-name-input">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-members-input">
+                            <b>{{ i18n("pools.members") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <select required style="height: 12rem;" class="form-control" multiple name="members" id="{{ modal_type }}-pool-members-select">
+                                {% for key, member in pairsByKeys(pool.members, asc) do %}
+                                    <option value="{{key }}">{{member.name}}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-config-select">
+                            <b>{{ i18n("config_scripts.config_name") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <select required class="form-control" name="configset" id="{{ modal_type }}-pool-config-select">
+                                {% for key, configset in pairsByKeys(pool.configsets, asc) do %}
+                                <option {{ (configset.configset_id == 0 and "selected" or "") }} value="{{ configset.configset_id }}">{{configset.configset_name}}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
+                    <span class="invalid-feedback" id="{{ modal_type }}-modal-feedback"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
+                    <button type="submit" class="btn btn-primary">
+                        {% if modal_type == "add" then %}
+                        {{ i18n("add") }}
+                        {% else %}
+                        {{ i18n("edit") }}
+                        {% end %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

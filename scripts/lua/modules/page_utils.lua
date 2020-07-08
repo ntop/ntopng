@@ -114,6 +114,7 @@ page_utils.menu_entries = {
 
     -- Pools
     pools_host	     	 = {key = "pools_host", i18n_title = "host_pools.host_pools", section = "pools", visible_iface = false, visible_system = true},
+    pools_interface	 = {key = "pools_interface", i18n_title = "pools.pool_names.interface", section = "pools", visible_iface = false, visible_system = true},
 
     -- Home
     live_capture   	 = {key = "live_capture", i18n_title = "live_capture.active_live_captures", section = "home"},

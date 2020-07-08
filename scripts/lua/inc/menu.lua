@@ -405,6 +405,11 @@ page_utils.add_menubar_section({
          hidden = not is_admin,
          url = '/lua/admin/manage_pools.lua',
       },
+      {
+         entry = page_utils.menu_entries.pools_interface,
+         hidden = not is_admin,
+         url = 'lua/admin/interface_pools.lua'
+      }
    }
 })
 
