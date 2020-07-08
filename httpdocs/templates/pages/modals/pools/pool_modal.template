@@ -12,7 +12,7 @@
                     {% if modal_type == "edit" then %}
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-id-input">
-                            <b>{{ i18n("pools.id") }}</b>:
+                            <b>{{ i18n("pools.id") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <input disabled name="pool_id" type="text" class="form-control" id="{{ modal_type }}-pool-id-input">
@@ -21,7 +21,7 @@
                     {% end %}
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-name-input">
-                            <b>{{ i18n("pools.name") }}</b>:
+                            <b>{{ i18n("pools.name") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <input pattern="^\S+" maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="{{ modal_type }}-pool-name-input">
@@ -29,7 +29,7 @@
                     </div>
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-members-input">
-                            <b>{{ i18n("pools.members") }}</b>:
+                            <b>{{ i18n("pools.members") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <select required style="height: 12rem;" class="form-control" multiple name="members" id="{{ modal_type }}-pool-members-select">
@@ -41,7 +41,7 @@
                     </div>
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-config-select">
-                            <b>{{ i18n("config_scripts.config_name") }}</b>:
+                            <b>{{ i18n("config_scripts.config_name") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <select required class="form-control" name="configset" id="{{ modal_type }}-pool-config-select">
