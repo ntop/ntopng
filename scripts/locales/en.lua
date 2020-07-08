@@ -240,6 +240,7 @@ local lang = {
   ["unknown"] = "Unknown",
   ["unlimited"] = "&infin;",
   ["uploaders"] = "Upload Volume",
+  ["used_by"] = "Used by",
   ["values"] = "Values",
   ["version"] = "Your version is %{vers}.",
   ["via"] = "Via",
@@ -1926,6 +1927,8 @@ local lang = {
   },
   ["geo_map"] = {
     ["browser_reported_home_map"] = "Browser reported home map location",
+    ["configure_geo_ip"] = "Configure Geo IP",
+    ["geo_ip"] = "Geo IP",
     ["geo_map"] = "Geo Map",
     ["geolocation_error"] = "Geolocation error",
     ["hosts_geomap"] = "Hosts GeoMap",

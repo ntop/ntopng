@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 require "lua_utils"
 local page_utils = require "page_utils"
+local json = require "dkjson"
 local template_utils = require "template_utils"
 local interface_pools = require "interface_pools"
 
@@ -27,12 +28,17 @@ page_utils.print_page_title(i18n("pools.pool_names.interface"))
 
 local context = {
     template_utils = template_utils,
+    json = json,
     pool = {
         name = "interfaces",
-        members = s:get_available_members(),
+        instance = s,
+        all_members = s:get_all_members(),
         configsets = s:get_available_configset_ids(),
+        assigned_members = s:get_assigned_members(),
     }
 }
+
+tprint(context.pool)
 
 print(template_utils.gen("pages/table_pools.template", context))
 

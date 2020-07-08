@@ -38,12 +38,16 @@
     let removeCsrf = "{{ ntop.getRandomCSRFValue() }}";
     let importCsrf = "{{ ntop.getRandomCSRFValue() }}";
 
+    const all_members = {* json.encode(pool.all_members) *};
+    Object.freeze(all_members);
+
     i18n.warning ="{{ i18n('warning', {}) }}";
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
     i18n.search = "{{ i18n('search') }}";
     i18n.delete = "{{ i18n('delete') }}";
     i18n.edit = "{{ i18n('edit') }}";
     i18n.all = "{{ i18n('all') }}";
+    i18n.used_by = "{{ i18n('used_by') }}";
 
     i18n.rest = {
         INVALID_HOST: "{{ i18n('rest_consts.INVALID_HOST') }}",
