@@ -408,7 +408,7 @@ page_utils.add_menubar_section({
       {
          entry = page_utils.menu_entries.pools_interface,
          hidden = not is_admin,
-         url = 'lua/admin/interface_pools.lua'
+         url = '/lua/admin/interface_pools.lua'
       }
    }
 })
@@ -1139,7 +1139,7 @@ print([[
 print([[<div class='p-md-4 extended p-xs-1 mt-5 p-sm-2' id='n-container'>]])
 
 -- ###################################################
-menu_alert_notifications.render_notifications()
+menu_alert_notifications.render_notifications("main-container")
 -- ###################################################
 
 print("<div class='main-alerts'>")
@@ -1173,30 +1173,6 @@ if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet
 	 print('</a></div>')
       end
    end
-end
-
-if is_admin and not ntop.hasGeoIP() and ntop.getPref("ntopng.prefs.geoip.reminder_dismissed") ~= "true" then
-  print('<div id="missing-geoip" class="alert alert-warning alert-dismissable" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <button type="button" class="close" data-dismiss="alert" aria-label="close">&times;</button>')
-  print(i18n("geolocation_unavailable", {url = "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md", target = "_blank", icon = "fas fa-external-link-alt"}))
-  print('</div>')
-
-  print [[
-  <script>
-    $('#missing-geoip').on('close.bs.alert', function () {
-         $.ajax({
-          type: 'POST',
-          url: ']]
-  print (ntop.getHttpPrefix())
-  print [[/lua/geoip_config.lua',
-          data: {dismiss_missing_geoip_reminder: true,
-                 csrf: "]] print(ntop.getRandomCSRFValue()) print[["},
-          success: function()  {},
-          complete: function() {},
-        });
-    });
-  </script>
-]]
-
 end
 
 -- Hidden by default, will be shown by the footer if necessary
