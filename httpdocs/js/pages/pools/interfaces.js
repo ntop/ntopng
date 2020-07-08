@@ -165,6 +165,7 @@ $(document).ready(function() {
         onModalInit: function() {
             $(`#remove-pool form input[name='pool_id']`).val(poolRowData.pool_id);
             $(`#remove-pool form button[type='submit']`).removeAttr("disabled");
+            $(`#delete-pool-name`).text(poolRowData.name);
         },
         beforeSumbit: function() {
             return {

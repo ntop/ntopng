@@ -32,7 +32,7 @@
                             <b>{{ i18n("pools.members") }}</b>
                         </label>
                         <div class="col-sm-5">
-                            <select required style="height: 12rem;" class="form-control" multiple name="members" id="{{ modal_type }}-pool-members-select">
+                            <select style="height: 12rem;" class="form-control" multiple name="members" id="{{ modal_type }}-pool-members-select">
                                 {% for key, member in pairsByKeys(pool.members, asc) do %}
                                     <option value="{{key }}">{{member.name}}</option>
                                 {% end %}
