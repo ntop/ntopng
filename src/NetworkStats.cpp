@@ -24,7 +24,7 @@
 /* *************************************** */
 
 NetworkStats::NetworkStats(NetworkInterface *iface, u_int8_t _network_id) : AlertableEntity(iface, alert_entity_network), GenericTrafficElement() {
-  char *netname;
+  const char *netname;
   network_id = _network_id;
   numHosts = 0;
   syn_recvd_last_min = synack_sent_last_min = 0;

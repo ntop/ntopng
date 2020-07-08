@@ -227,7 +227,7 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 		    bool host_details, bool verbose,
 		    bool returnHost, bool asListElement) {
   char buf_id[64], *host_id = buf_id;
-  char *local_net;
+  const char *local_net;
   bool mask_host = Utils::maskHost(isLocalHost());
 
   if((ptree && (!match(ptree))) || mask_host)

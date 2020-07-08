@@ -400,7 +400,6 @@ end
 function base_pools:are_valid_members(members)
    for _, member in pairs(members) do
       if not self:is_valid_member(member) then
-	 tprint("not found")
 	 return false
       end
    end
