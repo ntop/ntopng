@@ -15,6 +15,8 @@ require "lua_utils"
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 local interface_pools = require "interface_pools"
 local local_network_pools = require "local_network_pools"
+local snmp_device_pools = require "snmp_device_pools"
+
 -- interface_pools.get_available_members()
 
 -- TEST interface pools
@@ -115,6 +117,53 @@ pool_details = s:get_pool(second_pool_id)
 assert(second_pool_id == 2)
 
 s:cleanup()
+
+-- TEST snmp device pools
+local s = snmp_device_pools:create()
+
+-- Cleanup
+s:cleanup()
+
+-- Creation
+local new_pool_id = s:add_pool('my_snmp_device_pool', {"192.168.2.169"} --[[ an array of valid snmp_device ip]], 0 --[[ a valid configset_id --]])
+assert(new_pool_id == 1)
+
+-- Getter (by id)
+local pool_details = s:get_pool(new_pool_id)
+assert(pool_details["name"] == "my_snmp_device_pool")
+
+-- Getter (a non-existing id)
+assert(not s:get_pool(999))
+
+-- Getter (by name)
+pool_details = s:get_pool_by_name('my_snmp_device_pool')
+assert(pool_details["name"] == "my_snmp_device_pool")
+
+-- Getter (a non-existing name)
+assert(not s:get_pool_by_name('my_snmp_device_non_existing_name'))
+
+-- Edit
+s:edit_pool(new_pool_id, 'my_snmp_device_renewed_pool', {"192.168.2.168"}, 0)
+pool_details = s:get_pool(new_pool_id)
+assert(pool_details["name"] == "my_snmp_device_renewed_pool")
+
+-- Delete
+s:delete_pool(new_pool_id)
+pool_details = s:get_pool(new_pool_id)
+assert(pool_details == nil)
+
+-- Addition of another pool
+local second_pool_id = s:add_pool('my_snmp_device_second_pool', {"192.168.2.169"} --[[ an array of valid snmp_device ip ]], 0 --[[ a valid configset_id --]])
+assert(second_pool_id == 2)
+
+-- Edit of the second pool
+s:edit_pool(second_pool_id, 'my_snmp_device_second_pool_edited', {"192.168.2.169"}, 0)
+pool_details = s:get_pool(second_pool_id)
+assert(second_pool_id == 2)
+
+-- Cleanup
+s:cleanup()
+
 
 print("OK\n")
 
