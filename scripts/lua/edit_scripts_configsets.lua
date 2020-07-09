@@ -72,35 +72,6 @@ elseif(action == "clone") then
   else
     result.config_id = err
   end
-elseif(action == "set_targets") then
-  local targets = _POST["confset_targets"]
-  local subdir = _POST["script_subdir"]
-
-  if(targets == nil) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_targets' parameter")
-    return
-  end
-
-  if(subdir == nil) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'script_subdir' parameter")
-    return
-  end
-
-  local targets, err = http_lint.parseConfsetTargets(subdir, targets)
-
-  if(targets ~= nil) then
-    -- Validation ok
-    local success, err = user_scripts.setConfigsetTargets(subdir, confid, targets)
-    result.success = success
-
-    if not success then
-      result.error = err
-    end
-  else
-    -- Validation error
-    result.success = false
-    result.error = err
-  end
 else
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown action '".. action .. "'")
   return

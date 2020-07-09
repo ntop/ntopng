@@ -26,7 +26,7 @@
                    <thead>
                         <tr>
                             <th class='w-25'>{{ i18n("config_scripts.config_name", {}) }}</th>
-                            {% if config_list.subdir ~= "system" and  config_list.subdir ~= "syslog" then %}
+                            {% if config_list.subdir ~= "host" and config_list.subdir ~= "flow" and config_list.subdir ~= "system" and  config_list.subdir ~= "syslog" then %}
                             <th>{{ i18n("config_scripts.applied_to", {}) }}</th>
                             {% end %}
                             <th class='w-25'>{{ i18n("actions", {}) }}</th>
@@ -73,9 +73,6 @@
         confirm = i18n("reset")
      }
 }) *}
-{* config_list.template_utils.gen("pages/modals/scripts_config/apply_modal.html", {
-    subdir = config_list.subdir
-}) *}
 {* config_list.template_utils.gen("pages/modals/scripts_config/import_modal.html") *}
 
 {# include css and javascript code for the page #}
@@ -89,7 +86,7 @@ const default_config_only = {{ config_list.default_config_only_subdir }};
 const subdir = '{{ config_list.subdir }}';
 
 i18n.warning ="{{ i18n('warning', {}) }}";
-i18n.no_targets_applied = "{{ i18n('config_scripts.no_targets_applied', {}) }}";
+i18n.no_pools_applied = "{{ i18n('config_scripts.no_pools_applied', {}) }}";
 i18n.empty_value_message = "{{ i18n('config_scripts.empty_value_message', {}) }}";
 i18n.empty_target_message = "{{ i18n('config_scripts.empty_target_message', {}) }}";
 i18n.expired_csrf = "{{ i18n('expired_csrf') }}";

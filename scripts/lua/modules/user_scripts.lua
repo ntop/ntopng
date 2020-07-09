@@ -6,11 +6,13 @@
 -- core. Users can provide their own modules to trigger custom alerts,
 -- export data, or perform periodic tasks.
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 local os_utils = require("os_utils")
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 
-local dirs = ntop.getDirs()
 local info = ntop.getInfo()
 
 local user_scripts = {}
@@ -47,22 +49,27 @@ local available_subdirs = {
       id = "host",
       label = "hosts",
       target_type = "cidr",
+      -- TODO: add host pools
    }, {
       id = "flow",
       label = "flows",
       target_type = "interface",
+      -- No pools for flows
    }, {
       id = "interface",
       label = "interfaces",
       target_type = "interface",
+      pools = "interface_pools",
    }, {
       id = "network",
       label = "networks",
       target_type = "network",
+      pools = "local_network_pools",
    }, {
       id = "snmp_device",
       label = "host_details.snmp",
       target_type = "cidr",
+      pools = "snmp_device_pools",
    }, {
       id = "system",
       label = "system",
@@ -117,11 +124,18 @@ user_scripts.script_types = {
     parent_dir = "interface",
     hooks = {"protocolDetected", "statusChanged", "flowEnd", "periodicUpdate"},
     subdirs = {"flow"},
+    default_config_only = true, -- Only the default configset can be used
   }, traffic_element = {
     parent_dir = "interface",
     hooks = {"min", "5mins", "hour", "day"},
-    subdirs = {"interface", "host", "network"},
+    subdirs = {"interface", "network"},
     has_per_hook_config = true, -- Each hook has a separate configuration
+  }, host = {
+    parent_dir = "interface",
+    hooks = {"min", "5mins", "hour", "day"},
+    subdirs = {"host"},
+    has_per_hook_config = true, -- Each hook has a separate configuration
+    default_config_only = true, -- Only the default configset can be used -- TODO: re-enable when host pools will be fully migrated
   }, snmp_device = {
     parent_dir = "system",
     hooks = {"snmpDevice", "snmpDeviceInterface"},
@@ -735,18 +749,6 @@ end
 
 -- ##############################################
 
-function user_scripts.getSubdirTargetType(search_subdir)
-   for _, subdir in pairs(available_subdirs) do
-      if(subdir.id == search_subdir) then
-	 return(subdir.target_type)
-      end
-   end
-
-   return "none"
-end
-
--- ##############################################
-
 local function findConfigSet(configsets, name)
    for id, configset in pairs(configsets) do
       if(configset.name == name) then
@@ -867,6 +869,36 @@ end
 
 -- ##############################################
 
+-- @brief Returns all `subdir` pools which currently have `config` set as script configuration
+function user_scripts.getConfigsetPools(subdir, confid)
+   confid = tonumber(confid)
+
+   for _, available_subdir in pairs(available_subdirs) do
+      if available_subdir["id"] == subdir then
+	 if available_subdir["pools"] then
+	    -- Use load to dynamically require only the pools class of interest
+	    local required_pools, err = load(string.format('return require "%s"', available_subdir["pools"]))
+
+	    if required_pools then
+	       local ok, pools = pcall(required_pools)
+
+	       if ok then
+		  local pools_instance = pools:create()
+		  -- Retrieve all pools which have confid currently assigned
+		  return pools_instance:get_pools_by_configset_id(confid)
+	       end
+	    end
+	 end
+
+	 break
+      end
+   end
+
+   return {}
+end
+
+-- ##############################################
+
 function user_scripts.deleteConfigset(confid)
    confid = tonumber(confid)
 
@@ -968,25 +1000,6 @@ function user_scripts.cloneConfigset(confid, new_name)
    end
 
    return true, new_confid
-end
-
--- ##############################################
-
-function user_scripts.setConfigsetTargets(subdir, confid, targets)
-   local configsets = user_scripts.getConfigsets()
-
-   if(configsets[confid] == nil) then
-      return false, i18n("configsets.unknown_id", {confid=confid})
-   end
-
-   if(confid == user_scripts.DEFAULT_CONFIGSET_ID) then
-      return false, "Cannot set target on the default configuration"
-   end
-
-   -- Update the targets
-   configsets[confid].targets[subdir] = targets
-
-   return saveConfigsets(configsets)
 end
 
 -- ##############################################

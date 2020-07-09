@@ -343,7 +343,6 @@ end
 
 function base_pools:get_pool_by_name(name)
    local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
-   local res = {}
 
    for _, pool_id in pairs(cur_pool_ids) do
       local pool_details = self:get_pool(pool_id)
@@ -354,6 +353,23 @@ function base_pools:get_pool_by_name(name)
    end
 
    return nil
+end
+
+-- ##############################################
+
+function base_pools:get_pools_by_configset_id(configset_id)
+   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+   local res = {}
+
+   for _, pool_id in pairs(cur_pool_ids) do
+      local pool_details = self:get_pool(pool_id)
+
+      if pool_details and pool_details["configset_id"] and pool_details["configset_id"] == configset_id then
+	 res[#res + 1] = pool_details
+      end
+   end
+
+   return res
 end
 
 -- ##############################################

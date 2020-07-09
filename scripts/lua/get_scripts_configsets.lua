@@ -17,41 +17,31 @@ if(subdir == nil) then
   return
 end
 
-local target_type = user_scripts.getSubdirTargetType(subdir)
 local script_type = user_scripts.script_types[subdir]
 local config_sets = user_scripts.getConfigsets()
 local rv = {}
 
 -- Only return the essential information
 for _, configset in pairs(config_sets) do
-  local targets = {}
+  local pools = {}
 
   if(script_type and script_type.default_config_only and (configset.id ~= user_scripts.DEFAULT_CONFIGSET_ID)) then
     -- Only return the default
     goto continue
   end
 
-  for _, target in ipairs(configset.targets[subdir] or {}) do
-    local label = target
-
-    if(target_type == "interface") then
-      label = getHumanReadableInterfaceName(getInterfaceName(target))
-    elseif(target_type == "network") then
-      label = getLocalNetworkAlias(target)
-    elseif(target_type == "cidr") then
-      label = hostinfo2label(hostkey2hostinfo(target))
-    end
-
-    targets[#targets + 1] = {
-      key = target,
-      label = label,
-    }
+  local configset_pools = user_scripts.getConfigsetPools(subdir, configset.id)
+  for _, configset_pool in pairs(configset_pools) do
+     pools[#pools + 1] = {
+	key = configset_pool["pool_id"],
+	label = configset_pool["name"]
+     }
   end
 
   rv[#rv + 1] = {
     id = configset.id,
     name = configset.name,
-    targets = targets,
+    pools = pools,
   }
 
   ::continue::

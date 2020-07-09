@@ -9,7 +9,7 @@ const get_configuration_data = ($config_table, $button_caller) => {
     return {
         config_id: row_data.id,
         config_name: row_data.name,
-        config_targets: row_data.targets
+        config_pools: row_data.pools
     }
 }
 
@@ -26,26 +26,24 @@ $(document).ready(function() {
 
     const add_columns = () => {
 
-        const targets_column = {
-            data: 'targets',
+        const pools_column = {
+            data: 'pools',
             render: function(data, type, row) {
 
-                // show targets as a string into display mode
-                // if there aren't ant targets then show an alert
+                // show pools as a string into display mode
+                // if there aren't ant pools then show an alert
                 if (type == "display" && data.length > 0) {
                     const flat = data.map((f) => f.label);
                     return flat.join(', ');
                 }
                 else if (type == 'display' && data.length == 0 && row.id != 0) {
-                    return `<div class='text-warning'>
-                                <i class='fas fa-exclamation-triangle'></i> <b>${i18n.warning}</b>: ${i18n.no_targets_applied}
-                            </div>`
+                    return `<i>${i18n.no_pools_applied}</i>`
                 }
                 else if (type == "display" && row.id == 0) {
                     return `<i>${i18n.default}</i>`;
                 }
 
-                // return targets as a string
+                // return pools as a string
                 const flat = data.map((f) => f.label);
                 return flat.join(', ');
             }
@@ -58,7 +56,7 @@ $(document).ready(function() {
         }
 
         const action_column = {
-            targets: -1,
+            pools: -1,
             width: '10%',
             data: null,
             className: 'text-center',
@@ -81,13 +79,6 @@ $(document).ready(function() {
                     `;
                 if(data.id != 0)
                     rv += `
-                        <a href='#'
-                            title='${i18n.apply_to}'
-                            data-toggle='modal'
-                            class="badge badge-info"
-                            data-target='#applied-modal'>
-                                ${i18n.apply_to}
-                         </a>
                          <a href='#'
                             title='${i18n.rename}'
                             class="badge badge-info"
@@ -110,7 +101,7 @@ $(document).ready(function() {
 
         if (default_config_only) return [name_column, action_column];
 
-        return [name_column, targets_column, action_column];
+        return [name_column, pools_column, action_column];
     }
 
     const $config_table = $("#config-list").DataTable({
@@ -222,93 +213,6 @@ $(document).ready(function() {
             e.preventDefault();
             $("#btn-confirm-clone").trigger("click");
         });
-
-    });
-
-    // handle apply modal
-    $('#config-list').on('click', 'a[data-target="#applied-modal"]', function(e) {
-
-        const {config_id, config_name, config_targets} = get_configuration_data($config_table, $(this));
-
-        if (subdir == "flow" || subdir == "interface") {
-            $("#applied-interfaces").val(config_targets.map(d => d.key.toString()))
-        }
-        else if (subdir == "network"){
-            $("#applied-networks").val(config_targets.map(d => d.key.toString()))
-        }
-        else {
-            $("#applied-input").val(config_targets.map(d => d.key.toString()).join(','))
-        }
-
-        // hide previous errors
-        $("#apply-error").hide();
-
-        $("#apply-name").html(`<b>${config_name}</b>`);
-        $("#applied-modal form").off("submit");
-
-        $('#btn-confirm-apply').off('click').click(function(e) {
-
-            const $button = $(this);
-
-            let applied_value = null;
-
-            if (subdir == "flow" || subdir == "interface") {
-                applied_value = $("#applied-interfaces").val().join(',');
-            }
-            else if (subdir == "network"){
-                applied_value = $("#applied-networks").val().join(',');
-            }
-            else {
-                applied_value = $("#applied-input").val().trim();
-            }
-
-            $button.attr("disabled", "");
-
-            $.post(`${http_prefix}/lua/edit_scripts_configsets.lua`, {
-                action: 'set_targets',
-                confset_id: config_id,
-                confset_targets: applied_value,
-                script_subdir: subdir,
-                csrf: pageCsrf
-            })
-            .done((data, status, xhr) => {
-
-                // check if the status code is successfull
-                if (check_status_code(xhr.status, xhr.statusText, $("#rename-error"))) return;
-
-                $button.removeAttr("disabled");
-
-                if (!data.success) {
-                    $("#apply-error").text(data.error).show();
-                    return;
-                }
-
-                // hide errors and clean modal
-                $("#apply-error").hide(); $("#apply-input").val("");
-                // reload table
-                $config_table.ajax.reload();
-                // hide modal
-                $("#applied-modal").modal('hide');
-
-
-            })
-            .fail(({status, statusText}) => {
-
-                check_status_code(status, statusText, $("#apply-error"));
-
-                // re-enable button
-                $button.removeAttr("disabled");
-            })
-
-
-        });
-
-        $("#applied-modal").on("submit", "form", function (e) {
-
-            e.preventDefault();
-            $("#btn-confirm-apply").trigger("click");
-        });
-
     });
 
     // handle rename modal

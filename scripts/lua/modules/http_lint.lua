@@ -1313,7 +1313,6 @@ local known_parameters = {
 -- CONFIGSETS
    ["confset_id"]              = validateNumber,
    ["confset_name"]            = validateUnquoted,
-   ["confset_targets"]         = validateEmptyOr(validateListOfTypeInline(validateUnquoted)),
 
 -- NOTIFICATIONS ENDPOINT
    ["recipient_name"]         = validateUnquoted,
