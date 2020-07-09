@@ -2,21 +2,18 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ i18n(modal_type) }} {{ i18n(pool.name) }} {{ i18n("pools.pool") }}</h5>
+                <h5 class="modal-title">{{ i18n(modal_type) }} {{ i18n("pools.pool_names." .. pool.name) }} {{ i18n("pools.pool") }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form role="form">
                 <div class="modal-body">
-                    {% if modal_type == "edit" then %}
-                        <input hidden disabled name="pool_id" type="text" class="form-control" id="{{ modal_type }}-pool-id-input">
-                    {% end %}
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-name-input">
                             <b>{{ i18n("pools.name") }}</b>
                         </label>
-                        <div class="col-sm-5">
+                        <div class="col-sm-7">
                             <input pattern="^\S+" maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="{{ modal_type }}-pool-name-input">
                         </div>
                     </div>
@@ -24,13 +21,23 @@
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-members-input">
                             <b>{{ i18n("pools.members") }}</b>
                         </label>
-                        <div class="col-sm-5">
+                        <div class="col-sm-7">
                             <select style="height: 12rem;" class="form-control" multiple name="members" id="{{ modal_type }}-pool-members-select">
                                 {% for key, member in pairsByKeys(pool.all_members, asc) do %}
+
+                                    {%
+                                        -- If the name field is not set then use the key as the name
+                                        -- for the pool member
+                                        local name = member.name or key
+                                    %}
+
+                                    {# If a member is assigned then write who is using it and disable it #}
                                     {% if (pool.assigned_members[key] ~= nil) then %}
-                                        <option data-pool-id="{{pool.assigned_members[key]}}" disabled value="{{key}}">{{ member.name }} ({{ i18n("used_by") }} {{ pool.instance:get_pool(pool.assigned_members[key]).name}})</option>
+                                        <option data-pool-id="{{pool.assigned_members[key]}}" disabled value="{{key}}">
+                                            {{ name }} ({{ pool.instance:get_pool(pool.assigned_members[key]).name}})
+                                        </option>
                                     {% else %}
-                                        <option value="{{key}}">{{member.name}}</option>
+                                        <option value="{{key}}">{{name}}</option>
                                     {% end %}
                                 {% end %}
                             </select>
@@ -40,10 +47,11 @@
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-config-select">
                             <b>{{ i18n("config_scripts.config_name") }}</b>
                         </label>
-                        <div class="col-sm-5">
+                        <div class="col-sm-7">
                             <select required class="form-control" name="configset" id="{{ modal_type }}-pool-config-select">
                                 {% for key, configset in pairsByKeys(pool.configsets, asc) do %}
-                                <option {{ (configset.configset_id == 0 and "selected" or "") }} value="{{ configset.configset_id }}">{{configset.configset_name}}</option>
+                                    {# Select the "Default" config as default #}
+                                    <option {{ (configset.configset_id == 0 and "selected" or "") }} value="{{ configset.configset_id }}">{{configset.configset_name}}</option>
                                 {% end %}
                             </select>
                         </div>

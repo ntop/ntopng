@@ -409,6 +409,21 @@ page_utils.add_menubar_section({
          entry = page_utils.menu_entries.pools_interface,
          hidden = not is_admin,
          url = '/lua/admin/interface_pools.lua'
+      },
+      {
+         entry = page_utils.menu_entries.pools_local_network,
+         hidden = not is_admin,
+         url = '/lua/admin/local_network_pools.lua'
+      },
+      {
+         entry = page_utils.menu_entries.pools_active_monitoring,
+         hidden = not is_admin,
+         url = '/lua/admin/active_monitoring_pools.lua'
+      },
+      {
+         entry = page_utils.menu_entries.pools_snmp,
+         hidden = not is_admin and not ntop.isPro(),
+         url = '/lua/pro/admin/snmp_pools.lua'
       }
    }
 })

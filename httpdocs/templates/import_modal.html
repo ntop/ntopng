@@ -7,15 +7,17 @@
         </div>
         <div class="modal-body">
             <form class='form'>
-                <div class='form-group'>
-                    <label class='form-label' for='#import-input'>{{ dialog.label }}</label>
-                    <input id="import-input" class="ays-ignore" name="JSON" type="file" />
-                    <br/>
-                    <br/>
-                    <small>{{ dialog.message }}</small>
-                    <div class="invalid-feedback" id='import-error'>
-                        {message}
+                <div class="form-group">
+                    <div class='custom-file'>
+                        <input id="import-input" class="ays-ignore custom-file-input" name="JSON" type="file" />
+                        <label class='custom-file-label' for='#import-input'>{{ i18n("browse_config", {}) }}</label>
                     </div>
+                    <small class="text-muted form-text">
+                        {* dialog.message *}
+                    </small>
+                </div>
+                <div class="invalid-feedback" id='import-error'>
+                    {message}
                 </div>
             </form>
         </div>

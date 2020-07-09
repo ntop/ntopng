@@ -1,9 +1,8 @@
 <div class="row">
     <div class="col-md-12 mb-4">
-        <table class="table table-bordered table-striped w-100" id="{{ pool.name }}-pool">
+        <table class="table table-bordered table-striped w-100" id="table-pools">
             <thead>
                 <tr>
-                    <th>{{ i18n("pools.id") }}</th>
                     <th>{{ i18n("pools.name") }}</th>
                     <th>{{ i18n("actions") }}</th>
                 </tr>
@@ -11,8 +10,36 @@
             <tbody>
             </tbody>
         </table>
+        {# Only the admin can use the import/export utilities #}
+        {% if isAdministrator() then %}
+        <div class="my-2">
+            <form action="{{ ntop.getHttpPrefix() }}" method="GET" class="form-inline">
+                <button type="submit" class="btn btn-secondary">
+                    <i class="fas fa-file-export"></i> {{ i18n('config_scripts.config_export') }}
+                </button>
+            </form>
+            <button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary">
+                <i class="fas fa-file-import"></i> {{ i18n('config_scripts.config_import') }}
+            </button>
+        </div>
+        {% end %}
     </div>
 </div>
+
+{# include import modal only for admin users #}
+
+{% if isAdministrator() then %}
+{* template.gen("import_modal.html", {
+    dialog = {
+        id = "import-modal",
+        title = i18n("pools.config_import"),
+        label = "",
+        message = i18n("pools.config_import_message"),
+        cancel = i18n("cancel"),
+        apply = i18n("import")
+    }
+}) *}
+{% end %}
 
 {# include the modal to add a new pool #}
 {* template_utils.gen("pages/modals/pools/pool_modal.template", {
@@ -39,7 +66,9 @@
     let importCsrf = "{{ ntop.getRandomCSRFValue() }}";
 
     const all_members = {* json.encode(pool.all_members) *};
+    const endpoints = {* json.encode(pool.endpoints) *};
     Object.freeze(all_members);
+    Object.freeze(endpoints);
 
     i18n.warning ="{{ i18n('warning', {}) }}";
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
@@ -59,4 +88,4 @@
     };
 
 </script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/pools/{{ pool.name }}.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/pools/pools.js"></script>

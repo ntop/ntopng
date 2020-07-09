@@ -1,17 +1,21 @@
 $(document).ready(function() {
 
+    let poolRowData;
+
     const renableDisabledOptions = (selector, members) => {
         members.forEach(m => {
-            $(`${selector} option[value='${m}']`).removeAttr("disabled").removeAttr("data-pool-id").text(all_members[m].name);
+            $(`${selector} option[value='${m}']`)
+                .removeAttr("disabled").removeAttr("data-pool-id").text(all_members[m].name);
         });
     }
 
     const markUsedOptions = (selector, members, poolName, poolId) => {
+
         members.forEach(m => {
             $(`${selector} option[value='${m}']`)
                 .attr("disabled", "disabled")
                 .attr("data-pool-id", poolId)
-                .text(`${all_members[m].name} (${i18n.used_by} ${poolName})`);
+                .text(`${all_members[m].name || m} (${poolName})`);
         });
     }
 
@@ -23,19 +27,16 @@ $(document).ready(function() {
         $(selector).empty().append($options);
     }
 
-    let poolRowData;
-
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
             action: () => { $(`#add-pool`).modal('show'); }
         }
     ]);
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v1/get/interface/pools.lua`, 'rsp');
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, endpoints.get_all_pools, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         stateSave: true,
         columns: [
-            { data: 'pool_id' },
             { data: 'name' },
             {
                 data: null, targets: -1, className: 'text-center',
@@ -53,14 +54,15 @@ $(document).ready(function() {
         ]
     });
 
-    const $poolTable = $(`#interfaces-pool`).DataTable(dtConfig);
+    const $poolTable = $(`#table-pools`).DataTable(dtConfig);
 
     $(`#add-pool form`).modalHandler({
         method: 'post',
         csrf: addCsrf,
         resetAfterSubmit: false,
-        endpoint: `${http_prefix}/lua/rest/v1/add/interface/pool.lua`,
+        endpoint: endpoints.add_pool,
         onModalInit: function() {
+            // sort the select entries
             sortSelectByValue(`#add-pool form select[name='members']`);
         },
         beforeSumbit: function() {
@@ -81,13 +83,13 @@ $(document).ready(function() {
             }
 
             const poolName = $(`#add-pool form input[name='name']`).val().trim();
+            // get the new members array
             const members = $(`#add-pool form select[name='members']`).val();
+            // mark select entries with the new pool created
             markUsedOptions(`#add-pool form select[name='members']`, members, poolName, response.rsp.pool_id);
             markUsedOptions(`#edit-pool form select[name='members']`, members, poolName, response.rsp.pool_id);
 
-            // reload the pool table
             $poolTable.ajax.reload();
-            // clean the form and hide the modal
             modalHandler.cleanForm();
             $(`#add-pool`).modal('hide');
         }
@@ -96,28 +98,33 @@ $(document).ready(function() {
     const $editModalHandler = $(`#edit-pool form`).modalHandler({
         method: 'post',
         csrf: editCsrf,
-        endpoint: `${ http_prefix }/lua/rest/v1/edit/interface/pool.lua`,
+        endpoint: endpoints.edit_pool,
         resetAfterSubmit: false,
         onModalInit: function() {
 
+            sortSelectByValue(`#edit-pool form select[name='members']`);
+
+            // disable all the options whose have a data-pool-id attribute
             $(`#edit-pool form select[name='members'] option[data-pool-id]`).attr("disabled", "disabled");
 
+            // enable only the option used by the pool
             $(`#edit-pool form select[name='members'] option`).each(function() {
 
                 const id = $(this).val();
+                // if the id belong to the pool then remove the disabled attribute
                 if (poolRowData.members.indexOf(id) > -1) {
                     $(this).removeAttr("disabled");
                 }
             });
 
-            $(`#edit-pool form input[name='pool_id']`).val(poolRowData.pool_id);
+            // load the modal with the pool data
             $(`#edit-pool form input[name='name']`).val(poolRowData.name);
             $(`#edit-pool form select[name='configset']`).val(poolRowData.configset_id);
             $(`#edit-pool form select[name='members']`).val(poolRowData.members);
         },
         beforeSumbit: function() {
             return {
-                pool: $(`#edit-pool form input[name='pool_id']`).val(),
+                pool: poolRowData.pool_id,
                 pool_name: $(`#edit-pool form input[name='name']`).val().trim(),
                 pool_members: $(`#edit-pool form select[name='members']`).val().join(','),
                 confset_id: $(`#edit-pool form select[name='configset']`).val(),
@@ -131,10 +138,7 @@ $(document).ready(function() {
             }
 
             const newPoolName = $(`#edit-pool form input[name='name']`).val();
-            const oldMembers = poolRowData.members;
-            const newMembers = $(`#edit-pool form select[name='members']`).val();
-
-            // update the pool name inside the selects
+            // update the pool name inside the selects if changed
             if (newPoolName != poolRowData.name) {
                 $(`option[data-pool-id='${poolRowData.pool_id}']`).each(function() {
                     const value = $(this).val();
@@ -142,22 +146,19 @@ $(document).ready(function() {
                 });
             }
 
-            if (newMembers.length > oldMembers.length) {
-                markUsedOptions(`#add-pool form select[name='members']`, newMembers, newPoolName, poolRowData.pool_id);
-                markUsedOptions(`#edit-pool form select[name='members']`, newMembers, newPoolName, poolRowData.pool_id);
-            }
-            else if (newMembers.length < oldMembers.length) {
+            // get the newMembers and the oldMembers and create two subset of them
+            const oldMembers = poolRowData.members;
+            const newMembers = $(`#edit-pool form select[name='members']`).val();
+            // this subset contains the removed members from the pool
+            const oldToRenable = oldMembers.filter((m1) => !newMembers.find(m2 => m1 == m2));
+            // this subset contains the new members added to the pool
+            const newToMark = newMembers.filter((m1) => !oldMembers.find(m2 => m1 == m2));
 
-                let members = [];
+            renableDisabledOptions(`#add-pool form select[name='members']`, oldToRenable);
+            renableDisabledOptions(`#edit-pool form select[name='members']`, oldToRenable);
 
-                oldMembers.forEach(m1 => {
-                    if (newMembers.find(m2 => m1 == m2)) return;
-                    members.push(m1);
-                });
-
-                renableDisabledOptions(`#add-pool form select[name='members']`, members);
-                renableDisabledOptions(`#edit-pool form select[name='members']`, members);
-            }
+            markUsedOptions(`#add-pool form select[name='members']`, newToMark, newPoolName, poolRowData.pool_id);
+            markUsedOptions(`#edit-pool form select[name='members']`, newToMark, newPoolName, poolRowData.pool_id);
 
             // clean the form and reload the table
             modalHandler.cleanForm();
@@ -169,7 +170,7 @@ $(document).ready(function() {
     const $removeModalHandler = $(`#remove-pool form`).modalHandler({
         method: 'post',
         csrf: removeCsrf,
-        endpoint: `${ http_prefix }/lua/rest/v1/delete/interface/pool.lua`,
+        endpoint: endpoints.delete_pool,
         resetAfterSubmit: false,
         onModalInit: function() {
             $(`#remove-pool form input[name='pool_id']`).val(poolRowData.pool_id);
@@ -188,6 +189,7 @@ $(document).ready(function() {
                 return;
             }
 
+            // renable the members removed from the pool inside the modal
             renableDisabledOptions(`#add-pool form select[name='members']`, poolRowData.members);
             renableDisabledOptions(`#edit-pool form select[name='members']`, poolRowData.members);
 
@@ -197,12 +199,12 @@ $(document).ready(function() {
         }
     });
 
-    $(`#interfaces-pool`).on('click', `a[href='#edit-pool']`, function (e) {
+    $(`#table-pools`).on('click', `a[href='#edit-pool']`, function (e) {
         poolRowData = $poolTable.row($(this).parent()).data();
         $editModalHandler.invokeModalInit();
     });
 
-    $(`#interfaces-pool`).on('click', `a[href='#remove-pool']`, function (e) {
+    $(`#table-pools`).on('click', `a[href='#remove-pool']`, function (e) {
         poolRowData = $poolTable.row($(this).parent()).data();
         $removeModalHandler.invokeModalInit();
     });
