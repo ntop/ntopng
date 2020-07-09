@@ -32,7 +32,14 @@ end
 
 -- @brief Given a member key, returns a table of member details such as member name.
 function active_monitoring_pools:get_member_details(member)
-   return {name = member}
+   local name = member
+   local am_host = am_utils.key2host(member)
+
+   if am_host and am_host["label"] then
+      name = am_host["label"]
+   end
+
+   return {name = name}
 end
 
 -- ##############################################
