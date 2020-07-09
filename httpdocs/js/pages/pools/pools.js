@@ -39,7 +39,22 @@ $(document).ready(function() {
         columns: [
             { data: 'name' },
             {
+                data: null,
+                width: "10%",
+                className: 'text-center',
+                render: function(data, type, row) {
+
+                    const membersCount = row.members.length;
+                    if (type == "display" && membersCount == 0) return "";
+                    return membersCount;
+                }
+            },
+            {
+                data: 'configset_details.name',
+            },
+            {
                 data: null, targets: -1, className: 'text-center',
+                width: "10%",
                 render: function() {
                     return (`
                         <a data-toggle="modal" class="badge badge-info" href="#edit-pool">

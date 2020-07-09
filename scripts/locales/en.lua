@@ -3077,6 +3077,7 @@ local lang = {
   ["pools"] = {
     ["config_import"] = "Import Configuration",
     ["config_import_message"] = "<b>Note</b>: pools with the same name will be replaced.",
+    ["configuration"] = "Configuration",
     ["id"] = "ID",
     ["members"] = "Members",
     ["name"] = "Name",
