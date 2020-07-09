@@ -322,6 +322,16 @@ function base_pools:get_pool(pool_id)
 	       pool_details["member_details"][member] = self:get_member_details(member)
 	    end
 	 end
+
+	 if pool_details["configset_id"] then
+	    local configset_id = pool_details["configset_id"]
+	    local config_sets = user_scripts.getConfigsets()
+
+	    -- Add a new (small) table with configset details, including the name
+	    if config_sets[configset_id] and config_sets[configset_id]["name"] then
+	       pool_details["configset_details"] = {name = config_sets[configset_id]["name"]}
+	    end
+	 end
       end
    end
 
