@@ -1119,7 +1119,8 @@ else
 	 view_ifid = ifid
       end
 
-      local flows_config, confset_id = user_scripts.getTargetConfig(configsets, "flow", view_ifid..'')
+      -- Flows config is global, system-wide
+      local flows_config, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
 
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
       for _, t in pairsByKeys(flow_consts.status_types) do

@@ -18,7 +18,8 @@ function setup()
    syslog_modules = user_scripts.load(ifid, user_scripts.script_types.syslog, "syslog")
 
    local configsets = user_scripts.getConfigsets()
-   syslog_conf = user_scripts.getTargetConfig(configsets, "syslog", getInterfaceName(ifid))
+   -- Configuration is global, system-wide
+   syslog_conf = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "syslog")
 end
 
 -- #################################################################

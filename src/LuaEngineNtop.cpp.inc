@@ -135,79 +135,6 @@ static int ntop_dump_binary_file(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_ptree_clear(lua_State* vm) {
-  if(getLuaVMUservalue(vm, addr_tree) != NULL) {
-    delete getLuaVMUservalue(vm, addr_tree);
-    getLuaVMUservalue(vm, addr_tree) = NULL;
-  }
-
-  lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_ptree_insert(lua_State* vm) {
-  char *addr;
-  int16_t value;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  addr = (char*)lua_tostring(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  value = (int16_t)lua_tointeger(vm, 2);
-
-  if(value < 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Negative values not allowed in ptreeInsert");
-    return(CONST_LUA_ERROR);
-  }
-
-  if(getLuaVMUservalue(vm, addr_tree) == NULL) {
-    AddressTree *tree = new AddressTree(true);
-
-    if(tree == NULL)
-      return(CONST_LUA_ERROR);
-
-    getLuaVMUservalue(vm, addr_tree) = tree;
-  }
-
-  lua_pushboolean(vm, getLuaVMUservalue(vm, addr_tree)->addAddress(addr, value));
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_ptree_match(lua_State* vm) {
-  char *addr;
-  int16_t value;
-  u_int8_t found_mask;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  addr = (char*)lua_tostring(vm, 1);
-
-  if(!addr) return(CONST_LUA_ERROR);
-
-  if(getLuaVMUservalue(vm, addr_tree) == NULL) {
-    /* This corresponds to an empty tree, return no match */
-    lua_pushnil(vm);
-    return(CONST_LUA_OK);
-  }
-
-  value = getLuaVMUservalue(vm, addr_tree)->find(addr, &found_mask);
-
-  if(value == -1) {
-    /* Not found */
-    lua_pushnil(vm);
-  } else
-    lua_pushinteger(vm, value);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_mac_manufacturer(lua_State* vm) {
   const char *mac = NULL;
 
@@ -5863,11 +5790,6 @@ static const luaL_Reg ntop_reg[] = {
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },
   { "setnDPIProtoCategory",   ntop_set_ndpi_protocol_category },
   { "isCustomApplication",    ndpi_is_custom_application      },
-
-  /* Patricia Tree */
-  { "ptreeClear",             ntop_ptree_clear             },
-  { "ptreeInsert",            ntop_ptree_insert            },
-  { "ptreeMatch",             ntop_ptree_match             },
 
   /* nEdge */
 #ifdef HAVE_NEDGE

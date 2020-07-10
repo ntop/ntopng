@@ -67,7 +67,8 @@ function runScripts(granularity)
 
    local cur_alerts = network.getAlerts(granularity_id)
    local entity_info = alerts_api.networkAlertEntity(network_key)
-   local subnet_conf = user_scripts.getTargetConfig(configsets, "network", network_key)
+   -- TODO: Fetch the actual configset_id using the interface pool
+   local subnet_conf = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "network")
 
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
       local user_script = available_modules.modules[mod_key]

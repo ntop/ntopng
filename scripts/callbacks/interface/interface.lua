@@ -34,7 +34,8 @@ function setup(str_granularity)
    })
 
    local configsets = user_scripts.getConfigsets()
-   iface_config, confset_id = user_scripts.getTargetConfig(configsets, "interface", ifname)
+   -- TODO: Fetch the right configset_id using the interface pool
+   iface_config, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "interface")
 end
 
 -- #################################################################

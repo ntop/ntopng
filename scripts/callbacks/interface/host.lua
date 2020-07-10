@@ -105,7 +105,8 @@ function runScripts(granularity)
   benchmark_end()
 
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
-  local host_conf, confset_id = user_scripts.getHostTargetConfigset(configsets, "host", host_ip.ip)
+  -- TODO: Fetch the actual configset id using the host pool
+  local host_conf, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "host")
   local when = os.time()
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do

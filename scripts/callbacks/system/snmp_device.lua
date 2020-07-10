@@ -70,7 +70,8 @@ local function snmp_device_run_user_scripts(cached_device)
       now = now,
    }
 
-   local device_conf, confset_id = user_scripts.getHostTargetConfigset(configsets, "snmp_device", device_ip)
+   -- TODO: Fetch the actual confset_id using snmp device pools
+   local device_conf, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "snmp_device")
 
    -- Run callback for each device
    for mod_key, hook_fn in pairs(available_modules.hooks["snmpDevice"] or {}) do

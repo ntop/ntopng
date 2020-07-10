@@ -287,7 +287,7 @@ local function loadMudUserScriptConf()
    if(mud_user_script == nil) then
       local user_scripts = require("user_scripts")
       local configsets = user_scripts.getConfigsets()
-      local configset, confset_id = user_scripts.getTargetConfig(configsets, "flow", ifid)
+      local configset, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
       mud_user_script = user_scripts.getTargetHookConfig(configset, "mud")
    end
 

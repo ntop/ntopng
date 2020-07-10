@@ -146,9 +146,8 @@ function setup()
 
    local configsets = user_scripts.getConfigsets()
 
-   -- In case of viewed interfaces, the configuration retrieved is the one belonging to the
-   -- view.
-   flows_config, confset_id = user_scripts.getTargetConfig(configsets, "flow", (view_ifid or ifid)..'')
+   -- Flows config is system-wide, always take the DEFAULT_CONFIGSET_ID
+   flows_config, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
    alerted_user_script = nil
 
    -- Load the disabled hosts status. As hosts stay in the view, the correct disabled status needs to look there

@@ -39,45 +39,33 @@ local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets_v2"
 user_scripts.DEFAULT_CONFIGSET_ID = 0
 
 -- NOTE: the subdir id must be unique
--- target_type: when used with configsets, specifies the allowed target.
---   - cidr: IPv4/IPv6 address or CIDR (e.g. 192.168.0.0/16, 1.2.3.4)
---   - interface: a network interface name (e.g. eth0)
---   - network: a local network CIDR (e.g. 192.168.0.0/24)
---   - none: no targets allowed
 local available_subdirs = {
    {
       id = "host",
       label = "hosts",
-      target_type = "cidr",
       -- TODO: add host pools
    }, {
       id = "flow",
       label = "flows",
-      target_type = "interface",
       -- No pools for flows
    }, {
       id = "interface",
       label = "interfaces",
-      target_type = "interface",
       pools = "interface_pools",
    }, {
       id = "network",
       label = "networks",
-      target_type = "network",
       pools = "local_network_pools",
    }, {
       id = "snmp_device",
       label = "host_details.snmp",
-      target_type = "cidr",
       pools = "snmp_device_pools",
    }, {
       id = "system",
       label = "system",
-      target_type = "none",
    }, {
       id = "syslog",
       label = "Syslog",
-      target_type = "interface",
    }
 }
 
@@ -773,56 +761,8 @@ end
 
 -- ##############################################
 
-local function validateConfigsets(configsets)
-   local cur_targets = {}
-
-   -- Ensure that no duplicate target is set
-   for _, configset in pairs(configsets) do
-      for subdir, subdir_table in pairs(configset.targets) do
-	 cur_targets[subdir] = cur_targets[subdir] or {}
-
-	 for _, conf_target in ipairs(subdir_table) do
-	    local is_v4 = isIPv4(conf_target)
-	    local is_v6 = isIPv6(conf_target)
-	    local conf_target_normalized = nil
-
-	    if(is_v4 or is_v6) then
-	       local address, prefix = splitNetworkPrefix(conf_target)
-	       local max_prefixlen = ternary(is_v4, 32, 128)
-
-	       if((prefix == nil) or (prefix >= max_prefixlen)) then
-		  prefix = max_prefixlen
-	       end
-
-	       -- Normalize
-	       conf_target_normalized = ntop.networkPrefix(address, prefix) .. "/" .. prefix
-	    else
-	       conf_target_normalized = conf_target
-	    end
-
-	    local existing_id = cur_targets[subdir][conf_target_normalized]
-
-	    if(existing_id) then
-	       return false, i18n("configsets.duplicate_target", {target = conf_target, confname1 = configsets[existing_id].name, confname2 = configset.name})
-	    end
-
-	    cur_targets[subdir][conf_target_normalized] = configset.id
-	 end
-      end
-   end
-
-   return true
-end
-
--- ##############################################
-
 local function saveConfigsets(configsets)
    local to_delete = ntop.getHashKeysCache(CONFIGSETS_KEY) or {}
-   local rv, err = validateConfigsets(configsets)
-
-   if(not rv) then
-      return rv, err
-   end
 
    for _, configset in pairs(configsets) do
       local k = string.format("%d", configset.id)
@@ -991,7 +931,6 @@ function user_scripts.cloneConfigset(confid, new_name)
    configsets[new_confid] = table.clone(configsets[confid])
    configsets[new_confid].id = new_confid
    configsets[new_confid].name = new_name
-   configsets[new_confid].targets = {}
 
    local rv, err = saveConfigsets(configsets)
 
@@ -1132,7 +1071,6 @@ function user_scripts.loadDefaultConfig()
       id = user_scripts.DEFAULT_CONFIGSET_ID,
       name = i18n("policy_presets.default"),
       config = default_conf,
-      targets = {},
    }
 
    saveConfigsets(configsets)
@@ -1235,62 +1173,22 @@ end
 
 -- ##############################################
 
-local fast_target_lookup = nil
+-- @brief Retrieve a `subdir` configuration from the configset identified with `configset_id` from all the available `configsets` passed
+function user_scripts.getConfigById(configsets, configset_id, subdir)
+   configset_id = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
+   local configset = configsets[configset_id] or configsets[user_scripts.DEFAULT_CONFIGSET_ID]
 
--- NOTE: this only works for exact searches. For hosts see user_scripts.getHostTargetConfigset
-function user_scripts.getTargetConfig(configsets, subdir, target)
-   if(fast_target_lookup == nil) then
-      fast_target_lookup = {}
-
-      for _, configset in pairs(configsets) do
-	 for _, conf_target in pairs(configset.targets[subdir] or {}) do
-	    fast_target_lookup[conf_target] = configset
-	 end
-      end
+   if configset and configset["config"] and configset["config"][subdir] then
+      return configset["config"][subdir], configset.id
    end
 
-   local conf = fast_target_lookup[target] or configsets[user_scripts.DEFAULT_CONFIGSET_ID]
-
-   if(conf == nil) then
-      return({})
-   end
-
-   return conf.config[subdir] or {}, conf.id
+   return {}, nil
 end
 
 -- ##############################################
 
 function user_scripts.getDefaultConfig(configsets, subdir)
    local conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
-
-   if(conf == nil) then
-      return({})
-   end
-
-   return conf.config[subdir] or {}, conf.id
-end
-
--- ##############################################
-
-local host_confsets_ptree_initialized = false
-
--- Performs an IP based match by using a patricia tree
-function user_scripts.getHostTargetConfigset(configsets, subdir, ip_target)
-   if(not host_confsets_ptree_initialized) then
-      -- Start with an empty ptree
-      ntop.ptreeClear()
-
-      for _, configset in pairs(configsets) do
-	 for _, conf_target in pairs(configset.targets[subdir] or {}) do
-	    ntop.ptreeInsert(conf_target, configset.id)
-	 end
-      end
-
-      host_confsets_ptree_initialized = true
-   end
-
-   local match_id = ntop.ptreeMatch(ip_target) or user_scripts.DEFAULT_CONFIGSET_ID
-   local conf = configsets[match_id]
 
    if(conf == nil) then
       return({})
