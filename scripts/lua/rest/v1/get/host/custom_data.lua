@@ -51,7 +51,14 @@ end
 field_alias = field_alias:split(",") or {field_alias}
 
 for _, fa in pairs(field_alias) do
-   local field, alias = fa:split("=")
+   -- Fields can be submitted as-is without an alias
+   local field, alias = fa:split("=") or {fa}
+
+   -- If the alias hasn't been defined, alias is the actual field name
+   if not alias then
+      alias = field
+   end
+
    if host[field] then
       -- TODO: implement
       res[alias] = host[field]

@@ -1108,18 +1108,22 @@ end
 
 -- #################################################################
 
-local function validateKeyValuePair(key_value_pair)
+local function validateFieldAlias(key_value_pair)
    -- Validates parameters such as:
    -- packets.sent=tpd
    -- bytes.rcvd=rbd
 
-   local kv = key_value_pair:split("=")
+   local kv = key_value_pair:split("=") or {key_value_pair}
 
-   if not kv or not #kv == 2 then
-      return false
+   if #kv == 1 then
+      -- Field without alias
+      return validateSingleWord(kv[1])
+   elseif #kv == 2 then
+      -- Field and alias
+      return validateSingleWord(kv[1]) and validateSingleWord(kv[2])
    end
 
-   return validateSingleWord(kv[1]) and validateSingleWord(kv[2])
+   return false
 end
 
 -- #################################################################
@@ -1410,7 +1414,7 @@ local known_parameters = {
    ["script_type"]             = validateSingleWord,
    ["script_subdir"]           = validateSingleWord,
    ["script_key"]              = validateSingleWord,
-   ["field_alias"]             = validateListOfTypeInline(validateKeyValuePair),
+   ["field_alias"]             = validateListOfTypeInline(validateFieldAlias),
 
    -- Widget and Datasources
    ["ds_hash"]                 = validateSingleWord,
