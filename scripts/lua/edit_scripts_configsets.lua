@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
@@ -40,7 +41,11 @@ if(action == "delete") then
   result.success = success
 
   if not success then
-    result.error = err
+     result.error = err
+  else
+     -- Unbind confid from all pools which are currently using it
+     local pools_lua_utils = require "pools_lua_utils"
+     pools_lua_utils.unbind_all_configset_id(confid)
   end
 elseif(action == "rename") then
   local new_name = _POST["confset_name"]

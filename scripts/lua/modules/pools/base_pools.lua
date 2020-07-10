@@ -470,6 +470,33 @@ end
 
 -- ##############################################
 
+-- @brief Unbind a `configset_id` from all pools which are currently using it, and sets them the defauls configset.
+function base_pools:unbind_all_configset_id(configset_id)
+   configset_id = tonumber(configset_id)
+
+   if not configset_id then
+      -- Invalid argument
+      return
+   end
+
+   local locked = self:_lock()
+
+   if locked then
+      local all_pools = self:get_all_pools()
+
+      for _, pool in pairs(all_pools) do
+	 if pool["configset_id"] == configset_id then
+	    -- Rewrite the pool using the default configset id
+	    self:_persist(pool["pool_id"], pool["name"], pool["members"], user_scripts.DEFAULT_CONFIGSET_ID)
+	 end
+      end
+
+      self:_unlock()
+   end
+end
+
+-- ##############################################
+
 -- @brief Returns available confset ids which can be added to a pool
 function base_pools:get_available_configset_ids()
    -- Currently, confset_ids are shared across pools of all types
