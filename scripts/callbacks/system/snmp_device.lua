@@ -4,8 +4,11 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 require "lua_utils"
 local alert_utils = require "alert_utils"
+local snmp_device_pools = require "snmp_device_pools"
 local snmp_utils = require "snmp_utils"
 local snmp_consts = require "snmp_consts"
 
@@ -23,6 +26,7 @@ local config_alerts = nil
 local available_modules = nil
 local ifid = nil
 local confisets = nil
+local pools_instance = nil
 local snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
 
 -- The function below ia called once (#pragma once)
@@ -39,6 +43,8 @@ function setup(str_granularity)
    })
 
    configsets = user_scripts.getConfigsets()
+   -- Instance of snmp device pools to get assigned members
+   pools_instance = snmp_device_pools:create()
 end
 
 -- #################################################################
@@ -70,8 +76,10 @@ local function snmp_device_run_user_scripts(cached_device)
       now = now,
    }
 
-   -- TODO: Fetch the actual confset_id using snmp device pools
-   local device_conf, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "snmp_device")
+   -- Retrieve the confset_id (possibly) associated to this snmp device
+   local confset_id = pools_instance:get_configset_id(device_ip)
+   -- Retrieve the configuration associated to the confset_id
+   local device_conf = user_scripts.getConfigById(configsets, confset_id, "snmp_device")
 
    -- Run callback for each device
    for mod_key, hook_fn in pairs(available_modules.hooks["snmpDevice"] or {}) do
