@@ -298,28 +298,38 @@ void ZMQCollectorInterface::collect_flows() {
       if(items[subscriber_id].revents & ZMQ_POLLIN) {
 	size = zmq_recv(items[subscriber_id].socket, &h0, sizeof(h0), 0);
 
-        if(size == sizeof(struct zmq_msg_hdr))
-          h = (struct zmq_msg_hdr *) &h0; 
-
 	if(size == sizeof(struct zmq_msg_hdr_v0)) {
 	  /* Legacy version */
 	  msg_id = 0, source_id = 0;
           publisher_version = h0.version;
-	} else if(size != sizeof(struct zmq_msg_hdr) || (
+
+	} else /* size == struct zmq_msg_hdr */ {
+
+          /* safety checks */
+          if(size != sizeof(struct zmq_msg_hdr) || (
             h->version != ZMQ_MSG_VERSION && 
             h->version != ZMQ_MSG_VERSION_TLV &&
             h->version != ZMQ_COMPATIBILITY_MSG_VERSION
           )) {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING,
-				       "Unsupported publisher version: your nProbe sender is outdated? [%u][%u][%u][%u][%u]",
-				       size, sizeof(struct zmq_msg_hdr), h->version, ZMQ_MSG_VERSION, ZMQ_COMPATIBILITY_MSG_VERSION);
-	  continue;
-	} else if(h->version == ZMQ_COMPATIBILITY_MSG_VERSION) {
-	  source_id = 0, msg_id = h->msg_id; // host byte order
-          publisher_version = h->version;
-	} else {
-	  source_id = h->source_id, msg_id = ntohl(h->msg_id);
-          publisher_version = h->version;
+	    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				         "Unsupported publisher version: is your nProbe sender "
+					 "outdated? [%u][%u][%u][%u][%u]",
+				         size, sizeof(struct zmq_msg_hdr), h->version,
+					 ZMQ_MSG_VERSION, ZMQ_COMPATIBILITY_MSG_VERSION);
+	    continue; /* skip message */
+          }
+
+#ifdef ZMQ_DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[version: %u]", h->version);
+#endif
+
+	  if(h->version == ZMQ_COMPATIBILITY_MSG_VERSION) {
+	    source_id = 0, msg_id = h->msg_id; // host byte order
+            publisher_version = h->version;
+	  } else {
+	    source_id = h->source_id, msg_id = ntohl(h->msg_id);
+            publisher_version = h->version;
+          }
         }
 
 	if(source_id_last_msg_id.find(source_id) == source_id_last_msg_id.end())
@@ -328,7 +338,8 @@ void ZMQCollectorInterface::collect_flows() {
 	last_msg_id = source_id_last_msg_id[source_id];
 
 #ifdef ZMQ_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "[subscriber_id: %u][message source: %u][msg_id: %u][last_msg_id: %u][lost: %i]",
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[subscriber_id: %u][message source: %u]"
+				     "[msg_id: %u][last_msg_id: %u][lost: %i]",
 				     subscriber_id, source_id, msg_id, last_msg_id, msg_id - last_msg_id - 1);
 #endif
 	
@@ -341,7 +352,7 @@ void ZMQCollectorInterface::collect_flows() {
 	      recvStats.zmq_msg_drops += diff - 1;
 
 #ifdef ZMQ_DEBUG
-	      ntop->getTrace()->traceEvent(TRACE_INFO, "[msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]", 
 					   msg_id, last_msg_id, recvStats.zmq_msg_rcvd, recvStats.zmq_msg_drops, diff-1);
 #endif
 	    }
