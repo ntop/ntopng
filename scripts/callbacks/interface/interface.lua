@@ -4,8 +4,10 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 require "lua_utils"
 local alert_utils = require "alert_utils"
+local interface_pools = require "interface_pools"
 
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
@@ -20,6 +22,7 @@ local available_modules = nil
 local interface_entity = alert_consts.alert_entities.interface.entity_id
 local iface_config = nil
 local confset_id = nil
+local pools_instance = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
@@ -34,8 +37,12 @@ function setup(str_granularity)
    })
 
    local configsets = user_scripts.getConfigsets()
-   -- TODO: Fetch the right configset_id using the interface pool
-   iface_config, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "interface")
+   -- Instance of local network pools to get assigned members
+   pools_instance = interface_pools:create()
+   -- Retrieve the confset_id (possibly) associated to this interface
+   confset_id = pools_instance:get_configset_id(string.format("%d", ifid))
+   -- Retrieve the configuration associated to the confset_id
+   iface_config = user_scripts.getConfigById(configsets, confset_id, "interface")
 end
 
 -- #################################################################

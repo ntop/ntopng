@@ -527,7 +527,6 @@ function base_pools:get_configset_id(member)
    if not self.assigned_pool_members then
       -- Cache it as class member
       self.assigned_pool_members = self:get_assigned_members()
-      tprint("caching")
    end
 
    if self.assigned_pool_members[member] and self.assigned_pool_members[member]["configset_id"] then
