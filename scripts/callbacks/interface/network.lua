@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require "lua_utils"
 local alert_utils = require "alert_utils"
 local local_network_pools = require "local_network_pools"
-local pools_instance = local_network_pools:create()
+
 
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
@@ -22,7 +22,7 @@ local available_modules = nil
 local ifid = nil
 local network_entity = alert_consts.alert_entities.network.entity_id
 local configsets = nil
-local assigned_pool_members = nil
+local pools_instance = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
@@ -38,7 +38,7 @@ function setup(str_granularity)
 
    configsets = user_scripts.getConfigsets()
    -- Instance of local network pools to get assigned members
-   assigned_pool_members = pools_instance:get_assigned_members()
+   pools_instance = local_network_pools:create()
 end
 
 -- #################################################################
@@ -74,7 +74,7 @@ function runScripts(granularity)
    local entity_info = alerts_api.networkAlertEntity(network_key)
 
    -- Retrieve the configset_id (possibly) associated to this network
-   local confset_id = pools_instance:get_configset_id(assigned_pool_members, network_key)
+   local confset_id = pools_instance:get_configset_id(network_key)
    -- Retrieve the configuration associated to the confset_id
    local subnet_conf = user_scripts.getConfigById(configsets, confset_id, "network")
 

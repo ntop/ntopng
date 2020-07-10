@@ -523,9 +523,15 @@ end
 -- @param assigned_pool_members A table obtained calling self:get_assigned_members()
 -- @param member a valid pool member
 -- @return The configset_id found for `member` or the default configset_id
-function base_pools:get_configset_id(assigned_pool_members, member)
-   if assigned_pool_members[member] and assigned_pool_members[member]["configset_id"] then
-      return assigned_pool_members[member]["configset_id"]
+function base_pools:get_configset_id(member)
+   if not self.assigned_pool_members then
+      -- Cache it as class member
+      self.assigned_pool_members = self:get_assigned_members()
+      tprint("caching")
+   end
+
+   if self.assigned_pool_members[member] and self.assigned_pool_members[member]["configset_id"] then
+      return self.assigned_pool_members[member]["configset_id"]
    end
 
    return user_scripts.DEFAULT_CONFIGSET_ID
