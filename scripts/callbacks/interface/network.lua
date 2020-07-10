@@ -4,8 +4,11 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 require "lua_utils"
 local alert_utils = require "alert_utils"
+local local_network_pools = require "local_network_pools"
+local pools_instance = local_network_pools:create()
 
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
@@ -19,7 +22,7 @@ local available_modules = nil
 local ifid = nil
 local network_entity = alert_consts.alert_entities.network.entity_id
 local configsets = nil
-local confset_id = nil
+local assigned_pool_members = nil
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
@@ -34,6 +37,8 @@ function setup(str_granularity)
    })
 
    configsets = user_scripts.getConfigsets()
+   -- Instance of local network pools to get assigned members
+   assigned_pool_members = pools_instance:get_assigned_members()
 end
 
 -- #################################################################
@@ -67,12 +72,15 @@ function runScripts(granularity)
 
    local cur_alerts = network.getAlerts(granularity_id)
    local entity_info = alerts_api.networkAlertEntity(network_key)
-   -- TODO: Fetch the actual configset_id using the interface pool
-   local subnet_conf = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "network")
+
+   -- Retrieve the configset_id (possibly) associated to this network
+   local confset_id = pools_instance:get_configset_id(assigned_pool_members, network_key)
+   -- Retrieve the configuration associated to the confset_id
+   local subnet_conf = user_scripts.getConfigById(configsets, confset_id, "network")
 
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
       local user_script = available_modules.modules[mod_key]
-      local conf, confset_id = user_scripts.getTargetHookConfig(subnet_conf, user_script, granularity)
+      local conf = user_scripts.getTargetHookConfig(subnet_conf, user_script, granularity)
 
       if(conf.enabled) then
 	 if((not user_script.is_alert) or (not suppressed_alerts)) then

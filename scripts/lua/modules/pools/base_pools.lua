@@ -227,7 +227,7 @@ function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
 	    local assigned_members = self:get_assigned_members()
 
 	    for _, member in pairs(new_members) do
-	       if assigned_members[member] and assigned_members[member] ~= pool_id then
+	       if assigned_members[member] and assigned_members[member]["pool_id"] ~= pool_id then
 		  -- Member already existing in another pool
 		  checks_ok = false
 		  break
@@ -390,7 +390,7 @@ function base_pools:get_assigned_members()
 
       if pool_details and pool_details["members"] then
 	 for _, member in pairs(pool_details["members"]) do
-	    res[member] = tonumber(pool_id)
+	    res[member] = {pool_id = tonumber(pool_id), configset_id = pool_details["configset_id"]}
 	 end
       end
    end
@@ -515,6 +515,20 @@ function base_pools:get_available_configset_ids()
    end
 
    return res
+end
+
+-- ##############################################
+
+-- @brief Cached `assigned_pool_members` are read and the configset_id associated to `member` is returned
+-- @param assigned_pool_members A table obtained calling self:get_assigned_members()
+-- @param member a valid pool member
+-- @return The configset_id found for `member` or the default configset_id
+function base_pools:get_configset_id(assigned_pool_members, member)
+   if assigned_pool_members[member] and assigned_pool_members[member]["configset_id"] then
+      return assigned_pool_members[member]["configset_id"]
+   end
+
+   return user_scripts.DEFAULT_CONFIGSET_ID
 end
 
 -- ##############################################

@@ -33,8 +33,8 @@
 
                                     {# If a member is assigned then write who is using it and disable it #}
                                     {% if (pool.assigned_members[key] ~= nil) then %}
-                                        <option data-pool-id="{{pool.assigned_members[key]}}" disabled value="{{key}}">
-                                            {{ name }} ({{ pool.instance:get_pool(pool.assigned_members[key]).name}})
+                                        <option data-pool-id="{{pool.assigned_members[key]["pool_id"]}}" disabled value="{{key}}">
+                                            {{ name }} ({{ pool.instance:get_pool(pool.assigned_members[key]["pool_id"]).name}})
                                         </option>
                                     {% else %}
                                         <option value="{{key}}">{{name}}</option>
