@@ -224,7 +224,7 @@ REDIS_SERVICE="redis.service"
 if [ test -f /usr/bin/lsb_release ]; then
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
-  if test "$UBUNTU_SUB_RELEASE" = "8"; then
+  if test "$UBUNTU_SUB_RELEASE" = "8" || test "$UBUNTU_SUB_RELEASE" = "10"; then
     REDIS_SERVICE="redis-server.service"
   fi
 fi
