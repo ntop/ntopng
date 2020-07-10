@@ -151,49 +151,51 @@ function base_pools:add_pool(name, members, configset_id)
 
    local locked = self:_lock()
 
-   if locked and name and members and configset_id then
-      local checks_ok = true
+   if locked then
+      if name and members and configset_id then
+	 local checks_ok = true
 
-      -- Check if duplicate names exist
-      local same_name_pool = self:get_pool_by_name(name)
-      if same_name_pool then checks_ok = false end
+	 -- Check if duplicate names exist
+	 local same_name_pool = self:get_pool_by_name(name)
+	 if same_name_pool then checks_ok = false end
 
-      -- Check if members are valid
-      if not self:are_valid_members(members) then checks_ok = false end
+	 -- Check if members are valid
+	 if not self:are_valid_members(members) then checks_ok = false end
 
-      -- Check if members do not belong to any other pool
-      if checks_ok then
-	 local assigned_members = self:get_assigned_members()
+	 -- Check if members do not belong to any other pool
+	 if checks_ok then
+	    local assigned_members = self:get_assigned_members()
 
-	 for _, member in pairs(members) do
-	    if assigned_members[member] then
-	       -- Member already existing in another pool
-	       checks_ok = false
-	       break
+	    for _, member in pairs(members) do
+	       if assigned_members[member] then
+		  -- Member already existing in another pool
+		  checks_ok = false
+		  break
+	       end
 	    end
 	 end
-      end
 
-      -- Check if the configset_id is valid
-      if checks_ok then
-	 local available_configsets = self:get_available_configset_ids()
+	 -- Check if the configset_id is valid
+	 if checks_ok then
+	    local available_configsets = self:get_available_configset_ids()
 
-	 if not available_configsets[configset_id] then
-	    -- Configset id not found
-	    checks_ok = false
+	    if not available_configsets[configset_id] then
+	       -- Configset id not found
+	       checks_ok = false
+	    end
+	 end
+
+	 if checks_ok then
+	    -- All the checks have succeeded
+	    -- Now that everything is ok, the id can be assigned and the pool can be persisted with the assigned id
+	    pool_id = self:_assign_pool_id()
+
+	    self:_persist(pool_id, name, members, configset_id)
 	 end
       end
 
-      if checks_ok then
-	 -- All the checks have succeeded
-	 -- Now that everything is ok, the id can be assigned and the pool can be persisted with the assigned id
-	 pool_id = self:_assign_pool_id()
-
-	 self:_persist(pool_id, name, members, configset_id)
-      end
+      self:_unlock()
    end
-
-   self:_unlock()
 
    return pool_id
 end
@@ -209,49 +211,51 @@ function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
    local cur_pool_details = self:get_pool(pool_id)
 
    -- If here, pool_id has been found
-   if locked and cur_pool_details and new_name and new_members and new_configset_id then
-      local checks_ok = true
+   if locked then
+      if cur_pool_details and new_name and new_members and new_configset_id then
+	 local checks_ok = true
 
-      -- Check if new_name is not the name of any other existing pool
-      local same_name_pool = self:get_pool_by_name(new_name)
-      if same_name_pool and same_name_pool.pool_id ~= pool_id then checks_ok = false end
+	 -- Check if new_name is not the name of any other existing pool
+	 local same_name_pool = self:get_pool_by_name(new_name)
+	 if same_name_pool and same_name_pool.pool_id ~= pool_id then checks_ok = false end
 
-      -- Check if members are valid
-      if not self:are_valid_members(new_members) then checks_ok = false end
+	 -- Check if members are valid
+	 if not self:are_valid_members(new_members) then checks_ok = false end
 
-      -- Check if none of new_members belongs to any other exsiting pool
-      if checks_ok then
-	 local assigned_members = self:get_assigned_members()
+	 -- Check if none of new_members belongs to any other exsiting pool
+	 if checks_ok then
+	    local assigned_members = self:get_assigned_members()
 
-	 for _, member in pairs(new_members) do
-	    if assigned_members[member] and assigned_members[member] ~= pool_id then
-	       -- Member already existing in another pool
-	       checks_ok = false
-	       break
+	    for _, member in pairs(new_members) do
+	       if assigned_members[member] and assigned_members[member] ~= pool_id then
+		  -- Member already existing in another pool
+		  checks_ok = false
+		  break
+	       end
 	    end
 	 end
-      end
 
-      -- Check if the configset_id is valid
-      if checks_ok then
-	 local available_configsets = self:get_available_configset_ids()
+	 -- Check if the configset_id is valid
+	 if checks_ok then
+	    local available_configsets = self:get_available_configset_ids()
 
-	 if not available_configsets[new_configset_id] then
-	    -- Configset id not found
-	    checks_ok = false
+	    if not available_configsets[new_configset_id] then
+	       -- Configset id not found
+	       checks_ok = false
+	    end
+	 end
+
+	 if checks_ok then
+	    -- If here, all checks are valid and the pool can be edited
+	    self:_persist(pool_id, new_name, new_members, new_configset_id)
+
+	    -- Pool edited successfully
+	    ret = true
 	 end
       end
 
-      if checks_ok then
-	 -- If here, all checks are valid and the pool can be edited
-	 self:_persist(pool_id, new_name, new_members, new_configset_id)
-
-	 -- Pool edited successfully
-	 ret = true
-      end
+      self:_unlock()
    end
-
-   self:_unlock()
 
    return ret
 end
@@ -266,17 +270,19 @@ function base_pools:delete_pool(pool_id)
    -- Make sure the pool exists
    local cur_pool_details = self:get_pool(pool_id)
 
-   if locked and cur_pool_details then
-      -- Remove the key with all the pool details (e.g., with members, and configset_id)
-      ntop.delCache(self:_get_pool_details_key(pool_id))
+   if locked then
+      if cur_pool_details then
+	 -- Remove the key with all the pool details (e.g., with members, and configset_id)
+	 ntop.delCache(self:_get_pool_details_key(pool_id))
 
-      -- Remove the pool_id from the set of all currently existing pool ids
-      ntop.delMembersCache(self:_get_pool_ids_key(), string.format("%d", pool_id))
+	 -- Remove the pool_id from the set of all currently existing pool ids
+	 ntop.delMembersCache(self:_get_pool_ids_key(), string.format("%d", pool_id))
 
-      ret = true
+	 ret = true
+      end
+
+      self:_unlock()
    end
-
-   self:_unlock()
 
    return ret
 end
@@ -407,9 +413,9 @@ function base_pools:cleanup()
       -- Delete pool ids
       ntop.delCache(self:_get_pool_ids_key())
       ntop.delCache(self:_get_next_pool_id_key())
-   end
 
-   self:_unlock()
+      self:_unlock()
+   end
 end
 
 -- ##############################################
@@ -458,8 +464,8 @@ function base_pools:get_available_members()
 
    local res = {}
    for member, member_details in pairs(all_members) do
---      tprint("checking.."..member)
---      tprint(member)
+      --      tprint("checking.."..member)
+      --      tprint(member)
       if not assigned_members[member] then
 	 res[member] = member_details
       end
