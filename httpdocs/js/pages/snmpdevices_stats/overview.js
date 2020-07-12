@@ -98,7 +98,7 @@ $(document).ready(function () {
             { data: "column_descr", width: "20%" },
             {
                 data: "column_err_interfaces",
-                className: "text-right",
+                className: "text-right pre-wrap",
                 width: "5%",
                 render: function(data, type, row) {
                     // if the cell contains zero then doesn't show it

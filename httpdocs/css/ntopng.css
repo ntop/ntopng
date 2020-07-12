@@ -1241,3 +1241,7 @@ td.dt-body-right {
 #lldp_network {
   height: 600px;
 }
+
+.pre-wrap {
+  white-space: pre;
+}

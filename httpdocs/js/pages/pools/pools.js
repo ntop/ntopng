@@ -37,16 +37,20 @@ $(document).ready(function() {
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         stateSave: true,
         columns: [
-            { data: 'name' },
+            { data: 'name', width: "20%" },
             {
                 data: null,
-                width: "10%",
-                className: 'text-center',
+                width: "40%",
                 render: function(data, type, row) {
 
-                    const membersCount = row.members.length;
-                    if (type == "display" && membersCount == 0) return "";
-                    return membersCount;
+                    if (type == "display" && row.members.length == 0) return "";
+                    // show only the first 10 members, append some dots
+                    // if the members are more than 10
+                    const memberNames = row.members.map((memberId) => {
+                        if (all_members[memberId].name == undefined) return memberId;
+                        return all_members[memberId].name;
+                    });
+                    return memberNames.slice(0, 10).join("; ") + (memberNames.length >= 10 ? "..." : "");
                 }
             },
             {
