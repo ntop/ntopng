@@ -37,7 +37,7 @@ local function request_reply_ratio(params)
     local ratio = (replies * 100) / (requests+1)
     local req_repl_type = alert_consts.alert_types.alert_request_reply_ratio.create(
        alert_consts.alert_severities.warning,
-       params.granularity,
+       alert_consts.alerts_granularities[params.granularity],
        key,
        requests,
        replies
