@@ -1520,9 +1520,6 @@ local function hostdetails_exists(host_info, hostdetails_params)
       -- If the requested page is the "historical" page, or if a ts_schema has been requested,
       -- then we assume page host_details.lua
       -- exists if the timeseries are enabled and if the requested timeseries exists for the host
-      if not areHostL7TimeseriesEnabled(interface.getId()) then
-	 return false
-      end
       if not hostdetails_params["ts_schema"] then
 	 -- Default schema for hosts
 	 hostdetails_params["ts_schema"] = "host:traffic"
@@ -1538,7 +1535,6 @@ local function hostdetails_exists(host_info, hostdetails_params)
 	 return false
       end
    end
-
    return true
 end
 
