@@ -20,6 +20,16 @@ local active_monitoring_pools = require "active_monitoring_pools"
 
 -- interface_pools.get_available_members()
 
+local function has_member(members, member)
+   for _, cur_member in pairs(members) do
+      if cur_member == member then
+	 return true
+      end
+   end
+
+   return false
+end
+
 -- TEST interface pools
 local s = interface_pools:create()
 
@@ -48,6 +58,7 @@ assert(not s:get_pool_by_name('my_non_existing_name'))
 s:edit_pool(new_pool_id, 'my_renewed_pool', {"5"}, 0)
 pool_details = s:get_pool(new_pool_id)
 assert(pool_details["name"] == "my_renewed_pool")
+assert(has_member(pool_details["members"], "5"))
 
 -- Delete
 s:delete_pool(new_pool_id)
@@ -62,6 +73,28 @@ assert(second_pool_id == 2)
 s:edit_pool(second_pool_id, 'my_second_pool_edited', {"5"}, 0)
 pool_details = s:get_pool(second_pool_id)
 assert(second_pool_id == 2)
+
+-- Assign a memeber to the default pool id and make sure it has been removed from second_pool
+s:bind_member("5", s.DEFAULT_POOL_ID)
+pool_details = s:get_pool(second_pool_id)
+assert(not has_member(pool_details["members"], "5"))
+
+-- Assign back a member to the second pool and make sure second pool contains it
+s:bind_member("5", second_pool_id)
+pool_details = s:get_pool(second_pool_id)
+assert(has_member(pool_details["members"], "5"))
+
+-- Addition of another pool
+local third_pool_id = s:add_pool('my_third_pool', {"3"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+assert(third_pool_id == 3)
+
+-- 'switch' member from the third to the second pool
+s:bind_member("3", second_pool_id)
+pool_details = s:get_pool(second_pool_id)
+assert(has_member(pool_details["members"], "3"))
+pool_details = s:get_pool(third_pool_id)
+assert(not has_member(pool_details["members"], "3"))
+
 
 -- tprint(s:get_all_members())
 -- tprint(s:get_available_members())

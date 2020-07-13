@@ -14,6 +14,10 @@ local base_pools = {}
 
 -- ##############################################
 
+base_pools.DEFAULT_POOL_ID = 0 -- Actual pool ids start from 1, this is a default value associated to any member without pools
+
+-- ##############################################
+
 function base_pools:create(args)
    if args then
       -- We're being sub-classed
@@ -472,6 +476,62 @@ function base_pools:get_available_members()
    end
 
    return res
+end
+
+-- ##############################################
+
+function base_pools:bind_member(member, pool_id)
+   local ret = false
+
+   if not self:is_valid_member(member) then
+      return ret
+   end
+
+   local locked = self:_lock()
+
+   if locked then
+      -- REMOVE the member if assigned to another pool
+      local assigned_members = self:get_assigned_members()
+      if assigned_members[member] then
+	 local cur_pool = self:get_pool(assigned_members[member]["pool_id"])
+
+	 if cur_pool then
+	    -- New members are all pool members except for the member which is being removed
+	    local new_members = {}
+	    for _, cur_member in pairs(cur_pool["members"]) do
+	       if cur_member ~= member then
+		  new_members[#new_members + 1] = cur_member
+	       end
+	    end
+
+	    -- Persist the existing pool without the removed `member`
+	    self:_persist(cur_pool["pool_id"], cur_pool["name"], new_members, cur_pool["configset_id"])
+	 end
+      end
+
+      -- ASSIGN the member to the pool with `pool_id`
+      -- Note: If the pool_id is base_pools.DEFAULT_POOL_ID, then `member` is not associated to any pool, it's safe to just return
+      if pool_id == base_pools.DEFAULT_POOL_ID then
+	 ret = true
+      else
+	 local bind_pool = self:get_pool(pool_id)
+	 if bind_pool then
+	    -- New members are all pool members plus the member which is being bound
+	    local bind_pool_members = bind_pool["members"]
+	    bind_pool_members[#bind_pool_members + 1] = member
+
+	    -- Persist the pool with the new `member`
+	    self:_persist(bind_pool["pool_id"], bind_pool["name"], bind_pool_members, bind_pool["configset_id"])
+
+	    -- Bind has executed successfully
+	    ret = true
+	 end
+      end
+
+      self:_unlock()
+   end
+
+   return ret
 end
 
 -- ##############################################
