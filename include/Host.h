@@ -41,8 +41,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   time_t last_stats_reset;
   u_int32_t active_alerted_flows;
   Bitmap misbehaving_flows_as_client_status, misbehaving_flows_as_server_status;
-  NewFlowFrequencyBin clientFrequencyBin, serverFrequencyBin;
-  FlowDurationBin clientDurationBin,  serverDurationBin;
   
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
@@ -385,6 +383,10 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void incSrvHostContacts(IpAddress *peer)   { stats->incSrvHostContacts(peer);   }
   void incSrvPortsContacts(u_int16_t port)   { stats->incSrvPortsContacts(port);  }
   void incContactedService(char *name)       { stats->incContactedService(name);  }
+
+  virtual void flowBeginEvent(Flow *f, u_int32_t epoch, bool as_client) { ; }
+  virtual void flowL7ProtoDetectedEvent(Flow *f, u_int16_t l7proto, bool as_client) { ; }
+  virtual void flowEndEvent(Flow *f, bool as_client) { ; }
 };
 
 #endif /* _HOST_H_ */

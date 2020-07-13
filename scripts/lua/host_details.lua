@@ -254,7 +254,7 @@ else
 
    local title = i18n("host_details.host")..": "..host_info["host"]
    if host["broadcast_domain_host"] then
-      title = title.." <i class='fas fa-sitemap' aria-hidden='true' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
+      title = title.." &nbsp;<i class='fas fa-sitemap' aria-hidden='true' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
    end
 
    if host.dhcpHost then
@@ -1136,47 +1136,8 @@ end
 
       print [[
       	<tr><th colspan="2" class="text-left">]] print(i18n("traffic_page.l4_proto_overview"))
-        print[[</th><td colspan=4><div class="pie-chart" id="topApplicationProtocols"></div></td></tr>]]
+        print[[</th><td colspan=4><div class="pie-chart" id="topApplicationProtocols"></div></td></tr>
 
-	local num_expired_client_flows = host["flows.as_client"]-host["active_flows.as_client"]
-	local num_expired_server_flows = host["flows.as_server"]-host["active_flows.as_server"]
-
-	if((num_expired_client_flows+num_expired_server_flows) > 0) then
-	   print [[<tr><th colspan="2" class="text-left">]] print(i18n("traffic_page.flow_distribution")) print[[</th>
-                <th colspan=2>]] print(i18n("traffic_page.flow_duration")) print[[</th>
-                <th colspan=2>]] print(i18n("traffic_page.flow_frequency")) print[[</th>
-               </tr>
-               ]]
-
-	      	-- ############
-
-	   print [[<tr><th colspan="2" class="text-left">]] print(i18n("details.as_client")) print[[</th>]]
-	   if(num_expired_client_flows) then
-	      print [[
-                  <td colspan=2><div class="pie-chart" id="flowsDistributionClientDuration"></div></td>
-                  <td colspan=2><div class="pie-chart" id="flowsDistributionClientFrequency"></div></td>
-              ]]
-	   else
-	      print("<td colspan=2>&nbsp;</td>td colspan=2>&nbsp;</td>")
-	   end
-
-	   -- ############
-
-	   print [[<tr><th colspan="2" class="text-left">]] print(i18n("details.as_server")) print[[</th>]]
-	   if(num_expired_server_flows) then
-	      print [[
-                  <td colspan=2><div class="pie-chart" id="flowsDistributionServerDuration"></div></td>
-                  <td colspan=2><div class="pie-chart" id="flowsDistributionServerFrequency"></div></td>
-              ]]
-	   else
-	      print("<td colspan=2>&nbsp;</td>td colspan=2>&nbsp;</td>")
-	   end
-
-
-	end
-
-
-	print [[
 	</div>
 
         <script type='text/javascript'>
@@ -1185,29 +1146,6 @@ end
   	   do_pie("#topApplicationProtocols", ']]
 print (ntop.getHttpPrefix())
 print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-
-      if(num_expired_client_flows > 0) then
-	 print [[
-  	   do_pie("#flowsDistributionClientDuration", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/get_host_flow_stats.lua', { mode: "client_duration", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-  print [[
-  	   do_pie("#flowsDistributionClientFrequency", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/get_host_flow_stats.lua', { mode: "client_frequency", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-	end
-
-
-      if(num_expired_server_flows > 0) then
-print [[
-  	   do_pie("#flowsDistributionServerDuration", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/get_host_flow_stats.lua', { mode: "server_duration", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-  print [[
-  	   do_pie("#flowsDistributionServerFrequency", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/get_host_flow_stats.lua', { mode: "server_frequency", ifid: "]] print(ifId.."") print('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
-	end
 
 	print [[
          }

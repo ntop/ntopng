@@ -625,7 +625,7 @@ static void redirect_to_login(struct mg_connection *conn,
 	      "Content-Length: %lu\r\n"
 	      "Location: http://%s:%u%s%s%s%s\r\n\r\n%s",
               strlen(wispr_data),
-              (long unsigned int)ntop->get_HTTPserver()->getCaptiveRedirectAddress(), // LAN address
+              ntop->get_HTTPserver()->getCaptiveRedirectAddress(), // LAN address
               CAPTIVE_PORTAL_PORT,
 	      ntop->getPrefs()->get_http_prefix(), ntop->getPrefs()->getCaptivePortalUrl(),
 	      referer ? (char*)"?referer=" : "",

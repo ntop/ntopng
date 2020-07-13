@@ -59,6 +59,7 @@ Host::~Host() {
   if(as)            as->decUses();
   if(country)       country->decUses();
   if(vlan)          vlan->decUses();
+
 #ifdef NTOPNG_PRO
   if(host_traffic_shapers) {
     for(int i = 0; i < NUM_TRAFFIC_SHAPERS; i++) {
@@ -643,8 +644,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_get_syn_flood(vm);
     lua_get_flow_flood(vm);
     lua_get_syn_scan(vm);
-
-    lua_get_bins(vm);
   }
 
   lua_get_time(vm);
@@ -663,40 +662,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
-}
-
-/* ***************************************** */
-
-void Host::lua_get_bins(lua_State* vm) const {
-  lua_newtable(vm);
-
-  /* *************************** */
-
-  lua_newtable(vm);
-
-  clientFrequencyBin.lua(vm, "frequency");
-  clientDurationBin.lua(vm, "duration");
-
-  lua_pushstring(vm, "client");  
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);    
-  
-  /* *************************** */
-
-  lua_newtable(vm);
-
-  serverFrequencyBin.lua(vm, "frequency");
-  serverDurationBin.lua(vm, "duration");
-
-  lua_pushstring(vm, "server");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);    
-
-  /* *************************** */
-  
-  lua_pushstring(vm, "bins");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);    
 }
 
 /* ***************************************** */
@@ -1055,12 +1020,12 @@ void Host::incNumFlows(time_t t, bool as_client, Host *peer, Flow *f) {
   if(as_client) {
     counter = flow_flood_attacker_alert;
     num_active_flows_as_client.inc(1);
-    clientFrequencyBin.incFrequency(t);
   } else {
     counter = flow_flood_victim_alert;
-    serverFrequencyBin.incFrequency(t);
     num_active_flows_as_server.inc(1);
   }
+
+  flowBeginEvent(f, t, as_client);
 
   counter->inc(t, this);
   stats->incNumFlows(as_client, peer);
@@ -1074,16 +1039,14 @@ void Host::decNumFlows(time_t t, bool as_client, Host *peer, Flow *f) {
       num_active_flows_as_client.dec(1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
-
-    clientDurationBin.incDuration(f->get_duration());
   } else {
     if(num_active_flows_as_server.get())
       num_active_flows_as_server.dec(1);
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
-
-    serverDurationBin.incDuration(f->get_duration());
   }
+  
+  flowEndEvent(f, as_client);
 
   stats->decNumFlows(as_client, peer);
 }

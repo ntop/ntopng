@@ -371,9 +371,9 @@ using namespace std;
 #include "HostStats.h"
 #include "LocalHostStats.h"
 #include "HostScore.h"
-#include "Bin.h"
-#include "FlowDurationBin.h"
-#include "NewFlowFrequencyBin.h"
+#ifdef NTOPNG_PRO
+#include "HostBehaviourAnalysis.h"
+#endif
 #include "Host.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"

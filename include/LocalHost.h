@@ -31,6 +31,10 @@ class LocalHost : public Host, public SerializableElement {
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
 
+#ifdef NTOPNG_PRO
+  HostBehaviourAnalysis ba;
+#endif
+  
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   OperatingSystem os;
   char *os_detail;
@@ -84,6 +88,24 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void lua_get_timeseries(lua_State* vm);
+
+  virtual void flowBeginEvent(Flow *f, u_int32_t epoch, bool as_client) {
+#ifdef NTOPNG_PRO
+    ba.flowBeginEvent(f, epoch, as_client);
+#endif
+  }
+  
+  virtual void flowL7ProtoDetectedEvent(Flow *f, u_int16_t l7proto, bool as_client) {
+#ifdef NTOPNG_PRO
+    ba.flowL7ProtoDetectedEvent(f, l7proto, as_client);
+#endif
+  }
+
+  virtual void flowEndEvent(Flow *f, bool as_client) {
+#ifdef NTOPNG_PRO
+    ba.flowEndEvent(f, as_client);
+#endif
+  }
 };
 
 #endif /* _LOCAL_HOST_H_ */
