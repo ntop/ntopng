@@ -705,6 +705,12 @@ class Flow : public GenericHashEntry {
   }
 
   inline void setTOS(u_int8_t tos, bool is_cli_tos) { if(is_cli_tos) cli_tos = tos; srv_tos = tos; }
+
+  inline float getEntropy(bool src2dst_direction) {
+    struct ndpi_analyze_struct *e = src2dst_direction ? entropy.c2s : entropy.s2c;
+
+    return(e ? ndpi_data_entropy(e) : 0);
+  }
 };
 
 #endif /* _FLOW_H_ */

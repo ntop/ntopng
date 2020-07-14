@@ -4981,8 +4981,8 @@ void Flow::lua_entropy(lua_State* vm) {
   if(entropy.c2s && entropy.s2c) {
     lua_newtable(vm);
 
-    lua_push_float_table_entry(vm,  "client", ndpi_data_entropy(entropy.c2s));
-    lua_push_float_table_entry(vm,  "server", ndpi_data_entropy(entropy.s2c));
+    lua_push_float_table_entry(vm,  "client", getEntropy(true));
+    lua_push_float_table_entry(vm,  "server", getEntropy(false));
     
     lua_pushstring(vm, "entropy");
     lua_insert(vm, -2);

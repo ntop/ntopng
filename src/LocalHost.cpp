@@ -254,6 +254,10 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
+
+#ifdef NTOPNG_PRO
+  ba.lua(iface, vm);
+#endif
 }
 
 /* *************************************** */

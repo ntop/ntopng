@@ -372,6 +372,7 @@ using namespace std;
 #include "LocalHostStats.h"
 #include "HostScore.h"
 #ifdef NTOPNG_PRO
+#include "L7ProtoBehaviourAnalysis.h"
 #include "HostBehaviourAnalysis.h"
 #endif
 #include "Host.h"
