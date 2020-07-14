@@ -240,6 +240,10 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
+#ifdef NTOPNG_PRO
+  ba.lua(iface, vm);
+#endif
+  
   local_net = ntop->getLocalNetworkName(local_network_id);
 
   if(local_net == NULL)
@@ -254,10 +258,8 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
-
-#ifdef NTOPNG_PRO
-  ba.lua(iface, vm);
-#endif
+  
+  /* Don't add abythiubg beyond this line (due to lua indexing) */
 }
 
 /* *************************************** */
