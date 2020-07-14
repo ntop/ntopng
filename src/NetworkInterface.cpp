@@ -571,7 +571,7 @@ NetworkInterface::~NetworkInterface() {
   if(rrd_ts_exporter)       delete rrd_ts_exporter;
   if(dhcp_ranges)           delete[] dhcp_ranges;
   if(dhcp_ranges_shadow)    delete[] dhcp_ranges_shadow;
-  if (mdns)                 delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
+  if(mdns)                 delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
   if(ifname)                free(ifname);
 }
 
@@ -589,7 +589,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
     return -1;
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-  if (ntop->getPrefs()->do_dump_flows_on_nindex() &&
+  if(ntop->getPrefs()->do_dump_flows_on_nindex() &&
       !ntop->getPrefs()->do_dump_json_flows_on_disk()) {
     /* JSON is not generated in case of nindex dump for
      * performance reason (it actually contains duplicated
@@ -602,21 +602,21 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
     /* There is no time to dump the flow, however this is not yet
      * lost unless it is in the idle state (active flows will be
      * dumped in the next iteration */
-    if (f->get_state() == hash_entry_state_idle)
+    if(f->get_state() == hash_entry_state_idle)
       db->incNumDroppedFlows(1);
     return -1;
   }
 
-  if (dump_json) {
+  if(dump_json) {
     json = f->serialize(use_labels);
 
-    if (json == NULL)
+    if(json == NULL)
       return -1;
   }
 
   rc = db->dumpFlow(when, f, json);
 
-  if (json != NULL)
+  if(json != NULL)
     free(json);
 #endif
 
@@ -976,7 +976,7 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int32_t criteria, bool par
         sub_iface = new NetworkInterface(buf, vIface_type);
 
       if(sub_iface) {
-        if (!this->registerSubInterface(sub_iface, criteria)) {
+        if(!this->registerSubInterface(sub_iface, criteria)) {
           ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure registering sub-interface");
 
 	  /* NOTE: interface deleted by registerSubInterface */
@@ -1056,6 +1056,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     }
 #endif
 #endif
+
     if(!processed && flowHashingMode != flowhashing_none) {
       /* VLAN disaggregation */
       if(flowHashingMode == flowhashing_vlan && vlan_id > 0) {
@@ -1076,7 +1077,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       }
     }
 
-    if (processed && !showDynamicInterfaceTraffic()) {
+    if(processed && !showDynamicInterfaceTraffic()) {
       incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP,
 	       NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
 	       0,
@@ -1323,6 +1324,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
         flow->setICMP(src2dst_direction, icmp_type, icmp_code, l4);
 	flow->setICMPPayloadSize(trusted_l4_packet_len);
+	trusted_payload_len = trusted_l4_packet_len, payload = l4;
       }
       break;
     }

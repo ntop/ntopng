@@ -807,8 +807,8 @@ else
    end
 
    print("<tr><th width=30%>"..i18n("flow_details.tos").."</th>")
-   print("<td>"..DSCP[flow.tos.client.DSCP].." / ".. ECN[flow.tos.client.ECN] .."</td>")
-   print("<td>"..DSCP[flow.tos.server.DSCP].." / ".. ECN[flow.tos.server.ECN] .."</td>")
+   print("<td>"..(DSCP[flow.tos.client.DSCP] or "") .." / ".. (ECN[flow.tos.client.ECN] or "") .."</td>")
+   print("<td>"..(DSCP[flow.tos.server.DSCP] or "") .." / ".. (ECN[flow.tos.server.ECN] or "") .."</td>")
    print("</tr>")
 	 
    if(flow["tcp.nw_latency.client"] ~= nil) then
@@ -1141,10 +1141,17 @@ else
       print("</td></tr>\n")
    end
 
-   if isScoreEnabled() then
+   if(isScoreEnabled() and (flow.score > 0)) then
       print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
    end
 
+   if(flow.entropy.client and flow.entropy.server) then
+      print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Entropy_(information_theory)\" target=\"_blank\">"..i18n("flow_details.entropy").."</A> <i class=\"fas fa-external-link-alt\"></i></th>")
+      print("<td>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.client) .. "</td>")
+      print("<td>"..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.server) .. "</td>")
+      print("</tr>\n")
+   end
+   
    if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>"..i18n("flow_details.actual_peak_throughput").."</th><td width=20%>")
       if (throughput_type == "bps") then

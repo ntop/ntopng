@@ -158,9 +158,12 @@ Flow::Flow(NetworkInterface *_iface,
   if(iface->isPacketInterface() && !iface->isSampledTraffic()) {
     cli2srvPktTime = new (std::nothrow) InterarrivalStats();
     srv2cliPktTime = new (std::nothrow) InterarrivalStats();
+    entropy.c2s = ndpi_alloc_data_analysis(256);
+    entropy.s2c = ndpi_alloc_data_analysis(256);
   } else {
     cli2srvPktTime = NULL;
     srv2cliPktTime = NULL;
+    entropy.c2s = entropy.s2c = NULL;
   }
 
 #ifdef NTOPNG_PRO
@@ -270,6 +273,9 @@ Flow::~Flow() {
   if(cli2srvPktTime) delete cli2srvPktTime;
   if(srv2cliPktTime) delete srv2cliPktTime;
 
+  if(entropy.c2s) ndpi_free_data_analysis(entropy.c2s);
+  if(entropy.s2c) ndpi_free_data_analysis(entropy.s2c);
+      
   if(isHTTP()) {
     if(protos.http.last_method) free(protos.http.last_method);
     if(protos.http.last_url)    free(protos.http.last_url);
@@ -1987,6 +1993,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_push_str_table_entry(vm, "status_info", alert_status_info);
 
     lua_get_risk_info(vm, true);
+
+    lua_entropy(vm);
   }
 
   lua_get_status(vm);
@@ -2720,13 +2728,23 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
     if(srv_host) srv_host->incSentStats(1, pkt_len);
   }
 
-  if((applLatencyMsec == 0) && (payload_len > 0)) {
+  if(payload_len > 0) {
     if(cli2srv_direction) {
-      memcpy(&c2sFirstGoodputTime, when, sizeof(struct timeval));
+      if(get_bytes_cli2srv() < MAX_ENTROPY_BYTES)
+	updateEntropy(entropy.c2s, payload, payload_len);
     } else {
-      if(c2sFirstGoodputTime.tv_sec != 0)
-	applLatencyMsec = ((float)(Utils::timeval2usec((struct timeval*)when)
-				   - Utils::timeval2usec(&c2sFirstGoodputTime)))/1000;
+      if(get_bytes_srv2cli() < MAX_ENTROPY_BYTES)
+	updateEntropy(entropy.s2c, payload, payload_len);
+    }
+    
+    if(applLatencyMsec == 0) {
+      if(cli2srv_direction) {
+	memcpy(&c2sFirstGoodputTime, when, sizeof(struct timeval));
+      } else {
+	if(c2sFirstGoodputTime.tv_sec != 0)
+	  applLatencyMsec = ((float)(Utils::timeval2usec((struct timeval*)when)
+				     - Utils::timeval2usec(&c2sFirstGoodputTime)))/1000;
+      }
     }
   }
 }
@@ -4944,5 +4962,30 @@ void Flow::statusInfosLua(lua_State* vm) const {
 	lua_settable(vm, -3);
       }
     }
+  }
+}
+
+/* *************************************** */
+
+void Flow::updateEntropy(struct ndpi_analyze_struct *e,
+			 u_int8_t *payload, u_int payload_len) {
+  if(e != NULL) {
+    for(u_int i=0; i<payload_len; i++)
+      ndpi_data_add_value(e, payload[i]);
+  }
+}
+
+/* *************************************** */
+
+void Flow::lua_entropy(lua_State* vm) {
+  if(entropy.c2s && entropy.s2c) {
+    lua_newtable(vm);
+
+    lua_push_float_table_entry(vm,  "client", ndpi_data_entropy(entropy.c2s));
+    lua_push_float_table_entry(vm,  "server", ndpi_data_entropy(entropy.s2c));
+    
+    lua_pushstring(vm, "entropy");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
   }
 }

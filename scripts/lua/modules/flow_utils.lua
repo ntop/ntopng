@@ -606,7 +606,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       label = label.." [ "..cli_mac.." ]"
    end
 
-   label = label.." <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> "
+   label = label.."&nbsp; <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> &nbsp;"
 
    if not isEmptyString(srv_name) then
       label = label..srv_name

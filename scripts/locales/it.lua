@@ -1161,6 +1161,7 @@ local lang = {
     ["elephant_flow_descr"] = "I flussi elephant sono quelli che scambiano più di una certa quantità di dati configurata.",
     ["elephant_flow_l2r"] = "Flusso Elephant (da Locale a Remoto)",
     ["elephant_flow_r2l"] = "Flusso Elephant (da Remoto a Locale)",
+    ["entropy"] = "Entropia",
     ["existing_rules_note"] = "Le regole esistenti possono esser trovate alla pagina <a href=\"%{url}\">%{name}</a>.",
     ["external_alert"] = "Rilevato allarme %{scope}: %{msg} [%{maker}]",
     ["first_last_flow_sequence"] = "Prima / Ultima Sequenza Flusso",

@@ -1254,6 +1254,7 @@ local lang = {
     ["elephant_flow_descr"] = "Elephant flows are those that transfer more than a certain configured amount of data. Administrators can configure elephant flows from the preferences.",
     ["elephant_flow_l2r"] = "Elephant Flow (Local to Remote Traffic)",
     ["elephant_flow_r2l"] = "Elephant Flow (Remote to Local Traffic)",
+    ["entropy"] = "Entropy",
     ["existing_rules_note"] = "Existing rules can be found at the <a href=\"%{url}\">%{name}</a> page.",
     ["external_alert"] = "Detected %{scope} alert: %{msg} [%{maker}]",
     ["first_last_flow_sequence"] = "First / Last Flow Sequence",

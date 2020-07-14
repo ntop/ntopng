@@ -31,12 +31,14 @@ class FlowTrafficStats : public PartializableFlowTrafficStats {
  public:
   FlowTrafficStats();
   FlowTrafficStats(const FlowTrafficStats &fts);
+
   virtual ~FlowTrafficStats();
 
   virtual void incStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len);
   virtual void setStats(bool cli2srv_direction, u_int num_pkts, u_int pkt_len, u_int payload_len);
 
-  const ndpi_analyze_struct* get_analize_struct(bool cli2srv_direction) const;  
+  const ndpi_analyze_struct* get_analize_struct(bool cli2srv_direction) const;
+  
 };
 
 #endif /* FLOW_TRAFFIC_STATS_H_ */

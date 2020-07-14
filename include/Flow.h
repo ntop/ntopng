@@ -58,7 +58,9 @@ class Flow : public GenericHashEntry {
   AlertLevel alert_level;
   char *alert_status_info;        /* Alert specific status info */
   char *alert_status_info_shadow;
-
+  struct {
+    struct ndpi_analyze_struct *c2s, *s2c;
+  } entropy;
   u_int hash_entry_id; /* Uniquely identify this Flow inside the flows_hash hash table */
 
   bool detection_completed, extra_dissection_completed,
@@ -273,6 +275,9 @@ class Flow : public GenericHashEntry {
    */
   void performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data);
   void lua_tos(lua_State* vm);
+
+  void updateEntropy(struct ndpi_analyze_struct *e, u_int8_t *payload, u_int payload_len);
+  void lua_entropy(lua_State* vm);
   
  public:
   Flow(NetworkInterface *_iface,
