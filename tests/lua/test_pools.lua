@@ -246,6 +246,7 @@ assert(second_pool_id == new_pool_id + 1)
 s:cleanup()
 
 -- TEST host pools
+
 local s = host_pools:create()
 
 s:cleanup()
@@ -293,7 +294,7 @@ assert(second_pool_id == new_pool_id)  -- There's no +1 here, host pool ids are 
 -- tprint(s:get_all_pools())
 
 -- Cleanup
--- s:cleanup()
+s:cleanup()
 
 
 print("OK\n")
