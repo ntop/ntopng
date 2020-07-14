@@ -14,7 +14,13 @@ local base_pools = {}
 
 -- ##############################################
 
-base_pools.DEFAULT_POOL_ID = 0 -- Actual pool ids start from 1, this is a default value associated to any member without pools
+-- A default pool id value associated to any member without pools
+base_pools.DEFAULT_POOL_ID = 0
+
+-- ##############################################
+
+-- This is the minimum pool id which will be used to create new pools
+base_pools.MIN_ASSIGNED_POOL_ID = 1
 
 -- ##############################################
 
@@ -93,14 +99,40 @@ end
 
 function base_pools:_assign_pool_id()
    local next_pool_id_key = self:_get_next_pool_id_key()
+
    -- Atomically assign a new pool id
    local next_pool_id = ntop.incrCache(next_pool_id_key)
+
+   -- Make sure the id equals at least the minimum required id
+   while next_pool_id < base_pools.MIN_ASSIGNED_POOL_ID do
+      next_pool_id = ntop.incrCache(next_pool_id_key)
+   end
 
    -- Add the atomically assigned pool id to the set of current pool ids (set wants a string)
    ntop.setMembersCache(self:_get_pool_ids_key(), string.format("%d", next_pool_id))
 
-   -- tprint({next_pool_id = next_pool_id, pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())})
    return next_pool_id
+end
+
+
+-- ##############################################
+
+-- @brief Returns an array with all the currently assigned pool ids
+function base_pools:_get_assigned_pool_ids()
+   local res = {}
+
+   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+   for _, cur_pool_id in pairs(cur_pool_ids) do
+      cur_pool_id = tonumber(cur_pool_id)
+
+      if cur_pool_id ~= base_pools.DEFAULT_POOL_ID then
+	 -- the default pool id is never returned,
+	 -- it's a meta-pool without members
+	 res[#res + 1] = cur_pool_id
+      end
+   end
+
+   return res
 end
 
 -- ##############################################
@@ -216,6 +248,12 @@ function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
 
    -- If here, pool_id has been found
    if locked then
+      if not new_members then
+	 -- In case members have not been sumbitted, new_members
+	 -- are assumed to be the existing members
+	 new_members = cur_pool_details["members"]
+      end
+
       if cur_pool_details and new_name and new_members and new_configset_id then
 	 local checks_ok = true
 
@@ -271,10 +309,10 @@ function base_pools:delete_pool(pool_id)
 
    local locked = self:_lock()
 
-   -- Make sure the pool exists
-   local cur_pool_details = self:get_pool(pool_id)
-
    if locked then
+      -- Make sure the pool exists
+      local cur_pool_details = self:get_pool(pool_id)
+
       if cur_pool_details then
 	 -- Remove the key with all the pool details (e.g., with members, and configset_id)
 	 ntop.delCache(self:_get_pool_details_key(pool_id))
@@ -295,7 +333,7 @@ end
 
 -- @brief Returns all the defined pools. Pools are returned in a lua table with pool ids as keys
 function base_pools:get_all_pools()
-   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+   local cur_pool_ids = self:_get_assigned_pool_ids()
    local res = {}
 
    for _, pool_id in pairs(cur_pool_ids) do
@@ -352,7 +390,7 @@ end
 -- ##############################################
 
 function base_pools:get_pool_by_name(name)
-   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+   local cur_pool_ids = self:_get_assigned_pool_ids()
 
    for _, pool_id in pairs(cur_pool_ids) do
       local pool_details = self:get_pool(pool_id)
@@ -368,7 +406,7 @@ end
 -- ##############################################
 
 function base_pools:get_pools_by_configset_id(configset_id)
-   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+   local cur_pool_ids = self:_get_assigned_pool_ids()
    local res = {}
 
    for _, pool_id in pairs(cur_pool_ids) do
@@ -386,7 +424,7 @@ end
 
 -- @brief Returns a flattened table with pool_member->pool_id pairs
 function base_pools:get_assigned_members()
-   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+   local cur_pool_ids = self:_get_assigned_pool_ids()
    local res = {}
 
    for _, pool_id in pairs(cur_pool_ids) do
@@ -405,15 +443,14 @@ end
 -- ##############################################
 
 function base_pools:cleanup()
+   -- Delete pool details
+   local cur_pool_ids = self:_get_assigned_pool_ids()
+   for _, pool_id in pairs(cur_pool_ids) do
+      self:delete_pool(pool_id)
+   end
+
    local locked = self:_lock()
-
    if locked then
-      -- Delete pool details
-      local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
-      for _, pool_id in pairs(cur_pool_ids) do
-	 ntop.delCache(self:_get_pool_details_key(pool_id))
-      end
-
       -- Delete pool ids
       ntop.delCache(self:_get_pool_ids_key())
       ntop.delCache(self:_get_next_pool_id_key())

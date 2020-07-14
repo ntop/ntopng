@@ -17,6 +17,7 @@ local interface_pools = require "interface_pools"
 local local_network_pools = require "local_network_pools"
 local snmp_device_pools = require "snmp_device_pools"
 local active_monitoring_pools = require "active_monitoring_pools"
+local host_pools = require "host_pools"
 
 -- interface_pools.get_available_members()
 
@@ -38,7 +39,7 @@ s:cleanup()
 
 -- Creation
 local new_pool_id = s:add_pool('my_pool', {"5"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
-assert(new_pool_id == 1)
+assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
 
 -- Getter (by id)
 local pool_details = s:get_pool(new_pool_id)
@@ -67,12 +68,12 @@ assert(pool_details == nil)
 
 -- Addition of another pool
 local second_pool_id = s:add_pool('my_second_pool', {"5"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
-assert(second_pool_id == 2)
+assert(second_pool_id == new_pool_id + 1)
 
 -- Edit of the second pool
 s:edit_pool(second_pool_id, 'my_second_pool_edited', {"5"}, 0)
 pool_details = s:get_pool(second_pool_id)
-assert(second_pool_id == 2)
+assert(second_pool_id == new_pool_id + 1)
 
 -- Assign a memeber to the default pool id and make sure it has been removed from second_pool
 s:bind_member("5", s.DEFAULT_POOL_ID)
@@ -86,7 +87,7 @@ assert(has_member(pool_details["members"], "5"))
 
 -- Addition of another pool
 local third_pool_id = s:add_pool('my_third_pool', {"3"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
-assert(third_pool_id == 3)
+assert(third_pool_id == second_pool_id + 1)
 
 -- 'switch' member from the third to the second pool
 s:bind_member("3", second_pool_id)
@@ -115,7 +116,7 @@ s:cleanup()
 
 -- Creation
 local new_pool_id = s:add_pool('my_local_network_pool', {"127.0.0.0/8"} --[[ an array of valid local networks ]], 0 --[[ a valid configset_id --]])
-assert(new_pool_id == 1)
+assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
 
 -- Getter (by id)
 local pool_details = s:get_pool(new_pool_id)
@@ -143,12 +144,12 @@ assert(pool_details == nil)
 
 -- Addition of another pool
 local second_pool_id = s:add_pool('my_local_network_second_pool', {"127.0.0.0/8"} --[[ an array of valid local networks ]], 0 --[[ a valid configset_id --]])
-assert(second_pool_id == 2)
+assert(second_pool_id == new_pool_id + 1)
 
 -- Edit of the second pool
 s:edit_pool(second_pool_id, 'my_local_network_second_pool_edited', {"127.0.0.0/8"}, 0)
 pool_details = s:get_pool(second_pool_id)
-assert(second_pool_id == 2)
+assert(second_pool_id == new_pool_id + 1)
 
 s:cleanup()
 
@@ -160,7 +161,7 @@ s:cleanup()
 
 -- Creation
 local new_pool_id = s:add_pool('my_snmp_device_pool', {"192.168.2.169"} --[[ an array of valid snmp_device ip]], 0 --[[ a valid configset_id --]])
-assert(new_pool_id == 1)
+assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
 
 -- Getter (by id)
 local pool_details = s:get_pool(new_pool_id)
@@ -188,12 +189,12 @@ assert(pool_details == nil)
 
 -- Addition of another pool
 local second_pool_id = s:add_pool('my_snmp_device_second_pool', {"192.168.2.169"} --[[ an array of valid snmp_device ip ]], 0 --[[ a valid configset_id --]])
-assert(second_pool_id == 2)
+assert(second_pool_id == new_pool_id + 1)
 
 -- Edit of the second pool
 s:edit_pool(second_pool_id, 'my_snmp_device_second_pool_edited', {"192.168.2.169"}, 0)
 pool_details = s:get_pool(second_pool_id)
-assert(second_pool_id == 2)
+assert(second_pool_id == new_pool_id + 1)
 
 -- Cleanup
 s:cleanup()
@@ -206,7 +207,7 @@ s:cleanup()
 
 -- Creation
 local new_pool_id = s:add_pool('my_am_pool', {"https@ntop.org"} --[[ an array of valid active monitoring keys ]], 0 --[[ a valid configset_id --]])
-assert(new_pool_id == 1)
+assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
 
 -- Getter (by id)
 local pool_details = s:get_pool(new_pool_id)
@@ -234,15 +235,65 @@ assert(pool_details == nil)
 
 -- Addition of another pool
 local second_pool_id = s:add_pool('my_am_second_pool', {"https@ntop.org"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
-assert(second_pool_id == 2)
+assert(second_pool_id == new_pool_id + 1)
 
 -- Edit of the second pool
 s:edit_pool(second_pool_id, 'my_am_second_pool_edited', {"https@ntop.org"}, 0)
 pool_details = s:get_pool(second_pool_id)
-assert(second_pool_id == 2)
+assert(second_pool_id == new_pool_id + 1)
 
 -- Cleanup
 s:cleanup()
+
+-- TEST host pools
+local s = host_pools:create()
+
+s:cleanup()
+
+-- Creation
+
+local new_pool_id = s:add_pool('my_host_pool', {"192.168.2.222/32@0"} --[[ an array of valid host pool members ]], 0 --[[ a valid configset_id --]])
+assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
+
+-- Getter (by id)
+local pool_details = s:get_pool(new_pool_id)
+assert(pool_details["name"] == "my_host_pool")
+
+-- Getter (a non-existing id)
+assert(not s:get_pool(999))
+
+-- Getter (by name)
+pool_details = s:get_pool_by_name('my_host_pool')
+assert(pool_details["name"] == "my_host_pool")
+
+-- Getter (a non-existing name)
+assert(not s:get_pool_by_name('my_host_non_existing_name'))
+
+-- Edit
+s:edit_pool(new_pool_id, 'my_host_renewed_pool', {"192.168.2.222/32@0", "192.168.2.0/24@0", "AA:BB:CC:DD:EE:FF"}, 0)
+pool_details = s:get_pool(new_pool_id)
+assert(pool_details["name"] == "my_host_renewed_pool")
+
+-- Delete
+s:delete_pool(new_pool_id)
+pool_details = s:get_pool(new_pool_id)
+assert(pool_details == nil)
+
+-- Addition of another pool
+local second_pool_id = s:add_pool('my_host_second_pool', {"8.8.8.8/32@0"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+assert(second_pool_id == new_pool_id)
+
+-- Edit of the second pool
+s:edit_pool(second_pool_id, 'my_host_second_pool_edited', {"192.168.2.0/24@0"}, 0)
+pool_details = s:get_pool(second_pool_id)
+assert(second_pool_id == new_pool_id)  -- There's no +1 here, host pool ids are re-used
+
+-- tprint(s:get_assigned_members())
+-- tprint(s:get_available_configset_ids())
+-- tprint(s:get_all_pools())
+
+-- Cleanup
+-- s:cleanup()
 
 
 print("OK\n")
