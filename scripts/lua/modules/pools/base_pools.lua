@@ -200,10 +200,10 @@ function base_pools:add_pool(name, members, configset_id)
 
 	 -- Check if members do not belong to any other pool
 	 if checks_ok then
-	    local assigned_members = self:get_assigned_members()
-
 	    for _, member in pairs(members) do
-	       if assigned_members[member] then
+	       local cur_pool = self:get_pool_by_member(member)
+
+	       if cur_pool then
 		  -- Member already existing in another pool
 		  checks_ok = false
 		  break
@@ -262,14 +262,14 @@ function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
 	 if same_name_pool and same_name_pool.pool_id ~= pool_id then checks_ok = false end
 
 	 -- Check if members are valid
-	 if not self:are_valid_members(new_members) then checks_ok = false end
+	 if checks_ok and not self:are_valid_members(new_members) then checks_ok = false end
 
 	 -- Check if none of new_members belongs to any other exsiting pool
 	 if checks_ok then
-	    local assigned_members = self:get_assigned_members()
+	    for _, new_member in pairs(new_members) do
+	       local new_member_pool = self:get_pool_by_member(new_member)
 
-	    for _, member in pairs(new_members) do
-	       if assigned_members[member] and assigned_members[member]["pool_id"] ~= pool_id then
+	       if new_member_pool and new_member_pool["pool_id"] ~= pool_id then
 		  -- Member already existing in another pool
 		  checks_ok = false
 		  break
@@ -398,6 +398,19 @@ function base_pools:get_pool_by_name(name)
       if pool_details and pool_details["name"] and pool_details["name"] == name then
 	 return pool_details
       end
+   end
+
+   return nil
+end
+
+-- ##############################################
+
+-- @brief Returns the pool to which `member` is currently bound to, or nil if `member` is not bound to any pool
+function base_pools:get_pool_by_member(member)
+   local assigned_members = self:get_assigned_members()
+
+   if assigned_members[member] then
+      return self:get_pool(assigned_members[member]["pool_id"])
    end
 
    return nil

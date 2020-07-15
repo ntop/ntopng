@@ -89,6 +89,10 @@ assert(has_member(pool_details["members"], "5"))
 local third_pool_id = s:add_pool('my_third_pool', {"3"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
 assert(third_pool_id == second_pool_id + 1)
 
+-- Attempt at assigning a assigning to a pool a member which is already bound to another pool
+local res = s:edit_pool(second_pool_id, 'my_pool', {"3"}, 0)
+assert(res == false)
+
 -- 'switch' member from the third to the second pool
 s:bind_member("3", second_pool_id)
 pool_details = s:get_pool(second_pool_id)
