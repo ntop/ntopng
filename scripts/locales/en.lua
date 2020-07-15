@@ -320,6 +320,7 @@ local lang = {
     ["active_monitoring"] = "Active Monitoring",
     ["active_monitoring_description"] = "Monitors the status and the response time of specific hosts",
     ["add_icmp"] = "Add ICMP Monitor",
+    ["add_pool"] = "Add Active Monitoring Pool",
     ["add_record"] = "Add Active Monitoring Record",
     ["alert_status"] = "Alert Status",
     ["alerted"] = "Alerted",

@@ -48,8 +48,8 @@ function alert_notification:create(id, title, description, level, action, delay_
 
     local this = {
         id              = id,
-        title           = (title or 'Ntopng Notification'),
-        description     = (description or 'short description'),
+        title           = (title or i18n("info")),
+        description     = (description or i18n("description")),
         level           = (alert_notification_levels[level] or alert_notification_levels.info),
         action          = (action or nil),
         delay_to_fade   = delay_to_fade or 0,
