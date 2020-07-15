@@ -889,13 +889,17 @@ void Host::periodic_stats_update(void *user_data) {
   char buf[64], buf2[128];
 
   if(num_active_flows_as_client.is_misbehaving(tv->tv_sec))
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_client] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_client.print(buf2, sizeof(buf2)));
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_client] %s %s",
+				 ip.print(buf, sizeof(buf)), num_active_flows_as_client.print(buf2, sizeof(buf2)));
 
   if(num_active_flows_as_server.is_misbehaving(tv->tv_sec))
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s", ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s",
+				 ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
 #endif
 
   GenericHashEntry::periodic_stats_update(user_data);
+
+  custom_periodic_stats_update(user_data);
 }
 
 /* *************************************** */

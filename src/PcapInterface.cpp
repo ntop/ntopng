@@ -37,10 +37,10 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
   emulate_traffic_directions = false;
   read_pkts_from_pcap_dump = read_pkts_from_pcap_dump_done = false;
-  
+
   if((stat(name, &buf) == 0) || (name[0] == '-') || !strncmp(name, "stdin", 5)) {
     /*
-      The file exists so we need to check if it's a 
+      The file exists so we need to check if it's a
       text file or a pcap file
     */
 
@@ -59,7 +59,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
       }
 
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s...", ifname);
-      read_pkts_from_pcap_dump = true, purge_idle_flows_hosts = false;      
+      read_pkts_from_pcap_dump = true, purge_idle_flows_hosts = ntop->getPrefs()->purgeHostsFlowsOnPcapFiles();
       pcap_datalink_type = pcap_datalink(pcap_handle);
     } else {
       /* Trying to open a playlist */
@@ -73,24 +73,24 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
   } else {
     pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(ifname),
 				 ntop->getPrefs()->use_promiscuous(),
-				 1000 /* 1 sec */, pcap_error_buffer);  
+				 1000 /* 1 sec */, pcap_error_buffer);
 
     if(pcap_handle) {
-      char *bl = strrchr(ifname, 
+      char *bl = strrchr(ifname,
 #ifdef WIN32
 			 '\\'
 #else
 			 '/'
 #endif
 			 );
-      
+
       if(bl != NULL) {
 	char *tmp = ifname;
 	ifname = strdup(&bl[1]);
 	free(tmp);
       }
-      
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [id: %d]", 
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [id: %d]",
           ntop->getPrefs()->get_if_descr(ifIdx), ifIdx);
       read_pkts_from_pcap_dump = false;
       pcap_datalink_type = pcap_datalink(pcap_handle);
@@ -110,10 +110,10 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
     /* Used to cleanup data during next ntopng startup */
     char id_str[8];
     snprintf(id_str, sizeof(id_str), "%d", get_id());
-    
+
     ntop->getRedis()->hashSet(PCAP_DUMP_INTERFACES_DELETE_HASH, id_str, get_name());
   }
-  
+
   if(ntop->getPrefs()->are_ixia_timestamps_enabled())
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Hardware timestamps are supported only on PF_RING capture interfaces");
 }
@@ -194,24 +194,24 @@ static void* packetPollLoop(void* ptr) {
       while((fname = fgets(path, sizeof(path), pcap_list)) != NULL) {
 	char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 	int l = (int)strlen(path)-1;
-	
+
 	if((l <= 1) || (path[0] == '#')) continue;
 	path[l--] = '\0';
 
 	/* Remove trailer white spaces */
-	while((l > 0) && (path[l] == ' ')) path[l--] = '\0';	
+	while((l > 0) && (path[l] == ' ')) path[l--] = '\0';
 
 	while(l > 0) {
 	  if(!isascii(path[l--])) {
 	    /* This looks like a bad file */
-	    fname = NULL;	    
+	    fname = NULL;
 	    break;
 	  }
 	}
 
 	if(fname != NULL) {
 	  if((pcap_handle = pcap_open_offline(path, pcap_error_buffer)) == NULL) {
-	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file '%s': %s", 
+	    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file '%s': %s",
 					 path, pcap_error_buffer);
 	  } else {
 	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s", path);
@@ -239,7 +239,7 @@ static void* packetPollLoop(void* ptr) {
     firstPktTS.tv_sec = 0;
 
     while((pd != NULL)
-	  && iface->isRunning() 
+	  && iface->isRunning()
 	  && (!ntop->getGlobals()->isShutdown())) {
       const u_char *pkt;
       struct pcap_pkthdr *hdr;
@@ -250,10 +250,10 @@ static void* packetPollLoop(void* ptr) {
       if(fd > 0) {
 	fd_set rset;
 	struct timeval tv;
-	
+
 	FD_ZERO(&rset);
 	FD_SET(fd, &rset);
-	
+
 	tv.tv_sec = 1, tv.tv_usec = 0;
 	if(select(fd + 1, &rset, NULL, NULL, &tv) == 0) {
 	  iface->purgeIdle(time(NULL));
@@ -264,7 +264,7 @@ static void* packetPollLoop(void* ptr) {
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if(iface->reproducePcapOriginalSpeed()) {
 	  struct timeval now;
-	    
+
 	  gettimeofday(&now, NULL);
 
 	  if(firstPktTS.tv_sec == 0) {
@@ -276,9 +276,9 @@ static void* packetPollLoop(void* ptr) {
 
             if (packetTimeDelta > fromStartTimeDelta) {
               u_int32_t sleepMs = packetTimeDelta - fromStartTimeDelta;
-                
+
 	      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Sleeping %.3f sec", ((float)(sleepMs))/1000);
-		
+
 	      _usleep(sleepMs*1000);
 
 	      /* Recompute after sleep */
@@ -288,7 +288,7 @@ static void* packetPollLoop(void* ptr) {
 
 	  hdr->ts = now;
 	}
-	  
+
 	if((pkt != NULL) && (hdr->caplen > 0)) {
 	  u_int16_t p;
 	  Host *srcHost = NULL, *dstHost = NULL;
@@ -327,7 +327,6 @@ static void* packetPollLoop(void* ptr) {
 	iface->purgeIdle(time(NULL));
       }
     } /* while */
-
   } while(pcap_list != NULL);
 
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
@@ -370,7 +369,13 @@ static void* packetPollLoop(void* ptr) {
 
   if(ntop->getPrefs()->shutdownWhenDone())
     ntop->getGlobals()->shutdown();
-
+  else if(iface->is_purge_idle_interface()) {
+    while(!ntop->getGlobals()->isShutdown()) {
+      iface->purgeIdle(time(NULL));
+      sleep(1);
+    }
+  }
+  
   return(NULL);
 }
 
@@ -382,7 +387,7 @@ void PcapInterface::startPacketPolling() {
     purge_idle_flows_hosts = true;
   }
 
-  pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);  
+  pthread_create(&pollLoop, NULL, packetPollLoop, (void*)this);
   pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
 }
@@ -444,7 +449,7 @@ static u_int64_t getCounterInc(u_int64_t old_v, u_int64_t new_v) {
 
 /* **************************************************** */
 
-/* This method is only executed by the periodic script second.lua 
+/* This method is only executed by the periodic script second.lua
  * Note: this is required as libpcap does not provide packets/bytes
  * statistics per direction. Make sure ethStats are not increased
  * by the packet processing function when this is in place. */
@@ -484,4 +489,3 @@ bool PcapInterface::reproducePcapOriginalSpeed() const {
 }
 
 #endif
-

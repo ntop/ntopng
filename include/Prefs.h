@@ -45,7 +45,7 @@ class Prefs {
   bool enable_client_x509_auth, reproduce_at_original_speed;
   char *lan_interface;
   Ntop *ntop;
-  bool enable_dns_resolution, sniff_dns_responses,
+  bool enable_dns_resolution, sniff_dns_responses, pcap_file_purge_hosts_flows,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
     enable_auto_logout, enable_auto_logout_at_runtime, use_promiscuous_mode,
     enable_ixia_timestamps, enable_vss_apcon_timestamps,
@@ -358,7 +358,7 @@ class Prefs {
   inline bool isGlobalDnsForgingEnabled()        { return(global_dns_forging_enabled);                  };
   inline bool     reproduceOriginalSpeed()       { return(reproduce_at_original_speed);                 };
   inline void     doReproduceOriginalSpeed()     { reproduce_at_original_speed = true;                  };
-  
+  inline bool     purgeHostsFlowsOnPcapFiles()   { return(pcap_file_purge_hosts_flows);                 };
   void validate();
 };
 
