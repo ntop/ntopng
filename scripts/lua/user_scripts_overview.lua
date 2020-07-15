@@ -97,7 +97,7 @@ page_utils.print_page_title('User Scripts')
 print([[
             </div>
             <div class='col-12 my-3'>
-                <table class='table table-bordered' id='user-scripts'>
+                <table class='table table-bordered table-striped' id='user-scripts'>
                     <thead>
                         <tr>
                             <th>]].. i18n("plugins_overview.script") ..[[</th>

@@ -1,6 +1,8 @@
 --
 -- (C) 2017-20 - ntop.org
 --
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local pragma_once = 1
 local http_lint = {}
@@ -540,6 +542,10 @@ end
 local function validateSnmpLevel(level)
    local levels = {"authPriv", "authNoPriv", "noAuthNoPriv"}
    return validateChoice(levels, level)
+end
+
+local function validateNotificationId(key)
+   return validateChoice({"geoip_alert"}, key)
 end
 
 local function validateSnmpAuthProtocol(protocol)
@@ -1393,7 +1399,7 @@ local known_parameters = {
    ["row_id"]                  = validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                = validateUnquoted,              -- A path or special identifier to read an RRD file
    ["port"]                    = validatePort,                  -- An application port
-   ["notification_id"]         = validateNumber,
+   ["notification_id"]         = validateNotificationId,
    ["ntopng_license"]          = {licenseCleanup, validateLicense},          -- ntopng licence string
    ["syn_attacker_threshold"]        = validateEmptyOr(validateNumber),
    ["global_syn_attacker_threshold"] = validateEmptyOr(validateNumber),
@@ -1886,7 +1892,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 -- #################################################################
 
-local function validateParameter(k, v)   
+local function validateParameter(k, v)
    if(known_parameters[k] == nil) then
       return false, nil
    else

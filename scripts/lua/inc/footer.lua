@@ -258,7 +258,6 @@ const footerRefresh = function() {
       type: 'GET',
 	  url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/interface/data.lua',
 	  data: { ifid: ]] print(tostring(ifid)) print[[ },
-	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]] print (ntop.getHttpPrefix()) print [[/lua/logout.lua");  }, */
 	  success: function(content) {
           if(content["rc_str"] != "OK") {
             return;
@@ -510,8 +509,15 @@ print[[
 		$('#network-load').html($msg);
 
 	    if (alert) {
-			$('#toomany').html("<div class='alert alert-warning'><h4>]] print(i18n("warning")) print[[</h4>]] print(i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[.</div>");
-	    }
+			AlertNotificationUtils.showAlert({
+				title: "]] print(i18n("warning")) print[[",
+				body: "]] print (i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[",
+				id: 'toomany-flows'
+			});
+		}
+		else {
+			AlertNotificationUtils.hideAlert('toomany-flows');
+		}
 
 	  } catch(e) {
 	     console.warn(e);

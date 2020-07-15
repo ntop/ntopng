@@ -5,10 +5,10 @@ require("lua_utils")
 local json = require "dkjson"
 local template = require "template_utils"
 
-Alert_notification = {}
-Alert_notification.__index = Alert_notification
+alert_notification = {}
+alert_notification.__index = alert_notification
 
-Alert_notification_levels = {
+alert_notification_levels = {
     danger = {
         icon = "fa-times-circle",
         bg_color = "danger",
@@ -41,22 +41,22 @@ Alert_notification_levels = {
 -- @param description The notification description (its body)
 -- @param level Use different style: danger|info|warning|success
 -- @param action The link where the notification brings { url = "#", title = "Click Here!"}
--- @param delay_to_fade The delay to fade in milliseconds
+-- @param delay_to_fade Delay to fade in milliseconds
 -- @param no_scope A list of pages where the notification won't render
 -- @return An AlertNotification instance
-function Alert_notification:create(id, title, description, level, action, delay_to_fade, no_scope)
+function alert_notification:create(id, title, description, level, action, delay_to_fade, no_scope)
 
     local this = {
         id              = id,
         title           = (title or 'Ntopng Notification'),
         description     = (description or 'short description'),
-        level           = (Alert_notification_levels[level] or Alert_notification_levels.info),
+        level           = (alert_notification_levels[level] or alert_notification_levels.info),
         action          = (action or nil),
         delay_to_fade   = delay_to_fade or 0,
-        no_scope        = no_scope or ""
+        no_scope        = no_scope or "",
     }
 
-    setmetatable(this, Alert_notification)
+    setmetatable(this, alert_notification)
 
     return this
 end
@@ -64,7 +64,7 @@ end
 -- Return the rendered HTML template for the notification
 -- to be displayed. The return string can be printed inside the page
 -- with the `print` method
-function Alert_notification:render()
+function alert_notification:render()
 
     local context = {
         style = self.level,
@@ -81,4 +81,4 @@ function Alert_notification:render()
 end
 
 
-return Alert_notification
+return alert_notification

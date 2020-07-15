@@ -11,7 +11,7 @@
         /* element is the form object */
         constructor(element, options) {
             /* Check mandatory options */
-            if(typeof options.csrf === "undefined")
+            if (typeof options.csrf === "undefined")
                 throw "ModalHandler: Missing CSRF token!";
 
             this.element = element;
@@ -28,43 +28,19 @@
             });
 
             const submitButton = $(this.element).find(`[type='submit']`);
-            if (!submitButton) throw new Error("The submit button was not found inside the form!");
+            if (submitButton.length == 0)
+                throw "The submit button was not found inside the form!";
 
-            /* Are you sure */
-            if(!this.dontDisableSubmit) {
+            this.cleanFormOnModalClose();
 
-                const modal_id = modal_id_ctr++;
+        }
 
-                $(this.element).attr("data-modal-handler-id", modal_id);
-                this.form_sel = `[data-modal-handler-id="${modal_id}"]`;
-                aysHandleForm(this.form_sel);
+        cleanFormOnModalClose() {
 
-                const self = this;
-
-                // handle modal-script close event
-                this.dialog.on("hide.bs.modal", function(e) {
-                    // If the form data has changed, ask the user if he wants to discard
-                    // the changes
-                    if($(self.element).hasClass('dirty')) {
-                        // ask to user if he REALLY wants close modal
-                        const result = confirm(`${i18n.are_you_sure}`);
-
-                        if(!result)
-                            e.preventDefault();
-                        else
-                            aysResetForm(self.form_sel);
-                    }
-                })
-                .on("shown.bs.modal", function(e) {
-                    // add focus to btn apply to enable focusing on the modal hence user can press escape button to
-                    // close the modal
-                    $(self.element).find("[type='submit']").trigger('focus');
-
-                    // Reinitialize the form AYS state with the new data
-                    aysResetForm(self.form_sel);
-                });
-            }
-
+            const self = this;
+            $(this.element).parents('.modal').on('hidden.bs.modal', function() {
+                self.cleanForm();
+            });
         }
 
         fillFormModal() {
@@ -107,13 +83,13 @@
 
                     if (!input.validity.valid && input.validationMessage) {
 
-                        $input.removeClass('is-valid').addClass('is-invalid');
+                        $input.addClass('is-invalid');
                         $error.text(input.validationMessage);
 
                         if (insertError) $parent.append($error);
                     }
                     else {
-                        $input.removeClass('is-invalid').addClass('is-valid');
+                        $input.removeClass('is-invalid');
                         $error.remove();
                     }
 
@@ -136,7 +112,7 @@
 
         cleanForm() {
             /* remove validation fields */
-            $(this.element).find('input:visible,textarea:visible,select').each(function(i, input) {
+            $(this.element).find('input,textarea,select').each(function(i, input) {
                 $(this).removeClass(`is-valid`).removeClass(`is-invalid`);
             });
             /* reset all the values */

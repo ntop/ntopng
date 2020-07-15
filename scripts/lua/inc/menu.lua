@@ -1154,16 +1154,11 @@ print([[
 print([[<div class='p-md-4 extended p-xs-1 mt-5 p-sm-2' id='n-container'>]])
 
 -- ###################################################
-menu_alert_notifications.render_notifications("main-container")
+-- Render main alert notifications
+menu_alert_notifications.render_notifications("main-container", menu_alert_notifications.load_main_notifications())
 -- ###################################################
 
 print("<div class='main-alerts'>")
-
-if(dirs.workingdir == "/var/tmp/ntopng") then
-   print('<div class="alert alert-danger" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <A HREF="https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/">')
-   print(i18n("about.datadir_warning"))
-   print('</a></div>')
-end
 
 local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifs.id)) == "1")
 
@@ -1223,6 +1218,3 @@ if(not is_admin) then
    dofile(dirs.installdir .. "/scripts/lua/inc/password_dialog.lua")
 end
 
-if not info.oem then
-   telemetry_utils.show_notice()
-end

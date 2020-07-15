@@ -327,7 +327,7 @@ local ECN = {
    [0x03] = "CE"
 }
 
-   
+
 function tlsVersion2Str(v)
    -- TODO: Use ndpi_ssl_version2str()
    if(v == 768) then
@@ -354,13 +354,13 @@ end
 
 local function cipher2str(c)
    if(c == nil) then return end
-   
+
    for s,v in pairs(tls_cipher_suites) do
       if(v == c) then
 	 return('<A HREF="https://ciphersuite.info/cs/'..s..'">'..s..'</A>')
       end
    end
-   
+
    return(c)
 end
 
@@ -789,7 +789,7 @@ else
       else
 	 print("<td>&nbsp;</td></tr>\n")
       end
-      
+
       print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-arrow-right\"></i> " .. i18n("server") .. ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / ".. bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-arrow-left\"></i> " .. i18n("server") .. ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / ".. bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
 
       print("<tr><td colspan=2>")
@@ -810,28 +810,28 @@ else
    print("<td>"..(DSCP[flow.tos.client.DSCP] or "") .." / ".. (ECN[flow.tos.client.ECN] or "") .."</td>")
    print("<td>"..(DSCP[flow.tos.server.DSCP] or "") .." / ".. (ECN[flow.tos.server.ECN] or "") .."</td>")
    print("</tr>")
-	 
+
    if(flow["tcp.nw_latency.client"] ~= nil) then
       local rtt = flow["tcp.nw_latency.client"] + flow["tcp.nw_latency.server"]
 
       if(rtt > 0) then
 	 local cli2srv = round(flow["tcp.nw_latency.client"], 3)
 	 local srv2cli = round(flow["tcp.nw_latency.server"], 3)
-	 
+
 	 print("<tr><th width=30%>"..i18n("flow_details.rtt_breakdown").."</th><td colspan=2>")
 	 print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (cli2srv * 100 / rtt) .. '%;">'.. cli2srv ..' ms (client)</div>')
 	 print('<div class="progress-bar bg-info" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
 	 print("</td></tr>\n")
 
 	 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
-	 print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").."</A></th><td>")	 
+	 print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").."</A></th><td>")
 	 local c_vacuum_km_s = 299792
 	 local c_vacuum_mi_s = 186000
 	 local fiber_vf      = .67
 	 local delta_t       = rtt/1000
 	 local dd_fiber_km   = delta_t * c_vacuum_km_s * fiber_vf
 	 local dd_fiber_mi   = delta_t * c_vacuum_mi_s * fiber_vf
-	  
+
 	 print(formatValue(toint(dd_fiber_km)).." Km</td><td>"..formatValue(toint(dd_fiber_mi)).." Miles")
 	 print("</td></tr>\n")
       end
@@ -944,11 +944,11 @@ else
    if(flow["protos.tls.issuerDN"] ~= nil) then
       print('<tr><th width=30%>TLS issuerDN</A></th><td colspan=2>'..flow["protos.tls.issuerDN"]..'</td></tr>\n')
    end
-   
+
    if(flow["protos.tls.subjectDN"] ~= nil) then
       print('<tr><th width=30%>TLS subjectDN</A></th><td colspan=2>'..flow["protos.tls.subjectDN"]..'</td></tr>\n')
    end
-   
+
    if((flow["protos.tls.ja3.client_hash"] ~= nil) or (flow["protos.tls.ja3.server_hash"] ~= nil)) then
       print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
       if(flow["protos.tls.ja3.client_malicious"]) then
@@ -960,12 +960,12 @@ else
       if(flow["protos.tls.ja3.server_malicious"]) then
         print('<i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
       end
-      
+
       ja3url(flow["protos.tls.ja3.server_hash"], flow["protos.tls.ja3.server_unsafe_cipher"])
       --print(cipher2str(flow["protos.tls.ja3.server_cipher"]))
       print("</td></tr>")
    end
-   
+
    if(flow["protos.tls.client_alpn"] ~= nil) then
       print('<tr><th width=30%><a href="https://en.wikipedia.org/wiki/Application-Layer_Protocol_Negotiation" data-toggle="tooltip" title="ALPN">TLS ALPN</A></th><td colspan=2>'..page_utils.safe_html(flow["protos.tls.client_alpn"])..'</td></tr>\n')
    end
@@ -973,7 +973,7 @@ else
    if(flow["protos.tls.client_tls_supported_versions"] ~= nil) then
       print('<tr><th width=30%><a href="https://tools.ietf.org/html/rfc7301" data-toggle="tooltip">'.. i18n("flow_details.client_tls_supported_versions") ..'</A></th><td colspan=2>'..page_utils.safe_html(flow["protos.tls.client_tls_supported_versions"])..'</td></tr>\n')
    end
-   
+
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
      '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-toggle="tooltip" title="'..i18n("flow_details.computed_as_tcp_window_size_rtt")..'">'..
@@ -983,7 +983,7 @@ else
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
      print("</td></tr>\n")
    end
-  
+
    if((flow["cli2srv.trend"] ~= nil) and false) then
      print("<tr><th width=30%>"..i18n("flow_details.throughput_trend").."</th><td nowrap>"..flow["cli.ip"].." <i class=\"fas fa-arrow-right\"></i> "..flow["srv.ip"]..": ")
      print(flow["cli2srv.trend"])
@@ -1044,7 +1044,7 @@ else
 
 	 print(" ["..i18n("flow")..": ")
 	 if unreachable_flow then
-	    print(" <A HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."&flow_hash_id="..unreachable_flow["hash_entry_id"].."'><span class='badge badge-info'>Info</span></A>")
+	    print(" <a class='btn btn-sm btn-info' HREF='"..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..unreachable_flow["ntopng.key"].."&flow_hash_id="..unreachable_flow["hash_entry_id"].."'>Info</a>")
 	    print(" "..getFlowLabel(unreachable_flow, true, true))
 	 else
 	    -- The flow hasn't been found so very likely it is no longer active or it hasn't been seen.
@@ -1065,7 +1065,7 @@ else
    if(flow["flow_risk"] ~= nil) then
       local flow_risk_utils = require "flow_risk_utils"
       local risk = flow["flow_risk"]
-      
+
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.flow_anomalies").."</th><td colspan=2>")
 
       local cur_risk = 1
@@ -1077,10 +1077,10 @@ else
 	 print(flow_risk_utils.risk_id_2_i18n(risk_id))
 	 cur_risk = cur_risk + 1
       end
-      
+
       print("</td></tr>")
    end
-   
+
    -- ######################################
 
    local alerted_status = nil
@@ -1100,7 +1100,7 @@ else
       print(message)
       print("</td></tr>\n")
    end
-   
+
    local additional_status = flow["status_map"]
 
    additional_status = ntop.bitmapClear(additional_status, flow_consts.status_types.status_normal.status_key)
@@ -1189,14 +1189,14 @@ else
 	 displayContainer(flow.client_container,
 			  "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.client_container_information").."</th></tr>\n")
       end
-      if(flow.server_process ~= nil) then	 
+      if(flow.server_process ~= nil) then
 	 displayProc(flow.server_process,
                      "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_process_information").."</th></tr>\n")
       end
-      if(flow.server_container ~= nil) then	 
+      if(flow.server_container ~= nil) then
 	 displayContainer(flow.server_container,
 			  "<tr><th colspan=3 class=\"info\">"..i18n("flow_details.server_container_information").."</th></tr>\n")
-      end      
+      end
    end
 
    if(flow["protos.dns.last_query"] ~= nil) then
@@ -1312,7 +1312,7 @@ else
       end
       info = syminfo
 
-      
+
       -- get SIP rows
       if(ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
         local sip_table_rows = getSIPTableRows(info)

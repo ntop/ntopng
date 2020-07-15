@@ -45,24 +45,9 @@ function telemetry_utils.notify(obj)
    end
 end
 
-local function dismiss_notice()
+function telemetry_utils.dismiss_notice()
    local dism = ntop.getPref(TELEMETRY_ENABLED_KEY)
-
    return not isAdministrator() or dism ~= ""
-end
-
-function telemetry_utils.notice_msg()
-   print(i18n("about.telemetry_data_opt_out_msg", {url=ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=telemetry", tel_url=ntop.getHttpPrefix().."/lua/telemetry.lua", ntop_org="https://www.ntop.org/"}))
-end
-
-function telemetry_utils.show_notice()
-   if not dismiss_notice() and (not _SERVER or not _SERVER["URI"]:match("/lua/admin/prefs.lua")) then
-      print('<div id="telemetry-data" class="alert alert-info" role="alert"><i class="fas fa-lg fa-info-circle"></i> ')
-
-      telemetry_utils.notice_msg()
-
-      print('</div>')
-   end
 end
 
 function telemetry_utils.print_overview()

@@ -113,7 +113,7 @@ page_utils.menu_entries = {
     remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "tools", help_link = "https://www.ntop.org/guides/ntopng/remote_assistance.html"},
 
     -- Pools
-    pools_host	     	   = {key = "pools_host", i18n_title = "host_pools.host_pools", section = "pools", visible_iface = false, visible_system = true},
+    pools_host	     	   = {key = "pools_host", i18n_title = "pools.pool_names.host", section = "pools", visible_iface = false, visible_system = true},
     pools_interface	   = {key = "pools_interface", i18n_title = "pools.pool_names.interface", section = "pools", visible_iface = false, visible_system = true},
     pools_snmp	         = {key = "pools_snmp", i18n_title = "pools.pool_names.snmp", section = "pools", visible_iface = false, visible_system = true},
     pools_local_network	= {key = "pools_local_network", i18n_title = "pools.pool_names.local_network", section = "pools", visible_iface = false, visible_system = true},

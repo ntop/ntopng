@@ -1245,3 +1245,8 @@ td.dt-body-right {
 .pre-wrap {
   white-space: pre;
 }
+
+.toast-body.bg-info a {
+  font-weight: 600;
+  color: white;
+}
