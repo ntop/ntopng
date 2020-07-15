@@ -289,9 +289,20 @@ local second_pool_id = s:add_pool('my_host_second_pool', {"8.8.8.8/32@0"} --[[ a
 assert(second_pool_id == new_pool_id)
 
 -- Edit of the second pool
-s:edit_pool(second_pool_id, 'my_host_second_pool_edited', {"192.168.2.0/24@0"}, 0)
+s:edit_pool(second_pool_id, 'my_host_second_pool_edited', {"192.168.2.0/24@0", "8.8.8.8/32@0"}, 0)
 pool_details = s:get_pool(second_pool_id)
 assert(second_pool_id == new_pool_id)  -- There's no +1 here, host pool ids are re-used
+
+-- Addition of a third pool
+local third_pool_id = s:add_pool('my_host_third_pool', {"1.1.1.1/32@0"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+assert(third_pool_id == second_pool_id + 1)
+
+-- Edit of the third pool (try to add a member already bound to another pool)
+local res = s:edit_pool(third_pool_id, 'my_host_third_pool_edited', {"8.8.8.8/32@0"}, 0)
+assert(res == false)
+
+-- pool_details = s:get_pool(third_pool_id)
+-- assert(pool_details["name"] == "my_host_third_pool_edited")  -- There's no +1 here, host pool ids are re-used
 
 -- tprint(s:get_assigned_members())
 -- tprint(s:get_available_configset_ids())

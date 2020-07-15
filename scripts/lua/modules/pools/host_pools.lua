@@ -267,4 +267,43 @@ end
 
 -- ##############################################
 
+-- @brief Returns the pool to which `member` is currently bound to, or nil if `member` is not bound to any pool
+function host_pools:get_pool_by_member(member)
+   -- OVERRIDE
+   -- As host pool members are not a fixed set, i.e., a single member "192.168.2.0/24" can include 192.168.2.1, 192.1682.1.2, etc.
+   -- It is necessary to override this function and check for host member pool directly into the interface
+   -- Note: this methods is mostly taken from former host_pools_utils.lua
+   local hostinfo = hostkey2hostinfo(member)
+   local addr, mask = splitNetworkPrefix(hostinfo["host"])
+   local vlan = hostinfo["vlan"]
+   local is_mac = isMacAddress(addr)
+
+   if not is_mac then
+      addr = ntop.networkPrefix(addr, mask)
+   end
+
+   local find_info = interface.findMemberPool(addr, vlan, is_mac)
+
+   -- This is the normalized key, which should always be used to refer to the member
+   local key
+   if not is_mac then
+      key = host2member(addr, vlan, mask)
+   else
+      key = addr
+   end
+
+   if find_info then
+      -- The host has been found
+      if is_mac or ((not is_mac)
+	    and (find_info.matched_prefix == addr)
+	 and (find_info.matched_bitmask == mask)) then
+	 return self:get_pool(find_info.pool_id)
+      end
+   end
+
+   return nil
+end
+
+-- ##############################################
+
 return host_pools
