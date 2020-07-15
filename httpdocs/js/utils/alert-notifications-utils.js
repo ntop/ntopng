@@ -13,11 +13,13 @@ class AlertNotification {
     }
 
     render() {
+        const self = this;
         // create a non-closable toast
         const $toast = $(`<div class="toast alert-notification" role="alert"></div>`);
         // set toast expiracy
         if (this.delay !== 0) {
-            $toast.data('autohide', this.delay);
+            $toast.data('autohide', true);
+            $toast.data('delay', this.delay);
         }
         else {
             $toast.data('autohide', false);
@@ -37,6 +39,11 @@ class AlertNotification {
 
         $toast.append($toastHeader, $toastBody);
         $toast.toast('show');
+
+        $toast.on('hidden.bs.toast', function () {
+            AlertNotificationUtils.hideAlert(self.id);
+        });
+
         this.$element = $toast;
 
         return $toast;
@@ -50,6 +57,7 @@ class AlertNotification {
 
     destroy() {
         this.$element.toast('dispose');
+        this.$element.empty();
     }
 
 }
@@ -75,12 +83,18 @@ class AlertNotificationUtils {
 
     static hideAlert(notificationId) {
 
+        if (!notificationId) {
+            console.warn("[AlertNotificationUtils] :: The notification cannot be null!");
+            return;
+        }
+
         if (!(notificationId in alertNotifications)) {
             return;
         }
 
         alertNotifications[notificationId].destroy();
         delete alertNotifications[notificationId];
+
     }
 
     static updateNotification(notificationId, body) {
@@ -104,6 +118,11 @@ class AlertNotificationUtils {
                 bg: 'info',
                 text: 'text-white',
                 icon: 'fa-info-circle'
+            },
+            success: {
+                bg: 'success',
+                text: 'text-white',
+                icon: 'fa-check-circle'
             }
         }
 
@@ -122,6 +141,8 @@ class AlertNotificationUtils {
 
         // push the notification inside the global container
         alertNotifications[option.id] = notification;
+
+        return notification;
     }
 
     static bindClosingEvent() {

@@ -12,6 +12,8 @@ local plugins_utils = require("plugins_utils")
 local template = require("template_utils")
 local json = require("dkjson")
 local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local active_monitoring_pools = require("active_monitoring_pools")
+local am_pool = active_monitoring_pools:create()
 
 local graph_utils = require("graph_utils")
 local alert_utils = require("alert_utils")
@@ -160,6 +162,7 @@ if(page == "overview") then
     </div>]])
 
     print(plugins_utils.renderTemplate("active_monitoring", "am_edit_host_modal.html", {
+      pools = am_pool,
       dialog = {
 	measurement = i18n("active_monitoring_stats.measurement"),
 	edit_measurement_select = generate_select("select-edit-measurement", "measurement", true, false, {}, "measurement-select"),
@@ -180,20 +183,21 @@ if(page == "overview") then
     }))
 
     print(plugins_utils.renderTemplate("active_monitoring", "am_add_host_modal.html", {
+      pools = am_pool,
       dialog = {
-	add_record = i18n("active_monitoring_stats.add_record"),
-	measurement = i18n("active_monitoring_stats.measurement"),
-	add_measurement_select = generate_select("select-add-measurement", "measurement", true, false, {}, "measurement-select"),
-	am_host = i18n("about.host_callbacks_directory"),
-	periodicity = i18n("internals.periodicity"),
-	add_granularity_select = generate_select("select-add-granularity", "granularity", true, false, {}, "measurement-granularity"),
-	threshold = i18n("threshold"),
-	notes = i18n("notes"),
-	note_icmp = i18n("active_monitoring_stats.am_note_icmp"),
-	note_http = i18n("active_monitoring_stats.am_note_http"),
-	note_alert = i18n("active_monitoring_stats.note_alert"),
-	cancel = i18n("cancel"),
-	add = i18n("add"),
+        add_record = i18n("active_monitoring_stats.add_record"),
+        measurement = i18n("active_monitoring_stats.measurement"),
+        add_measurement_select = generate_select("select-add-measurement", "measurement", true, false, {}, "measurement-select"),
+        am_host = i18n("about.host_callbacks_directory"),
+        periodicity = i18n("internals.periodicity"),
+        add_granularity_select = generate_select("select-add-granularity", "granularity", true, false, {}, "measurement-granularity"),
+        threshold = i18n("threshold"),
+        notes = i18n("notes"),
+        note_icmp = i18n("active_monitoring_stats.am_note_icmp"),
+        note_http = i18n("active_monitoring_stats.am_note_http"),
+        note_alert = i18n("active_monitoring_stats.note_alert"),
+        cancel = i18n("cancel"),
+        add = i18n("add"),
       }
     }))
 
@@ -250,6 +254,7 @@ if(page == "overview") then
       i18n.search = "]].. i18n("search") ..[[:";
       i18n.msec = "]] .. i18n("active_monitoring_stats.msec") .. [[";
       i18n.edit = "]] .. i18n("users.edit") .. [[";
+      i18n.success = "]] .. i18n("success") .. [[";
       i18n.delete = "]] .. i18n("delete") .. [[";
       i18n.expired_csrf = "]] .. i18n("expired_csrf") .. [[";
       i18n.all = "]] .. i18n("all") .. [[";

@@ -4,11 +4,15 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+
+local active_monitoring_pools = require("active_monitoring_pools")
+local am_pool = active_monitoring_pools:create()
 
 sendHTTPContentTypeHeader('application/json')
 
@@ -17,6 +21,7 @@ sendHTTPContentTypeHeader('application/json')
 local action      = _POST["action"]
 local host        = _POST["am_host"]
 local measurement = _POST["measurement"]
+local pool        = _POST["pool"]
 
 local rv = {}
 
@@ -91,8 +96,11 @@ if(action == "add") then
    end
 
    am_utils.addHost(host, measurement, threshold, granularity)
+   am_pool:bind_member(measurement.. "@".. host, pool)
    rv.message = i18n("active_monitoring_stats.host_add_ok", {host=url})
+
 elseif(action == "edit") then
+
    local existing
    local threshold = _POST["threshold"]
    local granularity = _POST["granularity"]
@@ -135,8 +143,8 @@ elseif(action == "edit") then
       existing = am_utils.hasHost(host, measurement)
 
       if existing then
-	 reportError(i18n("active_monitoring_stats.host_exists", {host=url}))
-	 return
+         reportError(i18n("active_monitoring_stats.host_exists", {host=url}))
+         return
       end
 
       am_utils.deleteHost(old_am_host, old_measurement) -- also calls discardHostTimeseries
@@ -146,6 +154,8 @@ elseif(action == "edit") then
       am_utils.editHost(host, measurement, threshold, granularity)
    end
 
+   am_pool:bind_member(measurement.. "@".. host, pool)
+
    rv.message = i18n("active_monitoring_stats.host_edit_ok", {host=old_url})
 elseif(action == "delete") then
    local url = am_utils.formatAmHost(host, measurement)
@@ -153,6 +163,12 @@ elseif(action == "delete") then
 
    if not existing then
       reportError(i18n("active_monitoring_stats.host_not_exists", {host=url}))
+   end
+
+   -- unbind the host
+   local result = am_pool:bind_member(measurement.. "@".. host, pool)
+   if not result then
+
    end
 
    am_utils.deleteHost(host, measurement)

@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
 local format_utils = require("format_utils")
@@ -11,6 +12,9 @@ local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
+local active_monitoring_pools = require("active_monitoring_pools")
+local am_pool = active_monitoring_pools:create()
+local assigned_members = am_pool:get_assigned_members()
 sendHTTPContentTypeHeader('application/json')
 
 local charts_available = plugins_utils.timeseriesCreationEnabled()
@@ -40,7 +44,7 @@ for key, am_host in pairs(am_hosts) do
     local column_jitter = ""
     local last_update = am_utils.getLastAmUpdate(am_host.host, am_host.measurement)
     local alerted = 0
-    
+
     if(last_update ~= nil) then
       local tdiff = os.time() - last_update.when
 
@@ -75,7 +79,14 @@ for key, am_host in pairs(am_hosts) do
 
 	column_jitter = string.format("%.1f / %.1f %s", last_update.mean, last_update.jitter, jitter_unit)
     end
-    
+
+    local pool_id
+    if assigned_members[am_host.measurement .. "@" .. am_host.host] ~= nil then
+      pool_id = assigned_members[am_host.measurement .. "@" .. am_host.host].pool_id
+    else
+      pool_id = am_pool.DEFAULT_POOL_ID
+    end
+
     res[#res + 1] = {
        key = key,
        url = am_host.label,
@@ -93,6 +104,7 @@ for key, am_host in pairs(am_hosts) do
        hours = hourly_stats or {},
        unit = i18n(m_info.i18n_unit) or m_info.i18n_unit,
        jitter = column_jitter,
+       pool = pool_id
     }
 
     ::continue::

@@ -1,61 +1,85 @@
 <div id='am-edit-modal' class="modal fade" tabindex="-1" role="dialog">
-  <form method="post" id='am-edit-form'>
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-      <div class="modal-content">
-	<div class="modal-header">
-	  <h5 class="modal-title">{{ dialog.edit_record }}</h5>
-	  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-	    <span aria-hidden="true">&times;</span>
-	  </button>
-	</div>
-	<div class="modal-body container-fluid">
-	  <div class="form-group row">
-	    <label class="col-sm-3 col-form-label">{{ dialog.measurement }}</label>
-	    <div class="col-sm-5">
-	      {* dialog.edit_measurement_select *}
-	    </div>
-	  </div>
-	  <div class="form-group row">
-	    <label class="col-sm-3 col-form-label">{{ dialog.am_host }}</label>
-	    <div class="col-sm-5">
-	      <input placeholder="yourhostname.org" required id="input-edit-host" type="text" name="host" class="form-control measurement-host" />
-	    </div>
-	  </div>
-	  <div class="form-group row">
-	    <label class="col-sm-3 col-form-label">{{ dialog.periodicity }}</label>
-	    <div class="col-sm-5">
-	      {* dialog.edit_granularity_select *}
-	    </div>
-	  </div>
-	  <div class="form-group row">
-	    <label class="col-sm-3 col-form-label">{{ dialog.threshold }}</label>
-	    <div class="col-sm-5">
-	      <div class="input-group">
-		<div class="input-group-prepend">
-		  <span class="input-group-text measurement-operator"></span>
+	<form method="post" id='am-edit-form'>
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">{{ dialog.edit_record }}</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body container-fluid">
+					<div class="form-group row">
+						<label class="col-sm-3 col-form-label">{{ dialog.measurement }}</label>
+						<div class="col-sm-5">
+							{* dialog.edit_measurement_select *}
+						</div>
+					</div>
+					<div class="form-group row">
+						<label class="col-sm-3 col-form-label">{{ dialog.am_host }}</label>
+						<div class="col-sm-5">
+							<input placeholder="yourhostname.org" required id="input-edit-host" type="text" name="host"
+								class="form-control measurement-host" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label class="col-sm-3 col-form-label">{{ dialog.periodicity }}</label>
+						<div class="col-sm-5">
+							{* dialog.edit_granularity_select *}
+						</div>
+					</div>
+					<div class="form-group row">
+						<label class="col-sm-3 col-form-label">{{ dialog.threshold }}</label>
+						<div class="col-sm-5">
+							<div class="input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text measurement-operator"></span>
+								</div>
+								<input required id="input-edit-threshold" name="threshold" type="number"
+									class="form-control rounded-right measurement-threshold" min="10" max="10000">
+								<span class="my-auto ml-1 measurement-unit"></span>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label class="col-sm-3 col-form-label">
+							{{ i18n("pools.pool_names_suffix.active_monitoring") }}
+						</label>
+						<div class="col-sm-5">
+							<select class="form-control" name="pool" id="select-edit-pool">
+								<option value="{{ pools.DEFAULT_POOL_ID }}" selected>
+									{{ i18n("pools.not_assigned") }}
+								</option>
+								{% for _, pool in pairsByKeys(pools:get_all_pools(), asc) do %}
+								<option value="{{ pool.pool_id }}">{{ pool.name }}</option>
+								{% end %}
+							</select>
+						</div>
+						<div class="col-sm-4">
+							<a style="vertical-align: -webkit-baseline-middle;"
+								href="{{ntop.getHttpPrefix()}}/lua/admin/active_monitoring_pools.lua">
+								<i class="fas fa-plus"></i> {{ i18n("active_monitoring_stats.add_pool") }}
+							</a>
+						</div>
+					</div>
+					<div id='script-description' class='alert alert-light' role='alert'>
+						<b>{{ dialog.notes }}</b>
+						<ul>
+							<li>{{ dialog.note_icmp }}</li>
+							<li>{{ dialog.note_http }}</li>
+							<li>{{ dialog.note_alert }}</li>
+							<li>{{ dialog.note_periodicity_change }}</li>
+						</ul>
+					</div>
+					<span class="invalid-feedback"></span>
+				</div>
+				<div class="modal-footer">
+					<button id="btn-reset-defaults" type="button"
+						class="btn btn-danger mr-auto">{{ dialog.reset }}</button>
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">{{ dialog.cancel }}</button>
+					<button type="submit" class="btn btn-primary">{{ dialog.apply }}</button>
+				</div>
+			</div>
 		</div>
-		<input required id="input-edit-threshold" name="threshold" type="number" class="form-control rounded-right measurement-threshold" min="10" max="10000">
-		<span class="my-auto ml-1 measurement-unit"></span>
-	      </div>
-	    </div>
-	  </div>
-	  <div id='script-description' class='alert alert-light' role='alert'>
-	  {{ dialog.notes }}
-	  <ul>
-	    <li>{{ dialog.note_icmp }}</li>
-	    <li>{{ dialog.note_http }}</li>
-	    <li>{{ dialog.note_alert }}</li>
-	    <li>{{ dialog.note_periodicity_change }}</li>
-	  </ul>
-	  </div>
-	  <span class="invalid-feedback"></span>
-	</div>
-	<div class="modal-footer">
-	  <button id="btn-reset-defaults" type="button" class="btn btn-danger mr-auto">{{ dialog.reset }}</button>
-	  <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ dialog.cancel }}</button>
-	  <button type="submit" class="btn btn-primary">{{ dialog.apply }}</button>
-	</div>
-      </div>
-    </div>
-  </form>
+	</form>
 </div>

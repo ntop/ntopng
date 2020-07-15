@@ -1,6 +1,5 @@
 $(document).ready(function() {
 
-    let am_alert_timeout = null;
     let row_data = null;
 
     const get_measurement_regex = (measurement) => {
@@ -37,6 +36,13 @@ $(document).ready(function() {
         onSubmitSuccess: function (response) {
             if (response.success) {
                 $(`#am-delete-modal`).modal('hide');
+                AlertNotificationUtils.showAlert({
+                    title: i18n.success,
+                    body: response.message,
+                    level: 'success',
+                    delay: 1500,
+                    id: 'am-delete'
+                });
                 $am_table.ajax.reload();
             }
         }
@@ -66,6 +72,7 @@ $(document).ready(function() {
             const DEFAULT_GRANULARITY   = "min";
             const DEFAULT_MEASUREMENT   = "icmp";
             const DEFAULT_HOST          = "";
+            const DEFAULT_POOL          = 0;
 
             const cur_measurement = edit_host_data.measurement || DEFAULT_MEASUREMENT;
             const $dialog = $('#am-edit-modal');
@@ -75,12 +82,15 @@ $(document).ready(function() {
             $('#select-edit-measurement').val(cur_measurement);
             $('#select-edit-granularity').val(edit_host_data.granularity || DEFAULT_GRANULARITY);
             $('#input-edit-host').val(edit_host_data.host || DEFAULT_HOST);
+            $(`#select-edit-pool`).val(edit_host_data.pool || DEFAULT_POOL);
             dialogRefreshMeasurement($dialog, edit_host_data.granularity);
         },
         beforeSumbit: function () {
+
             const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
             const granularity = $("#select-edit-granularity").val();
             const threshold = $("#input-edit-threshold").val();
+            const pool = $(`#select-edit-pool`).val();
 
             return {
                 action: 'edit',
@@ -91,17 +101,20 @@ $(document).ready(function() {
                 old_measurement: edit_host_data.measurement,
                 granularity: granularity,
                 old_granularity: edit_host_data.granularity,
+                pool: pool
             };
         },
         onSubmitSuccess: function (response) {
             if (response.success) {
-                if (!am_alert_timeout) clearTimeout(am_alert_timeout);
-                am_alert_timeout = setTimeout(() => {
-                    $('#am-alert').fadeOut();
-                }, 1000)
 
-                $('#am-alert .alert-body').text(response.message);
-                $('#am-alert').fadeIn();
+                AlertNotificationUtils.showAlert({
+                    title: i18n.success,
+                    body: response.message,
+                    level: 'success',
+                    delay: 1500,
+                    id: 'am-edit'
+                });
+
                 $(`#am-edit-modal`).modal('hide');
                 $am_table.ajax.reload(function(data) {
                     updateMeasurementFilter(data);
@@ -194,7 +207,7 @@ $(document).ready(function() {
 
     const get_am_data = ($am_table, $button_caller) => {
 
-        const row_data = $am_table.row($button_caller.parent()).data();
+        const row_data = $am_table.row($button_caller.parent().parent()).data();
         return row_data;
     }
 
@@ -400,6 +413,7 @@ $(document).ready(function() {
             const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
             const granularity = $("#select-add-granularity").val();
             const threshold = $("#input-add-threshold").val();
+            const pool = $(`#select-add-pool`).val();
 
             return {
                 action: 'add',
@@ -407,17 +421,20 @@ $(document).ready(function() {
                 threshold: threshold,
                 measurement: measurement,
                 granularity: granularity,
+                pool: pool
             }
         },
         onSubmitSuccess: function (response) {
             if (response.success) {
-                if (!am_alert_timeout) clearTimeout(am_alert_timeout);
-                am_alert_timeout = setTimeout(() => {
-                    $('#am-alert').fadeOut();
-                }, 1000)
 
-                $('#am-alert .alert-body').text(response.message);
-                $('#am-alert').fadeIn();
+                AlertNotificationUtils.showAlert({
+                    title: i18n.success,
+                    body: response.message,
+                    level: 'success',
+                    delay: 1500,
+                    id: 'am-add'
+                });
+
                 $(`#am-add-modal`).modal('hide');
                 $am_table.ajax.reload(function(data) {
                     updateMeasurementFilter(data);
@@ -562,8 +579,14 @@ $(document).ready(function() {
                 class: 'text-center',
                 render: function() {
                     return `
-                        <a class="badge badge-info" data-toggle="modal" href="#am-edit-modal">${i18n.edit}</a>
-                        <a class="badge badge-danger" data-toggle="modal" href="#am-delete-modal">${i18n.delete}</a>
+                        <div class="btn-group btn-group-sm">
+                            <a class="btn btn-info" data-toggle="modal" href="#am-edit-modal">
+                                <i class='fas fa-edit'></i>
+                            </a>
+                            <a class="btn btn-danger" data-toggle="modal" href="#am-delete-modal">
+                                <i class='fas fa-trash'></i>
+                            </a>
+                        </div>
                     `;
                 }
             }
