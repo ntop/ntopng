@@ -532,7 +532,10 @@ function base_pools:bind_member(member, pool_id)
       if assigned_members[member] then
 	 local cur_pool = self:get_pool(assigned_members[member]["pool_id"])
 
-	 if cur_pool then
+	 if cur_pool["pool_id"] == pool_id then
+	    -- If the current pool id equals the new pool id, there's nothing to do and it is just safe to return
+	    ret = true
+	 elseif cur_pool then
 	    -- New members are all pool members except for the member which is being removed
 	    local new_members = {}
 	    for _, cur_member in pairs(cur_pool["members"]) do
@@ -548,20 +551,22 @@ function base_pools:bind_member(member, pool_id)
 
       -- ASSIGN the member to the pool with `pool_id`
       -- Note: If the pool_id is base_pools.DEFAULT_POOL_ID, then `member` is not associated to any pool, it's safe to just return
-      if pool_id == base_pools.DEFAULT_POOL_ID then
-	 ret = true
-      else
-	 local bind_pool = self:get_pool(pool_id)
-	 if bind_pool then
-	    -- New members are all pool members plus the member which is being bound
-	    local bind_pool_members = bind_pool["members"]
-	    bind_pool_members[#bind_pool_members + 1] = member
-
-	    -- Persist the pool with the new `member`
-	    self:_persist(bind_pool["pool_id"], bind_pool["name"], bind_pool_members, bind_pool["configset_id"])
-
-	    -- Bind has executed successfully
+      if not ret then
+	 if pool_id == base_pools.DEFAULT_POOL_ID then
 	    ret = true
+	 else
+	    local bind_pool = self:get_pool(pool_id)
+	    if bind_pool then
+	       -- New members are all pool members plus the member which is being bound
+	       local bind_pool_members = bind_pool["members"]
+	       bind_pool_members[#bind_pool_members + 1] = member
+
+	       -- Persist the pool with the new `member`
+	       self:_persist(bind_pool["pool_id"], bind_pool["name"], bind_pool_members, bind_pool["configset_id"])
+
+	       -- Bind has executed successfully
+	       ret = true
+	    end
 	 end
       end
 
