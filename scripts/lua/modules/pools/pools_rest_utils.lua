@@ -206,4 +206,30 @@ end
 
 -- ##############################################
 
+-- @brief Get one or all pools
+function pools_rest_utils.get_pool_by_member(pools)
+   local member = _POST["member"]
+
+   sendHTTPHeader('application/json')
+
+   if not member then
+      print(rest_utils.rc(rest_utils.consts_invalid_args))
+      return
+   end
+
+   local res = {}
+
+   -- Create the instance
+   local s = pools:create()
+   local cur_pool = s:get_pool_by_member(member)
+   if cur_pool then
+      res = cur_pool
+   end
+
+   local rc = rest_utils.consts_ok
+   print(rest_utils.rc(rc, res))
+end
+
+-- ##############################################
+
 return pools_rest_utils
