@@ -544,10 +544,6 @@ local function validateSnmpLevel(level)
    return validateChoice(levels, level)
 end
 
-local function validateNotificationId(key)
-   return validateChoice({"geoip_alert"}, key)
-end
-
 local function validateSnmpAuthProtocol(protocol)
    local protocols = {"md5", "sha"}
    return validateChoice(protocols, protocol)
@@ -1399,7 +1395,6 @@ local known_parameters = {
    ["row_id"]                  = validateNumber,                -- A number used to identify a record in a database
    ["rrd_file"]                = validateUnquoted,              -- A path or special identifier to read an RRD file
    ["port"]                    = validatePort,                  -- An application port
-   ["notification_id"]         = validateNotificationId,
    ["ntopng_license"]          = {licenseCleanup, validateLicense},          -- ntopng licence string
    ["syn_attacker_threshold"]        = validateEmptyOr(validateNumber),
    ["global_syn_attacker_threshold"] = validateEmptyOr(validateNumber),
