@@ -3622,6 +3622,7 @@ local lang = {
     ["POOL_NOT_FOUND"] = "Pool not found",
     ["SNMP_DEVICE_ALREADY_ADDED"] = "SNMP device already added",
     ["SNMP_DEVICE_UNREACHABLE"] = "No answer from the SNMP device",
+    ["BIND_POOL_MEMBER_FAILED"] = "Unable to bind the sumbitted member to the pool",
   },
   ["restart"] = {
     ["confirm"] = "Do you want to restart %{product} now?",

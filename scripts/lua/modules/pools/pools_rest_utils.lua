@@ -85,7 +85,6 @@ function pools_rest_utils.edit_pool(pools)
    -- confset_id as number
    confset_id = tonumber(confset_id)
 
-
    local res = s:edit_pool(pool_id, name, members --[[ an array of valid interface ids]], confset_id --[[ a valid configset_id --]])
 
    if not res then
@@ -95,7 +94,6 @@ function pools_rest_utils.edit_pool(pools)
 
    local rc = rest_utils.consts_ok
    print(rest_utils.rc(rc))
-
 end
 
 -- ##############################################
@@ -138,6 +136,41 @@ end
 
 -- ##############################################
 
+-- @brief Bind a member to a pool
+function pools_rest_utils.bind_member(pools)
+   local pool_id = _GET["pool"]
+   local member = _POST["member"]
+
+   sendHTTPHeader('application/json')
+
+   if not isAdministrator() then
+      print(rest_utils.rc(rest_utils.consts_not_granted))
+      return
+   end
+
+   if not pool_id or not member then
+      print(rest_utils.rc(rest_utils.consts_invalid_args))
+      return
+   end
+
+   -- pool_id as number
+   pool_id = tonumber(pool_id)
+
+   -- Create the instance
+   local s = pools:create()
+   local res = s:bind_member(member, pool_id)
+
+   if not res then
+      print(rest_utils.rc(rest_utils.consts_bind_pool_member_failed))
+      return
+   end
+
+   local rc = rest_utils.consts_ok
+   print(rest_utils.rc(rc))
+end
+
+-- ##############################################
+
 -- @brief Get one or all pools
 function pools_rest_utils.get_pools(pools)
    local pool_id = _GET["pool"]
@@ -169,7 +202,6 @@ function pools_rest_utils.get_pools(pools)
 
    local rc = rest_utils.consts_ok
    print(rest_utils.rc(rc, res))
-
 end
 
 -- ##############################################
