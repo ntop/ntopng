@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require "lua_utils"
 local base_pools = require "base_pools"
 local user_scripts = require "user_scripts"
+local ts_utils = require "ts_utils_core"
 local json = require "dkjson"
 
 -- ##############################################
@@ -178,6 +179,16 @@ function host_pools:delete_pool(pool_id)
 
 	 -- Remove the pool_id from the set of all currently existing pool ids
 	 ntop.delMembersCache(self:_get_pool_ids_key(), string.format("%d", pool_id))
+
+	 -- Delete serialized values and timeseries across all interfaces
+	 for ifid, ifname in pairs(interface.getIfNames()) do
+	    -- serialized key is in sync with include/ntop_defines.h constant HOST_POOL_SERIALIZED_KEY
+	    -- As host pools have stats which are kept on a per-interface basis, all the interfaces need to
+	    -- be iterated and their historical data deleted
+	    local serialized_key = "ntopng.serialized_host_pools.ifid_" .. ifid
+	    ntop.delHashCache(serialized_key, tostring(pool_id))
+	    ts_utils.delete("host_pool", {ifid = tonumber(ifid), pool = pool_id})
+	 end
 
 	 -- Reload pools
 	 ntop.reloadHostPools()
