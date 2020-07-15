@@ -25,9 +25,17 @@ $(document).ready(function() {
                 data: null,
                 render: function () {
                     return (`
-                    <a href='#edit-widget-modal' data-toggle='modal' class="badge badge-info">Edit</a>
-                    <a href='#embed-widget-modal' data-toggle='modal' class="badge badge-info">Embed</a>
-                    <a href='#remove-widget-modal' data-toggle='modal' class="badge badge-danger">Delete</a>
+                    <div class='btn-group btn-group-sm'>
+                        <a href='#edit-widget-modal' data-toggle='modal' class="btn btn-info">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href='#embed-widget-modal' data-toggle='modal' class="btn btn-info">
+                            <i class="fas fa-code"></i>
+                        </a>
+                        <a href='#remove-widget-modal' data-toggle='modal' class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
                 `);
                 }
             }
@@ -37,7 +45,7 @@ $(document).ready(function() {
     const $widgets_table = $(`#widgets-list`).DataTable(dtConfig);
 
     $(`#widgets-list`).on('click', `a[href='#embed-widget-modal']`, function(e) {
-        const rowData = $widgets_table.row($(this).parent()).data();
+        const rowData = $widgets_table.row($(this).parent().parent()).data();
         console.log(rowData);
         $(`#embded-container`).text(`
             <div
@@ -75,7 +83,7 @@ $(document).ready(function() {
     });
 
     $(`#widgets-list`).on('click', `a[href='#remove-widget-modal']`, function(e) {
-        removeWRowData = $widgets_table.row($(this).parent()).data();
+        removeWRowData = $widgets_table.row($(this).parent().parent()).data();
         remove_widget_modal.invokeModalInit();
     });
 
@@ -117,7 +125,7 @@ $(document).ready(function() {
     });
 
     $(`#widgets-list`).on('click', `a[href='#edit-widget-modal']`, function(e) {
-        editWRowData = $widgets_table.row($(this).parent()).data();
+        editWRowData = $widgets_table.row($(this).parent().parent()).data();
         edit_widget_modal.invokeModalInit();
     });
 

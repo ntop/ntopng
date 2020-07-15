@@ -1,12 +1,15 @@
+/**
+ * (C) 2020 - ntop.org
+ *
+ * This script implements the logic for the overview tab inside snmpdevice_stats.lua page.
+ */
 $(document).ready(function () {
 
+    let snmpDeviceRowData;
     // define a constant for the snmp version dropdown value
     const SNMP_VERSION_THREE = 2;
 
-    const requiredFieldsAdd = {
-        community: [],
-        nonCommunity: []
-    };
+    const requiredFieldsAdd = { community: [], nonCommunity: [] };
 
     $(`.community-field input[required], .community-field select[required]`)
     .each(function() {
@@ -53,7 +56,7 @@ $(document).ready(function () {
         {
             text: '<i class="fas fa-plus"></i>',
             action: function(e, dt, node, config) {
-                $('#add-snmp-modal').modal('show');
+                $('#add-snmp-device-modal').modal('show');
             }
         },
         {
@@ -129,9 +132,11 @@ $(document).ready(function () {
                     if (!isAdministrator) return "";
 
                     return (`
-                        <a data-toggle="modal" class="badge badge-danger" href="#delete_device_dialog">
-                            ${i18n.delete}
-                        </a>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a data-toggle="modal" class="btn btn-danger" href="#delete-snmp-device-modal">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
                     `);
                 }
             }
@@ -154,14 +159,63 @@ $(document).ready(function () {
     // initialize the DataTable with the created config
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
 
-    $(`#table-devices`).on('click', `a[href='#delete_device_dialog']`, function (e) {
+    const $deleteModalHandler = $(`#delete-snmp-device-modal form`).modalHandler({
+        method: 'post',
+        csrf: deleteCsrf,
+        endpoint: `${ http_prefix }/lua/pro/rest/v1/delete/snmp/device.lua`,
+        resetAfterSubmit: false,
+        onModalInit: function() {
+            $(`.delete-snmp-device-name`).text(snmpDeviceRowData.column_key);
+        },
+        beforeSumbit: function() {
+            return { host: snmpDeviceRowData.column_key };
+        },
+        onSubmitSuccess: function (response, textStatus, modalHandler) {
 
-        const rowData = $snmpTable.row($(this).parent()).data();
-        $('#snmp_device_to_delete').text(rowData.column_key);
-        delete_device_id = rowData.column_key;
+            if (response.rc < 0) {
+                $(`#delete-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                return;
+            }
+
+            $snmpTable.ajax.reload();
+            $(`#delete-snmp-device-modal`).modal('hide');
+        }
     });
 
-    $(`#add-snmp-modal form`).modalHandler({
+    const $editModalHandler = $(`#edit-snmp-device-modal form`).modalHandler({
+        method: 'post',
+        csrf: deleteCsrf,
+        endpoint: `${ http_prefix }/lua/pro/rest/v1/delete/snmp/device.lua`,
+        resetAfterSubmit: false,
+        onModalInit: function() {
+        },
+        beforeSumbit: function() {
+            return { };
+        },
+        onSubmitSuccess: function (response, textStatus, modalHandler) {
+
+            if (response.rc < 0) {
+                $(`#delete-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                return;
+            }
+
+            $snmpTable.ajax.reload();
+            // $(`#delete-snmp-device-modal`).modal('hide');
+        }
+    });
+
+    $(`#table-devices`).on('click', `a[href='#delete-snmp-device-modal']`, function (e) {
+        snmpDeviceRowData = $snmpTable.row($(this).parent().parent()).data();
+        $deleteModalHandler.invokeModalInit();
+    });
+
+    $(`#table-devices`).on('click', `a[href='#edit-snmp-device-modal']`, function (e) {
+        snmpDeviceRowData = $snmpTable.row($(this).parent().parent()).data();
+        $editModalHandler.invokeModalInit();
+    });
+
+
+    $(`#add-snmp-device-modal form`).modalHandler({
         method: 'post',
         csrf: addCsrf,
         resetAfterSubmit: false,
@@ -169,15 +223,15 @@ $(document).ready(function () {
         beforeSumbit: function() {
 
             const data = {};
-
             // show the spinner and hide the errors
             $(`#add-snmp-feedback`).hide();
             $(`#snmp-add-spinner`).fadeIn();
 
             // build the post params
-            $(`#add-snmp-modal form`).find('input,select,textarea').each((idx, element) => {
+            $(`#add-snmp-device-modal form`).find('input,select,textarea').each((idx, element) => {
                 data[$(element).attr("name")] = $(element).val();
             });
+
             return data;
         },
         onModalInit: function() {
@@ -236,12 +290,12 @@ $(document).ready(function () {
             modalHandler.cleanForm();
             $snmpTable.ajax.reload(toggleSnmpTableButtons, false);
             $(`#snmp-add-spinner`).hide();
-            $(`#add-snmp-modal`).modal('hide');
+            $(`#add-snmp-device-modal`).modal('hide');
 
         }
     }).invokeModalInit();
 
-    $(`#select-snmp_version`).change(function() {
+    $(`#select-snmp-version`).change(function() {
 
         const value = $(this).val();
 

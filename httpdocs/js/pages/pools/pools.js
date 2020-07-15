@@ -1,3 +1,8 @@
+/**
+ * (C) 2020 - ntop.org
+ *
+ * This script implements the logic to manage the pools inside ntopng gui
+ */
 $(document).ready(function() {
 
     let poolRowData;
@@ -61,12 +66,14 @@ $(document).ready(function() {
                 width: "10%",
                 render: function() {
                     return (`
-                        <a data-toggle="modal" class="badge badge-info" href="#edit-pool">
-                            ${i18n.edit}
-                        </a>
-                        <a data-toggle="modal" class="badge badge-danger" href="#remove-pool">
-                            ${i18n.delete}
-                        </a>
+                        <div class='btn-group btn-group-sm'>
+                            <a data-toggle="modal" class="btn btn-sm btn-info" href="#edit-pool">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a data-toggle="modal" class="btn btn-danger" href="#remove-pool">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
                     `);
                 }
             }
@@ -219,12 +226,12 @@ $(document).ready(function() {
     });
 
     $(`#table-pools`).on('click', `a[href='#edit-pool']`, function (e) {
-        poolRowData = $poolTable.row($(this).parent()).data();
+        poolRowData = $poolTable.row($(this).parent().parent()).data();
         $editModalHandler.invokeModalInit();
     });
 
     $(`#table-pools`).on('click', `a[href='#remove-pool']`, function (e) {
-        poolRowData = $poolTable.row($(this).parent()).data();
+        poolRowData = $poolTable.row($(this).parent().parent()).data();
         $removeModalHandler.invokeModalInit();
     });
 

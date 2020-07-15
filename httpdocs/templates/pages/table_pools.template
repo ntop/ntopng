@@ -12,19 +12,6 @@
             <tbody>
             </tbody>
         </table>
-        {# Only the admin can use the import/export utilities #}
-        {% if isAdministrator() then %}
-        <div class="my-2">
-            <form action="{{ ntop.getHttpPrefix() }}" method="GET" class="form-inline">
-                <button type="submit" class="btn btn-secondary">
-                    <i class="fas fa-file-export"></i> {{ i18n('config_scripts.config_export') }}
-                </button>
-            </form>
-            <button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary">
-                <i class="fas fa-file-import"></i> {{ i18n('config_scripts.config_import') }}
-            </button>
-        </div>
-        {% end %}
     </div>
 </div>
 

@@ -277,11 +277,13 @@ $(document).ready(function () {
                     const isDeleteDisabled = data.in_use;
 
                     return (`
-                        <a data-toggle='modal' href='#edit-datasource-modal' class="badge badge-info">Edit</a>
-                        <a
-                            data-toggle='modal'
-                            href='${isDeleteDisabled ? '#' : '#remove-datasource-modal'}'
-                            class="badge badge-${isDeleteDisabled ? 'secondary' : 'danger'}">Delete</a>
+                        <div class='btn-group btn-group-sm'>
+                            <a data-toggle='modal' href='#edit-datasource-modal' class="btn btn-info">Edit</a>
+                            <a
+                                data-toggle='modal'
+                                href='${isDeleteDisabled ? '#' : '#remove-datasource-modal'}'
+                                class="btn btn-${isDeleteDisabled ? 'secondary' : 'danger'}"></a>
+                        </div<
                     `);
                 }
             }
@@ -377,7 +379,7 @@ $(document).ready(function () {
 
     /* bind edit datasource event */
     $(`#datasources-list`).on('click', `a[href='#edit-datasource-modal']`, function (e) {
-        rowData = $datasources_table.row($(this).parent()).data();
+        rowData = $datasources_table.row($(this).parent().parent()).data();
         edit_datasource_modal.invokeModalInit();
     });
 
@@ -430,7 +432,7 @@ $(document).ready(function () {
 
     /* bind remove datasource event */
     $(`#datasources-list`).on('click', `a[href='#remove-datasource-modal']`, function (e) {
-        dsRowData = $datasources_table.row($(this).parent()).data();
+        dsRowData = $datasources_table.row($(this).parent().parent()).data();
         remove_ds_modal.invokeModalInit();
     });
 

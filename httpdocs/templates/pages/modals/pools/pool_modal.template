@@ -11,18 +11,21 @@
                 <div class="modal-body">
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-name-input">
-                            <b>{{ i18n("pools.name") }}</b>
+                            {{ i18n("pools.name") }}
                         </label>
                         <div class="col-sm-7">
-                            <input pattern="^\S+" maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="{{ modal_type }}-pool-name-input">
+                            <input placeholder="{{ i18n('pools.insert_name', {type = i18n("pools.pool_names." .. pool.name)}) }}" pattern="^\S+" maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="{{ modal_type }}-pool-name-input">
+                            <small class="text-muted form-text">
+                                {{ i18n("pools.name_requirements") }}
+                            </small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-members-input">
-                            <b>{{ i18n("pools.members") }}</b>
+                            {{ i18n("pools.members") }}
                         </label>
                         <div class="col-sm-7">
-                            <select style="height: 12rem;" class="form-control" multiple name="members" id="{{ modal_type }}-pool-members-select">
+                            <select style="height: 16rem;" class="form-control" multiple name="members" id="{{ modal_type }}-pool-members-select">
                                 {% for key, member in pairsByKeys(pool.all_members, asc) do %}
 
                                     {%
@@ -41,6 +44,9 @@
                                     {% end %}
                                 {% end %}
                             </select>
+                            <small class="text-muted text-form">
+                                {* i18n("howto_multiselect") *}
+                            </small>
                         </div>
                     </div>
                     <div class="form-group row">

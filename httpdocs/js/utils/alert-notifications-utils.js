@@ -1,11 +1,67 @@
+const alertNotifications = {};
+let alertNotificationUtilsId = 0;
+
+class AlertNotification {
+
+    constructor({ title, body, link, delay = 0, id, style } = {}) {
+        this.title = title;
+        this.body = body;
+        this.link = link;
+        this.delay = delay;
+        this.id = id;
+        this.style = style;
+    }
+
+    render() {
+        // create a non-closable toast
+        const $toast = $(`<div class="toast alert-notification" role="alert"></div>`);
+        // set toast expiracy
+        if (this.delay !== 0) {
+            $toast.data('autohide', this.delay);
+        }
+        else {
+            $toast.data('autohide', false);
+        }
+        // assign an id to the notification
+        $toast.data('notification-id', this.id);
+
+        const $toastHeader = $(`<div class="toast-header bg-${this.style.bg} border-${this.style.bg} ${this.style.text}">
+                                    <strong class='mr-auto'><i class='fas ${this.style.icon}'></i> ${this.title}</strong>
+                                </div>`);
+        const $toastBody = $(`<div class="toast-body bg-${this.style.bg} border-${this.style.bg} ${this.style.text}"><span>${this.body}</span></div>`);
+
+        if (this.link != undefined && this.link != "") {
+            const $anchor = $(`<a href='${this.link}'>Click!</a>`);
+            $toastBody.append($anchor);
+        }
+
+        $toast.append($toastHeader, $toastBody);
+        $toast.toast('show');
+        this.$element = $toast;
+
+        return $toast;
+    }
+
+    updateBody(body) {
+
+        if (this.$element == undefined) throw '[AlertNotification] :: The notification has not been rendered yet!';
+        this.$element.find('.toast-body span').text(body);
+    }
+
+    destroy() {
+        this.$element.toast('dispose');
+    }
+
+}
+
 class AlertNotificationUtils {
 
     static initAlerts() {
 
-        $(`.toast.alert-notification`).each(function() {
+        $(`.toast.alert-notification`).each(function () {
 
             const noScope = $(this).data("notificationNoScope");
-            const pages = (noScope == "") ? [] : noScope.split(";");
+            const pages = (noScope == "" || noScope == undefined) ? [] : noScope.split(";");
 
             // if the current page match the no-scoping attribute
             // then doesn't show the notification
@@ -15,17 +71,65 @@ class AlertNotificationUtils {
 
             $(this).toast('show');
         });
-        // show the alert notifications inside the page
-        // binding the closing handler to toasts
-        AlertNotificationUtils.bindClosingEvent();
+    }
+
+    static hideAlert(notificationId) {
+
+        if (!(notificationId in alertNotifications)) {
+            return;
+        }
+
+        alertNotifications[notificationId].destroy();
+        delete alertNotifications[notificationId];
+    }
+
+    static updateNotification(notificationId, body) {
+
+        if (!(notificationId in alertNotifications)) {
+            throw '[AlertNotificationUtils] :: The notification was not found!';
+        }
+
+        alertNotifications[notificationId].updateBody(body);
+    }
+
+    static showAlert(option) {
+
+        const styles = {
+            warning: {
+                bg: 'warning',
+                text: 'text-dark',
+                icon: 'fa-exclamation-circle'
+            },
+            info: {
+                bg: 'info',
+                text: 'text-white',
+                icon: 'fa-info-circle'
+            }
+        }
+
+        const style = styles[option.level] || styles.warning;
+
+        if (option.id === undefined) throw '[AlertNotificationUtils] :: An AlertNotification must have an in id!';
+        if (option.id in alertNotifications) return;
+        if (option.title === undefined) throw '[AlertNotificationUtils]:: An AlertNotification must have a title!';
+        if (option.body === undefined) throw '[AlertNotificationUtils]:: An AlertNotification must have a body!';
+
+        option.style = style;
+
+        const notification = new AlertNotification(option);
+        // render the notification inside the main container
+        $(`#main-container`).prepend(notification.render());
+
+        // push the notification inside the global container
+        alertNotifications[option.id] = notification;
     }
 
     static bindClosingEvent() {
 
         // send the notification id to the handler
-        $('.toast.alert-notification').on('hidden.bs.toast', function () {
+        $('.toast.alert-notification[data-notification-id]').on('hidden.bs.toast', function () {
             $.post(`${http_prefix}/lua/handler_alert_notification.lua`,
-            { notification_id: $(this).data("notificationId"), action: `disposed` });
+                { notification_id: $(this).data("notificationId"), action: `disposed` });
         });
     }
 
