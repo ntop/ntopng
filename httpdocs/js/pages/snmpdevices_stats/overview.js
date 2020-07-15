@@ -182,28 +182,6 @@ $(document).ready(function () {
         }
     });
 
-    const $editModalHandler = $(`#edit-snmp-device-modal form`).modalHandler({
-        method: 'post',
-        csrf: deleteCsrf,
-        endpoint: `${ http_prefix }/lua/pro/rest/v1/delete/snmp/device.lua`,
-        resetAfterSubmit: false,
-        onModalInit: function() {
-        },
-        beforeSumbit: function() {
-            return { };
-        },
-        onSubmitSuccess: function (response, textStatus, modalHandler) {
-
-            if (response.rc < 0) {
-                $(`#delete-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
-                return;
-            }
-
-            $snmpTable.ajax.reload();
-            // $(`#delete-snmp-device-modal`).modal('hide');
-        }
-    });
-
     $(`#table-devices`).on('click', `a[href='#delete-snmp-device-modal']`, function (e) {
         snmpDeviceRowData = $snmpTable.row($(this).parent().parent()).data();
         $deleteModalHandler.invokeModalInit();
