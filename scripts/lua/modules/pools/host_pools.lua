@@ -221,7 +221,10 @@ function host_pools:get_pool(pool_id)
 
    if pool_name and pool_name ~= "" then
       -- If the requested pool exists...
-      pool_details = {pool_id = tonumber(pool_id), name = pool_name}
+      pool_details = {
+	 pool_id = tonumber(pool_id),
+	 name = pool_name,
+      }
 
       -- Add configset and configset details
       local configset_id = self:_get_pool_detail(pool_id, "configset_id")
@@ -263,6 +266,37 @@ end
 function host_pools:get_available_members()
    -- Available host pool memebers is not a finite set
    return nil
+end
+
+-- ##############################################
+
+function host_pools:hostpool2record(ifid, pool_id, pool)
+   local record = {}
+   record["key"] = tostring(pool_id)
+
+   record["column_hosts"] = pool["num_hosts"]..""
+   record["column_since"] = secondsToTime(os.time() - pool["seen.first"] + 1)
+   record["column_num_dropped_flows"] = (pool["flows.dropped"] or 0)..""
+
+   local sent2rcvd = round((pool["bytes.sent"] * 100) / (pool["bytes.sent"] + pool["bytes.rcvd"]), 0)
+   record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
+      .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+
+   if(throughput_type == "pps") then
+      record["column_thpt"] = pktsToSize(pool["throughput_pps"])
+   else
+      record["column_thpt"] = bitsToSize(8*pool["throughput_bps"])
+   end
+
+   record["column_traffic"] = bytesToSize(pool["bytes.sent"] + pool["bytes.rcvd"])
+
+   record["column_chart"] = ""
+
+   if areHostPoolsTimeseriesEnabled(ifid) then
+      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..pool_id..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
+   end
+
+   return record
 end
 
 -- ##############################################
