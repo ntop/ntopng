@@ -25,6 +25,11 @@ local res = {}
 local host_info = url2hostinfo(_POST)
 local custom_name = _POST["custom_name"]
 
+if not haveAdminPrivileges() then
+   print(rest_utils.rc(rest_utils.consts_not_granted))
+   return
+end
+
 if host_info == nil or isEmptyString(host_info["host"]) or custom_name == nil then
    print(rest_utils.rc(rest_utils.consts_invalid_args))
    return
