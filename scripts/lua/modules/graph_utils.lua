@@ -1,12 +1,17 @@
 --
 -- (C) 2013-20 - ntop.org
 --
+
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 require "lua_utils"
 require "db_utils"
 require "historical_utils"
 require "rrd_paths"
 local dkjson = require("dkjson")
-local host_pools_utils = require "host_pools_utils"
+local host_pools = require "host_pools"
+local host_pools_instance = host_pools:create()
 local top_talkers_utils = require "top_talkers_utils"
 local os_utils = require "os_utils"
 local graph_common = require "graph_common"
@@ -894,32 +899,44 @@ end
 -- #################################################
 
 function graph_utils.poolDropdown(ifId, pool_id, exclude)
+   pool_id = tostring(pool_id)
+
    local output = {}
+   output[#output + 1]  = '<option value="' .. host_pools_instance.DEFAULT_POOL_ID .. '"'
+
+   if pool_id == tostring(host_pools_instance.DEFAULT_POOL_ID) then
+      output[#output + 1] = ' selected'
+   end
+
+   output[#output + 1] = '>' .. host_pools_instance.DEFAULT_POOL_NAME .. '</option>'
+
    exclude = exclude or {}
 
-   for _,pool in ipairs(host_pools_utils.getPoolsList()) do
-      if (not exclude[pool.id]) or (pool.id == pool_id) then
-         output[#output + 1] = '<option value="' .. pool.id .. '"'
+   for _,pool in ipairs(host_pools_instance:get_all_pools()) do
+      pool.pool_id = tostring(pool.pool_id)
 
-         if pool.id == pool_id then
-            output[#output + 1] = ' selected'
-         end
+      if (not exclude[pool.pool_id]) or (pool.pool_id == pool_id) then
+	 output[#output + 1] = '<option value="' .. pool.pool_id .. '"'
 
-         local limit_reached = false
+	 if pool.pool_id == pool_id then
+	    output[#output + 1] = ' selected'
+	 end
 
-         if not ntop.isEnterpriseM() then
-            local n_members = table.len(host_pools_utils.getPoolMembers(pool.id) or {})
+	 local limit_reached = false
 
-            if n_members >= host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS then
-               limit_reached = true
-            end
-         end
+	 if not ntop.isEnterpriseM() then
+	    local n_members = table.len(pool["members"])
 
-         if exclude[pool.id] or limit_reached then
-            output[#output + 1] = ' disabled'
-         end
+	    if n_members >= host_pools_instance.LIMITED_NUMBER_POOL_MEMBERS then
+	       limit_reached = true
+	    end
+	 end
 
-         output[#output + 1] = '>' .. pool.name .. ternary(limit_reached, " ("..i18n("host_pools.members_limit_reached")..")", "") .. '</option>'
+	 if exclude[pool.pool_id] or limit_reached then
+	    output[#output + 1] = ' disabled'
+	 end
+
+	 output[#output + 1] = '>' .. pool.name .. ternary(limit_reached, " ("..i18n("host_pools.members_limit_reached")..")", "") .. '</option>'
       end
    end
 
