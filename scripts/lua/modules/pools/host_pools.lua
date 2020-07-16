@@ -274,6 +274,10 @@ function host_pools:hostpool2record(ifid, pool_id, pool)
    local record = {}
    record["key"] = tostring(pool_id)
 
+   local pool_name = self:get_pool_name(pool_id)
+   local pool_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?pool='..pool_id.."' title='"..pool_name.."'>"..pool_name..'</A>'
+   record["column_id"] = pool_link
+
    record["column_hosts"] = pool["num_hosts"]..""
    record["column_since"] = secondsToTime(os.time() - pool["seen.first"] + 1)
    record["column_num_dropped_flows"] = (pool["flows.dropped"] or 0)..""

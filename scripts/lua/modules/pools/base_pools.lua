@@ -15,7 +15,8 @@ local base_pools = {}
 -- ##############################################
 
 -- A default pool id value associated to any member without pools
-base_pools.DEFAULT_POOL_ID = 0
+base_pools.DEFAULT_POOL_ID = 0 -- In sync with former host_pools_utils.lua
+base_pools.DEFAULT_POOL_NAME = "Not Assigned" -- In sync with former host_pools_utils.lua
 
 -- ##############################################
 
@@ -649,6 +650,25 @@ function base_pools:get_configset_id(member)
    end
 
    return user_scripts.DEFAULT_CONFIGSET_ID
+end
+
+-- ##############################################
+
+-- @brief Return the name associated to a pool
+-- @param pool_id The pool id
+-- @return A string with the name of the pool
+function base_pools:get_pool_name(pool_id)
+   if pool_id == base_pools.DEFAULT_POOL_ID then
+      return base_pools.DEFAULT_POOL_NAME
+   else
+      local pool = self:get_pool(pool_id)
+
+      if pool then
+	 return pool["name"]
+      end
+   end
+
+   return nil
 end
 
 -- ##############################################
