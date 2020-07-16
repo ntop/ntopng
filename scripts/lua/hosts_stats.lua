@@ -4,9 +4,17 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 require "lua_utils"
-local host_pools_utils = require "host_pools_utils"
+
+local host_pools_utils
+if ntop.isnEdge() then
+   host_pools_utils = require "host_pools_utils"
+end
+local host_pools = require "host_pools"
+-- Instantiate host pools
+local host_pools_instance = host_pools:create()
+
 local page_utils = require("page_utils")
 local custom_column_utils = require("custom_column_utils")
 local discover = require("discover_utils")
@@ -158,7 +166,7 @@ if(pool ~= nil) then
    local pool_link
    local title
 
-   if(pool ~= host_pools_utils.DEFAULT_POOL_ID) or (have_nedge) then
+   if(pool ~= host_pools_instance.DEFAULT_POOL_ID) or (have_nedge) then
       if have_nedge then
 	 pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
 	 ternary(pool == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(pool))
@@ -172,7 +180,7 @@ if(pool ~= nil) then
    end
 
    pool_title = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
-		     {poolname=host_pools_utils.getPoolName(pool)})
+		     {poolname=host_pools_instance:get_pool_name(pool)})
       .."<small>".. pool_edit ..
       ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool="..pool.."'><i class='fas fa-chart-area fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
       "</small>"
@@ -302,13 +310,6 @@ if (_GET["page"] ~= "historical") then
 
    print('buttons: [ ')
 
-
-   --[[ if((page_params.network ~= nil) and (page_params.network ~= "-1")) then
-      print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?page=historical&network='..network..'"><i class=\"fas fa-chart-area fa-lg\"></i></A></div>\', ')
-      elseif (page_params.pool ~= nil) and (isAdministrator()) and (pool ~= host_pools_utils.DEFAULT_POOL_ID) then
-      print('\'<div class="btn-group float-right"><A HREF="'..ntop.getHttpPrefix()..'/lua/if_stats.lua?page=pools&pool='..pool..'#manage"><i class=\"fas fa-users fa-lg\"></i></A></div>\', ')
-      end]]
-
    -- IP version selector
    print[['<div class="btn-group float-right">]]
    custom_column_utils.printCustomColumnDropdown(base_url, page_params)
@@ -387,10 +388,10 @@ if (_GET["page"] ~= "historical") then
       hosts_filter_params.mode = nil
       hosts_filter_params.pool = nil
       print('<li role="separator" class="divider"></li>')
-      for _, _pool in ipairs(host_pools_utils.getPoolsList()) do
-	 hosts_filter_params.pool = _pool.id
+      for _, _pool in ipairs(host_pools_instance:get_all_pools()) do
+	 hosts_filter_params.pool = _pool.pool_id
 	 print('<li ')
-	 print('"><a class="dropdown-item ' .. ternary(pool == _pool.id, "active", "") ..'" href="')
+	 print('"><a class="dropdown-item ' .. ternary(pool == _pool.pool_id, "active", "") ..'" href="')
 	 print(getPageUrl(base_url, hosts_filter_params)..'">'
 		  ..i18n(ternary(have_nedge, "hosts_stats.user", "hosts_stats.host_pool"),
 			 {pool_name=string.gsub(_pool.name, "'", "\\'")}) ..'</li>')
