@@ -5,12 +5,13 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local template = require "template_utils"
 local page_utils = require("page_utils")
-local host_pools_utils = require "host_pools_utils"
+local host_pools = require "host_pools"
 local template = require "template_utils"
 local presets_utils = require "presets_utils"
 local discover = require "discover_utils"
@@ -19,6 +20,9 @@ local discover = require "discover_utils"
 if not isAdministrator() then
    return
 end
+
+-- Instantiate host pools
+local host_pools_instance = host_pools:create()
 
 local page = _GET["page"] or ""
 local policy_filter = _GET["policy_filter"] or ""
@@ -108,7 +112,7 @@ local function printDeviceProtocolsPage()
    local table_id = "device-protocols-table"
 
    if is_nedge then
-      local pool_name = host_pools_utils.DEFAULT_POOL_NAME
+      local pool_name = host_pools_instance.DEFAULT_POOL_NAME
       page_utils.print_page_title(i18n("nedge.user_device_protocols", {user=pool_name}))
    else
       page_utils.print_page_title(i18n("device_protocols.filter_device_protocols", {filter=filter_msg}))
