@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local snmp_utils
 local snmp_location
@@ -27,7 +28,7 @@ local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo()
 local os_utils = require "os_utils"
 local discover = require "discover_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools = require "host_pools"
 local template = require "template_utils"
 local page        = _GET["page"]
 local host_info = url2hostinfo(_GET)
@@ -36,6 +37,9 @@ local mac         = host_info["host"]
 local pool_id
 
 interface.select(ifname)
+
+-- Instantiate host pools
+local host_pools_instance = host_pools:create()
 
 local ifstats = interface.getStats()
 local ifId = ifstats.id
@@ -50,21 +54,18 @@ if isAdministrator() then
       ntop.setMacDeviceType(mac, devtype, true --[[ overwrite ]])
 
       pool_id = _POST["pool"]
-      local prev_pool = host_pools_utils.getMacPool(mac)
-
-      if pool_id ~= prev_pool then
-         local key = mac
-         if not host_pools_utils.changeMemberPool(key, pool_id) then
-            pool_id = nil
-         else
-            ntop.reloadHostPools()
-         end
-      end
+      host_pools_instance:bind_member(mac, pool_id)
    end
 end
 
 if (pool_id == nil) then
-   pool_id = host_pools_utils.getMacPool(mac)
+   local cur_pool = host_pools_instance:get_pool_by_member(mac)
+
+   if cur_pool then
+      pool_id = cur_pool["pool_id"]
+   else
+      pool_id = host_pools_instance.DEFAULT_POOL_ID
+   end
 end
 
 local vlanId      = host_info["vlan"]
@@ -209,14 +210,14 @@ if((page == "overview") or (page == nil)) then
 
    print[[<span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
    if not ifstats.isView then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_utils.getPoolName(pool_id)) print[[</a></span>]]
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_instance:get_pool_name(pool_id)) print[[</a></span>]]
          if isAdministrator() then
           print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
           print[[<i class="fas fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
          end
       else
         -- no link for view interfaces
-        print(host_pools_utils.getPoolName(pool_id))
+        print(host_pools_instance:get_pool_name(pool_id))
       end
       print("</td></tr>")
 
@@ -417,7 +418,7 @@ elseif(page == "config") then
       </tr>]]
 
       if not ifstats.isView then
-	 graph_utils.printPoolChangeDropdown(ifId, pool_id, have_nedge)
+	 graph_utils.printPoolChangeDropdown(ifId, pool_id.."", have_nedge)
       end
 
 print[[
