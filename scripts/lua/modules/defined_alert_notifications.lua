@@ -107,7 +107,7 @@ function defined_alert_notifications.too_many_flows(container)
     local flows_pctg = math.floor(1 + ((flows * 100) / prefs.max_num_flows))
 
     local ALARM_THRESHOLD_LOW = 60
-    local ALARM_THRESHOLD_HIGH = 90;
+    local ALARM_THRESHOLD_HIGH = 90
 
     if (flows_pctg >= ALARM_THRESHOLD_LOW and flows_pctg <= ALARM_THRESHOLD_HIGH) then
         level = "warning"
