@@ -2,10 +2,14 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools = require "host_pools"
+local host_pools_instance = host_pools:create()
 local callback_utils = require "callback_utils"
 local ts_utils = require "ts_utils_core"
 local format_utils = require "format_utils"
@@ -508,7 +512,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
 
   -- Save Host Pools stats every 5 minutes
   if((ntop.isPro()) and (tostring(config.host_pools_rrd_creation) == "1")) then
-    host_pools_utils.updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
+    host_pools_instance:updateRRDs(ifstats.id, true --[[ also dump nDPI data ]], verbose)
   end
 end
 

@@ -2,8 +2,9 @@
 -- (C) 2017-20 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 if(ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -15,7 +16,15 @@ require "lua_utils"
 local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
 local page_utils = require("page_utils")
-local host_pools_utils = require "host_pools_utils"
+
+local host_pools_utils
+if ntop.isnEdge() then
+   host_pools_utils = require "host_pools_utils"
+end
+local host_pools = require "host_pools"
+-- Instantiate host pools
+local host_pools_instance = host_pools:create()
+
 local template = require "template_utils"
 
 local have_nedge = ntop.isnEdge()
@@ -30,11 +39,13 @@ end
 interface.select(ifname)
 local ifstats = interface.getStats()
 local ifId = ifstats.id
-local pool_name = host_pools_utils.getPoolName(pool_id)
-local username = host_pools_utils.poolIdToUsername(pool_id)
+local pool_name = host_pools_instance:get_pool_name(pool_id)
 
-if _POST["reset_quotas"] ~= nil then
-  host_pools_utils.resetPoolsQuotas(tonumber(pool_id))
+
+if ntop.isnEdge() then
+   if _POST["reset_quotas"] ~= nil then
+      host_pools_utils.resetPoolsQuotas(tonumber(pool_id))
+   end
 end
 
 sendHTTPContentTypeHeader('text/html')
@@ -68,7 +79,7 @@ local title = i18n(ternary(have_nedge, "nedge.user", "pool_details.host_pool")).
 				 label = "<i class='fas fa-lg fa-chart-area'></i>",
 			      },
 			      {
-				 hidden = not ntop.isEnterpriseM() or not ntop.isnEdge() or not ifstats or pool_id == host_pools_utils.DEFAULT_POOL_ID,
+				 hidden = not ntop.isEnterpriseM() or not ntop.isnEdge() or not ifstats or pool_id == host_pools_instance.DEFAULT_POOL_ID,
 				 active = page == "quotas",
 				 page_name = "quotas",
 				 label = i18n("quotas"),
@@ -79,7 +90,7 @@ local title = i18n(ternary(have_nedge, "nedge.user", "pool_details.host_pool")).
 local pools_stats = interface.getHostPoolsStats()
 local pool_stats = pools_stats and pools_stats[tonumber(pool_id)]
 
-if (ntop.isEnterpriseM() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
+if (ntop.isEnterpriseM() or ntop.isnEdge()) and pool_id ~= host_pools_instance.DEFAULT_POOL_ID and ifstats.inline and (page == "quotas") and (pool_stats ~= nil) then
   print(
     template.gen("modal_confirm_dialog.html", {
       dialog={
@@ -102,6 +113,7 @@ if (ntop.isEnterpriseM() or ntop.isnEdge()) and pool_id ~= host_pools_utils.DEFA
   print[[
   <button class="btn btn-secondary" data-toggle="modal" data-target="#reset_quotas_dialog" style="float:right;">]] print(i18n("host_pools.reset_quotas")) print[[</button>]]
   if ntop.isnEdge() then
+    local username = host_pools_utils.poolIdToUsername(pool_id)
     print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/admin/nf_edit_user.lua?page=categories&username=]] print(username)
     print[["><button class="btn btn-secondary" type="button" style="float:right; margin-right:1em;">]] print(i18n("nedge.edit_quotas")) print[[</button></a>]]
   end
