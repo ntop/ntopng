@@ -2,16 +2,20 @@
 -- (C) 2013-20 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local template = require "template_utils"
-local host_pools_utils = require("host_pools_utils")
+local host_pools = require "host_pools"
 
 interface.select(ifname)
 local ifstats = interface.getStats()
+
+-- Instantiate host pools
+local host_pools_instance = host_pools:create()
 
 local base_url = ntop.getHttpPrefix().."/lua/if_stats.lua"
 
@@ -27,8 +31,7 @@ end
 
 if isAdministrator() and (_POST["member"] ~= nil) and (_POST["pool"] ~= nil) then
   -- change member pool
-  host_pools_utils.changeMemberPool(_POST["member"], _POST["pool"])
-  ntop.reloadHostPools()
+  host_pools_instance:bind_member(_POST["member"], _POST["pool"])
 end
 
 print("<h2>"..i18n("unknown_devices.unassigned_devices").." <small><a title='".. i18n("host_pools.manage_pools") .."' href='".. ntop.getHttpPrefix() .."/lua/admin/manage_pools.lua'><i class='fas fa-cog'></i></a></small></h2>")
@@ -49,8 +52,8 @@ print(
   })
 )
 
-local pools = host_pools_utils.getPoolsList(true --[[no info]])
-local no_pools = (#pools < 2)
+local pools = host_pools_instance:get_num_pools()
+local no_pools = (pools < 2)
 
 print [[
       <br>

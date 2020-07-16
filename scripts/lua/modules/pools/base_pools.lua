@@ -350,6 +350,15 @@ end
 
 -- ##############################################
 
+-- @brief Returns the number of currently defined pool ids
+function base_pools:get_num_pools()
+   local cur_pool_ids = self:_get_assigned_pool_ids()
+
+   return #cur_pool_ids
+end
+
+-- ##############################################
+
 function base_pools:get_pool(pool_id)
    local pool_details
    local pool_details_key = self:_get_pool_details_key(pool_id)
