@@ -9,8 +9,12 @@ $(document).ready(function() {
 
     const renableDisabledOptions = (selector, members) => {
         members.forEach(m => {
+
+            // if the member name is not defined the use the member's key
+            const name = all_members[m].name || m;
+
             $(`${selector} option[value='${m}']`)
-                .removeAttr("disabled").removeAttr("data-pool-id").text(all_members[m].name);
+                .removeAttr("disabled").removeAttr("data-pool-id").text(name);
         });
     }
 
