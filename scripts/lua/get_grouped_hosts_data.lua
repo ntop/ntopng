@@ -5,7 +5,6 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-local host_pools_utils = require "host_pools_utils"
 local discover = require("discover_utils")
 
 sendHTTPContentTypeHeader('text/html')
@@ -20,7 +19,6 @@ local group_col   = _GET["grouped_by"]
 local network_n   = _GET["network"]
 local country_n   = _GET["country"]
 local os_n        = _GET["os"]
-local pool_n      = _GET["pool"]
 local ipver_n     = _GET["version"]
 
 interface.select(ifname)
@@ -70,7 +68,7 @@ if (all ~= nil) then
    currentPage = 0
 end
 
-if (network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
+if (network_n == nil and country_n == nil and os_n == nil) then -- single group info requested
    print ("{ \"currentPage\" : " .. currentPage .. ",\n \"data\" : [\n")
 end
 local num = 0
@@ -88,7 +86,7 @@ local stats_by_group_key = interface.getGroupedHosts(false, -- do not show detai
    nil,                  -- VLAN filter
    nil,                  -- ASN filter
    tonumber(network_n),  -- Network filter
-   tonumber(pool_n),     -- Host Pool filter
+   nil,                  -- Host Pool filter
    tonumber(ipver_n))    -- IP version filter (4 or 6)
 stats_by_group_col = stats_by_group_key
 
@@ -118,8 +116,6 @@ local function print_single_group(value)
       print("hosts_stats.lua?network="..tostring(value["id"]))
       if not isEmptyString(ipver_n) then print("&version="..ipver_n) end
       print("'>")
-   elseif (group_col == "pool_id" or pool_n ~= nil) then
-      print("hosts_stats.lua?pool="..tostring(value["id"]).."'>")
    elseif (group_col == "mac") then
       print("hosts_stats.lua?mac="..value["name"].."'>")
    else
@@ -139,19 +135,6 @@ local function print_single_group(value)
       manufacturer = get_manufacturer_mac(value["name"])
       if(manufacturer == nil) then manufacturer = "" end
       print(manufacturer..'</A>", ')
-   elseif(group_col == "pool_id") then
-      local pool_name = host_pools_utils.getPoolName(tostring(value["id"]))
-
-      print(pool_name..'</A> " , ')
-      print('"column_chart": "')
-
-      if areHostPoolsTimeseriesEnabled(getInterfaceId(ifname)) then
-         print('<A HREF='..ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..value["id"]..'&page=historical><i class=\'fas fa-chart-area fa-lg\'></i></A>')
-      else
-         print('')
-      end
-
-      print('", ')
    elseif(group_col == "asn") then
       print(value["id"]..'</A>", ')
       print('"column_chart": "')
@@ -272,14 +255,6 @@ elseif (network_n ~= nil) then
       print_single_group(network_val)
    end
    stats_by_group_col = {}
-elseif (pool_n ~= nil) then
-   pool_val = find_stats(tonumber(pool_n))
-   if (pool_val == nil) then
-      print('{}')
-   else
-      print_single_group(pool_val)
-   end
-   stats_by_group_col = {}
 end
 
 vals = { }
@@ -353,7 +328,7 @@ for _key, _val in iterator(vals, funct) do
    end
 end -- for
 
-if (network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
+if (network_n == nil and country_n == nil and os_n == nil) then -- single group info requested
    print ("\n], \"perPage\" : " .. perPage .. ",\n")
 end
 
@@ -365,7 +340,7 @@ if(sortOrder == nil) then
    sortOrder = ""
 end
 
-if (network_n == nil and country_n == nil and os_n == nil and pool_n == nil) then -- single group info requested
+if (network_n == nil and country_n == nil and os_n == nil) then -- single group info requested
    print ("\"sort\" : [ [ \"" .. sortColumn .. "\", \"" .. sortOrder .."\" ] ],\n")
    print ("\"totalRows\" : " .. total .. " \n}")
 end
