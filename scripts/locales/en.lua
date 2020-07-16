@@ -232,6 +232,7 @@ local lang = {
   ["tls_certificate"] = "TLS Certificate",
   ["today"] = "Today",
   ["too_many_flows"] = "Too many flows",
+  ["too_many_hosts"] = "Too many hosts",
   ["tools"] = "Tools",
   ["total"] = "Total",
   ["total_incoming_misbehaving_flows"] = "Total Misbehaving Flows As Server",
@@ -315,7 +316,8 @@ local lang = {
     ["uptime"] = "Uptime",
     ["user_scripts"] = "User Scripts",
     ["version"] = "Version",
-    ["you_have_too_many_flows"] = "You have too many hosts/flows for %{product} leading to packet drops and high CPU load. Please tune -x/-X and restart %{product}",
+    ["you_have_too_many_flows"] = "You have too many flows for %{product} leading to packet drops and high CPU load. Please tune -x/-X and restart %{product}",
+    ["you_have_too_many_hosts"] = "You have too many hosts for %{product} leading to packet drops and high CPU load. Please tune -x/-X and restart %{product}",
   },
   ["active_monitoring_stats"] = {
     ["active_monitoring"] = "Active Monitoring",

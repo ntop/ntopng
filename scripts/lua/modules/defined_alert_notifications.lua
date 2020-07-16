@@ -9,6 +9,9 @@ local defined_alert_notifications = {}
 local telemetry_utils = require("telemetry_utils")
 local alert_notification = require("alert_notification")
 
+local ALARM_THRESHOLD_LOW = 60
+local ALARM_THRESHOLD_HIGH = 90
+
 local function create_geo_ip_alert_notification()
 
     local title = i18n("geo_map.geo_ip")
@@ -52,6 +55,14 @@ local function create_too_many_flows_notification(level)
     local desc = i18n("about.you_have_too_many_flows", {product=info["product"]})
 
     return alert_notification:create("toomanyflows_alert", title, desc, level)
+end
+
+local function create_too_many_hosts_notification(level)
+
+    local title = i18n("too_many_hosts")
+    local desc = i18n("about.you_have_too_many_hosts", {product=info["product"]})
+
+    return alert_notification:create("toomanyhosts_alert", title, desc, level)
 end
 
 -- ##################################################################
@@ -100,14 +111,28 @@ function defined_alert_notifications.update_ntopng(container)
 
 end
 
+function defined_alert_notifications.too_many_hosts(container)
+
+    local level = nil
+    local hosts = interface.getNumHosts()
+    local hosts_pctg = math.floor(1 + ((hosts * 100) / prefs.max_num_hosts))
+
+    if (hosts_pctg >= ALARM_THRESHOLD_LOW and hosts_pctg <= ALARM_THRESHOLD_HIGH) then
+        level = "warning"
+    elseif (hosts_pctg > ALARM_THRESHOLD_HIGH) then
+        level = "danger"
+    end
+
+    if (level ~= nil) then
+        table.insert(container, create_too_many_hosts_notification(level))
+    end
+end
+
 function defined_alert_notifications.too_many_flows(container)
 
     local level = nil
     local flows = interface.getNumFlows()
     local flows_pctg = math.floor(1 + ((flows * 100) / prefs.max_num_flows))
-
-    local ALARM_THRESHOLD_LOW = 60
-    local ALARM_THRESHOLD_HIGH = 90
 
     if (flows_pctg >= ALARM_THRESHOLD_LOW and flows_pctg <= ALARM_THRESHOLD_HIGH) then
         level = "warning"
