@@ -4,6 +4,8 @@
 -- This file contains the alert constats
 
 local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 local alert_consts = {}
 local alert_keys = require "alert_keys"
 local format_utils  = require "format_utils"
@@ -183,8 +185,12 @@ function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
         entity_value.."&page=historical&epoch_begin=".. epoch_begin
          .."&epoch_end=".. epoch_end .."'>" ..value.."</a>"
    elseif entity_type == "host_pool" then
-      host_pools_utils = require("host_pools_utils")
-      value = host_pools_utils.getPoolName(entity_value)
+      local host_pools = require "host_pools"
+
+      -- Instantiate host pools
+      local host_pools_instance = host_pools:create()
+
+      value = host_pools_instance:get_pool_name(entity_value)
    else
       -- fallback
       value = entity_value
