@@ -2,13 +2,17 @@
 -- (C) 2014-20 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 -- This file contains the description of all functions
 -- used to trigger host alerts
 local verbose = ntop.getCache("ntopng.prefs.alerts.debug") == "1"
 local callback_utils = require "callback_utils"
 local template = require "template_utils"
 local json = require("dkjson")
-local host_pools_utils = require("host_pools_utils")
+local host_pools = require "host_pools"
+local host_pools_instance = host_pools:create()
 local recovery_utils = require "recovery_utils"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
@@ -1953,7 +1957,7 @@ function alert_utils.check_host_pools_alerts(ifid)
 	 end
 
 	 -- Pool presence
-	 if (pool ~= host_pools_utils.DEFAULT_POOL_ID) and (info.num_hosts > 0) then
+	 if (pool ~= host_pools_instance.DEFAULT_POOL_ID) and (info.num_hosts > 0) then
 	    now_active_pools[pool] = 1
 
 	    if not prev_active_pools[pool] then
