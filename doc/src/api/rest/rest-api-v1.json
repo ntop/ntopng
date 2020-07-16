@@ -1350,6 +1350,678 @@
 					}
 				}
 			}
+		},
+		"/lua/rest/v1/add/interface/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add an interface pool",
+				"description": "Add an interface pool with members and configuration",
+				"operationId": "add_interface_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/add/host/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add an host pool",
+				"description": "Add an host pool with members and configuration",
+				"operationId": "add_host_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/add/network/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add a local network pool",
+				"description": "Add a local network pool with members and configuration",
+				"operationId": "add_network_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v1/add/snmp/device/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add an SNMP device pool",
+				"description": "Add an SNMP device pool with members and configuration",
+				"operationId": "add_snmp_device_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/add/active_monitoring/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Add an active monitoring pool",
+				"description": "Add an active monitoring pool with members and configuration",
+				"operationId": "add_active_monitoring_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-13": {
+						"description": "ADD_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/edit/interface/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an interface pool",
+				"description": "Edit an interface pool with members and configuration",
+				"operationId": "edit_interface_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/edit/host/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an host pool",
+				"description": "Edit an host pool with members and configuration",
+				"operationId": "edit_host_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/edit/network/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit a local network pool",
+				"description": "Edit a local network pool with members and configuration",
+				"operationId": "edit_network_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v1/edit/snmp/device/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an SNMP device pool",
+				"description": "Edit an SNMP device pool with members and configuration",
+				"operationId": "edit_snmp_device_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/edit/active_monitoring/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an active monitoring pool",
+				"description": "Edit an active monitoring pool with members and configuration",
+				"operationId": "edit_active_monitoring_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/delete/interface/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete an interface pool",
+				"description": "Delete an interface pool",
+				"operationId": "delete_interface_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/delete/host/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete an host pool",
+				"description": "Delete an host pool",
+				"operationId": "delete_host_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/delete/network/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete a local network pool",
+				"description": "Delete a local network pool",
+				"operationId": "delete_network_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v1/delete/snmp/device/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete an SNMP device pool",
+				"description": "Delete an SNMP device pool",
+				"operationId": "delete_snmp_device_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/delete/active_monitoring/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete an active monitoring pool",
+				"description": "Delete an active monitoring pool",
+				"operationId": "delete_active_monitoring_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/get/interface/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all interface pools",
+				"description": "Get one or all interface pools",
+				"operationId": "get_interface_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/get/host/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all host pools",
+				"description": "Get one or all host pools",
+				"operationId": "get_host_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/get/network/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all local network pools",
+				"description": "Get one or all local network pools",
+				"operationId": "get_network_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v1/get/snmp/device/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all SNMP device pools",
+				"description": "Get one or all SNMP device pools",
+				"operationId": "get_snmp_device_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/get/active_monitoring/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all active monitoring pools",
+				"description": "Get one or all active monitoring pools",
+				"operationId": "get_active_monitoring_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/bind/host/pool/member.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Bind a member to an host pool",
+				"description": "Bind a member to an host pool",
+				"operationId": "bind_host_pool_member",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"member": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-17": {
+						"description": "BIND_POOL_MEMBER_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/get/host/pool_by_member.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get an host pool given a member",
+				"description": "Get an host pool given a member",
+				"operationId": "get_host_pool_by_member",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"member": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
 		}
 	},
 	"definitions": {
