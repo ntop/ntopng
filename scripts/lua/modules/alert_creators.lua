@@ -2,6 +2,9 @@
 -- (C) 2020 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 -- ##############################################
 
 local alert_creators = {}
@@ -57,11 +60,15 @@ end
 -- @param host_pool A string with the host pool id
 -- @return A table with the alert built
 function alert_creators.createPoolConnectionDisconnection(alert_severity, host_pool)
-   local host_pools_utils = require("host_pools_utils")
+   local host_pools = require "host_pools"
+
+   -- Instantiate host pools
+   local host_pools_instance = host_pools:create()
+
    local built = {
       alert_severity = alert_severity,
       alert_type_params = {
-	 pool = host_pools_utils.getPoolName(host_pool),
+	 pool = host_pools_instance:get_pool_name(host_pool),
       },
    }
 
