@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local snmp_utils
 local snmp_location
@@ -12,16 +13,15 @@ if(ntop.isPro()) then
    snmp_utils = require "snmp_utils"
    snmp_location = require "snmp_location"
    shaper_utils = require("shaper_utils")
-   host_pools_utils = require "host_pools_utils"
 end
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
 require "historical_utils"
-
 local json = require ("dkjson")
-local host_pools_utils = require "host_pools_utils"
+
+
 local discover = require "discover_utils"
 local page_utils = require "page_utils"
 local template = require "template_utils"
@@ -34,6 +34,14 @@ local plugins_utils = require "plugins_utils"
 local alert_notification = require("alert_notification")
 local menu_alert_notifications = require("menu_alert_notifications")
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+
+local host_pools_utils
+if ntop.isnEdge() then
+   host_pools_utils = require "host_pools_utils"
+end
+local host_pools = require "host_pools"
+-- Instantiate host pools
+local host_pools_instance = host_pools:create()
 
 local info = ntop.getInfo()
 
@@ -142,7 +150,7 @@ if (host ~= nil) then
 
       if host_pool_id ~= prev_pool then
          local key = host2member(host["ip"], host["vlan"])
-         if not host_pools_utils.changeMemberPool(key, host_pool_id, host) then
+         if not host_pools_instance:bind_member(key, host_pool_id) then
             host_pool_id = nil
          else
             ntop.reloadHostPools()
@@ -390,7 +398,7 @@ else
 				 label = "<i class='fas fa-lg fa-file-alt report-icon'></i>",
 			      },
 			      {
-				 hidden = only_historical or not ntop.isEnterpriseM() or not ifstats.inline or not host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID,
+				 hidden = only_historical or not ntop.isEnterpriseM() or not ifstats.inline or not host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID,
 				 active = page == "quotas",
 				 page_name = "quotas",
 				 label = i18n("quotas"),
@@ -476,7 +484,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       print[[</td><td><span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(host_pool_id)) print[[</a></span>]]
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_instance:get_pool_name(host_pool_id)) print[[</a></span>]]
       print[[&nbsp;]]
       print(hostinfo2detailshref(host, {page = "config"}, '<i class="fas fa-sm fa-cog" aria-hidden="true"></i>'))
       print("</td></tr>")
@@ -1993,7 +2001,7 @@ elseif(page == "alerts") then
       host_label, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"]),
 			   enable_label = i18n("show_alerts.trigger_host_alert_descr", {host = hostinfo2hostkey(host)})})
 
-elseif (page == "quotas" and ntop.isEnterpriseM() and host_pool_id ~= host_pools_utils.DEFAULT_POOL_ID and ifstats.inline) then
+elseif (page == "quotas" and ntop.isnEdge() and ntop.isEnterpriseM() and host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
    host_pools_utils.printQuotas(host_pool_id, host, page_params)
 
