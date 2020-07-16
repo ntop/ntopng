@@ -1273,6 +1273,57 @@ Response:
      "rc_str": "OK"
    }
 
+Pools
+-----
+
+Add an Host Pool
+~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themaina", "pool_members": "192.168.2.0/24@0", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainamac", "pool_members": "AA:BB:CC:DD:EE:FF", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainaip", "pool_members": "8.8.8.8/32@2", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainaempty", "pool_members": "", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/add/host/pool.lua
+
+Edit an Host Pool
+~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 1, "pool_name": "themaina", "pool_members": "192.168.3.0/24@0", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 2, "pool_name": "themainamac", "pool_members": "AA:BB:CC:DD:EE:AA", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 3, "pool_name": "themainaip", "pool_members": "1.1.1.1/32@2", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 4, "pool_name": "themainaempty", "pool_members": "", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/edit/host/pool.lua
+
+Delete an Host Pool
+~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 1}' http://localhost:3000/lua/rest/v1/delete/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 2}' http://localhost:3000/lua/rest/v1/delete/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 3}' http://localhost:3000/lua/rest/v1/delete/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 4}' http://localhost:3000/lua/rest/v1/delete/host/pool.lua
+
+
+Get an Host Pool
+~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 1}' http://localhost:3000/lua/rest/v1/get/host/pools.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{}' http://localhost:3000/lua/rest/v1/get/host/pools.lua
+
+
 SNMP
 ----
 
