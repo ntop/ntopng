@@ -305,4 +305,39 @@ end
 
 -- ##############################################
 
+function host_pools:updateRRDs(ifid, dump_ndpi, verbose)
+   local ts_utils = require "ts_utils"
+   require "ts_5min"
+
+   -- NOTE: requires graph_utils
+   for pool_id, pool_stats in pairs(interface.getHostPoolsStats() or {}) do
+      ts_utils.append("host_pool:traffic", {ifid=ifid, pool=pool_id,
+					    bytes_sent=pool_stats["bytes.sent"], bytes_rcvd=pool_stats["bytes.rcvd"]}, when)
+
+      if pool_id ~= tonumber(host_pools.DEFAULT_POOL_ID) then
+	 local flows_dropped = pool_stats["flows.dropped"] or 0
+
+	 ts_utils.append("host_pool:blocked_flows", {ifid=ifid, pool=pool_id,
+						     num_flows=flows_dropped}, when)
+      end
+
+      -- nDPI stats
+      if dump_ndpi then
+	 for proto,v in pairs(pool_stats["ndpi"] or {}) do
+	    ts_utils.append("host_pool:ndpi", {ifid=ifid, pool=pool_id, protocol=proto,
+					       bytes_sent=v["bytes.sent"], bytes_rcvd=v["bytes.rcvd"]}, when)
+	 end
+      end
+   end
+
+   -- Also write info on the number of members per pool, both in terms of hosts and l2 devices
+   local pools = interface.getHostPoolsInfo() or {}
+   for pool, info in pairs(pools.num_members_per_pool or {}) do
+      ts_utils.append("host_pool:hosts", {ifid = ifid, pool = pool, num_hosts = info["num_hosts"]}, when)
+      ts_utils.append("host_pool:devices", {ifid = ifid, pool = pool, num_devices = info["num_l2_devices"]}, when)
+   end
+end
+
+-- ##############################################
+
 return host_pools
