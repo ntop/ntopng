@@ -2,6 +2,9 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 local alert_keys = require "alert_keys"
 
 -- #######################################################
@@ -15,13 +18,15 @@ local alert_keys = require "alert_keys"
 -- @param quota The quota set
 -- @return A table with the alert built
 local function createPoolQuotaExceeded(alert_severity, alert_subtype, pool, proto, value, quota)
-   local host_pools_utils = require("host_pools_utils")
+   local host_pools = require "host_pools"
+   -- Instantiate host pools
+   local host_pools_instance = host_pools:create()
 
    local built = {
       alert_subtype = alert_subtype,
       alert_severity = alert_severity,
       alert_type_params = {
-	 pool = host_pools_utils.getPoolName(pool),
+	 pool = host_pools_instance:get_pool_name(pool),
 	 proto = proto,
 	 value = value,
 	 quota = quota,
