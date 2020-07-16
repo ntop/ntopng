@@ -688,17 +688,17 @@ else
    print("</tr>\n")
 
    if(ntop.isPro() and ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
-      local host_pools_utils = require("host_pools_utils")
+      local host_pools_nedge = require("host_pools_nedge")
       print("<tr><th width=30% rowspan=2>"..i18n("flow_details.flow_shapers").."</th>")
       c = flowinfo2hostname(flow,"cli")
       s = flowinfo2hostname(flow,"srv")
 
       if flow["cli.pool_id"] ~= nil then
-        c = c .. " (<a href='".. host_pools_utils.getUserUrl(flow["cli.pool_id"]) .."'>".. host_pools_utils.poolIdToUsername(flow["cli.pool_id"]) .."</a>)"
+        c = c .. " (<a href='".. host_pools_nedge.getUserUrl(flow["cli.pool_id"]) .."'>".. host_pools_nedge.poolIdToUsername(flow["cli.pool_id"]) .."</a>)"
       end
 
       if flow["srv.pool_id"] ~= nil then
-        s = s .. " (<a href='".. host_pools_utils.getUserUrl(flow["srv.pool_id"]) .."'>".. host_pools_utils.poolIdToUsername(flow["srv.pool_id"]) .."</a>)"
+        s = s .. " (<a href='".. host_pools_nedge.getUserUrl(flow["srv.pool_id"]) .."'>".. host_pools_nedge.poolIdToUsername(flow["srv.pool_id"]) .."</a>)"
       end
 
       local shaper = shaper_utils.nedge_shaper_id_to_shaper(flow["shaper.cli2srv_egress"])

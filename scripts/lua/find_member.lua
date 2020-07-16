@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools_nedge = require "host_pools_nedge"
 local json = require "dkjson"
 
 sendHTTPHeader('application/json')
@@ -17,15 +17,15 @@ local results = res.results
 
 local query = _GET["query"] or ""
 query = string.lower(query)
-local pool_id = _GET["pool"] or host_pools_utils.DEFAULT_POOL_ID
+local pool_id = _GET["pool"] or host_pools_nedge.DEFAULT_POOL_ID
 
 interface.select(ifname)
-local members = host_pools_utils.getPoolMembers(pool_id)
+local members = host_pools_nedge.getPoolMembers(pool_id)
 local matched_manufacturers = {}
 
 for _,member in ipairs(members) do
   local is_mac = isMacAddress(member.address)
-  local hostkey, is_network = host_pools_utils.getMemberKey(member.address)
+  local hostkey, is_network = host_pools_nedge.getMemberKey(member.address)
   local is_host = (not is_network) and (not is_mac)
   local matching = false
 

@@ -23,7 +23,7 @@ plugins_utils.loadPlugins()
 local alert_utils = require "alert_utils"
 
 local discover_utils = require "discover_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools_nedge = require "host_pools_nedge"
 local os_utils = require "os_utils"
 local lists_utils = require "lists_utils"
 local recovery_utils = require "recovery_utils"
@@ -34,9 +34,9 @@ local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
 local blog_utils = require("blog_utils")
 
-host_pools_utils.migrateHostPools()
+host_pools_nedge.migrateHostPools()
 if ntop.isnEdge() then
-   host_pools_utils.initPools()
+   host_pools_nedge.initPools()
 end
 
 if(ntop.isPro()) then

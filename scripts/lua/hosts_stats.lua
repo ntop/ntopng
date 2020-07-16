@@ -7,9 +7,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 require "lua_utils"
 
-local host_pools_utils
+local host_pools_nedge
 if ntop.isnEdge() then
-   host_pools_utils = require "host_pools_utils"
+   host_pools_nedge = require "host_pools_nedge"
 end
 local host_pools = require "host_pools"
 -- Instantiate host pools
@@ -169,7 +169,7 @@ if(pool ~= nil) then
    if(pool ~= host_pools_instance.DEFAULT_POOL_ID) or (have_nedge) then
       if have_nedge then
 	 pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
-	 ternary(pool == host_pools_utils.DEFAULT_POOL_ID, "", host_pools_utils.poolIdToUsername(pool))
+	 ternary(pool == host_pools_nedge.DEFAULT_POOL_ID, "", host_pools_nedge.poolIdToUsername(pool))
 	 title = i18n("nedge.edit_user")
       else
 	 pool_link = "/lua/if_stats.lua?page=pools&pool="..pool

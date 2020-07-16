@@ -12,7 +12,7 @@ local json = require ("dkjson")
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools_nedge = require "host_pools_nedge"
 local rest_utils = require("rest_utils")
 
 --
@@ -40,7 +40,7 @@ if isEmptyString(ifid) then
    return
 end
 
-local res = host_pools_utils.export()
+local res = host_pools_nedge.export()
 
 if isEmptyString(download) then
   sendHTTPHeader('application/json')

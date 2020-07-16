@@ -35,9 +35,9 @@ local alert_notification = require("alert_notification")
 local menu_alert_notifications = require("menu_alert_notifications")
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
-local host_pools_utils
+local host_pools_nedge
 if ntop.isnEdge() then
-   host_pools_utils = require "host_pools_utils"
+   host_pools_nedge = require "host_pools_nedge"
 end
 local host_pools = require "host_pools"
 -- Instantiate host pools
@@ -2003,7 +2003,7 @@ elseif(page == "alerts") then
 
 elseif (page == "quotas" and ntop.isnEdge() and ntop.isEnterpriseM() and host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
-   host_pools_utils.printQuotas(host_pool_id, host, page_params)
+   host_pools_nedge.printQuotas(host_pool_id, host, page_params)
 
 elseif (page == "config") then
    if(not isAdministrator()) then
@@ -2133,7 +2133,7 @@ elseif (page == "config") then
          print[[#protocols">]] print(i18n("host_config.modify_host_pool_policy_btn")) print[[</a>]]
       else
          print[[/lua/pro/nedge/admin/nf_edit_user.lua]]
-         print(ternary(host_pool_id == host_pools_utils.DEFAULT_POOL_ID, "", "?username=" .. host_pools_utils.poolIdToUsername(host_pool_id)))
+         print(ternary(host_pool_id == host_pools_nedge.DEFAULT_POOL_ID, "", "?username=" .. host_pools_nedge.poolIdToUsername(host_pool_id)))
          print[[">]] print(i18n("host_config.modify_host_pool_policy_btn")) print[[</a>]]
       end
 

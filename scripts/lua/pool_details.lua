@@ -17,9 +17,9 @@ local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
 local page_utils = require("page_utils")
 
-local host_pools_utils
+local host_pools_nedge
 if ntop.isnEdge() then
-   host_pools_utils = require "host_pools_utils"
+   host_pools_nedge = require "host_pools_nedge"
 end
 local host_pools = require "host_pools"
 -- Instantiate host pools
@@ -44,7 +44,7 @@ local pool_name = host_pools_instance:get_pool_name(pool_id)
 
 if ntop.isnEdge() then
    if _POST["reset_quotas"] ~= nil then
-      host_pools_utils.resetPoolsQuotas(tonumber(pool_id))
+      host_pools_nedge.resetPoolsQuotas(tonumber(pool_id))
    end
 end
 
@@ -108,12 +108,12 @@ if (ntop.isEnterpriseM() or ntop.isnEdge()) and pool_id ~= host_pools_instance.D
     <input name="reset_quotas" value="" type="hidden" />
   </form>]]
 
-  host_pools_utils.printQuotas(pool_id, nil, page_params)
+  host_pools_nedge.printQuotas(pool_id, nil, page_params)
 
   print[[
   <button class="btn btn-secondary" data-toggle="modal" data-target="#reset_quotas_dialog" style="float:right;">]] print(i18n("host_pools.reset_quotas")) print[[</button>]]
   if ntop.isnEdge() then
-    local username = host_pools_utils.poolIdToUsername(pool_id)
+    local username = host_pools_nedge.poolIdToUsername(pool_id)
     print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/admin/nf_edit_user.lua?page=categories&username=]] print(username)
     print[["><button class="btn btn-secondary" type="button" style="float:right; margin-right:1em;">]] print(i18n("nedge.edit_quotas")) print[[</button></a>]]
   end

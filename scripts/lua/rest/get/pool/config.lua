@@ -12,7 +12,7 @@ local json = require ("dkjson")
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools_nedge = require "host_pools_nedge"
 
 if not haveAdminPrivileges() then
    sendHTTPContentTypeHeader('text/html')
@@ -30,6 +30,6 @@ end
 
 sendHTTPContentTypeHeader('application/json', 'attachment; filename="pools_configuration.json"')
 
-local conf = host_pools_utils.export()
+local conf = host_pools_nedge.export()
 
 print(json.encode(conf, nil))

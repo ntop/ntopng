@@ -16,12 +16,12 @@ local base_pools = {}
 -- ##############################################
 
 -- A default pool id value associated to any member without pools
-base_pools.DEFAULT_POOL_ID = 0 -- In sync with former host_pools_utils.lua
-base_pools.DEFAULT_POOL_NAME = "Not Assigned" -- In sync with former host_pools_utils.lua
+base_pools.DEFAULT_POOL_ID = 0 -- In sync with former host_pools_nedge.lua
+base_pools.DEFAULT_POOL_NAME = "Not Assigned" -- In sync with former host_pools_nedge.lua
 
 -- ##############################################
 
--- Limits, in sync with former host_pools_utils.lua
+-- Limits, in sync with former host_pools_nedge.lua
 base_pools.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
 
 -- ##############################################

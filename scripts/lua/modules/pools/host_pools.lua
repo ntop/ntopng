@@ -55,7 +55,7 @@ end
 function host_pools:_get_pools_prefix_key()
    -- OVERRIDE
    -- Key name is in sync with include/ntop_defines.h
-   -- and with former host_pools_utils.lua
+   -- and with former host_pools_nedge.lua
    local key = string.format("ntopng.prefs.host_pools")
 
    return key
@@ -66,7 +66,7 @@ end
 function host_pools:_get_pool_ids_key()
    -- OVERRIDE
    -- Key name is in sync with include/ntop_defines.h
-   -- and with former host_pools_utils.lua method get_pool_ids_key()
+   -- and with former host_pools_nedge.lua method get_pool_ids_key()
    local key = string.format("%s.pool_ids", self:_get_pools_prefix_key())
 
    return key
@@ -77,7 +77,7 @@ end
 function host_pools:_get_pool_details_key(pool_id)
    -- OVERRIDE
    -- Key name is in sync with include/ntop_defines.h
-   -- and with former host_pools_utils.lua method get_pool_details_key(pool_id)
+   -- and with former host_pools_nedge.lua method get_pool_details_key(pool_id)
 
    if not pool_id then
       -- A pool id is always needed
@@ -93,7 +93,7 @@ end
 
 function host_pools:_get_pool_members_key(pool_id)
    -- Key name is in sync with include/ntop_defines.h
-   -- and with former host_pools_utils.lua method get_pool_members_key(pool_id)
+   -- and with former host_pools_nedge.lua method get_pool_members_key(pool_id)
 
    if not pool_id then
       -- A pool id is always needed
@@ -109,7 +109,7 @@ end
 
 function host_pools:_assign_pool_id()
    -- OVERRIDE
-   -- To stay consistent with the old implementation host_pools_utils.lua
+   -- To stay consistent with the old implementation host_pools_nedge.lua
    -- pool_ids are re-used. This means reading the set  of currently used pool
    -- ids, and chosing the minimum not available pool id
    -- This method is called from functions which perform locks so

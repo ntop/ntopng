@@ -5,7 +5,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools_nedge = require "host_pools_nedge"
 local discover = require "discover_utils"
 local template = require "template_utils"
 local graph_utils = require "graph_utils"
@@ -34,7 +34,7 @@ if _POST["edit_pools"] ~= nil then
    for pool_id, pool_name in pairs(config) do
       -- Filter pool ids only
       if tonumber(pool_id) ~= nil then
-	 host_pools_utils.createPool(pool_id, pool_name,
+	 host_pools_nedge.createPool(pool_id, pool_name,
 				     nil --[[ children_safe ]],
 				     nil --[[ enforce_quotas_per_pool_member ]],
 				     nil --[[ enforce_shapers_per_pool_member ]],
@@ -46,7 +46,7 @@ if _POST["edit_pools"] ~= nil then
    ntop.reloadHostPools()
 elseif _POST["pool_to_delete"] ~= nil then
    local pool_id = _POST["pool_to_delete"]
-   host_pools_utils.deletePool(pool_id)
+   host_pools_nedge.deletePool(pool_id)
 
    -- Note: this will also reload the shaping rules
    ntop.reloadHostPools()
@@ -131,7 +131,7 @@ elseif (_POST["edit_members"] ~= nil) then
 	    -- Do not delete and re-add members which have only changed their list key
 	    config[old_member].old_member = old_member
 	 else
-	    host_pools_utils.deletePoolMember(pool_to_edit, old_member)
+	    host_pools_nedge.deletePoolMember(pool_to_edit, old_member)
 	 end
       end
    end
@@ -143,19 +143,19 @@ elseif (_POST["edit_members"] ~= nil) then
       local is_new_member = (k ~= new_member)
 
       if is_new_member then
-	 local res, info = host_pools_utils.addPoolMember(pool_to_edit, new_member)
+	 local res, info = host_pools_nedge.addPoolMember(pool_to_edit, new_member)
 
 	 if (res == false) and (info.existing_member_pool ~= nil) then
 	    -- remove @0
 	    local member_to_print = hostinfo2hostkey(hostkey2hostinfo(new_member))
 	    pool_add_warnings[#pool_add_warnings + 1] = i18n("host_pools.member_exists", {
 								member_name = member_to_print,
-								member_pool = host_pools_utils.getPoolName(info.existing_member_pool)
+								member_pool = host_pools_nedge.getPoolName(info.existing_member_pool)
 	    })
 	 end
       end
 
-      local host_key, is_network = host_pools_utils.getMemberKey(new_member)
+      local host_key, is_network = host_pools_nedge.getMemberKey(new_member)
 
       if not is_network then
 	 local alias = value.alias
@@ -189,14 +189,14 @@ elseif (_POST["edit_members"] ~= nil) then
 elseif _POST["member_to_delete"] ~= nil then
    local pool_to_edit = _POST["pool"]
 
-   host_pools_utils.deletePoolMember(pool_to_edit, _POST["member_to_delete"])
+   host_pools_nedge.deletePoolMember(pool_to_edit, _POST["member_to_delete"])
    ntop.reloadHostPools()
 elseif _POST["empty_pool"] ~= nil then
-   host_pools_utils.emptyPool(_POST["empty_pool"])
+   host_pools_nedge.emptyPool(_POST["empty_pool"])
    ntop.reloadHostPools()
 elseif (_POST["member"] ~= nil) and (_POST["pool"] ~= nil) then
    -- change member pool
-   host_pools_utils.changeMemberPool(_POST["member"], _POST["pool"], nil, true --[[do not consider host MAC]])
+   host_pools_nedge.changeMemberPool(_POST["member"], _POST["pool"], nil, true --[[do not consider host MAC]])
    ntop.reloadHostPools()
 end
 
@@ -238,7 +238,7 @@ end
 local selected_pool_id = _GET["pool"]
 
 local selected_pool = nil
-local available_pools = host_pools_utils.getPoolsList()
+local available_pools = host_pools_nedge.getPoolsList()
 
 for _, pool in ipairs(available_pools) do
    if pool.id == selected_pool_id then
@@ -277,12 +277,12 @@ print [[
 ]]
 
 print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline; width:14em;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
-print(graph_utils.poolDropdown(ifId, selected_pool.id, {[host_pools_utils.DEFAULT_POOL_ID]=true}))
+print(graph_utils.poolDropdown(ifId, selected_pool.id, {[host_pools_nedge.DEFAULT_POOL_ID]=true}))
 print('</select>')
 
 local no_pools = (#available_pools <= 1)
 
-if selected_pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+if selected_pool.id ~= host_pools_nedge.DEFAULT_POOL_ID then
    if areHostPoolsTimeseriesEnabled(ifid) then
       print("&nbsp; <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?pool="..selected_pool.id.."&page=historical' title='Chart'><i class='fas fa-chart-area'></i></a>")
    end
@@ -358,7 +358,7 @@ if not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise() then
    print[[<span style="float:left;">]]
    print(i18n("notes"))
    print[[<ul>
-      <li>]] print(i18n("host_pools.max_members_message", {maxnum = host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS})) print[[</li>
+      <li>]] print(i18n("host_pools.max_members_message", {maxnum = host_pools_nedge.LIMITED_NUMBER_POOL_MEMBERS})) print[[</li>
     </ul>
   </span>]]
 end
@@ -394,7 +394,7 @@ if ntop.isnEdge() then
 end
 
 if not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise() then
-   notes[#notes + 1] = "<li>"..i18n("host_pools.max_pools_message", {maxnum=host_pools_utils.LIMITED_NUMBER_USER_HOST_POOLS}).."</li>"
+   notes[#notes + 1] = "<li>"..i18n("host_pools.max_pools_message", {maxnum=host_pools_nedge.LIMITED_NUMBER_USER_HOST_POOLS}).."</li>"
 end
 
 if #notes > 0 then
@@ -459,7 +459,7 @@ print(
 		      title   = i18n("host_pools.change_member_pool"),
 		      message = i18n("host_pools.select_new_pool", {member='<span id="change_member_pool_dialog_member"></span>'}) ..
 			 '<br><br><select class="form-control" id="changed_host_pool" style="width:15em;">'..
-			 graph_utils.poolDropdown(ifId, "", {[selected_pool.id]=true, [host_pools_utils.DEFAULT_POOL_ID]=true})..
+			 graph_utils.poolDropdown(ifId, "", {[selected_pool.id]=true, [host_pools_nedge.DEFAULT_POOL_ID]=true})..
 			 '</select>',
 		      custom_alert_class = "",
 		      confirm = i18n("host_pools.change_pool"),
@@ -738,7 +738,7 @@ print [[
       curDisplayedMembers++;
 
       var is_disabled = ((curDisplayedMembers > ]] print(perPageMembers) print[[)
-       || (numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[));
+       || (numPoolMembers >= ]] print(host_pools_nedge.LIMITED_NUMBER_POOL_MEMBERS.."") print[[));
 
       if(is_disabled)
 	  $("#addPoolMemberBtn").addClass("disabled").attr("disabled", "disabled");
@@ -839,7 +839,7 @@ print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(se
 	var no_pools = false;
 	curDisplayedMembers = 0;
 
-	if (]] print(selected_pool.id) print[[ == ]] print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
+	if (]] print(selected_pool.id) print[[ == ]] print(host_pools_nedge.DEFAULT_POOL_ID) print[[) {
 	  datatableAddEmptyRow("#table-manage", "]] print(i18n("host_pools.no_pools_defined") .. " " .. i18n("host_pools.create_pool_hint")) print[[");
 	  no_pools = true;
 	} else if(datatableIsEmpty("#table-manage")) {
@@ -921,7 +921,7 @@ print[[
 					      || (no_pools))
 					      || (]] if members_filtering ~= nil then print("true") else print("false") end print[[)
 					      || (curDisplayedMembers > ]] print(perPageMembers) print[[)
-					      || (numPoolMembers >= ]] print(host_pools_utils.LIMITED_NUMBER_POOL_MEMBERS.."") print[[));
+					      || (numPoolMembers >= ]] print(host_pools_nedge.LIMITED_NUMBER_POOL_MEMBERS.."") print[[));
 
 	if(is_disabled)
 	  $("#addPoolMemberBtn").addClass("disabled").attr("disabled", "disabled");
@@ -995,7 +995,7 @@ print [[
   <script>
     /* Assumption: this is sorted by pool id with possible gaps */
     var host_pools = ]] print(tableToJsObject(available_pools)) print[[;
-    var maxPoolsNum = ]] print(tostring(host_pools_utils.LIMITED_NUMBER_TOTAL_HOST_POOLS)) print[[;
+    var maxPoolsNum = ]] print(tostring(host_pools_nedge.LIMITED_NUMBER_TOTAL_HOST_POOLS)) print[[;
 
     function nextPoolId() {
       for (var i=0; i<host_pools.length-1; i++)
@@ -1125,7 +1125,7 @@ print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[",
 	    $("input", input).first().val(value);
 	    pool_name.html(input);
 
-	    if (pool_id == ]]  print(host_pools_utils.DEFAULT_POOL_ID) print[[) {
+	    if (pool_id == ]]  print(host_pools_nedge.DEFAULT_POOL_ID) print[[) {
 	      $("input", input).first().attr("disabled", "disabled");
 	    } else {
 	      datatableAddLinkButtonCallback.bind(this)(4, pool_link, "View");

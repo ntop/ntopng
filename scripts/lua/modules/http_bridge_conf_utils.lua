@@ -20,7 +20,7 @@ end
 
 require "lua_utils"
 local json = require "dkjson"
-local host_pools_utils = require "host_pools_utils"
+local host_pools_nedge = require "host_pools_nedge"
 local users_utils = require("users_utils")
 local shaper_utils
 
@@ -39,10 +39,10 @@ function http_bridge_conf_utils.configureBridge()
       -- CLEANUP
       shaper_utils.clearShapers()
       -- empty pool members but don't delete pools
-      host_pools_utils.emptyPools()
+      host_pools_nedge.emptyPools()
 
       -- BASIC INITIALIZATION
-      host_pools_utils.initPools()
+      host_pools_nedge.initPools()
       shaper_utils.initShapers()
 
       -- RETRIEVE BRIDGE CONFIGURATION
@@ -70,7 +70,7 @@ function http_bridge_conf_utils.configureBridge()
       local rsp = ntop.httpGet(http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL)
 
       if rsp == nil then
-	 host_pools_utils.traceHostPoolEvent(TRACE_ERROR, "Unable to obtain a valid configuration from "..http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL)
+	 host_pools_nedge.traceHostPoolEvent(TRACE_ERROR, "Unable to obtain a valid configuration from "..http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL)
 	 return
       end
 
@@ -103,12 +103,12 @@ function http_bridge_conf_utils.configureBridge()
 
 	 -- SETUP HOST POOLS
 	 for username, user_config in pairs(rsp["users"] or {}) do
-            if username ~= host_pools_utils.DEFAULT_POOL_NAME then
+            if username ~= host_pools_nedge.DEFAULT_POOL_NAME then
               users_utils.addUserIfNotExists(ifid, username, user_config["password"] or "", user_config["full_name"] or "")
             end
 
-	    local pool_id = host_pools_utils.usernameToPoolId(username) or host_pools_utils.DEFAULT_POOL_ID
-	    host_pools_utils.traceHostPoolEvent(TRACE_NORMAL, ifname..": creating user: "..username.. " pool id: "..pool_id)
+	    local pool_id = host_pools_nedge.usernameToPoolId(username) or host_pools_nedge.DEFAULT_POOL_ID
+	    host_pools_nedge.traceHostPoolEvent(TRACE_NORMAL, ifname..": creating user: "..username.. " pool id: "..pool_id)
 
 	    if not isEmptyString(user_config["default_policy"]) then
 	       local default_policy = string.lower(user_config["default_policy"])
@@ -146,18 +146,18 @@ function http_bridge_conf_utils.configureBridge()
 	    local pool = info["group"]
 	    local connectivity = info["connectivity"]
 
-	    local pool_id = host_pools_utils.usernameToPoolId(pool)
+	    local pool_id = host_pools_nedge.usernameToPoolId(pool)
 
-	    if pool == host_pools_utils.DEFAULT_POOL_NAME then
-	       host_pools_utils.traceHostPoolEvent(TRACE_ERROR, ifname..": members are associated automatically with default pool "..host_pools_utils.DEFAULT_POOL_NAME.." skipping association with member: "..member)
+	    if pool == host_pools_nedge.DEFAULT_POOL_NAME then
+	       host_pools_nedge.traceHostPoolEvent(TRACE_ERROR, ifname..": members are associated automatically with default pool "..host_pools_nedge.DEFAULT_POOL_NAME.." skipping association with member: "..member)
 	    elseif not pool_id then
-	       host_pools_utils.traceHostPoolEvent(TRACE_ERROR, ifname..": pool: "..pool.. " not existing. Unable to set association with: "..member)
+	       host_pools_nedge.traceHostPoolEvent(TRACE_ERROR, ifname..": pool: "..pool.. " not existing. Unable to set association with: "..member)
 	    else
 	       if connectivity == "pass" then
-		  if host_pools_utils.addPoolMember(pool_id, member) == true then
-		     host_pools_utils.traceHostPoolEvent(TRACE_NORMAL, ifname..": member  "..member.. " successfully associated to pool: "..pool)
+		  if host_pools_nedge.addPoolMember(pool_id, member) == true then
+		     host_pools_nedge.traceHostPoolEvent(TRACE_NORMAL, ifname..": member  "..member.. " successfully associated to pool: "..pool)
 		  else
-		     host_pools_utils.traceHostPoolEvent(TRACE_ERROR, ifname..": Unable to associate member "..member.. " to pool: "..pool)
+		     host_pools_nedge.traceHostPoolEvent(TRACE_ERROR, ifname..": Unable to associate member "..member.. " to pool: "..pool)
 		  end
 	       end
 	    end

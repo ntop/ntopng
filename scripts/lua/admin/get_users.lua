@@ -15,11 +15,11 @@ local sortColumn      = _GET["sortColumn"]
 local sortOrder       = _GET["sortOrder"]
 local captivePortal   = _GET["captive_portal_users"]
 
-local host_pools_utils = nil
+local host_pools_nedge = nil
 local pool_names = nil
 if captivePortal then
-   local host_pools_utils = require "host_pools_utils"
-   local names = host_pools_utils.getPoolsList(false)
+   local host_pools_nedge = require "host_pools_nedge"
+   local names = host_pools_nedge.getPoolsList(false)
    pool_names = {}
    for _, p in pairs(names) do
       pool_names[tonumber(p["id"])] = p["name"]

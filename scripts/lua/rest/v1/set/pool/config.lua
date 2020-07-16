@@ -12,7 +12,7 @@ local json = require ("dkjson")
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools_nedge = require "host_pools_nedge"
 local rest_utils = require("rest_utils")
 
 --
@@ -58,7 +58,7 @@ end
 
 -- ################################################
 
-local success = host_pools_utils.import(data)
+local success = host_pools_nedge.import(data)
 
 ntop.reloadHostPools()
 

@@ -6,7 +6,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools_nedge = require "host_pools_nedge"
 local discover = require "discover_utils"
 local json = require "dkjson"
 
@@ -49,14 +49,14 @@ if((ifid ~= nil) and (isAdministrator())) then
   if pool_id ~= nil then
     local active_hosts = interface.getHostsInfo(false, nil, nil, nil, nil, nil, nil, nil, nil, nil, true--[[no macs]], tonumber(pool_id)).hosts
     local network_stats = interface.getNetworksStats()
-    local pool_members = host_pools_utils.getPoolMembers(pool_id) or {}
+    local pool_members = host_pools_nedge.getPoolMembers(pool_id) or {}
 
     for _,member in ipairs(pool_members) do
       local is_mac = isMacAddress(member.address)
 
       if matches_members_filter(member.key, is_mac) then
         if (i >= start_i) and (i <= stop_i) then
-          local host_key, is_network = host_pools_utils.getMemberKey(member.key)
+          local host_key, is_network = host_pools_nedge.getMemberKey(member.key)
           local is_host = (not is_network) and (not is_mac)
           local mac_info = interface.getMacInfo(host_key)
           local alias = ""
@@ -117,15 +117,15 @@ if((ifid ~= nil) and (isAdministrator())) then
   else
     local by_pool_name = {}
 
-    for _,pool in pairs(host_pools_utils.getPoolsList()) do
-      if pool.id ~= host_pools_utils.DEFAULT_POOL_ID then
+    for _,pool in pairs(host_pools_nedge.getPoolsList()) do
+      if pool.id ~= host_pools_nedge.DEFAULT_POOL_ID then
         by_pool_name[pool.name] = pool
       end
     end
 
     for _,pool in pairsByKeys(by_pool_name, asc_insensitive) do
       if (i >= start_i) and (i <= stop_i) then
-        local undeletable_pools = host_pools_utils.getUndeletablePools()
+        local undeletable_pools = host_pools_nedge.getUndeletablePools()
 
         res.data[#res.data + 1] = {
           column_pool_id = pool.id,
