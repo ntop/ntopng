@@ -3724,18 +3724,46 @@ function version2int(v)
 end
 
 function get_version_update_msg(info, latest_version)
-  version_elems = split(info["version"], " ")
-  new_version = version2int(latest_version)
-  this_version = version2int(version_elems[1])
 
-  if(new_version > this_version) then
-   return i18n("about.new_major_available", {
-      product = info["product"], version = latest_version,
-      url = "http://www.ntop.org/get-started/download/"
-   })
-  else
+  local version_elems = split(info["version"], " ")
+  local new_version = version2int(latest_version)
+  local this_version = version2int(version_elems[1])
+
+  if (new_version > this_version) then
+      return i18n("about.new_major_available", {
+         product = info["product"], version = latest_version,
+         url = "http://www.ntop.org/get-started/download/"
+      })
+   end
+
    return ""
-  end
+
+end
+
+--- Check if there is a new major release
+--- @return string message If there is a new major release then return a non-nil string
+--- containing the update message.
+function check_latest_major_release()
+
+   -- get the latest major release
+   local latest_version = ntop.getCache("ntopng.cache.major_release")
+
+   if isEmptyString(latest_version) then
+     local rsp = ntop.httpGet("https://www.ntop.org/ntopng.version", "", "", 10 --[[ seconds ]])
+
+     if (not isEmptyString(rsp)) and (not isEmptyString(rsp["CONTENT"])) then
+        latest_version = trimSpace(string.gsub(rsp["CONTENT"], "\n", ""))
+     else
+        -- a value that won't trigger an update message
+        latest_version = "0.0.0"
+     end
+
+     ntop.setCache("ntopng.cache.major_release", latest_version, 86400 --[[ recheck interval]])
+
+   end
+
+   return get_version_update_msg(info, latest_version)
+
 end
 
 -- ###########################################

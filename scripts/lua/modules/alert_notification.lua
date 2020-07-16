@@ -41,10 +41,9 @@ alert_notification_levels = {
 -- @param description The notification description (its body)
 -- @param level Use different style: danger|info|warning|success
 -- @param action The link where the notification brings { url = "#", title = "Click Here!"}
--- @param delay_to_fade Delay to fade in milliseconds
 -- @param no_scope A list of pages where the notification won't render
 -- @return An AlertNotification instance
-function alert_notification:create(id, title, description, level, action, delay_to_fade, no_scope)
+function alert_notification:create(id, title, description, level, action, no_scope)
 
     local this = {
         id              = id,
@@ -52,7 +51,6 @@ function alert_notification:create(id, title, description, level, action, delay_
         description     = (description or i18n("description")),
         level           = (alert_notification_levels[level] or alert_notification_levels.info),
         action          = (action or nil),
-        delay_to_fade   = delay_to_fade or 0,
         no_scope        = no_scope or "",
     }
 

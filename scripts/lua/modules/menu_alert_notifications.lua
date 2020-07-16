@@ -16,10 +16,12 @@ function menu_alert_notifications.load_main_notifications()
 
     local notifications = {}
 
-    -- check if I have to insert the missing geoip notification
-    defined_alert_notifications.geo_ip(notifications)
-    defined_alert_notifications.temp_working_dir(notifications)
-    defined_alert_notifications.contribute(notifications)
+    -- create_notification is a pointer to a function contained
+    -- in defined_alert_notifications.
+    -- defined_alert_notifications contains only function creates AlertNotifications
+    for _, create_notification in pairs(defined_alert_notifications) do
+        create_notification(notifications)
+    end
 
     return notifications
 end

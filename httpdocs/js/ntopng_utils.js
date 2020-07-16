@@ -835,5 +835,7 @@ function cleanForm(formSelector) {
 }
 
 $(document).ready(function() {
+  // if there are inputs with 'pattern' data attribute
+  // then initialize them
 	init_data_patterns();
 });

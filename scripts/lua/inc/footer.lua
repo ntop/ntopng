@@ -98,7 +98,6 @@ end
 -- Toogle System Interface
 
 -- render switchable system view
-
 print([[
 	<script type="text/javascript">
 
@@ -120,7 +119,7 @@ print([[
 			 if (data.success && $form == null) location.href =  http_prefix + '/';
 			 if (data.success && $form != null) $form.submit();
 			 if (!data.success) {
-				console.error("An error has occurred!");
+				console.error("An error has occurred when switching interface!");
 			 }
 
 		  });
@@ -149,82 +148,23 @@ local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTi
    (ts_utils.getDriverName() ~= "influxdb") and
    (ntop.getPref("ntopng.prefs.disable_ts_migration_message") ~= "1")
 
+
+-- Import the BlogNotification Utils script only
+-- if ntopng is not in OEM version
+if not info.oem then
+	-- Create a CSRF Token to handle the blog notifications
+	print([[
+		<script type='text/javascript'>
+			const blogNotificationCsrf = "]].. ntop.getRandomCSRFValue() ..[[";
+		</script>
+		<script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/utils/blog-notification-utils.js'></script>
+	]])
+end
+
+
 print [[
 <script type="text/javascript">
 ]]
-
-if not info.oem then
-
-	-- Blog Notification click handling
-	print([[
-		$(document).ready(function() {
-
-			const csrf_notification = "]].. ntop.getRandomCSRFValue() ..[[";
-			function blogNotifcationClick(e) {
-
-				if (e.type == "mousedown" && (e.metaKey || e.ctrlKey || e.which !== 2)) return;
-
-				const id = $(this).data('id');
-				$.post(`]].. ntop.getHttpPrefix() ..[[/lua/update_blog_posts.lua`, {
-					blog_notification_id: id,
-					csrf: csrf_notification
-				},
-				(data) => {
-
-					if (data.success) {
-						$(this)
-							.off('click').off('mousedown')
-							.attr('data-read', 'true').data('read', 'true')
-							.find('.badge').remove();
-						const count = $(`.blog-notification[data-read='false']`).length;
-
-						if (count == 0) {
-							$('.notification-bell').remove();
-							return;
-						}
-						$('.notification-bell').html(count);
-					}
-				});
-			}
-
-			$(`.blog-notification[data-read='false']`)
-				.click(blogNotifcationClick)
-				.mousedown(blogNotifcationClick);
-		});
-	]])
-
-	-- Major release check
-	local latest_major = ntop.getCache("ntopng.cache.major_release")
-
-	latest_major = trimSpace(string.gsub(latest_major, "\n", ""))
-
-	if isEmptyString(latest_major) then
-		print[[
-		$.ajax({
-		type: 'GET',
-		url: ']]
-			print (ntop.getHttpPrefix())
-			print [[/lua/check_major_release.lua',
-		data: {},
-		success: function(rsp) {
-			if(rsp && rsp.msg) {
-			$("#ntopng_update_available").html(rsp.msg);
-			$("#major-release-alert").show();
-			}
-		}
-		});
-		]]
-	else
-		local msg = get_version_update_msg(info, latest_major)
-
-		if not isEmptyString(msg) then
-		print[[
-		$("#ntopng_update_available").html(`]] print(msg) print[[`);
-		$("#major-release-alert").show();
-		]]
-		end
-	end
-end
 
 print[[
 var is_historical = false;
@@ -393,7 +333,7 @@ print[[
 		  checkMigrationMessage(rsp);
 		}
 
-                const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
+        const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
 		if(num_remote_hosts > 0 && !system_view_enabled) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=remote\">";
 			var remote_hosts_label = "]] print(i18n("remote_hosts")) print[[";
@@ -507,17 +447,6 @@ print[[
 		}
 
 		$('#network-load').html($msg);
-
-	    if (alert) {
-			AlertNotificationUtils.showAlert({
-				title: "]] print(i18n("warning")) print[[",
-				body: "]] print (i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[",
-				id: 'toomany-flows'
-			});
-		}
-		else {
-			AlertNotificationUtils.hideAlert('toomany-flows');
-		}
 
 	  } catch(e) {
 	     console.warn(e);

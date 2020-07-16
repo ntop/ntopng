@@ -84,11 +84,12 @@ class AlertNotificationUtils {
     static hideAlert(notificationId) {
 
         if (!notificationId) {
-            console.warn("[AlertNotificationUtils] :: The notification cannot be null!");
+            console.warn("[AlertNotificationUtils] :: The notification id cannot be null!");
             return;
         }
 
         if (!(notificationId in alertNotifications)) {
+            console.warn("[AlertNotificationUtils] :: The notification hasn't been found!");
             return;
         }
 

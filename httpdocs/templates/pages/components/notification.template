@@ -1,12 +1,6 @@
 <div class="toast alert-notification" role="alert" aria-live="assertive" aria-atomic="true"
     data-notification-id="{{ model.id }}"
-    data-notification-no-scope="{{ model.no_scope }}"
-    {% if (model.delay_to_fade == 0) then %}
-        data-autohide="false"
-    {% else %}
-        data-delay="{{model.delay_to_fade}}"
-    {% end %}
-    >
+    data-notification-no-scope="{{ model.no_scope }}" data-autohide="false">
     <div class="toast-header bg-{{ style.bg_color }} border-{{ style.bg_color }} {{ style.title_text_color }}">
         <strong class="mr-auto">
             <i class="fas {{ style.icon }}"></i> {{ content.title }}
