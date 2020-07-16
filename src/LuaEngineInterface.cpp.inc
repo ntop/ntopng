@@ -1947,6 +1947,33 @@ static int ntop_get_num_local_hosts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_num_hosts(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, ntop_interface->getNumHosts());
+
+  return(CONST_LUA_OK);
+}
+
+
+/* ****************************************** */
+
+static int ntop_get_num_flows(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, ntop_interface->getNumFlows());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_mac_device_types(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int16_t maxHits = CONST_MAX_NUM_HITS;
@@ -4475,6 +4502,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "setHostOperatingSystem",           ntop_set_host_operating_system },
   { "computeHostsScore",                ntop_compute_hosts_score },
   { "getNumLocalHosts",                 ntop_get_num_local_hosts },
+  { "getNumHosts",                      ntop_get_num_hosts       },
+  { "getNumFlows",                      ntop_get_num_flows       },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
