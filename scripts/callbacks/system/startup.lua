@@ -35,7 +35,9 @@ local prefs = ntop.getPrefs()
 local blog_utils = require("blog_utils")
 
 host_pools_utils.migrateHostPools()
-host_pools_utils.initPools()
+if ntop.isnEdge() then
+   host_pools_utils.initPools()
+end
 
 if(ntop.isPro()) then
    shaper_utils = require "shaper_utils"
