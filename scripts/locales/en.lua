@@ -3611,6 +3611,7 @@ local lang = {
     ["BAD_CONTENT"] = "Bad content",
     ["BAD_FORMAT"] = "Bad format",
     ["BIND_POOL_MEMBER_FAILED"] = "Unable to bind the sumbitted member to the pool",
+    ["BIND_POOL_MEMBER_ALREADY_BOUND"] = "Unable to bind member which is already bound to another pool",
     ["DELETE_POOL_FAILED"] = "Unable to delete a pool with the submitted params",
     ["EDIT_POOL_FAILED"] = "Unable to edit a pool with the submitted params",
     ["INTERNAL_ERROR"] = "Internal error",

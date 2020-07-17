@@ -21,6 +21,16 @@ base_pools.DEFAULT_POOL_NAME = "Not Assigned" -- In sync with former host_pools_
 
 -- ##############################################
 
+-- Possible errors occurring when calling class methods
+base_pools.ERRORS = {
+   NO_ERROR               = 0,
+   GENERIC                = -1,
+   INVALID_MEMBER         = -2,
+   ALREADY_BOUND          = -3,
+}
+
+-- ##############################################
+
 -- Limits, in sync with former host_pools_nedge.lua
 base_pools.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
 
@@ -546,11 +556,45 @@ end
 
 -- ##############################################
 
+-- @brief Bind a member to a pool
+--        PRIVATE FUNCTION, not to be called outside this class
+--        The caller must lock and must check the member doesn't belong to
+--        any other pool apart from pool_id, before calling
+function base_pools:_bind_member(member, pool_id)
+   local ret, err = false, base_pools.ERRORS.GENERIC
+
+   -- ASSIGN the member to the pool with `pool_id`
+   -- Note: If the pool_id is base_pools.DEFAULT_POOL_ID, then `member` is not associated to any pool, it's safe to just return
+   if tonumber(pool_id) == base_pools.DEFAULT_POOL_ID then
+      ret, err = true, base_pools.ERRORS.NO_ERROR
+   else
+      local bind_pool = self:get_pool(pool_id)
+
+      if bind_pool then
+	 -- New members are all pool members plus the member which is being bound
+	 local bind_pool_members = bind_pool["members"]
+	 bind_pool_members[#bind_pool_members + 1] = member
+
+	 -- Persist the pool with the new `member`
+	 self:_persist(bind_pool["pool_id"], bind_pool["name"], bind_pool_members, bind_pool["configset_id"])
+
+	 -- Bind has executed successfully
+	 ret, err = true, base_pools.ERRORS.NO_ERROR
+      end
+   end
+
+   return ret, err
+end
+
+-- ##############################################
+
+-- @brief Bind `member` to pool identified with `pool_id`. If the member is already bound to another pool
+--        Then the member is first unboud and the bound to `pool_id`.
 function base_pools:bind_member(member, pool_id)
-   local ret = false
+   local ret, err = false, base_pools.ERRORS.GENERIC
 
    if not self:is_valid_member(member) then
-      return ret
+      return false, base_pools.ERRORS.INVALID_MEMBER
    end
 
    local locked = self:_lock()
@@ -563,7 +607,7 @@ function base_pools:bind_member(member, pool_id)
 
 	 if cur_pool["pool_id"] == pool_id then
 	    -- If the current pool id equals the new pool id, there's nothing to do and it is just safe to return
-	    ret = true
+	    ret, err = true, base_pools.ERRORS.NO_ERROR
 	 elseif cur_pool then
 	    -- New members are all pool members except for the member which is being removed
 	    local new_members = {}
@@ -578,31 +622,49 @@ function base_pools:bind_member(member, pool_id)
 	 end
       end
 
-      -- ASSIGN the member to the pool with `pool_id`
-      -- Note: If the pool_id is base_pools.DEFAULT_POOL_ID, then `member` is not associated to any pool, it's safe to just return
       if not ret then
-	 if tonumber(pool_id) == base_pools.DEFAULT_POOL_ID then
-	    ret = true
-	 else
-	    local bind_pool = self:get_pool(pool_id)
-	    if bind_pool then
-	       -- New members are all pool members plus the member which is being bound
-	       local bind_pool_members = bind_pool["members"]
-	       bind_pool_members[#bind_pool_members + 1] = member
-
-	       -- Persist the pool with the new `member`
-	       self:_persist(bind_pool["pool_id"], bind_pool["name"], bind_pool_members, bind_pool["configset_id"])
-
-	       -- Bind has executed successfully
-	       ret = true
-	    end
-	 end
+	 ret, err = self:_bind_member(member, pool_id)
       end
 
       self:_unlock()
    end
 
-   return ret
+   return ret, err
+end
+
+-- ##############################################
+
+-- @brief Bind `member` to pool identified with `pool_id`. If the member is already bound to another pool
+--        then nothing is done and an error is returned
+function base_pools:bind_member_if_not_already_bound(member, pool_id)
+   local ret, err = false, base_pools.ERRORS.GENERIC
+
+   if not self:is_valid_member(member) then
+      return false, base_pools.ERRORS.INVALID_MEMBER
+   end
+
+   local locked = self:_lock()
+
+   if locked then
+      local assigned_members = self:get_assigned_members()
+      if assigned_members[member] then
+	 -- Member already existing
+	 if assigned_members[member]["pool_id"] == pool_id then
+	    -- Member is bound to the same pool as the parameter `pool_id`
+	    ret, err = true, base_pools.ERRORS.NO_ERROR
+	 else
+	    -- Member is bound to another pool
+	    ret, err = false, base_pools.ERRORS.ALREADY_BOUND
+	 end
+      else
+	 -- Member isn't bound to any pool, safe to add it
+	 ret, err = self:_bind_member(member, pool_id)
+      end
+
+      self:_unlock()
+   end
+
+   return ret, err
 end
 
 -- ##############################################

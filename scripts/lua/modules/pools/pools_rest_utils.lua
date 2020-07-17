@@ -158,10 +158,18 @@ function pools_rest_utils.bind_member(pools)
 
    -- Create the instance
    local s = pools:create()
-   local res = s:bind_member(member, pool_id)
-
+   local res, err = s:bind_member_if_not_already_bound(member, pool_id)
+   tprint(res)
    if not res then
-      print(rest_utils.rc(rest_utils.consts_bind_pool_member_failed))
+      if err == base_pools.ERRORS.ALREADY_BOUND then
+	 -- Member already existing, return current pool information in the response
+	 local cur_pool = s:get_pool_by_member(member)
+	 print(rest_utils.rc(rest_utils.consts_bind_pool_member_already_bound, cur_pool))
+      else
+	 -- Generic
+	 print(rest_utils.rc(rest_utils.consts_bind_pool_member_failed))
+      end
+
       return
    end
 
