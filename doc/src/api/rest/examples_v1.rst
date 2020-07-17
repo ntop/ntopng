@@ -1324,6 +1324,16 @@ Get an Host Pool
     curl -s -u admin:admin  -H "Content-Type: application/json" -d '{}' http://localhost:3000/lua/rest/v1/get/host/pools.lua
 
 
+Get Members of an Host Pool
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 2}' http://localhost:3000/lua/rest/v1/get/host/pool/members.lua
+
+
 SNMP
 ----
 

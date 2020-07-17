@@ -1966,6 +1966,32 @@
 				}
 			}
 		},
+		"/lua/rest/v1/get/host/pool/members.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get all host pool members",
+				"description": "Get all the members of a given host pool",
+				"operationId": "get_host_pool_members",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"member": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
 		"/lua/rest/v1/bind/host/pool/member.lua": {
 			"get": {
 				"tags": [
