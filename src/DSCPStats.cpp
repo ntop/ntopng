@@ -22,27 +22,27 @@
 #include "ntop_includes.h"
 
 const u_int8_t ds_table[NUM_DS_VALUES] = {
-   [0] = 0,  [1] = DS_PR_LE,   [2] = DS_PR_UNKN, [3] = DS_PR_UNKN, [4] = DS_PR_UNKN, [5] = DS_PR_UNKN, [6] = DS_PR_UNKN, [7] = DS_PR_UNKN,
-   [8] = 1,  [9] = DS_PR_UNKN,
-  [10] = 1, [11] = DS_PR_UNKN,
-  [12] = 1, [13] = DS_PR_UNKN,
-  [14] = 1, [15] = DS_PR_UNKN,
-  [16] = 2, [17] = DS_PR_UNKN,
-  [18] = 2, [19] = DS_PR_UNKN,
-  [20] = 2, [21] = DS_PR_UNKN,
-  [22] = 2, [23] = DS_PR_UNKN,
-  [24] = 3, [25] = DS_PR_UNKN,
-  [26] = 3, [27] = DS_PR_UNKN,
-  [28] = 3, [29] = DS_PR_UNKN,
-  [30] = 3, [31] = DS_PR_UNKN,
-  [32] = 4, [33] = DS_PR_UNKN,
-  [34] = 4, [35] = DS_PR_UNKN,
-  [36] = 4, [37] = DS_PR_UNKN,
-  [38] = 4, [39] = DS_PR_UNKN,
-  [40] = 5, [41] = DS_PR_UNKN, [42] = DS_PR_UNKN, [43] = DS_PR_UNKN, [44] = DS_PR_UNKN, [45] = DS_PR_UNKN,
-  [46] = 5, [47] = DS_PR_UNKN,
-  [48] = 6, [49] = DS_PR_UNKN, [50] = DS_PR_UNKN, [51] = DS_PR_UNKN, [52] = DS_PR_UNKN, [53] = DS_PR_UNKN, [54] = DS_PR_UNKN, [55] = DS_PR_UNKN, [56] = DS_PR_UNKN, 
-  [57] = 7, [58] = DS_PR_UNKN, [59] = DS_PR_UNKN, [60] = DS_PR_UNKN, [61] = DS_PR_UNKN, [62] = DS_PR_UNKN, [63] = DS_PR_UNKN
+  /* [0] = */ 0,  /* [1] = */ DS_PR_LE,   /* [2] = */ DS_PR_UNKN, /* [3] = */ DS_PR_UNKN, /* [4] = */ DS_PR_UNKN, /* [5] = */ DS_PR_UNKN, /* [6] = */ DS_PR_UNKN, /* [7] = */ DS_PR_UNKN,
+  /* [8] = */ 1,  /* [9] = */ DS_PR_UNKN,
+  /* [10] = */ 1, /* [11] = */ DS_PR_UNKN,
+  /* [12] = */ 1, /* [13] = */ DS_PR_UNKN,
+  /* [14] = */ 1, /* [15] = */ DS_PR_UNKN,
+  /* [16] = */ 2, /* [17] = */ DS_PR_UNKN,
+  /* [18] = */ 2, /* [19] = */ DS_PR_UNKN,
+  /* [20] = */ 2, /* [21] = */ DS_PR_UNKN,
+  /* [22] = */ 2, /* [23] = */ DS_PR_UNKN,
+  /* [24] = */ 3, /* [25] = */ DS_PR_UNKN,
+  /* [26] = */ 3, /* [27] = */ DS_PR_UNKN,
+  /* [28] = */ 3, /* [29] = */ DS_PR_UNKN,
+  /* [30] = */ 3, /* [31] = */ DS_PR_UNKN,
+  /* [32] = */ 4, /* [33] = */ DS_PR_UNKN,
+  /* [34] = */ 4, /* [35] = */ DS_PR_UNKN,
+  /* [36] = */ 4, /* [37] = */ DS_PR_UNKN,
+  /* [38] = */ 4, /* [39] = */ DS_PR_UNKN,
+  /* [40] = */ 5, /* [41] = */ DS_PR_UNKN, /* [42] = */ DS_PR_UNKN, /* [43] = */ DS_PR_UNKN, /* [44] = */ DS_PR_UNKN, /* [45] = */ DS_PR_UNKN,
+  /* [46] = */ 5, /* [47] = */ DS_PR_UNKN,
+  /* [48] = */ 6, /* [49] = */ DS_PR_UNKN, /* [50] = */ DS_PR_UNKN, /* [51] = */ DS_PR_UNKN, /* [52] = */ DS_PR_UNKN, /* [53] = */ DS_PR_UNKN, /* [54] = */ DS_PR_UNKN, /* [55] = */ DS_PR_UNKN, /* [56] = */ DS_PR_UNKN, 
+  /* [57] = */ 7, /* [58] = */ DS_PR_UNKN, /* [59] = */ DS_PR_UNKN, /* [60] = */ DS_PR_UNKN, /* [61] = */ DS_PR_UNKN, /* [62] = */ DS_PR_UNKN, /* [63] = */ DS_PR_UNKN
 };
 
 /* *************************************** */
