@@ -228,8 +228,13 @@ function pools_rest_utils.get_pool_members(pools)
       return
    end
 
+   for member, details in pairs(cur_pool["member_details"]) do
+      details["member"] = member
+      res[#res + 1] = details
+   end
+
    local rc = rest_utils.consts_ok
-   print(rest_utils.rc(rc, cur_pool["member_details"]))
+   print(rest_utils.rc(rc, res))
 end
 
 -- ##############################################
