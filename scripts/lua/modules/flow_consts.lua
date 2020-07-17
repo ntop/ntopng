@@ -1,7 +1,7 @@
 --
 -- (C) 2019-20 - ntop.org
 --
--- This file contains the alert constats
+-- This file contains flow related constats
 
 local flow_consts = {}
 local status_keys = require "flow_keys"

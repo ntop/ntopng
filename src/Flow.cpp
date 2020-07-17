@@ -2010,8 +2010,8 @@ void Flow::lua_tos(lua_State* vm) {
   lua_newtable(vm);
 
   lua_newtable(vm);    
-  lua_push_int32_table_entry(vm, "DSCP", (cli_tos & 0xFC) >> 2);
-  lua_push_int32_table_entry(vm, "ECN",  cli_tos & 0x3);
+  lua_push_int32_table_entry(vm, "DSCP", getCliDSCP());
+  lua_push_int32_table_entry(vm, "ECN",  getCliECN());
   lua_pushstring(vm, "client");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -2019,8 +2019,8 @@ void Flow::lua_tos(lua_State* vm) {
   /* *********************** */
 
   lua_newtable(vm);    
-  lua_push_int32_table_entry(vm, "DSCP", (srv_tos & 0xFC) >> 2);
-  lua_push_int32_table_entry(vm, "ECN",  srv_tos & 0x3);
+  lua_push_int32_table_entry(vm, "DSCP", getSrvDSCP());
+  lua_push_int32_table_entry(vm, "ECN",  getSrvECN());
   lua_pushstring(vm, "server");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
