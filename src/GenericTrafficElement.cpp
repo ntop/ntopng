@@ -33,6 +33,8 @@ GenericTrafficElement::GenericTrafficElement() {
 #ifdef NTOPNG_PRO
   custom_app_stats = NULL;
 #endif
+
+  dscpStats = NULL;
 }
 
 /* *************************************** */
@@ -51,22 +53,24 @@ void GenericTrafficElement::resetStats() {
 /* *************************************** */
 
 GenericTrafficElement::GenericTrafficElement(const GenericTrafficElement &gte) {
-    ndpiStats = (gte.ndpiStats) ? new nDPIStats(*gte.ndpiStats) : NULL;
+  ndpiStats = (gte.ndpiStats) ? new nDPIStats(*gte.ndpiStats) : NULL;
 
-    bytes_thpt = ThroughputStats(gte.bytes_thpt);
-    pkts_thpt  = ThroughputStats(gte.pkts_thpt);
+  bytes_thpt = ThroughputStats(gte.bytes_thpt);
+  pkts_thpt  = ThroughputStats(gte.pkts_thpt);
 
-    /* Stats */
-    total_num_dropped_flows = gte.total_num_dropped_flows;
+  /* Stats */
+  total_num_dropped_flows = gte.total_num_dropped_flows;
 
-    sent = gte.sent;
-    rcvd = gte.rcvd;
-    tcp_packet_stats_sent = gte.tcp_packet_stats_sent;
-    tcp_packet_stats_rcvd = gte.tcp_packet_stats_rcvd;
+  sent = gte.sent;
+  rcvd = gte.rcvd;
+  tcp_packet_stats_sent = gte.tcp_packet_stats_sent;
+  tcp_packet_stats_rcvd = gte.tcp_packet_stats_rcvd;
 
 #ifdef NTOPNG_PRO
-    custom_app_stats = (gte.custom_app_stats) ? new CustomAppStats(*gte.custom_app_stats) : NULL;
+  custom_app_stats = (gte.custom_app_stats) ? new CustomAppStats(*gte.custom_app_stats) : NULL;
 #endif
+
+  dscpStats = (gte.dscpStats) ? new DSCPStats(*gte.dscpStats) : NULL;
 }
 
 /* *************************************** */

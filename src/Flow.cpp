@@ -56,7 +56,7 @@ Flow::Flow(NetworkInterface *_iface,
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0;
-  cli_tos = srv_tos = 0;
+  cli2srv_tos = srv2cli_tos = 0;
   
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
@@ -1316,6 +1316,19 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 	srv_as->incStats(tv->tv_sec, stats_protocol, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(), partial->get_cli2srv_packets(), partial->get_cli2srv_bytes());
     }
 
+    // Update DSCP stats
+    cli_host->incDSCPStats(getCli2SrvDSCP(),
+      partial->get_cli2srv_packets(), 
+      partial->get_cli2srv_bytes(), 
+      partial->get_srv2cli_packets(),
+      partial->get_srv2cli_bytes());
+
+    srv_host->incDSCPStats(getSrv2CliDSCP(),
+      partial->get_srv2cli_packets(),
+      partial->get_srv2cli_bytes(),
+      partial->get_cli2srv_packets(), 
+      partial->get_cli2srv_bytes());
+
     // Update Country stats
     Country *cli_country_stats = cli_host->getCountryStats();
     Country *srv_country_stats = srv_host->getCountryStats();
@@ -2010,8 +2023,8 @@ void Flow::lua_tos(lua_State* vm) {
   lua_newtable(vm);
 
   lua_newtable(vm);    
-  lua_push_int32_table_entry(vm, "DSCP", getCliDSCP());
-  lua_push_int32_table_entry(vm, "ECN",  getCliECN());
+  lua_push_int32_table_entry(vm, "DSCP", getCli2SrvDSCP());
+  lua_push_int32_table_entry(vm, "ECN",  getCli2SrvECN());
   lua_pushstring(vm, "client");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -2019,8 +2032,8 @@ void Flow::lua_tos(lua_State* vm) {
   /* *********************** */
 
   lua_newtable(vm);    
-  lua_push_int32_table_entry(vm, "DSCP", getSrvDSCP());
-  lua_push_int32_table_entry(vm, "ECN",  getSrvECN());
+  lua_push_int32_table_entry(vm, "DSCP", getSrv2CliDSCP());
+  lua_push_int32_table_entry(vm, "ECN",  getSrv2CliECN());
   lua_pushstring(vm, "server");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

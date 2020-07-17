@@ -38,6 +38,8 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   ndpiStats = new nDPIStats();
   //printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
 
+  dscpStats = new DSCPStats();
+
   last_epoch_update = 0;
   total_activity_time = 0;
 
@@ -119,6 +121,7 @@ void HostStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host_detai
 
   if(verbose) {
     if(ndpiStats) ndpiStats->lua(iface, vm, true, tsLua);
+    if(dscpStats) dscpStats->lua(iface, vm, tsLua);
   }
 
   if(host_details) {

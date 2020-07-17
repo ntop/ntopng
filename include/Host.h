@@ -158,6 +158,10 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   inline void incSentStats(u_int num_pkts, u_int pkt_len)  { stats->incSentStats(num_pkts, pkt_len); };
   inline void incRecvStats(u_int num_pkts, u_int pkt_len)  { stats->incRecvStats(num_pkts, pkt_len); };
+
+  inline void incDSCPStats(u_int8_t ds, u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t rcvd_packets, u_int64_t rcvd_bytes) { 
+    stats->getDSCPStats()->incStats(ds, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes); 
+  }
   
   virtual int16_t get_local_network_id() const = 0;
   virtual HTTPstats* getHTTPstats()           const { return(NULL);                  };

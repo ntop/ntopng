@@ -32,6 +32,7 @@ class GenericTrafficElement {
 #ifdef NTOPNG_PRO
   CustomAppStats *custom_app_stats;
 #endif
+  DSCPStats *dscpStats;
   u_int32_t total_num_dropped_flows;
   TcpPacketStats tcp_packet_stats_sent, tcp_packet_stats_rcvd;
 
@@ -51,6 +52,7 @@ class GenericTrafficElement {
 #ifdef NTOPNG_PRO
     if(custom_app_stats) delete custom_app_stats;
 #endif
+    if(dscpStats) delete dscpStats;
   };
   inline void incNumDroppedFlows()         { total_num_dropped_flows++;      };
 
@@ -86,6 +88,7 @@ class GenericTrafficElement {
   void deserialize(json_object *obj, NetworkInterface *iface);
 
   inline nDPIStats* getnDPIStats()                          { return(ndpiStats); };
+  inline DSCPStats* getDSCPStats()                          { return(dscpStats); };
   inline u_int32_t getNumDroppedFlows() const { return total_num_dropped_flows;                };
   inline u_int64_t getNumBytes()        const { return(sent.getNumBytes()+rcvd.getNumBytes()); };
   inline u_int64_t getNumBytesSent()    const { return(sent.getNumBytes());                    };

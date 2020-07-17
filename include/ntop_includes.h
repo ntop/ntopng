@@ -206,6 +206,7 @@ using namespace std;
 #include "ContinuousPing.h"
 #include "TrafficStats.h"
 #include "TcpPacketStats.h"
+#include "DSCPStats.h"
 #include "ntop_typedefs.h"
 #include "Alert.h"
 #include "AlertableEntity.h"

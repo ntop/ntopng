@@ -42,7 +42,7 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
-  u_int8_t cli_tos, srv_tos; /* RFC 2474, 3168 */
+  u_int8_t cli2srv_tos, srv2cli_tos; /* RFC 2474, 3168 */
   u_int16_t cli_port, srv_port, vlanId;
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
@@ -704,13 +704,13 @@ class Flow : public GenericHashEntry {
     *payload_len = packet_payload_match.payload_len, *payload = packet_payload_match.payload;
   }
 
-  inline void setTOS(u_int8_t tos, bool is_cli_tos) { if(is_cli_tos) cli_tos = tos; srv_tos = tos; }
+  inline void setTOS(u_int8_t tos, bool is_cli_tos) { if(is_cli_tos) cli2srv_tos = tos; srv2cli_tos = tos; }
 
-  inline u_int8_t getCliDSCP() { return (cli_tos & 0xFC) >> 2; }
-  inline u_int8_t getSrvDSCP() { return (srv_tos & 0xFC) >> 2; }
+  inline u_int8_t getCli2SrvDSCP() const { return (cli2srv_tos & 0xFC) >> 2; }
+  inline u_int8_t getSrv2CliDSCP() const { return (srv2cli_tos & 0xFC) >> 2; }
 
-  inline u_int8_t getCliECN() { return (cli_tos & 0x3); }
-  inline u_int8_t getSrvECN() { return (srv_tos & 0x3); }
+  inline u_int8_t getCli2SrvECN() { return (cli2srv_tos & 0x3); }
+  inline u_int8_t getSrv2CliECN() { return (srv2cli_tos & 0x3); }
   
   inline float getEntropy(bool src2dst_direction) {
     struct ndpi_analyze_struct *e = src2dst_direction ? entropy.c2s : entropy.s2c;
