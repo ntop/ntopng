@@ -204,6 +204,34 @@ function pools_rest_utils.get_pools(pools)
    print(rest_utils.rc(rc, res))
 end
 
+
+-- ##############################################
+
+-- @brief Get one or all pools
+function pools_rest_utils.get_pool_members(pools)
+   local pool_id = _GET["pool"]
+
+   sendHTTPHeader('application/json')
+
+   -- pool_id as number
+   pool_id = tonumber(pool_id)
+
+   local res = {}
+
+   -- Create the instance
+   local s = pools:create()
+
+   local cur_pool = s:get_pool(pool_id)
+
+   if not cur_pool then
+      print(rest_utils.rc(rest_utils.consts_pool_not_found))
+      return
+   end
+
+   local rc = rest_utils.consts_ok
+   print(rest_utils.rc(rc, cur_pool["member_details"]))
+end
+
 -- ##############################################
 
 -- @brief Get one or all pools
