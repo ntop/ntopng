@@ -16,7 +16,7 @@ local pools_rest_utils = {}
 -- ##############################################
 
 -- @brief Add a pool
-function pools_rest_utils.add_pool(pools)   
+function pools_rest_utils.add_pool(pools)
    local name = _POST["pool_name"]
    local members = _POST["pool_members"]
    local confset_id = _POST["confset_id"]
@@ -159,7 +159,7 @@ function pools_rest_utils.bind_member(pools)
    -- Create the instance
    local s = pools:create()
    local res, err = s:bind_member_if_not_already_bound(member, pool_id)
-   tprint(res)
+
    if not res then
       if err == base_pools.ERRORS.ALREADY_BOUND then
 	 -- Member already existing, return current pool information in the response
