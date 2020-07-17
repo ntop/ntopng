@@ -581,7 +581,7 @@ function base_pools:bind_member(member, pool_id)
       -- ASSIGN the member to the pool with `pool_id`
       -- Note: If the pool_id is base_pools.DEFAULT_POOL_ID, then `member` is not associated to any pool, it's safe to just return
       if not ret then
-	 if pool_id == base_pools.DEFAULT_POOL_ID then
+	 if tonumber(pool_id) == base_pools.DEFAULT_POOL_ID then
 	    ret = true
 	 else
 	    local bind_pool = self:get_pool(pool_id)

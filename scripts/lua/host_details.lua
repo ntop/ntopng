@@ -150,7 +150,7 @@ if (host ~= nil) then
 
       if host_pool_id ~= prev_pool then
          local key = host2member(host["ip"], host["vlan"])
-         if not host_pools_instance:bind_member(key, host_pool_id) then
+         if not host_pools_instance:bind_member(key, tonumber(host_pool_id)) then
             host_pool_id = nil
          else
             ntop.reloadHostPools()
