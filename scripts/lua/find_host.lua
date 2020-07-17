@@ -206,7 +206,25 @@ for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u_
 end
 
 -- Also look at the custom names
-local ip_to_name = ntop.getHashAllCache(getHostAltNamesKey()) or {}
+-- Note: inefficient, so a limit on the maximum number must be enforced.
+local name_prefix = getHostAltNamesKey("")
+local name_keys = ntop.getKeysCache(getHostAltNamesKey("*")) or {}
+local ip_to_name = {}
+
+local max_num_names = 100 -- Avoid doing too many searches
+for k, _ in pairs(name_keys) do
+   local name = ntop.getCache(k)
+
+   if not isEmptyString(name) then
+      local ip = k:gsub(name_prefix, "")
+      ip_to_name[ip] = name
+   end
+
+   max_num_names = max_num_names - 1
+   if max_num_names == 0 then
+      break
+   end
+end
 
 for ip,name in pairs(ip_to_name) do
    if string.contains(string.lower(name), string.lower(query)) then
