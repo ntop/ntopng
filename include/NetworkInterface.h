@@ -80,7 +80,10 @@ class NetworkInterface : public AlertableEntity {
   u_int64_t num_new_flows;
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
-
+#ifdef NTOPNG_PRO
+  PeriodicityHash *pHash;
+#endif
+  
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   FifoStringsQueue *hosts_to_restore;
 
@@ -472,7 +475,10 @@ class NetworkInterface : public AlertableEntity {
   void periodicUpdateInitTime(struct timeval *tv) const;
   static bool generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data);
   virtual u_int32_t getFlowMaxIdle();
+
   virtual void lua(lua_State* vm);
+  void luaPeriodicityStats(lua_State* vm);
+  
   void lua_hash_tables_stats(lua_State* vm);
   void lua_periodic_activities_stats(lua_State* vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);

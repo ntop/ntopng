@@ -169,6 +169,10 @@ NetworkInterface::NetworkInterface(const char *name,
   flow_interfaces_stats = NULL;
 #endif
 
+#ifdef NTOPNG_PRO
+  pHash = new PeriodicityHash(ntop->getPrefs()->get_max_num_flows()*2, 3600 /* 1h idleness */);
+#endif
+  
   loadScalingFactorPrefs();
 
   statsManager = NULL, alertsManager = NULL, alertsQueue = NULL;
@@ -539,6 +543,10 @@ NetworkInterface::~NetworkInterface() {
   }
   if(interfaceStats) delete interfaceStats;
 
+#ifdef NTOPNG_PRO
+  if(pHash) delete pHash;
+#endif
+  
   for(it = external_alerts.begin(); it != external_alerts.end(); ++it)
     delete it->second;
   external_alerts.clear();
@@ -870,6 +878,11 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
       }
     }
   }
+
+#ifdef NTOPNG_PRO
+  if(pHash && (*new_flow) && ret)
+    pHash->updateElement(ret, first_seen);
+#endif
 
   return(ret);
 }
@@ -1564,6 +1577,10 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
   }
 
   checkHostsToRestore();
+
+#ifdef NTOPNG_PRO
+  pHash->purgeIdle(when);
+#endif
 }
 
 /* **************************************************** */
@@ -7689,3 +7706,17 @@ next_host:
     free(ip);
   }
 }
+
+/* *************************************** */
+
+void NetworkInterface::luaPeriodicityStats(lua_State* vm) {
+#ifdef NTOPNG_PRO
+  if(pHash) {
+    pHash->lua(vm);
+    return;
+  }
+#endif
+
+  lua_pushnil(vm);
+}
+

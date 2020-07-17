@@ -307,6 +307,10 @@ using namespace std;
 #include "AlertCheckLuaEngine.h"
 #include "FlowAlertCheckLuaEngine.h"
 #include "SyslogLuaEngine.h"
+#ifdef NTOPNG_PRO
+#include "PeriodicityStats.h"
+#include "PeriodicityHash.h"
+#endif
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"

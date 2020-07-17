@@ -213,11 +213,13 @@ class GenericHashEntry {
    * 
    */
   virtual bool is_hash_entry_state_idle_transition_ready() const;
+  
   /**
    * @brief Determine whether it is possible to perform the idle transition for this entry
    * 
    */
   bool is_hash_entry_state_idle_transition_possible() const;
+  
   /**
    * @brief Function in charge of hash entry offline state updates
    *
@@ -225,6 +227,7 @@ class GenericHashEntry {
    * 
    */
   virtual void periodic_hash_entry_state_update(void *user_data);
+  
   /**
    * @brief Function in charge of updating periodic entry stats (e.g., its throughput or L7 traffic)
    *

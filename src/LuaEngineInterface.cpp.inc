@@ -4398,6 +4398,21 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_periodicity_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    ntop_interface->luaPeriodicityStats(vm);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static const luaL_Reg ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
@@ -4504,6 +4519,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getNumLocalHosts",                 ntop_get_num_local_hosts },
   { "getNumHosts",                      ntop_get_num_hosts       },
   { "getNumFlows",                      ntop_get_num_flows       },
+  { "periodicityStats",                 ntop_get_interface_periodicity_stats },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
@@ -4533,7 +4549,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* InfluxDB */
   { "appendInfluxDB",                   ntop_append_influx_db                 },
-
+  
   /* RRD queue */
   { "rrd_enqueue",                      ntop_rrd_queue_push                   },
   { "rrd_dequeue",                      ntop_rrd_queue_pop                    },
