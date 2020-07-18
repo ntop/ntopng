@@ -170,7 +170,11 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
 #ifdef NTOPNG_PRO
+#ifndef HAVE_NEDGE
   pHash = new PeriodicityHash(ntop->getPrefs()->get_max_num_flows()*2, 3600 /* 1h idleness */);
+#else
+  pHash = NULL;
+#endif
 #endif
   
   loadScalingFactorPrefs();
@@ -1579,7 +1583,7 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
   checkHostsToRestore();
 
 #ifdef NTOPNG_PRO
-  pHash->purgeIdle(when);
+  if(pHash) pHash->purgeIdle(when);
 #endif
 }
 
