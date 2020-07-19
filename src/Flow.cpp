@@ -489,11 +489,14 @@ void Flow::processExtraDissectedInformation() {
 
     l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+    getInterface()->updateFlowPeriodicity(this);
+#endif
+    
     if(cli_host) cli_host->flowL7ProtoDetectedEvent(this, l7proto, true);
     if(srv_host) srv_host->flowL7ProtoDetectedEvent(this, l7proto, false);
     
     switch(l7proto) {
-
     case NDPI_PROTOCOL_SSH:
       if(protos.ssh.client_signature == NULL)
 	protos.ssh.client_signature = strdup(ndpiFlow->protos.ssh.client_signature);

@@ -169,12 +169,8 @@ NetworkInterface::NetworkInterface(const char *name,
   flow_interfaces_stats = NULL;
 #endif
 
-#ifdef NTOPNG_PRO
-#ifndef HAVE_NEDGE
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   pHash = new PeriodicityHash(ntop->getPrefs()->get_max_num_flows()*2, 3600 /* 1h idleness */);
-#else
-  pHash = NULL;
-#endif
 #endif
   
   loadScalingFactorPrefs();
@@ -547,7 +543,7 @@ NetworkInterface::~NetworkInterface() {
   }
   if(interfaceStats) delete interfaceStats;
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pHash) delete pHash;
 #endif
   
@@ -882,11 +878,6 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
       }
     }
   }
-
-#ifdef NTOPNG_PRO
-  if(pHash && (*new_flow) && ret)
-    pHash->updateElement(ret, first_seen);
-#endif
 
   return(ret);
 }
@@ -1582,7 +1573,7 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
 
   checkHostsToRestore();
 
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pHash) pHash->purgeIdle(when);
 #endif
 }
@@ -7714,9 +7705,9 @@ next_host:
 /* *************************************** */
 
 void NetworkInterface::luaPeriodicityStats(lua_State* vm) {
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pHash) {
-    pHash->lua(vm);
+    pHash->lua(vm, this);
     return;
   }
 #endif
@@ -7724,3 +7715,10 @@ void NetworkInterface::luaPeriodicityStats(lua_State* vm) {
   lua_pushnil(vm);
 }
 
+/* *************************************** */
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+void NetworkInterface::updateFlowPeriodicity(Flow *f) {
+  if(pHash && f) pHash->updateElement(f, f->get_first_seen());
+}
+#endif

@@ -80,7 +80,7 @@ class NetworkInterface : public AlertableEntity {
   u_int64_t num_new_flows;
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   PeriodicityHash *pHash;
 #endif
   
@@ -826,6 +826,12 @@ class NetworkInterface : public AlertableEntity {
   virtual bool reproducePcapOriginalSpeed() const         { return(false); }
   u_int32_t getNumEngagedAlerts();
   void releaseAllEngagedAlerts();
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  void updateFlowPeriodicity(Flow *f);
+#endif
+
+
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
