@@ -5,7 +5,6 @@
 $(document).ready(function() {
 
     let memberRowData;
-    let selectedPool = { id: defaultPoolId, name: i18n.default };
 
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
@@ -15,15 +14,13 @@ $(document).ready(function() {
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(
         dtConfig,
-        `${http_prefix}/lua/rest/v1/get/host/pool/members.lua?pool=${selectedPool.id}`,
+        `${http_prefix}/lua/rest/v1/get/host/pool/members.lua?pool=${queryPoolId}`,
         `rsp`
     );
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         stateSave: true,
         columns: [
-            {
-                data: 'name'
-            },
+            {  data: 'name' },
             {
                 data: 'vlan',
                 width: '5',
@@ -58,8 +55,17 @@ $(document).ready(function() {
     });
 
     $(`#select-host-pool`).change(function() {
+        // update selected pool information
         selectedPool = { name: $(`#select-host-pool option:selected`).text(), id: $(this).val() };
+        // update the datatable
         $hostMembersTable.ajax.url(`${http_prefix}/lua/rest/v1/get/host/pool/members.lua?pool=${selectedPool.id}`).load().draw(false);
+        queryPoolId = selectedPool.id;
+        history.pushState({pool: queryPoolId}, '', location.href.replace(/pool\=[0-9]+/, `pool=${queryPoolId}`));
+    });
+
+    $(window).on('popstate', function(e) {
+        const {state} = e.originalEvent;
+        $(`#select-host-pool`).val(state.pool).trigger('change');
     });
 
     const $addMemberModalHandler = $(`#add-member-modal form`).modalHandler({

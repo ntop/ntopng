@@ -179,6 +179,11 @@ $(document).ready(function() {
             $(`#edit-pool form input[name='name']`).val(poolRowData.name);
             $(`#edit-pool form select[name='configset']`).val(poolRowData.configset_id);
             $(`#edit-pool form select[name='members']`).val(poolRowData.members);
+
+            if (poolType == "host") {
+                const href = $(`#edit-link`).attr('href').replace(/pool\=[0-9]+/, `pool=${poolRowData.pool_id}`);
+                $(`#edit-link`).attr('href', href);
+            }
         },
         beforeSumbit: function() {
 

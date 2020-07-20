@@ -12,6 +12,8 @@ local template_utils = require "template_utils"
 local host_pools = require "host_pools"
 
 local host_pool = host_pools:create()
+local all_pools = host_pools:get_all_pools()
+local pool_id_get = _GET["pool"] or all_pools[1].pool_id
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -28,7 +30,11 @@ page_utils.print_page_title(i18n("host_pools.host_members"))
 local context = {
     template_utils = template_utils,
     json = json,
-    pool = host_pool
+    pool = host_pool,
+    manage_host_members = {
+        pool_id_get = pool_id_get,
+        all_pools = all_pools
+    },
 }
 
 print(template_utils.gen("pages/manage_host_members.template", context))
