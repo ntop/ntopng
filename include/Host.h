@@ -389,6 +389,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void incSrvPortsContacts(u_int16_t port)   { stats->incSrvPortsContacts(port);  }
   void incContactedService(char *name)       { stats->incContactedService(name);  }
 
+  virtual void luaHostBehaviour(lua_State* vm) { lua_pushnil(vm); }
   virtual void flowBeginEvent(Flow *f, u_int32_t epoch, bool as_client) { ; }
   virtual void flowL7ProtoDetectedEvent(Flow *f, u_int16_t l7proto, bool as_client) { ; }
   virtual void flowEndEvent(Flow *f, bool as_client) { ; }

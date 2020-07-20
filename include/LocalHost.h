@@ -89,6 +89,10 @@ class LocalHost : public Host, public SerializableElement {
 		   bool verbose, bool returnHost, bool asListElement);
   virtual void lua_get_timeseries(lua_State* vm);
 
+#ifdef NTOPNG_PRO
+  void luaHostBehaviour(lua_State* vm);
+#endif
+  
   void flowBeginEvent(Flow *f, u_int32_t epoch, bool as_client) {
 #ifdef NTOPNG_PRO
     ba.flowBeginEvent(f, epoch, as_client);

@@ -347,6 +347,19 @@ static int ntop_host_get_ts_key(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+static int ntop_host_get_behaviour_info(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  if(h)
+    h->luaHostBehaviour(vm);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
 /* **************************************************************** */
 
 static const luaL_Reg ntop_host_reg[] = {
@@ -376,7 +389,8 @@ static const luaL_Reg ntop_host_reg[] = {
   { "getFlowFlood",           ntop_host_get_flow_flood          },
   { "getSynScan",             ntop_host_get_syn_scan            },
   { "refreshScore",           ntop_host_refresh_score           },
-
+  { "getBehaviourInfo",       ntop_host_get_behaviour_info      },
+  
   { NULL,                     NULL }
 };
 

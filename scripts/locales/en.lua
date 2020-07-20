@@ -160,6 +160,7 @@ local lang = {
   ["notes"] = "NOTES:",
   ["num_different_ports"] = "%{num} ports. None doing %{threshold}%%+ of the traffic.",
   ["num_uses"] = "Num Uses",
+  ["observations"] = "Observations",
   ["off"] = "Off",
   ["open_documentation"] = "Open in Documentation",
   ["operating_systems"] = "Operating Systems",

@@ -44,7 +44,7 @@ end
 
 function shortenString(name, max_len)
    if(name == nil) then return("") end
-
+   
    if max_len == nil then
       max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
       max_len = tonumber(max_len)
@@ -1565,7 +1565,7 @@ end
 
 -- ##############################################
 
--- @brief Generates an host_details.lua a href link (if availble), starting from an `host_info` structure
+-- @brief Generates an host_details.lua a href link (if available), starting from an `host_info` structure
 -- @param host_info A lua table containing at least keys `host` and `vlan` or a full lua table generated with Host::lua
 -- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
 -- @param href_value A string containing the visible value shown between a href tags

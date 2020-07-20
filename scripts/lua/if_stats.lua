@@ -61,6 +61,13 @@ msg = ""
 local is_packet_interface = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
 
+local periodicity_stats = interface.periodicityStats()
+local periodic_info_available = false
+
+if(periodicity_stats and (table.len(periodicity_stats) > 0)) then
+   periodic_info_available = true
+end
+
 local ifstats = interface.getStats()
 
 if page == "syslog_producers" and not ifstats.isSyslog then
@@ -328,6 +335,12 @@ page_utils.print_navbar(title, url,
 				 active = page == "dhcp",
 				 page_name = "dhcp",
 				 label = "<i class=\"fas fa-lg fa-bolt\"></i>",
+			      },
+			      {
+				 hidden = not periodic_info_available,
+				 active = page == "periodicity_stats",
+				 page_name = "periodicity_stats",
+				 label = "<i class=\"fas fa-lg fa-clock\"></i>",
 			      },
 			   }
    )
@@ -1932,6 +1945,8 @@ elseif(page == "unassigned_pool_devices") then
    dofile(dirs.installdir .. "/scripts/lua/unknown_devices.lua")
 elseif(page == "dhcp") then
     dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
+elseif page == "periodicity_stats" then
+      dofile(dirs.installdir .. "/scripts/lua/inc/periodicity_stats.lua")
 elseif page == "traffic_report" then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 end
