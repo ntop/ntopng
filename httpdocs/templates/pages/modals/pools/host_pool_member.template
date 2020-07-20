@@ -20,7 +20,7 @@
                 <div class="modal-body">
                     <div class="form-group row">
                         <label class="col-form-label col-sm-4" >
-                            {{ i18n("host_pools.member_type") }}
+                            <b>{{ i18n("host_pools.member_type") }}</b>
                         </label>
                         <div class="col-sm-4">
                             <select required name="member_type" class="form-control">
@@ -34,10 +34,10 @@
                     <div class="ip-fields">
                         <div class="form-group row">
                             <label class="col-form-label col-sm-4" >
-                                {{ i18n("host_pools.ip_address") }}
+                                <b>{{ i18n("host_pools.ip_address") }}</b>
                             </label>
                             <div class="col-sm-4">
-                                <input data-pattern="ipv4|ipv6" placeholder="127.0.0.1" required name="ip_address" class="form-control"  />
+                                <input data-pattern="ipv4|ipv6" placeholder="192.168.1.1" required name="ip_address" class="form-control"  />
                             </div>
                         </div>
                         <div class="form-group row">
@@ -45,25 +45,25 @@
                                 {{ i18n("vlan") }}
                             </label>
                             <div class="col-sm-4">
-                                <input value="0" min="0" name="ip_vlan" class="form-control" type="number" placeholder="0" />
+                                <input value="0" min="0" name="ip_vlan" class="form-control" type="number" placeholder="" />
                             </div>
                         </div>
                     </div>
                     <div class="network-fields">
                         <div class="form-group row">
                             <label class="col-form-label col-sm-4" >
-                                {{ i18n("host_pools.network") }}
+                                <b>{{ i18n("host_pools.network") }}</b>
                             </label>
                             <div class="col-sm-4">
-                                <input required name="network" class="form-control" placeholder="127.0.0.1" data-pattern="ipv4" />
+                                <input required name="network" class="form-control" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="col-form-label col-sm-4" >
-                                {{ i18n("host_pools.cidr") }}
+                                <b>{{ i18n("host_pools.cidr") }}</b>
                             </label>
                             <div class="col-sm-4">
-                                <input required name="cidr" min="1" max="128" class="form-control" placeholder="32" />
+                                <input required name="cidr" min="1" max="128" class="form-control" placeholder="16" />
                             </div>
                         </div>
                         <div class="form-group row">
@@ -78,7 +78,7 @@
                     <div class="mac-fields">
                         <div class="form-group row">
                             <label class="col-form-label col-sm-4">
-                                {{ i18n("host_pools.mac_address") }}
+                                <b>{{ i18n("host_pools.mac_address") }}</b>
                             </label>
                             <div class="col-sm-4">
                                 <input required placeholder="AA:BB:CC:DD:EE:AA" name="mac_address" class="form-control" data-pattern="macAddress" />
