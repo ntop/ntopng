@@ -57,8 +57,13 @@ $(document).ready(function() {
                     // show only the first 10 members, append some dots
                     // if the members are more than 10
                     const memberNames = row.members.map((memberId) => {
-                        if (!all_members) return memberId;
-                        if (!all_members[memberId]) return memberId;
+
+                        const member = row.member_details[memberId];
+                        if (member.name == undefined) return memberId;
+                        if (!all_members || !all_members[memberId]) {
+                            return member.name;
+                        }
+
                         if (all_members[memberId].name == undefined) return memberId;
                         return all_members[memberId].name;
                     });
