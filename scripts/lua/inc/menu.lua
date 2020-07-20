@@ -15,6 +15,7 @@ local blog_utils = require("blog_utils")
 local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
 local menu_alert_notifications = require("menu_alert_notifications")
+local host_pools = require "host_pools"
 
 local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
@@ -394,36 +395,21 @@ page_utils.add_menubar_section({
 
 -- ##############################################
 
--- Tools
+-- Pools
 
 page_utils.add_menubar_section({
    hidden = not is_system_interface or is_nedge,
    section = page_utils.menu_sections.pools,
    entries = {
       {
-         entry = page_utils.menu_entries.pools_host,
+         entry = page_utils.menu_entries.manage_pools,
          hidden = not is_admin,
-         url = '/lua/admin/manage_pools.lua',
+         url = '/lua/admin/manage_pools.lua'
       },
       {
-         entry = page_utils.menu_entries.pools_interface,
+         entry = page_utils.menu_entries.host_members,
          hidden = not is_admin,
-         url = '/lua/admin/interface_pools.lua'
-      },
-      {
-         entry = page_utils.menu_entries.pools_local_network,
-         hidden = not is_admin,
-         url = '/lua/admin/local_network_pools.lua'
-      },
-      {
-         entry = page_utils.menu_entries.pools_active_monitoring,
-         hidden = not is_admin,
-         url = '/lua/admin/active_monitoring_pools.lua'
-      },
-      {
-         entry = page_utils.menu_entries.pools_snmp,
-         hidden = not is_admin and not ntop.isPro(),
-         url = '/lua/pro/admin/snmp_pools.lua'
+         url = '/lua/admin/manage_host_members.lua',
       }
    }
 })

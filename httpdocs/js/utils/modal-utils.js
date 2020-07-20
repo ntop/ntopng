@@ -48,7 +48,15 @@
         }
 
         invokeModalInit() {
+
+            const self = this;
+
             this.options.onModalInit(this.fillFormModal());
+
+            $(this.element).parents('.modal').on('show.bs.modal', function() {
+                self.options.onModalShow();
+            });
+
             this.delegateResetButton();
         }
 
@@ -183,9 +191,6 @@
                     $(input).val(defaultValues[key])
                         .removeClass('is-invalid').removeClass('is-valid');
                 });
-
-                if (!self.dontDisableSubmit)
-                    aysResetForm(self.form_sel);
             });
         }
     }
@@ -240,6 +245,8 @@
              * ```
              */
             onModalInit:        function(loadedData) {},
+
+            onModalShow:        function() {},
 
             /**
              * The function beforeSubmit() is invoked after the user

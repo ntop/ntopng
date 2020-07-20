@@ -20,6 +20,8 @@
                             </small>
                         </div>
                     </div>
+                    {# the host pool modal doesn't have the members field #}
+                    {% if (pool.name ~= "host") then %}
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-members-input">
                             {{ i18n("pools.members") }}
@@ -49,6 +51,7 @@
                             </small>
                         </div>
                     </div>
+                    {% end %}
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-config-select">
                             <b>{{ i18n("config_scripts.config_name") }}</b>

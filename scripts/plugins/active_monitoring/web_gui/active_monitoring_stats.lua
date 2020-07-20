@@ -212,12 +212,12 @@ if(page == "overview") then
     print([[
     <div style="margin-bottom: 1rem">
         <form action="]] .. ntop.getHttpPrefix() .. [[/plugins/get_active_monitoring_config.lua" class="form-inline" method="GET">
-            <button type="submit" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_export') .. [[</span></button>
-        </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_import') .. [[</span></button>
+            <button type="submit" class="btn btn-secondary"><span> <i class="fas fa-file-export"></i>]] .. i18n('config_scripts.config_export') .. [[</span></button>
+        </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span><i class="fas fa-file-import"></i> ]] .. i18n('config_scripts.config_import') .. [[</span></button>
 	<form class="form-inline" method="POST" id="reset-form">
 	  <input type="hidden" name="csrf" value="]].. ntop.getRandomCSRFValue() ..[["/>
 	  <input type="hidden" name="action" value="reset_config"/>
-	  <button type="button" id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal" class="btn btn-secondary"><span>]] .. i18n('config_scripts.config_reset') .. [[</span></button>
+	  <button type="button" id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal" class="btn btn-secondary"><span><i class="fas fa-undo"></i> ]] .. i18n('config_scripts.config_reset') .. [[</span></button>
 	</form>
     </div>
 

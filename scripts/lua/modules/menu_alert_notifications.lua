@@ -18,7 +18,7 @@ function menu_alert_notifications.load_main_notifications()
 
     -- create_notification is a pointer to a function contained
     -- in defined_alert_notifications.
-    -- defined_alert_notifications contains only function creates AlertNotifications
+    -- defined_alert_notifications contains only function that creates AlertNotifications
     for _, create_notification in pairs(defined_alert_notifications) do
         create_notification(notifications)
     end

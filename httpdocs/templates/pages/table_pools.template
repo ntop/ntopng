@@ -1,5 +1,9 @@
 <div class="row">
     <div class="col-md-12 mb-4">
+        {# import the navbar inside the pool page to navigate through the pool tables #}
+        {* template_utils.gen("pages/components/nav_tabs.template", menu) *}
+    </div>
+    <div class="col-md-12 mb-4">
         <table class="table table-bordered table-striped w-100" id="table-pools">
             <thead>
                 <tr>
@@ -15,30 +19,15 @@
     </div>
 </div>
 
-{# include import modal only for admin users #}
-
-{% if isAdministrator() then %}
-{* template.gen("import_modal.html", {
-    dialog = {
-        id = "import-modal",
-        title = i18n("pools.config_import"),
-        label = "",
-        message = i18n("pools.config_import_message"),
-        cancel = i18n("cancel"),
-        apply = i18n("import")
-    }
-}) *}
-{% end %}
-
 {# include the modal to add a new pool #}
 {* template_utils.gen("pages/modals/pools/pool_modal.template", {
     modal_type = "add",
-    pool = pool
+    pool = pool,
 }) *}
 {# include the modal to edit an existing pool #}
 {* template_utils.gen("pages/modals/pools/pool_modal.template", {
     modal_type = "edit",
-    pool = pool
+    pool = pool,
 }) *}
 {* template_utils.gen("pages/modals/pools/remove_pool.template", {
     modal_type = "remove",
@@ -52,10 +41,10 @@
     let addCsrf = "{{ ntop.getRandomCSRFValue() }}";
     let editCsrf = "{{ ntop.getRandomCSRFValue() }}";
     let removeCsrf = "{{ ntop.getRandomCSRFValue() }}";
-    let importCsrf = "{{ ntop.getRandomCSRFValue() }}";
 
     const all_members = {* json.encode(pool.all_members) *};
     const endpoints = {* json.encode(pool.endpoints) *};
+    const poolType = "{{ pool.name }}";
     Object.freeze(all_members);
     Object.freeze(endpoints);
 
@@ -72,8 +61,8 @@
         INVALID_ARGUMENTS: "{{ i18n('rest_consts.INVALID_ARGUMENTS') }}",
         NOT_GRANTED: "{{ i18n('rest_consts.NOT_GRANTED') }}",
         ADD_POOL_FAILED: "{{ i18n('rest_consts.ADD_POOL_FAILED') }}",
-        EDIT_POOL_FAILED: "{{ i18n('rest_consts.ADD_POOL_FAILED') }}",
-        DELETE_POOL_FAILED: "{{ i18n('rest_consts.ADD_POOL_FAILED') }}",
+        EDIT_POOL_FAILED: "{{ i18n('rest_consts.EDIT_POOL_FAILED') }}",
+        DELETE_POOL_FAILED: "{{ i18n('rest_consts.DELETE_POOL_FAILED') }}",
     };
 
 </script>

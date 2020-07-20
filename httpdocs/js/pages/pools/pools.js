@@ -10,6 +10,7 @@ $(document).ready(function() {
     const renableDisabledOptions = (selector, members) => {
         members.forEach(m => {
 
+            if (!all_members || !all_members[m]) return m;
             // if the member name is not defined the use the member's key
             const name = all_members[m].name || m;
 
@@ -56,10 +57,12 @@ $(document).ready(function() {
                     // show only the first 10 members, append some dots
                     // if the members are more than 10
                     const memberNames = row.members.map((memberId) => {
+                        if (!all_members) return memberId;
+                        if (!all_members[memberId]) return memberId;
                         if (all_members[memberId].name == undefined) return memberId;
                         return all_members[memberId].name;
                     });
-                    return memberNames.slice(0, 10).join("; ") + (memberNames.length >= 10 ? "..." : "");
+                    return memberNames.slice(0, 10).join(", ") + (memberNames.length >= 10 ? "..." : "");
                 }
             },
             {
@@ -97,11 +100,12 @@ $(document).ready(function() {
         },
         beforeSumbit: function() {
 
+            const members = $(`#add-pool form select[name='members']`).val() || [];
             $(`#add-modal-feedback`).hide();
 
             return {
                 pool_name: $(`#add-pool form input[name='name']`).val().trim(),
-                pool_members: $(`#add-pool form select[name='members']`).val().join(','),
+                pool_members: members.join(','),
                 confset_id: $(`#add-pool form select[name='configset']`).val(),
             };
         },
@@ -113,11 +117,14 @@ $(document).ready(function() {
             }
 
             const poolName = $(`#add-pool form input[name='name']`).val().trim();
-            // get the new members array
-            const members = $(`#add-pool form select[name='members']`).val();
-            // mark select entries with the new pool created
-            markUsedOptions(`#add-pool form select[name='members']`, members, poolName, response.rsp.pool_id);
-            markUsedOptions(`#edit-pool form select[name='members']`, members, poolName, response.rsp.pool_id);
+
+            if (poolType != "host") {
+                // get the new members array
+                const members = $(`#add-pool form select[name='members']`).val();
+                // mark select entries with the new pool created
+                markUsedOptions(`#add-pool form select[name='members']`, members, poolName, response.rsp.pool_id);
+                markUsedOptions(`#edit-pool form select[name='members']`, members, poolName, response.rsp.pool_id);
+            }
 
             $poolTable.ajax.reload();
             modalHandler.cleanForm();
@@ -147,16 +154,27 @@ $(document).ready(function() {
                 }
             });
 
+            $(`#edit-pool-name-input`).off('keyup').on('keyup', function() {
+                const name = $(this).val()
+                $(`[data-pool-id='${poolRowData.pool_id}']`).each(function() {
+                    const m = $(this).val();
+                    $(this).text(`${all_members[m].name || m} (${name})`);
+                });
+            });
+
             // load the modal with the pool data
             $(`#edit-pool form input[name='name']`).val(poolRowData.name);
             $(`#edit-pool form select[name='configset']`).val(poolRowData.configset_id);
             $(`#edit-pool form select[name='members']`).val(poolRowData.members);
         },
         beforeSumbit: function() {
+
+            const members = $(`#edit-pool form select[name='members']`).val() || [];
+
             return {
                 pool: poolRowData.pool_id,
                 pool_name: $(`#edit-pool form input[name='name']`).val().trim(),
-                pool_members: $(`#edit-pool form select[name='members']`).val().join(','),
+                pool_members: members.join(','),
                 confset_id: $(`#edit-pool form select[name='configset']`).val(),
             };
         },
@@ -172,23 +190,27 @@ $(document).ready(function() {
             if (newPoolName != poolRowData.name) {
                 $(`option[data-pool-id='${poolRowData.pool_id}']`).each(function() {
                     const value = $(this).val();
-                    $(this).text(`${all_members[value].name} (${i18n.used_by} ${newPoolName})`)
+                    if (poolType != "host")
+                        $(this).text(`${all_members[value].name} (${i18n.used_by} ${newPoolName})`)
                 });
             }
 
-            // get the newMembers and the oldMembers and create two subset of them
-            const oldMembers = poolRowData.members;
-            const newMembers = $(`#edit-pool form select[name='members']`).val();
-            // this subset contains the removed members from the pool
-            const oldToRenable = oldMembers.filter((m1) => !newMembers.find(m2 => m1 == m2));
-            // this subset contains the new members added to the pool
-            const newToMark = newMembers.filter((m1) => !oldMembers.find(m2 => m1 == m2));
+            // the host pool modals don't have any members
+            if (poolType != "host") {
+                // get the newMembers and the oldMembers and create two subset of them
+                const oldMembers = poolRowData.members;
+                const newMembers = $(`#edit-pool form select[name='members']`).val();
+                // this subset contains the removed members from the pool
+                const oldToRenable = oldMembers.filter((m1) => !newMembers.find(m2 => m1 == m2));
+                // this subset contains the new members added to the pool
+                const newToMark = newMembers.filter((m1) => !oldMembers.find(m2 => m1 == m2));
 
-            renableDisabledOptions(`#add-pool form select[name='members']`, oldToRenable);
-            renableDisabledOptions(`#edit-pool form select[name='members']`, oldToRenable);
+                renableDisabledOptions(`#add-pool form select[name='members']`, oldToRenable);
+                renableDisabledOptions(`#edit-pool form select[name='members']`, oldToRenable);
 
-            markUsedOptions(`#add-pool form select[name='members']`, newToMark, newPoolName, poolRowData.pool_id);
-            markUsedOptions(`#edit-pool form select[name='members']`, newToMark, newPoolName, poolRowData.pool_id);
+                markUsedOptions(`#add-pool form select[name='members']`, newToMark, newPoolName, poolRowData.pool_id);
+                markUsedOptions(`#edit-pool form select[name='members']`, newToMark, newPoolName, poolRowData.pool_id);
+            }
 
             // clean the form and reload the table
             modalHandler.cleanForm();

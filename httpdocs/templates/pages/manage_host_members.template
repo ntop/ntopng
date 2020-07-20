@@ -1,0 +1,76 @@
+{#
+
+#}
+{% if (pool:get_num_pools() > 0) then %}
+<div class="row">
+    <div class="col-md-2 mb-4">
+        <div class="form-group">
+            <label>{{ i18n("host_pools.select_host_pool") }}:</label>
+            <select id="select-host-pool" class="form-control">
+                <option selected value="{{ pool.DEFAULT_POOL_ID }}">{{ i18n("default") }}</option>
+                {% for _, p in pairs(pool:get_all_pools()) do %}
+                    <option value="{{ p.pool_id }}">{{ p.name }}</option>
+                {% end %}
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <table id="host-members-table" class="table table-bordered table-striped w-100">
+            <thead>
+                <tr>
+                    <th>{{ i18n("host_pools.member_address") }}</th>
+                    <th>{{ i18n("vlan") }}</th>
+                    <th>{{ i18n("actions") }}</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            {{i18n("host_pools.no_hosts_defined")}}: <a href="{{ntop.getHttpPrefix()}}/lua/admin/manage_pools.lua?page=host">{{ i18n("host_pools.click_here_host_pool") }}</a>
+        </div>
+    </div>
+</div>
+
+{% end %}
+
+{* template_utils.gen("pages/modals/pools/host_pool_member.template", {
+    modal_type = "add",
+    pool = pool,
+}) *}
+{* template_utils.gen("pages/modals/pools/remove_host_pool_member.template") *}
+
+<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<script type="text/javascript">
+
+    let addCsrf = "{{ ntop.getRandomCSRFValue() }}";
+    let editCsrf = "{{ ntop.getRandomCSRFValue() }}";
+    let removeCsrf = "{{ ntop.getRandomCSRFValue() }}";
+
+    const defaultPoolId = {{ pool.DEFAULT_POOL_ID }};
+
+    i18n.warning ="{{ i18n('warning', {}) }}";
+    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n.search = "{{ i18n('search') }}";
+    i18n.delete = "{{ i18n('delete') }}";
+    i18n.edit = "{{ i18n('edit') }}";
+    i18n.config = "{{ i18n('config') }}";
+    i18n.all = "{{ i18n('all') }}";
+    i18n.used_by = "{{ i18n('used_by') }}";
+
+    i18n.rest = {
+        INVALID_HOST: "{{ i18n('rest_consts.INVALID_HOST') }}",
+        INVALID_ARGUMENTS: "{{ i18n('rest_consts.INVALID_ARGUMENTS') }}",
+        NOT_GRANTED: "{{ i18n('rest_consts.NOT_GRANTED') }}",
+        BIND_POOL_MEMBER_ALREADY_BOUND: "{{ i18n('rest_consts.BIND_POOL_MEMBER_ALREADY_BOUND') }}"
+    };
+</script>
+<script src="{{ ntop.getHttpPrefix() }}/js/pages/pools/host-members.js" type="text/javascript">
+</script>
