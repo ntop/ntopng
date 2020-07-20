@@ -60,6 +60,8 @@ class ZMQParserInterface : public ParserInterface {
   ZMQParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
   ~ZMQParserInterface();
 
+  virtual InterfaceType getIfType() const { return(interface_type_ZMQ); }
+
   bool matchField(ParsedFlow * const flow, const char * const key, ParsedValue * value);
 
   u_int8_t parseJSONFlow(const char * const payload, int payload_size, u_int8_t source_id);

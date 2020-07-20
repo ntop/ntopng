@@ -309,7 +309,10 @@ class NetworkInterface : public AlertableEntity {
   /* calling virtual in constructors/destructors should be avoided
      See C++ FAQ Lite covers this in section 23.7
   */
-  virtual bool isPacketInterface() const    { return(getIfType() != interface_type_FLOW); }
+  virtual bool isPacketInterface() const {
+    return(getIfType() != interface_type_FLOW && getIfType() != interface_type_ZMQ);
+  }
+
 #if defined(linux) && !defined(HAVE_LIBCAP) && !defined(HAVE_NEDGE)
   /* Note: if we miss the capabilities, we block the overriding of this method. */
   inline bool

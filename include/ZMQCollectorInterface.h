@@ -57,7 +57,6 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   ~ZMQCollectorInterface();
 
   inline const char* get_type()           { return(CONST_INTERFACE_TYPE_ZMQ);      };
-  virtual InterfaceType getIfType() const { return(interface_type_ZMQ); }
   inline char* getEndpoint(u_int8_t id)   { return((id < num_subscribers) ?
 						   subscriber[id].endpoint : (char*)""); };
   virtual void checkPointCounters(bool drops_only);
