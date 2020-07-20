@@ -109,7 +109,7 @@ $(document).ready(function() {
             }
             else {
 
-                const network = $(`#add-member-modal input[name='ip_address']`).val();
+                const network = $(`#add-member-modal input[name='network']`).val();
                 const cidr = $(`#add-member-modal input[name='cidr']`).val();
                 const vlan = $(`#add-member-modal input[name='network_vlan']`).val() || 0;
 
