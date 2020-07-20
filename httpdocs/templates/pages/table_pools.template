@@ -1,3 +1,6 @@
+{#
+    (C) 2020 - ntop.org
+#}
 <div class="row">
     <div class="col-md-12 mb-4">
         {# import the navbar inside the pool page to navigate through the pool tables #}

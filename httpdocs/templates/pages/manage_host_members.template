@@ -1,5 +1,5 @@
 {#
-
+    (C) 2020 - ntop.org
 #}
 {% if (pool:get_num_pools() > 0) then %}
 <div class="row">

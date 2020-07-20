@@ -1,3 +1,6 @@
+{#
+    (C) 2020 - ntop.org
+#}
 <div class="modal show fade" tabindex="-1" role="dialog" id="{{ modal_type }}-member-modal">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
@@ -16,10 +19,10 @@
             <form role="form">
                 <div class="modal-body">
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" >
+                        <label class="col-form-label col-sm-4" >
                             {{ i18n("host_pools.member_type") }}
                         </label>
-                        <div class="col-sm-7">
+                        <div class="col-sm-4">
                             <select required name="member_type" class="form-control">
                                 <option selected disabled>{{ i18n("host_pools.select_member_type") }}</option>
                                 <option value="ip">{{ i18n("host_pools.ip_address") }}</option>
@@ -30,54 +33,54 @@
                     </div>
                     <div class="ip-fields">
                         <div class="form-group row">
-                            <label class="col-form-label col-sm-3" >
+                            <label class="col-form-label col-sm-4" >
                                 {{ i18n("host_pools.ip_address") }}
                             </label>
-                            <div class="col-sm-7">
+                            <div class="col-sm-4">
                                 <input data-pattern="ipv4|ipv6" placeholder="127.0.0.1" required name="ip_address" class="form-control"  />
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-form-label col-sm-3" >
+                            <label class="col-form-label col-sm-4" >
                                 {{ i18n("vlan") }}
                             </label>
-                            <div class="col-sm-7">
+                            <div class="col-sm-4">
                                 <input value="0" min="0" name="ip_vlan" class="form-control" type="number" placeholder="0" />
                             </div>
                         </div>
                     </div>
                     <div class="network-fields">
                         <div class="form-group row">
-                            <label class="col-form-label col-sm-3" >
+                            <label class="col-form-label col-sm-4" >
                                 {{ i18n("host_pools.network") }}
                             </label>
-                            <div class="col-sm-7">
+                            <div class="col-sm-4">
                                 <input required name="network" class="form-control" placeholder="127.0.0.1" data-pattern="ipv4" />
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-form-label col-sm-3" >
+                            <label class="col-form-label col-sm-4" >
                                 {{ i18n("host_pools.cidr") }}
                             </label>
-                            <div class="col-sm-7">
+                            <div class="col-sm-4">
                                 <input required name="cidr" min="1" max="128" class="form-control" placeholder="32" />
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-form-label col-sm-3" >
+                            <label class="col-form-label col-sm-4" >
                                 {{ i18n("vlan") }}
                             </label>
-                            <div class="col-sm-7">
+                            <div class="col-sm-4">
                                 <input required value="0" placeholder="0" min="0" name="network_vlan" class="form-control" type="number" />
                             </div>
                         </div>
                     </div>
                     <div class="mac-fields">
                         <div class="form-group row">
-                            <label class="col-form-label col-sm-3">
+                            <label class="col-form-label col-sm-4">
                                 {{ i18n("host_pools.mac_address") }}
                             </label>
-                            <div class="col-sm-7">
+                            <div class="col-sm-4">
                                 <input required placeholder="AA:BB:CC:DD:EE:AA" name="mac_address" class="form-control" data-pattern="macAddress" />
                             </div>
                         </div>
@@ -85,7 +88,6 @@
                     <span class="invalid-feedback" id="{{ modal_type }}-modal-feedback"></span>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
                     <button type="submit" class="btn btn-primary">
                         {% if modal_type == "add" then %}
                             {{ i18n("add") }}
