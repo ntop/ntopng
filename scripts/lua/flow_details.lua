@@ -1113,7 +1113,7 @@ else
       print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
    end
 
-   if(flow.entropy.client and flow.entropy.server) then
+   if(flow.entropy and flow.entropy.client and flow.entropy.server) then
       print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Entropy_(information_theory)\" target=\"_blank\">"..i18n("flow_details.entropy").."</A> <i class=\"fas fa-external-link-alt\"></i></th>")
       print("<td>"..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.client) .. "</td>")
       print("<td>"..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.server) .. "</td>")
