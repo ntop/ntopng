@@ -54,8 +54,14 @@ $(document).ready(function () {
                 data: null,
                 render: function () {
                     return (`
-                        <a data-toggle='modal' href='#edit-recipient-modal' class="badge badge-info">${i18n.edit}</a>
-                        <a data-toggle='modal' href='#remove-recipient-modal' class="badge badge-danger">${i18n.remove}</a>
+                        <div class='btn-group btn-group-sm'>
+                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info">
+                                <i class='fas fa-edit'></i>
+                            </a>
+                            <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-danger">
+                                <i class='fas fa-trash'></i>
+                            </a>
+                        </div>
                     `);
                 }
             }
@@ -98,7 +104,7 @@ $(document).ready(function () {
 
     /* bind edit recipient event */
     $(`table#recipient-list`).on('click', `a[href='#edit-recipient-modal']`, function (e) {
-        cur_row_data = $recipientsTable.row($(this).parent()).data();
+        cur_row_data = $recipientsTable.row($(this).parent().parent()).data();
         edit_recipient_modal.invokeModalInit();
     });
 
@@ -160,8 +166,7 @@ $(document).ready(function () {
 
     /* bind remove endpoint event */
     $(`table#recipient-list`).on('click', `a[href='#remove-recipient-modal']`, function (e) {
-        rowData = $recipientsTable.row($(this).parent()).data();
-
+        rowData = $recipientsTable.row($(this).parent().parent()).data();
         recipients_list.invokeModalInit();
     });
 

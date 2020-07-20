@@ -88,8 +88,14 @@ $(document).ready(function () {
                 data: null,
                 render: function () {
                     return (`
-                        <a data-toggle='modal' href='#edit-endpoint-modal' class="badge badge-info">${i18n.edit}</a>
-                        <a data-toggle='modal' href='#remove-endpoint-modal' class="badge badge-danger">${i18n.remove}</a>
+                        <div class='btn-group btn-group-sm'>
+                            <a data-toggle='modal' href='#edit-endpoint-modal' class="btn btn-info">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a data-toggle='modal' href='#remove-endpoint-modal' class="btn btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
                     `);
                 }
             }
@@ -141,7 +147,7 @@ $(document).ready(function () {
 
     /* bind edit endpoint event */
     $(`table#notification-list`).on('click', `a[href='#edit-endpoint-modal']`, function (e) {
-        rowData = $endpointsTable.row($(this).parent()).data();
+        rowData = $endpointsTable.row($(this).parent().parent()).data();
         edit_endpoint_modal.invokeModalInit();
     });
 
@@ -159,6 +165,7 @@ $(document).ready(function () {
 
             const body = makeFormData(`#add-endpoint-modal form`);
             body.action = 'add';
+
             return body;
         },
         onModalInit: function() {
@@ -213,7 +220,7 @@ $(document).ready(function () {
 
     /* bind remove endpoint event */
     $(`table#notification-list`).on('click', `a[href='#remove-endpoint-modal']`, function (e) {
-        removeModalData = $endpointsTable.row($(this).parent()).data();
+        removeModalData = $endpointsTable.row($(this).parent().parent()).data();
         remove_endpoint_modal.invokeModalInit();
     });
 
