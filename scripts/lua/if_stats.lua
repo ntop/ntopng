@@ -242,6 +242,12 @@ page_utils.print_navbar(title, url,
 				 label = i18n("packets"),
 			      },
 			      {
+				 hidden = not ifstats or not ifstats["has_macs"] or ntop.isnEdge(),
+				 active = page == "DSCP",
+				 page_name = "DSCP",
+				 label = i18n("dscp"),
+			      },
+			      {
 				 active = page == "ndpi",
 				 page_name = "ndpi",
 				 label = i18n("applications"),
@@ -877,6 +883,22 @@ elseif((page == "packets")) then
 
       </script><p>
   ]]
+elseif(page == "DSCP") then
+
+  print [[
+     <table id="dscp_table" class="table table-bordered table-striped tablesorter">
+        <tr>
+          <th class="text-left">]] print(i18n("dscp_page.statistics")) print [[</th>
+          <td colspan=4><div class="pie-chart" id="dscpGroups"></td>
+        </tr>
+     </table>
+
+<script>
+ do_pie("#dscpGroups", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/interface/dscp/stats.lua', { ifid: "]] print(ifid) print [[" }, "", refresh);
+</script>
+
+]]
+
 elseif(page == "ndpi") then
 print[[
   <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
