@@ -170,7 +170,10 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  pHash = new PeriodicityHash(ntop->getPrefs()->get_max_num_flows()*2, 3600 /* 1h idleness */);
+  if(ntop->getPrefs())
+    pHash = new PeriodicityHash(ntop->getPrefs()->get_max_num_flows()*2, 3600 /* 1h idleness */);
+  else
+    pHash = NULL;
 #endif
   
   loadScalingFactorPrefs();
