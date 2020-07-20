@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ i18n(modal_type) }} {{ i18n("pools.pool_names." .. pool.name) }} {{ i18n("pools.pool") }}</h5>
+                <h5 class="modal-title">{{ i18n(modal_type) }} {{ i18n("pools.pool_name." .. pool.name) }} {{ i18n("pools.pool") }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -11,10 +11,10 @@
                 <div class="modal-body">
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-name-input">
-                            {{ i18n("pools.name") }}
+                            <b>{{ i18n("pools.name") }}</b>
                         </label>
                         <div class="col-sm-7">
-                            <input placeholder="{{ i18n('pools.insert_name', {type = i18n("pools.pool_names." .. pool.name)}) }}" pattern="^\S+" maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="{{ modal_type }}-pool-name-input">
+                            <input placeholder="{{ i18n('pools.insert_name', {type = string.lower(i18n("pools.pool_name." .. pool.name)) }) }}" pattern="^\S+" maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="{{ modal_type }}-pool-name-input">
                             <small class="text-muted form-text">
                                 {{ i18n("pools.name_requirements") }}
                             </small>

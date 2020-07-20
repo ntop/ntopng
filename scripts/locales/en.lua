@@ -3112,6 +3112,13 @@ local lang = {
     ["pools"] = "Pools",
     ["remove_pool"] = "Are you really sure to delete this pool?",
     ["select_config"] = "Select a User Script Configuration",
+    ["pool_name"] = {
+      ["active_monitoring"] = "Active Monitoring",
+      ["host"] = "Host",
+      ["interface"] = "Interface",
+      ["network"] = "Local Network",
+      ["snmp"] = "SNMP Device",
+    },
     ["pool_names"] = {
       ["active_monitoring"] = "Active Monitoring",
       ["host"] = "Hosts",
