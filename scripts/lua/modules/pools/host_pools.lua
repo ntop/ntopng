@@ -62,7 +62,8 @@ function host_pools:get_member_details(member)
       end
    end
 
-   res = {name = member_name, vlan = host_info["vlan"], member = member, type = member_type}
+   host_info["host"] = member_name
+   res = {name = member_name, vlan = host_info["vlan"], member = member, type = member_type, hostkey = hostinfo2hostkey(host_info)}
 
    -- Only the name is relevant for hosts
    return res
