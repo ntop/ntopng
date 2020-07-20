@@ -158,7 +158,15 @@ function pools_rest_utils.bind_member(pools)
 
    -- Create the instance
    local s = pools:create()
-   local res, err = s:bind_member_if_not_already_bound(member, pool_id)
+   local res, err
+
+   if pool_id == s.DEFAULT_POOL_ID then
+      -- Always bind the member to the default pool id (possibly removing it from any other pool)
+      res, err = s:bind_member(member, pool_id)
+   else
+      -- Bind the member only if it is not already in another pool
+      res, err = s:bind_member_if_not_already_bound(member, pool_id)
+   end
 
    if not res then
       if err == base_pools.ERRORS.ALREADY_BOUND then
