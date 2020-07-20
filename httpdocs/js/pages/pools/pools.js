@@ -71,7 +71,7 @@ $(document).ready(function() {
                     const length = memberNames.length;
                     if (length > 10 && type == "display") {
                         const otherStr = (length - 10 == 1) ? i18n.other : i18n.others;
-                        return memberNames.slice(0, 10).join(", ") + ` ${i18n.and} <b>${length - 10} ${otherStr.toLowerCase()}</b>`;
+                        return memberNames.slice(0, 10).join(", ") + ` ${i18n.and} ${length - 10} ${otherStr.toLowerCase()}`;
                     }
                     else if (length <= 10 && type == "display") {
                         return memberNames.slice(0, 10).join(", ");
