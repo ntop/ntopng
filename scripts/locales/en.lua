@@ -64,6 +64,7 @@ local lang = {
   ["download_x"] = "%{what} download",
   ["downloaders"] = "Download Volume",
   ["drilldown"] = "Drilldown",
+  ["dscp"] = "DSCP",
   ["duplexstatus"] = "Duplex Status",
   ["duration"] = "Duration",
   ["edit"] = "Edit",
@@ -1022,6 +1023,11 @@ local lang = {
     ["replies"] = "Replies",
     ["reply_breakdown"] = "Reply Breakdown",
     ["request_vs_reply"] = "Request vs Reply Ratio",
+  },
+  ["dscp_page"] = {
+    ["statistics"] = "IP Precedence",
+    ["statistics_received"] = "Received",
+    ["statistics_sent"] = "Sent",
   },
   ["email_alert_endpoint"] = {
     ["carbon_copy"] = "CC",

@@ -296,6 +296,12 @@ else
 			      },
 			      {
 				 hidden = only_historical,
+				 active = page == "DSCP",
+				 page_name = "DSCP",
+				 label = i18n("dscp"),
+			      },
+			      {
+				 hidden = only_historical,
 				 active = page == "ports",
 				 page_name = "ports",
 				 label = i18n("ports"),
@@ -953,6 +959,24 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
 
 	    </script><p>
 	]]
+
+   elseif((page == "DSCP")) then
+      print('<table class="table table-bordered table-striped">\n')
+      print('<tr><th class="text-left">'..i18n("dscp_page.statistics_sent")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceSent"></div></td></tr>')
+      print('<tr><th class="text-left">'..i18n("dscp_page.statistics_received")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceReceived"></div></td></tr>')
+
+      print [[
+      </table>
+
+      <script type='text/javascript'>
+        window.onload=function() {
+          do_pie("#dscpPrecedenceSent", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/host/dscp/stats.lua', { direction: "sent", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+      print [[
+	  do_pie("#dscpPrecedenceReceived", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/host/dscp/stats.lua', { direction: "recv", ifid: "]] print(ifId.."") print ('", '..hostinfo2json(host_info) .."}, \"\", refresh); \n")
+      print [[
+	}
+      </script>
+      ]]
 
    elseif((page == "ports")) then
       print('<table class="table table-bordered table-striped">\n')

@@ -40,14 +40,16 @@ local ECN = {
 }
 
 local DS_precedence = {
-   [0] = "Best Effort",          -- DS 0
-   [1] = "Priority",             -- DS 8,10,12,14
-   [2] = "Immediate",            -- DS 16,18,20,22
-   [3] = "Flash",                -- DS 24,26,28,30
-   [4] = "Flash Override",       -- DS 32,34,36,38
-   [5] = "Critical",             -- DS 40,46
-   [6] = "Internetwork Control", -- DS 48
-   [7] = "Network Control"       -- DS 56
+   ['cs0'] = "Best Effort",          -- DS 0
+   ['cs1'] = "Priority",             -- DS 8,10,12,14
+   ['cs2'] = "Immediate",            -- DS 16,18,20,22
+   ['cs3'] = "Flash",                -- DS 24,26,28,30
+   ['cs4'] = "Flash Override",       -- DS 32,34,36,38
+   ['cs5'] = "Critical",             -- DS 40,46
+   ['cs6'] = "Internetwork Control", -- DS 48
+   ['cs7'] = "Network Control",      -- DS 56
+   ['le'] = "LE",                    -- LE
+   ['unknown'] = "Unknown"
 }
 
 function dscp_consts.dscp_descr(id)
