@@ -38,8 +38,34 @@ end
 
 -- @brief Given a member key, returns a table of member details such as member name.
 function host_pools:get_member_details(member)
+   local res = {}
+   local member_name
+   local member_type
+   local host_info = hostkey2hostinfo(member)
+   local address = host_info["host"]
+
+   if isMacAddress(address) then
+      member_name = address
+      member_type = "mac"
+   else
+      local network, prefix = splitNetworkPrefix(address)
+
+      if(((isIPv4(network)) and (prefix ~= 32)) or
+	 ((isIPv6(network)) and (prefix ~= 128))) then
+	 -- this is a network
+	 member_name = address
+	 member_type = "net"
+      else
+	 -- this is an host
+	 member_name = network
+	 member_type = "ip"
+      end
+   end
+
+   res = {name = member_name, vlan = host_info["vlan"], member = member, type = member_type}
+
    -- Only the name is relevant for hosts
-   return {name = member}
+   return res
 end
 
 -- ##############################################
