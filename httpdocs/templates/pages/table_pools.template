@@ -55,6 +55,9 @@
     i18n.edit = "{{ i18n('edit') }}";
     i18n.all = "{{ i18n('all') }}";
     i18n.used_by = "{{ i18n('used_by') }}";
+    i18n.others = "{{ i18n('others') }}";
+    i18n.other = "{{ i18n('other') }}";
+    i18n.and = "{{ i18n('and') }}";
 
     i18n.rest = {
         INVALID_HOST: "{{ i18n('rest_consts.INVALID_HOST') }}",

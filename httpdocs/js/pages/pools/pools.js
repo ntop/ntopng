@@ -62,7 +62,15 @@ $(document).ready(function() {
                         if (all_members[memberId].name == undefined) return memberId;
                         return all_members[memberId].name;
                     });
-                    return memberNames.slice(0, 10).join(", ") + (memberNames.length >= 10 ? "..." : "");
+
+                    const length = memberNames.length;
+                    if (length > 10 && type == "display") {
+                        const otherStr = (length - 10 == 1) ? i18n.other : i18n.others;
+                        return memberNames.slice(0, 10).join(", ") + ` ${i18n.and} <b>${length - 10} ${otherStr.toLowerCase()}</b>`;
+                    }
+                    else if (length <= 10 && type == "display") {
+                        return memberNames.slice(0, 10).join(", ");
+                    }
                 }
             },
             {
