@@ -162,6 +162,7 @@ class NetworkInterface : public AlertableEntity {
   int cpu_affinity; /**< Index of physical core where the network interface works. */
   nDPIStats *ndpiStats;
   PacketStats pktStats;
+  DSCPStats *dscpStats;
   L4Stats l4Stats;
   FlowHash *flows_hash; /**< Hash used to store flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
@@ -417,10 +418,14 @@ class NetworkInterface : public AlertableEntity {
   };
   inline void incnDPIFlows(u_int16_t l7_protocol)    { ndpiStats->incFlowsStats(l7_protocol); }
 
+  inline void incDSCPStats(u_int8_t ds, u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t rcvd_packets, u_int64_t rcvd_bytes) { 
+    dscpStats->incStats(ds, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes); 
+  }
+
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
-			ProtoStats *_discardedProbingStats) const;
+			ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats) const;
 
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };

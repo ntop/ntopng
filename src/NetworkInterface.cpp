@@ -180,6 +180,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   statsManager = NULL, alertsManager = NULL, alertsQueue = NULL;
   ndpiStats = NULL;
+  dscpStats = NULL;
 
   host_pools = new HostPools(this);
   bcast_domains = new BroadcastDomains(this);
@@ -291,6 +292,7 @@ void NetworkInterface::init() {
   policer = NULL;
 #endif
   ndpiStats = NULL;
+  dscpStats = NULL;
   statsManager = NULL, alertsManager = NULL, ifSpeed = 0;
   host_pools = NULL;
   bcast_domains = NULL;
@@ -535,6 +537,7 @@ NetworkInterface::~NetworkInterface() {
   if(alertsManager)  delete alertsManager;
   if(alertsQueue)    delete alertsQueue;
   if(ndpiStats)      delete ndpiStats;
+  if(dscpStats)      delete dscpStats;
   if(hosts_to_restore) delete hosts_to_restore;
   if(networkStats) {
     u_int8_t numNetworks = ntop->getNumLocalNetworks();
@@ -5116,13 +5119,16 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
 				nDPIStats *_ndpiStats,
 				PacketStats *_pktStats,
 				TcpPacketStats *_tcpPacketStats,
-				ProtoStats *_discardedProbingStats) const {
+				ProtoStats *_discardedProbingStats,
+				DSCPStats *_dscpStats) const {
   tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats), localStats.sum(_localStats),
     pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats),
     discardedProbingStats.sum(_discardedProbingStats);
 
   if(ndpiStats)
     ndpiStats->sum(_ndpiStats);
+  if(dscpStats)
+    dscpStats->sum(_dscpStats);
 }
 
 /* *************************************** */
@@ -5135,6 +5141,7 @@ void NetworkInterface::lua(lua_State *vm) {
   PacketStats _pktStats;
   TcpPacketStats _tcpPacketStats;
   ProtoStats _discardedProbingStats;
+  DSCPStats _dscpStats;
 
   lua_newtable(vm);
 
@@ -5228,7 +5235,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_settable(vm, -3);
 
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
-	   &_ndpiStats, &_pktStats, &_tcpPacketStats, &_discardedProbingStats);
+	   &_ndpiStats, &_pktStats, &_tcpPacketStats, &_discardedProbingStats,
+           &_dscpStats);
 
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
@@ -5236,6 +5244,7 @@ void NetworkInterface::lua(lua_State *vm) {
   _ndpiStats.lua(this, vm, true);
   _pktStats.lua(vm, "pktSizeDistribution");
   _tcpPacketStats.lua(vm, "tcpPacketStats");
+  _dscpStats.lua(this, vm);
 
   if(discardProbingTraffic())
     _discardedProbingStats.lua(vm, "discarded_probing_");
@@ -5862,6 +5871,7 @@ void NetworkInterface::allocateStructures() {
     networkStats     = new NetworkStats*[numNetworks];
     statsManager     = new StatsManager(id, STATS_MANAGER_STORE_NAME);
     ndpiStats        = new nDPIStats(true /* Enable throughput calculation */);
+    dscpStats        = new DSCPStats();
 
     if(!isViewed()) {
       alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);

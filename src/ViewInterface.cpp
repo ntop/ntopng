@@ -348,9 +348,9 @@ Flow* ViewInterface::findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, Addres
 void ViewInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			     LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 			     PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
-			     ProtoStats *_discardedProbingStats) const {
+			     ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats) const {
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    viewed_interfaces[s]->sumStats(_tcpFlowStats, _ethStats, _localStats, _ndpiStats, _pktStats, _tcpPacketStats, _discardedProbingStats);
+    viewed_interfaces[s]->sumStats(_tcpFlowStats, _ethStats, _localStats, _ndpiStats, _pktStats, _tcpPacketStats, _discardedProbingStats, _dscpStats);
 }
 
 /* **************************************************** */

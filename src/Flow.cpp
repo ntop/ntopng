@@ -1319,18 +1319,15 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 	srv_as->incStats(tv->tv_sec, stats_protocol, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(), partial->get_cli2srv_packets(), partial->get_cli2srv_bytes());
     }
 
-    // Update DSCP stats
+    // Update client DSCP stats
     cli_host->incDSCPStats(getCli2SrvDSCP(),
-      partial->get_cli2srv_packets(), 
-      partial->get_cli2srv_bytes(), 
-      partial->get_srv2cli_packets(),
-      partial->get_srv2cli_bytes());
+      partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(), 
+      partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
 
+    // Update server DSCP stats
     srv_host->incDSCPStats(getSrv2CliDSCP(),
-      partial->get_srv2cli_packets(),
-      partial->get_srv2cli_bytes(),
-      partial->get_cli2srv_packets(), 
-      partial->get_cli2srv_bytes());
+      partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(),
+      partial->get_cli2srv_packets(), partial->get_cli2srv_bytes());
 
     // Update Country stats
     Country *cli_country_stats = cli_host->getCountryStats();
@@ -1368,6 +1365,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       cli_host->getScore()->incIdleFlowScore(getCliScore());
       srv_host->getScore()->incIdleFlowScore(getSrvScore());
     }
+  }
+
+  // Update interface DSCP stats
+  if(iface) {
+    iface->incDSCPStats(getCli2SrvDSCP(),
+      partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(), 
+      partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
   }
 
   switch(get_protocol()) {
