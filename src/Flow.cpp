@@ -2337,6 +2337,11 @@ json_object* Flow::flow2json() {
     }
   }
 
+  json_object_object_add(my_object, Utils::jsonLabel(SRC_TOS, "SRC_TOS", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int(getTOS(true)));
+  json_object_object_add(my_object, Utils::jsonLabel(DST_TOS, "DST_TOS", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int(getTOS(false)));
+
   json_object_object_add(my_object, Utils::jsonLabel(L4_SRC_PORT, "L4_SRC_PORT", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(get_cli_port()));
   json_object_object_add(my_object, Utils::jsonLabel(L4_DST_PORT, "L4_DST_PORT", jsonbuf, sizeof(jsonbuf)),

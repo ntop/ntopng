@@ -705,6 +705,7 @@ class Flow : public GenericHashEntry {
   }
 
   inline void setTOS(u_int8_t tos, bool is_cli_tos) { if(is_cli_tos) cli2srv_tos = tos; srv2cli_tos = tos; }
+  inline u_int8_t getTOS(bool is_cli_tos) const { return (is_cli_tos ? cli2srv_tos : srv2cli_tos); }
 
   inline u_int8_t getCli2SrvDSCP() const { return (cli2srv_tos & 0xFC) >> 2; }
   inline u_int8_t getSrv2CliDSCP() const { return (srv2cli_tos & 0xFC) >> 2; }
