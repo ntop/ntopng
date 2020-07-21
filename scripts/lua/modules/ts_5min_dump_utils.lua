@@ -340,15 +340,17 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
   -- DSCP Classes
   for id, value in pairs(host.dscp) do
-    ts_utils.append("host:dscp",
-      {
-        ifid=ifstats.id,
-        host=hostname,
-        dscp_class=id,
-        bytes_sent=value["bytes.sent"],
-        bytes_rcvd=value["bytes.rcvd"]
-      },
-      when)
+    if value["bytes.sent"] ~= nil and value["bytes.rcvd"] ~= nil then
+      ts_utils.append("host:dscp",
+        {
+          ifid=ifstats.id,
+          host=hostname,
+          dscp_class=id,
+          bytes_sent=value["bytes.sent"],
+          bytes_rcvd=value["bytes.rcvd"]
+        },
+        when)
+    end
   end
 
   -- UDP breakdown
