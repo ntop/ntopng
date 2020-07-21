@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="edit-endpoint-modal-title">{{ i18n("edit") }} <span id='endpoint-type'></span> {{ i18n("endpoint_notifications.endpoint") }}</h5>
+                <h5 class="modal-title" id="edit-endpoint-modal-title">{{ i18n("edit") }} {{ i18n("endpoint_notifications.endpoint") }}: <span id='endpoint-type'></span> </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>

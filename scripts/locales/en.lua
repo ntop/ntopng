@@ -1062,6 +1062,10 @@ local lang = {
     ["remove_recipient_message"] = "Are you really sure to remove this recipient notification endpoint?",
     ["select_type"] = "Select an Endpoint Type",
     ["type"] = "Endpoint Type",
+    ["recipients"] = {
+      ["cc"] = "CC",
+      ["email_recipient"] = "Email Recipient",
+    },
   },
   ["entity_thresholds"] = {
     ["flow_attacker_description"] = "Trigger an alert when the new client Flows/sec exceeds the threshold",

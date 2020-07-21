@@ -18,7 +18,7 @@
         {% for i, param in ipairs(endpoint.recipient_params) do %}
         <div class="form-group row">
             <label class="col-form-label col-sm-3">
-                {{ param.param_name }}
+                {{ i18n("endpoint_notifications.recipients." .. param.param_name) }}
             </label>
             <div class="col-sm-5">
                 <input name="{{ param.param_name }}" type="{{ param.param_type }}" class="form-control" {{ (param.optional and '' or 'required') }}>

@@ -128,7 +128,7 @@ $(document).ready(function () {
             /* load the right template from templates */
             $(`#edit-endpoint-modal form .endpoint-template-container`)
                 .empty().append(loadTemplate(data.endpoint_key));
-            $(`#endpoint-type`).html(data.endpoint_key);
+            $(`#endpoint-type`).html(data.endpoint_conf_name);
             // init the patterns inside the input boxes
             init_data_patterns();
             /* load the values inside the template */

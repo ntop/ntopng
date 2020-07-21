@@ -88,6 +88,7 @@ $(document).ready(function () {
             /* load the right template from templates */
             $(`#edit-recipient-modal form .recipient-template-container`)
                 .empty().append(loadTemplate(data.endpoint_conf.endpoint_key));
+            $(`#edit-recipient-name`).text(data.recipient_name);
             /* load the values inside the template */
             $(`#edit-recipient-modal form [name='name']`).val(data.recipient_name);
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function(i, input) {
