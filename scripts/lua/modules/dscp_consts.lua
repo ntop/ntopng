@@ -29,7 +29,19 @@ local DSCP = {
    [0x28] = "Critical (CS5)",
    [0x2E] = "Critical(EF)",
    [0x30] = "Internetwork Control (CS6)",
-   [0x38] = " Network Control (CS7)"
+   [0x38] = "Network Control (CS7)"
+}
+
+local DSCP_class = {
+   [0x00] = "cs0",
+   [0x08] = "cs1", [0x0A] = "cs1", [0x0C] = "cs1", [0x0E] = "cs1",
+   [0x10] = "cs2", [0x12] = "cs2", [0x14] = "cs2", [0x16] = "cs2",
+   [0x18] = "cs3", [0x1A] = "cs3", [0x1C] = "cs3", [0x1E] = "cs3",
+   [0x20] = "cs4", [0x22] = "cs4", [0x24] = "cs4", [0x26] = "cs4",
+   [0x28] = "cs5", [0x2E] = "cs5",
+   [0x30] = "cs6",
+   [0x38] = "cs7",
+   [0x01] = "LE",
 }
 
 local ECN = {
@@ -39,7 +51,7 @@ local ECN = {
    [0x03] = "CE"
 }
 
-local DS_precedence = {
+local DS_class = {
    ['cs0'] = "Best Effort",          -- DS 0
    ['cs1'] = "Priority",             -- DS 8,10,12,14
    ['cs2'] = "Immediate",            -- DS 16,18,20,22
@@ -68,8 +80,8 @@ function dscp_consts.ecn_descr(id)
    return descr
 end
 
-function dscp_consts.ds_precedence_descr(id)
-   local descr = DS_precedence[id]
+function dscp_consts.ds_class_descr(id)
+   local descr = DS_class[id]
    if descr == nil then
      descr = "Unknown"
    end
@@ -77,6 +89,14 @@ function dscp_consts.ds_precedence_descr(id)
      descr = descr.." ("..string.upper(id)..")"
    end
    return descr
+end
+
+function dscp_consts.dscp_class_descr(id)
+   local class = DSCP_class[tonumber(id)]
+   if class == nil then
+      class = "unknown"
+   end
+   return dscp_consts.ds_class_descr(class)
 end
 
 return dscp_consts

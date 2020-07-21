@@ -49,7 +49,7 @@ end
 
 for key, value in pairsByKeys(stats.dscp, asc) do
    res[#res + 1] = {
-      label = dscp_consts.ds_precedence_descr(key),
+      label = dscp_consts.ds_class_descr(key),
       value = ternary(received_stats, value['packets.rcvd'], value['packets.sent'])
    }
 end

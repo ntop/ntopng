@@ -440,7 +440,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 	 end
 
 	 for _, class in pairsByKeys(by_class, asc) do
-	    local label = dscp_consts.ds_precedence_descr(class)
+	    local label = dscp_consts.ds_class_descr(class)
 	    graph_common.populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, dscp_class=class}))
 	 end
       end
