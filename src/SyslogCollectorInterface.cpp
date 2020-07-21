@@ -55,7 +55,7 @@ bool SyslogCollectorInterface::openSocket(syslog_socket *ss, const char *server_
   listen_addr.sin_addr.s_addr = inet_addr(server_address);
   listen_addr.sin_port = htons(server_port);
  
-  if(bind(ss->sock, (struct sockaddr *) &listen_addr, sizeof(struct sockaddr)) != 0) {
+  if(::bind(ss->sock, (struct sockaddr *) &listen_addr, sizeof(struct sockaddr)) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "bind error");
     return false;
   }
