@@ -59,9 +59,9 @@ $(document).ready(function() {
                     const memberNames = row.members.map((memberId) => {
 
                         const member = row.member_details[memberId];
-                        if (member.name == undefined) return memberId;
+                        if (member.name == undefined && member.hostkey == undefined) return memberId;
                         if (!all_members || !all_members[memberId]) {
-                            return member.name;
+                            return member.hostkey || member.name;
                         }
 
                         if (all_members[memberId].name == undefined) return memberId;
