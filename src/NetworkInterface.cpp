@@ -5893,7 +5893,8 @@ void NetworkInterface::allocateStructures() {
     }
   }
 
-  snprintf(buf, sizeof(buf), "iface_%d", id);
+  // Keep format in sync with alerts_api.interfaceAlertEntity(ifid)
+  snprintf(buf, sizeof(buf), "%d", get_id());
   setEntityValue(buf);
 
   refreshHasAlerts();

@@ -424,7 +424,7 @@ function alerts_api.interfaceAlertEntity(ifid)
   return {
     alert_entity = alert_consts.alert_entities.interface,
     -- NOTE: keep in sync with C (Alertable::setEntityValue)
-    alert_entity_val = string.format("iface_%d", ifid)
+    alert_entity_val = string.format("%d", ifid)
   }
 end
 

@@ -1285,7 +1285,7 @@ elseif(page == "traffic_recording" and has_traffic_recording_page) then
    print('</div></div>')
 elseif(page == "alerts") then
 
-   alert_utils.printAlertTables("interface", ifname_clean,
+   alert_utils.printAlertTables("interface", ifid,
       "if_stats.lua", {ifid=ifid}, if_name, "interface",
       {enable_label = i18n("show_alerts.trigger_iface_alert_descr", {iface = short_name})})
 
