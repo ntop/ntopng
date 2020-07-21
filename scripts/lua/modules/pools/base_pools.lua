@@ -749,7 +749,7 @@ end
 -- @brief Return the name associated to a pool
 -- @param pool_id The pool id
 -- @return A string with the name of the pool
-function base_pools:pool_name(pool_id)
+function base_pools:get_pool_name(pool_id)
    if pool_id == base_pools.DEFAULT_POOL_ID then
       return base_pools.DEFAULT_POOL_NAME
    else
