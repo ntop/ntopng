@@ -2207,6 +2207,7 @@ local lang = {
     ["members_limit_reached"] = "members limit reached",
     ["network"] = "Network",
     ["network_normalized"] = "network \"%{network}\" has a non-zero host identifier. Using \"%{network_normalized}\".",
+    ["new_host_pool"] = "New Host Pool",
     ["new_pool"] = "New Pool",
     ["no_hosts_defined"] = "There are no host pools defined, please create a new one",
     ["no_pools_defined"] = "No Host Pools defined.",

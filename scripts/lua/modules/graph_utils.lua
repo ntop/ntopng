@@ -955,15 +955,15 @@ function graph_utils.printPoolChangeDropdown(ifId, pool_id, have_nedge)
 
    output[#output + 1] = graph_utils.poolDropdown(ifId, pool_id)
 
-   local edit_pools_link = ternary(have_nedge, "/lua/pro/nedge/admin/nf_list_users.lua", "/lua/if_stats.lua?page=pools#create")
+   local edit_pools_link = ternary(have_nedge, "/lua/pro/nedge/admin/nf_list_users.lua", "/lua/admin/manage_pools.lua?page=host")
 
    output[#output + 1] = [[
-            </select>&nbsp;
-        <A HREF="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fas fa-sm fa-cog" aria-hidden="true" title="]]
-      ..i18n(ternary(have_nedge, "nedge.edit_users", "host_pools.edit_host_pools"))
+            </select>
+        <a href="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fas ]].. ternary(have_nedge, "fa-edit", "fa-plus") ..[[" aria-hidden="true" title="]]
+      ..i18n(ternary(have_nedge, "nedge.edit_users", "host_pools.new_host_pool"))
       .. [["></i> ]]
-      .. i18n(ternary(have_nedge, "nedge.edit_users", "host_pools.edit_host_pools"))
-      .. [[</A>
+      .. i18n(ternary(have_nedge, "nedge.edit_users", "host_pools.new_host_pool"))
+      .. [[</a>
    </tr>]]
 
    print(table.concat(output, ''))
