@@ -13,7 +13,17 @@ local host_pools = require "host_pools"
 
 local host_pool = host_pools:create()
 local all_pools = host_pools:get_all_pools()
-local pool_id_get = _GET["pool"] or all_pools[1].pool_id
+local pool_id_get = _GET["pool"]
+
+-- if the _GET["pool"] is not defined then
+-- show the first host pool in the page
+-- otherwise it means there are no host pools and then
+-- show an alert
+if #all_pools > 0 and pool_id_get == nil then
+    pool_id_get = all_pools[1].pool_id
+elseif #all_pools == 0 then
+    pool_id_get = 0
+end
 
 sendHTTPContentTypeHeader('text/html')
 
