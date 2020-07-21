@@ -173,7 +173,7 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #include <fstream>
 #include <map>
 
-#if GCC_VERSION < 40800
+#if defined(__GNUC__) && (GCC_VERSION < 40800)
 #include <cstdatomic>
 #else
 #include <atomic>
