@@ -93,8 +93,7 @@ class GenericHashEntry {
   void set_state(HashEntryState s);
   
  protected:
-  u_int64_t num_inc_uses;  /* Don't use 16 bits as we might run out of space on large networks with MACs, VLANs etc. */
-  u_int64_t num_dec_uses;  /* Don't use 16 bits as we might run out of space on large networks with MACs, VLANs etc. */
+  std::atomic<int16_t> num_uses;
   time_t first_seen;   /**< Time of first seen. */
   time_t last_seen;    /**< Time of last seen. */
   NetworkInterface *iface; /**< Pointer of network interface. */
@@ -246,9 +245,9 @@ class GenericHashEntry {
   inline u_int get_duration()    const { return((u_int)(1+last_seen-first_seen)); };
   virtual u_int32_t key()              { return(0);         };  
   virtual char* get_string_key(char *buf, u_int buf_len) const { buf[0] = '\0'; return(buf); };
-  void incUses()                       { num_inc_uses++;                     }
-  void decUses()                       { num_dec_uses++;                     }
-  u_int32_t getUses()            const { return num_inc_uses - num_dec_uses; }
+  void incUses()                       { num_uses--;                     }
+  void decUses()                       { num_uses--;                     }
+  int16_t getUses()              const { return(num_uses);               }
 
   virtual void deserialize(json_object *obj);
   virtual void getJSONObject(json_object *obj, DetailsLevel details_level);

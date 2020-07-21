@@ -5,7 +5,7 @@ datarootdir = @datarootdir@
 SHELL=/bin/sh
 OS := $(shell uname -s)
 PWD=@PWD@
-GPP=@CXX@
+GPP=@CXX@ -std=c++0x
 INSTALL_DIR=$(DESTDIR)$(prefix)
 MAN_DIR=$(DESTDIR)@MAN_DIR@
 GEOIPUPDATE_UTIL = geoipupdate

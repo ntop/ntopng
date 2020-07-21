@@ -27,6 +27,9 @@ extern "C" {
 
 #if defined(__OpenBSD__) || defined(__APPLE__)
 #include <net/if_dl.h>
+#endif
+
+#ifndef WIN32
 #include <ifaddrs.h>
 #endif
 
