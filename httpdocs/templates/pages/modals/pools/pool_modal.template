@@ -10,7 +10,7 @@
             <form role="form">
                 <div class="modal-body">
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-name-input">
+                        <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-name-input">
                             <b>{{ i18n("pools.name") }}</b>
                         </label>
                         <div class="col-sm-7">
@@ -23,7 +23,7 @@
                     {# the host pool modal doesn't have the members field #}
                     {% if (pool.name ~= "host") then %}
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-members-input">
+                        <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-members-input">
                             {{ i18n("pools.members") }}
                         </label>
                         <div class="col-sm-7">
@@ -53,7 +53,7 @@
                     </div>
                     {% elseif (pool.name == "host" and modal_type == "edit") then %}
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-members-input">
+                        <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-members-input">
                             {{ i18n("pools.members") }}
                         </label>
                         <label class="col-form-label col-sm-7">
@@ -62,8 +62,8 @@
                     </div>
                     {% end %}
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" for="{{ modal_type }}-pool-config-select">
-                            <b>{{ i18n("config_scripts.config_name") }}</b>
+                        <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-config-select">
+                            <b>{{ i18n("pools.configuration") }}</b>
                         </label>
                         <div class="col-sm-7">
                             <select required class="form-control" name="configset" id="{{ modal_type }}-pool-config-select">
