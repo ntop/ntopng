@@ -241,6 +241,19 @@ static int ntop_host_get_time(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_host_get_pool_id(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_host_pool(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_host_get_syn_flood(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
 
@@ -371,6 +384,7 @@ static const luaL_Reg ntop_host_reg[] = {
   { "getPackets",             ntop_host_get_packets             },
   { "getNumFlows",            ntop_host_get_num_total_flows     },
   { "getTime",                ntop_host_get_time                },
+  { "getPoolId",              ntop_host_get_pool_id             },
   { "getDNSInfo",             ntop_host_get_dns_info            },
   { "getHTTPInfo",            ntop_host_get_http_info           },
   { "isLocal",                ntop_host_is_local                },

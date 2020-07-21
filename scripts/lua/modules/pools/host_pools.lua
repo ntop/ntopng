@@ -280,6 +280,21 @@ end
 
 -- ##############################################
 
+-- @param member a valid pool member
+-- @return The pool_id found for `member` or the default pool_id
+function base_pools:get_pool_id(member)
+   -- OVERRIDE
+   local res = host.getPoolId()
+
+   if res and res["host_pool_id"] then
+      return res["host_pool_id"]
+   end
+
+   return host_pools.DEFAULT_POOL_ID
+end
+
+-- ##############################################
+
 -- @brief Returns a boolean indicating whether the member is a valid pool member
 function host_pools:is_valid_member(member)
    local res = isValidPoolMember(member)

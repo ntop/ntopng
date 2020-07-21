@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local json = require("dkjson")
 local alert_endpoints = require("alert_endpoints_utils")
 local alert_consts = require("alert_consts")
+local alert_entity_pools = require "alert_entity_pools"
 local os_utils = require("os_utils")
 local do_trace = false
 
@@ -117,7 +118,18 @@ end
 
 -- ##############################################
 
---! @brief Stores a single alert (or event) into the alerts database
+--! @brief Adds pool information to the alert
+--! @param entity_info data returned by one of the entity_info building functions
+local function addAlertPoolInfo(entity_info, alert_json)
+   if alert_json then
+      local pool_id = alert_entity_pools.get_entity_pool_id(entity_info)
+      alert_json.pool_id = pool_id
+   end
+end
+
+-- ##############################################
+
+
 --! @param entity_info data returned by one of the entity_info building functions
 --! @param type_info data returned by one of the type_info building functions
 --! @param when (optional) the time when the release event occurs
@@ -130,6 +142,7 @@ function alerts_api.store(entity_info, type_info, when)
 
   type_info.alert_type_params = type_info.alert_type_params or {}
   addAlertGenerationInfo(type_info.alert_type_params)
+  addAlertPoolInfo(entity_info, type_info.alert_type_params)
 
   local alert_json = json.encode(type_info.alert_type_params)
   local subtype = type_info.alert_subtype or ""
@@ -260,6 +273,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
   type_info.alert_type_params = type_info.alert_type_params or {}
   addAlertGenerationInfo(type_info.alert_type_params)
+  addAlertPoolInfo(entity_info, type_info.alert_type_params)
 
   local alert_json = json.encode(type_info.alert_type_params)
   local triggered
@@ -336,6 +350,8 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
     alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_key or ""))
     return(false)
   end
+
+  addAlertPoolInfo(entity_info, type_info.alert_type_params)
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     host.checkContext(entity_info.alert_entity_val)

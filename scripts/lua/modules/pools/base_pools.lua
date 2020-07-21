@@ -712,8 +712,6 @@ end
 
 -- ##############################################
 
--- @brief Cached `assigned_pool_members` are read and the configset_id associated to `member` is returned
--- @param assigned_pool_members A table obtained calling self:get_assigned_members()
 -- @param member a valid pool member
 -- @return The configset_id found for `member` or the default configset_id
 function base_pools:get_configset_id(member)
@@ -731,10 +729,27 @@ end
 
 -- ##############################################
 
+-- @param member a valid pool member
+-- @return The pool_id found for `member` or the default pool_id
+function base_pools:get_pool_id(member)
+   if not self.assigned_pool_members then
+      -- Cache it as class member
+      self.assigned_pool_members = self:get_assigned_members()
+   end
+
+   if self.assigned_pool_members[member] and self.assigned_pool_members[member]["pool_id"] then
+      return self.assigned_pool_members[member]["pool_id"]
+   end
+
+   return user_scripts.DEFAULT_POOL_ID
+end
+
+-- ##############################################
+
 -- @brief Return the name associated to a pool
 -- @param pool_id The pool id
 -- @return A string with the name of the pool
-function base_pools:get_pool_name(pool_id)
+function base_pools:pool_name(pool_id)
    if pool_id == base_pools.DEFAULT_POOL_ID then
       return base_pools.DEFAULT_POOL_NAME
    else
