@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ i18n("delete") }} <span id="delete-pool-name"></span> {{ i18n("pools.pool") }}</h5>
+                <h5 class="modal-title">{{ i18n("delete") }} {{ i18n("pools.pool") }}: <span class="delete-pool-name"></span> </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -11,7 +11,7 @@
                 <input hidden name="pool_id">
                 <div class="modal-body">
                     <div class="alert alert-danger">
-                        {{ i18n("pools.remove_pool") }}
+                        {* i18n("pools.remove_pool", { pool = "<b><span class='delete-pool-name'></span></b>"}) *}
                     </div>
                     <span class="invalid-feedback" id="remove-modal-feedback"></span>
                 </div>
