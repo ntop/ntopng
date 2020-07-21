@@ -4554,19 +4554,23 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
     for(int i = toSkip, num=0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
       Host *h = retriever.elems[i].hostValue;
 
-      if(!tsLua)
-	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
-      else
-	h->lua_get_timeseries(vm);
+      if(h != NULL) {
+	if(!tsLua)
+	  h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+	else
+	  h->lua_get_timeseries(vm);
+      }
     }
   } else {
     for(int i = (retriever.actNumEntries-1-toSkip), num=0; i >= 0 && num < (int)maxHits; i--, num++) {
       Host *h = retriever.elems[i].hostValue;
 
-      if(!tsLua)
-	h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
-      else
-	h->lua_get_timeseries(vm);
+      if(h != NULL) {
+	if(!tsLua)
+	  h->lua(vm, NULL /* Already checked */, host_details, false, false, true);
+	else
+	  h->lua_get_timeseries(vm);
+      }
     }
   }
 
