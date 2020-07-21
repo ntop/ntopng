@@ -146,12 +146,15 @@ $(document).ready(function () {
 
     let rowData = null;
 
-    const recipients_list = $(`#remove-recipient-modal form`).modalHandler({
+    const removeModalHandler = $(`#remove-recipient-modal form`).modalHandler({
         method: 'post',
         csrf: pageCsrf,
         endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
         dontDisableSubmit: true,
-        beforeSumbit: () => {
+        onModalInit: function() {
+            $(`.removed-recipient-name`).text(`${rowData.recipient_name}`);
+        },
+        beforeSumbit: function() {
             return {
                 action: 'remove',
                 recipient_name: rowData.recipient_name
@@ -168,7 +171,7 @@ $(document).ready(function () {
     /* bind remove endpoint event */
     $(`table#recipient-list`).on('click', `a[href='#remove-recipient-modal']`, function (e) {
         rowData = $recipientsTable.row($(this).parent().parent()).data();
-        recipients_list.invokeModalInit();
+        removeModalHandler.invokeModalInit();
     });
 
 

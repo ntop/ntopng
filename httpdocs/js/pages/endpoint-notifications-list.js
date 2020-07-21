@@ -201,12 +201,11 @@ $(document).ready(function () {
         beforeSumbit: () => {
             return {
                 action: 'remove',
-                endpoint_conf_name: $(`#remove-endpoint-modal form [name='endpoint_conf_name']`).val()
+                endpoint_conf_name: removeModalData.endpoint_conf_name
             };
         },
-        loadFormData: () => removeModalData.endpoint_conf_name,
         onModalInit: function (data) {
-            $(`#remove-endpoint-modal form [name='endpoint_conf_name']`).val(data);
+            $(`.remove-endpoint-name`).text(removeModalData.endpoint_conf_name);
         },
         onSubmitSuccess: function (response) {
             if (response.result.status == "OK") {

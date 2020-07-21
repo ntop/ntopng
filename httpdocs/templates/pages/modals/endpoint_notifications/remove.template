@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="remove-endpoint-modal-title">{{ i18n("endpoint_notifications.remove_endpoint") }}</h5>
+                <h5 class="modal-title" id="remove-endpoint-modal-title">{{ i18n("endpoint_notifications.remove_endpoint") }}: <span class='remove-endpoint-name'></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -12,7 +12,7 @@
                 <div class="modal-body">
                     <input name="endpoint_conf_name" type="text" hidden>
                     <div class="alert alert-danger">
-                        {{ i18n('endpoint_notifications.remove_endpoint_message') }}
+                        {* i18n('endpoint_notifications.remove_endpoint_message', {endpoint = "<b><span class='remove-endpoint-name'></span></b>"}) *}
                     </div>
                     <span class="invalid-feedback"></span>
                 </div>
