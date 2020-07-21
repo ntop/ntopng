@@ -173,7 +173,7 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #include <fstream>
 #include <map>
 
-#if !defined(__clang__) && defined(__GNUC__) && (GCC_VERSION < 40800)
+#if !defined(__clang__) && (__GNUC__ <= 4) && (__GNUC_MINOR__ < 8)
 #include <cstdatomic>
 #else
 #include <atomic>
