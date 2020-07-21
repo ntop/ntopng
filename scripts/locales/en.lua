@@ -1026,7 +1026,7 @@ local lang = {
     ["request_vs_reply"] = "Request vs Reply Ratio",
   },
   ["dscp_page"] = {
-    ["statistics"] = "IP Precedence",
+    ["statistics"] = "Precedence Classes",
     ["statistics_received"] = "Received",
     ["statistics_sent"] = "Sent",
   },
@@ -1991,6 +1991,7 @@ local lang = {
     ["dns_qry_sent_rsp_rcvd"] = "DNS Sent Queries / Rcvd Repls",
     ["download_chart_data"] = "Download the current chart data",
     ["dropped_flows"] = "Dropped Flows",
+    ["dscp_classes"] = "DSCP Classes",
     ["dumped_flows"] = "Exported Flows",
     ["echo_reply_packets"] = "Echo Reply Packets",
     ["echo_request_packets"] = "Echo Request Packets",

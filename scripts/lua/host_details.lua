@@ -1701,6 +1701,7 @@ local page_params = {
    traffic_type = _GET["traffic_type"],
    version = _GET["version"],
    l4proto = _GET["l4proto"],
+   dscp_class = _GET["dscp_class"],
    host = hostinfo2hostkey(host),
    tskey = _GET["tskey"],
 }
@@ -2195,6 +2196,7 @@ local tags = {
    protocol = _GET["protocol"],
    category = _GET["category"],
    l4proto = _GET["l4proto"],
+   dscp_class = _GET["dscp_class"],
 }
 
 local url = hostinfo2detailsurl(host, {page = "historical"})
@@ -2203,6 +2205,7 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
    top_protocols = "top:host:ndpi",
    top_categories = "top:host:ndpi_categories",
    l4_protocols = "host:l4protos",
+   dscp_classes = "iface:dscp",
    show_historical = true,
    tskey = tskey,
    timeseries = table.merge({
@@ -2226,6 +2229,7 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:echo_packets",           label=i18n("graphs.echo_request_packets")},
       {schema="host:tcp_packets",            label=i18n("graphs.tcp_packets")},
       {schema="host:udp_sent_unicast",       label=i18n("graphs.udp_sent_unicast_vs_non_unicast")},
+      {schema="host:dscp",                   label=i18n("graphs.dscp_classes")},
 
       {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
       {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize

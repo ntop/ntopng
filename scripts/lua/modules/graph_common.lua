@@ -6,6 +6,7 @@
 -- and pro/enterprise nv_graph_utils.lua
 
 local ts_utils = require("ts_utils")
+local dscp_consts = require("dscp_consts")
 local have_nedge = ntop.isnEdge()
 
 -- ##############################################
@@ -412,6 +413,46 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
       end
 
       ::continue::
+   end
+
+   -- DSCP
+   if options.dscp_classes then
+      local schema = options.dscp_classes
+      -- table.clone needed as dscp_tags is modified below
+      local dscp_tags = table.clone(tags)
+      dscp_tags.dscp_class = nil
+
+      local series = ts_utils.listSeries(schema, dscp_tags, start_time)
+
+      if not table.empty(series) then
+	 graph_common.graphMenuDivider()
+	 graph_common.graphMenuHeader(i18n("dscp"))
+
+	 local by_class = {}
+	 for _, serie in pairs(series) do
+	    local sortkey = serie.dscp_class
+
+	    if sortkey == "unknown" then
+	       -- place at the end
+	       sortkey = "z" .. sortkey
+	    end
+
+	    by_class[sortkey] = serie.dscp_class
+	 end
+
+	 for _, class in pairsByKeys(by_class, asc) do
+	    local class_id = class
+	    local label
+
+	    if class_id == "unknown" then
+	       label = i18n("unknown")
+	    else
+	       label = dscp_consts.ds_precedence_descr(class)
+	    end
+
+	    graph_common.populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, dscp_class=class_id}))
+	 end
+      end
    end
 
    -- nDPI applications

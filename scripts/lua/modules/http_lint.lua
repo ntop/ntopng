@@ -1416,6 +1416,7 @@ local known_parameters = {
    ["script_subdir"]           = validateSingleWord,
    ["script_key"]              = validateSingleWord,
    ["field_alias"]             = validateListOfTypeInline(validateFieldAlias),
+   ["dscp_class"]              = validateSingleWord,
 
    -- Widget and Datasources
    ["ds_hash"]                 = validateSingleWord,

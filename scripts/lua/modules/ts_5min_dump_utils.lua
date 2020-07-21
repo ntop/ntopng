@@ -13,7 +13,7 @@ local host_pools_instance = host_pools:create()
 local callback_utils = require "callback_utils"
 local ts_utils = require "ts_utils_core"
 local format_utils = require "format_utils"
-local user_scripts = require("user_scripts")
+local user_scripts = require "user_scripts"
 require "ts_5min"
 
 -- Set to true to debug host timeseries points timestamps
@@ -336,6 +336,19 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
       -- L2 host
       --io.write("Discarding "..k.."@"..hostname.."\n")
     end
+  end
+
+  -- DSCP Classes
+  for id, value in pairs(host.dscp) do
+    ts_utils.append("host:dscp",
+      {
+        ifid=ifstats.id,
+        host=hostname,
+        dscp_class=id,
+        bytes_sent=value["bytes.sent"],
+        bytes_rcvd=value["bytes.rcvd"]
+      },
+      when)
   end
 
   -- UDP breakdown

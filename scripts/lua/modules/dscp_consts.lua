@@ -71,7 +71,10 @@ end
 function dscp_consts.ds_precedence_descr(id)
    local descr = DS_precedence[id]
    if descr == nil then
-     descr = "Unknown ("..id..")"
+     descr = "Unknown"
+   end
+   if id:find("^cs") then
+     descr = descr.." ("..string.upper(id)..")"
    end
    return descr
 end

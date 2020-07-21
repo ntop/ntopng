@@ -1147,6 +1147,7 @@ elseif(page == "historical") then
       protocol = _GET["protocol"],
       category = _GET["category"],
       l4proto = _GET["l4proto"],
+      dscp_class = _GET["dscp_class"],
    }
    url = url.."&page=historical"
 
@@ -1159,6 +1160,7 @@ elseif(page == "historical") then
       top_senders = ternary(top_enabled, "top:local_senders", nil),
       top_receivers = ternary(top_enabled, "top:local_receivers", nil),
       l4_protocols = "iface:l4protos",
+      dscp_classes = "iface:dscp",
       show_historical = not ifstats.isViewed,
       timeseries = graph_utils.get_default_timeseries()
    })

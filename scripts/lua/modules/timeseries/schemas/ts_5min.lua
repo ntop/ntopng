@@ -401,6 +401,15 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("host:dscp", {step=300})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addTag("dscp_class")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("host:udp_sent_unicast", {step=300})
 schema:addTag("ifid")
 schema:addTag("host")

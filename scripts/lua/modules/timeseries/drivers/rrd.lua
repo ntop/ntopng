@@ -69,7 +69,7 @@ local HOST_PREFIX_MAP = {
   snmp_if = "snmp:",
   host_pool = "pool:",
 }
-local WILDCARD_TAGS = {protocol=1, category=1, l4proto=1}
+local WILDCARD_TAGS = {protocol=1, category=1, l4proto=1, dscp_class=1}
 
 local function get_fname_for_schema(schema, tags)
   if schema.options.rrd_fname ~= nil then
@@ -122,6 +122,8 @@ local function schema_get_path(schema, tags)
    suffix = "ndpi_flows/"
   elseif parts[2] == "l4protos" then
    suffix = "l4protos/"
+  elseif parts[2] == "dscp" then
+   suffix = "dscp/"
   elseif #schema._tags >= 3 then
     local intermediate_tags = {}
 
@@ -815,6 +817,8 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time)
 	   if tonumber(value) then
 	      toadd = true
 	   end
+	elseif wildcard_tag == "dscp_class" then
+          toadd = true
 	elseif wildcard_tag == "l4proto" then
           if L4_PROTO_KEYS[value] ~= nil then
             toadd = true
