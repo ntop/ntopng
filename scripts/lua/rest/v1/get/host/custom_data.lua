@@ -21,51 +21,111 @@ sendHTTPHeader('application/json')
 
 local rc = rest_utils.consts_ok
 local res = {}
+local field_aliases = {}
 
 local ifid = _GET["ifid"]
-local host_info = url2hostinfo(_GET)
-local field_alias = _GET["field_alias"]
+local fields = _GET["field_alias"]
 
--- whether to return host statistics: on by default
-local host_stats           = _GET["host_stats"]
 
 if isEmptyString(ifid) then
    print(rest_utils.rc(rest_utils.consts_invalid_interface))
    return
 end
 
-if isEmptyString(host_info["host"]) or isEmptyString(field_alias) then
-   print(rest_utils.rc(rest_utils.consts_invalid_args))
-   return
-end
-
 interface.select(ifid)
 
-local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
+-- Valid fields:
+-- 1)     All: {"field_alias": "all"} - Dump all host stats.
+--        -- Or --
+--        All: Omit the "field_alias" parameter.
+-- 2) Aliases: {"field_alias": "bytes.sent=tdb,packets.sent=tdp"}
+-- 3)   Mixed: {"field_alias": "bytes.sent=tdb,packets.sent,ndpi=dpi"}
+--
+-- If the 'fields' parameter is missing 'all' host stat
+-- fields will be dumped...
+if (fields == nil) then
+   field_aliases[#field_aliases + 1] = "all=all"
+else
+   --
+   -- Invalid field alias...
+   if isEmptyString(fields) then
+      print(rest_utils.rc(rest_utils.consts_invalid_args))
+      return
+   end
+   --
+   -- Build host stats fields to use with potential aliases...
+   local field = fields:split(",") or {fields}
+   for _, fa in pairs(field) do
+      local comp = fa:split("=")
+      if (comp ~= nil) then
+         --
+         -- Field and alias...
+         field_aliases[#field_aliases + 1] = comp[1] .. "=" .. comp[2]
+      else
+         --
+         -- Alias same as field...
+         field_aliases[#field_aliases + 1] = fa .. "=" .. fa
+      end
+   end
+end
 
-if not host then
-   print(rest_utils.rc(rest_utils.consts_not_found))
+local hostparam = _GET["host"]
+if ((hostparam ~= nil) or (not isEmptyString(hostparam))) then
+   --
+   -- Single host:
+   local host_info = url2hostinfo(_GET)
+   local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
+   if not host then
+      print(rest_utils.rc(rest_utils.consts_not_found))
+      return
+   else
+      --
+      -- Check for 'all' host stat fields...
+      if (field_aliases[1] == "all=all") then
+         res = host
+      else
+         --
+         -- Process selective host stat fields...
+         for _, fa in pairs(field_aliases) do
+            local comp = fa:split("=")
+            local field = comp[1]
+            local alias = comp[2]
+            if (host[field] ~= nil) then
+               --
+               -- Add host field stat with potential alias name...
+               res[alias] = host[field]
+            end
+         end
+      end
+      tracker.log("get_host_custom_data_json", {ifid, host_info["host"], host_info["vlan"], field_aliases})
+      print(rest_utils.rc(rc, res))
+      return
+   end
+else
+   --
+   -- All hosts:
+   local hosts_stats = interface.getHostsInfo()
+   hosts_stats = hosts_stats["hosts"]
+   for key, value in pairs(hosts_stats) do
+      local host = interface.getHostInfo(key)
+      if (host ~= nil) then
+         local hdata = {}
+         if (field_aliases[1] == "all=all") then
+            hdata = host
+         else
+            for _, fa in pairs(field_aliases) do
+               local comp = fa:split("=")
+               local field = comp[1]
+               local alias = comp[2]
+               if (host[field] ~= nil) then
+                  hdata[alias] = host[field]
+               end
+            end
+         end
+         res[#res + 1] = hdata
+      end
+   end
+   tracker.log("get_host_custom_data_json", {ifid, "All Hosts", field_aliases})
+   print(rest_utils.rc(rc, res))
    return
 end
-
-field_alias = field_alias:split(",") or {field_alias}
-
-for _, fa in pairs(field_alias) do
-   -- Fields can be submitted as-is without an alias
-   local field, alias = fa:split("=") or {fa}
-
-   -- If the alias hasn't been defined, alias is the actual field name
-   if not alias then
-      alias = field
-   end
-
-   if host[field] then
-      -- TODO: implement
-      res[alias] = host[field]
-   end
-end
-
-tracker.log("host_get_json", {host_info["host"], host_info["vlan"]})
-
-print(rest_utils.rc(rc, res))
-

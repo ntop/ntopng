@@ -368,6 +368,74 @@
 				}
 			}
 		},
+		"/lua/rest/v1/get/host/custom_data.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get host custom data",
+				"description": "Custom data is returned for one or all hosts",
+				"operationId": "get_host_custom_data_json",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					},
+					{
+						"name": "host",
+						"in": "query",
+						"description": "Host address",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "field_alias",
+						"in": "query",
+						"description": "Field alias",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/Host"
+						}
+					},
+					"-1": {
+						"description": "NOT_FOUND"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-4": {
+						"description": "INVALID_HOST"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					},
+					"-7": {
+						"description": "BAD_FORMAT"
+					},
+					"-8": {
+						"description": "BAD_CONTENT"
+					}
+				}
+			}
+		},
 		"/lua/rest/v1/get/host/l7/stats.lua": {
 			"get": {
 				"tags": [

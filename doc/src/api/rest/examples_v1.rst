@@ -546,6 +546,112 @@ Response:
      }
    }
 
+Get host custom data
+~~~~~~~~~~~~~~~~~~~~
+
+Get custom host data: "ip,bytes.sent=tdb,packets.sent" for host: "10.222.222.119" on
+monitoring interface (ifid): 0. Available fields can be found from the output
+of "Get host data" above. Each field can have an optional alias name. Use
+the "field=alias" syntax to define a field alias. Separate each
+field / field alias with a comma.
+
+*curl*
+
+.. code:: bash
+
+   curl --silent --insecure -u "admin:admin" \
+     -d '{"ifid": 0, "host": "10.222.222.119", "field_alias": "ip,bytes.sent=tdb,packets.sent"}' \
+     "https://localhost:3001/lua/rest/v1/get/host/custom_data.lua"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rc": 0,
+     "rsp": {
+       "tdb": 71787960,
+       "ip": "10.222.222.119",
+       "packets.sent": 243977
+     }
+   }
+
+Get custom host data: "ip,bytes.sent=tdb,packets.sent=tdp" for all hosts on
+monitoring interface (ifid): 0.
+
+*curl*
+
+.. code:: bash
+
+   curl --silent --insecure -u "admin:admin" \
+     -d '{"ifid": 0, "field_alias": "ip,bytes.sent=tdb,packets.sent=tdp"}' \
+     "https://localhost:3001/lua/rest/v1/get/host/custom_data.lua"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rc": 0,
+     "rsp": [
+       {
+         "ip": "ff02::1:ff00:1",
+         "tdb": 0,
+         "tdp": 0
+       },
+       {
+         "ip": "10.222.222.96",
+         "tdb": 106980522,
+         "tdp": 452276
+       },
+       {
+         "ip": "ff02::1:ffb7:97bf",
+         "tdb": 0,
+         "tdp": 0
+       },
+       {
+         "ip": "10.222.222.119",
+         "tdb": 76788610,
+         "tdp": 264447
+       }
+     ]
+   }
+
+Get all host data for all hosts on monitoring interface (ifid): 0.
+
+*curl*
+
+.. code:: bash
+
+   curl --silent --insecure -u "admin:admin" \
+     -d '{"ifid": 0"}' \
+     "https://localhost:3001/lua/rest/v1/get/host/custom_data.lua"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rc": 0,
+     "rsp": [
+       {
+         All host data for "ip": "ff02::1:ff00:1"
+       },
+       {
+         All host data for "ip": "10.222.222.96"
+       },
+       {
+         All host data for "ip": "ff02::1:ffb7:97bf"
+       },
+       {
+         "All host data for "ip": "10.222.222.119",
+       }
+     ]
+   }
+
 Get L7 statistics for a host
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
