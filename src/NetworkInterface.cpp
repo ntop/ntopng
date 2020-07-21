@@ -3650,7 +3650,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     return(false); /* false = keep on walking */
 
   r->elems[r->actNumEntries].hostValue = h;
-
+  h->incUses(); /* (***) */
+  
   switch(r->sorter) {
   case column_ip:
     r->elems[r->actNumEntries++].hostValue = h; /* hostValue was already set */
@@ -4578,6 +4579,11 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
+  for(u_int i=0; i<retriever.actNumEntries; i++) {
+    if(retriever.elems[i].hostValue)
+      retriever.elems[i].hostValue->decUses(); /* See (***) */
+  }
+  
   // it's up to us to clean sorted data
   // make sure first to free elements in case a string sorter has been used
   if(retriever.sorter == column_name
@@ -4707,6 +4713,8 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
       }
 
       gper->incStats(h);
+
+      h->decUses(); /* See (***) */
     }
   }
 

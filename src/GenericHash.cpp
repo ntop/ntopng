@@ -348,7 +348,10 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	case hash_entry_state_active:
 	  if(force_idle
 	     || (head->is_hash_entry_state_idle_transition_possible()
-		 && head->is_hash_entry_state_idle_transition_ready())) {
+		 && head->is_hash_entry_state_idle_transition_ready()
+		 && (head->getUses() == 0 /* Nobody is using this entry */)
+		 )
+	     ) {
 	  detach_idle_hash_entry:
 	    idle_entries_shadow->push_back(head);
 
