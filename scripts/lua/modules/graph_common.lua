@@ -135,8 +135,7 @@ end
 
 function graph_common.graphMenuGetActive(schema, params)
    -- These tags are used to determine the active timeseries entry
-   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, exporter_ifname=1, l4proto=1, command=1}
-
+   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, exporter_ifname=1, l4proto=1, command=1, dscp_class=1}
    for _, entry in pairs(graph_menu_entries) do
       local extra_params = entry.extra_params or {}
 
@@ -441,16 +440,8 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 	 end
 
 	 for _, class in pairsByKeys(by_class, asc) do
-	    local class_id = class
-	    local label
-
-	    if class_id == "unknown" then
-	       label = i18n("unknown")
-	    else
-	       label = dscp_consts.ds_precedence_descr(class)
-	    end
-
-	    graph_common.populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, dscp_class=class_id}))
+	    local label = dscp_consts.ds_precedence_descr(class)
+	    graph_common.populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, dscp_class=class}))
 	 end
       end
    end
