@@ -741,7 +741,7 @@ function base_pools:get_pool_id(member)
       return self.assigned_pool_members[member]["pool_id"]
    end
 
-   return user_scripts.DEFAULT_POOL_ID
+   return base_pools.DEFAULT_POOL_ID
 end
 
 -- ##############################################

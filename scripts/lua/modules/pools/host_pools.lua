@@ -281,8 +281,10 @@ end
 -- ##############################################
 
 -- @param member a valid pool member
--- @return The pool_id found for `member` or the default pool_id
-function base_pools:get_pool_id(member)
+-- @return The pool_id found for the currently selected host.
+--         `member` here is IGNORED: argument is just kept to
+--         preserve method fingerprint.
+function host_pools:get_pool_id(member)
    -- OVERRIDE
    local res = host.getPoolId()
 
