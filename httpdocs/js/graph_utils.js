@@ -31,6 +31,8 @@ function getSerieLabel(schema, serie, visualization, serie_index) {
       return serie.tags.category;
     else if(serie.tags.l4proto)
       return serie.tags.l4proto;
+    else if(serie.tags.dscp_class)
+      return serie.tags.dscp_class;
     else if(serie.tags.device && serie.tags.if_index) { // SNMP interface
       if(serie.ext_label != "")
           return serie.ext_label;
