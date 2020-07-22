@@ -46,6 +46,10 @@ LocalHost::LocalHost(NetworkInterface *_iface, char *ipAddress,
 LocalHost::~LocalHost() {
   if(initial_ts_point) delete(initial_ts_point);
   freeLocalHostData();
+#ifdef NTOPNG_PRO
+  if(ba)
+    delete ba;
+#endif  
 }
 
 /* *************************************** */
@@ -132,6 +136,13 @@ void LocalHost::initialize() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
 			       ip.print(buf, sizeof(buf)),
 			       isSystemHost() ? "systemHost" : "", this);
+#endif
+
+#ifdef NTOPNG_PRO  
+  if(ntop->getPrefs()->isBehavourAnalysisEnabled())
+    ba = new HostBehaviourAnalysis;
+  else
+    ba = NULL;
 #endif
 }
 
@@ -262,7 +273,10 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 
 #ifdef NTOPNG_PRO
 void LocalHost::luaHostBehaviour(lua_State* vm) {
-  ba.lua(iface, vm);
+  if(ba)
+    ba->lua(iface, vm);
+  else
+    lua_pushnil(vm);
 }
 #endif
 

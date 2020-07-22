@@ -32,7 +32,7 @@ class LocalHost : public Host, public SerializableElement {
   LocalHostStats *initial_ts_point;
 
 #ifdef NTOPNG_PRO
-  HostBehaviourAnalysis ba;
+  HostBehaviourAnalysis *ba;
 #endif
   
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
@@ -95,25 +95,25 @@ class LocalHost : public Host, public SerializableElement {
   
   void flowBeginEvent(Flow *f, u_int32_t epoch, bool as_client) {
 #ifdef NTOPNG_PRO
-    ba.flowBeginEvent(f, epoch, as_client);
+    if(ba) ba->flowBeginEvent(f, epoch, as_client);
 #endif
   }
   
   void flowL7ProtoDetectedEvent(Flow *f, u_int16_t l7proto, bool as_client) {
 #ifdef NTOPNG_PRO
-    ba.flowL7ProtoDetectedEvent(f, l7proto, as_client);
+    if(ba) ba->flowL7ProtoDetectedEvent(f, l7proto, as_client);
 #endif
   }
 
   void flowEndEvent(Flow *f, bool as_client) {
 #ifdef NTOPNG_PRO
-    ba.flowEndEvent(f, as_client);
+    if(ba) ba->flowEndEvent(f, as_client);
 #endif
   }
 
   void custom_periodic_stats_update(void *user_data) {
 #ifdef NTOPNG_PRO
-    ba.heartbeat();
+    if(ba) ba->heartbeat();
 #endif    
   }
 };
