@@ -20,6 +20,7 @@ function pools_rest_utils.add_pool(pools)
    local name = _POST["pool_name"]
    local members = _POST["pool_members"]
    local confset_id = _POST["confset_id"]
+   local recipients = _POST["pool_recipients"]
 
    sendHTTPHeader('application/json')
 
@@ -37,10 +38,16 @@ function pools_rest_utils.add_pool(pools)
    local s = pools:create()
 
    members = s:parse_members(members)
+   recipients = s:parse_recipients(recipients)
    -- confset_id as number
    confset_id = tonumber(confset_id)
 
-   local new_pool_id = s:add_pool(name, members --[[ an array of valid interface ids]], confset_id --[[ a valid configset_id --]])
+   local new_pool_id = s:add_pool(
+      name,
+      members --[[ an array of valid interface ids]],
+      confset_id --[[ a valid configset_id --]],
+      recipients --[[ an array of valid recipient ids (names)]]
+   )
 
    if not new_pool_id then
       print(rest_utils.rc(rest_utils.consts_add_pool_failed))
@@ -63,6 +70,7 @@ function pools_rest_utils.edit_pool(pools)
    local name = _POST["pool_name"]
    local members = _POST["pool_members"]
    local confset_id = _POST["confset_id"]
+   local recipients = _POST["pool_recipients"]
 
    sendHTTPHeader('application/json')
 
@@ -80,12 +88,18 @@ function pools_rest_utils.edit_pool(pools)
    local s = pools:create()
 
    members = s:parse_members(members)
+   recipients = s:parse_recipients(recipients)
    -- pool_id as number
    pool_id = tonumber(pool_id)
    -- confset_id as number
    confset_id = tonumber(confset_id)
 
-   local res = s:edit_pool(pool_id, name, members --[[ an array of valid interface ids]], confset_id --[[ a valid configset_id --]])
+   local res = s:edit_pool(pool_id,
+      name,
+      members --[[ an array of valid interface ids]], 
+      confset_id --[[ a valid configset_id --]],
+      recipients --[[ an array of valid recipient ids (names)]]
+   )
 
    if not res then
       print(rest_utils.rc(rest_utils.consts_edit_pool_failed))

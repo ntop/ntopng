@@ -182,14 +182,15 @@ end
 
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
-function base_pools:_persist(pool_id, name, members, configset_id)
+function base_pools:_persist(pool_id, name, members, configset_id, recipients)
    -- self:cleanup()
 
    local pool_details_key = self:_get_pool_details_key(pool_id)
    local pool_details = {
       name = name,
       members = members,
-      configset_id = configset_id
+      configset_id = configset_id,
+      recipients = recipients,
    }
    ntop.setCache(pool_details_key, json.encode(pool_details))
 
@@ -199,13 +200,13 @@ end
 
 -- ##############################################
 
-function base_pools:add_pool(name, members, configset_id)
+function base_pools:add_pool(name, members, configset_id, recipients)
    local pool_id
 
    local locked = self:_lock()
 
    if locked then
-      if name and members and configset_id then
+      if name and members and configset_id and recipients then
 	 local checks_ok = true
 
 	 -- Check if duplicate names exist
@@ -238,12 +239,19 @@ function base_pools:add_pool(name, members, configset_id)
 	    end
 	 end
 
+	 -- Check if recipients are valid
+	 if checks_ok then
+	   if not self:are_valid_recipients(recipients) then
+             checks_ok = false
+           end
+         end
+
 	 if checks_ok then
 	    -- All the checks have succeeded
 	    -- Now that everything is ok, the id can be assigned and the pool can be persisted with the assigned id
 	    pool_id = self:_assign_pool_id()
 
-	    self:_persist(pool_id, name, members, configset_id)
+	    self:_persist(pool_id, name, members, configset_id, recipients)
 	 end
       end
 
@@ -255,7 +263,7 @@ end
 
 -- ##############################################
 
-function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
+function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id, new_recipients)
    local ret = false
 
    local locked = self:_lock()
@@ -271,7 +279,13 @@ function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
 	 new_members = cur_pool_details["members"]
       end
 
-      if cur_pool_details and new_name and new_members and new_configset_id then
+      if not new_recipients then
+	 -- In case recipients have not been sumbitted, new_recipients
+	 -- are assumed to be the existing recipients
+	 new_recipients = cur_pool_details["recipients"]
+      end
+
+      if cur_pool_details and new_name and new_members and new_configset_id and new_recipients then
 	 local checks_ok = true
 
 	 -- Check if new_name is not the name of any other existing pool
@@ -304,9 +318,12 @@ function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id)
 	    end
 	 end
 
+	 -- Check if recipients are valid
+	 if checks_ok and not self:are_valid_recipients(new_recipients) then checks_ok = false end
+
 	 if checks_ok then
 	    -- If here, all checks are valid and the pool can be edited
-	    self:_persist(pool_id, new_name, new_members, new_configset_id)
+	    self:_persist(pool_id, new_name, new_members, new_configset_id, new_recipients)
 
 	    -- Pool edited successfully
 	    ret = true
@@ -481,6 +498,32 @@ end
 
 -- ##############################################
 
+function base_pools:get_recipients(pool_id)
+   local ret = {}
+
+   if pool_id == nil then
+      return ret
+   end
+
+   local locked = self:_lock()
+
+   if locked then
+      local pool_details = self:get_pool(pool_id)
+
+      if pool_details and pool_details["recipients"] then
+         for _, recipient in pairs(pool_details["recipients"]) do
+            res[#res + 1] = recipient
+         end
+      end
+
+      self:_unlock()
+   end
+
+   return ret
+end
+
+-- ##############################################
+
 function base_pools:cleanup()
    -- Delete pool details
    local cur_pool_ids = self:_get_assigned_pool_ids()
@@ -512,6 +555,64 @@ end
 function base_pools:are_valid_members(members)
    for _, member in pairs(members) do
       if not self:is_valid_member(member) then
+	 return false
+      end
+   end
+
+   return true
+end
+
+-- ##############################################
+
+-- @brief Parses recipients submitted via HTTP (validated as `pool_recipients` in `http_lint.lua`) into a table of members
+function base_pools:parse_recipients(recipients_string)
+   local recipients = {}
+
+   if isEmptyString(recipients_string) then
+      return recipients
+   end
+
+   -- Unfold the recipients csv
+   recipients = recipients_string:split(",") or {recipients_string}
+
+   return recipients
+end
+
+-- ##############################################
+
+-- @brief Returns available recipient ids which can be added to a pool
+function base_pools:get_available_recipient_ids()
+   -- Please note that recipient ids are shared across pools of all types
+   -- so all the recipient ids can be returned here without distinction
+   local recipients = notification_recipients.get_recipients()
+   local res = {}
+
+   for _, recipient in pairs(recipients) do
+      local recipient_id = recipient.recipient_name -- recipients id is the name
+      res[recipient_id] = {
+        recipient_id = recipient_id,
+        recipient_name = recipient.recipient_name,
+      }
+   end
+
+   return res
+end
+
+-- ##############################################
+
+-- @brief Returns a boolean indicating whether the recipient is a valid recipient
+function base_pools:is_valid_recipient(recipient)
+   local all_recipients = self:get_available_recipient_ids()
+   return all_recipients[recipient] ~= nil
+end
+
+-- ##############################################
+
+-- @brief Returns a boolean indicating whether the array of recipients passed 
+-- contains all valid recipients
+function base_pools:are_valid_recipients(recipients)
+   for _, recipient in pairs(recipients) do
+      if not self:is_valid_recipient(recipient) then
 	 return false
       end
    end
@@ -576,7 +677,7 @@ function base_pools:_bind_member(member, pool_id)
 	 bind_pool_members[#bind_pool_members + 1] = member
 
 	 -- Persist the pool with the new `member`
-	 self:_persist(bind_pool["pool_id"], bind_pool["name"], bind_pool_members, bind_pool["configset_id"])
+	 self:_persist(bind_pool["pool_id"], bind_pool["name"], bind_pool_members, bind_pool["configset_id"], bind_pool["recipients"])
 
 	 -- Bind has executed successfully
 	 ret, err = true, base_pools.ERRORS.NO_ERROR
@@ -618,7 +719,7 @@ function base_pools:bind_member(member, pool_id)
 	    end
 
 	    -- Persist the existing pool without the removed `member`
-	    self:_persist(cur_pool["pool_id"], cur_pool["name"], new_members, cur_pool["configset_id"])
+	    self:_persist(cur_pool["pool_id"], cur_pool["name"], new_members, cur_pool["configset_id"], cur_pool["recipients"])
 	 end
       end
 
@@ -686,7 +787,7 @@ function base_pools:unbind_all_configset_id(configset_id)
       for _, pool in pairs(all_pools) do
 	 if pool["configset_id"] == configset_id then
 	    -- Rewrite the pool using the default configset id
-	    self:_persist(pool["pool_id"], pool["name"], pool["members"], user_scripts.DEFAULT_CONFIGSET_ID)
+	    self:_persist(pool["pool_id"], pool["name"], pool["members"], user_scripts.DEFAULT_CONFIGSET_ID, pool["recipients"])
 	 end
       end
 
@@ -749,7 +850,7 @@ end
 -- @brief Return the name associated to a pool
 -- @param pool_id The pool id
 -- @return A string with the name of the pool
-function base_pools:get_pool_name(pool_id)
+function base_pools:pool_name(pool_id)
    if pool_id == base_pools.DEFAULT_POOL_ID then
       return base_pools.DEFAULT_POOL_NAME
    else
