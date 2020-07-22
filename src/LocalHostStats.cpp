@@ -30,15 +30,15 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   http = new (std::nothrow) HTTPstats(_host);
   icmp = new (std::nothrow) ICMPstats();
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
-  contacts_as_cli = contacts_as_srv = 0;
+  num_contacts_as_cli = num_contacts_as_srv = 0;
   
-  num_contacted_hosts_as_client      = new Cardinality(9);  /* 256 bytes */
-  num_host_contacts_as_server        = new Cardinality(9);  /* 256 bytes */
-  num_contacted_services_as_client   = new Cardinality(9);  /* 256 bytes */
-  num_contacted_ports_as_client      = new Cardinality(4);  /* 16 bytes  */
-  num_host_contacted_ports_as_server = new Cardinality(4);  /* 16 bytes  */
-  contacts_as_cli                    = new Cardinality(4);  /* 16 bytes  */
-  contacts_as_srv                    = new Cardinality(4);  /* 16 bytes  */
+  num_contacted_hosts_as_client.init(8);       /* 128 bytes */
+  num_host_contacts_as_server.init(8);         /* 128 bytes */
+  num_contacted_services_as_client.init(8);    /* 128 bytes */
+  num_contacted_ports_as_client.init(4);       /* 16 bytes  */
+  num_host_contacted_ports_as_server.init(4);  /* 16 bytes  */
+  contacts_as_cli.init(4);                     /* 16 bytes  */
+  contacts_as_srv.init(4);                     /* 16 bytes  */
 }
 
 /* *************************************** */
@@ -50,15 +50,7 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   http = NULL;
   icmp = NULL;
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
-  contacts_as_cli = contacts_as_srv = 0;
-  
-  num_contacted_hosts_as_client      = NULL;
-  num_host_contacts_as_server        = NULL;
-  num_contacted_services_as_client   = NULL;
-  num_contacted_ports_as_client      = NULL;
-  num_host_contacted_ports_as_server = NULL;
-  contacts_as_cli                    = NULL;
-  contacts_as_srv                    = NULL;
+  num_contacts_as_cli = num_contacts_as_srv = 0;
 }
 
 /* *************************************** */
@@ -69,14 +61,6 @@ LocalHostStats::~LocalHostStats() {
   if(dns)             delete dns;
   if(http)            delete http;
   if(icmp)            delete icmp;
-
-  if(num_contacted_hosts_as_client)      delete num_contacted_hosts_as_client;
-  if(num_host_contacts_as_server)        delete num_host_contacts_as_server;
-  if(num_contacted_services_as_client)   delete num_contacted_services_as_client;
-  if(num_contacted_ports_as_client)      delete num_contacted_ports_as_client;
-  if(num_host_contacted_ports_as_server) delete num_host_contacted_ports_as_server;
-  if(contacts_as_cli)                    delete contacts_as_cli;
-  if(contacts_as_srv)                    delete contacts_as_srv;
 }
 
 /* *************************************** */
@@ -132,8 +116,8 @@ void LocalHostStats::updateStats(struct timeval *tv) {
 /* *************************************** */
 
 void LocalHostStats::updateHostContacts() {
-  num_contacts_as_cli = contacts_as_cli->getEstimate(), num_contacts_as_srv = contacts_as_srv->getEstimate();
-  contacts_as_cli->reset(), contacts_as_srv->reset();
+  num_contacts_as_cli = contacts_as_cli.getEstimate(), num_contacts_as_srv = contacts_as_srv.getEstimate();
+  contacts_as_cli.reset(), contacts_as_srv.reset();
 }
 
 /* *************************************** */
@@ -167,24 +151,25 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
     luaDNS(vm, true);
     luaHTTP(vm);
     
-    if(num_contacted_hosts_as_client /* one check is enough */) {
-      lua_newtable(vm);
+
+    /* Contacts */
+    lua_newtable(vm);
       
-      lua_push_int32_table_entry(vm, "num_contacted_hosts_as_client",
-				 num_contacted_hosts_as_client->getEstimate()); 
-      lua_push_int32_table_entry(vm, "num_host_contacts_as_server",
-				 num_host_contacts_as_server->getEstimate());
-      lua_push_int32_table_entry(vm, "num_contacted_services_as_client",
-				 num_contacted_services_as_client->getEstimate());
-      lua_push_int32_table_entry(vm, "num_contacted_ports_as_client",
-				 num_contacted_ports_as_client->getEstimate());
-      lua_push_int32_table_entry(vm, "num_host_contacted_ports_as_server",
-				 num_host_contacted_ports_as_server->getEstimate());
+    lua_push_int32_table_entry(vm, "num_contacted_hosts_as_client",
+			       num_contacted_hosts_as_client.getEstimate()); 
+    lua_push_int32_table_entry(vm, "num_host_contacts_as_server",
+			       num_host_contacts_as_server.getEstimate());
+    lua_push_int32_table_entry(vm, "num_contacted_services_as_client",
+			       num_contacted_services_as_client.getEstimate());
+    lua_push_int32_table_entry(vm, "num_contacted_ports_as_client",
+			       num_contacted_ports_as_client.getEstimate());
+    lua_push_int32_table_entry(vm, "num_host_contacted_ports_as_server",
+			       num_host_contacted_ports_as_server.getEstimate());
       
-      lua_pushstring(vm, "cardinality");
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-    }
+    lua_pushstring(vm, "cardinality");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+    
   }  
 }
 
