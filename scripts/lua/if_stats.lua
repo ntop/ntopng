@@ -523,7 +523,7 @@ if((page == "overview") or (page == nil)) then
       print("<th width=250>".. ternary(ifstats.num_dropped_alerts > 0, warning, "")..i18n("show_alerts.dropped_alerts")..
 	       " <i class='fas fa-sm fa-info-circle' title='".. i18n("if_stats_overview.dropped_alerts_info") .."'></i>"..
 	       ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:alerts_stats'><i class='fas fa-chart-area fa-sm'></i></A>", "")
-	       .."</th><td colspan=2>" .. formatValue(ifstats.num_dropped_alerts) .. " <span id=dropped_alerts_trend></span></td>\n</td>")
+	       .."</th><td colspan=2><span id=dropped_alerts>" .. formatValue(ifstats.num_dropped_alerts) .. "</span> <span id=dropped_alerts_trend></span></td>\n</td>")
    end
 
    label = i18n("pkts")
@@ -2114,6 +2114,7 @@ print [[
 	last_engaged_alerts = rsp.engaged_alerts;
 	$('#dropped_alerts_trend').html(get_trend(last_dropped_alerts, rsp.dropped_alerts));
 	last_dropped_alerts = rsp.dropped_alerts;
+        $('#dropped_alerts').html(last_dropped_alerts);
 
 	if((rsp.packets + rsp.drops) > 0) {
           pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2);
