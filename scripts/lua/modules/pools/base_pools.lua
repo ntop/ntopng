@@ -600,10 +600,10 @@ end
 
 -- ##############################################
 
--- @brief Returns a boolean indicating whether the recipient is a valid recipient
-function base_pools:is_valid_recipient(recipient)
+-- @brief Returns a boolean indicating whether the recipient_id is a valid recipient id
+function base_pools:is_valid_recipient(recipient_id)
    local all_recipients = self:get_available_recipient_ids()
-   return all_recipients[recipient] ~= nil
+   return all_recipients[recipient_id] ~= nil
 end
 
 -- ##############################################
@@ -611,13 +611,50 @@ end
 -- @brief Returns a boolean indicating whether the array of recipients passed 
 -- contains all valid recipients
 function base_pools:are_valid_recipients(recipients)
-   for _, recipient in pairs(recipients) do
-      if not self:is_valid_recipient(recipient) then
+   for _, recipient_id in pairs(recipients) do
+      if not self:is_valid_recipient(recipient_id) then
 	 return false
       end
    end
 
    return true
+end
+
+-- ##############################################
+
+-- @brief Unbind a recipient from all pools
+function base_pools:unbind_all_recipient_id(recipient_id)
+   if not recipient_id then
+      -- Invalid argument
+      return
+   end
+
+   local locked = self:_lock()
+
+   if locked then
+      local all_pools = self:get_all_pools()
+
+      for _, pool in pairs(all_pools) do
+         local found = false
+
+	 -- New recipients (all pool recipients except for the one being removed)
+	 local new_recipients = {}
+	 for _, cur_recipient in pairs(cur_pool["recipients"]) do
+	    if cur_recipient ~= recipient_id then
+	       new_recipients[#new_recipients + 1] = cur_recipient
+            else
+               found = true
+	    end
+	 end
+
+	 if found then
+	    -- Rewrite the pool using the new recipients set
+	    self:_persist(pool["pool_id"], pool["name"], pool["members"], pool["configset_id"], new_recipients)
+	 end
+      end
+
+      self:_unlock()
+   end
 end
 
 -- ##############################################
