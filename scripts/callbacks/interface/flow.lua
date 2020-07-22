@@ -236,6 +236,11 @@ end
 -- #################################################################
 
 local function triggerFlowAlert(now, l4_proto)
+
+   if not areAlertsEnabled() then
+      return(false)
+   end
+
    local cli_key = flow.getClientKey()
    local srv_key = flow.getServerKey()
    local cli_disabled_status = hosts_disabled_status[cli_key] or 0
@@ -436,7 +441,10 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
 
    -- Only trigger the alert if its score is greater than the currently
    -- triggered alert score
-   if alerted_status and (alerted_status_score > flow.getAlertedStatusScore()) then
+   if areAlertsEnabled() and 
+      alerted_status and 
+      (alerted_status_score > flow.getAlertedStatusScore()) then
+
       triggerFlowAlert(now, l4_proto)
 
       if calculate_stats then

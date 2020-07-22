@@ -137,6 +137,11 @@ end
 --! @param when (optional) the time when the release event occurs
 --! @return true if the alert was successfully stored, false otherwise
 function alerts_api.store(entity_info, type_info, when)
+
+  if(not areAlertsEnabled()) then
+    return(false)
+  end
+
   local force = false
   local ifid = interface.getId()
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
@@ -149,10 +154,6 @@ function alerts_api.store(entity_info, type_info, when)
   local alert_json = json.encode(type_info.alert_type_params)
   local subtype = type_info.alert_subtype or ""
   when = when or os.time()
-
-  if(not areAlertsEnabled()) then
-    return(false)
-  end
 
   if alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_key) then
     return(false)
@@ -243,6 +244,11 @@ end
 --! @note The actual trigger is performed asynchronously
 --! @note false is also returned if an existing alert is found and refreshed
 function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
+
+  if(not areAlertsEnabled()) then
+    return(false)
+  end
+
   local ifid = interface.getId()
   local is_disabled = alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_key)
 
@@ -250,10 +256,6 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   -- so that the alert will be automatically released during the next check.
   if is_disabled then
      return(true)
-  end
-
-  if(not areAlertsEnabled()) then
-    return(false)
   end
 
   if(type_info.alert_granularity == nil) then
@@ -328,6 +330,11 @@ end
 --! @note The actual release is performed asynchronously
 --! @return true on success, false otherwise
 function alerts_api.release(entity_info, type_info, when, cur_alerts)
+
+  if(not areAlertsEnabled()) then
+    return(false)
+  end
+
   -- Apply defaults
   local granularity_sec = type_info.alert_granularity and type_info.alert_granularity.granularity_seconds or 0
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
@@ -343,10 +350,6 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local ifid = interface.getId()
   local params = {alert_key_name, granularity_id, when}
   local released = nil
-
-  if(not areAlertsEnabled()) then
-    return(false)
-  end
 
   if(type_info.alert_severity == nil) then
     alertErrorTraceback(string.format("Missing alert_severity [type=%s]", type_info.alert_type and type_info.alert_type.alert_key or ""))
