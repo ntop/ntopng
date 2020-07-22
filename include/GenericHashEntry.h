@@ -93,7 +93,7 @@ class GenericHashEntry {
   void set_state(HashEntryState s);
   
  protected:
-  std::atomic<int16_t> num_uses;
+  std::atomic<int32_t> num_uses;
   time_t first_seen;   /**< Time of first seen. */
   time_t last_seen;    /**< Time of last seen. */
   NetworkInterface *iface; /**< Pointer of network interface. */
@@ -247,7 +247,7 @@ class GenericHashEntry {
   virtual char* get_string_key(char *buf, u_int buf_len) const { buf[0] = '\0'; return(buf); };
   void incUses()                       { num_uses--;                     }
   void decUses()                       { num_uses--;                     }
-  int16_t getUses()              const { return(num_uses);               }
+  int32_t getUses()              const { return(num_uses);               }
 
   virtual void deserialize(json_object *obj);
   virtual void getJSONObject(json_object *obj, DetailsLevel details_level);
