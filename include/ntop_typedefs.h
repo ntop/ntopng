@@ -81,8 +81,10 @@ typedef enum {
   five_minute_script,
   hour_script,
   day_script,
-  MAX_NUM_PERIODIC_SCRIPTS /* IMPORTANT: leave it as last element */
+  /* IMPORTANT: update MAX_NUM_PERIODIC_SCRIPTS as new entries are added */
 } ScriptPeriodicity;
+
+#define MAX_NUM_PERIODIC_SCRIPTS 6
 
 typedef enum {
   threshold_hourly = 0,
