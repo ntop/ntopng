@@ -28,7 +28,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ntop = _ntop, pcap_file_purge_hosts_flows = false,
     ignore_vlans = false, simulate_vlans = false, ignore_macs = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
-  num_simulated_ips = 0, enable_behaviour_analysis = false;
+  num_simulated_ips = 0, enable_behaviour_analysis = true;
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
@@ -135,6 +135,10 @@ Prefs::Prefs(Ntop *_ntop) {
 #ifdef HAVE_NEDGE
   disable_dns_resolution();
   disable_dns_responses_decoding();
+#endif
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  enableBehaviourAnalysis();
 #endif
 }
 

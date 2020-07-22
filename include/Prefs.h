@@ -360,6 +360,8 @@ class Prefs {
   inline void     doReproduceOriginalSpeed()     { reproduce_at_original_speed = true;                  };
   inline bool     purgeHostsFlowsOnPcapFiles()   { return(pcap_file_purge_hosts_flows);                 };
   inline bool     isBehavourAnalysisEnabled()    { return(enable_behaviour_analysis);                   };
+  inline void     enableBehaviourAnalysis()      { enable_behaviour_analysis = true;                    };
+  
   void validate();
 };
 
