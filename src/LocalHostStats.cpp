@@ -32,13 +32,13 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   contacts_as_cli = contacts_as_srv = 0;
   
-  num_contacted_hosts_as_client      = new Cardinality(14);
-  num_host_contacts_as_server        = new Cardinality(14);
-  num_contacted_services_as_client   = new Cardinality(14);
-  num_contacted_ports_as_client      = new Cardinality(4);
-  num_host_contacted_ports_as_server = new Cardinality(4);
-  contacts_as_cli                    = new Cardinality(4);
-  contacts_as_srv                    = new Cardinality(4);
+  num_contacted_hosts_as_client      = new Cardinality(9);  /* 256 bytes */
+  num_host_contacts_as_server        = new Cardinality(9);  /* 256 bytes */
+  num_contacted_services_as_client   = new Cardinality(9);  /* 256 bytes */
+  num_contacted_ports_as_client      = new Cardinality(4);  /* 16 bytes  */
+  num_host_contacted_ports_as_server = new Cardinality(4);  /* 16 bytes  */
+  contacts_as_cli                    = new Cardinality(4);  /* 16 bytes  */
+  contacts_as_srv                    = new Cardinality(4);  /* 16 bytes  */
 }
 
 /* *************************************** */
