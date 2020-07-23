@@ -935,7 +935,6 @@ function plugins_utils.loadModule(plugin_name, module_name)
 
    lua_path_utils.package_path_preprend(RUNTIME_PATHS.modules)
 
-   local lua_path = os_utils.fixPath(RUNTIME_PATHS.modules .. "/" .. plugin_name .. "/" .. module_name .. ".lua")
    local req_name = string.format("%s.%s", plugin_name, module_name)
    local req = require(req_name)
 
