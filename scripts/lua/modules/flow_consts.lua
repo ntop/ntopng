@@ -9,6 +9,7 @@ local locales_utils = require "locales_utils"
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
 local plugins_utils = require("plugins_utils")
+local lua_path_utils = require "lua_path_utils"
 
 flow_consts.max_score = 1000
 
@@ -34,34 +35,38 @@ local status_by_id = {}
 local status_key_by_id = {}
 
 local function loadStatusDefs()
-    if(false) then
+   if(false) then
       if(string.find(debug.traceback(), "second.lua")) then
          traceError(TRACE_WARNING, TRACE_CONSOLE, "second.lua is loading flow_consts.lua. This will slow it down!")
       end
-    end
+   end
 
-    local defs_dirs = flow_consts.getDefinititionDirs()
+   local defs_dirs = flow_consts.getDefinititionDirs()
 
-    flow_consts.resetDefinitions()
+   flow_consts.resetDefinitions()
 
-    for _, defs_dir in pairs(defs_dirs) do
-        for fname in pairs(ntop.readdir(defs_dir)) do
-            if ends(fname, ".lua") then
-                local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-                local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
-                local def_script = dofile(full_path)
+   for _, defs_dir in pairs(defs_dirs) do
+      lua_path_utils.package_path_preprend(defs_dir)
 
-                if(def_script == nil) then
-                    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading status definition from %s", full_path))
-                    goto next_script
-                end
+      for fname in pairs(ntop.readdir(defs_dir)) do
+	 if ends(fname, ".lua") then
+	    local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+	    local def_script = require(mod_fname)
 
-                flow_consts.loadDefinition(def_script, mod_fname, full_path)
-            end
+	    if(def_script == nil) then
+	       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading status definition from %s", mod_fname))
+	       goto next_script
+	    end
 
-            ::next_script::
-        end
-    end
+	    if not flow_consts.loadDefinition(def_script, mod_fname, defs_dir) then
+	       -- Retry reload
+	       package.loaded[mod_fname] = nil
+	    end
+	 end
+
+	 ::next_script::
+      end
+   end
 end
 
 -- ################################################################################
