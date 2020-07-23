@@ -840,44 +840,44 @@ local function endpoint_sorter(a, b)
   return(a.key > b.key)
 end
 
+-- ##############################################
+
 -- @brief Get the available alert endpoints
 -- @return a sorted table, in order of priority, for the alert endpoints
 function plugins_utils.getLoadedAlertEndpoints()
-  init_runtime_paths()
+   init_runtime_paths()
 
-  local rv = {}
-  local prefs_map = {}
-  local prefs_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/prefs_entries.lua")
+   local rv = {}
 
-  if ntop.exists(prefs_path) then
-    prefs_map = dofile(prefs_path) or {}
-  end
+   lua_path_utils.package_path_preprend(RUNTIME_PATHS.alert_endpoints)
+   local prefs_map = require "prefs_entries" or {}
 
-  for fname in pairs(ntop.readdir(RUNTIME_PATHS.alert_endpoints) or {}) do
-    if((fname ~= "prefs_entries.lua") and string.ends(fname, ".lua")) then
-      local full_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/" .. fname)
-      local endpoint = dofile(full_path)
+   for fname in pairs(ntop.readdir(RUNTIME_PATHS.alert_endpoints) or {}) do
+      if fname ~= "prefs_entries.lua" and fname:ends(".lua") then
+	 local full_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/" .. fname)
+	 local key = string.sub(fname, 1, string.len(fname) - 4)
 
-      if(endpoint) then
-        if((type(endpoint.isAvailable) ~= "function") or endpoint.isAvailable()) then
-          local key = string.sub(fname, 1, string.len(fname) - 4)
-          endpoint.full_path = full_path
-          endpoint.key = key
-          endpoint.prefs_entries = prefs_map[key] and prefs_map[key].entries
+	 local endpoint = require(key)
 
-          rv[#rv + 1] = endpoint
-        end
-      else
-        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load alert endpoint '%s'", full_path))
+	 if(endpoint) then
+	    if((type(endpoint.isAvailable) ~= "function") or endpoint.isAvailable()) then
+	       endpoint.full_path = full_path
+	       endpoint.key = key
+	       endpoint.prefs_entries = prefs_map[key] and prefs_map[key].entries
+
+	       rv[#rv + 1] = endpoint
+	    end
+	 else
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load alert endpoint '%s'", full_path))
+	 end
       end
-    end
-  end
+   end
 
-  -- Sort by priority (higher priority first)
-  table.sort(rv, endpoint_sorter)
+   -- Sort by priority (higher priority first)
+   table.sort(rv, endpoint_sorter)
 
-  return(rv)
-end 
+   return(rv)
+end
 
 -- ##############################################
 
