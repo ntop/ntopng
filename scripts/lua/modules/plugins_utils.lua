@@ -882,35 +882,36 @@ end
 -- ##############################################
 
 function plugins_utils.extendLintParams(http_lint, params)
-  init_runtime_paths()
+   init_runtime_paths()
 
-  for fname in pairs(ntop.readdir(RUNTIME_PATHS.http_lint)) do
-    local full_path = os_utils.fixPath(RUNTIME_PATHS.http_lint .. "/" .. fname)
-    local lint = dofile(full_path)
+   lua_path_utils.package_path_preprend(RUNTIME_PATHS.http_lint)
+   for fname in pairs(ntop.readdir(RUNTIME_PATHS.http_lint)) do
+      local key = string.sub(fname, 1, string.len(fname) - 4)
+      local lint = require(key)
 
-    if(lint == nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load '%s'", full_path))
-      goto continue
-    end
+      if(lint == nil) then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load lint for '%s'", key))
+	 goto continue
+      end
 
-    if(lint.getAdditionalParameters == nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing mandatory function 'getAdditionalParameters' in '%s'", full_path))
-      goto continue
-    end
+      if(lint.getAdditionalParameters == nil) then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing mandatory function 'getAdditionalParameters' in '%s'", key))
+	 goto continue
+      end
 
-    local rv = lint.getAdditionalParameters(http_lint)
+      local rv = lint.getAdditionalParameters(http_lint)
 
-    if(type(rv) ~= "table") then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("function 'getAdditionalParameters' in '%s' returned a non-table value", full_path))
-      goto continue
-    end
+      if(type(rv) ~= "table") then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("function 'getAdditionalParameters' in '%s' returned a non-table value", key))
+	 goto continue
+      end
 
-    for k, v in pairs(rv) do
-      params[k] = v
-    end
+      for k, v in pairs(rv) do
+	 params[k] = v
+      end
 
-    ::continue::
-  end
+      ::continue::
+   end
 end
 
 -- ##############################################
