@@ -87,7 +87,7 @@ bool GenericHashEntry::is_hash_entry_state_idle_transition_ready() const {
 /* ***************************************** */
 
 bool GenericHashEntry::is_hash_entry_state_idle_transition_possible() const {
-  if(getUses() > 0 || !iface->is_purge_idle_interface())
+  if(/*getUses() > 0 || */ !iface->is_purge_idle_interface())
     return false;
 
   return true;

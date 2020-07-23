@@ -65,7 +65,7 @@ GenericHash::~GenericHash() {
 /* ************************************ */
 
 void GenericHash::cleanup() {
-  vector<GenericHashEntry*> **ghvs[] = {&idle_entries, &idle_entries_shadow};
+  vector<GenericHashEntry*> **ghvs[] = { &idle_entries, &idle_entries_shadow };
 
   for(u_int i = 0; i < sizeof(ghvs) / sizeof(ghvs[0]); i++) {
     if(*ghvs[i]) {
@@ -94,6 +94,14 @@ void GenericHash::cleanup() {
       table[i] = NULL;
     }
   }
+  
+  while(idle_entries_still_in_use.size() > 0) {
+    GenericHashEntry *h = idle_entries_still_in_use.front();
+
+    idle_entries_still_in_use.pop_front();
+    delete h;
+  }
+  
   current_size = 0;
 }
 
@@ -349,12 +357,19 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	  if(force_idle
 	     || (head->is_hash_entry_state_idle_transition_possible()
 		 && head->is_hash_entry_state_idle_transition_ready()
-		 && (head->getUses() == 0 /* Nobody is using this entry */)
 		 )
 	     ) {
 	  detach_idle_hash_entry:
-	    idle_entries_shadow->push_back(head);
 
+	    if(head->getUses() == 0 /* Nobody is using this entry */)
+	      idle_entries_shadow->push_back(head); /* Ready to purge */
+	    else {
+	      idle_entries_still_in_use.push_back(head); /* Idle but still in use */
+#ifdef WALK_DEBUG
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "(+) Adding entry to idle_entries_still_in_use");
+#endif
+	    }
+	    
 	    if(!prev)
 	      table[i] = next;
 	    else
@@ -371,8 +386,27 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	head = next;
       } /* while */
 
+      /* Before unlocking let's check if there are idle entries to purge */
+      while((idle_entries_still_in_use.size() > 0)
+	    && (idle_entries_still_in_use.front()->getUses() == 0)) {
+	GenericHashEntry *h = idle_entries_still_in_use.front();
+
+	idle_entries_still_in_use.pop_front(); /* Remove it from head */
+
+#ifdef WALK_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "(-) Removing entry from idle_entries_still_in_use");
+#endif
+	idle_entries_shadow->push_back(h);
+      }
+
+#ifdef WALK_DEBUG
+      if(idle_entries_still_in_use.size() > 0)
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "%u queued entries in idle_entries_still_in_use [# uses: %u]",
+				     idle_entries_still_in_use.size(), idle_entries_still_in_use.front()->getUses());
+#endif
+      
       locks[i]->unlock(__FILE__, __LINE__);
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[purge] Unlocked %d", i);
     }
   }
 
