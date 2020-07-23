@@ -102,6 +102,21 @@ page_utils.print_navbar(title, url,
 -- #######################################################
 
 if(page == "overview") then
+
+  -- Create a filter list to use inside the overview page
+  -- to filter the datatable
+  local pool_filters = {}
+  for key, value in pairs(am_pool:get_all_pools()) do
+
+    pool_filters[#pool_filters + 1] = {
+      key = "pool-" .. key,
+      label = value.name,
+      regex = key
+    }
+
+  end
+
+
   print(template.gen("modal_confirm_dialog.html", {
       dialog={
 	  id      = "reset-modal",
@@ -150,6 +165,7 @@ if(page == "overview") then
                 <th>]].. i18n("system_stats.last_ip") .. [[</th>
                 <th>]].. i18n("active_monitoring_stats.measurement") .. [[</th>
                 <th>]].. i18n("active_monitoring_stats.alerted") .. [[</th>
+                <th>]].. i18n("active_monitoring_stats.pool") .. [[</th>
                 <th>]].. i18n("active_monitoring_stats.jitter") .. [[</th>
                 <th>]].. i18n("actions") .. [[</th>
               </tr>
@@ -250,6 +266,7 @@ if(page == "overview") then
     <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
     <script type="text/javascript">
 
+      i18n.pools = "]].. i18n("pools.pools") ..[[";
       i18n.showing_x_to_y_rows = "]].. i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) ..[[";
       i18n.search = "]].. i18n("search") ..[[:";
       i18n.msec = "]] .. i18n("active_monitoring_stats.msec") .. [[";
@@ -267,6 +284,7 @@ if(page == "overview") then
       let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
       let import_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
       const measurements_info = ]] .. json.encode(measurements_info) .. [[;
+      const poolsFilter = ]].. json.encode(pool_filters) ..[[;
 
     </script>
     <script type='text/javascript' src=']].. plugins_utils.getHttpdocsDir("active_monitoring") ..[[/active_monitoring_utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>

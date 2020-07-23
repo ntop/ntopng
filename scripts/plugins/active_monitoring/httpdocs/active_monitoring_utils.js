@@ -1,8 +1,9 @@
 $(document).ready(function() {
 
+    const POOL_COLUMN_INDEX = 8;
     let row_data = null;
 
-    const get_measurement_regex = (measurement) => {
+    const getMeasurementRegex = (measurement) => {
 
         switch (measurement) {
             default:
@@ -17,7 +18,13 @@ $(document).ready(function() {
         }
     }
 
-    const delete_host_modal = $(`#am-delete-modal form`).modalHandler({
+    const addPoolFilter = (tableAPI) => {
+        DataTableUtils.addFilterDropdown(
+            i18n.pools, poolsFilter, POOL_COLUMN_INDEX, '#am-table_filter', tableAPI
+        );
+    }
+
+    const $removeModalHandler = $(`#am-delete-modal form`).modalHandler({
         method: 'post',
         csrf: am_csrf,
         endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
@@ -50,7 +57,7 @@ $(document).ready(function() {
 
     $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
         row_data = get_am_data($am_table, $(this));
-        delete_host_modal.invokeModalInit();
+        $removeModalHandler.invokeModalInit();
     });
 
     let edit_host_data = null;
@@ -58,12 +65,12 @@ $(document).ready(function() {
     $("#select-edit-measurement").on('change', function(event) {
         const selected_measurement = $(this).val();
         // change the pattern depending on the selected measurement
-        $(`#input-edit-host`).attr('pattern', get_measurement_regex(selected_measurement));
+        $(`#input-edit-host`).attr('pattern', getMeasurementRegex(selected_measurement));
 
         dialogRefreshMeasurement($("#am-edit-modal"));
     });
 
-    const edit_host_modal = $(`#am-edit-form`).modalHandler({
+    const $editModalHandler = $(`#am-edit-form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
         csrf: am_csrf,
@@ -125,7 +132,7 @@ $(document).ready(function() {
 
     $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
         edit_host_data = get_am_data($am_table, $(this));
-        edit_host_modal.invokeModalInit();
+        $editModalHandler.invokeModalInit();
     });
 
     // Disable the already defined measurements for forced_hosts since
@@ -381,13 +388,13 @@ $(document).ready(function() {
 
     // select the first pattern based to the first selected measurement
     // on the input-add-host
-    $(`#input-add-host`).attr('pattern', get_measurement_regex($("#select-add-measurement").val()));
+    $(`#input-add-host`).attr('pattern', getMeasurementRegex($("#select-add-measurement").val()));
 
     $("#select-add-measurement").on('change', function(event) {
 
         const selected_measurement = $(this).val();
         // change the pattern depending on the selected measurement
-        $(`#input-add-host`).attr('pattern', get_measurement_regex(selected_measurement));
+        $(`#input-add-host`).attr('pattern', getMeasurementRegex(selected_measurement));
 
         dialogRefreshMeasurement($("#am-add-modal"));
     });
@@ -467,6 +474,7 @@ $(document).ready(function() {
             const table = settings.oInstance.api();
             addMeasurementFilter(table, data);
             addAlertedFilter(table, data);
+            addPoolFilter(table);
 
             setInterval(() => {
                 $am_table.ajax.reload(function(data) {
@@ -565,6 +573,11 @@ $(document).ready(function() {
                 data: 'alerted',
                 visible: false,
                 sortable: false,
+            },
+            {
+                data: 'pool',
+                visible: false,
+                sortable: false
             },
             {
                 data: 'jitter',

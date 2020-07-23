@@ -365,6 +365,7 @@ local lang = {
     ["note_periodicity_change"] = "Changing Periodicity causes old timeseries data to be deleted.",
     ["other_http_descr"] = "The sum of \"Name Lookup\" and \"Other\" is the total time took to complete the HTTP request.",
     ["other_https_descr"] = "The sum of \"App Connect\", \"Name Lookup\" and \"Other\" is the total time took to complete the HTTPS request.",
+    ["pool"] = "Pool",
     ["rtt_vs_jitter"] = "Mean RTT / Jitter",
     ["speedtest"] = "Speedtest",
     ["upload_speed"] = "Upload Speed",
