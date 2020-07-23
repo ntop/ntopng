@@ -24,8 +24,7 @@
                         </label>
                         <div class="col-sm-4">
                             <select required name="member_type" class="form-control">
-                                <option selected disabled>{{ i18n("host_pools.select_member_type") }}</option>
-                                <option value="ip">{{ i18n("host_pools.ip_address") }}</option>
+                                <option selected value="ip">{{ i18n("host_pools.ip_address") }}</option>
                                 <option value="network">{{ i18n("host_pools.network") }}</option>
                                 <option value="mac">{{ i18n("host_pools.mac_address") }}</option>
                             </select>

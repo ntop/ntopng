@@ -75,8 +75,8 @@ $(document).ready(function() {
         endpoint: `${http_prefix}/lua/rest/v1/bind/host/pool/member.lua`,
         onModalShow: function() {
             // hide the fields and select default type entry
-            const fields = "#add-member-modal .ip-fields, #add-member-modal .mac-fields, #add-member-modal .network-fields";
-            $(fields).hide();
+            const macAndNetworkFields = "#add-member-modal .mac-fields, #add-member-modal .network-fields";
+            $(macAndNetworkFields).hide();
             // disable add button
             $(`#add-member-modal form [type='submit']`).attr("disabled", true);
             $(`#add-modal-feedback`).hide();

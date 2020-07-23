@@ -189,12 +189,20 @@ $(document).ready(function() {
 
             const members = $(`#edit-pool form select[name='members']`).val() || [];
 
-            return {
+            const data = {
                 pool: poolRowData.pool_id,
                 pool_name: $(`#edit-pool form input[name='name']`).val().trim(),
-                pool_members: members.join(','),
                 confset_id: $(`#edit-pool form select[name='configset']`).val(),
             };
+
+            if (poolType != "host") {
+                data.pool_members = members.join(',');
+            }
+            else {
+                data.pool_members = poolRowData.members.join(',');
+            }
+
+            return data;
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
 
