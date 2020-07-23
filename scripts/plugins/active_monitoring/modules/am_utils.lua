@@ -10,6 +10,7 @@ local plugins_utils = require("plugins_utils")
 local os_utils = require("os_utils")
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
+local lua_path_utils = require("lua_path_utils")
 
 local supported_granularities = {
   ["min"] = "alerts_thresholds_config.every_minute",
@@ -421,65 +422,68 @@ local loaded_am_plugins = {}
 local loaded_measurements = {}
 
 local function loadAmPlugins()
-  if not table.empty(loaded_am_plugins) then
-    return
-  end
+   if not table.empty(loaded_am_plugins) then
+      return
+   end
 
-  local measurements_path = plugins_utils.getPluginDataDir("active_monitoring", "measurements")
+   local measurements_path = plugins_utils.getPluginDataDir("active_monitoring", "measurements")
+   lua_path_utils.package_path_preprend(measurements_path)
 
-  for fname in pairs(ntop.readdir(measurements_path)) do
-    if(not string.ends(fname, ".lua")) then
-      goto continue
-    end
-
-    local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-    local full_path = os_utils.fixPath(measurements_path .. "/" .. fname)
-    local plugin = dofile(full_path)
-
-    if(plugin == nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load '%s'", full_path))
-      goto continue
-    end
-
-    if(not (plugin.measurements)) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("'measurements' section missing in '%s'", full_path))
-      goto continue
-    end
-
-    if(plugin.setup ~= nil) then
-      -- A setup function exists, call it to determine if the plugin is available
-      if(plugin.setup() == false) then
-	goto continue
-      end
-    end
-
-    -- Check that the measurements does not exist
-    for _, measurement in pairs(plugin.measurements) do
-      if(measurement.check == nil) then
-	traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'check' function in '%s' measurement", measurement.key))
-	goto skip
+   for fname in pairs(ntop.readdir(measurements_path)) do
+      if(not string.ends(fname, ".lua")) then
+	 goto continue
       end
 
-      if(measurement.collect_results == nil) then
-	traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'collect_results' function in '%s' measurement", measurement.key))
-	goto skip
+      local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+      local plugin = require(mod_fname)
+
+      if not plugin then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load '%s'", mod_fname))
+	 package.loaded[mod_fname] = nil
+	 goto continue
       end
 
-      if(loaded_measurements[measurement.key]) then
-	traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Measurement '%s' already defined in '%s'", measurement.key, loaded_measurements[measurement.key].key))
-	goto skip
+      if not plugin.measurements then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("'measurements' section missing in '%s'", mod_fname))
+	 package.loaded[mod_fname] = nil
+	 goto continue
       end
 
-      loaded_measurements[measurement.key] = {plugin=plugin, measurement=measurement}
+      if plugin.setup then
+	 -- A setup function exists, call it to determine if the plugin is available
+	 if(plugin.setup() == false) then
+	    package.loaded[mod_fname] = nil
+	    goto continue
+	 end
+      end
 
-      ::skip::
-    end
+      -- Check that the measurements does not exist
+      for _, measurement in pairs(plugin.measurements) do
+	 if(measurement.check == nil) then
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'check' function in '%s' measurement", measurement.key))
+	    goto skip
+	 end
 
-    plugin.key = mod_fname
-    loaded_am_plugins[mod_fname] = plugin
+	 if(measurement.collect_results == nil) then
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing 'collect_results' function in '%s' measurement", measurement.key))
+	    goto skip
+	 end
 
-    ::continue::
-  end
+	 if(loaded_measurements[measurement.key]) then
+	    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Measurement '%s' already defined in '%s'", measurement.key, loaded_measurements[measurement.key].key))
+	    goto skip
+	 end
+
+	 loaded_measurements[measurement.key] = {plugin=plugin, measurement=measurement}
+
+	 ::skip::
+      end
+
+      plugin.key = mod_fname
+      loaded_am_plugins[mod_fname] = plugin
+
+      ::continue::
+   end
 end
 
 -- ##############################################
