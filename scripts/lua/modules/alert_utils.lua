@@ -2303,9 +2303,10 @@ function alert_utils.processAlertNotifications(now, periodic_frequency, force_ex
    end
 
    local interfaces = interface.getIfNames()
+   local budget = 30 -- max number of alerts per run (this to guarantee fairness and void monopolizing the CPU)
 
    -- Get new alerts
-   while(true) do
+   while(budget > 0) do
       local json_message = ntop.popAlertNotification()
 
       if((json_message == nil) or (json_message == "")) then
@@ -2315,6 +2316,8 @@ function alert_utils.processAlertNotifications(now, periodic_frequency, force_ex
       if(verbose) then
          io.write("Alert Notification: " .. json_message .. "\n")
       end
+
+      budget = budget -1
 
       local message = json.decode(json_message)
 

@@ -564,13 +564,25 @@ function noHtml(s)
    return unescape(cleaned)
 end
 
+-- ##############################################
+
 function areAlertsEnabled()
-  return (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1")
+   if(__alert_enabled == nil) then
+      -- Not too nice as changes will be read periodically as new VMs are reloaded
+      -- but at least we avoid breaking up the performance
+      __alert_enabled = (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1")
+   end
+
+   return (__alert_enabled)
 end
+
+-- ##############################################
 
 function isScoreEnabled()
   return(ntop.isEnterpriseM())
 end
+
+-- ##############################################
 
 function hasTrafficReport()
    local ts_utils = require("ts_utils_core")
