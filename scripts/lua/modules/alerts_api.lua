@@ -9,7 +9,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local json = require("dkjson")
 local alert_endpoints = require("alert_endpoints_utils")
 local alert_consts = require("alert_consts")
-local pools_alert_utils = require "pools_alert_utils"
 local os_utils = require("os_utils")
 local do_trace = false
 
@@ -122,6 +121,8 @@ end
 --! @brief Adds pool information to the alert
 --! @param entity_info data returned by one of the entity_info building functions
 local function addAlertPoolInfo(entity_info, alert_json)
+   local pools_alert_utils = require "pools_alert_utils"
+
    if alert_json then
       local pool_id = pools_alert_utils.get_entity_pool_id(entity_info)
       alert_json.pool_id = pool_id
