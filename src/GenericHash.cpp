@@ -284,7 +284,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
   time_t now = time(NULL);
   /* Visit all entries when force_idle is true */
   u_int visit_fraction = !force_idle ? purge_step : num_hashes;
-  ssize_t idle_entries_shadow_old_size;
+  size_t idle_entries_shadow_old_size;
   vector<GenericHashEntry*>::const_iterator it;
 
   if(!idle_entries) {
@@ -416,7 +416,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 #endif
   
   /* Actual idling can be performed when the hash table is no longer locked. */
-  if(num_detached) {
+  if(idle_entries_shadow->size() > idle_entries_shadow_old_size) {
     it = idle_entries_shadow->begin();
     advance(it, idle_entries_shadow_old_size);
 
