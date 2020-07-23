@@ -826,18 +826,6 @@ end
 
 -- ##############################################
 
-function plugins_utils.loadAlertEndpoint(endpoint_key)
-  local endpoint_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/".. endpoint_key ..".lua")
-
-  if not ntop.exists(endpoint_path) then
-    return(nil)
-  end
-
-  return(dofile(endpoint_path))
-end
-
--- ##############################################
-
 -- Descending sort by priority
 local function endpoint_sorter(a, b)
   if((a.prio ~= nil) and (b.prio == nil)) then
