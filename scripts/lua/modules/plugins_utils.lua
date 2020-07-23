@@ -21,6 +21,9 @@ plugins_utils.PRO_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts
 plugins_utils.ENTERPRISE_M_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/enterprise_m_plugins")
 plugins_utils.ENTERPRISE_L_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/enterprise_l_plugins")
 
+local PLUGIN_RELATIVE_PATHS = {
+   menu_items = "menu_items"
+}
 local RUNTIME_PATHS = {}
 local METADATA = nil
 
@@ -167,7 +170,7 @@ local function init_runtime_paths()
 
     -- Web Gui
     web_gui = os_utils.fixPath(runtime_path) .. "/scripts",
-    menu_items = os_utils.fixPath(runtime_path) .. "/menu_items",
+    menu_items = os_utils.fixPath(runtime_path.."/"..PLUGIN_RELATIVE_PATHS.menu_items),
 
     -- Alert endpoints
     alert_endpoints = os_utils.fixPath(runtime_path) .. "/alert_endpoints",
@@ -686,11 +689,14 @@ function plugins_utils.getMenuEntries()
   local menu = {}
   local entries_data = {}
 
+  lua_path_utils.package_path_preprend(plugins_utils.getRuntimePath())
+
   for fname in pairs(ntop.readdir(RUNTIME_PATHS.menu_items)) do
     local full_path = os_utils.fixPath(RUNTIME_PATHS.menu_items .. "/" .. fname)
     local plugin_key = string.sub(fname, 1, string.len(fname)-4)
 
-    local menu_entry = dofile(full_path)
+    local req_name = string.format("%s.%s", PLUGIN_RELATIVE_PATHS.menu_items, plugin_key)
+    local menu_entry = require(req_name)
 
     if(menu_entry and ((not menu_entry.is_shown) or menu_entry.is_shown())) then
       -- Don't add any getHttpPrefix to the url here, it's the caller that
