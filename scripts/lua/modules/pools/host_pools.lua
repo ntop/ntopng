@@ -163,7 +163,7 @@ end
 
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
-function host_pools:_persist(pool_id, name, members, configset_id)
+function host_pools:_persist(pool_id, name, members, configset_id, recipients)
    -- OVERRIDE
    -- Method must be overridden as host pool details and members are kept as hash caches, which are also used by the C++
 
@@ -178,6 +178,9 @@ function host_pools:_persist(pool_id, name, members, configset_id)
    for _, member in pairs(members) do
       ntop.setMembersCache(pool_members_key, member)
    end
+
+   -- Recipients
+   ntop.setHashCache(pool_details_key, "recipients", json.encode(recipients));
 
    -- Reload pools
    ntop.reloadHostPools()
@@ -240,39 +243,48 @@ end
 -- ##############################################
 
 function host_pools:get_pool(pool_id)
-   local pool_details
-   local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
 
-   -- Attempt at retrieving the pool details key and at decoding it from JSON
    local pool_name = self:_get_pool_detail(pool_id, "name")
+   if pool_name == "" then
+      pool_name = nil
+   end
 
-   if pool_name and pool_name ~= "" then
-      -- If the requested pool exists...
-      pool_details = {
-	 pool_id = tonumber(pool_id),
-	 name = pool_name,
-      }
+   -- Configset and configset details
+   local configset_id = self:_get_pool_detail(pool_id, "configset_id")
+   configset_id = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
+   local config_sets = user_scripts.getConfigsets()
 
-      -- Add configset and configset details
-      local configset_id = self:_get_pool_detail(pool_id, "configset_id")
-      pool_details["configset_id"] = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
-      local config_sets = user_scripts.getConfigsets()
+   -- Configset details
+   local configset_details
+   if config_sets[configset_id] and config_sets[configset_id]["name"] then
+      configset_details = {name = config_sets[configset_id]["name"]}
+   end
 
-      -- Add a new (small) table with configset details, including the name
-      if config_sets[configset_id] and config_sets[configset_id]["name"] then
-	 pool_details["configset_details"] = {name = config_sets[configset_id]["name"]}
-      end
+   -- Pool members
+   local members = ntop.getMembersCache(self:_get_pool_members_key(pool_id))
 
-      -- Add pool members
-      pool_details["members"] = ntop.getMembersCache(self:_get_pool_members_key(pool_id))
-
-      if pool_details["members"] then
-	 pool_details["member_details"] = {}
-	 for _, member in pairs(pool_details["members"]) do
-	    pool_details["member_details"][member] = self:get_member_details(member)
-	 end
+   local member_details = {}
+   if members then
+      for _, member in pairs(members) do
+         member_details[member] = self:get_member_details(member)
       end
    end
+
+   -- Recipients
+   local recipients = self:_get_pool_detail(pool_id, "recipients")
+   if recipients then
+      recipients = json.decode(recipients)
+   end
+
+   local pool_details = {
+      pool_id = tonumber(pool_id),
+      name = pool_name,
+      members = members,
+      member_details = member_details,
+      configset_id = configset_id,
+      configset_details = configset_details,
+      recipients = recipients,
+   }
 
    -- Upon success, pool details are returned, otherwise nil
    return pool_details

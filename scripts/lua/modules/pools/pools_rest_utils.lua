@@ -20,7 +20,7 @@ function pools_rest_utils.add_pool(pools)
    local name = _POST["pool_name"]
    local members = _POST["pool_members"]
    local confset_id = _POST["confset_id"]
-   local recipients = _POST["pool_recipients"]
+   local recipients = _POST["recipients"]
 
    sendHTTPHeader('application/json')
 

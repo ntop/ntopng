@@ -22,6 +22,8 @@ end
 -- NOTE: sqlite can handle about 10-50 alerts/sec
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS
 
+alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 128
+
 -- Alerts (see ntop_typedefs.h)
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string", "syslog severity"}
@@ -287,8 +289,13 @@ end
 -- ##############################################
 
 function alert_consts.alertEntityRaw(entity_id)
-  entity_id = tonumber(entity_id)
-  return alert_consts.alert_entities_id_to_key[entity_id]
+   entity_id = tonumber(entity_id)
+   return alert_consts.alert_entities_id_to_key[entity_id]
+end
+
+function alert_consts.alertEntityById(entity_id)
+   entity_id = tonumber(entity_id)
+   return alert_consts.alert_entities[alert_consts.alert_entities_id_to_key[entity_id]]
 end
 
 function alert_consts.alertEntity(v)

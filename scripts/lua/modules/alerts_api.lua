@@ -149,7 +149,6 @@ function alerts_api.store(entity_info, type_info, when)
 
   type_info.alert_type_params = type_info.alert_type_params or {}
   addAlertGenerationInfo(type_info.alert_type_params)
-  addAlertPoolInfo(entity_info, type_info.alert_type_params)
 
   local alert_json = json.encode(type_info.alert_type_params)
   local subtype = type_info.alert_subtype or ""
@@ -176,6 +175,8 @@ function alerts_api.store(entity_info, type_info, when)
     alert_tstamp_end = when,
     alert_json = alert_json,
   }
+
+  addAlertPoolInfo(entity_info, alert_to_store)
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     -- NOTE: for engaged alerts this operation is performed during trigger in C
@@ -277,7 +278,6 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
   type_info.alert_type_params = type_info.alert_type_params or {}
   addAlertGenerationInfo(type_info.alert_type_params)
-  addAlertPoolInfo(entity_info, type_info.alert_type_params)
 
   local alert_json = json.encode(type_info.alert_type_params)
   local triggered
@@ -313,6 +313,8 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
   triggered.ifid = ifid
   triggered.action = "engage"
+
+  addAlertPoolInfo(entity_info, triggered)
 
   local alert_json = json.encode(triggered)
   ntop.pushAlertNotification(alert_json)
@@ -356,8 +358,6 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
     return(false)
   end
 
-  addAlertPoolInfo(entity_info, type_info.alert_type_params)
-
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     host.checkContext(entity_info.alert_entity_val)
     released = host.releaseTriggeredAlert(table.unpack(params))
@@ -382,6 +382,8 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
 
   released.ifid = ifid
   released.action = "release"
+
+  addAlertPoolInfo(entity_info, released)
 
   local alert_json = json.encode(released)
   ntop.pushSqliteAlert(alert_json)

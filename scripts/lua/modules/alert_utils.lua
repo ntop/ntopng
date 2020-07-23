@@ -2340,10 +2340,16 @@ function alert_utils.processAlertNotifications(now, periodic_frequency, force_ex
       end
 
       alert_endpoints.dispatchNotification(message, json_message)
+      -- TODO replace alert_endpoints.dispatchNotification with the below
+      -- notification_recipients.dispatchNotification(message, json_message)
+
       ::continue::
    end
 
    alert_endpoints.processNotifications(now, periodic_frequency)
+   -- TODO replace alert_endpoints.processNotifications with the below
+   -- notification_recipients.processNotifications(now, periodic_frequency)   
+
 end
 
 -- ##############################################

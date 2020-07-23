@@ -431,7 +431,7 @@ int Redis::hashGet(const char * const key, const char * const field, char * cons
   reply = (redisReply*)redisCommand(redis, "HGET %s %s", key, field);
   if(!reply) reconnectRedis(true);
   if(reply && (reply->type == REDIS_REPLY_ERROR))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "failure on HGET %s %s (%s)", key, field, reply->str ? reply->str : "???");
 
   if(reply && reply->str) {
     snprintf(rsp, rsp_len, "%s", reply->str), rc = 0;

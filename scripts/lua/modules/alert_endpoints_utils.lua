@@ -112,7 +112,7 @@ end
 
 -- ##############################################
 
-function alert_endpoints.processNotifications(now, periodic_frequency)
+function alert_endpoints.processNotifications(now, periodic_frequency, force_export)
   loadModules()
 
   -- Process the alerts export. NOTE: endpoints are sorted by priority (higher priority first)

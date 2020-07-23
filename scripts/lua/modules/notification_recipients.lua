@@ -269,4 +269,46 @@ end
 
 -- #################################################################
 
+function notification_recipients.dispatchNotification(message, json_message)
+   local pools_alert_utils = require "pools_alert_utils"
+
+   local pools = pools_alert_utils.get_entity_pools_by_id(message.alert_entity)
+   
+   if not pools then
+      -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Pools for entity "..message.alert_entity.." not found")
+      return
+   end
+
+   local recipients = pools:get_recipients(message.pool_id)
+   for _, recipient_id in pairs(recipients) do
+      local recipient = notification_recipients.get_recipient(recipient_id)
+
+      -- TODO deliver alert to recipient queue
+      -- ntop.rpushCache(recipient.export_queue, json_message, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT)
+   end
+end
+
+-- #################################################################
+
+function notification_recipients.processNotifications(now, periodic_frequency, force_export)
+   local recipients = notification_recipients.get_recipients()
+
+   for _, recipient in pairs(recipients) do
+      local m = nil -- TODO get module from recipient
+
+      if m and (force_export or ((now % m.export_frequency) < periodic_frequency)) then
+
+         -- TODO add a budget to dequeue (e.g. 1 message)
+         local rv = m.module.dequeueAlerts(recipient.export_queue)
+
+         if not rv.success then
+            local msg = rv.error_message or "Unknown Error"
+            traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. m.name .. " module: " .. msg)
+         end
+      end
+   end
+end
+
+-- #################################################################
+
 return notification_recipients

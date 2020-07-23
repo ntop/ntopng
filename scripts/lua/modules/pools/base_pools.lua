@@ -6,6 +6,7 @@
 
 require "lua_utils"
 local user_scripts = require "user_scripts"
+local notification_recipients = require("notification_recipients")
 local json = require "dkjson"
 local ntop_info = ntop.getInfo()
 
