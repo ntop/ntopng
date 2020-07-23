@@ -11,6 +11,7 @@ local alert_keys = require "alert_keys"
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
 local plugins_utils = require("plugins_utils")
+local lua_path_utils = require "lua_path_utils"
 require("ntop_utils")
 
 if(ntop.isPro()) then
@@ -321,18 +322,22 @@ local function loadAlertsDefs()
    alert_consts.resetDefinitions()
 
    for _, defs_dir in pairs(defs_dirs) do
+      lua_path_utils.package_path_preprend(defs_dir)
+
       for fname in pairs(ntop.readdir(defs_dir)) do
          if string.ends(fname, ".lua") then
             local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-            local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
-            local def_script = dofile(full_path)
+            local def_script = require(mod_fname)
 
             if(def_script == nil) then
-                traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading alert definition from %s", full_path))
-                goto next_script
+	       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading alert definition from %s", mod_fname))
+	       goto next_script
             end
 
-            alert_consts.loadDefinition(def_script, mod_fname, full_path)
+            if not alert_consts.loadDefinition(def_script, mod_fname, defs_dir) then
+	       -- Retry reload
+	       package.loaded[mod_fname] = nil
+	    end
          end
 
          ::next_script::
