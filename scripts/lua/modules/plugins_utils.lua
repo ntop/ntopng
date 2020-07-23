@@ -198,22 +198,22 @@ end
 -- NOTE: cannot save the definitions to a single file via the persistance
 -- module because they may contain functions (e.g. in the i18n_description)
 local function load_definitions(defs_dir, runtime_path)
-  for fname in pairs(ntop.readdir(defs_dir) or {}) do
-    if string.ends(fname, ".lua") then
-      local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
-      local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
-      local def_script = dofile(full_path)
-      -- Verify the definitions
-      if(type(def_script) ~= "table") then
-        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading definition from %s", full_path))
-        return(false)
+   for fname in pairs(ntop.readdir(defs_dir) or {}) do
+      if fname:ends(".lua") then
+	 local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
+	 local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
+	 local def_script = dofile(full_path)
+	 -- Verify the definitions
+	 if(type(def_script) ~= "table") then
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading definition from %s", full_path))
+	    return(false)
+	 end
+
+	 file_utils.copy_file(fname, defs_dir, runtime_path)
       end
+   end
 
-      file_utils.copy_file(fname, defs_dir, runtime_path)
-    end
-  end
-
-  return(true)
+   return(true)
 end
 
 -- ##############################################
