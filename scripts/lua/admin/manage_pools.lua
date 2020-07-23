@@ -14,6 +14,7 @@ local interface_pools = require "interface_pools"
 local snmp_device_pools = require "snmp_device_pools"
 local local_network_pools = require "local_network_pools"
 local active_monitoring_pools = require "active_monitoring_pools"
+local notification_recipients = require "notification_recipients"
 
 local page = _GET["page"] or "host"
 
@@ -84,7 +85,8 @@ local context = {
             add_pool       = string.format("/lua/rest/v1/add/%s/pool.lua", pool_type),
             edit_pool      = string.format("/lua/rest/v1/edit/%s/pool.lua", pool_type),
             delete_pool    = string.format("/lua/rest/v1/delete/%s/pool.lua", pool_type),
-        }
+        },
+        notification_recipients = notification_recipients
     }
 }
 

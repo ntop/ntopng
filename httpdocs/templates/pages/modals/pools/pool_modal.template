@@ -14,7 +14,7 @@
                             <b>{{ i18n("pools.name") }}</b>
                         </label>
                         <div class="col-sm-7">
-                            <input placeholder="{{ i18n('pools.insert_name', {type = string.lower(i18n("pools.pool_name." .. pool.name)) }) }}" pattern="^\S+" maxlength="32" minlength="1" required name="name" type="text" class="form-control" id="{{ modal_type }}-pool-name-input">
+                            <input placeholder="{{ i18n('pools.insert_name') }}" pattern="^\S+" maxlength="32" minlength="1" required name="name" type="text" class="form-control" id="{{ modal_type }}-pool-name-input">
                             <small class="text-muted form-text">
                                 {{ i18n("pools.name_requirements") }}
                             </small>
@@ -24,10 +24,10 @@
                     {% if (pool.name ~= "host") then %}
                     <div class="form-group row">
                         <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-members-input">
-                            {{ i18n("pools.members") }}
+                            <b>{{ i18n("pools.members") }}</b>
                         </label>
                         <div class="col-sm-7">
-                            <select style="height: 16rem;" class="form-control" multiple name="members" id="{{ modal_type }}-pool-members-select">
+                            <select class="form-control multiple-select" multiple name="members" id="{{ modal_type }}-pool-members-select">
                                 {% for key, member in pairsByKeys(pool.all_members, asc) do %}
 
                                     {%
@@ -72,6 +72,21 @@
                                     <option {{ (configset.configset_id == 0 and "selected" or "") }} value="{{ configset.configset_id }}">{{configset.configset_name}}</option>
                                 {% end %}
                             </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-recipient-select">
+                            <b>{{ i18n("pools.recipients") }}</b>
+                        </label>
+                        <div class="col-sm-7">
+                            <select multiple class="form-control multiple-select" name="recipients" id="{{ modal_type }}-pool-recipient-select">
+                                {% for key, recipient in pairsByKeys(pool.notification_recipients.get_recipients(), asc) do %}
+                                    <option value="{{ key }}">{{ recipient.recipient_name }}</option>
+                                {% end %}
+                            </select>
+                            <small class="text-muted text-form">
+                                {* i18n("howto_multiselect") *}
+                            </small>
                         </div>
                     </div>
                     <span class="invalid-feedback" id="{{ modal_type }}-modal-feedback"></span>

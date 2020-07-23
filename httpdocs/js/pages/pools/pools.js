@@ -114,12 +114,15 @@ $(document).ready(function() {
         beforeSumbit: function() {
 
             const members = $(`#add-pool form select[name='members']`).val() || [];
+            const recipients = $(`#add-pool form select[name='recipients']`).val() || [];
+
             $(`#add-modal-feedback`).hide();
 
             return {
                 pool_name: $(`#add-pool form input[name='name']`).val().trim(),
-                pool_members: members.join(','),
                 confset_id: $(`#add-pool form select[name='configset']`).val(),
+                pool_members: members.join(','),
+                recipients: recipients.join(',')
             };
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
@@ -179,6 +182,7 @@ $(document).ready(function() {
             $(`#edit-pool form input[name='name']`).val(poolRowData.name);
             $(`#edit-pool form select[name='configset']`).val(poolRowData.configset_id);
             $(`#edit-pool form select[name='members']`).val(poolRowData.members);
+            $(`#edit-pool form select[name='recipients']`).val(poolRowData.recipients || []);
 
             if (poolType == "host") {
                 const href = $(`#edit-link`).attr('href').replace(/pool\=[0-9]+/, `pool=${poolRowData.pool_id}`);
@@ -188,11 +192,13 @@ $(document).ready(function() {
         beforeSumbit: function() {
 
             const members = $(`#edit-pool form select[name='members']`).val() || [];
+            const recipients = $(`#edit-pool form select[name='recipients']`).val() || [];
 
             const data = {
                 pool: poolRowData.pool_id,
                 pool_name: $(`#edit-pool form input[name='name']`).val().trim(),
                 confset_id: $(`#edit-pool form select[name='configset']`).val(),
+                recipients: recipients.join(',')
             };
 
             if (poolType != "host") {

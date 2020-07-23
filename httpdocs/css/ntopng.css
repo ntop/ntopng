@@ -1098,8 +1098,9 @@ path.link {
   border-bottom-right-radius: .25rem !important;
 }
 
-#multiple-select {
-  height: 12rem;
+.multiple-select {
+  height: 12rem !important;
+  overflow-y: auto;
   max-height: 20rem;
 }
 
