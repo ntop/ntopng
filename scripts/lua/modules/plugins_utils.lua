@@ -22,7 +22,8 @@ plugins_utils.ENTERPRISE_M_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pr
 plugins_utils.ENTERPRISE_L_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/enterprise_l_plugins")
 
 local PLUGIN_RELATIVE_PATHS = {
-   menu_items = "menu_items"
+   menu_items = "menu_items",
+   metadata = "plugins_metadata",
 }
 local RUNTIME_PATHS = {}
 local METADATA = nil
@@ -43,7 +44,7 @@ function plugins_utils.getRuntimePath()
 end
 
 local function getMetadataPath()
-  return(os_utils.fixPath(plugins_utils.getRuntimePath() .. "/plugins_metadata.lua"))
+  return(os_utils.fixPath(plugins_utils.getRuntimePath() .. "/"..PLUGIN_RELATIVE_PATHS.metadata..".lua"))
 end
 
 -- ##############################################
@@ -747,12 +748,9 @@ end
 -- ##############################################
 
 local function load_metadata()
-  if(METADATA == nil) then
-    local path = getMetadataPath()
-
-    if ntop.exists(path) then
-      METADATA = dofile(path)
-    end
+   if not METADATA then
+     lua_path_utils.package_path_preprend(plugins_utils.getRuntimePath())
+     METADATA = require(PLUGIN_RELATIVE_PATHS.metadata)
   end
 end
 
