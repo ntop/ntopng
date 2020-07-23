@@ -818,7 +818,8 @@ const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
 /* ***************************************** */
 
 bool Host::is_hash_entry_state_idle_transition_ready() const {
-  bool res = isIdle(ntop->getPrefs()->get_host_max_idle(isLocalHost()));
+  bool res = (getUses() == 0)
+    && is_active_entry_now_idle(ntop->getPrefs()->get_host_max_idle(isLocalHost()));
 
 #if DEBUG_HOST_IDLE_TRANSITION
   char buf[64];

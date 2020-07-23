@@ -2140,11 +2140,13 @@ void Flow::set_hash_entry_state_idle() {
 /* *************************************** */
 
 bool Flow::is_hash_entry_state_idle_transition_ready() const {
+  bool ret = false;;
+  
   if(!periodic_stats_update_partial /* waiting for Flow::periodic_stats_update first execution... */
      /* ... and sure all traffic has been seen by Flow::periodic_stats_update */
      || periodic_stats_update_partial->get_packets() < stats.get_packets()
      || periodic_stats_update_partial->get_bytes() < stats.get_bytes())
-    return false;
+    return(false);
 
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
@@ -2164,14 +2166,24 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 	     || tcp_flags /* If not a packet interfaces, we expect flags to be set to be sure they've been exported */)
 	    && !isThreeWayHandshakeOK()))
        /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
-       && iface->getTimeLastPktRcvd() > doNotExpireBefore
-       && isIdle(MAX_TCP_FLOW_IDLE)) {
+       && (iface->getTimeLastPktRcvd() > doNotExpireBefore)
+       && is_active_entry_now_idle(MAX_TCP_FLOW_IDLE)) {
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
-      return(true);
+      ret = true;
     }
-  }
+  } else
+    ret = is_active_entry_now_idle(iface->getFlowMaxIdle());
+  
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [uses: %u][time: %d]", __FUNCTION__,
+			       getUses(),
+			       (last_seen + iface->getFlowMaxIdle()) - iface->getTimeLastPktRcvd());
 
-  return(isIdle(iface->getFlowMaxIdle()));
+  if(ret)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Idle flow found", iface->get_name()); 
+#endif
+
+  return(ret);
 }
 
 /* *************************************** */
@@ -2591,7 +2603,7 @@ bool Flow::isNetfilterIdleFlow() const {
   } else {
     /* if an conntrack update hasn't been seen for this flow
        we use the standard idleness check */
-    return(isIdle(iface->getFlowMaxIdle()));
+    return(is_active_entry_now_idle(iface->getFlowMaxIdle()));
   }
 }
 #endif

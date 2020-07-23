@@ -278,7 +278,7 @@ class Flow : public GenericHashEntry {
 
   void updateEntropy(struct ndpi_analyze_struct *e, u_int8_t *payload, u_int payload_len);
   void lua_entropy(lua_State* vm);
-  
+ 
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -694,8 +694,10 @@ class Flow : public GenericHashEntry {
   }
 
   inline bool isNotPurged() {
-    return(getInterface()->isPacketInterface() && getInterface()->is_purge_idle_interface()
-     && !idle() && isIdle(10 * getInterface()->getFlowMaxIdle()));
+    return(getInterface()->isPacketInterface()
+	   && getInterface()->is_purge_idle_interface()
+	   && (!idle())
+	   && is_active_entry_now_idle(10 * getInterface()->getFlowMaxIdle()));
   }
 
   inline u_int16_t getTLSVersion()  { return(isTLS() ? (protos.tls.tls_version) : 0); }
@@ -718,6 +720,7 @@ class Flow : public GenericHashEntry {
 
     return(e ? ndpi_data_entropy(e) : 0);
   }
+
 };
 
 #endif /* _FLOW_H_ */

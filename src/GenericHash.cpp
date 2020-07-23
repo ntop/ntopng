@@ -94,14 +94,7 @@ void GenericHash::cleanup() {
       table[i] = NULL;
     }
   }
-  
-  while(idle_entries_still_in_use.size() > 0) {
-    GenericHashEntry *h = idle_entries_still_in_use.front();
 
-    idle_entries_still_in_use.pop_front();
-    delete h;
-  }
-  
   current_size = 0;
 }
 
@@ -221,7 +214,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
       while(head) {
 	GenericHashEntry *next = head->next();
 
-        /* FIXX get_state() does not always match idle() as the latter can be 
+        /* FIXX get_state() does not always match idle() as the latter can be
          * overriden (e.g. Flow), leading to walking entries that are actually
          * idle even with walk_idle = false, what about using idle() here? */
 
@@ -306,7 +299,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 
   /* Visit at least MIN_NUM_VISITED_ENTRIES entries at each iteration regardless of the hash size */
   u_int j;
-  
+
   for(j = 0; j < num_hashes; j++) {
     /*
       Initially visit the visit_fraction of the hash, but it we have
@@ -315,7 +308,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
     */
     if((j > visit_fraction) && (buckets_checked > MIN_NUM_VISITED_ENTRIES))
       break;
-    
+
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;
     i = last_purged_hash;
 
@@ -334,7 +327,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 
 	buckets_checked++;
 
-	switch(head_state) {	  
+	switch(head_state) {
 	case hash_entry_state_idle:
 	  /* As an idle entry is always removed immediately from the hash table
 	     This walk should never find any such entry */
@@ -354,22 +347,16 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	  break;
 
 	case hash_entry_state_active:
-	  if(force_idle
-	     || (head->is_hash_entry_state_idle_transition_possible()
-		 && head->is_hash_entry_state_idle_transition_ready()
-		 )
+	  if(
+	     force_idle
+	     || (
+		 iface->is_purge_idle_interface()
+		 && (head->getUses() == 0)
+		 && head->is_hash_entry_state_idle_transition_ready())	     
 	     ) {
 	  detach_idle_hash_entry:
+	    idle_entries_shadow->push_back(head); /* Found entry to purge */
 
-	    if(head->getUses() == 0 /* Nobody is using this entry */)
-	      idle_entries_shadow->push_back(head); /* Ready to purge */
-	    else {
-	      idle_entries_still_in_use.push_back(head); /* Idle but still in use */
-#ifdef WALK_DEBUG
-	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "(+) Adding entry to idle_entries_still_in_use");
-#endif
-	    }
-	    
 	    if(!prev)
 	      table[i] = next;
 	    else
@@ -380,32 +367,12 @@ u_int GenericHash::purgeIdle(bool force_idle) {
 	    continue;
 	  }
 	  break;
-	}
+	} /* switch */
 
 	prev = head;
 	head = next;
       } /* while */
 
-      /* Before unlocking let's check if there are idle entries to purge */
-      while((idle_entries_still_in_use.size() > 0)
-	    && (idle_entries_still_in_use.front()->getUses() == 0)) {
-	GenericHashEntry *h = idle_entries_still_in_use.front();
-
-	idle_entries_still_in_use.pop_front(); /* Remove it from head */
-
-#ifdef WALK_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "(-) Removing entry from idle_entries_still_in_use");
-#endif
-	idle_entries_shadow->push_back(h);
-      }
-
-#ifdef WALK_DEBUG
-      if(idle_entries_still_in_use.size() > 0)
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "%u queued entries in idle_entries_still_in_use [# uses: %u]",
-				     idle_entries_still_in_use.size(), idle_entries_still_in_use.front()->getUses());
-#endif
-      
       locks[i]->unlock(__FILE__, __LINE__);
     }
   }
@@ -414,7 +381,7 @@ u_int GenericHash::purgeIdle(bool force_idle) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][current_size: %u][visit_fraction: %u/%u (visited %u)][buckets_checked: %u]",
 			       name, current_size, visit_fraction, num_hashes, j, buckets_checked);
 #endif
-  
+
   /* Actual idling can be performed when the hash table is no longer locked. */
   if(idle_entries_shadow->size() > idle_entries_shadow_old_size) {
     it = idle_entries_shadow->begin();

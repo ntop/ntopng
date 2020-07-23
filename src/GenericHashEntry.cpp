@@ -80,21 +80,6 @@ HashEntryState GenericHashEntry::get_state() const {
 
 /* ***************************************** */
 
-bool GenericHashEntry::is_hash_entry_state_idle_transition_ready() const {
-  return isIdle(MAX_LOCAL_HOST_IDLE);
-}
-
-/* ***************************************** */
-
-bool GenericHashEntry::is_hash_entry_state_idle_transition_possible() const {
-  if(/*getUses() > 0 || */ !iface->is_purge_idle_interface())
-    return false;
-
-  return true;
-};
-
-/* ***************************************** */
-
 void GenericHashEntry::periodic_hash_entry_state_update(void *user_data)  {
   if(get_state() == hash_entry_state_idle) {
     if(!idle() && !ntop->getGlobals()->isShutdown()) {
@@ -118,10 +103,9 @@ bool GenericHashEntry::idle() const {
 
 /* ***************************************** */
 
-/* TODO: change name as it's misleading */
-bool GenericHashEntry::isIdle(u_int max_idleness) const {
-  return((((u_int)(iface->getTimeLastPktRcvd()) > (last_seen + max_idleness)) ? true : false));
-}
+bool GenericHashEntry::is_active_entry_now_idle(u_int max_idleness) const {
+    return((((u_int)(iface->getTimeLastPktRcvd()) > (last_seen + max_idleness)) ? true : false));
+  }
 
 /* ***************************************** */
 

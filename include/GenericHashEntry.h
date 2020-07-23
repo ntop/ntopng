@@ -97,7 +97,6 @@ class GenericHashEntry {
   time_t first_seen;   /**< Time of first seen. */
   time_t last_seen;    /**< Time of last seen. */
   NetworkInterface *iface; /**< Pointer of network interface. */
-  bool isIdle(u_int max_idleness) const;
 
  public:
 
@@ -211,14 +210,16 @@ class GenericHashEntry {
    * @brief Determine whether this entry is ready for the transition to the idle state
    * 
    */
-  virtual bool is_hash_entry_state_idle_transition_ready() const;
-  
+  virtual bool is_hash_entry_state_idle_transition_ready() const {
+    return(true); 
+  }
+
   /**
-   * @brief Determine whether it is possible to perform the idle transition for this entry
+   * @brief Determine whether this active entry can be considered idle
    * 
    */
-  bool is_hash_entry_state_idle_transition_possible() const;
-  
+  virtual bool is_active_entry_now_idle(u_int max_idleness) const;
+    
   /**
    * @brief Function in charge of hash entry offline state updates
    *
