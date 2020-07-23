@@ -8,6 +8,7 @@ local os_utils = require("os_utils")
 local persistence = require("persistence")
 local file_utils = require("file_utils")
 local template_utils = require("template_utils")
+local lua_path_utils = require("lua_path_utils")
 require "lua_trace"
 
 local dirs = ntop.getDirs()
@@ -615,6 +616,7 @@ function plugins_utils.loadSchemas(granularity)
   end
 
   init_runtime_paths()
+  lua_path_utils.package_path_preprend(RUNTIME_PATHS.ts_schemas)
 
   for plugin_name in pairs(ntop.readdir(RUNTIME_PATHS.ts_schemas)) do
     local ts_dir = os_utils.fixPath(RUNTIME_PATHS.ts_schemas .. "/" .. plugin_name)
@@ -629,15 +631,19 @@ function plugins_utils.loadSchemas(granularity)
     end
 
     for _, fname in pairs(files_to_load) do
-      if string.ends(fname, ".lua") then
-        local fgran = string.sub(fname, 1, string.len(fname)-4)
-        local fpath = os_utils.fixPath(ts_dir .. "/" .. fname)
-
-        -- Check if not already loaded
-        if((schemas_loaded[fgran] == nil) and ntop.exists(fpath)) then
-          -- load the script
-          dofile(fpath)
-        end
+       if fname:ends(".lua") then
+	  local fgran = string.sub(fname, 1, string.len(fname) - 4)
+	  -- Plugin ts schemas are require-d using the dot-notation in the
+	  -- require string name. Dots are used to navigate the base directory, RUNTIME_PATHS.ts_schemas,
+	  -- which has been prepended to the path.
+	  -- Examples:
+	  --   require(active_monitoring.hour)
+	  --   require(active_monitoring.5mins)
+	  --   require(active_monitoring.min)
+	  --   require(score.min)
+	  --   require(influxdb_monitor.5mins)
+	  local req_name = string.format("%s.%s", plugin_name, fgran)
+	  require(req_name)
       end
       
     end
