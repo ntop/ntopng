@@ -3,6 +3,7 @@
  *
  * This script implements the logic for the overview tab inside snmpdevice_stats.lua page.
  */
+
 $(document).ready(function () {
 
     let snmpDeviceRowData;
@@ -11,17 +12,6 @@ $(document).ready(function () {
     const SNMP_VERSION_THREE = 2;
 
     const requiredFieldsAdd = { community: [], nonCommunity: [] };
-
-    $(`.community-field input[required], .community-field select[required]`)
-    .each(function() {
-        requiredFieldsAdd.community.push($(this));
-    });
-
-    $(`.non-community-field input[required], .non-community-field select[required]`)
-    .each(function() {
-        requiredFieldsAdd.nonCommunity.push($(this));
-        $(this).removeAttr("required");
-    });
 
     const addResponsivenessFilter = (tableAPI) => {
         DataTableUtils.addFilterDropdown(
@@ -58,6 +48,44 @@ $(document).ready(function () {
         }
 
     }
+
+    $(`#add-reload-pools`).click(async function(e) {
+        e.preventDefault();
+        $(this).attr("disabled", true);
+
+        const request = await fetch(`${http_prefix}/lua/rest/v1/get/snmp/device/pools.lua`);
+        const data = await request.json();
+
+        if (data.rc < 0) {
+            console.warn("Something went wrong when reloading SNMP Pools list!");
+            return;
+        }
+
+        // update the select if there are new pools
+        data.rsp.forEach((pool) => {
+
+            const {pool_id, name} = pool;
+            // if there is already the pool then return
+            if ($(`#add-select-pool option[value='${pool_id}']`).length != 0) {
+                return;
+            }
+            $(`#add-select-pool`).append(`<option value='${pool_id}'>${name}</option>`)
+        });
+
+        $(this).removeAttr("disabled");
+    });
+
+    $(`.community-field input[required], .community-field select[required]`)
+    .each(function() {
+        requiredFieldsAdd.community.push($(this));
+    });
+
+    $(`.non-community-field input[required], .non-community-field select[required]`)
+    .each(function() {
+        requiredFieldsAdd.nonCommunity.push($(this));
+        $(this).removeAttr("required");
+    });
+
 
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
