@@ -24,6 +24,7 @@ plugins_utils.ENTERPRISE_L_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pr
 local PLUGIN_RELATIVE_PATHS = {
    menu_items = "menu_items",
    metadata = "plugins_metadata",
+   modules = "modules",
 }
 local RUNTIME_PATHS = {}
 local METADATA = nil
@@ -930,15 +931,15 @@ end
 -- @brief Load a module located inside a plugin. This is equivalent to the
 -- lua "require ..." of the builting ntopng modules
 function plugins_utils.loadModule(plugin_name, module_name)
-  init_runtime_paths()
+   init_runtime_paths()
 
-  local lua_path = os_utils.fixPath(RUNTIME_PATHS.modules .. "/" .. plugin_name .. "/" .. module_name .. ".lua")
+   lua_path_utils.package_path_preprend(RUNTIME_PATHS.modules)
 
-  if not ntop.exists(lua_path) then
-    return(nil)
-  end
+   local lua_path = os_utils.fixPath(RUNTIME_PATHS.modules .. "/" .. plugin_name .. "/" .. module_name .. ".lua")
+   local req_name = string.format("%s.%s", plugin_name, module_name)
+   local req = require(req_name)
 
-  return dofile(lua_path)
+   return req
 end
 
 -- ##############################################
