@@ -54,6 +54,10 @@ local function clearInternalState()
   RUNTIME_PATHS = {}
   METADATA = nil
   cached_runtime_dir = nil
+
+  -- Tell lua to forget about require-d metadata. This is necessary as plugins may have been swapped betwenn plugins0/ and plugins1/.
+  -- However, as PLUGIN_RELATIVE_PATHS.metadata is the same, lua would not reload it unless it's entry in package.loaded is reset.
+  package.loaded[PLUGIN_RELATIVE_PATHS.metadata] = nil
 end
 
 -- ##############################################
@@ -616,7 +620,7 @@ local schemas_loaded = {}
 
 function plugins_utils.loadSchemas(granularity)
   if(schemas_loaded["all"] or (granularity and schemas_loaded[granularity])) then
-    -- already loaded
+     -- already loaded
     return
   end
 
@@ -648,6 +652,7 @@ function plugins_utils.loadSchemas(granularity)
 	  --   require(score.min)
 	  --   require(influxdb_monitor.5mins)
 	  local req_name = string.format("%s.%s", plugin_name, fgran)
+	  
 	  require(req_name)
       end
       
@@ -750,8 +755,9 @@ end
 
 local function load_metadata()
    if not METADATA then
-     lua_path_utils.package_path_preprend(plugins_utils.getRuntimePath())
-     METADATA = require(PLUGIN_RELATIVE_PATHS.metadata)
+      local runtime_path = plugins_utils.getRuntimePath()
+      lua_path_utils.package_path_preprend(runtime_path)
+      METADATA = require(PLUGIN_RELATIVE_PATHS.metadata)
   end
 end
 
