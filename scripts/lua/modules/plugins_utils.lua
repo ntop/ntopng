@@ -617,47 +617,47 @@ end
 -- ##############################################
 
 function plugins_utils.loadSchemas(granularity)
-  init_runtime_paths()
-  lua_path_utils.package_path_preprend(RUNTIME_PATHS.ts_schemas)
+   init_runtime_paths()
+   lua_path_utils.package_path_preprend(RUNTIME_PATHS.ts_schemas)
 
-  for plugin_name in pairs(ntop.readdir(RUNTIME_PATHS.ts_schemas)) do
-    local ts_dir = os_utils.fixPath(RUNTIME_PATHS.ts_schemas .. "/" .. plugin_name)
-    local files_to_load = nil
+   for plugin_name in pairs(ntop.readdir(RUNTIME_PATHS.ts_schemas)) do
+      local ts_dir = os_utils.fixPath(RUNTIME_PATHS.ts_schemas .. "/" .. plugin_name)
+      local files_to_load = {}
 
-    if(granularity ~= nil) then
-      -- Only load schemas for the specified granularity
-      files_to_load = {granularity .. ".lua"}
-    else
-      -- load all
-      files_to_load = ntop.readdir(ts_dir)
-    end
+      if(granularity ~= nil) then
+	 -- Only load schemas for the specified granularity
+	 local fgran = granularity..".lua"
+	 local fgran_path = os_utils.fixPath(ts_dir.."/"..fgran)
 
-    for _, fname in pairs(files_to_load) do
-       if fname:ends(".lua") then
-	  local fgran = string.sub(fname, 1, string.len(fname) - 4)
-	  -- Plugin ts schemas are require-d using the dot-notation in the
-	  -- require string name. Dots are used to navigate the base directory, RUNTIME_PATHS.ts_schemas,
-	  -- which has been prepended to the path.
-	  -- Examples:
-	  --   require(active_monitoring.hour)
-	  --   require(active_monitoring.5mins)
-	  --   require(active_monitoring.min)
-	  --   require(score.min)
-	  --   require(influxdb_monitor.5mins)
-	  local req_name = string.format("%s.%s", plugin_name, fgran)
-
-	  -- Use pcall in place of direct require to avoid generating an exception in
-	  -- case the require-d module doesn't exist
-	  local status, req = pcall(require, req_name)
-	  if not status then
-	     -- Schema doesn't exist for `plugin_name` at the requested granularity.
-	     -- This is normal, it's not mandatory for a plugin to define schemas or to
-	     -- define a schema for any granularity
-	  end
+	 if ntop.exists(fgran_path) then
+	    files_to_load = {fgran}
+	 else
+	    -- Schema doesn't exist for `plugin_name` at the requested granularity.
+	    -- This is normal, it's not mandatory for a plugin to define schemas or to
+	    -- define a schema for any granularity
+	 end
+      else
+	 -- load all
+	 files_to_load = ntop.readdir(ts_dir)
       end
-      
-    end
-  end
+
+      for _, fname in pairs(files_to_load) do
+	 if fname:ends(".lua") then
+	    local fgran = string.sub(fname, 1, string.len(fname) - 4)
+	    -- Plugin ts schemas are require-d using the dot-notation in the
+	    -- require string name. Dots are used to navigate the base directory, RUNTIME_PATHS.ts_schemas,
+	    -- which has been prepended to the path.
+	    -- Examples:
+	    --   require(active_monitoring.hour)
+	    --   require(active_monitoring.5mins)
+	    --   require(active_monitoring.min)
+	    --   require(score.min)
+	    --   require(influxdb_monitor.5mins)
+	    local req_name = string.format("%s.%s", plugin_name, fgran)
+	    require(req_name)
+	 end
+      end
+   end
 end
 
 -- ##############################################
