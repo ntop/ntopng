@@ -6,7 +6,7 @@ local lua_path_utils = {}
 
 -- ########################################################
 
-function lua_path_utils.package_path_preprend(path)
+function lua_path_utils.package_path_prepend(path)
    local include_path = path.."/?.lua;"
 
    -- If the path is already inside package.path, we remove it, before prepending it

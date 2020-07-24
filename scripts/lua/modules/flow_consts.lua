@@ -46,7 +46,7 @@ local function loadStatusDefs()
    flow_consts.resetDefinitions()
 
    for _, defs_dir in pairs(defs_dirs) do
-      lua_path_utils.package_path_preprend(defs_dir)
+      lua_path_utils.package_path_prepend(defs_dir)
 
       for fname in pairs(ntop.readdir(defs_dir)) do
 	 if ends(fname, ".lua") then

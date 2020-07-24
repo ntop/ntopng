@@ -427,7 +427,7 @@ local function loadAmPlugins()
    end
 
    local measurements_path = plugins_utils.getPluginDataDir("active_monitoring", "measurements")
-   lua_path_utils.package_path_preprend(measurements_path)
+   lua_path_utils.package_path_prepend(measurements_path)
 
    for fname in pairs(ntop.readdir(measurements_path)) do
       if(not string.ends(fname, ".lua")) then

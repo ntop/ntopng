@@ -618,7 +618,7 @@ end
 
 function plugins_utils.loadSchemas(granularity)
    init_runtime_paths()
-   lua_path_utils.package_path_preprend(RUNTIME_PATHS.ts_schemas)
+   lua_path_utils.package_path_prepend(RUNTIME_PATHS.ts_schemas)
 
    for plugin_name in pairs(ntop.readdir(RUNTIME_PATHS.ts_schemas)) do
       local ts_dir = os_utils.fixPath(RUNTIME_PATHS.ts_schemas .. "/" .. plugin_name)
@@ -694,7 +694,7 @@ function plugins_utils.getMenuEntries()
   local menu = {}
   local entries_data = {}
 
-  lua_path_utils.package_path_preprend(plugins_utils.getRuntimePath())
+  lua_path_utils.package_path_prepend(plugins_utils.getRuntimePath())
 
   for fname in pairs(ntop.readdir(RUNTIME_PATHS.menu_items)) do
     local full_path = os_utils.fixPath(RUNTIME_PATHS.menu_items .. "/" .. fname)
@@ -754,7 +754,7 @@ end
 local function load_metadata()
    if not METADATA then
       local runtime_path = plugins_utils.getRuntimePath()
-      lua_path_utils.package_path_preprend(runtime_path)
+      lua_path_utils.package_path_prepend(runtime_path)
       METADATA = require(PLUGIN_RELATIVE_PATHS.metadata)
   end
 end
@@ -854,7 +854,7 @@ function plugins_utils.getLoadedAlertEndpoints()
 
    local rv = {}
 
-   lua_path_utils.package_path_preprend(RUNTIME_PATHS.alert_endpoints)
+   lua_path_utils.package_path_prepend(RUNTIME_PATHS.alert_endpoints)
    local prefs_map = require "prefs_entries" or {}
 
    for fname in pairs(ntop.readdir(RUNTIME_PATHS.alert_endpoints) or {}) do
@@ -889,7 +889,7 @@ end
 function plugins_utils.extendLintParams(http_lint, params)
    init_runtime_paths()
 
-   lua_path_utils.package_path_preprend(RUNTIME_PATHS.http_lint)
+   lua_path_utils.package_path_prepend(RUNTIME_PATHS.http_lint)
    for fname in pairs(ntop.readdir(RUNTIME_PATHS.http_lint)) do
       local key = string.sub(fname, 1, string.len(fname) - 4)
       local lint = require(key)
@@ -937,7 +937,7 @@ end
 function plugins_utils.loadModule(plugin_name, module_name)
    init_runtime_paths()
 
-   lua_path_utils.package_path_preprend(RUNTIME_PATHS.modules)
+   lua_path_utils.package_path_prepend(RUNTIME_PATHS.modules)
 
    local req_name = string.format("%s.%s", plugin_name, module_name)
    local req = require(req_name)
