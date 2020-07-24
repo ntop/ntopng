@@ -132,7 +132,8 @@ int main(int argc, char *argv[])
 #endif
 
   ntop->registerPrefs(prefs, false);
-
+  prefs->reloadPrefsFromRedis();
+  
   if((boot_activity = new ThreadedActivity(BOOT_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */
     /* NOTE: preferences restore from file is handled here */
@@ -151,7 +152,6 @@ int main(int argc, char *argv[])
   ntop->registerNagios();
 #endif
 
-  prefs->reloadPrefsFromRedis();
   prefs->validate();
   
   if(prefs->daemonize_ntopng())

@@ -146,7 +146,8 @@ class Prefs {
     }
   };
   bool getDefaultBoolPrefsValue(const char *pref_key, const bool default_value);
-
+  void refreshBehaviourAnalysis();
+  
  public:
   Prefs(Ntop *_ntop);
   virtual ~Prefs();
@@ -156,8 +157,6 @@ class Prefs {
   bool is_enterprise_l_edition();
   bool is_nedge_edition();
   bool is_nedge_enterprise_edition();
-
-
   
   inline bool is_embedded_edition() {
 #ifdef NTOPNG_EMBEDDED_EDITION

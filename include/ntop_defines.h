@@ -600,6 +600,7 @@
 #define CONST_SUBINTERFACES_PREFS           NTOPNG_PREFS_PREFIX".%u.sub_interfaces"
 
 #define CONST_PREFS_CLIENT_X509_AUTH        NTOPNG_PREFS_PREFIX".is_client_x509_auth_enabled"
+#define CONST_PREFS_BEHAVIOUR_ANALYSIS      NTOPNG_PREFS_PREFIX".is_behaviour_analysis_enabled"
 
 #define CONST_USER_GROUP_ADMIN             "administrator"
 #define CONST_USER_GROUP_UNPRIVILEGED      "unprivileged"

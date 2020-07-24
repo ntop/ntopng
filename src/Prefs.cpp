@@ -28,7 +28,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ntop = _ntop, pcap_file_purge_hosts_flows = false,
     ignore_vlans = false, simulate_vlans = false, ignore_macs = false;
   local_networks = strdup(CONST_DEFAULT_HOME_NET "," CONST_DEFAULT_LOCAL_NETS);
-  num_simulated_ips = 0, enable_behaviour_analysis = true;
+  num_simulated_ips = 0, enable_behaviour_analysis = false;
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = true, use_promiscuous_mode = true;
@@ -135,10 +135,6 @@ Prefs::Prefs(Ntop *_ntop) {
 #ifdef HAVE_NEDGE
   disable_dns_resolution();
   disable_dns_responses_decoding();
-#endif
-
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  enableBehaviourAnalysis();
 #endif
 }
 
@@ -647,13 +643,14 @@ void Prefs::reloadPrefsFromRedis() {
   }
 
   global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
-  enable_client_x509_auth = getDefaultBoolPrefsValue(CONST_PREFS_CLIENT_X509_AUTH, false);
-
+  enable_client_x509_auth    = getDefaultBoolPrefsValue(CONST_PREFS_CLIENT_X509_AUTH, false);
+    
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
   refreshDeviceProtocolsPolicyPref();
   refreshDbDumpPrefs();
-
+  refreshBehaviourAnalysis();
+  
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updated IPs "
 			       "[global_primary_dns_ip: %u]"
@@ -678,6 +675,12 @@ void Prefs::reloadPrefsFromRedis() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[mac_ndpi_stats: %u]",
 			       enable_mac_ndpi_stats ? 1 : 0);
 #endif
+}
+
+/* ******************************************* */
+
+void Prefs::refreshBehaviourAnalysis() {
+  enable_behaviour_analysis  = getDefaultBoolPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS, false);
 }
 
 /* ******************************************* */
