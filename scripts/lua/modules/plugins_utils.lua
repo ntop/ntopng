@@ -616,14 +616,7 @@ end
 
 -- ##############################################
 
-local schemas_loaded = {}
-
 function plugins_utils.loadSchemas(granularity)
-  if(schemas_loaded["all"] or (granularity and schemas_loaded[granularity])) then
-     -- already loaded
-    return
-  end
-
   init_runtime_paths()
   lua_path_utils.package_path_preprend(RUNTIME_PATHS.ts_schemas)
 
@@ -652,14 +645,19 @@ function plugins_utils.loadSchemas(granularity)
 	  --   require(score.min)
 	  --   require(influxdb_monitor.5mins)
 	  local req_name = string.format("%s.%s", plugin_name, fgran)
-	  
-	  require(req_name)
+
+	  -- Use pcall in place of direct require to avoid generating an exception in
+	  -- case the require-d module doesn't exist
+	  local status, req = pcall(require, req_name)
+	  if not status then
+	     -- Schema doesn't exist for `plugin_name` at the requested granularity.
+	     -- This is normal, it's not mandatory for a plugin to define schemas or to
+	     -- define a schema for any granularity
+	  end
       end
       
     end
   end
-
-  schemas_loaded[granularity or "all"] = true
 end
 
 -- ##############################################
