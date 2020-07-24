@@ -34,20 +34,31 @@ static void* doRun(void* ptr)  {
 
 /* **************************************************** */
 
-ThreadPool::ThreadPool(bool _high_priority, u_int8_t _pool_size) {
+ThreadPool::ThreadPool(bool _high_priority, u_int8_t _pool_size,
+		       char *comma_separated_affinity_mask) {
   pool_size = _pool_size;
   m = new Mutex();
   pthread_cond_init(&condvar, NULL);
   terminating = false;
   high_priority = _high_priority; /* Not used yet */
+
+#ifdef __linux__
+  cpu_set_t mask, *mask_to_set;
+  
+  if(comma_separated_affinity_mask != NULL) {
+    Utils::setAffinityMask(comma_separated_affinity_mask, &mask);
+    mask_to_set = &mask;
+  } else
+    mask_to_set = ntop->getPrefs()->get_other_cpu_affinity_mask();
+#endif
   
   if((threadsState = (pthread_t*)malloc(sizeof(pthread_t)*pool_size)) == NULL)
     throw("Not enough memory");
   
   for(int i=0; i<pool_size; i++) {
     if(pthread_create(&threadsState[i], NULL, doRun, (void*)this) == 0) {
-#ifdef HAVE_LIBCAP
-      Utils::setThreadAffinityWithMask(threadsState[i], ntop->getPrefs()->get_other_cpu_affinity_mask());
+#ifdef __linux__
+      Utils::setThreadAffinityWithMask(threadsState[i], mask_to_set);
 #endif
     }
   }

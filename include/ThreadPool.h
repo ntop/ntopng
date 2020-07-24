@@ -52,7 +52,7 @@ class ThreadPool {
   QueuedThreadData* dequeueJob(bool waitIfEmpty);
   
  public:
-  ThreadPool(bool _high_priority, u_int8_t _pool_size);
+  ThreadPool(bool _high_priority, u_int8_t _pool_size, char *comma_separated_affinity_mask = NULL);
   virtual ~ThreadPool();
 
   void shutdown();
