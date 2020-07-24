@@ -18,6 +18,12 @@ local ENDPOINT_RECIPIENTS_KEY = "ntopng.prefs.notification_endpoint.endpoint_con
 
 local notification_recipients = {}
 
+-- ##############################################
+
+local function get_endpoint_recipient_queue(endpoint_recipient_name)
+   return "ntopng.alerts.notification_recipient_queue." .. endpoint_recipient_name
+end
+
 -- #################################################################
 
 -- @brief Check if an endpoint configuration with name `endpoint_recipient_name` exists
@@ -281,10 +287,9 @@ function notification_recipients.dispatchNotification(message, json_message)
 
    local recipients = pools:get_recipients(message.pool_id)
    for _, recipient_id in pairs(recipients) do
-      local recipient = notification_recipients.get_recipient(recipient_id)
-
-      -- TODO deliver alert to recipient queue
-      -- ntop.rpushCache(recipient.export_queue, json_message, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT)
+      -- local recipient = notification_recipients.get_recipient(recipient_id)
+      local export_queue = get_endpoint_recipient_queue(recipient_id)
+      ntop.rpushCache(export_queue, json_message, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT)
    end
 end
 
@@ -294,17 +299,20 @@ function notification_recipients.processNotifications(now, periodic_frequency, f
    local recipients = notification_recipients.get_recipients()
 
    for _, recipient in pairs(recipients) do
-      local m = nil -- TODO get module from recipient
+      local recipient_id = recipient.recipient_name
+      local m = nil -- TODO get endpoint module from recipient
 
-      if m and (force_export or ((now % m.export_frequency) < periodic_frequency)) then
+      if m then
+         -- if force_export or ((now % m.export_frequency) < periodic_frequency) then
+            local export_queue = get_endpoint_recipient_queue(recipient_id)
 
-         -- TODO add a budget to dequeue (e.g. 1 message)
-         local rv = m.module.dequeueAlerts(recipient.export_queue)
+            local rv = m.module.dequeueAlerts(export_queue, 1 --[[ budget ]])
 
-         if not rv.success then
-            local msg = rv.error_message or "Unknown Error"
-            traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. m.name .. " module: " .. msg)
-         end
+            if not rv.success then
+               local msg = rv.error_message or "Unknown Error"
+               traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. m.name .. " module: " .. msg)
+            end
+         -- end
       end
    end
 end

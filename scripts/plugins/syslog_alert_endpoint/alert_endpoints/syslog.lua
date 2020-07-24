@@ -36,7 +36,10 @@ end
 
 -- ##############################################
 
-function syslog.dequeueAlerts(queue)
+function syslog.dequeueAlerts(queue, budget)
+
+   -- TODO handle budget (pay attention to severity/priority)
+
    local notifications = ntop.lrangeCache(queue, 0, -1)
 
    if not notifications then
