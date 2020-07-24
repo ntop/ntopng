@@ -661,6 +661,18 @@ function printMisc()
 			      h_labels, h_values, "0", "primary", "toggle_host_mask", "ntopng.prefs.host_mask")
   end
 
+  -- ######################
+
+  if ntop.isPro() then
+     print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.behaviour")..'</th></tr></thead>')
+
+     prefsToggleButton(subpage_active, {
+			  field = "toggle_behaviour_analysis",
+			  default = "0",
+			  pref = "is_behaviour_analysis_enabled", -- redis preference
+     })
+  end
+
   -- #####################
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
