@@ -885,7 +885,7 @@ static int handle_lua_request(struct mg_connection *conn) {
      || (!ntop->get_HTTPserver()->accepts_requests())) {
     /* return(redirect_to_error_page(conn, request_info, "shut_start", NULL, NULL)); */
     return(send_error(conn, 403 /* Forbidden */, request_info->uri,
-		      "Unable to serve requests at this time, possibly starting up or shutting down."));
+		      "<html><head><meta http-equiv=\"refresh\" content=\"3\"></head><body>Unable to serve requests at this time, possibly starting up or shutting down.</body></html>"));
   }
 
 #ifdef DEBUG
