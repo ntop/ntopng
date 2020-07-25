@@ -66,7 +66,7 @@ pfring *PF_RINGInterface::pfringSocketInit(const char *name) {
 
   if(pfring_set_direction(handle, direction) != 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction on %s", name);
-    if (strstr(name, "zc:") && direction != rx_only_direction)
+    if(strstr(name, "zc:") && direction != rx_only_direction)
       ntop->getTrace()->traceEvent(TRACE_WARNING, "ZC supports RX capture only, please use --capture-direction 1"); 
   }
 
@@ -92,7 +92,7 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
   pcap_datalink_type = DLT_EN10MB;
   dropped_packets = 0;
 
-  if (strchr(ifname, ':') && strchr(ifname, ',')) { 
+  if(strchr(ifname, ':') && strchr(ifname, ',')) { 
     char name_list[MAX_INTERFACE_NAME_LEN];
     char *name, *tmp;
 
@@ -105,7 +105,7 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
 
       pfring_handle[num_pfring_handles] = pfringSocketInit(name);
 
-      if (pfring_handle[num_pfring_handles] == NULL)
+      if(pfring_handle[num_pfring_handles] == NULL)
         throw errno; 
      
       num_pfring_handles++;
@@ -117,7 +117,7 @@ PF_RINGInterface::PF_RINGInterface(const char *name) : NetworkInterface(name) {
 
     pfring_handle[0] = pfringSocketInit(ifname);
 
-    if (pfring_handle[0] == NULL)
+    if(pfring_handle[0] == NULL)
       throw errno; 
 
     num_pfring_handles = 1;
@@ -132,7 +132,7 @@ PF_RINGInterface::~PF_RINGInterface() {
   shutdown();
 
   for (i = 0; i < num_pfring_handles; i++) {
-    if (pfring_handle[i])
+    if(pfring_handle[i])
       pfring_close(pfring_handle[i]);
   }
 }
@@ -234,13 +234,17 @@ static void* packetPollLoop(void* ptr) {
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
 
-  while(iface->idle()) { iface->purgeIdle(time(NULL)); sleep(1); }
-
-  if (iface->get_num_pfring_handles() == 1)
+  while(iface->idle()) {
+    if(ntop->getGlobals()->isShutdown()) return(NULL);
+    iface->purgeIdle(time(NULL));
+    sleep(1);
+  }
+  
+  if(iface->get_num_pfring_handles() == 1)
     iface->singlePacketPollLoop();
   else
     iface->multiPacketPollLoop();  
-
+  
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s", 
 			       iface->get_name());
   return(NULL);
@@ -258,7 +262,7 @@ void PF_RINGInterface::startPacketPolling() {
 
 void PF_RINGInterface::shutdown() {
   for (int i = 0; i < num_pfring_handles; i++) {
-    if (pfring_handle[i]) pfring_breakloop(pfring_handle[i]);
+    if(pfring_handle[i]) pfring_breakloop(pfring_handle[i]);
   }
 
   NetworkInterface::shutdown();
@@ -276,7 +280,7 @@ void PF_RINGInterface::updatePacketsStats() {
   int i;
 
   for (i = 0; i < num_pfring_handles; i++) {
-    if (pfring_stats(pfring_handle[i], &stats) >= 0) {
+    if(pfring_stats(pfring_handle[i], &stats) >= 0) {
 #if 0
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][Rcvd: %llu][Drops: %llu][DroppedByFilter: %u]",
 				   ifname, stats.recv, stats.drop, stats.droppedbyfilter);
@@ -300,7 +304,7 @@ bool PF_RINGInterface::set_packet_filter(char *filter) {
   int i;
 
   for (i = 0; i < num_pfring_handles; i++) {
-    if (pfring_set_bpf_filter(pfring_handle[i], filter) != 0) {
+    if(pfring_set_bpf_filter(pfring_handle[i], filter) != 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set filter %s.\n", filter);
       return(false);
     }

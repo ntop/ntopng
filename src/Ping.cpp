@@ -214,7 +214,7 @@ void Ping::pollResults() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started polling...");
 #endif
 
-  while(running) {
+  while(running&& (!ntop->getGlobals()->isShutdown())) {
     FD_ZERO(&mask);
     if(sd != -1)  FD_SET(sd, &mask);
     if(sd6 != -1) FD_SET(sd6, &mask);

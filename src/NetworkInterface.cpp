@@ -1550,6 +1550,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 /* **************************************************** */
 
 void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
+  if(ntop->getGlobals()->isShutdown()) return;
+  
   if(purge_idle_flows_hosts) {
     u_int n, m, o;
 

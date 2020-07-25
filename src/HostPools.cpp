@@ -664,8 +664,9 @@ void HostPools::reloadPools() {
     new_stats[0] = new HostPoolStats(iface);
 
   /* Keys are pool ids */
-  num_pools = redis->smembers(kname, &pools);
-
+  if((num_pools = redis->smembers(kname, &pools)) == -1)
+    return; /* Something went wrong with redis? */
+  
   for(int i = 0; i < num_pools; i++) {
     if(!pools[i])
       continue;
