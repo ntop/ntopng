@@ -11,13 +11,13 @@ local webhook = {
       { param_name = "webhook_sharedsecret", optional = true },
       { param_name = "webhook_username", optional = true },
       { param_name = "webhook_password", optional = true },
+      -- TODO: configure severity (Errors, Errors and Warnings, All)
    },
    conf_template = {
       plugin_key = "webhook_alert_endpoint",
       template_name = "webhook_endpoint.template"
    },
    recipient_params = {
-      -- TODO: add recipient params
    },
    recipient_template = {
       plugin_key = "webhook_alert_endpoint",
@@ -34,19 +34,14 @@ local MAX_ALERTS_PER_REQUEST = 10
 
 -- ##############################################
 
-function webhook.sendMessage(alerts)
-  local url = ntop.getPref("ntopng.prefs.alerts.webhook_url")
-  local sharedsecret = ntop.getPref("ntopng.prefs.alerts.webhook_sharedsecret")
-  local username = ntop.getPref("ntopng.prefs.alerts.webhook_username")
-  local password = ntop.getPref("ntopng.prefs.alerts.webhook_password")
-
-  if isEmptyString(url) then
+function webhook.sendMessage(alerts, settings)
+  if isEmptyString(settings.url) then
     return false
   end
 
   local message = {
     version = webhook.API_VERSION,
-    sharedsecret = sharedsecret,
+    sharedsecret = settings.sharedsecret,
     alerts = alerts,
   }
 
@@ -55,7 +50,7 @@ function webhook.sendMessage(alerts)
   local rc = false
   local retry_attempts = 3
   while retry_attempts > 0 do
-    if ntop.postHTTPJsonData(username, password, url, json_message, webhook.REQUEST_TIMEOUT) then 
+    if ntop.postHTTPJsonData(settings.username, settings.password, settings.url, json_message, webhook.REQUEST_TIMEOUT) then 
       rc = true
       break 
     end
@@ -69,6 +64,13 @@ end
 
 function webhook.dequeueAlerts(queue)
   local start_time = os.time()
+
+  local settings = {
+    url = ntop.getPref("ntopng.prefs.alerts.webhook_url"),
+    sharedsecret = ntop.getPref("ntopng.prefs.alerts.webhook_sharedsecret"),
+    username = ntop.getPref("ntopng.prefs.alerts.webhook_username"),
+    password = ntop.getPref("ntopng.prefs.alerts.webhook_password"),
+  }
 
   local alerts = {}
 
@@ -90,7 +92,7 @@ function webhook.dequeueAlerts(queue)
     table.insert(alerts, alert)
 
     if #alerts >= MAX_ALERTS_PER_REQUEST then
-      if not webhook.sendMessage(alerts) then
+      if not webhook.sendMessage(alerts, settings) then
         ntop.delCache(queue)
         return {success=false, error_message="Unable to send alerts to the webhook"}
       end
@@ -99,10 +101,62 @@ function webhook.dequeueAlerts(queue)
   end
 
   if #alerts > 0 then
-    if not webhook.sendMessage(alerts) then
+    if not webhook.sendMessage(alerts, settings) then
       ntop.delCache(queue)
       return {success=false, error_message="Unable to send alerts to the webhook"}
     end
+  end
+
+  return {success=true}
+end
+
+-- ##############################################
+
+function webhook.dequeueRecipientAlerts(recipient, budget)
+  local start_time = os.time()
+  local sent = 0
+  local more_available = true
+
+  local settings = {
+    url = recipient.endpoint_conf.endpoint_conf.webhook_url,
+    sharedsecret = recipient.endpoint_conf.endpoint_conf.webhook_sharedsecret,
+    username = recipient.endpoint_conf.endpoint_conf.webhook_username,
+    password = recipient.endpoint_conf.endpoint_conf.webhook_password,
+  }
+
+  -- Dequeue alerts up to budget x MAX_ALERTS_PER_EMAIL
+  -- Note: in this case budget is the number of email to send
+  while sent < budget and more_available do
+
+    local diff = os.time() - start_time
+    if diff >= webhook.ITERATION_TIMEOUT then
+      break
+    end
+
+    -- Dequeue MAX_ALERTS_PER_EMAIL notifications
+    local notifications = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_REQUEST-1)
+
+    if not notifications or #notifications == 0 then
+      more_available = false
+      break
+    end
+
+    local alerts = {}
+
+    for _, json_message in ipairs(notifications) do
+      local alert = json.decode(json_message)
+      table.insert(alerts, alert)
+    end
+
+    if not webhook.sendMessage(alerts, settings) then
+      ntop.delCache(recipient.export_queue)
+      return {success=false, error_message="Unable to send alerts to the webhook"}
+    end
+
+    -- Remove the processed messages from the queue
+    ntop.ltrimCache(recipient.export_queue, #notifications, -1)
+
+    sent = sent + 1
   end
 
   return {success=true}
@@ -114,7 +168,15 @@ function webhook.handlePost()
   local message_info, message_severity
 
   if(_POST["send_test_webhook"] ~= nil) then
-    local success = webhook.sendMessage({})
+
+    local settings = {
+      url = ntop.getPref("ntopng.prefs.alerts.webhook_url"),
+      sharedsecret = ntop.getPref("ntopng.prefs.alerts.webhook_sharedsecret"),
+      username = ntop.getPref("ntopng.prefs.alerts.webhook_username"),
+      password = ntop.getPref("ntopng.prefs.alerts.webhook_password"),
+    }
+
+    local success = webhook.sendMessage({}, settings)
 
     if success then
        message_info = i18n("prefs.webhook_sent_successfully")
