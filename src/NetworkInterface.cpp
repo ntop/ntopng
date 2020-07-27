@@ -2441,50 +2441,6 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
 /* **************************************************** */
 
-static bool host_flow_update_stats(GenericHashEntry *node, void *user_data, bool *matched) {
-  periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*)user_data;
-
-  node->periodic_stats_update(periodic_stats_update_user_data->tv);
-
-  *matched = true;
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-/* NOTE: mac is not a GenericTrafficElement */
-static bool update_macs_stats(GenericHashEntry *node, void *user_data, bool *matched) {
-  Mac *mac = (Mac*)node;
-  periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*)user_data;
-  struct timeval *tv = periodic_stats_update_user_data->tv;
-
-  mac->updateStats(tv);
-
-  *matched = true;
- 
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool update_generic_element_stats(GenericHashEntry *node, void *user_data, bool *matched) {
-  GenericTrafficElement *elem;
-  periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*)user_data;
-  struct timeval *tv = periodic_stats_update_user_data->tv;
-
-  if((elem = dynamic_cast<GenericTrafficElement*>(node))) {
-
-    elem->updateStats(tv);
-    *matched = true;
-  } else
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "update_generic_element_stats on non GenericTrafficElement");
-
-  return(false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
 bool NetworkInterface::checkPeriodicStatsUpdateTime(const struct timeval *tv) {
   float diff = Utils::msTimevalDiff(tv, &last_periodic_stats_update) / 1000;
 
