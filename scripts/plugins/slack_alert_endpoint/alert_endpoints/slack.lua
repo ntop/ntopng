@@ -11,6 +11,7 @@ local slack = {
    conf_params = {
       { param_name = "slack_sender_username" },
       { param_name = "slack_webhook" },
+      -- TODO: add severity (Errors, Errors and Warnings, All)
    },
    conf_template = {
       plugin_key = "slack_alert_endpoint",
@@ -51,37 +52,42 @@ end
 
 -- ##############################################
 
-function slack.sendMessage(entity_type, severity, text)
+function slack.sendMessage(entity_type, severity, text, settings)
   local channel_name = slack.getChannelName(entity_type)
-  local webhook = ntop.getPref("ntopng.prefs.alerts.slack_webhook")
-  local sender_username = ntop.getPref("ntopng.prefs.alerts.slack_sender_username")
 
-  if isEmptyString(webhook) or isEmptyString(sender_username) then
+  if isEmptyString(settings.webhook) or isEmptyString(settings.sender_username) then
     return false
   end
 
   local message = {
     channel = "#" .. channel_name,
     icon_emoji = alert_severity_to_emoji[severity] or alert_severity_to_emoji.default,
-    username = sender_username .. " [" .. string.upper(severity)  .. "]",
+    username = settings.sender_username .. " [" .. string.upper(severity)  .. "]",
     text = text,
   }
 
   local json_message = json.encode(message)
-  return ntop.postHTTPJsonData("", "", webhook, json_message)
+  return ntop.postHTTPJsonData("", "", settings.webhook, json_message)
 end
 
 -- ##############################################
 
+-- Deprecated
 -- We will try to send the most recent MAX_ALERTS_PER_MESSAGE messages for every
 -- channel and severity. On success, we clear the queue. On error, we leave the queue unchagned
 -- to retry on next round.
 function slack.dequeueAlerts(queue)
+
   local notifications = ntop.lrangeCache(queue, 0, -1)
 
   if not notifications then
     return {success=true}
   end
+
+  local settings = {
+    webhook = ntop.getPref("ntopng.prefs.alerts.slack_webhook"),
+    sender_username = ntop.getPref("ntopng.prefs.alerts.slack_sender_username"),
+  }
 
   -- Separate by severity and channel
   local alerts_by_types = {}
@@ -119,7 +125,7 @@ function slack.dequeueAlerts(queue)
 
       messages = table.concat(messages, "\n")
 
-      if not slack.sendMessage(entity_type, severity, messages) then
+      if not slack.sendMessage(entity_type, severity, messages, settings) then
         -- Note: upon failure we'll possibly resend already sent messages
         return {success=false, error_message="Unable to send slack messages"}
       end
@@ -128,6 +134,78 @@ function slack.dequeueAlerts(queue)
 
   -- Remove all the messages from queue on success
   ntop.delCache(queue)
+
+  return {success=true}
+end
+
+-- ##############################################
+
+-- This will try to send the most recent MAX_ALERTS_PER_MESSAGE messages for every
+-- channel and severity (no more than one message for each, budget is ignored). 
+-- On success, it clears the queue.
+-- On error, it leaves the queue unchagned to retry on next round.
+function slack.dequeueRecipientAlerts(recipient, budget)
+
+  local notifications = ntop.lrangeCache(recipient.export_queue, 0, -1)
+
+  if not notifications or #notifications == 0 then
+    return {success=true}
+  end
+
+  local settings = {
+    webhook = recipient.endpoint_conf.endpoint_conf.slack_webhook,
+    sender_username = recipient.endpoint_conf.endpoint_conf.slack_sender_username,
+  }
+
+  -- Separate by severity and channel
+  local alerts_by_types = {}
+
+  for _, json_message in ipairs(notifications) do
+    local notif = json.decode(json_message)
+    if notif.alert_entity then
+      if not alerts_by_types[notif.alert_entity] then
+        alerts_by_types[notif.alert_entity] = {}
+      end
+      if not alerts_by_types[notif.alert_entity][notif.alert_severity] then
+        alerts_by_types[notif.alert_entity][notif.alert_severity] = {}
+      end
+      table.insert(alerts_by_types[notif.alert_entity][notif.alert_severity], notif)
+    end
+  end
+
+  for entity_type, by_severity in pairs(alerts_by_types) do
+    for severity, notifications in pairs(by_severity) do
+      local messages = {}
+      entity_type = alert_consts.alertEntityRaw(entity_type)
+      severity = alert_consts.alertSeverityRaw(severity)
+
+      -- Most recent notifications first
+      for _, notif in pairsByValues(notifications, alert_utils.notification_timestamp_rev) do
+        local msg = alert_utils.formatAlertNotification(notif, {nohtml=true, show_severity=false})
+        table.insert(messages, msg)
+
+        if #messages >= MAX_ALERTS_PER_MESSAGE then
+          break
+        end
+      end
+
+      local missing = #notifications - #messages
+
+      if missing > 0 then
+        table.insert(messages, "NOTE: " .. missing .. " older messages have been suppressed")
+      end
+
+      messages = table.concat(messages, "\n")
+
+      if not slack.sendMessage(entity_type, severity, messages) then
+        -- Note: upon failure we'll possibly resend already sent messages
+        return {success=false, error_message="Unable to send slack messages"}
+      end
+    end
+  end
+
+  -- Remove all the messages from queue on success
+  ntop.delCache(recipient.export_queue)
 
   return {success=true}
 end
