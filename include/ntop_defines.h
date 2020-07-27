@@ -460,6 +460,10 @@
 #define CONST_MAX_NUM_FIND_HITS       10
 #define CONST_MAX_NUM_HITS         32768 /* Decrease it for small installations */
 
+/* Controls for periodic_stats_update (avoid executing it too often, or when not necessary) */
+#define PERIODIC_STATS_UPDATE_MIN_REFRESH_BYTES   10 * (2 << 19 /* MB */)
+#define PERIODIC_STATS_UPDATE_MIN_REFRESH_MS      5000
+
 #define SCANNERS_ADDRESS_TREE_HIGH_WATERMARK  1024
 #define SCANNERS_ADDRESS_TREE_LOW_WATERMARK    512
 
@@ -1045,7 +1049,6 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE  30 /* Keepalive after 30 seconds */
 #define DEFAULT_ZMQ_TCP_KEEPALIVE_CNT   3  /* Keepalive send 3 probes */
 #define DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL 3  /* Keepalive probes sent every 3 seconds */
-#define PERIODIC_TASK_POOL_SIZE      8 /* Threads */
 
 #define MAX_NUM_ASYNC_SNMP_ENGINES   8
 #define MIN_NUM_HASH_WALK_ELEMS      512

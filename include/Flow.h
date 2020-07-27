@@ -476,6 +476,7 @@ class Flow : public GenericHashEntry {
   u_int32_t get_packetsRetr();
   u_int32_t get_packetsOOO();
 
+  inline const struct timeval *get_current_update_time() const {return &last_update_time; } ;
   u_int64_t get_current_bytes_cli2srv() const;
   u_int64_t get_current_bytes_srv2cli() const;
   u_int64_t get_current_goodput_bytes_cli2srv() const;

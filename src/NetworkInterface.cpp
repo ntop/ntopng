@@ -1544,6 +1544,24 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	   flow->getStatsProtocol(), flow->get_protocol_category(),
 	   l4_proto, len_on_wire, 1);
 
+  /* For large flows, a periodic_stats_update is performed straight after processing a packet.
+     Conditions checked to determine 'a large flow' are
+
+     (1) A minimum number of bytes transferred since the previous periodic_stats_update (checked using get_current_*)
+     (2) A minimum number of milliseconds elapsed since the previous periodic_stats_update (checked using get_current_update_time())
+
+     Conditions above are necessary as:
+
+     (1) ensures that large flows perform faster periodic_stats_update, without having to wait for purgeIdle to visit the whole
+         hash table (this may take up to PURGE_FRACTION seconds).
+     (2) ensures that periodic_stats_update is not performed too frequently as it could be detrimental for performances and lead
+         to packet drops.
+   */
+  if(flow->get_current_bytes_cli2srv() + flow->get_current_bytes_srv2cli() >= PERIODIC_STATS_UPDATE_MIN_REFRESH_BYTES
+     && Utils::msTimevalDiff(when, flow->get_current_update_time()) >= PERIODIC_STATS_UPDATE_MIN_REFRESH_MS) {
+    flow->periodic_stats_update(when);
+  }
+
   return(pass_verdict);
 }
 
