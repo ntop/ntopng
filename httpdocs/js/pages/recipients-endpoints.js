@@ -4,7 +4,7 @@ $(document).ready(function () {
 
         const $inputsTemplate = $(`${formSelector} .recipient-template-container [name]`);
         const params = {};
-        $inputsTemplate.each(function(i, input){
+        $inputsTemplate.each(function (i, input) {
             params[$(this).attr('name')] = $(this).val().trim();
         });
 
@@ -16,7 +16,7 @@ $(document).ready(function () {
 
     function createTemplateOnSelect(formSelector) {
         const $templateContainer = $(`${formSelector} .recipient-template-container`);
-        $(`${formSelector} select[name='endpoint']`).change(function(e) {
+        $(`${formSelector} select[name='endpoint']`).change(function (e) {
             const $option = $(this).find(`option[value='${$(this).val()}']`);
             const template = $(`template#${$option.data('endpointKey')}-template`).html();
             const $cloned = $(template);
@@ -30,7 +30,7 @@ $(document).ready(function () {
     }
 
 
-    let dtConfig = DataTableUtils.getStdDatatableConfig( [
+    let dtConfig = DataTableUtils.getStdDatatableConfig([
         {
             text: '<i class="fas fa-plus"></i>',
             className: 'btn-link',
@@ -52,12 +52,23 @@ $(document).ready(function () {
                 targets: -1,
                 className: 'text-center',
                 data: null,
-                render: function () {
-                    return (`
-                        <div class='btn-group btn-group-sm'>
+                render: function (data, type, row) {
+
+                    let editButton = "";
+                    const endpointType = row.endpoint_conf.endpoint_key
+                    // if the template is empty then disabled the edit button
+                    const editButtonDisabled = $.trim($(`#${endpointType}-template`).html()) == "";
+                    if (!editButtonDisabled) {
+                        editButton = `
                             <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info">
                                 <i class='fas fa-edit'></i>
                             </a>
+                        `;
+                    }
+
+                    return (`
+                        <div class='btn-group btn-group-sm'>
+                            ${editButton}
                             <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-danger">
                                 <i class='fas fa-trash'></i>
                             </a>
@@ -91,7 +102,7 @@ $(document).ready(function () {
             $(`#edit-recipient-name`).text(data.recipient_name);
             /* load the values inside the template */
             $(`#edit-recipient-modal form [name='name']`).val(data.recipient_name);
-            $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function(i, input) {
+            $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
                 $(this).val(data.recipient_params[$(this).attr('name')]);
             });
         },
@@ -117,7 +128,7 @@ $(document).ready(function () {
         resetAfterSubmit: false,
         beforeSumbit: function () {
 
-            $(`#add-recipient-modal form button[type='submit']`).click(function() {
+            $(`#add-recipient-modal form button[type='submit']`).click(function () {
                 $(`#add-recipient-modal form span.invalid-feedback`).hide();
             });
 
@@ -125,7 +136,7 @@ $(document).ready(function () {
             data.action = 'add';
             return data;
         },
-        onModalInit: function() {
+        onModalInit: function () {
             createTemplateOnSelect(`#add-recipient-modal`);
         },
         onSubmitSuccess: function (response) {
@@ -151,10 +162,10 @@ $(document).ready(function () {
         csrf: pageCsrf,
         endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
         dontDisableSubmit: true,
-        onModalInit: function() {
+        onModalInit: function () {
             $(`.removed-recipient-name`).text(`${rowData.recipient_name}`);
         },
-        beforeSumbit: function() {
+        beforeSumbit: function () {
             return {
                 action: 'remove',
                 recipient_name: rowData.recipient_name
