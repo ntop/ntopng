@@ -64,6 +64,10 @@
 #define ETH_P_ERSPAN            0x88BE  /* ERSPAN type II */
 #endif
 
+#ifndef IPPROTO_IP_IN_IP
+#define IPPROTO_IP_IN_IP          0x04
+#endif
+
 /* BSD AF_ values. */
 #define BSD_AF_INET             2
 #define BSD_AF_INET6_BSD        24      /* OpenBSD (and probably NetBSD), BSD/OS */

@@ -2018,7 +2018,6 @@ decode_packet_eth:
 	      /* Unknown encapsulation */
 	    }
 	  }
-
 	} else if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_UDP)) {
 	  // ip_offset += ipv6_shift;
 	  if((ip_offset + ipv6_shift) >= h->len) {
@@ -2072,8 +2071,12 @@ decode_packet_eth:
 	      goto dissect_packet_end;
 	    }
 	  }
+	} else if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_IP_IN_IP)) {
+	  eth_type = ETHERTYPE_IP;
+	  ip_offset += sizeof(struct ndpi_ipv6hdr);
+	  goto decode_packet_eth;
 	}
-
+	
 	if(vlan_id && ntop->getPrefs()->do_ignore_vlans())
 	  vlan_id = 0;
 	if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
