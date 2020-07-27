@@ -55,6 +55,7 @@
 {* template_utils.gen("pages/modals/pools/remove_host_pool_member.template") *}
 
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-ipsorting.js"></script>
 <script type="text/javascript">
 
     let addCsrf = "{{ ntop.getRandomCSRFValue() }}";

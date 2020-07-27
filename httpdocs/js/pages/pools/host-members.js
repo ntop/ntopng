@@ -20,7 +20,7 @@ $(document).ready(function() {
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         stateSave: true,
         columns: [
-            {  data: 'name' },
+            {  data: 'name', type: 'ip-address' },
             {
                 data: 'vlan',
                 width: '5',
@@ -77,8 +77,6 @@ $(document).ready(function() {
             // hide the fields and select default type entry
             const macAndNetworkFields = "#add-member-modal .mac-fields, #add-member-modal .network-fields";
             $(macAndNetworkFields).hide();
-            // disable add button
-            $(`#add-member-modal form [type='submit']`).attr("disabled", true);
             $(`#add-modal-feedback`).hide();
         },
         onModalInit: function() {
