@@ -12,6 +12,7 @@
                 <tr>
                     <th>{{ i18n("pools.name") }}</th>
                     <th>{{ i18n("pools.members") }}</th>
+                    <th>{{ i18n("pools.recipients") }}</th>
                     <th>{{ i18n("pools.configuration") }}</th>
                     <th>{{ i18n("actions") }}</th>
                 </tr>

@@ -37,6 +37,16 @@ $(document).ready(function() {
         $(selector).empty().append($options);
     }
 
+    const arrayToListString = (array, limit) => {
+
+        if (array.length > limit) {
+            const otherStr = ((length - limit) == 1) ? i18n.other : i18n.others;
+            return array.slice(0, limit).join(", ") + ` ${i18n.and} ${array.length - limit} ${otherStr.toLowerCase()}`;
+        }
+
+        return array.slice(0, limit).join(", ");
+    }
+
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
@@ -47,7 +57,7 @@ $(document).ready(function() {
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         stateSave: true,
         columns: [
-            { data: 'name', width: "20%" },
+            { data: 'name', width: "10%" },
             {
                 data: null,
                 width: "40%",
@@ -68,13 +78,18 @@ $(document).ready(function() {
                         return all_members[memberId].name;
                     });
 
-                    const length = memberNames.length;
-                    if (length > 10 && type == "display") {
-                        const otherStr = (length - 10 == 1) ? i18n.other : i18n.others;
-                        return memberNames.slice(0, 10).join(", ") + ` ${i18n.and} ${length - 10} ${otherStr.toLowerCase()}`;
+                    if (type == "display") {
+                        return arrayToListString(memberNames, 10);
                     }
-                    else if (length <= 10 && type == "display") {
-                        return memberNames.slice(0, 10).join(", ");
+                }
+            },
+            {
+                data: 'recipients',
+                width: '40%',
+                render: function(data, type, row) {
+
+                    if (type == "display") {
+                        return arrayToListString(data, 10);
                     }
                 }
             },
