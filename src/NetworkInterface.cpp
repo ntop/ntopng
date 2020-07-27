@@ -2525,7 +2525,7 @@ u_int32_t NetworkInterface::getFlowMaxIdle() {
 
 /* **************************************************** */
 
-void NetworkInterface::periodicStatsUpdate(lua_State* vm) {
+void NetworkInterface::periodicStatsUpdate() {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
 #endif
@@ -5216,7 +5216,7 @@ void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
 /* **************************************************** */
 
 void NetworkInterface::runHousekeepingTasks() {
-  periodicStatsUpdate(NULL);
+  periodicStatsUpdate();
 }
 
 /* **************************************************** */
@@ -5228,7 +5228,7 @@ void NetworkInterface::runShutdownTasks() {
 
   /* Run the periodic stats update one last time so certain tasks can be properly finalized,
      e.g., all hosts and all flows can be marked as idle */
-  periodicStatsUpdate(NULL);
+  periodicStatsUpdate();
 
 #ifdef NTOPNG_PRO
   flushFlowDump();
