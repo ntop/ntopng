@@ -97,7 +97,7 @@ local lang = {
   ["from"] = "from",
   ["full"] = "Full",
   ["gateway"] = "Gateway",
-  ["geolocation_unavailable"] = "Geolocation support is not enabled, please follow the instructions in the <a href='%{url}' target='%{target}'>documentation <i class='%{icon}'></i></a> to enable it.",
+  ["geolocation_unavailable"] = "Geolocation disabled: please <a href='%{url}' target='%{target}'>read this page<i class='%{icon}'></i></a> to enable it.",
   ["hassh_fingerprint"] = "HASSH Fingerprint",
   ["health"] = "Health",
   ["help"] = "Help",

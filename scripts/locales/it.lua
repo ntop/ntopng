@@ -90,7 +90,7 @@ local lang = {
   ["from"] = "da",
   ["full"] = "Full",
   ["gateway"] = "Gateway",
-  ["geolocation_unavailable"] = "Il supporto alla geolocalizzazione non è abilitato. Per abilitarlo seguire <a href='%{url}' target='%{target}'>queste istruzioni<i class='%{icon}'></i></a>.",
+  ["geolocation_unavailable"] = "Geolocalizzazione disabilitata: leggere <a href='%{url}' target='%{target}'>queste istruzioni<i class='%{icon}'></i></a> per abilitarla.",
   ["hassh_fingerprint"] = "Fingerprint HASSH",
   ["health"] = "Stato",
   ["help"] = "Aiuto",
