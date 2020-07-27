@@ -39,6 +39,8 @@ $(document).ready(function() {
 
     const arrayToListString = (array, limit) => {
 
+        if (array == undefined) return "";
+
         if (array.length > limit) {
             const otherStr = ((length - limit) == 1) ? i18n.other : i18n.others;
             return array.slice(0, limit).join(", ") + ` ${i18n.and} ${array.length - limit} ${otherStr.toLowerCase()}`;
