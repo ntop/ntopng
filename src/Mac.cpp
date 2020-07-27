@@ -414,7 +414,15 @@ void Mac::checkStatsReset() {
 
 /* *************************************** */
 
-void Mac::updateStats(struct timeval *tv) {
+void Mac::updateStats(const struct timeval *tv) { /* TODO: REMOVE */
+  checkDataReset();
+  checkStatsReset();
+  stats->updateStats(tv);
+}
+
+/* *************************************** */
+
+void Mac::periodic_stats_update(const struct timeval *tv) {
   checkDataReset();
   checkStatsReset();
   stats->updateStats(tv);

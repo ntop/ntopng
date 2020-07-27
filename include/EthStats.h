@@ -39,7 +39,7 @@ class EthStats {
   inline ProtoStats* getEthOtherStats() { return(&eth_other); };
 
   void lua(lua_State *vm);
-  void updateStats(struct timeval *tv);
+  void updateStats(const struct timeval *tv);
   void incStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
 		u_int32_t num_bytes, u_int pkt_overhead);
 

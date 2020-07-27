@@ -488,7 +488,7 @@ class Flow : public GenericHashEntry {
   bool is_hash_entry_state_idle_transition_ready() const;
   void periodic_hash_entry_state_update(void *user_data);
   void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const;
-  void periodic_stats_update(void *user_data);
+  void periodic_stats_update(const struct timeval *tv);
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
   u_int get_hash_entry_id() const;
 

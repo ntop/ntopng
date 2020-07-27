@@ -272,7 +272,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
   Active -> Idle -> Ready to be Purged -> Purged
 */
 
-u_int GenericHash::purgeIdle(bool force_idle) {
+u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
   u_int i, num_detached = 0, buckets_checked = 0;
   time_t now = time(NULL);
   /* Visit all entries when force_idle is true */
@@ -324,6 +324,8 @@ u_int GenericHash::purgeIdle(bool force_idle) {
       while(head) {
 	HashEntryState head_state = head->get_state();
 	GenericHashEntry *next = head->next();
+
+	head->periodic_stats_update(tv);
 
 	buckets_checked++;
 

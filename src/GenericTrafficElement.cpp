@@ -75,7 +75,7 @@ GenericTrafficElement::GenericTrafficElement(const GenericTrafficElement &gte) {
 
 /* *************************************** */
 
-void GenericTrafficElement::updateStats(struct timeval *tv) {
+void GenericTrafficElement::updateStats(const struct timeval *tv) {
   bytes_thpt.updateStats(tv, sent.getNumBytes() + rcvd.getNumBytes());
   pkts_thpt.updateStats(tv, sent.getNumPkts() + rcvd.getNumPkts());
 }

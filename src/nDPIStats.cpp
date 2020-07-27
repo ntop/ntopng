@@ -229,7 +229,7 @@ void nDPIStats::lua(NetworkInterface *iface, lua_State* vm, bool with_categories
 
 /* *************************************** */
 
-void nDPIStats::updateStats(struct timeval *tv) {
+void nDPIStats::updateStats(const struct timeval *tv) {
   if(!bytes_thpt)
     return;
 

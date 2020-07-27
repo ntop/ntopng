@@ -1554,7 +1554,6 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
   
   if(purge_idle_flows_hosts) {
     u_int n, m, o;
-
     last_pkt_rcvd = when;
 
     if((n = purgeIdleFlows(force_idle)) > 0)
@@ -2447,7 +2446,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 static bool host_flow_update_stats(GenericHashEntry *node, void *user_data, bool *matched) {
   periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*)user_data;
 
-  node->periodic_stats_update(periodic_stats_update_user_data);
+  node->periodic_stats_update(periodic_stats_update_user_data->tv);
 
   *matched = true;
 
@@ -2509,11 +2508,15 @@ u_int32_t NetworkInterface::periodicStatsUpdateFrequency() const {
 
 /* **************************************************** */
 
-void NetworkInterface::periodicUpdateInitTime(struct timeval *tv) const {
+struct timeval NetworkInterface::periodicUpdateInitTime() const {
+  struct timeval tv;
+
   if(getIfType() != interface_type_PCAP_DUMP)
-    gettimeofday(tv, NULL);
+    gettimeofday(&tv, NULL);
   else
-    tv->tv_sec = last_pkt_rcvd, tv->tv_usec = 0;
+    tv.tv_sec = last_pkt_rcvd, tv.tv_usec = 0;
+
+  return tv;
 }
 
 /* **************************************************** */
@@ -2529,8 +2532,7 @@ void NetworkInterface::periodicStatsUpdate(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
 #endif
 
-  u_int32_t begin_slot;
-  periodic_stats_update_user_data_t periodic_stats_update_user_data;
+  // periodic_stats_update_user_data_t periodic_stats_update_user_data;
   ThreadedActivityStats *thstats = NULL;
   struct timeval tv;
 
@@ -2541,51 +2543,59 @@ void NetworkInterface::periodicStatsUpdate(lua_State* vm) {
       thstats = ctx->threaded_activity_stats;
   }
 
-  periodicUpdateInitTime(&tv);
-  periodic_stats_update_user_data.tv = &tv;
-    
+  tv = periodicUpdateInitTime();
+
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
 
-  /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
-  if((!isView()) && flows_hash) {
-    begin_slot = 0;
-    walker(&begin_slot, true, walker_flows, host_flow_update_stats, &periodic_stats_update_user_data);
-  }
+  if(getIfType() == interface_type_PCAP_DUMP) {
+    /*
+      Called only one time, for interfaces processing pcap files, after the whole processing has been done.
+     */
+    u_int32_t begin_slot;
+    periodic_stats_update_user_data_t periodic_stats_update_user_data;
+    periodic_stats_update_user_data.tv = &tv;
 
-  if(thstats) thstats->setCurrentProgress(40);
+    /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+    if((!isView()) && flows_hash) {
+      begin_slot = 0;
+      walker(&begin_slot, true, walker_flows, host_flow_update_stats, &periodic_stats_update_user_data);
+    }
 
-  if(hosts_hash) {
-    begin_slot = 0;
-    walker(&begin_slot, true, walker_hosts, host_flow_update_stats, &periodic_stats_update_user_data);
-  }
+    if(thstats) thstats->setCurrentProgress(40);
 
-  if(thstats) thstats->setCurrentProgress(70);
+    if(hosts_hash) {
+      begin_slot = 0;
+      walker(&begin_slot, true, walker_hosts, host_flow_update_stats, &periodic_stats_update_user_data);
+    }
 
-  if(ases_hash) {
-    begin_slot = 0;
-    walker(&begin_slot, true, walker_ases, update_generic_element_stats, &periodic_stats_update_user_data);
-  }
+    if(thstats) thstats->setCurrentProgress(70);
 
-  if(thstats) thstats->setCurrentProgress(75);
+    if(ases_hash) {
+      begin_slot = 0;
+      walker(&begin_slot, true, walker_ases, update_generic_element_stats, &periodic_stats_update_user_data);
+    }
 
-  if(countries_hash) {
-    begin_slot = 0;
-    walker(&begin_slot, true, walker_countries, update_generic_element_stats, &periodic_stats_update_user_data);
-  }
+    if(thstats) thstats->setCurrentProgress(75);
 
-  if(thstats) thstats->setCurrentProgress(80);
+    if(countries_hash) {
+      begin_slot = 0;
+      walker(&begin_slot, true, walker_countries, update_generic_element_stats, &periodic_stats_update_user_data);
+    }
 
-  if(vlans_hash && hasSeenVlanTaggedPackets()) {
-    begin_slot = 0;
-    walker(&begin_slot, true, walker_vlans, update_generic_element_stats, &periodic_stats_update_user_data);
-  }
+    if(thstats) thstats->setCurrentProgress(80);
 
-  if(thstats) thstats->setCurrentProgress(85);
+    if(vlans_hash && hasSeenVlanTaggedPackets()) {
+      begin_slot = 0;
+      walker(&begin_slot, true, walker_vlans, update_generic_element_stats, &periodic_stats_update_user_data);
+    }
 
-  if(macs_hash) {
-    begin_slot = 0;
-    walker(&begin_slot, true, walker_macs, update_macs_stats, &periodic_stats_update_user_data);
+    if(thstats) thstats->setCurrentProgress(85);
+
+    if(macs_hash) {
+      begin_slot = 0;
+      walker(&begin_slot, true, walker_macs, update_macs_stats, &periodic_stats_update_user_data);
+    }
   }
 
   if(thstats) thstats->setCurrentProgress(90);
@@ -4847,13 +4857,14 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle) {
     return(0); /* Too early */
   else {
     /* Time to purge flows */
+    const struct timeval tv = periodicUpdateInitTime();
 
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
 				 ifname, id, flows_hash->getNumEntries());
 #endif
-    n = (flows_hash ? flows_hash->purgeIdle(force_idle) : 0);
+    n = (flows_hash ? flows_hash->purgeIdle(&tv, force_idle) : 0);
 
 #ifdef NTOPNG_PRO
     ntop->getPro()->purgeIdleFlows(force_idle);
@@ -4947,18 +4958,19 @@ u_int NetworkInterface::purgeIdleHosts(bool force_idle) {
     return(0); /* Too early */
   else {
     /* Time to purge hosts */
+    const struct timeval tv = periodicUpdateInitTime();
     u_int n;
     /* If the interface is no longer running it is safe to force all entries as idle */
-    
+
 #if 0
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "Purging idle hosts [ifname: %s] [ifid: %i] [current size: %i]",
 				 ifname, id, hosts_hash->getNumEntries());
 #endif
-    
+
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
-    n = (hosts_hash ? hosts_hash->purgeIdle(force_idle) : 0);
-    
+    n = (hosts_hash ? hosts_hash->purgeIdle(&tv, force_idle) : 0);
+
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(n);
   }
@@ -4972,14 +4984,15 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle) {
   if(!force_idle && last_packet_time < next_idle_other_purge)
     return(0); /* Too early */
   else {
-    /* Time to purge hosts */
+    /* Time to purge */
+    const struct timeval tv = periodicUpdateInitTime();
     u_int n;
     /* If the interface is no longer running it is safe to force all entries as idle */
 
-    n = (macs_hash ? macs_hash->purgeIdle(force_idle) : 0)
-      + (ases_hash ? ases_hash->purgeIdle(force_idle) : 0)
-      + (countries_hash ? countries_hash->purgeIdle(force_idle) : 0)
-      + (vlans_hash ? vlans_hash->purgeIdle(force_idle) : 0);
+    n = (macs_hash ? macs_hash->purgeIdle(&tv, force_idle) : 0)
+      + (ases_hash ? ases_hash->purgeIdle(&tv, force_idle) : 0)
+      + (countries_hash ? countries_hash->purgeIdle(&tv, force_idle) : 0)
+      + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle) : 0);
 
     next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
     

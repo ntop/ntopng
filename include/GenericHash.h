@@ -138,12 +138,13 @@ class GenericHash {
   /**
    * @brief Purge idle hash entries.
    *
+   * @param tv Timestamp of the current purge
    * @param force_idle Forcefully marks all hash_entry_state_active entries to
    * hash_entry_state_idle
    *
    * @return Numbers of purged entry, 0 otherwise.
    */
-  u_int purgeIdle(bool force_idle);
+  u_int purgeIdle(const struct timeval * tv, bool force_idle);
 
   /**
    * @brief Purge all hash entries.

@@ -92,7 +92,11 @@ void GenericHashEntry::periodic_hash_entry_state_update(void *user_data)  {
 
 /* ***************************************** */
 
-void GenericHashEntry::periodic_stats_update(void *user_data)  {
+void GenericHashEntry::periodic_stats_update(const struct timeval *tv)  {
+  GenericTrafficElement *elem;
+
+  if((elem = dynamic_cast<GenericTrafficElement*>(this)))
+    elem->updateStats(tv);
 }
 
 /* ***************************************** */

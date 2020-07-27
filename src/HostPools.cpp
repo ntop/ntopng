@@ -298,7 +298,7 @@ void HostPools::luaStats(lua_State *vm, u_int16_t pool_id) {
 
 /* *************************************** */
 
-void HostPools::updateStats(struct timeval *tv) {
+void HostPools::updateStats(const struct timeval *tv) {
   HostPoolStats *hps;
 
   if(stats && tv) {

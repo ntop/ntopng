@@ -539,7 +539,7 @@ static bool update_http_stats(GenericHashEntry *node, void *user_data, bool *mat
 
 /* ******************************************* */
 
-void HTTPstats::updateStats(struct timeval *tv) {
+void HTTPstats::updateStats(const struct timeval *tv) {
   float tdiff_msec = Utils::timeval2ms(tv) - Utils::timeval2ms(&last_update_time);
   const u_int8_t indices[2] = { AS_SENDER, AS_RECEIVER };
   
@@ -551,8 +551,8 @@ void HTTPstats::updateStats(struct timeval *tv) {
     u_int32_t begin_slot = 0;
     bool walk_all = true;
     
-    virtualHosts->walk(&begin_slot, walk_all, update_http_stats, tv);
-    virtualHosts->purgeIdle(false);
+    virtualHosts->walk(&begin_slot, walk_all, update_http_stats, (void*)tv);
+    virtualHosts->purgeIdle(tv, false);
   }
 
   for(u_int8_t i = 0; i < 2 ; i++) {

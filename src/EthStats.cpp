@@ -96,7 +96,7 @@ void EthStats::lua(lua_State *vm) {
 }
 /* *************************************** */
 
-void EthStats::updateStats(struct timeval *tv) {
+void EthStats::updateStats(const struct timeval *tv) {
   ingress_bytes_thpt.updateStats(tv, getNumIngressBytes()),
     ingress_pkts_thpt.updateStats(tv, getNumIngressPackets());
   egress_bytes_thpt.updateStats(tv, getNumEgressBytes()),

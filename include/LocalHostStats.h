@@ -57,7 +57,7 @@ class LocalHostStats: public HostStats {
 			u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
 			u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
 			bool peer_is_unicast);
-  virtual void updateStats(struct timeval *tv);
+  virtual void updateStats(const struct timeval *tv);
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   virtual void deserialize(json_object *obj);
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);

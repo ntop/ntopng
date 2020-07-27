@@ -409,7 +409,7 @@ void Flow::processDetectedProtocol() {
        && cli_host->isLocalHost())
       cli_host->incrVisitedWebSite(protos.tls.client_requested_server_name);
 
-    cli_host->incContactedService(protos.tls.client_requested_server_name);
+    if(cli_host) cli_host->incContactedService(protos.tls.client_requested_server_name);
     break;
 
   case NDPI_PROTOCOL_HTTP:
@@ -692,7 +692,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
     ndpiDetectedProtocol = proto_id; /* Override! */
 
     if(ndpiFlow->host_server_name[0] != '\0') {
-      cli_host->incContactedService((char*)ndpiFlow->host_server_name);
+      if(cli_host) cli_host->incContactedService((char*)ndpiFlow->host_server_name);
       
       if(ndpiFlow->protos.dns.is_query) {
 	char *q = strdup((const char*)ndpiFlow->host_server_name);
@@ -1585,9 +1585,7 @@ void Flow::updateThroughputStats(float tdiff_msec,
 
 /* *************************************** */
 
-void Flow::periodic_stats_update(void *user_data) {
-  periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*) user_data;
-  struct timeval *tv = periodic_stats_update_user_data->tv;
+void Flow::periodic_stats_update(const struct timeval *tv) {
   bool first_partial;
   PartializableFlowTrafficStats partial;
   get_partial_traffic_stats(&periodic_stats_update_partial, &partial, &first_partial);
@@ -1668,7 +1666,7 @@ void Flow::periodic_stats_update(void *user_data) {
   }
 
   memcpy(&last_update_time, tv, sizeof(struct timeval));
-  GenericHashEntry::periodic_stats_update(user_data);
+  GenericHashEntry::periodic_stats_update(tv);
 }
 
 /* *************************************** */
@@ -2140,13 +2138,7 @@ void Flow::set_hash_entry_state_idle() {
 /* *************************************** */
 
 bool Flow::is_hash_entry_state_idle_transition_ready() const {
-  bool ret = false;;
-  
-  if(!periodic_stats_update_partial /* waiting for Flow::periodic_stats_update first execution... */
-     /* ... and sure all traffic has been seen by Flow::periodic_stats_update */
-     || periodic_stats_update_partial->get_packets() < stats.get_packets()
-     || periodic_stats_update_partial->get_bytes() < stats.get_bytes())
-    return(false);
+  bool ret = false;
 
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)

@@ -56,7 +56,7 @@ class DSCPStats {
   DSCPStats(const DSCPStats &stats);
   ~DSCPStats();
 
-  void updateStats(struct timeval *tv);
+  void updateStats(const struct timeval *tv);
 
   void incStats(u_int16_t ds_id,
 		u_int64_t sent_packets, u_int64_t sent_bytes,

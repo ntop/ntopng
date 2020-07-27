@@ -228,8 +228,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   bool is_hash_entry_state_idle_transition_ready() const;
   void periodic_hash_entry_state_update(void *user_data);
-  void periodic_stats_update(void *user_data);
-  virtual void custom_periodic_stats_update(void *user_data) { ; }
+  void periodic_stats_update(const struct timeval *tv);
+  virtual void custom_periodic_stats_update(const struct timeval *tv) { ; }
   
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement);

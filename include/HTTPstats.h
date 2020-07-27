@@ -110,7 +110,7 @@ class HTTPstats {
   void lua(lua_State *vm);
   u_int32_t luaVirtualHosts(lua_State *vm, char *virtual_host, Host *h);
 
-  void updateStats(struct timeval *tv);
+  void updateStats(const struct timeval *tv);
   bool updateHTTPHostRequest(time_t t,
 			     char *virtual_host_name,
 			     u_int32_t num_requests,

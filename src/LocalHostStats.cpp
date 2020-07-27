@@ -90,7 +90,7 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
 
 /* *************************************** */
 
-void LocalHostStats::updateStats(struct timeval *tv) {
+void LocalHostStats::updateStats(const struct timeval *tv) {
   HostStats::updateStats(tv);
 
   if(dns)  dns->updateStats(tv);

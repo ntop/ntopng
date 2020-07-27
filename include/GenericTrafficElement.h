@@ -82,7 +82,7 @@ class GenericTrafficElement {
   inline void incLostRcvd(u_int32_t num)       { incLost(&tcp_packet_stats_rcvd, num);      };
   inline void incKeepAliveRcvd(u_int32_t num)  { incKeepAlive(&tcp_packet_stats_rcvd, num); };
 
-  virtual void updateStats(struct timeval *tv);
+  virtual void updateStats(const struct timeval *tv);
   void lua(lua_State* vm, bool host_details);
   void getJSONObject(json_object *my_object, NetworkInterface *iface);
   void deserialize(json_object *obj, NetworkInterface *iface);

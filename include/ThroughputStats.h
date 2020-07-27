@@ -37,7 +37,7 @@ class ThroughputStats {
   inline float getThpt()       const { return thpt;       };
   inline ValueTrend getTrend() const { return thpt_trend; };
   inline void sum(ThroughputStats *thpts) const { thpts->thpt += thpt, thpts->thpt_trend = thpt_trend; /* TODO: handle trend */};
-  void updateStats(struct timeval *tv, u_int64_t new_val);
+  void updateStats(const struct timeval *tv, u_int64_t new_val);
   void resetStats();
 };
 

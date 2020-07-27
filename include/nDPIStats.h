@@ -60,7 +60,7 @@ class nDPIStats {
   nDPIStats(const nDPIStats &stats);
   ~nDPIStats();
 
-  void updateStats(struct timeval *tv);
+  void updateStats(const struct timeval *tv);
 
   void incStats(u_int32_t when, u_int16_t proto_id,
 		u_int64_t sent_packets, u_int64_t sent_bytes,

@@ -56,7 +56,7 @@ public:
   static void  setThreadName(const char *name);
   static char* trim(char *s);
   static u_int32_t hashString(const char * const s);
-  static float timeval2ms(struct timeval *tv);
+  static float timeval2ms(const struct timeval *tv);
   static float msTimevalDiff(const struct timeval *end, const struct timeval *begin);
   static u_int32_t usecTimevalDiff(const struct timeval *end, const struct timeval *begin);
   static size_t file_write(const char *path, const char *content, size_t content_len);

@@ -235,7 +235,7 @@ class GenericHashEntry {
    * @param quick Only perform minimal operations
    * 
    */
-  virtual void periodic_stats_update(void *user_data);
+  virtual void periodic_stats_update(const struct timeval *tv);
   HashEntryState get_state() const;
   void updateSeen();
   void updateSeen(time_t _last_seen);

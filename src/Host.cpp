@@ -866,9 +866,7 @@ void Host::periodic_hash_entry_state_update(void *user_data) {
 
 /* *************************************** */
 
-void Host::periodic_stats_update(void *user_data) {
-  periodic_stats_update_user_data_t *periodic_stats_update_user_data = (periodic_stats_update_user_data_t*) user_data;
-  struct timeval *tv = periodic_stats_update_user_data->tv;
+void Host::periodic_stats_update(const struct timeval *tv) {
   Mac *cur_mac = getMac();
 
   checkReloadPrefs();
@@ -898,9 +896,9 @@ void Host::periodic_stats_update(void *user_data) {
 				 ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
 #endif
 
-  GenericHashEntry::periodic_stats_update(user_data);
+  GenericHashEntry::periodic_stats_update(tv);
 
-  custom_periodic_stats_update(user_data);
+  custom_periodic_stats_update(tv);
 }
 
 /* *************************************** */

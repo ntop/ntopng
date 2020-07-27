@@ -427,7 +427,7 @@ u_int32_t Utils::hashString(const char * const key) {
 
 /* ****************************************************** */
 
-float Utils::timeval2ms(struct timeval *tv) {
+float Utils::timeval2ms(const struct timeval *tv) {
   return((float)tv->tv_sec*1000+(float)tv->tv_usec/1000);
 }
 

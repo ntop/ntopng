@@ -118,7 +118,7 @@ class HostPools {
   void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
 		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
-  void updateStats(struct timeval *tv);
+  void updateStats(const struct timeval *tv);
   void luaStats(lua_State *vm);
   void luaStats(lua_State *mv, u_int16_t pool_id);
 

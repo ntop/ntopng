@@ -111,7 +111,7 @@ class LocalHost : public Host, public SerializableElement {
 #endif
   }
 
-  void custom_periodic_stats_update(void *user_data) {
+  void custom_periodic_stats_update(const struct timeval *tv) {
 #ifdef NTOPNG_PRO
     if(ba) ba->heartbeat();
 #endif    

@@ -480,7 +480,7 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t periodicStatsUpdateFrequency() const;
   void periodicStatsUpdate(lua_State* vm);
   virtual void periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts);
-  void periodicUpdateInitTime(struct timeval *tv) const;
+  struct timeval periodicUpdateInitTime() const;
   static bool generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data);
   virtual u_int32_t getFlowMaxIdle();
 
