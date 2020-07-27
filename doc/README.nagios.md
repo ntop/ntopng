@@ -1,10 +1,22 @@
+# Discontinuation Notice
+
+ntopng 4.1+ no longer supports nagios integration via NSCA. [NSCA has not been maintained for more than four years](https://exchange.nagios.org/directory/Addons/Passive-Checks/NSCA--2D-Nagios-Service-Check-Acceptor/details]) and this no longer enables us to ensure its functionality and interoperability with ntopng.
+
+Although nagios integration is no longer supported, the following alternatives are possible for software derived from nagios:
+- [Icinga2](https://www.ntop.org/guides/ntopng/advanced_features/icinga2.html?highlight=nagios#icinga2-integration)
+- [Check_MK](https://blog.checkmk.com/checkmk-conference-6-network-flow-monitoring-with-ntop)
+
+
+
+## Using ntopng as a source of data for nagios (outdated)
+
 ntopng can now be used by nagios as a source of data. For instance you can query ntopng via the HTTP interface and extract JSON-based traffic information
 
 Now you can create nagios plugins that can query ntopng periodically and implement alerting on traffic.
 
 Below you can find an example of what a ntop-nagios plugin looks like
 
-
+```
 ================================================================================
 
 #!/bin/bash
@@ -119,3 +131,4 @@ fi
 exit $STATE_OK
 
 ================================================================================
+```
