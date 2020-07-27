@@ -153,7 +153,7 @@ class NetworkInterface : public AlertableEntity {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop;
   bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
-  bool slow_stats_update, flow_dump_disabled;
+  bool flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   /* Those will hold counters at checkpoints */
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount;

@@ -286,7 +286,6 @@ local lang = {
     ["remote_origin_local_target"] = "Origem remota - alvo local",
     ["remote_to_remote"] = "Remoto para Remoto",
     ["search_criteria"] = "Configurações do painel",
-    ["slow_stats_update"] = "Atualização lenta de estatísticas",
     ["snmp_device_is_unresponsive"] = "Dispositivo SNMP <a href = \"%{url}\">%{device}</a>não responde",
     ["snmp_port_changed_operational_status"] = "Interface <a href=\"%{port_url}\">%{port}</a> no dispositivo SNMP <a href=\"%{url}\">%{device}</a> mudou seu status para %{new_op}",
     ["snmp_port_errors"] = "Erros de interface",

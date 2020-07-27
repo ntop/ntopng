@@ -249,7 +249,7 @@ void NetworkInterface::init() {
     cpu_affinity = -1 /* no affinity */,
     inline_interface = false, running = false, interfaceStats = NULL,
     has_too_many_hosts = has_too_many_flows = false,
-    slow_stats_update = false, flow_dump_disabled = false,
+    flow_dump_disabled = false,
     numL2Devices = 0, numHosts = 0, numLocalHosts = 0,
     arp_requests = arp_replies = 0,
     has_mac_addresses = false,
@@ -2525,12 +2525,6 @@ void NetworkInterface::periodicStatsUpdate() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Timeseries update took %d seconds", time(NULL) - tdebug.tv_sec);
   gettimeofday(&tdebug, NULL);
 #endif
-
-  if((!read_from_pcap_dump()) &&
-     (time(NULL) - tv.tv_sec) > periodicStatsUpdateFrequency())
-    slow_stats_update = true;
-  else
-    slow_stats_update = false;
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
   gettimeofday(&tdebug, NULL);
@@ -5107,7 +5101,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_newtable(vm);
   if(has_too_many_flows) lua_push_bool_table_entry(vm, "too_many_flows", true);
   if(has_too_many_hosts) lua_push_bool_table_entry(vm, "too_many_hosts", true);
-  if(slow_stats_update) lua_push_bool_table_entry(vm, "slow_stats_update", true);
   lua_pushstring(vm, "anomalies");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
