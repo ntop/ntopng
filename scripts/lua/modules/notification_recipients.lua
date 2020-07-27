@@ -8,6 +8,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local plugins_utils = require("plugins_utils")
 local json = require "dkjson"
 local notification_configs = require("notification_configs")
+local alert_endpoints = require("alert_endpoints_utils")
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -210,7 +212,8 @@ function notification_recipients.get_recipient(endpoint_recipient_name)
       status = "OK",
       endpoint_conf = ec,
       recipient_params = json.decode(rc["recipient_params"]),
-      recipient_name = endpoint_recipient_name
+      recipient_name = endpoint_recipient_name,
+      export_queue = get_endpoint_recipient_queue(endpoint_recipient_name),
    }
 end
 
@@ -287,8 +290,9 @@ function notification_recipients.dispatchNotification(message, json_message)
 
    local recipients = pools:get_recipients(message.pool_id)
    for _, recipient_id in pairs(recipients) do
-      -- local recipient = notification_recipients.get_recipient(recipient_id)
       local export_queue = get_endpoint_recipient_queue(recipient_id)
+
+      -- Push the message at the tail of the expor queue for the recipient
       ntop.rpushCache(export_queue, json_message, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT)
    end
 end
@@ -297,23 +301,27 @@ end
 
 function notification_recipients.processNotifications(now, periodic_frequency, force_export)
    local recipients = notification_recipients.get_recipients()
+   local modules = alert_endpoints.getModules()
 
    for _, recipient in pairs(recipients) do
-      local recipient_id = recipient.recipient_name
-      local m = nil -- TODO get endpoint module from recipient
+      -- if force_export or ((now % m.export_frequency) < periodic_frequency) then
+         local module_name = recipient.endpoint_conf.endpoint_key 
 
-      if m then
-         -- if force_export or ((now % m.export_frequency) < periodic_frequency) then
-            local export_queue = get_endpoint_recipient_queue(recipient_id)
-
-            local rv = m.module.dequeueAlerts(export_queue, 1 --[[ budget ]])
-
-            if not rv.success then
-               local msg = rv.error_message or "Unknown Error"
-               traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. m.name .. " module: " .. msg)
+         if modules[module_name] then
+            local m = modules[module_name].module
+            if m.dequeueRecipientAlerts then
+               local rv = m.dequeueRecipientAlerts(recipient, 1 --[[ budget ]])
+               if not rv.success then
+                  local msg = rv.error_message or "Unknown Error"
+                  traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. module_name .. " module: " .. msg)
+               end
+            else
+               -- traceError(TRACE_ERROR, TRACE_CONSOLE, "No dequeueRecipientAlerts callback defined for "..recipient.recipient_name)
             end
-         -- end
-      end
+         else
+            traceError(TRACE_ERROR, TRACE_CONSOLE, "Module "..recipient.recipient_name.." not available")
+         end
+      -- end
    end
 end
 

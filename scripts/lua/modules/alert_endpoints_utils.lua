@@ -133,6 +133,20 @@ end
 
 -- ##############################################
 
+function alert_endpoints.getModules()
+  loadModules()
+  
+  local modules_by_name = {}
+
+  for _, m in ipairs(modules) do
+    modules_by_name[m.name] = m
+  end
+
+  return modules_by_name
+end
+
+-- ##############################################
+
 function alert_endpoints.getSeverityLabels()
    return({i18n("prefs.errors"), i18n("prefs.errors_and_warnings"), i18n("prefs.all")})
 end

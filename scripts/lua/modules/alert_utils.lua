@@ -23,6 +23,7 @@ local alert_endpoints = require "alert_endpoints_utils"
 local flow_consts = require "flow_consts"
 local icmp_utils = require "icmp_utils"
 local user_scripts = require "user_scripts"
+local notification_recipients = require("notification_recipients")
 
 local shaper_utils = nil
 
@@ -2343,14 +2344,12 @@ function alert_utils.processAlertNotifications(now, periodic_frequency, force_ex
       end
 
       alert_endpoints.dispatchNotification(message, json_message)
-      -- TODO replace alert_endpoints.dispatchNotification with the below
       -- notification_recipients.dispatchNotification(message, json_message)
 
       ::continue::
    end
 
    alert_endpoints.processNotifications(now, periodic_frequency)
-   -- TODO replace alert_endpoints.processNotifications with the below
    -- notification_recipients.processNotifications(now, periodic_frequency)   
 
 end

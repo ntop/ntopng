@@ -61,19 +61,16 @@ end
 
 -- ##############################################
 
-function email.sendEmail(subject, message_body)
-  local smtp_server = ntop.getPref("ntopng.prefs.alerts.smtp_server")
-  local from_addr = ntop.getPref("ntopng.prefs.alerts.email_sender")
-  local to_addr = ntop.getPref("ntopng.prefs.alerts.email_recipient")
-  local username = ntop.getPref("ntopng.prefs.alerts.smtp_username")
-  local password = ntop.getPref("ntopng.prefs.alerts.smtp_password")
-
-  if isEmptyString(from_addr) or isEmptyString(to_addr) or isEmptyString(smtp_server) then
+function email.sendEmail(subject, message_body, settings)
+  if isEmptyString(settings.from_addr) or 
+     isEmptyString(settings.to_addr) or 
+     isEmptyString(settings.smtp_server) then
     return false
   end
 
-  local from = from_addr:gsub(".*<(.*)>", "%1")
-  local to = to_addr:gsub(".*<(.*)>", "%1")
+  local smtp_server = settings.smtp_server
+  local from = settings.from_addr:gsub(".*<(.*)>", "%1")
+  local to = settings.to_addr:gsub(".*<(.*)>", "%1")
   local product = ntop.getInfo(false).product
   local info = ntop.getHostInformation()
 
@@ -90,13 +87,22 @@ function email.sendEmail(subject, message_body)
     smtp_server = smtp_server .. "/" .. sender_domain
   end
 
-  local message = buildMessageHeader(os.time(), from_addr, to_addr, subject, message_body)
-  return ntop.sendMail(from, to, message, smtp_server, username, password)
+  local message = buildMessageHeader(os.time(), settings.from_addr, settings.to_addr, subject, message_body)
+  return ntop.sendMail(from, to, message, smtp_server, settings.username, settings.password)
 end
 
 -- ##############################################
 
+-- Deprecated
 function email.dequeueAlerts(queue)
+  local settings = {
+    smtp_server = ntop.getPref("ntopng.prefs.alerts.smtp_server"),
+    from_addr = ntop.getPref("ntopng.prefs.alerts.email_sender"),
+    to_addr = ntop.getPref("ntopng.prefs.alerts.email_recipient"),
+    username = ntop.getPref("ntopng.prefs.alerts.smtp_username"),
+    password = ntop.getPref("ntopng.prefs.alerts.smtp_password"),
+  }
+
   while true do
     local notifications = ntop.lrangeCache(queue, 0, MAX_ALERTS_PER_EMAIL-1)
 
@@ -120,14 +126,14 @@ function email.dequeueAlerts(queue)
 
     message_body = table.concat(message_body, "<br>")
 
-    local rv = email.sendEmail(subject, message_body)
+    local rv = email.sendEmail(subject, message_body, settings)
 
     if not rv then
       local num_attemps = (tonumber(ntop.getCache(NUM_ATTEMPTS_KEY)) or 0) + 1
 
       if num_attemps >= MAX_NUM_SEND_ATTEMPTS then
         ntop.delCache(NUM_ATTEMPTS_KEY)
-  -- Prevent alerts starvation if the plugin is not working after max num attempts
+        -- Prevent alerts starvation if the plugin is not working after max num attempts
         ntop.delCache(queue)
         return {success=false, error_message="Unable to send mails"}
       else
@@ -147,6 +153,77 @@ end
 
 -- ##############################################
 
+-- Dequeue alerts from a recipient queue for sending notifications
+function email.dequeueRecipientAlerts(recipient, budget)
+  local sent = 0
+  local more_available = true
+
+  -- Dequeue alerts up to budget x MAX_ALERTS_PER_EMAIL
+  -- Note: in this case budget is the number of email to send
+  while sent < budget and more_available do
+    
+    -- Dequeue MAX_ALERTS_PER_EMAIL notifications
+    local notifications = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_EMAIL-1)
+
+    if not notifications or #notifications == 0 then
+      more_available = false
+      break
+    end
+
+    -- Prepare email
+    local subject = ""
+    local message_body = {}
+
+    if #notifications > 1 then
+      subject = "(" .. i18n("alert_messages.x_alerts", {num=#notifications}) .. ")"
+    end
+
+    for _, json_message in ipairs(notifications) do
+      local notif = json.decode(json_message)
+      message_body[#message_body + 1] = alert_utils.formatAlertNotification(notif, {nohtml=true})
+    end
+
+    message_body = table.concat(message_body, "<br>")
+
+    local settings = {
+      smtp_server = recipient.endpoint_conf.endpoint_conf.smtp_server,
+      from_addr = recipient.endpoint_conf.endpoint_conf.email_sender,
+      to_addr = recipient.recipient_params.email_recipient,
+      username = recipient.endpoint_conf.endpoint_conf.smtp_username,
+      password = recipient.endpoint_conf.endpoint_conf.smtp_password,
+    }
+
+    -- Send email
+    local rv = email.sendEmail(subject, message_body, settings)
+
+    -- Handle retries on failure
+    if not rv then
+      local num_attemps = (tonumber(ntop.getCache(NUM_ATTEMPTS_KEY)) or 0) + 1
+
+      if num_attemps >= MAX_NUM_SEND_ATTEMPTS then
+        ntop.delCache(NUM_ATTEMPTS_KEY)
+        -- Prevent alerts starvation if the plugin is not working after max num attempts
+        ntop.delCache(recipient.export_queue)
+        return {success=false, error_message="Unable to send mails"}
+      else
+        ntop.setCache(NUM_ATTEMPTS_KEY, tostring(num_attemps))
+        return {success=true}
+      end
+    else
+      ntop.delCache(NUM_ATTEMPTS_KEY)
+    end
+
+    -- Remove the processed messages from the queue
+    ntop.ltrimCache(recipient.export_queue, #notifications, -1)
+
+    sent = sent + 1
+  end
+
+  return {success=true}
+end
+
+-- ##############################################
+
 function email.handlePost()
   local message_info, message_severity
 
@@ -159,7 +236,15 @@ function email.handlePost()
   end
 
   if(_POST["send_test_email"] ~= nil) then
-    local success = email.sendEmail("TEST MAIL", "Email notification is working")
+    local settings = {
+      smtp_server = ntop.getPref("ntopng.prefs.alerts.smtp_server"),
+      from_addr = ntop.getPref("ntopng.prefs.alerts.email_sender"),
+      to_addr = ntop.getPref("ntopng.prefs.alerts.email_recipient"),
+      username = ntop.getPref("ntopng.prefs.alerts.smtp_username"),
+      password = ntop.getPref("ntopng.prefs.alerts.smtp_password"),
+    }
+
+    local success = email.sendEmail("TEST MAIL", "Email notification is working", settings)
 
     if success then
        message_info = i18n("prefs.email_sent_successfully")

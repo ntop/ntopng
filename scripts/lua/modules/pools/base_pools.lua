@@ -500,10 +500,10 @@ end
 -- ##############################################
 
 function base_pools:get_recipients(pool_id)
-   local ret = {}
+   local res = {}
 
    if pool_id == nil then
-      return ret
+      return res
    end
 
    local locked = self:_lock()
@@ -520,7 +520,7 @@ function base_pools:get_recipients(pool_id)
       self:_unlock()
    end
 
-   return ret
+   return res
 end
 
 -- ##############################################
