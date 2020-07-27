@@ -109,7 +109,7 @@ The Community version is free to use and opensource. The full source code can be
 ntopng Professional
 -------------------
 
-The Professional version offers some extra features with respect to the Community, which are particularly useful for SMEs, including graphical reports, traffic profiles, LDAP authentication, Nagios integration.
+The Professional version offers some extra features with respect to the Community, which are particularly useful for SMEs, including graphical reports, traffic profiles and LDAP authentication.
 
 ntopng Enterprise M
 -------------------
