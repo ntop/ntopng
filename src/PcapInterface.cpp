@@ -331,9 +331,6 @@ static void* packetPollLoop(void* ptr) {
 
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
     iface->set_read_from_pcap_dump_done();
-    iface->processAllActiveFlows();
-    iface->guessAllBroadcastDomainHosts();
-    iface->periodicStatsUpdate(NULL);
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
@@ -369,7 +366,7 @@ static void* packetPollLoop(void* ptr) {
 
   if(ntop->getPrefs()->shutdownWhenDone())
     ntop->getGlobals()->shutdown();
-  else if(iface->is_purge_idle_interface()) {
+  else {
     while(!ntop->getGlobals()->isShutdown()) {
       iface->purgeIdle(time(NULL));
       sleep(1);

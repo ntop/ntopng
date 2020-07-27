@@ -1551,23 +1551,21 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
   if(ntop->getGlobals()->isShutdown()) return;
-  
-  if(purge_idle_flows_hosts) {
-    u_int n, m, o;
-    last_pkt_rcvd = when;
 
-    if((n = purgeIdleFlows(force_idle)) > 0)
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
-				   n, getNumFlows(), ifname);
+  u_int n, m, o;
+  last_pkt_rcvd = when;
 
-    if((m = purgeIdleHosts(force_idle)) > 0)
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts on %s",
-				   m, getNumHosts(), ifname);
+  if((n = purgeIdleFlows(force_idle)) > 0)
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
+				 n, getNumFlows(), ifname);
 
-    if((o = purgeIdleMacsASesCountriesVlans(force_idle)) > 0)      
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s",
-				   o, ifname);
-  }
+  if((m = purgeIdleHosts(force_idle)) > 0)
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts on %s",
+				 m, getNumHosts(), ifname);
+
+  if((o = purgeIdleMacsASesCountriesVlans(force_idle)) > 0)
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s",
+				 o, ifname);
 
   if(flowHashing) {
     FlowHashing *current, *tmp;
@@ -2547,56 +2545,6 @@ void NetworkInterface::periodicStatsUpdate(lua_State* vm) {
 
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
-
-  if(getIfType() == interface_type_PCAP_DUMP) {
-    /*
-      Called only one time, for interfaces processing pcap files, after the whole processing has been done.
-     */
-    u_int32_t begin_slot;
-    periodic_stats_update_user_data_t periodic_stats_update_user_data;
-    periodic_stats_update_user_data.tv = &tv;
-
-    /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
-    if((!isView()) && flows_hash) {
-      begin_slot = 0;
-      walker(&begin_slot, true, walker_flows, host_flow_update_stats, &periodic_stats_update_user_data);
-    }
-
-    if(thstats) thstats->setCurrentProgress(40);
-
-    if(hosts_hash) {
-      begin_slot = 0;
-      walker(&begin_slot, true, walker_hosts, host_flow_update_stats, &periodic_stats_update_user_data);
-    }
-
-    if(thstats) thstats->setCurrentProgress(70);
-
-    if(ases_hash) {
-      begin_slot = 0;
-      walker(&begin_slot, true, walker_ases, update_generic_element_stats, &periodic_stats_update_user_data);
-    }
-
-    if(thstats) thstats->setCurrentProgress(75);
-
-    if(countries_hash) {
-      begin_slot = 0;
-      walker(&begin_slot, true, walker_countries, update_generic_element_stats, &periodic_stats_update_user_data);
-    }
-
-    if(thstats) thstats->setCurrentProgress(80);
-
-    if(vlans_hash && hasSeenVlanTaggedPackets()) {
-      begin_slot = 0;
-      walker(&begin_slot, true, walker_vlans, update_generic_element_stats, &periodic_stats_update_user_data);
-    }
-
-    if(thstats) thstats->setCurrentProgress(85);
-
-    if(macs_hash) {
-      begin_slot = 0;
-      walker(&begin_slot, true, walker_macs, update_macs_stats, &periodic_stats_update_user_data);
-    }
-  }
 
   if(thstats) thstats->setCurrentProgress(90);
 
@@ -4851,8 +4799,6 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle) {
   pollQueuedeCompanionEvents();
   bcast_domains->inlineReloadBroadcastDomains();
 
-  if(!purge_idle_flows_hosts) return(0);
-
   if(!force_idle && last_packet_time < next_idle_flow_purge)
     return(0); /* Too early */
   else {
@@ -4952,8 +4898,6 @@ u_int NetworkInterface::getNumMacs() {
 u_int NetworkInterface::purgeIdleHosts(bool force_idle) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
-  if(!purge_idle_flows_hosts) return(0);
-
   if(!force_idle && last_packet_time < next_idle_host_purge)
     return(0); /* Too early */
   else {
@@ -4998,42 +4942,6 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle) {
     
     return(n);
   }
-}
-
-/* *************************************** */
-
-static void guess_all_ndpi_protocols_walker(Flow *flow, NetworkInterface *iface) {
-  if(iface->get_ndpi_struct() && flow->get_ndpi_flow())
-    flow->endProtocolDissection();
-}
-
-static bool process_all_active_flows_walker(GenericHashEntry *node, void *user_data, bool *matched) {
-  Flow *flow = (Flow*)node;
-  NetworkInterface *iface = (NetworkInterface*)user_data;
-  struct timeval tv;
-  tv.tv_sec = time(NULL), tv.tv_usec = 0;
-
-  guess_all_ndpi_protocols_walker(flow, iface);
-
-  flow->postFlowSetIdle(&tv);
-
-  return(false /* keep walking */);
-}
-
-/* *************************************** */
-
-void NetworkInterface::processAllActiveFlows() {
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  walker(&begin_slot, walk_all, walker_flows,
-	 process_all_active_flows_walker, this);
-}
-
-/* *************************************** */
-
-void NetworkInterface::guessAllBroadcastDomainHosts() {
-  bcast_domains->inlineReloadBroadcastDomains(true);
 }
 
 /* **************************************************** */
