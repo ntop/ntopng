@@ -142,8 +142,6 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     { HT_STATE_UPDATE_SCRIPT_PATH,    5,    10, high_priority_pool,     false, true,  false, true  },
 
     { SECOND_SCRIPT_PATH,             1,     2, standard_priority_pool, false, false, true,  true  },
-    { STATS_UPDATE_SCRIPT_PATH,       5,    10, standard_priority_pool, false, false, true,  true  },
-
     { HOUSEKEEPING_SCRIPT_PATH,       3,     6, housekeeping_pool,      false, false, false, true  },
 
     { MINUTE_SCRIPT_PATH,            60,    60, no_priority_pool,       false, false, true,  false },

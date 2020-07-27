@@ -3063,7 +3063,6 @@ local lang = {
     ["ht_state_update.lua"] = "Handles the in-memory lifecycle of flows, hosts and other hash entries. Executes flow user scripts. Dumps flows to database.",
     ["minute.lua"] = "Writes extended interface timeseries such applications. Writes timeseries for user scripts, pods, containers.  Executes user scripts with minute granularity.",
     ["second.lua"] = "Writes fundamental interface timeseries such as total traffic.",
-    ["stats_update.lua"] = "Updates hosts and other statistics such as throughputs and hosts total traffic.",
     ["timeseries.lua"] = "Writes timeseries data to InfluxDB. Has no effect when InfluxDB is not used.",
   },
   ["please_wait_page"] = {

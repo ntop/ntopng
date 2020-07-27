@@ -2395,7 +2395,7 @@ void Ntop::initInterface(NetworkInterface *_if) {
 
 /* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
-  for(int i=0; i<num_defined_interfaces; i++) {
+  for(int i = 0; i < get_num_interfaces(); i++) {
     iface[i]->runHousekeepingTasks();
   }
 

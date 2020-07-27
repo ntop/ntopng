@@ -2529,24 +2529,10 @@ void NetworkInterface::periodicStatsUpdate(lua_State* vm) {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
 #endif
-
-  // periodic_stats_update_user_data_t periodic_stats_update_user_data;
-  ThreadedActivityStats *thstats = NULL;
-  struct timeval tv;
-
-  if(vm) {
-    struct ntopngLuaContext *ctx = getLuaVMContext(vm);
-
-    if(ctx)
-      thstats = ctx->threaded_activity_stats;
-  }
-
-  tv = periodicUpdateInitTime();
+  struct timeval tv = periodicUpdateInitTime();
 
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
-
-  if(thstats) thstats->setCurrentProgress(90);
 
 #ifdef NTOPNG_PRO
   if(getHostPools()) getHostPools()->checkPoolsStatsReset();
@@ -2594,8 +2580,6 @@ void NetworkInterface::periodicStatsUpdate(lua_State* vm) {
   gettimeofday(&tdebug, NULL);
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats update done [took: %d]", tdebug.tv_sec - tdebug_init.tv_sec);
 #endif
-
-  if(thstats) thstats->setCurrentProgress(100);
 }
 
 /* **************************************************** */
@@ -5232,6 +5216,7 @@ void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
 /* **************************************************** */
 
 void NetworkInterface::runHousekeepingTasks() {
+  periodicStatsUpdate(NULL);
 }
 
 /* **************************************************** */
