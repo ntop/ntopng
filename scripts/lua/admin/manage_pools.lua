@@ -11,12 +11,16 @@ local json = require "dkjson"
 local template_utils = require "template_utils"
 local host_pools = require "host_pools"
 local interface_pools = require "interface_pools"
-local snmp_device_pools = require "snmp_device_pools"
 local local_network_pools = require "local_network_pools"
 local active_monitoring_pools = require "active_monitoring_pools"
 local notification_recipients = require "notification_recipients"
+local snmp_device_pools
 
 local page = _GET["page"] or "host"
+-- load the snmp module only in the pro version
+if ntop.isPro() then
+   snmp_device_pools = require "snmp_device_pools"
+end
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -61,11 +65,11 @@ end
 
 local menu = {
    entries = {
-      host = { title = i18n("pools.pool_names.host"), url = "?page=host"},
-      interface = { title = i18n("pools.pool_names.interface"), url = "?page=interface"},
-      network = { title = i18n("pools.pool_names.local_network"), url = "?page=network"},
-      active_monitoring = { title = i18n("pools.pool_names.active_monitoring"), url = "?page=active_monitoring" },
-      snmp = { title = i18n("pools.pool_names.snmp"), url = "?page=snmp"},
+      host = { title = i18n("pools.pool_names.host"), url = "?page=host", hidden = false},
+      interface = { title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = false},
+      network = { title = i18n("pools.pool_names.local_network"), url = "?page=network", hidden = false},
+      active_monitoring = { title = i18n("pools.pool_names.active_monitoring"), url = "?page=active_monitoring", hidden = false },
+      snmp = { title = i18n("pools.pool_names.snmp"), url = "?page=snmp", hidden = (not ntop.isPro())},
    },
    current_page = page
 }
