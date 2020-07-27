@@ -219,16 +219,4 @@ Examples of JSON alerts sent to syslog are
 
    develv ntopng: {"entity_value":"ntopng","ifid":1,"action":"store","tstamp":1536245738,"type":"process_notification","entity_type":"host","message":"[<tstamp>]][Process] Stopped ntopng v.3.7.180906 (CentOS Linux release 7.5.1804 (Core) ) [pid: 4783][options: --interface \"eno1\" --interface \"lo\" --dump-flows \"[hidden]\" --https-port \"4433\" --dont-change-user ]","severity":"info"}
    devel ntopng: {"message":"[<tstamp>][Threshold Cross][Engaged] Minute traffic crossed by interface eno1 [891.58 KB > 1 Byte]","entity_value":"iface_0","ifid":0,"alert_key":"min_bytes","tstamp":1536247320,"type":"threshold_cross","action":"engage","severity":"error","entity_type":"interface"}
-
-Nagios
-~~~~~~
-
-ntopng can send alerts to `Nagios <https://www.nagios.org/>`_ so that they will
-be reported into the Nagios gui. A number of parameters need to be configured:
-
-- `Nagios NSCA Host`: the host where the Nagios daemon is running
-- `Nagios NSCA Port`: the daemon port
-- `Nagios send_nsca executable`: the full path to the `send_nsca` Nagios executable
-- `Nagios send_nsca configuration`: The full path to the `send_nsca.cfg` configuration
-- `Nagios host_name`: the host name of the machine as known to Nagios
-- `Nagios service_description`: the service description exactly as specified in Nagios passive service definition
+   
