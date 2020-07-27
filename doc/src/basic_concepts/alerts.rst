@@ -216,6 +216,6 @@ Here is a list of possible flows alert types:
 Third-Party Endpoints
 ---------------------
 
-Alerts are not only available within the ntopng web GUI, they can also be propagated to the outside using third party endpoints that include mail, slack, nagios and syslog. To see the configuration details necessary to use the endpoints refer to :ref:`ThirdPartyAlertEndpoints`.
+Alerts are not only available within the ntopng web GUI, they can also be propagated to the outside using third party endpoints that include mail, slack and syslog. To see the configuration details necessary to use the endpoints refer to :ref:`ThirdPartyAlertEndpoints`.
 
 .. _`device protocols`: ../advanced_features/device_protocols.html
