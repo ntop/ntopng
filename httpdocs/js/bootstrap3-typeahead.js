@@ -548,7 +548,7 @@
   Typeahead.defaults = {
     source: [],
     items: 8,
-    menu: '<ul class="typeahead dropdown-menu dropdown-menu-right" role="listbox"></ul>',
+    menu: '<ul class="typeahead dropdown-menu" role="listbox"></ul>',
     item: '<li><a class="dropdown-item" href="#" role="option"></a></li>',
     minLength: 1,
     scrollHeight: 0,
