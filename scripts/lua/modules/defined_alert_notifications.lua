@@ -17,7 +17,7 @@ local function create_geo_ip_alert_notification()
     local title = i18n("geo_map.geo_ip")
     local description = i18n("geolocation_unavailable", {url = "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md", target = "_blank", icon = "fas fa-external-link-alt"})
 
-    return alert_notification:create("geoip_alert", title, description, "warning")
+    return alert_notification:create("geoip_alert", title, description, "warning", nil, "nedge/system_setup/")
 end
 
 local function create_contribute_alert_notification()
