@@ -14,6 +14,7 @@ local alert_consts = require("alert_consts")
 
 local ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG = "ntopng.prefs.notification_endpoint.endpoint_recipient_to_endpoint_conf"
 local ENDPOINT_RECIPIENTS_KEY = "ntopng.prefs.notification_endpoint.endpoint_config_%s.recipients"
+local RECIPIENT_QUEUE_KEY = "ntopng.alerts.notification_recipient_queue.%s"
 
 -- #################################################################
 
@@ -22,7 +23,8 @@ local notification_recipients = {}
 -- ##############################################
 
 local function get_endpoint_recipient_queue(endpoint_recipient_name)
-   return "ntopng.alerts.notification_recipient_queue." .. endpoint_recipient_name
+   local k = string.format(RECIPIENT_QUEUE_KEY, endpoint_recipient_name)
+   return k
 end
 
 -- #################################################################
