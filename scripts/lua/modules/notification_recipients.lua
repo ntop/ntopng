@@ -300,13 +300,7 @@ end
 
 function notification_recipients.processNotifications(now, periodic_frequency, force_export)
    local recipients = notification_recipients.get_recipients()
-
-   local loaded_modules = plugins_utils.getLoadedAlertEndpoints()
-
-   local modules_by_name = {}
-   for _, m in ipairs(loaded_modules) do
-      modules_by_name[m.key] = m
-   end
+   local modules_by_name = notification_configs.get_types()
 
    for _, recipient in pairs(recipients) do
       local module_name = recipient.endpoint_conf.endpoint_key 
