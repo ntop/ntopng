@@ -319,7 +319,7 @@ function notification_recipients.processNotifications(now, periodic_frequency, f
                -- traceError(TRACE_ERROR, TRACE_CONSOLE, "No dequeueRecipientAlerts callback defined for "..recipient.recipient_name)
             end
          else
-            traceError(TRACE_ERROR, TRACE_CONSOLE, "Module "..recipient.recipient_name.." not available")
+            traceError(TRACE_ERROR, TRACE_CONSOLE, "Module "..module_name.." not available")
          end
       -- end
    end

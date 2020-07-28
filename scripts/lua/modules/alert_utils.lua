@@ -2343,14 +2343,12 @@ function alert_utils.processAlertNotifications(now, periodic_frequency, force_ex
         json_message = json.encode(message)
       end
 
-      alert_endpoints.dispatchNotification(message, json_message)
-      -- notification_recipients.dispatchNotification(message, json_message)
+      notification_recipients.dispatchNotification(message, json_message)
 
       ::continue::
    end
 
-   alert_endpoints.processNotifications(now, periodic_frequency)
-   -- notification_recipients.processNotifications(now, periodic_frequency)   
+   notification_recipients.processNotifications(now, periodic_frequency)   
 
 end
 
