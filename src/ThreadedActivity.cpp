@@ -296,7 +296,7 @@ void ThreadedActivity::run() {
 
   if(pthread_create(&pthreadLoop, NULL, startActivity, (void*)this) == 0) {
     thread_started = true;
-#ifdef HAVE_LIBCAP
+#ifdef __linux__
     Utils::setThreadAffinityWithMask(pthreadLoop, ntop->getPrefs()->get_other_cpu_affinity_mask());
 #endif
   }

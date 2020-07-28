@@ -229,7 +229,7 @@ class Prefs {
   inline bool  do_simulate_vlans()                      { return(simulate_vlans);                   };
   inline char* get_cpu_affinity()                       { return(cpu_affinity);            };
   inline char* get_other_cpu_affinity()                 { return(other_cpu_affinity);            };
-#ifdef HAVE_LIBCAP
+#ifdef __linux__
   inline cpu_set_t* get_other_cpu_affinity_mask()       { return(&other_cpu_affinity_mask); };
 #endif
   inline u_int get_http_port()                          { return(http_port);               };
