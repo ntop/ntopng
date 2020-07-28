@@ -408,7 +408,7 @@ page_utils.add_menubar_section({
       },
       {
          entry = page_utils.menu_entries.host_members,
-         hidden = not is_admin,
+         hidden = not is_admin or is_nedge,
          url = '/lua/admin/manage_host_members.lua',
       }
    }
