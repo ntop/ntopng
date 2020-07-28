@@ -304,11 +304,12 @@ function notification_recipients.processNotifications(now, periodic_frequency, f
    local modules = alert_endpoints.getModules()
 
    for _, recipient in pairs(recipients) do
-      -- if force_export or ((now % m.export_frequency) < periodic_frequency) then
-         local module_name = recipient.endpoint_conf.endpoint_key 
+      local module_name = recipient.endpoint_conf.endpoint_key 
 
-         if modules[module_name] then
-            local m = modules[module_name].module
+      if modules[module_name] then
+         local m = modules[module_name].module
+
+         if force_export or not m.EXPORT_FREQUENCY or ((now % m.EXPORT_FREQUENCY) < periodic_frequency) then
             if m.dequeueRecipientAlerts then
                local rv = m.dequeueRecipientAlerts(recipient, 1 --[[ budget ]])
                if not rv.success then
@@ -318,10 +319,11 @@ function notification_recipients.processNotifications(now, periodic_frequency, f
             else
                -- traceError(TRACE_ERROR, TRACE_CONSOLE, "No dequeueRecipientAlerts callback defined for "..recipient.recipient_name)
             end
-         else
-            traceError(TRACE_ERROR, TRACE_CONSOLE, "Module "..module_name.." not available")
          end
-      -- end
+
+      else
+         -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Module "..module_name.." not available")
+      end
    end
 end
 
