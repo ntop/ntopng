@@ -24,24 +24,6 @@ if ntop.isPro() then
   end
 end
 
-local function getAlertEndpointsEntries()
-  local endpoints = plugins_utils.getLoadedAlertEndpoints()
-  local rv = {
-    notification_severity_preference = {
-      title       = i18n("prefs.slack_notification_severity_preference_title", {url="http://www.slack.com"}),
-      description = i18n("prefs.slack_notification_severity_preference_description"),
-    }
-  }
-
-  for _, endpoint in ipairs(endpoints) do
-    for entry_k, entry in pairs(endpoint.prefs_entries or {}) do
-      rv[entry_k] = entry
-    end
-  end
-
-  return(rv)
-end
-
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {
   {id="auth",          label=i18n("prefs.user_authentication"),  advanced=false, pro_only=false, nedge_hidden=false, hidden=(not(prefs.is_users_login_enabled) and not have_nedge), entries={
@@ -286,9 +268,7 @@ local menu_subpages = {
       hidden      = not ntop.isPro(),
     }
     
-  }}, {id="ext_alerts",    label=i18n("prefs.alerts_notifications"), advanced=false, hidden=hasAlertsDisabled(), pro_only=false,
-    entries = getAlertEndpointsEntries()
-  }, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
+  }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),
       description = i18n("prefs.toggle_top_sites_description", {url="https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"})},
