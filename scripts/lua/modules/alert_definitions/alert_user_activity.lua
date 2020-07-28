@@ -209,13 +209,10 @@ local function userActivityFormatter(ifid, alert, info)
         elseif k == "alerts.email_notifications_enabled" then pref_desc = i18n("prefs.toggle_email_notification_title")
         elseif k == "alerts.slack_notifications_enabled" then pref_desc = i18n("prefs.toggle_slack_notification_title", {url="http://www.slack.com"})
         elseif k == "alerts.syslog_notifications_enabled" then pref_desc = i18n("prefs.toggle_alert_syslog_title")
-        elseif k == "alerts.nagios_notifications_enabled" then pref_desc = i18n("prefs.toggle_alert_nagios_title")
         elseif k == "alerts.webhook_notifications_enabled" then pref_desc = i18n("prefs.toggle_webhook_notification_title")
         elseif starts(k, "alerts.email_") then pref_desc = i18n("prefs.email_notification")
         elseif starts(k, "alerts.smtp_") then pref_desc = i18n("prefs.email_notification")
         elseif starts(k, "alerts.slack_") then pref_desc = i18n("prefs.slack_integration")
-        elseif starts(k, "alerts.nagios_") then pref_desc = i18n("prefs.nagios_integration")
-        elseif starts(k, "nagios_") then pref_desc = i18n("prefs.nagios_integration")
         elseif starts(k, "alerts.webhook_") then pref_desc = i18n("prefs.webhook_notification")
         else pref_desc = k -- last resort if not handled
         end

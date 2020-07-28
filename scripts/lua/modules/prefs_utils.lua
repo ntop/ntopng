@@ -123,10 +123,7 @@ end
 function notifyNtopng(key)
     if key == nil then return end
     -- notify runtime ntopng configuration changes
-    if string.starts(key, 'nagios') then
-        if verbose then io.write('notifying ntopng upon nagios pref change\n') end
-        ntop.reloadNagiosConfig()
-    elseif string.starts(key, 'toggle_logging_level') then
+    if string.starts(key, 'toggle_logging_level') then
         if verbose then io.write('notifying ntopng upon logging level pref change\n') end
         ntop.setLoggingLevel(value)
     end

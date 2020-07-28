@@ -148,10 +148,6 @@ int main(int argc, char *argv[])
     prefs->add_default_interfaces();
   }
 
-#ifdef NTOPNG_PRO
-  ntop->registerNagios();
-#endif
-
   prefs->validate();
   
   if(prefs->daemonize_ntopng())

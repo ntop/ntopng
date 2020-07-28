@@ -4302,77 +4302,6 @@ static int ntop_add_local_network(lua_State* vm) {
 
 /* ****************************************** */
 
-#if NTOPNG_PRO
-#ifndef WIN32
-
-static int ntop_nagios_reload_config(lua_State* vm) {
-  NagiosManager *nagios = ntop->getNagios();
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!nagios) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "%s(): unable to get the nagios manager",
-				 __FUNCTION__);
-    return(CONST_LUA_ERROR);
-  }
-  nagios->loadConfig();
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_nagios_send_alert(lua_State* vm) {
-  NagiosManager *nagios = ntop->getNagios();
-  char *alert_source;
-  char *alert_key;
-  char *alert_msg;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_source = (char*)lua_tostring(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_key = (char*)lua_tostring(vm, 2);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_msg = (char*)lua_tostring(vm, 3);
-
-  bool rv = nagios->sendAlert(alert_source, alert_key, alert_msg);
-
-  lua_pushboolean(vm, rv);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_nagios_withdraw_alert(lua_State* vm) {
-  NagiosManager *nagios = ntop->getNagios();
-  char *alert_source;
-  char *alert_key;
-  char *alert_msg;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_source = (char*)lua_tostring(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_key = (char*)lua_tostring(vm, 2);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_msg = (char*)lua_tostring(vm, 3);
-
-  bool rv = nagios->withdrawAlert(alert_source, alert_key, alert_msg);
-
-  lua_pushboolean(vm, rv);
-  return(CONST_LUA_OK);
-}
-#endif
-#endif
-
-/* ****************************************** */
-
 #ifndef HAVE_NEDGE
 #ifdef NTOPNG_PRO
 static int ntop_check_sub_interface_syntax(lua_State* vm) {
@@ -5572,11 +5501,6 @@ static const luaL_Reg ntop_reg[] = {
   { "setDefaultFilePermissions",  ntop_set_default_file_permissions },
 
 #ifdef NTOPNG_PRO
-#ifndef WIN32
-  { "sendNagiosAlert",        ntop_nagios_send_alert     },
-  { "withdrawNagiosAlert",    ntop_nagios_withdraw_alert },
-  { "reloadNagiosConfig",     ntop_nagios_reload_config  },
-#endif
 #ifndef HAVE_NEDGE
   { "checkSubInterfaceSyntax", ntop_check_sub_interface_syntax },
   { "checkProfileSyntax",     ntop_check_profile_syntax    },

@@ -94,12 +94,6 @@ class Ntop {
   int inotify_fd;
 #endif
 
-#ifdef NTOPNG_PRO
-#ifndef WIN32
-  NagiosManager *nagios_manager;
-#endif
-#endif
-
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
   void loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str);
@@ -138,9 +132,6 @@ class Ntop {
    */
   inline void registerLogFile(const char* logFile) { getTrace()->set_log_file(logFile); };
   inline void rotateLogs(bool mode)                { getTrace()->rotate_logs(mode);     };
-#ifdef NTOPNG_PRO
-  void registerNagios(void);
-#endif
 
   /**
    * @brief Set the path of custom nDPI protocols file.
@@ -375,8 +366,6 @@ class Ntop {
 #ifdef NTOPNG_PRO
 #ifdef WIN32
   char* getIfName(int if_id, char *name, u_int name_len);
-#else
-  inline NagiosManager*    getNagios()               { return(nagios_manager);      };
 #endif
 #endif
   void checkSystemScripts(ScriptPeriodicity p, lua_State *vm);

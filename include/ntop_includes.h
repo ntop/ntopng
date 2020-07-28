@@ -350,9 +350,6 @@ using namespace std;
 #include "BatchedMySQLDBEntry.h"
 #endif
 #include "LuaHandler.h"
-#ifndef WIN32
-#include "NagiosManager.h"
-#endif
 #include "FrequentStringItems.h"
 #include "FrequentNumericItems.h"
 #include "FrequentTrafficItems.h"

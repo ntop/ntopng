@@ -75,7 +75,6 @@ local function tracker_filter_pref(key)
      k == "alerts.email_notifications_enabled" or
      k == "alerts.slack_notifications_enabled" or
      k == "alerts.syslog_notifications_enabled" or
-     k == "alerts.nagios_notifications_enabled" or
      k == "alerts.webhook_notifications_enabled"
   then
     return true

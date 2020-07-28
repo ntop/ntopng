@@ -563,14 +563,6 @@
 #define CONST_DISCARD_PROBING_TRAFFIC      NTOPNG_PREFS_PREFIX".ifid_%d.discard_probing_traffic"
 #define CONST_FLOWS_ONLY_INTERFACE         NTOPNG_PREFS_PREFIX".ifid_%d.flows_only_interface"
 #define CONST_USE_NINDEX                   NTOPNG_PREFS_PREFIX".use_nindex"
-#ifdef NTOPNG_PRO
-#define CONST_NAGIOS_NSCA_HOST_PREFS       NTOPNG_PREFS_PREFIX".nagios_nsca_host"
-#define CONST_NAGIOS_NSCA_PORT_PREFS       NTOPNG_PREFS_PREFIX".nagios_nsca_port"
-#define CONST_NAGIOS_SEND_NSCA_EXEC_PREFS  NTOPNG_PREFS_PREFIX".nagios_send_nsca_executable"
-#define CONST_NAGIOS_SEND_NSCA_CONF_PREFS  NTOPNG_PREFS_PREFIX".nagios_send_nsca_config"
-#define CONST_NAGIOS_HOST_NAME_PREFS       NTOPNG_PREFS_PREFIX".nagios_host_name"
-#define CONST_NAGIOS_SERVICE_NAME_PREFS    NTOPNG_PREFS_PREFIX".nagios_service_name"
-#endif
 #define CONST_NBOX_USER                     NTOPNG_PREFS_PREFIX".nbox_user"
 #define CONST_NBOX_PASSWORD                 NTOPNG_PREFS_PREFIX".nbox_password"
 #define CONST_IFACE_ID_PREFS                NTOPNG_PREFS_PREFIX".iface_id"
@@ -654,7 +646,6 @@
 #define CONST_FIELD_VALUE_MAP_CACHE_KEY                NTOPNG_CACHE_PREFIX".ifid_%d.field_value_map.pen_%u.field_%u"
 #ifdef NTOPNG_PRO
 #define MAX_NUM_CUSTOM_APPS  128
-#define CONST_RUNTIME_PREFS_ALERT_NAGIOS             NTOPNG_PREFS_PREFIX".alerts.nagios_notifications_enabled"    /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_DAILY_REPORTS            NTOPNG_PREFS_PREFIX".daily_reports"    /* 0 / 1 */
 #endif
 #define CONST_RUNTIME_PREFS_HOSTMASK  NTOPNG_PREFS_PREFIX".host_mask"
@@ -715,14 +706,6 @@
 #define CONST_EWMA_ALPHA_PERCENT            NTOPNG_PREFS_PREFIX".ewma_alpha_percent"
 #define CONST_DEFAULT_EWMA_ALPHA_PERCENT    15 /* 15% */
 
-#ifdef NTOPNG_PRO
-#define CONST_DEFAULT_NAGIOS_NSCA_HOST      "localhost"
-#define CONST_DEFAULT_NAGIOS_NSCA_PORT      "5667"
-#define CONST_DEFAULT_NAGIOS_SEND_NSCA_EXEC "/usr/local/nagios/bin/send_nsca"
-#define CONST_DEFAULT_NAGIOS_SEND_NSCA_CONF "/usr/local/nagios/etc/send_nsca.cfg"
-#define CONST_DEFAULT_NAGIOS_HOST_NAME      "ntopng-host"
-#define CONST_DEFAULT_NAGIOS_SERVICE_NAME   "NtopngAlert"
-#endif
 #define CONST_DEFAULT_NBOX_HOST      "localhost"
 #define CONST_DEFAULT_NBOX_USER      "nbox"
 #define CONST_DEFAULT_NBOX_PASSWORD  "nbox"

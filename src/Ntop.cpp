@@ -163,10 +163,6 @@ Ntop::Ntop(char *appName) {
 
 #ifdef NTOPNG_PRO
   pro = new NtopPro();
-#ifndef WIN32
-  nagios_manager = NULL;
-#endif
-
 #else
   pro = NULL;
 #endif
@@ -279,9 +275,6 @@ Ntop::~Ntop() {
 
 #ifdef NTOPNG_PRO
   if(pro) delete pro;
-#ifndef WIN32
-  if(nagios_manager) delete nagios_manager;
-#endif
 #endif
   
   if(resolvedHostsBloom) delete resolvedHostsBloom;
@@ -409,17 +402,6 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   redis->setInitializationComplete();
 }
-
-/* ******************************************* */
-
-#ifdef NTOPNG_PRO
-void Ntop::registerNagios(void) {
-#ifndef WIN32
-  if(nagios_manager) { delete nagios_manager; nagios_manager = NULL; }
-  nagios_manager = new NagiosManager();
-#endif
-}
-#endif
 
 /* ******************************************* */
 

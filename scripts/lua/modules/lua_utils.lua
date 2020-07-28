@@ -601,13 +601,6 @@ function hasAlertsDisabled()
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
 end
 
-function hasNagiosSupport()
-  if prefs == nil then
-    prefs = ntop.getPrefs()
-  end
-  return prefs.nagios_nsca_host ~= nil
-end
-
 function hasNindexSupport()
    if not ntop.isEnterpriseM() or ntop.isWindows() then
       return false

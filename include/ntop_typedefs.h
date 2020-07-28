@@ -170,13 +170,6 @@ typedef enum {
   IPV6 = 6
 } IPVersion;
 
-#ifdef NTOPNG_PRO
-typedef enum {
-  status_ok = 0,
-  status_warning,
-} NagiosAlertStatus;
-#endif
-
 struct zmq_msg_hdr_v0 {
   char url[32];
   u_int32_t version;
