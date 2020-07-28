@@ -50,7 +50,7 @@ for k,v in pairs(p) do
    end
 
    if(l4 ~= v.l7_proto) then
-      table.insert(row, l4 .. " / " .. v.l7_proto)
+      table.insert(row, l4 .. "." .. v.l7_proto)
    else
       table.insert(row, v.l7_proto)
    end
