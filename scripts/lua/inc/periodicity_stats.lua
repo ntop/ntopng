@@ -23,17 +23,33 @@ print [[
 
 <script>
 $(document).ready(function() {
+  const filters = [
+    {key: 'filter_one', regex: 'a', title: 'Protocols Containing A'},
+    {key: 'filter_two', regex: 'b', title: 'Protocols Containing B'},
+    {key: 'filter_tthree', regex: 'c', title: 'Protocols Containing C'},
+  ];
   let url    = ']] print(ntop.getHttpPrefix()) print [[/lua/get_periodicity_data.lua';
   let config = DataTableUtils.getStdDatatableConfig();
 
   config     = DataTableUtils.setAjaxConfig(config, url, 'data');
 
-config["columnDefs"] = [ 
+config["columnDefs"] = [
 
 { targets: [ 5 ], className: 'dt-body-right', "fnCreatedCell": function ( cell ) { cell.scope = 'row'; }, "render": function ( data, type, row ) { return (type == "sort" || type == 'type') ? data : data+" sec"; }  },
 { targets: [ 4 ], className: 'dt-body-right', "fnCreatedCell": function ( cell ) { cell.scope = 'row'; } }
 
 ];
+config["initComplete"] = function(settings, rows) {
+
+  const tableAPI = settings.oInstance.api();
+  const columnProtocolIndex = 0;
+  DataTableUtils.addFilterDropdown(
+    'Dropdown Title', filters, columnProtocolIndex, '#periodicity_info_filter', tableAPI
+  );
+
+}
+
+
 
   $('#periodicity_info').DataTable(config);
 } );
