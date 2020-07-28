@@ -40,6 +40,17 @@ local alert_severity_to_emoji = {
 
 -- ##############################################
 
+local function recipient2sendMessageSettings(recipient)
+  local settings = {
+    webhook = recipient.endpoint_conf.endpoint_conf.slack_webhook,
+    sender_username = recipient.endpoint_conf.endpoint_conf.slack_sender_username,
+  }
+
+  return settings
+end
+
+-- ##############################################
+
 function slack.sendMessage(entity_type, severity, text, settings)
   local channel_name = entity_type
 
@@ -72,10 +83,7 @@ function slack.dequeueRecipientAlerts(recipient, budget)
     return {success=true}
   end
 
-  local settings = {
-    webhook = recipient.endpoint_conf.endpoint_conf.slack_webhook,
-    sender_username = recipient.endpoint_conf.endpoint_conf.slack_sender_username,
-  }
+  local settings = recipient2sendMessageSettings(recipient)
 
   -- Separate by severity and channel
   local alerts_by_types = {}
@@ -132,20 +140,20 @@ end
 
 -- ##############################################
 
-function slack.runTest()
-  local message_info, message_severity
+function slack.runTest(recipient)
+  local message_info
 
-  local success = slack.sendMessage("interface", "info", "Slack notification is working")
+  local settings = recipient2sendMessageSettings(recipient)
+
+  local success = slack.sendMessage("interface", "info", "Slack notification is working", settings)
 
   if success then
-    message_info = i18n("prefs.slack_sent_successfully", {channel=slack.getChannelName("interface")})
-    message_severity = "alert-success"
+    message_info = i18n("prefs.slack_sent_successfully", {channel="info"})
   else
-    message_info = i18n("prefs.slack_send_error", {product=product})
-    message_severity = "alert-danger"
+    message_info = i18n("prefs.slack_send_error")
   end
 
-  return message_info, message_severity
+  return success, message_info
 end
 
 -- ##############################################

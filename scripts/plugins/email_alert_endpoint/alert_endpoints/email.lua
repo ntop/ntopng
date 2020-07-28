@@ -37,6 +37,20 @@ local NUM_ATTEMPTS_KEY = "ntopng.alerts.modules_notifications_queue.email.num_at
 
 -- ##############################################
 
+local function recipient2sendMessageSettings(recipient)
+  local settings = {
+    smtp_server = recipient.endpoint_conf.endpoint_conf.smtp_server,
+    from_addr = recipient.endpoint_conf.endpoint_conf.email_sender,
+    to_addr = recipient.recipient_params.email_recipient,
+    username = recipient.endpoint_conf.endpoint_conf.smtp_username,
+    password = recipient.endpoint_conf.endpoint_conf.smtp_password,
+  }
+
+  return settings
+end
+
+-- ##############################################
+
 local function buildMessageHeader(now_ts, from, to, subject, body)
   local now = os.date("%a, %d %b %Y %X", now_ts) -- E.g. "Tue, 3 Apr 2018 14:58:00"
   local msg_id = "<" .. now_ts .. "." .. os.clock() .. "@ntopng>"
@@ -125,13 +139,7 @@ function email.dequeueRecipientAlerts(recipient, budget)
 
     message_body = table.concat(message_body, "<br>")
 
-    local settings = {
-      smtp_server = recipient.endpoint_conf.endpoint_conf.smtp_server,
-      from_addr = recipient.endpoint_conf.endpoint_conf.email_sender,
-      to_addr = recipient.recipient_params.email_recipient,
-      username = recipient.endpoint_conf.endpoint_conf.smtp_username,
-      password = recipient.endpoint_conf.endpoint_conf.smtp_password,
-    }
+    local settings = recipient2sendMessageSettings(recipient)
 
     -- Send email
     local rv = email.sendEmail(subject, message_body, settings)
@@ -164,37 +172,21 @@ end
 
 -- ##############################################
 
-function email.runTest()
-  local message_info, message_severity
+function email.runTest(recipient)
+  local message_info
 
-  if(_POST["email_sender"] ~= nil) then
-    _POST["email_sender"] = unescapeHTML(_POST["email_sender"])
-  end
-
-  if(_POST["email_recipient"] ~= nil) then
-    _POST["email_recipient"] = unescapeHTML(_POST["email_recipient"])
-  end
-
-  local settings = {
-    -- TODO
-    smtp_server = ntop.getPref("ntopng.prefs.alerts.smtp_server"),
-    from_addr = ntop.getPref("ntopng.prefs.alerts.email_sender"),
-    to_addr = ntop.getPref("ntopng.prefs.alerts.email_recipient"),
-    username = ntop.getPref("ntopng.prefs.alerts.smtp_username"),
-    password = ntop.getPref("ntopng.prefs.alerts.smtp_password"),
-  }
+  local settings = recipient2sendMessageSettings(recipient)
 
   local success = email.sendEmail("TEST MAIL", "Email notification is working", settings)
 
   if success then
-     message_info = i18n("prefs.email_sent_successfully")
-     message_severity = "alert-success"
+    message_info = i18n("prefs.email_sent_successfully")
   else
-     message_info = i18n("prefs.email_send_error", {url="https://www.ntop.org/guides/ntopng/web_gui/alerts.html#email"})
-     message_severity = "alert-danger"
+    message_info = i18n("prefs.email_send_error", {url="https://www.ntop.org/guides/ntopng/web_gui/alerts.html#email"})
   end
 
-  return message_info, message_severity
+  return success, message_info
+
 end
 
 -- ##############################################

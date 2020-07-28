@@ -279,6 +279,36 @@ end
 
 -- #################################################################
 
+function notification_recipients.test_recipient(endpoint_recipient_name)
+   local recipient = notification_recipients.get_recipient(endpoint_recipient_name)
+
+   -- Is the endpoint already existing?
+   if not recipient then
+      return {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
+   end
+
+   local modules_by_name = notification_configs.get_types()
+   local module_name = recipient.endpoint_conf.endpoint_key
+   local m = modules_by_name[module_name]
+   if not m then
+      return {status = "failed", error = {type = "endpoint_module_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
+   end
+
+   if not m.runTest then
+      return {status = "failed", error = {type = "endpoint_test_not_available", endpoint_recipient_name = endpoint_recipient_name}}
+   end
+
+   local success, message = m.runTest(recipient)
+
+   if success then
+      return {status = "OK"}
+   else
+      return {status = "failed", error = {type = "endpoint_test_failure", message = message }}
+   end
+end
+
+-- #################################################################
+
 function notification_recipients.dispatchNotification(message, json_message)
    local pools_alert_utils = require "pools_alert_utils"
 

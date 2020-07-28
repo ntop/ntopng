@@ -35,6 +35,31 @@ end
 
 -- ##############################################
 
+function syslog.sendMessage(notif, severity, syslog_format)
+   local syslog_severity = alert_consts.alertLevelToSyslogLevel(severity)
+   local msg
+
+   if syslog_format and syslog_format == "json" then
+      -- send out the json message but prepare a nice
+      -- message
+      notif.message  = alert_utils.formatAlertNotification(notif, {
+         nohtml = true,
+	 show_severity = false,
+	 show_entity = false})
+      msg = json.encode(notif)
+   else -- syslog_format == "plaintext"
+      -- prepare a plaintext message
+      msg = alert_utils.formatAlertNotification(notif, {
+         nohtml = true,
+	 show_severity = true,
+	 show_entity = true})
+   end
+
+   ntop.syslog(msg, syslog_severity)
+end
+
+-- ##############################################
+
 -- Dequeue alerts from a recipient queue for sending notifications
 function syslog.dequeueRecipientAlerts(recipient, budget)
 
@@ -42,11 +67,6 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
 
    if not notifications or #notifications == 0 then
       return {success = true}
-   end
-
-   local syslog_format = recipient.endpoint_conf.endpoint_conf.syslog_alert_format
-   if isEmptyString(syslog_format) then
-      syslog_format = "plaintext"
    end
 
    -- Separate by severity and channel
@@ -67,25 +87,7 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
 
 	 -- Most recent notifications first
 	 for _, notif in pairsByValues(sev_notifications, alert_utils.notification_timestamp_rev) do
-	    local syslog_severity = alert_consts.alertLevelToSyslogLevel(severity)
-
-	    local msg
-
-	    if syslog_format == "plaintext" then
-	       -- prepare a plaintext message
-	       msg = alert_utils.formatAlertNotification(notif, {nohtml = true,
-						     show_severity = true,
-						     show_entity = true})
-	    else -- syslog_format == "json" then
-	       -- send out the json message but prepare a nice
-	       -- message
-	       notif.message  = alert_utils.formatAlertNotification(notif, {nohtml = true,
-								show_severity = false,
-								show_entity = false})
-	       msg = json.encode(notif)
-	    end
-
-	    ntop.syslog(msg, syslog_severity)
+            syslog.sendMessage(notif, severity, recipient.endpoint_conf.endpoint_conf.syslog_alert_format)
 	 end
       end
    end
@@ -95,6 +97,15 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
 
    return {success = true}
 end
+
+-- ##############################################
+
+function syslog.runTest(recipient)
+  local success = syslog.sendMessage({}, "info", recipient.endpoint_conf.endpoint_conf.syslog_alert_format)
+  local message_info = i18n("prefs.syslog_sent_successfully")
+  return success, message_info
+end
+
 
 -- ##############################################
 

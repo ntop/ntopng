@@ -3391,6 +3391,7 @@ local lang = {
     ["syslog_alert_format_plaintext"] = "Plain Text",
     ["syslog_alert_format_title"] = "Syslog Alerts Format",
     ["syslog_notification"] = "Syslog Notification",
+    ["syslog_sent_successfully"] = "A message has been logged",
     ["system_probes_timeseries"] = "Probes Timeseries",
     ["telemetry"] = "Telemetry",
     ["telemetry_contribute"] = "Contribute",

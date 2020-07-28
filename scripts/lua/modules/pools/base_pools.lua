@@ -500,6 +500,7 @@ end
 -- ##############################################
 
 function base_pools:get_recipients(pool_id)
+   local pool_details
    local res = {}
 
    if pool_id == nil then
@@ -509,15 +510,16 @@ function base_pools:get_recipients(pool_id)
    local locked = self:_lock()
 
    if locked then
-      local pool_details = self:get_pool(pool_id)
 
-      if pool_details and pool_details["recipients"] then
-         for _, recipient in pairs(pool_details["recipients"]) do
-            res[#res + 1] = recipient
-         end
-      end
+      pool_details = self:get_pool(pool_id)
 
       self:_unlock()
+   end
+
+   if pool_details and pool_details["recipients"] then
+      for _, recipient in pairs(pool_details["recipients"]) do
+         res[#res + 1] = recipient
+      end
    end
 
    return res

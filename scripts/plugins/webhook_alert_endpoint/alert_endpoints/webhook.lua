@@ -34,6 +34,19 @@ local MAX_ALERTS_PER_REQUEST = 10
 
 -- ##############################################
 
+local function recipient2sendMessageSettings(recipient)
+  local settings = {
+    url = recipient.endpoint_conf.endpoint_conf.webhook_url,
+    sharedsecret = recipient.endpoint_conf.endpoint_conf.webhook_sharedsecret,
+    username = recipient.endpoint_conf.endpoint_conf.webhook_username,
+    password = recipient.endpoint_conf.endpoint_conf.webhook_password,
+  }
+
+  return settings
+end
+
+-- ##############################################
+
 function webhook.sendMessage(alerts, settings)
   if isEmptyString(settings.url) then
     return false
@@ -67,12 +80,7 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
   local sent = 0
   local more_available = true
 
-  local settings = {
-    url = recipient.endpoint_conf.endpoint_conf.webhook_url,
-    sharedsecret = recipient.endpoint_conf.endpoint_conf.webhook_sharedsecret,
-    username = recipient.endpoint_conf.endpoint_conf.webhook_username,
-    password = recipient.endpoint_conf.endpoint_conf.webhook_password,
-  }
+  local settings = recipient2sendMessageSettings(recipient)
 
   -- Dequeue alerts up to budget x MAX_ALERTS_PER_EMAIL
   -- Note: in this case budget is the number of email to send
@@ -114,28 +122,20 @@ end
 
 -- ##############################################
 
-function webhook.runTest()
-  local message_info, message_severity
+function webhook.runTest(recipient)
+  local message_info
 
-  local settings = {
-    -- TODO
-    url = ntop.getPref("ntopng.prefs.alerts.webhook_url"),
-    sharedsecret = ntop.getPref("ntopng.prefs.alerts.webhook_sharedsecret"),
-    username = ntop.getPref("ntopng.prefs.alerts.webhook_username"),
-    password = ntop.getPref("ntopng.prefs.alerts.webhook_password"),
-  }
+  local settings = recipient2sendMessageSettings(recipient)
 
   local success = webhook.sendMessage({}, settings)
 
   if success then
     message_info = i18n("prefs.webhook_sent_successfully")
-    message_severity = "alert-success"
   else
-    message_info = i18n("prefs.webhook_send_error", {product=product})
-    message_severity = "alert-danger"
+    message_info = i18n("prefs.webhook_send_error")
   end
 
-  return message_info, message_severity
+  return success, message_info
 end
 
 -- ##############################################
