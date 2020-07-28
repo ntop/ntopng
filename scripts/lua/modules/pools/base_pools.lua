@@ -93,7 +93,7 @@ end
 -- ##############################################
 
 function base_pools:_get_pool_lock_key()
-   local key = string.format("%s.pool_lock", self:_get_pools_prefix_key())
+   local key = string.format("ntopng.cache.pools.%s.pool_lock", self.key)
    -- e.g.:
    --  ntopng.pools.interface_pools.pool_lock
 
