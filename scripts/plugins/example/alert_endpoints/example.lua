@@ -6,18 +6,31 @@ require "lua_utils"
 local json = require "dkjson"
 local alert_consts = require("alert_consts")
 
-local script = {}
+local example = {
+  conf_params = {
+  },
+  conf_template = {
+    plugin_key = "example_alert_endpoint",
+    template_name = "example_endpoint.template"
+  },
+  recipient_params = {
+  },
+  recipient_template = {
+    plugin_key = "example_alert_endpoint",
+    template_name = "example_recipient.template"
+  },
+}
 
 -- How often this script will be called (in seconds)
-script.EXPORT_FREQUENCY = 5
+example.EXPORT_FREQUENCY = 5
 
 -- The minimum severity for an alert in order to be exported by this
 -- endpoint
-script.DEFAULT_SEVERITY = "warning"
+example.DEFAULT_SEVERITY = "warning"
 
 -- This determines the invocation priority of this endpoint.
 -- Higher priority endpoints are invoked first for the alert export.
-script.prio = 500
+example.prio = 500
 
 -- ##############################################
 
@@ -26,12 +39,15 @@ script.prio = 500
 -- queue for alerts and possibly export them.
 
 -- @brief Process the pending alerts notifications from the queue
--- @params queue the redis queue name
+-- @params recipient the recipient information and configuration, including the queue name
+-- @param budget the number of items to export (or number of external calls in batch mode)
 -- @return {success = true} on success,
 -- {success = false, error_message = "Some error description here"} on failure
-function script.dequeueAlerts(queue)
-  while true do
-    local json_alert = ntop.lpopCache(queue)
+function example.dequeueRecipientAlerts(recipient, budget)
+  local exported = 0
+
+  while exported < budget do
+    local json_alert = ntop.lpopCache(recipient.export_queue)
 
     if not json_alert then
       break
@@ -51,6 +67,8 @@ function script.dequeueAlerts(queue)
         --os.execute("/tmp/my_script.sh")
       end
     end
+
+    exported = exported + 1
   end
 
   return {success=true}
@@ -58,33 +76,4 @@ end
 
 -- ##############################################
 
--- @brief Called when the "Alert Endpoints" form is submitted.
--- @note This API could be subject to change!
-function email.handlePost()
-  --tprint(_POST)
-end
-
--- ##############################################
-
--- @brief Adds some custom preferences to the "Alert Endpoints" page
--- @brief alert_endpoints a reference to the scripts/lua/modules/alert_endpoints_utils.lua module
--- @brief subpage_active the lua table representing the currently active page
--- @brief showElements right now is always true
--- @note This API could be subject to change!
-function script.printPrefs(alert_endpoints, subpage_active, showElements)
-  local elementToSwitch = {}
-
-  print('<thead class="thead-light"><tr><th colspan="2" class="info">'..i18n("example.example_notification")..'</th></tr></thead>')
-
-  prefsToggleButton(subpage_active, {
-    field = "toggle_example_notification",
-    pref = alert_endpoints.getAlertNotificationModuleEnableKey("example", true),
-    default = "0",
-    disabled = showElements==false,
-    to_switch = elementToSwitch,
-  })
-end
-
--- ##############################################
-
-return script
+return example
