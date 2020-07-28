@@ -398,7 +398,7 @@ page_utils.add_menubar_section({
 -- Pools
 
 page_utils.add_menubar_section({
-   hidden = not is_system_interface or is_nedge,
+   hidden = not is_system_interface,
    section = page_utils.menu_sections.pools,
    entries = {
       {

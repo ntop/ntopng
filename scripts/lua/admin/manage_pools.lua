@@ -16,7 +16,10 @@ local active_monitoring_pools = require "active_monitoring_pools"
 local notification_recipients = require "notification_recipients"
 local snmp_device_pools
 
-local page = _GET["page"] or "host"
+local is_nedge = ntop.isnEdge()
+-- select the default page
+local page = _GET["page"] or (is_nedge and "active_monitoring" or "host")
+
 -- load the snmp module only in the pro version
 if ntop.isPro() then
    snmp_device_pools = require "snmp_device_pools"
@@ -65,11 +68,11 @@ end
 
 local menu = {
    entries = {
-      host = { title = i18n("pools.pool_names.host"), url = "?page=host", hidden = false},
-      interface = { title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = false},
+      host = { title = i18n("pools.pool_names.host"), url = "?page=host", hidden = is_nedge},
+      interface = { title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = is_nedge},
       network = { title = i18n("pools.pool_names.local_network"), url = "?page=network", hidden = false},
       active_monitoring = { title = i18n("pools.pool_names.active_monitoring"), url = "?page=active_monitoring", hidden = false },
-      snmp = { title = i18n("pools.pool_names.snmp"), url = "?page=snmp", hidden = (not ntop.isPro())},
+      snmp = { title = i18n("pools.pool_names.snmp"), url = "?page=snmp", hidden = (not ntop.isPro() or is_nedge)},
    },
    current_page = page
 }
