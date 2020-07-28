@@ -63,9 +63,13 @@ local is_pcap_dump = interface.isPcapDumpInterface()
 
 local periodicity_stats = interface.periodicityStats()
 local periodic_info_available = false
+local num_periodicity = 0
 
-if(periodicity_stats and (table.len(periodicity_stats) > 0)) then
-   periodic_info_available = true
+if(periodicity_stats) then
+   num_periodicity = table.len(periodicity_stats)
+   if(num_periodicity > 0) then
+      periodic_info_available = true
+   end
 end
 
 local ifstats = interface.getStats()
@@ -228,6 +232,7 @@ print('\n<script>var refresh = '..getInterfaceRefreshRate(ifstats.id)..' * 1000;
 
 local short_name = getHumanReadableInterfaceName(ifname)
 local title = i18n("interface") .. ": " .. short_name
+
 page_utils.print_navbar(title, url,
 			   {
 			      {
@@ -340,7 +345,7 @@ page_utils.print_navbar(title, url,
 				 hidden = not periodic_info_available,
 				 active = page == "periodicity_stats",
 				 page_name = "periodicity_stats",
-				 label = "<i class=\"fas fa-lg fa-clock\"></i>",
+				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
 			      },
 			   }
    )
