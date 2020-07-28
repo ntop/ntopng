@@ -114,7 +114,7 @@ class Prefs {
   char *redis_password;
   char *pid_path;
   char *cpu_affinity, *other_cpu_affinity;
-#ifdef HAVE_LIBCAP
+#ifdef __linux__
   cpu_set_t other_cpu_affinity_mask;
 #endif
   u_int8_t redis_db_id;
