@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local plugins_utils = require("plugins_utils")
 local json = require "dkjson"
 local notification_configs = require("notification_configs")
-local alert_endpoints = require("alert_endpoints_utils")
 local alert_consts = require("alert_consts")
 
 -- #################################################################
@@ -301,13 +300,19 @@ end
 
 function notification_recipients.processNotifications(now, periodic_frequency, force_export)
    local recipients = notification_recipients.get_recipients()
-   local modules = alert_endpoints.getModules()
+
+   local loaded_modules = plugins_utils.getLoadedAlertEndpoints()
+
+   local modules_by_name = {}
+   for _, m in ipairs(loaded_modules) do
+      modules_by_name[m.key] = m
+   end
 
    for _, recipient in pairs(recipients) do
       local module_name = recipient.endpoint_conf.endpoint_key 
 
-      if modules[module_name] then
-         local m = modules[module_name].module
+      if modules_by_name[module_name] then
+         local m = modules_by_name[module_name]
 
          if force_export or not m.EXPORT_FREQUENCY or ((now % m.EXPORT_FREQUENCY) < periodic_frequency) then
             if m.dequeueRecipientAlerts then

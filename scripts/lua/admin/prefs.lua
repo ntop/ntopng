@@ -20,7 +20,6 @@ local data_retention_utils = require "data_retention_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
 local influxdb = require("influxdb")
-local alert_endpoints = require("alert_endpoints_utils")
 local plugins_utils = require("plugins_utils")
 local nindex_utils = nil
 local info = ntop.getInfo()
@@ -367,28 +366,6 @@ function printAlerts()
     }
   </script>
   ]]
-end
-
--- ================================================================================
-
-function printExternalAlertsReport()
-  if alerts_disabled then return end
-
-  print('<form method="post" id="external_alerts_form">')
-  print('<table class="table">')
-
-  local available_endpoints = plugins_utils.getLoadedAlertEndpoints()
-
-  for _, endpoint in ipairs(available_endpoints) do
-    if(endpoint.printPrefs) then
-      endpoint.printPrefs(alert_endpoints, subpage_active, true --[[ showElements ]])
-    end
-  end
-
-  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
-  print('</table>')
-  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-  </form> ]]
 end
 
 -- ================================================================================
@@ -1547,10 +1524,6 @@ end
 
 if(tab == "alerts") then
    printAlerts()
-end
-
-if(tab == "ext_alerts") then
-   printExternalAlertsReport()
 end
 
 if(tab == "protocols") then

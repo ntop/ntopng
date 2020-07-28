@@ -69,19 +69,13 @@ The file `email.lua` contains the actual logic of the endpoint. The module has t
 - :code:`endpoint.isAvailable()`: can be used to programmatically disable the endpoint (e.g. disable the endpoint on
   some platform). Must return true if the endpoint can be currently used (once the user enables it from the
   endpoints preferences), or false if the endpoint should not be used and its preferences should be hidden.
-- :code:`endpoint.dequeueAlerts(queue)`: called periodically (based on the `endpoint.EXPORT_FREQUENCY`). The endpoint
-  is expected to dequeue the alerts from the provided queue and process them. The function must return `{success=true}` if
-  the alerts could be processed correctly, otherwise `{success=false, error_message="something went wrong"}` which some
-  useful error message which will be reported to the user.
-- :code:`endpoint.printPrefs(alert_endpoints, subpage_active, showElements)`: it's invoked when a user visits the alerts
-  endpoint preferences. It should print the elements declared into the `prefs_entries.lua` file. `alert_endpoints` is a
-  reference to the `alert_endpoints_utils.lua` module, `subpage_active` is the name of the current preferences subpage,
-  whereas `showElements` is a flag which must be passed to the input building functions from `prefs_utils.lua`_
-  (e.g. `prefsInputFieldPrefs`).
-- :code:`endpoint.handlePost()`: it's invoked once the endpoint preferences, modified by the users, have been saved.
-  This can be used to validate the configuration, e.g. sending a test email to verify that it works. On success it
-  should return `nil`, on failure it should return `message_info, message_severity` where `message_info` is a localized
-  message to show on the gui and `message_severity` is the css class to apply on the message box.
+- :code:`endpoint.dequeueRecipientAlerts(recipient, budget)`: called periodically (based on the `endpoint.EXPORT_FREQUENCY`).
+  The endpoint is expected to dequeue the alerts from the provided `recipient.export_queue` and process them, up to `budget`. 
+  The function must return `{success=true}` if  the alerts could be processed correctly, otherwise `{success=false, error_message="something went wrong"}` 
+  which some useful error message which will be reported to the user.
+- :code:`endpoint.runTest()`: it's invoked to validate the configuration, e.g. sending a test email to verify that it works. 
+  On success it  should return `nil`, on failure it should return `message_info, message_severity` where `message_info` is 
+  a localized message to show on the gui and `message_severity` is the css class to apply on the message box.
 
 Example
 -------
