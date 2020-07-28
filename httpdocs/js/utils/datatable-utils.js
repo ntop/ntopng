@@ -132,6 +132,10 @@ class DataTableUtils {
         for (let filter of filters) {
 
             const $entry = createEntry(filter.label, filter.key, (e) => {
+                // if the filter have a callback then call it
+                if (filter.callback) {
+                    filter.callback();
+                }
                 tableAPI.column(columnIndex).search(filter.regex, true, false).draw();
             });
 

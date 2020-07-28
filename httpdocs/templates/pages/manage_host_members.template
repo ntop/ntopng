@@ -56,6 +56,7 @@
 
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-ipsorting.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-macsorting.js"></script>
 <script type="text/javascript">
 
     let addCsrf = "{{ ntop.getRandomCSRFValue() }}";
@@ -74,6 +75,9 @@
     i18n.config = "{{ i18n('config') }}";
     i18n.all = "{{ i18n('all') }}";
     i18n.used_by = "{{ i18n('used_by') }}";
+    i18n.member_type = "{{ i18n('host_pools.member_type') }}";
+    i18n.ip_filter = "{{ i18n('host_pools.ip_filter') }}";
+    i18n.mac_filter = "{{ i18n('host_pools.mac_filter') }}";
 
     i18n.rest = {
         INVALID_HOST: "{{ i18n('rest_consts.INVALID_HOST') }}",
