@@ -1,3 +1,5 @@
+Introduction
+------------
 If you want to access ntopng-generated timeseries from Grafana all you need to do is
 
 - From the ntopng preferences (Menu Settings -> Prefeences) select Timeseries and export
@@ -5,9 +7,16 @@ If you want to access ntopng-generated timeseries from Grafana all you need to d
   
 - From Grafana use the InfluxDB driver to access the ntopng generated data
 
+Examples
+--------
+If you want to see a good example of ntopng-Grafana integration, you can refer to this
+project https://github.com/mroe1234/ntopng_grafana
+
+Discontinued Datasources
+------------------------
 The 
-- "Simple JSON Datasource" Grafana plugin (https://grafana.com/plugins/grafana-simple-json-datasource)
+- "Simple JSON Datasource" Grafana plugin https://grafana.com/plugins/grafana-simple-json-datasource
 and
-- ntopng-grafana-datasource (https://github.com/ntop/ntopng-grafana-datasource#discontinuation-notice)
+- ntopng-grafana-datasource https://github.com/ntop/ntopng-grafana-datasource#discontinuation-notice
 
 should no longer be used to interface Grafana with ntopng
