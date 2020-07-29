@@ -419,6 +419,7 @@ flow_consts.flow_fields_description = {
     ["DNS_TTL_ANSWER"] = i18n("flow_fields_description.dns_ttl_answer"),
     ["DNS_RESPONSE"] = i18n("flow_fields_description.dns_response"),
     ["DNS_TX_ID"] = i18n("flow_fields_description.dns_tx_id"),
+    ["DNS_TTL_ANSWER_ID"] = i18n("flow_fields_description.dns_ttl_answer"),
 
     -- FTP Protocol
     ["FTP_LOGIN"] = i18n("flow_fields_description.ftp_login"),

@@ -604,10 +604,16 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
   case DNS_QUERY_TYPE:
-    flow->dns_query_type = value->int_num;
+    if(value->string)
+      flow->dns_query_type = atoi(value->string);
+    else
+      flow->dns_query_type = value->int_num;
     break;
   case DNS_RET_CODE:
-    flow->dns_ret_code = value->int_num;
+    if(value->string)
+      flow->dns_ret_code = atoi(value->string);
+    else
+      flow->dns_ret_code = value->int_num;
     break;
   case HTTP_URL:
     if (value->string[0] && value->string[0] != '\n') {

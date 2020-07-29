@@ -1464,6 +1464,7 @@ local lang = {
     ["dns_ret_code"] = "DNS return code (e.g. 0=no error)",
     ["dns_ttl_answer"] = "TTL of the first A record (if any)",
     ["dns_tx_id"] = "DNS Transaction ID",
+    ["dns_ttl_answer"] = "TTL of the first A record (if any)",
     ["dot1q_dst_vlan"] = "Destination VLAN (outer VLAN in QinQ)",
     ["dot1q_src_vlan"] = "Source VLAN (outer VLAN in QinQ)",
     ["downstream_session_id"] = "Downstream session identifier (e.g. L2TP) or 0 if unknown",

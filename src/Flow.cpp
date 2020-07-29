@@ -3340,6 +3340,25 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 
 /* *************************************** */
 
+/*
+  @brief Update DNS stats for flows received via ZMQ
+ */
+void Flow::updateDNS(ParsedFlow *zflow) {
+  if(isDNS()) {
+    if(zflow->dns_query) {
+      setDNSQuery(zflow->dns_query);
+      zflow->dns_query = NULL;
+    }
+    setDNSQueryType(zflow->dns_query_type);
+    setDNSRetCode(zflow->dns_ret_code);
+
+    stats.incDNSQuery(getLastQueryType());
+    stats.incDNSResp(getDNSRetCode());
+  }
+}
+
+/* *************************************** */
+
 void Flow::dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len) {
   struct ndpi_dns_packet_header dns_header;
   u_int8_t payload_offset = get_protocol() == IPPROTO_UDP ? 0 : 2;

@@ -379,12 +379,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 				  zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
 				  zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
 
-  if(zflow->dns_query) {
-    flow->setDNSQuery(zflow->dns_query);
-    zflow->dns_query = NULL;
-  }
-  flow->setDNSQueryType(zflow->dns_query_type);
-  flow->setDNSRetCode(zflow->dns_ret_code);
+  if(flow->isDNS())
+    flow->updateDNS(zflow);
 
   if(zflow->http_url) {
     flow->setHTTPURL(zflow->http_url);
