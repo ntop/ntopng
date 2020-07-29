@@ -57,4 +57,15 @@ end
 
 -- ##############################################
 
+-- @brief Call `instance:unbind_all_configset_id` for every available pools `instance`
+function pools_lua_utils.unbind_all_recipient_id(recipient_id)
+   local all_instances = all_pool_instances_factory()
+
+   for _, instance in pairs(all_instances) do
+      instance:unbind_all_recipient_id(recipient_id)
+   end
+end
+
+-- ##############################################
+
 return pools_lua_utils

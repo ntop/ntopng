@@ -18,7 +18,7 @@ local base_pools = {}
 
 -- A default pool id value associated to any member without pools
 base_pools.DEFAULT_POOL_ID = 0 -- In sync with former host_pools_nedge.lua
-base_pools.DEFAULT_POOL_NAME = "Not Assigned" -- In sync with former host_pools_nedge.lua
+base_pools.DEFAULT_POOL_NAME = "Default"
 
 -- ##############################################
 
@@ -55,7 +55,33 @@ function base_pools:create(args)
    setmetatable(this, self)
    self.__index = self
 
+   this:_initialize()
+
    return this
+end
+
+-- ##############################################
+
+function base_pools:_initialize()
+   local locked = self:_lock()
+
+   if locked then
+      -- Init the default pool, if not already initialized.
+      -- The default pool has always empty members, default configset id, and empty recipients
+      local default_pool = self:get_pool(base_pools.DEFAULT_POOL_ID)
+
+      if not default_pool then
+	 -- Raw call to persist, no need to go through add_pool as here all the parameters are trusted and
+	 -- there's no need to check
+	 self:_persist(base_pools.DEFAULT_POOL_ID,
+		       base_pools.DEFAULT_POOL_NAME,
+		       {} --[[ no members --]],
+		       user_scripts.DEFAULT_CONFIGSET_ID,
+		       {} --[[ no recipients --]])
+      end
+
+      self:_unlock()
+   end
 end
 
 -- ##############################################
@@ -137,7 +163,7 @@ end
 
 -- @brief Returns an array with all the currently assigned pool ids
 function base_pools:_get_assigned_pool_ids()
-   local res = {}
+   local res = { base_pools.DEFAULT_POOL_ID }
 
    local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
    for _, cur_pool_id in pairs(cur_pool_ids) do
@@ -642,7 +668,7 @@ function base_pools:unbind_all_recipient_id(recipient_id)
 
 	 -- New recipients (all pool recipients except for the one being removed)
 	 local new_recipients = {}
-	 for _, cur_recipient in pairs(cur_pool["recipients"]) do
+	 for _, cur_recipient in pairs(pool["recipients"]) do
 	    if cur_recipient ~= recipient_id then
 	       new_recipients[#new_recipients + 1] = cur_recipient
             else

@@ -10,6 +10,7 @@ local json = require "dkjson"
 local notification_configs = require("notification_configs")
 local alert_consts = require("alert_consts")
 
+
 -- #################################################################
 
 local ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG = "ntopng.prefs.notification_endpoint.endpoint_recipient_to_endpoint_conf"
@@ -234,6 +235,7 @@ end
 -- #################################################################
 
 function notification_recipients.delete_recipient(endpoint_recipient_name)
+   local pools_lua_utils = require "pools_lua_utils"
    local ok, status = check_endpoint_recipient_name(endpoint_recipient_name)
    if not ok then
       return status
@@ -252,6 +254,8 @@ function notification_recipients.delete_recipient(endpoint_recipient_name)
    local k = string.format(ENDPOINT_RECIPIENTS_KEY, endpoint_conf_name)
    ntop.delHashCache(k, endpoint_recipient_name)
    ntop.delHashCache(ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG, endpoint_recipient_name)
+
+   pools_lua_utils.unbind_all_recipient_id(endpoint_recipient_name)
 
    return {status = "OK"}
 end
