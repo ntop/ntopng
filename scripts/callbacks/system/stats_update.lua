@@ -16,7 +16,7 @@ local when = os.time()
 system_utils.compute_cpu_states()
 
 if(ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0") then
-   local cpu_load = ntop.refreshCpuLoad()
+   local cpu_load = ntop.refreshCPULoad()
 
    if(cpu_load ~= nil) then
       ts_utils.append("system:cpu_load", {ifid = interface.getId(), load_percentage = cpu_load}, when)

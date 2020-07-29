@@ -10,6 +10,7 @@ local periodic_activities_utils = {}
 periodic_activities_utils.periodic_activities = {
    -- Can use this table to keep certain information for every periodic activity
    -- Keep in sync with PeriodicActivities.cpp
+   ["stats_update.lua"]      = { max_duration =    10 },
    ["ht_state_update.lua"]   = { max_duration =    10 },
    ["minute.lua"]            = { max_duration =    60 },
    ["5min.lua"]              = { max_duration =   300 },
