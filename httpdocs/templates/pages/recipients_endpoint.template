@@ -1,3 +1,11 @@
+{#
+    (C) 2020 - ntop.org
+
+    This is the template for endpoint recipient page. If there are no endpoints
+    configured yet then show an alert to the user.
+#}
+
+{% if (#notifications.endpoint_list > 0) then %}
 <div class="row mb-5">
     <div class="col-md-12">
         <table class="table w-100 table-bordered table-striped table-hover my-3" id="recipient-list">
@@ -44,7 +52,21 @@
     i18n.search = "{{ i18n('search') }}";
     i18n.edit = "{{ i18n('edit') }}";
     i18n.remove = "{{ i18n('remove') }}";
+    i18n.empty_template = "{{ i18n('endpoint_notifications.empty_template') }}";
     i18n.createEndpointFirst = "{{ (#notifications.endpoint_list > 0 and '' or i18n('endpoint_notifications.create_endpoint_first')) }}";
     i18n.endpoint_recipient_already_existing = "{{ i18n('endpoint_notifications.endpoint_recipient_already_existing') }}";
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js"></script>
+{% else %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            {{ i18n("endpoint_notifications.empty_endpoints") }}
+            <a href="/lua/admin/endpoint_notifications_list.lua">
+                <i class="fas fa-edit"></i> {{ i18n("endpoint_notifications.edit_endpoints") }}
+            </a>
+        </div>
+    </div>
+</div>
+
+{% end %}

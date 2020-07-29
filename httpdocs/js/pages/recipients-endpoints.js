@@ -3,30 +3,40 @@ $(document).ready(function () {
     function makeFormData(formSelector) {
 
         const $inputsTemplate = $(`${formSelector} .recipient-template-container [name]`);
-        const params = {};
+
+        const params = {
+            recipient_name: $(`${formSelector} [name='name']`).val(),
+            endpoint_conf_name: $(`${formSelector} [name='endpoint']`).val()
+        };
+
+        // load each recipient params inside the template container in params
         $inputsTemplate.each(function (i, input) {
             params[$(this).attr('name')] = $(this).val().trim();
         });
-
-        params.recipient_name = $(`${formSelector} [name='name']`).val();
-        params.endpoint_conf_name = $(`${formSelector} [name='endpoint']`).val();
 
         return params;
     }
 
     function createTemplateOnSelect(formSelector) {
+
         const $templateContainer = $(`${formSelector} .recipient-template-container`);
+        // on Endpoint Selection load the right template to fill
         $(`${formSelector} select[name='endpoint']`).change(function (e) {
             const $option = $(this).find(`option[value='${$(this).val()}']`);
-            const template = $(`template#${$option.data('endpointKey')}-template`).html();
-            const $cloned = $(template);
+            const $cloned = loadTemplate($option.data('endpointKey'));
+            // show the template inside the modal container
             $templateContainer.empty().append($cloned).fadeIn();
         });
     }
 
     function loadTemplate(type) {
+
         const template = $(`template#${type}-template`).html();
-        return $(template);
+        // if the template is not empty then return a copy of the template content
+        if (template.trim() != "")
+            return $(template);
+        // othwerise return a message informing the user there is no inputs to fill
+        return $(`<p class='text-center text-muted my-2'>${i18n.empty_template}</p>`);
     }
 
 
@@ -138,6 +148,11 @@ $(document).ready(function () {
         },
         onModalInit: function () {
             createTemplateOnSelect(`#add-recipient-modal`);
+        },
+        onModalShow: function() {
+            // load the template of the selected endpoint
+            $(`#add-recipient-modal form .recipient-template-container`)
+                .empty().append(loadTemplate($(`#add-recipient-modal select[name='endpoint'] option:selected`).data('endpointKey'))).show();
         },
         onSubmitSuccess: function (response) {
             if (response.result.status == "OK") {

@@ -11,7 +11,6 @@ local template = require "template_utils"
 local json = require "dkjson"
 local plugins_utils = require("plugins_utils")
 local notification_configs = require("notification_configs")
-
 local endpoints = notification_configs.get_configs()
 
 if not haveAdminPrivileges() then
@@ -30,7 +29,7 @@ page_utils.print_page_title(i18n("endpoint_notifications.recipient_list"))
 local context = {
     notifications = {
         endpoints = notification_configs.get_types(),
-        endpoint_list = endpoints
+        endpoint_list = endpoints,
     },
     template_utils = template,
     page_utils = page_utils,
