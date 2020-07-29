@@ -359,7 +359,8 @@ class Flow : public GenericHashEntry {
   void updateTcpFlags(const struct bpf_timeval *when,
 		      u_int8_t flags, bool src2dst_direction);
   void updateTcpSeqIssues(const ParsedFlow *pf);
-  void updateDNS(ParsedFlow *pf);
+  void updateDNS(ParsedFlow *zflow);
+  void updateHTTP(ParsedFlow *zflow);
   static void incTcpBadStats(bool src2dst_direction,
 			     Host *cli, Host *srv,
 			     NetworkInterface *iface,
@@ -588,7 +589,9 @@ class Flow : public GenericHashEntry {
   inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = v; } }
   inline void  setHTTPMethod(char *v)  { if(isHTTP()) { if(protos.http.last_method) free(protos.http.last_method);  protos.http.last_method = v; } }
   inline void  setHTTPRetCode(u_int16_t c) { if(isHTTP()) { protos.http.last_return_code = c; } }
-  inline char* getHTTPContentType() { return(isHTTP() ? protos.http.last_content_type : (char*)"");   }
+  inline u_int16_t getHTTPRetCode() const { return isHTTP() ? protos.http.last_return_code : 0;           };
+  inline char* getHTTPMethod()      const { return isHTTP() ? protos.http.last_method : (char*)"";        };
+  inline char* getHTTPContentType() const { return(isHTTP() ? protos.http.last_content_type : (char*)""); };
   bool isTLSProto();
 
   void setExternalAlert(json_object *a);

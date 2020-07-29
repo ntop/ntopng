@@ -101,6 +101,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("HTTP_URL", HTTP_URL, NTOP_PEN);
   addMapping("HTTP_SITE", HTTP_SITE, NTOP_PEN);
   addMapping("HTTP_RET_CODE", HTTP_RET_CODE, NTOP_PEN);
+  addMapping("HTTP_METHOD", HTTP_METHOD, NTOP_PEN);
   addMapping("SSL_SERVER_NAME", SSL_SERVER_NAME, NTOP_PEN);
   addMapping("SSL_CIPHER", SSL__CIPHER, NTOP_PEN);
   addMapping("SSL_UNSAFE_CIPHER", SSL_UNSAFE_CIPHER, NTOP_PEN);
@@ -632,6 +633,12 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       flow->http_ret_code = atoi(value->string);
     else
       flow->http_ret_code = value->int_num;
+    break;
+  case HTTP_METHOD:
+    if (value->string[0] && value->string[0] != '\n') {
+      if(flow->http_method) free(flow->http_method);
+      flow->http_method = strdup(value->string);
+    }
     break;
   case SSL_SERVER_NAME:
     if (value->string[0] && value->string[0] != '\n') {

@@ -3376,6 +3376,56 @@ void Flow::dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_l
 
 /* *************************************** */
 
+void Flow::updateHTTP(ParsedFlow *zflow) {
+  if(isHTTP()) {
+    if(zflow->http_url) {
+      setHTTPURL(zflow->http_url);
+      zflow->http_url = NULL;
+    }
+
+    if(zflow->http_site) {
+      setServerName(zflow->http_site);
+      zflow->http_site = NULL;
+    }
+
+    if(zflow->http_method) {
+      setHTTPMethod(zflow->http_method);
+      zflow->http_method = NULL;
+    }
+
+    setHTTPRetCode(zflow->http_ret_code);
+
+    const char *http_method = getHTTPMethod();
+    if(http_method && http_method[0] && http_method[1]) {
+      switch(http_method[0]) {
+      case 'P':
+	switch(http_method[1]) {
+	case 'O': stats.incHTTPReqPOST();  break;
+	case 'U': stats.incHTTPReqPUT();   break;
+	default:  stats.incHTTPReqOhter(); break;
+	}
+	break;
+      case 'G': stats.incHTTPReqGET();   break;
+      case 'H': stats.incHTTPReqHEAD();  break;
+      default:  stats.incHTTPReqOhter(); break;
+      }
+    } else
+      stats.incHTTPReqOhter();
+
+    u_int16_t ret_code = getHTTPRetCode();
+    while(ret_code > 9) ret_code /= 10; /* Take the first digit */
+    switch(ret_code) {
+    case 1: stats.incHTTPResp1xx(); break;
+    case 2: stats.incHTTPResp2xx(); break;
+    case 3: stats.incHTTPResp3xx(); break;
+    case 4: stats.incHTTPResp4xx(); break;
+    case 5: stats.incHTTPResp5xx(); break;
+    }
+  }
+}
+
+/* *************************************** */
+
 void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len) {
   ssize_t host_server_name_len = host_server_name && host_server_name[0] != '\0' ? strlen(host_server_name) : 0;
 

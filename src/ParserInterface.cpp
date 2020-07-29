@@ -382,22 +382,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   if(flow->isDNS())
     flow->updateDNS(zflow);
 
-  if(zflow->http_url) {
-    flow->setHTTPURL(zflow->http_url);
-    zflow->http_url = NULL;
-  }
-
-  if(zflow->http_site) {
-    flow->setServerName(zflow->http_site);
-    zflow->http_site = NULL;
-  }
-
-  if(zflow->http_method) {
-    flow->setHTTPMethod(zflow->http_method);
-    zflow->http_method = NULL;
-  }
-
-  flow->setHTTPRetCode(zflow->http_ret_code);
+  if(flow->isHTTP())
+    flow->updateHTTP(zflow);
 
   if(zflow->tls_server_name) {
     flow->setServerName(zflow->tls_server_name);
