@@ -57,10 +57,10 @@ for k,v in pairs(p) do
 
    table.insert(row, buildHostHREF(v.client))
    table.insert(row, buildHostHREF(v.server))
-
    table.insert(row, port)
    table.insert(row, v.num_periodic_loops_accounted)
    table.insert(row, v.frequency)
+   table.insert(row, v.info)
 
    table.insert(rsp.data, row)
 end

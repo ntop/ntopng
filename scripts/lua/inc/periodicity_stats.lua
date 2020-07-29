@@ -16,6 +16,7 @@ print [[
                 <th>]] print(i18n("port")) print [[</th>
                 <th>]] print(i18n("observations")) print [[</th>
                 <th>]] print(i18n("frequency")) print [[</th>
+                <th>]] print(i18n("info")) print [[</th>
             </tr>
         </thead>
 </table>
@@ -51,7 +52,7 @@ print [[
 
   config["columnDefs"] = [
    { targets: [ 5 /* Observations */], className: 'dt-body-right', "fnCreatedCell": function ( cell ) { cell.scope = 'row'; }, "render": function ( data, type, row ) { return (type == "sort" || type == 'type') ? data : data+" sec"; }  },
-    { targets: [ 4 /* Frequency */], className: 'dt-body-right', "fnCreatedCell": function ( cell ) { cell.scope = 'row'; } }
+   { targets: [ 4 /* Frequency */], className: 'dt-body-right', "fnCreatedCell": function ( cell ) { cell.scope = 'row'; } }
   ];
 
   config["initComplete"] = function(settings, rows) {
