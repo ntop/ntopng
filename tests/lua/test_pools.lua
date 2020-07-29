@@ -38,7 +38,7 @@ local s = interface_pools:create()
 s:cleanup()
 
 -- Creation
-local new_pool_id = s:add_pool('my_pool', {"5"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+local new_pool_id = s:add_pool('my_pool', {"5"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]], {})
 assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
 
 -- Getter (by id)
@@ -67,7 +67,7 @@ pool_details = s:get_pool(new_pool_id)
 assert(pool_details == nil)
 
 -- Addition of another pool
-local second_pool_id = s:add_pool('my_second_pool', {"5"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+local second_pool_id = s:add_pool('my_second_pool', {"5"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]], {})
 assert(second_pool_id == new_pool_id + 1)
 
 -- Edit of the second pool
@@ -86,7 +86,7 @@ pool_details = s:get_pool(second_pool_id)
 assert(has_member(pool_details["members"], "5"))
 
 -- Addition of another pool
-local third_pool_id = s:add_pool('my_third_pool', {"3"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+local third_pool_id = s:add_pool('my_third_pool', {"3"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]], {})
 assert(third_pool_id == second_pool_id + 1)
 
 -- Attempt at assigning a assigning to a pool a member which is already bound to another pool
@@ -119,7 +119,7 @@ local s = local_network_pools:create()
 s:cleanup()
 
 -- Creation
-local new_pool_id = s:add_pool('my_local_network_pool', {"127.0.0.0/8"} --[[ an array of valid local networks ]], 0 --[[ a valid configset_id --]])
+local new_pool_id = s:add_pool('my_local_network_pool', {"127.0.0.0/8"} --[[ an array of valid local networks ]], 0 --[[ a valid configset_id --]], {})
 assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
 
 -- Getter (by id)
@@ -147,7 +147,7 @@ pool_details = s:get_pool(new_pool_id)
 assert(pool_details == nil)
 
 -- Addition of another pool
-local second_pool_id = s:add_pool('my_local_network_second_pool', {"127.0.0.0/8"} --[[ an array of valid local networks ]], 0 --[[ a valid configset_id --]])
+local second_pool_id = s:add_pool('my_local_network_second_pool', {"127.0.0.0/8"} --[[ an array of valid local networks ]], 0 --[[ a valid configset_id --]], {})
 assert(second_pool_id == new_pool_id + 1)
 
 -- Edit of the second pool
@@ -164,7 +164,7 @@ local s = snmp_device_pools:create()
 s:cleanup()
 
 -- Creation
-local new_pool_id = s:add_pool('my_snmp_device_pool', {"192.168.2.169"} --[[ an array of valid snmp_device ip]], 0 --[[ a valid configset_id --]])
+local new_pool_id = s:add_pool('my_snmp_device_pool', {"192.168.2.169"} --[[ an array of valid snmp_device ip]], 0 --[[ a valid configset_id --]], {})
 assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
 
 -- Getter (by id)
@@ -192,7 +192,7 @@ pool_details = s:get_pool(new_pool_id)
 assert(pool_details == nil)
 
 -- Addition of another pool
-local second_pool_id = s:add_pool('my_snmp_device_second_pool', {"192.168.2.169"} --[[ an array of valid snmp_device ip ]], 0 --[[ a valid configset_id --]])
+local second_pool_id = s:add_pool('my_snmp_device_second_pool', {"192.168.2.169"} --[[ an array of valid snmp_device ip ]], 0 --[[ a valid configset_id --]], {})
 assert(second_pool_id == new_pool_id + 1)
 
 -- Edit of the second pool
@@ -210,7 +210,7 @@ local s = active_monitoring_pools:create()
 s:cleanup()
 
 -- Creation
-local new_pool_id = s:add_pool('my_am_pool', {"https@ntop.org"} --[[ an array of valid active monitoring keys ]], 0 --[[ a valid configset_id --]])
+local new_pool_id = s:add_pool('my_am_pool', {"https@ntop.org"} --[[ an array of valid active monitoring keys ]], 0 --[[ a valid configset_id --]], {})
 assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
 
 -- Getter (by id)
@@ -238,7 +238,7 @@ pool_details = s:get_pool(new_pool_id)
 assert(pool_details == nil)
 
 -- Addition of another pool
-local second_pool_id = s:add_pool('my_am_second_pool', {"https@ntop.org"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+local second_pool_id = s:add_pool('my_am_second_pool', {"https@ntop.org"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]], {})
 assert(second_pool_id == new_pool_id + 1)
 
 -- Edit of the second pool
@@ -256,8 +256,7 @@ local s = host_pools:create()
 s:cleanup()
 
 -- Creation
-
-local new_pool_id = s:add_pool('my_host_pool', {"192.168.2.222/32@0"} --[[ an array of valid host pool members ]], 0 --[[ a valid configset_id --]])
+local new_pool_id = s:add_pool('my_host_pool', {"192.168.2.222/32@0"} --[[ an array of valid host pool members ]], 0 --[[ a valid configset_id --]], {})
 assert(new_pool_id == s.MIN_ASSIGNED_POOL_ID)
 
 -- Getter (by id)
@@ -265,7 +264,8 @@ local pool_details = s:get_pool(new_pool_id)
 assert(pool_details["name"] == "my_host_pool")
 
 -- Getter (a non-existing id)
-assert(not s:get_pool(999))
+local non_existing = s:get_pool(999)
+assert(not not_existing)
 
 -- Getter (by name)
 pool_details = s:get_pool_by_name('my_host_pool')
@@ -285,7 +285,7 @@ pool_details = s:get_pool(new_pool_id)
 assert(pool_details == nil)
 
 -- Addition of another pool
-local second_pool_id = s:add_pool('my_host_second_pool', {"8.8.8.8/32@0"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+local second_pool_id = s:add_pool('my_host_second_pool', {"8.8.8.8/32@0"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]], {})
 assert(second_pool_id == new_pool_id)
 
 -- Edit of the second pool
@@ -294,7 +294,7 @@ pool_details = s:get_pool(second_pool_id)
 assert(second_pool_id == new_pool_id)  -- There's no +1 here, host pool ids are re-used
 
 -- Addition of a third pool
-local third_pool_id = s:add_pool('my_host_third_pool', {"1.1.1.1/32@0"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]])
+local third_pool_id = s:add_pool('my_host_third_pool', {"1.1.1.1/32@0"} --[[ an array of valid interface ids]], 0 --[[ a valid configset_id --]], {})
 assert(third_pool_id == second_pool_id + 1)
 
 -- Edit of the third pool (try to add a member already bound to another pool)

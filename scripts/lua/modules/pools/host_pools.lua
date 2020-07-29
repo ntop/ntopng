@@ -243,10 +243,9 @@ end
 -- ##############################################
 
 function host_pools:get_pool(pool_id)
-
    local pool_name = self:_get_pool_detail(pool_id, "name")
    if pool_name == "" then
-      pool_name = nil
+      return nil -- Pool not existing
    end
 
    -- Configset and configset details
