@@ -622,7 +622,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
     }
     break;
   case HTTP_RET_CODE:
-    flow->http_ret_code = value->int_num;
+    if(value->string)
+      flow->http_ret_code = atoi(value->string);
+    else
+      flow->http_ret_code = value->int_num;
     break;
   case SSL_SERVER_NAME:
     if (value->string[0] && value->string[0] != '\n') {
