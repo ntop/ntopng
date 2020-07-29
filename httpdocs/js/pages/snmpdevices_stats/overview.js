@@ -131,11 +131,7 @@ $(document).ready(function () {
                 }
             },
             {
-                data: "column_pool_id",
-                render: function(data, type, row) {
-                    if (type == "display" && data == defaultPoolID) return "";
-                    return snmpPools.find(pool => pool.pool_id == data).name;
-                }
+                data: "column_pool_name"
             },
             { data: "column_chart", className: "text-center", width: "5%" },
             { data: "column_name" },
