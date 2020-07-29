@@ -5,7 +5,9 @@ If you want to access ntopng-generated timeseries from Grafana all you need to d
   
 - From Grafana use the InfluxDB driver to access the ntopng generated data
 
-The original "Simple JSON Datasource" Grafana plugin (https://grafana.com/plugins/grafana-simple-json-datasource)
+The 
+- "Simple JSON Datasource" Grafana plugin (https://grafana.com/plugins/grafana-simple-json-datasource)
+and
+- ntopng-grafana-datasource (https://github.com/ntop/ntopng-grafana-datasource#discontinuation-notice)
+
 should no longer be used to interface Grafana with ntopng
-
-
