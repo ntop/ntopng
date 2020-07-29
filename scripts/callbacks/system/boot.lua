@@ -41,3 +41,11 @@ end
 -- They will be loaded in startup.lua . Here we only delete old directories.
 local plugins_utils = require "plugins_utils"
 plugins_utils.cleanup()
+
+-- Check if there is a local file to run
+local local_boot_file = "/usr/share/ntopng/local/scripts/callbacks/system/boot.lua"
+
+if(ntop.exists(local_boot_file)) then
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, "Running "..local_boot_file)
+   dofile(local_boot_file)
+end
