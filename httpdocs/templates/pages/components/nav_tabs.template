@@ -1,8 +1,8 @@
 <ul class="nav nav-pills">
-    {% for key, entry in pairsByKeys(entries) do %}
+    {% for index, entry in pairsByKeys(entries) do %}
         {% if not entry.hidden then %}
         <li class="nav-item">
-            <a class="nav-link {{ (key == current_page and 'active' or '') }}" href="{{ entry.url }}">{{ entry.title }}</a>
+            <a class="nav-link {{ (entry.key == current_page and 'active' or '') }}" href="{{ entry.url }}">{{ entry.title }}</a>
         </li>
         {% end %}
     {% end %}

@@ -68,11 +68,11 @@ end
 
 local menu = {
    entries = {
-      host = { title = i18n("pools.pool_names.host"), url = "?page=host", hidden = is_nedge},
-      interface = { title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = is_nedge},
-      network = { title = i18n("pools.pool_names.local_network"), url = "?page=network", hidden = false},
-      active_monitoring = { title = i18n("pools.pool_names.active_monitoring"), url = "?page=active_monitoring", hidden = false },
-      snmp = { title = i18n("pools.pool_names.snmp"), url = "?page=snmp", hidden = (not ntop.isPro() or is_nedge)},
+      { key = "host", title = i18n("pools.pool_names.host"), url = "?page=host", hidden = is_nedge},
+      { key = "interface", title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = is_nedge},
+      { key = "network", title = i18n("pools.pool_names.local_network"), url = "?page=network", hidden = false},
+      { key = "snmp", title = i18n("pools.pool_names.snmp"), url = "?page=snmp", hidden = (not ntop.isPro() or is_nedge)},
+      { key = "active_monitoring", title = i18n("pools.pool_names.active_monitoring"), url = "?page=active_monitoring", hidden = false },
    },
    current_page = page
 }
