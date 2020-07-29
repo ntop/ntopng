@@ -1,37 +1,11 @@
-## Simple JSON Datasource Plugin
+If you want to access ntopng-generated timeseries from Grafana all you need to do is
 
-Grafana support is implemented through plugin Simple JSON Datasource:
-https://grafana.com/plugins/grafana-simple-json-datasource
+- From the ntopng preferences (Menu Settings -> Prefeences) select Timeseries and export
+  data in InfluxDB (instead of RRD). Note that currently we support InflixDB 1.x series
+  
+- From Grafana use the InfluxDB driver to access the ntopng generated data
 
-The plugin can be installed following the instructions at:
-http://docs.grafana.org/plugins/installation/
+The original "Simple JSON Datasource" Grafana plugin (https://grafana.com/plugins/grafana-simple-json-datasource)
+should no longer be used to interface Grafana with ntopng
 
-## Adding a Grafana Datasource
-Once the plugin Simple JSON Datasource is ready, a new Grafana
-datasource must be added in order to interact with ntopng.
-To add a new datasouce, select the Datasources Grafana menu. Specify
-"SimpleJson" as datasource type.
-
-In the HTTP settings of the datasource, insert the ntopng url up to
-the Grafana root endpoint. For example:
-http://192.168.2.130:3000/lua/modules/grafana
-
-Then, tick "Basic Auth" and specify username and password of a user
-that is authorized to access ntopng.
-
-Finally, hit "Save and Test" to make sure the datasource is properly
-configured. If everything is ok, Grafana will show a message "Success
-Data source is working".
-
-## Adding Dashboard Panels
-With the new datasource properly configured, it is possible to add new
-panels that retrieve data from ntopng. To add a new panel, visit a
-dashboard select "Add Row", click on the panel type, and then select
-the newely created datasource.
-
-## Notes:
-Tested with:
-- Grafana Version 4.4.0-pre1 (commit: 12219cf)
-- Simple JSON datasource plugin (https://github.com/simonemainardi/simple-json-datasource)
-  @ 91f65e4e349914ae093e48ebe53e3c093832220e
 
