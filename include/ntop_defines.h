@@ -882,6 +882,7 @@
 #define MINUTE_SCRIPT_PATH           "minute.lua"
 #define HT_STATE_UPDATE_SCRIPT_PATH  "ht_state_update.lua"
 #define STATS_UPDATE_SCRIPT_PATH     "stats_update.lua"
+#define PERIODIC_USER_SCRIPTS_PATH   "periodic_user_scripts.lua"
 #define THIRTY_SECONDS_SCRIPT_PATH   "30sec.lua"
 #define FIVE_MINUTES_SCRIPT_PATH     "5min.lua"
 #define HOURLY_SCRIPT_PATH           "hourly.lua"

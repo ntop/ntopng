@@ -39,7 +39,7 @@ PeriodicActivities::PeriodicActivities() {
     activities[i] = NULL;
 
   high_priority_pool = standard_priority_pool = no_priority_pool = longrun_priority_pool
-    = timeseries_pool = discover_pool = housekeeping_pool = NULL;
+    = timeseries_pool = periodic_user_scripts_pool = discover_pool = housekeeping_pool = NULL;
 
   num_activities = 0;
 }
@@ -57,13 +57,14 @@ PeriodicActivities::~PeriodicActivities() {
   }
 
   /* This will terminate any possibly running activities into the ThreadPool::run */
-  if(high_priority_pool)      delete high_priority_pool;
-  if(standard_priority_pool)  delete standard_priority_pool;
-  if(longrun_priority_pool)   delete longrun_priority_pool;
-  if(timeseries_pool)         delete timeseries_pool;
-  if(discover_pool)           delete discover_pool;
-  if(housekeeping_pool)       delete housekeeping_pool;
-  if(no_priority_pool)        delete no_priority_pool;
+  if(high_priority_pool)         delete high_priority_pool;
+  if(standard_priority_pool)     delete standard_priority_pool;
+  if(longrun_priority_pool)      delete longrun_priority_pool;
+  if(timeseries_pool)            delete timeseries_pool;
+  if(periodic_user_scripts_pool) delete periodic_user_scripts_pool;
+  if(discover_pool)              delete discover_pool;
+  if(housekeeping_pool)          delete housekeeping_pool;
+  if(no_priority_pool)           delete no_priority_pool;
 
   /* Now it's safe to delete the activities as no other thread is executing
    * their code. */
@@ -129,37 +130,39 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   if(num_threads_no_priority > MAX_THREAD_POOL_SIZE)
     num_threads_no_priority = MAX_THREAD_POOL_SIZE;
 
-  high_priority_pool     = new ThreadPool(true,  num_threads);
-  standard_priority_pool = new ThreadPool(false, num_threads);
-  longrun_priority_pool  = new ThreadPool(false, num_threads);
-  timeseries_pool        = new ThreadPool(false, 1);
-  discover_pool          = new ThreadPool(false, 1);
-  housekeeping_pool      = new ThreadPool(false, 1);
-  no_priority_pool       = new ThreadPool(false, num_threads_no_priority);
+  high_priority_pool         = new ThreadPool(true,  num_threads);
+  standard_priority_pool     = new ThreadPool(false, num_threads);
+  longrun_priority_pool      = new ThreadPool(false, num_threads);
+  timeseries_pool            = new ThreadPool(false, 1);
+  periodic_user_scripts_pool = new ThreadPool(false, 2);
+  discover_pool              = new ThreadPool(false, 1);
+  housekeeping_pool          = new ThreadPool(false, 1);
+  no_priority_pool           = new ThreadPool(false, num_threads_no_priority);
   
   static activity_descr ad[] = {
-    // Script           Periodicity (s) Max (s) Pool                    Align  !View  !PCAP  Reuse
-    { HT_STATE_UPDATE_SCRIPT_PATH,    5,    10, high_priority_pool,     false, true,  false, true  },
+    // Script           Periodicity (s) Max (s) Pool                        Align  !View  !PCAP  Reuse
+    { HT_STATE_UPDATE_SCRIPT_PATH,    5,    10, high_priority_pool,         false, true,  false, true  },
 
-    { SECOND_SCRIPT_PATH,             1,     2, standard_priority_pool, false, false, true,  true  },
-    { STATS_UPDATE_SCRIPT_PATH,       5,    10, standard_priority_pool, false, false, true,  true  },
+    { SECOND_SCRIPT_PATH,             1,     2, standard_priority_pool,     false, false, true,  true  },
+    { STATS_UPDATE_SCRIPT_PATH,       5,    10, standard_priority_pool,     false, false, true,  true  },
+    { PERIODIC_USER_SCRIPTS_PATH,     5,    60, periodic_user_scripts_pool, false, false, true,  true  },
 
-    { HOUSEKEEPING_SCRIPT_PATH,       3,     6, housekeeping_pool,      false, false, false, true  },
+    { HOUSEKEEPING_SCRIPT_PATH,       3,     6, housekeeping_pool,          false, false, false, true  },
 
-    { MINUTE_SCRIPT_PATH,            60,    60, no_priority_pool,       false, false, true,  false },
-    { DAILY_SCRIPT_PATH,          86400,  3600, no_priority_pool,       true,  false, true,  false },
+    { MINUTE_SCRIPT_PATH,            60,    60, no_priority_pool,           false, false, true,  false },
+    { DAILY_SCRIPT_PATH,          86400,  3600, no_priority_pool,           true,  false, true,  false },
 #ifdef HAVE_NEDGE
-    { PINGER_SCRIPT_PATH,             5,     5, no_priority_pool,       false, false, true,  false },
+    { PINGER_SCRIPT_PATH,             5,     5, no_priority_pool,           false, false, true,  false },
 #endif
     
-    { TIMESERIES_SCRIPT_PATH,         1,  3600, timeseries_pool,        false, false, true,  true  },
+    { TIMESERIES_SCRIPT_PATH,         1,  3600, timeseries_pool,            false, false, true,  true  },
 
-    { FIVE_MINUTES_SCRIPT_PATH,     300,   300, longrun_priority_pool,  false, false, true,  false },
-    { HOURLY_SCRIPT_PATH,          3600,   600, longrun_priority_pool,  false, false, true,  false },
+    { FIVE_MINUTES_SCRIPT_PATH,     300,   300, longrun_priority_pool,      false, false, true,  false },
+    { HOURLY_SCRIPT_PATH,          3600,   600, longrun_priority_pool,      false, false, true,  false },
 
-    { DISCOVER_SCRIPT_PATH,           5,  3600, discover_pool,          false, false, true,  true  },
+    { DISCOVER_SCRIPT_PATH,           5,  3600, discover_pool,              false, false, true,  true  },
 
-    { NULL,                           0,     0, NULL,                   false, false, false, false }
+    { NULL,                           0,     0, NULL,                       false, false, false, false }
   };
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Each periodic activity script will use %u threads", num_threads);

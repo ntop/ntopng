@@ -2271,60 +2271,69 @@ static int ntop_zmq_receive(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_check_hosts_alerts(lua_State* vm, ScriptPeriodicity p) {
+static int ntop_check_hosts_alerts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  std::vector<ScriptPeriodicity> periodicities;
 
-  if(!ntop_interface)
+  if(!ntop_interface) {
+    lua_pushnil(vm);
     return(CONST_LUA_ERROR);
-  else
-    ntop_interface->checkHostsAlerts(p, vm);
+  }
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN && lua_toboolean(vm, 1) == true) periodicities.push_back(minute_script);
+  if(lua_type(vm, 2) == LUA_TBOOLEAN && lua_toboolean(vm, 2) == true) periodicities.push_back(five_minute_script);
+  if(lua_type(vm, 3) == LUA_TBOOLEAN && lua_toboolean(vm, 3) == true) periodicities.push_back(hour_script);
+  if(lua_type(vm, 4) == LUA_TBOOLEAN && lua_toboolean(vm, 4) == true) periodicities.push_back(day_script);
+
+  ntop_interface->checkHostsAlerts(&periodicities, vm);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
-
-static int ntop_check_hosts_alerts_min(lua_State* vm)  { return(ntop_check_hosts_alerts(vm, minute_script)); }
-static int ntop_check_hosts_alerts_5min(lua_State* vm) { return(ntop_check_hosts_alerts(vm, five_minute_script)); }
-static int ntop_check_hosts_alerts_hour(lua_State* vm) { return(ntop_check_hosts_alerts(vm, hour_script));   }
-static int ntop_check_hosts_alerts_day(lua_State* vm)  { return(ntop_check_hosts_alerts(vm, day_script));    }
 
 /* ****************************************** */
 
-static int ntop_check_networks_alerts(lua_State* vm, ScriptPeriodicity p) {
+static int ntop_check_networks_alerts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  std::vector<ScriptPeriodicity> periodicities;
 
-  if(!ntop_interface)
+  if(!ntop_interface) {
+    lua_pushnil(vm);
     return(CONST_LUA_ERROR);
-  else
-    ntop_interface->checkNetworksAlerts(p, vm);
+  }
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN && lua_toboolean(vm, 1) == true) periodicities.push_back(minute_script);
+  if(lua_type(vm, 2) == LUA_TBOOLEAN && lua_toboolean(vm, 2) == true) periodicities.push_back(five_minute_script);
+  if(lua_type(vm, 3) == LUA_TBOOLEAN && lua_toboolean(vm, 3) == true) periodicities.push_back(hour_script);
+  if(lua_type(vm, 4) == LUA_TBOOLEAN && lua_toboolean(vm, 4) == true) periodicities.push_back(day_script);
+
+  ntop_interface->checkNetworksAlerts(&periodicities, vm);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
-
-static int ntop_check_networks_alerts_min(lua_State* vm)  { return(ntop_check_networks_alerts(vm, minute_script)); }
-static int ntop_check_networks_alerts_5min(lua_State* vm) { return(ntop_check_networks_alerts(vm, five_minute_script)); }
-static int ntop_check_networks_alerts_hour(lua_State* vm) { return(ntop_check_networks_alerts(vm, hour_script));   }
-static int ntop_check_networks_alerts_day(lua_State* vm)  { return(ntop_check_networks_alerts(vm, day_script));    }
 
 /* ****************************************** */
 
-static int ntop_check_interface_alerts(lua_State* vm, ScriptPeriodicity p) {
+static int ntop_check_interface_alerts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  std::vector<ScriptPeriodicity> periodicities;
 
-  if(!ntop_interface)
+  if(!ntop_interface) {
+    lua_pushnil(vm);
     return(CONST_LUA_ERROR);
-  else
-    ntop_interface->checkInterfaceAlerts(p, vm);
+  }
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN && lua_toboolean(vm, 1) == true) periodicities.push_back(minute_script);
+  if(lua_type(vm, 2) == LUA_TBOOLEAN && lua_toboolean(vm, 2) == true) periodicities.push_back(five_minute_script);
+  if(lua_type(vm, 3) == LUA_TBOOLEAN && lua_toboolean(vm, 3) == true) periodicities.push_back(hour_script);
+  if(lua_type(vm, 4) == LUA_TBOOLEAN && lua_toboolean(vm, 4) == true) periodicities.push_back(day_script);
+
+  ntop_interface->checkInterfaceAlerts(&periodicities, vm);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
-
-static int ntop_check_interface_alerts_min(lua_State* vm)  { return(ntop_check_interface_alerts(vm, minute_script)); }
-static int ntop_check_interface_alerts_5min(lua_State* vm) { return(ntop_check_interface_alerts(vm, five_minute_script)); }
-static int ntop_check_interface_alerts_hour(lua_State* vm) { return(ntop_check_interface_alerts(vm, hour_script));   }
-static int ntop_check_interface_alerts_day(lua_State* vm)  { return(ntop_check_interface_alerts(vm, day_script));    }
 
 /* ****************************************** */
 
@@ -4638,22 +4647,13 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },
 
   /* Interface Alerts */
-  { "checkInterfaceAlertsMin",    ntop_check_interface_alerts_min     },
-  { "checkInterfaceAlerts5Min",   ntop_check_interface_alerts_5min    },
-  { "checkInterfaceAlertsHour",   ntop_check_interface_alerts_hour    },
-  { "checkInterfaceAlertsDay",    ntop_check_interface_alerts_day     },
+  { "checkInterfaceAlerts",       ntop_check_interface_alerts         },
 
   /* Host Alerts */
-  { "checkHostsAlertsMin",        ntop_check_hosts_alerts_min         },
-  { "checkHostsAlerts5Min",       ntop_check_hosts_alerts_5min        },
-  { "checkHostsAlertsHour",       ntop_check_hosts_alerts_hour        },
-  { "checkHostsAlertsDay",        ntop_check_hosts_alerts_day         },
+  { "checkHostsAlerts",           ntop_check_hosts_alerts             },
 
   /* Network Alerts */
-  { "checkNetworksAlertsMin",     ntop_check_networks_alerts_min      },
-  { "checkNetworksAlerts5Min",    ntop_check_networks_alerts_5min     },
-  { "checkNetworksAlertsHour",    ntop_check_networks_alerts_hour     },
-  { "checkNetworksAlertsDay",     ntop_check_networks_alerts_day      },
+  { "checkNetworksAlerts",        ntop_check_networks_alerts          },
 
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },

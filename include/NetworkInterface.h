@@ -699,9 +699,9 @@ class NetworkInterface : public AlertableEntity {
   void checkReloadHostsBroadcastDomain();
   inline bool reloadHostsBroadcastDomain()          { return reload_hosts_bcast_domain; }
   void reloadHostsBlacklist();
-  void checkHostsAlerts(ScriptPeriodicity p, lua_State* vm);
-  void checkNetworksAlerts(ScriptPeriodicity p, lua_State* vm);
-  void checkInterfaceAlerts(ScriptPeriodicity p, lua_State* vm);
+  void checkHostsAlerts(vector<ScriptPeriodicity> *p, lua_State* vm);
+  void checkNetworksAlerts(vector<ScriptPeriodicity> *p, lua_State* vm);
+  void checkInterfaceAlerts(vector<ScriptPeriodicity> *p, lua_State* vm);
   bool isHiddenFromTop(Host *host);
   virtual bool areTrafficDirectionsSupported() { return(false); };
 

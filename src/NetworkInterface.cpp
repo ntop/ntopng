@@ -7158,13 +7158,15 @@ static void handle_entity_alerts(AlertCheckLuaEngine *acle, AlertableEntity *ent
 /* *************************************** */
 
 static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched) {
-  AlertCheckLuaEngine *acle = (AlertCheckLuaEngine*)user_data;
+  vector<AlertCheckLuaEngine*> *acles = static_cast<vector<AlertCheckLuaEngine *>*>(user_data);
   Host *host = (Host*)h;
 
-  acle->setHost(host);
-  handle_entity_alerts(acle, host);
+  for(vector<AlertCheckLuaEngine*>::const_iterator acle = acles->begin(); acle != acles->end(); ++acle) {
+    (*acle)->setHost(host);
+    handle_entity_alerts(*acle, host);
 
-  host->housekeepAlerts(acle->getPeriodicity() /* periodicity */);
+    host->housekeepAlerts((*acle)->getPeriodicity() /* periodicity */);
+  }
 
   /* Stop as soon as a shutdown is in progress or the process
      could hang for too long. */
@@ -7173,38 +7175,68 @@ static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched
 
 /* *************************************** */
 
-void NetworkInterface::checkHostsAlerts(ScriptPeriodicity p, lua_State* vm) {
+void NetworkInterface::checkHostsAlerts(vector<ScriptPeriodicity> *p, lua_State* vm) {
   u_int32_t begin_slot = 0;
-  AlertCheckLuaEngine acle(alert_entity_host, p, this, vm);
+  vector<AlertCheckLuaEngine*>acles;
+
+  if(!p || p->size() == 0)
+    return;
+
+  for(vector<ScriptPeriodicity>::const_iterator it = p->begin(); it != p->end(); ++it) {
+    AlertCheckLuaEngine *acle = new (nothrow) AlertCheckLuaEngine(alert_entity_host, *it, this, vm);
+
+    if(acle)
+      acles.push_back(acle);
+  }
 
   /* ... then iterate all hosts */
-  walker(&begin_slot, true /* walk_all */, walker_hosts, host_alert_check, &acle);
+  walker(&begin_slot, true /* walk_all */, walker_hosts, host_alert_check, &acles);
+
+  for(vector<AlertCheckLuaEngine*>::const_iterator it = acles.begin(); it != acles.end(); ++it)
+    delete *it;
 }
 
 /* *************************************** */
 
-void NetworkInterface::checkNetworksAlerts(ScriptPeriodicity p, lua_State* vm) {
-  AlertCheckLuaEngine acle(alert_entity_network, p, this, vm);
-
-  /* ... then iterate all networks */
+void NetworkInterface::checkNetworksAlerts(vector<ScriptPeriodicity> *p, lua_State* vm) {
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
-  for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
-    NetworkStats *netstats = getNetworkStats(network_id);
+  if(!p || p->size() == 0)
+    return;
 
-    acle.setNetwork(netstats);
-    handle_entity_alerts(&acle, netstats);
+  for(vector<ScriptPeriodicity>::const_iterator it = p->begin(); it != p->end(); ++it) {
+    AlertCheckLuaEngine *acle = new (nothrow) AlertCheckLuaEngine(alert_entity_network, *it, this, vm);
 
-    netstats->housekeepAlerts(p);
+    if(acle) {
+      /* ... then iterate all networks */
+      for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
+	NetworkStats *netstats = getNetworkStats(network_id);
+
+	acle->setNetwork(netstats);
+	handle_entity_alerts(acle, netstats);
+
+	netstats->housekeepAlerts(acle->getPeriodicity());
+      }
+
+      delete acle;
+    }
   }
 }
 
 /* *************************************** */
 
-void NetworkInterface::checkInterfaceAlerts(ScriptPeriodicity p, lua_State* vm) {
-  AlertCheckLuaEngine acle(alert_entity_interface, p, this, vm);
+void NetworkInterface::checkInterfaceAlerts(vector<ScriptPeriodicity> *p, lua_State* vm) {
+  if(!p || p->size() == 0)
+    return;
 
-  handle_entity_alerts(&acle, this);
+  for(vector<ScriptPeriodicity>::const_iterator it = p->begin(); it != p->end(); ++it) {
+    AlertCheckLuaEngine *acle = new (nothrow) AlertCheckLuaEngine(alert_entity_interface, *it, this, vm);
+
+    if(acle) {
+      handle_entity_alerts(acle, this);
+      delete acle;
+    }
+  }
 }
 
 /* *************************************** */

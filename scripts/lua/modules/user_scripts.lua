@@ -9,9 +9,11 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
+require "lua_utils"
 local os_utils = require("os_utils")
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
+local alert_consts = require "alert_consts"
 
 local info = ntop.getInfo()
 
@@ -32,6 +34,7 @@ user_scripts.field_units = {
   syn_min = "field_units.syn_min",
 }
 
+local REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY = "ntopng.cache.ifid_%i.user_scripts.request.granularity_%s"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
 local ALL_HOOKS_CONFIG_KEY = "all"
@@ -682,25 +685,30 @@ end
 
 -- ##############################################
 
+function user_scripts.runScripts()
+   local requested = {}
+   for granularity, _ in pairs(alert_consts.alerts_granularities) do
+      local k = string.format(REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY, interface.getId(), granularity)
+
+      if ntop.getCache(k) == "1" then
+	 requested[granularity] = true
+	 ntop.delCache(k)
+      end
+   end
+
+   if table.len(requested) > 0 then
+      interface.checkInterfaceAlerts(requested["min"], requested["5mins"], requested["hour"], requested["day"])
+      interface.checkNetworksAlerts(requested["min"], requested["5mins"], requested["hour"], requested["day"])
+      interface.checkHostsAlerts(requested["min"], requested["5mins"], requested["hour"], requested["day"])
+   end
+end
+
+-- ##############################################
+
 function user_scripts.runPeriodicScripts(granularity)
-   if(granularity == "min") then
-      interface.checkInterfaceAlertsMin()
-      interface.checkHostsAlertsMin()
-      interface.checkNetworksAlertsMin()
-   elseif(granularity == "5mins") then
-      interface.checkInterfaceAlerts5Min()
-      interface.checkHostsAlerts5Min()
-      interface.checkNetworksAlerts5Min()
-   elseif(granularity == "hour") then
-      interface.checkInterfaceAlertsHour()
-      interface.checkHostsAlertsHour()
-      interface.checkNetworksAlertsHour()
-   elseif(granularity == "day") then
-      interface.checkInterfaceAlertsDay()
-      interface.checkHostsAlertsDay()
-      interface.checkNetworksAlertsDay()
-   else
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown granularity " .. granularity)
+   if alert_consts.alerts_granularities[granularity] then
+      local k = string.format(REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY, interface.getId(), granularity)
+      ntop.setCache(k, "1")
    end
 end
 
