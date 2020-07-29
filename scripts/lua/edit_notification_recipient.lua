@@ -29,7 +29,8 @@ elseif (action == "edit") then
 elseif (action == "remove") then
    response.result = notification_recipients.delete_recipient(recipient_name)
 elseif (action == "test") then
-   response.result = notification_recipients.test_recipient(recipient_name) 
+   local endpoint_conf_name = _POST["endpoint_conf_name"]
+   response.result = notification_recipients.test_recipient(endpoint_conf_name, recipient_name, _POST) 
 else
    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid 'action' parameter.")
    response.success = false

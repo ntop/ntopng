@@ -279,13 +279,35 @@ end
 
 -- #################################################################
 
-function notification_recipients.test_recipient(endpoint_recipient_name)
-   local recipient = notification_recipients.get_recipient(endpoint_recipient_name)
+function notification_recipients.test_recipient(endpoint_conf_name, endpoint_recipient_name, recipient_params)
 
-   -- Is the endpoint already existing?
-   if not recipient then
-      return {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
+   -- Get endpoint config
+
+   local ec = notification_configs.get_endpoint_config(endpoint_conf_name)
+
+   if ec["status"] ~= "OK" then
+      return ec
    end
+
+   -- Check recipient parameters
+
+   local endpoint_key = ec["endpoint_key"]
+   ok, status = check_endpoint_recipient_params(endpoint_key, recipient_params)
+
+   if not ok then
+      return status
+   end
+
+   local safe_params = status["safe_params"]
+
+   -- Create dummy recipient
+
+   local recipient = {
+      endpoint_conf = ec,
+      recipient_params = safe_params,
+   }
+
+   -- Get endpoint module
 
    local modules_by_name = notification_configs.get_types()
    local module_name = recipient.endpoint_conf.endpoint_key
@@ -293,6 +315,8 @@ function notification_recipients.test_recipient(endpoint_recipient_name)
    if not m then
       return {status = "failed", error = {type = "endpoint_module_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
    end
+
+   -- Run test
 
    if not m.runTest then
       return {status = "failed", error = {type = "endpoint_test_not_available", endpoint_recipient_name = endpoint_recipient_name}}
