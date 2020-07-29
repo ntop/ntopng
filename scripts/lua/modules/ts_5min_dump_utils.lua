@@ -427,7 +427,7 @@ end
 
 -- This performs all the 5 minutes tasks execept the timeseries dump
 function ts_dump.run_5min_tasks(_ifname, ifstats)
-  user_scripts.runPeriodicScripts("5mins")
+  user_scripts.schedulePeriodicScripts("5mins")
 
   alert_utils.housekeepingAlertsMakeRoom(ifstats.id)
 end

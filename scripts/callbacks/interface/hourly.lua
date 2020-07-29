@@ -23,4 +23,4 @@ local _ifname = ifstats.name
 
 -- ########################################################
 
-user_scripts.runPeriodicScripts("hour")
+user_scripts.schedulePeriodicScripts("hour")

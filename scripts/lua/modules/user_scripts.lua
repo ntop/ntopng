@@ -685,7 +685,7 @@ end
 
 -- ##############################################
 
-function user_scripts.runScripts()
+function user_scripts.runPeriodicScripts()
    local requested = {}
    for granularity, _ in pairs(alert_consts.alerts_granularities) do
       local k = string.format(REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY, interface.getId(), granularity)
@@ -705,7 +705,7 @@ end
 
 -- ##############################################
 
-function user_scripts.runPeriodicScripts(granularity)
+function user_scripts.schedulePeriodicScripts(granularity)
    if alert_consts.alerts_granularities[granularity] then
       local k = string.format(REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY, interface.getId(), granularity)
       ntop.setCache(k, "1")

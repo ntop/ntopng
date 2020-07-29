@@ -9,7 +9,7 @@ local user_scripts = require "user_scripts"
 
 -- ########################################################
 
-user_scripts.runScripts()
+user_scripts.runPeriodicScripts()
 
 -- ########################################################
 

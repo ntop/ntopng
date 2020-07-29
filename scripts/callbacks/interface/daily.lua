@@ -29,7 +29,7 @@ local _ifname = ifstats.name
 
 local interface_id = getInterfaceId(_ifname)
 
-user_scripts.runPeriodicScripts("day")
+user_scripts.schedulePeriodicScripts("day")
 
 local data_retention = data_retention_utils.getDataRetentionDays()
 
