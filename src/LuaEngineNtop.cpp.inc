@@ -2481,7 +2481,7 @@ static int ntop_system_host_stat(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
-  if(ntop->getCpuLoad(&cpu_load)) lua_push_float_table_entry(vm, "cpu_load", cpu_load);
+  if(ntop->getCPULoad(&cpu_load)) lua_push_float_table_entry(vm, "cpu_load", cpu_load);
   Utils::luaMeminfo(vm);
 
   for(int i=-1; i<ntop->get_num_interfaces(); i++) {
@@ -2507,9 +2507,9 @@ static int ntop_refresh_cpu_load(lua_State* vm) {
   float cpu_load;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  ntop->refreshCpuLoad();
+  ntop->refreshCPULoad();
 
-  if(ntop->getCpuLoad(&cpu_load))
+  if(ntop->getCPULoad(&cpu_load))
     lua_pushnumber(vm, cpu_load);
   else
     lua_pushnil(vm);
@@ -5431,7 +5431,7 @@ static const luaL_Reg ntop_reg[] = {
   { "dumpBinaryFile",   ntop_dump_binary_file },
   { "checkLicense",     ntop_check_license },
   { "systemHostStat",   ntop_system_host_stat },
-  { "refreshCpuLoad",   ntop_refresh_cpu_load },
+  { "refreshCPULoad",   ntop_refresh_cpu_load },
   { "getCookieAttributes", ntop_get_cookie_attributes },
   { "isAllowedInterface",  ntop_is_allowed_interface },
   { "isAllowedNetwork",    ntop_is_allowed_network },

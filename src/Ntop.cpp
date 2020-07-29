@@ -2613,8 +2613,8 @@ void Ntop::resetStats() {
 
 /* ******************************************* */
 
-void Ntop::refreshCpuLoad() {
-  if(Utils::getCpuLoad(&cpu_stats))
+void Ntop::refreshCPULoad() {
+  if(Utils::getCPULoad(&cpu_stats))
     cpu_load = cpu_stats.load;
   else
     cpu_load = -1;
@@ -2622,7 +2622,7 @@ void Ntop::refreshCpuLoad() {
 
 /* ******************************************* */
 
-bool Ntop::getCpuLoad(float *out) {
+bool Ntop::getCPULoad(float *out) {
   bool rv;
 
   if(cpu_load >= 0) {

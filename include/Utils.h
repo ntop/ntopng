@@ -195,7 +195,7 @@ public:
   static void ntop_freealldevs(ntop_if_t *alldevs);
 
   /* System Host Montoring and Diagnose Functions */
-  static bool getCpuLoad(cpu_load_stats *out);
+  static bool getCPULoad(cpu_load_stats *out);
   static void luaMeminfo(lua_State* vm);
   static int retainWriteCapabilities();
   static int gainWriteCapabilities();

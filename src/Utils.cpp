@@ -3324,7 +3324,7 @@ bool Utils::maskHost(bool isLocalIP) {
 
 /* ****************************************************** */
 
-bool Utils::getCpuLoad(cpu_load_stats *out) {
+bool Utils::getCPULoad(cpu_load_stats *out) {
 #if !defined(__FreeBSD__) && !defined(__NetBSD__) & !defined(__OpenBSD__) && !defined(__APPLE__) && !defined(WIN32)
   float load;
   FILE *fp;

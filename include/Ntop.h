@@ -454,8 +454,8 @@ class Ntop {
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }
   void refreshAllowedProtocolPresets(DeviceType t, bool client, lua_State *L, int index);
   DeviceProtoStatus getDeviceAllowedProtocolStatus(DeviceType dev_type, ndpi_protocol proto, u_int16_t pool_id, bool as_client);
-  void refreshCpuLoad();
-  bool getCpuLoad(float *out);
+  void refreshCPULoad();
+  bool getCPULoad(float *out);
   inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }
   inline bool needsnDPICleanup()                          { return(ndpi_cleanup_needed); }
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
