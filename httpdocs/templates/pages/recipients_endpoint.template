@@ -63,7 +63,7 @@
         <div class="alert alert-info">
             {{ i18n("endpoint_notifications.empty_endpoints") }}
             <a href="/lua/admin/endpoint_notifications_list.lua">
-                <i class="fas fa-edit"></i> {{ i18n("endpoint_notifications.edit_endpoints") }}
+                <i class="fas fa-edit"></i> {{ i18n("endpoint_notifications.edit_endpoints") }}.
             </a>
         </div>
     </div>
