@@ -211,4 +211,11 @@ ntop.delCache("ntopng.cache.rrd_format_change_warning_shown")
 
 blog_utils.fetchLatestPosts()
 
+-- Check if there is a local file to run
+local local_startup_file = "/usr/share/ntopng/local/scripts/callbacks/system/startup.lua"
+if(ntop.exists(local_startup_file)) then
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, "Running "..local_startup_file)
+   dofile(local_startup_file)
+end
+
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Startup completed")
