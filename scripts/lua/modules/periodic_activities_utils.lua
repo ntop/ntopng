@@ -10,16 +10,17 @@ local periodic_activities_utils = {}
 periodic_activities_utils.periodic_activities = {
    -- Can use this table to keep certain information for every periodic activity
    -- Keep in sync with PeriodicActivities.cpp
-   ["stats_update.lua"]      = { max_duration =    10 },
-   ["ht_state_update.lua"]   = { max_duration =    10 },
-   ["minute.lua"]            = { max_duration =    60 },
-   ["5min.lua"]              = { max_duration =   300 },
-   ["hourly.lua"]            = { max_duration =   600 },
-   ["daily.lua"]             = { max_duration =  3600 },
-   ["housekeeping.lua"]      = { max_duration =     6 },
-   ["discover.lua"]          = { max_duration =  3600 },
-   ["timeseries.lua"]        = { max_duration =  3600 },
-   ["second.lua"]            = { max_duration =     2 },
+   ["stats_update.lua"]          = { max_duration =    10 },
+   ["ht_state_update.lua"]       = { max_duration =    10 },
+   ["periodic_user_scripts.lua"] = { max_duration =    60 },
+   ["minute.lua"]                = { max_duration =    60 },
+   ["5min.lua"]                  = { max_duration =   300 },
+   ["hourly.lua"]                = { max_duration =   600 },
+   ["daily.lua"]                 = { max_duration =  3600 },
+   ["housekeeping.lua"]          = { max_duration =     6 },
+   ["discover.lua"]              = { max_duration =  3600 },
+   ["timeseries.lua"]            = { max_duration =  3600 },
+   ["second.lua"]                = { max_duration =     2 },
 }
 
 -- ###########################################

@@ -3068,6 +3068,7 @@ local lang = {
     ["second.lua"] = "Writes fundamental interface timeseries such as total traffic.",
     ["stats_update.lua"] = "Updates system stats (e.g., CPU load).",
     ["timeseries.lua"] = "Writes timeseries data to InfluxDB. Has no effect when InfluxDB is not used.",
+    ["periodic_user_scripts.lua"] = "Executes periodic user scripts.",
   },
   ["please_wait_page"] = {
     ["command"] = "Command",
