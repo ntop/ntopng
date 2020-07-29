@@ -167,6 +167,12 @@ function host_pools:_persist(pool_id, name, members, configset_id, recipients)
    -- OVERRIDE
    -- Method must be overridden as host pool details and members are kept as hash caches, which are also used by the C++
 
+   -- Default pool name and members cannot be modified
+   if pool_id == base_pools.DEFAULT_POOL_ID then
+      name = base_pools.DEFAULT_POOL_NAME
+      members = {}
+   end
+
    -- The cache for the pool
    local pool_details_key = self:_get_pool_details_key(pool_id)
    ntop.setHashCache(pool_details_key, "name", name)

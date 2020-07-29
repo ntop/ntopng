@@ -212,6 +212,12 @@ end
 function base_pools:_persist(pool_id, name, members, configset_id, recipients)
    -- self:cleanup()
 
+   -- Default pool name and members cannot be modified
+   if pool_id == base_pools.DEFAULT_POOL_ID then
+      name = base_pools.DEFAULT_POOL_NAME
+      members = {}
+   end
+
    local pool_details_key = self:_get_pool_details_key(pool_id)
    local pool_details = {
       name = name,
