@@ -103,7 +103,7 @@ $(document).ready(function () {
         $(`#select-host-pool`).val(state.pool).trigger('change');
     });
 
-    const $addMemberModalHandler = $(`#add-member-modal form`).modalHandler({
+    $(`#add-member-modal form`).modalHandler({
         method: 'post',
         csrf: addCsrf,
         resetAfterSubmit: false,
@@ -122,13 +122,14 @@ $(document).ready(function () {
                 // clean the members and show the selected one
                 $(`#add-member-modal [class*='fields']`).hide()
                     .find('input,select').attr("disabled", true).removeClass('is-invalid').val('');
+
                 $(`#add-member-modal [class='${value}-fields']`).fadeIn().find('input,select').removeAttr("disabled");
-                $(`#add-member-modal form [type='submit']`).removeAttr("disabled");
             });
         },
         beforeSumbit: function () {
 
             let member;
+            console.log("gello")
             const typeSelected = $(`#add-member-modal select[name='member_type']`).val();
 
             if (typeSelected == "mac") {

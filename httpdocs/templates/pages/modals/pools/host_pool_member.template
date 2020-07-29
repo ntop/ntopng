@@ -54,7 +54,7 @@
                                 <b>{{ i18n("host_pools.network") }}</b>
                             </label>
                             <div class="col-sm-4">
-                                <input required name="network" class="form-control" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
+                                <input disabled required name="network" class="form-control" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
                             </div>
                         </div>
                         <div class="form-group row">
@@ -62,7 +62,7 @@
                                 <b>{{ i18n("host_pools.cidr") }}</b>
                             </label>
                             <div class="col-sm-4">
-                                <input required name="cidr" min="1" max="128" class="form-control" placeholder="16" />
+                                <input disabled required name="cidr" min="1" max="128" class="form-control" placeholder="16" />
                             </div>
                         </div>
                         <div class="form-group row">
@@ -70,7 +70,7 @@
                                 {{ i18n("vlan") }}
                             </label>
                             <div class="col-sm-4">
-                                <input value="0" placeholder="0" min="0" name="network_vlan" class="form-control" type="number" />
+                                <input disabled value="0" placeholder="0" min="0" name="network_vlan" class="form-control" type="number" />
                             </div>
                         </div>
                     </div>
@@ -80,7 +80,7 @@
                                 <b>{{ i18n("host_pools.mac_address") }}</b>
                             </label>
                             <div class="col-sm-4">
-                                <input required placeholder="AA:BB:CC:DD:EE:AA" name="mac_address" class="form-control" data-pattern="macAddress" />
+                                <input disabled required placeholder="AA:BB:CC:DD:EE:AA" name="mac_address" class="form-control" data-pattern="macAddress" />
                             </div>
                         </div>
                     </div>
