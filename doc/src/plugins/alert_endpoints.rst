@@ -20,50 +20,14 @@ Endpoints Definition
 The endpoints are defined into the `./alert_endpoints` subdirectory of the plugin. Let's analyze the
 `email_alert_endpoint`_  as an example.
 
-Preferences Definition
-~~~~~~~~~~~~~~~~~~~~~~
-
-The file `prefs_entries.lua` is used to extend the ntopng
-endpoint preferences to add a specific section for this alert endpoint:
-
-.. code:: lua
-
-  return {
-    endpoint_key = "email",
-    entries = {
-      toggle_email_notification = {
-        title       = i18n("prefs.toggle_email_notification_title"),
-        description = i18n("prefs.toggle_email_notification_description"),
-      },
-      email_notification_sender = {
-        title       = i18n("prefs.email_notification_sender_title"),
-        description = i18n("prefs.email_notification_sender_description"),
-      },
-
-      ...
-    }
-  }
-
-The lua script returns a table with the following structure:
-
-- :code:`endpoint_key`: a reference to the unique key of this endpoint. This must correspond
-  to the lua script name which contains the endpoint logic (e.g. the `email` endpoint_key must
-  have a corresponding `email.lua` script into the same directory).
-- :code:`entries`: a list of menu entries in the same format as the ntopng menu entries (see `menu_subpages` in `prefs_menu.lua`_).
-  In particular, each entry has an id (e.g. `toggle_email_notification`) and localized title and descriptions.
-  The localization strings can be supplied by the plugin as explained in the `Localization section`_.
-
-This file only defines the strings to be used in the preferences. The graphical format of the preferences
-is instead defined into the endpoint script, described below.
-
 Endpoint Script
 ~~~~~~~~~~~~~~~
 
 The file `email.lua` contains the actual logic of the endpoint. The module has the following structure:
 
-- :code:`endpoint.EXPORT_FREQUENCY`: defines the invocation frequency of `endpoint.dequeueAlerts`. Usually 60 seconds
+- :code:`endpoint.EXPORT_FREQUENCY`: defines the invocation frequency of `endpoint.dequeueRecipientAlerts`. Usually 60 seconds
   is fine for most practical cases.
-- :code:`endpoint.prio`: defines the priority for the execution of `endpoint.dequeueAlerts` in relation to other endpoints.
+- :code:`endpoint.prio`: defines the priority for the execution of `endpoint.dequeueRecipientAlerts` in relation to other endpoints.
   Endpoints with higher priority will be invoked first (so they are privileged, in particular when the time is strict).
 - :code:`endpoint.onLoad()`: can be used to programmatically perform certain actions when the plugin is loaded.
 - :code:`endpoint.isAvailable()`: can be used to programmatically disable the endpoint (e.g. disable the endpoint on
@@ -77,6 +41,35 @@ The file `email.lua` contains the actual logic of the endpoint. The module has t
   On success it  should return `nil`, on failure it should return `message_info, message_severity` where `message_info` is 
   a localized message to show on the gui and `message_severity` is the css class to apply on the message box.
 
+Preferences Definition
+~~~~~~~~~~~~~~~~~~~~~~
+
+The script `email.lua` defines the configuration parameters for the endpoint and the recipient
+at the beginning of the file:
+
+.. code:: lua
+
+   local email = {
+     conf_params = {
+       { param_name = "smtp_server" },
+       { param_name = "email_sender"},
+       { param_name = "smtp_username", optional = true },
+       { param_name = "smtp_password", optional = true },
+     },
+     conf_template = {
+       plugin_key = "email_alert_endpoint",
+       template_name = "email_endpoint.template"
+     },
+     recipient_params = {
+       { param_name = "email_recipient" },
+       { param_name = "cc", optional = true },
+     },
+     recipient_template = {
+       plugin_key = "email_alert_endpoint",
+       template_name = "email_recipient.template"
+     },
+   }
+
 Example
 -------
 
@@ -84,9 +77,28 @@ Here is a commented snippet for the email endpoint.
 
 .. code:: lua
 
-  local email = {}
+  local email = {
+    conf_params = {
+      { param_name = "smtp_server" },
+      { param_name = "email_sender"},
+      { param_name = "smtp_username", optional = true },
+      { param_name = "smtp_password", optional = true },
+    },
+    conf_template = {
+      plugin_key = "email_alert_endpoint",
+      template_name = "email_endpoint.template"
+    },
+    recipient_params = {
+      { param_name = "email_recipient" },
+      { param_name = "cc", optional = true },
+    },
+    recipient_template = {
+      plugin_key = "email_alert_endpoint",
+      template_name = "email_recipient.template"
+    },
+  }
 
-  -- email.dequeueAlerts will be invoked every 60 seconds
+  -- email.dequeueRecipientAlerts will be invoked every 60 seconds
   email.EXPORT_FREQUENCY = 60
 
   -- It is suggested to bulk multiple alerts into a single message when
@@ -115,10 +127,12 @@ Here is a commented snippet for the email endpoint.
 
   -- The function in charge of dequeuing alerts. Some code is boilerplate and
   -- can be copied to new endpoints.
-  function my_endpoint.dequeueAlerts(queue)
-    while true do
+  function my_endpoint.dequeueRecipientAlerts(recipient, budget)
+    local processed = 0
+	
+    while processed < budget do
       -- Retrieve a bulk of MAX_ALERTS_PER_EMAIL (or less) alerts
-      local alerts = ntop.lrangeCache(queue, 0, MAX_ALERTS_PER_EMAIL-1)
+      local alerts = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_EMAIL-1)
 
       if not alerts then
         break
@@ -137,15 +151,17 @@ Here is a commented snippet for the email endpoint.
 
       if email.sendEmail(subject, message_body) then
         -- IMPORTANT: remove the processed messages from the queue
-        ntop.ltrimCache(queue, MAX_ALERTS_PER_EMAIL, -1)
-
-        return {success=true}
+        ntop.ltrimCache(recipient.export_queue, MAX_ALERTS_PER_EMAIL, -1)
       else
         -- NOTE: The messages will be kept into the queue. Export will be
         -- retried at the next round
         return {success=false, error_message="Could not contact the SMTP server"}
       end
+	  
+	  processed = processed + 1
     end
+	
+	return {success=true}
   end
 
   -- ##############################################
@@ -196,17 +212,32 @@ how to log to console `flow flood attackers alerts`_.
 
 .. code:: lua
 
-  local my_endpoint = {}
+  local my_endpoint = {
+    conf_params = {
+    },
+    conf_template = {
+      plugin_key = "my_endpoint_alert_endpoint",
+      template_name = "my_endpoint_endpoint.template"
+    },
+    recipient_params = {
+    },
+    recipient_template = {
+      plugin_key = "my_endpoint_alert_endpoint",
+      template_name = "my_endpoint_recipient.template"
+    },
+  }
+  
   my_endpoint.EXPORT_FREQUENCY = 60
 
-  function email.dequeueAlerts(queue)
+  function my_endpoint.dequeueRecipientAlerts(recipient, budget)
     local alert_consts = require("alert_consts")
     local alert_utils = require("alert_utils")
-
-    while true do
+    local processed = 0
+	
+    while processed < budget do
       -- Process 100 alerts at a time
       local bulk_size = 100
-      local alerts = ntop.lrangeCache(queue, 0, bulk_size)
+      local alerts = ntop.lrangeCache(recipient.export_queue, 0, bulk_size)
 
       if not alerts then
         break
@@ -225,10 +256,12 @@ how to log to console `flow flood attackers alerts`_.
       end
 
       -- IMPORTANT: remove the processed messages from the queue
-      ntop.ltrimCache(queue, bulk_size, -1)
+      ntop.ltrimCache(recipient.export_queue, bulk_size, -1)
 
-      return {success=true}
+      processed = processed + 1
     end
+	
+	return {success=true}
   end
 
   return my_endpoint
