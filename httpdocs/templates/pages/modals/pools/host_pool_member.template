@@ -44,7 +44,7 @@
                                 {{ i18n("vlan") }}
                             </label>
                             <div class="col-sm-4">
-                                <input value="0" min="0" name="ip_vlan" class="form-control" type="number" placeholder="" />
+                                <input min="0" name="ip_vlan" class="form-control" type="number" placeholder="0" />
                             </div>
                         </div>
                     </div>
@@ -70,7 +70,7 @@
                                 {{ i18n("vlan") }}
                             </label>
                             <div class="col-sm-4">
-                                <input disabled value="0" placeholder="0" min="0" name="network_vlan" class="form-control" type="number" />
+                                <input disabled placeholder="0" min="0" name="network_vlan" class="form-control" type="number" />
                             </div>
                         </div>
                     </div>
