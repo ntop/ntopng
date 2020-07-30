@@ -76,7 +76,8 @@
     i18n.all = "{{ i18n('all') }}";
     i18n.used_by = "{{ i18n('used_by') }}";
     i18n.member_type = "{{ i18n('host_pools.member_type') }}";
-    i18n.ip_filter = "{{ i18n('host_pools.ip_filter') }}";
+    i18n.ipv4 = "{{ i18n('host_pools.ipv4') }}";
+    i18n.ipv6 = "{{ i18n('host_pools.ipv6') }}";
     i18n.mac_filter = "{{ i18n('host_pools.mac_filter') }}";
 
     i18n.rest = {

@@ -12,9 +12,15 @@ $(document).ready(function () {
 
     const filters = [
         {
-            regex: `${REGEXES.ipv4}|${REGEXES.ipv6}`,
-            label: i18n.ip_filter,
-            key: 'ip_filter',
+            regex: `${REGEXES.ipv4}`,
+            label: i18n.ipv4,
+            key: 'ipv4_filter',
+            callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
+        },
+        {
+            regex: `${REGEXES.ipv6}`,
+            label: i18n.ipv6,
+            key: 'ipv6_filter',
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
         },
         {
@@ -129,7 +135,6 @@ $(document).ready(function () {
         beforeSumbit: function () {
 
             let member;
-            console.log("gello")
             const typeSelected = $(`#add-member-modal select[name='member_type']`).val();
 
             if (typeSelected == "mac") {
