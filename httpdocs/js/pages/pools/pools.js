@@ -182,11 +182,14 @@ $(document).ready(function() {
         onModalInit: function() {
 
             // disable pool name field if we are editing the default pool
+            // also hide the members multiselect
             if (poolRowData.pool_id == defaultPoolId) {
                 $(`#edit-pool form input[name='name']`).attr("readonly", "true");
+                $(`#edit-pool .members-container`).hide();
             }
             else {
                 $(`#edit-pool form input[name='name']`).removeAttr("readonly");
+                $(`#edit-pool .members-container`).show();
             }
 
             sortSelectByValue(`#edit-pool form select[name='members']`);

@@ -22,7 +22,7 @@
                     </div>
                     {# the host pool modal doesn't have the members field #}
                     {% if (pool.name ~= "host") then %}
-                    <div class="form-group row">
+                    <div class="form-group row members-container">
                         <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-members-input">
                             <b>{{ i18n("pools.members") }}</b>
                         </label>
@@ -52,7 +52,7 @@
                         </div>
                     </div>
                     {% elseif (pool.name == "host" and modal_type == "edit") then %}
-                    <div class="form-group row">
+                    <div class="form-group row members-container">
                         <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-members-input">
                             {{ i18n("pools.members") }}
                         </label>
