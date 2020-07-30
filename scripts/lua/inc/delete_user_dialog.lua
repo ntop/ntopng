@@ -19,7 +19,7 @@ print [[
   delete_user_alert.warning = function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-warning">' + message + '</div>'); }
 </script>
 
-  <form id="form_delete_user" class="form-horizontal" method="post" action="delete_user.lua">
+  <form id="form_delete_user" class="form-horizontal" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v1/delete/ntopng/user.lua">
 			      ]]
 print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
@@ -37,12 +37,11 @@ print [[
       url: frmdeluser.attr('action'),
       data: frmdeluser.serialize(),
       success: function (data) {
-        var response = jQuery.parseJSON(data);
-        if (response.result == 0) {
-          delete_user_alert.success(response.message); 
+        if (data.rc == 0) {
+          delete_user_alert.success(data.rc_str); 
           window.location.href = ']] print(location_href) print[[';
         } else {
-          delete_user_alert.error(response.message);
+          delete_user_alert.error(data.rc_str);
         }
       }, error: function (data) {
         delete_user_alert.error("]] print(i18n("users.delete_user_error")) print[[");
