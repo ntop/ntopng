@@ -59,7 +59,18 @@ $(document).ready(function() {
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         stateSave: true,
         columns: [
-            { data: 'name', width: "10%" },
+            {
+                data: 'name',
+                width: "10%",
+                render: function(name, type, pool) {
+
+                    if (type == "display" && pool.pool_id == defaultPoolId) {
+                        return `<i>${name}</i>`;
+                    }
+
+                    return name;
+                }
+            },
             {
                 data: null,
                 width: "40%",
