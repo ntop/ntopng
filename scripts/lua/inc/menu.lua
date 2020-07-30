@@ -416,6 +416,25 @@ page_utils.add_menubar_section({
 
 -- ##############################################
 
+page_utils.add_menubar_section({
+   section = page_utils.menu_sections.notifications,
+   hidden = not is_system_interface,
+   entries = {
+      {
+         entry = page_utils.menu_entries.endpoint_notifications,
+         hidden = not is_admin,
+         url = '/lua/admin/endpoint_notifications_list.lua',
+      },
+      {
+         entry = page_utils.menu_entries.endpoint_recipients,
+         hidden = not is_admin,
+         url = '/lua/admin/endpoint_recipients_list.lua',
+      }
+   }
+})
+
+-- ##############################################
+
 local inactive_interfaces = delete_data_utils.list_inactive_interfaces()
 local num_inactive_interfaces = ternary(not ntop.isnEdge(), table.len(inactive_interfaces or {}), 0)
 local delete_active_interface_requested_system = delete_data_utils.delete_active_interface_data_requested(getSystemInterfaceId())
@@ -441,16 +460,6 @@ page_utils.add_menubar_section(
 	    hidden = not is_admin,
 	    url = '/lua/admin/scripts_config.lua',
     },
-    {
-      entry = page_utils.menu_entries.endpoint_notifications,
-      hidden = not is_admin,
-      url = '/lua/admin/endpoint_notifications_list.lua',
-   },
-   {
-      entry = page_utils.menu_entries.endpoint_recipients,
-      hidden = not is_admin,
-      url = '/lua/admin/endpoint_recipients_list.lua',
-   },
 	 {
 	    entry = page_utils.menu_entries.divider,
 	    hidden = not is_admin,

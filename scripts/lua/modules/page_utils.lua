@@ -33,7 +33,7 @@ page_utils.menu_sections = {
    health       = {key = "system_health", i18n_title = "health", icon = "fas fa-heartbeat"},
    tools        = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
    pools        = {key = "pools", i18n_title = "pools.pools", icon = "fas fa-users"},
-
+   notifications = {key = "notifications", i18n_title = "endpoint_notifications.notifications", icon = "fas fa-flag"},
    -- nEdge
    views	= {key = "hosts", i18n_title = "views", icon = "fas fa-bars"},
 }
@@ -105,8 +105,10 @@ page_utils.menu_entries = {
     conf_backup          = {key = "conf_backup", i18n_title = "conf_backup.conf_backup", section = "admin", visible_iface = true, visible_system = true},
     conf_restore         = {key = "conf_restore", i18n_title = "conf_backup.conf_restore", section = "admin", visible_iface = true, visible_system = true},
     manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "admin", visible_iface = true, visible_system = false, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-data"},
-    endpoint_notifications = {key = "endpoint_notifications", i18n_title = "endpoint_notifications.endpoint_list", section="admin", visible_iface = true, visible_system = true},
-    endpoint_recipients = {key = "endpoint_recipients", i18n_title = "endpoint_notifications.enpoint_recipients_list", section="admin", visible_iface = true, visible_system = true},
+
+    -- Notifications
+    endpoint_notifications = {key = "endpoint_notifications", i18n_title = "endpoint_notifications.endpoint_list", section="notifications", visible_iface = false, visible_system = true},
+    endpoint_recipients = {key = "endpoint_recipients", i18n_title = "endpoint_notifications.enpoint_recipients_list", section="notifications", visible_iface = false, visible_system = true},
 
     -- Tools
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
