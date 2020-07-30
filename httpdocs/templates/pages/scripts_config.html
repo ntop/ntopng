@@ -26,7 +26,7 @@
                    <thead>
                         <tr>
                             <th class='w-25'>{{ i18n("config_scripts.config_name", {}) }}</th>
-                            {% if config_list.subdir ~= "host" and config_list.subdir ~= "flow" and config_list.subdir ~= "system" and  config_list.subdir ~= "syslog" then %}
+                            {% if config_list.subdir ~= "flow" and config_list.subdir ~= "system" and  config_list.subdir ~= "syslog" then %}
                             <th>{{ i18n("config_scripts.applied_to", {}) }}</th>
                             {% end %}
                             <th class='w-25'>{{ i18n("actions", {}) }}</th>

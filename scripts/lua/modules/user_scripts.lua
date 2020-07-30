@@ -46,7 +46,7 @@ local available_subdirs = {
    {
       id = "host",
       label = "hosts",
-      -- TODO: add host pools
+      pools = "host_pools",
    }, {
       id = "flow",
       label = "flows",
@@ -126,7 +126,6 @@ user_scripts.script_types = {
     hooks = {"min", "5mins", "hour", "day"},
     subdirs = {"host"},
     has_per_hook_config = true, -- Each hook has a separate configuration
-    default_config_only = true, -- Only the default configset can be used -- TODO: re-enable when host pools will be fully migrated
   }, snmp_device = {
     parent_dir = "system",
     hooks = {"snmpDevice", "snmpDeviceInterface"},
