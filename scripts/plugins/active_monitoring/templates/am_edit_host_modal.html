@@ -47,9 +47,6 @@
 						</label>
 						<div class="col-sm-5">
 							<select class="form-control" name="pool" id="select-edit-pool">
-								<option value="{{ pools.DEFAULT_POOL_ID }}" selected>
-									{{ i18n("pools.not_assigned") }}
-								</option>
 								{% for _, pool in pairsByKeys(pools:get_all_pools(), asc) do %}
 								<option value="{{ pool.pool_id }}">{{ pool.name }}</option>
 								{% end %}
