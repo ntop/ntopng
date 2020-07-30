@@ -11,11 +11,13 @@
             <label>{{ i18n("host_pools.select_host_pool") }}:</label>
             <select id="select-host-pool" class="form-control">
                 {% for _, p in pairs(manage_host_members.all_pools) do %}
-                    {% if (p.pool_id == tonumber(manage_host_members.pool_id_get)) then %}
-                        <option selected value="{{ p.pool_id }}">{{ p.name }}</option>
-                        {% selected_pool_name = p.name %}
-                    {% else %}
-                        <option value="{{ p.pool_id }}">{{ p.name }}</option>
+                    {% if p.pool_id ~= pool.DEFAULT_POOL_ID then %}
+                        {% if (p.pool_id == tonumber(manage_host_members.pool_id_get)) then %}
+                            <option selected value="{{ p.pool_id }}">{{ p.name }}</option>
+                            {% selected_pool_name = p.name %}
+                        {% else %}
+                            <option value="{{ p.pool_id }}">{{ p.name }}</option>
+                        {% end %}
                     {% end %}
                 {% end %}
             </select>

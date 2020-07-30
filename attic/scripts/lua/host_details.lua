@@ -2048,9 +2048,9 @@ elseif (page == "config") then
       print[[>]] print(pool.name) print[[</option>]]
    end
    print[[
-               </select>&nbsp;
+               </select>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-               <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
+               <button type="submit" class="btn btn-default ml-1">]] print(i18n("save")) print[[</button>
             </form>
          </td>
       </tr>]]
