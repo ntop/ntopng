@@ -55,7 +55,7 @@
                             </label>
                             <div class="col-sm-4">
                                 <input disabled required name="network" style="width: 69%" class="form-control d-inline" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
-                                <span>/</span> <input disabled required name="cidr" min="1" max="128" class="form-control w-25 d-inline" placeholder="16" />
+                                <span>/</span> <input disabled required name="cidr" type="number" min="1" max="127" class="form-control w-25 d-inline" placeholder="16" />
                             </div>
                         </div>
                         <div class="form-group row">
