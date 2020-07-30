@@ -91,6 +91,7 @@ function runScripts(granularity)
   end
 
   local host_ip = host.getIp()
+  local pool_id = host.getPoolId()["host_pool_id"]
   local host_key   = hostinfo2hostkey({ip = host_ip.ip, vlan = host_ip.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
   local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
   local suppressed_alerts = alerts_api.hasSuppressedAlerts(ifid, host_entity, host_key)
@@ -105,8 +106,8 @@ function runScripts(granularity)
   benchmark_end()
 
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
-  -- TODO: Fetch the actual configset id using the host pool
-  local host_conf, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "host")
+  -- Fetch the actual configset id using the host pool
+  local host_conf, confset_id = user_scripts.getConfigById(configsets, pool_id, "host")
   local when = os.time()
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
