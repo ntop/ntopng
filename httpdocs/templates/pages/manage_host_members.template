@@ -4,7 +4,7 @@
 {%
     local selected_pool_name
 %}
-{% if (pool:get_num_pools() > 0) then %}
+{% if (pool:get_num_pools() > 1) then %}
 <div class="row">
     <div class="col-md-2 mb-4">
         <div class="form-group">
