@@ -114,14 +114,21 @@ function http_bridge_conf_utils.configureBridge()
 	       local default_policy = string.lower(user_config["default_policy"])
 
 	       if nedge_shapers[default_policy] and default_policy ~= "default" then -- default can't be default :)
+		  host_pools_nedge.traceHostPoolEvent(TRACE_NORMAL, ifname..": setting default policy '"..default_policy.."' for user: "..username.. " pool id: "..pool_id)
 		  shaper_utils.setPoolShaper(ifid, pool_id, nedge_shapers[default_policy].id)
 	       end
 
 	       for proto, policy in pairs(user_config["policies"] or {}) do
+		  local proto_name = proto
 		  policy = nedge_shapers[string.lower(policy)]
 
 		  if tonumber(proto) == nil then
-		     proto = ndpi_protocols[string.lower(proto)]
+		     if not ndpi_protocols[string.lower(proto)] then
+			host_pools_nedge.traceHostPoolEvent(TRACE_ERROR, ifname..": unable to find protocol '"..proto.."' among known protocols for user: "..username.. " pool id: "..pool_id)
+		     else
+			proto_name = string.format("%s/%d", proto, ndpi_protocols[string.lower(proto)])
+			proto = ndpi_protocols[string.lower(proto)]
+		     end
 		  end
 
 		  if policy and tonumber(proto) ~= nil then
@@ -131,6 +138,7 @@ function http_bridge_conf_utils.configureBridge()
 			shaper_utils.setProtocolShapers(ifid, pool_id, proto,
 							policy.id, policy.id,
 							0 --[[traffic_quota--]], 0--[[time_quota--]])
+			host_pools_nedge.traceHostPoolEvent(TRACE_NORMAL, ifname..": setting protocol '"..proto_name.."' policy '"..policy.name.."' for user: "..username.. " pool id: "..pool_id)
 			-- tprint({proto=proto, name = interface.getnDPIProtoName(tonumber(proto)), pool_id=pool_id, policy_id=policy.id})
 		     end
 		  end
