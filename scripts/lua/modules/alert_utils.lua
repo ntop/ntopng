@@ -2175,7 +2175,7 @@ function alert_utils.formatAlertNotification(notif, options)
 	    ev = hostinfo2hostkey(hostkey2hostinfo(notif.alert_entity_val))
 	 end
 
-	 msg = msg.."["..ev.."]"
+	 msg = msg.."["..(ev or '').."]"
       end
    end
 

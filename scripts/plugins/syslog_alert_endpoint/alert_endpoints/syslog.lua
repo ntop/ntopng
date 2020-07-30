@@ -104,7 +104,7 @@ function syslog.runTest(recipient)
   local now = os.time()
   local notif = {
     alert_tstamp = now,
-    alert_entity = "test",
+    alert_entity = alert_consts.alert_entities.test.entity_id,
   }
 
   local success = syslog.sendMessage(notif, "info", recipient.endpoint_conf.endpoint_conf.syslog_alert_format)
