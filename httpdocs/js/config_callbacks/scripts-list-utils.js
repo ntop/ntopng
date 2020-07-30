@@ -2,17 +2,17 @@
 
 String.prototype.titleCase = function () {
 
-   return this.toLowerCase().split(' ').map(function(word) {
+   return this.toLowerCase().split(' ').map(function (word) {
 
-     return word.replace(word[0], word[0].toUpperCase());
+      return word.replace(word[0], word[0].toUpperCase());
    }).join(' ');
 
- }
+}
 
 /* ******************************************************* */
 
 const reloadPageAfterPOST = () => {
-   if(location.href.indexOf("user_script=") > 0) {
+   if (location.href.indexOf("user_script=") > 0) {
       /* Go back to the alerts page */
       //location.href = page_url + location.hash;
       window.history.back();
@@ -90,7 +90,7 @@ const generate_multi_select = (params, has_container = true) => {
    const $select = $(`<select id='multiple-select' multiple class='form-control'></select>`);
 
    // add groups and items
-   if(params.groups.length == 1) {
+   if (params.groups.length == 1) {
       params.groups[0].elements.forEach((element) => {
          $select.append($(`<option value='${element[0]}'>${element[1]}</option>`))
       });
@@ -237,7 +237,7 @@ const generate_radio_buttons = (params, has_container = true) => {
       </div>
    `);
 
-   $radio_buttons.find(`input[type='radio']`).on('click', function(e) {
+   $radio_buttons.find(`input[type='radio']`).on('click', function (e) {
 
       // remove active class from every button
       $radio_buttons.find('label').removeClass('active').removeClass('btn-primary').addClass('btn-secondary');
@@ -326,7 +326,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       JSON: JSON.stringify(template_data),
       confset_id: confset_id
    })
-   .done((d, status, xhr) => {
+      .done((d, status, xhr) => {
 
          if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
@@ -340,16 +340,16 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
          // if the operation was successfull then reload the page
          if (d.success) reloadPageAfterPOST();
       })
-   .fail(({ status, statusText }) => {
+      .fail(({ status, statusText }) => {
 
-      check_status_code(status, statusText, $error_label);
+         check_status_code(status, statusText, $error_label);
 
-      if (status == 200) {
-         $error_label.text(`${i18n.expired_csrf}`).show();
-      }
+         if (status == 200) {
+            $error_label.text(`${i18n.expired_csrf}`).show();
+         }
 
-      $apply_btn.removeAttr('disabled');
-   });
+         $apply_btn.removeAttr('disabled');
+      });
 }
 
 const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
@@ -360,23 +360,23 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
       script_subdir: script_subdir,
       script_key: script_key
    })
-   .done((reset_data, status, xhr) => {
+      .done((reset_data, status, xhr) => {
 
-      // if there is an error about the http request
-      if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+         // if there is an error about the http request
+         if (check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
-      // call callback function to reset fields
-      callback_reset(reset_data);
+         // call callback function to reset fields
+         callback_reset(reset_data);
 
-      // add dirty class to form
-      $('#edit-form').addClass('dirty');
-   })
-   .fail(({ status, statusText }) => {
+         // add dirty class to form
+         $('#edit-form').addClass('dirty');
+      })
+      .fail(({ status, statusText }) => {
 
-      check_status_code(status, statusText, $error_label);
-      // hide modal if there is error
-      $("#modal-script").modal("toggle");
-   })
+         check_status_code(status, statusText, $error_label);
+         // hide modal if there is error
+         $("#modal-script").modal("toggle");
+      })
 }
 
 /* ******************************************************* */
@@ -511,7 +511,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
       /* Guarantees the sort order */
       other_keys.sort();
 
-      $.each(other_keys, function(idx, item) {
+      $.each(other_keys, function (idx, item) {
          $table_editor.append($input_fields[item]);
       });
 
@@ -598,7 +598,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
    return {
       apply_click_event: apply_event,
-      reset_click_event:reset_event,
+      reset_click_event: reset_event,
       render: render_template,
    }
 }
@@ -612,7 +612,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
    const render_template = () => {
 
       const $component_container = $(`<tr></tr>`);
-      const callback_checkbox = function(e) {
+      const callback_checkbox = function (e) {
 
          const checked = $(this).prop('checked');
 
@@ -762,7 +762,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       });
 
       // clamp values on radio change
-      $time_radio_buttons.find(`input[type='radio']`).on('change', function() {
+      $time_radio_buttons.find(`input[type='radio']`).on('change', function () {
 
          const time_selected = $(this).val();
 
@@ -963,16 +963,16 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       };
 
       const $radio_button_l2r = generate_radio_buttons({
-            name: 'bytes_l2r',
-            enabled: enabled,
-            granularity: radio_values_l2r
-         }
+         name: 'bytes_l2r',
+         enabled: enabled,
+         granularity: radio_values_l2r
+      }
       );
       const $radio_button_r2l = generate_radio_buttons({
-            name: 'bytes_r2l',
-            enabled: enabled,
-            granularity: radio_values_r2l
-         }
+         name: 'bytes_r2l',
+         enabled: enabled,
+         granularity: radio_values_r2l
+      }
       );
 
       const $checkbox_enabled = generate_checkbox_enabled(
@@ -1222,9 +1222,9 @@ const FlowMud = (gui, hooks, script_subdir, script_key) => {
 
 const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_key = null) => {
    return {
-      apply_click_event: function() {},
-      reset_click_event: function() {},
-      render: function() {},
+      apply_click_event: function () { },
+      reset_click_event: function () { },
+      render: function () { },
    }
 }
 
@@ -1239,10 +1239,10 @@ const initScriptConfModal = (script_key, script_title, script_desc) => {
 
    $("#modal-script form").off('submit');
    $("#modal-script").on("submit", "form", function (e) {
-       e.preventDefault();
+      e.preventDefault();
 
-       $('#edit-form').trigger('reinitialize.areYouSure').removeClass('dirty');
-       $("#btn-apply").trigger("click");
+      $('#edit-form').trigger('reinitialize.areYouSure').removeClass('dirty');
+      $("#btn-apply").trigger("click");
    });
 
    $.get(`${http_prefix}/lua/get_user_script_config.lua`,
@@ -1252,32 +1252,32 @@ const initScriptConfModal = (script_key, script_title, script_desc) => {
          script_key: script_key
       }
    )
-   .then((data, status, xhr) => {
+      .then((data, status, xhr) => {
 
-      // check status code
-      if (check_status_code(xhr.status, xhr.statusText, null)) return;
+         // check status code
+         if (check_status_code(xhr.status, xhr.statusText, null)) return;
 
-      // hide previous error
-      $("#apply-error").hide();
+         // hide previous error
+         $("#apply-error").hide();
 
-      const template = TemplateBuilder(data, script_subdir, script_key);
+         const template = TemplateBuilder(data, script_subdir, script_key);
 
-      // render template
-      template.render();
+         // render template
+         template.render();
 
-      // bind on_apply event on apply button
-      $("#edit-form").off("submit").on('submit', template.apply_click_event);
-      $("#btn-reset").off("click").on('click', template.reset_click_event);
+         // bind on_apply event on apply button
+         $("#edit-form").off("submit").on('submit', template.apply_click_event);
+         $("#btn-reset").off("click").on('click', template.reset_click_event);
 
-      // bind are you sure to form
-      $('#edit-form').trigger('rescan.areYouSure').trigger('reinitialize.areYouSure');
-    })
-   .fail(({status, statusText}) => {
+         // bind are you sure to form
+         $('#edit-form').trigger('rescan.areYouSure').trigger('reinitialize.areYouSure');
+      })
+      .fail(({ status, statusText }) => {
 
-      check_status_code(status, statusText, null);
-      // hide modal if there is error
-      $("#modal-script").modal("toggle");
-   })
+         check_status_code(status, statusText, null);
+         // hide modal if there is error
+         $("#modal-script").modal("toggle");
+      })
 }
 
 /* ******************************************************* */
@@ -1294,7 +1294,7 @@ const get_search_toggle_value = hash => hash == "#enabled" ? 'true' : (hash == "
 
 /* ******************************************************* */
 
-const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
+const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
 
    // get template name
    const template_name = gui.input_builder;
@@ -1311,7 +1311,7 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
    if (!template_chosen) {
       template_chosen = EmptyTemplate();
-      throw(`${i18n.scripts_list.templates.template_not_implemented}`);
+      throw (`${i18n.scripts_list.templates.template_not_implemented}`);
    }
 
    return template_chosen;
@@ -1323,9 +1323,9 @@ const TemplateBuilder = ({gui, hooks}, script_subdir, script_key) => {
 
 const create_enabled_button = (row_data) => {
 
-   const {is_enabled} = row_data;
+   const { is_enabled } = row_data;
 
-   const $button = $(`<button type='button' class='badge border-0'></button>`);
+   const $button = $(`<button type='button' class='btn'></button>`);
 
    if (!is_enabled) {
 
@@ -1333,19 +1333,18 @@ const create_enabled_button = (row_data) => {
 
       if (!has_all_hook && hasConfigDialog(row_data)) $button.css('visibility', 'hidden');
 
-      $button.text(`${i18n.enable}`);
-      $button.addClass('badge-success');
-
+      $button.html(`<i class='fas fa-toggle-on'></i>`);
+      $button.addClass('btn-success');
    }
    else {
 
       if (row_data.enabled_hooks.length < 1) $button.css('visibility', 'hidden');
 
-      $button.text(`${i18n.disable}`);
-      $button.addClass('badge-danger');
+      $button.html(`<i class='fas fa-toggle-off'></i>`);
+      $button.addClass('btn-danger');
    }
 
-   $button.off('click').on('click', function() {
+   $button.off('click').on('click', function () {
 
       $.post(`${http_prefix}/lua/toggle_user_script.lua`, {
          script_subdir: script_subdir,
@@ -1354,33 +1353,33 @@ const create_enabled_button = (row_data) => {
          action: (is_enabled) ? 'disable' : 'enable',
          confset_id: confset_id
       })
-      .done((d, status, xhr) => {
+         .done((d, status, xhr) => {
 
-         if (!d.success) {
-            $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
-         }
+            if (!d.success) {
+               $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
+            }
 
-         if (d.success) reloadPageAfterPOST();
+            if (d.success) reloadPageAfterPOST();
 
-      })
-      .fail(({ status, statusText }) => {
+         })
+         .fail(({ status, statusText }) => {
 
-         check_status_code(status, statusText, $("#alert-row-buttons"));
+            check_status_code(status, statusText, $("#alert-row-buttons"));
 
-         // if the csrf has expired
-         if (status == 200) {
-            $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
-         }
+            // if the csrf has expired
+            if (status == 200) {
+               $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
+            }
 
             // re eanble buttons
-         $button.removeAttr("disabled").removeClass('disabled');
-      });
+            $button.removeAttr("disabled").removeClass('disabled');
+         });
    })
 
    return $button;
 };
 
-$(document).ready(function() {
+$(document).ready(function () {
 
    const CATEGORY_COLUMN_INDEX = 1;
    const VALUES_COLUMN_INDEX = 3;
@@ -1406,7 +1405,7 @@ $(document).ready(function() {
 
             // when a user click the filter category then the datatable
             // will be filtered
-            $list_element.click(function() {
+            $list_element.click(function () {
 
                // if the category is not inside the array
                // it means the filter category is `All`
@@ -1441,9 +1440,9 @@ $(document).ready(function() {
       const current_category_filter = $script_table.column(CATEGORY_COLUMN_INDEX).search();
       // get alla categories from current datatable instance
       const data_rows = $script_table
-                              .column(CATEGORY_COLUMN_INDEX)
-                              .search('')
-                              .rows({filter: 'applied'}).data();
+         .column(CATEGORY_COLUMN_INDEX)
+         .search('')
+         .rows({ filter: 'applied' }).data();
       const categories_set = new Set();
 
       for (let i = 0; i < data_rows.length; i++) {
@@ -1458,7 +1457,7 @@ $(document).ready(function() {
          $script_table.column(CATEGORY_COLUMN_INDEX).search('').draw();
       }
 
-      $('#category-filter li').each(function(index, element) {
+      $('#category-filter li').each(function (index, element) {
 
          const value = $(this).text();
 
@@ -1480,11 +1479,11 @@ $(document).ready(function() {
    const truncate_string = (str, lim, strip_html = false) => {
 
       if (strip_html) {
-         let str_sub = str.replace(/(<([^>]+)>)/ig,"");
+         let str_sub = str.replace(/(<([^>]+)>)/ig, "");
          return (str_sub.length > lim) ? str_sub.substr(0, lim) + '...' : str_sub;
       }
 
-      return (str.length > lim) ? str.substr(0, lim) + '...': str;
+      return (str.length > lim) ? str.substr(0, lim) + '...' : str;
    }
 
    // initialize script table
@@ -1530,7 +1529,7 @@ $(document).ready(function() {
 
          // hide category in base selected pill
          hide_categories_dropdown();
-         $('#all-scripts,#enabled-scripts,#disabled-scripts').click(function() {
+         $('#all-scripts,#enabled-scripts,#disabled-scripts').click(function () {
             hide_categories_dropdown();
          });
 
@@ -1544,14 +1543,14 @@ $(document).ready(function() {
          $disabled_button.html(`${i18n.disabled} (${disabled_count})`);
 
          if (script_key_filter) {
-            let elem = json.filter((x) => { return(x.key == script_key_filter); })[0];
+            let elem = json.filter((x) => { return (x.key == script_key_filter); })[0];
 
             if (elem) {
                let title = elem.title;
                let desc = elem.description;
                this.DataTable().search(title).draw();
 
-               if(hasConfigDialog(elem)) {
+               if (hasConfigDialog(elem)) {
                   initScriptConfModal(script_key_filter, title, desc);
                   $("#modal-script").modal("show");
                }
@@ -1594,12 +1593,12 @@ $(document).ready(function() {
          {
             data: null,
             sortable: true,
-             searchable: true,
-	     className: 'text-center',
+            searchable: true,
+            className: 'text-center',
             render: function (data, type, row) {
                const icon = (!row.category_icon) ? '' : `<i class='fa ${row.category_icon}'></i>`;
-		if (type == "display") return `${icon}`;
-		return row.category_title;
+               if (type == "display") return `${icon}`;
+               return row.category_title;
             }
          },
          {
@@ -1638,7 +1637,7 @@ $(document).ready(function() {
                      data-content='${row.value_description}'>
                      ${row.value_description.substr(0, 32)}${row.value_description.length >= 32 ? '...' : ''}
                   </span>
-               ` : '';;
+               ` : '';
 
             },
          },
@@ -1646,36 +1645,36 @@ $(document).ready(function() {
             targets: -1,
             data: null,
             name: 'actions',
-             className: 'text-center',
-	     width: '200px',
+            className: 'text-center',
+            width: '200px',
             sortable: false,
             render: function (data, type, row) {
 
                const edit_script_btn = `
                       <a href='#'
                          title='${i18n.edit_script}'
-                         class='badge badge-info'
+                         class='btn btn-info'
                          style="visibility: ${!row.input_handler ? 'hidden' : 'visible'}"
                          data-toggle="modal"
                          data-target="#modal-script">
-                           ${i18n.edit}
+                           <i class='fas fa-edit'></i>
                      </a>
                `;
                const edit_url_btn = `
                       <a href='${data.edit_url}'
-                        class='badge badge-secondary'
+                        class='btn btn-secondary'
                         style="visibility: ${!data.edit_url ? 'hidden' : 'visible'}"
                         title='${i18n.view_src_script}'>
-                           ${i18n.view}
+                           <i class='fas fa-file-code'></i>
                       </a>
                `;
 
-               return `${edit_script_btn}${edit_url_btn}`;
+               return `<div class='btn-group btn-group-sm'>${edit_script_btn}${edit_url_btn}</div>`;
             },
-            createdCell: function(td, cellData, row) {
+            createdCell: function (td, cellData, row) {
 
                const enabled_button = create_enabled_button(row);
-               $(td).prepend(enabled_button);
+               $(td).find('.btn-group').prepend(enabled_button);
             }
          }
       ]
@@ -1685,7 +1684,7 @@ $(document).ready(function() {
    $("#edit-form").areYouSure({ message: i18n.are_you_sure });
 
    // handle modal-script close event
-   $("#modal-script").on("hide.bs.modal", function(e) {
+   $("#modal-script").on("hide.bs.modal", function (e) {
 
       // if the forms is dirty then ask to the user
       // if he wants save edits
@@ -1699,16 +1698,16 @@ $(document).ready(function() {
          $('#edit-form').removeClass('dirty');
       }
    })
-   .on("shown.bs.modal", function(e) {
-      // add focus to btn apply to enable focusing on the modal hence user can press escape button to
-      // close the modal
-      $("#btn-apply").trigger('focus');
-   });
+      .on("shown.bs.modal", function (e) {
+         // add focus to btn apply to enable focusing on the modal hence user can press escape button to
+         // close the modal
+         $("#btn-apply").trigger('focus');
+      });
 
    // load templates for the script
-   $('#scripts-config').on('click', 'a[data-target="#modal-script"]', function(e) {
+   $('#scripts-config').on('click', 'a[data-target="#modal-script"]', function (e) {
 
-      const row_data = $script_table.row($(this).parent()).data();
+      const row_data = $script_table.row($(this).parent().parent()).data();
       const script_key = row_data.key;
       const script_title = row_data.title;
       const script_desc = row_data.description;
@@ -1721,24 +1720,24 @@ $(document).ready(function() {
    */
    const count_scripts = () => {
 
-       let enabled_count = 0;
-       let disabled_count = 0;
+      let enabled_count = 0;
+      let disabled_count = 0;
 
-       $script_table.data().each(d => {
+      $script_table.data().each(d => {
 
-          if (d.is_enabled) {
-             enabled_count++;
-             return;
-          }
+         if (d.is_enabled) {
+            enabled_count++;
+            return;
+         }
 
-          disabled_count++;
-       });
+         disabled_count++;
+      });
 
-       return [enabled_count, disabled_count];
+      return [enabled_count, disabled_count];
    }
 
-   $(`.filter-scripts-button`).click(function() {
-      $(`#scripts-config a[href^='/lua/code_viewer.lua']`).each(function() {
+   $(`.filter-scripts-button`).click(function () {
+      $(`#scripts-config a[href^='/lua/code_viewer.lua']`).each(function () {
          const encoded = encodeURIComponent(`${location.pathname}${location.search}${location.hash}`);
          $(this).attr('href', `${$(this).attr('href')}&referal_url=${encoded}`);
       });
