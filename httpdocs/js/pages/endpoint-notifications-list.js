@@ -171,6 +171,10 @@ $(document).ready(function () {
         onModalInit: function() {
             createTemplateOnSelect(`#add-endpoint-modal`);
         },
+        onModalShow: function() {
+            // trigger a change event to the select so the template will be loaded
+            $(`#add-endpoint-modal select[name='type']`).trigger('change');
+        },
         onSubmitSuccess: function (response) {
 
             if (response.result.status == "OK") {
