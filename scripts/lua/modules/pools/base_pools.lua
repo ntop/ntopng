@@ -17,8 +17,15 @@ local base_pools = {}
 -- ##############################################
 
 -- A default pool id value associated to any member without pools
-base_pools.DEFAULT_POOL_ID = 0 -- In sync with former host_pools_nedge.lua
+base_pools.DEFAULT_POOL_ID = 0
 base_pools.DEFAULT_POOL_NAME = "Default"
+
+if ntop.isnEdge() then
+   -- Compatibility with nEdge pools
+   local host_pools_nedge = require "host_pools_nedge"
+   base_pools.DEFAULT_POOL_ID = tonumber(host_pools_nedge.DEFAULT_POOL_ID)
+   base_pools.DEFAULT_POOL_NAME = host_pools_nedge.DEFAULT_POOL_NAME
+end
 
 -- ##############################################
 
@@ -63,6 +70,10 @@ end
 -- ##############################################
 
 function base_pools:_initialize()
+   if ntop.isnEdge() then
+      return -- Do not perform initialization for nEdge: pools are managed by host_pools_nedge.lua
+   end
+
    local locked = self:_lock()
 
    if locked then
