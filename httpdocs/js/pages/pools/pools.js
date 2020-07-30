@@ -147,10 +147,6 @@ $(document).ready(function() {
         csrf: addCsrf,
         resetAfterSubmit: false,
         endpoint: endpoints.add_pool,
-        onModalInit: function() {
-            // sort the select entries
-            sortSelectByValue(`#add-pool form select[name='members']`);
-        },
         beforeSumbit: function() {
 
             const members = $(`#add-pool form select[name='members']`).val() || [];
@@ -205,8 +201,6 @@ $(document).ready(function() {
                 $(`#edit-pool form input[name='name']`).removeAttr("readonly");
                 $(`#edit-pool .members-container`).show();
             }
-
-            sortSelectByValue(`#edit-pool form select[name='members']`);
 
             // disable all the options whose have a data-pool-id attribute
             $(`#edit-pool form select[name='members'] option[data-pool-id]`).attr("disabled", "disabled");

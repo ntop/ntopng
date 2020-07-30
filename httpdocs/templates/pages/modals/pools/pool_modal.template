@@ -28,7 +28,15 @@
                         </label>
                         <div class="col-sm-7">
                             <select class="form-control multiple-select" multiple name="members" id="{{ modal_type }}-pool-members-select">
-                                {% for key, member in pairsByKeys(pool.all_members, asc) do %}
+                                {%
+                                    local sorting_order = nil
+                                    if (pool.name == "snmp" or pool.name == "network") then
+                                        sorting_order = ip_address_asc
+                                    else
+                                        sorting_order = asc
+                                    end
+                                %}
+                                {% for key, member in pairsByKeys(pool.all_members, sorting_order) do %}
 
                                     {%
                                         -- If the name field is not set then use the key as the name
