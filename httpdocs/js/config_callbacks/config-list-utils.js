@@ -4,7 +4,7 @@ const special_characters_regex = /[\@\#\<\>\\\/\?\'\"\`\~\|\.\:\;\,\!\&\*\(\)\{\
 const get_configuration_data = ($config_table, $button_caller) => {
 
     // get row data
-    const row_data = $config_table.row($button_caller.parent()).data();
+    const row_data = $config_table.row($button_caller.parent().parent()).data();
 
     return {
         config_id: row_data.id,
@@ -63,39 +63,28 @@ $(document).ready(function() {
             render: function(data, type, row) {
 
                 let rv = `
-                    <a class="badge badge-info" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
-                        ${i18n.edit}
+                    <a class="btn btn-info" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
+                        <i class='fas fa-edit'></i>
                     </a>
                 `;
+
                 if(!default_config_only)
                     rv += `
-                        <a href='#'
-                            title='${i18n.clone}'
-                            class="badge badge-info"
-                            data-toggle="modal"
-                            data-target="#clone-modal">
-                                ${i18n.clone}
+                        <a href='#' title='${i18n.clone}' class="btn btn-info" data-toggle="modal" data-target="#clone-modal">
+                            <i class='fas fa-clone'></i>
                         </a>
                     `;
                 if(data.id != 0)
                     rv += `
-                         <a href='#'
-                            title='${i18n.rename}'
-                            class="badge badge-info"
-                            data-toggle="modal"
-                            data-target="#rename-modal">
-                            ${i18n.rename}
-                            </a>
-                        <a href='#'
-                            title='${i18n.delete}'
-                            class="badge badge-danger"
-                            data-toggle="modal"
-                            data-target="#delete-modal">
-                                ${i18n.delete}
+                         <a href='#' title='${i18n.rename}' class="btn btn-info" data-toggle="modal" data-target="#rename-modal">
+                            <i class='fas fa-pencil-alt'></i>
+                        </a>
+                        <a href='#' title='${i18n.delete}' class="btn btn-danger" data-toggle="modal" data-target="#delete-modal">
+                            <i class='fas fa-trash'></i>
                         </a>
                     `;
 
-                return rv;
+                return `<div class='btn-group btn-group-sm'>${rv}</div>`;
             }
         }
 
