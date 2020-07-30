@@ -105,15 +105,6 @@ static void redirect_to_ssl(struct mg_connection *conn,
 
 /* ****************************************** */
 
-// Generate session ID. buf must be 33 bytes in size.
-// Note that it is easy to steal session cookies by sniffing traffic.
-// This is why all communication must be SSL-ed.
-static void generate_session_id(char *buf, const char *random, const char *user, const char *group) {
-  mg_md5(buf, random, user, group, NULL);
-}
-
-/* ****************************************** */
-
 /* Generates a random token to protect against CSRF attacks.
  * See ntop_get_csrf_value for more details. */
 static void generate_csrf_token(char *csrf) {
@@ -150,34 +141,26 @@ void HTTPserver::traceLogin(const char *user, bool authorized) {
 
 /* ****************************************** */
 
-static void set_cookie(const struct mg_connection * const conn,
-                       const char * const user,
-		       const char * const group,
-		       bool localuser,
-		       const char * const referer) {
-  char key[256], session_id[64], random[64];
+// Generate session ID. buf must be 33 bytes in size.
+// Note that it is easy to steal session cookies by sniffing traffic.
+// This is why all communication must be SSL-ed.
+static void generate_session_id(char *buf, const char *random, const char *user, const char *group) {
+  mg_md5(buf, random, user, group, NULL);
+}
+
+/* ****************************************** */
+
+// Create a new session generating a Session ID that can be used as Cookie
+static void create_session(const char * const user,
+			   const char * const group,
+			   bool localuser,
+			   char *session_id,
+			   u_int session_id_size,
+			   u_int *session_duration
+			   ) {
+  char key[256], random[64];
   char csrf[NTOP_CSRF_TOKEN_LENGTH];
   char val[128];
-  u_int session_duration = ntop->getPrefs()->get_auth_session_duration();
-
-  if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
-     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
-     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, GRAFANA_URL, strlen(GRAFANA_URL))
-     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
-    return;
-
-  if(HTTPserver::authorized_localhost_user_login(conn))
-    return;
-
-  // Authentication success:
-  //   1. create new session
-  //   2. set session ID token in the cookie
-  //
-  // The most secure way is to stay HTTPS all the time. However, just to
-  // show the technique, we redirect to HTTP after the successful
-  // authentication. The danger of doing this is that session cookie can
-  // be stolen and an attacker may impersonate the user.
-  // Secure application must use HTTPS all the time.
 
   snprintf(random, sizeof(random), "%d", rand());
 
@@ -193,7 +176,41 @@ static void set_cookie(const struct mg_connection * const conn,
   // If do_auto_logout() is false, then the auto logout is disabled regardless
   // of runtime preferences.
   if(!ntop->getPrefs()->do_auto_logout() || !ntop->getPrefs()->do_auto_logout_at_runtime())
-    session_duration = EXTENDED_HTTP_SESSION_DURATION;
+    *session_duration = EXTENDED_HTTP_SESSION_DURATION;
+  else
+    *session_duration = ntop->getPrefs()->get_auth_session_duration();
+
+  /* Save session in redis */
+  snprintf(key, sizeof(key), "sessions.%s", session_id);
+  snprintf(val, sizeof(val), "%s|%s|%s|%c", user, group, csrf, localuser ? '1' : '0');
+
+  ntop->getRedis()->set(key, val, *session_duration);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
+
+  HTTPserver::traceLogin(user, true);
+}
+
+/* ****************************************** */
+
+// Create a new session and set the session Cookie
+static void set_session_cookie(const struct mg_connection * const conn,
+                       const char * const user,
+		       const char * const group,
+		       bool localuser,
+		       const char * const referer) {
+  char session_id[64];
+  u_int session_duration = 0;
+
+  if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
+     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
+     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, GRAFANA_URL, strlen(GRAFANA_URL))
+     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
+    return;
+
+  if(HTTPserver::authorized_localhost_user_login(conn))
+    return;
+
+  create_session(user, group, localuser, session_id, sizeof(session_id), &session_duration);
 
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
@@ -201,15 +218,6 @@ static void set_cookie(const struct mg_connection * const conn,
 	    "Location: %s\r\n\r\n",
 	    session_id, session_duration, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
 	    referer ? referer : "/");
-
-  /* Save session in redis */
-  snprintf(key, sizeof(key), "sessions.%s", session_id);
-  snprintf(val, sizeof(val), "%s|%s|%s|%c", user, group, csrf, localuser ? '1' : '0');
-
-  ntop->getRedis()->set(key, val, session_duration);
-  ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
-
-  HTTPserver::traceLogin(user, true);
 }
 
 /* ****************************************** */
@@ -806,7 +814,7 @@ static void authorize(struct mg_connection *conn,
     }
 
     /* Send session cookie and set user for the new session */
-    set_cookie(conn, user, group, *localuser, referer);
+    set_session_cookie(conn, user, group, *localuser, referer);
     strncpy(username, user, NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
   }
