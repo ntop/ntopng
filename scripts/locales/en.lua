@@ -3138,6 +3138,7 @@ local lang = {
     ["recipients"] = "Recipients",
     ["remove_pool"] = "Are you really sure to delete '%{pool}' pool?",
     ["select_config"] = "Select a User Scripts Configuration",
+    ["unbounded_members"] = "All unbound",
     ["pool_name"] = {
       ["active_monitoring"] = "Active Monitoring",
       ["host"] = "Host",

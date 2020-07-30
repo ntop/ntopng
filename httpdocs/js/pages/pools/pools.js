@@ -76,6 +76,9 @@ $(document).ready(function() {
                 width: "40%",
                 render: function(data, type, row) {
 
+                    /* if it's the default pool then show an unbounded members message */
+                    if (type == "display" && row.pool_id == defaultPoolId) return i18n.unbounded_members;
+
                     if (type == "display" && row.members.length == 0) return "";
                     // show only the first 10 members, append some dots
                     // if the members are more than 10

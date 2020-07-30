@@ -64,6 +64,7 @@
     i18n.others = "{{ i18n('others') }}";
     i18n.other = "{{ i18n('other') }}";
     i18n.and = "{{ i18n('and') }}";
+    i18n.unbounded_members = "{{ i18n('pools.unbounded_members') }}";
 
     i18n.rest = {
         INVALID_HOST: "{{ i18n('rest_consts.INVALID_HOST') }}",
