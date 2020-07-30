@@ -20,8 +20,10 @@ require "historical_utils"
 
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
+local host_pools = require "host_pools"
 local page_utils = require("page_utils")
 
+local host_pool = host_pools:create()
 
 debug_hosts = false
 page        = _GET["page"]
@@ -2039,8 +2041,8 @@ elseif (page == "config") then
          <th>Host Pool</th>
          <td>
             <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
-               <select name="pool" class="form-control" style="width:20em; display:inline;">]]
-   for _,pool in ipairs(host_pools_utils.getPoolsList()) do
+               <select name="pool" class="form-control" style="width:0em; display:inline;">]]
+   for _,pool in ipairs(host_pool:get_all_pools()) do
       print[[<option value="]] print(pool.id) print[["]]
       if pool.id == host_pool_id then
          print[[ selected]]

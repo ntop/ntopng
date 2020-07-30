@@ -902,14 +902,6 @@ function graph_utils.poolDropdown(ifId, pool_id, exclude)
    pool_id = tostring(pool_id)
 
    local output = {}
-   output[#output + 1]  = '<option value="' .. host_pools_instance.DEFAULT_POOL_ID .. '"'
-
-   if pool_id == tostring(host_pools_instance.DEFAULT_POOL_ID) then
-      output[#output + 1] = ' selected'
-   end
-
-   output[#output + 1] = '>' .. host_pools_instance.DEFAULT_POOL_NAME .. '</option>'
-
    exclude = exclude or {}
 
    for _,pool in ipairs(host_pools_instance:get_all_pools()) do
