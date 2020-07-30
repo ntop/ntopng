@@ -1074,7 +1074,7 @@ local lang = {
       ["cc"] = "CC",
       ["email_recipient"] = "Email Recipient",
     },
-   },
+  },
   ["entity_thresholds"] = {
     ["flow_attacker_description"] = "Trigger an alert when the new client Flows/sec exceeds the threshold",
     ["flow_attacker_title"] = "Flow Flood Attacker Alert",
@@ -2575,7 +2575,7 @@ local lang = {
     ["add_captive_portal_user"] = "Add Captive Portal User",
     ["add_web_user"] = "Add Web User",
     ["auth_success"] = "Authentication Successful",
-    ["blacklisted_ip_notice"] = "Too many failed authentication attempts. Please retry after 5 minutes.",
+    ["blacklisted_ip_notice"] = "Too many failed authentication attempts. Please retry in 5 minutes.",
     ["change_password"] = "Change Password",
     ["confirm_password"] = "Confirm Password",
     ["device_label"] = "Device Label",
