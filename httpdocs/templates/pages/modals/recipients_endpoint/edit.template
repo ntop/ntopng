@@ -14,18 +14,11 @@
                     <input type="text" hidden name="endpoint_conf_name">
                     <div class="recipient-template-container">
                     </div>
-                    <hr>
-                    <div class="form-group row">
-                        <div class="col-sm-3 text-center">
-                            <button id="edit-test-recipient" class="btn btn-secondary w-100">{{ i18n("endpoint_notifications.test_recipient") }}</button>
-                        </div>
-                        <div class="col-sm-9 py-1">
-                            <span style="display: none;" class="test-feedback"></span>
-                        </div>
-                    </div>
+                    <span style="display: none;" class="test-feedback"></span>
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">
+                    <button id="edit-test-recipient" class="btn btn-secondary mr-auto">{{ i18n("endpoint_notifications.test_recipient") }}</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
                     <button type="submit" class="btn btn-primary">{{i18n("edit")}}</button>
                 </div>

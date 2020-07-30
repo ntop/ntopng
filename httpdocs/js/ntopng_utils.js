@@ -13,19 +13,19 @@ const REGEXES = {
 };
 
 function init_data_patterns() {
-	// for each input with the data-pattern attribute
-	// substitute the data-pattern with the right regexes
-  $(`input[data-pattern]`).each(function() {
+  // for each input with the data-pattern attribute
+  // substitute the data-pattern with the right regexes
+  $(`input[data-pattern]`).each(function () {
 
-		// if the pattern is empty thenk skip
+    // if the pattern is empty thenk skip
     const data_pattern = $(this).data('pattern');
-		if (!data_pattern) return;
+    if (!data_pattern) return;
 
-		// build the regexp pattern for the input
-		const pattern = data_pattern.split('|').map(p => REGEXES[p]).join('|');
-		$(this).attr('pattern', pattern);
-		// remove the data-pattern from the input
-		$(this).removeAttr('data-pattern');
+    // build the regexp pattern for the input
+    const pattern = data_pattern.split('|').map(p => REGEXES[p]).join('|');
+    $(this).attr('pattern', pattern);
+    // remove the data-pattern from the input
+    $(this).removeAttr('data-pattern');
 
   });
 }
@@ -825,17 +825,44 @@ function serializeFormArray(serializedArray) {
   return serialized;
 }
 
+
+
 function cleanForm(formSelector) {
   /* remove validation fields and tracks */
-  $(formSelector).find('input,select,textarea').each(function(i, input) {
+  $(formSelector).find('input,select,textarea').each(function (i, input) {
     $(this).removeClass(`is-valid`).removeClass(`is-invalid`);
   });
   /* reset all the values */
   $(formSelector)[0].reset();
 }
 
-$(document).ready(function() {
+/**
+ * Make a fetch call with a timeout option
+ */
+const fetchWithTimeout = (uri, options = {}, time = 5000) => {
+
+  const controller = new AbortController()
+  const config = { ...options, signal: controller.signal }
+  const timeout = setTimeout(() => {
+    controller.abort()
+  }, time)
+
+  return fetch(uri, config)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${response.statusText}`)
+      }
+      return response
+    })
+    .catch((error) => {
+      if (error.name === 'AbortError') {
+        throw new Error('Response timed out')
+      }
+    })
+}
+
+$(document).ready(function () {
   // if there are inputs with 'pattern' data attribute
   // then initialize them
-	init_data_patterns();
+  init_data_patterns();
 });

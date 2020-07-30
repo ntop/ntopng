@@ -52,7 +52,9 @@
     i18n.remove = "{{ i18n('remove') }}";
     i18n.empty_template = "{{ i18n('endpoint_notifications.empty_template') }}";
     i18n.createEndpointFirst = "{{ (#notifications.endpoint_list > 0 and '' or i18n('endpoint_notifications.create_endpoint_first')) }}";
-    i18n.testing_recipient = "{{ i18n('endpoint_notifications.test_recipient') }}"
+    i18n.testing_recipient = "{{ i18n('endpoint_notifications.testing_recipient') }}";
+    i18n.working_recipient = "{{ i18n('endpoint_notifications.working_recipient') }}";
+    i18n.timed_out = "{{ i18n('endpoint_notifications.timed_out') }}";
     i18n.endpoint_recipient_already_existing = "{{ i18n('endpoint_notifications.endpoint_recipient_already_existing') }}";
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js"></script>

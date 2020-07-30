@@ -36,18 +36,11 @@
                     <div class="recipient-template-container p-2">
 
                     </div>
-                    <hr>
-                    <div class="form-group row">
-                        <div class="col-sm-3 text-center">
-                            <button id="add-test-recipient" class="btn btn-secondary w-100">{{ i18n("endpoint_notifications.test_recipient") }}</button>
-                        </div>
-                        <div class="col-sm-9 py-1">
-                            <span style="display: none;" class="test-feedback"></span>
-                        </div>
-                    </div>
                     <span class="invalid-feedback"></span>
+                    <span style="display: none;" class="test-feedback"></span>
                 </div>
                 <div class="modal-footer">
+                    <button id="add-test-recipient" class="btn btn-secondary mr-auto">{{ i18n("endpoint_notifications.test_recipient") }}</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
                     <button type="submit" class="btn btn-primary">{{i18n("add")}}</button>
                 </div>

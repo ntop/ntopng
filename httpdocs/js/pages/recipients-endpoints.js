@@ -30,17 +30,22 @@ $(document).ready(function () {
             .html(`<div class='spinner-border spinner-border-sm'></div> ${i18n.testing_recipient}...`)
             .removeClass(`text-danger`).removeClass(`text-success`).show();
 
-        const request = await fetch(`${http_prefix}/lua/edit_notification_recipient.lua`, {method: 'post', body: JSON.stringify(body)});
-        const {result} = await request.json();
+        try {
 
-        if (result.status == "failed") {
+            const request = await fetchWithTimeout(`${http_prefix}/lua/edit_notification_recipient.lua`, {method: 'post', body: JSON.stringify(body)}, 3000);
+            const {result} = await request.json();
 
-            $feedbackLabel.addClass(`text-danger`).html(result.error.message);
-            return;
+            if (result.status == "failed") {
+                $feedbackLabel.addClass(`text-danger`).html(result.error.message);
+                return;
+            }
+
+            // show a green label to alert the endpoint message
+            $feedbackLabel.addClass('text-success').html(i18n.working_recipient).fadeOut(2000);
         }
-
-        // show a green label to alert the endpoint message
-        $feedbackLabel.addClass('text-success').html('OK').fadeOut(1000);
+        catch (err) {
+            $feedbackLabel.addClass(`text-danger`).html(i18n.timed_out);
+        }
     }
 
     function createTemplateOnSelect(formSelector) {
@@ -141,9 +146,13 @@ $(document).ready(function () {
             /* bind testing button */
             $(`#edit-test-recipient`).off('click').click(async function(e) {
                 e.preventDefault();
+                const $self = $(this);
+                $self.attr("disabled");
                 const data = makeFormData(`#edit-recipient-modal form`);
                 data.endpoint_conf_name = editRowData.endpoint_conf.endpoint_conf_name;
-                await testRecipient(data, $(`#edit-recipient-modal .test-feedback`));
+                testRecipient(data, $(`#edit-recipient-modal .test-feedback`)).then(() => {
+                    $self.removeAttr("disabled");
+                });
             });
         },
         onSubmitSuccess: function (response) {
@@ -206,7 +215,13 @@ $(document).ready(function () {
 
     $(`#add-test-recipient`).click(async function(e) {
         e.preventDefault();
-        await testRecipient(makeFormData(`#add-recipient-modal form`), $(`#add-recipient-modal .test-feedback`));
+
+        const $self = $(this);
+
+        $self.attr("disabled", "disabled");
+        testRecipient(makeFormData(`#add-recipient-modal form`), $(`#add-recipient-modal .test-feedback`)).then(() => {
+            $self.removeAttr("disabled");
+        });
     });
 
     const removeModalHandler = $(`#remove-recipient-modal form`).modalHandler({
