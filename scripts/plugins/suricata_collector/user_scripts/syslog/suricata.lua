@@ -14,6 +14,8 @@ local syslog_module = {
   -- Script category
   category = user_scripts.script_categories.security,
 
+  nedge_exclude = true,
+
   key = "suricata",
 
   -- See below
