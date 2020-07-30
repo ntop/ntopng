@@ -54,15 +54,8 @@
                                 <b>{{ i18n("host_pools.network") }}</b>
                             </label>
                             <div class="col-sm-4">
-                                <input disabled required name="network" class="form-control" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-form-label col-sm-4" >
-                                <b>{{ i18n("host_pools.cidr") }}</b>
-                            </label>
-                            <div class="col-sm-4">
-                                <input disabled required name="cidr" min="1" max="128" class="form-control" placeholder="16" />
+                                <input disabled required name="network" style="width: 69%" class="form-control d-inline" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
+                                <span>/</span> <input disabled required name="cidr" min="1" max="128" class="form-control w-25 d-inline" placeholder="16" />
                             </div>
                         </div>
                         <div class="form-group row">
