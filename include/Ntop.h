@@ -97,9 +97,13 @@ class Ntop {
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
   void loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str);
-  bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
   void cleanShadownDPI();
   void refreshPluginsDir();
+
+  bool getUserPasswordHashLocal(const char * const user, char *password_hash) const;
+  void getUserGroupLocal(const char * const user, char *group) const;
+  bool checkUserPasswordLocal(const char * const user, const char * const password, char *group) const;
+  bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
   
  public:
   /**
