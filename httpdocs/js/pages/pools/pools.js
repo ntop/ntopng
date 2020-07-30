@@ -101,15 +101,24 @@ $(document).ready(function() {
             {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
-                render: function() {
+                render: function(data, type, pool) {
+
+                    let deleteButton = "";
+                    // if the current pool is the default one then don't show the delete button
+                    if (pool.pool_id != defaultPoolId) {
+                        deleteButton = `
+                            <a data-toggle="modal" class="btn btn-danger" href="#remove-pool">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        `;
+                    }
+
                     return (`
                         <div class='btn-group btn-group-sm'>
                             <a data-toggle="modal" class="btn btn-sm btn-info" href="#edit-pool">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a data-toggle="modal" class="btn btn-danger" href="#remove-pool">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                            ${deleteButton}
                         </div>
                     `);
                 }
