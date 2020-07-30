@@ -10,6 +10,7 @@ local alert_utils = require "alert_utils"
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
+local host_pools = require "host_pools"
 
 local do_benchmark = true          -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
@@ -28,7 +29,7 @@ local confisets = nil
 local ifid = nil
 local ts_enabled = nil
 local host_entity = alert_consts.alert_entities.host.entity_id
-local confset_id = nil
+local pools_instance = nil
 
 -- #################################################################
 
@@ -62,6 +63,7 @@ function setup(str_granularity)
    })
 
    configsets = user_scripts.getConfigsets()
+   pools_instance = host_pools:create()
    ts_enabled = areHostTimeseriesEnabled()
 end
 
@@ -107,7 +109,9 @@ function runScripts(granularity)
 
   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
   -- Fetch the actual configset id using the host pool
-  local host_conf, confset_id = user_scripts.getConfigById(configsets, pool_id, "host")
+  local confset_id = pools_instance:get_configset_id_by_pool_id(pool_id)
+  -- Retrieve the configuration associated to the confset_id
+  local host_conf = user_scripts.getConfigById(configsets, confset_id, "host")
   local when = os.time()
 
   for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do

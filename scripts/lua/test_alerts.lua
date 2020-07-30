@@ -22,7 +22,7 @@ end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- checks all the hosts of the current interface (TODO: iterate all interfaces)
--- interface.checkHostsAlerts(true --[[ min --]])
+interface.checkHostsAlerts(true --[[ min --]])
 
 -- checks the current networks alerts
 -- interface.checkNetworksAlertsMin()
@@ -36,7 +36,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 --local snmp_utils = require "snmp_utils"
 --run_5min_snmp_caching(600)
 --dofile(dirs.installdir .. "/pro/scripts/callbacks/system/5min.lua")
-ntop.checkSNMPDeviceAlerts5Min()
+-- ntop.checkSNMPDeviceAlerts5Min()
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 

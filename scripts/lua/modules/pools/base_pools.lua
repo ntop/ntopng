@@ -913,6 +913,28 @@ end
 
 -- ##############################################
 
+-- @param pool_id a valid pool id
+-- @return The configset_id found for the given `pool_id`, or the default configset_id if `pool_id` is not found
+function base_pools:get_configset_id_by_pool_id(pool_id)
+   if not self.pool_id_to_configset_id then
+      -- Prepare the cache
+      self.pool_id_to_configset_id = {}
+   end
+
+   if not self.pool_id_to_configset_id[pool_id] then
+      -- Populate the cache with current pool information
+      self.pool_id_to_configset_id[pool_id] = self:get_pool(pool_id) or {}
+   end
+
+   if self.pool_id_to_configset_id[pool_id]["configset_id"] then
+      return self.pool_id_to_configset_id[pool_id]["configset_id"]
+   end
+
+   return user_scripts.DEFAULT_CONFIGSET_ID
+end
+
+-- ##############################################
+
 -- @param member a valid pool member
 -- @return The pool_id found for `member` or the default pool_id
 function base_pools:get_pool_id(member)
