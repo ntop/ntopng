@@ -2306,6 +2306,39 @@
 					}
 				}
 			}
+		},
+		"lua/pro/rest/v1/delete/ntopng/user.lua": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Delete ntopng user",
+				"description": "Delete a ntopng user",
+				"operationId": "delete_ntopng_user",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "username",
+						"in": "formData",
+						"description": "Username",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-21": {
+						"description": "DELETE_USER_FAILED"
+					}
+				}
+			}
 		}
 	},
 	"definitions": {
