@@ -30,6 +30,8 @@ rest_utils.consts_delete_pool_failed               = -15
 rest_utils.consts_pool_not_found                   = -16
 rest_utils.consts_bind_pool_member_failed          = -17
 rest_utils.consts_bind_pool_member_already_bound   = -18
+rest_utils.consts_password_mismatch                = -19
+rest_utils.consts_add_user_failed                  = -20
 
 local rc_str_consts = {
    [rest_utils.consts_ok] = "OK",
@@ -51,6 +53,8 @@ local rc_str_consts = {
    [rest_utils.consts_pool_not_found] = "POOL_NOT_FOUND",
    [rest_utils.consts_bind_pool_member_failed] = "BIND_POOL_MEMBER_FAILED",
    [rest_utils.consts_bind_pool_member_already_bound] = "BIND_POOL_MEMBER_ALREADY_BOUND",
+   [rest_utils.consts_password_mismatch] = "PASSWORD_MISMATCH",
+   [rest_utils.consts_add_user_failed] = "ADD_USER_FAILED",
 }
 
 function rest_utils.rc(ret_code, response)
