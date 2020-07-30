@@ -15,7 +15,7 @@
                             <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>:
                         </label>
                         <div class="col-sm-5">
-                            <input pattern=".*\S+.*" maxlength="32" minlength="4" required name="name" type="text" class="form-control" id="recipient-name-input">
+                            <input pattern=".*\S+.*" maxlength="32" minlength="4" required name="recipient_name" type="text" class="form-control" id="recipient-name-input">
                         </div>
                     </div>
                     <div class="form-group row">
@@ -32,8 +32,18 @@
                             </select>
                         </div>
                     </div>
-                    <div style="display: none;" class="recipient-template-container border-top pt-2">
+                    <hr>
+                    <div class="recipient-template-container p-2">
 
+                    </div>
+                    <hr>
+                    <div class="form-group row">
+                        <div class="col-sm-3 text-center">
+                            <button id="add-test-recipient" class="btn btn-secondary w-100">{{ i18n("endpoint_notifications.test_recipient") }}</button>
+                        </div>
+                        <div class="col-sm-9 py-1">
+                            <span style="display: none;" class="test-feedback"></span>
+                        </div>
                     </div>
                     <span class="invalid-feedback"></span>
                 </div>

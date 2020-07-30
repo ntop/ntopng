@@ -124,6 +124,11 @@ class AlertNotificationUtils {
                 bg: 'success',
                 text: 'text-white',
                 icon: 'fa-check-circle'
+            },
+            error: {
+                bg: 'danger',
+                text: 'text-white',
+                icon: 'fa-times-circle'
             }
         }
 

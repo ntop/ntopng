@@ -1,11 +1,15 @@
+// @ts-nocheck
 $(document).ready(function () {
+
+    let editRowData = null;
+    let removeRowData = null;
 
     function makeFormData(formSelector) {
 
         const $inputsTemplate = $(`${formSelector} .recipient-template-container [name]`);
 
         const params = {
-            recipient_name: $(`${formSelector} [name='name']`).val(),
+            recipient_name: $(`${formSelector} [name='recipient_name']`).val(),
             endpoint_conf_name: $(`${formSelector} [name='endpoint']`).val()
         };
 
@@ -15,6 +19,28 @@ $(document).ready(function () {
         });
 
         return params;
+    }
+
+    async function testRecipient(data, $feedbackLabel) {
+
+        const body = { action: 'test' };
+        $.extend(body, data);
+
+        $feedbackLabel
+            .html(`<div class='spinner-border spinner-border-sm'></div> ${i18n.testing_recipient}...`)
+            .removeClass(`text-danger`).removeClass(`text-success`).show();
+
+        const request = await fetch(`${http_prefix}/lua/edit_notification_recipient.lua`, {method: 'post', body: JSON.stringify(body)});
+        const {result} = await request.json();
+
+        if (result.status == "failed") {
+
+            $feedbackLabel.addClass(`text-danger`).html(result.error.message);
+            return;
+        }
+
+        // show a green label to alert the endpoint message
+        $feedbackLabel.addClass('text-success').html('OK').fadeOut(1000);
     }
 
     function createTemplateOnSelect(formSelector) {
@@ -91,9 +117,7 @@ $(document).ready(function () {
 
     const $recipientsTable = $(`table#recipient-list`).DataTable(dtConfig);
 
-    let cur_row_data = null;
-
-    const edit_recipient_modal = $('#edit-recipient-modal form').modalHandler({
+    const $editRecipientHandler = $('#edit-recipient-modal form').modalHandler({
         method: 'post',
         csrf: pageCsrf,
         endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
@@ -102,18 +126,24 @@ $(document).ready(function () {
             data.action = 'edit';
             return data;
         },
-        loadFormData: function () {
-            return cur_row_data;
-        },
         onModalInit: function (data) {
+            $(`#edit-recipient-modal .test-feedback`).hide();
             /* load the right template from templates */
             $(`#edit-recipient-modal form .recipient-template-container`)
-                .empty().append(loadTemplate(data.endpoint_conf.endpoint_key));
-            $(`#edit-recipient-name`).text(data.recipient_name);
+                .empty().append(loadTemplate(editRowData.endpoint_conf.endpoint_key));
+            $(`#edit-recipient-name`).text(editRowData.recipient_name);
             /* load the values inside the template */
-            $(`#edit-recipient-modal form [name='name']`).val(data.recipient_name);
+            $(`#edit-recipient-modal form [name='recipient_name']`).val(editRowData.recipient_name);
+            $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(editRowData.endpoint_conf.endpoint_conf_name);
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
-                $(this).val(data.recipient_params[$(this).attr('name')]);
+                $(this).val(editRowData.recipient_params[$(this).attr('name')]);
+            });
+            /* bind testing button */
+            $(`#edit-test-recipient`).off('click').click(async function(e) {
+                e.preventDefault();
+                const data = makeFormData(`#edit-recipient-modal form`);
+                data.endpoint_conf_name = editRowData.endpoint_conf.endpoint_conf_name;
+                await testRecipient(data, $(`#edit-recipient-modal .test-feedback`));
             });
         },
         onSubmitSuccess: function (response) {
@@ -126,8 +156,8 @@ $(document).ready(function () {
 
     /* bind edit recipient event */
     $(`table#recipient-list`).on('click', `a[href='#edit-recipient-modal']`, function (e) {
-        cur_row_data = $recipientsTable.row($(this).parent().parent()).data();
-        edit_recipient_modal.invokeModalInit();
+        editRowData = $recipientsTable.row($(this).parent().parent()).data();
+        $editRecipientHandler.invokeModalInit();
     });
 
     /* bind add endpoint event */
@@ -142,19 +172,23 @@ $(document).ready(function () {
                 $(`#add-recipient-modal form span.invalid-feedback`).hide();
             });
 
+            $(`#add-recipient-modal .test-feedback`).hide();
+
             const data = makeFormData(`#add-recipient-modal form`);
             data.action = 'add';
+
             return data;
         },
         onModalInit: function () {
             createTemplateOnSelect(`#add-recipient-modal`);
         },
-        onModalShow: function() {
+        onModalShow: function () {
             // load the template of the selected endpoint
             $(`#add-recipient-modal form .recipient-template-container`)
                 .empty().append(loadTemplate($(`#add-recipient-modal select[name='endpoint'] option:selected`).data('endpointKey'))).show();
         },
         onSubmitSuccess: function (response) {
+
             if (response.result.status == "OK") {
                 $(`#add-recipient-modal`).modal('hide');
                 $(`#add-recipient-modal form .recipient-template-container`).hide();
@@ -170,7 +204,10 @@ $(document).ready(function () {
         }
     }).invokeModalInit();
 
-    let rowData = null;
+    $(`#add-test-recipient`).click(async function(e) {
+        e.preventDefault();
+        await testRecipient(makeFormData(`#add-recipient-modal form`), $(`#add-recipient-modal .test-feedback`));
+    });
 
     const removeModalHandler = $(`#remove-recipient-modal form`).modalHandler({
         method: 'post',
@@ -178,12 +215,12 @@ $(document).ready(function () {
         endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
         dontDisableSubmit: true,
         onModalInit: function () {
-            $(`.removed-recipient-name`).text(`${rowData.recipient_name}`);
+            $(`.removed-recipient-name`).text(`${removeRowData.recipient_name}`);
         },
         beforeSumbit: function () {
             return {
                 action: 'remove',
-                recipient_name: rowData.recipient_name
+                recipient_name: removeRowData.recipient_name
             }
         },
         onSubmitSuccess: function (response) {
@@ -196,7 +233,7 @@ $(document).ready(function () {
 
     /* bind remove endpoint event */
     $(`table#recipient-list`).on('click', `a[href='#remove-recipient-modal']`, function (e) {
-        rowData = $recipientsTable.row($(this).parent().parent()).data();
+        removeRowData = $recipientsTable.row($(this).parent().parent()).data();
         removeModalHandler.invokeModalInit();
     });
 

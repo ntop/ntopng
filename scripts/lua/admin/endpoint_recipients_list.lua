@@ -10,6 +10,7 @@ local page_utils = require("page_utils")
 local template = require "template_utils"
 local json = require "dkjson"
 local plugins_utils = require("plugins_utils")
+local menu_alert_notifications = require("menu_alert_notifications")
 local notification_configs = require("notification_configs")
 local endpoints = notification_configs.get_configs()
 
@@ -23,6 +24,9 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.endpoint_recipients)
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+-- print a notification container used by the AJAX operations
+menu_alert_notifications.render_notifications('recipients', {})
+
 page_utils.print_page_title(i18n("endpoint_notifications.recipient_list"))
 
 -- Prepare the response
