@@ -22,16 +22,16 @@ end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- checks all the hosts of the current interface (TODO: iterate all interfaces)
-interface.checkHostsAlertsMin()
+-- interface.checkHostsAlerts(true --[[ min --]])
 
 -- checks the current networks alerts
-interface.checkNetworksAlertsMin()
+-- interface.checkNetworksAlertsMin()
 
 -- checks the current interface alerts
-interface.checkInterfaceAlertsMin()
+-- interface.checkInterfaceAlertsMin()
 
 -- run the system scripts
-ntop.checkSystemScriptsMin()
+-- ntop.checkSystemScriptsMin()
 
 --local snmp_utils = require "snmp_utils"
 --run_5min_snmp_caching(600)
