@@ -101,7 +101,6 @@ class Ntop {
   void refreshPluginsDir();
 
   bool getUserPasswordHashLocal(const char * const user, char *password_hash) const;
-  void getUserGroupLocal(const char * const user, char *group) const;
   bool checkUserPasswordLocal(const char * const user, const char * const password, char *group) const;
   bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
   
@@ -491,6 +490,9 @@ class Ntop {
 #endif
   inline bool hasDroppedPrivileges()         { return(privileges_dropped); }
   inline void setDroppedPrivileges()         { privileges_dropped = true; }
+
+  void getUserGroupLocal(const char * const user, char *group) const;
+  bool existsUserLocal(const char * const user) { char val[64]; return getUserPasswordHashLocal(user, val); }
 };
 
 extern Ntop *ntop;

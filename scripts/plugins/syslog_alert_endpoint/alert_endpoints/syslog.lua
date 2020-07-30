@@ -101,7 +101,14 @@ end
 -- ##############################################
 
 function syslog.runTest(recipient)
-  local success = syslog.sendMessage({}, "info", recipient.endpoint_conf.endpoint_conf.syslog_alert_format)
+  local now = os.time()
+  local notif = {
+    alert_tstamp = now,
+    alert_entity = "test",
+  }
+
+  local success = syslog.sendMessage(notif, "info", recipient.endpoint_conf.endpoint_conf.syslog_alert_format)
+
   local message_info = i18n("prefs.syslog_sent_successfully")
   return success, message_info
 end

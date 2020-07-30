@@ -1328,7 +1328,7 @@ bool Ntop::checkUserPasswordLocal(const char * const user, const char * const pa
      (!strcmp(val, password)))
     goto valid_local_user;
 
-  if (getUserPasswordHashLocal(user, val)) {
+  if (!getUserPasswordHashLocal(user, val)) {
     return(false);
   } else {
     mg_md5(password_hash, password, NULL);

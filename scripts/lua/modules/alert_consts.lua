@@ -302,7 +302,7 @@ function alert_consts.alertEntity(v)
    return(alert_consts.alert_entities[v].entity_id)
 end
 
-function alert_consts.alertEntityLabel(v, nothml)
+function alert_consts.alertEntityLabel(v)
   local entity_id = alert_consts.alertEntityRaw(v)
 
   if(entity_id) then
