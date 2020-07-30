@@ -2007,6 +2007,34 @@ static int ntop_clear_user_lifetime(lua_State* vm) {
   return CONST_LUA_OK;
 }
 
+/* ******************************************* */
+
+static int ntop_create_user_session(lua_State* vm) {
+  char *username;
+  char session_id[NTOP_SESSION_ID_LENGTH];
+  
+  session_id[0] = '\0';
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(strlen(username) == 0)
+    return(CONST_LUA_PARAM_ERROR);
+
+  /* Admin or the same user is allowed to get a session */
+  if(!ntop->isUserAdministrator(vm)) {
+    char *curr_user = getLuaVMUserdata(vm,user);
+
+    if (strcmp(curr_user, username) != 0)
+      return(CONST_LUA_ERROR);
+  }
+  
+  ntop->get_HTTPserver()->authorize_noconn(username, session_id, sizeof(session_id));
+
+  lua_pushstring(vm, session_id);
+  return CONST_LUA_OK;
+}
+
 /* ****************************************** */
 
 static int ntop_delete_user(lua_State* vm) {
@@ -5587,6 +5615,7 @@ static const luaL_Reg ntop_reg[] = {
   { "addUserLifetime",      ntop_add_user_lifetime },
   { "clearUserLifetime",    ntop_clear_user_lifetime },
   { "deleteUser",           ntop_delete_user },
+  { "createUserSession",    ntop_create_user_session },
   { "isLoginDisabled",      ntop_is_login_disabled },
   { "isLoginBlacklisted",   ntop_is_login_blacklisted },
   { "getNetworkNameById",   ntop_network_name_by_id },

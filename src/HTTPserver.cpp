@@ -750,15 +750,15 @@ static void redirect_to_password_change(struct mg_connection *conn,
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
-    mg_printf(conn,
-	      "HTTP/1.1 302 Found\r\n"
-	      "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
-	      "Location: %s%s%s%s\r\n\r\n", /* FIX */
-	      session_id,
-	      get_secure_cookie_attributes(request_info),
-	      ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
-	      (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
-	      (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
+  mg_printf(conn,
+	    "HTTP/1.1 302 Found\r\n"
+	    "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
+	    "Location: %s%s%s%s\r\n\r\n", /* FIX */
+	    session_id,
+	    get_secure_cookie_attributes(request_info),
+	    ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
+	    (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
+	    (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
 
   if(referer_enc)
     free(referer_enc);
@@ -772,7 +772,6 @@ static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username, char *group, bool *localuser) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
-
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -818,6 +817,30 @@ static void authorize(struct mg_connection *conn,
     strncpy(username, user, NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
   }
+}
+
+/* ****************************************** */
+
+// Used to retrieve a session cookie for third-party users via REST API
+// Note: there is no connection directly tied to this request (out of bound)
+bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int session_id_size) {
+  char group[NTOP_GROUP_MAXLEN] = { 0 };
+  u_int session_duration = 0;
+
+  /* Note: we are not checking the user password as the admin
+   * or the same (authenticated) user is generating the session */
+  if (ntop->existsUserLocal(username)) {
+
+    strncpy(group, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN-1);
+    group[NTOP_GROUP_MAXLEN - 1] = '\0';
+    ntop->getUserGroupLocal(username, group);
+
+    create_session(username, group, true, session_id, session_id_size, &session_duration);
+
+    return(true);
+  }
+
+  return(false);
 }
 
 /* ****************************************** */
