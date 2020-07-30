@@ -181,6 +181,14 @@ $(document).ready(function() {
         resetAfterSubmit: false,
         onModalInit: function() {
 
+            // disable pool name field if we are editing the default pool
+            if (poolRowData.pool_id == defaultPoolId) {
+                $(`#edit-pool form input[name='name']`).attr("readonly", "true");
+            }
+            else {
+                $(`#edit-pool form input[name='name']`).removeAttr("readonly");
+            }
+
             sortSelectByValue(`#edit-pool form select[name='members']`);
 
             // disable all the options whose have a data-pool-id attribute
@@ -249,12 +257,12 @@ $(document).ready(function() {
                 $(`option[data-pool-id='${poolRowData.pool_id}']`).each(function() {
                     const value = $(this).val();
                     if (poolType != "host")
-                        $(this).text(`${all_members[value].name} (${i18n.used_by} ${newPoolName})`)
+                        $(this).text(`${all_members[value].name || value} (${i18n.used_by} ${newPoolName})`)
                 });
             }
 
             // the host pool modals don't have any members
-            if (poolType != "host") {
+            if (poolType != "host" && poolRowData.pool_id != defaultPoolId) {
                 // get the newMembers and the oldMembers and create two subset of them
                 const oldMembers = poolRowData.members;
                 const newMembers = $(`#edit-pool form select[name='members']`).val();
