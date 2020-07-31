@@ -73,6 +73,7 @@ $(document).ready(function() {
             },
             {
                 data: null,
+                orderable: false,
                 width: "40%",
                 render: function(data, type, row) {
 
