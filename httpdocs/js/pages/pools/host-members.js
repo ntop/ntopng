@@ -127,7 +127,11 @@ $(document).ready(function () {
                 const value = $(this).val();
                 // clean the members and show the selected one
                 $(`#add-member-modal [class*='fields']`).hide()
-                    .find('input,select').attr("disabled", true).removeClass('is-invalid').val('');
+                    .find('input,select').attr("disabled", true).removeClass('is-invalid');
+                $(`#add-member-modal [class*='fields'] input`).val("");
+                // select the default value inside the selected
+                $(`#add-member-modal [class*='fields'] select`).val($(`#add-member-modal [class*='fields'] select option[selected]`).val());
+                $(`#add-member-modal [class*='fields'] select option`).removeAttr("disabled");
 
                 $(`#add-member-modal [class='${value}-fields']`).fadeIn().find('input,select').removeAttr("disabled");
             });
@@ -170,6 +174,22 @@ $(document).ready(function () {
             $(`#add-member-modal`).modal('hide');
         }
     }).invokeModalInit();
+
+    // disable the cidr (from 33 to 127) if the address is ipv4
+    $(`#add-member-modal .network-fields [name='network']`).keyup(function()  {
+
+        const val = $(this).val();
+
+        if (is_good_ipv4(val)) {
+            for (let i = 33; i <= 127; i++) {
+                $(`#add-member-modal .network-fields [name='cidr'] option[value=${i}]`).attr("disabled", true);
+            }
+        }
+        else if (is_good_ipv6(val)) {
+            $(`#add-member-modal .network-fields [name='cidr'] option[value=]`).removeAttr("disabled");
+        }
+
+    });
 
     const $removeModalHandler = $(`#remove-member-host-pool form`).modalHandler({
         method: 'post',

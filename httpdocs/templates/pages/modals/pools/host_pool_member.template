@@ -54,8 +54,14 @@
                                 <b>{{ i18n("host_pools.network") }}</b>
                             </label>
                             <div class="col-sm-4">
-                                <input disabled required name="network" style="width: 69%" class="form-control d-inline" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
-                                <span>/</span> <input disabled required name="cidr" type="number" min="1" max="127" class="form-control w-25 d-inline" placeholder="16" />
+                                <input disabled required name="network" class="form-control d-inline" placeholder="172.16.0.0" data-pattern="ipv4|ipv6" />
+                            </div>
+                            <div class="col-sm-2 pl-0">
+                                <select disabled required name="cidr" class="form-control">
+                                {% for i = 1, 127 do %}
+                                    <option {{( i == 24 and 'selected' or '')}} value="{{ i }}">/{{i}}</option>
+                                {% end %}
+                                </select>
                             </div>
                         </div>
                         <div class="form-group row">
