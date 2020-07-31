@@ -121,6 +121,7 @@ class DataTableUtils {
 
         const filterKey = title.toLowerCase().split(" ").join("_");
         const dropdownId = `${filterKey}-filter-menu`;
+
         const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline'></div>`);
         const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
         const $dropdownTitle = $(`<span>${title}</span>`);
@@ -156,13 +157,16 @@ class DataTableUtils {
                 $dropdownButton, $menuContainer.prepend($allEntry)
             )
         );
+
+        DataTableUtils.setCurrentFilter(tableAPI, filterKey);
     }
 
     /**
      * For each filter object set the previous filter's state
      * @param {object} tableAPI
+     * @param {string} filterKey The filter's key to set inside the Datatable
      */
-    static setCurrentFilter(tableAPI) {
+    static setCurrentFilter(tableAPI, filterKey) {
 
         if (!tableAPI.state) return;
         if (!tableAPI.state.loaded()) return;
@@ -171,16 +175,14 @@ class DataTableUtils {
         const filters = tableAPI.state.loaded().filters;
         if (!filters) return;
 
-        for (let [key, value] of Object.entries(filters)) {
+        const filter = filters[filterKey];
+        if (!filter) return;
 
-            // if the all value was selected the do nothing
-            if (value == "all") continue;
-
-            const entry = $(`li[data-filter-key='${value}']`);
-            entry.addClass('active');
-            // change the dropdown main content
-            $(`#${key}-filter-menu button`).prepend(`<i class='fas fa-filter'></i>`).find(`span`).html(entry.text());
-        }
+        // highlight the previous filter selected
+        const $entry = $(`#${filterKey}-filter-menu li[data-filter-key='${filter}']`).addClass('active');
+        // change the dropdown main content
+        if (filter != "all")
+            $(`#${filterKey}-filter-menu button`).prepend(`<i class='fas fa-filter'></i>`).find(`span`).html($entry.text());
 
         // save the current table state
         tableAPI.state.save();

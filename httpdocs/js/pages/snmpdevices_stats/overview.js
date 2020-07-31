@@ -6,8 +6,10 @@
 
 $(document).ready(function () {
 
-    let snmpDeviceRowData;
-    const POOL_COLUMN_INDEX = 9;
+    let snmpDeviceRowData = null;
+
+    const RESPONSIVE_COLUMN_INDEX = 0;
+    const POOL_COLUMN_INDEX = 2;
     // define a constant for the snmp version dropdown value
     const SNMP_VERSION_THREE = 2;
 
@@ -15,7 +17,7 @@ $(document).ready(function () {
 
     const addResponsivenessFilter = (tableAPI) => {
         DataTableUtils.addFilterDropdown(
-            i18n.snmp.device_responsiveness, responsivenessFilters, 0, '#table-devices_filter', tableAPI
+            i18n.snmp.device_responsiveness, responsivenessFilters, RESPONSIVE_COLUMN_INDEX, '#table-devices_filter', tableAPI
         );
     }
 
@@ -160,11 +162,6 @@ $(document).ready(function () {
                 render: $.fn.dataTableExt.formatSecondsToHHMMSS
             },
             {
-                data: "column_pool_id",
-                visible: false,
-                sorting: false
-            },
-            {
                 targets: -1,
                 visible: isAdministrator,
                 className: 'text-center',
@@ -193,7 +190,6 @@ $(document).ready(function () {
             // append the responsive filter for the table
             addResponsivenessFilter(tableAPI);
             addPoolFilters(tableAPI);
-            DataTableUtils.setCurrentFilter(tableAPI);
 
             setInterval(() => { tableAPI.ajax.reload(toggleSnmpTableButtons, false); }, 30000);
 
