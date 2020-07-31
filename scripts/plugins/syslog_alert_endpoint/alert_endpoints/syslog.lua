@@ -56,6 +56,8 @@ function syslog.sendMessage(notif, severity, syslog_format)
    end
 
    ntop.syslog(msg, syslog_severity)
+
+   return true
 end
 
 -- ##############################################
