@@ -2347,8 +2347,7 @@ function alert_utils.processAlertNotifications(now, periodic_frequency, force_ex
       ::continue::
    end
 
-   notification_recipients.processNotifications(now, periodic_frequency)   
-
+   notification_recipients.processNotifications(now, periodic_frequency)
 end
 
 -- ##############################################

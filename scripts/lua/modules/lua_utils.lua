@@ -2767,26 +2767,6 @@ end
 
 -- ####################################################
 
--- @brief Get the frontend timezone offset in seconds
--- @return The offset of the frontend timezone
-function getFrontendTzSeconds()
-  local frontend_tz_offset = nil
-
-  if _COOKIE and _COOKIE.tzoffset then
-    -- The timezone offset can be passed from the client as a cookie.
-    -- This allows to format the dates in the frontend timezone.
-    frontend_tz_offset = tonumber(_COOKIE.tzoffset)
-  end
-
-   if frontend_tz_offset == nil then
-      return 0
-   end
-
-   return frontend_tz_offset
-end
-
--- ####################################################
-
 -- @brief The difference, in seconds, between the local time of this instance and GMT
 local server_timezone_diff_seconds
 
@@ -2799,11 +2779,33 @@ local function get_server_timezone_diff_seconds()
       local d2 = os.date("!*t", tmp_time)
       -- Forcefully set isdst to false otherwise difference won't work during DST
       d1.isdst = false
-      -- Use a minus to have the difference between loca ltime and GMT, rather than between GMT and loca ltime
+      -- Use a minus to have the difference between local time and GMT, rather than between GMT and loca ltime
       server_timezone_diff_seconds = -os.difftime(os.time(d1), os.time(d2))
    end
 
    return server_timezone_diff_seconds
+end
+
+-- ####################################################
+
+-- @brief Get the frontend timezone offset in seconds
+-- @return The offset of the frontend timezone
+function getFrontendTzSeconds()
+  local frontend_tz_offset = nil
+
+  if _COOKIE and _COOKIE.tzoffset then
+    -- The timezone offset can be passed from the client as a cookie.
+    -- This allows to format the dates in the frontend timezone.
+    frontend_tz_offset = tonumber(_COOKIE.tzoffset)
+  end
+
+  if frontend_tz_offset == nil then
+     -- If timezone is not available in the client _COOKIE,
+     -- server timezone is used as fallback
+     return -get_server_timezone_diff_seconds()
+  end
+
+   return frontend_tz_offset
 end
 
 -- ####################################################
