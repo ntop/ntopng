@@ -19,7 +19,7 @@ local pool_id_get = _GET["pool"]
 -- show the first host pool in the page
 -- otherwise it means there are no host pools and then
 -- show an alert
-if #all_pools > 0 and pool_id_get == nil then
+if #all_pools > 1 and pool_id_get == nil then
     pool_id_get = all_pools[2].pool_id
 elseif #all_pools == 0 then
     pool_id_get = 0
