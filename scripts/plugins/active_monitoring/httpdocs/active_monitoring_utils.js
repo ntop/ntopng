@@ -47,7 +47,7 @@ $(document).ready(function() {
                     title: i18n.success,
                     body: response.message,
                     level: 'success',
-                    delay: 1500,
+                    delay: 3000,
                     id: 'am-delete'
                 });
                 $am_table.ajax.reload();
@@ -118,7 +118,7 @@ $(document).ready(function() {
                     title: i18n.success,
                     body: response.message,
                     level: 'success',
-                    delay: 1500,
+                    delay: 3000,
                     id: 'am-edit'
                 });
 
@@ -438,7 +438,7 @@ $(document).ready(function() {
                     title: i18n.success,
                     body: response.message,
                     level: 'success',
-                    delay: 1500,
+                    delay: 3000,
                     id: 'am-add'
                 });
 
