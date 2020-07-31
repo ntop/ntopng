@@ -467,6 +467,10 @@ function base_pools:get_pool(pool_id)
 	       pool_details["configset_details"] = {name = config_sets[configset_id]["name"]}
 	    end
 	 end
+
+         if not pool_details["recipients"] then
+            pool_details["recipients"] = {}
+         end
       end
    end
 
