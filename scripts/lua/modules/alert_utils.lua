@@ -2160,9 +2160,12 @@ function alert_utils.formatAlertNotification(notif, options)
    }
    options = table.merge(defaults, options)
 
-   local msg = "[" .. formatEpoch(notif.alert_tstamp or 0) .. "]"
-   msg = msg .. ternary(options.show_severity == false, "", "[" .. alert_consts.alertSeverityLabel(notif.alert_severity, options.nohtml) .. "]") ..
-      "[" .. alert_consts.alertTypeLabel(notif.alert_type, options.nohtml) .."]"
+   local msg = string.format("[%s][%d][%s]%s[%s]",
+			     formatEpoch(notif.alert_tstamp or 0),
+			     notif.ifid,
+			     getInterfaceName(notif.ifid),
+			     ternary(options.show_severity == false, "", "[" .. alert_consts.alertSeverityLabel(notif.alert_severity, options.nohtml) .. "]"),
+			     alert_consts.alertTypeLabel(notif.alert_type, options.nohtml))
 
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
