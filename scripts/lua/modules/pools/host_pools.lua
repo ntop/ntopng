@@ -281,7 +281,8 @@ function host_pools:get_pool(pool_id)
    local recipients = self:_get_pool_detail(pool_id, "recipients")
    if recipients then
       recipients = json.decode(recipients)
-   else
+   end
+   if not recipients then
       recipients = {}
    end
 

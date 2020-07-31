@@ -689,11 +689,13 @@ function base_pools:unbind_all_recipient_id(recipient_id)
 
 	 -- New recipients (all pool recipients except for the one being removed)
 	 local new_recipients = {}
-	 for _, cur_recipient in pairs(pool["recipients"]) do
-	    if cur_recipient ~= recipient_id then
-	       new_recipients[#new_recipients + 1] = cur_recipient
-            else
-               found = true
+         if pool["recipients"] then
+	    for _, cur_recipient in pairs(pool["recipients"]) do
+	       if cur_recipient ~= recipient_id then
+	          new_recipients[#new_recipients + 1] = cur_recipient
+               else
+                  found = true
+               end
 	    end
 	 end
 
