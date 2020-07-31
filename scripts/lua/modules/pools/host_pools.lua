@@ -273,12 +273,16 @@ function host_pools:get_pool(pool_id)
       for _, member in pairs(members) do
          member_details[member] = self:get_member_details(member)
       end
+   else
+      members = {}
    end
 
    -- Recipients
    local recipients = self:_get_pool_detail(pool_id, "recipients")
    if recipients then
       recipients = json.decode(recipients)
+   else
+      recipients = {}
    end
 
    local pool_details = {
