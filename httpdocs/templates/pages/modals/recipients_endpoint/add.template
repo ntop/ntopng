@@ -32,8 +32,7 @@
                             </select>
                         </div>
                     </div>
-                    <hr>
-                    <div class="recipient-template-container p-2">
+                    <div class="recipient-template-container p-2 border-top" style="display: none;">
 
                     </div>
                     <span class="invalid-feedback"></span>

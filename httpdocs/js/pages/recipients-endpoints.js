@@ -56,7 +56,9 @@ $(document).ready(function () {
             const $option = $(this).find(`option[value='${$(this).val()}']`);
             const $cloned = loadTemplate($option.data('endpointKey'));
             // show the template inside the modal container
-            $templateContainer.empty().append($cloned).fadeIn();
+            $templateContainer.hide().empty();
+            if ($cloned)
+                $templateContainer.append($cloned).fadeIn();
         });
     }
 
@@ -66,8 +68,8 @@ $(document).ready(function () {
         // if the template is not empty then return a copy of the template content
         if (template.trim() != "")
             return $(template);
-        // othwerise return a message informing the user there is no inputs to fill
-        return $(`<p class='text-center text-muted my-2'>${i18n.empty_template}</p>`);
+
+        return null;
     }
 
 
@@ -133,9 +135,11 @@ $(document).ready(function () {
         },
         onModalInit: function (data) {
             $(`#edit-recipient-modal .test-feedback`).hide();
+            const $cloned = loadTemplate(editRowData.endpoint_conf.endpoint_key);
             /* load the right template from templates */
-            $(`#edit-recipient-modal form .recipient-template-container`)
-                .empty().append(loadTemplate(editRowData.endpoint_conf.endpoint_key));
+            if ($cloned) {
+                $(`#edit-recipient-modal form .recipient-template-container`).empty().append($cloned).show();
+            }
             $(`#edit-recipient-name`).text(editRowData.recipient_name);
             /* load the values inside the template */
             $(`#edit-recipient-modal form [name='recipient_name']`).val(editRowData.recipient_name);
@@ -193,8 +197,10 @@ $(document).ready(function () {
         },
         onModalShow: function () {
             // load the template of the selected endpoint
-            $(`#add-recipient-modal form .recipient-template-container`)
-                .empty().append(loadTemplate($(`#add-recipient-modal select[name='endpoint'] option:selected`).data('endpointKey'))).show();
+            const $cloned = loadTemplate($(`#add-recipient-modal select[name='endpoint'] option:selected`).data('endpointKey'));
+            if ($cloned) {
+                $(`#add-recipient-modal form .recipient-template-container`).empty().append($cloned).show();
+            }
         },
         onSubmitSuccess: function (response) {
 
