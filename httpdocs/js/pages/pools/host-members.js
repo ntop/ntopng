@@ -118,6 +118,9 @@ $(document).ready(function () {
             // hide the fields and select default type entry
             const macAndNetworkFields = "#add-member-modal .mac-fields, #add-member-modal .network-fields";
             $(macAndNetworkFields).hide();
+
+            $(`#add-member-modal .ip-fields`).show().find(`input,select`).removeAttr("disabled");
+
             $(`#add-modal-feedback`).hide();
         },
         onModalInit: function () {
@@ -148,7 +151,8 @@ $(document).ready(function () {
 
                 const ipAddress = $(`#add-member-modal input[name='ip_address']`).val();
                 const vlan = $(`#add-member-modal input[name='ip_vlan']`).val() || 0;
-                member = `${ipAddress}/32@${vlan}`;
+                const cidr = is_good_ipv6(ipAddress) ? 128 : 32;
+                member = `${ipAddress}/${cidr}@${vlan}`;
             }
             else {
 
