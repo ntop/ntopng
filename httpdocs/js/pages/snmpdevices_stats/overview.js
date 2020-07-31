@@ -193,6 +193,7 @@ $(document).ready(function () {
             // append the responsive filter for the table
             addResponsivenessFilter(tableAPI);
             addPoolFilters(tableAPI);
+            DataTableUtils.setCurrentFilter(tableAPI);
 
             setInterval(() => { tableAPI.ajax.reload(toggleSnmpTableButtons, false); }, 30000);
 

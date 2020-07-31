@@ -156,8 +156,6 @@ class DataTableUtils {
                 $dropdownButton, $menuContainer.prepend($allEntry)
             )
         );
-
-        DataTableUtils.setCurrentFilter(tableAPI);
     }
 
     /**
