@@ -46,7 +46,7 @@
 
                                     {# If a member is assigned then write who is using it and disable it #}
                                     {% if (pool.assigned_members[key] ~= nil) then %}
-                                        <option data-pool-id="{{pool.assigned_members[key]["pool_id"]}}" disabled value="{{key}}">
+                                        <option data-pool-id="{{pool.assigned_members[key]['pool_id']}}" disabled value="{{key}}">
                                             {{ name }} ({{ pool.instance:get_pool(pool.assigned_members[key]["pool_id"]).name}})
                                         </option>
                                     {% else %}
@@ -100,8 +100,8 @@
                                 {* i18n("howto_multiselect") *}
                             </small>
                         </div>
+                        </div>
                         {% end %}
-                    </div>
                     <span class="invalid-feedback" id="{{ modal_type }}-modal-feedback"></span>
                 </div>
                 <div class="modal-footer">
