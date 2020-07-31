@@ -504,7 +504,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
       return false;
     break;
   case IPV4_NEXT_HOP:
-    if(strcmp(value->string, "0.0.0.0"))
+    if(value->string && strcmp(value->string, "0.0.0.0"))
       return false;
     break;
   case SRC_AS:
