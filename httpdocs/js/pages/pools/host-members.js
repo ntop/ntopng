@@ -183,8 +183,13 @@ $(document).ready(function () {
     $(`#add-member-modal .network-fields [name='network']`).keyup(function()  {
 
         const val = $(this).val();
+        const $cidr = $(`#add-member-modal .network-fields [name='cidr']`);
+        const isIPv4 = is_good_ipv4(val);
 
-        if (is_good_ipv4(val)) {
+        // bound the value to the default cidr for IPv4 addresses
+        if (isIPv4 && $cidr.val() > 32) $cidr.val(24);
+
+        if (isIPv4) {
             for (let i = 33; i <= 127; i++) {
                 $(`#add-member-modal .network-fields [name='cidr'] option[value=${i}]`).attr("disabled", true);
             }
