@@ -5,17 +5,17 @@ A number of packages has to be installed to satisfy build dependencies.
 Let's start with GNU build tools:
 
 # pkg_add autoconf-2.69p2
-# pkg_add autogen-5.8.7p4
+# pkg_add autogen-5.8.7p7
 # pkg_add automake-1.9.6p12
-# pkg_add gettext-0.19.7
-# pkg_add gmake-4.2.1
+# pkg_add gmake-4.3
 # pkg_add libtool-2.4.2p0
-
+# pkg_add libmaxminddb-1.4.2p0
+# pkg_add mariadb-server-10.4.13v1
 
 Then we have to install client libraries, llvm compiler, and of course git.
 
 # pkg_add wget
-# pkg_add json-c-0.12p1 mysqlcc GeoIP rrdtool llvm git
+# pkg_add json-c-0.13.1 rrdtool llvm git
 
 
 git clone and build
