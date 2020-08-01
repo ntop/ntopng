@@ -156,7 +156,7 @@ PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
             AC_MSG_RESULT(found $NDPI_LIB)
          else
             AC_MSG_RESULT(not found $NDPI_LIB: compiling)
-            cd $NDPI_HOME; ./autogen.sh; make; cd -
+            cd $NDPI_HOME; ./autogen.sh; $GMAKE; cd -
          fi
          NDPI_INC="-I$NDPI_HOME/src/include -I$NDPI_HOME/src/lib/third_party/include"
          NDPI_LIB=$NDPI_HOME/src/lib/libndpi.a
