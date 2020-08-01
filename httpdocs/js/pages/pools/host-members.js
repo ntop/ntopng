@@ -179,27 +179,6 @@ $(document).ready(function () {
         }
     }).invokeModalInit();
 
-    // disable the cidr (from 33 to 127) if the address is ipv4
-    $(`#add-member-modal .network-fields [name='network']`).keyup(function()  {
-
-        const val = $(this).val();
-        const $cidr = $(`#add-member-modal .network-fields [name='cidr']`);
-        const isIPv4 = is_good_ipv4(val);
-
-        // bound the value to the default cidr for IPv4 addresses
-        if (isIPv4 && $cidr.val() > 32) $cidr.val(24);
-
-        if (isIPv4) {
-            for (let i = 33; i <= 127; i++) {
-                $(`#add-member-modal .network-fields [name='cidr'] option[value=${i}]`).attr("disabled", true);
-            }
-        }
-        else if (is_good_ipv6(val)) {
-            $(`#add-member-modal .network-fields [name='cidr'] option[value=]`).removeAttr("disabled");
-        }
-
-    });
-
     const $removeModalHandler = $(`#remove-member-host-pool form`).modalHandler({
         method: 'post',
         csrf: removeCsrf,
