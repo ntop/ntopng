@@ -36,11 +36,8 @@ $(document).ready(function() {
                     const flat = data.map((f) => f.label);
                     return flat.join(', ');
                 }
-                else if (type == 'display' && data.length == 0 && row.id != 0) {
+                else if (type == 'display' && data.length == 0) {
                     return `<i>${i18n.no_pools_applied}</i>`
-                }
-                else if (type == "display" && row.id == 0) {
-                    return `<i>${i18n.default}</i>`;
                 }
 
                 // return pools as a string
