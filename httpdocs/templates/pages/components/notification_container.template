@@ -1,5 +1,5 @@
-<div class="notification-container" {{ (container_id == nil and "" or "id=".. container_id .."") }}>
+<div class="notification-container flex-column d-flex align-items-end" {{ (container_id == nil and "" or "id=".. container_id .."") }}>
     {% for key, notification in ipairs(notifications) do %}
-    {* notification:render() *}
+        {* notification:render() *}
     {% end %}
 </div>

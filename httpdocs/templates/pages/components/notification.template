@@ -5,18 +5,18 @@
         <strong class="mr-auto">
             <i class="fas {{ style.icon }}"></i> {{ content.title }}
         </strong>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
-    <div class="toast-body bg-{{ style.bg_color }} {{ style.body_text_color }}">
-        <p>
-            {* content.body *}
-            {% if (content.action) then %}
-                <br>
-                <br>
-                <a class="{{ style.title_text_color }} float-right ml-auto" href="{{ content.action.url }}">
-                    {{ content.action.title }}
-                </a>
-            {% end %}
-        </p>
-
+    <div class="toast-body">
+        <p>{* content.body *}</p>
+        {% if (content.action) then %}
+        <div class="w-100 clearfix">
+            <a class="my-1 btn btn-light btn-sm float-right" href="{{ content.action.url }}">
+                {{ content.action.title }}
+            </a>
+        </div>
+        {% end %}
     </div>
 </div>

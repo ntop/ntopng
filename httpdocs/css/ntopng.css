@@ -1227,16 +1227,21 @@ td.dt-body-right {
   overflow-y: scroll;
 }
 
+.toast {
+  width: 350px;
+}
+.toast p {
+  word-break: break-all;
+}
 .toast:not(:last-child) {
   margin-bottom: .2rem;
 }
 
 .notification-container {
-  position: absolute;
-  top: 4rem;
-  right: 1rem;
+  position: fixed;
+  top: 70px;
+  right: 12px;
   z-index: 950;
-  width: 20%;
 }
 
 .blog-section {
