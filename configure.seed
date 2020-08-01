@@ -555,7 +555,7 @@ dnl> Remove spaces
 OS="${OS#"${OS%%[![:space:]]*}"}"
 
 AC_CHECK_LIB([maxminddb], [MMDB_lookup_sockaddr])
-AC_HAVE_HEADERS(maxminddb.h)
+AC_CHECK_HEADERS(maxminddb.h)
 if test ".${ac_cv_lib_maxminddb_MMDB_lookup_sockaddr}" = ".yes" &&
    test ".${ac_cv_header_maxminddb_h}" = ".yes"; then
    DOWNLOAD_GEOIP=1
