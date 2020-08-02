@@ -1589,6 +1589,11 @@ void Flow::updateThroughputStats(float tdiff_msec,
 
 /* *************************************** */
 
+void Flow::periodic_stats_update(const struct bpf_timeval *tv) {
+	struct timeval tv_ = Utils::bpfTimevalToTimeval(tv);
+	return Flow::periodic_stats_update(&tv_);
+}
+
 void Flow::periodic_stats_update(const struct timeval *tv) {
   bool first_partial;
   PartializableFlowTrafficStats partial;

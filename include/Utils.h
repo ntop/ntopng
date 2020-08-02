@@ -57,7 +57,9 @@ public:
   static char* trim(char *s);
   static u_int32_t hashString(const char * const s);
   static float timeval2ms(const struct timeval *tv);
+  static float timeval2ms(const struct bpf_timeval *tv);
   static float msTimevalDiff(const struct timeval *end, const struct timeval *begin);
+  static float msTimevalDiff(const struct bpf_timeval *end, const struct timeval *begin);
   static u_int32_t usecTimevalDiff(const struct timeval *end, const struct timeval *begin);
   static size_t file_write(const char *path, const char *content, size_t content_len);
   static size_t file_read(const char *path, char **content);
@@ -229,6 +231,10 @@ public:
   static int snappend(char *str, size_t size, const char *tobeappended, const char *separator);
   static bool isNumber(const char *s, unsigned int s_len, bool *is_float);
   static bool isPingSupported();
+#ifdef __OpenBSD__
+  static struct timeval bpfTimevalToTimeval(const struct bpf_timeval tv);
+  static struct timeval bpfTimevalToTimeval(const struct bpf_timeval *tv);
+#endif
 };
 
 #endif /* _UTILS_H_ */

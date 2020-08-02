@@ -427,6 +427,10 @@ u_int32_t Utils::hashString(const char * const key) {
 
 /* ****************************************************** */
 
+float Utils::timeval2ms(const struct bpf_timeval *tv) {
+  return((float)tv->tv_sec*1000+(float)tv->tv_usec/1000);
+}
+
 float Utils::timeval2ms(const struct timeval *tv) {
   return((float)tv->tv_sec*1000+(float)tv->tv_usec/1000);
 }
@@ -457,6 +461,11 @@ u_int32_t Utils::usecTimevalDiff(const struct timeval *end, const struct timeval
 }
 
 /* ****************************************************** */
+
+static float msTimevalDiff(const struct bpf_timeval *end, const struct timeval *begin) {
+	struct timeval end_ = Utils::bpfTimevalToTimeval(end);
+	return msTimevalDiff(&end_, begin);
+}
 
 float Utils::msTimevalDiff(const struct timeval *end, const struct timeval *begin) {
   if((end->tv_sec == 0) && (end->tv_usec == 0))
@@ -4541,3 +4550,19 @@ bool Utils::isPingSupported() {
 
     return(false);
 }
+
+#ifdef __OpenBSD__
+static struct timeval bpfTimevalToTimeval(struct bpf_timeval tv) {
+	struct timeval res;
+	res.tv_sec = tv.tv_sec;
+	res.tv_usec = tv.tv_usec;
+	return res;
+}
+
+static struct timeval bpfTimevalToTimeval(const struct bpf_timeval *tv) {
+	struct timeval res;
+	res.tv_sec = tv->tv_sec;
+	res.tv_usec = tv->.tv_usec;
+	return res;
+}
+#endif

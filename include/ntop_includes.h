@@ -53,8 +53,13 @@
 #include <net/if_arp.h>
 #include <netinet/if_ether.h>
 #include <netinet/in_systm.h>
+#include "ntop_openbsd.h"
+
+#include <net/bpf.h>
+typedef struct bpf_timeval pkt_timeval;
 #else
 #include <net/ethernet.h>
+typedef struct timeval pkt_timeval;
 #endif
 
 #include <netinet/ip.h>
@@ -111,7 +116,7 @@
 extern "C" {
 #include "pcap.h"
 
-#ifndef __linux__
+#if !defined(__linux__) && !defined(__OpenBSD__)
 #include <pcap/bpf.h> /* Used for bpf_filter() */
 #endif
 
