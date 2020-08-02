@@ -25,6 +25,25 @@
 #include <uuid/uuid.h>
 #endif
 
+#ifdef __OpenBSD__
+struct timeval castToTimeval(const struct bpf_timeval &tv) {
+	struct timeval tv_;
+	tv_.tv_sec = tv.tv_sec;
+	tv_.tv_usec = tv.tv_usec;;
+	return tv_;
+}
+struct bpf_timeval castToTimeval(const struct timeval &tv) {
+	struct bpf_timeval tv_;
+	tv_.tv_sec = tv.tv_sec;
+	tv_.tv_usec = tv.tv_usec;;
+	return tv_;
+}
+#else
+struct timeval castToTimeval(const struct timeval &tv) {
+	return tv;
+}
+#endif
+
 #ifndef HAVE_NEDGE
 
 /* **************************************************** */
@@ -269,7 +288,7 @@ static void* packetPollLoop(void* ptr) {
 
 	  if(firstPktTS.tv_sec == 0) {
             startTS = now;
-            firstPktTS = hdr->ts;
+            firstPktTS = castToTimeval(hdr->ts);
           } else {
             u_int32_t packetTimeDelta = Utils::msTimevalDiff(&hdr->ts, &firstPktTS);
             u_int32_t fromStartTimeDelta = Utils::msTimevalDiff(&now, &startTS);
@@ -286,7 +305,7 @@ static void* packetPollLoop(void* ptr) {
 	    }
 	  }
 
-	  hdr->ts = now;
+	  hdr->ts = castToTimeval(now);
 	}
 
 	if((pkt != NULL) && (hdr->caplen > 0)) {
