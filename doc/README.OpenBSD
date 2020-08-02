@@ -15,7 +15,7 @@ Let's start with GNU build tools:
 Then we have to install client libraries, llvm compiler, and of course git.
 
 # pkg_add wget
-# pkg_add json-c-0.13.1 rrdtool llvm git
+# pkg_add json-c-0.13.1 rrdtool llvm git zeromq
 
 
 git clone and build
@@ -27,7 +27,7 @@ $ cd ntopng
 $ git clone https://github.com/ntopng/nDPI.git
 
 $ AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.9 ./autogen.sh
-$ AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.9 ./configure
+$ AUTOCONF_VERSION=2.69 AUTOMAKE_VERSION=1.9 CC=clang CXX=clang++ ./configure
 $ gmake
 $ gmake geoip
 $ gmake install
