@@ -231,10 +231,8 @@ public:
   static int snappend(char *str, size_t size, const char *tobeappended, const char *separator);
   static bool isNumber(const char *s, unsigned int s_len, bool *is_float);
   static bool isPingSupported();
-#ifdef __OpenBSD__
   static struct timeval bpfTimevalToTimeval(const struct bpf_timeval tv);
   static struct timeval bpfTimevalToTimeval(const struct bpf_timeval *tv);
-#endif
 };
 
 #endif /* _UTILS_H_ */
