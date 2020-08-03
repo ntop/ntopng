@@ -1,7 +1,5 @@
 #!/bin/sh -e
 
-GEOIPUPDATE_UTIL=geoipupdate
-
 case "$1" in
     configure)
 	# continue below
@@ -16,11 +14,5 @@ case "$1" in
 	exit 0
     ;;
 esac
-
-if ! ${GEOIPUPDATE_UTIL} -v; then
-    >&2 echo ""
-    >&2 echo "To use geolocation in ntop products, follow the instructions at"
-    >&2 echo "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md"
-fi
 
 exit 0
