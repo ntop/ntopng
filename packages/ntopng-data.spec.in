@@ -18,17 +18,15 @@ Package providing a geolocation databases download helper for ntopng and other n
 %prep
 
 %build
-
-%post
-if ! geoipupdate -v; then
-    >&2 echo ""
-    >&2 echo "To use geolocation in ntop products, follow the instructions at"
-    >&2 echo "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md"
-fi
+mkdir -p $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip
+cp $HOME/dat_files/dbip-asn-lite-*.mmdb $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/dbip-asn-lite.mmdb
+cp $HOME/dat_files/dbip-country-lite-*.mmdb $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/dbip-country-lite.mmdb
 
 %clean
 
 %files
+/usr/share/ntopng/httpdocs/geoip/dbip-asn-lite.mmdb
+/usr/share/ntopng/httpdocs/geoip/dbip-country-lite.mmdb
 
 # Set the default attributes of all of the files specified to have an
 # owner and group of root and to inherit the permissions of the file

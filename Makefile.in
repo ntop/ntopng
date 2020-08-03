@@ -8,7 +8,6 @@ PWD=@PWD@
 GPP=@CXX@ -std=c++0x
 INSTALL_DIR=$(DESTDIR)$(prefix)
 MAN_DIR=$(DESTDIR)@MAN_DIR@
-GEOIPUPDATE_UTIL = geoipupdate
 
 # FreeBSD does not include wget by default, but the base system
 # includes fetch, which provides similar functionality.
@@ -195,9 +194,6 @@ cert:
 veryclean: clean
 	-rm -rf nDPI
 
-geoip:
-	$(GEOIPUPDATE_UTIL) -v -d httpdocs/geoip;
-
 trackers:
 	./tools/download_trackers.sh httpdocs/other/trackers.txt
 
@@ -236,8 +232,6 @@ dist:
 	cd ntopng-@NTOPNG_VERSION@; git clone https://github.com/ntop/ntopng.git; cd ntopng; git clone https://github.com/ntop/nDPI.git; cd ..; find ntopng -name .git | xargs rm -rf ; mv ntopng ntopng-@NTOPNG_VERSION@; tar cvfz ../ntopng-@NTOPNG_VERSION@.tgz ntopng-@NTOPNG_VERSION@
 
 install: ntopng
-	@echo "Make sure you have already run 'make geoip' to also install geolocation files"
-	@echo "'make geoip' requires a MaxMind account as explained in https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md"
 	@echo "While we provide you an install make target, we encourage you"
 	@echo "to create a package and install that"
 	@echo "rpm - do 'make build-rpm'"
