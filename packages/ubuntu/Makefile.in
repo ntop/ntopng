@@ -86,6 +86,9 @@ ntopng-data:
 	if test -e "./debian"; then @SUDO@ /bin/rm -f debian; fi
 	ln -s ./debian.ntopng-data ./debian
 	@SUDO@ \rm -rf ./usr ./etc/ ./debian/ntopng-data
+	\mkdir -p ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip ./debian/ntopng-data
+	cp ${HOME}/dat_files/dbip-asn-lite-*.mmdb ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/dbip-asn-lite.mmdb
+	cp ${HOME}/dat_files/dbip-country-lite-*.mmdb ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/dbip-country-lite.mmdb
 	@echo
 	@find . -name "*~" -exec /bin/rm {} ';'
 	@/bin/rm -f ../ntopng-data_*deb
