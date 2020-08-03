@@ -9,7 +9,7 @@ all: clean ntopng-build
 ntopng-build:
 	if test -e "./install"; then /bin/rm -f install; fi
 	\mkdir -p ${NTOPNG_BUILD}/usr/local/bin ${NTOPNG_BUILD}/usr/local/etc/ntopng ${NTOPNG_BUILD}/usr/local/share/man/man8
-	\mkdir -p ${NTOPNG_BUILD}/usr/local/opt/ntopng ${NTOPNG_BUILD}/usr/local/share/ntopng ./install/
+	\mkdir -p ${NTOPNG_BUILD}/usr/local/opt/ntopng ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/geoip ./install/
 	cd $(NTOPNG_HOME); make ; cp ntopng ${NTOPNG_BUILD}/usr/local/bin/ntopng-bin
 	cp ./ntopng ${NTOPNG_BUILD}/usr/local/bin/
 	cp ./uninstall.sh ${NTOPNG_BUILD}/usr/local/bin/ntopng-uninstall.sh
@@ -43,6 +43,8 @@ ntopng-build:
 
 	cp /usr/local/bin/redis-server ${NTOPNG_BUILD}/usr/local/bin/ntopng-redis-server
 
+	cp ../../httpdocs/geoip/dbip-asn-*.mmdb ../../httpdocs/geoip/dbip-country-*.mmdb ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/geoip
+
 	cp $(NTOPNG_HOME)/ntopng.8 ${NTOPNG_BUILD}/usr/local/share/man/man8
 	cp -RL $(NTOPNG_HOME)/httpdocs ${NTOPNG_BUILD}/usr/local/share/ntopng
 	cp -RL $(NTOPNG_HOME)/scripts ${NTOPNG_BUILD}/usr/local/share/ntopng
@@ -60,7 +62,7 @@ ntopng-build:
 	if hash systemctl 2>/dev/null; then \
 		rm -rf ${NTOPNG_BUILD}/etc/init.d; \
 	fi
-	rm -rf ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/geoip/
+
 	find ${NTOPNG_BUILD}/usr/local/share/ntopng -name "*~"   | xargs /bin/rm -f
 	find ${NTOPNG_BUILD}/usr/local/share/ntopng -name ".svn" | xargs /bin/rm -rf
 	find ${NTOPNG_BUILD}/usr/local/share/ntopng -name ".git" | xargs /bin/rm -rf
