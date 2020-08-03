@@ -19,10 +19,11 @@ Web-based traffic monitoring
 
 %setup -q
 
+# https://imvoid.wordpress.com/2013/06/05/stripping-and-stopping-stripping-of-binaries-in-rpm-build/
 # Disable stripping
-%global _enable_debug_package 0
-%global debug_package %{nil}
-%global __os_install_post /usr/lib/rpm/brp-compress %{nil}
+# %global _enable_debug_package 0
+# %global debug_package %{nil}
+# %global __os_install_post /usr/lib/rpm/brp-compress %{nil}
 
 %build
 if ! test -f "$HOME/ntopng/pro/utils/snzip"; then echo "snzip missing"; exit; fi
