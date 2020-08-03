@@ -21,14 +21,13 @@ $(document).ready(function () {
         return params;
     }
 
-    async function testRecipient(data, $feedbackLabel) {
+    async function testRecipient(data, $button, $feedbackLabel) {
 
         const body = { action: 'test' };
         $.extend(body, data);
 
-        $feedbackLabel
-            .html(`<div class='spinner-border spinner-border-sm'></div> ${i18n.testing_recipient}...`)
-            .removeClass(`text-danger`).removeClass(`text-success`).show();
+        $button.find('span.spinner-border').fadeIn();
+        $feedbackLabel.removeClass(`text-danger text-success`).text(`${i18n.testing_recipient}...`).show();
 
         try {
 
@@ -36,16 +35,34 @@ $(document).ready(function () {
             const {result} = await request.json();
 
             if (result.status == "failed") {
-                $feedbackLabel.addClass(`text-danger`).html(result.error.message);
+                $button.find('span.spinner-border').fadeOut(function() {
+                    $feedbackLabel.addClass(`text-danger`).html(result.error.message);
+                });
                 return;
             }
 
             // show a green label to alert the endpoint message
-            $feedbackLabel.addClass('text-success').html(i18n.working_recipient).fadeOut(2000);
+            $button.find('span.spinner-border').fadeOut(function() {
+                $feedbackLabel.addClass('text-success').html(i18n.working_recipient).fadeOut(3000);
+            });
+
         }
         catch (err) {
-            $feedbackLabel.addClass(`text-danger`).html(i18n.timed_out);
+
+            $button.find('span.spinner-border').fadeOut(function() {
+
+                $feedbackLabel.addClass(`text-danger`);
+
+                if (err.message == "Response timed out") {
+                    $feedbackLabel.html(i18n.timed_out);
+                    return;
+                }
+
+                $feedbackLabel.html(i18n.server_error);
+
+            });
         }
+
     }
 
     function createTemplateOnSelect(formSelector) {
@@ -57,8 +74,10 @@ $(document).ready(function () {
             const $cloned = loadTemplate($option.data('endpointKey'));
             // show the template inside the modal container
             $templateContainer.hide().empty();
-            if ($cloned)
+            if ($cloned) {
                 $templateContainer.append($cloned).fadeIn();
+            }
+            $(`${formSelector} span.test-feedback`).fadeOut();
         });
     }
 
@@ -66,8 +85,7 @@ $(document).ready(function () {
 
         const template = $(`template#${type}-template`).html();
         // if the template is not empty then return a copy of the template content
-        if (template.trim() != "")
-            return $(template);
+        if (template.trim() != "") return $(template);
 
         return null;
     }
@@ -154,10 +172,13 @@ $(document).ready(function () {
                 $self.attr("disabled");
                 const data = makeFormData(`#edit-recipient-modal form`);
                 data.endpoint_conf_name = editRowData.endpoint_conf.endpoint_conf_name;
-                testRecipient(data, $(`#edit-recipient-modal .test-feedback`)).then(() => {
+                testRecipient(data, $(this), $(`#edit-recipient-modal .test-feedback`)).then(() => {
                     $self.removeAttr("disabled");
                 });
             });
+        },
+        onModalShow: function() {
+            $(`#edit-recipient-modal .test-feedback`).hide();
         },
         onSubmitSuccess: function (response) {
             if (response.result.status == "OK") {
@@ -201,6 +222,8 @@ $(document).ready(function () {
             if ($cloned) {
                 $(`#add-recipient-modal form .recipient-template-container`).empty().append($cloned).show();
             }
+
+            $(`#add-recipient-modal .test-feedback`).hide();
         },
         onSubmitSuccess: function (response) {
 
@@ -224,8 +247,7 @@ $(document).ready(function () {
 
         const $self = $(this);
 
-        $self.attr("disabled", "disabled");
-        testRecipient(makeFormData(`#add-recipient-modal form`), $(`#add-recipient-modal .test-feedback`)).then(() => {
+        testRecipient(makeFormData(`#add-recipient-modal form`), $(this), $(`#add-recipient-modal .test-feedback`)).then(() => {
             $self.removeAttr("disabled");
         });
     });

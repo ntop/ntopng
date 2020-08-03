@@ -36,10 +36,15 @@
 
                     </div>
                     <span class="invalid-feedback"></span>
-                    <span style="display: none;" class="test-feedback"></span>
                 </div>
                 <div class="modal-footer">
-                    <button id="add-test-recipient" class="btn btn-secondary mr-auto">{{ i18n("endpoint_notifications.test_recipient") }}</button>
+                    <div class="mr-auto">
+                        <button id="add-test-recipient" class="btn btn-secondary">
+                            <span style="display: none;" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            {{ i18n("endpoint_notifications.test_recipient") }}
+                        </button>
+                        <span style="display: none;" class="test-feedback"></span>
+                    </div>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
                     <button type="submit" class="btn btn-primary">{{i18n("add")}}</button>
                 </div>

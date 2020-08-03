@@ -14,7 +14,6 @@
                     <input type="text" hidden name="endpoint_conf_name">
                     <div class="recipient-template-container">
                     </div>
-                    <span style="display: none;" class="test-feedback"></span>
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">
