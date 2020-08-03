@@ -9,26 +9,26 @@ alert_notification = {}
 alert_notification.__index = alert_notification
 
 alert_notification_levels = {
-    danger = {
-        icon = "fa-times-circle",
-        bg_color = "danger",
-        title_text_color = "text-white",
-    },
-    info = {
-        icon = "fa-info-circle",
-        bg_color = "info",
-        title_text_color = "text-white",
-    },
-    warning = {
-        icon = "fa-exclamation-circle",
-        bg_color = "warning",
-        title_text_color = "text-dark",
-    },
-    success = {
-        icon = "fa-check-circle",
-        bg_color = "success",
-        title_text_color = "text-white",
-    },
+   success = {
+      icon = "fa-check-circle",
+      bg_color = "success",
+      title_text_color = "text-dark",
+   },
+   info = {
+      icon = "fa-info-circle",
+      bg_color = "info",
+      title_text_color = "text-dark",
+   },
+   warning = {
+      icon = "fa-exclamation-circle",
+      bg_color = "warning",
+      title_text_color = "text-dark",
+   },
+   danger = {
+      icon = "fa-exclamation-triangle",
+      bg_color = "danger",
+      title_text_color = "text-dark",
+   },
 }
 
 --- Create an instance of an AlertNotification class

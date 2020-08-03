@@ -10,7 +10,7 @@
         </button>
     </div>
     <div class="toast-body">
-        <p>{* content.body *}</p>
+        {* content.body *}
         {% if (content.action) then %}
         <div class="w-100 clearfix">
             <a class="my-1 btn btn-light btn-sm float-right" href="{{ content.action.url }}">

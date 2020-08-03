@@ -323,8 +323,8 @@ local lang = {
     ["uptime"] = "Uptime",
     ["user_scripts"] = "User Scripts",
     ["version"] = "Version",
-    ["you_have_too_many_flows"] = "You have too many flows for %{product} leading to packet drops and high CPU load. Please tune -x/-X and restart %{product}",
-    ["you_have_too_many_hosts"] = "You have too many hosts for %{product} leading to packet drops and high CPU load. Please tune -x/-X and restart %{product}",
+    ["you_have_too_many_flows"] = "Too many active flows. Increase the maximum number of flows with option -X to avoid data loss and degraded %{product} performance.",
+    ["you_have_too_many_hosts"] = "Too many active hosts. Increase the maximum number of hosts with option -x to avoid data loss and degraded %{product} performance.",
   },
   ["active_monitoring_stats"] = {
     ["active_monitoring"] = "Active Monitoring",
