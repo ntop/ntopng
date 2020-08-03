@@ -14,7 +14,7 @@ local ALARM_THRESHOLD_HIGH = 90
 
 local function create_geo_ip_alert_notification()
 
-    local title = i18n("geo_map.geo_ip")
+    local title = i18n("geolocation_unavailable_title")
     local description = i18n("geolocation_unavailable", {url = "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md", target = "_blank", icon = "fas fa-external-link-alt"})
 
     return alert_notification:create("geoip_alert", title, description, "warning", nil, "nedge/system_setup/")
@@ -147,3 +147,4 @@ function defined_alert_notifications.too_many_flows(container)
 end
 
 return defined_alert_notifications
+
