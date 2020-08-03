@@ -276,7 +276,6 @@ local lang = {
     ["licence_generation"] = "上記URLをクリックしてプロフェッショナルバージョンのライセンスを生成するか、 <br><a href=\"%{purchase_url}\">e-shop</a>でライセンスを購入する. 利用目的が非営利、研究、教育の場合には<br> <a href=\"%{universities_url}\">をお読みください</a>.",
     ["maintenance"] = "\"メンテナンス: %{_until}まで [%{days_left} 日残っています]",
     ["maintenance_expired"] = "%{product} メンテナンス期間が有効期限切れしました",
-    ["maxmind"] = "この製品は<a href=\"%{maxmind_url}\">MaxMind</a>で作成されたGeoLiteデータを含みます",
     ["network_callbacks_directory"] = "ネットワーク",
     ["ntop_blog"] = "ntopブログ",
     ["platform"] = "プラットフォーム",

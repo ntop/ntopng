@@ -223,7 +223,7 @@ local lang = {
     ["licence_generation"] = "Kliknutím na výše uvedenou adresu URL vygenerujete licenci pro profesionální verzi nebo <br>zakupte licenci na<a href=\"%{purchase_url}\">e-shop</a>. Pokud jste nezisková, výzkumová či vzdělávací <br>instituce, prosím, přečtěte <a href=\"%{universities_url}\">toto</a>.",
     ["maintenance"] = "Údržba: Do doby %{_until} [%{days_left} zbývající dny]",
     ["maintenance_expired"] = "%{product} údržba vypršela",
-    ["maxmind"] = "Tento produkt obsahuje data GeoLite vytvořená <a href=\"%{maxmind_url}\">MaxMind</a>.",
+    ["maxmind"] = "Tento produkt obsahuje data GeoDB vytvořená <a href=\"%{maxmind_url}\">MaxMind <i class=\"fas fa-external-link-alt\"></i></a> / <a href='https://db-ip.com'>DB-IP <i class=\"fas fa-external-link-alt\"></i></a>.",
     ["network_callbacks_directory"] = "Síť",
     ["ntop_blog"] = "ntop Blog",
     ["platform"] = "Platforma",

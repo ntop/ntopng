@@ -1,1 +1,4 @@
 This directory will include the geoip files
+
+Please see https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md
+for details

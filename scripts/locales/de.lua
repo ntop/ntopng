@@ -141,7 +141,7 @@ local lang = {
     ["licence_expires_in"] = "Lizenz verfällt in %{time}",
     ["licence_generation"] = "Klicken Sie auf den obigen URL um Ihre Professionalversion zu generieren, oder <br>kaufen Sie eine Lizenz hier <a href=\"%{purchase_url}\">e-shop</a>. If you are no-profit, research or an education<br>institution please read <a href=\"%{universities_url}\">this</a>.",
     ["maintenance_expired"] = "%{product} maintenance ist verfallen",
-    ["maxmind"] = "Dieses Produkt beinhaltet GeoLite Data kreirt von <a href=\"%{maxmind_url}\">MaxMind</a>.",
+    ["maxmind"] = "Dieses Produkt beinhaltet GeoDB Data kreirt von <a href=\"%{maxmind_url}\">MaxMind <i class=\"fas fa-external-link-alt\"></i></a> und <a href='https://db-ip.com'>DB-IP <i class=\"fas fa-external-link-alt\"></i></a>.",
     ["ntop_blog"] = "ntop Blog",
     ["platform"] = "Plattform",
     ["ram_memory"] = "RAM",

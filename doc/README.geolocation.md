@@ -1,10 +1,18 @@
 ## Introduction
 
+ntopng includes Geolocation support provided by the following companies
+- MaxMind https://maxmind.com
+- DB-IP https://db-ip.com
+
+ntopng geolocation is based on a database file stored locally with no cloud access whatsoever.
+
+You can choose to install the free (albeith not very accurate) GeoIP databases or the commercial ones. By default the `ntopng-data` includes the DB-IP databases that are released under the Creative Commons Attribution License.
+
+## Using MaxMind geolocation in ntopng
+
 New privacy regulations, such as GDPR and CCPA, place restrictions that impact our ability to continue distributing MaxMind GeoLite2 databases in the public `ntopng-data` package. Reasons are explained in detail at the following page https://blog.maxmind.com/2019/12/18/significant-changes-to-accessing-and-using-geolite2-databases/.
 
 Starting December 30, 2019, to continue using geolocation in ntop software, you are required to register for a MaxMind account and obtain a license key in order to download GeoLite2 geolocation databases.
-
-## Using geolocation in ntopng
 
 The following section lists all the steps which are necessary to use geolocation in ntopng.
 
@@ -27,7 +35,10 @@ If you prefer to handle updates manually, you may skip `ntopng-data` installatio
 
 In case package `ntopng-data` or `geoipupdate` is not available on your platform:
 
-0. Manually download database files `GeoLite2-ASN.mmdb` and `GeoLite2-City.mmdb` from the download section of your MaxMind account page
+0. Manually download database files
+   - DB-IP: IP-to-ISP (https://db-ip.com/db/ip-to-isp) and IP-to-Country (https://db-ip.com/db/ip-to-country) databases
+   - MaxMind: `GeoLite2-ASN.mmdb` and `GeoLite2-City.mmdb` from the download section of your MaxMind account page
+   
 1. Then place the downloaded files under a specifiy folder which depends on the platform:
 
     - **Linux**: place downloaded files under `/var/lib/GeoIP/` or `/usr/share/GeoIP/`
@@ -46,7 +57,7 @@ The following packages have been kept back:
   ntopng-data
 ```
 
-This occurs usually on debian because the dependencies have changed on the `ntopng-data` you have installed so that a the package `geoipupdate` must be installed to perform the upgrade. If this case, to resolve it suffices to run
+This occurs usually on debian because the dependencies have changed on the `ntopng-data` you have installed so that a the package `geoipupdate` from MaxMind must be installed to perform the upgrade. If this case, to resolve it suffices to run
 
 ```
 sudo apt-get --with-new-pkgs upgrade

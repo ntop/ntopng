@@ -30,106 +30,11 @@
 
 /* *************************************** */
 
-#if defined(HAVE_MAXMINDDB) && defined(TEST_GEOLOCATION)
-void Geolocation::testme() {
-  sockaddr *sa = NULL;
-  ssize_t sa_len;
-  IpAddress test;
-  int mmdb_error, status;
-  MMDB_lookup_result_s result;
-  MMDB_entry_data_list_s *entry_data_list = NULL;
-  MMDB_entry_data_s entry_data;
-
-  static char *ips[] = {(char*)"192.168.1.1",
-			(char*)"69.89.31.226",
-			(char*)"8.8.8.8",
-			(char*)"69.63.181.15",
-			(char*)"2a03:2880:f10c:83:face:b00c:0:25de"};
-
-
-  for(u_int32_t i = 0; i < sizeof(ips) / sizeof(char*); i++) {
-    char * ip = ips[i];
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Geolocating [%s]", ip);
-    test.set(ip);
-
-    if(test.get_sockaddr(&sa, &sa_len)) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Autonomous System Information", ip);
-
-      /* TEST Autonomous Systems database */
-      result = MMDB_lookup_sockaddr(&geo_ip_asn_mmdb, sa, &mmdb_error);
-
-      if(mmdb_error != MMDB_SUCCESS) {
-      }
-
-      if(result.found_entry) {
-	entry_data_list = NULL;
-
-	if((status = MMDB_get_entry_data_list(&result.entry, &entry_data_list)) != MMDB_SUCCESS)
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to lookup address [%s]", MMDB_strerror(status));
-
-	if(entry_data_list)
-	  MMDB_dump_entry_data_list(stdout, entry_data_list, 2);
-
-	if((status = MMDB_get_value(&result.entry, &entry_data, "autonomous_system_number", NULL)) == MMDB_SUCCESS) {
-	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UINT32)
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "ASN: %d", entry_data.uint32);
-
-	} else
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to lookup autonomous system number [%s]", MMDB_strerror(status));
-
-	if((status = MMDB_get_value(&result.entry, &entry_data, "autonomous_system_organization", NULL)) == MMDB_SUCCESS) {
-	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
-	    char *org;
-
-	    if((org = (char*)calloc(1, entry_data.data_size + 1))) {
-	      memcpy(org, entry_data.utf8_string, entry_data.data_size);
-	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Organization: %s", org);
-	      free(org);
-	    }
-	  }
-
-	} else
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to lookup autonomous system organization [%s]", MMDB_strerror(status));
-      }
-
-      /* TEST City database */
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "City Information", ip);
-
-      result = MMDB_lookup_sockaddr(&geo_ip_city_mmdb, sa, &mmdb_error);
-
-      if (mmdb_error != MMDB_SUCCESS) {
-      }
-
-      if (result.found_entry) {
-	entry_data_list = NULL;
-	status = MMDB_get_entry_data_list(&result.entry,
-					  &entry_data_list);
-
-	if(status != MMDB_SUCCESS)
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to lookup address [%s]", MMDB_strerror(status));
-
-	if(entry_data_list) {
-	  MMDB_dump_entry_data_list(stdout, entry_data_list, 2);
-	}
-      }
-
-      free(sa);
-    }
-  }
-}
-#endif
-
-/* *************************************** */
-
 Geolocation::Geolocation() {
   mmdbs_ok = false;
 
 #ifdef HAVE_MAXMINDDB
   char docs_path[MAX_PATH];
-  snprintf(docs_path, sizeof(docs_path), "%s/geoip", ntop->getPrefs()->get_docs_dir());
-  ntop->fixPath(docs_path);
-
   const char *lookup_paths[] = {
     docs_path
 #ifndef WIN32
@@ -139,9 +44,60 @@ Geolocation::Geolocation() {
 #endif
   };
 
+  snprintf(docs_path, sizeof(docs_path), "%s/geoip", ntop->getPrefs()->get_docs_dir());
+  ntop->fixPath(docs_path);
+
   for(u_int i = 0; i < sizeof(lookup_paths) / sizeof(lookup_paths[0]) && !mmdbs_ok; i++) {
-    mmdbs_ok = loadMaxMindDB(lookup_paths[i], "GeoLite2-ASN.mmdb",  &geo_ip_asn_mmdb)
-      && loadMaxMindDB(lookup_paths[i], "GeoLite2-City.mmdb", &geo_ip_city_mmdb);
+    DIR *dirp;
+    struct dirent *dp;
+    bool mmdbs_asn_ok, mmdbs_city_ok;
+    
+    /* Let's try with MaxMind files DBs: https://dev.maxmind.com/geoip/geoipupdate/ */
+    mmdbs_asn_ok  = loadGeoDB(lookup_paths[i], "GeoLite2-ASN.mmdb",  &geo_ip_asn_mmdb);
+    mmdbs_city_ok = loadGeoDB(lookup_paths[i], "GeoLite2-City.mmdb", &geo_ip_city_mmdb);
+
+    if(mmdbs_asn_ok && mmdbs_city_ok) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using geolocation provided by MaxMind (https://maxmind.com)");
+      break;
+    }
+    
+    /*
+       Let's try https://db-ip.com
+
+       Filename format is
+       - dbip-asn-lite-YYYY-MM.mmdb
+       - dbip-country-lite-YYYY-MM.mmdb
+    */
+
+    mmdbs_asn_ok = mmdbs_city_ok = false;
+
+    dirp = opendir(lookup_paths[i]);
+    if(dirp == NULL)
+      continue;
+
+    while((dp = readdir(dirp)) != NULL) {
+      if(dp->d_name[0] == '.') continue;
+
+      if(strncmp(dp->d_name, "dbip-", 5) == 0) {
+	if((!mmdbs_asn_ok) && (strncmp(dp->d_name, "dbip-asn", 8) == 0)) {
+	  mmdbs_asn_ok  = loadGeoDB(lookup_paths[i], dp->d_name,  &geo_ip_asn_mmdb);
+	} else if((!mmdbs_city_ok) && (strncmp(dp->d_name, "dbip-country", 12) == 0)) {
+	  mmdbs_city_ok = loadGeoDB(lookup_paths[i], dp->d_name, &geo_ip_city_mmdb);
+	}
+      }
+
+      if(mmdbs_asn_ok && mmdbs_city_ok) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using geolocation provided by DB-IP (https://db-ip.com)");
+	break;
+      }
+    }
+
+    closedir(dirp);
+
+    if(mmdbs_asn_ok && mmdbs_city_ok) {
+      mmdbs_ok = true;
+      break;
+    }
   }
 #endif
 
@@ -157,7 +113,7 @@ Geolocation::Geolocation() {
 /* *************************************** */
 
 #ifdef HAVE_MAXMINDDB
-bool Geolocation::loadMaxMindDB(const char * const base_path, const char * const db_name, MMDB_s * const mmdb) const {
+bool Geolocation::loadGeoDB(const char * const base_path, const char * const db_name, MMDB_s * const mmdb) const {
   char path[MAX_PATH];
   struct stat buf;
   bool found;
@@ -255,7 +211,7 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
 			  char **city, float *latitude, float *longitude) {
   if((!addr) || (addr->getVersion() == 0))
     return;
-  
+
   if(continent_code) *continent_code = strdup((char*)UNKNOWN_CONTINENT);
   if(country_code)   *country_code = strdup((char*)UNKNOWN_COUNTRY);
   if(city)           *city = strdup((char*)UNKNOWN_CITY);
@@ -273,7 +229,7 @@ void Geolocation::getInfo(IpAddress *addr, char **continent_code, char **country
     int mmdb_error, status;
     MMDB_lookup_result_s result;
     MMDB_entry_data_s entry_data;
-      
+
     result = MMDB_lookup_sockaddr(&geo_ip_city_mmdb, sa, &mmdb_error);
 
     if(mmdb_error == MMDB_SUCCESS) {
@@ -347,3 +303,95 @@ void Geolocation::freeInfo(char **continent_code, char **country_code, char **ci
   if(country_code)   { free(*country_code);   *country_code = NULL;   }
   if(city)           { free(*city);           *city = NULL;           }
 }
+
+/* *************************************** */
+
+#if defined(HAVE_MAXMINDDB) && defined(TEST_GEOLOCATION)
+void Geolocation::testme() {
+  sockaddr *sa = NULL;
+  ssize_t sa_len;
+  IpAddress test;
+  int mmdb_error, status;
+  MMDB_lookup_result_s result;
+  MMDB_entry_data_list_s *entry_data_list = NULL;
+  MMDB_entry_data_s entry_data;
+
+  static char *ips[] = {(char*)"192.168.1.1",
+			(char*)"69.89.31.226",
+			(char*)"8.8.8.8",
+			(char*)"69.63.181.15",
+			(char*)"2a03:2880:f10c:83:face:b00c:0:25de"};
+
+
+  for(u_int32_t i = 0; i < sizeof(ips) / sizeof(char*); i++) {
+    char * ip = ips[i];
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Geolocating [%s]", ip);
+    test.set(ip);
+
+    if(test.get_sockaddr(&sa, &sa_len)) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Autonomous System Information", ip);
+
+      /* TEST Autonomous Systems database */
+      result = MMDB_lookup_sockaddr(&geo_ip_asn_mmdb, sa, &mmdb_error);
+
+      if(mmdb_error != MMDB_SUCCESS) {
+      }
+
+      if(result.found_entry) {
+	entry_data_list = NULL;
+
+	if((status = MMDB_get_entry_data_list(&result.entry, &entry_data_list)) != MMDB_SUCCESS)
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to lookup address [%s]", MMDB_strerror(status));
+
+	if(entry_data_list)
+	  MMDB_dump_entry_data_list(stdout, entry_data_list, 2);
+
+	if((status = MMDB_get_value(&result.entry, &entry_data, "autonomous_system_number", NULL)) == MMDB_SUCCESS) {
+	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UINT32)
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "ASN: %d", entry_data.uint32);
+
+	} else
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to lookup autonomous system number [%s]", MMDB_strerror(status));
+
+	if((status = MMDB_get_value(&result.entry, &entry_data, "autonomous_system_organization", NULL)) == MMDB_SUCCESS) {
+	  if(entry_data.has_data && entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
+	    char *org;
+
+	    if((org = (char*)calloc(1, entry_data.data_size + 1))) {
+	      memcpy(org, entry_data.utf8_string, entry_data.data_size);
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Organization: %s", org);
+	      free(org);
+	    }
+	  }
+
+	} else
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to lookup autonomous system organization [%s]", MMDB_strerror(status));
+      }
+
+      /* TEST City database */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "City Information", ip);
+
+      result = MMDB_lookup_sockaddr(&geo_ip_city_mmdb, sa, &mmdb_error);
+
+      if (mmdb_error != MMDB_SUCCESS) {
+      }
+
+      if (result.found_entry) {
+	entry_data_list = NULL;
+	status = MMDB_get_entry_data_list(&result.entry,
+					  &entry_data_list);
+
+	if(status != MMDB_SUCCESS)
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to lookup address [%s]", MMDB_strerror(status));
+
+	if(entry_data_list) {
+	  MMDB_dump_entry_data_list(stdout, entry_data_list, 2);
+	}
+      }
+
+      free(sa);
+    }
+  }
+}
+#endif
