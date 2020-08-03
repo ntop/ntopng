@@ -263,7 +263,7 @@ local lang = {
     ["cpu_load"] = "Carico CPU",
     ["cpu_states"] = "Stati della CPU",
     ["data_directory"] = "Dati",
-    ["datadir_warning"] = "Informativa migrazione cartella dati",
+    ["datadir_warning"] = "Informativa <A HREF=\"https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/\">migrazione dati</A>",
     ["defs_directories"] = "Cartelle delle Definizioni",
     ["dhcp_range_missing_warning"] = "La preferenza <a href='%{url}'>%{name}</a> non ha effetto. Configurare il <a href='%{dhcp_url}'>range DHCP</a>.",
     ["directories"] = "Cartelle",
