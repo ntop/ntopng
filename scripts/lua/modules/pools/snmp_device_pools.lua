@@ -9,7 +9,6 @@ if ntop.isPro() then
 end
 
 local base_pools = require "base_pools"
-local snmp_config = require "snmp_config"
 
 local snmp_device_pools = {}
 
@@ -42,6 +41,9 @@ end
 
 -- @brief Returns a table of all possible snmp_device ids, both assigned and unassigned to pool members
 function snmp_device_pools:get_all_members()
+   -- Do the inclusion here as snmp_config is a pro/enterprise module only
+   -- and this method is only called from pro/enterprise.
+   local snmp_config = require "snmp_config"
    local res = {}
 
    for snmp_device_ip, _ in pairs(snmp_config.get_all_configured_devices()) do
