@@ -29,11 +29,14 @@ class AlertNotification {
 
         const $toastHeader = $(`<div class="toast-header bg-${this.style.bg} border-${this.style.bg} ${this.style.text}">
                                     <strong class='mr-auto'><i class='fas ${this.style.icon}'></i> ${this.title}</strong>
+                                    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
                                 </div>`);
-        const $toastBody = $(`<div class="toast-body bg-${this.style.bg} border-${this.style.bg} ${this.style.text}"><span>${this.body}</span></div>`);
+        const $toastBody = $(`<div class="toast-body">${this.body}</div>`);
 
-        if (this.link != undefined && this.link != "") {
-            const $anchor = $(`<a href='${this.link}'>Click!</a>`);
+        if (this.action && this.action.link != undefined && this.action.link != "") {
+            const $anchor = $(`<a href='${this.action.link}'>${this.action.label}</a>`);
             $toastBody.append($anchor);
         }
 
