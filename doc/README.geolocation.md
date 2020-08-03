@@ -6,7 +6,11 @@ ntopng includes Geolocation support provided by the following companies
 
 ntopng geolocation is based on a database file stored locally with no cloud access whatsoever.
 
-You can choose to install the free (albeith not very accurate) GeoIP databases or the commercial ones. By default the `ntopng-data` includes the DB-IP databases that are released under the Creative Commons Attribution License.
+You can choose to install the free (albeith not very accurate) GeoIP databases or the commercial ones.
+By default the `ntopng-data` includes the DB-IP databases that are released under the Creative Commons Attribution License.
+
+Please install the `ntopng-data` package to enable geolocation in ntopng, this unless you already have geolocation databases installed.
+
 
 ## Using MaxMind geolocation in ntopng
 
@@ -31,7 +35,7 @@ Subsequent updates of the `ntopng-data` package will check for the availability 
 
 If you prefer to handle updates manually, you may skip `ntopng-data` installation and direcly use `geoipupdate`. Instructions to use `geoipupdate` are available at https://dev.maxmind.com/geoip/geoipupdate/
 
-### Using geolocation when `ntopng-data` is not available
+## Using geolocation when `ntopng-data` is not available
 
 In case package `ntopng-data` or `geoipupdate` is not available on your platform:
 
@@ -45,7 +49,7 @@ In case package `ntopng-data` or `geoipupdate` is not available on your platform
     - **Windows**: place downloaded files under `Program Files/ntopng/httpdocs/geoip/`
     - **OS X package**: place downloaded files under `/usr/local/share/ntopng/httpdocs/geoip` (in case the `geoip` folder is missing, it is necessary to create it with `mkdir -p /usr/local/share/ntopng/httpdocs/geoip` before copying the files)
 
-### Upgrading from a previous version of `ntopng-data`
+## Upgrading from a previous version of `ntopng-data`
 
 In case an old `ntopng-data` package was already installed in the system, you may receive the message _The following packages have been kept back_ with reference to it. 
 
