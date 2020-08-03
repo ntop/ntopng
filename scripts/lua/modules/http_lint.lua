@@ -2024,12 +2024,10 @@ local function parsePOSTpayload()
 
       if(info ~= nil) then
 	 for k,v in pairs(info) do
-	    _GET[k] = v -- TODO: remove as soon as REST API is clean
+	    _GET[k] = v -- TODO: remove as soon as REST API is clean (https://github.com/ntop/ntopng/issues/4113)
 	    _POST[k] = v
 	 end
       end
-
-      -- _POST["payload"] = nil -- Remove the payload field
    end
 end
 
