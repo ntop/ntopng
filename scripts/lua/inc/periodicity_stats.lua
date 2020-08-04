@@ -39,7 +39,7 @@ for k,v in pairs(p) do
 end
 
 local id = 0
-for k,v in pairs(keys) do
+for k,v in pairsByKeys(keys, asc) do
    print("{ key: 'filter_"..id.."', regex: '"..k.."', label: '"..k.." ("..v..")' },\n")
    id = id + 1
 end
