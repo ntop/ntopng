@@ -27,7 +27,7 @@ These settings are effective for all databases. The reminder of this section des
 MySQL
 -----
 
-To dump flows to MySQL ntopng requires the -F modifier followed by a string in the following format:
+In order to dump flows to MySQL ntopng requires the -F modifier followed by a string in the following format:
 
 .. code:: bash
 
@@ -53,6 +53,11 @@ IPv4 and IPv6 flows, respectively.
   :alt: MySQL flows dump
 
   A MySQL Table with Dumped Flows
+
+
+.. note::
+
+	MySQL flow explore is non supported in community edition. We suggest you to use nIndex for high cardinality flow instances
 
 By enabling MySQL integration, it's also possible to inspect the past flows via
 the ntopng Historical Explorer, which provides many filters and drillown capabilities.
