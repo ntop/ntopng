@@ -60,7 +60,7 @@ for k,v in pairs(p) do
    table.insert(row, port)
    table.insert(row, v.num_periodic_loops_accounted)
    table.insert(row, v.frequency)
-   table.insert(row, v.info)
+   table.insert(row, shortenString(v.info, 64))
 
    table.insert(rsp.data, row)
 end
