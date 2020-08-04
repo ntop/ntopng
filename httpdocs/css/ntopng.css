@@ -556,7 +556,8 @@ path.link {
 .scrollable-dropdown {
   max-height: 20rem;
   height: auto;
-  overflow-y: auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .dark-gray {

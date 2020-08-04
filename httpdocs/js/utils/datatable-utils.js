@@ -122,12 +122,12 @@ class DataTableUtils {
         const filterKey = title.toLowerCase().split(" ").join("_");
         const dropdownId = `${filterKey}-filter-menu`;
 
-        const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline'></div>`);
+        const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline '></div>`);
         const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
         const $dropdownTitle = $(`<span>${title}</span>`);
         $dropdownButton.append($dropdownTitle);
 
-        const $menuContainer = $(`<ul class='dropdown-menu' data-filter='${filterKey}' id='${filterKey}-filter'></ul>`);
+        const $menuContainer = $(`<ul class='dropdown-menu scrollable-dropdown' data-filter='${filterKey}' id='${filterKey}-filter'></ul>`);
 
         // for each filter defined in filters create a dropdown item <li>
         for (let filter of filters) {
