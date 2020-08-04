@@ -18,7 +18,6 @@
                 </div>
                 <div class="modal-footer">
                     <button id="edit-test-recipient" class="btn btn-secondary mr-auto">{{ i18n("endpoint_notifications.test_recipient") }}</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
                     <button type="submit" class="btn btn-primary">{{i18n("edit")}}</button>
                 </div>
             </form>

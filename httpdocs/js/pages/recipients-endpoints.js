@@ -119,17 +119,12 @@ $(document).ready(function () {
                     const endpointType = row.endpoint_conf.endpoint_key
                     // if the template is empty then disabled the edit button
                     const editButtonDisabled = $.trim($(`#${endpointType}-template`).html()) == "";
-                    if (!editButtonDisabled) {
-                        editButton = `
-                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info">
-                                <i class='fas fa-edit'></i>
-                            </a>
-                        `;
-                    }
 
                     return (`
                         <div class='btn-group btn-group-sm'>
-                            ${editButton}
+                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info" ${editButtonDisabled ? 'disabled' : ''}>
+                                <i class='fas fa-edit'></i>
+                            </a>
                             <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-danger">
                                 <i class='fas fa-trash'></i>
                             </a>

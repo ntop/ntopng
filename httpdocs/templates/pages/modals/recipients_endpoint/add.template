@@ -45,7 +45,6 @@
                         </button>
                         <span style="display: none;" class="test-feedback"></span>
                     </div>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
                     <button type="submit" class="btn btn-primary">{{i18n("add")}}</button>
                 </div>
             </form>
