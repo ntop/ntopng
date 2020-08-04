@@ -57,7 +57,7 @@ IPv4 and IPv6 flows, respectively.
 
 .. note::
 
-	MySQL flow explore is non supported in community edition. We suggest you to use nIndex for high cardinality flow instances
+	MySQL flow explorer is non supported in community edition. We suggest you to use nIndex for high cardinality flow instances.
 
 By enabling MySQL integration, it's also possible to inspect the past flows via
 the ntopng Historical Explorer, which provides many filters and drillown capabilities.
