@@ -2162,7 +2162,7 @@ function alert_utils.formatAlertNotification(notif, options)
 
    local msg = string.format("[%s][%d][%s]%s[%s]",
 			     formatEpoch(notif.alert_tstamp or 0),
-			     notif.ifid,
+			     notif.ifid or -1, -- Use -1 to avoid issues with interfaceless use cases (for instance notification test)
 			     getInterfaceName(notif.ifid),
 			     ternary(options.show_severity == false, "", "[" .. alert_consts.alertSeverityLabel(notif.alert_severity, options.nohtml) .. "]"),
 			     alert_consts.alertTypeLabel(notif.alert_type, options.nohtml))
