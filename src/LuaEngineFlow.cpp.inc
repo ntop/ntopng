@@ -1059,6 +1059,20 @@ static int ntop_flow_has_risk(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_set_custom_info(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(f && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) == CONST_LUA_OK) {
+    f->setCustomFlowInfo((char*)lua_tostring(vm, 1));
+    lua_pushboolean(vm, true);
+  } else
+    lua_pushboolean(vm, false);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_ndpi_match_packet(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1167,7 +1181,9 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getDNSInfo",               ntop_flow_get_dns_info               },
   { "getRiskInfo",              ntop_flow_risk_info                  },
   { "hasRisk",                  ntop_flow_has_risk                   },
-
+  { "setCustomInfo",            ntop_flow_set_custom_info            },
+  
   { NULL,                       NULL }
 };
+
 

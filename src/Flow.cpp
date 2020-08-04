@@ -64,7 +64,7 @@ Flow::Flow(NetworkInterface *_iface,
 #endif
 
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
-
+  custom_flow_info = NULL;
   ndpiFlow = NULL, cli_id = srv_id = NULL;
   cli_ebpf = srv_ebpf = NULL;
   json_info = NULL, tlv_info = NULL, twh_over = twh_ok = false,
@@ -259,13 +259,13 @@ Flow::~Flow() {
   if(viewFlowStats)                 delete(viewFlowStats);
   if(periodic_stats_update_partial) delete(periodic_stats_update_partial);
   if(last_db_dump.partial)          delete(last_db_dump.partial);
-
-  if(json_info)            json_object_put(json_info);
+  if(custom_flow_info)              free(custom_flow_info);
+  if(json_info)                     json_object_put(json_info);
   if(tlv_info) {
     ndpi_term_serializer(tlv_info);
     free(tlv_info);
   }
-  if(host_server_name)     free(host_server_name);
+  if(host_server_name)              free(host_server_name);
 
   if(cli_ebpf) delete cli_ebpf;
   if(srv_ebpf) delete srv_ebpf;
@@ -3005,6 +3005,9 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 /* *************************************** */
 
 const char* Flow::getFlowInfo() {
+  if(custom_flow_info)
+    return(custom_flow_info);
+	 
   if(!isMaskedFlow()) {
     if(isDNS() && protos.dns.last_query)
       return protos.dns.last_query;

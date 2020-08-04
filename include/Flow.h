@@ -57,7 +57,7 @@ class Flow : public GenericHashEntry {
   AlertType alert_type;
   AlertLevel alert_level;
   char *alert_status_info;        /* Alert specific status info */
-  char *alert_status_info_shadow;
+  char *alert_status_info_shadow, *custom_flow_info;
   struct {
     struct ndpi_analyze_struct *c2s, *s2c;
   } entropy;
@@ -726,6 +726,13 @@ class Flow : public GenericHashEntry {
     return(e ? ndpi_data_entropy(e) : 0);
   }
 
+  inline void setCustomFlowInfo(char *what) {
+    /* NOTE: this is not a reentrant call */
+    if(what) {
+      if(custom_flow_info) free(custom_flow_info);
+      custom_flow_info = strdup(what);
+    }
+  }
 };
 
 #endif /* _FLOW_H_ */
