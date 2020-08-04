@@ -61,7 +61,9 @@ void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network
 #ifdef DEBUG_BROADCAST_DOMAINS
     {
       char buf[128];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Broadcast domain %s/%d [hits=%u]", ipa->print(buf, sizeof(buf)), network_bits, domains_info[addr_node->user_data].hits);
+      
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Broadcast domain %s/%d [hits=%u]",
+				   ipa->print(buf, sizeof(buf)), network_bits, domains_info[addr_node->user_data].hits);
     }
 #endif
 
@@ -79,7 +81,10 @@ void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network
 
   if(addr_node) {
     struct bcast_domain_info info;
-    info.is_interface_network = iface->isInterfaceNetwork(ipa, network_bits);
+    int16_t network_id;
+     
+    info.is_interface_network = iface->isInterfaceNetwork(ipa, network_bits)
+      || ipa->isLocalHost(&network_id); /* Don't consider local-listed addresses as ghost networks */
     info.hits = 1;
 
     addr_node->user_data = next_domain_id++;
@@ -93,10 +98,11 @@ void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network
 /* *************************************** */
 
 bool BroadcastDomains::isGhostLocalBroadcastDomain(bool is_interface_network) const {
-  return !is_interface_network
-    && !iface->isTrafficMirrored()
-    && iface->isPacketInterface()
-    && iface->getIfType() != interface_type_PCAP_DUMP;
+  return((!is_interface_network)
+	 && (!iface->isTrafficMirrored())
+	 && iface->isPacketInterface()
+	 && (iface->getIfType() != interface_type_PCAP_DUMP)
+	 );
 }
 
 /* *************************************** */
