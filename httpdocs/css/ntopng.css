@@ -553,6 +553,11 @@ path.link {
   height: 2rem;
 }
 
+/*
+  Class to apply to dropdown that must scroll elements.
+  When the dropdown height is greater than 20 rem then crop it and enable
+  scroll on y-axis
+*/
 .scrollable-dropdown {
   max-height: 20rem;
   height: auto;
