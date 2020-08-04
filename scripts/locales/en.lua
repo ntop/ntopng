@@ -3248,7 +3248,7 @@ local lang = {
     ["email_notification_server_title"] = "SMTP Server",
     ["email_notification_username_description"] = "The SMTP server username for authentication (optional).",
     ["email_notification_username_title"] = "Username",
-    ["email_send_error"] = "Email send error, please check out <a href='%{url}'>the online documentation</a>.",
+    ["email_send_error"] = "Email send error: please see <a href='%{url}'>online documentation</a>.",
     ["email_sent_successfully"] = "Email sent successfully",
     ["errors"] = "Errors",
     ["errors_and_warnings"] = "Errors and Warnings",
