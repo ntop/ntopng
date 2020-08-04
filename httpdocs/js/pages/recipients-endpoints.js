@@ -110,6 +110,12 @@ $(document).ready(function () {
                 data: 'endpoint_conf.endpoint_conf_name'
             },
             {
+                data: `endpoint_conf.endpoint_key`,
+                render: function(endpointType) {
+                    return i18n.endpoint_types[endpointType];
+                }
+            },
+            {
                 targets: -1,
                 className: 'text-center',
                 data: null,

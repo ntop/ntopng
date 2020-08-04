@@ -13,6 +13,7 @@
                 <tr>
                     <th>{{ i18n('endpoint_notifications.recipient_name') }}</th>
                     <th>{{ i18n('endpoint_notifications.associated_to') }}</th>
+                    <th>{{ i18n('endpoint_notifications.type') }}</th>
                     <th>{{ i18n('actions') }}</th>
                 </tr>
             </thead>
@@ -57,6 +58,9 @@
     i18n.timed_out = "{{ i18n('endpoint_notifications.timed_out') }}";
     i18n.server_error = "{{ i18n('endpoint_notifications.server_error') }}";
     i18n.endpoint_recipient_already_existing = "{{ i18n('endpoint_notifications.endpoint_recipient_already_existing') }}";
+
+    i18n.endpoint_types = {* json.encode(notifications.endpoint_types_labels) *};
+
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js"></script>
 {% else %}

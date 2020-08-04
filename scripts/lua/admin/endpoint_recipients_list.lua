@@ -29,10 +29,18 @@ menu_alert_notifications.render_notifications('recipients', {})
 
 page_utils.print_page_title(i18n("endpoint_notifications.recipient_list"))
 
+-- localize endpoint name types in a table
+local endpoints_types = notification_configs.get_types()
+local endpoint_types_labels = {}
+for endpoint_key, _ in pairs(endpoints_types) do
+    endpoint_types_labels[endpoint_key] = i18n('endpoint_notifications.types.'..endpoint_key)
+end
+
 -- Prepare the response
 local context = {
     notifications = {
-        endpoints = notification_configs.get_types(),
+        endpoints = endpoints_types,
+        endpoint_types_labels = endpoint_types_labels,
         endpoint_list = endpoints,
     },
     template_utils = template,

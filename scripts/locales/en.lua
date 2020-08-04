@@ -1076,6 +1076,12 @@ local lang = {
       ["cc"] = "CC",
       ["email_recipient"] = "Email Recipient",
     },
+    ["types"] = {
+      ["email"] = "Email",
+      ["slack"] = "Slack",
+      ["syslog"] = "Syslog",
+      ["webhook"] = "Webhook",
+    },
   },
   ["entity_thresholds"] = {
     ["flow_attacker_description"] = "Trigger an alert when the new client Flows/sec exceeds the threshold",
