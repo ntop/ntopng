@@ -58,6 +58,7 @@ Geolocation::Geolocation() {
 
     if(mmdbs_asn_ok && mmdbs_city_ok) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using geolocation provided by MaxMind (https://maxmind.com)");
+      mmdbs_ok = true;
       break;
     }
     
