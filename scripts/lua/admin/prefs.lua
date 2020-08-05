@@ -1338,6 +1338,11 @@ function printSnmp()
 		       "default_snmp_community",
 		       "public", false, nil, nil, nil,  {attributes={spellcheck="false", maxlength=64}, disabled=disabled})
 
+  prefsInputFieldPrefs(subpage_active.entries["default_snmp_timeout"].title,
+		       subpage_active.entries["default_snmp_timeout"].description,
+		       "ntopng.prefs.", "snmp_timeout_sec", 3,  -- default 3 sec
+		       "number", nil, nil, nil, { min=1, max=10 })
+
   prefsToggleButton(subpage_active, {
     field = "toggle_snmp_debug",
     default = "0",
