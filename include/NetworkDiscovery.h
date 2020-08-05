@@ -46,6 +46,7 @@ class NetworkDiscovery {
     mdns_vm = vm;
     m.unlock(__FILE__, __LINE__);
   }
+  void discoverDHCP(u_char *mac);
   
 public:
   NetworkDiscovery(NetworkInterface *_iface);
