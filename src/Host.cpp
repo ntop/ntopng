@@ -141,7 +141,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = os_unknown;
-  prefs_loaded = false;
+  prefs_loaded = is_dhcp_server = false;
   mud_pref = mud_recording_default;
 
   // readStats(); - Commented as if put here it's too early and the key is not yet set
@@ -644,6 +644,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_get_syn_flood(vm);
     lua_get_flow_flood(vm);
     lua_get_syn_scan(vm);
+
+    lua_push_bool_table_entry(vm, "dhcp_server", is_dhcp_server);
   }
 
   lua_get_time(vm);

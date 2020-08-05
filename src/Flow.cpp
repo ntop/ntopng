@@ -384,6 +384,10 @@ void Flow::processDetectedProtocol() {
   }
 
   switch(l7proto) {
+  case NDPI_PROTOCOL_DHCP:
+    if(cli_port == ntohs(67) /* server */) cli_host->setDhcpServer();
+    break;
+    
   case NDPI_PROTOCOL_BITTORRENT:
     if(bt_hash == NULL)
       setBittorrentHash((char*)ndpiFlow->protos.bittorrent.hash);
@@ -2008,9 +2012,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(alert_status_info)
       lua_push_str_table_entry(vm, "status_info", alert_status_info);
-
+    
     lua_get_risk_info(vm, true);
-
     lua_entropy(vm);
   }
 

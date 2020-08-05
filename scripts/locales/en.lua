@@ -938,6 +938,7 @@ local lang = {
     ["input_device_port"] = "Device Input Port",
     ["keep_alive"] = "KeepAlive",
     ["label_blacklisted_host"] = "Blacklisted",
+    ["label_dhcp_server"] = "DHCP Server",
     ["label_local_host"] = "Local",
     ["label_private_ip"] = "Private",
     ["label_remote"] = "Remote",

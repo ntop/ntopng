@@ -33,7 +33,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
     Fingerprint ja3;
     Fingerprint hassh;
   } fingerprints;
-  bool stats_reset_requested, name_reset_requested, data_delete_requested;
+  bool stats_reset_requested, name_reset_requested, data_delete_requested, is_dhcp_server;
   u_int16_t vlan_id, host_pool_id;
   HostStats *stats, *stats_shadow;
   OperatingSystem os;
@@ -104,10 +104,12 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual bool isLocalHost()  const = 0;
   virtual bool isSystemHost() const = 0;
   inline  bool isBroadcastDomainHost() const { return(is_in_broadcast_domain); };
-  inline bool serializeByMac() const { return(isBroadcastDomainHost() && isDhcpHost() && getMac() && iface->serializeLbdHostsAsMacs()); }
+  inline  bool serializeByMac() const { return(isBroadcastDomainHost() && isDhcpHost() && getMac() && iface->serializeLbdHostsAsMacs()); }
   inline  bool isDhcpHost()            const { return(is_dhcp_host); };
-  inline void setBroadcastDomainHost()       { is_in_broadcast_domain = true;  };
-  inline void setSystemHost()                { /* TODO: remove */              };
+  inline  bool isDhcpServer()          const { return(is_dhcp_server); };
+  inline  void setDhcpServer()               { is_dhcp_server = true; };
+  inline  void setBroadcastDomainHost()      { is_in_broadcast_domain = true;  };
+  inline  void setSystemHost()               { /* TODO: remove */              };
 
   inline nDPIStats* get_ndpi_stats()   const { return(stats->getnDPIStats()); };
 
