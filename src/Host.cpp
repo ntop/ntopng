@@ -840,25 +840,6 @@ void Host::periodic_hash_entry_state_update(void *user_data) {
     if(getUses() > 0 && !ntop->getGlobals()->isShutdownRequested())
       /* During shutdown it is acceptable to have a getUses() > 0 as all the hosts are forced as idle */
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u [%s]", getUses(), get_ip()->print(buf, sizeof(buf)));
-    
-    if(getNumTriggeredAlerts()
-       && (periodic_ht_state_update_user_data->acle
-	   || (periodic_ht_state_update_user_data->acle = new (std::nothrow) AlertCheckLuaEngine(alert_entity_host, minute_script /* doesn't matter */, iface, periodic_ht_state_update_user_data->vm)))
-       ) {
-      AlertCheckLuaEngine *acle = periodic_ht_state_update_user_data->acle;
-      lua_State *L = acle->getState();
-      acle->setHost(this);
-
-      lua_getglobal(L, USER_SCRIPTS_RELEASE_ALERTS_CALLBACK); /* Called function */
-
-      acle->pcall(0 /* 0 arguments */, 0 /* 0 results */);
-
-      /* Important: unset the host from the acle to avoid user-after-free in
-       * ~AlertCheckLuaEngine, as the host pointer will be free by
-       * GenericHash::walkAllStates right after this callback returns.
-       */
-      acle->setHost(NULL);
-    }
   }
 
   GenericHashEntry::periodic_hash_entry_state_update(user_data);

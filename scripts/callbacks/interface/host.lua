@@ -52,9 +52,10 @@ end
 
 -- The function below ia called once (#pragma once)
 function setup(str_granularity)
-   if(do_trace) then print("alert.lua:setup("..str_granularity..") called\n") end
    ifid = interface.getId()
    local ifname = interface.setActiveInterfaceId(ifid)
+
+   if(do_trace) then print("["..ifname.."] alert.lua:setup("..str_granularity..") called [deadline: "..formatEpoch(ntop.getDeadline()).."]\n") end
 
    -- Load the threshold checking functions
    available_modules = user_scripts.load(ifid, user_scripts.script_types.traffic_element, "host", {
@@ -71,7 +72,7 @@ end
 
 -- The function below ia called once (#pragma once)
 function teardown(str_granularity)
-   if(do_trace) then print("alert.lua:teardown("..str_granularity..") called\n") end
+   if(do_trace) then print("["..getInterfaceName(ifid).."] alert.lua:teardown("..str_granularity..") called [deadline: "..formatEpoch(ntop.getDeadline()).."]\n") end
 
    if do_script_benchmark and script_benchmark_tot_calls > 0 then
       traceError(TRACE_NORMAL,TRACE_CONSOLE, string.format("[tot_elapsed: %.4f][tot_num_calls: %u][avg time per call: %.4f]",
@@ -85,62 +86,86 @@ end
 
 -- #################################################################
 
+local function in_time()
+   -- Read the deadline stored in the lua engine and, if the deadline is
+   -- too close, consider not time left for the script.
+   -- Calling os.time() every time is not expensive, see method in_time() inside flow.lua
+   -- for measurements.
+   local time_left = ntop.getDeadline() - os.time()
+   local res = time_left > 1
+
+   if do_trace then
+      if not res then
+	 print(">>> No time left, [deadline: "..formatEpoch(ntop.getDeadline()).."]\n")
+      else
+	 print("Enough time left [deadline: "..formatEpoch(ntop.getDeadline()).."]\n")
+      end
+   end
+
+   return res
+end
+
+-- #################################################################
+
 -- The function below is called once per host
 function runScripts(granularity)
-  if table.empty(available_modules.hooks[granularity]) then
-    if(do_trace) then print("host:runScripts("..granularity.."): no modules, skipping\n") end
-    return
-  end
+   if table.empty(available_modules.hooks[granularity]) then
+      if(do_trace) then print("host:runScripts("..granularity.."): no modules, skipping\n") end
+      return
+   end
 
-  local host_ip = host.getIp()
-  local pool_id = host.getPoolId()["host_pool_id"]
-  local host_key   = hostinfo2hostkey({ip = host_ip.ip, vlan = host_ip.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
-  local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
-  local suppressed_alerts = alerts_api.hasSuppressedAlerts(ifid, host_entity, host_key)
+   local host_ip = host.getIp()
+   local pool_id = host.getPoolId()["host_pool_id"]
+   local host_key   = hostinfo2hostkey({ip = host_ip.ip, vlan = host_ip.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
+   local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
+   local suppressed_alerts = alerts_api.hasSuppressedAlerts(ifid, host_entity, host_key)
 
-  if suppressed_alerts then
-     releaseAlerts(granularity_id)
-  end
+   if suppressed_alerts then
+      releaseAlerts(granularity_id)
+   end
 
-  benchmark_begin()
-  local cur_alerts = host.getAlerts(granularity_id)
-  local is_localhost = host.isLocal()
-  benchmark_end()
+   benchmark_begin()
+   local cur_alerts = host.getAlerts(granularity_id)
+   local is_localhost = host.isLocal()
+   benchmark_end()
 
-  local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
-  -- Fetch the actual configset id using the host pool
-  local confset_id = pools_instance:get_configset_id_by_pool_id(pool_id)
-  -- Retrieve the configuration associated to the confset_id
-  local host_conf = user_scripts.getConfigById(configsets, confset_id, "host")
-  local when = os.time()
+   local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
 
-  for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
-    local user_script = available_modules.modules[mod_key]
-    local conf = user_scripts.getTargetHookConfig(host_conf, user_script, granularity)
+   if in_time() then
+      -- Fetch the actual configset id using the host pool
+      local confset_id = pools_instance:get_configset_id_by_pool_id(pool_id)
+      -- Retrieve the configuration associated to the confset_id
+      local host_conf = user_scripts.getConfigById(configsets, confset_id, "host")
+      local when = os.time()
 
-    if(conf.enabled) then
-      if((not user_script.is_alert) or (not suppressed_alerts)) then
-        alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
-           granularity = granularity,
-           alert_entity = entity_info,
-           entity_info = host_ip,
-           cur_alerts = cur_alerts,
-           user_script_config = conf.script_conf,
-           user_script = user_script,
-           when = when,
-           ifid = ifid,
-           ts_enabled = ts_enabled,
-        })
+      for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
+	 local user_script = available_modules.modules[mod_key]
+	 local conf = user_scripts.getTargetHookConfig(host_conf, user_script, granularity)
+
+	 if(conf.enabled) then
+	    if((not user_script.is_alert) or (not suppressed_alerts)) then
+	       alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
+					      granularity = granularity,
+					      alert_entity = entity_info,
+					      entity_info = host_ip,
+					      cur_alerts = cur_alerts,
+					      user_script_config = conf.script_conf,
+					      user_script = user_script,
+					      when = when,
+					      ifid = ifid,
+					      ts_enabled = ts_enabled,
+	       })
+	    end
+	 end
       end
-    end
-  end
+   end
 
-  -- cur_alerts now contains unprocessed triggered alerts, that is,
-  -- those alerts triggered but then disabled or unconfigured (e.g., when
-  -- the user removes a threshold from the gui)
-  if #cur_alerts > 0 then
-     alerts_api.releaseEntityAlerts(entity_info, cur_alerts)
-  end
+   -- cur_alerts now contains unprocessed triggered alerts, that is,
+   -- those alerts triggered but then disabled or unconfigured (e.g., when
+   -- the user removes a threshold from the gui)
+   if #cur_alerts > 0 then
+      alerts_api.releaseEntityAlerts(entity_info, cur_alerts)
+   end
 end
 
 -- #################################################################
