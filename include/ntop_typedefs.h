@@ -268,7 +268,7 @@ typedef struct zmq_remote_stats {
   u_int8_t  source_id, num_exporters;
   u_int64_t remote_bytes, remote_pkts, num_flow_exports;
   u_int32_t remote_ifspeed, remote_time, local_time, avg_bps, avg_pps;
-  u_int32_t remote_lifetime_timeout, remote_idle_timeout;
+  u_int32_t remote_lifetime_timeout, remote_idle_timeout, remote_collected_lifetime_timeout;
   u_int32_t export_queue_full, too_many_flows, elk_flow_drops,
     sflow_pkt_sample_drops, flow_collection_drops, flow_collection_udp_socket_drops;
 } ZMQ_RemoteStats;

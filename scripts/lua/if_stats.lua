@@ -409,7 +409,18 @@ if((page == "overview") or (page == nil)) then
 
       if ifstats["timeout.lifetime"] > 0 then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime").."</th><td nowrap>"..secondsToTime(ifstats["timeout.lifetime"]).."</td>")
+
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime")..
+		  " <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
+	 
+	 if(ifstats["timeout.collected_lifetime"] ~= nil) then
+	    -- We're in collector mode on the nProbe side
+	    print(" "..secondsToTime(ifstats["timeout.lifetime"]).." [Flow Lifetime: "..secondsToTime(ifstats["timeout.collected_lifetime"]).."]")
+	 else
+	    -- Modern nProbe in non-flow collector mode or old nProbe
+	    print(secondsToTime(ifstats["timeout.lifetime"]))
+	 end
+	 print("</td>")
 	 cur_i = cur_i + 1
       end
       if ifstats["timeout.idle"] > 0 then

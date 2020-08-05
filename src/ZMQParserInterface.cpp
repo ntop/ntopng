@@ -223,6 +223,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 	zrs.remote_lifetime_timeout = (u_int32_t)json_object_get_int64(z);
       if(json_object_object_get_ex(w, "idle", &z))
 	zrs.remote_idle_timeout = (u_int32_t)json_object_get_int64(z);
+      if(json_object_object_get_ex(w, "collected_lifetime", &z))
+	zrs.remote_collected_lifetime_timeout = (u_int32_t)json_object_get_int64(z);
     }
 
     if(json_object_object_get_ex(o, "drops", &w)) {
@@ -255,16 +257,18 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 
 #ifdef ZMQ_EVENT_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event parsed "
-				 "[iface: {name: %s, speed: %u, ip:%s}]"
+				 "[iface: {name: %s, speed: %u, ip: %s}]"
 				 "[probe: {public_ip: %s, ip: %s}]"
 				 "[avg: {bps: %u, pps: %u}]"
-				 "[remote: {time: %u, bytes: %u, packets: %u, idle_timeout: %u, lifetime_timeout:%u}]"
+				 "[remote: {time: %u, bytes: %u, packets: %u, idle_timeout: %u, lifetime_timeout: %u,"
+				 " collected_lifetime_timeout: %u }]"
 				 "[zmq: {num_exporters: %u, num_flow_exports: %u}]",
 				 zrs.remote_ifname, zrs.remote_ifspeed, zrs.remote_ifaddress,
 				 zrs.remote_probe_public_address, zrs.remote_probe_address,
 				 zrs.avg_bps, zrs.avg_pps,
 				 zrs.remote_time, (u_int32_t)zrs.remote_bytes, (u_int32_t)zrs.remote_pkts,
 				 zrs.remote_idle_timeout, zrs.remote_lifetime_timeout,
+				 zrs.remote_collected_lifetime_timeout,
 				 zrs.num_exporters, zrs.num_flow_exports);
 #endif
 
@@ -1871,7 +1875,7 @@ u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() const {
   u_int32_t update_freq_min = ntop->getPrefs()->get_housekeeping_frequency();
 
   if(zrs)
-    update_freq = max_val(zrs->remote_lifetime_timeout, zrs->remote_idle_timeout);
+    update_freq = max_val(max_val(zrs->remote_lifetime_timeout, zrs->remote_idle_timeout), zrs->remote_collected_lifetime_timeout);
   else
     update_freq = update_freq_min;
   
@@ -1940,6 +1944,7 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
       cumulative_zrs->avg_bps += zrs_i->avg_bps;
       cumulative_zrs->avg_pps += zrs_i->avg_pps;
       cumulative_zrs->remote_lifetime_timeout = max_val(cumulative_zrs->remote_lifetime_timeout, zrs_i->remote_lifetime_timeout);
+      cumulative_zrs->remote_collected_lifetime_timeout = max_val(cumulative_zrs->remote_collected_lifetime_timeout, zrs_i->remote_collected_lifetime_timeout);
       cumulative_zrs->remote_idle_timeout = max_val(cumulative_zrs->remote_idle_timeout, zrs_i->remote_idle_timeout);
       cumulative_zrs->export_queue_full += zrs_i->export_queue_full;
       cumulative_zrs->too_many_flows += zrs_i->too_many_flows;
@@ -1959,7 +1964,7 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   last_remote_bps = cumulative_zrs->avg_bps;
 
   /* Recalculate the flow max idle according to the timeouts received */
-  flow_max_idle = cumulative_zrs->remote_lifetime_timeout + 10 /* Safe margin */;
+  flow_max_idle = max(cumulative_zrs->remote_lifetime_timeout, cumulative_zrs->remote_collected_lifetime_timeout) + 10 /* Safe margin */;
 
   if((zmq_initial_pkts == 0) /* ntopng has been restarted */
      || (cumulative_zrs->remote_bytes < zmq_initial_bytes) /* nProbe has been restarted */
@@ -2024,6 +2029,7 @@ void ZMQParserInterface::lua(lua_State* vm) {
       lua_push_uint64_table_entry(vm, "zmq.drops.flow_collection_udp_socket_drops", zrs->flow_collection_udp_socket_drops);
 
     lua_push_uint64_table_entry(vm, "timeout.lifetime", zrs->remote_lifetime_timeout);
+    lua_push_uint64_table_entry(vm, "timeout.collected_lifetime", zrs->remote_collected_lifetime_timeout);
     lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
   }
 }
