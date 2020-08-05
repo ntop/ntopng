@@ -209,6 +209,10 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 	snprintf(zrs.remote_probe_public_address, sizeof(zrs.remote_probe_public_address), "%s", json_object_get_string(z));
       if(json_object_object_get_ex(w, "ip", &z))
 	snprintf(zrs.remote_probe_address, sizeof(zrs.remote_probe_address), "%s", json_object_get_string(z));
+      if(json_object_object_get_ex(w, "version", &z))
+	snprintf(zrs.remote_probe_version, sizeof(zrs.remote_probe_version), "%s", json_object_get_string(z));
+      if(json_object_object_get_ex(w, "osname", &z))
+	snprintf(zrs.remote_probe_os, sizeof(zrs.remote_probe_os), "%s", json_object_get_string(z));
     }
 
     if(json_object_object_get_ex(o, "avg", &w)) {
@@ -258,12 +262,13 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 #ifdef ZMQ_EVENT_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Event parsed "
 				 "[iface: {name: %s, speed: %u, ip: %s}]"
-				 "[probe: {public_ip: %s, ip: %s}]"
+				 "[probe: {public_ip: %s, ip: %s, version: %s, os: %s}]"
 				 "[avg: {bps: %u, pps: %u}]"
 				 "[remote: {time: %u, bytes: %u, packets: %u, idle_timeout: %u, lifetime_timeout: %u,"
 				 " collected_lifetime_timeout: %u }]"
 				 "[zmq: {num_exporters: %u, num_flow_exports: %u}]",
 				 zrs.remote_ifname, zrs.remote_ifspeed, zrs.remote_ifaddress,
+				 zrs.remote_probe_version, zrs.remote_probe_os,
 				 zrs.remote_probe_public_address, zrs.remote_probe_address,
 				 zrs.avg_bps, zrs.avg_pps,
 				 zrs.remote_time, (u_int32_t)zrs.remote_bytes, (u_int32_t)zrs.remote_pkts,
@@ -1934,6 +1939,8 @@ void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
       Utils::snappend(cumulative_zrs->remote_ifaddress, sizeof(cumulative_zrs->remote_ifaddress), zrs_i->remote_ifaddress, ",");
       Utils::snappend(cumulative_zrs->remote_probe_address, sizeof(cumulative_zrs->remote_probe_address), zrs_i->remote_probe_address, ",");
       Utils::snappend(cumulative_zrs->remote_probe_public_address,  sizeof(cumulative_zrs->remote_probe_public_address), zrs_i->remote_probe_public_address, ",");
+      Utils::snappend(cumulative_zrs->remote_probe_version,  sizeof(cumulative_zrs->remote_probe_version), zrs_i->remote_probe_version, ",");
+      Utils::snappend(cumulative_zrs->remote_probe_os,  sizeof(cumulative_zrs->remote_probe_os), zrs_i->remote_probe_os, ",");      
       cumulative_zrs->num_exporters += zrs_i->num_exporters;
       cumulative_zrs->remote_bytes += zrs_i->remote_bytes;
       cumulative_zrs->remote_pkts += zrs_i->remote_pkts;
@@ -2017,7 +2024,11 @@ void ZMQParserInterface::lua(lua_State* vm) {
       lua_push_str_table_entry(vm, "probe.ip", zrs->remote_probe_address);
     if(zrs->remote_probe_public_address[0] != '\0')
       lua_push_str_table_entry(vm, "probe.public_ip", zrs->remote_probe_public_address);
-
+    if(zrs->remote_probe_version[0] != '\0')
+      lua_push_str_table_entry(vm, "probe.probe_version", zrs->remote_probe_version);
+    if(zrs->remote_probe_os[0] != '\0')
+      lua_push_str_table_entry(vm, "probe.probe_os", zrs->remote_probe_os);
+    
     lua_push_uint64_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports - zmq_remote_initial_exported_flows);
     lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
 

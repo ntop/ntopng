@@ -836,7 +836,6 @@ bool Host::is_hash_entry_state_idle_transition_ready() const {
 
 void Host::periodic_hash_entry_state_update(void *user_data) {
   char buf[64];
-  periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
 
   if(get_state() == hash_entry_state_idle) {
     if(getUses() > 0 && !ntop->getGlobals()->isShutdownRequested())

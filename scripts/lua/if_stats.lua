@@ -389,21 +389,33 @@ if((page == "overview") or (page == nil)) then
 	 cur_i = cur_i + 1
       end
 
-      if not isEmptyString(ifstats["remote.if_addr"]) then
+      if not isEmptyString(ifstats["probe.probe_version"]) then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>".. i18n("if_stats_overview.interface_ip") .."</th><td nowrap>" .. ifstats["remote.if_addr"] .. "</td>")
+	 print("<th nowrap>".. i18n("if_stats_overview.remote_probe") .."</th><td nowrap>" .. ifstats["probe.probe_version"])
+
+	 if not isEmptyString(ifstats["probe.probe_os"]) then
+	    print(" ("..ifstats["probe.probe_os"]..")")
+	 end
+	 print("</td>")
 	 cur_i = cur_i + 1
       end
 
       if not isEmptyString(ifstats["probe.ip"]) then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>".. i18n("if_stats_overview.probe_ip") .."</th><td nowrap>" .. ifstats["probe.ip"] .. "</td>")
-	 cur_i = cur_i + 1
-      end
 
-      if not isEmptyString(ifstats["probe.public_ip"]) then
-	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>".. i18n("if_stats_overview.public_probe_ip") .."</th><td nowrap><A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fas fa-external-link-alt'></i></td>")
+	 print("<th nowrap>".. i18n("if_stats_overview.probe_ip"))
+
+	 if not isEmptyString(ifstats["probe.public_ip"]) then
+	    print(" / ".. i18n("if_stats_overview.public_probe_ip"))
+	 end
+
+	 print("</th><td nowrap>" .. ifstats["probe.ip"])
+	 
+	 if not isEmptyString(ifstats["probe.public_ip"]) then
+	    print(" / <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fas fa-external-link-alt'><i>")
+	 end
+
+	 print("</td>")
 	 cur_i = cur_i + 1
       end
 
@@ -413,9 +425,9 @@ if((page == "overview") or (page == nil)) then
 	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime")..
 		  " <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
 	 
-	 if(ifstats["timeout.collected_lifetime"] ~= nil) then
+	 if((ifstats["timeout.collected_lifetime"] ~= nil) and (ifstats["timeout.collected_lifetime"] > 0)) then
 	    -- We're in collector mode on the nProbe side
-	    print(" "..secondsToTime(ifstats["timeout.lifetime"]).." [Flow Lifetime: "..secondsToTime(ifstats["timeout.collected_lifetime"]).."]")
+	    print(" "..secondsToTime(ifstats["timeout.lifetime"]).." [".. i18n("if_stats_overview.remote_flow_lifetime")..": "..secondsToTime(ifstats["timeout.collected_lifetime"]).."]")
 	 else
 	    -- Modern nProbe in non-flow collector mode or old nProbe
 	    print(secondsToTime(ifstats["timeout.lifetime"]))
@@ -499,7 +511,11 @@ if((page == "overview") or (page == nil)) then
    print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2"><p style="word-break: break-all">' .. s ..'</p></td>\n')
 
    print("<th>"..i18n("if_stats_overview.family").."</th><td colspan=2>")
-   print(ifstats.type)
+   if(ifstats.type == "zmq") then
+      print("ZMQ")
+   else
+      print(ifstats.type)
+   end
 
    if(ifstats.inline) then
       print(" "..i18n("if_stats_overview.in_path_interface"))
