@@ -3137,6 +3137,7 @@ local lang = {
     ["config_import_message"] = "<b>Note</b>: pools with the same name will be replaced.",
     ["configuration"] = "User Scripts Configuration",
     ["edit_pools"] = "Edit Pools",
+    ["edit_recipients"] = "Edit recipients",
     ["id"] = "ID",
     ["insert_name"] = "Insert a name",
     ["members"] = "Members",
