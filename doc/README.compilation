@@ -1,3 +1,9 @@
+Before you Compile ntopng
+-------------------------
+
+If you want to use binary packages instead of compiling ntopng from source you can
+download them for various platforms at http://packages.ntop.org/
+
 Prerequisites for Compilation
 -----------------------------
 
