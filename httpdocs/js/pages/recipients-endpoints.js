@@ -128,7 +128,7 @@ $(document).ready(function () {
 
                     return (`
                         <div class='btn-group btn-group-sm'>
-                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info" ${editButtonDisabled ? 'disabled' : ''}>
+                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info ${editButtonDisabled ? 'disabled' : ''}" >
                                 <i class='fas fa-edit'></i>
                             </a>
                             <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-danger">
