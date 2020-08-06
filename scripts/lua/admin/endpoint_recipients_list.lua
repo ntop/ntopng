@@ -32,8 +32,18 @@ page_utils.print_page_title(i18n("endpoint_notifications.recipient_list"))
 -- localize endpoint name types in a table
 local endpoints_types = notification_configs.get_types()
 local endpoint_types_labels = {}
+-- create a table to filter recipient by endpoint's type
+local endpoint_type_filters = {}
 for endpoint_key, _ in pairs(endpoints_types) do
-    endpoint_types_labels[endpoint_key] = i18n('endpoint_notifications.types.'..endpoint_key)
+
+    local label = i18n('endpoint_notifications.types.'..endpoint_key)
+    endpoint_types_labels[endpoint_key] = label
+    endpoint_type_filters[#endpoint_type_filters+1] = {
+        label = label,
+        regex = endpoint_key,
+        key = endpoint_key
+    }
+
 end
 
 -- Prepare the response
@@ -42,6 +52,9 @@ local context = {
         endpoints = endpoints_types,
         endpoint_types_labels = endpoint_types_labels,
         endpoint_list = endpoints,
+        filters = {
+            endpoint_types = endpoint_type_filters
+        }
     },
     template_utils = template,
     page_utils = page_utils,

@@ -138,7 +138,18 @@ $(document).ready(function () {
                     `);
                 }
             }
-        ]
+        ],
+        hasFilters: true,
+        initComplete: function(settings, json) {
+
+            const tableAPI = settings.oInstance.api();
+
+            // add a filter to sort the datatable by endpoint type
+            DataTableUtils.addFilterDropdown(
+                i18n.endpoint_type, endpointTypeFilters, 2, '#recipient-list_filter', tableAPI
+            );
+
+        }
     });
 
     const $recipientsTable = $(`table#recipient-list`).DataTable(dtConfig);
