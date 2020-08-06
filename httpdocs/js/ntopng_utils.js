@@ -865,4 +865,9 @@ $(document).ready(function () {
   // if there are inputs with 'pattern' data attribute
   // then initialize them
   init_data_patterns();
+
+  $(`input#import-input`).on('change', function () {
+    const filename = $(this).val().replace("C:\\fakepath\\", "");
+    $(`label[for='#import-input']`).html(filename);
+  });
 });
