@@ -235,7 +235,6 @@ $(document).ready(function () {
                 $(`#add-recipient-modal form .recipient-template-container`).empty().append($cloned).show();
             }
 
-            $(`#add-recipient-modal .test-feedback`).hide();
         },
         onSubmitSuccess: function (response) {
 

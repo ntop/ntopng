@@ -8,38 +8,82 @@
      */
     class ModalHandler {
 
-        /* element is the form object */
-        constructor(element, options) {
-            /* Check mandatory options */
-            if (typeof options.csrf === "undefined")
-                throw "ModalHandler: Missing CSRF token!";
+        constructor(form, options) {
 
-            this.element = element;
-            this.dialog = $(element).closest(".modal");
+            if (typeof options.csrf === "undefined") {
+                throw new Error("ModalHandler::Missing CSRF token!");
+            }
+
+            this.element = form;
+            this.dialog = $(form).closest(".modal");
+
             this.options = options;
             this.csrf = options.csrf;
             this.dontDisableSubmit = options.dontDisableSubmit;
+
             this.observer = new MutationObserver((list) => {
                 this.bindFormValidation();
+                this.isFormValid();
             });
+
             this.observer.observe(this.element[0], {
                 childList: true,
                 subtree: true
             });
 
             const submitButton = $(this.element).find(`[type='submit']`);
-            if (submitButton.length == 0)
-                throw "The submit button was not found inside the form!";
+            if (submitButton.length == 0) {
+                throw new Error("ModalHandler::The submit button was not found inside the form!");
+            }
 
-            this.cleanFormOnModalClose();
+            submitButton.attr("disabled", "disabled");
+
+        }
+
+        /**
+         * Create a form's snapshot to save a form state
+         */
+        createFormSnapshot() {
+
+            const snapshot = {
+                inputs: {},
+                hidden: []
+            };
+
+            $(this.element).find('textarea,select,input').each(function() {
+
+                const type = $(this).prop('nodeName').toLowerCase();
+                const name = $(this).attr('name');
+                snapshot.inputs[`${type}[name='${name}']`] = $(this).val();
+            });
+
+            $(this.element).find(`[style='display: none;'], span.invalid-feedback`).each(function() {
+                snapshot.hidden.push($(this));
+            });
+
+            return snapshot;
 
         }
 
         cleanFormOnModalClose() {
 
             const self = this;
-            $(this.element).parents('.modal').on('hidden.bs.modal', function() {
-                self.cleanForm();
+
+            $(this.dialog).on('hidden.bs.modal', function() {
+
+                // for each input inside the form restore the initial value
+                // from the snapshot taken at init
+                for (const [selector, value] of Object.entries(self.initialState.inputs)) {
+                    $(selector).val(value);
+                    $(selector).removeClass('is-invalid');
+                }
+
+                // hide the shwon elements
+                self.initialState.hidden.forEach(($hidden) => {
+                    $hidden.hide();
+                });
+
+                self.element.find(`[type='submit']`).attr("disabled", "disabled");
             });
         }
 
@@ -50,6 +94,11 @@
         invokeModalInit() {
 
             const self = this;
+
+            // create a initial form snapshot to restore elements on closing
+            this.initialState = this.createFormSnapshot();
+            // reset form values when the modal closes
+            this.cleanFormOnModalClose();
 
             this.options.onModalInit(this.fillFormModal());
 
@@ -63,27 +112,29 @@
         delegateSubmit() {
 
             this.bindFormValidation();
+
             const self = this;
+
             this.submitHandler = function(e) {
+
                 if (!self.options.isSyncRequest) {
                     e.preventDefault();
                     e.stopPropagation();
                     self.makeRequest();
                 }
-                else {
-                    aysResetForm(self.form_sel);
-                }
             };
+
             $(this.element).on('submit', this.submitHandler);
         }
 
         bindFormValidation() {
 
+            const self = this;
             $(this.element).find(`input,select,textarea`).each(function(i, input) {
 
                 const $input = $(this);
 
-                function checkValidation(insertError) {
+                const checkValidation = (insertError) => {
 
                     const $parent = $input.parent();
                     let $error = $parent.find(`.invalid-feedback`);
@@ -104,8 +155,10 @@
                 }
 
                 $(this).off('input').on('input', function(e) {
-                    if (!$input.attr("formnovalidate"))
+                    if (!$input.attr("formnovalidate")) {
                         checkValidation(false);
+                        self.isFormValid();
+                    }
                 });
 
                 $(this).off('invalid').on('invalid', function(e) {
@@ -116,6 +169,19 @@
                 });
 
             });
+        }
+
+        isFormValid() {
+
+            let isValid = true;
+
+            $(this.element).find('input,select,textarea').each(function(idx, input) {
+                isValid &= input.validity.valid;
+            });
+
+            isValid
+                ? $(this.element).find(`[type='submit']`).removeAttr("disabled")
+                : $(this.element).find(`[type='submit']`).attr("disabled", "disabled");
         }
 
         cleanForm() {
