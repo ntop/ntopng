@@ -13,7 +13,6 @@ local defined_alert_notifications = require("defined_alert_notifications")
 --- Returns an array of notification to be displayed as default
 --- @return table
 function menu_alert_notifications.load_main_notifications()
-
     local notifications = {}
 
     -- create_notification is a pointer to a function contained

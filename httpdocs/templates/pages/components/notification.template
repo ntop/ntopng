@@ -1,8 +1,9 @@
 <div class="toast alert-notification" role="alert" aria-live="assertive" aria-atomic="true"
     data-notification-id="{{ model.id }}"
     data-notification-no-scope="{{ model.no_scope }}" data-autohide="false">
-    <div class="toast-header bg-{{ style.bg_color }} border-{{ style.bg_color }} {{ style.title_text_color }}">
-        <strong class="mr-auto">
+    <div class="toast-header border-{{ style.bg_color }} {{ style.title_text_color }}">
+<svg class="bd-placeholder-img rounded mr-2" width="20" height="20" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img"><rect width="100%" height="100%" fill="{{ style.fill_color }}" /></svg>
+<strong class="mr-auto">
             <i class="fas {{ style.icon }}"></i> {{ content.title }}
         </strong>
         <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">

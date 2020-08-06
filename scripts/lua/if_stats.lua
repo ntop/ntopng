@@ -435,15 +435,25 @@ if((page == "overview") or (page == nil)) then
 	 print("</td>")
 	 cur_i = cur_i + 1
       end
+
       if ifstats["timeout.idle"] > 0 then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 	 print("<th nowrap><b>"..i18n("if_stats_overview.probe_timeout_idle").."</th><td nowrap>"..secondsToTime(ifstats["timeout.idle"]).."</td>")
 	 cur_i = cur_i + 1
       end
 
-      if not isEmptyString(ifstats["zmq.num_exporters"]) then
+      if not isEmptyString(ifstats["probe.remote_time"]) then
+	 local tdiff = math.abs(os.time()-ifstats["probe.remote_time"])
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_num_endpoints").."</th><td nowrap><span id=if_num_remote_zmq_exporters>"..formatValue(ifstats["zmq.num_exporters"]).."</span></td>")
+	 print("<th nowrap>"..i18n("if_stats_overview.remote_probe_time")..
+		  " <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_remote_probe_time").."'></i></sup>" ..
+		  "</th><td nowrap>")
+
+	 if(tdiff > 10) then print("<font color=red><b>") end
+	 print(formatValue(tdiff).." sec")
+	 if(tdiff > 10) then print("</b></font>") end
+	 
+	 print("</td>")
 	 cur_i = cur_i + 1
       end
 

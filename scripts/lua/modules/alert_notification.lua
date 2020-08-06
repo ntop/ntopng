@@ -13,21 +13,25 @@ alert_notification_levels = {
       icon = "fa-check-circle",
       bg_color = "success",
       title_text_color = "text-dark",
+      fill_color = "#28a745",
    },
    info = {
       icon = "fa-info-circle",
       bg_color = "info",
       title_text_color = "text-dark",
+      fill_color = "#17a2b8",
    },
    warning = {
       icon = "fa-exclamation-circle",
       bg_color = "warning",
       title_text_color = "text-dark",
+      fill_color = "#ffc107",
    },
    danger = {
       icon = "fa-exclamation-triangle",
       bg_color = "danger",
       title_text_color = "text-dark",
+      fill_color = "#dc3545",
    },
 }
 

@@ -2363,7 +2363,7 @@ function getFlag(country)
    if((country == nil) or (country == "")) then
       return("")
    else
-      return("<a href='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country=".. country .."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(country) .."'></a>")
+      return(" <a href='" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country=".. country .."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(country) .."'></a> ")
    end
 end
 
