@@ -15,6 +15,11 @@ $(document).ready(function () {
     // define a constant for the SNMP version dropdown value
     const SNMP_VERSION_THREE = 2;
 
+    // an object containing ddefault values for the Edit SNMP modal
+    const SNMP_DEFAULTS = {
+        VERSION : 0,
+    };
+
     // required fields for SNMPv3
     const requiredFields = {};
 
@@ -326,9 +331,13 @@ $(document).ready(function () {
             return buildDataRequest('#edit-snmp-device-modal');
         },
         onModalInit: () => {
-            $(`#edit-snmp-device-modal input[name='snmp_host']`).val(snmpDeviceRowData.column_key).attr("readonly", true);
+
+            // if the version is over SNMP_VERSION_THREE then bind it to the default one
+            const version = (snmpDeviceRowData.column_version > SNMP_VERSION_THREE) ? SNMP_DEFAULTS.VERSION : snmpDeviceRowData.column_version;
+
+            $(`#edit-snmp-device-modal input[name='snmp_host']`).val(snmpDeviceRowData.column_key).attr("readonly", "readonly");
             $(`#edit-snmp-device-modal input[name='snmp_read_community']`).val(snmpDeviceRowData.column_community);
-            $(`#edit-snmp-device-modal select[name='snmp_version']`).val(snmpDeviceRowData.column_version);
+            $(`#edit-snmp-device-modal select[name='snmp_version']`).val(version);
             $(`#edit-snmp-device-modal select[name='pool']`).val(snmpDeviceRowData.column_pool_id);
         },
         onSubmitSuccess: (response, textStatus, modalHandler) => {
