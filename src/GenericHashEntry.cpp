@@ -29,7 +29,7 @@ GenericHashEntry::GenericHashEntry(NetworkInterface *_iface) {
   hash_table = NULL;
 
   hash_entry_state = hash_entry_state_active; /* Default for all but Flow */
-  
+
   if(iface && iface->getTimeLastPktRcvd() > 0)
     first_seen = last_seen = iface->getTimeLastPktRcvd();
   else
@@ -62,7 +62,7 @@ void GenericHashEntry::updateSeen() {
 void GenericHashEntry::set_state(HashEntryState s) {
   if((s < hash_entry_state /* Can't go back */
       || (s != hash_entry_state + 1 /* Only ahead, one state at time */
-	  /* Only exception is for flows, which can go from allocated to protocoldetected without 
+	  /* Only exception is for flows, which can go from allocated to protocoldetected without
 	     stepping on not yet detected */
 	  && !(hash_entry_state == hash_entry_state_allocated && s == hash_entry_state_flow_protocoldetected)))
      && (!iface || iface->isRunning()))
@@ -108,8 +108,16 @@ bool GenericHashEntry::idle() const {
 /* ***************************************** */
 
 bool GenericHashEntry::is_active_entry_now_idle(u_int max_idleness) const {
-    return((((u_int)(iface->getTimeLastPktRcvd()) > (last_seen + max_idleness)) ? true : false));
-  }
+  bool ret = (((u_int)(iface->getTimeLastPktRcvd()) > (last_seen + max_idleness)) ? true : false);
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [lastPkt: %u][last_seen: %u][max_idleness: %u][idle: %s]",
+			       __FUNCTION__, iface->getTimeLastPktRcvd(), last_seen, max_idleness,
+			       ret ? "true" : "false");
+#endif
+
+  return(ret);
+}
 
 /* ***************************************** */
 

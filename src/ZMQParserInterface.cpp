@@ -34,6 +34,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
   memset(&last_zmq_remote_stats_update, 0, sizeof(last_zmq_remote_stats_update));
   zmq_remote_initial_exported_flows = 0;
+  remote_lifetime_timeout = remote_idle_timeout = 0;
   once = false;
   flow_max_idle = ntop->getPrefs()->get_pkt_ifaces_flow_max_idle();
 #ifdef NTOPNG_PRO
@@ -291,6 +292,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
 				 zrs.num_exporters, zrs.num_flow_exports);
 #endif
 
+    remote_lifetime_timeout = zrs.remote_lifetime_timeout, remote_idle_timeout = zrs.remote_idle_timeout;
+    
     /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%u/%u", avg_bps, avg_pps); */
 
     /* Process Flow */
@@ -1939,12 +1942,6 @@ u_int32_t ZMQParserInterface::periodicStatsUpdateFrequency() const {
 
 /* **************************************** */
 
-u_int32_t ZMQParserInterface::getFlowMaxIdle() {
-  return flow_max_idle;
-}
-
-/* **************************************** */
-
 void ZMQParserInterface::setRemoteStats(ZMQ_RemoteStats *zrs) {
   ZMQ_RemoteStats *last_zrs, *cumulative_zrs;
   map<u_int8_t, ZMQ_RemoteStats*>::iterator it;
@@ -2095,6 +2092,12 @@ void ZMQParserInterface::lua(lua_State* vm) {
     lua_push_uint64_table_entry(vm, "timeout.collected_lifetime", zrs->remote_collected_lifetime_timeout);
     lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
   }
+}
+
+/* **************************************************** */
+
+u_int32_t ZMQParserInterface::getFlowMaxIdle() {
+  return(max(remote_idle_timeout, flow_max_idle));
 }
 
 /* **************************************************** */

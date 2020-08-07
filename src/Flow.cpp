@@ -2141,37 +2141,42 @@ void Flow::set_hash_entry_state_idle() {
 
 bool Flow::is_hash_entry_state_idle_transition_ready() const {
   bool ret = false;
-
+  
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
     return(isNetfilterIdleFlow());
 #endif
 
-  if(protocol == IPPROTO_TCP) {
-    u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
-
-    /* The flow is considered idle after a MAX_TCP_FLOW_IDLE
-       when RST/FIN are set or when the TWH is not completed.
-       This prevents finalized/reset flows, or flows with an imcomplete
-       TWH from staying in memory for too long. */
-    if((tcp_flags & TH_FIN
-	|| tcp_flags & TH_RST
-	|| ((iface->isPacketInterface()
-	     || tcp_flags /* If not a packet interfaces, we expect flags to be set to be sure they've been exported */)
-	    && !isThreeWayHandshakeOK()))
-       /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
-       && (iface->getTimeLastPktRcvd() > doNotExpireBefore)
-       && is_active_entry_now_idle(MAX_TCP_FLOW_IDLE)) {
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
-      ret = true;
-    }
-  } else
+  if(iface->getIfType() == interface_type_ZMQ) {
     ret = is_active_entry_now_idle(iface->getFlowMaxIdle());
+  } else {
+    if(protocol == IPPROTO_TCP) {
+      u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
+      
+      /* The flow is considered idle after a MAX_TCP_FLOW_IDLE
+	 when RST/FIN are set or when the TWH is not completed.
+	 This prevents finalized/reset flows, or flows with an imcomplete
+	 TWH from staying in memory for too long. */
+      if((tcp_flags & TH_FIN
+	  || tcp_flags & TH_RST
+	  || ((iface->isPacketInterface()
+	       || tcp_flags /* If not a packet interfaces, we expect flags to be set to be sure they've been exported */)
+	      && !isThreeWayHandshakeOK()))
+	 /* Flows won't expire if less than DONT_NOT_EXPIRE_BEFORE_SEC old */
+	 && (iface->getTimeLastPktRcvd() > doNotExpireBefore)
+	 && is_active_entry_now_idle(MAX_TCP_FLOW_IDLE)) {
+	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
+	ret = true;
+      }
+    } else
+      ret = is_active_entry_now_idle(iface->getFlowMaxIdle());
+  }
   
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [uses: %u][time: %d]", __FUNCTION__,
-			       getUses(),
-			       (last_seen + iface->getFlowMaxIdle()) - iface->getTimeLastPktRcvd());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [uses: %u][time: %d][idle: %s]",
+			       __FUNCTION__, getUses(),
+			       (last_seen + iface->getFlowMaxIdle()) - iface->getTimeLastPktRcvd(),
+			       ret ? "true" : "false");
 
   if(ret)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Idle flow found", iface->get_name()); 

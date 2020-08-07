@@ -28,7 +28,7 @@
 ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserInterface(_endpoint) {
   char *tmp, *e, *t;
   const char *topics[] = { "flow", "event", "counter", "template", "option", NULL };
-
+  
   memset(&recvStats, 0, sizeof(recvStats));
   memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
   num_subscribers = 0;

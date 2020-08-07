@@ -204,7 +204,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
     if(table[hash_id] != NULL) {
       GenericHashEntry *head;
 
-#if WALK_DEBUG
+#ifdef WALK_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Locking %d [%p]", hash_id, locks[hash_id]);
 #endif
 
@@ -241,7 +241,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
 	u_int32_t next_slot  = (hash_id == (num_hashes-1)) ? 0 /* start over */ : (hash_id+1);
 
 	*begin_slot = next_slot;
-#if WALK_DEBUG
+#ifdef WALK_DEBUG
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Over [nextSlot: %u][hash_id: %u][tot_matched: %u]",
 				     next_slot, hash_id, tot_matched);
 #endif
@@ -257,7 +257,7 @@ bool GenericHash::walk(u_int32_t *begin_slot,
   if(!found)
     *begin_slot = 0 /* start over */;
 
-#if WALK_DEBUG
+#ifdef WALK_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[walk] Over [tot_matched: %u]", tot_matched);
 #endif
 
@@ -292,7 +292,7 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 
   idle_entries_shadow_old_size = idle_entries_shadow->size();
 
-#if WALK_DEBUG
+#ifdef WALK_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s @ %s] Begin purgeIdle() [begin index: %u][purge step: %u][size: %u][force_idle: %u]",
 			       name, iface->get_name(), last_purged_hash, visit_fraction, getNumEntries(), force_idle ? 1 : 0);
 #endif
@@ -302,7 +302,7 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 
   for(j = 0; j < num_hashes; j++) {
     /*
-      Initially visit the visit_fraction of the hash, but it we have
+      Initially visit the visit_fraction of the hash, but if we have
       visited too few elements we keep visiting until a minimum number
       of entries is reached
     */
@@ -354,7 +354,7 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 	     || (
 		 iface->is_purge_idle_interface()
 		 && (head->getUses() == 0)
-		 && head->is_hash_entry_state_idle_transition_ready())	     
+		 && head->is_hash_entry_state_idle_transition_ready())
 	     ) {
 	  detach_idle_hash_entry:
 	    idle_entries_shadow->push_back(head); /* Found entry to purge */
@@ -395,11 +395,11 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
     }
   }
 
-#if WALK_DEBUG
+#ifdef WALK_DEBUG
   if(/* (num_detached > 0) && */ (!strcmp(name, "FlowHash")))
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "[%s @ %s] purgeIdle() [num_detached: %u][num_checked: %u][end index: %u][current_size: %u]",
-				 name, iface->get_name(), num_detached, buckets_checked, last_purged_hash, current_size);
+				 "[%s @ %s] purgeIdle() [num_detached: %u][num_checked: %u][end index: %u][current_size: %u][visit_fraction: %u]",
+				 name, iface->get_name(), num_detached, buckets_checked, last_purged_hash, current_size, visit_fraction);
 #endif
 
   return(num_detached);

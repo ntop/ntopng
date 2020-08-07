@@ -2469,7 +2469,7 @@ struct timeval NetworkInterface::periodicUpdateInitTime() const {
 /* **************************************************** */
 
 u_int32_t NetworkInterface::getFlowMaxIdle() {
-  return ntop->getPrefs()->get_pkt_ifaces_flow_max_idle();
+  return(ntop->getPrefs()->get_pkt_ifaces_flow_max_idle());
 }
 
 /* **************************************************** */
