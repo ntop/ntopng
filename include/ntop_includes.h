@@ -337,6 +337,7 @@ using namespace std;
 #include "TextDump.h"
 #include "NIndexFlowDB.h"
 #endif
+#include "FrequentStringItems.h"
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #include "DnsHostMapping.h"
@@ -347,7 +348,6 @@ using namespace std;
 #include "BatchedMySQLDBEntry.h"
 #endif
 #include "LuaHandler.h"
-#include "FrequentStringItems.h"
 #ifdef HAVE_NEDGE
 #include "NetfilterInterface.h"
 #endif
