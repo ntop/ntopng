@@ -55,13 +55,22 @@ end
 
 username = string.lower(username)
 
+local all_users = ntop.getUsers()
+
+if(all_users[username] ~= nil) then
+   -- User already existing
+   print(rest_utils.rc(rest_utils.consts_user_already_existing, res))
+   return
+end
+
+
 local allow_pcap_download_enabled = false
 if _POST["allow_pcap_download"] and _POST["allow_pcap_download"] == "1" then
    allow_pcap_download_enabled = true
 end
 
 if not ntop.addUser(username, full_name, password, host_role, networks, 
-     getInterfaceName(allowed_interface), host_pool_id, language, allow_pcap_download_enabled) then
+		    getInterfaceName(allowed_interface), host_pool_id, language, allow_pcap_download_enabled) then
    print(rest_utils.rc(rest_utils.consts_add_user_failed, res))
    return
 end

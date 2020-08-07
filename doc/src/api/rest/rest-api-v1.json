@@ -2318,7 +2318,30 @@
 				}
 			}
 		},
-		"lua/pro/rest/v1/add/ntopng/user.lua": {
+		"lua/pro/rest/v1/get/ntopng/users.lua": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Read all configured ntopng users",
+				"description": "Read all configured ntopng users",
+				"operationId": "getall_ntopng_users",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+	    		"lua/pro/rest/v1/add/ntopng/user.lua": {
 			"post": {
 				"tags": [
 					"Users"
@@ -2395,6 +2418,9 @@
 					}
 				],
 				"responses": {
+					"0": {
+						"description": "OK"
+					},
 					"-3": {
 						"description": "NOT_GRANTED"
 					},
@@ -2406,6 +2432,9 @@
 					},
 					"-20": {
 						"description": "ADD_USER_FAILED"
+					},
+					"-23": {
+						"description": "USER_ALREADY_EXISTING"
 					}
 				}
 			}
