@@ -1726,7 +1726,8 @@ elseif(page == "config") then
 	i18n("prefs.probe_ip_address"),
 	i18n("prefs.flow_interface"),
 	i18n("prefs.ingress_flow_interface"),
-	i18n("prefs.ingress_vrf_id")
+	i18n("prefs.ingress_vrf_id"),
+	i18n("prefs.probe_ip_and_ingress_iface_idx")
       }
 
       local values = {}
@@ -1742,7 +1743,8 @@ elseif(page == "config") then
 	  "probe_ip",
 	  "iface_idx",
 	  "ingress_iface_idx",
-	  "ingress_vrf_id"
+	  "ingress_vrf_id",
+	  "probe_ip_and_ingress_iface_idx",
         }
       end
 

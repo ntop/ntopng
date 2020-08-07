@@ -25,30 +25,21 @@
 
 /* https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf */
 
-typedef struct {
-  char *key;
-  u_int32_t value;
-  UT_hash_handle hh;         /* makes this structure hashable */
-} FrequentStringKey_t;
-
 /* *************************************** */
 
 class FrequentStringItems {
  private:
   u_int32_t max_items, max_items_threshold;
-  FrequentStringKey_t *q;
+  std::map<std::string, u_int32_t> q;
   Mutex m;
   bool thread_safe;
   
-  void cleanup();
   void prune();
   
  public:
-  FrequentStringItems(u_int32_t _max_items, bool _thread_safe = true) { max_items =_max_items, max_items_threshold = 2*_max_items, q = NULL, thread_safe = _thread_safe; }
-  ~FrequentStringItems();
+  FrequentStringItems(u_int32_t _max_items, bool _thread_safe = true) { max_items =_max_items, max_items_threshold = 2*_max_items, thread_safe = _thread_safe; }
   
   void add(char *key, u_int32_t value);
-  void print();
   char* json();
 };
 

@@ -258,9 +258,6 @@ using namespace std;
 #include "LdapAuthenticator.h"
 #endif
 #endif
-#include "FrequentStringItems.h"
-#include "FrequentNumericItems.h"
-#include "FrequentTrafficItems.h"
 #include "HostPoolStats.h"
 #include "HostPools.h"
 #include "Fingerprint.h"
@@ -351,8 +348,6 @@ using namespace std;
 #endif
 #include "LuaHandler.h"
 #include "FrequentStringItems.h"
-#include "FrequentNumericItems.h"
-#include "FrequentTrafficItems.h"
 #ifdef HAVE_NEDGE
 #include "NetfilterInterface.h"
 #endif

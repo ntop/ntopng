@@ -241,7 +241,7 @@ void NetworkInterface::init() {
     is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
     discard_probing_traffic = false;
     flows_only_interface = false;
-    numSubInterfaces = 0, flowHashing = NULL,
+    numSubInterfaces = 0;
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
@@ -344,6 +344,7 @@ void NetworkInterface::checkDisaggregationMode() {
       if(!strcmp(rsp, DISAGGREGATION_PROBE_IP)) flowHashingMode = flowhashing_probe_ip;
       else if(!strcmp(rsp, DISAGGREGATION_IFACE_ID))         flowHashingMode = flowhashing_iface_idx;
       else if(!strcmp(rsp, DISAGGREGATION_INGRESS_IFACE_ID)) flowHashingMode = flowhashing_ingress_iface_idx;
+      else if(!strcmp(rsp, DISAGGREGATION_INGRESS_PROBE_IP_AND_IFACE_ID)) flowHashingMode = flowhashing_probe_ip_and_ingress_iface_idx;
       else if(!strcmp(rsp, DISAGGREGATION_INGRESS_VRF_ID))   flowHashingMode = flowhashing_vrfid;
       else if(!strcmp(rsp, DISAGGREGATION_VLAN))             flowHashingMode = flowhashing_vlan;
       else if(strcmp(rsp,  DISAGGREGATION_NONE))
@@ -556,18 +557,6 @@ NetworkInterface::~NetworkInterface() {
   for(it = external_alerts.begin(); it != external_alerts.end(); ++it)
     delete it->second;
   external_alerts.clear();
-
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-
-    HASH_ITER(hh, flowHashing, current, tmp) {
-      /* Interfaces are deleted by the main termination function */
-      HASH_DEL(flowHashing, current);
-      free(current);
-    }
-
-    flowHashing = NULL;
-  }
 
 #ifdef NTOPNG_PRO
   if(policer)               delete(policer);
@@ -891,22 +880,10 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 /* **************************************************** */
 
 /* NOTE: the interface is deleted when this method returns false */
-bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface, u_int32_t criteria) {
-  FlowHashing *h = NULL;
-
-  h = (FlowHashing*)calloc(1, sizeof(FlowHashing));
-
-  if(h == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    delete sub_iface;
-    return false;
-  }
-
+bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface, u_int64_t criteria) {
   /* registerInterface deletes the interface on failure */
-  if(!ntop->registerInterface(sub_iface)) {
-    free(h);
+  if(!ntop->registerInterface(sub_iface))
     return false;
-  }
 
   sub_iface->setSubInterface();
 
@@ -918,10 +895,7 @@ bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface, u_int32
 
   sub_iface->startPacketPolling(); /* Won't actually start a thread, just mark this interface as running */
 
-  h->criteria = criteria;
-  h->iface = sub_iface;
-
-  HASH_ADD_INT(flowHashing, criteria, h);
+  flowHashing[criteria] = sub_iface; /* Add it to the hash */
 
   numSubInterfaces++;
   ntop->getRedis()->set(CONST_STR_RELOAD_LISTS, (const char * const)"1");
@@ -931,17 +905,13 @@ bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface, u_int32
 
 /* **************************************************** */
 
-NetworkInterface* NetworkInterface::getDynInterface(u_int32_t criteria, bool parser_interface) {
+NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool parser_interface) {
   NetworkInterface *sub_iface = NULL;
 #ifndef HAVE_NEDGE
-  FlowHashing *h = NULL;
-
-  HASH_FIND_INT(flowHashing, &criteria, h);
-
-  if(h != NULL) {
-
-    sub_iface = h->iface;
-
+  std::map<u_int64_t, NetworkInterface*>::iterator subIface = flowHashing.find(criteria);
+  
+  if(subIface != flowHashing.end()) {
+    sub_iface = subIface->second;
   } else {
     /* Interface not found */
 
@@ -953,31 +923,43 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int32_t criteria, bool par
       switch(flowHashingMode) {
 	case flowhashing_vlan:
 	  vIface_type = CONST_INTERFACE_TYPE_VLAN;
-	  snprintf(buf, sizeof(buf), "%s [VLAN Id: %u]", ifname, criteria);
+	  snprintf(buf, sizeof(buf), "%s [VLAN Id: %u]", ifname, (unsigned int)criteria);
 	  // snprintf(buf, sizeof(buf), "VLAN Id %u", criteria);
 	  break;
 
 	case flowhashing_probe_ip:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [Probe IP: %s]", ifname, Utils::intoaV4(criteria, buf1, sizeof(buf1)));
-	  // snprintf(buf, sizeof(buf), "Probe IP %s", Utils::intoaV4(criteria, buf1, sizeof(buf1)));
+	  snprintf(buf, sizeof(buf), "%s [Probe IP: %s]", ifname, Utils::intoaV4((unsigned int)criteria, buf1, sizeof(buf1)));
+	  // snprintf(buf, sizeof(buf), "Probe IP %s", Utils::intoaV4((unsigned int)criteria, buf1, sizeof(buf1)));
 	  break;
 
 	case flowhashing_iface_idx:
 	case flowhashing_ingress_iface_idx:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [If Idx: %u]", ifname, criteria);
-	  // snprintf(buf, sizeof(buf), "If Idx %u", criteria);
+	  snprintf(buf, sizeof(buf), "%s [InIfIdx: %u]", ifname, (unsigned int)criteria);
+	  // snprintf(buf, sizeof(buf), "If Idx %u", (unsigned int)criteria);
+	  break;
+
+	case flowhashing_probe_ip_and_ingress_iface_idx:
+	  {
+	    /* 64 bit value: upper 32 bit is nProbe IP, lower 32 bit ifIdx */
+	    u_int32_t nprobe_ip = (u_int32_t)(criteria >> 32);
+	    u_int32_t if_id     = (u_int32_t)(criteria & 0xFFFFFFFF);
+	      
+	    vIface_type = CONST_INTERFACE_TYPE_FLOW;
+	    snprintf(buf, sizeof(buf), "%s [Probe IP: %s][InIfIdx: %u]", ifname,
+		     Utils::intoaV4(nprobe_ip, buf1, sizeof(buf1)), if_id);
+	    // snprintf(buf, sizeof(buf), "Probe IP %s", Utils::intoaV4((unsigned int)criteria, buf1, sizeof(buf1)));
+	  }
 	  break;
 
 	case flowhashing_vrfid:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
-	  snprintf(buf, sizeof(buf), "%s [VRF Id: %u]", ifname, criteria);
-	  // snprintf(buf, sizeof(buf), "VRF Id %u", criteria);
+	  snprintf(buf, sizeof(buf), "%s [VRF Id: %u]", ifname, (unsigned int)criteria);
+	  // snprintf(buf, sizeof(buf), "VRF Id %u", (unsigned int)criteria);
 	  break;
 
 	default:
-	  free(h);
 	  return(NULL);
 	  break;
       }
@@ -996,9 +978,8 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int32_t criteria, bool par
 	  /* NOTE: interface deleted by registerSubInterface */
           sub_iface = NULL;
         }
-      } else {
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
-      }
+      } else
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");      
     } else {
       static bool too_many_interfaces_error = false;
 
@@ -1585,14 +1566,8 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s",
 				 o, ifname);
 
-  if(flowHashing) {
-    FlowHashing *current, *tmp;
-
-    HASH_ITER(hh, flowHashing, current, tmp) {
-      if(current->iface)
-	current->iface->purgeIdle(when, force_idle);
-    }
-  }
+  for(std::map<u_int64_t, NetworkInterface*>::iterator it = flowHashing.begin(); it != flowHashing.end(); ++it)
+    it->second->purgeIdle(when, force_idle);
 
   checkHostsToRestore();
 

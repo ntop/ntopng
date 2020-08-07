@@ -52,12 +52,6 @@ class TrafficShaper;
 class NIndexFlowDB;
 #endif
 
-typedef struct {
-  u_int32_t criteria;        /* IP address, interface... */
-  NetworkInterface *iface;
-  UT_hash_handle hh;         /* makes this structure hashable */
-} FlowHashing;
-
 /** @class NetworkInterface
  *  @brief Main class of network interface of ntopng.
  *  @details .......
@@ -100,9 +94,9 @@ class NetworkInterface : public AlertableEntity {
 
   /* Disaggregations */
   u_int16_t numSubInterfaces;
-  set<u_int32_t>  flowHashingIgnoredInterfaces;
+  std::set<u_int32_t>  flowHashingIgnoredInterfaces;
   FlowHashingEnum flowHashingMode;
-  FlowHashing *flowHashing;
+  std::map<u_int64_t, NetworkInterface*> flowHashing;
 
   /* Network Discovery */
   NetworkDiscovery *discovery;
@@ -207,7 +201,7 @@ class NetworkInterface : public AlertableEntity {
   void init();
   void deleteDataStructures();
 
-  NetworkInterface* getDynInterface(u_int32_t criteria, bool parser_interface);
+  NetworkInterface* getDynInterface(u_int64_t criteria, bool parser_interface);
   Flow* getFlow(Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
 		u_int32_t deviceIP, u_int16_t inIndex, u_int16_t outIndex,
 		const ICMPinfo * const icmp_info,
@@ -370,7 +364,7 @@ class NetworkInterface : public AlertableEntity {
   inline void incLostPkts(u_int32_t num)            { tcpPacketStats.incLost(num);      };
   inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.incKeepAlive(num); };
   virtual void checkPointCounters(bool drops_only);
-  bool registerSubInterface(NetworkInterface *sub_iface, u_int32_t criteria);
+  bool registerSubInterface(NetworkInterface *sub_iface, u_int64_t criteria);
   u_int32_t checkDroppedAlerts();
 
   /* Overridden in ViewInterface.cpp */

@@ -94,26 +94,31 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 
       switch(flowHashingMode) {
       case flowhashing_probe_ip:
-        vIface = getDynInterface((u_int32_t)zflow->device_ip, true);
+        vIface = getDynInterface((u_int64_t)zflow->device_ip, true);
         break;
 
       case flowhashing_iface_idx:
-        if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->outIndex) == flowHashingIgnoredInterfaces.end())
-	  vIfaceEgress = getDynInterface((u_int32_t)zflow->outIndex, true);
+        if(flowHashingIgnoredInterfaces.find((u_int64_t)zflow->outIndex) == flowHashingIgnoredInterfaces.end())
+	  vIfaceEgress = getDynInterface((u_int64_t)zflow->outIndex, true);
         /* No break HERE, want to get two interfaces, one for the ingress
            and one for the egress. */
 
       case flowhashing_ingress_iface_idx:
-        if(flowHashingIgnoredInterfaces.find((u_int32_t)zflow->inIndex) == flowHashingIgnoredInterfaces.end())
-	  vIface = getDynInterface((u_int32_t)zflow->inIndex, true);
+        if(flowHashingIgnoredInterfaces.find((u_int64_t)zflow->inIndex) == flowHashingIgnoredInterfaces.end())
+	  vIface = getDynInterface((u_int64_t)zflow->inIndex, true);
         break;
 
+      case flowhashing_probe_ip_and_ingress_iface_idx:
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[IP: %u][inIndex: %u]", zflow->device_ip, zflow->inIndex);
+	vIface = getDynInterface((((u_int64_t)zflow->device_ip) << 32) + zflow->inIndex, true);
+      break;
+      
       case flowhashing_vrfid:
-        vIface = getDynInterface((u_int32_t)zflow->vrfId, true);
+        vIface = getDynInterface((u_int64_t)zflow->vrfId, true);
         break;
 
       case flowhashing_vlan:
-        vIface = getDynInterface((u_int32_t)zflow->vlan_id, true);
+        vIface = getDynInterface((u_int64_t)zflow->vlan_id, true);
         break;
 
       default:

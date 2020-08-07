@@ -638,6 +638,7 @@
 #define DISAGGREGATION_PROBE_IP                        "probe_ip"
 #define DISAGGREGATION_IFACE_ID                        "iface_idx"
 #define DISAGGREGATION_INGRESS_IFACE_ID                "ingress_iface_idx"
+#define DISAGGREGATION_INGRESS_PROBE_IP_AND_IFACE_ID   "probe_ip_and_ingress_iface_idx"
 #define DISAGGREGATION_INGRESS_VRF_ID                  "ingress_vrf_id"
 #define DISAGGREGATION_VLAN                            "vlan"
 #define DISAGGREGATION_NONE                            "none"

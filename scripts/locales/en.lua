@@ -3371,6 +3371,7 @@ local lang = {
     ["preferences"] = "Preferences",
     ["primary_dns"] = "Primary DNS",
     ["probe_ip_address"] = "Probe IP",
+    ["probe_ip_and_ingress_iface_idx"] = "Probe IP + Ingress Interface",
     ["protocols"] = "Applications",
     ["radius_admin_group_description"] = "The user is authenticated as admin when the value for the Filter-Id Attribute-Value pair returned by RADIUS matches the one specified in this field. When there is no match, the user is authenticated as unprivileged.",
     ["radius_admin_group_title"] = "RADIUS Admin Filter-Id",

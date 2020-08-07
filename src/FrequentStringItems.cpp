@@ -22,46 +22,20 @@
 
 /* ******************************************************** */
 
-FrequentStringItems::~FrequentStringItems() {
-  cleanup();
-}
-
-/* ******************************************************** */
-
-void FrequentStringItems::cleanup() {
-  FrequentStringKey_t *current, *tmp;
-
-  m.lock(__FILE__, __LINE__);
-  
-  HASH_ITER(hh, q, current, tmp) {
-    HASH_DEL(q, current);  /* delete it */
-    free(current->key);
-    free(current);         /* free it */
-  }
-
-  m.unlock(__FILE__, __LINE__);
-}
-
-/* ******************************************************** */
-
 void FrequentStringItems::add(char *key, u_int32_t value) {
-  FrequentStringKey_t *s = NULL;
+  std::map<std::string, u_int32_t>::iterator it;
 
   m.lock(__FILE__, __LINE__);
-  
-  HASH_FIND_STR(q, key, s);
 
-  if(s)
-    s->value += value;
+  it = q.find(std::string(key));
+
+  if(it != q.end())
+    it->second += value;
   else {
-    if(HASH_COUNT(q) > max_items_threshold)
+    if(q.size() > max_items_threshold)
       prune();
 
-    if((s = (FrequentStringKey_t*)malloc(sizeof(FrequentStringKey_t))) != NULL) {
-      s->key = strdup(key), s->value = value;
-
-      HASH_ADD_STR(q, key, s);
-    }
+    q[std::string(key)] = value;
   }
 
   m.unlock(__FILE__, __LINE__);  
@@ -69,63 +43,49 @@ void FrequentStringItems::add(char *key, u_int32_t value) {
 
 /* ******************************************************** */
 
-static int value_sort(FrequentStringKey_t *a, FrequentStringKey_t *b) {
-  return(b->value - a->value); /* desc sort */
-}
-
-/* ******************************************************** */
+static bool sortByVal(const pair<u_int32_t, std::string> &a,
+		      const pair<u_int32_t, std::string> &b) {
+  return (a.first < b.first);
+} 
 
 void FrequentStringItems::prune() {
-  FrequentStringKey_t *curr, *tmp;
-  u_int32_t num = 0;
-
   /* No lock here */
-  
+  u_int32_t num = 0; 
+  std::vector< std::pair<u_int32_t, std::string> > vec;
+
   /*
     Sort the hash items by value and remove those who exceeded
     the threshold of max_items_threshold
   */
-  HASH_SORT(q, value_sort);
+  for(std::map<std::string, u_int32_t>::iterator it1 = q.begin(); it1 != q.end(); ++it1)
+    vec.push_back(std::make_pair(it1->second, it1->first));
 
-  HASH_ITER(hh, q, curr, tmp) {
-    if(++num > max_items) {
-      HASH_DEL(q, curr);
-      free(curr->key);
-      free(curr);
-    }
-  }
-}
-
-/* ******************************************************** */
-
-void FrequentStringItems::print() {
-  FrequentStringKey_t *curr;
-
-  m.lock(__FILE__, __LINE__);
+  sort(vec.begin(), vec.end(), sortByVal);
   
-  HASH_SORT(q, value_sort);
-
-  for(curr=q; curr != NULL; curr = (FrequentStringKey_t*)curr->hh.next) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u\n", curr->key, curr->value);
+  for(std::vector<std::pair<u_int32_t, std::string>>::iterator it2 = vec.begin(); it2 != vec.end(); ++it2) {
+    if(++num < max_items) {
+      /*
+      u_int32_t id  = it2.first;
+      std::string k = it2->second;
+      q.erase(k);
+      */
+    } else
+      break;
   }
-
-  m.unlock(__FILE__, __LINE__);
 }
 
 /* ******************************************************** */
 
 char* FrequentStringItems::json() {
-  FrequentStringKey_t *curr;
   json_object *j;
   char *rsp;
 
   if((j = json_object_new_object()) == NULL) return(NULL);
 
   m.lock(__FILE__, __LINE__);
-  HASH_SORT(q, value_sort);
 
-  for(curr=q; curr != NULL; curr = (FrequentStringKey_t*)curr->hh.next)
-    json_object_object_add(j, curr->key, json_object_new_int64(curr->value));
+  for(std::map<std::string, u_int32_t>::iterator it = q.begin(); it != q.end(); ++it)
+    json_object_object_add(j, it->first.c_str(), json_object_new_int64(it->second));
 
   rsp = strdup(json_object_to_json_string(j));
   json_object_put(j);

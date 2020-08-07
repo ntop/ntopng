@@ -296,14 +296,10 @@ u_int8_t ZMQParserInterface::parseEvent(const char * const payload, int payload_
     /* Process Flow */
     setRemoteStats(&zrs);
 
-    if(flowHashing) {
-      FlowHashing *current, *tmp;
-      ZMQParserInterface *current_iface;
-
-      HASH_ITER(hh, flowHashing, current, tmp) {
-	if((current_iface = dynamic_cast<ZMQParserInterface*>(current->iface)))
-	  current_iface->setRemoteStats(&zrs);
-      }
+    for(std::map<u_int64_t, NetworkInterface*>::iterator it = flowHashing.begin(); it != flowHashing.end(); ++it) {
+      ZMQParserInterface *z = (ZMQParserInterface*)it->second;
+      
+      z->setRemoteStats(&zrs);
     }
 
     /* Dispose memory */
