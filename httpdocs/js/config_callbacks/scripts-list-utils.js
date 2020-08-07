@@ -1331,50 +1331,52 @@ const create_enabled_button = (row_data) => {
 
       const has_all_hook = row_data.all_hooks.find(e => e.key == 'all');
 
-      if (!has_all_hook && hasConfigDialog(row_data)) $button.css('visibility', 'hidden');
+      if (!has_all_hook && hasConfigDialog(row_data)) $button.addClass('disabled');
 
       $button.html(`<i class='fas fa-toggle-on'></i>`);
       $button.addClass('btn-success');
    }
    else {
 
-      if (row_data.enabled_hooks.length < 1) $button.css('visibility', 'hidden');
+      if (row_data.enabled_hooks.length < 1) $button.addClass('disabled');
 
       $button.html(`<i class='fas fa-toggle-off'></i>`);
       $button.addClass('btn-danger');
    }
 
-   $button.off('click').on('click', function () {
+   if (is_enabled) {
+      $button.off('click').on('click', function () {
 
-      $.post(`${http_prefix}/lua/toggle_user_script.lua`, {
-         script_subdir: script_subdir,
-         script_key: row_data.key,
-         csrf: pageCsrf,
-         action: (is_enabled) ? 'disable' : 'enable',
-         confset_id: confset_id
-      })
-         .done((d, status, xhr) => {
-
-            if (!d.success) {
-               $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
-            }
-
-            if (d.success) reloadPageAfterPOST();
-
+         $.post(`${http_prefix}/lua/toggle_user_script.lua`, {
+            script_subdir: script_subdir,
+            script_key: row_data.key,
+            csrf: pageCsrf,
+            action: (is_enabled) ? 'disable' : 'enable',
+            confset_id: confset_id
          })
-         .fail(({ status, statusText }) => {
+            .done((d, status, xhr) => {
 
-            check_status_code(status, statusText, $("#alert-row-buttons"));
+               if (!d.success) {
+                  $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
+               }
 
-            // if the csrf has expired
-            if (status == 200) {
-               $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
-            }
+               if (d.success) reloadPageAfterPOST();
 
-            // re eanble buttons
-            $button.removeAttr("disabled").removeClass('disabled');
-         });
-   })
+            })
+            .fail(({ status, statusText }) => {
+
+               check_status_code(status, statusText, $("#alert-row-buttons"));
+
+               // if the csrf has expired
+               if (status == 200) {
+                  $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
+               }
+
+               // re eanble buttons
+               $button.removeAttr("disabled").removeClass('disabled');
+            });
+      })
+   }
 
    return $button;
 };
@@ -1653,8 +1655,7 @@ $(document).ready(function () {
                const edit_script_btn = `
                       <a href='#'
                          title='${i18n.edit_script}'
-                         class='btn btn-info'
-                         style="visibility: ${!row.input_handler ? 'hidden' : 'visible'}"
+                         class='btn btn-info ${!row.input_handler ? 'disabled' : ''}'
                          data-toggle="modal"
                          data-target="#modal-script">
                            <i class='fas fa-edit'></i>
@@ -1662,8 +1663,7 @@ $(document).ready(function () {
                `;
                const edit_url_btn = `
                       <a href='${data.edit_url}'
-                        class='btn btn-secondary'
-                        style="visibility: ${!data.edit_url ? 'hidden' : 'visible'}"
+                        class='btn btn-secondary ${!data.edit_url ? 'disabled' : ''}'
                         title='${i18n.view_src_script}'>
                            <i class='fas fa-file-code'></i>
                       </a>
