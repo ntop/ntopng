@@ -1573,7 +1573,7 @@ local known_parameters = {
    ["influx_query_timeout"]                        = validateNumber,
 
    -- Multiple Choice
-   ["disaggregation_criterion"]                    = validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx", "ingress_vrf_id"}),
+   ["disaggregation_criterion"]                    = validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx", "ingress_vrf_id", "probe_ip_and_ingress_iface_idx"}),
    ["ignored_interfaces"]                          = validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["hosts_ndpi_timeseries_creation"]              = validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
    ["interfaces_ndpi_timeseries_creation"]         = validateChoiceInline({"none", "per_protocol", "per_category", "both"}),
@@ -1822,6 +1822,9 @@ local known_parameters = {
    -- json POST DATA
    ["payload"]                 = { jsonCleanup, validateJSON },
    ["JSON"]                    = { jsonCleanup, validateJSON },
+
+   -- See https://github.com/ntop/ntopng/issues/4275
+   ["csrf"]               = validateSingleWord,
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
