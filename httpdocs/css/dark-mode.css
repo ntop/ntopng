@@ -303,3 +303,7 @@ text, g text.tick {
 .modal-header .close {
   color: white;
 }
+
+#n-navbar {
+  border-radius: 0px !important;
+}

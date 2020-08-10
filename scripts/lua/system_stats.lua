@@ -66,6 +66,7 @@ page_utils.print_navbar(title, url,
 if(page == "overview") then
    local storage_utils = require("storage_utils")
 
+   print("<div class='table-responsive-lg table-responsive-md'>")
    print("<table class=\"table table-bordered table-striped\">\n")
 
    local system_rowspan = 1
@@ -129,7 +130,8 @@ if(page == "overview") then
       print("</code></div></td></tr>\n")
    end
 
-   print("</table>\n")
+   print("</table>")
+   print("</div>")
 
    print [[
    <script>

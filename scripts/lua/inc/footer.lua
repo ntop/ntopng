@@ -41,16 +41,18 @@ end -- closes interface.isPcapDumpInterface() == false
 if not info.oem then
 
 print ([[
-<footer id="n-footer">
-	<div class="container-fluid border-top">
+<footer id="n-footer" class="border-top">
+	<div class="container-fluid">
 		<div class="row mt-2">
 			<div class="col-4 text-left">
 				<small>
 					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
-				  		]] .. (info.product .. ' ' .. getNtopngRelease(info) .." Edition v.".. info.version) ..[[
+				  		]] .. (info.product .. ' ' .. getNtopngRelease(info) .." v.".. info.version) ..[[
 					</a>
 					|
-					<a href="https://github.com/ntop/ntopng"><i class="fab fa-github"></i></a>
+					<a href="https://github.com/ntop/ntopng">
+						<i class="fab fa-github"></i>
+					</a>
 				</small>
 			</div>
 			<div class="col-4 text-center">
@@ -105,12 +107,15 @@ print([[
 			AlertNotificationUtils.initAlerts();
 		});
 
-	   const toggle_system_flag = (is_system_switch = false, $form = null) => {
+	   const toggleSystemInterface = (isSystemSwitching = false, $form = null) => {
+
 		  // if form it's empty it means the call was not invoked
 		  // by a form request
 		  // prevent the non admin user to switch in system interface
-		  const is_admin = ]].. (is_admin and "true" or "false") ..[[;
-		  const flag = (is_system_switch && is_admin) ? "1" : "0";
+		  const isAdmin = ]].. (is_admin and "true" or "false") ..[[;
+		  if (!isAdmin) return;
+
+		  const flag = (isSystemSwitching && isAdmin) ? "1" : "0";
 
 		  $.post(`]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua`, {
 			 system_interface: flag,
@@ -131,7 +136,7 @@ print([[
 		print([[
 		$(document).ready(function() {
 			$("#btn-trigger-system-mode").click(function(e) {
-				toggle_system_flag(]].. (is_admin and "true" or "false") ..[[);
+				toggleSystemInterface(]].. (is_admin and "true" or "false") ..[[);
 			});
 		});
 		]])
@@ -244,18 +249,18 @@ if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
 end
 
 print[[
-		$('#chart-upload-text').html(""+bitsToSize(bps_upload, 1000));
-		$('#chart-download-text').html(""+bitsToSize(bps_download, 1000));
-		$('#chart-total-text').html(""+bitsToSize(bps_upload + bps_download, 1000));
+		$('.chart-upload-text').html(""+bitsToSize(bps_upload, 1000));
+		$('.chart-download-text').html(""+bitsToSize(bps_download, 1000));
+		$('.chart-total-text').html(""+bitsToSize(bps_upload + bps_download, 1000));
      ]]
 
--- system_view_enabled is defined inside menu.lua
+-- systemInterfaceEnabled is defined inside menu.lua
 
 print[[
 		$('#network-clock').html(`${rsp.localtime}`);
 		$('#network-uptime').html(`${rsp.uptime}`);
 
-		let msg = `<li class='nav-item mx-2'><div class='d-flex'>`;
+		let msg = `<div class='m-2'><div class='d-flex'>`;
 
 		if (rsp.system_host_stats.cpu_states) {
             const iowait = ']] print(i18n("about.iowait")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
@@ -297,7 +302,7 @@ print[[
 		    msg += "<span class=\"badge badge-warning\"><i class=\"fas fa-exclamation-triangle\" title=\"]] print(i18n("internals.degraded_performance")) print[[\"></i></span></a>";
 		}
 
-		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[ && (!system_view_enabled)) {
+		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[ && (!systemInterfaceEnabled)) {
 
 		   var error_color = "#B94A48";
 
@@ -316,7 +321,7 @@ print[[
 		  $("#alerts-id").show();
 		}
 
-		if(rsp.ts_alerts && rsp.ts_alerts.influxdb && (!system_view_enabled)) {
+		if(rsp.ts_alerts && rsp.ts_alerts.influxdb && (!systemInterfaceEnabled)) {
 		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/plugins/influxdb_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts\">"
 		  msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-database\"></i></span></a>";
 		}
@@ -325,7 +330,7 @@ print[[
 		var alarm_threshold_high = 90; /* 90% */
 		var alert = 0;
 
-		if(rsp.num_local_hosts > 0 && (!system_view_enabled)) {
+		if(rsp.num_local_hosts > 0 && (!systemInterfaceEnabled)) {
 		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
 		  msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge badge-success\">";
 		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
@@ -334,14 +339,14 @@ print[[
 		}
 
         const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
-		if(num_remote_hosts > 0 && !system_view_enabled) {
+		if(num_remote_hosts > 0 && !systemInterfaceEnabled) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=remote\">";
 			var remote_hosts_label = "]] print(i18n("remote_hosts")) print[[";
 
-			if (rsp.hosts_pctg < alarm_threshold_low && !system_view_enabled) {
+			if (rsp.hosts_pctg < alarm_threshold_low && !systemInterfaceEnabled) {
 			  msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge badge-secondary\">";
 			}
-			else if (rsp.hosts_pctg < alarm_threshold_high && !system_view_enabled) {
+			else if (rsp.hosts_pctg < alarm_threshold_high && !systemInterfaceEnabled) {
 			  alert = 1;
 			  msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge badge-warning\">";
 			}
@@ -353,7 +358,7 @@ print[[
 			msg += addCommas(num_remote_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 		}
 
-	    if(rsp.num_devices > 0 && !system_view_enabled) {
+	    if(rsp.num_devices > 0 && !systemInterfaceEnabled) {
 	    	var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
 
@@ -372,7 +377,7 @@ print[[
 			msg += addCommas(rsp.num_devices)+" ]] print(i18n("devices")) print[[</span></a>";
 	    }
 
-	    if(rsp.num_flows > 0 && !system_view_enabled) {
+	    if(rsp.num_flows > 0 && !systemInterfaceEnabled) {
     		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua\">";
 
 			if (rsp.flows_pctg < alarm_threshold_low) {
@@ -397,13 +402,13 @@ print[[
 
 	    }
 
-	    if ((rsp.num_live_captures != undefined) && (rsp.num_live_captures > 0) && (!system_view_enabled)) {
+	    if ((rsp.num_live_captures != undefined) && (rsp.num_live_captures > 0) && (!systemInterfaceEnabled)) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/live_capture_stats.lua\">";
 			msg += "<span class=\"badge badge-primary\">";
 			msg += addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></span></a>";
 	    }
 
-	    if (rsp.remote_assistance != undefined && (!system_view_enabled)) {
+	    if (rsp.remote_assistance != undefined && (!systemInterfaceEnabled)) {
 
 	    	var status = rsp.remote_assistance.status;
 		  	var status_label = (status == "active") ? "success" : "danger";
@@ -411,7 +416,7 @@ print[[
 	      	msg += "<i class=\"fas fa-comment-dots fa-lg\"></i></span></a>";
 	    }
 
-	    if (rsp.traffic_recording != undefined && (!system_view_enabled)) {
+	    if (rsp.traffic_recording != undefined && (!systemInterfaceEnabled)) {
 
 			var status_label="primary";
 			var status_title="]] print(i18n("traffic_recording.recording")) print [[";
@@ -426,7 +431,7 @@ print[[
 			msg += "<i class=\"fas fa-hdd fa-lg\"></i></span></a>";
 	    }
 
-	    if (rsp.traffic_extraction != undefined && (!system_view_enabled)) {
+	    if (rsp.traffic_extraction != undefined && (!systemInterfaceEnabled)) {
 
 			var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [[";
 			var status_label = "secondary";
@@ -438,7 +443,7 @@ print[[
 			msg += rsp.traffic_extraction_num_tasks+" <i class=\"fas fa-tasks fa-lg\"></i></span></a>";
 		}
 
-		msg += '</div></li>';
+		msg += '</div></div>';
 		// append the message inside the network-load element
 		const $msg = $(msg);
 		// resize element's font size to fit better
@@ -446,7 +451,7 @@ print[[
 			$msg.find('span').css('font-size', '0.748rem');
 		}
 
-		$('#network-load').html($msg);
+		$('.network-load').html($msg);
 
 	  } catch(e) {
 	     console.warn(e);

@@ -49,7 +49,7 @@ print("</div>")
 
 print("<div class='row'>")
 print("<div class='col-12'>")
-
+print("<div class='table-responsive-sm'>")
 print("<table class=\"table table-bordered table-striped\">\n")
 print("<tr><th>") print(i18n("about.copyright")) print("</th><td colspan=2>"..info["copyright"].."</td></tr>\n")
 print("<tr><th>") print(i18n("about.licence")) print("</th><td colspan=2>")
@@ -224,6 +224,7 @@ print("<tr><th><a href=\"http://www.d3js.org\" target=\"_blank\">Data-Driven Doc
 
 
 print("</table>\n")
+print("</div>")
 
 print("</div>")
 print("</div>")

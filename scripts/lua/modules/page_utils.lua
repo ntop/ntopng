@@ -7,9 +7,12 @@ local info = ntop.getInfo()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local plugins_utils = require("plugins_utils")
-local is_nedge = ntop.isnEdge()
+local template_utils = require("template_utils")
+local recording_utils = require("recording_utils")
 
 local page_utils = {}
+
+local is_nedge = ntop.isnEdge()
 
 -- #################################
 
@@ -283,7 +286,7 @@ function page_utils.print_header(title)
       print[[ <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">]]
     end
     print[[
-    <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(startup_epoch) print[[" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/fontawesome-custom.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/tempusdominus.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/heatmap.min.css" rel="stylesheet">
@@ -425,6 +428,8 @@ end
 -- #################################
 
 function page_utils.print_menubar()
+
+   local is_system_interface = page_utils.is_system_view()
    local logo_path = nil
 
    if (ntop.isPro() or ntop.isnEdge()) and ntop.exists(dirs.installdir .. "/httpdocs/img/custom_logo.png") then
@@ -443,8 +448,33 @@ function page_utils.print_menubar()
       navbar_style = "dark"
    end
 
-   print('<div id="n-sidebar" class="bg-'.. navbar_style ..' py-0 px-2">')
+   print('<nav id="n-sidebar" class="bg-'.. navbar_style ..' py-0 px-2">')
+   print([[
+      <div class="mobile-menu-button d-flex">
+            <form class='w-100' method='post' action="/?">
+               <input hidden name='switch_interface' value='1' />
+               <input hidden name='csrf' value=']].. ntop.getRandomCSRFValue() ..[[' />
+               ]]
+               .. template_utils.gen("pages/components/ifaces-select.template", {
+                  ifaces = page_utils.get_interface_list(),
+                  is_sys_iface = is_system_interface
+               })
+               ..[[
+            </form>
+            <button data-toggle="sidebar" class='ml-5'><i class="fas fa-times"></i></button>
+      </div>
+      <div class="mobile-menu-stats">
+      ]])
 
+      -- the network load will not be displayed in system view mode
+      if not is_system_interface then
+         print([[<div class="network-load mb-2 w-100"></div>]])
+      end
+
+      print([[
+         <div class="info-stats w-100">]].. page_utils.generate_info_stats() ..[[</div>
+      </div>
+   ]])
    print("<h3 class='muted'><a href='"..ntop.getHttpPrefix().."/'>")
 
    if (logo_path ~= nil) then
@@ -530,7 +560,12 @@ function page_utils.print_menubar()
 		     local external_link = false
 
 		     print[[
-		   <li>
+         <li class=']]
+         if section_entry.entry and section_entry.entry.key == active_subpage then
+            print("active")
+         end
+
+         print[['>
 		     <a class="]]
 		     if section_entry.entry and section_entry.entry.key == active_subpage then
 			print("active")
@@ -579,7 +614,7 @@ function page_utils.print_menubar()
 
    print([[
      </ul>
-   </div>
+   </nav>
 ]])
 
 end
@@ -587,13 +622,153 @@ end
 -- ##############################################
 
 function page_utils.print_notes(notes_items)
-   print("<b>" .. i18n("notes").. "</b><ul>")
+   print("<div class='notes'><b>" .. i18n("notes").. "</b><ul>")
 
    for _, note in ipairs(notes_items) do
       print("<li>" ..note .. "</li>")
    end
 
-   print("</ul>")
+   print("</ul></div>")
+end
+
+-- ##############################################
+
+function page_utils.get_interface_list()
+
+   local interfaces = {}
+   local iface_names = interface.getIfNames()
+   local is_system_interface = page_utils.is_system_view()
+
+   local num_ifaces = 0
+   for k,v in pairs(iface_names) do
+      num_ifaces = num_ifaces+1
+   end
+
+   local ifs = interface.getStats()
+   local is_pcap_dump = interface.isPcapDumpInterface()
+   local is_packet_interface = interface.isPacketInterface()
+   local views = {}
+   local drops = {}
+   local recording = {}
+   local packetinterfaces = {}
+   local ifnames = {}
+   local ifdescr = {}
+   local ifHdescr = {}
+   local ifCustom = {}
+   local dynamic = {}
+
+   for v,k in pairs(iface_names) do
+      interface.select(k)
+      local _ifstats = interface.getStats()
+      ifnames[_ifstats.id] = k
+      ifdescr[_ifstats.id] = _ifstats.description
+      --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
+      if(_ifstats.isView == true) then views[k] = true end
+      if(_ifstats.isDynamic == true) then dynamic[k] = true end
+      if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
+      if(interface.isPacketInterface()) then packetinterfaces[k] = true end
+      if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
+         drops[k] = true
+      end
+      ifHdescr[_ifstats.id] = getHumanReadableInterfaceName(_ifstats.description.."")
+      ifCustom[_ifstats.id] = _ifstats.customIftype
+   end
+
+   -- First round: only physical interfaces
+   -- Second round: only virtual interfaces
+
+   for round = 1, 2 do
+
+      for k,_ in pairsByValues(ifHdescr, asc) do
+
+         if ((round == 1) and (ifCustom[k] ~= nil)) or (((round == 2) and (ifCustom[k] == nil))) then
+            goto continue
+         end
+
+         local v = ifnames[k]
+
+         -- table.clone needed to modify some parameters while keeping the original unchanged
+         local page_params = table.clone(_GET)
+         page_params.ifid = k
+
+         local url_query = getPageUrl("", page_params)
+
+         -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
+         local action_url = ""
+
+         if(is_system_interface) then
+            action_url = ntop.getHttpPrefix() .. '/' .. url_query
+         else
+            action_url = url_query
+         end
+
+         local descr = getHumanReadableInterfaceName(v.."")
+
+         if(string.contains(descr, "{")) then -- Windows
+            descr = ifdescr[k]
+         else
+
+            if(descr ~= ifdescr[k]) and (not views[v]) then
+
+               if(descr == shortenCollapse(ifdescr[k])) then
+                  descr = ifdescr[k]
+               else
+                  descr = descr .. " (".. ifdescr[k] ..")" -- Add description
+               end
+            end
+
+         end
+
+         interfaces[#interfaces+1] = {
+            is_virtual = (round == 2),                                     -- Is the interface virtual or physical?
+            is_paused = isPausedInterface(v),                              -- Is the interfaces paused?
+            is_selected = (v == ifname) and not is_system_interface,        -- Is the in
+            is_dynamic = (dynamic[v]),
+            is_recording = (recording[v]),
+            has_drops = (drops[v]),
+            has_views = (views[v]),
+            ifid = k,
+            action_url = action_url,
+            human_name = descr
+         }
+
+         ::continue::
+      end
+   end
+
+   interface.select(ifs.id.."")
+
+   return interfaces
+end
+
+function page_utils.generate_info_stats()
+
+   local _ifstats = interface.getStats()
+
+   if _ifstats.has_traffic_directions then
+      return ([[
+         <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
+            <div class='up'>
+               <i class="fas fa-arrow-up"></i>
+               <span style='display: none;' class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+               <span class="text-right chart-upload-text"></span>
+            </div>
+            <div class='down'>
+               <i class="fas fa-arrow-down"></i>
+               <span style='display: none;' class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+               <span class="text-right chart-download-text"></span>
+            </div>
+         </a>
+      ]])
+   else
+      return ([[
+         <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
+            <span style='display: none;' class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+            <span class="text-right chart-total-text"></span>
+         </a>
+      ]])
+   end
+
 end
 
 -- ##############################################

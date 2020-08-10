@@ -225,6 +225,7 @@ local lang = {
   ["success"] = "Success",
   ["summary"] = "Summary",
   ["system"] = "System",
+  ["system_interface"] = "System Interface",
   ["system_interfaces_status"] = "Interfaces Status",
   ["system_status"] = "System Status",
   ["talkers"] = "Talkers",

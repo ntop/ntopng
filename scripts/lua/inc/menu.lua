@@ -26,7 +26,6 @@ local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows(
 -- this is a global variable
 local is_system_interface = page_utils.is_system_view()
 
-
 print([[
    <div id='wrapper'>
 ]])
@@ -48,7 +47,7 @@ print[[
       "request_failed_message": "]] print(i18n("request_failed_message")) print[[",
       "unreachable_host": "]] print(i18n("graphs.unreachable_host")) print[[",
    };
-   const system_view_enabled = ]] print(ternary(is_system_interface, "true", "false")) print[[;
+   const systemInterfaceEnabled = ]] print(ternary(is_system_interface, "true", "false")) print[[;
    const http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
 
    if(document.cookie.indexOf("tzoffset=") < 0) {
@@ -734,7 +733,12 @@ end -- num_ifaces > 0
 print([[
    <nav class="navbar extended navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
       <ul class='navbar-nav mr-auto'>
-         <li class='nav-item d-flex align-items-center dropdown'>
+         <li class='nav-item'>
+            <button class='btn btn-outline-dark border-0 btn-sidebar' data-toggle='sidebar'>
+               <i class="fas fa-bars"></i>
+            </button>
+         </li>
+         <li id="button-switch-interface" class='nav-item d-flex align-items-center dropdown'>
             <a class="btn border-dark dropdown-toggle" data-toggle="dropdown" href="#">
                ]] .. (is_system_interface and i18n("system") or '<i class="fas fa-ethernet"></i> ' .. getHumanReadableInterfaceName(ifname)) .. [[
             </a>
@@ -823,7 +827,7 @@ for round = 1, 2 do
             print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
             print[[</form>]]
 
-            print([[<a class="dropdown-item" href="javascript:void(0);" onclick="toggle_system_flag(false, $('#switch_interface_form_]]) print(tostring(k)) print[['));">]]
+            print([[<a class="dropdown-item" href="javascript:void(0);" onclick="toggleSystemInterface(false, $('#switch_interface_form_]]) print(tostring(k)) print[['));">]]
          end
 
          if((v == ifname) and not is_system_interface) then print("<i class=\"fas fa-check\"></i> ") end
@@ -878,38 +882,9 @@ print([[
 if not is_pcap_dump and not is_system_interface then
 
    print([[
-      <li class='nav-item my-sm-2 my-xs-2 my-md-0 my-lg-0 w-10 mx-2'>
+      <li class='nav-item d-none d-md-flex d-lg-flex ml-2'>
          <div class='info-stats'>
-            ]]..
-            (function()
-
-               local _ifstats = interface.getStats()
-
-               if _ifstats.has_traffic_directions then
-                  return ([[
-                     <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
-                        <div class='up'>
-                           <i class="fas fa-arrow-up"></i>
-                           <span style='display: none;' class="network-load-chart-upload">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                           <span class="text-right" id="chart-upload-text"></span>
-                        </div>
-                        <div class='down'>
-                           <i class="fas fa-arrow-down"></i>
-                           <span style='display: none;' class="network-load-chart-download">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                           <span class="text-right" id="chart-download-text"></span>
-                        </div>
-                     </a>
-                  ]])
-               else
-                  return ([[
-                     <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
-                        <span style='display: none;' class="network-load-chart-total">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
-                        <span class="text-right" id="chart-total-text"></span>
-                     </a>
-                  ]])
-               end
-
-            end)() ..[[
+            ]].. page_utils.generate_info_stats() ..[[
          </div>
       </li>
    ]])
@@ -919,25 +894,32 @@ end
 -- License Badge
 local info = ntop.getInfo(true)
 
-if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
-   print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge badge-warning">')
-   if(info["pro.release"]) then
-      if(info["pro.demo_ends_at"] ~= nil) then
-	 local rest = info["pro.demo_ends_at"] - os.time()
-	 if(rest > 0) then
-	    print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
-	 end
+if (info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
+
+   if (info["pro.release"]) then
+
+      if (info["pro.demo_ends_at"] ~= nil) then
+
+         local rest = info["pro.demo_ends_at"] - os.time()
+
+         if (rest > 0) then
+            print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge badge-warning">')
+            print(" " .. i18n("about.licence_expires_in", {time=secondsToTime(rest)}))
+            print('</span></a></li>')
+         end
       end
+
    else
+      print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge badge-warning">')
       print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
+      print('</span></a></li>')
    end
-   print('</span></a></li>')
 end
 
 -- ########################################
 -- Network Load
 print([[
-   <div id="network-load"></div>
+   <li class="network-load d-none d-md-block d-lg-block"></li>
 ]])
 
 
@@ -1146,7 +1128,7 @@ print([[
 ]])
 
 -- begging of #n-container
-print([[<div class='p-md-4 extended p-xs-1 mt-5 p-sm-2' id='n-container'>]])
+print([[<div id='n-container' class='p-md-4 extended p-xs-1 mt-5 p-sm-2'>]])
 
 -- ###################################################
 -- Render main alert notifications

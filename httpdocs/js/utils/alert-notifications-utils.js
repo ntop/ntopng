@@ -13,9 +13,10 @@ class AlertNotification {
     }
 
     render() {
+
         const self = this;
-        // create a non-closable toast
         const $toast = $(`<div class="toast alert-notification" role="alert"></div>`);
+
         // set toast expiracy
         if (this.delay !== 0) {
             $toast.data('autohide', true);
@@ -24,20 +25,30 @@ class AlertNotification {
         else {
             $toast.data('autohide', false);
         }
+
         // assign an id to the notification
         $toast.data('notification-id', this.id);
 
         const $toastHeader = $(`<div class="toast-header bg-${this.style.bg} border-${this.style.bg} ${this.style.text}">
                                     <strong class='mr-auto'><i class='fas ${this.style.icon}'></i> ${this.title}</strong>
-                                    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
                                 </div>`);
         const $toastBody = $(`<div class="toast-body">${this.body}</div>`);
 
         if (this.action && this.action.link != undefined && this.action.link != "") {
             const $anchor = $(`<a href='${this.action.link}'>${this.action.label}</a>`);
             $toastBody.append($anchor);
+        }
+
+        if (this.dismissable) {
+            $toastHeader.append(`
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            `);
+        }
+
+        if (this.isAboveAll) {
+            $toast.css("z-index", "9999");
         }
 
         $toast.append($toastHeader, $toastBody);
@@ -98,7 +109,6 @@ class AlertNotificationUtils {
 
         alertNotifications[notificationId].destroy();
         delete alertNotifications[notificationId];
-
     }
 
     static updateNotification(notificationId, body) {
@@ -113,36 +123,18 @@ class AlertNotificationUtils {
     static showAlert(option) {
 
         const styles = {
-            warning: {
-                bg: 'warning',
-                text: 'text-dark',
-                icon: 'fa-exclamation-circle'
-            },
-            info: {
-                bg: 'info',
-                text: 'text-white',
-                icon: 'fa-info-circle'
-            },
-            success: {
-                bg: 'success',
-                text: 'text-white',
-                icon: 'fa-check-circle'
-            },
-            error: {
-                bg: 'danger',
-                text: 'text-white',
-                icon: 'fa-times-circle'
-            }
-        }
+            warning: { bg: 'warning', text: 'text-dark', icon: 'fa-exclamation-circle' },
+            info: { bg: 'info', text: 'text-white', icon: 'fa-info-circle' },
+            success: { bg: 'success', text: 'text-white', icon: 'fa-check-circle' },
+            error: { bg: 'danger', text: 'text-white', icon: 'fa-times-circle' }
+        };
 
-        const style = styles[option.level] || styles.warning;
+        option.style = styles[option.level] || styles.warning;
 
         if (option.id === undefined) throw '[AlertNotificationUtils] :: An AlertNotification must have an in id!';
-        if (option.id in alertNotifications) return;
+        if (option.id in alertNotifications) throw '[AlertNotificationUtils] :: An AlertNotification with the same id already exists!';
         if (option.title === undefined) throw '[AlertNotificationUtils]:: An AlertNotification must have a title!';
         if (option.body === undefined) throw '[AlertNotificationUtils]:: An AlertNotification must have a body!';
-
-        option.style = style;
 
         const notification = new AlertNotification(option);
         // render the notification inside the main container

@@ -13,7 +13,7 @@ clean:
 minified/fontawesome-custom.min.css: ../fontawesome-free-5.11.2-web/css/fontawesome.css \
 					../fontawesome-free-5.11.2-web/css/brands.css ../fontawesome-free-5.11.2-web/css/solid.css
 
-minified/ntopng.min.css: ntopng.css
+minified/ntopng.min.css: ntopng.css sidebar.css
 minified/heatmap.min.css: heatmap.css cal-heatmap.css
 minified/rickshaw.min.css: rickshaw.css
 minified/bootstrap-orange.min.css: ../bootstrap-custom/ntopng-theme.css
