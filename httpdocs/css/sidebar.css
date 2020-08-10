@@ -441,6 +441,7 @@
     border-top: 1px solid #1f1f1f;
 }
 
+#n-sidebar.bg-dark ul#sidebar li.nav-item div[data-parent="#sidebar"] ul li:hover,
 #n-sidebar.bg-dark ul>li.nav-item div.collapse>ul li>a:hover,
 #n-sidebar.bg-dark ul>li.nav-item div.collapsing>ul li>a:hover {
     background-color: #272727;
