@@ -23,7 +23,7 @@
 
             this.observer = new MutationObserver((list) => {
                 this.bindFormValidation();
-                this.isFormValid();
+                this.toggleFormSubmission();
             });
 
             this.observer.observe(this.element[0], {
@@ -116,7 +116,6 @@
             const self = this;
 
             this.submitHandler = function(e) {
-
                 if (!self.options.isSyncRequest) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -130,52 +129,88 @@
         bindFormValidation() {
 
             const self = this;
+
             $(this.element).find(`input,select,textarea`).each(function(i, input) {
 
+                // id to handle the current timeout set to show errors
+                let timeoutId = -1;
+                // jQuery object of the current input
                 const $input = $(this);
 
-                const checkValidation = (insertError) => {
+                const checkValidation = () => {
+
+                    const validation = {
+                        data: {
+                            validationMessage: $input.data('validationMessage'),
+                            validationEmptyMessage: $input.data('validationEmptyMessage'),
+                            cannotBeEmpty: ($input.attr('required') === "required") || ($input.data("validationNotEmpty") == true),
+                        },
+                    };
 
                     const $parent = $input.parent();
+                    const isInputEmpty = $input.val().trim() == "";
+
+                    let messageToShow;
                     let $error = $parent.find(`.invalid-feedback`);
-                    if ($error.length == 0) $error = $(`<span class='invalid-feedback'></span>`);
 
-                    if (!input.validity.valid && input.validationMessage) {
+                    // if the error element doesn't exist then create a new one
+                    if ($error.length == 0) {
+                        $error = $(`<span class='invalid-feedback'></span>`);
+                    }
 
+                    if (validation.cannotBeEmpty && isInputEmpty) {
+                        // trigger input validation flag
+                        input.setCustomValidity("Empty!");
+                        messageToShow = validation.data.validationEmptyMessage;
+                    }
+                    else {
+                        messageToShow = validation.data.validationMessage;
+                    }
+
+                    if (!input.validity.valid && messageToShow) {
                         $input.addClass('is-invalid');
-                        $error.text(input.validationMessage);
-
-                        if (insertError) $parent.append($error);
+                        $error.text(messageToShow);
+                        $parent.append($error);
                     }
                     else {
                         $input.removeClass('is-invalid');
-                        $error.remove();
+                        $error.fadeOut(500, function(){
+                            $(this).remove();
+                        });
                     }
 
                 }
 
                 $(this).off('input').on('input', function(e) {
+
+                    // if exists already a Timeout then clear it
+                    if (timeoutId != -1) clearTimeout(timeoutId);
+
                     if (!$input.attr("formnovalidate")) {
-                        checkValidation(false);
-                        self.isFormValid();
+                        // trigger input validation after 500msec
+                        timeoutId = setTimeout(() => {checkValidation()}, 500);
+                        // trigger form validation to enable the submit button
+                        self.toggleFormSubmission();
                     }
                 });
 
                 $(this).off('invalid').on('invalid', function(e) {
-
                     e.preventDefault();
-                    if (!$input.attr("formnovalidate"))
-                        checkValidation(true);
+                    if (!$input.attr("formnovalidate")) {
+                        checkValidation();
+                    }
                 });
 
             });
         }
 
-        isFormValid() {
+        toggleFormSubmission() {
 
             let isValid = true;
 
+            // if each input is marked as valid then enable the form submit button
             $(this.element).find('input,select,textarea').each(function(idx, input) {
+                // make a concatenate & between valid flags
                 isValid &= input.validity.valid;
             });
 
@@ -185,7 +220,7 @@
         }
 
         cleanForm() {
-            /* remove validation fields */
+            /* remove validation class from fields */
             $(this.element).find('input,textarea,select').each(function(i, input) {
                 $(this).removeClass(`is-valid`).removeClass(`is-invalid`);
             });
