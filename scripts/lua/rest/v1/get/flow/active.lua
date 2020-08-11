@@ -27,6 +27,7 @@ local rc = rest_utils.consts_ok
 local res = {}
 
 local ifid = _GET["ifid"]
+local verbose = (_GET["verbose"] == "true")
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts_invalid_interface
@@ -140,6 +141,30 @@ for _key, value in ipairs(flows_stats) do
 
    if isScoreEnabled() then
       record["score"] = format_utils.formatValue(value["score"])
+   end
+
+   if verbose then
+      record["packets"] = value["cli2srv.packets"] + value["srv2cli.packets"]
+
+      record["tcp"] = {}
+
+      record["tcp"]["appl_latency"] = value["tcp.appl_latency"]
+ 
+      record["tcp"]["nw_latency"] = {}
+      record["tcp"]["nw_latency"]["cli"] = value["tcp.nw_latency.client"]
+      record["tcp"]["nw_latency"]["srv"] = value["tcp.nw_latency.server"]
+
+      record["tcp"]["retransmissions"] = {}
+      record["tcp"]["retransmissions"]["cli2srv"] = value["cli2srv.retransmissions"]
+      record["tcp"]["retransmissions"]["srv2cli"] = value["srv2cli.retransmissions"]
+
+      record["tcp"]["out_of_order"] = {}
+      record["tcp"]["out_of_order"]["cli2srv"] = value["cli2srv.out_of_order"]
+      record["tcp"]["out_of_order"]["srv2cli"] = value["srv2cli.out_of_order"]
+
+      record["tcp"]["lost"] = {}
+      record["tcp"]["lost"]["cli2srv"] = value["cli2srv.lost"]
+      record["tcp"]["lost"]["srv2cli"] = value["srv2cli.lost"]
    end
 
    data[#data + 1] = record

@@ -1077,6 +1077,13 @@
 						"description": "Application protocol filter (optional)",
 						"required": false,
 						"type": "string"
+					},
+					{
+						"name": "verbose",
+						"in": "query",
+						"description": "Add more details including TCP stats (optional)",
+						"required": false,
+						"type": "boolean"
 					}
 				],
 				"responses": {
