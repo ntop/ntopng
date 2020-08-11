@@ -155,6 +155,31 @@ In order to reset the ntopng preferences the following commands can be used:
   sudo rm /var/lib/ntopng/runtimeprefs.json
   sudo systemctl restart ntopng
 
+How Can I Troubleshoot SNMP ?
+============================
+
+If SNMP possing is not working as expected it is probably necessary to see
+what are the low-level SNMP messages exchanged by ntopng with the SNMP agents.
+In order to do this SNMP debug must be enabled as follows: inside menu Settings -> Preferences
+select SNMP from the left tab and enable "SNMP Debug" then save the form.
+
+.. figure:: ./img/snmp_debug.png
+  :align: center
+  :alt: Howto Enable SNMP Debug
+
+
+When SNMP polling will start (usually every 5 minutes) a detailed log of activities
+will be produced. Such log can be accessed as follows
+
+- Log to the system where ntopng is running
+- (as root) journalctl -u ntopng --since "1 hour ago" > /tmp/ntopng_log.txt
+- Send /tmp/ntopng_log.txt to the ntop team for troubleshooting
+
+     
+Do not forget to disable "SNMP Debug" in order to avoid filling
+up your disk space with ntopng SNMP logs.
+  
+
 How can I monitor the sites visited by an host?
 ===============================================
 
