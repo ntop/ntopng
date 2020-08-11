@@ -2168,7 +2168,9 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[TCP] Early flow expire"); */
 	ret = true;
       }
-    } else
+    }
+    
+    if(!ret)
       ret = is_active_entry_now_idle(iface->getFlowMaxIdle());
   }
   
