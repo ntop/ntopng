@@ -5134,10 +5134,11 @@ void NetworkInterface::lua(lua_State *vm) {
 
 void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
   /* Hash tables stats */
-  GenericHash *gh[] = {flows_hash, hosts_hash, macs_hash,
-		       vlans_hash, ases_hash, countries_hash
+  GenericHash *gh[] = {
+    flows_hash, hosts_hash, macs_hash,
+    vlans_hash, ases_hash, countries_hash
   };
-
+  
   lua_newtable(vm);
 
   for (u_int i = 0; i < sizeof(gh) / sizeof(gh[0]); i++) {

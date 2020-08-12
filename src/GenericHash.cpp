@@ -407,14 +407,19 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 
 /* ************************************ */
 
-int32_t GenericHash::getNumIdleEntries() const {
-  return entry_state_transition_counters.num_idle_transitions - entry_state_transition_counters.num_purged;
+u_int32_t GenericHash::getNumIdleEntries() const {
+  return(ndpi_max(0, entry_state_transition_counters.num_idle_transitions - entry_state_transition_counters.num_purged));
 };
 
 /* ************************************ */
 
 bool GenericHash::hasEmptyRoom() {
-  return getNumEntries() + getNumIdleEntries() <= max_hash_size;
+  /* The check below has been added to avoid adding entries when the system is under pressure */
+  if((getNumIdleEntries() > 5000 /* Enable this mechanism when there is a consistent number of idle elements */) && (getNumIdleEntries() > getNumEntries())) {
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash full: [idle: %u][active: %u]", getNumIdleEntries(), getNumEntries());
+    return(false);
+  } else
+    return((getNumEntries() + getNumIdleEntries() <= max_hash_size));
 };
 
 /* ************************************ */
@@ -438,7 +443,8 @@ void GenericHash::lua(lua_State *vm) {
 
   num_idle = getNumIdleEntries();
   if(num_idle < 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: unexpected number of entries in state [iface: %s][%s][hash_entry_state_idle: %i][num_idle_transitions: %u][num_purged: %u]", iface ? iface->get_name(): "", name, num_idle, entry_state_transition_counters.num_idle_transitions, entry_state_transition_counters.num_purged);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: unexpected number of entries in state [iface: %s][%s][hash_entry_state_idle: %i][num_idle_transitions: %u][num_purged: %u]",
+				 iface ? iface->get_name(): "", name, num_idle, entry_state_transition_counters.num_idle_transitions, entry_state_transition_counters.num_purged);
   else
     lua_push_uint64_table_entry(vm, "hash_entry_state_idle", (u_int64_t)num_idle);
 

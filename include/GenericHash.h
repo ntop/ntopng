@@ -92,7 +92,7 @@ class GenericHash {
    *
    * @return The number of idle entries.
    */
-  int32_t getNumIdleEntries() const;
+  u_int32_t getNumIdleEntries() const;
 
   /**
    * @brief Add new entry to generic hash.
