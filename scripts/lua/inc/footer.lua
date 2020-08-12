@@ -194,9 +194,18 @@ $("#move-rrd-to-influxdb, #host-id-message-warning, #influxdb-error-msg").on("cl
 	});
 });
 
-let updatingChart_upload = $(".network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
-let updatingChart_download = $(".network-load-chart-download").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
-let updatingChart_total = $(".network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null});
+let updatingChart_uploads = [
+	$("#n-navbar .network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null }),
+	$(".mobile-menu-stats .network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null }),
+];
+let updatingChart_downloads = [
+	$("#n-navbar .network-load-chart-download").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"}),
+	$(".mobile-menu-stats .network-load-chart-download").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"})
+];
+let updatingChart_totals = [
+	$("#n-navbar .network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null}),
+	$(".mobile-menu-stats .network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null})
+];
 
 const footerRefresh = function() {
     $.ajax({
@@ -208,11 +217,12 @@ const footerRefresh = function() {
             return;
           }
 
-          const rsp = content["rsp"];
+		  const rsp = content["rsp"];
+
 	  try {
-	      var values = updatingChart_upload.text().split(",")
-	      var values1 = updatingChart_download.text().split(",")
-	      var values2 = updatingChart_total.text().split(",")
+	      var values = updatingChart_uploads[0].text().split(",")
+	      var values1 = updatingChart_downloads[0].text().split(",")
+	      var values2 = updatingChart_totals[0].text().split(",")
 
 	      var pps = rsp.throughput_pps;
 	      var bps = rsp.throughput_bps * 8;
@@ -229,13 +239,16 @@ const footerRefresh = function() {
 
 	      values.shift();
 	      values.push(bps_upload);
-	      updatingChart_upload.text(values.join(",")).change();
+	      updatingChart_uploads[0].text(values.join(",")).change();
+	      updatingChart_uploads[1].text(values.join(",")).change();
 	      values1.shift();
 	      values1.push(-bps_download);
-	      updatingChart_download.text(values1.join(",")).change();
+	      updatingChart_downloads[0].text(values1.join(",")).change();
+	      updatingChart_downloads[1].text(values1.join(",")).change();
 	      values2.shift();
 	      values2.push(bps);
-	      updatingChart_total.text(values2.join(",")).change();
+	      updatingChart_totals[0].text(values2.join(",")).change();
+	      updatingChart_totals[1].text(values2.join(",")).change();
 	      var v = bps_upload - bps_download;
 
 ]]
@@ -244,14 +257,14 @@ if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    print[[
 
 		var v = Math.round(Math.min((bps*100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
-		$('#networkload').html(v+"%");
+		$('.network-load').html(v+"%");
 ]]
 end
 
 print[[
-		$('.chart-upload-text').html(""+bitsToSize(bps_upload, 1000));
-		$('.chart-download-text').html(""+bitsToSize(bps_download, 1000));
-		$('.chart-total-text').html(""+bitsToSize(bps_upload + bps_download, 1000));
+		$('.chart-upload-text:visible').html(bitsToSize(bps_upload, 1000));
+		$('.chart-download-text:visible').html(bitsToSize(bps_download, 1000));
+		$('.chart-total-text:visible').html(bitsToSize(bps_upload + bps_download, 1000));
      ]]
 
 -- systemInterfaceEnabled is defined inside menu.lua
