@@ -4051,6 +4051,12 @@ local lang = {
       ["version"] = "SNMP protocol version",
       ["write_community"] = "SNMP v1/v2c write community",
     },
+    ["validation"] = {
+      ["abort_add_snmp_devices"] = "Abort add new SNMP Device?",
+      ["abort_edit_snmp_devices"] = "Abort edit SNMP Device?",
+      ["invalid_host"] = "Please type an IPv4 address, or a IPv6 address.",
+      ["read_community_empty"] = "The Read Community cannot be left empty.",
+    },
   },
   ["snmp_page"] = {
     ["guide_snmp_page_message"] = "Visit page <a href='%{url}'> SNMP</a> to add this host to the list of configured SNMP devices.",
