@@ -21,6 +21,10 @@
     display: none !important;
 }
 
+#n-sidebar .mobile-menu-stats .info-stats span {
+    color: white;
+}
+
 #n-sidebar.active .mobile-menu-button {
     padding: 0.8rem;
     background-color: #3e3e3e;
