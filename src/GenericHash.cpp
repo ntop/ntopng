@@ -145,11 +145,11 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
 
     delete cur_idle;
   }
-
+  
 #ifdef WALK_DEBUG
-  if(num_purged != entry_state_transition_counters.num_purged)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s) [%u purged]",
-				 __FUNCTION__, name,
+  if((num_purged != entry_state_transition_counters.num_purged) && (!strcmp(name, "FlowHash")))
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [%s] [%u purged]",
+				 __FUNCTION__, iface->get_description(),
 				 entry_state_transition_counters.num_purged - num_purged);
 #endif
 }

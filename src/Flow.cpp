@@ -2217,6 +2217,9 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
     break;
   }
 
+  if(htstats->no_time_left)
+    htstats->skip_user_scripts = true; /* We're running out of time sorry */
+
   /* Now that the states in the finite state machine have been moved forward, it is time to check and
      possibly perform lua calls on the flow. */
   if(!htstats->skip_user_scripts)
