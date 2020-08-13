@@ -44,7 +44,8 @@ static void* pollerFctn(void* ptr) {
 
   Utils::setThreadName("ContinuousPingLoop");
 
-  while(!ntop->getGlobals()->isShutdownRequested())
+  while((!ntop->getGlobals()->isShutdownRequested())
+	&& (!ntop->getGlobals()->isShutdown()))
     cp->runPingCampaign();
 
 #ifdef TRACE_PING
@@ -343,7 +344,7 @@ void ContinuousPing::runPingCampaign() {
     sleep(1);
   } else {
     /* Nothing to do */
-    sleep(10);
+    sleep(5);
   }
 }
 
