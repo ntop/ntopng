@@ -180,6 +180,22 @@ local function userActivityFormatter(ifid, alert, info)
         return i18n('user_activity.live_extraction', {user=user, ifname=ifname, 
                     from=time_from, to=time_to, filter=filter})
 
+      -- Rest API
+
+      elseif decoded.name == 'set_host_alias' and decoded.params['host'] ~= nil and decoded.params['custom_name'] ~= nil then
+        local host = decoded.params['host']
+        local hostinfo = hostkey2hostinfo(host)
+        local hostname = hostinfo2label(hostinfo)
+        local host_url = hostinfo2detailshref(hostinfo, {ifid = decoded.ifid}, hostname)
+        local new_alias = decoded.params['custom_name']
+        return i18n('user_activity.set_host_alias', {user=user, host=host_url, alias=new_alias})
+
+      elseif decoded.name == 'set_pool_config' then
+        return i18n('user_activity.set_pool_config', {user=user})
+
+      elseif decoded.name == 'set_scripts_config' then
+        return i18n('user_activity.set_scripts_config', {user=user})
+
       -- Alerts
 
       elseif decoded.name == 'checkDeleteStoredAlerts' and decoded.params[1] ~= nil then

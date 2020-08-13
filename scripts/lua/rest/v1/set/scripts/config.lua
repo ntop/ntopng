@@ -14,6 +14,7 @@ local format_utils = require("format_utils")
 local os_utils = require "os_utils"
 local user_scripts = require "user_scripts"
 local rest_utils = require("rest_utils")
+local tracker = require("tracker")
 
 --
 -- Import scripts configuration
@@ -66,5 +67,8 @@ if failure then
 end
 
 -- ################################################
+
+-- TRACKER HOOK
+tracker.log('set_scripts_config', {})
 
 print(rest_utils.rc(rest_utils.consts_ok))

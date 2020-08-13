@@ -37,5 +37,8 @@ end
 
 setHostAltName(host_info["host"], custom_name)
 
+-- TRACKER HOOK
+tracker.log('set_host_alias', { host = hostinfo2hostkey(host_info), custom_name = custom_name })
+
 print(rest_utils.rc(rc, res))
 
