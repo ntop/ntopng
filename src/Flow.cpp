@@ -1168,12 +1168,12 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper_iface, bo
     }
 
     if(!update_partial_traffic_stats_db_dump())
-      return rc; /* Partial stats update has failed */
+      return(rc); /* Partial stats update has failed */
 
     /* Check for bytes, and not for packets, as with nprobeagent
        there are not packet counters, just bytes. */
     if(!get_partial_bytes())
-      return rc; /* Nothing to dump */
+      return(rc); /* Nothing to dump */
 
     dumper_iface->dumpFlow(last_seen, this, no_time_left);
 
@@ -1675,6 +1675,8 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 /* *************************************** */
 
 void Flow::periodic_dump_check(const struct timeval *tv, bool no_time_left) {
+  if(no_time_left) return;
+  
   /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
      ViewInterface dump their flows in another thread, not this one. */
   dumpFlow(tv, iface->isViewed() ? iface->viewedBy() : iface, no_time_left);
@@ -2192,7 +2194,6 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 void Flow::periodic_hash_entry_state_update(void *user_data) {
   periodic_ht_state_update_user_data_t *htstats = (periodic_ht_state_update_user_data_t*)user_data;
   struct timeval *tv = htstats->tv;
-  bool no_time_left = htstats->no_time_left;
 
   switch(get_state()) {
   case hash_entry_state_allocated:
@@ -2207,13 +2208,13 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
 
   case hash_entry_state_active:
     if(next_lua_call_periodic_update == 0) next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS;
-    periodic_dump_check(tv, no_time_left); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
+    periodic_dump_check(tv, htstats->no_time_left); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
     /* Don't change state: purgeIdle() will do */
     break;
 
   case hash_entry_state_idle:
     postFlowSetIdle(tv);
-    periodic_dump_check(tv, no_time_left); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
+    periodic_dump_check(tv, htstats->no_time_left); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
     break;
   }
 
@@ -4809,10 +4810,10 @@ FlowLuaCallExecStatus Flow::performLuaCall(FlowLuaCall flow_lua_call, const stru
 	acle->incPendingPcalls(flow_lua_call);
 	break;
       }
-      return flow_lua_call_exec_status_not_executed_no_time_left;
+      return(flow_lua_call_exec_status_not_executed_no_time_left);
     }
   } else
-    return flow_lua_call_exec_status_not_executed_script_failure;
+    return(flow_lua_call_exec_status_not_executed_script_failure);
 }
 
 /* ***************************************************** */

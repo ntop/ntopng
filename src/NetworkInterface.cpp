@@ -171,7 +171,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(ntop->getPrefs() && ntop->getPro()->has_valid_license() && ntop->getPrefs()->isBehavourAnalysisEnabled())
-    pHash = new PeriodicityHash(ntop->getPrefs()->get_max_num_flows()*2, 3600 /* 1h idleness */);
+    pHash = new PeriodicityHash(ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
   else
     pHash = NULL;
 #endif
@@ -589,7 +589,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
     ntop->getPrefs()->do_dump_flows_on_ls();
 
   if(!db)
-    return -1;
+    return(-1);
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
   if(ntop->getPrefs()->do_dump_flows_on_nindex() &&
@@ -607,14 +607,15 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
      * dumped in the next iteration */
     if(f->get_state() == hash_entry_state_idle)
       db->incNumDroppedFlows(1);
-    return -1;
+
+    return(-1);
   }
 
   if(dump_json) {
     json = f->serialize(use_labels);
 
     if(json == NULL)
-      return -1;
+      return(-1);
   }
 
   rc = db->dumpFlow(when, f, json);
@@ -3912,7 +3913,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   int (*sorter)(const void *_a, const void *_b);
 
   if(retriever == NULL)
-    return -1;
+    return(-1);
 
   retriever->pag = p;
   retriever->host = host, retriever->location = location_all;
@@ -4016,7 +4017,7 @@ int NetworkInterface::getFlows(lua_State* vm,
     highDetails = p->detailedResults() ? details_high : (local_hosts || (p && p->maxHits() != CONST_MAX_NUM_HITS)) ? details_high : details_normal;
 
   if(sortFlows(begin_slot, walk_all, &retriever, allowed_hosts, host, p, sortColumn) < 0) {
-    return -1;
+    return(-1);
   }
 
   lua_newtable(vm);
@@ -4077,14 +4078,14 @@ int NetworkInterface::getFlowsGroup(lua_State* vm,
   }
 
   if(sortFlows(&begin_slot, walk_all, &retriever, allowed_hosts, NULL, p, groupColumn) < 0) {
-    return -1;
+    return(-1);
   }
 
   // build a new grouper that will help in aggregating stats
   if((gper = new(std::nothrow) FlowGrouper(retriever.sorter)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to allocate memory for a Grouper.");
-    return -1;
+    return(-1);
   }
 
   lua_newtable(vm);
@@ -4167,7 +4168,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   int (*sorter)(const void *_a, const void *_b);
 
   if(retriever == NULL)
-    return -1;
+    return(-1);
 
   memset(retriever, 0, sizeof(struct flowHostRetriever));
 
@@ -4254,7 +4255,7 @@ int NetworkInterface::sortMacs(u_int32_t *begin_slot,
   int (*sorter)(const void *_a, const void *_b);
 
   if(retriever == NULL)
-    return -1;
+    return(-1);
 
   retriever->sourceMacsOnly = sourceMacsOnly,
     retriever->actNumEntries = 0,
@@ -4299,7 +4300,7 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
   bool walk_all = true;
 
   if(retriever == NULL)
-    return -1;
+    return(-1);
 
   retriever->actNumEntries = 0,
     retriever->maxNumEntries = getASesHashSize();
@@ -4335,7 +4336,7 @@ int NetworkInterface::sortCountries(struct flowHostRetriever *retriever,
   bool walk_all = true;
 
   if(retriever == NULL)
-    return -1;
+    return(-1);
 
   retriever->actNumEntries = 0,
     retriever->maxNumEntries = getCountriesHashSize();
@@ -4369,7 +4370,7 @@ int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever, char *sortC
   bool walk_all = true;
 
   if(retriever == NULL)
-    return -1;
+    return(-1);
 
   retriever->actNumEntries = 0,
     retriever->maxNumEntries = getVLANsHashSize();
@@ -4432,7 +4433,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 	       ipver_filter, proto_filter,
 	       traffic_type_filter,
 	       sortColumn) < 0) {
-    return -1;
+    return(-1);
   }
 
 #if DEBUG
@@ -4586,14 +4587,14 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 	       ipver_filter, -1 /* no protocol filter */,
 	       traffic_type_all /* no traffic type filter */,
 	       groupColumn) < 0 ) {
-    return -1;
+    return(-1);
   }
 
   // build a new grouper that will help in aggregating stats
   if((gper = new(std::nothrow) Grouper(retriever.sorter)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
 				 "Unable to allocate memory for a Grouper.");
-    return -1;
+    return(-1);
   }
 
   lua_newtable(vm);
@@ -5941,7 +5942,7 @@ int NetworkInterface::getActiveMacList(lua_State* vm,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      manufacturer, sortColumn,
 	      pool_filter, devtype_filter, location_filter) < 0) {
-    return -1;
+    return(-1);
   }
 
   lua_newtable(vm);
@@ -5983,10 +5984,10 @@ int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
   DetailsLevel details_level;
 
   if(!p)
-    return -1;
+    return(-1);
 
   if(sortASes(&retriever, p->sortColumn()) < 0) {
-    return -1;
+    return(-1);
   }
 
   if(!p->getDetailsLevel(&details_level))
@@ -6031,10 +6032,10 @@ int NetworkInterface::getActiveCountriesList(lua_State* vm, const Paginator *p) 
   DetailsLevel details_level;
 
   if(!p)
-    return -1;
+    return(-1);
 
   if(sortCountries(&retriever, p->sortColumn()) < 0) {
-    return -1;
+    return(-1);
   }
 
   if(!p->getDetailsLevel(&details_level))
@@ -6086,7 +6087,7 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
   }
 
   if(sortVLANs(&retriever, sortColumn) < 0) {
-    return -1;
+    return(-1);
   }
 
   lua_newtable(vm);
@@ -6135,7 +6136,7 @@ int NetworkInterface::getActiveMacManufacturers(lua_State* vm,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      NULL, (char*)"column_manufacturer",
 	      (u_int16_t)-1, devtype_filter, location_filter) < 0) {
-    return -1;
+    return(-1);
   }
 
   lua_newtable(vm);
@@ -6222,7 +6223,7 @@ int NetworkInterface::getActiveDeviceTypes(lua_State* vm,
 	      &retriever, bridge_iface_idx, sourceMacsOnly,
 	      manufacturer, (char*)"column_device_type",
 	      (u_int16_t)-1, (u_int8_t)-1, location_filter) < 0) {
-    return -1;
+    return(-1);
   }
 
   lua_newtable(vm);

@@ -102,18 +102,23 @@ Flow* FlowHash::findByKeyAndHashId(u_int32_t key, u_int hash_id) {
 
 void FlowHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
   periodic_ht_state_update_user_data_t *data = (periodic_ht_state_update_user_data_t *) user_data;
-  FlowAlertCheckLuaEngine *acle = getLuaVMUservalue(data->vm, flow_acle);
+  FlowAlertCheckLuaEngine *acle;
 
-  if(!acle) {
-    /* Allocate the check engine in the vm to reuse it across multiple
-     * ht_stats_update.lua calls */
-    acle = new (std::nothrow) FlowAlertCheckLuaEngine(getInterface());
-    getLuaVMUservalue(data->vm, flow_acle) = acle;
-  }
-
-  /* Set the deadline from the currently executing VM */
-  if(acle) acle->setThreadedActivityData(data->vm);
-
+  if(!data->skip_user_scripts) {
+    acle = getLuaVMUservalue(data->vm, flow_acle);
+    
+    if(!acle) {
+      /* Allocate the check engine in the vm to reuse it across multiple
+       * ht_stats_update.lua calls */
+      acle = new (std::nothrow) FlowAlertCheckLuaEngine(getInterface());
+      getLuaVMUservalue(data->vm, flow_acle) = acle;
+    }
+    
+    /* Set the deadline from the currently executing VM */
+    if(acle) acle->setThreadedActivityData(data->vm);
+  } else
+    acle = NULL;
+  
   GenericHash::walkAllStates(walker, user_data);
 
   if(acle) {
