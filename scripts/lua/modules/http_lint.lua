@@ -1984,14 +1984,14 @@ local function lintParams()
                  ((id == _POST) and relaxPostValidation))) then
                if(debug) then io.write("[LINT] Parameter "..k.." is empty but we are in relax mode, so it can pass\n") end
             else
-               local success, message = validateParameter(k, v)
+               local success, message = validateSpecialParameter(k, v)
 
                if not success then
                   if message ~= nil then
 		     -- tprint("k: "..k.. " v: "..v.. " success: "..tostring(success).. " message: "..message)
                      http_lint.validationError(id, k, v, message)
                   else
-                     success, message = validateSpecialParameter(k, v)
+                     success, message = validateParameter(k, v)
 
                      if not success then
                         if message ~= nil then
