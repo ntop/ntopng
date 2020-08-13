@@ -135,6 +135,11 @@ class GenericHash {
    */
   virtual void walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
 
+  /*
+   * @brief Purge idle entries that have been previous idled by purgeIdle() via periodic calls
+   */
+  void purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+  
   /**
    * @brief Purge idle hash entries.
    *

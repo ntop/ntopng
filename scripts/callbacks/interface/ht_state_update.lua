@@ -2,6 +2,12 @@
 -- (C) 2019-20 - ntop.org
 --
 
+-- #
+-- # This script
+-- # - idles hash entries executing scripts when a transition happen
+-- # - dumps 5 sec interface time series
+-- #
+
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path

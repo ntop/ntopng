@@ -2563,7 +2563,6 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
 			macs_hash
   };
 
-
   memset(&periodic_ht_state_update_user_data, 0, sizeof(periodic_ht_state_update_user_data));
 
   if(ctx)
@@ -2584,6 +2583,13 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
   if(vm)
     lua_newtable(vm);
 
+  /* (a) delete all idle entries */
+  for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
+    if(ghs[i])
+      ghs[i]->purgeQueuedIdleEntries(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);    
+  } /* for */
+
+  /* (b) idle hash entries */
   for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
     if(ghs[i]) {
       ghs[i]->walkAllStates(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
@@ -2594,7 +2600,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
 	periodic_ht_state_update_user_data.acle = NULL;
       }
     }
-  }
+  } /* for */
 
   if(db) {
 #ifdef NTOPNG_PRO

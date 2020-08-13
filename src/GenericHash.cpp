@@ -123,12 +123,12 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 
 /* ************************************ */
 
-/* This method updates the hash entries state and purges idle entries. */
-void GenericHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
-  vector<GenericHashEntry*> *cur_idle = NULL;
-  u_int new_walk_idle_start_hash_id = 0;
-  bool update_walk_idle_start_hash_id;
-
+void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
+ vector<GenericHashEntry*> *cur_idle = NULL;
+#ifdef WALK_DEBUG
+ u_int32_t num_purged = entry_state_transition_counters.num_purged;
+#endif
+ 
   if(idle_entries) {
     cur_idle = idle_entries;
     idle_entries = NULL;
@@ -146,6 +146,21 @@ void GenericHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_d
     delete cur_idle;
   }
 
+#ifdef WALK_DEBUG
+  if(num_purged != entry_state_transition_counters.num_purged)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s) [%u purged]",
+				 __FUNCTION__, name,
+				 entry_state_transition_counters.num_purged - num_purged);
+#endif
+}
+
+/* ************************************ */
+
+/* This method updates the hash entries state and purges idle entries. */
+void GenericHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
+  u_int new_walk_idle_start_hash_id = 0;
+  bool update_walk_idle_start_hash_id;
+  
   /*
     To implement fairness, the walkIdle starts from walk_idle_start_hash_id and not from zero.
     walk_idle_start_hash_id is updated on the basis of the return value of the walker function.
