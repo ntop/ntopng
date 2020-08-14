@@ -12,49 +12,59 @@
                     <li class="breadcrumb-item active">{{ config_list.hooks_localizated[config_list.subdir] }}</li>
                 </ol>
             </nav>
-            <ul class="nav nav-pills">
-                <li class='nav-item pt-2 pb-2 pr-1'>{{ i18n('config_scripts.config_entities') }}:</li>
-                {% for _, hooks_subdir in ipairs(config_list.user_scripts.listSubdirs()) do %}
+            <div class="card my-2">
+                <div class="card-header">
+                    <ul class="nav nav-pills">
+                        {% for _, hooks_subdir in ipairs(config_list.user_scripts.listSubdirs()) do %}
                         <li class="nav-item">
-                            <a class="nav-link {{ (hooks_subdir.id == config_list.subdir and 'active' or '') }}" href="?subdir={{hooks_subdir.id}}">
+                            <a class="nav-link {{ (hooks_subdir.id == config_list.subdir and 'active' or '') }}"
+                                href="?subdir={{hooks_subdir.id}}">
                                 {{config_list.hooks_localizated[hooks_subdir.id]}}
                             </a>
                         </li>
-                {% end %}
-            </ul>
-            <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
-                   <thead>
-                        <tr>
-                            <th class='w-25'>{{ i18n("config_scripts.config_name", {}) }}</th>
-                            {% if config_list.subdir ~= "flow" and config_list.subdir ~= "system" and  config_list.subdir ~= "syslog" then %}
-                            <th>{{ i18n("config_scripts.applied_to", {}) }}</th>
-                            {% end %}
-                            <th class='w-25'>{{ i18n("actions", {}) }}</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-            </table>
+                        {% end %}
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
+                        <thead>
+                            <tr>
+                                <th class='w-25'>{{ i18n("config_scripts.config_name", {}) }}</th>
+                                {% if config_list.subdir ~= "flow" and config_list.subdir ~= "system" and  config_list.subdir ~= "syslog" then %}
+                                <th>{{ i18n("config_scripts.applied_to", {}) }}</th>
+                                {% end %}
+                                <th class='w-25'>{{ i18n("actions", {}) }}</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
 
         </div>
     </div>
 
     <div>
         <form action="/lua/rest/v1/get/scripts/config.lua" class="form-inline" method="GET">
-          <input type="hidden" name="download" value="true" />
-          <button type="submit" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_export') }}</span></button>
-        </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_import') }}</span></button>
-        <button id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal" class="btn btn-secondary"><span>{{ i18n('config_scripts.config_reset') }}</span></button>
+            <input type="hidden" name="download" value="true" />
+            <button type="submit"
+                class="btn btn-secondary"><span>{{ i18n('config_scripts.config_export') }}</span></button>
+        </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal"
+            class="btn btn-secondary"><span>{{ i18n('config_scripts.config_import') }}</span></button>
+        <button id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal"
+            class="btn btn-secondary"><span>{{ i18n('config_scripts.config_reset') }}</span></button>
     </div>
-<br>
-    <div>
-      <b>{{ i18n('notes') }}</b>
-      <ul>
-	<li>{* i18n('user_scripts.note_what_are_user_scripts',
-	  {user_scripts_url = "https://www.ntop.org/guides/ntopng/api/user_scripts/index.html#user-scripts-api",
-	  user_scripts_external = "<i class=\"fas fa-external-link-alt\"></i>"}) *}</li>
-	<li>{* i18n('user_scripts.note_configsets') *}</li>
-	<li>{* i18n('user_scripts.note_apply_to_default') *}</li>
-      </ul>
+    <br>
+    <div class="notes bg-light border">
+        <b>{{ i18n('notes') }}</b>
+        <ul>
+            <li>{* i18n('user_scripts.note_what_are_user_scripts',
+                {user_scripts_url = "https://www.ntop.org/guides/ntopng/api/user_scripts/index.html#user-scripts-api",
+                user_scripts_external = "<i class=\"fas fa-external-link-alt\"></i>"}) *}</li>
+            <li>{* i18n('user_scripts.note_configsets') *}</li>
+            <li>{* i18n('user_scripts.note_apply_to_default') *}</li>
+        </ul>
     </div>
 </div>
 
@@ -65,44 +75,45 @@
 {* config_list.template_utils.gen("pages/modals/scripts_config/rename_modal.html") *}
 {* config_list.template_utils.gen("pages/modals/scripts_config/delete_modal.html") *}
 {* config_list.template_utils.gen("modal_confirm_dialog.html", {
-    dialog={
-        id      = "reset-modal",
-        action  = "resetConfig()",
-        title   = i18n("config_scripts.config_reset"),
-        message = i18n("config_scripts.config_reset_confirm"),
-        confirm = i18n("reset")
-     }
+dialog={
+id = "reset-modal",
+action = "resetConfig()",
+title = i18n("config_scripts.config_reset"),
+message = i18n("config_scripts.config_reset_confirm"),
+confirm = i18n("reset")
+}
 }) *}
 {* config_list.template_utils.gen("pages/modals/scripts_config/import_modal.html") *}
 
 {# include css and javascript code for the page #}
 
-<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet" />
 <script type='text/javascript'>
 
-// hold a csrf token for apply targets
-const pageCsrf = '{{ ntop.getRandomCSRFValue() }}';
-const default_config_only = {{ config_list.default_config_only_subdir }};
-const subdir = '{{ config_list.subdir }}';
+    // hold a csrf token for apply targets
+    const pageCsrf = '{{ ntop.getRandomCSRFValue() }}';
+    const default_config_only = {{ config_list.default_config_only_subdir }};
+    const subdir = '{{ config_list.subdir }}';
 
-i18n.warning ="{{ i18n('warning', {}) }}";
-i18n.no_pools_applied = "{{ i18n('config_scripts.no_pools_applied', {}) }}";
-i18n.empty_value_message = "{{ i18n('config_scripts.empty_value_message', {}) }}";
-i18n.empty_target_message = "{{ i18n('config_scripts.empty_target_message', {}) }}";
-i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
-i18n.invalid_characters = "{{ i18n('config_scripts.invalid_characters') }}";
-i18n.max_input_length = "{{ i18n('config_scripts.max_input_length') }}";
-i18n.rename = "{{ i18n('config_scripts.actions.rename') }}";
-i18n.delete = "{{ i18n('config_scripts.actions.delete') }}";
-i18n.clone = "{{ i18n('config_scripts.actions.clone') }}";
-i18n.edit = "{{ i18n('config_scripts.actions.edit') }}";
-i18n.apply_to = "{{ i18n('config_scripts.actions.apply_to') }}";
-i18n.invalid_file = "{{ i18n('config_scripts.invalid_file') }}";
-i18n.no_file = "{{ i18n('config_scripts.no_file') }}";
-i18n.default = "{{ i18n('policy_presets.default') }}";
-i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
-i18n.config_search = "{{ i18n('config_scripts.config_search') }}";
+    i18n.warning = "{{ i18n('warning', {}) }}";
+    i18n.no_pools_applied = "{{ i18n('config_scripts.no_pools_applied', {}) }}";
+    i18n.empty_value_message = "{{ i18n('config_scripts.empty_value_message', {}) }}";
+    i18n.empty_target_message = "{{ i18n('config_scripts.empty_target_message', {}) }}";
+    i18n.expired_csrf = "{{ i18n('expired_csrf') }}";
+    i18n.invalid_characters = "{{ i18n('config_scripts.invalid_characters') }}";
+    i18n.max_input_length = "{{ i18n('config_scripts.max_input_length') }}";
+    i18n.rename = "{{ i18n('config_scripts.actions.rename') }}";
+    i18n.delete = "{{ i18n('config_scripts.actions.delete') }}";
+    i18n.clone = "{{ i18n('config_scripts.actions.clone') }}";
+    i18n.edit = "{{ i18n('config_scripts.actions.edit') }}";
+    i18n.apply_to = "{{ i18n('config_scripts.actions.apply_to') }}";
+    i18n.invalid_file = "{{ i18n('config_scripts.invalid_file') }}";
+    i18n.no_file = "{{ i18n('config_scripts.no_file') }}";
+    i18n.default = "{{ i18n('policy_presets.default') }}";
+    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n.config_search = "{{ i18n('config_scripts.config_search') }}";
 
 
 </script>
-<script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/config_callbacks/config-list-utils.js?{{ ntop.getStartupEpoch() }}'></script>
+<script type='text/javascript'
+    src='{{ ntop.getHttpPrefix() }}/js/config_callbacks/config-list-utils.js?{{ ntop.getStartupEpoch() }}'></script>
