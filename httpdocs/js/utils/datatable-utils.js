@@ -111,7 +111,12 @@ class DataTableUtils {
 
             const count = DataTableUtils.countEntries(key, tableAPI.columns(columnIndex).data()[0]);
             // hide the entry if count is zero
-            if (count == 0) $(this).hide();
+            if (count == 0) {
+                $(this).hide();
+            }
+            else {
+                $(this).show();
+            }
 
             // update the counter text
             $(this).find('.counter').text(`(${count})`);
