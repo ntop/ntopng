@@ -28,15 +28,27 @@ local script = {
 
 -- #################################################################
 
+local function unidirectionalProtoWhitelist(proto_id)
+   if((proto_id == 17)        -- Syslog
+	 or (proto_id == 18)  -- DHCP
+      	 or (proto_id == 87)  -- RTP
+	 or (proto_id == 103) -- DHCPV6
+	 or (proto_id == 128) -- NetFlow
+      	 or (proto_id == 129) -- sFlow
+   ) then
+      return(true)
+   end
+   
+   return(false) -- Not whitelisted
+end
+
+-- #################################################################
+
 function script.hooks.all(now)
    if((flow.getPacketsRcvd() == 0) and (flow.getPacketsSent() > 0)) then
       -- Now check if the recipient isn't a broadcast/multicast address
-      if(flow.isServerUnicast()) then
-         -- TODO some UDP protocols are inherently unidirectional (e.g. Netflow/sflow)
-         -- they should be excluded
-
-         flow.setStatus(flow_consts.status_types.status_udp_unidirectional,
-            5--[[ flow score]], 5--[[ cli score ]], 1--[[ srv score ]])
+      if(flow.isServerUnicast() and not(unidirectionalProtoWhitelist(flow.getnDPIAppProtoId()))) then
+         flow.setStatus(flow_consts.status_types.status_udp_unidirectional, 5--[[ flow score]], 5--[[ cli score ]], 1--[[ srv score ]])
       end
    else
       flow.clearStatus(flow_consts.status_types.status_udp_unidirectional)
