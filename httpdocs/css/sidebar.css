@@ -266,27 +266,6 @@
     text-align: left;
 }
 
-
-/* Responsive Stuff */
-@media (min-width: 480px) and (max-width: 800px) {
-    #n-container {
-        margin-top: 7rem !important;
-    }
-}
-
-@media (min-width: 800px) and (max-width: 992px) {
-    #n-container {
-        margin-top: 5.5rem !important;
-    }
-}
-
-@media (min-width: 992px) and (max-width: 1500px) {
-    #n-container {
-        margin-top: 2rem !important;
-    }
-}
-
-
 @media (min-width: 320px) and (max-width: 480px) {
 
     footer {
@@ -295,9 +274,12 @@
         min-height: 6rem;
     }
 
-    #n-container {
-        margin-top: 7rem !important;
-        padding: 0 1rem;
+    .body {
+        padding-top: 7rem;
+    }
+
+    main#n-container {
+        padding-left: 0rem !important;
     }
 
     /** hide the default dropdown to switch interface */
@@ -395,18 +377,6 @@
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /** Dark theme for sidebar **/

@@ -27,7 +27,7 @@ local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows(
 local is_system_interface = page_utils.is_system_view()
 
 print([[
-   <div id='wrapper'>
+   <div class='wrapper'>
 ]])
 
 print[[
@@ -731,7 +731,7 @@ end -- num_ifaces > 0
 -- ##############################################
 
 print([[
-   <nav class="navbar extended navbar-expand-lg fixed-top justify-content-start bg-light navbar-light" id='n-navbar'>
+   <nav class="navbar navbar-expand-lg fixed-top navbar-light bg-light" id='n-navbar'>
       <ul class='navbar-nav mr-auto'>
          <li class='nav-item'>
             <button class='btn btn-outline-dark border-0 btn-sidebar' data-toggle='sidebar'>
@@ -1128,7 +1128,7 @@ print([[
 ]])
 
 -- begging of #n-container
-print([[<div id='n-container' class='p-md-4 extended p-xs-1 mt-5 p-sm-2'>]])
+print([[<main id='n-container' class='px-md-4 px-sm-1'>]])
 
 -- ###################################################
 -- Render main alert notifications

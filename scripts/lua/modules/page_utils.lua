@@ -316,7 +316,7 @@ function page_utils.print_header(title)
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js?]] print(startup_epoch) print[["></script>
   </head>]]
   print([[
-     <body class="]].. (dark_mode and "dark" or "") ..[[">
+     <body class="body ]].. (dark_mode and "dark" or "") ..[[">
   ]])
 end
 
@@ -622,7 +622,7 @@ end
 -- ##############################################
 
 function page_utils.print_notes(notes_items)
-   print("<div class='notes'><b>" .. i18n("notes").. "</b><ul>")
+   print("<div class='notes bg-light border'><b>" .. i18n("notes").. "</b><ul>")
 
    for _, note in ipairs(notes_items) do
       print("<li>" ..note .. "</li>")

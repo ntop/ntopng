@@ -3,7 +3,7 @@ const fixSubMenuPosition = ($submenu, $hoverButton) => {
     const MIN_SPACE = 32;
     const MIN_HEIGHT = 128;
 
-    const distFromAbove = $hoverButton.offset().top;
+    const distFromAbove = $hoverButton.position().top;
     const submenuHeight = $submenu.height();
     const documentHeight = $(document).height();
 

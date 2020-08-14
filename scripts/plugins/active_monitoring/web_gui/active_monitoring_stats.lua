@@ -173,7 +173,16 @@ if(page == "overview") then
             <tbody>
             </tbody>
           </table>
-        </div>
+    ]])
+
+    page_utils.print_notes({
+      i18n("active_monitoring_stats.note3", {product=info.product}),
+      i18n("active_monitoring_stats.note_alert"),
+      i18n("active_monitoring_stats.note_availability")
+    })
+
+    print([[
+    </div>
       </div>
     </div>]])
 
@@ -237,13 +246,6 @@ if(page == "overview") then
 	</form>
     </div>
 
-    <div>
-      ]].. i18n("notes") .. [[<ul>
-	<li>]].. i18n("active_monitoring_stats.note3", {product=info.product}) ..[[</li>
-	<li>]].. i18n("active_monitoring_stats.note_alert") ..[[</li>
-	<li>]].. i18n("active_monitoring_stats.note_availability") ..[[</li>
-      </ul>
-    </div>
   ]])
 
   local measurements_info = {}

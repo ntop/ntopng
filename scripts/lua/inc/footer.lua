@@ -41,7 +41,8 @@ end -- closes interface.isPcapDumpInterface() == false
 if not info.oem then
 
 print ([[
-<footer id="n-footer" class="border-top">
+<hr>
+<footer id="n-footer">
 	<div class="container-fluid">
 		<div class="row mt-2">
 			<div class="col-4 text-left">
@@ -62,9 +63,7 @@ print [[
 			</div>
 			<div class="col-4 text-right">
 				<small>
-					<div class="text-right">
 						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
-					</div>
 				</small>
 			</div>
      	</div>
@@ -75,9 +74,7 @@ print [[
 else -- info.oem
   print[[<div class="col-12 text-right">
     <small>
-	    <div class="text-right">
-		    <i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock' title="]] print(i18n("about.server_time")) print[["></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
-	    </div>
+		<i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock' title="]] print(i18n("about.server_time")) print[["></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
     </small>
 </div>]]
 end
@@ -575,6 +572,7 @@ end
 
 -- close wrapper
 print[[
+</main>
   </div>
   </body>
 </html> ]]
