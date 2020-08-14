@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require "lua_utils"
 local json = require ("dkjson")
 local rest_utils = require("rest_utils")
+local tracker = require("tracker")
 
 --
 -- Add a new ntopng user
@@ -81,3 +82,8 @@ if limited_lifetime and not ntop.addUserLifetime(username, lifetime_secs) then
 end
 
 print(rest_utils.rc(rc, res))
+   
+-- TRACKER HOOK
+-- Note: already tracked by ntop.addUser
+-- tracker.log('add_ntopng_user', { username = username })
+

@@ -8,6 +8,7 @@ require "lua_utils"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local base_pools = require "base_pools"
+local tracker = require("tracker")
 
 -- ##############################################
 
@@ -37,14 +38,14 @@ function pools_rest_utils.add_pool(pools)
    -- Create an instance out of the `pools` passed as argument
    local s = pools:create()
 
-   members = s:parse_members(members)
+   members_list = s:parse_members(members)
    recipients = s:parse_recipients(recipients)
    -- confset_id as number
    confset_id = tonumber(confset_id)
 
    local new_pool_id = s:add_pool(
       name,
-      members --[[ an array of valid interface ids]],
+      members_list --[[ an array of valid interface ids]],
       confset_id --[[ a valid configset_id --]],
       recipients --[[ an array of valid recipient ids (names)]]
    )
@@ -60,6 +61,9 @@ function pools_rest_utils.add_pool(pools)
    }
 
    print(rest_utils.rc(rc, res))
+
+   -- TRACKER HOOK
+   tracker.log('add_pool', { pool_name = name, members = members })
 end
 
 -- ##############################################
@@ -87,7 +91,7 @@ function pools_rest_utils.edit_pool(pools)
    -- Create the instance
    local s = pools:create()
 
-   members = s:parse_members(members)
+   members_list = s:parse_members(members)
    recipients = s:parse_recipients(recipients)
    -- pool_id as number
    pool_id = tonumber(pool_id)
@@ -96,7 +100,7 @@ function pools_rest_utils.edit_pool(pools)
 
    local res = s:edit_pool(pool_id,
       name,
-      members --[[ an array of valid interface ids]], 
+      members_list --[[ an array of valid interface ids]], 
       confset_id --[[ a valid configset_id --]],
       recipients --[[ an array of valid recipient ids (names)]]
    )
@@ -108,6 +112,9 @@ function pools_rest_utils.edit_pool(pools)
 
    local rc = rest_utils.consts_ok
    print(rest_utils.rc(rc))
+
+   -- TRACKER HOOK
+   tracker.log('edit_pool', { pool_id = pool_id, pool_name = name, members = members })
 end
 
 -- ##############################################
@@ -146,6 +153,9 @@ function pools_rest_utils.delete_pool(pools)
    }
 
    print(rest_utils.rc(rc, res))
+
+   -- TRACKER HOOK
+   tracker.log('delete_pool', { pool_id = pool_id })
 end
 
 -- ##############################################
@@ -197,6 +207,9 @@ function pools_rest_utils.bind_member(pools)
 
    local rc = rest_utils.consts_ok
    print(rest_utils.rc(rc))
+
+   -- TRACKER HOOK
+   tracker.log('bind_pool_member', { pool_id = pool_id, member = member })
 end
 
 -- ##############################################

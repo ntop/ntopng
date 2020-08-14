@@ -10,3 +10,4 @@ local host_pools = require "host_pools"
 local pools_rest_utils = require "pools_rest_utils"
 
 pools_rest_utils.bind_member(host_pools)
+

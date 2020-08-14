@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require "lua_utils"
 local json = require ("dkjson")
 local rest_utils = require("rest_utils")
+local tracker = require("tracker")
 
 --
 -- Remove a ntopng user
@@ -43,3 +44,6 @@ end
 
 print(rest_utils.rc(rc, res))
 
+-- TRACKER HOOK
+-- Note: already tracked by ntop.deleteUser
+-- tracker.log('delete_ntopng_user', { username = username })

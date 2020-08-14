@@ -196,6 +196,24 @@ local function userActivityFormatter(ifid, alert, info)
       elseif decoded.name == 'set_scripts_config' then
         return i18n('user_activity.set_scripts_config', {user=user})
 
+      elseif decoded.name == 'bind_pool_member' then
+        return i18n('user_activity.bind_pool_member', {user=user, pool_id=decoded.params['pool_id'], member=decoded.params['member']})
+
+      elseif decoded.name == 'add_pool' then
+        return i18n('user_activity.add_pool', {user=user, pool_name=decoded.params['pool_name'], members=decoded.params['members']})
+
+      elseif decoded.name == 'delete_pool' then
+        return i18n('user_activity.delete_pool', {user=user, pool_id=decoded.params['pool_id']})
+
+      elseif decoded.name == 'edit_pool' then
+        return i18n('user_activity.edit_pool', {user=user, pool_id=decoded.params['pool_id'], pool_name=decoded.params['pool_name'], members=decoded.params['members']})
+
+      elseif decoded.name == 'add_ntopng_user' then
+        return i18n('user_activity.add_ntopng_user', {user=user, new_user = decoded.params['username']})
+
+      elseif decoded.name == 'delete_ntopng_user' then
+        return i18n('user_activity.delete_ntopng_user', {user=user, old_user = decoded.params['username']})
+
       -- Alerts
 
       elseif decoded.name == 'checkDeleteStoredAlerts' and decoded.params[1] ~= nil then
