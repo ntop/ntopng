@@ -110,6 +110,8 @@ class DataTableUtils {
             if (key == 'all') return;
 
             const count = DataTableUtils.countEntries(key, tableAPI.columns(columnIndex).data()[0]);
+            // hide the entry if count is zero
+            if (count == 0) $(this).hide();
 
             // update the counter text
             $(this).find('.counter').text(`(${count})`);
@@ -136,6 +138,7 @@ class DataTableUtils {
 
                 const count = DataTableUtils.countEntries(val, tableAPI.columns(columnIndex).data()[0]);
                 const $counter = $(`<span class='counter'>(${count})</span>`);
+                if (count == 0) $entry.hide();
 
                 $entry.append($counter);
             }
