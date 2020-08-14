@@ -20,6 +20,14 @@ tracker.track_interface()
 
 -- UTILITY FUNCTIONS
 
+function starts(String,Start)
+   if((String == nil) or (Start == nil)) then
+      return(false)
+   end
+
+   return string.sub(String,1,string.len(Start))==Start
+end
+
 -- Searches into the keys of the table
 local function validateChoiceByKeys(defaults, v)
    if defaults[v] ~= nil then
