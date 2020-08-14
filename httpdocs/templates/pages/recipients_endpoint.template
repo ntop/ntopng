@@ -1,23 +1,27 @@
 {#
     (C) 2020 - ntop.org
 
-    This is the template for endpoint recipient page. If there are no endpoints
+    This is the template for the endpoint recipients page. If there are no endpoints
     configured yet then show an alert to the user.
 #}
 
 {% if (#notifications.endpoint_list > 0) then %}
 <div class="row mb-5">
     <div class="col-md-12">
-        <table class="table w-100 table-bordered table-striped table-hover my-3" id="recipient-list">
-            <thead>
-                <tr>
-                    <th>{{ i18n('endpoint_notifications.recipient_name') }}</th>
-                    <th>{{ i18n('endpoint_notifications.associated_to') }}</th>
-                    <th>{{ i18n('endpoint_notifications.type') }}</th>
-                    <th>{{ i18n('actions') }}</th>
-                </tr>
-            </thead>
-        </table>
+        <div class="card card-shadow">
+            <div class="card-body">
+                <table class="table w-100 table-bordered table-striped table-hover my-3" id="recipient-list">
+                    <thead>
+                        <tr>
+                            <th>{{ i18n('endpoint_notifications.recipient_name') }}</th>
+                            <th>{{ i18n('endpoint_notifications.associated_to') }}</th>
+                            <th>{{ i18n('endpoint_notifications.type') }}</th>
+                            <th>{{ i18n('actions') }}</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -35,6 +39,9 @@
             </label>
             <div class="col-sm-5">
                 <input name="{{ param.param_name }}" type="{{ param.param_type }}" class="form-control" {{ (param.optional and '' or 'required') }}>
+                {% if param.optional then %}
+                <small class="text-muted">{{ i18n("optional_field") }}</small>
+                {% end %}
             </div>
         </div>
         {% end %}

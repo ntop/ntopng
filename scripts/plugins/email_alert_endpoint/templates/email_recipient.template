@@ -12,5 +12,6 @@
     </label>
     <div class="col-sm-5">
         <input name="cc" type="email" class="form-control" />
+        <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>
 </div>

@@ -226,7 +226,7 @@ $(document).ready(function(){
 });
 
 $("#table-internals-periodic-activities").datatable({
-   title: "]] print(i18n("internals.periodic_activities")) print[[",]]
+   title: "",]]
 
    local preference = tablePreferences("rows_number",_GET["perPage"])
    if preference ~= "" then print ('perPage: '..preference.. ",\n") end

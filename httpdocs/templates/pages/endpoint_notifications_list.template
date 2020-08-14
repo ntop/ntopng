@@ -1,14 +1,24 @@
+{#
+    (C) 2020 - ntop.org
+
+    This is the template for the endpoints page.
+#}
+
 <div class="row mb-5">
     <div class="col-md-12">
-        <table class="table w-100 table-bordered table-striped table-hover my-3" id="notification-list">
-            <thead>
-                <tr>
-                    <th>{{ i18n('endpoint_notifications.name') }}</th>
-                    <th>{{ i18n('endpoint_notifications.type') }}</th>
-                    <th>{{ i18n('actions') }}</th>
-                </tr>
-            </thead>
-        </table>
+        <div class="card card-shadow">
+            <div class="card-body">
+                <table class="table w-100 table-bordered table-striped table-hover my-3" id="notification-list">
+                    <thead>
+                        <tr>
+                            <th>{{ i18n('endpoint_notifications.name') }}</th>
+                            <th>{{ i18n('endpoint_notifications.type') }}</th>
+                            <th>{{ i18n('actions') }}</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 

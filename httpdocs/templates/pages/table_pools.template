@@ -1,9 +1,11 @@
 {#
     (C) 2020 - ntop.org
+
+    This is the template to generate the Manage Pool page.
 #}
 <div class="row">
     <div class="col-md-12 mb-4">
-        <div class="card">
+        <div class="card card-shadow">
             <div class="card-header">
                 {# import the navbar inside the pool page to navigate through the pool tables #}
                 {* template_utils.gen("pages/components/nav_tabs.template", menu) *}

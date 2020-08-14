@@ -629,7 +629,7 @@ main#n-container {
   left: var(--sidebar-width);
   z-index: 1000;
   transition: 0.5s all;
-  box-shadow: 8px 1px 3px rgba(0, 0, 0, 0.10), 2px 1px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 #n-navbar.scrolled.light {
@@ -849,9 +849,14 @@ td.dt-body-right {
   margin-top: 1rem;
   padding: 1rem;
   border-radius: 3px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .notes b {
   margin-bottom: 0.2rem;
+}
+
+.card-shadow {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 footer {
