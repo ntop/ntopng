@@ -89,26 +89,63 @@ class DataTableUtils {
         return $.extend({}, config, extension);
     }
 
+    static countEntries(val, data) {
+        let counter = 0;
+        data.forEach((d) => {
+            if (d.toLowerCase() == val.toLowerCase()) counter++;
+        });
+        return counter;
+    }
+
+    static updateFilters(filterTitle, tableAPI) {
+
+        const menuFilterKey = filterTitle.toLowerCase().split(" ").join("_");
+        // update entries for each
+        const $menuFilter = $(`[data-filter='${menuFilterKey}']`);
+        const columnIndex = $menuFilter.data('filterIndex');
+
+        $menuFilter.find('[data-filter-key]').each(function() {
+
+            const key = $(this).data('filterKey');
+            if (key == 'all') return;
+
+            const count = DataTableUtils.countEntries(key, tableAPI.columns(columnIndex).data()[0]);
+
+            // update the counter text
+            $(this).find('.counter').text(`(${count})`);
+            // update the selected button counter
+            $(`span[data-filter-key='${key}']`).find('.counter').text(`(${count})`);
+        });
+    }
+
     /**
-     * A simple filter is an object like this: { key: '', label: 'label1', regex: 'http://' }
-     * @param {*} title The select title
+     * A simple filter is an object like this: `{ key: '', label: 'label1', regex: 'http://', countable: true|false}`
+     * @param {string} title The select title
      * @param {*} filters An array of filters
-     * @param {*} columnIndex The column index to sort
-     * @param {*} filterID The filter container
-     * @param {*} tableAPI
+     * @param {number} columnIndex The column index to sort
+     * @param {string} filterID The filter container
+     * @param {DataTable} tableAPI
      */
     static addFilterDropdown(title, filters = [], columnIndex, filterID, tableAPI) {
 
-        const createEntry = (val, key, callback) => {
+        const createEntry = (val, key, hasToCount, callback) => {
 
-            const $entry = $(`<li data-filter-key='${key}' class='dropdown-item pointer'>${val}</li>`);
+            const $entry = $(`<li data-filter-key='${key}' class='dropdown-item pointer'>${val} </li>`);
+
+            if (hasToCount) {
+
+                const count = DataTableUtils.countEntries(val, tableAPI.columns(columnIndex).data()[0]);
+                const $counter = $(`<span class='counter'>(${count})</span>`);
+
+                $entry.append($counter);
+            }
 
             $entry.click(function(e) {
                 // set active filter title and key
                 if ($dropdownTitle.parent().find(`i.fas`).length == 0) {
                     $dropdownTitle.parent().prepend(`<i class='fas fa-filter'></i>`);
                 }
-                $dropdownTitle.text($entry.text());
+                $dropdownTitle.html($entry.html());
                 $dropdownTitle.attr(`data-filter-key`, key);
                 // remove the active class from the li elements
                 $menuContainer.find('li').removeClass(`active`);
@@ -117,6 +154,7 @@ class DataTableUtils {
                 // if there is a callback then invoked it
                 if (callback) callback(e);
             });
+
             return $entry;
         }
 
@@ -128,12 +166,12 @@ class DataTableUtils {
         const $dropdownTitle = $(`<span>${title}</span>`);
         $dropdownButton.append($dropdownTitle);
 
-        const $menuContainer = $(`<ul class='dropdown-menu scrollable-dropdown' data-filter='${filterKey}' id='${filterKey}-filter'></ul>`);
+        const $menuContainer = $(`<ul class='dropdown-menu scrollable-dropdown' data-filter-index='${columnIndex}' data-filter='${filterKey}' id='${filterKey}-filter'></ul>`);
 
         // for each filter defined in filters create a dropdown item <li>
         for (let filter of filters) {
 
-            const $entry = createEntry(filter.label, filter.key, (e) => {
+            const $entry = createEntry(filter.label, filter.key, filter.countable, function(e) {
                 // if the filter have a callback then call it
                 if (filter.callback) {
                     filter.callback();
@@ -145,7 +183,7 @@ class DataTableUtils {
         }
 
         // add all filter
-        const $allEntry = createEntry(i18n.all, 'all', (e) => {
+        const $allEntry = createEntry(i18n.all, 'all', false, (e) => {
 
             $dropdownTitle.parent().find('i.fas.fa-filter').remove();
             $dropdownTitle.html(`${title}`).removeAttr(`data-filter-key`);
@@ -161,6 +199,9 @@ class DataTableUtils {
 
         DataTableUtils.setCurrentFilter(tableAPI, filterKey);
     }
+
+
+
 
     /**
      * For each filter object set the previous filter's state

@@ -41,7 +41,8 @@ for endpoint_key, _ in pairs(endpoints_types) do
     endpoint_type_filters[#endpoint_type_filters+1] = {
         label = label,
         regex = endpoint_key,
-        key = endpoint_key
+        key = endpoint_key,
+        countable = true
     }
 
 end

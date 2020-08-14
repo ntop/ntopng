@@ -1,6 +1,8 @@
 // @ts-nocheck
 $(document).ready(function () {
 
+    const INDEX_COLUMN_ENDPOINT_TYPE = 2;
+
     let editRowData = null;
     let removeRowData = null;
 
@@ -90,7 +92,6 @@ $(document).ready(function () {
         return null;
     }
 
-
     let dtConfig = DataTableUtils.getStdDatatableConfig([
         {
             text: '<i class="fas fa-plus"></i>',
@@ -140,13 +141,14 @@ $(document).ready(function () {
             }
         ],
         hasFilters: true,
+        stateSave: true,
         initComplete: function(settings, json) {
 
             const tableAPI = settings.oInstance.api();
 
             // add a filter to sort the datatable by endpoint type
             DataTableUtils.addFilterDropdown(
-                i18n.endpoint_type, endpointTypeFilters, 2, '#recipient-list_filter', tableAPI
+                i18n.endpoint_type, endpointTypeFilters, INDEX_COLUMN_ENDPOINT_TYPE, '#recipient-list_filter', tableAPI
             );
 
         }
@@ -242,7 +244,9 @@ $(document).ready(function () {
                 $(`#add-recipient-modal`).modal('hide');
                 $(`#add-recipient-modal form .recipient-template-container`).hide();
                 cleanForm(`#add-recipient-modal form`);
-                $recipientsTable.ajax.reload();
+                $recipientsTable.ajax.reload(function() {
+                    DataTableUtils.updateFilters(i18n.endpoint_type, $recipientsTable);
+                });
                 return;
             }
 
@@ -280,7 +284,9 @@ $(document).ready(function () {
         onSubmitSuccess: function (response) {
             if (response.result.status == "OK") {
                 $(`#remove-recipient-modal`).modal('hide');
-                $recipientsTable.ajax.reload();
+                $recipientsTable.ajax.reload(function() {
+                    DataTableUtils.updateFilters(i18n.endpoint_type, $recipientsTable);
+                });
             }
         }
     });
