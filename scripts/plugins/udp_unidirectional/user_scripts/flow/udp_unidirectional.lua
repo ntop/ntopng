@@ -29,7 +29,9 @@ local script = {
 -- #################################################################
 
 local function unidirectionalProtoWhitelist(proto_id)
-   if((proto_id == 17)        -- Syslog
+   if(
+      (proto_id == 8)         -- MDNS
+	 or (proto_id == 17)  -- Syslog
 	 or (proto_id == 18)  -- DHCP
       	 or (proto_id == 87)  -- RTP
 	 or (proto_id == 103) -- DHCPV6
