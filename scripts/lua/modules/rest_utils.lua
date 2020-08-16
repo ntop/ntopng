@@ -35,6 +35,8 @@ rest_utils.consts_add_user_failed                  = -20
 rest_utils.consts_delete_user_failed               = -21
 rest_utils.consts_snmp_unknown_device              = -22
 rest_utils.consts_user_already_existing            = -23
+rest_utils.consts_user_does_not_exist              = -24
+rest_utils.consts_edit_user_failed                 = -25
 
 local rc_str_consts = {
    [rest_utils.consts_ok] = "OK",
@@ -60,7 +62,9 @@ local rc_str_consts = {
    [rest_utils.consts_add_user_failed] = "ADD_USER_FAILED",
    [rest_utils.consts_delete_user_failed] = "DELETE_USER_FAILED",
    [rest_utils.consts_snmp_unknown_device] = "SNMP_UNKNOWN_DEVICE",
-   [rest_utils.consts_user_already_existing] = "USER_ALREADY_EXISTING"
+   [rest_utils.consts_user_already_existing] = "USER_ALREADY_EXISTING",
+   [rest_utils.consts_user_does_not_exist] = "USER_DOES_NOT_EXIST",
+   [rest_utils.consts_edit_user_failed] = "EDIT_USER_FAILED"
 }
 
 function rest_utils.rc(ret_code, response)
