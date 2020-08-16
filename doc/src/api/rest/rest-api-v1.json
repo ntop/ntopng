@@ -2479,6 +2479,77 @@
 				}
 			}
 		},
+		"lua/pro/rest/v1/edit/ntopng/user.lua": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Edit a ntopng user",
+				"description": "Edit an existing ntopng user",
+				"operationId": "edit_ntopng_user",
+				"produces": [
+					"application/json"
+				],
+			    "parameters": [
+				{
+						"name": "username",
+						"in": "formData",
+						"description": "Username",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "user_role",
+						"in": "formData",
+						"description": "User role (unprivileged / administrator)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "allowed_networks",
+						"in": "formData",
+						"description": "Allowed networks (e.g. 0.0.0.0/0,::/0)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "allowed_interface",
+						"in": "formData",
+						"description": "Allowed interfaces (empty for all)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "user_language",
+						"in": "formData",
+						"description": "Language (en, it, de, jp, pt, cz)",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "allow_pcap_download",
+						"in": "formData",
+						"description": "Allow PCAPs download (1 to allow)",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-21": {
+						"description": "DELETE_USER_FAILED"
+					},
+					"-23": {
+						"description": "USER_DOES_NOT_EXIST"
+					},
+					"-24": {
+						"description": "EDIT_USER_FAILED"
+					}
+				}
+			}
+		},
 		"lua/pro/rest/v1/get/ntopng/session.lua": {
 			"post": {
 				"tags": [
