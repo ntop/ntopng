@@ -45,7 +45,7 @@ end
 
 local function get_alert_triggered_key(type_info)
   if((type_info == nil) or (type_info.alert_type == nil)) then
-    tprint(debug.traceback())
+     -- tprint(debug.traceback())
   end
 
   return(string.format("%d@%s", type_info.alert_type.alert_key, type_info.alert_subtype or ""))
