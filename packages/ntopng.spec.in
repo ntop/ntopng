@@ -79,7 +79,7 @@ cp $HOME/ntopng/packages/etc/sudoers.d/ntopng      $RPM_BUILD_ROOT/etc/sudoers.d
 cp $HOME/ntopng/packages/etc/logrotate.d/ntopng    $RPM_BUILD_ROOT/etc/logrotate.d/
 cp $HOME/ntopng/packages/etc/cron.d/ntopng         $RPM_BUILD_ROOT/etc/cron.d/
 
-mkdir $RPM_BUILD_ROOT/etc/ntopng
+mkdir $RPM_BUILD_ROOT/etc/ntopng $RPM_BUILD_ROOT/etc/ntopng.conf.d
 cp $HOME/ntopng/packages/etc/ntopng/ntopng.conf               $RPM_BUILD_ROOT/etc/ntopng
 cp $HOME/ntopng/packages/etc/ntopng/ntopng.conf.nprobe.sample $RPM_BUILD_ROOT/etc/ntopng
 

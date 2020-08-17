@@ -9,11 +9,13 @@ PartOf=@SERVICE_WANTS@
 Type=simple
 
 ExecStartPre=/bin/sh -c '/usr/bin/ntopng-utils-manage-config -a check-restore  && /usr/bin/ntopng-utils-manage-config -a restore || true'
-ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|^[ ]*--pid.*/s/^/#/" /etc/ntopng/ntopng.conf > /run/ntopng.conf'
+ExecStartPre=/bin/sh -c '/bin/cat /etc/ntopng/ntopng.conf > /run/ntopng.conf.raw'
+ExecStartPre=/bin/sh -c '/bin/cat /etc/ntopng/ntopng.conf.d/*.conf >> /run/ntopng.conf.raw'
+ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|[ ]*--pid.*/s/^/#/" /run/ntopng.conf.raw > /run/ntopng.conf'
 
 ExecStart=/usr/local/bin/@APP@ /run/ntopng.conf
 
-ExecStopPost=-/bin/rm -rf /run/ntopng.conf
+ExecStopPost=-/bin/rm -f /run/ntopng.conf /run/ntopng.conf.raw
 
 Restart=on-failure
 RestartSec=5
