@@ -8,6 +8,7 @@ local alert_utils = require "alert_utils"
 local alert_consts = require "alert_consts"
 
 local syslog = {
+   conf_max_num = 1, -- At most 1 endpoint
    conf_params = {
       { param_name = "syslog_alert_format" },
    },
