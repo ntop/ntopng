@@ -104,7 +104,7 @@ A full list of features and a comparison table is available in the ntopng
 ntopng Community
 ----------------
 
-The Community version is free to use and opensource. The full source code can be found on `Github <https://github.com/ntop/ntopng>`_.
+The Community version is free to use and open source. The full source code can be found on `Github <https://github.com/ntop/ntopng>`_.
 
 ntopng Professional
 -------------------

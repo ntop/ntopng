@@ -3,7 +3,7 @@
 ntopng support the reception of eBPF/Netlink events over ZMQ. Such events can be produced either with:
 
 - `nprobe_mini` (note that this name might be changed in the future)
-- `libebpfflow` (opensource library available at https://github.com/ntop/libebpfflow)
+- `libebpfflow` (open source library available at https://github.com/ntop/libebpfflow)
 
 Received events are of different kinds, namely:
 

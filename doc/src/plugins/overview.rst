@@ -62,7 +62,7 @@ Examples of plugins are:
 Availability
 ------------
 
-ntopng community plugins are opensource and available on the `ntopng
+ntopng community plugins are open source and available on the `ntopng
 GitHub plugins page
 <https://github.com/ntop/ntopng/tree/dev/scripts/plugins>`_.
 

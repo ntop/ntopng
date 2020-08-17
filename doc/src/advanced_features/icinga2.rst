@@ -2,7 +2,7 @@ Icinga2 Integration
 ===================
 
 ntopng integrates with `Icinga2 <https://icinga.com/>`_ by means of a check plugin
-:code:`check_ntopng.py`, opensource and freely available.
+:code:`check_ntopng.py`, open source and freely available.
 
 The plugin connects to the ntopng REST API to query for host
 alerts. Specifically, it queries:

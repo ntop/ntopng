@@ -32,7 +32,7 @@ Application
 
 Application is the Layer-7 program which is exchanging data through the flow. This is the piece of
 software that lays closest to the end user. Examples of Applications are Skype, Redis, HTTP, and Bit
-Torrent. Layer-7 applications are detected by the NTOP opensource Deep Packet Inspection (DPI) engine
+Torrent. Layer-7 applications are detected by the NTOP open source Deep Packet Inspection (DPI) engine
 named nDPI [2]_. In case application detection fails, ntopng marks the flow as ‘Unknown’. If the detection
 succeeds, the application name and an informative icon are shown.
 
