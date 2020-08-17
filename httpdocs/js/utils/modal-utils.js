@@ -218,16 +218,23 @@
                         $error = $(`<span class='invalid-feedback'></span>`);
                     }
 
+
                     if (validation.data.cannotBeEmpty && validation.isInputEmpty) {
                         // trigger input validation flag
                         input.setCustomValidity("Empty!");
-                        messageToShow = validation.data.validationEmptyMessage || validation.data.validationMessage;
+                        messageToShow = validation.data.validationEmptyMessage || validation.data.validationMessage || input.validationMessage;
                     }
                     else if (validation.data.cannotBeEmpty && !validation.isInputEmpty) {
-                        input.setCustomValidity("");
+
+                        if (!input.validity.valid && input.validationMessage) {
+                            messageToShow = input.validationMessage;
+                        }
+                        else {
+                            input.setCustomValidity("");
+                        }
                     }
                     else {
-                        messageToShow = validation.data.validationMessage;
+                        messageToShow = validation.data.validationMessage || input.validationMessage;
                     }
 
                     if (!input.validity.valid && messageToShow) {

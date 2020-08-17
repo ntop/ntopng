@@ -12,13 +12,13 @@ $(document).ready(function () {
 
     const filters = [
         {
-            regex: `${REGEXES.ipv4}`,
+            regex: `${REGEXES.ipv4WithCIDR}`,
             label: i18n.ipv4,
             key: 'ipv4_filter',
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
         },
         {
-            regex: `${REGEXES.ipv6}`,
+            regex: `${REGEXES.ipv6WithCIDR}`,
             label: i18n.ipv6,
             key: 'ipv6_filter',
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
