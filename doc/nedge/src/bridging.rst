@@ -85,7 +85,7 @@ configuration is handled by nEdge.
 
 .. warning::
 
-   Overlapping IP addresses across multiple VLANs are not handled. nedge will
+   Overlapping IP addresses across multiple VLANs are not handled. nEdge will
    show them as a single host
 
    

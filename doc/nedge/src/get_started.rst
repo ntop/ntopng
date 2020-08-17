@@ -60,10 +60,10 @@ mode, multiple WAN interfaces can be selected from the multiple choice list.
 
   Network interfaces roles selection
 
-**NOTE:** the interfaces list available into nedge is based on the network interfaces
+**NOTE:** the interfaces list available into nEdge is based on the network interfaces
 available in the system at the time of the first startup. After removing or adding
 a new network interface to the system, **a factory reset is required** in order to make it
-available into the nedge GUI.
+available into the nEdge GUI.
 
 Based on the chosen setup, the `Network Configuration` will provide interfaces
 configuration. For bridge mode, only LAN configuration is necessary. In router

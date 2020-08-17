@@ -71,7 +71,7 @@ Usually the same Internet gateway is also being used by the hotel staff,
 so it can become unresponsive when some guest abuses network bandwidth or when a
 lot of clients are connected.
 
-The problem can be easily solved by using nedge in bridge_ mode as shown in the
+The problem can be easily solved by using nEdge in bridge_ mode as shown in the
 picture.
 
 .. figure:: img/hotel_use_case.png
