@@ -111,9 +111,9 @@ care should be taken.
 Supported Ethernet Protocols
 ----------------------------
 
-While running in bridge mode, nEdge supports the following ethernet protocols:
+While running in bridge mode, nEdge supports the following Ethernet protocols:
 
 - ARP
 - IPv4
 
-Other ethernet protocols (like PPPoE) are *blocked* as nEdge does not handle them.
+Other Ethernet protocols (like PPPoE) are *blocked* as nEdge does not handle them.
