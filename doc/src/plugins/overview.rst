@@ -19,7 +19,7 @@ Plugins provide mechanisms to watch and analyze network traffic, flows, hosts an
 Alerts Generation
 ~~~~~~~~~~~~~~~~~
 
-Plugins enable the generation of custom alerts. Generated alerts appear within the ntopng Web UI and are propagated towards external alert endpoints.
+Plugins enable the generation of custom alerts. Generated alerts appear within the ntopng web GUI and are propagated towards external alert endpoints.
 
 Flow Statuses
 ~~~~~~~~~~~~~
@@ -30,7 +30,7 @@ having certain features. Alerts are triggered when certain flow statuses are det
 Custom Pages
 ~~~~~~~~~~~~
 
-Plugins enable the creation of custom pages. Custom pages are shown within the ntopng Web UI and have links in the menu.
+Plugins enable the creation of custom pages. Custom pages are shown within the ntopng web GUI and have links in the menu.
 
 Timeseries
 ~~~~~~~~~~
@@ -62,7 +62,7 @@ Examples of plugins are:
 Availability
 ------------
 
-ntopng community plugins are opensource and available on the `ntopng
+ntopng community plugins are open source and available on the `ntopng
 GitHub plugins page
 <https://github.com/ntop/ntopng/tree/dev/scripts/plugins>`_.
 

@@ -29,7 +29,7 @@ Flow User Script Hooks Parameters
 ntopng calls flow user scripts with two parameters:
 
 - :code:`now`: An integer indicating the current epoch
-- :code:`script_config`: A table containing the user script configuration submitted by the user from the :ref:`Web UI`. Table can be empty if the script doesn not require user-submitted configuration.
+- :code:`script_config`: A table containing the user script configuration submitted by the user from the :ref:`Web GUI`. Table can be empty if the script doesn not require user-submitted configuration.
 
 Flow User Script Hook Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,7 +75,7 @@ The :code:`params` contains the following keys:
 - :code:`alert_entity`: A table carrying information on the current entity which can be used to generate alerts.
 - :code:`entity_info`: A string identifying the current entity.
 - :code:`cur_alerts`: Currently engaged alert for the entity.
-- :code:`user_script_config`: The user script configuration submitted by the user from the :ref:`Web UI`. Table can be empty if the script doesn not require user-submitted configuration.
+- :code:`user_script_config`: The user script configuration submitted by the user from the :ref:`Web GUI`. Table can be empty if the script doesn not require user-submitted configuration.
 - :code:`user_script`: The name of the user script which is being called.
 - :code:`when`: An integer indicating the current epoch.
 - :code:`ifid`: The interface id of the current interface.

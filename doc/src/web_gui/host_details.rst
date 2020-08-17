@@ -104,7 +104,7 @@ By taking a snapshot of the signatures registered on an host it is possible to k
 if the host has installed a new program or has updated an existing one. This may be very important
 on environments where the programs installed into an host are not supposed to change.
 
-By enabling the `nProbe Agent integration`_, this view can be further augumented
+By enabling the `nProbe Agent integration`_, this view can be further augmented
 with the name of the process which initiated or received the TLS connection.
 
 .. _`nProbe Agent integration`: https://www.ntop.org/guides/ntopng/using_with_nprobe_agent.html
@@ -166,7 +166,7 @@ host. Enabling the tracking of top visited sites requires preference
 
 Once the preference has been enabled, this page will start showing
 visited websites, which are shown over the two most recent 5-minute
-intevals. Newly visited sites are placed under the "Current
+intervals. Newly visited sites are placed under the "Current
 Sites". Every 5 minutes ntopng moves the "Current Sites" under "Last 5
 Minute Sites", and starts over with a clean "Current Sites".
 

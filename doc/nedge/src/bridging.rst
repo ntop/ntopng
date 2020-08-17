@@ -77,7 +77,7 @@ this to work.
 .. warning::
 
    Due to an open issue (https://github.com/ntop/ntopng/issues/2117) users must be
-   very cautios when configuring blocking policies in this mode as they will affect the
+   very cautious when configuring blocking policies in this mode as they will affect the
    management interface as well and possibly block management access.
 
 See management_ for a detailed description of how the network
@@ -85,7 +85,7 @@ configuration is handled by nEdge.
 
 .. warning::
 
-   Overlapping IP addresses across multiple VLANs are not handled. nedge will
+   Overlapping IP addresses across multiple VLANs are not handled. nEdge will
    show them as a single host
 
    
@@ -103,7 +103,7 @@ care should be taken.
 
 - Make sure the `Enforce Global DNS` is disabled from the DNS settings page.
 
-- Disalbe the Captive Portal the can alter packets in order to perform devices authentication.
+- Disable the Captive Portal the can alter packets in order to perform devices authentication.
 
 .. _management: management.html
 .. _`the ntopng documentation`: https://www.ntop.org/guides/ntopng/basic_concepts/hosts.html#local-hosts
@@ -111,9 +111,9 @@ care should be taken.
 Supported Ethernet Protocols
 ----------------------------
 
-While running in bridge mode, nEdge supports the following ethernet protocols:
+While running in bridge mode, nEdge supports the following Ethernet protocols:
 
 - ARP
 - IPv4
 
-Other ethernet protocols (like PPPoE) are *blocked* as nEdge does not handle them.
+Other Ethernet protocols (like PPPoE) are *blocked* as nEdge does not handle them.

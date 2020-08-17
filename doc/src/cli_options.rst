@@ -66,7 +66,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | A password can be specified after
                                        | the port when Redis auth is required.
                                        | By default password auth is disabled.
-                                       | On unix <fmt> can also be the redis socket file path.
+                                       | On Unix <fmt> can also be the redis socket file path.
                                        | Port is ignored for socket-based connections.
                                        | Examples:
                                        | -r @2
@@ -140,7 +140,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | 0=RX+TX (default), 1=RX only, 2=TX only
    [--online-license-check]            | Check license online
    [--enable-taps|-T]                  | Enable tap interfaces for dumping traffic
-   [--enable-user-scripts]             | Enable LUA user scripts
+   [--enable-user-scripts]             | Enable Lua user scripts
    [--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs.
                                        | Useful when using ntopng behind a proxy.
    [--instance-name|-N] <name>         | Assign a name to this ntopng instance.

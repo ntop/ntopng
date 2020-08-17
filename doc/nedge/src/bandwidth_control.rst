@@ -7,7 +7,7 @@ nEdge provides extensive per-user, per-protocol bandwidth control capabilities.
 This is a brief overview of the available features:
 
 - Limit the global available bandwidth
-- Reserver bandwidth for a specific user
+- Reserve bandwidth for a specific user
 - Provide 3 different bandwidth classes: Default, Slow Pass, Slower Pass
 - Limit the per-host bandwidth
 
@@ -57,7 +57,7 @@ and to 75 Mbit/s traffic when going out the 100 Mbit/s interface.
 It is important to note that, by default, the global bandwidth classes do not limit the traffic
 in advance but rather indicate an allocation share between the classes.
 This means that a 75% class will guarantee a *minimum* 75% bandwidth allocation when the
-network bandwidth demain is high, but it will not prevent the clients to gain 100%
+network bandwidth demand is high, but it will not prevent the clients to gain 100%
 bandwidth when such a bandwidth is available. This is the **Minimum Guaranteed** bandwidth
 allocation policy.
 

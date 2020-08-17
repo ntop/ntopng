@@ -19,7 +19,7 @@ The overview has three items:
 - :code:`ram`: Total memory Redis has obtained from the operating system.
 - :code:`database keys`: Total number of keys currently stored in Redis.
 
-ntopng inteacts with Redis using `commands <https://redis.io/commands>`_. The number of times each command is issued is reported under the *wrench* page
+ntopng interacts with Redis using `commands <https://redis.io/commands>`_. The number of times each command is issued is reported under the *wrench* page
 
 .. figure:: ../img/redis_monitor_wrench.png
   :align: center

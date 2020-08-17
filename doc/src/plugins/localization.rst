@@ -13,7 +13,7 @@ taken to provide proper localization support. Consider the following example:
 		i18n_description = "Trigger an alert when the number of received SYNs/sec exceeds the threshold",
 	}
 
-this is valid in ntopng and will produce the expected result into the gui, but it will only
+this is valid in ntopng and will produce the expected result into the GUI, but it will only
 work for the English language. By contrast, the proper way to provide localization
 support is the following:
 
@@ -49,7 +49,7 @@ monitors the room temperature (the plugin directory is named `room_temp_monitor`
 		description = "Monitors the room temperature and charts it",
 	}
 
-Any lua script in ntopng can then use the above localized strings with :code:`i18n("room_temp_monitor.my_title")`
+Any Lua script in ntopng can then use the above localized strings with :code:`i18n("room_temp_monitor.my_title")`
 and :code:`i18n("room_temp_monitor.description")`. A user can also create an `it.lua` file with the
 following contents:
 
@@ -113,7 +113,7 @@ Consider
 
 Prefix :code:`i18n_` tells ntopng :code:`alerts_dashboard.blacklisted_flow` needs to be localized. Assuming german is set as language for the current user:
 
-1. ntopng looks up key :code:`alerts_dashboard` in the german localization table. If the key is found and the value is a table, ntopng looks up key :code:`blacklisted_flow` in the table found as value. If key :code:`blacklisted_flow` is found, then it's value is taken as the localized string and the localization ends. If any of the two keys does not exists:
+1. ntopng looks up key :code:`alerts_dashboard` in the German localization table. If the key is found and the value is a table, ntopng looks up key :code:`blacklisted_flow` in the table found as value. If key :code:`blacklisted_flow` is found, then it's value is taken as the localized string and the localization ends. If any of the two keys does not exists:
 2. Step 1. is repeated on the English fallback localization table. If no localized string is found:
 3. :code:`alerts_dashboard.blacklisted_flow` is taken verbatim.
 

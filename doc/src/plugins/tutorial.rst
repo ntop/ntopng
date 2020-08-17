@@ -48,7 +48,7 @@ The file :code:`exes_download.lua` can then be edited as:
 
 	-- #################################################################
 
-	-- Defines an hook which is executed every time a procotol of a flow is detected
+	-- Defines an hook which is executed every time a protocol of a flow is detected
 	function script.hooks.protocolDetected(now)
 	   local http_info = flow.getHTTPInfo()
 
@@ -74,7 +74,7 @@ The first line
 
 	local user_scripts = require("user_scripts")
 
-Is necessary to specify a flow category in the :code:`script` table which must be returned at the end of the script. Indeed, the first key of this table is :code:`category` and has a value of :code:`user_scripts.script_categories.security`. Other categories are available in :code:`user_scripts.script_categories`. Failing to set a category would cause ntopng to choose a default category. The :code:`script` table then contains a boolean :code:`default_enabled = true` to make the user script enabled by default. This means ntopng will execute it and it will appear under the enabled flow user scripts in the web user interface. A table :code:`hooks = {}` is specified as well and is populated with :code:`function script.hooks.protocolDetected`. Finally a table :code:`gui` indicates a title and a description wich will be shown under the flow user scripts of the ntopng web user interface.
+Is necessary to specify a flow category in the :code:`script` table which must be returned at the end of the script. Indeed, the first key of this table is :code:`category` and has a value of :code:`user_scripts.script_categories.security`. Other categories are available in :code:`user_scripts.script_categories`. Failing to set a category would cause ntopng to choose a default category. The :code:`script` table then contains a boolean :code:`default_enabled = true` to make the user script enabled by default. This means ntopng will execute it and it will appear under the enabled flow user scripts in the web GUI. A table :code:`hooks = {}` is specified as well and is populated with :code:`function script.hooks.protocolDetected`. Finally a table :code:`gui` indicates a title and a description which will be shown under the flow user scripts of the ntopng web GUI.
 
 The function :code:`function script.hooks.protocolDetected` gets executed every time the Layer-7 application protocol of a flow is detected (see :ref:`Flow User Script Hooks`). This function accesses the API with :code:`flow.getHTTPInfo()` to get flow HTTP data. If the flow is not HTTP, this table will be :code:`nil`. If not :code:`nil`, the :code:`protos.http.last_url` of the flow is read and a :code:`:match` regexp is used to search for the string :code:`.exe` in the URL. If found, a simple line is prepared and printed to the console with :code:`io.write`. At this point, the plugin is functional. Restart ntopng and try to fetch a URL with a :code:`.exe`: this will cause ntopng to print flow details and URL to the console.
 
@@ -102,7 +102,7 @@ Set the alert definition file :code:`alert_exe_download.lua` contents as:
 
 	-- @brief Prepare an alert table used to generate the alert
 	-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
-	-- @param tls_info A lua table with HTTP info gererated calling `flow.getHTTPInfo()`
+	-- @param tls_info A Lua table with HTTP info generated calling `flow.getHTTPInfo()`
 	-- @return A table with the alert built
 	local function createExeDownload(alert_severity, http_info)
 	   local built = {

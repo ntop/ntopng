@@ -48,7 +48,7 @@ Syslog Configuration
 ~~~~~~~~~~~~~~~~~~~~
 
 Please check the *Syslog Configuration* paragraph in the `Syslog Log Ingestion`_ section
-for istructions to configure *rsyslog*.
+for instructions to configure *rsyslog*.
 
 Run Suricata
 ~~~~~~~~~~~~

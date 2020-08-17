@@ -90,7 +90,7 @@ the badge is red, it means that there is a failure.
   :align: center
   :alt: Traffic Recording Badge
 
-  The Traffic Recording Bagde in the Footer
+  The Traffic Recording Badge in the Footer
 
 It is possible to get more information about the *n2disk* service status by 
 clicking on the badge. The status page provides information including the uptime
@@ -207,7 +207,7 @@ appears on the top status bar when there is at least one extraction job schedule
   :align: center
   :alt: Traffic Extraction Jobs Badge
 
-  The Traffic Extraction Jobs Bagde in the Top Status Bar
+  The Traffic Extraction Jobs Badge in the Top Status Bar
 
 REST API
 ~~~~~~~~

@@ -51,7 +51,7 @@ HTTPS server to `192.168.2.222`, the following options can be used:
 --https-port=192.168.2.222:3001
 ```
 
-The listening addresses can easily be verified with `netstat` on unix.
+The listening addresses can easily be verified with `netstat` on Unix.
 The any address is indicated with `0.0.0.0`.
 
 This is the `netstat` output when the HTTP and the HTTPS servers are
@@ -106,21 +106,21 @@ use the following option:
 ## Redis Server Access via Local Unix Socket Files
 
 Another way to secure the Redis server is to configure it to only
-accept connections via a local unix socket file, rather than on any
+accept connections via a local Unix socket file, rather than on any
 TCP socket.
 
-The relevant part of the Redis configuration to use just a local unix
+The relevant part of the Redis configuration to use just a local Unix
 socket file is the following:
 
 ```
 # 0 = Redis will not listen on a TCP socket
 port 0
 
-# Create a unix domain socket to listen on
+# Create a Unix domain socket to listen on
 unixsocket /var/run/redis/redis.sock
 ```
 
-To tell ntopng to use the Redis unix socket file the same `--redis`
+To tell ntopng to use the Redis Unix socket file the same `--redis`
 option can be used as:
 
 ```

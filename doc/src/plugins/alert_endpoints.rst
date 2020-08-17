@@ -39,7 +39,7 @@ The file `email.lua` contains the actual logic of the endpoint. The module has t
   which some useful error message which will be reported to the user.
 - :code:`endpoint.runTest()`: it's invoked to validate the configuration, e.g. sending a test email to verify that it works. 
   On success it  should return `nil`, on failure it should return `message_info, message_severity` where `message_info` is 
-  a localized message to show on the gui and `message_severity` is the css class to apply on the message box.
+  a localized message to show on the GUI and `message_severity` is the CSS class to apply on the message box.
 
 Preferences Definition
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -142,7 +142,7 @@ Here is a commented snippet for the email endpoint.
       local message_body = {}
 
       for _, json_message in ipairs(alerts) do
-        -- From JSON string to lua table
+        -- From JSON string to Lua table
         local alert = json.decode(json_message)
 
         -- Get a standard message for the alert
@@ -178,9 +178,9 @@ By using the `alert_utils.formatAlertNotification` function it is not necessary 
 it is in order to perform specific actions based on the alert. The alerts in the queue have the following format:
 
 - :code:`ifid`: the interface id on which the alert has been generated.
-- :code:`action`: `engage`, `release` or `store`. Check the alerts api for more details. [4]
-- :code:`alert_tstamp`: the unix timestamp when the alert was triggered
-- :code:`alert_tstamp_end`: in case of released alerts, contains the unix timestamp of the release event
+- :code:`action`: `engage`, `release` or `store`. Check the alerts API for more details. [4]
+- :code:`alert_tstamp`: the Unix timestamp when the alert was triggered
+- :code:`alert_tstamp_end`: in case of released alerts, contains the Unix timestamp of the release event
 - :code:`alert_type`: the `alert type`_ ID. `alert_consts.alertTypeRaw` can be used to convert it to a string.
 - :code:`alert_subtype`: an optional alert subtype.
 - :code:`alert_severity`: the `alert severity`_ ID. `alertSeverityRaw` can be used to convert it to a string.
@@ -189,7 +189,7 @@ it is in order to perform specific actions based on the alert. The alerts in the
 - :code:`alert_entity_val`: the alert entity value (e.g. the IP of the host involved).
 - :code:`alert_granularity`: the alert granularity, which is how often the alert check is performed.
 
-Here is an example of a threashold cross alert on the minute packets for an host:
+Here is an example of a threshold cross alert on the minute packets for an host:
 
 .. code:: json
 
@@ -244,7 +244,7 @@ how to log to console `flow flood attackers alerts`_.
       end
 
       for _, json_message in ipairs(alerts) do
-        -- From JSON string to lua table
+        -- From JSON string to Lua table
         local alert = json.decode(json_message)
 
         if((alert_consts.alertEntityRaw(alert.alert_entity) == "host") and

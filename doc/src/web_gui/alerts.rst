@@ -58,8 +58,8 @@ The Elasticsearch connection can be tested by clicking the "Test Connection" but
 Alerts are sent to Elasticsearch in JSON format. The the following keys are always present:
 
 - :code:`@timestamp`: UTC/GMT alert detection date and time in ISO format yyyy-MM-dd'T'HH:mm:ss.SSSZ.
-- :code:`alert_tstamp`: Alert detection unix epoch
-- :code:`alert_tstamp_end`: Alert release unix epoch for :ref:`Released Alerts`, otherwise this key is not present.
+- :code:`alert_tstamp`: Alert detection Unix epoch
+- :code:`alert_tstamp_end`: Alert release Unix epoch for :ref:`Released Alerts`, otherwise this key is not present.
 - :code:`alert_type`:  one of {`alert_blacklisted_country`, ` alert_broadcast_domain_too_large`, `alert_device_connection`, ...}. Strings list available at `/lua/defs_overview.lua`.
 - :code:`alert_severity`: one of {`info`, `warning`, `error`}.
 - :code:`alert_entity`: one of {`interface`, `host`, `network`, ...}. `List of all the available types <https://github.com/ntop/ntopng/blob/fae050b90a8eacf8d1dd64b9142b02b5f54753c8/scripts/lua/modules/alert_consts.lua#L299>`_.
@@ -75,10 +75,10 @@ Alerts are sent to Elasticsearch in JSON format. The the following keys are alwa
 :ref:`Flow Alerts` have the following additional fields:
 
 - :code:`flow_status`: one of {`status_blacklisted`, `status_data_exfiltration`, `status_suspicious_tcp_probing`}. Strings list available at `/lua/defs_overview.lua`.
-- :code:`first_seen`: Flow first seen unix epoch.
+- :code:`first_seen`: Flow first seen Unix epoch.
 - :code:`l7_proto`: A string with the detected nDPI protocol, e.g., `HTTP.Google`.
-- :code:`cli_asn`: Integer with the client ASN or empty when asn information is not available.
-- :code:`srv_asn`: Integer with the server ASN or empty when asn information is not available.
+- :code:`cli_asn`: Integer with the client ASN or empty when ASN information is not available.
+- :code:`srv_asn`: Integer with the server ASN or empty when ASN information is not available.
 - :code:`cli_country`: ISO 3166 alpha-2 country code string for the client or empty when country information is not available.
 - :code:`srv_country`: ISO 3166 alpha-2 country code string for the server or empty when country information is not available.
 - :code:`cli_port`: Integer of the client flow port.

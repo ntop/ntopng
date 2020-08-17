@@ -26,7 +26,7 @@ The file `menu.lua` is used to define the custom menu entry:
     end,
   }
 
-The lua script returns a table with the following structure:
+The Lua script returns a table with the following structure:
 
 - :code:`label`: A localized message for the label of the menu entry. The localization strings
   can be supplied by the plugin as explained in the `Localization section`_.
@@ -39,14 +39,14 @@ The lua script returns a table with the following structure:
   a localized title for the page, `section` indicates to which menu section the entry should
   be attached (for now only "system_stats" is supported). Check out `menu_entries` in `page_utils.lua`_ for more details.
 - :code:`is_shown`: can be used to programmatically hide a menu entry. If defined, it must be a
-  lua function which returns true when the entry should be shown, false otherwise.
+  Lua function which returns true when the entry should be shown, false otherwise.
 
-The actual page is implemented in the lua script referenced in the `script` parameter above.
+The actual page is implemented in the Lua script referenced in the `script` parameter above.
 
 Page Skeleton
 -------------
 
-As explained above, any lua script can be linked to the ntopng menu. In order to provide
+As explained above, any Lua script can be linked to the ntopng menu. In order to provide
 a consistent look, custom pages can use the following template:
 
 .. code:: lua
@@ -87,7 +87,7 @@ a consistent look, custom pages can use the following template:
 
 Once the plugin is loaded, ntopng will make the above page available through its
 web server. The URL for a given custom page can be obtained by using the `plugins_utils.getUrl(script)`
-lua function.
+Lua function.
 
 .. _`example plugin`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/example/web_gui
 .. _`Localization section`: https://www.ntop.org/guides/ntopng/plugins/localization.html

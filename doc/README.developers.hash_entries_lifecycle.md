@@ -5,7 +5,7 @@ ntopng heavily relies on hash tables to keep flows, hosts, autonomous systems an
 - The thread that capture packets or receives flows. Operations performed in this thread are referred to as _inline_, all the other operations are referred to as _offline_.
 - A periodic thread that updates stats such as hosts throughputs.
 - Periodic threads that execute lua scripts (e.g., `minute.lua`, `hourly.lua`) to write traffic timeseries, trigger alerts, and perform other operations.
-- Web server threads accessing the hash table when the user is browsing the ntopng web UI.
+- Web server threads accessing the hash table when the user is browsing the ntopng web GUI.
 
 
 Concurrent accesses require special care to prevent race conditions or even crashes.

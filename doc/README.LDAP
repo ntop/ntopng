@@ -16,7 +16,7 @@ attributetype ( 1.2.840.113556.1.2.102
 
 *IMPORTANT*
 
-When using Posix accounts, the LDAP server should be configured as follows in order
+When using POSIX accounts, the LDAP server should be configured as follows in order
 to work correctly with ntopng:
 
 - Into the LDAP user configuration, note down the "uid" parameter (called "User Name"

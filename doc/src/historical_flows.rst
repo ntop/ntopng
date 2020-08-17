@@ -54,7 +54,7 @@ Here is an overview of the currently available flows views:
   - Top L7 Contacts: shows the top <client, server, L7 protocol> pairs and their total traffic
 
 By clicking on the |drilldown_icon| icon, it's possible to explode a particular communication
-or host and analize the raw flows.
+or host and analyze the raw flows.
 
 .. figure:: img/historical_flows_raw_flows.png
   :align: center

@@ -53,6 +53,6 @@ Troubleshooting
 ---------------
 ntopng requires the redis service to be activated in order to start. You can check redis status from the Services application.
 
-In some Windows PCs, in particular those with WiFi adapters, ntopng might not be able to detect these adapters. Shall this be the case, we suggest you to deinstall the Win10Pcap drivers that are installed with ntopng and move to the ncap Windows drivers that can be installed from `ncap Windows drivers
+In some Windows PCs, in particular those with WiFi adapters, ntopng might not be able to detect these adapters. Shall this be the case, we suggest you to uninstall the Win10Pcap drivers that are installed with ntopng and move to the ncap Windows drivers that can be installed from `ncap Windows drivers
 <https://nmap.org/npcap/windows-10.html>`_.
 

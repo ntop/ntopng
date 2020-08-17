@@ -33,8 +33,8 @@ function host.getNumFlows()
 
 --! @brief Get time information about the host.
 --! @return table:<br>
---! seen.first: the unix timestamp when the host was first seen
---! seen.last: the unix timestamp when the host was last seen
+--! seen.first: the Unix timestamp when the host was first seen
+--! seen.last: the Unix timestamp when the host was last seen
 --! duration: the total seconds the host was seen
 --! total_activity_time: the total seconds in which the host was active
 function host.getTime()

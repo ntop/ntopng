@@ -7,7 +7,7 @@ crash is needed.
 
 # Linux
 
-An easy way to get a stack trace on linux is to run ntopng through the *gdb* debugger:
+An easy way to get a stack trace on Linux is to run ntopng through the *gdb* debugger:
 
 1. Install gdb (e.g. `sudo apt-get install gdb`)
 2. Stop the running service: `sudo systemctl stop ntopng`

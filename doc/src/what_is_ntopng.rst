@@ -25,11 +25,11 @@ Installing on MacOS
 -------------------
 
 MacOS installation packages can be found at
-http://packages.ntop.org/ and are installed with a graphical user interface.
+http://packages.ntop.org/ and are installed with a GUI.
 ntopng requires redis to be installed in order to start. During the ntopng installation,
 if redis is not present, redis is installed and activated, otherwise the one already installed on
 the system is used. After the installation, ntopng is started and active on local port 3000
-(i.e. ntopng is available at http://127.0.0.1:3000). If you want to deinstall ntopng you can
+(i.e. ntopng is available at http://127.0.0.1:3000). If you want to uninstall ntopng you can
 open a terminal and type :code:`sudo /usr/local/bin/ntopng-uninstall.sh`
 
 To enable geolocation, MacOS packages require database files to be manually placed under :code:`/usr/local/share/ntopng/httpdocs/geoip`. Detailed instructions on how to obtain database files and install them are available at https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md/. Once the files have been downloaded and placed in the folder, a restart of ntopng is necessary to read load them.
@@ -104,7 +104,7 @@ A full list of features and a comparison table is available in the ntopng
 ntopng Community
 ----------------
 
-The Community version is free to use and opensource. The full source code can be found on `Github <https://github.com/ntop/ntopng>`_.
+The Community version is free to use and open source. The full source code can be found on `Github <https://github.com/ntop/ntopng>`_.
 
 ntopng Professional
 -------------------
@@ -114,7 +114,7 @@ The Professional version offers some extra features with respect to the Communit
 ntopng Enterprise M
 -------------------
 
-The Enterprise M version offers some extra features with respect to the Professional version, which are articularly useful for large organizations, including SNMP support, fast MySQL export, advanced alerts management, high performance flow indexing.
+The Enterprise M version offers some extra features with respect to the Professional version, which are particularly useful for large organizations, including SNMP support, fast MySQL export, advanced alerts management, high performance flow indexing.
 
 ntopng Enterprise L
 -------------------
@@ -153,7 +153,7 @@ when the license has been purchased on https://shop.ntop.org/.
    (example: :code:`export http_proxy=http://<ip>:<port>`).
 
 Once the license has been generated, it can be applied to ntopng
-simply by visiting page "Help"->"About" of the web user interface and
+simply by visiting page "Help"->"About" of the web GUI and
 pasting the license key in the license form.
 
 Alternatively, the license key can be placed in a one-line file

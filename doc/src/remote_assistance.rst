@@ -16,7 +16,7 @@ is available. Please refer to http://packages.ntop.org for more information abou
 
 
 .. warning::
-  ntopng assumes that certains script files are placed in certain locations, as installed by the ntopng prebuild package.
+  ntopng assumes that certain script files are placed in certain locations, as installed by the ntopng prebuild package.
   This means that, if ntopng is compiled from source, special care must be taken to place these files at the correct locations
   in order to make remote assistance available.
 
@@ -56,7 +56,7 @@ If the `Temporary Admin Access` flag is checked, you enable a temporary access a
 .. warning::
 
    - ntop is not responsible for any damage, security violation or vulnerability caused by enabling remote assistance
-   - It is the user responsability to ensure that the network security policies allow virtual networks creation
+   - It is the user's responsibility to ensure that the network security policies allow virtual networks creation
    - Enabling remote assistance you grant access to the host where ntopng is running (i.e. it is an encrypted VPN) so the remote host is also accessible (i.e. you can SSH to it for instance) and not just the ntopng web interface.
 
 Remote Assistance Status

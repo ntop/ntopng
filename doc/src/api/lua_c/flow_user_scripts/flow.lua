@@ -76,11 +76,11 @@ function flow.isBidirectional()
 --! @return the unique flow key.
 function flow.getKey()
 
---! @brief Get the flow start unix timestamp.
+--! @brief Get the flow start Unix timestamp.
 --! @return the flow first seen.
 function flow.getFirstSeen()
 
---! @brief Get the unix timestamp of the last time traffic for the flow was seen.
+--! @brief Get the Unix timestamp of the last time traffic for the flow was seen.
 --! @return the flow last seen.
 function flow.getLastSeen()
 

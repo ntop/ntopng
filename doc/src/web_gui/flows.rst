@@ -32,15 +32,15 @@ Application
 
 Application is the Layer-7 program which is exchanging data through the flow. This is the piece of
 software that lays closest to the end user. Examples of Applications are Skype, Redis, HTTP, and Bit
-Torrent. Layer-7 applications are detected by the NTOP opensource Deep Packet Inspection (DPI) engine
+Torrent. Layer-7 applications are detected by the NTOP open source Deep Packet Inspection (DPI) engine
 named nDPI [2]_. In case application detection fails, ntopng marks the flow as ‘Unknown’. If the detection
 succeeds, the application name and an informative icon are shown.
 
 Here is a list of possible informative icons:
 
   - The lock icon tells that the protocol carries information in a secure way (e.g. via SSL)
-  - The thumb-up icons tells that the protocol is generally not harmfull for network performance
-  - The thumb-down icons tells that the protocol is generally harmfull for network performance
+  - The thumb-up icons tells that the protocol is generally not harmful for network performance
+  - The thumb-down icons tells that the protocol is generally harmful for network performance
   - The smile face tells that the protocol is generally used for user entertainment
   - The yellow triangle indicates a possible problem on the flow. By clicking a flow details it's possible to see what the reported problem is (e.g. flow with low goodput)
 
@@ -117,7 +117,7 @@ which include but are not limited to:
 - MITM TLS attacks
 
 ntopng already reports such events with specialized alerts (the available alerts
-depend on the ntopng version used). For an in depth discussion on the challanges with encrypted traffic and how
+depend on the ntopng version used). For an in depth discussion on the challenges with encrypted traffic and how
 the metadata can help in identifying network threats, check out the related ntop
 `blog post`_ and related posts.
 
@@ -129,7 +129,7 @@ ntopng generates the HASSH fingerprint of both the client and the server hosts o
 ntopng also extracts and visualizes the SSH application banner which usually reports the
 name and version of the SSH client/server application used.
 
-This information can be used to indentify outdated and vulnerable programs, which
+This information can be used to identify outdated and vulnerable programs, which
 undermine the hosts security. Moreover, the HASSH fingerprint can be matched against
 known malware signatures to identify known threats.
 

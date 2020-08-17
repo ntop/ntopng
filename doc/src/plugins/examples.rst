@@ -153,11 +153,11 @@ in :code:`status_definitions` and an info table which contains certain
 extra details and description of the flow blacklisted peers.
 
 From this point on, the flow will appear as alerted and with status
-blacklisted in the ntopng Web UI, along with the scores specified for
+blacklisted in the ntopng Web GUI, along with the scores specified for
 its client and server. That is pretty much all to create a flow script.
 
-A quick note on the :ref:`Web UI` section. It has just a title and a
-description that will be used by ntopng in the web UI, to allow a user
+A quick note on the :ref:`Web GUI` section. It has just a title and a
+description that will be used by ntopng in the web GUI, to allow a user
 to enable/disable the plugin.
 
 .. _Flow Flooders:
@@ -174,7 +174,7 @@ network can either be considered a flow flood attacker or a flow flood
 victim, depending on whether its host are the clients or servers of
 the monitored flows. For the sake of this example, only flow flood victim alerts are considered for networks.
 
-This plugin also exposes a threshold so that it can be configured from the :ref:`Web UI`. The threshold is configurable on an host-by-host or CIDR basis. Indeed, a threshold which
+This plugin also exposes a threshold so that it can be configured from the :ref:`Web GUI`. The threshold is configurable on an host-by-host or CIDR basis. Indeed, a threshold which
 is meaningful for an host is not necessarily meaningful for another host.
 
 Full plugin sources are available on `GitHub flow flood plugin page
@@ -302,12 +302,12 @@ evaluate :code:`value` and possibly trigger the alert.
 
 Let's now have a closer look at the :code:`local script` table, which
 basically contains all the necessary configuration, default values, and
-information to properly render a configuration page on the :ref:`Web UI`.
+information to properly render a configuration page on the :ref:`Web GUI`.
 
 The table tells ntopng this script is enabled by default
 (:code:`default_enabled = true`) and also specify the default
 threshold values that should be used when no configuration has been
-input from the web UI (:code:`default_value`).
+input from the web GUI (:code:`default_value`).
 
 Then, a boolean flag
 :code:`is_alert = true` is used to indicate the purpose of this user
@@ -549,7 +549,7 @@ Here is a description of the general structure:
 
 - :code:`script.category` the category for this script is `network`
 - :code:`script.default_enabled` the script is disabled by default
-- :code:`script.gui` defines the essential metadata, necessary to print the configuration into the gui
+- :code:`script.gui` defines the essential metadata, necessary to print the configuration into the GUI
 - :code:`script.setup`: this returns false if the Enterprise M edition is not available, disabling the script
 - :code:`script.hooks.snmpDevice`: defines the hook to be called after ntopng has processed a specific SNMP device.
   The `device_ip` contains the IP address of the SNMP device, whereas the `info` field contains some computed information
@@ -558,7 +558,7 @@ Here is a description of the general structure:
 
 The `script.hooks.snmpDevice` function uses the `snmp_utils.snmp_load_devices_topology` function to retrieve the
 latest LLDP information for the current SNMP device. The function returns a list of nodes and arcs involved
-in this particular SNMP device topology. The `nodes` are a lua table which maps `node_name` -> `node_ip`, for example:
+in this particular SNMP device topology. The `nodes` are Lua tables which maps `node_name` -> `node_ip`, for example:
 
 .. code:: lua
 
@@ -566,7 +566,7 @@ in this particular SNMP device topology. The `nodes` are a lua table which maps 
    AccessSW-1 string 172.16.24.1
    NetworkSpine-2 string 172.16.23.1
 
-The `arcs` are a lua table which contains links information between the SNMP device and other devices. Here is an example:
+The `arcs` are Lua tables which contains links information between the SNMP device and other devices. Here is an example:
 
 .. code:: lua
 

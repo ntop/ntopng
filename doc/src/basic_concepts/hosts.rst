@@ -15,9 +15,9 @@ As two different IP addresses are seen, ntopng will create, update and make avai
 Local Hosts
 -----------
 
-However, not all hosts are handled equally by ntopng. ntopng can be told to treat some hosts with special care. ntopng refers to those hosts as `local hosts`. But why we should tell ntopng to handle some hosts differently from all the others? Basically, to save resources. Indeed, extra work is done by ntopng to collect, extract, and store additional information for local hosts, including visited websites, DNS requests, and historical timeseries of layer-7 application protocols. Therefore, we should avoid letting ntopng do extra work for hosts we do not care with the aim of saving cpu cycles and disk space.
+However, not all hosts are handled equally by ntopng. ntopng can be told to treat some hosts with special care. ntopng refers to those hosts as `local hosts`. But why we should tell ntopng to handle some hosts differently from all the others? Basically, to save resources. Indeed, extra work is done by ntopng to collect, extract, and store additional information for local hosts, including visited websites, DNS requests, and historical timeseries of layer-7 application protocols. Therefore, we should avoid letting ntopng do extra work for hosts we do not care with the aim of saving CPU cycles and disk space.
 
-Typically, local hosts coincide with the hosts in the Local Area Network (LAN). A network administrator cares mosts of the hosts he/she is managing, rather than those in the rest of the world. For this reason, a network administrator that is managing a network `10.0.0.0/8` would start ntopng as
+Typically, local hosts coincide with the hosts in the Local Area Network (LAN). A network administrator cares most about the hosts he/she is managing, rather than those in the rest of the world. For this reason, a network administrator that is managing a network `10.0.0.0/8` would start ntopng as
 
 
 .. code:: bash

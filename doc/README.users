@@ -12,7 +12,7 @@ The md5 sum of the password has to be provided.
 In the same way it is possible to overwrite the default "admin" password.
 
 
-Users can be added/deleted also from the web gui. Changes are written back 
+Users can be added/deleted also from the web GUI. Changes are written back 
 to the users file, if any.
 
 

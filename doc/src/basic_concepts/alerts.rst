@@ -68,7 +68,7 @@ Alerts associated with events don't have a duration associated. They are trigger
 Flow Alerts
 -----------
 
-During its execution, ntopng can detect anomalous or suspicious flows for which it triggers special *flow alerts*. Such alerts not only carry the event that caused the alert to be fired, they also carry all the flow details, including source and destination ip addresses, layer-7 application protocol, and ports.
+During its execution, ntopng can detect anomalous or suspicious flows for which it triggers special *flow alerts*. Such alerts not only carry the event that caused the alert to be fired, they also carry all the flow details, including source and destination IP addresses, layer-7 application protocol, and ports.
 
 *Flow alerts* are always associated with events and thus they are never *engaged*  or *released* and are placed in a dedicated flow alerts page
 
@@ -87,14 +87,14 @@ These activities include:
 - Users management: user added or remove, password changed
 - Live traffic downloaded
 - Traffic extraction (live or PCAP downloaded)
-- Host JSON downlaoded
+- Host JSON downloaded
 - Flows data downloaded
 - Alerts settings changes: alerts disabled or enabled, alerts data deleted
 - Failed or successful logins
 - Remote assistance enabled or disabled
-- Traffic recording enabeld or disabled
+- Traffic recording enabled or disabled
 - Hosts/interfaces data deleted
-- SNMP deviced added or removeed
+- SNMP device added or removed
 
 User activities are available in the :ref:`BasicConceptSystemInterface`, under the *Past Alerts* page:
 
@@ -109,7 +109,7 @@ Severity
 
 Event and threshold alerts are always associated with a severity that tells the importance of such occurrence. For example, the contact of a blacklisted host is emphasized with a *warning*, whereas a threshold crossed by an host is highlighted with an *error*. Currently, severity levels available are three:
 
-- *Info*. Used for informative alerts, such as devices connections and disconnections or user activities, that don't directly represent any anomalous event or threshold. Identified with a light blu badge.
+- *Info*. Used for informative alerts, such as devices connections and disconnections or user activities, that don't directly represent any anomalous event or threshold. Identified with a light blue badge.
 - *Warning*. Used for alerts that deserve further investigation, such as a SYN probing. Identified with an orange badge.
 - *Error*. Used with user-configurable thresholds, for example a traffic threshold crossed by an host. Identified with a red badge.
 
@@ -127,7 +127,7 @@ Every alert has an entity and an entity value associated. The entity is the subj
 - **Devices**: Layer-2 Mac addresses
 - **Host Pools**: the user-created host pools
 - **Process**: the ntopng process itself
-- **User**: the ntopng UI user
+- **User**: the ntopng GUI user
 
 For example, an alert triggered for host :code:`192.168.1.2` that has exceeded a traffic threshold will have *"host"* as entity and "*192.168.1.2"* as entity value. Similarly, network :code:`192.168.2.0/24` that has exceeded a traffic threshold will have *"network*" as entity and *"192.168.2.0/24"* as entity value.
 
@@ -160,7 +160,7 @@ The list of currently supported alerts, divided by entity, is outlined below:
   - **Unresponsive Device** (event): Indicates whether a configured SNMP device no longer responds to SNMP queries.
   - **Port Load Threshold** (event): Indicates whether the load (throughput with respect to the link speed) on a port of a configured SNMP device exceed a configured threshold.
 
-  Alerts for SNMP devices can be crontrolled from *Preferences* -> *SNMP* (after selecting *Expert View* mode). The same alerts can be also disabled for selected devices from *System* -> *SNMP* -> (device) -> (cog icon), and even selected interfaces from *System* -> *SNMP* -> (device) -> *Interfaces* -> (interface) -> (cog icon).
+  Alerts for SNMP devices can be controlled from *Preferences* -> *SNMP* (after selecting *Expert View* mode). The same alerts can be also disabled for selected devices from *System* -> *SNMP* -> (device) -> (cog icon), and even selected interfaces from *System* -> *SNMP* -> (device) -> *Interfaces* -> (interface) -> (cog icon).
 
 - Flows
 

@@ -1,12 +1,12 @@
-.. _Web UI:
+.. _Web GUI:
 
 User Scripts GUI
 ################
 
 User Scripts can define their own configuration and allow the final user
-to modify it by providing a specialized gui.
+to modify it by providing a specialized GUI.
 
-The gui is defined into the User Script via the :code:`gui` attribute:
+The GUI is defined into the User Script via the :code:`gui` attribute:
 
 .. code:: lua
 
@@ -27,14 +27,14 @@ The gui is defined into the User Script via the :code:`gui` attribute:
     ...
   }
 
-The most important gui attributes are:
+The most important GUI attributes are:
 
   - :code:`i18n_title`: (mandatory) a localization string for the title of the
     element
   - :code:`i18n_description`: (mandatory) a localization string for the
     description of the element
   - :code:`input_builder`: defines the template which will be used to
-    render the gui. If it's not defined, the user will only be able to
+    render the GUI. If it's not defined, the user will only be able to
     enable or disable the user scripts without any additional configuration.
 
 The :code:`default_value` can be used to define a default for the configuration. Its format
@@ -43,7 +43,7 @@ depends on the `input_builder` used, see below for more information.
 Input Builders
 --------------
 
-Input builders defines which template to use to render the gui. The currently
+Input builders defines which template to use to render the GUI. The currently
 available input builders are:
 
 - :code:`threshold_cross`: allow the user to define a threshold and an operator (">" or "<")

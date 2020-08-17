@@ -82,7 +82,7 @@ The supported parameters are:
   - `value` (mandatory): the serie constraint value
   - `type`: defines the chart type ("area", "line", "bar")
   - `color`: a color for the serie
-  - `class`: a css class for the serie (e.g. `line-dashed` for dashed lines)
+  - `class`: a CSS class for the serie (e.g. `line-dashed` for dashed lines)
 
 Custom Schemas
 ==============
