@@ -1727,6 +1727,24 @@ static int ntop_change_user_host_pool(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_change_user_full_name(lua_State* vm) {
+  char *username, *full_name;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((full_name = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  lua_pushboolean(vm, ntop->changeUserFullName(username, full_name));
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_change_user_language(lua_State* vm) {
   char *username, *language;
 
@@ -5609,6 +5627,7 @@ static const luaL_Reg ntop_reg[] = {
   { "changeAllowedNets",    ntop_change_allowed_nets },
   { "changeAllowedIfname",  ntop_change_allowed_ifname },
   { "changeUserHostPool",   ntop_change_user_host_pool },
+  { "changeUserFullName",   ntop_change_user_full_name },
   { "changeUserLanguage",   ntop_change_user_language  },
   { "changeUserPermission", ntop_change_user_permission },
   { "addUser",              ntop_add_user },

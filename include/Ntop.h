@@ -390,6 +390,7 @@ class Ntop {
   bool checkUserInterfaces(const char * const user)             const;
   bool resetUserPassword(char *username, char *old_password, char *new_password);
   bool mustChangePassword(const char *user);
+  bool changeUserFullName(const char * const username, const char * const full_name) const;
   bool changeUserRole(char *username, char *user_role) const;
   bool changeAllowedNets(char *username, char *allowed_nets)     const;
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;

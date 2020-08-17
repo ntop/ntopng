@@ -1791,6 +1791,25 @@ bool Ntop::resetUserPassword(char *username, char *old_password, char *new_passw
 
 /* ******************************************* */
 
+bool Ntop::changeUserFullName(const char * const username, const char * const full_name) const {
+  char key[64];
+
+  if (username == NULL || username[0] == '\0' || full_name == NULL ||
+      !existsUser(username))
+    return false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Changing full name to %s for %s",
+			       full_name, username);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
+  ntop->getRedis()->set(key, full_name, 0);
+
+  return (ntop->getRedis()->set(key, (char*) full_name, 0) >= 0);
+}
+
+/* ******************************************* */
+
 bool Ntop::changeUserRole(char *username, char *usertype) const {
   if(usertype != NULL) {
     char key[64];
