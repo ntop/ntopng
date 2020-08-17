@@ -195,6 +195,22 @@ case "$1" in
 esac
 %endif
 
+case "$1" in
+  1)
+    # install
+    echo ''
+    echo 'NOTE'
+    echo ''
+    echo 'ntopng Community does not require a license.'
+    echo 'ntopng Pro/Enterprise licenses are perpetual and include 1 year maintenance/updates:'
+    echo 'you can use the software even after maintenance is expired, however updating it after'
+    echo '1 year would prevent ntopng from running. If you have automatic updates enabled, and'
+    echo 'maintenance is expired, it is recommended to put the package updates on hold by adding'
+    echo 'the "exclude=ntopng*" directive in /etc/yum.conf'
+    echo ''
+  ;;
+esac
+
 %preun
 if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} == 6

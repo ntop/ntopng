@@ -80,4 +80,20 @@ elif [ -f /etc/init.d/ntopng ]; then
     /etc/init.d/ntopng restart
 fi
 
+echo ""
+echo "NOTE"
+echo ""
+echo "ntopng Community does not require a license."
+echo "ntopng Pro/Enterprise licenses are perpetual and include 1 year maintenance/updates:"
+echo "you can use the software even after maintenance is expired, however updating it after"
+echo "1 year would prevent ntopng from running. If you have automatic updates enabled, and"
+echo "maintenance is expired, it is recommended to put the package updates on hold with:"
+echo ""
+echo "apt-mark hold ntopng"
+echo ""
+echo "Automatic updates can be enabled again with:"
+echo ""
+echo "apt-mark unhold ntopng"
+echo ""
+
 exit 0
