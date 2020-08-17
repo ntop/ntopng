@@ -32,7 +32,7 @@ Below you can find instructions on how to run ntopng with either a self signed o
 
 		- Linux
 		ln -s /usr/lib/x86_64-linux-gnu/libssl.so .
-		Note that this symbolic link is NOT necessary on all linux
+		Note that this symbolic link is NOT necessary on all Linux
 		distros. Example it is not required on Fedora Linux.
 		Please check this according to your distribution.
 

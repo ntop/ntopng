@@ -53,7 +53,7 @@ using the same socket. This can be verified with the following command:
 
 When the issue occurs, the command above will increase the `insert_failed` counter.
 A temporary solution to the issue is to force glibc to use a different socket for the AAAA request.
-On a linux client, this can be done by adding the following line to `/etc/resolv.conf`:
+On a Linux client, this can be done by adding the following line to `/etc/resolv.conf`:
 
 `options single-request-reopen`
 
