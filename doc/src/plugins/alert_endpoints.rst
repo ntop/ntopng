@@ -39,7 +39,7 @@ The file `email.lua` contains the actual logic of the endpoint. The module has t
   which some useful error message which will be reported to the user.
 - :code:`endpoint.runTest()`: it's invoked to validate the configuration, e.g. sending a test email to verify that it works. 
   On success it  should return `nil`, on failure it should return `message_info, message_severity` where `message_info` is 
-  a localized message to show on the GUI and `message_severity` is the css class to apply on the message box.
+  a localized message to show on the GUI and `message_severity` is the CSS class to apply on the message box.
 
 Preferences Definition
 ~~~~~~~~~~~~~~~~~~~~~~

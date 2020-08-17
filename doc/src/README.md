@@ -59,4 +59,4 @@ Here is how to perform some recurrent operations on the documentation:
 Lua C API usually have a prefix which indicates the Lua table under which the API is present,
 e.g. `ntop.isAdministrator` has the `ntop` prefix, whereas `interface.getid()` has the interface `interface`
 prefix. In order to correctly show such prefix in the documentation its necessary to edit the `_static/css/ntop.css`
-file and add a css `content` definition.
+file and add a CSS `content` definition.

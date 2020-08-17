@@ -5,9 +5,9 @@ OEM Customizations
 
   Only OEMs are allowed to customize ntopng logo and name, and they are required to enter ad-hoc agreements with ntop before doing this. Simply removing the ntopng logo or changing its name would result in user-license infringements.
 
-Linux versions of ntopng Professional/Enterprise allows OEMs to customize logo, css and product name.
+Linux versions of ntopng Professional/Enterprise allows OEMs to customize logo, CSS and product name.
 
-To load a custom css place it under
+To load a custom CSS place it under
 
 .. code:: bash
 
