@@ -21,7 +21,7 @@ interesting features are available:
 - Many traffic insights, for example per user, country, operating system views
 - Per host/device flows view
 - Traffic reports and charts of the past traffic
-- Alerts system with slack intergration
+- Alerts system with slack integration
 
 Some of the ntopng features, however, are *not* available in nEdge:
 

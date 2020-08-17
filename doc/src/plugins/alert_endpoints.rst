@@ -189,7 +189,7 @@ it is in order to perform specific actions based on the alert. The alerts in the
 - :code:`alert_entity_val`: the alert entity value (e.g. the IP of the host involved).
 - :code:`alert_granularity`: the alert granularity, which is how often the alert check is performed.
 
-Here is an example of a threashold cross alert on the minute packets for an host:
+Here is an example of a threshold cross alert on the minute packets for an host:
 
 .. code:: json
 

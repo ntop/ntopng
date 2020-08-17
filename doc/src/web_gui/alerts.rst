@@ -77,8 +77,8 @@ Alerts are sent to Elasticsearch in JSON format. The the following keys are alwa
 - :code:`flow_status`: one of {`status_blacklisted`, `status_data_exfiltration`, `status_suspicious_tcp_probing`}. Strings list available at `/lua/defs_overview.lua`.
 - :code:`first_seen`: Flow first seen Unix epoch.
 - :code:`l7_proto`: A string with the detected nDPI protocol, e.g., `HTTP.Google`.
-- :code:`cli_asn`: Integer with the client ASN or empty when asn information is not available.
-- :code:`srv_asn`: Integer with the server ASN or empty when asn information is not available.
+- :code:`cli_asn`: Integer with the client ASN or empty when ASN information is not available.
+- :code:`srv_asn`: Integer with the server ASN or empty when ASN information is not available.
 - :code:`cli_country`: ISO 3166 alpha-2 country code string for the client or empty when country information is not available.
 - :code:`srv_country`: ISO 3166 alpha-2 country code string for the server or empty when country information is not available.
 - :code:`cli_port`: Integer of the client flow port.

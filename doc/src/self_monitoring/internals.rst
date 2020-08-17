@@ -29,7 +29,7 @@ ntopng uses `hash tables <https://en.wikipedia.org/wiki/Hash_table>`_ to keep `a
 To ensure smooth functionalities, ntopng hash tables must:
 
 - Have enough room to keep all the active network elements.
-- Have enough room to accomodate new network elements that may arrive.
+- Have enough room to accommodate new network elements that may arrive.
 - Be not so full to reduce `collisions <https://en.wikipedia.org/wiki/Hash_table#Collision_resolution>`_.
 
 In addition, every network element in a hash table must:
@@ -56,7 +56,7 @@ Information shown in the table columns is:
 - `Chart`: A link to the historical chart of hash table idle and active entries over time.
 - `Entries in Active State`: The total number of network elements that are currently active in the hash table.
 - `Entries in Idle State`: The total number of network elements that are currently idle but waiting to be removed from the hash table and deleted from memory.
-- `Hash Table Utilization`: The total number of active and idle network elements in the hash table, with reference to the total number of network elements the hash table can accomodate.
+- `Hash Table Utilization`: The total number of active and idle network elements in the hash table, with reference to the total number of network elements the hash table can accommodate.
 
 Information shown is useful to troubleshoot the following issues:
 

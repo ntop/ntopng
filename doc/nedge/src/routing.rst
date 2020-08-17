@@ -98,7 +98,7 @@ the user devices. The `Default` routing policy is set by default on newly create
 
   Routing policy configuration
 
-By tweaking gateways priorities, it's possbile to effectively implement the **load balacing**
+By tweaking gateways priorities, it's possible to effectively implement the **load balancing**
 and **failover** between multiple the gateways. In particular, when some gateways have the
 same priority the traffic will be *load balanced* between them. When one gateway has lower
 priority then another, the gateways will work in a *failover* fashion where the gateway
@@ -169,7 +169,7 @@ the IP address of the WAN interface which is being used to route the traffic (un
 disabled). This means that a host connected on the WAN side of the network will not be
 able to reach the local clients connected to the LAN. In order to allow such communication,
 it is necessary to setup a Port Forwarding rule telling nEdge that all the incoming communications
-on a given TCP/UDP port should be mapped to an internal LAN ip and port. This can be configured
+on a given TCP/UDP port should be mapped to an internal LAN IP and port. This can be configured
 from the "Port Forwarding" page under the cog menu icon.
 
 .. figure:: img/port_forwarding_rules.png

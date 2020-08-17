@@ -47,7 +47,7 @@ can be enabled from the ntopng "User Authentication" preferences.
 It is possible to enabled more than one method at once. In this case, when a user
 tries to authenticate, the enabled authentication methods will be tried in the same
 top-down order as they are listed in the preferences. If at least one of the authentication
-methods succeds, then the user is allowed to access the web GUI.
+methods succeeds, then the user is allowed to access the web GUI.
 
 Local Authentication
 ####################
@@ -64,10 +64,10 @@ An LDAP server can be used to authenticate users.
 
 .. figure:: ../img/advanced_features_ldap_settings.png
   :align: center
-  :alt: LDAP Autentication Settings
+  :alt: LDAP Authentication Settings
   :scale: 80
 
-  LDAP Autentication Settings
+  LDAP Authentication Settings
 
 Here is an overview of the different parameters:
 
@@ -123,10 +123,10 @@ RADIUS Authentication
 
 .. figure:: ../img/advanced_features_radius_settings.png
   :align: center
-  :alt: RADIUS Autentication Settings
+  :alt: RADIUS Authentication Settings
   :scale: 80
 
-  RADIUS Autentication Settings
+  RADIUS Authentication Settings
 
 These are the required options to setup the connection with a RADIUS authenticator:
 
@@ -176,10 +176,10 @@ and JSON data
 
 .. figure:: ../img/advanced_features_http_authenticator.png
   :align: center
-  :alt: HTTP Autentication Settings
+  :alt: HTTP Authentication Settings
   :scale: 80
 
-  HTTP Autentication Settings
+  HTTP Authentication Settings
 
 The only needed parameter is HTTP Server URL. Here is a description of the API:
 

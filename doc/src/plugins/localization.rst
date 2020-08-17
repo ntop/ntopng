@@ -113,7 +113,7 @@ Consider
 
 Prefix :code:`i18n_` tells ntopng :code:`alerts_dashboard.blacklisted_flow` needs to be localized. Assuming german is set as language for the current user:
 
-1. ntopng looks up key :code:`alerts_dashboard` in the german localization table. If the key is found and the value is a table, ntopng looks up key :code:`blacklisted_flow` in the table found as value. If key :code:`blacklisted_flow` is found, then it's value is taken as the localized string and the localization ends. If any of the two keys does not exists:
+1. ntopng looks up key :code:`alerts_dashboard` in the German localization table. If the key is found and the value is a table, ntopng looks up key :code:`blacklisted_flow` in the table found as value. If key :code:`blacklisted_flow` is found, then it's value is taken as the localized string and the localization ends. If any of the two keys does not exists:
 2. Step 1. is repeated on the English fallback localization table. If no localized string is found:
 3. :code:`alerts_dashboard.blacklisted_flow` is taken verbatim.
 

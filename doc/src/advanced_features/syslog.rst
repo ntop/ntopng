@@ -46,7 +46,7 @@ Note:
 - Remember to *restart* the *ntopng* service to apply the change.
 - Please make sure the firewall (including iptables on the same box) is not blocking 
   connections to the configured port.
-- Please note that log demultiplexing should be configured in order to parse and diaplay 
+- Please note that log demultiplexing should be configured in order to parse and display 
   logs as described in the next section.
 
 Logs Demultiplexing
@@ -56,7 +56,7 @@ ntopng does its best to automatically detect the producer of each log message, a
 base on that parse the content and ingest all the contained information. However, 
 in some cases, this is not explicitly specified in the message and an hint is required
 in order to figure out who is the producer of the log message and parse it correctly,
-expecially when the same syslog stream contains log messages from multiple producers.
+especially when the same syslog stream contains log messages from multiple producers.
 This is usually not required with logs produced by IDS systems like Suricata for instance,
 however it is mandatory with some Firewalls supporting *Identity Management* like
 Fortinet and SonicWALL. For this reason, a *Syslog Log Producers* tab is available in the 

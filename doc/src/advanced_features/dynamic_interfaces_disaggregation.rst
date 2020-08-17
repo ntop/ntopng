@@ -48,7 +48,7 @@ processed by the dynamic disaggregation.
   :align: center
   :alt: Custom Interfaces Disaggregation
 
-  Custom DIsaggregation Settings
+  Custom Disaggregation Settings
 
 An extended nBPF format is supported when defining sub-interfaces, in fact in addition to the 
 standard BPF primitives, NetFlow fields can also be used, including INPUT_SNMP, OUTPUT_SNMP, 

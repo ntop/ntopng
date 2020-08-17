@@ -12,8 +12,8 @@ nEdge uses the concept of `users` to group devices together.
 Depending on the specific context, the user can be used to either represent an
 actual person or a group of people. In an home environment, for example, a user
 "mike" could be created to represent a real person. In this case the user will
-group Mike's devices together. In a corporate network, however, a user "employeed"
-would be more appropriate, to group all the employeed devices.
+group Mike's devices together. In a corporate network, however, a user "employee"
+would be more appropriate, to group all employees' devices.
 
 In nEdge, the `Not Assigned` user is a special user that groups together all the new devices.
 It can be used to define "default" policies to be applied, for example, on unknown devices. This
@@ -43,7 +43,7 @@ Assigning Devices to a User
 ---------------------------
 
 When creating a user, the *user* and *password* fields will be used as the access
-credentials for the captive portal user authentication. After a successfull authentication,
+credentials for the captive portal user authentication. After a successful authentication,
 the device will be added to the specified user.
 
 .. figure:: img/add_user.png
@@ -73,7 +73,7 @@ Segmenting the Network
 
 Applying policies to individual devices can be difficult on a large or dynamic network.
 This could be solved by enabling a `captive portal`_ and enforcing the devices authentication
-through it. However, in some cases it is desiderable to avoid displaying the captive portal
+through it. However, in some cases it is desirable to avoid displaying the captive portal
 at all for example for an internal network. In this case, the LAN network should be segmented
 by the means of routers and nEdge configured properly to include all the LAN segments via a
 network CIDR. Here is an example.
@@ -87,7 +87,7 @@ network CIDR. Here is an example.
 
 In this example, all the devices connected to the Private access point should be able
 to access the internet without captive portal authentication, whereas the devices connecting
-to the Public access point must be authenticated. By using two routers, and thus segmentating
+to the Public access point must be authenticated. By using two routers to segment
 the LAN network, it's now possible to identify the devices groups by their network address.
 In particular, the private network is identified by the CIDR `192.168.1.0/24` whereas
 the public network by `192.168.0.0/24`. From the users management page is now possible to
@@ -238,7 +238,7 @@ is available at https://github.com/ntop/ntopng/blob/dev/tools/serve_bridge_confi
 .. warning::
 
    During startup, right before applying the JSON configuration, ntopng Edge flushes all the
-   exising configured users, their policies, and all the defined applications.
+   existing configured users, their policies, and all the defined applications.
 
    
 Runtime Associations Configuration
@@ -250,7 +250,7 @@ ntopng Edge endpoint :code:`/lua/admin/manage_pool_members.lua`.
 A valid JSON must be :code:`POST` ed to this endpoint. The JSON is
 exactly an :code:`associations` object described in detail above.
 
-For exampe, using curl, one can associate/disassociate devices to users as follow:
+For example, using curl, one can associate/disassociate devices to users as follow:
 
 .. code:: bash
 

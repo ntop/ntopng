@@ -17,7 +17,7 @@ Policies can be reviewed and customized in the `Device Applications` page.
 
   The Device Protocols Configuration Page
 
-Each policy is splitted in client and server configuration. For example, in the
+Each policy is split into client and server configuration. For example, in the
 picture above a *Printer* can act as an HTTP server but not as an HTTP client.
 
 When alerting is not enough, nEdge can be used to `block the new devices protocols`_

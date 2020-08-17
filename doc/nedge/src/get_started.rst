@@ -38,7 +38,7 @@ Chrome, Firefox and Safari are the web browser officially supported.
 
 The credentials for accessing the GUI the first time are user **admin** and password **admin**.
 
-After logging in into the GUI for the first time, visit the System Interface and accesss the System Setup. The first thing to look at is the `Operating Mode`. The following operating modes
+After logging in into the GUI for the first time, visit the System Interface and access the System Setup. The first thing to look at is the `Operating Mode`. The following operating modes
 are available:
 
 .. figure:: img/operating_mode.png
@@ -68,7 +68,7 @@ available into the nEdge GUI.
 Based on the chosen setup, the `Network Configuration` will provide interfaces
 configuration. For bridge mode, only LAN configuration is necessary. In router
 mode, both LAN and WANs configurations are necessary. LAN and WAN network
-addressess should not collide.
+addresses should not collide.
 
 .. figure:: img/lan_configuration.png
   :align: center

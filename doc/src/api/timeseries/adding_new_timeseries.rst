@@ -153,7 +153,7 @@ documentation.
 Example
 -------
 
-Let's see how to add an interface timseries that counts the number of
+Let's see how to add an interface timeseries that counts the number of
 issues detected when analyzing sequence numbers. The total issues
 detected when analyzing sequence numbers is considered as the sum of
 TCP retransmitted, out-of-order and lost packets.

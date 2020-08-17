@@ -53,7 +53,7 @@ on an external host.
 Here is an overview of the features ntopng provides:
 
 - A database is automatically configured according to the *InfluxDB Database* field value
-- It is possible to specify the db authentication credentials if the InfluxDB database is protected
+- It is possible to specify authentication credentials if the InfluxDB database is protected
 
 InfluxDB is really suitable to export high frequency data due to the high insertion
 throughput. For this reason it's possible to increase the timeseries resolution to
@@ -95,7 +95,7 @@ limits. Such limits usually are:
 
 - the storage size (more timeseries means more storage)
 - the storage speed
-- the time needed to write such timeseries to the timeseries db (in particular, this is
+- the time needed to write such timeseries to the timeseries database (in particular, this is
   a problem with RRD)
 
 Moreover, having a lot of timeseries usually means slower query time.

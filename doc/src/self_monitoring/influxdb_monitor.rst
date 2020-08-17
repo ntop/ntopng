@@ -45,7 +45,7 @@ When InfluxDB is temporarily unable to export, the :code:`health` turns yellow.
 
   InfluxDB Monitor Alerts
 
-ntopng keeps retrying even when the :code:`health` is red to recover as soon as InflulxDB becomes fully functional again.
+ntopng keeps retrying even when the :code:`health` is red to recover as soon as InfluxDB becomes fully functional again.
 
 Timeseries of items shows in the overview are available as well from the *char* page.
 

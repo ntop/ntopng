@@ -6,7 +6,7 @@ Category
 
 Traditionally nDPI was used by ntopng to detect flows L7 protocol. With the advent of more and more protocols, 
 speaking about single protocols is often too difficult. Users usually are not interested in the specific protocol
-but rathen on a whole group of protocols. For example, it's easier to reason about VPN traffic as a whole rather 
+but rather on a whole group of protocols. For example, it's easier to reason about VPN traffic as a whole rather 
 than a particular VPN implementation.
 
 For these reasons, nDPI (and ntopng) has been extended to provide a logical grouping of protocols, called Categories. 
@@ -37,7 +37,7 @@ with a particular application.
   Applications Configuration Page
 
 ntopng determines the application of a flow via some rules into nDPI. However,
-some additional rules can be specied by the user via the *--ndpi-protocols|-p <file>*
+some additional rules can be specified by the user via the *--ndpi-protocols|-p <file>*
 option. The file has the following format:
 
 .. code:: text
@@ -51,7 +51,7 @@ An example for this configuration file is available `here <https://github.com/nt
 Ntopng also supports editing such file from the GUI. In order to do so, it's
 still necessary to use the above option to point to a protos file located into
 a directory where ntopng has the permission to read and write. In practice, in
-order to enable tihs feature, ntopng should be started with the
+order to enable this feature, ntopng should be started with the
 *--ndpi-protocols=/var/lib/ntopng/protos.txt* option. If you already have a protos
 file, move it to */var/lib/ntopng/protos.txt* and run
 
@@ -62,7 +62,7 @@ file, move it to */var/lib/ntopng/protos.txt* and run
 to prepare it to be used by ntopng.
 
 After this feature is enabled, by clicking on the "Edit Rules" button it will be
-possible edit an application rules rirectly from the GUI and add new protocols.
+possible edit an application rules directly from the GUI and add new protocols.
 It's important to note that rules and new protocols will only be created and applied
 after a restart of ntopng.
 
@@ -74,7 +74,7 @@ after a restart of ntopng.
   Editing Application Rules
 
 For example, the `tcp:8080` rule in the example above tells ntopng to treat all
-the tcp traffic on port 8080 as HTTP. In order to delete a user defined protocol
+the TCP traffic on port 8080 as HTTP. In order to delete a user defined protocol
 it's necessary to clear all of its rules and save the changes.
 The protocol will be deleted after a restart of ntopng.
 

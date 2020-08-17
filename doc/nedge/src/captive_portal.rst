@@ -39,7 +39,7 @@ By leaving the field blank, the devices will be redirected to the original websi
 they were trying to visit before the captive portal login.
 
 The *Device Identifier* specifies how new devices authenticating to the captive
-portal will be added to the corresponding user. Usually it's desiderable to
+portal will be added to the corresponding user. Usually it's desirable to
 add the devices via their MAC address as it's bound to a specific device. However,
 when the devices are connected to a router (not a simple switch, the router is their
 default gateway) before reaching the nEdge device, their MAC address will be hidden
@@ -53,7 +53,7 @@ Informative Captive Portal
 
 The captive portal can also operate in informative mode. No user
 authentication is performed in informative mode. An informative page
-is just shown to newely connected users, to present them the terms and
+is just shown to newly connected users, to present them the terms and
 conditions of the Internet access that is being provided. Users will
 be able to access the Internet upon acceptance of the presented terms
 and conditions.

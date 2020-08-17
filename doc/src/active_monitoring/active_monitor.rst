@@ -93,6 +93,6 @@ Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->S
 
 In case of HTTP monitoring, the "HTTP Stats" timeseries show additional insights on the HTTP traffic:
 
-- :code:`Name Lookup`: time spent resolving the host namea
+- :code:`Name Lookup`: time spent resolving the host name
 - :code:`App Connect`: time spent in the SSL handshake
 - :code:`Other`: remaining time for the HTTP request and response

@@ -3,7 +3,7 @@ Device Management
 
 nEdge is designed to be (to a great extent) headless. Almost every
 functionality of the software is configurable from the GUI. This means
-that also the device management can be perfromed simply from the
+that also the device management can be performed simply from the
 GUI. However, there may be cases that require the system administrator
 to manually modify some of the configurations. Such cases can be for
 example the creation of custom network interfaces for the management

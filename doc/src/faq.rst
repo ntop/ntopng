@@ -119,7 +119,7 @@ After restarting ntopng, you can login with the default ntopng credentials (admi
 
 .. warning::
 
-   Some browser plugins that perform javascript blocking may interfere with the login.
+   Some browser plugins that perform JavaScript blocking may interfere with the login.
    Sometimes adding an exception for ntopng is not enough. Try to disable them before
    reporting an issue.
 
@@ -158,8 +158,8 @@ In order to reset the ntopng preferences the following commands can be used:
 How Can I Troubleshoot SNMP ?
 ============================
 
-If SNMP possing is not working as expected it is probably necessary to see
-what are the low-level SNMP messages exchanged by ntopng with the SNMP agents.
+If SNMP polling is not working as expected it may be necessary to inspect
+the low-level SNMP messages exchanged by ntopng and the SNMP agents.
 In order to do this SNMP debug must be enabled as follows: inside menu Settings -> Preferences
 select SNMP from the left tab and enable "SNMP Debug" then save the form.
 
@@ -168,8 +168,8 @@ select SNMP from the left tab and enable "SNMP Debug" then save the form.
   :alt: Howto Enable SNMP Debug
 
 
-When SNMP polling will start (usually every 5 minutes) a detailed log of activities
-will be produced. Such log can be accessed as follows
+When SNMP polling starts (usually every 5 minutes) a detailed log of activities
+will be produced. Logs can be accessed as follows
 
 - Log to the system where ntopng is running
 - (as root) journalctl -u ntopng --since "1 hour ago" > /tmp/ntopng_log.txt
@@ -254,8 +254,8 @@ Cannot see data in Grafana
 ==========================
 
 When ntopng is configured to export timeseries to InfluxDB, it is possible to use
-grafana with InfluxDB as a data source to create customized dashboard. If the grafana
-visualization does display any data, here are some steps for the troubleshooting:
+Grafana with InfluxDB as a data source to create customized dashboard. If the Grafana
+visualization does not display any data, here are some steps for the troubleshooting:
 
 - Verify that the data is actually written to the database. An easy way to do this
   is to open the interface charts page into ntopng and see if the past traffic is shown.
@@ -263,7 +263,7 @@ visualization does display any data, here are some steps for the troubleshooting
   `influx -database ntopng -execute 'select * from "iface:traffic" order by time desc limit 1'`
   it will show the most recent data point written into the DB.
 
-- Ensure that the InfluxDB database connected to grafana is the same as the database
+- Ensure that the InfluxDB database connected to Grafana is the same as the database
   configured into the ntopng timeseries settings.
 
 - If the data is correctly written to the database, the problem may be related to
@@ -280,8 +280,8 @@ visualization does display any data, here are some steps for the troubleshooting
 Permission denied errors
 ========================
 
-If the ntopng log shows permission denied errors, then the ntopng data directory
-may need a manual fix.
+If the ntopng log shows permission denied errors, then permissions on the ntopng data directory
+may need to be set manually.
 
 `Error 'opening '/var/lib/ntopng/1/rrd/bytes.rrd': Permission denied' while calling rrd_fetch_r(/var/lib/ntopng/1/rrd/bytes.rrd, AVERAGE): is the RRD corrupted perhaps`
 

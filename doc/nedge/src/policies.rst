@@ -20,7 +20,7 @@ Application/Category Policy
 
 A application or category policy has the following fields:
 
-- The **policy**: it specifies if the application traffic should be limitited or blocked
+- The **policy**: it specifies if the application traffic should be limited or blocked
 - A **daily traffic quota**: a limit for the specified application daily traffic
 - A **daily time quota**: a limit for the specified application daily time usage
 
