@@ -25,26 +25,26 @@ local tracker = require("tracker")
 sendHTTPHeader('application/json')
 
 if not haveAdminPrivileges() then
-   print(rest_utils.rc(rest_utils.consts_not_granted))
+   print(rest_utils.rc(rest_utils.consts.err.not_granted))
    return
 end
 
 -- ################################################
 
 if(_POST["JSON"] == nil) then
-  print(rest_utils.rc(rest_utils.consts_invalid_args))
+  print(rest_utils.rc(rest_utils.consts.err.invalid_args))
   return
 end
 
 local data = json.decode(_POST["JSON"])
 
 if(table.empty(data)) then
-  print(rest_utils.rc(rest_utils.consts_bad_format))
+  print(rest_utils.rc(rest_utils.consts.err.bad_format))
   return
 end
 
 if data["0"] == nil then
-  print(rest_utils.rc(rest_utils.consts_bad_content))
+  print(rest_utils.rc(rest_utils.consts.err.bad_content))
   return
 end
 
@@ -62,7 +62,7 @@ for config_id, configset in pairs(data) do
 end
 
 if failure then
-  print(rest_utils.rc(rest_utils.consts_internal_error))
+  print(rest_utils.rc(rest_utils.consts.err.internal_error))
   return
 end
 
@@ -71,4 +71,4 @@ end
 -- TRACKER HOOK
 tracker.log('set_scripts_config', {})
 
-print(rest_utils.rc(rest_utils.consts_ok))
+print(rest_utils.rc(rest_utils.consts.success.ok))

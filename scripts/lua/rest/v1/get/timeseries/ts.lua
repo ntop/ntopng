@@ -23,7 +23,7 @@ local rest_utils = require("rest_utils")
 
 sendHTTPHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
@@ -37,7 +37,7 @@ local ts_aggregation   = _GET["ts_aggregation"]
 local no_fill = tonumber(_GET["no_fill"])
 
 if isEmptyString(ifid) then
-  rc = rest_utils.consts_invalid_interface
+  rc = rest_utils.consts.err.invalid_interface
   print(rest_utils.rc(rc))
   return
 end
@@ -141,7 +141,7 @@ if res == nil then
     res["error"] = ts_utils.getLastErrorMessage()
   end
 
-  rc = rest_utils.consts_internal_error
+  rc = rest_utils.consts.err.internal_error
   print(rest_utils.rc(rc, res))
   return
 end

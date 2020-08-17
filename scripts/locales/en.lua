@@ -3682,6 +3682,13 @@ local lang = {
     ["use_server_timezone"] = "Use Server Timezone",
   },
   ["rest_consts"] = {
+    ["SNMP_DEVICE_DELETED_SUCCESSFULLY"] = "SNMP device deleted successfully",
+    ["SNMP_DEVICE_ADDED_SUCCESSFULLY"] = "SNMP device added successfully",
+    ["SNMP_DEVICE_EDITED_SUCCESSFULLY"] = "SNMP device edited successfully",
+    ["POOL_DELETED_SUCCESSFULLY"] = "Pool deleted successfully",
+    ["POOL_ADDED_SUCCESSFULLY"] = "Pool added successfully",
+    ["POOL_EDITED_SUCCESSFULLY"] = "Pool edited successfully",
+    ["POOL_MEMBER_BOUND_SUCCESSFULLY"] = "Pool member bound successfully",
     ["ADD_POOL_FAILED"] = "Unable to add a pool with the submitted params",
     ["BAD_CONTENT"] = "Bad content",
     ["BAD_FORMAT"] = "Bad format",

@@ -23,12 +23,12 @@ local rest_utils = require("rest_utils")
 sendHTTPHeader('application/json')
 
 if not isAllowedSystemInterface() then
-   rc = rest_utils.consts_not_granted
+   rc = rest_utils.consts.err.not_granted
    print(rest_utils.rc(rc))
    return
 end
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = system_utils.systemHostStats()
 res.epoch = os.time()
 res.storage = storage_utils.storageInfo()

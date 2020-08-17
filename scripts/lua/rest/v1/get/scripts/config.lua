@@ -26,7 +26,7 @@ local download = _GET["download"]
 
 if not haveAdminPrivileges() then
    sendHTTPHeader('application/json')
-   print(rest_utils.rc(rest_utils.consts_not_granted))
+   print(rest_utils.rc(rest_utils.consts.err.not_granted))
    return
 end
 

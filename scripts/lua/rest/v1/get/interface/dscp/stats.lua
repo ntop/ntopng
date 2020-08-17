@@ -18,13 +18,13 @@ local dscp_consts = require "dscp_consts"
 
 sendHTTPContentTypeHeader('text/html')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
 
 if isEmptyString(ifid) then
-   rc = rest_utils.consts_invalid_interface
+   rc = rest_utils.consts.err.invalid_interface
    print(rest_utils.rc(rc))
    return
 end
@@ -34,7 +34,7 @@ interface.select(ifid)
 local stats = interface.getStats()
 
 if stats == nil then
-   print(rest_utils.rc(rest_utils.consts_internal_error))
+   print(rest_utils.rc(rest_utils.consts.err.internal_error))
    return
 end
 

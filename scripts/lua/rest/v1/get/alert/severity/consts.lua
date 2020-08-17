@@ -19,7 +19,7 @@ local rest_utils = require "rest_utils"
 
 sendHTTPHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 for severity, severity_descr in pairs(alert_consts.alert_severities) do

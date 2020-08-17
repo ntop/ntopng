@@ -19,7 +19,7 @@ local rest_utils = require("rest_utils")
 
 sendHTTPHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 local field_aliases = {}
 
@@ -28,7 +28,7 @@ local fields = _GET["field_alias"]
 
 
 if isEmptyString(ifid) then
-   print(rest_utils.rc(rest_utils.consts_invalid_interface))
+   print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
    return
 end
 
@@ -49,7 +49,7 @@ else
    --
    -- Invalid field alias...
    if isEmptyString(fields) then
-      print(rest_utils.rc(rest_utils.consts_invalid_args))
+      print(rest_utils.rc(rest_utils.consts.err.invalid_args))
       return
    end
    --
@@ -76,7 +76,7 @@ if ((hostparam ~= nil) or (not isEmptyString(hostparam))) then
    local host_info = url2hostinfo(_GET)
    local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
    if not host then
-      print(rest_utils.rc(rest_utils.consts_not_found))
+      print(rest_utils.rc(rest_utils.consts.err.not_found))
       return
    else
       --

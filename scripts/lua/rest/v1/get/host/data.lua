@@ -19,7 +19,7 @@ local rest_utils = require("rest_utils")
 
 sendHTTPHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
@@ -33,12 +33,12 @@ local host_stats_flows     = _GET["host_stats_flows"]
 local host_stats_flows_num = _GET["limit"]
 
 if isEmptyString(ifid) then
-   print(rest_utils.rc(rest_utils.consts_invalid_interface))
+   print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
    return
 end
 
 if isEmptyString(host_info["host"]) then
-   print(rest_utils.rc(rest_utils.consts_invalid_args))
+   print(rest_utils.rc(rest_utils.consts.err.invalid_args))
    return
 end
 
@@ -47,7 +47,7 @@ interface.select(ifid)
 local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
 
 if not host then
-   print(rest_utils.rc(rest_utils.consts_not_found))
+   print(rest_utils.rc(rest_utils.consts.err.not_found))
    return
 end
 

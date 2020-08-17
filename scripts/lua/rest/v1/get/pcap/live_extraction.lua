@@ -21,25 +21,25 @@ local filter = _GET["bpf_filter"]
 local time_from = tonumber(_GET["epoch_begin"])
 local time_to = tonumber(_GET["epoch_end"])
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 
 if not recording_utils.isExtractionAvailable() then
    sendHTTPHeader('application/json')
-   rc = rest_utils.consts_not_granted
+   rc = rest_utils.consts.err.not_granted
    print(rest_utils.rc(rc))
    return
 end
 
 if isEmptyString(ifid) then
    sendHTTPHeader('application/json')
-   rc = rest_utils.consts_invalid_interface
+   rc = rest_utils.consts.err.invalid_interface
    print(rest_utils.rc(rc))
    return
 end
 
 if _GET["epoch_begin"] == nil or _GET["epoch_end"] == nil then
    sendHTTPHeader('application/json')
-   rc = rest_utils.consts_invalid_arguments
+   rc = rest_utils.consts.err.invalid_arguments
    print(rest_utils.rc(rc))
    return
 end

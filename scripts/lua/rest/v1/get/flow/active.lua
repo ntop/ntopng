@@ -23,14 +23,14 @@ local rest_utils = require("rest_utils")
 
 sendHTTPContentTypeHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
 local verbose = (_GET["verbose"] == "true")
 
 if isEmptyString(ifid) then
-   rc = rest_utils.consts_invalid_interface
+   rc = rest_utils.consts.err.invalid_interface
    print(rest_utils.rc(rc))
    return
 end
@@ -61,7 +61,7 @@ local flows_filter = getFlowsFilter()
 local flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
 
 if flows_stats == nil then
-   print(rest_utils.rc(rest_utils.consts_not_found))
+   print(rest_utils.rc(rest_utils.consts.err.not_found))
    return
 end
 
@@ -70,7 +70,7 @@ local total = flows_stats["numFlows"]
 flows_stats = flows_stats["flows"]
 
 if flows_stats == nil then
-   print(rest_utils.rc(rest_utils.consts_internal_error))
+   print(rest_utils.rc(rest_utils.consts.err.internal_error))
    return
 end
 

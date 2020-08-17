@@ -17,7 +17,7 @@ local rest_utils = require("rest_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
@@ -26,7 +26,7 @@ local breed = _GET["breed"]
 local ndpi_category = _GET["ndpi_category"]
 
 if isEmptyString(ifid) then
-   rc = rest_utils.consts_invalid_interface
+   rc = rest_utils.consts.err.invalid_interface
    print(rest_utils.rc(rc))
    return
 end
@@ -61,12 +61,12 @@ if ndpistats_mode == "sinceStartup" then
 elseif ndpistats_mode == "count" then
    stats = interface.getnDPIFlowsCount()
 else
-   print(rest_utils.rc(rest_utils.consts_invalid_args))
+   print(rest_utils.rc(rest_utils.consts.err.invalid_args))
    return
 end
 
 if stats == nil then
-   print(rest_utils.rc(rest_utils.consts_internal_error))
+   print(rest_utils.rc(rest_utils.consts.err.internal_error))
    return
 end
 

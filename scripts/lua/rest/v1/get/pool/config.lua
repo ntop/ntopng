@@ -22,7 +22,7 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
@@ -30,13 +30,13 @@ local download = _GET["download"]
 
 if not haveAdminPrivileges() then
    sendHTTPHeader('application/json')
-   print(rest_utils.rc(rest_utils.consts_not_granted))
+   print(rest_utils.rc(rest_utils.consts.err.not_granted))
    return
 end
 
 if isEmptyString(ifid) then
    sendHTTPHeader('application/json')
-   print(rest_utils.rc(rest_utils.consts_invalid_interface))
+   print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
    return
 end
 
