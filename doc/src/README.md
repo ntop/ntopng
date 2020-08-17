@@ -28,11 +28,11 @@ It can be easily tested locally by running a python webserver:
 The Lua C API documentation can be found inside the `api/lua_c` directory.
 
 The functions documentation is written in `.lua` file (e.g. `api/lua_c/ntop/ntop_users.lua`).
-These are the files to modify to update the api documentation.
+These are the files to modify to update the API documentation.
 
 Functions are organized in a directory structure in the form `api/lua_c/{object}/{api_group}.lua`,
-where `{object}` is a C API reg (eg. `interface`) and `{api_group}` is a group of api functions
-relevant to the same topic (e.g. `interface_hosts` is for api functions that work with hosts).
+where `{object}` is a C API reg (eg. `interface`) and `{api_group}` is a group of API functions
+relevant to the same topic (e.g. `interface_hosts` is for API functions that work with hosts).
 
 Only a subset of the functions defined in `src/LuaEngine.cpp` are documented as API.
 They are marked with the `// ***API***` comment. Whenever an API function is modified,
@@ -43,7 +43,7 @@ Here is how to perform some recurrent operations on the documentation:
   - Add/modify a function documentation: e.g. to update the `ntop.setCache` documentation,
     the file `api/lua_c/ntop/ntop_cache.lua` should be modified.
 
-  - Add a new group of api functions for an existing C API reg: e.g. to group together all the
+  - Add a new group of API functions for an existing C API reg: e.g. to group together all the
     host pools functions, the following modifications should be performed:
       - create `api/lua_c/interface/interface_host_pools.lua`.
       - create `api/lua_c/interface/interface_host_pools.rst`. Adapt this from an existing `.rst`.
@@ -56,7 +56,7 @@ Here is how to perform some recurrent operations on the documentation:
 
 ### Fixing API prefixes
 
-Lua C API usually have a prefix which indicates the lua table under which the api is present,
+Lua C API usually have a prefix which indicates the Lua table under which the API is present,
 e.g. `ntop.isAdministrator` has the `ntop` prefix, whereas `interface.getid()` has the interface `interface`
 prefix. In order to correctly show such prefix in the documentation its necessary to edit the `_static/css/ntop.css`
 file and add a css `content` definition.
