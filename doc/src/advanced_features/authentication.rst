@@ -71,7 +71,7 @@ An LDAP server can be used to authenticate users.
 
 Here is an overview of the different parameters:
 
-  - LDAP Accounts Type: can be used to choose for the Posix based accounts or the
+  - LDAP Accounts Type: can be used to choose for the POSIX based accounts or the
     sAMAccount accounts.
 
   - LDAP Server Address: the address of the LDAP server. Ports 389 and 636 are the
