@@ -22,12 +22,12 @@ First Start
 -----------
 
 Any change in the configuration operated from
-the gui requires explicit confirmation before being applied.
+the GUI requires explicit confirmation before being applied.
 Some changes may require a device reboot.
 
-After installing the package, nEdge will start automatically. The nEdge web gui
+After installing the package, nEdge will start automatically. The nEdge web GUI
 will be available on port 3000. For example, if the device has the IP address
-192.168.1.10 the nEdge gui will be available at the URL http://192.168.1.10:3000.
+192.168.1.10 the nEdge GUI will be available at the URL http://192.168.1.10:3000.
 Chrome, Firefox and Safari are the web browser officially supported.
 
 .. figure:: img/login.png
@@ -36,9 +36,9 @@ Chrome, Firefox and Safari are the web browser officially supported.
 
   nEdge Login screen
 
-The credentials for accessing the gui the first time are user **admin** and password **admin**.
+The credentials for accessing the GUI the first time are user **admin** and password **admin**.
 
-After logging in into the gui for the first time, visit the System Interface and accesss the System Setup. The first thing to look at is the `Operating Mode`. The following operating modes
+After logging in into the GUI for the first time, visit the System Interface and accesss the System Setup. The first thing to look at is the `Operating Mode`. The following operating modes
 are available:
 
 .. figure:: img/operating_mode.png
@@ -63,7 +63,7 @@ mode, multiple WAN interfaces can be selected from the multiple choice list.
 **NOTE:** the interfaces list available into nedge is based on the network interfaces
 available in the system at the time of the first startup. After removing or adding
 a new network interface to the system, **a factory reset is required** in order to make it
-available into the nedge gui.
+available into the nedge GUI.
 
 Based on the chosen setup, the `Network Configuration` will provide interfaces
 configuration. For bridge mode, only LAN configuration is necessary. In router
@@ -77,7 +77,7 @@ addressess should not collide.
   LAN network configuration
 
 It is important to remember the configured **LAN address**, as it will be necessary
-to access the nEdge gui after the reboot. In case of bridge mode where the LAN is
+to access the nEdge GUI after the reboot. In case of bridge mode where the LAN is
 set in DHCP client mode, it's necessary to view the DHCP server log or other
 tools in order to figure out, after the reboot, the IP address assigned to the LAN.
 

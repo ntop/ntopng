@@ -127,7 +127,7 @@ Every alert has an entity and an entity value associated. The entity is the subj
 - **Devices**: Layer-2 Mac addresses
 - **Host Pools**: the user-created host pools
 - **Process**: the ntopng process itself
-- **User**: the ntopng UI user
+- **User**: the ntopng GUI user
 
 For example, an alert triggered for host :code:`192.168.1.2` that has exceeded a traffic threshold will have *"host"* as entity and "*192.168.1.2"* as entity value. Similarly, network :code:`192.168.2.0/24` that has exceeded a traffic threshold will have *"network*" as entity and *"192.168.2.0/24"* as entity value.
 

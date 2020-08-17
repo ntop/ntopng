@@ -81,7 +81,7 @@ Radius Integration
 ------------------
 
 nEdge can use an external RADIUS server to authenticate the captive portal users
-as well as gui users. Check out the ntopng `user authentication documentation`_ for
+as well as GUI users. Check out the ntopng `user authentication documentation`_ for
 more details.
 
 .. note::

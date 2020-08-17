@@ -35,7 +35,7 @@ re-authenticate again, regardless of their residual session duration.
   ntopng Authentication Duration
 
 
-ntopng supports multiple methods to authenticate users into the ntopng gui. Individual methods
+ntopng supports multiple methods to authenticate users into the ntopng GUI. Individual methods
 can be enabled from the ntopng "User Authentication" preferences.
 
 .. figure:: ../img/advanced_features_authentication_methods.png
@@ -47,13 +47,13 @@ can be enabled from the ntopng "User Authentication" preferences.
 It is possible to enabled more than one method at once. In this case, when a user
 tries to authenticate, the enabled authentication methods will be tried in the same
 top-down order as they are listed in the preferences. If at least one of the authentication
-methods succeds, then the user is allowed to access the web gui.
+methods succeds, then the user is allowed to access the web GUI.
 
 Local Authentication
 ####################
 
 This is the authentication method enabled by default when ntopng is installed.
-It will use the users credentials configured_ via the ntopng gui to authenticate new users.
+It will use the users credentials configured_ via the ntopng GUI to authenticate new users.
 
 .. _`configured`: ../web_gui/settings.html#manage-users
 
@@ -208,7 +208,7 @@ work with ntopng: https://github.com/ntop/ntopng/blob/dev/doc/README.HTTP_AUTHEN
 Unable to Login
 ###############
 
-Instructions on how to recover after being locked out of the ntopng gui can be found
+Instructions on how to recover after being locked out of the ntopng GUI can be found
 in the `FAQ page`_.
 
 .. _`FAQ page`: ../faq.html#cannot-login-into-the-gui

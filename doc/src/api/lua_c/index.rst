@@ -2,7 +2,7 @@ Lua C API
 =========
 
 The ntopng core provides a Lua C API to interact with it. The API is internally used
-by periodic scripts and gui scripts to extract information or to apply configuration
+by periodic scripts and GUI scripts to extract information or to apply configuration
 changes.
 
 Custom user scripts can use the API, for example, to provide new data visualizations

@@ -102,7 +102,7 @@ If you apply a sampling rate to capture traffic on an interface, say x100, the
 traffic volume you see on ntopng will be 100 times smaller.
 In order to simulate more traffic to match real traffic volume, you can apply a
 scaling factor to the size of each received packet. The scaling factor can
-be specified through the UI, into the interface settings.
+be specified through the GUI, into the interface settings.
 
 Debugging ntopng
 ----------------

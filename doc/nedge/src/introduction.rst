@@ -156,8 +156,7 @@ if multiple network interfaces are available.
 Programmatic Configuration
 --------------------------
 
-ntopng can be configured programmatically without any interaction with
-it's user interface.
+ntopng can be configured programmatically without any GUI interaction.
 
 This is particularly useful for those who wants to integrate ntopng
 Edge in their own automatized solutions. Let's consider the following case as an example.

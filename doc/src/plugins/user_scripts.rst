@@ -40,7 +40,7 @@ The structure of a user script is the following:
 Every user script must return a Lua table with the following keys:
 
   - :code:`hooks`: a Lua table with hook names as key and callbacks as values. :ref:`User Script Hooks` are events or points in time. ntopng uses hooks to know when to call a user script. A user script defining a hook will get the hook callaback called by ntopng. User scripts must register to at least one hook. See :ref:`User Script Hooks`.
-  - :code:`gui`: a Lua table specifying user script name, description and configuration. Data is used by ntopng to show the user script configurable from the :ref:`Web UI`.
+  - :code:`gui`: a Lua table specifying user script name, description and configuration. Data is used by ntopng to show the user script configurable from the :ref:`Web GUI`.
   - :code:`local_only` (optional, hosts only): if true, the user script is only executed for local hosts.
   - :code:`packet_interface_only` (optional): only execute the script on packet interfaces, excluding ZMQ interfaces.
   - :code:`l4_proto` (optional, flows only): only execute the script for flows matching the L4 protocol.
@@ -48,7 +48,7 @@ Every user script must return a Lua table with the following keys:
   - :code:`nedge_only` (optional): if true, the script is only executed in nEdge.
   - :code:`nedge_exclude` (optional): if true, the script is not executed in nEdge.
   - :code:`default_value` (optional): the default value for the script configuration, in the form :code:`<script_key>;<operator>;<value>`
-    (e.g. :code:`syn_flood_victim;gt;50`). See :ref:`Web UI`.
+    (e.g. :code:`syn_flood_victim;gt;50`). See :ref:`Web GUI`.
   - :code:`default_enabled` (optional): if false, the script is disabled by default.
 
 Furthermore, a script may define the following extra functions, which are only called once per script:

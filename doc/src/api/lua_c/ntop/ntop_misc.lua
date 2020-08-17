@@ -90,7 +90,7 @@ function ntop.getticks()
 --! @notes this can be used with ntop.getticks() deltas to calculate time spent.
 function ntop.gettickspersec()
 
---! @brief Check if the ntopng gui login is disable.
+--! @brief Check if the ntopng GUI login is disable.
 --! @return true if login is disabled, false otherwise.
 function ntop.isLoginDisabled()
 
@@ -127,7 +127,7 @@ function ntop.md5(string s)
 function ntop.exec_sql_query(string query)
 
 --! @brief Resets multiple stats in ntopng, which include the hosts and mac traffic counters.
---! @note This is the function called when "Midnight Stats Reset" is enabled from the gui.
+--! @note This is the function called when "Midnight Stats Reset" is enabled from the GUI.
 function ntop.resetStats()
 
 --! @brief Check if ntopng has the pro features.

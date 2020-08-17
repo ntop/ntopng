@@ -25,13 +25,13 @@ Here are some instructions to connect to the device using the recovery IP:
 3. Verify the connection with the nEdge: `ping 192.168.160.10`. The device should
    respond with ping replies
 
-4. Access the nEdge gui by visiting the following URL with a web browser:
+4. Access the nEdge GUI by visiting the following URL with a web browser:
    `http://192.168.160.10:3000`.
 
 Factory Reset
 -------------
 
-After connecting to the nEdge gui, a factory reset can be performed to restore the
+After connecting to the nEdge GUI, a factory reset can be performed to restore the
 nEdge settings to the defaults. This will also **flush** all the nEdge historical
 data.
 
@@ -46,5 +46,5 @@ button.
 
 **Note**: the reboot won't change the system configuration yet. After the
 reboot, nEdge will be restored to original settings. By logging in into the nEdge
-gui it will be possible to perform the `first start` setup and permanently apply
+GUI it will be possible to perform the `first start` setup and permanently apply
 the new settings.

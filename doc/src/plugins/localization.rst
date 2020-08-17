@@ -13,7 +13,7 @@ taken to provide proper localization support. Consider the following example:
 		i18n_description = "Trigger an alert when the number of received SYNs/sec exceeds the threshold",
 	}
 
-this is valid in ntopng and will produce the expected result into the gui, but it will only
+this is valid in ntopng and will produce the expected result into the GUI, but it will only
 work for the English language. By contrast, the proper way to provide localization
 support is the following:
 

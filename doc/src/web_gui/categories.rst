@@ -48,7 +48,7 @@ option. The file has the following format:
 
 An example for this configuration file is available `here <https://github.com/ntop/nDPI/blob/dev/example/protos.txt>`_.
 
-Ntopng also supports editing such file from the gui. In order to do so, it's
+Ntopng also supports editing such file from the GUI. In order to do so, it's
 still necessary to use the above option to point to a protos file located into
 a directory where ntopng has the permission to read and write. In practice, in
 order to enable tihs feature, ntopng should be started with the
@@ -62,7 +62,7 @@ file, move it to */var/lib/ntopng/protos.txt* and run
 to prepare it to be used by ntopng.
 
 After this feature is enabled, by clicking on the "Edit Rules" button it will be
-possible edit an application rules rirectly from the gui and add new protocols.
+possible edit an application rules rirectly from the GUI and add new protocols.
 It's important to note that rules and new protocols will only be created and applied
 after a restart of ntopng.
 

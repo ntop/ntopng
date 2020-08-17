@@ -25,7 +25,7 @@ Installing on MacOS
 -------------------
 
 MacOS installation packages can be found at
-http://packages.ntop.org/ and are installed with a graphical user interface.
+http://packages.ntop.org/ and are installed with a GUI.
 ntopng requires redis to be installed in order to start. During the ntopng installation,
 if redis is not present, redis is installed and activated, otherwise the one already installed on
 the system is used. After the installation, ntopng is started and active on local port 3000
@@ -153,7 +153,7 @@ when the license has been purchased on https://shop.ntop.org/.
    (example: :code:`export http_proxy=http://<ip>:<port>`).
 
 Once the license has been generated, it can be applied to ntopng
-simply by visiting page "Help"->"About" of the web user interface and
+simply by visiting page "Help"->"About" of the web GUI and
 pasting the license key in the license form.
 
 Alternatively, the license key can be placed in a one-line file
