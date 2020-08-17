@@ -146,7 +146,7 @@ function ntop.isEnterpriseL()
 --! @return true if running as service, false otherwise.
 function ntop.isPackage()
 
---! @brief Get the startup unix epoch of ntopng
+--! @brief Get the startup Unix epoch of ntopng
 --! @return the startup epoch
 function ntop.getStartupEpoch()
 

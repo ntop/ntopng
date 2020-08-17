@@ -162,10 +162,10 @@ ntopng saves the ZMQ public/private keypairs under /var/lib/ntopng/<interface id
 Quick Start
 ===========
 
-A sample configuration file for running ntopng as ZMQ collector for nProbe is installed on unix 
+A sample configuration file for running ntopng as ZMQ collector for nProbe is installed on Unix 
 systems under /etc/ntopng/ntopng.conf.nprobe.sample. As described in the *Running ntopng as a Daemon*
 section, the configuration file has to be named ntopng.conf and must be placed under /etc/ntopng/ when 
-running ntopng as a daemon on unix systems with *init.d* or *systemd* support. In order to enable 
+running ntopng as a daemon on Unix systems with *init.d* or *systemd* support. In order to enable 
 this configuration, you should replace the configuration file with the sample configuration and
 restart the service:
 
@@ -178,7 +178,7 @@ Please note that the sample configuration assumes that both ntopng and nProbe ar
 same (local) host. In case they run on separate machines, the configuration file has to be changed 
 with the address of the machine hosting nProbe.
 
-Similarly, a sample configuration file for nProbe is also installed (by the *nprobe* package) on unix 
+Similarly, a sample configuration file for nProbe is also installed (by the *nprobe* package) on Unix 
 systems under /etc/nprobe/nprobe.conf.ntopng.sample. In order to enable this configuration, also in
 this case, you should replace the configuration file with the sample configuration and restart the 
 service:

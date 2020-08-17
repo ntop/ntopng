@@ -179,8 +179,8 @@ it is in order to perform specific actions based on the alert. The alerts in the
 
 - :code:`ifid`: the interface id on which the alert has been generated.
 - :code:`action`: `engage`, `release` or `store`. Check the alerts api for more details. [4]
-- :code:`alert_tstamp`: the unix timestamp when the alert was triggered
-- :code:`alert_tstamp_end`: in case of released alerts, contains the unix timestamp of the release event
+- :code:`alert_tstamp`: the Unix timestamp when the alert was triggered
+- :code:`alert_tstamp_end`: in case of released alerts, contains the Unix timestamp of the release event
 - :code:`alert_type`: the `alert type`_ ID. `alert_consts.alertTypeRaw` can be used to convert it to a string.
 - :code:`alert_subtype`: an optional alert subtype.
 - :code:`alert_severity`: the `alert severity`_ ID. `alertSeverityRaw` can be used to convert it to a string.
