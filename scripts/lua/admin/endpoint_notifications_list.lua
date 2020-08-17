@@ -22,10 +22,12 @@ local function get_max_configs_available()
 
     local availables = {}
     local types = notification_configs.get_types()
+    tprint(types)
 
     for endpoint_key, endpoint in pairsByKeys(types, asc) do
 
         local conf_max_num = endpoint.conf_max_num
+
         if conf_max_num ~= nil then
             availables[endpoint_key] = conf_max_num
         else
@@ -36,17 +38,40 @@ local function get_max_configs_available()
     return availables
 end
 
+
 page_utils.set_active_menu_entry(page_utils.menu_entries.endpoint_notifications)
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title(i18n("endpoint_notifications.endpoint_list"))
 
+-- localize endpoint name types in a table
+local endpoints_types = notification_configs.get_types()
+local endpoint_types_labels = {}
+-- create a table to filter recipient by endpoint's type
+local endpoint_type_filters = {}
+for endpoint_key, _ in pairs(endpoints_types) do
+
+    local label = i18n('endpoint_notifications.types.'..endpoint_key)
+    endpoint_types_labels[endpoint_key] = label
+    endpoint_type_filters[#endpoint_type_filters+1] = {
+        label = label,
+        regex = endpoint_key,
+        key = endpoint_key,
+        countable = true
+    }
+
+end
+
 -- Prepare the response
 local context = {
     notifications = {
         endpoints = notification_configs.get_types(),
-        endpoints_info = get_max_configs_available()
+        endpoints_info = get_max_configs_available(),
+        endpoint_types_labels = endpoint_types_labels,
+        filters = {
+            endpoint_types = endpoint_type_filters
+        }
     },
     template_utils = template,
     plugins_utils = plugins_utils,

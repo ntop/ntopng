@@ -12,6 +12,7 @@
     </label>
     <div class="col-sm-5">
         <input name="webhook_sharedsecret" type="text" class="form-control" />
+        <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>
 </div>
 <div class="form-group row">
@@ -20,6 +21,7 @@
     </label>
     <div class="col-sm-5">
         <input data-pattern="username" name="webhook_username" type="text" class="form-control" />
+        <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>
 </div>
 <div class="form-group row">
@@ -28,5 +30,6 @@
     </label>
     <div class="col-sm-5">
         <input name="webhook_password" type="password" class="form-control" />
+        <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>
 </div>

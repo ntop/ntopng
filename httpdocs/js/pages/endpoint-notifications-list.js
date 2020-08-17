@@ -1,5 +1,7 @@
 $(document).ready(function () {
 
+    const INDEX_COLUMN_ENDPOINT_TYPE = 1;
+
     function getTypesCount(configs) {
 
         const currentTypesCount = {};
@@ -80,7 +82,11 @@ $(document).ready(function () {
                 data: 'endpoint_conf_name'
             },
             {
-                data: 'endpoint_key'
+                data: 'endpoint_key',
+                render: function(key, type) {
+                    if (type == "display") return i18n.endpoint_types[key];
+                    return key;
+                }
             },
             {
                 targets: -1,
@@ -104,6 +110,11 @@ $(document).ready(function () {
 
             const tableAPI = settings.oInstance.api();
             disableTypes(tableAPI.rows().data());
+
+             // add a filter to sort the datatable by endpoint type
+             DataTableUtils.addFilterDropdown(
+                i18n.endpoint_type, endpointTypeFilters, INDEX_COLUMN_ENDPOINT_TYPE, '#notification-list_filter', tableAPI
+            );
 
         }
     });
@@ -178,11 +189,16 @@ $(document).ready(function () {
         onSubmitSuccess: function (response) {
 
             if (response.result.status == "OK") {
+
                 $(`#add-endpoint-modal`).modal('hide');
                 $(`#add-endpoint-modal form .endpoint-template-container`).hide();
                 cleanForm(`#add-endpoint-modal form`);
+
                 $endpointsTable.ajax.reload(function(data) {
+                    // disable endpoint type if a endpoint reached its max num config
                     disableTypes(data);
+                    // update the filters counter
+                    DataTableUtils.updateFilters(i18n.endpoint_type, $endpointsTable);
                 });
                 return;
             }
@@ -215,7 +231,10 @@ $(document).ready(function () {
             if (response.result.status == "OK") {
                 $(`#remove-endpoint-modal`).modal('hide');
                 $endpointsTable.ajax.reload(function(data) {
+                    // re-enable endpoint type
                     disableTypes(data);
+                    // update the filters counter
+                    DataTableUtils.updateFilters(i18n.endpoint_type, $endpointsTable);
                 });
             }
         }

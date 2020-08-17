@@ -36,14 +36,18 @@
 <script type="text/javascript">
 
     let csrf = "{{ ntop.getRandomCSRFValue() }}";
+    const endpointTypeFilters = {* json.encode(notifications.filters.endpoint_types) *};
 
     i18n.warning ="{{ i18n('warning', {}) }}";
     i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
     i18n.search = "{{ i18n('search') }}";
     i18n.edit = "{{ i18n('edit') }}";
     i18n.remove = "{{ i18n('remove') }}";
+    i18n.all = "{{ i18n('all') }}";
 
     i18n.endpoint_config_already_existing = "{{ i18n('endpoint_notifications.endpoint_config_already_existing') }}";
+    i18n.endpoint_type = "{{ i18n('endpoint_notifications.type') }}";
+    i18n.endpoint_types = {* json.encode(notifications.endpoint_types_labels) *};
 
     const endpoints_info = {* json.encode(notifications.endpoints_info) *};
 
