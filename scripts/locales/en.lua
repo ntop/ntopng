@@ -4039,6 +4039,7 @@ local lang = {
     ["status_notpresent"] = "Not Present",
     ["status_unknown"] = "Unknown",
     ["status_up"] = "Up",
+    ["status_up_in_use"] = "Up (in use)",
     ["testing"] = "Testing",
     ["tp_fbd_status_invalid"] = "invalid",
     ["tp_fbd_status_learned"] = "learned",

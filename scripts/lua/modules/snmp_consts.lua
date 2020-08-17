@@ -14,6 +14,7 @@ local snmp_consts = {}
 function snmp_consts.snmp_ifstatus(id)
    local ifstatus = {
       ["1"] = "<font color=green>" .. i18n("snmp.status_up") .. "</font>",
+      ["101"] = "<font color=green>" .. i18n("snmp.status_up_in_use") .. "</font>", -- Up and in use (that is, actively seeing traffic)
       ["2"] = "<font color=red>" .. i18n("snmp.status_down") .. "</font>",
       ["3"] = i18n("snmp.testing"),
       ["4"] = i18n("snmp.status_unknown"),
