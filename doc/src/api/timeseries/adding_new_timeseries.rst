@@ -18,8 +18,8 @@ and by some Lua scripts and their statistics are dumped in the form of timeserie
 Traffic elements are handled in some standard ways:
 
    1. Most traffic elements are implemented in C, and their statistics are passed
-      to lua via the :code:`::lua` method. For example, :code:`AutonomousSystem::lua` dumps
-      the autonomous system statistics to lua. *Important* if the element has a `::tsLua`
+      to Lua via the :code:`::lua` method. For example, :code:`AutonomousSystem::lua` dumps
+      the autonomous system statistics to Lua. *Important* if the element has a `::tsLua`
       method check out the case 2 below.
 
    2. Some other traffic elements are implemented in C, but their statistics are hold
@@ -60,13 +60,13 @@ Things to keep in mind:
 
    - The new metric should be added to the header file (e.g. `HostTimeseriesPoint.h`).
    - The metric should be written to the :code:`TimeseriesPoint`, (e.g. in :code:`LocalHostStats::makeTsPoint`)
-   - The metric should be exposed to lua in the :code:`TimeseriesPoint:lua` method (e.g. in :code:`HostTimeseriesPoint::lua`)
+   - The metric should be exposed to Lua in the :code:`TimeseriesPoint:lua` method (e.g. in :code:`HostTimeseriesPoint::lua`)
 
 After this, the metric should now be available in Lua. Use the `custom timeseries scripts`_
 to export it as a timeseries. Since this requires modifications of the C source code,
 compatibility with the standard ntopng cannot be preserved.
 
-Case 3: Adding metrics for lua only objects
+Case 3: Adding metrics for Lua only objects
 -------------------------------------------
 
 This really depends on the specific element to be added. Compatibility may or may not be assured.
@@ -76,7 +76,7 @@ This really depends on the specific element to be added. Compatibility may or ma
 Custom Timeseries Scripts
 =========================
 
-Once the new metrics are available in lua via one of the methods discussed above,
+Once the new metrics are available in Lua via one of the methods discussed above,
 it's necessary to export such metrics as timeseries. In order to do so, two actions are
 required:
 
@@ -93,7 +93,7 @@ ntopng handles custom timeseries with updates every:
 This means that custom timeseries with a point every minute and a
 point every 5 minutes can be generated for interfaces and local hosts, respectively.
 
-ntopng looks for custom timeseries in the following lua files under
+ntopng looks for custom timeseries in the following Lua files under
 :code:`scripts/lua/modules/timeseries/custom/`:
 
   - :code:`ts_minute_custom.lua` for local hosts timeseries with 5-minute updates
@@ -128,7 +128,7 @@ following arguments:
   - :code:`when` The time (expressed as a Unix Epoch) of the call
   - :code:`hostname` The IP address of the host, possibly followed by
     a VLAN tag
-  - :code:`host` The host metrics in a lua table
+  - :code:`host` The host metrics in a Lua table
   - :code:`ifstats` The interface stats of the host interface
   - :code:`verbose` and extra flag passed when ntopng is working in
     verbose mode
@@ -172,7 +172,7 @@ The first argument of :code:`newSchema` specifies the timeseries name
 with prefix :code:`iface:`. The second argument is a table that *must*
 contain argument :code:`step` which tells how frequently the
 timeseries will be updated. As we are in the 1-minute local hosts
-timeseries lua script, a value of :code:`60` must be specified here.
+timeseries Lua script, a value of :code:`60` must be specified here.
 
 Then, function :code:`addTag` is used to indicate an interface id
 :code:`ifid` that will be used to uniquely identify the timeseries

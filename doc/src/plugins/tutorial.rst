@@ -102,7 +102,7 @@ Set the alert definition file :code:`alert_exe_download.lua` contents as:
 
 	-- @brief Prepare an alert table used to generate the alert
 	-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
-	-- @param tls_info A lua table with HTTP info gererated calling `flow.getHTTPInfo()`
+	-- @param tls_info A Lua table with HTTP info gererated calling `flow.getHTTPInfo()`
 	-- @return A table with the alert built
 	local function createExeDownload(alert_severity, http_info)
 	   local built = {

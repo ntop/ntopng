@@ -49,7 +49,7 @@ monitors the room temperature (the plugin directory is named `room_temp_monitor`
 		description = "Monitors the room temperature and charts it",
 	}
 
-Any lua script in ntopng can then use the above localized strings with :code:`i18n("room_temp_monitor.my_title")`
+Any Lua script in ntopng can then use the above localized strings with :code:`i18n("room_temp_monitor.my_title")`
 and :code:`i18n("room_temp_monitor.description")`. A user can also create an `it.lua` file with the
 following contents:
 

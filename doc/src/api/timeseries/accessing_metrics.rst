@@ -19,7 +19,7 @@ An always-updated list of metrics can be determined by inspecting
 method :code:`NetworkInterface::lua`:
 https://github.com/ntop/ntopng/blob/dev/src/NetworkInterface.cpp
 
-Interface metrics are available as a lua table. An excerpt of such
+Interface metrics are available as a Lua table. An excerpt of such
 table is shown below:
 
 .. code-block:: lua
@@ -57,7 +57,7 @@ An always-updated list of host metrics can be determined by inspecting
 this file:
 https://github.com/ntop/ntopng/blob/dev/src/HostTimeseriesPoint.cpp
 
-Host metrics are available in an handy lua table such as the one
+Host metrics are available in an handy Lua table such as the one
 exemplified below:
 
 .. code-block:: lua

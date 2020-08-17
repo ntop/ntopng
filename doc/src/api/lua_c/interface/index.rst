@@ -28,13 +28,13 @@ following snippet would be used:
     interface_ndpi
     interface_dump
 
-Rather than using the :code:`interface` API directly, one can use lua
+Rather than using the :code:`interface` API directly, one can use Lua
 wrappers to process hosts, flows and other elements in
 batches. Processing in batches has the benefit of reduced memory
 footprint and thus it may be absolutely necessary when working in large
 environments.
 
-For example, to visit all the active flows in batches using the lua
+For example, to visit all the active flows in batches using the Lua
 wrapper, the following snippet of code can be used:
 
 .. code-block:: lua

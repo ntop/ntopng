@@ -142,7 +142,7 @@ Here is a commented snippet for the email endpoint.
       local message_body = {}
 
       for _, json_message in ipairs(alerts) do
-        -- From JSON string to lua table
+        -- From JSON string to Lua table
         local alert = json.decode(json_message)
 
         -- Get a standard message for the alert
@@ -244,7 +244,7 @@ how to log to console `flow flood attackers alerts`_.
       end
 
       for _, json_message in ipairs(alerts) do
-        -- From JSON string to lua table
+        -- From JSON string to Lua table
         local alert = json.decode(json_message)
 
         if((alert_consts.alertEntityRaw(alert.alert_entity) == "host") and

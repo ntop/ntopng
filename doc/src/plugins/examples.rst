@@ -558,7 +558,7 @@ Here is a description of the general structure:
 
 The `script.hooks.snmpDevice` function uses the `snmp_utils.snmp_load_devices_topology` function to retrieve the
 latest LLDP information for the current SNMP device. The function returns a list of nodes and arcs involved
-in this particular SNMP device topology. The `nodes` are a lua table which maps `node_name` -> `node_ip`, for example:
+in this particular SNMP device topology. The `nodes` are Lua tables which maps `node_name` -> `node_ip`, for example:
 
 .. code:: lua
 
@@ -566,7 +566,7 @@ in this particular SNMP device topology. The `nodes` are a lua table which maps 
    AccessSW-1 string 172.16.24.1
    NetworkSpine-2 string 172.16.23.1
 
-The `arcs` are a lua table which contains links information between the SNMP device and other devices. Here is an example:
+The `arcs` are Lua tables which contains links information between the SNMP device and other devices. Here is an example:
 
 .. code:: lua
 
