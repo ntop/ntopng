@@ -863,3 +863,12 @@ footer {
   width: 100%;
   height: var(--footer-height);
 }
+
+.form-control-with-spinner {
+  position: relative;
+}
+.form-control-with-spinner .spinner-border {
+  position: absolute;
+  right: 0.5rem;
+  top: calc(50% - .5rem);
+}

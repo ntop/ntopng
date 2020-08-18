@@ -56,8 +56,6 @@ $(document).ready(function () {
             const template = $(`template#${$(this).val()}-template`).html();
             const $cloned = $(template);
             $templateContainer.empty().append($cloned).fadeIn();
-            // init the patterns inside the input boxes
-            NtopUtils.init_data_patterns();
         });
     }
 
@@ -140,8 +138,6 @@ $(document).ready(function () {
             $(`#edit-endpoint-modal form .endpoint-template-container`)
                 .empty().append(loadTemplate(data.endpoint_key));
             $(`#endpoint-type`).html(data.endpoint_conf_name);
-            // init the patterns inside the input boxes
-            NtopUtils.init_data_patterns();
             /* load the values inside the template */
             $(`#edit-endpoint-modal form [name='name']`).val(data.endpoint_conf_name);
             $(`#edit-endpoint-modal form .endpoint-template-container [name]`).each(function(i, input) {

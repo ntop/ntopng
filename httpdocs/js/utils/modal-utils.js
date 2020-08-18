@@ -1,6 +1,4 @@
 (function ($) {
-    /* Assign a unique ID to each modal */
-    let modal_id_ctr = 0;
 
     /* Use with:
      *
@@ -24,6 +22,7 @@
             this.observer = new MutationObserver((list) => {
                 this.bindFormValidation();
                 this.toggleFormSubmission();
+                this.initDataPatterns();
             });
 
             this.observer.observe(this.element[0], {
@@ -43,6 +42,10 @@
 
             submitButton.attr("disabled", "disabled");
 
+        }
+
+        initDataPatterns() {
+            NtopngUtils.initDataPatterns();
         }
 
         /**
@@ -190,66 +193,97 @@
 
             const self = this;
 
-            $(this.element).find(`input,select,textarea`).each(function (i, input) {
+            // handle input validation
+            $(this.element).find(`input,select,textarea`).each(async function (i, input) {
 
-                // id to handle the current timeout set to show errors
-                let timeoutId = -1;
                 // jQuery object of the current input
                 const $input = $(this);
+                // id to handle the current timeout set to show errors
+                let timeoutId = -1;
 
-                const checkValidation = () => {
+                const validHostname = async () => {
+
+                    // show the spinner to the user and set the input to readonly
+                    const $spinner = $input.parent().find('.spinner-border');
+                    $input.attr("readonly", true);
+                    $spinner.show();
+
+                    const response = await NtopngUtils.resolveDNS($(input).val());
+
+                    // hide the spinner and renable write to the input
+                    $input.removeAttr("readonly");
+                    $spinner.hide();
+
+                    // if the response was negative then alert the user
+                    if (response.rc < 0) {
+                        input.setCustomValidity(response.rc_str);
+                        $input.removeClass("is-valid");
+                        return [false, response.rc_str];
+                    }
+
+                    // return success for valid resolved hostnmae
+                    $input.addClass('is-valid');
+                    input.setCustomValidity("");
+
+                    return [true, "Success"];
+                }
+
+                const validInput = async (validation) => {
+
+                    // if the input require to validate host name then perform a DNS resolve
+                    if (validation.data.resolveDNS && $input.val().match(REGEXES.domainName)) {
+                        return await validHostname();
+                    }
+
+                    if (validation.data.cannotBeEmpty && validation.isInputEmpty) {
+                        // trigger input validation flag
+                        input.setCustomValidity("Please fill the input.");
+                        return [false, validation.data.validationEmptyMessage || i18n.missing_field];
+                    }
+
+                    if (input.validity.patternMismatch) {
+                        input.setCustomValidity("Invalid input.");
+                        return [false, validation.data.validationMessage || i18n.invalid_field];
+                    }
+
+                    // toggle validity to true
+                    input.setCustomValidity("");
+                    return [true, "Success"];
+                }
+
+                const checkValidation = async () => {
 
                     const validation = {
                         data: {
                             validationMessage: $input.data('validationMessage'),
                             validationEmptyMessage: $input.data('validationEmptyMessage'),
                             cannotBeEmpty: ($input.attr('required') === "required") || ($input.data("validationNotEmpty") == true),
+                            resolveDNS: $input.data('validationResolvedns')
                         },
                         isInputEmpty: ($input.val().trim() == "")
                     };
 
-                    const $parent = $input.parent();
-
-                    let messageToShow;
-                    let $error = $parent.find(`.invalid-feedback`);
+                    const [isValid, messageToShow] = await validInput(validation);
+                    let $error = $input.parent().find(`.invalid-feedback`);
 
                     // if the error element doesn't exist then create a new one
                     if ($error.length == 0) {
                         $error = $(`<span class='invalid-feedback'></span>`);
                     }
 
-
-                    if (validation.data.cannotBeEmpty && validation.isInputEmpty) {
-                        // trigger input validation flag
-                        input.setCustomValidity("Empty!");
-                        messageToShow = validation.data.validationEmptyMessage || validation.data.validationMessage || input.validationMessage;
-                    }
-                    else if (validation.data.cannotBeEmpty && !validation.isInputEmpty) {
-
-                        if (!input.validity.valid && input.validationMessage) {
-                            messageToShow = input.validationMessage;
-                        }
-                        else {
-                            input.setCustomValidity("");
-                        }
-                    }
-                    else {
-                        messageToShow = validation.data.validationMessage || input.validationMessage;
-                    }
-
-                    if (!input.validity.valid && messageToShow) {
+                    // display the errors and color the input box
+                    if (!isValid) {
                         $input.addClass('is-invalid');
+                        $input.parent().append($error);
                         $error.text(messageToShow);
-                        $parent.append($error);
                     }
                     else {
+                        // clean the validation message and remove the error
                         $input.removeClass('is-invalid');
-                        $error.fadeOut(500, function () {
-                            $(this).remove();
-                        });
+                        $error.fadeOut(500, function () { $(this).remove(); });
                     }
-
                 }
+
 
                 $(this).off('input').on('input', function (e) {
 
@@ -259,10 +293,14 @@
                     if (timeoutId != -1) clearTimeout(timeoutId);
 
                     if (!$input.attr("formnovalidate")) {
+                        // remove is-valid class
+                        $input.removeClass("is-valid");
                         // trigger input validation after 500msec
-                        timeoutId = setTimeout(() => { checkValidation() }, 500);
-                        // trigger form validation to enable the submit button
-                        self.toggleFormSubmission();
+                        timeoutId = setTimeout(() => {
+                            checkValidation();
+                            // trigger form validation to enable the submit button
+                            self.toggleFormSubmission();
+                        }, 500);
                         // the user has changed the input, we can abort the first close attempt
                         self.firstCloseAttempt = false;
                     }
@@ -274,8 +312,9 @@
                         checkValidation();
                     }
                 });
-
             });
+
+
         }
 
         toggleFormSubmission() {
@@ -346,13 +385,13 @@
                 self.delegateSubmit();
 
             })
-            .fail(function (jqxhr, textStatus, errorThrown) {
-                self.isSubmitting = false;
-                self.options.onSubmitError(dataToSend, textStatus, errorThrown);
-            })
-            .always(function (d) {
-                submitButton.removeAttr("disabled");
-            });
+                .fail(function (jqxhr, textStatus, errorThrown) {
+                    self.isSubmitting = false;
+                    self.options.onSubmitError(dataToSend, textStatus, errorThrown);
+                })
+                .always(function (d) {
+                    submitButton.removeAttr("disabled");
+                });
         }
 
         delegateResetButton() {
