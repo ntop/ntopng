@@ -132,7 +132,7 @@ print[[
     /* Remove duplicate hosts */
     $.each($("#category-hosts-list").val().split("\n"), function(i, host) {
       var whitelisted = (host.charAt(0) === '!');
-      host = cleanCustomHostUrl(host);
+      host = NtopngUtils.cleanCustomHostUrl(host);
       if (whitelisted) host = "!" + host;
 
       if($.inArray(host, unique_hosts) === -1)
@@ -145,7 +145,7 @@ print[[
     params.custom_hosts = unique_hosts.join(',');
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
   function clearCategory() {
@@ -154,7 +154,7 @@ print[[
     params.action = "clear";
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
   function loadCategories(category_id) {

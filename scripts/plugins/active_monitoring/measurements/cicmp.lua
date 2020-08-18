@@ -211,7 +211,7 @@ return {
       -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
       additional_timeseries = timeseries,
       -- Js function to call to format the measurement value. See ntopng_utils.js .
-      value_js_formatter = "fpercent",
+      value_js_formatter = "NtopngUtils.fpercent",
       -- The raw measurement value is multiplied by this factor before being written into the chart
       chart_scaling_value = 1,
       -- The localization string for the Active Monitoring metric in the chart
@@ -236,7 +236,7 @@ return {
       max_threshold = 100,
       default_threshold = 99,
       additional_timeseries = timeseries,
-      value_js_formatter = "fpercent",
+      value_js_formatter = "NtopngUtils.fpercent",
       chart_scaling_value = 1,
       i18n_chart_notes = {},
       force_host = nil,

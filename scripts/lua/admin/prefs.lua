@@ -361,7 +361,7 @@ function printAlerts()
       params.flush_alerts_data = "";
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-      var form = paramsToForm('<form method="post"></form>', params);
+      var form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
       form.appendTo('body').submit();
     }
   </script>

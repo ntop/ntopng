@@ -414,7 +414,7 @@ print [[
 
     /* Remove duplicate hosts */
     $.each(hosts_list.val().split("\n"), function(i, host) {
-      host = cleanCustomHostUrl(host);
+      host = NtopngUtils.cleanCustomHostUrl(host);
 
       if(($.inArray(host, unique_hosts) === -1) && host)
         unique_hosts.push(host);
@@ -437,7 +437,7 @@ print [[
       return;
     }
 
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
   function addApplication() {
@@ -457,7 +457,7 @@ print [[
     params.action = "delete";
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
   function loadApplications(app) {

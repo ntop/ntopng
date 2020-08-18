@@ -130,7 +130,7 @@ print([[
       params.ifid = ]].. getSystemInterfaceId() ..[[;
       params.csrf = "]].. ntop.getRandomCSRFValue() ..[[";
 
-      const form = paramsToForm('<form method="post"></form>', params);
+      const form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
       form.appendTo('body').submit();
    };
 

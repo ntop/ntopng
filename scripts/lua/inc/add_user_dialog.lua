@@ -232,7 +232,7 @@ print[[
     } else {
       var arrayOfStrings = $("#allowed_networks_input").val().split(",");
       for (var i=0; i < arrayOfStrings.length; i++) {
-	if(!is_network_mask(arrayOfStrings[i])) {
+	if(!NtopngUtils.is_network_mask(arrayOfStrings[i])) {
 	  add_user_alert.error("Invalid network list specified ("+arrayOfStrings[i]+")");
 	  return(false);
 	}

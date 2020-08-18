@@ -151,7 +151,7 @@ $(document).ready(function () {
 
                 const ipAddress = $(`#add-member-modal input[name='ip_address']`).val();
                 const vlan = $(`#add-member-modal input[name='ip_vlan']`).val() || 0;
-                const cidr = is_good_ipv6(ipAddress) ? 128 : 32;
+                const cidr = NtopngUtils.is_good_ipv6(ipAddress) ? 128 : 32;
                 member = `${ipAddress}/${cidr}@${vlan}`;
             }
             else {

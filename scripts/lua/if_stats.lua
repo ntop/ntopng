@@ -1239,11 +1239,11 @@ print [[
 			   for (key in profiles["profiles"]) {
 			     let k = '#profile_'+key.replace(" ", "");
 			     const v = profiles["profiles"][key];
-			     $(k).html(bytesToVolume(v));
+			     $(k).html(NtopngUtils.bytesToVolume(v));
 			     k += "_trend";
 			     let last = last_profile[key];
 			     if(last == null) { last = 0; }
-			     $(k).html(get_trend(last, v));
+			     $(k).html(NtopngUtils.get_trend(last, v));
 			   }
 
 			   last_profile = profiles["profiles"];
@@ -2052,15 +2052,15 @@ print [[/lua/rest/v1/get/interface/data.lua',
         }
 
         const rsp = content["rsp"];
-	const v = bytesToVolume(rsp.bytes);
+	const v = NtopngUtils.bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
 
-   $('#if_in_bytes').html(bytesToVolume(rsp.bytes_download));
-	$('#if_out_bytes').html(bytesToVolume(rsp.bytes_upload));
-   $('#if_in_pkts').html(addCommas(rsp.packets_download) + " Pkts");
-	$('#if_out_pkts').html(addCommas(rsp.packets_upload)  + " Pkts");
-   $('#pkts_in_trend').html(get_trend(last_in_pkts, rsp.bytes_download));
-   $('#pkts_out_trend').html(get_trend(last_out_pkts, rsp.bytes_upload));
+   $('#if_in_bytes').html(NtopngUtils.bytesToVolume(rsp.bytes_download));
+	$('#if_out_bytes').html(NtopngUtils.bytesToVolume(rsp.bytes_upload));
+   $('#if_in_pkts').html(NtopngUtils.addCommas(rsp.packets_download) + " Pkts");
+	$('#if_out_pkts').html(NtopngUtils.addCommas(rsp.packets_upload)  + " Pkts");
+   $('#pkts_in_trend').html(NtopngUtils.get_trend(last_in_pkts, rsp.bytes_download));
+   $('#pkts_out_trend').html(NtopngUtils.get_trend(last_out_pkts, rsp.bytes_upload));
    last_in_pkts = rsp.bytes_download;
    last_out_pkts = rsp.bytes_upload;
 
@@ -2074,20 +2074,20 @@ print [[/lua/rest/v1/get/interface/data.lua',
 
               if(diff > 0) {
                  rate = ((diff * 1000)/time_diff).toFixed(1);
-                 label = " [" + fflows(rate) + "] " + get_trend(1,0);
+                 label = " [" + NtopngUtils.fflows(rate) + "] " + NtopngUtils.get_trend(1,0);
               } else {
-                 label = " "+get_trend(0,0);
+                 label = " "+NtopngUtils.get_trend(0,0);
               }
            } else {
-              label = " "+get_trend(0,0);
+              label = " "+NtopngUtils.get_trend(0,0);
            }
-           $('#if_zmq_flows').html(addCommas(rsp.zmqRecvStats.flows)+label);
-           $('#if_zmq_events').html(addCommas(rsp.zmqRecvStats.events)+" "+get_trend(rsp.zmqRecvStats.events, last_zmq_events));
-           $('#if_zmq_counters').html(addCommas(rsp.zmqRecvStats.counters)+" "+get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
-           $('#if_zmq_msg_drops').html(addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" "+get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));
-           $('#if_zmq_msg_rcvd').html(addCommas(rsp.zmqRecvStats.zmq_msg_rcvd)+" "+get_trend(rsp.zmqRecvStats.zmq_msg_rcvd, last_zmq_msg_rcvd));
-           $('#if_zmq_avg_msg_flows').html(addCommas(formatValue(rsp.zmqRecvStats.zmq_avg_msg_flows)));
-           $('#if_num_remote_zmq_flow_exports').html(addCommas(rsp["zmq.num_flow_exports"])+" "+get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
+           $('#if_zmq_flows').html(NtopngUtils.addCommas(rsp.zmqRecvStats.flows)+label);
+           $('#if_zmq_events').html(NtopngUtils.addCommas(rsp.zmqRecvStats.events)+" "+NtopngUtils.get_trend(rsp.zmqRecvStats.events, last_zmq_events));
+           $('#if_zmq_counters').html(NtopngUtils.addCommas(rsp.zmqRecvStats.counters)+" "+NtopngUtils.get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
+           $('#if_zmq_msg_drops').html(NtopngUtils.addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" "+NtopngUtils.get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));
+           $('#if_zmq_msg_rcvd').html(NtopngUtils.addCommas(rsp.zmqRecvStats.zmq_msg_rcvd)+" "+NtopngUtils.get_trend(rsp.zmqRecvStats.zmq_msg_rcvd, last_zmq_msg_rcvd));
+           $('#if_zmq_avg_msg_flows').html(NtopngUtils.addCommas(NtopngUtils.formatValue(rsp.zmqRecvStats.zmq_avg_msg_flows)));
+           $('#if_num_remote_zmq_flow_exports').html(NtopngUtils.addCommas(rsp["zmq.num_flow_exports"])+" "+NtopngUtils.get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
 
            last_zmq_flows = rsp.zmqRecvStats.flows;
            last_zmq_events = rsp.zmqRecvStats.events;
@@ -2099,7 +2099,7 @@ print [[/lua/rest/v1/get/interface/data.lua',
            last_zmq_time = now;
         }
 
-	$('#if_pkts').html(addCommas(rsp.packets)+"]]
+	$('#if_pkts').html(NtopngUtils.addCommas(rsp.packets)+"]]
 
 print(" Pkts\");")
 
@@ -2116,21 +2116,21 @@ if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
         } else {
           $('#nfq_queue_total').removeClass("badge badge-danger");
         }
-	$('#nfq_queue_total').html(fint(rsp.netfilter.nfq.queue_total) + " [" + fint(rsp.netfilter.nfq.queue_pct) + " %]");
-        $('#nfq_queue_total_trend').html(get_trend(last_nfq_queue_total, rsp.netfilter.nfq.queue_total));
-	$('#nfq_handling_failed').html(fint(rsp.netfilter.failures.handle_packet));
-        $('#nfq_handling_failed_trend').html(get_trend(last_nfq_handling_failed, rsp.netfilter.failures.handle_packet));
-	$('#nfq_enobufs').html(fint(rsp.netfilter.failures.no_buffers));
-        $('#nfq_enobufs_trend').html(get_trend(last_nfq_enobufs, rsp.netfilter.failures.no_buffers));
-	$('#num_conntrack_entries').html(fint(rsp.netfilter.nfq.num_conntrack_entries)+ " [" + fint((rsp.netfilter.nfq.num_conntrack_entries*100)/rsp.num_flows) + " %]");
+	$('#nfq_queue_total').html(NtopngUtils.fint(rsp.netfilter.nfq.queue_total) + " [" + NtopngUtils.fint(rsp.netfilter.nfq.queue_pct) + " %]");
+        $('#nfq_queue_total_trend').html(NtopngUtils.get_trend(last_nfq_queue_total, rsp.netfilter.nfq.queue_total));
+	$('#nfq_handling_failed').html(NtopngUtils.fint(rsp.netfilter.failures.handle_packet));
+        $('#nfq_handling_failed_trend').html(NtopngUtils.get_trend(last_nfq_handling_failed, rsp.netfilter.failures.handle_packet));
+	$('#nfq_enobufs').html(NtopngUtils.fint(rsp.netfilter.failures.no_buffers));
+        $('#nfq_enobufs_trend').html(NtopngUtils.get_trend(last_nfq_enobufs, rsp.netfilter.failures.no_buffers));
+	$('#num_conntrack_entries').html(NtopngUtils.fint(rsp.netfilter.nfq.num_conntrack_entries)+ " [" + NtopngUtils.fint((rsp.netfilter.nfq.num_conntrack_entries*100)/rsp.num_flows) + " %]");
 ]]
 end
 
 if ifstats.stats.discarded_probing_packets then
       print[[
-	$('#if_discarded_probing_bytes').html(bytesToVolume(rsp.discarded_probing_bytes));
-	$('#if_discarded_probing_pkts').html(formatPackets(rsp.discarded_probing_packets));
-        $('#if_discarded_probing_trend').html(get_trend(last_discarded_probing_pkts, rsp.discarded_probing_packets));
+	$('#if_discarded_probing_bytes').html(NtopngUtils.bytesToVolume(rsp.discarded_probing_bytes));
+	$('#if_discarded_probing_pkts').html(NtopngUtils.formatPackets(rsp.discarded_probing_packets));
+        $('#if_discarded_probing_trend').html(NtopngUtils.get_trend(last_discarded_probing_pkts, rsp.discarded_probing_packets));
         last_discarded_probing_pkts = rsp.discarded_probing_packets;
 ]]
 end
@@ -2142,21 +2142,21 @@ print [[
 	var last_pkt_ooo =  ]] print(tostring(ifstats.tcpPacketStats.out_of_order)) print [[;
 	var last_pkt_lost = ]] print(tostring(ifstats.tcpPacketStats.lost)) print [[;
 
-	$('#pkt_retransmissions').html(fint(rsp.tcpPacketStats.retransmissions)+" Pkts");  $('#pkt_retransmissions_trend').html(get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
-	$('#pkt_ooo').html(fint(rsp.tcpPacketStats.out_of_order)+" Pkts");  $('#pkt_ooo_trend').html(get_trend(last_pkt_ooo, rsp.tcpPacketStats.out_of_order));
-	$('#pkt_lost').html(fint(rsp.tcpPacketStats.lost)+" Pkts"); $('#pkt_lost_trend').html(get_trend(last_pkt_lost, rsp.tcpPacketStats.lost));
+	$('#pkt_retransmissions').html(NtopngUtils.fint(rsp.tcpPacketStats.retransmissions)+" Pkts");  $('#pkt_retransmissions_trend').html(NtopngUtils.get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
+	$('#pkt_ooo').html(NtopngUtils.fint(rsp.tcpPacketStats.out_of_order)+" Pkts");  $('#pkt_ooo_trend').html(NtopngUtils.get_trend(last_pkt_ooo, rsp.tcpPacketStats.out_of_order));
+	$('#pkt_lost').html(NtopngUtils.fint(rsp.tcpPacketStats.lost)+" Pkts"); $('#pkt_lost_trend').html(NtopngUtils.get_trend(last_pkt_lost, rsp.tcpPacketStats.lost));
 	last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;
 	last_pkt_ooo = rsp.tcpPacketStats.out_of_order;
 	last_pkt_lost = rsp.tcpPacketStats.lost;
 
-	$('#pkts_trend').html(get_trend(last_pkts, rsp.packets));
-	$('#drops_trend').html(get_trend(last_drops, rsp.drops));
+	$('#pkts_trend').html(NtopngUtils.get_trend(last_pkts, rsp.packets));
+	$('#drops_trend').html(NtopngUtils.get_trend(last_drops, rsp.drops));
 	last_pkts = rsp.packets;
 	last_drops = rsp.drops;
 
-	$('#engaged_alerts_trend').html(get_trend(last_engaged_alerts, rsp.engaged_alerts));
+	$('#engaged_alerts_trend').html(NtopngUtils.get_trend(last_engaged_alerts, rsp.engaged_alerts));
 	last_engaged_alerts = rsp.engaged_alerts;
-	$('#dropped_alerts_trend').html(get_trend(last_dropped_alerts, rsp.dropped_alerts));
+	$('#dropped_alerts_trend').html(NtopngUtils.get_trend(last_dropped_alerts, rsp.dropped_alerts));
 	last_dropped_alerts = rsp.dropped_alerts;
         $('#dropped_alerts').html(last_dropped_alerts);
 
@@ -2167,18 +2167,18 @@ print [[
 	if(rsp.drops > 0) {
           drops = '<span class="badge badge-danger">';
         }
-	drops = drops + addCommas(rsp.drops)+" Pkts";
+	drops = drops + NtopngUtils.addCommas(rsp.drops)+" Pkts";
 
 	if(pctg > 0)      { drops  += " [ "+pctg+" % ]"; }
 	if(rsp.drops > 0) { drops  += '</span>'; }
 	$('#if_drops').html(drops);
 
-        $('#exported_flows').html(fint(rsp.flow_export_count));
+        $('#exported_flows').html(NtopngUtils.fint(rsp.flow_export_count));
         $('#exported_flows_rate').html(Math.round(rsp.flow_export_rate * 100) / 100);
         if(rsp.flow_export_drops > 0) {
           $('#exported_flows_drops')
             .addClass("badge badge-danger")
-            .html(fint(rsp.flow_export_drops));
+            .html(NtopngUtils.fint(rsp.flow_export_drops));
           if(rsp.flow_export_count > 0) {
             $('#exported_flows_drops_pct')
               .addClass("badge badge-danger")

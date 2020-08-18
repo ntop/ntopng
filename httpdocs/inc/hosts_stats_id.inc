@@ -40,7 +40,7 @@ function host_table_setID (row) {
 }
 
 function row_update(host_key) {
-   var hostInfo = hostkey2hostInfo(host_key);
+   var hostInfo = NtopngUtils.hostkey2hostInfo(host_key);
 
    var vlan = "";
    if (hostInfo[1])

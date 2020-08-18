@@ -126,7 +126,7 @@ $(document).ready(function () {
             draw_markers(data, map_markers, hosts_map);
         })
         .fail(({ status, statusText }) => {
-            check_status_code(status, statusText, $("#geomap-alert"));
+            NtopngUtils.check_status_code(status, statusText, $("#geomap-alert"));
         });
 
     }

@@ -63,7 +63,7 @@ function sankey() {
       height = h - margin.top - margin.bottom;
 
   var formatNumber = d3.format(",.0f"),
-    format = function(sent, rcvd) { return "[sent: " + bytesToVolume(sent) + ", rcvd: " + bytesToVolume(rcvd)+"]"; },
+    format = function(sent, rcvd) { return "[sent: " + NtopngUtils.bytesToVolume(sent) + ", rcvd: " + NtopngUtils.bytesToVolume(rcvd)+"]"; },
     color = d3.scale.category20();
 
 ]]
@@ -219,7 +219,7 @@ print(url.."hosts=".._GET["hosts"])
 
 
   link.append("title")
-    .text(function(d) { return d.source.name + " - " + d.target.name + "\n" + bytesToVolume(d.value)+ "\n Double click to show more information about this flows." ; });
+    .text(function(d) { return d.source.name + " - " + d.target.name + "\n" + NtopngUtils.bytesToVolume(d.value)+ "\n Double click to show more information about this flows." ; });
 debugger;
   var node = svg_sankey.append("g").selectAll(".node")
     .data(hosts.nodes)

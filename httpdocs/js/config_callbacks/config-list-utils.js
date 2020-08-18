@@ -18,7 +18,7 @@ const resetConfig = () => {
     params.csrf = pageCsrf;
     params.action = "reset_config";
 
-    var form = paramsToForm('<form method="post"></form>', params);
+    var form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
     form.appendTo('body').submit();
 }
 
@@ -167,7 +167,7 @@ $(document).ready(function() {
             .then((data, result, xhr) => {
 
                 // check if the status code is successfull
-                if (check_status_code(xhr.status, xhr.statusText, $("#clone-error"))) return;
+                if (NtopngUtils.check_status_code(xhr.status, xhr.statusText, $("#clone-error"))) return;
 
                 // re-enable button
                 $button.removeAttr("disabled");
@@ -187,7 +187,7 @@ $(document).ready(function() {
             })
             .fail(({status, statusText}) => {
 
-                check_status_code(status, statusText, $("#clone-error"));
+                NtopngUtils.check_status_code(status, statusText, $("#clone-error"));
                 // re-enable button
                 $button.removeAttr("disabled");
             })
@@ -245,7 +245,7 @@ $(document).ready(function() {
             .done((data, status, xhr) => {
 
                 // check if the status code is successfull
-                if (check_status_code(xhr.status, xhr.statusText, $("#rename-error"))) return;
+                if (NtopngUtils.check_status_code(xhr.status, xhr.statusText, $("#rename-error"))) return;
 
                 $button.removeAttr("disabled");
 
@@ -265,7 +265,7 @@ $(document).ready(function() {
             })
             .fail(({status, statusText}, st, xhr) => {
 
-                check_status_code(status, statusText, $("#rename-error"));
+                NtopngUtils.check_status_code(status, statusText, $("#rename-error"));
 
                 // re-enable button
                 $button.removeAttr("disabled");
@@ -303,7 +303,7 @@ $(document).ready(function() {
             .done((data, status, xhr) => {
 
                 // check if the status code is successfull
-                if (check_status_code(xhr.status, xhr.statusText, $("#delete-error"))) return;
+                if (NtopngUtils.check_status_code(xhr.status, xhr.statusText, $("#delete-error"))) return;
 
                 $button.removeAttr("disabled");
 
@@ -323,7 +323,7 @@ $(document).ready(function() {
             })
             .fail(({status, statusText}) => {
 
-                check_status_code(status, statusText, $("#delete-error"));
+                NtopngUtils.check_status_code(status, statusText, $("#delete-error"));
 
                 // re-enable button
                 $button.removeAttr("disabled");
@@ -340,7 +340,7 @@ $(document).ready(function() {
     });
 
     // handle import modal
-    importModalHelper({
+    NtopngUtils.importModalHelper({
         load_config_xhr: (json_conf) => {
           return $.post(`${http_prefix}/lua/rest/set/scripts/config.lua`, {
             csrf: pageCsrf,

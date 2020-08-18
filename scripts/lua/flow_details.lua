@@ -470,7 +470,7 @@ local function printAddCustomHostRule(full_url)
    function addToCustomizedCategories() {
       var is_category = ($("#new_rule_type").val() == "category");
       var target_value = is_category ? $("#flow_target_category").val() : $("#flow_target_app").val();;
-      var target_url = cleanCustomHostUrl($("#categories_url_add").val());
+      var target_url = NtopngUtils.cleanCustomHostUrl($("#categories_url_add").val());
 
       if(!target_value || !target_url)
 	 return;
@@ -483,7 +483,7 @@ local function printAddCustomHostRule(full_url)
       else
 	 params.l7proto = target_value;
 
-      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+      NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
    }
 
    function new_rule_dropdown_select(dropdown) {
@@ -1384,27 +1384,27 @@ print[[
 			var rsp = jQuery.parseJSON(content);
 			$('#first_seen').html(rsp["seen.first"]);
 			$('#last_seen').html(rsp["seen.last"]);
-			$('#volume').html(bytesToVolume(rsp.bytes));
-			$('#goodput_volume').html(bytesToVolume(rsp["goodput_bytes"]));
+			$('#volume').html(NtopngUtils.bytesToVolume(rsp.bytes));
+			$('#goodput_volume').html(NtopngUtils.bytesToVolume(rsp["goodput_bytes"]));
 			pctg = ((rsp["goodput_bytes"]*100)/rsp["bytes"]).toFixed(1);
 
 			/* 50 is the same threshold specified in FLOW_GOODPUT_THRESHOLD */
 			if(pctg < 50) { pctg = "<font color=red>"+pctg+"</font>"; } else if(pctg < 60) { pctg = "<font color=orange>"+pctg+"</font>"; }
 
 			$('#goodput_percentage').html(pctg);
-			$('#cli2srv').html(addCommas(rsp["cli2srv.packets"])+" Pkts / " + addCommas(bytesToVolume(rsp["cli2srv.bytes"])));
-			$('#srv2cli').html(addCommas(rsp["srv2cli.packets"])+" Pkts / " + addCommas(bytesToVolume(rsp["srv2cli.bytes"])));
+			$('#cli2srv').html(NtopngUtils.addCommas(rsp["cli2srv.packets"])+" Pkts / " + NtopngUtils.addCommas(NtopngUtils.bytesToVolume(rsp["cli2srv.bytes"])));
+			$('#srv2cli').html(NtopngUtils.addCommas(rsp["srv2cli.packets"])+" Pkts / " + NtopngUtils.addCommas(NtopngUtils.bytesToVolume(rsp["srv2cli.bytes"])));
 			$('#throughput').html(rsp.throughput);
 
 			if(typeof rsp["c2sOOO"] !== "undefined") {
-			   $('#c2sOOO').html(formatPackets(rsp["c2sOOO"]));
-			   $('#s2cOOO').html(formatPackets(rsp["s2cOOO"]));
-			   $('#c2slost').html(formatPackets(rsp["c2slost"]));
-			   $('#s2clost').html(formatPackets(rsp["s2clost"]));
-			   $('#c2skeep_alive').html(formatPackets(rsp["c2skeep_alive"]));
-			   $('#s2ckeep_alive').html(formatPackets(rsp["s2ckeep_alive"]));
-			   $('#c2sretr').html(formatPackets(rsp["c2sretr"]));
-			   $('#s2cretr').html(formatPackets(rsp["s2cretr"]));
+			   $('#c2sOOO').html(NtopngUtils.formatPackets(rsp["c2sOOO"]));
+			   $('#s2cOOO').html(NtopngUtils.formatPackets(rsp["s2cOOO"]));
+			   $('#c2slost').html(NtopngUtils.formatPackets(rsp["c2slost"]));
+			   $('#s2clost').html(NtopngUtils.formatPackets(rsp["s2clost"]));
+			   $('#c2skeep_alive').html(NtopngUtils.formatPackets(rsp["c2skeep_alive"]));
+			   $('#s2ckeep_alive').html(NtopngUtils.formatPackets(rsp["s2ckeep_alive"]));
+			   $('#c2sretr').html(NtopngUtils.formatPackets(rsp["c2sretr"]));
+			   $('#s2cretr').html(NtopngUtils.formatPackets(rsp["s2cretr"]));
 			}
 			if (rsp["cli2srv_quota"]) $('#cli2srv_quota').html(rsp["cli2srv_quota"]);
 			if (rsp["srv2cli_quota"]) $('#srv2cli_quota').html(rsp["srv2cli_quota"]);

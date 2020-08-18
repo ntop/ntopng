@@ -196,7 +196,7 @@ print[[
     params.job_action = 'delete';
     params.job_id = job_id;
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
   function stopJob(job_id) {
@@ -204,14 +204,14 @@ print[[
     params.job_action = 'stop';
     params.job_id = job_id;
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
   function deleteAllExtractionJobs() {
     var params = {}
     params.job_action = 'delete';
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
   </script>
 ]]

@@ -354,7 +354,7 @@
             const resetButton = $(this.element).find(`[type='reset']`);
             if (resetButton.length == 0) return;
 
-            const defaultValues = serializeFormArray($(this.element).serializeArray());
+            const defaultValues = NtopngUtils.serializeFormArray($(this.element).serializeArray());
 
             resetButton.click(function (e) {
 

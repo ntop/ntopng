@@ -118,39 +118,39 @@ if(page == "overview") then
        $("#influxdb-health").html(health_descr[info.health]["status"] + "<br>" + health_descr[info.health]["descr"]);
      }
      if(typeof info.db_bytes !== "undefined") {
-       $("#influxdb-info-text").html(bytesToVolume(info.db_bytes) + " ");
+       $("#influxdb-info-text").html(NtopngUtils.bytesToVolume(info.db_bytes) + " ");
        if(typeof last_db_bytes !== "undefined")
-         $("#influxdb-info-text").append(drawTrend(info.db_bytes, last_db_bytes));
+         $("#influxdb-info-text").append(NtopngUtils.drawTrend(info.db_bytes, last_db_bytes));
        last_db_bytes = info.db_bytes;
      }
      if(typeof info.memory !== "undefined") {
-       $("#influxdb-info-memory").html(bytesToVolume(info.memory) + " ");
+       $("#influxdb-info-memory").html(NtopngUtils.bytesToVolume(info.memory) + " ");
        if(typeof last_memory !== "undefined")
-         $("#influxdb-info-memory").append(drawTrend(info.memory, last_memory));
+         $("#influxdb-info-memory").append(NtopngUtils.drawTrend(info.memory, last_memory));
        last_memory = info.memory;
      }
      if(typeof info.num_series !== "undefined") {
-       $("#influxdb-info-series").html(addCommas(info.num_series) + " ");
+       $("#influxdb-info-series").html(NtopngUtils.addCommas(info.num_series) + " ");
        if(typeof last_num_series !== "undefined")
-         $("#influxdb-info-series").append(drawTrend(info.num_series, last_num_series));
+         $("#influxdb-info-series").append(NtopngUtils.drawTrend(info.num_series, last_num_series));
        last_num_series = info.num_series;
      }
      if(typeof info.points_exported !== "undefined") {
-       $("#influxdb-exported-points").html(addCommas(info.points_exported) + " ");
+       $("#influxdb-exported-points").html(NtopngUtils.addCommas(info.points_exported) + " ");
        if(typeof last_exported_points !== "undefined")
-         $("#influxdb-exported-points").append(drawTrend(info.points_exported, last_exported_points));
+         $("#influxdb-exported-points").append(NtopngUtils.drawTrend(info.points_exported, last_exported_points));
        last_exported_points = info.points_exported;
      }
      if(typeof info.points_dropped !== "undefined") {
-       $("#influxdb-dropped-points").html(addCommas(info.points_dropped) + " ");
+       $("#influxdb-dropped-points").html(NtopngUtils.addCommas(info.points_dropped) + " ");
        if(typeof last_dropped_points !== "undefined")
-         $("#influxdb-dropped-points").append(drawTrend(info.points_dropped, last_dropped_points, " style=\"color: #B94A48;\""));
+         $("#influxdb-dropped-points").append(NtopngUtils.drawTrend(info.points_dropped, last_dropped_points, " style=\"color: #B94A48;\""));
        last_dropped_points = info.points_dropped;
      }
      if(typeof info.exports !== "undefined") {
-       $("#influxdb-exports").html(addCommas(info.exports) + " ");
+       $("#influxdb-exports").html(NtopngUtils.addCommas(info.exports) + " ");
        if(typeof last_exports !== "undefined")
-         $("#influxdb-exports").append(drawTrend(info.exports, last_exports));
+         $("#influxdb-exports").append(NtopngUtils.drawTrend(info.exports, last_exports));
        last_exports = info.exports;
      }
 
@@ -183,7 +183,7 @@ elseif(page == "historical" and charts_available) then
       {schema="influxdb:memory_size",                       label=i18n("about.ram_memory")},
       {schema="influxdb:write_successes",                   label=i18n("system_stats.write_througput")},
       {schema="influxdb:exports",                           label=i18n("system_stats.exports_label"),
-       value_formatter = {"export_rate", "exports_format"},
+       value_formatter = {"NtopngUtils.export_rate", "NtopngUtils.exports_format"},
        metrics_labels = {i18n("system_stats.exports_label")}},
       {schema="influxdb:exported_points",                   label=i18n("system_stats.exported_points")},
       {schema="influxdb:dropped_points",                    label=i18n("system_stats.dropped_points")},

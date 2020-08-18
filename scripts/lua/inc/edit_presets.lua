@@ -237,7 +237,7 @@ local function printDeviceProtocolsPage()
       params.device_type = $('#device_type_selector').val();
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-      var form = paramsToForm('<form method="post"></form>', params);
+      var form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
       form.appendTo('body').submit();
    }
 
@@ -260,7 +260,7 @@ local function printDeviceProtocolsPage()
       });
 
       aysResetForm("#]] print(form_id) print[[");
-      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+      NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
       return false;
     });
 

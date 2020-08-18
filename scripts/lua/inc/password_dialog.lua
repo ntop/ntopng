@@ -269,7 +269,7 @@ print [[
      var arrayOfStrings = $("#networks_input").val().split(",");
 
      for (var i=0; i < arrayOfStrings.length; i++) {
-	if(!is_network_mask(arrayOfStrings[i])) {
+	if(!NtopngUtils.is_network_mask(arrayOfStrings[i])) {
 	   password_alert.error("Invalid network list specified ("+arrayOfStrings[i]+")");
 	   ok = false;
 	}

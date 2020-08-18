@@ -259,9 +259,9 @@ if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
 end
 
 print[[
-		$('.chart-upload-text:visible').html(bitsToSize(bps_upload, 1000));
-		$('.chart-download-text:visible').html(bitsToSize(bps_download, 1000));
-		$('.chart-total-text:visible').html(bitsToSize(bps_upload + bps_download, 1000));
+		$('.chart-upload-text:visible').html(NtopngUtils.bitsToSize(bps_upload, 1000));
+		$('.chart-download-text:visible').html(NtopngUtils.bitsToSize(bps_download, 1000));
+		$('.chart-total-text:visible').html(NtopngUtils.bitsToSize(bps_upload + bps_download, 1000));
      ]]
 
 -- systemInterfaceEnabled is defined inside menu.lua
@@ -273,9 +273,9 @@ print[[
 		let msg = `<div class='m-2'><div class='d-flex'>`;
 
 		if (rsp.system_host_stats.cpu_states) {
-            const iowait = ']] print(i18n("about.iowait")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
-            const active = ']] print(i18n("about.active")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.user + rsp.system_host_stats.cpu_states.system  + rsp.system_host_stats.cpu_states.nice + rsp.system_host_stats.cpu_states.irq + rsp.system_host_stats.cpu_states.softirq + rsp.system_host_stats.cpu_states.guest + rsp.system_host_stats.cpu_states.guest_nice) + "%";
-            const idle = ']] print(i18n("about.idle")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.idle + rsp.system_host_stats.cpu_states.steal) + "%";
+            const iowait = ']] print(i18n("about.iowait")) print[[: ' + NtopngUtils.formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
+            const active = ']] print(i18n("about.active")) print[[: ' + NtopngUtils.formatValue(rsp.system_host_stats.cpu_states.user + rsp.system_host_stats.cpu_states.system  + rsp.system_host_stats.cpu_states.nice + rsp.system_host_stats.cpu_states.irq + rsp.system_host_stats.cpu_states.softirq + rsp.system_host_stats.cpu_states.guest + rsp.system_host_stats.cpu_states.guest_nice) + "%";
+            const idle = ']] print(i18n("about.idle")) print[[: ' + NtopngUtils.formatValue(rsp.system_host_stats.cpu_states.idle + rsp.system_host_stats.cpu_states.steal) + "%";
             $('#cpu-states').html(iowait + " / " + active + " / " + idle);
         }
 
@@ -288,20 +288,20 @@ print[[
 		   mem_used_ratio = Math.round(mem_used_ratio * 100) / 100;
 		   mem_used_ratio = mem_used_ratio + "%";
 
-		   $('#ram-used').html(']] print(i18n("ram_used")) print[[: ' + mem_used_ratio + ' / ]] print(i18n("ram_available")) print[[: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / ]] print(i18n("ram_total")) print[[: ' + bytesToSize(mem_total * 1024));
-		   $('#ram-process-used').html(']] print(i18n("ram_used")) print[[: ' + bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
+		   $('#ram-used').html(']] print(i18n("ram_used")) print[[: ' + mem_used_ratio + ' / ]] print(i18n("ram_available")) print[[: ' + NtopngUtils.bytesToSize((mem_total - mem_used) * 1024) + ' / ]] print(i18n("ram_total")) print[[: ' + NtopngUtils.bytesToSize(mem_total * 1024));
+		   $('#ram-process-used').html(']] print(i18n("ram_used")) print[[: ' + NtopngUtils.bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
 		}
 
                 if(rsp.system_host_stats.dropped_alerts) {
                   const drop_pct = rsp.system_host_stats.dropped_alerts / (rsp.system_host_stats.dropped_alerts + rsp.system_host_stats.written_alerts) * 100;
-                  $('#dropped-alerts').html(fint(rsp.system_host_stats.dropped_alerts) + " [" + fpercent(drop_pct) + "]");
+                  $('#dropped-alerts').html(NtopngUtils.fint(rsp.system_host_stats.dropped_alerts) + " [" + NtopngUtils.fpercent(drop_pct) + "]");
                 } else {
                   $('#dropped-alerts').html("0");
                 }
-		$('#stored-alerts').html(rsp.system_host_stats.written_alerts ? fint(rsp.system_host_stats.written_alerts) : "0");
-		$('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? fint(rsp.system_host_stats.alerts_queries) : "0");
+		$('#stored-alerts').html(rsp.system_host_stats.written_alerts ? NtopngUtils.fint(rsp.system_host_stats.written_alerts) : "0");
+		$('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? NtopngUtils.fint(rsp.system_host_stats.alerts_queries) : "0");
 
-		if (rsp.system_host_stats.cpu_load !== undefined) $('#cpu-load-pct').html(ffloat(rsp.system_host_stats.cpu_load));
+		if (rsp.system_host_stats.cpu_load !== undefined) $('#cpu-load-pct').html(NtopngUtils.ffloat(rsp.system_host_stats.cpu_load));
 
         if(rsp.out_of_maintenance) {
           msg += "<a href=\"https://www.ntop.org/support/faq/how-can-i-renew-maintenance-for-commercial-products/\" target=\"_blank\"><span class=\"badge badge-warning\">]] print(i18n("about.maintenance_expired", {product=info["product"]})) print[[ <i class=\"fas fa-external-link-alt\"></i></span></a> ";
@@ -318,12 +318,12 @@ print[[
 
 		   if(rsp.engaged_alerts > 0) {
 		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
-		    msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+addCommas(rsp.engaged_alerts)+"</span></a>";
+		    msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopngUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
 		   }
 
 		   if(rsp.alerted_flows > 0) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status=alerted\">"
-		    msg += "<span class=\"badge badge-danger\">"+addCommas(rsp.alerted_flows)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+		    msg += "<span class=\"badge badge-danger\">"+NtopngUtils.addCommas(rsp.alerted_flows)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 		   }
 		}
 
@@ -343,7 +343,7 @@ print[[
 		if(rsp.num_local_hosts > 0 && (!systemInterfaceEnabled)) {
 		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
 		  msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge badge-success\">";
-		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+		  msg += NtopngUtils.addCommas(rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 
 		  checkMigrationMessage(rsp);
 		}
@@ -365,7 +365,7 @@ print[[
 			  msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge badge-danger\">";
 			}
 
-			msg += addCommas(num_remote_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+			msg += NtopngUtils.addCommas(num_remote_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 		}
 
 	    if(rsp.num_devices > 0 && !systemInterfaceEnabled) {
@@ -384,7 +384,7 @@ print[[
 				msg += "<span title=\"" + macs_label +"\" class=\"badge badge-danger\">";
 			}
 
-			msg += addCommas(rsp.num_devices)+" ]] print(i18n("devices")) print[[</span></a>";
+			msg += NtopngUtils.addCommas(rsp.num_devices)+" ]] print(i18n("devices")) print[[</span></a>";
 	    }
 
 	    if(rsp.num_flows > 0 && !systemInterfaceEnabled) {
@@ -402,10 +402,10 @@ print[[
 				msg += "<span class=\"badge badge-danger\">";
 			}
 
-			msg += addCommas(rsp.num_flows)+" ]] print(i18n("flows")) print[[ </span> </a>";
+			msg += NtopngUtils.addCommas(rsp.num_flows)+" ]] print(i18n("flows")) print[[ </span> </a>";
 
 			if (rsp.flow_export_drops > 0) {
-		   		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+addCommas(rsp.flow_export_drops)+" Export drop";
+		   		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopngUtils.addCommas(rsp.flow_export_drops)+" Export drop";
 		   		if(rsp.flow_export_drops > 1) msg += "s";
 				msg += "</span></a>";
 			}
@@ -415,7 +415,7 @@ print[[
 	    if ((rsp.num_live_captures != undefined) && (rsp.num_live_captures > 0) && (!systemInterfaceEnabled)) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/live_capture_stats.lua\">";
 			msg += "<span class=\"badge badge-primary\">";
-			msg += addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></span></a>";
+			msg += NtopngUtils.addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></span></a>";
 	    }
 
 	    if (rsp.remote_assistance != undefined && (!systemInterfaceEnabled)) {
@@ -437,7 +437,7 @@ print[[
 			}
 
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=status\">";
-			msg += "<span class=\"badge badge-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
+			msg += "<span class=\"badge badge-"+status_label+"\" title=\""+NtopngUtils.addCommas(status_title)+"\">";
 			msg += "<i class=\"fas fa-hdd fa-lg\"></i></span></a>";
 	    }
 
@@ -449,7 +449,7 @@ print[[
 			if (rsp.traffic_extraction == "ready") status_label="primary";
 
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=jobs\">";
-			msg += "<span class=\"badge badge-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
+			msg += "<span class=\"badge badge-"+status_label+"\" title=\""+NtopngUtils.addCommas(status_title)+"\">";
 			msg += rsp.traffic_extraction_num_tasks+" <i class=\"fas fa-tasks fa-lg\"></i></span></a>";
 		}
 

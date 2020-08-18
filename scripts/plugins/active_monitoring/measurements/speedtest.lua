@@ -134,7 +134,7 @@ return {
 	    schema="am_host:upload",
 	    label=i18n("active_monitoring_stats.upload_speed"),
 	    metrics_labels = { i18n("active_monitoring_stats.upload_speed"), },
-	    value_formatter = {"fbits", "fbits"},
+	    value_formatter = {"NtopngUtils.fbits", "NtopngUtils.fbits"},
 	    show_unreachable = true, -- Show the unreachable host status as a red line
 	 }, {
 	    schema="am_host:latency",
@@ -144,7 +144,7 @@ return {
 	    show_unreachable = true, -- Show the unreachable host status as a red line
 	 }},
 	 -- Js function to call to format the measurement value. See ntopng_utils.js .
-	 value_js_formatter = "fbits",
+	 value_js_formatter = "NtopngUtils.fbits",
 	 -- The raw measurement value is multiplied by this factor before being written into the chart
 	 chart_scaling_value = 1000000,
 	 -- A list of additional notes (localization strings) to show into the timeseries charts

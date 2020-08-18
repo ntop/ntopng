@@ -92,15 +92,15 @@ if(page == "overview") then
        $("#redis-health").html(health_descr[info.health]["status"] + "<br>" + health_descr[info.health]["descr"]);
      }
      if(typeof info.dbsize !== "undefined") {
-       $("#redis-info-keys").html(formatValue(info.dbsize) + " ");
+       $("#redis-info-keys").html(NtopngUtils.formatValue(info.dbsize) + " ");
        if(typeof last_keys !== "undefined")
-	 $("#redis-info-keys").append(drawTrend(info.dbsize, last_keys));
+	 $("#redis-info-keys").append(NtopngUtils.drawTrend(info.dbsize, last_keys));
        last_keys = info.dbsize;
      }
      if(typeof info.memory !== "undefined") {
-       $("#redis-info-memory").html(bytesToVolume(info.memory) + " ");
+       $("#redis-info-memory").html(NtopngUtils.bytesToVolume(info.memory) + " ");
        if(typeof last_memory !== "undefined")
-	 $("#redis-info-memory").append(drawTrend(info.memory, last_memory));
+	 $("#redis-info-memory").append(NtopngUtils.drawTrend(info.memory, last_memory));
        last_memory = info.memory;
      }
   }).fail(function() {

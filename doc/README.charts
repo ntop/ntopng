@@ -42,8 +42,8 @@ are accepted:
   - `value_formatter`: specify the js functions to use to format the chart data. It has the following format:
     `{points_formatter, total_formatter}`
     where the `points_formatter` is the name of the js function to use to format the timeseries points
-    (e.g. "fbits" to format throughput) and `total_formatter` is the name of the js function to use to
-    format the total and average values (e.g. "bytesToSize" to format traffic volume).
+    (e.g. "NtopngUtils.fbits" to format throughput) and `total_formatter` is the name of the js function to use to
+    format the total and average values (e.g. "NtopngUtils.bytesToSize" to format traffic volume).
   - `value_formatter2`: same as `value_formatter`, but for the second axis (see custom charts).
   - `custom_schema`: define a custom schema, see below for details
   - `check` (deprecated): for custom schemas, defines the sub schemas to check in order to show

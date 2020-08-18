@@ -70,7 +70,7 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
          schema = "custom:".. schema_prefix ..":vs_total",
          label = i18n("internals.script_stats", {script = user_script}),
          value_formatter = {"fmillis"},
-         value_formatter2 = {"fint"},
+         value_formatter2 = {"NtopngUtils.fint"},
          metrics_labels = {
             i18n("internals.script_duration", {script = user_script}),
             i18n("internals.total_duration", {subdir = firstToUpper(subdir)}),

@@ -376,9 +376,9 @@ var populateInterfaceTopTalkersTable = function(){
 
 
   if ($('#historical-interface-top-talkers-table').attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
   } else {
-    disableAllDropdownsAndTabs();
+    NtopngUtils.disableAllDropdownsAndTabs();
     $('#historical-interface-top-talkers-table').attr("loaded", 1);
     $('#historical-interface-top-talkers-table').datatable({
 	title: "",]]
@@ -390,7 +390,7 @@ var populateInterfaceTopTalkersTable = function(){
 	post: {totalRows: function(){ return $('#historical-interface-top-talkers-table').attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$('#historical-interface-top-talkers-table').attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$('#historical-interface-top-talkers-table').attr("total_rows", this.options.totalRows);NtopngUtils.enableAllDropdownsAndTabs();},
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
@@ -432,9 +432,9 @@ var populateHostTopTalkersTable = function(host){
   div_id='#'+div_id;
 
   if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
   } else {
-    disableAllDropdownsAndTabs();
+    NtopngUtils.disableAllDropdownsAndTabs();
     $(div_id).attr("loaded", 1);
     $(div_id).attr("host", host);
     $(div_id).datatable({
@@ -447,7 +447,7 @@ var populateHostTopTalkersTable = function(host){
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);NtopngUtils.enableAllDropdownsAndTabs();},
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
@@ -496,9 +496,9 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 
   // if the table has already been loaded, we just show up all the dropdowns
   if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
   } else {   // load the table only if it is the first time we've been called
-    disableAllDropdownsAndTabs();
+    NtopngUtils.disableAllDropdownsAndTabs();
     $(div_id).attr("loaded", 1);
     $(div_id).attr("peer1", peer1);
     $(div_id).attr("peer2", peer2);
@@ -512,7 +512,7 @@ var populateAppsPerHostsPairTable = function(peer1, peer2){
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);NtopngUtils.enableAllDropdownsAndTabs();},
 	rowCallback: function(row){
 	  var l7_proto_id_td = $("td:eq(0)", row[0]);
 	  var label_td = $("td:eq(1)", row[0]);
@@ -564,9 +564,9 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
 
   // if the table has already been loaded, we just show up all the dropdowns
   if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
   } else {   // load the table only if it is the first time we've been called
-    disableAllDropdownsAndTabs();
+    NtopngUtils.disableAllDropdownsAndTabs();
     $(div_id).attr("loaded", 1);
     $(div_id).attr("peer1", peer1);
     $(div_id).attr("peer2", peer2);
@@ -589,7 +589,7 @@ var populateFlowsPerHostsPairTable = function(peer1, peer2, l7_proto_id, num_flo
 	showPagination: true,
 totalRows: 100,
 	sort: [ [ "BYTES","desc"] ],
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);NtopngUtils.enableAllDropdownsAndTabs();},
 	columns:
 	[
 	  {title: "]] print(i18n("key")) print[[",         field: "idx",            hidden: true},
@@ -612,7 +612,7 @@ totalRows: 100,
 $('a[href="#historical-top-talkers"]').on('shown.bs.tab', function (e) {
   if ($('a[href="#historical-top-talkers"]').attr("loaded") == 1){
     // do nothing if the tabs have already been computed and populated
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
     return;
   }
 
@@ -769,9 +769,9 @@ var populateInterfaceTopAppsTable = function(){
   showOne('historical-interface-apps', 'historical-interface-top-apps-table');
 
   if ($('#historical-interface-top-apps-table').attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
   } else {
-    disableAllDropdownsAndTabs();
+    NtopngUtils.disableAllDropdownsAndTabs();
     $('#historical-interface-top-apps-table').attr("loaded", 1);
     $('#historical-interface-top-apps-table').datatable({
       title: "",]]
@@ -783,7 +783,7 @@ print [[
       post: {totalRows: function(){ return $('#historical-interface-top-apps-table').attr("total_rows");} },
       showFilter: true,
       showPagination: true,
-      tableCallback: function(){$('#historical-interface-top-apps-table').attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+      tableCallback: function(){$('#historical-interface-top-apps-table').attr("total_rows", this.options.totalRows);NtopngUtils.enableAllDropdownsAndTabs();},
       rowCallback: function(row){
 	var proto_id_td = $("td:eq(0)", row[0]);
 	var proto_label_td = $("td:eq(1)", row[0]);
@@ -834,9 +834,9 @@ var populateAppTopTalkersTable = function(proto_id){
   div_id='#'+div_id;
 
   if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
   } else {
-    disableAllDropdownsAndTabs();
+    NtopngUtils.disableAllDropdownsAndTabs();
     $(div_id).attr("loaded", 1);
     $(div_id).attr("l7_proto", proto_id);
     $(div_id).datatable({
@@ -849,7 +849,7 @@ var populateAppTopTalkersTable = function(proto_id){
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);NtopngUtils.enableAllDropdownsAndTabs();},
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
@@ -893,9 +893,9 @@ var populatePeersPerHostByApplication = function(host, proto_id){
   div_id='#'+div_id;
 
   if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
   } else {
-    disableAllDropdownsAndTabs();
+    NtopngUtils.disableAllDropdownsAndTabs();
     $(div_id).attr("loaded", 1);
     $(div_id).attr("l7_proto", proto_id);
     $(div_id).attr("host", host);
@@ -909,7 +909,7 @@ var populatePeersPerHostByApplication = function(host, proto_id){
 	post: {totalRows: function(){ return $(div_id).attr("total_rows");} },
 	showFilter: true,
 	showPagination: true,
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);NtopngUtils.enableAllDropdownsAndTabs();},
 	rowCallback: function(row){
 	  var addr_td = $("td:eq(1)", row[0]);
 	  var label_td = $("td:eq(0)", row[0]);
@@ -962,9 +962,9 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
 
   // if the table has already been loaded, we just show up all the dropdowns
   if ($(div_id).attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
   } else {   // load the table only if it is the first time we've been called
-    disableAllDropdownsAndTabs();
+    NtopngUtils.disableAllDropdownsAndTabs();
     $(div_id).attr("loaded", 1);
     $(div_id).attr("peer1", peer1);
     $(div_id).attr("peer2", peer2);
@@ -988,7 +988,7 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
 	showPagination: true,
 totalRows: 100,
 	sort: [ [ "BYTES","desc"] ],
-	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+	tableCallback: function(){$(div_id).attr("total_rows", this.options.totalRows);NtopngUtils.enableAllDropdownsAndTabs();},
 	columns:
 	[
 	  {title: "]] print(i18n("key")) print[[",         field: "idx",            hidden: true},
@@ -1025,9 +1025,9 @@ var populateHostTopAppsTable = function(host){
   showOne('historical-interface-apps', 'historical-interface-top-apps-table');
 
   if ($('#historical-interface-top-apps-table').attr("loaded") == 1) {
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
   } else {
-    disableAllDropdownsAndTabs();
+    NtopngUtils.disableAllDropdownsAndTabs();
     $('#historical-interface-top-apps-table').attr("loaded", 1);
     $('#historical-interface-top-apps-table').attr("host", host);
     $('#historical-interface-top-apps-table').datatable({
@@ -1040,7 +1040,7 @@ print [[
       post: {totalRows: function(){ return $('#historical-interface-top-apps-table').attr("total_rows");} },
       showFilter: true,
       showPagination: true,
-      tableCallback: function(){$('#historical-interface-top-apps-table').attr("total_rows", this.options.totalRows);enableAllDropdownsAndTabs();},
+      tableCallback: function(){$('#historical-interface-top-apps-table').attr("total_rows", this.options.totalRows);NtopngUtils.enableAllDropdownsAndTabs();},
 	rowCallback: function(row){
 	var proto_id_td = $("td:eq(0)", row[0]);
 	var proto_label_td = $("td:eq(1)", row[0]);
@@ -1103,7 +1103,7 @@ adapts the breadcrumb depending on the page.
 */
 $('a[href="#historical-top-apps"]').on('shown.bs.tab', function (e) {
   if ($('a[href="#historical-top-apps"]').attr("loaded") == 1){
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
     // do nothing if the tabs have already been computed and populated
     return;
   }
@@ -1276,7 +1276,7 @@ var abortQuery = function(){
 
 $('a[href="#historical-flows"]').on('shown.bs.tab', function (e) {
   if ($('a[href="#historical-flows"]').attr("loaded") == 1){
-    enableAllDropdownsAndTabs();
+    NtopngUtils.enableAllDropdownsAndTabs();
     // do nothing if the tabs have already been computed and populated
     return;
   }
@@ -1348,10 +1348,10 @@ print[[
 ]]
 
 print[[
-        tr += "<td align='right'>" + bytesToVolume(item.tot_bytes) + "</td>"
-        tr += "<td align='right'>" + formatPackets(item.tot_packets) + "</td>"
-        tr += "<td align='right'>" + fbits(item.tot_bytes * 8 / msg.timespan) + "</td>"
-        tr += "<td align='right'>" + fpackets(item.tot_packets / msg.timespan) + "</td>"
+        tr += "<td align='right'>" + NtopngUtils.bytesToVolume(item.tot_bytes) + "</td>"
+        tr += "<td align='right'>" + NtopngUtils.formatPackets(item.tot_packets) + "</td>"
+        tr += "<td align='right'>" + NtopngUtils.fbits(item.tot_bytes * 8 / msg.timespan) + "</td>"
+        tr += "<td align='right'>" + NtopngUtils.fpackets(item.tot_packets / msg.timespan) + "</td>"
         tr += "</tr>"
       });
 
@@ -1419,12 +1419,12 @@ print [[
       $('a[href="#tab-ipv4"]').on('shown.bs.tab', function (e) {
         if ($('a[href="#tab-ipv4"]').attr("loaded") == 1){
           // do nothing if the tab has already been computed and populated
-          enableAllDropdownsAndTabs();
+          NtopngUtils.enableAllDropdownsAndTabs();
           return;
         }
 
         // if here, then we actually have to load the datatable
-        disableAllDropdownsAndTabs();
+        NtopngUtils.disableAllDropdownsAndTabs();
         $('a[href="#tab-ipv4"]').attr("loaded", 1);
 
    ]]
@@ -1449,7 +1449,7 @@ print[[ ;
 print [[
 						    showFilter: true,
 						    showPagination: true,
-                                                    tableCallback: function(){enableAllDropdownsAndTabs();},
+                                                    tableCallback: function(){NtopngUtils.enableAllDropdownsAndTabs();},
 						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {
@@ -1572,12 +1572,12 @@ print [[
       $('a[href="#tab-ipv6"]').on('shown.bs.tab', function (e) {
         if ($('a[href="#tab-ipv6"]').attr("loaded") == 1){
           // do nothing if the tab has already been computed and populated
-          enableAllDropdownsAndTabs();
+          NtopngUtils.enableAllDropdownsAndTabs();
           return;
         }
 
         // if here, then we actually have to load the datatable
-        disableAllDropdownsAndTabs();
+        NtopngUtils.disableAllDropdownsAndTabs();
         $('a[href="#tab-ipv6"]').attr("loaded", 1);
 
 
@@ -1602,7 +1602,7 @@ print [[
 
 						    showFilter: true,
 						    showPagination: true,
-                                                    tableCallback: function(){enableAllDropdownsAndTabs();},
+                                                    tableCallback: function(){NtopngUtils.enableAllDropdownsAndTabs();},
 						    sort: [ [ "BYTES","desc"] ],
 						    columns: [
 						       {

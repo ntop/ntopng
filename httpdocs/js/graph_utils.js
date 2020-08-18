@@ -73,13 +73,13 @@ function getSerieLabel(schema, serie, visualization, serie_index) {
   }
 
   if(schema_2_label[schema])
-    return capitaliseFirstLetter(schema_2_label[schema]);
+    return NtopngUtils.capitaliseFirstLetter(schema_2_label[schema]);
 
   if(new_label)
-    return capitaliseFirstLetter(new_label);
+    return NtopngUtils.capitaliseFirstLetter(new_label);
 
   // default
-  return capitaliseFirstLetter(data_label);
+  return NtopngUtils.capitaliseFirstLetter(data_label);
 }
 
 // Value formatter
@@ -107,32 +107,32 @@ function getValueFormatter(schema, metric_type, series, custom_formatter, stats)
 
     if(label.contains("bytes")) {
       if(schema.contains("volume") || schema.contains("memory") || schema.contains("size"))
-        return [bytesToSize, bytesToSize];
+        return [NtopngUtils.bytesToSize, NtopngUtils.bytesToSize];
       else
-        return [fbits_from_bytes, bytesToSize];
+        return [NtopngUtils.fbits_from_bytes, NtopngUtils.bytesToSize];
     } else if(label.contains("packets"))
-      return [fpackets, formatPackets];
+      return [NtopngUtils.fpackets, formatPackets];
       else if(label.contains("points"))
-      return [fpoints, formatPoints];
+      return [NtopngUtils.fpoints, formatPoints];
     else if(label.contains("flows")) {
       var as_counter = ((metric_type === "counter") && (schema !== "custom:memory_vs_flows_hosts"));
-      return [as_counter ? fflows : formatValue, formatFlows, as_counter ? fflows : formatFlows];
+      return [as_counter ? NtopngUtils.fflows : formatValue, formatFlows, as_counter ? NtopngUtils.fflows : formatFlows];
     } else if(label.contains("millis") || label.contains("_ms")) {
       return [fmillis, fmillis];
     } else if(label.contains("alerts") && (metric_type === "counter")) {
-      return [falerts, falerts];
+      return [NtopngUtils.falerts, NtopngUtils.falerts];
     } else if(label.contains("percent")) {
-      return [fpercent, fpercent];
+      return [NtopngUtils.fpercent, NtopngUtils.fpercent];
     }
   }
 
   // fallback
   if(stats && (stats.max_val < 1)) {
     /* Use the float formatter to avoid having the same 0 value repeated into the scale */
-    return [ffloat, ffloat];
+    return [NtopngUtils.ffloat, NtopngUtils.ffloat];
   }
 
-  return [fint,fint];
+  return [NtopngUtils.fint,NtopngUtils.fint];
 }
 
 function makeFlatLineValues(tstart, tstep, num, data) {
@@ -333,7 +333,7 @@ function findActualStep(raw_step, tstart) {
 }
 
 function has_initial_zoom() {
-  return typeof parseQuery(window.location.search).epoch_begin !== "undefined";
+  return typeof NtopngUtils.parseQuery(window.location.search).epoch_begin !== "undefined";
 }
 
 var current_zoom_level = (history.state) ? (history.state.zoom_level) : 0;
@@ -494,11 +494,11 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
        * Other solutions (documented in https://stackoverflow.com/questions/21075245/nvd3-prevent-repeated-values-on-y-axis)
        * are not easily applicable in this case.
        *
-       * NOTE: the problem should not occur when using ffloat
+       * NOTE: the problem should not occur when using NtopngUtils.ffloat
        */
-      if(chart.yAxis1.tickFormat() != ffloat)
+      if(chart.yAxis1.tickFormat() != NtopngUtils.ffloat)
         chart.yAxis1.ticks(Math.min(cur_domain_y1, num_ticks_y1));
-      if(chart.yAxis2.tickFormat() != ffloat)
+      if(chart.yAxis2.tickFormat() != NtopngUtils.ffloat)
         chart.yAxis2.ticks(Math.min(cur_domain_y2, num_ticks_y2));
     }
 
@@ -557,7 +557,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
       if(is_user_zoom || e.push_state) {
         //console.log("zoom IN!");
         current_zoom_level += 1;
-        var url = getHistoryParameters({epoch_begin: t_start, epoch_end: t_end});
+        var url = NtopngUtils.getHistoryParameters({epoch_begin: t_start, epoch_end: t_end});
         history.pushState({zoom_level: current_zoom_level, range: [t_start, t_end]}, "", url);
       }
 
@@ -908,7 +908,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
             is_disabled = true;
 
           res.push({
-            key: capitaliseFirstLetter(key),
+            key: NtopngUtils.capitaliseFirstLetter(key),
             yAxis: 1,
             values: values,
             type: "line",

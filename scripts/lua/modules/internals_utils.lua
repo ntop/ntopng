@@ -376,11 +376,11 @@ $("#table-internals-periodic-activities").datatable({
 			       "column_key", 5000,
 			       {
                   "column_last_duration": fmillis,
-                  "column_tot_not_executed": fint,
-                  "column_tot_running_slow": fint,
-                  "column_tot_rrd_running_slow": fint,
-                  "column_timeseries_writes": fint,
-                  "column_rrd_drops": fint,
+                  "column_tot_not_executed": NtopngUtils.fint,
+                  "column_tot_running_slow": NtopngUtils.fint,
+                  "column_tot_rrd_running_slow": NtopngUtils.fint,
+                  "column_timeseries_writes": NtopngUtils.fint,
+                  "column_rrd_drops": NtopngUtils.fint,
                });
    },
 });
@@ -502,7 +502,7 @@ $("#table-internals-periodic-activities").datatable({
 			       "column_key", 5000,
 			       {
                   "column_last_duration": fmillis,
-                  "column_last_num_calls": fint,
+                  "column_last_num_calls": NtopngUtils.fint,
                });
    },
 });
@@ -651,7 +651,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 	    label = i18n("internals.chart_script_rrds", {script = script}),
 	    extra_params = {periodic_script = script},
 	    metrics_labels = {i18n("internals.num_writes"), i18n("internals.num_drops")},
-	    value_formatter = {"fpoints", "formatPoints"}
+	    value_formatter = {"NtopngUtils.fpoints", "formatPoints"}
 	 }
 
       end
