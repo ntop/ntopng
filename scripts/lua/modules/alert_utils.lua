@@ -12,7 +12,6 @@ local callback_utils = require "callback_utils"
 local template = require "template_utils"
 local json = require("dkjson")
 local host_pools = require "host_pools"
-local host_pools_instance = host_pools:create()
 local recovery_utils = require "recovery_utils"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
@@ -1957,7 +1956,7 @@ function alert_utils.check_host_pools_alerts(ifid)
 	 end
 
 	 -- Pool presence
-	 if (pool ~= host_pools_instance.DEFAULT_POOL_ID) and (info.num_hosts > 0) then
+	 if (pool ~= host_pools.DEFAULT_POOL_ID) and (info.num_hosts > 0) then
 	    now_active_pools[pool] = 1
 
 	    if not prev_active_pools[pool] then
