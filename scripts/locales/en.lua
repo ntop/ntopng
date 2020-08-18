@@ -4499,6 +4499,12 @@ local lang = {
       ["slower"] = "Slower Pass",
     },
   },
+  ["validation"] = {
+    ["FAILED_HTTP_REQUEST"] = "Something went wrong, please try later.",
+    ["empty_name"] = "Please insert a name.",
+    ["invalid_input"] = "Please respect the input pattern.",
+    ["missing_field"] = "Please fill the input.",
+  },
   ["vlan_details"] = {
     ["no_available_stats_for_vlan_message"] = "No available stats for VLAN %{vlan_id}. Please wait a few minutes to allow %{product} to harvest new statistics.",
     ["vlan_id_parameter_missing_or_invalid_message"] = "Vlan_Id parameter is missing or is not valid",

@@ -24,7 +24,7 @@
                             <b>{{ i18n("endpoint_notifications.name") }}</b>:
                         </label>
                         <div class="col-sm-5">
-                            <input data-validation-empty-message="Please insert a name." required name="name" type="text" class="form-control" id="endpoint-name-input">
+                            <input data-validation-empty-message="{{ i18n('validation.empty_name') }}" required name="name" type="text" class="form-control" id="endpoint-name-input">
                         </div>
                     </div>
                     <div class="form-group row">

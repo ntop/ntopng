@@ -45,7 +45,7 @@
         }
 
         initDataPatterns() {
-            NtopngUtils.initDataPatterns();
+            NtopUtils.initDataPatterns();
         }
 
         /**
@@ -208,7 +208,7 @@
                     $input.attr("readonly", true);
                     $spinner.show();
 
-                    const response = await NtopngUtils.resolveDNS($(input).val());
+                    const response = await NtopUtils.resolveDNS($(input).val());
 
                     // hide the spinner and renable write to the input
                     $input.removeAttr("readonly");
@@ -218,7 +218,7 @@
                     if (response.rc < 0) {
                         input.setCustomValidity(response.rc_str);
                         $input.removeClass("is-valid");
-                        return [false, response.rc_str];
+                        return [false, i18n[response.rc_str]];
                     }
 
                     // return success for valid resolved hostnmae
@@ -283,7 +283,6 @@
                         $error.fadeOut(500, function () { $(this).remove(); });
                     }
                 }
-
 
                 $(this).off('input').on('input', function (e) {
 

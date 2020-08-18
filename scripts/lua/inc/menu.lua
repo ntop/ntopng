@@ -45,7 +45,13 @@ print[[
       "no_file": "]] print(i18n("config_scripts.no_file")) print[[",
       "invalid_file": "]] print(i18n("config_scripts.invalid_file")) print[[",
       "request_failed_message": "]] print(i18n("request_failed_message")) print[[",
+      "all": "]] print(i18n("all")) print[[",
+      "invalid_input": "]] print(i18n("validation.invalid_input")) print[[",
+      "missing_field": "]] print(i18n("validation.missing_field")) print[[",
       "unreachable_host": "]] print(i18n("graphs.unreachable_host")) print[[",
+      "NAME_RESOLUTION_FAILED": "]] print(i18n("rest_consts.NAME_RESOLUTION_FAILED")) print[[",
+      "FAILED_HTTP_REQUEST": "]] print(i18n("validation.FAILED_HTTP_REQUEST")) print[[",
+
    };
    const systemInterfaceEnabled = ]] print(ternary(is_system_interface, "true", "false")) print[[;
    const http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
