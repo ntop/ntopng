@@ -98,10 +98,10 @@ $(document).ready(function () {
 
             const value = $(this).val();
 
-            if (new RegExp(REGEXES.domainName).test(value)) {
+            if (new RegExp(NtopUtils.REGEXES.domainName).test(value)) {
                 $(`${modalSelector} select[name='cidr']`).attr("disabled", "disabled");
             }
-            else if (new RegExp(REGEXES.ipv6).test(value)) {
+            else if (new RegExp(NtopUtils.REGEXES.ipv6).test(value)) {
                 $(`${modalSelector} select[name='cidr'] option[value!='128']`).attr("disabled", "disabled");
                 $(`${modalSelector} select[name='cidr']`).val(128);
             }

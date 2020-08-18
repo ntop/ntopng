@@ -12,19 +12,19 @@ $(document).ready(function () {
 
     const filters = [
         {
-            regex: `${REGEXES.ipv4WithCIDR}`,
+            regex: `${NtopUtils.REGEXES.ipv4WithCIDR}`,
             label: i18n.ipv4,
             key: 'ipv4_filter',
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
         },
         {
-            regex: `${REGEXES.ipv6WithCIDR}`,
+            regex: `${NtopUtils.REGEXES.ipv6WithCIDR}`,
             label: i18n.ipv6,
             key: 'ipv6_filter',
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
         },
         {
-            regex: REGEXES.macAddress,
+            regex: NtopUtils.REGEXES.macAddress,
             label: i18n.mac_filter,
             key: 'mac_filter',
             callback: () => { currentType = "mac"; $hostMembersTable.rows().invalidate(); }

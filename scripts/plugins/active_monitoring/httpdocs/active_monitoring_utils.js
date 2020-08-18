@@ -11,10 +11,10 @@ $(document).ready(function() {
             case "https":
             case "icmp":
             case "cicmp":
-                return `${REGEXES["ipv4"]}|${REGEXES["domainName"]}`
+                return `${NtopUtils.REGEXES["ipv4"]}|${NtopUtils.REGEXES["domainName"]}`
             case "cicmp6":
             case "icmp6":
-                return `${REGEXES["ipv6"]}|${REGEXES["domainName"]}`
+                return `${NtopUtils.REGEXES["ipv6"]}|${NtopUtils.REGEXES["domainName"]}`
         }
     }
 

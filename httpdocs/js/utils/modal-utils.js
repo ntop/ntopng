@@ -229,7 +229,7 @@
                 const validInput = async (validation) => {
 
                     // if the input require to validate host name then perform a DNS resolve
-                    if (validation.data.resolveDNS && $input.val().match(REGEXES.domainName)) {
+                    if (validation.data.resolveDNS && $input.val().match(NtopUtils.REGEXES.domainName)) {
                         return await validHostname();
                     }
 
