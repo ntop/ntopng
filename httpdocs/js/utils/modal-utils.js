@@ -217,12 +217,10 @@
                     // if the response was negative then alert the user
                     if (response.rc < 0) {
                         input.setCustomValidity(response.rc_str);
-                        $input.removeClass("is-valid");
                         return [false, i18n[response.rc_str]];
                     }
 
                     // return success for valid resolved hostnmae
-                    $input.addClass('is-valid');
                     input.setCustomValidity("");
 
                     return [true, "Success"];
@@ -292,8 +290,6 @@
                     if (timeoutId != -1) clearTimeout(timeoutId);
 
                     if (!$input.attr("formnovalidate")) {
-                        // remove is-valid class
-                        $input.removeClass("is-valid");
                         // trigger input validation after 500msec
                         timeoutId = setTimeout(() => {
                             checkValidation();
