@@ -134,17 +134,17 @@ return {
 	    schema="am_host:upload",
 	    label=i18n("active_monitoring_stats.upload_speed"),
 	    metrics_labels = { i18n("active_monitoring_stats.upload_speed"), },
-	    value_formatter = {"NtopngUtils.fbits", "NtopngUtils.fbits"},
+	    value_formatter = {"NtopUtils.fbits", "NtopUtils.fbits"},
 	    show_unreachable = true, -- Show the unreachable host status as a red line
 	 }, {
 	    schema="am_host:latency",
 	    label=i18n("flow_details.round_trip_time"),
 	    metrics_labels = { i18n("graphs.num_ms_rtt"), },
-	    value_formatter = {"fmillis", "fmillis"},
+	    value_formatter = {"NtopUtils.fmillis", "NtopUtils.fmillis"},
 	    show_unreachable = true, -- Show the unreachable host status as a red line
 	 }},
 	 -- Js function to call to format the measurement value. See ntopng_utils.js .
-	 value_js_formatter = "NtopngUtils.fbits",
+	 value_js_formatter = "NtopUtils.fbits",
 	 -- The raw measurement value is multiplied by this factor before being written into the chart
 	 chart_scaling_value = 1000000,
 	 -- A list of additional notes (localization strings) to show into the timeseries charts

@@ -295,7 +295,7 @@ $(document).ready(function () {
     const prepareFormData = (form) => {
 
         const $form = $(form);
-        const serialized = NtopngUtils.serializeFormArray($form.serializeArray());
+        const serialized = NtopUtils.serializeFormArray($form.serializeArray());
         serialized.schemas = {};
 
         $form.find('fieldset').each(function(i, fieldset) {

@@ -393,7 +393,7 @@ $(document).ready(function () {
     }).invokeModalInit();
 
     // configure import config modal
-    NtopngUtils.importModalHelper({
+    NtopUtils.importModalHelper({
         load_config_xhr: (jsonConf) => {
           return $.post(`${http_prefix}/lua/pro/enterprise/import_snmp_devices_config.lua`, { csrf: importCsrf, JSON: jsonConf,});
         },

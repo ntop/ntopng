@@ -322,7 +322,7 @@ elseif((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) t
 
   local timeseries = {
     { schema="am_host:val" .. suffix, label=am_ts_label,
-      value_formatter=measurement_info.value_js_formatter or "fmillis",
+      value_formatter=measurement_info.value_js_formatter or "NtopUtils.fmillis",
       metrics_labels={am_metric_label},
       show_unreachable = true, -- Show the unreachable host status as a red line
     },

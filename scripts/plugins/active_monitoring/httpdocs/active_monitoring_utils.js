@@ -608,7 +608,7 @@ $(document).ready(function() {
 
     const $am_table = $("#am-table").DataTable(dt_config);
 
-    NtopngUtils.importModalHelper({
+    NtopUtils.importModalHelper({
         load_config_xhr: (json_conf) => {
           return $.post(http_prefix + "/plugins/import_active_monitoring_config.lua", {
             csrf: import_csrf,

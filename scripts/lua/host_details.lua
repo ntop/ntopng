@@ -1081,7 +1081,7 @@ protocolChart
 
 // Tooltip
 protocolChart.title(function(d){
-      return d.key+": " + NtopngUtils.bytesToVolume(d.value);
+      return d.key+": " + NtopUtils.bytesToVolume(d.value);
       })
 
 hostChart
@@ -1092,14 +1092,14 @@ hostChart
 
 // Tooltip
 hostChart.title(function(d){
-      return "Host "+d.key+": " + NtopngUtils.bytesToVolume(d.value);
+      return "Host "+d.key+": " + NtopUtils.bytesToVolume(d.value);
       })
 
 hostChart.xAxis().tickFormat(function(v) {
   if(v < 1024)
     return(v.toFixed(2));
   else
-    return NtopngUtils.bytesToVolume(v);
+    return NtopUtils.bytesToVolume(v);
 });
 
   // dimension by full date
@@ -1120,7 +1120,7 @@ hostChart.xAxis().tickFormat(function(v) {
                 return d.l7proto_url;
             },
             function (d) {
-                return NtopngUtils.bytesToVolume(d.traffic);
+                return NtopUtils.bytesToVolume(d.traffic);
             }
         ])
         // (optional) sort using the given field, :default = function(d){return d;}
@@ -2330,40 +2330,40 @@ if(not only_historical) and (host ~= nil) then
    			var host = jQuery.parseJSON(content);
                         var http = host.http;
                         var card = host.cardinality;
-   			$('#first_seen').html(NtopngUtils.epoch2Seen(host["seen.first"]));
-   			$('#last_seen').html(NtopngUtils.epoch2Seen(host["seen.last"]));
-   			$('#pkts_sent').html(NtopngUtils.formatPackets(host["packets.sent"]));
-   			$('#pkts_rcvd').html(NtopngUtils.formatPackets(host["packets.rcvd"]));
-   			$('#bytes_sent').html(NtopngUtils.bytesToVolume(host["bytes.sent"]));
-   			$('#bytes_rcvd').html(NtopngUtils.bytesToVolume(host["bytes.rcvd"]));
+   			$('#first_seen').html(NtopUtils.epoch2Seen(host["seen.first"]));
+   			$('#last_seen').html(NtopUtils.epoch2Seen(host["seen.last"]));
+   			$('#pkts_sent').html(NtopUtils.formatPackets(host["packets.sent"]));
+   			$('#pkts_rcvd').html(NtopUtils.formatPackets(host["packets.rcvd"]));
+   			$('#bytes_sent').html(NtopUtils.bytesToVolume(host["bytes.sent"]));
+   			$('#bytes_rcvd').html(NtopUtils.bytesToVolume(host["bytes.rcvd"]));
 
-   			$('#pkt_retransmissions_sent').html(NtopngUtils.formatPackets(host["tcpPacketStats.sent"]["retransmissions"]));
-   			$('#pkt_ooo_sent').html(NtopngUtils.formatPackets(host["tcpPacketStats.sent"]["out_of_order"]));
-   			$('#pkt_lost_sent').html(NtopngUtils.formatPackets(host["tcpPacketStats.sent"]["lost"]));
-   			$('#pkt_keep_alive_sent').html(NtopngUtils.formatPackets(host["tcpPacketStats.sent"]["keep_alive"]));
+   			$('#pkt_retransmissions_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["retransmissions"]));
+   			$('#pkt_ooo_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["out_of_order"]));
+   			$('#pkt_lost_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["lost"]));
+   			$('#pkt_keep_alive_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["keep_alive"]));
 
-   			$('#pkt_retransmissions_rcvd').html(NtopngUtils.formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]));
-   			$('#pkt_ooo_rcvd').html(NtopngUtils.formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]));
-   			$('#pkt_lost_rcvd').html(NtopngUtils.formatPackets(host["tcpPacketStats.rcvd"]["lost"]));
-   			$('#pkt_keep_alive_rcvd').html(NtopngUtils.formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]));
+   			$('#pkt_retransmissions_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["retransmissions"]));
+   			$('#pkt_ooo_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["out_of_order"]));
+   			$('#pkt_lost_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["lost"]));
+   			$('#pkt_keep_alive_rcvd').html(NtopUtils.formatPackets(host["tcpPacketStats.rcvd"]["keep_alive"]));
 
                         if(card) {
-                          $('#num_contacted_ports_as_client').html(NtopngUtils.formatValue(card.num_contacted_ports_as_client));
-                          $('#num_contacted_ports_as_client_trend').html(NtopngUtils.drawTrend(card.num_contacted_ports_as_client, last_num_contacted_ports_as_client, ""));
-                          $('#num_host_contacted_ports_as_server').html(NtopngUtils.formatValue(card.num_host_contacted_ports_as_server));
-                          $('#num_host_contacted_ports_as_server_trend').html(NtopngUtils.drawTrend(card.num_host_contacted_ports_as_server, last_num_host_contacted_ports_as_server, ""));
+                          $('#num_contacted_ports_as_client').html(NtopUtils.formatValue(card.num_contacted_ports_as_client));
+                          $('#num_contacted_ports_as_client_trend').html(NtopUtils.drawTrend(card.num_contacted_ports_as_client, last_num_contacted_ports_as_client, ""));
+                          $('#num_host_contacted_ports_as_server').html(NtopUtils.formatValue(card.num_host_contacted_ports_as_server));
+                          $('#num_host_contacted_ports_as_server_trend').html(NtopUtils.drawTrend(card.num_host_contacted_ports_as_server, last_num_host_contacted_ports_as_server, ""));
                           last_num_contacted_ports_as_client = card.num_contacted_ports_as_client;
                           last_num_host_contacted_ports_as_server = card.num_host_contacted_ports_as_server;
 
-                          $('#num_contacted_hosts_as_client').html(NtopngUtils.formatValue(card.num_contacted_hosts_as_client));
-                          $('#num_host_contacts_as_server').html(NtopngUtils.formatValue(card.num_host_contacts_as_server));
-                          $('#num_contacted_hosts_as_client_trend').html(NtopngUtils.drawTrend(card.num_contacted_hosts_as_client, last_num_contacted_hosts_as_client, ""));
-                          $('#num_host_contacts_as_server_trend').html(NtopngUtils.drawTrend(card.num_host_contacts_as_server, last_num_host_contacts_as_server, ""));
+                          $('#num_contacted_hosts_as_client').html(NtopUtils.formatValue(card.num_contacted_hosts_as_client));
+                          $('#num_host_contacts_as_server').html(NtopUtils.formatValue(card.num_host_contacts_as_server));
+                          $('#num_contacted_hosts_as_client_trend').html(NtopUtils.drawTrend(card.num_contacted_hosts_as_client, last_num_contacted_hosts_as_client, ""));
+                          $('#num_host_contacts_as_server_trend').html(NtopUtils.drawTrend(card.num_host_contacts_as_server, last_num_host_contacts_as_server, ""));
                           last_num_contacted_hosts_as_client = card.num_contacted_hosts_as_client;
                           last_num_host_contacts_as_server = card.num_host_contacts_as_server;
 
-                          $('#num_contacted_services_as_client').html(NtopngUtils.formatValue(card.num_contacted_services_as_client));
-                          $('#num_contacted_services_as_client_trend').html(NtopngUtils.drawTrend(card.num_contacted_services_as_client, last_num_contacted_services_as_client, ""));
+                          $('#num_contacted_services_as_client').html(NtopUtils.formatValue(card.num_contacted_services_as_client));
+                          $('#num_contacted_services_as_client_trend').html(NtopUtils.drawTrend(card.num_contacted_services_as_client, last_num_contacted_services_as_client, ""));
                           last_num_contacted_services_as_client = card.num_contacted_services_as_client;
                         }
 
@@ -2375,16 +2375,16 @@ if(not only_historical) and (host ~= nil) then
    			$('#num_alerts').html(host["num_alerts"]);
    			$('#score').html(host["score"]);
    			$('#num_flow_alerts').html(host["active_alerted_flows"]);
-   			$('#active_flows_as_client').html(NtopngUtils.addCommas(host["active_flows.as_client"]));
-   			$('#active_flows_as_server').html(NtopngUtils.addCommas(host["active_flows.as_server"]));
-   			$('#active_peers_as_client').html(NtopngUtils.addCommas(host["contacts.as_client"]));
-   			$('#active_peers_as_server').html(NtopngUtils.addCommas(host["contacts.as_server"]));
-   			$('#flows_as_client').html(NtopngUtils.addCommas(host["flows.as_client"]));
-                        $('#misbehaving_flows_as_client').html(NtopngUtils.addCommas(host["misbehaving_flows.as_client"]));
-                        $('#unreachable_flows_as_client').html(NtopngUtils.addCommas(host["unreachable_flows.as_client"]));
-   			$('#flows_as_server').html(NtopngUtils.addCommas(host["flows.as_server"]));
-                        $('#misbehaving_flows_as_server').html(NtopngUtils.addCommas(host["misbehaving_flows.as_server"]));
-                        $('#unreachable_flows_as_server').html(NtopngUtils.addCommas(host["unreachable_flows.as_server"]));
+   			$('#active_flows_as_client').html(NtopUtils.addCommas(host["active_flows.as_client"]));
+   			$('#active_flows_as_server').html(NtopUtils.addCommas(host["active_flows.as_server"]));
+   			$('#active_peers_as_client').html(NtopUtils.addCommas(host["contacts.as_client"]));
+   			$('#active_peers_as_server').html(NtopUtils.addCommas(host["contacts.as_server"]));
+   			$('#flows_as_client').html(NtopUtils.addCommas(host["flows.as_client"]));
+                        $('#misbehaving_flows_as_client').html(NtopUtils.addCommas(host["misbehaving_flows.as_client"]));
+                        $('#unreachable_flows_as_client').html(NtopUtils.addCommas(host["unreachable_flows.as_client"]));
+   			$('#flows_as_server').html(NtopUtils.addCommas(host["flows.as_server"]));
+                        $('#misbehaving_flows_as_server').html(NtopUtils.addCommas(host["misbehaving_flows.as_server"]));
+                        $('#unreachable_flows_as_server').html(NtopUtils.addCommas(host["unreachable_flows.as_server"]));
    		  }]]
 
    if ntop.isnEdge() then
@@ -2396,7 +2396,7 @@ print [[
                             $('#trend_bridge_dropped_flows').html("<i class=\"fas fa-arrow-up\"></i>");
                           }
 
-                          $('#bridge_dropped_flows').html(NtopngUtils.addCommas(host["flows.dropped"]));
+                          $('#bridge_dropped_flows').html(NtopUtils.addCommas(host["flows.dropped"]));
 
                           $('#bridge_dropped_flows_tr').show();
                           last_dropped_flows = host["flows.dropped"];
@@ -2408,12 +2408,12 @@ print [[
 
    if(host["dns"] ~= nil) then
    print [[
-   			   $('#dns_sent_num_queries').html(NtopngUtils.addCommas(host["dns"]["sent"]["num_queries"]));
-   			   $('#dns_sent_num_replies_ok').html(NtopngUtils.addCommas(host["dns"]["sent"]["num_replies_ok"]));
-   			   $('#dns_sent_num_replies_error').html(NtopngUtils.addCommas(host["dns"]["sent"]["num_replies_error"]));
-   			   $('#dns_rcvd_num_queries').html(NtopngUtils.addCommas(host["dns"]["rcvd"]["num_queries"]));
-   			   $('#dns_rcvd_num_replies_ok').html(NtopngUtils.addCommas(host["dns"]["rcvd"]["num_replies_ok"]));
-   			   $('#dns_rcvd_num_replies_error').html(NtopngUtils.addCommas(host["dns"]["rcvd"]["num_replies_error"]));
+   			   $('#dns_sent_num_queries').html(NtopUtils.addCommas(host["dns"]["sent"]["num_queries"]));
+   			   $('#dns_sent_num_replies_ok').html(NtopUtils.addCommas(host["dns"]["sent"]["num_replies_ok"]));
+   			   $('#dns_sent_num_replies_error').html(NtopUtils.addCommas(host["dns"]["sent"]["num_replies_error"]));
+   			   $('#dns_rcvd_num_queries').html(NtopUtils.addCommas(host["dns"]["rcvd"]["num_queries"]));
+   			   $('#dns_rcvd_num_replies_ok').html(NtopUtils.addCommas(host["dns"]["rcvd"]["num_replies_ok"]));
+   			   $('#dns_rcvd_num_replies_error').html(NtopUtils.addCommas(host["dns"]["rcvd"]["num_replies_error"]));
 
    			   if(host["dns"]["sent"]["num_queries"] == last_dns_sent_num_queries) {
    			      $('#trend_sent_num_queries').html("<i class=\"fas fa-minus\"></i>");
@@ -2469,9 +2469,9 @@ print [[
    	       if((host !== undefined) && (http !== undefined)) {
    		  $.each(http["virtual_hosts"], function(idx, obj) {
    		      var key = idx.replace(/\./g,'___');
-   		      $('#'+key+'_bytes_vhost_rcvd').html(NtopngUtils.bytesToVolume(obj["bytes.rcvd"])+" "+NtopngUtils.get_trend(obj["bytes.rcvd"], last_http_val[key+"_rcvd"]));
-   		      $('#'+key+'_bytes_vhost_sent').html(NtopngUtils.bytesToVolume(obj["bytes.sent"])+" "+NtopngUtils.get_trend(obj["bytes.sent"], last_http_val[key+"_sent"]));
-   		      $('#'+key+'_num_vhost_req_serv').html(NtopngUtils.addCommas(obj["xs"])+" "+NtopngUtils.get_trend(obj["http.requests"], last_http_val[key+"_req_serv"]));
+   		      $('#'+key+'_bytes_vhost_rcvd').html(NtopUtils.bytesToVolume(obj["bytes.rcvd"])+" "+NtopUtils.get_trend(obj["bytes.rcvd"], last_http_val[key+"_rcvd"]));
+   		      $('#'+key+'_bytes_vhost_sent').html(NtopUtils.bytesToVolume(obj["bytes.sent"])+" "+NtopUtils.get_trend(obj["bytes.sent"], last_http_val[key+"_sent"]));
+   		      $('#'+key+'_num_vhost_req_serv').html(NtopUtils.addCommas(obj["xs"])+" "+NtopUtils.get_trend(obj["http.requests"], last_http_val[key+"_req_serv"]));
    		      last_http_val[key+"_rcvd"] = obj["bytes.rcvd"];
    		      last_http_val[key+"_sent"] = obj["bytes.sent"];
    		      last_http_val[key+"_req_serv"] = obj["bytes.http_requests"];
@@ -2482,14 +2482,14 @@ print [[
 
       methods = { "get", "post", "head", "put", "other" }
       for i, method in ipairs(methods) do
-         print('\t$("#http_query_num_'..method..'").html(NtopngUtils.addCommas(http["sender"]["query"]["num_'..method..'"]));\n')
+         print('\t$("#http_query_num_'..method..'").html(NtopUtils.addCommas(http["sender"]["query"]["num_'..method..'"]));\n')
          print('\tif(http["sender"]["query"]["num_'..method..'"] == last_http_query_num_'..method..') {\n\t$("#trend_http_query_num_'..method..'").html(\'<i class=\"fas fa-minus\"></i>\');\n')
          print('} else {\n\tlast_http_query_num_'..method..' = http["sender"]["query"]["num_'..method..'"];$("#trend_http_query_num_'..method..'").html(\'<i class=\"fas fa-arrow-up\"></i>\'); }\n')
       end
 
       retcodes = { "1xx", "2xx", "3xx", "4xx", "5xx" }
       for i, retcode in ipairs(retcodes) do
-         print('\t$("#http_response_num_'..retcode..'").html(NtopngUtils.addCommas(http["receiver"]["response"]["num_'..retcode..'"]));\n')
+         print('\t$("#http_response_num_'..retcode..'").html(NtopUtils.addCommas(http["receiver"]["response"]["num_'..retcode..'"]));\n')
          print('\tif(http["receiver"]["response"]["num_'..retcode..'"] == last_http_response_num_'..retcode..') {\n\t$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fas fa-minus\"></i>\');\n')
          print('} else {\n\tlast_http_response_num_'..retcode..' = http["receiver"]["response"]["num_'..retcode..'"];$("#trend_http_response_num_'..retcode..'").html(\'<i class=\"fas fa-arrow-up\"></i>\'); }\n')
       end
@@ -2499,32 +2499,32 @@ print [[
    print [[
    			/* **************************************** */
 
-			$('#trend_as_active_client').html(NtopngUtils.drawTrend(host["active_flows.as_client"], last_active_flows_as_client, ""));
-			$('#trend_as_active_server').html(NtopngUtils.drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
-			$('#peers_trend_as_active_client').html(NtopngUtils.drawTrend(host["contacts.as_client"], last_active_peers_as_client, ""));
-			$('#peers_trend_as_active_server').html(NtopngUtils.drawTrend(host["contacts.as_server"], last_active_peers_as_server, ""));
-			$('#trend_as_client').html(NtopngUtils.drawTrend(host["flows.as_client"], last_flows_as_client, ""));
-			$('#trend_as_server').html(NtopngUtils.drawTrend(host["flows.as_server"], last_flows_as_server, ""));
-			$('#trend_misbehaving_flows_as_server').html(NtopngUtils.drawTrend(host["misbehaving_flows.as_server"], last_misbehaving_flows_as_server, " style=\"color: #B94A48;\""));
-			$('#trend_misbehaving_flows_as_client').html(NtopngUtils.drawTrend(host["misbehaving_flows.as_client"], last_misbehaving_flows_as_client, " style=\"color: #B94A48;\""));
-			$('#trend_unreachable_flows_as_server').html(NtopngUtils.drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
-			$('#trend_unreachable_flows_as_client').html(NtopngUtils.drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
+			$('#trend_as_active_client').html(NtopUtils.drawTrend(host["active_flows.as_client"], last_active_flows_as_client, ""));
+			$('#trend_as_active_server').html(NtopUtils.drawTrend(host["active_flows.as_server"], last_active_flows_as_server, ""));
+			$('#peers_trend_as_active_client').html(NtopUtils.drawTrend(host["contacts.as_client"], last_active_peers_as_client, ""));
+			$('#peers_trend_as_active_server').html(NtopUtils.drawTrend(host["contacts.as_server"], last_active_peers_as_server, ""));
+			$('#trend_as_client').html(NtopUtils.drawTrend(host["flows.as_client"], last_flows_as_client, ""));
+			$('#trend_as_server').html(NtopUtils.drawTrend(host["flows.as_server"], last_flows_as_server, ""));
+			$('#trend_misbehaving_flows_as_server').html(NtopUtils.drawTrend(host["misbehaving_flows.as_server"], last_misbehaving_flows_as_server, " style=\"color: #B94A48;\""));
+			$('#trend_misbehaving_flows_as_client').html(NtopUtils.drawTrend(host["misbehaving_flows.as_client"], last_misbehaving_flows_as_client, " style=\"color: #B94A48;\""));
+			$('#trend_unreachable_flows_as_server').html(NtopUtils.drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
+			$('#trend_unreachable_flows_as_client').html(NtopUtils.drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
 
-			$('#alerts_trend').html(NtopngUtils.drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
-			$('#score_trend').html(NtopngUtils.drawTrend(host["score"], last_score, " style=\"color: #B94A48;\""));
-			$('#flow_alerts_trend').html(NtopngUtils.drawTrend(host["active_alerted_flows"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
-			$('#sent_trend').html(NtopngUtils.drawTrend(host["packets.sent"], last_pkts_sent, ""));
-			$('#rcvd_trend').html(NtopngUtils.drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
+			$('#alerts_trend').html(NtopUtils.drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
+			$('#score_trend').html(NtopUtils.drawTrend(host["score"], last_score, " style=\"color: #B94A48;\""));
+			$('#flow_alerts_trend').html(NtopUtils.drawTrend(host["active_alerted_flows"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
+			$('#sent_trend').html(NtopUtils.drawTrend(host["packets.sent"], last_pkts_sent, ""));
+			$('#rcvd_trend').html(NtopUtils.drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
 
-			$('#pkt_retransmissions_sent_trend').html(NtopngUtils.drawTrend(host["tcpPacketStats.sent"]["retransmissions"], last_sent_tcp_retransmissions, ""));
-			$('#pkt_ooo_sent_trend').html(NtopngUtils.drawTrend(host["tcpPacketStats.sent"]["out_of_order"], last_sent_tcp_ooo, ""));
- 		        $('#pkt_lost_sent_trend').html(NtopngUtils.drawTrend(host["tcpPacketStats.sent"]["lost"], last_sent_tcp_lost, ""));
- 		        $('#pkt_keep_alive_sent_trend').html(NtopngUtils.drawTrend(host["tcpPacketStats.sent"]["keep_alive"], last_sent_tcp_keep_alive, ""));
+			$('#pkt_retransmissions_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["retransmissions"], last_sent_tcp_retransmissions, ""));
+			$('#pkt_ooo_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["out_of_order"], last_sent_tcp_ooo, ""));
+ 		        $('#pkt_lost_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["lost"], last_sent_tcp_lost, ""));
+ 		        $('#pkt_keep_alive_sent_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.sent"]["keep_alive"], last_sent_tcp_keep_alive, ""));
 
-			$('#pkt_retransmissions_rcvd_trend').html(NtopngUtils.drawTrend(host["tcpPacketStats.rcvd"]["retransmissions"], last_rcvd_tcp_retransmissions, ""));
-			$('#pkt_ooo_rcvd_trend').html(NtopngUtils.drawTrend(host["tcpPacketStats.rcvd"]["out_of_order"], last_rcvd_tcp_ooo, ""));
- 		        $('#pkt_lost_rcvd_trend').html(NtopngUtils.drawTrend(host["tcpPacketStats.rcvd"]["lost"], last_rcvd_tcp_lost, ""));
- 		        $('#pkt_keep_alive_rcvd_trend').html(NtopngUtils.drawTrend(host["tcpPacketStats.rcvd"]["keep_alive"], last_rcvd_tcp_keep_alive, ""));
+			$('#pkt_retransmissions_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["retransmissions"], last_rcvd_tcp_retransmissions, ""));
+			$('#pkt_ooo_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["out_of_order"], last_rcvd_tcp_ooo, ""));
+ 		        $('#pkt_lost_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["lost"], last_rcvd_tcp_lost, ""));
+ 		        $('#pkt_keep_alive_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["keep_alive"], last_rcvd_tcp_keep_alive, ""));
 
    			last_num_alerts = host["num_alerts"];
    			last_score = host["score"];

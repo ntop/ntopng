@@ -561,12 +561,12 @@ print[[
       var select_field = tr.find("td:nth-child(4) select");
       var vlanicon_disabled = null;
 
-      if (NtopngUtils.is_mac_address(member)) {
+      if (NtopUtils.is_mac_address(member)) {
         vlan_field.attr("disabled", true);
         vlanicon_disabled = false;
         select_field.attr("disabled", false);
       } else {
-        var cidr = NtopngUtils.is_network_mask(member, true);
+        var cidr = NtopUtils.is_network_mask(member, true);
         select_field.attr("disabled", true);
 
         if (cidr) {
@@ -609,7 +609,7 @@ print[[
       if (! member)
         return true;
 
-      var is_mac = NtopngUtils.is_mac_address(member);
+      var is_mac = NtopUtils.is_mac_address(member);
       var identifier;
 
       if(is_mac) {
@@ -628,7 +628,7 @@ print[[
           vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
         }
 
-        is_cidr = NtopngUtils.is_network_mask(address_value, true);
+        is_cidr = NtopUtils.is_network_mask(address_value, true);
         if (! is_cidr)
            /* this will be handled by addressValidator */
           return true;
@@ -640,7 +640,7 @@ print[[
 
       $('input[name^="member_"]:not([name$="_vlan"])', $("#table-manage-form")).each(function() {
         var address_value = $(this).val();
-        var is_cidr = NtopngUtils.is_network_mask(address_value, true);
+        var is_cidr = NtopUtils.is_network_mask(address_value, true);
 
         var aggregated;
         if (! is_cidr) {
@@ -854,7 +854,7 @@ print [[
 
             /* Make member name editable */
             var value = member_address.html();
-            var is_cidr = NtopngUtils.is_network_mask(value);
+            var is_cidr = NtopUtils.is_network_mask(value);
             if (is_cidr) {
               old_value = member_address.html() + '@' + vlan.html();
               if (((is_cidr.type == "ipv4" && is_cidr.mask == 32)) ||
@@ -940,7 +940,7 @@ print[[
       $('input[name^="member_"]:not([name$="_vlan"])', form).each(function() {
         var address = null;
 
-        if((member = NtopngUtils.is_network_mask($(this).val(), true))) {
+        if((member = NtopUtils.is_network_mask($(this).val(), true))) {
           /* this is a network */
           var vlan_name = $(this).attr("name") + "_vlan";
           var vlan_field = $("input[name=" + vlan_name + "]", form);

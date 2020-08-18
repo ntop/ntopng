@@ -73,7 +73,7 @@ function BubbleChart(contanerId,update_url,url_params) {
         
 
     node.append("title")
-        .text(function(d) { return d.className + ": " + NtopngUtils.bytesToVolume(d.value) + "\n Double click to show more information about this flows."; });
+        .text(function(d) { return d.className + ": " + NtopUtils.bytesToVolume(d.value) + "\n Double click to show more information about this flows."; });
 
     node.append("circle")
         .attr("r", function(d) { return (d.r); })

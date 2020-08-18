@@ -74,7 +74,7 @@ print[[
       params.pool = $("#device_target_pool").val();
       params.member = mac_address;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-      NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+      NtopUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
    }
 
 	 var url_update = "]]

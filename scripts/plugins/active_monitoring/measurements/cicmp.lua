@@ -155,14 +155,14 @@ local timeseries = {{
   schema="am_host:cicmp_stats",
   label=i18n("flow_details.round_trip_time"),
   metrics_labels = { i18n("graphs.min_rtt"), i18n("graphs.max_rtt") },
-  value_formatter = {"fmillis", "fmillis"},
+  value_formatter = {"NtopUtils.fmillis", "NtopUtils.fmillis"},
   split_directions = true,
   show_unreachable = true,
 }, {
   schema="am_host:jitter_stats",
   label=i18n("active_monitoring_stats.rtt_vs_jitter"),
   metrics_labels = { i18n("flow_details.mean_rtt"), i18n("flow_details.rtt_jitter") },
-  value_formatter = {"fmillis", "fmillis"},
+  value_formatter = {"NtopUtils.fmillis", "NtopUtils.fmillis"},
   split_directions = true,
   show_unreachable = true,
 }}
@@ -211,7 +211,7 @@ return {
       -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
       additional_timeseries = timeseries,
       -- Js function to call to format the measurement value. See ntopng_utils.js .
-      value_js_formatter = "NtopngUtils.fpercent",
+      value_js_formatter = "NtopUtils.fpercent",
       -- The raw measurement value is multiplied by this factor before being written into the chart
       chart_scaling_value = 1,
       -- The localization string for the Active Monitoring metric in the chart
@@ -236,7 +236,7 @@ return {
       max_threshold = 100,
       default_threshold = 99,
       additional_timeseries = timeseries,
-      value_js_formatter = "NtopngUtils.fpercent",
+      value_js_formatter = "NtopUtils.fpercent",
       chart_scaling_value = 1,
       i18n_chart_notes = {},
       force_host = nil,

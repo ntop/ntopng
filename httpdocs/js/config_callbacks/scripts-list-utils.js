@@ -328,7 +328,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
    })
       .done((d, status, xhr) => {
 
-         if (NtopngUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+         if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
          if (!d.success) {
 
@@ -342,7 +342,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       })
       .fail(({ status, statusText }) => {
 
-         NtopngUtils.check_status_code(status, statusText, $error_label);
+         NtopUtils.check_status_code(status, statusText, $error_label);
 
          if (status == 200) {
             $error_label.text(`${i18n.expired_csrf}`).show();
@@ -363,7 +363,7 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
       .done((reset_data, status, xhr) => {
 
          // if there is an error about the http request
-         if (NtopngUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+         if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
          // call callback function to reset fields
          callback_reset(reset_data);
@@ -373,7 +373,7 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
       })
       .fail(({ status, statusText }) => {
 
-         NtopngUtils.check_status_code(status, statusText, $error_label);
+         NtopUtils.check_status_code(status, statusText, $error_label);
          // hide modal if there is error
          $("#modal-script").modal("toggle");
       })
@@ -1255,7 +1255,7 @@ const initScriptConfModal = (script_key, script_title, script_desc) => {
       .then((data, status, xhr) => {
 
          // check status code
-         if (NtopngUtils.check_status_code(xhr.status, xhr.statusText, null)) return;
+         if (NtopUtils.check_status_code(xhr.status, xhr.statusText, null)) return;
 
          // hide previous error
          $("#apply-error").hide();
@@ -1274,7 +1274,7 @@ const initScriptConfModal = (script_key, script_title, script_desc) => {
       })
       .fail(({ status, statusText }) => {
 
-         NtopngUtils.check_status_code(status, statusText, null);
+         NtopUtils.check_status_code(status, statusText, null);
          // hide modal if there is error
          $("#modal-script").modal("toggle");
       })
@@ -1365,7 +1365,7 @@ const create_enabled_button = (row_data) => {
             })
             .fail(({ status, statusText }) => {
 
-               NtopngUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
+               NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
 
                // if the csrf has expired
                if (status == 200) {

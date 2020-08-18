@@ -2,7 +2,7 @@ jQuery.fn.dataTableExt.sErrMode = 'console';
 jQuery.fn.dataTableExt.formatSecondsToHHMMSS = (data, type, row) => {
     if (isNaN(data)) return data;
     if (type == "display" && data == 0) return '-';
-    if (type == "display") return NtopngUtils.secondsToTime(data);
+    if (type == "display") return NtopUtils.secondsToTime(data);
     return data;
 };
 

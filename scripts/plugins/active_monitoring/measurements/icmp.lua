@@ -165,7 +165,7 @@ return {
       -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
       additional_timeseries = {},
       -- Js function to call to format the measurement value. See ntopng_utils.js .
-      value_js_formatter = "fmillis",
+      value_js_formatter = "NtopUtils.fmillis",
       -- The raw measurement value is multiplied by this factor before being written into the chart
       chart_scaling_value = 1,
       -- The localization string for the Active Monitoring metric in the chart
@@ -190,7 +190,7 @@ return {
       max_threshold = nil,
       default_threshold = nil,
       additional_timeseries = {},
-      value_js_formatter = "fmillis",
+      value_js_formatter = "NtopUtils.fmillis",
       chart_scaling_value = 1,
       i18n_chart_notes = {},
       force_host = nil,

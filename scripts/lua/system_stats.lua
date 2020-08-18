@@ -174,14 +174,14 @@ elseif(page == "historical" and ts_creation) then
 	    schema = "system:cpu_load",
 	    label=i18n("about.cpu_load"),
 	    metrics_labels = {i18n("about.cpu_load")},
-	    value_formatter = {"NtopngUtils.ffloat"},
+	    value_formatter = {"NtopUtils.ffloat"},
 	    skip = skip_cpu_load,
 	 },
 	 {
 	    schema="system:cpu_states",
 	    label=i18n("about.cpu_states"),
 	    metrics_labels = {i18n("about.iowait"), i18n("about.active"), i18n("about.idle")},
-	    value_formatter = {"NtopngUtils.fpercent"}
+	    value_formatter = {"NtopUtils.fpercent"}
 	 },
 	 {
 	    schema="process:resident_memory",

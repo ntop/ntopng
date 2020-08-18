@@ -1210,7 +1210,7 @@ function deleteAlertById(alert_key) {
   params.status = getCurrentStatus();
   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-  var form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
+  var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
   form.appendTo('body').submit();
 }
 
@@ -1221,8 +1221,8 @@ function prepareToggleAlertsDialog(table_id, idx) {
   var row = table_data[idx];
   alert_to_toggle = row;
 
-  $(".toggle-alert-id").html(NtopngUtils.noHtml(row.column_type).trim());
-  $(".toggle-alert-entity-value").html(NtopngUtils.noHtml(row.column_entity_formatted).trim())
+  $(".toggle-alert-id").html(NtopUtils.noHtml(row.column_type).trim());
+  $(".toggle-alert-entity-value").html(NtopUtils.noHtml(row.column_entity_formatted).trim())
 }
 
 var alert_to_release = null;
@@ -1242,7 +1242,7 @@ function releaseAlert(idx) {
     "csrf": "]] print(ntop.getRandomCSRFValue()) print[[",
   };
 
-  var form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
+  var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
   form.appendTo('body').submit();
 }
 
@@ -1256,7 +1256,7 @@ function toggleAlert(disable) {
     "csrf": "]] print(ntop.getRandomCSRFValue()) print[[",
   };
 
-  var form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
+  var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
   form.appendTo('body').submit();
 }
 </script>
@@ -1527,7 +1527,7 @@ function toggleAlert(disable) {
 
                $("form", this).submit(function() {
                   // add "status" parameter to the form
-                  var get_params = NtopngUtils.paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
+                  var get_params = NtopUtils.paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
                   $(this).attr("action", "?" + $.param(get_params));
 
                   return true;
@@ -1620,7 +1620,7 @@ $("[clicked=1]").trigger("click");
 
 <script>
 
-NtopngUtils.paramsToForm('#modalDeleteForm', ]] print(tableToJsObject(delete_params)) print[[);
+NtopUtils.paramsToForm('#modalDeleteForm', ]] print(tableToJsObject(delete_params)) print[[);
 
 function getTabSpecificParams() {
    var tab_specific = {status:getCurrentStatus()};
@@ -1634,7 +1634,7 @@ function getTabSpecificParams() {
    }
 
    // merge the general parameters to the tab specific ones
-   return NtopngUtils.paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, tab_specific);
+   return NtopUtils.paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, tab_specific);
 }
 
 function checkModalDelete() {
@@ -1644,7 +1644,7 @@ function checkModalDelete() {
    post_params.id_to_delete = "__all__";
 
    // this actually performs the request
-   var form = NtopngUtils.paramsToForm('<form method="post"></form>', post_params);
+   var form = NtopUtils.paramsToForm('<form method="post"></form>', post_params);
    form.attr("action", "?" + $.param(get_params));
    form.appendTo('body').submit();
    return false;

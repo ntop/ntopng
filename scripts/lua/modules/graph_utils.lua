@@ -521,29 +521,29 @@ local formatter_fctn
 local label = data.series[1].label
 
 if label == "load_percentage" then
-   formatter_fctn = "NtopngUtils.ffloat"
+   formatter_fctn = "NtopUtils.ffloat"
    format_as_bps = false
 elseif label == "resident_bytes" then
-   formatter_fctn = "NtopngUtils.bytesToSize"
+   formatter_fctn = "NtopUtils.bytesToSize"
    format_as_bytes = true
 elseif string.contains(label, "pct") then
-   formatter_fctn = "NtopngUtils.fpercent"
+   formatter_fctn = "NtopUtils.fpercent"
    format_as_bps = false
    format_as_bytes = false
 elseif schema == "process:num_alerts" then
-   formatter_fctn = "NtopngUtils.falerts"
+   formatter_fctn = "NtopUtils.falerts"
    format_as_bps = false
    format_as_bytes = false
 elseif label:contains("millis") or label:contains("_ms") then
-   formatter_fctn = "fmillis"
+   formatter_fctn = "NtopUtils.fmillis"
    format_as_bytes = false
    format_as_bps = false
 elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") or label:contains("alerts") then
-   formatter_fctn = "NtopngUtils.fint"
+   formatter_fctn = "NtopUtils.fint"
    format_as_bytes = false
    format_as_bps = false
 else
-   formatter_fctn = "NtopngUtils.fbits"
+   formatter_fctn = "NtopUtils.fbits"
 end
 
 print [[
@@ -670,7 +670,7 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 
 		if(point.value.y === null) return;
 
-		var formattedXValue = NtopngUtils.fdate(point.value.x); // point.formattedXValue;
+		var formattedXValue = NtopUtils.fdate(point.value.x); // point.formattedXValue;
 		var formattedYValue = ]]
 	  print(formatter_fctn)
 	  print [[(point.value.y); // point.formattedYValue;
@@ -691,21 +691,21 @@ $.ajax({
 		   var info = jQuery.parseJSON(content);
 		   $.each(info, function(i, n) {
 		     if (n.length > 0)
-		       infoHTML += "<li>"+NtopngUtils.capitaliseFirstLetter(i)+" [Avg Traffic/sec]<ol>";
+		       infoHTML += "<li>"+NtopUtils.capitaliseFirstLetter(i)+" [Avg Traffic/sec]<ol>";
 		     var items = 0;
 		     var other_traffic = 0;
 		     $.each(n, function(j, m) {
 		       if((items < 3) && (m.address != "Other")) {
-			 infoHTML += "<li><a href='host_details.lua?host="+m.address+"'>"+NtopngUtils.abbreviateString(m.label ? m.label : m.address,24);
+			 infoHTML += "<li><a href='host_details.lua?host="+m.address+"'>"+NtopUtils.abbreviateString(m.label ? m.label : m.address,24);
 		       infoHTML += "</a>";
 		       if (m.vlan != "0") infoHTML += " ("+m.vlanm+")";
-		       infoHTML += " ("+NtopngUtils.fbits((m.value*8)/60)+")</li>";
+		       infoHTML += " ("+NtopUtils.fbits((m.value*8)/60)+")</li>";
 			 items++;
 		       } else
 			 other_traffic += m.value;
 		     });
 		     if (other_traffic > 0)
-			 infoHTML += "<li>Other ("+NtopngUtils.fbits((other_traffic*8)/60)+")</li>";
+			 infoHTML += "<li>Other ("+NtopUtils.fbits((other_traffic*8)/60)+")</li>";
 		     if (n.length > 0)
 		       infoHTML += "</ol></li>";
 		   });
@@ -1010,9 +1010,9 @@ end
 
 local default_timeseries = {
    {schema="iface:flows",                 label=i18n("graphs.active_flows")},
-   {schema="iface:new_flows",             label=i18n("graphs.new_flows"), value_formatter = {"NtopngUtils.fflows", "formatFlows"}},
+   {schema="iface:new_flows",             label=i18n("graphs.new_flows"), value_formatter = {"NtopUtils.fflows", "NtopUtils.formatFlows"}},
    {schema="custom:flow_misbehaving_vs_alerted", label=i18n("graphs.misbehaving_vs_alerted"),
-    value_formatter = {"formatFlows", "formatFlows"},
+    value_formatter = {"NtopUtils.formatFlows", "NtopUtils.formatFlows"},
     skip = hasAllowedNetworksSet(),
     metrics_labels = {i18n("flow_details.mibehaving_flows"), i18n("flow_details.alerted_flows")}},
    {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
@@ -1040,9 +1040,9 @@ local default_timeseries = {
 
    {schema="iface:dumped_flows",          label=i18n("graphs.dumped_flows"), metrics_labels = {i18n("graphs.dumped_flows"), i18n("graphs.dropped_flows")} },
    {schema="iface:zmq_recv_flows",        label=i18n("graphs.zmq_received_flows"), nedge_exclude=1},
-   {schema="custom:zmq_msg_rcvd_vs_drops",label=i18n("graphs.zmq_msg_rcvd_vs_drops"), check={"iface:zmq_rcvd_msgs", "iface:zmq_msg_drops"}, metrics_labels = {i18n("if_stats_overview.zmq_message_rcvd"), i18n("if_stats_overview.zmq_message_drops")}, value_formatter = {"NtopngUtils.fmsgs", "formatMessages"}},
-   {schema="iface:zmq_flow_coll_drops",   label=i18n("graphs.zmq_flow_coll_drops"), nedge_exclude=1, value_formatter = {"NtopngUtils.fflows", "formatFlows"}},
-   {schema="iface:zmq_flow_coll_udp_drops", label=i18n("graphs.zmq_flow_coll_udp_drops"), nedge_exclude=1, value_formatter = {"NtopngUtils.fpackets", "formatPackets"}},
+   {schema="custom:zmq_msg_rcvd_vs_drops",label=i18n("graphs.zmq_msg_rcvd_vs_drops"), check={"iface:zmq_rcvd_msgs", "iface:zmq_msg_drops"}, metrics_labels = {i18n("if_stats_overview.zmq_message_rcvd"), i18n("if_stats_overview.zmq_message_drops")}, value_formatter = {"NtopUtils.fmsgs", "NtopUtils.formatMessages"}},
+   {schema="iface:zmq_flow_coll_drops",   label=i18n("graphs.zmq_flow_coll_drops"), nedge_exclude=1, value_formatter = {"NtopUtils.fflows", "NtopUtils.formatFlows"}},
+   {schema="iface:zmq_flow_coll_udp_drops", label=i18n("graphs.zmq_flow_coll_udp_drops"), nedge_exclude=1, value_formatter = {"NtopUtils.fpackets", "NtopUtils.formatPackets"}},
    {separator=1, nedge_exclude=1, label=i18n("tcp_stats")},
    {schema="iface:tcp_lost",              label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
    {schema="iface:tcp_out_of_order",      label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},

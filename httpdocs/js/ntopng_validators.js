@@ -21,7 +21,7 @@ function memberValueValidator(input) {
   var member = input.val();
   if (member === "") return true;
 
-  return NtopngUtils.is_mac_address(member) || NtopngUtils.is_network_mask(member, true);
+  return NtopUtils.is_mac_address(member) || NtopUtils.is_network_mask(member, true);
 }
 
 function makePasswordPatternValidator(pattern) {
@@ -61,7 +61,7 @@ function hostOrMacValidator(input) {
   /* Handled separately */
   if (host === "") return true;
 
-  return NtopngUtils.is_mac_address(host) || NtopngUtils.is_good_ipv4(host) || NtopngUtils.is_good_ipv6(host);
+  return NtopUtils.is_mac_address(host) || NtopUtils.is_good_ipv4(host) || NtopUtils.is_good_ipv6(host);
 }
 
 function ipAddressValidator(input) {
@@ -70,5 +70,5 @@ function ipAddressValidator(input) {
   /* Handled separately */
   if (host === "") return true;
 
-  return NtopngUtils.is_good_ipv4(host) || NtopngUtils.is_good_ipv6(host);
+  return NtopUtils.is_good_ipv4(host) || NtopUtils.is_good_ipv6(host);
 }

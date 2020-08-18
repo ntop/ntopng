@@ -88,15 +88,15 @@ function Timeline(p_update_url, p_url_params, p_url_id_name, p_timeInterval, p_i
       xFormatter: function(x) {
         return new Date(x * 1000).toString();
       },
-      yFormatter: function(bits) { return(NtopngUtils.bytesToVolume(bits)); },
+      yFormatter: function(bits) { return(NtopUtils.bytesToVolume(bits)); },
       formatter: function(series, x, y, formattedX, formattedY, d) {
         var l_index = name2id(series.name);
         
-        str = 'Process:&nbsp;' + series.name + '<br/>Traffic:&nbsp;' + NtopngUtils.bytesToVolume(y);
+        str = 'Process:&nbsp;' + series.name + '<br/>Traffic:&nbsp;' + NtopUtils.bytesToVolume(y);
         
         if (l_index != -1) {
            var l_data = seriesHistoryData[l_index];
-           str += '<br>Actual memory:&nbsp;'+ NtopngUtils.bytesToVolume(l_data.actual_memory);
+           str += '<br>Actual memory:&nbsp;'+ NtopUtils.bytesToVolume(l_data.actual_memory);
           
            if ((l_data.average_cpu_load == 0) || (l_data.average_cpu_load < 1)) {
             str += '<br>Average CPU Load:&nbsp;< 1 %';

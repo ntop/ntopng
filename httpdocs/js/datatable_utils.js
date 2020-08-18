@@ -69,7 +69,7 @@ function datatableAddLinkButtonCallback(td_idx, link, label) {
 }
 
 function datatableMakeSelectUnique(tr_obj, added_rows_prefix, options) {
-   options = NtopngUtils.paramsExtend({
+   options = NtopUtils.paramsExtend({
       on_change: $.noop,                     /* A callback to be called when the select input changes */
       selector_fn: function(obj) {           /* A callback which receives a tr object and returns a single select input */
          return obj.find("select").first();
@@ -285,7 +285,7 @@ function datatableInitRefreshRows(table, column_id, refresh_interval, trend_colu
                 console.warn("Invalid number: " + new_val);
 
               if(!first_load)
-                arrows = " " + NtopngUtils.drawTrend(parseFloat(new_val), parseFloat(old_val));
+                arrows = " " + NtopUtils.drawTrend(parseFloat(new_val), parseFloat(old_val));
 
               // This value will be neede in the next refresh
               $cell.data("dt-rr-cur-val", new_val);

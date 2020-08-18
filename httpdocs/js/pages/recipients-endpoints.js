@@ -33,7 +33,7 @@ $(document).ready(function () {
 
         try {
 
-            const request = await NtopngUtils.fetchWithTimeout(`${http_prefix}/lua/edit_notification_recipient.lua`, {method: 'post', body: JSON.stringify(body)}, 3000);
+            const request = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/edit_notification_recipient.lua`, {method: 'post', body: JSON.stringify(body)}, 3000);
             const {result} = await request.json();
 
             if (result.status == "failed") {
@@ -243,7 +243,7 @@ $(document).ready(function () {
             if (response.result.status == "OK") {
                 $(`#add-recipient-modal`).modal('hide');
                 $(`#add-recipient-modal form .recipient-template-container`).hide();
-                NtopngUtils.cleanForm(`#add-recipient-modal form`);
+                NtopUtils.cleanForm(`#add-recipient-modal form`);
                 $recipientsTable.ajax.reload(function() {
                     DataTableUtils.updateFilters(i18n.endpoint_type, $recipientsTable);
                 });

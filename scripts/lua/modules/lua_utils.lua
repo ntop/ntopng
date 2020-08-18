@@ -3780,8 +3780,8 @@ function initFlowsRefreshRows()
    print[[
 datatableInitRefreshRows($("#table-flows"), "key_and_hash", 10000, {
    /* List of rows with trend icons */
-   "column_thpt": ]] print(ternary(getThroughputType() ~= "bps", "NtopngUtils.fpackets", "NtopngUtils.bitsToSize")) print[[,
-   "column_bytes": NtopngUtils.bytesToSize,
+   "column_thpt": ]] print(ternary(getThroughputType() ~= "bps", "NtopUtils.fpackets", "NtopUtils.bitsToSize")) print[[,
+   "column_bytes": NtopUtils.bytesToSize,
 });
 
 $("#dt-bottom-details > .float-left > p").first().append('. ]]

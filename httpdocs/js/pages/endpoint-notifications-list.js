@@ -57,7 +57,7 @@ $(document).ready(function () {
             const $cloned = $(template);
             $templateContainer.empty().append($cloned).fadeIn();
             // init the patterns inside the input boxes
-            NtopngUtils.init_data_patterns();
+            NtopUtils.init_data_patterns();
         });
     }
 
@@ -141,7 +141,7 @@ $(document).ready(function () {
                 .empty().append(loadTemplate(data.endpoint_key));
             $(`#endpoint-type`).html(data.endpoint_conf_name);
             // init the patterns inside the input boxes
-            NtopngUtils.init_data_patterns();
+            NtopUtils.init_data_patterns();
             /* load the values inside the template */
             $(`#edit-endpoint-modal form [name='name']`).val(data.endpoint_conf_name);
             $(`#edit-endpoint-modal form .endpoint-template-container [name]`).each(function(i, input) {
@@ -192,7 +192,7 @@ $(document).ready(function () {
 
                 $(`#add-endpoint-modal`).modal('hide');
                 $(`#add-endpoint-modal form .endpoint-template-container`).hide();
-                NtopngUtils.cleanForm(`#add-endpoint-modal form`);
+                NtopUtils.cleanForm(`#add-endpoint-modal form`);
 
                 $endpointsTable.ajax.reload(function(data) {
                     // disable endpoint type if a endpoint reached its max num config

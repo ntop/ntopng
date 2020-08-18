@@ -375,12 +375,12 @@ $("#table-internals-periodic-activities").datatable({
       datatableInitRefreshRows($("#table-internals-periodic-activities"),
 			       "column_key", 5000,
 			       {
-                  "column_last_duration": fmillis,
-                  "column_tot_not_executed": NtopngUtils.fint,
-                  "column_tot_running_slow": NtopngUtils.fint,
-                  "column_tot_rrd_running_slow": NtopngUtils.fint,
-                  "column_timeseries_writes": NtopngUtils.fint,
-                  "column_rrd_drops": NtopngUtils.fint,
+                  "column_last_duration": NtopUtils.fmillis,
+                  "column_tot_not_executed": NtopUtils.fint,
+                  "column_tot_running_slow": NtopUtils.fint,
+                  "column_tot_rrd_running_slow": NtopUtils.fint,
+                  "column_timeseries_writes": NtopUtils.fint,
+                  "column_rrd_drops": NtopUtils.fint,
                });
    },
 });
@@ -501,8 +501,8 @@ $("#table-internals-periodic-activities").datatable({
       datatableInitRefreshRows($("#table-internals-periodic-activities"),
 			       "column_key", 5000,
 			       {
-                  "column_last_duration": fmillis,
-                  "column_last_num_calls": NtopngUtils.fint,
+                  "column_last_duration": NtopUtils.fmillis,
+                  "column_last_num_calls": NtopUtils.fint,
                });
    },
 });
@@ -651,7 +651,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 	    label = i18n("internals.chart_script_rrds", {script = script}),
 	    extra_params = {periodic_script = script},
 	    metrics_labels = {i18n("internals.num_writes"), i18n("internals.num_drops")},
-	    value_formatter = {"NtopngUtils.fpoints", "formatPoints"}
+	    value_formatter = {"NtopUtils.fpoints", "formatPoints"}
 	 }
 
       end

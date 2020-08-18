@@ -28,7 +28,7 @@ function mac_table_setID (row) {
 }
 
 function mac_row_update(mac_key) {
-  var hostInfo = NtopngUtils.hostkey2hostInfo(mac_key);
+  var hostInfo = NtopUtils.hostkey2hostInfo(mac_key);
   var url = "@HTTP_PREFIX@/lua/get_mac_data.lua?host="+hostInfo[0];
   if(hostInfo[1])
     url += "&vlan=" + hostInfo[1];

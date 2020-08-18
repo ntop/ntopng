@@ -284,7 +284,7 @@ print [[
   }
 
   if( rsp["rtp.packet_lost_in"] && (rsp["rtp.packet_lost_in"] != "") ){
-    $('#packet_lost_in').html(NtopngUtils.formatPackets(rsp["rtp.packet_lost_in"]));
+    $('#packet_lost_in').html(NtopUtils.formatPackets(rsp["rtp.packet_lost_in"]));
     if(packet_lost_in_trend){
       if(rsp["rtp.packet_lost_in"] > packet_lost_in_trend){
           $('#packet_lost_in_trend').html("<i class=\"fas fa-arrow-up\"></i>");
@@ -301,7 +301,7 @@ print [[
   packet_lost_in_trend = rsp["rtp.packet_lost_in"];
 
   if( rsp["rtp.packet_lost_out"] && (rsp["rtp.packet_lost_out"] != "") ){
-    $('#packet_lost_out').html(NtopngUtils.formatPackets(rsp["rtp.packet_lost_out"]));
+    $('#packet_lost_out').html(NtopUtils.formatPackets(rsp["rtp.packet_lost_out"]));
     if(packet_lost_out_trend){
       if(rsp["rtp.packet_lost_out"] > packet_lost_out_trend){
           $('#packet_lost_out_trend').html("<i class=\"fas fa-arrow-up\"></i>");
@@ -329,7 +329,7 @@ print [[
   }
 
   if( rsp["rtp.packet_drop_in"] && (rsp["rtp.packet_drop_in"] != "") ){
-    $('#packet_drop_in').html(NtopngUtils.formatPackets(rsp["rtp.packet_drop_in"]));
+    $('#packet_drop_in').html(NtopUtils.formatPackets(rsp["rtp.packet_drop_in"]));
     if(packet_drop_in_trend){
       if(rsp["rtp.packet_drop_in"] > packet_drop_in_trend){
           $('#packet_drop_in_trend').html("<i class=\"fas fa-arrow-up\"></i>");
@@ -346,7 +346,7 @@ print [[
   packet_drop_in_trend = rsp["rtp.packet_drop_in"];
 
   if( rsp["rtp.packet_drop_out"] && (rsp["rtp.packet_drop_out"] != "") ){
-    $('#packet_drop_out').html(NtopngUtils.formatPackets(rsp["rtp.packet_drop_out"]));
+    $('#packet_drop_out').html(NtopUtils.formatPackets(rsp["rtp.packet_drop_out"]));
     if(packet_drop_out_trend){
       if(rsp["rtp.packet_drop_out"] > packet_drop_out_trend){
           $('#packet_drop_out_trend').html("<i class=\"fas fa-arrow-up\"></i>");

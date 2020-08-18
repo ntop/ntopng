@@ -85,7 +85,7 @@ const REGEXES = {
     https: "^https?://.+$",
 };
 
-class NtopngUtils {
+class NtopUtils {
     static init_data_patterns() {
 	// for each input with the data-pattern attribute
 	// substitute the data-pattern with the right regexes
@@ -133,7 +133,7 @@ class NtopngUtils {
 	} else {
 	    ip_addr = elems[0];
 
-	    if (!NtopngUtils.isNumeric(elems[1]))
+	    if (!NtopUtils.isNumeric(elems[1]))
 		return null;
 
 	    mask = parseInt(elems[1]);
@@ -142,7 +142,7 @@ class NtopngUtils {
 		return null;
 	}
 
-	if (NtopngUtils.is_good_ipv4(ip_addr)) {
+	if (NtopUtils.is_good_ipv4(ip_addr)) {
 	    if (mask === null)
 		mask = 32;
 	    else if (mask > 32)
@@ -153,7 +153,7 @@ class NtopngUtils {
 		address: ip_addr,
 		mask: mask
 	    };
-	} else if (NtopngUtils.is_good_ipv6(elems[0])) {
+	} else if (NtopUtils.is_good_ipv6(elems[0])) {
 	    if (mask === null)
 		mask = 128;
 	    else if (mask > 128)
@@ -204,7 +204,7 @@ class NtopngUtils {
 	var sizes = ['exp/s', 'Kexp/s'];
 	if (eps == 0) return '0';
 	if ((eps > 0) && (eps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' exps/s');
-	var res = NtopngUtils.scaleValue(eps, sizes, 1000);
+	var res = NtopUtils.scaleValue(eps, sizes, 1000);
 
 	// Round to two decimal digits
 	return Math.round(res[0] * 100) / 100 + ' ' + res[1];
@@ -219,7 +219,7 @@ class NtopngUtils {
 	var sizes = [exports_label, 'K ' + exports_label];
 	if (exports == 0) return '0';
 	if ((exports > 0) && (exports < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' exps/s');
-	var res = NtopngUtils.scaleValue(exports, sizes, 1000);
+	var res = NtopUtils.scaleValue(exports, sizes, 1000);
 
 	// Round to two decimal digits
 	return Math.round(res[0] * 100) / 100 + ' ' + res[1];
@@ -228,7 +228,7 @@ class NtopngUtils {
     static fbits_from_bytes(bytes) {
 	if (typeof (bytes) === "undefined")
 	    return "-";
-	return (NtopngUtils.fbits(bytes * 8));
+	return (NtopUtils.fbits(bytes * 8));
     }
 
     static fpackets(pps) {
@@ -238,7 +238,7 @@ class NtopngUtils {
 	var sizes = ['pps', 'Kpps', 'Mpps', 'Gpps', 'Tpps'];
 	if (pps == 0) return '0';
 	if ((pps > 0) && (pps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' pps');
-	var res = NtopngUtils.scaleValue(pps, sizes, 1000);
+	var res = NtopUtils.scaleValue(pps, sizes, 1000);
 
 	// Round to two decimal digits
 	return Math.round(res[0] * 100) / 100 + ' ' + res[1];
@@ -251,7 +251,7 @@ class NtopngUtils {
 	var sizes = ['pt/s', 'Kpt/s', 'Mpt/s', 'Gpt/s', 'Tpt/s'];
 	if (pps == 0) return '0';
 	if ((pps > 0) && (pps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' pt/s');
-	var res = NtopngUtils.scaleValue(pps, sizes, 1000);
+	var res = NtopUtils.scaleValue(pps, sizes, 1000);
 
 	// Round to two decimal digits
 	return Math.round(res[0] * 100) / 100 + ' ' + res[1];
@@ -264,7 +264,7 @@ class NtopngUtils {
 	var sizes = ['fps', 'Kfps', 'Mfps', 'Gfps', 'Tfps'];
 	if (fps == 0) return '0';
 	if ((fps > 0) && (fps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' fps');
-	var res = NtopngUtils.scaleValue(fps, sizes, 1000);
+	var res = NtopUtils.scaleValue(fps, sizes, 1000);
 
 	// Round to two decimal digits
 	return Math.round(res[0] * 100) / 100 + ' ' + res[1];
@@ -277,7 +277,7 @@ class NtopngUtils {
 	var sizes = ['msg/s', 'Kmsg/s', 'Msg/s', 'Gmsg/s', 'Tmsg/s'];
 	if (mps == 0) return '0';
 	if ((mps > 0) && (mps < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + ' mps');
-	var res = NtopngUtils.scaleValue(mps, sizes, 1000);
+	var res = NtopUtils.scaleValue(mps, sizes, 1000);
 
 	// Round to two decimal digits
 	return Math.round(res[0] * 100) / 100 + ' ' + res[1];
@@ -387,14 +387,14 @@ class NtopngUtils {
 	$("select").each(function () {
 	    $(this).prop("disabled", true);
 	});
-	NtopngUtils.toggleAllTabs(false)
+	NtopUtils.toggleAllTabs(false)
     }
 
     static enableAllDropdownsAndTabs() {
 	$("select").each(function () {
 	    $(this).prop("disabled", false);
 	});
-	NtopngUtils.toggleAllTabs(true)
+	NtopUtils.toggleAllTabs(true)
     }
 
     static capitalize(s) {
@@ -430,20 +430,20 @@ class NtopngUtils {
 	var sizes = ['', 'K', 'M', 'G', 'T'];
 	if (val == 0) return '0';
 	if ((val > 0) && (val < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE);
-	var res = NtopngUtils.scaleValue(val, sizes, 1000);
+	var res = NtopUtils.scaleValue(val, sizes, 1000);
 
 	return Math.round(res[0]) + res[1];
     }
 
     static formatPackets(n) {
-	return (NtopngUtils.addCommas(n.toFixed(0)) + " Pkts");
+	return (NtopUtils.addCommas(n.toFixed(0)) + " Pkts");
     }
 
     static bytesToVolume(bytes) {
 	var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
 	if (bytes == 0) return '0 Bytes';
 	if ((bytes > 0) && (bytes < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + " Bytes");
-	var res = NtopngUtils.scaleValue(bytes, sizes, 1024);
+	var res = NtopUtils.scaleValue(bytes, sizes, 1024);
 
 	return parseFloat(res[0]) + " " + res[1];
     };
@@ -460,7 +460,7 @@ class NtopngUtils {
 	var sizes = ['bit/s', 'kbit/s', 'Mbit/s', 'Gbit/s', 'Tbit/s'];
 	if (bits == 0) return '0 bps';
 	if ((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + " bps");
-	var res = NtopngUtils.scaleValue(bits, sizes, factor);
+	var res = NtopUtils.scaleValue(bits, sizes, factor);
 
 	return res[0].toFixed(2) + " " + res[1];
     };
@@ -515,7 +515,7 @@ class NtopngUtils {
 	var d = new Date(epoch * 1000);
 	var tdiff = Math.floor(((new Date()).getTime() / 1000) - epoch);
 
-	return (d.format("dd/MM/yyyy hh:mm:ss") + " [" + NtopngUtils.secondsToTime(tdiff) + " ago]");
+	return (d.format("dd/MM/yyyy hh:mm:ss") + " [" + NtopUtils.secondsToTime(tdiff) + " ago]");
     }
 
     /* ticks for graph x axis */
@@ -626,19 +626,19 @@ class NtopngUtils {
 		form.attr("action", http_prefix + "/lua/mac_details.lua");
 	    } else if (data.type == "network") {
 		form.attr("action", http_prefix + "/lua/hosts_stats.lua");
-		NtopngUtils._add_find_host_link(form, "network", data.network);
+		NtopUtils._add_find_host_link(form, "network", data.network);
 	    } else if (data.type == "snmp") {
 		form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_interface_details.lua");
-		NtopngUtils._add_find_host_link(form, "snmp_port_idx", data.snmp_port_idx);
-		NtopngUtils._add_find_host_link(form, "page", "layer_2");
+		NtopUtils._add_find_host_link(form, "snmp_port_idx", data.snmp_port_idx);
+		NtopUtils._add_find_host_link(form, "page", "layer_2");
 	    } else if (data.type == "snmp_device") {
 		form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_device_details.lua");
 	    } else if (data.type == "asn") {
 		form.attr("action", http_prefix + "/lua/hosts_stats.lua");
-		NtopngUtils._add_find_host_link(form, "asn", data.asn);
+		NtopUtils._add_find_host_link(form, "asn", data.asn);
 	    } else {
 		form.attr("action", http_prefix + "/lua/host_details.lua");
-		NtopngUtils._add_find_host_link(form, "mode", "restore");
+		NtopUtils._add_find_host_link(form, "mode", "restore");
 	    }
 
 	    return true;
@@ -680,7 +680,7 @@ class NtopngUtils {
     }
 
     static getHistoryParameters(params) {
-	var cur_params = NtopngUtils.parseQuery(window.location.search);
+	var cur_params = NtopUtils.parseQuery(window.location.search);
 	var new_params = $.extend(cur_params, params);
 	var new_query = "?" + $.param(new_params, true);
 	var baseUrl = [location.protocol, '//', location.host, location.pathname].join('');
@@ -741,7 +741,7 @@ class NtopngUtils {
 			// Submit configuration file
 			params.load_config_xhr(reader.result)
 			    .done((d, status, xhr) => {
-				if (NtopngUtils.check_status_code(xhr.status, xhr.statusText, $("#import-error"))) {
+				if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $("#import-error"))) {
 				    // re-enable button
 				    $button.removeAttr("disabled");
 				    return;
@@ -760,7 +760,7 @@ class NtopngUtils {
 				}
 			    })
 			    .fail(({ status, statusText }) => {
-				NtopngUtils.check_status_code(status, statusText, $("#import-error"));
+				NtopUtils.check_status_code(status, statusText, $("#import-error"));
 
 				// re-enable button
 				$button.removeAttr("disabled");
@@ -829,7 +829,7 @@ class NtopngUtils {
 $(document).ready(function () {
     // if there are inputs with 'pattern' data attribute
     // then initialize them
-    NtopngUtils.init_data_patterns();
+    NtopUtils.init_data_patterns();
 
     $(`input#import-input`).on('change', function () {
 	const filename = $(this).val().replace("C:\\fakepath\\", "");

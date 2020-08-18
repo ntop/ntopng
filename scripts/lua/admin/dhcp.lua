@@ -188,7 +188,7 @@ print[[
     params.old_dhcp_ranges = old_dhcp_ranges.join(",");
     params.dhcp_ranges = dhcp_ranges.join(",");
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-    NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
   aysHandleForm("#table-dhcp-form", {

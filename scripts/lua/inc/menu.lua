@@ -942,7 +942,7 @@ print(
 		      query_url   = ntop.getHttpPrefix() .. "/lua/find_host.lua",
 		      query_title = i18n("search_host"),
 		      style       = "width: 16em;",
-		      before_submit = [[NtopngUtils.makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
+		      before_submit = [[NtopUtils.makeFindHostBeforeSubmitCallback("]] .. ntop.getHttpPrefix() .. [[")]],
 		      max_items   = "'all'" --[[ let source script decide ]],
 		      parameters  = { ifid = ternary(is_system_interface, getSystemInterfaceId(), ifId) },
 		   }

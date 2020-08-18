@@ -113,7 +113,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
      
     if ((last_process.localeCompare(d.name) == 0) && (d.name != "")){
       
-      var data = NtopngUtils.bytesToVolumeAndLabel(d.value);
+      var data = NtopUtils.bytesToVolumeAndLabel(d.value);
       var value = data[0]
       if (last_byte < d.value) {
         value = data[0]+ ' \uf062';
@@ -147,7 +147,7 @@ function SequenceSunburst(circle_name,sequence_name,refresh,update_url,url_param
     if (percentage < 0.1) {
       percentageString = "< 0.1%";
     }
-    var data = NtopngUtils.bytesToVolumeAndLabel(d.value);
+    var data = NtopUtils.bytesToVolumeAndLabel(d.value);
 
     totalValue.text(data[0]);
     totalLabel.text(d.name);

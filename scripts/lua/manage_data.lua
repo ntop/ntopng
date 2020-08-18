@@ -264,7 +264,7 @@ function delete_data() {
 
   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-  const form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
+  const form = NtopUtils.paramsToForm('<form method="post"></form>', params);
 
   aysResetForm($("#host_data_form_delete")); // clean the form to void alert message
   form.appendTo('body').submit();
@@ -285,7 +285,7 @@ function delete_interfaces_data(action) {
 
   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-  var form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
+  var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
 
   form.appendTo('body').submit();
 };
@@ -335,10 +335,10 @@ function prepare_typeahead(host_id, vlan_id, buttons_id) {
     /* check for a /24-/32 IPv4 network */
     /* mandatory mask */
 
-    if (NtopngUtils.is_network_mask(input.val(), false)) {
+    if (NtopUtils.is_network_mask(input.val(), false)) {
 
       const elems = input.val().split("/");
-      if ((elems.length == 2) && NtopngUtils.is_good_ipv4(elems[0]) && (parseInt(elems[1]) >= 24))
+      if ((elems.length == 2) && NtopUtils.is_good_ipv4(elems[0]) && (parseInt(elems[1]) >= 24))
         return true;
     }
 

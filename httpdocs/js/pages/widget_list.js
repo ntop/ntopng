@@ -14,7 +14,7 @@ $(document).ready(function() {
         columns: [
             { data: 'name' },
             { data: 'key' },
-            { data: 'type', render: (type) => `${NtopngUtils.capitaliseFirstLetter(type)}` },
+            { data: 'type', render: (type) => `${NtopUtils.capitaliseFirstLetter(type)}` },
             {
                 data: 'params',
                 render: (params) => `<code>${JSON.stringify(params)}</code>`
@@ -96,7 +96,7 @@ $(document).ready(function() {
         beforeSumbit: function() {
             return {
                 action: 'edit',
-                JSON: JSON.stringify(NtopngUtils.serializeFormArray($(`#edit-widget-modal form`).serializeArray()))
+                JSON: JSON.stringify(NtopUtils.serializeFormArray($(`#edit-widget-modal form`).serializeArray()))
             };
         },
         loadFormData: function() {
@@ -136,7 +136,7 @@ $(document).ready(function() {
         beforeSumbit: function() {
             const submitOptions = {
                 action: 'add',
-                JSON: JSON.stringify(NtopngUtils.serializeFormArray($(`#add-widget-modal form`).serializeArray()))
+                JSON: JSON.stringify(NtopUtils.serializeFormArray($(`#add-widget-modal form`).serializeArray()))
             };
             return submitOptions;
         },

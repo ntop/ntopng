@@ -566,12 +566,12 @@ print[[
       var select_field = tr.find("td:nth-child(4) select");
       var vlanicon_disabled = null;
 
-      if (NtopngUtils.is_mac_address(member)) {
+      if (NtopUtils.is_mac_address(member)) {
 	vlan_field.attr("disabled", true);
 	vlanicon_disabled = false;
 	select_field.attr("disabled", false);
       } else {
-	var cidr = NtopngUtils.is_network_mask(member, true);
+	var cidr = NtopUtils.is_network_mask(member, true);
 	select_field.attr("disabled", true);
 
 	if (cidr) {
@@ -614,7 +614,7 @@ print[[
       if (! member)
 	return true;
 
-      var is_mac = NtopngUtils.is_mac_address(member);
+      var is_mac = NtopUtils.is_mac_address(member);
       var identifier;
 
       if(is_mac) {
@@ -633,7 +633,7 @@ print[[
 	  vlan_value = $("input[name='" + name + "']", $("#table-manage-form")).val();
 	}
 
-	is_cidr = NtopngUtils.is_network_mask(address_value, true);
+	is_cidr = NtopUtils.is_network_mask(address_value, true);
 	if (! is_cidr)
 	   /* this will be handled by addressValidator */
 	  return true;
@@ -645,7 +645,7 @@ print[[
 
       $('input[name^="member_"]:not([name$="_vlan"])', $("#table-manage-form")).each(function() {
 	var address_value = $(this).val();
-	var is_cidr = NtopngUtils.is_network_mask(address_value, true);
+	var is_cidr = NtopUtils.is_network_mask(address_value, true);
 
 	var aggregated;
 	if (! is_cidr) {
@@ -757,7 +757,7 @@ print [[
 	params.pool = ]] print(selected_pool.id) print[[;
 	params.member_to_delete = field.attr("data-origin-value");
 	params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-	NtopngUtils.paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
+	NtopUtils.paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
       }
     }
 
@@ -765,7 +765,7 @@ print [[
       var params = {};
       params.empty_pool = ]] print(selected_pool.id) print[[;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-      NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+      NtopUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
     }
 
     function changeMemberPool(member_id) {
@@ -777,7 +777,7 @@ print [[
 	params.pool = $("#changed_host_pool").val();
 	params.member = field.attr("data-origin-value");
 	params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-	NtopngUtils.paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
+	NtopUtils.paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
       }
     }
 
@@ -859,7 +859,7 @@ print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[&pool=]] print(se
 
 	    /* Make member name editable */
 	    var value = member_address.html();
-	    var is_cidr = NtopngUtils.is_network_mask(value);
+	    var is_cidr = NtopUtils.is_network_mask(value);
 	    if (is_cidr) {
 	      old_value = member_address.html() + '@' + vlan.html();
 	      if (((is_cidr.type == "ipv4" && is_cidr.mask == 32)) ||
@@ -945,7 +945,7 @@ print[[
       $('input[name^="member_"]:not([name$="_vlan"])', form).each(function() {
 	var address = null;
 
-	if((member = NtopngUtils.is_network_mask($(this).val(), true))) {
+	if((member = NtopUtils.is_network_mask($(this).val(), true))) {
 	  /* this is a network */
 	  var vlan_name = $(this).attr("name") + "_vlan";
 	  var vlan_field = $("input[name=" + vlan_name + "]", form);
@@ -979,11 +979,11 @@ print[[
       aysResetForm(form);
 
       // create a form with key-values encoded
-      var params = NtopngUtils.paramsPairsEncode(settings);
+      var params = NtopUtils.paramsPairsEncode(settings);
       params.edit_members = "";
       params.pool = ]] print(selected_pool.id) print[[;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-      NtopngUtils.paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
+      NtopUtils.paramsToForm('<form method="post" action="]] print(manage_url) print[["></form>', params).appendTo('body').submit();
       return false;
     }
   </script>
@@ -1010,7 +1010,7 @@ print [[
       params.pool_to_delete = pool_id;
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-      var form = NtopngUtils.paramsToForm('<form method="post"></form>', params);
+      var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
       if (pool_id == ]] print(selected_pool.id) print[[)
 	form.attr("action", "?ifid=]] print(tostring(ifId)) print[[&page=pools#create");
 
@@ -1167,10 +1167,10 @@ print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[",
       aysResetForm(form);
 
       // create a form with key-values encoded
-      var params = NtopngUtils.paramsPairsEncode(settings);
+      var params = NtopUtils.paramsPairsEncode(settings);
       params.edit_pools = "";
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-      NtopngUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+      NtopUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
 
       return false;
     }
@@ -1179,7 +1179,7 @@ print [[/lua/get_host_pools.lua?ifid=]] print(ifId.."") print[[",
 
 print[[
   <script>
-    NtopngUtils.handle_tab_state($("#hostPoolsNav"), "manage");
+    NtopUtils.handle_tab_state($("#hostPoolsNav"), "manage");
 
     aysHandleForm("form", {
       handle_datatable: true,
