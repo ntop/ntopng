@@ -12,7 +12,7 @@ PRODUCT="ntopng"
 REDIS_CHECK_FOR_UPDATES_KEY="ntopng.updates.check_for_updates"
 REDIS_NEW_VERSION_AVAILABLE_KEY="ntopng.updates.new_version"
 REDIS_RUN_UPGRADE_KEY="ntopng.updates.run_upgrade"
-REDIS_UPGRADE_FAILURE_KEY="ntopng.updates.upgrade_failure"
+REDIS_UPDATE_FAILURE_KEY="ntopng.updates.update_failure"
 REDIS_AUTO_UPDATES_KEY="ntopng.prefs.is_autoupdates_enabled"
 REDIS_IN_PROGRESS_KEY="ntopng.updates.in_progress"
 REDIS_PRODUCT_NAME_KEY="ntopng.product_name"
@@ -135,15 +135,25 @@ if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $A
 	exit 1
 fi
 
+function set_failure() {
+	STATUS=$1
+	# Report failure status
+	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "${STATUS}" 2>&1 >/dev/null
+	# Cleanup requests
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} 2>&1 >/dev/null 
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} 2>&1 >/dev/null
+}
+
 function stall_check() {
 	INSTANCES=$(pgrep -fc "$0 -a ${ACTION}")
 	if [ $INSTANCES -gt 2 ]; then
-		#echo "Another instance is running with the same action"
+		echo "Another instance is running with the same action"
 		exit 0
 	fi
 }
 
 function maintenance_check() {
+
 	APP_BIN="/usr/local/bin/${PRODUCT}"
 
 	NOW=`date +'%s'`
@@ -151,14 +161,25 @@ function maintenance_check() {
 
 	if [ "${EXPIRY_EPOCH}" = "Invalid" ]; then
 		# Missing or invalid license.
+		set_failure "no-license"
 		exit 0
 	elif echo "${EXPIRY_EPOCH}${NOW}" | grep -q "^[0-9]\+$"; then
 		if [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
 			# Expired maintenance
+			set_failure "expired-maintenance"
 			exit 0
 		fi
 	else
 		# Unable to read maintenance
+		set_failure "no-license"
+		exit 0
+	fi
+}
+
+function service_enabled_check() {
+	SERVICE_ENABLED=$(/bin/systemctl is-enabled ${PRODUCT} 2>/dev/null)
+	if [ ! "${SERVICE_ENABLED}" == "enabled" ]; then
+		set_failure "service-not-enabled"
 		exit 0
 	fi
 }
@@ -205,10 +226,10 @@ function run_upgrade() {
 		[ $QUIET = false ] && echo "${PRODUCT} updated successfully"
 		# Cleanup new version available key
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} 2>&1 >/dev/null 
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY} 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} 2>&1 >/dev/null 
 	else
 		[ $QUIET = false ] && echo "Unable to update"
-		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure" 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "upgrade-failure" 2>&1 >/dev/null
 	fi
 
 	# Cleanup "in progress" flag
@@ -239,7 +260,7 @@ function check_updates() {
 
 		if [ ! $? -eq 0 ]; then
 			# Something went wrong, unable to fix it
-			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure" 2>&1 >/dev/null 
+			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "update-failure" 2>&1 >/dev/null 
 		else
 			# Check update and get version
 			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
@@ -266,7 +287,7 @@ function check_updates() {
 	else
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} 2>&1 >/dev/null 
 		if [ $RESULT -eq 0 ]; then
-			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY} 2>&1 >/dev/null 
+			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} 2>&1 >/dev/null 
 		fi
 	fi
 }
@@ -295,10 +316,7 @@ function handle_upgrade_requests() {
 maintenance_check
 
 # Run this cron script when the ntopng service is enabled only
-SERVICE_ENABLED=$(/bin/systemctl is-enabled ${PRODUCT} 2>/dev/null)
-if [ ! "${SERVICE_ENABLED}" == "enabled" ]; then
-	exit 0
-fi
+service_enabled_check
 
 # Check OEM mode
 OEM_MODE=$(${REDIS_CLI} ${REDIS_CLI_OPT} EXISTS ${REDIS_PRODUCT_NAME_KEY} 2>/dev/null | grep 1)

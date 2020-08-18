@@ -18,7 +18,7 @@ end
 local new_version_available_key = "ntopng.updates.new_version"
 local check_for_updates_key = "ntopng.updates.check_for_updates"
 local upgrade_request_key = "ntopng.updates.run_upgrade"
-local upgrade_failure_key = "ntopng.updates.upgrade_failure"
+local update_failure_key = "ntopng.updates.update_failure"
 
 function version2number(v, rev)
   if v == nil then
@@ -65,20 +65,24 @@ else
   end
   if not isEmptyString(checking_updates) then
     status = "checking"
+  else
 
-  -- Check if the availability of a new update has been detected
-  elseif not isEmptyString(new_version) then
+    -- Check for failures
+    local update_failure = ntop.getCache(update_failure_key)
+    if not isEmptyString(update_failure) then
+      status = update_failure
+    else
 
-    -- Checking if current version is < available version (to handle manual updates)
-    local curr_version = version2number(info["version"], info["revision"])
-    local new_version_spl = string.split(new_version, "-");
-    if new_version_spl ~= nil then
-      local avail_version = version2number(new_version_spl[1], new_version_spl[2])
-      if avail_version > curr_version then
-        status = "update-avail"
-        local upgrade_failure = ntop.getCache(upgrade_failure_key)
-        if not isEmptyString(upgrade_failure) then
-          status = upgrade_failure
+      -- Check if the availability of a new update has been detected
+      if not isEmptyString(new_version) then
+        -- Checking if current version is < available version (to handle manual updates)
+        local curr_version = version2number(info["version"], info["revision"])
+        local new_version_spl = string.split(new_version, "-");
+        if new_version_spl ~= nil then
+          local avail_version = version2number(new_version_spl[1], new_version_spl[2])
+          if avail_version > curr_version then
+            status = "update-avail"
+          end
         end
       end
     end
