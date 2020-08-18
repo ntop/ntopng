@@ -13,13 +13,13 @@ local rest_utils = {
    consts = {
       success = {
          ok                   =  {rc = 0, str = "OK"},
-	 snmp_device_deleted  =  {rc = 0, str = "SNMP_DEVICE_DELETED_SUCCESSFULLY"},
-	 snmp_device_added    =  {rc = 0, str = "SNMP_DEVICE_ADDED_SUCCESSFULLY"},
-	 snmp_device_edited   =  {rc = 0, str = "SNMP_DEVICE_EDITED_SUCCESSFULLY"},
-	 pool_deleted         =  {rc = 0, str = "POOL_DELETED_SUCCESSFULLY"},
-	 pool_added           =  {rc = 0, str = "POOL_ADDED_SUCCESSFULLY"},
-	 pool_edited          =  {rc = 0, str = "POOL_EDITED_SUCCESSFULLY"},
-	 pool_member_bound    =  {rc = 0, str = "POOL_MEMBER_BOUND_SUCCESSFULLY"},
+         snmp_device_deleted  =  {rc = 0, str = "SNMP_DEVICE_DELETED_SUCCESSFULLY"},
+         snmp_device_added    =  {rc = 0, str = "SNMP_DEVICE_ADDED_SUCCESSFULLY"},
+         snmp_device_edited   =  {rc = 0, str = "SNMP_DEVICE_EDITED_SUCCESSFULLY"},
+         pool_deleted         =  {rc = 0, str = "POOL_DELETED_SUCCESSFULLY"},
+         pool_added           =  {rc = 0, str = "POOL_ADDED_SUCCESSFULLY"},
+         pool_edited          =  {rc = 0, str = "POOL_EDITED_SUCCESSFULLY"},
+         pool_member_bound    =  {rc = 0, str = "POOL_MEMBER_BOUND_SUCCESSFULLY"},
       },
       err = {
          not_found                        = {rc =  -1, str = "NOT_FOUND"},
