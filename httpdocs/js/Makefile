@@ -11,7 +11,7 @@ DEP_MIN_JS_SRC=ie_fix.js rickshaw.js pie-chart.js gauge.js \
 		  moment.js ASAP.js binary-indicators.js
 
 NTOP_MIN_JS=ntop.min.js
-NTOP_MIN_JS_SRC=datatable_utils.js ays_utils.js string_utils.js ntopng_utils.js graph_utils.js \
+NTOP_MIN_JS_SRC=datatable_utils.js ays_utils.js string_utils.js ntop_utils.js graph_utils.js \
 		  ebpf_utils.js ntopng_validators.js plugin-script-datatable.js main.js \
 		  notification-daemon.js utils/modal-utils.js utils/datatable-utils.js utils/alert-notifications-utils.js
 
