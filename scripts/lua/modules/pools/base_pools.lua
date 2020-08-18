@@ -62,7 +62,11 @@ function base_pools:create(args)
    setmetatable(this, self)
    self.__index = self
 
-   this:_initialize()
+   if args then
+      -- Initialization is only run if a subclass is being instanced, that is,
+      -- when args is not nil
+      this:_initialize()
+   end
 
    return this
 end
