@@ -83,7 +83,7 @@ There are two main ways to gather flows from multiple NetFlow/sFlow exporters an
 
 2. By running multiple nProbe instances, one for each exporter. This method is the most performant
    because each exported data will be handled by a separate thread into ntopng so it can leverage
-   the cpu cores of a multicore system.
+   the CPU cores of a multicore system.
 
 Here is an example on how to configure multiple nProbe instances (second approach):
 
