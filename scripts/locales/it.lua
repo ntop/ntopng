@@ -1301,7 +1301,7 @@ local lang = {
     ["snmp_location"] = "Posizione SNMP",
     ["snmp_no_device_found"] = "Nessun dispositivo SNMP trovato",
     ["snmp_ratio"] = "Rapporto Flusso/SNMP",
-    ["snmp_ratio_descr"] = "Il rapporto Flusso/SNMP è un numero tra 0 e 1 che indica quanto i flussi ricevuto rappresentino il traffico totale. Così come accade nell'analisi basata sui flussi, intestazioni non-IP e di Livello 2 non sono considerate, <br>valori di rapporto normali sono nel range 0.8..0.9 (es. 0.9 significa che il 90%% del traffico ricevuto osservato tramite SNMP è stato riportato in flussi).<br>Il rapporto è calcolato su base oraria solo se sono soddisfatte le seguenti condizioni",
+    ["snmp_ratio_descr"] = "Il rapporto Flusso/SNMP è un numero tra 0 e 1 che indica quanto i flussi ricevuto rappresentino il traffico totale. Così come accade nell'analisi basata sui flussi, intestazioni non-IP e di Livello 2 non sono considerate, <br>valori di rapporto normali sono comprese tra 0.8 e 0.9 (es. 0.9 significa che il 90%% del traffico ricevuto osservato tramite SNMP è stato riportato in flussi).<br>Il rapporto è calcolato sul traffico degli ultimi 5 minuti, intervallo uguale alla frequenza di poll delle device SNMP. Il calcolo del rapporto necessita delle seguenti condizioni",
     ["this_page_contains_couters"] = "Questa pagina riporta i contatori delle interfacce così come sono state raccolte via sFlow. Se SNMP è configurato, si può anche vedere la <A HREF=\"%{url}\">vista SNMP</A> di questo dispositivo",
     ["timeseries_descr"] = "Le serie temporali per i dispositivi a flusso possono essere abilitate dalle <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferenze</a>. Sono necessari alcuni minuti per vedere i primi punti di dati",
   },
