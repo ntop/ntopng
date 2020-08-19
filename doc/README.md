@@ -4,10 +4,10 @@ See [README.compilation](README.compilation) for more information.
 
 Prior to Starting ntopng
 ---------------------
-Please make sure that you have redis server installed and active on the same host
-where ntopng will be running. If you plan to use a remote redis, please consider
-using the `--redis` option to specify a remote redis server IP address and port
-or a local socket. We suggest you run redis as a service so that you do not have
+Please make sure that you have a Redis server installed and active on the same host
+where ntopng will be running. If you plan to use a remote Redis server, please consider
+using the `--redis` option to specify a remote Redis server IP address and port
+or a local socket. We suggest you run Redis as a service so that you do not have
 to start it every time you want to use ntopng.
 
 
@@ -55,7 +55,7 @@ Note that you can optionally also specify the interface name.
 
 Using ntopng from Windows
 -------------------------
-1. Remember to start the redis server prior to start ntopng
+1. Remember to start the Redis server prior to start ntopng
 2. You must start ntopng as a service using the "Services" control panel
 
 

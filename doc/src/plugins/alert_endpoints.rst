@@ -10,7 +10,7 @@ trigger a specialized action based on the triggered alert.
 How They Work
 -------------
 
-Each alert endpoint has a dedicated redis FIFO queue. When an alert is triggered, ntopng enqueues the
+Each alert endpoint has a dedicated Redis FIFO queue. When an alert is triggered, ntopng enqueues the
 alerts JSON representation to each one of the enabled endpoints queues. Periodically ntopng invokes the
 endpoint logic which is responsible for dequeuing alerts from the queue and process them.
 

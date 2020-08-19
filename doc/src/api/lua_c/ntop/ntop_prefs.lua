@@ -18,7 +18,7 @@ function ntop.getPrefs()
 --! @return true on success, false otherwise.
 function ntop.flushCache()
 
---! @brief Retrieve a specific item in a redis list.
+--! @brief Retrieve a specific item in a Redis list.
 --! @param key the list item identifier.
 --! @param index the list index.
 --! @return the item on success, nil otherwise.

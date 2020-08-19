@@ -17,7 +17,7 @@ You can start ntopng from cmd.exe only for debug purposes or for manipulating th
 
 .. warning::
 
-   ntopng requires the :code:`redis` service to be up and running or it will not start. Make sure this service is running and auto-started on boot. Check its status from the Services application.
+   ntopng requires the :code:`Redis` service to be up and running or it will not start. Make sure this service is running and auto-started on boot. Check its status from the Services application.
    
 List Monitored Interfaces
 ----------------------------
@@ -51,7 +51,7 @@ Windows services are started and stopped using the Services application part of 
 
 Troubleshooting
 ---------------
-ntopng requires the redis service to be activated in order to start. You can check redis status from the Services application.
+ntopng requires the Redis service to be activated in order to start. You can check Redis status from the Services application.
 
 In some Windows PCs, in particular those with WiFi adapters, ntopng might not be able to detect these adapters. Shall this be the case, we suggest you to uninstall the Win10Pcap drivers that are installed with ntopng and move to the ncap Windows drivers that can be installed from `ncap Windows drivers
 <https://nmap.org/npcap/windows-10.html>`_.

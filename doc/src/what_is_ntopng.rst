@@ -26,8 +26,8 @@ Installing on MacOS
 
 MacOS installation packages can be found at
 http://packages.ntop.org/ and are installed with a GUI.
-ntopng requires redis to be installed in order to start. During the ntopng installation,
-if redis is not present, redis is installed and activated, otherwise the one already installed on
+ntopng requires Redis to be installed in order to start. During the ntopng installation,
+if Redis is not present, Redis is installed and activated, otherwise the one already installed on
 the system is used. After the installation, ntopng is started and active on local port 3000
 (i.e. ntopng is available at http://127.0.0.1:3000). If you want to uninstall ntopng you can
 open a terminal and type :code:`sudo /usr/local/bin/ntopng-uninstall.sh`
@@ -46,7 +46,7 @@ The ntopng service can be started/stopped using the launchctl command:
 Installing on Windows
 ---------------------
 
-Only the development build binary is available for windows. The binary can
+Only the development build binary is available for Windows. The binary can
 be downloaded from the `Windows package repository
 <https://packages.ntop.org/Windows/>`_.
 
@@ -87,7 +87,7 @@ in the ntopng installer.
    installation, without any extra step to download or install npcap
    drivers.
 
-The windows package does NOT contain geolocation files, due to restrictions as
+The Windows package does NOT contain geolocation files, due to restrictions as
 reported later in this section. So you need to download the geolocation files
 and then copy them into C:\\Program Files\\ntopng\\httpdocs\\geoip\\ directory, and
 then restart ntopng.

@@ -3,7 +3,7 @@ Instructions
 
 This file contains a list of beta/debugging features hidden into ntopng.
 These are subject to change. The feature can be enabled by enabling the
-corresponding redis preference. The correct sequence to follow is:
+corresponding Redis preference. The correct sequence to follow is:
 
   1. ntopng must be running
   2. run the feature-specific command

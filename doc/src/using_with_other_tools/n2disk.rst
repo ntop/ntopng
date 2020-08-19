@@ -214,7 +214,7 @@ REST API
 
 The pcap file can also be downloaded directly through http, running a live extraction. 
 It is possible to use a command line tool such as `wget` or `curl` for this.
-The direct url for downloading the pcap is 
+The direct URL for downloading the pcap is 
 :code:`http://<ntopng IP>:3000/lua/rest/get/pcap/live_extraction.lua?ifid=<id>&epoch_begin=<epoch>&epoch_end=<epoch>[&bpf_filter=<filter>]`
 
 Where:

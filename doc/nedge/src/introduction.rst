@@ -117,7 +117,7 @@ As an example, let's suppose there are 3 different customers plans to manage:
 - Normal User: uses WiFi gateway by default, but may also use the 3G is WiFi is not available.
 - Gold User: can use any of the available gateways and it has a 70% of the available bandwidth reserved
 
-The desired behaviour is that a user should always use the less expensive gateway available,
+The desired behavior is that a user should always use the less expensive gateway available,
 based on its plan. If such a gateway becomes unavailable, Normal/Gold users should use an
 alternative gateway as long as it remains unavailable and then switch back to the less
 expensive when available.

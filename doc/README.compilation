@@ -46,7 +46,7 @@ On Centos8
 - yum clean all
 - yum update
 - yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect geoipupdate
-- Then list the streams which provide redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
+- Then list the streams which provide Redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
 - yum install hiredis-devel
 
 On Fedora 30/31/32:
@@ -69,13 +69,13 @@ port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git 
 On FreeBSD
 See README.FreeBSD
 
-On Windows you can download the redis server from
+On Windows you can download the Redis server from
 - https://github.com/rgl/redis/downloads
 
 Note that:
-- you can use zmq 4.x in addition to 3.x (but not 2.x)
+- you can use ZMQ 4.x in addition to 3.x (but not 2.x)
 - make sure nobody owns /var/lib/ntopng
-- make sure to have uglify-es to minify javascript code, just type, in the command line, `npm install -g uglify-es` to install it (`./autogen.sh && ./configure` is required after installing uglify-es, before running `make minify`)
+- make sure to have uglify-es to minify JavaScript code, just type, in the command line, `npm install -g uglify-es` to install it (`./autogen.sh && ./configure` is required after installing uglify-es, before running `make minify`)
 - make sure to have clean-css-cli to minify and optimize the CSS code, just type, in the command line, `npm install -g clean-css-cli`
 
 Source Code Compilation

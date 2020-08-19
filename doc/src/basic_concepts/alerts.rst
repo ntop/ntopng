@@ -188,7 +188,7 @@ Ntopng can detect possibly anomalous flows, and report them as alerts. Such flow
 
 Here is a list of possible flows alert types:
 
-  - **Flow Misbehaviour** (event): Indicates a generic misbehaviour. The alert description contains more details, namely:
+  - **Flow Misbehavior** (event): Indicates a generic misbehavior. The alert description contains more details, namely:
 
     + Slow TCP Connection
     + Slow Application Header

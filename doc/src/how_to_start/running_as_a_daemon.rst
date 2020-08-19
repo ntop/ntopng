@@ -132,7 +132,7 @@ Each daemon must have its own configuration file under
 :code:`/etc/ntopng`.
 
 In order to run multiple daemons on the same machine, each daemon
-must be guaranteed to have its own redis database (option :code:`-r`), its
+must be guaranteed to have its own Redis database (option :code:`-r`), its
 own HTTP/HTTPS ports (options :code:`-w` and :code:`-W`), and its own
 data directory (option :code:`-d`). Those options must be specified in
 each daemon's configuration file.

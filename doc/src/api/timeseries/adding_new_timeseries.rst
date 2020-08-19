@@ -29,7 +29,7 @@ Traffic elements are handled in some standard ways:
       class to modify (and related :code:`::lua` method).
 
    3. Some traffic elements are implemented in Lua. Their state is stored in Redis
-      usually in json form. This includes, for example, the SNMP devices.
+      usually in JSON form. This includes, for example, the SNMP devices.
 
 In order to add a custom timeseries it's necessary to identify the correct case
 above. It's also important to note that not all the traffic elements can be exported.

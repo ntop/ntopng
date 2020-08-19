@@ -31,7 +31,7 @@ Event producers have, in turn, to be instructed to deliver events to ntopng righ
 ./nprobe_mini   -v --zmq tcp://127.0.0.1:1234c
 ```
 
-One might need to adjust the ZMQ url to connect to an ntopng running on a remote machine or on a different port.
+One might need to adjust the ZMQ URL to connect to an ntopng running on a remote machine or on a different port.
 
 ### Setting up `libebpfflow`
 

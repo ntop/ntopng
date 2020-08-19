@@ -21,7 +21,7 @@ Example usage:
 ntopng/tools/fritzdump.sh <username> <password>
 ```
 
-*NOTE:* If you use password-only authentification pass "dslf-config" as username
+*NOTE:* If you use password-only authentication pass "dslf-config" as username
 
 As you can see in the script, it will connect to the Fritz!Box via http://fritz.box,
 authenticate with the user and password you passed and capture the traffic on the

@@ -85,7 +85,7 @@ ntopng uses Redis as a cache for DNS names and other values. The Redis
 server by default listens only on the loopback address `127.0.0.1` but
 it is accessible without passwords.
 
-To secure the Redis server with a password, uncommend the
+To secure the Redis server with a password, uncomment the
 `requirepass` line of the Redis configuration file and specify a
 secure (very long) password here.
 

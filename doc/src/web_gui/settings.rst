@@ -77,7 +77,7 @@ It is possible to choose between the following options:
 - Export all the hosts data
 - Export all the local hosts data
 - Export all the remote hosts data
-- Export a specific host data, by specifing its IP or MAC address and optionally a VLAN
+- Export a specific host data, by specifying its IP or MAC address and optionally a VLAN
 
 The JSON data can be downloaded and easily analyzed.
 

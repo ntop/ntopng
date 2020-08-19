@@ -66,7 +66,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | A password can be specified after
                                        | the port when Redis auth is required.
                                        | By default password auth is disabled.
-                                       | On Unix <fmt> can also be the redis socket file path.
+                                       | On Unix <fmt> can also be the Redis socket file path.
                                        | Port is ignored for socket-based connections.
                                        | Examples:
                                        | -r @2
@@ -182,13 +182,13 @@ Some of the most important parameters are briefly discussed here.
 
 :code:`[—interface|-i] <interface|pcap>`
 
-   At the end of the help information there a list of all available interfaces. The user can select one or more interfaces from the list so that ntopng will treat them as monitored interfaces. Any traffic flowing though monitored interfaces will be seen and processed by ntopng. The interface is passed using the interface number (e.g., :code:`-i 1`) on Windonws systems, whereas the name is used on Linux / Unix systems (e.g., :code:`-i eth0`). A monitoring session using multiple interfaces can be set up as follows:
+   At the end of the help information there a list of all available interfaces. The user can select one or more interfaces from the list so that ntopng will treat them as monitored interfaces. Any traffic flowing though monitored interfaces will be seen and processed by ntopng. The interface is passed using the interface number (e.g., :code:`-i 1`) on Windows systems, whereas the name is used on Linux / Unix systems (e.g., :code:`-i eth0`). A monitoring session using multiple interfaces can be set up as follows:
 
    .. code:: bash
 
       ntopng -i eth0 -i eth1
 
-   To specify a zmq interface (that allows to visualise remotely-collected flows by nProbe and cento) you should add an interface like :code:`ntopng -i tcp://<endpoint ip>/`
+   To specify a ZMQ interface (that allows to visualize remotely-collected flows by nProbe and cento) you should add an interface like :code:`ntopng -i tcp://<endpoint ip>/`
 
    An example of ntopng and nprobe communication is
 
@@ -268,7 +268,7 @@ Some of the most important parameters are briefly discussed here.
    As mentioned above, a configuration file can be used in order to start ntopng. All the command line options can be reported in the configuration file, one per line. Options must be separated from their values using a :code:`=` sign. Comment lines starting with a :code:`#` sign are allowed as well.
 
 .. warning::
-   Unlike its predecessor, ntopng is not itself a Netflow collector. It can act as Netflow collector combined with nProbe. To perform this connection start nProbe with the :code:`--zmq` parameter and point ntopng interface parameter to the nProbe zmq endpoint. Using this configuration give the admin the possibility to use ntopng as collector GUI to display data either from nProbe captured traffic and Netflow enabled devices as displayed in the following picture.
+   Unlike its predecessor, ntopng is not itself a Netflow collector. It can act as Netflow collector combined with nProbe. To perform this connection start nProbe with the :code:`--zmq` parameter and point ntopng interface parameter to the nProbe ZMQ endpoint. Using this configuration give the admin the possibility to use ntopng as collector GUI to display data either from nProbe captured traffic and Netflow enabled devices as displayed in the following picture.
 
 
    .. figure:: img/cli_options_ntopng_with_nprobe_architecture.png

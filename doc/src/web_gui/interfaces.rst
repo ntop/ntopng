@@ -33,7 +33,7 @@ Home
 
 In the Home page it is possible to view general interface information, such as Id (a unique integer
 identifier ntopng assigns to each monitored interface), family (e.g., pcap), and the overall traffic counters in
-bytes. It is possible to customise the interface name just by writing a custom name into the Name textbook
+bytes. It is possible to customize the interface name just by writing a custom name into the Name textbook
 and clicking on “Save Name”. Interface monitoring can be temporarily paused from the ‘State’ toggle
 buttons.
 
@@ -54,7 +54,7 @@ Applications
 Applications page provides three pie charts and a specific table with nDPI-detected protocols for the selected
 interface.
 
-In the two top pie charts ntopng shows the application distribution and its categorisation. The bottom pie
+In the two top pie charts ntopng shows the application distribution and its categorization. The bottom pie
 chart shows nDPI-detected applications for currently active flows. All labels are clickable and point to
 detailed statistics pages. Belo pie charts there is a list of protocols detected with the corresponding total
 traffic, both in absolute terms and as a percentage of the total traffic.
@@ -96,14 +96,14 @@ Statistics
 Statistics page provides historical traffic statistics for the selected interface. The user can choose to filter
 statistics on a protocol basis and display data in several formats (e.g., bytes, packets, flows, and so on). In
 the Professional Version of ntopng, traffic for interface views in shown as stacked per physical interface.
-Physical interface visualisation can be toggled by clicking on the coloured dot just left of interface name.
+Physical interface visualization can be toggled by clicking on the coloured dot just left of interface name.
 
 The time series span can be adjusted by selecting values from 5 minutes up to 1 year. Moreover, drill-
 down is possible by clicking on the time series itself. Every click zooms the chart in, centering the time
 series around the clicked point.
 
 In addition, time series shown can be chosen via the dropdown menu labelled ‘Time series’. For example,
-it is possible to visualise all or just one protocol, traffic, packets, active hosts and flows, and so on. Ntopng
+it is possible to visualize all or just one protocol, traffic, packets, active hosts and flows, and so on. Ntopng
 is VLAN aware, hence if several VLANs are detected, traffic is accounted also on a VLAN basis.
 
 .. figure:: ../img/web_gui_interfaces_timeseries_dropdown.png
@@ -183,8 +183,8 @@ statistics.
 
 **Create Interface Timeseries**:
 This setting toggles the generation of timeseries for the selected
-interface. No timeseries will be generated when this setting in
-unticked, including timeseries associated with local hosts and networks.
+interface. No timeseries will be generated when this setting is
+unchecked, including timeseries associated with local hosts and networks.
 
 **Create One-Way Traffic Timeseries**:
 This setting toggles the generation of timeseries for one way traffic, which
@@ -248,7 +248,7 @@ The imported host pools will replace the existing ones.
 
 An “Alias” can be associated to each pool member to ease the its identification. Typically, one would
 assign a mnemonic label as member alias (e.g., “John’s iPhone” or “Smart TV”). A “Device Type” can be
-associated to each member as well. Devices types are used to categorise members on the basis of the
+associated to each member as well. Devices types are used to categorize members on the basis of the
 device type (e.g., TV, Camera, Smartphone).
 
 The image below shows an “IoT Devices” Host Pool with two members, namely a smart tv and a router.
@@ -282,7 +282,7 @@ can assign.
   :alt: Interface DHCP Range Configuration
 
 When a DHCP range is configured, ntopng will monitor the DHCP traffic on the interface
-and report anomalous behaviours. For example, it detects if IP addresses are assigned outside
+and report anomalous behavior. For example, it detects if IP addresses are assigned outside
 the configured range and generate an alert. This can happen, for example, if a new
 misconfigured network device is attached to the network.
 

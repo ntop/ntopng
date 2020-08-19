@@ -109,7 +109,7 @@ on the network. It also provides the previous period data as long as comparison
 columns to easily analyze the difference between the two periods.
 
 Via the date picker at the top of the chart it's possible to easily jump to another
-period. The right and left arrows provide a conveniente way to jump to the next and
+period. The right and left arrows provide a convenient way to jump to the next and
 previous period respectively. Via the "Today" button it's possible to jump to the
 current day view, which show the traffic entity during the different hours of the day.
 

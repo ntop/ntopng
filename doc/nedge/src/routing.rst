@@ -56,7 +56,7 @@ if DHCP client mode is enabled for the interface.
 
 Custom gateways can also be created at will. A typical example is the
 use of a single WAN port to route the traffic through different gateways. All the
-gateways and the nEdge WAN port itself are connected through a multiport swtich.
+gateways and the nEdge WAN port itself are connected through a multiport switch.
 In this case, all the gateways must be on the same IP network in order for nEdge
 to correctly route the traffic through them.
 
