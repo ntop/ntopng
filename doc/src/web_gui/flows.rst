@@ -139,7 +139,7 @@ Info
 ----
 
 Extra information nDPI is able to extract from the detected flow is made available in this field. This field
-may include urls, traffic profiles (in the Professional Version), contents of DNS requests, and so on.
+may include URLs, traffic profiles (in the Professional Version), contents of DNS requests, and so on.
 
 .. [1] Actually, flows may also exist between a host and a multicast group, as well as a broadcast domain.
 .. [2] https://github.com/ntop/nDPI

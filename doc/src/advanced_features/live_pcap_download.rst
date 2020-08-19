@@ -14,7 +14,7 @@ page. You can control the pcap duration and set an optional BPF filter for furth
   Link for downloading the pcap file
 
 The pcap file can also be downloaded directly through http, using a command line tool such as `wget` or `curl`.
-The direct url for downloading the pcap is :code:`http://<ntopng IP>:3000/lua/live_traffic.lua?ifid=<interface index>&host=<host IP>`.
+The direct URL for downloading the pcap is :code:`http://<ntopng IP>:3000/lua/live_traffic.lua?ifid=<interface index>&host=<host IP>`.
 
 Please note that you should use cookies for authentication, as explained in the documentation. For example with `curl` you can specify
 username and password with :code:`--cookie "user=<user>; password=<password>"`

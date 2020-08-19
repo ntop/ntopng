@@ -1,6 +1,6 @@
 HTTP authentication can be enabled from the ntopng preferences page.
 
-NTOP will request a POST to an url with a JSON content:
+NTOP will request a POST to a URL with a JSON content:
 { "user": "username", "password": "password" }
 
 User is granted if webservice return code 200, anything else
@@ -22,8 +22,8 @@ You can set language via optional language field:
 
 HTTP authentication parameters are discussed below.
 
-* HTTP Url
-Url to request for authentication.
+* HTTP URL
+URL to request for authentication.
 Examples:
     http://server.tld/auth
     https://server.tld/auth

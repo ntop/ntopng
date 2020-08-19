@@ -1,6 +1,6 @@
 ## CSRF
 
-CSRF attacks rely on trusted, authenticated users which are tricked into performing a certain action on the web application. CSRF attacks craft a web url which is then visited by the victim. The victim's browser will send a session cookie when visiting the url, thus making the request completely legitimate from the perspective of the web application.
+CSRF attacks rely on trusted, authenticated users which are tricked into performing a certain action on the web application. CSRF attacks craft a web URL which is then visited by the victim. The victim's browser will send a session cookie when visiting the URL, thus making the request completely legitimate from the perspective of the web application.
 
 In general, CSRF protection is implemented using random tokens which are kept secret between the web application and the legitimate user.
 
