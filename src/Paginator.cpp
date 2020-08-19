@@ -59,7 +59,8 @@ Paginator::Paginator() {
   mac_filter = NULL;
   flow_status_filter = ((u_int16_t)-1);
 
-  deviceIP = inIndex = outIndex = 0;
+  deviceIP = 0;
+  inIndex = outIndex = (u_int16_t)-1;
   asn_filter = (u_int32_t)-1;
 
   icmp_type = u_int8_t(-1);

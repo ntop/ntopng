@@ -127,11 +127,11 @@ class Paginator {
   }
 
   inline bool inIndexFilter(u_int16_t *f) const {
-    if(inIndex) { (*f) = inIndex; return true; } return false;
+    if(inIndex != (u_int16_t)-1) { (*f) = inIndex; return true; } return false;
   }
 
   inline bool outIndexFilter(u_int16_t *f) const {
-    if(outIndex) { (*f) = outIndex; return true; } return false;
+    if(outIndex != (u_int16_t)-1) { (*f) = outIndex; return true; } return false;
   }
 
   inline bool poolFilter(u_int16_t *f) const {
