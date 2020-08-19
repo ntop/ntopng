@@ -33,7 +33,7 @@ Home
 
 In the Home page it is possible to view general interface information, such as Id (a unique integer
 identifier ntopng assigns to each monitored interface), family (e.g., pcap), and the overall traffic counters in
-bytes. It is possible to customise the interface name just by writing a custom name into the Name textbook
+bytes. It is possible to customize the interface name just by writing a custom name into the Name textbook
 and clicking on “Save Name”. Interface monitoring can be temporarily paused from the ‘State’ toggle
 buttons.
 
