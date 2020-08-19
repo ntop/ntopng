@@ -465,7 +465,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 	    by_protocol[serie.protocol] = 1
 	 end
 
-	 for protocol in pairsByKeys(by_protocol, asc) do
+	 for protocol in pairsByKeys(by_protocol, asc_insensitive) do
 	    local proto_id = protocol
 	    graph_common.populateGraphMenuEntry(protocol, base_url, table.merge(params, {ts_schema=schema, protocol=proto_id}))
 	 end
@@ -498,7 +498,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 	    by_protocol[sortkey] = serie.l4proto
 	 end
 
-	 for _, protocol in pairsByKeys(by_protocol, asc) do
+	 for _, protocol in pairsByKeys(by_protocol, asc_insensitive) do
 	    local proto_id = protocol
 	    local label
 
@@ -531,7 +531,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 	    by_category[getCategoryLabel(serie.category)] = serie.category
 	 end
 
-	 for label, category in pairsByKeys(by_category, asc) do
+	 for label, category in pairsByKeys(by_category, asc_insensitive) do
 	    graph_common.populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, category=category}))
 	 end
       end
