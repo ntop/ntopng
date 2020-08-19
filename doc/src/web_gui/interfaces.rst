@@ -54,7 +54,7 @@ Applications
 Applications page provides three pie charts and a specific table with nDPI-detected protocols for the selected
 interface.
 
-In the two top pie charts ntopng shows the application distribution and its categorisation. The bottom pie
+In the two top pie charts ntopng shows the application distribution and its categorization. The bottom pie
 chart shows nDPI-detected applications for currently active flows. All labels are clickable and point to
 detailed statistics pages. Belo pie charts there is a list of protocols detected with the corresponding total
 traffic, both in absolute terms and as a percentage of the total traffic.
@@ -248,7 +248,7 @@ The imported host pools will replace the existing ones.
 
 An “Alias” can be associated to each pool member to ease the its identification. Typically, one would
 assign a mnemonic label as member alias (e.g., “John’s iPhone” or “Smart TV”). A “Device Type” can be
-associated to each member as well. Devices types are used to categorise members on the basis of the
+associated to each member as well. Devices types are used to categorize members on the basis of the
 device type (e.g., TV, Camera, Smartphone).
 
 The image below shows an “IoT Devices” Host Pool with two members, namely a smart tv and a router.
