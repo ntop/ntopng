@@ -46,7 +46,7 @@ On Centos8
 - yum clean all
 - yum update
 - yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect geoipupdate
-- Then list the streams which provide redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
+- Then list the streams which provide Redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
 - yum install hiredis-devel
 
 On Fedora 30/31/32:
@@ -69,7 +69,7 @@ port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git 
 On FreeBSD
 See README.FreeBSD
 
-On Windows you can download the redis server from
+On Windows you can download the Redis server from
 - https://github.com/rgl/redis/downloads
 
 Note that:

@@ -581,5 +581,5 @@ The above information can be interpreted as:
 - `AccessSW-1` is connected to `NetworkSpine-2` via the interface with index `2111493`
 - The total traffic registered from `AccessSW-1` to `NetworkSpine-2` is 25151496709 bytes
 
-The user script keeps track of the old arcs by storing them into the redis key `ntopng.cache.snmp_topology_arcs_monitor.<device_ip>`.
+The user script keeps track of the old arcs by storing them into the Redis key `ntopng.cache.snmp_topology_arcs_monitor.<device_ip>`.
 By comparing the old registered arcs with the new ones it can determine if an arc was removed or added.

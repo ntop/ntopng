@@ -26,8 +26,8 @@ Installing on MacOS
 
 MacOS installation packages can be found at
 http://packages.ntop.org/ and are installed with a GUI.
-ntopng requires redis to be installed in order to start. During the ntopng installation,
-if redis is not present, redis is installed and activated, otherwise the one already installed on
+ntopng requires Redis to be installed in order to start. During the ntopng installation,
+if Redis is not present, Redis is installed and activated, otherwise the one already installed on
 the system is used. After the installation, ntopng is started and active on local port 3000
 (i.e. ntopng is available at http://127.0.0.1:3000). If you want to uninstall ntopng you can
 open a terminal and type :code:`sudo /usr/local/bin/ntopng-uninstall.sh`

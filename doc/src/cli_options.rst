@@ -66,7 +66,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | A password can be specified after
                                        | the port when Redis auth is required.
                                        | By default password auth is disabled.
-                                       | On Unix <fmt> can also be the redis socket file path.
+                                       | On Unix <fmt> can also be the Redis socket file path.
                                        | Port is ignored for socket-based connections.
                                        | Examples:
                                        | -r @2
