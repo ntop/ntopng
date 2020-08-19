@@ -282,7 +282,7 @@ can assign.
   :alt: Interface DHCP Range Configuration
 
 When a DHCP range is configured, ntopng will monitor the DHCP traffic on the interface
-and report anomalous behaviours. For example, it detects if IP addresses are assigned outside
+and report anomalous behavior. For example, it detects if IP addresses are assigned outside
 the configured range and generate an alert. This can happen, for example, if a new
 misconfigured network device is attached to the network.
 
