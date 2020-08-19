@@ -182,13 +182,13 @@ Some of the most important parameters are briefly discussed here.
 
 :code:`[—interface|-i] <interface|pcap>`
 
-   At the end of the help information there a list of all available interfaces. The user can select one or more interfaces from the list so that ntopng will treat them as monitored interfaces. Any traffic flowing though monitored interfaces will be seen and processed by ntopng. The interface is passed using the interface number (e.g., :code:`-i 1`) on Windonws systems, whereas the name is used on Linux / Unix systems (e.g., :code:`-i eth0`). A monitoring session using multiple interfaces can be set up as follows:
+   At the end of the help information there a list of all available interfaces. The user can select one or more interfaces from the list so that ntopng will treat them as monitored interfaces. Any traffic flowing though monitored interfaces will be seen and processed by ntopng. The interface is passed using the interface number (e.g., :code:`-i 1`) on Windows systems, whereas the name is used on Linux / Unix systems (e.g., :code:`-i eth0`). A monitoring session using multiple interfaces can be set up as follows:
 
    .. code:: bash
 
       ntopng -i eth0 -i eth1
 
-   To specify a zmq interface (that allows to visualise remotely-collected flows by nProbe and cento) you should add an interface like :code:`ntopng -i tcp://<endpoint ip>/`
+   To specify a zmq interface (that allows to visualize remotely-collected flows by nProbe and cento) you should add an interface like :code:`ntopng -i tcp://<endpoint ip>/`
 
    An example of ntopng and nprobe communication is
 

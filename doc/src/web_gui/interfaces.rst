@@ -96,14 +96,14 @@ Statistics
 Statistics page provides historical traffic statistics for the selected interface. The user can choose to filter
 statistics on a protocol basis and display data in several formats (e.g., bytes, packets, flows, and so on). In
 the Professional Version of ntopng, traffic for interface views in shown as stacked per physical interface.
-Physical interface visualisation can be toggled by clicking on the coloured dot just left of interface name.
+Physical interface visualization can be toggled by clicking on the coloured dot just left of interface name.
 
 The time series span can be adjusted by selecting values from 5 minutes up to 1 year. Moreover, drill-
 down is possible by clicking on the time series itself. Every click zooms the chart in, centering the time
 series around the clicked point.
 
 In addition, time series shown can be chosen via the dropdown menu labelled ‘Time series’. For example,
-it is possible to visualise all or just one protocol, traffic, packets, active hosts and flows, and so on. Ntopng
+it is possible to visualize all or just one protocol, traffic, packets, active hosts and flows, and so on. Ntopng
 is VLAN aware, hence if several VLANs are detected, traffic is accounted also on a VLAN basis.
 
 .. figure:: ../img/web_gui_interfaces_timeseries_dropdown.png
