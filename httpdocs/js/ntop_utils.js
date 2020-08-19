@@ -464,14 +464,14 @@ class NtopUtils {
 			return ("< 1 sec")
 		}
 
-		var days = Math.floor(seconds / 86400)
-		var hours = Math.floor((seconds / 3600) - (days * 24))
-		var minutes = Math.floor((seconds / 60) - (days * 1440) - (hours * 60))
-		var sec = seconds % 60
-		var msg = "", msg_array = []
+		let days = Math.floor(seconds / 86400)
+		let hours = Math.floor((seconds / 3600) - (days * 24))
+		let minutes = Math.floor((seconds / 60) - (days * 1440) - (hours * 60))
+		let sec = seconds % 60
+		let msg = "", msg_array = []
 
 		if (days > 0) {
-			years = Math.floor(days / 365)
+			let years = Math.floor(days / 365)
 
 			if (years > 0) {
 				days = days % 365
