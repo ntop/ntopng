@@ -19,13 +19,10 @@ if not haveAdminPrivileges() then
 end
 
 local function get_max_configs_available()
-
     local availables = {}
     local types = notification_configs.get_types()
-    tprint(types)
 
     for endpoint_key, endpoint in pairsByKeys(types, asc) do
-
         local conf_max_num = endpoint.conf_max_num
 
         if conf_max_num ~= nil then
