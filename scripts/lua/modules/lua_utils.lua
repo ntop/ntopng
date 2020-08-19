@@ -1535,7 +1535,10 @@ local function hostdetails_exists(host_info, hostdetails_params)
       local tags = table.merge(host_info, hostdetails_params)
       if not tags["ifid"] then tags["ifid"] = interface.getId() end
 
-      if not ts_utils.exists(hostdetails_params["ts_schema"], tags) then
+      -- If nIndex support is enabled, then there's no need to check for existence of the
+      -- schema: nIndex flows must be visible from the historical page even when there's no timeseries
+      -- associated
+      if not interfaceHasNindexSupport() and not ts_utils.exists(hostdetails_params["ts_schema"], tags) then
 	 -- If here, the requested schema, along with its hostdetails_params doesn't exist
 	 return false
       end

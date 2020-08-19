@@ -392,7 +392,7 @@ else
 				 label = "<i class=\"fas fa-lg fa-exclamation-triangle\"></i>",
 			      },
 			      {
-				 hidden = not charts_available,
+				 hidden = not charts_available and not interfaceHasNindexSupport(),
 				 active = page == "historical",
 				 page_name = "historical",
 				 label = "<i class='fas fa-lg fa-chart-area'></i>",
