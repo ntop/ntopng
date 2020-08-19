@@ -4385,7 +4385,7 @@ local lang = {
     ["installing"] = "Installing update..",
     ["maintenance_expired"] = "Please note that maintenance for this product has expired, you need to renew the license after the upgrade.",
     ["no_updates"] = "No updates available",
-    ["upgrade_failure_message"] = "Something went wrong during the update, please retry or try manually",
+    ["update_failure_message"] = "Something went wrong during the update, please retry or try manually",
   },
   ["user_activity"] = {
     ["add_ntopng_user"] = "User '%{user}' added new user %{new_user}.",

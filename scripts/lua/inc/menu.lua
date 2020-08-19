@@ -697,31 +697,42 @@ print[[
               $('#updates-install-li').hide();
               $('#admin-badge').hide();
 
-            } else if (rsp.status == 'not-avail') {
-              $('#updates-info-li').html(']] print(i18n("updates.no_updates")) print[[');
-              $('#updates-install-li').html("<i class='fas fa-sync'></i> ]] print(i18n("updates.check")) print[[");
-              $('#updates-install-li').show();
-              $('#updates-install-li').off("click");
-              $('#updates-install-li').click(checkForUpdates);
-              $('#admin-badge').hide();
+            } else if (rsp.status == 'update-avail' || rsp.status == 'upgrade-failure') {
 
-            } else /* if (rsp.status == 'update-avail' || rsp.status == <errors> ) */ {
               $('#updates-info-li').html('<span class="badge badge-pill badge-danger">]] print(i18n("updates.available")) print[[</span> ]] print(info["product"]) print[[ ' + rsp.version + '!');
+
               var icon = '<i class="fas fa-download"></i>';
               $('#updates-install-li').attr('title', '');
               if (rsp.status !== 'update-avail') {
                 icon = '<i class="fas fa-exclamation-triangle"></i>';
-                $('#updates-install-li').attr('title', "]] print(i18n("updates.upgrade_failure_message")) print [[: " + rsp.status);
+                $('#updates-install-li').attr('title', "]] print(i18n("updates.update_failure_message")) print [[: " + rsp.status);
               }
               $('#updates-install-li').html(icon + " ]] print(i18n("updates.install")) print[[");
               $('#updates-install-li').show();
               $('#updates-install-li').off("click");
               $('#updates-install-li').click(installUpdate);
+
               if (rsp.status !== 'update-avail') $('#admin-badge').html('!');
               else $('#admin-badge').html('1');
               $('#admin-badge').show();
-            }
 
+            } else /* (rsp.status == 'not-avail' || rsp.status == 'update-failure' || rsp.status == <other errors>) */ {
+
+              var icon = '';
+              $('#updates-info-li').attr('title', '');
+              if (rsp.status !== 'not-avail') {
+                icon = '<i class="fas fa-exclamation-triangle"></i> ';
+                $('#updates-info-li').attr('title', "]] print(i18n("updates.update_failure_message")) print [[: " + rsp.status);
+              }
+              $('#updates-info-li').html(icon + ']] print(i18n("updates.no_updates")) print[[');
+
+              $('#updates-install-li').html("<i class='fas fa-sync'></i> ]] print(i18n("updates.check")) print[[");
+              $('#updates-install-li').show();
+              $('#updates-install-li').off("click");
+              $('#updates-install-li').click(checkForUpdates);
+
+              $('#admin-badge').hide();
+            }
           }
         }
     });
