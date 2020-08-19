@@ -19,13 +19,13 @@ local rest_utils = require("rest_utils")
 
 sendHTTPHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local username = _POST["username"]
 
 if username == nil then
-   print(rest_utils.rc(rest_utils.consts_invalid_args))
+   print(rest_utils.rc(rest_utils.consts.err.invalid_args))
    return
 end
 
@@ -34,7 +34,7 @@ username = string.lower(username)
 res.session = ntop.createUserSession(username)
 
 if isEmptyString(res.session) then
-   print(rest_utils.rc(rest_utils.consts_invalid_args))
+   print(rest_utils.rc(rest_utils.consts.err.invalid_args))
    return
 end
 

@@ -19,7 +19,7 @@ local rest_utils = require("rest_utils")
 
 sendHTTPHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 for ifid, ifname in pairs(interface.getIfNames()) do

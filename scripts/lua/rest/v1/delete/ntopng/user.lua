@@ -20,25 +20,25 @@ local tracker = require("tracker")
 
 sendHTTPHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 if not haveAdminPrivileges() then
-   print(rest_utils.rc(rest_utils.consts_not_granted, res))
+   print(rest_utils.rc(rest_utils.consts.err.not_granted, res))
    return
 end
 
 local username = _POST["username"]
 
 if username == nil then
-   print(rest_utils.rc(rest_utils.consts_invalid_args, res))
+   print(rest_utils.rc(rest_utils.consts.err.invalid_args, res))
    return
 end
 
 username = string.lower(username)
 
 if not ntop.deleteUser(username) then
-   print(rest_utils.rc(rest_utils.consts_delete_user_failed, res))
+   print(rest_utils.rc(rest_utils.consts.err.delete_user_failed, res))
    return
 end
 

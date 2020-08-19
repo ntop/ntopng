@@ -19,11 +19,11 @@ local rest_utils = require("rest_utils")
 
 sendHTTPHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 
 if not haveAdminPrivileges() then
    local res = {}
-   print(rest_utils.rc(rest_utils.consts_not_granted, res))
+   print(rest_utils.rc(rest_utils.consts.err.not_granted, res))
    return
 end
 
