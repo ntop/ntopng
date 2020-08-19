@@ -114,6 +114,7 @@ page_utils.menu_entries = {
     endpoint_recipients = {key = "endpoint_recipients", i18n_title = "endpoint_notifications.enpoint_recipients_list", section="notifications", visible_iface = false, visible_system = true},
 
     -- Tools
+    import_export_config = { key = "import_export_config", i18n_title = "import_export.import_export", section = "tools", visible_iface = false, visible_system = true},
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
     remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "tools", help_link = "https://www.ntop.org/guides/ntopng/remote_assistance.html"},
 

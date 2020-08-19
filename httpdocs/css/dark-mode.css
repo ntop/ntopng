@@ -295,6 +295,10 @@ text, g text.tick {
   color: #000;
 }
 
+.border {
+  border: 1px solid #323232!important;
+}
+
 .nvd3 .nv-axis line, .nvd3 .nv-axis path {
   stroke-width: 0.8px !important;
   stroke: #2C2C2C !important;

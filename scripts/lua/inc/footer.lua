@@ -45,7 +45,7 @@ print ([[
 <footer id="n-footer">
 	<div class="container-fluid">
 		<div class="row mt-2">
-			<div class="col-4 text-left">
+			<div class="col-4 pl-md-0 text-left">
 				<small>
 					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
 				  		]] .. (info.product .. ' ' .. getNtopngRelease(info) .." v.".. info.version) ..[[
@@ -61,7 +61,7 @@ print ([[
 ]])
 print [[
 			</div>
-			<div class="col-4 text-right">
+			<div class="col-4 text-right pr-md-0">
 				<small>
 						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
 				</small>

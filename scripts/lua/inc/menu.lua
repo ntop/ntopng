@@ -380,19 +380,14 @@ page_utils.add_menubar_section({
    section = page_utils.menu_sections.tools,
    entries = {
       {
+         entry = page_utils.menu_entries.import_export_config,
+         hidden = not is_admin or is_windows,
+         url = '/lua/admin/import_export_config.lua',
+      },
+      {
          entry = page_utils.menu_entries.remote_assistance,
          hidden = not is_admin or not remote_assistance.isAvailable(),
          url = '/lua/admin/remote_assistance.lua',
-      },
-      {
-         entry = page_utils.menu_entries.conf_backup,
-         hidden = not is_admin or is_windows,
-         url = '/lua/get_config.lua',
-      },
-      {
-         entry = page_utils.menu_entries.conf_restore,
-         hidden = not is_admin or is_windows,
-         url = 'https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration',
       },
    }
 })

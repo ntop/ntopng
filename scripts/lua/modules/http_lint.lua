@@ -1350,6 +1350,7 @@ local known_parameters = {
    ["pool"]                    = validateNumber,                -- A pool ID
    ["direction"]               = validateDirection,             -- Sent or Received direction
    ["download"]                = validateBool,
+   ["item"]                    = validateSingleWord,            -- Used by the Import/Export page to select the item to import/export
    ["stats_type"]              = validateStatsType,             -- A mode for historical stats queries
    ["alertstats_type"]         = validateAlertStatsType,        -- A mode for alerts stats queries
    ["flowhosts_type"]          = validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions

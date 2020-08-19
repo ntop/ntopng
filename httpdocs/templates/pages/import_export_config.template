@@ -1,0 +1,53 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <p>
+                    {{ i18n("import_export.description") }}:
+                </p>
+                <div>
+                    {% for _, config_item in ipairs(import_export.configuration_items) do %}
+                        <div class="form-check">
+                            <input
+                                {{ (import_export.selected_item == config_item.key and 'checked' or '') }}
+                                name="item" class="form-check-input" type="radio" name="exampleRadios" id="radio-{{ config_item.key }}" value="{{ config_item.key }}">
+                            <label class="form-check-label" for="radio-{{ config_item.key }}">
+                                {{ config_item.label }}
+                            </label>
+                        </div>
+                        {% if (config_item.key == "all") then %}
+                            <hr>
+                        {% end %}
+                    {% end %}
+
+                    <div class="mt-4">
+                        <div id="import-export">
+                            <a class="btn btn-primary" data-toggle="modal" id="btn-import-config" href="#import-modal">
+                                <i class="fas fa-file-import"></i>
+                                {{ i18n("import") }}
+                            </a>
+                            <a class="btn btn-primary" id="btn-export-config" href="{{ ntop.getHttpPrefix() }}/path/to/export.lua?item={{import_export.selected_item}}">
+                                <i class="fas fa-file-export"></i>
+                                {{ i18n("export") }}
+                            </a>
+                        </div>
+                        <div id="backup-restore" style="display: none;">
+                            <a class="btn btn-primary" data-toggle="modal" id="btn-backup" href="{{ ntop.getHttpPrefix() }}/lua/get_config.lua">
+                                <i class="fas fa-file-import"></i>
+                                {{ i18n("backup") }}
+                            </a>
+                            <a class="btn btn-primary" id="btn-restore" href="https://www.ntop.org/guides/ntopng/web_gui/settings.html#restore-configuration">
+                                <i class="fas fa-file-export"></i>
+                                {{ i18n("restore") }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{*
+    template_utils.gen("pages/modals/import_export_config/import.template")
+*}
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/import-export-config.js"></script>

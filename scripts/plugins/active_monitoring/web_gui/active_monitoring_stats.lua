@@ -154,6 +154,8 @@ if(page == "overview") then
       </div>
       <div class='row'>
         <div class='col-md-12 col-12'>
+        <div class='card'>
+          <div class='card-body'>
           <table class="table w-100 table-striped table-hover table-bordered" id="am-table">
             <thead>
               <tr>
@@ -173,6 +175,8 @@ if(page == "overview") then
             <tbody>
             </tbody>
           </table>
+          </div>
+          </div>
     ]])
 
     page_utils.print_notes({
@@ -235,15 +239,15 @@ if(page == "overview") then
     }))
 
     print([[
-    <div style="margin-bottom: 1rem">
-        <form action="]] .. ntop.getHttpPrefix() .. [[/plugins/get_active_monitoring_config.lua" class="form-inline" method="GET">
-            <button type="submit" class="btn btn-secondary"><span> <i class="fas fa-file-export"></i>]] .. i18n('config_scripts.config_export') .. [[</span></button>
-        </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal" class="btn btn-secondary"><span><i class="fas fa-file-import"></i> ]] .. i18n('config_scripts.config_import') .. [[</span></button>
+    <div class='mb-2'>
+
 	<form class="form-inline" method="POST" id="reset-form">
 	  <input type="hidden" name="csrf" value="]].. ntop.getRandomCSRFValue() ..[["/>
 	  <input type="hidden" name="action" value="reset_config"/>
 	  <button type="button" id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal" class="btn btn-secondary"><span><i class="fas fa-undo"></i> ]] .. i18n('config_scripts.config_reset') .. [[</span></button>
-	</form>
+  </form>
+  <a class="btn-link btn" href="{{ntop.getHttpPrefix()}}/lua/admin/import_export_config.lua?item=active_monitoring">]] .. i18n("import_export.import_export") ..[[</a>
+
     </div>
 
   ]])
