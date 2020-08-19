@@ -183,8 +183,8 @@ statistics.
 
 **Create Interface Timeseries**:
 This setting toggles the generation of timeseries for the selected
-interface. No timeseries will be generated when this setting in
-unticked, including timeseries associated with local hosts and networks.
+interface. No timeseries will be generated when this setting is
+unchecked, including timeseries associated with local hosts and networks.
 
 **Create One-Way Traffic Timeseries**:
 This setting toggles the generation of timeseries for one way traffic, which

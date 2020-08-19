@@ -8,4 +8,4 @@ always under active development and include:
 - Embedded-Systems aware including Raspberry Pi and Ubiquity Networks
 
 Please stay tuned and follow the ntop blog (http://blog.ntop.org) for all the latest news or visit the ntop
-Github page at http://github.com/ntop.
+GitHub page at http://github.com/ntop.

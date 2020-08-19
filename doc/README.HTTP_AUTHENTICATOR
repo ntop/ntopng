@@ -4,13 +4,13 @@ NTOP will request a POST to a URL with a JSON content:
 { "user": "username", "password": "password" }
 
 User is granted if webservice return code 200, anything else
-user is not granted. Content-type and answser content are not checked.
+user is not granted. Content-Type and answer content are not checked.
 
 If you want to grant a user as an administrator, webservice must
 reply a JSON like:
 { "admin": true }
 
-Some optionals fields can personalize user.
+Some optional fields can personalize user.
 You can set allowed ifname via optional allowedIfname field:
 { "allowedIfname": "ethX" }
 

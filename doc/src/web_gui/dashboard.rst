@@ -64,7 +64,7 @@ Any port number shown can be double-clicked to visit the 'Active Flows' page. Th
 
 Applications
 ^^^^^^^^^^^^
-Application View provides another pie chart that represents a view of the bandwidth usage divided per application protocol. Protocol identification is done through ntopn nDPI engine. Protocols that cannot be identified are marked as Unknown.
+Application View provides another pie chart that represents a view of the bandwidth usage divided per application protocol. Protocol identification is done through the ntopng nDPI engine. Protocols that cannot be identified are marked as Unknown.
 
 .. figure:: ../img/web_gui_dashboard_community_pie_chart_top_applications.png
   :align: center
