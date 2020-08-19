@@ -2011,12 +2011,6 @@ local function lintParams()
                         end
                      end
                   end
-               else
-		  if(debug) then io.write("[LINT] "..k.." = ["..v.."] -> ["..message.."]\n") end
-
-		  id[k] = message -- Setting the value back
-
-                  if(debug) then io.write("[LINT] Special Parameter "..k.." validated successfully\n") end
                end
             end
          end
