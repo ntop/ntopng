@@ -181,6 +181,7 @@ function base_pools:_get_assigned_pool_ids()
    local res = { base_pools.DEFAULT_POOL_ID }
 
    local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
+
    for _, cur_pool_id in pairs(cur_pool_ids) do
       cur_pool_id = tonumber(cur_pool_id)
 
@@ -540,7 +541,7 @@ function base_pools:get_assigned_members()
 
       if pool_details and pool_details["members"] then
 	 for _, member in pairs(pool_details["members"]) do
-	    res[member] = {pool_id = tonumber(pool_id), configset_id = pool_details["configset_id"]}
+	    res[member] = {pool_id = tonumber(pool_id), name = pool_details["name"], configset_id = pool_details["configset_id"]}
 	 end
       end
    end
