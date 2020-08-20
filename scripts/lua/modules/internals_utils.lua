@@ -124,8 +124,8 @@ $("#table-system-interfaces-stats").datatable({
    ], tableCallback: function() {
       datatableInitRefreshRows($("#table-system-interfaces-stats"),
 			       "column_key", 5000,
-			       {"column_active_entries": addCommas,
-				"column_idle_entries": addCommas});
+			       {"column_active_entries": NtopUtils.addCommas,
+				"column_idle_entries": NtopUtils.addCommas});
    },
 });
 </script>

@@ -148,14 +148,14 @@ $("#table-system-interfaces-stats").datatable({
    ], tableCallback: function() {
       datatableInitRefreshRows($("#table-system-interfaces-stats"),
                                "column_ifid", 5000,
-                               {"column_packets": addCommas,
-                                "column_traffic": addCommas,
-                                "column_flows": addCommas,
-                                "column_devices": addCommas,
-                                "column_remote_hosts": addCommas,
-                                "column_local_hosts": addCommas,
-                                "column_alerted_flows": addCommas,
-                                "column_engaged_alerts": addCommas});
+                               {"column_packets": NtopUtils.addCommas,
+                                "column_traffic": NtopUtils.addCommas,
+                                "column_flows": NtopUtils.addCommas,
+                                "column_devices": NtopUtils.addCommas,
+                                "column_remote_hosts": NtopUtils.addCommas,
+                                "column_local_hosts": NtopUtils.addCommas,
+                                "column_alerted_flows": NtopUtils.addCommas,
+                                "column_engaged_alerts": NtopUtils.addCommas});
    },
 });
 </script>
