@@ -1559,6 +1559,58 @@
 				}
 			}
 		},
+		"lua/pro/rest/v1/change/snmp/device/interface/status.lua": {
+			"get": {
+				"tags": [
+					"SNMP"
+				],
+				"summary": "Change SNMP device interface status",
+				"description": "Change the status of an SNMP device in terface to up or down",
+				"operationId": "change_snmp_device_interface_status",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "host",
+						"in": "query",
+						"description": "IP address of an SNMP device",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_admin_status",
+						"in": "query",
+						"description": "The new admin status, either 'up' or 'down'",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "snmp_port_idx",
+						"in": "query",
+						"description": "The index of the SNMP device interface",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-4": {
+						"description": "INVALID_HOST"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-26": {
+						"description": "SNMP_DEVICE_INTERFACE_STATUS_CHANGE_FAILED"
+					}
+				}
+			}
+		},
 		"/lua/rest/v1/get/pcap/live_extraction.lua": {
 			"get": {
 				"tags": [

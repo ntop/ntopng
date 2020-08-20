@@ -1508,3 +1508,40 @@ Response:
 	  }
    }
 
+Change the Status of an SNMP Device Interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -u admin:admin1 -d '{"host": "192.168.2.169", "snmp_admin_status": "up", "snmp_port_idx": 26}' http://127.0.0.1:3000/lua/pro/rest/v1/change/snmp/device/interface/status.lua
+
+Response:
+
+.. code:: json
+
+   {"rc":0,
+   "rc_str_hr":"Success",
+   "rsp":[],
+   "rc_str":"OK"
+   }
+
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -u admin:admin1 -d '{"host": "192.168.2.169", "snmp_admin_status": "down", "snmp_port_idx": 26}' http://127.0.0.1:3000/lua/pro/rest/v1/change/snmp/device/interface/status.lua
+
+Response:
+
+.. code:: json
+
+   {
+     "rc":0,
+     "rc_str_hr":"Success",
+     "rsp":[],
+     "rc_str":"OK"
+   }
+
