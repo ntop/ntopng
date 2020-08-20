@@ -25,7 +25,7 @@
 
 #include "ntop_includes.h"
 
-#define SNMP_MAX_NUM_OIDS          8
+#define SNMP_MAX_NUM_OIDS          10
 
 #ifdef HAVE_LIBSNMP
 #include <net-snmp/net-snmp-config.h>

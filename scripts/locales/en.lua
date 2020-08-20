@@ -68,6 +68,7 @@ local lang = {
   ["dscp_dst2src"] = "Server DSCP",
   ["dscp_src2dst"] = "Client DSCP",
   ["duplexstatus"] = "Duplex Status",
+  ["admin_status"] = "Admin",
   ["duration"] = "Duration",
   ["edit"] = "Edit",
   ["edit_configuration"] = "Edit Configuration",
