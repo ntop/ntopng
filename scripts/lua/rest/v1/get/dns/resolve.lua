@@ -16,15 +16,13 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
 local hostname = _GET["hostname"]
 
 if isEmptyString(hostname) then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
    return
 end
 
@@ -34,10 +32,10 @@ if not resolved then
 end
 
 if not resolved then
-   print(rest_utils.rc(rest_utils.consts.err.resolution_failed))
+   rest_utils.answer(rest_utils.consts.err.resolution_failed)
    return
 end
 
 res = resolved
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)

@@ -198,7 +198,30 @@ function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 -- ##############################################
 
-function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers)
+local http_status_code_map = {
+  [200] = "OK",
+  [400] = "Bad request",
+  [401] = "Unauthorized",
+  [403] = "Forbidden",
+  [404] = "Not found",
+  [405] = "Method Not Allowed",
+  [406] = "Not Acceptable",
+  [408] = "Request timeout",
+  [409] = "Conflict",
+  [410] = "Gone",
+  [412] = "Precondition Failed",
+  [415] = "Unsupported Media Type",
+  [423] = "Locked",
+  [428] = "Precondition Required",
+  [429] = "Too many requests",
+  [500] = "Internal Server Error",
+  [501] = "Not Implemented",
+  [503] = "Service Unavailable",
+}
+
+-- ##############################################
+
+function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers, status_code)
   info = ntop.getInfo(false)
   local cookie_attr = ntop.getCookieAttributes()
   local lines = {
@@ -224,14 +247,23 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
   end
 
   if type(extra_headers) == "table" then
-     for hname, hval in pairs(extra_headers) do
-        lines[#lines + 1] = hname..': '..hval
-     end
+    for hname, hval in pairs(extra_headers) do
+      lines[#lines + 1] = hname..': '..hval
+    end
+  end
+
+  if not status_code then
+    status_code = 200
+  end
+
+  local status_descr = http_status_code_map[status_code]
+  if not status_descr then
+    status_descr = "Unknown"
   end
 
   -- Buffer the HTTP reply and write it in one "print" to avoid fragmenting
   -- it into multiple packets, to ease HTTP debugging with wireshark.
-  print("HTTP/1.1 200 OK\r\n" .. table.concat(lines, "\r\n") .. "\r\n\r\n")
+  print("HTTP/1.1 " .. status_code .. " " .. status_descr .. "\r\n" .. table.concat(lines, "\r\n") .. "\r\n\r\n")
 end
 
 -- ##############################################
@@ -242,8 +274,8 @@ end
 
 -- ##############################################
 
-function sendHTTPHeader(mime, content_disposition, extra_headers)
-  sendHTTPHeaderIfName(mime, nil, 3600, content_disposition, extra_headers)
+function sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
+  sendHTTPHeaderIfName(mime, nil, 3600, content_disposition, extra_headers, status_code)
 end
 
 -- ##############################################
