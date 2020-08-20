@@ -3704,6 +3704,7 @@ local lang = {
     ["ADD_POOL_FAILED"] = "Unable to add a pool with the submitted params",
     ["BAD_CONTENT"] = "Bad content",
     ["BAD_FORMAT"] = "Bad format",
+    ["SNMP_DEVICE_INTERFACE_STATUS_CHANGE_FAILED"] = "SNMP device interface status change has failed",
     ["BIND_POOL_MEMBER_ALREADY_BOUND"] = "Unable to bind member which is already bound to another pool",
     ["BIND_POOL_MEMBER_FAILED"] = "Unable to bind the sumbitted member to the pool",
     ["DELETE_POOL_FAILED"] = "Unable to delete a pool with the submitted params",

@@ -1076,6 +1076,12 @@ http_lint.validateSNMPversion = validateSNMPversion
 
 -- #################################################################
 
+local function validateSNMPstatus(m)
+  return validateChoice({"up", "down"}, m) or validateNumber(m)
+end
+
+-- #################################################################
+
 local function validatenIndexQueryType(qt)
    return validateChoice({"top_clients", "top_servers", "top_protocols", "top_contacts"}, qt)
 end
@@ -1686,8 +1692,8 @@ local known_parameters = {
    ["sampling_rate"]           = validateEmptyOr(validateNumber),            -- if_stats.lua
    ["resetstats_mode"]         = validateResetStatsMode,        -- reset_stats.lua
    ["snmp_action"]             = validateSnmpAction,            -- snmp specific
-   ["snmp_status"]             = validateNumber,                -- snmp specific status (up: 1, down: 2, testing: 3)
-   ["snmp_admin_status"]       = validateNumber,                -- same as snmp_status but for the admin status
+   ["snmp_status"]             = validateSNMPstatus,            -- snmp specific status (up: 1, down: 2, testing: 3)
+   ["snmp_admin_status"]       = validateSNMPstatus,            -- same as snmp_status but for the admin status
    ["snmp_if_type"]            = validateNumber,                -- snmp interface type (see snmp_utils.lua fnmp_iftype)
    ["iftype_filter"]           = validateSingleWord,            -- SNMP iftype filter name
    ["host_quota"]              = validateEmptyOr(validateNumber),            -- max traffi quota for host
