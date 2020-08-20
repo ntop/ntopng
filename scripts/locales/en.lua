@@ -172,6 +172,7 @@ local lang = {
   ["os"] = "OS",
   ["other"] = "Other",
   ["others"] = "Others",
+  ["and_x_more"] = "and %{num} more",
   ["outgoingflows"] = "Active Outgoing Flows",
   ["overview"] = "Overview",
   ["packets"] = "Packets",

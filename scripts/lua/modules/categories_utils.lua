@@ -65,6 +65,34 @@ end
 
 -- ##############################################
 
+-- @brief Return a comma-separated list of protocols belonging to `cat_id`
+--        If protocols are more than 5, an hyperlink with the whole list is shown.
+function categories_utils.get_category_protocols_list(cat_id)
+   local res = {}
+   local max_protocols_in_list = 5
+
+   for proto_name, proto_id in pairsByKeys(interface.getnDPIProtocols(cat_id), asc_insensitive) do
+      res[#res + 1] = proto_name
+   end
+
+   local overflown_protos
+   if #res > max_protocols_in_list then -- maximum number of entries shown
+      overflown_protos = #res - max_protocols_in_list
+   else
+      max_protocols_in_list = #res
+   end
+
+   local res_str = table.concat(res, ', ', 1, max_protocols_in_list)
+
+   if overflown_protos then
+      res_str = string.format("%s <a href='%s/lua/admin/edit_categories.lua?tab=protocols&category=cat_%i'>%s</a>", res_str, ntop.getHttpPrefix(), cat_id, i18n("and_x_more", {num = overflown_protos}))
+   end
+
+   return res_str
+end
+
+-- ##############################################
+
 function categories_utils.getAllCustomCategoryHosts()
   local k = getCustomCategoryKey()
   local cat_to_hosts = ntop.getHashAllCache(k) or {}

@@ -1323,6 +1323,7 @@ elseif((page == "ndpi")) then
        <thead>
 	 <tr>
 	   <th>]] print(i18n("category")) print[[</th>
+	   <th>]] print(i18n("applications")) print[[</th>
 	   <th>]] print(i18n("duration")) print[[</th>
 	   <th colspan=2>]] print(i18n("total")) print[[</th>
 	 </tr>
