@@ -22,12 +22,10 @@ local tracker = require("tracker")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local ifid = _GET["ifid"]
 
 if not haveAdminPrivileges() then
-   print(rest_utils.rc(rest_utils.consts.err.not_granted))
+   rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
 
@@ -36,24 +34,24 @@ if isEmptyString(ifid) then
 end
 
 if isEmptyString(ifid) then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
    return
 end
 
 if(_POST["JSON"] == nil) then
-  print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+  rest_utils.answer(rest_utils.consts.err.invalid_args)
   return
 end
 
 local data = json.decode(_POST["JSON"])
 
 if(table.empty(data)) then
-  print(rest_utils.rc(rest_utils.consts.err.bad_format))
+  rest_utils.answer(rest_utils.consts.err.bad_format)
   return
 end
 
 if data["0"] == nil then
-  print(rest_utils.rc(rest_utils.consts.err.bad_content))
+  rest_utils.answer(rest_utils.consts.err.bad_content)
   return
 end
 
@@ -64,7 +62,7 @@ local success = host_pools_nedge.import(data)
 ntop.reloadHostPools()
 
 if not success then
-  print(rest_utils.rc(rest_utils.consts.err.internal_error))
+  rest_utils.answer(rest_utils.consts.err.internal_error)
   return
 end
 
@@ -73,4 +71,4 @@ end
 -- TRACKER HOOK
 tracker.log('set_pool_config', {})
 
-print(rest_utils.rc(rest_utils.consts.success.ok))
+rest_utils.answer(rest_utils.consts.success.ok)

@@ -16,8 +16,6 @@ local dscp_consts = require "dscp_consts"
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPContentTypeHeader('text/html')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -25,7 +23,7 @@ local ifid = _GET["ifid"]
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 
@@ -34,7 +32,7 @@ interface.select(ifid)
 local stats = interface.getStats()
 
 if stats == nil then
-   print(rest_utils.rc(rest_utils.consts.err.internal_error))
+   rest_utils.answer(rest_utils.consts.err.internal_error)
    return
 end
 
@@ -45,4 +43,4 @@ for key, value in pairsByKeys(stats.dscp, asc) do
    }
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)

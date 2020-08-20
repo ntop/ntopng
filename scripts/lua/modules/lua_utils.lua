@@ -200,10 +200,10 @@ function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 local http_status_code_map = {
   [200] = "OK",
-  [400] = "Bad request",
+  [400] = "Bad Request",
   [401] = "Unauthorized",
   [403] = "Forbidden",
-  [404] = "Not found",
+  [404] = "Not Found",
   [405] = "Method Not Allowed",
   [406] = "Not Acceptable",
   [408] = "Request timeout",

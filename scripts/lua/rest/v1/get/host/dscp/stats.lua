@@ -16,8 +16,6 @@ local dscp_consts = require "dscp_consts"
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -27,7 +25,7 @@ local direction = _GET["direction"]
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 
@@ -43,7 +41,7 @@ local tot = 0
 local stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
 
 if stats == nil then
-   print(rest_utils.rc(rest_utils.consts.err.not_found))
+   rest_utils.answer(rest_utils.consts.err.not_found)
    return
 end
 
@@ -54,4 +52,4 @@ for key, value in pairsByKeys(stats.dscp, asc) do
    }
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)

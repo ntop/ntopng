@@ -29,22 +29,19 @@ local ifid = _GET["ifid"]
 local download = _GET["download"] 
 
 if not haveAdminPrivileges() then
-   sendHTTPHeader('application/json')
-   print(rest_utils.rc(rest_utils.consts.err.not_granted))
+   rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
 
 if isEmptyString(ifid) then
-   sendHTTPHeader('application/json')
-   print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
    return
 end
 
 local res = host_pools_nedge.export()
 
 if isEmptyString(download) then
-  sendHTTPHeader('application/json')
-  print(rest_utils.rc(rc, res))
+  rest_utils.answer(rc, res)
 else
   sendHTTPContentTypeHeader('application/json', 'attachment; filename="pools_configuration.json"')
   print(json.encode(res, nil))

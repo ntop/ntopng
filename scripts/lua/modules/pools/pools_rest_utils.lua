@@ -23,15 +23,13 @@ function pools_rest_utils.add_pool(pools)
    local confset_id = _POST["confset_id"]
    local recipients = _POST["recipients"]
 
-   sendHTTPHeader('application/json')
-
    if not isAdministrator() then
-      print(rest_utils.rc(rest_utils.consts.err.not_granted))
+      rest_utils.answer(rest_utils.consts.err.not_granted)
       return
    end
 
    if not name or not members or not confset_id then
-      print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end
 
@@ -51,7 +49,7 @@ function pools_rest_utils.add_pool(pools)
    )
 
    if not new_pool_id then
-      print(rest_utils.rc(rest_utils.consts.err.add_pool_failed))
+      rest_utils.answer(rest_utils.consts.err.add_pool_failed)
       return
    end
 
@@ -60,7 +58,7 @@ function pools_rest_utils.add_pool(pools)
       pool_id = new_pool_id
    }
 
-   print(rest_utils.rc(rc, res))
+   rest_utils.answer(rc, res)
 
    -- TRACKER HOOK
    tracker.log('add_pool', { pool_name = name, members = members })
@@ -76,15 +74,13 @@ function pools_rest_utils.edit_pool(pools)
    local confset_id = _POST["confset_id"]
    local recipients = _POST["recipients"]
 
-   sendHTTPHeader('application/json')
-
    if not isAdministrator() then
-      print(rest_utils.rc(rest_utils.consts.err.not_granted))
+      rest_utils.answer(rest_utils.consts.err.not_granted)
       return
    end
 
    if not pool_id or not name or not members or not confset_id then
-      print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end
 
@@ -106,12 +102,12 @@ function pools_rest_utils.edit_pool(pools)
    )
 
    if not res then
-      print(rest_utils.rc(rest_utils.consts.err.edit_pool_failed))
+      rest_utils.answer(rest_utils.consts.err.edit_pool_failed)
       return
    end
 
    local rc = rest_utils.consts.success.pool_edited
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
 
    -- TRACKER HOOK
    tracker.log('edit_pool', { pool_id = pool_id, pool_name = name, members = members })
@@ -123,15 +119,13 @@ end
 function pools_rest_utils.delete_pool(pools)
    local pool_id = _POST["pool"]
 
-   sendHTTPHeader('application/json')
-
    if not isAdministrator() then
-      print(rest_utils.rc(rest_utils.consts.err.not_granted))
+      rest_utils.answer(rest_utils.consts.err.not_granted)
       return
    end
 
    if not pool_id then
-      print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end
 
@@ -143,7 +137,7 @@ function pools_rest_utils.delete_pool(pools)
    local res = s:delete_pool(pool_id)
 
    if not res then
-      print(rest_utils.rc(rest_utils.consts.err.pool_not_found))
+      rest_utils.answer(rest_utils.consts.err.pool_not_found)
       return
    end
 
@@ -152,7 +146,7 @@ function pools_rest_utils.delete_pool(pools)
       pool_id = new_pool_id
    }
 
-   print(rest_utils.rc(rc, res))
+   rest_utils.answer(rc, res)
 
    -- TRACKER HOOK
    tracker.log('delete_pool', { pool_id = pool_id })
@@ -165,15 +159,13 @@ function pools_rest_utils.bind_member(pools)
    local pool_id = _GET["pool"]
    local member = _POST["member"]
 
-   sendHTTPHeader('application/json')
-
    if not isAdministrator() then
-      print(rest_utils.rc(rest_utils.consts.err.not_granted))
+      rest_utils.answer(rest_utils.consts.err.not_granted)
       return
    end
 
    if not pool_id or not member then
-      print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end
 
@@ -196,17 +188,17 @@ function pools_rest_utils.bind_member(pools)
       if err == base_pools.ERRORS.ALREADY_BOUND then
 	 -- Member already existing, return current pool information in the response
 	 local cur_pool = s:get_pool_by_member(member)
-	 print(rest_utils.rc(rest_utils.consts.err.bind_pool_member_already_bound, cur_pool))
+	 rest_utils.answer(rest_utils.consts.err.bind_pool_member_already_bound, cur_pool)
       else
 	 -- Generic
-	 print(rest_utils.rc(rest_utils.consts.err.bind_pool_member_failed))
+	 rest_utils.answer(rest_utils.consts.err.bind_pool_member_failed)
       end
 
       return
    end
 
    local rc = rest_utils.consts.success.pool_member_bound
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
 
    -- TRACKER HOOK
    tracker.log('bind_pool_member', { pool_id = pool_id, member = member })
@@ -217,8 +209,6 @@ end
 -- @brief Get one or all pools
 function pools_rest_utils.get_pools(pools)
    local pool_id = _GET["pool"]
-
-   sendHTTPHeader('application/json')
 
    -- pool_id as number
    pool_id = tonumber(pool_id)
@@ -235,7 +225,7 @@ function pools_rest_utils.get_pools(pools)
       if cur_pool then
 	 res[pool_id] = cur_pool
       else
-	 print(rest_utils.rc(rest_utils.consts.err.pool_not_found))
+	 rest_utils.answer(rest_utils.consts.err.pool_not_found)
 	 return
       end
    else
@@ -244,7 +234,7 @@ function pools_rest_utils.get_pools(pools)
    end
 
    local rc = rest_utils.consts.success.ok
-   print(rest_utils.rc(rc, res))
+   rest_utils.answer(rc, res)
 end
 
 
@@ -253,8 +243,6 @@ end
 -- @brief Get one or all pools
 function pools_rest_utils.get_pool_members(pools)
    local pool_id = _GET["pool"]
-
-   sendHTTPHeader('application/json')
 
    -- pool_id as number
    pool_id = tonumber(pool_id)
@@ -267,7 +255,7 @@ function pools_rest_utils.get_pool_members(pools)
    local cur_pool = s:get_pool(pool_id)
 
    if not cur_pool then
-      print(rest_utils.rc(rest_utils.consts.err.pool_not_found))
+      rest_utils.answer(rest_utils.consts.err.pool_not_found)
       return
    end
 
@@ -277,7 +265,7 @@ function pools_rest_utils.get_pool_members(pools)
    end
 
    local rc = rest_utils.consts.success.ok
-   print(rest_utils.rc(rc, res))
+   rest_utils.answer(rc, res)
 end
 
 -- ##############################################
@@ -286,10 +274,8 @@ end
 function pools_rest_utils.get_pool_by_member(pools)
    local member = _POST["member"]
 
-   sendHTTPHeader('application/json')
-
    if not member then
-      print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end
 
@@ -303,7 +289,7 @@ function pools_rest_utils.get_pool_by_member(pools)
    end
 
    local rc = rest_utils.consts.success.ok
-   print(rest_utils.rc(rc, res))
+   rest_utils.answer(rc, res)
 end
 
 -- ##############################################

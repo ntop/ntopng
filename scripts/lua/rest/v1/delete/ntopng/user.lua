@@ -18,31 +18,29 @@ local tracker = require("tracker")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
 if not haveAdminPrivileges() then
-   print(rest_utils.rc(rest_utils.consts.err.not_granted, res))
+   rest_utils.answer(rest_utils.consts.err.not_granted, res)
    return
 end
 
 local username = _POST["username"]
 
 if username == nil then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_args, res))
+   rest_utils.answer(rest_utils.consts.err.invalid_args, res)
    return
 end
 
 username = string.lower(username)
 
 if not ntop.deleteUser(username) then
-   print(rest_utils.rc(rest_utils.consts.err.delete_user_failed, res))
+   rest_utils.answer(rest_utils.consts.err.delete_user_failed, res)
    return
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
 
 -- TRACKER HOOK
 -- Note: already tracked by ntop.deleteUser

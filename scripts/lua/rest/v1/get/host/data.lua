@@ -17,8 +17,6 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -33,12 +31,12 @@ local host_stats_flows     = _GET["host_stats_flows"]
 local host_stats_flows_num = _GET["limit"]
 
 if isEmptyString(ifid) then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
    return
 end
 
 if isEmptyString(host_info["host"]) then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
    return
 end
 
@@ -47,7 +45,7 @@ interface.select(ifid)
 local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
 
 if not host then
-   print(rest_utils.rc(rest_utils.consts.err.not_found))
+   rest_utils.answer(rest_utils.consts.err.not_found)
    return
 end
 
@@ -129,5 +127,5 @@ res = host
 
 tracker.log("host_get_json", {host_info["host"], host_info["vlan"]})
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
 

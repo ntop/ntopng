@@ -18,13 +18,11 @@ local tracker = require("tracker")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
 if not haveAdminPrivileges() then
-   print(rest_utils.rc(rest_utils.consts.err.not_granted, res))
+   rest_utils.answer(rest_utils.consts.err.not_granted, res)
    return
 end
 
@@ -44,13 +42,13 @@ local lifetime_secs = tonumber((_POST["lifetime_secs"] or -1))
 if username == nil or full_name == nil or password == nil or
    confirm_password == nil or host_role == nil or networks == nil or
    allowed_interface == nil then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_args, res))
+   rest_utils.answer(rest_utils.consts.err.invalid_args, res)
    return
 end
 
 if(password ~= confirm_password) then
    -- "Passwords do not match: typo?"
-   print(rest_utils.rc(rest_utils.consts.err.password_mismatch, res))
+   rest_utils.answer(rest_utils.consts.err.password_mismatch, res)
    return
 end
 
@@ -60,7 +58,7 @@ local all_users = ntop.getUsers()
 
 if(all_users[username] ~= nil) then
    -- User already existing
-   print(rest_utils.rc(rest_utils.consts.err.user_already_existing, res))
+   rest_utils.answer(rest_utils.consts.err.user_already_existing, res)
    return
 end
 
@@ -72,16 +70,16 @@ end
 
 if not ntop.addUser(username, full_name, password, host_role, networks, 
 		    getInterfaceName(allowed_interface), host_pool_id, language, allow_pcap_download_enabled) then
-   print(rest_utils.rc(rest_utils.consts.err.add_user_failed, res))
+   rest_utils.answer(rest_utils.consts.err.add_user_failed, res)
    return
 end
 
 if limited_lifetime and not ntop.addUserLifetime(username, lifetime_secs) then
-   print(rest_utils.rc(rest_utils.consts.err.add_user_failed, res))
+   rest_utils.answer(rest_utils.consts.err.add_user_failed, res)
    return
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
    
 -- TRACKER HOOK
 -- Note: already tracked by ntop.addUser

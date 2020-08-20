@@ -17,8 +17,6 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 local field_aliases = {}
@@ -26,9 +24,8 @@ local field_aliases = {}
 local ifid = _GET["ifid"]
 local fields = _GET["field_alias"]
 
-
 if isEmptyString(ifid) then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
    return
 end
 
@@ -49,7 +46,7 @@ else
    --
    -- Invalid field alias...
    if isEmptyString(fields) then
-      print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end
    --
@@ -76,7 +73,7 @@ if ((hostparam ~= nil) or (not isEmptyString(hostparam))) then
    local host_info = url2hostinfo(_GET)
    local host = interface.getHostInfo(host_info["host"], host_info["vlan"])
    if not host then
-      print(rest_utils.rc(rest_utils.consts.err.not_found))
+      rest_utils.answer(rest_utils.consts.err.not_found)
       return
    else
       --
@@ -98,7 +95,7 @@ if ((hostparam ~= nil) or (not isEmptyString(hostparam))) then
          end
       end
       tracker.log("get_host_custom_data_json", {ifid, host_info["host"], host_info["vlan"], field_aliases})
-      print(rest_utils.rc(rc, res))
+      rest_utils.answer(rc, res)
       return
    end
 else
@@ -126,6 +123,6 @@ else
       end
    end
    tracker.log("get_host_custom_data_json", {ifid, "All Hosts", field_aliases})
-   print(rest_utils.rc(rc, res))
+   rest_utils.answer(rc, res)
    return
 end

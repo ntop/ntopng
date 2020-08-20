@@ -21,8 +21,6 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPContentTypeHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -31,7 +29,7 @@ local verbose = (_GET["verbose"] == "true")
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 
@@ -61,7 +59,7 @@ local flows_filter = getFlowsFilter()
 local flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
 
 if flows_stats == nil then
-   print(rest_utils.rc(rest_utils.consts.err.not_found))
+   rest_utils.answer(rest_utils.consts.err.not_found)
    return
 end
 
@@ -70,7 +68,7 @@ local total = flows_stats["numFlows"]
 flows_stats = flows_stats["flows"]
 
 if flows_stats == nil then
-   print(rest_utils.rc(rest_utils.consts.err.internal_error))
+   rest_utils.answer(rest_utils.consts.err.internal_error)
    return
 end
 
@@ -184,4 +182,4 @@ res = {
    },
 }
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)

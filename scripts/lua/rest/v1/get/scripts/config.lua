@@ -25,16 +25,14 @@ local rest_utils = require("rest_utils")
 local download = _GET["download"] 
 
 if not haveAdminPrivileges() then
-   sendHTTPHeader('application/json')
-   print(rest_utils.rc(rest_utils.consts.err.not_granted))
+   rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
 
 local res = user_scripts.getConfigsets()
 
 if isEmptyString(download) then
-  sendHTTPHeader('application/json')
-  print(rest_utils.rc(rc, res))
+  rest_utils.answer(rc, res)
 else
   sendHTTPContentTypeHeader('application/json', 'attachment; filename="scripts_configuration.json"')
   print(json.encode(res, nil))

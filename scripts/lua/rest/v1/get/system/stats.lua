@@ -20,11 +20,9 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 if not isAllowedSystemInterface() then
    rc = rest_utils.consts.err.not_granted
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 
@@ -33,4 +31,4 @@ local res = system_utils.systemHostStats()
 res.epoch = os.time()
 res.storage = storage_utils.storageInfo()
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)

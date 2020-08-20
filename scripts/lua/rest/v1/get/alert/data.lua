@@ -20,8 +20,6 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -34,7 +32,7 @@ local alert_severity = _GET["alert_severity"]
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 
@@ -42,7 +40,7 @@ interface.select(ifid)
 
 if isEmptyString(what) then
    rc = rest_utils.consts.err.invalid_args
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 
@@ -109,5 +107,5 @@ for _key,_value in ipairs(alerts) do
 	  
 end -- for
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
 

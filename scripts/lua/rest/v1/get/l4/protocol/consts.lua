@@ -16,8 +16,6 @@ local rest_utils = require "rest_utils"
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -38,5 +36,5 @@ for _, l4_key in pairs(l4_keys) do
    }
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
 

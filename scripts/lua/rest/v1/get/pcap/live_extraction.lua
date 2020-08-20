@@ -24,23 +24,20 @@ local time_to = tonumber(_GET["epoch_end"])
 local rc = rest_utils.consts.success.ok
 
 if not recording_utils.isExtractionAvailable() then
-   sendHTTPHeader('application/json')
    rc = rest_utils.consts.err.not_granted
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 
 if isEmptyString(ifid) then
-   sendHTTPHeader('application/json')
    rc = rest_utils.consts.err.invalid_interface
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 
 if _GET["epoch_begin"] == nil or _GET["epoch_end"] == nil then
-   sendHTTPHeader('application/json')
    rc = rest_utils.consts.err.invalid_arguments
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 

@@ -19,8 +19,6 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -30,7 +28,7 @@ local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
 
 if isEmptyString(ifid) then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
    return
 end
 
@@ -52,5 +50,5 @@ if isEmptyString(what) or what == "historical-flows" then
    res['historical-flows'] = hf_by_severity
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
 

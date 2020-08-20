@@ -15,8 +15,6 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPContentTypeHeader('text/html')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -27,7 +25,7 @@ local ndpi_category = _GET["ndpi_category"]
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
-   print(rest_utils.rc(rc))
+   rest_utils.answer(rc)
    return
 end
 
@@ -61,12 +59,12 @@ if ndpistats_mode == "sinceStartup" then
 elseif ndpistats_mode == "count" then
    stats = interface.getnDPIFlowsCount()
 else
-   print(rest_utils.rc(rest_utils.consts.err.invalid_args))
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
    return
 end
 
 if stats == nil then
-   print(rest_utils.rc(rest_utils.consts.err.internal_error))
+   rest_utils.answer(rest_utils.consts.err.internal_error)
    return
 end
 
@@ -106,7 +104,7 @@ if(ndpistats_mode == "count") then
       }
    end
 
-   print(rest_utils.rc(rc, res))
+   rest_utils.answer(rc, res)
    return
 end
 
@@ -152,4 +150,4 @@ if(accumulate < tot) then
    }
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)

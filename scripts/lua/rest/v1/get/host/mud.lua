@@ -16,8 +16,6 @@ local rest_utils = require("rest_utils")
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
 local rc = rest_utils.consts.success.ok
 local res = {}
 
@@ -25,14 +23,14 @@ local ifid = _GET["ifid"]
 local host = _GET["host"]
 
 if isEmptyString(ifid) then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_interface))
+   rest_utils.answer(rest_utils.consts.err.invalid_interface)
    return
 end
 
 interface.select(ifid)
 
 if isEmptyString(host) then
-   print(rest_utils.rc(rest_utils.consts.err.invalid_host))
+   rest_utils.answer(rest_utils.consts.err.invalid_host)
    return
 end
 
@@ -42,4 +40,4 @@ if mud ~= nil then
    res = mud
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
