@@ -296,30 +296,6 @@ local tls_cipher_suites = {
    SSL2_RC4_64_WITH_MD5=0x080080,
 }
 
-function tlsVersion2Str(v)
-   -- TODO: Use ndpi_ssl_version2str()
-   if(v == 768) then
-      return("SSL v3")
-   elseif(v == 769) then
-      return("TLS v1");
-   elseif(v == 770) then
-      return("TLS v1.1");
-   elseif(v == 771) then
-      return("TLS v1.2");
-   elseif(v == 772) then
-      return("TLS v1.3");
-   elseif(v == 64282) then
-      return("TLS v1.3 (Fizz)");
-   elseif(v == 65279) then
-      return("DTLS v1.0");
-   elseif(v == 65277) then
-      return("DTLS v1.2");
-
-   else
-      return("TLS "..flow["protos.tls_version"])
-   end
-end
-
 local function cipher2str(c)
    if(c == nil) then return end
 
@@ -630,9 +606,14 @@ else
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
 
+   local tls_version_name = ntop.getTLSVersionName(flow["protos.tls_version"])
    if((flow["protos.tls_version"] ~= nil)
       and (flow["protos.tls_version"] ~= 0)) then
-      print(" [ "..tlsVersion2Str(flow["protos.tls_version"]).." ]")
+      if isEmptyString(tls_version_name) then
+	 print(" [ TLS"..flow["protos.tls_version"].." ]")
+      else
+	 print(" [ "..tls_version_name.." ]")
+      end
       if(tonumber(flow["protos.tls_version"]) < 771) then
 	 print(' <i class="fas fa-exclamation-triangle" aria-hidden=true style="color: orange;"></i> ')
 	 print(i18n("flow_details.tls_old_protocol_version"))
