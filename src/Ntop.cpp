@@ -2502,6 +2502,12 @@ void Ntop::shutdownAll() {
   ntop->shutdown();
 
 #ifndef WIN32
+  /*
+    PID file cannot be deleted as it is under `/var/run` which, in turn, is a symlink to `/run`, which is not writable by user `ntopng`.
+    As user `ntopng` has no write privileges on `/run`, the PID file cannot be deleted from inside this process. Deletion is performed
+    as part of the ExecStopPost in the systemd ntopng.service file
+  */
+#if 0
   if(ntop->getPrefs()->get_pid_path() != NULL) {
     int rc = unlink(ntop->getPrefs()->get_pid_path());
 
@@ -2509,6 +2515,7 @@ void Ntop::shutdownAll() {
 				 ntop->getPrefs()->get_pid_path(),
 				 rc, strerror(errno));
   }
+#endif
 #endif
 }
 

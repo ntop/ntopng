@@ -14,7 +14,7 @@ ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|^
 
 ExecStart=/usr/local/bin/ntopng /run/ntopng-%i.conf
 
-ExecStopPost=-/bin/rm -rf /run/ntopng-%i.conf
+ExecStopPost=-/bin/rm -rf /run/ntopng-%i.conf /run/ntopng.pid
 
 Restart=on-abnormal
 RestartSec=5
