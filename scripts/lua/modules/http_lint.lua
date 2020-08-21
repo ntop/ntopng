@@ -1526,6 +1526,7 @@ local known_parameters = {
    ["toggle_auth_session_midnight_expiration"]     = validateBool,
    ["toggle_client_x509_auth"]                     = validateBool,
    ["toggle_snmp_debug"]                           = validateBool,
+   ["toggle_snmp_port_admin_status"]               = validateBool,
    ["toggle_snmp_alerts_port_duplexstatus_change"] = validateBool,
    ["toggle_snmp_alerts_port_status_change"]       = validateBool,
    ["toggle_snmp_alerts_port_errors"]              = validateBool,
