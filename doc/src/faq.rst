@@ -155,6 +155,10 @@ In order to reset the ntopng preferences the following commands can be used:
   sudo rm /var/lib/ntopng/runtimeprefs.json
   sudo systemctl restart ntopng
 
+.. note::
+
+   On windows instead of restarting ntopnng with the systemctl tool you need to use the Windows Services Manager.
+
 How Can I Troubleshoot SNMP ?
 ============================
 
