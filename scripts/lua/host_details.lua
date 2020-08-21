@@ -492,7 +492,7 @@ if((page == "overview") or (page == nil)) then
       print[[</td><td><span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
       print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_instance:get_pool_name(host_pool_id)) print[[</a></span>]]
       print[[&nbsp;]]
-      print(hostinfo2detailshref(host, {page = "config"}, '<i class="fas fa-sm fa-cog" aria-hidden="true"></i>'))
+      print(hostinfo2detailshref(host, {page = "config"}, '<i class="fas fa-cog" aria-hidden="true"></i>'))
       print("</td></tr>")
    else
       if(host["mac"] ~= nil) then
