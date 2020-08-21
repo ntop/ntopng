@@ -22,22 +22,30 @@
 #ifndef _NTOP_HOST_SCORE_H_
 #define _NTOP_HOST_SCORE_H_
 
-class HostScore {
- private:
+typedef struct {
   u_int32_t old_score, new_score;
 
   /* Necessary to handle short idle flows */
   u_int32_t old_idle_flow_score, new_idle_flow_score;
+} score_t;
+
+class HostScore {
+ private:
+  score_t cli_score, srv_score;
+
+  static inline void incValue(score_t *score, u_int16_t val)         { score->new_score += val;           };
+  static inline void incIdleFlowScore(score_t *score, u_int16_t val) { score->new_idle_flow_score += val; };
+  static inline void refreshValue(score_t *score);
 
  public:
   HostScore();
-  inline void incValue(u_int16_t score)    { new_score += score; };
-  inline u_int16_t getValue() const        { return(old_score); };
+  inline u_int16_t getValue() const { return(cli_score.old_score + srv_score.old_score); };
   void refreshValue();
 
+  void incValue(u_int16_t score, bool as_client);
   /* This call is not performed into the same thread as the incScore, so
    * it needs a separate counter to avoid contention. */
-  inline void incIdleFlowScore(u_int16_t score) { new_idle_flow_score += score; };
+  void incIdleFlowScore(u_int16_t score, bool as_client);
 };
 
 #endif

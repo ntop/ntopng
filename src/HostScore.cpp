@@ -24,8 +24,40 @@
 /* *************************************** */
 
 HostScore::HostScore() {
-  old_score = new_score = 0;
-  old_idle_flow_score = new_idle_flow_score = 0;
+  memset(&cli_score, 0, sizeof(cli_score)),
+    memset(&srv_score, 0, sizeof(srv_score));
+}
+
+/* *************************************** */
+
+void HostScore::incValue(u_int16_t score, bool as_client) {
+  if(as_client)
+    incValue(&cli_score, score);
+  else
+    incValue(&srv_score, score);
+}
+
+/* *************************************** */
+
+/* This should be called once per minute. It computes the "visible" score
+ * value (the one returned by getValue()). */
+void HostScore::incIdleFlowScore(u_int16_t score, bool as_client) {
+  if(as_client)
+    incIdleFlowScore(&cli_score, score);
+  else
+    incIdleFlowScore(&srv_score, score);
+}
+
+/* *************************************** */
+
+void HostScore::refreshValue(score_t *score) {
+  /* Add the score calculated on the idle flows */
+  score->new_score += (score->new_idle_flow_score - score->old_idle_flow_score);
+  score->old_idle_flow_score = score->new_idle_flow_score;
+
+  /* Account the new_score and prepare the counter for the next run */
+  score->old_score = score->new_score;
+  score->new_score = 0;  
 }
 
 /* *************************************** */
@@ -33,11 +65,6 @@ HostScore::HostScore() {
 /* This should be called once per minute. It computes the "visible" score
  * value (the one returned by getValue()). */
 void HostScore::refreshValue() {
-  /* Add the score calculated on the idle flows */
-  new_score += (new_idle_flow_score - old_idle_flow_score);
-  old_idle_flow_score = new_idle_flow_score;
-
-  /* Account the new_score and prepare the counter for the next run */
-  old_score = new_score;
-  new_score = 0;
+  refreshValue(&cli_score),
+    refreshValue(&srv_score);
 }

@@ -7519,8 +7519,8 @@ static bool run_compute_hosts_score(GenericHashEntry *f, void *user_data, bool *
   Flow *flow = (Flow*)f;
 
   /* Update the peers score */
-  if(flow->unsafeGetClient()) flow->unsafeGetClient()->getScore()->incValue(flow->getCliScore());
-  if(flow->unsafeGetServer()) flow->unsafeGetServer()->getScore()->incValue(flow->getSrvScore());
+  if(flow->unsafeGetClient()) flow->unsafeGetClient()->getScore()->incValue(flow->getCliScore(), true);
+  if(flow->unsafeGetServer()) flow->unsafeGetServer()->getScore()->incValue(flow->getSrvScore(), false);
   flow->setPeersScoreAccounted();
 
   *matched = true;

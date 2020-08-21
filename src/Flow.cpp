@@ -1366,8 +1366,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     if(!peers_score_accounted && idle()) {
       /* The flow went idle to quickly as the run_min_flows_tasks was not
        * called. Account the score using a separate counter. */
-      cli_host->getScore()->incIdleFlowScore(getCliScore());
-      srv_host->getScore()->incIdleFlowScore(getSrvScore());
+      cli_host->getScore()->incIdleFlowScore(getCliScore(), true);
+      srv_host->getScore()->incIdleFlowScore(getSrvScore(), false);
     }
   }
 
@@ -4207,13 +4207,13 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
     if(cli_h) {
       cli_h->setMisbehavingFlowsStatusMap(status_map, true);
       cli_h->incNumMisbehavingFlows(true);
-      cli_h->getScore()->incValue(cli_score);
+      cli_h->getScore()->incValue(cli_score, true);
     }
 
     if(srv_h) {
       srv_h->setMisbehavingFlowsStatusMap(status_map, false);
       srv_h->incNumMisbehavingFlows(false);
-      srv_h->getScore()->incValue(srv_score);
+      srv_h->getScore()->incValue(srv_score, false);
     }
 
     iface->decNumMisbehavingFlows();
@@ -4932,14 +4932,14 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 /* *************************************** */
 
 #ifdef NTOPNG_PRO
-static void incPeerScorePcap(Host *h, u_int16_t score_inc) {
+static void incPeerScorePcap(Host *h, u_int16_t score_inc, bool as_client) {
   u_int32_t old_score = h->getScore()->getValue();
   u_int32_t new_score = old_score + score_inc;
 
   if(new_score >= (u_int16_t)-1)
     new_score = (u_int16_t)-1;
 
-  h->getScore()->incValue(new_score);
+  h->getScore()->incValue(new_score, as_client);
   h->getScore()->refreshValue();
 }
 #endif
@@ -4975,8 +4975,8 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
       if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
 	/* Periodic scripts (e.g. minute.lua) are not executed while reading a
 	 * PCAP file. Increment the peers score here. */
-	if(cli_host) incPeerScorePcap(cli_host, cli_inc);
-	if(srv_host) incPeerScorePcap(srv_host, srv_inc);
+	if(cli_host) incPeerScorePcap(cli_host, cli_inc, true);
+	if(srv_host) incPeerScorePcap(srv_host, srv_inc, false);
       }
     }
 #endif
