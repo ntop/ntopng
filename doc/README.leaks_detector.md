@@ -1,18 +1,28 @@
 ntopng can be built with the support for the LLVM leaks sanitizer (https://clang.llvm.org/docs/LeakSanitizer.html).
-The detector also identifies invalid memory accesses. The performance impact of running the address sanitizer is about
-a 2x slowdown (https://clang.llvm.org/docs/AddressSanitizer.html).
+On Ubuntu you can install it with 
 
-It is advisable to also build nDPI with the leaks sanitizer support to get clean stack traces.
+```
+sudo apt-get install -y clang-10  clang-tools-10
+```
+
+Then you need to compile ntopng as follows
+
+```
+  cd ~/ntopng
+  ./configure --with-sanitizer
+  make
+```
+
+If you want to use nDPI with leak detection support you need to do
 
 ```
   cd ~/nDPI
-  ./configure --with-llvm-sanitizer
-  make
-
-  cd ~/ntopng
-  ./configure --with-llvm-sanitizer
+  ./configure --with-sanitizer
   make
 ```
+
+Note that the detector also identifies invalid memory accesses. The performance impact of running the address sanitizer is about
+a 2x slowdown (https://clang.llvm.org/docs/AddressSanitizer.html).
 
 In order to enable the leaks sanitizer, it is necessary to set the `ASAN_OPTIONS=detect_leaks=1`
 environment variable, for example with:
