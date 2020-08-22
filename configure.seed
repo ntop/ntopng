@@ -12,9 +12,9 @@ AC_PROG_CXX
 SYSTEM=`uname -s`
 dnl> On Ubuntu do sudo apt-get install -y clang-10  clang-tools-10
 AS_IF([test "${with_sanitizer+set}" = set],[
-     CPPFLAGS="${CPPFLAGS} -O1 -fsanitize=address -fno-omit-frame-pointer"
-     LDFLAGS="${LDFLAGS} -fsanitize=address"
-    if test $SYSTEM = "Darwin"; then
+     CFLAGS="${CFLAGS} -g3 -O0 -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
+     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak"
+     if test $SYSTEM = "Darwin"; then
       CC=clang
       CXX=clang++
     else
