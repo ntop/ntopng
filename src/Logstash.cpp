@@ -118,7 +118,7 @@ void Logstash::sendLSdata() {
   int skipDequeue = 0;
   int sent = 0;
   size_t sentLength = 0;
-  u_int len, num_flows;
+  u_int len = 0, num_flows = 0;
 
 
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
@@ -207,7 +207,6 @@ void Logstash::sendLSdata() {
 	// Next loop should start dequeuing again if all goes well
 	skipDequeue = 2;
       } else {
-        len = 0, num_flows = 0;
         listMutex.lock(__FILE__, __LINE__);
 	// clear buffer to get rid of garbage bytes
         memset(&postbuf[0],0,sizeof(postbuf));
