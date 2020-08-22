@@ -3330,7 +3330,8 @@ bool Utils::getCPULoad(cpu_load_stats *out) {
   FILE *fp;
 
   if((fp = fopen("/proc/loadavg", "r"))) {
-    fscanf(fp,"%f", &load);
+    if(fscanf(fp, "%f", &load) != 1)
+      load = 0;
     fclose(fp);
 
     out->load = load;

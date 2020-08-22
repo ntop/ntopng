@@ -62,6 +62,7 @@ pfring *PF_RINGInterface::pfringSocketInit(const char *name) {
   case PCAP_D_INOUT: direction = rx_and_tx_direction; break;
   case PCAP_D_IN:    direction = rx_only_direction;   break;
   case PCAP_D_OUT:   direction = tx_only_direction;   break;
+  default:           direction = rx_and_tx_direction; break;
   }
 
   if(pfring_set_direction(handle, direction) != 0) {

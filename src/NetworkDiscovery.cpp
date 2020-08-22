@@ -297,7 +297,7 @@ void NetworkDiscovery::arpScan(lua_State* vm) {
   struct pcap_pkthdr h;
   int mdns_sock, max_sock = 0;
   ndpi_dns_packet_header *dns_h;
-  u_int dns_query_len;
+  u_int dns_query_len = 0;
   struct sockaddr_in mdns_dest;
   int fd = -1;
   char *ifname  = iface->altDiscoverableName();
