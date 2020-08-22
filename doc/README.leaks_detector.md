@@ -13,7 +13,7 @@ Then you need to compile ntopng as follows
 
 ```
   cd ~/ntopng
-  ./configure --with-sanitizer
+  ./autogen.sh && ./configure --with-sanitizer
   make
 ```
 
