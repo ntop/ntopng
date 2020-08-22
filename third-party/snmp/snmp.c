@@ -229,7 +229,7 @@ SNMPMessage *snmp_parse_message(void *buffer, int len)
   while (asn1_parse_sequence(parser))
     {
       char *oid = NULL, *oid1 = NULL;
-      int type;
+      int type = 0;
       Value value;
       asn1_parse_oid(parser, &oid);
       asn1_parse_peek(parser, &type, NULL);
