@@ -91,6 +91,14 @@ local function in_time()
    -- too close, consider not time left for the script.
    -- Calling os.time() every time is not expensive, see method in_time() inside flow.lua
    -- for measurements.
+   if ntop.getDeadline() == 0 then
+      if do_trace then
+	 print("No deadline set, always in time")
+      end
+
+      return true -- No deadline, always in time
+   end
+
    local time_left = ntop.getDeadline() - os.time()
    local res = time_left > 1
 

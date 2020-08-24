@@ -323,11 +323,23 @@ static int ntop_host_get_http_info(lua_State* vm) {
 static int ntop_host_refresh_score(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
 
-  if(!h)
-    return(CONST_LUA_ERROR);
+  if(h) {
+    h->getScore()->refreshValue();
+    lua_pushinteger(vm, h->getScore()->getValue());
+  }
 
-  h->getScore()->refreshValue();
-  lua_pushinteger(vm, h->getScore()->getValue());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_score(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_score(vm);
 
   return(CONST_LUA_OK);
 }
@@ -403,6 +415,7 @@ static const luaL_Reg ntop_host_reg[] = {
   { "getFlowFlood",           ntop_host_get_flow_flood          },
   { "getSynScan",             ntop_host_get_syn_scan            },
   { "refreshScore",           ntop_host_refresh_score           },
+  { "getScore",               ntop_host_get_score               },
   { "getBehaviourInfo",       ntop_host_get_behaviour_info      },
   
   { NULL,                     NULL }

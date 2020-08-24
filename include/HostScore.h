@@ -39,7 +39,9 @@ class HostScore {
 
  public:
   HostScore();
-  inline u_int16_t getValue() const { return(cli_score.old_score + srv_score.old_score); };
+  inline u_int16_t getValue()       const { return(cli_score.old_score + srv_score.old_score); };
+  inline u_int16_t getClientValue() const { return(cli_score.old_score); };
+  inline u_int16_t getServerValue() const { return(srv_score.old_score); };
   void refreshValue();
 
   void incValue(u_int16_t score, bool as_client);

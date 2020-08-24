@@ -420,6 +420,8 @@ void Host::lua_get_host_pool(lua_State *vm) const {
 
 void Host::lua_get_score(lua_State *vm) const {
   lua_push_int32_table_entry(vm, "score", score.getValue());
+  lua_push_int32_table_entry(vm, "score.as_client", score.getClientValue());
+  lua_push_int32_table_entry(vm, "score.as_server", score.getServerValue());
 }
 
 /* ***************************************************** */
