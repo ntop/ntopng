@@ -25,25 +25,49 @@
 
 #include "ntop_includes.h"
 
-/* A simple thread safe FIFO non-blocking bounded queue */
-class FifoQueue {
- private:
-  Mutex *m;
-  void **items;
-  u_int32_t size;
-  u_int32_t cur_items;
-  u_int32_t head;
-  u_int32_t tail;
+template <typename T> class FifoQueue {
+ protected:
+  Mutex m;
+  std::queue<T> q;
+  u_int32_t max_size;
 
  public:
-  FifoQueue(u_int32_t queue_size);
-  virtual ~FifoQueue();
+  FifoQueue(u_int32_t queue_size) { max_size = queue_size; }
+  virtual ~FifoQueue() { ; }
 
-  bool enqueue(void *item);
-  void* dequeue();
-  inline bool canEnqueue()      { return(cur_items < size); }
-  inline u_int32_t getLength()  { return(cur_items);        }
-  inline u_int32_t getSize()    { return(size);             }
+  bool enqueue(T item) {
+    bool rv;
+    
+    m.lock(__FILE__, __LINE__);
+    
+    if(canEnqueue()) {
+      q.push(item);
+      rv = true;
+    } else
+      rv = false;
+    
+    m.unlock(__FILE__, __LINE__);
+    
+    return(rv);
+  }
+  
+  T dequeue() {
+    T rv;
+
+    if(q.empty())
+      return(static_cast<T>(NULL));
+    
+    m.lock(__FILE__, __LINE__);
+    rv = q.front();
+    q.pop();
+    m.unlock(__FILE__, __LINE__);
+    
+    return(rv);
+  }
+  
+  inline bool canEnqueue()      { return(getLength() < max_size); }
+  inline u_int32_t getLength()  { return(q.size());               }
+  inline bool empty()           { return(q.empty());              }
 };
 
 #endif /* _FIFO_QUEUE_H */

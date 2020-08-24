@@ -5378,7 +5378,7 @@ static int ntop_push_sqlite_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert = lua_tostring(vm, 1);
 
-  if(ntop->getSqliteAlertsQueue()->enqueue(alert))
+  if(ntop->getSqliteAlertsQueue()->enqueue((char*)alert))
     rv = true;
   else {
     NetworkInterface *iface = getCurrentInterface(vm);
@@ -5398,12 +5398,11 @@ static int ntop_push_sqlite_alert(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_pop_sqlite_alert(lua_State* vm) {
-  char *alert = ntop->getSqliteAlertsQueue()->dequeue();
-
-  if(alert) {
-    lua_pushstring(vm, alert);
-    free(alert);
+static int ntop_pop_sqlite_alert(lua_State* vm) {  
+  if(!ntop->getSqliteAlertsQueue()->empty()) {
+    std::string alert = ntop->getSqliteAlertsQueue()->dequeue();
+    
+    lua_pushstring(vm, alert.c_str());
   } else
     lua_pushnil(vm);
 
@@ -5418,18 +5417,17 @@ static int ntop_push_alert_notification(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   notif = lua_tostring(vm, 1);
 
-  lua_pushboolean(vm, ntop->getAlertsNotificationsQueue()->enqueue(notif));
+  lua_pushboolean(vm, ntop->getAlertsNotificationsQueue()->enqueue((char*)notif));
   return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
 
 static int ntop_pop_alert_notification(lua_State* vm) {
-  char *notification = ntop->getAlertsNotificationsQueue()->dequeue();
-
-  if(notification) {
-    lua_pushstring(vm, notification);
-    free(notification);
+  if(!ntop->getAlertsNotificationsQueue()->empty()) {
+    std::string alert = ntop->getAlertsNotificationsQueue()->dequeue();
+    
+    lua_pushstring(vm, alert.c_str());
   } else
     lua_pushnil(vm);
 
@@ -5439,15 +5437,15 @@ static int ntop_pop_alert_notification(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_pop_internal_alerts(lua_State* vm) {
-  ndpi_serializer *internal_alerts = (ndpi_serializer*) ntop->getInternalAlertsQueue()->dequeue();
 
-  if(internal_alerts != NULL) {
-
+  if(!ntop->getInternalAlertsQueue()->empty()) {
+    ndpi_serializer *alert = ntop->getInternalAlertsQueue()->dequeue();
+    
     lua_newtable(vm);
-    Utils::tlv2lua(vm, (ndpi_serializer*) internal_alerts);
+    Utils::tlv2lua(vm, alert);
 
-    ndpi_term_serializer(internal_alerts);
-    free(internal_alerts);
+    ndpi_term_serializer(alert);
+    free(alert);    
   } else
     lua_pushnil(vm);
 

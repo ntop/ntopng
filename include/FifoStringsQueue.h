@@ -25,13 +25,38 @@
 
 #include "ntop_includes.h"
 
-/* A simple thread safe FIFO non-blocking bounded queue for strings */
-class FifoStringsQueue : public FifoQueue {
+class FifoStringsQueue : public FifoQueue<char*> {
  public:
-  FifoStringsQueue(u_int32_t queue_size) : FifoQueue(queue_size) {}
-  ~FifoStringsQueue();
-  bool enqueue(const char *item);
-  char* dequeue();
+  FifoStringsQueue(u_int32_t queue_size) : FifoQueue<char*>(queue_size) {}
+  ~FifoStringsQueue() {
+    while(!q.empty()) {
+      char *s = q.front();
+
+      q.pop();
+      free(s);
+    }
+  }
+
+  bool enqueue(char* item) {
+    char *d;
+    bool rv;
+    
+    if(!item) return(false); else d = strdup(item);
+
+    if(!d) return(false);
+
+    m.lock(__FILE__, __LINE__);
+
+    if(canEnqueue()) {
+      q.push(d);
+      rv = true;
+    } else
+      rv = false;
+
+    m.unlock(__FILE__, __LINE__);
+    
+    return(rv);
+  }
 };
 
 #endif /* _FIFO_STRINGS_QUEUE_H */

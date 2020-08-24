@@ -24,19 +24,18 @@
 
 #include "ntop_includes.h"
 
-/* A simple thread safe FIFO non-blocking bounded queue for strings */
-class FifoSerializerQueue : public FifoQueue {
+class FifoSerializerQueue : public FifoQueue<ndpi_serializer*> {
  public:
-  FifoSerializerQueue(u_int32_t queue_size) : FifoQueue(queue_size) {}
-
+  FifoSerializerQueue(u_int32_t queue_size) : FifoQueue<ndpi_serializer*>(queue_size) {}
   ~FifoSerializerQueue() {
-    ndpi_serializer *tmp;
-    
-    while ((tmp = (ndpi_serializer *) dequeue()) != NULL) {
-      ndpi_term_serializer(tmp);
-      free(tmp);
+    while(!q.empty()) {
+      ndpi_serializer *s = q.front();
+
+      q.pop();
+      ndpi_term_serializer(s);
     }
   }
+
 };
 
 #endif /* _FIFO_SERIALIZER_QUEUE_H */

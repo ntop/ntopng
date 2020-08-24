@@ -926,14 +926,14 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
       flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
       if(flow_str) {
-        if(!sqlite_queue->enqueue(flow_str)) {
+        if(!sqlite_queue->enqueue((char*)flow_str)) {
           f->getInterface()->incNumDroppedAlerts(1);
 
           if(ctx->threaded_activity_stats)
             ctx->threaded_activity_stats->setAlertsDrops();
         }
 
-        notif_queue->enqueue(flow_str);
+        notif_queue->enqueue((char*)flow_str);
       }
 
       ndpi_term_serializer(&flow_json);
