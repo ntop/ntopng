@@ -721,8 +721,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	      */
 	      valid_csrf = 0;
 	  }
-
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s [csrf: %u]", content_type, valid_csrf);
 	} else {
 	  /*
 	    post_data is assumed to be application/x-www-form-urlencoded
