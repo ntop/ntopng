@@ -100,10 +100,13 @@ class Ntop {
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
   void loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str);
-  bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
   void cleanShadownDPI();
   void refreshPluginsDir();
   
+  bool getUserPasswordHashLocal(const char * const user, char *password_hash) const;
+  bool checkUserPasswordLocal(const char * const user, const char * const password, char *group) const;
+  bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
+
  public:
   /**
    * @brief A Constructor
@@ -392,6 +395,7 @@ class Ntop {
   bool checkUserInterfaces(const char * const user)             const;
   bool resetUserPassword(char *username, char *old_password, char *new_password);
   bool mustChangePassword(const char *user);
+  bool changeUserFullName(const char * const username, const char * const full_name) const;
   bool changeUserRole(char *username, char *user_role) const;
   bool changeAllowedNets(char *username, char *allowed_nets)     const;
   bool changeAllowedIfname(char *username, char *allowed_ifname) const;
@@ -486,6 +490,9 @@ class Ntop {
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   inline void reloadPeriodicScripts() { if(pa) pa->reloadVMs(); };
+
+  void getUserGroupLocal(const char * const user, char *group) const;
+  bool existsUserLocal(const char * const user) { char val[64]; return getUserPasswordHashLocal(user, val); }
 };
 
 extern Ntop *ntop;

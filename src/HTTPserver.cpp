@@ -105,15 +105,6 @@ static void redirect_to_ssl(struct mg_connection *conn,
 
 /* ****************************************** */
 
-// Generate session ID. buf must be 33 bytes in size.
-// Note that it is easy to steal session cookies by sniffing traffic.
-// This is why all communication must be SSL-ed.
-static void generate_session_id(char *buf, const char *random, const char *user, const char *group) {
-  mg_md5(buf, random, user, group, NULL);
-}
-
-/* ****************************************** */
-
 bool HTTPserver::authorized_localhost_user_login(const struct mg_connection *conn) {
   if(ntop->getPrefs()->is_localhost_users_login_disabled()
      && (conn->request_info.remote_ip == 0x7F000001 /* 127.0.0.1 */))
@@ -132,33 +123,25 @@ void HTTPserver::traceLogin(const char *user, bool authorized) {
 
 /* ****************************************** */
 
-static void set_cookie(const struct mg_connection * const conn,
-                       const char * const user,
-		       const char * const group,
-		       bool localuser,
-		       const char * const referer) {
-  char key[256], session_id[64], random[64];
+// Generate session ID. buf must be 33 bytes in size.
+// Note that it is easy to steal session cookies by sniffing traffic.
+// This is why all communication must be SSL-ed.
+static void generate_session_id(char *buf, const char *random, const char *user, const char *group) {
+  mg_md5(buf, random, user, group, NULL);
+}
+
+/* ****************************************** */
+
+// Create a new session generating a Session ID that can be used as Cookie
+static void create_session(const char * const user,
+			   const char * const group,
+			   bool localuser,
+			   char *session_id,
+			   u_int session_id_size,
+			   u_int *session_duration
+			   ) {
+  char key[256], random[64];
   char val[128];
-  u_int session_duration = ntop->getPrefs()->get_auth_session_duration();
-
-  if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
-     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
-     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, GRAFANA_URL, strlen(GRAFANA_URL))
-     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
-    return;
-
-  if(HTTPserver::authorized_localhost_user_login(conn))
-    return;
-  
-  // Authentication success:
-  //   1. create new session
-  //   2. set session ID token in the cookie
-  //
-  // The most secure way is to stay HTTPS all the time. However, just to
-  // show the technique, we redirect to HTTP after the successful
-  // authentication. The danger of doing this is that session cookie can
-  // be stolen and an attacker may impersonate the user.
-  // Secure application must use HTTPS all the time.
 
   snprintf(random, sizeof(random), "%d", rand());
 
@@ -173,23 +156,48 @@ static void set_cookie(const struct mg_connection * const conn,
   // If do_auto_logout() is false, then the auto logout is disabled regardless
   // of runtime preferences.
   if(!ntop->getPrefs()->do_auto_logout() || !ntop->getPrefs()->do_auto_logout_at_runtime())
-    session_duration = EXTENDED_HTTP_SESSION_DURATION;
-
-  /* http://en.wikipedia.org/wiki/HTTP_cookie */
-  mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
-	    "Set-Cookie: session=%s; path=/; max-age=%u;%s\r\n"  // Session ID
-	    "Location: %s%s\r\n\r\n",
-	    session_id, session_duration, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
-	    ntop->getPrefs()->get_http_prefix(), referer ? referer : "/");
+    *session_duration = EXTENDED_HTTP_SESSION_DURATION;
+  else
+    *session_duration = ntop->getPrefs()->get_auth_session_duration();
 
   /* Save session in redis */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
   snprintf(val, sizeof(val), "%s|%s|%c", user, group, localuser ? '1' : '0');
 
-  ntop->getRedis()->set(key, val, session_duration);
+  ntop->getRedis()->set(key, val, *session_duration);
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
 
   HTTPserver::traceLogin(user, true);
+}
+
+/* ****************************************** */
+
+// Create a new session and set the session Cookie
+static void set_session_cookie(const struct mg_connection * const conn,
+                       const char * const user,
+		       const char * const group,
+		       bool localuser,
+		       const char * const referer) {
+  char session_id[64];
+  u_int session_duration = 0;
+
+  if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
+     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
+     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, GRAFANA_URL, strlen(GRAFANA_URL))
+     || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, POOL_MEMBERS_ASSOC_URL, strlen(POOL_MEMBERS_ASSOC_URL)))
+    return;
+
+  if(HTTPserver::authorized_localhost_user_login(conn))
+    return;
+
+  create_session(user, group, localuser, session_id, sizeof(session_id), &session_duration);
+
+  /* http://en.wikipedia.org/wiki/HTTP_cookie */
+  mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
+	    "Set-Cookie: session=%s; path=/; max-age=%u;%s\r\n"  // Session ID
+	    "Location: %s\r\n\r\n",
+	    session_id, session_duration, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
+	    referer ? referer : "/");
 }
 
 /* ****************************************** */
@@ -349,7 +357,8 @@ static bool ssl_client_x509_auth(const struct mg_connection * const conn, const 
 // which can also be "" or NTOP_NOLOGIN_USER .
 static int getAuthorizedUser(struct mg_connection *conn,
 			     const struct mg_request_info *request_info,
-			     char *username, ssize_t username_len, char *group, bool *localuser) {
+			     char *username, ssize_t username_len, char *group,
+			     bool *localuser, bool *direct_auth) {
   char session_id[NTOP_SESSION_ID_LENGTH];
   char key[64], val[128];
   char password[MAX_PASSWORD_LEN];
@@ -363,6 +372,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
   username[0] = '\0';
   group[0] = '\0';
   *localuser = false;
+  *direct_auth = true;
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "[AUTHORIZATION] [%s][%s]",
@@ -456,6 +466,8 @@ static int getAuthorizedUser(struct mg_connection *conn,
     if(username[0] && password[0])
       return(ntop->checkGuiUserPassword(conn, username, password, group, localuser));
   }
+
+  *direct_auth = false;
 
   /* Important: validate the session */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
@@ -675,15 +687,15 @@ static void redirect_to_password_change(struct mg_connection *conn,
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s(%s)", __FUNCTION__, session_id);
 
-    mg_printf(conn,
-	      "HTTP/1.1 302 Found\r\n"
-	      "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
-	      "Location: %s%s%s%s\r\n\r\n", /* FIX */
-	      session_id,
-	      get_secure_cookie_attributes(request_info),
-	      ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
-	      (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
-	      (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
+  mg_printf(conn,
+            "HTTP/1.1 302 Found\r\n"
+            "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
+            "Location: %s%s%s%s\r\n\r\n", /* FIX */
+            session_id,
+            get_secure_cookie_attributes(request_info),
+            ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
+            (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
+            (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
 
   if(referer_enc)
     free(referer_enc);
@@ -739,10 +751,34 @@ static void authorize(struct mg_connection *conn,
     }
 
     /* Send session cookie and set user for the new session */
-    set_cookie(conn, user, group, *localuser, referer);
+    set_session_cookie(conn, user, group, *localuser, referer);
     strncpy(username, user, NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
   }
+}
+
+/* ****************************************** */
+
+// Used to retrieve a session cookie for third-party users via REST API
+// Note: there is no connection directly tied to this request (out of bound)
+bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int session_id_size) {
+  char group[NTOP_GROUP_MAXLEN] = { 0 };
+  u_int session_duration = 0;
+
+  /* Note: we are not checking the user password as the admin
+   * or the same (authenticated) user is generating the session */
+  if (ntop->existsUserLocal(username)) {
+
+    strncpy(group, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN-1);
+    group[NTOP_GROUP_MAXLEN - 1] = '\0';
+    ntop->getUserGroupLocal(username, group);
+
+    create_session(username, group, true, session_id, session_id_size, &session_duration);
+
+    return(true);
+  }
+
+  return(false);
 }
 
 /* ****************************************** */
@@ -780,6 +816,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   char username[NTOP_USERNAME_MAXLEN] = { 0 };
   char group[NTOP_GROUP_MAXLEN] = { 0 };
   bool localuser = false;
+  bool direct_auth = false;
   char *referer = (char*)mg_get_header(conn, "Referer");
   u_int8_t whitelisted;
 
@@ -869,7 +906,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   if(!isStaticResourceUrl(request_info, len)) {
     /* Only check authorized for non-static resources */
-    u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, &localuser);
+    u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, &localuser, &direct_auth);
 
     /* Make sure there are existing interfaces for username. */
     if(!ntop->checkUserInterfaces(username)) {
@@ -1002,7 +1039,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
       // NOTE: username is stored into the engine context, so we must guarantee
       // that LuaEngine is destroyed after username goes out of context! Indeeed we delete LuaEngine below.
-      l->handle_script_request(conn, request_info, path, &attack_attempt, username, group, localuser);
+      l->handle_script_request(conn, request_info, path, &attack_attempt, username, group, localuser, direct_auth);
 
       if(attack_attempt) {
 	char buf[32];

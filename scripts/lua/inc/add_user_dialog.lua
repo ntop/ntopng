@@ -27,7 +27,7 @@ print [[
 
 </script>
 
- <form data-toggle="validator" id="form_add_user" method="post" action="add_user.lua" accept-charset="UTF-8">
+ <form data-toggle="validator" id="form_add_user" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v1/add/ntopng/user.lua" accept-charset="UTF-8">
 			   ]]
 
 print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -249,12 +249,11 @@ print[[
 	  url: frmadduser.attr('action'),
 	  data: frmadduser.serialize(),
 	  success: function (data) {
-	  var response = jQuery.parseJSON(data);
-	  if (response.result == 0) {
-	    add_user_alert.success(response.message);
+	  if (data.rc == 0) {
+	    add_user_alert.success(data.rc_str);
 	    window.location.href = ']] print(location_href) print[[';
 	  } else {
-	    add_user_alert.error(response.message);
+	    add_user_alert.error(data.rc_str);
 	  }
 	  frmadduser[0].reset();
 	}

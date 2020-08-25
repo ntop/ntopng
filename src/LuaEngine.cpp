@@ -5790,6 +5790,24 @@ static int ntop_change_user_host_pool(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_change_user_full_name(lua_State* vm) {
+  char *username, *full_name;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((full_name = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  lua_pushboolean(vm, ntop->changeUserFullName(username, full_name));
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 // ***API***
 static int ntop_change_user_language(lua_State* vm) {
   char *username, *language;
@@ -6072,6 +6090,34 @@ static int ntop_clear_user_lifetime(lua_State* vm) {
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   lua_pushboolean(vm, ntop->clearUserLifetime(username));
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
+static int ntop_create_user_session(lua_State* vm) {
+  char *username;
+  char session_id[NTOP_SESSION_ID_LENGTH];
+  
+  session_id[0] = '\0';
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(strlen(username) == 0)
+    return(CONST_LUA_PARAM_ERROR);
+
+  /* Admin or the same user is allowed to get a session */
+  if(!ntop->isUserAdministrator(vm)) {
+    char *curr_user = getLuaVMUserdata(vm,user);
+
+    if (strcmp(curr_user, username) != 0)
+      return(CONST_LUA_ERROR);
+  }
+  
+  ntop->get_HTTPserver()->authorize_noconn(username, session_id, sizeof(session_id));
+
+  lua_pushstring(vm, session_id);
   return CONST_LUA_OK;
 }
 
@@ -11846,11 +11892,13 @@ static const luaL_Reg ntop_reg[] = {
   { "changeAllowedNets",    ntop_change_allowed_nets },
   { "changeAllowedIfname",  ntop_change_allowed_ifname },
   { "changeUserHostPool",   ntop_change_user_host_pool },
+  { "changeUserFullName",   ntop_change_user_full_name },
   { "changeUserLanguage",   ntop_change_user_language  },
   { "changeUserPermission", ntop_change_user_permission },
   { "addUser",              ntop_add_user },
   { "addUserLifetime",      ntop_add_user_lifetime },
   { "clearUserLifetime",    ntop_clear_user_lifetime },
+  { "createUserSession",    ntop_create_user_session },
   { "deleteUser",           ntop_delete_user },
   { "isLoginDisabled",      ntop_is_login_disabled },
   { "isLoginBlacklisted",   ntop_is_login_blacklisted },
@@ -12426,7 +12474,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 				     const struct mg_request_info *request_info,
 				     char *script_path, bool *attack_attempt,
 				     const char *user,
-				     const char *group, bool localuser) {
+				     const char *group, bool localuser,
+				     bool direct_authentication) {
   NetworkInterface *iface = NULL;
   char key[64], ifname[MAX_INTERFACE_NAME_LEN];
   bool is_interface_allowed;
@@ -12475,22 +12524,29 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     } else {
       post_data[post_data_len] = '\0';
 
-      /* CSRF is mandatory in POST request */
-      mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
-
-      if(strstr(content_type, "application/json"))
+      if(direct_authentication) {
+	/* Authentication has taken place with direct username:password submission, without the use of a session,
+	   hence, this request cannot be the result of a CSRF attack which, by construction, relies on a valid session. */
 	valid_csrf = 1;
-      else {
-	if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1) || (strcmp(rsp, user) != 0))
-	  valid_csrf = 0;
-	else {
-	  /* Invalidate csrf */
-	  ntop->getRedis()->del(csrf);
-	}
+      } else {
+	/* If here, authentication has taken place using a session, thus CSRF is mandatory in POST request and must
+	   be checked for validity. */
+        mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
+
+        if(strstr(content_type, "application/json"))
+          valid_csrf = 1;
+        else {
+	  if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1) || (strcmp(rsp, user) != 0))
+	    valid_csrf = 0;
+	  else {
+	    /* Invalidate csrf */
+	    ntop->getRedis()->del(csrf);
+	  }
+        }
       }
     }
 
-    if(valid_csrf) {
+    if(valid_csrf && ((csrf[0] != '\0') || (strcmp(user, NTOP_NOLOGIN_USER) == 0))) {
       if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
 	*attack_attempt = setParamsTable(L, request_info, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
       else {
@@ -12515,8 +12571,14 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	}
       }
 
-    } else
+    } else {
       *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
+      if(post_data) {
+	lua_newtable(L);
+	lua_push_str_table_entry(L, "payload", post_data);
+	lua_setglobal(L, "_POST");
+      }
+    }
 
     if(post_data)
       free(post_data);

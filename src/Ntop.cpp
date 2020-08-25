@@ -1292,9 +1292,67 @@ bool Ntop::checkUserInterfaces(const char * const user) const {
 
 /* ******************************************* */
 
+bool Ntop::getUserPasswordHashLocal(const char * const user, char *password_hash) const {
+  char key[64], val[64];
+  
+  snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
+
+  if(ntop->getRedis()->get(key, val, sizeof(val)) < 0) {
+    return(false);
+  }
+
+  sprintf(password_hash, "%s", val);
+  return(true);
+}
+
+/* ******************************************* */
+
+void Ntop::getUserGroupLocal(const char * const user, char *group) const {
+  char key[64], val[64];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
+
+  strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN);
+  group[NTOP_GROUP_MAXLEN - 1] = '\0';
+}
+
+/* ******************************************* */
+
+bool Ntop::checkUserPasswordLocal(const char * const user, const char * const password, char *group) const {
+  char val[64], password_hash[33];
+
+  if((ntop->getRedis()->get((char*)PREF_NTOP_LOCAL_AUTH, val, sizeof(val)) >= 0) && val[0] == '0')
+    return(false);
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Checking Local auth");
+
+  if((!strcmp(user, "admin")) &&
+     (ntop->getRedis()->get((char*)TEMP_ADMIN_PASSWORD, val, sizeof(val)) >= 0) &&
+     (val[0] != '\0') &&
+     (!strcmp(val, password)))
+    goto valid_local_user;
+
+  if (!getUserPasswordHashLocal(user, val)) {
+    return(false);
+  } else {
+    mg_md5(password_hash, password, NULL);
+
+    if(strcmp(password_hash, val) != 0) {
+      return(false);
+    }
+  }
+
+valid_local_user:
+  getUserGroupLocal(user, group);
+
+  return(true);
+}
+
+/* ******************************************* */
+
 // Return 1 if username/password is allowed, 0 otherwise.
 bool Ntop::checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const {
-  char key[64], val[64], password_hash[33];
+  char val[64];
   *localuser = false;
 
   if(!user || user[0] == '\0' || !password || password[0] == '\0')
@@ -1353,8 +1411,8 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
 						       &is_admin);
 
 	  if(ldap_ret) {
-      strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
-      group[NTOP_GROUP_MAXLEN - 1] = '\0';
+            strncpy(group, is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED, NTOP_GROUP_MAXLEN);
+            group[NTOP_GROUP_MAXLEN - 1] = '\0';
 	  }
         }
 
@@ -1605,39 +1663,13 @@ bool Ntop::checkUserPassword(const char * const user, const char * const passwor
   }
 
   /* Check local auth */
-  if((ntop->getRedis()->get((char*)PREF_NTOP_LOCAL_AUTH, val, sizeof(val)) >= 0) && val[0] == '0')
-    return(false);
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Checking Local auth");
-
-  if((!strcmp(user, "admin")) &&
-     (ntop->getRedis()->get((char*)TEMP_ADMIN_PASSWORD, val, sizeof(val)) >= 0) &&
-     (val[0] != '\0') &&
-     (!strcmp(val, password)))
-    goto valid_local_user;
-
-  snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
-
-  if(ntop->getRedis()->get(key, val, sizeof(val)) < 0) {
-    return(false);
-  } else {
-    mg_md5(password_hash, password, NULL);
-
-    if(strcmp(password_hash, val) != 0) {
-      return(false);
-    }
-
-    // goto valid_local_user
+  if (checkUserPasswordLocal(user, password, group)) {
+    /* mark the user as local */
+    *localuser = true;
+    return(true);
   }
 
-valid_local_user:
-  snprintf(key, sizeof(key), CONST_STR_USER_GROUP, user);
-  strncpy(group, ((ntop->getRedis()->get(key, val, sizeof(val)) >= 0) ? val : NTOP_UNKNOWN_GROUP), NTOP_GROUP_MAXLEN);
-  group[NTOP_GROUP_MAXLEN - 1] = '\0';
-
-  /* mark the user as local */
-  *localuser = true;
-  return(true);
+  return(false);
 }
 
 /* ******************************************* */
@@ -1759,6 +1791,25 @@ bool Ntop::resetUserPassword(char *username, char *old_password, char *new_passw
     return(false);
 
   return(true);
+}
+
+/* ******************************************* */
+
+bool Ntop::changeUserFullName(const char * const username, const char * const full_name) const {
+  char key[64];
+
+  if (username == NULL || username[0] == '\0' || full_name == NULL ||
+      !existsUser(username))
+    return false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG,
+			       "Changing full name to %s for %s",
+			       full_name, username);
+
+  snprintf(key, sizeof(key), CONST_STR_USER_FULL_NAME, username);
+  ntop->getRedis()->set(key, full_name, 0);
+
+  return (ntop->getRedis()->set(key, (char*) full_name, 0) >= 0);
 }
 
 /* ******************************************* */
