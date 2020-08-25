@@ -249,7 +249,7 @@ else
    end
 
    if(_POST["custom_name"] ~=nil) and isAdministrator() then
-      setHostAltName(hostinfo2hostkey(host_info), _POST["custom_name"])
+      setHostAltName(host_info, _POST["custom_name"])
    end
 
    host_label = hostinfo2label(host)
@@ -2077,7 +2077,7 @@ elseif (page == "config") then
    end
 
    -- NOTE: this only configures the alias associated to the IP address, not to the MAC
-   local ip_alias = getHostAltName(host_info["host"])
+   local ip_alias = getHostAltName(host_info)
 
    print[[
    <form id="host_config" class="form-inline" method="post">

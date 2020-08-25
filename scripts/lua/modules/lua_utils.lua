@@ -1380,16 +1380,43 @@ end
 
 -- ##############################################
 
-function getHostAltNamesKey(ip)
-   return "ntopng.cache.host_labels."..ip
+function getHostAltNamesKey(host_key)
+   return "ntopng.cache.host_labels."..host_key
 end
 
-function getHostAltName(host_ip)
-   return ntop.getCache(getHostAltNamesKey(host_ip))
+function getHostAltName(host_info)
+   local host_key
+
+   if type(host_info) == "table" then
+     host_key = host_info["host"]
+   else
+     host_key = host_info
+   end
+  
+   local alt_name = ntop.getCache(getHostAltNamesKey(host_key))
+
+   if isEmptyString(alt_name) and type(host_info) == "table" and host_info["vlan"] then
+      -- Check if there is an alias for the host@vlan
+      host_key = hostinfo2hostkey(host_info)
+      alt_name = ntop.getCache(getHostAltNamesKey(host_key))
+   end
+
+   return alt_name
 end
 
-function setHostAltName(host_ip, alt_name)
-   ntop.setCache(getHostAltNamesKey(host_ip), alt_name)
+function setHostAltName(host_info, alt_name)
+   local host_key
+
+   if type(host_info) == "table" then
+     -- Note: we are not using hostinfo2hostkey which includes the
+     -- vlan for backward compatibility, compatibility with
+     -- the backend, and compatibility with the vpn plugins
+     host_key = host_info["host"] -- hostinfo2hostkey(host_info)
+   else
+     host_key = host_info
+   end
+
+   ntop.setCache(getHostAltNamesKey(host_key), alt_name)
 end
 
 -- ##############################################
