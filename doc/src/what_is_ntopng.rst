@@ -132,7 +132,7 @@ License is per-server and is released according to the EULA (End User
 License Agreement). Each license is perpetual (i.e. it does not
 expire) and it allows to install updates for one year since
 purchase/license issue. This means that a license generated on
-1/1/2020 will be able to activate new versions of the software until
+1/1/2021 will be able to activate new versions of the software until
 12/31/2021. If you want to install new versions of the software release
 after that date, you need to renew the maintenance or avoid further
 updating the software. For source-based ntopng you can refer to the
