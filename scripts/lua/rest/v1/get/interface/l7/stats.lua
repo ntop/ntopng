@@ -10,7 +10,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Read statistics about nDPI application protocols on an interface
--- Example: curl -u admin:admin -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/interface/l7/stats.lua
+-- Example: curl -u admin:admin -d '{"ifid": "1", "ndpistats_mode": "count"}' http://localhost:3000/lua/rest/v1/get/interface/l7/stats.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
