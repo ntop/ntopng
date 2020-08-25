@@ -218,13 +218,13 @@ for _key, _value in pairsByKeys(vals, funct) do
    local name = value["name"]
    if isEmptyString(name) then
       local hinfo = hostkey2hostinfo(key)
-      name = hostinfo2label(hinfo)
+      name = host2name(hinfo)
    end
    if isEmptyString(name) then
       name = key
    end
    if value["ip"] ~= nil then
-      local label = hostinfo2label(value)
+      local label = host2name(value["ip"])
       if label ~= value["ip"] and name ~= label then
          name = name .. " ["..label.."]"
       end
