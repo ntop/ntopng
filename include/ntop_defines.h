@@ -123,6 +123,8 @@
 #define GRAFANA_URL               "/lua/modules/grafana"
 #define LIVE_TRAFFIC_URL          "/lua/live_traffic.lua"
 #define POOL_MEMBERS_ASSOC_URL    "/lua/admin/manage_pool_members.lua"
+#define REST_API_PREFIX           "/lua/rest/"
+#define REST_API_PRO_PREFIX       "/lua/pro/rest/"
 #define INTERFACE_DATA_URL        "/lua/rest/get/interface/data.lua"
 #define MAX_PASSWORD_LEN          32 + 1 /* \0 */
 #define HTTP_SESSION_DURATION              43200  // 12h

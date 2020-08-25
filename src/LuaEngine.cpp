@@ -12531,11 +12531,40 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       } else {
 	/* If here, authentication has taken place using a session, thus CSRF is mandatory in POST request and must
 	   be checked for validity. */
-        mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
 
-        if(strstr(content_type, "application/json"))
-          valid_csrf = 1;
-        else {
+        if(strstr(content_type, "application/json")) { 
+	  /*
+	    post_data is JSON which is only allowed when using the REST API
+	  */
+	  if(!strstr(request_info->uri, REST_API_PREFIX)
+	     && !strstr(request_info->uri, REST_API_PRO_PREFIX))
+	    /*
+	      no REST API URI, assume invalid data
+	    */
+	    valid_csrf = 0;
+	  else if(!strstr(request_info->uri, "/get/")) {
+	    /*
+	      REST API URI not containing a /get/.
+	      REST API URIs not containing /get/, e.g., /set/, /add/, /delete/, are assumed to
+	      change the status of ntopng and thus CSRF checks MUST be enforced.
+	      In this case, post_data is decoded as JSON to enforce the check.
+	    */
+	    json_object *o, *csrf_o;
+
+	    if(!(o = json_tokener_parse(post_data))
+	       || !json_object_object_get_ex(o, "csrf", &csrf_o)
+	       || !strncpy(csrf, json_object_get_string(csrf_o), sizeof(csrf)))
+	      /*
+		Either the CSRF token has not been submitted as part of the JSON, or
+		the submitted token is invalid.
+	      */
+	      valid_csrf = 0;
+	    else
+	      goto csrf_check;
+	  }
+	} else {
+	  mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
+	csrf_check:
 	  if((ntop->getRedis()->get(csrf, rsp, sizeof(rsp)) == -1) || (strcmp(rsp, user) != 0))
 	    valid_csrf = 0;
 	  else {
@@ -12546,7 +12575,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       }
     }
 
-    if(valid_csrf && ((csrf[0] != '\0') || (strcmp(user, NTOP_NOLOGIN_USER) == 0))) {
+    if(valid_csrf || strcmp(user, NTOP_NOLOGIN_USER) == 0) {
       if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
 	*attack_attempt = setParamsTable(L, request_info, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
       else {
@@ -12573,11 +12602,6 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
     } else {
       *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
-      if(post_data) {
-	lua_newtable(L);
-	lua_push_str_table_entry(L, "payload", post_data);
-	lua_setglobal(L, "_POST");
-      }
     }
 
     if(post_data)
