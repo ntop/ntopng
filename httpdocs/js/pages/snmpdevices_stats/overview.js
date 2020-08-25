@@ -337,6 +337,7 @@ $(document).ready(function () {
 
             $(`#edit-snmp-device-modal input[name='snmp_host']`).val(snmpDeviceRowData.column_key).attr("readonly", "readonly");
             $(`#edit-snmp-device-modal input[name='snmp_read_community']`).val(snmpDeviceRowData.column_community);
+	    $(`#edit-snmp-device-modal input[name='snmp_write_community']`).val(snmpDeviceRowData.column_write_community);
             $(`#edit-snmp-device-modal select[name='snmp_version']`).val(version);
             $(`#edit-snmp-device-modal select[name='pool']`).val(snmpDeviceRowData.column_pool_id);
         },
