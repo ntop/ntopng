@@ -692,16 +692,53 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	/* If here, authentication has taken place using a session, thus CSRF is mandatory in POST request and must
 	   be checked for validity.
 	   Note that session_csrf is trusted, that it it comes from ntopng, whereas csrf read from the POST is untrusted. */
-	mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
+	if(strstr(content_type, "application/json") == content_type) {
+	  /*
+	    post_data is JSON which is only allowed when using the REST API
+	  */
+	  if(!strstr(request_info->uri, REST_API_PREFIX)
+	     && !strstr(request_info->uri, REST_API_PRO_PREFIX))
+	    /*
+	      no REST API URI, assume invalid data
+	    */
+	    valid_csrf = 0;
+	  else if(!strstr(request_info->uri, "/get/")) {
+	    /*
+	      REST API URI not containing a /get/.
+	      REST API URIs not containing /get/, e.g., /set/, /add/, /delete/, are assumed to
+	      change the status of ntopng and thus CSRF checks MUST be enforced.
+	      In this case, post_data is decoded as JSON to enforce the check.
+	    */
+	    json_object *o, *csrf_o;
 
-	if(strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH))
-	  valid_csrf = 0;
+	    if(!(o = json_tokener_parse(post_data))
+	       || !json_object_object_get_ex(o, "csrf", &csrf_o)
+	       || !strncpy(csrf, json_object_get_string(csrf_o), sizeof(csrf))
+	       || strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH))
+	      /*
+		Either the CSRF token has not been submitted as part of the JSON, or
+		the submitted token is invalid.
+	      */
+	      valid_csrf = 0;
+	  }
+
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s [csrf: %u]", content_type, valid_csrf);
+	} else {
+	  /*
+	    post_data is assumed to be application/x-www-form-urlencoded
+	    CSRF token is searched and validated using mg_get_var
+	   */
+	  mg_get_var(post_data, post_data_len, "csrf", csrf, sizeof(csrf));
+
+	  if(strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH))
+	    valid_csrf = 0;
+	}
       }
     }
 
     /* Empty CSRF only allowed for nologin user. Such user has no associated
      * session so it has an empty CSRF. */
-    if(valid_csrf && ((csrf[0] != '\0') || (strcmp(user, NTOP_NOLOGIN_USER) == 0))) {
+    if(valid_csrf) {
       if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
 	*attack_attempt = setParamsTable(L, request_info, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
       else {
@@ -725,14 +762,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	  send_redirect = true;
 	}
       }
-
     } else {
       *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
-      if(post_data) {
-	lua_newtable(L);
-	lua_push_str_table_entry(L, "payload", post_data);
-	lua_setglobal(L, "_POST");
-      }
     }
     
     if(post_data)
