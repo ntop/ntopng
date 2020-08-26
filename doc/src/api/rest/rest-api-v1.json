@@ -2377,7 +2377,7 @@
 				}
 			}
 		},
-		"lua/pro/rest/v1/get/ntopng/users.lua": {
+		"lua/rest/v1/get/ntopng/users.lua": {
 			"post": {
 				"tags": [
 					"Users"
@@ -2400,7 +2400,7 @@
 				}
 			}
 		},
-	    		"lua/pro/rest/v1/add/ntopng/user.lua": {
+	 	"lua/rest/v1/add/ntopng/user.lua": {
 			"post": {
 				"tags": [
 					"Users"
@@ -2498,7 +2498,7 @@
 				}
 			}
 		},
-		"lua/pro/rest/v1/delete/ntopng/user.lua": {
+		"lua/rest/v1/delete/ntopng/user.lua": {
 			"post": {
 				"tags": [
 					"Users"
@@ -2531,7 +2531,7 @@
 				}
 			}
 		},
-		"lua/pro/rest/v1/edit/ntopng/user.lua": {
+		"lua/rest/v1/edit/ntopng/user.lua": {
 			"post": {
 				"tags": [
 					"Users"
@@ -2602,14 +2602,14 @@
 				}
 			}
 		},
-		"lua/pro/rest/v1/get/ntopng/session.lua": {
+		"lua/rest/v1/create/ntopng/session.lua": {
 			"post": {
 				"tags": [
 					"Users"
 				],
-				"summary": "Get ntopng user session Cookie",
+				"summary": "Create a new ntopng user session Cookie",
 				"description": "Generate a new user session to be used as session Cookie",
-				"operationId": "get_ntopng_session",
+				"operationId": "create_ntopng_session",
 				"produces": [
 					"application/json"
 				],
