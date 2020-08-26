@@ -606,9 +606,10 @@ else
    if(flow["verdict.pass"] == false) then print("</strike>") end
    historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"], page_utils.safe_html(flow["protos.tls.certificate"] or ''))
 
-   local tls_version_name = ntop.getTLSVersionName(flow["protos.tls_version"])
    if((flow["protos.tls_version"] ~= nil)
       and (flow["protos.tls_version"] ~= 0)) then
+      local tls_version_name = ntop.getTLSVersionName(flow["protos.tls_version"])
+
       if isEmptyString(tls_version_name) then
 	 print(" [ TLS"..flow["protos.tls_version"].." ]")
       else
