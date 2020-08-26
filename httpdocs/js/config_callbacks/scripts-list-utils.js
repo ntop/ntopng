@@ -1329,9 +1329,7 @@ const create_enabled_button = (row_data) => {
 
    if (!is_enabled) {
 
-      const has_all_hook = row_data.all_hooks.find(e => e.key == 'all');
-
-      if (!has_all_hook && hasConfigDialog(row_data)) $button.addClass('disabled');
+       if (hasConfigDialog(row_data)) $button.addClass('disabled');
 
       $button.html(`<i class='fas fa-toggle-on'></i>`);
       $button.addClass('btn-success');
@@ -1344,39 +1342,37 @@ const create_enabled_button = (row_data) => {
       $button.addClass('btn-danger');
    }
 
-   if (is_enabled) {
-      $button.off('click').on('click', function () {
+    $button.off('click').on('click', function () {
 
-         $.post(`${http_prefix}/lua/toggle_user_script.lua`, {
-            script_subdir: script_subdir,
-            script_key: row_data.key,
-            csrf: pageCsrf,
-            action: (is_enabled) ? 'disable' : 'enable',
-            confset_id: confset_id
-         })
-            .done((d, status, xhr) => {
+	$.post(`${http_prefix}/lua/toggle_user_script.lua`, {
+	    script_subdir: script_subdir,
+	    script_key: row_data.key,
+	    csrf: pageCsrf,
+	    action: (is_enabled) ? 'disable' : 'enable',
+	    confset_id: confset_id
+	})
+	    .done((d, status, xhr) => {
 
-               if (!d.success) {
-                  $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
-               }
+		if (!d.success) {
+		    $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
+		}
 
-               if (d.success) reloadPageAfterPOST();
+		if (d.success) reloadPageAfterPOST();
 
-            })
-            .fail(({ status, statusText }) => {
+	    })
+	    .fail(({ status, statusText }) => {
 
-               NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
+		NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
 
-               // if the csrf has expired
-               if (status == 200) {
-                  $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
-               }
+		// if the csrf has expired
+		if (status == 200) {
+		    $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
+		}
 
-               // re eanble buttons
-               $button.removeAttr("disabled").removeClass('disabled');
-            });
-      })
-   }
+		// re eanble buttons
+		$button.removeAttr("disabled").removeClass('disabled');
+	    });
+    })
 
    return $button;
 };
