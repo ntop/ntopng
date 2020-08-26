@@ -33,7 +33,8 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
 
   tls_cipher = tls_unsafe_cipher = http_ret_code = 0;
   dns_query_type = dns_ret_code = 0;
- 
+  ndpi_flow_risk_bitmap = 0;
+  
   bittorrent_hash = NULL;
   memset(&custom_app, 0, sizeof(custom_app));
 
@@ -64,6 +65,7 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
 
   tls_cipher = pf.tls_cipher;
   tls_unsafe_cipher = pf.tls_unsafe_cipher;
+  ndpi_flow_risk_bitmap = pf.ndpi_flow_risk_bitmap;
   http_ret_code = pf.http_ret_code;
   dns_query_type = pf.dns_query_type;
   dns_ret_code = pf.dns_ret_code;

@@ -717,9 +717,9 @@ class Flow : public GenericHashEntry {
   inline u_int8_t getCli2SrvDSCP() const { return (cli2srv_tos & 0xFC) >> 2; }
   inline u_int8_t getSrv2CliDSCP() const { return (srv2cli_tos & 0xFC) >> 2; }
 
-  inline u_int8_t getCli2SrvECN() { return (cli2srv_tos & 0x3); }
-  inline u_int8_t getSrv2CliECN() { return (srv2cli_tos & 0x3); }
-  
+  inline u_int8_t getCli2SrvECN()  { return (cli2srv_tos & 0x3); }
+  inline u_int8_t getSrv2CliECN()  { return (srv2cli_tos & 0x3); }
+  inline void setRisk(ndpi_risk r) { ndpi_flow_risk_bitmap = r; }
   inline float getEntropy(bool src2dst_direction) {
     struct ndpi_analyze_struct *e = src2dst_direction ? entropy.c2s : entropy.s2c;
 

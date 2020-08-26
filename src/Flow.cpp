@@ -1241,7 +1241,8 @@ void Flow::incFlowDroppedCounters() {
  * const is *required* here as the flow must not be modified (as it could go in concuncurrency
  * with the subinterfaces). */
 void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host,
-				       PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const {
+				       PartializableFlowTrafficStats *partial,
+				       bool first_partial, const struct timeval *tv) const {
   update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
 		     partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
 
@@ -1314,9 +1315,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 	*srv_as = srv_host ? srv_host->get_as() : NULL;
 
       if(cli_as)
-	cli_as->incStats(tv->tv_sec, stats_protocol, partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(), partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
+	cli_as->incStats(tv->tv_sec, stats_protocol, partial->get_cli2srv_packets(),
+			 partial->get_cli2srv_bytes(), partial->get_srv2cli_packets(),
+			 partial->get_srv2cli_bytes());
       if(srv_as)
-	srv_as->incStats(tv->tv_sec, stats_protocol, partial->get_srv2cli_packets(), partial->get_srv2cli_bytes(), partial->get_cli2srv_packets(), partial->get_cli2srv_bytes());
+	srv_as->incStats(tv->tv_sec, stats_protocol, partial->get_srv2cli_packets(),
+			 partial->get_srv2cli_bytes(), partial->get_cli2srv_packets(),
+			 partial->get_cli2srv_bytes());
     }
 
     // Update client DSCP stats
@@ -2863,8 +2868,12 @@ void Flow::addFlowStats(bool new_flow,
 /* *************************************** */
 
 void Flow::updateTcpSeqIssues(const ParsedFlow *pf) {
-  stats.incTcpStats(true   /* src2dst */, pf->tcp.retr_in_pkts, pf->tcp.ooo_in_pkts, pf->tcp.lost_in_pkts, 0 /* keepalive not supported */);
-  stats.incTcpStats(false  /* dst2src */, pf->tcp.retr_out_pkts, pf->tcp.ooo_out_pkts, pf->tcp.lost_out_pkts, 0 /* keepalive not supported */);
+  stats.incTcpStats(true   /* src2dst */, pf->tcp.retr_in_pkts,
+		    pf->tcp.ooo_in_pkts, pf->tcp.lost_in_pkts,
+		    0 /* keepalive not supported */);
+  stats.incTcpStats(false  /* dst2src */, pf->tcp.retr_out_pkts,
+		    pf->tcp.ooo_out_pkts, pf->tcp.lost_out_pkts,
+		    0 /* keepalive not supported */);
 }
 
 /* *************************************** */

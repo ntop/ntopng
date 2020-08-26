@@ -54,12 +54,14 @@ template <typename T> class FifoQueue {
   T dequeue() {
     T rv;
 
-    if(q.empty())
-      return(static_cast<T>(NULL));
-    
     m.lock(__FILE__, __LINE__);
-    rv = q.front();
-    q.pop();
+
+    if(q.empty())
+      rv = static_cast<T>(NULL);
+    else {
+      rv = q.front();
+      q.pop();
+    }
     m.unlock(__FILE__, __LINE__);
     
     return(rv);

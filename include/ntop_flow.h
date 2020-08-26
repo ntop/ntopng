@@ -233,8 +233,9 @@
 #define BITTORRENT_HASH       NTOP_BASE_ID+189
 #define JA3C_HASH             NTOP_BASE_ID+489
 #define JA3S_HASH             NTOP_BASE_ID+490
-#define SSL__CIPHER           NTOP_BASE_ID+493
+#define TLS_CIPHER            NTOP_BASE_ID+493
 #define SSL_UNSAFE_CIPHER     NTOP_BASE_ID+494
+#define L7_PROTO_RISK         NTOP_BASE_ID+509
 
 /* SIP */
 #define SIP_CALL_ID NTOP_BASE_ID+130

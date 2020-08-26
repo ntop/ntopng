@@ -41,7 +41,8 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   u_int16_t http_ret_code;
   u_int16_t dns_query_type, dns_ret_code;
   custom_app_t custom_app;
-
+  ndpi_risk ndpi_flow_risk_bitmap;
+  
   ParsedFlow();
   ParsedFlow(const ParsedFlow &pf);
   inline void addAdditionalField(const char *key, json_object *field) {

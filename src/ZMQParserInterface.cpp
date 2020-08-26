@@ -107,7 +107,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("HTTP_RET_CODE", HTTP_RET_CODE, NTOP_PEN);
   addMapping("HTTP_METHOD", HTTP_METHOD, NTOP_PEN);
   addMapping("SSL_SERVER_NAME", SSL_SERVER_NAME, NTOP_PEN);
-  addMapping("SSL_CIPHER", SSL__CIPHER, NTOP_PEN);
+  addMapping("TLS_CIPHER", TLS_CIPHER, NTOP_PEN);
   addMapping("SSL_UNSAFE_CIPHER", SSL_UNSAFE_CIPHER, NTOP_PEN);
   addMapping("JA3C_HASH", JA3C_HASH, NTOP_PEN);
   addMapping("JA3S_HASH", JA3S_HASH, NTOP_PEN);
@@ -116,6 +116,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("DST_FRAGMENTS", DST_FRAGMENTS, NTOP_PEN);
   addMapping("CLIENT_NW_LATENCY_MS", CLIENT_NW_LATENCY_MS, NTOP_PEN);
   addMapping("SERVER_NW_LATENCY_MS", SERVER_NW_LATENCY_MS, NTOP_PEN);
+  addMapping("L7_PROTO_RISK", L7_PROTO_RISK, NTOP_PEN);
 }
 
 /* **************************************************** */
@@ -680,11 +681,14 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       flow->ja3s_hash = strdup(value->string);
     }
     break;
-  case SSL__CIPHER:
+  case TLS_CIPHER:
     flow->tls_cipher = value->int_num;
     break;
   case SSL_UNSAFE_CIPHER:
     flow->tls_unsafe_cipher = value->int_num;
+    break;
+  case L7_PROTO_RISK:
+    flow->ndpi_flow_risk_bitmap = value->int_num;
     break;
   case BITTORRENT_HASH:
     if(value->string[0] && value->string[0] != '\n') {
