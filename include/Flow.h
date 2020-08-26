@@ -582,16 +582,16 @@ class Flow : public GenericHashEntry {
     }
   }
   inline void  setDNSQueryType(u_int16_t t) { if(isDNS()) { protos.dns.last_query_type = t; } }
-  inline void  setDNSRetCode(u_int16_t c) { if(isDNS()) { protos.dns.last_return_code = c; } }
-  inline u_int16_t getLastQueryType() { return(isDNS() ? protos.dns.last_query_type : 0); }
-  inline u_int16_t getDNSRetCode()  { return(isDNS() ? protos.dns.last_return_code : 0); }
-  inline char* getHTTPURL()         { return(isHTTP() ? protos.http.last_url : (char*)"");   }
-  inline void  setHTTPURL(char *v)  { if(isHTTP()) { if(protos.http.last_url) free(protos.http.last_url);  protos.http.last_url = v; } }
-  inline void  setHTTPMethod(char *v)  { if(isHTTP()) { if(protos.http.last_method) free(protos.http.last_method);  protos.http.last_method = v; } }
-  inline void  setHTTPRetCode(u_int16_t c) { if(isHTTP()) { protos.http.last_return_code = c; } }
-  inline u_int16_t getHTTPRetCode() const { return isHTTP() ? protos.http.last_return_code : 0;           };
-  inline char* getHTTPMethod()      const { return isHTTP() ? protos.http.last_method : (char*)"";        };
-  inline char* getHTTPContentType() const { return(isHTTP() ? protos.http.last_content_type : (char*)""); };
+  inline void  setDNSRetCode(u_int16_t c)   { if(isDNS()) { protos.dns.last_return_code = c; } }
+  inline u_int16_t getLastQueryType()       { return(isDNS() ? protos.dns.last_query_type : 0); }
+  inline u_int16_t getDNSRetCode()          { return(isDNS() ? protos.dns.last_return_code : 0); }
+  inline char* getHTTPURL()                 { return(isHTTP() ? protos.http.last_url : (char*)"");   }
+  inline void  setHTTPURL(char *v)          { if(isHTTP()) { if(!protos.http.last_url) protos.http.last_url = v; } }
+  inline void  setHTTPMethod(char *v)       { if(isHTTP()) { if(!protos.http.last_method) protos.http.last_method = v; } }
+  inline void  setHTTPRetCode(u_int16_t c)  { if(isHTTP()) { protos.http.last_return_code = c; } }
+  inline u_int16_t getHTTPRetCode()   const { return isHTTP() ? protos.http.last_return_code : 0;           };
+  inline char* getHTTPMethod()        const { return isHTTP() ? protos.http.last_method : (char*)"";        };
+  inline char* getHTTPContentType()   const { return(isHTTP() ? protos.http.last_content_type : (char*)""); };
   bool isTLSProto();
 
   void setExternalAlert(json_object *a);

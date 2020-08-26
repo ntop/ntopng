@@ -419,43 +419,39 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(ndpiFlow->http.url) {
-      if(protos.http.last_url) free(protos.http.last_url);
-      protos.http.last_url = strdup(ndpiFlow->http.url);
-
-      if(protos.http.last_method) free(protos.http.last_method);
-      
-      switch(ndpiFlow->http.method) {
-      case NDPI_HTTP_METHOD_OPTIONS:
-	protos.http.last_method = strdup("OPTIONS");
-	break;
-      case NDPI_HTTP_METHOD_GET:
-	protos.http.last_method = strdup("GET");
-	break;
-      case NDPI_HTTP_METHOD_HEAD:
-	protos.http.last_method = strdup("HEAD");
-	break;
-      case NDPI_HTTP_METHOD_PATCH:
-	protos.http.last_method = strdup("PATCH");
-	break;
-      case NDPI_HTTP_METHOD_POST:
-	protos.http.last_method = strdup("POST");
-	break;
-      case NDPI_HTTP_METHOD_PUT:
-	protos.http.last_method = strdup("PUT");
-	break;
-      case NDPI_HTTP_METHOD_DELETE:
-	protos.http.last_method = strdup("DELETE");
-	break;
-      case NDPI_HTTP_METHOD_TRACE:
-	protos.http.last_method = strdup("TRACE");
-	break;
-      case NDPI_HTTP_METHOD_CONNECT:
-	protos.http.last_method = strdup("CONNECT");
-	break;
-
-      case NDPI_HTTP_METHOD_UNKNOWN:
-	protos.http.last_method = NULL;
-	break;
+      if(!protos.http.last_url) protos.http.last_url = strdup(ndpiFlow->http.url);
+      if(!protos.http.last_method) {      
+	switch(ndpiFlow->http.method) {
+	case NDPI_HTTP_METHOD_OPTIONS:
+	  protos.http.last_method = strdup("OPTIONS");
+	  break;
+	case NDPI_HTTP_METHOD_GET:
+	  protos.http.last_method = strdup("GET");
+	  break;
+	case NDPI_HTTP_METHOD_HEAD:
+	  protos.http.last_method = strdup("HEAD");
+	  break;
+	case NDPI_HTTP_METHOD_PATCH:
+	  protos.http.last_method = strdup("PATCH");
+	  break;
+	case NDPI_HTTP_METHOD_POST:
+	  protos.http.last_method = strdup("POST");
+	  break;
+	case NDPI_HTTP_METHOD_PUT:
+	  protos.http.last_method = strdup("PUT");
+	  break;
+	case NDPI_HTTP_METHOD_DELETE:
+	  protos.http.last_method = strdup("DELETE");
+	  break;
+	case NDPI_HTTP_METHOD_TRACE:
+	  protos.http.last_method = strdup("TRACE");
+	  break;
+	case NDPI_HTTP_METHOD_CONNECT:
+	  protos.http.last_method = strdup("CONNECT");
+	  break;
+	default:
+	  break;
+	}
       }
     }
 
@@ -3476,8 +3472,8 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       if(go_deeper) {
 	char *ua;
 
-	if(protos.http.last_method) free(protos.http.last_method);
-	if((protos.http.last_method = (char*)malloc(l + 1)) != NULL) {
+	if(!protos.http.last_method
+	   && (protos.http.last_method = (char*)malloc(l + 1)) != NULL) {
 	  strncpy(protos.http.last_method, payload, l);
 	  protos.http.last_method[l] = '\0';
 	}
@@ -3495,8 +3491,8 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	    }
 	  }
 
-	  if(protos.http.last_url) free(protos.http.last_url);
-	  if((protos.http.last_url = (char*)malloc(host_server_name_len + l + 1)) != NULL) {
+	  if(!protos.http.last_url
+	     && (protos.http.last_url = (char*)malloc(host_server_name_len + l + 1)) != NULL) {
 	    protos.http.last_url[0] = '\0';
 
 	    if(host_server_name_len > 0) {
@@ -3607,8 +3603,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
 	  if(strstr(buf, HTTP_CONTENT_TYPE_HEADER) == buf) {
 	    const char * ct = buf + sizeof(HTTP_CONTENT_TYPE_HEADER) - 1;
 
-	    if(protos.http.last_content_type) free(protos.http.last_content_type);
-	    protos.http.last_content_type = strdup(ct);
+	    if(!protos.http.last_content_type) protos.http.last_content_type = strdup(ct);
 	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "LAST CONTENT TYPE: '%s'", protos.http.last_content_type);
 	    break;
 	  }
