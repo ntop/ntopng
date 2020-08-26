@@ -1315,7 +1315,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     int64_t i64 = 0;
     ndpi_string key, vs;
     char key_str[64];
-    u_int8_t vbkp;
+    u_int8_t vbkp = 0;
     bool add_to_additional_fields = false;
     bool key_is_string = false, value_is_string = false;
 
