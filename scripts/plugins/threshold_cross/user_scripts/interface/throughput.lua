@@ -34,7 +34,7 @@ function script.hooks.all(params)
   -- Delta
   local value = alerts_api.interface_delta_val(script.key, params.granularity, interface_bytes)
   -- Granularity
-  value = value / alert_consts.granularity2sec(params.granularity)
+  value = value / granularity2sec(params.granularity)
   -- Bytes to Mbit
   value = (value * 8) / 1000000
 
