@@ -26,7 +26,8 @@
 ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   additional_fields_json = NULL;
   additional_fields_tlv = NULL;
-  http_url = http_site = http_method = NULL;
+  http_url = http_site = NULL;
+  http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = NULL;
   ja3c_hash = ja3s_hash = NULL;
   external_alert = NULL;
@@ -55,7 +56,7 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
 
   if(pf.http_url)  http_url = strdup(pf.http_url); else http_url = NULL;
   if(pf.http_site) http_site = strdup(pf.http_site); else http_site = NULL;
-  if(pf.http_method) http_method = strdup(pf.http_method); else http_method = NULL;
+  http_method = pf.http_method;
   if(pf.dns_query) dns_query = strdup(pf.dns_query); else dns_query = NULL;
   if(pf.tls_server_name) tls_server_name = strdup(pf.tls_server_name); else tls_server_name = NULL;
   if(pf.bittorrent_hash) bittorrent_hash = strdup(pf.bittorrent_hash); else bittorrent_hash = NULL;
@@ -90,8 +91,7 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
 	} else if(!strcmp(key, "dst_ip")) {
            dst_ip.set(lua_tostring(L, -1));
 	} else if(!strcmp(key, "http_method")) {
-          if(http_method) free(http_method);
-          http_method = strdup(lua_tostring(L, -1));
+          http_method = ndpi_http_str2method(lua_tostring(L, -1), strlen(lua_tostring(L, -1)));
 	} else if(!strcmp(key, "http_site")) {
           if(http_site) free(http_site);
           http_site = strdup(lua_tostring(L, -1));
@@ -193,7 +193,6 @@ ParsedFlow::~ParsedFlow() {
 
   if(http_url) free(http_url);
   if(http_site) free(http_site);
-  if(http_method) free(http_method);
   if(dns_query) free(dns_query);
   if(tls_server_name) free(tls_server_name);
   if(bittorrent_hash) free(bittorrent_hash);

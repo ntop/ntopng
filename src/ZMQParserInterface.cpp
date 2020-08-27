@@ -658,10 +658,8 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       flow->http_ret_code = value->int_num;
     break;
   case HTTP_METHOD:
-    if(value->string[0] && value->string[0] != '\n') {
-      if(flow->http_method) free(flow->http_method);
-      flow->http_method = strdup(value->string);
-    }
+    if(value->string[0] && value->string[0] != '\n')
+      flow->http_method = ndpi_http_str2method(value->string, strlen(value->string));
     break;
   case SSL_SERVER_NAME:
     if(value->string[0] && value->string[0] != '\n') {

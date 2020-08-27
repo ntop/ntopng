@@ -277,7 +277,6 @@ Flow::~Flow() {
   if(entropy.s2c) ndpi_free_data_analysis(entropy.s2c);
       
   if(isHTTP()) {
-    if(protos.http.last_method) free(protos.http.last_method);
     if(protos.http.last_url)    free(protos.http.last_url);
     if(protos.http.last_content_type) free(protos.http.last_content_type);
   } else if(isDNS()) {
@@ -420,39 +419,7 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(ndpiFlow->http.url) {
       if(!protos.http.last_url) protos.http.last_url = strdup(ndpiFlow->http.url);
-      if(!protos.http.last_method) {      
-	switch(ndpiFlow->http.method) {
-	case NDPI_HTTP_METHOD_OPTIONS:
-	  protos.http.last_method = strdup("OPTIONS");
-	  break;
-	case NDPI_HTTP_METHOD_GET:
-	  protos.http.last_method = strdup("GET");
-	  break;
-	case NDPI_HTTP_METHOD_HEAD:
-	  protos.http.last_method = strdup("HEAD");
-	  break;
-	case NDPI_HTTP_METHOD_PATCH:
-	  protos.http.last_method = strdup("PATCH");
-	  break;
-	case NDPI_HTTP_METHOD_POST:
-	  protos.http.last_method = strdup("POST");
-	  break;
-	case NDPI_HTTP_METHOD_PUT:
-	  protos.http.last_method = strdup("PUT");
-	  break;
-	case NDPI_HTTP_METHOD_DELETE:
-	  protos.http.last_method = strdup("DELETE");
-	  break;
-	case NDPI_HTTP_METHOD_TRACE:
-	  protos.http.last_method = strdup("TRACE");
-	  break;
-	case NDPI_HTTP_METHOD_CONNECT:
-	  protos.http.last_method = strdup("CONNECT");
-	  break;
-	default:
-	  break;
-	}
-      }
+      setHTTPMethod(ndpiFlow->http.method);
     }
 
     if(ndpiFlow->host_server_name[0] != '\0') {
@@ -2460,8 +2427,8 @@ json_object* Flow::flow2json() {
       json_object_object_add(my_object, "HTTP_HOST", json_object_new_string(host_server_name));
     if(protos.http.last_url && protos.http.last_url[0] != '0')
       json_object_object_add(my_object, "HTTP_URL", json_object_new_string(protos.http.last_url));
-    if(protos.http.last_method && protos.http.last_method[0] != '\0')
-      json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(protos.http.last_method));
+    if(protos.http.last_method != NDPI_HTTP_METHOD_UNKNOWN)
+      json_object_object_add(my_object, "HTTP_METHOD", json_object_new_string(ndpi_http_method2str(protos.http.last_method)));
     if(protos.http.last_return_code > 0)
       json_object_object_add(my_object, "HTTP_RET_CODE", json_object_new_int((u_int32_t)protos.http.last_return_code));
   }
@@ -3410,11 +3377,7 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
       zflow->http_site = NULL;
     }
 
-    if(zflow->http_method) {
-      setHTTPMethod(zflow->http_method);
-      zflow->http_method = NULL;
-    }
-
+    setHTTPMethod(zflow->http_method);
     setHTTPRetCode(zflow->http_ret_code);
 
     const char *http_method = getHTTPMethod();
@@ -3444,6 +3407,19 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
     case 5: stats.incHTTPResp5xx(); break;
     }
   }
+}
+
+/* *************************************** */
+
+void Flow::setHTTPMethod(ndpi_http_method m) {
+  if(protos.http.last_method == NDPI_HTTP_METHOD_UNKNOWN)
+    protos.http.last_method = m;
+}
+
+/* *************************************** */
+
+void Flow::setHTTPMethod(const char* method, ssize_t method_len) {
+  setHTTPMethod(ndpi_http_str2method(method, method_len));
 }
 
 /* *************************************** */
@@ -3481,11 +3457,7 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_
       if(go_deeper) {
 	char *ua;
 
-	if(!protos.http.last_method
-	   && (protos.http.last_method = (char*)malloc(l + 1)) != NULL) {
-	  strncpy(protos.http.last_method, payload, l);
-	  protos.http.last_method[l] = '\0';
-	}
+        setHTTPMethod(payload, l);
 
 	payload_len -= (l + 1);
 	payload = &space[1];
@@ -4655,7 +4627,7 @@ void Flow::lua_get_ssh_info(lua_State *vm) const {
 void Flow::lua_get_http_info(lua_State *vm) const {
   if(isHTTP()) {
     if(protos.http.last_url) {
-      lua_push_str_table_entry(vm, "protos.http.last_method", protos.http.last_method);
+      lua_push_str_table_entry(vm, "protos.http.last_method", ndpi_http_method2str(protos.http.last_method));
       lua_push_uint64_table_entry(vm, "protos.http.last_return_code", protos.http.last_return_code);
       lua_push_str_table_entry(vm, "protos.http.last_url", protos.http.last_url);
     }

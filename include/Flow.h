@@ -111,7 +111,8 @@ class Flow : public GenericHashEntry {
     
   union {
     struct {
-      char *last_url, *last_method;
+      char *last_url;
+      ndpi_http_method last_method;
       char *last_content_type;
       u_int16_t last_return_code;
     } http;
@@ -587,10 +588,11 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getDNSRetCode()          { return(isDNS() ? protos.dns.last_return_code : 0); }
   inline char* getHTTPURL()                 { return(isHTTP() ? protos.http.last_url : (char*)"");   }
   inline void  setHTTPURL(char *v)          { if(isHTTP()) { if(!protos.http.last_url) protos.http.last_url = v; } }
-  inline void  setHTTPMethod(char *v)       { if(isHTTP()) { if(!protos.http.last_method) protos.http.last_method = v; } }
+  void setHTTPMethod(const char* method, ssize_t method_len);
+  void setHTTPMethod(ndpi_http_method m);
   inline void  setHTTPRetCode(u_int16_t c)  { if(isHTTP()) { protos.http.last_return_code = c; } }
   inline u_int16_t getHTTPRetCode()   const { return isHTTP() ? protos.http.last_return_code : 0;           };
-  inline char* getHTTPMethod()        const { return isHTTP() ? protos.http.last_method : (char*)"";        };
+  inline const char* getHTTPMethod()  const { return isHTTP() ? ndpi_http_method2str(protos.http.last_method) : (char*)"";        };
   inline char* getHTTPContentType()   const { return(isHTTP() ? protos.http.last_content_type : (char*)""); };
   bool isTLSProto();
 
