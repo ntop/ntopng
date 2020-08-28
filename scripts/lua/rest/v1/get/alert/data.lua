@@ -15,7 +15,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Read alerts data
--- Example: curl -u admin:admin -d '{"ifid": "1", "status": "historical"}' http://localhost:3000/lua/rest/v1/get/alert/data.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "status": "historical"}' http://localhost:3000/lua/rest/v1/get/alert/data.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

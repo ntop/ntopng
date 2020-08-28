@@ -13,7 +13,7 @@ local tracker = require("tracker")
 
 --
 -- Add a new ntopng user
--- Example: curl -u admin:admin -d '{"username": "mario", "full_name": "Super Mario", "password": "strongpwd", "confirm_password": "strongpwd", "user_role": "unprivileged", "allowed_interface": "", "allowed_networks": "0.0.0.0/0,::/0", "user_language": "en"}' http://localhost:3000/lua/rest/v1/add/ntopng/user.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"username": "mario", "full_name": "Super Mario", "password": "strongpwd", "confirm_password": "strongpwd", "user_role": "unprivileged", "allowed_interface": "", "allowed_networks": "0.0.0.0/0,::/0", "user_language": "en"}' http://localhost:3000/lua/rest/v1/add/ntopng/user.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

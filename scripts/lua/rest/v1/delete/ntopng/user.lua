@@ -13,7 +13,7 @@ local tracker = require("tracker")
 
 --
 -- Remove a ntopng user
--- Example: curl -u admin:admin -d '{"username": "mario"}' http://localhost:3000/lua/rest/v1/delete/ntopng/user.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"username": "mario"}' http://localhost:3000/lua/rest/v1/delete/ntopng/user.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

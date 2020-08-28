@@ -12,7 +12,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Set host alias
--- Example: curl -u admin:admin -d '{"host" : "192.168.1.1", "custom_name" : "Mario"}' http://localhost:3000/lua/rest/v1/set/host/alias.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"host" : "192.168.1.1", "custom_name" : "Mario"}' http://localhost:3000/lua/rest/v1/set/host/alias.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

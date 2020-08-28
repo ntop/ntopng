@@ -12,7 +12,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Read information about a host and maps host fields into custom fields
--- Example: curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"host": "192.168.2.222", "ifid":"0"}' http://localhost:3000/lua/rest/v1/get/host/custom_data.lua
+-- Example: curl -s -u admin:admin -H "Content-Type: application/json"  -H "Content-Type: application/json" -d '{"host": "192.168.2.222", "ifid":"0"}' http://localhost:3000/lua/rest/v1/get/host/custom_data.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

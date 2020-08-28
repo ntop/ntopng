@@ -15,7 +15,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Read alerts data as timeseries (number of alerts per hour)
--- Example: curl -u admin:admin -d '{"ifid": "6", "status": "historical-flows", "epoch_begin": 1590226522, "epoch_end": 1590485722}' http://localhost:3000/lua/rest/v1/get/alert/ts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "6", "status": "historical-flows", "epoch_begin": 1590226522, "epoch_end": 1590485722}' http://localhost:3000/lua/rest/v1/get/alert/ts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

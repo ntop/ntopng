@@ -11,7 +11,7 @@ local dscp_consts = require "dscp_consts"
 
 --
 -- Read DSCP statistics on an interface
--- Example: curl -u admin:admin -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/interface/dscp/stats.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/interface/dscp/stats.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

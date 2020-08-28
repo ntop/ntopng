@@ -11,7 +11,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Retrieves all ntopng interfaces of a given host
--- Example: curl -u admin:admin -d '{"host" : "192.168.1.1"}' http://localhost:3000/lua/rest/v1/get/host/interfaces.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"host" : "192.168.1.1"}' http://localhost:3000/lua/rest/v1/get/host/interfaces.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

@@ -16,7 +16,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Read timeseries data
--- Example: curl -u admin:admin -d '{"ifid": 3, "ts_schema":"host:traffic", "ts_query": "host:192.168.1.98", "epoch_begin": "1532180495", "epoch_end": "1548839346"}' http://localhost:3000/lua/rest/v1/get/timeseries/ts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 3, "ts_schema":"host:traffic", "ts_query": "host:192.168.1.98", "epoch_begin": "1532180495", "epoch_end": "1548839346"}' http://localhost:3000/lua/rest/v1/get/timeseries/ts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

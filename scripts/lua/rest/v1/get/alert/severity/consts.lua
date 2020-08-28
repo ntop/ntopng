@@ -12,7 +12,7 @@ local rest_utils = require "rest_utils"
 
 --
 -- Read all the defined alert severity constants
--- Example: curl -u admin:admin http://localhost:3000/lua/rest/v1/get/alert/severity/consts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v1/get/alert/severity/consts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
