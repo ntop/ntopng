@@ -33,6 +33,7 @@ class FifoSerializerQueue : public FifoQueue<ndpi_serializer*> {
 
       q.pop();
       ndpi_term_serializer(s);
+      free(s);
     }
   }
 
