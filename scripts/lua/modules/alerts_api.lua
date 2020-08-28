@@ -10,6 +10,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 local json = require("dkjson")
 local alert_consts = require("alert_consts")
 local recipients_lua_utils = require "recipients_lua_utils"
+local user_scripts = require "user_scripts"
 local os_utils = require("os_utils")
 local do_trace = false
 
@@ -539,11 +540,8 @@ function alerts_api.checkThresholdAlert(params, alert_type, value)
      threshold_config.threshold
   )
 
-  if(threshold_config.operator == "lt") then
-    if(value < threshold_config.threshold) then alarmed = true end
-  else
-    if(value > threshold_config.threshold) then alarmed = true end
-  end
+  local op_fn = user_scripts.operator_functions[threshold_config.operator] or user_scripts.operator_functions.gt
+  if op_fn and op_fn(value, threshold_config.threshold) then alarmed = true end
 
   if(alarmed) then
     return(alerts_api.trigger(params.alert_entity, threshold_type, nil, params.cur_alerts))

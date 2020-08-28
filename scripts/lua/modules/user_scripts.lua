@@ -34,6 +34,15 @@ user_scripts.field_units = {
   syn_min = "field_units.syn_min",
 }
 
+-- ##############################################
+
+user_scripts.operator_functions = {
+   gt --[[ greater than --]] = function(value, threshold) return value > threshold end,
+   lt --[[ less than    --]] = function(value, threshold) return value < threshold end,
+}
+
+-- ##############################################
+
 local REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY = "ntopng.cache.ifid_%i.user_scripts.request.granularity_%s"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
@@ -811,6 +820,7 @@ function user_scripts.getConfigsets()
 
    -- Cache to avoid loading them again
    cached_config_sets = rv
+
    return(rv)
 end
 
