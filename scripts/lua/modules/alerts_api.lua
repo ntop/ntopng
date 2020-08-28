@@ -5,9 +5,11 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
 local json = require("dkjson")
 local alert_consts = require("alert_consts")
+local recipients_lua_utils = require "recipients_lua_utils"
 local os_utils = require("os_utils")
 local do_trace = false
 
@@ -49,49 +51,6 @@ local function get_alert_triggered_key(type_info)
   end
 
   return(string.format("%d@%s", type_info.alert_type.alert_key, type_info.alert_subtype or ""))
-end
-
--- ##############################################
-
--- Performs the alert store asynchronously.
--- This is necessary both to avoid paying the database io cost inside
--- the other scripts and as a necessity to avoid a deadlock on the
--- host hash in the host.lua script
-function alerts_api.checkPendingStoreAlerts()
-  if(not areAlertsEnabled()) then
-    return(false)
-  end
-
-  -- SQLite Alerts
-  while(true) do
-    local alert_json = ntop.popSqliteAlert()
-
-    if(not alert_json) then
-      break
-    end
-
-    local alert = json.decode(alert_json)
-
-    if(alert) then
-      interface.select(string.format("%d", alert.ifid))
-
-      if(alert.is_flow_alert) then
-        interface.storeFlowAlert(alert)
-      else
-        interface.storeAlert(
-          alert.alert_tstamp, alert.alert_tstamp_end, alert.alert_granularity,
-          alert.alert_type, alert.alert_subtype, alert.alert_severity,
-          alert.alert_entity, alert.alert_entity_val,
-          alert.alert_json)
-      end
-    end
-
-    if ntop.isDeadlineApproaching() then
-      return(false)
-    end
-  end
-
-  return(true)
 end
 
 -- ##############################################
@@ -183,7 +142,7 @@ function alerts_api.store(entity_info, type_info, when)
   end
 
   local alert_json = json.encode(alert_to_store)
-  ntop.pushSqliteAlert(alert_json)
+  recipients_lua_utils.dispatch_store_notification(alert_json)
   ntop.pushAlertNotification(alert_json)
 
   return(true)
@@ -316,6 +275,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   addAlertPoolInfo(entity_info, triggered)
 
   local alert_json = json.encode(triggered)
+  recipients_lua_utils.dispatch_trigger_notification(alert_json)
   ntop.pushAlertNotification(alert_json)
 
   return(true)
@@ -385,7 +345,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   addAlertPoolInfo(entity_info, released)
 
   local alert_json = json.encode(released)
-  ntop.pushSqliteAlert(alert_json)
+  recipients_lua_utils.dispatch_release_notification(alert_json)
   ntop.pushAlertNotification(alert_json)
 
   return(true)

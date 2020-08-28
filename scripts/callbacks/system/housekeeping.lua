@@ -9,11 +9,14 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
 require "lua_utils"
 local lists_utils = require "lists_utils"
 local recording_utils = require "recording_utils"
 local plugins_utils = require "plugins_utils"
+local recipients_lua_utils = require "recipients_lua_utils"
+
 local now = os.time()
 
 if(areAlertsEnabled()) then
@@ -24,8 +27,8 @@ if(areAlertsEnabled()) then
    -- Check for alerts from the datapath
    alert_utils.checkStoreAlertsFromC()
 
-   -- Check for alerts to be stored to SQLite
-   alerts_api.checkPendingStoreAlerts()
+   -- Check for alerts to be processed out of the recipients
+   recipients_lua_utils.process_notifications()
 
    -- Check for alerts to be notified
    alert_utils.processAlertNotifications(now, periodicity)
