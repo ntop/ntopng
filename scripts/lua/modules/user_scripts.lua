@@ -36,6 +36,10 @@ user_scripts.field_units = {
 
 -- ##############################################
 
+-- Operator functions associated to user scripts `operator`, which is specified
+-- both inside user scripts default configuration values, as well as when user scripts
+-- are configured from the UI.
+-- 
 user_scripts.operator_functions = {
    gt --[[ greater than --]] = function(value, threshold) return value > threshold end,
    lt --[[ less than    --]] = function(value, threshold) return value < threshold end,

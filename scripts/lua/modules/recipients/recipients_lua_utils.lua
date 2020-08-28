@@ -46,6 +46,7 @@ end
 
 local all_instances_cache
 
+-- @brief Caches all available recipient instances to avoid reloading them every time
 local function get_all_instances_cache()
    if not all_instances_cache then
       all_instances_cache = all_recipient_instances_factory()
@@ -56,6 +57,9 @@ end
 
 -- ##############################################
 
+-- @brief Dispatches a trigger `notification` to every available recipient (trigger notifications are generated in `alerts_api.trigger`)
+-- @param notification A JSON string with all the alert information
+-- @return true If the dispatching has been successfull, false otherwise
 function recipients_lua_utils.dispatch_trigger_notification(notification)
    local all_instances = get_all_instances_cache()
 
@@ -68,6 +72,9 @@ end
 
 -- ##############################################
 
+-- @brief Dispatches a release `notification` to every available recipient (trigger notifications are generated in `alerts_api.release`)
+-- @param notification A JSON string with all the alert information
+-- @return true If the dispatching has been successfull, false otherwise
 function recipients_lua_utils.dispatch_release_notification(notification)
    local all_instances = get_all_instances_cache()
 
@@ -80,6 +87,9 @@ end
 
 -- ##############################################
 
+-- @brief Dispatches a store `notification` to every available recipient (trigger notifications are generated in `alerts_api.store`)
+-- @param notification A JSON string with all the alert information
+-- @return true If the dispatching has been successfull, false otherwise
 function recipients_lua_utils.dispatch_store_notification(notification)
    local all_instances = get_all_instances_cache()
 
@@ -92,6 +102,7 @@ end
 
 -- ##############################################
 
+-- @brief Processs notifications previously dispatched for every available recipient
 function recipients_lua_utils.process_notifications(notification)
    local all_instances = get_all_instances_cache()
 

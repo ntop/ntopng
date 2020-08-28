@@ -35,29 +35,41 @@ end
 
 -- ##############################################
 
+-- @brief Performs initialization operations at the time when the instance is created
 function base_recipients:_initialize()
+   -- Possibly create a default recipient (if not existing)
 end
 
 -- ##############################################
 
+-- @brief Dispatches a store `notification` to the recipient
+-- @param notification A JSON string with all the alert information
+-- @return true If the dispatching has been successfull, false otherwise
 function base_recipients:dispatch_store_notification(notification)
    return true
 end
 
 -- ##############################################
 
+-- @brief Dispatches a trigger `notification` to the recipient
+-- @param notification A JSON string with all the alert information
+-- @return true If the dispatching has been successfull, false otherwise
 function base_recipients:dispatch_trigger_notification(notification)
    return true
 end
 
 -- ##############################################
 
+-- @brief Dispatches a release `notification` to the recipient
+-- @param notification A JSON string with all the alert information
+-- @return true If the dispatching has been successfull, false otherwise
 function base_recipients:dispatch_release_notification(notification)
    return true
 end
 
 -- ##############################################
 
+-- @brief Process notifications previously dispatched with one of the dispatch_{store,trigger,release}_notification
 function base_recipients:process_notifications()
    return true
 end

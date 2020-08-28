@@ -540,6 +540,10 @@ function alerts_api.checkThresholdAlert(params, alert_type, value)
      threshold_config.threshold
   )
 
+  -- Retrieve the function to be used for the threshold check.
+  -- The function depends on the operator, i.e., "gt", or "lt".
+  -- When there's no operator, the default "gt" function is taken from the available
+  -- operation functions
   local op_fn = user_scripts.operator_functions[threshold_config.operator] or user_scripts.operator_functions.gt
   if op_fn and op_fn(value, threshold_config.threshold) then alarmed = true end
 
