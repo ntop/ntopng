@@ -38,18 +38,18 @@ class FifoStringsQueue : public FifoQueue<char*> {
   }
 
   bool enqueue(char* item) {
-    char *d;
     bool rv;
     
-    if(!item) return(false); else d = strdup(item);
-
-    if(!d) return(false);
-
     m.lock(__FILE__, __LINE__);
 
     if(canEnqueue()) {
-      q.push(d);
-      rv = true;
+      char *d = strdup(item);
+
+      if(d) {
+	q.push(d);
+	rv = true;
+      } else
+	rv = false;
     } else
       rv = false;
 
