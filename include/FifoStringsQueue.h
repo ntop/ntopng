@@ -28,6 +28,7 @@
 class FifoStringsQueue : public FifoQueue<char*> {
  public:
   FifoStringsQueue(u_int32_t queue_size) : FifoQueue<char*>(queue_size) {}
+
   ~FifoStringsQueue() {
     while(!q.empty()) {
       char *s = q.front();

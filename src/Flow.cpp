@@ -1954,6 +1954,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
             lua_push_str_table_entry(vm, "moreinfo.json", buffer);
             has_json_info = true;
           }
+	  
           ndpi_term_serializer(&serializer);
         }
       }

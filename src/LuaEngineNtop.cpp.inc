@@ -5400,9 +5400,10 @@ static int ntop_push_sqlite_alert(lua_State* vm) {
 
 static int ntop_pop_sqlite_alert(lua_State* vm) {  
   if(!ntop->getSqliteAlertsQueue()->empty()) {
-    std::string alert = ntop->getSqliteAlertsQueue()->dequeue();
+    char *alert = ntop->getSqliteAlertsQueue()->dequeue();
     
-    lua_pushstring(vm, alert.c_str());
+    lua_pushstring(vm, alert);
+    free(alert);
   } else
     lua_pushnil(vm);
 
@@ -5425,9 +5426,10 @@ static int ntop_push_alert_notification(lua_State* vm) {
 
 static int ntop_pop_alert_notification(lua_State* vm) {
   if(!ntop->getAlertsNotificationsQueue()->empty()) {
-    std::string alert = ntop->getAlertsNotificationsQueue()->dequeue();
+    char *alert = ntop->getAlertsNotificationsQueue()->dequeue();
     
-    lua_pushstring(vm, alert.c_str());
+    lua_pushstring(vm, alert);
+    free(alert);
   } else
     lua_pushnil(vm);
 
@@ -5437,18 +5439,17 @@ static int ntop_pop_alert_notification(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_pop_internal_alerts(lua_State* vm) {
-
-  if(!ntop->getInternalAlertsQueue()->empty()) {
-    ndpi_serializer *alert = ntop->getInternalAlertsQueue()->dequeue();
-    
+  ndpi_serializer *alert = ntop->getInternalAlertsQueue()->dequeue();
+			
+  if(alert) {    
     lua_newtable(vm);
     Utils::tlv2lua(vm, alert);
-
+    
     ndpi_term_serializer(alert);
     free(alert);    
   } else
     lua_pushnil(vm);
-
+  
   return(CONST_LUA_OK);
 }
 

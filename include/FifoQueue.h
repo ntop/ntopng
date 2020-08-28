@@ -34,22 +34,12 @@ template <typename T> class FifoQueue {
  public:
   FifoQueue(u_int32_t queue_size) { max_size = queue_size; }
   virtual ~FifoQueue() { ; }
-
-  bool enqueue(T item) {
-    bool rv;
-    
-    m.lock(__FILE__, __LINE__);
-    
-    if(canEnqueue()) {
-      q.push(item);
-      rv = true;
-    } else
-      rv = false;
-    
-    m.unlock(__FILE__, __LINE__);
-    
-    return(rv);
-  }
+  
+  /*
+    Subclasses will implement it as sometimes the buffer
+    needs to be duplicated as for strings
+  */
+  virtual bool enqueue(T item) = 0;
   
   T dequeue() {
     T rv;
@@ -63,10 +53,10 @@ template <typename T> class FifoQueue {
       q.pop();
     }
     m.unlock(__FILE__, __LINE__);
-    
+
     return(rv);
   }
-  
+
   inline bool canEnqueue()      { return(getLength() < max_size); }
   inline u_int32_t getLength()  { return(q.size());               }
   inline bool empty()           { return(q.empty());              }

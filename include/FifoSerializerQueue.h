@@ -27,6 +27,7 @@
 class FifoSerializerQueue : public FifoQueue<ndpi_serializer*> {
  public:
   FifoSerializerQueue(u_int32_t queue_size) : FifoQueue<ndpi_serializer*>(queue_size) {}
+
   ~FifoSerializerQueue() {
     while(!q.empty()) {
       ndpi_serializer *s = q.front();
@@ -35,6 +36,23 @@ class FifoSerializerQueue : public FifoQueue<ndpi_serializer*> {
       ndpi_term_serializer(s);
       free(s);
     }
+  }
+
+  bool enqueue(ndpi_serializer* item) {
+    bool rv;
+    
+    m.lock(__FILE__, __LINE__);
+
+    if(canEnqueue()) {
+      q.push(item);
+      rv = true;
+    } else {
+      rv = false;
+    }
+    
+    m.unlock(__FILE__, __LINE__);
+    
+    return(rv);
   }
 
 };

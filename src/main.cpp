@@ -90,8 +90,8 @@ int main(int argc, char *argv[])
   char path[MAX_PATH];
   bool has_view_all = false;
   FILE *fd;
-  ThreadedActivity *boot_activity;
-
+  ThreadedActivity *boot_activity;  
+  
 #ifdef WIN32
   initWinsock32();
 #else
