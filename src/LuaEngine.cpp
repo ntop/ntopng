@@ -12536,15 +12536,14 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 	  /*
 	    post_data is JSON which is only allowed when using the REST API
 	  */
-	  if(!strstr(request_info->uri, REST_API_PREFIX)
-	     && !strstr(request_info->uri, REST_API_PRO_PREFIX))
+	  if((strstr(request_info->uri, REST_API_PREFIX) ||
+	      strstr(request_info->uri, REST_API_PRO_PREFIX)) &&
+              strstr(request_info->uri, "/get/")) {
 	    /*
-	      no REST API URI, assume invalid data
+	      REST API URI, GET, no CSRF required
 	    */
-	    valid_csrf = 0;
-	  else if(!strstr(request_info->uri, "/get/")) {
+	  } else {
 	    /*
-	      REST API URI not containing a /get/.
 	      REST API URIs not containing /get/, e.g., /set/, /add/, /delete/, are assumed to
 	      change the status of ntopng and thus CSRF checks MUST be enforced.
 	      In this case, post_data is decoded as JSON to enforce the check.
@@ -12579,7 +12578,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
       if(strstr(content_type, "application/x-www-form-urlencoded") == content_type)
 	*attack_attempt = setParamsTable(L, request_info, "_POST", post_data); /* CSRF is valid here, now fill the _POST table with POST parameters */
       else {
-	/* application/json" */
+	/* application/json */
 
 	lua_newtable(L);
 	lua_push_str_table_entry(L, "payload", post_data);
