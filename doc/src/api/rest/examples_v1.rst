@@ -560,7 +560,7 @@ field / field alias with a comma.
 .. code:: bash
 
    curl --silent --insecure -u "admin:admin" \
-     -d '{"ifid": 0, "host": "10.222.222.119", "field_alias": "ip,bytes.sent=tdb,packets.sent"}' \
+     -H "Content-Type: application/json" -d '{"ifid": 0, "host": "10.222.222.119", "field_alias": "ip,bytes.sent=tdb,packets.sent"}' \
      "https://localhost:3001/lua/rest/v1/get/host/custom_data.lua"
 
 Response:
@@ -585,7 +585,7 @@ monitoring interface (ifid): 0.
 .. code:: bash
 
    curl --silent --insecure -u "admin:admin" \
-     -d '{"ifid": 0, "field_alias": "ip,bytes.sent=tdb,packets.sent=tdp"}' \
+     -H "Content-Type: application/json" -d '{"ifid": 0, "field_alias": "ip,bytes.sent=tdb,packets.sent=tdp"}' \
      "https://localhost:3001/lua/rest/v1/get/host/custom_data.lua"
 
 Response:
@@ -626,7 +626,7 @@ Get all host data for all hosts on monitoring interface (ifid): 0.
 .. code:: bash
 
    curl --silent --insecure -u "admin:admin" \
-     -d '{"ifid": 0"}' \
+     -H "Content-Type: application/json" -d '{"ifid": 0"}' \
      "https://localhost:3001/lua/rest/v1/get/host/custom_data.lua"
 
 Response:
