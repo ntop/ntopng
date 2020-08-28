@@ -11,7 +11,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Resolve a name
--- Example: curl -u admin:admin -d '{"hostname" : "www.google.com"}' http://localhost:3000/lua/rest/v1/get/dns/resolve.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"hostname" : "www.google.com"}' http://localhost:3000/lua/rest/v1/get/dns/resolve.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

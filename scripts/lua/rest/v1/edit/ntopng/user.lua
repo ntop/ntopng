@@ -12,7 +12,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Edit a ntopng user
--- Example: curl -u admin:admin -d '{"username": "mario", "full_name": "Mario Rossi", "user_role": "unprivileged", "allowed_interface": "", "allowed_networks": "0.0.0.0/0,::/0", "user_language": "en"}' http://localhost:3000/lua/rest/v1/edit/ntopng/user.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"username": "mario", "full_name": "Mario Rossi", "user_role": "unprivileged", "allowed_interface": "", "allowed_networks": "0.0.0.0/0,::/0", "user_language": "en"}' http://localhost:3000/lua/rest/v1/edit/ntopng/user.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

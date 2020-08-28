@@ -12,7 +12,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Read information about a host
--- Example: curl -u admin:admin -d '{"ifid": "1", "host" : "192.168.1.1"}' http://localhost:3000/lua/rest/v1/get/host/data.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "host" : "192.168.1.1"}' http://localhost:3000/lua/rest/v1/get/host/data.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

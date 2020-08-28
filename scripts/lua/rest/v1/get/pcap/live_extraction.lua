@@ -11,7 +11,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Run a traffic extraction
--- Example: curl -u admin:admin -d '{"ifid": "1", "epoch_begin": 1589822000, "epoch_end": 15898221000 }' http://localhost:3000/lua/rest/v1/get/pcap/live_extraction.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "epoch_begin": 1589822000, "epoch_end": 15898221000 }' http://localhost:3000/lua/rest/v1/get/pcap/live_extraction.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
