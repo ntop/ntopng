@@ -1839,7 +1839,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 			bool return_content,
 			bool use_cookie_authentication,
 			HTTPTranferStats *stats, const char *form_data,
-      char *write_fname, bool follow_redirects, int ip_version) {
+			char *write_fname, bool follow_redirects, int ip_version) {
   CURL *curl;
   FILE *out_f = NULL;
   bool ret = true;
@@ -1885,8 +1885,15 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
       curl_easy_setopt(curl, CURLOPT_POST, 1L);
       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, form_data);
       curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(form_data));
-    }
 
+      if(form_data[0] == '{' /* JSON */) {
+	struct curl_slist *hs = NULL;
+	
+	hs = curl_slist_append(hs, "Content-Type: application/json");
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
+      }
+    }
+    
     if(write_fname) {
       ntop->fixPath(write_fname);
       out_f = fopen(write_fname, "wb");
