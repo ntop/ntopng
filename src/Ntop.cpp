@@ -804,7 +804,7 @@ void Ntop::loadLocalInterfaceAddress() {
        || ((ifa->ifa_flags & IFF_UP) == 0))
       continue;
 
-    for(int i=0; i<num_defined_interfaces; i++) {
+    for(int i = 0; i < num_defined_interfaces; i++) {
       if(strstr(iface[i]->get_name(), ifa->ifa_name)) {
 	ifId = i;
 	break;
