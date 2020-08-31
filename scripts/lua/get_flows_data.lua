@@ -308,7 +308,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    if(throughput_type == "pps") then
       column_thpt = value["throughput_pps"]
    else
-      column_thpt = 8*value["throughput_bps"]
+      column_thpt = 8 * value["throughput_bps"]
    end
 
 if false then

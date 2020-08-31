@@ -1439,6 +1439,13 @@ Get Members of an Host Pool
 
     curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 2}' http://localhost:3000/lua/rest/v1/get/host/pool/members.lua
 
+Get All Pools of Any type
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" curl http://devel:3000/lua/rest/v1/get/pools.lua
+
 
 SNMP
 ----

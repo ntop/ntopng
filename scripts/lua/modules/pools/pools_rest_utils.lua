@@ -8,6 +8,7 @@ require "lua_utils"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local base_pools = require "base_pools"
+local pools_lua_utils = require "pools_lua_utils"
 local tracker = require("tracker")
 
 -- ##############################################
@@ -237,6 +238,25 @@ function pools_rest_utils.get_pools(pools)
    rest_utils.answer(rc, res)
 end
 
+-- ##############################################
+
+-- @brief Get all pools of all the available (currently implemented) pool instances
+function pools_rest_utils.get_all_instances_pools()
+   local res = {}
+   local all_instances = pools_lua_utils.all_pool_instances_factory()
+
+   for _, instance in pairs(all_instances) do
+      local instance_pools = instance:get_all_pools()
+
+      for _, instance_pool in pairs(instance_pools) do
+	 instance_pool["key"] = instance.key -- e.g., 'interface', 'host', etc.
+	 res[#res + 1] = instance_pool
+      end
+   end
+
+   local rc = rest_utils.consts.success.ok
+   rest_utils.answer(rc, res)
+end
 
 -- ##############################################
 
