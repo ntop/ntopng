@@ -8,4 +8,4 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local pools_rest_utils = require "pools_rest_utils"
 
-pools_rest_utils.get_all_instances_pools(interface_pools)
+pools_rest_utils.get_all_instances_pools()
