@@ -1932,20 +1932,18 @@ end
 
 local function validateSpecialParameter(param, value)
    -- These parameters are made up of one string prefix plus a string suffix
-
    for k, v in pairs(special_parameters) do
-      if starts(param, k) then
-         local suffix = split(param, k)[2]
-
+      if starts(param, k) and not known_parameters[param] --[[ make sure this is not a known, non-special param --]] then
+	 local suffix = split(param, k)[2]
 	 value = ntop.httpPurifyParam(value)
 
-         if not v[1](suffix) then
-            return false, "Special Validation, parameter key"
-         elseif not v[2](value) then
-            return false, "Special Validation, parameter value"
-         else
-            return true
-         end
+	 if not v[1](suffix) then
+	    return false, "Special Validation, parameter key"
+	 elseif not v[2](value) then
+	    return false, "Special Validation, parameter value"
+	 else
+	    return true
+	 end
       end
    end
 
