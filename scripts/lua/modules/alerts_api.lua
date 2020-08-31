@@ -10,7 +10,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 local json = require("dkjson")
 local alert_consts = require("alert_consts")
 local recipients_lua_utils = require "recipients_lua_utils"
-local user_scripts = require "user_scripts"
 local os_utils = require("os_utils")
 local do_trace = false
 
@@ -526,6 +525,7 @@ end
 
 -- TODO document
 function alerts_api.checkThresholdAlert(params, alert_type, value)
+  local user_scripts = require "user_scripts"
   local script = params.user_script
   local threshold_config = params.user_script_config
   local alarmed = false

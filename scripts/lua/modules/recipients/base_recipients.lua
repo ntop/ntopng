@@ -2,7 +2,6 @@
 -- (C) 2017-20 - ntop.org
 --
 
-require "lua_utils"
 local json = require "dkjson"
 
 -- ##############################################
