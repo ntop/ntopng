@@ -796,7 +796,7 @@
 #define MYSQL_MAX_NUM_ROWS    1000
 // nIndex-related
 #ifdef HAVE_NINDEX
-#define NINDEX_MAX_NUM_INTERFACES 8
+#define NINDEX_MAX_NUM_INTERFACES 16
 #endif
 
 #ifdef NTOPNG_PRO
