@@ -1049,6 +1049,43 @@ end
 
 -- ##############################################
 
+-- @brief Returns the factory user scripts configuration
+--        Any user-submitted conf param is ignored
+function user_scripts.getFactoryConfig()
+   local ifid = getSystemInterfaceId()
+   local default_conf = {}
+
+   for type_id, script_type in pairs(user_scripts.script_types) do
+      for _, subdir in pairs(script_type.subdirs) do
+	 local scripts = user_scripts.load(ifid, script_type, subdir, {return_all = true})
+
+	 for key, usermod in pairs(scripts.modules) do
+	    default_conf[subdir] = default_conf[subdir] or {}
+	    default_conf[subdir][key] = default_conf[subdir][key] or {}
+	    local script_config = default_conf[subdir][key]
+	    local hooks = ternary(script_type.has_per_hook_config, usermod.hooks, {[ALL_HOOKS_CONFIG_KEY]=1})
+
+	    for hook in pairs(hooks) do
+	       script_config[hook] = {
+		  enabled = usermod.default_enabled or false,
+		  script_conf = usermod.default_value or {},
+	       }
+	    end
+	 end
+      end
+   end
+
+   local res = {
+      id = user_scripts.DEFAULT_CONFIGSET_ID,
+      name = i18n("policy_presets.default"),
+      config = default_conf,
+   }
+
+   return res
+end
+
+-- ##############################################
+
 function user_scripts.loadDefaultConfig()
    local ifid = getSystemInterfaceId()
    local configsets = user_scripts.getConfigsets()
