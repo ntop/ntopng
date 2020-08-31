@@ -37,6 +37,18 @@ end
 
 -- #######################
 
+function formatTrafficProfile(profile)
+   local res = ""
+
+   if not isEmptyString(profile) then
+      res = "<span class='badge badge-primary'>"..profile.."</span> "
+   end
+
+   return res
+end
+
+-- #######################
+
 -- Extracts the information serialized into status_info from the flow
 -- user scripts
 function flow2statusinfo(flow)

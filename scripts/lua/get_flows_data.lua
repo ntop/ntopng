@@ -95,7 +95,7 @@ for key, value in ipairs(flows_stats) do
    flows_stats[key]["info"] = "<span data-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
 
    if(flows_stats[key]["profile"] ~= nil) then
-      flows_stats[key]["info"] = "<span class='badge badge-primary'>"..flows_stats[key]["profile"].."</span> "..flows_stats[key]["info"]
+      flows_stats[key]["info"] = formatTrafficProfile(flows_stats[key]["profile"])..flows_stats[key]["info"]
    end
 end
 
