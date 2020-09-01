@@ -516,6 +516,10 @@ void SNMP::send_snmp_request(char *agent_host,
       return;
     }
     break;
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown SNMP PDU type %u", pduType);
+    pdu_type = SNMP_MSG_GET;
+    break;
   }
 
   if((pdu = snmp_pdu_create(pdu_type)) == NULL) {
