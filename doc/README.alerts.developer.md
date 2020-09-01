@@ -52,7 +52,7 @@ JSON messages are queued/dequeued. The format of the JSON is undocumented and co
 ## Queue drops
 
 - When the SQLlite queue is full, alerts are dropped and counted into the system interface dropped alerts (`iface->incNumDroppedAlerts(1)`).
-- When the ntopng recipients queue is full, alerts are dropped but drops are NOT counted.
+- ~~When the ntopng recipients queue is full, alerts are dropped but drops are NOT counted.~~
 - When any of the per-recipient queues is full, alerts are dropped with a queue trim but drops are NOT counted.
 
 # Alert Recipients
@@ -68,7 +68,7 @@ It would be desirable to migrate current recipients implementation to an OO impl
   - An interface generating many alerts can jeopardize the queue and cause other interfaces alerts to be dropped.
   - An high number of alerts of a certain type can jeopardize the queue and cause alerts of other types to be dropped.
   
-- When the ntopng recipients queue or any of the per-recipient queues is full, alerts are dropped but drops are NOT counted.
+- When ~~the ntopng recipients queue or~~ any of the per-recipient queues is full, alerts are dropped but drops are NOT counted.
 - `housekeeping.lua` is assumed to run every three seconds, however, it can be much slower than this, for example when it starts refreshing/downloading blacklists from the web. If the housekeeping gets stuck for a long time, alerts will not be dequeued, queues will grow, and eventually this will cause alert drops.
 - `notification_recipients.processNotifications` relies on `housekeeping.lua` running every three seconds (`(now % m.EXPORT_FREQUENCY) < periodic_frequency`). This is assumption is wrong and can cause alerts to stay in per-recipient queues indefinitely.
 - `notification_recipients.processNotification` relies on `dequeueRecipientAlerts`. If `dequeueRecipientAlerts` is slow, or perform only one operation at time, then alerts will be processed at a much slower rate than the generation rate (e.g., currently, max 1 mail is sent out every minute). It would be ideal to process all recipients in round-robin until there's no more work to do.
