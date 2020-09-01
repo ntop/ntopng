@@ -4397,7 +4397,10 @@ void Utils::deferredExec(const char * const command) {
 
   printf("%s\n", command_buf);
   fflush(stdout);
-  system(command_buf);
+
+  if(system(command_buf) == -1)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failed command %s: %d/%s",
+				 command_buf, errno, strerror(errno));
 }
 #endif
 
