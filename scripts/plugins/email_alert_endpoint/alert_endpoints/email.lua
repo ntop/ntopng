@@ -27,6 +27,7 @@ local email = {
 
 local json = require("dkjson")
 local alert_utils = require "alert_utils"
+local debug_endpoint = false
 
 email.EXPORT_FREQUENCY = 60
 email.prio = 200
@@ -142,6 +143,7 @@ function email.dequeueRecipientAlerts(recipient, budget)
     local settings = recipient2sendMessageSettings(recipient)
 
     -- Send email
+    if debug_endpoint then tprint(message_body) end
     local rv = email.sendEmail(subject, message_body, settings)
 
     -- Handle retries on failure
