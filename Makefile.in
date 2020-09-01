@@ -56,13 +56,6 @@ else
 		LIBRRDTOOL_LIB=$(LIBRRDTOOL_HOME)/src/.libs/librrd_th.a -lm -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0
 	endif
 endif
-######
-ifeq ($(OS), $(filter $(OS), FreeBSD))
-	ifneq (, $(wildcard "${PWD}/../PF_RING/userland/nbpf/libnbpf.a"))
-		LIBNBPF_HOME=${PWD}/../PF_RING/userland/nbpf
-		LIBNBPF_LIB=$(LIBNBPF_HOME)/libnbpf.a
-	endif
-endif
 
 ######
 
@@ -113,7 +106,7 @@ endif
 
 ######
 TARGET = ntopng
-NLIBS = $(NDPI_LIB) $(LIBPCAP) $(LUA_LIB) $(LIBRRDTOOL_LIB) $(LIBNBPF_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SNMP_LIB) @MAXMINDDB_LIB@ $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @RADCLI_LIB@ @EXPAT_LIB@ @SSL_LIB@ @LINK_OPTS@ @LDFLAGS@ @PRO_LIBS@ $(ZSTD_LIB) -lm -lpthread
+NLIBS = $(NDPI_LIB) $(LIBPCAP) $(LUA_LIB) $(LIBRRDTOOL_LIB) $(ZEROMQ_LIB) $(JSON_LIB) $(SNMP_LIB) @MAXMINDDB_LIB@ $(SODIUM_LIB) @HIREDIS_LIB@ @SQLITE_LIB@ @MYSQL_LIB@ @RADCLI_LIB@ @EXPAT_LIB@ @SSL_LIB@ @LINK_OPTS@ @LDFLAGS@ @PRO_LIBS@ $(ZSTD_LIB) -lm -lpthread
 CPPFLAGS = @CFLAGS@ @HIREDIS_INC@ $(MONGOOSE_INC) $(JSON_INC) $(SNMP_INC) $(SODIUM_INC) $(NDPI_INC) $(LUA_INC) $(LIBRRDTOOL_INC) $(ZEROMQ_INC) @MYSQL_INC@ @CPPFLAGS@ -I$(HTTPCLIENT_INC) @SSL_INC@ @PRO_INCS@ -DDATA_DIR='"$(datadir)"' -I${PWD}/third-party/libgeohash -I${PWD}/third-party/patricia # -D_GLIBCXX_DEBUG
 ######
 # ntopng-1.0_1234.x86_64.rpm

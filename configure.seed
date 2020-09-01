@@ -275,7 +275,7 @@ AC_MSG_RESULT(yes)
 PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 
 if test "${with_nedge+set}" != set; then
-  if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" ; then
+  if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" || test $MACHINE = "aarch64"; then
     cd ../PF_RING/userland/nbpf; ./configure; make; cd -
 
     dnl> nbpf for FreeBSD is linked statically
