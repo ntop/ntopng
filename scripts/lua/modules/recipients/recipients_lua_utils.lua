@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 local json = require "dkjson"
 local os_utils = require "os_utils"
 local lua_path_utils = require "lua_path_utils"
-local base_recipients = require "base_recipients"
+local recipients = require "recipients"
 
 -- ##############################################
 

@@ -4,7 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
-local base_recipients = require "base_recipients"
+local recipients = require "recipients"
 local json = require "dkjson"
 local sqlite_recipients = {}
 
@@ -12,7 +12,7 @@ local sqlite_recipients = {}
 
 function sqlite_recipients:create()
    -- Instance of the base class
-   local _sqlite_recipients = base_recipients:create()
+   local _sqlite_recipients = recipients:create()
 
    -- Subclass using the base class instance
    self.key = "sqlite"
