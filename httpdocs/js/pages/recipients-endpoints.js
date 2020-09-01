@@ -12,7 +12,7 @@ $(document).ready(function () {
 
         const params = {
             recipient_name: $(`${formSelector} [name='recipient_name']`).val(),
-            endpoint_conf_name: $(`${formSelector} [name='endpoint']`).val()
+            endpoint_conf_name: $(`${formSelector} [name='endpoint']`).val(),
         };
 
         // load each recipient params inside the template container in params
@@ -25,7 +25,7 @@ $(document).ready(function () {
 
     async function testRecipient(data, $button, $feedbackLabel) {
 
-        const body = { action: 'test' };
+        const body = { action: 'test', csrf: pageCsrf };
         $.extend(body, data);
 
         $button.find('span.spinner-border').fadeIn();
@@ -33,7 +33,13 @@ $(document).ready(function () {
 
         try {
 
-            const request = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/edit_notification_recipient.lua`, {method: 'post', body: JSON.stringify(body)}, 3000);
+            const request = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/edit_notification_recipient.lua`, {
+		method: 'post',
+		body: JSON.stringify(body),
+		headers: {
+		    'Content-Type': 'application/json'
+		}
+	    }, 3000);
             const {result} = await request.json();
 
             if (result.status == "failed") {
