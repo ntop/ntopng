@@ -372,13 +372,18 @@ end
 
 -- ##############################################
 
-function am_utils.addHost(host, measurement, am_value, granularity)
+function am_utils.addHost(host, measurement, am_value, granularity, pool)
+  local active_monitoring_pools = require("active_monitoring_pools")
+  local am_pool = active_monitoring_pools:create()
   local host_key = am_utils.getAmHostKey(host, measurement)
 
   ntop.setHashCache(am_hosts_key, host_key, serializeAmPrefs({
     threshold = tonumber(am_value) or 500,
     granularity = granularity or "min",
   }))
+
+  -- Bind the host from any existing pool
+  am_pool:bind_member(host_key, pool)
 end
 
 -- ##############################################
@@ -390,6 +395,8 @@ end
 -- ##############################################
 
 function am_utils.deleteHost(host, measurement)
+  local active_monitoring_pools = require("active_monitoring_pools")
+  local am_pool = active_monitoring_pools:create()
   local ts_utils = require("ts_utils")
   local alert_utils = require("alert_utils")
 
@@ -411,6 +418,9 @@ function am_utils.deleteHost(host, measurement)
   am_utils.dropHourStats(host_key)
 
   ntop.delHashCache(am_hosts_key, host_key)
+
+  -- Unbind the host from any existing pool
+  am_pool:bind_member(host_key, am_pool.DEFAULT_POOL_ID)
 
   -- Select the old interface
   interface.select(old_iface)
@@ -727,7 +737,7 @@ end
 
 -- ##############################################
 
-function am_utils.editHost(host, measurement, threshold, granularity)
+function am_utils.editHost(host, measurement, threshold, granularity, pool)
   local existing = am_utils.getHost(host, measurement)
 
   if(existing == nil) then
@@ -738,8 +748,6 @@ function am_utils.editHost(host, measurement, threshold, granularity)
     -- Need to discard the old timeseries as the granularity has changed
     am_utils.discardHostTimeseries(host, measurement)
   end
-
-  am_utils.addHost(host, measurement, threshold, granularity)
 
   local m_info = am_utils.getMeasurementInfo(measurement)
   local last_update = am_utils.getLastAmUpdate(host, measurement)
@@ -760,16 +768,14 @@ function am_utils.editHost(host, measurement, threshold, granularity)
       local old_iface = tostring(interface.getId())
       interface.select(getSystemInterfaceId())
 
-      -- Recheck the alerts
-      am_utils.releaseAlert(last_update.ip, key, value, threshold, old_granularity)
-
-      if am_utils.hasExceededThreshold(threshold, m_info.operator, value) then
-        am_utils.triggerAlert(last_update.ip, key, value, threshold, granularity)
-      end
+      -- Release any engaged alerts of the host
+      alerts_api.releaseEntityAlerts(alerts_api.amThresholdCrossEntity(key))
 
       interface.select(old_iface)
     end
   end
+
+  am_utils.addHost(host, measurement, threshold, granularity, pool)
 
   return(true)
 end

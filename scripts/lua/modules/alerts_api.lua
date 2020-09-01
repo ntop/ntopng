@@ -331,11 +331,11 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   end
 
   if(released == nil) then
-    if(do_trace) then print("[Dont't Release alert (not triggered?) @ "..granularity_sec.."] "..
+    if(do_trace) then tprint("[Dont't Release alert (not triggered?) @ "..granularity_sec.."] "..
       entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
     return(false)
   else
-    if(do_trace) then print("[RELEASE alert @ "..granularity_sec.."] "..
+    if(do_trace) then tprint("[RELEASE alert @ "..granularity_sec.."] "..
         entity_info.alert_entity_val .."@"..type_info.alert_type.i18n_title..":".. subtype .. "\n") end
   end
 

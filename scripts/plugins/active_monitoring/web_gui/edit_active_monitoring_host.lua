@@ -11,9 +11,6 @@ local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
-local active_monitoring_pools = require("active_monitoring_pools")
-local am_pool = active_monitoring_pools:create()
-
 sendHTTPContentTypeHeader('application/json')
 
 -- ################################################
@@ -95,8 +92,7 @@ if(action == "add") then
       return
    end
 
-   am_utils.addHost(host, measurement, threshold, granularity)
-   am_pool:bind_member(measurement.. "@".. host, pool)
+   am_utils.addHost(host, measurement, threshold, granularity, pool)
    rv.message = i18n("active_monitoring_stats.host_add_ok", {host=url})
 
 elseif(action == "edit") then
@@ -148,13 +144,11 @@ elseif(action == "edit") then
       end
 
       am_utils.deleteHost(old_am_host, old_measurement) -- also calls discardHostTimeseries
-      am_utils.addHost(host, measurement, threshold, granularity)
+      am_utils.addHost(host, measurement, threshold, granularity, pool)
    else
       -- The key is the same, only update its settings
-      am_utils.editHost(host, measurement, threshold, granularity)
+      am_utils.editHost(host, measurement, threshold, granularity, pool)
    end
-
-   am_pool:bind_member(measurement.. "@".. host, pool)
 
    rv.message = i18n("active_monitoring_stats.host_edit_ok", {host=old_url})
 elseif(action == "delete") then
@@ -163,12 +157,6 @@ elseif(action == "delete") then
 
    if not existing then
       reportError(i18n("active_monitoring_stats.host_not_exists", {host=url}))
-   end
-
-   -- unbind the host
-   local result = am_pool:bind_member(measurement.. "@".. host, pool)
-   if not result then
-
    end
 
    am_utils.deleteHost(host, measurement)
