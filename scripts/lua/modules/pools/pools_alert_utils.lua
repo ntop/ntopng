@@ -7,7 +7,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local alert_consts = require "alert_consts"
-local base_pools = require "base_pools"
+local pools = require "pools"
 
 -- ################################################################################
 
@@ -41,12 +41,12 @@ end
 function pools_alert_utils.get_entity_pool_id(entity_info)
    local alert_entity = entity_info.alert_entity
    local pool_member = entity_info.alert_entity_val
-   local res = base_pools.DEFAULT_POOL_ID
+   local res = pools.DEFAULT_POOL_ID
 
    -- There's no pool member or the alert entity is invalid
    if not pool_member or not alert_entity or not alert_entity.entity_id or not alert_entity.pools then
       -- tprint(string.format("skipping %s [%s]", pool_member, alert_entity.label or ''))
-      return base_pools.DEFAULT_POOL_ID
+      return pools.DEFAULT_POOL_ID
    end
 
    if not alert_entity_pool_instances[alert_entity.entity_id] then
@@ -61,7 +61,7 @@ function pools_alert_utils.get_entity_pool_id(entity_info)
    end
 
    -- tprint(string.format("Pool NOT found for %s [%s]", pool_member, alert_entity.label))
-   return base_pools.DEFAULT_POOL_ID
+   return pools.DEFAULT_POOL_ID
 end
 
 -- ################################################################################

@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require "lua_utils"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
-local base_pools = require "base_pools"
+local pools = require "pools"
 local pools_lua_utils = require "pools_lua_utils"
 local tracker = require("tracker")
 
@@ -186,7 +186,7 @@ function pools_rest_utils.bind_member(pools)
    end
 
    if not res then
-      if err == base_pools.ERRORS.ALREADY_BOUND then
+      if err == pools.ERRORS.ALREADY_BOUND then
 	 -- Member already existing, return current pool information in the response
 	 local cur_pool = s:get_pool_by_member(member)
 	 rest_utils.answer(rest_utils.consts.err.bind_pool_member_already_bound, cur_pool)

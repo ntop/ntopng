@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require "lua_utils" -- needed by am_utils
 local plugins_utils = require "plugins_utils"
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
-local base_pools = require "base_pools"
+local pools = require "pools"
 
 local active_monitoring_pools = {}
 
@@ -16,7 +16,7 @@ local active_monitoring_pools = {}
 
 function active_monitoring_pools:create()
    -- Instance of the base class
-   local _active_monitoring_pools = base_pools:create()
+   local _active_monitoring_pools = pools:create()
 
    -- Subclass using the base class instance
    self.key = "active_monitoring"

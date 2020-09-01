@@ -7,7 +7,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 require "lua_utils"
-local base_pools = require "base_pools"
+local pools = require "pools"
 local user_scripts = require "user_scripts"
 local ts_utils = require "ts_utils_core"
 local json = require "dkjson"
@@ -20,7 +20,7 @@ local host_pools = {}
 
 function host_pools:create(args)
    -- Instance of the base class
-   local _host_pools = base_pools:create()
+   local _host_pools = pools:create()
 
    -- Subclass using the base class instance
    self.key = "host"
@@ -143,7 +143,7 @@ function host_pools:_assign_pool_id()
    -- there's no risk to assign the same id multiple times
    local cur_pool_ids = self:_get_assigned_pool_ids()
 
-   local next_pool_id = base_pools.MIN_ASSIGNED_POOL_ID
+   local next_pool_id = pools.MIN_ASSIGNED_POOL_ID
 
    -- Find the first available pool id which is not in the set
    for _, pool_id in pairsByValues(cur_pool_ids, asc) do
@@ -168,8 +168,8 @@ function host_pools:_persist(pool_id, name, members, configset_id, recipients)
    -- Method must be overridden as host pool details and members are kept as hash caches, which are also used by the C++
 
    -- Default pool name and members cannot be modified
-   if pool_id == base_pools.DEFAULT_POOL_ID then
-      name = base_pools.DEFAULT_POOL_NAME
+   if pool_id == pools.DEFAULT_POOL_ID then
+      name = pools.DEFAULT_POOL_NAME
       members = {}
    end
 

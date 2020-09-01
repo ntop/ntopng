@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 require "lua_utils"
 local json = require "dkjson"
 local os_utils = require "os_utils"
-local base_pools = require "base_pools"
 
 -- ##############################################
 
@@ -25,8 +24,8 @@ function pools_lua_utils.all_pool_instances_factory()
    local res = {}
 
    for pool_file in pairs(ntop.readdir(pools_dir)) do
-      -- Load all sub-classes of base_pools.lua (and exclude base_pools.lua itself)
-      if pool_file:match("_pools%.lua$") and not pool_file:match("^base_pools.lua$") then
+      -- Load all sub-classes of pools.lua (and exclude pools.lua itself)
+      if pool_file:match("_pools%.lua$") and not pool_file:match("^pools.lua$") then
 	 local pool_file_path = os_utils.fixPath(string.format("%s/%s", pools_dir, pool_file))
 
 	 local pool = dofile(pool_file_path)

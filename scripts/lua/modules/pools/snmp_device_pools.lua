@@ -8,7 +8,7 @@ if ntop.isPro() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 end
 
-local base_pools = require "base_pools"
+local pools = require "pools"
 
 local snmp_device_pools = {}
 
@@ -16,7 +16,7 @@ local snmp_device_pools = {}
 
 function snmp_device_pools:create()
    -- Instance of the base class
-   local _snmp_device_pools = base_pools:create()
+   local _snmp_device_pools = pools:create()
 
    -- Subclass using the base class instance
    self.key = "snmp_device"

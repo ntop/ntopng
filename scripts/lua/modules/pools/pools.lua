@@ -12,25 +12,25 @@ local ntop_info = ntop.getInfo()
 
 -- ##############################################
 
-local base_pools = {}
+local pools = {}
 
 -- ##############################################
 
 -- A default pool id value associated to any member without pools
-base_pools.DEFAULT_POOL_ID = 0
-base_pools.DEFAULT_POOL_NAME = "Default"
+pools.DEFAULT_POOL_ID = 0
+pools.DEFAULT_POOL_NAME = "Default"
 
 if ntop.isnEdge() then
    -- Compatibility with nEdge pools
    local host_pools_nedge = require "host_pools_nedge"
-   base_pools.DEFAULT_POOL_ID = tonumber(host_pools_nedge.DEFAULT_POOL_ID)
-   base_pools.DEFAULT_POOL_NAME = host_pools_nedge.DEFAULT_POOL_NAME
+   pools.DEFAULT_POOL_ID = tonumber(host_pools_nedge.DEFAULT_POOL_ID)
+   pools.DEFAULT_POOL_NAME = host_pools_nedge.DEFAULT_POOL_NAME
 end
 
 -- ##############################################
 
 -- Possible errors occurring when calling class methods
-base_pools.ERRORS = {
+pools.ERRORS = {
    NO_ERROR               = 0,
    GENERIC                = -1,
    INVALID_MEMBER         = -2,
@@ -40,16 +40,16 @@ base_pools.ERRORS = {
 -- ##############################################
 
 -- Limits, in sync with former host_pools_nedge.lua
-base_pools.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
+pools.LIMITED_NUMBER_POOL_MEMBERS = ntop_info["constants.max_num_pool_members"]
 
 -- ##############################################
 
 -- This is the minimum pool id which will be used to create new pools
-base_pools.MIN_ASSIGNED_POOL_ID = 1
+pools.MIN_ASSIGNED_POOL_ID = 1
 
 -- ##############################################
 
-function base_pools:create(args)
+function pools:create(args)
    if args then
       -- We're being sub-classed
       if not args.key then
@@ -73,7 +73,7 @@ end
 
 -- ##############################################
 
-function base_pools:_initialize()
+function pools:_initialize()
    if ntop.isnEdge() then
       return -- Do not perform initialization for nEdge: pools are managed by host_pools_nedge.lua
    end
@@ -83,13 +83,13 @@ function base_pools:_initialize()
    if locked then
       -- Init the default pool, if not already initialized.
       -- The default pool has always empty members, default configset id, and empty recipients
-      local default_pool = self:get_pool(base_pools.DEFAULT_POOL_ID)
+      local default_pool = self:get_pool(pools.DEFAULT_POOL_ID)
 
       if not default_pool then
 	 -- Raw call to persist, no need to go through add_pool as here all the parameters are trusted and
 	 -- there's no need to check
-	 self:_persist(base_pools.DEFAULT_POOL_ID,
-		       base_pools.DEFAULT_POOL_NAME,
+	 self:_persist(pools.DEFAULT_POOL_ID,
+		       pools.DEFAULT_POOL_NAME,
 		       {} --[[ no members --]],
 		       user_scripts.DEFAULT_CONFIGSET_ID,
 		       {} --[[ no recipients --]])
@@ -101,7 +101,7 @@ end
 
 -- ##############################################
 
-function base_pools:_get_pools_prefix_key()
+function pools:_get_pools_prefix_key()
    local key = string.format("ntopng.pools.%s_pools", self.key)
    -- e.g.:
    --  ntopng.pools.interface_pools
@@ -113,7 +113,7 @@ end
 
 -- ##############################################
 
-function base_pools:_get_pool_ids_key()
+function pools:_get_pool_ids_key()
    local key = string.format("%s.pool_ids", self:_get_pools_prefix_key())
    -- e.g.:
    --  ntopng.pools.interface_pools.pool_ids
@@ -123,7 +123,7 @@ end
 
 -- ##############################################
 
-function base_pools:_get_next_pool_id_key()
+function pools:_get_next_pool_id_key()
    local key = string.format("%s.next_pool_id", self:_get_pools_prefix_key())
    -- e.g.:
    --  ntopng.pools.interface_pools.next_pool_id
@@ -133,7 +133,7 @@ end
 
 -- ##############################################
 
-function base_pools:_get_pool_lock_key()
+function pools:_get_pool_lock_key()
    local key = string.format("ntopng.cache.pools.%s.pool_lock", self.key)
    -- e.g.:
    --  ntopng.pools.interface_pools.pool_lock
@@ -143,7 +143,7 @@ end
 
 -- ##############################################
 
-function base_pools:_get_pool_details_key(pool_id)
+function pools:_get_pool_details_key(pool_id)
    if not pool_id then
       -- A pool id is always needed
       return nil
@@ -156,14 +156,14 @@ end
 
 -- ##############################################
 
-function base_pools:_assign_pool_id()
+function pools:_assign_pool_id()
    local next_pool_id_key = self:_get_next_pool_id_key()
 
    -- Atomically assign a new pool id
    local next_pool_id = ntop.incrCache(next_pool_id_key)
 
    -- Make sure the id equals at least the minimum required id
-   while next_pool_id < base_pools.MIN_ASSIGNED_POOL_ID do
+   while next_pool_id < pools.MIN_ASSIGNED_POOL_ID do
       next_pool_id = ntop.incrCache(next_pool_id_key)
    end
 
@@ -177,15 +177,15 @@ end
 -- ##############################################
 
 -- @brief Returns an array with all the currently assigned pool ids
-function base_pools:_get_assigned_pool_ids()
-   local res = { base_pools.DEFAULT_POOL_ID }
+function pools:_get_assigned_pool_ids()
+   local res = { pools.DEFAULT_POOL_ID }
 
    local cur_pool_ids = ntop.getMembersCache(self:_get_pool_ids_key())
 
    for _, cur_pool_id in pairs(cur_pool_ids) do
       cur_pool_id = tonumber(cur_pool_id)
 
-      if cur_pool_id ~= base_pools.DEFAULT_POOL_ID then
+      if cur_pool_id ~= pools.DEFAULT_POOL_ID then
 	 -- the default pool id is never returned,
 	 -- it's a meta-pool without members
 	 res[#res + 1] = cur_pool_id
@@ -197,7 +197,7 @@ end
 
 -- ##############################################
 
-function base_pools:_lock()
+function pools:_lock()
    local max_lock_duration = 5 -- seconds
    local max_lock_attempts = 5 -- give up after at most this number of attempts
    local lock_key = self:_get_pool_lock_key()
@@ -217,7 +217,7 @@ end
 
 -- ##############################################
 
-function base_pools:_unlock()
+function pools:_unlock()
    ntop.delCache(self:_get_pool_lock_key())
 end
 
@@ -225,12 +225,12 @@ end
 
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
-function base_pools:_persist(pool_id, name, members, configset_id, recipients)
+function pools:_persist(pool_id, name, members, configset_id, recipients)
    -- self:cleanup()
 
    -- Default pool name and members cannot be modified
-   if pool_id == base_pools.DEFAULT_POOL_ID then
-      name = base_pools.DEFAULT_POOL_NAME
+   if pool_id == pools.DEFAULT_POOL_ID then
+      name = pools.DEFAULT_POOL_NAME
       members = {}
    end
 
@@ -249,7 +249,7 @@ end
 
 -- ##############################################
 
-function base_pools:add_pool(name, members, configset_id, recipients)
+function pools:add_pool(name, members, configset_id, recipients)
    local pool_id
 
    local locked = self:_lock()
@@ -312,7 +312,7 @@ end
 
 -- ##############################################
 
-function base_pools:edit_pool(pool_id, new_name, new_members, new_configset_id, new_recipients)
+function pools:edit_pool(pool_id, new_name, new_members, new_configset_id, new_recipients)
    local ret = false
 
    local locked = self:_lock()
@@ -387,7 +387,7 @@ end
 
 -- ##############################################
 
-function base_pools:delete_pool(pool_id)
+function pools:delete_pool(pool_id)
    local ret = false
 
    local locked = self:_lock()
@@ -415,7 +415,7 @@ end
 -- ##############################################
 
 -- @brief Returns all the defined pools. Pools are returned in a lua table with pool ids as keys
-function base_pools:get_all_pools()
+function pools:get_all_pools()
    local cur_pool_ids = self:_get_assigned_pool_ids()
    local res = {}
 
@@ -433,7 +433,7 @@ end
 -- ##############################################
 
 -- @brief Returns the number of currently defined pool ids
-function base_pools:get_num_pools()
+function pools:get_num_pools()
    local cur_pool_ids = self:_get_assigned_pool_ids()
 
    return #cur_pool_ids
@@ -441,7 +441,7 @@ end
 
 -- ##############################################
 
-function base_pools:get_pool(pool_id)
+function pools:get_pool(pool_id)
    local pool_details
    local pool_details_key = self:_get_pool_details_key(pool_id)
 
@@ -485,7 +485,7 @@ end
 
 -- ##############################################
 
-function base_pools:get_pool_by_name(name)
+function pools:get_pool_by_name(name)
    local cur_pool_ids = self:_get_assigned_pool_ids()
 
    for _, pool_id in pairs(cur_pool_ids) do
@@ -502,7 +502,7 @@ end
 -- ##############################################
 
 -- @brief Returns the pool to which `member` is currently bound to, or nil if `member` is not bound to any pool
-function base_pools:get_pool_by_member(member)
+function pools:get_pool_by_member(member)
    local assigned_members = self:get_assigned_members()
 
    if assigned_members[member] then
@@ -514,7 +514,7 @@ end
 
 -- ##############################################
 
-function base_pools:get_pools_by_configset_id(configset_id)
+function pools:get_pools_by_configset_id(configset_id)
    local cur_pool_ids = self:_get_assigned_pool_ids()
    local res = {}
 
@@ -532,7 +532,7 @@ end
 -- ##############################################
 
 -- @brief Returns a flattened table with pool_member->pool_id pairs
-function base_pools:get_assigned_members()
+function pools:get_assigned_members()
    local cur_pool_ids = self:_get_assigned_pool_ids()
    local res = {}
 
@@ -551,7 +551,7 @@ end
 
 -- ##############################################
 
-function base_pools:get_recipients(pool_id)
+function pools:get_recipients(pool_id)
    local pool_details
    local res = {}
 
@@ -579,7 +579,7 @@ end
 
 -- ##############################################
 
-function base_pools:cleanup()
+function pools:cleanup()
    -- Delete pool details
    local cur_pool_ids = self:_get_assigned_pool_ids()
    for _, pool_id in pairs(cur_pool_ids) do
@@ -599,7 +599,7 @@ end
 -- ##############################################
 
 -- @brief Returns a boolean indicating whether the member is a valid pool member
-function base_pools:is_valid_member(member)
+function pools:is_valid_member(member)
    local all_members = self:get_all_members()
    return all_members[member] ~= nil
 end
@@ -607,7 +607,7 @@ end
 -- ##############################################
 
 -- @brief Returns a boolean indicating whether the array of members passed contains all valid members
-function base_pools:are_valid_members(members)
+function pools:are_valid_members(members)
    for _, member in pairs(members) do
       if not self:is_valid_member(member) then
 	 return false
@@ -620,7 +620,7 @@ end
 -- ##############################################
 
 -- @brief Parses recipients submitted via HTTP (validated as `pool_recipients` in `http_lint.lua`) into a table of members
-function base_pools:parse_recipients(recipients_string)
+function pools:parse_recipients(recipients_string)
    local recipients = {}
 
    if isEmptyString(recipients_string) then
@@ -636,7 +636,7 @@ end
 -- ##############################################
 
 -- @brief Returns available recipient ids which can be added to a pool
-function base_pools:get_available_recipient_ids()
+function pools:get_available_recipient_ids()
    -- Please note that recipient ids are shared across pools of all types
    -- so all the recipient ids can be returned here without distinction
    local recipients = notification_recipients.get_recipients()
@@ -656,7 +656,7 @@ end
 -- ##############################################
 
 -- @brief Returns a boolean indicating whether the recipient_id is a valid recipient id
-function base_pools:is_valid_recipient(recipient_id)
+function pools:is_valid_recipient(recipient_id)
    local all_recipients = self:get_available_recipient_ids()
    return all_recipients[recipient_id] ~= nil
 end
@@ -665,7 +665,7 @@ end
 
 -- @brief Returns a boolean indicating whether the array of recipients passed 
 -- contains all valid recipients
-function base_pools:are_valid_recipients(recipients)
+function pools:are_valid_recipients(recipients)
    for _, recipient_id in pairs(recipients) do
       if not self:is_valid_recipient(recipient_id) then
 	 return false
@@ -678,7 +678,7 @@ end
 -- ##############################################
 
 -- @brief Unbind a recipient from all pools
-function base_pools:unbind_all_recipient_id(recipient_id)
+function pools:unbind_all_recipient_id(recipient_id)
    if not recipient_id then
       -- Invalid argument
       return
@@ -717,7 +717,7 @@ end
 -- ##############################################
 
 -- @brief Parses members submitted via HTTP (validated as `pool_members` in `http_lint.lua`) into a table of members
-function base_pools:parse_members(members_string)
+function pools:parse_members(members_string)
    local members = {}
 
    if isEmptyString(members_string) then
@@ -733,7 +733,7 @@ end
 -- ##############################################
 
 -- @brief Returns available members which don't already belong to any defined pool
-function base_pools:get_available_members()
+function pools:get_available_members()
    local assigned_members = self:get_assigned_members()
    local all_members = self:get_all_members()
 
@@ -755,13 +755,13 @@ end
 --        PRIVATE FUNCTION, not to be called outside this class
 --        The caller must lock and must check the member doesn't belong to
 --        any other pool apart from pool_id, before calling
-function base_pools:_bind_member(member, pool_id)
-   local ret, err = false, base_pools.ERRORS.GENERIC
+function pools:_bind_member(member, pool_id)
+   local ret, err = false, pools.ERRORS.GENERIC
 
    -- ASSIGN the member to the pool with `pool_id`
-   -- Note: If the pool_id is base_pools.DEFAULT_POOL_ID, then `member` is not associated to any pool, it's safe to just return
-   if tonumber(pool_id) == base_pools.DEFAULT_POOL_ID then
-      ret, err = true, base_pools.ERRORS.NO_ERROR
+   -- Note: If the pool_id is pools.DEFAULT_POOL_ID, then `member` is not associated to any pool, it's safe to just return
+   if tonumber(pool_id) == pools.DEFAULT_POOL_ID then
+      ret, err = true, pools.ERRORS.NO_ERROR
    else
       local bind_pool = self:get_pool(pool_id)
 
@@ -774,7 +774,7 @@ function base_pools:_bind_member(member, pool_id)
 	 self:_persist(bind_pool["pool_id"], bind_pool["name"], bind_pool_members, bind_pool["configset_id"], bind_pool["recipients"])
 
 	 -- Bind has executed successfully
-	 ret, err = true, base_pools.ERRORS.NO_ERROR
+	 ret, err = true, pools.ERRORS.NO_ERROR
       end
    end
 
@@ -785,11 +785,11 @@ end
 
 -- @brief Bind `member` to pool identified with `pool_id`. If the member is already bound to another pool
 --        Then the member is first unboud and the bound to `pool_id`.
-function base_pools:bind_member(member, pool_id)
-   local ret, err = false, base_pools.ERRORS.GENERIC
+function pools:bind_member(member, pool_id)
+   local ret, err = false, pools.ERRORS.GENERIC
 
    if not self:is_valid_member(member) then
-      return false, base_pools.ERRORS.INVALID_MEMBER
+      return false, pools.ERRORS.INVALID_MEMBER
    end
 
    local locked = self:_lock()
@@ -802,7 +802,7 @@ function base_pools:bind_member(member, pool_id)
 
 	 if cur_pool["pool_id"] == pool_id then
 	    -- If the current pool id equals the new pool id, there's nothing to do and it is just safe to return
-	    ret, err = true, base_pools.ERRORS.NO_ERROR
+	    ret, err = true, pools.ERRORS.NO_ERROR
 	 elseif cur_pool then
 	    -- New members are all pool members except for the member which is being removed
 	    local new_members = {}
@@ -831,11 +831,11 @@ end
 
 -- @brief Bind `member` to pool identified with `pool_id`. If the member is already bound to another pool
 --        then nothing is done and an error is returned
-function base_pools:bind_member_if_not_already_bound(member, pool_id)
-   local ret, err = false, base_pools.ERRORS.GENERIC
+function pools:bind_member_if_not_already_bound(member, pool_id)
+   local ret, err = false, pools.ERRORS.GENERIC
 
    if not self:is_valid_member(member) then
-      return false, base_pools.ERRORS.INVALID_MEMBER
+      return false, pools.ERRORS.INVALID_MEMBER
    end
 
    local locked = self:_lock()
@@ -846,10 +846,10 @@ function base_pools:bind_member_if_not_already_bound(member, pool_id)
 	 -- Member already existing
 	 if assigned_members[member]["pool_id"] == pool_id then
 	    -- Member is bound to the same pool as the parameter `pool_id`
-	    ret, err = true, base_pools.ERRORS.NO_ERROR
+	    ret, err = true, pools.ERRORS.NO_ERROR
 	 else
 	    -- Member is bound to another pool
-	    ret, err = false, base_pools.ERRORS.ALREADY_BOUND
+	    ret, err = false, pools.ERRORS.ALREADY_BOUND
 	 end
       else
 	 -- Member isn't bound to any pool, safe to add it
@@ -865,7 +865,7 @@ end
 -- ##############################################
 
 -- @brief Unbind a `configset_id` from all pools which are currently using it, and sets them the defauls configset.
-function base_pools:unbind_all_configset_id(configset_id)
+function pools:unbind_all_configset_id(configset_id)
    configset_id = tonumber(configset_id)
 
    if not configset_id then
@@ -892,7 +892,7 @@ end
 -- ##############################################
 
 -- @brief Returns available confset ids which can be added to a pool
-function base_pools:get_available_configset_ids()
+function pools:get_available_configset_ids()
    -- Currently, confset_ids are shared across pools of all types
    -- so all the confset_ids can be returned here without distinction
    local config_sets = user_scripts.getConfigsets()
@@ -909,7 +909,7 @@ end
 
 -- @param member a valid pool member
 -- @return The configset_id found for `member` or the default configset_id
-function base_pools:get_configset_id(member)
+function pools:get_configset_id(member)
    if not self.assigned_pool_members then
       -- Cache it as class member
       self.assigned_pool_members = self:get_assigned_members()
@@ -926,7 +926,7 @@ end
 
 -- @param pool_id a valid pool id
 -- @return The configset_id found for the given `pool_id`, or the default configset_id if `pool_id` is not found
-function base_pools:get_configset_id_by_pool_id(pool_id)
+function pools:get_configset_id_by_pool_id(pool_id)
    if not self.pool_id_to_configset_id then
       -- Prepare the cache
       self.pool_id_to_configset_id = {}
@@ -948,7 +948,7 @@ end
 
 -- @param member a valid pool member
 -- @return The pool_id found for `member` or the default pool_id
-function base_pools:get_pool_id(member)
+function pools:get_pool_id(member)
    if not self.assigned_pool_members then
       -- Cache it as class member
       self.assigned_pool_members = self:get_assigned_members()
@@ -958,7 +958,7 @@ function base_pools:get_pool_id(member)
       return self.assigned_pool_members[member]["pool_id"]
    end
 
-   return base_pools.DEFAULT_POOL_ID
+   return pools.DEFAULT_POOL_ID
 end
 
 -- ##############################################
@@ -966,9 +966,9 @@ end
 -- @brief Return the name associated to a pool
 -- @param pool_id The pool id
 -- @return A string with the name of the pool
-function base_pools:get_pool_name(pool_id)
-   if pool_id == base_pools.DEFAULT_POOL_ID then
-      return base_pools.DEFAULT_POOL_NAME
+function pools:get_pool_name(pool_id)
+   if pool_id == pools.DEFAULT_POOL_ID then
+      return pools.DEFAULT_POOL_NAME
    else
       local pool = self:get_pool(pool_id)
 
@@ -982,4 +982,4 @@ end
 
 -- ##############################################
 
-return base_pools
+return pools
