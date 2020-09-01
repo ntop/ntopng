@@ -18,7 +18,7 @@ function recipients:create(args)
       end
    end
 
-   local this = args or {key = "base"}
+   local this = args or {key = "base", enabled = true}
 
    setmetatable(this, self)
    self.__index = self

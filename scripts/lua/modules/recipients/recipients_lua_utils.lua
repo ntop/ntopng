@@ -61,12 +61,13 @@ end
 -- @return true If the dispatching has been successfull, false otherwise
 function recipients_lua_utils.dispatch_trigger_notification(notification)
    local all_instances = get_all_instances_cache()
+   local res = true
 
    for _, instance in pairs(all_instances) do
-      instance:dispatch_trigger_notification(notification)
+      res = res and instance:dispatch_trigger_notification(notification)
    end
 
-   return true
+   return res
 end
 
 -- ##############################################
@@ -76,12 +77,13 @@ end
 -- @return true If the dispatching has been successfull, false otherwise
 function recipients_lua_utils.dispatch_release_notification(notification)
    local all_instances = get_all_instances_cache()
+   local res = true
 
    for _, instance in pairs(all_instances) do
-      instance:dispatch_release_notification(notification)
+      res = res and instance:dispatch_release_notification(notification)
    end
 
-   return true
+   return res
 end
 
 -- ##############################################
@@ -91,12 +93,13 @@ end
 -- @return true If the dispatching has been successfull, false otherwise
 function recipients_lua_utils.dispatch_store_notification(notification)
    local all_instances = get_all_instances_cache()
+   local res = true
 
    for _, instance in pairs(all_instances) do
-      instance:dispatch_store_notification(notification)
+      res = res and instance:dispatch_store_notification(notification)
    end
 
-   return true
+   return res
 end
 
 -- ##############################################
@@ -104,12 +107,13 @@ end
 -- @brief Processs notifications previously dispatched for every available recipient
 function recipients_lua_utils.process_notifications(notification)
    local all_instances = get_all_instances_cache()
+   local res = true
 
    for _, instance in pairs(all_instances) do
-      instance:process_notifications(notification)
+      res = res and instance:process_notifications(notification)
    end
 
-   return true
+   return res
 end
 
 -- ##############################################

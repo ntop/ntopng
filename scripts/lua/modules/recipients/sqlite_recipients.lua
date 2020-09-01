@@ -13,6 +13,7 @@ local sqlite_recipients = {}
 function sqlite_recipients:create()
    -- Instance of the base class
    local _sqlite_recipients = recipients:create()
+   self.enabled = true -- Toggle this to skip dispatch and processing of notifications
 
    -- Subclass using the base class instance
    self.key = "sqlite"
@@ -27,22 +28,28 @@ end
 -- ##############################################
 
 function sqlite_recipients:dispatch_store_notification(notification)
-   ntop.pushSqliteAlert(notification)
-   return true
+   if self.enabled then
+      return ntop.pushSqliteAlert(notification)
+   end
+
+   return false
 end
 
 -- ##############################################
 
 function sqlite_recipients:dispatch_release_notification(notification)
-   ntop.pushSqliteAlert(notification)
-   return true
+   if self.enabled then
+      return ntop.pushSqliteAlert(notification)
+   end
+
+   return false
 end
 
 -- ##############################################
 
 function sqlite_recipients:process_notifications()
-   if(not areAlertsEnabled()) then
-      return(false)
+   if not self.enabled or not areAlertsEnabled() then
+      return false
    end
 
    -- SQLite Alerts
