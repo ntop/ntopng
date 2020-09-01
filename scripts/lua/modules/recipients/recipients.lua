@@ -45,7 +45,7 @@ end
 -- @param notification A JSON string with all the alert information
 -- @return true If the dispatching has been successfull, false otherwise
 function recipients:dispatch_store_notification(notification)
-   return true
+   return self.enabled
 end
 
 -- ##############################################
@@ -54,7 +54,7 @@ end
 -- @param notification A JSON string with all the alert information
 -- @return true If the dispatching has been successfull, false otherwise
 function recipients:dispatch_trigger_notification(notification)
-   return true
+   return self.enabled
 end
 
 -- ##############################################
@@ -63,14 +63,14 @@ end
 -- @param notification A JSON string with all the alert information
 -- @return true If the dispatching has been successfull, false otherwise
 function recipients:dispatch_release_notification(notification)
-   return true
+   return self.enabled
 end
 
 -- ##############################################
 
 -- @brief Process notifications previously dispatched with one of the dispatch_{store,trigger,release}_notification
 function recipients:process_notifications()
-   return true
+   return self.enabled
 end
 
 -- ##############################################
