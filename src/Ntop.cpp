@@ -967,6 +967,20 @@ void Ntop::lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm)
 
 /* ******************************************* */
 
+void Ntop::lua_alert_queues_stats(lua_State* vm) {
+  lua_newtable(vm);
+
+  if(getSqliteAlertsQueue()) getSqliteAlertsQueue()->lua(vm, "sqlite_alerts_queue");
+  if(getAlertsNotificationsQueue()) getAlertsNotificationsQueue()->lua(vm, "alerts_notifications_queue");
+  if(getInternalAlertsQueue()) getInternalAlertsQueue()->lua(vm, "internal_alerts_queue");
+
+  lua_pushstring(vm, "alert_queues");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* ******************************************* */
+
 void Ntop::getUsers(lua_State* vm) {
   char **usernames;
   char *username;

@@ -30,9 +30,13 @@ template <typename T> class FifoQueue {
   Mutex m;
   std::queue<T> q;
   u_int32_t max_size;
+  u_int64_t num_enqueued, num_not_enqueued, num_dequeued;
 
  public:
-  FifoQueue(u_int32_t queue_size) { max_size = queue_size; }
+  FifoQueue(u_int32_t queue_size) {
+    max_size = queue_size;
+    num_enqueued = num_not_enqueued = num_dequeued = 0;
+  }
   virtual ~FifoQueue() { ; }
   
   /*
@@ -51,6 +55,7 @@ template <typename T> class FifoQueue {
     else {
       rv = q.front();
       q.pop();
+      num_dequeued++;
     }
     m.unlock(__FILE__, __LINE__);
 
@@ -60,6 +65,17 @@ template <typename T> class FifoQueue {
   inline bool canEnqueue()      { return(getLength() < max_size); }
   inline u_int32_t getLength()  { return(q.size());               }
   inline bool empty()           { return(q.empty());              }
+  inline void lua(lua_State* vm, const char * const table_name) {
+    lua_newtable(vm);
+
+    lua_push_uint64_table_entry(vm, "num_enqueued", num_enqueued);
+    lua_push_uint64_table_entry(vm, "num_not_enqueued", num_not_enqueued);
+    lua_push_uint64_table_entry(vm, "num_dequeued", num_enqueued);
+
+    lua_pushstring(vm, table_name);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
 };
 
 #endif /* _FIFO_QUEUE_H */

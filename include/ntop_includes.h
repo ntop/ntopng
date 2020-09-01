@@ -298,13 +298,9 @@ using namespace std;
 #include <radcli/radcli.h>
 #endif
 
-#include "FifoQueue.h"
-#include "FifoStringsQueue.h"
-#include "FifoSerializerQueue.h"
 #include "SPSCQueue.h"
 #include "TimeseriesExporter.h"
 #include "InfluxDBTimeseriesExporter.h"
-#include "RRDTimeseriesExporter.h"
 #include "L4Stats.h"
 #include "AlertsQueue.h"
 #include "LuaEngine.h"
@@ -312,6 +308,10 @@ using namespace std;
 #include "AlertCheckLuaEngine.h"
 #include "FlowAlertCheckLuaEngine.h"
 #include "SyslogLuaEngine.h"
+#include "FifoQueue.h"
+#include "FifoStringsQueue.h"
+#include "FifoSerializerQueue.h"
+#include "RRDTimeseriesExporter.h"
 #ifdef NTOPNG_PRO
 #include "PeriodicityStats.h"
 #include "PeriodicityHash.h"

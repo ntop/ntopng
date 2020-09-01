@@ -49,12 +49,16 @@ class FifoSerializerQueue : public FifoQueue<ndpi_serializer*> {
     } else {
       rv = false;
     }
-    
+
+    if(rv)
+      num_enqueued++;
+    else
+      num_not_enqueued++;
+
     m.unlock(__FILE__, __LINE__);
     
     return(rv);
   }
-
 };
 
 #endif /* _FIFO_SERIALIZER_QUEUE_H */

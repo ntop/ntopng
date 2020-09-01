@@ -91,6 +91,7 @@ page_utils.menu_entries = {
     -- Status (Health)
     system_status	 = {key = "status", i18n_title = "system_status", section = "system_health", visible_system = true},
     interfaces_status	 = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "system_health", visible_system = true},
+    alerts_status	 = {key = "alerts_status", i18n_title = "system_alerts_status", section = "system_health", visible_system = true},
 
     -- Exporters
     event_exporters   	 = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},

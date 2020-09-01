@@ -2544,6 +2544,15 @@ static int ntop_system_host_stat(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "written_alerts", written_alerts);
   lua_push_uint64_table_entry(vm, "alerts_queries", alerts_queries);
 
+  /* ntopng alert queues stats */
+  lua_newtable(vm);
+
+  ntop->lua_alert_queues_stats(vm);
+
+  lua_pushstring(vm, "alerts_stats");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
   return(CONST_LUA_OK);
 }
 

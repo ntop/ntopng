@@ -466,6 +466,7 @@ class Ntop {
   inline FifoStringsQueue* getSqliteAlertsQueue()         { return(sqlite_alerts_queue);         }
   inline FifoStringsQueue* getAlertsNotificationsQueue()  { return(alerts_notifications_queue);  }
   inline FifoSerializerQueue* getInternalAlertsQueue()    { return(internal_alerts_queue);  }
+  void lua_alert_queues_stats(lua_State* vm);
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }

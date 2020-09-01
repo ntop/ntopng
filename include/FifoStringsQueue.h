@@ -54,6 +54,11 @@ class FifoStringsQueue : public FifoQueue<char*> {
     } else
       rv = false;
 
+    if(rv)
+      num_enqueued++;
+    else
+      num_not_enqueued++;
+
     m.unlock(__FILE__, __LINE__);
     
     return(rv);

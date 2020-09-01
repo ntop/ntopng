@@ -1,0 +1,46 @@
+{#
+(C) 2020 - ntop.org
+
+This is the template for the "Alerts Status" page under the system interface
+#}
+
+<div class="table-responsive-lg table-responsive-md">
+  <table class="table table-bordered table-striped">
+    <tbody>
+      <tr>
+	<th rowspan="4" width="20%">{{ i18n("system_alerts_stats.queues_status") }}</th>
+      <tr>
+	<th nowrap width="10%"> {{ i18n("system_alerts_stats.sqlite_alerts_queue") }} </th>
+	<td>
+	  <span id="sqlite_alerts_queue">...</span>
+	</td>
+      </tr>
+      <tr>
+	<th nowrap> {{ i18n("system_alerts_stats.alerts_notifications_queue") }} </th>
+	<td>
+	  <span id="alerts_notifications_queue">...</span>
+	</td>
+      </tr>
+      <tr>
+	<th nowrap> {{ i18n("system_alerts_stats.internal_alerts_queue") }} </th>
+	<td>
+	  <span id="internal_alerts_queue">...</span>
+	</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<br>
+<div class="notes bg-light border">
+  <b>{{ i18n('notes') }}</b>
+  <ul>
+    <li>{* i18n('system_alerts_stats.notes_enq_deq') *}</li>
+    <li>{* i18n('system_alerts_stats.notes_sqlite_alerts_queue') *}</li>
+    <li>{* i18n('system_alerts_stats.notes_alerts_notifications_queue') *}</li>
+    <li>{* i18n('system_alerts_stats.notes_internal_alerts_queue') *}</li>
+  </ul>
+</div>
+
+{# load the necessary javascript for the page #}
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/system_alerts_stats.js"></script>

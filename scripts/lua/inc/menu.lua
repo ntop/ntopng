@@ -302,6 +302,10 @@ page_utils.add_menubar_section({
          entry = page_utils.menu_entries.interfaces_status,
          url = '/lua/system_interfaces_stats.lua',
       },
+      {
+         entry = page_utils.menu_entries.alerts_status,
+         url = '/lua/system_alerts_stats.lua',
+      },
    }
 })
 
