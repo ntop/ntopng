@@ -1,0 +1,8 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("discord_alert_endpoint.url") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input data-pattern="https" name="discord_url" type="text" class="form-control" required />
+    </div>
+</div>

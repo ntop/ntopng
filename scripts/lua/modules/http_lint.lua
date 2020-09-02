@@ -1220,11 +1220,13 @@ local known_parameters = {
    ["admin_group"]             = validateUnquoted,
    ["radius_admin_group"]      = validateUnquoted,
    ["ts_post_data_url"]        = validateUnquoted,             -- URL for influxdb
-   ["webhook_url"]             = { webhookCleanup, validateUnquoted },
+   ["webhook_url"]             = { webhookCleanup, validateUnquoted },   
    ["webhook_sharedsecret"]    = validateEmptyOr(validateSingleWord),
    ["webhook_username"]        = validateEmptyOr(validateSingleWord),
    ["webhook_password"]        = validateEmptyOr(validateSingleWord),
-
+   ["discord_url"]             = { webhookCleanup, validateUnquoted },
+   ["discord_sender"]          = validateUnquoted,
+   
    -- nIndex
    ["select_clause"]           = validateUnquoted,
    ["select_keys_clause"]      = validateUnquoted,

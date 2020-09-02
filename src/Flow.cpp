@@ -1661,7 +1661,7 @@ void Flow::update_pools_stats(NetworkInterface *iface,
     return; /* Nothing to update */
 
   HostPools *hp;
-  u_int16_t cli_host_pool_id, srv_host_pool_id;
+  u_int16_t cli_host_pool_id = 0, srv_host_pool_id;
   ndpi_protocol_category_t category_id = get_protocol_category();
 
   hp = iface->getHostPools();
@@ -1704,7 +1704,7 @@ void Flow::update_pools_stats(NetworkInterface *iface,
       srv_host_pool_id = srv_host->get_host_pool();
 
       /* Update server pool stats only if the pool is not equal to the client pool */
-      if(!cli_host || srv_host_pool_id != cli_host_pool_id) {
+      if(!cli_host || (srv_host_pool_id != cli_host_pool_id)) {
 	if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN
 	   && !ndpi_is_subprotocol_informative(NULL, ndpiDetectedProtocol.master_protocol))
 	  hp->incPoolStats(tv->tv_sec, srv_host_pool_id, ndpiDetectedProtocol.app_protocol, category_id,
@@ -2570,7 +2570,7 @@ bool Flow::isNetfilterIdleFlow() const {
       seconds an active flow should have been updated
       by conntrack
     */
-    if(iface->getTimeLastPktRcvd() > (last_conntrack_update + (3 * MIN_CONNTRACK_UPDATE)))
+    if((u_int32_t)(iface->getTimeLastPktRcvd()) > (last_conntrack_update + (3 * MIN_CONNTRACK_UPDATE)))
       return(true);
 
     return(false);

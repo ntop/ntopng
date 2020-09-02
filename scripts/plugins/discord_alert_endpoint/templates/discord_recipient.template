@@ -1,0 +1,9 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("discord_alert_endpoint.nickname") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input name="discord_sender" type="text" class="form-control" />
+
+    </div>
+</div>
