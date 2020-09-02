@@ -112,11 +112,11 @@ end
 function email.dequeueRecipientAlerts(recipient, budget)
   local sent = 0
   local more_available = true
+  local budget_used = 0
 
   -- Dequeue alerts up to budget x MAX_ALERTS_PER_EMAIL
   -- Note: in this case budget is the number of email to send
-  while sent < budget and more_available do
-    
+  while budget_used <= budget and more_available do
     -- Dequeue MAX_ALERTS_PER_EMAIL notifications
     local notifications = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_EMAIL-1)
 
@@ -165,11 +165,11 @@ function email.dequeueRecipientAlerts(recipient, budget)
 
     -- Remove the processed messages from the queue
     ntop.ltrimCache(recipient.export_queue, #notifications, -1)
-
+    budget_used = budget_used + #notifications
     sent = sent + 1
   end
 
-  return {success=true}
+  return {success = true, more_available = more_available}
 end
 
 -- ##############################################

@@ -79,19 +79,20 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
   local start_time = os.time()
   local sent = 0
   local more_available = true
+  local budget_used = 0
 
   local settings = recipient2sendMessageSettings(recipient)
 
-  -- Dequeue alerts up to budget x MAX_ALERTS_PER_EMAIL
-  -- Note: in this case budget is the number of email to send
-  while sent < budget and more_available do
+  -- Dequeue alerts up to budget x MAX_ALERTS_PER_REQUEST
+  -- Note: in this case budget is the number of webhook messages to send
+  while budget_used <= budget and more_available do
 
     local diff = os.time() - start_time
     if diff >= webhook.ITERATION_TIMEOUT then
       break
     end
 
-    -- Dequeue MAX_ALERTS_PER_EMAIL notifications
+    -- Dequeue MAX_ALERTS_PER_REQUEST notifications
     local notifications = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_REQUEST-1)
 
     if not notifications or #notifications == 0 then
@@ -113,11 +114,11 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
 
     -- Remove the processed messages from the queue
     ntop.ltrimCache(recipient.export_queue, #notifications, -1)
-
+    budget_used = budget_used + #notifications
     sent = sent + 1
   end
 
-  return {success=true}
+  return {success = true, more_available = more_available}
 end
 
 -- ##############################################

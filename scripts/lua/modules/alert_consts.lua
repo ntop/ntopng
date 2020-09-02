@@ -22,7 +22,7 @@ end
 -- NOTE: sqlite can handle about 10-50 alerts/sec
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS
 
-alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 128
+alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 4096
 
 -- Alerts (see ntop_typedefs.h)
 -- each table entry is an array as:

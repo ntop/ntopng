@@ -77,10 +77,10 @@ end
 -- On error, it leaves the queue unchagned to retry on next round.
 function slack.dequeueRecipientAlerts(recipient, budget)
 
-  local notifications = ntop.lrangeCache(recipient.export_queue, 0, -1)
+  local notifications = ntop.lrangeCache(recipient.export_queue, 0, budget - 1)
 
   if not notifications or #notifications == 0 then
-    return {success=true}
+    return {success = true, more_available = false}
   end
 
   local settings = recipient2sendMessageSettings(recipient)
@@ -135,7 +135,7 @@ function slack.dequeueRecipientAlerts(recipient, budget)
   -- Remove all the messages from queue on success
   ntop.delCache(recipient.export_queue)
 
-  return {success=true}
+  return {success = true, more_available = true}
 end
 
 -- ##############################################

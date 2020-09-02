@@ -65,11 +65,10 @@ end
 
 -- Dequeue alerts from a recipient queue for sending notifications
 function syslog.dequeueRecipientAlerts(recipient, budget)
-
-   local notifications = ntop.lrangeCache(recipient.export_queue, 0, budget-1)
+   local notifications = ntop.lrangeCache(recipient.export_queue, 0, budget - 1)
 
    if not notifications or #notifications == 0 then
-      return {success = true}
+      return {success = true, more_available = false}
    end
 
    -- Separate by severity and channel
@@ -98,7 +97,7 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
    -- Remove the processed messages from the queue
    ntop.ltrimCache(recipient.export_queue, #notifications, -1)
 
-   return {success = true}
+   return {success = true,  more_available = true}
 end
 
 -- ##############################################
