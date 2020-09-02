@@ -2310,9 +2310,12 @@ function alert_utils.processAlertNotifications(now, periodic_frequency, force_ex
    notification_recipients.processNotifications(now, periodic_frequency)
 
    local interfaces = interface.getIfNames()
+   -- max number of alerts per run (this to guarantee fairness and void monopolizing the CPU)
+   -- Set a value such that at 1000 alerts are processed for every second of periodic frequency
+   local budget = periodic_frequency * 1000
 
-   -- Now it is time to dispatch new notifications, until the deadline is approaching
-   while not ntop.isDeadlineApproaching() do
+   -- Get new alerts
+   while budget > 0 and not ntop.isDeadlineApproaching() do
       local json_message = ntop.popAlertNotification()
 
       if((json_message == nil) or (json_message == "")) then
@@ -2322,6 +2325,8 @@ function alert_utils.processAlertNotifications(now, periodic_frequency, force_ex
       if(verbose) then
          io.write("Alert Notification: " .. json_message .. "\n")
       end
+
+      budget = budget - 1
 
       local message = json.decode(json_message)
 
