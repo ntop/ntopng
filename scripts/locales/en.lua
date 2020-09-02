@@ -731,11 +731,11 @@ local lang = {
     },
   },
   ["system_alerts_stats"] = {
-     ["queues_status"] = "Enqueued / Not Enqueued / Dequeued",
+     ["queues_status"] = "In Queue / Dropped",
      ["sqlite_alerts_queue"] = "SQLite Queue",
      ["alerts_notifications_queue"] = "Notifications Queue",
      ["internal_alerts_queue"] = "Internal Queue",
-     ["notes_enq_deq"] = "When a queue is full, any enqueue attempt fails, the alert is dropped and counted as 'Not Enqueued'",
+     ["notes_enq_deq"] = "Alerts 'In Queue' are those waiting to be processed. 'Dropped' is the fraction of alerts dropped due to queue full, with reference to the total number of alerts.",
      ["notes_sqlite_alerts_queue"] = "The SQLite Queue is used to in combination with SQLite to show alerts inside the UI",
      ["notes_alerts_notifications_queue"] = "The Notifications Queue is used to dispatch alerts to notification recipients",
      ["notes_internal_alerts_queue"] = "The Internal Queue is used in combination with SQLite to handle alerts generated in the core and show them inside the UI",
