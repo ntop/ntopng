@@ -1013,8 +1013,8 @@ local lang = {
     ["no_dhcp_ranges"] = "No DHCP ranges configured.",
   },
   ["discord_alert_endpoint"] = {
-    ["username"] = "Username",
     ["url"] = "URL",
+    ["username"] = "Username",
   },
   ["discover"] = {
     ["device"] = "Device",
@@ -1097,14 +1097,15 @@ local lang = {
     ["working_recipient"] = "Test successful!",
     ["recipients"] = {
       ["cc"] = "CC",
+      ["discord_username"] = "Username",
       ["email_recipient"] = "Email Recipient",
     },
     ["types"] = {
+      ["discord"] = "Discord",
       ["email"] = "Email",
       ["slack"] = "Slack",
       ["syslog"] = "Syslog",
       ["webhook"] = "Webhook",
-      ["discord"] = "Discord",
     },
     ["validation"] = {
       ["abort_add_endpoint"] = "Abort add of new endpoint?",
@@ -3279,7 +3280,7 @@ local lang = {
     ["discord_notification_severity_preference_title"] = "Notification Severity",
     ["discord_send_error"] = "Error sending message to the discord.",
     ["discord_sender_description"] = "Name that will appear on discord as message sender.",
-    ["discord_sender_title"] = "Sender nickname",
+    ["discord_sender_title"] = "Sender username",
     ["discord_sent_successfully"] = "A message has been sent to the discord",
     ["discord_url_description"] = "Send notification to this URL in JSON format.",
     ["discord_url_title"] = "Notification URL",

@@ -10,7 +10,6 @@ local discord = {
    -- Endpoint (see https://birdie0.github.io/discord-webhooks-guide/tools/curl.html)
    conf_params = {
       { param_name = "discord_url" },
-      { param_name = "discord_username", optional = true }
    },
    conf_template = {
       plugin_key = "discord_alert_endpoint",
@@ -18,10 +17,14 @@ local discord = {
    },
    -- Recipient
    recipient_params = {
+      { param_name = "discord_username" }
    },
    recipient_template = {
       plugin_key = "discord_alert_endpoint",
-      template_name = "discord_recipient.template" -- Currently optional
+      -- TODO: this parameter does not seem to be used (why?) and the field labels of (**) are mapped      
+      --       in en.lua ["recipients"] = { ... ["discord_username"] = "Username", }
+      -- (***)
+      template_name = "discord_recipient.template"
    },
 }
 
@@ -39,7 +42,7 @@ local function recipient2sendMessageSettings(recipient)
       -- Endpoint
      url = recipient.endpoint_conf.endpoint_conf.discord_url,
      -- Recipient
-     discord_username = recipient.endpoint_conf.endpoint_conf.discord_username,
+     discord_username = recipient.recipient_params.discord_username, -- (**)
   }
 
   return settings
@@ -54,10 +57,15 @@ function discord.sendMessage(message_body, settings)
 
    local rc = false
    local retry_attempts = 3
+   local username = settings.discord_username:gsub("%s+", "") -- Zap spaces
+
+   -- Discord usernames don't have spaces. This line of code will be removed when
+   -- (***) will be solved and the input will be clean
+
    while retry_attempts > 0 do
       local message = {
-	 username = settings.discord_username,
-	 content = message_body,
+	 username = username,
+	 content  = message_body,
       }
 
       local msg = json.encode(message)
@@ -66,6 +74,7 @@ function discord.sendMessage(message_body, settings)
 	 rc = true
 	 break 
       end
+      
       retry_attempts = retry_attempts - 1
    end
 
@@ -82,7 +91,7 @@ function discord.dequeueRecipientAlerts(recipient, budget)
 
   local settings = recipient2sendMessageSettings(recipient)
 
-  -- Dequeue alerts up to budget x MAX_ALERTS_PER_EMAIL
+  -- Dequeue alerts up to budget x MAX_ALERTS_PER_REQUEST
   -- Note: in this case budget is the number of email to send
   while budget_used <= budget and more_available do
     local diff = os.time() - start_time
@@ -90,7 +99,7 @@ function discord.dequeueRecipientAlerts(recipient, budget)
       break
     end
 
-    -- Dequeue MAX_ALERTS_PER_EMAIL notifications
+    -- Dequeue MAX_ALERTS_PER_REQUEST notifications
     local notifications = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_REQUEST- 1 )
 
     if not notifications or #notifications == 0 then
