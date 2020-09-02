@@ -26,7 +26,13 @@
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">
-                    <button id="edit-test-recipient" class="btn btn-secondary mr-auto">{{ i18n("endpoint_notifications.test_recipient") }}</button>
+                    <div class="mr-auto">
+                        <button id="edit-test-recipient" class="btn btn-secondary">
+                            <span style="display: none;" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            {{ i18n("endpoint_notifications.test_recipient") }}
+                        </button>
+                        <span style="display: none;" class="test-feedback"></span>
+                    </div>
                     <button type="submit" class="btn btn-primary">{{i18n("edit")}}</button>
                 </div>
             </form>
