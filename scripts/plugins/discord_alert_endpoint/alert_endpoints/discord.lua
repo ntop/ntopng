@@ -4,11 +4,13 @@
 
 require "lua_utils"
 local json = require "dkjson"
+local alert_utils = require "alert_utils"
 
 local discord = {
-   -- Endpoint
+   -- Endpoint (see https://birdie0.github.io/discord-webhooks-guide/tools/curl.html)
    conf_params = {
       { param_name = "discord_url" },
+      { param_name = "discord_username", optional = true }
    },
    conf_template = {
       plugin_key = "discord_alert_endpoint",
@@ -16,11 +18,10 @@ local discord = {
    },
    -- Recipient
    recipient_params = {
-      { param_name = "discord_sender" },
    },
    recipient_template = {
       plugin_key = "discord_alert_endpoint",
-      template_name = "discord_recipient.template"
+      template_name = "discord_recipient.template" -- Currently optional
    },
 }
 
@@ -38,7 +39,7 @@ local function recipient2sendMessageSettings(recipient)
       -- Endpoint
      url = recipient.endpoint_conf.endpoint_conf.discord_url,
      -- Recipient
-     discord_sender = recipient.recipient_params.discord_sender,
+     discord_username = recipient.endpoint_conf.endpoint_conf.discord_username,
   }
 
   return settings
@@ -46,34 +47,29 @@ end
 
 -- ##############################################
 
-function discord.sendMessage(alerts, settings)
-  if isEmptyString(settings.url) then
-    return false
-  end
+function discord.sendMessage(message_body, settings)
+   if isEmptyString(settings.url) then
+      return false
+   end
 
-  local message = {
-    version = discord.API_VERSION,
-    alerts = alerts,
-  }
+   local rc = false
+   local retry_attempts = 3
+   while retry_attempts > 0 do
+      local message = {
+	 username = settings.discord_username,
+	 content = message_body,
+      }
 
-  local rc = false
-  local retry_attempts = 3
-  while retry_attempts > 0 do
-     local message = {
-	username = settings.discord_sender,
-	content = "test" -- Why alerts is empty ???????
-     }
+      local msg = json.encode(message)
 
-     local msg = json.encode(message)
+      if ntop.httpPost(settings.url, msg) then 
+	 rc = true
+	 break 
+      end
+      retry_attempts = retry_attempts - 1
+   end
 
-     if ntop.httpPost(settings.url, msg) then 
-      rc = true
-      break 
-    end
-    retry_attempts = retry_attempts - 1
-  end
-
-  return rc
+   return rc
 end
 
 -- ##############################################
@@ -82,20 +78,20 @@ function discord.dequeueRecipientAlerts(recipient, budget)
   local start_time = os.time()
   local sent = 0
   local more_available = true
+  local budget_used = 0
 
   local settings = recipient2sendMessageSettings(recipient)
 
   -- Dequeue alerts up to budget x MAX_ALERTS_PER_EMAIL
   -- Note: in this case budget is the number of email to send
-  while sent < budget and more_available do
-
+  while budget_used <= budget and more_available do
     local diff = os.time() - start_time
     if diff >= discord.ITERATION_TIMEOUT then
       break
     end
 
     -- Dequeue MAX_ALERTS_PER_EMAIL notifications
-    local notifications = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_REQUEST-1)
+    local notifications = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_REQUEST- 1 )
 
     if not notifications or #notifications == 0 then
       more_available = false
@@ -106,21 +102,21 @@ function discord.dequeueRecipientAlerts(recipient, budget)
 
     for _, json_message in ipairs(notifications) do
       local alert = json.decode(json_message)
-      table.insert(alerts, alert)
+      table.insert(alerts, alert_utils.formatAlertNotification(alert, {nohtml=true}))
     end
 
-    if not discord.sendMessage(alerts, settings) then
+    if not discord.sendMessage(table.concat(alerts, "\n"), settings) then
       ntop.delCache(recipient.export_queue)
       return {success=false, error_message="Unable to send alerts to the discord"}
     end
 
     -- Remove the processed messages from the queue
     ntop.ltrimCache(recipient.export_queue, #notifications, -1)
-
+    budget_used = budget_used + #notifications
     sent = sent + 1
   end
 
-  return {success=true}
+  return {success = true, more_available = more_available}
 end
 
 -- ##############################################
@@ -130,7 +126,7 @@ function discord.runTest(recipient)
 
   local settings = recipient2sendMessageSettings(recipient)
 
-  local success = discord.sendMessage({}, settings)
+  local success = discord.sendMessage("test", settings)
 
   if success then
     message_info = i18n("prefs.discord_sent_successfully")

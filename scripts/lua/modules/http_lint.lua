@@ -1226,6 +1226,7 @@ local known_parameters = {
    ["webhook_password"]        = validateEmptyOr(validateSingleWord),
    ["discord_url"]             = { webhookCleanup, validateUnquoted },
    ["discord_sender"]          = validateUnquoted,
+   ["discord_username"]        = validateEmptyOr(validateSingleWord),
    
    -- nIndex
    ["select_clause"]           = validateUnquoted,

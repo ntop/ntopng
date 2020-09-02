@@ -1013,7 +1013,7 @@ local lang = {
     ["no_dhcp_ranges"] = "No DHCP ranges configured.",
   },
   ["discord_alert_endpoint"] = {
-    ["nickname"] = "Sender Nickname",
+    ["username"] = "Username",
     ["url"] = "URL",
   },
   ["discover"] = {
@@ -1104,6 +1104,7 @@ local lang = {
       ["slack"] = "Slack",
       ["syslog"] = "Syslog",
       ["webhook"] = "Webhook",
+      ["discord"] = "Discord",
     },
     ["validation"] = {
       ["abort_add_endpoint"] = "Abort add of new endpoint?",
