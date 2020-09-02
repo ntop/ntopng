@@ -23,7 +23,7 @@ $(document).ready(function () {
 
 			for (const [key, value] of Object.entries(rsp.alerts_stats.alert_queues)) {
 			    $('#' + key).html(
-				NtopUtils.fint(value.num_in_queue) + " "  + NtopUtils.drawTrend(value.num_in_queue, last_queues[key].num_in_queue, "") + " / "
+				NtopUtils.fpercent(value.pct_in_queue) + " "  + NtopUtils.drawTrend(value.pct_in_queue, last_queues[key].pct_in_queue, "") + " / "
 				    + NtopUtils.fpercent(value.pct_not_enqueued) + " " + NtopUtils.drawTrend(value.pct_not_enqueued, last_queues[key].pct_not_enqueued, ""));
 			}
 

@@ -35,10 +35,10 @@ This is the template for the "Alerts Status" page under the system interface
 <div class="notes bg-light border">
   <b>{{ i18n('notes') }}</b>
   <ul>
-    <li>{* i18n('system_alerts_stats.notes_enq_deq') *}</li>
-    <li>{* i18n('system_alerts_stats.notes_sqlite_alerts_queue') *}</li>
-    <li>{* i18n('system_alerts_stats.notes_alerts_notifications_queue') *}</li>
-    <li>{* i18n('system_alerts_stats.notes_internal_alerts_queue') *}</li>
+    <li>{* i18n('system_alerts_stats.notes_enq_deq') *}.</li>
+    <li>{* i18n('system_alerts_stats.notes_sqlite_alerts_queue') *}.</li>
+    <li>{* i18n('system_alerts_stats.notes_alerts_notifications_queue') *}.</li>
+    <li>{* i18n('system_alerts_stats.notes_internal_alerts_queue') *}.</li>
   </ul>
 </div>
 
