@@ -128,6 +128,7 @@ extern "C" {
 #include <linux/netfilter.h> /* for NF_ACCEPT */
 #include <libnfnetlink/libnfnetlink.h>
 #include <libnetfilter_queue/libnetfilter_queue.h>
+#include <ifaddrs.h> /* SilicomHwBypass */
 #endif
 #include "json.h"
 #include <sqlite3.h>
@@ -350,6 +351,8 @@ using namespace std;
 #include "LuaHandler.h"
 #ifdef HAVE_NEDGE
 #include "NetfilterInterface.h"
+#include "HwBypass.h"
+#include "SilicomHwBypass.h"
 #endif
 #endif
 #ifndef HAVE_NEDGE
