@@ -36,15 +36,8 @@ local notification_configs = {}
 
 -- #################################################################
 
--- TODO load modules dynamically
-local endpoint_types = nil
-
-function notification_configs.get_types()
-   if endpoint_types then
-      return endpoint_types
-   end
-
-   endpoint_types = {}
+function notification_configs.get_types(exclude_builtin)
+   local endpoint_types = {}
 
    -- Currently, we load all the available alert endpoints
    local available_endpoints = plugins_utils.getLoadedAlertEndpoints()
@@ -61,7 +54,10 @@ function notification_configs.get_types()
 	    end
 	 end
 
-	 endpoint_types[endpoint.key] = endpoint
+	 -- See if only non-builtin endpoints have been requested (e.g., to populate UI fields)
+	 if not exclude_builtin or not endpoint.builtin then
+	    endpoint_types[endpoint.key] = endpoint
+	 end
       end
 
       ::continue::
@@ -158,9 +154,10 @@ local function check_endpoint_config_params(endpoint_key, conf_params)
    end
 
    -- Create a safe_params table with only expected params
+   local endpoint = notification_configs.get_types()[endpoint_key]
    local safe_params = {}
    -- So iterate across all expected params of the current endpoint
-   for _, param in ipairs(notification_configs.get_types()[endpoint_key].conf_params) do
+   for _, param in ipairs(endpoint.conf_params) do
       -- param is a lua table so we access its elements
       local param_name = param["param_name"]
       local optional = param["optional"]
@@ -172,7 +169,7 @@ local function check_endpoint_config_params(endpoint_key, conf_params)
       end
    end
 
-   return true, {status = "OK", safe_params = safe_params}
+   return true, {status = "OK", safe_params = safe_params, builtin = endpoint.builtin or false}
 end
 
 -- #################################################################
@@ -206,6 +203,11 @@ function notification_configs.add_config(endpoint_key, endpoint_conf_name, conf_
    end
 
    local safe_params = status["safe_params"]
+
+   if status.builtin then
+      -- If the endpoint is a builtin endpoint, a special boolean safe param builtin is added to the configuration
+      safe_params["builtin"] = true
+   end
 
    -- Set the config
    set_endpoint_config_params(endpoint_key, endpoint_conf_name, safe_params)
@@ -307,7 +309,7 @@ end
 -- @brief Retrieve all the available configurations and configuration params
 -- @return A lua array with a as many elements as the number of existing configurations.
 --         Each element is the result of `notification_configs.get_endpoint_config`
-function notification_configs.get_configs()
+function notification_configs.get_configs(exclude_builtin)
    local res = {}
 
    for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
@@ -317,7 +319,9 @@ function notification_configs.get_configs()
       for conf_name, conf_params in pairs(all_configs) do
 	 local ec = notification_configs.get_endpoint_config(conf_name)
 
-	 res[#res + 1] = ec
+	 if not exclude_builtin or not ec.endpoint_conf.builtin then
+	    res[#res + 1] = ec
+	 end
       end
    end
 

@@ -20,7 +20,7 @@ end
 
 local function get_max_configs_available()
     local availables = {}
-    local types = notification_configs.get_types()
+    local types = notification_configs.get_types(true --[[ exclude builtin --]])
 
     for endpoint_key, endpoint in pairsByKeys(types, asc) do
         local conf_max_num = endpoint.conf_max_num
@@ -43,7 +43,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title(i18n("endpoint_notifications.endpoint_list"))
 
 -- localize endpoint name types in a table
-local endpoints_types = notification_configs.get_types()
+local endpoints_types = notification_configs.get_types(true --[[ exclude builtin --]])
 local endpoint_types_labels = {}
 -- create a table to filter recipient by endpoint's type
 local endpoint_type_filters = {}
@@ -62,7 +62,7 @@ end
 -- Prepare the response
 local context = {
     notifications = {
-        endpoints = notification_configs.get_types(),
+        endpoints = notification_configs.get_types(true --[[ exclude builtin --]]),
         endpoints_info = get_max_configs_available(),
         endpoint_types_labels = endpoint_types_labels,
         filters = {

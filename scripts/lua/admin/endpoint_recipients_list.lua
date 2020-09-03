@@ -12,7 +12,7 @@ local json = require "dkjson"
 local plugins_utils = require("plugins_utils")
 local menu_alert_notifications = require("menu_alert_notifications")
 local notification_configs = require("notification_configs")
-local endpoints = notification_configs.get_configs()
+local endpoints = notification_configs.get_configs(true --[[ exclude builtin --]])
 
 if not haveAdminPrivileges() then
     return
@@ -30,7 +30,7 @@ menu_alert_notifications.render_notifications('recipients', {})
 page_utils.print_page_title(i18n("endpoint_notifications.recipient_list"))
 
 -- localize endpoint name types in a table
-local endpoints_types = notification_configs.get_types()
+local endpoints_types = notification_configs.get_types(true --[[ exclude builtin types --]])
 local endpoint_types_labels = {}
 -- create a table to filter recipient by endpoint's type
 local endpoint_type_filters = {}

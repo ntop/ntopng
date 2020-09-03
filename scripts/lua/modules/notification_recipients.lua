@@ -242,12 +242,16 @@ end
 
 -- #################################################################
 
-function notification_recipients.get_recipients()
+function notification_recipients.get_recipients(exclude_builtin)
    local res = {}
    local all_recipients = ntop.getHashAllCache(ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG)
 
    for recipient_name, config_name in pairs(all_recipients or {}) do
-      res[#res + 1] = notification_recipients.get_recipient(recipient_name)
+      local r = notification_recipients.get_recipient(recipient_name)
+
+      if not exclude_builtin or not r.endpoint_conf.endpoint_conf.builtin then
+	 res[#res + 1] = r
+      end
    end
 
    return res

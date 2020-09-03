@@ -19,4 +19,13 @@ end
 
 local recipients = notification_recipients.get_recipients()
 
-print(json.encode(recipients))
+-- Exclude builtin recipients for now
+-- Builtin recipients will be possibly included later and made uneditable from the UI
+local res = {}
+for _, recipient in pairs(recipients) do
+   if not recipient.endpoint_conf.endpoint_conf.builtin then
+      res[#res + 1] = recipient
+   end
+end
+
+print(json.encode(res))

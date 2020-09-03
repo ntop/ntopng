@@ -1,0 +1,35 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("webhook_alert_endpoint.url") }}</b>
+    </label>
+    <div class="col-sm-5">
+        <input data-pattern="https" name="webhook_url" type="text" class="form-control" required />
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        {{ i18n("webhook_alert_endpoint.shared_secret") }}
+    </label>
+    <div class="col-sm-5">
+        <input name="webhook_sharedsecret" type="text" class="form-control" />
+        <small class="text-muted">{{ i18n("optional_field") }}</small>
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        {{ i18n("webhook_alert_endpoint.username") }}
+    </label>
+    <div class="col-sm-5">
+        <input data-pattern="username" name="webhook_username" type="text" class="form-control" />
+        <small class="text-muted">{{ i18n("optional_field") }}</small>
+    </div>
+</div>
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        {{ i18n("webhook_alert_endpoint.password") }}
+    </label>
+    <div class="col-sm-5">
+        <input name="webhook_password" type="password" class="form-control" />
+        <small class="text-muted">{{ i18n("optional_field") }}</small>
+    </div>
+</div>

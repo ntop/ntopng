@@ -1112,6 +1112,7 @@ local lang = {
       ["syslog"] = "Syslog",
       ["webhook"] = "Webhook",
       ["elasticsearch"] = "Elasticsearch",
+      ["sqlite"] = "Sqlite",
     },
     ["validation"] = {
       ["abort_add_endpoint"] = "Abort add of new endpoint?",

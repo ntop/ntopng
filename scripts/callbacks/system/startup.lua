@@ -33,6 +33,8 @@ local user_scripts = require("user_scripts")
 local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
 local blog_utils = require("blog_utils")
+local notification_configs = require "notification_configs"
+local notification_recipients = require "notification_recipients"
 
 host_pools_nedge.migrateHostPools()
 if ntop.isnEdge() then
@@ -45,6 +47,31 @@ if(ntop.isPro()) then
 end
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Processing startup.lua: please hold on...")
+
+-- ##################################################################
+
+-- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
+for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
+   if endpoint.builtin then
+      -- Add the configuration
+      notification_configs.add_config(
+	 endpoint_key --[[ the type of the endpoint--]],
+	 "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
+	 {} --[[ no default params --]]
+      )
+
+      -- And the recipient
+      notification_recipients.add_recipient(
+	 "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]], 
+	 "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
+	 {} --[[ no recipient params --]]
+      )
+   end
+end
+
+--tprint(notification_recipients.get_recipients())
+
+-- ##################################################################
 
 -- Load the default user scripts configuration
 user_scripts.loadDefaultConfig()
