@@ -39,7 +39,7 @@ $(document).ready(function () {
 		headers: {
 		    'Content-Type': 'application/json'
 		}
-	    }, 3000);
+	    }, 5000);
             const {result} = await request.json();
 
             if (result.status == "failed") {

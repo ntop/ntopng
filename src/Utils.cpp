@@ -1654,15 +1654,19 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 
 /* **************************************** */
 
-bool Utils::sendMail(char *from, char *to, char *cc, char *message, char *smtp_server, char *username, char *password) {
+bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *message, char *smtp_server, char *username, char *password) {
 #ifdef HAVE_CURL_SMTP
   CURL *curl;
   CURLcode res;
   bool ret = true;
+  const char *ret_str = "";
   struct curl_slist *recipients = NULL;
   struct snmp_upload_status *upload_ctx = (struct snmp_upload_status*) calloc(1, sizeof(struct snmp_upload_status));
 
-  if(!upload_ctx) return false;
+  if(!upload_ctx) {
+    ret = false;
+    goto out;
+  }  
 
   upload_ctx->lines = message;
   curl = curl_easy_init();
@@ -1700,6 +1704,7 @@ bool Utils::sendMail(char *from, char *to, char *cc, char *message, char *smtp_s
     }
 
     res = curl_easy_perform(curl);
+    ret_str = curl_easy_strerror(res);
 
     if(res != CURLE_OK) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -1715,11 +1720,28 @@ bool Utils::sendMail(char *from, char *to, char *cc, char *message, char *smtp_s
   }
 
   free(upload_ctx);
-  return ret;
 #else
-  ntop->getTrace()->traceEvent(TRACE_ERROR, "SMTP support is not available");
-  return(false);
+  ret = false;
+  ret_str = "SMTP support is not available";
 #endif
+
+ out:
+
+  if(vm) {
+    /*
+    If a lua VM has been passed as parameter, return code and return message are pushed into the lua stack.
+    */
+    lua_newtable(vm);
+    lua_push_bool_table_entry(vm, "success", ret);
+    lua_push_str_table_entry(vm, "msg", ret_str);
+  } else if (!ret)
+    /*
+      If not lua VM has been passed, in case of error, a message is logged to stdout
+     */
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "Unable to send email to (%s): %s. Run ntopng with -v6 for more details.",
+				 smtp_server, ret_str);
+  return ret;
 }
 
 /* **************************************** */

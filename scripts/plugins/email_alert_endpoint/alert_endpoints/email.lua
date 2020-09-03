@@ -82,12 +82,6 @@ end
 -- ##############################################
 
 function email.sendEmail(subject, message_body, settings)
-  if isEmptyString(settings.from_addr) or 
-     isEmptyString(settings.to_addr) or 
-     isEmptyString(settings.smtp_server) then
-    return false
-  end
-
   local smtp_server = settings.smtp_server
   local from = settings.from_addr:gsub(".*<(.*)>", "%1")
   local to = settings.to_addr:gsub(".*<(.*)>", "%1")
@@ -153,7 +147,7 @@ function email.dequeueRecipientAlerts(recipient, budget)
     local rv = email.sendEmail(subject, message_body, settings)
 
     -- Handle retries on failure
-    if not rv then
+    if not rv.success then
       local num_attemps = (tonumber(ntop.getCache(NUM_ATTEMPTS_KEY)) or 0) + 1
 
       if num_attemps >= MAX_NUM_SEND_ATTEMPTS then
@@ -185,15 +179,15 @@ function email.runTest(recipient)
 
   local settings = recipient2sendMessageSettings(recipient)
 
-  local success = email.sendEmail("TEST MAIL", "Email notification is working", settings)
+  local sent = email.sendEmail("TEST MAIL", "Email notification is working", settings)
 
-  if success then
+  if sent.success then
     message_info = i18n("prefs.email_sent_successfully")
   else
-    message_info = i18n("prefs.email_send_error", {url="https://www.ntop.org/guides/ntopng/web_gui/alerts.html#email"})
+    message_info = i18n("prefs.email_send_error", {msg = sent.msg, url = "https://www.ntop.org/guides/ntopng/web_gui/alerts.html#email"})
   end
 
-  return success, message_info
+  return sent.success, message_info
 
 end
 

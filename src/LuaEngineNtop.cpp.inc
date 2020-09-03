@@ -1937,9 +1937,7 @@ static int ntop_send_mail(lua_State* vm) {
   if(lua_type(vm, 7) == LUA_TSTRING) /* Optional */
     password = (char*)lua_tostring(vm, 7);
 
-  bool rv = Utils::sendMail(from, to, cc, msg, smtp_server, username, password);
-
-  lua_pushboolean(vm, rv);
+  Utils::sendMail(vm, from, to, cc, msg, smtp_server, username, password);
   return(CONST_LUA_OK);
 }
 #endif
