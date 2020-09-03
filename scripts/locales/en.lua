@@ -1016,7 +1016,7 @@ local lang = {
     ["url"] = "URL",
     ["username"] = "Username",
     ["validation"] = {
-       ["invalid_url"] = "Invalid Discord Webhook URL is invalid. See https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks.",
+       ["invalid_url"] = "Invalid Discord Webhook URL. See https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks.",
        ["empty_url"] = "Discord Webook URL cannot be empty.",
        ["invalid_username"] = "Invalid Discord username.",
     },
