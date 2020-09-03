@@ -2338,19 +2338,10 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
 
 void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   char ifname[32];
-  char *colon, *at;
   macstr_t mac_addr_buf;
   int res;
 
-  /* Handle PF_RING interfaces zc:ens2f1@3 */
-  colon = strchr(_ifname, ':');
-  if(colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
-    _ifname = colon+1;
-
-  snprintf(ifname, sizeof(ifname), "%s", _ifname);
-  at = strchr(ifname, '@');
-  if(at != NULL)
-    at[0] = '\0';
+  ifname2devname(_ifname, ifname, sizeof(ifname));
 
 #if defined(__FreeBSD__) || defined(__APPLE__)
   struct ifaddrs *ifap, *ifaptr;
@@ -2462,31 +2453,36 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
 
 /* **************************************** */
 
-u_int32_t Utils::getMaxIfSpeed(const char *ifname) {
+u_int32_t Utils::getMaxIfSpeed(const char *_ifname) {
 #if defined(linux) && (!defined(__GNUC_RH_RELEASE__) || (__GNUC_RH_RELEASE__ != 44))
   int sock, rc;
   struct ifreq ifr;
   struct ethtool_cmd edata;
   u_int32_t ifSpeed = 1000;
+  char ifname[32];
 
-  if(strncmp(ifname, "zc:", 3) == 0) ifname = &ifname[3];
-
-  if(strchr(ifname, ',')) {
+  if(strchr(_ifname, ',')) {
     /* These are interfaces with , (e.g. eth0,eth1) */
     char ifaces[128], *iface, *tmp;
     u_int32_t speed = 0;
 
-    snprintf(ifaces, sizeof(ifaces), "%s", ifname);
+    snprintf(ifaces, sizeof(ifaces), "%s", _ifname);
     iface = strtok_r(ifaces, ",", &tmp);
 
     while(iface) {
-      u_int32_t thisSpeed = getMaxIfSpeed(iface);
+      u_int32_t thisSpeed;
 
+      ifname2devname(iface, ifname, sizeof(ifname));
+
+      thisSpeed = getMaxIfSpeed(ifname);
       if(thisSpeed > speed) speed = thisSpeed;
+
       iface = strtok_r(NULL, ",", &tmp);
     }
 
     return(speed);
+  } else {
+    ifname2devname(_ifname, ifname, sizeof(ifname));
   }
 
   memset(&ifr, 0, sizeof(struct ifreq));
@@ -3276,12 +3272,12 @@ u_int32_t Utils::getHostManagementIPv4Address() {
 
 /* ****************************************************** */
 
-bool Utils::isInterfaceUp(char *ifname) {
+bool Utils::isInterfaceUp(char *_ifname) {
 #ifdef WIN32
   return(true);
 #else
+  char ifname[32];
   struct ifreq ifr;
-  char *colon;
   int sock;
 
   sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -3289,10 +3285,7 @@ bool Utils::isInterfaceUp(char *ifname) {
   if(sock == -1)
     return(false);
 
-  /* Handle PF_RING interfaces zc:ens2f1@3 */
-  colon = strchr(ifname, ':');
-  if(colon != NULL) /* removing pf_ring module prefix (e.g. zc:ethX) */
-    ifname = colon+1;
+  ifname2devname(_ifname, ifname, sizeof(ifname));
 
   memset(&ifr, 0, sizeof(ifr));
   strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1);
@@ -4552,3 +4545,30 @@ bool Utils::isPingSupported() {
 
     return(false);
 }
+
+/* ****************************************************** */
+
+/*
+ * Return the linux device name given an interface name
+ * to handle PF_RING interfaces like zc:ens2f1@3
+ * (it removes '<module>:' prefix or trailing '@<queue>')
+ */
+char *Utils::ifname2devname(const char *ifname, char *devname, int devname_size) {
+  const char *colon;
+  char *at;
+
+  /* strip prefix ":" */
+  colon = strchr(ifname, ':');
+  strncpy(devname, colon != NULL ? colon+1 : ifname, devname_size);
+  devname[devname_size-1] = '\0';
+
+  /* strip trailing "@" */
+  at = strchr(devname, '@');
+  if (at != NULL)
+    at[0] = '\0';
+
+  return devname;
+}
+
+/* ****************************************************** */
+
