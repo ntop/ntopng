@@ -28,23 +28,7 @@
 {# Generate a template for each endpoint entry #}
 {% for endpoint_key, endpoint in pairs(notifications.endpoints) do %}
     <template id="{{ endpoint_key }}-template">
-        {% for i, param in ipairs(endpoint.recipient_params) do %}
-        <div class="form-group row">
-            <label class="col-form-label col-sm-3">
-                {% if param.optional then %}
-                    {{ i18n("endpoint_notifications.recipients." .. param.param_name) }}
-                {% else %}
-                    <b>{{ i18n("endpoint_notifications.recipients." .. param.param_name) }}</b>
-                {% end %}
-            </label>
-            <div class="col-sm-5">
-                <input name="{{ param.param_name }}" type="{{ param.param_type }}" class="form-control" {{ (param.optional and '' or 'required') }}>
-                {% if param.optional then %}
-                <small class="text-muted">{{ i18n("optional_field") }}</small>
-                {% end %}
-            </div>
-        </div>
-        {% end %}
+        {* plugins_utils.renderTemplate(endpoint.recipient_template.plugin_key, endpoint.recipient_template.template_name) *}
     </template>
 {% end %}
 

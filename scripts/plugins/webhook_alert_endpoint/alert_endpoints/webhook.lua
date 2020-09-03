@@ -21,7 +21,7 @@ local webhook = {
    },
    recipient_template = {
       plugin_key = "webhook_alert_endpoint",
-      template_name = "webhook_recipient.template" -- TODO: add template
+      template_name = "webhook_recipient.template"
    },
 }
 

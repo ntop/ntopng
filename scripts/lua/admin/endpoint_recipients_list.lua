@@ -57,6 +57,7 @@ local context = {
             endpoint_types = endpoint_type_filters
         }
     },
+    plugins_utils = plugins_utils,
     template_utils = template,
     page_utils = page_utils,
     json = json,

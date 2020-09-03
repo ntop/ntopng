@@ -48,7 +48,6 @@ local endpoint_types_labels = {}
 -- create a table to filter recipient by endpoint's type
 local endpoint_type_filters = {}
 for endpoint_key, _ in pairs(endpoints_types) do
-
     local label = i18n('endpoint_notifications.types.'..endpoint_key)
     endpoint_types_labels[endpoint_key] = label
     endpoint_type_filters[#endpoint_type_filters+1] = {

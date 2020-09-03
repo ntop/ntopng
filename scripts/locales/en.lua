@@ -1015,6 +1015,11 @@ local lang = {
   ["discord_alert_endpoint"] = {
     ["url"] = "URL",
     ["username"] = "Username",
+    ["validation"] = {
+       ["invalid_url"] = "Invalid Discord Webhook URL is invalid. See https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks.",
+       ["empty_url"] = "Discord Webook URL cannot be empty.",
+       ["invalid_username"] = "Invalid Discord username.",
+    },
   },
   ["discover"] = {
     ["device"] = "Device",
@@ -1106,6 +1111,7 @@ local lang = {
       ["slack"] = "Slack",
       ["syslog"] = "Syslog",
       ["webhook"] = "Webhook",
+      ["elasticsearch"] = "Elasticsearch",
     },
     ["validation"] = {
       ["abort_add_endpoint"] = "Abort add of new endpoint?",

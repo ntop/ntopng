@@ -3,7 +3,10 @@
         <b>{{ i18n("email_alert_endpoint.email_recipient") }}</b>
     </label>
     <div class="col-sm-5">
-        <input name="email_recipient" type="email" class="form-control" required />
+        <input
+	data-validation-message="{{ i18n('email_alert_endpoint.validation.invalid_email') }}" 
+	data-validation-empty-message="{{ i18n('email_alert_endpoint.validation.empty_email') }}" 
+	name="email_recipient" data-pattern="email" class="form-control" required />
     </div>
 </div>
 <div class="form-group row">
@@ -11,7 +14,10 @@
         <b>{{ i18n("email_alert_endpoint.carbon_copy") }}</b>
     </label>
     <div class="col-sm-5">
-        <input name="cc" type="email" class="form-control" />
+        <input
+	data-validation-message="{{ i18n('email_alert_endpoint.validation.invalid_email') }}" 
+	data-validation-empty-message="{{ i18n('email_alert_endpoint.validation.empty_email') }}" 
+	name="cc" data-pattern="email" class="form-control" />
         <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>
 </div>
