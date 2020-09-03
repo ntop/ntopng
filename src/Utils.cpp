@@ -1654,7 +1654,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 
 /* **************************************** */
 
-bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server, char *username, char *password) {
+bool Utils::sendMail(char *from, char *to, char *cc, char *message, char *smtp_server, char *username, char *password) {
 #ifdef HAVE_CURL_SMTP
   CURL *curl;
   CURLcode res;
@@ -1684,6 +1684,8 @@ bool Utils::sendMail(char *from, char *to, char *message, char *smtp_server, cha
     curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from);
 
     recipients = curl_slist_append(recipients, to);
+    if(cc && cc[0])
+      recipients = curl_slist_append(recipients, cc);
     curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
 
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, curl_smtp_payload_source);

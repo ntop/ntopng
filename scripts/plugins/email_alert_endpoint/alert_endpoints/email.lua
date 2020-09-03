@@ -43,6 +43,7 @@ local function recipient2sendMessageSettings(recipient)
     smtp_server = recipient.endpoint_conf.endpoint_conf.smtp_server,
     from_addr = recipient.endpoint_conf.endpoint_conf.email_sender,
     to_addr = recipient.recipient_params.email_recipient,
+    cc_addr = recipient.recipient_params.cc,
     username = recipient.endpoint_conf.endpoint_conf.smtp_username,
     password = recipient.endpoint_conf.endpoint_conf.smtp_password,
   }
@@ -52,7 +53,7 @@ end
 
 -- ##############################################
 
-local function buildMessageHeader(now_ts, from, to, subject, body)
+local function buildMessageHeader(now_ts, from, to, cc, subject, body)
   local now = os.date("%a, %d %b %Y %X", now_ts) -- E.g. "Tue, 3 Apr 2018 14:58:00"
   local msg_id = "<" .. now_ts .. "." .. os.clock() .. "@ntopng>"
 
@@ -64,6 +65,10 @@ local function buildMessageHeader(now_ts, from, to, subject, body)
     "Message-ID: " .. msg_id,
     "Content-Type: text/html; charset=UTF-8",
   }
+
+  if not isEmptyString(cc) then
+     lines[#lines + 1] = "Cc: "..cc
+  end
 
   return table.concat(lines, "\r\n") .. "\r\n\r\n" .. body .. "\r\n"
 end
@@ -86,6 +91,7 @@ function email.sendEmail(subject, message_body, settings)
   local smtp_server = settings.smtp_server
   local from = settings.from_addr:gsub(".*<(.*)>", "%1")
   local to = settings.to_addr:gsub(".*<(.*)>", "%1")
+  local cc = settings.cc_addr:gsub(".*<(.*)>", "%1")
   local product = ntop.getInfo(false).product
   local info = ntop.getHostInformation()
 
@@ -102,8 +108,8 @@ function email.sendEmail(subject, message_body, settings)
     smtp_server = smtp_server .. "/" .. sender_domain
   end
 
-  local message = buildMessageHeader(os.time(), settings.from_addr, settings.to_addr, subject, message_body)
-  return ntop.sendMail(from, to, message, smtp_server, settings.username, settings.password)
+  local message = buildMessageHeader(os.time(), settings.from_addr, settings.to_addr, settings.cc_addr, subject, message_body)
+  return ntop.sendMail(from, to, cc, message, smtp_server, settings.username, settings.password)
 end
 
 -- ##############################################

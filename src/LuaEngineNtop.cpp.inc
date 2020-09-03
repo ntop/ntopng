@@ -1914,7 +1914,7 @@ static int ntop_post_http_text_file(lua_State* vm) {
 
 #ifdef HAVE_CURL_SMTP
 static int ntop_send_mail(lua_State* vm) {
-  char *from, *to, *msg, *smtp_server, *username = NULL, *password = NULL;
+  char *from, *to, *cc, *msg, *smtp_server, *username = NULL, *password = NULL;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((from = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1923,18 +1923,21 @@ static int ntop_send_mail(lua_State* vm) {
   if((to = (char*)lua_tostring(vm, 2)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((msg = (char*)lua_tostring(vm, 3)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if((cc = (char*)lua_tostring(vm, 3)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((smtp_server = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  if((msg = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(lua_type(vm, 5) == LUA_TSTRING) /* Optional */
-    username = (char*)lua_tostring(vm, 5);
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((smtp_server = (char*)lua_tostring(vm, 5)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   if(lua_type(vm, 6) == LUA_TSTRING) /* Optional */
-    password = (char*)lua_tostring(vm, 6);
+    username = (char*)lua_tostring(vm, 6);
 
-  bool rv = Utils::sendMail(from, to, msg, smtp_server, username, password);
+  if(lua_type(vm, 7) == LUA_TSTRING) /* Optional */
+    password = (char*)lua_tostring(vm, 7);
+
+  bool rv = Utils::sendMail(from, to, cc, msg, smtp_server, username, password);
 
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
