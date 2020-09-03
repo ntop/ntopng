@@ -38,6 +38,47 @@ end
 
 -- ##############################################
 
+-- @brief Returns a key containing a hashed string of the `alert` to quickly identify the alert notification
+-- @param alert A triggered/released alert table
+-- @return The key as a string
+local function get_notification_key(alert)
+   return string.format("ntopng.cache.alerts.notification.%s", ntop.md5(alerts_api.getAlertId(alert)))
+end
+
+-- ##############################################
+
+-- @brief Checks whether the triggered `alert` has already been notified
+-- @param alert A triggered alert table
+-- @return True if the `alert` has already been notified, false otherwise
+local function is_trigger_notified(alert)
+   local k = get_notification_key(alert)
+   local res = tonumber(ntop.getCache(k))
+
+   return res ~= nil
+end
+
+-- ##############################################
+
+-- @brief Marks the triggered `alert` as notified to the recipients
+-- @param alert A triggered alert table
+-- @return nil
+local function mark_trigger_notified(alert)
+   local k = get_notification_key(alert)
+   ntop.setCache(k, "1")
+end
+
+-- ##############################################
+
+-- @brief Marks the released `alert` as notificed to the recipients
+-- @param alert A released alert table
+-- @return nil
+local function mark_release_notified(alert)
+   local k = get_notification_key(alert)
+   ntop.delCache(k)
+end
+
+-- ##############################################
+
 local function alertErrorTraceback(msg)
   traceError(TRACE_ERROR, TRACE_CONSOLE, msg)
   traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
@@ -275,8 +316,17 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   addAlertPoolInfo(entity_info, triggered)
 
   local alert_json = json.encode(triggered)
-  recipients_lua_utils.dispatch_trigger_notification(alert_json)
-  ntop.pushAlertNotification(alert_json)
+
+  -- Emit the notification only if the notification hasn't already been emitted.
+  -- This is to avoid alert storms when ntopng is restarted. Indeeed,
+  -- if there are 100 alerts triggered when ntopng is switched off, chances are the
+  -- same 100 alerts will be triggered again as soon as ntopng is restarted, causing
+  -- 100 trigger notifications to be emitted twice. This check is to prevent such behavior.
+  if not is_trigger_notified(triggered) then
+     recipients_lua_utils.dispatch_trigger_notification(alert_json)
+     ntop.pushAlertNotification(alert_json)
+     mark_trigger_notified(triggered)
+  end
 
   return(true)
 end
@@ -347,6 +397,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local alert_json = json.encode(released)
   recipients_lua_utils.dispatch_release_notification(alert_json)
   ntop.pushAlertNotification(alert_json)
+  mark_release_notified(released)
 
   return(true)
 end
