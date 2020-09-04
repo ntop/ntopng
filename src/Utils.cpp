@@ -1655,11 +1655,12 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 /* **************************************** */
 
 bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *message, char *smtp_server, char *username, char *password) {
+  bool ret = true;
+  const char *ret_str = "";
+
 #ifdef HAVE_CURL_SMTP
   CURL *curl;
   CURLcode res;
-  bool ret = true;
-  const char *ret_str = "";
   struct curl_slist *recipients = NULL;
   struct snmp_upload_status *upload_ctx = (struct snmp_upload_status*) calloc(1, sizeof(struct snmp_upload_status));
 
@@ -1720,12 +1721,12 @@ bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *messag
   }
 
   free(upload_ctx);
+
+ out:
 #else
   ret = false;
   ret_str = "SMTP support is not available";
 #endif
-
- out:
 
   if(vm) {
     /*
