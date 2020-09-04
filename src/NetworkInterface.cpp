@@ -1357,6 +1357,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
   if(flow->isDNS())
     flow->processDNSPacket(ip, trusted_ip_len, packet_time);
+  else if(flow->isIEC60870())
+    flow->processIEC60870Packet(ip, trusted_ip_len, payload, trusted_payload_len, packet_time);
 
   if(flow->isDetectionCompleted()
      && (!isSampledTraffic())) {

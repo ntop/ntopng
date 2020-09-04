@@ -1016,9 +1016,9 @@ local lang = {
     ["url"] = "URL",
     ["username"] = "Username",
     ["validation"] = {
-       ["invalid_url"] = "Invalid Discord Webhook URL. See https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks.",
-       ["empty_url"] = "Discord Webook URL cannot be empty.",
-       ["invalid_username"] = "Invalid Discord username.",
+      ["empty_url"] = "Discord Webook URL cannot be empty.",
+      ["invalid_url"] = "Invalid Discord Webhook URL. See https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks.",
+      ["invalid_username"] = "Invalid Discord username.",
     },
   },
   ["discover"] = {
@@ -1107,12 +1107,12 @@ local lang = {
     },
     ["types"] = {
       ["discord"] = "Discord",
+      ["elasticsearch"] = "Elasticsearch",
       ["email"] = "Email",
       ["slack"] = "Slack",
+      ["sqlite"] = "Sqlite",
       ["syslog"] = "Syslog",
       ["webhook"] = "Webhook",
-      ["elasticsearch"] = "Elasticsearch",
-      ["sqlite"] = "Sqlite",
     },
     ["validation"] = {
       ["abort_add_endpoint"] = "Abort add of new endpoint?",
@@ -1358,6 +1358,7 @@ local lang = {
     ["http_method"] = "HTTP Method",
     ["icmp_info"] = "ICMP Info",
     ["ids_alert"] = "Detected %{scope} alert: %{msg} [%{maker}]",
+    ["iec104_mask"] = "IEC104 TypeIDs",
     ["imsi"] = "IMSI (International mobile Subscriber Identity)",
     ["io_wait_time_percentage"] = "I/O Wait Time Percentage",
     ["ip_packet_analysis"] = "IP Packet Analysis",

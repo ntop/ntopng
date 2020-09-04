@@ -50,7 +50,7 @@ Flow::Flow(NetworkInterface *_iface,
   alerted_status = status_normal;
   peers_score_accounted = false;
   status_infos = NULL;
-  ndpi_flow_risk_bitmap = 0;
+  ndpi_flow_risk_bitmap = iec104_typeid_mask = 0;
   detection_completed = false;
   extra_dissection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
@@ -402,7 +402,8 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_DNS:
-    /* See Flow::processDNSPacket for dissection */
+  case NDPI_PROTOCOL_IEC60870:
+    /* See Flow::processDNSPacket and Flow::processIEC60870Packet for dissection */
     break;
 
   case NDPI_PROTOCOL_TOR:
@@ -522,7 +523,11 @@ void Flow::processExtraDissectedInformation() {
       break;
 
     case NDPI_PROTOCOL_DNS:
-      /* Don't free the memory, let the nDPI dissection run for DNS. See Method Flow::processDNSPacket  */
+    case NDPI_PROTOCOL_IEC60870:
+      /*
+	Don't free the memory, let the nDPI dissection run for DNS. 
+	See Method Flow::processDNSPacket and Flow::processIEC60870Packet 
+      */
       if(getInterface()->isPacketInterface())
 	free_ndpi_memory = false;
       break;
@@ -726,6 +731,57 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
   char buf[256];
   ntop->getTrace()->traceEvent(TRACE_ERROR, "%s %s", ndpiFlow->host_server_name[0] != '\0' ? ndpiFlow->host_server_name : (unsigned char*)"", print(buf, sizeof(buf)));
 #endif
+}
+
+/* *************************************** */
+
+/* Special handling of IEC60870 which is always performed. */
+void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
+				 const u_char *payload, u_int16_t payload_len, u_int64_t packet_time) {
+  ndpi_protocol proto_id;
+  
+  /* Exits if the flow isn't IEC60870 or it the interface is not a packet-interface */
+  if(!isIEC60870()
+     || (!getInterface()->isPacketInterface())
+     || (payload_len < 6))
+    return;
+ 
+  /* Instruct nDPI to continue the dissection
+     See https://github.com/ntop/ntopng/commit/30f52179d9f7a1eb774534def93d55c77d6070bc#diff-20b1df29540b6de59ceb6c6d2f3afdb5R387
+  */
+  ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10;
+
+  proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
+					   ip_packet, ip_len, packet_time,
+					   (struct ndpi_id_struct*) cli_id, (struct ndpi_id_struct*) srv_id);
+
+  /*
+    A IEC60870 flow won't change to a non-IEC60870 flow. However, this check is
+    just in case for safety. What can change is the application protocol, e.g.,
+    a IEC60870.Google can become IEC60870.Facebook.
+  */
+  switch(ndpi_get_lower_proto(proto_id)) {
+  case NDPI_PROTOCOL_IEC60870:
+    {
+      u_int8_t len = payload[1];
+
+      if(payload_len >= len) { 
+	u_int8_t type_id = payload[6];
+
+	if(type_id < 32)
+	  iec104_typeid_mask |= (1 << type_id);
+
+#if 0
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [payload_len: %u][len: %u][TypeID: %u]",
+				     __FUNCTION__, payload_len, len, type_id);
+#endif
+      }
+    }
+    break;
+  
+  default:
+    break;
+  }
 }
 
 /* *************************************** */
@@ -1403,12 +1459,14 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 						      partial->get_srv2cli_bytes());
     }
     break;
+
   case NDPI_PROTOCOL_DNS:
     if(cli_host && cli_host->getDNSstats())
       cli_host->getDNSstats()->incStats(true  /* Client */, partial->get_flow_dns_stats());
     if(srv_host && srv_host->getDNSstats())
       srv_host->getDNSstats()->incStats(false /* Server */, partial->get_flow_dns_stats());
     break;
+    
   case NDPI_PROTOCOL_MDNS:
     if(cli_host) {
       if(protos.mdns.answer)   cli_host->offlineSetMDNSInfo(protos.mdns.answer);
@@ -1959,6 +2017,10 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
         }
       }
     }
+
+    if(isIEC60870())
+       lua_push_uint32_table_entry(vm, "iec104_typeid_mask", iec104_typeid_mask);
+
     if (!has_json_info)
       lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 

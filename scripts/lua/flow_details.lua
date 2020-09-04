@@ -756,6 +756,10 @@ else
       print("</td></tr>\n")
    end
 
+   if(flow.iec104_typeid_mask) then
+      print("<tr><th width=30%>"..i18n("flow_details.iec104_mask").."</th><td colspan=2>"..flow.iec104_typeid_mask.."</td></tr>\n")
+   end
+   
    print("<tr><th width=30%>"..i18n("flow_details.tos").."</th>")
    print("<td>"..(dscp_consts.dscp_descr(flow.tos.client.DSCP)) .." / ".. (dscp_consts.ecn_descr(flow.tos.client.ECN)) .."</td>")
    print("<td>"..(dscp_consts.dscp_descr(flow.tos.server.DSCP)) .." / ".. (dscp_consts.ecn_descr(flow.tos.server.ECN)) .."</td>")

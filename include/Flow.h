@@ -88,6 +88,7 @@ class Flow : public GenericHashEntry {
   json_object *json_info;
   ndpi_serializer *tlv_info;
   char *host_server_name, *bt_hash;
+  u_int32_t iec104_typeid_mask;
   OperatingSystem operating_system;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
@@ -310,6 +311,7 @@ class Flow : public GenericHashEntry {
   inline bool isTLS()  const { return(isProto(NDPI_PROTOCOL_TLS));  }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
+  inline bool isIEC60870()  const { return(isProto(NDPI_PROTOCOL_IEC60870));  }
   inline bool isMDNS() const { return(isProto(NDPI_PROTOCOL_MDNS)); }
   inline bool isSSDP() const { return(isProto(NDPI_PROTOCOL_SSDP)); }
   inline bool isNetBIOS() const { return(isProto(NDPI_PROTOCOL_NETBIOS)); }
@@ -379,6 +381,9 @@ class Flow : public GenericHashEntry {
 		     u_int8_t *payload, u_int16_t payload_len);
   void setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len);
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time);
+  void processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
+			     const u_char *payload, u_int16_t payload_len, u_int64_t packet_time);
+  
   void endProtocolDissection();
   inline void setCustomApp(custom_app_t ca) {
     memcpy(&custom_app, &ca, sizeof(custom_app));
