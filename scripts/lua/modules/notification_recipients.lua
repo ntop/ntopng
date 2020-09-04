@@ -15,7 +15,7 @@ local do_trace = false
 
 local ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG = "ntopng.prefs.notification_endpoint.endpoint_recipient_to_endpoint_conf"
 local ENDPOINT_RECIPIENTS_KEY = "ntopng.prefs.notification_endpoint.endpoint_config_%s.recipients"
-local RECIPIENT_QUEUE_KEY = "ntopng.alerts.notification_recipient_queue.%s"
+local RECIPIENT_QUEUE_KEY = "ntopng.alerts.notification_recipient_queue.prio_%s.%s"
 local RECIPIENT_NEXT_EXPORT_TIME_KEY = "ntopng.cache.notification_recipient_export_time.%s"
 
 -- #################################################################
@@ -24,9 +24,30 @@ local notification_recipients = {}
 
 -- #################################################################
 
-local function get_endpoint_recipient_queue(endpoint_recipient_name)
-   local k = string.format(RECIPIENT_QUEUE_KEY, endpoint_recipient_name)
-   return k
+local function get_endpoint_recipient_high_priority_queue(endpoint_recipient_name)
+   return string.format(RECIPIENT_QUEUE_KEY, "high", endpoint_recipient_name)
+end
+
+-- #################################################################
+
+local function get_endpoint_recipient_low_priority_queue(endpoint_recipient_name)
+   return string.format(RECIPIENT_QUEUE_KEY, "low", endpoint_recipient_name)
+end
+
+-- #################################################################
+
+local function get_endpoint_recipient_queue(endpoint_recipient_name, notification)
+   local res
+
+   if notification.alert_entity == alert_consts.alertEntity("flow") then
+      -- Flow alerts are low-priority
+      res = get_endpoint_recipient_low_priority_queue(endpoint_recipient_name)
+   else
+      -- Other alerts are high-priority
+      res = get_endpoint_recipient_high_priority_queue(endpoint_recipient_name)
+   end
+
+   return res
 end
 
 -- #################################################################
@@ -236,7 +257,6 @@ function notification_recipients.get_recipient(endpoint_recipient_name)
       endpoint_conf = ec,
       recipient_params = json.decode(rc["recipient_params"]),
       recipient_name = endpoint_recipient_name,
-      export_queue = get_endpoint_recipient_queue(endpoint_recipient_name),
    }
 end
 
@@ -279,6 +299,8 @@ function notification_recipients.delete_recipient(endpoint_recipient_name)
    local k = string.format(ENDPOINT_RECIPIENTS_KEY, endpoint_conf_name)
    ntop.delHashCache(k, endpoint_recipient_name)
    ntop.delHashCache(ENDPOINT_RECIPIENT_TO_ENDPOINT_CONFIG, endpoint_recipient_name)
+   ntop.delCache(get_endpoint_recipient_low_priority_queue(endpoint_recipient_name))
+   ntop.delCache(get_endpoint_recipient_high_priority_queue(endpoint_recipient_name))
 
    pools_lua_utils.unbind_all_recipient_id(endpoint_recipient_name)
 
@@ -379,7 +401,7 @@ function notification_recipients.dispatch_notification(notification)
       local json_notification = json.encode(notification)
 
       for _, recipient_id in pairs(recipients) do
-	 local export_queue = get_endpoint_recipient_queue(recipient_id)
+	 local export_queue = get_endpoint_recipient_queue(recipient_id, notification)
 
 	 -- Push the notification at the tail of the export queue for the recipient
 	 ntop.rpushCache(export_queue, json_notification, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT)
@@ -390,11 +412,12 @@ end
 -- #################################################################
 
 -- @brief Processes notifications dispatched to recipients
+-- @param high_priority A boolean indicating whether to process high- or low-priority notifications
 -- @param now An epoch of the current time
 -- @param periodic_frequency The frequency, in seconds, of this call
 -- @param force_export A boolean telling to forcefully export dispatched notifications
 -- @return nil
-function notification_recipients.process_notifications(now, periodic_frequency, force_export)
+local function process_notifications_by_priority(high_priority, now, periodic_frequency, force_export)
    local recipients = notification_recipients.get_recipients()
    local modules_by_name = notification_configs.get_types()
    local ready_recipients = {}
@@ -419,7 +442,7 @@ function notification_recipients.process_notifications(now, periodic_frequency, 
    -- To avoid having one recipient jeopardizing all the resources, the total
    -- budget is consumed in chunks, that is, recipients are iterated multiple times
    -- and, each time any recipient has a maximum budget for every iteration.
-   local budget_per_iter = 100
+   local budget_per_iter = 10
 
    -- Cycle until there are ready_recipients and total_budget left
    while #ready_recipients > 0 and total_budget >= 0 and not ntop.isDeadlineApproaching() do
@@ -427,6 +450,16 @@ function notification_recipients.process_notifications(now, periodic_frequency, 
 	 local ready_recipient = ready_recipients[i]
 	 local recipient = ready_recipient.recipient
 	 local m = ready_recipient.mod
+
+	 -- Once recipients will be implemented as OO classes (https://github.com/ntop/ntopng/issues/4321)
+	 -- this will become something like recipient:set_export_queue(high_priority)
+	 -- For the time being, this is not possible as recipient is just a table.
+	 if high_priority then
+	    recipient.export_queue = get_endpoint_recipient_high_priority_queue(recipient.recipient_name)
+	 else
+	    recipient.export_queue = get_endpoint_recipient_low_priority_queue(recipient.recipient_name)
+	 end
+
 
 	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name) end
 
@@ -463,6 +496,18 @@ function notification_recipients.process_notifications(now, periodic_frequency, 
 	 end
       end
    end
+end
+
+-- #################################################################
+
+-- @brief Processes notifications dispatched to recipients
+-- @param now An epoch of the current time
+-- @param periodic_frequency The frequency, in seconds, of this call
+-- @param force_export A boolean telling to forcefully export dispatched notifications
+-- @return nil
+function notification_recipients.process_notifications(now, periodic_frequency, force_export)
+   process_notifications_by_priority(true  --[[ high priority --]], now, periodic_frequency, force_export)
+   process_notifications_by_priority(false --[[ low priority  --]], now, periodic_frequency, force_export)
 end
 
 -- #################################################################
