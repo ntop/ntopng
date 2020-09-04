@@ -16,7 +16,7 @@ To store a stateless alert, method `alerts_api.store` is called.
 ## Stateless alerts lifecycle
 
 1. `alerts_api.store` enqueues the alert into ~~the ntopng internal SQLite queue (`ntop.pushSqliteAlert`) and also into ~~the ntopng recipients queue (`ntop.pushAlertNotification`).
-2. `housekeeping.lua` dequeues, every three seconds, the alert from the ~~ntopng internal SQLite queue (`ntop.popSqliteAlert`) and also from the ~~ntopng recipients queue (`alert_utils.processAlertNotifications`).
+2. `housekeeping.lua` dequeues, every three seconds, the alert from the ~~ntopng internal SQLite queue (`ntop.popSqliteAlert`) and also from the~~ ntopng recipients queue (`alert_utils.processAlertNotifications`).
 
   - ~~Alerts dequeued from the ntopng internal SQLite queue are sent to the C engine for the actual insertion into SQLite (`interface.storeAlert`).~~
   - Alerts dequeued from the ntopng recipients queue are enqueued again into per-recipient queues (`notification_recipients.dispatchNotification`), using the host pool id carried inside the alert to choose the recipients (`recipients = pools:get_recipients(message.pool_id)`). Alerts are always enqueued also to the builtin SQLite recipient `builtin_sqlite_recipient`.
