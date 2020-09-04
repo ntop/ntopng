@@ -395,7 +395,6 @@ function notification_recipients.dispatch_notification(notification)
    -- The builtin sqlite recipient is created in startup.lua
    -- NOTE: Using straight the recipient_id for efficieny reasons
    recipients[#recipients + 1] = "builtin_recipient_sqlite"
-   -- tprint({notification, recipients})
 
    if #recipients > 0 then
       local json_notification = json.encode(notification)
@@ -412,29 +411,13 @@ end
 -- #################################################################
 
 -- @brief Processes notifications dispatched to recipients
+-- @param ready_recipients A table with recipients ready to export. Recipients who completed their work are removed from the table
 -- @param high_priority A boolean indicating whether to process high- or low-priority notifications
 -- @param now An epoch of the current time
 -- @param periodic_frequency The frequency, in seconds, of this call
 -- @param force_export A boolean telling to forcefully export dispatched notifications
 -- @return nil
-local function process_notifications_by_priority(high_priority, now, periodic_frequency, force_export)
-   local recipients = notification_recipients.get_recipients()
-   local modules_by_name = notification_configs.get_types()
-   local ready_recipients = {}
-
-   -- Check, among all available recipients, those that are ready to export, depending on
-   -- their EXPORT_FREQUENCY
-   for _, recipient in pairs(recipients) do
-      local module_name = recipient.endpoint_conf.endpoint_key 
-
-      if modules_by_name[module_name] then
-         local m = modules_by_name[module_name]
-	 if force_export or check_endpoint_export(recipient.recipient_name, m.EXPORT_FREQUENCY) then
-	    ready_recipients[#ready_recipients + 1] = {recipient = recipient, mod = m}
-	 end
-      end
-   end
-
+local function process_notifications_by_priority(ready_recipients, high_priority, now, periodic_frequency, force_export)
    -- Total budget availabe, which is a multiple of the periodic_frequency
    -- Budget in this case is the maximum number of notifications which can
    -- be processed during this call.
@@ -461,7 +444,7 @@ local function process_notifications_by_priority(high_priority, now, periodic_fr
 	 end
 
 
-	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name) end
+	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " high_priority: "..tostring(high_priority)) end
 
 	 if m.dequeueRecipientAlerts then
 	    local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter)
@@ -506,8 +489,27 @@ end
 -- @param force_export A boolean telling to forcefully export dispatched notifications
 -- @return nil
 function notification_recipients.process_notifications(now, periodic_frequency, force_export)
-   process_notifications_by_priority(true  --[[ high priority --]], now, periodic_frequency, force_export)
-   process_notifications_by_priority(false --[[ low priority  --]], now, periodic_frequency, force_export)
+   local recipients = notification_recipients.get_recipients()
+   local modules_by_name = notification_configs.get_types()
+   local ready_recipients = {}
+
+   -- Check, among all available recipients, those that are ready to export, depending on
+   -- their EXPORT_FREQUENCY
+   for _, recipient in pairs(recipients) do
+      local module_name = recipient.endpoint_conf.endpoint_key 
+
+      if modules_by_name[module_name] then
+         local m = modules_by_name[module_name]
+	 if force_export or check_endpoint_export(recipient.recipient_name, m.EXPORT_FREQUENCY) then
+	    ready_recipients[#ready_recipients + 1] = {recipient = recipient, mod = m}
+	 end
+      end
+   end
+
+   -- Use table.clone to pass recipients as the table is modified to only leave, after the call,
+   -- only those recipients who didn't complete their job.
+   process_notifications_by_priority(table.clone(ready_recipients), true  --[[ high priority --]], now, periodic_frequency, force_export)
+   process_notifications_by_priority(table.clone(ready_recipients), false --[[ low priority  --]], now, periodic_frequency, force_export)
 end
 
 -- #################################################################
