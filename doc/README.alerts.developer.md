@@ -15,11 +15,11 @@ To store a stateless alert, method `alerts_api.store` is called.
 
 ## Stateless alerts lifecycle
 
-1. `alerts_api.store` enqueues the alert into the ntopng internal SQLite queue (`ntop.pushSqliteAlert`) and also into the ntopng recipients queue (`ntop.pushAlertNotification`).
-2. `housekeeping.lua` dequeues, every three seconds, the alert from the ntopng internal SQLite queue (`ntop.popSqliteAlert`) and also from the ntopng recipients queue (`alert_utils.processAlertNotifications`).
+1. `alerts_api.store` enqueues the alert into ~~the ntopng internal SQLite queue (`ntop.pushSqliteAlert`) and also into ~~the ntopng recipients queue (`ntop.pushAlertNotification`).
+2. `housekeeping.lua` dequeues, every three seconds, the alert from the ~~ntopng internal SQLite queue (`ntop.popSqliteAlert`) and also from the ~~ntopng recipients queue (`alert_utils.processAlertNotifications`).
 
-  - Alerts dequeued from the ntopng internal SQLite queue are sent to the C engine for the actual insertion into SQLite (`interface.storeAlert`).
-  - Alerts dequeued from the ntopng recipients queue are enqueued again into per-recipient queues (`notification_recipients.dispatchNotification`), using the host pool id carried inside the alert to choose the recipients (`recipients = pools:get_recipients(message.pool_id)`)
+  - ~~Alerts dequeued from the ntopng internal SQLite queue are sent to the C engine for the actual insertion into SQLite (`interface.storeAlert`).~~
+  - Alerts dequeued from the ntopng recipients queue are enqueued again into per-recipient queues (`notification_recipients.dispatchNotification`), using the host pool id carried inside the alert to choose the recipients (`recipients = pools:get_recipients(message.pool_id)`). Alerts are always enqueued also to the builtin SQLite recipient `builtin_sqlite_recipient`.
 
 3. `housekeeping.lua` dequeues, every three seconds, alerts from every per-recipient queue (`notification_recipients.processNotifications`).
 
@@ -34,14 +34,14 @@ Methods `alerts_api.trigger` and `alerts_api.release` are called to trigger and 
 ## Stateful alerts lifecycle
 
 1. `alerts_api.trigger` sets into the C core, straight into the entity, the triggered alert (e.g., `host.storeTriggeredAlert`) and enqueues the alert into the ntopng recipients queue (`ntop.pushAlertNotification`). No SQLite enqueues/dequeues/insertions comes into play.
-2. `alerts_api.release` removes from the C core the previously triggered alert (e.g., `host.releaseTriggeredAlert`), enqueues the alert into the ntopng internal SQLite queue (`ntop.pushSqliteAlert`) and also into the ntopng recipients queue (`ntop.pushAlertNotification`).
+2. `alerts_api.release` removes from the C core the previously triggered alert (e.g., `host.releaseTriggeredAlert`), enqueues the alert into ~~the ntopng internal SQLite queue (`ntop.pushSqliteAlert`) and also into ~~the ntopng recipients queue (`ntop.pushAlertNotification`).
 3. `housekeeping.lua` performs the very same operations *2 and 3* described above for stateless alerts.
 
 # Alert Queues
 
 Queues are used to decouple the dispatch from the processing of alerts. Currently used queues are:
 
-- One in-memory queue for SQLite alerts (`ntop->getSqliteAlertsQueue()`)
+- ~~One in-memory queue for SQLite alerts (`ntop->getSqliteAlertsQueue()`)~~
 - One in-memory queue for the ntopng recipients (`ntop->getAlertsNotificationsQueue()`)
 - Multiple Redis queues for per-recipient queues (`get_endpoint_recipient_queue(recipient_id)`)
 
@@ -51,7 +51,7 @@ JSON messages are queued/dequeued. The format of the JSON is undocumented and co
 
 ## Queue drops
 
-- When the SQLlite queue is full, alerts are dropped and counted into the system interface dropped alerts (`iface->incNumDroppedAlerts(1)`).
+- ~~When the SQLlite queue is full, alerts are dropped and counted into the system interface dropped alerts (`iface->incNumDroppedAlerts(1)`).~~
 - ~~When the ntopng recipients queue is full, alerts are dropped but drops are NOT counted.~~
 - When any of the per-recipient queues is full, alerts are dropped with a queue trim but drops are NOT counted.
 
