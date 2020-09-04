@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local json = require("dkjson")
 local alert_consts = require("alert_consts")
 local os_utils = require("os_utils")
+local notification_recipients = require "notification_recipients"
 local do_trace = false
 
 local alerts_api = {}
@@ -180,8 +181,7 @@ function alerts_api.store(entity_info, type_info, when)
     interface.incTotalHostAlerts(entity_info.alert_entity_val, type_info.alert_type.alert_key)
   end
 
-  local alert_json = json.encode(alert_to_store)
-  ntop.pushAlertNotification(alert_json)
+  notification_recipients.dispatch_notification(alert_to_store)
 
   return(true)
 end
@@ -312,15 +312,13 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
   addAlertPoolInfo(entity_info, triggered)
 
-  local alert_json = json.encode(triggered)
-
   -- Emit the notification only if the notification hasn't already been emitted.
   -- This is to avoid alert storms when ntopng is restarted. Indeeed,
   -- if there are 100 alerts triggered when ntopng is switched off, chances are the
   -- same 100 alerts will be triggered again as soon as ntopng is restarted, causing
   -- 100 trigger notifications to be emitted twice. This check is to prevent such behavior.
   if not is_trigger_notified(triggered) then
-     ntop.pushAlertNotification(alert_json)
+     notification_recipients.dispatch_notification(triggered)
      mark_trigger_notified(triggered)
   end
 
@@ -390,8 +388,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
 
   addAlertPoolInfo(entity_info, released)
 
-  local alert_json = json.encode(released)
-  ntop.pushAlertNotification(alert_json)
+  notification_recipients.dispatch_notification(released)
   mark_release_notified(released)
 
   return(true)

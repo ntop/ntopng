@@ -186,7 +186,6 @@ if  ntop.isnEdge() then
    http_bridge_conf_utils.configureBridge()
 end
 
-alert_utils.processAlertNotifications(os.time(), 0, true --[[ force ]])
 alert_utils.notify_ntopng_start()
 
 if not recovery_utils.check_clean_shutdown() then

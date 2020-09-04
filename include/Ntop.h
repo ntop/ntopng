@@ -84,7 +84,6 @@ class Ntop {
   float cpu_load;
   bool is_started, plugins0_active, can_send_icmp, privileges_dropped;
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
-  FifoStringsQueue *alerts_notifications_queue;
   FifoSerializerQueue *internal_alerts_queue;
 #ifndef WIN32
   ContinuousPing *cping;
@@ -463,7 +462,6 @@ class Ntop {
   inline void setLastInterfacenDPIReload(time_t now)      { last_ndpi_reload = now;   }
   inline bool needsnDPICleanup()                          { return(ndpi_cleanup_needed); }
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
-  inline FifoStringsQueue* getAlertsNotificationsQueue()  { return(alerts_notifications_queue);  }
   inline FifoSerializerQueue* getInternalAlertsQueue()    { return(internal_alerts_queue);  }
   void lua_alert_queues_stats(lua_State* vm);
 

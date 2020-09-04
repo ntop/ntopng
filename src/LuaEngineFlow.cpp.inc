@@ -900,49 +900,41 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
   severity = (AlertLevel)lua_tointeger(vm, 3);
 
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-    now = (time_t) lua_tonumber(vm, 4);
+  now = (time_t) lua_tonumber(vm, 4);
 
   if(lua_type(vm, 5) == LUA_TSTRING)
     status_info = lua_tostring(vm, 5);
 
+  lua_newtable(vm);
+
   if(f->triggerAlert(status, atype, severity, status_info)) {
     /* The alert was successfully triggered */
-    FifoStringsQueue *notif_queue = ntop->getAlertsNotificationsQueue();
-
     triggered = true;
 
-    if(notif_queue->canEnqueue()) {
-      ndpi_serializer flow_json;
-      const char *flow_str;
+    ndpi_serializer flow_json;
+    const char *flow_str;
 
-      ndpi_init_serializer(&flow_json, ndpi_serialization_format_json);
+    ndpi_init_serializer(&flow_json, ndpi_serialization_format_json);
 
-      /* Only proceed if there is some space in the queues */
-      f->flow2alertJson(&flow_json, now);
-      if(!first_alert)
-        ndpi_serialize_string_boolean(&flow_json, "replace_alert", true);
+    /* Only proceed if there is some space in the queues */
+    f->flow2alertJson(&flow_json, now);
+    if(!first_alert)
+      ndpi_serialize_string_boolean(&flow_json, "replace_alert", true);
 
-      flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
+    // alert_entity MUST be in sync with alert_consts.lua flow alert entity
+    ndpi_serialize_string_int32(&flow_json, "alert_entity", 4);
+    ndpi_serialize_string_string(&flow_json, "alert_entity_val", "flow");
+    // flows don't have any pool for now
+    ndpi_serialize_string_int32(&flow_json, "pool_id", NO_HOST_POOL_ID);
 
-      if(flow_str) {
-        if(!notif_queue->enqueue((char*)flow_str)) {
-          f->getInterface()->incNumDroppedAlerts(1);
-	  
-          if(ctx->threaded_activity_stats)
-            ctx->threaded_activity_stats->setAlertsDrops();
-        }
-      }
+    flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
-      ndpi_term_serializer(&flow_json);
-    } else {
-      f->getInterface()->incNumDroppedAlerts(1);
-
-      if(ctx->threaded_activity_stats)
-        ctx->threaded_activity_stats->setAlertsDrops();
-    }
+    if(flow_str)
+      lua_push_str_table_entry(vm, "alert_json", flow_str);
+    ndpi_term_serializer(&flow_json);
   }
 
-  lua_pushboolean(vm, triggered);
+  lua_push_bool_table_entry(vm, "triggered", triggered);
   return(CONST_LUA_OK);
 }
 

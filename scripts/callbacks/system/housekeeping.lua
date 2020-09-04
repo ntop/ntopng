@@ -14,17 +14,17 @@ require "lua_utils"
 local lists_utils = require "lists_utils"
 local recording_utils = require "recording_utils"
 local plugins_utils = require "plugins_utils"
-
 local now = os.time()
 
+
+
 if(areAlertsEnabled()) then
-   local alert_utils = require "alert_utils"
+   local notification_recipients = require "notification_recipients"
    local periodicity = 3
 
-   -- Check for alerts to be notified
-   alert_utils.processAlertNotifications(now, periodicity)
+   notification_recipients.process_notifications(now, periodicity)
 end
-   
+
 -- Check and possibly reload plugins
 plugins_utils.checkReloadPlugins(now)
 

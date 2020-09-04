@@ -362,37 +362,39 @@ end
 
 -- #################################################################
 
-function notification_recipients.dispatchNotification(message, json_message)
+-- @brief Dispatches a `notification` to all the interested recipients
+-- @param notification An alert notification
+-- @return nil
+function notification_recipients.dispatch_notification(notification)
    local pools_alert_utils = require "pools_alert_utils"
+   local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id)
 
    -- Dispatch to the builtin sqlite recipient (possibly check if the recipient is enabled or disabled)
    -- The builtin sqlite recipient is created in startup.lua
    -- NOTE: Using straight the recipient_id for efficieny reasons
-   local builtin_queue = get_endpoint_recipient_queue("builtin_recipient_sqlite")
-   -- Push the message at the tail of the export queue for the recipient
-   ntop.rpushCache(builtin_queue, json_message, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT)
+   recipients[#recipients + 1] = "builtin_recipient_sqlite"
+   -- tprint({notification, recipients})
 
-   -- Now see, and possibly dispatch, the notification also to any additional recipient
-   -- which is responsible for the entity pool id
-   local pools = pools_alert_utils.get_entity_pools_by_id(message.alert_entity)
-   
-   if not pools then
-      -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Pools for entity "..message.alert_entity.." not found")
-      return
-   end
+   if #recipients > 0 then
+      local json_notification = json.encode(notification)
 
-   local recipients = pools:get_recipients(message.pool_id)
-   for _, recipient_id in pairs(recipients) do
-      local export_queue = get_endpoint_recipient_queue(recipient_id)
+      for _, recipient_id in pairs(recipients) do
+	 local export_queue = get_endpoint_recipient_queue(recipient_id)
 
-      -- Push the message at the tail of the expor queue for the recipient
-      ntop.rpushCache(export_queue, json_message, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT)
+	 -- Push the notification at the tail of the export queue for the recipient
+	 ntop.rpushCache(export_queue, json_notification, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT)
+      end
    end
 end
 
 -- #################################################################
 
-function notification_recipients.processNotifications(now, periodic_frequency, force_export)
+-- @brief Processes notifications dispatched to recipients
+-- @param now An epoch of the current time
+-- @param periodic_frequency The frequency, in seconds, of this call
+-- @param force_export A boolean telling to forcefully export dispatched notifications
+-- @return nil
+function notification_recipients.process_notifications(now, periodic_frequency, force_export)
    local recipients = notification_recipients.get_recipients()
    local modules_by_name = notification_configs.get_types()
    local ready_recipients = {}

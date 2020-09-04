@@ -27,6 +27,11 @@ for _, ifname in pairs(ifnames) do
   interface.releaseEngagedAlerts()
 end
 
-alert_utils.processAlertNotifications(now, 3 --[[ deadline ]], true --[[ force ]])
+if(areAlertsEnabled()) then
+   local notification_recipients = require "notification_recipients"
+   local periodicity = 3
+
+   notification_recipients.process_notifications(now, 3 --[[ deadline ]])
+end
 
 recovery_utils.mark_clean_shutdown()

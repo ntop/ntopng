@@ -20,6 +20,7 @@ local alert_consts = require("alert_consts")
 local flow_consts = require("flow_consts")
 local json = require("dkjson")
 local alerts_api = require("alerts_api")
+local notification_recipients = require "notification_recipients"
 local ids_utils = nil
 
 if ntop.isPro() then
@@ -276,12 +277,19 @@ local function triggerFlowAlert(now, l4_proto)
       alert_type_params = json.encode(alert_type_params)
    end
 
-   local triggered = flow.triggerAlert(status_key,
+   local res = flow.triggerAlert(status_key,
       alerted_status.alert_type.alert_key,
       alerted_status.alert_severity.severity_id,
       now, alert_type_params)
 
-   return(triggered)
+   -- There's no lua table for the flow alert. Flow alert is generated from C and is returned to
+   -- Lua as a JSON string. Hence, to dispatch it to the recipient, alert must be decoded from JSON.
+   -- Then, the dispatch will re-encode it, thus wasting more time. This needs to be fixed.
+   if res.alert_json then
+      notification_recipients.dispatch_notification(json.decode(res.alert_json))
+   end
+
+   return(res.triggered)
 end
 
 -- #################################################################

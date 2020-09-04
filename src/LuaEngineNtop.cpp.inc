@@ -5380,55 +5380,6 @@ static int ntop_get_networks(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_push_alert(FifoStringsQueue* queue, lua_State* vm) {
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
-  const char *alert;
-  bool rv;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert = lua_tostring(vm, 1);
-
-  if(!queue)
-    rv = false;
-  else if(queue->enqueue((char*)alert))
-    rv = true;
-  else {
-    NetworkInterface *iface = getCurrentInterface(vm);
-    rv = false;
-
-    if(iface) {
-      iface->incNumDroppedAlerts(1);
-
-      if(ctx->threaded_activity_stats)
-        ctx->threaded_activity_stats->setAlertsDrops();
-    }
-  }
-
-  lua_pushboolean(vm, rv);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_pop_alert(FifoStringsQueue* queue, lua_State* vm) {  
-  if(queue && !queue->empty()) {
-    char *alert = queue->dequeue();
-    
-    lua_pushstring(vm, alert);
-    free(alert);
-  } else
-    lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_push_alert_notification(lua_State* vm) { return ntop_push_alert(ntop->getAlertsNotificationsQueue(), vm); }
-static int ntop_pop_alert_notification(lua_State* vm)  { return ntop_pop_alert(ntop->getAlertsNotificationsQueue(), vm);  }
-
-/* ****************************************** */
-
 static int ntop_pop_internal_alerts(lua_State* vm) {
   ndpi_serializer *alert = ntop->getInternalAlertsQueue()->dequeue();
 			
@@ -5742,8 +5693,6 @@ static const luaL_Reg ntop_reg[] = {
   { "bitmapClear",           ntop_bitmap_clear          },
 
   /* Alerts queues */
-  { "pushAlertNotification", ntop_push_alert_notification     },
-  { "popAlertNotification",  ntop_pop_alert_notification      },
   { "popInternalAlerts",     ntop_pop_internal_alerts         },
 
   /* nDPI */
