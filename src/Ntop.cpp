@@ -94,7 +94,6 @@ Ntop::Ntop(char *appName) {
   ndpi_struct = initnDPIStruct();
   ndpi_finalize_initalization(ndpi_struct);
 
-  sqlite_alerts_queue = new FifoStringsQueue(SQLITE_ALERTS_QUEUE_SIZE);
   alerts_notifications_queue = new FifoStringsQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE);
   internal_alerts_queue = new FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
@@ -278,7 +277,6 @@ Ntop::~Ntop() {
 #endif
   
   if(resolvedHostsBloom) delete resolvedHostsBloom;
-  delete sqlite_alerts_queue;
   delete alerts_notifications_queue;
   delete internal_alerts_queue;
 
@@ -970,7 +968,6 @@ void Ntop::lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm)
 void Ntop::lua_alert_queues_stats(lua_State* vm) {
   lua_newtable(vm);
 
-  if(getSqliteAlertsQueue()) getSqliteAlertsQueue()->lua(vm, "sqlite_alerts_queue");
   if(getAlertsNotificationsQueue()) getAlertsNotificationsQueue()->lua(vm, "alerts_notifications_queue");
   if(getInternalAlertsQueue()) getInternalAlertsQueue()->lua(vm, "internal_alerts_queue");
 

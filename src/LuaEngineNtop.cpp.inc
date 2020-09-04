@@ -5424,9 +5424,7 @@ static int ntop_pop_alert(FifoStringsQueue* queue, lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_push_sqlite_alert(lua_State* vm)       { return ntop_push_alert(ntop->getSqliteAlertsQueue(), vm);        }
 static int ntop_push_alert_notification(lua_State* vm) { return ntop_push_alert(ntop->getAlertsNotificationsQueue(), vm); }
-static int ntop_pop_sqlite_alert(lua_State* vm)        { return ntop_pop_alert(ntop->getSqliteAlertsQueue(), vm);         } 
 static int ntop_pop_alert_notification(lua_State* vm)  { return ntop_pop_alert(ntop->getAlertsNotificationsQueue(), vm);  }
 
 /* ****************************************** */
@@ -5744,8 +5742,6 @@ static const luaL_Reg ntop_reg[] = {
   { "bitmapClear",           ntop_bitmap_clear          },
 
   /* Alerts queues */
-  { "pushSqliteAlert",       ntop_push_sqlite_alert           },
-  { "popSqliteAlert",        ntop_pop_sqlite_alert            },
   { "pushAlertNotification", ntop_push_alert_notification     },
   { "popAlertNotification",  ntop_pop_alert_notification      },
   { "popInternalAlerts",     ntop_pop_internal_alerts         },

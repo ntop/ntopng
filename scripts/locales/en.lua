@@ -4193,9 +4193,7 @@ local lang = {
     ["notes_alerts_notifications_queue"] = "The Notifications Queue is used to dispatch alerts to notification recipients",
     ["notes_enq_deq"] = "'Fill Level' is the fraction of queued alerts, with reference to the queue size. 'Dropped' is the fraction of alerts dropped due to queue full, with reference to the total number of alerts",
     ["notes_internal_alerts_queue"] = "The Internal Queue is used in combination with SQLite to handle alerts generated in the core and show them inside the UI",
-    ["notes_sqlite_alerts_queue"] = "The SQLite Queue is used to in combination with SQLite to show alerts inside the UI",
     ["queues_status"] = "Fill Level / Dropped",
-    ["sqlite_alerts_queue"] = "SQLite Queue",
   },
   ["system_interfaces_stats"] = {
     ["local_hosts"] = "Local Hosts",

@@ -365,6 +365,15 @@ end
 function notification_recipients.dispatchNotification(message, json_message)
    local pools_alert_utils = require "pools_alert_utils"
 
+   -- Dispatch to the builtin sqlite recipient (possibly check if the recipient is enabled or disabled)
+   -- The builtin sqlite recipient is created in startup.lua
+   -- NOTE: Using straight the recipient_id for efficieny reasons
+   local builtin_queue = get_endpoint_recipient_queue("builtin_recipient_sqlite")
+   -- Push the message at the tail of the export queue for the recipient
+   ntop.rpushCache(builtin_queue, json_message, alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT)
+
+   -- Now see, and possibly dispatch, the notification also to any additional recipient
+   -- which is responsible for the entity pool id
    local pools = pools_alert_utils.get_entity_pools_by_id(message.alert_entity)
    
    if not pools then

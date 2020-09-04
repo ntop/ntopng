@@ -907,12 +907,11 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
 
   if(f->triggerAlert(status, atype, severity, status_info)) {
     /* The alert was successfully triggered */
-    FifoStringsQueue *sqlite_queue = ntop->getSqliteAlertsQueue();
     FifoStringsQueue *notif_queue = ntop->getAlertsNotificationsQueue();
 
     triggered = true;
 
-    if(sqlite_queue->canEnqueue() || notif_queue->canEnqueue()) {
+    if(notif_queue->canEnqueue()) {
       ndpi_serializer flow_json;
       const char *flow_str;
 
@@ -926,14 +925,12 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
       flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
       if(flow_str) {
-        if(!sqlite_queue->enqueue((char*)flow_str)) {
+        if(!notif_queue->enqueue((char*)flow_str)) {
           f->getInterface()->incNumDroppedAlerts(1);
 	  
           if(ctx->threaded_activity_stats)
             ctx->threaded_activity_stats->setAlertsDrops();
         }
-
-        notif_queue->enqueue((char*)flow_str);
       }
 
       ndpi_term_serializer(&flow_json);
