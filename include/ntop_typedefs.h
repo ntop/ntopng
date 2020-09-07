@@ -73,6 +73,11 @@ typedef struct {
   struct timeval *tv;
 } periodic_stats_update_user_data_t;
 
+typedef enum {
+  recipient_notification_priority_low = 0,
+  recipient_notification_priority_high = 1
+} RecipientNotificationPriority;
+
 /* Keep in sync with alert_consts.alerts_granularities and Utils */
 typedef enum {
   no_periodicity = -1,

@@ -544,6 +544,7 @@
 #define CONST_FLOW_ALERT_EVENT_QUEUE       "ntopng.cache.ifid_%d.flow_alerts_events_queue"
 #define SQLITE_ALERTS_QUEUE_SIZE           8192
 #define ALERTS_NOTIFICATIONS_QUEUE_SIZE    8192
+#define MAX_NUM_RECIPIENTS                 128 /* keep in sync with Recipients.lua recipients.MAX_NUM_RECIPIENTS */
 #define INTERNAL_ALERTS_QUEUE_SIZE         1024
 #define CONST_REMOTE_TO_REMOTE_MAX_QUEUE   32
 #define CONST_SQL_QUEUE                        "ntopng.sql_queue"

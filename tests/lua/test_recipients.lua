@@ -46,6 +46,29 @@ local r2 = r:get_recipient(1)
 
 local e1 = r:edit_recipient(res1.recipient_id, "ntop_mail_r_edited", {email_recipient = "test4@ntop.org"})
 
+local t1 = "{test notification 1}"
+local t2 = "{test notification 2}"
+
+-- High priority
+ntop.recipient_enqueue(res7.recipient_id, true, t1)
+ntop.recipient_enqueue(res7.recipient_id, true, t2)
+local n1 = ntop.recipient_dequeue(res7.recipient_id, true)
+local n2 = ntop.recipient_dequeue(res7.recipient_id, true)
+local n3 = ntop.recipient_dequeue(res7.recipient_id, true)
+assert(n1 == t1)
+assert(n2 == t2)
+assert(not n3)
+
+-- Low priority
+ntop.recipient_enqueue(res7.recipient_id, false, t1)
+ntop.recipient_enqueue(res7.recipient_id, false, t2)
+local n1 = ntop.recipient_dequeue(res7.recipient_id, false)
+local n2 = ntop.recipient_dequeue(res7.recipient_id, false)
+local n3 = ntop.recipient_dequeue(res7.recipient_id, false)
+assert(n1 == t1)
+assert(n2 == t2)
+assert(not n3)
+
 -- local res = r:test_recipient("ntop_mail", {email_recipient = "test4@ntop.org", cc = ""})
 -- tprint(res)
 -- tprint(e1)

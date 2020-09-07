@@ -313,6 +313,8 @@ using namespace std;
 #include "FifoStringsQueue.h"
 #include "FifoSerializerQueue.h"
 #include "RRDTimeseriesExporter.h"
+#include "RecipientQueues.h"
+#include "Recipients.h"
 #ifdef NTOPNG_PRO
 #include "PeriodicityStats.h"
 #include "PeriodicityHash.h"

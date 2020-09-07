@@ -975,6 +975,18 @@ void Ntop::lua_alert_queues_stats(lua_State* vm) {
 
 /* ******************************************* */
 
+bool Ntop::recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const char * const notification) {
+  return recipients.enqueue(recipient_id, prio, notification);
+}
+
+/* ******************************************* */
+
+char* Ntop::recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio) {
+  return recipients.dequeue(recipient_id, prio);
+}
+
+/* ******************************************* */
+
 void Ntop::getUsers(lua_State* vm) {
   char **usernames;
   char *username;

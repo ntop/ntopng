@@ -5395,6 +5395,67 @@ static int ntop_pop_internal_alerts(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+static int ntop_recipient_enqueue(lua_State* vm) {
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  u_int16_t recipient_id;
+  bool high_priority;
+  const char *alert;
+  bool rv = false;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  recipient_id = lua_tointeger(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  high_priority = lua_toboolean(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert = lua_tostring(vm, 3);
+
+  rv = ntop->recipient_enqueue(recipient_id,
+			       high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
+			       alert);
+
+  if(!rv) {
+    NetworkInterface *iface = getCurrentInterface(vm);
+    if(iface) {
+      iface->incNumDroppedAlerts(1);
+
+      if(ctx->threaded_activity_stats)
+	ctx->threaded_activity_stats->setAlertsDrops();
+    }
+  }
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_recipient_dequeue(lua_State* vm) {
+  u_int16_t recipient_id;
+  bool high_priority;
+  char *alert;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  recipient_id = lua_tointeger(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  high_priority = lua_toboolean(vm, 2);
+
+  alert = ntop->recipient_dequeue(recipient_id,
+				  high_priority ? recipient_notification_priority_high : recipient_notification_priority_low);
+
+  if(alert) {
+    lua_pushstring(vm, alert);
+    free(alert);
+  } else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
 /* **************************************************************** */
 
 static int ndpi_is_custom_application(lua_State* vm) {
@@ -5694,6 +5755,10 @@ static const luaL_Reg ntop_reg[] = {
 
   /* Alerts queues */
   { "popInternalAlerts",     ntop_pop_internal_alerts         },
+
+  /* Recipient queues */
+  { "recipient_enqueue",     ntop_recipient_enqueue           },
+  { "recipient_dequeue",     ntop_recipient_dequeue           },
 
   /* nDPI */
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },

@@ -85,6 +85,7 @@ class Ntop {
   bool is_started, plugins0_active, can_send_icmp, privileges_dropped;
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoSerializerQueue *internal_alerts_queue;
+  Recipients recipients; /* Handle notification recipients */
 #ifndef WIN32
   ContinuousPing *cping;
 #endif
@@ -464,6 +465,8 @@ class Ntop {
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
   inline FifoSerializerQueue* getInternalAlertsQueue()    { return(internal_alerts_queue);  }
   void lua_alert_queues_stats(lua_State* vm);
+  bool  recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const char * const notification);
+  char* recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio);
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }
