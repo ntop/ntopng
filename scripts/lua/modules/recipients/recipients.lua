@@ -11,6 +11,10 @@ local recipients = {}
 
 -- ##############################################
 
+recipients.MAX_NUM_RECIPIENTS = 128
+
+-- ##############################################
+
 function recipients:create(args)
    if args then
       -- We're being sub-classed
@@ -130,13 +134,32 @@ end
 -- ##############################################
 
 function recipients:_assign_recipient_id()
-   local next_recipient_id_key = self:_get_next_recipient_id_key()
+   local cur_recipient_ids = self:_get_assigned_recipient_ids()
+   local next_recipient_id
 
-   -- Atomically assign a new recipient id
-   local next_recipient_id = ntop.incrCache(next_recipient_id_key)
+   -- Create a Lua table with currently assigned recipient ids as keys
+   -- to ease the lookup
+   local ids_by_key = {}
+   for _, recipient_id in pairs(cur_recipient_ids) do
+      ids_by_key[recipient_id] = true
+   end
 
-   -- Add the atomically assigned recipient id to the set of current recipient ids (set wants a string)
-   ntop.setMembersCache(self:_get_recipient_ids_key(), string.format("%d", next_recipient_id))
+   -- Lookup for the first (smallest) available recipient id.
+   -- This is to effectively recycle recipient ids no longer used, that is,
+   -- belonging to deleted recipients
+   for i = 0, recipients.MAX_NUM_RECIPIENTS - 1 do
+      if not ids_by_key[i] then
+	 next_recipient_id = i
+	 break
+      end
+   end
+
+   if next_recipient_id then
+      -- Add the atomically assigned recipient id to the set of current recipient ids (set wants a string)
+      ntop.setMembersCache(self:_get_recipient_ids_key(), string.format("%d", next_recipient_id))
+   else
+      -- All recipient ids exhausted
+   end
 
    return next_recipient_id
 end
