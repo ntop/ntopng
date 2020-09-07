@@ -129,8 +129,8 @@
                 // for each input inside the form restore the initial value
                 // from the snapshot taken at init
                 for (const [selector, value] of Object.entries(self.initialState.inputs)) {
-                    $(selector).val(value);
-                    $(selector).removeClass('is-invalid');
+                    $(self.dialog).find(selector).val(value);
+                    $(self.dialog).find(selector).removeClass('is-invalid');
                 }
 
                 // hide the shwon elements
