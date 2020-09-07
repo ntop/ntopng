@@ -368,7 +368,11 @@ function recipients:get_recipient(recipient_id)
 
 	 -- Add also the endpoint configuration
 	 local ec = notification_configs.get_endpoint_config(recipient_details["endpoint_conf_name"])
-	 recipient_details["endpoint_conf"] = ec["endpoint_conf"]
+
+	 if ec then
+	    recipient_details["endpoint_conf"] = ec["endpoint_conf"]
+	    recipient_details["endpoint_key"] = ec["endpoint_key"]
+	 end
       end
    end
 
