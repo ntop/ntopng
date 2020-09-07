@@ -4,19 +4,19 @@
     </label>
     <div class="col-sm-5">
         <input
-	data-validation-message="{{ i18n('email_alert_endpoint.validation.invalid_email') }}" 
-	data-validation-empty-message="{{ i18n('email_alert_endpoint.validation.empty_email') }}" 
+	data-validation-message="{{ i18n('email_alert_endpoint.validation.invalid_email') }}"
+	data-validation-empty-message="{{ i18n('email_alert_endpoint.validation.empty_email') }}"
 	name="email_recipient" data-pattern="email" class="form-control" required />
     </div>
 </div>
 <div class="form-group row">
     <label class="col-form-label col-sm-3">
-        <b>{{ i18n("email_alert_endpoint.carbon_copy") }}</b>
+        {{ i18n("email_alert_endpoint.carbon_copy") }}
     </label>
     <div class="col-sm-5">
         <input
-	data-validation-message="{{ i18n('email_alert_endpoint.validation.invalid_email') }}" 
-	data-validation-empty-message="{{ i18n('email_alert_endpoint.validation.empty_email') }}" 
+	data-validation-message="{{ i18n('email_alert_endpoint.validation.invalid_email') }}"
+	data-validation-empty-message="{{ i18n('email_alert_endpoint.validation.empty_email') }}"
 	name="cc" data-pattern="email" class="form-control" />
         <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>

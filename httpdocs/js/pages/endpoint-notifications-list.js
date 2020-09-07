@@ -1,5 +1,6 @@
 $(document).ready(function () {
 
+    const DEFAULT_ENDPOINT_CONF_ID = 0;
     const INDEX_COLUMN_ENDPOINT_TYPE = 1;
 
     function getTypesCount(configs) {
@@ -128,6 +129,7 @@ $(document).ready(function () {
         beforeSumbit: function () {
             const body = makeFormData(`#edit-endpoint-modal form`);
             body.action = 'edit';
+            body.endpoint_conf_id = $(`#edit-endpoint-modal form [name='endpoint_conf_id']`).val();
             return body;
         },
         loadFormData: function () {
@@ -140,6 +142,7 @@ $(document).ready(function () {
             $(`#endpoint-type`).html(data.endpoint_conf_name);
             /* load the values inside the template */
             $(`#edit-endpoint-modal form [name='name']`).val(data.endpoint_conf_name);
+            $(`#edit-endpoint-modal form [name='endpoint_conf_id']`).val(data.endpoint_conf_id || DEFAULT_ENDPOINT_CONF_ID);
             $(`#edit-endpoint-modal form .endpoint-template-container [name]`).each(function(i, input) {
                 $(this).val(data.endpoint_conf[$(this).attr('name')]);
             });
@@ -217,7 +220,7 @@ $(document).ready(function () {
         beforeSumbit: () => {
             return {
                 action: 'remove',
-                endpoint_conf_name: removeModalData.endpoint_conf_name
+                endpoint_conf_id: removeModalData.endpoint_conf_id || DEFAULT_ENDPOINT_CONF_ID
             };
         },
         onModalInit: function (data) {

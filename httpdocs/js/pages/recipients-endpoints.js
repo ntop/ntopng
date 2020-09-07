@@ -1,6 +1,7 @@
 // @ts-nocheck
 $(document).ready(function () {
 
+    const DEFAULT_RECIPIENT_ID = 0;
     const INDEX_COLUMN_ENDPOINT_TYPE = 2;
 
     let editRowData = null;
@@ -127,15 +128,9 @@ $(document).ready(function () {
                 className: 'text-center',
                 data: null,
                 render: function (data, type, row) {
-
-                    let editButton = "";
-                    const endpointType = row.endpoint_conf.endpoint_key
-                    // if the template is empty then disabled the edit button
-                    const editButtonDisabled = $.trim($(`#${endpointType}-template`).html()) == "";
-
                     return (`
                         <div class='btn-group btn-group-sm'>
-                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info ${editButtonDisabled ? 'disabled' : ''}" >
+                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info" >
                                 <i class='fas fa-edit'></i>
                             </a>
                             <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-danger">
@@ -169,6 +164,7 @@ $(document).ready(function () {
         beforeSumbit: function () {
             const data = makeFormData(`#edit-recipient-modal form`);
             data.action = 'edit';
+            data.recipient_id = $(`#edit-recipient-modal form [name='recipient_id']`).val();
             return data;
         },
         onModalInit: function (data) {
@@ -176,10 +172,14 @@ $(document).ready(function () {
             const $cloned = loadTemplate(editRowData.endpoint_conf.endpoint_key);
             /* load the right template from templates */
             if ($cloned) {
-                $(`#edit-recipient-modal form .recipient-template-container`).empty().append($cloned).show();
+                $(`#edit-recipient-modal form .recipient-template-container`).empty().append($(`<hr>`)).append($cloned).show();
+            }
+            else {
+                $(`#edit-recipient-modal form .recipient-template-container`).empty().hide();
             }
             $(`#edit-recipient-name`).text(editRowData.recipient_name);
             /* load the values inside the template */
+            $(`#edit-recipient-modal form [name='recipient_id']`).val(editRowData.recipient_id || DEFAULT_RECIPIENT_ID);
             $(`#edit-recipient-modal form [name='recipient_name']`).val(editRowData.recipient_name);
             $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(editRowData.endpoint_conf.endpoint_conf_name);
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
@@ -284,7 +284,7 @@ $(document).ready(function () {
         beforeSumbit: function () {
             return {
                 action: 'remove',
-                recipient_name: removeRowData.recipient_name
+                recipient_id: removeRowData.recipient_id || DEFAULT_RECIPIENT_ID
             }
         },
         onSubmitSuccess: function (response) {

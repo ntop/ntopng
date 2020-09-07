@@ -19,8 +19,16 @@
             </div>
             <form>
                 <div class="modal-body">
-                    <input type="text" hidden name="recipient_name">
+                    <input type="number" hidden name="recipient_id">
                     <input type="text" hidden name="endpoint_conf_name">
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="recipient-name-input">
+                            <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <input maxlength="32" minlength="1" required name="recipient_name" type="text" class="form-control" id="recipient-name-input">
+                        </div>
+                    </div>
                     <div class="recipient-template-container">
                     </div>
                     <span class="invalid-feedback"></span>
