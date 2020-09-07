@@ -11,33 +11,39 @@
     <div class="col-md-12 mb-4">
         <div class="card card-shadow">
             <div class="card-header">
-                <div class="form-group">
-                    <label>{* i18n("host_pools.select_host_pool") *}</label>
-                    <select id="select-host-pool" class="form-control w-25">
-                        {% for _, p in pairs(manage_host_members.all_pools) do %}
-                            {% if p.pool_id ~= pool.DEFAULT_POOL_ID then %}
-                                {% if (p.pool_id == tonumber(manage_host_members.pool_id_get)) then %}
-                                    <option selected value="{{ p.pool_id }}">{{ p.name }}</option>
-                                    {% selected_pool_name = p.name %}
-                                {% else %}
-                                    <option value="{{ p.pool_id }}">{{ p.name }}</option>
+                <div class="row">
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label>{* i18n("host_pools.select_host_pool") *}</label>
+                            <select id="select-host-pool" class="form-control w-100">
+                                {% for _, p in pairs(manage_host_members.all_pools) do %}
+                                    {% if p.pool_id ~= pool.DEFAULT_POOL_ID then %}
+                                        {% if (p.pool_id == tonumber(manage_host_members.pool_id_get)) then %}
+                                            <option selected value="{{ p.pool_id }}">{{ p.name }}</option>
+                                            {% selected_pool_name = p.name %}
+                                        {% else %}
+                                            <option value="{{ p.pool_id }}">{{ p.name }}</option>
+                                        {% end %}
+                                    {% end %}
                                 {% end %}
-                            {% end %}
-                        {% end %}
-                    </select>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
-                <table id="host-members-table" class="table table-bordered table-striped w-100">
-                    <thead>
-                        <tr>
-                            <th>{{ i18n("host_pools.member_address") }}</th>
-                            <th>{{ i18n("vlan") }}</th>
-                            <th>{{ i18n("actions") }}</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table id="host-members-table" class="table table-bordered table-striped w-100">
+                        <thead>
+                            <tr>
+                                <th>{{ i18n("host_pools.member_address") }}</th>
+                                <th>{{ i18n("vlan") }}</th>
+                                <th>{{ i18n("actions") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

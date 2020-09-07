@@ -10,16 +10,18 @@
     <div class="col-md-12">
         <div class="card card-shadow">
             <div class="card-body">
-                <table class="table w-100 table-bordered table-striped table-hover my-3" id="recipient-list">
-                    <thead>
-                        <tr>
-                            <th>{{ i18n('endpoint_notifications.recipient_name') }}</th>
-                            <th>{{ i18n('endpoint_notifications.associated_to') }}</th>
-                            <th>{{ i18n('endpoint_notifications.type') }}</th>
-                            <th>{{ i18n('actions') }}</th>
-                        </tr>
-                    </thead>
-                </table>
+                <div class="table-responsive">
+                    <table class="table w-100 table-bordered table-striped table-hover my-3" id="recipient-list">
+                        <thead>
+                            <tr>
+                                <th>{{ i18n('endpoint_notifications.recipient_name') }}</th>
+                                <th>{{ i18n('endpoint_notifications.associated_to') }}</th>
+                                <th>{{ i18n('endpoint_notifications.type') }}</th>
+                                <th>{{ i18n('actions') }}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

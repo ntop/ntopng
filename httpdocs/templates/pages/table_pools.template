@@ -11,19 +11,21 @@
                 {* template_utils.gen("pages/components/nav_tabs.template", menu) *}
             </div>
             <div class="card-body">
-                <table class="table table-bordered table-striped w-100" id="table-pools">
-                    <thead>
-                        <tr>
-                            <th>{{ i18n("pools.name") }}</th>
-                            <th>{{ i18n("pools.members") }}</th>
-                            <th>{{ i18n("pools.recipients") }}</th>
-                            <th>{{ i18n("pools.configuration") }}</th>
-                            <th>{{ i18n("actions") }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped w-100" id="table-pools">
+                        <thead>
+                            <tr>
+                                <th>{{ i18n("pools.name") }}</th>
+                                <th>{{ i18n("pools.members") }}</th>
+                                <th>{{ i18n("pools.recipients") }}</th>
+                                <th>{{ i18n("pools.configuration") }}</th>
+                                <th>{{ i18n("actions") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

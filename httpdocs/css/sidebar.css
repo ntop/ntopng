@@ -279,7 +279,7 @@
     }
 
     main#n-container {
-        padding-left: 0rem !important;
+        padding: 0.8rem !important;
     }
 
     /** hide the default dropdown to switch interface */

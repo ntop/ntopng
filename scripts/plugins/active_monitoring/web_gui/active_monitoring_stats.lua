@@ -156,6 +156,8 @@ if(page == "overview") then
         <div class='col-md-12 col-12'>
         <div class='card'>
           <div class='card-body'>
+          <div class="table-responsive">
+
           <table class="table w-100 table-striped table-hover table-bordered" id="am-table">
             <thead>
               <tr>
@@ -175,6 +177,8 @@ if(page == "overview") then
             <tbody>
             </tbody>
           </table>
+          </div>
+
           </div>
           </div>
     ]])
