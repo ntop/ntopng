@@ -250,7 +250,7 @@ if(page == "overview") then
 	  <input type="hidden" name="action" value="reset_config"/>
 	  <button type="button" id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal" class="btn btn-secondary"><span><i class="fas fa-undo"></i> ]] .. i18n('config_scripts.config_reset') .. [[</span></button>
   </form>
-  <a class="btn-link btn" href="{{ntop.getHttpPrefix()}}/lua/admin/import_export_config.lua?item=active_monitoring">]] .. i18n("import_export.import_export") ..[[</a>
+  <a class="btn-link btn" href="]]..ntop.getHttpPrefix()..[[/lua/admin/import_export_config.lua?item=active_monitoring">]] .. i18n("import_export.import_export") ..[[</a>
 
     </div>
 
