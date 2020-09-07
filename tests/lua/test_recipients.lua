@@ -14,13 +14,31 @@ require "lua_utils"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 local json = require "dkjson"
-local recipients_lua_utils = require "recipients_lua_utils"
+local recipients = require "recipients"
+local r = recipients:create()
 
-local dummy_notification = json.encode({})
+r:cleanup()
 
-assert(recipients_lua_utils.dispatch_trigger_notification(dummy_notification))
-assert(recipients_lua_utils.dispatch_release_notification(dummy_notification))
-assert(recipients_lua_utils.dispatch_store_notification(dummy_notification))
---assert(recipients_lua_utils.process_notifications())
+local res1 = r:add_recipient("ntop_mail", "ntop_mail_r", {email_recipient = "test@ntop.org"})
+assert(res1.status == "OK")
+local res2 = r:add_recipient("ntop_mail", "ntop_mail_r", {email_recipient = "test2@ntop.org"})
+assert(res2.status == "failed")
+local res3 = r:add_recipient("ntop_mail", "ntop_mail_r3", {email_recipient = "test3@ntop.org"})
+assert(res2.status == "failed")
+local r1 = r:get_recipient(1)
+local r2 = r:get_recipient(2)
+
+local e1 = r:edit_recipient(res1.recipient_id, "ntop_mail_r_edited", {email_recipient = "test4@ntop.org"})
+
+local res = r:test_recipient("ntop_mail", {email_recipient = "test4@ntop.org", cc = ""})
+-- tprint(res)
+--tprint(e1)
+-- tprint(r:get_recipient(res1.recipient_id))
+-- tprint(res2)
+-- tprint(r1)
+-- tprint(r2)
+--tprint(r:get_recipient_by_name("mainardi_mail"))
+
+-- tprint(r:get_all_recipients())
 
 print("OK\n")
