@@ -352,9 +352,9 @@ using namespace std;
 #endif
 #include "LuaHandler.h"
 #ifdef HAVE_NEDGE
-#include "NetfilterInterface.h"
 #include "HwBypass.h"
 #include "SilicomHwBypass.h"
+#include "NetfilterInterface.h"
 #endif
 #endif
 #ifndef HAVE_NEDGE
