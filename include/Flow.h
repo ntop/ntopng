@@ -88,7 +88,7 @@ class Flow : public GenericHashEntry {
   json_object *json_info;
   ndpi_serializer *tlv_info;
   char *host_server_name, *bt_hash;
-  u_int32_t iec104_typeid_mask;
+  u_int64_t iec104_typeid_mask[2]; /* [0] = lower 64 bit [1] = upper 64 bit */
   OperatingSystem operating_system;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 

@@ -50,14 +50,15 @@ Flow::Flow(NetworkInterface *_iface,
   alerted_status = status_normal;
   peers_score_accounted = false;
   status_infos = NULL;
-  ndpi_flow_risk_bitmap = iec104_typeid_mask = 0;
+  ndpi_flow_risk_bitmap = 0;
+  iec104_typeid_mask[0] = 0, iec104_typeid_mask[1] = 0;
   detection_completed = false;
   extra_dissection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0;
   cli2srv_tos = srv2cli_tos = 0;
-  
+
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
@@ -190,7 +191,7 @@ Flow::Flow(NetworkInterface *_iface,
       set_hash_entry_state_flow_notyetdetected();
     break;
 
-  case IPPROTO_ICMP:   
+  case IPPROTO_ICMP:
     ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_IP_ICMP,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
 
@@ -204,7 +205,7 @@ Flow::Flow(NetworkInterface *_iface,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
 
     /* Use nDPI to check potential flow risks */
-    if(iface->is_ndpi_enabled()) allocDPIMemory();    
+    if(iface->is_ndpi_enabled()) allocDPIMemory();
     set_hash_entry_state_flow_notyetdetected();
     break;
 
@@ -275,7 +276,7 @@ Flow::~Flow() {
 
   if(entropy.c2s) ndpi_free_data_analysis(entropy.c2s);
   if(entropy.s2c) ndpi_free_data_analysis(entropy.s2c);
-      
+
   if(isHTTP()) {
     if(protos.http.last_url)    free(protos.http.last_url);
     if(protos.http.last_content_type) free(protos.http.last_content_type);
@@ -386,7 +387,7 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_DHCP:
     if(cli_port == ntohs(67) /* server */) cli_host->setDhcpServer();
     break;
-    
+
   case NDPI_PROTOCOL_BITTORRENT:
     if(bt_hash == NULL)
       setBittorrentHash((char*)ndpiFlow->protos.bittorrent.hash);
@@ -432,7 +433,7 @@ void Flow::processDetectedProtocol() {
 
       if(cli_host) {
 	cli_host->incContactedService((char*)ndpiFlow->host_server_name);
-					  
+
 	if(ndpiFlow->protos.http.detected_os[0] != '\0')
 	  cli_host->inlineSetOSDetail((char*)ndpiFlow->protos.http.detected_os);
 
@@ -459,7 +460,7 @@ void Flow::processExtraDissectedInformation() {
 
     if(cli_host) cli_host->flowL7ProtoDetectedEvent(this, l7proto, true);
     if(srv_host) srv_host->flowL7ProtoDetectedEvent(this, l7proto, false);
-    
+
     switch(l7proto) {
     case NDPI_PROTOCOL_SSH:
       if(protos.ssh.client_signature == NULL)
@@ -525,8 +526,8 @@ void Flow::processExtraDissectedInformation() {
     case NDPI_PROTOCOL_DNS:
     case NDPI_PROTOCOL_IEC60870:
       /*
-	Don't free the memory, let the nDPI dissection run for DNS. 
-	See Method Flow::processDNSPacket and Flow::processIEC60870Packet 
+	Don't free the memory, let the nDPI dissection run for DNS.
+	See Method Flow::processDNSPacket and Flow::processIEC60870Packet
       */
       if(getInterface()->isPacketInterface())
 	free_ndpi_memory = false;
@@ -547,7 +548,7 @@ void Flow::processExtraDissectedInformation() {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   getInterface()->updateFlowPeriodicity(this);
 #endif
-  
+
   /* Free the nDPI memory */
   if(free_ndpi_memory)
     freeDPIMemory();
@@ -665,7 +666,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 
     if(ndpiFlow->host_server_name[0] != '\0') {
       if(cli_host) cli_host->incContactedService((char*)ndpiFlow->host_server_name);
-      
+
       if(ndpiFlow->protos.dns.is_query) {
 	char *q = strdup((const char*)ndpiFlow->host_server_name);
 
@@ -739,13 +740,13 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
 				 const u_char *payload, u_int16_t payload_len, u_int64_t packet_time) {
   ndpi_protocol proto_id;
-  
+
   /* Exits if the flow isn't IEC60870 or it the interface is not a packet-interface */
   if(!isIEC60870()
      || (!getInterface()->isPacketInterface())
      || (payload_len < 6))
     return;
- 
+
   /* Instruct nDPI to continue the dissection
      See https://github.com/ntop/ntopng/commit/30f52179d9f7a1eb774534def93d55c77d6070bc#diff-20b1df29540b6de59ceb6c6d2f3afdb5R387
   */
@@ -763,14 +764,17 @@ void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
   switch(ndpi_get_lower_proto(proto_id)) {
   case NDPI_PROTOCOL_IEC60870:
     {
+      /* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id */
       u_int8_t len = payload[1];
 
-      if(payload_len >= len) { 
+      if(payload_len >= len) {
 	u_int8_t type_id = payload[6];
 
-	if(type_id < 32)
-	  iec104_typeid_mask |= (1 << type_id);
-
+	if(type_id < 64)
+	  iec104_typeid_mask[0] |= (1 << type_id);
+	else if(type_id < 128)
+	  iec104_typeid_mask[1] |= (1 << (type_id-64));
+	/* Discard typeIds 127..255 */
 #if 0
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [payload_len: %u][len: %u][TypeID: %u]",
 				     __FUNCTION__, payload_len, len, type_id);
@@ -778,7 +782,7 @@ void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
       }
     }
     break;
-  
+
   default:
     break;
   }
@@ -1349,7 +1353,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 
     // Update client DSCP stats
     cli_host->incDSCPStats(getCli2SrvDSCP(),
-      partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(), 
+      partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
       partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
 
     // Update server DSCP stats
@@ -1398,7 +1402,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
   // Update interface DSCP stats
   if(iface) {
     iface->incDSCPStats(getCli2SrvDSCP(),
-      partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(), 
+      partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
       partial->get_srv2cli_packets(), partial->get_srv2cli_bytes());
   }
 
@@ -1466,7 +1470,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     if(srv_host && srv_host->getDNSstats())
       srv_host->getDNSstats()->incStats(false /* Server */, partial->get_flow_dns_stats());
     break;
-    
+
   case NDPI_PROTOCOL_MDNS:
     if(cli_host) {
       if(protos.mdns.answer)   cli_host->offlineSetMDNSInfo(protos.mdns.answer);
@@ -1702,7 +1706,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
 void Flow::periodic_dump_check(const struct timeval *tv, bool no_time_left) {
   if(no_time_left) return;
-  
+
   /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
      ViewInterface dump their flows in another thread, not this one. */
   dumpFlow(tv, iface->isViewed() ? iface->viewedBy() : iface, no_time_left);
@@ -1913,6 +1917,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(isICMP()) {
       lua_newtable(vm);
+
       if(isBidirectional()) {
 	lua_push_uint64_table_entry(vm, "type", protos.icmp.srv2cli.icmp_type);
 	lua_push_uint64_table_entry(vm, "code", protos.icmp.srv2cli.icmp_code);
@@ -2012,14 +2017,31 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
             lua_push_str_table_entry(vm, "moreinfo.json", buffer);
             has_json_info = true;
           }
-	  
+
           ndpi_term_serializer(&serializer);
         }
       }
     }
 
-    if(isIEC60870())
-       lua_push_uint32_table_entry(vm, "iec104_typeid_mask", iec104_typeid_mask);
+    if(isIEC60870()) {
+      lua_newtable(vm);
+
+      for(u_int j=0; j<2; j++) {
+	for(u_int i=0; i<64; i++) {
+	  if(iec104_typeid_mask[(j == 0) ? 0 : 1] & (1 << i)) {
+	    char buf[8];
+
+	    snprintf(buf, sizeof(buf), "%u", i+j*64);
+	    lua_push_bool_table_entry(vm, buf, true);
+	  }
+	}
+      }
+
+      lua_pushstring(vm, "iec104");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+
+    }
 
     if (!has_json_info)
       lua_push_str_table_entry(vm, "moreinfo.json", "{}");
@@ -2045,7 +2067,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(alert_status_info)
       lua_push_str_table_entry(vm, "status_info", alert_status_info);
-    
+
     lua_get_risk_info(vm, true);
     lua_entropy(vm);
   }
@@ -2062,7 +2084,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 void Flow::lua_tos(lua_State* vm) {
   lua_newtable(vm);
 
-  lua_newtable(vm);    
+  lua_newtable(vm);
   lua_push_int32_table_entry(vm, "DSCP", getCli2SrvDSCP());
   lua_push_int32_table_entry(vm, "ECN",  getCli2SrvECN());
   lua_pushstring(vm, "client");
@@ -2071,18 +2093,18 @@ void Flow::lua_tos(lua_State* vm) {
 
   /* *********************** */
 
-  lua_newtable(vm);    
+  lua_newtable(vm);
   lua_push_int32_table_entry(vm, "DSCP", getSrv2CliDSCP());
   lua_push_int32_table_entry(vm, "ECN",  getSrv2CliECN());
   lua_pushstring(vm, "server");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-  
+
   lua_pushstring(vm, "tos");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
-    
+
 /* *************************************** */
 
 void Flow::lua_get_risk_info(lua_State* vm, bool as_table) {
@@ -2174,7 +2196,7 @@ void Flow::set_hash_entry_state_idle() {
 
 bool Flow::is_hash_entry_state_idle_transition_ready() const {
   bool ret = false;
-  
+
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
     return(isNetfilterIdleFlow());
@@ -2185,7 +2207,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
   } else {
     if(protocol == IPPROTO_TCP) {
       u_int8_t tcp_flags = src2dst_tcp_flags | dst2src_tcp_flags;
-      
+
       /* The flow is considered idle after a MAX_TCP_FLOW_IDLE
 	 when RST/FIN are set or when the TWH is not completed.
 	 This prevents finalized/reset flows, or flows with an imcomplete
@@ -2202,11 +2224,11 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 	ret = true;
       }
     }
-    
+
     if(!ret)
       ret = is_active_entry_now_idle(iface->getFlowMaxIdle());
   }
-  
+
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [uses: %u][time: %d][idle: %s]",
 			       __FUNCTION__, getUses(),
@@ -2214,7 +2236,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 			       ret ? "true" : "false");
 
   if(ret)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Idle flow found", iface->get_name()); 
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Idle flow found", iface->get_name());
 #endif
 
   return(ret);
@@ -2809,7 +2831,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
       if(get_bytes_srv2cli() < MAX_ENTROPY_BYTES)
 	updateEntropy(entropy.s2c, payload, payload_len);
     }
-    
+
     if(applLatencyMsec == 0) {
       if(cli2srv_direction) {
 	memcpy(&c2sFirstGoodputTime, when, sizeof(struct timeval));
@@ -3056,7 +3078,7 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 const char* Flow::getFlowInfo() {
   if(custom_flow_info)
     return(custom_flow_info);
-	 
+
   if(!isMaskedFlow()) {
     if(isDNS() && protos.dns.last_query)
       return protos.dns.last_query;
@@ -5136,7 +5158,7 @@ void Flow::lua_entropy(lua_State* vm) {
 
     lua_push_float_table_entry(vm,  "client", getEntropy(true));
     lua_push_float_table_entry(vm,  "server", getEntropy(false));
-    
+
     lua_pushstring(vm, "entropy");
     lua_insert(vm, -2);
     lua_settable(vm, -3);

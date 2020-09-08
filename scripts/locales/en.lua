@@ -1362,7 +1362,7 @@ local lang = {
     ["http_method"] = "HTTP Method",
     ["icmp_info"] = "ICMP Info",
     ["ids_alert"] = "Detected %{scope} alert: %{msg} [%{maker}]",
-    ["iec104_mask"] = "IEC104 TypeIDs",
+    ["iec104_mask"] = "<A HREF='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104</A> <i class='fas fa-external-link-alt'></i> <A HREF=https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id>TypeIDs</A> <i class='fas fa-external-link-alt'></i>",
     ["imsi"] = "IMSI (International mobile Subscriber Identity)",
     ["io_wait_time_percentage"] = "I/O Wait Time Percentage",
     ["ip_packet_analysis"] = "IP Packet Analysis",
