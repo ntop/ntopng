@@ -86,7 +86,7 @@ Prefs::Prefs(Ntop *_ntop) {
   https_binding_address2 = NULL;
   enable_client_x509_auth = false;
   timeseries_driver = ts_driver_rrd;
-  lan_interface = NULL;
+  lan_interface = wan_interface = NULL;
   cpu_affinity = other_cpu_affinity = NULL;
 #ifdef HAVE_LIBCAP
   CPU_ZERO(&other_cpu_affinity_mask);
@@ -199,6 +199,7 @@ Prefs::~Prefs() {
   if(https_binding_address1) free(https_binding_address1);
   if(https_binding_address2) free(https_binding_address2);
   if(lan_interface)	free(lan_interface);
+  if(wan_interface)	free(wan_interface);
   if(ndpi_proto_path)	free(ndpi_proto_path);
 }
 

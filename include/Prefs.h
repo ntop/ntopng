@@ -43,7 +43,7 @@ class Prefs {
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   bool enable_client_x509_auth, reproduce_at_original_speed;
-  char *lan_interface;
+  char *lan_interface, *wan_interface;
   Ntop *ntop;
   bool enable_dns_resolution, sniff_dns_responses, pcap_file_purge_hosts_flows,
     categorization_enabled, resolve_all_host_ip, change_user, daemonize,
@@ -302,7 +302,9 @@ class Prefs {
   inline bool  is_zmq_encryption_enabled() { return(enable_zmq_encryption); };
   inline char* get_command_line()       { return(cli ? cli : (char*)""); };
   inline char* get_lan_interface()      { return(lan_interface ? lan_interface : (char*)""); };
+  inline char* get_wan_interface()      { return(wan_interface ? wan_interface : (char*)""); };
   inline void set_lan_interface(char *iface) { if(lan_interface) free(lan_interface); lan_interface = strdup(iface); };
+  inline void set_wan_interface(char *iface) { if(wan_interface) free(wan_interface); wan_interface = strdup(iface); };
   inline bool areMacNdpiStatsEnabled()  { return(enable_mac_ndpi_stats); };
   inline pcap_direction_t getCaptureDirection() { return(captureDirection); }
   inline void setCaptureDirection(pcap_direction_t dir) { captureDirection = dir; }

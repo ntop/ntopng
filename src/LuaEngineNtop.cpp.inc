@@ -5800,6 +5800,7 @@ static const luaL_Reg ntop_reg[] = {
   { "setRoutingMode",        ntop_set_routing_mode         },
   { "isRoutingMode",         ntop_is_routing_mode          },
   { "setLanInterface",       ntop_set_lan_interface        },
+  { "setWanInterface",       ntop_set_wan_interface        },
   { "refreshDeviceProtocolsPoliciesConf", ntop_refresh_device_protocols_policies_pref },
 #endif
 
