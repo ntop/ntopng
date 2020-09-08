@@ -5,6 +5,8 @@
  */
 $(document).ready(function() {
 
+    const MAX_RECIPIENTS_TO_SHOW = 10;
+
     let poolRowData;
 
     const renableDisabledOptions = (selector, members) => {
@@ -29,24 +31,26 @@ $(document).ready(function() {
         });
     }
 
-    const sortSelectByValue = (selector) => {
+    /**
+     * Open the pool edit modal of a chosen pool if the query params contains the pool paramater
+     * @param tableAPI
+     */
+    const openEditPoolModal = (tableAPI) => {
 
-        const $options = $(`${selector} option`);
-        $options.sort((a, b) => $(a).val() - $(b).val());
+        const urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.has('pool')) return;
 
-        $(selector).empty().append($options);
-    }
+        const poolId = urlParams.get('pool');
+        const poolData = tableAPI.data().toArray().find(pool => pool.pool_id == poolId);
 
-    const arrayToListString = (array, limit) => {
-
-        if (array == undefined) return "";
-
-        if (array.length > limit) {
-            const otherStr = ((array.length  - limit) == 1) ? i18n.other : i18n.others;
-            return array.slice(0, limit).join(", ") + ` ${i18n.and} ${array.length - limit} ${otherStr.toLowerCase()}`;
+        // if the pool id is valid then open the edit modal
+        if (poolData !== undefined) {
+            poolRowData = poolData;
+            $editModalHandler.invokeModalInit();
+            $(`#edit-pool`).modal('show');
         }
 
-        return array.slice(0, limit).join(", ");
+        // otherwise do nothing because the pool id is not valid
     }
 
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
@@ -96,18 +100,20 @@ $(document).ready(function() {
                     });
 
                     if (type == "display") {
-                        return arrayToListString(memberNames, 10);
+                        return NtopUtils.arrayToListString(memberNames, MAX_RECIPIENTS_TO_SHOW);
                     }
                 }
             },
             {
                 data: 'recipients',
                 width: '40%',
-                render: function(data, type, row) {
+                render: function(recipients, type, row) {
 
                     if (type == "display") {
-                        return arrayToListString(data, 10);
+                        return NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS_TO_SHOW);
                     }
+
+                    return recipients;
                 }
             },
             {
@@ -116,7 +122,7 @@ $(document).ready(function() {
             {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
-                render: function(data, type, pool) {
+                render: function(_, type, pool) {
 
                     let deleteButton = "";
                     // if the current pool is the default one then don't show the delete button
@@ -138,7 +144,13 @@ $(document).ready(function() {
                     `);
                 }
             }
-        ]
+        ],
+        initComplete: function(settings, json) {
+
+            const tableAPI = settings.oInstance.api();
+            // when the data has been fetched check if the url has a pool params
+            openEditPoolModal(tableAPI);
+        }
     });
 
     const $poolTable = $(`#table-pools`).DataTable(dtConfig);
@@ -228,7 +240,7 @@ $(document).ready(function() {
             $(`#edit-pool form input[name='name']`).val(poolRowData.name);
             $(`#edit-pool form select[name='configset']`).val(poolRowData.configset_id);
             $(`#edit-pool form select[name='members']`).val(poolRowData.members);
-            $(`#edit-pool form select[name='recipients']`).val(poolRowData.recipients || []);
+            $(`#edit-pool form select[name='recipients']`).val(poolRowData.recipients.map(r => r.recipient_id) || []);
 
             if (poolType == "host") {
                 const href = $(`#edit-link`).attr('href').replace(/pool\=[0-9]+/, `pool=${poolRowData.pool_id}`);

@@ -4,6 +4,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require "page_utils"
@@ -13,7 +14,10 @@ local host_pools = require "host_pools"
 local interface_pools = require "interface_pools"
 local local_network_pools = require "local_network_pools"
 local active_monitoring_pools = require "active_monitoring_pools"
-local notification_recipients = require "notification_recipients"
+
+local recipients = require "recipients"
+local recipients_instance = recipients:create()
+
 local snmp_device_pools
 
 local is_nedge = ntop.isnEdge()
@@ -93,7 +97,7 @@ local context = {
             edit_pool      = string.format("/lua/rest/v1/edit/%s/pool.lua", pool_type),
             delete_pool    = string.format("/lua/rest/v1/delete/%s/pool.lua", pool_type),
         },
-        notification_recipients = notification_recipients.get_recipients(true --[[ exclude builtin --]])
+        notification_recipients = recipients_instance:get_all_recipients()
     }
 }
 
@@ -101,5 +105,5 @@ print(template_utils.gen("pages/table_pools.template", context))
 
 -- ************************************* ------
 
--- append the menu below the page
+-- append the menu down below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

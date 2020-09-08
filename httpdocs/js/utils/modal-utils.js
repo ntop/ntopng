@@ -258,7 +258,7 @@
                             cannotBeEmpty: ($input.attr('required') === "required") || ($input.data("validationNotEmpty") == true),
                             resolveDNS: $input.data('validationResolvedns')
                         },
-                        isInputEmpty: ($input.val().trim() == "")
+                        isInputEmpty: (typeof($input.val()) == "string" ? $input.val().trim() == "" : false)
                     };
 
                     const [isValid, messageToShow] = await validInput(validation);

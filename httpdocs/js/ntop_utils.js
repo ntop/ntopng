@@ -818,6 +818,31 @@ class NtopUtils {
 				}
 			})
 	}
+
+	/**
+	 * Glue strings contained in array separated by a comma.
+	 * @param {array} array The array of strings. I.e. ["Hello", "World"]
+	 * @param {number} limit How many words the string contains
+	 *
+	 * @return {string} A string built by array's elements. i.e: "Hello, World"
+	 */
+	static arrayToListString(array, limit) {
+
+        if (array == undefined) return "";
+
+        if (array.length > limit) {
+            const otherStr = ((array.length  - limit) == 1) ? i18n.other : i18n.others;
+            return array.slice(0, limit).join(", ") + ` ${i18n.and} ${array.length - limit} ${otherStr.toLowerCase()}`;
+        }
+
+        return array.slice(0, limit).join(", ");
+	}
+
+	static getEditPoolLink(href, poolId) {
+		const url = new URL(href, window.location);
+        url.searchParams.set('pool', poolId);
+        return url.toString();
+	}
 }
 
 $(document).ready(function () {

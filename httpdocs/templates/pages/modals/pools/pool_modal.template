@@ -103,7 +103,7 @@
                         <div class="col-sm-7">
                             <select multiple class="form-control multiple-select" name="recipients" id="{{ modal_type }}-pool-recipient-select">
                                 {% for key, recipient in pairsByKeys(pool.notification_recipients, asc) do %}
-                                    <option value="{{ recipient.recipient_name }}">{{ recipient.recipient_name }}</option>
+                                    <option value="{{ recipient.recipient_id }}">{{ recipient.recipient_name }}</option>
                                 {% end %}
                             </select>
                             <small class="text-muted text-form">

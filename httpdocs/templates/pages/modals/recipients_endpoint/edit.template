@@ -26,7 +26,7 @@
                             <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>:
                         </label>
                         <div class="col-sm-5">
-                            <input maxlength="32" minlength="1" required name="recipient_name" type="text" class="form-control" id="recipient-name-input">
+                            <input minlength="1" required name="recipient_name" type="text" class="form-control" id="edit-recipient-name-input">
                         </div>
                     </div>
                     <div class="recipient-template-container">

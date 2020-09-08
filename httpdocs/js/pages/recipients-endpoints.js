@@ -115,13 +115,11 @@ $(document).ready(function () {
                 data: 'recipient_name'
             },
             {
-                data: 'endpoint_conf.endpoint_conf_name'
+                data: 'endpoint_conf_name'
             },
             {
-                data: `endpoint_conf.endpoint_key`,
-                render: function(endpointType) {
-                    return i18n.endpoint_types[endpointType];
-                }
+                data: `endpoint_key`,
+                render: (endpointType) => i18n.endpoint_types[endpointType] || ""
             },
             {
                 targets: -1,
@@ -168,20 +166,25 @@ $(document).ready(function () {
             return data;
         },
         onModalInit: function (data) {
+
             $(`#edit-recipient-modal .test-feedback`).hide();
-            const $cloned = loadTemplate(editRowData.endpoint_conf.endpoint_key);
-            /* load the right template from templates */
-            if ($cloned) {
-                $(`#edit-recipient-modal form .recipient-template-container`).empty().append($(`<hr>`)).append($cloned).show();
+
+            // if there are no recipients params it means there are no inputs except the recipient's name
+            if (editRowData.recipient_params.length === undefined) {
+                /* load the template from templates inside the page */
+                const $cloned = loadTemplate(editRowData.endpoint_key);
+                $(`#edit-recipient-modal form .recipient-template-container`)
+                    .empty().append($(`<hr>`)).append($cloned).show();
             }
             else {
                 $(`#edit-recipient-modal form .recipient-template-container`).empty().hide();
             }
+
             $(`#edit-recipient-name`).text(editRowData.recipient_name);
             /* load the values inside the template */
             $(`#edit-recipient-modal form [name='recipient_id']`).val(editRowData.recipient_id || DEFAULT_RECIPIENT_ID);
             $(`#edit-recipient-modal form [name='recipient_name']`).val(editRowData.recipient_name);
-            $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(editRowData.endpoint_conf.endpoint_conf_name);
+            $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(editRowData.endpoint_conf_name);
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
                 $(this).val(editRowData.recipient_params[$(this).attr('name')]);
             });
@@ -191,7 +194,7 @@ $(document).ready(function () {
                 const $self = $(this);
                 $self.attr("disabled");
                 const data = makeFormData(`#edit-recipient-modal form`);
-                data.endpoint_conf_name = editRowData.endpoint_conf.endpoint_conf_name;
+                data.endpoint_conf_name = editRowData.endpoint_conf_name;
                 testRecipient(data, $(this), $(`#edit-recipient-modal .test-feedback`)).then(() => {
                     $self.removeAttr("disabled");
                 });
