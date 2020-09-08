@@ -36,10 +36,10 @@ local MAX_ALERTS_PER_REQUEST = 10
 
 local function recipient2sendMessageSettings(recipient)
   local settings = {
-    url = recipient.endpoint_conf.endpoint_conf.webhook_url,
-    sharedsecret = recipient.endpoint_conf.endpoint_conf.webhook_sharedsecret,
-    username = recipient.endpoint_conf.endpoint_conf.webhook_username,
-    password = recipient.endpoint_conf.endpoint_conf.webhook_password,
+    url = recipient.endpoint_conf.webhook_url,
+    sharedsecret = recipient.endpoint_conf.webhook_sharedsecret,
+    username = recipient.endpoint_conf.webhook_username,
+    password = recipient.endpoint_conf.webhook_password,
   }
 
   return settings
@@ -75,7 +75,7 @@ end
 
 -- ##############################################
 
-function webhook.dequeueRecipientAlerts(recipient, budget)
+function webhook.dequeueRecipientAlerts(recipient, budget, high_priority)
   local start_time = os.time()
   local sent = 0
   local more_available = true
@@ -93,7 +93,15 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
     end
 
     -- Dequeue MAX_ALERTS_PER_REQUEST notifications
-    local notifications = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_REQUEST-1)
+    local notifications = {}
+    for i = 1, MAX_ALERTS_PER_REQUEST do
+       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       if notification then 
+	  notifications[#notifications + 1] = notification
+       else
+	  break
+       end
+    end
 
     if not notifications or #notifications == 0 then
       more_available = false
@@ -108,12 +116,10 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
     end
 
     if not webhook.sendMessage(alerts, settings) then
-      ntop.delCache(recipient.export_queue)
       return {success=false, error_message="Unable to send alerts to the webhook"}
     end
 
     -- Remove the processed messages from the queue
-    ntop.ltrimCache(recipient.export_queue, #notifications, -1)
     budget_used = budget_used + #notifications
     sent = sent + 1
   end

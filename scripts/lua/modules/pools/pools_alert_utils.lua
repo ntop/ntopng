@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local alert_consts = require "alert_consts"
 local pools = require "pools"
-local notification_recipients = require "notification_recipients"
 
 -- ################################################################################
 
@@ -98,7 +97,7 @@ function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id)
       if entity_pool and entity_pool["recipients"] then
 	 for _, recipient in pairs(entity_pool["recipients"]) do
 	    -- Prepare the result with all the recipients
-	    res[#res + 1] = recipient
+	    res[#res + 1] = recipient.recipient_id
 	    -- tprint(string.format("Adding recipient [%s][%s][%i]", recipient, entity.label, pool_id))
 	 end
       end

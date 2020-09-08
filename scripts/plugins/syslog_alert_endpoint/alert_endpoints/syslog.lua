@@ -64,8 +64,16 @@ end
 -- ##############################################
 
 -- Dequeue alerts from a recipient queue for sending notifications
-function syslog.dequeueRecipientAlerts(recipient, budget)
-   local notifications = ntop.lrangeCache(recipient.export_queue, 0, budget - 1)
+function syslog.dequeueRecipientAlerts(recipient, budget, high_priority)   
+    local notifications = {}
+    for i = 1, budget do
+       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       if notification then 
+	  notifications[#notifications + 1] = notification
+       else
+	  break
+       end
+    end
 
    if not notifications or #notifications == 0 then
       return {success = true, more_available = false}
@@ -89,13 +97,10 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
 
 	 -- Most recent notifications first
 	 for _, notif in pairsByValues(sev_notifications, alert_utils.notification_timestamp_rev) do
-            syslog.sendMessage(notif, severity, recipient.endpoint_conf.endpoint_conf.syslog_alert_format)
+            syslog.sendMessage(notif, severity, recipient.endpoint_conf.syslog_alert_format)
 	 end
       end
    end
-
-   -- Remove the processed messages from the queue
-   ntop.ltrimCache(recipient.export_queue, #notifications, -1)
 
    return {success = true,  more_available = true}
 end
@@ -109,7 +114,7 @@ function syslog.runTest(recipient)
     alert_entity = alert_consts.alert_entities.test.entity_id,
   }
 
-  local success = syslog.sendMessage(notif, "info", recipient.endpoint_conf.endpoint_conf.syslog_alert_format)
+  local success = syslog.sendMessage(notif, "info", recipient.endpoint_conf.syslog_alert_format)
 
   local message_info = i18n("prefs.syslog_sent_successfully")
   return success, message_info

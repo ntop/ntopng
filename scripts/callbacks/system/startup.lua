@@ -34,7 +34,8 @@ local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
 local blog_utils = require("blog_utils")
 local notification_configs = require "notification_configs"
-local notification_recipients = require "notification_recipients"
+local recipients = require "recipients"
+local recipients_instance = recipients:create()
 
 host_pools_nedge.migrateHostPools()
 if ntop.isnEdge() then
@@ -61,15 +62,13 @@ for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
       )
 
       -- And the recipient
-      notification_recipients.add_recipient(
+      recipients_instance:add_recipient(
 	 "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]], 
 	 "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	 {} --[[ no recipient params --]]
       )
    end
 end
-
---tprint(notification_recipients.get_recipients())
 
 -- ##################################################################
 

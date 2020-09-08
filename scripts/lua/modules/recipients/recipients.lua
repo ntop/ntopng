@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local json = require "dkjson"
+local alert_consts = require "alert_consts"
 local notification_configs = require("notification_configs")
 
 -- ##############################################
@@ -85,14 +86,6 @@ end
 
 function recipients:_get_recipients_prefix_key()
    local key = string.format("ntopng.prefs.recipients")
-
-   return key
-end
-
--- ##############################################
-
-function recipients:_get_next_recipient_id_key()
-   local key = string.format("%s.next_recipient_id", self:_get_recipients_prefix_key())
 
    return key
 end
@@ -355,16 +348,16 @@ function recipients:test_recipient(endpoint_conf_name, recipient_params)
    local safe_params = status["safe_params"]
 
    -- Create dummy recipient
-
    local recipient = {
-      endpoint_conf = ec,
+      endpoint_conf_name = endpoint_conf_name,
+      endpoint_conf = ec["endpoint_conf"],
+      endpoint_key = ec["endpoint_key"],
       recipient_params = safe_params,
    }
 
    -- Get endpoint module
-
    local modules_by_name = notification_configs.get_types()
-   local module_name = recipient.endpoint_conf.endpoint_key
+   local module_name = recipient.endpoint_key
    local m = modules_by_name[module_name]
    if not m then
       return {status = "failed", error = {type = "endpoint_module_not_existing", endpoint_recipient_name = recipient.endpoint_conf.endpoint_key}}
@@ -449,6 +442,173 @@ end
 
 -- ##############################################
 
+local builtin_recipients_cache
+
+function recipients:_get_builtin_recipients()
+   -- Currently, only sqlite (created in startup.lua) is the builtin recipient
+   -- The builtin sqlite recipient is created in startup.lua
+   if not builtin_recipients_cache then
+      builtin_recipients_cache = { self:get_recipient_by_name("builtin_recipient_sqlite").recipient_id }
+   end
+
+   return builtin_recipients_cache
+end
+
+-- ##############################################
+
+local function is_notification_high_priority(notification)
+   local res = true
+
+   if notification.alert_entity == alert_consts.alertEntity("flow") then
+      -- Flow alerts are low-priority
+      res = false
+   end
+
+   return res
+end
+
+-- ##############################################
+
+-- @brief Dispatches a `notification` to all the interested recipients
+-- @param notification An alert notification
+-- @return nil
+function recipients:dispatch_notification(notification)
+   local pools_alert_utils = require "pools_alert_utils"
+   local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id)
+
+   -- NOTE: Using straight the recipient_id for efficieny reasons
+   for _, recipient_id in pairs(self:_get_builtin_recipients()) do
+      recipients[#recipients + 1] = recipient_id
+   end
+
+   if #recipients > 0 then
+      local json_notification = json.encode(notification)
+      local is_high_priority = is_notification_high_priority(notification)
+
+      for _, recipient_id in pairs(recipients) do
+	 ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification)
+      end
+   end
+end
+
+-- ##############################################
+
+-- @brief Processes notifications dispatched to recipients
+-- @param ready_recipients A table with recipients ready to export. Recipients who completed their work are removed from the table
+-- @param high_priority A boolean indicating whether to process high- or low-priority notifications
+-- @param now An epoch of the current time
+-- @param periodic_frequency The frequency, in seconds, of this call
+-- @param force_export A boolean telling to forcefully export dispatched notifications
+-- @return nil
+local function process_notifications_by_priority(ready_recipients, high_priority, now, periodic_frequency, force_export)
+   -- Total budget availabe, which is a multiple of the periodic_frequency
+   -- Budget in this case is the maximum number of notifications which can
+   -- be processed during this call.
+   local total_budget = 1000 * periodic_frequency
+   -- To avoid having one recipient jeopardizing all the resources, the total
+   -- budget is consumed in chunks, that is, recipients are iterated multiple times
+   -- and, each time any recipient has a maximum budget for every iteration.
+   local budget_per_iter = 10
+
+   -- Cycle until there are ready_recipients and total_budget left
+   while #ready_recipients > 0 and total_budget >= 0 and not ntop.isDeadlineApproaching() do
+      for i = #ready_recipients, 1, -1 do
+	 local ready_recipient = ready_recipients[i]
+	 local recipient = ready_recipient.recipient
+	 local m = ready_recipient.mod
+
+	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " high_priority: "..tostring(high_priority)) end
+
+	 if m.dequeueRecipientAlerts then
+	    local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter, high_priority)
+
+	    -- If the recipient has failed (not rv.success) or
+	    -- if it has no more work to do (not rv.more_available)
+	    -- it can be removed from the array of ready recipients.
+	    if not rv.success or not rv.more_available then
+	       table.remove(ready_recipients, i)
+
+	       if do_trace then tprint("Ready recipient done: ".. recipient.recipient_name) end
+
+	       if not rv.success then
+		  local msg = rv.error_message or "Unknown Error"
+		  traceError(TRACE_ERROR, TRACE_CONSOLE, "Error while sending notifications via " .. recipient.recipient_name .. " " .. msg)
+	       end
+	    end
+	 end
+      end
+
+      -- Update the total budget
+      total_budget = total_budget - budget_per_iter
+   end
+
+   if do_trace then
+      if #ready_recipients > 0 then
+	 tprint("Deadline approaching: "..tostring(ntop.isDeadlineApproaching()))
+	 tprint("Budget left: "..total_budget)
+	 tprint("The following recipients were unable to dequeue all their notifications")
+	 for _, ready_recipient in pairs(ready_recipients) do
+	    tprint(" "..ready_recipient.recipient.recipient_name)
+	 end
+      end
+   end
+end
+
+-- #################################################################
+
+local function check_endpoint_export(recipient_id, export_frequency)
+   local k = string.format("ntopng.cache.notification_recipient_export_time.recipient_id_%d", recipient_id)
+   local cached_val = tonumber(ntop.getCache(k))
+
+   if cached_val then
+      -- Cached key exists. TTL not eached, not yet time to export
+      -- tprint({endpoint_recipient_name, "cached"})
+      return false
+   else
+      -- Cached key doesn't exists: TTL has expired
+      -- Set the cache with TTL equal to the export_frequency and do the export!
+
+      ntop.setCache(k, "1", export_frequency)
+      -- tprint({endpoint_recipient_name, "time to export!!"})
+      return true
+   end
+end
+
+-- #################################################################
+
+-- @brief Processes notifications dispatched to recipients
+-- @param now An epoch of the current time
+-- @param periodic_frequency The frequency, in seconds, of this call
+-- @param force_export A boolean telling to forcefully export dispatched notifications
+-- @return nil
+function recipients:process_notifications(now, periodic_frequency, force_export)
+   local recipients = self:get_all_recipients()
+   local modules_by_name = notification_configs.get_types()
+   local ready_recipients = {}
+
+   -- Check, among all available recipients, those that are ready to export, depending on
+   -- their EXPORT_FREQUENCY
+   for _, recipient in pairs(recipients) do
+      local module_name = recipient.endpoint_key 
+
+      if modules_by_name[module_name] then
+         local m = modules_by_name[module_name]
+	 if force_export or check_endpoint_export(recipient.recipient_id, m.EXPORT_FREQUENCY) then
+	    ready_recipients[#ready_recipients + 1] = {recipient = recipient, recipient_id = recipient.recipient_id, mod = m}
+	 end
+      end
+   end
+
+   -- Use table.clone to pass recipients as the table is modified to only leave, after the call,
+   -- only those recipients who didn't complete their job.
+   process_notifications_by_priority(table.clone(ready_recipients), true  --[[ high priority --]], now, periodic_frequency, force_export)
+   process_notifications_by_priority(table.clone(ready_recipients), false --[[ low priority  --]], now, periodic_frequency, force_export)
+   -- Refresh recipients periodically
+   ntop.recipients_refresh()
+end
+
+-- ##############################################
+
 function recipients:cleanup()
    -- Delete recipient details
    local cur_recipient_ids = self:_get_assigned_recipient_ids()
@@ -460,7 +620,6 @@ function recipients:cleanup()
    if locked then
       -- Delete recipient ids
       ntop.delCache(self:_get_recipient_ids_key())
-      ntop.delCache(self:_get_next_recipient_id_key())
 
       self:_unlock()
    end

@@ -40,12 +40,12 @@ local NUM_ATTEMPTS_KEY = "ntopng.alerts.modules_notifications_queue.email.num_at
 
 local function recipient2sendMessageSettings(recipient)
   local settings = {
-    smtp_server = recipient.endpoint_conf.endpoint_conf.smtp_server,
-    from_addr = recipient.endpoint_conf.endpoint_conf.email_sender,
+    smtp_server = recipient.endpoint_conf.smtp_server,
+    from_addr = recipient.endpoint_conf.email_sender,
     to_addr = recipient.recipient_params.email_recipient,
     cc_addr = recipient.recipient_params.cc,
-    username = recipient.endpoint_conf.endpoint_conf.smtp_username,
-    password = recipient.endpoint_conf.endpoint_conf.smtp_password,
+    username = recipient.endpoint_conf.smtp_username,
+    password = recipient.endpoint_conf.smtp_password,
   }
 
   return settings
@@ -109,7 +109,7 @@ end
 -- ##############################################
 
 -- Dequeue alerts from a recipient queue for sending notifications
-function email.dequeueRecipientAlerts(recipient, budget)
+function email.dequeueRecipientAlerts(recipient, budget, high_priority)
   local sent = 0
   local more_available = true
   local budget_used = 0
@@ -118,7 +118,16 @@ function email.dequeueRecipientAlerts(recipient, budget)
   -- Note: in this case budget is the number of email to send
   while budget_used <= budget and more_available do
     -- Dequeue MAX_ALERTS_PER_EMAIL notifications
-    local notifications = ntop.lrangeCache(recipient.export_queue, 0, MAX_ALERTS_PER_EMAIL-1)
+
+    local notifications = {}
+    for i = 1, MAX_ALERTS_PER_EMAIL do
+       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       if notification then 
+	  notifications[#notifications + 1] = notification
+       else
+	  break
+       end
+    end
 
     if not notifications or #notifications == 0 then
       more_available = false
@@ -152,8 +161,6 @@ function email.dequeueRecipientAlerts(recipient, budget)
 
       if num_attemps >= MAX_NUM_SEND_ATTEMPTS then
         ntop.delCache(NUM_ATTEMPTS_KEY)
-        -- Prevent alerts starvation if the plugin is not working after max num attempts
-        ntop.delCache(recipient.export_queue)
         return {success=false, error_message="Unable to send mails"}
       else
         ntop.setCache(NUM_ATTEMPTS_KEY, tostring(num_attemps))
@@ -164,7 +171,6 @@ function email.dequeueRecipientAlerts(recipient, budget)
     end
 
     -- Remove the processed messages from the queue
-    ntop.ltrimCache(recipient.export_queue, #notifications, -1)
     budget_used = budget_used + #notifications
     sent = sent + 1
   end

@@ -5,11 +5,14 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
 local json = require("dkjson")
 local alert_consts = require("alert_consts")
 local os_utils = require("os_utils")
 local notification_recipients = require "notification_recipients"
+local recipients = require "recipients"
+local recipients_instance = recipients:create()
 local do_trace = false
 
 local alerts_api = {}
@@ -181,7 +184,7 @@ function alerts_api.store(entity_info, type_info, when)
     interface.incTotalHostAlerts(entity_info.alert_entity_val, type_info.alert_type.alert_key)
   end
 
-  notification_recipients.dispatch_notification(alert_to_store)
+  recipients_instance:dispatch_notification(alert_to_store)
 
   return(true)
 end
@@ -318,7 +321,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   -- same 100 alerts will be triggered again as soon as ntopng is restarted, causing
   -- 100 trigger notifications to be emitted twice. This check is to prevent such behavior.
   if not is_trigger_notified(triggered) then
-     notification_recipients.dispatch_notification(triggered)
+     recipients_instance:dispatch_notification(triggered)
      mark_trigger_notified(triggered)
   end
 
@@ -388,7 +391,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
 
   addAlertPoolInfo(entity_info, released)
 
-  notification_recipients.dispatch_notification(released)
+  recipients_instance:dispatch_notification(released)
   mark_release_notified(released)
 
   return(true)

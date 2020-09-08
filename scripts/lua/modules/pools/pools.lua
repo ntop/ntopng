@@ -449,7 +449,6 @@ end
 -- ##############################################
 
 function pools:get_pool(pool_id, recipient_details)
-
     local recipient_details = recipient_details or true
     local pool_details
     local pool_details_key = self:_get_pool_details_key(pool_id)
@@ -485,20 +484,25 @@ function pools:get_pool(pool_id, recipient_details)
                 end
             end
 
-            if not pool_details["recipients"] then
-                pool_details["recipients"] = {}
-            elseif recipient_details and pool_details["recipients"] then
+            if pool_details["recipients"] then
                 local recipients = {}
                 -- get recipient metadata
                 for _, recipient_id in pairs(pool_details["recipients"]) do
 		   if tonumber(recipient_id) then -- Handles previously string-keyed recipients
-		      local recipient = recipients_instance:get_recipient(recipient_id)
-		      table.insert(recipients, {
-				      recipient_id = recipient_id,
-				      recipient_name = recipient.recipient_name
-		      })
+		      local res = {recipient_id = recipient_id}
+
+		      if recipient_details then
+			 local recipient = recipients_instance:get_recipient(recipient_id)
+
+			 if recipient and recipient.recipient_name then
+			    res["recipient_name"] = recipient.recipient_name
+			 end
+		      end
+
+		      recipients[#recipients + 1] = res
 		   end
                 end
+
                 pool_details["recipients"] = recipients
             end
         end
@@ -788,17 +792,23 @@ function pools:_bind_member(member, pool_id)
     if tonumber(pool_id) == pools.DEFAULT_POOL_ID then
         ret, err = true, pools.ERRORS.NO_ERROR
     else
-        local bind_pool = self:get_pool(pool_id)
+        local bind_pool = self:get_pool(pool_id, false)
 
         if bind_pool then
             -- New members are all pool members plus the member which is being bound
             local bind_pool_members = bind_pool["members"]
             bind_pool_members[#bind_pool_members + 1] = member
 
+	    -- Recipients stay the same, but we need to get their ids only
+	    local bind_pool_recipients = {}
+	    for _, recipient in pairs(bind_pool["recipients"] or {}) do
+	       bind_pool_recipients[#bind_pool_recipients + 1] = recipient.recipient_id
+	    end
+
             -- Persist the pool with the new `member`
             self:_persist(bind_pool["pool_id"], bind_pool["name"],
                           bind_pool_members, bind_pool["configset_id"],
-                          bind_pool["recipients"])
+                          bind_pool_recipients)
 
             -- Bind has executed successfully
             ret, err = true, pools.ERRORS.NO_ERROR
@@ -824,24 +834,30 @@ function pools:bind_member(member, pool_id)
         -- REMOVE the member if assigned to another pool
         local assigned_members = self:get_assigned_members()
         if assigned_members[member] then
-            local cur_pool = self:get_pool(assigned_members[member]["pool_id"])
+	   local cur_pool = self:get_pool(assigned_members[member]["pool_id"])
 
-            if cur_pool["pool_id"] == pool_id then
+	   if cur_pool["pool_id"] == pool_id then
                 -- If the current pool id equals the new pool id, there's nothing to do and it is just safe to return
-                ret, err = true, pools.ERRORS.NO_ERROR
-            elseif cur_pool then
-                -- New members are all pool members except for the member which is being removed
-                local new_members = {}
-                for _, cur_member in pairs(cur_pool["members"]) do
-                    if cur_member ~= member then
-                        new_members[#new_members + 1] = cur_member
-                    end
-                end
+	      ret, err = true, pools.ERRORS.NO_ERROR
+	   elseif cur_pool then
+	      -- New members are all pool members except for the member which is being removed
+	      local new_members = {}
+	      for _, cur_member in pairs(cur_pool["members"]) do
+		 if cur_member ~= member then
+		    new_members[#new_members + 1] = cur_member
+		 end
+	      end
+
+		-- Recipients stay the same, but we need to get their ids only
+		local bind_pool_recipients = {}
+		for _, recipient in pairs(cur_pool["recipients"] or {}) do
+		   bind_pool_recipients[#bind_pool_recipients + 1] = recipient.recipient_id
+		end
 
                 -- Persist the existing pool without the removed `member`
                 self:_persist(cur_pool["pool_id"], cur_pool["name"],
                               new_members, cur_pool["configset_id"],
-                              cur_pool["recipients"])
+                              bind_pool_recipients)
             end
         end
 

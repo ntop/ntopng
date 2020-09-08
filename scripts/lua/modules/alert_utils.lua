@@ -21,7 +21,6 @@ local alerts_api = require "alerts_api"
 local flow_consts = require "flow_consts"
 local icmp_utils = require "icmp_utils"
 local user_scripts = require "user_scripts"
-local notification_recipients = require("notification_recipients")
 
 local shaper_utils = nil
 

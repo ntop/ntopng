@@ -298,25 +298,27 @@ function host_pools:get_pool(pool_id, recipient_details)
     -- Recipients
     local recipients = self:_get_pool_detail(pool_id, "recipients")
     if recipients then
+       recipients = json.decode(recipients) or {}
 
-        recipients = json.decode(recipients) or {}
+       local temp_recipients = {}
+       -- get recipient metadata
+       for _, recipient_id in pairs(recipients) do
+	  if tonumber(recipient_id) then -- Handles previously string-keyed recipients
+	     local res = { recipient_id = recipient_id }
 
-        if recipient_details then
-            local temp_recipients = {}
-            -- get recipient metadata
-            for _, recipient_id in pairs(recipients) do
-	       if tonumber(recipient_id) then -- Handles previously string-keyed recipients
-		  local recipient =
-		     recipients_instance:get_recipient(recipient_id)
-		  table.insert(temp_recipients, {
-				  recipient_id = recipient_id,
-				  recipient_name = recipient.recipient_name
-		  })
-	       end
-            end
+	     if recipient_details then
+		local recipient = recipients_instance:get_recipient(recipient_id)
 
-            recipients = temp_recipients
-        end
+		if recipient and recipient.recipient_name then
+		   res["recipient_name"] = recipient.recipient_name
+		end
+	     end
+
+	     temp_recipients[#temp_recipients + 1] = res
+	  end
+       end
+
+       recipients = temp_recipients
     else
         recipients = {}
     end

@@ -9,6 +9,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
 require "lua_utils"
 local lists_utils = require "lists_utils"
@@ -16,13 +17,12 @@ local recording_utils = require "recording_utils"
 local plugins_utils = require "plugins_utils"
 local now = os.time()
 
-
-
 if(areAlertsEnabled()) then
-   local notification_recipients = require "notification_recipients"
+   local recipients = require "recipients"
+   local recipients_instance = recipients:create()
    local periodicity = 3
 
-   notification_recipients.process_notifications(now, periodicity)
+   recipients_instance:process_notifications(now, periodicity)
 end
 
 -- Check and possibly reload plugins

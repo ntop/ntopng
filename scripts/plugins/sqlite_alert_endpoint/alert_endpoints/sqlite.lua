@@ -113,7 +113,7 @@ end
 
 -- ##############################################
 
-function sqlite.dequeueRecipientAlerts(recipient, budget)
+function sqlite.dequeueRecipientAlerts(recipient, budget, high_priority)
   local more_available = true
   local budget_used = 0
 
@@ -142,9 +142,18 @@ function sqlite.dequeueRecipientAlerts(recipient, budget)
   -- Dequeue alerts up to budget
   -- Note: in this case budget is the number of sqlite alerts to insert into the queue
   while budget_used <= budget and more_available do
-    local notifications = ntop.lrangeCache(recipient.export_queue, 0, budget - 1)
+     local notifications = {}
 
-    if not notifications or #notifications == 0 then
+     for i=1, budget do
+       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
+       if notification then 
+	  notifications[#notifications + 1] = notification
+       else
+	  break
+       end
+     end
+
+     if not notifications or #notifications == 0 then
       more_available = false
       break
     end
@@ -174,7 +183,6 @@ function sqlite.dequeueRecipientAlerts(recipient, budget)
     -- TODO: send
 
     -- Remove the processed messages from the queue
-    ntop.ltrimCache(recipient.export_queue, #notifications, -1)
     budget_used = budget_used + #notifications
   end
 

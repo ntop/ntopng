@@ -28,10 +28,11 @@ for _, ifname in pairs(ifnames) do
 end
 
 if(areAlertsEnabled()) then
-   local notification_recipients = require "notification_recipients"
+   local recipients = require "recipients"
+   local recipients_instance = recipients:create()
    local periodicity = 3
 
-   notification_recipients.process_notifications(now, 3 --[[ deadline ]])
+   recipients_instance:process_notifications(now, 3 --[[ deadline ]])
 end
 
 recovery_utils.mark_clean_shutdown()
