@@ -313,6 +313,8 @@ function recipients:delete_recipient(recipient_id)
 	 -- Remove the recipient_id from the set of all currently existing recipient ids
 	 ntop.delMembersCache(self:_get_recipient_ids_key(), string.format("%d", recipient_id))
 
+	 -- Finally, remove the recipient from C
+	 ntop.recipient_delete(recipient_id)
 	 ret = true
       end
 

@@ -27,7 +27,11 @@
 
 class Recipients {
  private:
+  /* Per-recipient queues */
   RecipientQueues* recipient_queues[MAX_NUM_RECIPIENTS];
+  /* Flags indicating whether a given recipient has been stopped, i.e., deleted by the user */
+  bool recipient_deleted[MAX_NUM_RECIPIENTS];
+  Mutex m;
  public:
   Recipients();
   ~Recipients();
@@ -49,6 +53,19 @@ class Recipients {
   * @return True if the enqueue succeeded, false otherwise
   */
   bool enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const char * const notification);
+  /**
+  * @brief Marks a recipient as deleted
+  * @param recipient_id An integer recipient identifier
+  *
+  * @return
+  */
+  void delete_recipient(u_int16_t recipient_id);
+  /**
+  * @brief Periodic operations on recipients, such as the acutal deletion of recipients marked as deleted
+  *
+  * @return
+  */
+  void refresh_recipients();
 };
 
 #endif /* _RECIPIENTS_ */

@@ -467,6 +467,8 @@ class Ntop {
   void lua_alert_queues_stats(lua_State* vm);
   bool  recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const char * const notification);
   char* recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio);
+  inline void recipient_delete(u_int16_t recipient_id) { recipients.delete_recipient(recipient_id); };
+  inline void recipients_refresh()                     { recipients.refresh_recipients();           };
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }

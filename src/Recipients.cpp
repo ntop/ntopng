@@ -25,6 +25,8 @@
 
 Recipients::Recipients() {
   memset(&recipient_queues, 0, sizeof(recipient_queues));
+  for(int i = 0; i < MAX_NUM_RECIPIENTS; i++)
+    recipient_deleted[i] = false;
 }
 
 /* *************************************** */
@@ -39,30 +41,69 @@ Recipients::~Recipients() {
 /* *************************************** */
 
 char* Recipients::dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio) {
-  if(recipient_id >= MAX_NUM_RECIPIENTS
-     || !recipient_queues[recipient_id])
+  char * res = NULL;
+
+  if(recipient_id >= MAX_NUM_RECIPIENTS)
     return NULL;
 
-  /*
-    Dequeue the notification for a given priority
-   */
-  return recipient_queues[recipient_id]->dequeue(prio);
+  m.lock(__FILE__, __LINE__);
+
+  if(!recipient_deleted[recipient_id]
+     && recipient_queues[recipient_id]) {
+    /*
+      Dequeue the notification for a given priority
+    */
+    res = recipient_queues[recipient_id]->dequeue(prio);
+  }
+
+  m.unlock(__FILE__, __LINE__);
+
+  return res;
 }
 
 /* *************************************** */
 
 bool Recipients::enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const char * const notification) {
+  bool res = false;
+
   if(recipient_id >= MAX_NUM_RECIPIENTS)
     return false;
+
+  m.lock(__FILE__, __LINE__);
 
   /* 
      Lazy allocation - allocate a recipient if it hasn't already been allocated
      and then perform the actual enqueue
    */
-  if(recipient_queues[recipient_id]
-     || (recipient_queues[recipient_id] = new (nothrow) RecipientQueues())) {
-    return recipient_queues[recipient_id]->enqueue(prio, notification);
+  if(!recipient_deleted[recipient_id]
+     && (recipient_queues[recipient_id]
+	 || (recipient_queues[recipient_id] = new (nothrow) RecipientQueues())))
+    res = recipient_queues[recipient_id]->enqueue(prio, notification);
+
+  m.unlock(__FILE__, __LINE__);
+
+  return res;
+}
+
+/* *************************************** */
+
+void Recipients::delete_recipient(u_int16_t recipient_id) {
+  if(recipient_id <= MAX_NUM_RECIPIENTS)
+    recipient_deleted[recipient_id] = true;
+}
+
+/* *************************************** */
+
+void Recipients::refresh_recipients() {
+  m.lock(__FILE__, __LINE__);
+
+  for(int i = 0; i < MAX_NUM_RECIPIENTS; i++) {
+    if(recipient_deleted[i]) {
+      delete recipient_queues[i];
+      recipient_queues[i] = NULL;
+      recipient_deleted[i] = false;
+    }
   }
 
-  return false;
+  m.unlock(__FILE__, __LINE__);
 }

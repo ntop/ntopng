@@ -5456,6 +5456,31 @@ static int ntop_recipient_dequeue(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+static int ntop_recipient_delete(lua_State* vm) {
+  u_int16_t recipient_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  recipient_id = lua_tointeger(vm, 1);
+
+  ntop->recipient_delete(recipient_id);
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_recipients_refresh(lua_State* vm) {
+  ntop->recipients_refresh();
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
 /* **************************************************************** */
 
 static int ndpi_is_custom_application(lua_State* vm) {
@@ -5759,6 +5784,8 @@ static const luaL_Reg ntop_reg[] = {
   /* Recipient queues */
   { "recipient_enqueue",     ntop_recipient_enqueue           },
   { "recipient_dequeue",     ntop_recipient_dequeue           },
+  { "recipient_delete",      ntop_recipient_delete            },
+  { "recipients_refresh",    ntop_recipients_refresh          },
 
   /* nDPI */
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },

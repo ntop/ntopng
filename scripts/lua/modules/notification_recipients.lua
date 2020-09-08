@@ -510,6 +510,8 @@ function notification_recipients.process_notifications(now, periodic_frequency, 
    -- only those recipients who didn't complete their job.
    process_notifications_by_priority(table.clone(ready_recipients), true  --[[ high priority --]], now, periodic_frequency, force_export)
    process_notifications_by_priority(table.clone(ready_recipients), false --[[ low priority  --]], now, periodic_frequency, force_export)
+   -- Refresh recipients periodically
+   ntop.recipients_refresh()
 end
 
 -- #################################################################

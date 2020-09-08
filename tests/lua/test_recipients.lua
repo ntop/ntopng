@@ -49,6 +49,9 @@ local e1 = r:edit_recipient(res1.recipient_id, "ntop_mail_r_edited", {email_reci
 local t1 = "{test notification 1}"
 local t2 = "{test notification 2}"
 
+-- Refresh to make sure deleted recipients are recycled
+ntop.recipients_refresh()
+
 -- High priority
 ntop.recipient_enqueue(res7.recipient_id, true, t1)
 ntop.recipient_enqueue(res7.recipient_id, true, t2)
