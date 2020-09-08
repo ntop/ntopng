@@ -587,7 +587,7 @@ class NetworkInterface : public AlertableEntity {
     return getNumDiscardedProbingBytes() - getCheckPointNumDiscardedProbingBytes();
   }
 
-  void runHousekeepingTasks();
+  virtual void runHousekeepingTasks();
   void runShutdownTasks();
   Vlan* getVlan(u_int16_t vlanId, bool create_if_not_present, bool is_inline_call);
   AutonomousSystem *getAS(IpAddress *ipa, bool create_if_not_present, bool is_inline_call);
