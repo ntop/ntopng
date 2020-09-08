@@ -38,6 +38,7 @@ $(document).ready(function() {
     const openEditPoolModal = (tableAPI) => {
 
         const urlParams = new URLSearchParams(window.location.search);
+
         if (!urlParams.has('pool')) return;
 
         const poolId = urlParams.get('pool');
@@ -50,7 +51,13 @@ $(document).ready(function() {
             $(`#edit-pool`).modal('show');
         }
 
-        // otherwise do nothing because the pool id is not valid
+        if (!urlParams.has('referer')) return;
+        const referer = urlParams.get('referer');
+
+        $('#edit-pool').on('hidden.bs.modal', function(e) {
+            window.location = referer;
+        });
+
     }
 
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
