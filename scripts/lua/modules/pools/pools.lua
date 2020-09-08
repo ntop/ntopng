@@ -491,11 +491,13 @@ function pools:get_pool(pool_id, recipient_details)
                 local recipients = {}
                 -- get recipient metadata
                 for _, recipient_id in pairs(pool_details["recipients"]) do
-                    local recipient = recipients_instance:get_recipient(recipient_id)
-                    table.insert(recipients, {
-                        recipient_id = recipient_id,
-                        recipient_name = recipient.recipient_name
-                    })
+		   if tonumber(recipient_id) then -- Handles previously string-keyed recipients
+		      local recipient = recipients_instance:get_recipient(recipient_id)
+		      table.insert(recipients, {
+				      recipient_id = recipient_id,
+				      recipient_name = recipient.recipient_name
+		      })
+		   end
                 end
                 pool_details["recipients"] = recipients
             end
@@ -647,7 +649,17 @@ function pools:parse_recipients(recipients_string)
 
     -- Unfold the recipients csv
     recipients = recipients_string:split(",") or {recipients_string}
-    return recipients
+
+    local res = {}
+    for _, recipient_id in pairs(recipients) do
+       local recipient_id = tonumber(recipient_id)
+
+       if recipient_id then
+	  res[#res + 1] = recipient_id
+       end
+    end
+
+    return res
 end
 
 -- ##############################################
@@ -702,17 +714,18 @@ function pools:unbind_all_recipient_id(recipient_id)
     local locked = self:_lock()
 
     if locked then
-        local all_pools = self:get_all_pools()
+       local all_pools = self:get_all_pools()
 
         for _, pool in pairs(all_pools) do
             local found = false
 
             -- New recipients (all pool recipients except for the one being removed)
             local new_recipients = {}
+
             if pool["recipients"] then
-                for _, cur_recipient in pairs(pool["recipients"]) do
-                    if cur_recipient ~= recipient_id then
-                        new_recipients[#new_recipients + 1] = cur_recipient
+	       for _, cur_recipient in pairs(pool["recipients"]) do
+		  if tonumber(cur_recipient.recipient_id) ~= tonumber(recipient_id) then
+		     new_recipients[#new_recipients + 1] = tonumber(cur_recipient.recipient_id)
                     else
                         found = true
                     end

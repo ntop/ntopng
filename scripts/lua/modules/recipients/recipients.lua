@@ -2,6 +2,9 @@
 -- (C) 2017-20 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 local json = require "dkjson"
 local notification_configs = require("notification_configs")
 
@@ -105,6 +108,8 @@ end
 -- ##############################################
 
 function recipients:_get_recipient_details_key(recipient_id)
+   recipient_id = tonumber(recipient_id)
+
    if not recipient_id then
       -- A recipient id is always needed
       return nil
@@ -298,6 +303,7 @@ end
 -- ##############################################
 
 function recipients:delete_recipient(recipient_id)
+   local pools_lua_utils = require "pools_lua_utils"
    local ret = false
 
    local locked = self:_lock()
@@ -306,7 +312,10 @@ function recipients:delete_recipient(recipient_id)
       -- Make sure the recipient exists
       local cur_recipient_details = self:get_recipient(recipient_id)
 
-      if cur_recipient_details then
+      if cur_recipient_details then	 
+	 -- Unbind the recipient from any assigned pool
+	 pools_lua_utils.unbind_all_recipient_id(recipient_id)
+
 	 -- Remove the key with all the recipient details (e.g., with members, and configset_id)
 	 ntop.delCache(self:_get_recipient_details_key(recipient_id))
 

@@ -305,12 +305,14 @@ function host_pools:get_pool(pool_id, recipient_details)
             local temp_recipients = {}
             -- get recipient metadata
             for _, recipient_id in pairs(recipients) do
-                local recipient =
-                    recipients_instance:get_recipient(recipient_id)
-                table.insert(temp_recipients, {
-                    recipient_id = recipient_id,
-                    recipient_name = recipient.recipient_name
-                })
+	       if tonumber(recipient_id) then -- Handles previously string-keyed recipients
+		  local recipient =
+		     recipients_instance:get_recipient(recipient_id)
+		  table.insert(temp_recipients, {
+				  recipient_id = recipient_id,
+				  recipient_name = recipient.recipient_name
+		  })
+	       end
             end
 
             recipients = temp_recipients
