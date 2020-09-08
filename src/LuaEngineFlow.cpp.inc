@@ -875,7 +875,6 @@ static int ntop_flow_get_predominant_status(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flow_trigger_alert(lua_State* vm) {
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   Flow *f = ntop_flow_get_context_flow(vm);
   FlowStatus status;
   AlertType atype;
