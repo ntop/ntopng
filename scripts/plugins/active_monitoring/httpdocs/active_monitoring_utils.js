@@ -90,6 +90,11 @@ $(document).ready(function() {
             $('#select-edit-granularity').val(edit_host_data.granularity || DEFAULT_GRANULARITY);
             $('#input-edit-host').val(edit_host_data.host || DEFAULT_HOST);
             $(`#select-edit-pool`).val(edit_host_data.pool || DEFAULT_POOL);
+
+            // set the edit pool link
+            const $editPoolLink = $('#am-add-form .edit-pool');
+            $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), edit_host_data.pool || DEFAULT_POOL));
+
             dialogRefreshMeasurement($dialog, edit_host_data.granularity);
         },
         beforeSumbit: function () {
@@ -414,6 +419,11 @@ $(document).ready(function() {
             $('#input-add-threshold').val(100);
             $(`#am-add-modal span.invalid-feedback`).hide();
             $('#am-add-modal').modal('show');
+
+            // set the edit pool link
+            const $editPoolLink = $('#am-add-form .edit-pool');
+            $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), 0));
+
             dialogRefreshMeasurement($dialog, null, true /* use defaults */);
         },
         beforeSumbit: function () {
@@ -607,6 +617,14 @@ $(document).ready(function() {
     });
 
     const $am_table = $("#am-table").DataTable(dt_config);
+
+    // on changing the associated pool updates the link to the edit pool
+    $(`select[name='pool']`).change(function() {
+
+        const poolId = $(this).val();
+        const $editPoolLink = $(this).parents('.form-group').find('.edit-pool');
+        $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), poolId));
+    });
 
     NtopUtils.importModalHelper({
         load_config_xhr: (json_conf) => {

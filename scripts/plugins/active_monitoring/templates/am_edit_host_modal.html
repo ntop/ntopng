@@ -4,9 +4,20 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title">{{ dialog.edit_record }}</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
+					<div class="modal-close">
+						<div class="confirm-closing" style="display: none;">
+							<span class='mx-2' style="vertical-align: middle;">
+								<b>{{ i18n("active_monitoring_stats.validation.abort_edit") }}</b>
+							</span>
+							<div class="btn-group btn-group-sm">
+								<button class="btn btn-secondary cancel" type="button">{{ i18n("cancel") }}</button>
+								<button data-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
+							</div>
+						</div>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
 				</div>
 				<div class="modal-body container-fluid">
 					<div class="form-group row">
@@ -55,9 +66,9 @@
 							</select>
 						</div>
 						<div class="col-sm-4 pl-0">
-							<a class="d-inline-block p-2"
-								href="{{ntop.getHttpPrefix()}}/lua/admin/manage_pools.lua?page=active_monitoring">
-								<i class="fas fa-edit"></i> {{ i18n("pools.edit_pools") }}
+							<a class="d-inline-block p-2 edit-pool"
+								href="{{ntop.getHttpPrefix()}}/lua/admin/manage_pools.lua?page=active_monitoring&pool=0">
+								<i class="fas fa-edit"></i>
 							</a>
 						</div>
 					</div>

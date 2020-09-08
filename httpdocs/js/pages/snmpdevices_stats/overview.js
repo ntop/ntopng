@@ -3,6 +3,10 @@
  *
  * This script implements the logic for the overview tab inside snmpdevice_stats.lua page.
  */
+window.onpopstate = function(event) {
+    console.log(`location: ${document.location}`)
+    console.log(event.state);
+}
 
 $(document).ready(function () {
 
@@ -18,6 +22,7 @@ $(document).ready(function () {
     // an object containing ddefault values for the Edit SNMP modal
     const SNMP_DEFAULTS = {
         VERSION : 0,
+        DEFAULT_POOL: 0
     };
 
     // required fields for SNMPv3
@@ -322,6 +327,26 @@ $(document).ready(function () {
     // initialize the DataTable with the created config
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
 
+    $(`#add-snmp-device-modal form`).modalHandler({
+        method: 'post',
+        csrf: addCsrf,
+        resetAfterSubmit: false,
+        endpoint: `${ http_prefix }/lua/pro/rest/v1/add/snmp/device.lua`,
+        beforeSumbit: () => {
+            return buildDataRequest(`#add-snmp-device-modal`);
+        },
+        onModalShow: () => {
+
+            $(`#add-snmp-feedback`).hide();
+            // set the edit pool link to the default one when the modal opens
+            const $editPoolLink = $('#add-snmp-device-modal .edit-pool');
+            $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), SNMP_DEFAULTS.DEFAULT_POOL));
+        },
+        onSubmitSuccess: (response, textStatus, modalHandler) => {
+            onRequestSuccess(response, textStatus, modalHandler, '#add-snmp-device-modal');
+        }
+    }).invokeModalInit();
+
     const $editModalHandler = $(`#edit-snmp-device-modal form`).modalHandler({
         method: 'post',
         csrf: addCsrf,
@@ -337,9 +362,13 @@ $(document).ready(function () {
 
             $(`#edit-snmp-device-modal input[name='snmp_host']`).val(snmpDeviceRowData.column_key).attr("readonly", "readonly");
             $(`#edit-snmp-device-modal input[name='snmp_read_community']`).val(snmpDeviceRowData.column_community);
-	    $(`#edit-snmp-device-modal input[name='snmp_write_community']`).val(snmpDeviceRowData.column_write_community);
+	        $(`#edit-snmp-device-modal input[name='snmp_write_community']`).val(snmpDeviceRowData.column_write_community);
             $(`#edit-snmp-device-modal select[name='snmp_version']`).val(version);
             $(`#edit-snmp-device-modal select[name='pool']`).val(snmpDeviceRowData.column_pool_id);
+
+            // set the edit pool link
+            const $editPoolLink = $('#add-snmp-device-modal .edit-pool');
+            $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), snmpDeviceRowData.column_pool_id));
         },
         onSubmitSuccess: (response, textStatus, modalHandler) => {
             onRequestSuccess(response, textStatus, modalHandler, '#edit-snmp-device-modal');
@@ -379,19 +408,13 @@ $(document).ready(function () {
         $editModalHandler.invokeModalInit();
     });
 
-    $(`#add-snmp-device-modal form`).modalHandler({
-        method: 'post',
-        csrf: addCsrf,
-        resetAfterSubmit: false,
-        endpoint: `${ http_prefix }/lua/pro/rest/v1/add/snmp/device.lua`,
-        beforeSumbit: () => {
-            return buildDataRequest(`#add-snmp-device-modal`);
-        },
-        onModalShow: () => { $(`#add-snmp-feedback`).hide(); },
-        onSubmitSuccess: (response, textStatus, modalHandler) => {
-            onRequestSuccess(response, textStatus, modalHandler, '#add-snmp-device-modal');
-        }
-    }).invokeModalInit();
+    // on changing the associated pool updates the link to the edit pool
+    $(`select[name='pool']`).change(function() {
+
+        const poolId = $(this).val();
+        const $editPoolLink = $(this).parents('.form-group').find('.edit-pool');
+        $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), poolId));
+    });
 
     // configure import config modal
     NtopUtils.importModalHelper({

@@ -378,6 +378,10 @@ local lang = {
     ["rtt_vs_jitter"] = "Mean RTT / Jitter",
     ["speedtest"] = "Speedtest",
     ["upload_speed"] = "Upload Speed",
+    ["validation"] = {
+      ["abort_add"] = "Abort add Active Monitoring record?",
+      ["abort_edit"] = "Abort edit Active Monitoring record?",
+    },
   },
   ["activities_page"] = {
     ["host_activity"] = "Host Activity",
