@@ -409,14 +409,14 @@ end
 
 -- ##############################################
 
-function recipients:get_all_recipients()
+function recipients:get_all_recipients(exclude_builtin)
    local res = {}
    local cur_recipient_ids = self:_get_assigned_recipient_ids()
 
    for _, recipient_id in pairs(cur_recipient_ids) do
       local recipient_details = self:get_recipient(recipient_id)
 
-      if recipient_details then
+      if recipient_details and (not exclude_builtin or not recipient_details.endpoint_conf.builtin) then
 	 res[#res + 1] = recipient_details
       end
    end

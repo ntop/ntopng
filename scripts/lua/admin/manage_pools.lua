@@ -97,7 +97,7 @@ local context = {
             edit_pool      = string.format("/lua/rest/v1/edit/%s/pool.lua", pool_type),
             delete_pool    = string.format("/lua/rest/v1/delete/%s/pool.lua", pool_type),
         },
-        notification_recipients = recipients_instance:get_all_recipients()
+        notification_recipients = recipients_instance:get_all_recipients(true --[[ exclude builtin --]])
     }
 }
 
