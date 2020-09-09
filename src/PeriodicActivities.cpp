@@ -39,7 +39,8 @@ PeriodicActivities::PeriodicActivities() {
     activities[i] = NULL;
 
   high_priority_pool = standard_priority_pool = no_priority_pool = longrun_priority_pool
-    = timeseries_pool = periodic_user_scripts_pool = discover_pool = housekeeping_pool = NULL;
+    = timeseries_pool = periodic_user_scripts_pool = discover_pool
+    = housekeeping_pool = notifications_pool = NULL;
 
   num_activities = 0;
 }
@@ -61,6 +62,7 @@ PeriodicActivities::~PeriodicActivities() {
   if(standard_priority_pool)     delete standard_priority_pool;
   if(longrun_priority_pool)      delete longrun_priority_pool;
   if(timeseries_pool)            delete timeseries_pool;
+  if(notifications_pool)         delete notifications_pool;
   if(periodic_user_scripts_pool) delete periodic_user_scripts_pool;
   if(discover_pool)              delete discover_pool;
   if(housekeeping_pool)          delete housekeeping_pool;
@@ -134,6 +136,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   standard_priority_pool     = new ThreadPool(false, num_threads);
   longrun_priority_pool      = new ThreadPool(false, num_threads);
   timeseries_pool            = new ThreadPool(false, 1);
+  notifications_pool         = new ThreadPool(false, 1);
   periodic_user_scripts_pool = new ThreadPool(false, 2);
   discover_pool              = new ThreadPool(false, 1);
   housekeeping_pool          = new ThreadPool(false, 1);
@@ -156,6 +159,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 #endif
     
     { TIMESERIES_SCRIPT_PATH,         1,  3600, timeseries_pool,            false, false, true,  true  },
+    { NOTIFICATIONS_SCRIPT_PATH,      0,     0, notifications_pool,         false, false, false, true  },
 
     { FIVE_MINUTES_SCRIPT_PATH,     300,   300, longrun_priority_pool,      false, false, true,  false },
     { HOURLY_SCRIPT_PATH,          3600,   600, longrun_priority_pool,      false, false, true,  false },

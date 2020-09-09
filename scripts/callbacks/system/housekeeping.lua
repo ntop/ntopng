@@ -17,14 +17,6 @@ local recording_utils = require "recording_utils"
 local plugins_utils = require "plugins_utils"
 local now = os.time()
 
-if(areAlertsEnabled()) then
-   local recipients = require "recipients"
-   local recipients_instance = recipients:create()
-   local periodicity = 3
-
-   recipients_instance:process_notifications(now, periodicity)
-end
-
 -- Check and possibly reload plugins
 plugins_utils.checkReloadPlugins(now)
 

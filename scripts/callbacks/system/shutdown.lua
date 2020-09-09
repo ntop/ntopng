@@ -15,6 +15,9 @@ local recovery_utils = require "recovery_utils"
 
 require "lua_utils" -- NOTE: required by alert_utils
 local alert_utils = require "alert_utils"
+local recipients = require "recipients"
+local recipients_instance = recipients:create()
+local periodicity = 3
 
 local now = os.time()
 local ifnames = interface.getIfNames()
@@ -27,12 +30,6 @@ for _, ifname in pairs(ifnames) do
   interface.releaseEngagedAlerts()
 end
 
-if(areAlertsEnabled()) then
-   local recipients = require "recipients"
-   local recipients_instance = recipients:create()
-   local periodicity = 3
-
-   recipients_instance:process_notifications(now, 3 --[[ deadline ]])
-end
+recipients_instance:process_notifications(now, now + 3 --[[ deadline ]], 3 --[[ periodicity ]], true)
 
 recovery_utils.mark_clean_shutdown()

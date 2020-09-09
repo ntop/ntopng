@@ -880,6 +880,7 @@
 #define HOUSEKEEPING_SCRIPT_PATH     "housekeeping.lua"
 #define DISCOVER_SCRIPT_PATH         "discover.lua"
 #define TIMESERIES_SCRIPT_PATH       "timeseries.lua"
+#define NOTIFICATIONS_SCRIPT_PATH    "notifications.lua"
 #define UPGRADE_SCRIPT_PATH          "upgrade.lua"
 #define PINGER_SCRIPT_PATH           "pinger.lua"
 #define SECOND_SCRIPT_PATH           "second.lua"
