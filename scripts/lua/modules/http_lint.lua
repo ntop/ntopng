@@ -231,6 +231,7 @@ local function webhookCleanup(p)
    -- If there's no matching prefix, purify everything
    return ntop.httpPurifyParam(p)
 end
+http_lint.webhookCleanup = webhookCleanup
 
 local function jsonCleanup(json_payload)
    -- can't touch the json payload or it could be broken
@@ -1224,9 +1225,6 @@ local known_parameters = {
    ["webhook_sharedsecret"]    = validateEmptyOr(validateSingleWord),
    ["webhook_username"]        = validateEmptyOr(validateSingleWord),
    ["webhook_password"]        = validateEmptyOr(validateSingleWord),
-   ["discord_url"]             = { webhookCleanup, validateUnquoted },
-   ["discord_sender"]          = validateUnquoted,
-   ["discord_username"]        = validateEmptyOr(validateSingleWord),
 
    -- nIndex
    ["select_clause"]           = validateUnquoted,

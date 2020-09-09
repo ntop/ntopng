@@ -7,6 +7,7 @@ local json = require "dkjson"
 local alert_utils = require "alert_utils"
 
 local discord = {
+   name = "Discord", -- A human readable name which will be shown in the UI
    -- Endpoint (see https://birdie0.github.io/discord-webhooks-guide/tools/curl.html)
    conf_params = {
       { param_name = "discord_url" },
@@ -143,10 +144,8 @@ function discord.runTest(recipient)
 
   local success = discord.sendMessage("test", settings)
 
-  if success then
-    message_info = i18n("prefs.discord_sent_successfully")
-  else
-    message_info = i18n("prefs.discord_send_error")
+  if not success then
+    message_info = i18n("discord_alert_endpoint.discord_send_error")
   end
 
   return success, message_info

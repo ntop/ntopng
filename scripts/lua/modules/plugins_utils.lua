@@ -351,7 +351,7 @@ end
 
 -- ##############################################
 
-local function load_plugin_alert_endpoints(endpoints_prefs_entries, plugin)
+local function load_plugin_alert_endpoints(plugin)
    local endpoints_path = os_utils.fixPath(plugin.path .. "/alert_endpoints")
 
    if not ntop.exists(endpoints_path) then
@@ -359,32 +359,8 @@ local function load_plugin_alert_endpoints(endpoints_prefs_entries, plugin)
       return true
    end
 
-   local prefs_entries_fname = os_utils.fixPath(endpoints_path .. "/prefs_entries.lua")
-   if not ntop.exists(prefs_entries_fname) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required 'prefs_entries.lua' in %s", plugin.key))
-      return false
-   end
-
-   local prefs_entries = dofile(prefs_entries_fname)
-   if prefs_entries then
-      if not prefs_entries.entries then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing field 'entries' in %s (prefs_entries.lua)", plugin.key))
-	 return false
-      end
-      if not prefs_entries.endpoint_key then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing field 'endpoint_key' in %s (prefs_entries.lua)", plugin.key))
-	 return false
-      end
-      if endpoints_prefs_entries[prefs_entries.endpoint_key] then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Endpoint key '%s' already defined, error in %s (prefs_entries.lua)", prefs_entries.endpoint_key, plugin.key))
-	 return false
-      end
-
-      endpoints_prefs_entries[prefs_entries.endpoint_key] = prefs_entries
-   end
-
    for fname in pairs(ntop.readdir(endpoints_path)) do
-      if((fname ~= "prefs_entries.lua") and ends(fname, ".lua")) then
+      if fname:ends(".lua") then
 	 -- Execute the alert endpoint and call its method onLoad, if present
 	 local fname_path = os_utils.fixPath(endpoints_path .. "/" .. fname)
 	 local endpoint = dofile(fname_path)
@@ -504,7 +480,6 @@ function plugins_utils.loadPlugins(community_plugins_only)
   local plugins = plugins_utils.listPlugins()
   local loaded_plugins = {}
   local locales = {}
-  local endpoints_prefs_entries = {}
   local path_map = {}
   local en_locale = locales_utils.readDefaultLocale()
   local current_dir = ntop.getCurrentPluginsDir()
@@ -569,7 +544,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
         load_plugin_data_dirs(plugin) and
         load_plugin_other(plugin) and
         load_plugin_user_scripts(path_map, plugin) and
-        load_plugin_alert_endpoints(endpoints_prefs_entries, plugin) then
+        load_plugin_alert_endpoints(plugin) then
       loaded_plugins[plugin.key] = plugin
     else
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Errors occurred while processing plugin '%s'", plugin.key))
@@ -584,14 +559,6 @@ function plugins_utils.loadPlugins(community_plugins_only)
 
     persistence.store(locale_path, plugins_locales)
     ntop.setDefaultFilePermissions(locale_path)
-  end
-
-  -- Save alert endpoint entries
-  if not table.empty(endpoints_prefs_entries) then
-    local entries_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/prefs_entries.lua")
-
-    persistence.store(entries_path, endpoints_prefs_entries)
-    ntop.setDefaultFilePermissions(entries_path)
   end
 
   -- Save loaded plugins metadata
@@ -855,10 +822,8 @@ function plugins_utils.getLoadedAlertEndpoints()
    local rv = {}
 
    lua_path_utils.package_path_prepend(RUNTIME_PATHS.alert_endpoints)
-   local prefs_map = require "prefs_entries" or {}
-
    for fname in pairs(ntop.readdir(RUNTIME_PATHS.alert_endpoints) or {}) do
-      if fname ~= "prefs_entries.lua" and fname:ends(".lua") then
+      if fname:ends(".lua") then
 	 local full_path = os_utils.fixPath(RUNTIME_PATHS.alert_endpoints .. "/" .. fname)
 	 local key = string.sub(fname, 1, string.len(fname) - 4)
 
@@ -868,7 +833,6 @@ function plugins_utils.getLoadedAlertEndpoints()
 	    if((type(endpoint.isAvailable) ~= "function") or endpoint.isAvailable()) then
 	       endpoint.full_path = full_path
 	       endpoint.key = key
-	       endpoint.prefs_entries = prefs_map[key] and prefs_map[key].entries
 
 	       rv[#rv + 1] = endpoint
 	    end

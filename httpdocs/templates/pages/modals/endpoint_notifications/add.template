@@ -37,7 +37,7 @@
                                     local selected = false
                                     for endpoint_key, endpoint in pairsByKeys(endpoints, asc) do
                                 %}
-                                    <option {{ (selected and 'selected' or '') }} value="{{ endpoint_key }}">{{ i18n('endpoint_notifications.types.'..endpoint_key) }}</option>
+                                    <option {{ (selected and 'selected' or '') }} value="{{ endpoint_key }}">{{ i18n('endpoint_notifications.types.'..endpoint_key) or endpoint.name }}</option>
                                     {% selected = false %}
                                 {% end %}
                             </select>
