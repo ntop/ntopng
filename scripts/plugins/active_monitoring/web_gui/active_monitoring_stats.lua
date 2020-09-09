@@ -285,6 +285,8 @@ if(page == "overview") then
       i18n.delete = "]] .. i18n("delete") .. [[";
       i18n.expired_csrf = "]] .. i18n("expired_csrf") .. [[";
       i18n.all = "]] .. i18n("all") .. [[";
+      i18n.other = "]] .. i18n("other") .. [[";
+      i18n.others = "]] .. i18n("others") .. [[";
       i18n.measurement = "]] .. i18n("active_monitoring_stats.measurement") .. [[";
       i18n.alert_status = "]].. i18n("active_monitoring_stats.alert_status") ..[[";
       i18n.alerted = "]].. i18n("active_monitoring_stats.alerted") ..[[";

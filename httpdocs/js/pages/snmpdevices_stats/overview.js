@@ -371,8 +371,11 @@ $(document).ready(function () {
             $(`#edit-snmp-device-modal select[name='pool']`).val(snmpDeviceRowData.column_pool_id);
 
             // set the edit pool link
-            const $editPoolLink = $('#add-snmp-device-modal .edit-pool');
+            const $editPoolLink = $('#edit-snmp-device-modal .edit-pool');
             $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), snmpDeviceRowData.column_pool_id));
+
+            // load the recipient lists inside the modal
+            $(`#edit-snmp-device-modal select[name='pool']`).trigger('change');
         },
         onSubmitSuccess: (response, textStatus, modalHandler) => {
             onRequestSuccess(response, textStatus, modalHandler, '#edit-snmp-device-modal');
