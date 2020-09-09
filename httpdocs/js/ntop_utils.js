@@ -843,6 +843,28 @@ class NtopUtils {
         url.searchParams.set('pool', poolId);
         return url.toString();
 	}
+
+	static getPoolLink(poolType, poolId = 0) {
+		return `${http_prefix}/lua/rest/v1/get/${poolType}/pools.lua?pool=${poolId}`;
+	}
+
+	static async getPool(poolType, id = 0) {
+
+		try {
+
+			const request = await fetch(NtopUtils.getPoolLink(poolType, id));
+			const pool = await request.json();
+
+			if (pool.rc < 0) {
+				return [false, {}];
+			}
+
+			return [true, pool.rsp[0]];
+		}
+		catch (err) {
+			return [false, {}];
+		}
+	}
 }
 
 $(document).ready(function () {

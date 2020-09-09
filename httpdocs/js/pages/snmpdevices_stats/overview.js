@@ -18,6 +18,7 @@ $(document).ready(function () {
 
     // define a constant for the SNMP version dropdown value
     const SNMP_VERSION_THREE = 2;
+    const MAX_RECIPIENTS = 3;
 
     // an object containing ddefault values for the Edit SNMP modal
     const SNMP_DEFAULTS = {
@@ -341,6 +342,9 @@ $(document).ready(function () {
             // set the edit pool link to the default one when the modal opens
             const $editPoolLink = $('#add-snmp-device-modal .edit-pool');
             $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), SNMP_DEFAULTS.DEFAULT_POOL));
+
+            // load the recipient lists inside the modal
+            $(`#add-snmp-device-modal select[name='pool']`).trigger('change');
         },
         onSubmitSuccess: (response, textStatus, modalHandler) => {
             onRequestSuccess(response, textStatus, modalHandler, '#add-snmp-device-modal');
@@ -409,11 +413,26 @@ $(document).ready(function () {
     });
 
     // on changing the associated pool updates the link to the edit pool
-    $(`select[name='pool']`).change(function() {
+    $(`select[name='pool']`).change(async function() {
 
         const poolId = $(this).val();
         const $editPoolLink = $(this).parents('.form-group').find('.edit-pool');
+        const $recipientsInfo = $(this).parents('.form-group').find('.recipients-info')
         $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), poolId));
+
+        const [success, pool] = await NtopUtils.getPool('snmp/device', poolId);
+        if (!success) return;
+
+        let recipients = pool.recipients;
+
+        if (recipients.length == 0) {
+            $recipientsInfo.html(i18n.no_recipients);
+            return;
+        }
+
+        const recipientNames = NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS);
+        $recipientsInfo.html(i18n.some_recipients.replace('${recipients}', recipientNames));
+
     });
 
     // configure import config modal

@@ -94,6 +94,7 @@ $(document).ready(function() {
             // set the edit pool link
             const $editPoolLink = $('#am-add-form .edit-pool');
             $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), edit_host_data.pool || DEFAULT_POOL));
+            $(`#am-edit-form select[name='pool']`).trigger('change');
 
             dialogRefreshMeasurement($dialog, edit_host_data.granularity);
         },
@@ -424,6 +425,8 @@ $(document).ready(function() {
             const $editPoolLink = $('#am-add-form .edit-pool');
             $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), 0));
 
+            $(`#am-add-form select[name='pool']`).trigger('change');
+
             dialogRefreshMeasurement($dialog, null, true /* use defaults */);
         },
         beforeSumbit: function () {
@@ -619,11 +622,27 @@ $(document).ready(function() {
     const $am_table = $("#am-table").DataTable(dt_config);
 
     // on changing the associated pool updates the link to the edit pool
-    $(`select[name='pool']`).change(function() {
+    $(`select[name='pool']`).change(async function() {
 
         const poolId = $(this).val();
         const $editPoolLink = $(this).parents('.form-group').find('.edit-pool');
+        const $recipientsInfo = $(this).parents('.form-group').find('.recipients-info')
+
         $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), poolId));
+
+        const [success, pool] = await NtopUtils.getPool('active_monitoring', poolId);
+        if (!success) return;
+
+        let recipients = pool.recipients;
+
+        if (recipients.length == 0) {
+            $recipientsInfo.html(i18n.no_recipients);
+            return;
+        }
+
+        const recipientNames = NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_RECIPIENTS);
+        $recipientsInfo.html(i18n.some_recipients.replace('${recipients}', recipientNames));
+
     });
 
     NtopUtils.importModalHelper({

@@ -289,6 +289,8 @@ if(page == "overview") then
       i18n.alert_status = "]].. i18n("active_monitoring_stats.alert_status") ..[[";
       i18n.alerted = "]].. i18n("active_monitoring_stats.alerted") ..[[";
       i18n.not_alerted = "]].. i18n("active_monitoring_stats.not_alerted") ..[[";
+      i18n.no_recipients = "]]..i18n('pools.no_recipients') ..[[";
+      i18n.some_recipients = "]]..i18n('pools.some_recipients') ..[[";
 
       let get_host = "]].. (_GET["host"] ~= nil and _GET["host"] or "") ..[[";
       let am_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
