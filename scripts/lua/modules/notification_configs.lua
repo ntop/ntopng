@@ -345,8 +345,6 @@ function notification_configs.reset_configs()
 	 end
 
 	 ntop.delCache(k)
-      else
-	 tprint("skipping "..endpoint_key)
       end
    end
 
