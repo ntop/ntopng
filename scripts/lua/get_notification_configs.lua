@@ -20,12 +20,10 @@ end
 local endpoints = notification_configs.get_configs()
 
 -- Exclude builtin configs
--- Such configs will be possibly made non-editable non-deletable later
+-- These configs will be non-editable and non-deletable
 local res = {}
 for _, config in pairs(endpoints) do
-   if not config.endpoint_conf.builtin then
-      res[#res + 1] = config
-   end
+   res[#res + 1] = config
 end
 
 print(json.encode(res))
