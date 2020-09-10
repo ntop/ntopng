@@ -2158,11 +2158,30 @@ function alert_utils.formatAlertNotification(notif, options)
    }
    options = table.merge(defaults, options)
 
-   local msg = string.format("[%s][%d][%s]%s[%s]",
-			     formatEpoch(notif.alert_tstamp_end or notif.alert_tstamp or 0),
-			     notif.ifid or -1, -- Use -1 to avoid issues with interfaceless use cases (for instance notification test)
-			     getInterfaceName(notif.ifid),
-			     ternary(options.show_severity == false, "", "[" .. alert_consts.alertSeverityLabel(notif.alert_severity, options.nohtml) .. "]"),
+   local ifname
+   local severity
+   local when
+   
+   if(notif.ifid ~= -1) then
+      ifname = string.format(" [%s]", getInterfaceName(notif.ifid))
+   else
+      ifname = ""
+   end
+
+   if(options.show_severity == false) then
+      severity = ""
+   else
+      severity =  " [" .. alert_consts.alertSeverityLabel(notif.alert_severity, options.nohtml) .. "]"
+   end
+
+   when = formatEpoch(notif.alert_tstamp_end or notif.alert_tstamp or 0)
+   
+   if(not options.no_bracket_around_date) then
+      when = "[" .. when .. "]"
+   end
+   
+   local msg = string.format("%s %s%s [%s]",
+			     when, ifname, severity,
 			     alert_consts.alertTypeLabel(notif.alert_type, options.nohtml))
 
    -- entity can be hidden for example when one is OK with just the message
@@ -2181,8 +2200,12 @@ function alert_utils.formatAlertNotification(notif, options)
    end
 
    -- add the label, that is, engaged or released
-   msg = msg .. alertNotificationActionToLabel(notif.action).. " "
+   msg = msg .. " " .. alertNotificationActionToLabel(notif.action).. " "
    local alert_message = alert_utils.formatAlertMessage(notif.ifid, notif)
+
+   if(options.add_cr) then
+      msg = msg .. "\n"
+   end
 
    if options.nohtml then
       msg = msg .. noHtml(alert_message)

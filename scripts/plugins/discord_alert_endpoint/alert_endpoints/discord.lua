@@ -98,6 +98,14 @@ end
 
 -- ##############################################
 
+local function formatDiscordMessage(alert)
+   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true})
+   
+   return(msg)
+end
+
+-- ##############################################
+
 -- Function called periodically to process queued alerts to be delivered via Discord
 function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
   local start_time = os.time()
@@ -105,7 +113,7 @@ function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
   local more_available = true
   local budget_used = 0
   local settings = readSettings(recipient)
-  local max_alerts_per_request = 3 -- collapse up to X alerts per request
+  local max_alerts_per_request = 1 -- collapse up to X alerts per request
 
   -- Dequeue alerts up to budget x max_alerts_per_request
   -- Note: in this case budget is the number of email to send
@@ -134,8 +142,7 @@ function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
     local alerts = {}
 
     for _, json_message in ipairs(notifications) do
-      local alert = json.decode(json_message)
-      table.insert(alerts, alert_utils.formatAlertNotification(alert, {nohtml=true}))
+       table.insert(alerts, formatDiscordMessage(json.decode(json_message)))       
     end
 
     if not discord.sendMessage(table.concat(alerts, "\n"), settings) then
