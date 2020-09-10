@@ -30,7 +30,7 @@ menu_alert_notifications.render_notifications('recipients', {})
 page_utils.print_page_title(i18n("endpoint_notifications.recipient_list"))
 
 -- localize endpoint name types in a table
-local endpoints_types = notification_configs.get_types(true --[[ exclude builtin types --]])
+local endpoints_types = notification_configs.get_types()
 local endpoint_types_labels = {}
 -- create a table to filter recipient by endpoint's type
 local endpoint_type_filters = {}

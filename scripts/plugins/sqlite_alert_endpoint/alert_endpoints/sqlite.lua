@@ -8,6 +8,7 @@ local alerts_api = require "alerts_api"
 local alert_consts = require "alert_consts"
 
 local sqlite = {
+   name = "SQLite",
    builtin = true, -- Whether this endpoint can be configured from the UI. Disabled for the builtin SQLite
 
    conf_params = {
