@@ -87,10 +87,12 @@ function pools:_initialize()
         local default_pool = self:get_pool(pools.DEFAULT_POOL_ID)
 
         if not default_pool then
-            -- Raw call to persist, no need to go through add_pool as here all the parameters are trusted and
-            -- there's no need to check
-            self:_persist(pools.DEFAULT_POOL_ID, pools.DEFAULT_POOL_NAME, {} --[[ no members --]] ,
-                          user_scripts.DEFAULT_CONFIGSET_ID, {} --[[ no recipients --]] )
+	   -- Raw call to persist, no need to go through add_pool as here all the parameters are trusted and
+	   -- there's no need to check
+	   self:_persist(pools.DEFAULT_POOL_ID, pools.DEFAULT_POOL_NAME,
+			 {} --[[ no members --]] ,
+			 user_scripts.DEFAULT_CONFIGSET_ID,
+			 {} --[[ no recipients --]])
         end
 
         self:_unlock()
