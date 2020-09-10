@@ -240,6 +240,33 @@ end
 
 -- ##############################################
 
+-- @brief Get all pools of all the available (currently implemented) pool instances matching a given `recipient_id`
+function pools_rest_utils.get_all_instances_pools_by_recipient(recipient_id)
+   local res = {}
+   local all_instances = pools_lua_utils.all_pool_instances_factory()
+
+   for _, instance in pairs(all_instances) do
+      local instance_pools = instance:get_all_pools()
+
+      for _, instance_pool in pairs(instance_pools) do
+	 instance_pool["key"] = instance.key -- e.g., 'interface', 'host', etc.
+	 for _, recipient in pairs(instance_pool["recipients"]) do
+	    if tonumber(recipient.recipient_id) == (recipient_id) then
+	       -- Match, return the recipient
+	       instance_pool["key"] = instance.key -- e.g., 'interface', 'host', etc.
+	       res[#res + 1] = instance_pool
+	       break
+	    end
+	 end
+      end
+   end
+
+   local rc = rest_utils.consts.success.ok
+   rest_utils.answer(rc, res)
+end
+
+-- ##############################################
+
 -- @brief Get all pools of all the available (currently implemented) pool instances
 function pools_rest_utils.get_all_instances_pools()
    local res = {}
