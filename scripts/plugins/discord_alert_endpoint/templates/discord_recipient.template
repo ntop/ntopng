@@ -6,6 +6,6 @@
         <input
 	data-validation-message="{{ i18n('discord_alert_endpoint.validation.invalid_username') }}"
 	data-pattern="username" name="discord_username" type="text" class="form-control" />
-        <small class="text-muted">{{ i18n("optional_field") }}</small>
+        <small class="text-muted">{{ i18n('discord_alert_endpoint.message_sender') }}</small>
     </div>
 </div>

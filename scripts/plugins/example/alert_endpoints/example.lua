@@ -24,9 +24,8 @@ local example = {
 -- How often this script will be called (in seconds)
 example.EXPORT_FREQUENCY = 5
 
--- The minimum severity for an alert in order to be exported by this
--- endpoint
-example.DEFAULT_SEVERITY = "warning"
+-- The minimum severity for an alert in order to be exported by this endpoint
+-- example.DEFAULT_SEVERITY = "warning"
 
 -- This determines the invocation priority of this endpoint.
 -- Higher priority endpoints are invoked first for the alert export.

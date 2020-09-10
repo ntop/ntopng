@@ -7,5 +7,6 @@
 	data-validation-message="{{ i18n('discord_alert_endpoint.validation.invalid_url') }}"
 	data-validation-empty-message="{{ i18n('discord_alert_endpoint.validation.empty_url') }}"
 	data-pattern="https" name="discord_url" type="text" class="form-control" required />
+        <small>{* i18n('discord_alert_endpoint.webhook_description') *}</small>
     </div>
 </div>

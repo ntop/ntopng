@@ -24,7 +24,7 @@ local syslog = {
    },
 }
 
-syslog.DEFAULT_SEVERITY = "info"
+-- syslog.DEFAULT_SEVERITY = "info"
 syslog.EXPORT_FREQUENCY = 1 -- 1 second, i.e., as soon as possible
 syslog.prio = 300
 

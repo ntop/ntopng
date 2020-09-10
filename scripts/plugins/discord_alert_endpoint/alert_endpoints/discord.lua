@@ -11,6 +11,8 @@ require "lua_utils"
 local json = require "dkjson"
 local alert_utils = require "alert_utils"
 
+local endpoint_key = "discord_alert_endpoint"
+
 local discord = {
    name = "Discord", -- A human readable name which will be shown in the UI
 
@@ -21,7 +23,7 @@ local discord = {
    },
    
    conf_template = {
-      plugin_key = "discord_alert_endpoint", -- Unique string key across plugins+endpoints
+      plugin_key = endpoint_key, -- Unique string key
 
       -- Filename of the GUI block for this endpoint
       -- relative pathname to discord_alert_endpoint/templates/discord_endpoint.template
@@ -35,18 +37,16 @@ local discord = {
       { param_name = "discord_username" }
    },
    recipient_template = {
-      plugin_key = "discord_alert_recipient", -- Unique string key across plugins+recipients
+      plugin_key = endpoint_key, -- Unique string key
 
       template_name = "discord_recipient.template"
    },
 }
 
--- Handle up to X queued messages per run
-local MAX_ALERTS_PER_REQUEST = 10
+-- ##############################################
 
--- How often this script will be called (in seconds) for checking if there are mesasges to be processes
+-- How often this script will be called (in seconds) for checking if there are messages to be processes
 discord.EXPORT_FREQUENCY = 5
-
 
 -- ##############################################
 
@@ -98,24 +98,26 @@ end
 
 -- ##############################################
 
+-- Function called periodically to process queued alerts to be delivered via Discord
 function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
   local start_time = os.time()
   local sent = 0
   local more_available = true
   local budget_used = 0
   local settings = readSettings(recipient)
+  local max_alerts_per_request = 3 -- collapse up to X alerts per request
 
-  -- Dequeue alerts up to budget x MAX_ALERTS_PER_REQUEST
+  -- Dequeue alerts up to budget x max_alerts_per_request
   -- Note: in this case budget is the number of email to send
   while budget_used <= budget and more_available do
     local diff = os.time() - start_time
-    if diff >= discord.ITERATION_TIMEOUT then
+    if diff >= 5 then
       break
     end
 
-    -- Dequeue MAX_ALERTS_PER_REQUEST notifications
+    -- Dequeue max_alerts_per_request notifications
     local notifications = {}
-    for i=1, MAX_ALERTS_PER_REQUEST do
+    for i=1, max_alerts_per_request do
        local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
        if notification then 
 	  notifications[#notifications + 1] = notification
@@ -149,6 +151,8 @@ function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
 end
 
 -- ##############################################
+
+-- This is a testing function invoked by the web GUI whenever a test message has to be sent out
 
 function discord.runTest(recipient)
   local message_info
