@@ -12,7 +12,7 @@ local json = require "dkjson"
 local plugins_utils = require("plugins_utils")
 local menu_alert_notifications = require("menu_alert_notifications")
 local notification_configs = require("notification_configs")
-local endpoints = notification_configs.get_configs(true --[[ exclude builtin --]])
+local endpoints = notification_configs.get_configs()
 
 if not haveAdminPrivileges() then
     return
@@ -43,7 +43,6 @@ for endpoint_key, endpoint in pairs(endpoints_types) do
         key = endpoint_key,
         countable = true
     }
-
 end
 
 -- Prepare the response

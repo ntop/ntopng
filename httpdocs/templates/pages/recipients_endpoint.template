@@ -5,7 +5,6 @@
     configured yet then show an alert to the user.
 #}
 
-{% if (#notifications.endpoint_list > 0) then %}
 <div class="row mb-5">
     <div class="col-md-12">
         <div class="card card-shadow">
@@ -62,16 +61,3 @@
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js"></script>
-{% else %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="alert alert-info">
-            {{ i18n("endpoint_notifications.empty_endpoints") }}
-            <a href="/lua/admin/endpoint_notifications_list.lua">
-                <i class="fas fa-edit"></i> {{ i18n("endpoint_notifications.edit_endpoints") }}.
-            </a>
-        </div>
-    </div>
-</div>
-
-{% end %}
