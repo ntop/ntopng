@@ -380,6 +380,22 @@ function recipients:delete_recipient(recipient_id)
    return ret
 end
 
+-- ##############################################
+
+-- @brief Delete all recipients having the given `endpoint_conf_name`
+-- @param endpoint_conf_name An endpoint configuration key
+-- @return nil
+function recipients:delete_recipients_by_conf(endpoint_conf_name)
+   local ret = false
+
+   local all_recipients = self:get_all_recipients()
+   for _, recipient in pairs(all_recipients) do
+      if recipient.endpoint_conf_name == endpoint_conf_name then
+	 self:delete_recipient(recipient.recipient_id)
+      end
+   end
+end
+
 -- #################################################################
 
 function recipients:test_recipient(endpoint_conf_name, recipient_params)

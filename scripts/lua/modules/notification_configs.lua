@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
 local plugins_utils = require("plugins_utils")
 local json = require "dkjson"
@@ -266,8 +267,9 @@ function notification_configs.delete_config(endpoint_conf_name)
    end
 
    -- Delete the all the recipients associated to this config recipients
-   local notification_recipients = require "notification_recipients"
-   notification_recipients.delete_recipients(endpoint_conf_name)
+   local recipients = require "recipients"
+   local recipients_instance = recipients:create()
+   recipients_instance:delete_recipients_by_conf(endpoint_conf_name)
 
    -- Now delete the actual config
    local k = string.format(ENDPOINT_CONFIGS_KEY, ec["endpoint_key"])
