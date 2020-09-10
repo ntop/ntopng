@@ -96,10 +96,6 @@
                         <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-recipient-select">
                             <b>{{ i18n("pools.recipients") }}</b>
                         </label>
-                        {%
-                            -- show recipient multiselect if only there are recipients to show
-                            if (#pool.notification_recipients > 0) then
-                        %}
                         <div class="col-sm-7">
                             <select multiple class="form-control multiple-select" name="recipients" id="{{ modal_type }}-pool-recipient-select">
                                 {% for key, recipient in pairsByKeys(pool.notification_recipients, asc) do %}
@@ -110,13 +106,6 @@
                                 {* i18n("howto_multiselect") *}
                             </small>
                         </div>
-                        {% else %}
-
-                        <label class="col-form-label col-sm-7">
-                            <a href="/lua/admin/endpoint_recipients_list.lua"><i class="fas fa-edit"></i> {{ i18n("pools.edit_recipients") }}</a>
-                        </label>
-
-                        {% end %}
                     </div>
 
                     <span class="invalid-feedback" id="{{ modal_type }}-modal-feedback"></span>
