@@ -336,14 +336,18 @@ end
 -- @return Always return a table {status = "OK"}
 function notification_configs.reset_configs()
    for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
-      local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
-      local all_configs = ntop.getHashAllCache(k) or {}
+      if not endpoint.builtin then
+	 local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
+	 local all_configs = ntop.getHashAllCache(k) or {}
 
-      for conf_name, conf_params in pairs(all_configs) do
-	 notification_configs.delete_config(conf_name)
+	 for conf_name, conf_params in pairs(all_configs) do
+	    notification_configs.delete_config(conf_name)
+	 end
+
+	 ntop.delCache(k)
+      else
+	 tprint("skipping "..endpoint_key)
       end
-
-      ntop.delCache(k)
    end
 
    return {status = "OK"}

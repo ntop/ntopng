@@ -700,24 +700,12 @@ end
 
 -- ##############################################
 
+-- @brief Cleanup all but builtin recipients
 function recipients:cleanup()
-   -- Delete recipient details
-   local cur_recipient_ids = self:_get_assigned_recipient_ids()
-
-   for _, recipient_id in pairs(cur_recipient_ids) do
-      self:delete_recipient(recipient_id)
+   local all_recipients = self:get_all_recipients(true --[[ exclude builtin recipients --]])
+   for _, recipient in pairs(all_recipients) do
+      self:delete_recipient(recipient.recipient_id)
    end
-
-   local locked = self:_lock()
-   if locked then
-      -- Delete recipient ids
-      ntop.delCache(self:_get_recipient_ids_key())
-
-      self:_unlock()
-   end
-
-   -- Redo the initialization after cleanup
-   self:initialize()
 end
 
 -- ##############################################
