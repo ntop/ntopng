@@ -2014,6 +2014,146 @@
 				}
 			}
 		},
+		"/lua/rest/v1/edit/flow/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit a flow pool",
+				"description": "Edit a flow pool (only recipients edit is allowed)",
+				"operationId": "edit_flow_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"recipients": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/edit/mac/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit a MAC pool",
+				"description": "Edit a MAC pool (only recipients edit is allowed)",
+				"operationId": "edit_mac_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"recipients": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/edit/host_pool/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit an host pool pool",
+				"description": "Edit an host pool pool (only recipients edit is allowed)",
+				"operationId": "edit_host_pool_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"recipients": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/edit/system/pool.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Edit a system pool",
+				"description": "Edit a system pool (only recipients edit is allowed)",
+				"operationId": "edit_system_pool",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32",
+						"pool_name": "string",
+						"pool_members": "string",
+						"recipients": "string",
+						"confset_id": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-14": {
+						"description": "EDIT_POOL_FAILED"
+					}
+				}
+			}
+		},
 		"/lua/rest/v1/delete/interface/pool.lua": {
 			"get": {
 				"tags": [
@@ -2298,6 +2438,106 @@
 				"summary": "Get one or all active monitoring pools",
 				"description": "Get one or all active monitoring pools",
 				"operationId": "get_active_monitoring_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/get/flow/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all flow pools",
+				"description": "Get one or all flow pools",
+				"operationId": "get_flow_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/get/mac/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all MAC pools",
+				"description": "Get one or all MAC pools",
+				"operationId": "get_mac_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/get/host_pool/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all host pool pools",
+				"description": "Get one or all host pool pools",
+				"operationId": "get_host_pool_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"pool": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-16": {
+						"description": "POOL_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/get/system/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get one or all system pools",
+				"description": "Get one or all system pools",
+				"operationId": "get_system_pools",
 				"produces": [
 					"application/json"
 				],
