@@ -152,14 +152,14 @@
             return this.options.loadFormData();
         }
 
-        invokeModalInit() {
+        invokeModalInit(data = {}) {
 
             const self = this;
 
             // reset form values when the modal closes
             this.delegateModalClosing();
-
-            this.options.onModalInit(this.fillFormModal());
+            this.data = data || this.fillFormModal();
+            this.options.onModalInit(this.data);
 
             $(this.element).parents('.modal').on('show.bs.modal', function () {
                 self.options.onModalShow();
@@ -339,7 +339,7 @@
         makeRequest() {
 
             const submitButton = $(this.element).find(`[type='submit']`);
-            let dataToSend = this.options.beforeSumbit();
+            let dataToSend = this.options.beforeSumbit(this.data);
 
             dataToSend.csrf = this.csrf;
             dataToSend = $.extend(dataToSend, this.options.submitOptions);
