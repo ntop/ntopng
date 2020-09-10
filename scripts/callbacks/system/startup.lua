@@ -51,24 +51,7 @@ traceError(TRACE_NORMAL, TRACE_CONSOLE, "Processing startup.lua: please hold on.
 
 -- ##################################################################
 
--- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
-for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
-   if endpoint.builtin then
-      -- Add the configuration
-      notification_configs.add_config(
-	 endpoint_key --[[ the type of the endpoint--]],
-	 "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
-	 {} --[[ no default params --]]
-      )
-
-      -- And the recipient
-      recipients_instance:add_recipient(
-	 "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]], 
-	 "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
-	 {} --[[ no recipient params --]]
-      )
-   end
-end
+recipients:initialize()
 
 -- ##################################################################
 

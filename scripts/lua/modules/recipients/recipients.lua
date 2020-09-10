@@ -32,19 +32,33 @@ function recipients:create(args)
    setmetatable(this, self)
    self.__index = self
 
-   if args then
-      -- Initialization is only run if a subclass is being instanced, that is,
-      -- when args is not nil
-      this:_initialize()
-   end
-
    return this
 end
 
 -- ##############################################
 
--- @brief Performs initialization operations at the time when the instance is created
-function recipients:_initialize()
+-- @brief Performs Initialization operations performed during startup
+function recipients:initialize()
+   -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
+   -- For each builtin configuration type, a configuration and a recipient is created
+   for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
+      if endpoint.builtin then
+	 -- Add the configuration
+	 notification_configs.add_config(
+	    endpoint_key --[[ the type of the endpoint--]],
+	    "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
+	    {} --[[ no default params --]]
+	 )
+
+	 -- And the recipient
+	 self:add_recipient(
+	    "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]], 
+	    "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
+	    {} --[[ no recipient params --]]
+	 )
+      end
+   end
+
    -- Possibly create a default recipient (if not existing)
 end
 
