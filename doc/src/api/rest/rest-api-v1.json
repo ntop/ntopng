@@ -2329,6 +2329,46 @@
 				}
 			}
 		},
+		"/lua/rest/v1/delete/recipients.lua": {
+			"get": {
+				"tags": [
+					"Notification Recipients"
+				],
+				"summary": "Delete all defined recipients and reset them to factory-defaults",
+				"description": "Delete all defined recipients and reset them to factory-defaults",
+				"operationId": "delete_recipients",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"/lua/rest/v1/delete/endpoints.lua": {
+			"get": {
+				"tags": [
+					"Notification Endpoints"
+				],
+				"summary": "Delete all defined notification endpoints and reset them to factory-defaults",
+				"description": "Delete all defined notification endpoints and reset them to factory-defaults",
+				"operationId": "delete_endpoints",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
 		"/lua/rest/v1/get/interface/pools.lua": {
 			"get": {
 				"tags": [
