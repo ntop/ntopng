@@ -18,12 +18,4 @@ if not haveAdminPrivileges(true) then
 end
 
 local endpoints = notification_configs.get_configs()
-
--- Exclude builtin configs
--- These configs will be non-editable and non-deletable
-local res = {}
-for _, config in pairs(endpoints) do
-   res[#res + 1] = config
-end
-
-print(json.encode(res))
+print(json.encode(endpoints))

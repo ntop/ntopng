@@ -90,6 +90,7 @@ class DataTableUtils {
     }
 
     static countEntries(val, data) {
+
         let counter = 0;
         data.forEach((d) => {
             if (d.toLowerCase() == val.toLowerCase()) counter++;

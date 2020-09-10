@@ -4,10 +4,8 @@ $(document).ready(function () {
     const DEFAULT_RECIPIENT_ID = 0;
     const INDEX_COLUMN_ENDPOINT_TYPE = 2;
 
-    let editRowData = null;
-    let removeRowData = null;
 
-    function makeFormData(formSelector) {
+    const makeFormData = (formSelector) => {
 
         const $inputsTemplate = $(`${formSelector} .recipient-template-container [name]`);
 
@@ -24,7 +22,7 @@ $(document).ready(function () {
         return params;
     }
 
-    async function testRecipient(data, $button, $feedbackLabel) {
+    const testRecipient = async (data, $button, $feedbackLabel) => {
 
         const body = { action: 'test', csrf: pageCsrf };
         $.extend(body, data);
@@ -35,30 +33,30 @@ $(document).ready(function () {
         try {
 
             const request = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/edit_notification_recipient.lua`, {
-		method: 'post',
-		body: JSON.stringify(body),
-		headers: {
-		    'Content-Type': 'application/json'
-		}
-	    }, 5000);
-            const {result} = await request.json();
+                method: 'post',
+                body: JSON.stringify(body),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }, 5000);
+            const { result } = await request.json();
 
             if (result.status == "failed") {
-                $button.find('span.spinner-border').fadeOut(function() {
+                $button.find('span.spinner-border').fadeOut(function () {
                     $feedbackLabel.addClass(`text-danger`).html(result.error.message);
                 });
                 return;
             }
 
             // show a green label to alert the endpoint message
-            $button.find('span.spinner-border').fadeOut(function() {
+            $button.find('span.spinner-border').fadeOut(function () {
                 $feedbackLabel.addClass('text-success').html(i18n.working_recipient).fadeOut(3000);
             });
 
         }
         catch (err) {
 
-            $button.find('span.spinner-border').fadeOut(function() {
+            $button.find('span.spinner-border').fadeOut(function () {
 
                 $feedbackLabel.addClass(`text-danger`);
 
@@ -74,13 +72,13 @@ $(document).ready(function () {
 
     }
 
-    function createTemplateOnSelect(formSelector) {
+    const createTemplateOnSelect = (formSelector) => {
 
         const $templateContainer = $(`${formSelector} .recipient-template-container`);
         // on Endpoint Selection load the right template to fill
         $(`${formSelector} select[name='endpoint']`).change(function (e) {
             const $option = $(this).find(`option[value='${$(this).val()}']`);
-            const $cloned = loadTemplate($option.data('endpointKey'));
+            const $cloned = cloneTemplate($option.data('endpointKey'));
             // show the template inside the modal container
             $templateContainer.hide().empty();
             if ($cloned) {
@@ -90,13 +88,13 @@ $(document).ready(function () {
         });
     }
 
-    function loadTemplate(type) {
+    function cloneTemplate(type) {
 
         const template = $(`template#${type}-template`).html();
         // if the template is not empty then return a copy of the template content
         if (template.trim() != "") return $(template);
 
-        return null;
+        return (null);
     }
 
     let dtConfig = DataTableUtils.getStdDatatableConfig([
@@ -125,13 +123,18 @@ $(document).ready(function () {
                 targets: -1,
                 className: 'text-center',
                 data: null,
-                render: function (data, type, row) {
+                render: function (_, type, recipient) {
+
+                    if (!recipient.endpoint_conf) return;
+
+                    const isBuiltin = recipient.endpoint_conf.builtin || false;
+
                     return (`
                         <div class='btn-group btn-group-sm'>
-                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info" >
+                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info ${isBuiltin ? 'disabled' : ''}" >
                                 <i class='fas fa-edit'></i>
                             </a>
-                            <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-danger">
+                            <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-danger ${isBuiltin ? 'disabled' : ''}">
                                 <i class='fas fa-trash'></i>
                             </a>
                         </div>
@@ -141,7 +144,7 @@ $(document).ready(function () {
         ],
         hasFilters: true,
         stateSave: true,
-        initComplete: function(settings, json) {
+        initComplete: function (settings, json) {
 
             const tableAPI = settings.oInstance.api();
 
@@ -155,75 +158,13 @@ $(document).ready(function () {
 
     const $recipientsTable = $(`table#recipient-list`).DataTable(dtConfig);
 
-    const $editRecipientHandler = $('#edit-recipient-modal form').modalHandler({
-        method: 'post',
-        csrf: pageCsrf,
-        endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
-        beforeSumbit: function () {
-            const data = makeFormData(`#edit-recipient-modal form`);
-            data.action = 'edit';
-            data.recipient_id = $(`#edit-recipient-modal form [name='recipient_id']`).val();
-            return data;
-        },
-        onModalInit: function (data) {
-
-            $(`#edit-recipient-modal .test-feedback`).hide();
-
-            // if there are no recipients params it means there are no inputs except the recipient's name
-            if (editRowData.recipient_params.length === undefined) {
-                /* load the template from templates inside the page */
-                const $cloned = loadTemplate(editRowData.endpoint_key);
-                $(`#edit-recipient-modal form .recipient-template-container`)
-                    .empty().append($(`<hr>`)).append($cloned).show();
-            }
-            else {
-                $(`#edit-recipient-modal form .recipient-template-container`).empty().hide();
-            }
-
-            $(`#edit-recipient-name`).text(editRowData.recipient_name);
-            /* load the values inside the template */
-            $(`#edit-recipient-modal form [name='recipient_id']`).val(editRowData.recipient_id || DEFAULT_RECIPIENT_ID);
-            $(`#edit-recipient-modal form [name='recipient_name']`).val(editRowData.recipient_name);
-            $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(editRowData.endpoint_conf_name);
-            $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
-                $(this).val(editRowData.recipient_params[$(this).attr('name')]);
-            });
-            /* bind testing button */
-            $(`#edit-test-recipient`).off('click').click(async function(e) {
-                e.preventDefault();
-                const $self = $(this);
-                $self.attr("disabled");
-                const data = makeFormData(`#edit-recipient-modal form`);
-                data.endpoint_conf_name = editRowData.endpoint_conf_name;
-                testRecipient(data, $(this), $(`#edit-recipient-modal .test-feedback`)).then(() => {
-                    $self.removeAttr("disabled");
-                });
-            });
-        },
-        onModalShow: function() {
-            $(`#edit-recipient-modal .test-feedback`).hide();
-        },
-        onSubmitSuccess: function (response) {
-            if (response.result.status == "OK") {
-                $(`#edit-recipient-modal`).modal('hide');
-                $recipientsTable.ajax.reload();
-            }
-        }
-    });
-
-    /* bind edit recipient event */
-    $(`table#recipient-list`).on('click', `a[href='#edit-recipient-modal']`, function (e) {
-        editRowData = $recipientsTable.row($(this).parent().parent()).data();
-        $editRecipientHandler.invokeModalInit();
-    });
-
     /* bind add endpoint event */
     $(`#add-recipient-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
         csrf: pageCsrf,
         resetAfterSubmit: false,
-        beforeSumbit: function () {
+        beforeSumbit: () => {
 
             $(`#add-recipient-modal form button[type='submit']`).click(function () {
                 $(`#add-recipient-modal form span.invalid-feedback`).hide();
@@ -236,16 +177,13 @@ $(document).ready(function () {
 
             return data;
         },
-        onModalInit: function () {
-            createTemplateOnSelect(`#add-recipient-modal`);
-        },
-        onModalShow: function () {
+        onModalInit: () => { createTemplateOnSelect(`#add-recipient-modal`); },
+        onModalShow: () => {
             // load the template of the selected endpoint
-            const $cloned = loadTemplate($(`#add-recipient-modal select[name='endpoint'] option:selected`).data('endpointKey'));
+            const $cloned = cloneTemplate($(`#add-recipient-modal select[name='endpoint'] option:selected`).data('endpointKey'));
             if ($cloned) {
                 $(`#add-recipient-modal form .recipient-template-container`).empty().append($cloned).show();
             }
-
         },
         onSubmitSuccess: function (response) {
 
@@ -253,7 +191,7 @@ $(document).ready(function () {
                 $(`#add-recipient-modal`).modal('hide');
                 $(`#add-recipient-modal form .recipient-template-container`).hide();
                 NtopUtils.cleanForm(`#add-recipient-modal form`);
-                $recipientsTable.ajax.reload(function() {
+                $recipientsTable.ajax.reload(function () {
                     DataTableUtils.updateFilters(i18n.endpoint_type, $recipientsTable);
                 });
                 return;
@@ -266,45 +204,120 @@ $(document).ready(function () {
         }
     }).invokeModalInit();
 
-    $(`#add-test-recipient`).click(async function(e) {
-        e.preventDefault();
+    const $editRecipientModal = $('#edit-recipient-modal form').modalHandler({
+        method: 'post',
+        csrf: pageCsrf,
+        endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
+        beforeSumbit: function () {
+            const data = makeFormData(`#edit-recipient-modal form`);
+            data.action = 'edit';
+            data.recipient_id = $(`#edit-recipient-modal form [name='recipient_id']`).val();
+            return data;
+        },
+        onModalInit: function (recipient) {
 
-        const $self = $(this);
+            $(`#edit-recipient-modal .test-feedback`).hide();
 
-        testRecipient(makeFormData(`#add-recipient-modal form`), $(this), $(`#add-recipient-modal .test-feedback`)).then(() => {
-            $self.removeAttr("disabled");
-        });
+            // if there are no recipients params it means there are no inputs except the recipient's name
+            if (recipient.recipient_params.length === undefined) {
+                /* load the template from templates inside the page */
+                const $cloned = cloneTemplate(recipient.endpoint_key);
+                $(`#edit-recipient-modal form .recipient-template-container`)
+                    .empty().append($(`<hr>`)).append($cloned).show();
+            }
+            else {
+                $(`#edit-recipient-modal form .recipient-template-container`).empty().hide();
+            }
+
+            $(`#edit-recipient-name`).text(recipient.recipient_name);
+            /* load the values inside the template */
+            $(`#edit-recipient-modal form [name='recipient_id']`).val(recipient.recipient_id || DEFAULT_RECIPIENT_ID);
+            $(`#edit-recipient-modal form [name='recipient_name']`).val(recipient.recipient_name);
+            $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(recipient.endpoint_conf_name);
+            $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
+                $(this).val(recipient.recipient_params[$(this).attr('name')]);
+            });
+            /* bind testing button */
+            $(`#edit-test-recipient`).off('click').click(async function (e) {
+                e.preventDefault();
+                const $self = $(this);
+                $self.attr("disabled");
+                const data = makeFormData(`#edit-recipient-modal form`);
+                data.endpoint_conf_name = recipient.endpoint_conf_name;
+                testRecipient(data, $(this), $(`#edit-recipient-modal .test-feedback`)).then(() => {
+                    $self.removeAttr("disabled");
+                });
+            });
+        },
+        onModalShow: function () {
+            $(`#edit-recipient-modal .test-feedback`).hide();
+        },
+        onSubmitSuccess: function (response) {
+            if (response.result.status == "OK") {
+                $(`#edit-recipient-modal`).modal('hide');
+                $recipientsTable.ajax.reload();
+            }
+        }
     });
 
-    const removeModalHandler = $(`#remove-recipient-modal form`).modalHandler({
+    const $removeRecipientModal = $(`#remove-recipient-modal form`).modalHandler({
         method: 'post',
         csrf: pageCsrf,
         endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
         dontDisableSubmit: true,
-        onModalInit: function () {
-            $(`.removed-recipient-name`).text(`${removeRowData.recipient_name}`);
+        onModalInit: (recipient) => {
+            $(`.removed-recipient-name`).text(`${recipient.recipient_name}`);
         },
-        beforeSumbit: function () {
+        beforeSumbit: (recipient) => {
             return {
                 action: 'remove',
-                recipient_id: removeRowData.recipient_id || DEFAULT_RECIPIENT_ID
+                recipient_id: recipient.recipient_id || DEFAULT_RECIPIENT_ID
             }
         },
-        onSubmitSuccess: function (response) {
-            if (response.result.status == "OK") {
+        onSubmitSuccess: (response) => {
+            if (response.result) {
                 $(`#remove-recipient-modal`).modal('hide');
-                $recipientsTable.ajax.reload(function() {
+                $recipientsTable.ajax.reload(function () {
                     DataTableUtils.updateFilters(i18n.endpoint_type, $recipientsTable);
                 });
             }
         }
     });
 
-    /* bind remove endpoint event */
-    $(`table#recipient-list`).on('click', `a[href='#remove-recipient-modal']`, function (e) {
-        removeRowData = $recipientsTable.row($(this).parent().parent()).data();
-        removeModalHandler.invokeModalInit();
+    /* bind edit recipient event */
+    $(`table#recipient-list`).on('click', `a[href='#edit-recipient-modal']`, function (e) {
+
+        const selectedRecipient = $recipientsTable.row($(this).parent().parent()).data();
+        // prevent editing builtin
+        if (selectedRecipient.endpoint_conf.builtin) {
+            e.preventDefault();
+            return;
+        }
+
+        $editRecipientModal.invokeModalInit(selectedRecipient);
     });
 
+    /* bind remove endpoint event */
+    $(`table#recipient-list`).on('click', `a[href='#remove-recipient-modal']`, function (e) {
+
+        const selectedRecipient = $recipientsTable.row($(this).parent().parent()).data();
+        // prevent removing builtin
+        if (selectedRecipient.endpoint_conf.builtin) {
+            e.preventDefault();
+            return;
+        }
+
+        $removeRecipientModal.invokeModalInit(selectedRecipient);
+    });
+
+    $(`#add-test-recipient`).click(async function (e) {
+
+        e.preventDefault();
+
+        const $self = $(this);
+
+        testRecipient(makeFormData(`#add-recipient-modal form`), $(this), $(`#add-recipient-modal .test-feedback`))
+            .then(() => { $self.removeAttr("disabled"); });
+    });
 
 });

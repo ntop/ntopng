@@ -20,16 +20,4 @@ if not haveAdminPrivileges(true) then
 end
 
 local recipients = recipients_instance:get_all_recipients()
-
--- Exclude builtin recipients for now
--- Builtin recipients will be possibly included later and made uneditable from the UI
-local res = {}
-for _, recipient in pairs(recipients) do
-   if recipient.endpoint_conf then
-      if not recipient.endpoint_conf.builtin then
-	 res[#res + 1] = recipient
-      end
-   end
-end
-
-print(json.encode(res))
+print(json.encode(recipients))

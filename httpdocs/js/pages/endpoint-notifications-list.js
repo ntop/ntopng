@@ -90,7 +90,7 @@ $(document).ready(function () {
                 data: null,
                 render: function (_, type, endpoint) {
 
-                    const isBuiltin = endpoint.endpoint_conf.builtin;
+                    const isBuiltin = endpoint.endpoint_conf.builtin || false;
 
                     return (`
                         <div class='btn-group btn-group-sm'>
