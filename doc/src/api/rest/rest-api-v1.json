@@ -2405,6 +2405,32 @@
 				}
 			}
 		},
+		"/lua/rest/v1/recipient/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Get all pools of any type for a given recipient id",
+				"description": "Get all pools defined for any available pool type for a given recipient id",
+				"operationId": "get_all_recipient_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "recipient_id",
+					"in": "query",
+					"description": "A recipient id",
+					"required": true,
+					"type": "int16"
+				}
+			],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
 		"/lua/pro/rest/v1/get/snmp/device/pool.lua": {
 			"get": {
 				"tags": [
