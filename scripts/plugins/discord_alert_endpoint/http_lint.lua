@@ -1,6 +1,12 @@
 --
 -- (C) 2019-20 - ntop.org
 --
+--
+
+-- Place here the checks for parameters used by this plugins
+-- In essence it extends (and references) checks present in
+-- scripts/lua/modules/http_lint.lua
+--
 
 local script = {}
 

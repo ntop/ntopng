@@ -2,48 +2,61 @@
 -- (C) 2020 - ntop.org
 --
 
+--
+-- This is the core plugin file where everything 
+-- has birth
+--
+
 require "lua_utils"
 local json = require "dkjson"
 local alert_utils = require "alert_utils"
 
 local discord = {
    name = "Discord", -- A human readable name which will be shown in the UI
-   -- Endpoint (see https://birdie0.github.io/discord-webhooks-guide/tools/curl.html)
+
+   -- (1) Endpoint (see https://birdie0.github.io/discord-webhooks-guide/tools/curl.html)
    conf_params = {
+      -- Define here the endpoint parameters used in the endpoint GUI
       { param_name = "discord_url" },
    },
+   
    conf_template = {
-      plugin_key = "discord_alert_endpoint",
-      template_name = "discord_endpoint.template"
+      plugin_key = "discord_alert_endpoint", -- Unique string key across plugins+endpoints
+
+      -- Filename of the GUI block for this endpoint
+      -- relative pathname to discord_alert_endpoint/templates/discord_endpoint.template
+      template_name = "discord_endpoint.template" 
    },
-   -- Recipient
+
+
+   -- (2) Recipient
    recipient_params = {
+      -- Define here the endpoint parameters used in the recipient GUI
       { param_name = "discord_username" }
    },
    recipient_template = {
-      plugin_key = "discord_alert_endpoint",
-      -- TODO: this parameter does not seem to be used (why?) and the field labels of (**) are mapped      
-      --       in en.lua ["recipients"] = { ... ["discord_username"] = "Username", }
-      -- (***)
+      plugin_key = "discord_alert_recipient", -- Unique string key across plugins+recipients
+
       template_name = "discord_recipient.template"
    },
 }
 
-discord.EXPORT_FREQUENCY = 60
-discord.API_VERSION = "0.2"
-discord.REQUEST_TIMEOUT = 1
-discord.ITERATION_TIMEOUT = 3
-discord.prio = 400
+-- Handle up to X queued messages per run
 local MAX_ALERTS_PER_REQUEST = 10
+
+-- How often this script will be called (in seconds) for checking if there are mesasges to be processes
+discord.EXPORT_FREQUENCY = 5
+
 
 -- ##############################################
 
-local function recipient2sendMessageSettings(recipient)
+-- Extract settings from recipients and place them on a simple datastructure
+local function readSettings(recipient)
    local settings = {
       -- Endpoint
-     url = recipient.endpoint_conf.discord_url,
+     url = recipient.endpoint_conf.discord_url, -- this information is coming from the endpoint configuration recipient.endpoint_conf. ...
      -- Recipient
-     discord_username = recipient.recipient_params.discord_username, -- (**)
+     discord_username = recipient.recipient_params.discord_username, -- (**) this information is coming from the recipient configuration recipient.recipient_params. ...
   }
 
   return settings
@@ -51,14 +64,15 @@ end
 
 -- ##############################################
 
+-- Function called whenever a message has to be sent out to discord
 function discord.sendMessage(message_body, settings)
-   if isEmptyString(settings.url) then
-      return false
-   end
-
    local rc = false
    local retry_attempts = 3
    local username = settings.discord_username:gsub("%s+", "") -- Zap spaces
+
+   if isEmptyString(settings.url) then
+      return false
+   end
 
    -- Discord usernames don't have spaces. This line of code will be removed when
    -- (***) will be solved and the input will be clean
@@ -89,8 +103,7 @@ function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
   local sent = 0
   local more_available = true
   local budget_used = 0
-
-  local settings = recipient2sendMessageSettings(recipient)
+  local settings = readSettings(recipient)
 
   -- Dequeue alerts up to budget x MAX_ALERTS_PER_REQUEST
   -- Note: in this case budget is the number of email to send
@@ -140,7 +153,7 @@ end
 function discord.runTest(recipient)
   local message_info
 
-  local settings = recipient2sendMessageSettings(recipient)
+  local settings = readSettings(recipient)
 
   local success = discord.sendMessage("test", settings)
 
