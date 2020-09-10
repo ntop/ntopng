@@ -13,10 +13,11 @@ This mode is automatically enabled when nEdge is not running, or in case the
 software is not working properly for some reason (e.g. the fast path is stuck)
 by leveraging on a heartbeat mechanism.
 
-nEdge currently supports Silicom bypass adapters only. Please note that no special
-configuration is required besides installing the Silicom driver: the adapter 
-is automatically detected and the heartbeat mechanism is automatically enabled,
-as long as the configured WAN and LAN interface belongs to the same bypass segment.
+nEdge currently supports `Silicom bypass adapters <https://www.silicom-usa.com/cats/server-adapters/networking-bypass-adapters/>`_
+only. Please note that no special configuration is required besides installing 
+the Silicom driver: the adapter is automatically detected and the heartbeat mechanism 
+is automatically enabled, as long as the configured WAN and LAN interface belongs to 
+the same bypass segment.
 Please refer to the following section for the adapter configuration.
 
 The adapter is usually in bypass state when the system is off, and it stays
@@ -38,9 +39,9 @@ of the driver is is bp_ctl 5.2.0.41.
    cd bp_ctl-xxx
    make && make install
 
-Please note that on some boards like the Silicom RRC-VE CPE, a small patch
-is required, by adding "#define ADI_RANGELEY_SUPPORT" at the beginning of the
-bp_mod.c source file.
+Please note that on some boards like the `Silicom RRC-VE CPE <http://https://www.silicom-usa.com/pr/edge-networking-solutions/edge-cpes/rcc-ve-cpe-desktop-appliance/>`_, 
+a small patch is required, by adding "#define ADI_RANGELEY_SUPPORT" at the
+beginning of the bp_mod.c source file.
 
 The bypass driver should be loaded using the *bpctl_start* tool. Please make
 sure this is persistent across system reboots: a good practice is to create
