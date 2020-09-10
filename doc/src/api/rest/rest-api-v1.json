@@ -2309,6 +2309,26 @@
 				}
 			}
 		},
+		"/lua/rest/v1/delete/pools.lua": {
+			"get": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Delete all pools for any available pool type",
+				"description": "Delete all pools for any available pool type",
+				"operationId": "delete_pools",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
 		"/lua/rest/v1/get/interface/pools.lua": {
 			"get": {
 				"tags": [
