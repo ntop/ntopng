@@ -10,7 +10,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 local json = require("dkjson")
 local alert_consts = require("alert_consts")
 local os_utils = require("os_utils")
-local notification_recipients = require "notification_recipients"
 local recipients = require "recipients"
 local recipients_instance = recipients:create()
 local do_trace = false
