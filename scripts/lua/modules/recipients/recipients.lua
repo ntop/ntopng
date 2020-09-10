@@ -496,16 +496,14 @@ end
 
 -- ##############################################
 
-local builtin_recipients_cache
-
-function recipients:_get_builtin_recipients()
+function recipients:get_builtin_recipients()
    -- Currently, only sqlite (created in startup.lua) is the builtin recipient
    -- The builtin sqlite recipient is created in startup.lua
-   if not builtin_recipients_cache then
-      builtin_recipients_cache = { self:get_recipient_by_name("builtin_recipient_sqlite").recipient_id }
+   if not self.builtin_recipients_cache then
+      self.builtin_recipients_cache = { self:get_recipient_by_name("builtin_recipient_sqlite").recipient_id }
    end
 
-   return builtin_recipients_cache
+   return self.builtin_recipients_cache
 end
 
 -- ##############################################
@@ -531,7 +529,7 @@ function recipients:dispatch_notification(notification)
    local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id)
 
    -- NOTE: Using straight the recipient_id for efficieny reasons
-   for _, recipient_id in pairs(self:_get_builtin_recipients()) do
+   for _, recipient_id in pairs(self:get_builtin_recipients()) do
       recipients[#recipients + 1] = recipient_id
    end
 

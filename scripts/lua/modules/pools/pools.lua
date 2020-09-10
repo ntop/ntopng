@@ -88,11 +88,12 @@ function pools:_initialize()
 
         if not default_pool then
 	   -- Raw call to persist, no need to go through add_pool as here all the parameters are trusted and
-	   -- there's no need to check
+	   -- there's no need to check.
+	   -- Default pool is always created with builtin recipients
 	   self:_persist(pools.DEFAULT_POOL_ID, pools.DEFAULT_POOL_NAME,
 			 {} --[[ no members --]] ,
 			 user_scripts.DEFAULT_CONFIGSET_ID,
-			 {} --[[ no recipients --]])
+			 recipients_instance:get_builtin_recipients() --[[ builtin recipients --]])
         end
 
         self:_unlock()
@@ -615,6 +616,8 @@ function pools:cleanup()
     -- Delete pool details
     local cur_pool_ids = self:_get_assigned_pool_ids()
     for _, pool_id in pairs(cur_pool_ids) do self:delete_pool(pool_id) end
+    -- Also delete the default pool - it will be re-created during the next initialization
+    self:delete_pool(pools.DEFAULT_POOL_ID)
 
     local locked = self:_lock()
     if locked then

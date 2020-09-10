@@ -287,6 +287,20 @@ end
 
 -- ##############################################
 
+-- @brief Get all pools of all the available (currently implemented) pool instances
+function pools_rest_utils.delete_all_instances_pools()
+   local all_instances = pools_lua_utils.all_pool_instances_factory()
+
+   for _, instance in pairs(all_instances) do
+      instance:cleanup()
+   end
+
+   local rc = rest_utils.consts.success.ok
+   rest_utils.answer(rc)
+end
+
+-- ##############################################
+
 -- @brief Get one or all pools
 function pools_rest_utils.get_pool_members(pools)
    local pool_id = _GET["pool"]
