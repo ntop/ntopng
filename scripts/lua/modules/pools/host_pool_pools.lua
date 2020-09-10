@@ -42,4 +42,11 @@ function host_pool_pools:get_all_members() return {} end
 
 -- ##############################################
 
+function host_pool_pools:default_only()
+   -- This is a dummy, default-only pool
+   return true
+end
+
+-- ##############################################
+
 return host_pool_pools

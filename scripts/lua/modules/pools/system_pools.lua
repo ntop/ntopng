@@ -42,4 +42,11 @@ function system_pools:get_all_members() return {} end
 
 -- ##############################################
 
+function system_pools:default_only()
+   -- This is a dummy, default-only pool
+   return true
+end
+
+-- ##############################################
+
 return system_pools

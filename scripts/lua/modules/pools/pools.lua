@@ -1034,4 +1034,17 @@ end
 
 -- ##############################################
 
+-- @brief Returns true for 'dummy' pool instances
+--        that don't allow the creations of pools apart from the default one,
+--        and also don't allow members to be set/removed.
+--        This kind of pools only allow recipients to be added/removed from the
+--        default pool.
+function pools:default_only()
+   -- By default, pool instances are fully fledged, unless this method is
+   -- overridden in the subclass.
+   return false
+end
+
+-- ##############################################
+
 return pools
