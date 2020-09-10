@@ -687,6 +687,7 @@ end
 function recipients:cleanup()
    -- Delete recipient details
    local cur_recipient_ids = self:_get_assigned_recipient_ids()
+
    for _, recipient_id in pairs(cur_recipient_ids) do
       self:delete_recipient(recipient_id)
    end
@@ -698,6 +699,9 @@ function recipients:cleanup()
 
       self:_unlock()
    end
+
+   -- Redo the initialization after cleanup
+   self:initialize()
 end
 
 -- ##############################################
