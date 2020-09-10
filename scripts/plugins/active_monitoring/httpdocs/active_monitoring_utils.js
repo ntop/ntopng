@@ -1,6 +1,8 @@
 $(document).ready(function() {
 
+    const MAX_RECIPIENTS = 3;
     const POOL_COLUMN_INDEX = 8;
+
     let row_data = null;
 
     const getMeasurementRegex = (measurement) => {
