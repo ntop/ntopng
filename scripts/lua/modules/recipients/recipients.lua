@@ -396,6 +396,24 @@ function recipients:delete_recipients_by_conf(endpoint_conf_name)
    end
 end
 
+-- ##############################################
+
+-- @brief Get all recipients having the given `endpoint_conf_name`
+-- @param endpoint_conf_name An endpoint configuration key
+-- @return A lua array with recipients
+function recipients:get_recipients_by_conf(endpoint_conf_name)
+   local res = {}
+
+   local all_recipients = self:get_all_recipients()
+   for _, recipient in pairs(all_recipients) do
+      if recipient.endpoint_conf_name == endpoint_conf_name then
+	 res[#res + 1] = recipient
+      end
+   end
+
+   return res
+end
+
 -- #################################################################
 
 function recipients:test_recipient(endpoint_conf_name, recipient_params)

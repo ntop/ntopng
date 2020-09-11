@@ -309,6 +309,7 @@ end
 -- #################################################################
 
 -- @brief Retrieve all the available configurations and configuration params
+-- @param exclude_builtin Whether to exclude builtin configs. Default is false.
 -- @return A lua array with a as many elements as the number of existing configurations.
 --         Each element is the result of `notification_configs.get_endpoint_config`
 function notification_configs.get_configs(exclude_builtin)
@@ -328,6 +329,24 @@ function notification_configs.get_configs(exclude_builtin)
    end
 
    return res
+end
+
+-- #################################################################
+
+-- @brief Retrieve all the available configurations, configuration params, and associated recipients
+-- @return A lua array with as many elements as the number of existing configurations.
+--         Each element is the result of `notification_configs.get_endpoint_config`
+--         with an extra key `recipients`.
+function notification_configs.get_configs_with_recipients()
+   local recipients = require "recipients"
+   local recipients_instance = recipients:create()
+   local configs = notification_configs.get_configs()
+
+   for conf_name, conf in pairs(configs) do
+      conf["recipients"] = recipients_instance:get_recipients_by_conf(conf.endpoint_conf_name)
+   end
+
+   return configs
 end
 
 -- #################################################################
