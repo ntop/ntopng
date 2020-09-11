@@ -73,10 +73,13 @@ end
 -- @return An array of recipient ids
 function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id)
    local res = {}
-
    local entity = alert_consts.alertEntityById(entity_id)
    -- Obtain the pools instance for the given entity
    local pools_instance = pools_alert_utils.get_entity_pools_by_id(entity_id)
+
+   if not pool_id then
+      pool_id = pools.DEFAULT_POOL_ID
+   end
 
    if pools_instance then
       -- tprint("found pool instance for "..entity.label)
