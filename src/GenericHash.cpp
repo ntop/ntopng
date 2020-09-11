@@ -135,14 +135,27 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
   }
 
   if(cur_idle) {
-    if(!cur_idle->empty()) {
+    if(!cur_idle->empty()) {      
       for(vector<GenericHashEntry*>::const_iterator it = cur_idle->begin(); it != cur_idle->end(); ++it) {
-	walker(*it, user_data);
-	delete *it;
-	entry_state_transition_counters.num_purged++;
+	walker(*it, user_data); /* In case of flow dump here the flow is queued for dump */
+
+	/* In case of flow dump the uses number might be increased (0 -> 1) */
+	if((*it)->getUses() == 0) {
+	  delete *it; /* Delete the entry */
+	  entry_state_transition_counters.num_purged++;
+	  /* https://www.techiedelight.com/remove-elements-vector-inside-loop-cpp/ */
+	  /* cur_idle->erase(it--); */
+	} else {
+	  /* This entry is still in use: as its uses were 0 and now 1, it should be still queued waiting for dump */
+#if DEBUG_FLOW_DUMP
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Skipping entry in use [purged: %u]",
+				       __FUNCTION__, entry_state_transition_counters.num_purged);
+#endif
+	  /* This entry will be deleted by the dumper after the dump completed */
+	}
       }
     }
-
+    
     delete cur_idle;
   }
   

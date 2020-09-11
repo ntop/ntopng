@@ -239,6 +239,9 @@ void Flow::freeDPIMemory() {
 /* *************************************** */
 
 Flow::~Flow() {
+  if(getUses() != 0)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]", __FUNCTION__, getUses());
+  
 #ifdef ALERTED_FLOWS_DEBUG
   if(iface_alert_inc && !iface_alert_dec) {
     char buf[256];

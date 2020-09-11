@@ -49,6 +49,7 @@ NetworkInterface::NetworkInterface(const char *name,
   init();
   customIftype = custom_interface_type;
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
+  idleFlowsToDump_drops = activeFlowsToDump_drops = 0;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -138,13 +139,12 @@ NetworkInterface::NetworkInterface(const char *name,
 
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
-      bridge_interface = false;
+      flowDumpLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = next_idle_other_purge = 0;
     cpu_affinity = -1 /* no affinity */,
       has_vlan_packets = has_ebpf_events = false;
 
-    running = false,
-      inline_interface = false;
+    running = false, inline_interface = false;
 
     checkIdle();
     ifSpeed = Utils::getMaxIfSpeed(name);
@@ -175,7 +175,7 @@ NetworkInterface::NetworkInterface(const char *name,
   else
     pHash = NULL;
 #endif
-  
+
   loadScalingFactorPrefs();
 
   statsManager = NULL, alertsManager = NULL, alertsQueue = NULL;
@@ -236,7 +236,7 @@ void NetworkInterface::init() {
     has_external_alerts = false,
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
-    running = false, customIftype = NULL, 
+    running = false, customIftype = NULL,
     is_dynamic_interface = false, show_dynamic_interface_traffic = false,
     is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
     discard_probing_traffic = false;
@@ -315,6 +315,7 @@ void NetworkInterface::init() {
     companionQueue = new (std::nothrow) ParsedFlow*[COMPANION_QUEUE_LEN]();
   next_compq_insert_idx = next_compq_remove_idx = 0;
 
+  idleFlowsToDump = activeFlowsToDump = NULL;
   PROFILING_INIT();
 }
 
@@ -334,7 +335,7 @@ void NetworkInterface::initL7Policer() {
 void NetworkInterface::checkDisaggregationMode() {
   char rkey[128], rsp[64];
 
-  if(customIftype || isSubInterface()) 
+  if(customIftype || isSubInterface())
     return;
 
   snprintf(rkey, sizeof(rkey), CONST_IFACE_DYN_IFACE_MODE_PREFS, id);
@@ -419,7 +420,7 @@ bool NetworkInterface::getInterfaceBooleanPref(const char *pref_key, bool defaul
     }
   }
 
-#if 0 
+#if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading pref [%s][ifid: %i][rsp: %s][actual_value: %d]", pref_buf, get_id(), rsp, interface_pref ? 1 : 0);
 #endif
 
@@ -527,9 +528,18 @@ NetworkInterface::~NetworkInterface() {
   deleteDataStructures();
 
   if(db) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting until all flows are dumped...");
+    pthread_join(flowDumpLoop, NULL);
+  }
+
+  if(idleFlowsToDump)         delete idleFlowsToDump;
+  if(activeFlowsToDump)      delete activeFlowsToDump;
+
+  if(db) {
     db->shutdown();
     delete db;
   }
+
   if(host_pools)     delete host_pools;     /* note: this requires ndpi_struct */
   if(bcast_domains)  delete bcast_domains;
   if(ifDescription)  free(ifDescription);
@@ -553,7 +563,7 @@ NetworkInterface::~NetworkInterface() {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pHash) delete pHash;
 #endif
-  
+
   for(it = external_alerts.begin(); it != external_alerts.end(); ++it)
     delete it->second;
   external_alerts.clear();
@@ -574,8 +584,10 @@ NetworkInterface::~NetworkInterface() {
   if(rrd_ts_exporter)       delete rrd_ts_exporter;
   if(dhcp_ranges)           delete[] dhcp_ranges;
   if(dhcp_ranges_shadow)    delete[] dhcp_ranges_shadow;
-  if(mdns)                 delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
+  if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
   if(ifname)                free(ifname);
+
+
 }
 
 /* **************************************************** */
@@ -616,10 +628,53 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
 	return(-1);
     }
 
-    rc = db->dumpFlow(when, f, json); /* Finally dump this flow */
+    if(idleFlowsToDump) {
+      /* Asynchronous dump via a thread */
+      const u_int MAX_IDLE_FLOW_QUEUE_LEN   = 8192;
+      const u_int MAX_ACTIVE_FLOW_QUEUE_LEN = 4096;
+      QueuedFlowInfo i(when, f, json);
 
-    if(json != NULL)
-      free(json);
+      if(f->get_state() == hash_entry_state_idle) {
+	/* Last flow dump before delete */
+	if(idleFlowsToDump->size() < MAX_IDLE_FLOW_QUEUE_LEN) {
+	  idleFlowsToDump->push(i);
+	  f->incUses();
+
+#if DEBUG_FLOW_DUMP
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [size: %u][IDLE]",
+				       __FUNCTION__, idleFlowsToDump->size());
+#endif
+	} else {
+	  idleFlowsToDump_drops++;
+	  if(json != NULL) free(json);
+	  delete f; /* Idle flows memory must be freed here */
+	}
+      } else {
+	/* Partial dump if active flows */
+	if(activeFlowsToDump->size() < MAX_ACTIVE_FLOW_QUEUE_LEN) {
+	  activeFlowsToDump->push(i);
+	  f->incUses();
+
+#if DEBUG_FLOW_DUMP
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [size: %u][ACTIVE]",
+				       __FUNCTION__, activeFlowsToDump->size());
+#endif
+	} else {
+	  activeFlowsToDump_drops++;
+	  if(json != NULL) free(json);
+	}
+      }
+    } else {
+      /* Sychronous dump and not via a thread */
+      rc = db->dumpFlow(when, f, json); /* Finally dump this flow */
+      if(!rc) incDBNumDroppedFlows(1);
+      if(json != NULL) free(json);
+      /*
+	No need to delete the memory as everything
+	is syncronous and the caller will take care
+	of that
+      */
+    }
 #endif
 
     return(rc);
@@ -909,7 +964,7 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool par
   NetworkInterface *sub_iface = NULL;
 #ifndef HAVE_NEDGE
   std::map<u_int64_t, NetworkInterface*>::iterator subIface = flowHashing.find(criteria);
-  
+
   if(subIface != flowHashing.end()) {
     sub_iface = subIface->second;
   } else {
@@ -945,7 +1000,7 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool par
 	    /* 64 bit value: upper 32 bit is nProbe IP, lower 32 bit ifIdx */
 	    u_int32_t nprobe_ip = (u_int32_t)(criteria >> 32);
 	    u_int32_t if_id     = (u_int32_t)(criteria & 0xFFFFFFFF);
-	      
+
 	    vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	    snprintf(buf, sizeof(buf), "%s [Probe IP: %s][InIfIdx: %u]", ifname,
 		     Utils::intoaV4(nprobe_ip, buf1, sizeof(buf1)), if_id);
@@ -979,7 +1034,7 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool par
           sub_iface = NULL;
         }
       } else
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");      
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure allocating interface: not enough memory?");
     } else {
       static bool too_many_interfaces_error = false;
 
@@ -1031,7 +1086,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   bool pass_verdict = true;
   u_int16_t l4_len = 0;
   u_int8_t tos;
-  
+
   *hostFlow = NULL;
 
   if(!isSubInterface()) {
@@ -1131,7 +1186,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     /* NOTE: ip_tot_len is not trusted as may be forged */
     ip_tot_len = ntohs(iph->tot_len);
     tos = iph->tos;
-    
+
     /* Use the actual h->len and not the h->caplen to determine
        whether a packet is fragmented. */
     if(ip_len > (int)h->len - ip_offset
@@ -1157,7 +1212,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     /* IPv6 */
     u_int ipv6_shift = sizeof(const struct ndpi_ipv6hdr);
     u_int32_t *tos_ptr = (u_int32_t*)ip6;
-    
+
     if(trusted_ip_len < sizeof(const struct ndpi_ipv6hdr)) {
       incStats(ingressPacket,
 	       when->tv_sec, ETHERTYPE_IPV6,
@@ -1302,7 +1357,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     *hostFlow = flow;
 
     flow->setTOS(tos, src2dst_direction);
-    
+
     switch(l4_proto) {
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
@@ -1754,7 +1809,7 @@ decode_packet_eth:
 	goto dissect_packet_end;
       } else
 	frag_off = ntohs(iph->frag_off);
-      
+
       if(ntop->getGlobals()->decode_tunnels() && (iph->protocol == IPPROTO_GRE)
 	 && ((frag_off & 0x3FFF /* IP_MF | IP_OFFSET */ ) == 0)
 	 && h->caplen >= ip_offset + ip_len + sizeof(struct grev1_header)) {
@@ -1971,7 +2026,7 @@ decode_packet_eth:
 	  l4_proto = options[0];
 	  ipv6_shift = 8 * (options[1] + 1);
 	}
-		  
+
 	if(ntop->getGlobals()->decode_tunnels() && (l4_proto == IPPROTO_GRE)
 	   && h->caplen >= ip_offset + ipv6_shift + sizeof(struct grev1_header)) {
 	  struct grev1_header gre;
@@ -2068,7 +2123,7 @@ decode_packet_eth:
 	  ip_offset += sizeof(struct ndpi_ipv6hdr);
 	  goto decode_packet_eth;
 	}
-	
+
 	if(vlan_id && ntop->getPrefs()->do_ignore_vlans())
 	  vlan_id = 0;
 	if((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
@@ -2184,7 +2239,7 @@ decode_packet_eth:
       if(srcMac && dstMac && (!srcMac->isNull() || !dstMac->isNull())) {
 	setSeenMacAddresses();
 	srcMac->setSourceMac();
-	
+
 	if(arp_opcode == 0x1 /* ARP request */) {
 	  arp_requests++;
 	  srcMac->incSentArpRequests();
@@ -2224,7 +2279,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
     if(dequeueFlowFromCompanion(&dequeued)) {
       Flow *flow = NULL;
       bool src2dst_direction, new_flow;
- 
+
       flow = getFlow(NULL /* srcMac */, NULL /* dstMac */,
 		     0 /* vlan_id */,
 		     0 /* deviceIP */,
@@ -2260,8 +2315,8 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
           if(o) flow->setExternalAlert(o);
         }
 
-        if(dequeued->process_info_set || 
-           dequeued->container_info_set || 
+        if(dequeued->process_info_set ||
+           dequeued->container_info_set ||
            dequeued->tcp_info_set) {
           /* Flow from ZMQParserInterface (nProbe Agent) */
 	  flow->setParsedeBPFInfo(dequeued, src2dst_direction);
@@ -2272,6 +2327,98 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
     }
 
     return;
+  }
+}
+
+/* **************************************************** */
+
+void NetworkInterface::dumpFlowLoop() {
+  std::queue<QueuedFlowInfo> *idleFlowsToDump_swap, *activeFlowsToDump_swap;
+
+  idleFlowsToDump_swap   = new (std::nothrow) std::queue<QueuedFlowInfo>();
+  activeFlowsToDump_swap = new (std::nothrow) std::queue<QueuedFlowInfo>();
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Started flow dump loop on interface %s [id: %u]...",
+			       get_description(), get_id());
+
+  /* Wait until it starts up */
+  while(!running) sleep(1);
+
+  /* Now operational */
+  while(running) {
+    /* Save pointers */
+    std::queue<QueuedFlowInfo> *idleFlowsToDump_tmp    = idleFlowsToDump;
+    std::queue<QueuedFlowInfo> *activeFlowsToDump_tmp = activeFlowsToDump;
+
+    /* Swap */
+    idleFlowsToDump = idleFlowsToDump_swap, activeFlowsToDump = activeFlowsToDump_swap;
+    idleFlowsToDump_swap = idleFlowsToDump_tmp, activeFlowsToDump_swap = activeFlowsToDump_tmp;
+    
+    _usleep(10000); /* Settle things down */
+
+    while(!idleFlowsToDump_swap->empty()) {
+      QueuedFlowInfo i = idleFlowsToDump_swap->front();      
+      int rc = db->dumpFlow(i.when, i.f, i.json); /* Finally dump this flow */
+
+#if DEBUG_FLOW_DUMP
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped idle flow");
+#endif
+      if(!rc) incDBNumDroppedFlows(1);
+      if(i.json != NULL) free(i.json);
+      i.f->decUses();
+      delete i.f;
+      idleFlowsToDump_swap->pop();
+    }
+
+    while(!activeFlowsToDump_swap->empty()) {
+      QueuedFlowInfo i = activeFlowsToDump_swap->front();
+      int rc = db->dumpFlow(i.when, i.f, i.json); /* Finally dump this flow */
+
+#if DEBUG_FLOW_DUMP
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped active flow");
+#endif
+      if(!rc) incDBNumDroppedFlows(1);
+      if(i.json != NULL) free(i.json);
+      i.f->decUses();
+      /* No free here */
+      activeFlowsToDump_swap->pop();
+    }
+  }
+
+  if(idleFlowsToDump_swap)   { delete idleFlowsToDump_swap; idleFlowsToDump_swap = NULL;     }
+  if(activeFlowsToDump_swap) { delete activeFlowsToDump_swap; activeFlowsToDump_swap = NULL; }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
+}
+
+/* **************************************************** */
+
+static void* flowDumper(void* ptr) {
+  NetworkInterface *_if = (NetworkInterface*)ptr;
+
+  _if->dumpFlowLoop();
+  return(NULL);
+}
+
+/* **************************************************** */
+
+void NetworkInterface::startFlowDumping() {
+  idleFlowsToDump         = new (std::nothrow) std::queue<QueuedFlowInfo>();
+  activeFlowsToDump      = new (std::nothrow) std::queue<QueuedFlowInfo>();
+
+  if(idleFlowsToDump && activeFlowsToDump) {
+    pthread_create(&flowDumpLoop, NULL, flowDumper, (void*)this);
+    
+#ifdef __linux__
+    char buf[16];
+    
+    snprintf(buf, sizeof(buf), "flowdump ifid %u", get_id());
+    pthread_setname_np(flowDumpLoop, buf);
+#endif
+  } else {
+    if(idleFlowsToDump)   { delete idleFlowsToDump; idleFlowsToDump = NULL;     }
+    if(activeFlowsToDump) { delete activeFlowsToDump; activeFlowsToDump = NULL; }
   }
 }
 
@@ -2297,7 +2444,7 @@ void NetworkInterface::startPacketPolling() {
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started packet polling on interface %s [id: %u]...",
-      get_description(), get_id());
+			       get_description(), get_id());
 
   running = true;
 }
@@ -2310,8 +2457,8 @@ void NetworkInterface::shutdown() {
   if(running) {
     running = false;
 
-    if(pollLoopCreated)
-      pthread_join(pollLoop, &res);
+    if(pollLoopCreated)     pthread_join(pollLoop, &res);
+    if(flowDumpLoopCreated) pthread_join(flowDumpLoop, &res);
 
     /* purgeIdle one last time to make sure all entries will be marked as idle */
     purgeIdle(time(NULL), true);
@@ -2445,7 +2592,7 @@ bool NetworkInterface::checkPeriodicStatsUpdateTime(const struct timeval *tv) {
     memcpy(&last_periodic_stats_update, tv, sizeof(last_periodic_stats_update));
     return true;
   }
-    
+
   return false;
 }
 
@@ -2573,7 +2720,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
   /* Always use the current time to update the hash tables states, also when processing pcap dumps. This
      is necessary as hash table states changes and periodic lua scripts call assume the time flows normally. */
   gettimeofday(&tv, NULL);
-  
+
   periodic_ht_state_update_user_data.acle = NULL,
     periodic_ht_state_update_user_data.iface = this,
     periodic_ht_state_update_user_data.tv = &tv,
@@ -2588,7 +2735,7 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
   /* (a) delete all idle entries */
   for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
     if(ghs[i])
-      ghs[i]->purgeQueuedIdleEntries(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);    
+      ghs[i]->purgeQueuedIdleEntries(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
   } /* for */
 
   /* (b) idle hash entries */
@@ -3549,7 +3696,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
 
   r->elems[r->actNumEntries].hostValue = h;
   h->incUses(); /* (***) */
-  
+
   switch(r->sorter) {
   case column_ip:
     r->elems[r->actNumEntries++].hostValue = h; /* hostValue was already set */
@@ -4481,7 +4628,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
     if(retriever.elems[i].hostValue)
       retriever.elems[i].hostValue->decUses(); /* See (***) */
   }
-  
+
   // it's up to us to clean sorted data
   // make sure first to free elements in case a string sorter has been used
   if(retriever.sorter == column_name
@@ -4874,7 +5021,7 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle) {
       + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle) : 0);
 
     next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
-    
+
     return(n);
   }
 }
@@ -5146,7 +5293,7 @@ void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
     flows_hash, hosts_hash, macs_hash,
     vlans_hash, ases_hash, countries_hash
   };
-  
+
   lua_newtable(vm);
 
   for (u_int i = 0; i < sizeof(gh) / sizeof(gh[0]); i++) {
@@ -5234,7 +5381,7 @@ Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool create_if_not_present, bo
   ret = vlans_hash->get(vlanId, isInlineCall);
 
   if((ret == NULL) && create_if_not_present) {
-    
+
     if(!vlans_hash->hasEmptyRoom())
       return(NULL);
 
@@ -5731,7 +5878,7 @@ void NetworkInterface::allocateStructures() {
 
       if(!flowsOnlyInterface() /* Do not allocate HTs when the interface should only have flows */
 	 && !isViewed() /* Do not allocate HTs when the interface is viewed, HTs are allocated in the corresponding ViewInterface */)
-	{ 
+	{
 	  num_hashes     = max_val(4096, ntop->getPrefs()->get_max_num_hosts() / 4);
 	  hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 	  /* The number of ASes cannot be greater than the number of hosts */
@@ -6512,7 +6659,7 @@ bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int1
   is succesful
  */
 bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
-  if(isFlowDumpDisabled())
+  if(isFlowDumpDisabled() || (db != NULL /* Already enabled */))
     return(false);
 
   /* Flows are dumped by the view only */
@@ -6560,6 +6707,9 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
       db = new Logstash(this);
 #endif
   }
+
+  if(db)
+    startFlowDumping();
 
   return(db != NULL);
 }
@@ -7574,7 +7724,7 @@ void NetworkInterface::checkHostsToRestore() {
     u_int16_t vlan_id;
     IpAddress ipa;
     std::string s;
-    
+
     if(hosts_to_restore->empty())
       break;
 

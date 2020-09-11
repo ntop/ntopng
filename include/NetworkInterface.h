@@ -52,6 +52,17 @@ class TrafficShaper;
 class NIndexFlowDB;
 #endif
 
+class QueuedFlowInfo {
+public:
+  time_t when;
+  Flow *f;
+  char *json;
+
+  QueuedFlowInfo(time_t _when, Flow *_f, char *_json) {
+    when = _when, f = _f, json = _json;
+  }
+};
+
 /** @class NetworkInterface
  *  @brief Main class of network interface of ntopng.
  *  @details .......
@@ -77,6 +88,11 @@ class NetworkInterface : public AlertableEntity {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   PeriodicityHash *pHash;
 #endif
+
+  /* Flows queues waiting to be dumped */
+  std::queue<QueuedFlowInfo> *idleFlowsToDump, *activeFlowsToDump,
+    *idleFlowsToDump_swap, *activeFlowsToDump_swap;
+  u_int32_t idleFlowsToDump_drops, activeFlowsToDump_drops;
   
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   FifoStringsQueue *hosts_to_restore;
@@ -145,8 +161,8 @@ class NetworkInterface : public AlertableEntity {
   ICMPstats icmp_v4, icmp_v6;
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap. */
-  pthread_t pollLoop;
-  bool pollLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
+  pthread_t pollLoop, flowDumpLoop;
+  bool pollLoopCreated, flowDumpLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   /* Those will hold counters at checkpoints */
@@ -257,7 +273,9 @@ class NetworkInterface : public AlertableEntity {
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
-  bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const u_int8_t *src_mac, const u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa) const;
+  bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id,
+				    const u_int8_t *src_mac, const u_int8_t *dst_mac,
+				    u_int32_t spa, u_int32_t tpa) const;
   void pollQueuedeCompanionEvents();
   bool getInterfaceBooleanPref(const char *pref_key, bool default_pref_value) const;
   virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
@@ -296,6 +314,7 @@ class NetworkInterface : public AlertableEntity {
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
   inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };
   virtual void startPacketPolling();
+  virtual void startFlowDumping();
   virtual void shutdown();
   virtual void cleanup();
   virtual char *getEndpoint(u_int8_t id)       { return NULL;   };
@@ -832,6 +851,7 @@ class NetworkInterface : public AlertableEntity {
 #endif
 
   inline void incNumQueueDroppedFlows(u_int32_t num)  { if(db) db->incNumQueueDroppedFlows(num); };
+  void dumpFlowLoop();
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
