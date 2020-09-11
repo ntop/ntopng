@@ -8,6 +8,7 @@ local alert_consts = require("alert_consts")
 local alert_utils = require "alert_utils"
 
 local slack = {
+   name = "Slack",
    conf_params = {
       { param_name = "slack_sender_username" },
       { param_name = "slack_webhook" },

@@ -5,6 +5,7 @@
 local plugins_utils = require "plugins_utils"
 
 local email = {
+   name = "Email",
    conf_params = {
       { param_name = "smtp_server" },
       { param_name = "email_sender"},

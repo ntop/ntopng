@@ -6,6 +6,7 @@ require "lua_utils"
 local json = require "dkjson"
 
 local webhook = {
+   name = "Webhook",
    conf_params = {
       { param_name = "webhook_url" },
       { param_name = "webhook_sharedsecret", optional = true },

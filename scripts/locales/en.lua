@@ -1099,14 +1099,6 @@ local lang = {
       ["cc"] = "CC",
       ["email_recipient"] = "Email Recipient",
     },
-    ["types"] = {
-      ["elasticsearch"] = "Elasticsearch",
-      ["email"] = "Email",
-      ["slack"] = "Slack",
-      ["sqlite"] = "SQLite",
-      ["syslog"] = "Syslog",
-      ["webhook"] = "Webhook",
-    },
     ["validation"] = {
       ["abort_add_endpoint"] = "Abort add of new endpoint?",
       ["abort_add_recipient"] = "Abort add of new endpoint recipient?",
