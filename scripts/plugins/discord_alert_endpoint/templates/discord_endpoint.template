@@ -1,12 +1,12 @@
 <div class="form-group row">
     <label class="col-form-label col-sm-3">
-        <b>{{ i18n("discord_alert_endpoint.url") }}</b>
+	<b>{{ i18n("discord_alert_endpoint.url") }}</b>
     </label>
     <div class="col-sm-5">
-        <input
+	<input
 	data-validation-message="{{ i18n('discord_alert_endpoint.validation.invalid_url') }}"
 	data-validation-empty-message="{{ i18n('discord_alert_endpoint.validation.empty_url') }}"
 	data-pattern="https" name="discord_url" type="text" class="form-control" required />
-        <small>{* i18n('discord_alert_endpoint.webhook_description') *}</small>
     </div>
 </div>
+<small>{* i18n('discord_alert_endpoint.webhook_description') *}</small>
