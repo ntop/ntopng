@@ -1103,7 +1103,7 @@ local lang = {
       ["elasticsearch"] = "Elasticsearch",
       ["email"] = "Email",
       ["slack"] = "Slack",
-      ["sqlite"] = "Sqlite",
+      ["sqlite"] = "SQLite",
       ["syslog"] = "Syslog",
       ["webhook"] = "Webhook",
     },

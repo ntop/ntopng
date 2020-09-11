@@ -4,7 +4,6 @@ $(document).ready(function () {
     const DEFAULT_RECIPIENT_ID = 0;
     const INDEX_COLUMN_ENDPOINT_TYPE = 2;
 
-
     const makeFormData = (formSelector) => {
 
         const $inputsTemplate = $(`${formSelector} .recipient-template-container [name]`);
@@ -101,6 +100,7 @@ $(document).ready(function () {
         {
             text: '<i class="fas fa-plus"></i>',
             className: 'btn-link',
+            enabled: CAN_CREATE_RECIPIENT,
             action: function (e, dt, node, config) {
                 $('#add-recipient-modal').modal('show');
             }
