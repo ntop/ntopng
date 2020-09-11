@@ -47,6 +47,8 @@ print[[
       "request_failed_message": "]] print(i18n("request_failed_message")) print[[",
       "all": "]] print(i18n("all")) print[[",
       "and": "]] print(i18n("and")) print[[",
+      "other": "]] print(i18n("other")) print[[",
+      "others": "]] print(i18n("others")) print[[",
       "invalid_input": "]] print(i18n("validation.invalid_input")) print[[",
       "missing_field": "]] print(i18n("validation.missing_field")) print[[",
       "unreachable_host": "]] print(i18n("graphs.unreachable_host")) print[[",
