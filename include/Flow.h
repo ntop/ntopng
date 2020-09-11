@@ -245,7 +245,7 @@ class Flow : public GenericHashEntry {
 			  const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) const;
-  void periodic_dump_check(const struct timeval *tv, bool no_time_left);
+  void dumpCheck(const struct timeval *tv, bool no_time_left, bool last_dump_before_free);
   void updateCliJA3();
   void updateSrvJA3();
   void updateHASSH(bool as_client);
@@ -542,7 +542,7 @@ class Flow : public GenericHashEntry {
 	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction) const;
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
-  bool dumpFlow(const struct timeval *tv, NetworkInterface *dumper, bool no_time_left);
+  bool dumpFlow(const struct timeval *tv, NetworkInterface *dumper, bool no_time_left, bool last_dump_before_free);
   bool match(AddressTree *ptree);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len);
@@ -739,6 +739,10 @@ class Flow : public GenericHashEntry {
       if(custom_flow_info) free(custom_flow_info);
       custom_flow_info = strdup(what);
     }
+  }
+
+  inline bool timeToPeriodicDump(u_int sec) {
+    return((sec - get_first_seen() < CONST_DB_DUMP_FREQUENCY) || (sec - get_partial_last_seen() < CONST_DB_DUMP_FREQUENCY));
   }
 };
 

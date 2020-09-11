@@ -581,26 +581,6 @@ NetworkInterface::~NetworkInterface() {
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
-  int rc = -1;
-#ifndef HAVE_NEDGE
-  char *json = NULL;
-  bool dump_json = true;
-  bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() ||
-    ntop->getPrefs()->do_dump_flows_on_ls();
-
-  if(!db)
-    return(-1);
-
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-  if(ntop->getPrefs()->do_dump_flows_on_nindex() &&
-      !ntop->getPrefs()->do_dump_json_flows_on_disk()) {
-    /* JSON is not generated in case of nindex dump for
-     * performance reason (it actually contains duplicated
-     * information which are useless) */
-    dump_json = false;
-  }
-#endif
-
   if(no_time_left) {
     /* There is no time to dump the flow, however this is not yet
      * lost unless it is in the idle state (active flows will be
@@ -609,22 +589,41 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
       db->incNumDroppedFlows(1);
 
     return(-1);
-  }
+  } else {
+    int rc = -1;
+#ifndef HAVE_NEDGE
+    char *json = NULL;
+    bool dump_json = true;
+    bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_ls();
 
-  if(dump_json) {
-    json = f->serialize(use_labels);
-
-    if(json == NULL)
+    if(!db)
       return(-1);
-  }
 
-  rc = db->dumpFlow(when, f, json);
-
-  if(json != NULL)
-    free(json);
+#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
+    if(ntop->getPrefs()->do_dump_flows_on_nindex() &&
+       !ntop->getPrefs()->do_dump_json_flows_on_disk()) {
+      /* JSON is not generated in case of nindex dump for
+       * performance reason (it actually contains duplicated
+       * information which are useless) */
+      dump_json = false;
+    }
 #endif
 
-  return(rc);
+    if(dump_json) {
+      json = f->serialize(use_labels);
+
+      if(json == NULL)
+	return(-1);
+    }
+
+    rc = db->dumpFlow(when, f, json); /* Finally dump this flow */
+
+    if(json != NULL)
+      free(json);
+#endif
+
+    return(rc);
+  }
 }
 
 /* **************************************************** */
@@ -7647,3 +7646,5 @@ void NetworkInterface::updateFlowPeriodicity(Flow *f) {
   if(pHash && f) pHash->updateElement(f, f->get_first_seen());
 }
 #endif
+
+/* *************************************** */

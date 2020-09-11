@@ -831,7 +831,7 @@ class NetworkInterface : public AlertableEntity {
   void updateFlowPeriodicity(Flow *f);
 #endif
 
-
+  inline void incNumQueueDroppedFlows(u_int32_t num)  { if(db) db->incNumQueueDroppedFlows(num); };
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

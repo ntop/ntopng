@@ -1154,67 +1154,57 @@ char* Flow::print(char *buf, u_int buf_len) const {
 
 /* *************************************** */
 
-bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper_iface, bool no_time_left) {
+bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper_iface,
+		    bool no_time_left, bool last_dump_before_free) {
   bool rc = false;
-
-  if(ntop->getPrefs()->is_runtime_flows_dump_enabled() /* Check if dump has been disabled at runtime from a UI preference */
-     && (ntop->getPrefs()->do_dump_flows() /* This check if flows dump has been statically enabled from the CLI */
-#ifndef HAVE_NEDGE
-      || ntop->get_export_interface()
-#endif
-      )) {
-    if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
+   
+  if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
 #ifdef TINY_FLOWS_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Skipping tiny flow dump "
-				   "[flow key: %u]"
-				   "[packets current/max: %i/%i] "
-				   "[bytes current/max: %i/%i].",
-				   key(),
-				   get_packets(),
-				   ntop->getPrefs()->get_max_num_packets_per_tiny_flow(),
-				   get_bytes(),
-				   ntop->getPrefs()->get_max_num_bytes_per_tiny_flow());
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Skipping tiny flow dump "
+				 "[flow key: %u]"
+				 "[packets current/max: %i/%i] "
+				 "[bytes current/max: %i/%i].",
+				 key(),
+				 get_packets(),
+				 ntop->getPrefs()->get_max_num_packets_per_tiny_flow(),
+				 get_bytes(),
+				 ntop->getPrefs()->get_max_num_bytes_per_tiny_flow());
 
 #endif
-      return(rc);
-    }
-
-    if(!idle()) {
-      if((dumper_iface->getIfType() == interface_type_PCAP_DUMP && !dumper_iface->read_from_pcap_dump_done())
-         || tv->tv_sec - get_first_seen() < CONST_DB_DUMP_FREQUENCY
-	 || tv->tv_sec - get_partial_last_seen() < CONST_DB_DUMP_FREQUENCY) {
-	return(rc);
-      }
-    } else {
-      /* Flow idle, i.e., ready to be purged, are always dumped */
-    }
-
-    if(!update_partial_traffic_stats_db_dump())
-      return(rc); /* Partial stats update has failed */
-
-    /* Check for bytes, and not for packets, as with nprobeagent
-       there are not packet counters, just bytes. */
-    if(!get_partial_bytes())
-      return(rc); /* Nothing to dump */
-
-    dumper_iface->dumpFlow(last_seen, this, no_time_left);
-
-#ifndef HAVE_NEDGE
-    if(ntop->get_export_interface()) {
-      char *json = serialize(false);
-
-      if(json) {
-	ntop->get_export_interface()->export_data(json);
-	free(json);
-      }
-    }
-#endif
-
-    rc = true;
+    return(rc);
   }
 
-  return(rc);
+  if(!last_dump_before_free) {
+    if((dumper_iface->getIfType() == interface_type_PCAP_DUMP
+	&& (!dumper_iface->read_from_pcap_dump_done()))
+       || timeToPeriodicDump(tv->tv_sec)) {
+      return(rc); /* Don't call too often periodic flow dump */
+    }
+  }
+
+  if(!update_partial_traffic_stats_db_dump())
+    return(rc); /* Partial stats update has failed */
+
+  /* Check for bytes, and not for packets, as with nprobeagent
+     there are not packet counters, just bytes. */
+  if(!get_partial_bytes())
+    return(rc); /* Nothing to dump */
+
+  dumper_iface->dumpFlow(last_seen, this, no_time_left);
+
+#ifndef HAVE_NEDGE
+  if(ntop->get_export_interface()) {
+    char *json = serialize(false);
+
+    if(json) {
+      ntop->get_export_interface()->export_data(json);
+      free(json);
+    }
+  }
+#endif
+
+  return(true);
 }
 
 /* *************************************** */
@@ -1704,12 +1694,33 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
 /* *************************************** */
 
-void Flow::periodic_dump_check(const struct timeval *tv, bool no_time_left) {
-  if(no_time_left) return;
-
-  /* Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
-     ViewInterface dump their flows in another thread, not this one. */
-  dumpFlow(tv, iface->isViewed() ? iface->viewedBy() : iface, no_time_left);
+void Flow::dumpCheck(const struct timeval *tv, bool no_time_left, bool last_dump_before_free) {
+  if(ntop->getPrefs()->is_runtime_flows_dump_enabled() /* Check if dump has been disabled at runtime from a UI preference */
+     && (ntop->getPrefs()->do_dump_flows() /* This check if flows dump has been statically enabled from the CLI */
+#ifndef HAVE_NEDGE
+	 || ntop->get_export_interface()
+#endif
+	 )) {
+    /*
+      Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
+      ViewInterface dump their flows in another thread, not this one.
+    */
+    NetworkInterface *d_if = iface->isViewed() ? iface->viewedBy() : iface;
+    
+    if(no_time_left) {
+      if(last_dump_before_free) {
+	/* 
+	   There is no time to dump the flow, however this is not yet
+	   lost unless it is in the idle state (active flows will be
+	   dumped in the next iteration
+	*/
+	
+	d_if->incDBNumDroppedFlows(1);
+      }
+      return;
+    } else
+      dumpFlow(tv, d_if, no_time_left /* false */, last_dump_before_free);
+  }
 }
 
 /* *************************************** */
@@ -2261,13 +2272,13 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
 
   case hash_entry_state_active:
     if(next_lua_call_periodic_update == 0) next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS;
-    periodic_dump_check(tv, htstats->no_time_left); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
+    dumpCheck(tv, htstats->no_time_left, false);
     /* Don't change state: purgeIdle() will do */
     break;
 
   case hash_entry_state_idle:
     postFlowSetIdle(tv);
-    periodic_dump_check(tv, htstats->no_time_left); /* TODO: move it in a lua script; NOTE: this call can take a long time! */
+    dumpCheck(tv, htstats->no_time_left, true);
     break;
   }
 
