@@ -47,7 +47,7 @@ local function printHashTablesTable(base_url, ifid, ts_creation)
 <script type='text/javascript'>
 
 $("#table-system-interfaces-stats").datatable({
-   title: "]] print(i18n("internals.hash_tables")) print[[",]]
+   title: "",]]
 
    local preference = tablePreferences("rows_number",_GET["perPage"])
    if preference ~= "" then print ('perPage: '..preference.. ",\n") end
@@ -424,7 +424,7 @@ local function printUserScriptsTable(base_url, ifid, ts_creation)
 <script type='text/javascript'>
 
 $("#table-internals-periodic-activities").datatable({
-   title: "]] print(i18n("internals.user_scripts")) print[[",]]
+   title: "",]]
 
    local preference = tablePreferences("rows_number",_GET["perPage"])
    if preference ~= "" then print ('perPage: '..preference.. ",\n") end
@@ -527,8 +527,9 @@ function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_
    local tab = _GET["tab"]
 
    local ts_creation = areInternalTimeseriesEnabled(ifid or getSystemInterfaceId()) and ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
-
-   print[[<ul class="nav nav-tabs" role="tablist">]]
+   print[[<div class='card'>]]
+   print[[<div class='card-header'>]]
+   print[[<ul class="nav nav-pills card-header-pills" role="tablist">]]
 
    if print_hash_tables then
       if not tab then tab = "hash_tables" end
@@ -548,8 +549,9 @@ function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_
     <a class="nav-link ]] if tab == "user_scripts" then print[[active]] end print[[" href="?page=internals&tab=user_scripts"]] print[[">]] print(i18n("internals.user_scripts")) print[[</a></li>]]
    end
 
-   print[[</ul>
+   print[[</ul>]]
 
+   print[[</div><div class='card-body'>
 <div class="tab-content my-3 clearfix">]]
    local base_url = "?page=internals"
 
@@ -561,6 +563,9 @@ function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_
       printUserScriptsTable(base_url.."&tab=user_scripts", ifid, ts_creation)
    end
    print[[</div>]]
+   print[[</div>]]
+   print[[</div>]]
+
 end
 
 -- ###########################################

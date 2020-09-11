@@ -7,8 +7,6 @@ $(document).ready(function() {
 
     const MAX_RECIPIENTS_TO_SHOW = 10;
 
-    let poolRowData;
-
     const renableDisabledOptions = (selector, members) => {
         members.forEach(m => {
 
@@ -46,8 +44,7 @@ $(document).ready(function() {
 
         // if the pool id is valid then open the edit modal
         if (poolData !== undefined) {
-            poolRowData = poolData;
-            $editModalHandler.invokeModalInit();
+            $editModalHandler.invokeModalInit(poolData);
             $(`#edit-pool`).modal('show');
         }
 
@@ -63,6 +60,7 @@ $(document).ready(function() {
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
+            enabled: !ADD_POOL_DISABLED,
             action: () => { $(`#add-pool`).modal('show'); }
         }
     ]);
@@ -75,7 +73,7 @@ $(document).ready(function() {
                 width: "10%",
                 render: function(name, type, pool) {
 
-                    if (type == "display" && pool.pool_id == defaultPoolId) {
+                    if (type == "display" && pool.pool_id == DEFAULT_POOL_ID) {
                         return `<i>${name}</i>`;
                     }
 
@@ -89,7 +87,7 @@ $(document).ready(function() {
                 render: function(data, type, row) {
 
                     /* if it's the default pool then show an unbounded members message */
-                    if (type == "display" && row.pool_id == defaultPoolId) return i18n.unbounded_members;
+                    if (type == "display" && row.pool_id == DEFAULT_POOL_ID) return i18n.unbounded_members;
 
                     if (type == "display" && row.members.length == 0) return "";
                     // show only the first 10 members, append some dots
@@ -133,7 +131,7 @@ $(document).ready(function() {
 
                     let deleteButton = "";
                     // if the current pool is the default one then don't show the delete button
-                    if (pool.pool_id != defaultPoolId) {
+                    if (pool.pool_id != DEFAULT_POOL_ID) {
                         deleteButton = `
                             <a data-toggle="modal" class="btn btn-danger" href="#remove-pool">
                                 <i class="fas fa-trash"></i>
@@ -209,11 +207,11 @@ $(document).ready(function() {
         csrf: editCsrf,
         endpoint: endpoints.edit_pool,
         resetAfterSubmit: false,
-        onModalInit: function() {
+        onModalInit: (pool) => {
 
             // disable pool name field if we are editing the default pool
             // also hide the members multiselect
-            if (poolRowData.pool_id == defaultPoolId) {
+            if (pool.pool_id == DEFAULT_POOL_ID) {
                 $(`#edit-pool form input[name='name']`).attr("readonly", "true");
                 $(`#edit-pool .members-container`).hide();
             }
@@ -230,37 +228,37 @@ $(document).ready(function() {
 
                 const id = $(this).val();
                 // if the id belong to the pool then remove the disabled attribute
-                if (poolRowData.members.indexOf(id) > -1) {
+                if (pool.members.indexOf(id) > -1) {
                     $(this).removeAttr("disabled");
                 }
             });
 
             $(`#edit-pool-name-input`).off('keyup').on('keyup', function() {
                 const name = $(this).val()
-                $(`[data-pool-id='${poolRowData.pool_id}']`).each(function() {
+                $(`[data-pool-id='${pool.pool_id}']`).each(function() {
                     const m = $(this).val();
                     $(this).text(`${all_members[m].name || m} (${name})`);
                 });
             });
 
             // load the modal with the pool data
-            $(`#edit-pool form input[name='name']`).val(poolRowData.name);
-            $(`#edit-pool form select[name='configset']`).val(poolRowData.configset_id);
-            $(`#edit-pool form select[name='members']`).val(poolRowData.members);
-            $(`#edit-pool form select[name='recipients']`).val(poolRowData.recipients.map(r => r.recipient_id) || []);
+            $(`#edit-pool form input[name='name']`).val(pool.name);
+            $(`#edit-pool form select[name='configset']`).val(pool.configset_id);
+            $(`#edit-pool form select[name='members']`).val(pool.members);
+            $(`#edit-pool form select[name='recipients']`).val(pool.recipients.map(r => r.recipient_id) || []);
 
             if (poolType == "host") {
-                const href = $(`#edit-link`).attr('href').replace(/pool\=[0-9]+/, `pool=${poolRowData.pool_id}`);
+                const href = $(`#edit-link`).attr('href').replace(/pool\=[0-9]+/, `pool=${pool.pool_id}`);
                 $(`#edit-link`).attr('href', href);
             }
         },
-        beforeSumbit: function() {
+        beforeSumbit: (pool) => {
 
             const members = $(`#edit-pool form select[name='members']`).val() || [];
             const recipients = $(`#edit-pool form select[name='recipients']`).val() || [];
 
             const data = {
-                pool: poolRowData.pool_id,
+                pool: pool.pool_id,
                 pool_name: $(`#edit-pool form input[name='name']`).val().trim(),
                 confset_id: $(`#edit-pool form select[name='configset']`).val(),
                 recipients: recipients.join(',')
@@ -270,12 +268,14 @@ $(document).ready(function() {
                 data.pool_members = members.join(',');
             }
             else {
-                data.pool_members = poolRowData.members.join(',');
+                data.pool_members = pool.members.join(',');
             }
 
             return data;
         },
-        onSubmitSuccess: function (response, textStatus, modalHandler) {
+        onSubmitSuccess:  (response, dataSent, modalHandler) => {
+
+            const oldPoolData = modalHandler.data;
 
             if (response.rc < 0) {
                 $(`#edit-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
@@ -284,8 +284,8 @@ $(document).ready(function() {
 
             const newPoolName = $(`#edit-pool form input[name='name']`).val();
             // update the pool name inside the selects if changed
-            if (newPoolName != poolRowData.name) {
-                $(`option[data-pool-id='${poolRowData.pool_id}']`).each(function() {
+            if (newPoolName != oldPoolData.name) {
+                $(`option[data-pool-id='${oldPoolData.pool_id}']`).each(function() {
                     const value = $(this).val();
                     if (poolType != "host")
                         $(this).text(`${all_members[value].name || value} (${i18n.used_by} ${newPoolName})`)
@@ -293,9 +293,9 @@ $(document).ready(function() {
             }
 
             // the host pool modals don't have any members
-            if (poolType != "host" && poolRowData.pool_id != defaultPoolId) {
+            if (poolType != "host" && oldPoolData.pool_id != DEFAULT_POOL_ID) {
                 // get the newMembers and the oldMembers and create two subset of them
-                const oldMembers = poolRowData.members;
+                const oldMembers = oldPoolData.members;
                 const newMembers = $(`#edit-pool form select[name='members']`).val();
                 // this subset contains the removed members from the pool
                 const oldToRenable = oldMembers.filter((m1) => !newMembers.find(m2 => m1 == m2));
@@ -305,8 +305,8 @@ $(document).ready(function() {
                 renableDisabledOptions(`#add-pool form select[name='members']`, oldToRenable);
                 renableDisabledOptions(`#edit-pool form select[name='members']`, oldToRenable);
 
-                markUsedOptions(`#add-pool form select[name='members']`, newToMark, newPoolName, poolRowData.pool_id);
-                markUsedOptions(`#edit-pool form select[name='members']`, newToMark, newPoolName, poolRowData.pool_id);
+                markUsedOptions(`#add-pool form select[name='members']`, newToMark, newPoolName, oldPoolData.pool_id);
+                markUsedOptions(`#edit-pool form select[name='members']`, newToMark, newPoolName, oldPoolData.pool_id);
             }
 
             // clean the form and reload the table
@@ -321,17 +321,16 @@ $(document).ready(function() {
         csrf: removeCsrf,
         endpoint: endpoints.delete_pool,
         resetAfterSubmit: false,
-        onModalInit: function() {
-            $(`#remove-pool form input[name='pool_id']`).val(poolRowData.pool_id);
+        onModalInit: (pool) => {
             $(`#remove-pool form button[type='submit']`).removeAttr("disabled");
-            $(`.delete-pool-name`).text(poolRowData.name);
+            $(`.delete-pool-name`).text(pool.name);
         },
-        beforeSumbit: function() {
-            return {
-                pool: $(`#remove-pool form input[name='pool_id']`).val(),
-            };
+        beforeSumbit: (pool) => {
+            return { pool: pool.pool_id };
         },
-        onSubmitSuccess: function (response, textStatus, modalHandler) {
+        onSubmitSuccess: (response, textStatus, modalHandler) => {
+
+            const oldPoolData = modalHandler.data;
 
             if (response.rc < 0) {
                 $(`#remove-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
@@ -339,8 +338,8 @@ $(document).ready(function() {
             }
 
             // renable the members removed from the pool inside the modal
-            renableDisabledOptions(`#add-pool form select[name='members']`, poolRowData.members);
-            renableDisabledOptions(`#edit-pool form select[name='members']`, poolRowData.members);
+            renableDisabledOptions(`#add-pool form select[name='members']`, oldPoolData.members);
+            renableDisabledOptions(`#edit-pool form select[name='members']`, oldPoolData.members);
 
             modalHandler.cleanForm();
             $poolTable.ajax.reload();
@@ -349,13 +348,13 @@ $(document).ready(function() {
     });
 
     $(`#table-pools`).on('click', `a[href='#edit-pool']`, function (e) {
-        poolRowData = $poolTable.row($(this).parent().parent()).data();
-        $editModalHandler.invokeModalInit();
+        const selectedPool = $poolTable.row($(this).parent().parent()).data();
+        $editModalHandler.invokeModalInit(selectedPool);
     });
 
     $(`#table-pools`).on('click', `a[href='#remove-pool']`, function (e) {
-        poolRowData = $poolTable.row($(this).parent().parent()).data();
-        $removeModalHandler.invokeModalInit();
+        const selectedPool = $poolTable.row($(this).parent().parent()).data();
+        $removeModalHandler.invokeModalInit(selectedPool);
     });
 
 });

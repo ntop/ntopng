@@ -47,8 +47,13 @@ page_utils.print_navbar(title, url,
 
 if(page == "overview") then
    print[[
-<div id="table-system-interfaces-stats"></div>
-<script type='text/javascript'>
+    <div class='card'>
+      <div class='card-body'>
+        <div id="table-system-interfaces-stats"></div>
+      </div>
+    </div>
+
+  <script type='text/javascript'>
 
 $("#table-system-interfaces-stats").datatable({
    title: "",]]

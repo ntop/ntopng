@@ -57,7 +57,9 @@ pool = pool
     const all_members = {* json.encode(pool.all_members) *};
     const endpoints = {* json.encode(pool.endpoints) *};
     const poolType = "{{ pool.name }}";
-    const defaultPoolId = {{ pool.instance.DEFAULT_POOL_ID }};
+
+    const ADD_POOL_DISABLED = {{ pool.instance:default_only() }};
+    const DEFAULT_POOL_ID = {{ pool.instance.DEFAULT_POOL_ID }};
 
     Object.freeze(all_members);
     Object.freeze(endpoints);
