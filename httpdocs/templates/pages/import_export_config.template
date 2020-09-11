@@ -32,7 +32,7 @@
                             </a>
                         </div>
                         <div id="backup-restore" style="display: none;">
-                            <a class="btn btn-primary" data-toggle="modal" id="btn-backup" href="{{ ntop.getHttpPrefix() }}/lua/get_config.lua">
+                            <a class="btn btn-primary" id="btn-backup" href="{{ ntop.getHttpPrefix() }}/lua/get_config.lua">
                                 <i class="fas fa-file-import"></i>
                                 {{ i18n("backup") }}
                             </a>
