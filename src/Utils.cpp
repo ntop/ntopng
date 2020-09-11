@@ -1397,7 +1397,7 @@ static void readCurlStats(CURL *curl, HTTPTranferStats *stats, lua_State* vm) {
 bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 			     char *json, int timeout, HTTPTranferStats *stats) {
   CURL *curl;
-  bool ret = true;
+  bool ret = false;
 
   curl = curl_easy_init();
   if(curl) {
@@ -1445,10 +1445,15 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
-      ret = false;
     } else {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
       readCurlStats(curl, stats, NULL);
+
+      long http_code = 0;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+      // Success if http_code is 2xx, failure otherwise
+      if(http_code >= 200 && http_code <= 299)
+	ret = true;
     }
     
     /* always cleanup */
