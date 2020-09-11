@@ -559,20 +559,22 @@ end
 -- @param notification An alert notification
 -- @return nil
 function recipients:dispatch_notification(notification)
-   local pools_alert_utils = require "pools_alert_utils"
-   local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id)
-
-   -- NOTE: Using straight the recipient_id for efficieny reasons
-   for _, recipient_id in pairs(self:get_builtin_recipients()) do
-      recipients[#recipients + 1] = recipient_id
-   end
-
-   if #recipients > 0 then
-      local json_notification = json.encode(notification)
-      local is_high_priority = is_notification_high_priority(notification)
-
-      for _, recipient_id in pairs(recipients) do
-	 ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification)
+   if(notification) then
+      local pools_alert_utils = require "pools_alert_utils"
+      local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id)
+      
+      -- NOTE: Using straight the recipient_id for efficieny reasons
+      for _, recipient_id in pairs(self:get_builtin_recipients()) do
+	 recipients[#recipients + 1] = recipient_id
+      end
+      
+      if #recipients > 0 then
+	 local json_notification = json.encode(notification)
+	 local is_high_priority = is_notification_high_priority(notification)
+	 
+	 for _, recipient_id in pairs(recipients) do
+	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification)
+	 end
       end
    end
 end
