@@ -99,7 +99,8 @@
                         <div class="col-sm-7">
                             <select multiple class="form-control multiple-select" name="recipients" id="{{ modal_type }}-pool-recipient-select">
                                 {% for key, recipient in pairsByKeys(pool.notification_recipients, asc) do %}
-                                    <option value="{{ recipient.recipient_id }}">{{ recipient.recipient_name }}</option>
+                                    {% local is_selected =  (recipient.endpoint_conf.builtin and modal_type == "add") %}
+                                    <option {{ (is_selected and 'selected' or '') }} value="{{ recipient.recipient_id }}">{{ recipient.recipient_name }}</option>
                                 {% end %}
                             </select>
                             <small class="text-muted text-form">
