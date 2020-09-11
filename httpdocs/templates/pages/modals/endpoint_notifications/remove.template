@@ -10,9 +10,16 @@
             </div>
             <form>
                 <div class="modal-body">
-                    <input name="endpoint_conf_name" type="text" hidden>
                     <div class="alert alert-danger">
-                        {* i18n('endpoint_notifications.remove_endpoint_message', {endpoint = "<b><span class='remove-endpoint-name'></span></b>"}) *}
+                        {*
+                            i18n(
+                                'endpoint_notifications.remove_endpoint_message',
+                                {
+                                    endpoint = "<b><span class='remove-endpoint-name'></span></b>",
+                                    recipients_count = "<br><b><span class='recipients-count'></span></b>"
+                                }
+                            )
+                        *}
                     </div>
                     <span class="invalid-feedback"></span>
                 </div>

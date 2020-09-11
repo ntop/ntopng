@@ -1085,7 +1085,7 @@ local lang = {
     ["recipient_select"] = "Select Endpoint",
     ["recipient_type"] = "Recipient List",
     ["remove_endpoint"] = "Remove Endpoint",
-    ["remove_endpoint_message"] = "Do you really want to remove '%{endpoint}' notification endpoint?",
+    ["remove_endpoint_message"] = "Do you really want to remove '%{endpoint}' notification endpoint? <span class='count'>%{recipients_count} recipient(s) will be <b>DELETED</b> as well.</span>",
     ["remove_recipient"] = "Remove Recipient",
     ["remove_recipient_message"] = "Do you really want to remove '%{recipient}' recipient?",
     ["select_type"] = "Select an Endpoint Type",

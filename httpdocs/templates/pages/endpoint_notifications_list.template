@@ -14,6 +14,7 @@
                             <tr>
                                 <th>{{ i18n('endpoint_notifications.name') }}</th>
                                 <th>{{ i18n('endpoint_notifications.type') }}</th>
+                                <th>{{ i18n('used_by') }}</th>
                                 <th>{{ i18n('actions') }}</th>
                             </tr>
                         </thead>

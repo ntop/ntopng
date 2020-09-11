@@ -1,5 +1,6 @@
 $(document).ready(function () {
 
+    const MAX_ENDPOINTS_COUNT = 10;
     const INDEX_COLUMN_ENDPOINT_TYPE = 1;
 
     const getTypesCount = (configs) => {
@@ -85,10 +86,18 @@ $(document).ready(function () {
                 }
             },
             {
+                data: 'recipients',
+                render: (recipients, type) => {
+                    if (type == "display")
+                        return NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_ENDPOINTS_COUNT);
+                    return recipients;
+                }
+            },
+            {
                 targets: -1,
                 className: 'text-center',
                 data: null,
-                render: function (_, type, endpoint) {
+                render: (_, type, endpoint) => {
 
                     const isBuiltin = endpoint.endpoint_conf.builtin || false;
 
@@ -209,6 +218,17 @@ $(document).ready(function () {
             };
         },
         onModalInit: (endpoint) => {
+
+            // count recipients that are not builtins
+            const recipientsCount = endpoint.recipients.filter(recipient => !recipient.endpoint_conf.builtin).length;
+            if (recipientsCount > 0) {
+                $(`.count`).show();
+                $(`.recipients-count`).html(recipientsCount);
+            }
+            else {
+                $(`.count`).hide();
+            }
+
             $(`.remove-endpoint-name`).text(endpoint.endpoint_conf_name);
         },
         onSubmitSuccess: (response) => {
