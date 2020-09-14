@@ -3875,7 +3875,13 @@ end
 --- @param t table The table containing values to test
 --- @param predicate function The function that return a boolean value (true|false)
 --- @return boolean
-function table_all(t, predicate)
+function table.all(t, predicate)
+
+   if type(predicate) ~= 'function' then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, "the passed predicate is not a function!")
+      return false
+   end
+   if t == nil then return false end
 
    for _, value in pairs(t) do
 
@@ -3886,7 +3892,7 @@ function table_all(t, predicate)
       -- otherwise stop the loop and return false
       if term == nil then
          -- inform the client about the nil value
-         io.write("table_all: a null term has been returned")
+         traceError(TRACE_DEBUG, TRACE_CONSOLE, "a null term has been returned from the predicate function!")
          return false
       elseif not term then
          return false

@@ -47,7 +47,7 @@ for endpoint_key, endpoint in pairs(endpoints_types) do
     }
 end
 
-local can_create_recipient = not table_all(endpoints,
+local can_create_recipient = not table.all(endpoints,
     function(endpoint)
         return (endpoint.builtin ~= nil)
     end
