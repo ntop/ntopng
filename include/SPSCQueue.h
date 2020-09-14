@@ -24,89 +24,69 @@
 
 #include "ntop_includes.h"
 
-/* Single producer, single/multi consumer */
+/* Lockless fixed-size Single-Producer Single-Consumer queue */
 
-class SPSCQueue {
+#define QUEUE_WATERMARK      8 /* pow of 2 */
+#define QUEUE_WATERMARK_MASK (QUEUE_WATERMARK - 1)
+
+template <typename T> class SPSCQueue {
  private:
-  spsc_queue_t *q;
-  Mutex *m;
-    
+  u_int64_t shadow_head;
+  volatile u_int64_t head;
+  volatile u_int64_t tail;
+  u_int64_t shadow_tail;
+
+  std::vector<T> queue;
+  u_int32_t queue_size;
+
  public:
-
-  SPSCQueue(bool multi_consumer = false) {
-    q = (spsc_queue_t *) calloc(1, sizeof(spsc_queue_t));
-    if(q == NULL) throw 1;
-    q->tail = q->shadow_tail = QUEUE_ITEMS - 1;
-    q->head = q->shadow_head = 0;
-
-    if(multi_consumer)
-      m = new Mutex();
-    else
-      m = NULL;
+  SPSCQueue(u_int32_t size) {
+    queue_size = Utils::pow2(size);
+    queue.reserve(queue_size);
+    tail = shadow_tail = queue_size-1;
+    head = shadow_head = 0;
   }
 
-  /* ************************************** */
-
-  ~SPSCQueue() { free(q); if(m) delete m; }
-
-  /* ************************************** */
+  ~SPSCQueue() { ; }
 
   inline bool isNotEmpty() {
-    u_int32_t next_tail;
-    bool rc;
-    if(m) m->lock(__FILE__, __LINE__); 
-    next_tail = (q->shadow_tail + 1) & QUEUE_ITEMS_MASK;
-    rc = (next_tail != q->head);
-    if(m) m->unlock(__FILE__, __LINE__);
-    return(rc);
+    u_int32_t next_tail = (shadow_tail + 1) & (queue_size-1);
+    return next_tail != head;
   }
 
-  /* ************************************** */
-
-  inline bool dequeue(void** item) {
+  inline T dequeue() {
     u_int32_t next_tail;
-    bool rc;
     
-    if(m) m->lock(__FILE__, __LINE__);
-    
-    next_tail = (q->shadow_tail + 1) & QUEUE_ITEMS_MASK;
-    if(next_tail != q->head) {
-      *item = q->items[next_tail];
-      q->shadow_tail = next_tail;
+    next_tail = (shadow_tail + 1) & (queue_size-1);
+    if (next_tail != head) {
+      T item = queue[next_tail];
+      shadow_tail = next_tail;
 
-      if((q->shadow_tail & QUEUE_WATERMARK_MASK) == 0) {
-        // gcc_mb();
-        q->tail = q->shadow_tail;
-      }
+      if ((shadow_tail & QUEUE_WATERMARK_MASK) == 0)
+        tail = shadow_tail;
 
-      rc = true;
-    } else
-      rc = false;
+      return item;
+    }
 
-    if(m) m->unlock(__FILE__, __LINE__);
-    
-    return(rc);   
+    return static_cast<T>(NULL);
   }
 
-  /* ************************************** */
-
-  inline bool enqueue(void *item, bool flush = true) {
+  inline bool enqueue(T item, bool flush) {
     u_int32_t next_head;
 
-    next_head = (q->shadow_head + 1) & QUEUE_ITEMS_MASK;
+    next_head = (shadow_head + 1) & (queue_size-1);
 
-    if(q->tail != next_head) {
-      q->items[q->shadow_head] = item;
+    if (tail != next_head) {
+      queue[shadow_head] = item;
 
-      q->shadow_head = next_head;
-      if(flush || (q->shadow_head & QUEUE_WATERMARK_MASK) == 0) {
-        // gcc_mb();
-        q->head = q->shadow_head;
-      }
+      shadow_head = next_head;
+      if (flush || (shadow_head & QUEUE_WATERMARK_MASK) == 0)
+        head = shadow_head;
 
       return true;
-    } else
-      return false;
+    }
+
+    return false;
   }
 
 };

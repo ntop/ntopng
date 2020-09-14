@@ -795,6 +795,7 @@
 // MySQL-related defined
 #define MYSQL_MAX_NUM_FIELDS  255
 #define MYSQL_MAX_NUM_ROWS    1000
+#define MYSQL_MAX_QUEUE_LEN   2048
 // nIndex-related
 #ifdef HAVE_NINDEX
 #define NINDEX_MAX_NUM_INTERFACES 16
@@ -976,10 +977,6 @@
 #define MAX_NUM_HTTP_REPLACEMENTS                    4
 
 #define CACHE_LINE_LEN          64
-#define QUEUE_ITEMS             2048 /* pow of 2 */
-#define QUEUE_ITEMS_MASK        (QUEUE_ITEMS - 1)
-#define QUEUE_WATERMARK         8 /* pow of 2 */
-#define QUEUE_WATERMARK_MASK    (QUEUE_WATERMARK - 1)
 
 #define BITMAP_NUM_BITS               64
 
