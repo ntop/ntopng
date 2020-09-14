@@ -37,7 +37,7 @@ local endpoint_type_filters = {}
 
 for endpoint_key, endpoint in pairs(endpoints_types) do
 
-    local label = i18n('endpoint_notifications.types.'..endpoint_key) or endpoint.name
+    local label = endpoint.name
     endpoint_types_labels[endpoint_key] = label
     endpoint_type_filters[#endpoint_type_filters+1] = {
         label = label,

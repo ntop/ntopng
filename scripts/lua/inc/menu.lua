@@ -49,6 +49,7 @@ print[[
       "and": "]] print(i18n("and")) print[[",
       "other": "]] print(i18n("other")) print[[",
       "others": "]] print(i18n("others")) print[[",
+      "and_x_more": "]] print(i18n("and_x_more", { num = '$num'})) print[[",
       "invalid_input": "]] print(i18n("validation.invalid_input")) print[[",
       "missing_field": "]] print(i18n("validation.missing_field")) print[[",
       "unreachable_host": "]] print(i18n("graphs.unreachable_host")) print[[",

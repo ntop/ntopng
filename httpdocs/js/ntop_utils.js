@@ -832,8 +832,7 @@ class NtopUtils {
         if (array == undefined) return "";
 
         if (array.length > limit) {
-            const otherStr = ((array.length  - limit) == 1) ? i18n.other : i18n.others;
-            return array.slice(0, limit).join(", ") + ` ${i18n.and} ${array.length - limit} ${otherStr.toLowerCase()}`;
+            return array.slice(0, limit).join(", ") + ` ${i18n.and_x_more.replace('$num', array.length - limit)}`;
         }
 
         return array.slice(0, limit).join(", ");
