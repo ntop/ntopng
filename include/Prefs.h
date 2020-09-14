@@ -92,6 +92,7 @@ class Prefs {
   u_int16_t auto_assigned_pool_id;
   bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_ls, dump_flows_on_nindex,
     dump_json_flows_on_disk, load_json_flows_from_disk_to_nindex, dump_ext_json;
+  bool dump_flows_direct;
   bool read_flows_from_mysql;
   bool enable_runtime_flows_dump; /**< runtime preference to enable/disable flows dump from the UI */
   InterfaceInfo *ifNames;
@@ -199,6 +200,7 @@ class Prefs {
   inline bool  do_dump_json_flows_on_disk()             { return(dump_json_flows_on_disk);   };
   inline bool  do_load_json_flows_from_disk_to_nindex() { return(load_json_flows_from_disk_to_nindex); };
   inline bool  do_dump_flows()                          { return(dump_flows_on_es || dump_flows_on_mysql || dump_flows_on_ls || dump_flows_on_nindex); };
+  inline bool  do_dump_flows_direct()                   { return(dump_flows_direct); };
   inline bool is_runtime_flows_dump_enabled()     const { return(enable_runtime_flows_dump); };
     
   int32_t getDefaultPrefsValue(const char *pref_key, int32_t default_value);

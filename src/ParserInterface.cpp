@@ -434,6 +434,17 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts));
 
+  if(ntop->getPrefs()->is_runtime_flows_dump_enabled() /* UI preference */
+     && (ntop->getPrefs()->do_dump_flows() /* Statically enabled from the CLI */
+#ifndef HAVE_NEDGE
+	 || ntop->get_export_interface()
+#endif
+	 )
+     && ntop->getPrefs()->do_dump_flows_direct()) {
+    bool rc = db->dumpFlowDirect(zflow->last_switched, zflow);
+    if(!rc) incDBNumDroppedFlows(1);
+  }
+
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);
 }

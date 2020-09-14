@@ -1722,7 +1722,8 @@ void Flow::dumpCheck(const struct timeval *tv, bool no_time_left, bool last_dump
 #ifndef HAVE_NEDGE
 	 || ntop->get_export_interface()
 #endif
-	 )) {
+	 )
+     && !ntop->getPrefs()->do_dump_flows_direct()) {
     /*
       Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
       ViewInterface dump their flows in another thread, not this one.
