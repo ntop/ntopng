@@ -3858,6 +3858,36 @@ void Utils::listInterfaces(lua_State* vm) {
 
 /* ****************************************************** */
 
+char *Utils::ntop_lookupdev(char *ifname_out, int ifname_size) {
+  char ebuf[PCAP_ERRBUF_SIZE];
+  pcap_if_t *pdevs, *pdev;
+  bool found = false;
+
+  ifname_out[0] = '\0';
+
+  if (pcap_findalldevs(&pdevs, ebuf) != 0) 
+    goto err;
+
+  pdev = pdevs;
+  while (pdev != NULL) {
+    if(Utils::validInterface(pdev) && 
+       Utils::isInterfaceUp(pdev->name)) {
+      snprintf(ifname_out, ifname_size, "%s", pdev->name);
+      found = true;
+      break;
+    }
+    pdev = pdev->next;
+  }
+
+  pcap_freealldevs(pdevs);
+
+ err:
+  return found ? ifname_out : NULL;
+}
+
+
+/* ****************************************************** */
+
 int Utils::ntop_findalldevs(ntop_if_t **alldevsp) {
   char ebuf[PCAP_ERRBUF_SIZE];
   pcap_if_t *pdevs, *pdev;

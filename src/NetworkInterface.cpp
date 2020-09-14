@@ -69,7 +69,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
     printAvailableInterfaces(false, 0, NULL, 0);
 
-    name = pcap_lookupdev(pcap_error_buffer);
+    name = Utils::ntop_lookupdev(_ifname, sizeof(_ifname));
 
     if(name == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,

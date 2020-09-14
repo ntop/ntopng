@@ -179,6 +179,7 @@ public:
   static void listInterfaces(lua_State* vm); 
   static bool validInterface(const ntop_if_t *ntop_if);
   static void containerInfoLua(lua_State *vm, const ContainerInfo * const cont);
+  static char *ntop_lookupdev(char *ifname_out, int ifname_size);
   /**
    * @brief Return all the available interfaces
    * @details Return all the available interfaces, unifying data from PF_RING and pcap, and excluding invalid interfaces
