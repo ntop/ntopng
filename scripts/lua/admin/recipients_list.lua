@@ -12,7 +12,7 @@ local json = require "dkjson"
 local plugins_utils = require("plugins_utils")
 local menu_alert_notifications = require("menu_alert_notifications")
 local notification_configs = require("notification_configs")
-local endpoints = notification_configs.get_configs()
+local endpoints = notification_configs.get_configs(true)
 
 if not haveAdminPrivileges() then
     return
@@ -34,7 +34,9 @@ local endpoints_types = notification_configs.get_types()
 local endpoint_types_labels = {}
 -- create a table to filter recipient by endpoint's type
 local endpoint_type_filters = {}
+
 for endpoint_key, endpoint in pairs(endpoints_types) do
+
     local label = i18n('endpoint_notifications.types.'..endpoint_key) or endpoint.name
     endpoint_types_labels[endpoint_key] = label
     endpoint_type_filters[#endpoint_type_filters+1] = {
@@ -45,12 +47,18 @@ for endpoint_key, endpoint in pairs(endpoints_types) do
     }
 end
 
--- Prepare the response
+local can_create_recipient = not table_all(endpoints,
+    function(endpoint)
+        return (endpoint.builtin ~= nil)
+    end
+)
+
 local context = {
     notifications = {
         endpoints = endpoints_types,
         endpoint_types_labels = endpoint_types_labels,
         endpoint_list = endpoints,
+        can_create_recipient = can_create_recipient,
         filters = {
             endpoint_types = endpoint_type_filters
         }
@@ -63,7 +71,7 @@ local context = {
 }
 
 -- print config_list.html template
-print(template.gen("pages/recipients_endpoint.template", context))
+print(template.gen("pages/recipients_list.template", context))
 
 -- append the menu below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

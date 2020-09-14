@@ -44,7 +44,7 @@ end
 
 function shortenString(name, max_len)
    if(name == nil) then return("") end
-   
+
    if max_len == nil then
       max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
       max_len = tonumber(max_len)
@@ -1392,7 +1392,7 @@ function getHostAltName(host_info)
    else
      host_key = host_info
    end
-  
+
    local alt_name = ntop.getCache(getHostAltNamesKey(host_key))
 
    if isEmptyString(alt_name) and type(host_info) == "table" and host_info["vlan"] then
@@ -3870,6 +3870,35 @@ function canRestoreHost(ifid, ip, vlan)
 end
 
 -- ###########################################
+
+--- Test if each element inside the table t satisfies the predicate function
+--- @param t table The table containing values to test
+--- @param predicate function The function that return a boolean value (true|false)
+--- @return boolean
+function table_all(t, predicate)
+
+   for _, value in pairs(t) do
+
+      -- check if the value satisfies the boolean predicate
+      local term = predicate(value)
+
+      -- if the return value is valid and true then do nothing
+      -- otherwise stop the loop and return false
+      if term == nil then
+         -- inform the client about the nil value
+         io.write("table_all: a null term has been returned")
+         return false
+      elseif not term then
+         return false
+      end
+   end
+
+   -- each entry satisfies the predicate
+   return true
+end
+
+-- ###########################################
+
 
 --
 -- IMPORTANT

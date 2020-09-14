@@ -434,7 +434,7 @@ page_utils.add_menubar_section({
       {
          entry = page_utils.menu_entries.endpoint_recipients,
          hidden = not is_admin,
-         url = '/lua/admin/endpoint_recipients_list.lua',
+         url = '/lua/admin/recipients_list.lua',
       }
    }
 })

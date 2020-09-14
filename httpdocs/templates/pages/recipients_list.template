@@ -40,7 +40,7 @@
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">
 
-    const CAN_CREATE_RECIPIENT = {{ notifications.endpoint_list == 0 }};
+    const CAN_CREATE_RECIPIENT = {{ notifications.can_create_recipient }};
     const endpointTypeFilters = {* json.encode(notifications.filters.endpoint_types) *};
     let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
 
