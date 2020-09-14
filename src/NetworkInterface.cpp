@@ -646,8 +646,9 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
 #endif
 	} else {
 	  idleFlowsToDump_drops++;
+	  incNumQueueDroppedFlows(1);
 	  if(json != NULL) free(json);
-	  delete f; /* Idle flows memory must be freed here */
+	  // delete f; /* Delete is up to the caller */
 	}
       } else {
 	/* Partial dump if active flows */
@@ -661,6 +662,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
 #endif
 	} else {
 	  activeFlowsToDump_drops++;
+	  incNumQueueDroppedFlows(1);
 	  if(json != NULL) free(json);
 	}
       }
@@ -2355,7 +2357,7 @@ void NetworkInterface::dumpFlowLoop() {
     idleFlowsToDump = idleFlowsToDump_swap, activeFlowsToDump = activeFlowsToDump_swap;
     idleFlowsToDump_swap = idleFlowsToDump_tmp, activeFlowsToDump_swap = activeFlowsToDump_tmp;
     
-    _usleep(10000); /* Settle things down */
+    _usleep(1000); /* Settle things down */
 
     while(!idleFlowsToDump_swap->empty()) {
       QueuedFlowInfo i = idleFlowsToDump_swap->front();      

@@ -138,11 +138,11 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
     if(!cur_idle->empty()) {      
       for(vector<GenericHashEntry*>::const_iterator it = cur_idle->begin(); it != cur_idle->end(); ++it) {
 	walker(*it, user_data); /* In case of flow dump here the flow is queued for dump */
+	entry_state_transition_counters.num_purged++;
 
 	/* In case of flow dump the uses number might be increased (0 -> 1) */
 	if((*it)->getUses() == 0) {
 	  delete *it; /* Delete the entry */
-	  entry_state_transition_counters.num_purged++;
 	  /* https://www.techiedelight.com/remove-elements-vector-inside-loop-cpp/ */
 	  /* cur_idle->erase(it--); */
 	} else {
