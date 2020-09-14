@@ -54,6 +54,11 @@ template <typename T> class SPSCQueue {
     return next_tail != head;
   }
 
+  inline bool isFull() {
+    u_int32_t next_head = (shadow_head + 1) & (queue_size-1);
+    return tail == next_head;
+  }
+
   inline T dequeue() {
     u_int32_t next_tail;
     

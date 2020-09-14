@@ -52,17 +52,6 @@ class TrafficShaper;
 class NIndexFlowDB;
 #endif
 
-class QueuedFlowInfo {
-public:
-  time_t when;
-  Flow *f;
-  char *json;
-
-  QueuedFlowInfo(time_t _when, Flow *_f, char *_json) {
-    when = _when, f = _f, json = _json;
-  }
-};
-
 /** @class NetworkInterface
  *  @brief Main class of network interface of ntopng.
  *  @details .......
@@ -90,8 +79,7 @@ class NetworkInterface : public AlertableEntity {
 #endif
 
   /* Flows queues waiting to be dumped */
-  std::queue<QueuedFlowInfo> *idleFlowsToDump, *activeFlowsToDump,
-    *idleFlowsToDump_swap, *activeFlowsToDump_swap;
+  SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
   u_int32_t idleFlowsToDump_drops, activeFlowsToDump_drops;
   
   /* Queue containing the ip@vlan strings of the hosts to restore. */

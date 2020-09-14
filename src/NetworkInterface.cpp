@@ -532,8 +532,8 @@ NetworkInterface::~NetworkInterface() {
     pthread_join(flowDumpLoop, NULL);
   }
 
-  if(idleFlowsToDump)         delete idleFlowsToDump;
-  if(activeFlowsToDump)      delete activeFlowsToDump;
+  if(idleFlowsToDump)   delete idleFlowsToDump;
+  if(activeFlowsToDump) delete activeFlowsToDump;
 
   if(db) {
     db->shutdown();
@@ -605,11 +605,13 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
     int rc = -1;
 #ifndef HAVE_NEDGE
     char *json = NULL;
-    bool dump_json = true;
-    bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_ls();
 
     if(!db)
       return(-1);
+
+#if 0
+    bool dump_json = true;
+    bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_ls();
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
     if(ntop->getPrefs()->do_dump_flows_on_nindex() &&
@@ -627,22 +629,20 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
       if(json == NULL)
 	return(-1);
     }
+#endif
 
     if(idleFlowsToDump) {
       /* Asynchronous dump via a thread */
-      const u_int MAX_IDLE_FLOW_QUEUE_LEN   = 8192;
-      const u_int MAX_ACTIVE_FLOW_QUEUE_LEN = 4096;
-      QueuedFlowInfo i(when, f, json);
 
       if(f->get_state() == hash_entry_state_idle) {
 	/* Last flow dump before delete */
-	if(idleFlowsToDump->size() < MAX_IDLE_FLOW_QUEUE_LEN) {
-	  idleFlowsToDump->push(i);
+	if(!idleFlowsToDump->isFull()) {
 	  f->incUses();
 
+	  idleFlowsToDump->enqueue(f, false);
+
 #if DEBUG_FLOW_DUMP
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [size: %u][IDLE]",
-				       __FUNCTION__, idleFlowsToDump->size());
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
 #endif
 	} else {
 	  idleFlowsToDump_drops++;
@@ -652,13 +652,13 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
 	}
       } else {
 	/* Partial dump if active flows */
-	if(activeFlowsToDump->size() < MAX_ACTIVE_FLOW_QUEUE_LEN) {
-	  activeFlowsToDump->push(i);
+	if(!activeFlowsToDump->isFull()) {
 	  f->incUses();
 
+	  activeFlowsToDump->enqueue(f, false);
+
 #if DEBUG_FLOW_DUMP
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [size: %u][ACTIVE]",
-				       __FUNCTION__, activeFlowsToDump->size());
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
 #endif
 	} else {
 	  activeFlowsToDump_drops++;
@@ -2335,61 +2335,46 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 /* **************************************************** */
 
 void NetworkInterface::dumpFlowLoop() {
-  std::queue<QueuedFlowInfo> *idleFlowsToDump_swap, *activeFlowsToDump_swap;
-
-  idleFlowsToDump_swap   = new (std::nothrow) std::queue<QueuedFlowInfo>();
-  activeFlowsToDump_swap = new (std::nothrow) std::queue<QueuedFlowInfo>();
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started flow dump loop on interface %s [id: %u]...",
 			       get_description(), get_id());
 
   /* Wait until it starts up */
-  while(!running) sleep(1);
+  while(!running) _usleep(10000);
 
   /* Now operational */
   while(running) {
-    /* Save pointers */
-    std::queue<QueuedFlowInfo> *idleFlowsToDump_tmp    = idleFlowsToDump;
-    std::queue<QueuedFlowInfo> *activeFlowsToDump_tmp = activeFlowsToDump;
+    int n = 0;
 
-    /* Swap */
-    idleFlowsToDump = idleFlowsToDump_swap, activeFlowsToDump = activeFlowsToDump_swap;
-    idleFlowsToDump_swap = idleFlowsToDump_tmp, activeFlowsToDump_swap = activeFlowsToDump_tmp;
-    
-    _usleep(1000); /* Settle things down */
-
-    while(!idleFlowsToDump_swap->empty()) {
-      QueuedFlowInfo i = idleFlowsToDump_swap->front();      
-      int rc = db->dumpFlow(i.when, i.f, i.json); /* Finally dump this flow */
+    while(idleFlowsToDump->isNotEmpty()) {
+      Flow *f = idleFlowsToDump->dequeue();
+      int rc = db->dumpFlow(f->get_last_seen(), f, NULL); /* Finally dump this flow */
 
 #if DEBUG_FLOW_DUMP
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped idle flow");
 #endif
       if(!rc) incDBNumDroppedFlows(1);
-      if(i.json != NULL) free(i.json);
-      i.f->decUses();
-      delete i.f;
-      idleFlowsToDump_swap->pop();
+      f->decUses();
+      delete f;
+      n++;
     }
 
-    while(!activeFlowsToDump_swap->empty()) {
-      QueuedFlowInfo i = activeFlowsToDump_swap->front();
-      int rc = db->dumpFlow(i.when, i.f, i.json); /* Finally dump this flow */
+    while(activeFlowsToDump->isNotEmpty()) {
+      Flow *f = activeFlowsToDump->dequeue();
+      int rc = db->dumpFlow(f->get_last_seen(), f, NULL); /* Finally dump this flow */
 
 #if DEBUG_FLOW_DUMP
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped active flow");
 #endif
       if(!rc) incDBNumDroppedFlows(1);
-      if(i.json != NULL) free(i.json);
-      i.f->decUses();
-      /* No free here */
-      activeFlowsToDump_swap->pop();
+      f->decUses();
+      n++;
     }
-  }
 
-  if(idleFlowsToDump_swap)   { delete idleFlowsToDump_swap; idleFlowsToDump_swap = NULL;     }
-  if(activeFlowsToDump_swap) { delete activeFlowsToDump_swap; activeFlowsToDump_swap = NULL; }
+    if (n == 0)
+      _usleep(100);
+  }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
 }
@@ -2406,8 +2391,11 @@ static void* flowDumper(void* ptr) {
 /* **************************************************** */
 
 void NetworkInterface::startFlowDumping() {
-  idleFlowsToDump         = new (std::nothrow) std::queue<QueuedFlowInfo>();
-  activeFlowsToDump      = new (std::nothrow) std::queue<QueuedFlowInfo>();
+  const u_int MAX_IDLE_FLOW_QUEUE_LEN   = 32768;
+  const u_int MAX_ACTIVE_FLOW_QUEUE_LEN = 32768;
+
+  idleFlowsToDump   = new SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN);
+  activeFlowsToDump = new SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN);
 
   if(idleFlowsToDump && activeFlowsToDump) {
     pthread_create(&flowDumpLoop, NULL, flowDumper, (void*)this);
