@@ -28,6 +28,7 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
 						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
 //#define DEBUG_DISCOVERY
 //#define DEBUG_UA
+//#define DEBUG_IEC60870
 
 /* *************************************** */
 
@@ -766,25 +767,43 @@ void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
   */
   switch(ndpi_get_lower_proto(proto_id)) {
   case NDPI_PROTOCOL_IEC60870:
-    {
+  {
+    u_int offset = 0;
+
+    while(offset < payload_len) {
       /* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id */
-      u_int8_t len = payload[1];
-
-      if(payload_len >= len) {
-	u_int8_t type_id = payload[6];
-
-	if(type_id < 64)
-	  iec104_typeid_mask[0] |= (1 << type_id);
-	else if(type_id < 128)
-	  iec104_typeid_mask[1] |= (1 << (type_id-64));
-	/* Discard typeIds 127..255 */
-#if 0
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [payload_len: %u][len: %u][TypeID: %u]",
-				     __FUNCTION__, payload_len, len, type_id);
+      u_int8_t len = payload[1+offset];
+      
+#ifdef DEBUG_IEC60870
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] %02X %02X %02X %02X",
+				   __FUNCTION__, payload[0], payload[1],
+				   payload[2], payload[3]);
 #endif
-      }
+      
+      if(len > 4) {
+	len -= 4;
+	
+	if(payload_len >= len) {
+	  u_int8_t type_id = payload[6+offset];
+
+	  offset += len + 6;
+	  
+	  if(type_id < 64)
+	    iec104_typeid_mask[0] |= ((u_int64_t)1 << type_id);
+	  else if(type_id < 128)
+	    iec104_typeid_mask[1] |= ((u_int64_t)1 << (type_id-64));
+	  /* Discard typeIds 127..255 */
+#ifdef DEBUG_IEC60870
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [payload_len: %u][len: %u][TypeID: %u][%llu/%llu]",
+				       __FUNCTION__, payload_len, len, type_id,
+				       iec104_typeid_mask[0], iec104_typeid_mask[1]);
+#endif
+	}
+      } else
+	break;
     }
-    break;
+  }
+  break;
 
   default:
     break;
@@ -2040,12 +2059,27 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(isIEC60870()) {
       lua_newtable(vm);
 
-      for(u_int j=0; j<2; j++) {
-	for(u_int i=0; i<64; i++) {
-	  if(iec104_typeid_mask[(j == 0) ? 0 : 1] & (1 << i)) {
-	    char buf[8];
+#ifdef DEBUG_IEC60870
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [%llu/%llu]",
+				   __FUNCTION__, iec104_typeid_mask[0], iec104_typeid_mask[1]);
+#endif
 
-	    snprintf(buf, sizeof(buf), "%u", i+j*64);
+      for(u_int j=0; j<2; j++) {
+	
+	for(u_int i=0; i<64; i++) {
+	  u_int64_t bit = ((u_int64_t)1) << i;
+
+	  if((iec104_typeid_mask[j] & bit) == bit){
+	    char buf[8];
+	    u_int32_t v = i+(j*64);
+	    
+	    snprintf(buf, sizeof(buf), "%u", v);
+
+#ifdef DEBUG_IEC60870
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [bit %u] Setting %u", 
+					 __FUNCTION__, j, v);
+#endif
+
 	    lua_push_bool_table_entry(vm, buf, true);
 	  }
 	}
