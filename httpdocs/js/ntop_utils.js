@@ -461,6 +461,7 @@ class NtopUtils {
 	};
 
 	static secondsToTime(seconds) {
+
 		if (seconds < 1) {
 			return ("< 1 sec")
 		}

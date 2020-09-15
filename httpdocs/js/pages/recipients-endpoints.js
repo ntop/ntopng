@@ -11,6 +11,7 @@ $(document).ready(function () {
         const params = {
             recipient_name: $(`${formSelector} [name='recipient_name']`).val(),
             endpoint_conf_name: $(`${formSelector} [name='endpoint']`).val(),
+            //user_script_categories: $(`${formSelector} [name='user_script_categories']`).val().join(",")
         };
 
         // load each recipient params inside the template container in params
@@ -122,6 +123,7 @@ $(document).ready(function () {
             {
                 data: "stats.last_use",
                 className: "text-center",
+                width: "15%",
                 render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS
             },
             {
@@ -241,6 +243,7 @@ $(document).ready(function () {
             $(`#edit-recipient-modal form [name='recipient_id']`).val(recipient.recipient_id || DEFAULT_RECIPIENT_ID);
             $(`#edit-recipient-modal form [name='recipient_name']`).val(recipient.recipient_name);
             $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(recipient.endpoint_conf_name);
+            //$(`#edit-recipient-modal form [name='user_script_categories']`).val(recipient.user_script_categories.split(","));
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
                 $(this).val(recipient.recipient_params[$(this).attr('name')]);
             });
