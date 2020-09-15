@@ -987,6 +987,12 @@ char* Ntop::recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPrior
 
 /* ******************************************* */
 
+void Ntop::recipient_stats(u_int16_t recipient_id, lua_State* vm) {
+  recipients.lua(recipient_id, vm);
+}
+
+/* ******************************************* */
+
 void Ntop::recipient_delete(u_int16_t recipient_id) {
   recipients.delete_recipient(recipient_id);
   /* Trigger a reload of periodic scripts to refresh them with new recipients */

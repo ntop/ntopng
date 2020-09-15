@@ -34,8 +34,6 @@ local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
 local blog_utils = require("blog_utils")
 local notification_configs = require "notification_configs"
-local recipients = require "recipients"
-local recipients_instance = recipients:create()
 
 host_pools_nedge.migrateHostPools()
 if ntop.isnEdge() then
@@ -48,10 +46,6 @@ if(ntop.isPro()) then
 end
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Processing startup.lua: please hold on...")
-
--- ##################################################################
-
-recipients:initialize()
 
 -- ##################################################################
 

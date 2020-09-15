@@ -108,3 +108,17 @@ void Recipients::delete_recipient(u_int16_t recipient_id) {
 
   m.unlock(__FILE__, __LINE__);
 }
+
+/* *************************************** */
+
+void Recipients::lua(u_int16_t recipient_id, lua_State* vm) {
+  if(recipient_id >= MAX_NUM_RECIPIENTS)
+    return;
+
+  m.lock(__FILE__, __LINE__);
+
+  if(recipient_queues[recipient_id])
+    recipient_queues[recipient_id]->lua(vm);
+
+  m.unlock(__FILE__, __LINE__);
+}

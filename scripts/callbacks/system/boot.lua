@@ -12,6 +12,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
 local prefs_dump_utils = require "prefs_dump_utils"
 prefs_dump_utils.readPrefsFromDisk()
@@ -36,6 +37,10 @@ if not ntop.isnEdge() then -- nEdge data deletion is handled in nf_config.lua
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "Data deletion done.")
    end
 end
+
+local recipients = require "recipients"
+local recipients_instance = recipients:create()
+recipients:initialize()
 
 -- NOTE: cannot reload plugins here as we must first drop the privileges
 -- They will be loaded in startup.lua . Here we only delete old directories.

@@ -27,7 +27,13 @@
 
 class RecipientQueues {
  private:
-  FifoStringsQueue * queues_by_prio[RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES];
+  FifoStringsQueue *queues_by_prio[RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES];
+  /* Counters for the number of drops occurred when enqueuing */
+  u_int64_t drops_by_prio[RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES];
+  /* Counters for the number of enqueues */
+  time_t uses_by_prio[RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES];
+  /* Timestamp of the last dequeue, regardless of queue priority */
+  time_t last_use;
 
  public:
   RecipientQueues();
@@ -49,6 +55,14 @@ class RecipientQueues {
   * @return True if the enqueue succeeded, false otherwise
   */
   bool enqueue(RecipientNotificationPriority prio, const char * const notification);
+  /**
+   * @brief Returns queue status (drops and uses)
+   * @param vm A Lua VM instance
+   *
+   * @return
+   */
+  void lua(lua_State* vm);
+
 };
 
 #endif /* _RECIPIENT_QUEUES_ */

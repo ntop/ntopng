@@ -25,31 +25,41 @@
 
 RecipientQueues::RecipientQueues() {
   for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++)
-    queues_by_prio[i] = NULL;
+    queues_by_prio[i] = NULL,
+      drops_by_prio[i] = 0,
+      uses_by_prio[i] = 0,
+      last_use = 0;
 }
 
 /* *************************************** */
 
 RecipientQueues::~RecipientQueues() {
   for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++)
-    delete queues_by_prio;
+    delete queues_by_prio[i];
 }
 
 /* *************************************** */
 
 char* RecipientQueues::dequeue(RecipientNotificationPriority prio) {
+  char *res = NULL;
+
   if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
     return NULL;
 
   if(queues_by_prio[prio])
-    return queues_by_prio[prio]->dequeue();
+    res = queues_by_prio[prio]->dequeue();
 
-  return NULL;
+  if(res)
+    last_use = time(NULL);
+
+  return res;
 }
 
 /* *************************************** */
 
 bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * const notification) {
+  bool res = false;
+
   if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
     return false;
 
@@ -58,7 +68,26 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * c
    */
   if(queues_by_prio[prio]
      || (queues_by_prio[prio] = new (nothrow) FifoStringsQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))
-    return queues_by_prio[prio]->enqueue((char*)notification);
+    res = queues_by_prio[prio]->enqueue((char*)notification);
+
+  if(!res)
+    drops_by_prio[prio]++;
+  else
+    uses_by_prio[prio]++;
 
   return false;
+}
+
+/* *************************************** */
+
+void RecipientQueues::lua(lua_State* vm) {
+  u_int64_t num_drops = 0, num_uses = 0;
+  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++)
+    num_drops +=  drops_by_prio[i],
+      num_uses += uses_by_prio[i];
+
+  lua_newtable(vm);
+  lua_push_uint64_table_entry(vm, "last_use", last_use);
+  lua_push_uint64_table_entry(vm, "num_drops", num_drops);
+  lua_push_uint64_table_entry(vm, "num_uses", num_uses);
 }

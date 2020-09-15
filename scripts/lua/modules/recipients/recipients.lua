@@ -15,7 +15,7 @@ local recipients = {}
 
 -- ##############################################
 
-recipients.MAX_NUM_RECIPIENTS = 128
+recipients.MAX_NUM_RECIPIENTS = 64
 
 -- ##############################################
 
@@ -495,6 +495,9 @@ function recipients:get_recipient(recipient_id)
 	    recipient_details["endpoint_conf"] = ec["endpoint_conf"]
 	    recipient_details["endpoint_key"] = ec["endpoint_key"]
 	 end
+
+	 -- Read stats from C
+	 recipient_details["stats"] = ntop.recipient_stats(recipient_details["recipient_id"])
       end
    end
 

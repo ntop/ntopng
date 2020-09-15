@@ -65,6 +65,14 @@ class Recipients {
   * @return
   */
   void delete_recipient(u_int16_t recipient_id);
+  /**
+   * @brief Returns status (drops and uses) of a given recipient
+   * @param recipient_id An integer recipient identifier
+   * @param vm A Lua VM instance
+   *
+   * @return
+   */
+  void lua(u_int16_t recipient_id, lua_State* vm);
 };
 
 #endif /* _RECIPIENTS_ */
