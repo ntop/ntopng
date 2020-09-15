@@ -88,26 +88,31 @@ local available_subdirs = {
 -- User scripts category consts
 user_scripts.script_categories = {
    other = {
+      id = 0,
       icon = "fas fa-scroll",
       i18n_title = "user_scripts.category_other",
       i18n_descr = "user_scripts.category_other_descr",
    },
    security = {
+      id = 1,
       icon = "fas fa-shield-alt",
       i18n_title = "user_scripts.category_security",
       i18n_descr = "user_scripts.category_security_descr",
    },
    internals = {
+      id = 2,
       icon = "fas fa-wrench",
       i18n_title = "user_scripts.category_internals",
       i18n_descr = "user_scripts.category_internals_descr",
    },
    network = {
+      id = 3,
       icon = "fas fa-network-wired",
       i18n_title = "user_scripts.category_network",
       i18n_descr = "user_scripts.category_network_descr",
    },
    system = {
+      id = 4,
       icon = "fas fa-server",
       i18n_title = "user_scripts.category_system",
       i18n_descr = "user_scripts.category_system_descr",
