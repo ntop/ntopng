@@ -1741,7 +1741,7 @@ void Flow::dumpCheck(const struct timeval *tv, bool no_time_left, bool last_dump
 	   dumped in the next iteration
 	*/
 	
-	d_if->incDBNumDroppedFlows(1);
+	d_if->incDBNumDroppedFlows();
       }
       return;
     } else {

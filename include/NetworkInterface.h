@@ -81,7 +81,6 @@ class NetworkInterface : public AlertableEntity {
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
   u_int32_t idleFlowsToDump_drops, activeFlowsToDump_drops;
-  u_int64_t flowsToDump_total, flowsToDump_enqueued, flowsToDump_nomem;
   
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   FifoStringsQueue *hosts_to_restore;
@@ -676,8 +675,8 @@ class NetworkInterface : public AlertableEntity {
 #endif
 
   void getFlowsStatus(lua_State *vm);
-  inline void startDBLoop()                   { if(db) db->startDBLoop();                 };
-  inline void incDBNumDroppedFlows(u_int num) { if(db) db->incNumDroppedFlows(num);       };
+  inline void startDBLoop() { if(db) db->startDBLoop(); };
+  inline void incDBNumDroppedFlows(u_int num = 1) { if(db) db->incNumDroppedFlows(num); };
 #ifdef NTOPNG_PRO
   inline void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);

@@ -50,8 +50,6 @@ NetworkInterface::NetworkInterface(const char *name,
   customIftype = custom_interface_type;
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   idleFlowsToDump_drops = activeFlowsToDump_drops = 0;
-  flowsToDump_total = flowsToDump_enqueued = 0;
-  flowsToDump_nomem = 0;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -643,7 +641,6 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
 
         idleFlowsToDump->enqueue(f, false);
 
-        flowsToDump_enqueued++;
 #if DEBUG_FLOW_DUMP
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
 #endif
@@ -660,7 +657,6 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
 
         activeFlowsToDump->enqueue(f, false);
 
-        flowsToDump_enqueued++;
 #if DEBUG_FLOW_DUMP
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
 #endif
@@ -673,7 +669,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
   } else {
     /* Sychronous dump and not via a thread */
     rc = db->dumpFlow(when, f, json); /* Finally dump this flow */
-    if(!rc) incDBNumDroppedFlows(1);
+    if(!rc) incDBNumDroppedFlows();
     if(json != NULL) free(json);
     /*
       No need to delete the memory as everything
@@ -2357,7 +2353,7 @@ void NetworkInterface::dumpFlowLoop() {
 #if DEBUG_FLOW_DUMP
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped idle flow");
 #endif
-      if(!rc) incDBNumDroppedFlows(1);
+      if(!rc) incDBNumDroppedFlows();
       f->decUses();
       delete f;
       n++;
@@ -2370,7 +2366,7 @@ void NetworkInterface::dumpFlowLoop() {
 #if DEBUG_FLOW_DUMP
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped active flow");
 #endif
-      if(!rc) incDBNumDroppedFlows(1);
+      if(!rc) incDBNumDroppedFlows();
       f->decUses();
       n++;
     }
@@ -2621,26 +2617,6 @@ void NetworkInterface::periodicStatsUpdate() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
 #endif
   struct timeval tv = periodicUpdateInitTime();
-
-#if 0 /* Debug */
-  if (db && db->getNumExportedFlows()) {
-    time_t now = time(NULL);
-    static time_t start = 0;
-
-    if (start == 0)
-      start = now;
-    else
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "FLOW DUMP STATS: %ju received %ju no-mem %ju enqueued %ju exported %u drop %u idle-q-drop %u active-q-drop [relative time: %us]",
-        flowsToDump_total,
-        flowsToDump_nomem,
-        flowsToDump_enqueued,
-        db->getNumExportedFlows(),
-        db->getNumDroppedFlows(),
-        idleFlowsToDump_drops,
-        activeFlowsToDump_drops,
-        now-start);
-  }
-#endif
 
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */

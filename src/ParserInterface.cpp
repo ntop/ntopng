@@ -50,8 +50,6 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   now = time(NULL);
   now_tv.tv_sec = now;
 
-  flowsToDump_total++;
-
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s()", __FUNCTION__);
   
   if(unlikely(ntop->getPrefs()->get_num_simulated_ips())) {
@@ -170,7 +168,20 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL) {
-    flowsToDump_nomem++;
+
+#ifdef NTOPNG_PRO
+    /* Update drop stats in case of direct flow dump */
+    if(ntop->getPrefs()->do_dump_flows_direct() && (
+       ntop->getPrefs()->is_flows_dump_enabled()
+#ifndef HAVE_NEDGE
+       || ntop->get_export_interface()
+#endif
+       )) {
+      NetworkInterface *d_if = isViewed() ? viewedBy() : static_cast<NetworkInterface *>(this);
+      d_if->incDBNumDroppedFlows();
+    }
+#endif
+
     return;
   }
 
@@ -440,20 +451,23 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts));
 
 #ifdef NTOPNG_PRO
-  if((ntop->getPrefs()->is_flows_dump_enabled()
+  /* Check if direct flow dump is enabled */
+  if(ntop->getPrefs()->do_dump_flows_direct() && (
+     ntop->getPrefs()->is_flows_dump_enabled()
 #ifndef HAVE_NEDGE
-      || ntop->get_export_interface()
+     || ntop->get_export_interface()
 #endif
-     )
-     && ntop->getPrefs()->do_dump_flows_direct()) {
+     )) {
     NetworkInterface *d_if = isViewed() ? viewedBy() : static_cast<NetworkInterface *>(this);
     struct timeval tv;
     bool rc;
 
+    /* Dump flow */
     tv.tv_sec = zflow->last_switched, tv.tv_usec = 0;
-
     rc = flow->dumpFlow(&tv, d_if, false /* no_time_left */, true);
-    if(!rc) d_if->incDBNumDroppedFlows(1);
+
+    /* Update drop stats */
+    if(!rc) d_if->incDBNumDroppedFlows();
   }
 #endif
 
