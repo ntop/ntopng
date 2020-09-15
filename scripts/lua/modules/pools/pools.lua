@@ -244,6 +244,8 @@ function pools:_persist(pool_id, name, members, configset_id, recipients)
 
     ntop.setCache(pool_details_key, json.encode(pool_details))
 
+    ntop.reloadPeriodicScripts()
+
     -- Return the assigned pool_id
     return pool_id
 end
@@ -415,6 +417,8 @@ function pools:delete_pool(pool_id)
             ntop.delMembersCache(self:_get_pool_ids_key(),
                                  string.format("%d", pool_id))
 
+	    -- Reload periodic scripts to make faster refreshes
+	    ntop.reloadPeriodicScripts()
             ret = true
         end
 

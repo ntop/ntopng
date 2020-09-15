@@ -203,6 +203,9 @@ function host_pools:_persist(pool_id, name, members, configset_id, recipients)
     -- Reload pools
     ntop.reloadHostPools()
 
+    -- Reload periodic scripts
+    ntop.reloadPeriodicScripts()
+
     -- Return the assigned pool_id
     return pool_id
 end
@@ -243,6 +246,9 @@ function host_pools:delete_pool(pool_id)
 
             -- Reload pools
             ntop.reloadHostPools()
+
+	    -- Reload periodic scripts
+	    ntop.reloadPeriodicScripts()
 
             ret = true
         end

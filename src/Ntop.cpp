@@ -987,6 +987,22 @@ char* Ntop::recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPrior
 
 /* ******************************************* */
 
+void Ntop::recipient_delete(u_int16_t recipient_id) {
+  recipients.delete_recipient(recipient_id);
+  /* Trigger a reload of periodic scripts to refresh them with new recipients */
+  ntop->reloadPeriodicScripts();
+}
+
+/* ******************************************* */
+
+void Ntop::recipient_register(u_int16_t recipient_id) {
+  recipients.register_recipient(recipient_id);
+  /* Trigger a reload of periodic scripts to refresh them with new recipients */
+  ntop->reloadPeriodicScripts();
+}
+
+/* ******************************************* */
+
 void Ntop::getUsers(lua_State* vm) {
   char **usernames;
   char *username;

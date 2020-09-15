@@ -59,7 +59,11 @@ function recipients:initialize()
       end
    end
 
-   -- Possibly create a default recipient (if not existing)
+   -- Register all existing recipients in C to make sure ntopng can start with all the
+   -- existing recipients properly loaded and ready for notification enqueues/dequeues
+   for _, recipient in pairs(self:get_all_recipients()) do
+      ntop.recipient_register(recipient.recipient_id)
+   end
 end
 
 -- ##############################################
@@ -288,6 +292,9 @@ function recipients:add_recipient(endpoint_conf_name, endpoint_recipient_name, r
 	       local recipient_id = self:_assign_recipient_id()
 	       -- Persist the configuration
 	       self:_set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, safe_params)
+
+	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
+	       ntop.recipient_register(recipient_id)
 
 	       res = {status = "OK", recipient_id = recipient_id}
 	    end
@@ -562,7 +569,7 @@ function recipients:dispatch_notification(notification)
    if(notification) then
       local pools_alert_utils = require "pools_alert_utils"
       local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id)
-      
+
       if #recipients > 0 then
 	 local json_notification = json.encode(notification)
 	 local is_high_priority = is_notification_high_priority(notification)
@@ -604,7 +611,7 @@ local function process_notifications_by_priority(ready_recipients, high_priority
 	 local recipient = ready_recipient.recipient
 	 local m = ready_recipient.mod
 
-	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " high_priority: "..tostring(high_priority)) end
+	 if do_trace then tprint("Dequeuing alerts for ready recipient: ".. recipient.recipient_name.. " high_priority: "..tostring(high_priority).." recipient_id: "..recipient.recipient_id) end
 
 	 if m.dequeueRecipientAlerts then
 	    local rv = m.dequeueRecipientAlerts(recipient, budget_per_iter, high_priority)
@@ -712,8 +719,6 @@ function recipients:process_notifications(now, deadline, periodic_frequency, for
    -- only those recipients who didn't complete their job.
    process_notifications_by_priority(table.clone(ready_recipients), true  --[[ high priority --]], now, deadline, periodic_frequency, force_export)
    process_notifications_by_priority(table.clone(ready_recipients), false --[[ low priority  --]], now, deadline, periodic_frequency, force_export)
-   -- Refresh recipients periodically
-   ntop.recipients_refresh()
 end
 
 -- ##############################################
