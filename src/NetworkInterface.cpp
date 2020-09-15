@@ -635,7 +635,8 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
        * do not support the json parameter) */
 
       if(f->get_state() == hash_entry_state_idle) {
-	/* Last flow dump before delete */
+	/* Last flow dump before delete 
+         * Note: this never happens in 'direct' mode */
 	if(!idleFlowsToDump->isFull()) {
 	  f->incUses();
 

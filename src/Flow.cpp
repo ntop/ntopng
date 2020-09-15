@@ -1717,19 +1717,20 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 /* *************************************** */
 
 void Flow::dumpCheck(const struct timeval *tv, bool no_time_left, bool last_dump_before_free) {
+  /*
+    Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
+    ViewInterface dump their flows in another thread, not this one.
+  */
+  NetworkInterface *d_if = iface->isViewed() ? iface->viewedBy() : iface;
+
   if(ntop->getPrefs()->is_runtime_flows_dump_enabled() /* Check if dump has been disabled at runtime from a UI preference */
      && (ntop->getPrefs()->do_dump_flows() /* This check if flows dump has been statically enabled from the CLI */
 #ifndef HAVE_NEDGE
 	 || ntop->get_export_interface()
 #endif
 	 )
-     && !ntop->getPrefs()->do_dump_flows_direct()) {
-    /*
-      Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
-      ViewInterface dump their flows in another thread, not this one.
-    */
-    NetworkInterface *d_if = iface->isViewed() ? iface->viewedBy() : iface;
-    
+     && (d_if->isPacketInterface() /* Not a ZMQ interface */
+         || !ntop->getPrefs()->do_dump_flows_direct() /* Direct dump not enabled */ )) {
     if(no_time_left) {
       if(last_dump_before_free) {
 	/* 

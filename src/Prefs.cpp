@@ -337,6 +337,7 @@ void usage() {
 	 "                                    |   nindex[;direct]\n"
 	 "                                    |   Note: the direct option delivers higher performance\n"
 	 "                                    |   with less detailed flow information (it dumps raw flows)\n"
+	 "                                    |   when collecting from ZMQ.\n"
 #endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"

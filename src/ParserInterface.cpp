@@ -441,7 +441,10 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 #endif
 	 )
      && ntop->getPrefs()->do_dump_flows_direct()) {
-    bool rc = db->dumpFlowDirect(zflow->last_switched, zflow);
+    NetworkInterface *d_if = isViewed() ? viewedBy() : static_cast<NetworkInterface *>(this);
+    struct timeval tv;
+    tv.tv_sec = zflow->last_switched, tv.tv_usec = 0;
+    bool rc = flow->dumpFlow(&tv, d_if, false /* no_time_left */, true);
     if(!rc) incDBNumDroppedFlows(1);
   }
 

@@ -51,7 +51,6 @@ class DB {
 
   /* Pure Virtual Functions of a DB flow exporter */
   virtual bool dumpFlow(time_t when, Flow *f, char *json) = 0;
-  virtual bool dumpFlowDirect(time_t when, ParsedFlow *f)   { return false; };
   virtual void startLoop() = 0;
 
   inline void startDBLoop()                                 { running = true; startLoop(); };
