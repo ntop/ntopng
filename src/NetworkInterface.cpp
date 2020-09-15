@@ -604,14 +604,12 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
   } else {
     int rc = -1;
 #ifndef HAVE_NEDGE
+    bool dump_json = true;
+    bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_ls();
     char *json = NULL;
 
     if(!db)
       return(-1);
-
-#if 0
-    bool dump_json = true;
-    bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_ls();
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
     if(ntop->getPrefs()->do_dump_flows_on_nindex() &&
@@ -629,10 +627,12 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
       if(json == NULL)
 	return(-1);
     }
-#endif
 
-    if(idleFlowsToDump) {
-      /* Asynchronous dump via a thread */
+    if(idleFlowsToDump && !dump_json) {
+      /* Asynchronous dump via a thread 
+       * Note: json is not generated in case of nindex dump (see above)
+       * for performance reason, and we use queues in this case (which 
+       * do not support the json parameter) */
 
       if(f->get_state() == hash_entry_state_idle) {
 	/* Last flow dump before delete */
