@@ -850,6 +850,8 @@ class NtopUtils {
 
 	static async getPool(poolType, id = 0) {
 
+		if (poolType === null) throw 'A pool type must be defined!';
+
 		try {
 
 			const request = await fetch(NtopUtils.getPoolLink(poolType, id));
