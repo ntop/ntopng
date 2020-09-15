@@ -51,6 +51,7 @@ NetworkInterface::NetworkInterface(const char *name,
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   idleFlowsToDump_drops = activeFlowsToDump_drops = 0;
   flowsToDump_total = flowsToDump_enqueued = 0;
+  flowsToDump_nomem = 0;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -2629,8 +2630,9 @@ void NetworkInterface::periodicStatsUpdate() {
     if (start == 0)
       start = now;
     else
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "FLOW DUMP STATS: %ju received %ju enqueued %ju exported %u drop %u idle-q-drop %u active-q-drop [relative time: %us]",
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "FLOW DUMP STATS: %ju received %ju no-mem %ju enqueued %ju exported %u drop %u idle-q-drop %u active-q-drop [relative time: %us]",
         flowsToDump_total,
+        flowsToDump_nomem,
         flowsToDump_enqueued,
         db->getNumExportedFlows(),
         db->getNumDroppedFlows(),

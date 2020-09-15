@@ -140,8 +140,9 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
       processed = true;
     }
 
-    if (processed && !showDynamicInterfaceTraffic())
+    if (processed && !showDynamicInterfaceTraffic()) {
       return;
+    }
   }
 
   if(!ntop->getPrefs()->do_ignore_macs()) {
@@ -168,8 +169,10 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 
   PROFILING_SECTION_EXIT(0);
 
-  if(flow == NULL)
+  if(flow == NULL) {
+    flowsToDump_nomem++;
     return;
+  }
 
   if(zflow->absolute_packet_octet_counters) {
     /* Ajdust bytes and packets counters if the zflow update contains absolute values.
@@ -445,8 +448,11 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
      && ntop->getPrefs()->do_dump_flows_direct()) {
     NetworkInterface *d_if = isViewed() ? viewedBy() : static_cast<NetworkInterface *>(this);
     struct timeval tv;
+    bool rc;
+
     tv.tv_sec = zflow->last_switched, tv.tv_usec = 0;
-    bool rc = flow->dumpFlow(&tv, d_if, false /* no_time_left */, true);
+
+    rc = flow->dumpFlow(&tv, d_if, false /* no_time_left */, true);
     if(!rc) d_if->incDBNumDroppedFlows(1);
   }
 #endif
