@@ -5,6 +5,12 @@ jQuery.fn.dataTableExt.formatSecondsToHHMMSS = (data, type, row) => {
     if (type == "display") return NtopUtils.secondsToTime(data);
     return data;
 };
+jQuery.fn.dataTableExt.absoluteFormatSecondsToHHMMSS = (data, type, row) => {
+    if (isNaN(data)) return data;
+    if (type == "display" && data == 0) return '-';
+    if (type == "display") return NtopUtils.secondsToTime(Data.now() - data);
+    return data;
+};
 
 class DataTableUtils {
 

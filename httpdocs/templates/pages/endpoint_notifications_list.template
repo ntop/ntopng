@@ -23,7 +23,7 @@
             </div>
             <div class="card-footer">
                 <button class="btn btn-danger" data-toggle="modal" data-target="#factory-reset-modal">
-                    <i class='fas fa-industry'></i> {{ i18n("factory_reset") }}
+                    {{  i18n('config_scripts.config_reset') }}
                 </button>
             </div>
         </div>

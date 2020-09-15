@@ -1093,6 +1093,7 @@ local lang = {
     ["server_error"] = "Something went wrong. Try later.",
     ["test_recipient"] = "Test Recipient",
     ["testing_recipient"] = "Testing the recipient",
+    ["time_since_last_use"] = "Time Since Last Use",
     ["timed_out"] = "The recipient test has timed out!",
     ["type"] = "Endpoint Type",
     ["working_recipient"] = "Test successful!",

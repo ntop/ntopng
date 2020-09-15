@@ -120,6 +120,11 @@ $(document).ready(function () {
                 render: (endpointType) => i18n.endpoint_types[endpointType] || ""
             },
             {
+                data: "last_use",
+                className: "text-center",
+                render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS
+            },
+            {
                 targets: -1,
                 className: 'text-center',
                 data: null,
@@ -153,6 +158,8 @@ $(document).ready(function () {
                 i18n.endpoint_type, endpointTypeFilters, INDEX_COLUMN_ENDPOINT_TYPE, '#recipient-list_filter', tableAPI
             );
 
+            // reload data each TABLE_DATA_REFRESH milliseconds
+            setInterval(() => { tableAPI.ajax.reload();  }, TABLE_DATA_REFRESH);
         }
     });
 
