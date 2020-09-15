@@ -106,7 +106,9 @@ Prefs::Prefs(Ntop *_ntop) {
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
   dump_flows_on_nindex = false;
 #endif
+#ifdef NTOPNG_PRO
   dump_flows_direct = false;
+#endif
   read_flows_from_mysql = false;
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
@@ -334,10 +336,14 @@ void usage() {
 #ifdef HAVE_NINDEX
 	 "                                    | nindex        Dump in nIndex (Enterprise only)\n"
 	 "                                    |   Format:\n"
+#ifdef NTOPNG_PRO
 	 "                                    |   nindex[;direct]\n"
 	 "                                    |   Note: the direct option delivers higher performance\n"
 	 "                                    |   with less detailed flow information (it dumps raw flows)\n"
 	 "                                    |   when collecting from ZMQ.\n"
+#else
+	 "                                    |   nindex\n"
+#endif
 #endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
@@ -1212,9 +1218,12 @@ int Prefs::setOption(int optkey, char *optarg) {
     if(strncmp(optarg, "nindex", 2) == 0) {
       char *nindex_opt = strchr(optarg, ';');
       if(nindex_opt && strlen(nindex_opt) > 0) {
+#ifdef NTOPNG_PRO
         if(strncmp(&nindex_opt[1], "direct", 6) == 0)
-          dump_flows_direct = true;
-        else if(strncmp(&nindex_opt[1], "dump", 4) == 0)
+          toggle_dump_flows_direct(true);
+        else
+#endif
+        if(strncmp(&nindex_opt[1], "dump", 4) == 0)
           dump_json_flows_on_disk = dump_ext_json = true;
         else if(strncmp(&nindex_opt[1], "load", 4) == 0)
           load_json_flows_from_disk_to_nindex = true;

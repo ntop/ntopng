@@ -50,6 +50,7 @@ NetworkInterface::NetworkInterface(const char *name,
   customIftype = custom_interface_type;
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   idleFlowsToDump_drops = activeFlowsToDump_drops = 0;
+  flowsToDump_total = flowsToDump_enqueued = 0;
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -586,13 +587,20 @@ NetworkInterface::~NetworkInterface() {
   if(dhcp_ranges_shadow)    delete[] dhcp_ranges_shadow;
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
   if(ifname)                free(ifname);
-
-
 }
 
 /* **************************************************** */
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
+  int rc = -1;
+#ifndef HAVE_NEDGE
+  bool dump_json = true;
+  bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_ls();
+  char *json = NULL;
+
+  if(!db)
+    return(-1);
+
   if(no_time_left) {
     /* There is no time to dump the flow, however this is not yet
      * lost unless it is in the idle state (active flows will be
@@ -601,87 +609,80 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
       db->incNumDroppedFlows(1);
 
     return(-1);
-  } else {
-    int rc = -1;
-#ifndef HAVE_NEDGE
-    bool dump_json = true;
-    bool use_labels = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_ls();
-    char *json = NULL;
-
-    if(!db)
-      return(-1);
+  }
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-    if(ntop->getPrefs()->do_dump_flows_on_nindex() &&
-       !ntop->getPrefs()->do_dump_json_flows_on_disk()) {
-      /* JSON is not generated in case of nindex dump for
-       * performance reason (it actually contains duplicated
-       * information which are useless) */
-      dump_json = false;
-    }
+  if(ntop->getPrefs()->do_dump_flows_on_nindex() &&
+     !ntop->getPrefs()->do_dump_json_flows_on_disk()) {
+    /* JSON is not generated in case of nindex dump for
+     * performance reason (it actually contains duplicated
+     * information which are useless) */
+    dump_json = false;
+  }
 #endif
 
-    if(dump_json) {
-      json = f->serialize(use_labels);
+  if(dump_json) {
+    json = f->serialize(use_labels);
 
-      if(json == NULL)
-	return(-1);
-    }
+    if(json == NULL)
+      return(-1);
+  }
 
-    if(idleFlowsToDump && !dump_json) {
-      /* Asynchronous dump via a thread 
-       * Note: json is not generated in case of nindex dump (see above)
-       * for performance reason, and we use queues in this case (which 
-       * do not support the json parameter) */
+  if(idleFlowsToDump && !dump_json) {
+    /* Asynchronous dump via a thread 
+     * Note: json is not generated in case of nindex dump (see above)
+     * for performance reason, and we use queues in this case (which 
+     * do not support the json parameter) */
 
-      if(f->get_state() == hash_entry_state_idle) {
-	/* Last flow dump before delete 
-         * Note: this never happens in 'direct' mode */
-	if(!idleFlowsToDump->isFull()) {
-	  f->incUses();
+    if(f->get_state() == hash_entry_state_idle) {
+      /* Last flow dump before delete 
+       * Note: this never happens in 'direct' mode */
+      if(!idleFlowsToDump->isFull()) {
+        f->incUses();
 
-	  idleFlowsToDump->enqueue(f, false);
+        idleFlowsToDump->enqueue(f, false);
 
+        flowsToDump_enqueued++;
 #if DEBUG_FLOW_DUMP
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
 #endif
-	} else {
-	  idleFlowsToDump_drops++;
-	  incNumQueueDroppedFlows(1);
-	  if(json != NULL) free(json);
-	  // delete f; /* Delete is up to the caller */
-	}
       } else {
-	/* Partial dump if active flows */
-	if(!activeFlowsToDump->isFull()) {
-	  f->incUses();
-
-	  activeFlowsToDump->enqueue(f, false);
-
-#if DEBUG_FLOW_DUMP
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
-#endif
-	} else {
-	  activeFlowsToDump_drops++;
-	  incNumQueueDroppedFlows(1);
-	  if(json != NULL) free(json);
-	}
+        idleFlowsToDump_drops++;
+        incNumQueueDroppedFlows(1);
+        if(json != NULL) free(json);
+	// delete f; /* Delete is up to the caller */
       }
     } else {
-      /* Sychronous dump and not via a thread */
-      rc = db->dumpFlow(when, f, json); /* Finally dump this flow */
-      if(!rc) incDBNumDroppedFlows(1);
-      if(json != NULL) free(json);
-      /*
-	No need to delete the memory as everything
-	is syncronous and the caller will take care
-	of that
-      */
+      /* Partial dump if active flows */
+      if(!activeFlowsToDump->isFull()) {
+        f->incUses();
+
+        activeFlowsToDump->enqueue(f, false);
+
+        flowsToDump_enqueued++;
+#if DEBUG_FLOW_DUMP
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
+#endif
+      } else {
+        activeFlowsToDump_drops++;
+        incNumQueueDroppedFlows(1);
+        if(json != NULL) free(json);
+      }
     }
+  } else {
+    /* Sychronous dump and not via a thread */
+    rc = db->dumpFlow(when, f, json); /* Finally dump this flow */
+    if(!rc) incDBNumDroppedFlows(1);
+    if(json != NULL) free(json);
+    /*
+      No need to delete the memory as everything
+      is syncronous and the caller will take care
+      of that
+    */
+  }
 #endif
 
-    return(rc);
-  }
+  return(rc);
 }
 
 /* **************************************************** */
@@ -2392,8 +2393,8 @@ static void* flowDumper(void* ptr) {
 /* **************************************************** */
 
 void NetworkInterface::startFlowDumping() {
-  const u_int MAX_IDLE_FLOW_QUEUE_LEN   = 32768;
-  const u_int MAX_ACTIVE_FLOW_QUEUE_LEN = 32768;
+  const u_int MAX_IDLE_FLOW_QUEUE_LEN   = 131072;
+  const u_int MAX_ACTIVE_FLOW_QUEUE_LEN = 131072;
 
   idleFlowsToDump   = new SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN);
   activeFlowsToDump = new SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN);
@@ -2619,6 +2620,25 @@ void NetworkInterface::periodicStatsUpdate() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
 #endif
   struct timeval tv = periodicUpdateInitTime();
+
+#if 0 /* Debug */
+  if (db && db->getNumExportedFlows()) {
+    time_t now = time(NULL);
+    static time_t start = 0;
+
+    if (start == 0)
+      start = now;
+    else
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "FLOW DUMP STATS: %ju received %ju enqueued %ju exported %u drop %u idle-q-drop %u active-q-drop [relative time: %us]",
+        flowsToDump_total,
+        flowsToDump_enqueued,
+        db->getNumExportedFlows(),
+        db->getNumDroppedFlows(),
+        idleFlowsToDump_drops,
+        activeFlowsToDump_drops,
+        now-start);
+  }
+#endif
 
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */

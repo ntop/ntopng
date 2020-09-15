@@ -50,6 +50,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   now = time(NULL);
   now_tv.tv_sec = now;
 
+  flowsToDump_total++;
+
   // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s()", __FUNCTION__);
   
   if(unlikely(ntop->getPrefs()->get_num_simulated_ips())) {
@@ -434,19 +436,20 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 	   zflow->pkt_sampling_rate*(zflow->in_bytes + zflow->out_bytes),
 	   zflow->pkt_sampling_rate*(zflow->in_pkts + zflow->out_pkts));
 
-  if(ntop->getPrefs()->is_runtime_flows_dump_enabled() /* UI preference */
-     && (ntop->getPrefs()->do_dump_flows() /* Statically enabled from the CLI */
+#ifdef NTOPNG_PRO
+  if((ntop->getPrefs()->is_flows_dump_enabled()
 #ifndef HAVE_NEDGE
-	 || ntop->get_export_interface()
+      || ntop->get_export_interface()
 #endif
-	 )
+     )
      && ntop->getPrefs()->do_dump_flows_direct()) {
     NetworkInterface *d_if = isViewed() ? viewedBy() : static_cast<NetworkInterface *>(this);
     struct timeval tv;
     tv.tv_sec = zflow->last_switched, tv.tv_usec = 0;
     bool rc = flow->dumpFlow(&tv, d_if, false /* no_time_left */, true);
-    if(!rc) incDBNumDroppedFlows(1);
+    if(!rc) d_if->incDBNumDroppedFlows(1);
   }
+#endif
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);

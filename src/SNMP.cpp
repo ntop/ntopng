@@ -249,7 +249,7 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
 				  u_int version,
 				  char *_oid[SNMP_MAX_NUM_OIDS],
 				  bool _batch_mode) {
-  int rc, pdu_type;
+  int rc, pdu_type = SNMP_MSG_GET;
   struct snmp_pdu *pdu;
   SNMPSession *snmpSession;
   bool initSession = false;

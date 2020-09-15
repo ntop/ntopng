@@ -1723,14 +1723,16 @@ void Flow::dumpCheck(const struct timeval *tv, bool no_time_left, bool last_dump
   */
   NetworkInterface *d_if = iface->isViewed() ? iface->viewedBy() : iface;
 
-  if(ntop->getPrefs()->is_runtime_flows_dump_enabled() /* Check if dump has been disabled at runtime from a UI preference */
-     && (ntop->getPrefs()->do_dump_flows() /* This check if flows dump has been statically enabled from the CLI */
+  if((ntop->getPrefs()->is_flows_dump_enabled()
 #ifndef HAVE_NEDGE
-	 || ntop->get_export_interface()
+      || ntop->get_export_interface()
 #endif
-	 )
+     )
+#ifdef NTOPNG_PRO
      && (d_if->isPacketInterface() /* Not a ZMQ interface */
-         || !ntop->getPrefs()->do_dump_flows_direct() /* Direct dump not enabled */ )) {
+         || !ntop->getPrefs()->do_dump_flows_direct() /* Direct dump not enabled */ )
+#endif
+    ) {
     if(no_time_left) {
       if(last_dump_before_free) {
 	/* 
@@ -1742,8 +1744,9 @@ void Flow::dumpCheck(const struct timeval *tv, bool no_time_left, bool last_dump
 	d_if->incDBNumDroppedFlows(1);
       }
       return;
-    } else
+    } else {
       dumpFlow(tv, d_if, no_time_left /* false */, last_dump_before_free);
+    }
   }
 }
 

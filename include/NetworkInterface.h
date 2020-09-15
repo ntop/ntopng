@@ -81,6 +81,7 @@ class NetworkInterface : public AlertableEntity {
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
   u_int32_t idleFlowsToDump_drops, activeFlowsToDump_drops;
+  u_int64_t flowsToDump_total, flowsToDump_enqueued;
   
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   FifoStringsQueue *hosts_to_restore;
