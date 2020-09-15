@@ -24,26 +24,25 @@
 /* *************************************** */
 
 RecipientQueues::RecipientQueues() {
-  /*
-    Two queues, one high- and one low-priority
-   */
-  queue_prio_low = queue_prio_high = NULL;
+  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++)
+    queues_by_prio[i] = NULL;
 }
 
 /* *************************************** */
 
 RecipientQueues::~RecipientQueues() {
-  if(queue_prio_low)  delete queue_prio_low;
-  if(queue_prio_high) delete queue_prio_high;
+  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++)
+    delete queues_by_prio;
 }
 
 /* *************************************** */
 
 char* RecipientQueues::dequeue(RecipientNotificationPriority prio) {
-  FifoStringsQueue **cur_queue = (prio == recipient_notification_priority_high) ? &queue_prio_high : &queue_prio_low;
+  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
+    return NULL;
 
-  if(*cur_queue)
-    return (*cur_queue)->dequeue();
+  if(queues_by_prio[prio])
+    return queues_by_prio[prio]->dequeue();
 
   return NULL;
 }
@@ -51,14 +50,15 @@ char* RecipientQueues::dequeue(RecipientNotificationPriority prio) {
 /* *************************************** */
 
 bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * const notification) {
-  FifoStringsQueue **cur_queue = (prio == recipient_notification_priority_high) ? &queue_prio_high : &queue_prio_low;
+  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
+    return false;
 
   /*
     Lazily allocate the queue and then enqueue the notification
    */
-  if(*cur_queue
-     || (*cur_queue = new (nothrow) FifoStringsQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))
-    return (*cur_queue)->enqueue((char*)notification);
+  if(queues_by_prio[prio]
+     || (queues_by_prio[prio] = new (nothrow) FifoStringsQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))
+    return queues_by_prio[prio]->enqueue((char*)notification);
 
   return false;
 }

@@ -27,7 +27,7 @@
 
 class RecipientQueues {
  private:
-  FifoStringsQueue *queue_prio_low, *queue_prio_high;
+  FifoStringsQueue * queues_by_prio[RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES];
 
  public:
   RecipientQueues();
