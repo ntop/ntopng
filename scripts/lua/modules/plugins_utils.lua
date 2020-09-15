@@ -62,99 +62,121 @@ end
 
 -- ##############################################
 
--- @brief Lists the all available plugins
--- @returns a sorted table with plugins as values.
--- @notes Plugins must be loaded based according to the sort order to honor dependencies
-function plugins_utils.listPlugins()
-  local plugins = {}
-  local rv = {}
-  local source_dirs = {{"community", plugins_utils.COMMUNITY_SOURCE_DIR}}
-  local plugins_with_deps = {}
+-- @brief Recursively search for plugins starting from `source_dir`
+-- @param edition A string indicating the plugin edition. One of `community`, `pro`, `enterprise_m` or `enterprise_l`
+-- @param source_dir The path of the directory to start the plugin search from
+-- @param max_recursion Maximum number of recursive calls to this function
+-- @param plugins A lua table with all the plugins found
+-- @param plugins_with_deps A lua table with all the plugins found which have other plugins as dependencies
+local function recursivePluginsSearch(edition, source_dir, max_recursion, plugins, plugins_with_deps)
+   -- Prepend the current `source_dir` to the Lua path - this is necessary for doing the require
+   lua_path_utils.package_path_prepend(source_dir)
 
-  if ntop.isPro() then
-    source_dirs[#source_dirs + 1] = {"pro", plugins_utils.PRO_SOURCE_DIR}
-
-    if ntop.isEnterpriseM() then
-      source_dirs[#source_dirs + 1] = {"enterprise_m", plugins_utils.ENTERPRISE_M_SOURCE_DIR}
-    end
-
-    if ntop.isEnterpriseL() then
-      source_dirs[#source_dirs + 1] = {"enterprise_l", plugins_utils.ENTERPRISE_L_SOURCE_DIR}
-    end
-  end
-
-  for _, source_conf in ipairs(source_dirs) do
-    local edition = source_conf[1]
-    local source_dir = source_conf[2]
-
-    for plugin_name in pairs(ntop.readdir(source_dir)) do
+   for plugin_name in pairs(ntop.readdir(source_dir)) do
       local plugin_dir = os_utils.fixPath(source_dir .. "/" .. plugin_name)
       local plugin_info = os_utils.fixPath(plugin_dir .. "/manifest.lua")
 
       if ntop.exists(plugin_info) then
-        local metadata = dofile(plugin_info)
-        local mandatory_fields = {"title", "description", "author"}
+	 -- If there's a manifest, we are in a plugin directory
+	 local req_name = string.format("%s.manifest", plugin_name)
+	 local metadata = require(req_name)
+	 local mandatory_fields = {"title", "description", "author"}
 
-        if(metadata == nil) then
-          traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load manifest.lua in '%s'", plugin_name))
-          goto continue
-        end
+	 if not metadata then
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load manifest.lua in '%s'", plugin_name))
+	    goto continue
+	 end
 
-        for _, field in pairs(mandatory_fields) do
-          if(metadata[field] == nil) then
-            traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing mandatory field '%s' in manifest.lua of '%s'", field, plugin_name))
-            goto continue
-          end
-        end
+	 for _, field in pairs(mandatory_fields) do
+	    if not metadata[field] then
+	       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing mandatory field '%s' in manifest.lua of '%s'", field, plugin_name))
+	       goto continue
+	    end
+	 end
 
-        if(metadata.disabled) then
-          -- The plugin is disabled, skip it
-          goto continue
-        end
+	 if metadata.disabled then
+	    -- The plugin is disabled, skip it
+	    goto continue
+	 end
 
-        -- Augument information
-        metadata.path = plugin_dir
-        metadata.key = plugin_name
-        metadata.edition = edition
+	 -- Augument information
+	 metadata.path = plugin_dir
+	 metadata.key = plugin_name
+	 metadata.edition = edition
 
-        if not table.empty(metadata.dependencies) then
-          plugins_with_deps[plugin_name] = metadata
-        else
-          plugins[plugin_name] = metadata
-          rv[#rv + 1] = metadata
-        end
-      else
-        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing manifest.lua in '%s'", plugin_name))
+	 if not table.empty(metadata.dependencies) then
+	    plugins_with_deps[plugin_name] = metadata
+	 else
+	    plugins[plugin_name] = metadata
+	 end
+      elseif ntop.isdir(plugin_dir) and max_recursion > 0 then
+	 -- Recursively see if this is a directory containing other plugins
+	 recursivePluginsSearch(edition, plugin_dir, max_recursion - 1, plugins, plugins_with_deps)
       end
 
       ::continue::
-    end
-  end
+   end
+end
 
-  -- Check basic dependencies.
-  -- No recursion is supported (e.g. dependency on a plugin which has dependencies itself)
-  for plugin_name, metadata in pairs(plugins_with_deps) do
-    local satisfied = true
+-- ##############################################
 
-    for _, dep_name in pairs(metadata.dependencies) do
-      if not plugins[dep_name] then
-        satisfied = false
+-- @brief Lists the all available plugins
+-- @returns a sorted table with plugins as values.
+-- @notes Plugins must be loaded based according to the sort order to honor dependencies
+local function listPlugins()
+   local plugins = {}
+   local plugins_with_deps = {}
+   local rv = {}
+   local source_dirs = {{"community", plugins_utils.COMMUNITY_SOURCE_DIR}}
 
-        if do_trace then
-          io.write(string.format("Skipping plugin '%s' with unmet depedendency ('%s')\n", plugin_name, dep_name))
-        end
+   if ntop.isPro() then
+      source_dirs[#source_dirs + 1] = {"pro", plugins_utils.PRO_SOURCE_DIR}
 
-        break
+      if ntop.isEnterpriseM() then
+	 source_dirs[#source_dirs + 1] = {"enterprise_m", plugins_utils.ENTERPRISE_M_SOURCE_DIR}
       end
-    end
 
-    if satisfied then
-      plugins[plugin_name] = metadata
-      rv[#rv + 1] = metadata
-    end
-  end
+      if ntop.isEnterpriseL() then
+	 source_dirs[#source_dirs + 1] = {"enterprise_l", plugins_utils.ENTERPRISE_L_SOURCE_DIR}
+      end
+   end
 
-  return(rv)
+   for _, source_conf in ipairs(source_dirs) do
+      local edition = source_conf[1]
+      local source_dir = source_conf[2]
+
+      recursivePluginsSearch(edition, source_dir, 3, plugins, plugins_with_deps)
+   end
+
+   -- Add plugins without dependencies to the result
+   for _, plugin_metadata in pairs(plugins) do
+      rv[#rv + 1] = plugin_metadata
+   end
+
+   -- Check basic dependencies.
+   -- No recursion is supported (e.g. dependency on a plugin which has dependencies itself)
+   for plugin_name, metadata in pairs(plugins_with_deps) do
+      local satisfied = true
+
+      for _, dep_name in pairs(metadata.dependencies) do
+	 if not plugins[dep_name] then
+	    satisfied = false
+
+	    if do_trace then
+	       io.write(string.format("Skipping plugin '%s' with unmet depedendency ('%s')\n", plugin_name, dep_name))
+	    end
+
+	    break
+	 end
+      end
+
+      if satisfied then
+	 plugins[plugin_name] = metadata
+	 rv[#rv + 1] = metadata
+      end
+   end
+
+   return(rv)
 end
 
 -- ##############################################
@@ -477,7 +499,7 @@ end
 -- other threads to see intermediate states and half-populated directories.
 function plugins_utils.loadPlugins(community_plugins_only)
   local locales_utils = require("locales_utils")
-  local plugins = plugins_utils.listPlugins()
+  local plugins = listPlugins()
   local loaded_plugins = {}
   local locales = {}
   local path_map = {}
