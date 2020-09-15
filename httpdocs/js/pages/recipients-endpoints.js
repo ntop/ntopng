@@ -1,6 +1,6 @@
-// @ts-nocheck
 $(document).ready(function () {
 
+    const TABLE_DATA_REFRESH = 5000;
     const DEFAULT_RECIPIENT_ID = 0;
     const INDEX_COLUMN_ENDPOINT_TYPE = 2;
 
@@ -318,6 +318,27 @@ $(document).ready(function () {
 
         testRecipient(makeFormData(`#add-recipient-modal form`), $(this), $(`#add-recipient-modal .test-feedback`))
             .then(() => { $self.removeAttr("disabled"); });
+    });
+
+    $(`#btn-factory-reset`).click(async function(event) {
+
+        try {
+
+            const response = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/rest/v1/delete/recipients.lua`);
+            const result = await response.json();
+            if (result.rc == 0) {
+                $recipientsTable.ajax.reload();
+                $(`#factory-reset-modal`).modal('hide');
+            }
+
+        }
+        catch (error) {
+
+            if (err.message == "Response timed out") {
+                $(`#factory-reset-modal .invalid-feedback`).html(i18n.timed_out);
+                return;
+            }
+        }
     });
 
 });
