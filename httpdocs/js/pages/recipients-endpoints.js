@@ -120,7 +120,7 @@ $(document).ready(function () {
                 render: (endpointType) => i18n.endpoint_types[endpointType] || ""
             },
             {
-                data: "last_use",
+                data: "stats.last_use",
                 className: "text-center",
                 render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS
             },

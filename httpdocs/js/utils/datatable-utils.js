@@ -8,7 +8,7 @@ jQuery.fn.dataTableExt.formatSecondsToHHMMSS = (data, type, row) => {
 jQuery.fn.dataTableExt.absoluteFormatSecondsToHHMMSS = (data, type, row) => {
     if (isNaN(data)) return data;
     if (type == "display" && data == 0) return '-';
-    if (type == "display") return NtopUtils.secondsToTime(Data.now() - data);
+    if (type == "display") return NtopUtils.secondsToTime(Math.floor(Date.now() / 1000) - data);
     return data;
 };
 
