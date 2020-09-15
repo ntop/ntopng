@@ -3877,10 +3877,15 @@ end
 --- @return boolean
 function table.all(t, predicate)
 
+   if type(t) ~= 'table' then
+      traceError(TRACE_DEBUG, TRACE_CONSOLE, "the first paramater is not a table!")
+      return false
+   end
    if type(predicate) ~= 'function' then
       traceError(TRACE_DEBUG, TRACE_CONSOLE, "the passed predicate is not a function!")
       return false
    end
+
    if t == nil then return false end
 
    for _, value in pairs(t) do
