@@ -1,6 +1,6 @@
 $(document).ready(function () {
 
-    const TABLE_DATA_REFRESH = 5000;
+    const TABLE_DATA_REFRESH = 15000;
     const DEFAULT_RECIPIENT_ID = 0;
     const INDEX_COLUMN_ENDPOINT_TYPE = 2;
 
