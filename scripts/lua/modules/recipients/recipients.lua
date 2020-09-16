@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local json = require "dkjson"
 local alert_consts = require "alert_consts"
+local user_scripts = require "user_scripts"
 local notification_configs = require("notification_configs")
 
 -- ##############################################
@@ -54,6 +55,8 @@ function recipients:initialize()
 	 self:add_recipient(
 	    "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]], 
 	    "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
+	    nil, -- User script categories
+	    nil, -- minimum severity
 	    {} --[[ no recipient params --]]
 	 )
       end
@@ -229,7 +232,7 @@ local function check_endpoint_recipient_params(endpoint_key, recipient_params)
    local safe_params = {}
    -- So iterate across all expected params of the current endpoint
    for _, param in ipairs(notification_configs.get_types()[endpoint_key].recipient_params) do
-      -- param is a lua table so we access its elements
+     -- param is a lua table so we access its elements
       local param_name = param["param_name"]
       local optional = param["optional"]
 
@@ -248,14 +251,18 @@ end
 -- @brief Set a configuration along with its params. Configuration name and params must be already sanitized
 -- @param endpoint_conf_name A string with the notification endpoint configuration name
 -- @param endpoint_recipient_name A string with the recipient name
+-- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
+-- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
-function recipients:_set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, safe_params)
+function recipients:_set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
    -- Write the endpoint recipient config into another hash
    local k = self:_get_recipient_details_key(recipient_id)
 
    ntop.setCache(k, json.encode({endpoint_conf_name = endpoint_conf_name,
 				 recipient_name = endpoint_recipient_name,
+				 user_script_categories = user_script_categories,
+				 minimum_severity = minimum_severity,
 				 recipient_params = safe_params}))
 
    -- Notify a change in the recipients
@@ -266,7 +273,14 @@ end
 
 -- ##############################################
 
-function recipients:add_recipient(endpoint_conf_name, endpoint_recipient_name, recipient_params)
+-- @brief Add a new recipient of an existing endpoint configuration and returns its id
+-- @param endpoint_conf_name A string with the notification endpoint configuration name
+-- @param endpoint_recipient_name A string with the recipient name
+-- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
+-- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
+-- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
+-- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
+function recipients:add_recipient(endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
    local locked = self:_lock()
    local res = { status = "failed" }
 
@@ -291,7 +305,7 @@ function recipients:add_recipient(endpoint_conf_name, endpoint_recipient_name, r
 	       -- Assign the recipient id
 	       local recipient_id = self:_assign_recipient_id()
 	       -- Persist the configuration
-	       self:_set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, safe_params)
+	       self:_set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
 	       ntop.recipient_register(recipient_id)
@@ -312,9 +326,11 @@ end
 -- @brief Edit the recipient parameters of an existing endpoint configuration
 -- @param recipient_id The integer recipient identificator
 -- @param endpoint_recipient_name A string with the recipient name
+-- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
+-- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function recipients:edit_recipient(recipient_id, endpoint_recipient_name, recipient_params)
+function recipients:edit_recipient(recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
    local locked = self:_lock()
    local res = { status = "failed" }
 
@@ -338,7 +354,7 @@ function recipients:edit_recipient(recipient_id, endpoint_recipient_name, recipi
 	       local safe_params = status["safe_params"]
 
 	       -- Persist the configuration
-	       self:_set_endpoint_recipient_params(recipient_id, rc["endpoint_conf_name"], endpoint_recipient_name, safe_params)
+	       self:_set_endpoint_recipient_params(recipient_id, rc["endpoint_conf_name"], endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
 
 	       res = {status = "OK"}
 	    end
@@ -487,6 +503,22 @@ function recipients:get_recipient(recipient_id)
       if recipient_details then
 	 -- Add the integer recipient id
 	 recipient_details["recipient_id"] = tonumber(recipient_id)
+
+	 -- Add user script categories. nil or empty user script categories read from the JSON imply ANY AVAILABLE category
+	 if not recipient_details["user_script_categories"] or #recipient_details["user_script_categories"] == 0 then
+	    if not recipient_details["user_script_categories"] then
+	       recipient_details["user_script_categories"] = {}
+	    end
+
+	    for _, category in pairs(user_scripts.script_categories) do
+	       recipient_details["user_script_categories"][#recipient_details["user_script_categories"] + 1] = category.id
+	    end
+	 end
+
+	 -- Add minimum alert severity. nil or empty minimum severity read from the JSON assumes all severities, so a minimum of info
+	 if not tonumber(recipient_details["minimum_severity"]) then
+	    recipient_details["minimum_severity"] = alert_consts.alert_severities.info.severity_id
+	 end
 
 	 -- Add also the endpoint configuration
 	 local ec = notification_configs.get_endpoint_config(recipient_details["endpoint_conf_name"])

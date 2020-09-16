@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 require "lua_utils"
 local json = require("dkjson")
 local plugins_utils = require "plugins_utils"
+local recipients_rest_utils = require "recipients_rest_utils"
 local recipients = require "recipients"
 local recipients_instance = recipients:create()
 
@@ -23,12 +24,22 @@ end
 local response = {}
 local recipient_id = _POST["recipient_id"]
 local recipient_name = _POST["recipient_name"]
+local categories = recipients_rest_utils.parse_user_script_categories(_POST["recipient_user_script_categories"])
+local minimum_severity = recipients_rest_utils.parse_minimum_severity(_POST["recipient_minimum_severity"] )
 
 if (action == "add") then
    local endpoint_conf_name = _POST["endpoint_conf_name"]
-   response.result = recipients_instance:add_recipient(endpoint_conf_name, recipient_name, _POST)
+   response.result = recipients_instance:add_recipient(endpoint_conf_name,
+						       recipient_name,
+						       categories,
+						       minimum_severity,
+						       _POST)
 elseif (action == "edit") then
-   response.result = recipients_instance:edit_recipient(recipient_id, recipient_name, _POST)
+   response.result = recipients_instance:edit_recipient(recipient_id,
+							recipient_name,
+							categories,
+							minimum_severity,
+							_POST)
 elseif (action == "remove") then
    response.result = recipients_instance:delete_recipient(recipient_id)
 elseif (action == "test") then
