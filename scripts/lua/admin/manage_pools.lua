@@ -10,6 +10,7 @@ require "lua_utils"
 local page_utils = require "page_utils"
 local json = require "dkjson"
 local template_utils = require "template_utils"
+local notification_configs = require "notification_configs"
 
 local host_pools              = require "host_pools"
 local flow_pools              = require "flow_pools"
@@ -108,12 +109,12 @@ local context = {
             edit_pool      = string.format("/lua/rest/v1/edit/%s/pool.lua", pool_type),
             delete_pool    = string.format("/lua/rest/v1/delete/%s/pool.lua", pool_type),
         },
+        endpoint_types = notification_configs.get_types(),
         notification_recipients = recipients_instance:get_all_recipients()
     }
 }
 
 print(template_utils.gen("pages/table_pools.template", context))
-
 -- ************************************* ------
 
 -- append the menu down below the page

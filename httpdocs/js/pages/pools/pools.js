@@ -17,44 +17,17 @@ $(document).ready(function() {
             $(`${selector} option[value='${m}']`)
                 .removeAttr("disabled").removeAttr("data-pool-id").text(name);
         });
+        $(`${selector}`).selectpicker('refresh');
     }
 
     const markUsedOptions = (selector, members, poolName, poolId) => {
-
         members.forEach(m => {
             $(`${selector} option[value='${m}']`)
                 .attr("disabled", "disabled")
                 .attr("data-pool-id", poolId)
                 .text(`${all_members[m].name || m} (${poolName})`);
         });
-    }
-
-    /**
-     * Open the pool edit modal of a chosen pool if the query params contains the pool paramater
-     * @param tableAPI
-     */
-    const openEditPoolModal = (tableAPI) => {
-
-        const urlParams = new URLSearchParams(window.location.search);
-
-        if (!urlParams.has('pool')) return;
-
-        const poolId = urlParams.get('pool');
-        const poolData = tableAPI.data().toArray().find(pool => pool.pool_id == poolId);
-
-        // if the pool id is valid then open the edit modal
-        if (poolData !== undefined) {
-            $editModalHandler.invokeModalInit(poolData);
-            $(`#edit-pool`).modal('show');
-        }
-
-        if (!urlParams.has('referer')) return;
-        const referer = urlParams.get('referer');
-
-        $('#edit-pool').on('hidden.bs.modal', function(e) {
-            window.location = referer;
-        });
-
+        $(`${selector}`).selectpicker('refresh');
     }
 
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
@@ -129,22 +102,14 @@ $(document).ready(function() {
                 width: "10%",
                 render: function(_, type, pool) {
 
-                    let deleteButton = "";
-                    // if the current pool is the default one then don't show the delete button
-                    if (pool.pool_id != DEFAULT_POOL_ID) {
-                        deleteButton = `
-                            <a data-toggle="modal" class="btn btn-danger" href="#remove-pool">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        `;
-                    }
-
                     return (`
-                        <div class='btn-group btn-group-sm'>
+                        <div>
                             <a data-toggle="modal" class="btn btn-sm btn-info" href="#edit-pool">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            ${deleteButton}
+                            <a data-toggle="modal" class="btn btn-sm btn-danger ${(pool.pool_id != DEFAULT_POOL_ID) ? '' : 'invisible'}" href="#remove-pool">
+                                <i class="fas fa-trash"></i>
+                            </a>
                         </div>
                     `);
                 }
@@ -154,7 +119,11 @@ $(document).ready(function() {
 
             const tableAPI = settings.oInstance.api();
             // when the data has been fetched check if the url has a pool params
-            openEditPoolModal(tableAPI);
+            DataTableUtils.openEditModalByQuery({
+                paramName: 'pool_id',
+                datatableInstance: tableAPI,
+                modalHandler: $editModalHandler,
+            });
         }
     });
 
@@ -245,7 +214,9 @@ $(document).ready(function() {
             $(`#edit-pool form input[name='name']`).val(pool.name);
             $(`#edit-pool form select[name='configset']`).val(pool.configset_id);
             $(`#edit-pool form select[name='members']`).val(pool.members);
+            $(`#edit-pool form select[name='members']`).selectpicker('refresh');
             $(`#edit-pool form select[name='recipients']`).val(pool.recipients.map(r => r.recipient_id) || []);
+            $(`#edit-pool form select[name='recipients']`).selectpicker('refresh');
 
             if (poolType == "host") {
                 const href = $(`#edit-link`).attr('href').replace(/pool\=[0-9]+/, `pool=${pool.pool_id}`);

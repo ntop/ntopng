@@ -29,12 +29,15 @@
                             <input minlength="1" required name="recipient_name" type="text" class="form-control" id="edit-recipient-name-input">
                         </div>
                     </div>
+                    <div class="recipient-template-container">
+                    </div>
+                    <hr>
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="edit-recipient-severity-select">
                             <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>:
                         </label>
                         <div class="col-sm-5">
-                            <select required name="recepient_severity" class="form-control" id="edit-recipient-severity-select">
+                            <select required name="recipient_minimum_severity" class="form-control" id="edit-recipient-severity-select">
                                 {% for key, alert in pairsByField(alert_severities, 'severity_id', asc) do %}
                                     <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{ i18n(alert.i18n_title) }}</option>
                                 {% end %}
@@ -52,8 +55,6 @@
                                 {% end %}
                             </select>
                         </div>
-                    </div>
-                    <div class="recipient-template-container">
                     </div>
                     <span class="invalid-feedback"></span>
                 </div>

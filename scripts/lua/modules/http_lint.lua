@@ -1359,6 +1359,7 @@ local known_parameters = {
    ["flow_key"]                = validateNumber,                -- The key of the flow
    ["flow_hash_id"]            = validateNumber,                -- The ID uniquely identifying the flow in the hash table
    ["pool"]                    = validateNumber,                -- A pool ID
+   ["pool_id"]                 = validateNumber,                -- A pool ID
    ["direction"]               = validateDirection,             -- Sent or Received direction
    ["download"]                = validateBool,
    ["item"]                    = validateSingleWord,            -- Used by the Import/Export page to select the item to import/export

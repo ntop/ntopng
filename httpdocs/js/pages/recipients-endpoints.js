@@ -274,6 +274,7 @@ $(document).ready(function () {
             $(`#edit-recipient-modal form [name='recipient_id']`).val(recipient.recipient_id || DEFAULT_RECIPIENT_ID);
             $(`#edit-recipient-modal form [name='recipient_name']`).val(recipient.recipient_name);
             $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(recipient.endpoint_conf_name);
+            $(`#edit-recipient-modal form [name='recipient_minimum_severity']`).val(recipient.minimum_severity);
             $(`#edit-recipient-modal form [name='recipient_user_script_categories']`).val(recipient.user_script_categories);
             $(`#edit-recipient-modal form [name='recipient_user_script_categories']`).selectpicker('refresh');
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {

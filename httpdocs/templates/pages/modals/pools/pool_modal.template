@@ -36,7 +36,7 @@
                             <b>{{ i18n("pools.members") }}</b>
                         </label>
                         <div class="col-sm-7">
-                            <select class="form-control multiple-select" multiple name="members" id="{{ modal_type }}-pool-members-select">
+                            <select class="form-control selectpicker" multiple name="members" id="{{ modal_type }}-pool-members-select">
                                 {%
                                     local sorting_order = nil
                                     if (pool.name == "snmp" or pool.name == "network") then
@@ -63,9 +63,7 @@
                                     {% end %}
                                 {% end %}
                             </select>
-                            <small class="text-muted text-form">
-                                {* i18n("howto_multiselect") *}
-                            </small>
+
                         </div>
                     </div>
                     {% elseif (pool.name == "host" and modal_type == "edit") then %}
@@ -97,15 +95,33 @@
                             <b>{{ i18n("pools.recipients") }}</b>
                         </label>
                         <div class="col-sm-7">
-                            <select multiple class="form-control multiple-select" name="recipients" id="{{ modal_type }}-pool-recipient-select">
-                                {% for key, recipient in pairsByKeys(pool.notification_recipients, asc) do %}
-                                    {% local is_selected =  (recipient.endpoint_conf.builtin and modal_type == "add") %}
-                                    <option {{ (is_selected and 'selected' or '') }} value="{{ recipient.recipient_id }}">{{ recipient.recipient_name }}</option>
+
+                            {%
+
+                                local configured_recipients = {}
+                                for key, recipient in pairsByKeys(pool.notification_recipients, asc) do
+
+                                    if (configured_recipients[recipient.endpoint_key] == nil) then
+                                        configured_recipients[recipient.endpoint_key] = {}
+                                    end
+
+                                    configured_recipients[recipient.endpoint_key][key] = recipient
+
+                                end
+
+                            %}
+
+                            <select multiple class="form-control selectpicker" name="recipients" id="{{ modal_type }}-pool-recipient-select">
+
+                                {% for group_key, recipients in pairsByKeys(configured_recipients) do %}
+                                <optgroup label="{{ pool.endpoint_types[group_key].name }}">
+                                    {% for key, recipient in pairsByKeys(recipients, asc) do %}
+                                        <option {{ (is_selected and 'selected' or '') }} value="{{ recipient.recipient_id }}">{{ recipient.recipient_name }}</option>
+                                    {% end %}
+                                </optgroup>
                                 {% end %}
+
                             </select>
-                            <small class="text-muted text-form">
-                                {* i18n("howto_multiselect") *}
-                            </small>
                         </div>
                     </div>
 

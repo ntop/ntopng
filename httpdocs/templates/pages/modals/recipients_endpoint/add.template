@@ -28,18 +28,6 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-form-label col-sm-3" for="recipient-severity-select">
-                            <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>:
-                        </label>
-                        <div class="col-sm-5">
-                            <select required name="recipient_minimum_severity" class="form-control" id="recipient-severity-select">
-                                {% for key, alert in pairsByField(alert_severities, 'severity_id', asc) do %}
-                                    <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{ i18n(alert.i18n_title) }}</option>
-                                {% end %}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="recipient-type-select">
                             <b>{{ i18n("endpoint_notifications.recipient_select") }}</b>:
                         </label>
@@ -55,7 +43,22 @@
                             </select>
                         </div>
                     </div>
+                    <div class="recipient-template-container p-2 border-top" style="display: none;">
+
+                    </div>
                     <hr>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="recipient-severity-select">
+                            <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <select required name="recipient_minimum_severity" class="form-control" id="recipient-severity-select">
+                                {% for key, alert in pairsByField(alert_severities, 'severity_id', asc) do %}
+                                    <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{ i18n(alert.i18n_title) }}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
                             <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>:
@@ -67,9 +70,6 @@
                                 {% end %}
                             </select>
                         </div>
-                    </div>
-                    <div class="recipient-template-container p-2 border-top" style="display: none;">
-
                     </div>
                     <span class="invalid-feedback"></span>
                 </div>
