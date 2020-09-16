@@ -928,8 +928,6 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
 
     flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
-    printf("Flow Alert\n---\n%s\n---\n", flow_str);
-
     if(flow_str)
       lua_push_str_table_entry(vm, "alert_json", flow_str);
     ndpi_term_serializer(&flow_json);
