@@ -29,8 +29,6 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
   char *tmp, *e, *t;
   const char *topics[] = { "flow", "event", "counter", "template", "option", NULL };
   
-  memset(&recvStats, 0, sizeof(recvStats));
-  memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
   num_subscribers = 0;
   server_secret_key[0] = '\0';
   server_public_key[0] = '\0';
@@ -227,6 +225,7 @@ char *ZMQCollectorInterface::generateEncryptionKeys() {
 void ZMQCollectorInterface::checkPointCounters(bool drops_only) {
   if(!drops_only) {
     recvStatsCheckpoint.num_flows = recvStats.num_flows,
+      recvStatsCheckpoint.num_dropped_flows = recvStats.num_dropped_flows,
       recvStatsCheckpoint.num_events = recvStats.num_events,
       recvStatsCheckpoint.num_counters = recvStats.num_counters,
       recvStatsCheckpoint.num_templates = recvStats.num_templates,
@@ -504,6 +503,7 @@ void ZMQCollectorInterface::lua(lua_State* vm) {
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows);
+  lua_push_uint64_table_entry(vm, "dropped_flows", recvStats.num_dropped_flows);
   lua_push_uint64_table_entry(vm, "events", recvStats.num_events);
   lua_push_uint64_table_entry(vm, "counters", recvStats.num_counters);
   lua_push_uint64_table_entry(vm, "zmq_msg_rcvd", recvStats.zmq_msg_rcvd);
@@ -514,6 +514,7 @@ void ZMQCollectorInterface::lua(lua_State* vm) {
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows - recvStatsCheckpoint.num_flows);
+  lua_push_uint64_table_entry(vm, "dropped_flows", recvStats.num_dropped_flows - recvStatsCheckpoint.num_dropped_flows);
   lua_push_uint64_table_entry(vm, "events", recvStats.num_events - recvStatsCheckpoint.num_events);
   lua_push_uint64_table_entry(vm, "counters", recvStats.num_counters - recvStatsCheckpoint.num_counters);
   lua_push_uint64_table_entry(vm, "zmq_msg_rcvd", recvStats.zmq_msg_rcvd - recvStatsCheckpoint.zmq_msg_rcvd);

@@ -39,7 +39,7 @@ class ParserInterface : public NetworkInterface {
 
   virtual bool is_ndpi_enabled() const    { return(false);      };
   virtual u_int getPacketOverhead() { return 0; /* Can't determine this for non-packet interfaces */ }
-  void processFlow(ParsedFlow *zflow);
+  bool processFlow(ParsedFlow *zflow);
 
   void deliverFlowToCompanions(ParsedFlow * const flow);
   inline bool companionsEnabled() { return num_companion_interfaces > 0; };

@@ -39,7 +39,7 @@ ParserInterface::~ParserInterface() {
 
 /* **************************************************** */
 
-void ParserInterface::processFlow(ParsedFlow *zflow) {
+bool ParserInterface::processFlow(ParsedFlow *zflow) {
   bool src2dst_direction, new_flow;
   Flow *flow;
   ndpi_protocol p = Flow::ndpiUnknownProtocol;
@@ -65,7 +65,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
     if(isProbingFlow(zflow)) {
       discardedProbingStats.inc(zflow->pkt_sampling_rate * (zflow->in_pkts + zflow->out_pkts),
 				zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
-      return;
+      return false;
     }
   }
 
@@ -139,7 +139,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
     }
 
     if (processed && !showDynamicInterfaceTraffic()) {
-      return;
+      return false;
     }
   }
 
@@ -168,21 +168,7 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
   PROFILING_SECTION_EXIT(0);
 
   if(flow == NULL) {
-
-#ifdef NTOPNG_PRO
-    /* Update drop stats in case of direct flow dump */
-    if(ntop->getPrefs()->do_dump_flows_direct() && (
-       ntop->getPrefs()->is_flows_dump_enabled()
-#ifndef HAVE_NEDGE
-       || ntop->get_export_interface()
-#endif
-       )) {
-      NetworkInterface *d_if = isViewed() ? viewedBy() : static_cast<NetworkInterface *>(this);
-      d_if->incDBNumDroppedFlows();
-    }
-#endif
-
-    return;
+    return false;
   }
 
   if(zflow->absolute_packet_octet_counters) {
@@ -473,6 +459,8 @@ void ParserInterface::processFlow(ParsedFlow *zflow) {
 
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);
+
+  return true;
 }
 
 /* **************************************************** */

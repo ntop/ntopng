@@ -40,6 +40,8 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
 #ifdef NTOPNG_PRO
   custom_app_maps = NULL;
 #endif
+  memset(&recvStats, 0, sizeof(recvStats));
+  memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
 
   /* Populate defaults for @NTOPNG@ nProbe templates. No need to populate
      all the fields as nProbe will sent them periodically.
@@ -1051,9 +1053,10 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const ch
 
 /* **************************************************** */
 
-void ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
+bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
   bool invalid_flow = false;
   u_int32_t max_drift, boundary;
+  bool rc = false;
 
   if(flow->vlan_id && ntop->getPrefs()->do_ignore_vlans())
     flow->vlan_id = 0;
@@ -1170,18 +1173,24 @@ void ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 
     /* Process Flow */
     PROFILING_SECTION_ENTER("processFlow", 30);
-    processFlow(flow);
+    rc = processFlow(flow);
     PROFILING_SECTION_EXIT(30);
   }
+
+  if (!rc)
+    recvStats.num_dropped_flows++;
+
+  return rc;
 }
 
 /* **************************************************** */
 
-void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
+int ZMQParserInterface::parseSingleJSONFlow(json_object *o,
 					     u_int8_t source_id) {
   ParsedFlow flow;
   struct json_object_iterator it = json_object_iter_begin(o);
   struct json_object_iterator itEnd = json_object_iter_end(o);
+  int ret = 0;
 
   /* Reset data */
   flow.source_id = source_id;
@@ -1290,7 +1299,10 @@ void ZMQParserInterface::parseSingleJSONFlow(json_object *o,
     json_object_iter_next(&it);
   } // while json_object_iter_equal
 
-  preprocessFlow(&flow);
+  if (preprocessFlow(&flow))
+    ret = 1;
+
+  return ret;
 }
 
 /* **************************************************** */
@@ -1509,7 +1521,8 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
   if(recordFound) {
     PROFILING_SECTION_EXIT(9); /* Closes Decode TLV */
     PROFILING_SECTION_ENTER("processFlow", 10);
-    preprocessFlow(&flow);
+    if (preprocessFlow(&flow))
+      ret = 1;
     PROFILING_SECTION_EXIT(10);
   }
 
@@ -1531,23 +1544,28 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
   f = json_tokener_parse_verbose(payload, &jerr);
 
   if(f != NULL) {
-    int rc;
+    int n = 0, rc;
 
     if(json_object_get_type(f) == json_type_array) {
       /* Flow array */
       int id, num_elements = json_object_array_length(f);
 
-      for(id = 0; id < num_elements; id++)
-	parseSingleJSONFlow(json_object_array_get_idx(f, id), source_id);
+      for(id = 0; id < num_elements; id++) {
+	rc = parseSingleJSONFlow(json_object_array_get_idx(f, id), source_id);
 
-      rc = num_elements;
+        if (rc > 0)
+          n++;
+      }
+
     } else {
-      parseSingleJSONFlow(f, source_id);
-      rc = 1;
+      rc = parseSingleJSONFlow(f, source_id);
+
+      if (rc > 0)
+        n++;
     }
 
     json_object_put(f);
-    return(rc);
+    return n;
   } else {
     // if o != NULL
     if(!once) {
@@ -1571,7 +1589,7 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
 u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payload_size, u_int8_t source_id, void *data) {
   ndpi_deserializer deserializer;
   ndpi_serialization_type kt;
-  int rc;
+  int n = 0, rc;
 
   rc = ndpi_init_deserializer_buf(&deserializer, (u_int8_t *) payload, payload_size);
 
@@ -1588,14 +1606,16 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char * const payload, int payloa
     return 0;
   }
 
-  rc = 0;
   while(ndpi_deserialize_get_item_type(&deserializer, &kt) != ndpi_serialization_unknown) {
-    if(parseSingleTLVFlow(&deserializer, source_id) != 0)
+    rc = parseSingleTLVFlow(&deserializer, source_id);
+
+    if (rc < 0)
       break;
-    rc++;
+    else if (rc > 0)
+      n++;
   }
 
-  return rc;
+  return n;
 }
 
 /* **************************************************** */

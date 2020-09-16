@@ -598,16 +598,23 @@ if((page == "overview") or (page == nil)) then
    if(ifstats.zmqRecvStats ~= nil) then
       print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.zmq_rx_statistics").."</th></tr>\n")
 
-      print("<tr><th nowrap>"..i18n("if_stats_overview.collected_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:zmq_recv_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
+      print("<tr>")
+      print("<th nowrap>"..i18n("if_stats_overview.collected_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:zmq_recv_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
+      print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.unhandled_flows").."</th><td width=20%><span id=if_zmq_dropped_flows>"..formatValue(ifstats.zmqRecvStats.dropped_flows).."</span></td>")
+      print("<th nowrap></th><td width=20%></td>")
+      print("</tr>")
 
-      print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
-
-      print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td></tr>")
-
-      print("<tr><th nowrap>"..i18n("if_stats_overview.zmq_message_rcvd")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_rcvd>"..formatValue(ifstats.zmqRecvStats.zmq_msg_rcvd).."</span></td>")
-
+      print("<tr>")
+      print("<th nowrap>"..i18n("if_stats_overview.zmq_message_rcvd")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_rcvd>"..formatValue(ifstats.zmqRecvStats.zmq_msg_rcvd).."</span></td>")
       print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.zmq_message_drops")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=custom:zmq_msg_rcvd_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_msg_drops>"..formatValue(ifstats.zmqRecvStats.zmq_msg_drops).."</span></td>")
-      print("<th nowrap> "..i18n("if_stats_overview.zmq_avg_msg_flows").."</th><td width=20%><span id=if_zmq_avg_msg_flows></span></td></tr>")
+      print("<th nowrap> "..i18n("if_stats_overview.zmq_avg_msg_flows").."</th><td width=20%><span id=if_zmq_avg_msg_flows></span></td>")
+      print("</tr>")
+
+      print("<tr>")
+      print("<th nowrap>"..i18n("if_stats_overview.interface_rx_updates").."</th><td width=20%><span id=if_zmq_events>"..formatValue(ifstats.zmqRecvStats.events).."</span></td>")
+      print("<th nowrap>"..i18n("if_stats_overview.sflow_counter_updates").."</th><td width=20%><span id=if_zmq_counters>"..formatValue(ifstats.zmqRecvStats.counters).."</span></td>")
+      print("<th nowrap></th><td width=20%></td>")
+      print("</tr>")
    end
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
@@ -2056,17 +2063,17 @@ print [[/lua/rest/v1/get/interface/data.lua',
 	const v = NtopUtils.bytesToVolume(rsp.bytes);
 	$('#if_bytes').html(v);
 
-   $('#if_in_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_download));
+	$('#if_in_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_download));
 	$('#if_out_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_upload));
-   $('#if_in_pkts').html(NtopUtils.addCommas(rsp.packets_download) + " Pkts");
+	$('#if_in_pkts').html(NtopUtils.addCommas(rsp.packets_download) + " Pkts");
 	$('#if_out_pkts').html(NtopUtils.addCommas(rsp.packets_upload)  + " Pkts");
-   $('#pkts_in_trend').html(NtopUtils.get_trend(last_in_pkts, rsp.bytes_download));
-   $('#pkts_out_trend').html(NtopUtils.get_trend(last_out_pkts, rsp.bytes_upload));
-   last_in_pkts = rsp.bytes_download;
-   last_out_pkts = rsp.bytes_upload;
+	$('#pkts_in_trend').html(NtopUtils.get_trend(last_in_pkts, rsp.bytes_download));
+	$('#pkts_out_trend').html(NtopUtils.get_trend(last_out_pkts, rsp.bytes_upload));
+	last_in_pkts = rsp.bytes_download;
+	last_out_pkts = rsp.bytes_upload;
 
         if (typeof rsp.zmqRecvStats !== 'undefined') {
-           var diff, time_diff, label;
+           var diff, time_diff, flows_label;
            var now = (new Date()).getTime();
 
            if(last_zmq_time > 0) {
@@ -2075,14 +2082,15 @@ print [[/lua/rest/v1/get/interface/data.lua',
 
               if(diff > 0) {
                  rate = ((diff * 1000)/time_diff).toFixed(1);
-                 label = " [" + NtopUtils.fflows(rate) + "] " + NtopUtils.get_trend(1,0);
+                 flows_label = " [" + NtopUtils.fflows(rate) + "] " + NtopUtils.get_trend(1,0);
               } else {
-                 label = " "+NtopUtils.get_trend(0,0);
+                 flows_label = " "+NtopUtils.get_trend(0,0);
               }
            } else {
-              label = " "+NtopUtils.get_trend(0,0);
+              flows_label = " "+NtopUtils.get_trend(0,0);
            }
-           $('#if_zmq_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.flows)+label);
+           $('#if_zmq_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.flows)+flows_label);
+           $('#if_zmq_dropped_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.dropped_flows));
            $('#if_zmq_events').html(NtopUtils.addCommas(rsp.zmqRecvStats.events)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.events, last_zmq_events));
            $('#if_zmq_counters').html(NtopUtils.addCommas(rsp.zmqRecvStats.counters)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
            $('#if_zmq_msg_drops').html(NtopUtils.addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));

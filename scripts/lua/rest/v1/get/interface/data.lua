@@ -192,6 +192,7 @@ function dumpInterfaceStats(ifid)
 
          res["zmqRecvStats"] = {}
          res["zmqRecvStats"]["flows"] = ifstats.zmqRecvStats.flows
+         res["zmqRecvStats"]["dropped_flows"] = ifstats.zmqRecvStats.dropped_flows
 	 res["zmqRecvStats"]["events"] = ifstats.zmqRecvStats.events
 	 res["zmqRecvStats"]["counters"] = ifstats.zmqRecvStats.counters
 	 res["zmqRecvStats"]["zmq_msg_rcvd"] = ifstats.zmqRecvStats.zmq_msg_rcvd
