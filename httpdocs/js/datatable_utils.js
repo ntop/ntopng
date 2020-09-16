@@ -52,20 +52,20 @@ function datatableForEachRow(table, callbacks) {
    });
 }
 
-function datatableAddButtonCallback(td_idx, label, bs_class, callback_str, link) {
-   $("td:nth-child("+td_idx+")", $(this)).append('<a href="' + link + '" class="add-on btn" style="padding:0.2em;" onclick="' + callback_str + '" role="button"><span class="badge ' + bs_class + '">' + label + '</span></a>');
+function datatableAddButtonCallback(td_idx, label, bs_class, visible = true, callback_str, link) {
+   $("td:nth-child("+td_idx+")", $(this)).append('<a href="' + link + `" class="btn btn-sm ${bs_class} ${!visible ? 'invisible' : ''} mx-1" onclick="` + callback_str + '" role="button">' + label + '</a>');
 }
 
 function datatableAddDeleteButtonCallback(td_idx, callback_str, label) {
-   datatableAddButtonCallback.bind(this)(td_idx, label, "badge-danger", callback_str, "javascript:void(0)");
+   datatableAddButtonCallback.bind(this)(td_idx, label, "btn-danger", callback_str, "javascript:void(0)");
 }
 
-function datatableAddActionButtonCallback(td_idx, callback_str, label) {
-   datatableAddButtonCallback.bind(this)(td_idx, label, "badge-info", callback_str, "javascript:void(0)");
+function datatableAddActionButtonCallback(td_idx, callback_str, label, visible = true) {
+   datatableAddButtonCallback.bind(this)(td_idx, label, "btn-info", visible, callback_str, "javascript:void(0)");
 }
 
 function datatableAddLinkButtonCallback(td_idx, link, label) {
-   datatableAddButtonCallback.bind(this)(td_idx, label, "badge-info", "", link);
+   datatableAddButtonCallback.bind(this)(td_idx, label, "btn-info", "", link);
 }
 
 function datatableMakeSelectUnique(tr_obj, added_rows_prefix, options) {
