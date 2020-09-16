@@ -1335,6 +1335,8 @@ local known_parameters = {
 -- NOTIFICATIONS ENDPOINT
    ["recipient_name"]         = validateUnquoted,
    ["recipient_id"]           = validateNumber,
+   ["recipient_user_script_categories"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
+   ["recipient_minimum_severity"]       = validateNumber,
    ["endpoint_conf_name"]     = validateUnquoted,
    ["endpoint_conf_id"]       = validateNumber,
    ["endpoint_conf_type"]     = validateUnquoted,
@@ -1342,7 +1344,7 @@ local known_parameters = {
 
 -- POOLS
    ["pool_members"]           = validateEmptyOr(validateListOfTypeInline(validateSingleWord)),
-   ["recipients"]             = validateEmptyOr(validateListOfTypeInline(validateSingleWord)),
+   ["recipients"]             = validateEmptyOr(validateListOfTypeInline(validateNumber)),
 
 -- OTHER
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
