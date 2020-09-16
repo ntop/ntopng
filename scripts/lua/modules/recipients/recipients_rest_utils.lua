@@ -1,0 +1,59 @@
+--
+-- (C) 2017-20 - ntop.org
+--
+local dirs = ntop.getDirs()
+
+require "lua_utils"
+local alert_consts = require "alert_consts"
+local user_scripts = require "user_scripts"
+
+-- ##############################################
+
+local recipients_rest_utils = {}
+
+-- ##############################################
+
+-- @brief Parses and validates a comma-separated list of user script category ids into a lua array
+-- @return A lua array of valid user script category ids
+function recipients_rest_utils.parse_user_script_categories(categories_string)
+   local categories = {}
+
+    if isEmptyString(categories_string) then return categories end
+
+    -- Unfold the categories csv
+    categories = categories_string:split(",") or {categories_string}
+
+    local res = {}
+    for _, category_id in pairs(categories) do
+       local category_id = tonumber(category_id)
+
+       for _, category in pairs(user_scripts.script_categories) do
+	  if category_id == category.id then
+	     res[#res + 1] = category_id
+	     break
+	  end
+       end
+    end
+
+    return res
+end
+
+-- ##############################################
+
+-- @brief Parses and validates a severity id string and returns it as a number
+-- @return A valid integer severity id or nil when validation fails
+function recipients_rest_utils.parse_minimum_severity(minimum_severity_id_string)
+   local minimum_severity_id = tonumber(minimum_severity_string)
+
+   for _, alert_severity in pairs(alert_consts.alert_severities) do
+      if minimum_severity_id == alert_severity.severity_id then
+	 return minimum_severity_id
+      end
+   end
+
+   return nil
+ end
+
+-- ##############################################
+
+return recipients_rest_utils
