@@ -71,7 +71,14 @@ local script = {
 
 -- #################################################################
 
--- @brief Called when the script is going to be loaded.
+-- @brief Called when the plugin containing the user script is loaded/reloaded
+-- @return nil
+function script.onLoad()
+end
+
+-- #################################################################
+
+-- @brief Called  when the user script is loaded 
 -- @return true if the script should be loaded, false otherwise
 -- @notes Can be used to init some script global state or to skip the script
 -- execution on some particular conditions

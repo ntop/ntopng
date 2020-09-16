@@ -227,6 +227,21 @@ end
 
 -- ##############################################
 
+--@brief Load a plugin file and possibly executes an onLoad method
+--@return The loaded plugin file
+local function load_plugin_file(full_path)
+   local res = dofile(full_path)
+
+   if res and res.onLoad then
+      -- Execute method onload, if available
+      res.onLoad()
+   end
+
+   return res
+end
+
+-- ##############################################
+
 -- NOTE: cannot save the definitions to a single file via the persistance
 -- module because they may contain functions (e.g. in the i18n_description)
 local function load_definitions(defs_dir, runtime_path)
@@ -234,7 +249,7 @@ local function load_definitions(defs_dir, runtime_path)
       if fname:ends(".lua") then
 	 local mod_fname = string.sub(fname, 1, string.len(fname) - 4)
 	 local full_path = os_utils.fixPath(defs_dir .. "/" .. fname)
-	 local def_script = dofile(full_path)
+	 local def_script = load_plugin_file(full_path)
 	 -- Verify the definitions
 	 if(type(def_script) ~= "table") then
 	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading definition from %s", full_path))
@@ -355,7 +370,7 @@ local function load_plugin_user_scripts(paths_to_plugin, plugin)
 
   for runtime_path, source_path in pairs(paths_map) do
     -- Ensure that the script does not have errors
-    local res = dofile(runtime_path)
+    local res = load_plugin_file(runtime_path)
 
     if(res == nil) then
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Skipping bad user script '%s' in plugin '%s'", source_path, plugin.key))
@@ -385,10 +400,7 @@ local function load_plugin_alert_endpoints(plugin)
       if fname:ends(".lua") then
 	 -- Execute the alert endpoint and call its method onLoad, if present
 	 local fname_path = os_utils.fixPath(endpoints_path .. "/" .. fname)
-	 local endpoint = dofile(fname_path)
-	 if endpoint and endpoint.onLoad then
-	    endpoint.onLoad()
-	 end
+	 local endpoint = load_plugin_file(fname_path)
 	 
 	 if not file_utils.copy_file(fname, endpoints_path, RUNTIME_PATHS.alert_endpoints) then
 	    return false
@@ -407,7 +419,7 @@ local function load_plugin_web_gui(plugin)
   for fname in pairs(ntop.readdir(gui_dir)) do
     if(fname == "menu.lua") then
       local full_path = os_utils.fixPath(gui_dir .. "/" .. fname)
-      local menu_entry = dofile(full_path)
+      local menu_entry = load_plugin_file(full_path)
 
       if(menu_entry) then
         if(menu_entry.label == nil) then
