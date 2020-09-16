@@ -312,6 +312,10 @@
 
         }
 
+        getModalID() {
+            return $(this.element).parents('.modal').attr('id');
+        }
+
         toggleFormSubmission() {
 
             let isValid = true;
@@ -323,8 +327,8 @@
             });
 
             isValid
-                ? $(this.element).find(`[type='submit']`).removeAttr("disabled")
-                : $(this.element).find(`[type='submit']`).attr("disabled", "disabled");
+                ? $(this.element).find(`[type='submit'],[type='test']`).removeAttr("disabled")
+                : $(this.element).find(`[type='submit'],[type='test']`).attr("disabled", "disabled");
         }
 
         cleanForm() {
@@ -380,13 +384,13 @@
                 self.delegateSubmit();
 
             })
-                .fail(function (jqxhr, textStatus, errorThrown) {
-                    self.isSubmitting = false;
-                    self.options.onSubmitError(dataToSend, textStatus, errorThrown);
-                })
-                .always(function (d) {
-                    submitButton.removeAttr("disabled");
-                });
+            .fail(function (jqxhr, textStatus, errorThrown) {
+                self.isSubmitting = false;
+                self.options.onSubmitError(dataToSend, textStatus, errorThrown);
+            })
+            .always(function (d) {
+                submitButton.removeAttr("disabled");
+            });
         }
 
         delegateResetButton() {

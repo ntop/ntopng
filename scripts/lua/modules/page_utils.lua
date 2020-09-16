@@ -294,6 +294,8 @@ function page_utils.print_header(title)
     <link href="]] print(http_prefix) print[[/css/minified/heatmap.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/rickshaw.min.css" type="text/css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/dc.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/selectpicker/css/bootstrap-select.min.css" rel="stylesheet">
+
    <style>
    .flag {
       width: 16px;
@@ -316,6 +318,7 @@ function page_utils.print_header(title)
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(startup_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(startup_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js?]] print(startup_epoch) print[["></script>
+    <script async type="text/javascript" src="]] print(http_prefix) print[[/selectpicker/js/bootstrap-select.min.js?]] print(startup_epoch) print[["></script>
   </head>]]
   print([[
      <body class="body ]].. (dark_mode and "dark" or "") ..[[">

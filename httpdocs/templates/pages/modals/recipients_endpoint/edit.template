@@ -29,13 +29,37 @@
                             <input minlength="1" required name="recipient_name" type="text" class="form-control" id="edit-recipient-name-input">
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="edit-recipient-severity-select">
+                            <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <select required name="recepient_severity" class="form-control" id="edit-recipient-severity-select">
+                                {% for key, alert in pairsByField(alert_severities, 'severity_id', asc) do %}
+                                    <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{ i18n(alert.i18n_title) }}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="recipient-name-input">
+                            <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>:
+                        </label>
+                        <div class="col-sm-5">
+                            <select multiple name="recipient_user_script_categories" class="form-control selectpicker" id="edit-recipient-categories-select">
+                                {% for _, category in pairsByKeys(script_categories) do %}
+                                    <option value="{{ category.id }}">{{ i18n(category.i18n_title) }}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
                     <div class="recipient-template-container">
                     </div>
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">
                     <div class="mr-auto">
-                        <button id="edit-test-recipient" class="btn btn-secondary">
+                        <button id="edit-test-recipient" class="btn btn-secondary" disabled type="test">
                             <span style="display: none;" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             {{ i18n("endpoint_notifications.test_recipient") }}
                         </button>

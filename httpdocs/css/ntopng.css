@@ -676,6 +676,12 @@ main#n-container {
   max-height: 20rem;
 }
 
+.multiple-select-small {
+  height: 8rem !important;
+  overflow-y: auto;
+  max-height: 12rem;
+}
+
 .pointer {
   cursor: pointer;
 }
@@ -871,4 +877,8 @@ footer {
   position: absolute;
   right: 0.5rem;
   top: calc(50% - .5rem);
+}
+.btn[role='combobox'] {
+  border-color: #ced4d9;
+  background-color: #fff;
 }

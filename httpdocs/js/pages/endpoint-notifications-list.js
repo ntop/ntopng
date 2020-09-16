@@ -89,7 +89,20 @@ $(document).ready(function () {
                 data: 'recipients',
                 render: (recipients, type) => {
                     if (type == "display")
-                        return NtopUtils.arrayToListString(recipients.map(recipient => recipient.recipient_name), MAX_ENDPOINTS_COUNT);
+                        return NtopUtils.arrayToListString(recipients.map(recipient => {
+
+                            let badge = "";
+                            const isBuiltin = recipient.endpoint_conf.builtin || false;
+                            const destPage = NtopUtils.buildURL('/lua/admin/recipients_list.lua', {
+                                recipient_id: recipient.recipient_id,
+                            });
+
+                            if (isBuiltin) {
+                                badge = ` <span class='badge badge-dark'>built-in</span>`;
+                            }
+
+                            return `<a href='${destPage}'>${recipient.recipient_name}${badge}</a>`
+                        }), MAX_ENDPOINTS_COUNT);
                     return recipients;
                 }
             },
@@ -100,13 +113,14 @@ $(document).ready(function () {
                 render: (_, type, endpoint) => {
 
                     const isBuiltin = endpoint.endpoint_conf.builtin || false;
+                    if (isBuiltin) return;
 
                     return (`
-                        <div class='btn-group btn-group-sm'>
-                            <a data-toggle='modal' href='#edit-endpoint-modal' class="btn btn-info ${isBuiltin ? 'disabled' : ''}">
+                        <div>
+                            <a data-toggle='modal' href='#edit-endpoint-modal' class="btn btn-sm btn-info">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a data-toggle='modal' href='#remove-endpoint-modal' class="btn btn-danger ${isBuiltin ? 'disabled' : ''}">
+                            <a data-toggle='modal' href='#remove-endpoint-modal' class="btn btn-sm btn-danger">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </div>
@@ -123,6 +137,15 @@ $(document).ready(function () {
             DataTableUtils.addFilterDropdown(
                 i18n.endpoint_type, endpointTypeFilters, INDEX_COLUMN_ENDPOINT_TYPE, '#notification-list_filter', tableAPI
             );
+
+            // when the data has been fetched check if the url has a recipient_id param
+            // if the recipient is builtin then cancel the modal opening
+            DataTableUtils.openEditModalByQuery({
+                paramName: 'endpoint_conf_name',
+                datatableInstance: tableAPI,
+                modalHandler: $editEndpointModal,
+                cancelIf: (endpoint) => endpoint.endpoint_conf.builtin,
+            });
 
         }
     });

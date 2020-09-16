@@ -11,7 +11,8 @@ $(document).ready(function () {
         const params = {
             recipient_name: $(`${formSelector} [name='recipient_name']`).val(),
             endpoint_conf_name: $(`${formSelector} [name='endpoint']`).val(),
-            //user_script_categories: $(`${formSelector} [name='user_script_categories']`).val().join(",")
+            recipient_minimum_severity: $(`${formSelector} [name='recipient_minimum_severity']`).val(),
+            recipient_user_script_categories: $(`${formSelector} [name='recipient_user_script_categories']`).val().join(",")
         };
 
         // load each recipient params inside the template container in params
@@ -114,7 +115,27 @@ $(document).ready(function () {
                 data: 'recipient_name'
             },
             {
-                data: 'endpoint_conf_name'
+                data: 'endpoint_conf_name',
+                render: (endpointName, type, recipient) => {
+
+                    let displayedLabel = "";
+                    const isBuiltin = recipient.endpoint_conf.builtin || false;
+
+                    if (type == "display" && isBuiltin) {
+                        displayedLabel = `<span class='badge badge-dark'>built-in</span>`;
+                    }
+
+                    if (type == "display") {
+
+                        const destPage = NtopUtils.buildURL(`/lua/admin/endpoint_notifications_list.lua`, {
+                            endpoint_conf_name: recipient.endpoint_conf_name
+                        });
+
+                        return (`<a href='${destPage}'>${endpointName} ${displayedLabel}</a>`);
+                    }
+
+                    return endpointName;
+                }
             },
             {
                 data: `endpoint_key`,
@@ -135,13 +156,14 @@ $(document).ready(function () {
                     if (!recipient.endpoint_conf) return;
 
                     const isBuiltin = recipient.endpoint_conf.builtin || false;
+                    if (isBuiltin) return;
 
                     return (`
-                        <div class='btn-group btn-group-sm'>
-                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-info ${isBuiltin ? 'disabled' : ''}" >
+                        <div>
+                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-sm btn-info" >
                                 <i class='fas fa-edit'></i>
                             </a>
-                            <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-danger ${isBuiltin ? 'disabled' : ''}">
+                            <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-sm btn-danger">
                                 <i class='fas fa-trash'></i>
                             </a>
                         </div>
@@ -159,6 +181,15 @@ $(document).ready(function () {
             DataTableUtils.addFilterDropdown(
                 i18n.endpoint_type, endpointTypeFilters, INDEX_COLUMN_ENDPOINT_TYPE, '#recipient-list_filter', tableAPI
             );
+
+            // when the data has been fetched check if the url has a recipient_id param
+            // if the recipient is builtin then cancel the modal opening
+            DataTableUtils.openEditModalByQuery({
+                paramName: 'recipient_id',
+                datatableInstance: tableAPI,
+                modalHandler: $editRecipientModal,
+                cancelIf: (recipient) => recipient.endpoint_conf.builtin,
+            });
 
             // reload data each TABLE_DATA_REFRESH milliseconds
             setInterval(() => { tableAPI.ajax.reload();  }, TABLE_DATA_REFRESH);
@@ -243,7 +274,8 @@ $(document).ready(function () {
             $(`#edit-recipient-modal form [name='recipient_id']`).val(recipient.recipient_id || DEFAULT_RECIPIENT_ID);
             $(`#edit-recipient-modal form [name='recipient_name']`).val(recipient.recipient_name);
             $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(recipient.endpoint_conf_name);
-            //$(`#edit-recipient-modal form [name='user_script_categories']`).val(recipient.user_script_categories.split(","));
+            $(`#edit-recipient-modal form [name='recipient_user_script_categories']`).val(recipient.user_script_categories);
+            $(`#edit-recipient-modal form [name='recipient_user_script_categories']`).selectpicker('refresh');
             $(`#edit-recipient-modal form .recipient-template-container [name]`).each(function (i, input) {
                 $(this).val(recipient.recipient_params[$(this).attr('name')]);
             });

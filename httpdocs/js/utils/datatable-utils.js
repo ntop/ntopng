@@ -1,14 +1,17 @@
 jQuery.fn.dataTableExt.sErrMode = 'console';
 jQuery.fn.dataTableExt.formatSecondsToHHMMSS = (data, type, row) => {
     if (isNaN(data)) return data;
-    if (type == "display" && data == 0) return '-';
+    if (type == "display" && data <= 0) return ' ';
     if (type == "display") return NtopUtils.secondsToTime(data);
     return data;
 };
 jQuery.fn.dataTableExt.absoluteFormatSecondsToHHMMSS = (data, type, row) => {
+
     if (isNaN(data)) return data;
-    if (type == "display" && data == 0) return '-';
-    if (type == "display") return NtopUtils.secondsToTime(Math.floor(Date.now() / 1000) - data);
+    if (type == "display" && (data <= 0)) return ' ';
+
+    const delta = Math.floor(Date.now() / 1000) - data;
+    if (type == "display") return NtopUtils.secondsToTime(delta);
     return data;
 };
 
@@ -67,19 +70,19 @@ class DataTableUtils {
         // if there are custom filters then manage state in this way
         if (extension.hasFilters) {
 
-            extension.stateSaveCallback = function(settings,data) {
+            extension.stateSaveCallback = function (settings, data) {
                 localStorage.setItem('DataTables_' + settings.sInstance, JSON.stringify(data))
             };
 
-            extension.stateLoadCallback = function(settings) {
+            extension.stateLoadCallback = function (settings) {
                 return JSON.parse(localStorage.getItem('DataTables_' + settings.sInstance));
             };
 
             // on saving the table state store the selected filters
-            extension.stateSaveParams = function(settings, data) {
+            extension.stateSaveParams = function (settings, data) {
 
                 // save the filters selected from the user inside the state
-                $('[data-filter]').each(function() {
+                $('[data-filter]').each(function () {
 
                     const activeFilter = $(this).find(`li.active`).data('filter-key');
                     if (!activeFilter) return;
@@ -111,7 +114,7 @@ class DataTableUtils {
         const $menuFilter = $(`[data-filter='${menuFilterKey}']`);
         const columnIndex = $menuFilter.data('filterIndex');
 
-        $menuFilter.find('[data-filter-key]').each(function() {
+        $menuFilter.find('[data-filter-key]').each(function () {
 
             const key = $(this).data('filterKey');
             if (key == 'all') return;
@@ -155,7 +158,7 @@ class DataTableUtils {
                 $entry.append($counter);
             }
 
-            $entry.click(function(e) {
+            $entry.click(function (e) {
                 // set active filter title and key
                 if ($dropdownTitle.parent().find(`i.fas`).length == 0) {
                     $dropdownTitle.parent().prepend(`<i class='fas fa-filter'></i>`);
@@ -186,7 +189,7 @@ class DataTableUtils {
         // for each filter defined in filters create a dropdown item <li>
         for (let filter of filters) {
 
-            const $entry = createEntry(filter.label, filter.key, filter.countable, function(e) {
+            const $entry = createEntry(filter.label, filter.key, filter.countable, function (e) {
                 // if the filter have a callback then call it
                 if (filter.callback) {
                     filter.callback();
@@ -258,6 +261,41 @@ class DataTableUtils {
         const hours = Math.floor(seconds / 3600);
 
         return `${padZeroes(hours)}:${padZeroes(mins)}:${padZeroes(sec)}`;
+    }
+
+    /**
+    * Open the pool edit modal of a chosen pool if the query params contains the pool paramater
+    * @param tableAPI
+    */
+    static openEditModalByQuery(params) {
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.has(params.paramName)) return;
+
+        const dataID = urlParams.get(params.paramName);
+        const data = params.datatableInstance.data().toArray().find((data => data[params.paramName] == dataID));
+
+        // if the cancelIf param has been passed
+        // then test the cancelIf function, if the return value
+        // is true then cancel the modal opening
+        if (typeof(params.cancelIf) === 'function') {
+            if (params.cancelIf(data)) return;
+        }
+
+        const $modal = $(`#${params.modalHandler.getModalID()}`);
+
+        // if the pool id is valid then open the edit modal
+        if (data !== undefined) {
+            params.modalHandler.invokeModalInit(data);
+            $modal.modal('show');
+        }
+
+        if (!urlParams.has('referer')) return;
+        const referer = urlParams.get('referer');
+
+        $modal.on('hidden.bs.modal', function (e) {
+            window.location = referer;
+        });
     }
 
 }

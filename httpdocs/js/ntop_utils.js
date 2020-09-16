@@ -839,6 +839,19 @@ class NtopUtils {
         return array.slice(0, limit).join(", ");
 	}
 
+	static buildURL(location, params = {}, hasReferer = false) {
+
+		const url = new URL(location, window.location);
+
+		for (const [name, value] of Object.entries(params)) {
+			url.searchParams.set(name, value);
+		}
+
+		if (hasReferer)
+			url.searchParams.set('referer', window.location.href);
+		return url.toString();
+	}
+
 	static getEditPoolLink(href, poolId) {
 		const url = new URL(href, window.location);
         url.searchParams.set('pool', poolId);
