@@ -119,15 +119,27 @@ $(document).ready(function () {
                 data: 'recipient_name'
             },
             {
+                data: `endpoint_key`,
+                render: (endpointType, type, recipient) => {
+
+                    if (type == "display") {
+
+                        let badge = '';
+                        const isBuiltin = recipient.endpoint_conf.builtin || false;
+
+                        if (isBuiltin) {
+                            badge = `<span class='badge badge-dark'>built-in</span>`;
+                        }
+
+                        return `${i18n.endpoint_types[endpointType]} ${badge}`
+                    }
+
+                    return i18n.endpoint_types[endpointType] || ""
+                }
+            },
+            {
                 data: 'endpoint_conf_name',
                 render: (endpointName, type, recipient) => {
-
-                    let displayedLabel = "";
-                    const isBuiltin = recipient.endpoint_conf.builtin || false;
-
-                    if (type == "display" && isBuiltin) {
-                        displayedLabel = `<span class='badge badge-dark'>built-in</span>`;
-                    }
 
                     if (type == "display") {
 
@@ -135,15 +147,11 @@ $(document).ready(function () {
                             endpoint_conf_name: recipient.endpoint_conf_name
                         });
 
-                        return (`<a href='${destPage}'>${endpointName} ${displayedLabel}</a>`);
+                        return (`<a href='${destPage}'>${endpointName}</a>`);
                     }
 
                     return endpointName;
                 }
-            },
-            {
-                data: `endpoint_key`,
-                render: (endpointType) => i18n.endpoint_types[endpointType] || ""
             },
             {
                 data: "stats.last_use",
@@ -391,7 +399,7 @@ $(document).ready(function () {
         }
         catch (error) {
 
-            if (err.message == "Response timed out") {
+            if (error.message == "Response timed out") {
                 $(`#factory-reset-modal .invalid-feedback`).html(i18n.timed_out);
                 return;
             }

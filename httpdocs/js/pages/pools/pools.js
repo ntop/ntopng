@@ -328,4 +328,25 @@ $(document).ready(function() {
         $removeModalHandler.invokeModalInit(selectedPool);
     });
 
+    $(`#btn-factory-reset`).click(async function(event) {
+
+        try {
+
+            const response = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/rest/v1/delete/pools.lua`);
+            const result = await response.json();
+            if (result.rc == 0) {
+                $poolTable.ajax.reload();
+                $(`#factory-reset-modal`).modal('hide');
+            }
+
+        }
+        catch (error) {
+
+            if (error.message == "Response timed out") {
+                $(`#factory-reset-modal .invalid-feedback`).html(i18n.timed_out);
+                return;
+            }
+        }
+    });
+
 });

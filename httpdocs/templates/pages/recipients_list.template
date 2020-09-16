@@ -14,8 +14,8 @@
                         <thead>
                             <tr>
                                 <th>{{ i18n('endpoint_notifications.recipient_name') }}</th>
-                                <th>{{ i18n('endpoint_notifications.associated_to') }}</th>
                                 <th>{{ i18n('endpoint_notifications.type') }}</th>
+                                <th>{{ i18n('endpoint_notifications.associated_to_endpoints') }}</th>
                                 <th>{{ i18n('endpoint_notifications.time_since_last_use') }}</th>
                                 <th>{{ i18n('actions') }}</th>
                             </tr>
@@ -24,9 +24,8 @@
                 </div>
             </div>
             <div class="card-footer">
-                <button class="btn btn-danger" data-toggle="modal" data-target="#factory-reset-modal">
-                    {{  i18n('factory_reset') }}
-                </button>
+                {* template_utils.gen('pages/components/import-export-link.template', {href='#'}) *}
+                {* template_utils.gen('pages/components/reset-config-link.template', {href='#', toggle_modal=true, modal_id="factory-reset-modal", id='btn-factory-reset'}) *}
             </div>
         </div>
     </div>

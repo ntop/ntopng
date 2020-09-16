@@ -1,0 +1,9 @@
+{% if toggle_modal then %}
+<button class="btn btn-danger" data-target="#{{ modal_id }}" data-toggle="modal">
+    <i class='fas fa-undo-alt'></i> {{  i18n('config_scripts.config_reset') }}
+</a>
+{% else %}
+<a class="btn btn-danger" href="{{ href }}" {{ (id and "id='"..id.."'" or '') }}>
+    <i class='fas fa-undo-alt'></i> {{  i18n('config_scripts.config_reset') }}
+</a>
+{% end %}

@@ -1,0 +1,3 @@
+<a href="{{ href }}" class="btn btn-secondary" {{ (id and "id='"..id.."'" or '') }}>
+    <i class='fas fa-tasks'></i> {{ i18n("import_export_config") }}
+</a>

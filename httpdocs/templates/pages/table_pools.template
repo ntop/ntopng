@@ -27,6 +27,10 @@
                     </table>
                 </div>
             </div>
+            <div class="card-footer">
+                {* template_utils.gen('pages/components/import-export-link.template', {href='#'}) *}
+                {* template_utils.gen('pages/components/reset-config-link.template', {href='#', toggle_modal=true, modal_id="factory-reset-modal", id='btn-factory-reset'}) *}
+            </div>
         </div>
     </div>
 </div>
@@ -44,6 +48,11 @@ pool = pool,
 {* template_utils.gen("pages/modals/pools/remove_pool.template", {
 modal_type = "remove",
 pool = pool
+}) *}
+
+{* template_utils.gen("pages/modals/factory-reset.template", {
+    body = i18n("endpoint_notifications.factory_reset.body", { reset_element = i18n("pools.pools") }),
+    title = i18n("endpoint_notifications.factory_reset.title", { reset_element = i18n("pools.pools") })
 }) *}
 
 

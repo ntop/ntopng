@@ -80,8 +80,18 @@ $(document).ready(function () {
             },
             {
                 data: 'endpoint_key',
-                render: function (key, type) {
-                    if (type == "display") return i18n.endpoint_types[key];
+                render: function (key, type, endpoint) {
+                    if (type == "display") {
+
+                        let badge = '';
+                        const isBuiltin = endpoint.endpoint_conf.builtin || false;
+
+                        if (isBuiltin) {
+                            badge = ` <span class='badge badge-dark'>built-in</span>`;
+                        }
+
+                        return `${i18n.endpoint_types[key]}${badge}`;
+                    }
                     return key;
                 }
             },
@@ -91,17 +101,11 @@ $(document).ready(function () {
                     if (type == "display")
                         return NtopUtils.arrayToListString(recipients.map(recipient => {
 
-                            let badge = "";
-                            const isBuiltin = recipient.endpoint_conf.builtin || false;
                             const destPage = NtopUtils.buildURL('/lua/admin/recipients_list.lua', {
                                 recipient_id: recipient.recipient_id,
                             });
 
-                            if (isBuiltin) {
-                                badge = ` <span class='badge badge-dark'>built-in</span>`;
-                            }
-
-                            return `<a href='${destPage}'>${recipient.recipient_name}${badge}</a>`
+                            return `<a href='${destPage}'>${recipient.recipient_name}</a>`
                         }), MAX_ENDPOINTS_COUNT);
                     return recipients;
                 }
@@ -308,7 +312,7 @@ $(document).ready(function () {
         }
         catch (error) {
 
-            if (err.message == "Response timed out") {
+            if (error.message == "Response timed out") {
                 $(`#factory-reset-modal .invalid-feedback`).html(i18n.timed_out);
                 return;
             }
