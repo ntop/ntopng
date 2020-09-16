@@ -75,7 +75,7 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * c
   else
     uses_by_prio[prio]++;
 
-  return false;
+  return res;
 }
 
 /* *************************************** */
