@@ -90,7 +90,7 @@ end
 
 -- @brief Mark a recipients change (must be called when adding/deleteding/editing a recipient)
 -- @return nil
-function recipients:_set_recipients_change()
+function recipients:set_recipients_change()
    ntop.setCache(self:_get_recipients_changed_key(), "1")
 end
 
@@ -265,7 +265,7 @@ function recipients:_set_endpoint_recipient_params(recipient_id, endpoint_conf_n
 				 recipient_params = safe_params}))
 
    -- Notify a change in the recipients
-   self:_set_recipients_change()
+   self:set_recipients_change()
 
    return recipient_id
 end
@@ -389,7 +389,7 @@ function recipients:delete_recipient(recipient_id)
 	 ntop.delMembersCache(self:_get_recipient_ids_key(), string.format("%d", recipient_id))
 
 	 -- Notify a change in the recipients
-	 self:_set_recipients_change()
+	 self:set_recipients_change()
 
 	 -- Finally, remove the recipient from C
 	 ntop.recipient_delete(recipient_id)

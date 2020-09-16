@@ -2,8 +2,10 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local plugins_utils = {}
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
+local plugins_utils = {}
 local os_utils = require("os_utils")
 local persistence = require("persistence")
 local file_utils = require("file_utils")
@@ -611,6 +613,9 @@ function plugins_utils.loadPlugins(community_plugins_only)
 
   -- Reload the periodic scripts to load the new plugins
   ntop.reloadPeriodicScripts()
+
+  local recipients = require "recipients":create()
+  recipients:set_recipients_change()
 
   return(true)
 end
