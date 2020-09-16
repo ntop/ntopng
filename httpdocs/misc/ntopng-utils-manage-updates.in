@@ -138,10 +138,10 @@ fi
 function set_failure() {
 	STATUS=$1
 	# Report failure status
-	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "${STATUS}" 2>&1 >/dev/null
+	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "${STATUS}" >/dev/null 2>&1
 	# Cleanup requests
-	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} 2>&1 >/dev/null 
-	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} 2>&1 >/dev/null
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} >/dev/null 2>&1 
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} >/dev/null 2>&1
 }
 
 function stall_check() {
@@ -195,7 +195,7 @@ function run_upgrade() {
 	fi
 
 	# Set "in progress" flag
-	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_IN_PROGRESS_KEY} "1" EX 3600 2>&1 >/dev/null 
+	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_IN_PROGRESS_KEY} "1" EX 3600 >/dev/null 2>&1 
 
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
@@ -225,18 +225,18 @@ function run_upgrade() {
 	if [ $RESULT -eq 0 ]; then
 		[ $QUIET = false ] && echo "${PRODUCT} updated successfully"
 		# Cleanup new version available key
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} 2>&1 >/dev/null 
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} >/dev/null 2>&1 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1 
 	else
 		[ $QUIET = false ] && echo "Unable to update"
-		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "upgrade-failure" 2>&1 >/dev/null
+		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "upgrade-failure" >/dev/null 2>&1
 	fi
 
 	# Cleanup "in progress" flag
-	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_IN_PROGRESS_KEY} 2>&1 >/dev/null
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_IN_PROGRESS_KEY} >/dev/null 2>&1
 
 	# Cleanup upgrade request key if any
-	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} 2>&1 >/dev/null
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} >/dev/null 2>&1
 }
 
 # Check for new ntopng updates available
@@ -250,17 +250,17 @@ function check_updates() {
 		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Check for broken packages
-		${APT_GET} --just-print upgrade 2>&1 >/dev/null
+		${APT_GET} --just-print upgrade >/dev/null 2>&1
 		if [ ! $? -eq 0 ]; then
 			# Something went wrong, trying to fix it
 			${APT_GET} --assume-yes --fix-broken install
 
-			${APT_GET} --just-print upgrade 2>&1 >/dev/null
+			${APT_GET} --just-print upgrade >/dev/null 2>&1
 		fi
 
 		if [ ! $? -eq 0 ]; then
 			# Something went wrong, unable to fix it
-			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "update-failure" 2>&1 >/dev/null 
+			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "update-failure" >/dev/null 2>&1 
 		else
 			# Check update and get version
 			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
@@ -277,7 +277,7 @@ function check_updates() {
 
 	# If there is an update, set new version on redis, otherwise delete the current version (if any)
 	if [ ! -z "${NTOPNG_VERSION}" ]; then
-		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_NEW_VERSION_AVAILABLE_KEY} ${NTOPNG_VERSION} EX 86400 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_NEW_VERSION_AVAILABLE_KEY} ${NTOPNG_VERSION} EX 86400 >/dev/null 2>&1 
 
 		# Check if automatic updates are enabled
 		AUTO_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_AUTO_UPDATES_KEY} 2>/dev/null | grep 1)
@@ -285,9 +285,9 @@ function check_updates() {
 			run_upgrade
 		fi
 	else
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} >/dev/null 2>&1 
 		if [ $RESULT -eq 0 ]; then
-			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} 2>&1 >/dev/null 
+			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1 
 		fi
 	fi
 }
@@ -298,7 +298,7 @@ function check_updates_on_demand() {
 	if [ "${CHECK_FOR_UPDATES}" == "1" ]; then
 		stall_check
 		check_updates
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} >/dev/null 2>&1 
 	fi
 }
 
