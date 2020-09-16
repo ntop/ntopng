@@ -634,6 +634,20 @@ static int ntop_should_resolve_host(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_set_iec104_allowed_typeids(lua_State* vm) {
+  char *protos;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((protos = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  ntop->getPrefs()->setIEC104AllowedTypeIDs(protos);
+  lua_pushboolean(vm, true);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_gainWriteCapabilities(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, Utils::gainWriteCapabilities() == 0);
@@ -5772,7 +5786,8 @@ static const luaL_Reg ntop_reg[] = {
   { "isIPv6",                ntop_is_ipv6                 },
   { "reloadPeriodicScripts", ntop_reload_periodic_scripts },
   { "shouldResolveHost",     ntop_should_resolve_host     },
-
+  { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids },
+  
   /* JA3 */
   { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
   { "reloadJA3Hashes",      ntop_reload_ja3_hashes       },

@@ -769,7 +769,8 @@ void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
   case NDPI_PROTOCOL_IEC60870:
   {
     u_int offset = 0;
-
+    u_int64_t *allowedTypeIDs = ntop->getPrefs()->getIEC104AllowedTypeIDs();
+    
     while(offset < payload_len) {
       /* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id */
       u_int8_t len = payload[1+offset];
@@ -784,14 +785,52 @@ void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
 	len -= 4;
 	
 	if(payload_len >= len) {
-	  u_int8_t type_id = payload[6+offset];
-
+	  u_int8_t  type_id = payload[6+offset];
+	  u_int8_t  cause_tx = payload[7+offset] & 0x3F;
+	  u_int8_t  negative = ((payload[7+offset] & 0x40)  == 0x40) ? true : false;
+	  u_int16_t asdu = /* ntohs */(*((u_int16_t*)&payload[10+offset]));
+	  u_int64_t bit;
+	  bool alerted = false;
+	  
 	  offset += len + 6;
 	  
-	  if(type_id < 64)
-	    iec104_typeid_mask[0] |= ((u_int64_t)1 << type_id);
-	  else if(type_id < 128)
-	    iec104_typeid_mask[1] |= ((u_int64_t)1 << (type_id-64));
+	  if(type_id < 64) {
+	    bit = ((u_int64_t)1) << type_id;
+	    
+	    iec104_typeid_mask[0] |= bit;
+
+	    if((allowedTypeIDs[0] & bit) == 0) alerted = true;
+	  } else if(type_id < 128) {
+	    bit = ((u_int64_t)1) << (type_id-64);
+	    iec104_typeid_mask[1] |= bit;
+
+	    if((allowedTypeIDs[1] & bit) == 0) alerted = true;	    
+	  }
+
+	  if(alerted) {
+	    json_object *my_object;
+	    
+	    if((my_object = json_object_new_object()) != NULL) {
+	      const char *json;
+	      
+	      json_object_object_add(my_object, "timestamp", json_object_new_int(packet_time));
+	      json_object_object_add(my_object, "client", get_cli_host()->get_ip()->getJSONObject());
+	      json_object_object_add(my_object, "server", get_srv_host()->get_ip()->getJSONObject());
+	      if(vlanId) json_object_object_add(my_object, "vlanId", json_object_new_int(vlanId));
+	      json_object_object_add(my_object, "type_id", json_object_new_int(type_id));
+	      json_object_object_add(my_object, "asdu", json_object_new_int(asdu));
+	      json_object_object_add(my_object, "cause_tx", json_object_new_int(cause_tx));	      
+	      json_object_object_add(my_object, "negative", json_object_new_boolean(negative));
+
+	      json = json_object_to_json_string(my_object);
+
+	      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json); */
+	      ntop->getRedis()->rpush(CONST_IEC104_ALERT_QUEUE, json, 1024 /* Max queue size */);
+	      
+	      json_object_put(my_object); /* Free memory */
+	    }
+	  }
+	  
 	  /* Discard typeIds 127..255 */
 #ifdef DEBUG_IEC60870
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [payload_len: %u][len: %u][TypeID: %u][%llu/%llu]",
@@ -2074,7 +2113,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	for(u_int i=0; i<64; i++) {
 	  u_int64_t bit = ((u_int64_t)1) << i;
 
-	  if((iec104_typeid_mask[j] & bit) == bit){
+	  if((iec104_typeid_mask[j] & bit) == bit) {
 	    char buf[8];
 	    u_int32_t v = i+(j*64);
 	    

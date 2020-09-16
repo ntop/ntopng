@@ -1090,7 +1090,9 @@ TrafficShaper* Host::get_shaper(ndpi_protocol ndpiProtocol, bool isIngress) {
 
 #ifdef SHAPER_DEBUG
     char buf[64];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s@%u] SHARED Traffic Shaper", ip.print(buf, sizeof(buf)), vlan_id);
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s@%u] SHARED Traffic Shaper",
+				 ip.print(buf, sizeof(buf)), vlan_id);
 #endif
 
   }

@@ -73,6 +73,7 @@ local alert_keys = {
       alert_known_proto_on_non_std_port    = {NO_PEN, 58},
       alert_host_log                       = {NO_PEN, 59},
       alert_attack_mitigation_via_snmp     = {NO_PEN, 60},
+      alert_iec104_error                   = {NO_PEN, 61},
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins

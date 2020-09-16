@@ -539,6 +539,15 @@ function alerts_api.influxdbEntity(dburl)
 end
 
 -- ##############################################
+
+function alerts_api.iec104Entity(flow)
+  return {
+    alert_entity = alert_consts.alert_entities.flow,
+    alert_entity_val = "flow"
+  }
+end
+
+-- ##############################################
 -- type_info building functions
 -- ##############################################
 
