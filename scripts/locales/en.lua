@@ -306,6 +306,7 @@ local lang = {
     ["licence"] = "License",
     ["licence_expires_in"] = "License expires in %{time}",
     ["licence_generation"] = "Click on the above URL to generate your professional version license, or <br>purchase a license at <a href=\"%{purchase_url}\">e-shop</a>. If you are no-profit, research or an education<br>institution please read <a href=\"%{universities_url}\">this</a>.",
+    ["licence_status"] = "License Status",
     ["maintenance"] = "Maintenance: Until %{_until} [%{days_left} days left]",
     ["maintenance_expired"] = "%{product} maintenance expired",
     ["maxmind"] = "Includes support for <a href=\"%{maxmind_url}\">MaxMind <i class=\"fas fa-external-link-alt\"></i></a> and <a href='https://db-ip.com'>DB-IP <i class=\"fas fa-external-link-alt\"></i></a> Geolocation databases.",

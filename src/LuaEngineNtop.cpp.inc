@@ -2590,6 +2590,7 @@ static int ntop_check_license(lua_State* vm) {
 
 static int ntop_get_info(lua_State* vm) {
   char rsp[256];
+  char buf[128];
 #ifndef HAVE_NEDGE
   int major, minor, patch;
 #endif
@@ -2674,6 +2675,7 @@ static int ntop_get_info(lua_State* vm) {
     }
 #endif
     lua_push_str_table_entry(vm, "pro.license", ntop->getPro()->get_license());
+    lua_push_str_table_entry(vm, "pro.license_type", ntop->getPro()->get_license_type(buf, sizeof(buf)));
     lua_push_bool_table_entry(vm, "pro.out_of_maintenance", ntop->getPro()->is_out_of_maintenance());
     lua_push_bool_table_entry(vm, "pro.use_redis_license", ntop->getPro()->use_redis_license());
     lua_push_str_table_entry(vm, "pro.systemid", ntop->getPro()->get_system_id());

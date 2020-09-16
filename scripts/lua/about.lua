@@ -56,15 +56,20 @@ print("<tr><th>") print(i18n("about.licence")) print("</th><td colspan=2>")
 
 info["ntopng.license"] = ntop.getCache('ntopng.license')
 if(info["pro.release"] == false) then
-   print("<A HREF=\"http://www.gnu.org/licenses/gpl.html\" target=\"_blank\">".. info["license"] .."</A>")
+   print("<A HREF=\"http://www.gnu.org/licenses/gpl.html\" target=\"_blank\">".. info["license"] .."</A><br>")
 else
-   print("<A HREF=\"https://svn.ntop.org/svn/ntop/trunk/legal/LicenseAgreement/\" target=\"_blank\">EULA</A>")
+   print("<A HREF=\"https://svn.ntop.org/svn/ntop/trunk/legal/LicenseAgreement/\" target=\"_blank\">EULA</A><br>")
 end
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
+
+   if(info["pro.license_type"]) then
+      print(i18n("about.licence_status")..": ".. info["pro.license_type"] .."<br>\n")
+   end
+
    v = split(info["version"], " ")
 
-   print(" [ SystemId: <A HREF=\"https://shop.ntop.org/mkntopng/?systemid=".. info["pro.systemid"].."&".."version=".. v[1] .."&edition=")
+   print("SystemId: <A HREF=\"https://shop.ntop.org/mkntopng/?systemid=".. info["pro.systemid"].."&".."version=".. v[1] .."&edition=")
 
    if(ntop.isnEdge()) then
       if(info["version.nedge_enterprise_edition"] == true) then
@@ -90,7 +95,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
       end
    end
 
-   print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fas fa-external-link-alt'></i> ]")
+   print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fas fa-external-link-alt'></i>")
 
 print [[
     <br><small>]]
