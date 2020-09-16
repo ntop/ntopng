@@ -641,7 +641,7 @@ local function process_notifications_by_priority(ready_recipients, high_priority
 
    -- Cycle until there are ready_recipients and total_budget left
    local cur_time = os.time()
-   while #ready_recipients > 0 and total_budget >= 0 and cur_time <= deadline do
+   while #ready_recipients > 0 and total_budget >= 0 and cur_time <= deadline and not ntop.isDeadlineApproaching() do
       for i = #ready_recipients, 1, -1 do
 	 local ready_recipient = ready_recipients[i]
 	 local recipient = ready_recipient.recipient

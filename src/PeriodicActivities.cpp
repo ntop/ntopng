@@ -159,7 +159,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 #endif
     
     { TIMESERIES_SCRIPT_PATH,         1,  3600, timeseries_pool,            false, false, true,  true  },
-    { NOTIFICATIONS_SCRIPT_PATH,      0,     0, notifications_pool,         false, false, false, true  },
+    { NOTIFICATIONS_SCRIPT_PATH,      1,  3600, notifications_pool,         false, false, false, true  },
 
     { FIVE_MINUTES_SCRIPT_PATH,     300,   300, longrun_priority_pool,      false, false, true,  false },
     { HOURLY_SCRIPT_PATH,          3600,   600, longrun_priority_pool,      false, false, true,  false },

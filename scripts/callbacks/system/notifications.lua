@@ -1,10 +1,6 @@
 --
 -- (C) 2013-20 - ntop.org
 --
--- This script is used to perform activities that are low
--- priority with respect to second.lua but that require
--- near realtime execution.
--- This script is executed every 3 seconds
 --
 
 local dirs = ntop.getDirs()
@@ -16,7 +12,11 @@ local recipients = require "recipients"
 local recipients_instance = recipients:create()
 local periodicity = 3
 
-while not ntop.isShutdown() do
+-- For performace, this script is started in C only one time every hour.
+-- A while-loop is implemented inside this script to process notifications
+-- every `periodicity` 3 seconds.
+
+while not ntop.isShutdown() and not ntop.isDeadlineApproaching() do
    -- Process notifications every three seconds.
    local start_ms = ntop.gettimemsec()
 

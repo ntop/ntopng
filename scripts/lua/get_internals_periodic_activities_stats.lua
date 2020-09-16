@@ -288,7 +288,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local utiliz = time_utilization(script_stats.stats)
       record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])
 
-      record["column_last_duration"] = get_last_duration_ms(script_stats.stats)
+      record["column_last_duration"] = format_utils.secondsToTime(get_last_duration_ms(script_stats.stats) / 1000)
 
       record["column_status"] = status2label(status)
 
