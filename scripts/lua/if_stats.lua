@@ -2016,6 +2016,7 @@ print("var last_dropped_alerts = " .. ifstats.num_dropped_alerts .. ";\n")
 if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_time = 0;\n")
    print("var last_zmq_flows = ".. ifstats.zmqRecvStats.flows .. ";\n")
+   print("var last_zmq_dropped_flows = ".. ifstats.zmqRecvStats.dropped_flows .. ";\n")
    print("var last_zmq_events = ".. ifstats.zmqRecvStats.events .. ";\n")
    print("var last_zmq_counters = ".. ifstats.zmqRecvStats.counters .. ";\n")
    print("var last_zmq_msg_drops = ".. ifstats.zmqRecvStats.zmq_msg_drops .. ";\n")
@@ -2090,7 +2091,7 @@ print [[/lua/rest/v1/get/interface/data.lua',
               flows_label = " "+NtopUtils.get_trend(0,0);
            }
            $('#if_zmq_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.flows)+flows_label);
-           $('#if_zmq_dropped_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.dropped_flows));
+           $('#if_zmq_dropped_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.dropped_flows)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.dropped_flows, last_zmq_dropped_flows));
            $('#if_zmq_events').html(NtopUtils.addCommas(rsp.zmqRecvStats.events)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.events, last_zmq_events));
            $('#if_zmq_counters').html(NtopUtils.addCommas(rsp.zmqRecvStats.counters)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
            $('#if_zmq_msg_drops').html(NtopUtils.addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));
@@ -2099,6 +2100,7 @@ print [[/lua/rest/v1/get/interface/data.lua',
            $('#if_num_remote_zmq_flow_exports').html(NtopUtils.addCommas(rsp["zmq.num_flow_exports"])+" "+NtopUtils.get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
 
            last_zmq_flows = rsp.zmqRecvStats.flows;
+           last_zmq_dropped_flows = rsp.zmqRecvStats.dropped_flows;
            last_zmq_events = rsp.zmqRecvStats.events;
            last_zmq_counters = rsp.zmqRecvStats.counters;
            last_zmq_msg_drops = rsp.zmqRecvStats.zmq_msg_drops;
