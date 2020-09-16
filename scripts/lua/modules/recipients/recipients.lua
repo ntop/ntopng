@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local json = require "dkjson"
 local alert_consts = require "alert_consts"
-local user_scripts = require "user_scripts"
 local notification_configs = require("notification_configs")
 
 -- ##############################################
@@ -492,6 +491,7 @@ end
 -- ##############################################
 
 function recipients:get_recipient(recipient_id)
+   local user_scripts = require "user_scripts"
    local recipient_details
    local recipient_details_key = self:_get_recipient_details_key(recipient_id)
 
