@@ -1325,54 +1325,61 @@ const create_enabled_button = (row_data) => {
 
    const { is_enabled } = row_data;
 
-   const $button = $(`<button type='button' class='btn'></button>`);
+   const $button = $(`<button type='button' class='btn btn-sm'></button>`);
 
    if (!is_enabled) {
 
-       if (hasConfigDialog(row_data)) $button.addClass('disabled');
-
       $button.html(`<i class='fas fa-toggle-on'></i>`);
       $button.addClass('btn-success');
+
+      if (hasConfigDialog(row_data)) {
+         $button.addClass('disabled');
+         return $button;
+      }
+
    }
    else {
 
-      if (row_data.enabled_hooks.length < 1) $button.addClass('disabled');
-
       $button.html(`<i class='fas fa-toggle-off'></i>`);
       $button.addClass('btn-danger');
+
+      if (row_data.enabled_hooks.length < 1) {
+         $button.addClass('disabled');
+         return $button;
+      }
    }
 
-    $button.off('click').on('click', function () {
+   $button.off('click').on('click', function () {
 
-	$.post(`${http_prefix}/lua/toggle_user_script.lua`, {
-	    script_subdir: script_subdir,
-	    script_key: row_data.key,
-	    csrf: pageCsrf,
-	    action: (is_enabled) ? 'disable' : 'enable',
-	    confset_id: confset_id
-	})
-	    .done((d, status, xhr) => {
+      $.post(`${http_prefix}/lua/toggle_user_script.lua`, {
+         script_subdir: script_subdir,
+         script_key: row_data.key,
+         csrf: pageCsrf,
+         action: (is_enabled) ? 'disable' : 'enable',
+         confset_id: confset_id
+      })
+         .done((d, status, xhr) => {
 
-		if (!d.success) {
-		    $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
-		}
+            if (!d.success) {
+               $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
+            }
 
-		if (d.success) reloadPageAfterPOST();
+            if (d.success) reloadPageAfterPOST();
 
-	    })
-	    .fail(({ status, statusText }) => {
+         })
+         .fail(({ status, statusText }) => {
 
-		NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
+            NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
 
-		// if the csrf has expired
-		if (status == 200) {
-		    $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
-		}
+            // if the csrf has expired
+            if (status == 200) {
+               $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
+            }
 
-		// re eanble buttons
-		$button.removeAttr("disabled").removeClass('disabled');
-	    });
-    })
+            // re eanble buttons
+            $button.removeAttr("disabled").removeClass('disabled');
+         });
+   })
 
    return $button;
 };
@@ -1651,7 +1658,7 @@ $(document).ready(function () {
                const edit_script_btn = `
                       <a href='#'
                          title='${i18n.edit_script}'
-                         class='btn btn-info ${!row.input_handler ? 'disabled' : ''}'
+                         class='btn btn-info btn-sm ${!row.input_handler ? 'disabled' : ''}'
                          data-toggle="modal"
                          data-target="#modal-script">
                            <i class='fas fa-edit'></i>
@@ -1659,18 +1666,18 @@ $(document).ready(function () {
                `;
                const edit_url_btn = `
                       <a href='${data.edit_url}'
-                        class='btn btn-secondary ${!data.edit_url ? 'disabled' : ''}'
+                        class='btn btn-secondary btn-sm ${!data.edit_url ? 'disabled' : ''}'
                         title='${i18n.view_src_script}'>
                            <i class='fas fa-file-code'></i>
                       </a>
                `;
 
-               return `<div class='btn-group btn-group-sm'>${edit_script_btn}${edit_url_btn}</div>`;
+               return `<div>${edit_script_btn}${edit_url_btn}</div>`;
             },
             createdCell: function (td, cellData, row) {
 
-               const enabled_button = create_enabled_button(row);
-               $(td).find('.btn-group').prepend(enabled_button);
+               const $enableButton = create_enabled_button(row);
+               $(td).find('div').prepend($enableButton);
             }
          }
       ]

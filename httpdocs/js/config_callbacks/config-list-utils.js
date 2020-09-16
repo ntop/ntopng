@@ -60,28 +60,21 @@ $(document).ready(function() {
             render: function(data, type, row) {
 
                 let rv = `
-                    <a class="btn btn-info" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
+                    <a class="btn btn-info btn-sm" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
                         <i class='fas fa-edit'></i>
+                    </a>
+                    <a href='#' title='${i18n.clone}' class="btn btn-sm btn-info ${default_config_only ? 'invisible' : ''}" data-toggle="modal" data-target="#clone-modal">
+                        <i class='fas fa-clone'></i>
+                    </a>
+                    <a href='#' title='${i18n.rename}' class="btn btn-sm btn-info ${data.id == 0 ? 'invisble' : ''}" data-toggle="modal" data-target="#rename-modal">
+                        <i class='fas fa-pencil-alt'></i>
+                    </a>
+                    <a href='#' title='${i18n.delete}' class="btn btn-sm btn-danger ${data.id == 0 ? 'invisble' : ''}" data-toggle="modal" data-target="#delete-modal">
+                        <i class='fas fa-trash'></i>
                     </a>
                 `;
 
-                if(!default_config_only)
-                    rv += `
-                        <a href='#' title='${i18n.clone}' class="btn btn-info" data-toggle="modal" data-target="#clone-modal">
-                            <i class='fas fa-clone'></i>
-                        </a>
-                    `;
-                if(data.id != 0)
-                    rv += `
-                         <a href='#' title='${i18n.rename}' class="btn btn-info" data-toggle="modal" data-target="#rename-modal">
-                            <i class='fas fa-pencil-alt'></i>
-                        </a>
-                        <a href='#' title='${i18n.delete}' class="btn btn-danger" data-toggle="modal" data-target="#delete-modal">
-                            <i class='fas fa-trash'></i>
-                        </a>
-                    `;
-
-                return `<div class='btn-group btn-group-sm'>${rv}</div>`;
+                return `<div>${rv}</div>`;
             }
         }
 
