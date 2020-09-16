@@ -599,11 +599,12 @@ end
 
 -- @brief Dispatches a `notification` to all the interested recipients
 -- @param notification An alert notification
+-- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return nil
-function recipients:dispatch_notification(notification)
+function recipients:dispatch_notification(notification, current_script)
    if(notification) then
       local pools_alert_utils = require "pools_alert_utils"
-      local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id)
+      local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id, notification.alert_severity, current_script)
 
       if #recipients > 0 then
 	 local json_notification = json.encode(notification)

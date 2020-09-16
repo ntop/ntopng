@@ -70,8 +70,10 @@ end
 -- @brief Returns an array of recipient ids responsible for a given an `entity_id` and a `pool_id`
 -- @param entity_id One of alert_consts.alert_entities
 -- @param pool_id The pool id of an existing entity pool
+-- @param alert_severity An integer alert severity id as found in `alert_consts.alert_severities`
+-- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return An array of recipient ids
-function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id)
+function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, alert_severity, current_script)
    local res = {}
    local entity = alert_consts.alertEntityById(entity_id)
    -- Obtain the pools instance for the given entity
@@ -99,9 +101,35 @@ function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id)
       local entity_pool = alert_entity_all_pools[entity_id][pool_id]
       if entity_pool and entity_pool["recipients"] then
 	 for _, recipient in pairs(entity_pool["recipients"]) do
-	    -- Prepare the result with all the recipients
-	    res[#res + 1] = recipient.recipient_id
-	    -- tprint(string.format("Adding recipient [%s][%s][%i]", recipient, entity.label, pool_id))
+	    local recipient_ok = false
+
+	    if current_script and current_script.category and current_script.category.id then
+	       -- Make sure the user script category belongs to the recipient user script categories
+	       for _, user_script_category in pairs(recipient["recipient_user_script_categories"]) do
+		  if user_script_category == current_script.category.id then
+		     recipient_ok = true
+		     break
+		  end
+	       end
+	    else
+	       -- if there's no user script, check on the category id is not enforced
+	       recipient_ok = true
+	    end
+
+	    if recipient_ok then
+	       if alert_severity < recipient["recipient_minimum_severity"] then
+		  -- If the current alert severity is less than the minimum requested severity
+		  -- exclude the recipient
+		  recipient_ok = false
+		  break
+	       end
+	    end
+
+	    if recipient_ok then
+	       -- Prepare the result with all the recipients
+	       res[#res + 1] = recipient.recipient_id
+	       -- tprint(string.format("Adding recipient [%s][%s][%i]", recipient.recipient_name, entity.label, pool_id))
+	    end
 	 end
       end
    end

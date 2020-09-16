@@ -287,7 +287,7 @@ local function triggerFlowAlert(now, l4_proto)
    -- Lua as a JSON string. Hence, to dispatch it to the recipient, alert must be decoded from JSON.
    -- Then, the dispatch will re-encode it, thus wasting more time. This needs to be fixed.
    if res.alert_json then
-      recipients_instance:dispatch_notification(json.decode(res.alert_json))
+      recipients_instance:dispatch_notification(json.decode(res.alert_json), alerted_user_script)
    end
 
    return(res.triggered)

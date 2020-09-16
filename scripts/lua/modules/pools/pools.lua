@@ -500,9 +500,10 @@ function pools:get_pool(pool_id, recipient_details)
 
 		      if recipient_details then
 			 local recipient = recipients_instance:get_recipient(recipient_id)
-
 			 if recipient and recipient.recipient_name then
 			    res["recipient_name"] = recipient.recipient_name
+			    res["recipient_user_script_categories"] = recipient.user_script_categories
+			    res["recipient_minimum_severity"] = recipient.minimum_severity
 			 end
 		      end
 
