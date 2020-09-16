@@ -267,7 +267,7 @@ $(document).ready(function () {
                 /* load the template from templates inside the page */
                 const $cloned = cloneTemplate(recipient.endpoint_key);
                 $(`#edit-recipient-modal form .recipient-template-container`)
-                    .empty().append($cloned).show();
+                    .empty().append($(`<hr>`)).append($cloned).show();
             }
             else {
                 $(`#edit-recipient-modal form .recipient-template-container`).empty().hide();
