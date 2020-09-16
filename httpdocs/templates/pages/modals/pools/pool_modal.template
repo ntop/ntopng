@@ -116,6 +116,7 @@
                                 {% for group_key, recipients in pairsByKeys(configured_recipients) do %}
                                 <optgroup label="{{ pool.endpoint_types[group_key].name }}">
                                     {% for key, recipient in pairsByKeys(recipients, asc) do %}
+                                        {% local is_selected = (recipient.endpoint_conf.builtin and modal_type == "add") %}
                                         <option {{ (is_selected and 'selected' or '') }} value="{{ recipient.recipient_id }}">{{ recipient.recipient_name }}</option>
                                     {% end %}
                                 </optgroup>
