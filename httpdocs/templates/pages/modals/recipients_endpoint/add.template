@@ -43,7 +43,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="recipient-template-container p-2 border-top" style="display: none;">
+                    <div class="recipient-template-container" style="display: none;">
 
                     </div>
                     <hr>

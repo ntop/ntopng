@@ -29,7 +29,7 @@
                             <input minlength="1" required name="recipient_name" type="text" class="form-control" id="edit-recipient-name-input">
                         </div>
                     </div>
-                    <div class="recipient-template-container">
+                    <div class="recipient-template-container py-2 border-top">
                     </div>
                     <hr>
                     <div class="form-group row">

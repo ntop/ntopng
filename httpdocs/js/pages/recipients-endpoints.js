@@ -83,7 +83,7 @@ $(document).ready(function () {
             // show the template inside the modal container
             $templateContainer.hide().empty();
             if ($cloned) {
-                $templateContainer.append($cloned).fadeIn();
+                $templateContainer.append($(`<hr>`)).append($cloned).fadeIn();
             }
             $(`${formSelector} span.test-feedback`).fadeOut();
         });
@@ -93,7 +93,10 @@ $(document).ready(function () {
 
         const template = $(`template#${type}-template`).html();
         // if the template is not empty then return a copy of the template content
-        if (template.trim() != "") return $(template);
+        if (template.trim() != "") {
+            const $template = $(template);
+            return $template;
+        }
 
         return (null);
     }
@@ -263,7 +266,7 @@ $(document).ready(function () {
                 /* load the template from templates inside the page */
                 const $cloned = cloneTemplate(recipient.endpoint_key);
                 $(`#edit-recipient-modal form .recipient-template-container`)
-                    .empty().append($(`<hr>`)).append($cloned).show();
+                    .empty().append($cloned).show();
             }
             else {
                 $(`#edit-recipient-modal form .recipient-template-container`).empty().hide();
@@ -361,6 +364,16 @@ $(document).ready(function () {
 
         testRecipient(makeFormData(`#add-recipient-modal form`), $(this), $(`#add-recipient-modal .test-feedback`))
             .then(() => { $self.removeAttr("disabled"); });
+    });
+
+    $(`[name='recipient_user_script_categories']`).on('changed.bs.select', function(e, clickedIndex, isSelected, previousValue) {
+
+        const lessThanOne = $(this).val().length < 1;
+
+        if (lessThanOne) {
+            $(this).val(previousValue);
+            $(this).selectpicker('refresh');
+        }
     });
 
     $(`#btn-factory-reset`).click(async function(event) {
