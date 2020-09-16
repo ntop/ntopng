@@ -85,7 +85,7 @@ local available_subdirs = {
    }
 }
 
--- User scripts category consts
+-- User scripts category consts -- keep it in sync with ntop_typedefs.h enum ScriptCategory
 user_scripts.script_categories = {
    other = {
       id = 0,

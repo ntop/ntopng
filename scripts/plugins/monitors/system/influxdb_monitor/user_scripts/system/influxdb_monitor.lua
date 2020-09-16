@@ -63,8 +63,6 @@ script.hooks["min"] = function(params)
 	 last_error
       )
 
-      tprint(alert_type)
-
       alerts_api.store(
          alerts_api.influxdbEntity(influxdb.url),
 	 alert_type,

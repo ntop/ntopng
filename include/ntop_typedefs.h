@@ -93,12 +93,16 @@ typedef enum {
   /* IMPORTANT: update MAX_NUM_PERIODIC_SCRIPTS as new entries are added */
 } ScriptPeriodicity;
 
-#define MAX_NUM_PERIODIC_SCRIPTS 6
-
 typedef enum {
-  threshold_hourly = 0,
-  threshold_daily
-} ThresholdType;
+  script_category_other = 0,
+  script_category_security = 1,
+  script_category_internals = 2,
+  script_category_network = 3,
+  script_category_system = 4,
+  MAX_NUM_SCRIPT_CATEGORIES = 5
+} ScriptCategory; /* Keep in sync with user_scripts.script_categories ids */
+
+#define MAX_NUM_PERIODIC_SCRIPTS 6
 
 typedef enum {
   trend_unknown = 0,
@@ -167,12 +171,6 @@ typedef enum {
   alert_entity_user,
   alert_entity_influx_db,
 } AlertEntity;
-
-typedef enum {
-  alert_on = 1,       /* An issue has been discovered and an alert has been triggered */
-  alert_off = 2,      /* A previous alert has been fixed */
-  alert_permanent = 3 /* Alert that can't be fixed (e.g. a flow with an anomaly) */
-} AlertStatus;
 
 typedef enum {
   IPV4 = 4,
@@ -417,11 +415,6 @@ typedef enum {
   callback_flow_update,
   callback_flow_proto_callback
 } LuaCallback;
-
-typedef enum {
-  user_script_context_inline,
-  user_script_context_periodic,
-} UserScriptContext;
 
 typedef enum {
   walker_hosts = 0,
