@@ -41,9 +41,10 @@ end
 -- ##############################################
 
 -- @brief Parses and validates a severity id string and returns it as a number
+-- @param minimum_severity_id_string An string with an integer severity id as found in `alert_consts.alert_severities`
 -- @return A valid integer severity id or nil when validation fails
 function recipients_rest_utils.parse_minimum_severity(minimum_severity_id_string)
-   local minimum_severity_id = tonumber(minimum_severity_string)
+   local minimum_severity_id = tonumber(minimum_severity_id_string)
 
    for _, alert_severity in pairs(alert_consts.alert_severities) do
       if minimum_severity_id == alert_severity.severity_id then
