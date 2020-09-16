@@ -83,7 +83,8 @@ $(document).ready(function () {
             // show the template inside the modal container
             $templateContainer.hide().empty();
             if ($cloned) {
-                $templateContainer.append($(`<hr>`)).append($cloned).fadeIn();
+                $templateContainer.append($(`<hr>`));
+                $templateContainer.append($cloned).show();
             }
             $(`${formSelector} span.test-feedback`).fadeOut();
         });
@@ -225,7 +226,7 @@ $(document).ready(function () {
             // load the template of the selected endpoint
             const $cloned = cloneTemplate($(`#add-recipient-modal select[name='endpoint'] option:selected`).data('endpointKey'));
             if ($cloned) {
-                $(`#add-recipient-modal form .recipient-template-container`).empty().append($cloned).show();
+                $(`#add-recipient-modal form .recipient-template-container`).empty().append($(`<hr>`), $cloned).show();
             }
         },
         onSubmitSuccess: function (response) {
