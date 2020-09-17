@@ -117,7 +117,15 @@
                                 <optgroup label="{{ pool.endpoint_types[group_key].name }}">
                                     {% for key, recipient in pairsByKeys(recipients, asc) do %}
                                         {% local is_selected = (recipient.endpoint_conf.builtin and modal_type == "add") %}
-                                        <option {{ (is_selected and 'selected' or '') }} value="{{ recipient.recipient_id }}">{{ recipient.recipient_name }}</option>
+                                        <option
+                                            {{ (is_selected and 'selected' or '') }}
+                                            {% if recipient.recipient_params_fmt then %}
+                                                data-subtext="({{ recipient.recipient_params_fmt }})"
+                                            {% elseif recipient.endpoint_conf.builtin then %}
+                                                data-subtext="(built-in)"
+                                            {% end %}
+                                            value="{{ recipient.recipient_id }}"
+                                        >{{ recipient.recipient_name }}</option>
                                     {% end %}
                                 </optgroup>
                                 {% end %}
