@@ -791,10 +791,6 @@ td.dt-body-right {
   text-align: right;
 }
 
-#alertsActionsPanel {
-  margin-bottom: 1rem;
-}
-
 .notification-bell {
   font-size: 0.5rem;
   position: absolute;

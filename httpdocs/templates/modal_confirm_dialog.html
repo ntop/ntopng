@@ -13,7 +13,6 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">{{dialog.cancel or i18n("close")}}</button>
         {% if dialog.action ~= nil then %}<button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>{% end %}
       </div>
     </div>
