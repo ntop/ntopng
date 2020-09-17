@@ -1088,6 +1088,7 @@ local lang = {
     ["enpoint_recipients_list"] = "Recipients",
     ["name"] = "Endpoint Name",
     ["notifications"] = "Notifications",
+    ["num_uses"] = "Number of Usage",
     ["recipient_category"] = "Category Filter",
     ["recipient_list"] = "Recipients",
     ["recipient_name"] = "Recipient Name",

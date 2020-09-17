@@ -160,6 +160,11 @@ $(document).ready(function () {
                 render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS
             },
             {
+                data: "stats.num_uses",
+                className: "text-center",
+                width: "15%",
+            },
+            {
                 targets: -1,
                 className: 'text-center',
                 data: null,
