@@ -191,30 +191,32 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
 
       if event.flow ~= nil then
          parseFlowMetadata(event.flow, flow)
-         parseAlertMetadata(event.alert, flow)
+         if event.alert ~= nil then
+            parseAlertMetadata(event.alert, flow)
+         end
       else
          flow = nil
       end
  
-   elseif event.event_type == "netflow" then
+   elseif event.event_type == "netflow" and event.netflow ~= nil then
       parseNetflowMetadata(event.netflow, flow)
 
-   elseif event.event_type == "http" then
+   elseif event.event_type == "http" and event.http ~= nil then
       parseHTTPMetadata(event.http, flow)
 
    elseif event.event_type == "fileinfo" then
-      if event.app_proto == "http" then
+      if event.app_proto == "http" and event.http ~= nil then
          parseHTTPMetadata(event.http, flow)
       end
       parseFileInfoMetadata(event.fileinfo, flow)
 
-   elseif event.event_type == "dns" then
+   elseif event.event_type == "dns" and event.dns ~= nil then
       parseDNSMetadata(event.dns, flow) 
 
-   elseif event.event_type == "tls" then
+   elseif event.event_type == "tls" and event.tls ~= nil then
       parseTLSMetadata(event.tls, flow) 
 
-   elseif event.event_type == "stats" then
+   elseif event.event_type == "stats" and event.stats ~= nil then
       parseStats(event.stats)
       flow = nil
 
