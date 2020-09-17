@@ -760,7 +760,20 @@ print([[
          </li>
          <li id="button-switch-interface" class='nav-item d-flex align-items-center dropdown'>
             <a class="btn border-dark dropdown-toggle" data-toggle="dropdown" href="#">
-               ]] .. (is_system_interface and i18n("system") or '<i class="fas fa-ethernet"></i> ' .. getHumanReadableInterfaceName(ifname)) .. [[
+               ]])
+if is_system_interface then
+   print(i18n("system"))
+else 
+   if ifs.hasSubInterfaces then
+      print('<i class="fas fa-ethernet"></i> <i class="fas fa-code-branch"></i> ')
+   elseif ifs.isDynamic then
+      print('<i class="fas fa-code-branch"></i>  ')
+   else 
+      print('<i class="fas fa-ethernet"></i> ')
+   end
+   print(getHumanReadableInterfaceName(ifname))
+end
+print([[
             </a>
             <ul class='dropdown-menu'>
 ]])
