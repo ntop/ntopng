@@ -787,7 +787,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
 	 checked = trigger_alerts,
 	 icon = [[<i class="fas fa-exclamation-triangle fa-lg"></i> ]] .. enable_label
    }))
-   
+
    print[[
          </td>
       </tr>]]
@@ -1108,24 +1108,28 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
    print(
       template.gen("modal_confirm_dialog.html", {
 		      dialog={
-			 id      = "myModal",
-			 action  = "checkModalDelete()",
-			 title   = "",
-			 message = i18n("show_alerts.purge_subj_alerts_confirm", {subj = '<span id="modalDeleteContext"></span><span id="modalDeleteAlertsMsg"></span>'}),
-			 confirm = i18n("show_alerts.purge_num_alerts", {
-					   num_alerts = '<img id="alerts-summary-wait" src="'..ntop.getHttpPrefix()..'/img/loading.gif"/><span id="alerts-summary-body"></span>'
-			 }),
+            id      = "myModal",
+            action  = "checkModalDelete()",
+            title   = i18n("show_alerts.purge_all_alerts"),
+            confirm_button = "btn-danger",
+            custom_alert_class = "alert alert-danger",
+            message = i18n("show_alerts.purge_subj_alerts_confirm", {subj = '<span id="modalDeleteContext"></span><span id="modalDeleteAlertsMsg"></span>'}),
+            confirm = i18n("show_alerts.purge_num_alerts", {
+                     num_alerts = '<img id="alerts-summary-wait" src="'..ntop.getHttpPrefix()..'/img/loading.gif"/><span id="alerts-summary-body"></span>'
+            }),
 		      }
       })
    )
-
+   print[[<div class='card'>]]
    for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
       if not alt_nav_tabs then
 
 	 print[[
-<ul class="nav nav-tabs" role="tablist" id="alert-tabs" style="]] print(ternary(options.dont_nest_alerts, 'display:none', '')) print[[">
+       <div class='card-header'>
+<ul class="nav nav-pills card-header-pills" role="tablist" id="alert-tabs" style="]] print(ternary(options.dont_nest_alerts, 'display:none', '')) print[[">
 <!-- will be populated later with javascript -->
 </ul>
+</div>
 ]]
 	 nav_tab_id = "alert-tabs"
       else
@@ -1260,7 +1264,10 @@ function toggleAlert(disable) {
 </script>
 ]]
 
-      if not alt_nav_tabs then print [[<div class="tab-content my-3">]] end
+      if not alt_nav_tabs then
+         print [[<div class='card-body'>]]
+         print [[<div class="tab-content">]]
+      end
 
       local status = _GET["status"]
       if(status == nil) then
@@ -1511,16 +1518,16 @@ function toggleAlert(disable) {
 
 	       if(]] print(ternary(t["status"] == "historical-flows", "false", "true")) print[[) {
 		  if(!data.column_alert_disabled)
-		     datatableAddActionButtonCallback.bind(this)(10, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#disable_alert_type').modal('show');", "]] print(i18n("show_alerts.disable_alerts")) print[[");
+		     datatableAddActionButtonCallback.bind(this)(10, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#disable_alert_type').modal('show');", "<i class='fas fa-toggle-off'></i>");
 		  else
-		     datatableAddActionButtonCallback.bind(this)(10, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#enable_alert_type').modal('show');", "]] print(i18n("show_alerts.enable_alerts")) print[[");
+		     datatableAddActionButtonCallback.bind(this)(10, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#enable_alert_type').modal('show');", "<i class='fas fa-toggle-on'></i>");
 	       }
 
                if(]] print(ternary(t["status"] == "engaged", "true", "false")) print[[)
-                 datatableAddActionButtonCallback.bind(this)(10, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "]] print(i18n("show_alerts.release_alert_action")) print[[");
+                 datatableAddActionButtonCallback.bind(this)(10, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "<i class='fas fa-unlock'></i>");
 
                if(]] print(ternary(t["status"] ~= "engaged", "true", "false")) print[[) {
-                 datatableAddDeleteButtonCallback.bind(this)(10, "delete_alert_id ='" + alert_key + "'; $('#delete_alert_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+                 datatableAddDeleteButtonCallback.bind(this)(10, "delete_alert_id ='" + alert_key + "'; $('#delete_alert_dialog').modal('show');", "<i class='fas fa-trash'></i>");
 }
 
                $("form", this).submit(function() {
@@ -1579,11 +1586,14 @@ $("[clicked=1]").trigger("click");
 </script>
 ]]
 
-	 if not alt_nav_tabs then print [[</div> <!-- closes tab-content -->]] end
+    if not alt_nav_tabs then
+      print [[</div> <!-- closes tab-content -->]]
+      print [[</div> <!-- Close Card body -->]]
+   end
 	 local has_fixed_period = ((not isEmptyString(_GET["epoch_begin"])) or (not isEmptyString(_GET["epoch_end"])))
-
+      print([[<div class='card-footer'>]])
 	 print('<div id="alertsActionsPanel">')
-	 print('<br>' ..  i18n("show_alerts.alerts_to_purge") .. ': ')
+	 print(i18n("show_alerts.alerts_to_purge") .. ': ')
 	 print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if has_fixed_period then print("none") else print("inline") end print[[; width:14em; margin:0 1em;">]]
 	 local all_msg = ""
 
@@ -1615,6 +1625,8 @@ $("[clicked=1]").trigger("click");
 	 print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
 	 print[[</span></button>
    </div> <!-- closes alertsActionsPanel -->
+   </div>  <!-- closes card-footer -->
+   </div>  <!-- closes card -->
 
 <script>
 
@@ -2161,7 +2173,7 @@ function alert_utils.formatAlertNotification(notif, options)
    local ifname
    local severity
    local when
-   
+
    if(notif.ifid ~= -1) then
       ifname = string.format(" [%s]", getInterfaceName(notif.ifid))
    else
@@ -2175,11 +2187,11 @@ function alert_utils.formatAlertNotification(notif, options)
    end
 
    when = formatEpoch(notif.alert_tstamp_end or notif.alert_tstamp or 0)
-   
+
    if(not options.no_bracket_around_date) then
       when = "[" .. when .. "]"
    end
-   
+
    local msg = string.format("%s %s%s [%s]",
 			     when, ifname, severity,
 			     alert_consts.alertTypeLabel(notif.alert_type, options.nohtml))

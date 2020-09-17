@@ -204,11 +204,13 @@ end
 --! @param other_label optional name for the "other" part of the bar. If nil, it will not be shown.
 --! @param formatter an optional item value formatter
 --! @param css_class an optional css class to apply to the progress div
+--! @skip_zero_values don't display values containing only zero
 --! @return html for the bar
-function graph_utils.stackedProgressBars(total, bars, other_label, formatter, css_class)
+function graph_utils.stackedProgressBars(total, bars, other_label, formatter, css_class, skip_zero_values)
    local res = {}
    local cumulative = 0
    local cumulative_perc = 0
+   local skip_zero_values = skip_zero_values or false
    formatter = formatter or (function(x) return x end)
 
    -- The bars
@@ -254,6 +256,9 @@ function graph_utils.stackedProgressBars(total, bars, other_label, formatter, cs
 
    num = 0
    for _, bar in ipairs(legend_items) do
+
+      if skip_zero_values and bar.value == 0 then goto continue end
+
       res[#res + 1] = [[<span>]]
       if(num > 0) then res[#res + 1] = [[<br>]] end
       if bar.link ~= nil then res[#res + 1] = [[<a href="]] .. bar.link .. [[">]] end
@@ -261,6 +266,8 @@ function graph_utils.stackedProgressBars(total, bars, other_label, formatter, cs
       if bar.link ~= nil then res[#res + 1] = [[</a>]] end
       res[#res + 1] = [[<span> ]] .. bar.title .. " (".. formatter(bar.value) ..")</span></span>"
       num = num + 1
+
+      ::continue::
    end
 
    res[#res + 1] = [[<span style="margin-left: 0"><span></span><span>&nbsp;&nbsp;-&nbsp;&nbsp;]] .. i18n("total") .. ": ".. formatter(total) .."</span></span>"
