@@ -14,7 +14,7 @@ local graph_utils = require("graph_utils")
 
 if not isAllowedSystemInterface() then
    sendHTTPContentTypeHeader('text/html')
-   
+
    page_utils.print_header()
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
    print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>"..i18n("error_not_granted").."</div>")
@@ -68,7 +68,7 @@ if not ntop.isWindows() then
 
    info.storage =
       "<span>"..i18n("volume")..": "..dirs.workingdir.." ("..storage_info.volume_dev..")</span><br />"..
-      graph_utils.stackedProgressBars(storage_info.volume_size, storage_items, i18n("available"), bytesToSize)
+      graph_utils.stackedProgressBars(storage_info.volume_size, storage_items, i18n("available"), bytesToSize, "", true)
 
    if storage_info.pcap_volume_dev ~= nil then
       storage_items = {}
