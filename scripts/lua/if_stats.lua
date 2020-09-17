@@ -715,7 +715,7 @@ if((page == "overview") or (page == nil)) then
       if export_rate == nil then
 	 export_rate = 0
       end
-      print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).."</span> Flows/s]</td>")
+      print("&nbsp;[<span id=exported_flows_rate>"..formatValue(round(export_rate, 2)).." fps</span>]</td>")
 
       print("<th><span id='if_flow_drops_drop'<i class='fas fa-tint' aria-hidden='true'></i></span> ")
       print(i18n("if_stats_overview.dropped_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:dumped_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
@@ -2192,7 +2192,7 @@ print [[
 	$('#if_drops').html(drops);
 
         $('#exported_flows').html(NtopUtils.fint(rsp.flow_export_count));
-        $('#exported_flows_rate').html(Math.round(rsp.flow_export_rate * 100) / 100);
+        $('#exported_flows_rate').html(NtopUtils.fflows(rsp.flow_export_rate));
         if(rsp.flow_export_drops > 0) {
           $('#exported_flows_drops')
             .addClass("badge badge-danger")
