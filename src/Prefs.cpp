@@ -1793,7 +1793,9 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "other_cpu_affinity", other_cpu_affinity ? other_cpu_affinity : (char*)"");
   lua_push_str_table_entry(vm, "user", change_user ? user : (char*)"");
 
-  lua_push_str_table_entry(vm, "capture_direction", Utils::captureDirection2Str(captureDirection)); 
+  lua_push_str_table_entry(vm, "capture_direction", Utils::captureDirection2Str(captureDirection));
+
+  lua_push_bool_table_entry(vm, "is_direct_flow_dump_enabled", do_dump_flows_direct());
 }
 
 /* *************************************** */

@@ -730,7 +730,14 @@ if((page == "overview") or (page == nil)) then
       print("<td><span id=exported_flows_drops "..span_danger..">"..formatValue(export_drops).."</span>&nbsp;")
       print("<span id=exported_flows_drops_pct "..span_danger..">["
 	       ..formatValue(round(export_drops_pct, 2)).."%]</span></td>")
-      print("<td colspan=3>&nbsp;</td>")
+
+      if not interface.isPacketInterface() then
+         print("<th nowrap>"..i18n("if_stats_overview.direct_mode").."</th>")
+         print("<td>"..ternary(prefs.is_direct_flow_dump_enabled, i18n("enabled"), i18n("disabled")).."</td>")
+      else
+         print("<td colspan=2></td>")
+      end
+
       print("</tr>")
    end
 

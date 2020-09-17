@@ -2429,6 +2429,7 @@ local lang = {
     ["buffer_full"] = "Buffer Full",
     ["collected_flows"] = "Collected Flows",
     ["conntrack_flow_entries"] = "Conntrack Flow Entries",
+    ["direct_mode"] = "Direct Mode",
     ["discarded_probing_traffic"] = "Discarded Probing Traffic",
     ["dropped_alerts_info"] = "Number of non-engaged alerts which could not be written to disk because of a full alerts queue.",
     ["dropped_flows"] = "Dropped Flows",
