@@ -402,8 +402,8 @@ void Flow::processDetectedProtocol() {
       The statement below can create issues sometimes as devices publish
       themselves with varisous names depending on the context (**)
     */
-    if(ndpiFlow->protos.mdns.answer[0] != '\0' && !protos.mdns.answer)
-      protos.mdns.answer = strdup(ndpiFlow->protos.mdns.answer);
+    if(ndpiFlow->host_server_name[0] != '\0' && !protos.mdns.answer)
+      protos.mdns.answer = strdup((char*)ndpiFlow->host_server_name);
     break;
 
   case NDPI_PROTOCOL_DNS:
