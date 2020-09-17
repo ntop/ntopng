@@ -391,7 +391,7 @@ void Host::lua_get_app_bytes(lua_State *vm, u_int app_id) const {
 /* ***************************************************** */
 
 void Host::lua_get_cat_bytes(lua_State *vm, ndpi_protocol_category_t category_id) const {
-  lua_push_uint64_table_entry(vm, "bytes", get_ndpi_stats()->getCategoryBytes(category_id));
+  lua_pushinteger(vm, get_ndpi_stats()->getCategoryBytes(category_id));
 }
 
 /* ***************************************************** */

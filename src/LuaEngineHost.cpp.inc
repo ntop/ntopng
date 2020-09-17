@@ -166,7 +166,7 @@ static int ntop_host_get_application_bytes(lua_State* vm) {
     app_id = lua_tonumber(vm, 1);
     h->lua_get_app_bytes(vm, app_id);
   } else
-    lua_pushnumber(vm, 0);
+    lua_pushinteger(vm, 0);
 
   return(CONST_LUA_OK);
 }
@@ -180,7 +180,8 @@ static int ntop_host_get_category_bytes(lua_State* vm) {
   if(h && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK) {
     cat_id = (ndpi_protocol_category_t)lua_tointeger(vm, 1);
     h->lua_get_cat_bytes(vm, cat_id);
-  }
+  } else
+    lua_pushinteger(vm, 0);
 
   return(CONST_LUA_OK);
 }
