@@ -1795,7 +1795,9 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_str_table_entry(vm, "capture_direction", Utils::captureDirection2Str(captureDirection));
 
+#ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "is_direct_flow_dump_enabled", do_dump_flows_direct());
+#endif
 }
 
 /* *************************************** */
