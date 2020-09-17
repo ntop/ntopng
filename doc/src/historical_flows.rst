@@ -37,6 +37,33 @@ historical charts `tabular view`_ dropdown:
   :alt: Historical Charts dropdown with flows
   :scale: 80
 
+Direct Mode
+-----------
+
+nIndex is a high-performance network-oriented database, at high flow rates
+the flow dump performance could be limited by the performance of the
+ntopng analysis engine, especially when many and heavy user's scripts are
+enabled. A *direct* mode can be enabled in order to dump flows as soon as
+they are collected from ZMQ, before they are even processed by ntopng, 
+improving the performance and reducing the possibility of flow drops.
+In order to enable *direct* mode the `-F nindex;direct` option should be 
+specified.
+
+.. note::
+
+  Direct mode is only available in ntopng Enterprise L when collecting flows from ZMQ.
+
+It is possible to verify that direct mode is actually enabled in the interface
+status page, by checking that *Direct Mode* is *enabled*.
+
+.. figure:: img/historical_flows_direct.png
+  :align: center
+  :alt: Direct mode indicator in the interface status page
+
+Please note that some flow information may be missing when enabling this
+mode, as the ntopng analysis engine is bypassed and flow details are not
+augmented.
+
 Browsing Flows
 --------------
 
