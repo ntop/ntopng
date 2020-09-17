@@ -290,7 +290,16 @@ class DataTableUtils {
             $modal.modal('show');
         }
 
-        if (!urlParams.has('referer')) return;
+        if (!urlParams.has('referer')) {
+            $modal.on('hidden.bs.modal', function (e) {
+
+                const url = new URL(window.location.href);
+                url.searchParams.delete(params.paramName);
+
+                history.replaceState({}, '', url.toString());
+            });
+            return;
+        }
         const referer = urlParams.get('referer');
 
         $modal.on('hidden.bs.modal', function (e) {

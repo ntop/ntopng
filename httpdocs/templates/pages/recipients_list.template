@@ -24,8 +24,7 @@
                 </div>
             </div>
             <div class="card-footer">
-                {* template_utils.gen('pages/components/import-export-link.template', {href='#'}) *}
-                {* template_utils.gen('pages/components/reset-config-link.template', {href='#', toggle_modal=true, modal_id="factory-reset-modal", id='btn-factory-reset'}) *}
+                {* ui_utils.render_configuration_footer({}, {href='#', toggle_modal=true, modal_id="factory-reset-modal", id='btn-factory-reset'}) *}
             </div>
         </div>
     </div>

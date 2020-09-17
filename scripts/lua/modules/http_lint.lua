@@ -1388,6 +1388,7 @@ local known_parameters = {
    ["verbose"]                 = validateBool,                  -- True if script should be verbose
    ["num_minutes"]             = validateNumMinutes,            -- number of minutes
    ["zoom"]                    = validateZoom,                  -- a graph zoom specifier
+   ["column_key"]              = validateSingleWord,            -- SNMP Column Key
    ["community"]               = validateSingleWord,            -- SNMP community
    ["snmp_read_community"]     = validateSingleWord,            -- SNMP Read community
    ["snmp_write_community"]    = validateSingleWord,            -- SNMP Write community

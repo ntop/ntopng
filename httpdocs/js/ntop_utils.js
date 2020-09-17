@@ -839,22 +839,32 @@ class NtopUtils {
         return array.slice(0, limit).join(", ");
 	}
 
-	static buildURL(location, params = {}, hasReferer = false) {
+	static buildURL(location, params = {}, hasReferer = false, refererParams = {}) {
 
 		const url = new URL(location, window.location);
 
 		for (const [name, value] of Object.entries(params)) {
+			if (!value) continue;
 			url.searchParams.set(name, value);
 		}
 
-		if (hasReferer)
-			url.searchParams.set('referer', window.location.href);
+		if (hasReferer) {
+
+			const refUrl = new URL(window.location.href);
+			for (const [name, value] of Object.entries(refererParams)) {
+				if (!value) continue;
+				refUrl.searchParams.set(name, value);
+			}
+
+			url.searchParams.set('referer', refUrl.toString());
+		}
+
 		return url.toString();
 	}
 
 	static getEditPoolLink(href, poolId) {
 		const url = new URL(href, window.location);
-        url.searchParams.set('pool', poolId);
+        url.searchParams.set('pool_id', poolId);
         return url.toString();
 	}
 
