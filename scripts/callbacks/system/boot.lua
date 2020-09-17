@@ -38,10 +38,6 @@ if not ntop.isnEdge() then -- nEdge data deletion is handled in nf_config.lua
    end
 end
 
-local recipients = require "recipients"
-local recipients_instance = recipients:create()
-recipients:initialize()
-
 -- NOTE: cannot reload plugins here as we must first drop the privileges
 -- They will be loaded in startup.lua . Here we only delete old directories.
 local plugins_utils = require "plugins_utils"
