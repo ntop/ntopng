@@ -1750,7 +1750,7 @@ local function setSavedDeviceName(mac, name)
    ntop.setCache(key, name)
 end
 
-local function getSavedDeviceName(mac)
+function getSavedDeviceName(mac)
    local key = getSavedDeviceNameKey(mac)
    return ntop.getCache(key)
 end
