@@ -41,6 +41,13 @@ local alert_severity_to_emoji = {
 
 -- ##############################################
 
+-- @brief Returns the desided formatted output for recipient params
+function slack.format_recipient_params(recipient_params)
+   return string.format("(%s)", slack.name)
+end
+
+-- ##############################################
+
 local function recipient2sendMessageSettings(recipient)
   local settings = {
     webhook = recipient.endpoint_conf.endpoint_conf.slack_webhook,

@@ -526,6 +526,14 @@ function recipients:get_recipient(recipient_id)
 	 if ec then
 	    recipient_details["endpoint_conf"] = ec["endpoint_conf"]
 	    recipient_details["endpoint_key"] = ec["endpoint_key"]
+
+	    local modules_by_name = notification_configs.get_types()
+	    local cur_module = modules_by_name[recipient_details["endpoint_key"]]
+
+	    if cur_module.format_recipient_params then
+	       -- Add a formatted output of recipient params
+	       recipient_details["recipient_params_fmt"] = cur_module.format_recipient_params(recipient_details["recipient_params"])
+	    end
 	 end
 
 	 -- Read stats from C

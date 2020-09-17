@@ -50,6 +50,13 @@ discord.EXPORT_FREQUENCY = 5
 
 -- ##############################################
 
+-- @brief Returns the desided formatted output for recipient params
+function discord.format_recipient_params(recipient_params)
+   return string.format("%s (%s)", recipient_params.discord_username, discord.name)
+end
+
+-- ##############################################
+
 -- Extract settings from recipients and place them on a simple datastructure
 local function readSettings(recipient)
    local settings = {

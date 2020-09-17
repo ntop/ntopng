@@ -35,6 +35,13 @@ local MAX_ALERTS_PER_REQUEST = 10
 
 -- ##############################################
 
+-- @brief Returns the desided formatted output for recipient params
+function webhook.format_recipient_params(recipient_params)
+   return string.format("(%s)", webhook.name)
+end
+
+-- ##############################################
+
 local function recipient2sendMessageSettings(recipient)
   local settings = {
     url = recipient.endpoint_conf.webhook_url,

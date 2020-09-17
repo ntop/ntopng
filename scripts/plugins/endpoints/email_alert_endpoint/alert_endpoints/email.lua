@@ -39,6 +39,13 @@ local NUM_ATTEMPTS_KEY = "ntopng.alerts.modules_notifications_queue.email.num_at
 
 -- ##############################################
 
+-- @brief Returns the desided formatted output for recipient params
+function email.format_recipient_params(recipient_params)
+   return string.format("%s (%s)", recipient_params.email_recipient, email.name)
+end
+
+-- ##############################################
+
 local function recipient2sendMessageSettings(recipient)
   local settings = {
     smtp_server = recipient.endpoint_conf.smtp_server,

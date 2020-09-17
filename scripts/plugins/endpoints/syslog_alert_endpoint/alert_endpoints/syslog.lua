@@ -37,6 +37,13 @@ end
 
 -- ##############################################
 
+-- @brief Returns the desided formatted output for recipient params
+function syslog.format_recipient_params(recipient_params)
+   return string.format("(%s)", syslog.name)
+end
+
+-- ##############################################
+
 function syslog.sendMessage(notif, severity, syslog_format)
    local syslog_severity = alert_consts.alertLevelToSyslogLevel(severity)
    local msg
