@@ -5166,7 +5166,10 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "hasSubInterfaces", (sub_interfaces && sub_interfaces->getNumSubInterfaces()) || (flowHashingMode != flowhashing_none));
 #endif
   
-  if(db) lua_push_bool_table_entry(vm, "isFlowDumpDisabled", isFlowDumpDisabled());
+  if(db) {
+    lua_push_bool_table_entry(vm, "isFlowDumpDisabled", isFlowDumpDisabled());
+    lua_push_bool_table_entry(vm, "isFlowDumpRunning", true);
+  }
   lua_push_uint64_table_entry(vm, "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
@@ -6670,7 +6673,11 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Interface will continue to work without nIndex support.");
     } else {
-      db = new NIndexFlowDB(this);
+      try {
+        db = new NIndexFlowDB(this);
+      } catch(char const *error) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure initializing flow dump with nIndex on %s: %s", get_name(), error);
+      }
     }
   }
 #endif

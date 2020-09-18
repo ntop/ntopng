@@ -86,6 +86,14 @@ end
 
 -- ##################################################################
 
+local function create_flow_dump_alert_notification()
+    local title = i18n("flow_dump_not_working_title")
+    local description = i18n("flow_dump_not_working", {icon = "fas fa-external-link-alt"})
+    return alert_notification:create("flow_dump_alert", title, description, "warning")
+end
+
+-- ##################################################################
+
 --- Create an instance for the geoip alert notification
 --- if the user doesn't have geoIP installed
 --- @param container table The table where the notification will be inserted
@@ -179,6 +187,21 @@ function defined_alert_notifications.remote_probe_clock_drift(container)
 	 table.insert(container, create_remote_probe_clock_drift_notification(level))
       end
    end
+end
+
+-- ###############################################################
+
+--- Create an instance for the nIndex alert notification
+--- if nIndex is not able to start/run/dump
+--- @param container table The table where the notification will be inserted
+function defined_alert_notifications.flow_dump(container)
+    if isAdministrator() and
+       prefs.is_dump_flows_enabled and
+       prefs.is_dump_flows_runtime_enabled and
+       not interface.isFlowDumpDisabled and
+       not interface.isFlowDumpRunning then
+        table.insert(container, create_flow_dump_alert_notification())
+    end
 end
 
 -- ###############################################################
