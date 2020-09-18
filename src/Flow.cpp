@@ -44,7 +44,6 @@ Flow::Flow(NetworkInterface *_iface,
   cli_host = srv_host = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
   srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
-  flow_score = cli_score = srv_score = 0;
   alert_status_info = alert_status_info_shadow = NULL;
   alert_type = alert_none;
   alert_level = alert_level_none;
@@ -91,6 +90,9 @@ Flow::Flow(NetworkInterface *_iface,
   last_db_dump.first_seen = last_db_dump.last_seen = 0;
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
+  memset(&cli_score, 0, sizeof(cli_score)),
+    memset(&srv_score, 0, sizeof(srv_score));
+  flow_score = 0;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
@@ -4360,13 +4362,13 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
     if(cli_h) {
       cli_h->setMisbehavingFlowsStatusMap(status_map, true);
       cli_h->incNumMisbehavingFlows(true);
-      cli_h->getScore()->incValue(cli_score, true);
+      cli_h->getScore()->incValue(getCliScore(), true);
     }
 
     if(srv_h) {
       srv_h->setMisbehavingFlowsStatusMap(status_map, false);
       srv_h->incNumMisbehavingFlows(false);
-      srv_h->getScore()->incValue(srv_score, false);
+      srv_h->getScore()->incValue(getSrvScore(), false);
     }
 
     iface->decNumMisbehavingFlows();
@@ -5084,23 +5086,8 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 
 /* *************************************** */
 
-#ifdef NTOPNG_PRO
-static void incPeerScorePcap(Host *h, u_int16_t score_inc, bool as_client) {
-  u_int32_t old_score = h->getScore()->getValue();
-  u_int32_t new_score = old_score + score_inc;
-
-  if(new_score >= (u_int16_t)-1)
-    new_score = (u_int16_t)-1;
-
-  h->getScore()->incValue(new_score, as_client);
-  h->getScore()->refreshValue();
-}
-#endif
-
-/* *************************************** */
-
 bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
-		     u_int16_t srv_inc, const char*script_key) {
+		     u_int16_t srv_inc, const char*script_key, ScriptCategory script_category) {
   if(status_map.get() == status_normal) {
     /* First misbehaving status */
     iface->incNumMisbehavingFlows();
@@ -5110,10 +5097,11 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
     status_map.setBit(status);
 
 #ifdef NTOPNG_PRO
-    if(ntop->getPrefs()->is_enterprise_m_edition()) {
+    if(ntop->getPrefs()->is_enterprise_m_edition()
+       && script_category < MAX_NUM_SCRIPT_CATEGORIES) {
       flow_score += flow_inc;
-      cli_score += cli_inc;
-      srv_score += srv_inc;
+      cli_score[script_category] += cli_inc;
+      srv_score[script_category] += srv_inc;
 
       if(!status_infos)
 	status_infos = (StatusInfo*) calloc(BITMAP_NUM_BITS, sizeof(StatusInfo));
@@ -5125,12 +5113,14 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
 	status_infos[status].score = flow_inc;
       }
 
+#ifdef NTOPNG_PRO
       if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
 	/* Periodic scripts (e.g. minute.lua) are not executed while reading a
 	 * PCAP file. Increment the peers score here. */
-	if(cli_host) incPeerScorePcap(cli_host, cli_inc, true);
-	if(srv_host) incPeerScorePcap(srv_host, srv_inc, false);
+	if(get_cli_host()) get_cli_host()->getScore()->incValue(getCliScore(), true);  get_cli_host()->getScore()->refreshValue();
+	if(get_srv_host()) get_srv_host()->getScore()->incValue(getSrvScore(), false); get_srv_host()->getScore()->refreshValue();
       }
+#endif
     }
 #endif
 

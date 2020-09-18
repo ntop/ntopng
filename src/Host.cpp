@@ -426,6 +426,12 @@ void Host::lua_get_score(lua_State *vm) const {
 
 /* ***************************************************** */
 
+void Host::lua_get_score_breakdown(lua_State *vm) const {
+  score.lua_breakdown(vm);
+}
+
+/* ***************************************************** */
+
 void Host::lua_get_os(lua_State *vm) {
   char buf[64];
 
@@ -621,6 +627,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   luaICMP(vm, get_ip()->isIPv4(), false);
 
   if(host_details) {
+    lua_get_score_breakdown(vm);
     /*
       This has been disabled as in case of an attack, most hosts do not have a name and we will waste
       a lot of time doing activities that are not necessary

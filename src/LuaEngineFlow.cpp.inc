@@ -46,6 +46,7 @@ static int ntop_flow_set_status(lua_State* vm) {
   u_int16_t flow_score, cli_score, srv_score;
   Flow *f = ntop_flow_get_context_flow(vm);
   char *script_key;
+  ScriptCategory script_category = script_category_other;
 
   if(!f) return(CONST_LUA_ERROR);
 
@@ -64,7 +65,11 @@ static int ntop_flow_set_status(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   script_key = (char*)lua_tostring(vm, 5);
 
-  lua_pushboolean(vm, f->setStatus(new_status, flow_score, cli_score, srv_score, script_key));
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER) == CONST_LUA_OK
+     && (ScriptCategory)lua_tonumber(vm, 6) < MAX_NUM_SCRIPT_CATEGORIES)
+    script_category = (ScriptCategory)lua_tonumber(vm, 6);
+
+  lua_pushboolean(vm, f->setStatus(new_status, flow_score, cli_score, srv_score, script_key, script_category));
   return(CONST_LUA_OK);
 }
 

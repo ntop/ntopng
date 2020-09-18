@@ -47,7 +47,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
-  u_int16_t cli_score, srv_score, flow_score;
+  u_int16_t cli_score[MAX_NUM_SCRIPT_CATEGORIES], srv_score[MAX_NUM_SCRIPT_CATEGORIES], flow_score;
   bool peers_score_accounted;
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
@@ -291,7 +291,7 @@ class Flow : public GenericHashEntry {
   ~Flow();
 
   inline Bitmap getStatusBitmap()     const     { return(status_map);           }
-  bool setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc, const char*script_key);
+  bool setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc, const char*script_key, ScriptCategory script_category);
   void clearStatus(FlowStatus status);
   bool triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json);
   FlowStatus getPredominantStatus() const;
@@ -657,10 +657,10 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
 
-  inline u_int16_t getCliScore() const     { return(cli_score); };
-  inline u_int16_t getSrvScore() const     { return(srv_score); };
-  inline u_int16_t getScore() const        { return(flow_score); };
-  inline void setPeersScoreAccounted()     { peers_score_accounted = true; };
+  inline const u_int16_t *getCliScore()  const { return(cli_score);  };
+  inline const u_int16_t *getSrvScore()  const { return(srv_score);  };
+  inline u_int16_t getScore()            const { return(flow_score); };
+  inline void setPeersScoreAccounted()         { peers_score_accounted = true; };
 
 #ifdef HAVE_NEDGE
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }

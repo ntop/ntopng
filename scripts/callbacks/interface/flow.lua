@@ -515,7 +515,7 @@ function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
       cli_score = math.min(math.max(cli_score or 0, 0), max_score)
       srv_score = math.min(math.max(srv_score or 0, 0), max_score)
 
-      c_flow_set_status(status_key, flow_score, cli_score, srv_score, cur_user_script.key)
+      c_flow_set_status(status_key, flow_score, cli_score, srv_score, cur_user_script.key, cur_user_script.category.id)
       return(true)
    end
 

@@ -236,15 +236,16 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 	   bool verbose, bool returnHost, bool asListElement);
 
-  void lua_get_bins(lua_State* vm)          const;
-  void lua_get_min_info(lua_State* vm)      const;
-  void lua_get_ip(lua_State* vm)            const;
-  void lua_get_localhost_info(lua_State* vm) const;
-  void lua_get_mac(lua_State* vm)           const;
-  void lua_get_host_pool(lua_State* vm)     const;
-  void lua_get_score(lua_State* vm)         const;
-  void lua_get_as(lua_State* vm)            const;
-  void lua_get_bytes(lua_State* vm)         const;
+  void lua_get_bins(lua_State* vm)            const;
+  void lua_get_min_info(lua_State* vm)        const;
+  void lua_get_ip(lua_State* vm)              const;
+  void lua_get_localhost_info(lua_State* vm)  const;
+  void lua_get_mac(lua_State* vm)             const;
+  void lua_get_host_pool(lua_State* vm)       const;
+  void lua_get_score(lua_State* vm)           const;
+  void lua_get_score_breakdown(lua_State* vm) const;
+  void lua_get_as(lua_State* vm)              const;
+  void lua_get_bytes(lua_State* vm)           const;
   void lua_get_app_bytes(lua_State *vm, u_int app_id) const;
   void lua_get_cat_bytes(lua_State *vm, ndpi_protocol_category_t category_id) const;
   void lua_get_packets(lua_State* vm)       const;
