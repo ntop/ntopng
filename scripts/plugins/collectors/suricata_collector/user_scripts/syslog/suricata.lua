@@ -193,6 +193,8 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
          parseFlowMetadata(event.flow, flow)
          if event.alert ~= nil then
             parseAlertMetadata(event.alert, flow)
+         else
+            flow = nil
          end
       else
          flow = nil
