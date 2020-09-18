@@ -18,7 +18,7 @@ alert_notification_levels = {
    info = {
       icon = "fa-info-circle",
       bg_color = "info",
-      title_text_color = "text-dark",
+      title_text_color = "text-white",
       fill_color = "#17a2b8",
    },
    warning = {
@@ -73,7 +73,7 @@ function alert_notification:render()
         },
         model = self
     }
-
+    tprint(context)
     -- Generate the template from the notification.template file
     return template.gen('pages/components/notification.template', context)
 end
