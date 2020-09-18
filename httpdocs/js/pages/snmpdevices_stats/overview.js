@@ -297,11 +297,11 @@ $(document).ready(function () {
                     if (!isAdministrator) return "";
 
                     return (`
-                        <div class="btn-group btn-group-sm" role="group">
-                            <a data-toggle="modal" class="btn btn-info" href="#edit-snmp-device-modal">
+                        <div role="group">
+                            <a data-toggle="modal" class="btn btn-sm btn-info" href="#edit-snmp-device-modal">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a data-toggle="modal" class="btn btn-danger" href="#delete-snmp-device-modal">
+                            <a data-toggle="modal" class="btn btn-sm btn-danger" href="#delete-snmp-device-modal">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </div>
@@ -440,9 +440,12 @@ $(document).ready(function () {
         const $editPoolLink = $(this).parents('.form-group').find('.edit-pool');
         const $recipientsInfo = $(this).parents('.form-group').find('.recipients-info');
 
+        let url = new URL($editPoolLink.attr('href')).searchParams.get('referer');
+        const columnKey = new URL(url).searchParams.get('column_key');
+
         const editPoolHref = NtopUtils.buildURL(
             '/lua/admin/manage_pools.lua?', {pool_id: poolId, page: 'snmp'},
-            true, {column_key: new URL($editPoolLink.attr('href')).searchParams.get('column_key')}
+            true, {column_key: columnKey}
         );
 
         $editPoolLink.attr('href', editPoolHref);
