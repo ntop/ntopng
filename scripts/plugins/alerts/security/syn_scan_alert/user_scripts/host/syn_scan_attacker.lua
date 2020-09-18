@@ -19,9 +19,8 @@ local script = {
   -- The default threshold value. The format is specific of the
   -- "threshold_cross" input builder
   default_value = {
-    -- "> 50"
     operator = "gt",
-    threshold = 50,
+    threshold = 256,
   },
 
   -- See below

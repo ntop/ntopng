@@ -21,7 +21,7 @@ local script = {
   default_value = {
     -- "> 30"
     operator = "gt",
-    threshold = 30,
+    threshold = 256,
   },
 
   -- See below

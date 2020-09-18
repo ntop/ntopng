@@ -12,9 +12,8 @@ local script = {
 
   default_enabled = true,
   default_value = {
-    -- "> 50"
     operator = "gt",
-    threshold = 50,
+    threshold = 256,
   },
 
   -- This script is only for alerts generation

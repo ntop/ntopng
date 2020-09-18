@@ -12,6 +12,11 @@ local script = {
 
   default_enabled = false,
 
+  default_value = {
+     operator = "gt",
+     threshold = 32768,
+  },
+
   -- See below
   hooks = {},
 

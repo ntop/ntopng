@@ -16,8 +16,10 @@ local script = {
   -- This script is only for alerts generation
   is_alert = true,
 
-  -- No default threshold configuration is provided
-  default_value = {},
+  default_value = {
+     operator = "gt",
+     threshold = 32768,
+  },
 
   -- See below
   hooks = {},
