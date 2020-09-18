@@ -529,10 +529,12 @@ function recipients:get_recipient(recipient_id)
 
 	    local modules_by_name = notification_configs.get_types()
 	    local cur_module = modules_by_name[recipient_details["endpoint_key"]]
-
-	    if cur_module.format_recipient_params then
+	    if cur_module and cur_module.format_recipient_params then
 	       -- Add a formatted output of recipient params
 	       recipient_details["recipient_params_fmt"] = cur_module.format_recipient_params(recipient_details["recipient_params"])
+	    else
+	       -- A default
+	       recipient_details["recipient_params_fmt"] = ""
 	    end
 	 end
 
