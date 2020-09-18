@@ -201,7 +201,7 @@ void HostScore::lua_breakdown(lua_State *vm, const cat_score_type old_score[MAX_
   lua_newtable(vm);
 
   for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
-    lua_pushnumber(vm, i); /* The integer category id as key */
+    lua_pushinteger(vm, i); /* The integer category id as key */
     lua_pushnumber(vm, snapshot[i] / (float)total * 100); /* The % as value */
     lua_settable(vm, -3);
   }

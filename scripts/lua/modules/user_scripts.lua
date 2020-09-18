@@ -119,13 +119,6 @@ user_scripts.script_categories = {
    }
 }
 
--- Auto-assign an id to the categories
-local cat_id = 1
-for cat_k, cat_v in pairs(user_scripts.script_categories) do
-   cat_v["id"] = cat_id
-   cat_id = cat_id + 1
-end
-
 -- Hook points for flow/periodic modules
 -- NOTE: keep in sync with the Documentation
 user_scripts.script_types = {
