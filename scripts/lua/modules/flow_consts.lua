@@ -128,7 +128,7 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
        local created = {}
 
        if def_script.alert_type and def_script.alert_type.creator then
-        created = def_script.alert_type.create(...)
+          created = def_script.alert_type.create(...)
        end
 
        created["status_type"] = def_script
