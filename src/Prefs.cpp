@@ -1709,16 +1709,20 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_uint64_table_entry(vm, "max_num_flows", max_num_flows);
-  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", do_dump_flows());
-  lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql || read_flows_from_mysql);
 
+  lua_push_bool_table_entry(vm, "is_dump_flows_enabled", do_dump_flows());
+  lua_push_bool_table_entry(vm, "is_dump_flows_runtime_enabled", is_runtime_flows_dump_enabled());
+#ifdef NTOPNG_PRO
+  lua_push_bool_table_entry(vm, "is_dump_flows_direct_enabled", do_dump_flows_direct());
+#endif
+
+  lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql || read_flows_from_mysql);
+  if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
+  lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled", dump_flows_on_es);
+  lua_push_bool_table_entry(vm, "is_dump_flows_to_ls_enabled", dump_flows_on_ls);
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   lua_push_bool_table_entry(vm, "is_nindex_enabled", do_dump_flows_on_nindex());
 #endif
-    
-  if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
-  lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled",    dump_flows_on_es);
-  lua_push_bool_table_entry(vm, "is_dump_flows_to_ls_enabled", dump_flows_on_ls);
 
   lua_push_uint64_table_entry(vm, "http.port", get_http_port());
 
@@ -1794,10 +1798,6 @@ void Prefs::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "user", change_user ? user : (char*)"");
 
   lua_push_str_table_entry(vm, "capture_direction", Utils::captureDirection2Str(captureDirection));
-
-#ifdef NTOPNG_PRO
-  lua_push_bool_table_entry(vm, "is_direct_flow_dump_enabled", do_dump_flows_direct());
-#endif
 }
 
 /* *************************************** */

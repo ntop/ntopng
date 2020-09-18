@@ -707,7 +707,13 @@ if((page == "overview") or (page == nil)) then
 	 export_drops_pct = 100
       end
 
-      print("<tr><th colspan=7 nowrap>"..dump_to.." "..i18n("if_stats_overview.flows_export_statistics").."</th></tr>\n")
+      print("<tr><th colspan=7 nowrap>")
+      if prefs.is_dump_flows_runtime_enabled then
+         print(dump_to.." "..i18n("if_stats_overview.flows_export_statistics"))
+      else
+         print(i18n("if_stats_overview.export_disabled"))
+      end
+      print("</th></tr>\n")
 
       print("<tr>")
       print("<th nowrap>"..i18n("if_stats_overview.exported_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:dumped_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
@@ -733,7 +739,7 @@ if((page == "overview") or (page == nil)) then
 
       if not interface.isPacketInterface() then
          print("<th nowrap>"..i18n("if_stats_overview.direct_mode").."</th>")
-         print("<td>"..ternary(prefs.is_direct_flow_dump_enabled, i18n("enabled"), i18n("disabled")).."</td>")
+         print("<td>"..ternary(prefs.is_dump_flows_direct_enabled, i18n("enabled"), i18n("disabled")).."</td>")
       else
          print("<td colspan=2></td>")
       end

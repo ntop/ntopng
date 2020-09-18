@@ -2439,6 +2439,7 @@ local lang = {
     ["dumped_packets"] = "Dumped Packets",
     ["egress_packets"] = "Egress Packets",
     ["exported_flows"] = "Exported Flows",
+    ["export_disabled"] = "Flows Export Disabled in Runtime Preferences",
     ["family"] = "Family",
     ["flows_export_statistics"] = "Flows Export Statistics",
     ["has_traffic_directions"] = "with RX/TX Directions",
