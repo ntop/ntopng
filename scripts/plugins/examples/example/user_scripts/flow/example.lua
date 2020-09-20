@@ -82,6 +82,14 @@ local script = {
 
 -- #################################################################
 
+-- @brief See host/example.lua
+function script.onUpdateConfig(confid, config)
+   print("on update:" .. script.key.. " confid: "..confid.."\n")
+   tprint(config)
+end
+
+-- #################################################################
+
 -- @brief Called when the script is going to be loaded.
 -- @return true if the script should be loaded, false otherwise
 -- @note Can be used to init some script global state or to skip the script

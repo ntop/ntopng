@@ -614,8 +614,13 @@ function plugins_utils.loadPlugins(community_plugins_only)
   -- Reload the periodic scripts to load the new plugins
   ntop.reloadPeriodicScripts()
 
+  -- Mark a change in recipients so they will be automatically reloaded
   local recipients = require "recipients":create()
   recipients:set_recipients_change()
+
+  -- Reload user scripts with their configurations
+  local user_scripts = require "user_scripts"
+  user_scripts.reloadUserScripts()
 
   return(true)
 end

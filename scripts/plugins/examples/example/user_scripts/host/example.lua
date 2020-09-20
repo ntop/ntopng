@@ -78,6 +78,20 @@ end
 
 -- #################################################################
 
+-- @brief Called when the plugin containing the user script is loaded/reloaded
+--        or when the user script configuration changes (e.g., is on/off toggled or
+--        configuration parameters are changed).
+--        When the plugin is loaded/reloaded, this method is called with all the
+--        available existing configurations.
+-- @param confid An integer configuration id
+-- @param config A lua table with the configuration parameters for `confid`
+function script.onUpdateConfig(confid, config)
+   print("on update:" .. script.key.. " confid: "..confid.."\n")
+   tprint(config)
+end
+
+-- #################################################################
+
 -- @brief Called  when the user script is loaded 
 -- @return true if the script should be loaded, false otherwise
 -- @notes Can be used to init some script global state or to skip the script

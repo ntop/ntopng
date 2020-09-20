@@ -755,6 +755,36 @@ end
 
 -- ##############################################
 
+-- @brief Reload user scripts with their existing configurations.
+--        Method called as part of plugins reload (during startup or when plugins are reloaded)
+function user_scripts.reloadUserScripts()
+   -- Read all existing configsets.
+   -- NOTE: A user script can have more than one configuration associated, each
+   -- one identified with an id. For example, hosts have multiple configurations,
+   -- each one applied to a different subset of pools. On the other hand, flows
+   -- and system only have only one (default) user script configuration.
+   local configsets = user_scripts.getConfigsets()
+
+   -- For each subdir available, (i.e., host, flow, interface, ...)
+   for _, subdir in ipairs(user_scripts.listSubdirs()) do
+      -- Load all the available user scripts for this subdir
+      local scripts = user_scripts.load(interface.getId(), user_scripts.getScriptType(subdir.id), subdir.id, {return_all = true})
+
+      for name, script in pairsByKeys(scripts.modules) do
+	 for confid, config in pairs(configsets) do
+	    -- Call user script method onUpdateConfig for
+	    -- each available configuration existing for the user script
+	    if script and script.onUpdateConfig then
+	       script.onUpdateConfig(confid, config.config[subdir.id][script.key])
+	    end
+
+	 end
+      end
+   end
+end
+
+-- ##############################################
+
 local function findConfigSet(configsets, name)
    for id, configset in pairs(configsets) do
       if(configset.name == name) then
@@ -1012,6 +1042,12 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
    config[subdir] = config[subdir] or {}
    config[subdir][script_key] = applied_config
 
+   -- If callback `onUpdateConfig` is implemented for the user script,
+   -- call it with the newly applied configuration as parameter
+   if script and script.onUpdateConfig then
+      script.onUpdateConfig(confid, applied_config)
+   end
+
    return saveConfigsets(configsets)
 end
 
@@ -1040,6 +1076,13 @@ function user_scripts.toggleScript(confid, script_key, subdir, enable)
 
    for _, hook in pairs(config) do
       hook.enabled = enable
+   end
+
+   
+   -- If callback `onUpdateConfig` is implemented for the user script,
+   -- call it with the (toggled) configuration and configuration id
+   if script and script.onUpdateConfig then
+      script.onUpdateConfig(confid, config)
    end
 
    return saveConfigsets(configsets)
