@@ -90,9 +90,10 @@ Flow::Flow(NetworkInterface *_iface,
   last_db_dump.first_seen = last_db_dump.last_seen = 0;
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
+
   memset(&cli_score, 0, sizeof(cli_score)),
-    memset(&srv_score, 0, sizeof(srv_score));
-  flow_score = 0;
+    memset(&srv_score, 0, sizeof(srv_score)),
+    flow_score = 0;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
@@ -5112,7 +5113,6 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
 
 	status_infos[status].score = flow_inc;
       }
-
 #ifdef NTOPNG_PRO
       if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
 	/* Periodic scripts (e.g. minute.lua) are not executed while reading a
