@@ -1373,8 +1373,6 @@ function printDumpSettings()
        "row_toggle_tiny_flows_dump",
        "max_num_packets_per_tiny_flow",
        "max_num_bytes_per_tiny_flow",
-       "row_toggle_aggregated_flows_export_limit",
-       "max_num_aggregated_flows_per_export",
     },
     -- Similar to "to_switch" but for nested items (e.g. "local hosts cache" only
     -- enabled when both "host cache" and "cache" are enabled).
@@ -1386,7 +1384,6 @@ function printDumpSettings()
       -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
       {input="max_num_packets_per_tiny_flow", parent="input-toggle_tiny_flows_dump", parent_enabled_value="1", pref_enabled_value="1"},
       {input="max_num_bytes_per_tiny_flow", parent="input-toggle_tiny_flows_dump", parent_enabled_value="1", pref_enabled_value="1"},
-      {input="max_num_aggregated_flows_per_export", parent="input-toggle_aggregated_flows_export_limit", parent_enabled_value="1", pref_enabled_value="1"},
     },
    })
 
@@ -1418,25 +1415,6 @@ function printDumpSettings()
 			prefs.max_num_bytes_per_tiny_flow, "number",
 			showTinyElements,
 			false, nil, {min=1, max=2^32-1})
-
-   prefsToggleButton(subpage_active, {
-			field = "toggle_aggregated_flows_export_limit",
-			default = "0",
-			pref = "aggregated_flows_export_limit_enabled",
-			to_switch = {
-			   "max_num_aggregated_flows_per_export"
-			},
-			hidden = not showAllElements,
-   })
-
-   local showAggrElements = showAllElements and ntop.getPref("ntopng.prefs.aggregated_flows_export_limit_enabled") == "1"
-
-   prefsInputFieldPrefs(subpage_active.entries["max_num_aggregated_flows_per_export"].title,
-			subpage_active.entries["max_num_aggregated_flows_per_export"].description,
-			"ntopng.prefs.", "max_num_aggregated_flows_per_export",
-			prefs.max_num_aggregated_flows_per_export, "number",
-			showAggrElements, false, nil,
-			{min = 1000, max = 2^32-1})
 
    print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
 
