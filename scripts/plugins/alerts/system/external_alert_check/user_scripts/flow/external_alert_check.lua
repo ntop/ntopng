@@ -12,7 +12,6 @@ local alert_consts = require("alert_consts")
 local script = {
   -- NOTE: hooks defined below
   hooks = {},
-  external_alerts_only = true, -- Only execute for interfaces which have seen external alerts (either companion or syslog)
   periodic_update_seconds = 30,
 
   gui = {
@@ -23,14 +22,18 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.periodicUpdate(now)
+local function checkExternalAlert()
+
+  -- Check for external alert (clear on read, thus it will not be
+  -- returned in the next call)
   local info_json = flow.retrieveExternalAlertInfo()
 
   if(info_json ~= nil) then
-
-    -- NOTE: the same info will *not* be returned in the next periodicUpdate
+    -- Got an alert in JSON format, decoding
     local info = json.decode(info_json)
     if info ~= nil then
+
+       -- Trigger flow alert
        flow.triggerStatus(
 	  flow_consts.status_types.status_external_alert.create(
              alert_consts.alertSeverityById(info.severity_id),
@@ -39,6 +42,18 @@ function script.hooks.periodicUpdate(now)
 	  nil, nil, nil)
     end
   end
+end
+
+-- #################################################################
+
+function script.hooks.periodicUpdate(now)
+   checkExternalAlert()
+end
+
+-- #################################################################
+
+function script.hooks.flowEnd(now, config)
+   checkExternalAlert()
 end
 
 -- #################################################################
