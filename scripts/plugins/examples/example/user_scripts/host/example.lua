@@ -71,23 +71,57 @@ local script = {
 
 -- #################################################################
 
--- @brief Called when the plugin containing the user script is loaded/reloaded
+-- @brief Called, for every enabled hook, upon ntopng startup or upon plugins reload at runtime
+-- @param hook The name of the enabled hook (e.g., min, hour)
+-- @param hook_config A Lua table with the hook configuration
 -- @return nil
-function script.onLoad()
+function script.onLoad(hook, hook_config)
+   tprint("loading: "..hook)
+   -- tprint(hook_config)
 end
 
 -- #################################################################
 
--- @brief Called when the plugin containing the user script is loaded/reloaded
---        or when the user script configuration changes (e.g., is on/off toggled or
---        configuration parameters are changed).
---        When the plugin is loaded/reloaded, this method is called with all the
---        available existing configurations.
--- @param confid An integer configuration id
--- @param config A lua table with the configuration parameters for `confid`
-function script.onUpdateConfig(confid, config)
-   print("on update:" .. script.key.. " confid: "..confid.."\n")
-   tprint(config)
+-- @brief Called, for every enabled hook, upon ntopng termination
+-- @param hook The name of the enabled hook (e.g., min, hour)
+-- @param hook_config A Lua table with the hook configuration
+-- @return nil
+function script.onUnload(hook, hook_config)
+   tprint("unloading: "..hook)
+   -- tprint(hook_config)
+end
+
+-- #################################################################
+
+-- @brief Called when a user script hook is enabled
+-- @param hook The name of the enabled hook (e.g., min, hour)
+-- @param hook_config A Lua table with the hook configuration for the enabled hook
+-- @return nil
+function script.onEnable(hook, hook_config)
+   tprint("[+] enabling: "..hook)
+   -- tprint(hook_config)
+end
+
+-- #################################################################
+
+-- @brief Called when a user script hook is disabled
+-- @param hook The name of the disabled hook (e.g., min, hour)
+-- @param hook_config A Lua table with the hook configuration for the disabled hook
+-- @return nil
+function script.onDisable(hook, hook_config)
+   tprint("[-] disabling: "..hook)
+   -- tprint(hook_config)
+end
+
+-- #################################################################
+
+-- @brief Called when the configuration for an enabled user script hook has changed
+-- @param hook The name of the hook (e.g., min, hour) for which the configuration has changed
+-- @param hook_config A Lua table with the new (changed) configuration
+-- @return nil
+function script.onUpdateConfig(hook, hook_config)
+   tprint("[~] config change: "..hook)
+   -- tprint(hook_config)
 end
 
 -- #################################################################

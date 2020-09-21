@@ -83,9 +83,41 @@ local script = {
 -- #################################################################
 
 -- @brief See host/example.lua
-function script.onUpdateConfig(confid, config)
-   print("on update:" .. script.key.. " confid: "..confid.."\n")
-   tprint(config)
+function script.onLoad(hook, hook_config)
+   tprint("loading: "..hook)
+   -- tprint(hook_config)
+end
+
+-- #################################################################
+
+-- @brief See host/example.lua
+function script.onUnload(hook, hook_config)
+   tprint("unloading: "..hook)
+   -- tprint(hook_config)
+end
+
+-- #################################################################
+
+-- @brief See host/example.lua
+function script.onEnable(hook, hook_config)
+   tprint("[+] enabling: "..hook)
+   -- tprint(hook_config)
+end
+
+-- #################################################################
+
+-- @brief See host/example.lua
+function script.onDisable(hook, hook_config)
+   tprint("[-] disabling: "..hook)
+   -- tprint(hook_config)
+end
+
+-- #################################################################
+
+-- @brief See host/example.lua
+function script.onUpdateConfig(hook, hook_config)
+   tprint("[~] config change: "..hook)
+   -- tprint(hook_config)
 end
 
 -- #################################################################

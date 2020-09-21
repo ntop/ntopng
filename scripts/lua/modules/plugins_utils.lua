@@ -234,11 +234,6 @@ end
 local function load_plugin_file(full_path)
    local res = dofile(full_path)
 
-   if res and res.onLoad then
-      -- Execute method onload, if available
-      res.onLoad()
-   end
-
    return res
 end
 
@@ -403,7 +398,11 @@ local function load_plugin_alert_endpoints(plugin)
 	 -- Execute the alert endpoint and call its method onLoad, if present
 	 local fname_path = os_utils.fixPath(endpoints_path .. "/" .. fname)
 	 local endpoint = load_plugin_file(fname_path)
-	 
+
+	 if endpoint and endpoint.onLoad then
+	    endpoint.onLoad()
+	 end
+
 	 if not file_utils.copy_file(fname, endpoints_path, RUNTIME_PATHS.alert_endpoints) then
 	    return false
 	 end
@@ -620,7 +619,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
 
   -- Reload user scripts with their configurations
   local user_scripts = require "user_scripts"
-  user_scripts.reloadUserScripts()
+  user_scripts.loadUnloadUserScripts(true --[[ load --]])
 
   return(true)
 end

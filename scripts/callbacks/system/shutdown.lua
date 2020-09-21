@@ -17,6 +17,7 @@ require "lua_utils" -- NOTE: required by alert_utils
 local alert_utils = require "alert_utils"
 local recipients = require "recipients"
 local recipients_instance = recipients:create()
+local user_scripts = require "user_scripts"
 local periodicity = 3
 
 local now = os.time()
@@ -31,5 +32,8 @@ for _, ifname in pairs(ifnames) do
 end
 
 recipients_instance:process_notifications(now, now + 3 --[[ deadline ]], 3 --[[ periodicity ]], true)
+
+-- Unload all user scripts
+user_scripts.loadUnloadUserScripts(false --[[ unload --]])
 
 recovery_utils.mark_clean_shutdown()

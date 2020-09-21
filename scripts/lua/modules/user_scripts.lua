@@ -752,7 +752,9 @@ end
 
 -- @brief Reload user scripts with their existing configurations.
 --        Method called as part of plugins reload (during startup or when plugins are reloaded)
-function user_scripts.reloadUserScripts()
+-- @param is_load Boolean, indicating whether callback onLoad/onUnload should be called
+-- @return nil
+function user_scripts.loadUnloadUserScripts(is_load)
    -- Read all existing configsets.
    -- NOTE: A user script can have more than one configuration associated, each
    -- one identified with an id. For example, hosts have multiple configurations,
@@ -767,12 +769,23 @@ function user_scripts.reloadUserScripts()
 
       for name, script in pairsByKeys(scripts.modules) do
 	 for confid, config in pairs(configsets) do
-	    -- Call user script method onUpdateConfig for
+	    -- Call user script callbacks for
 	    -- each available configuration existing for the user script
-	    if script and script.onUpdateConfig then
-	       script.onUpdateConfig(confid, config.config[subdir.id][script.key])
+	    for hook, hook_config in pairs(config.config[subdir.id][script.key]) do
+	       -- For each configuration there are multiple hooks.
+	       -- Some hooks can be enabled, whereas some other hooks can be disabled:
+	       -- methods onLoad/onUnload are only called for hooks that are enabled.
+	       if script and hook_config.enabled then
+		  -- onLoad/onUnload methods are ONLY called for user scripts that are enabled
+		  if is_load and script.onLoad then
+		     -- This is a load operation
+		     script.onLoad(hook, hook_config)
+		  elseif not is_load and script.onUnload then
+		     -- This is an unload operation
+		     script.onUnload(hook, hook_config)
+		  end
+	       end
 	    end
-
 	 end
       end
    end
@@ -1035,13 +1048,31 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
    local config = configsets[confid].config
 
    config[subdir] = config[subdir] or {}
-   config[subdir][script_key] = applied_config
 
-   -- If callback `onUpdateConfig` is implemented for the user script,
-   -- call it with the newly applied configuration as parameter
-   if script and script.onUpdateConfig then
-      script.onUpdateConfig(confid, applied_config)
+   if script then
+      local prev_config = config[subdir][script_key]
+
+      -- Perform hook callbacks for config changes, or enable/disable
+      for hook, hook_config in pairs(prev_config) do
+	 local hook_applied_config = applied_config[hook]
+
+	 if hook_applied_config then
+	    if script.onDisable and hook_config.enabled and not hook_applied_config.enabled then
+	       -- Hook previously disabled has been enabled
+	       script.onDisable(hook, hook_applied_config)
+	    elseif script.onEnable and not hook_config.enabled and hook_applied_config.enabled then
+	       -- Hook previously enabled has now been disabled
+	       script.onEnable(hook, hook_applied_config)
+	    elseif script.onUpdateConfig and not table.compare(hook_config, applied_config[hook]) then
+	       -- Configuration for the hook has changed
+	       script.onUpdateConfig(hook, hook_applied_config)
+	    end
+	 end
+      end
    end
+
+   -- Set the new configuration
+   config[subdir][script_key] = applied_config
 
    return saveConfigsets(configsets)
 end
@@ -1069,15 +1100,21 @@ function user_scripts.toggleScript(confid, script_key, subdir, enable)
       return false
    end
 
-   for _, hook in pairs(config) do
-      hook.enabled = enable
-   end
+   for hook, hook_config in pairs(config) do
+      -- Remember the previous toggle
+      local prev_hook_config = hook_config.enabled
+      -- Save the new toggle
+      hook_config.enabled = enable
 
-   
-   -- If callback `onUpdateConfig` is implemented for the user script,
-   -- call it with the (toggled) configuration and configuration id
-   if script and script.onUpdateConfig then
-      script.onUpdateConfig(confid, config)
+      if script.onDisable and prev_hook_config and not enable then
+	 -- Hook has been enabled for the user script
+	 script.onDisable(hook, hook_config)
+      elseif script.onEnable and not prev_hook_config and enable then
+	 -- Hook has been disabled for the user script
+	 script.onEnable(hook, hook_config)
+      end
+
+
    end
 
    return saveConfigsets(configsets)
