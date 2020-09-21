@@ -5162,8 +5162,10 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isViewed", isViewed()); /* Viewed interface */
   lua_push_bool_table_entry(vm, "isDynamic", isSubInterface()); /* An runtime-instantiated interface */
+#ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "hasSubInterfaces", (sub_interfaces && sub_interfaces->getNumSubInterfaces()) || (flowHashingMode != flowhashing_none));
+#endif
 #endif
   
   if(db) {
