@@ -1970,18 +1970,22 @@ void Prefs::setIEC104AllowedTypeIDs(char *protos) {
   
   if(!protos) return; else p = strtok_r(protos, ",", &tmp);
 
-  iec104_allowed_typeids[0] = (u_int64_t)0, iec104_allowed_typeids[1] = (u_int64_t)0;
-  
-  while(p != NULL) {
-    int type_id = atoi(p);
-
-    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "-> %d", type_id); */
+  if((p != NULL) && (strcmp(p, "-1") == 0))
+    iec104_allowed_typeids[0] = (u_int64_t)-1, iec104_allowed_typeids[1] = (u_int64_t)-1; /* All */
+  else {
+    iec104_allowed_typeids[0] = (u_int64_t)0, iec104_allowed_typeids[1] = (u_int64_t)0;
     
-    if(type_id < 64)
-      iec104_allowed_typeids[0] |= ((u_int64_t)1 << type_id);
-    else if(type_id < 128)
-      iec104_allowed_typeids[1] |= ((u_int64_t)1 << (type_id-64));
-    
-    p = strtok_r(NULL, ",", &tmp);
+    while(p != NULL) {
+      int type_id = atoi(p);
+      
+      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "-> %d", type_id); */
+      
+      if(type_id < 64)
+	iec104_allowed_typeids[0] |= ((u_int64_t)1 << type_id);
+      else if(type_id < 128)
+	iec104_allowed_typeids[1] |= ((u_int64_t)1 << (type_id-64));
+      
+      p = strtok_r(NULL, ",", &tmp);
+    }
   }
 }

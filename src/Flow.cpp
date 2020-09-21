@@ -26,9 +26,9 @@
 const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
 						  NDPI_PROTOCOL_UNKNOWN,
 						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
-//#define DEBUG_DISCOVERY
-//#define DEBUG_UA
-//#define DEBUG_IEC60870
+// #define DEBUG_DISCOVERY
+// #define DEBUG_UA
+// #define DEBUG_IEC60870
 
 /* *************************************** */
 
@@ -827,7 +827,10 @@ void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
 
 	      json = json_object_to_json_string(my_object);
 
-	      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json); */
+#ifdef DEBUG_IEC60870
+	      ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json);
+#endif
+	      
 	      ntop->getRedis()->rpush(CONST_IEC104_ALERT_QUEUE, json, 1024 /* Max queue size */);
 	      
 	      json_object_put(my_object); /* Free memory */
