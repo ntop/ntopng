@@ -5168,10 +5168,8 @@ void NetworkInterface::lua(lua_State *vm) {
 #endif
 #endif
   
-  if(db) {
-    lua_push_bool_table_entry(vm, "isFlowDumpDisabled", isFlowDumpDisabled());
-    lua_push_bool_table_entry(vm, "isFlowDumpRunning", true);
-  }
+  lua_push_bool_table_entry(vm, "isFlowDumpDisabled", isFlowDumpDisabled());
+  lua_push_bool_table_entry(vm, "isFlowDumpRunning", db != NULL);
   lua_push_uint64_table_entry(vm, "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
