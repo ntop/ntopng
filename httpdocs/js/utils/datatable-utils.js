@@ -51,6 +51,42 @@ class DataTableUtils {
         }
     }
 
+    /**
+     * Example of action:
+     * {
+     *  class: string,
+     *  data: object,
+     *  icon: string,
+     *  modal: string,
+     *  hidden: bool,
+     * }
+     * @param {*} actions
+     */
+    static createActionButtons(actions = []) {
+
+        const buttons = [];
+        actions.forEach((action) => {
+
+            if (action.modal === undefined) {
+                throw '[DataTableUtils]::A modal must be associated inside an action!';
+            }
+
+            let button = (`
+                <a
+                    href='${action.modal}'
+                    data-toggle='modal'
+                    class='btn btn-sm ${action.class} ${action.hidden ? 'invisible' : 'visible'}'
+                    >
+                    <i class='fas ${action.icon}'></i>
+                </a>
+            `);
+
+            buttons.push(button);
+        });
+
+        return (`<div role='group'>${buttons.join('')}</div>`);
+    }
+
     static setAjaxConfig(config, url, dataSrc = '', method = "get", params = {}) {
 
         config.ajax = {

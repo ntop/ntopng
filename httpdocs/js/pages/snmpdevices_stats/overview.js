@@ -296,16 +296,10 @@ $(document).ready(function () {
 
                     if (!isAdministrator) return "";
 
-                    return (`
-                        <div role="group">
-                            <a data-toggle="modal" class="btn btn-sm btn-info" href="#edit-snmp-device-modal">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a data-toggle="modal" class="btn btn-sm btn-danger" href="#delete-snmp-device-modal">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </div>
-                    `);
+                    return DataTableUtils.createActionButtons([
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-snmp-device-modal' },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#delete-snmp-device-modal'}
+                    ]);
                 }
             }
         ],
