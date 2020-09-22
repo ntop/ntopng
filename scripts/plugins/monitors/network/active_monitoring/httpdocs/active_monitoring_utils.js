@@ -606,16 +606,10 @@ $(document).ready(function() {
                 name: 'actions',
                 class: 'text-center',
                 render: function() {
-                    return `
-                        <div class="btn-group btn-group-sm">
-                            <a class="btn btn-info" data-toggle="modal" href="#am-edit-modal">
-                                <i class='fas fa-edit'></i>
-                            </a>
-                            <a class="btn btn-danger" data-toggle="modal" href="#am-delete-modal">
-                                <i class='fas fa-trash'></i>
-                            </a>
-                        </div>
-                    `;
+                    return DataTableUtils.createActionButtons([
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#am-edit-modal' },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#am-delete-modal'}
+                    ]);
                 }
             }
         ]
