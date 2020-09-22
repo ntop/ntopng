@@ -555,16 +555,16 @@ if not info.oem then
 	    },
 	    {
 	       entry = page_utils.menu_entries.divider,
-	       hidden = not is_admin,
+	       hidden = true,
 	    },
 	    {
 	       entry = page_utils.menu_entries.widgets_list,
-	       hidden = not is_admin,
+	       hidden = true,
 	       url = '/lua/widgets_list.lua',
 	    },
 	    {
 	       entry = page_utils.menu_entries.datasources_list,
-	       hidden = not is_admin,
+	       hidden = true,
 	       url = '/lua/datasources_list.lua',
 	    },
 	 },
@@ -763,12 +763,12 @@ print([[
                ]])
 if is_system_interface then
    print(i18n("system"))
-else 
+else
    if ifs.hasSubInterfaces then
       print('<i class="fas fa-ethernet"></i> <i class="fas fa-code-branch"></i> ')
    elseif ifs.isDynamic then
       print('<i class="fas fa-code-branch"></i>  ')
-   else 
+   else
       print('<i class="fas fa-ethernet"></i> ')
    end
    print(getHumanReadableInterfaceName(ifname))
