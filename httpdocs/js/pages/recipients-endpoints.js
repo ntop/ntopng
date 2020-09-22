@@ -2,7 +2,7 @@ $(document).ready(function () {
 
     const TABLE_DATA_REFRESH = 15000;
     const DEFAULT_RECIPIENT_ID = 0;
-    const INDEX_COLUMN_ENDPOINT_TYPE = 2;
+    const INDEX_COLUMN_ENDPOINT_TYPE = 1;
 
     const makeFormData = (formSelector) => {
 
@@ -131,7 +131,11 @@ $(document).ready(function () {
                             badge = `<span class='badge badge-dark'>built-in</span>`;
                         }
 
-                        return `${i18n.endpoint_types[endpointType]} ${badge}`
+                        return `${i18n.endpoint_types[endpointType]} ${badge}`;
+                    }
+
+                    if (type == 'filter') {
+                        return endpointType;
                     }
 
                     return i18n.endpoint_types[endpointType] || ""
