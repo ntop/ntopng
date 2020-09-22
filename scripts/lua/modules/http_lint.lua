@@ -283,6 +283,12 @@ local function validateMode(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateDashboardMode(mode)
+   local modes = {"community", "pro", "enterprise"  }
+
+   return validateChoice(modes, mode)
+end
+
 local function validateOperator(mode)
    local modes = {"gt", "eq", "lt"}
 
@@ -1352,6 +1358,7 @@ local known_parameters = {
    ["ifid"]                    = validateInterface,             -- An ntopng interface ID
    ["iffilter"]                = validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    = validateMode,                  -- Remote or Local users
+   ["dashboard_mode"]          = validateDashboardMode,         -- Dashboard mode
    ["device_responsiveness"]   = validateDeviceResponsiveness,  -- Device responsiveness
    ["counters_since"]          = validateCounterSince,          -- Select actual or absolute counters
    ["err_counters_filter"]     = validateErrorsFilter,          -- Filter by errrrs, discards, both

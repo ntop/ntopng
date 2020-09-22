@@ -707,7 +707,7 @@ local lang = {
     ["config_import"] = "Import Configuration",
     ["config_name"] = "Configuration Name",
     ["config_rename"] = "Configuration Rename",
-    ["config_rename_message"] = "Type the new name for the configurarion",
+    ["config_rename_message"] = "Type the new name for the configuration",
     ["config_reset"] = "Reset Configuration",
     ["config_reset_confirm"] = "Do you really want to delete all the configurations and reset the default configuration to its initial value?",
     ["config_search"] = "Search Config:",
@@ -821,6 +821,7 @@ local lang = {
   },
   ["dashboard"] = {
     ["actual_traffic"] = "Actual Traffic",
+    ["community_dashboard"] = "Community Dashboard",
     ["gateways_users"] = "Gateways and Users",
     ["lastday_app_traffic"] = "Top Application Traffic Last Day View",
     ["lastday_traffic"] = "Network Interfaces: Last Day View",

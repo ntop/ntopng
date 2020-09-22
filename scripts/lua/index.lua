@@ -27,7 +27,9 @@ if(ntop.isnEdge()) then
   end
 end
 
-if(ntop.isPro()) then
+local mode  = _GET["dashboard_mode"]
+
+if(ntop.isPro() and (mode ~= "community")) then
    if interface.isPcapDumpInterface() == false then
       print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/pro/dashboard.lua"))
       return
@@ -36,6 +38,8 @@ if(ntop.isPro()) then
       print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..getInterfaceId(ifname)))
       return
    end
+else
+   mode = "&dashboard_mode="..mode
 end
 
 sendHTTPContentTypeHeader('text/html')
@@ -83,7 +87,7 @@ if(page == nil) then
 end
 
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
-   local nav_url = ntop.getHttpPrefix()..'/?ifid='..interface.getId()
+   local nav_url = ntop.getHttpPrefix()..'/?ifid='..interface.getId()..mode
    local title = i18n("index_page.dashboard")
 
    page_utils.print_navbar(title, nav_url,
