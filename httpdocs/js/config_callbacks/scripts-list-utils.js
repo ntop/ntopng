@@ -1321,7 +1321,7 @@ const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
 
 // End templates and template builder
 
-const create_enabled_button = (row_data) => {
+const createScriptStatusButton = (row_data) => {
 
    const { is_enabled } = row_data;
 
@@ -1331,12 +1331,10 @@ const create_enabled_button = (row_data) => {
 
       $button.html(`<i class='fas fa-toggle-on'></i>`);
       $button.addClass('btn-success');
+      $button.attr('data-target', '#modal-script');
+      $button.attr('data-toggle', 'modal');
 
-      if (hasConfigDialog(row_data)) {
-         $button.addClass('disabled');
-         return $button;
-      }
-
+      return $button;
    }
    else {
 
@@ -1653,18 +1651,19 @@ $(document).ready(function () {
             className: 'text-center',
             width: '200px',
             sortable: false,
-            render: function (data, type, row) {
+            render: function (data, type, script) {
 
-               const edit_script_btn = `
+               const isScriptEnabled = script.is_enabled;
+
+               const editScriptButton = `
                       <a href='#'
-                         title='${i18n.edit_script}'
-                         class='btn btn-info btn-sm ${!row.input_handler ? 'disabled' : ''}'
+                         class='btn btn-info btn-sm ${!script.input_handler ? 'disabled' : ''}'
                          data-toggle="modal"
                          data-target="#modal-script">
                            <i class='fas fa-edit'></i>
                      </a>
                `;
-               const edit_url_btn = `
+               const sourceCodeButton = `
                       <a href='${data.edit_url}'
                         class='btn btn-secondary btn-sm ${!data.edit_url ? 'disabled' : ''}'
                         title='${i18n.view_src_script}'>
@@ -1672,11 +1671,11 @@ $(document).ready(function () {
                       </a>
                `;
 
-               return `<div>${edit_script_btn}${edit_url_btn}</div>`;
+               return `<div>${(isScriptEnabled ? editScriptButton : '')}${sourceCodeButton}</div>`;
             },
             createdCell: function (td, cellData, row) {
 
-               const $enableButton = create_enabled_button(row);
+               const $enableButton = createScriptStatusButton(row);
                $(td).find('div').prepend($enableButton);
             }
          }
@@ -1708,7 +1707,7 @@ $(document).ready(function () {
       });
 
    // load templates for the script
-   $('#scripts-config').on('click', 'a[data-target="#modal-script"]', function (e) {
+   $('#scripts-config').on('click', '[data-target="#modal-script"]', function (e) {
 
       const row_data = $script_table.row($(this).parent().parent()).data();
       const script_key = row_data.key;
