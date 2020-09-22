@@ -73,7 +73,7 @@ function alert_notification:render()
         },
         model = self
     }
-    tprint(context)
+    -- tprint(context)
     -- Generate the template from the notification.template file
     return template.gen('pages/components/notification.template', context)
 end
