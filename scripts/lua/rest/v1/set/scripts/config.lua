@@ -3,16 +3,17 @@
 --
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" .. package.path
 
 require "lua_utils"
 
 local info = ntop.getInfo() 
 
+local scripts_import_export = require "scripts_import_export"
 local json = require ("dkjson")
 local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
-local user_scripts = require "user_scripts"
 local rest_utils = require("rest_utils")
 local tracker = require("tracker")
 
@@ -36,31 +37,11 @@ end
 
 local data = json.decode(_POST["JSON"])
 
-if(table.empty(data)) then
-  rest_utils.answer(rest_utils.consts.err.bad_format)
-  return
-end
+local scripts_import_export = scripts_import_export:create()
+local res = scripts_import_export:import(data)
 
-if data["0"] == nil then
-  rest_utils.answer(rest_utils.consts.err.bad_content)
-  return
-end
-
--- ################################################
-
-local failure = false
-
-for config_id, configset in pairs(data) do
-  if configset.name ~= nil then
-    local success, err = user_scripts.createOrReplaceConfigset(configset)
-    if not success then
-      failure = true
-    end
-  end
-end
-
-if failure then
-  rest_utils.answer(rest_utils.consts.err.internal_error)
+if res.err then
+  rest_utils.answer(res.err)
   return
 end
 
