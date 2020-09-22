@@ -30,17 +30,9 @@ $(document).ready(function() {
         $(`${selector}`).selectpicker('refresh');
     }
 
-    let dtConfig = DataTableUtils.getStdDatatableConfig( [
-        {
-            text: '<i class="fas fa-plus"></i>',
-            enabled: !ADD_POOL_DISABLED,
-            action: () => { $(`#add-pool`).modal('show'); }
-        }
-    ]);
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, endpoints.get_all_pools, 'rsp');
-    dtConfig = DataTableUtils.extendConfig(dtConfig, {
-        stateSave: true,
-        columns: [
+    const makeDataTableColumns = () => {
+
+        const columns = [
             {
                 data: 'name',
                 width: "10%",
@@ -102,6 +94,9 @@ $(document).ready(function() {
                 width: "10%",
                 render: function(_, type, pool) {
 
+                    /* disable actions for ALL_POOL page */
+                    if (IS_ALL_POOL) return;
+
                     return (`
                         <div>
                             <a data-toggle="modal" class="btn btn-sm btn-info" href="#edit-pool">
@@ -114,7 +109,33 @@ $(document).ready(function() {
                     `);
                 }
             }
-        ],
+        ];
+
+        // if the ALL_POOL page is selected then show the pool family
+        if (IS_ALL_POOL) {
+            columns.splice(1, 0, {
+                data: 'key',
+                render: (key, type, pool) => {
+                    if (type == "display") return i18n.poolFamilies[key];
+                    return key;
+                }
+            });
+        }
+
+        return columns;
+    }
+
+    let dtConfig = DataTableUtils.getStdDatatableConfig( [
+        {
+            text: '<i class="fas fa-plus"></i>',
+            enabled: !ADD_POOL_DISABLED || IS_ALL_POOL,
+            action: () => { $(`#add-pool`).modal('show'); }
+        }
+    ]);
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, endpoints.get_all_pools, 'rsp');
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        stateSave: true,
+        columns: makeDataTableColumns(),
         initComplete: function(settings, json) {
 
             const tableAPI = settings.oInstance.api();

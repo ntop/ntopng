@@ -16,6 +16,9 @@
                         <thead>
                             <tr>
                                 <th>{{ i18n("pools.name") }}</th>
+                                {% if pool.is_all_pool then %}
+                                <th>{{ i18n("pools.family") }}</th>
+                                {% end %}
                                 <th>{{ i18n("pools.members") }}</th>
                                 <th>{{ i18n("pools.recipients") }}</th>
                                 <th>{{ i18n("pools.configuration") }}</th>
@@ -67,8 +70,9 @@ pool = pool
     const endpoints = {* json.encode(pool.endpoints) *};
     const poolType = "{{ pool.name }}";
 
-    const ADD_POOL_DISABLED = {{ pool.instance:default_only() }};
-    const DEFAULT_POOL_ID = {{ pool.instance.DEFAULT_POOL_ID }};
+    const ADD_POOL_DISABLED = {{ (not pool.is_all_pool and pool.instance:default_only() or false)}};
+    const IS_ALL_POOL = {{ pool.is_all_pool }};
+    const DEFAULT_POOL_ID = {{ (pool.instance.DEFAULT_POOL_ID or 0) }};
 
     Object.freeze(all_members);
     Object.freeze(endpoints);
@@ -84,6 +88,8 @@ pool = pool
     i18n.other = "{{ i18n('other') }}";
     i18n.and = "{{ i18n('and') }}";
     i18n.unbounded_members = "{{ i18n('pools.unbounded_members') }}";
+
+    i18n.poolFamilies = {* json.encode(pool.pool_families) *};
 
     i18n.rest = {
         INVALID_HOST: "{{ i18n('rest_consts.INVALID_HOST') }}",

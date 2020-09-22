@@ -21,11 +21,15 @@ local host_pool_pools         = require "host_pool_pools"
 local local_network_pools     = require "local_network_pools"
 local active_monitoring_pools = require "active_monitoring_pools"
 
+-- ****** SNMP Pool ******
 local snmp_device_pools
+
 -- load the snmp module only in the pro version
 if ntop.isPro() then
    snmp_device_pools = require "snmp_device_pools"
 end
+
+-- ************************
 
 local recipients = require "recipients"
 local recipients_instance = recipients:create()
@@ -33,12 +37,14 @@ local recipients_instance = recipients:create()
 -- *************** end of requires ***************
 
 local is_nedge = ntop.isnEdge()
+
 -- select the default page
-local page = _GET["page"] or (is_nedge and "active_monitoring" or "host")
+local page = _GET["page"] or 'all'
 
 sendHTTPContentTypeHeader('text/html')
 
 if not haveAdminPrivileges() then return end
+
 page_utils.set_active_menu_entry(page_utils.menu_entries.manage_pools)
 
 -- append the menu above the page
@@ -55,13 +61,15 @@ page_utils.print_page_title(i18n("pools.pools"))
 
 -- ************************************* ------
 
+local ALL_POOL_GET_ENDPOINT = '/lua/rest/v1/get/pools.lua'
+
 local pool_types = {
 
    -- Normal Pools
    ["interface"] = interface_pools,
-   ["network"] = local_network_pools,
+   ["local_network"] = local_network_pools,
    ["active_monitoring"] = active_monitoring_pools,
-   ["snmp"] = snmp_device_pools,
+   ["snmp_device"] = snmp_device_pools,
    ["host"] = host_pools,
 
    -- Default Only Pools
@@ -71,17 +79,18 @@ local pool_types = {
    ["mac"] = device_pools
 }
 
-local pool_instance = pool_types[page]:create()
-local pool_type = (page == "snmp" and "snmp/device" or page)
+local pool_instance = (page ~= 'all' and pool_types[page]:create() or {})
+local pool_type = (page == "snmp_device" and "snmp/device" or page)
 
 local menu = {
    entries = {
 
       -- Normal Pools
+      { key = "all", title = i18n("pools.pool_names.all"), url = "?", hidden = false},
       { key = "host", title = i18n("pools.pool_names.host"), url = "?page=host", hidden = is_nedge},
       { key = "interface", title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = is_nedge},
-      { key = "network", title = i18n("pools.pool_names.local_network"), url = "?page=network", hidden = false},
-      { key = "snmp", title = i18n("pools.pool_names.snmp"), url = "?page=snmp", hidden = (not ntop.isPro() or is_nedge)},
+      { key = "local_network", title = i18n("pools.pool_names.local_network"), url = "?page=local_network", hidden = false},
+      { key = "snmp_device", title = i18n("pools.pool_names.snmp"), url = "?page=snmp_device", hidden = (not ntop.isPro() or is_nedge)},
       { key = "active_monitoring", title = i18n("pools.pool_names.active_monitoring"), url = "?page=active_monitoring", hidden = false },
 
    -- Default Only Pools
@@ -93,22 +102,31 @@ local menu = {
    current_page = page
 }
 
+local pool_families = {}
+for _, entry in ipairs(menu.entries) do
+   pool_families[entry.key] = entry.title
+end
+
+local endpoints = {
+   get_all_pools  = (page == "all" and ALL_POOL_GET_ENDPOINT or string.format("/lua/rest/v1/get/%s/pools.lua", pool_type)),
+   add_pool       = string.format("/lua/rest/v1/add/%s/pool.lua", pool_type),
+   edit_pool      = string.format("/lua/rest/v1/edit/%s/pool.lua", pool_type),
+   delete_pool    = string.format("/lua/rest/v1/delete/%s/pool.lua", pool_type),
+}
+
 local context = {
     template_utils = template_utils,
     json = json,
     menu = menu,
     pool = {
         name = page,
+        pool_families = pool_families,
+        is_all_pool = (page == "all"),
         instance = pool_instance,
-        all_members = pool_instance:get_all_members(),
-        configsets = pool_instance:get_available_configset_ids(),
-        assigned_members = pool_instance:get_assigned_members(),
-        endpoints = {
-            get_all_pools  = string.format("/lua/rest/v1/get/%s/pools.lua", pool_type),
-            add_pool       = string.format("/lua/rest/v1/add/%s/pool.lua", pool_type),
-            edit_pool      = string.format("/lua/rest/v1/edit/%s/pool.lua", pool_type),
-            delete_pool    = string.format("/lua/rest/v1/delete/%s/pool.lua", pool_type),
-        },
+        all_members = (page ~= "all" and pool_instance:get_all_members() or {}),
+        configsets = (page ~= "all" and pool_instance:get_available_configset_ids() or {}),
+        assigned_members = (page ~= "all" and pool_instance:get_assigned_members() or {}),
+        endpoints = endpoints,
         endpoint_types = notification_configs.get_types(),
         notification_recipients = recipients_instance:get_all_recipients()
     }

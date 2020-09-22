@@ -3203,6 +3203,7 @@ local lang = {
     ["edit_host_pool"] = "Edit Host Pool",
     ["edit_pools"] = "Edit Pools",
     ["edit_recipients"] = "Edit recipients",
+    ["family"] = "Family",
     ["id"] = "ID",
     ["insert_name"] = "i.e. MyPool",
     ["members"] = "Members",
@@ -3230,6 +3231,7 @@ local lang = {
     },
     ["pool_names"] = {
       ["active_monitoring"] = "Active Monitoring",
+      ["all"] = "All",
       ["devices"] = "Devices",
       ["flows"] = "Flows",
       ["host"] = "Hosts",
