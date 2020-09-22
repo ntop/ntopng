@@ -771,18 +771,22 @@ function user_scripts.loadUnloadUserScripts(is_load)
 	 for confid, config in pairs(configsets) do
 	    -- Call user script callbacks for
 	    -- each available configuration existing for the user script
-	    for hook, hook_config in pairs(config.config[subdir.id][script.key]) do
-	       -- For each configuration there are multiple hooks.
-	       -- Some hooks can be enabled, whereas some other hooks can be disabled:
-	       -- methods onLoad/onUnload are only called for hooks that are enabled.
-	       if script and hook_config.enabled then
-		  -- onLoad/onUnload methods are ONLY called for user scripts that are enabled
-		  if is_load and script.onLoad then
-		     -- This is a load operation
-		     script.onLoad(hook, hook_config)
-		  elseif not is_load and script.onUnload then
-		     -- This is an unload operation
-		     script.onUnload(hook, hook_config)
+	    local s = config.config[subdir.id][script.key]
+
+	    if(s ~= nil) then 
+	       for hook, hook_config in pairs(s) do
+		  -- For each configuration there are multiple hooks.
+		  -- Some hooks can be enabled, whereas some other hooks can be disabled:
+		  -- methods onLoad/onUnload are only called for hooks that are enabled.
+		  if script and hook_config.enabled then
+		     -- onLoad/onUnload methods are ONLY called for user scripts that are enabled
+		     if is_load and script.onLoad then
+			-- This is a load operation
+			script.onLoad(hook, hook_config)
+		     elseif not is_load and script.onUnload then
+			-- This is an unload operation
+			script.onUnload(hook, hook_config)
+		     end
 		  end
 	       end
 	    end
