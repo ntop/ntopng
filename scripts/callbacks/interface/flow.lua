@@ -360,6 +360,8 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    alert_type_params = nil
    alerted_status_score = -1
 
+   local use_score = ntop.isEnterpriseM()
+
    if hooks then
       hooks = hooks[mod_fn]
    end
@@ -449,10 +451,10 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    end
 
    -- Only trigger the alert if its score is greater than the currently
-   -- triggered alert score
+   -- triggered alert score (when score is supported)
    if areAlertsEnabled() and 
       alerted_status and 
-      (alerted_status_score > flow.getAlertedStatusScore()) then
+      (not use_score or (alerted_status_score > flow.getAlertedStatusScore())) then
 
       triggerFlowAlert(now, l4_proto)
 
