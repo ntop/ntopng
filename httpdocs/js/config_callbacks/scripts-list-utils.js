@@ -1331,10 +1331,14 @@ const createScriptStatusButton = (row_data) => {
 
       $button.html(`<i class='fas fa-toggle-on'></i>`);
       $button.addClass('btn-success');
-      $button.attr('data-target', '#modal-script');
-      $button.attr('data-toggle', 'modal');
 
-      return $button;
+
+      if (row_data.input_handler) {
+         $button.attr('data-target', '#modal-script');
+         $button.attr('data-toggle', 'modal');
+         return $button;
+      }
+
    }
    else {
 

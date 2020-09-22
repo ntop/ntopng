@@ -58,6 +58,7 @@ class DataTableUtils {
      *  data: object,
      *  icon: string,
      *  modal: string,
+     *  href: string,
      *  hidden: bool,
      * }
      * @param {*} actions
@@ -67,14 +68,10 @@ class DataTableUtils {
         const buttons = [];
         actions.forEach((action) => {
 
-            if (action.modal === undefined) {
-                throw '[DataTableUtils]::A modal must be associated inside an action!';
-            }
-
             let button = (`
                 <a
-                    href='${action.modal}'
-                    data-toggle='modal'
+                    href='${action.href || action.modal}'
+                    ${action.modal ? "data-toggle='modal'" : ""}
                     class='btn btn-sm ${action.class} ${action.hidden ? 'invisible' : 'visible'}'
                     >
                     <i class='fas ${action.icon}'></i>
