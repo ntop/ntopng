@@ -878,3 +878,6 @@ footer {
   border-color: #ced4d9;
   background-color: #fff;
 }
+.btn-gray {
+  background-color: #e5e5e5 !important;
+}
