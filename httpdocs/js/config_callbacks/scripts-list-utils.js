@@ -1327,18 +1327,18 @@ const createScriptStatusButton = (row_data) => {
 
    const $button = $(`<button type='button' class='btn btn-sm'></button>`);
 
-   if (!is_enabled) {
+   if (!is_enabled && row_data.input_handler) {
+      $button.html(`<i class='fas fa-toggle-on'></i>`);
+      $button.addClass('btn-info');
+      $button.attr('data-target', '#modal-script');
+      $button.attr('data-toggle', 'modal');
+      return $button;
+   }
+
+   if (!is_enabled && !row_data.input_handler) {
 
       $button.html(`<i class='fas fa-toggle-on'></i>`);
       $button.addClass('btn-success');
-
-
-      if (row_data.input_handler) {
-         $button.attr('data-target', '#modal-script');
-         $button.attr('data-toggle', 'modal');
-         return $button;
-      }
-
    }
    else {
 
@@ -1658,24 +1658,15 @@ $(document).ready(function () {
             render: function (data, type, script) {
 
                const isScriptEnabled = script.is_enabled;
+               const isEditScriptHidden = !isScriptEnabled;
 
-               const editScriptButton = `
-                      <a href='#'
-                         class='btn btn-info btn-sm ${!script.input_handler ? 'disabled' : ''}'
-                         data-toggle="modal"
-                         data-target="#modal-script">
-                           <i class='fas fa-edit'></i>
-                     </a>
-               `;
-               const sourceCodeButton = `
-                      <a href='${data.edit_url}'
-                        class='btn btn-secondary btn-sm ${!data.edit_url ? 'disabled' : ''}'
-                        title='${i18n.view_src_script}'>
-                           <i class='fas fa-file-code'></i>
-                      </a>
-               `;
+               const srcCodeButtonEnabled = !data.edit_url ? 'disabled' : '';
+               const editScriptButtonEnabled = !script.input_handler ? 'disabled' : '';
 
-               return `<div>${(isScriptEnabled ? editScriptButton : '')}${sourceCodeButton}</div>`;
+               return DataTableUtils.createActionButtons([
+                  { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit', hidden: isEditScriptHidden },
+                  { class: `btn-secondary ${srcCodeButtonEnabled}`, icon: 'fa-file-code', href: data.edit_url}
+               ]);
             },
             createdCell: function (td, cellData, row) {
 
@@ -1711,7 +1702,7 @@ $(document).ready(function () {
       });
 
    // load templates for the script
-   $('#scripts-config').on('click', '[data-target="#modal-script"]', function (e) {
+   $('#scripts-config').on('click', '[href="#modal-script"],[data-target="#modal-script"]', function (e) {
 
       const row_data = $script_table.row($(this).parent().parent()).data();
       const script_key = row_data.key;
