@@ -410,7 +410,7 @@ if((page == "overview") or (page == nil)) then
 	 end
 
 	 print("</th><td nowrap>" .. ifstats["probe.ip"])
-	 
+
 	 if not isEmptyString(ifstats["probe.public_ip"]) then
 	    print(" / <A HREF=\"http://"..ifstats["probe.public_ip"].."\">"..ifstats["probe.public_ip"].."</A> <i class='fas fa-external-link-alt'><i>")
 	 end
@@ -424,7 +424,7 @@ if((page == "overview") or (page == nil)) then
 
 	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime")..
 		  " <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
-	 
+
 	 if((ifstats["timeout.collected_lifetime"] ~= nil) and (ifstats["timeout.collected_lifetime"] > 0)) then
 	    -- We're in collector mode on the nProbe side
 	    print(" "..secondsToTime(ifstats["timeout.lifetime"]).." [".. i18n("if_stats_overview.remote_flow_lifetime")..": "..secondsToTime(ifstats["timeout.collected_lifetime"]).."]")
@@ -452,7 +452,7 @@ if((page == "overview") or (page == nil)) then
 	 if(tdiff > 10) then print("<font color=red><b>") end
 	 print(formatValue(tdiff).." sec")
 	 if(tdiff > 10) then print("</b></font>") end
-	 
+
 	 print("</td>")
 	 cur_i = cur_i + 1
       end
@@ -544,13 +544,13 @@ if((page == "overview") or (page == nil)) then
       print("</small></ul></td></tr>\n")
    end
 
-   if is_physical_iface then
+   if is_physical_iface and not ifstats.isView then
       print("<tr>")
       print("<th>"..i18n("mtu").."</th><td colspan=2  nowrap>"..ifstats.mtu.." "..i18n("bytes").."</td>\n")
       local speed_key = 'ntopng.prefs.'..ifname..'.speed'
       local speed = ntop.getCache(speed_key)
       if (tonumber(speed) == nil) then
-	 speed = ifstats.speed
+	      speed = ifstats.speed
       end
       print("<th width=250>"..i18n("speed").."</th><td colspan=2>" .. bitsToSize(speed * 1000000) .. "</td>")
       print("</tr>")
@@ -1821,7 +1821,7 @@ elseif(page == "config") then
 	 id = "show_dyn_iface_traffic",
 	 checked = show_dyn_iface_traffic,
        }))
-         
+
       print[[<br><br><small><p><b>]] print(i18n("notes")) print [[</b><ul><li>]] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print [[</li></ul></p></small>
 	 </td>
       </tr>]]
