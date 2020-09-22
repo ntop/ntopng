@@ -97,16 +97,10 @@ $(document).ready(function() {
                     /* disable actions for ALL_POOL page */
                     if (IS_ALL_POOL) return;
 
-                    return (`
-                        <div>
-                            <a data-toggle="modal" class="btn btn-sm btn-info" href="#edit-pool">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a data-toggle="modal" class="btn btn-sm btn-danger ${(pool.pool_id != DEFAULT_POOL_ID) ? '' : 'invisible'}" href="#remove-pool">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </div>
-                    `);
+                    return DataTableUtils.createActionButtons([
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool' },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-pool', hidden: (pool.pool_id == DEFAULT_POOL_ID)}
+                    ]);
                 }
             }
         ];

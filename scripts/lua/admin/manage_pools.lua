@@ -67,7 +67,7 @@ local pool_types = {
 
    -- Normal Pools
    ["interface"] = interface_pools,
-   ["local_network"] = local_network_pools,
+   ["network"] = local_network_pools,
    ["active_monitoring"] = active_monitoring_pools,
    ["snmp_device"] = snmp_device_pools,
    ["host"] = host_pools,
@@ -89,7 +89,7 @@ local menu = {
       { key = "all", title = i18n("pools.pool_names.all"), url = "?", hidden = false},
       { key = "host", title = i18n("pools.pool_names.host"), url = "?page=host", hidden = is_nedge},
       { key = "interface", title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = is_nedge},
-      { key = "local_network", title = i18n("pools.pool_names.local_network"), url = "?page=local_network", hidden = false},
+      { key = "local_network", title = i18n("pools.pool_names.local_network"), url = "?page=network", hidden = false},
       { key = "snmp_device", title = i18n("pools.pool_names.snmp"), url = "?page=snmp_device", hidden = (not ntop.isPro() or is_nedge)},
       { key = "active_monitoring", title = i18n("pools.pool_names.active_monitoring"), url = "?page=active_monitoring", hidden = false },
 
