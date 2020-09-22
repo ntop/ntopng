@@ -712,7 +712,8 @@ function host_pools_nedge.migrateHostPools()
    end
 
    -- Do the actual migration
-   if migration_ifid then
+   -- table.len >= 1 used to check whether pools different from the default one were present
+   if migration_ifid and table.len(host_pools_migration.export(migration_ifid)) >= 1 then
       -- Call the `new` import with the `old` export which takes ifid as argument
       host_pools_nedge.import(host_pools_migration.export(migration_ifid))
 
