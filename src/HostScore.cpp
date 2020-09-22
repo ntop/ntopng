@@ -30,88 +30,80 @@ HostScore::HostScore() {
 
 /* *************************************** */
 
-u_int32_t HostScore::sumOldValues(const score_t score[MAX_NUM_SCRIPT_CATEGORIES]) {
+u_int32_t HostScore::sumValues(bool as_client) const {
   u_int32_t res = 0;
+  const u_int16_t *src = as_client ? cli_score : srv_score;
 
   for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
-    res += score[i].old_score;
+    res += src[i];
 
   return res;
 };
 
 /* *************************************** */
 
-void HostScore::refreshValue(score_t *score) {
-  /* Add the score calculated on the idle flows */
-  score->new_score += score->idle_flow_score;
+/*
+  Increases a value for the `script_category` score by `score`. Client/server score is increased,
+  according to parameter `as_client`. The actual increment performed is returned by the function.
+  NOTE: The actual increment performed can be less than `score`, if incrementing by `score` would have
+  caused an overflow.
 
-  /* Consolidate the new_score and prepare the counter for the next run */
-  score->old_score = score->new_score;
+  HostScore::incValue must be called from the same thread of HostScore::decValue to prevent races.
+*/
+u_int16_t HostScore::incValue(u_int16_t score, ScriptCategory script_category, bool as_client) {
+  u_int16_t *dst = as_client ? cli_score : srv_score;
+  u_int16_t actual_inc = 0;
 
-  /* Reset new scores to start counting again */
-  score->new_score = score->idle_flow_score = 0;
-}
+  if(script_category >= MAX_NUM_SCRIPT_CATEGORIES || score == 0)
+    return 0;
 
-/* *************************************** */
-
-/* This should be called once per minute. It computes the "visible" score
- * value (the one returned by getValue()). */
-void HostScore::refreshValue() {
-  /* Lock to access the idle score which is updated in another thread different from this */
-  m.lock(__FILE__, __LINE__);
-
-  for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
-    refreshValue(&cli_score[i]),
-      refreshValue(&srv_score[i]);
-
-  m.unlock(__FILE__, __LINE__);
-}
-
-/* *************************************** */
-
-/* This should be called once per minute. It computes the "visible" score
- * value (the one returned by getValue()). */
-void HostScore::incValue(const u_int16_t score[MAX_NUM_SCRIPT_CATEGORIES], bool as_client) {
-  score_t *dst = as_client ? cli_score : srv_score;
-
-  for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
-    dst[i].new_score += score[i];
-}
-
-/* *************************************** */
-
-/* This is called on short-lived flows which go idle */
-void HostScore::incIdleFlowScore(const u_int16_t score[MAX_NUM_SCRIPT_CATEGORIES], bool as_client) {
-  score_t *dst = as_client ? cli_score : srv_score;
-  /*
-    Necessary to lock as the increase on idle flow scores is performed from a thread
-    which is different from the one who reads the same values.
-  */
-  m.lock(__FILE__, __LINE__);
-
-  for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
-    dst[i].idle_flow_score += score[i];
+  if(dst[script_category] + score <= (u_int16_t)-1) {
+    /* Enough room to do a full increment by `score` */
+    actual_inc = score;
+    dst[script_category] += score;
+  } else if (dst[script_category] < (u_int16_t)-1){
+    /* Not enough room to do a full increment by `score`, let's reach the maximum possible value and set the
+       actual increment performed. */
+    actual_inc = (u_int16_t)-1 - dst[script_category];
+    dst[script_category] += actual_inc;
   }
 
-  m.unlock(__FILE__, __LINE__);
+  return actual_inc;
 }
 
 /* *************************************** */
 
-void HostScore::lua_breakdown(lua_State *vm, const score_t score[MAX_NUM_SCRIPT_CATEGORIES], const char * const key) {
-  u_int32_t total = 0;
-  u_int16_t snapshot[MAX_NUM_SCRIPT_CATEGORIES];
+/*
+  Decreases a value for the `script_category` score by `score`. Client/server score is decreased,
+  according to parameter `as_client`. The actual decrement performed is returned by the function.
+  NOTE: The actual decrement is either `score` or zero if `script_category` is unknown.
 
-  /* Snapshot current scores so they won't change in-use
-     Also compute the total so that we can return results as a percentage.
-     Lock as old_scores may be reset.
-  */
-  m.lock(__FILE__, __LINE__);
+  HostScore::decValue must be called from the same thread of HostScore::incValue to prevent races.
+*/
+u_int16_t HostScore::decValue(u_int16_t score, ScriptCategory script_category, bool as_client) {
+  u_int16_t *dst = as_client ? cli_score : srv_score;
+
+  if(script_category >= MAX_NUM_SCRIPT_CATEGORIES || score == 0)
+    return 0;
+
+  if(dst[script_category] - score >= 0)
+    /* Decrement leaves the destination consistent */
+    dst[script_category] -= score;
+  else
+    /* Something was wrong */
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Decrement of host score yielding a negative number.");
+
+  return score;
+}
+
+/* *************************************** */
+
+void HostScore::lua_breakdown(lua_State *vm, bool as_client) const {
+  u_int32_t total = 0;
+  const u_int16_t *src = as_client ? cli_score : srv_score;
 
   for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
-    snapshot[i] = score[i].old_score, total += score[i].old_score;
-
-  m.unlock(__FILE__, __LINE__);
+    total += src[i];
 
   if(total == 0) total = 1; /* Prevents zero-division errors */
 
@@ -119,22 +111,25 @@ void HostScore::lua_breakdown(lua_State *vm, const score_t score[MAX_NUM_SCRIPT_
 
   for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
     lua_pushinteger(vm, i); /* The integer category id as key */
-    lua_pushnumber(vm, snapshot[i] / (float)total * 100); /* The % as value */
+    lua_pushnumber(vm, src[i] / (float)total * 100); /* The % as value */
     lua_settable(vm, -3);
   }
 
-  lua_pushstring(vm, key);
+  lua_pushstring(vm, as_client ? "as_client" : "as_server");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
 
 /* *************************************** */
 
-void HostScore::lua_breakdown(lua_State *vm) {
+/*
+  Outputs Lua tables for client and server per-category score breakdown.
+*/
+void HostScore::lua_breakdown(lua_State *vm) const {
   lua_newtable(vm);
 
-  lua_breakdown(vm, cli_score, "as_client");
-  lua_breakdown(vm, srv_score, "as_server");
+  lua_breakdown(vm, true  /* as client */);
+  lua_breakdown(vm, false /* as server */);
 
   lua_pushstring(vm, "score_pct");
   lua_insert(vm, -2);

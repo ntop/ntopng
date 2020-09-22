@@ -48,7 +48,6 @@ class Flow : public GenericHashEntry {
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
   u_int16_t cli_score[MAX_NUM_SCRIPT_CATEGORIES], srv_score[MAX_NUM_SCRIPT_CATEGORIES], flow_score;
-  bool peers_score_accounted;
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
   Bitmap status_map;              /* The bitmap of the possible problems on the flow */
@@ -660,7 +659,6 @@ class Flow : public GenericHashEntry {
   inline const u_int16_t * const getCliScore() const { return(cli_score);  };
   inline const u_int16_t * const getSrvScore() const { return(srv_score);  };
   inline const u_int16_t getScore()            const { return(flow_score); };
-  inline void setPeersScoreAccounted()     { peers_score_accounted = true; };
 
 #ifdef HAVE_NEDGE
   inline void setLastConntrackUpdate(u_int32_t when) { last_conntrack_update = when; }

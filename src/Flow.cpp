@@ -48,7 +48,6 @@ Flow::Flow(NetworkInterface *_iface,
   alert_type = alert_none;
   alert_level = alert_level_none;
   alerted_status = status_normal;
-  peers_score_accounted = false;
   status_infos = NULL;
   ndpi_flow_risk_bitmap = 0;
   iec104_typeid_mask[0] = 0, iec104_typeid_mask[1] = 0;
@@ -1447,13 +1446,6 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
 				     cli_host->get_ip()->isBroadcastAddress());
       }
     }
-
-    if(!peers_score_accounted && idle()) {
-      /* The flow went idle to quickly as the run_min_flows_tasks was not
-       * called. Account the score using a separate counter. */
-      cli_host->getScore()->incIdleFlowScore(getCliScore(), true);
-      srv_host->getScore()->incIdleFlowScore(getSrvScore(), false);
-    }
   }
 
   // Update interface DSCP stats
@@ -2364,7 +2356,6 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
     break;
 
   case hash_entry_state_idle:
-    postFlowSetIdle(tv);
     dumpCheck(tv, htstats->no_time_left, true);
     break;
   }
@@ -2376,6 +2367,11 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
      possibly perform lua calls on the flow. */
   if(!htstats->skip_user_scripts)
     performLuaCalls(tv, htstats);
+
+  /* Finish with post-idle operations. Do this once lua calls have been performed, as lua calls may affect flow status, which
+     in turn, affects post-idle operations. */
+  if(get_state() == hash_entry_state_idle)
+    postFlowSetIdle(tv);    
 
   GenericHashEntry::periodic_hash_entry_state_update(user_data);
 
@@ -4366,13 +4362,11 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
     if(cli_h) {
       cli_h->setMisbehavingFlowsStatusMap(status_map, true);
       cli_h->incNumMisbehavingFlows(true);
-      cli_h->getScore()->incValue(getCliScore(), true);
     }
 
     if(srv_h) {
       srv_h->setMisbehavingFlowsStatusMap(status_map, false);
       srv_h->incNumMisbehavingFlows(false);
-      srv_h->getScore()->incValue(getSrvScore(), false);
     }
 
     iface->decNumMisbehavingFlows();
@@ -4381,6 +4375,35 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
   if(isFlowAlerted()) {
     if(cli_h) cli_h->decNumAlertedFlows();
     if(srv_h) srv_h->decNumAlertedFlows();
+  }
+
+  /*
+     Decrease client and server host scores. To perform the update, unsafe pointers are accessed.
+     Unsafe pointers are pointers to the client and server which, in case of view interfaces, are shared
+     across MULTIPLE viewed interfaces. For example, if we have a view of eno1 and eno2, both eno1 and eno2
+     may point to the same hosts, instantiated inside the view. For this reason, it is potentially unsafe to access these pointers.
+
+     However, here it is OK to use unsafe pointers as this function is called sequentially for every viewed interface of a view.
+
+     Client and server host scores are decreased using per-category values stored inside the flow. These per-category values
+     were previously been incremented when executing Lua scripts in Flow::setStatus.
+  */
+  HostScore *clis = NULL, *srvs = NULL;
+  if(unsafeGetClient()) clis = unsafeGetClient()->getScore();
+  if(unsafeGetServer()) srvs = unsafeGetServer()->getScore();
+
+  if(clis) {
+    for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
+      ScriptCategory script_category = (ScriptCategory)i;
+      if(cli_score[script_category]) clis->decValue(cli_score[script_category], script_category, true  /* as client */);
+    }
+  }
+
+  if(srvs) {
+    for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
+      ScriptCategory script_category = (ScriptCategory)i;
+      if(srv_score[script_category]) srvs->decValue(srv_score[script_category], script_category, false /* as server */);
+    }
   }
 }
 
@@ -5104,8 +5127,17 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
     if(ntop->getPrefs()->is_enterprise_m_edition()
        && script_category < MAX_NUM_SCRIPT_CATEGORIES) {
       flow_score += flow_inc;
-      cli_score[script_category] += cli_inc;
-      srv_score[script_category] += srv_inc;
+
+      /*
+	Increase client and server host scores. Here it is OK to use unsafe pointers (see explanation in Flow::postFlowSetIdle) as
+	this function is called sequentially on all the view interfaces belonging to the same view.
+
+	The actual increase is the one returned by the incValue function and it can be less thant the original increase (this is
+	because the actual increase could have caused an overflow).
+       */
+
+      if(unsafeGetClient()) cli_score[script_category] += unsafeGetClient()->getScore()->incValue(cli_inc, script_category, true  /* as client */);
+      if(unsafeGetServer()) srv_score[script_category] += unsafeGetServer()->getScore()->incValue(srv_inc, script_category, false /* as server*/);
 
       if(!status_infos)
 	status_infos = (StatusInfo*) calloc(BITMAP_NUM_BITS, sizeof(StatusInfo));
@@ -5116,14 +5148,6 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
 
 	status_infos[status].score = flow_inc;
       }
-#ifdef NTOPNG_PRO
-      if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
-	/* Periodic scripts (e.g. minute.lua) are not executed while reading a
-	 * PCAP file. Increment the peers score here. */
-	if(get_cli_host()) get_cli_host()->getScore()->incValue(getCliScore(), true);  get_cli_host()->getScore()->refreshValue();
-	if(get_srv_host()) get_srv_host()->getScore()->incValue(getSrvScore(), false); get_srv_host()->getScore()->refreshValue();
-      }
-#endif
     }
 #endif
 

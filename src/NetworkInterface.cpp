@@ -7666,33 +7666,6 @@ struct ndpi_detection_module_struct* NetworkInterface::get_ndpi_struct() const {
 
 /* *************************************** */
 
-static bool run_compute_hosts_score(GenericHashEntry *f, void *user_data, bool *matched) {
-  Flow *flow = (Flow*)f;
-
-  /* Update the peers score */
-  if(flow->unsafeGetClient()) flow->unsafeGetClient()->getScore()->incValue(flow->getCliScore(), true);
-  if(flow->unsafeGetServer()) flow->unsafeGetServer()->getScore()->incValue(flow->getSrvScore(), false);
-  flow->setPeersScoreAccounted();
-
-  *matched = true;
-  return(false); /* false = keep on walking */
-}
-
-void NetworkInterface::computeHostsScore() {
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  /* This function accesses shared host data via unsafeGetClient/unsafeGetServer
-   * so cannot be called concurrently on subinterfaces. */
-  if(isSubInterface())
-    return;
-
-  if(flows_hash)
-    walker(&begin_slot, walk_all, walker_flows, run_compute_hosts_score, NULL);
-}
-
-/* *************************************** */
-
 /* Checks if there are new dropped alerts since the last check.
  * This is only intented to be called by the alerts_drops system plugin.
  * The prev_dropped_alerts cannot be reused because that is handled by another

@@ -1933,21 +1933,6 @@ static int ntop_set_host_operating_system(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_compute_hosts_score(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  ntop_interface->computeHostsScore();
-
-  lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_num_local_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4537,7 +4522,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
   { "reloadHostPrefs",                  ntop_reload_host_prefs },
   { "setHostOperatingSystem",           ntop_set_host_operating_system },
-  { "computeHostsScore",                ntop_compute_hosts_score },
   { "getNumLocalHosts",                 ntop_get_num_local_hosts },
   { "getNumHosts",                      ntop_get_num_hosts       },
   { "getNumFlows",                      ntop_get_num_flows       },
