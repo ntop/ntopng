@@ -69,13 +69,10 @@ $(document).ready(function () {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
                 render: function () {
-                    return (`
-                        <div class='btn-group btn-group-sm'>
-                            <a data-toggle="modal" class="btn btn-danger" href="#remove-member-host-pool">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </div>
-                    `);
+
+                    return DataTableUtils.createActionButtons([
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool'}
+                    ]);
                 }
             }
         ],
@@ -187,7 +184,7 @@ $(document).ready(function () {
             $(`#remove-modal-feedback`).hide();
         },
         onModalInit: function () {
-            $(`#remove-member-name`).html(`<b>${memberRowData.name}</b>`);
+            $(`.remove-member-name`).html(`${memberRowData.name}`);
             $(`#remove-pool-name`).html(`<b>${selectedPool.name}</b>`);
         },
         beforeSumbit: function () {
