@@ -344,7 +344,7 @@ $(document).ready(function () {
             // set the edit pool link to the default one when the modal opens
             const $editPoolLink = $('#add-snmp-device-modal .edit-pool');
             const editPoolHref = NtopUtils.buildURL(
-                '/lua/admin/manage_pools.lua?', {pool_id: SNMP_DEFAULTS.DEFAULT_POOL, page: 'snmp'},
+                '/lua/admin/manage_pools.lua?', {pool_id: SNMP_DEFAULTS.DEFAULT_POOL, page: 'snmp_device'},
                 true
             );
             $editPoolLink.attr('href', editPoolHref);
@@ -381,7 +381,7 @@ $(document).ready(function () {
             // set the edit pool link
             const $editPoolLink = $('#edit-snmp-device-modal .edit-pool');
             const editPoolHref = NtopUtils.buildURL(
-                '/lua/admin/manage_pools.lua?', {pool_id: selectedSNMPDevice.column_pool_id, page: 'snmp'},
+                '/lua/admin/manage_pools.lua?', {pool_id: selectedSNMPDevice.column_pool_id, page: 'snmp_device'},
                 true, {column_key: selectedSNMPDevice.column_key}
             );
             $editPoolLink.attr('href', editPoolHref);
@@ -438,7 +438,7 @@ $(document).ready(function () {
         const columnKey = new URL(url).searchParams.get('column_key');
 
         const editPoolHref = NtopUtils.buildURL(
-            '/lua/admin/manage_pools.lua?', {pool_id: poolId, page: 'snmp'},
+            '/lua/admin/manage_pools.lua?', {pool_id: poolId, page: 'snmp_device'},
             true, {column_key: columnKey}
         );
 
