@@ -39,7 +39,11 @@ if(ntop.isPro() and (mode ~= "community")) then
       return
    end
 else
-   mode = "&dashboard_mode="..mode
+   if(mode) then
+      mode = "&dashboard_mode="..mode
+   else
+      mode = "&dashboard_mode=community"
+   end
 end
 
 sendHTTPContentTypeHeader('text/html')
