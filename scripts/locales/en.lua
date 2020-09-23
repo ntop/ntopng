@@ -1242,6 +1242,7 @@ local lang = {
     ["elephant_flows_description"] = "Trigger an alert when a flow exchanges more than the configured bytes volume. The Remote to Local direction indicates traffic received by a local host from a remote host.",
     ["ext_alert"] = "External Alert",
     ["ext_alert_description"] = "Receives flow alerts from external endpoints (e.g. Suricata)",
+    ["flow_risk"] = "Flow Risk",
     ["flow_risk_description"] = "Evaluate flow risks reported by nDPI",
     ["invalid_dns_query"] = "Invalid DNS Query",
     ["invalid_dns_query_description"] = "Trigger an alert when a possibly malicious DNS query is detected",

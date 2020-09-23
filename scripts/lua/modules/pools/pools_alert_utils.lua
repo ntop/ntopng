@@ -99,6 +99,7 @@ function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, 
 
       -- Access the cache
       local entity_pool = alert_entity_all_pools[entity_id][pool_id]
+
       if entity_pool and entity_pool["recipients"] then
 	 for _, recipient in pairs(entity_pool["recipients"]) do
 	    local recipient_ok = false
@@ -108,7 +109,6 @@ function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, 
 	       for _, user_script_category in pairs(recipient["recipient_user_script_categories"]) do
 		  if user_script_category == current_script.category.id then
 		     recipient_ok = true
-		     break
 		  end
 	       end
 	    else
@@ -121,7 +121,6 @@ function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, 
 		  -- If the current alert severity is less than the minimum requested severity
 		  -- exclude the recipient
 		  recipient_ok = false
-		  break
 	       end
 	    end
 
