@@ -90,9 +90,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
-  memset(&cli_score, 0, sizeof(cli_score)),
-    memset(&srv_score, 0, sizeof(srv_score)),
-    flow_score = 0;
+  memset(&cli_score, 0, sizeof(cli_score)), memset(&srv_score, 0, sizeof(srv_score)), flow_score = 0;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
@@ -1986,9 +1984,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_get_dir_traffic(vm, true /* Client to Server */);
     lua_get_dir_traffic(vm, false /* Server to Client */);
 
-#ifdef NTOPNG_PRO
     lua_push_int32_table_entry(vm, "score", getScore());
-#endif
 
     if(isICMP()) {
       lua_newtable(vm);
@@ -5123,7 +5119,6 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
   if(!status_map.issetBit(status)) {
     status_map.setBit(status);
 
-#ifdef NTOPNG_PRO
     if(ntop->getPrefs()->is_enterprise_m_edition()
        && script_category < MAX_NUM_SCRIPT_CATEGORIES) {
       flow_score += flow_inc;
@@ -5149,7 +5144,6 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
 	status_infos[status].score = flow_inc;
       }
     }
-#endif
 
     return(true);
   }
