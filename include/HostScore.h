@@ -25,21 +25,32 @@
 class HostScore {
  private:
   u_int16_t cli_score[MAX_NUM_SCORE_CATEGORIES], srv_score[MAX_NUM_SCORE_CATEGORIES];
+  u_int16_t last_min_dec; /* Account the number of decrements in the last minute */
+  u_int32_t next_reset_decrement_time;
+  
+  u_int32_t sum(const bool as_client);
+  void lua_breakdown(lua_State *vm, bool as_client);
 
-  u_int32_t sumValues(const bool as_client) const;
-  void lua_breakdown(lua_State *vm, bool as_client) const;
-
+  void inline checkDecrementReset(time_t when) {
+    if(when > next_reset_decrement_time)
+      last_min_dec = 0, next_reset_decrement_time = when+60;   
+  }
+  
  public:
   HostScore();
 
-  inline u_int32_t getValue()        const { return getClientValue() + getServerValue(); };
-  inline u_int32_t getClientValue()  const { return sumValues(true  /* as client */);    };
-  inline u_int32_t getServerValue()  const { return sumValues(false /* as server */);    };
-
+  inline u_int32_t get()                { return(getClient() + getServer()); };
+  inline u_int32_t getClient()          { return(sum(true  /* as client */));    };
+  inline u_int32_t getServer()          { return(sum(false /* as server */));    };
+  inline u_int32_t getLastMinPeak(time_t when=0) {
+    if(when) checkDecrementReset(when);
+    return(last_min_dec+get());
+  }
+  
   u_int16_t incValue(u_int16_t score, ScoreCategory score_category, bool as_client);
-  u_int16_t decValue(u_int16_t score, ScoreCategory score_category, bool as_client);
+  u_int16_t decValue(time_t when, u_int16_t score, ScoreCategory score_category, bool as_client);
 
-  void lua_breakdown(lua_State *vm) const;
+  void lua_breakdown(lua_State *vm);
 };
 
 #endif

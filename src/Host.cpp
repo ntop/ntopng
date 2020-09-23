@@ -418,10 +418,12 @@ void Host::lua_get_host_pool(lua_State *vm) const {
 
 /* ***************************************************** */
 
-void Host::lua_get_score(lua_State *vm) const {
-  lua_push_uint64_table_entry(vm, "score", score.getValue());
-  lua_push_uint64_table_entry(vm, "score.as_client", score.getClientValue());
-  lua_push_uint64_table_entry(vm, "score.as_server", score.getServerValue());
+void Host::lua_get_score(lua_State *vm) {
+  lua_push_uint64_table_entry(vm, "score", score.get());
+  lua_push_uint64_table_entry(vm, "score.as_client",     score.getClient());
+  lua_push_uint64_table_entry(vm, "score.as_server",     score.getServer());
+  lua_push_uint64_table_entry(vm, "score.total",               score.get());
+  lua_push_uint64_table_entry(vm, "score.total_last_min_peak", score.getLastMinPeak(iface->getTimeLastPktRcvd()));
 }
 
 /* ***************************************************** */

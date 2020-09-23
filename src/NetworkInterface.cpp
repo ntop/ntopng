@@ -3764,7 +3764,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_total_num_unreachable_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableOutgoingFlows(); break;
   case column_total_num_unreachable_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableIncomingFlows(); break;
   case column_total_alerts:    r->elems[r->actNumEntries++].numericValue = h->getTotalAlerts(); break;
-  case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore()->getValue(); break;
+  case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore()->get(); break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);

@@ -4441,8 +4441,8 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
     for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
       ScoreCategory score_category = (ScoreCategory)i;
 
-      if(cli_host_score[score_category]) clis->decValue(cli_host_score[score_category],
-							 score_category, true  /* as client */);
+      if(cli_host_score[score_category])
+	clis->decValue(tv->tv_sec, cli_host_score[score_category], score_category, true  /* as client */);	
     }
   }
 
@@ -4450,8 +4450,8 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
     for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
       ScoreCategory score_category = (ScoreCategory)i;
 
-      if(srv_host_score[score_category]) srvs->decValue(srv_host_score[score_category],
-							score_category, false /* as server */);
+      if(srv_host_score[score_category])
+	srvs->decValue(tv->tv_sec, srv_host_score[score_category], score_category, false /* as server */);
     }
   }
 }
@@ -5188,9 +5188,11 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
 	The actual increase is the one returned by the incValue function and it can be less thant the original increase (this is
 	because the actual increase could have caused an overflow).
        */
+      if(unsafeGetClient())
+	cli_host_score[score_category] += unsafeGetClient()->getScore()->incValue(cli_inc, score_category, true  /* as client */);
 
-      if(unsafeGetClient()) cli_host_score[score_category] += unsafeGetClient()->getScore()->incValue(cli_inc, score_category, true  /* as client */);
-      if(unsafeGetServer()) srv_host_score[score_category] += unsafeGetServer()->getScore()->incValue(srv_inc, score_category, false /* as server*/);
+      if(unsafeGetServer())
+	srv_host_score[score_category] += unsafeGetServer()->getScore()->incValue(srv_inc, score_category, false /* as server*/);
 
       if(!status_infos)
 	status_infos = (StatusInfo*) calloc(BITMAP_NUM_BITS, sizeof(StatusInfo));

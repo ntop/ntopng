@@ -257,7 +257,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_num_flows(lua_State* vm)     const;
   void lua_get_num_contacts(lua_State* vm)  const;
   void lua_get_num_http_hosts(lua_State*vm) const;
-  void lua_get_score(lua_State* vm)           const;
+  void lua_get_score(lua_State* vm);
   void lua_get_score_breakdown(lua_State* vm);
   void lua_get_os(lua_State* vm);
   void lua_get_fingerprints(lua_State *vm);

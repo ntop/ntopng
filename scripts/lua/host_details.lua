@@ -127,9 +127,9 @@ local function scoreBreakdown(what)
    if(tot > 0) then
       score_category_network  = (score_category_network*100)/tot
       score_category_security = 100 - score_category_network
-      
-      print('<div class="progress"><div class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
-      print('</div><div class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</div></div>\n')
+
+      print('<span class="progress"><span class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
+      print('</span><span class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</span></span>\n')
    else
       print("&nbsp;")
    end
