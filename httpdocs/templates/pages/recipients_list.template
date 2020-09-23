@@ -17,6 +17,7 @@
                                 <th>{{ i18n('endpoint_notifications.type') }}</th>
                                 <th>{{ i18n('endpoint_notifications.associated_to_endpoints') }}</th>
                                 <th>{{ i18n('endpoint_notifications.time_since_last_use') }}</th>
+				<th>{{ i18n('endpoint_notifications.num_uses') }}</th>
                                 <th>{{ i18n('actions') }}</th>
                             </tr>
                         </thead>
