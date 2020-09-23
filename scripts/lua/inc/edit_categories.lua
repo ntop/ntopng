@@ -229,7 +229,7 @@ print [[
 */
 
       datatableAddActionButtonCallback.bind(row)(actions_td_idx,
-        "loadCategories("+ data.column_category_id +"); $('#selected_category_name').html('"+ category_name +"'); selected_category_id = "+ category_id +"; $('#edit_category_rules').modal('show')", "]] print(i18n("custom_categories.edit_hosts")) print[[");
+        "loadCategories("+ data.column_category_id +"); $('#selected_category_name').html('"+ category_name +"'); selected_category_id = "+ category_id +"; $('#edit_category_rules').modal('show')", "<i class='fas fa-edit'></i>");
 
       return row;
      }

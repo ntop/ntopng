@@ -80,7 +80,7 @@ end
 
 if discovery_requested then
 
-   print('<div class=\"alert alert-info alert-dismissable\">'..'<img src="'..ntop.getHttpPrefix()..'/img/loading.gif"> '..i18n('discover.network_discovery_not_enabled', {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=discovery", flask_icon="<i class=\"fas fa-flask\"></i>"})..'<span id="discovery-progress"></span>.</div>')
+   print('<div class=\"alert alert-info alert-dismissable\">'..'<span class="spinner-border spinner-border-sm text-info"></span> '..i18n('discover.network_discovery_not_enabled', {url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=discovery", flask_icon="<i class=\"fas fa-flask\"></i>"})..'<span id="discovery-progress"></span>.</div>')
 
    print[[
 
@@ -237,6 +237,7 @@ elseif discovered["status"]["code"] == "OK" then -- everything is ok
 end
 
 if discovered["ghost_found"] or discovered["too_many_devices_discovered"] then
+   print("<div class='notes border bg-light'>")
    print('<b>' .. i18n("notes") .. '</b> ')
    print('<ul>')
 
@@ -249,6 +250,7 @@ if discovered["ghost_found"] or discovered["too_many_devices_discovered"] then
    end
 
    print('</ul>')
+   print("</div>")
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

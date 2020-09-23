@@ -200,7 +200,9 @@ elseif((page == "alerts") and isAdministrator()) then
    _GET["ifid"] = getSystemInterfaceId()
    -- _GET["entity"] = alert_consts.alertEntity("redis")
 
-   alert_utils.drawAlerts()
+   alert_utils.drawAlerts({
+      is_standalone = true
+   })
 
    interface.select(old_ifname)
 end

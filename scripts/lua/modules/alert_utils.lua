@@ -774,7 +774,7 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
   local enable_label = options.enable_label or i18n("show_alerts.trigger_alert_descr")
 
   print[[
-   <br>
+     <div class='card-body'>
    <form id="alerts-config" class="form-inline" method="post">
    <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <table class="table table-bordered table-striped">]]
@@ -825,9 +825,12 @@ local function printConfigTab(entity_type, entity_value, page_name, page_params,
       </tr>]]
    end
    print[[</table>
-   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
    </form>
-   <br><br>
+   </div>
+   <div class='card-footer'>
+   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
+   </div>
+   </div>
    <script>
     function convertMultiSelect() {
       var values = [];
@@ -871,7 +874,9 @@ function alert_utils.printAlertTables(entity_type, alert_source, page_name, page
       anomaly_config_key = 'ntopng.prefs.'..(options.host_ip)..':'..tostring(options.host_vlan)..'.alerts_config'
    end
 
-   print('<ul class="nav nav-tabs">')
+   print("<div class='card'>")
+   print("<div class='card-header'>")
+   print('<ul class="nav nav-tabs card-header-tabs">')
 
    local function printTab(tab, content, sel_tab)
       if(tab == sel_tab) then print("\t<li class='nav-item active show'>") else print("\t<li class='nav-item'>") end
@@ -923,6 +928,7 @@ function alert_utils.printAlertTables(entity_type, alert_source, page_name, page
    printTab("config", '<i class="fas fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
 
    print('</ul>')
+   print("</div>")
 
    if((show_entity) and is_alert_list_tab) then
       alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
@@ -1049,6 +1055,9 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
    local options = options or {}
    local ifid = interface.getId()
 
+   -- this paramater is used to print out a card container for the table
+   local is_standalone = options.is_standalone or false
+
    print(
       template.gen("modal_confirm_dialog.html", {
 		      dialog={
@@ -1120,21 +1129,27 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
 		      }
       })
    )
-   print[[<div class='card'>]]
-   for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
-      if not alt_nav_tabs then
 
-	 print[[
-       <div class='card-header'>
-<ul class="nav nav-tabs card-header-tabs card-header-pills" role="tablist" id="alert-tabs" style="]] print(ternary(options.dont_nest_alerts, 'display:none', '')) print[[">
-<!-- will be populated later with javascript -->
-</ul>
-</div>
-]]
-	 nav_tab_id = "alert-tabs"
-      else
-	 nav_tab_id = alt_nav_tabs
-      end
+   if is_standalone then
+      print("<div class='card'>")
+      print("<div class='card-header'>")
+   end
+
+   for k,v in pairs(get_params) do if k ~= "csrf" then url_params[k] = v end end
+   if not alt_nav_tabs then
+      print[[
+         <ul class="nav nav-tabs card-header-tabs card-header-pills" role="tablist" id="alert-tabs" style="]] print(ternary(options.dont_nest_alerts, 'display:none', '')) print[[">
+         <!-- will be populated later with javascript -->
+         </ul>
+      ]]
+      nav_tab_id = "alert-tabs"
+   else
+      nav_tab_id = alt_nav_tabs
+   end
+
+   if is_standalone then
+      print("</div>")
+   end
 
       print[[
 <script>
@@ -1512,7 +1527,7 @@ function toggleAlert(disable) {
                var explorer_url = data["column_explorer"];
 
                if(explorer_url) {
-                  datatableAddLinkButtonCallback.bind(this)(10, explorer_url, "]] print(i18n("show_alerts.explorer")) print[[");
+                  datatableAddLinkButtonCallback.bind(this)(10, explorer_url, "<i class='fab fa-wpexplorer'></i>");
                   disable_alerts_dialog = "#disable_flows_alerts";
                }
 

@@ -207,7 +207,9 @@ elseif((page == "alerts") and isAdministrator()) then
       alert_consts.alertEntity("influx_db"), alert_consts.alertEntity("snmp_device"),
       alert_consts.alertEntity("am_host"))
 
-   alert_utils.drawAlerts()
+   alert_utils.drawAlerts({
+      is_standalone = true
+   })
 
    interface.select(tostring(cur_id))
 elseif page == "internals" then

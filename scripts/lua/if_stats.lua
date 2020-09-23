@@ -976,13 +976,15 @@ elseif(page == "DSCP") then
 
 elseif(page == "ndpi") then
 print[[
-  <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
+   <div class='card'>
+   <div class='card-header'>
+  <ul id="ndpiNav" class="nav nav-tabs card-header-tabs" role="tablist">
     <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
     <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
   </ul>
-  <div class="tab-content">
+  </div>
+  <div class='card-body tab-content'>
     <div id="applications" class="tab-pane in active">
-      <br>
       <table class="table table-bordered table-striped">
 ]]
 
@@ -1021,7 +1023,6 @@ print[[
      </table>
     </div>
     <div id="categories" class="tab-pane">
-      <br>
       <table class="table table-bordered table-striped">
         <tr>
           <th class="text-left">]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print [[</th>
@@ -1040,6 +1041,9 @@ print[[
        <tbody id="if_stats_ndpi_categories_tbody"></tbody>
      </table>
     </div>
+    </div>
+    </div>
+
 ]]
 
 print [[
@@ -1118,11 +1122,14 @@ setInterval(update_ndpi_categories_table, 5000);
 
 elseif(page == "ICMP") then
 print[[
-  <ul id="icmp_nav" class="nav nav-tabs" role="tablist">
+  <div class='card'>
+   <div class='card-header'>
+  <ul id="icmp_nav" class="nav nav-tabs card-header-tabs" role="tablist">
     <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#icmp" active>]] print(i18n("icmp")) print[[</a></li>
     <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#icmpv6">]] print(i18n("icmp")) print[[V6</a></li>
   </ul>
-  <div class="tab-content">
+  </div>
+  <div class="card-body tab-content">
     <div id="icmp" class="tab-pane in active">
       <br>
        <table id="icmp_table_4" class="table table-bordered table-striped tablesorter">
@@ -1138,6 +1145,8 @@ print[[
          <tbody id="iface_details_icmp_tbody_6">
          </tbody>
        </table>
+    </div>
+    </div>
     </div>
 
 <script>

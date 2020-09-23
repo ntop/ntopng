@@ -371,7 +371,9 @@ elseif((page == "alerts") and isAdministrator()) then
       _GET["entity_val"] = active_monitoring_utils.getAmHostKey(host.host, host.measurement)
    end
 
-   alert_utils.drawAlerts()
+   alert_utils.drawAlerts({
+    is_standalone = true
+   })
 
    interface.select(old_ifname)
 end

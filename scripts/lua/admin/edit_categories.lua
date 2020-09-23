@@ -30,14 +30,16 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title(i18n("custom_categories.apps_and_categories"))
 
 print [[
-<ul id="n2n-nav" class="nav nav-tabs" role="tablist">]]
+<div class='card'>
+<div class='card-header'>
+<ul id="n2n-nav" class="nav nav-tabs card-header-tabs" role="tablist">]]
 
 print('<li class="nav-item '.. ternary(tab == "protocols", "active", "") ..'"><a class="nav-link '.. ternary(tab == "protocols", "active", "") ..'" href="?tab=protocols">'.. i18n("applications") .. "</a>")
 print('<li class="nav-item '.. ternary(tab ~= "protocols", "active", "") ..'"><a class="nav-link '.. ternary(tab ~= "protocols", "active", "") ..'" href="?tab=categories">'.. i18n("categories") .. "</a>")
 
-print[[</ul>]]
+print[[</ul></div>]]
 
-print('<div class="tab-content">')
+print('<div class="card-body tab-content">')
 
 if tab == "protocols" then
   dofile(dirs.installdir .. "/scripts/lua/inc/edit_ndpi_applications.lua")
@@ -45,6 +47,7 @@ else
   dofile(dirs.installdir .. "/scripts/lua/inc/edit_categories.lua")
 end
 
+print('</div>')
 print('</div>')
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

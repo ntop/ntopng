@@ -96,8 +96,6 @@ page_utils.print_page_title('User Scripts')
 
 print([[
             </div>
-            <div class='card'>
-            <div class='card-body'>
             <div class='col-12 my-3'>
                 <table class='table table-bordered table-striped' id='user-scripts'>
                     <thead>
@@ -115,9 +113,6 @@ print([[
 print([[
                     </tbody>
                 </table>
-            </div>
-            </div>
-            </div>
         </div>
     </div>
     <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>

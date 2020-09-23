@@ -659,7 +659,7 @@ function historicalTopApplicationsTable(ifid, epoch_begin, epoch_end, host, vlan
 
    top_apps_url_params = top_apps_url_params.."&epoch_begin="..epoch_begin
    top_apps_url_params = top_apps_url_params.."&epoch_end="..epoch_end
-   
+
    if vlan ~= "" and vlan ~= nil and tonumber(vlan) ~= nil then
       top_apps_url_params = top_apps_url_params.."&vlan="..tostring(vlan)
       container_params = container_params..' vlan="'..(tostring(vlan) or '')..'"'
@@ -972,7 +972,7 @@ var populateFlowsPerHostPairByApplicationTable = function(peer1, peer2, l7_proto
     $(div_id).datatable({
 	title: "",]]
 	print("url: '"..ntop.getHttpPrefix().."/lua/get_db_flows.lua?ifid="..tostring(ifId)..top_apps_url_params.."&peer1=' + peer1 + '&peer2=' + peer2 + '&l7_proto_id=' + l7_proto_id")
-	
+
 	if not allowedNetworksRestrictions() then
 	   -- speed up by passing the number of flows that is already calculated when browsing raw flows
 	   print("+ '&limit=' + num_flows")
