@@ -6,16 +6,12 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
-local ts_utils = require("ts_utils")
-local info = ntop.getInfo()
+local ui_utils = require("ui_utils")
 local page_utils = require("page_utils")
-local format_utils = require("format_utils")
-local os_utils = require "os_utils"
 local user_scripts = require "user_scripts"
 local template = require "template_utils"
 
 sendHTTPContentTypeHeader('text/html')
-
 
 if not haveAdminPrivileges() then
   return
@@ -55,7 +51,8 @@ if default_config_only == nil then
 end
 
 -- print scripts_config template
-print(template.gen("pages/scripts_config.html", {
+print(template.gen("pages/scripts_config.template", {
+    ui_utils = ui_utils,
     config_list = {
         user_scripts = user_scripts,
         subdir = subdir,

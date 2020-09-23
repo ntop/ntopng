@@ -881,3 +881,6 @@ footer {
 .btn-gray {
   background-color: #e5e5e5 !important;
 }
+.px-25 {
+  padding: 0 25%!important;
+}

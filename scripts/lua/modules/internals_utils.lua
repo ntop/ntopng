@@ -529,7 +529,7 @@ function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_
    local ts_creation = areInternalTimeseriesEnabled(ifid or getSystemInterfaceId()) and ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
    print[[<div class='card'>]]
    print[[<div class='card-header'>]]
-   print[[<ul class="nav nav-pills card-header-pills" role="tablist">]]
+   print[[<ul class="nav nav-tabs card-header-tabs card-header-pills" role="tablist">]]
 
    if print_hash_tables then
       if not tab then tab = "hash_tables" end

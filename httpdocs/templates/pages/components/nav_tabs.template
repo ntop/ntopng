@@ -1,4 +1,4 @@
-<ul class="nav nav-pills">
+<ul class="nav nav-tabs card-header-tabs">
     {% for index, entry in pairsByKeys(entries) do %}
         {% if not entry.hidden then %}
         <li class="nav-item">

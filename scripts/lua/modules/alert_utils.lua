@@ -1126,7 +1126,7 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
 
 	 print[[
        <div class='card-header'>
-<ul class="nav nav-pills card-header-pills" role="tablist" id="alert-tabs" style="]] print(ternary(options.dont_nest_alerts, 'display:none', '')) print[[">
+<ul class="nav nav-tabs card-header-tabs card-header-pills" role="tablist" id="alert-tabs" style="]] print(ternary(options.dont_nest_alerts, 'display:none', '')) print[[">
 <!-- will be populated later with javascript -->
 </ul>
 </div>

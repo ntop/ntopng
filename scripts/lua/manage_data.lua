@@ -95,7 +95,7 @@ print(
 page_utils.print_page_title(i18n("manage_data.manage_data"))
 
 print[[
-<ul id="manage-data-nav" class="nav nav-pills mb-3">]]
+<ul id="manage-data-nav" class="nav nav-tabs card-header-tabs mb-3">]]
 
 local tab_export_active = ""
 local tab_delete_active = ""
