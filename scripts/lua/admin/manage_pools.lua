@@ -107,10 +107,10 @@ for _, entry in ipairs(menu.entries) do
 end
 
 local endpoints = {
-   get_all_pools  = (page == "all" and ALL_POOL_GET_ENDPOINT or string.format("/lua/rest/v1/get/%s/pools.lua", pool_type)),
-   add_pool       = string.format("/lua/rest/v1/add/%s/pool.lua", pool_type),
-   edit_pool      = string.format("/lua/rest/v1/edit/%s/pool.lua", pool_type),
-   delete_pool    = string.format("/lua/rest/v1/delete/%s/pool.lua", pool_type),
+   get_all_pools  = (page == "all" and ALL_POOL_GET_ENDPOINT or string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/%s/pools.lua", pool_type)),
+   add_pool       = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/add/%s/pool.lua", pool_type),
+   edit_pool      = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/edit/%s/pool.lua", pool_type),
+   delete_pool    = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/delete/%s/pool.lua", pool_type),
 }
 
 local context = {
