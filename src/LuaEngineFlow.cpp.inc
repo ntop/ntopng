@@ -1042,9 +1042,13 @@ static int ntop_flow_risk_info(lua_State* vm) {
 static int ntop_flow_has_risk(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
-  if(f && ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) == CONST_LUA_OK)
-    lua_pushboolean(vm, f->hasRisk((ndpi_risk_enum)lua_tointeger(vm, 1)));
-  else
+  if(f) {
+    if(lua_type(vm, 1) == LUA_TNUMBER)
+      lua_pushboolean(vm, f->hasRisk((ndpi_risk_enum)lua_tointeger(vm, 1)));
+    else
+      /* If there's no risk parameter specified, return true if a flow has any risk */
+      lua_pushboolean(vm, f->hasRisks());
+  } else
     lua_pushboolean(vm, false);
 
   return CONST_LUA_OK;

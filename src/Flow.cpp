@@ -2271,6 +2271,18 @@ bool Flow::hasRisk(ndpi_risk_enum r) const {
 
 /* *************************************** */
 
+/* Returns true if at least one nDPI flow risk is set */
+bool Flow::hasRisks() const {
+  for(int i = 0; i < NDPI_MAX_RISK; i++) {
+    if(hasRisk((ndpi_risk_enum)i))
+      return true;
+  }
+
+  return false;
+}
+
+/* *************************************** */
+
 u_int32_t Flow::key() {
   u_int32_t k = cli_port + srv_port + vlanId + protocol;
 
@@ -5160,6 +5172,7 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
   return (cli_thresh || srv_thresh) && !getInterface()->read_from_pcap_dump() ? false : true;
 }
 
+
 /* *************************************** */
 
 /*
@@ -5169,46 +5182,43 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
 		     u_int16_t srv_inc, const char* script_key,
 		     ScriptCategory script_category) {
   ScoreCategory score_category = Utils::mapScriptToScoreCategory(script_category);
-  
-  if(status_map.get() == status_normal) {
-    /* First misbehaving status */
-    iface->incNumMisbehavingFlows();
-  }
 
-  if(!status_map.issetBit(status)) {
+  if(status == status_normal)
+    return false;
+  
+  if(status_map.get() == status_normal)
+    /* First misbehaving status, let's increase the number of interface misbehaving flows */
+    iface->incNumMisbehavingFlows();
+
+  if(!status_map.issetBit(status))
     status_map.setBit(status);
 
-    if(ntop->getPrefs()->is_enterprise_m_edition()) {
-      flow_score += flow_inc;
+  flow_score += flow_inc;
 
-      /*
-	Increase client and server host scores. Here it is OK to use unsafe pointers (see explanation in Flow::postFlowSetIdle) as
-	this function is called sequentially on all the view interfaces belonging to the same view.
+  /*
+    Increase client and server host scores. Here it is OK to use unsafe pointers (see explanation in Flow::postFlowSetIdle) as
+    this function is called sequentially on all the view interfaces belonging to the same view.
 
-	The actual increase is the one returned by the incValue function and it can be less thant the original increase (this is
-	because the actual increase could have caused an overflow).
-       */
-      if(unsafeGetClient())
-	cli_host_score[score_category] += unsafeGetClient()->getScore()->incValue(cli_inc, score_category, true  /* as client */);
+    The actual increase is the one returned by the incValue function and it can be less thant the original increase (this is
+    because the actual increase could have caused an overflow).
+  */
+  if(unsafeGetClient())
+    cli_host_score[score_category] += unsafeGetClient()->getScore()->incValue(cli_inc, score_category, true  /* as client */);
 
-      if(unsafeGetServer())
-	srv_host_score[score_category] += unsafeGetServer()->getScore()->incValue(srv_inc, score_category, false /* as server*/);
+  if(unsafeGetServer())
+    srv_host_score[score_category] += unsafeGetServer()->getScore()->incValue(srv_inc, score_category, false /* as server*/);
 
-      if(!status_infos)
-	status_infos = (StatusInfo*) calloc(BITMAP_NUM_BITS, sizeof(StatusInfo));
+  if(!status_infos)
+    status_infos = (StatusInfo*) calloc(BITMAP_NUM_BITS, sizeof(StatusInfo));
 
-      if(status_infos && (status < BITMAP_NUM_BITS)) {
-	if(!status_infos[status].script_key)
-	  status_infos[status].script_key = strdup(script_key);
+  if(status_infos && (status < BITMAP_NUM_BITS)) {
+    if(!status_infos[status].script_key)
+      status_infos[status].script_key = strdup(script_key);
 
-	status_infos[status].score = flow_inc;
-      }
-    }
-
-    return(true);
+    status_infos[status].score += flow_inc;
   }
 
-  return(false);
+  return true;
 }
 
 /* *************************************** */

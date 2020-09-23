@@ -511,16 +511,11 @@ end
 function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
    local status_key = flow_status_type.status_key
 
-   if(not flow.isStatusSet(status_key)) then
-      flow_score = math.min(math.max(flow_score or 0, 0), max_score)
-      cli_score = math.min(math.max(cli_score or 0, 0), max_score)
-      srv_score = math.min(math.max(srv_score or 0, 0), max_score)
+   flow_score = math.min(math.max(flow_score or 0, 0), max_score)
+   cli_score = math.min(math.max(cli_score or 0, 0), max_score)
+   srv_score = math.min(math.max(srv_score or 0, 0), max_score)
 
-      c_flow_set_status(status_key, flow_score, cli_score, srv_score, cur_user_script.key, cur_user_script.category.id)
-      return(true)
-   end
-
-   return(false)
+   return c_flow_set_status(status_key, flow_score, cli_score, srv_score, cur_user_script.key, cur_user_script.category.id)
 end
 
 -- #################################################################
