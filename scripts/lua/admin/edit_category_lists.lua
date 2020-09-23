@@ -262,7 +262,7 @@ print[[],
 
       datatableAddActionButtonCallback.bind(row)(actions_td_idx, "prepareEditListModal('" + list_name + "'); $('#editListModal').modal('show');", "<i class='fas fa-edit'></i>");
 
-      datatableAddActionButtonCallback.bind(row)(actions_td_idx, "$('#list_to_update').val('" + list_name + "'); $('#list-update-form').submit()", "<i class='fas fa-upload'></i>", enabled);
+      datatableAddActionButtonCallback.bind(row)(actions_td_idx, "$('#list_to_update').val('" + list_name + "'); $('#list-update-form').submit()", "<i class='fas fa-sync-alt'></i>", enabled);
 
       return row;
      }, tableCallback: function() {
