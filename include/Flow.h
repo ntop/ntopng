@@ -656,8 +656,6 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
 
-  inline const u_int16_t * const getCliScore() const { return(cli_score);  };
-  inline const u_int16_t * const getSrvScore() const { return(srv_score);  };
   inline const u_int16_t getScore()            const { return(flow_score); };
 
 #ifdef HAVE_NEDGE

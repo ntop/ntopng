@@ -4385,12 +4385,14 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
      were previously been incremented when executing Lua scripts in Flow::setStatus.
   */
   HostScore *clis = NULL, *srvs = NULL;
+
   if(unsafeGetClient()) clis = unsafeGetClient()->getScore();
   if(unsafeGetServer()) srvs = unsafeGetServer()->getScore();
 
   if(clis) {
     for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
       ScriptCategory script_category = (ScriptCategory)i;
+
       if(cli_score[script_category]) clis->decValue(cli_score[script_category], script_category, true  /* as client */);
     }
   }
@@ -4398,6 +4400,7 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
   if(srvs) {
     for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
       ScriptCategory script_category = (ScriptCategory)i;
+
       if(srv_score[script_category]) srvs->decValue(srv_score[script_category], script_category, false /* as server */);
     }
   }
