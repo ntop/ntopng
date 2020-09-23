@@ -115,7 +115,7 @@ void HostScore::lua_breakdown(lua_State *vm, bool as_client) const {
     lua_settable(vm, -3);
   }
 
-  lua_pushstring(vm, as_client ? "as_client" : "as_server");
+  lua_pushstring(vm, as_client ? "score_breakdown_client" : "score_breakdown_server");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }

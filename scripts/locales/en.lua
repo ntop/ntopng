@@ -2195,6 +2195,7 @@ local lang = {
   ["host_details"] = {
     ["active_alerted_flows"] = "Active Alerted Flows",
     ["blocked_traffic"] = "Blocked Traffic",
+    ["client_score"] = "Client",
     ["disabled_flow_status_help"] = "Turn off flow alerts generation based on flow status",
     ["host"] = "Host",
     ["host_cannot_be_found_message"] = "Host %{host} cannot be found.",
@@ -2212,6 +2213,7 @@ local lang = {
     ["reset_host_stats_note"] = "<b>NOTE</b>: historical charts for this host may have a gap after the reset.",
     ["reset_stats_in_progress"] = "Host statistics will be reset within 5 seconds",
     ["restore_from_cache_message_v1"] = "Host %{host} is inactive. Click <a href=%{js_code}> here</a> to restore it from cache.",
+    ["server_score"] = "Server",
     ["snmp"] = "SNMP",
     ["status_ignore"] = "Disabled Flow Status Alerts",
     ["trace_debug_host_info"] = "Host:%{hostinfo}, Vlan: %{vlan}",

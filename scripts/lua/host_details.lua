@@ -119,6 +119,22 @@ if((host == nil) and ((_GET["mode"] == "restore"))) then
    end
 end
 
+local function scoreBreakdown(what)
+   local score_category_network  = what[0]
+   local score_category_security = what[1]
+   local tot                     = score_category_network + score_category_security
+
+   if(tot > 0) then
+      score_category_network  = (score_category_network*100)/tot
+      score_category_security = 100 - score_category_network
+      
+      print('<div class="progress"><div class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
+      print('</div><div class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</div></div>\n')
+   else
+      print("&nbsp;")
+   end
+end
+
 local function printRestoreHostBanner(hidden)
    print('<div id=\"host_purged\" class=\"alert alert-danger\" ')
    if hidden then
@@ -587,7 +603,22 @@ if isScoreEnabled() then
       score_chart = hostinfo2detailshref(host, {page = "historical", tskey = tskey, ts_schema = "host:score"}, '<i class="fas fa-chart-area fa-sm"></i>')
    end
 
-   print("<tr><th>"..i18n("score").." " .. score_chart .."</th><td colspan=2></li> <span id=score>"..host["score"] .. "</span> <span id=score_trend></span></td></tr>\n")
+   print("<tr><th rowspan=2>"..i18n("score").." " .. score_chart .."</th>")
+   print("<th>"..i18n("host_details.client_score").."</th><th>"..i18n("host_details.server_score").."</th></tr>")
+
+   local c = host.score_pct["score_breakdown_client"]
+   local s = host.score_pct["score_breakdown_server"]
+
+   print("<tr>")
+   print("<td><span id=score_as_client>".. host["score.as_client"] .."</span> <span id=client_score_trend></span>")
+   scoreBreakdown(c)
+   print("</td>")
+   
+   print("<td><span id=score_as_server>".. host["score.as_server"] .."</span> <span id=server_score_trend></span>")
+   scoreBreakdown(s)
+   print("</td>")
+   
+   print("</tr>\n")
 end
 
 -- Active monitoring
@@ -2259,7 +2290,8 @@ if(not only_historical) and (host ~= nil) then
    print("var last_pkts_sent = " .. host["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. host["packets.rcvd"] .. ";\n")
    print("var last_num_alerts = " .. host["num_alerts"] .. ";\n")
-   print("var last_score = " .. host["score"] .. ";\n")
+   print("var last_client_score = " .. host["score.as_client"] .. ";\n")
+   print("var last_server_score = " .. host["score.as_server"] .. ";\n")
    print("var last_num_flow_alerts = " .. host["active_alerted_flows"] .. ";\n")
    print("var last_active_flows_as_server = " .. host["active_flows.as_server"] .. ";\n")
    print("var last_active_flows_as_client = " .. host["active_flows.as_client"] .. ";\n")
@@ -2337,6 +2369,9 @@ if(not only_historical) and (host ~= nil) then
    			$('#pkts_rcvd').html(NtopUtils.formatPackets(host["packets.rcvd"]));
    			$('#bytes_sent').html(NtopUtils.bytesToVolume(host["bytes.sent"]));
    			$('#bytes_rcvd').html(NtopUtils.bytesToVolume(host["bytes.rcvd"]));
+
+   			$('#score_as_client').html(NtopUtils.addCommas(host["score.as_client"]));
+   			$('#score_as_server').html(NtopUtils.addCommas(host["score.as_server"]));
 
    			$('#pkt_retransmissions_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["retransmissions"]));
    			$('#pkt_ooo_sent').html(NtopUtils.formatPackets(host["tcpPacketStats.sent"]["out_of_order"]));
@@ -2512,7 +2547,8 @@ print [[
 			$('#trend_unreachable_flows_as_client').html(NtopUtils.drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
 
 			$('#alerts_trend').html(NtopUtils.drawTrend(host["num_alerts"], last_num_alerts, " style=\"color: #B94A48;\""));
-			$('#score_trend').html(NtopUtils.drawTrend(host["score"], last_score, " style=\"color: #B94A48;\""));
+			$('#client_score_trend').html(NtopUtils.drawTrend(host["score.as_client"], last_client_score, " style=\"color: #B94A48;\""));
+			$('#server_score_trend').html(NtopUtils.drawTrend(host["score.as_server"], last_server_score, " style=\"color: #B94A48;\""));
 			$('#flow_alerts_trend').html(NtopUtils.drawTrend(host["active_alerted_flows"], last_num_flow_alerts, " style=\"color: #B94A48;\""));
 			$('#sent_trend').html(NtopUtils.drawTrend(host["packets.sent"], last_pkts_sent, ""));
 			$('#rcvd_trend').html(NtopUtils.drawTrend(host["packets.rcvd"], last_pkts_rcvd, ""));
@@ -2528,7 +2564,8 @@ print [[
  		        $('#pkt_keep_alive_rcvd_trend').html(NtopUtils.drawTrend(host["tcpPacketStats.rcvd"]["keep_alive"], last_rcvd_tcp_keep_alive, ""));
 
    			last_num_alerts = host["num_alerts"];
-   			last_score = host["score"];
+   			last_client_score = host["score.as_client"];
+   			last_server_score = host["score.as_server"];
    			last_num_flow_alerts = host["active_alerted_flows"];
    			last_pkts_sent = host["packets.sent"];
    			last_pkts_rcvd = host["packets.rcvd"];
