@@ -119,8 +119,8 @@
                                         {% local is_selected = (recipient.endpoint_conf.builtin and modal_type == "add") %}
                                         <option
                                             {{ (is_selected and 'selected' or '') }}
-                                            {% if recipient.recipient_params_fmt then %}
-                                                data-subtext="({{ recipient.recipient_params_fmt }})"
+                                            {% if recipient.recipient_params_fmt and not recipient.endpoint_conf.builtin then %}
+                                                data-subtext="{{ recipient.recipient_params_fmt }}"
                                             {% elseif recipient.endpoint_conf.builtin then %}
                                                 data-subtext="(built-in)"
                                             {% end %}
