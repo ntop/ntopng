@@ -14,7 +14,7 @@
             </nav>
             <div class="card my-2">
                 <div class="card-header">
-                    <ul class="nav nav-pills">
+                    <ul class="nav nav-tabs card-header-tabs">
                         {% for _, hooks_subdir in ipairs(config_list.user_scripts.listSubdirs()) do %}
                         <li class="nav-item">
                             <a class="nav-link {{ (hooks_subdir.id == config_list.subdir and 'active' or '') }}"
@@ -40,25 +40,11 @@
                     </table>
                 </div>
                 <div class="card-footer">
-                    <div>
-                        <form action="/lua/rest/v1/get/scripts/config.lua" class="form-inline" method="GET">
-                            <input type="hidden" name="download" value="true" />
-                            <button type="submit"
-                                class="btn btn-secondary"><span>{{ i18n('config_scripts.config_export') }}</span></button>
-                        </form><button id="import-modal-btn" data-toggle="modal" data-target="#import-modal"
-                            class="btn btn-secondary"><span>{{ i18n('config_scripts.config_import') }}</span></button>
-                        <button id="reset-modal-btn" data-toggle="modal" data-target="#reset-modal"
-                            class="btn btn-danger"><span>{{ i18n('config_scripts.config_reset') }}</span></button>
-                    </div>
+                    {* ui_utils.render_configuration_footer({}, {href='#', toggle_modal=true, modal_id="reset-modal", id='reset-modal-btn'}) *}
                 </div>
             </div>
-
-
         </div>
     </div>
-
-
-    <br>
     <div class="notes bg-light border">
         <b>{{ i18n('notes') }}</b>
         <ul>
@@ -83,7 +69,9 @@ id = "reset-modal",
 action = "resetConfig()",
 title = i18n("config_scripts.config_reset"),
 message = i18n("config_scripts.config_reset_confirm"),
-confirm = i18n("reset")
+confirm = i18n("reset"),
+custom_alert_class = 'alert alert-danger',
+confirm_button = 'btn-danger'
 }
 }) *}
 {* config_list.template_utils.gen("pages/modals/scripts_config/import_modal.html") *}
@@ -95,7 +83,7 @@ confirm = i18n("reset")
 
     // hold a csrf token for apply targets
     const pageCsrf = '{{ ntop.getRandomCSRFValue() }}';
-    const default_config_only = {{ config_list.default_config_only_subdir }};
+    const DEFAULT_CONFIG_ONLY = {{ config_list.default_config_only_subdir }};
     const subdir = '{{ config_list.subdir }}';
 
     i18n.warning = "{{ i18n('warning', {}) }}";
