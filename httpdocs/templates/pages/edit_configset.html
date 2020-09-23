@@ -11,8 +11,8 @@
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item" aria-current="page">
-          <i class="fab fa-superpowers"></i>
-          {{ i18n("about.user_scripts", {}) }}
+        <i class="fab fa-superpowers"></i>
+        {{ i18n("about.user_scripts", {}) }}
       </li>
       <li class="breadcrumb-item" aria-current="page">
         <a href="/lua/admin/scripts_config.lua?subdir={{ script_list.script_subdir }}">
@@ -29,36 +29,39 @@
     <div class="col-md-12 col-lg-12 mt-3">
       <div class="alert alert-danger d-none" id='alert-row-buttons' role="alert">
       </div>
-      <table
-        id="scripts-config"
-        class="table w-100 table-striped table-hover table-bordered mt-3">
-        <thead>
-          <tr>
-            <th>{{ i18n("name", {}) }}</th>
-            <th>{{ i18n("category", {}) }}</th>
-            <th>{{ i18n("description", {}) }}</th>
-            <th>{{ i18n("values", {}) }}</th>
-            <th style="width: 200px">{{ i18n("action", {})}}</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="card">
+        <div class="card-body">
+          <table id="scripts-config" class="table w-100 table-striped table-hover table-bordered mt-3">
+            <thead>
+              <tr>
+                <th>{{ i18n("name", {}) }}</th>
+                <th>{{ i18n("category", {}) }}</th>
+                <th>{{ i18n("description", {}) }}</th>
+                <th>{{ i18n("values", {}) }}</th>
+                <th style="width: 200px">{{ i18n("action", {})}}</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
-  <br>
-  <div>
+  <div class='notes bg-light border'>
     <b>{{ i18n('notes') }}</b>
     <ul>
       <li> {{ i18n('user_scripts.categories') }}
-	<ul>
-	  {% for _, cat in pairsByKeys(script_categories) do %}
-	  <li> {* string.format("<i class='fa %s'></i> %s: %s", cat.icon, i18n(cat.i18n_title, {product=info.product}), i18n(cat.i18n_descr, {product=info.product})) *} </li>
-	  {% end %}
-	</ul>
+        <ul>
+          {% for _, cat in pairsByKeys(script_categories) do %}
+          <li> {* string.format("<i class='fa %s'></i> %s: %s", cat.icon, i18n(cat.i18n_title, {product=info.product}),
+            i18n(cat.i18n_descr, {product=info.product})) *} </li>
+          {% end %}
+        </ul>
       </li>
     </ul>
   </div>
 </div>
+
 
 {# include modals for edit_configset.lua #}
 {* script_list.template_utils.gen("pages/modals/edit_configset/edit_config_modal.html") *}
