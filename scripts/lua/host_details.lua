@@ -128,7 +128,7 @@ local function scoreBreakdown(what)
       score_category_network  = (score_category_network*100)/tot
       score_category_security = 100 - score_category_network
 
-      print('<span class="progress"><span class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
+      print('<span class="progress w-100 ml-1"><span class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
       print('</span><span class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</span></span>\n')
    else
       print("&nbsp;")
@@ -610,14 +610,20 @@ if isScoreEnabled() then
    local s = host.score_pct["score_breakdown_server"]
 
    print("<tr>")
-   print("<td><span id=score_as_client>".. host["score.as_client"] .."</span> <span id=client_score_trend></span>")
+   print("<td>")
+   print("<div class='d-flex align-items-center'>")
+   print("<span id='score_as_client'>".. host["score.as_client"] .."</span> <span class='ml-1' id='client_score_trend'></span>")
    scoreBreakdown(c)
+   print("</div>")
    print("</td>")
-   
-   print("<td><span id=score_as_server>".. host["score.as_server"] .."</span> <span id=server_score_trend></span>")
+
+   print("<td>")
+   print("<div class='d-flex align-items-center'>")
+   print("<span id='score_as_server'>".. host["score.as_server"] .."</span><span class='ml-1' id='server_score_trend'></span>")
    scoreBreakdown(s)
+   print("</div>")
    print("</td>")
-   
+
    print("</tr>\n")
 end
 
