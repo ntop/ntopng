@@ -19,26 +19,8 @@ recipients.MAX_NUM_RECIPIENTS = 64
 
 -- ##############################################
 
-function recipients:create(args)
-   if args then
-      -- We're being sub-classed
-      if not args.key then
-	 return nil
-      end
-   end
-
-   local this = args or {key = "recipients"}
-
-   setmetatable(this, self)
-   self.__index = self
-
-   return this
-end
-
--- ##############################################
-
 -- @brief Performs Initialization operations performed during startup
-function recipients:initialize()
+function recipients.initialize()
    -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
    -- For each builtin configuration type, a configuration and a recipient is created
    for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
@@ -51,7 +33,7 @@ function recipients:initialize()
 	 )
 
 	 -- And the recipient
-	 self:add_recipient(
+	 recipients.add_recipient(
 	    "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]], 
 	    "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	    nil, -- User script categories
@@ -63,14 +45,14 @@ function recipients:initialize()
 
    -- Register all existing recipients in C to make sure ntopng can start with all the
    -- existing recipients properly loaded and ready for notification enqueues/dequeues
-   for _, recipient in pairs(self:get_all_recipients()) do
+   for _, recipient in pairs(recipients.get_all_recipients()) do
       ntop.recipient_register(recipient.recipient_id)
    end
 end
 
 -- ##############################################
 
-function recipients:_get_recipients_lock_key()
+local function _get_recipients_lock_key()
    local key = string.format("ntopng.cache.recipients.recipients_lock")
 
    return key
@@ -80,7 +62,7 @@ end
 
 -- @brief Key to store a flag for signaling recipient changes
 -- @return A string key
-function recipients:_get_recipients_changed_key()
+local function _get_recipients_changed_key()
    local key = string.format("ntopng.cache.recipients.recipients_changed")
 
    return key
@@ -90,21 +72,21 @@ end
 
 -- @brief Mark a recipients change (must be called when adding/deleteding/editing a recipient)
 -- @return nil
-function recipients:set_recipients_change()
-   ntop.setCache(self:_get_recipients_changed_key(), "1")
+function recipients.set_recipients_change()
+   ntop.setCache(_get_recipients_changed_key(), "1")
 end
 
 -- ##############################################
 
 -- @brief Checks whether recipients have changed. If recipients have changed, the change is acknowledged
 -- @return True if recipients have changed, false otherwise.
-function recipients:_check_recipients_change()
-   local res = ntop.getCache(self:_get_recipients_changed_key()) ~= ""
+local function _check_recipients_change()
+   local res = ntop.getCache(_get_recipients_changed_key()) ~= ""
 
    if res then
       -- A change in recipients has occurred
       -- Remove the key to aknowledge the change
-      ntop.delCache(self:_get_recipients_changed_key())
+      ntop.delCache(_get_recipients_changed_key())
    end
 
    return res
@@ -112,10 +94,10 @@ end
 
 -- ##############################################
 
-function recipients:_lock()
+local function _lock()
    local max_lock_duration = 5 -- seconds
    local max_lock_attempts = 5 -- give up after at most this number of attempts
-   local lock_key = self:_get_recipients_lock_key()
+   local lock_key = _get_recipients_lock_key()
 
    for i = 1, max_lock_attempts do
       local value_set = ntop.setnxCache(lock_key, "1", max_lock_duration)
@@ -132,13 +114,13 @@ end
 
 -- ##############################################
 
-function recipients:_unlock()
-   ntop.delCache(self:_get_recipients_lock_key())
+local function _unlock()
+   ntop.delCache(_get_recipients_lock_key())
 end
 
 -- ##############################################
 
-function recipients:_get_recipients_prefix_key()
+local function _get_recipients_prefix_key()
    local key = string.format("ntopng.prefs.recipients")
 
    return key
@@ -146,15 +128,15 @@ end
 
 -- ##############################################
 
-function recipients:_get_recipient_ids_key()
-   local key = string.format("%s.recipient_ids", self:_get_recipients_prefix_key())
+local function _get_recipient_ids_key()
+   local key = string.format("%s.recipient_ids", _get_recipients_prefix_key())
 
    return key
 end
 
 -- ##############################################
 
-function recipients:_get_recipient_details_key(recipient_id)
+local function _get_recipient_details_key(recipient_id)
    recipient_id = tonumber(recipient_id)
 
    if not recipient_id then
@@ -162,7 +144,7 @@ function recipients:_get_recipient_details_key(recipient_id)
       return nil
    end
 
-   local key = string.format("%s.recipient_id_%d.details", self:_get_recipients_prefix_key(), recipient_id)
+   local key = string.format("%s.recipient_id_%d.details", _get_recipients_prefix_key(), recipient_id)
 
    return key
 end
@@ -170,10 +152,10 @@ end
 -- ##############################################
 
 -- @brief Returns an array with all the currently assigned recipient ids
-function recipients:_get_assigned_recipient_ids()
+local function _get_assigned_recipient_ids()
    local res = { }
 
-   local cur_recipient_ids = ntop.getMembersCache(self:_get_recipient_ids_key())
+   local cur_recipient_ids = ntop.getMembersCache(_get_recipient_ids_key())
 
    for _, cur_recipient_id in pairs(cur_recipient_ids) do
       cur_recipient_id = tonumber(cur_recipient_id)
@@ -185,8 +167,8 @@ end
 
 -- ##############################################
 
-function recipients:_assign_recipient_id()
-   local cur_recipient_ids = self:_get_assigned_recipient_ids()
+local function _assign_recipient_id()
+   local cur_recipient_ids = _get_assigned_recipient_ids()
    local next_recipient_id
 
    -- Create a Lua table with currently assigned recipient ids as keys
@@ -208,7 +190,7 @@ function recipients:_assign_recipient_id()
 
    if next_recipient_id then
       -- Add the atomically assigned recipient id to the set of current recipient ids (set wants a string)
-      ntop.setMembersCache(self:_get_recipient_ids_key(), string.format("%d", next_recipient_id))
+      ntop.setMembersCache(_get_recipient_ids_key(), string.format("%d", next_recipient_id))
    else
       -- All recipient ids exhausted
    end
@@ -254,9 +236,9 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
-function recipients:_set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
+local function _set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
    -- Write the endpoint recipient config into another hash
-   local k = self:_get_recipient_details_key(recipient_id)
+   local k = _get_recipient_details_key(recipient_id)
 
    ntop.setCache(k, json.encode({endpoint_conf_name = endpoint_conf_name,
 				 recipient_name = endpoint_recipient_name,
@@ -265,7 +247,7 @@ function recipients:_set_endpoint_recipient_params(recipient_id, endpoint_conf_n
 				 recipient_params = safe_params}))
 
    -- Notify a change in the recipients
-   self:set_recipients_change()
+   recipients.set_recipients_change()
 
    return recipient_id
 end
@@ -279,8 +261,8 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
-function recipients:add_recipient(endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
-   local locked = self:_lock()
+function recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
+   local locked = _lock()
    local res = { status = "failed" }
 
    if locked then
@@ -288,7 +270,7 @@ function recipients:add_recipient(endpoint_conf_name, endpoint_recipient_name, u
 
       if ec["status"] == "OK" and endpoint_recipient_name then
 	 -- Is the endpoint already existing?
-	 local same_recipient = self:get_recipient_by_name(endpoint_recipient_name)
+	 local same_recipient = recipients.get_recipient_by_name(endpoint_recipient_name)
 	 if same_recipient then
 	    res = {status = "failed",
 		   error = {type = "endpoint_recipient_already_existing",
@@ -302,9 +284,9 @@ function recipients:add_recipient(endpoint_conf_name, endpoint_recipient_name, u
 	       local safe_params = status["safe_params"]
 
 	       -- Assign the recipient id
-	       local recipient_id = self:_assign_recipient_id()
+	       local recipient_id = _assign_recipient_id()
 	       -- Persist the configuration
-	       self:_set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
+	       _set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
 	       ntop.recipient_register(recipient_id)
@@ -314,7 +296,7 @@ function recipients:add_recipient(endpoint_conf_name, endpoint_recipient_name, u
 	 end
       end
 
-      self:_unlock()
+      _unlock()
    end
 
    return res
@@ -329,12 +311,12 @@ end
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function recipients:edit_recipient(recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
-   local locked = self:_lock()
+function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
+   local locked = _lock()
    local res = { status = "failed" }
 
    if locked then
-      local rc = self:get_recipient(recipient_id)
+      local rc = recipients.get_recipient(recipient_id)
 
       if not rc then
 	 res = {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
@@ -353,14 +335,14 @@ function recipients:edit_recipient(recipient_id, endpoint_recipient_name, user_s
 	       local safe_params = status["safe_params"]
 
 	       -- Persist the configuration
-	       self:_set_endpoint_recipient_params(recipient_id, rc["endpoint_conf_name"], endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
+	       _set_endpoint_recipient_params(recipient_id, rc["endpoint_conf_name"], endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
 
 	       res = {status = "OK"}
 	    end
 	 end
       end
 
-      self:_unlock()
+      _unlock()
    end
 
    return res
@@ -368,35 +350,35 @@ end
 
 -- ##############################################
 
-function recipients:delete_recipient(recipient_id)
+function recipients.delete_recipient(recipient_id)
    local pools_lua_utils = require "pools_lua_utils"
    local ret = false
 
-   local locked = self:_lock()
+   local locked = _lock()
 
    if locked then
       -- Make sure the recipient exists
-      local cur_recipient_details = self:get_recipient(recipient_id)
+      local cur_recipient_details = recipients.get_recipient(recipient_id)
 
       if cur_recipient_details then	 
 	 -- Unbind the recipient from any assigned pool
 	 pools_lua_utils.unbind_all_recipient_id(recipient_id)
 
 	 -- Remove the key with all the recipient details (e.g., with members, and configset_id)
-	 ntop.delCache(self:_get_recipient_details_key(recipient_id))
+	 ntop.delCache(_get_recipient_details_key(recipient_id))
 
 	 -- Remove the recipient_id from the set of all currently existing recipient ids
-	 ntop.delMembersCache(self:_get_recipient_ids_key(), string.format("%d", recipient_id))
+	 ntop.delMembersCache(_get_recipient_ids_key(), string.format("%d", recipient_id))
 
 	 -- Notify a change in the recipients
-	 self:set_recipients_change()
+	 recipients.set_recipients_change()
 
 	 -- Finally, remove the recipient from C
 	 ntop.recipient_delete(recipient_id)
 	 ret = true
       end
 
-      self:_unlock()
+      _unlock()
    end
 
    return ret
@@ -407,13 +389,13 @@ end
 -- @brief Delete all recipients having the given `endpoint_conf_name`
 -- @param endpoint_conf_name An endpoint configuration key
 -- @return nil
-function recipients:delete_recipients_by_conf(endpoint_conf_name)
+function recipients.delete_recipients_by_conf(endpoint_conf_name)
    local ret = false
 
-   local all_recipients = self:get_all_recipients()
+   local all_recipients = recipients.get_all_recipients()
    for _, recipient in pairs(all_recipients) do
       if recipient.endpoint_conf_name == endpoint_conf_name then
-	 self:delete_recipient(recipient.recipient_id)
+	 recipients.delete_recipient(recipient.recipient_id)
       end
    end
 end
@@ -423,10 +405,10 @@ end
 -- @brief Get all recipients having the given `endpoint_conf_name`
 -- @param endpoint_conf_name An endpoint configuration key
 -- @return A lua array with recipients
-function recipients:get_recipients_by_conf(endpoint_conf_name)
+function recipients.get_recipients_by_conf(endpoint_conf_name)
    local res = {}
 
-   local all_recipients = self:get_all_recipients()
+   local all_recipients = recipients.get_all_recipients()
    for _, recipient in pairs(all_recipients) do
       if recipient.endpoint_conf_name == endpoint_conf_name then
 	 res[#res + 1] = recipient
@@ -438,7 +420,7 @@ end
 
 -- #################################################################
 
-function recipients:test_recipient(endpoint_conf_name, recipient_params)
+function recipients.test_recipient(endpoint_conf_name, recipient_params)
    -- Get endpoint config
 
    local ec = notification_configs.get_endpoint_config(endpoint_conf_name)
@@ -490,10 +472,10 @@ end
 
 -- ##############################################
 
-function recipients:get_recipient(recipient_id)
+function recipients.get_recipient(recipient_id)
    local user_scripts = require "user_scripts"
    local recipient_details
-   local recipient_details_key = self:_get_recipient_details_key(recipient_id)
+   local recipient_details_key = _get_recipient_details_key(recipient_id)
 
    -- Attempt at retrieving the recipient details key and at decoding it from JSON
    if recipient_details_key then
@@ -549,12 +531,12 @@ end
 
 -- ##############################################
 
-function recipients:get_all_recipients(exclude_builtin)
+function recipients.get_all_recipients(exclude_builtin)
    local res = {}
-   local cur_recipient_ids = self:_get_assigned_recipient_ids()
+   local cur_recipient_ids = _get_assigned_recipient_ids()
 
    for _, recipient_id in pairs(cur_recipient_ids) do
-      local recipient_details = self:get_recipient(recipient_id)
+      local recipient_details = recipients.get_recipient(recipient_id)
 
       if recipient_details and (not exclude_builtin or not recipient_details.endpoint_conf.builtin) then
 	 res[#res + 1] = recipient_details
@@ -566,11 +548,11 @@ end
 
 -- ##############################################
 
-function recipients:get_recipient_by_name(name)
-   local cur_recipient_ids = self:_get_assigned_recipient_ids()
+function recipients.get_recipient_by_name(name)
+   local cur_recipient_ids = _get_assigned_recipient_ids()
 
    for _, recipient_id in pairs(cur_recipient_ids) do
-      local recipient_details = self:get_recipient(recipient_id)
+      local recipient_details = recipients.get_recipient(recipient_id)
 
       if recipient_details and recipient_details["recipient_name"] and recipient_details["recipient_name"] == name then
 	 return recipient_details
@@ -582,14 +564,15 @@ end
 
 -- ##############################################
 
-function recipients:get_builtin_recipients()
+local builtin_recipients_cache
+function recipients.get_builtin_recipients()
    -- Currently, only sqlite (created in startup.lua) is the builtin recipient
    -- The builtin sqlite recipient is created in startup.lua
-   if not self.builtin_recipients_cache then
-      self.builtin_recipients_cache = { self:get_recipient_by_name("builtin_recipient_sqlite").recipient_id }
+   if not builtin_recipients_cache then
+      builtin_recipients_cache = { recipients.get_recipient_by_name("builtin_recipient_sqlite").recipient_id }
    end
 
-   return self.builtin_recipients_cache
+   return builtin_recipients_cache
 end
 
 -- ##############################################
@@ -611,7 +594,7 @@ end
 -- @param notification An alert notification
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return nil
-function recipients:dispatch_notification(notification, current_script)
+function recipients.dispatch_notification(notification, current_script)
    if(notification) then
       local pools_alert_utils = require "pools_alert_utils"
       local recipients = pools_alert_utils.get_entity_recipients_by_pool_id(notification.alert_entity, notification.pool_id, notification.alert_severity, current_script)
@@ -722,24 +705,25 @@ end
 -- @param periodic_frequency The frequency, in seconds, of this call
 -- @param force_export A boolean telling to forcefully export dispatched notifications
 -- @return nil
-function recipients:process_notifications(now, deadline, periodic_frequency, force_export)
+local cached_recipients
+function recipients.process_notifications(now, deadline, periodic_frequency, force_export)
    if not areAlertsEnabled() then
       return
    end
 
-   if not self.recipients then
+   if not cached_recipients then
       -- Cache recipients to avoid re-reading them constantly
-      self.recipients = self:get_all_recipients()
+      cached_recipients = recipients.get_all_recipients()
    else
       -- Make sure the recipients cache is still valid (i.e., no recipient changes have occurred in the meanwhile)
-      local locked = self:_lock()
+      local locked = _lock()
 
       if locked then
-	 if self:_check_recipients_change() then
+	 if _check_recipients_change() then
 	    -- If there has been a change, a reload is performed
-	    self.recipients = self:get_all_recipients()
+	    cached_recipients = recipients.get_all_recipients()
 	 end
-	 self:_unlock()
+	 _unlock()
       else
 	 -- Unable to acquire the lock, exit (will retry later)
 	 return
@@ -750,7 +734,7 @@ function recipients:process_notifications(now, deadline, periodic_frequency, for
 
    -- Check, among all available recipients, those that are ready to export, depending on
    -- their EXPORT_FREQUENCY
-   for _, recipient in pairs(self.recipients) do
+   for _, recipient in pairs(cached_recipients) do
       local module_name = recipient.endpoint_key 
 
       if modules_by_name[module_name] then
@@ -770,10 +754,10 @@ end
 -- ##############################################
 
 -- @brief Cleanup all but builtin recipients
-function recipients:cleanup()
-   local all_recipients = self:get_all_recipients(true --[[ exclude builtin recipients --]])
+function recipients.cleanup()
+   local all_recipients = recipients.get_all_recipients(true --[[ exclude builtin recipients --]])
    for _, recipient in pairs(all_recipients) do
-      self:delete_recipient(recipient.recipient_id)
+      recipients.delete_recipient(recipient.recipient_id)
    end
 end
 

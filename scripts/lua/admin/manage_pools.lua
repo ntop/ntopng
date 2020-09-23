@@ -32,7 +32,6 @@ end
 -- ************************
 
 local recipients = require "recipients"
-local recipients_instance = recipients:create()
 
 -- *************** end of requires ***************
 
@@ -128,7 +127,7 @@ local context = {
         assigned_members = (page ~= "all" and pool_instance:get_assigned_members() or {}),
         endpoints = endpoints,
         endpoint_types = notification_configs.get_types(),
-        notification_recipients = recipients_instance:get_all_recipients()
+        notification_recipients = recipients.get_all_recipients()
     }
 }
 

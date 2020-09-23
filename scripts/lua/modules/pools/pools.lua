@@ -8,8 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 
 require "lua_utils"
 local user_scripts = require "user_scripts"
-local recipients = require "recipients"
-local recipients_instance = recipients:create()
+local recipients_mod = require "recipients"
 local json = require "dkjson"
 local ntop_info = ntop.getInfo()
 
@@ -93,7 +92,7 @@ function pools:_initialize()
 	   self:_persist(pools.DEFAULT_POOL_ID, pools.DEFAULT_POOL_NAME,
 			 {} --[[ no members --]] ,
 			 user_scripts.DEFAULT_CONFIGSET_ID,
-			 recipients_instance:get_builtin_recipients() --[[ builtin recipients --]])
+			 recipients_mod.get_builtin_recipients() --[[ builtin recipients --]])
         end
 
         self:_unlock()
@@ -499,7 +498,7 @@ function pools:get_pool(pool_id, recipient_details)
 		      local res = {recipient_id = recipient_id}
 
 		      if recipient_details then
-			 local recipient = recipients_instance:get_recipient(recipient_id)
+			 local recipient = recipients_mod.get_recipient(recipient_id)
 			 if recipient and recipient.recipient_name then
 			    -- Keep in in sync with overridden method in host_pool.lua
 			    res["recipient_name"] = recipient.recipient_name
@@ -683,7 +682,7 @@ end
 function pools:get_available_recipient_ids()
     -- Please note that recipient ids are shared across pools of all types
     -- so all the recipient ids can be returned here without distinction
-    local recipients = recipients_instance:get_all_recipients()
+    local recipients = recipients_mod.get_all_recipients()
     local res = {}
 
     for _, recipient in pairs(recipients) do
@@ -727,7 +726,6 @@ function pools:unbind_all_recipient_id(recipient_id)
     end
 
     local locked = self:_lock()
-
     if locked then
        local all_pools = self:get_all_pools()
 

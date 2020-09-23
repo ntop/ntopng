@@ -21,8 +21,7 @@ local plugins_utils = require "plugins_utils"
 plugins_utils.loadPlugins()
 
 local recipients = require "recipients"
-local recipients_instance = recipients:create()
-recipients:initialize()
+recipients.initialize()
 
 local alert_utils = require "alert_utils"
 

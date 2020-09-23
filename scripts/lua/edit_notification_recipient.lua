@@ -11,7 +11,6 @@ local json = require("dkjson")
 local plugins_utils = require "plugins_utils"
 local recipients_rest_utils = require "recipients_rest_utils"
 local recipients = require "recipients"
-local recipients_instance = recipients:create()
 
 local action = _POST["action"]
 
@@ -29,22 +28,22 @@ local minimum_severity = recipients_rest_utils.parse_minimum_severity(_POST["rec
 
 if (action == "add") then
    local endpoint_conf_name = _POST["endpoint_conf_name"]
-   response.result = recipients_instance:add_recipient(endpoint_conf_name,
-						       recipient_name,
-						       categories,
-						       minimum_severity,
-						       _POST)
+   response.result = recipients.add_recipient(endpoint_conf_name,
+					      recipient_name,
+					      categories,
+					      minimum_severity,
+					      _POST)
 elseif (action == "edit") then
-   response.result = recipients_instance:edit_recipient(recipient_id,
-							recipient_name,
-							categories,
-							minimum_severity,
-							_POST)
+   response.result = recipients.edit_recipient(recipient_id,
+					       recipient_name,
+					       categories,
+					       minimum_severity,
+					       _POST)
 elseif (action == "remove") then
-   response.result = recipients_instance:delete_recipient(recipient_id)
+   response.result = recipients.delete_recipient(recipient_id)
 elseif (action == "test") then
    local endpoint_conf_name = _POST["endpoint_conf_name"]
-   response.result = recipients_instance:test_recipient(endpoint_conf_name, _POST)
+   response.result = recipients.test_recipient(endpoint_conf_name, _POST)
 else
    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid 'action' parameter.")
    response.success = false

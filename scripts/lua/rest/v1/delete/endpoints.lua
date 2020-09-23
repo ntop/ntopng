@@ -9,9 +9,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 local rest_utils = require "rest_utils"
 local notification_configs = require "notification_configs"
 local recipients = require "recipients"
-local recipients_instance = recipients:create()
 
 notification_configs.reset_configs()
-recipients_instance:cleanup()
+recipients.cleanup()
 
 rest_utils.answer(rest_utils.consts.success.ok)

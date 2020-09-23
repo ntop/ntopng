@@ -268,8 +268,7 @@ function notification_configs.delete_config(endpoint_conf_name)
 
    -- Delete the all the recipients associated to this config recipients
    local recipients = require "recipients"
-   local recipients_instance = recipients:create()
-   recipients_instance:delete_recipients_by_conf(endpoint_conf_name)
+   recipients.delete_recipients_by_conf(endpoint_conf_name)
 
    -- Now delete the actual config
    local k = string.format(ENDPOINT_CONFIGS_KEY, ec["endpoint_key"])
@@ -339,11 +338,10 @@ end
 --         with an extra key `recipients`.
 function notification_configs.get_configs_with_recipients()
    local recipients = require "recipients"
-   local recipients_instance = recipients:create()
    local configs = notification_configs.get_configs()
 
    for conf_name, conf in pairs(configs) do
-      conf["recipients"] = recipients_instance:get_recipients_by_conf(conf.endpoint_conf_name)
+      conf["recipients"] = recipients.get_recipients_by_conf(conf.endpoint_conf_name)
    end
 
    return configs

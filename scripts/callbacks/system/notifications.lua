@@ -9,7 +9,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 
 require "lua_utils"
 local recipients = require "recipients"
-local recipients_instance = recipients:create()
 local periodicity = 3
 
 -- For performace, this script is started in C only one time every hour.
@@ -21,7 +20,7 @@ while not ntop.isShutdown() and not ntop.isDeadlineApproaching() do
    local start_ms = ntop.gettimemsec()
 
    local now = os.time()
-   recipients_instance:process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
+   recipients.process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
 
    -- Sleep for a time which is three seconds minus the amount of time spent processing notifications
    local end_ms = ntop.gettimemsec()

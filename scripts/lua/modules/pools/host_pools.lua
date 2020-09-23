@@ -3,10 +3,8 @@
 --
 -- Module to keep things in common across pools of various type
 local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" ..
-                   package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" ..
-                   package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 
 require "lua_utils"
 local pools = require "pools"
@@ -14,8 +12,7 @@ local user_scripts = require "user_scripts"
 local ts_utils = require "ts_utils_core"
 local json = require "dkjson"
 
-local recipients = require "recipients"
-local recipients_instance = recipients:create()
+local recipients_mod = require "recipients"
 
 -- ##############################################
 
@@ -313,7 +310,7 @@ function host_pools:get_pool(pool_id, recipient_details)
 	     local res = { recipient_id = recipient_id }
 
 	     if recipient_details then
-		local recipient = recipients_instance:get_recipient(recipient_id)
+		local recipient = recipients_mod.get_recipient(recipient_id)
 
 		if recipient and recipient.recipient_name then
 		   res["recipient_name"] = recipient.recipient_name
