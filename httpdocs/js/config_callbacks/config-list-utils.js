@@ -63,10 +63,10 @@ $(document).ready(function() {
                     <a class="btn btn-info btn-sm" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
                         <i class='fas fa-edit'></i>
                     </a>
-                    <a href='#' title='${i18n.clone}' class="btn btn-sm btn-info ${default_config_only ? 'disabled' : ''}" data-toggle="modal" data-target="#clone-modal">
+                    <a href='#' title='${i18n.clone}' class="btn btn-sm btn-info ${DEFAULT_CONFIG_ONLY ? 'disabled' : ''}" data-toggle="modal" data-target="#clone-modal">
                         <i class='fas fa-clone'></i>
                     </a>
-                    <a href='#' title='${i18n.rename}' class="btn btn-sm btn-info" ${data.id == 0 ? `disabled` : ''} data-toggle="modal" data-target="#rename-modal">
+                    <a href='#' title='${i18n.rename}' class="btn btn-sm btn-info ${data.id == 0 ? `disabled` : ''}" data-toggle="modal" data-target="#rename-modal">
                         <i class='fas fa-pencil-alt'></i>
                     </a>
                     <a href='#' title='${i18n.delete}' class="btn btn-sm btn-danger ${data.id == 0 ? 'disabled' : ''}" data-toggle="modal" data-target="#delete-modal">
@@ -78,7 +78,7 @@ $(document).ready(function() {
             }
         }
 
-        if (default_config_only) return [name_column, action_column];
+        if (DEFAULT_CONFIG_ONLY) return [name_column, action_column];
 
         return [name_column, pools_column, action_column];
     }
