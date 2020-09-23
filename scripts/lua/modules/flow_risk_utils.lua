@@ -26,7 +26,13 @@ local id2name = {
    [15] = "ndpi_tls_not_carrying_https",
    [16] = "ndpi_suspicious_dga_domain",
    [17] = "ndpi_malformed_packet",
-   
+   [18] = "ndpi_ssh_obsolete_client_version_or_cipher",
+   [19] = "ndpi_ssh_obsolete_server_version_or_cipher",
+   [20] = "ndpi_smb_insecure_version",
+   [21] = "ndpi_tls_suspicious_esni_usage",
+   [22] = "ndpi_unsafe_protocol",
+   [23] = "ndpi_dns_suspicious_traffic",
+   [24] = "ndpi_tls_missing_sni",   
 }
 
 -- ##############################################
@@ -46,7 +52,7 @@ function flow_risk_utils.risk_id_2_i18n(risk_id)
       return i18n("flow_risk."..id2name[risk_id])
    end
 
-   return ''
+   return risk_id
 end
 
 -- ##############################################

@@ -1114,14 +1114,8 @@ else
 
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.flow_anomalies").."</th><td colspan=2>")
 
-      local cur_risk = 1
       for risk_str,risk_id in pairs(risk) do
-	 if cur_risk > 1 then
-	    print("<br>")
-	 end
-
-	 print(flow_risk_utils.risk_id_2_i18n(risk_id))
-	 cur_risk = cur_risk + 1
+	 print("<li> "..flow_risk_utils.risk_id_2_i18n(risk_id).."</li>")
       end
 
       print("</td></tr>")
