@@ -10,13 +10,21 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require("lua_utils")
 local page_utils = require("page_utils")
-
-sendHTTPContentTypeHeader('text/html')
-page_utils.print_header()
-
 local message        = _GET["message"] or "forbidden"
 local referal_url    = _GET["referer"] or '/'
 local error_message  = _GET["error_message"] or ""
+
+if(_GET["message"] == "not_found") then
+   status_code = 404
+elseif(_GET["message"] == "internal_error") then
+   status_code = 500
+else
+   status_code = 403 -- forbidden
+end
+
+sendHTTPContentTypeHeader('text/html', nil, nil, nil, status_code)
+page_utils.print_header()
+
 
 referal_url = string.sub(referal_url, string.find(referal_url, "/"), string.len(referal_url))
 message = "http_status_code."..message

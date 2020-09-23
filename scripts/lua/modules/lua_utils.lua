@@ -280,11 +280,12 @@ end
 
 -- ##############################################
 
-function sendHTTPContentTypeHeader(content_type, content_disposition, charset)
-
+function sendHTTPContentTypeHeader(content_type, content_disposition, charset, extra_headers, status_code)
   local charset = charset or "utf-8"
   local mime = content_type.."; charset="..charset
-  sendHTTPHeader(mime, content_disposition)
+
+  tprint(status_code)
+  sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
 end
 
 
