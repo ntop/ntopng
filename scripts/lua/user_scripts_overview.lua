@@ -65,7 +65,7 @@ local function printUserScripts()
             local edit_url = user_scripts.getScriptEditorUrl(script)
 
             if(edit_url) then
-              edit_url = ' <a title="'.. i18n("plugins_overview.action_view") ..'" href="'.. edit_url ..'" class="badge badge-secondary" style="visibility: visible">' .. i18n("host_pools.view") ..'</a>'
+              edit_url = ' <a title="'.. i18n("plugins_overview.action_view") ..'" href="'.. edit_url ..'" class="btn btn-sm btn-secondary" ><i class="fas fa-eye"></i></a>'
             end
 
             print(string.format(([[
