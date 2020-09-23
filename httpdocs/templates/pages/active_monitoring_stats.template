@@ -1,0 +1,155 @@
+{#
+    (C) 2020 - ntop.org
+
+    This is the template for the active monitoring stats page. I
+#}
+
+<div class="row mb-5">
+    <div class="col-md-12">
+        <div class="card card-shadow">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table w-100 table-striped table-hover table-bordered" id="am-table">
+                        <thead>
+                          <tr>
+                            <th>{{i18n("flow_details.url")}}</th>
+                            <th>{{i18n("chart")}}</th>
+                            <th>{{i18n("threshold")}}</th>
+                            <th>{{i18n("active_monitoring.24h")}}</th>
+                            <th>{{i18n("active_monitoring_stats.last_measurement")}}</th>
+                            <th>{{i18n("system_stats.last_ip")}}</th>
+                            <th>{{i18n("active_monitoring_stats.measurement")}}</th>
+                            <th>{{i18n("active_monitoring_stats.alerted")}}</th>
+                            <th>{{i18n("active_monitoring_stats.pool")}}</th>
+                            <th>{{i18n("active_monitoring_stats.jitter")}}</th>
+                            <th>{{i18n("actions")}}</th>
+                          </tr>
+                        </thead>
+                      </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                {* ui_utils.render_configuration_footer({}, {href='#', toggle_modal=true, modal_id="factory-reset-modal", id='btn-factory-reset'}) *}
+            </div>
+        </div>
+        <div class="notes bg-light border">
+            <b>{{ i18n("notes") }}</b>:
+            <ul>
+                {% for _, note in pairs(am_stats.notes) do %}
+                    <li>{{ note }}</li>
+                {% end %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{*
+    plugins_utils.renderTemplate("active_monitoring", "am_add_host_modal.html", {
+        pools = am_stats.pools,
+        dialog = {
+          add_record = i18n("active_monitoring_stats.add_record"),
+          measurement = i18n("active_monitoring_stats.measurement"),
+          add_measurement_select = generate_select("select-add-measurement", "measurement", true, false, {}, "measurement-select"),
+          am_host = i18n("about.host_callbacks_directory"),
+          periodicity = i18n("internals.periodicity"),
+          add_granularity_select = generate_select("select-add-granularity", "granularity", true, false, {}, "measurement-granularity"),
+          threshold = i18n("threshold"),
+          notes = i18n("notes"),
+          note_icmp = i18n("active_monitoring_stats.am_note_icmp"),
+          note_http = i18n("active_monitoring_stats.am_note_http"),
+          note_alert = i18n("active_monitoring_stats.note_alert"),
+          cancel = i18n("cancel"),
+          add = i18n("add"),
+        }
+      })
+*}
+
+{*
+    plugins_utils.renderTemplate("active_monitoring", "am_edit_host_modal.html", {
+        pools = am_stats.pools,
+        dialog = {
+          measurement = i18n("active_monitoring_stats.measurement"),
+          edit_measurement_select = generate_select("select-edit-measurement", "measurement", true, false, {}, "measurement-select"),
+          am_host = i18n("about.host_callbacks_directory"),
+          periodicity = i18n("internals.periodicity"),
+          edit_granularity_select = generate_select("select-edit-granularity", "granularity", true, false, {}, "measurement-granularity"),
+          edit_record = i18n("active_monitoring_stats.edit_record"),
+          notes = i18n("notes"),
+          note_icmp = i18n("active_monitoring_stats.am_note_icmp"),
+          note_http = i18n("active_monitoring_stats.am_note_http"),
+          note_alert = i18n("active_monitoring_stats.note_alert"),
+          note_periodicity_change = i18n("active_monitoring_stats.note_periodicity_change"),
+          reset = i18n("reset"),
+          apply = i18n("apply"),
+          cancel = i18n("cancel"),
+          threshold = i18n("threshold"),
+        }
+      })
+*}
+
+{*
+
+    plugins_utils.renderTemplate("active_monitoring", "am_delete_host_modal.html", {
+        dialog = {
+            confirm_delete = i18n("active_monitoring_stats.confirm_delete"),
+            delete = i18n("delete"),
+            cancel = i18n("cancel"),
+        }
+    })
+
+*}
+
+{*
+    template_utils.gen("pages/modals/scripts_config/import_modal.html", {
+        dialog={
+            id      = "import-modal",
+            title   = i18n("host_pools.config_import"),
+            label   = "",
+            message = i18n("host_pools.config_import_message"),
+            cancel  = i18n("cancel"),
+            apply   = i18n("apply"),
+        }
+      })
+*}
+
+{*
+    template_utils.gen("modal_confirm_dialog.html", {
+        dialog={
+            id      = "reset-modal",
+            action  = "$('#reset-form').submit()",
+            title   = i18n("config_scripts.config_reset"),
+            message = i18n("active_monitoring_stats.config_reset_confirm"),
+            confirm = i18n("reset")
+        }
+    })
+*}
+
+<link href="{{ ntop.getHttpPrefix()}}/datatables/datatables.min.css" rel="stylesheet"/>
+    <script type="text/javascript">
+
+      i18n.pools = "{{ i18n("pools.pools")}}";
+      i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'})}}";
+      i18n.search = "{{ i18n("search")}}:";
+      i18n.msec = "{{i18n("active_monitoring_stats.msec")}}";
+      i18n.edit = "{{i18n("users.edit")}}";
+      i18n.success = "{{i18n("success")}}";
+      i18n.delete = "{{i18n("delete")}}";
+      i18n.expired_csrf = "{{i18n("expired_csrf")}}";
+      i18n.all = "{{i18n("all")}}";
+      i18n.other = "{{i18n("other")}}";
+      i18n.others = "{{i18n("others")}}";
+      i18n.measurement = "{{i18n("active_monitoring_stats.measurement")}}";
+      i18n.alert_status = "{{ i18n("active_monitoring_stats.alert_status")}}";
+      i18n.alerted = "{{ i18n("active_monitoring_stats.alerted")}}";
+      i18n.not_alerted = "{{ i18n("active_monitoring_stats.not_alerted")}}";
+      i18n.no_recipients = "{{i18n('pools.no_recipients')}}";
+      i18n.some_recipients = "{{i18n('pools.some_recipients')}}";
+
+      let get_host = "{{ am_stats.get_host }}";
+      let am_csrf = "{{ ntop.getRandomCSRFValue()}}";
+      let import_csrf = "{{ ntop.getRandomCSRFValue()}}";
+      const measurements_info = {*json.encode(am_stats.measurements_info)*};
+      const poolsFilter = {* json.encode(am_stats.pool_filters)*};
+
+    </script>
+    <script type='text/javascript' src='{{ plugins_utils.getHttpdocsDir("active_monitoring")}}/active_monitoring_utils.js?]] ..(ntop.getStartupEpoch())}}'></script>

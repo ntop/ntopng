@@ -1658,8 +1658,8 @@ $(document).ready(function () {
             data: null,
             name: 'actions',
             className: 'text-center',
-            width: '200px',
             sortable: false,
+            width: 'auto',
             render: function (data, type, script) {
 
                const isScriptEnabled = script.is_enabled;
