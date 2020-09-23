@@ -81,6 +81,13 @@ end
 
 -- #################################################################
 
+local function no_action_handler()
+   -- An handler which doesn't perform any action. Useful
+   -- to be associated with risks already handled on other user scripts
+end
+
+-- #################################################################
+
 -- A Lua table to map risks with a given handler
 -- Risks are identified with ids as found in ndpi_typedefs.h
 local risk2action = {
@@ -90,11 +97,11 @@ local risk2action = {
    [3]  = default_handler,                                     -- "ndpi_url_possible_rce_injection"
    [4]  = ndpi_binary_application_transfer_handler,            -- "ndpi_binary_application_transfer"
    [5]  = ndpi_known_protocol_on_non_standard_port_handler,    -- "ndpi_known_protocol_on_non_standard_port"
-   [6]  = default_handler,                                     -- handled in tls_certificate_selfsigned.lua
-   [7]  = default_handler,                                     -- handled in tls_old_version.lua
-   [8]  = default_handler,                                     -- handled in tls_unsafe_ciphers.lua
-   [9]  = default_handler,                                     -- handled in tls_certificate_expired.lua
-   [10] = default_handler,                                     -- handled in tls_certificate_mismatch.lua TODO: migrate to flow risk
+   [6]  = no_action_handler,                                   -- handled in tls_certificate_selfsigned.lua
+   [7]  = no_action_handler,                                   -- handled in tls_old_version.lua
+   [8]  = no_action_handler,                                   -- handled in tls_unsafe_ciphers.lua
+   [9]  = no_action_handler,                                   -- handled in tls_certificate_expired.lua
+   [10] = no_action_handler,                                   -- handled in tls_certificate_mismatch.lua TODO: migrate to flow risk
    [11] = default_handler,                                     -- "ndpi_http_suspicious_user_agent"
    [12] = default_handler,                                     -- "ndpi_http_numeric_ip_host"
    [13] = default_handler,                                     -- "ndpi_http_suspicious_url"
