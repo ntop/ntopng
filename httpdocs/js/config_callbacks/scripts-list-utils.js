@@ -1221,10 +1221,21 @@ const FlowMud = (gui, hooks, script_subdir, script_key) => {
 /* ******************************************************* */
 
 const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_key = null) => {
+
+   const $tableEditor = $("#script-config-editor");
+
    return {
       apply_click_event: function () { },
       reset_click_event: function () { },
-      render: function () { },
+      render: function () {
+
+         // add an info alert to inform the user about the problem
+         const $alert = $("<div class='alert alert-info'></div>");
+         $alert.html(i18n.scripts_list.templates.template_not_implemented);
+         $tableEditor.append($alert);
+         // hide the apply and the reset button because there are no inputs to fill
+         $(`#btn-apply,#btn-reset`).hide();
+      },
    }
 }
 
@@ -1308,11 +1319,14 @@ const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
    }
 
    let template_chosen = templates[template_name];
-
    if (!template_chosen) {
       template_chosen = EmptyTemplate();
-      throw (`${i18n.scripts_list.templates.template_not_implemented}`);
+      // this message is for the developers
+      console.warn("The chosen template doesn't exist yet. See the avaible templates.")
    }
+
+   // restore Apply/Reset button
+   $(`#btn-apply,#btn-reset`).show();
 
    return template_chosen;
 }
@@ -1326,19 +1340,17 @@ const createScriptStatusButton = (row_data) => {
    const { is_enabled } = row_data;
 
    const $button = $(`<button type='button' class='btn btn-sm'></button>`);
+   $button.addClass('btn-success');
 
    if (!is_enabled && row_data.input_handler) {
       $button.html(`<i class='fas fa-toggle-on'></i>`);
-      $button.addClass('btn-info');
       $button.attr('data-target', '#modal-script');
       $button.attr('data-toggle', 'modal');
       return $button;
    }
 
    if (!is_enabled && !row_data.input_handler) {
-
       $button.html(`<i class='fas fa-toggle-on'></i>`);
-      $button.addClass('btn-success');
    }
    else {
 
@@ -1360,27 +1372,20 @@ const createScriptStatusButton = (row_data) => {
          action: (is_enabled) ? 'disable' : 'enable',
          confset_id: confset_id
       })
-         .done((d, status, xhr) => {
+      .done((d, status, xhr) => {
 
-            if (!d.success) {
-               $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
-            }
+         if (!d.success) {
+            $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
+         }
 
-            if (d.success) reloadPageAfterPOST();
-
-         })
-         .fail(({ status, statusText }) => {
-
-            NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
-
-            // if the csrf has expired
-            if (status == 200) {
-               $("#alert-row-buttons").text(`${i18n.expired_csrf}`).removeClass('d-none').show();
-            }
-
-            // re eanble buttons
-            $button.removeAttr("disabled").removeClass('disabled');
-         });
+         if (d.success) reloadPageAfterPOST();
+      })
+      .fail(({status, statusText}) => {
+         NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
+      })
+      .always(() => {
+         $button.removeAttr("disabled").removeClass('disabled');
+      })
    })
 
    return $button;
@@ -1658,13 +1663,12 @@ $(document).ready(function () {
             render: function (data, type, script) {
 
                const isScriptEnabled = script.is_enabled;
-               const isEditScriptHidden = !isScriptEnabled;
 
-               const srcCodeButtonEnabled = !data.edit_url ? 'disabled' : '';
-               const editScriptButtonEnabled = !script.input_handler ? 'disabled' : '';
+               const srcCodeButtonEnabled = data.edit_url && isScriptEnabled ? '' : 'disabled';
+               const editScriptButtonEnabled = !script.input_handler || !isScriptEnabled ? 'disabled' : '';
 
                return DataTableUtils.createActionButtons([
-                  { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit', hidden: isEditScriptHidden },
+                  { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit' },
                   { class: `btn-secondary ${srcCodeButtonEnabled}`, icon: 'fa-file-code', href: data.edit_url}
                ]);
             },

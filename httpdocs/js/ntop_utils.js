@@ -686,10 +686,17 @@ class NtopUtils {
 
 	// return true if the status code is different from 200
 	static check_status_code(status_code, status_text, $error_label) {
+
 		const is_different = status_code != 200;
 
 		if (is_different && $error_label != null) {
-			$error_label.text(`${i18n.request_failed_message}: ${status_code} - ${status_text}`).show();
+
+			let message = i18n.request_failed_message;
+			if (status_code && status_text) {
+				message += `: ${status_code} - ${status_text}`;
+			}
+
+			$error_label.text(message).show();
 		}
 		else if (is_different && $error_label == null) {
 			alert(`${i18n.request_failed_message}: ${status_code} - ${status_text}`);

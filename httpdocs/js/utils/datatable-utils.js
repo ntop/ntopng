@@ -72,7 +72,8 @@ class DataTableUtils {
                 <a
                     href='${action.href || action.modal}'
                     ${action.modal ? "data-toggle='modal'" : ""}
-                    class='btn btn-sm ${action.class} ${action.hidden ? 'invisible' : 'visible'}'
+                    class='btn btn-sm ml-1 ${action.class}'
+                    ${action.hidden ? "style='display: none'" : ''}
                     >
                     <i class='fas ${action.icon}'></i>
                 </a>
@@ -81,7 +82,7 @@ class DataTableUtils {
             buttons.push(button);
         });
 
-        return (`<div role='group'>${buttons.join('')}</div>`);
+        return (`<div class='d-flex px-25' role='group'>${buttons.join('')}</div>`);
     }
 
     static setAjaxConfig(config, url, dataSrc = '', method = "get", params = {}) {
