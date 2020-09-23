@@ -1181,8 +1181,19 @@ else
       print("</td></tr>\n")
    end
 
-   if(isScoreEnabled() and (flow.score > 0)) then
-      print("<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td colspan=2>"..flow["score"].."</td></tr>\n")
+   if(isScoreEnabled() and (flow.score.flow_score > 0)) then
+      print("\n<tr><th width=30%>"..i18n("flow_details.flow_score").."</th><td>"..flow.score.flow_score.."</td>\n")
+
+      local score_category_network  = flow.score.host_categories_total["0"]
+      local score_category_security = flow.score.host_categories_total["1"]
+      local tot                     = score_category_network + score_category_security
+
+      score_category_network  = (score_category_network*100)/tot
+      score_category_security = 100 - score_category_network
+      
+      print('<td><div class="progress"><div class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
+      print('</div><div class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</div></div></td>\n')
+      print("</tr>\n")
    end
 
    if(flow.entropy and flow.entropy.client and flow.entropy.server) then

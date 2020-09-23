@@ -231,6 +231,7 @@ public:
   static int snappend(char *str, size_t size, const char *tobeappended, const char *separator);
   static bool isNumber(const char *s, unsigned int s_len, bool *is_float);
   static bool isPingSupported();
+  static ScoreCategory mapScriptToScoreCategory(ScriptCategory script_category);  
 };
 
 #endif /* _UTILS_H_ */

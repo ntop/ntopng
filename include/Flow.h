@@ -47,7 +47,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
-  u_int16_t cli_score[MAX_NUM_SCRIPT_CATEGORIES], srv_score[MAX_NUM_SCRIPT_CATEGORIES], flow_score;
+  u_int16_t cli_host_score[MAX_NUM_SCORE_CATEGORIES], srv_host_score[MAX_NUM_SCORE_CATEGORIES], flow_score;
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
   Bitmap status_map;              /* The bitmap of the possible problems on the flow */
@@ -279,7 +279,8 @@ class Flow : public GenericHashEntry {
 
   void updateEntropy(struct ndpi_analyze_struct *e, u_int8_t *payload, u_int payload_len);
   void lua_entropy(lua_State* vm);
- 
+  void luaScore(lua_State* vm);
+  
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,

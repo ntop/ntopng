@@ -34,7 +34,7 @@ u_int32_t HostScore::sumValues(bool as_client) const {
   u_int32_t res = 0;
   const u_int16_t *src = as_client ? cli_score : srv_score;
 
-  for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
+  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++)
     res += src[i];
 
   return res;
@@ -43,29 +43,29 @@ u_int32_t HostScore::sumValues(bool as_client) const {
 /* *************************************** */
 
 /*
-  Increases a value for the `script_category` score by `score`. Client/server score is increased,
+  Increases a value for the `score_category` score by `score`. Client/server score is increased,
   according to parameter `as_client`. The actual increment performed is returned by the function.
   NOTE: The actual increment performed can be less than `score`, if incrementing by `score` would have
   caused an overflow.
 
   HostScore::incValue must be called from the same thread of HostScore::decValue to prevent races.
 */
-u_int16_t HostScore::incValue(u_int16_t score, ScriptCategory script_category, bool as_client) {
+u_int16_t HostScore::incValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
   u_int16_t *dst = as_client ? cli_score : srv_score;
   u_int16_t actual_inc = 0;
 
-  if(script_category >= MAX_NUM_SCRIPT_CATEGORIES || score == 0)
+  if(score_category >= MAX_NUM_SCORE_CATEGORIES || score == 0)
     return 0;
 
-  if(dst[script_category] + score <= (u_int16_t)-1) {
+  if(dst[score_category] + score <= (u_int16_t)-1) {
     /* Enough room to do a full increment by `score` */
     actual_inc = score;
-    dst[script_category] += score;
-  } else if (dst[script_category] < (u_int16_t)-1){
+    dst[score_category] += score;
+  } else if (dst[score_category] < (u_int16_t)-1){
     /* Not enough room to do a full increment by `score`, let's reach the maximum possible value and set the
        actual increment performed. */
-    actual_inc = (u_int16_t)-1 - dst[script_category];
-    dst[script_category] += actual_inc;
+    actual_inc = (u_int16_t)-1 - dst[score_category];
+    dst[score_category] += actual_inc;
   }
 
   return actual_inc;
@@ -74,21 +74,21 @@ u_int16_t HostScore::incValue(u_int16_t score, ScriptCategory script_category, b
 /* *************************************** */
 
 /*
-  Decreases a value for the `script_category` score by `score`. Client/server score is decreased,
+  Decreases a value for the `score_category` score by `score`. Client/server score is decreased,
   according to parameter `as_client`. The actual decrement performed is returned by the function.
-  NOTE: The actual decrement is either `score` or zero if `script_category` is unknown.
+  NOTE: The actual decrement is either `score` or zero if `score_category` is unknown.
 
   HostScore::decValue must be called from the same thread of HostScore::incValue to prevent races.
 */
-u_int16_t HostScore::decValue(u_int16_t score, ScriptCategory script_category, bool as_client) {
+u_int16_t HostScore::decValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
   u_int16_t *dst = as_client ? cli_score : srv_score;
 
-  if(script_category >= MAX_NUM_SCRIPT_CATEGORIES || score == 0)
+  if(score_category >= MAX_NUM_SCORE_CATEGORIES || score == 0)
     return 0;
 
-  if(dst[script_category] - score >= 0)
+  if(dst[score_category] - score >= 0)
     /* Decrement leaves the destination consistent */
-    dst[script_category] -= score;
+    dst[score_category] -= score;
   else
     /* Something was wrong */
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Decrement of host score yielding a negative number.");
@@ -102,14 +102,14 @@ void HostScore::lua_breakdown(lua_State *vm, bool as_client) const {
   u_int32_t total = 0;
   const u_int16_t *src = as_client ? cli_score : srv_score;
 
-  for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++)
+  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++)
     total += src[i];
 
   if(total == 0) total = 1; /* Prevents zero-division errors */
 
   lua_newtable(vm);
 
-  for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
+  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
     lua_pushinteger(vm, i); /* The integer category id as key */
     lua_pushnumber(vm, src[i] / (float)total * 100); /* The % as value */
     lua_settable(vm, -3);

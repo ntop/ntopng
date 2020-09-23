@@ -90,7 +90,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
-  memset(&cli_score, 0, sizeof(cli_score)), memset(&srv_score, 0, sizeof(srv_score)), flow_score = 0;
+  memset(&cli_host_score, 0, sizeof(cli_host_score)), memset(&srv_host_score, 0, sizeof(srv_host_score)), flow_score = 0;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
@@ -1926,6 +1926,54 @@ const char* Flow::cipher_weakness2str(ndpi_cipher_weakness w) const {
 
 /* *************************************** */
 
+void Flow::luaScore(lua_State* vm) {
+  u_int32_t tot;
+  
+  lua_newtable(vm);
+
+  lua_push_int32_table_entry(vm, "flow_score", getScore());
+
+  /* ***************************************** */
+  
+  lua_newtable(vm);
+  for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++) {
+    char tmp[8];
+
+    snprintf(tmp, sizeof(tmp), "%u", i);
+    lua_push_int32_table_entry(vm, tmp, cli_host_score[i] + srv_host_score[i]);
+  }
+  
+  lua_pushstring(vm, "host_categories_total");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  
+  /* ***************************************** */
+  
+  lua_newtable(vm);
+
+  tot = 0;
+  for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++)
+    tot += cli_host_score[i];
+  lua_push_int32_table_entry(vm, "client_score", tot);
+
+  tot = 0;
+  for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++)
+    tot += srv_host_score[i];
+  lua_push_int32_table_entry(vm, "server_score", tot);
+
+  lua_pushstring(vm, "host_score_total");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+  
+  /* ***************************************** */
+  
+  lua_pushstring(vm, "score");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);  
+}
+
+/* *************************************** */
+
 void Flow::lua(lua_State* vm, AddressTree * ptree,
 	       DetailsLevel details_level, bool skipNewTable) {
   const IpAddress *src_ip = get_cli_ip_addr(), *dst_ip = get_srv_ip_addr();
@@ -1984,8 +2032,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_get_dir_traffic(vm, true /* Client to Server */);
     lua_get_dir_traffic(vm, false /* Server to Client */);
 
-    lua_push_int32_table_entry(vm, "score", getScore());
-
+    luaScore(vm);
+    
     if(isICMP()) {
       lua_newtable(vm);
 
@@ -4390,18 +4438,20 @@ void Flow::postFlowSetIdle(const struct timeval *tv) {
   if(unsafeGetServer()) srvs = unsafeGetServer()->getScore();
 
   if(clis) {
-    for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
-      ScriptCategory script_category = (ScriptCategory)i;
+    for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+      ScoreCategory score_category = (ScoreCategory)i;
 
-      if(cli_score[script_category]) clis->decValue(cli_score[script_category], script_category, true  /* as client */);
+      if(cli_host_score[score_category]) clis->decValue(cli_host_score[score_category],
+							 score_category, true  /* as client */);
     }
   }
 
   if(srvs) {
-    for(int i = 0; i < MAX_NUM_SCRIPT_CATEGORIES; i++) {
-      ScriptCategory script_category = (ScriptCategory)i;
+    for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+      ScoreCategory score_category = (ScoreCategory)i;
 
-      if(srv_score[script_category]) srvs->decValue(srv_score[script_category], script_category, false /* as server */);
+      if(srv_host_score[score_category]) srvs->decValue(srv_host_score[score_category],
+							score_category, false /* as server */);
     }
   }
 }
@@ -5112,8 +5162,14 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 
 /* *************************************** */
 
+/*
+  This method is called by Lua to set score and various other values of the flow
+ */
 bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
-		     u_int16_t srv_inc, const char*script_key, ScriptCategory script_category) {
+		     u_int16_t srv_inc, const char* script_key,
+		     ScriptCategory script_category) {
+  ScoreCategory score_category = Utils::mapScriptToScoreCategory(script_category);
+  
   if(status_map.get() == status_normal) {
     /* First misbehaving status */
     iface->incNumMisbehavingFlows();
@@ -5122,8 +5178,7 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
   if(!status_map.issetBit(status)) {
     status_map.setBit(status);
 
-    if(ntop->getPrefs()->is_enterprise_m_edition()
-       && script_category < MAX_NUM_SCRIPT_CATEGORIES) {
+    if(ntop->getPrefs()->is_enterprise_m_edition()) {
       flow_score += flow_inc;
 
       /*
@@ -5134,8 +5189,8 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
 	because the actual increase could have caused an overflow).
        */
 
-      if(unsafeGetClient()) cli_score[script_category] += unsafeGetClient()->getScore()->incValue(cli_inc, script_category, true  /* as client */);
-      if(unsafeGetServer()) srv_score[script_category] += unsafeGetServer()->getScore()->incValue(srv_inc, script_category, false /* as server*/);
+      if(unsafeGetClient()) cli_host_score[score_category] += unsafeGetClient()->getScore()->incValue(cli_inc, score_category, true  /* as client */);
+      if(unsafeGetServer()) srv_host_score[score_category] += unsafeGetServer()->getScore()->incValue(srv_inc, score_category, false /* as server*/);
 
       if(!status_infos)
 	status_infos = (StatusInfo*) calloc(BITMAP_NUM_BITS, sizeof(StatusInfo));

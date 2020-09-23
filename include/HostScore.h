@@ -24,7 +24,7 @@
 
 class HostScore {
  private:
-  u_int16_t cli_score[MAX_NUM_SCRIPT_CATEGORIES], srv_score[MAX_NUM_SCRIPT_CATEGORIES];
+  u_int16_t cli_score[MAX_NUM_SCORE_CATEGORIES], srv_score[MAX_NUM_SCORE_CATEGORIES];
 
   u_int32_t sumValues(const bool as_client) const;
   void lua_breakdown(lua_State *vm, bool as_client) const;
@@ -36,8 +36,9 @@ class HostScore {
   inline u_int32_t getClientValue()  const { return sumValues(true  /* as client */);    };
   inline u_int32_t getServerValue()  const { return sumValues(false /* as server */);    };
 
-  u_int16_t incValue(u_int16_t score, ScriptCategory script_category, bool as_client);
-  u_int16_t decValue(u_int16_t score, ScriptCategory script_category, bool as_client);
+  u_int16_t incValue(u_int16_t score, ScoreCategory script_category, bool as_client);
+  u_int16_t decValue(u_int16_t score, ScoreCategory script_category, bool as_client);
+
   void lua_breakdown(lua_State *vm) const;
 };
 

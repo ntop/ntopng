@@ -332,7 +332,7 @@ end
    local info = value["info"]
 
    if isScoreEnabled() then
-      record["column_score"] = format_utils.formatValue(value["score"])
+      record["column_score"] = format_utils.formatValue(value.score.flow_score)
    end
 
    record["column_info"] = info

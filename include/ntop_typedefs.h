@@ -100,7 +100,16 @@ typedef enum {
   script_category_network = 3,
   script_category_system = 4,
   MAX_NUM_SCRIPT_CATEGORIES = 5
-} ScriptCategory; /* Keep in sync with user_scripts.script_categories ids */
+} ScriptCategory; /* Keep in sync with user_scripts.script_categories in scripts/lua/modules/user_scripts.lua  */
+
+/*
+  This is a subset of ScriptCategory as flow scripts fall only in this subset
+ */
+typedef enum {
+  score_category_network = 0,
+  score_category_security,
+  MAX_NUM_SCORE_CATEGORIES
+} ScoreCategory;
 
 #define MAX_NUM_PERIODIC_SCRIPTS 6
 
