@@ -29,7 +29,7 @@
                 </div>
             </div>
             <div class="card-footer">
-                {* ui_utils.render_configuration_footer({}, {href='#', toggle_modal=true, modal_id="factory-reset-modal", id='btn-factory-reset'}) *}
+                {* ui_utils.render_configuration_footer({}, {href='#', toggle_modal=true, modal_id="reset-modal", id='reset-modal-btn'}) *}
             </div>
         </div>
         <div class="notes bg-light border">
@@ -42,6 +42,12 @@
         </div>
     </div>
 </div>
+
+{# TODO: This form is used to reset active monitoring records, it will be removed when the Manage Config page is implemented #}
+<form class="form-inline" method="POST" id="reset-form">
+    <input type="hidden" name="csrf" value="{{ntop.getRandomCSRFValue()}}"/>
+    <input type="hidden" name="action" value="reset_config"/>
+</form>
 
 {*
     plugins_utils.renderTemplate("active_monitoring", "am_add_host_modal.html", {
@@ -119,7 +125,9 @@
             action  = "$('#reset-form').submit()",
             title   = i18n("config_scripts.config_reset"),
             message = i18n("active_monitoring_stats.config_reset_confirm"),
-            confirm = i18n("reset")
+            confirm = i18n("reset"),
+            custom_alert_class = 'alert alert-danger',
+            confirm_button = 'btn-danger'
         }
     })
 *}
