@@ -85,7 +85,6 @@ local menu = {
    entries = {
 
       -- Normal Pools
-      { key = "all", title = i18n("pools.pool_names.all"), url = "?", hidden = false},
       { key = "host", title = i18n("pools.pool_names.host"), url = "?page=host", hidden = is_nedge},
       { key = "interface", title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = is_nedge},
       { key = "local_network", title = i18n("pools.pool_names.local_network"), url = "?page=network", hidden = false},
@@ -96,7 +95,10 @@ local menu = {
       { key = "host_pool", title = i18n("pools.pool_names.host_pool_pool"), url = "?page=host_pool", hidden = false},
       { key = "flow", title = i18n("pools.pool_names.flows"), url = "?page=flow", hidden = false},
       { key = "mac", title = i18n("pools.pool_names.devices"), url = "?page=mac", hidden = false},
-      { key = "system", title = i18n("pools.pool_names.system"), url = "?page=system", hidden = false}
+      { key = "system", title = i18n("pools.pool_names.system"), url = "?page=system", hidden = false},
+
+      -- All Pool
+      { key = "all", title = i18n("pools.pool_names.all"), url = "?", hidden = false},
    },
    current_page = page
 }
