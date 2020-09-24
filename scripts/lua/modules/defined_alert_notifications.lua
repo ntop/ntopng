@@ -27,7 +27,7 @@ local function create_DHCP_range_missing_notification()
         dhcp_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=dhcp"
     })
 
-    return alert_notification:create("DHCP_missing_range", title, description, "warning")
+    return alert_notification:create("DHCP_missing_range", title, description, "warning", nil, "if_stats.lua?page=dhcp;if_stats.lua?page=config")
 
 end
 
