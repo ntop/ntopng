@@ -20,13 +20,20 @@
             <form>
                 <div class="modal-body">
                     <input type="number" hidden name="recipient_id">
-                    <input type="text" hidden name="endpoint_conf_name">
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
-                            <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>:
+                            <b>{{ i18n("endpoint_notifications.recipient_name") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <input minlength="1" required name="recipient_name" type="text" class="form-control" id="edit-recipient-name-input">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="recipient-name-input">
+                            <b>{{ i18n("endpoint_notifications.endpoint") }}</b>
+                        </label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" readonly name="endpoint_conf_name">
                         </div>
                     </div>
                     <div class="recipient-template-container">
@@ -34,7 +41,7 @@
                     <hr>
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="edit-recipient-severity-select">
-                            <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>:
+                            <b>{{ i18n("endpoint_notifications.recipient_severity") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <select required name="recipient_minimum_severity" class="form-control" id="edit-recipient-severity-select">
@@ -46,7 +53,7 @@
                     </div>
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="recipient-name-input">
-                            <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>:
+                            <b>{{ i18n("endpoint_notifications.recipient_category") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <select multiple name="recipient_user_script_categories" class="form-control selectpicker" id="edit-recipient-categories-select">
