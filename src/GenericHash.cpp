@@ -47,6 +47,8 @@ GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
   locks = new RwLock*[num_hashes];
   for(u_int i = 0; i < num_hashes; i++) locks[i] = new RwLock();
 
+  idle_entries_in_use = new vector<GenericHashEntry*>;
+
   last_purged_hash = _num_hashes - 1;
 }
 
@@ -65,7 +67,7 @@ GenericHash::~GenericHash() {
 /* ************************************ */
 
 void GenericHash::cleanup() {
-  vector<GenericHashEntry*> **ghvs[] = { &idle_entries, &idle_entries_shadow };
+  vector<GenericHashEntry*> **ghvs[] = { &idle_entries, &idle_entries_shadow, &idle_entries_in_use };
 
   for(u_int i = 0; i < sizeof(ghvs) / sizeof(ghvs[0]); i++) {
     if(*ghvs[i]) {
@@ -137,16 +139,26 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
   if(cur_idle) {
     if(!cur_idle->empty()) {      
       for(vector<GenericHashEntry*>::const_iterator it = cur_idle->begin(); it != cur_idle->end(); ++it) {
-	walker(*it, user_data); /* In case of flow dump here the flow is queued for dump */
 	entry_state_transition_counters.num_purged++;
 
 	/* In case of flow dump the uses number might be increased (0 -> 1) */
 	if((*it)->getUses() == 0) {
+	  /*
+	    No one is using the idle entry. Safe to execute the walker one last time and delete the entry.
+	   */
+	  walker(*it, user_data);
 	  delete *it; /* Delete the entry */
 	  /* https://www.techiedelight.com/remove-elements-vector-inside-loop-cpp/ */
 	  /* cur_idle->erase(it--); */
 	} else {
-	  /* This entry is still in use: as its uses were 0 and now 1, it should be still queued waiting for dump */
+	  /*
+	    Entry is still in use. This can happen for example when there's a very slow
+	    hash table walker running, or when the thread in charge of dumping flows
+	    still have to process the flow.
+
+	    In this case, the entry is moved to another vector which is in exclusive use by this thread
+	   */
+	  idle_entries_in_use->push_back(*it);
 #if DEBUG_FLOW_DUMP
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Skipping entry in use [purged: %u]",
 				       __FUNCTION__, entry_state_transition_counters.num_purged);
@@ -157,6 +169,18 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
     }
     
     delete cur_idle;
+  }
+
+  /*
+    Try and delete all the entries which were found to be in-use when idle
+   */
+  for(vector<GenericHashEntry*>::iterator it = idle_entries_in_use->begin(); it != idle_entries_in_use->end(); ) {
+    if((*it)->getUses() == 0) {
+      walker(*it, user_data);
+      delete *it; /* Free the entry memory */
+      idle_entries_in_use->erase(it); /* Remove the entry from the vector */
+    } else
+      ++it;
   }
   
 #ifdef WALK_DEBUG
@@ -396,6 +420,10 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 	    head = next;
 	    continue;
 	  }
+
+	  /* If there hasn't been an active->idle transition, and thus head hasn't been detached,
+	     it is safe to execute housekeep. This function is executed also for idle entries below. */
+	  head->housekeep(now);
 	  break;
 	} /* switch */
 
@@ -419,6 +447,8 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 
     for(; it != idle_entries_shadow->end(); it++) {
       (*it)->set_hash_entry_state_idle();
+      /* Now that the entry has been set to idle, housekeep can executed one last time */
+      (*it)->housekeep(now);
       entry_state_transition_counters.num_idle_transitions++;
     }
   }

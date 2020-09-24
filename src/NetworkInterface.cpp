@@ -592,22 +592,12 @@ NetworkInterface::~NetworkInterface() {
 
 /* **************************************************** */
 
-int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
+int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   int rc = -1;
 #ifndef HAVE_NEDGE
 
   if(!db)
     return(-1);
-
-  if(no_time_left) {
-    /* There is no time to dump the flow, however this is not yet
-     * lost unless it is in the idle state (active flows will be
-     * dumped in the next iteration */
-    if(f->get_state() == hash_entry_state_idle)
-      db->incNumDroppedFlows(1);
-
-    return(-1);
-  }
 
   if(idleFlowsToDump && activeFlowsToDump) {
     /* Asynchronous dump via a thread */
@@ -615,10 +605,8 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
     if(f->get_state() == hash_entry_state_idle) {
       /* Last flow dump before delete
        * Note: this never happens in 'direct' mode */
-      if(!idleFlowsToDump->isFull()) {
+      if(idleFlowsToDump->enqueue(f, false)) {
 	f->incUses();
-
-	idleFlowsToDump->enqueue(f, false);
 
 #if DEBUG_FLOW_DUMP
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
@@ -630,10 +618,8 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f, bool no_time_left) {
       }
     } else {
       /* Partial dump if active flows */
-      if(!activeFlowsToDump->isFull()) {
+      if(activeFlowsToDump->enqueue(f, false)) {
 	f->incUses();
-
-	activeFlowsToDump->enqueue(f, false);
 
 #if DEBUG_FLOW_DUMP
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
@@ -2337,7 +2323,7 @@ void NetworkInterface::dumpFlowLoop() {
 #endif
       if(!rc) incDBNumDroppedFlows();
       f->decUses();
-      delete f;
+      // delete f;
       n++;
     }
 

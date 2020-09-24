@@ -1218,8 +1218,7 @@ char* Flow::print(char *buf, u_int buf_len) const {
 
 /* *************************************** */
 
-bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper_iface,
-		    bool no_time_left, bool last_dump_before_free) {
+bool Flow::dumpFlow(time_t t, NetworkInterface *dumper_iface, bool last_dump_before_free) {
   bool rc = false;
    
   if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
@@ -1242,7 +1241,7 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper_iface,
   if(!last_dump_before_free) {
     if((dumper_iface->getIfType() == interface_type_PCAP_DUMP
 	&& (!dumper_iface->read_from_pcap_dump_done()))
-       || timeToPeriodicDump(tv->tv_sec)) {
+       || timeToPeriodicDump(t)) {
       return(rc); /* Don't call too often periodic flow dump */
     }
   }
@@ -1255,7 +1254,7 @@ bool Flow::dumpFlow(const struct timeval *tv, NetworkInterface *dumper_iface,
   if(!get_partial_bytes())
     return(rc); /* Nothing to dump */
 
-  dumper_iface->dumpFlow(last_seen, this, no_time_left);
+  dumper_iface->dumpFlow(get_last_seen(), this);
 
 #ifndef HAVE_NEDGE
   if(ntop->get_export_interface()) {
@@ -1620,7 +1619,7 @@ void Flow::updateThroughputStats(float tdiff_msec,
 
 #ifdef NTOPNG_PRO
     throughputTrend.update(bytes_thpt), goodputTrend.update(goodput_bytes_thpt);
-    thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec);
+    thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec + 1);
 
 #ifdef DEBUG_TREND
     if((get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli()) > 0) {
@@ -1751,7 +1750,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
 /* *************************************** */
 
-void Flow::dumpCheck(const struct timeval *tv, bool no_time_left, bool last_dump_before_free) {
+void Flow::dumpCheck(time_t t, bool last_dump_before_free) {
   /*
     Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
     ViewInterface dump their flows in another thread, not this one.
@@ -1768,20 +1767,7 @@ void Flow::dumpCheck(const struct timeval *tv, bool no_time_left, bool last_dump
          || !ntop->getPrefs()->do_dump_flows_direct() /* Direct dump not enabled */ )
 #endif
     ) {
-    if(no_time_left) {
-      if(last_dump_before_free) {
-	/* 
-	   There is no time to dump the flow, however this is not yet
-	   lost unless it is in the idle state (active flows will be
-	   dumped in the next iteration
-	*/
-	
-	d_if->incDBNumDroppedFlows();
-      }
-      return;
-    } else {
-      dumpFlow(tv, d_if, no_time_left /* false */, last_dump_before_free);
-    }
+    dumpFlow(t, d_if, last_dump_before_free);
   }
 }
 
@@ -2407,12 +2393,10 @@ void Flow::periodic_hash_entry_state_update(void *user_data) {
 
   case hash_entry_state_active:
     if(next_lua_call_periodic_update == 0) next_lua_call_periodic_update = tv->tv_sec + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS;
-    dumpCheck(tv, htstats->no_time_left, false);
     /* Don't change state: purgeIdle() will do */
     break;
 
   case hash_entry_state_idle:
-    dumpCheck(tv, htstats->no_time_left, true);
     break;
   }
 
@@ -2818,10 +2802,31 @@ bool Flow::isNetfilterIdleFlow() const {
 
 /* *************************************** */
 
+/*
+  This method is executed in the thread which processes packets/flows
+  so it must be ultra-fast. Do NOT perform any time-consuming operation here.
+ */
 void Flow::housekeep(time_t t) {
-  if(((t - get_last_seen()) > 5 /* sec */)
-     && iface->get_ndpi_struct() && get_ndpi_flow()) {
-    endProtocolDissection();
+  switch(get_state()) {
+  case hash_entry_state_allocated:
+  case hash_entry_state_flow_notyetdetected:
+    /*
+      Possibly the time to giveup and end the protocol dissection.
+      This happens when a flow with an incomplete TWH stops receiving packets for example.
+     */
+    if(((t - get_last_seen()) > 5 /* sec */)
+       && iface->get_ndpi_struct() && get_ndpi_flow()) {
+      endProtocolDissection();
+    }
+    break;
+  case hash_entry_state_active:
+    dumpCheck(t, false /* NOT the last dump before delete */);
+    break;
+  case hash_entry_state_idle:
+    dumpCheck(t, true /* LAST dump before delete */);
+    break;
+  default:
+    break;
   }
 }
 

@@ -445,12 +445,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 #endif
      )) {
     NetworkInterface *d_if = isViewed() ? viewedBy() : static_cast<NetworkInterface *>(this);
-    struct timeval tv;
     bool rc;
 
     /* Dump flow */
-    tv.tv_sec = zflow->last_switched, tv.tv_usec = 0;
-    rc = flow->dumpFlow(&tv, d_if, false /* no_time_left */, true);
+    rc = flow->dumpFlow(zflow->last_switched, d_if, true /* last dump before free */);
 
     /* Update drop stats */
     if(!rc) d_if->incDBNumDroppedFlows();

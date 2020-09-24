@@ -370,7 +370,7 @@ class NetworkInterface : public AlertableEntity {
   inline void setSeenExternalAlerts()          { has_external_alerts = true;   }
   struct ndpi_detection_module_struct* get_ndpi_struct() const;
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
-  int dumpFlow(time_t when, Flow *f, bool no_time_left);
+  int dumpFlow(time_t when, Flow *f);
 #ifdef NTOPNG_PRO
   void flushFlowDump();
 #endif

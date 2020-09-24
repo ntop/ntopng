@@ -242,7 +242,7 @@ class GenericHashEntry {
   bool equal(GenericHashEntry *b)         { return((this == b) ? true : false); };  
   inline NetworkInterface* getInterface() { return(iface);                      };
   bool idle() const;
-  virtual void housekeep(time_t t)     { return;                 };
+  virtual void housekeep(time_t t)  { return;                 };
   inline u_int get_duration()    const { return((u_int)(1+last_seen-first_seen)); };
   virtual u_int32_t key()              { return(0);         };  
   virtual char* get_string_key(char *buf, u_int buf_len) const { buf[0] = '\0'; return(buf); };
