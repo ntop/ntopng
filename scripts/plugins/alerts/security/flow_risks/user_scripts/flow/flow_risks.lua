@@ -2,9 +2,10 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local user_scripts = require("user_scripts")
-local flow_consts = require("flow_consts")
-local flow_risks = require("flow_risk_utils")
+local user_scripts = require "user_scripts"
+local flow_consts = require "flow_consts"
+local flow_risks = require "flow_risk_utils"
+local plugins_utils = require "plugins_utils"
 
 -- #################################################################
 
@@ -26,96 +27,63 @@ local script = {
 
 -- #################################################################
 
-local function ndpi_binary_application_transfer_handler()
-   -- NDPI_BINARY_APPLICATION_TRANSFER
-   -- scripts/lua/modules/alert_definitions/alert_suspicious_file_transfer.lua
-
-   local http_info = flow.getHTTPInfo()
-   local url = http_info["protos.http.last_url"] or ""
-
-   flow.triggerStatus(
-      flow_consts.status_types.status_suspicious_file_transfer.create(
-	 flow_consts.status_types.status_suspicious_file_transfer.alert_severity,
-	 http_info
-      ),
-      200, -- flow_score
-      200, -- cli_score
-      200  -- srv_score
-   )
-end
+-- Indicate risks that don't have to be processed by this module.
+local excluded_risks = {
+   [6]  = true, -- handled in tls_certificate_selfsigned.lua
+   [7]  = true, -- handled in tls_old_version.lua
+   [8]  = true, -- handled in tls_unsafe_ciphers.lua
+   [9]  = true, -- handled in tls_certificate_expired.lua
+   [10] = true, -- handled in tls_certificate_mismatch.lua TODO: migrate to flow risk
+}
 
 -- #################################################################
 
-local function ndpi_known_protocol_on_non_standard_port_handler()
-   -- NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT
-   -- scripts/lua/modules/alert_definitions/alert_known_proto_on_non_std_port.lua
-   local info = flow.getInfo()
-
-   flow.triggerStatus(
-      flow_consts.status_types.status_known_proto_on_non_std_port.create(
-	 flow_consts.status_types.status_known_proto_on_non_std_port.alert_severity,
-	 info
-      ),
-      100, -- flow_score
-      100, -- cli_score
-      100  -- srv_score
-   )
-end
+-- Default scores to use for flow risks
+local DEFAULT_SCORES = {
+   50 --[[ flow score   --]],
+   50 --[[ client score --]],
+   50 --[[ server score --]]}
 
 -- #################################################################
 
-local function default_handler()
-   -- A generic handler for all flow risks
-   local info = flow.getInfo()
-
-   flow.triggerStatus(
-      flow_consts.status_types.status_flow_risk.create(
-	 flow_consts.status_types.status_flow_risk.alert_severity,
-	 info
-      ),
-      50, -- flow_score
-      50, -- cli_score
-      50  -- srv_score
-   )
-end
-
--- #################################################################
-
-local function no_action_handler()
-   -- An handler which doesn't perform any action. Useful
-   -- to be associated with risks already handled on other user scripts
-end
-
--- #################################################################
-
--- A Lua table to map risks with a given handler
+-- A Lua table to map flow-, client- and server-score to any given flow risks.
 -- Risks are identified with ids as found in ndpi_typedefs.h
-local risk2action = {
-   [0]  = default_handler,                                     -- "ndpi_no_risk"
-   [1]  = default_handler,                                     -- "ndpi_url_possible_xss"
-   [2]  = default_handler,                                     -- "ndpi_url_possible_sql_injection"
-   [3]  = default_handler,                                     -- "ndpi_url_possible_rce_injection"
-   [4]  = ndpi_binary_application_transfer_handler,            -- "ndpi_binary_application_transfer"
-   [5]  = ndpi_known_protocol_on_non_standard_port_handler,    -- "ndpi_known_protocol_on_non_standard_port"
-   [6]  = no_action_handler,                                   -- handled in tls_certificate_selfsigned.lua
-   [7]  = no_action_handler,                                   -- handled in tls_old_version.lua
-   [8]  = no_action_handler,                                   -- handled in tls_unsafe_ciphers.lua
-   [9]  = no_action_handler,                                   -- handled in tls_certificate_expired.lua
-   [10] = no_action_handler,                                   -- handled in tls_certificate_mismatch.lua TODO: migrate to flow risk
-   [11] = default_handler,                                     -- "ndpi_http_suspicious_user_agent"
-   [12] = default_handler,                                     -- "ndpi_http_numeric_ip_host"
-   [13] = default_handler,                                     -- "ndpi_http_suspicious_url"
-   [14] = default_handler,                                     -- "ndpi_http_suspicious_header"
-   [15] = default_handler,                                     -- "ndpi_tls_not_carrying_https"
-   [16] = default_handler,                                     -- "ndpi_suspicious_dga_domain"
-   [17] = default_handler,                                     -- "ndpi_malformed_packet"
-   [18] = default_handler,                                     -- "ndpi_ssh_obsolete_client_version_or_cipher"
-   [19] = default_handler,                                     -- "ndpi_ssh_obsolete_server_version_or_cipher"
-   [20] = default_handler,                                     -- "ndpi_smb_insecure_version"
-   [21] = default_handler,                                     -- "ndpi_tls_suspicious_esni_usage"
-   [22] = default_handler,                                     -- "ndpi_unsafe_protocol"
-   [23] = default_handler,                                     -- "ndpi_dns_suspicious_traffic"
-   [24] = default_handler,                                     -- "ndpi_tls_missing_sni"
+local risk2scores = {
+   -- Format is:
+   -- [<flow risk id>] = {<flow_score>, <client_score>, <server_score>}
+   --
+   [0]  = DEFAULT_SCORES,             -- "ndpi_no_risk"
+   [1]  = DEFAULT_SCORES,             -- "ndpi_url_possible_xss"
+   [2]  = DEFAULT_SCORES,             -- "ndpi_url_possible_sql_injection"
+   [3]  = DEFAULT_SCORES,             -- "ndpi_url_possible_rce_injection"
+   [4]  = {200, 200, 200},            -- "ndpi_binary_application_transfer"
+   [5]  = {100, 100, 100},            -- "ndpi_known_protocol_on_non_standard_port"
+   [11] = DEFAULT_SCORES,             -- "ndpi_http_suspicious_user_agent"
+   [12] = DEFAULT_SCORES,             -- "ndpi_http_numeric_ip_host"
+   [13] = DEFAULT_SCORES,             -- "ndpi_http_suspicious_url"
+   [14] = DEFAULT_SCORES,             -- "ndpi_http_suspicious_header"
+   [15] = DEFAULT_SCORES,             -- "ndpi_tls_not_carrying_https"
+   [16] = DEFAULT_SCORES,             -- "ndpi_suspicious_dga_domain"
+   [17] = DEFAULT_SCORES,             -- "ndpi_malformed_packet"
+   [18] = DEFAULT_SCORES,             -- "ndpi_ssh_obsolete_client_version_or_cipher"
+   [19] = DEFAULT_SCORES,             -- "ndpi_ssh_obsolete_server_version_or_cipher"
+   [20] = DEFAULT_SCORES,             -- "ndpi_smb_insecure_version"
+   [21] = DEFAULT_SCORES,             -- "ndpi_tls_suspicious_esni_usage"
+   [22] = DEFAULT_SCORES,             -- "ndpi_unsafe_protocol"
+   [23] = DEFAULT_SCORES,             -- "ndpi_dns_suspicious_traffic"
+   [24] = DEFAULT_SCORES,             -- "ndpi_tls_missing_sni"
+}
+
+-- #################################################################
+
+-- For risks that have dedicated handler (e.g., to trigger a special flow status and not the generic 'flow-risk' status)
+-- a dedicated handler can be indicated. Handlers are lua modules placed under flow_risks/modules/ implementing function
+--
+--   function handler.handle_risk(flow_score, cli_score, srv_score)
+-- 
+local handlers = {
+   [4]  = "ndpi_binary_application_transfer_handler",            -- "ndpi_binary_application_transfer"
+   [5]  = "ndpi_known_protocol_on_non_standard_port_handler",    -- "ndpi_known_protocol_on_non_standard_port"
 }
 
 -- #################################################################
@@ -123,17 +91,31 @@ local risk2action = {
 function script.hooks.protocolDetected(now)
    -- If the flow has any of the nDPI risks...
    if flow.hasRisk() then
-      -- Perform per-risk actions, according to the risk2action table
+      -- Iterate all the currently detected flow risks
       local all_risks = flow.getRiskInfo()
 
       for risk_str, risk_id in pairs(all_risks) do
-	 if risk2action[risk_id] then
-	    -- If the action is found in the table, use it
-	    risk2action[risk_id]()
-	 else
-	    -- Use a default handler
-	    default_handler()
+	 -- If the risk is among those excluded, just skip it
+	 -- Excluded risks are typically those handed in separated user scripts
+	 if excluded_risks[risk_id] then
+	    goto continue
 	 end
+
+	 local handler
+	 if handlers[risk_id] then
+	    -- There's a dedicated handler implemented for this risk_id. Let's load it as a module
+	    handler = plugins_utils.loadModule("flow_risks",  handlers[risk_id])
+	 else
+	    -- No dedicated handler found, let's use a default risk handler
+	    handler = plugins_utils.loadModule("flow_risks", "risk_handler")
+	 end
+
+	 if handler and handler.handle_risk then
+	    -- Handler expect three params, namely flow-, client- and server-scores
+	    handler.handle_risk(table.unpack(risk2scores[risk_id] or DEFAULT_SCORES))
+	 end
+
+	 ::continue::
       end
    end
 end
