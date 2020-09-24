@@ -561,7 +561,7 @@ path.link {
 .scrollable-dropdown {
   max-height: 20rem;
   height: auto;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 
