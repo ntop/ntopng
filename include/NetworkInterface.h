@@ -81,7 +81,17 @@ class NetworkInterface : public AlertableEntity {
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
   u_int32_t idleFlowsToDump_drops, activeFlowsToDump_drops;
-  
+  /*
+    Flag to indicate whether a flow JSON should be dumped along with the flow. Flow JSON contain
+    additional fields not placed inside database columns.
+  */
+  bool flows_dump_json;
+  /*
+    Flag to indicate whether JSON labels should be used for flow fields inside the dumped flow
+    JSON. If this flag is false, flow fields are keyed with nProbe integer flow keys.
+   */
+  bool flows_dump_json_use_labels;
+
   /* Queue containing the ip@vlan strings of the hosts to restore. */
   FifoStringsQueue *hosts_to_restore;
 
