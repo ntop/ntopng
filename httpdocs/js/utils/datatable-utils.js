@@ -132,11 +132,13 @@ class DataTableUtils {
         return $.extend({}, config, extension);
     }
 
-    static countEntries(val, data) {
+    static countEntries(regex, data) {
 
         let counter = 0;
-        data.forEach((d) => {
-            if (d.toLowerCase() == val.toLowerCase()) counter++;
+        const reg = new RegExp(regex);
+
+        data.forEach((currentCell) => {
+            if (reg.test(currentCell)) counter++;
         });
         return counter;
     }
@@ -179,13 +181,13 @@ class DataTableUtils {
      */
     static addFilterDropdown(title, filters = [], columnIndex, filterID, tableAPI) {
 
-        const createEntry = (val, key, hasToCount, callback) => {
+        const createEntry = (val, key, hasToCount, regex, callback) => {
 
             const $entry = $(`<li data-filter-key='${key}' class='dropdown-item pointer'>${val} </li>`);
 
             if (hasToCount) {
 
-                const count = DataTableUtils.countEntries(val, tableAPI.columns(columnIndex).data()[0]);
+                const count = DataTableUtils.countEntries(regex, tableAPI.columns(columnIndex).data()[0]);
                 const $counter = $(`<span class='counter'>(${count})</span>`);
                 if (count == 0) $entry.hide();
 
@@ -223,7 +225,7 @@ class DataTableUtils {
         // for each filter defined in filters create a dropdown item <li>
         for (let filter of filters) {
 
-            const $entry = createEntry(filter.label, filter.key, filter.countable, function (e) {
+            const $entry = createEntry(filter.label, filter.key, filter.countable, filter.regex, function (e) {
                 // if the filter have a callback then call it
                 if (filter.callback) {
                     filter.callback();

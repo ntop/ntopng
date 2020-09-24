@@ -12,21 +12,24 @@ $(document).ready(function () {
 
     const filters = [
         {
-            regex: `${NtopUtils.REGEXES.ipv4WithCIDR}`,
+            regex: NtopUtils.REGEXES.ipv4,
             label: i18n.ipv4,
             key: 'ipv4_filter',
+            countable: true,
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
         },
         {
-            regex: `${NtopUtils.REGEXES.ipv6WithCIDR}`,
+            regex: NtopUtils.REGEXES.ipv6,
             label: i18n.ipv6,
             key: 'ipv6_filter',
+            countable: true,
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
         },
         {
             regex: NtopUtils.REGEXES.macAddress,
             label: i18n.mac_filter,
             key: 'mac_filter',
+            countable: true,
             callback: () => { currentType = "mac"; $hostMembersTable.rows().invalidate(); }
         },
     ];
@@ -47,8 +50,7 @@ $(document).ready(function () {
                 render: function (data, type, row) {
 
                     if (type == "sort" || type == "type") {
-                        if (currentType == "mac")
-                            return $.fn.dataTableExt.oSort["mac-address-pre"](data);
+                        if (currentType == "mac") return $.fn.dataTableExt.oSort["mac-address-pre"](data);
                         return $.fn.dataTableExt.oSort["ip-address-pre"](data);
                     }
 
