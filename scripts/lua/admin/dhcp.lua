@@ -81,7 +81,7 @@ print[[
           datatableForEachRow("#table-dhcp", function() {
             addInputFields($(this));
 
-            datatableAddDeleteButtonCallback.bind(this)(3, "range_to_delete = " + $(this).index() +"; $('#range-to-delete').html(rowIndexToRange('" + $(this).index() + "')); $('#delete_dhcp_range_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+            datatableAddDeleteButtonCallback.bind(this)(3, "range_to_delete = " + $(this).index() +"; $('#range-to-delete').html(rowIndexToRange('" + $(this).index() + "')); $('#delete_dhcp_range_dialog').modal('show');", "<i class='fas fa-trash'></i>");
           });
         }
 
@@ -132,7 +132,7 @@ print[[
     var tr = $('<tr id="'+ newid +'"><td></td><td></td><td class="text-center"></td></tr>');
     addInputFields(tr);
 
-    datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addRangeBtn', 'onRowAddUndo')", "]] print(i18n('undo')) print[[");
+    datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addRangeBtn', 'onRowAddUndo')", "<i class='fas fa-undo'></i>");
     $("#table-dhcp table").append(tr);
     $("input:first", tr).focus();
 
