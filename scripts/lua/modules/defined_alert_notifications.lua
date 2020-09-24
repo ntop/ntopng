@@ -18,24 +18,62 @@ local ALARM_THRESHOLD_HIGH = 90
 -- each function will displaya badge if required
 --
 
+local function create_DHCP_range_missing_notification()
+
+    local title = i18n("about.configure_dhcp_range")
+    local description = i18n("about.dhcp_range_missing_warning", {
+        name = i18n("prefs.toggle_host_tskey_title"),
+        url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=config",
+        dhcp_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=dhcp"
+    })
+
+    return alert_notification:create("DHCP_missing_range", title, description, "warning")
+
+end
+
+-- ###############################################################
+
+local function create_DCHP_monitoring_notification()
+
+    local title = i18n("about.dhcp_monitoring_title")
+    local description = i18n("about.host_identifier_warning", {
+        name=i18n("prefs.toggle_host_tskey_title"),
+        url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"
+    })
+
+    return alert_notification:create("DHCP_monitoring", title, description, "warning")
+
+end
+
+-- ###############################################################
+
 local function create_geo_ip_alert_notification()
     local title = i18n("geolocation_unavailable_title")
-    local description = i18n("geolocation_unavailable", {url = "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md", target = "_blank", icon = "fas fa-external-link-alt"})
+    local description = i18n("geolocation_unavailable", {
+        url = "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md",
+        target = "_blank",
+        icon = "fas fa-external-link-alt"
+    })
 
-    return alert_notification:create("geoip_alert", title, description, "warning", nil, "nedge/system_setup/")
+    return alert_notification:create("geoip_alert", title, description,
+                                     "warning", nil, "nedge/system_setup/")
 end
 
 -- ###############################################################
 
 local function create_contribute_alert_notification()
     local title = i18n("about.contribute_to_project")
-    local description = i18n("about.telemetry_data_opt_out_msg", {tel_url=ntop.getHttpPrefix().."/lua/telemetry.lua", ntop_org="https://www.ntop.org/"})
+    local description = i18n("about.telemetry_data_opt_out_msg", {
+        tel_url = ntop.getHttpPrefix() .. "/lua/telemetry.lua",
+        ntop_org = "https://www.ntop.org/"
+    })
     local action = {
         url = ntop.getHttpPrefix() .. '/lua/admin/prefs.lua?tab=telemetry',
         title = i18n("configure")
     }
 
-    return alert_notification:create("contribute_alert", title, description, "info", action, "/lua/admin/prefs.lua")
+    return alert_notification:create("contribute_alert", title, description,
+                                     "info", action, "/lua/admin/prefs.lua")
 end
 
 -- ###############################################################
@@ -47,7 +85,8 @@ local function create_tempdir_alert_notification()
         url = "https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/"
     }
 
-    return alert_notification:create("tempdir_alert", title, description, "warning", action)
+    return alert_notification:create("tempdir_alert", title, description,
+                                     "warning", action)
 end
 
 -- ###############################################################
@@ -61,7 +100,8 @@ end
 
 local function create_too_many_flows_notification(level)
     local title = i18n("too_many_flows")
-    local desc = i18n("about.you_have_too_many_flows", {product=info["product"]})
+    local desc = i18n("about.you_have_too_many_flows",
+                      {product = info["product"]})
 
     return alert_notification:create("toomanyflows_alert", title, desc, level)
 end
@@ -70,7 +110,8 @@ end
 
 local function create_too_many_hosts_notification(level)
     local title = i18n("too_many_hosts")
-    local desc = i18n("about.you_have_too_many_hosts", {product=info["product"]})
+    local desc = i18n("about.you_have_too_many_hosts",
+                      {product = info["product"]})
 
     return alert_notification:create("toomanyhosts_alert", title, desc, level)
 end
@@ -79,17 +120,55 @@ end
 
 local function create_remote_probe_clock_drift_notification(level)
     local title = i18n("remote_probe_clock_drift")
-    local desc = i18n("about.you_need_to_sync_remote_probe_time", {url=ntop.getHttpPrefix().."/lua/if_stats.lua"})
+    local desc = i18n("about.you_need_to_sync_remote_probe_time",
+                      {url = ntop.getHttpPrefix() .. "/lua/if_stats.lua"})
 
-    return alert_notification:create("remoteprobleclockdrift_alert", title, desc, level)
+    return alert_notification:create("remoteprobleclockdrift_alert", title,
+                                     desc, level)
 end
 
 -- ##################################################################
 
 local function create_flow_dump_alert_notification()
     local title = i18n("flow_dump_not_working_title")
-    local description = i18n("flow_dump_not_working", {icon = "fas fa-external-link-alt"})
-    return alert_notification:create("flow_dump_alert", title, description, "warning")
+    local description = i18n("flow_dump_not_working",
+                             {icon = "fas fa-external-link-alt"})
+    return alert_notification:create("flow_dump_alert", title, description,
+                                     "warning")
+end
+
+-- ##################################################################
+
+function defined_alert_notifications.DHCP_hosts(container)
+
+    local ifs = interface.getStats()
+    local is_pcap_dump = interface.isPcapDumpInterface()
+    local is_packet_interface = interface.isPacketInterface()
+    local is_admin = isAdministrator()
+
+    local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or
+                                     (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs",ifs.id)) == "1")
+
+    if (ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and
+        is_packet_interface) then
+
+        if (not lbd_serialize_by_mac) and
+            (ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
+
+                table.insert(container, create_DCHP_monitoring_notification())
+
+        elseif isEmptyString(_POST["dhcp_ranges"]) then
+
+            local dhcp_utils = require("dhcp_utils")
+            local ranges = dhcp_utils.listRanges(ifs.id)
+
+            if (table.empty(ranges)) then
+                table.insert(container, create_DHCP_range_missing_notification())
+            end
+        end
+
+    end
+
 end
 
 -- ##################################################################
@@ -171,22 +250,23 @@ end
 -- ###############################################################
 
 function defined_alert_notifications.remote_probe_clock_drift(container)
-   local ifstats = interface.getStats()
+    local ifstats = interface.getStats()
 
-   if(ifstats["probe.remote_time"] ~= nil) then
-      local tdiff = math.abs(os.time()-ifstats["probe.remote_time"])
-      local level = nil
-      
-      if (tdiff >= 10 and tdiff <= 30) then
-	 level = "warning"
-      elseif (tdiff > 30) then
-	 level = "danger"
-      end
-      
-      if (level ~= nil) then
-	 table.insert(container, create_remote_probe_clock_drift_notification(level))
-      end
-   end
+    if (ifstats["probe.remote_time"] ~= nil) then
+        local tdiff = math.abs(os.time() - ifstats["probe.remote_time"])
+        local level = nil
+
+        if (tdiff >= 10 and tdiff <= 30) then
+            level = "warning"
+        elseif (tdiff > 30) then
+            level = "danger"
+        end
+
+        if (level ~= nil) then
+            table.insert(container,
+                         create_remote_probe_clock_drift_notification(level))
+        end
+    end
 end
 
 -- ###############################################################
@@ -195,15 +275,13 @@ end
 --- if nIndex is not able to start/run/dump
 --- @param container table The table where the notification will be inserted
 function defined_alert_notifications.flow_dump(container)
-   local ifstats = interface.getStats()
+    local ifstats = interface.getStats()
 
-   if isAdministrator() and
-      prefs.is_dump_flows_enabled and
-      prefs.is_dump_flows_runtime_enabled and
-      not ifstats.isFlowDumpDisabled and
-      not ifstats.isFlowDumpRunning then
-      table.insert(container, create_flow_dump_alert_notification())
-   end
+    if isAdministrator() and prefs.is_dump_flows_enabled and
+        prefs.is_dump_flows_runtime_enabled and not ifstats.isFlowDumpDisabled and
+        not ifstats.isFlowDumpRunning then
+        table.insert(container, create_flow_dump_alert_notification())
+    end
 end
 
 -- ###############################################################

@@ -1170,31 +1170,6 @@ menu_alert_notifications.render_notifications("main-container", menu_alert_notif
 
 print("<div class='main-alerts'>")
 
-local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifs.id)) == "1")
-
-if(ifs.has_seen_dhcp_addresses and is_admin and (not is_pcap_dump) and is_packet_interface) then
-   if(not lbd_serialize_by_mac) then
-      if(ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
-	 print('<div id="host-id-message-warning" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-	 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
-	 print(i18n("about.host_identifier_warning", {name=i18n("prefs.toggle_host_tskey_title"), url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"}))
-	 print('</a></div>')
-      end
-   elseif isEmptyString(_POST["dhcp_ranges"]) then
-      local dhcp_utils = require("dhcp_utils")
-      local ranges = dhcp_utils.listRanges(ifs.id)
-
-      if(table.empty(ranges)) then
-	 print('<div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> ')
-	 print(i18n("about.dhcp_range_missing_warning", {
-	    name = i18n("prefs.toggle_host_tskey_title"),
-	    url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config",
-	    dhcp_url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=dhcp"}))
-	 print('</a></div>')
-      end
-   end
-end
-
 -- Hidden by default, will be shown by the footer if necessary
 print('<div id="influxdb-error-msg" class="alert alert-danger" style="display:none" role="alert"><i class="fas fa-exclamation-triangle fa-lg" id="alerts-menu-triangle"></i> <span id="influxdb-error-msg-text"></span>')
 print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
