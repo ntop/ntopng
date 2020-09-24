@@ -52,7 +52,7 @@ function datatableForEachRow(table, callbacks) {
    });
 }
 
-function datatableAddButtonCallback(td_idx, label, bs_class, visible = true, callback_str, link) {
+function datatableAddButtonCallback(td_idx, label, bs_class, callback_str, link, visible = true) {
    $("td:nth-child("+td_idx+")", $(this)).append('<a href="' + link + `" class="btn btn-sm mx-1 ${bs_class} ${!visible ? 'disabled' : ''}" onclick="` + callback_str + '" role="button">' + label + '</a>');
 }
 
@@ -61,7 +61,7 @@ function datatableAddDeleteButtonCallback(td_idx, callback_str, label) {
 }
 
 function datatableAddActionButtonCallback(td_idx, callback_str, label, visible = true) {
-   datatableAddButtonCallback.bind(this)(td_idx, label, "btn-info", visible, callback_str, "javascript:void(0)");
+   datatableAddButtonCallback.bind(this)(td_idx, label, "btn-info", callback_str, "javascript:void(0)", visible);
 }
 
 function datatableAddLinkButtonCallback(td_idx, link, label) {
