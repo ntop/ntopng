@@ -12,14 +12,14 @@ $(document).ready(function () {
 
     const filters = [
         {
-            regex: NtopUtils.REGEXES.ipv4,
+            regex: NtopUtils.getIPv4RegexWithCIDR(),
             label: i18n.ipv4,
             key: 'ipv4_filter',
             countable: true,
             callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
         },
         {
-            regex: NtopUtils.REGEXES.ipv6,
+            regex: NtopUtils.getIPv6RegexWithCIDR(),
             label: i18n.ipv6,
             key: 'ipv6_filter',
             countable: true,

@@ -52,6 +52,16 @@ class NtopUtils {
 		return REGEXES;
 	}
 
+	static getIPv4RegexWithCIDR() {
+		const length = REGEXES.ipv4.length;
+		return `${REGEXES.ipv4.substring(0, length - 1)}(\\/?)(\\b([0-9]|[12][0-9]|3[0-2])?\\b)$`;
+	}
+
+	static getIPv6RegexWithCIDR() {
+		const length = REGEXES.ipv6.length;
+		return `${REGEXES.ipv6.substring(0, length - 1)}(\\/?)\\b([0-9]|[1-9][0-9]|1[01][0-9]|12[0-8])?\\b$`;
+	}
+
 	/**
      * Resolve a hostname by doing a DNS Resolve.
      * @param {string} hostname The hostname to resolve
