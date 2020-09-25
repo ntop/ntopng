@@ -7,26 +7,37 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 
 require "lua_utils"
 
-local scripts_import_export = require "scripts_import_export"
+local snmp_import_export = require "snmp_import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
 
 --
--- Export user scripts configuration
--- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v1/export/scripts/config.lua
+-- Import SNMP configuration
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
-
-local download = _GET["download"] 
 
 if not haveAdminPrivileges() then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
 
-local instances = {}
-instances["scripts"] = scripts_import_export:create()
-import_export_rest_utils.export(instances, not isEmptyString(download))
+-- ################################################
+
+local modules = import_export_rest_utils.unpack(_POST["JSON"])
+
+if not modules or not modules["snmp"] then
+  rest_utils.answer(rest_utils.consts.err.invalid_args)
+  return
+end
+
+local items = {}
+local snmp_import_export = snmp_import_export:create()
+items["snmp"] = {
+   conf = modules["snmp"],
+   instance = snmp_import_export 
+}
+
+import_export_rest_utils.import(items)
 
