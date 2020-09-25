@@ -1605,8 +1605,10 @@ $("[clicked=1]").trigger("click");
       print [[</div> <!-- closes tab-content -->]]
       print [[</div> <!-- Close Card body -->]]
    end
-	 local has_fixed_period = ((not isEmptyString(_GET["epoch_begin"])) or (not isEmptyString(_GET["epoch_end"])))
-      print([[<div class='card-footer'>]])
+    local has_fixed_period = ((not isEmptyString(_GET["epoch_begin"])) or (not isEmptyString(_GET["epoch_end"])))
+
+    -- the dont_print_footer option is used to skip the card footer printing
+    if not options.dont_print_footer and not is_standalone then print([[<div class='card-footer'>]]) end
 	 print('<div id="alertsActionsPanel">')
 	 print(i18n("show_alerts.alerts_to_purge") .. ': ')
 	 print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if has_fixed_period then print("none") else print("inline") end print[[; width:14em; margin:0 1em;">]]
@@ -1639,8 +1641,11 @@ $("[clicked=1]").trigger("click");
 	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-secondary"> <span id="purgeBtnMessage">]]
 	 print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
 	 print[[</span></button>
-   </div> <!-- closes alertsActionsPanel -->
-   </div>  <!-- closes card-footer -->
+   </div> <!-- closes alertsActionsPanel -->]]
+
+   if not options.dont_print_footer then print([[</div> <!-- card-footer -->]]) end
+
+   print[[
    </div>  <!-- closes card -->
 
 <script>
