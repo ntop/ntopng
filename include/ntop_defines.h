@@ -1043,6 +1043,12 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define COMPANION_QUEUE_LEN          4096
 
+/*
+  Queue lengths for flow-dump-related queues
+ */
+#define MAX_IDLE_FLOW_QUEUE_LEN      131072
+#define MAX_ACTIVE_FLOW_QUEUE_LEN    131072
+
 #ifdef NTOPNG_EMBEDDED_EDITION
 #define DEFAULT_THREAD_POOL_SIZE     1
 #define MAX_THREAD_POOL_SIZE         1

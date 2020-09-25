@@ -542,7 +542,7 @@ class Flow : public GenericHashEntry {
 	     const ICMPinfo * const icmp_info,
 	     bool *src2srv_direction) const;
   void sumStats(nDPIStats *ndpi_stats, FlowStats *stats);
-  bool dumpFlow(time_t t, NetworkInterface *dumper, bool last_dump_before_free);
+  bool dumpFlow(time_t t, bool last_dump_before_free);
   bool match(AddressTree *ptree);
   void dissectHTTP(bool src2dst_direction, char *payload, u_int16_t payload_len);
   void dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len);

@@ -497,6 +497,36 @@ void ViewInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *n
 
 /* **************************************************** */
 
+void ViewInterface::dumpFlowLoop() {
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Started flow dump loop on View interface %s [id: %u]...",
+			       get_description(), get_id());
+
+  /* Wait until it starts up */
+  while(!isRunning()) _usleep(10000);
+
+  /* Now operational */
+  while(isRunning()) {
+    u_int64_t n = 0;
+
+    /*
+      Dequeue flows for dump. Use an limited budget also for idle flows, even if they're high-priority.
+      This is to guarantee idle flows are dequeued from all viewed interfaces and to prevent a single
+      viewed interface to starve all the others.
+    */
+    for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+      n += viewed_interfaces[s]->dequeueFlowsForDump(MAX_IDLE_FLOW_QUEUE_LEN * 10 /* Limited budget for idle flows to */,
+						     MAX_ACTIVE_FLOW_QUEUE_LEN /* Limited budged for active flows */);
+
+    if (n == 0)
+      _usleep(100);
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
+}
+
+/* **************************************************** */
+
 static void* flowPollLoop(void* ptr) {
   ViewInterface *iface = (ViewInterface*)ptr;
 

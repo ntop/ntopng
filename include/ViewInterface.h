@@ -85,6 +85,7 @@ class ViewInterface : public NetworkInterface {
   				u_int16_t src_port, u_int16_t dst_port,
 				u_int8_t l4_proto,
 				AddressTree *allowed_hosts) const;
+  void dumpFlowLoop();
 };
 
 #endif /* _VIEW_INTERFACE_H_ */

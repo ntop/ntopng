@@ -529,11 +529,6 @@ NetworkInterface::~NetworkInterface() {
 
   deleteDataStructures();
 
-  if(db) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Waiting until all flows are dumped...");
-    pthread_join(flowDumpLoop, NULL);
-  }
-
   if(idleFlowsToDump)   delete idleFlowsToDump;
   if(activeFlowsToDump) delete activeFlowsToDump;
 
@@ -596,46 +591,33 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   int rc = -1;
 #ifndef HAVE_NEDGE
 
-  if(!db)
-    return(-1);
-
-  if(idleFlowsToDump && activeFlowsToDump) {
-    /* Asynchronous dump via a thread */
-
-    if(f->get_state() == hash_entry_state_idle) {
-      /* Last flow dump before delete
-       * Note: this never happens in 'direct' mode */
-      if(idleFlowsToDump->enqueue(f, false)) {
-	f->incUses();
+  /* Asynchronous dump via a thread */
+  if(f->get_state() == hash_entry_state_idle) {
+    /* Last flow dump before delete
+     * Note: this never happens in 'direct' mode */
+    if(idleFlowsToDump->enqueue(f, false)) {
+      f->incUses();
 
 #if DEBUG_FLOW_DUMP
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
 #endif
-      } else {
-	idleFlowsToDump_drops++;
-	incNumQueueDroppedFlows(1);
-	// delete f; /* Delete is up to the caller */
-      }
     } else {
-      /* Partial dump if active flows */
-      if(activeFlowsToDump->enqueue(f, false)) {
-	f->incUses();
-
-#if DEBUG_FLOW_DUMP
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
-#endif
-      } else {
-	activeFlowsToDump_drops++;
-	incNumQueueDroppedFlows(1);
-      }
+      idleFlowsToDump_drops++;
+      incNumQueueDroppedFlows(1);
+      // delete f; /* Delete is up to the caller */
     }
   } else {
-    incDBNumDroppedFlows();
-    /*
-      No need to delete the memory as everything
-      is syncronous and the caller will take care
-      of that
-    */
+    /* Partial dump if active flows */
+    if(activeFlowsToDump->enqueue(f, false)) {
+      f->incUses();
+
+#if DEBUG_FLOW_DUMP
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
+#endif
+    } else {
+      activeFlowsToDump_drops++;
+      incNumQueueDroppedFlows(1);
+    }
   }
 #endif
 
@@ -2293,59 +2275,106 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 
 /* **************************************************** */
 
-void NetworkInterface::dumpFlowLoop() {
+void NetworkInterface::incNumQueueDroppedFlows(u_int32_t num) {
+  /*
+    For viewed interface, the dumper database is the one belonging to the overlying view interface.
+  */
+  DB *dumper = isViewed() ? viewedBy()->getDB() : getDB();
 
+  if(dumper)
+    dumper->incNumQueueDroppedFlows(num);
+};
+
+/* **************************************************** */
+
+/*
+  Dequeues flows enqueued for dump and perform the actual dump. A budget can be specified
+  for idle and active flows. Specify a budget of 0 to indicate an unlimited budget.
+
+  NOTE: in case of view interfaces, this method is called sequentially by the view interface
+  on all the viewed interfaces.
+ */
+u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int active_flows_budget) {
+  /*
+    For viewed interface, the dumper database is the one belonging to the overlying view interface.
+  */
+  DB *dumper = isViewed() ? viewedBy()->getDB() : getDB();
+  u_int64_t idle_flows_done = 0, active_flows_done = 0;
+
+  /*
+    Process high-priority idle flows (they're high priority as an idle flow not dumped is lost)
+   */
+  while(idleFlowsToDump->isNotEmpty()) {
+    Flow *f = idleFlowsToDump->dequeue();
+    char *json = NULL;
+
+    /* Prepare the JSON - if requested */
+    if(flows_dump_json)
+      json = f->serialize(flows_dump_json_use_labels);
+
+    int rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
+
+    if(json) free(json);
+
+#if DEBUG_FLOW_DUMP
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped idle flow");
+#endif
+    if(!rc) incDBNumDroppedFlows(dumper);
+    f->decUses(); /* Job has been done, decrease the reference counter */
+    // delete f;
+    idle_flows_done++;
+    if(idle_flows_budget > 0 /* Budget requested */
+       && idle_flows_done >= idle_flows_budget /* Budget exceeded */)
+      break;
+  }
+
+  /*
+    Process low-priority active flows (they're low priority there can still be chances of dumping active flows later)
+  */
+  while(activeFlowsToDump->isNotEmpty()) {
+    Flow *f = activeFlowsToDump->dequeue();
+    char *json = NULL;
+
+    /* Prepare the JSON - if requested */
+    if(flows_dump_json)
+      json = f->serialize(flows_dump_json_use_labels);
+
+    int rc = dumper->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
+
+    if(json) free(json);
+
+#if DEBUG_FLOW_DUMP
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped active flow");
+#endif
+    if(!rc) incDBNumDroppedFlows(dumper);
+    f->decUses(); /* Job has been done, decrease the reference counter */
+    active_flows_done++;
+    if(active_flows_budget > 0 /* Budget requested */
+       && active_flows_done >= active_flows_budget /* Budget exceeded */)
+      break;
+  }
+
+  return idle_flows_done + active_flows_done;
+}
+
+/* **************************************************** */
+
+void NetworkInterface::dumpFlowLoop() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started flow dump loop on interface %s [id: %u]...",
 			       get_description(), get_id());
 
   /* Wait until it starts up */
-  while(!running) _usleep(10000);
+  while(!isRunning()) _usleep(10000);
 
   /* Now operational */
-  while(running) {
-    int n = 0;
-
-    while(idleFlowsToDump->isNotEmpty()) {
-      Flow *f = idleFlowsToDump->dequeue();
-      char *json = NULL;
-
-      /* Prepare the JSON - if requested */
-      if(flows_dump_json)
-	json = f->serialize(flows_dump_json_use_labels);
-
-      int rc = db->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
-
-      if(json) free(json);
-
-#if DEBUG_FLOW_DUMP
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped idle flow");
-#endif
-      if(!rc) incDBNumDroppedFlows();
-      f->decUses();
-      // delete f;
-      n++;
-    }
-
-    while(activeFlowsToDump->isNotEmpty()) {
-      Flow *f = activeFlowsToDump->dequeue();
-      char *json = NULL;
-
-      /* Prepare the JSON - if requested */
-      if(flows_dump_json)
-	json = f->serialize(flows_dump_json_use_labels);
-
-      int rc = db->dumpFlow(f->get_last_seen(), f, json); /* Finally dump this flow */
-
-      if(json) free(json);
-
-#if DEBUG_FLOW_DUMP
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumped active flow");
-#endif
-      if(!rc) incDBNumDroppedFlows();
-      f->decUses();
-      n++;
-    }
+  while(isRunning()) {
+    /*
+      Dequeue flows for dump. Use an unlimited budget for idle flows as they're high-priority and
+      thus we want to keep processing them if they're in the queue.
+     */
+    u_int64_t n = dequeueFlowsForDump(0 /* Unlimited budget for idle flows */,
+				      MAX_ACTIVE_FLOW_QUEUE_LEN /* Limited budged for active flows */);
 
     if (n == 0)
       _usleep(100);
@@ -2366,9 +2395,6 @@ static void* flowDumper(void* ptr) {
 /* **************************************************** */
 
 void NetworkInterface::startFlowDumping() {
-  const u_int MAX_IDLE_FLOW_QUEUE_LEN   = 131072;
-  const u_int MAX_ACTIVE_FLOW_QUEUE_LEN = 131072;
-
   idleFlowsToDump   = new SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN);
   activeFlowsToDump = new SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN);
 
@@ -2392,18 +2418,21 @@ void NetworkInterface::startFlowDumping() {
     flows_dump_json_use_labels = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_ls();
   }
 
-  if(idleFlowsToDump && activeFlowsToDump) {
-    pthread_create(&flowDumpLoop, NULL, flowDumper, (void*)this);
-    
+  if(!isViewed()) { /* Do not spawn the dumper thread for viewed interfaces - it's the view interface that has the dumper thread */
+    if(idleFlowsToDump && activeFlowsToDump) {
+      pthread_create(&flowDumpLoop, NULL, flowDumper, (void*)this);
+      flowDumpLoopCreated = true;
+
 #ifdef __linux__
-    char buf[16];
+      char buf[16];
     
-    snprintf(buf, sizeof(buf), "flowdump ifid %u", get_id());
-    pthread_setname_np(flowDumpLoop, buf);
+      snprintf(buf, sizeof(buf), "flowdump ifid %u", get_id());
+      pthread_setname_np(flowDumpLoop, buf);
 #endif
-  } else {
-    if(idleFlowsToDump)   { delete idleFlowsToDump; idleFlowsToDump = NULL;     }
-    if(activeFlowsToDump) { delete activeFlowsToDump; activeFlowsToDump = NULL; }
+    } else {
+      if(idleFlowsToDump)   { delete idleFlowsToDump; idleFlowsToDump = NULL;     }
+      if(activeFlowsToDump) { delete activeFlowsToDump; activeFlowsToDump = NULL; }
+    }
   }
 }
 
@@ -6654,9 +6683,12 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
   if(isFlowDumpDisabled() || (db != NULL /* Already enabled */))
     return(false);
 
+  startFlowDumping();
+
   /* Flows are dumped by the view only */
   if(isViewed())
-    return(false);
+    /* No need to allocate databases on view interfaces */
+    return(true);
 
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
   if(ntop->getPrefs()->do_dump_flows_on_nindex()) {
@@ -6703,9 +6735,6 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
       db = new Logstash(this);
 #endif
   }
-
-  if(db)
-    startFlowDumping();
 
   return(db != NULL);
 }

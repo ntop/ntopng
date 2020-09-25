@@ -29,7 +29,9 @@ class DB {
   struct timeval lastUpdateTime;
   float exportRate;
   u_int64_t exportedFlows, lastExportedFlows;
-  u_int32_t droppedFlows, queueDroppedFlows;
+  /* Multiple threads can inc in case of view interfaces */
+  std::atomic<u_int32_t> droppedFlows;
+  std::atomic<u_int32_t> queueDroppedFlows;
   u_int64_t checkpointExportedFlows;
   u_int32_t checkpointDroppedFlows, checkpointQueueDroppedFlows;
 

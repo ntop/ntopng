@@ -437,7 +437,7 @@ class NetworkInterface : public AlertableEntity {
 			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
 			ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats) const;
-
+  inline DB *getDB() const         { return db;                  };
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };
   inline void set_datalink(int l)  { pcap_datalink_type = l;     };
@@ -686,7 +686,7 @@ class NetworkInterface : public AlertableEntity {
 
   void getFlowsStatus(lua_State *vm);
   inline void startDBLoop() { if(db) db->startDBLoop(); };
-  inline void incDBNumDroppedFlows(u_int num = 1) { if(db) db->incNumDroppedFlows(num); };
+  inline void incDBNumDroppedFlows(DB *dumper, u_int num = 1) { if(dumper) dumper->incNumDroppedFlows(num); };
 #ifdef NTOPNG_PRO
   inline void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
@@ -847,8 +847,9 @@ class NetworkInterface : public AlertableEntity {
   void updateFlowPeriodicity(Flow *f);
 #endif
 
-  inline void incNumQueueDroppedFlows(u_int32_t num)  { if(db) db->incNumQueueDroppedFlows(num); };
-  void dumpFlowLoop();
+  void incNumQueueDroppedFlows(u_int32_t num);
+  u_int64_t dequeueFlowsForDump(u_int idle_flows_budget, u_int active_flows_budget);
+  virtual void dumpFlowLoop();
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

@@ -1218,7 +1218,7 @@ char* Flow::print(char *buf, u_int buf_len) const {
 
 /* *************************************** */
 
-bool Flow::dumpFlow(time_t t, NetworkInterface *dumper_iface, bool last_dump_before_free) {
+bool Flow::dumpFlow(time_t t, bool last_dump_before_free) {
   bool rc = false;
    
   if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
@@ -1239,8 +1239,8 @@ bool Flow::dumpFlow(time_t t, NetworkInterface *dumper_iface, bool last_dump_bef
   }
 
   if(!last_dump_before_free) {
-    if((dumper_iface->getIfType() == interface_type_PCAP_DUMP
-	&& (!dumper_iface->read_from_pcap_dump_done()))
+    if((getInterface()->getIfType() == interface_type_PCAP_DUMP
+	&& (!getInterface()->read_from_pcap_dump_done()))
        || timeToPeriodicDump(t)) {
       return(rc); /* Don't call too often periodic flow dump */
     }
@@ -1254,7 +1254,7 @@ bool Flow::dumpFlow(time_t t, NetworkInterface *dumper_iface, bool last_dump_bef
   if(!get_partial_bytes())
     return(rc); /* Nothing to dump */
 
-  dumper_iface->dumpFlow(get_last_seen(), this);
+  getInterface()->dumpFlow(get_last_seen(), this);
 
 #ifndef HAVE_NEDGE
   if(ntop->get_export_interface()) {
@@ -1751,23 +1751,17 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 /* *************************************** */
 
 void Flow::dumpCheck(time_t t, bool last_dump_before_free) {
-  /*
-    Viewed interfaces don't dump flows, their flows are dumped by the overlying ViewInterface.
-    ViewInterface dump their flows in another thread, not this one.
-  */
-  NetworkInterface *d_if = iface->isViewed() ? iface->viewedBy() : iface;
-
   if((ntop->getPrefs()->is_flows_dump_enabled()
 #ifndef HAVE_NEDGE
       || ntop->get_export_interface()
 #endif
      )
 #ifdef NTOPNG_PRO
-     && (d_if->isPacketInterface() /* Not a ZMQ interface */
+     && (getInterface()->isPacketInterface() /* Not a ZMQ interface */
          || !ntop->getPrefs()->do_dump_flows_direct() /* Direct dump not enabled */ )
 #endif
     ) {
-    dumpFlow(t, d_if, last_dump_before_free);
+    dumpFlow(t, last_dump_before_free);
   }
 }
 

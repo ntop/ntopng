@@ -444,14 +444,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
      || ntop->get_export_interface()
 #endif
      )) {
-    NetworkInterface *d_if = isViewed() ? viewedBy() : static_cast<NetworkInterface *>(this);
-    bool rc;
-
     /* Dump flow */
-    rc = flow->dumpFlow(zflow->last_switched, d_if, true /* last dump before free */);
-
-    /* Update drop stats */
-    if(!rc) d_if->incDBNumDroppedFlows();
+    flow->dumpFlow(zflow->last_switched, true /* last dump before free */);
   }
 #endif
 
