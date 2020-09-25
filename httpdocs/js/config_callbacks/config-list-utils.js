@@ -54,7 +54,7 @@ $(document).ready(function() {
 
         const action_column = {
             pools: -1,
-            width: '10%',
+            width: '200px',
             data: null,
             className: 'text-center',
             render: function(data, type, row) {
@@ -63,13 +63,13 @@ $(document).ready(function() {
                     <a class="btn btn-info btn-sm" href='edit_configset.lua?confset_id=${data.id}&subdir=${subdir}' title='${i18n.edit}'>
                         <i class='fas fa-edit'></i>
                     </a>
-                    <a href='#' title='${i18n.clone}' class="btn btn-sm btn-info" ${DEFAULT_CONFIG_ONLY ? "style='display: none'" : ''} data-toggle="modal" data-target="#clone-modal">
+                    <a href='#' title='${i18n.clone}' class="btn btn-sm btn-info ${DEFAULT_CONFIG_ONLY ? "disabled" : ''}"  data-toggle="modal" data-target="#clone-modal">
                         <i class='fas fa-clone'></i>
                     </a>
-                    <a href='#' title='${i18n.rename}' class="btn btn-sm btn-info ${data.id == 0 ? `disabled` : ''}" ${DEFAULT_CONFIG_ONLY ? "style='display: none'" : ''} data-toggle="modal" data-target="#rename-modal">
+                    <a href='#' title='${i18n.rename}' class="btn btn-sm btn-info ${(data.id == 0 || DEFAULT_CONFIG_ONLY) ? `disabled` : ''}" data-toggle="modal" data-target="#rename-modal">
                         <i class='fas fa-pencil-alt'></i>
                     </a>
-                    <a href='#' title='${i18n.delete}' class="btn btn-sm btn-danger ${data.id == 0 ? 'disabled' : ''}" ${DEFAULT_CONFIG_ONLY ? "style='display: none'" : ''} data-toggle="modal" data-target="#delete-modal">
+                    <a href='#' title='${i18n.delete}' class="btn btn-sm btn-danger ${(data.id == 0 || DEFAULT_CONFIG_ONLY) ? 'disabled' : ''}" data-toggle="modal" data-target="#delete-modal">
                         <i class='fas fa-trash'></i>
                     </a>
                 `;
