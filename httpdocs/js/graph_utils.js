@@ -93,11 +93,13 @@ function getValueFormatter(schema, metric_type, series, custom_formatter, stats)
 
       for(var i=0; i<custom_formatter.length; i++) {
         // translate function name to actual function
-        var fn = window[custom_formatter[i]];
+        const functionName = custom_formatter[i].replace("NtopUtils.", "")
+        const formatterFunction = NtopUtils[functionName];
 
-        if(typeof fn !== "function")
+        if(typeof formatterFunction !== "function")
           console.error("Cannot find custom value formatter \"" + custom_formatter + "\"");
-        formatters[i] = fn;
+
+        formatters[i] = formatterFunction;
       }
 
       return(formatters);
@@ -305,7 +307,7 @@ function fixTimeRange(chart, params, align_step, actual_step) {
     chart.tick_step = tick_step;
   } else
     chart.tick_step = null;
-  
+
   chart.x_fmt = fmt;
 }
 
