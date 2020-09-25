@@ -38,7 +38,7 @@ local recipients = require "recipients"
 local is_nedge = ntop.isnEdge()
 
 -- select the default page
-local page = _GET["page"] or 'all'
+local page = _GET["page"] or 'host'
 
 sendHTTPContentTypeHeader('text/html')
 
