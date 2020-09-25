@@ -1,0 +1,150 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-shadow">
+            <div class="card-header">
+                {* template_utils.gen("pages/components/nav_tabs.template", menu) *}
+            </div>
+            {* template_utils.gen("pages/tabs/manage_data/" .. manage_data.page .. ".template", manage_data) *}
+        </div>
+        {* ui_utils.render_notes(manage_data.note) *}
+    </div>
+</div>
+
+<script type="text/javascript">
+
+function delete_data_show_modal() {
+
+  $(".modal-body #modal_host").html(" " + $('#delete_host').val());
+
+  if ($('#delete_vlan').val() != "") {
+
+    $(".modal-body #modal_vlan").html("@" + $('#delete_vlan').val());
+  }
+
+  $('#delete_data').modal('show');
+
+  return false;
+}
+
+function delete_data() {
+  const params = {};
+  params.ifid = '{{ tostring(getInterfaceId(ifname)) }}';
+  params.host = $('#delete_host').val();
+  params.vlan = $('#delete_vlan').val();
+  params.page = 'delete';
+
+  params.csrf = "{{ ntop.getRandomCSRFValue() }}";
+
+  const form = NtopUtils.paramsToForm('<form method="post"></form>', params);
+
+  aysResetForm($("#host_data_form_delete")); // clean the form to void alert message
+  form.appendTo('body').submit();
+}
+
+function delete_interfaces_data_show_modal(modal_id) {
+
+  $('#' + modal_id).modal('show');
+  /* abort submit */
+  return false;
+}
+
+function delete_interfaces_data(action) {
+  const params = {[action] : ''};
+
+  params.page = 'delete';
+  params.ifid = {{ getInterfaceId(ifname) }};
+
+  params.csrf = "{{ ntop.getRandomCSRFValue() }}";
+
+  var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
+
+  form.appendTo('body').submit();
+}
+
+function setActiveHashTab(hash) {
+   $('#manage-data-nav a[href="' + hash + '"]').tab('show');
+}
+
+function prepare_typeahead(host_id, vlan_id, buttons_id) {
+  $('#' + host_id).val('');
+  $('#' + vlan_id).val('');
+
+  $('#' + host_id).typeahead({
+    source: function (query, process) {
+      return $.get('{{ ntop.getHttpPrefix() }}//lua/find_host.lua', { query: query, hosts_only: true }, function (data) {
+        return process(data.results);
+      });
+    },
+    afterSelect: function(item) {
+      $('#' + host_id).val(item.ip.split("@")[0]);
+      $('#' + vlan_id).val(item.ip.split("@")[1] || '');
+
+      /* retrigger validation */
+      const form = $('#' + host_id).closest("form");
+      form.removeClass('dirty');
+      form.validator('validate');
+    }
+  });
+
+  $('#' + buttons_id + ' :input').change(function() {
+
+    $('#' + vlan_id + ', #' + host_id).prop('disabled', this.id === "single_host" ? false : true);
+
+    if(this.id !== "single_host") {
+      $('#' + vlan_id).val('');
+      $('#' + host_id).val('');
+    }
+
+  });
+
+}
+
+function deleteHostValidator(input) {
+
+    if (hostOrMacValidator(input)) return true;
+
+    /* check for a /24-/32 IPv4 network */
+    /* mandatory mask */
+
+    if (NtopUtils.is_network_mask(input.val(), false)) {
+
+      const elems = input.val().split("/");
+      if ((elems.length == 2) && NtopUtils.is_good_ipv4(elems[0]) && (parseInt(elems[1]) >= 24))
+        return true;
+    }
+
+    return false;
+}
+
+$(document).ready(function(){
+
+    $('#host_data_form_delete').areYouSure();
+
+    prepare_typeahead('export_host', 'export_vlan', 'export_hosts_buttons');
+    prepare_typeahead('delete_host', 'delete_vlan', 'delete_hosts_buttons');
+
+    const validator_options = {
+      disable: true,
+      custom: {
+        host: deleteHostValidator,
+      },
+      errors: {
+        host: "{{ i18n('manage_data.mac_or_ip_required') }}.",
+      }
+    }
+
+    $("#host_data_form_delete").validator(validator_options);
+
+    aysHandleForm("#host_data_form_delete");
+
+});
+
+/* Handle tab state across requests */
+$("ul.nav-tabs > li > a").on("shown.bs.tab", function(e) {
+    const id = $(e.target).attr("href").substr(1);
+    history.replaceState(null, null, "#"+id);
+});
+
+if (window.location.hash) setActiveHashTab(window.location.hash);
+
+</script>

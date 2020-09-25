@@ -1,0 +1,10 @@
+<div class="notes bg-light border">
+    <b>{{ i18n("notes") }}</b>
+    <ul>
+        {% for i, note in ipairs(notes) do %}
+            {% if not note.hidden then %}
+                <li>{* note.content *}</li>
+            {% end %}
+        {% end %}
+    </ul>
+</div>

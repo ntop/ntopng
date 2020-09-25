@@ -1,0 +1,50 @@
+<form class="host_data_form" id="host_data_form_export" action="{{ntop.getHttpPrefix()}}/lua/do_export_data.lua"
+    method="GET">
+    <div class="card-body">
+        <div id="search_card">
+            <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
+            <input type=hidden name="ifid" value="{{ tostring(getInterfaceId(ifname)) }}">
+            <div class='form-row align-items-center'>
+                <div class="form-group col-12">
+                    <label class="d-block">Select Export Type</label>
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons" id="export_hosts_buttons"
+                        name="export_hosts_buttons">
+                        <label class="btn btn-secondary active">
+                            <input type="radio" id="all_hosts" name="mode" value="all" autocomplete="off"
+                                data-toggle="toggle" checked="checked">{{i18n("manage_data.all_hosts")}}
+                        </label>
+                        <label class="btn btn-secondary">
+                            <input type="radio" id="local_hosts" name="mode" value="local" autocomplete="off"
+                                data-toggle=" toggle">{{i18n("manage_data.local_hosts")}}
+                        </label>
+                        <label class="btn btn-secondary">
+                            <input type="radio" id="remote_hosts" name="mode" value="remote" autocomplete="off"
+                                data-toggle=" toggle">{{i18n("manage_data.remote_hosts")}}
+                        </label>
+                        <label class="btn btn-secondary">
+                            <input type="radio" id="single_host" name="mode" value="filtered" autocomplete="off"
+                                data-toggle=" toggle">{{i18n("manage_data.single")}}
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group col-auto">
+                    <label for="export_host">Insert Host IP or Mac Address or /24</label>
+                    <input type="text" id="export_host" data-host="host" name="host"
+                        placeholder="{{ i18n("manage_data.ip_or_mac_address")}}" class="form-control" size="24" disabled
+                        required />
+                </div>
+                <div class="form-group col-auto">
+                    <label for="export_vlan">Insert VLAN Host</label>
+                    <input type="number" min="1" max="65535" placeholder="{{ i18n(" vlan") }}" id="export_vlan"
+                        name="vlan" class="form-control" value="" disabled />
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="card-footer text-right">
+        <button type="submit" class="btn btn-secondary">
+            <i class='fas fa-file-export'></i> {{ i18n("export_data.export_json_data") }}
+        </button>
+    </div>
+</form>
