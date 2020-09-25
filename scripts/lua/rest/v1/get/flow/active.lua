@@ -138,7 +138,7 @@ for _key, value in ipairs(flows_stats) do
    record["breakdown"]["srv2cli"] =  (100-cli2srv)
 
    if isScoreEnabled() then
-      record["score"] = format_utils.formatValue(value["score"])
+      record["score"] = format_utils.formatValue(value["score"]["flow_score"])
    end
 
    if verbose then
