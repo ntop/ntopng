@@ -638,7 +638,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
                   name='items-list'
                   id='itemslist-textarea'
                   class="w-100 form-control"
-                  style="height: 5rem;">${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
+                  rows='10'>${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
                   <small>${gui.input_description || i18n.blacklisted_country}</small>
                <div class="invalid-feedback"></div>
             </div>
