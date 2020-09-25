@@ -99,7 +99,7 @@ $(document).ready(function() {
 
                     return DataTableUtils.createActionButtons([
                         { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool' },
-                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-pool', hidden: (pool.pool_id == DEFAULT_POOL_ID)}
+                        { class: `btn-danger ${(pool.pool_id == DEFAULT_POOL_ID) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool'}
                     ]);
                 }
             }
