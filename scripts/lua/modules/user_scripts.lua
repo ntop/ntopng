@@ -39,7 +39,7 @@ user_scripts.field_units = {
 -- Operator functions associated to user scripts `operator`, which is specified
 -- both inside user scripts default configuration values, as well as when user scripts
 -- are configured from the UI.
--- 
+--
 user_scripts.operator_functions = {
    gt --[[ greater than --]] = function(value, threshold) return value > threshold end,
    lt --[[ less than    --]] = function(value, threshold) return value < threshold end,
@@ -61,10 +61,6 @@ local available_subdirs = {
       label = "hosts",
       pools = "host_pools",
    }, {
-      id = "flow",
-      label = "flows",
-      -- No pools for flows
-   }, {
       id = "interface",
       label = "interfaces",
       pools = "interface_pools",
@@ -76,6 +72,10 @@ local available_subdirs = {
       id = "snmp_device",
       label = "host_details.snmp",
       pools = "snmp_device_pools",
+   }, {
+      id = "flow",
+      label = "flows",
+      -- No pools for flows
    }, {
       id = "system",
       label = "system",
@@ -487,7 +487,7 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
    traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
 
    local user_script = dofile(full_path)
-   
+
    if(type(user_script) ~= "table") then
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", full_path))
       return(nil)
@@ -774,7 +774,7 @@ function user_scripts.loadUnloadUserScripts(is_load)
 	    -- each available configuration existing for the user script
 	    local s = config.config[subdir.id][script.key]
 
-	    if(s ~= nil) then 
+	    if(s ~= nil) then
 	       for hook, hook_config in pairs(s) do
 		  -- For each configuration there are multiple hooks.
 		  -- Some hooks can be enabled, whereas some other hooks can be disabled:
