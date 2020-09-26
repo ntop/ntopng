@@ -595,7 +595,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   if(f->get_state() == hash_entry_state_idle) {
     /* Last flow dump before delete
      * Note: this never happens in 'direct' mode */
-    if(idleFlowsToDump->enqueue(f, false)) {
+    if(idleFlowsToDump && idleFlowsToDump->enqueue(f, false)) {
       f->incUses();
 
 #if DEBUG_FLOW_DUMP
@@ -608,7 +608,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
     }
   } else {
     /* Partial dump if active flows */
-    if(activeFlowsToDump->enqueue(f, false)) {
+    if(activeFlowsToDump && activeFlowsToDump->enqueue(f, false)) {
       f->incUses();
 
 #if DEBUG_FLOW_DUMP
