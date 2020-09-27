@@ -298,7 +298,7 @@ using namespace std;
 #ifdef HAVE_RADIUS
 #include <radcli/radcli.h>
 #endif
-
+#include "Condvar.h"
 #include "SPSCQueue.h"
 #include "TimeseriesExporter.h"
 #include "InfluxDBTimeseriesExporter.h"

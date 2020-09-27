@@ -35,7 +35,7 @@ template <typename T> class SPSCQueue {
   volatile u_int64_t head;
   volatile u_int64_t tail;
   u_int64_t shadow_tail;
-
+  Condvar c;
   std::vector<T> queue;
   u_int32_t queue_size;
 
@@ -76,6 +76,10 @@ template <typename T> class SPSCQueue {
     return static_cast<T>(NULL);
   }
 
+  inline bool wait() {
+    return((c.wait() < 0) ? false : true);
+  }
+  
   inline bool enqueue(T item, bool flush) {
     u_int32_t next_head;
 
@@ -85,6 +89,8 @@ template <typename T> class SPSCQueue {
       queue[shadow_head] = item;
 
       shadow_head = next_head;
+      c.signal();
+      
       if (flush || (shadow_head & QUEUE_WATERMARK_MASK) == 0)
         head = shadow_head;
 
