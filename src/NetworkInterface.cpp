@@ -6680,11 +6680,6 @@ bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int1
   is succesful
  */
 bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
-  if(!ntop->getPrefs()->do_dump_flows() /* No -F */
-     || isFlowDumpDisabled() /* Disabled via UI pref */
-     || (db != NULL /* Already enabled */))
-    return(false);
-
   startFlowDumping();
 
   /* Flows are dumped by the view only */
