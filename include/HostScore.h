@@ -32,7 +32,7 @@ class HostScore {
   void lua_breakdown(lua_State *vm, bool as_client);
 
   void inline checkDecrementReset(time_t when) {
-    if(when > next_reset_decrement_time)
+    if((u_int32_t)when > next_reset_decrement_time)
       last_min_dec = 0, next_reset_decrement_time = when+60;   
   }
   
