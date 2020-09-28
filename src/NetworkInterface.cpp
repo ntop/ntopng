@@ -2428,6 +2428,11 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   DB *dumper = isViewed() ? viewedBy()->getDB() : getDB();
   u_int64_t idle_flows_done = 0, active_flows_done = 0;
 
+  if(!dumper) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "WARNING: Something is broken with flow dump");
+    return(0);
+  }
+	
   /*
     Process high-priority idle flows (they're high priority as an idle flow not dumped is lost)
    */
