@@ -23,24 +23,7 @@ Below you can find instructions on how to run ntopng with either a self signed o
 		inside the ntopng folder execute the command: make cert
 		and follow the instruction
 
-1.3	OPTIONAL
-   	Depending on the distribution and packager you might need
-   	this optional step. 
-
-		Copy in the directory where ntopng is running
-		the shared libraries needed to enable SSL.
-
-		- Linux
-		ln -s /usr/lib/x86_64-linux-gnu/libssl.so .
-		Note that this symbolic link is NOT necessary on all Linux
-		distros. Example it is not required on Fedora Linux.
-		Please check this according to your distribution.
-
-		- OSX
-		ln -s /usr/local/Cellar/openssl/1.0.1i/lib/libcrypto.dylib .
-		ln -s /usr/local/Cellar/openssl/1.0.1i/lib/libssl.dylib .
-   
-1.4	Edit ntop.conf to enable https
+1.3	Edit ntop.conf to enable https
 		Edit the /etc/ntopng/ntopng.conf file to include the text --https-port=3001
 		You may choose ports other than 3001 but it must be a different port to the http port which is port 3000 by default
 		Alternatively you can disable insecure http altogether by replacing the line -w=3000 with --http-port=0
@@ -60,7 +43,7 @@ Below you can find instructions on how to run ntopng with either a self signed o
 
 		cd /tmp/
 		openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
-		cat privkey.pem cert.pem > /usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+		cat privkey.pem cert.pem > /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 		/bin/rm -f privkey.pem cert.pem
 		cd /usr/local/bin/
 		ln -s /usr/lib/x86_64-linux-gnu/libssl.so .
@@ -70,8 +53,8 @@ Below you can find instructions on how to run ntopng with either a self signed o
 
 		cd /tmp/
 		openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
-		mkdir /usr/local/share/ntopng/httpdocs/ssl/
-		cat privkey.pem cert.pem > /usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+		mkdir /usr/share/ntopng/httpdocs/ssl/
+		cat privkey.pem cert.pem > /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 		/bin/rm -f privkey.pem cert.pem
 		cd /usr/local/bin/
 		ln -s /opt/local/lib/libssl.dylib /opt/local/lib/libcrypto.dylib .
