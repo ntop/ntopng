@@ -29,7 +29,7 @@ Alert Endpoints
 
 Endpoints are a way to export the ntopng alerts to external programs.
 
-Endpoints can be enabled and configured from the ntopng preferences page. Users can create custom
+Endpoints can be enabled and configured from the ntopng System page. Users can create custom
 endpoints via a custom plugin. Check out the `Plugins Section <../plugins/alert_endpoints.html>`_
 for more details. Here is a list of the alerts endpoints built into ntopng.
 
@@ -38,16 +38,30 @@ for more details. Here is a list of the alerts endpoints built into ntopng.
 Elasticsearch
 ~~~~~~~~~~~~~
 
-This endpoint is designed to send alerts to `Elasticsearch <https://www.elastic.co/>`_. The endpoint becomes available when ntopng is configured to dump flows to :ref:`FlowDumpElasticsearch` and it uses the *same Elasticsearch connection parameters* used to dump flows.
+This endpoint is designed to send alerts to `Elasticsearch <https://www.elastic.co/>`_.
 
 .. note::
 
   Elasticsearch alert endpoint is only available in ntopng Enterprise M or above.
 
-Alerts are sent to Elasticsearch indexes :code:`alerts-ntopng-<year>.<month>.<day>`. A new index is created every day. For example, index names used for two consecutive days of April 17th and 18th 2020 are :code:`alerts-ntopng-2020-04-17` and :code:`alerts-ntopng-2020-04-18`.
 
-This plugin can be enabled from the preferences.
+The endpoint requires the Elasticsearch URL to be specified, along with (optional) parameters for the authentication.
 
+.. figure:: ../img/web_gui_alerts_es_endpoint.png
+  :align: center
+  :alt: Elasticsearch Endpoint
+
+  Elasticsearch Endpoint
+
+Multiple recipients can then be associated to the Elasticsearch endpoint. Any recipient can use a different prefix for the index names.
+
+.. figure:: ../img/web_gui_alerts_es_recipient.png
+  :align: center
+  :alt: Elasticsearch Recipient
+
+  Elasticsearch Recipient
+
+By default, alerts are sent to Elasticsearch indexes :code:`alerts-ntopng-<year>.<month>.<day>`. A new index is created every day. For example, index names used for two consecutive days of April 17th and 18th 2020 are :code:`alerts-ntopng-2020-04-17` and :code:`alerts-ntopng-2020-04-18`. If an index prefix is specified in the endpoint, then the prefix is used in place of :code:`alerts-ntopng`.
 
 The Elasticsearch connection can be tested by clicking the "Test Connection" button of the preferences.
 
