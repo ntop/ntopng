@@ -765,7 +765,16 @@ local function load_metadata()
    if not METADATA then
       local runtime_path = plugins_utils.getRuntimePath()
       lua_path_utils.package_path_prepend(runtime_path)
-      METADATA = require(PLUGIN_RELATIVE_PATHS.metadata)
+
+      -- Do the require via pcall to avoid Lua generating an exception.
+      -- Print an error and a stacktrace when the require fails.
+      local status
+      status, METADATA = pcall(require, PLUGIN_RELATIVE_PATHS.metadata)
+
+      if not status then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not load plugins metadata file '%s'", PLUGIN_RELATIVE_PATHS.metadata))
+	 tprint(debug.traceback())
+      end
   end
 end
 
