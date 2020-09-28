@@ -52,6 +52,11 @@ function file_utils.copy_file(fname, src_path, dst_path)
       return(false)
    end
 
+   if (instr == nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not write the string into file %s", dst))
+      return (false)
+   end
+
    outfile:write(instr)
    outfile:close()
 
