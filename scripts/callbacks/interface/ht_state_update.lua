@@ -46,6 +46,14 @@ end
 
 -- ########################################################
 
+-- Dequeue flows for the execution of periodic scripts
+
+interface.dequeueFlowsForHooks(131072 --[[ protocolDetected --]], 16384 --[[ periodicUpdate --]], 131072 --[[ flowEnd --]])
+
+-- ########################################################
+
+-- Perform actions on hash table entries, e.g., delete idle entries.
+
 local periodic_ht_state_update_stats = interface.periodicHTStateUpdate(ntop.getDeadline(), skip_user_scripts)
 ts_dump.run_5sec_dump(interface.getId(), when, periodic_ht_state_update_stats)
 

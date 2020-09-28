@@ -219,14 +219,6 @@ class GenericHashEntry {
    * 
    */
   virtual bool is_active_entry_now_idle(u_int max_idleness) const;
-    
-  /**
-   * @brief Function in charge of hash entry offline state updates
-   *
-   * @param user_date A pointer to user submitted data potentially necessary for the update
-   * 
-   */
-  virtual void periodic_hash_entry_state_update(void *user_data);
   
   /**
    * @brief Function in charge of updating periodic entry stats (e.g., its throughput or L7 traffic)

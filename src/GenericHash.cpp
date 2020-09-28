@@ -197,7 +197,7 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
 void GenericHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
   u_int new_walk_idle_start_hash_id = 0;
   bool update_walk_idle_start_hash_id;
-  
+
   /*
     To implement fairness, the walkIdle starts from walk_idle_start_hash_id and not from zero.
     walk_idle_start_hash_id is updated on the basis of the return value of the walker function.
@@ -393,10 +393,16 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 	  /* Don't break */
 	case hash_entry_state_flow_notyetdetected:
 	  /* UDP flows or TCP flows for which the 3WH is completed but protocol hasn't been detected yet */
-	  head->housekeep(now);
 	  /* Don't break  */
 	case hash_entry_state_flow_protocoldetected:
-	  /* Once the protocol is detected, there's no need to housekeep */
+	  head->housekeep(now);
+
+	  if(head_state == hash_entry_state_flow_protocoldetected)
+	    /*
+	      Transition to active if the protocol is detected
+	     */
+	    head->set_hash_entry_state_active();
+
 	  if(force_idle) goto detach_idle_hash_entry;
 	  break;
 

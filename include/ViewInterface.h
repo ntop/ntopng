@@ -39,6 +39,7 @@ class ViewInterface : public NetworkInterface {
 
  public:
   ViewInterface(const char *_endpoint);
+  virtual u_int64_t dequeueFlowsForHooks(lua_State* vm, u_int protocol_detected_budget, u_int active_budget, u_int idle_budget);
   virtual void periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts);
   bool walker(u_int32_t *begin_slot,
 	      bool walk_all,

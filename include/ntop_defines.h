@@ -1049,6 +1049,13 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define MAX_IDLE_FLOW_QUEUE_LEN      131072
 #define MAX_ACTIVE_FLOW_QUEUE_LEN    131072
 
+/*
+  Queue lengths for user-script queues
+ */
+#define MAX_US_PROTOCOL_DETECTED_QUEUE_LEN 131072
+#define MAX_US_FLOW_END_QUEUE_LEN          131072
+#define MAX_US_PERIODIC_UPDATE_QUEUE_LEN   16384  /* Smaller, lower-priority */
+
 #ifdef NTOPNG_EMBEDDED_EDITION
 #define DEFAULT_THREAD_POOL_SIZE     1
 #define MAX_THREAD_POOL_SIZE         1

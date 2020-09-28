@@ -844,20 +844,6 @@ bool Host::is_hash_entry_state_idle_transition_ready() const {
   return res;
 };
 
-/* ***************************************** */
-
-void Host::periodic_hash_entry_state_update(void *user_data) {
-  char buf[64];
-
-  if(get_state() == hash_entry_state_idle) {
-    if(getUses() > 0 && !ntop->getGlobals()->isShutdownRequested())
-      /* During shutdown it is acceptable to have a getUses() > 0 as all the hosts are forced as idle */
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: num_uses=%u [%s]", getUses(), get_ip()->print(buf, sizeof(buf)));
-  }
-
-  GenericHashEntry::periodic_hash_entry_state_update(user_data);
-};
-
 /* *************************************** */
 
 void Host::periodic_stats_update(const struct timeval *tv) {

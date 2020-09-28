@@ -42,8 +42,6 @@ class FlowHash : public GenericHash {
    * @return Pointer of entry that matches with the key parameter, NULL if there isn't entry with the key parameter or if the hash is empty.
    */
   Flow* findByKeyAndHashId(u_int32_t key, u_int hash_id);
-
-  virtual void walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
 };
 
 #endif /* _FLOW_HASH_H_ */

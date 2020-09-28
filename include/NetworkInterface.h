@@ -81,6 +81,13 @@ class NetworkInterface : public AlertableEntity {
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
   u_int32_t idleFlowsToDump_drops, activeFlowsToDump_drops;
+
+  /* Queues for the execution of flow user scripts.
+     See scripts/plugins/examples/example/user_scripts/flow/example.lua for the callbacks
+   */
+  SPSCQueue<Flow *> *hookProtocolDetected, *hookPeriodicUpdate, *hookFlowEnd;
+  u_int64_t hookProtocolDetected_drops, hookPeriodicUpdate_drops, hookFlowEnd_drops;
+
   /*
     Flag to indicate whether a flow JSON should be dumped along with the flow. Flow JSON contain
     additional fields not placed inside database columns.
@@ -371,6 +378,7 @@ class NetworkInterface : public AlertableEntity {
   struct ndpi_detection_module_struct* get_ndpi_struct() const;
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
+  bool hookEnqueue(time_t t, Flow *f);
 #ifdef NTOPNG_PRO
   void flushFlowDump();
 #endif
@@ -847,9 +855,18 @@ class NetworkInterface : public AlertableEntity {
   void updateFlowPeriodicity(Flow *f);
 #endif
 
-  void incNumQueueDroppedFlows(u_int32_t num);
-  u_int64_t dequeueFlowsForDump(u_int idle_flows_budget, u_int active_flows_budget);
   virtual void dumpFlowLoop();
+  void incNumQueueDroppedFlows(u_int32_t num);
+  /*
+    Dequeues enqueued flows to dump them to database
+   */
+  u_int64_t dequeueFlowsForDump(u_int idle_flows_budget, u_int active_flows_budget);
+  /*
+    Dequeues enqueued flows to execute user script callbacks.
+    Budgets indicate how many flows should be dequeued (if available) to perform protocol detected, active,
+    and idle callbacks.
+   */
+  virtual u_int64_t dequeueFlowsForHooks(lua_State* vm, u_int protocol_detected_budget, u_int active_budget, u_int idle_budget);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

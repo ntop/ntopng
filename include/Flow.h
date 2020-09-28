@@ -95,7 +95,7 @@ class Flow : public GenericHashEntry {
 #endif
   char *external_alert;
   bool trigger_immediate_periodic_update; /* needed to process external alerts */
-  bool pending_lua_call_protocol_detected; /* Whether the protocol detected lua script has been called on this flow */
+  FlowLuaCall current_flow_lua_call;   /* Indicate the latest flow lua call performed */
   time_t next_lua_call_periodic_update; /* The time at which the periodic lua script on this flow shall be called */
   u_int32_t periodic_update_ctr;
 
@@ -244,6 +244,18 @@ class Flow : public GenericHashEntry {
 			  const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) const;
+  /* 
+     Check (and possibly enqueues) the flow for the execution of lua user script hooks
+     - hookProtocolDetectedCheck is executed when the flow enters state hash_entry_state_flow_protocoldetected
+     - hookPeriodicUpdateCheck is executed periodically, when the flow is in state hash_entry_state_active
+     - hookFlowEndCheck is executed when the flow enters state hash_entry_state_idle
+   */
+  void hookProtocolDetectedCheck(time_t t);
+  void hookPeriodicUpdateCheck(time_t t);
+  void hookFlowEndCheck(time_t t);
+  /*
+    Check (and possibly enqueues) the flow for dump
+   */
   void dumpCheck(time_t t, bool last_dump_before_free);
   void updateCliJA3();
   void updateSrvJA3();
@@ -255,26 +267,6 @@ class Flow : public GenericHashEntry {
   void updateProtocol(ndpi_protocol proto_id);
   const char* cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(PartializableFlowTrafficStats **dst, PartializableFlowTrafficStats *delta, bool *first_partial) const;
-  /**
-   * @brief Method to call a given lua script on the flow
-   * @details This method calls a lua script on the flow if there is time, that is, when quick is false. Otherwise
-   *          it keep track of skipped calls by opportunely increasing certain counters in the lua engine.
-   *
-   * @param flow_lua_call The time of the call that should be performed on the flow
-   * @param tv Pointer to a timeval struct indicating the current time at which the update is performed
-   * @param periodic_ht_state_update_user_data Pointer to a structure holding update-related data (including the lua engine)
-   *
-   * @return Whether the call has been executed successfully or if there were issues during the execution
-   */  
-  FlowLuaCallExecStatus performLuaCall(FlowLuaCall flow_lua_call, const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data);
-  /**
-   * @brief Method to possibly call lua scripts on the flow
-   * @details This method evaluates the states of the flow and possibly calls lua functions on this flow.
-   *
-   * @param tv Pointer to a timeval struct indicating the current time at which the update is performed
-   * @param periodic_ht_state_update_user_data Pointer to a structure holding update-related data (including the lua engine)
-   */
-  void performLuaCalls(const struct timeval *tv, periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data);
   void lua_tos(lua_State* vm);
 
   void updateEntropy(struct ndpi_analyze_struct *e, u_int8_t *payload, u_int payload_len);
@@ -495,7 +487,6 @@ class Flow : public GenericHashEntry {
   /* Methods to handle the flow in-memory lifecycle */
   void set_hash_entry_state_idle();
   bool is_hash_entry_state_idle_transition_ready() const;
-  void periodic_hash_entry_state_update(void *user_data);
   void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const;
   void periodic_stats_update(const struct timeval *tv);
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
@@ -509,6 +500,16 @@ class Flow : public GenericHashEntry {
 		       Host *srv, u_int16_t srv_port,
 		       u_int16_t vlan_id,
 		       u_int16_t protocol);
+  /**
+   * @brief Method to call a given lua script on the flow
+   *
+   * @param flow_lua_call The time of the call that should be performed on the flow
+   * @param vm The Lua virtual machine to use
+   *
+   * @return Whether the call has been executed successfully or if there were issues during the execution
+   */
+  FlowLuaCallExecStatus performLuaCall(FlowLuaCall flow_lua_call, lua_State* vm);
+
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
   void lua_get_min_info(lua_State* vm);
   void lua_duration_info(lua_State* vm);
@@ -682,7 +683,7 @@ class Flow : public GenericHashEntry {
   inline bool isIngress2EgressDirection() { return(ingress2egress_direction); }
 #endif
   void housekeep(time_t t);
-  void postFlowSetIdle(const struct timeval *tv);
+  void postFlowSetIdle(time_t t);
   void setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_direction);
   inline const ContainerInfo* getClientContainerInfo() const {
     return cli_ebpf && cli_ebpf->container_info_set ? &cli_ebpf->container_info : NULL;

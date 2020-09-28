@@ -50,6 +50,7 @@ NetworkInterface::NetworkInterface(const char *name,
   customIftype = custom_interface_type;
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   idleFlowsToDump_drops = activeFlowsToDump_drops = 0;
+  hookProtocolDetected_drops = hookPeriodicUpdate_drops = hookFlowEnd_drops = 0;
   flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in NetworkInterface::startFlowDumping */
   flows_dump_json_use_labels = false; /* Dump of JSON labels disabled by default, possibly enabled in NetworkInterface::startFlowDumping */
 
@@ -318,6 +319,14 @@ void NetworkInterface::init() {
   next_compq_insert_idx = next_compq_remove_idx = 0;
 
   idleFlowsToDump = activeFlowsToDump = NULL;
+
+  /*
+    Initialize user-script queues
+  */
+  hookProtocolDetected = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_PROTOCOL_DETECTED_QUEUE_LEN);
+  hookPeriodicUpdate   = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_PERIODIC_UPDATE_QUEUE_LEN);
+  hookFlowEnd          = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_FLOW_END_QUEUE_LEN);
+
   PROFILING_INIT();
 }
 
@@ -583,6 +592,55 @@ NetworkInterface::~NetworkInterface() {
   if(dhcp_ranges_shadow)    delete[] dhcp_ranges_shadow;
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
   if(ifname)                free(ifname);
+}
+
+/* **************************************************** */
+
+bool NetworkInterface::hookEnqueue(time_t t, Flow *f) {
+  bool ret = false;
+  SPSCQueue<Flow *> *selected_queue = NULL;
+  u_int64_t *queue_drops = NULL;
+
+  /*
+    Choose the right queue to perform the enqueue
+   */
+
+  switch(f->get_state()) {
+  case hash_entry_state_flow_protocoldetected:
+    selected_queue = hookProtocolDetected,
+      queue_drops = &hookProtocolDetected_drops;
+    break;
+  case hash_entry_state_active:
+    selected_queue = hookPeriodicUpdate,
+      queue_drops = &hookPeriodicUpdate_drops;
+    break;
+  case hash_entry_state_idle:
+    selected_queue = hookFlowEnd,
+      queue_drops = &hookFlowEnd_drops;
+    break;
+  default:
+    break;
+  }
+
+  /* Perform the actual enqueue */
+  if(selected_queue) {
+    if(selected_queue->enqueue(f, false)) {
+      /*
+	If enqueue was successful, increase the flow reference counter.
+	Reference counter will be deleted when doing the dequeue.
+       */
+      f->incUses();
+      ret = true;
+    } else if(queue_drops) {
+      /*
+	Enqueue failure. Count the drops.
+       */
+      (*queue_drops)++;
+      ret = false;
+    }
+  }
+
+  return ret;
 }
 
 /* **************************************************** */
@@ -2275,6 +2333,73 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 
 /* **************************************************** */
 
+u_int64_t NetworkInterface::dequeueFlowsForHooks(lua_State* vm, u_int protocol_detected_budget, u_int active_budget, u_int idle_budget) {
+  u_int64_t protocol_detected_done = 0, active_done = 0, idle_done = 0;
+
+  /*
+    Start with highest-priority, flow hooks for idle flows. Failing to execute a hook for an idle flow is critical as there
+    will not be any chance to execute it again in the future.
+   */
+
+  while(hookFlowEnd->isNotEmpty()) {
+    Flow *f = hookFlowEnd->dequeue();
+    f->performLuaCall(flow_lua_call_idle, vm);
+
+#if DEBUG_FLOW_HOOKS
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued idle flow");
+#endif
+
+    f->decUses();
+    idle_done++;
+    if(idle_budget > 0 /* Budget requested */
+       && idle_done >= idle_budget /* Budget exceeded */)
+      break;
+  }
+
+  /*
+    Do mid-priority flow hooks for protocol-detected flows. Executing these hooks is crucial as well, as the flow only stays
+    in this state for a very short time and there won't be chances to execute these scripts again.
+   */
+
+  while(hookProtocolDetected->isNotEmpty()) {
+    Flow *f = hookProtocolDetected->dequeue();
+    f->performLuaCall(flow_lua_call_protocol_detected, vm);
+
+#if DEBUG_FLOW_HOOKS
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued protocol detected flow");
+#endif
+
+    f->decUses();
+    protocol_detected_done++;
+    if(protocol_detected_budget > 0 /* Budget requested */
+       && protocol_detected_done >= protocol_detected_budget /* Budget exceeded */)
+      break;
+  }
+
+  /*
+    Finally, do low-priority periodic update hooks. These hooks can be retried multiple times so their priority is low.
+   */
+
+  while(hookPeriodicUpdate->isNotEmpty()) {
+    Flow *f = hookPeriodicUpdate->dequeue();
+    f->performLuaCall(flow_lua_call_periodic_update, vm);
+
+#if DEBUG_FLOW_HOOKS
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued active flow");
+#endif
+
+    f->decUses();
+    active_done++;
+    if(active_budget > 0 /* Budget requested */
+       && active_done >= active_budget /* Budget exceeded */)
+      break;
+  }
+
+  return protocol_detected_done + active_done + idle_done;
+}
+
+/* **************************************************** */
+
 void NetworkInterface::incNumQueueDroppedFlows(u_int32_t num) {
   /*
     For viewed interface, the dumper database is the one belonging to the overlying view interface.
@@ -2293,6 +2418,8 @@ void NetworkInterface::incNumQueueDroppedFlows(u_int32_t num) {
 
   NOTE: in case of view interfaces, this method is called sequentially by the view interface
   on all the viewed interfaces.
+
+  This function is called from a dedicated thread, only spawned when flow dump is enabled with -F.
  */
 u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int active_flows_budget) {
   /*
@@ -2643,6 +2770,13 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
   struct timeval tv = periodicUpdateInitTime();
 
+  if(db) {
+#ifdef NTOPNG_PRO
+    flushFlowDump();
+#endif
+    db->updateStats(&tv);
+  }
+
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
 
@@ -2693,8 +2827,6 @@ void NetworkInterface::periodicStatsUpdate() {
 bool NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
   periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
   NetworkInterface *iface = periodic_ht_state_update_user_data->iface;
-
-  node->periodic_hash_entry_state_update(user_data);
 
   /* If this is a viewed interface, it is necessary to also call this method
      for the overlying view interface to make sure its counters (e.g., hosts, ases, vlans)
@@ -2752,24 +2884,23 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
       ghs[i]->purgeQueuedIdleEntries(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
   } /* for */
 
-  /* (b) idle hash entries */
-  for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
-    if(ghs[i]) {
-      ghs[i]->walkAllStates(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
+  /*
+    Full hash-table walk is only needed for viewed interfaces. Indeed, the overlying view interface
+    calls this method on all the viewed interfaces sequentially to walk their tables and update the hosts.
+   */
+  if(isViewed()) {
+    /* (b) idle hash entries */
+    for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
+      if(ghs[i]) {
+	ghs[i]->walkAllStates(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
 
-      if(periodic_ht_state_update_user_data.acle) {
-	periodic_ht_state_update_user_data.acle->lua_stats(ghs[i]->getName(), vm);
-	delete periodic_ht_state_update_user_data.acle;
-	periodic_ht_state_update_user_data.acle = NULL;
+	if(periodic_ht_state_update_user_data.acle) {
+	  periodic_ht_state_update_user_data.acle->lua_stats(ghs[i]->getName(), vm);
+	  delete periodic_ht_state_update_user_data.acle;
+	  periodic_ht_state_update_user_data.acle = NULL;
+	}
       }
-    }
-  } /* for */
-
-  if(db) {
-#ifdef NTOPNG_PRO
-    flushFlowDump();
-#endif
-    db->updateStats(&tv);
+    } /* for */
   }
 
 #if 0

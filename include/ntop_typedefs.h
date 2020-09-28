@@ -332,8 +332,8 @@ typedef u_int8_t FlowStatus;
 
 typedef enum {
   flow_lua_call_protocol_detected = 0,
-  flow_lua_call_periodic_update,
-  flow_lua_call_idle,
+  flow_lua_call_periodic_update = 1,
+  flow_lua_call_idle = 2,
 } FlowLuaCall;
 
 typedef enum {
@@ -343,6 +343,7 @@ typedef enum {
   flow_lua_call_exec_status_not_executed_unknown_call,          /* Call NOT executed as the function to be called is unknown */
   flow_lua_call_exec_status_not_executed_shutdown_in_progress,  /* Call NOT executed as a shutdown was in progress           */
   flow_lua_call_exec_status_not_executed_vm_not_allocated,      /* Call NOT executed as the vm wasn't allocated              */
+  flow_lua_call_exec_status_not_executed_not_pending,           /* Call NOT executed as other hooks have already been exec.  */
 } FlowLuaCallExecStatus;
 
 typedef enum {

@@ -98,38 +98,3 @@ Flow* FlowHash::findByKeyAndHashId(u_int32_t key, u_int hash_id) {
   return((Flow*)head);
 }
 
-/* ************************************ */
-
-void FlowHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
-  periodic_ht_state_update_user_data_t *data = (periodic_ht_state_update_user_data_t *) user_data;
-  FlowAlertCheckLuaEngine *acle;
-
-  if(!data->skip_user_scripts) {
-    acle = getLuaVMUservalue(data->vm, flow_acle);
-    
-    if(!acle) {
-      /* Allocate the check engine in the vm to reuse it across multiple
-       * ht_stats_update.lua calls */
-      acle = new (std::nothrow) FlowAlertCheckLuaEngine(getInterface());
-      getLuaVMUservalue(data->vm, flow_acle) = acle;
-    }
-    
-    /* Set the deadline from the currently executing VM */
-    if(acle) acle->setThreadedActivityData(data->vm);
-  } else
-    acle = NULL;
-  
-  GenericHash::walkAllStates(walker, user_data);
-
-  if(acle) {
-    acle->lua_stats(getName(), data->vm);
-
-    if(data->thstats && (!data->skip_user_scripts)) {
-      /* Assume that all the user scripts have been executed */
-      data->thstats->setCurrentProgress(100);
-    }
-
-    /* Prepare for the next run */
-    acle->reset_stats();
-  }
-}

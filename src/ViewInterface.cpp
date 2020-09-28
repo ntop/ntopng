@@ -369,6 +369,19 @@ Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 
   return(f);
 }
+/* **************************************************** */
+
+/*
+  Sequentially perform flow user scripts callbacks on all the underlying viewed interfaces.
+ */
+u_int64_t ViewInterface::dequeueFlowsForHooks(lua_State* vm, u_int protocol_detected_budget, u_int active_budget, u_int idle_budget) {
+  u_int64_t tot = 0;
+
+  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->dequeueFlowsForHooks(vm, protocol_detected_budget, active_budget, idle_budget);
+
+  return tot;
+}
 
 /* **************************************************** */
 

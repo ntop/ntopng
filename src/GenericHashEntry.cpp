@@ -80,18 +80,6 @@ HashEntryState GenericHashEntry::get_state() const {
 
 /* ***************************************** */
 
-void GenericHashEntry::periodic_hash_entry_state_update(void *user_data)  {
-  if(get_state() == hash_entry_state_idle) {
-    if(!idle() && !ntop->getGlobals()->isShutdown()) {
-      /* This should never happen */
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Inconsistent state: GenericHashEntry<%p> state=hash_entry_state_idle but idle()=false", this);
-    }
-  }
-}
-
-/* ***************************************** */
-
 void GenericHashEntry::periodic_stats_update(const struct timeval *tv)  {
   GenericTrafficElement *elem;
 

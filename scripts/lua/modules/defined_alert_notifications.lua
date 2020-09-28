@@ -279,7 +279,7 @@ function defined_alert_notifications.flow_dump(container)
 
     if isAdministrator() and prefs.is_dump_flows_enabled and
         prefs.is_dump_flows_runtime_enabled and not ifstats.isFlowDumpDisabled and
-        not ifstats.isFlowDumpRunning then
+        not ifstats.isFlowDumpRunning and not ifstats.isViewed then
         table.insert(container, create_flow_dump_alert_notification())
     end
 end

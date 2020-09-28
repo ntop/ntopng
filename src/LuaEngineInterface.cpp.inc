@@ -3880,6 +3880,45 @@ static int ntop_periodic_ht_state_update(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_dequeue_flows_for_hooks(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int protocol_detected_budget = 0, active_budget = 0, idle_budget = 0;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK
+     || ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK
+     || ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK
+     || !ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  protocol_detected_budget = (time_t)lua_tonumber(vm, 1);
+  active_budget = (time_t)lua_tonumber(vm, 2);
+  idle_budget = (time_t)lua_tonumber(vm, 3);
+
+  /*
+    The Lua engine for the execution of flow user script hooks
+   */
+  FlowAlertCheckLuaEngine *acle = getLuaVMUservalue(vm, flow_acle);
+    
+  if(!acle) {
+    /* Allocate the check engine in the vm to reuse it across multiple
+     * ht_stats_update.lua calls */
+    acle = new (std::nothrow) FlowAlertCheckLuaEngine(ntop_interface);
+    getLuaVMUservalue(vm, flow_acle) = acle;
+  }
+    
+  /* Set the deadline from the currently executing VM */
+  if(acle) acle->setThreadedActivityData(vm);
+
+  ntop_interface->dequeueFlowsForHooks(vm, protocol_detected_budget, active_budget, idle_budget);
+
+  if(acle)
+    acle->reset_stats();
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_active_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats ndpi_stats;
@@ -4447,6 +4486,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   /* Functions related to the management of the internal hash tables */
   { "getHashTablesStats",       ntop_get_interface_hash_tables_stats },
   { "periodicHTStateUpdate",    ntop_periodic_ht_state_update        },
+
+  /* Execution of flow user script hooks */
+  { "dequeueFlowsForHooks",     ntop_dequeue_flows_for_hooks         },
 
   /* Functions to get and reset the duration of periodic threaded activities */
   { "getPeriodicActivitiesStats",   ntop_get_interface_periodic_activities_stats   },
