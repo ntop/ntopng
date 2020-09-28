@@ -40,6 +40,10 @@ template <typename T> class SPSCQueue {
   u_int32_t queue_size;
 
  public:
+  /**
+   * Constructor
+   * @param size The queue size (rounded up to the next power of 2)
+   */
   SPSCQueue(u_int32_t size) {
     queue_size = Utils::pow2(size);
     queue.reserve(queue_size);
@@ -47,18 +51,31 @@ template <typename T> class SPSCQueue {
     head = shadow_head = 0;
   }
 
+  /**
+   * Destructor
+   */
   ~SPSCQueue() { ; }
 
+  /**
+   * Return true if there is at least one item in the queue
+   */
   inline bool isNotEmpty() {
     u_int32_t next_tail = (shadow_tail + 1) & (queue_size-1);
     return next_tail != head;
   }
 
+  /**
+   * Return true if the queue is full
+   */
   inline bool isFull() {
     u_int32_t next_head = (shadow_head + 1) & (queue_size-1);
     return tail == next_head;
   }
 
+  /**
+   * Pop an item from the tail
+   * Return the item (which is removed from the queue)
+   */
   inline T dequeue() {
     u_int32_t next_tail;
     
@@ -79,7 +96,13 @@ template <typename T> class SPSCQueue {
   inline bool wait() {
     return((c.wait() < 0) ? false : true);
   }
-  
+
+  /**
+   * Push an item to the head
+   * @param item The item to add to the queue
+   * @param flush Immediately makes the item available to the consumer, a watermark is used otherwise
+   * Return true on success, false if there is no room
+   */ 
   inline bool enqueue(T item, bool flush) {
     u_int32_t next_head;
 
@@ -94,10 +117,10 @@ template <typename T> class SPSCQueue {
       if (flush || (shadow_head & QUEUE_WATERMARK_MASK) == 0)
         head = shadow_head;
 
-      return true;
+      return true; /* success */
     }
 
-    return false;
+    return false; /* no room */
   }
 
 };
