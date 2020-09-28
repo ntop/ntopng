@@ -2464,9 +2464,10 @@ out:
 
 void Ntop::initInterface(NetworkInterface *_if) {
   /* Initialization related to flow-dump*/
-  if(_if->initFlowDump(num_dump_interfaces))
+  if(_if->initFlowDump(num_dump_interfaces)) {
     num_dump_interfaces++;
-  _if->startDBLoop();
+    _if->startDBLoop();
+  }
 
   /* Other initialization activities */
   _if->checkDisaggregationMode();
