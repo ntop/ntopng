@@ -7857,13 +7857,11 @@ void NetworkInterface::checkHostsToRestore() {
     int16_t local_network_id;
     u_int16_t vlan_id;
     IpAddress ipa;
-    std::string s;
 
     if(hosts_to_restore->empty())
       break;
 
-    s = hosts_to_restore->dequeue();
-    ip = (char*)s.c_str();
+    ip = hosts_to_restore->dequeue();
 
     if(!(d = strchr(ip, '@')))
       goto next_host;
