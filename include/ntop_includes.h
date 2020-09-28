@@ -318,6 +318,7 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "PeriodicityStats.h"
 #include "PeriodicityHash.h"
+#include "ServiceMap.h"
 #endif
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE
@@ -380,10 +381,6 @@ using namespace std;
 #include "HostStats.h"
 #include "LocalHostStats.h"
 #include "HostScore.h"
-#ifdef NTOPNG_PRO
-#include "L7ProtoBehaviourAnalysis.h"
-#include "HostBehaviourAnalysis.h"
-#endif
 #include "Host.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"

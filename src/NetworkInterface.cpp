@@ -173,10 +173,11 @@ NetworkInterface::NetworkInterface(const char *name,
 #endif
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  if(ntop->getPrefs() && ntop->getPro()->has_valid_license() && ntop->getPrefs()->isBehavourAnalysisEnabled())
+  if(ntop->getPrefs() && ntop->getPro()->has_valid_license() && ntop->getPrefs()->isBehavourAnalysisEnabled()) {
     pHash = new PeriodicityHash(ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
-  else
-    pHash = NULL;
+    sm    = new ServiceMap(ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
+  } else
+    pHash = NULL, sm = NULL;
 #endif
 
   loadScalingFactorPrefs();
@@ -568,6 +569,7 @@ NetworkInterface::~NetworkInterface() {
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pHash) delete pHash;
+  if(sm)    delete sm;
 #endif
 
   for(it = external_alerts.begin(); it != external_alerts.end(); ++it)
@@ -1631,6 +1633,7 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pHash) pHash->purgeIdle(when);
+  if(sm)    sm->purgeIdle(when);
 #endif
 }
 
@@ -7922,9 +7925,30 @@ void NetworkInterface::luaPeriodicityStats(lua_State* vm) {
 
 /* *************************************** */
 
+void NetworkInterface::luaServiceMap(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  if(sm) {
+    sm->lua(vm, this);
+    return;
+  }
+#endif
+
+  lua_pushnil(vm);
+}
+
+/* *************************************** */
+
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
 void NetworkInterface::updateFlowPeriodicity(Flow *f) {
   if(pHash && f) pHash->updateElement(f, f->get_first_seen());
+}
+#endif
+
+/* *************************************** */
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+void NetworkInterface::updateServiceMap(Flow *f) {
+  if(sm && f) sm->update(f, f->get_first_seen());
 }
 #endif
 

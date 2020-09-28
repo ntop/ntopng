@@ -76,6 +76,7 @@ class NetworkInterface : public AlertableEntity {
   AlertsQueue *alertsQueue;
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   PeriodicityHash *pHash;
+  ServiceMap *sm;
 #endif
 
   /* Flows queues waiting to be dumped */
@@ -505,6 +506,7 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void lua(lua_State* vm);
   void luaPeriodicityStats(lua_State* vm);
+  void luaServiceMap(lua_State* vm);
   
   void lua_hash_tables_stats(lua_State* vm);
   void lua_periodic_activities_stats(lua_State* vm);
@@ -853,6 +855,7 @@ class NetworkInterface : public AlertableEntity {
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   void updateFlowPeriodicity(Flow *f);
+  void updateServiceMap(Flow *f);
 #endif
 
   virtual void dumpFlowLoop();

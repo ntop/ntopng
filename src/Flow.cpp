@@ -551,6 +551,7 @@ void Flow::processExtraDissectedInformation() {
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   getInterface()->updateFlowPeriodicity(this);
+  getInterface()->updateServiceMap(this);
 #endif
 
   /* Free the nDPI memory */

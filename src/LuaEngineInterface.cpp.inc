@@ -4461,6 +4461,21 @@ static int ntop_get_interface_periodicity_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_service_map(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    ntop_interface->luaServiceMap(vm);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static const luaL_Reg ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
@@ -4568,6 +4583,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getNumHosts",                      ntop_get_num_hosts       },
   { "getNumFlows",                      ntop_get_num_flows       },
   { "periodicityStats",                 ntop_get_interface_periodicity_stats },
+  { "serviceMap",                       ntop_get_interface_service_map },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
