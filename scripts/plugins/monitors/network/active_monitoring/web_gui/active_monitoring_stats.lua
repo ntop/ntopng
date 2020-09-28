@@ -148,7 +148,7 @@ if (page == "overview") then
         }
     }
     -- template render
-    print(template.gen("pages/active_monitoring_stats.template", context))
+    print(plugins_utils.renderTemplate("active_monitoring", "active_monitoring_stats.template", context))
 
 elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) then
 
