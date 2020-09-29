@@ -139,7 +139,7 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
   if(cur_idle) {
     if(!cur_idle->empty()) {      
       for(vector<GenericHashEntry*>::const_iterator it = cur_idle->begin(); it != cur_idle->end(); ++it) {
-	entry_state_transition_counters.num_purged++;
+
 
 	/* In case of flow dump the uses number might be increased (0 -> 1) */
 	if((*it)->getUses() == 0) {
@@ -148,6 +148,7 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
 	   */
 	  walker(*it, user_data);
 	  delete *it; /* Delete the entry */
+	  entry_state_transition_counters.num_purged++;
 	  /* https://www.techiedelight.com/remove-elements-vector-inside-loop-cpp/ */
 	  /* cur_idle->erase(it--); */
 	} else {
@@ -179,6 +180,7 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
       walker(*it, user_data);
       delete *it; /* Free the entry memory */
       idle_entries_in_use->erase(it); /* Remove the entry from the vector */
+      entry_state_transition_counters.num_purged++;
     } else
       ++it;
   }
