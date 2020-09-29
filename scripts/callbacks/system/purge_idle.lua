@@ -6,7 +6,8 @@
 
 -- ########################################################
 
-for _, ifname in pairs(interface.getIfNames()) do
+for ifid, ifname in pairs(interface.getIfNames()) do
+   interface.select(ifid)
    interface.purgeQueuedIdleEntries()
 end
 
