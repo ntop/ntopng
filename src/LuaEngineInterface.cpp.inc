@@ -3862,19 +3862,11 @@ static int ntop_set_interface_periodic_activity_progress(lua_State* vm) {
 
 static int ntop_purge_queued_idle_entries(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  time_t deadline;
-  bool skip_user_scripts = false;
 
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK || !ntop_interface)
-    return(CONST_LUA_ERROR);
+  if(ntop_interface)
+    ntop_interface->purgeQueuedIdleEntries();
 
-  deadline = (time_t)lua_tonumber(vm, 1);
-
-  if(lua_type(vm, 2) == LUA_TBOOLEAN)
-    skip_user_scripts = lua_toboolean(vm, 2);
-
-  ntop_interface->purgeQueuedIdleEntries(deadline, vm, skip_user_scripts);
-
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 

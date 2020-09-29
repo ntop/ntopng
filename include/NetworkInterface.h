@@ -509,7 +509,7 @@ class NetworkInterface : public AlertableEntity {
   void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Paginator *p);
   virtual u_int32_t periodicStatsUpdateFrequency() const;
   void periodicStatsUpdate();
-  void purgeQueuedIdleEntries(time_t deadline, lua_State* vm, bool skip_user_scripts);
+  void purgeQueuedIdleEntries();
   struct timeval periodicUpdateInitTime() const;
   virtual u_int32_t getFlowMaxIdle();
 

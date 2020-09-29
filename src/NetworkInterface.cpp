@@ -2848,13 +2848,10 @@ void NetworkInterface::periodicStatsUpdate() {
 
 /* For viewed interfaces, this method is executed by the ViewInterface for each
    of its underlying viewed interfaces. */
-void NetworkInterface::purgeQueuedIdleEntries(time_t deadline, lua_State* vm, bool skip_user_scripts) {
+void NetworkInterface::purgeQueuedIdleEntries() {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating hash tables [%s]", get_name());
 #endif
-  struct timeval tv;
-  periodic_ht_state_update_user_data_t periodic_ht_state_update_user_data;
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
   GenericHash *ghs[] = {
 			!isView() ? flows_hash : NULL, /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
 			hosts_hash,
@@ -2864,44 +2861,11 @@ void NetworkInterface::purgeQueuedIdleEntries(time_t deadline, lua_State* vm, bo
 			macs_hash
   };
 
-  memset(&periodic_ht_state_update_user_data, 0, sizeof(periodic_ht_state_update_user_data));
-
-  if(ctx)
-    periodic_ht_state_update_user_data.thstats = ctx->threaded_activity_stats;
-
-  /* Always use the current time to update the hash tables states, also when processing pcap dumps. This
-     is necessary as hash table states changes and periodic lua scripts call assume the time flows normally. */
-  gettimeofday(&tv, NULL);
-
-  periodic_ht_state_update_user_data.acle = NULL,
-    periodic_ht_state_update_user_data.iface = this,
-    periodic_ht_state_update_user_data.tv = &tv,
-    periodic_ht_state_update_user_data.deadline = deadline,
-    periodic_ht_state_update_user_data.no_time_left = false;
-    periodic_ht_state_update_user_data.skip_user_scripts = skip_user_scripts;
-    periodic_ht_state_update_user_data.vm = vm;
-
-  if(vm)
-    lua_newtable(vm);
-
-  /* (a) delete all idle entries */
+  /* Delete all idle entries */
   for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
     if(ghs[i])
       ghs[i]->purgeQueuedIdleEntries();
-  } /* for */
-
-#if 0
-  time_t update_end;
-
-  if((update_end = time(NULL)) > deadline) {
-    char date_buf[32];
-    struct tm deadline_tm;
-
-    strftime(date_buf, sizeof(date_buf), "%H:%M:%S", localtime_r(&deadline, &deadline_tm));
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Deadline exceeded [%s][%s][expected: %s][off by: %u secs]",
-				 __FUNCTION__, get_name(), date_buf, update_end - deadline);
   }
-#endif
 }
 
 /* **************************************************** */

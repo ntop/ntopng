@@ -136,7 +136,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   high_priority_pool         = new ThreadPool(true,  num_threads);
   standard_priority_pool     = new ThreadPool(false, num_threads);
   longrun_priority_pool      = new ThreadPool(false, num_threads);
-  purge_idle_pool            = new ThreadPool(false, num_threads);
+  purge_idle_pool            = new ThreadPool(false, 1);
   timeseries_pool            = new ThreadPool(false, 1);
   notifications_pool         = new ThreadPool(false, 1);
   periodic_user_scripts_pool = new ThreadPool(false, 2);
@@ -147,7 +147,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   static activity_descr ad[] = {
     // Script                                Periodicity (s) Max (s) Pool          Align  !View  !PCAP  Reuse
     { DEQUEUE_FLOWS_FOR_HOOKS_SCRIPT_PATH,   2,  3600, high_priority_pool,         false, true,  false, true  },
-    { PURGE_IDLE_SCRIPT_PATH,                2,  3600, purge_idle_pool,            false, false, true,  true  },
+    { PURGE_IDLE_SCRIPT_PATH,                1,     2, purge_idle_pool,            false, false, true,  true  },
 
     { SECOND_SCRIPT_PATH,                    1,     2, standard_priority_pool,     false, false, true,  true  },
     { STATS_UPDATE_SCRIPT_PATH,              5,    10, standard_priority_pool,     false, false, true,  true  },
