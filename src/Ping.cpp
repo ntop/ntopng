@@ -79,13 +79,15 @@ Ping::Ping() {
   Utils::dropWriteCapabilities();
 #endif
 
-  if(sd == -1)
+  if(sd == -1
+     && errno != EPROTONOSUPPORT /* Avoid flooding logs when IPv4 is not supported */)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv4 socket creation error: %s",
 				 strerror(errno));
   else
     setOpts(sd);
 
-  if(sd6 == -1)
+  if(sd6 == -1
+     && errno != EPROTONOSUPPORT  /* Avoid flooding logs when IPv6 is not supported */)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv6 socket creation error: %s",
 				 strerror(errno));
   else
