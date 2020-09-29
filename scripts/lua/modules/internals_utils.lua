@@ -680,7 +680,7 @@ function internals_utils.printPeriodicActivityDetails(ifId, url)
 			       {
 				  {
 				     separator = 1,
-				     label="ht_state_update.lua"
+				     label="dequeue_flows_for_hooks.lua"
 				  },
 				  {
 				     schema = "flow_script:lua_duration",

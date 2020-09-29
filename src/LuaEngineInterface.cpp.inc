@@ -3860,7 +3860,7 @@ static int ntop_set_interface_periodic_activity_progress(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_periodic_ht_state_update(lua_State* vm) {
+static int ntop_purge_queued_idle_entries(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   time_t deadline;
   bool skip_user_scripts = false;
@@ -3873,7 +3873,7 @@ static int ntop_periodic_ht_state_update(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TBOOLEAN)
     skip_user_scripts = lua_toboolean(vm, 2);
 
-  ntop_interface->periodicHTStateUpdate(deadline, vm, skip_user_scripts);
+  ntop_interface->purgeQueuedIdleEntries(deadline, vm, skip_user_scripts);
 
   return(CONST_LUA_OK);
 }
@@ -4500,7 +4500,7 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Functions related to the management of the internal hash tables */
   { "getHashTablesStats",       ntop_get_interface_hash_tables_stats },
-  { "periodicHTStateUpdate",    ntop_periodic_ht_state_update        },
+  { "purgeQueuedIdleEntries",   ntop_purge_queued_idle_entries       },
 
   /* Execution of flow user script hooks */
   { "dequeueFlowsForHooks",     ntop_dequeue_flows_for_hooks         },

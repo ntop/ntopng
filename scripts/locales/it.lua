@@ -343,7 +343,7 @@ local lang = {
     ["discover"] = "Scansiona la rete per cercare dispositivi. L'attività non fa niente se nessuno scan è stato richiesto o programmato.",
     ["hourly"] = "Esegue i task orari.",
     ["housekeeping"] = "Emette notifiche per gli allarmi e le salva su disco, effettua i task di estrazione di n2disk, ricarica le liste quando necessario.",
-    ["ht_state_update"] = "Identifica le entry idle nelle hash table e le elimina dalla memoria, esegue gli user script sui flussi, esporta i flussi sul database configurato.",
+    ["dequeue_flows_for_hooks"] = "Identifica le entry idle nelle hash table e le elimina dalla memoria, esegue gli user script sui flussi, esporta i flussi sul database configurato.",
     ["minute"] = "Esegue i task al minuto, scrive le serie temporali al minuto. Quando InfluxDB è abilitato, scrive le serie temporali degli host.",
     ["second"] = "Scrive le serie temporali delle interfacce.",
     ["stats_update"] = "Calcola il throughput degli host, delle reti, e di altri elementi di traffico.",
@@ -2885,7 +2885,7 @@ local lang = {
     ["housekeeping"] = {
       ["lua"] = "Processa gli allarmi generati, li inserisce nel database e li propaga verso endpoint esterni. Controlla l'estrazione con n2disk. Controlla e ricarica le liste.",
     },
-    ["ht_state_update"] = {
+    ["dequeue_flows_for_hooks"] = {
       ["lua"] = "Gestisce il ciclo di vita dei flussi, degli host e di altre hash entry. Esegue gli user script. Dumpa i flussi sul database.",
     },
     ["minute"] = {

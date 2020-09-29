@@ -288,6 +288,7 @@ void NetworkInterface::init() {
 
   is_view = false;
   viewed_by = NULL;
+  viewed_interface_id = 0;
 
   db = NULL;
 #ifdef NTOPNG_PRO
@@ -626,7 +627,7 @@ bool NetworkInterface::hookEnqueue(time_t t, Flow *f) {
 
   /* Perform the actual enqueue */
   if(selected_queue) {
-    if(selected_queue->enqueue(f, false)) {
+    if(selected_queue->enqueue(f, true)) {
       /*
 	If enqueue was successful, increase the flow reference counter.
 	Reference counter will be deleted when doing the dequeue.
@@ -655,7 +656,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   if(f->get_state() == hash_entry_state_idle) {
     /* Last flow dump before delete
      * Note: this never happens in 'direct' mode */
-    if(idleFlowsToDump && idleFlowsToDump->enqueue(f, false)) {
+    if(idleFlowsToDump && idleFlowsToDump->enqueue(f, true)) {
       f->incUses();
 
 #if DEBUG_FLOW_DUMP
@@ -668,7 +669,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
     }
   } else {
     /* Partial dump if active flows */
-    if(activeFlowsToDump && activeFlowsToDump->enqueue(f, false)) {
+    if(activeFlowsToDump && activeFlowsToDump->enqueue(f, true)) {
       f->incUses();
 
 #if DEBUG_FLOW_DUMP
@@ -2732,6 +2733,19 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 
 /* **************************************************** */
 
+bool NetworkInterface::viewEnqueue(time_t t, Flow *f) {
+  /* 
+     Enqueue is only performed when the interface is 'viewed'.
+     Enqueue needs to know the viewed interface id.
+   */
+  if(isViewed())
+    return viewedBy()->viewEnqueue(t, f, getViewedId());
+
+  return false;
+}
+
+/* **************************************************** */
+
 bool NetworkInterface::checkPeriodicStatsUpdateTime(const struct timeval *tv) {
   float diff = Utils::msTimevalDiff(tv, &last_periodic_stats_update) / 1000;
 
@@ -2832,25 +2846,9 @@ void NetworkInterface::periodicStatsUpdate() {
 
 /* **************************************************** */
 
-bool NetworkInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
-  periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
-  NetworkInterface *iface = periodic_ht_state_update_user_data->iface;
-
-  /* If this is a viewed interface, it is necessary to also call this method
-     for the overlying view interface to make sure its counters (e.g., hosts, ases, vlans)
-     are properly updated. There's no need to lock or syncronize as it is the view which
-     triggers this call for every viewed interface sequentially. */
-  if(iface->isViewed())
-    iface->viewedBy()->generic_periodic_hash_entry_state_update(node, user_data);
-
-  return false; // TODO: possibly need to rework this to the caller can ignore the return value
-}
-
-/* **************************************************** */
-
 /* For viewed interfaces, this method is executed by the ViewInterface for each
    of its underlying viewed interfaces. */
-void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts) {
+void NetworkInterface::purgeQueuedIdleEntries(time_t deadline, lua_State* vm, bool skip_user_scripts) {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating hash tables [%s]", get_name());
 #endif
@@ -2889,27 +2887,8 @@ void NetworkInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, boo
   /* (a) delete all idle entries */
   for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
     if(ghs[i])
-      ghs[i]->purgeQueuedIdleEntries(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
+      ghs[i]->purgeQueuedIdleEntries();
   } /* for */
-
-  /*
-    Full hash-table walk is only needed for viewed interfaces. Indeed, the overlying view interface
-    calls this method on all the viewed interfaces sequentially to walk their tables and update the hosts.
-   */
-  if(isViewed()) {
-    /* (b) idle hash entries */
-    for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
-      if(ghs[i]) {
-	ghs[i]->walkAllStates(generic_periodic_hash_entry_state_update, &periodic_ht_state_update_user_data);
-
-	if(periodic_ht_state_update_user_data.acle) {
-	  periodic_ht_state_update_user_data.acle->lua_stats(ghs[i]->getName(), vm);
-	  delete periodic_ht_state_update_user_data.acle;
-	  periodic_ht_state_update_user_data.acle = NULL;
-	}
-      }
-    } /* for */
-  }
 
 #if 0
   time_t update_end;

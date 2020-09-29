@@ -1745,6 +1745,11 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
   }
 
+  /* 
+     Check (and possibly enqueue) the flow for processing by a view interface
+   */
+  getInterface()->viewEnqueue(tv->tv_sec, this);
+
   memcpy(&last_update_time, tv, sizeof(struct timeval));
   GenericHashEntry::periodic_stats_update(tv);
 }

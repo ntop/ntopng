@@ -876,24 +876,25 @@
 #define NTOPNG_WIDGET_URL                    "/widgets/"
 
 #define CONST_MAX_NUM_THREADED_ACTIVITIES 64
-#define STARTUP_SCRIPT_PATH        "startup.lua"
-#define BOOT_SCRIPT_PATH           "boot.lua" /* Executed as root before networking is setup */
-#define SHUTDOWN_SCRIPT_PATH         "shutdown.lua"
-#define HOUSEKEEPING_SCRIPT_PATH     "housekeeping.lua"
-#define DISCOVER_SCRIPT_PATH         "discover.lua"
-#define TIMESERIES_SCRIPT_PATH       "timeseries.lua"
-#define NOTIFICATIONS_SCRIPT_PATH    "notifications.lua"
-#define UPGRADE_SCRIPT_PATH          "upgrade.lua"
-#define PINGER_SCRIPT_PATH           "pinger.lua"
-#define SECOND_SCRIPT_PATH           "second.lua"
-#define MINUTE_SCRIPT_PATH           "minute.lua"
-#define HT_STATE_UPDATE_SCRIPT_PATH  "ht_state_update.lua"
-#define STATS_UPDATE_SCRIPT_PATH     "stats_update.lua"
-#define PERIODIC_USER_SCRIPTS_PATH   "periodic_user_scripts.lua"
-#define THIRTY_SECONDS_SCRIPT_PATH   "30sec.lua"
-#define FIVE_MINUTES_SCRIPT_PATH     "5min.lua"
-#define HOURLY_SCRIPT_PATH           "hourly.lua"
-#define DAILY_SCRIPT_PATH            "daily.lua"
+#define STARTUP_SCRIPT_PATH                  "startup.lua"
+#define BOOT_SCRIPT_PATH                     "boot.lua" /* Executed as root before networking is setup */
+#define SHUTDOWN_SCRIPT_PATH                 "shutdown.lua"
+#define HOUSEKEEPING_SCRIPT_PATH             "housekeeping.lua"
+#define DISCOVER_SCRIPT_PATH                 "discover.lua"
+#define TIMESERIES_SCRIPT_PATH               "timeseries.lua"
+#define NOTIFICATIONS_SCRIPT_PATH            "notifications.lua"
+#define UPGRADE_SCRIPT_PATH                  "upgrade.lua"
+#define PINGER_SCRIPT_PATH                   "pinger.lua"
+#define SECOND_SCRIPT_PATH                   "second.lua"
+#define MINUTE_SCRIPT_PATH                   "minute.lua"
+#define DEQUEUE_FLOWS_FOR_HOOKS_SCRIPT_PATH  "dequeue_flows_for_hooks.lua"
+#define PURGE_IDLE_SCRIPT_PATH               "purge_idle.lua"
+#define STATS_UPDATE_SCRIPT_PATH             "stats_update.lua"
+#define PERIODIC_USER_SCRIPTS_PATH           "periodic_user_scripts.lua"
+#define THIRTY_SECONDS_SCRIPT_PATH           "30sec.lua"
+#define FIVE_MINUTES_SCRIPT_PATH             "5min.lua"
+#define HOURLY_SCRIPT_PATH                   "hourly.lua"
+#define DAILY_SCRIPT_PATH                    "daily.lua"
 
 #define SYSLOG_SCRIPT_PATH           "callbacks/system/syslog.lua"
 #define SYSLOG_SCRIPT_CALLBACK_EVENT "handleEvent"
@@ -1055,6 +1056,12 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define MAX_US_PROTOCOL_DETECTED_QUEUE_LEN 131072
 #define MAX_US_FLOW_END_QUEUE_LEN          131072
 #define MAX_US_PERIODIC_UPDATE_QUEUE_LEN   16384  /* Smaller, lower-priority */
+
+/*
+  Queue length for view interfaces
+ */
+
+#define MAX_VIEW_INTERFACE_QUEUE_LEN       131072
 
 #ifdef NTOPNG_EMBEDDED_EDITION
 #define DEFAULT_THREAD_POOL_SIZE     1

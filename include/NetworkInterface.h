@@ -111,8 +111,9 @@ class NetworkInterface : public AlertableEntity {
   std::map<std::pair<AlertEntity, std::string>, AlertableEntity*> external_alerts;
   Mutex external_alerts_lock;
 
-  bool is_view;             /* Whether this is a view interface */
-  ViewInterface *viewed_by; /* Whether this interface is 'viewed' by a ViewInterface */
+  bool is_view;                  /* Whether this is a view interface */
+  ViewInterface *viewed_by;      /* Whether this interface is 'viewed' by a ViewInterface */
+  u_int8_t viewed_interface_id;  /* When this is a 'viewed' interface, this id represents a unique interface identifier inside the view */
 
   /* Disaggregations */
   u_int16_t numSubInterfaces;
@@ -379,7 +380,16 @@ class NetworkInterface : public AlertableEntity {
   struct ndpi_detection_module_struct* get_ndpi_struct() const;
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
+  /*
+    Enqueue flows for the execution of periodic scripts
+   */
   bool hookEnqueue(time_t t, Flow *f);
+  /*
+    Enqueue flows to be processed by the view interfaces.
+    Viewed interface enqueue flows using this method so that the view
+    can periodicall dequeue them and update its statistics;
+   */
+  bool viewEnqueue(time_t t, Flow *f);
 #ifdef NTOPNG_PRO
   void flushFlowDump();
 #endif
@@ -499,9 +509,8 @@ class NetworkInterface : public AlertableEntity {
   void getActiveFlowsStats(nDPIStats *stats, FlowStats *status_stats, AddressTree *allowed_hosts, Host *h, Paginator *p);
   virtual u_int32_t periodicStatsUpdateFrequency() const;
   void periodicStatsUpdate();
-  virtual void periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts);
+  void purgeQueuedIdleEntries(time_t deadline, lua_State* vm, bool skip_user_scripts);
   struct timeval periodicUpdateInitTime() const;
-  static bool generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data);
   virtual u_int32_t getFlowMaxIdle();
 
   virtual void lua(lua_State* vm);
@@ -726,11 +735,19 @@ class NetworkInterface : public AlertableEntity {
   bool isHiddenFromTop(Host *host);
   virtual bool areTrafficDirectionsSupported() { return(false); };
 
-  inline bool isView()             const { return is_view;    };
-  inline ViewInterface* viewedBy() const { return viewed_by;  };
-  inline bool isViewed()           const { return viewedBy() != NULL; };
-
-  inline void setViewed(ViewInterface *view_iface) { viewed_by = view_iface; };
+  inline bool isView()                const { return is_view;             };
+  inline ViewInterface*    viewedBy() const { return viewed_by;           };
+  inline u_int8_t       getViewedId() const { return viewed_interface_id; };
+  inline bool isViewed()              const { return viewedBy() != NULL;  };
+  /*
+    Method called by a view interface on all its viewed interfaces.
+    The view passes to this method both its pointer and the viewed interface id,
+    that is, a numeric identifier for the viewed interface inside the view interface.
+   */
+  inline void setViewed(ViewInterface *view_iface, u_int8_t _viewed_interface_id) {
+    viewed_by = view_iface;
+    viewed_interface_id = _viewed_interface_id;
+  };
 
   bool getMacInfo(lua_State* vm, char *mac);
   bool resetMacStats(lua_State* vm, char *mac, bool delete_data);

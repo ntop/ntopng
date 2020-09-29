@@ -31,6 +31,7 @@
 
 template <typename T> class SPSCQueue {
  private:
+  u_int64_t num_failed_enqueues; /* Counts the number of times the enqueue has failed (queue full) */
   u_int64_t shadow_head;
   volatile u_int64_t head;
   volatile u_int64_t tail;
@@ -49,6 +50,7 @@ template <typename T> class SPSCQueue {
     queue.reserve(queue_size);
     tail = shadow_tail = queue_size-1;
     head = shadow_head = 0;
+    num_failed_enqueues = 0;
   }
 
   /**
@@ -120,6 +122,7 @@ template <typename T> class SPSCQueue {
       return true; /* success */
     }
 
+    num_failed_enqueues++;
     return false; /* no room */
   }
 

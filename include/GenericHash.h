@@ -122,24 +122,9 @@ class GenericHash {
 	    bool (*walker)(GenericHashEntry *h, void *user_data, bool *entryMatched), void *user_data);
 
   /**
-   * @brief Hash table walker used only by an offline thread in charge of performing entries state changes
-   * @details This method traverses all the entries of the hash table, including those that are idle
-   *          and have been previously placed in the idle_entries vector, calling the walker function
-   *          on each of them. Entries found in the idle_entries vector are deleted right after the call
-   *          of the walker function against them.
-   *          This method should only be called by an offline thread in charge of performing entries state changes (e.g., from
-   *          protocol detected to activ) and operations associated to entries state changes (e.g., the
-   *          call of a lua script against the entry).
-   *
-   * @param walker A pointer to the comparison function.
-   * @param user_data Value to be compared with the values of hash.
-   */
-  virtual void walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
-
-  /**
    * @brief Purge idle entries that have been previous idled by purgeIdle() via periodic calls
    */
-  void purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data);
+  void purgeQueuedIdleEntries();
   
   /**
    * @brief Purge idle hash entries.

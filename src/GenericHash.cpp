@@ -125,7 +125,7 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 
 /* ************************************ */
 
-void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
+void GenericHash::purgeQueuedIdleEntries() {
  vector<GenericHashEntry*> *cur_idle = NULL;
 #ifdef WALK_DEBUG
  u_int32_t num_purged = entry_state_transition_counters.num_purged;
@@ -146,7 +146,6 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
 	  /*
 	    No one is using the idle entry. Safe to execute the walker one last time and delete the entry.
 	   */
-	  walker(*it, user_data);
 	  delete *it; /* Delete the entry */
 	  entry_state_transition_counters.num_purged++;
 	  /* https://www.techiedelight.com/remove-elements-vector-inside-loop-cpp/ */
@@ -161,8 +160,8 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
 	   */
 	  idle_entries_in_use->push_back(*it);
 #if DEBUG_FLOW_DUMP
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Skipping entry in use [purged: %u]",
-				       __FUNCTION__, entry_state_transition_counters.num_purged);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s] Skipping entry in use [purged: %u]",
+				       __FUNCTION__, getInterface()->get_name(), entry_state_transition_counters.num_purged);
 #endif
 	  /* This entry will be deleted by the dumper after the dump completed */
 	}
@@ -177,7 +176,6 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
    */
   for(vector<GenericHashEntry*>::iterator it = idle_entries_in_use->begin(); it != idle_entries_in_use->end(); ) {
     if((*it)->getUses() == 0) {
-      walker(*it, user_data);
       delete *it; /* Free the entry memory */
       idle_entries_in_use->erase(it); /* Remove the entry from the vector */
       entry_state_transition_counters.num_purged++;
@@ -191,58 +189,6 @@ void GenericHash::purgeQueuedIdleEntries(bool (*walker)(GenericHashEntry *h, voi
 				 __FUNCTION__, iface->get_description(),
 				 entry_state_transition_counters.num_purged - num_purged);
 #endif
-}
-
-/* ************************************ */
-
-/* This method updates the hash entries state and purges idle entries. */
-void GenericHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
-  u_int new_walk_idle_start_hash_id = 0;
-  bool update_walk_idle_start_hash_id;
-
-  /*
-    To implement fairness, the walkIdle starts from walk_idle_start_hash_id and not from zero.
-    walk_idle_start_hash_id is updated on the basis of the return value of the walker function.
-    walk_idle_start_hash_id is updated the FIRST time the walker function returns true.
-    The walker function is supposed to start returning true when it's deadline is approaching, that
-    is, when there's no more time left to fully perform all the necessary walker operations and only
-    a limited, strictly necessary set of operations is performed.
-    So basically walkIdle always visit all hash table entries but, as it starts from walk_idle_start_hash_id,
-    it guarantees that all entries get an equal chance to have their walker operations fully performed.
-  */
-  u_int hash_id = walk_idle_start_hash_id;
-
-  do {
-    if(table[hash_id]) {
-      GenericHashEntry *head;
-
-      locks[hash_id]->rdlock(__FILE__, __LINE__);
-
-      head = table[hash_id];
-      while(head) {
-	GenericHashEntry *next = head->next();
-
-	if(head->get_state() >= hash_entry_state_idle)
-	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unexpected idle state found [%u]", head->get_state());
-
-	if(!head->idle()) {
-	  update_walk_idle_start_hash_id = walker(head, user_data);
-
-	  /* Check if it is time to update the new start hash id */
-	  if(update_walk_idle_start_hash_id && new_walk_idle_start_hash_id == 0)
-	    new_walk_idle_start_hash_id = hash_id;
-	}
-
-	head = next;
-      } /* while */
-
-      locks[hash_id]->unlock(__FILE__, __LINE__);
-    }
-
-    hash_id = hash_id == num_hashes - 1 ? 0 /* Start over */ : hash_id + 1;
-  } while(hash_id != walk_idle_start_hash_id);
-
-  walk_idle_start_hash_id = new_walk_idle_start_hash_id;
 }
 
 /* ************************************ */
@@ -413,7 +359,12 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 	     force_idle
 	     || (
 		 iface->is_purge_idle_interface()
-		 && (head->getUses() == 0)
+		 /*  Allow idle entries with uses >= 0 to be removed from the hash table.
+		     Those entries won't be deleted but it is good to remove them from the
+		     hash table to make room for newer entries and to prevent them from starving
+		     in the table (for example when the number of uses would increase)
+		    && (head->getUses() == 0)
+		 */
 		 && head->is_hash_entry_state_idle_transition_ready())
 	     ) {
 	  detach_idle_hash_entry:
@@ -501,10 +452,13 @@ void GenericHash::lua(lua_State *vm) {
   lua_newtable(vm);
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] [total idle: %u][tot purged: %u]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] [total idle: %u][tot purged: %u][idle_entries_shadow: %u][idle_entries: %u][idle_entries_in_use: %u]",
 			       name,
 			       entry_state_transition_counters.num_idle_transitions,
-			       entry_state_transition_counters.num_purged);
+			       entry_state_transition_counters.num_purged,
+			       idle_entries_shadow ? idle_entries_shadow->size() : 0,
+			       idle_entries ? idle_entries->size() : 0,
+			       idle_entries_in_use ? idle_entries_in_use->size() : 0);
 #endif
 
   num_idle = getNumIdleEntries();

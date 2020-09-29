@@ -28,6 +28,7 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
   is_packet_interface = true;
 
   memset(viewed_interfaces, 0, sizeof(viewed_interfaces));
+  memset(viewed_interfaces_queues, 0, sizeof(viewed_interfaces_queues));
   num_viewed_interfaces = 0;
 
   if(!strcmp(_endpoint, "view:all")) {
@@ -90,14 +91,69 @@ ViewInterface::ViewInterface(const char *_endpoint) : NetworkInterface(_endpoint
 
 /* **************************************************** */
 
+bool ViewInterface::viewEnqueue(time_t t, Flow *f, u_int8_t viewed_interface_id) {
+  /*
+    Put the element into the right single-producer (the viewed interface) single-consumer (this view interface) queue
+   */
+  if(viewed_interface_id < num_viewed_interfaces
+     && viewed_interfaces_queues[viewed_interface_id]->enqueue(f, true)) {
+    /*
+      Enqueue was successful - enough room in the queue.
+     */
+    f->incUses(); /* Increase the reference counter. Decrease will be done when dequeuing this flow */
+    return true;
+  }
+
+  return false;
+}
+
+/* **************************************************** */
+
+u_int64_t ViewInterface::viewDequeue(u_int budget) {
+  u_int64_t num = 0;
+  struct timeval tv;
+
+  gettimeofday(&tv, NULL);
+
+  for(int i = 0; i < num_viewed_interfaces; i++) {
+    u_int64_t flows_done = 0;
+
+    while(viewed_interfaces_queues[i]->isNotEmpty()) {
+      Flow *f = viewed_interfaces_queues[i]->dequeue();
+
+      viewed_flows_walker(f, &tv);
+
+#if 0
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued view flow");
+#endif
+
+      f->decUses(); /* Decrease uses now that the job is done */
+
+      flows_done++;
+      if(budget > 0 /* Budget requested */
+	 && flows_done >= budget /* Budget exceeded */)
+	break;
+    }
+
+    num += flows_done;
+  }
+
+  return num;
+}
+
+/* **************************************************** */
+
 bool ViewInterface::addSubinterface(NetworkInterface *what) {
   if(num_viewed_interfaces < MAX_NUM_VIEW_INTERFACES) {
     if(what->isViewed()) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface already belonging to a view [%s][%d]", what->get_name(), what->get_id());
       return(false);
     } else {
-      what->setViewed(this);
-      viewed_interfaces[num_viewed_interfaces++] = what;
+      what->setViewed(this, num_viewed_interfaces);
+      viewed_interfaces[num_viewed_interfaces] = what;
+      /* Instantiate the queue which will be used by the view interface to enqueue flows for this view */
+      viewed_interfaces_queues[num_viewed_interfaces] = new SPSCQueue<Flow *>(MAX_VIEW_INTERFACE_QUEUE_LEN);
+      num_viewed_interfaces++;
       is_packet_interface &= what->isPacketInterface();
       return(true);
     }
@@ -369,6 +425,7 @@ Flow* ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 
   return(f);
 }
+
 /* **************************************************** */
 
 /*
@@ -385,29 +442,7 @@ u_int64_t ViewInterface::dequeueFlowsForHooks(lua_State* vm, u_int protocol_dete
 
 /* **************************************************** */
 
-/* NOTE: this method is void, it does not correspond to the
- * static bool NetworkInterface::periodicHTStateUpdate. */
-void ViewInterface::periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts) {
-  for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-    viewed_interfaces[s]->periodicHTStateUpdate(deadline, vm, skip_user_scripts);
-
-  /* Also call the base, overridden NetworkInterface::periodicHTStateUpdate for this view.
-     It is necessary to ensure idle hash entries (e.g., hosts) are deleted from memory */
-  NetworkInterface::periodicHTStateUpdate(deadline, vm, skip_user_scripts);
-
-  /* It is necessary to call purgeIdle explicitly here (other than in
-   * ViewInterface::generic_periodic_hash_entry_state_update) as if all the
-   * sub interfaces hash tables are empty generic_periodic_hash_entry_state_update
-   * would not be called. */
-  purgeIdle(time(NULL));
-}
-
-/* **************************************************** */
-
-void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
-  periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
-  const struct timeval *tv = periodic_ht_state_update_user_data->tv;
-
+void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
   NetworkStats *network_stats;
   PartializableFlowTrafficStats partials;
   bool first_partial; /* Whether this is the first time the view is visiting this flow */
@@ -484,28 +519,14 @@ void ViewInterface::viewed_flows_walker(Flow *f, void *user_data) {
 void ViewInterface::flowPollLoop() {
   while(!ntop->getGlobals()->isShutdownRequested()) {
     while(idle()) sleep(1);
-    /* Nothing to do, everything is done in ViewInterface::generic_periodic_hash_entry_state_update */
-    _usleep(1000000);
+
+    u_int64_t num = viewDequeue(MAX_VIEW_INTERFACE_QUEUE_LEN);
+
+    purgeIdle(time(NULL));
+
+    if(num == 0)
+      _usleep(100);
   }
-}
-
-/* **************************************************** */
-
-void ViewInterface::generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data) {
-  periodic_ht_state_update_user_data_t *periodic_ht_state_update_user_data = (periodic_ht_state_update_user_data_t*)user_data;
-  /* The user data contains the pointer to the original underlying viewed interface which has called us.
-     So in order to reterieve `this` pointer, it suffices to access iface method viewedBy() */
-  ViewInterface *this_view = periodic_ht_state_update_user_data->iface->viewedBy();
-
-  /* Trigger the walker only for flows - it's that walker which triggers the creation of hosts
-     and other hash table entries. */
-  if(Flow *flow = dynamic_cast<Flow*>(node)) {
-    this_view->viewed_flows_walker(flow, user_data);
-  }
-
-  /* purgeIdle must be called here as this is the only point where the update of the hash tables
-     is sequential with the purging of the same. */
-  this_view->purgeIdle(time(NULL));
 }
 
 /* **************************************************** */
