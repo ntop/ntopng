@@ -508,7 +508,7 @@ class Flow : public GenericHashEntry {
    *
    * @return Whether the call has been executed successfully or if there were issues during the execution
    */
-  FlowLuaCallExecStatus performLuaCall(FlowLuaCall flow_lua_call, lua_State* vm);
+  FlowLuaCallExecStatus performLuaCall(FlowLuaCall flow_lua_call, FlowAlertCheckLuaEngine *acle);
 
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
   void lua_get_min_info(lua_State* vm);

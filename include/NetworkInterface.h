@@ -168,8 +168,14 @@ class NetworkInterface : public AlertableEntity {
   ICMPstats icmp_v4, icmp_v6;
   LocalTrafficStats localStats;
   int pcap_datalink_type; /**< Datalink type of pcap. */
-  pthread_t pollLoop, flowDumpLoop;
-  bool pollLoopCreated, flowDumpLoopCreated, has_too_many_hosts, has_too_many_flows, mtuWarningShown;
+  pthread_t pollLoop,
+    flowDumpLoop /* Thread for the database dump of flows */,
+    hookLoop /* Thread for the execution of flow user script hooks */;
+  FlowAlertCheckLuaEngine *hooksEngine;   /* Lua engine used to execute flow user script hooks */
+  volatile bool hooks_engine_reload;      /* Boolean indicating whether the hooksEngine should be reloaded */
+  time_t        hooks_engine_next_reload; /* The minimunm time for the next reload of the hooksEngine */       
+  bool pollLoopCreated, flowDumpLoopCreated, hookLoopCreated;
+  bool has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
   /* Those will hold counters at checkpoints */
@@ -289,6 +295,16 @@ class NetworkInterface : public AlertableEntity {
 			   u_int32_t num_bytes, u_int pkt_overhead) {
     ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
   };
+  /*
+    Dequeues flows from `q` up to `budget` and executes `flow_lua_callback` on each of them.
+    The number of flows dequeued is returned.
+   */
+  u_int64_t dequeueFlows(SPSCQueue<Flow *> *q, FlowLuaCall flow_lua_call, u_int budget);
+  /*
+    The lua engine for the execution of user script flow hooks is reused. This function
+    periodically check and possibly decides to reload the engine.
+   */
+  void checkHooksEngineReload();
 
  public:
   /**
@@ -301,6 +317,7 @@ class NetworkInterface : public AlertableEntity {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
+  bool initHookLoop(); /* Initialize the loop to dequeue flows for the execution of user script hooks */
   bool initFlowDump(u_int8_t num_dump_interfaces);
   u_int32_t getASesHashSize();
   u_int32_t getCountriesHashSize();
@@ -875,7 +892,8 @@ class NetworkInterface : public AlertableEntity {
   void updateServiceMap(Flow *f);
 #endif
 
-  virtual void dumpFlowLoop();
+  virtual void hookFlowLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */
+  virtual void dumpFlowLoop(); /* Body of the loop that dequeues flows for the database dump */
   void incNumQueueDroppedFlows(u_int32_t num);
   /*
     Dequeues enqueued flows to dump them to database
@@ -886,7 +904,7 @@ class NetworkInterface : public AlertableEntity {
     Budgets indicate how many flows should be dequeued (if available) to perform protocol detected, active,
     and idle callbacks.
    */
-  virtual u_int64_t dequeueFlowsForHooks(lua_State* vm, u_int protocol_detected_budget, u_int active_budget, u_int idle_budget);
+  virtual u_int64_t dequeueFlowsForHooks(u_int protocol_detected_budget, u_int active_budget, u_int idle_budget);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

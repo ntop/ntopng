@@ -146,7 +146,6 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   
   static activity_descr ad[] = {
     // Script                                Periodicity (s) Max (s) Pool          Align  !View  !PCAP  Reuse
-    { DEQUEUE_FLOWS_FOR_HOOKS_SCRIPT_PATH,   2,  3600, high_priority_pool,         false, true,  false, true  },
     { PURGE_IDLE_SCRIPT_PATH,                1,     2, purge_idle_pool,            false, false, true,  true  },
 
     { SECOND_SCRIPT_PATH,                    1,     2, standard_priority_pool,     false, false, true,  true  },

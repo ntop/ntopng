@@ -2471,6 +2471,7 @@ void Ntop::initInterface(NetworkInterface *_if) {
   }
 
   /* Other initialization activities */
+  _if->initHookLoop();
   _if->checkDisaggregationMode();
 }
 

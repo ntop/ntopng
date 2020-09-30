@@ -4984,9 +4984,8 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 
 /* ***************************************************** */
 
-FlowLuaCallExecStatus Flow::performLuaCall(FlowLuaCall flow_lua_call, lua_State* vm) {
+FlowLuaCallExecStatus Flow::performLuaCall(FlowLuaCall flow_lua_call, FlowAlertCheckLuaEngine *acle) {
   const char *lua_call_fn_name = NULL;
-  FlowAlertCheckLuaEngine *acle = getLuaVMUservalue(vm, flow_acle);
 
   if(flow_lua_call != flow_lua_call_idle
      && ntop->getGlobals()->isShutdownRequested())

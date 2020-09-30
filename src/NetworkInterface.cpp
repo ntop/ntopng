@@ -51,6 +51,9 @@ NetworkInterface::NetworkInterface(const char *name,
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   idleFlowsToDump_drops = activeFlowsToDump_drops = 0;
   hookProtocolDetected_drops = hookPeriodicUpdate_drops = hookFlowEnd_drops = 0;
+  hooksEngine = NULL;
+  hooks_engine_reload = false;
+  hooks_engine_next_reload = 0;
   flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in NetworkInterface::startFlowDumping */
   flows_dump_json_use_labels = false; /* Dump of JSON labels disabled by default, possibly enabled in NetworkInterface::startFlowDumping */
 
@@ -142,7 +145,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
-      flowDumpLoopCreated = false, bridge_interface = false;
+      flowDumpLoopCreated = false, hookLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = next_idle_other_purge = 0;
     cpu_affinity = -1 /* no affinity */,
       has_vlan_packets = has_ebpf_events = false;
@@ -542,6 +545,8 @@ NetworkInterface::~NetworkInterface() {
 
   if(idleFlowsToDump)   delete idleFlowsToDump;
   if(activeFlowsToDump) delete activeFlowsToDump;
+
+  if(hooksEngine)       delete hooksEngine;
 
   if(db) {
     db->shutdown();
@@ -2337,69 +2342,92 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 
 /* **************************************************** */
 
-u_int64_t NetworkInterface::dequeueFlowsForHooks(lua_State* vm, u_int protocol_detected_budget, u_int active_budget, u_int idle_budget) {
-  u_int64_t protocol_detected_done = 0, active_done = 0, idle_done = 0;
+u_int64_t NetworkInterface::dequeueFlows(SPSCQueue<Flow *> *q, FlowLuaCall flow_lua_call, u_int budget) {
+  u_int64_t num_done = 0;
 
-  /*
-    Start with highest-priority, flow hooks for idle flows. Failing to execute a hook for an idle flow is critical as there
-    will not be any chance to execute it again in the future.
-   */
+  while(q->isNotEmpty()) {
+    Flow *f = q->dequeue();
 
-  while(hookFlowEnd->isNotEmpty()) {
-    Flow *f = hookFlowEnd->dequeue();
-    f->performLuaCall(flow_lua_call_idle, vm);
+    /*
+      Execute the callback (if the engine is available
+     */
+    if(hooksEngine)
+      f->performLuaCall(flow_lua_call, hooksEngine);
 
 #if DEBUG_FLOW_HOOKS
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued idle flow");
 #endif
 
+    /*
+      Now that the job is done, the reference counter to the flow can be decreased.
+     */
     f->decUses();
-    idle_done++;
-    if(idle_budget > 0 /* Budget requested */
-       && idle_done >= idle_budget /* Budget exceeded */)
+
+    num_done++;
+    if(budget > 0 /* Budget requested */
+       && num_done >= budget /* Budget exceeded */)
       break;
   }
 
+  return num_done;
+}
+
+/* **************************************************** */
+
+/*
+  Called periodically to decide if it is time to reload the lua engine used to execute flow user script hooks
+ */
+void NetworkInterface::checkHooksEngineReload() {
+  time_t now = time(NULL);
+
+  if(hooks_engine_reload == 0 /* Need to be set for the first time */
+     || now > hooks_engine_next_reload /* Time to reload */) {
+    hooks_engine_reload = true;
+    hooks_engine_next_reload = now + HOOKS_ENGINE_LIFETIME;
+  }
+}
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget, u_int active_budget, u_int idle_budget) {
+  u_int64_t num_done = 0;
+
   /*
-    Do mid-priority flow hooks for protocol-detected flows. Executing these hooks is crucial as well, as the flow only stays
-    in this state for a very short time and there won't be chances to execute these scripts again.
+    Check if it is time to reload the engine.
+    First, we free the memory (if necessary) and then we allocate it.
    */
+  if(hooks_engine_reload) {
+    if(hooksEngine) {
+      delete hooksEngine;
+      hooksEngine = NULL;
+    }
 
-  while(hookProtocolDetected->isNotEmpty()) {
-    Flow *f = hookProtocolDetected->dequeue();
-    f->performLuaCall(flow_lua_call_protocol_detected, vm);
-
-#if DEBUG_FLOW_HOOKS
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued protocol detected flow");
-#endif
-
-    f->decUses();
-    protocol_detected_done++;
-    if(protocol_detected_budget > 0 /* Budget requested */
-       && protocol_detected_done >= protocol_detected_budget /* Budget exceeded */)
-      break;
+    hooks_engine_reload = false;
   }
 
+  if(!hooksEngine)
+    hooksEngine = new (nothrow) FlowAlertCheckLuaEngine(this);
+
   /*
+    Start with highest-priority, flow hooks for idle flows. Failing to execute a hook for an idle flow is critical as there
+    will not be any chance to execute it again in the future.
+
+    Then, do mid-priority flow hooks for protocol-detected flows. Executing these hooks is crucial as well, as the flow only stays
+    in this state for a very short time and there won't be chances to execute these scripts again.
+
     Finally, do low-priority periodic update hooks. These hooks can be retried multiple times so their priority is low.
    */
-
-  while(hookPeriodicUpdate->isNotEmpty()) {
-    Flow *f = hookPeriodicUpdate->dequeue();
-    f->performLuaCall(flow_lua_call_periodic_update, vm);
+  
+  num_done += dequeueFlows(hookFlowEnd, flow_lua_call_idle, idle_budget);
+  num_done += dequeueFlows(hookProtocolDetected, flow_lua_call_protocol_detected, protocol_detected_budget);
+  num_done += dequeueFlows(hookPeriodicUpdate, flow_lua_call_periodic_update, active_budget);
 
 #if DEBUG_FLOW_HOOKS
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued active flow");
+  if(num_done > 0)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flows [%u]", num_done);
 #endif
 
-    f->decUses();
-    active_done++;
-    if(active_budget > 0 /* Budget requested */
-       && active_done >= active_budget /* Budget exceeded */)
-      break;
-  }
-
-  return protocol_detected_done + active_done + idle_done;
+  return num_done;
 }
 
 /* **************************************************** */
@@ -2495,6 +2523,34 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 
 /* **************************************************** */
 
+void NetworkInterface::hookFlowLoop() {
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Started flow user script hooks loop on interface %s [id: %u]...",
+			       get_description(), get_id());
+
+  /* Wait until it starts up */
+  while(!isRunning()) _usleep(10000);
+
+  /* Now operational */
+  while(isRunning()) {
+    /*
+      Dequeue flows for dump. Use an unlimited budget for idle flows as they're high-priority and
+      thus we want to keep processing them if they're in the queue.
+
+      To guarantee some sort of fairness and prioritization, different numbers are used for each
+      of the three queues. Higher numbers are used for queues with higher-priority.
+     */
+    u_int64_t n = dequeueFlowsForHooks(16 /* protocol_detected_budget */, 4 /* active_budget */, 32 /* idle_budget */);
+
+    if(n == 0)
+      _usleep(100);
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
+}
+
+/* **************************************************** */
+
 void NetworkInterface::dumpFlowLoop() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started flow dump loop on interface %s [id: %u]...",
@@ -2517,6 +2573,15 @@ void NetworkInterface::dumpFlowLoop() {
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
+}
+
+/* **************************************************** */
+
+static void* hookLoop(void* ptr) {
+  NetworkInterface *_if = (NetworkInterface*)ptr;
+
+  _if->hookFlowLoop();
+  return(NULL);
 }
 
 /* **************************************************** */
@@ -2609,6 +2674,7 @@ void NetworkInterface::shutdown() {
 
     if(pollLoopCreated)     pthread_join(pollLoop, &res);
     if(flowDumpLoopCreated) pthread_join(flowDumpLoop, &res);
+    if(hookLoopCreated)     pthread_join(hookLoop, &res);
 
     /* purgeIdle one last time to make sure all entries will be marked as idle */
     purgeIdle(time(NULL), true);
@@ -5417,6 +5483,7 @@ void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
 /* **************************************************** */
 
 void NetworkInterface::runHousekeepingTasks() {
+  checkHooksEngineReload();
   periodicStatsUpdate();
 }
 
@@ -6753,6 +6820,25 @@ bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int1
   }
 
   return false;
+}
+
+/* *************************************** */
+
+/* 
+   Start the thread for the execution of flow user script hooks
+ */
+bool NetworkInterface::initHookLoop() {
+  pthread_create(&hookLoop, NULL, ::hookLoop, (void*)this);
+  hookLoopCreated = true;
+
+#ifdef __linux__
+  char buf[16];
+    
+  snprintf(buf, sizeof(buf), "hooks ifid %u", get_id());
+  pthread_setname_np(hookLoop, buf);
+#endif
+
+  return true;
 }
 
 /* *************************************** */

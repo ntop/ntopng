@@ -887,7 +887,6 @@
 #define PINGER_SCRIPT_PATH                   "pinger.lua"
 #define SECOND_SCRIPT_PATH                   "second.lua"
 #define MINUTE_SCRIPT_PATH                   "minute.lua"
-#define DEQUEUE_FLOWS_FOR_HOOKS_SCRIPT_PATH  "dequeue_flows_for_hooks.lua"
 #define PURGE_IDLE_SCRIPT_PATH               "purge_idle.lua"
 #define STATS_UPDATE_SCRIPT_PATH             "stats_update.lua"
 #define PERIODIC_USER_SCRIPTS_PATH           "periodic_user_scripts.lua"
@@ -1056,6 +1055,11 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define MAX_US_PROTOCOL_DETECTED_QUEUE_LEN 131072
 #define MAX_US_FLOW_END_QUEUE_LEN          131072
 #define MAX_US_PERIODIC_UPDATE_QUEUE_LEN   16384  /* Smaller, lower-priority */
+
+/*
+  user-script lua engine lifetime 
+ */
+#define HOOKS_ENGINE_LIFETIME              600    /* Seconds */
 
 /*
   Queue length for view interfaces

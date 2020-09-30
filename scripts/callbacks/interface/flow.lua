@@ -294,43 +294,6 @@ end
 
 -- #################################################################
 
-local function in_time()
-   -- Calling os.time() costs per call ~0.033 usecs so nothing expensive to be called every time
-   --
-   -- This is the code used to profile
-   --
-   -- local num_calls = 1000000
-   -- local start_ticks = ntop.getticks()
-   -- for i = 0, num_calls do
-   --    local a = os.time()
-   -- end
-   -- local end_ticks = ntop.getticks()
-   -- traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("usecs [ticks]: %.8f", (end_ticks - start_ticks) / ntop.gettickspersec() / num_calls * 1000 * 1000))
-
-
-   local res
-   local time_left = ntop.getDeadline() - os.time()
-
-   if time_left >= 4 then
-      -- There's enough time to run every script
-      res = true
-   elseif time_left > 1 then
-      -- Start skipping unidirectional flows as the deadline is approaching
-      res = flow.getPacketsRcvd() > 0
-   else
-      -- No time left
-      res = false
-   end
-
-   if not res and calculate_stats then
-      stats.num_skipped_to_time = stats.num_skipped_to_time + 1
-   end
-
-   return res
-end
-
--- #################################################################
-
 -- Function for the actual module execution. Iterates over available (and enabled)
 -- modules, calling them one after one.
 -- @param l4_proto the L4 protocol of the flow
@@ -345,10 +308,6 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
 
    if not available_modules then
       return true
-   end
-
-   if not in_time() then
-      return false -- No time left to execute scripts
    end
 
    local all_modules = available_modules.modules
