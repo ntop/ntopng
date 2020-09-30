@@ -1917,6 +1917,9 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 local function validateParameter(k, v)
    if(known_parameters[k] == nil) then
+      if(type(v) == "table") then
+        v = "(table)"
+      end
       error("[LINT] Validation error: Unknown key "..k.." [value: "..v.."]: missing validation perhaps?\n")
       return false, nil
    else
