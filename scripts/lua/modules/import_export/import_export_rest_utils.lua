@@ -38,14 +38,14 @@ end
 -- @brief Decode the configuration in json format
 -- and handle the envelope. Return the list of
 -- configurations for all the modules to be imported. 
-function import_export_rest_utils.unpack(json)  
+function import_export_rest_utils.unpack(json_conf)  
 
    -- Decode the json
-   if json == nil then
+   if json_conf == nil then
       return nil
    end
 
-   local envelope = json.decode(json)
+   local envelope = json.decode(json_conf)
 
    -- Check the envelope format and version
    if not envelope or

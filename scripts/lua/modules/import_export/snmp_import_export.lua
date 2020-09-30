@@ -57,7 +57,7 @@ end
 -- @brief Export configuration
 -- @return The current configuration
 function snmp_import_export:export()
-   local conf = snmp_config.backup()
+   local conf = snmp_config.export()
    return conf
 end
 
