@@ -3,13 +3,14 @@
 --
 
 local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/am/lua/modules/import_export/?.lua;" .. package.path
 require "lua_utils" 
 local import_export = require "import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local plugins_utils = require("plugins_utils")
-local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 -- ##############################################
 
@@ -46,7 +47,7 @@ function am_import_export:import(conf)
 
    local old_hosts = am_utils.getHosts(true --[[ config only ]])
 
-   for host_key, conf in pairs(data) do
+   for host_key, conf in pairs(conf) do
       local host = am_utils.key2host(host_key)
 
       if old_hosts[host_key] then
