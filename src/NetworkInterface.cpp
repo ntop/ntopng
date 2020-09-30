@@ -6828,6 +6828,9 @@ bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int1
    Start the thread for the execution of flow user script hooks
  */
 bool NetworkInterface::initHookLoop() {
+  if(isViewed()) /* Don't init the loop for viewed interfaces: the loop is run by the view interface for all the viewed interfaces */
+    return true;
+
   pthread_create(&hookLoop, NULL, ::hookLoop, (void*)this);
   hookLoopCreated = true;
 
