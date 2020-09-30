@@ -884,3 +884,6 @@ footer {
 .px-25 {
   padding: 0 25%!important;
 }
+.actions-group {
+  min-width: 120px;
+}

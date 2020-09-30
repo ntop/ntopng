@@ -119,16 +119,10 @@ $(document).ready(function () {
                     const isBuiltin = endpoint.endpoint_conf.builtin || false;
                     if (isBuiltin) return;
 
-                    return (`
-                        <div>
-                            <a data-toggle='modal' href='#edit-endpoint-modal' class="btn btn-sm btn-info">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a data-toggle='modal' href='#remove-endpoint-modal' class="btn btn-sm btn-danger">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </div>
-                    `);
+                    return DataTableUtils.createActionButtons([
+                        {class: 'btn-info', icon: 'fa-edit', modal: '#edit-endpoint-modal' },
+                        {class: 'btn-danger', icon: 'fa-trash', modal: '#remove-endpoint-modal'},
+                    ]);
                 }
             }
         ],

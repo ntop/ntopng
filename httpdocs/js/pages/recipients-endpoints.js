@@ -179,16 +179,10 @@ $(document).ready(function () {
                     const isBuiltin = recipient.endpoint_conf.builtin || false;
                     if (isBuiltin) return;
 
-                    return (`
-                        <div>
-                            <a data-toggle='modal' href='#edit-recipient-modal' class="btn btn-sm btn-info" >
-                                <i class='fas fa-edit'></i>
-                            </a>
-                            <a data-toggle='modal' href='#remove-recipient-modal' class="btn btn-sm btn-danger">
-                                <i class='fas fa-trash'></i>
-                            </a>
-                        </div>
-                    `);
+                    return DataTableUtils.createActionButtons([
+                        {class: 'btn-info', icon: 'fa-edit', modal: '#edit-recipient-modal' },
+                        {class: 'btn-danger', icon: 'fa-trash', modal: '#remove-recipient-modal'},
+                    ]);
                 }
             }
         ],

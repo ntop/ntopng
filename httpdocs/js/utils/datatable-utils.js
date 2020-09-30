@@ -82,7 +82,7 @@ class DataTableUtils {
             buttons.push(button);
         });
 
-        return (`<div role='group'>${buttons.join('')}</div>`);
+        return (`<div class='actions-group' role='group'>${buttons.join('')}</div>`);
     }
 
     static setAjaxConfig(config, url, dataSrc = '', method = "get", params = {}) {
