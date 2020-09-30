@@ -10,10 +10,9 @@ Packager: Luca Deri <deri@ntop.org>
 BuildArch: noarch
 # Temporary location where the RPM will be built
 BuildRoot:  %{_tmppath}/%{name}-%{version}-root
-Requires: geoipupdate
 
 %description
-Package providing a geolocation databases download helper for ntopng and other ntop software
+Geolocation databases for ntopng and other ntop software packaged from https://db-ip.com
 
 %prep
 
