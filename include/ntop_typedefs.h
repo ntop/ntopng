@@ -609,7 +609,6 @@ struct ntopngLuaContext {
   Host *host;
   NetworkStats *network;
   Flow *flow;
-  FlowAlertCheckLuaEngine *flow_acle;
   bool localuser;
 
   /* Packet capture */
