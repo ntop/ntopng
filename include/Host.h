@@ -283,8 +283,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
 
-  void incNumFlows(time_t t, bool as_client, Host *peer, Flow *f);
-  void decNumFlows(time_t t, bool as_client, Host *peer, Flow *f);
+  void incNumFlows(time_t t, bool as_client);
+  void decNumFlows(time_t t, bool as_client);
   inline void incNumAlertedFlows()            { active_alerted_flows++; }
   inline void decNumAlertedFlows()            { active_alerted_flows--; }
   inline u_int32_t getNumAlertedFlows() const { return(active_alerted_flows); }

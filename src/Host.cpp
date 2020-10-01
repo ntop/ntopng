@@ -997,7 +997,7 @@ bool Host::addIfMatching(lua_State* vm, u_int8_t *_mac) {
 
 /* *************************************** */
 
-void Host::incNumFlows(time_t t, bool as_client, Host *peer, Flow *f) {
+void Host::incNumFlows(time_t t, bool as_client) {
   AlertCounter *counter;
 
   if(as_client) {
@@ -1009,12 +1009,12 @@ void Host::incNumFlows(time_t t, bool as_client, Host *peer, Flow *f) {
   }
 
   counter->inc(t, this);
-  stats->incNumFlows(as_client, peer);
+  stats->incNumFlows(as_client);
 }
 
 /* *************************************** */
 
-void Host::decNumFlows(time_t t, bool as_client, Host *peer, Flow *f) {
+void Host::decNumFlows(time_t t, bool as_client) {
   if(as_client) {
     if(num_active_flows_as_client.get())
       num_active_flows_as_client.dec(1);

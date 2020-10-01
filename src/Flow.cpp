@@ -100,7 +100,7 @@ Flow::Flow(NetworkInterface *_iface,
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 
     cli_host->incUses();
-    cli_host->incNumFlows(last_seen, true, srv_host, this);
+    cli_host->incNumFlows(last_seen, true);
     if(network_stats) network_stats->incNumFlows(last_seen, true);
     cli_ip_addr = cli_host->get_ip();
     cli_host->incCliContactedHosts(_srv_ip);
@@ -114,7 +114,7 @@ Flow::Flow(NetworkInterface *_iface,
     NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
 
     srv_host->incUses();
-    srv_host->incNumFlows(last_seen, false, cli_host, this);
+    srv_host->incNumFlows(last_seen, false);
     if(network_stats) network_stats->incNumFlows(last_seen, false);
     srv_ip_addr = srv_host->get_ip();
 
@@ -2343,10 +2343,10 @@ u_int Flow::get_hash_entry_id() const {
 
 void Flow::set_hash_entry_state_idle() {
   if(cli_host)
-    cli_host->decNumFlows(last_seen, true, srv_host, this);
+    cli_host->decNumFlows(last_seen, true);
 
   if(srv_host)
-    srv_host->decNumFlows(last_seen, false, cli_host, this);
+    srv_host->decNumFlows(last_seen, false);
 
   if(isFlowAlerted()) {
     iface->decNumAlertedFlows(this);

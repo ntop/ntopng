@@ -103,7 +103,7 @@ class HostStats: public GenericTrafficElement {
   inline u_int32_t getTotalNumFlowsAsServer() const { return(total_num_flows_as_server);  };
   inline u_int32_t getTotalActivityTime()     const { return(total_activity_time);        };
   virtual void deserialize(json_object *obj)        {}
-  virtual void incNumFlows(bool as_client, Host *peer) { if(as_client) total_num_flows_as_client++; else total_num_flows_as_server++; } ;
+  virtual void incNumFlows(bool as_client) { if(as_client) total_num_flows_as_client++; else total_num_flows_as_server++; } ;
   virtual bool hasAnomalies(time_t when) { return false; };
   virtual void luaAnomalies(lua_State* vm, time_t when) {};
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
