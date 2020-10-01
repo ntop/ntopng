@@ -111,6 +111,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline  void setBroadcastDomainHost()      { is_in_broadcast_domain = true;  };
   inline  void setSystemHost()               { /* TODO: remove */              };
 
+  bool isBroadcastHost()                     { return(ip.isBroadcastAddress()); }
+  bool isMulticastHost()                     { return(ip.isMulticastAddress()); }
+
   inline nDPIStats* get_ndpi_stats()   const { return(stats->getnDPIStats()); };
 
   inline bool isChildSafe() const {
