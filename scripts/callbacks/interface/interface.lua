@@ -65,11 +65,6 @@ function runScripts(granularity)
 
    local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
    local interface_key   = "iface_"..ifid
-   local suppressed_alerts = alerts_api.hasSuppressedAlerts(ifid, interface_entity, interface_key)
-
-   if suppressed_alerts then
-      releaseAlerts(granularity_id)
-   end
 
    local info = interface.getStats()
    local cur_alerts = interface.getAlerts(granularity_id)
@@ -82,16 +77,14 @@ function runScripts(granularity)
      local conf = user_scripts.getTargetHookConfig(iface_config, user_script, granularity)
 
      if(conf.enabled) then
-        if((not user_script.is_alert) or (not suppressed_alerts)) then
-           alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
-              granularity = granularity,
-              alert_entity = entity_info,
-              entity_info = info,
-              cur_alerts = cur_alerts,
-              user_script_config = conf.script_conf,
-              user_script = user_script,
-           })
-        end
+	alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
+				       granularity = granularity,
+				       alert_entity = entity_info,
+				       entity_info = info,
+				       cur_alerts = cur_alerts,
+				       user_script_config = conf.script_conf,
+				       user_script = user_script,
+	})
       end
    end
 

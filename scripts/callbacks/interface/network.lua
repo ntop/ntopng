@@ -64,11 +64,6 @@ function runScripts(granularity)
    if not network_key then return end
 
    local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
-   local suppressed_alerts = alerts_api.hasSuppressedAlerts(ifid, network_entity, network_key)
-
-   if suppressed_alerts then
-      releaseAlerts(granularity_id)
-   end
 
    local cur_alerts = network.getAlerts(granularity_id)
    local entity_info = alerts_api.networkAlertEntity(network_key)
@@ -83,16 +78,14 @@ function runScripts(granularity)
       local conf = user_scripts.getTargetHookConfig(subnet_conf, user_script, granularity)
 
       if(conf.enabled) then
-	 if((not user_script.is_alert) or (not suppressed_alerts)) then
-	    alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
-	      granularity = granularity,
-	      alert_entity = entity_info,
-	      entity_info = info,
-	      cur_alerts = cur_alerts,
-	      user_script_config = conf.script_conf,
-	      user_script = user_script,
-	    })
-	 end
+	 alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
+					granularity = granularity,
+					alert_entity = entity_info,
+					entity_info = info,
+					cur_alerts = cur_alerts,
+					user_script_config = conf.script_conf,
+					user_script = user_script,
+	 })
       end
    end
 

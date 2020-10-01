@@ -126,11 +126,6 @@ function runScripts(granularity)
    local pool_id = host.getPoolId()["host_pool_id"]
    local host_key   = hostinfo2hostkey({ip = host_ip.ip, vlan = host_ip.vlan}, nil, true --[[ force @[vlan] even when vlan is 0 --]])
    local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
-   local suppressed_alerts = alerts_api.hasSuppressedAlerts(ifid, host_entity, host_key)
-
-   if suppressed_alerts then
-      releaseAlerts(granularity_id)
-   end
 
    benchmark_begin()
    local cur_alerts = host.getAlerts(granularity_id)
@@ -151,19 +146,17 @@ function runScripts(granularity)
 	 local conf = user_scripts.getTargetHookConfig(host_conf, user_script, granularity)
 
 	 if(conf.enabled) then
-	    if((not user_script.is_alert) or (not suppressed_alerts)) then
-	       alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
-					      granularity = granularity,
-					      alert_entity = entity_info,
-					      entity_info = host_ip,
-					      cur_alerts = cur_alerts,
-					      user_script_config = conf.script_conf,
-					      user_script = user_script,
-					      when = when,
-					      ifid = ifid,
-					      ts_enabled = ts_enabled,
-	       })
-	    end
+	    alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
+					   granularity = granularity,
+					   alert_entity = entity_info,
+					   entity_info = host_ip,
+					   cur_alerts = cur_alerts,
+					   user_script_config = conf.script_conf,
+					   user_script = user_script,
+					   when = when,
+					   ifid = ifid,
+					   ts_enabled = ts_enabled,
+	    })
 	 end
       end
    end

@@ -427,30 +427,6 @@ end
 
 -- #################################
 
-local function checkDisableAlerts()
-  local ifid = interface.getId()
-
-  if(_POST["action"] == "disable_alert") then
-    local entity = _POST["entity"]
-    local entity_val = _POST["entity_val"]
-    local alert_type = _POST["alert_type"]
-    local disabled_alerts = alerts_api.getEntityAlertsDisabledBitmap(ifid, entity, entity_val)
-
-    disabled_alerts = ntop.bitmapSet(disabled_alerts, tonumber(alert_type))
-    alerts_api.setEntityAlertsDisabledBitmap(ifid, entity, entity_val, disabled_alerts)
-  elseif(_POST["action"] == "enable_alert") then
-    local entity = _POST["entity"]
-    local entity_val = _POST["entity_val"]
-    local alert_type = _POST["alert_type"]
-    local disabled_alerts = alerts_api.getEntityAlertsDisabledBitmap(ifid, entity, entity_val)
-
-    disabled_alerts = ntop.bitmapClear(disabled_alerts, tonumber(alert_type))
-    alerts_api.setEntityAlertsDisabledBitmap(ifid, entity, entity_val, disabled_alerts)
-  end
-end
-
--- #################################
-
 function alert_utils.checkDeleteStoredAlerts()
    _GET["status"] = _GET["status"] or _POST["status"]
 
@@ -478,8 +454,6 @@ function alert_utils.checkDeleteStoredAlerts()
          _GET["alert_type"] = nil
       end
    end
-
-   checkDisableAlerts()
 
    if(_POST["action"] == "release_alert") then
       local entity_info = {
@@ -727,214 +701,60 @@ end
 
 -- #################################
 
-local function printConfigTab(entity_type, entity_value, page_name, page_params, alt_name, options)
-   local trigger_alerts = true
-   local ifid = interface.getId()
-   local cur_bitmap
-
-   if(entity_type == "host") then
-      cur_bitmap = alerts_api.getHostDisabledStatusBitmap(ifid, entity_value)
-   end
-
-   local entity_type_id = alert_consts.alertEntity(entity_type)
-
-   if _SERVER["REQUEST_METHOD"] == "POST" then
-      if _POST["trigger_alerts"] ~= "1" then
-         trigger_alerts = false
-      else
-         trigger_alerts = true
-      end
-
-      alerts_api.setSuppressedAlerts(ifid, entity_type_id, entity_value, (not trigger_alerts))
-
-      if(entity_type == "host") then
-         local bitmap = 0
-
-         if not isEmptyString(_POST["disabled_status"]) then
-           local status_selection = split(_POST["disabled_status"], ",") or { _POST["disabled_status"] }
-
-           for _, status in pairs(status_selection) do
-             bitmap = ntop.bitmapSet(bitmap, tonumber(status))
-           end
-         end
-
-         if(bitmap ~= cur_bitmap) then
-           alerts_api.setHostDisabledStatusBitmap(ifid, entity_value, bitmap)
-           cur_bitmap = bitmap
-         end
-      end
-   else
-      trigger_alerts = (not alerts_api.hasSuppressedAlerts(ifid, entity_type_id, entity_value))
-   end
-
-   if not (trigger_alerts == false) then
-      trigger_alerts = true
-   end
-
-  local enable_label = options.enable_label or i18n("show_alerts.trigger_alert_descr")
-
-  print[[
-     <div class='card-body'>
-   <form id="alerts-config" class="form-inline" method="post">
-   <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-   <table class="table table-bordered table-striped">]]
-  print[[<tr>
-         <th width="25%">]] print(i18n("device_protocols.alert")) print[[</th>
-         <td>]]
-
-   print(template.gen("on_off_switch.html", {
-	 id = "trigger_alerts",
-	 checked = trigger_alerts,
-	 icon = [[<i class="fas fa-exclamation-triangle fa-lg"></i> ]] .. enable_label
-   }))
-
-   print[[
-         </td>
-      </tr>]]
-
-   if(entity_type == "host") then
-      print[[<tr>
-         <td width="30%">
-           <b>]] print(i18n("host_details.status_ignore")) print[[</b> <i class="fas fa-info-circle" title="]] print(i18n("host_details.disabled_flow_status_help")) print[["></i>
-         </td>
-         <td>
-           <input id="status_trigger_alert" name="disabled_status" type="hidden" />
-           <select onchange="convertMultiSelect()" id="status_trigger_alert_select" multiple class="form-control" style="width:40em; height:10em; display:inline;">]]
-
-      for _, status in pairsByKeys(flow_consts.status_types, asc) do
-        local status_key = status.status_key
-
-        if(status_key == flow_consts.status_types.status_normal.status_key) then
-          goto continue
-        end
-
-        print[[<option value="]] print(string.format("%d", status_key))
-        if ntop.bitmapIsSet(cur_bitmap, tonumber(status_key)) then
-          print[[" selected="selected]]
-        end
-        print[[">]]
-        print(i18n(status.i18n_title))
-        print[[</option>]]
-
-        ::continue::
-      end
-
-      print[[</select><div style="margin-top:1em;"><i>]] print(i18n("host_details.multiple_selection")) print[[</i></div>
-         <button type="button" class="btn btn-secondary" style="margin-top:1em;" onclick="resetMultiSelect()">]] print(i18n("reset")) print[[</button>
-         </td>
-      </tr>]]
-   end
-   print[[</table>
-   </form>
-   </div>
-   <div class='card-footer'>
-   <button class="btn btn-primary" style="float:right; margin-right:1em;" disabled="disabled" type="submit">]] print(i18n("save_configuration")) print[[</button>
-   </div>
-   </div>
-   <script>
-    function convertMultiSelect() {
-      var values = [];
-
-      $("#status_trigger_alert_select option:selected").each(function(idx, item) {
-        values.push($(item).val());
-      });
-
-      $("#status_trigger_alert").val(values.join(","));
-      $("#status_trigger_alert").trigger("change");
-    }
-
-    function resetMultiSelect() {
-       $("#status_trigger_alert_select option:selected").each(function(idx, item) {
-         item.selected = "";
-       });
-
-       convertMultiSelect();
-    }
-
-    /* Run after page load */
-    $(convertMultiSelect);
-
-    aysHandleForm("#alerts-config");
-   </script>]]
-end
-
--- #################################
-
-function alert_utils.printAlertTables(entity_type, alert_source, page_name, page_params, alt_name, show_entity, options)
+function alert_utils.printAlertTables(entity_type, alert_source, page_name, page_params, alt_name, options)
    local has_engaged_alerts, has_past_alerts, has_flow_alerts = false,false,false
-   local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
    local tab = _GET["tab"]
    local have_nedge = ntop.isnEdge()
    options = options or {}
-
-   local anomaly_config_key = nil
-   local flow_rate_alert_thresh, syn_alert_thresh
-
-   if entity_type == "host" then
-      anomaly_config_key = 'ntopng.prefs.'..(options.host_ip)..':'..tostring(options.host_vlan)..'.alerts_config'
-   end
-
-   print("<div class='card'>")
-   print("<div class='card-header'>")
-   print('<ul class="nav nav-tabs card-header-tabs">')
 
    local function printTab(tab, content, sel_tab)
       if(tab == sel_tab) then print("\t<li class='nav-item active show'>") else print("\t<li class='nav-item'>") end
       print("<a class='nav-link' href=\""..ntop.getHttpPrefix().."/lua/"..page_name.."?page=alerts&tab="..tab)
       for param, value in pairs(page_params) do
-         print("&"..param.."="..value)
+	 print("&"..param.."="..value)
       end
       print("\">"..content.."</a></li>\n")
    end
 
-   if(show_entity) then
-      -- these fields will be used to perform queries
-      _GET["entity"] = alert_consts.alertEntity(show_entity)
-      _GET["entity_val"] = alert_source
-   end
+   -- these fields will be used to perform queries
+   _GET["entity"] = alert_consts.alertEntity(entity_type)
+   _GET["entity_val"] = alert_source
 
-   if(show_entity) then
-      -- possibly process pending delete arguments
-      alert_utils.checkDeleteStoredAlerts()
+   -- possibly process pending delete arguments
+   alert_utils.checkDeleteStoredAlerts()
 
-      -- possibly add a tab if there are alerts configured for the host
-      has_engaged_alerts = alert_utils.hasAlerts("engaged", alert_utils.getTabParameters(_GET, "engaged"))
-      has_past_alerts = alert_utils.hasAlerts("historical", alert_utils.getTabParameters(_GET, "historical"))
-      has_flow_alerts = alert_utils.hasAlerts("historical-flows", alert_utils.getTabParameters(_GET, "historical-flows"))
+   -- possibly add a tab if there are alerts configured for the host
+   has_engaged_alerts = alert_utils.hasAlerts("engaged", alert_utils.getTabParameters(_GET, "engaged"))
+   has_past_alerts = alert_utils.hasAlerts("historical", alert_utils.getTabParameters(_GET, "historical"))
+   has_flow_alerts = alert_utils.hasAlerts("historical-flows", alert_utils.getTabParameters(_GET, "historical-flows"))
 
-      if(has_engaged_alerts or has_past_alerts or has_flow_alerts) then
-         if(has_engaged_alerts) then
-           tab = tab or "alert_list"
-           printTab("alert_list", i18n("show_alerts.engaged_alerts"), tab)
-         end
-         if(has_past_alerts) then
-           tab = tab or "past_alert_list"
-           printTab("past_alert_list", i18n("show_alerts.past_alerts"), tab)
-         end
-         if(has_flow_alerts) then
-           tab = tab or "flow_alert_list"
-           printTab("flow_alert_list", i18n("show_alerts.flow_alerts"), tab)
-         end
-      else
-         -- if there are no alerts, we show the alert settings
-         if(tab=="alert_list") then tab = nil end
+   if(has_engaged_alerts or has_past_alerts or has_flow_alerts) then
+      print("<div class='card'>")
+      print("<div class='card-header'>")
+      print('<ul class="nav nav-tabs card-header-tabs">')
+
+      if(has_engaged_alerts) then
+	 tab = tab or "alert_list"
+	 printTab("alert_list", i18n("show_alerts.engaged_alerts"), tab)
       end
+      if(has_past_alerts) then
+	 tab = tab or "past_alert_list"
+	 printTab("past_alert_list", i18n("show_alerts.past_alerts"), tab)
+      end
+      if(has_flow_alerts) then
+	 tab = tab or "flow_alert_list"
+	 printTab("flow_alert_list", i18n("show_alerts.flow_alerts"), tab)
+      end
+   else
+      -- if there are no alerts, we show a message
+      print("<div class=\"alert alert alert-info\"><i class=\"fas fa-info-circle fa-lg\" aria-hidden=\"true\"></i>" .. " " .. i18n("show_alerts.no_recorded_alerts_message").."</div>")
+      return
    end
-
-   -- Default tab
-   if(tab == nil) then tab = "config" end
-   local is_alert_list_tab = ((tab == "alert_list") or (tab == "past_alert_list") or (tab == "flow_alert_list"))
-
-   printTab("config", '<i class="fas fa-cog" aria-hidden="true"></i> ' .. i18n("traffic_recording.settings"), tab)
 
    print('</ul>')
    print("</div>")
 
-   if((show_entity) and is_alert_list_tab) then
-      alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, _GET, true, nil, { dont_nest_alerts = true })
-   elseif(tab == "config") then
-      printConfigTab(entity_type, alert_source, page_name, page_params, alt_name, options)
-   end
+   alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, false, _GET, true, nil, { dont_nest_alerts = true })
 end
 
 -- #################################
@@ -1008,47 +828,6 @@ end
 
 -- #################################
 
-local function printDisabledAlerts(ifid)
-  print[[
-  <script>
-  $("#table-disabled-alerts").datatable({
-    url: "]] print(ntop.getHttpPrefix()) print [[/lua/get_disabled_alerts.lua?ifid=]] print(string.format("%d", ifid)) print[[",
-    showPagination: true,
-    title: "]] print(i18n("show_alerts.disabled_alerts")) print[[",
-      columns: [
-	 {
-	    title: "]]print(i18n("show_alerts.alarmable"))print[[",
-	    field: "column_entity_formatted",
-            sortable: true,
-	    css: {
-	       textAlign: 'center',
-          whiteSpace: 'nowrap',
-          width: '35%',
-	    }
-	 },{
-	    title: "]]print(i18n("show_alerts.alert_type"))print[[",
-	    field: "column_type",
-            sortable: true,
-	    css: {
-	       textAlign: 'center',
-          whiteSpace: 'nowrap',
-	    }
-	 },{
-	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
-	    css: {
-	       textAlign: 'center',
-	    }
-	 }], tableCallback: function() {
-        datatableForEachRow("#table-disabled-alerts", function(row_id) {
-           datatableAddActionButtonCallback.bind(this)(3, "prepareToggleAlertsDialog('table-disabled-alerts',"+ row_id +"); $('#enable_alert_type').modal('show');", "]] print(i18n("show_alerts.enable_alerts")) print[[");
-        })
-       }
-  });
-  </script>]]
-end
-
--- #################################
-
 function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
    local alert_items = {}
    local url_params = {}
@@ -1080,36 +859,6 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
 			 message = i18n("show_alerts.confirm_release_alert"),
 			 confirm = i18n("show_alerts.release_alert_action"),
 			 confirm_button = "btn-primary",
-		      }
-      })
-   )
-
-   print(
-      template.gen("modal_confirm_dialog.html", {
-		      dialog={
-			 id      = "enable_alert_type",
-			 action  = "toggleAlert(false)",
-			 title   = i18n("show_alerts.enable_alerts_title"),
-			 message = i18n("show_alerts.enable_alerts_message", {
-        type = "<span class='toggle-alert-id'></span>",
-        entity_value = "<span class='toggle-alert-entity-value'></span>"
-       }),
-			 confirm = i18n("show_alerts.enable_alerts"),
-		      }
-      })
-   )
-
-   print(
-      template.gen("modal_confirm_dialog.html", {
-		      dialog={
-			 id      = "disable_alert_type",
-			 action  = "toggleAlert(true)",
-			 title   = i18n("show_alerts.disable_alerts_title"),
-			 message = i18n("show_alerts.disable_alerts_message", {
-        type = "<span class='toggle-alert-id'></span>",
-        entity_value = "<span class='toggle-alert-entity-value'></span>"
-       }),
-			 confirm = i18n("show_alerts.disable_alerts"),
 		      }
       })
    )
@@ -1232,16 +981,6 @@ function deleteAlertById(alert_key) {
 }
 
 var alert_to_toggle = null;
-
-function prepareToggleAlertsDialog(table_id, idx) {
-  var table_data = $("#" + table_id ).data("datatable").resultset.data;
-  var row = table_data[idx];
-  alert_to_toggle = row;
-
-  $(".toggle-alert-id").html(NtopUtils.noHtml(row.column_type).trim());
-  $(".toggle-alert-entity-value").html(NtopUtils.noHtml(row.column_entity_formatted).trim())
-}
-
 var alert_to_release = null;
 
 function releaseAlert(idx) {
@@ -1256,20 +995,6 @@ function releaseAlert(idx) {
     "alert_severity": row.column_severity_id,
     "alert_subtype": row.column_subtype,
     "alert_granularity": row.column_granularity,
-    "csrf": "]] print(ntop.getRandomCSRFValue()) print[[",
-  };
-
-  var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
-  form.appendTo('body').submit();
-}
-
-function toggleAlert(disable) {
-  var row = alert_to_toggle;
-  var params = {
-    "action": disable ? "disable_alert" : "enable_alert",
-    "entity": row.column_entity_id,
-    "entity_val": row.column_entity_val,
-    "alert_type": row.column_type_id,
     "csrf": "]] print(ntop.getRandomCSRFValue()) print[[",
   };
 
@@ -1324,13 +1049,6 @@ function toggleAlert(disable) {
 	 status = nil; status_reset = 1
       end
 
-      if has_disabled_alerts then
-	 alert_items[#alert_items +1] = {
-	    ["label"] = i18n("show_alerts.disabled_alerts"),
-	    ["chart"] = "",
-	    ["div-id"] = "table-disabled-alerts",  ["status"] = "disabled-alerts"}
-      end
-
       for k, t in ipairs(alert_items) do
 	 local clicked = "0"
 	 if((not alt_nav_tabs) and ((k == 1 and status == nil) or (status ~= nil and status == t["status"]))) then
@@ -1345,11 +1063,6 @@ function toggleAlert(disable) {
       $("#]] print(nav_tab_id) print[[").append('<li class="nav-item ]] print(ternary(options.dont_nest_alerts, 'hidden', '')) print[["><a class="nav-link" href="#tab-]] print(t["div-id"]) print[[" clicked="]] print(clicked) print[[" role="tab" data-toggle="tab">]] print(t["label"]) print[[</a></li>')
       </script>
    ]]
-
-   if t["status"] == "disabled-alerts" then
-     printDisabledAlerts(ifid)
-     goto next_menu_item
-   end
 
    print[[
       <script type="text/javascript">
@@ -1530,13 +1243,6 @@ function toggleAlert(disable) {
                   datatableAddLinkButtonCallback.bind(this)(10, explorer_url, "<i class='fab fa-wpexplorer'></i>");
                   disable_alerts_dialog = "#disable_flows_alerts";
                }
-
-	       if(]] print(ternary(t["status"] == "historical-flows", "false", "true")) print[[) {
-		  if(!data.column_alert_disabled)
-		     datatableAddActionButtonCallback.bind(this)(10, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#disable_alert_type').modal('show');", "<i class='fas fa-toggle-off'></i>");
-		  else
-		     datatableAddActionButtonCallback.bind(this)(10, "prepareToggleAlertsDialog(']] print(t["div-id"]) print[[',"+ row_id +"); $('#enable_alert_type').modal('show');", "<i class='fas fa-toggle-on'></i>");
-	       }
 
                if(]] print(ternary(t["status"] == "engaged", "true", "false")) print[[)
                  datatableAddActionButtonCallback.bind(this)(10, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "<i class='fas fa-unlock'></i>");
@@ -1736,7 +1442,6 @@ end
 function alert_utils.drawAlerts(options)
    local has_engaged_alerts = alert_utils.hasAlerts("engaged", alert_utils.getTabParameters(_GET, "engaged"))
    local has_past_alerts = alert_utils.hasAlerts("historical", alert_utils.getTabParameters(_GET, "historical"))
-   local has_disabled_alerts = alerts_api.hasEntitiesWithAlertsDisabled(interface.getId())
    local has_flow_alerts = false
 
    if _GET["entity"] == nil then
@@ -1744,8 +1449,7 @@ function alert_utils.drawAlerts(options)
    end
 
    alert_utils.checkDeleteStoredAlerts()
-   checkDisableAlerts()
-   return alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, num_flow_alerts, has_disabled_alerts, _GET, true, nil, options)
+   return alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, num_flow_alerts, false, _GET, true, nil, options)
 end
 
 -- #################################

@@ -27,19 +27,6 @@ end
 interface.select(_GET["ifid"])
 
 local ifid = interface.getId()
-local entities_bitmaps = {}
-
-local function getEntityAlertDisabledBitmap(entity, entity_val)
-  if((entities_bitmaps[entity] ~= nil) and (entities_bitmaps[entity][entity_val] ~= nil)) then
-    return entities_bitmaps[entity][entity_val]
-  end
-
-  local bitmap = alerts_api.getEntityAlertsDisabledBitmap(ifid, entity, entity_val)
-  entities_bitmaps[entity] = entities_bitmaps[entity] or {}
-  entities_bitmaps[entity][entity_val] = bitmap
-
-  return(bitmap)
-end
 
 local function getExplorerLink(origin, target, timestamp)
    local url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flow_alerts_explorer.lua?"
@@ -156,10 +143,7 @@ for _key,_value in ipairs(alerts) do
    end
 
    if status ~= "historical-flows" then
-     local bitmap = getEntityAlertDisabledBitmap(_value["alert_entity"], _value["alert_entity_val"])
-
      record["column_entity_formatted"] = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(_value["alert_entity"]), _value["alert_entity_val"])
-     record["column_alert_disabled"] = ntop.bitmapIsSet(bitmap, tonumber(_value["alert_type"]))
    end
 
    record["column_key"] = column_id

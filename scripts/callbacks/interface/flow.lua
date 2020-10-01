@@ -40,7 +40,6 @@ local available_modules = nil
 local alerted_status
 local alert_type_params
 local alerted_status_score
-local hosts_disabled_status
 local confset_id
 local alerted_user_script
 local cur_user_script
@@ -151,9 +150,6 @@ function setup()
    flows_config, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
    alerted_user_script = nil
 
-   -- Load the disabled hosts status. As hosts stay in the view, the correct disabled status needs to look there
-   hosts_disabled_status = alerts_api.getAllHostsDisabledStatusBitmaps(view_ifid or ifid)
-
    -- To execute flows, the viewed interface id is used instead, as flows reside in the viewed interface, not in the view
    available_modules = user_scripts.load(ifid, user_scripts.script_types.flow, "flow", {
       do_benchmark = true,
@@ -237,28 +233,13 @@ end
 -- #################################################################
 
 local function triggerFlowAlert(now, l4_proto)
-
    if not areAlertsEnabled() then
       return(false)
    end
 
    local cli_key = flow.getClientKey()
    local srv_key = flow.getServerKey()
-   local cli_disabled_status = hosts_disabled_status[cli_key] or 0
-   local srv_disabled_status = hosts_disabled_status[srv_key] or 0
    local status_key = alerted_status.status_key
-
-   -- Ensure that this status was not disabled by the user on the client/server
-   if (cli_disabled_status ~= 0 and ntop.bitmapIsSet(cli_disabled_status, status_key)) or
-       (srv_disabled_status ~= 0 and ntop.bitmapIsSet(srv_disabled_status, status_key)) then
-
-      if do_trace then
-	  trace_f(string.format("Not triggering flow alert for status %u [cli_bitmap: %s/%d][srv_bitmap: %s/%d]",
-				status_key, cli_key, cli_disabled_status, srv_key, srv_disabled_status))
-      end
-
-      return(false)
-   end
 
    if do_trace then
       trace_f(string.format("flow.triggerAlert(type=%s, severity=%s)",

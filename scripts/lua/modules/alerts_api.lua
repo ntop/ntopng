@@ -153,10 +153,6 @@ function alerts_api.store(entity_info, type_info, when)
   local subtype = type_info.alert_subtype or ""
   when = when or os.time()
 
-  if alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_key) then
-    return(false)
-  end
-
   -- Here the alert is considered stored. The actual store will be performed
   -- asynchronously
 
@@ -248,13 +244,6 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   end
 
   local ifid = interface.getId()
-  local is_disabled = alerts_api.isEntityAlertDisabled(ifid, entity_info.alert_entity.entity_id, entity_info.alert_entity_val, type_info.alert_type.alert_key)
-
-  -- Check if the alerts has been disabled and, in case return, before checking already_triggered,
-  -- so that the alert will be automatically released during the next check.
-  if is_disabled then
-     return(true)
-  end
 
   if(type_info.alert_granularity == nil) then
     alertErrorTraceback("Missing mandatory 'alert_granularity'")
@@ -707,22 +696,6 @@ end
 
 -- ##############################################
 
--- @brief Get a table containing the disabled alert bitmaps of the alertable entities
--- for the given entity_type
--- @return {entity_key -> disabled_alerts_bitmap}
-function alerts_api.getEntityTypeDisabledAlertsBitmap(ifid, entity_type)
-  local hash = getEntityDisabledAlertsBitmapHash(ifid, entity_type)
-  local rv = ntop.getHashAllCache(hash) or {}
-
-  for k, v in pairs(rv) do
-    rv[k] = tonumber(v)
-  end
-
-  return(rv)
-end
-
--- ##############################################
-
 -- A cache variable to know if there are configured disabled alerts
 local function getInterfaceHasDisabledAlertsKey(ifid)
   -- NOTE: should be able to accept strings for alerts_api.purgeAlertsPrefs
@@ -749,67 +722,6 @@ function alerts_api.setEntityAlertsDisabledBitmap(ifid, entity_type, entity_val,
 
   -- Reload the periodic scripts as the configuration has changed
   ntop.reloadPeriodicScripts()
-end
-
--- ##############################################
-
--- @brief Get the disabled alert bitmap for the given entity
-function alerts_api.getEntityAlertsDisabledBitmap(ifid, entity_type, entity_val)
-  local hash = getEntityDisabledAlertsBitmapHash(ifid, entity_type)
-
-  return(tonumber(ntop.getHashCache(hash, entity_val)) or 0)
-end
-
--- ##############################################
-
--- A cache is used to reduce Redis accesses
-local cache_disabled_by_entity_type = {}
-
--- @brief Check if the alert_type is disabled for the given entity
-function alerts_api.isEntityAlertDisabled(ifid, entity_type, entity_val, alert_key)
-  local entities_disabled = cache_disabled_by_entity_type[entity_type]
-
-  if(entities_disabled == nil) then
-    -- Local from redis
-    entities_disabled = alerts_api.getEntityTypeDisabledAlertsBitmap(ifid, entity_type)
-    cache_disabled_by_entity_type[entity_type] = entities_disabled
-  end
-
-  local bitmap = entities_disabled[entity_val]
-
-  if((bitmap ~= nil) and ntop.bitmapIsSet(bitmap, alert_key)) then
-    return(true)
-  end
-
-  return(false)
-end
-
--- ##############################################
-
--- @brief Check if there are any entities with disabled alerts configured
-function alerts_api.hasEntitiesWithAlertsDisabled(ifid)
-  local has_disabled_cache_key = getInterfaceHasDisabledAlertsKey(ifid)
-  local cached_val = ntop.getCache(has_disabled_cache_key) or ""
-
-  if(cached_val ~= "") then
-    return(cached_val == "1")
-  end
-
-  -- Slow search
-  local available_entities = alert_consts.alert_entities
-  local found = false
-
-  for _, entity in pairs(available_entities) do
-    local keys = ntop.getKeysCache(getEntityDisabledAlertsBitmapHash(ifid, entity.entity_id))
-
-    if(not table.empty(keys)) then
-      found = true
-      break
-    end
-  end
-
-  ntop.setCache(has_disabled_cache_key, ternary(found, "1", "0"), 3600 --[[ 1h ]])
-  return(found)
 end
 
 -- ##############################################
@@ -851,107 +763,10 @@ end
 
 -- ##############################################
 
--- @brief Get the bitmap of disabled flow status for an host
-function alerts_api.getHostDisabledStatusBitmap(ifid, hostkey)
-  local hash = getHostDisabledStatusBitmapHash(ifid)
-
-  return(tonumber(ntop.getHashCache(hash, hostkey)) or 0)
-end
-
--- ##############################################
-
--- @brief Set the bitmap of disabled flow status for an host
-function alerts_api.setHostDisabledStatusBitmap(ifid, hostkey, bitmap)
-  local hash = getHostDisabledStatusBitmapHash(ifid)
-
-  if(bitmap == 0) then
-    -- No status disabled
-    ntop.delHashCache(hash, hostkey)
-  else
-    ntop.setHashCache(hash, hostkey, string.format("%u", bitmap))
-  end
-
-  -- Reload the periodic scripts as the configuration has changed
-  ntop.reloadPeriodicScripts()
-end
-
--- ##############################################
-
--- @brief Get all the hosts disabled flow status bitmaps
-function alerts_api.getAllHostsDisabledStatusBitmaps(ifid)
-  local hash = getHostDisabledStatusBitmapHash(ifid)
-  local rv = ntop.getHashAllCache(hash) or {}
-
-  for k, v in pairs(rv) do
-    rv[k] = tonumber(v)
-  end
-
-  return(rv)
-end
-
--- ##############################################
--- SUPPRESSED ALERTS API
--- ##############################################
-
-local function getSuppressedSetKey(ifid, entity_type)
-  -- NOTE: should be able to accept strings for alerts_api.purgeAlertsPrefs
-  if(type(ifid) == "number") then ifid = string.format("%d", ifid) end
-  if(type(entity_type) == "number") then entity_type = string.format("%u", entity_type) end
-
-  return(string.format("ntopng.prefs.alerts.ifid_%s.suppressed_alerts.entity_%s", ifid, entity_type))
-end
-
--- @brief Get the suppressed alertable entities given the entity_type
-function alerts_api.getSuppressedEntityAlerts(ifid, entity_type)
-  local setk = getSuppressedSetKey(ifid, entity_type)
-  local suppressed_entities = ntop.getMembersCache(setk) or {}
-  local ret = {}
-
-  for _, v in pairs(suppressed_entities) do
-    ret[v] = true
-  end
-
-  return(ret)
-end
-
--- ##############################################
-
--- @brief Enable/disable suppressed alerts on the given alertable entity
-function alerts_api.setSuppressedAlerts(ifid, entity_type, entity_value, suppressed)
-  local setk = getSuppressedSetKey(ifid, entity_type)
-
-  if(suppressed) then
-    ntop.setMembersCache(setk, entity_value)
-  else
-    ntop.delMembersCache(setk, entity_value)
-  end
-end
-
--- ##############################################
-
--- A cache is used to reduce Redis accesses
-local cache_suppressed_by_entity_type = {}
-
--- @brief Check if the given entity has suppressed alerts
-function alerts_api.hasSuppressedAlerts(ifid, entity_type, entity_value)
-  local entities_suppressed = cache_suppressed_by_entity_type[entity_type]
-
-  if(entities_suppressed == nil) then
-    -- Local from redis
-    entities_suppressed = alerts_api.getSuppressedEntityAlerts(ifid, entity_type)
-    cache_suppressed_by_entity_type[entity_type] = entities_suppressed
-  end
-
-  return(entities_suppressed[entity_value] ~= nil)
-end
-
--- ##############################################
-
 -- @brief Purge all the alerts prefs set by this module
 function alerts_api.purgeAlertsPrefs()
   -- Purge all the alerts prefs on all the interfaces
   deleteCachePattern(getEntityDisabledAlertsBitmapHash("*", "*"))
-  deleteCachePattern(getSuppressedSetKey("*", "*"))
   deleteCachePattern(getInterfaceHasDisabledAlertsKey("*"))
   deleteCachePattern(getHostDisabledStatusBitmapHash("*"))
 end

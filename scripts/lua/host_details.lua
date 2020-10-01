@@ -2062,8 +2062,8 @@ end
 elseif(page == "alerts") then
    alert_utils.printAlertTables("host", hostkey,
       "host_details.lua", {ifid=ifId, host=hostkey},
-      host_label, "host", {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"]),
-			   enable_label = i18n("show_alerts.trigger_host_alert_descr", {host = hostinfo2hostkey(host)})})
+      host_label, {host_ip=host_ip, host_vlan=host_vlan, remote_host = (not host["localhost"]),
+		   enable_label = i18n("show_alerts.trigger_host_alert_descr", {host = hostinfo2hostkey(host)})})
 
 elseif (page == "quotas" and ntop.isnEdge() and ntop.isEnterpriseM() and host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
