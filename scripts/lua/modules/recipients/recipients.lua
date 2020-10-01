@@ -405,10 +405,10 @@ end
 -- @brief Get all recipients having the given `endpoint_conf_name`
 -- @param endpoint_conf_name An endpoint configuration key
 -- @return A lua array with recipients
-function recipients.get_recipients_by_conf(endpoint_conf_name)
+function recipients.get_recipients_by_conf(endpoint_conf_name, include_stats)
    local res = {}
 
-   local all_recipients = recipients.get_all_recipients()
+   local all_recipients = recipients.get_all_recipients(false, include_stats)
    for _, recipient in pairs(all_recipients) do
       if recipient.endpoint_conf_name == endpoint_conf_name then
 	 res[#res + 1] = recipient
@@ -472,7 +472,7 @@ end
 
 -- ##############################################
 
-function recipients.get_recipient(recipient_id)
+function recipients.get_recipient(recipient_id, include_stats)
    local user_scripts = require "user_scripts"
    local recipient_details
    local recipient_details_key = _get_recipient_details_key(recipient_id)
@@ -520,8 +520,10 @@ function recipients.get_recipient(recipient_id)
 	    end
 	 end
 
-	 -- Read stats from C
-	 recipient_details["stats"] = ntop.recipient_stats(recipient_details["recipient_id"])
+         if include_stats then
+	    -- Read stats from C
+	    recipient_details["stats"] = ntop.recipient_stats(recipient_details["recipient_id"])
+          end
       end
    end
 
@@ -531,7 +533,7 @@ end
 
 -- ##############################################
 
-function recipients.get_all_recipients(exclude_builtin)
+function recipients.get_all_recipients(exclude_builtin, include_stats)
    local res = {}
    local cur_recipient_ids = _get_assigned_recipient_ids()
 

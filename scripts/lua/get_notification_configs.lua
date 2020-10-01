@@ -17,5 +17,5 @@ if not haveAdminPrivileges(true) then
     return
 end
 
-local endpoints = notification_configs.get_configs_with_recipients()
+local endpoints = notification_configs.get_configs_with_recipients(true)
 print(json.encode(endpoints))

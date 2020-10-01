@@ -336,12 +336,12 @@ end
 -- @return A lua array with as many elements as the number of existing configurations.
 --         Each element is the result of `notification_configs.get_endpoint_config`
 --         with an extra key `recipients`.
-function notification_configs.get_configs_with_recipients()
+function notification_configs.get_configs_with_recipients(include_stats)
    local recipients = require "recipients"
    local configs = notification_configs.get_configs()
 
    for conf_name, conf in pairs(configs) do
-      conf["recipients"] = recipients.get_recipients_by_conf(conf.endpoint_conf_name)
+      conf["recipients"] = recipients.get_recipients_by_conf(conf.endpoint_conf_name, include_stats)
    end
 
    return configs
@@ -366,6 +366,47 @@ function notification_configs.reset_configs()
    end
 
    return {status = "OK"}
+end
+
+-- #################################################################
+
+-- @brief Restore a full set of configurations, exported with get_configs_with_recipients
+-- including configuration params and associated recipients
+function notification_configs.add_configs_with_recipients(configs)
+   local rc = true
+
+   -- Restore Endpoints
+   for _, conf in ipairs(configs) do
+      local endpoint_key = conf.endpoint_key
+      local endpoint_conf_name = conf.endpoint_conf_name
+      local conf_params = conf.endpoint_conf
+      local recipients = conf.recipients
+
+      if endpoint_key and endpoint_conf_name and conf_params and recipients then
+
+         local ret = notification_configs.add_config(endpoint_key, endpoint_conf_name, conf_params)
+
+         if not ret or not ret.status or ret.status ~= "OK" then
+            rc = false
+         else
+            -- Restore Recipients
+            for _, recipient_conf in ipairs(conf.recipients) do
+               local endpoint_recipient_name = recipient_conf.recipient_name
+               local user_script_categories = recipient_conf.user_script_categories
+               local minimum_severity = recipient_conf.minimum_severity
+               local recipient_params = recipient_conf.recipient_params
+
+               ret = recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
+
+               if not ret or not ret.status or ret.status ~= "OK" then
+                  rc = false
+               end
+            end
+         end
+      end
+   end
+
+   return rc
 end
 
 -- #################################################################
