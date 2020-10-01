@@ -1777,7 +1777,6 @@ function alert_utils.flushAlertsData()
    -- as it also deletes ntopng.prefs.plugins_consts_utils.assigned_ids.const_type_alert and others
    deleteCachePattern("ntopng.prefs.*alerts*")
 
-   alerts_api.purgeAlertsPrefs()
    for _, key in pairs(get_make_room_keys("*")) do deleteCachePattern(key) end
 
    if(verbose) then io.write("[Alerts] Enabling alerts generation...\n") end
