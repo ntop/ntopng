@@ -64,18 +64,20 @@ end
 -- module instances
 function import_export_rest_utils.import(items) 
    local rc = rest_utils.consts.success.ok
+   local list = {}
 
    for name, module in pairs(items) do
       local res = module.instance:import(module.conf)
       if res.err then 
-         rc = res.err     
+         rc = res.err
       end
+      list[#list] = name
    end
 
    rest_utils.answer(rc)
 
    -- TRACKER HOOK
-   tracker.log('import', { })
+   tracker.log('import', { modules = list })
 end
 
 -- ##############################################
@@ -84,6 +86,7 @@ end
 function import_export_rest_utils.export(instances, is_download)
    local rc = rest_utils.consts.success.ok
    local modules = {}
+   local list = {}
 
    -- Build the list of configurations for each module
    for name, instance in pairs(instances) do
@@ -92,6 +95,7 @@ function import_export_rest_utils.export(instances, is_download)
          rc = rest_utils.consts.err.internal_error 
       else
          modules[name] = conf
+         list[#list] = name
       end
    end
 
@@ -107,7 +111,25 @@ function import_export_rest_utils.export(instances, is_download)
    end
 
    -- TRACKER HOOK
-   tracker.log('export', { })
+   tracker.log('export', { modules = list })
+end
+
+-- ##############################################
+
+-- @brief Reset the configuration for a list of (provided) module instances
+function import_export_rest_utils.reset(instances)
+   local rc = rest_utils.consts.success.ok
+   local list = {}
+
+   for name, instance in pairs(instances) do
+      instance:reset()
+      list[#list] = name
+   end
+
+   rest_utils.answer(rc)
+
+   -- TRACKER HOOK
+   tracker.log('reset', { modules = list })
 end
 
 -- ##############################################

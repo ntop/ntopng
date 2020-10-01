@@ -63,4 +63,11 @@ end
 
 -- ##############################################
 
+-- @brief Reset configuration
+function snmp_import_export:reset()
+   snmp_config.remove_all_devices()
+end
+
+-- ##############################################
+
 return snmp_import_export

@@ -46,4 +46,11 @@ end
 
 -- ##############################################
 
+-- @brief Reset configuration
+function import_export:reset()
+   --
+end
+
+-- ##############################################
+
 return import_export

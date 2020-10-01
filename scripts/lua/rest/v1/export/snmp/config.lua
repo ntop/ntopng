@@ -14,7 +14,7 @@ local import_export_rest_utils = require "import_export_rest_utils"
 
 --
 -- Export SNMP configuration
--- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v1/export/snmp/config.lua
+-- Example: curl -u admin:admin http://localhost:3000/lua/rest/v1/export/snmp/config.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
