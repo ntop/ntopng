@@ -69,8 +69,15 @@ end
 -- @brief Export configuration
 -- @return The current configuration
 function am_import_export:export()
-   local conf = active_monitoring_utils.getHosts(true --[[ only retrieve the configuration ]])
+   local conf = am_utils.getHosts(true --[[ only retrieve the configuration ]])
    return conf
+end
+
+-- ##############################################
+
+-- @brief Reset configuration
+function am_import_export:reset()
+   am_utils.resetConfig()   
 end
 
 -- ##############################################
