@@ -382,7 +382,8 @@ function notification_configs.add_configs_with_recipients(configs)
       local endpoint_conf_name = conf.endpoint_conf_name
       local conf_params = conf.endpoint_conf
 
-      if endpoint_key and endpoint_conf_name and conf_params and conf.recipients then
+      if endpoint_key and endpoint_conf_name and conf_params and conf.recipients and 
+         not conf_params.builtin then
 
          local ret = notification_configs.add_config(endpoint_key, endpoint_conf_name, conf_params)
 
