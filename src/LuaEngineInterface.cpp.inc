@@ -3860,18 +3860,6 @@ static int ntop_set_interface_periodic_activity_progress(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_purge_queued_idle_entries(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(ntop_interface)
-    ntop_interface->purgeQueuedIdleEntries();
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_active_flows_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   nDPIStats ndpi_stats;
@@ -4453,7 +4441,6 @@ static const luaL_Reg ntop_interface_reg[] = {
 
   /* Functions related to the management of the internal hash tables */
   { "getHashTablesStats",       ntop_get_interface_hash_tables_stats },
-  { "purgeQueuedIdleEntries",   ntop_purge_queued_idle_entries       },
 
   /* Functions to get and reset the duration of periodic threaded activities */
   { "getPeriodicActivitiesStats",   ntop_get_interface_periodic_activities_stats   },

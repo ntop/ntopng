@@ -145,9 +145,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   no_priority_pool           = new ThreadPool(false, num_threads_no_priority);
   
   static activity_descr ad[] = {
-    // Script                                Periodicity (s) Max (s) Pool          Align  !View  !PCAP  Reuse
-    { PURGE_IDLE_SCRIPT_PATH,                1,     2, purge_idle_pool,            false, false, true,  true  },
-
+    // Script                 Periodicity (s) Max (s)  Pool                        Align  !View  !PCAP  Reuse
     { SECOND_SCRIPT_PATH,                    1,     2, standard_priority_pool,     false, false, true,  true  },
     { STATS_UPDATE_SCRIPT_PATH,              5,    10, standard_priority_pool,     false, false, true,  true  },
     { PERIODIC_USER_SCRIPTS_PATH,            5,    60, periodic_user_scripts_pool, false, false, true,  true  },

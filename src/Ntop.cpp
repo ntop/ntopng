@@ -70,13 +70,14 @@ Ntop::Ntop(char *appName) {
   iface = NULL;
   start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
-  is_started = ndpiReloadInProgress = false;
+  ndpiReloadInProgress = false;
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
   malicious_ja3 = malicious_ja3_shadow = NULL;
   new_malicious_ja3 = new std::set<std::string>();
   system_interface = NULL;
+  purgeLoop_started = false;
 #ifndef WIN32
   cping = NULL;
 #endif
@@ -246,6 +247,9 @@ void Ntop::initTimezone() {
 Ntop::~Ntop() {
   if(httpd)
     delete httpd; /* Stop the http server before tearing down network interfaces */
+
+  if(purgeLoop_started)
+    pthread_join(purgeLoop, NULL);
 
   for(int i = 0; i < num_defined_interfaces; i++) {
     if(iface[i]) {
@@ -526,12 +530,12 @@ void Ntop::start() {
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
 
+  startPurgeLoop();
+
   sleep(2);
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->checkPointCounters(true); /* Reset drop counters */
-
-  is_started = true;
 
   /* Align to the next 5-th second of the clock to make sure
      housekeeping starts alinged (and remains aligned when
@@ -2568,6 +2572,43 @@ void Ntop::shutdownAll() {
   }
 #endif
 #endif
+}
+
+/* **************************************************** */
+
+void Ntop::purgeLoopBody() {
+  while(!globals->isShutdown()) {
+    for(u_int i = 0; i < get_num_interfaces(); i++) {
+      NetworkInterface *cur_iface = getInterface(i);
+      if(cur_iface) cur_iface->purgeQueuedIdleEntries();
+    }
+
+    /* Safe to sleep 100ms as entries are marked as idle by interfaces purgeIdle
+     which runs every second on 1/24th of the hash table. This is run faster that 1 second
+     as there may be idle entries not deleted (number of uses greater than 0) */
+    _usleep(100000);
+  }
+}
+
+/* **************************************************** */
+
+static void* purgeLoop(void *arg) {
+  ntop->purgeLoopBody();
+  return NULL;
+}
+
+/* **************************************************** */
+
+/*
+  Thread which iterates on all available interfaces and perform the delete operations on idle hash table entries
+ */
+bool Ntop::startPurgeLoop() {
+  if(!purgeLoop_started) {
+    pthread_create(&purgeLoop, NULL, ::purgeLoop, NULL);
+    purgeLoop_started = true;
+  }
+
+  return purgeLoop_started;
 }
 
 /* ******************************************* */

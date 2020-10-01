@@ -41,6 +41,8 @@ class Ntop {
 #ifndef WIN32
   int startupLockFile;
 #endif
+  pthread_t purgeLoop;    /* Loop which iterates on active interfaces to delete idle hash table entries */
+  bool purgeLoop_started; /* Flag that indicates whether the purgeLoop has been started */
   bool ndpiReloadInProgress;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
@@ -82,7 +84,7 @@ class Ntop {
   DeviceProtocolBitmask deviceProtocolPresets[device_max_type];
   cpu_load_stats cpu_stats;
   float cpu_load;
-  bool is_started, plugins0_active, can_send_icmp, privileges_dropped;
+  bool plugins0_active, can_send_icmp, privileges_dropped;
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoSerializerQueue *internal_alerts_queue;
   Recipients recipients; /* Handle notification recipients */
@@ -103,6 +105,7 @@ class Ntop {
   bool getUserPasswordHashLocal(const char * const user, char *password_hash) const;
   bool checkUserPasswordLocal(const char * const user, const char * const password, char *group) const;
   bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
+  bool startPurgeLoop();
   
  public:
   /**
@@ -418,7 +421,6 @@ class Ntop {
   void shutdownAll();
   void runHousekeepingTasks();
   void runShutdownTasks();
-  inline bool isStarted() { return(is_started); }
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };
   inline u_int8_t getLocalNetworkId(const char *network_name) { return(address->get_local_network_id(network_name)); }
   inline const char* getLocalNetworkName(int16_t local_network_id) {
@@ -498,6 +500,7 @@ class Ntop {
 
   void getUserGroupLocal(const char * const user, char *group) const;
   bool existsUserLocal(const char * const user) { char val[64]; return getUserPasswordHashLocal(user, val); }
+  void purgeLoopBody();
 };
 
 extern Ntop *ntop;

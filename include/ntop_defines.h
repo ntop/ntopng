@@ -887,7 +887,6 @@
 #define PINGER_SCRIPT_PATH                   "pinger.lua"
 #define SECOND_SCRIPT_PATH                   "second.lua"
 #define MINUTE_SCRIPT_PATH                   "minute.lua"
-#define PURGE_IDLE_SCRIPT_PATH               "purge_idle.lua"
 #define STATS_UPDATE_SCRIPT_PATH             "stats_update.lua"
 #define PERIODIC_USER_SCRIPTS_PATH           "periodic_user_scripts.lua"
 #define THIRTY_SECONDS_SCRIPT_PATH           "30sec.lua"
