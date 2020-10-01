@@ -77,4 +77,11 @@ end
 
 -- ##############################################
 
+-- @brief Reset configuration
+function scripts_import_export:reset()
+   user_scripts.resetConfigsets()
+end
+
+-- ##############################################
+
 return scripts_import_export

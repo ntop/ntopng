@@ -13,13 +13,11 @@ local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
 
 --
--- Export user scripts configuration
--- Example: curl -u admin:admin http://localhost:3000/lua/rest/v1/export/scripts/config.lua
+-- Reset User Scripts configuration
+-- Example: curl -u admin:admin http://localhost:3000/lua/rest/v1/reset/scripts/config.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
-
-local download = _GET["download"] 
 
 if not haveAdminPrivileges() then
    rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -28,5 +26,5 @@ end
 
 local instances = {}
 instances["scripts"] = scripts_import_export:create()
-import_export_rest_utils.export(instances, not isEmptyString(download))
+import_export_rest_utils.reset(instances)
 
