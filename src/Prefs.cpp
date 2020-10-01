@@ -99,13 +99,10 @@ Prefs::Prefs(Ntop *_ntop) {
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true, enable_auto_logout_at_runtime = true;
-  dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = false;
+  dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = dump_flows_on_nindex = false;
   dump_json_flows_on_disk = load_json_flows_from_disk_to_nindex = dump_ext_json = false;
   routing_mode_enabled = false;
   global_dns_forging_enabled = false;
-#if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
-  dump_flows_on_nindex = false;
-#endif
 #ifdef NTOPNG_PRO
   dump_flows_direct = false;
 #endif
