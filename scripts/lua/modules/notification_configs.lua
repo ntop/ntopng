@@ -373,6 +373,7 @@ end
 -- @brief Restore a full set of configurations, exported with get_configs_with_recipients
 -- including configuration params and associated recipients
 function notification_configs.add_configs_with_recipients(configs)
+   local recipients = require "recipients"
    local rc = true
 
    -- Restore Endpoints
@@ -380,9 +381,8 @@ function notification_configs.add_configs_with_recipients(configs)
       local endpoint_key = conf.endpoint_key
       local endpoint_conf_name = conf.endpoint_conf_name
       local conf_params = conf.endpoint_conf
-      local recipients = conf.recipients
 
-      if endpoint_key and endpoint_conf_name and conf_params and recipients then
+      if endpoint_key and endpoint_conf_name and conf_params and conf.recipients then
 
          local ret = notification_configs.add_config(endpoint_key, endpoint_conf_name, conf_params)
 
