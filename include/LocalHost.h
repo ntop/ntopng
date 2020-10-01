@@ -83,20 +83,7 @@ class LocalHost : public Host, public SerializableElement {
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
-  virtual void lua_get_timeseries(lua_State* vm);
-
-  void flowBeginEvent(Flow *f, u_int32_t epoch, bool as_client) {
-    ;
-  }
-  
-  void flowL7ProtoDetectedEvent(Flow *f, u_int16_t l7proto, bool as_client) {
-    ;
-  }
-
-  void flowEndEvent(Flow *f, bool as_client) {
-    ;
-  }
-
+  virtual void lua_get_timeseries(lua_State* vm);  
   void custom_periodic_stats_update(const struct timeval *tv) {
   }
 };

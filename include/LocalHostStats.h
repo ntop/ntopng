@@ -61,8 +61,6 @@ class LocalHostStats: public HostStats {
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   virtual void deserialize(json_object *obj);
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
-  virtual void incNumFlows(bool as_client, Host *peer);
-  virtual void decNumFlows(bool as_client, Host *peer);
 
   virtual void luaDNS(lua_State *vm, bool verbose) const  { if(dns) dns->lua(vm,verbose); }
   virtual void luaHTTP(lua_State *vm) const  { if(http) http->lua(vm); }

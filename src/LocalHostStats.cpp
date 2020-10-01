@@ -226,18 +226,6 @@ void LocalHostStats::deserialize(json_object *o) {
 
 /* *************************************** */
 
-void LocalHostStats::incNumFlows(bool as_client, Host *peer) {
-  HostStats::incNumFlows(as_client, peer);
-}
-
-/* *************************************** */
-
-void LocalHostStats::decNumFlows(bool as_client, Host *peer) {
-  HostStats::decNumFlows(as_client, peer);
-}
-
-/* *************************************** */
-
 void LocalHostStats::lua_get_timeseries(lua_State* vm) {
   luaStats(vm, iface, true /* host details */, true /* verbose */, true /* tsLua */);
 

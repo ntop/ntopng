@@ -1008,8 +1008,6 @@ void Host::incNumFlows(time_t t, bool as_client, Host *peer, Flow *f) {
     num_active_flows_as_server.inc(1);
   }
 
-  flowBeginEvent(f, t, as_client);
-
   counter->inc(t, this);
   stats->incNumFlows(as_client, peer);
 }
@@ -1028,10 +1026,6 @@ void Host::decNumFlows(time_t t, bool as_client, Host *peer, Flow *f) {
     else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
   }
-  
-  flowEndEvent(f, as_client);
-
-  stats->decNumFlows(as_client, peer);
 }
 
 /* *************************************** */
