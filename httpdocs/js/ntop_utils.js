@@ -760,7 +760,7 @@ class NtopUtils {
 				try { jsonConfiguration = JSON.parse(reader.result); } catch (e) { }
 
 				if (!jsonConfiguration) {
-					$("#import-error").text(`${i18n.invalid_file}`).show();
+					$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || 'Not Implemented Yet').show();
 					$button.removeAttr("disabled");
 					return;
 				}
@@ -799,8 +799,8 @@ class NtopUtils {
 
 					if (responseJSON && responseJSON.rc > 0) return;
 
-					// TODO: better error message
-					$("#import-error").text(`OPS`).show();
+					console.log(responseJSON);
+					$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || 'Not Implemented Yet').show();
 
 				})
 				.always(() => {
