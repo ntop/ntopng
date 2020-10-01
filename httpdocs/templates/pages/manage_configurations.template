@@ -1,0 +1,203 @@
+{#
+    (C) 2020 - ntop.org
+
+    This is the template for the manage configurations page.
+#}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <p>{{ i18n("manage_configurations.description") }}</p>
+                <div class="radio-list">
+                    {% for key, config in pairsByField(manage_configurations.configuration_items, 'order', asc) do %}
+                    <div class="form-check">
+                        <input class="form-check-input" {{ (config.key == manage_configurations.selected_item and 'checked' or '') }}
+                            type="radio" name="configuration" id="{{key}}-radio"
+                            value="{{config.key}}">
+                        <label class="form-check-label" for="{{key}}-radio">
+                            {{config.label}}
+                        </label>
+                    </div>
+                    {% if key == 'all' then %} <hr> {% end %}
+                    {% end %}
+                </div>
+            </div>
+            <div class="card-footer text-right">
+                <button id="btn-import" data-toggle="modal" data-target="#import-modal" type="submit" value="import" class="btn btn-primary">
+                    <i class='fas fa-file-import'></i>
+                    <span>
+                        {% if (manage_configurations.selected_item == 'all') then %}
+                            {{ i18n("restore") }}
+                        {% else %}
+                            {{ i18n("import") }}
+                        {% end %}
+                    </span>
+                </button>
+                <a id="btn-export" download="{{ manage_configurations.selected_item }}_config.json" class="btn btn-primary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/export/{{ manage_configurations.selected_item }}/config.lua?download=1">
+                    <i class='fas fa-file-export'></i>
+                    <span>
+                        {% if (manage_configurations.selected_item == 'all') then %}
+                            {{ i18n("backup") }}
+                        {% else %}
+                            {{ i18n("export") }}
+                        {% end %}
+                    </span>
+                </a>
+                <button {{ (manage_configurations.selected_item == "all" and 'disabled' or '') }} id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger">
+                    <i class="fas fa-undo-alt"></i> {{ i18n("factory_reset")}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{*
+    template_utils.gen("pages/modals/scripts_config/import_modal.html", {
+        dialog={
+            id      = "import-modal",
+            title   = i18n("manage_configurations.import_modal.title", {import_element = manage_configurations.configuration_items[manage_configurations.selected_item].label}),
+            label   = "",
+            message = i18n("host_pools.config_import_message"),
+            cancel  = i18n("cancel"),
+            apply   = i18n("apply"),
+        }
+      })
+*}
+
+{*
+    template_utils.gen("modal_confirm_dialog.html", {
+        dialog={
+            id = "reset-modal",
+            message = i18n('manage_configurations.factory_reset.body', {
+                reset_element = manage_configurations.configuration_items[manage_configurations.selected_item].label
+            }),
+            title = i18n("manage_configurations.factory_reset.title", {
+                reset_element = manage_configurations.configuration_items[manage_configurations.selected_item].label
+            }),
+            confirm = i18n("reset"),
+            custom_alert_class = 'alert alert-danger',
+            confirm_button = 'btn-danger'
+        }
+    })
+*}
+
+<script type="text/javascript">
+
+    const importCSRF = "{{ ntop.getRandomCSRFValue() }}";
+
+    i18n.backup = "{{ i18n('backup') }}";
+    i18n.restore = "{{ i18n('restore') }}";
+    i18n.import = "{{ i18n('import') }}";
+    i18n.export = "{{ i18n('export') }}";
+    i18n.invalid_file = "{{ i18n('invalid_file') }}"
+
+    i18n.success = "{{ i18n('success') }}";
+    i18n.failure = "{{ i18n('failure') }}";
+
+    i18n.manage_configurations = { messagges: {}};
+    i18n.manage_configurations.messagges.reset_success = "{{ i18n('manage_configurations.messages.reset_success') }}";
+    i18n.manage_configurations.messagges.import_success = "{{ i18n('manage_configurations.messages.import_success') }}";
+
+</script>
+<script type="text/javascript">
+$(document).ready(function() {
+
+    const setImportExportButtonLabels = (key) => {
+        $(`#btn-import span`).text((key == 'all') ? i18n.restore : i18n.import);
+        $(`#btn-export span`).text((key == 'all') ? i18n.backup : i18n.export);
+    }
+
+    const updateExportLink = (key) => {
+
+        if (key === undefined) {
+            console.warn("A key must be provided!");
+            return;
+        }
+
+        // create a filename for the selectec config
+        const filename = `${key}_config.json`;
+        const href = new URL(`/lua/rest/v1/export/${key}/config.lua`, location.origin);
+        href.searchParams.set('download', '1');
+
+        // update the export button link
+        $(`#btn-export`)
+            .attr("download", filename)
+            .attr("href", href.toString());
+    }
+
+    const updateFactoryResetInfo = (key, label) => {
+
+        if (key === undefined) {
+            console.warn("A key must be provided!");
+            return;
+        }
+
+        const $button = $(`#btn-factory-reset`);
+
+        // disable factory reset for Everything option
+        if (key == 'all') {
+            $button.attr("disabled", "disabled");
+            return;
+        }
+
+        $button.removeAttr("disabled");
+    }
+
+    $(`input[name='configuration']`).change(function() {
+
+        const key = $(this).val();
+        const label = $(this).parent("div").find("label").text();
+
+        $(`.selected-item`).text(label);
+
+        setImportExportButtonLabels(key);
+        updateExportLink(key);
+        updateFactoryResetInfo(key, label);
+    });
+
+    $(`#reset-modal #btn-confirm-action`).click(async function() {
+
+        $(this).attr("disabled", "disabled");
+        const key = $(`input[name='configuration']:checked`).val();
+
+        try {
+
+            const request = await fetch(`${http_prefix}/lua/rest/v1/reset/${key}/config.lua`);
+            const response = await request.json();
+
+            // check if the request failed
+            if (response.rc < 0) {
+
+            }
+            else {
+                AlertNotificationUtils.showAlert({
+                    id: 'reset-configuration-alert',
+                    level: 'success',
+                    title: i18n.success,
+                    body: i18n.manage_configurations.messagges.reset_success,
+                    delay: 2000
+                });
+                $(`#reset-modal`).modal('hide');
+            }
+
+        }
+        catch (exception) {
+        }
+        finally {
+            $(this).removeAttr("disabled");
+        }
+
+
+    });
+
+    // configure import config modal
+    NtopUtils.importModalHelper({
+        loadConfigXHR: (jsonConf) => {
+            const key = $(`input[name='configuration']:checked`).val();
+            return $.post(`${http_prefix}/lua/rest/v1/import/${key}/config.lua`, { JSON: jsonConf, csrf: importCSRF});
+        }
+    });
+
+});
+</script>

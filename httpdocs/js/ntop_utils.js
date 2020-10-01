@@ -717,76 +717,96 @@ class NtopUtils {
 
 	// To be used in conjunction with httpdocs/templates/config_list_components/import_modal.html
 	static importModalHelper(params) {
-		if (!params.load_config_xhr) { alert("Missing 'load_config_xhr' param"); return; }
 
-		$('#import-modal-btn').on("click", function (e) {
-			// hide previous errors
-			$("#import-error").hide();
+		if (!params.loadConfigXHR) { throw("importModalHelper:: Missing 'loadConfigXHR' param"); return; }
 
-			$("#import-modal form").off("submit");
+		const oldLabelImportInput = $(`label[for='#import-input']`).html();
+
+		$(`input#import-input`).on('change', function () {
+			const filename = $(this).val().replace("C:\\fakepath\\", "");
+			$(`label[for='#import-input']`).html(filename);
+			$(`#btn-confirm-import`).removeAttr("disabled");
 		});
 
-		$('#btn-confirm-import').off('click').click(function (e) {
-			const $button = $(this);
-
-			$button.attr("disabled", "");
-
-			// Read configuration file file
-			var file = $('#import-input')[0].files[0];
-
-			if (!file) {
-				$("#import-error").text(`${i18n.no_file}`).show();
-
-				// re-enable button
-				$button.removeAttr("disabled");
-			} else {
-				var reader = new FileReader();
-				reader.onload = function () {
-					// Client-side configuration file format check
-					let json_conf = null
-					try { json_conf = JSON.parse(reader.result); } catch (e) { }
-
-					if (!json_conf) {
-						$("#import-error").text(`${i18n.invalid_file}`).show();
-						// re-enable button
-						$button.removeAttr("disabled");
-					} else {
-						// Submit configuration file
-						params.load_config_xhr(reader.result)
-							.done((d, status, xhr) => {
-								if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $("#import-error"))) {
-									// re-enable button
-									$button.removeAttr("disabled");
-									return;
-								}
-
-								if (!d.success) {
-									$("#import-error").text(d.error).show();
-
-									// re-enable button
-									$button.removeAttr("disabled");
-
-									// update token
-									params.reset_csrf(d.csrf);
-								} else {
-									location.reload();
-								}
-							})
-							.fail(({ status, statusText }) => {
-								NtopUtils.check_status_code(status, statusText, $("#import-error"));
-
-								// re-enable button
-								$button.removeAttr("disabled");
-							});
-					};
-				}
-				reader.readAsText(file, "UTF-8");
-			}
+		$(`#import-modal`).on('hidden.bs.modal', function() {
+			$(`#import-input`).val('');
+			$(`label[for='#import-input']`).html(oldLabelImportInput);
+			$("#import-error").hide();
+			$(`#btn-confirm-import`).attr("disabled", "disabled");
 		});
 
 		$("#import-modal").on("submit", "form", function (e) {
+
 			e.preventDefault();
-			$("#btn-import").trigger("click");
+
+			const $button = $('#btn-confirm-import');
+			$button.attr("disabled", "");
+
+			// read configuration file
+			const file = $('#import-input')[0].files[0];
+
+			if (!file) {
+				$("#import-error").text(`${i18n.no_file}`).show();
+				$button.removeAttr("disabled");
+				return;
+			}
+
+			const reader = new FileReader();
+			reader.readAsText(file, "UTF-8");
+
+			reader.onload = function() {
+				// Client-side configuration file format check
+				let jsonConfiguration = null
+				try { jsonConfiguration = JSON.parse(reader.result); } catch (e) { }
+
+				if (!jsonConfiguration) {
+					$("#import-error").text(`${i18n.invalid_file}`).show();
+					$button.removeAttr("disabled");
+					return;
+				}
+
+				// Submit configuration file
+				params.loadConfigXHR(reader.result)
+				.done((response, status, xhr) => {
+
+					if (response.rc < 0) {
+						$("#import-error").text(response.rc_str).show();
+						return;
+					}
+
+					// if the operation was successful call the successCallback
+					if (params.successCallback) {
+						params.successCallback(response);
+					}
+
+					// show a success alert message
+					AlertNotificationUtils.showAlert({
+						id: 'import-configuration-alert',
+						level: 'success',
+						title: i18n.success,
+						body: i18n.manage_configurations.messagges.import_success,
+						delay: 2000
+					});
+
+					$("#import-modal").modal('hide');
+
+				})
+				.fail(({responseJSON}) => {
+
+					if (params.failureCallback) {
+						params.failureCallback(responseJSON);
+					}
+
+					if (responseJSON && responseJSON.rc > 0) return;
+
+					// TODO: better error message
+					$("#import-error").text(`OPS`).show();
+
+				})
+				.always(() => {
+					$button.removeAttr("disabled");
+				});
+			}
 		});
 	}
 
@@ -914,10 +934,5 @@ $(document).ready(function () {
 	// if there are inputs with 'pattern' data attribute
 	// then initialize them
 	NtopUtils.initDataPatterns();
-
-	$(`input#import-input`).on('change', function () {
-		const filename = $(this).val().replace("C:\\fakepath\\", "");
-		$(`label[for='#import-input']`).html(filename);
-	});
 });
 

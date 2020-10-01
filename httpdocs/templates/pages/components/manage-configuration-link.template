@@ -1,0 +1,3 @@
+<a href="{{ ntop.getHttpPrefix() }}/lua/admin/manage_configurations.lua?item={{ item }}" class="btn btn-secondary" {{ (id and "id='"..id.."'" or '') }}>
+    <i class='fas fa-tasks'></i> {{ i18n("manage_configurations.manage_configuration") }}
+</a>

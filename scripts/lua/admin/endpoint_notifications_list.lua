@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local page_utils = require("page_utils")
+local ui_utils = require("ui_utils")
 local template = require "template_utils"
 local json = require "dkjson"
 local plugins_utils = require("plugins_utils")
@@ -71,6 +72,7 @@ local context = {
             endpoint_types = endpoint_type_filters
         }
     },
+    ui_utils = ui_utils,
     template_utils = template,
     plugins_utils = plugins_utils,
     page_utils = page_utils,

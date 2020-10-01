@@ -1,5 +1,4 @@
 <!--page container-->
-<div class='container-fluid mt-3'>
     <div class='row'>
         <div class='col-md-12 col-lg-12'>
             <nav aria-label="breadcrumb">
@@ -40,7 +39,7 @@
                     </table>
                 </div>
                 <div class="card-footer">
-                    {* ui_utils.render_configuration_footer({}, {href='#', toggle_modal=true, modal_id="reset-modal", id='reset-modal-btn'}) *}
+                    {* ui_utils.render_configuration_footer('scripts') *}
                 </div>
             </div>
         </div>
@@ -55,7 +54,6 @@
             <li>{* i18n('user_scripts.note_apply_to_default') *}</li>
         </ul>
     </div>
-</div>
 
 
 {# include modals for config_list.lua #}
@@ -74,7 +72,7 @@ custom_alert_class = 'alert alert-danger',
 confirm_button = 'btn-danger'
 }
 }) *}
-{* config_list.template_utils.gen("pages/modals/scripts_config/import_modal.html") *}
+{* config_list.template_utils.gen("pages/modals/scripts_config/import_modal.html", {dialog={}}) *}
 
 {# include css and javascript code for the page #}
 

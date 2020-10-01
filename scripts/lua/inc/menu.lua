@@ -388,11 +388,6 @@ page_utils.add_menubar_section({
    section = page_utils.menu_sections.tools,
    entries = {
       {
-         entry = page_utils.menu_entries.import_export_config,
-         hidden = not is_admin or is_windows,
-         url = '/lua/admin/import_export_config.lua',
-      },
-      {
          entry = page_utils.menu_entries.remote_assistance,
          hidden = not is_admin or not remote_assistance.isAvailable(),
          url = '/lua/admin/remote_assistance.lua',
@@ -461,7 +456,12 @@ page_utils.add_menubar_section(
 	    entry = page_utils.menu_entries.preferences,
 	    hidden = not is_admin,
 	    url = '/lua/admin/prefs.lua',
-	 },
+    },
+    {
+      entry = page_utils.menu_entries.manage_configurations,
+      hidden = not is_admin or is_windows,
+      url = '/lua/admin/manage_configurations.lua',
+   },
 	 {
 	    entry = page_utils.menu_entries.scripts_config,
 	    hidden = not is_admin,

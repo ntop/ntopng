@@ -109,13 +109,13 @@ page_utils.menu_entries = {
     conf_backup          = {key = "conf_backup", i18n_title = "conf_backup.conf_backup", section = "admin", visible_iface = true, visible_system = true},
     conf_restore         = {key = "conf_restore", i18n_title = "conf_backup.conf_restore", section = "admin", visible_iface = true, visible_system = true},
     manage_data    	 = {key = "manage_data", i18n_title = "manage_data.manage_data", section = "admin", visible_iface = true, visible_system = false, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-data"},
+    manage_configurations = { key = "manage_configurations", i18n_title = "manage_configurations.manage_configurations", section = "admin", visible_iface = false, visible_system = true},
 
     -- Notifications
     endpoint_notifications = {key = "endpoint_notifications", i18n_title = "endpoint_notifications.endpoint_list", section="notifications", visible_iface = false, visible_system = true},
     endpoint_recipients = {key = "endpoint_recipients", i18n_title = "endpoint_notifications.enpoint_recipients_list", section="notifications", visible_iface = false, visible_system = true},
 
     -- Tools
-    import_export_config = { key = "import_export_config", i18n_title = "import_export.import_export", section = "tools", visible_iface = false, visible_system = true},
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
     remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "tools", help_link = "https://www.ntop.org/guides/ntopng/remote_assistance.html"},
 

@@ -29,7 +29,7 @@
                 </div>
             </div>
             <div class="card-footer">
-                {* ui_utils.render_configuration_footer({}, {href='#', toggle_modal=true, modal_id="reset-modal", id='reset-modal-btn'}) *}
+                {* ui_utils.render_configuration_footer('active_monitoring') *}
             </div>
         </div>
         <div class="notes bg-light border">
@@ -42,12 +42,6 @@
         </div>
     </div>
 </div>
-
-{# TODO: This form is used to reset active monitoring records, it will be removed when the Manage Config page is implemented #}
-<form class="form-inline" method="POST" id="reset-form">
-    <input type="hidden" name="csrf" value="{{ntop.getRandomCSRFValue()}}"/>
-    <input type="hidden" name="action" value="reset_config"/>
-</form>
 
 {*
     plugins_utils.renderTemplate("active_monitoring", "am_add_host_modal.html", {
@@ -105,32 +99,6 @@
 
 *}
 
-{*
-    template_utils.gen("pages/modals/scripts_config/import_modal.html", {
-        dialog={
-            id      = "import-modal",
-            title   = i18n("host_pools.config_import"),
-            label   = "",
-            message = i18n("host_pools.config_import_message"),
-            cancel  = i18n("cancel"),
-            apply   = i18n("apply"),
-        }
-      })
-*}
-
-{*
-    template_utils.gen("modal_confirm_dialog.html", {
-        dialog={
-            id      = "reset-modal",
-            action  = "$('#reset-form').submit()",
-            title   = i18n("config_scripts.config_reset"),
-            message = i18n("active_monitoring_stats.config_reset_confirm"),
-            confirm = i18n("reset"),
-            custom_alert_class = 'alert alert-danger',
-            confirm_button = 'btn-danger'
-        }
-    })
-*}
 
 <link href="{{ ntop.getHttpPrefix()}}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">

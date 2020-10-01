@@ -2517,16 +2517,6 @@ local lang = {
     ["zmq_message_rcvd"] = "Collected ZMQ Messages",
     ["zmq_rx_statistics"] = "ZMQ Statistics",
   },
-  ["import_export"] = {
-    ["active_monitoring"] = "Active Monitoring",
-    ["config_import"] = "Import <span class='item'>{{ type }}</span> Configuration",
-    ["description"] = "Select which configuration would you like to Import/Export",
-    ["everything"] = "Everything (clone ntopng configuration)",
-    ["import_export"] = "Import/Export Configuration",
-    ["pool_endpoint_recipients"] = "Pools / Endpoints / Recipients",
-    ["snmp"] = "SNMP",
-    ["user_scripts"] = "User Scripts",
-  },
   ["index_page"] = {
     ["applications"] = "Applications",
     ["asns"] = "ASNs",
@@ -2716,6 +2706,29 @@ local lang = {
     ["layer_2_source_devices"] = "%{device_type} Devices",
     ["manufacturer"] = "Manufacturer",
     ["source_macs"] = "Source Only",
+  },
+  ["manage_configurations"] = {
+    ["active_monitoring"] = "Active Monitoring",
+    ["config_import"] = "Import <span class='item'>{{ type }}</span> Configuration",
+    ["description"] = "Which configuration would you like to manage?",
+    ["everything"] = "Everything (clone ntopng configuration)",
+    ["manage_configuration"] = "Manage Configuration",
+    ["manage_configurations"] = "Manage Configurations",
+    ["notifications"] = "Endpoints and Recipients",
+    ["pool_endpoint_recipients"] = "Pools + Endpoints + Recipients",
+    ["snmp"] = "SNMP",
+    ["user_scripts"] = "User Scripts",
+    ["factory_reset"] = {
+      ["body"] = "Are you sure to reset the <span class='selected-item'><b>%{reset_element}</b></span> configuration?<br>Resetting to Factory Default <b>you will permentaly lose your configuration</b>.",
+      ["title"] = "Reset <span class='selected-item'>%{reset_element}</span> Configuration",
+    },
+    ["import_modal"] = {
+      ["title"] = "Import <span class='selected-item'>%{import_element}</span> Configuration",
+    },
+    ["messages"] = {
+      ["import_success"] = "The selected configuration has been imported successfully!",
+      ["reset_success"] = "The selected configuration has been resetted successfully!",
+    },
   },
   ["manage_data"] = {
     ["all_hosts"] = "All",
