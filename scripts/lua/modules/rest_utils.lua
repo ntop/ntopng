@@ -48,6 +48,8 @@ local rest_utils = {
          user_does_not_exist                        = { http_code = 409, rc = -24, str = "USER_DOES_NOT_EXIST"},
          edit_user_failed                           = { http_code = 400, rc = -25, str = "EDIT_USER_FAILED"},
 	 snmp_device_interface_status_change_failed = { http_code = 400, rc = -26, str = "SNMP_DEVICE_INTERFACE_STATUS_CHANGE_FAILED"},
+         configuration_file_mismatch                = { http_code = 400, rc = -27, str = "CONFIGURATION_FILE_MISMATCH" },
+         partial_import                             = { http_code = 409, rc = -28, str = "PARTIAL_IMPORT" },
       },
    }
 }
