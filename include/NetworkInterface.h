@@ -533,7 +533,7 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void lua(lua_State* vm);
   void luaPeriodicityStats(lua_State* vm);
-  void luaServiceMap(lua_State* vm);
+  void luaServiceMap(lua_State* vm, IpAddress *ip_address);
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline ServiceMap* getServiceMap() { return(sm); };
 #endif

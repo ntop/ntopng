@@ -5,18 +5,17 @@
 
 print('<link href="'.. ntop.getHttpPrefix()..'/datatables/datatables.min.css" rel="stylesheet"/>')
 
-print ("<H3>" .. i18n("periodicity_stats"))
+print ("<H3>" .. i18n("service_map"))
 print [[ </H3>
-
-<table id="periodicity_info" class="table table-bordered table-striped w-100">
+<p>
+<table id="service_map" class="table table-bordered table-striped w-100">
         <thead>
             <tr>
                 <th>]] print(i18n("protocol")) print [[</th>
                 <th>]] print(i18n("client")) print [[</th>
                 <th>]] print(i18n("server")) print [[</th>
+                <th>]] print(i18n("vlan_id")) print [[</th>
                 <th>]] print(i18n("port")) print [[</th>
-                <th>]] print(i18n("observations")) print [[</th>
-                <th>]] print(i18n("frequency")) print [[</th>
                 <th>]] print(i18n("info")) print [[</th>
             </tr>
         </thead>
@@ -28,7 +27,7 @@ $(document).ready(function() {
   const filters = [
 ]]
 
-local p = interface.periodicityStats() or {}
+local p = interface.serviceMap() or {}
 
 local keys = {}
 
@@ -47,22 +46,21 @@ end
 
 print [[
    ];
-  let url    = ']] print(ntop.getHttpPrefix()) print [[/lua/get_periodicity_data.lua';
+  let url    = ']] print(ntop.getHttpPrefix()) print [[/lua/get_service_map.lua]]
+
+if(_GET["host"] ~= nil) then print("?host=".._GET["host"]) end
+
+print [[';
   let config = DataTableUtils.getStdDatatableConfig();
   config     = DataTableUtils.setAjaxConfig(config, url, 'data');
-
-  config["columnDefs"] = [
-   { targets: [ 5 /* Observations */], className: 'dt-body-right', "fnCreatedCell": function ( cell ) { cell.scope = 'row'; }, "render": function ( data, type, row ) { return (type == "sort" || type == 'type') ? data : data+" sec"; }  },
-   { targets: [ 4 /* Frequency */], className: 'dt-body-right', "fnCreatedCell": function ( cell ) { cell.scope = 'row'; } }
-  ];
 
   config["initComplete"] = function(settings, rows) {
     const tableAPI = settings.oInstance.api();
     const columnProtocolIndex = 0; /* Filter on protocol column */
-    DataTableUtils.addFilterDropdown(']]  print(i18n("protocol")) print [[', filters, columnProtocolIndex, '#periodicity_info_filter', tableAPI);
+    DataTableUtils.addFilterDropdown(']]  print(i18n("protocol")) print [[', filters, columnProtocolIndex, '#service_map_filter', tableAPI);
   }
 
-  $('#periodicity_info').DataTable(config);
+  $('#service_map').DataTable(config);
 } );
 
  i18n.all = "]] print(i18n("all")) print [[";

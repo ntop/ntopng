@@ -3916,6 +3916,27 @@ end
 
 -- ###########################################
 
+local cache = {}
+
+function buildHostHREF(ip_address)
+   local stats = cache[ip_address]
+
+   if(stats == nil) then
+      stats = interface.getHostInfo(ip_address)
+      cache[ip_address] = { stats = stats }
+   else
+      stats = stats.stats
+   end
+
+   if(stats == nil) then
+      return(ip_address)
+   else
+      local name = stats.name
+
+      if((name == nil) or (name == "")) then name = ip_address end
+      return('<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..ip_address..'">'..name..'</A>')
+   end
+end
 
 --
 -- IMPORTANT

@@ -7975,10 +7975,10 @@ void NetworkInterface::luaPeriodicityStats(lua_State* vm) {
 
 /* *************************************** */
 
-void NetworkInterface::luaServiceMap(lua_State* vm) {
+void NetworkInterface::luaServiceMap(lua_State* vm, IpAddress *ip_address) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  if(sm) {
-    sm->lua(vm, this);
+  if(sm) {    
+    sm->lua(vm, this, ip_address);
     return;
   }
 #endif

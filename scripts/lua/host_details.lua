@@ -289,7 +289,12 @@ else
 
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
    local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
+   local service_map_available = nil
 
+   if(host["localhost"]) then
+	 service_map_available = interface.serviceMap(_GET["host"])
+   end
+   
    page_utils.print_navbar(title, url,
 			   {
 			      {
@@ -424,6 +429,12 @@ else
 				 active = page == "quotas",
 				 page_name = "quotas",
 				 label = i18n("quotas"),
+			      },
+			      {
+				 hidden = not service_map_available,
+				 active = page == "service_map",
+				 page_name = "service_map",
+				 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
 			      },
 			      {
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
@@ -2069,6 +2080,9 @@ elseif (page == "quotas" and ntop.isnEdge() and ntop.isEnterpriseM() and host_po
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
    host_pools_nedge.printQuotas(host_pool_id, host, page_params)
 
+elseif (page == "service_map") then
+      dofile(dirs.installdir .. "/scripts/lua/inc/service_map.lua")
+	       
 elseif (page == "config") then
    if(not isAdministrator()) then
       return
