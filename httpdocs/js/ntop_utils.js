@@ -731,7 +731,7 @@ class NtopUtils {
 		$(`#import-modal`).on('hidden.bs.modal', function() {
 			$(`#import-input`).val('');
 			$(`label[for='#import-input']`).html(oldLabelImportInput);
-			$("#import-error").hide();
+			$("#import-error").hide().removeClass('text-warning').addClass('invalid-feedback');
 			$(`#btn-confirm-import`).attr("disabled", "disabled");
 		});
 
@@ -793,11 +793,16 @@ class NtopUtils {
 				})
 				.fail(({responseJSON}) => {
 
+					const PARTIAL_IMPORT_RC = -28;
+
 					if (params.failureCallback) {
 						params.failureCallback(responseJSON);
 					}
 
 					if (responseJSON && responseJSON.rc > 0) return;
+					if (responseJSON.rc == PARTIAL_IMPORT_RC) 
+						$(`#import-error`).removeClass('invalid-feedback').addClass('text-warning');
+
 					$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || i18n.FAILED_HTTP_REQUEST).show();
 
 				})
