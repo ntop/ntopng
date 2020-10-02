@@ -724,7 +724,7 @@ print [[
       numPoolMembers++;
 
       var tr = $('<tr id=' + newid + '><td>]] printMemberAddressField('member_id') print[[</td><td class="text-center">]] printMemberVlanField('member_id') print[[</td><td>]] printAliasField('member_id') print[[</td><td>]] printIconField('member_id') print[[</td><td class="text-center"></td></tr>');
-      datatableAddDeleteButtonCallback.bind(tr)(5, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn', 'decPoolMembers')", "]] print(i18n('undo')) print[[");
+      datatableAddDeleteButtonCallback.bind(tr)(5, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.empty_pool")) print[[', '#addPoolMemberBtn', 'decPoolMembers')", "]] print("<i class='fas fa-undo-alt'></i>") print[[");
       $("#table-manage table").append(tr);
       $("input", tr).first().focus();
 
@@ -904,7 +904,7 @@ end
 print[[
             datatableAddLinkButtonCallback.bind(this)(5, link_value, "]] print(i18n("host_pools.view")) print[[");
             if (!link_value) $("td:nth(5) a:nth(1)", this).css("visibility", "hidden");
-            datatableAddDeleteButtonCallback.bind(this)(5, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+            datatableAddDeleteButtonCallback.bind(this)(5, "delete_member_id ='" + member_id + "'; $('#delete_member_dialog_member').html('" + value +"'); $('#delete_member_dialog').modal('show');", "]] print("<i class='fas fa-trash'></i>") print[[");
           });
 
           if(numPoolMembers === 0)
@@ -1043,7 +1043,7 @@ print [[
         var tr = $('<tr id=' + newid + '><td class="text-center" style="display:none;">' + pool_id + '</td><td>]]
 printPoolNameField('pool_id') print[[</td><td align="center"></td></tr>');
 
-        datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print(i18n('undo')) print[[");
+        datatableAddDeleteButtonCallback.bind(tr)(3, "datatableUndoAddRow('#" + newid + "', ']] print(i18n("host_pools.no_pools_defined")) print[[', '#addNewPoolBtn', 'onPoolAddUndo')", "]] print("<i class='fas fa-undo-alt'></i>") print[[");
         $("#table-create table").append(tr);
         $("input", tr).focus();
 
@@ -1125,7 +1125,7 @@ printPoolNameField('pool_id') print[[</td><td align="center"></td></tr>');
             } else {
               datatableAddLinkButtonCallback.bind(this)(4, pool_link, "View");
               value = value.replace("'", "\\'");
-              datatableAddDeleteButtonCallback.bind(this)(4, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print(i18n('delete')) print[[");
+              datatableAddDeleteButtonCallback.bind(this)(4, "delete_pool_id ='" + pool_id + "'; $('#delete_pool_dialog_pool').html('" + value + "'); $('#delete_pool_dialog').modal('show');", "]] print("<i class='fas fa-trash'></i>") print[[");
 
               if (pool_undeletable)
                 $("td:nth-child(4) a", $(this)).last().attr("disabled", "disabled");
