@@ -800,7 +800,7 @@ class NtopUtils {
 					if (responseJSON && responseJSON.rc > 0) return;
 
 					console.log(responseJSON);
-					$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || 'Not Implemented Yet').show();
+					$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || i18n.FAILED_HTTP_REQUEST).show();
 
 				})
 				.always(() => {

@@ -2715,7 +2715,7 @@ local lang = {
     ["manage_configuration"] = "Manage Configuration",
     ["manage_configurations"] = "Manage Configurations",
     ["notifications"] = "Endpoints and Recipients",
-    ["pool_endpoint_recipients"] = "Pools + Endpoints + Recipients",
+    ["pool_endpoint_recipients"] = "Pools (includes SNMP, Active Monitoring, User Scripts, Endpoints and Recipients)",
     ["snmp"] = "SNMP",
     ["user_scripts"] = "User Scripts",
     ["factory_reset"] = {
@@ -4587,7 +4587,7 @@ local lang = {
     },
   },
   ["validation"] = {
-    ["FAILED_HTTP_REQUEST"] = "Something went wrong, please try later.",
+    ["FAILED_HTTP_REQUEST"] = "The request failed, please try later.",
     ["empty_name"] = "Please insert a name.",
     ["invalid_input"] = "Please respect the input pattern.",
     ["missing_field"] = "Please fill the input.",

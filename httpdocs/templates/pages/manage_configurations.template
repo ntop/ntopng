@@ -6,7 +6,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        <div class="card">
+        <div class="card card-shadow">
             <div class="card-body">
                 <p>{{ i18n("manage_configurations.description") }}</p>
                 <div class="radio-list">
@@ -126,24 +126,6 @@ $(document).ready(function() {
             .attr("href", href.toString());
     }
 
-    const updateFactoryResetInfo = (key, label) => {
-
-        if (key === undefined) {
-            console.warn("A key must be provided!");
-            return;
-        }
-
-        const $button = $(`#btn-factory-reset`);
-
-        // disable factory reset for Everything option
-        if (key == 'all') {
-            $button.attr("disabled", "disabled");
-            return;
-        }
-
-        $button.removeAttr("disabled");
-    }
-
     $(`input[name='configuration']`).change(function() {
 
         const key = $(this).val();
@@ -153,7 +135,6 @@ $(document).ready(function() {
 
         setImportExportButtonLabels(key);
         updateExportLink(key);
-        updateFactoryResetInfo(key, label);
     });
 
     $(`#reset-modal #btn-confirm-action`).click(async function() {
