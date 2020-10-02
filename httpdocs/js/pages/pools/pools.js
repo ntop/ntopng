@@ -122,7 +122,7 @@ $(document).ready(function() {
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
-            enabled: !ADD_POOL_DISABLED || IS_ALL_POOL,
+            enabled: !ADD_POOL_DISABLED && !IS_ALL_POOL,
             action: () => { $(`#add-pool`).modal('show'); }
         }
     ]);
