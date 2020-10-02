@@ -23,7 +23,7 @@
                     {% end %}
                 </div>
             </div>
-            <div class="card-footer text-right">
+            <div class="card-footer">
                 <button id="btn-import" data-toggle="modal" data-target="#import-modal" type="submit" value="import" class="btn btn-primary">
                     <i class='fas fa-file-import'></i>
                     <span>
