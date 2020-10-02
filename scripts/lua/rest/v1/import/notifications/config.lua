@@ -27,8 +27,13 @@ end
 
 local modules = import_export_rest_utils.unpack(_POST["JSON"])
 
-if not modules or not modules["notifications"] then
+if not modules then
   rest_utils.answer(rest_utils.consts.err.invalid_args)
+  return
+end
+
+if not modules["notifications"] then
+  rest_utils.answer(rest_utils.consts.err.configuration_file_mismatch)
   return
 end
 
