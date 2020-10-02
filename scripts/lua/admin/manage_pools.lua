@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 
 require "lua_utils"
 local page_utils = require "page_utils"
+local ui_utils = require "ui_utils"
 local json = require "dkjson"
 local template_utils = require "template_utils"
 local notification_configs = require "notification_configs"
@@ -119,6 +120,7 @@ local context = {
     template_utils = template_utils,
     json = json,
     menu = menu,
+    ui_utils = ui_utils,
     pool = {
         name = page,
         pool_families = pool_families,
