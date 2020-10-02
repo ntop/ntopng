@@ -44,7 +44,7 @@ function notifications_import_export:import(conf)
    local success = notification_configs.add_configs_with_recipients(conf)
 
    if not success then
-      res.err = rest_utils.consts.err.internal_error
+      res.err = rest_utils.consts.err.partial_import
    else
       res.success = true
    end

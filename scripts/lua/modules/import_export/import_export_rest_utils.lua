@@ -69,6 +69,11 @@ function import_export_rest_utils.import(items)
    for _, module in ipairs(items) do
       local res = module.instance:import(module.conf)
       if res.err then 
+
+         -- DEBUG
+         -- tprint(module.name.." failure ")
+         -- tprint(res)
+
          rc = res.err
       end
       list[#list] = module.name

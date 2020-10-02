@@ -798,7 +798,7 @@ end
 
 -- ##############################################
 
-local function findConfigSet(configsets, name)
+function user_scripts.findConfigSet(configsets, name)
    for id, configset in pairs(configsets) do
       if(configset.name == name) then
 	 return(configset)
@@ -923,7 +923,7 @@ end
 function user_scripts.createOrReplaceConfigset(configset)
    local configsets = user_scripts.getConfigsets()
 
-   local existing = findConfigSet(configsets, configset.name)
+   local existing = user_scripts.findConfigSet(configsets, configset.name)
    if existing then
       configsets[existing.id] = nil
    end
@@ -958,7 +958,7 @@ function user_scripts.renameConfigset(confid, new_name)
       return false, i18n("configsets.unknown_id", {confid=confid})
    end
 
-   local existing = findConfigSet(configsets, new_name)
+   local existing = user_scripts.findConfigSet(configsets, new_name)
 
    if existing then
       if(existing.id == confid) then
@@ -982,7 +982,7 @@ function user_scripts.cloneConfigset(confid, new_name)
       return false, i18n("configsets.unknown_id", {confid=confid})
    end
 
-   local existing = findConfigSet(configsets, new_name)
+   local existing = user_scripts.findConfigSet(configsets, new_name)
 
    if existing then
       return false, i18n("configsets.error_exists", {name=new_name})
