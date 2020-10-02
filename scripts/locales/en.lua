@@ -2723,6 +2723,7 @@ local lang = {
       ["title"] = "Reset <span class='selected-item'>%{reset_element}</span> Configuration",
     },
     ["import_modal"] = {
+      ["all_title"] = "Restore ntopng Configuration",
       ["title"] = "Import <span class='selected-item'>%{import_element}</span> Configuration",
     },
     ["messages"] = {
@@ -3781,7 +3782,7 @@ local lang = {
     ["NOT_GRANTED"] = "Not authorized",
     ["NO_SNMP_DEVICE_DISCOVERED"] = "No SNMP device discovered",
     ["OK"] = "Success",
-    ["PARTIAL_IMPORT"] = "The configuration has been imported successfully, but some elements haven't be replaced.",
+    ["PARTIAL_IMPORT"] = "The configuration has been imported successfully, but some elements were already present and haven't be replaced.",
     ["POOL_ADDED_SUCCESSFULLY"] = "Pool added successfully",
     ["POOL_DELETED_SUCCESSFULLY"] = "Pool deleted successfully",
     ["POOL_EDITED_SUCCESSFULLY"] = "Pool edited successfully",

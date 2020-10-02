@@ -11,15 +11,15 @@
                 <p>{{ i18n("manage_configurations.description") }}</p>
                 <div class="radio-list">
                     {% for key, config in pairsByField(manage_configurations.configuration_items, 'order', asc) do %}
-                    <div class="form-check">
-                        <input class="form-check-input" {{ (config.key == manage_configurations.selected_item and 'checked' or '') }}
-                            type="radio" name="configuration" id="{{key}}-radio"
-                            value="{{config.key}}">
-                        <label class="form-check-label" for="{{key}}-radio">
-                            {{config.label}}
-                        </label>
-                    </div>
-                    {% if key == 'all' then %} <hr> {% end %}
+                        <div class="form-check">
+                            <input class="form-check-input" {{ (config.key == manage_configurations.selected_item and 'checked' or '') }}
+                                type="radio" name="configuration" id="{{key}}-radio"
+                                value="{{config.key}}">
+                            <label class="form-check-label" for="{{key}}-radio">
+                                {{config.label}}
+                            </label>
+                        </div>
+                        {% if key == 'all' then %} <hr> {% end %}
                     {% end %}
                 </div>
             </div>
@@ -96,6 +96,7 @@
     i18n.failure = "{{ i18n('failure') }}";
 
     i18n.manage_configurations = { messagges: {}};
+
     i18n.manage_configurations.messagges.reset_success = "{{ i18n('manage_configurations.messages.reset_success') }}";
     i18n.manage_configurations.messagges.import_success = "{{ i18n('manage_configurations.messages.import_success') }}";
 
@@ -104,8 +105,19 @@
 $(document).ready(function() {
 
     const setImportExportButtonLabels = (key) => {
-        $(`#btn-import span`).text((key == 'all') ? i18n.restore : i18n.import);
+
+        $(`#btn-import span, #btn-confirm-import`).text((key == 'all') ? i18n.restore : i18n.import);
         $(`#btn-export span`).text((key == 'all') ? i18n.backup : i18n.export);
+
+        if (key == 'all') {
+            $(`.import-title`).hide();
+            $(`.restore-title`).show();
+        }
+        else {
+            $(`.import-title`).show();
+            $(`.restore-title`).hide();
+        }
+
     }
 
     const updateExportLink = (key) => {
@@ -129,9 +141,10 @@ $(document).ready(function() {
     $(`input[name='configuration']`).change(function() {
 
         const key = $(this).val();
-        const label = $(this).parent("div").find("label").text();
+        let label = $(this).parent("div").find("label").text();
+        if (label.indexOf('(') >= 0) label = label.substr(0, label.indexOf('('));
 
-        $(`.selected-item`).text(label);
+        $(`.selected-item`).text((key == 'all') ? 'ntopng' : label);
 
         setImportExportButtonLabels(key);
         updateExportLink(key);

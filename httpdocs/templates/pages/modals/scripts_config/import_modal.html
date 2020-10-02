@@ -4,11 +4,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    {% if dialog and not dialog.title then %}
-                    {{ i18n("config_scripts.config_import", {}) }}
-                    {% else %}
-                    {* dialog.title *}
-                    {% end %}
+                    <span class='import-title'>{* dialog.title *}</span>
+                    <span style="display: none;" class='restore-title'>{{ i18n("manage_configurations.import_modal.all_title") }}</span>
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
