@@ -88,7 +88,6 @@ end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print([[
-    <div class='container-fluid'>
         <div class='row'>
             <div class='col-12'>]])
 
@@ -114,7 +113,6 @@ print([[
                     </tbody>
                 </table>
         </div>
-    </div>
     <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
     <script type='text/javascript'>
 
