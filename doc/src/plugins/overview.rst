@@ -48,14 +48,14 @@ Examples
 Examples of plugins are:
 
 - A `flood
-  detection <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/flow_flood>`_
+  detection <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/alerts/security/flow_flood>`_
   plugin to trigger alerts when hosts or networks are generating too
   many traffic flows
 - A `blacklisted flows
-  <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/blacklisted>`_
+  <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/alerts/security/blacklisted>`_
   plugin to detect flows involving malware or suspicious clients or servers
 - A `monitor for the disk space
-  <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/disk_monitor>`_
+  <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/monitors/system/disk_monitor>`_
   which continuously observes free disk space and triggers alerts when the
   space available is below a certain threshold
 
