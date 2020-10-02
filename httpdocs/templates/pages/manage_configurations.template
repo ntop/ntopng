@@ -75,7 +75,7 @@
             title = i18n("manage_configurations.factory_reset.title", {
                 reset_element = manage_configurations.configuration_items[manage_configurations.selected_item].label
             }),
-            confirm = i18n("reset"),
+            confirm = i18n("factory_reset"),
             custom_alert_class = 'alert alert-danger',
             confirm_button = 'btn-danger'
         }

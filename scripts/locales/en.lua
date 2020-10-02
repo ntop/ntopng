@@ -2719,7 +2719,7 @@ local lang = {
     ["snmp"] = "SNMP",
     ["user_scripts"] = "User Scripts",
     ["factory_reset"] = {
-      ["body"] = "Are you sure to reset the <span class='selected-item'><b>%{reset_element}</b></span> configuration?<br>Resetting to Factory Default <b>you will permentaly lose your configuration</b>.",
+      ["body"] = "Your configuration will be resetted to factory.",
       ["title"] = "Reset <span class='selected-item'>%{reset_element}</span> Configuration",
     },
     ["import_modal"] = {
