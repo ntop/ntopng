@@ -66,12 +66,12 @@ function import_export_rest_utils.import(items)
    local rc = rest_utils.consts.success.ok
    local list = {}
 
-   for name, module in pairs(items) do
+   for _, module in ipairs(items) do
       local res = module.instance:import(module.conf)
       if res.err then 
          rc = res.err
       end
-      list[#list] = name
+      list[#list] = module.name
    end
 
    rest_utils.answer(rc)

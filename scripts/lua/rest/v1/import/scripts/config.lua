@@ -33,10 +33,12 @@ if not modules or not modules["scripts"] then
 end
 
 local items = {}
-local scripts_import_export = scripts_import_export:create()
-items["scripts"] = {
+
+local scripts_ie = scripts_import_export:create()
+items[#items+1] = {
+   name = "scripts",
    conf = modules["scripts"],
-   instance = scripts_import_export 
+   instance = scripts_ie
 }
 
 import_export_rest_utils.import(items)

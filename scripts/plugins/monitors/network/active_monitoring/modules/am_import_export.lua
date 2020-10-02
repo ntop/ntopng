@@ -4,7 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/am/lua/modules/import_export/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" .. package.path
 require "lua_utils" 
 local import_export = require "import_export"
 local json = require "dkjson"

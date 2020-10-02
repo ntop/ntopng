@@ -33,10 +33,12 @@ if not modules or not modules["snmp"] then
 end
 
 local items = {}
-local snmp_import_export = snmp_import_export:create()
-items["snmp"] = {
+
+local snmp_ie = snmp_import_export:create()
+items[#items+1] = {
+   name = "snmp",
    conf = modules["snmp"],
-   instance = snmp_import_export 
+   instance = snmp_ie
 }
 
 import_export_rest_utils.import(items)

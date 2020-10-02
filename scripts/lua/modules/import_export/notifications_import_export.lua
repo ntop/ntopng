@@ -3,7 +3,7 @@
 --
 
 local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/notifications/lua/modules/import_export/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" .. package.path
 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils" 
 local import_export = require "import_export"
