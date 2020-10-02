@@ -487,9 +487,6 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	  if(network_stats) network_stats->incNumFlows(f->get_last_seen(), true);
 	  if(f->getViewInterfaceFlowStats()) f->getViewInterfaceFlowStats()->setClientHost(cli_host);
 	}
-
-	if(f->idle())
-	  cli_host->decNumFlows(f->get_last_seen(), true), cli_host->decUses();
       }
 
       if(srv_host) {
@@ -499,9 +496,6 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	  if(network_stats) network_stats->incNumFlows(f->get_last_seen(), false);
 	  if(f->getViewInterfaceFlowStats()) f->getViewInterfaceFlowStats()->setServerHost(srv_host);
 	}
-
-	if(f->idle())
-	  srv_host->decUses(), srv_host->decNumFlows(f->get_last_seen(), false);
       }
 
       incStats(true /* ingressPacket */,

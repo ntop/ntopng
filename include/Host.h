@@ -60,7 +60,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
   u_int32_t syn_sent_last_min, synack_recvd_last_min; /* syn scan counters (attacker) */
   u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
-  MonitoredGauge<u_int32_t> num_active_flows_as_client, num_active_flows_as_server;
+  std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
   AutonomousSystem *as;
   Country *country;
@@ -318,8 +318,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline void incTotalAlerts(AlertType alert_type) { stats->incTotalAlerts(alert_type); }
   inline u_int32_t getTotalAlerts()       { return(stats->getTotalAlerts()); }
   virtual u_int32_t getActiveHTTPHosts()  const { return(0); };
-  inline u_int32_t getNumOutgoingFlows()  const { return(num_active_flows_as_client.get()); }
-  inline u_int32_t getNumIncomingFlows()  const { return(num_active_flows_as_server.get()); }
+  inline u_int32_t getNumOutgoingFlows()  const { return(num_active_flows_as_client); }
+  inline u_int32_t getNumIncomingFlows()  const { return(num_active_flows_as_server); }
   inline u_int32_t getNumActiveFlows()    const { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
   inline u_int32_t getTotalNumFlowsAsClient() const { return(stats->getTotalNumFlowsAsClient());  };
   inline u_int32_t getTotalNumFlowsAsServer() const { return(stats->getTotalNumFlowsAsServer());  };

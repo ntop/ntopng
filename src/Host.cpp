@@ -158,7 +158,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     vlan->incUses();
 
   num_resolve_attempts = 0, ssdpLocation = NULL;
-  num_active_flows_as_client.reset(), num_active_flows_as_server.reset();
+  num_active_flows_as_client = num_active_flows_as_server = 0;
   active_alerted_flows = 0;
 
   flow_alert_counter = NULL;
@@ -278,9 +278,7 @@ void Host::set_mac(Mac *_mac) {
 bool Host::hasAnomalies() const {
   time_t now = time(0);
 
-  return num_active_flows_as_client.is_misbehaving(now)
-    || num_active_flows_as_server.is_misbehaving(now)
-    || stats->hasAnomalies(now);
+  return stats->hasAnomalies(now);
 }
 
 /* *************************************** */
@@ -292,11 +290,6 @@ void Host::lua_get_anomalies(lua_State* vm) const {
   if(hasAnomalies()) {
     time_t now = time(0);
     lua_newtable(vm);
-
-    if(num_active_flows_as_client.is_misbehaving(now))
-      num_active_flows_as_client.lua(vm, "num_active_flows_as_client");
-    if(num_active_flows_as_server.is_misbehaving(now))
-      num_active_flows_as_server.lua(vm, "num_active_flows_as_server");
 
     stats->luaAnomalies(vm, now);
 
@@ -859,22 +852,7 @@ void Host::periodic_stats_update(const struct timeval *tv) {
   if((os == os_unknown) && cur_mac && cur_mac->getFingerprint())
     os = Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType());
 
-  num_active_flows_as_client.computeAnomalyIndex(tv->tv_sec),
-    num_active_flows_as_server.computeAnomalyIndex(tv->tv_sec);
-
   stats->updateStats(tv);
-
-#ifdef MONITOREDGAUGE_DEBUG
-  char buf[64], buf2[128];
-
-  if(num_active_flows_as_client.is_misbehaving(tv->tv_sec))
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_client] %s %s",
-				 ip.print(buf, sizeof(buf)), num_active_flows_as_client.print(buf2, sizeof(buf2)));
-
-  if(num_active_flows_as_server.is_misbehaving(tv->tv_sec))
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[num_active_flows_as_server] %s %s",
-				 ip.print(buf, sizeof(buf)), num_active_flows_as_server.print(buf2, sizeof(buf2)));
-#endif
 
   GenericHashEntry::periodic_stats_update(tv);
 
@@ -1002,10 +980,10 @@ void Host::incNumFlows(time_t t, bool as_client) {
 
   if(as_client) {
     counter = flow_flood_attacker_alert;
-    num_active_flows_as_client.inc(1);
+    num_active_flows_as_client++;
   } else {
     counter = flow_flood_victim_alert;
-    num_active_flows_as_server.inc(1);
+    num_active_flows_as_server++;
   }
 
   counter->inc(t, this);
@@ -1015,17 +993,10 @@ void Host::incNumFlows(time_t t, bool as_client) {
 /* *************************************** */
 
 void Host::decNumFlows(time_t t, bool as_client) {
-  if(as_client) {
-    if(num_active_flows_as_client.get())
-      num_active_flows_as_client.dec(1);
-    else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
-  } else {
-    if(num_active_flows_as_server.get())
-      num_active_flows_as_server.dec(1);
-    else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid counter value");
-  }
+  if(as_client)
+    num_active_flows_as_client--;
+  else
+    num_active_flows_as_server--;
 }
 
 /* *************************************** */

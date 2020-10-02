@@ -527,6 +527,7 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t periodicStatsUpdateFrequency() const;
   void periodicStatsUpdate();
   void purgeQueuedIdleEntries();
+  void purgeQueuedIdleFlows();
   struct timeval periodicUpdateInitTime() const;
   virtual u_int32_t getFlowMaxIdle();
 

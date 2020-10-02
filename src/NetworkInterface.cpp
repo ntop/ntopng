@@ -2422,6 +2422,12 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
   num_done += dequeueFlows(hookProtocolDetected, flow_lua_call_protocol_detected, protocol_detected_budget);
   num_done += dequeueFlows(hookPeriodicUpdate, flow_lua_call_periodic_update, active_budget);
 
+  /* Purging of idle flows is done here as it involves decreasing certain hosts counters (such as host scores)
+     that are increased by flow user script hooks. Hence, by executing the purging here in this thread, we ensure
+     consistency of counters.
+  */
+  purgeQueuedIdleFlows();
+
 #if DEBUG_FLOW_HOOKS
   if(num_done > 0)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flows [%u]", num_done);
@@ -2912,14 +2918,14 @@ void NetworkInterface::periodicStatsUpdate() {
 
 /* **************************************************** */
 
-/* For viewed interfaces, this method is executed by the ViewInterface for each
-   of its underlying viewed interfaces. */
+/*
+  Frees the memory (destructors) of all idle hash table entries except flows
+ */
 void NetworkInterface::purgeQueuedIdleEntries() {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating hash tables [%s]", get_name());
 #endif
-  GenericHash *ghs[] = {
-			!isView() ? flows_hash : NULL, /* View Interfaces don't have flows, they just walk flows of their 'viewed' peers */
+  GenericHash *ghs[] = { /* Flows are done separately by NetworkInterface::purgeQueuedIdleFlows() */
 			hosts_hash,
 			ases_hash,
 			countries_hash,
@@ -2932,6 +2938,20 @@ void NetworkInterface::purgeQueuedIdleEntries() {
     if(ghs[i])
       ghs[i]->purgeQueuedIdleEntries();
   }
+}
+
+/* **************************************************** */
+
+/*
+  Frees the memory (~Flow) used by idle flow hash table entries.
+*/
+void NetworkInterface::purgeQueuedIdleFlows() {
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating flow tables [%s]", get_name());
+#endif
+
+  if(!isView() && flows_hash)
+    flows_hash->purgeQueuedIdleEntries();
 }
 
 /* **************************************************** */

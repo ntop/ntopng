@@ -99,8 +99,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) {
     NetworkStats *network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 
-    cli_host->incUses();
-    cli_host->incNumFlows(last_seen, true);
+    cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
     if(network_stats) network_stats->incNumFlows(last_seen, true);
     cli_ip_addr = cli_host->get_ip();
     cli_host->incCliContactedHosts(_srv_ip);
@@ -113,8 +112,7 @@ Flow::Flow(NetworkInterface *_iface,
   if(srv_host) {
     NetworkStats *network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
 
-    srv_host->incUses();
-    srv_host->incNumFlows(last_seen, false);
+    srv_host->incUses(), srv_host->incNumFlows(last_seen, false);
     if(network_stats) network_stats->incNumFlows(last_seen, false);
     srv_ip_addr = srv_host->get_ip();
 
@@ -251,15 +249,77 @@ Flow::~Flow() {
   }
 #endif
 
-  if(cli_host)
-    cli_host->decUses();
-  else if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
+  /*
+    Get client and server hosts. Use unsafe* methods to get the client and server also for 'viewed' interfaces.
+    For 'viewed' interfaces, host pointers are shared across multiple 'viewed' interfaces and thus they are termed as unsafe.
+    However, as Flow destructors are called by the view interface sequentially on all the 'viewed' interfaces,
+    it is safe to use usafe pointers.
+
+    NOTE: Host scores are decreased here in a safe way as ~Flows are deleted in the same thread that performs user script
+    hook calls which causes scores to be incremented.
+   */
+  Host *cli_u = unsafeGetClient(), *srv_u = unsafeGetServer();
+
+  if(cli_u) {
+    cli_u->decUses(); /* Decrease the number of uses */
+
+    HostScore *clis = cli_u->getScore(); /* Decrease the score of the host */
+    if(clis) {
+      for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+	ScoreCategory score_category = (ScoreCategory)i;
+
+	if(cli_host_score[score_category])
+	  clis->decValue(get_last_seen(), cli_host_score[score_category], score_category, true  /* as client */);	
+      }
+    }
+  } else if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
     delete cli_ip_addr;
 
-  if(srv_host)
-    srv_host->decUses();
-  else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
+  if(srv_u) {
+    srv_u->decUses(); /* Decrease the number of uses */
+
+    HostScore *srvs = srv_u->getScore(); /* Decrease the score of the host */
+    if(srvs) {
+      for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+	ScoreCategory score_category = (ScoreCategory)i;
+
+	if(srv_host_score[score_category])
+	  srvs->decValue(get_last_seen(), srv_host_score[score_category], score_category, false /* as server */);
+      }
+    }
+  } else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
     delete srv_ip_addr;
+
+  /*
+    Perform other operations to decrease counters increased by flow user script hooks (we're in the same thread)
+   */
+  if(status_map.get() != status_normal) {
+#if 0
+    char buf[256];
+    printf("%s status=%d\n", print(buf, sizeof(buf)), status);
+#endif
+
+    if(cli_u) {
+      cli_u->setMisbehavingFlowsStatusMap(status_map, true);
+      cli_u->incNumMisbehavingFlows(true);
+    }
+
+    if(srv_u) {
+      srv_u->setMisbehavingFlowsStatusMap(status_map, false);
+      srv_u->incNumMisbehavingFlows(false);
+    }
+
+    iface->decNumMisbehavingFlows();
+  }
+
+  if(isFlowAlerted()) {
+    if(cli_u) cli_u->decNumAlertedFlows();
+    if(srv_u) srv_u->decNumAlertedFlows();
+  }
+
+  /*
+    Finish deleting other flow data structures
+   */
 
   if(viewFlowStats)                 delete(viewFlowStats);
   if(periodic_stats_update_partial) delete(periodic_stats_update_partial);
@@ -2342,11 +2402,18 @@ u_int Flow::get_hash_entry_id() const {
 /* *************************************** */
 
 void Flow::set_hash_entry_state_idle() {
-  if(cli_host)
-    cli_host->decNumFlows(last_seen, true);
+  /*
+    Number of flows is decreased here, that is, as soon as the flow goes idle,
+    rather than waiting the ~Flow. This has a beneficial impact as data are refreshed
+    earlier (there's no need to wait for the destructor).
 
-  if(srv_host)
-    srv_host->decNumFlows(last_seen, false);
+    Unsafe pointers are used here to also handle 'viewed' interfaces with possibly unsafe host pointers.
+   */
+  if(unsafeGetClient())
+    unsafeGetClient()->decNumFlows(get_last_seen(), true);
+
+  if(unsafeGetServer())
+    unsafeGetServer()->decNumFlows(get_last_seen(), false);
 
   if(isFlowAlerted()) {
     iface->decNumAlertedFlows(this);
@@ -2809,7 +2876,6 @@ void Flow::housekeep(time_t t) {
   case hash_entry_state_idle:
     hookFlowEndCheck(t);
     dumpCheck(t, true /* LAST dump before delete */);
-    postFlowSetIdle(t);
     break;
   default:
     break;
@@ -4392,71 +4458,6 @@ void Flow::updateHASSH(bool as_client) {
 
   if(h && hassh && hassh[0] != '\0' && (fp = h->getHASSHFingerprint()))
     fp->update(hassh, pebpf ? pebpf->process_info.process_name : NULL);
-}
-
-/* ***************************************************** */
-
-/* Called when a flow is set_idle */
-void Flow::postFlowSetIdle(time_t t) {
-  Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
-
-  if(status_map.get() != status_normal) {
-#if 0
-    char buf[256];
-    printf("%s status=%d\n", print(buf, sizeof(buf)), status);
-#endif
-
-    if(cli_h) {
-      cli_h->setMisbehavingFlowsStatusMap(status_map, true);
-      cli_h->incNumMisbehavingFlows(true);
-    }
-
-    if(srv_h) {
-      srv_h->setMisbehavingFlowsStatusMap(status_map, false);
-      srv_h->incNumMisbehavingFlows(false);
-    }
-
-    iface->decNumMisbehavingFlows();
-  }
-
-  if(isFlowAlerted()) {
-    if(cli_h) cli_h->decNumAlertedFlows();
-    if(srv_h) srv_h->decNumAlertedFlows();
-  }
-
-  /*
-     Decrease client and server host scores. To perform the update, unsafe pointers are accessed.
-     Unsafe pointers are pointers to the client and server which, in case of view interfaces, are shared
-     across MULTIPLE viewed interfaces. For example, if we have a view of eno1 and eno2, both eno1 and eno2
-     may point to the same hosts, instantiated inside the view. For this reason, it is potentially unsafe to access these pointers.
-
-     However, here it is OK to use unsafe pointers as this function is called sequentially for every viewed interface of a view.
-
-     Client and server host scores are decreased using per-category values stored inside the flow. These per-category values
-     were previously been incremented when executing Lua scripts in Flow::setStatus.
-  */
-  HostScore *clis = NULL, *srvs = NULL;
-
-  if(unsafeGetClient()) clis = unsafeGetClient()->getScore();
-  if(unsafeGetServer()) srvs = unsafeGetServer()->getScore();
-
-  if(clis) {
-    for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
-      ScoreCategory score_category = (ScoreCategory)i;
-
-      if(cli_host_score[score_category])
-	clis->decValue(t, cli_host_score[score_category], score_category, true  /* as client */);	
-    }
-  }
-
-  if(srvs) {
-    for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
-      ScoreCategory score_category = (ScoreCategory)i;
-
-      if(srv_host_score[score_category])
-	srvs->decValue(t, srv_host_score[score_category], score_category, false /* as server */);
-    }
-  }
 }
 
 /* ***************************************************** */
