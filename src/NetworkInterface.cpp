@@ -177,8 +177,8 @@ NetworkInterface::NetworkInterface(const char *name,
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(ntop->getPrefs() && ntop->getPro()->has_valid_license() && ntop->getPrefs()->isBehavourAnalysisEnabled()) {
-    pHash = new PeriodicityHash(ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
-    sm    = new ServiceMap(ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
+    pHash = new PeriodicityHash(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
+    sm    = new ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
   } else
     pHash = NULL, sm = NULL;
 #endif

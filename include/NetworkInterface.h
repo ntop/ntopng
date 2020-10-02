@@ -534,7 +534,9 @@ class NetworkInterface : public AlertableEntity {
   virtual void lua(lua_State* vm);
   void luaPeriodicityStats(lua_State* vm);
   void luaServiceMap(lua_State* vm);
-  
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  inline ServiceMap* getServiceMap() { return(sm); };
+#endif
   void lua_hash_tables_stats(lua_State* vm);
   void lua_periodic_activities_stats(lua_State* vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
