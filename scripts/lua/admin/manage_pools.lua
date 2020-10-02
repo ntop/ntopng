@@ -99,7 +99,7 @@ local menu = {
       { key = "system", title = i18n("pools.pool_names.system"), url = "?page=system", hidden = false},
 
       -- All Pool
-      { key = "all", title = i18n("pools.pool_names.all"), url = "?", hidden = false},
+      { key = "all", title = i18n("pools.pool_names.all"), url = "?page=all", hidden = false},
    },
    current_page = page
 }
