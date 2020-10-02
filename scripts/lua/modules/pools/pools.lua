@@ -617,10 +617,14 @@ end
 
 -- ##############################################
 
+-- @brief Delete all pools
 function pools:cleanup()
     -- Delete pool details
     local cur_pool_ids = self:_get_assigned_pool_ids()
-    for _, pool_id in pairs(cur_pool_ids) do self:delete_pool(pool_id) end
+    for _, pool_id in pairs(cur_pool_ids) do
+       self:delete_pool(pool_id)
+    end
+
     -- Also delete the default pool - it will be re-created during the next initialization
     self:delete_pool(pools.DEFAULT_POOL_ID)
 
