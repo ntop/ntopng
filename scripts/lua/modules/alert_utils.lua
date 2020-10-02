@@ -1314,7 +1314,7 @@ $("[clicked=1]").trigger("click");
     local has_fixed_period = ((not isEmptyString(_GET["epoch_begin"])) or (not isEmptyString(_GET["epoch_end"])))
 
     -- the dont_print_footer option is used to skip the card footer printing
-    if not options.dont_print_footer and not is_standalone then print([[<div class='card-footer'>]]) end
+    if not options.dont_print_footer then print([[<div class='card-footer'>]]) end
 	 print('<div id="alertsActionsPanel">')
 	 print(i18n("show_alerts.alerts_to_purge") .. ': ')
 	 print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if has_fixed_period then print("none") else print("inline") end print[[; width:14em; margin:0 1em;">]]
