@@ -50,9 +50,15 @@ class Flow : public GenericHashEntry {
   u_int16_t cli_host_score[MAX_NUM_SCORE_CATEGORIES], srv_host_score[MAX_NUM_SCORE_CATEGORIES], flow_score;
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
-  Bitmap status_map;              /* The bitmap of the possible problems on the flow */
-  StatusInfo *status_infos;       /* An array of 64 StatusInfo, one for each status (lazy allocation upon setStatus call) */
+  /* The bitmap of all possible flow statuses set by flow user script hooks. When no status is set, the 
+     flow is in status_normal.
+
+     A flow can have multiple statuses but at most ONE of its statuses is the alerted status
+     of a flow, which is written into `alerted_status`.
+  */
+  Bitmap status_map;
   FlowStatus alerted_status;      /* This is the status which has triggered the alert */
+  StatusInfo *status_infos;       /* An array of 64 StatusInfo, one for each status (lazy allocation upon setStatus call) */
   AlertType alert_type;
   AlertLevel alert_level;
   char *alert_status_info;        /* Alert specific status info */
