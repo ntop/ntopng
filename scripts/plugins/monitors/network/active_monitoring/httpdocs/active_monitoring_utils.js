@@ -641,14 +641,4 @@ $(document).ready(function() {
 
     });
 
-    NtopUtils.importModalHelper({
-        load_config_xhr: (json_conf) => {
-          return $.post(http_prefix + "/plugins/import_active_monitoring_config.lua", {
-            csrf: import_csrf,
-            JSON: json_conf,
-          });
-        }, reset_csrf: (new_csrf) => {
-            import_csrf = new_csrf;
-        }
-    });
 });

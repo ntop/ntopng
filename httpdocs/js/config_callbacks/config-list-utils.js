@@ -332,13 +332,4 @@ $(document).ready(function() {
 
     });
 
-    // handle import modal
-    NtopUtils.importModalHelper({
-        load_config_xhr: (json_conf) => {
-          return $.post(`${http_prefix}/lua/rest/set/scripts/config.lua`, {
-            csrf: pageCsrf,
-            JSON: json_conf,
-          });
-        }
-    });
 });
