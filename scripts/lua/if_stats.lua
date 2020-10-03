@@ -1858,7 +1858,7 @@ elseif(page == "config") then
    </script>]]
 
 elseif(page == "internals") then
-   internals_utils.printInternals(ifid, true --[[ hash tables ]], true --[[ periodic activities ]], true --[[ user scripts]])
+   internals_utils.printInternals(ifid, true --[[ hash tables ]], true --[[ periodic activities ]], false --[[ user scripts]])
 print [[
    </table>
 ]]
