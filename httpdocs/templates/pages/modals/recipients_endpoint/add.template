@@ -54,7 +54,7 @@
                         <div class="col-sm-5">
                             <select required name="recipient_minimum_severity" class="form-control" id="recipient-severity-select">
                                 {% for key, alert in pairsByField(alert_severities, 'severity_id', asc) do %}
-                                    <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{ i18n(alert.i18n_title) }}</option>
+                                    <option {{ (alert.severity_id == 0 and 'selected' or '') }} value="{{ alert.severity_id }}">{{ i18n("endpoint_notifications.severities."..key) }}</option>
                                 {% end %}
                             </select>
                         </div>

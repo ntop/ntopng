@@ -1123,6 +1123,11 @@ local lang = {
       ["cc"] = "CC",
       ["email_recipient"] = "Email Recipient",
     },
+    ["severities"] = {
+      ["error"] = "Error",
+      ["info"] = "Info, Warning and Error",
+      ["warning"] = "Warning and Error",
+    },
     ["validation"] = {
       ["abort_add_endpoint"] = "Abort add of new endpoint?",
       ["abort_add_recipient"] = "Abort add of new endpoint recipient?",
