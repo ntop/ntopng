@@ -182,7 +182,6 @@ $(document).ready(function () {
 
                 $(`#add-endpoint-modal`).modal('hide');
                 $(`#add-endpoint-modal form .endpoint-template-container`).hide();
-                NtopUtils.cleanForm(`#add-endpoint-modal form`);
 
                 $endpointsTable.ajax.reload(function (data) {
                     // disable endpoint type if a endpoint reached its max num config
