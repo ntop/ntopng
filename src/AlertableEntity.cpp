@@ -25,7 +25,7 @@
 
 AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
   alert_iface = iface;
-  entity_type = entity, num_triggered_alerts = 0;
+  entity_type = entity, num_engaged_alerts = 0;
 
   for(u_int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++)
     locks[i] = NULL;
@@ -34,6 +34,12 @@ AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
 /* ****************************************** */
 
 AlertableEntity::~AlertableEntity() {
+  /*
+    Decrease (possibly) engaged alerts to keep counters consisten.
+  */
+  while(getNumEngagedAlerts() > 0)
+    decNumAlertsEngaged();
+
   for(u_int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++) {
     if(locks[i])
       delete locks[i];
@@ -113,9 +119,9 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
   } else {
     wrLock(p, __FILE__, __LINE__);
 
-    it = triggered_alerts[(u_int)p].find(key);
+    it = engaged_alerts[(u_int)p].find(key);
 
-    if(it == triggered_alerts[(u_int)p].end()) {
+    if(it == engaged_alerts[(u_int)p].end()) {
       Alert alert;
 
       alert.alert_tstamp_start = alert.last_update = now;
@@ -124,9 +130,9 @@ bool AlertableEntity::triggerAlert(lua_State* vm, std::string key,
       alert.alert_subtype = alert_subtype;
       alert.alert_json = alert_json;
 
-      alert_iface->incNumAlertsEngaged(p);
+      incNumAlertsEngaged();
 
-      triggered_alerts[(u_int)p][key] = alert;
+      engaged_alerts[(u_int)p][key] = alert;
 
       lua_newtable(vm);
       luaAlert(vm, &alert, p);
@@ -150,12 +156,12 @@ bool AlertableEntity::releaseAlert(lua_State* vm,
   std::map<std::string, Alert>::iterator it;
   bool rv = false;
 
-  if(!triggered_alerts[(u_int)p].empty()) {
+  if(!engaged_alerts[(u_int)p].empty()) {
     wrLock(p, __FILE__, __LINE__);
 
-    it = triggered_alerts[(u_int)p].find(key);
+    it = engaged_alerts[(u_int)p].find(key);
 
-    if(it != triggered_alerts[(u_int)p].end()) {
+    if(it != engaged_alerts[(u_int)p].end()) {
       /* Set the release time */
       it->second.last_update = now;
 
@@ -163,9 +169,12 @@ bool AlertableEntity::releaseAlert(lua_State* vm,
       lua_newtable(vm);
       luaAlert(vm, &it->second, p);
 
-      alert_iface->decNumAlertsEngaged(p);
+      /*
+	Decrease instance and instance number of engaged alerts
+       */
+      decNumAlertsEngaged();
 
-      triggered_alerts[(u_int)p].erase(it);
+      engaged_alerts[(u_int)p].erase(it);
 
       rv = true; /* Actually released */
     }
@@ -181,28 +190,16 @@ bool AlertableEntity::releaseAlert(lua_State* vm,
 
 /* ****************************************** */
 
-void AlertableEntity::updateNumTriggeredAlerts() {
-  int i;
-  u_int num_alerts = 0;
-
-  for(i = 0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
-    num_alerts += getNumTriggeredAlerts((ScriptPeriodicity) i);
-
-  num_triggered_alerts = num_alerts;
-}
-
-/* ****************************************** */
-
 void AlertableEntity::countAlerts(grouped_alerts_counters *counters) {
   std::map<std::string, Alert>::const_iterator it;
 
   for(int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++) {
     ScriptPeriodicity p = (ScriptPeriodicity)i;
 
-    if(!triggered_alerts[p].empty()) {
+    if(!engaged_alerts[p].empty()) {
       rdLock(p, __FILE__, __LINE__);
 
-      for(it = triggered_alerts[p].begin(); it != triggered_alerts[p].end(); ++it) {
+      for(it = engaged_alerts[p].begin(); it != engaged_alerts[p].end(); ++it) {
 	const Alert *alert = &it->second;
 	
 	counters->severities[alert->alert_severity]++;
@@ -220,10 +217,10 @@ void AlertableEntity::getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
 				AlertType type_filter, AlertLevel severity_filter, u_int *idx) {
   std::map<std::string, Alert>::const_iterator it;
 
-  if(!triggered_alerts[p].empty()) {
+  if(!engaged_alerts[p].empty()) {
     rdLock(p, __FILE__, __LINE__);
 
-    for(it = triggered_alerts[p].begin(); it != triggered_alerts[p].end(); ++it) {
+    for(it = engaged_alerts[p].begin(); it != engaged_alerts[p].end(); ++it) {
       const Alert *alert = &it->second;
 
       if(((type_filter == alert_none)
@@ -260,15 +257,23 @@ void AlertableEntity::getAlerts(lua_State* vm, ScriptPeriodicity periodicity_fil
 
 /* ****************************************** */
 
-u_int AlertableEntity::getNumTriggeredAlerts(ScriptPeriodicity p) const {
-  return triggered_alerts[p].size();
+u_int AlertableEntity::getNumEngagedAlerts(ScriptPeriodicity p) const {
+  return engaged_alerts[p].size();
 }
 
 /* ****************************************** */
 
-void AlertableEntity::syncReadonlyTriggeredAlerts() {
-  updateNumTriggeredAlerts();
-}
+/* Increase interface and instance number of engaged alerts */
+void AlertableEntity::incNumAlertsEngaged() {
+  alert_iface->incNumAlertsEngaged(); num_engaged_alerts++;
+};
+
+/* ****************************************** */
+
+/* Decrease interface and instance number of engaged alerts */
+void AlertableEntity::decNumAlertsEngaged() {
+  alert_iface->decNumAlertsEngaged(), num_engaged_alerts--;
+};
 
 /* ****************************************** */
 

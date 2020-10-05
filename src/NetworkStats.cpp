@@ -66,7 +66,7 @@ void NetworkStats::lua(lua_State* vm) {
   lua_push_str_table_entry(vm, "network_key", ntop->getLocalNetworkName(network_id));
   lua_push_uint64_table_entry(vm, "network_id", network_id);
   lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
-  lua_push_uint64_table_entry(vm, "engaged_alerts", getNumTriggeredAlerts());
+  lua_push_uint64_table_entry(vm, "engaged_alerts", getNumEngagedAlerts());
 
   lua_push_uint64_table_entry(vm, "ingress", ingress.getNumBytes());
   lua_push_uint64_table_entry(vm, "egress", egress.getNumBytes());

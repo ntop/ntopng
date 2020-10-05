@@ -170,7 +170,7 @@ int8_t Grouper::incStats(Host *h) {
     stats.bytes_rcvd += h->getNumBytesRcvd(),
     stats.num_flows += h->getNumActiveFlows(),
     stats.num_dropped_flows += h->getNumDroppedFlows(),
-    stats.num_alerts += h->getNumTriggeredAlerts(),
+    stats.num_alerts += h->getNumEngagedAlerts(),
     stats.throughput_bps += h->getBytesThpt(),
     stats.throughput_pps += h->getPacketsThpt();
 

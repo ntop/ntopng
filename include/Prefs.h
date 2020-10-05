@@ -321,7 +321,9 @@ class Prefs {
   inline u_int32_t get_auth_session_duration()          { return(auth_session_duration);  };
   inline bool get_auth_session_midnight_expiration()    { return(auth_session_midnight_expiration);  };
   inline u_int32_t get_housekeeping_frequency()         { return(housekeeping_frequency); };
-  inline u_int32_t get_host_max_idle(bool localHost)    { return(localHost ? local_host_max_idle : non_local_host_max_idle);  };
+  inline u_int32_t get_host_max_idle(bool localHost) const { return(localHost ? local_host_max_idle : non_local_host_max_idle);  };
+  /* Maximum idleness for hosts with alerts engaged, that is, with ongoing issues. */
+  inline u_int32_t get_alerted_host_max_idle()       const { return(local_host_max_idle); /* Treat all hosts as local */         };
   inline u_int32_t get_local_host_cache_duration()      { return(local_host_cache_duration);   };
   inline u_int32_t get_pkt_ifaces_flow_max_idle()       { return(pkt_ifaces_flow_max_idle);    };
   inline bool  are_alerts_disabled()                    { return(disable_alerts);              };

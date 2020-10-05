@@ -4317,23 +4317,6 @@ static int ntop_interface_check_context(lua_State* vm) {
 
 /* ****************************************** */
 
-/* Manually refresh alerts for scripts outside the periodic scripts */
-static int ntop_interface_refresh_alerts(lua_State* vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-
-  if(c->host)
-    c->host->refreshAlerts();
-  else if(c->network)
-    c->network->refreshAlerts();
-  else if(c->iface)
-    c->iface->refreshAlerts();
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_interface_check_dropped_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
 
@@ -4641,7 +4624,6 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "triggerExternalAlert",   ntop_interface_store_external_alert     },
   { "releaseExternalAlert",   ntop_interface_release_external_alert   },
   { "checkContext",           ntop_interface_check_context            },
-  { "refreshAlerts",          ntop_interface_refresh_alerts           },
   { "checkDroppedAlerts",     ntop_interface_check_dropped_alerts     },
   { "getEngagedAlerts",       ntop_interface_get_engaged_alerts       },
   { "getEngagedAlertsCount",  ntop_interface_get_engaged_alerts_count },

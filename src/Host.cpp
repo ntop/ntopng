@@ -522,15 +522,15 @@ void Host::lua_get_time(lua_State* vm) const {
 
 void Host::lua_get_num_alerts(lua_State* vm) const {
   lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "min", getNumTriggeredAlerts(minute_script));
-  lua_push_uint64_table_entry(vm, "5mins", getNumTriggeredAlerts(five_minute_script));
-  lua_push_uint64_table_entry(vm, "hour", getNumTriggeredAlerts(hour_script));
-  lua_push_uint64_table_entry(vm, "day", getNumTriggeredAlerts(day_script));
+  lua_push_uint64_table_entry(vm, "min", getNumEngagedAlerts(minute_script));
+  lua_push_uint64_table_entry(vm, "5mins", getNumEngagedAlerts(five_minute_script));
+  lua_push_uint64_table_entry(vm, "hour", getNumEngagedAlerts(hour_script));
+  lua_push_uint64_table_entry(vm, "day", getNumEngagedAlerts(day_script));
   lua_pushstring(vm, "num_triggered_alerts");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  lua_push_uint64_table_entry(vm, "num_alerts", getNumTriggeredAlerts());
+  lua_push_uint64_table_entry(vm, "num_alerts", getNumEngagedAlerts());
   lua_push_uint64_table_entry(vm, "active_alerted_flows", getNumAlertedFlows());
   lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
 }
@@ -825,8 +825,32 @@ const char * Host::getOSDetail(char * const buf, ssize_t buf_len) {
 /* ***************************************** */
 
 bool Host::is_hash_entry_state_idle_transition_ready() const {
+  u_int32_t max_idle;
+
+  /*
+    Idle transition should only be allowed if host has NO alerts engaged.
+    This is to always keep in-memory hosts with ongoing issues.
+
+    - For hosts that actively generate traffic, this is achieved automatically (active hosts
+      stay in memory).
+    - For hosts that stop generating traffic, this is NOT achieved automatically (inactive hosts
+      become candidates for purging).
+
+    However, it is not desirable to keep inactive hosts in memory for an unlimited amount of time,
+    even if they have ongoing inssues, as this could cause OOMs or make ntopng vulnerable to certain attacks.
+
+    For this reason, when an host has ongoing issues, a different (larger) maximum idleness is used to:
+    - Keep it in memory for a longer time
+    - Avoid keeping inactive hosts in memory for an indefinite time
+  */
+
+  if(getNumEngagedAlerts() > 0)
+    max_idle = ntop->getPrefs()->get_alerted_host_max_idle();
+  else
+    max_idle = ntop->getPrefs()->get_host_max_idle(isLocalHost());
+
   bool res = (getUses() == 0)
-    && is_active_entry_now_idle(ntop->getPrefs()->get_host_max_idle(isLocalHost()));
+    && is_active_entry_now_idle(max_idle);
 
 #if DEBUG_HOST_IDLE_TRANSITION
   char buf[64];
@@ -905,7 +929,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
 
     /* Generic Host */
-    json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumTriggeredAlerts()));
+    json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumEngagedAlerts()));
   }
 
   /* The value below is handled by reading dumps on disk as otherwise the string will be too long */

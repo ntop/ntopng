@@ -469,7 +469,6 @@ function alert_utils.checkDeleteStoredAlerts()
       }
 
       alerts_api.release(entity_info, type_info)
-      interface.refreshAlerts();
    end
 end
 

@@ -285,7 +285,7 @@ void NetworkInterface::init() {
   num_live_captures = 0, num_dropped_alerts = 0, checked_dropped_alerts = 0, prev_dropped_alerts = 0;
   num_written_alerts = num_alerts_queries = 0;
   memset(live_captures, 0, sizeof(live_captures));
-  memset(&num_alerts_engaged, 0, sizeof(num_alerts_engaged));
+  num_alerts_engaged = 0;
   num_active_alerted_flows = num_idle_alerted_flows = 0;
   has_stored_alerts = false;
 
@@ -3885,7 +3885,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
     break;
 
   case column_alerts:
-    r->elems[r->actNumEntries++].numericValue = h->getNumTriggeredAlerts();
+    r->elems[r->actNumEntries++].numericValue = h->getNumEngagedAlerts();
     break;
 
   case column_name:
@@ -7588,17 +7588,6 @@ void NetworkInterface::checkInterfaceAlerts(vector<ScriptPeriodicity> *p, lua_St
 
 /* *************************************** */
 
-u_int32_t NetworkInterface::getNumEngagedAlerts() {
-  u_int32_t ctr = 0;
-
-  for(u_int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++)
-    ctr += num_alerts_engaged[i];
-
-  return(ctr);
-}
-
-/* *************************************** */
-
 struct alertable_walker_data {
   AddressTree *allowed_nets;
   alertable_callback *callback;
@@ -7759,7 +7748,7 @@ static bool host_release_engaged_alerts(GenericHashEntry *entity, void *user_dat
   Host *host = (Host *) entity;
   AlertCheckLuaEngine *host_script = (AlertCheckLuaEngine *)user_data;
 
-  if(host->getNumTriggeredAlerts()) {
+  if(host->getNumEngagedAlerts()) {
     lua_getglobal(host_script->getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
     host_script->setHost(host);
     host_script->pcall(0, 0);
@@ -7783,7 +7772,7 @@ void NetworkInterface::releaseAllEngagedAlerts() {
   walker(&begin_slot, walk_all, walker_hosts, host_release_engaged_alerts, &host_script);
 
   /* Interface */
-  if(getNumTriggeredAlerts()) {
+  if(getNumEngagedAlerts()) {
     AlertCheckLuaEngine interface_script(alert_entity_interface, minute_script /* doesn't matter */, this, NULL);
     lua_getglobal(interface_script.getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
     interface_script.pcall(0, 0);
@@ -7793,7 +7782,7 @@ void NetworkInterface::releaseAllEngagedAlerts() {
   for(u_int8_t network_id = 0; network_id < num_local_networks; network_id++) {
     NetworkStats *stats = getNetworkStats(network_id);
 
-    if(stats->getNumTriggeredAlerts()) {
+    if(stats->getNumEngagedAlerts()) {
       lua_getglobal(network_script.getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
       network_script.setNetwork(stats);
       network_script.pcall(0, 0);
@@ -7858,10 +7847,7 @@ AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, con
 /* *************************************** */
 
 void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
-  /* Must refresh before being able to read the updated count */
-  alertable->refreshAlerts();
-
-  if(alertable->getNumTriggeredAlerts() == 0) {
+  if(alertable->getNumEngagedAlerts() == 0) {
     std::pair<AlertEntity, std::string> key(alertable->getEntityType(), alertable->getEntityValue());
 
     external_alerts.erase(key);

@@ -66,7 +66,7 @@ class NetworkInterface : public AlertableEntity {
   const char *customIftype;
   u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
-  u_int32_t num_alerts_engaged[MAX_NUM_PERIODIC_SCRIPTS];
+  std::atomic<u_int32_t> num_alerts_engaged; /* Possibly touched by multiple concurrent threads */
   u_int64_t num_active_alerted_flows, num_idle_alerted_flows;
   u_int64_t num_active_misbehaving_flows, num_idle_misbehaving_flows;
   u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts, num_dropped_flow_scripts_calls;
@@ -864,8 +864,8 @@ class NetworkInterface : public AlertableEntity {
   inline void decNumMisbehavingFlows() 			  { num_idle_misbehaving_flows++;   }
   virtual u_int64_t getNumActiveMisbehavingFlows()      const;
   inline void setHasAlerts(bool has_stored_alerts)        { this->has_stored_alerts = has_stored_alerts; }
-  inline void incNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]++; }
-  inline void decNumAlertsEngaged(ScriptPeriodicity p)    { num_alerts_engaged[(u_int)p]--; }
+  inline void incNumAlertsEngaged()                       { num_alerts_engaged++; }
+  inline void decNumAlertsEngaged()                       { num_alerts_engaged--; }
   inline bool hasAlerts()                                 { return(has_stored_alerts || (getNumEngagedAlerts() > 0)); }
   inline void refreshHasAlerts()                          { has_stored_alerts = alertsManager ? alertsManager->hasAlerts() : false; }
   inline void incNumDroppedAlerts(u_int32_t num_dropped)  { num_dropped_alerts += num_dropped; }
@@ -886,8 +886,8 @@ class NetworkInterface : public AlertableEntity {
   AlertableEntity* lockExternalAlertable(AlertEntity entity, const char *entity_val, bool create_if_missing);
   void unlockExternalAlertable(AlertableEntity *entity);
 
-  virtual bool reproducePcapOriginalSpeed() const         { return(false); }
-  u_int32_t getNumEngagedAlerts();
+  virtual bool reproducePcapOriginalSpeed() const         { return(false);             }
+  inline u_int32_t getNumEngagedAlerts()    const         { return num_alerts_engaged; };
   void releaseAllEngagedAlerts();
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)

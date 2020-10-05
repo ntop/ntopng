@@ -172,17 +172,6 @@ bool AlertCheckLuaEngine::pcall(int num_args, int num_results) {
   num_calls++;
   total_ticks += Utils::getticks()  - t_begin;
 
-  /*
-    Refresh entity (if necessary): this guarantees that we do at most one
-    refresh per entity, regardless of the number of triggered alerts
-   */
-  if(getHost())
-    getHost()->refreshAlerts();
-  else if(getNetwork())
-    getNetwork()->refreshAlerts();
-  else if(getNetworkInterface())
-    getNetworkInterface()->refreshAlerts();
-
   return(true);
 }
 

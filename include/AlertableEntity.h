@@ -24,8 +24,14 @@
 
 #include "ntop_includes.h"
 
+class NetworkInterface;
+
 class AlertableEntity {
-protected:
+ private:
+  void incNumAlertsEngaged();
+  void decNumAlertsEngaged();
+
+ protected:
   AlertEntity entity_type;
   std::string entity_val;
   NetworkInterface *alert_iface;
@@ -35,22 +41,20 @@ protected:
     do not interfere each other and thus that they can run concurrently without locking.
 
     However while alert_cache is accessed only by the alert engine and thus it is "thread-safe"
-    as concurrent scripts (i.e. at different granularities) cannot call it, triggered_alerts
+    as concurrent scripts (i.e. at different granularities) cannot call it, engaged_alerts
     needs to be protected as
     - it can be called by the Lua GUI
     - it can be called by the alert engine
   */
   std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
-  std::map<std::string, Alert> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
+  std::map<std::string, Alert> engaged_alerts[MAX_NUM_PERIODIC_SCRIPTS];
   RwLock *locks[MAX_NUM_PERIODIC_SCRIPTS];
-  u_int num_triggered_alerts;
+  std::atomic<u_int> num_engaged_alerts;
 
   RwLock* getLock(ScriptPeriodicity p);
   void rdLock(ScriptPeriodicity p, const char *filename, int line);
   void wrLock(ScriptPeriodicity p, const char *filename, int line);
   void unlock(ScriptPeriodicity p, const char *filename, int line);
-  void syncReadonlyTriggeredAlerts();
-  void updateNumTriggeredAlerts();
   void getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
 				AlertType type_filter, AlertLevel severity_filter, u_int *idx);
 
@@ -73,8 +77,8 @@ public:
     alert_cache[(u_int)p][key] = value;
   }
 
-  u_int getNumTriggeredAlerts(ScriptPeriodicity p) const;
-  inline u_int getNumTriggeredAlerts() const { return(num_triggered_alerts); }
+  u_int getNumEngagedAlerts(ScriptPeriodicity p) const;
+  inline u_int getNumEngagedAlerts() const { return(num_engaged_alerts); }
   
   inline void setEntityValue(const char *ent_val) { entity_val = ent_val; }
   inline std::string getEntityValue()       const { return(entity_val); }
@@ -93,11 +97,6 @@ public:
   void getAlerts(lua_State* vm, ScriptPeriodicity p, AlertType type_filter,
 		 AlertLevel severity_filter, u_int *idx);
   bool matchesAllowedNetworks(AddressTree *allowed_nets);
-
-  /* This must be called once per script and updates what the user see on the gui. */
-  inline void refreshAlerts() {
-    syncReadonlyTriggeredAlerts();
-  }
 };
 
 #endif

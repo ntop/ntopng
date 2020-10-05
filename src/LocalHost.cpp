@@ -302,7 +302,7 @@ void LocalHost::lua_get_timeseries(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());
   lua_push_uint64_table_entry(vm, "contacts.as_client", getNumActiveContactsAsClient());
   lua_push_uint64_table_entry(vm, "contacts.as_server", getNumActiveContactsAsServer());
-  lua_push_uint64_table_entry(vm, "engaged_alerts", getNumTriggeredAlerts());
+  lua_push_uint64_table_entry(vm, "engaged_alerts", getNumEngagedAlerts());
 
   lua_pushstring(vm, "ts_point");
   lua_insert(vm, -2);
