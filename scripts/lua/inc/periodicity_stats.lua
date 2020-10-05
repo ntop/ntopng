@@ -5,8 +5,8 @@
 
 print('<link href="'.. ntop.getHttpPrefix()..'/datatables/datatables.min.css" rel="stylesheet"/>')
 
-print ("<H3>" .. i18n("periodicity_stats"))
-print [[ </H3>
+print ("<h3>" .. i18n("periodicity_stats") .. "</h3>")
+print [[
 
 <table id="periodicity_info" class="table table-bordered table-striped w-100">
         <thead>
@@ -41,7 +41,7 @@ end
 
 local id = 0
 for k,v in pairsByKeys(keys, asc) do
-   print("{ key: 'filter_"..id.."', regex: '"..k.."', label: '"..k.." ("..v..")' },\n")
+   print("{ key: 'filter_"..id.."', regex: '"..k.."', label: '"..k.." ("..v..")', countable: false },\n")
    id = id + 1
 end
 
@@ -58,11 +58,18 @@ print [[
 
   config["initComplete"] = function(settings, rows) {
     const tableAPI = settings.oInstance.api();
-    const columnProtocolIndex = 0; /* Filter on protocol column */
-    DataTableUtils.addFilterDropdown(']]  print(i18n("protocol")) print [[', filters, columnProtocolIndex, '#periodicity_info_filter', tableAPI);
   }
 
-  $('#periodicity_info').DataTable(config);
+  const $periodicityTable = $('#periodicity_info').DataTable(config);
+  const columnProtocolIndex = 0; /* Filter on protocol column */
+  const protocolMenuFilters = new DataTableFiltersMenu({
+      filterTitle: "]] print(i18n("protocol")) print[[",
+      tableAPI: $periodicityTable,
+      filters: filters,
+      filterMenuKey: 'periodicity-status',
+      columnIndex: columnProtocolIndex
+   });
+
 } );
 
  i18n.all = "]] print(i18n("all")) print [[";

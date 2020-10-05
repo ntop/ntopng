@@ -15,6 +15,183 @@ jQuery.fn.dataTableExt.absoluteFormatSecondsToHHMMSS = (data, type, row) => {
     return data;
 };
 
+class DataTableFiltersMenu {
+
+    /**
+     *
+     * @param {options}
+     */
+    constructor({tableAPI, filterMenuKey, filterTitle, filters, columnIndex}) {
+
+        const self = this;
+
+        this.tableAPI = tableAPI;
+        this.filterTitle = filterTitle;
+        this.filterMenuKey = filterMenuKey;
+        this.columnIndex = columnIndex;
+        this.preventUpdate = false;
+        this.$datatableWrapper = $(tableAPI.context[0].nTableWrapper);
+
+        // when the datatable has been initialized render the dropdown
+        this.$datatableWrapper.on('init.dt', function() {
+            self._render(filters);
+        });
+
+        // on ajax reload then update the datatable entries
+        this.tableAPI.on('draw', function() {
+            self._update();
+        });
+    }
+
+    _countEntries(regex, data = []) {
+
+        if (regex === undefined) {
+            console.error("DataTableFiltersMenu::_countEntries() => the passed regex is undefined!");
+        }
+
+        const reg = new RegExp(regex);
+        return data.filter(cellValue => reg.test(cellValue)).length;
+    }
+
+    _createMenuEntry(filter) {
+
+        const self = this;
+        const $entry = $(`<li class='dropdown-item pointer'>${filter.label} </li>`);
+
+        if (filter.countable === undefined || filter.countable) {
+
+            const data = this.tableAPI.columns(this.columnIndex).data()[0];
+            const count = this._countEntries(filter.regex, data);
+            const $counter = $(`<span class='counter'>(${count})</span>`);
+
+            // if the count is 0 then hide the menu entry
+            if (count == 0) $entry.hide();
+
+            //append the $counter object inside the $entry
+            $entry.append($counter);
+        }
+
+        $entry.click(function (e) {
+
+            self.preventUpdate = true;
+
+            // set active filter title and key
+            if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
+                self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
+            }
+
+            const newContent = $entry.html();
+            self.$dropdown.title.html(newContent);
+            // remove the active class from the li elements
+            self.$dropdown.container.find('li').removeClass(`active`);
+            // add active class to current entry
+            $entry.addClass(`active`);
+            // if the filter have a callback then call it
+            if (filter.callback) filter.callback();
+            // perform the table filtering
+            self.tableAPI.column(self.columnIndex).search(filter.regex, true, false).draw();
+        });
+
+        return $entry;
+    }
+
+    _createFilters(filters) {
+
+        const filtersCreated = {};
+
+        // for each filter defined in this.filters
+        for (const filter of filters) {
+
+            const $filter = this._createMenuEntry(filter);
+            // save the filter inside the $filters object
+            filtersCreated[filter.key] = { filter: filter, $node: $filter };
+        }
+
+        return filtersCreated;
+    }
+
+    _render(filters) {
+
+        const $dropdownContainer = $(`<div id='${this.filterMenuKey}-filters' class='dropdown d-inline'></div>`);
+        const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
+        const $dropdownTitle = $(`<span class='filter-title'>${this.filterTitle}</span>`);
+        $dropdownButton.append($dropdownTitle);
+
+        this.filters = this._createFilters(filters);
+
+        this.$dropdown = {
+            container: $dropdownContainer,
+            title: $dropdownTitle,
+            button: $dropdownButton
+        };
+
+        const $menuContainer = $(`<ul class='dropdown-menu scrollable-dropdown' id='${this.filterMenuKey}-filter-menu'></ul>`);
+        for (const [_, filter] of Object.entries(this.filters)) {
+            $menuContainer.append(filter.$node);
+        }
+
+        // the All entry is created by the object
+        const allFilter = {
+            key: 'all',
+            label: i18n.all,
+            regex: '',
+            countable: false,
+            callback: () => {
+                this.$dropdown.title.parent().find('i.fas.fa-filter').remove();
+                this.$dropdown.title.html(`${this.filterTitle}`);
+            }
+        };
+
+        $menuContainer.prepend(this._createMenuEntry(allFilter));
+
+        // append the created dropdown inside
+        $dropdownContainer.append($dropdownButton);
+        $dropdownContainer.append($menuContainer);
+        // append the dropdown menu inside the filter wrapper
+        this.$datatableWrapper.find('.dataTables_filter').prepend($dropdownContainer);
+
+        this._selectFilterFromState(this.filterMenuKey);
+    }
+
+    _selectFilterFromState(filterKey) {
+
+        console.log(this.tableAPI.state)
+
+        if (!this.tableAPI.state) return;
+        if (!this.tableAPI.state.loaded()) return;
+        if (!this.tableAPI.state.loaded().filters) return;
+
+
+        // save the current table state
+        tableAPI.state.save();
+    }
+
+    _update() {
+
+        // if the filters have not been initialized by _render then return
+        if (this.filters === undefined) return;
+        if (this.preventUpdate) {
+            this.preventUpdate = false;
+            return;
+        }
+
+        for (const [_, filter] of Object.entries(this.filters)) {
+            if (filter.countable == false) continue;
+
+            const data = this.tableAPI.columns(this.columnIndex).data()[0];
+            const count = this._countEntries(filter.filter.regex, data);
+
+            // hide the filter if the count is zero
+            (count == 0) ? filter.$node.hide() : filter.$node.show();
+            // update the counter label
+            filter.$node.find('.counter').text(`(${count})`);
+            // update the selected button counter
+            this.$dropdown.button.find('.counter').text(`(${count})`);
+        }
+    }
+
+}
+
 class DataTableUtils {
 
     /**
@@ -130,158 +307,6 @@ class DataTableUtils {
         }
 
         return $.extend({}, config, extension);
-    }
-
-    static countEntries(regex, data) {
-
-        let counter = 0;
-        const reg = new RegExp(regex);
-
-        data.forEach((currentCell) => {
-            if (reg.test(currentCell)) counter++;
-        });
-        return counter;
-    }
-
-    static updateFilters(filterTitle, tableAPI) {
-
-        const menuFilterKey = filterTitle.toLowerCase().split(" ").join("_");
-        // update entries for each
-        const $menuFilter = $(`[data-filter='${menuFilterKey}']`);
-        const columnIndex = $menuFilter.data('filterIndex');
-
-        $menuFilter.find('[data-filter-key]').each(function () {
-
-            const key = $(this).data('filterKey');
-            if (key == 'all') return;
-
-            const count = DataTableUtils.countEntries(key, tableAPI.columns(columnIndex).data()[0]);
-            // hide the entry if count is zero
-            if (count == 0) {
-                $(this).hide();
-            }
-            else {
-                $(this).show();
-            }
-
-            // update the counter text
-            $(this).find('.counter').text(`(${count})`);
-            // update the selected button counter
-            $(`span[data-filter-key='${key}']`).find('.counter').text(`(${count})`);
-        });
-    }
-
-    /**
-     * A simple filter is an object like this: `{ key: '', label: 'label1', regex: 'http://', countable: true|false}`
-     * @param {string} title The select title
-     * @param {*} filters An array of filters
-     * @param {number} columnIndex The column index to sort
-     * @param {string} filterID The filter container
-     * @param {DataTable} tableAPI
-     */
-    static addFilterDropdown(title, filters = [], columnIndex, filterID, tableAPI) {
-
-        const createEntry = (val, key, hasToCount, regex, callback) => {
-
-            const $entry = $(`<li data-filter-key='${key}' class='dropdown-item pointer'>${val} </li>`);
-
-            if (hasToCount) {
-
-                const count = DataTableUtils.countEntries(regex, tableAPI.columns(columnIndex).data()[0]);
-                const $counter = $(`<span class='counter'>(${count})</span>`);
-                if (count == 0) $entry.hide();
-
-                $entry.append($counter);
-            }
-
-            $entry.click(function (e) {
-                // set active filter title and key
-                if ($dropdownTitle.parent().find(`i.fas`).length == 0) {
-                    $dropdownTitle.parent().prepend(`<i class='fas fa-filter'></i>`);
-                }
-                $dropdownTitle.html($entry.html());
-                $dropdownTitle.attr(`data-filter-key`, key);
-                // remove the active class from the li elements
-                $menuContainer.find('li').removeClass(`active`);
-                // add active class to current entry
-                $entry.addClass(`active`);
-                // if there is a callback then invoked it
-                if (callback) callback(e);
-            });
-
-            return $entry;
-        }
-
-        const filterKey = title.toLowerCase().split(" ").join("_");
-        const dropdownId = `${filterKey}-filter-menu`;
-
-        const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline '></div>`);
-        const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
-        const $dropdownTitle = $(`<span>${title}</span>`);
-        $dropdownButton.append($dropdownTitle);
-
-        const $menuContainer = $(`<ul class='dropdown-menu scrollable-dropdown' data-filter-index='${columnIndex}' data-filter='${filterKey}' id='${filterKey}-filter'></ul>`);
-
-        // for each filter defined in filters create a dropdown item <li>
-        for (let filter of filters) {
-
-            const $entry = createEntry(filter.label, filter.key, filter.countable, filter.regex, function (e) {
-                // if the filter have a callback then call it
-                if (filter.callback) {
-                    filter.callback();
-                }
-                tableAPI.column(columnIndex).search(filter.regex, true, false).draw();
-            });
-
-            $menuContainer.append($entry);
-        }
-
-        // add all filter
-        const $allEntry = createEntry(i18n.all, 'all', false, (e) => {
-
-            $dropdownTitle.parent().find('i.fas.fa-filter').remove();
-            $dropdownTitle.html(`${title}`).removeAttr(`data-filter-key`);
-            tableAPI.columns(columnIndex).search('').draw(true);
-        });
-
-        // append the created dropdown inside
-        $(filterID).prepend(
-            $dropdownContainer.append(
-                $dropdownButton, $menuContainer.prepend($allEntry)
-            )
-        );
-
-        DataTableUtils.setCurrentFilter(tableAPI, filterKey);
-    }
-
-
-
-
-    /**
-     * For each filter object set the previous filter's state
-     * @param {object} tableAPI
-     * @param {string} filterKey The filter's key to set inside the Datatable
-     */
-    static setCurrentFilter(tableAPI, filterKey) {
-
-        if (!tableAPI.state) return;
-        if (!tableAPI.state.loaded()) return;
-        if (!tableAPI.state.loaded().filters) return;
-
-        const filters = tableAPI.state.loaded().filters;
-        if (!filters) return;
-
-        const filter = filters[filterKey];
-        if (!filter) return;
-
-        // highlight the previous filter selected
-        const $entry = $(`#${filterKey}-filter-menu li[data-filter-key='${filter}']`).addClass('active');
-        // change the dropdown main content
-        if (filter != "all")
-            $(`#${filterKey}-filter-menu button`).prepend(`<i class='fas fa-filter'></i>`).find(`span`).html($entry.text());
-
-        // save the current table state
-        tableAPI.state.save();
     }
 
     /**

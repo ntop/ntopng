@@ -2,7 +2,7 @@ $(document).ready(function () {
 
     const TABLE_DATA_REFRESH = 15000;
     const DEFAULT_RECIPIENT_ID = 0;
-    const INDEX_COLUMN_ENDPOINT_TYPE = 1;
+    const COLUMN_INDEX_ENDPOINT_TYPE = 1;
 
     const makeFormData = (formSelector) => {
 
@@ -192,11 +192,6 @@ $(document).ready(function () {
 
             const tableAPI = settings.oInstance.api();
 
-            // add a filter to sort the datatable by endpoint type
-            DataTableUtils.addFilterDropdown(
-                i18n.endpoint_type, endpointTypeFilters, INDEX_COLUMN_ENDPOINT_TYPE, '#recipient-list_filter', tableAPI
-            );
-
             // when the data has been fetched check if the url has a recipient_id param
             // if the recipient is builtin then cancel the modal opening
             DataTableUtils.openEditModalByQuery({
@@ -212,6 +207,13 @@ $(document).ready(function () {
     });
 
     const $recipientsTable = $(`table#recipient-list`).DataTable(dtConfig);
+    const endpointTypeFilterMenu = new DataTableFiltersMenu({
+        filterTitle: i18n.endpoint_type,
+        filters: endpointTypeFilters,
+        columnIndex: COLUMN_INDEX_ENDPOINT_TYPE,
+        tableAPI: $recipientsTable,
+        filterMenuKey: 'endpoint-type'
+    });
 
     /* bind add endpoint event */
     $(`#add-recipient-modal form`).modalHandler({
@@ -242,13 +244,10 @@ $(document).ready(function () {
         },
         onSubmitSuccess: function (response) {
 
-            if (response.result.status == "OK") {
+            if (response.result.rc == 0) {
                 $(`#add-recipient-modal`).modal('hide');
                 $(`#add-recipient-modal form .recipient-template-container`).hide();
-                NtopUtils.cleanForm(`#add-recipient-modal form`);
-                $recipientsTable.ajax.reload(function () {
-                    DataTableUtils.updateFilters(i18n.endpoint_type, $recipientsTable);
-                });
+                $recipientsTable.ajax.reload();
                 return;
             }
 
@@ -335,9 +334,7 @@ $(document).ready(function () {
         onSubmitSuccess: (response) => {
             if (response.result) {
                 $(`#remove-recipient-modal`).modal('hide');
-                $recipientsTable.ajax.reload(function () {
-                    DataTableUtils.updateFilters(i18n.endpoint_type, $recipientsTable);
-                });
+                $recipientsTable.ajax.reload();
             }
         }
     });

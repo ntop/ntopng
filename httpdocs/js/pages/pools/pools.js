@@ -181,7 +181,6 @@ $(document).ready(function() {
             }
 
             $poolTable.ajax.reload();
-            modalHandler.cleanForm();
             $(`#add-pool`).modal('hide');
         }
     }).invokeModalInit();
@@ -296,7 +295,6 @@ $(document).ready(function() {
             }
 
             // clean the form and reload the table
-            modalHandler.cleanForm();
             $poolTable.ajax.reload();
             $(`#edit-pool`).modal('hide');
         }
@@ -327,7 +325,6 @@ $(document).ready(function() {
             renableDisabledOptions(`#add-pool form select[name='members']`, oldPoolData.members);
             renableDisabledOptions(`#edit-pool form select[name='members']`, oldPoolData.members);
 
-            modalHandler.cleanForm();
             $poolTable.ajax.reload();
             $(`#remove-pool`).modal('hide');
         }

@@ -5,10 +5,9 @@
 
 $(document).ready(function () {
 
-    let memberRowData = null;
-
     // this is the current filtering type for the datatable
     let currentType = null;
+    const INDEX_MEMBER_FILTER = 0;
 
     const filters = [
         {
@@ -59,7 +58,7 @@ $(document).ready(function () {
             },
             {
                 data: 'vlan',
-                width: '5',
+                width: '5%',
                 className: 'text-center',
                 render: function (data, type, row) {
 
@@ -77,21 +76,22 @@ $(document).ready(function () {
                     ]);
                 }
             }
-        ],
-        initComplete: function (settings, json) {
-
-            const tableAPI = settings.oInstance.api();
-            DataTableUtils.addFilterDropdown(
-                i18n.member_type, filters, 0, '#host-members-table_filter', tableAPI
-            );
-        }
+        ]
     });
 
     const $hostMembersTable = $(`#host-members-table`).DataTable(dtConfig);
+    const hostMemersTableFilters = new DataTableFiltersMenu({
+        tableAPI: $hostMembersTable,
+        filters: filters,
+        filterMenuKey: 'host-members',
+        filterTitle: i18n.member_type,
+        columnIndex: INDEX_MEMBER_FILTER,
+    })
+
 
     $(`#host-members-table`).on('click', `a[href='#remove-member-host-pool']`, function (e) {
-        memberRowData = $hostMembersTable.row($(this).parent().parent()).data();
-        $removeModalHandler.invokeModalInit();
+        const memberRowData = $hostMembersTable.row($(this).parent().parent()).data();
+        $removeModalHandler.invokeModalInit(memberRowData);
     });
 
     $(`#select-host-pool`).change(function () {
@@ -127,10 +127,12 @@ $(document).ready(function () {
             $(`#add-member-modal select[name='member_type']`).change(function () {
 
                 const value = $(this).val();
+
                 // clean the members and show the selected one
-                $(`#add-member-modal [class*='fields']`).hide()
-                    .find('input,select').attr("disabled", true).removeClass('is-invalid');
+                $(`#add-member-modal [class*='fields']`).hide();
+                $(`#add-member-modal [class*='fields'] input, #add-member-modal [class*='fields'] select`).attr("disabled", "disabled").removeClass('is-invalid');
                 $(`#add-member-modal [class*='fields'] input`).val("");
+
                 // select the default value inside the selected
                 $(`#add-member-modal [class*='fields'] select`).val($(`#add-member-modal [class*='fields'] select option[selected]`).val());
                 $(`#add-member-modal [class*='fields'] select option`).removeAttr("disabled");
@@ -172,8 +174,6 @@ $(document).ready(function () {
             }
 
             $hostMembersTable.ajax.reload();
-
-            modalHandler.cleanForm();
             $(`#add-member-modal`).modal('hide');
         }
     }).invokeModalInit();
@@ -185,12 +185,12 @@ $(document).ready(function () {
         onModalShow: function () {
             $(`#remove-modal-feedback`).hide();
         },
-        onModalInit: function () {
-            $(`.remove-member-name`).html(`${memberRowData.name}`);
+        onModalInit: function (hostMember) {
+            $(`.remove-member-name`).html(`${hostMember.name}`);
             $(`#remove-pool-name`).html(`<b>${selectedPool.name}</b>`);
         },
-        beforeSumbit: function () {
-            return { pool: defaultPoolId, member: memberRowData.member };
+        beforeSumbit: function (hostMember) {
+            return { pool: defaultPoolId, member: hostMember.member };
         },
         onSubmitSuccess: function (response, textStatus, modalHandler) {
 
@@ -198,7 +198,6 @@ $(document).ready(function () {
                 $(`#remove-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
                 return;
             }
-
             $hostMembersTable.ajax.reload();
             $(`#remove-member-host-pool`).modal('hide');
         }

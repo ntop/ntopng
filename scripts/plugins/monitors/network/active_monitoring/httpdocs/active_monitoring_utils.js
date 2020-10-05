@@ -1,9 +1,6 @@
 $(document).ready(function() {
 
     const MAX_RECIPIENTS = 3;
-    const POOL_COLUMN_INDEX = 8;
-
-    let row_data = null;
 
     const getMeasurementRegex = (measurement) => {
 
@@ -21,127 +18,70 @@ $(document).ready(function() {
     }
 
     const addPoolFilter = (tableAPI) => {
-        DataTableUtils.addFilterDropdown(
-            i18n.pools, poolsFilter, POOL_COLUMN_INDEX, '#am-table_filter', tableAPI
-        );
+
+        const POOL_COLUMN_INDEX = 8;
+
+        return new DataTableFiltersMenu({
+            filterTitle: i18n.pools,
+            tableAPI: tableAPI,
+            filters: poolsFilter,
+            filterMenuKey: 'pools',
+            columnIndex: POOL_COLUMN_INDEX
+        });
     }
 
-    const $removeModalHandler = $(`#am-delete-modal form`).modalHandler({
-        method: 'post',
-        csrf: am_csrf,
-        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
-        dontDisableSubmit: true,
-        onModalInit: function() {
-            $("#delete-host").html(`<b>${row_data.url}</b>`);
-        },
-        beforeSumbit: () => {
-            return {
-                action: 'delete',
-                am_host: row_data.host,
-                measurement: row_data.measurement,
-                csrf: am_csrf
-            }
-        },
-        onSubmitSuccess: function (response) {
-            if (response.success) {
-                $(`#am-delete-modal`).modal('hide');
-                AlertNotificationUtils.showAlert({
-                    title: i18n.success,
-                    body: response.message,
-                    level: 'success',
-                    delay: 3000,
-                    id: 'am-delete'
-                });
-                $am_table.ajax.reload();
-            }
+    const addMeasurementFilter = (tableAPI) => {
+
+        const MEASUREMENT_COLUMN_INDEX = 0;
+
+        // build filters for datatable
+        const measurements = Object.keys(measurements_info);
+        const filters = [];
+
+        for (const measurement of measurements) {
+            filters.push({
+                key: measurement,
+                label: `${measurements_info[measurement].label}`,
+                regex: `^(${measurement}://).+`
+            });
         }
-    });
 
-    $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
-        row_data = get_am_data($am_table, $(this));
-        $removeModalHandler.invokeModalInit();
-    });
+        // sort the created filters
+        filters.sort((a, b) => a.label.localeCompare(b.label));
 
-    let edit_host_data = null;
+        return new DataTableFiltersMenu({
+            filterTitle: i18n.measurement,
+            tableAPI: tableAPI,
+            filters: filters,
+            filterMenuKey: 'measurement',
+            columnIndex: MEASUREMENT_COLUMN_INDEX
+        });
+    }
 
-    $("#select-edit-measurement").on('change', function(event) {
-        const selected_measurement = $(this).val();
-        // change the pattern depending on the selected measurement
-        $(`#input-edit-host`).attr('pattern', getMeasurementRegex(selected_measurement));
+    const addAlertedFilter = (tableAPI) => {
 
-        dialogRefreshMeasurement($("#am-edit-modal"));
-    });
-
-    const $editModalHandler = $(`#am-edit-form`).modalHandler({
-        method: 'post',
-        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
-        csrf: am_csrf,
-        onModalInit: function () {
-            const DEFAULT_THRESHOLD     = 500;
-            const DEFAULT_GRANULARITY   = "min";
-            const DEFAULT_MEASUREMENT   = "icmp";
-            const DEFAULT_HOST          = "";
-            const DEFAULT_POOL          = 0;
-
-            const cur_measurement = edit_host_data.measurement || DEFAULT_MEASUREMENT;
-            const $dialog = $('#am-edit-modal');
-            dialogDisableUniqueMeasurements($dialog, cur_measurement);
-            // fill input boxes
-            $('#input-edit-threshold').val(edit_host_data.threshold || DEFAULT_THRESHOLD);
-            $('#select-edit-measurement').val(cur_measurement);
-            $('#select-edit-granularity').val(edit_host_data.granularity || DEFAULT_GRANULARITY);
-            $('#input-edit-host').val(edit_host_data.host || DEFAULT_HOST);
-            $(`#select-edit-pool`).val(edit_host_data.pool || DEFAULT_POOL);
-
-            // set the edit pool link
-            const $editPoolLink = $('#am-add-form .edit-pool');
-            $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), edit_host_data.pool || DEFAULT_POOL));
-            $(`#am-edit-form select[name='pool']`).trigger('change');
-
-            dialogRefreshMeasurement($dialog, edit_host_data.granularity);
-        },
-        beforeSumbit: function () {
-
-            const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
-            const granularity = $("#select-edit-granularity").val();
-            const threshold = $("#input-edit-threshold").val();
-            const pool = $(`#select-edit-pool`).val();
-
-            return {
-                action: 'edit',
-                threshold: threshold,
-                am_host: host,
-                measurement: measurement,
-                old_am_host: edit_host_data.host,
-                old_measurement: edit_host_data.measurement,
-                granularity: granularity,
-                old_granularity: edit_host_data.granularity,
-                pool: pool
-            };
-        },
-        onSubmitSuccess: function (response) {
-            if (response.success) {
-
-                AlertNotificationUtils.showAlert({
-                    title: i18n.success,
-                    body: response.message,
-                    level: 'success',
-                    delay: 3000,
-                    id: 'am-edit'
-                });
-
-                $(`#am-edit-modal`).modal('hide');
-                $am_table.ajax.reload(function(data) {
-                    updateMeasurementFilter(data);
-                });
+        const ALERTED_COLUMN_INDEX = 7;
+        const filters = [
+            {
+                key: 'alerted',
+                label: `${i18n.alerted}`,
+                regex: `1`
+            },
+            {
+                key: 'not_alerted',
+                label: `${i18n.not_alerted}`,
+                regex: `0`
             }
-        }
-    });
+        ];
 
-    $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
-        edit_host_data = get_am_data($am_table, $(this));
-        $editModalHandler.invokeModalInit();
-    });
+        return new DataTableFiltersMenu({
+            filterTitle: i18n.alert_status,
+            tableAPI: tableAPI,
+            filters: filters,
+            filterMenuKey: 'alert-status',
+            columnIndex: ALERTED_COLUMN_INDEX
+        });
+    }
 
     // Disable the already defined measurements for forced_hosts since
     // they are unique
@@ -150,7 +90,7 @@ $(document).ready(function() {
         const measurements_to_skip = {};
 
         // find out wich unique measurements are already defined
-        $am_table.rows().data().each(function(row_data) {
+        $amTable.rows().data().each(function(row_data) {
             var m_info = measurements_info[row_data.measurement];
 
             if(m_info && m_info.force_host)
@@ -220,13 +160,13 @@ $(document).ready(function() {
             $granularities.val(old_val);
     }
 
-    const get_am_data = ($am_table, $button_caller) => {
+    const getAmData = ($am_table, $button_caller) => {
 
         const row_data = $am_table.row($button_caller.parent().parent()).data();
         return row_data;
     }
 
-    const create_hours_heatmap = (td, data) => {
+    const createHoursHeatmap = (td, data) => {
         const squareLength = 7, squareHeight = 20;
         const colors = ['#d3d3d3', '#28a745', '#f00', '#ffc107'];
         const $svg = $(td).find('svg');
@@ -244,170 +184,7 @@ $(document).ready(function() {
         }
     }
 
-    const addFilterDropdown = (title, filters, column_index, filter_id, table_api) => {
-
-        /*
-            This example show how to define a filters array:
-                [
-                    {
-                        key: '',
-                        label: 'label1',
-                        regex: 'http://'
-                    }
-                ]
-        */
-
-        const createEntry = (val, key, callback) => {
-
-            const $entry = $(`<li data-filter-key='${key}' class='dropdown-item pointer'>${val}</li>`);
-
-            $entry.click(function(e) {
-                // set active filter title and key
-                if ($dropdownTitle.parent().find(`i.fas`).length == 0) {
-                    $dropdownTitle.parent().prepend(`<i class='fas fa-filter'></i>`);
-                }
-                $dropdownTitle.html($entry.html());
-                $dropdownTitle.attr(`data-filter-key`, key);
-                // remove the active class from the li elements
-                $menuContainer.find('li').removeClass(`active`);
-                // add active class to current entry
-                $entry.addClass(`active`);
-                // if there is a callback then invoked it
-                if (callback) callback(e);
-            });
-            return $entry;
-        }
-
-        const dropdownId = `${title}-filter-menu`;
-        const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline'></div>`);
-        const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
-        const $dropdownTitle = $(`<span>${title}</span>`);
-        $dropdownButton.append($dropdownTitle);
-
-        const $menuContainer = $(`<ul class='dropdown-menu' id='${title}-filter'></ul>`);
-
-        // for each filter defined in filters create a dropdown item <li>
-        for (let filter of filters) {
-
-            const $entry = createEntry(filter.label, filter.key, (e) => {
-                table_api.column(column_index).search(filter.regex, true, false).draw();
-            });
-            $menuContainer.append($entry);
-        }
-
-        // add all filter
-        const $allEntry = createEntry(i18n.all, 'all', (e) => {
-            $dropdownTitle.parent().find('i.fas.fa-filter').remove();
-            $dropdownTitle.html(`${title}`).removeAttr(`data-filter-key`);
-            table_api.columns(column_index).search('').draw(true);
-        });
-
-        // append the created dropdown inside
-        $(filter_id).prepend($dropdownContainer.append($dropdownButton, $menuContainer.prepend($allEntry)));
-
-    }
-
-    const getMeasurementCount = (data) => {
-        // get all the measurements available and their count
-        const measurements = {};
-        data.forEach((v) => {
-            const measurement = v.measurement;
-            if (!(measurement in measurements)) {
-                measurements[measurement] = 1;
-                return;
-            }
-            measurements[measurement]++;
-        });
-        return measurements;
-    }
-
-    const addMeasurementFilter = (table_api, data) => {
-
-        const measurements = getMeasurementCount(data);
-
-        // build filters for datatable
-        const filters = [];
-        for (let [measurement, count] of Object.entries(measurements)) {
-            filters.push({
-                key: measurement,
-                label: `${measurements_info[measurement].label} (${count})`,
-                regex: `^(${measurement}://).+`
-            });
-        }
-
-        // sort the created filters
-        filters.sort((a, b) => a.label.localeCompare(b.label));
-
-        const MEASUREMENT_COLUMN_INDEX = 0;
-        addFilterDropdown(i18n.measurement, filters, MEASUREMENT_COLUMN_INDEX, "#am-table_filter", table_api);
-    }
-
-    const updateMeasurementFilter = (data) => {
-
-        const measurements = getMeasurementCount(data);
-        for (let [measurement, count] of Object.entries(measurements)) {
-            const label = `${measurements_info[measurement].label} (${count})`;
-            $(`[data-filter-key='${measurement}']`).text(label);
-        }
-    }
-
-    const countAlertedHosts = (data) => {
-
-        const alertedCounts = { alerted: 0, not_alerted: 0 };
-        data.forEach((row) => {
-            if (row.alerted) {
-                alertedCounts.alerted++;
-            }
-            else {
-                alertedCounts.not_alerted++;
-            }
-        });
-        return alertedCounts;
-    }
-
-    const updateAlertFilter = (data) => {
-
-        const count = countAlertedHosts(data);
-        for (const [key, value] of Object.entries(count)) {
-            const label = `${i18n[key]} (${value})`;
-            $(`[data-filter-key='${key}']`).text(label);
-        }
-    }
-
-    const addAlertedFilter = (table_api, data) => {
-        const count = countAlertedHosts(data);
-
-        const filters = [
-            {
-                key: 'alerted',
-                label: `${i18n.alerted} (${count.alerted})`,
-                regex: `1`
-            },
-            {
-                key: 'not_alerted',
-                label: `${i18n.not_alerted} (${count.not_alerted})`,
-                regex: `0`
-            }
-        ]
-
-        const ALERTED_COLUMN_INDEX = 7;
-        addFilterDropdown(i18n.alert_status, filters, ALERTED_COLUMN_INDEX, "#am-table_filter", table_api);
-    }
-
-    // select the first pattern based to the first selected measurement
-    // on the input-add-host
-    $(`#input-add-host`).attr('pattern', getMeasurementRegex($("#select-add-measurement").val()));
-
-    $("#select-add-measurement").on('change', function(event) {
-
-        const selected_measurement = $(this).val();
-        // change the pattern depending on the selected measurement
-        $(`#input-add-host`).attr('pattern', getMeasurementRegex(selected_measurement));
-
-        dialogRefreshMeasurement($("#am-add-modal"));
-    });
-
-    const add_host_modal = $(`#am-add-form`).modalHandler({
+    const $addHostModalHandler = $(`#am-add-form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
         csrf: am_csrf,
@@ -458,45 +235,126 @@ $(document).ready(function() {
                 });
 
                 $(`#am-add-modal`).modal('hide');
-                $am_table.ajax.reload(function(data) {
-                    updateMeasurementFilter(data);
-                });
+                $amTable.ajax.reload();
             }
         }
     });
 
-    let dt_config = DataTableUtils.getStdDatatableConfig( [
+    const $editModalHandler = $(`#am-edit-form`).modalHandler({
+        method: 'post',
+        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
+        csrf: am_csrf,
+        onModalInit: function (amData) {
+            const DEFAULT_THRESHOLD     = 500;
+            const DEFAULT_GRANULARITY   = "min";
+            const DEFAULT_MEASUREMENT   = "icmp";
+            const DEFAULT_HOST          = "";
+            const DEFAULT_POOL          = 0;
+
+            const cur_measurement = amData.measurement || DEFAULT_MEASUREMENT;
+            const $dialog = $('#am-edit-modal');
+            dialogDisableUniqueMeasurements($dialog, cur_measurement);
+            // fill input boxes
+            $('#input-edit-threshold').val(amData.threshold || DEFAULT_THRESHOLD);
+            $('#select-edit-measurement').val(cur_measurement);
+            $('#select-edit-granularity').val(amData.granularity || DEFAULT_GRANULARITY);
+            $('#input-edit-host').val(amData.host || DEFAULT_HOST);
+            $(`#select-edit-pool`).val(amData.pool || DEFAULT_POOL);
+
+            // set the edit pool link
+            const $editPoolLink = $('#am-add-form .edit-pool');
+            $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), amData.pool || DEFAULT_POOL));
+            $(`#am-edit-form select[name='pool']`).trigger('change');
+
+            dialogRefreshMeasurement($dialog, amData.granularity);
+        },
+        beforeSumbit: function () {
+
+            const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
+            const granularity = $("#select-edit-granularity").val();
+            const threshold = $("#input-edit-threshold").val();
+            const pool = $(`#select-edit-pool`).val();
+
+            return {
+                action: 'edit',
+                threshold: threshold,
+                am_host: host,
+                measurement: measurement,
+                old_am_host: amData.host,
+                old_measurement: amData.measurement,
+                granularity: granularity,
+                old_granularity: amData.granularity,
+                pool: pool
+            };
+        },
+        onSubmitSuccess: function (response) {
+            if (response.success) {
+
+                AlertNotificationUtils.showAlert({
+                    title: i18n.success,
+                    body: response.message,
+                    level: 'success',
+                    delay: 3000,
+                    id: 'am-edit'
+                });
+
+                $(`#am-edit-modal`).modal('hide');
+                $amTable.ajax.reload();
+            }
+        }
+    });
+
+    const $removeModalHandler = $(`#am-delete-modal form`).modalHandler({
+        method: 'post',
+        csrf: am_csrf,
+        endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
+        dontDisableSubmit: true,
+        onModalInit: function(amData) {
+            $("#delete-host").html(`<b>${amData.url}</b>`);
+        },
+        beforeSumbit: (amData) => {
+            return {
+                action: 'delete',
+                am_host: amData.host,
+                measurement: amData.measurement,
+                csrf: am_csrf
+            }
+        },
+        onSubmitSuccess: function (response) {
+            if (response.success) {
+                $(`#am-delete-modal`).modal('hide');
+                AlertNotificationUtils.showAlert({
+                    title: i18n.success,
+                    body: response.message,
+                    level: 'success',
+                    delay: 3000,
+                    id: 'am-delete'
+                });
+                $amTable.ajax.reload();
+            }
+        }
+    });
+
+    let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
             className: 'btn-link',
             action: function(e, dt, node, config) {
-                add_host_modal.invokeModalInit();
+                $addHostModalHandler.invokeModalInit();
             }
         }
     ]);
-    dt_config = DataTableUtils.setAjaxConfig(
-        dt_config,
-        `${http_prefix}/plugins/get_active_monitoring_hosts.lua`,
-    );
-    dt_config = DataTableUtils.extendConfig(dt_config, {
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/plugins/get_active_monitoring_hosts.lua`);
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
         initComplete: function(settings, data) {
 
             if (get_host != "") {
-                $am_table.search(get_host).draw(true);
-                $am_table.state.clear();
+                $amTable.search(get_host).draw(true);
+                $amTable.state.clear();
             }
 
             const table = settings.oInstance.api();
-            addMeasurementFilter(table, data);
-            addAlertedFilter(table, data);
-            addPoolFilter(table);
-
-            setInterval(() => {
-                $am_table.ajax.reload(function(data) {
-                    updateMeasurementFilter(data);
-                    updateAlertFilter(data);
-                });
-            }, 15000);
+            setInterval(() => { $amTable.ajax.reload(); }, 15000);
         },
         columns: [
             {
@@ -556,7 +414,7 @@ $(document).ready(function() {
                     return data;
                 },
                 createdCell: function(td, data) {
-                    create_hours_heatmap(td, data);
+                    createHoursHeatmap(td, data);
                 }
             },
             {
@@ -615,7 +473,40 @@ $(document).ready(function() {
         ]
     });
 
-    const $am_table = $("#am-table").DataTable(dt_config);
+    const $amTable = $("#am-table").DataTable(dtConfig);
+    addMeasurementFilter($amTable);
+    addAlertedFilter($amTable);
+    addPoolFilter($amTable);
+
+    $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
+        const amData = getAmData($amTable, $(this));
+        $editModalHandler.invokeModalInit(amData);
+    });
+
+    $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
+        const amData = getAmData($amTable, $(this));
+        $removeModalHandler.invokeModalInit(amData);
+    });
+
+    $("#select-edit-measurement").on('change', function(event) {
+        const selected_measurement = $(this).val();
+        // change the pattern depending on the selected measurement
+        $(`#input-edit-host`).attr('pattern', getMeasurementRegex(selected_measurement));
+        dialogRefreshMeasurement($("#am-edit-modal"));
+    });
+
+    // select the first pattern based to the first selected measurement
+    // on the input-add-host
+    $(`#input-add-host`).attr('pattern', getMeasurementRegex($("#select-add-measurement").val()));
+
+    $("#select-add-measurement").on('change', function(event) {
+
+        const selected_measurement = $(this).val();
+        // change the pattern depending on the selected measurement
+        $(`#input-add-host`).attr('pattern', getMeasurementRegex(selected_measurement));
+
+        dialogRefreshMeasurement($("#am-add-modal"));
+    });
 
     // on changing the associated pool updates the link to the edit pool
     $(`select[name='pool']`).change(async function() {

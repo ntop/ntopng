@@ -1,7 +1,7 @@
 $(document).ready(function () {
 
     const MAX_ENDPOINTS_COUNT = 10;
-    const INDEX_COLUMN_ENDPOINT_TYPE = 1;
+    const COLUMN_INDEX_ENDPOINT_TYPE = 1;
 
     const getTypesCount = (configs) => {
 
@@ -131,11 +131,6 @@ $(document).ready(function () {
             const tableAPI = settings.oInstance.api();
             disableTypes(tableAPI.rows().data());
 
-            // add a filter to sort the datatable by endpoint type
-            DataTableUtils.addFilterDropdown(
-                i18n.endpoint_type, endpointTypeFilters, INDEX_COLUMN_ENDPOINT_TYPE, '#notification-list_filter', tableAPI
-            );
-
             // when the data has been fetched check if the url has a recipient_id param
             // if the recipient is builtin then cancel the modal opening
             DataTableUtils.openEditModalByQuery({
@@ -149,6 +144,13 @@ $(document).ready(function () {
     });
 
     const $endpointsTable = $(`table#notification-list`).DataTable(dtConfig);
+    const endpointTypeFilterMenu = new DataTableFiltersMenu({
+        filterTitle: i18n.endpoint_type,
+        filters: endpointTypeFilters,
+        columnIndex: COLUMN_INDEX_ENDPOINT_TYPE,
+        tableAPI: $endpointsTable,
+        filterMenuKey: 'endpoint-type'
+    });
 
     /* bind add endpoint event */
     $(`#add-endpoint-modal form`).modalHandler({

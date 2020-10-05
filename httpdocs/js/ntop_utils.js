@@ -800,7 +800,7 @@ class NtopUtils {
 					}
 
 					if (responseJSON && responseJSON.rc > 0) return;
-					if (responseJSON.rc == PARTIAL_IMPORT_RC) 
+					if (responseJSON.rc == PARTIAL_IMPORT_RC)
 						$(`#import-error`).removeClass('invalid-feedback').addClass('text-warning');
 
 					$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || i18n.FAILED_HTTP_REQUEST).show();

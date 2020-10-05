@@ -3,14 +3,7 @@
  *
  * This script implements the logic for the overview tab inside snmpdevice_stats.lua page.
  */
-window.onpopstate = function(event) {
-    console.log(`location: ${document.location}`)
-    console.log(event.state);
-}
-
 $(document).ready(function () {
-
-    let snmpDeviceRowData = {};
 
     // constant for filtering table
     const RESPONSIVE_COLUMN_INDEX = 0;
@@ -30,15 +23,24 @@ $(document).ready(function () {
     const requiredFields = {};
 
     const addResponsivenessFilter = (tableAPI) => {
-        DataTableUtils.addFilterDropdown(
-            i18n.snmp.device_responsiveness, responsivenessFilters, RESPONSIVE_COLUMN_INDEX, '#table-devices_filter', tableAPI
-        );
+        return new DataTableFiltersMenu({
+            filterTitle: i18n.snmp.device_responsiveness,
+            filters: responsivenessFilters,
+            columnIndex: RESPONSIVE_COLUMN_INDEX,
+            tableAPI: tableAPI,
+            filterMenuKey: 'responsiveness-filters'
+        });
     }
 
     const addPoolFilters = (tableAPI) => {
-        DataTableUtils.addFilterDropdown(
-            i18n.pools, poolFilters, POOL_COLUMN_INDEX, '#table-devices_filter', tableAPI
-        );
+
+        return new DataTableFiltersMenu({
+            filterTitle: i18n.pools,
+            filters: poolFilters,
+            columnIndex: POOL_COLUMN_INDEX,
+            tableAPI: tableAPI,
+            filterMenuKey: 'pool-filters'
+        });
     }
 
     const toggleSnmpTableButtons = (response) => {
@@ -76,7 +78,6 @@ $(document).ready(function () {
         }
 
         // clean the form if the response was successful
-        modalHandler.cleanForm();
         $snmpTable.ajax.reload(toggleSnmpTableButtons, false);
 
         $(`${modalSelector} button[type='submit'] span.spinner-border`).hide();
@@ -310,9 +311,6 @@ $(document).ready(function () {
             const tableAPI = settings.oInstance.api();
             // remove these styles from the table headers
             $(`th`).removeClass(`text-center`).removeClass(`text-right`);
-            // append the responsive filter for the table
-            addResponsivenessFilter(tableAPI);
-            addPoolFilters(tableAPI);
 
             // when the data has been fetched check if the url has a column_key param
             // if the recipient is builtin then cancel the modal opening
@@ -329,6 +327,8 @@ $(document).ready(function () {
 
     // initialize the DataTable with the created config
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
+    addPoolFilters($snmpTable);
+    addResponsivenessFilter($snmpTable);
 
     $(`#add-snmp-device-modal form`).modalHandler({
         method: 'post',
@@ -458,15 +458,4 @@ $(document).ready(function () {
         $recipientsInfo.html(i18n.some_recipients.replace('${recipients}', recipientNames));
 
     });
-
-    // configure import config modal
-    NtopUtils.importModalHelper({
-        load_config_xhr: (jsonConf) => {
-          return $.post(`${http_prefix}/lua/pro/enterprise/import_snmp_devices_config.lua`, { csrf: importCsrf, JSON: jsonConf,});
-        },
-        reset_csrf: (newCsrf) => {
-            importCsrf = newCsrf;
-        }
-    });
-
 });

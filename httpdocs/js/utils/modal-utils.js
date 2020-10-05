@@ -145,6 +145,10 @@
                 $(self.dialog).find('.confirm-closing').fadeOut(100, function () {
                     $(self.dialog).find('button.close').fadeIn(100);
                 });
+
+                // clean the form when the modal is closed
+                // to prevent the fields flickering
+                self.cleanForm();
             });
         }
 
@@ -159,7 +163,7 @@
             // reset form values when the modal closes
             this.delegateModalClosing();
             this.data = data || this.fillFormModal();
-            this.options.onModalInit(this.data);
+            this.options.onModalInit(this.data, this);
 
             $(this.element).parents('.modal').on('show.bs.modal', function () {
                 self.options.onModalShow();

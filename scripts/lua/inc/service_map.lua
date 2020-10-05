@@ -40,7 +40,7 @@ end
 
 local id = 0
 for k,v in pairsByKeys(keys, asc) do
-   print("{ key: 'filter_"..id.."', regex: '"..k.."', label: '"..k.." ("..v..")' },\n")
+   print("{ key: 'filter_"..id.."', regex: '"..k.."', label: '"..k.." ("..v..")', countable: false },\n")
    id = id + 1
 end
 
@@ -56,11 +56,19 @@ print [[';
 
   config["initComplete"] = function(settings, rows) {
     const tableAPI = settings.oInstance.api();
-    const columnProtocolIndex = 0; /* Filter on protocol column */
-    DataTableUtils.addFilterDropdown(']]  print(i18n("protocol")) print [[', filters, columnProtocolIndex, '#service_map_filter', tableAPI);
   }
 
-  $('#service_map').DataTable(config);
+  const $serviceTable = $('#service_map').DataTable(config);
+  const columnProtocolIndex = 0; /* Filter on protocol column */
+
+  const periodicityMenuFilters = new DataTableFiltersMenu({
+    filterTitle: "]] print(i18n("protocol")) print[[",
+    tableAPI: $serviceTable,
+    filters: filters,
+    filterMenuKey: 'protocol',
+    columnIndex: columnProtocolIndex
+  });
+  
 } );
 
  i18n.all = "]] print(i18n("all")) print [[";
