@@ -175,6 +175,7 @@
 #define MAX_FLOW_IDLE            60 /* sec */
 #define MAX_LOCAL_HOST_IDLE     300 /* sec */
 #define MAX_REMOTE_HOST_IDLE     60 /* sec */
+#define MAX_HASH_ENTRY_IDLE      60 /* sec - Generic idle time for hash entries different from hosts and flows (i.e., ASes and Macs) */
 #define MAX_RRD_QUEUE_LEN        200000 /* timeseries in the queue */
 #define INTF_RRD_RAW_DAYS        1
 #define INTF_RRD_1MIN_DAYS       30

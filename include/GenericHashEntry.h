@@ -211,7 +211,7 @@ class GenericHashEntry {
    * 
    */
   virtual bool is_hash_entry_state_idle_transition_ready() const {
-    return(true); 
+    return getUses() == 0 && is_active_entry_now_idle(MAX_HASH_ENTRY_IDLE);
   }
 
   /**

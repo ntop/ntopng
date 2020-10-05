@@ -126,11 +126,11 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 /* ************************************ */
 
 void GenericHash::purgeQueuedIdleEntries() {
- vector<GenericHashEntry*> *cur_idle = NULL;
+  vector<GenericHashEntry*> *cur_idle = NULL;
 #ifdef WALK_DEBUG
- u_int32_t num_purged = entry_state_transition_counters.num_purged;
+  u_int32_t num_purged = entry_state_transition_counters.num_purged;
 #endif
- 
+
   if(idle_entries) {
     cur_idle = idle_entries;
     idle_entries = NULL;
@@ -139,8 +139,6 @@ void GenericHash::purgeQueuedIdleEntries() {
   if(cur_idle) {
     if(!cur_idle->empty()) {      
       for(vector<GenericHashEntry*>::const_iterator it = cur_idle->begin(); it != cur_idle->end(); ++it) {
-
-
 	/* In case of flow dump the uses number might be increased (0 -> 1) */
 	if((*it)->getUses() == 0) {
 	  /*
@@ -160,8 +158,8 @@ void GenericHash::purgeQueuedIdleEntries() {
 	   */
 	  idle_entries_in_use->push_back(*it);
 #if DEBUG_FLOW_DUMP
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s] Skipping entry in use [purged: %u]",
-				       __FUNCTION__, getInterface()->get_name(), entry_state_transition_counters.num_purged);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s][%s] Skipping entry in use [purged: %u]",
+				       __FUNCTION__, getInterface()->get_name(), name, entry_state_transition_counters.num_purged);
 #endif
 	  /* This entry will be deleted by the dumper after the dump completed */
 	}
@@ -282,8 +280,10 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 
   if(!idle_entries) {
     idle_entries = idle_entries_shadow;
+
     try {
       idle_entries_shadow = new vector<GenericHashEntry*>;
+
     } catch(std::bad_alloc& ba) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Memory allocation error");
       return 0;
@@ -359,12 +359,6 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
 	     force_idle
 	     || (
 		 iface->is_purge_idle_interface()
-		 /*  Allow idle entries with uses >= 0 to be removed from the hash table.
-		     Those entries won't be deleted but it is good to remove them from the
-		     hash table to make room for newer entries and to prevent them from starving
-		     in the table (for example when the number of uses would increase)
-		    && (head->getUses() == 0)
-		 */
 		 && head->is_hash_entry_state_idle_transition_ready())
 	     ) {
 	  detach_idle_hash_entry:
