@@ -16,10 +16,10 @@ local function check_interface_idle(params)
 
   local hash_tables_stats = interface.getHashTablesStats()
   for ht_name, ht_stats in pairsByKeys(hash_tables_stats, asc) do
-    local idle = ht_stats["hash_entry_states"]["hash_entry_state_idle"] or "0"
-    local active = ht_stats["hash_entry_states"]["hash_entry_state_active"] or "0"
+    local idle = ht_stats["hash_entry_states"]["hash_entry_state_idle"] or 0
+    local active = ht_stats["hash_entry_states"]["hash_entry_state_active"] or 0
     local idle_perc = math.min(idle * 100.0 / (idle + active + 1), 100)
-    if (idle + active) > 1000 and idle_perc > threshold then
+    if (idle + active) > 1024 and idle_perc > threshold then
       if idle_perc > max_idle_perc then
         max_idle = idle
         max_idle_perc = idle_perc
