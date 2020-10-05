@@ -244,7 +244,7 @@ $(document).ready(function () {
         },
         onSubmitSuccess: function (response) {
 
-            if (response.result.rc == 0) {
+            if (response.result.status == "OK") {
                 $(`#add-recipient-modal`).modal('hide');
                 $(`#add-recipient-modal form .recipient-template-container`).hide();
                 $recipientsTable.ajax.reload();
