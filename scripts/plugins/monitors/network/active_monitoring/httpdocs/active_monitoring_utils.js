@@ -489,9 +489,12 @@ $(document).ready(function() {
     });
 
     $("#select-edit-measurement").on('change', function(event) {
-        const selected_measurement = $(this).val();
+        const selectedMeasurement = $(this).val();
         // change the pattern depending on the selected measurement
-        $(`#input-edit-host`).attr('pattern', getMeasurementRegex(selected_measurement));
+        $(`#input-edit-host`).attr('pattern', getMeasurementRegex(selectedMeasurement));
+        // trigger form validation
+        if ($(`#input-edit-host`).val().length > 0) $(`#am-edit-form`)[0].reportValidity();
+
         dialogRefreshMeasurement($("#am-edit-modal"));
     });
 
@@ -501,9 +504,12 @@ $(document).ready(function() {
 
     $("#select-add-measurement").on('change', function(event) {
 
-        const selected_measurement = $(this).val();
+        const selectedMeasurement = $(this).val();
+
         // change the pattern depending on the selected measurement
-        $(`#input-add-host`).attr('pattern', getMeasurementRegex(selected_measurement));
+        $(`#input-add-host`).attr('pattern', getMeasurementRegex(selectedMeasurement));
+        // trigger form validation
+        if ($(`#input-add-host`).val().length > 0) $(`#am-add-form`)[0].reportValidity();
 
         dialogRefreshMeasurement($("#am-add-modal"));
     });
@@ -531,5 +537,8 @@ $(document).ready(function() {
         $recipientsInfo.html(i18n.some_recipients.replace('${recipients}', recipientNames));
 
     });
+
+    $(`#input-add-host`).attr('pattern', getMeasurementRegex($("#select-add-measurement").val()));
+    $(`#input-edit-host`).attr('pattern', getMeasurementRegex($("#select-edit-measurement").val()));
 
 });
