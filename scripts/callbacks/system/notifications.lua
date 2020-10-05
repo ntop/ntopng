@@ -15,17 +15,32 @@ local periodicity = 3
 -- A while-loop is implemented inside this script to process notifications
 -- every `periodicity` 3 seconds.
 
-while not ntop.isShutdown() and not ntop.isDeadlineApproaching() do
+while true do
    -- Process notifications every three seconds.
+
+   -- Start time, in milliseconds, used to calculate the duration of the processing of notifications
    local start_ms = ntop.gettimemsec()
 
-   local now = os.time()
+   -- Time, in seconds (just strip the decimal part of the number which contains milliseconds), used to decide
+   -- when it is time to exit
+   local now = math.floor(start_ms)
+
+   -- Do the actual processing
    recipients.process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
 
-   -- Sleep for a time which is three seconds minus the amount of time spent processing notifications
+   -- End time, in milliseconds, used to calculate the duration of the processing of notifications
    local end_ms = ntop.gettimemsec()
-   local nap_ms = (periodicity - (end_ms - start_ms)) * 1000
-   if nap_ms < 0 then nap_ms = 0 end
 
-   ntop.msleep(nap_ms)
+   -- Check if it time to exit the loop
+   if ntop.isShutdown() or ntop.getDeadline() - now < 60 --[[ less than 60 seconds from the deadline --]] or ntop.isDeadlineApproaching() --[[ just for safety, should not occur --]] then
+      break
+   end
+
+   -- Sleep for a time which is three seconds minus the amount of time spent processing notifications
+   local nap_ms = (periodicity - (end_ms - start_ms)) * 1000
+
+   -- Only sleep if nap is positive. If negative, it means that the task is late
+   if nap_ms > 0 then
+      ntop.msleep(nap_ms)
+   end
 end
