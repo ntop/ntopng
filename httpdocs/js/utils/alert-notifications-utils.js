@@ -132,7 +132,7 @@ class AlertNotificationUtils {
         option.style = styles[option.level] || styles.warning;
 
         if (option.id === undefined) throw '[AlertNotificationUtils] :: An AlertNotification must have an in id!';
-        if (option.id in alertNotifications) throw '[AlertNotificationUtils] :: An AlertNotification with the same id already exists!';
+        if (option.id in alertNotifications) return;
         if (option.title === undefined) throw '[AlertNotificationUtils]:: An AlertNotification must have a title!';
         if (option.body === undefined) throw '[AlertNotificationUtils]:: An AlertNotification must have a body!';
 

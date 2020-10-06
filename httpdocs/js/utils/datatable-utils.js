@@ -155,12 +155,9 @@ class DataTableFiltersMenu {
 
     _selectFilterFromState(filterKey) {
 
-        console.log(this.tableAPI.state)
-
         if (!this.tableAPI.state) return;
         if (!this.tableAPI.state.loaded()) return;
         if (!this.tableAPI.state.loaded().filters) return;
-
 
         // save the current table state
         tableAPI.state.save();
