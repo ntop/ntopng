@@ -1532,6 +1532,8 @@ $(document).ready(function () {
          }
 
          const [enabled_count, disabled_count] = count_scripts();
+         // enable the disable all button if there are more than one enabled scripts
+         if (enabled_count > 0) $(`#btn-disable-all`).removeAttr('disabled');
 
          // select the correct tab
          select_script_filter(enabled_count);
@@ -1743,5 +1745,25 @@ $(document).ready(function () {
          $(this).attr('href', `${$(this).attr('href')}&referal_url=${encoded}`);
       });
    });
+
+   $(`#btn-disable-all`).click(async function() {
+
+      $(this).attr("disabled", "disabled");
+      $.post(`${http_prefix}/lua/toggle_all_user_scripts.lua`, {
+         action: 'disable',
+         script_subdir: script_subdir,
+         confset_id: confset_id,
+         csrf: pageCsrf
+      })
+      .then((result) => {
+         if (result.success) location.reload();
+      })
+      .catch((error) => {
+         console.error(error);
+      })
+      .always(() => {
+         $(`#btn-disable-all`).removeAttr("disabled");
+      })
+   })
 
 });
