@@ -1108,14 +1108,14 @@ else
 
    -- ######################################
 
-   if(flow["flow_risk"] ~= nil) then
+   if flow["flow_risk"] and table.len(flow["flow_risk"]) > 0 then
       local flow_risk_utils = require "flow_risk_utils"
       local risk = flow["flow_risk"]
 
       print("<tr><th width=30%>"..status_icon..i18n("flow_details.flow_anomalies").."</th><td colspan=2>")
 
       for risk_str,risk_id in pairs(risk) do
-	 print("<li> "..flow_risk_utils.risk_id_2_i18n(risk_id).."</li>")
+	 print(flow_risk_utils.risk_id_2_i18n(risk_id).."<br>")
       end
 
       print("</td></tr>")

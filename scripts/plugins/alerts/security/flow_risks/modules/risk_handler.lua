@@ -18,16 +18,10 @@ local handler = {}
 -- @param cli_score An integer score that will be added to the client score
 -- @param srv_score An integer score that will be added to the server score
 function handler.handle_risk(flow_score, cli_score, srv_score)
-   -- A generic handler for all flow risks
-   local info = flow.getInfo()
-
-   -- Trigger a flow status for the generic flow_risk. This will also
+   -- Set a flow status for the generic flow_risk. This will also
    -- cause an alert to be generated.
-   flow.triggerStatus(
-      flow_consts.status_types.status_flow_risk.create(
-	 flow_consts.status_types.status_flow_risk.alert_severity,
-	 info
-      ),
+   flow.setStatus(
+      flow_consts.status_types.status_flow_risk,
       flow_score or 0, -- flow_score
       cli_score or 0,  -- cli_score
       srv_score or 0   -- srv_score
