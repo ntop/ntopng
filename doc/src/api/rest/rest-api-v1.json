@@ -2724,6 +2724,373 @@
 				}
 			}
 		},
+		"lua/rest/v1/export/all/config.lua": {
+			"post": {
+				"tags": [
+					"All"
+				],
+				"summary": "Export all configurations as a JSON file",
+				"description": "Export all configurations including Pools, Active Monitoring, Notifications (Endpoints and Recipients), User Scripts, SNMP devices",
+				"operationId": "export_all_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/export/active_monitoring/config.lua": {
+			"post": {
+				"tags": [
+					"Active Monitoring"
+				],
+				"summary": "Export the active monitoring configuration as a JSON file",
+				"description": "Export the active monitoring configuration",
+				"operationId": "export_active_monitoring_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/export/notifications/config.lua": {
+			"post": {
+				"tags": [
+					"Notifications"
+				],
+				"summary": "Export the notifications configuration as a JSON file",
+				"description": "Export the configuration for endpoints and recipients",
+				"operationId": "export_notifications_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/export/pool/config.lua": {
+			"post": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Export the pools configuration as a JSON file",
+				"description": "Export the configuration of all pools and dependencies (notifications, SNMP, active monitoring, user scripts",
+				"operationId": "export_pool_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/export/scripts/config.lua": {
+			"post": {
+				"tags": [
+					""
+				],
+				"summary": "Export the User Scripts configuration as a JSON file",
+				"description": "Export the configuration for all user scripts",
+				"operationId": "export_scripts_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/export/snmp/config.lua": {
+			"post": {
+				"tags": [
+					""
+				],
+				"summary": "Export the SNMP configuration as a JSON file",
+				"description": "Export the configuration for the SNMP devices",
+				"operationId": "export_snmp_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/import/all/config.lua": {
+			"post": {
+				"tags": [
+					"All"
+				],
+				"summary": "Import all configurations providing a JSON file",
+				"description": "Import all configurations including Pools, Active Monitoring, Notifications (Endpoints and Recipients), User Scripts, SNMP devices",
+				"operationId": "import_all_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/import/active_monitoring/config.lua": {
+			"post": {
+				"tags": [
+					"Active Monitoring"
+				],
+				"summary": "Import the active monitoring configuration providing a JSON file",
+				"description": "Import the active monitoring configuration",
+				"operationId": "import_active_monitoring_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/import/notifications/config.lua": {
+			"post": {
+				"tags": [
+					"Notifications"
+				],
+				"summary": "Import the notifications configuration providing a JSON file",
+				"description": "Import the configuration for endpoints and recipients",
+				"operationId": "import_notifications_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/import/pool/config.lua": {
+			"post": {
+				"tags": [
+					"Pools"
+				],
+				"summary": "Import the pools configuration providing a JSON file",
+				"description": "Import the configuration of all pools and dependencies (notifications, SNMP, active monitoring, user scripts",
+				"operationId": "import_pool_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/import/scripts/config.lua": {
+			"post": {
+				"tags": [
+					""
+				],
+				"summary": "Import the User Scripts configuration providing a JSON file",
+				"description": "Import the configuration for all user scripts",
+				"operationId": "import_scripts_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/import/snmp/config.lua": {
+			"post": {
+				"tags": [
+					""
+				],
+				"summary": "Import the SNMP configuration providing a JSON file",
+				"description": "Import the configuration for the SNMP devices",
+				"operationId": "import_snmp_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
 		"lua/rest/v1/get/ntopng/users.lua": {
 			"post": {
 				"tags": [
