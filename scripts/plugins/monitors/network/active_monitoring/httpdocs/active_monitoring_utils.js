@@ -268,7 +268,7 @@ $(document).ready(function() {
 
             dialogRefreshMeasurement($dialog, amData.granularity);
         },
-        beforeSumbit: function () {
+        beforeSumbit: function (amData) {
 
             const host = $("#input-edit-host").val(), measurement = $("#select-edit-measurement").val();
             const granularity = $("#select-edit-granularity").val();
