@@ -223,7 +223,7 @@ $(document).ready(function() {
                 pool: pool
             }
         },
-        onSubmitSuccess: function (response) {
+        onSubmitSuccess: function (response, dataSent) {
             if (response.success) {
 
                 AlertNotificationUtils.showAlert({
@@ -231,7 +231,7 @@ $(document).ready(function() {
                     body: response.message,
                     level: 'success',
                     delay: 3000,
-                    id: 'am-add'
+                    id: `am-add-${dataSent.am_host}`
                 });
 
                 $(`#am-add-modal`).modal('hide');
@@ -287,7 +287,7 @@ $(document).ready(function() {
                 pool: pool
             };
         },
-        onSubmitSuccess: function (response) {
+        onSubmitSuccess: function (response, dataSent) {
             if (response.success) {
 
                 AlertNotificationUtils.showAlert({
@@ -295,7 +295,7 @@ $(document).ready(function() {
                     body: response.message,
                     level: 'success',
                     delay: 3000,
-                    id: 'am-edit'
+                    id: `am-edit-${dataSent.am_host}`
                 });
 
                 $(`#am-edit-modal`).modal('hide');
@@ -320,7 +320,7 @@ $(document).ready(function() {
                 csrf: am_csrf
             }
         },
-        onSubmitSuccess: function (response) {
+        onSubmitSuccess: function (response, dataSent) {
             if (response.success) {
                 $(`#am-delete-modal`).modal('hide');
                 AlertNotificationUtils.showAlert({
@@ -328,7 +328,7 @@ $(document).ready(function() {
                     body: response.message,
                     level: 'success',
                     delay: 3000,
-                    id: 'am-delete'
+                    id: `am-delete-${dataSent.am_host}`
                 });
                 $amTable.ajax.reload();
             }
