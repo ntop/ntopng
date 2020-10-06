@@ -623,6 +623,12 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
   case APPL_LATENCY_MS:
     flow->tcp.applLatencyMsec = value->double_num;
     break;
+  case TCP_WIN_MAX_IN:
+    flow->tcp.in_window = value->int_num;
+    break;
+  case TCP_WIN_MAX_OUT:
+    flow->tcp.out_window = value->int_num;
+    break;
   case DNS_QUERY:
     if(value->string[0] && value->string[0] != '\n') {
       if(flow->dns_query) free(flow->dns_query);

@@ -48,6 +48,7 @@ class ParsedFlowCore {
     u_int32_t lost_in_pkts, lost_out_pkts;
     struct timeval clientNwLatency, serverNwLatency;
     float applLatencyMsec;
+    u_int16_t in_window, out_window;
   } tcp;
 
   ParsedFlowCore();

@@ -652,6 +652,12 @@ class Flow : public GenericHashEntry {
       if(srv_host) srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
     }
   }
+  inline void setFlowTcpWindow(u_int16_t window_val, bool client) {
+    if(client)
+      cli2srv_window = window_val;
+    else
+      srv2cli_window = window_val;
+  }
   inline void setRtt() {
     rttSec = ((float)(serverNwLatency.tv_sec + clientNwLatency.tv_sec))
       +((float)(serverNwLatency.tv_usec + clientNwLatency.tv_usec)) / (float)1000000;

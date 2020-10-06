@@ -230,6 +230,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->tcp.serverNwLatency.tv_sec || zflow->tcp.serverNwLatency.tv_usec)
     flow->setFlowNwLatency(&zflow->tcp.serverNwLatency, !src2dst_direction);
 
+  if(zflow->tcp.in_window)  flow->setFlowTcpWindow(zflow->tcp.in_window, src2dst_direction);
+  if(zflow->tcp.out_window) flow->setFlowTcpWindow(zflow->tcp.out_window, !src2dst_direction);
+
   flow->setRisk(zflow->ndpi_flow_risk_bitmap);
   flow->setTOS(zflow->src_tos, true), flow->setTOS(zflow->dst_tos, false);
   flow->setRtt();
