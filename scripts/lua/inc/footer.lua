@@ -312,14 +312,19 @@ print[[
 		    msg += "<span class=\"badge badge-warning\"><i class=\"fas fa-exclamation-triangle\" title=\"]] print(i18n("internals.degraded_performance")) print[[\"></i></span></a>";
 		}
 
-		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[ && (!systemInterfaceEnabled)) {
+		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[) {
 
 		   var error_color = "#B94A48";
-
-		   if(rsp.engaged_alerts > 0) {
-		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
-		    msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
-		   }
+                   if (!systemInterfaceEnabled) {
+                     if(rsp.engaged_alerts > 0) {
+		       msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
+		       msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
+		     }
+                   } else if (rsp.system_host_stats.engaged_alerts > 0) {
+                       /* Show engaged alerts also for the system interface (e.g., active monitoring engaged alerts) */
+		       msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_stats.lua?page=alerts\">"
+		       msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.system_host_stats.engaged_alerts)+"</span></a>";
+                   }
 
 		   if(rsp.alerted_flows > 0) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status=alerted\">"

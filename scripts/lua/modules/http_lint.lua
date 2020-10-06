@@ -1387,7 +1387,6 @@ local known_parameters = {
    ["alert_severity"]          = validateNumber,                -- An alert severity enum
    ["alert_granularity"]       = validateNumber,                -- An alert granularity
    ["entity"]                  = validateNumber,                -- An alert entity type
-   ["entity_excludes"]         = validateListOfTypeInline(validateNumber),
    ["asn"]                     = validateNumber,                -- An ASN number
    ["module"]                  = validateTopModule,             -- A top script module
    ["step"]                    = validateNumber,                -- A step value

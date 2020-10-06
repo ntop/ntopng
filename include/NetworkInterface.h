@@ -874,12 +874,11 @@ class NetworkInterface : public AlertableEntity {
   inline u_int64_t getNumDroppedAlerts()		  { return(num_dropped_alerts); }
   inline u_int64_t getNumWrittenAlerts()		  { return(num_written_alerts); }
   inline u_int64_t getNumAlertsQueries()		  { return(num_alerts_queries); }
-  void walkAlertables(int entity_type, const char *entity_value, std::set<int> *entity_excludes,
-	    AddressTree *allowed_nets, alertable_callback *callback, void *user_data);
-  void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value,
-	    std::set<int> *entity_excludes, AddressTree *allowed_nets);
+  void walkAlertables(int entity_type, const char *entity_value,
+		      AddressTree *allowed_nets, alertable_callback *callback, void *user_data);
+  void getEngagedAlertsCount(lua_State *vm, int entity_type, const char *entity_value, AddressTree *allowed_nets);
   void getEngagedAlerts(lua_State *vm, int entity_type, const char *entity_value, AlertType alert_type,
-	    AlertLevel alert_severity, std::set<int> *entity_excludes, AddressTree *allowed_nets);
+			AlertLevel alert_severity, AddressTree *allowed_nets);
   inline void incNumDroppedFlowScriptsCalls()             { num_dropped_flow_scripts_calls++; }
 
   /* unlockExternalAlertable must be called after use whenever a non-null reference is returned */

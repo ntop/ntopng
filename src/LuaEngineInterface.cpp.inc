@@ -1093,29 +1093,10 @@ static int ntop_interface_release_external_alert(lua_State* vm) {
 
 /* ****************************************** */
 
-static void parseEntityExcludes(const char *exclude_str, std::set<int> *entity_excludes) {
-  /* NOTE: using std::set<int> instead of std::set<AlertableEntity> to provide automatic
-   * comparison operator, required by the set. */
-  const char *begin = exclude_str;
-  const char *token;
-
-  while((token = strchr(begin, ','))) {
-    entity_excludes->insert(atoi(begin));
-    begin = token+1;
-  }
-
-  /* Last value */
-  if(*begin)
-    entity_excludes->insert(atoi(begin));
-}
-
-/* ****************************************** */
-
 static int ntop_interface_get_engaged_alerts_count(lua_State* vm) {
   AlertEntity entity_type = alert_entity_none;
   const char *entity_value = NULL;
   NetworkInterface *iface = getCurrentInterface(vm);
-  std::set<int> entity_excludes;
   AddressTree *allowed_nets = get_allowed_nets(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1123,9 +1104,8 @@ static int ntop_interface_get_engaged_alerts_count(lua_State* vm) {
 
   if(lua_type(vm, 1) == LUA_TNUMBER) entity_type = (AlertEntity)lua_tointeger(vm, 1);
   if(lua_type(vm, 2) == LUA_TSTRING) entity_value = (char*)lua_tostring(vm, 2);
-  if(lua_type(vm, 3) == LUA_TSTRING) parseEntityExcludes(lua_tostring(vm, 3), &entity_excludes);
 
-  iface->getEngagedAlertsCount(vm, entity_type, entity_value, &entity_excludes, allowed_nets);
+  iface->getEngagedAlertsCount(vm, entity_type, entity_value, allowed_nets);
 
   return(CONST_LUA_OK);
 }
@@ -1156,7 +1136,6 @@ static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   AlertType alert_type = alert_none;
   AlertLevel alert_severity = alert_level_none;
   NetworkInterface *iface = getCurrentInterface(vm);
-  std::set<int> entity_excludes;
   AddressTree *allowed_nets = get_allowed_nets(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1166,9 +1145,8 @@ static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   if(lua_type(vm, 2) == LUA_TSTRING) entity_value = (char*)lua_tostring(vm, 2);
   if(lua_type(vm, 3) == LUA_TNUMBER) alert_type = (AlertType)lua_tointeger(vm, 3);
   if(lua_type(vm, 4) == LUA_TNUMBER) alert_severity = (AlertLevel)lua_tointeger(vm, 4);
-  if(lua_type(vm, 5) == LUA_TSTRING) parseEntityExcludes(lua_tostring(vm, 5), &entity_excludes);
 
-  iface->getEngagedAlerts(vm, entity_type, entity_value, alert_type, alert_severity, &entity_excludes, allowed_nets);
+  iface->getEngagedAlerts(vm, entity_type, entity_value, alert_type, alert_severity, allowed_nets);
 
   return(CONST_LUA_OK);
 }

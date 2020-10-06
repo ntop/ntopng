@@ -203,9 +203,6 @@ elseif((page == "alerts") and isAdministrator()) then
    interface.select(getSystemInterfaceId())
 
    _GET["ifid"] = getSystemInterfaceId()
-   _GET["entity_excludes"] = string.format("%u,%u,%u",
-      alert_consts.alertEntity("influx_db"), alert_consts.alertEntity("snmp_device"),
-      alert_consts.alertEntity("am_host"))
 
    alert_utils.drawAlerts({
       is_standalone = true

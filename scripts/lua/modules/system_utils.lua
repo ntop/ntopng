@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local system_utils = {}
+local alert_utils = require "alert_utils"
 
 -- #################################
 
@@ -141,8 +142,14 @@ end
 -- #################################
 
 function system_utils.systemHostStats()
+   local cur_id = interface.getId()
+   interface.select(getSystemInterfaceId())
+
    local system_host_stats =  ntop.systemHostStat()
    system_host_stats["cpu_states"] = system_utils.get_cpu_states()
+   system_host_stats["engaged_alerts"] = alert_utils.getNumAlerts("engaged", {})
+
+   interface.select(tostring(cur_id))
 
    return system_host_stats
 end

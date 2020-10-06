@@ -107,12 +107,6 @@ local function performAlertsQuery(statement, what, opts, force_query, group_by)
    elseif (what ~= "historical-flows") then
       if (not isEmptyString(opts.entity)) then
 	 wargs[#wargs+1] = 'AND alert_entity = "'..(opts.entity)..'"'
-      elseif(not isEmptyString(opts.entity_excludes)) then
-	 local excludes = string.split(opts.entity_excludes, ",") or {opts.entity_excludes}
-
-	 for _, entity in pairs(excludes) do
-	    wargs[#wargs+1] = 'AND alert_entity != "'.. entity ..'"'
-	 end
       end
    end
 
@@ -219,7 +213,7 @@ local function getNumEngagedAlerts(options)
   local entity_type_filter = tonumber(options.entity)
   local entity_value_filter = options.entity_val
 
-  local res = interface.getEngagedAlertsCount(entity_type_filter, entity_value_filter, options.entity_excludes)
+  local res = interface.getEngagedAlertsCount(entity_type_filter, entity_value_filter)
 
   if(res ~= nil) then
     return(res.num_alerts)
@@ -298,7 +292,7 @@ local function engagedAlertsQuery(params)
   local totalRows = 0
 
   --~ tprint(string.format("type=%s sev=%s entity=%s val=%s", type_filter, severity_filter, entity_type_filter, entity_value_filter))
-  local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter, severity_filter, params.entity_excludes)
+  local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter, severity_filter)
   local sort_2_col = {}
 
   -- Sort
@@ -1104,7 +1098,7 @@ function releaseAlert(idx) {
 	    end
 
 	    if t["status"] == "engaged" then
-	       local res = interface.getEngagedAlertsCount(tonumber(_GET["entity"]), _GET["entity_val"], _GET["entity_excludes"])
+	       local res = interface.getEngagedAlertsCount(tonumber(_GET["entity"]), _GET["entity_val"])
 
 	       if(res ~= nil) then
 		  type_menu_entries = menuEntriesToDbFormat(res.type)
