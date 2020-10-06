@@ -30,8 +30,8 @@ VirtualHostHash::VirtualHostHash(NetworkInterface *_iface, u_int _num_hashes, u_
 
 /* *********************************************************** */
 
-VirtualHost* VirtualHostHash::get(char *key) {
-  u_int32_t hash = Utils::hashString(key) % num_hashes;
+VirtualHost* VirtualHostHash::get(char *vhost_name) {
+  u_int32_t hash = Utils::hashString(vhost_name) % num_hashes;
 
   if(table[hash] == NULL) {
     return(NULL);
@@ -44,7 +44,7 @@ VirtualHost* VirtualHostHash::get(char *key) {
     while(head != NULL) {      
       if((!head->idle())
 	 && head->get_name()
-	 && (strcmp(key, head->get_name()) == 0))
+	 && (strcmp(vhost_name, head->get_name()) == 0))
 	break;
       else
 	head = (VirtualHost*)head->next();

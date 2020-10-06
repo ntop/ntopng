@@ -25,6 +25,7 @@
 
 VirtualHost::VirtualHost(HostHash *_h, char *_name) : GenericHashEntry(_h->getInterface()) {
   h = _h, name = strdup(_name), last_num_requests = 0, last_diff = 0, trend = trend_stable;
+  vhost_key = Utils::hashString(name);
   h->incNumHTTPEntries();
 }
 

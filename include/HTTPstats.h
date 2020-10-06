@@ -60,7 +60,6 @@ class HTTPstats {
   struct http_response_stats last_response_sample[2];
   struct timeval last_update_time;
 
-  Mutex m;
   HostHash *h;
   Host *host;
   bool warning_shown;

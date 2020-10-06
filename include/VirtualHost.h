@@ -33,17 +33,17 @@ class VirtualHost : public GenericHashEntry {
   TrafficStats sent_stats, rcvd_stats, num_requests;
   u_int64_t last_num_requests;
   u_int32_t last_diff;
+  u_int32_t vhost_key;
   ValueTrend trend;
-
- protected:
-  virtual void computeHostSerial() { ; }
 
  public:
   VirtualHost(HostHash *_h, char *_name);
   ~VirtualHost();
 
-  inline char* get_name()    { return(name);  };
+  u_int32_t key()            { return vhost_key; };
+  inline char* get_name()    { return name;     };
   inline void incStats(time_t t, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd) {
+    updateSeen(t);
     sent_stats.incStats(t, 1, bytes_sent),
       rcvd_stats.incStats(t, 1, bytes_rcvd),
       num_requests.incStats(t, 1, num_req);

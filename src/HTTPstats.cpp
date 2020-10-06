@@ -44,7 +44,9 @@ HTTPstats::HTTPstats(Host *_host) {
 
   gettimeofday(&tv, NULL);
   memcpy(&last_update_time, &tv, sizeof(struct timeval));
-  if((virtualHosts = new (std::nothrow) VirtualHostHash(host->getInterface(), 1, 4096)) == NULL) {
+  if((virtualHosts = new (std::nothrow) VirtualHostHash(host->getInterface(),
+							8   /* Buckets */,
+							64  /* Maximum number of virtual hosts */)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: are you running out of memory?");
   }
 }
@@ -494,7 +496,6 @@ bool HTTPstats::updateHTTPHostRequest(time_t t,
     Flow::~Flow() on the same instance and thus
     create a memory leak
   */
-  m.lock(__FILE__, __LINE__);
   if((vh = virtualHosts->get(virtual_host_name)) == NULL) {
     if(virtualHosts->hasEmptyRoom()) {
       if((vh = new VirtualHost(h, virtual_host_name)) == NULL) {
@@ -507,18 +508,8 @@ bool HTTPstats::updateHTTPHostRequest(time_t t,
 	} else
 	  rc = true;
       }
-    } else {
-      if(!warning_shown) {
-	char buf[128];
-
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Too many virtual hosts on %s (%u virtual hosts). New virtual hosts will be ignored.",
-				     host->get_ip()->print(buf, sizeof(buf)), virtualHosts->getNumEntries());
-	warning_shown = true;
-      }
     }
   }
-  m.unlock(__FILE__, __LINE__);
 
   if(vh)
     vh->incStats(t, num_requests, bytes_sent, bytes_rcvd);
@@ -540,19 +531,22 @@ static bool update_http_stats(GenericHashEntry *node, void *user_data, bool *mat
 /* ******************************************* */
 
 void HTTPstats::updateStats(const struct timeval *tv) {
-  float tdiff_msec = Utils::timeval2ms(tv) - Utils::timeval2ms(&last_update_time);
+  float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
   const u_int8_t indices[2] = { AS_SENDER, AS_RECEIVER };
-  
-  if(tdiff_msec < 1000) return;  // too early
 
   // refresh the last update time with the new values
   // also refresh the statistics on request variations
   if(virtualHosts) {
     u_int32_t begin_slot = 0;
     bool walk_all = true;
-    
+
     virtualHosts->walk(&begin_slot, walk_all, update_http_stats, (void*)tv);
     virtualHosts->purgeIdle(tv, false);
+    virtualHosts->purgeQueuedIdleEntries(); /* Actually reclaim memory (delete*) of idle virtual hosts */
+  }
+
+  if(tdiff_msec < 1000) {
+    return;  // too early
   }
 
   for(u_int8_t i = 0; i < 2 ; i++) {
@@ -569,14 +563,14 @@ void HTTPstats::updateStats(const struct timeval *tv) {
       dq -> rate_post  = makeRate(d_post, tdiff_msec),
       dq -> rate_head  = makeRate(d_head, tdiff_msec),
       dq -> rate_put   = makeRate(d_put, tdiff_msec),
-      dq -> rate_other = makeRate(d_other, tdiff_msec),      
+      dq -> rate_other = makeRate(d_other, tdiff_msec),
       dr -> rate_1xx   = makeRate(d_1xx, tdiff_msec),
       dr -> rate_2xx   = makeRate(d_2xx, tdiff_msec),
       dr -> rate_3xx   = makeRate(d_3xx, tdiff_msec),
       dr -> rate_4xx   = makeRate(d_4xx, tdiff_msec),
       dr -> rate_5xx   = makeRate(d_5xx, tdiff_msec);
   }
-  
+
   last_update_time.tv_sec  = tv->tv_sec, last_update_time.tv_usec = tv->tv_usec;
   memcpy(&last_query_sample,    &query,    sizeof(query));
   memcpy(&last_response_sample, &response, sizeof(response));
