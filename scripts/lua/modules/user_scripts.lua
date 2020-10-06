@@ -1084,44 +1084,84 @@ end
 
 -- ##############################################
 
-function user_scripts.toggleScript(confid, script_key, subdir, enable)
-   local configsets = user_scripts.getConfigsets()
-   local configset = configsets[confid]
-
-   if(configset == nil) then
-      return false, i18n("configsets.unknown_id", {confid=confid})
-   end
-
+-- @brief Toggles script `script_key` configuration on or off depending on `enable` for configuration `configset`
+--        Hooks onDisable and onEnable are called.
+-- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
+-- @param script_key The string script identifier
+-- @param subdir The string identifying the sub directory (e.g., flow, host, ...)
+-- @param enable A boolean indicating whether the script shall be toggled on or off
+local function toggleScriptConfigset(configset, script_key, subdir, enable)
    local script_type = user_scripts.getScriptType(subdir)
    local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
 
-   if(script == nil) then
+   if not script then
       return false, i18n("configsets.unknown_user_script", {user_script=script_key})
    end
 
    local config = user_scripts.getScriptConfig(configset, script, subdir)
 
-   if(config == nil) then
-      return false
-   end
+   if config then
+      for hook, hook_config in pairs(config) do
+	 -- Remember the previous toggle
+	 local prev_hook_config = hook_config.enabled
+	 -- Save the new toggle
+	 hook_config.enabled = enable
 
-   for hook, hook_config in pairs(config) do
-      -- Remember the previous toggle
-      local prev_hook_config = hook_config.enabled
-      -- Save the new toggle
-      hook_config.enabled = enable
-
-      if script.onDisable and prev_hook_config and not enable then
-	 -- Hook has been enabled for the user script
-	 script.onDisable(hook, hook_config)
-      elseif script.onEnable and not prev_hook_config and enable then
-	 -- Hook has been disabled for the user script
-	 script.onEnable(hook, hook_config)
+	 if script.onDisable and prev_hook_config and not enable then
+	    -- Hook has been enabled for the user script
+	    script.onDisable(hook, hook_config)
+	 elseif script.onEnable and not prev_hook_config and enable then
+	    -- Hook has been disabled for the user script
+	    script.onEnable(hook, hook_config)
+	 end
       end
-
-
    end
 
+   return true
+end
+
+-- ##############################################
+
+function user_scripts.toggleScript(confid, script_key, subdir, enable)
+   local configsets = user_scripts.getConfigsets()
+   local configset = configsets[confid]
+
+   if not configset then
+      return false, i18n("configsets.unknown_id", {confid = confid})
+   end
+
+   -- Toggle the configuration (result is put in `configset`)
+   local res, err = toggleScriptConfigset(configset, script_key, subdir, enable)
+   if not res then
+      return res, err
+   end
+
+   -- If the toggle has been successful, write the new configset and return
+   return saveConfigsets(configsets)
+end
+
+-- ##############################################
+
+function user_scripts.toggleAllScripts(confid, subdir, enable)
+   local configsets = user_scripts.getConfigsets()
+   local configset = configsets[confid]
+
+   if not configset then
+      return false, i18n("configsets.unknown_id", {confid = confid})
+   end
+
+   -- Toggle the configuration (result is put in `configset`)
+   local scripts = user_scripts.load(getSystemInterfaceId(), user_scripts.getScriptType(subdir), subdir)
+
+   for script_name, script in pairs(scripts.modules) do
+      -- Toggle each script individually
+      local res, err = toggleScriptConfigset(configset, script.key, subdir, enable)
+      if not res then
+	 return res, err
+      end
+   end
+
+   -- If the toggle has been successful for all scripts, write the new configset and return
    return saveConfigsets(configsets)
 end
 
