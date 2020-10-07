@@ -793,15 +793,15 @@ end
 function page_utils.is_valid_page(selected_page, available_pages)
 
    if selected_page == nil then
-      traceError(TRACE_WARNING, TRACE_CONSOLE, "selected_pages is nil!")
+      traceError(TRACE_WARNING, TRACE_DEBUG, "selected_pages is nil!")
       return false
    end
    if available_pages == nil then
-      traceError(TRACE_WARNING, TRACE_CONSOLE, "available_pages is nil!")
+      traceError(TRACE_WARNING, TRACE_DEBUG, "available_pages is nil!")
       return false
    end
    if type(available_pages) ~= 'table' then
-      traceError(TRACE_WARNING, TRACE_CONSOLE, "available_pages is not a table!")
+      traceError(TRACE_WARNING, TRACE_DEBUG, "available_pages is not a table!")
       return false
    end
 

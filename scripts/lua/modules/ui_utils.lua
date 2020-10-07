@@ -17,7 +17,7 @@ end
 function ui_utils.render_notes(notes_items)
 
     if notes_items == nil then
-        ntop.traceEvent("The notes table is nil!")
+        traceError(TRACE_ERROR, TRACE_DEBUG, "The notes table is nil!")
         return ""
     end
 
