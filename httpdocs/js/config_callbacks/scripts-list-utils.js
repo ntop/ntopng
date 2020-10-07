@@ -1746,7 +1746,7 @@ $(document).ready(function () {
       });
    });
 
-   $(`#btn-disable-all`).click(async function() {
+   $(`#disable-all-modal #btn-confirm-action`).click(async function() {
 
       $(this).attr("disabled", "disabled");
       $.post(`${http_prefix}/lua/toggle_all_user_scripts.lua`, {

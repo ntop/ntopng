@@ -45,7 +45,7 @@
           </table>
         </div>
         <div class="card-footer">
-          <button disabled class="btn btn-danger" id="btn-disable-all">
+          <button id='btn-disable-all' disabled class="btn btn-danger" data-toggle="modal" data-target="#disable-all-modal">
             <i class='fas fa-toggle-off'></i> {{ i18n("user_scripts.disable_all") }}</button>
         </div>
       </div>
@@ -65,6 +65,19 @@
     </ul>
   </div>
 </div>
+
+{*
+  script_list.template_utils.gen("modal_confirm_dialog.html", {
+      dialog={
+          id = "disable-all-modal",
+          message = i18n('user_scripts.disable_all_message'),
+          title = i18n('user_scripts.disable_all_user_scripts'),
+          confirm = i18n("user_scripts.disable_all"),
+          custom_alert_class = 'alert alert-danger',
+          confirm_button = 'btn-danger',
+      }
+  })
+*}
 
 
 {# include modals for edit_configset.lua #}
