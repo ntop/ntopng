@@ -324,7 +324,7 @@
             let isValid = true;
 
             // if each input is marked as valid then enable the form submit button
-            $(this.element).find('input,select,textarea').each(function (idx, input) {
+            $(this.element).find('input:not(:disabled),select:not(:disabled),textarea:not(:disabled)').each(function (idx, input) {
                 // make a concatenate & between valid flags
                 isValid &= input.validity.valid;
             });
