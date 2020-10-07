@@ -41,10 +41,7 @@
 {* template_utils.gen("pages/modals/recipients_endpoint/add.template", notifications) *}
 {* template_utils.gen("pages/modals/recipients_endpoint/remove.template", notifications) *}
 {* template_utils.gen("pages/modals/recipients_endpoint/edit.template", notifications) *}
-{* template_utils.gen("pages/modals/factory-reset.template", {
-    body = i18n("endpoint_notifications.factory_reset.body", { reset_element = i18n("endpoint_notifications.enpoint_recipients_list") }),
-    title = i18n("endpoint_notifications.factory_reset.title", { reset_element = i18n("endpoint_notifications.enpoint_recipients_list") })
-}) *}
+{* template_utils.gen("pages/modals/recipients_endpoint/users.template", notifications) *}
 
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">
@@ -68,6 +65,7 @@
     i18n.endpoint_recipient_already_existing = "{{ i18n('endpoint_notifications.endpoint_recipient_already_existing') }}";
     i18n.endpoint_type = "{{ i18n('endpoint_notifications.type') }}";
     i18n.endpoint_types = {* json.encode(notifications.endpoint_types_labels) *};
+    i18n.pool_types = {* json.encode(i18n('pools.pool_name')) *};
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js"></script>

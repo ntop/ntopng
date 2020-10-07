@@ -23,6 +23,26 @@ $(document).ready(function () {
         return params;
     }
 
+    const generateUsersList = (pools) => {
+
+        const $list = $(`#users-recipient-modal .list-group`);
+        // clean the list
+        $list.empty();
+        // show the list
+        $list.show();
+
+        // add a pool link for each pool
+        for (const pool of pools) {
+
+            const $listEntry = $(`<a class='list-group-item list-group-item-action' href='#'><b>${pool.name}</b></a>`);
+            $listEntry.append($(`<small class='text-muted d-block'>${i18n.pool_types[pool.key]}</small>`));
+            $listEntry.attr('href', `${http_prefix}/lua/admin/manage_pools.lua?pool=${pool.key}&pool_id=${pool.pool_id}`);
+
+            $list.append($listEntry);
+        }
+
+    }
+
     const testRecipient = async (data, $button, $feedbackLabel) => {
 
         const body = { action: 'test', csrf: pageCsrf };
@@ -180,6 +200,7 @@ $(document).ready(function () {
                     if (isBuiltin) return;
 
                     return DataTableUtils.createActionButtons([
+                        {class: 'btn-info', icon: 'fa fa-users', modal: '#users-recipient-modal'},
                         {class: 'btn-info', icon: 'fa-edit', modal: '#edit-recipient-modal' },
                         {class: 'btn-danger', icon: 'fa-trash', modal: '#remove-recipient-modal'},
                     ]);
@@ -363,6 +384,35 @@ $(document).ready(function () {
         }
 
         $removeRecipientModal.invokeModalInit(selectedRecipient);
+    });
+
+    /* bind recipient users button */
+    $(`table#recipient-list`).on('click', `a[href='#users-recipient-modal']`, async function() {
+
+        const {recipient_id, recipient_name} = $recipientsTable.row($(this).parent().parent()).data();
+        $(`.recipient-name`).text(recipient_name);
+        $(`.fetch-failed,.zero-user`).hide();
+
+        try {
+
+            const response = await fetch(`${http_prefix}/lua/rest/v1/get/recipient/pools.lua?recipient_id=${recipient_id}`);
+            const {rsp} = await response.json();
+
+            // if there are no pools for the selected recipient shows a message
+            if (rsp.length == 0) {
+                $(`.zero-user`).show();
+                $(`#users-recipient-modal .list-group`).hide();
+                return;
+            }
+
+            generateUsersList(rsp);
+
+        }
+        catch (err) {
+            console.warn('Unable to show the recipient users');
+            $(`.fetch-failed`).show();
+        }
+
     });
 
     $(`#add-test-recipient`).click(async function (e) {
