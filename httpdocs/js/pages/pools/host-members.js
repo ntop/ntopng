@@ -69,8 +69,7 @@ $(document).ready(function () {
             {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
-                render: function () {
-
+                render: () => {
                     return DataTableUtils.createActionButtons([
                         { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool'}
                     ]);
@@ -88,7 +87,6 @@ $(document).ready(function () {
         columnIndex: INDEX_MEMBER_FILTER,
     })
 
-
     $(`#host-members-table`).on('click', `a[href='#remove-member-host-pool']`, function (e) {
         const memberRowData = $hostMembersTable.row($(this).parent().parent()).data();
         $removeModalHandler.invokeModalInit(memberRowData);
@@ -99,6 +97,8 @@ $(document).ready(function () {
         selectedPool = { name: $(`#select-host-pool option:selected`).text(), id: $(this).val() };
         // update the datatable
         $hostMembersTable.ajax.url(`${http_prefix}/lua/rest/v1/get/host/pool/members.lua?pool=${selectedPool.id}`).load().draw(false);
+        // change pool id in edit pool link
+        $(`.edit-pool-link`).attr('href', `${http_prefix}/lua/admin/manage_pools.lua?pool=host&pool_id=${selectedPool.id}`);
         queryPoolId = selectedPool.id;
         history.pushState({ pool: queryPoolId }, '', location.href.replace(/pool\=[0-9]+/, `pool=${queryPoolId}`));
     });
@@ -169,7 +169,7 @@ $(document).ready(function () {
         onSubmitSuccess: function (response, textStatus, modalHandler) {
 
             if (response.rc < 0) {
-                $(`#add-modal-feedback`).html(i18n.rest[response.rc_str]).fadeIn();
+                $(`#add-modal-feedback`).html(i18n.rest[response.rc_str]).show();
                 return;
             }
 

@@ -345,6 +345,7 @@
 
         makeRequest() {
 
+            const $feedbackLabel = $(this.element).find(`.invalid-feedback`);
             const submitButton = $(this.element).find(`[type='submit']`);
             let dataToSend = this.options.beforeSumbit(this.data);
 
@@ -386,10 +387,17 @@
                 $(self.element).off('submit', self.submitHandler);
                 self.delegateSubmit();
 
+                $feedbackLabel.hide();
             })
             .fail(function (jqxhr, textStatus, errorThrown) {
+
                 self.isSubmitting = false;
-                self.options.onSubmitError(dataToSend, textStatus, errorThrown);
+                const response = jqxhr.responseJSON;
+                if (response.rc !== undefined && response.rc < 0) {
+                    $feedbackLabel.html(i18n.rest[response.rc_str]).show();
+                }
+
+                self.options.onSubmitError(response, dataToSend, textStatus, errorThrown);
             })
             .always(function (d) {
                 submitButton.removeAttr("disabled");

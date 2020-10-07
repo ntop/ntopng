@@ -97,10 +97,22 @@ $(document).ready(function() {
                     /* disable actions for ALL_POOL page */
                     if (IS_ALL_POOL) return;
 
-                    return DataTableUtils.createActionButtons([
+                    const buttons = [
                         { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool' },
                         { class: `btn-danger ${(pool.pool_id == DEFAULT_POOL_ID) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool'}
-                    ]);
+                    ];
+
+                    if (poolType == "host") {
+                        buttons.unshift(
+                            {
+                                class: `btn-secondary ${(pool.pool_id == DEFAULT_POOL_ID) ? 'disabled' : '' }`,
+                                icon: 'fa-layer-group',
+                                href: `${http_prefix}/lua/admin/manage_host_members.lua?pool=${pool.pool_id}`
+                            }
+                        );
+                    }
+
+                    return DataTableUtils.createActionButtons(buttons);
                 }
             }
         ];
@@ -338,27 +350,6 @@ $(document).ready(function() {
     $(`#table-pools`).on('click', `a[href='#remove-pool']`, function (e) {
         const selectedPool = $poolTable.row($(this).parent().parent()).data();
         $removeModalHandler.invokeModalInit(selectedPool);
-    });
-
-    $(`#btn-factory-reset`).click(async function(event) {
-
-        try {
-
-            const response = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/rest/v1/delete/pools.lua`);
-            const result = await response.json();
-            if (result.rc == 0) {
-                $poolTable.ajax.reload();
-                $(`#factory-reset-modal`).modal('hide');
-            }
-
-        }
-        catch (error) {
-
-            if (error.message == "Response timed out") {
-                $(`#factory-reset-modal .invalid-feedback`).html(i18n.timed_out);
-                return;
-            }
-        }
     });
 
 });
