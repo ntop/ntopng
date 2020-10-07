@@ -105,7 +105,7 @@ $(document).ready(function() {
                     if (poolType == "host") {
                         buttons.unshift(
                             {
-                                class: `btn-secondary ${(pool.pool_id == DEFAULT_POOL_ID) ? 'disabled' : '' }`,
+                                class: `btn-info ${(pool.pool_id == DEFAULT_POOL_ID) ? 'disabled' : '' }`,
                                 icon: 'fa-layer-group',
                                 href: `${http_prefix}/lua/admin/manage_host_members.lua?pool=${pool.pool_id}`
                             }
