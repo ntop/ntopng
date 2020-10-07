@@ -160,9 +160,16 @@ function maintenance_check() {
 	EXPIRY_EPOCH=`${APP_BIN} --check-maintenance | cut -d' ' -f 1`
 
 	if [ "${EXPIRY_EPOCH}" = "Invalid" ]; then
-		# Missing or invalid license.
-		set_failure "no-license"
-		exit 0
+		# Missing or expired or invalid license
+
+		# Allow updates on missing license file as this does not 
+		# invalidate the license and handle community mode
+		if [ `${APP_BIN} --check-license | grep Empty | wc -l ` -eq 0 ]; then
+
+			# Expired or invalid license
+			set_failure "no-license"
+			exit 0
+		fi
 	elif echo "${EXPIRY_EPOCH}${NOW}" | grep -q "^[0-9]\+$"; then
 		if [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
 			# Expired maintenance
