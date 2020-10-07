@@ -6,6 +6,7 @@ local info = ntop.getInfo()
 local prefs = ntop.getPrefs()
 
 local defined_alert_notifications = {}
+local page_utils = require('page_utils')
 local telemetry_utils = require("telemetry_utils")
 local alert_notification = require("alert_notification")
 
@@ -251,8 +252,9 @@ end
 
 function defined_alert_notifications.remote_probe_clock_drift(container)
     local ifstats = interface.getStats()
+    local is_system_interface = page_utils.is_system_view()
 
-    if (ifstats["probe.remote_time"] ~= nil) then
+    if (ifstats["probe.remote_time"] ~= nil) and (not is_system_interface) then
         local tdiff = math.abs(os.time() - ifstats["probe.remote_time"])
         local level = nil
 
