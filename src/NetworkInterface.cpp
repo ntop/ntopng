@@ -2929,7 +2929,7 @@ void NetworkInterface::purgeQueuedIdleEntries() {
 			hosts_hash,
 			ases_hash,
 			countries_hash,
-			hasSeenVlanTaggedPackets() ? vlans_hash : NULL,
+			vlans_hash,
 			macs_hash
   };
 
