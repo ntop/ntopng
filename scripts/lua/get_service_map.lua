@@ -37,6 +37,8 @@ for k,v in pairs(p) do
    table.insert(row, buildHostHREF(v.server))
    table.insert(row, v.vlan_id or 0)
    table.insert(row, port)
+   table.insert(row, v.num_uses)
+   table.insert(row, secondsToTime(os.time()-v.last_seen).. " "..i18n("details.ago"))
    table.insert(row, shortenString(v.info, 64))
 
    table.insert(rsp.data, row)

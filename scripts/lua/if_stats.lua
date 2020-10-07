@@ -1148,8 +1148,8 @@ print[[
   <div class='card'>
    <div class='card-header'>
   <ul id="icmp_nav" class="nav nav-tabs card-header-tabs" role="tablist">
-    <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#icmp" active>]] print(i18n("icmp")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#icmpv6">]] print(i18n("icmp")) print[[V6</a></li>
+    <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#icmp" active>]] print(i18n("icmpv4")) print[[</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#icmpv6">]] print(i18n("icmpv6")) print[[</a></li>
   </ul>
   </div>
   <div class="card-body tab-content">

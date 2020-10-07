@@ -16,6 +16,8 @@ print [[ </H3>
                 <th>]] print(i18n("server")) print [[</th>
                 <th>]] print(i18n("vlan_id")) print [[</th>
                 <th>]] print(i18n("port")) print [[</th>
+                <th>]] print(i18n("num_uses")) print [[</th>
+                <th>]] print(i18n("last_seen")) print [[</th>
                 <th>]] print(i18n("info")) print [[</th>
             </tr>
         </thead>
