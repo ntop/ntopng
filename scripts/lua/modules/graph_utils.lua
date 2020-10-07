@@ -599,7 +599,7 @@ if(stats ~= nil) then
 
 end
 
-print('   <tr><th>Selection Time</th><td colspan=2><div id=when></div></td></tr>\n')
+print('   <tr><th>Time</th><td colspan=2><div id=when></div></td></tr>\n')
 
 -- hide Minute Interface Top Talker if we are in system interface
 if top_talkers_utils.areTopEnabled(ifid) and not is_sistem_interface then
