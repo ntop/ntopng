@@ -2218,6 +2218,18 @@ static int ntop_is_package(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_forced_community(lua_State *vm) {
+  bool is_forced_community = true;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+#ifdef NTOPNG_PRO
+  is_forced_community = ntop->getPro()->forced_community_edition();
+#endif
+  lua_pushboolean(vm, is_forced_community);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_is_pro(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, ntop->getPrefs()->is_pro_edition());
@@ -5615,6 +5627,7 @@ static const luaL_Reg ntop_reg[] = {
 #endif
 #endif
 
+  { "isForcedCommunity",      ntop_is_forced_community },
   { "isPro",                  ntop_is_pro },
   { "isEnterprise",           ntop_is_enterprise_m },
   { "isEnterpriseM",          ntop_is_enterprise_m },
