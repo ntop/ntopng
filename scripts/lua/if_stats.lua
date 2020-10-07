@@ -432,6 +432,16 @@ if((page == "overview") or (page == nil)) then
 	 cur_i = cur_i + 1
       end
 
+      if not isEmptyString(ifstats["remote_pps"]) or not isEmptyString(ifstats["remote_bps"]) then
+	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
+
+	 print("<th nowrap>".. i18n("if_stats_overview.probe_throughput").."</th>")
+	 print('<td nowrap><span id="if_zmq_remote_bps">' .. format_utils.bitsToSize(ifstats["remote_bps"]) .. '</span>')
+	 print(' [<span id="if_zmq_remote_pps">' .. format_utils.pktsToSize(ifstats["remote_pps"]) .. '</span>]</td>')
+
+	 cur_i = cur_i + 1
+      end
+
       if ifstats["timeout.lifetime"] > 0 then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 
@@ -2051,6 +2061,8 @@ print("var last_dropped_alerts = " .. ifstats.num_dropped_alerts .. ";\n")
 
 if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_time = 0;\n")
+   print("var last_zmq_remote_bps = ".. ifstats.remote_bps .. ";\n")
+   print("var last_zmq_remote_pps = ".. ifstats.remote_pps .. ";\n")
    print("var last_zmq_flows = ".. ifstats.zmqRecvStats.flows .. ";\n")
    print("var last_zmq_dropped_flows = ".. ifstats.zmqRecvStats.dropped_flows .. ";\n")
    print("var last_zmq_events = ".. ifstats.zmqRecvStats.events .. ";\n")
@@ -2126,6 +2138,10 @@ print [[/lua/rest/v1/get/interface/data.lua',
            } else {
               flows_label = " "+NtopUtils.get_trend(0,0);
            }
+
+           $('#if_zmq_remote_bps').html(NtopUtils.bitsToSize(rsp.remote_bps) + " " + NtopUtils.get_trend(rsp.remote_bps, last_zmq_remote_bps));
+           $('#if_zmq_remote_pps').html(NtopUtils.fpackets(rsp.remote_pps) + " " + NtopUtils.get_trend(rsp.remote_pps, last_zmq_remote_pps));
+console.log(NtopUtils.get_trend(rsp.remote_pps, last_remote_pps));
            $('#if_zmq_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.flows)+flows_label);
            $('#if_zmq_dropped_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.dropped_flows)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.dropped_flows, last_zmq_dropped_flows));
            $('#if_zmq_events').html(NtopUtils.addCommas(rsp.zmqRecvStats.events)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.events, last_zmq_events));
@@ -2135,6 +2151,8 @@ print [[/lua/rest/v1/get/interface/data.lua',
            $('#if_zmq_avg_msg_flows').html(NtopUtils.addCommas(NtopUtils.formatValue(rsp.zmqRecvStats.zmq_avg_msg_flows)));
            $('#if_num_remote_zmq_flow_exports').html(NtopUtils.addCommas(rsp["zmq.num_flow_exports"])+" "+NtopUtils.get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
 
+           last_remote_pps = rsp.remote_pps;
+           last_remote_bps = rsp.remote_bps;
            last_zmq_flows = rsp.zmqRecvStats.flows;
            last_zmq_dropped_flows = rsp.zmqRecvStats.dropped_flows;
            last_zmq_events = rsp.zmqRecvStats.events;

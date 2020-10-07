@@ -214,7 +214,7 @@ const footerRefresh = function() {
             return;
           }
 
-		  const rsp = content["rsp"];
+          const rsp = content["rsp"];
 
 	  try {
 	      var values = updatingChart_uploads[0].text().split(",")
@@ -225,14 +225,6 @@ const footerRefresh = function() {
 	      var bps = rsp.throughput_bps * 8;
 	      var bps_upload = rsp.throughput.upload.bps * 8;
 	      var bps_download = rsp.throughput.download.bps * 8;
-
-	      if(rsp.remote_pps != 0) {
-		pps = Math.max(rsp.remote_pps, 0);
-	      }
-	      if(rsp.remote_bps != 0) {
-		bps = Math.max(rsp.remote_bps, 0);
-		bps = Math.min(bps, rsp.speed * 1e6);
-	      }
 
 	      values.shift();
 	      values.push(bps_upload);

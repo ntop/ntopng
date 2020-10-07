@@ -330,13 +330,15 @@ class NtopUtils {
 		return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 
-	static get_trend(actual, before) {
-		if ((before === undefined) || (actual == before)) {
-			return ("<i class=\"fas fa-minus\"></i>");
-		} else {
-			return ("<i class=\"fas fa-arrow-up\"></i>");
-		}
+    static get_trend(actual, before) {
+	if((actual === undefined) || (before === undefined) || (actual == before)) {
+	    return ("<i class=\"fas fa-minus\"></i>");
+	} else if (actual > before) {
+	    return ("<i class=\"fas fa-arrow-up\"></i>");
+	} else {
+	    return ("<i class=\"fas fa-arrow-down\"></i>");
 	}
+    }
 
 	static abbreviateString(str, len) {
 		if (!str)

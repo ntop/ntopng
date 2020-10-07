@@ -2495,6 +2495,7 @@ local lang = {
     ["note_remote_probe_time"] = "Difference in seconds between ntopng time and remote nProbe time: ideally it should be close to zero. If too large please sync nProbe/ntopng time",
     ["paused"] = "Paused",
     ["probe_ip"] = "Probe IP",
+    ["probe_throughput"] = "Probe Throughput",
     ["probe_timeout_idle"] = "Idle Timeout",
     ["probe_timeout_lifetime"] = "Lifetime Timeout",
     ["probe_zmq_drops_export_queue_full"] = "Queue Full Dropped Flows",
