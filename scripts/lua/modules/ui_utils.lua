@@ -13,7 +13,7 @@ function ui_utils.render_configuration_footer(item)
     return template_utils.gen('pages/components/manage-configuration-link.template', {item = item})
 end
 
---- Single not element: { content = 'note description', hidden = true|false }
+--- Single note element: { content = 'note description', hidden = true|false }
 function ui_utils.render_notes(notes_items)
 
     if notes_items == nil then

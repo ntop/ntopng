@@ -9,6 +9,8 @@ require "lua_utils"
 require "db_utils"
 require "historical_utils"
 require "rrd_paths"
+local page_utils =require("page_utils")
+local ui_utils = require("ui_utils")
 local dkjson = require("dkjson")
 local host_pools = require "host_pools"
 local top_talkers_utils = require "top_talkers_utils"
@@ -312,6 +314,7 @@ end
 
 function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
    local debug_rrd = false
+   local is_sistem_interface = page_utils.is_system_view()
    options = options or {}
 
    if((selectedEpoch == nil) or (selectedEpoch == "")) then
@@ -388,32 +391,32 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
    if(data) then
       print [[
 
-<style>
-#chart_container {
-display: inline-block;
-font-family: Arial, Helvetica, sans-serif;
-}
-#chart {
-   float: left;
-}
-#legend {
-   float: left;
-   margin-left: 15px;
-   color: black;
-   background: white;
-}
-#y_axis {
-   float: left;
-   width: 40px;
-}
-
-</style>
+      <style>
+         #chart_container {
+            display: inline-block;
+            font-family: Arial, Helvetica, sans-serif;
+         }
+         #chart {
+            float: left;
+         }
+         #legend {
+            float: left;
+            margin-left: 15px;
+            color: black;
+            background: white;
+         }
+         #y_axis {
+            float: left;
+            width: 40px;
+         }
+   </style>
 
 <div>
 
-<div class="container-fluid">
-  <ul class="nav nav-tabs" role="tablist" id="historical-tabs-container">
-    <li class="nav-item active"> <a class="nav-link active" href="#historical-tab-chart" role="tab" data-toggle="tab"> Chart </a> </li>
+   <div class='card'>
+      <div class='card-header'>
+         <ul class="nav nav-tabs card-header-tabs" role="tablist" id="historical-tabs-container">
+            <li class="nav-item active"> <a class="nav-link active" href="#historical-tab-chart" role="tab" data-toggle="tab"> Chart </a> </li>
 ]]
 
 local show_historical_tabs = ntop.getPrefs().is_dump_flows_to_mysql_enabled and options.show_historical
@@ -424,12 +427,11 @@ end
 
 print[[
 </ul>
-
-
+</div>
+<div class='card-body'>
   <div class="tab-content">
     <div class="tab-pane active in" id="historical-tab-chart">
 
-<br>
 <table border=0>
 <tr><td valign="top">
 ]]
@@ -457,7 +459,7 @@ if(options.timeseries) then
    ]]
 end -- options.timeseries
 
-print('&nbsp;Timeframe:  <div class="btn-group btn-group-toggle" data-toggle="buttons" id="graph_zoom">\n')
+print('<span class="mx-1">Timeframe:</span><div class="btn-group btn-group-toggle" data-toggle="buttons" id="graph_zoom">\n')
 
 for k,v in ipairs(graph_common.zoom_vals) do
    -- display 1 minute button only for networks and interface stats
@@ -501,10 +503,6 @@ print [[
 });
 </script>
 
-<br />
-<p>
-
-
 <div id="legend"></div>
 <div id="chart_legend"></div>
 <div id="chart" style="margin-right: 50px; margin-left: 10px; display: table-cell"></div>
@@ -524,6 +522,7 @@ print [[
 local format_as_bps = true
 local format_as_bytes = false
 local formatter_fctn
+
 local label = data.series[1].label
 
 if label == "load_percentage" then
@@ -549,7 +548,7 @@ elseif string.contains(label, "packets") or string.contains(label, "flows") or l
    format_as_bytes = false
    format_as_bps = false
 else
-   formatter_fctn = "NtopUtils.fbits"
+   formatter_fctn = (is_sistem_interface and "NtopUtils.fnone" or "NtopUtils.fbits")
 end
 
 print [[
@@ -582,6 +581,13 @@ if(stats ~= nil) then
      print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval), 1) .. '</td></tr>\n')
      print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(stats.average, 2)) .. '</td></tr>\n')
      print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(stats["95th_percentile"], 2)) .. '</td></tr>\n')
+   elseif is_sistem_interface then
+      if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. (formatValue(round(stats["min_val"], 2)) or "") .. '</td></tr>\n') end
+      if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. (formatValue(round(stats["max_val"], 2)) or "") .. '</td></tr>\n') end
+      print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval, 2)) .. '</td></tr>\n')
+      print('   <tr><th>Average</th><td colspan=2>' ..formatValue(round(stats["average"], 2)).. '</td></tr>\n')
+      print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' ..(formatValue(round(stats["95th_percentile"], 2)) or '') .. '</td></tr>\n')
+      print('   <tr><th>Total Traffic</th><td colspan=2>' .. (stats.total or '') .. '</td></tr>\n')
    else
      if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bitsToSize((stats.min_val*8) or "") .. '</td></tr>\n') end
      if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bitsToSize((stats.max_val*8) or "") .. '</td></tr>\n') end
@@ -590,11 +596,13 @@ if(stats ~= nil) then
      print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bitsToSize(stats["95th_percentile"]*8) .. '</td></tr>\n')
      print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(stats.total) .. '</td></tr>\n')
   end
+
 end
 
 print('   <tr><th>Selection Time</th><td colspan=2><div id=when></div></td></tr>\n')
 
-if top_talkers_utils.areTopEnabled(ifid) then
+-- hide Minute Interface Top Talker if we are in system interface
+if top_talkers_utils.areTopEnabled(ifid) and not is_sistem_interface then
    print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
 end
 
@@ -625,8 +633,12 @@ end
 
 print[[
   </div> <!-- closes div class "tab-content" -->
-</div> <!-- closes div class "container-fluid" -->
+  </div>
+</div> <!-- closes div class "card" -->]]
 
+print(ui_utils.render_notes(options.notes))
+
+print[[
 <script>
 
 var palette = new Rickshaw.Color.Palette();

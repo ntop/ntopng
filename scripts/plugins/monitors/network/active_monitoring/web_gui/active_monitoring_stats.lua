@@ -162,7 +162,7 @@ elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) 
     }
     local am_ts_label
     local am_metric_label
-    local notes = {i18n("graphs.red_line_unreachable")}
+    local notes = {{content = i18n("graphs.red_line_unreachable")}}
 
     if measurement_info.i18n_am_ts_label then
         am_ts_label = i18n(measurement_info.i18n_am_ts_label) or
@@ -185,15 +185,14 @@ elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) 
         {
             schema = "am_host:val" .. suffix,
             label = am_ts_label,
-            value_formatter = measurement_info.value_js_formatter or
-                "NtopUtils.fmillis",
+            value_formatter = measurement_info.value_js_formatter or "NtopUtils.fmillis",
             metrics_labels = {am_metric_label},
             show_unreachable = true -- Show the unreachable host status as a red line
         }
     }
 
     for _, note in ipairs(measurement_info.i18n_chart_notes or {}) do
-        notes[#notes + 1] = i18n(note) or note
+        notes[#notes + 1] = {content = i18n(note) or note}
     end
 
     for _, ts_info in ipairs(measurement_info.additional_timeseries or {}) do

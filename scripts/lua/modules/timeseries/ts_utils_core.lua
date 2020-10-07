@@ -110,10 +110,10 @@ function ts_utils.loadSchemas()
   if(ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_minute_custom.lua")) then
      require("ts_minute_custom")
   end
-  
+
   if(ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua")) then
      require("ts_5min_custom")
-  end  
+  end
 end
 
 function ts_utils.getLoadedSchemas()
@@ -809,10 +809,10 @@ function ts_utils.setup()
 	ntop.setCache(SETUP_OK_KEY, "1")
 	return true
      end
-     
+
      return false
   end
-  
+
   return true
 end
 

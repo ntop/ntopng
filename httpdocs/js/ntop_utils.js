@@ -288,6 +288,20 @@ class NtopUtils {
 		return Math.round(res[0] * 100) / 100 + ' ' + res[1];
 	}
 
+	static fmillis(ms) {
+
+		if (ms === undefined) return '-';
+		const sizes = ['ms'];
+		const res = NtopUtils.scaleValue(ms, sizes, 1000);
+		return Math.round(res[0] * 100) / 100 + ' ' + res[1];
+	}
+
+	static fnone(val) {
+
+		if (val === undefined) return '-';
+		return Math.round(val * 100) / 100;
+	}
+
 	static falerts(aps) {
 		if (typeof (aps) === "undefined")
 			return "-";
@@ -427,8 +441,9 @@ class NtopUtils {
 		var i = parseInt(Math.floor(Math.log(val) / Math.log(scale)));
 		if (i < 0 || isNaN(i)) {
 			i = 0;
-		} else if (i >= sizes.length)
+		} else if (i >= sizes.length) {
 			i = sizes.length - 1;
+		}
 
 		return [Math.round((val / Math.pow(scale, i)) * factor) / factor, sizes[i]];
 	}

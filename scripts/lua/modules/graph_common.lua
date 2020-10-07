@@ -31,7 +31,7 @@ graph_common.zoom_vals = {
     --{ "6M",  "now-6mon", 60*60*24*31*6},
     { "1Y",  "now-1y",   60*60*24*366}
  }
- 
+
  -- ##############################################
 
 function graph_common.getZoomDuration(cur_zoom)
@@ -40,10 +40,10 @@ function graph_common.getZoomDuration(cur_zoom)
       return(graph_common.zoom_vals[k][3])
        end
     end
- 
+
     return(180)
  end
- 
+
  -- ##############################################
 
  function graph_common.getZoomAtPos(cur_zoom, pos_offset)
@@ -60,7 +60,7 @@ function graph_common.getZoomDuration(cur_zoom)
     end
     return new_zoom_level
   end
-  
+
  -- ##############################################
 
 local graph_menu_entries = {}
@@ -258,7 +258,7 @@ function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, 
       end
 
       if entry.html then
-	 print(entry.html)
+	   print(entry.html)
       else
 	 entry_print_callback(active_idx, entry)
 	 active_entries[#active_entries + 1] = entry
