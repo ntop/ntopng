@@ -2141,7 +2141,6 @@ print [[/lua/rest/v1/get/interface/data.lua',
 
            $('#if_zmq_remote_bps').html(NtopUtils.bitsToSize(rsp.remote_bps) + " " + NtopUtils.get_trend(rsp.remote_bps, last_zmq_remote_bps));
            $('#if_zmq_remote_pps').html(NtopUtils.fpackets(rsp.remote_pps) + " " + NtopUtils.get_trend(rsp.remote_pps, last_zmq_remote_pps));
-console.log(NtopUtils.get_trend(rsp.remote_pps, last_remote_pps));
            $('#if_zmq_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.flows)+flows_label);
            $('#if_zmq_dropped_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.dropped_flows)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.dropped_flows, last_zmq_dropped_flows));
            $('#if_zmq_events').html(NtopUtils.addCommas(rsp.zmqRecvStats.events)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.events, last_zmq_events));
