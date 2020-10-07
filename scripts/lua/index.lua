@@ -81,7 +81,9 @@ print([[
       <div class='col-12'>
 ]])
 
-page = _GET["page"]
+local page = _GET["page"]
+page = (page_utils.is_valid_page(page, {'TopFlowTalkers', 'TopHosts', 'TopPorts', 'TopApplications'}) and page or nil)
+
 if(page == nil) then
    if(not(is_loopback)) then
       page = "TopFlowTalkers"
@@ -91,32 +93,33 @@ if(page == nil) then
 end
 
 if((ifstats ~= nil) and (ifstats.stats.packets > 0)) then
-   local nav_url = ntop.getHttpPrefix()..'/?ifid='..interface.getId()..mode
-   local title = i18n("index_page.dashboard")
+
+  local nav_url = ntop.getHttpPrefix()..'/?ifid='..interface.getId()..mode
+  local title = i18n("index_page.dashboard")
 
    page_utils.print_navbar(title, nav_url,
-			   {
-			      {
-				 active = page == "TopFlowTalkers" or not page,
-				 page_name = "TopFlowTalkers",
-				 label = i18n("talkers"),
-			      },
-			      {
-				 active = page == "TopHosts",
-				 page_name = "TopHosts",
-				 label = i18n("index_page.hosts"),
-			      },
-			      {
-				 active = page == "TopPorts",
-				 page_name = "TopPorts",
-				 label = i18n("ports"),
-			      },
-			      {
-				 active = page == "TopApplications",
-				 page_name = "TopApplications",
-				 label = i18n("index_page.applications"),
-			      },
-			   }
+      {
+        {
+          active = page == "TopFlowTalkers" or not page,
+          page_name = "TopFlowTalkers",
+          label = i18n("talkers"),
+        },
+        {
+          active = page == "TopHosts",
+          page_name = "TopHosts",
+          label = i18n("index_page.hosts"),
+        },
+        {
+          active = page == "TopPorts",
+          page_name = "TopPorts",
+          label = i18n("ports"),
+        },
+        {
+          active = page == "TopApplications",
+          page_name = "TopApplications",
+          label = i18n("index_page.applications"),
+        },
+      }
    )
 
    if(page == "TopFlowTalkers") then

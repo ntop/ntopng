@@ -788,5 +788,33 @@ end
 
 -- ##############################################
 
+--- Check if the current page is valid
+--- @return boolean True if the current page is in available_pages, false otherwise
+function page_utils.is_valid_page(selected_page, available_pages)
+
+   if selected_page == nil then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "selected_pages is nil!")
+      return false
+   end
+   if available_pages == nil then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "available_pages is nil!")
+      return false
+   end
+   if type(available_pages) ~= 'table' then
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "available_pages is not a table!")
+      return false
+   end
+
+   -- do a linear search
+   for _, page in ipairs(available_pages) do
+      if (page == selected_page) then return true end
+   end
+
+   return false
+
+end
+
+-- ##############################################
+
 return page_utils
 
