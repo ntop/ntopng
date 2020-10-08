@@ -1,30 +1,35 @@
 const fixSubMenuPosition = ($submenu, $hoverButton) => {
 
-    const MIN_SPACE = 32;
-    const MIN_HEIGHT = 128;
+    const MIN_SPACE = 20;
+    const MIN_HEIGHT = 150;
 
-    const distFromAbove = $hoverButton.position().top;
+    let distFromAbove = $hoverButton.position().top;
     const submenuHeight = $submenu.height();
-    const documentHeight = $(document).height();
-
-    // set the submenu height
-    $submenu.css('top', `${distFromAbove}px`);
+    const documentHeight = $(window).height();
 
     // if the submenu is too high to be shown then set
     // the overflow on y axis
     if (submenuHeight + distFromAbove >= documentHeight) {
 
-        let maxSubmenuHeight = documentHeight - distFromAbove - MIN_SPACE;
-        // clamp the maxSubmenuHeight if it's too small
-        maxSubmenuHeight = (maxSubmenuHeight < MIN_HEIGHT) ? MIN_HEIGHT : maxSubmenuHeight;
+        const currentSubmenuHeight = documentHeight - distFromAbove;
+        if (currentSubmenuHeight <= MIN_HEIGHT) {
+            distFromAbove = distFromAbove - submenuHeight + $hoverButton.outerHeight();
+        }
+        else {
+            $submenu.css({'max-height': currentSubmenuHeight - MIN_SPACE, 'overflow-y': 'auto'})
+        }
 
-        $submenu.css('overflow-y', 'auto');
-        $submenu.css('max-height', `${maxSubmenuHeight}px`);
     }
+    else {
+        $submenu.css({'max-height': 'initial'});
+    }
+
+    // set the submenu height
+    $submenu.css('top', `${distFromAbove}px`);
 
 };
 
-$(document).ready(function () {
+$(document).ready(() => {
 
     const toggleSidebar = () => {
         // if the layer doesn't exists then create it
@@ -60,8 +65,8 @@ $(document).ready(function () {
     $(`#n-sidebar a.submenu`).mouseenter(function() {
 
         const $submenu = $(this).parent().find(`div[id$='submenu']`);
-        $submenu.collapse('show').css('top', '0').css('max-height', 'initial');
         fixSubMenuPosition($submenu, $(this));
+        $submenu.collapse('show');
 
         $(this).attr('aria-expanded', true);
     });
