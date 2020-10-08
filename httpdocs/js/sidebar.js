@@ -20,9 +20,6 @@ const fixSubMenuPosition = ($submenu, $hoverButton) => {
         }
 
     }
-    else {
-        $submenu.css({'max-height': 'initial'});
-    }
 
     // set the submenu height
     $submenu.css('top', `${distFromAbove}px`);
@@ -76,6 +73,7 @@ $(document).ready(() => {
     });
     $(`div[id$='submenu']`).mouseleave(function() {
         $(this).removeClass('show');
+        $(this).css({'max-height': 'initial'});
     });
 
     $(`#n-sidebar a.submenu`).mouseleave(function() {
