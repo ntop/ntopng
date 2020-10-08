@@ -154,8 +154,6 @@ $(document).ready(function () {
             if (!requiredFields[modalSelector]['non-community'])
                 requiredFields[modalSelector]['non-community'] = $(`.non-community-field [name][required]`);
 
-            console.log(requiredFields);
-
             // if the selected SNMPversion is the third one
             // then show the necessary fields (.non-community-field)
             if ($(this).val() == SNMP_VERSION_THREE) {
