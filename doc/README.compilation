@@ -71,6 +71,8 @@ See README.FreeBSD
 On Cubro EXA8
 - apt-get install libmysqlclient-dev
 
+On OpenSuse
+- zypper install flex bison libpcap-devel libmaxminddb-devel libsqlite3-0-devel sqlite3-devel libmysqlclient-devel czmq-devel
 
 On Windows you can download the Redis server from
 - https://github.com/rgl/redis/downloads
