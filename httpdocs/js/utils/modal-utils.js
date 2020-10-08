@@ -58,7 +58,7 @@
                 hidden: []
             };
 
-            $(this.element).find('textarea,select,input').each(function () {
+            $(this.element).find('textarea,select,input[type!="radio"]').each(function () {
 
                 const type = $(this).prop('nodeName').toLowerCase();
                 const name = $(this).attr('name');
@@ -68,6 +68,8 @@
             $(this.element).find(`[style='display: none;'], span.invalid-feedback`).each(function () {
                 snapshot.hidden.push($(this));
             });
+
+            console.log(snapshot)
 
             return snapshot;
         }

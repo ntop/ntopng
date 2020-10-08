@@ -119,31 +119,33 @@ $(document).ready(function () {
             $(macAndNetworkFields).hide();
 
             $(`#add-member-modal .ip-fields`).show().find(`input,select`).removeAttr("disabled");
-
             $(`#add-modal-feedback`).hide();
+
+            $(`#add-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
+            // show the default view
+            $(`#add-member-modal #ip-radio`).attr('checked', '').parent().addClass('active');
         },
-        onModalInit: function () {
+        onModalInit: function (_, modalHandler) {
             // on select member type shows only the fields interested
-            $(`#add-member-modal select[name='member_type']`).change(function () {
+            $(`#add-member-modal [name='member_type']`).change(function () {
 
                 const value = $(this).val();
+                $(`#add-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
+                $(this).attr('checked', '');
 
                 // clean the members and show the selected one
                 $(`#add-member-modal [class*='fields']`).hide();
-                $(`#add-member-modal [class*='fields'] input, #add-member-modal [class*='fields'] select`).attr("disabled", "disabled").removeClass('is-invalid');
-                $(`#add-member-modal [class*='fields'] input`).val("");
+                $(`#add-member-modal [class*='fields'] input, #add-member-modal [class*='fields'] select`).attr("disabled", "disabled");
 
-                // select the default value inside the selected
-                $(`#add-member-modal [class*='fields'] select`).val($(`#add-member-modal [class*='fields'] select option[selected]`).val());
-                $(`#add-member-modal [class*='fields'] select option`).removeAttr("disabled");
+                $(`#add-member-modal [class='${value}-fields']`).show().find('input,select').removeAttr("disabled");
 
-                $(`#add-member-modal [class='${value}-fields']`).fadeIn().find('input,select').removeAttr("disabled");
+                modalHandler.toggleFormSubmission();
             });
         },
         beforeSumbit: function () {
 
             let member;
-            const typeSelected = $(`#add-member-modal select[name='member_type']`).val();
+            const typeSelected = $(`#add-member-modal [name='member_type']:checked`).val();
 
             if (typeSelected == "mac") {
                 member = $(`#add-member-modal input[name='mac_address']`).val();

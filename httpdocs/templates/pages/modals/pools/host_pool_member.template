@@ -31,14 +31,21 @@
                         <label class="col-form-label col-sm-4" >
                             <b>{{ i18n("host_pools.member_type") }}</b>
                         </label>
-                        <div class="col-sm-4">
-                            <select required name="member_type" class="form-control">
-                                <option selected value="ip">{{ i18n("host_pools.ip_address") }}</option>
-                                <option value="network">{{ i18n("host_pools.network") }}</option>
-                                <option value="mac">{{ i18n("host_pools.mac_address") }}</option>
-                            </select>
+                        <div class="col-sm-6">
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-secondary active">
+                                  <input id="ip-radio" type="radio" name="member_type" value="ip" checked> {{ i18n("host_pools.ip_address") }}
+                                </label>
+                                <label class="btn btn-secondary">
+                                  <input id="network-radio" type="radio" name="member_type" value="network"> {{ i18n("host_pools.network") }}
+                                </label>
+                                <label class="btn btn-secondary">
+                                  <input id="mac-radio" type="radio" name="member_type" value="mac"> {{ i18n("host_pools.mac_address") }}
+                                </label>
+                            </div>
                         </div>
                     </div>
+                    <hr>
                     <div class="ip-fields">
                         <div class="form-group row">
                             <label class="col-form-label col-sm-4" >
