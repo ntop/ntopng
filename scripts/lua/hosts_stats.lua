@@ -166,7 +166,7 @@ if(pool ~= nil) then
    local pool_link
    local title
 
-   if(pool ~= host_pools_instance.DEFAULT_POOL_ID) or (have_nedge) then
+   if(tonumber(pool) ~= host_pools_instance.DEFAULT_POOL_ID) or (have_nedge) then
       if have_nedge then
 	 pool_link = "/lua/pro/nedge/admin/nf_edit_user.lua?username=" ..
 	 ternary(pool == host_pools_nedge.DEFAULT_POOL_ID, "", host_pools_nedge.poolIdToUsername(pool))
