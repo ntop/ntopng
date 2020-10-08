@@ -49,8 +49,6 @@ NetworkInterface::NetworkInterface(const char *name,
   init();
   customIftype = custom_interface_type;
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
-  idleFlowsToDump_drops = activeFlowsToDump_drops = 0;
-  hookProtocolDetected_drops = hookPeriodicUpdate_drops = hookFlowEnd_drops = 0;
   hooksEngine = NULL;
   hooks_engine_reload = false;
   hooks_engine_next_reload = 0;
@@ -328,9 +326,9 @@ void NetworkInterface::init() {
   /*
     Initialize user-script queues
   */
-  hookProtocolDetected = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_PROTOCOL_DETECTED_QUEUE_LEN);
-  hookPeriodicUpdate   = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_PERIODIC_UPDATE_QUEUE_LEN);
-  hookFlowEnd          = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_FLOW_END_QUEUE_LEN);
+  hookProtocolDetected = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_PROTOCOL_DETECTED_QUEUE_LEN, "hookProtocolDetected");
+  hookPeriodicUpdate   = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_PERIODIC_UPDATE_QUEUE_LEN, "hookPeriodicUpdate");
+  hookFlowEnd          = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_FLOW_END_QUEUE_LEN, "hookFlowEnd");
 
   PROFILING_INIT();
 }
@@ -607,7 +605,6 @@ NetworkInterface::~NetworkInterface() {
 bool NetworkInterface::hookEnqueue(time_t t, Flow *f) {
   bool ret = false;
   SPSCQueue<Flow *> *selected_queue = NULL;
-  u_int64_t *queue_drops = NULL;
 
   /*
     Choose the right queue to perform the enqueue
@@ -615,16 +612,13 @@ bool NetworkInterface::hookEnqueue(time_t t, Flow *f) {
 
   switch(f->get_state()) {
   case hash_entry_state_flow_protocoldetected:
-    selected_queue = hookProtocolDetected,
-      queue_drops = &hookProtocolDetected_drops;
+    selected_queue = hookProtocolDetected;
     break;
   case hash_entry_state_active:
-    selected_queue = hookPeriodicUpdate,
-      queue_drops = &hookPeriodicUpdate_drops;
+    selected_queue = hookPeriodicUpdate;
     break;
   case hash_entry_state_idle:
-    selected_queue = hookFlowEnd,
-      queue_drops = &hookFlowEnd_drops;
+    selected_queue = hookFlowEnd;
     break;
   default:
     break;
@@ -639,11 +633,10 @@ bool NetworkInterface::hookEnqueue(time_t t, Flow *f) {
        */
       f->incUses();
       ret = true;
-    } else if(queue_drops) {
+    } else {
       /*
-	Enqueue failure. Count the drops.
+	Enqueue failure.
        */
-      (*queue_drops)++;
       ret = false;
     }
   }
@@ -668,7 +661,6 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
 #endif
     } else {
-      idleFlowsToDump_drops++;
       incNumQueueDroppedFlows(1);
       // delete f; /* Delete is up to the caller */
     }
@@ -681,7 +673,6 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
 #endif
     } else {
-      activeFlowsToDump_drops++;
       incNumQueueDroppedFlows(1);
     }
   }
@@ -2602,8 +2593,8 @@ static void* flowDumper(void* ptr) {
 /* **************************************************** */
 
 void NetworkInterface::startFlowDumping() {
-  idleFlowsToDump   = new SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN);
-  activeFlowsToDump = new SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN);
+  idleFlowsToDump   = new SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN, "idleFlowsToDump");
+  activeFlowsToDump = new SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN, "activeFlowsToDump");
 
   /*
     Precalculate constants that won't change during the execution.
@@ -5504,6 +5495,16 @@ void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
 
   /* Periodic activities stats */
   ntop->lua_periodic_activities_stats(this, vm);
+}
+
+/* **************************************************** */
+
+void NetworkInterface::lua_queues_stats(lua_State *vm) {
+  if(idleFlowsToDump)      idleFlowsToDump->lua(vm);
+  if(activeFlowsToDump)    activeFlowsToDump->lua(vm);
+  if(hookProtocolDetected) hookProtocolDetected->lua(vm);
+  if(hookPeriodicUpdate)   hookPeriodicUpdate->lua(vm);
+  if(hookFlowEnd)          hookFlowEnd->lua(vm);
 }
 
 /* **************************************************** */

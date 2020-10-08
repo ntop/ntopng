@@ -299,12 +299,12 @@ using namespace std;
 #include <radcli/radcli.h>
 #endif
 #include "Condvar.h"
-#include "SPSCQueue.h"
 #include "TimeseriesExporter.h"
 #include "InfluxDBTimeseriesExporter.h"
 #include "L4Stats.h"
 #include "AlertsQueue.h"
 #include "LuaEngine.h"
+#include "SPSCQueue.h"
 #include "LuaReusableEngine.h"
 #include "AlertCheckLuaEngine.h"
 #include "FlowAlertCheckLuaEngine.h"

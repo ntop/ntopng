@@ -91,6 +91,7 @@ class ViewInterface : public NetworkInterface {
 				u_int8_t l4_proto,
 				AddressTree *allowed_hosts) const;
   void dumpFlowLoop();
+  virtual void lua_queues_stats(lua_State* vm);
 };
 
 #endif /* _VIEW_INTERFACE_H_ */

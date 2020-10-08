@@ -149,10 +149,12 @@ bool ViewInterface::addSubinterface(NetworkInterface *what) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface already belonging to a view [%s][%d]", what->get_name(), what->get_id());
       return(false);
     } else {
+      char buf[MAX_INTERFACE_NAME_LEN + strlen("viewed_") + 1];
+      snprintf(buf, sizeof(buf), "viewed_%s", what->get_name());
       what->setViewed(this, num_viewed_interfaces);
       viewed_interfaces[num_viewed_interfaces] = what;
       /* Instantiate the queue which will be used by the view interface to enqueue flows for this view */
-      viewed_interfaces_queues[num_viewed_interfaces] = new SPSCQueue<Flow *>(MAX_VIEW_INTERFACE_QUEUE_LEN);
+      viewed_interfaces_queues[num_viewed_interfaces] = new SPSCQueue<Flow *>(MAX_VIEW_INTERFACE_QUEUE_LEN, buf);
       num_viewed_interfaces++;
       is_packet_interface &= what->isPacketInterface();
       return(true);
@@ -572,4 +574,11 @@ void ViewInterface::startPacketPolling() {
   pthread_create(&pollLoop, NULL, ::flowPollLoop, this);
   pollLoopCreated = true;
   NetworkInterface::startPacketPolling();
+}
+
+/* **************************************************** */
+
+void ViewInterface::lua_queues_stats(lua_State* vm) {
+  for(int i = 0; i < num_viewed_interfaces; i++)
+    viewed_interfaces_queues[i]->lua(vm);
 }

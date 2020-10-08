@@ -134,6 +134,68 @@ end
 
 -- ###########################################
 
+local function printQueuesTable(base_url, ifid, ts_creation)
+   local page_params = {tab = _GET["tab"], iffilter = ifid}
+
+   print[[
+<div id="table-queues-stats"></div>
+<script type='text/javascript'>
+
+$("#table-queues-stats").datatable({
+   title: "",]]
+
+   local preference = tablePreferences("rows_number",_GET["perPage"])
+   if preference ~= "" then print ('perPage: '..preference.. ",\n") end
+
+   print[[
+   showPagination: true,
+   buttons: [],
+   url: "]] print(getPageUrl(ntop.getHttpPrefix().."/lua/get_internals_queues_stats.lua", page_params)) print[[",
+   columns: [
+     {
+       field: "column_key",
+       hidden: true,
+     }, {
+       field: "column_ifid",
+       hidden: true,
+     }, {
+       title: "]] print(i18n("interface")) print[[",
+       field: "column_name",
+       hidden: ]] if ifid and ifid ~= getSystemInterfaceId() then print('true') else print('false') end print[[,
+       sortable: true,
+       css: {
+	 textAlign: 'left',
+	 width: '5%',
+       }
+     }, {
+       title: "]] print(i18n("internals.queue")) print[[",
+       field: "column_queue_name",
+       sortable: true,
+       css: {
+	 textAlign: 'left',
+	 width: '10%',
+       }
+     }, {
+       title: "]] print(i18n("internals.num_failed_enqueues")) print[[",
+       field: "column_num_failed_enqueues",
+       sortable: true,
+       css: {
+	 textAlign: 'right',
+	 width: '5%',
+       }
+     }
+   ], tableCallback: function() {
+      datatableInitRefreshRows($("#table-queues-stats"),
+			       "column_key", 5000,
+			       {"column_num_failed_enqueues": NtopUtils.addCommas});
+   },
+});
+</script>
+ ]]
+end
+
+-- ###########################################
+
 local function printPeriodicactivityIssuesDropdown(base_url, page_params)
    local periodic_activity_issue = _GET["periodic_script_issue"]
    local periodic_activity_issue_filter
@@ -522,7 +584,7 @@ end
 
 -- ###########################################
 
-function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_activities, print_user_scripts)
+function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_activities, print_user_scripts, print_queues)
    local tab = _GET["tab"]
 
    local ts_creation = areInternalTimeseriesEnabled(ifid or getSystemInterfaceId()) and ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
@@ -534,6 +596,12 @@ function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_
       if not tab then tab = "hash_tables" end
       print[[<li class="nav-item">
     <a class="nav-link ]] if tab == "hash_tables" then print[[active]] end print[[" href="?page=internals&tab=hash_tables]] print[[">]] print(i18n("internals.hash_tables")) print[[</a></li>]]
+   end
+
+   if print_queues then
+      if not tab then tab = "queues" end
+      print[[<li class="nav-item">
+    <a class="nav-link ]] if tab == "queues" then print[[active]] end print[[" href="?page=internals&tab=queues]] print[[">]] print(i18n("internals.queues")) print[[</a></li>]]
    end
 
    if print_periodic_activities then
@@ -556,6 +624,8 @@ function internals_utils.printInternals(ifid, print_hash_tables, print_periodic_
 
    if tab == "hash_tables" and print_hash_tables then
       printHashTablesTable(base_url.."&tab=hash_tables", ifid, ts_creation)
+   elseif tab == "queues" and print_queues then
+      printQueuesTable(base_url.."&tab=queues", ifid, ts_creation)
    elseif tab == "periodic_activities" and print_periodic_activities then
       printPeriodicActivitiesTable(base_url.."&tab=periodic_activities", ifid, ts_creation)
    elseif tab == "user_scripts" and print_user_scripts then

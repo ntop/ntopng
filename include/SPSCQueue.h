@@ -31,6 +31,7 @@
 
 template <typename T> class SPSCQueue {
  private:
+  char *name;
   u_int64_t num_failed_enqueues; /* Counts the number of times the enqueue has failed (queue full) */
   u_int64_t shadow_head;
   volatile u_int64_t head;
@@ -45,18 +46,19 @@ template <typename T> class SPSCQueue {
    * Constructor
    * @param size The queue size (rounded up to the next power of 2)
    */
-  SPSCQueue(u_int32_t size) {
+  SPSCQueue(u_int32_t size, const char * const _name) {
     queue_size = Utils::pow2(size);
     queue.reserve(queue_size);
     tail = shadow_tail = queue_size-1;
     head = shadow_head = 0;
     num_failed_enqueues = 0;
+    name = strdup(_name ? _name : "");
   }
 
   /**
    * Destructor
    */
-  ~SPSCQueue() { ; }
+  ~SPSCQueue() { if(name) free(name); }
 
   /**
    * Return true if there is at least one item in the queue
@@ -126,6 +128,23 @@ template <typename T> class SPSCQueue {
     return false; /* no room */
   }
 
+  /**
+   * Return the number of failed enqueue attempts
+   */
+  inline u_int64_t get_num_failed_enqueues() const { return num_failed_enqueues; };
+
+  /**
+   * Writes queue stats in a table of the vm passed as parameter
+   */
+  inline void lua(lua_State *vm) const {
+    if(vm) {
+      lua_newtable(vm);
+      lua_push_uint64_table_entry(vm, "num_failed_enqueues", num_failed_enqueues);
+      lua_pushstring(vm, name ? name : "");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+  };
 };
 
 #endif /* _SPSC_QUEUE_H_ */

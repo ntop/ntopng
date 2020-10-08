@@ -81,13 +81,11 @@ class NetworkInterface : public AlertableEntity {
 
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
-  u_int32_t idleFlowsToDump_drops, activeFlowsToDump_drops;
 
   /* Queues for the execution of flow user scripts.
      See scripts/plugins/examples/example/user_scripts/flow/example.lua for the callbacks
    */
   SPSCQueue<Flow *> *hookProtocolDetected, *hookPeriodicUpdate, *hookFlowEnd;
-  u_int64_t hookProtocolDetected_drops, hookPeriodicUpdate_drops, hookFlowEnd_drops;
 
   /*
     Flag to indicate whether a flow JSON should be dumped along with the flow. Flow JSON contain
@@ -539,6 +537,7 @@ class NetworkInterface : public AlertableEntity {
 #endif
   void lua_hash_tables_stats(lua_State* vm);
   void lua_periodic_activities_stats(lua_State* vm);
+  virtual void lua_queues_stats(lua_State* vm);
   void getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t filter, bool skip_critical);
 
   int getActiveHostsList(lua_State* vm,

@@ -210,7 +210,7 @@ elseif((page == "alerts") and isAdministrator()) then
 
    interface.select(tostring(cur_id))
 elseif page == "internals" then
-   internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], false --[[ user scripts]])
+   internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], false --[[ user scripts]], true --[[ queues --]])
 end
 
 -- #######################################################

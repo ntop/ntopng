@@ -3819,6 +3819,26 @@ static int ntop_get_interface_periodic_activities_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_queues_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = NULL;
+  int ifid;
+
+  if(lua_type(vm, 1) == LUA_TNUMBER) {
+    ifid = lua_tointeger(vm, 1);
+    ntop_interface = ntop->getInterfaceById(ifid);
+  } else
+    ntop_interface = getCurrentInterface(vm);
+
+  lua_newtable(vm);
+
+  if(ntop_interface)
+    ntop_interface->lua_queues_stats(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_set_interface_periodic_activity_progress(lua_State* vm) {
   int progress;
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
@@ -4409,6 +4429,9 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "deleteHostData",           ntop_interface_delete_host_data },
   { "resetMacStats",            ntop_interface_reset_mac_stats },
   { "deleteMacData",            ntop_interface_delete_mac_data },
+
+  /* Functions related to the management of per-interface queues */
+  { "getQueuesStats",           ntop_get_interface_queues_stats },
 
   /* Functions related to the management of the internal hash tables */
   { "getHashTablesStats",       ntop_get_interface_hash_tables_stats },

@@ -39,7 +39,6 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-
 page = _GET["page"]
 ifid = _GET["ifid"]
 
@@ -1868,7 +1867,7 @@ elseif(page == "config") then
    </script>]]
 
 elseif(page == "internals") then
-   internals_utils.printInternals(ifid, true --[[ hash tables ]], true --[[ periodic activities ]], false --[[ user scripts]])
+   internals_utils.printInternals(ifid, true --[[ hash tables ]], true --[[ periodic activities ]], false --[[ user scripts]], true --[[ queues --]])
 print [[
    </table>
 ]]
