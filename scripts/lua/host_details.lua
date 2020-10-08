@@ -23,6 +23,7 @@ local json = require ("dkjson")
 
 
 local discover = require "discover_utils"
+local ui_utils = require "ui_utils"
 local page_utils = require "page_utils"
 local template = require "template_utils"
 local mud_utils = require "mud_utils"
@@ -294,7 +295,7 @@ else
    if(host["localhost"]) then
 	 service_map_available = interface.serviceMap(_GET["host"])
    end
-   
+
    page_utils.print_navbar(title, url,
 			   {
 			      {
@@ -1298,14 +1299,16 @@ setInterval(update_icmp_table, 5000);
 elseif((page == "ndpi")) then
    if(host["ndpi"] ~= nil) then
       print [[
-  <ul id="ndpiNav" class="nav nav-tabs" role="tablist">
-    <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
-    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
-  </ul>
-  <div class="tab-content">
+      <div class='card card-shadow'>
+      <div class='card-header'>
+         <ul id="ndpiNav" class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item active"><a class="nav-link active" data-toggle="tab" role="tab" href="#applications" active>]] print(i18n("applications")) print[[</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#categories">]] print(i18n("categories")) print[[</a></li>
+         </ul>
+      </div>
+  <div class="tab-content card-body">
     <div id="applications" class="tab-pane in active">
-      <br>
-  <table class="table table-bordered table-striped">]]
+      <table class="table table-bordered mt-1 table-striped">]]
 
       if(host.cardinality) then
 	 print('<tr><th class="text-left" colspan=2>'..i18n("ndpi_page.num_contacted_services_as_client")..'</th>')
@@ -1379,6 +1382,8 @@ elseif((page == "ndpi")) then
        <tbody id="host_details_ndpi_categories_tbody"></tbody>
      </table>
     </div>
+    </div>
+    </div> <!-- close card -->
 ]]
 
       print[[
@@ -1449,20 +1454,18 @@ setInterval(update_ndpi_categories_table, 5000);
 
       local host_ndpi_timeseries_creation = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
 
-      print("<b>"..i18n("notes").."</b>")
-
-      if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_protocol" then
-	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("application"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",flask_icon="<i class=\"fas fa-flask\"></i>"}).." ")
-      end
-
-      if host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_category" then
-	 print("<li>"..i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fas fa-flask\"></i>"}).." ")
-      end
-
-      print("<li>"..i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fas fa-exclamation-triangle\" style=\"color: orange;\"></i>",url = hostinfo2detailsurl(host, {page = "historical"})}))
-      print("<li>"..i18n("ndpi_page.note_protocol_usage_time"))
-      print("</ul>")
-
+      print(ui_utils.render_notes({
+         {
+            content = i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("application"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=on_disk_ts",flask_icon="<i class=\"fas fa-flask\"></i>"}),
+            hidden = not(host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_protocol")
+         },
+         {
+            content = i18n("ndpi_page.note_historical_per_protocol_traffic",{what=i18n("category"), url=ntop.getHttpPrefix().."/lua/admin/prefs.lua",flask_icon="<i class=\"fas fa-flask\"></i>"}),
+            hidden = not(host_ndpi_timeseries_creation ~= "both" and host_ndpi_timeseries_creation ~= "per_category")
+         },
+         { content = i18n("ndpi_page.note_possible_probing_alert",{icon="<i class=\"fas fa-exclamation-triangle\" style=\"color: orange;\"></i>",url = hostinfo2detailsurl(host, {page = "historical"})})},
+         { content = i18n("ndpi_page.note_protocol_usage_time")}
+      }))
 
    end
 
@@ -2082,7 +2085,7 @@ elseif (page == "quotas" and ntop.isnEdge() and ntop.isEnterpriseM() and host_po
 
 elseif (page == "service_map") then
       dofile(dirs.installdir .. "/scripts/lua/inc/service_map.lua")
-	       
+
 elseif (page == "config") then
    if(not isAdministrator()) then
       return
