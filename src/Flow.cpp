@@ -3669,26 +3669,27 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
       zflow->http_site = NULL;
     }
 
-    setHTTPMethod(zflow->http_method);
-    setHTTPRetCode(zflow->http_ret_code);
-
-    const char *http_method = getHTTPMethod();
-    if(http_method && http_method[0] && http_method[1]) {
-      switch(http_method[0]) {
-      case 'P':
-	switch(http_method[1]) {
-	case 'O': stats.incHTTPReqPOST();  break;
-	case 'U': stats.incHTTPReqPUT();   break;
+    if(zflow->http_method != NDPI_HTTP_METHOD_UNKNOWN) {
+      setHTTPMethod(zflow->http_method);
+      const char *http_method = getHTTPMethod();
+      if(http_method && http_method[0] && http_method[1]) {
+	switch(http_method[0]) {
+	case 'P':
+	  switch(http_method[1]) {
+	  case 'O': stats.incHTTPReqPOST();  break;
+	  case 'U': stats.incHTTPReqPUT();   break;
+	  default:  stats.incHTTPReqOhter(); break;
+	  }
+	  break;
+	case 'G': stats.incHTTPReqGET();   break;
+	case 'H': stats.incHTTPReqHEAD();  break;
 	default:  stats.incHTTPReqOhter(); break;
 	}
-	break;
-      case 'G': stats.incHTTPReqGET();   break;
-      case 'H': stats.incHTTPReqHEAD();  break;
-      default:  stats.incHTTPReqOhter(); break;
-      }
-    } else
-      stats.incHTTPReqOhter();
+      } else
+	stats.incHTTPReqOhter();
+    }
 
+    setHTTPRetCode(zflow->http_ret_code);
     u_int16_t ret_code = getHTTPRetCode();
     while(ret_code > 9) ret_code /= 10; /* Take the first digit */
     switch(ret_code) {
