@@ -2426,7 +2426,7 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
      that are increased by flow user script hooks. Hence, by executing the purging here in this thread, we ensure
      consistency of counters.
   */
-  purgeQueuedIdleFlows();
+  num_done += purgeQueuedIdleFlows();
 
 #if DEBUG_FLOW_HOOKS
   if(num_done > 0)
@@ -2921,7 +2921,9 @@ void NetworkInterface::periodicStatsUpdate() {
 /*
   Frees the memory (destructors) of all idle hash table entries except flows
  */
-void NetworkInterface::purgeQueuedIdleEntries() {
+u_int64_t NetworkInterface::purgeQueuedIdleEntries() {
+  u_int64_t num_purged = 0;
+
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating hash tables [%s]", get_name());
 #endif
@@ -2936,8 +2938,10 @@ void NetworkInterface::purgeQueuedIdleEntries() {
   /* Delete all idle entries */
   for(u_int i = 0; i < sizeof(ghs) / sizeof(ghs[0]); i++) {
     if(ghs[i])
-      ghs[i]->purgeQueuedIdleEntries();
+      num_purged += ghs[i]->purgeQueuedIdleEntries();
   }
+
+  return num_purged;
 }
 
 /* **************************************************** */
@@ -2945,13 +2949,15 @@ void NetworkInterface::purgeQueuedIdleEntries() {
 /*
   Frees the memory (~Flow) used by idle flow hash table entries.
 */
-void NetworkInterface::purgeQueuedIdleFlows() {
+u_int64_t NetworkInterface::purgeQueuedIdleFlows() {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating flow tables [%s]", get_name());
 #endif
 
   if(!isView() && flows_hash)
-    flows_hash->purgeQueuedIdleEntries();
+    return flows_hash->purgeQueuedIdleEntries();
+
+  return 0;
 }
 
 /* **************************************************** */

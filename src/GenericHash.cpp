@@ -125,11 +125,9 @@ bool GenericHash::add(GenericHashEntry *h, bool do_lock) {
 
 /* ************************************ */
 
-void GenericHash::purgeQueuedIdleEntries() {
+u_int64_t GenericHash::purgeQueuedIdleEntries() {
   vector<GenericHashEntry*> *cur_idle = NULL;
-#ifdef WALK_DEBUG
-  u_int32_t num_purged = entry_state_transition_counters.num_purged;
-#endif
+  u_int64_t num_purged = entry_state_transition_counters.num_purged;
 
   if(idle_entries) {
     cur_idle = idle_entries;
@@ -187,6 +185,8 @@ void GenericHash::purgeQueuedIdleEntries() {
 				 __FUNCTION__, iface->get_description(),
 				 entry_state_transition_counters.num_purged - num_purged);
 #endif
+
+  return entry_state_transition_counters.num_purged - num_purged;
 }
 
 /* ************************************ */

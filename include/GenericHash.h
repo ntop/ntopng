@@ -123,8 +123,9 @@ class GenericHash {
 
   /**
    * @brief Purge idle entries that have been previous idled by purgeIdle() via periodic calls
+   * @return The number of purged entries
    */
-  void purgeQueuedIdleEntries();
+  u_int64_t purgeQueuedIdleEntries();
   
   /**
    * @brief Purge idle hash entries.
