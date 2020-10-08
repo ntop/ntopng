@@ -375,7 +375,6 @@ $("#table-internals-periodic-activities").datatable({
       datatableInitRefreshRows($("#table-internals-periodic-activities"),
 			       "column_key", 5000,
 			       {
-                  "column_last_duration": NtopUtils.fmillis,
                   "column_tot_not_executed": NtopUtils.fint,
                   "column_tot_running_slow": NtopUtils.fint,
                   "column_tot_rrd_running_slow": NtopUtils.fint,
