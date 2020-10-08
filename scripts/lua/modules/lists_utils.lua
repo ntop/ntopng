@@ -13,7 +13,7 @@ local alert_consts = require "alert_consts"
 
 -- ##############################################
 
-local trace_level = TRACE_INFO -- TRACE_NORMAL
+local trace_level =  TRACE_INFO -- TRACE_NORMAL
 
 local CUSTOM_CATEGORY_MINING = 99
 local CUSTOM_CATEGORY_MALWARE = 100
@@ -301,7 +301,7 @@ local function getNextListUpdate(list)
 end
 
 -- Returns true if the given list should be updated
-function lists_utils.shouldUpdate(list_name, list, now)
+function shouldUpdate(list_name, list, now)
    local list_file = getListCacheFile(list_name, false)
    local next_update = getNextListUpdate(list)
 
@@ -331,7 +331,7 @@ local function checkListsUpdate(timeout)
    for list_name, list in pairsByKeys(lists) do
       local list_file = getListCacheFile(list_name, false)
 
-      if lists_utils.shouldUpdate(list_name, list, now) then
+      if shouldUpdate(list_name, list, now) then
 	 local temp_fname = getListCacheFile(list_name, true)
 
 	 traceError(trace_level, TRACE_CONSOLE, string.format("Updating list '%s'...", list_name))
