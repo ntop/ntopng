@@ -392,6 +392,8 @@ typedef enum {
   column_total_num_misbehaving_flows_as_server,
   column_total_num_unreachable_flows_as_client,
   column_total_num_unreachable_flows_as_server,
+  column_total_num_retx_sent,
+  column_total_num_retx_rcvd,
   column_total_alerts,
   column_pool_id,
   column_score,

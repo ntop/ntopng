@@ -3953,6 +3953,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_total_num_misbehaving_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumMisbehavingIncomingFlows(); break;
   case column_total_num_unreachable_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableOutgoingFlows(); break;
   case column_total_num_unreachable_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableIncomingFlows(); break;
+  case column_total_num_retx_sent:  r->elems[r->actNumEntries++].numericValue = h->getTcpPacketSentStats()->get_retr(); break;
+  case column_total_num_retx_rcvd:  r->elems[r->actNumEntries++].numericValue = h->getTcpPacketRcvdStats()->get_retr(); break;
   case column_total_alerts:    r->elems[r->actNumEntries++].numericValue = h->getTotalAlerts(); break;
   case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore()->get(); break;
 
@@ -4553,6 +4555,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_total_num_misbehaving_flows_as_server")) retriever->sorter = column_total_num_misbehaving_flows_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_num_unreachable_flows_as_client")) retriever->sorter = column_total_num_unreachable_flows_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_num_unreachable_flows_as_server")) retriever->sorter = column_total_num_unreachable_flows_as_server, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_retx_sent")) retriever->sorter = column_total_num_retx_sent, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_retx_rcvd")) retriever->sorter = column_total_num_retx_rcvd, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_alerts")) retriever->sorter = column_total_alerts, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_score")) retriever->sorter = column_score, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_pool_id")) retriever->sorter = column_pool_id, sorter = numericSorter;

@@ -46,6 +46,8 @@ class TcpPacketStats {
     s->pktRetr += pktRetr, s->pktOOO += pktOOO,
       s->pktLost += pktLost, s->pktKeepAlive += pktKeepAlive;
   }
+
+  inline u_int64_t get_retr() const { return pktRetr; };
 };
 
 #endif /* _TCP_PACKET_STATS_H_ */

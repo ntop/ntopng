@@ -23,6 +23,8 @@ custom_column_utils.available_custom_columns = {
    { "total_num_misbehaving_flows_as_server", i18n("total_incoming_misbehaving_flows"), "misbehaving_flows.as_server", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_client", i18n("total_outgoing_unreachable_flows"), "unreachable_flows.as_client", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_server", i18n("total_incoming_unreachable_flows"), "unreachable_flows.as_server", format_utils.formatValue, "center" },
+   { "total_num_retx_sent", i18n("total_retransmissions_sent"), function(host_stats) return host_stats["tcpPacketStats.sent"]["retransmissions"] end, format_utils.formatValue, "center" },
+   { "total_num_retx_rcvd", i18n("total_retransmissions_rcvd"), function(host_stats) return host_stats["tcpPacketStats.rcvd"]["retransmissions"] end, format_utils.formatValue, "center" },
    { "alerts", i18n("show_alerts.engaged_alerts"), "num_alerts", format_utils.formatValue, "center", {page = "alerts"} },
    { "total_alerts", i18n("alerts_dashboard.total_alerts"), "total_alerts", format_utils.formatValue, "center" },
    { "score", i18n("score"), "score", format_utils.formatValue, "center", nil, (not isScoreEnabled()) }
@@ -31,14 +33,29 @@ local available_custom_columns = custom_column_utils.available_custom_columns
 
 -- ###########################################
 
+-- @brief Getter for host_stats values
+--        Need this getter as there are certain host keys which contain dots, so
+--        lua is unhappy and doesn't allow us to use the dot-notation to access table keys.
+--        For example host_stats["tcpPacketStats.sent"]["retransmissions"] has "tcpPacketStats.sent" which
+--        contains a dot so we are unable to use the notation host_stats.tcpPacketStats.sent.retransmissions as
+--        done for other keys. To access these keys, we need to use the [] notation inside a `key` function.
+local function host_stats_getter(host_stats, key)
+   if type(key) == "string" then
+      return host_stats[key]
+   elseif type(key) == "function" then
+      return  key(host_stats)
+   end
+end
+
+-- ###########################################
+
 function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatted)
    for _, c in ipairs(available_custom_columns) do
       if c[1] == column then
-	 local k = c[3]
 	 local val = nil
 
 	 if formatted then
-	    val = host_stats[c[3]]
+	    val = host_stats_getter(host_stats, c[3])
 
 	    if val ~= nil and val > 0 then
 	       val = c[4](val)
@@ -50,7 +67,7 @@ function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatte
 	      val = hostinfo2detailshref(host_stats, c[6], val)
 	   end
 	 else
-	    val = host_stats[c[3]]
+	    val = host_stats_getter(host_stats, c[3])
 	 end
 
          return(val)
