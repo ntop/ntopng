@@ -110,7 +110,7 @@ if(protocol_name == nil) then protocol_name = protocol end
 local traffic_type_title
 if not isEmptyString(traffic_type) then
    page_params["traffic_type"] = traffic_type
-   
+
    if traffic_type == "one_way" then
       traffic_type_title = i18n("hosts_stats.traffic_type_one_way")
    elseif traffic_type == "bidirectional" then
@@ -172,7 +172,7 @@ if(pool ~= nil) then
 	 ternary(pool == host_pools_nedge.DEFAULT_POOL_ID, "", host_pools_nedge.poolIdToUsername(pool))
 	 title = i18n("nedge.edit_user")
       else
-	 pool_link = "/lua/if_stats.lua?page=pools&pool="..pool
+	 pool_link = "/lua/admin/manage_host_members.lua?pool="..pool
 	 title = i18n("host_pools.manage_pools")
       end
 
