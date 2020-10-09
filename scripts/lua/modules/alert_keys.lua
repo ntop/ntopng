@@ -75,6 +75,9 @@ local alert_keys = {
       alert_attack_mitigation_via_snmp     = {NO_PEN, 60},
       alert_iec104_error                   = {NO_PEN, 61},
       alert_flow_risk                      = {NO_PEN, 62},
+      alert_unexpected_dns_server          = {NO_PEN, 63},
+      alert_unexpected_smtp_server         = {NO_PEN, 64},
+      alert_unexpected_dhcp_server         = {NO_PEN, 65},
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
