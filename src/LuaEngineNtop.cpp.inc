@@ -4460,9 +4460,16 @@ static int _ntop_set_redis(bool do_setnx, lua_State* vm) {
     u_int v = (u_int)lua_tonumber(vm, 2);
     snprintf(buf, sizeof(buf), "%u", v);
     value = buf;
-  } else
-    return(CONST_LUA_PARAM_ERROR);
-
+  } else if(lua_type(vm, 2) == LUA_TBOOLEAN) {
+    bool v = (bool)lua_toboolean(vm, 2);
+    
+    snprintf(buf, sizeof(buf), "%s", v ? "true" : "false");
+    value = buf;
+  } else {
+    lua_pushboolean(vm, false);
+    return(CONST_LUA_OK);
+  }
+  
   /* Optional key expiration in SECONDS */
   if(lua_type(vm, 3) == LUA_TNUMBER)
     expire_secs = (u_int)lua_tonumber(vm, 3);
