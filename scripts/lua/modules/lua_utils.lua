@@ -2280,9 +2280,9 @@ function getHumanReadableInterfaceName(interface_name)
 
    if not isEmptyString(custom_name) then
       return(shortenCollapse(custom_name))
-   else
-      return getInterfaceName(interface_name)
    end
+
+   return interface_name
 end
 
 -- ##############################################
