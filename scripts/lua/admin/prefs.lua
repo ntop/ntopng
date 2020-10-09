@@ -23,6 +23,7 @@ local influxdb = require("influxdb")
 local plugins_utils = require("plugins_utils")
 local nindex_utils = nil
 local info = ntop.getInfo()
+local auth = require "auth"
 
 local email_peer_pattern = [[^(([A-Za-z0-9._%+-]|\s)+<)?[A-Za-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,6}>?$]]
 
@@ -51,7 +52,7 @@ local auth_toggles = {
   ["radius"] = "toggle_radius_auth",
 }
 
-if(haveAdminPrivileges()) then
+if auth.has_capability(auth.capabilities.preferences) then
   if not table.empty(_POST) then
     if _GET["tab"] == "auth" then
       local one_enabled = false

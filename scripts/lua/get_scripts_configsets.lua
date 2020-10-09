@@ -8,6 +8,14 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require("dkjson")
 local user_scripts = require("user_scripts")
+local rest_utils = require "rest_utils"
+local auth = require "auth"
+
+if not auth.has_capability(auth.capabilities.user_scripts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 local subdir = _GET["script_subdir"]
 
 sendHTTPContentTypeHeader('application/json')

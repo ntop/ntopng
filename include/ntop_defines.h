@@ -264,6 +264,7 @@
 #define CONST_STR_USER_LANGUAGE        "ntopng.user.%s.language"
 #define CONST_STR_USER_ALLOW_PCAP      "ntopng.user.%s.allow_pcap"
 #define CONST_STR_USER_EXPIRE          "ntopng.user.%s.expire"
+#define CONST_STR_USER_CAPABILITIES    "ntopng.user.%s.capabilities"
 #define CONST_ALLOWED_NETS             "allowed_nets"
 #define CONST_ALLOWED_IFNAME           "allowed_ifname"
 #define CONST_USER_LANGUAGE            "language"

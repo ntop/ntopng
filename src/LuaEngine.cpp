@@ -842,6 +842,24 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   }
   lua_setglobal(L, "_COOKIE"); /* Like in php */
 
+  /* Read user capabilities */
+  u_int64_t capabilities = 0;
+
+  if(!strncmp(group, CONST_USER_GROUP_ADMIN, strlen(CONST_USER_GROUP_ADMIN)))
+    /* Administrators have all the possible capabilitites */
+    capabilities = (u_int64_t)-1;
+  else {
+    char val[32];
+
+    /* Non-admins only have a subset of capabilities */
+    snprintf(key, sizeof(key), CONST_STR_USER_CAPABILITIES, user);
+
+    if((ntop->getRedis()->get(key, val, sizeof(val)) != -1)
+       && (val[0] != '\0')) {
+      capabilities = strtol(val, NULL, 10);
+    }
+  }
+
   /* Put the _SESSION params into the environment */
   lua_newtable(L);
 
@@ -849,6 +867,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   lua_push_str_table_entry(L, "user", (char*)user);
   lua_push_str_table_entry(L, "group", (char*)group);
   lua_push_bool_table_entry(L, "localuser", localuser);
+  lua_push_uint64_table_entry(L, "capabilities", capabilities);
 
   // now it's time to set the interface.
   setInterface(user, ifname, sizeof(ifname), &is_interface_allowed);
@@ -885,6 +904,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   getLuaVMUservalue(L, group) = (char*)(group ? (group) : "");
   getLuaVMUservalue(L, localuser) = localuser;
   getLuaVMUservalue(L, csrf) = (char*)session_csrf;
+  getLuaVMUservalue(L, capabilities) = capabilities;
 
   iface = ntop->getNetworkInterface(ifname); /* Can't be null */
   /* 'select' ther interface that has already been set into the _SESSION */

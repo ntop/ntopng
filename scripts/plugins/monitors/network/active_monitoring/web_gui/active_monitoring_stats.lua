@@ -19,6 +19,7 @@ local am_pool = active_monitoring_pools:create()
 local graph_utils = require("graph_utils")
 local alert_utils = require("alert_utils")
 local user_scripts = require("user_scripts")
+local auth = require "auth"
 
 local ts_creation = plugins_utils.timeseriesCreationEnabled()
 
@@ -73,7 +74,7 @@ if ((host ~= nil) and (page ~= "overview")) then
     title = title .. ": " .. host.label
 end
 
-if isAdministrator() then
+if auth.has_capability(auth.capabilities.active_monitoring) then
     if (_POST["action"] == "reset_config") then
         active_monitoring_utils.resetConfig()
     end
@@ -91,7 +92,7 @@ page_utils.print_navbar(title, url, {
         page_name = "historical",
         label = "<i class='fas fa-lg fa-chart-area'></i>"
     }, {
-        hidden = not isAdministrator() or
+       hidden = not auth.has_capability(auth.capabilities.active_monitoring) or
             not plugins_utils.hasAlerts(getSystemInterfaceId(), {
                 entity = alert_consts.alertEntity("am_host")
             }),
@@ -206,7 +207,7 @@ elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) 
                            url, selected_epoch,
                            {timeseries = timeseries, notes = notes})
 
-elseif ((page == "alerts") and isAdministrator()) then
+elseif ((page == "alerts") and auth.has_capability(auth.capabilities.active_monitoring)) then
     local old_ifname = ifname
     local ts_utils = require("ts_utils")
     local influxdb = ts_utils.getQueryDriver()

@@ -613,6 +613,9 @@ struct ntopngLuaContext {
   Flow *flow;
   bool localuser;
 
+  /* Capabilities bitmap */
+  u_int64_t capabilities;
+
   /* Packet capture */
   struct {
     bool captureInProgress;
@@ -690,6 +693,21 @@ typedef struct {
   char *allowedNets;
   char *language;
 } HTTPAuthenticator;
+
+/*
+  An enum to identify possible capabilities for non-admin web users.
+  Enum i-th will represent the i-th bit in a 64-bit bitmap of user capabilities
+ */
+typedef enum {
+  capability_pools = 0,
+  capability_notifications = 1,
+  capability_snmp = 2,
+  capability_active_monitoring = 3,
+  capability_preferences = 4,
+  capability_developer = 5,
+  capability_user_scripts = 6,
+  MAX_NUM_USER_CAPABILITIES = 7 /* Do NOT go above 63 */
+} UserCapabilities;
 
 typedef struct {
   double namelookup, connect, appconnect, pretransfer, redirect, start, total;

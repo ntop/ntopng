@@ -16,6 +16,7 @@ local pool_import_export = require "pool_import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
+local auth = require "auth"
 
 --
 -- Export Pool configuration
@@ -26,7 +27,7 @@ local import_export_rest_utils = require "import_export_rest_utils"
 
 local download = _GET["download"] 
 
-if not haveAdminPrivileges() then
+if not auth.has_capability(auth.capabilities.pools) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end

@@ -16,6 +16,7 @@ local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
 local menu_alert_notifications = require("menu_alert_notifications")
 local host_pools = require "host_pools"
+local auth = require "auth"
 
 local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
@@ -532,7 +533,7 @@ page_utils.add_menubar_section(
 -- Developer
 
 
-if not info.oem then
+if not info.oem and auth.has_capability(auth.capabilities.developer) then
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.dev,

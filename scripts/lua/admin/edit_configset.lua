@@ -17,6 +17,13 @@ local user_scripts = require "user_scripts"
 local json = require "dkjson"
 local discover = require "discover_utils"
 local mud_utils = require "mud_utils"
+local rest_utils = require "rest_utils"
+local auth = require "auth"
+
+if not auth.has_capability(auth.capabilities.user_scripts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
 
 sendHTTPContentTypeHeader('text/html')
 

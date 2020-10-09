@@ -10,6 +10,17 @@ require "lua_utils"
 local json = require("dkjson")
 local user_scripts = require("user_scripts")
 local http_lint = require("http_lint")
+local rest_utils = require "rest_utils"
+local auth = require "auth"
+
+-- ################################################
+
+if not auth.has_capability(auth.capabilities.user_scripts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
+-- ################################################
 
 local action = _POST["action"]
 
@@ -17,11 +28,6 @@ sendHTTPContentTypeHeader('application/json')
 
 if(action == nil) then
   traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'action' parameter. Bad CSRF?")
-  return
-end
-
-if(not isAdministrator()) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Admin privileges required")
   return
 end
 

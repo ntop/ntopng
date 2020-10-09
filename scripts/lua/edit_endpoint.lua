@@ -8,14 +8,21 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local json = require("dkjson")
 local notification_configs = require("notification_configs")
+local rest_utils = require "rest_utils"
+local auth = require "auth"
+
+-- ################################################
+
+if not auth.has_capability(auth.capabilities.notifications) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
+-- ################################################
 
 local action = _POST["action"]
 
 sendHTTPContentTypeHeader('application/json')
-
-if (not haveAdminPrivileges(true)) then
-    return
-end
 
 local endpoint_conf_name = _POST["endpoint_conf_name"]
 local response = {}

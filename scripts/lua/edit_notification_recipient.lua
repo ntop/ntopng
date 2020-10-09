@@ -11,6 +11,17 @@ local json = require("dkjson")
 local plugins_utils = require "plugins_utils"
 local recipients_rest_utils = require "recipients_rest_utils"
 local recipients = require "recipients"
+local rest_utils = require "rest_utils"
+local auth = require "auth"
+
+-- ################################################
+
+if not auth.has_capability(auth.capabilities.notifications) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
+-- ################################################
 
 local action = _POST["action"]
 

@@ -9,17 +9,23 @@ require "lua_utils"
 local json = require("dkjson")
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
+local rest_utils = require "rest_utils"
+local auth = require "auth"
+
+-- ################################################
+
+if not auth.has_capability(auth.capabilities.user_scripts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
+-- ################################################
 
 sendHTTPContentTypeHeader('application/json')
 
 local subdir = _POST["script_subdir"]
 local confset_id = tonumber(_POST["confset_id"] or user_scripts.DEFAULT_CONFIGSET_ID)
 local script_key = _POST["script_key"]
-
-if(not isAdministrator()) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Admin privileges required")
-  return
-end
 
 -- ################################################
 

@@ -10,6 +10,7 @@ local rest_utils = require "rest_utils"
 local pools = require "pools"
 local pools_lua_utils = require "pools_lua_utils"
 local tracker = require("tracker")
+local auth = require "auth"
 
 -- ##############################################
 
@@ -24,7 +25,7 @@ function pools_rest_utils.add_pool(pools)
    local confset_id = _POST["confset_id"]
    local recipients = _POST["recipients"]
 
-   if not isAdministrator() then
+   if not auth.has_capability(auth.capabilities.pools) then
       rest_utils.answer(rest_utils.consts.err.not_granted)
       return
    end
@@ -75,7 +76,7 @@ function pools_rest_utils.edit_pool(pools)
    local confset_id = _POST["confset_id"]
    local recipients = _POST["recipients"]
 
-   if not isAdministrator() then
+   if not auth.has_capability(auth.capabilities.pools) then
       rest_utils.answer(rest_utils.consts.err.not_granted)
       return
    end
@@ -120,7 +121,7 @@ end
 function pools_rest_utils.delete_pool(pools)
    local pool_id = _POST["pool"]
 
-   if not isAdministrator() then
+   if not auth.has_capability(auth.capabilities.pools) then
       rest_utils.answer(rest_utils.consts.err.not_granted)
       return
    end

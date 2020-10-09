@@ -15,6 +15,7 @@ local os_utils = require "os_utils"
 local host_pools_nedge = require "host_pools_nedge"
 local rest_utils = require("rest_utils")
 local tracker = require("tracker")
+local auth = require "auth"
 
 --
 -- Import host pools configuration
@@ -24,7 +25,7 @@ local tracker = require("tracker")
 
 local ifid = _GET["ifid"]
 
-if not haveAdminPrivileges() then
+if not auth.has_capability(auth.capabilities.pools) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
