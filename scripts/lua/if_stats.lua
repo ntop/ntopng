@@ -685,6 +685,29 @@ if((page == "overview") or (page == nil)) then
    end
 
    if interface.isSyslogInterface() then
+      -- Syslog Stats
+      print("<tr>")
+      print("<th colspan=7 nowrap>"..i18n("if_stats_overview.syslog_statistics").."</th>")
+      print("</tr>")
+
+      print("<tr>")
+      print("<th nowrap>"..i18n("if_stats_overview.collected_logs").."</th>")
+      print("<td><span id=syslog_tot_events>"..formatValue(ifstats.syslog.tot_events).."</span></td>")
+      print("<th>"..i18n("if_stats_overview.dispatched_logs").."</th>")
+      print("<td><span id=syslog_dispatched>"..formatValue(ifstats.syslog.dispatched).."</span></td>")
+      print("<th>"..i18n("if_stats_overview.unhandled_logs").."</th>")
+      print("<td><span id=syslog_unhandled>"..formatValue(ifstats.syslog.unhandled).."</span></td>")
+      print("</tr>")
+
+      print("<tr>")
+      print("<th nowrap>"..i18n("if_stats_overview.malformed_logs").."</th>")
+      print("<td><span id=syslog_malformed>"..formatValue(ifstats.syslog.malformed).."</span></td>")
+      print("<th>"..i18n("if_stats_overview.host_correlations").."</th>")
+      print("<td><span id=syslog_host_correlations>"..formatValue(ifstats.syslog.host_correlations).."</span></td>")
+      print("<th>"..i18n("if_stats_overview.alert_events").."</th>")
+      print("<td><span id=syslog_alerts>"..formatValue(ifstats.syslog.alerts).."</span></td>")
+      print("</tr>")
+
       -- Additional stats (e.g. Suricata)
       local external_json_stats = ntop.getCache("ntopng.prefs.ifid_"..tostring(ifid)..".external_stats")
       if not isEmptyString(external_json_stats) then
@@ -2255,6 +2278,12 @@ print [[
           $('#exported_flows_drops_pct').removeClass().html("[0%]");
         }
 ]]
+
+if interface.isSyslogInterface() then
+  print [[
+        $('#syslog_tot_events').html(rsp.syslog.tot_events);
+]]
+end
 
 print [[
 	   }

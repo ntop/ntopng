@@ -208,6 +208,17 @@ function dumpInterfaceStats(ifid)
       res["tcpPacketStats"]["out_of_order"]    = ifstats.tcpPacketStats.out_of_order
       res["tcpPacketStats"]["lost"]            = ifstats.tcpPacketStats.lost
 
+      if interface.isSyslogInterface() then
+        res["syslog"] = {}
+        res["syslog"]["tot_events"] = ifstats.syslog.tot_events
+        res["syslog"]["malformed"] = ifstats.syslog.malformed
+        res["syslog"]["dispatched"] = ifstats.syslog.dispatched
+        res["syslog"]["unhandled"] = ifstats.syslog.unhandled
+        res["syslog"]["alerts"] = ifstats.syslog.alerts
+        res["syslog"]["host_correlations"] = ifstats.syslog.host_correlations
+        res["syslog"]["flows"] = ifstats.syslog.flows
+      end
+
       if(ifstats["profiles"] ~= nil) then
          res["profiles"] = ifstats["profiles"]
       end
