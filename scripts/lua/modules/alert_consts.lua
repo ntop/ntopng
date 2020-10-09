@@ -355,7 +355,7 @@ local function loadAlertsDefs()
 	       goto next_script
             end
 
-            if not alert_consts.loadDefinition(def_script, mod_fname, defs_dir) then
+            if not loadDefinition(def_script, mod_fname, defs_dir) then
 	       -- Retry reload
 	       package.loaded[mod_fname] = nil
 	    end
@@ -375,28 +375,26 @@ end
 
 -- ##############################################
 
-function alert_consts.loadDefinition(def_script, mod_fname, script_path)
+function loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"alert_key", "i18n_title", "icon"}
 
    -- Check the required fields
    for _, k in pairs(required_fields) do
       if(def_script[k] == nil) then
-         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s", k, script_path))
+         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
          return(false)
       end
    end
 
    -- Sanity check: make sure this is a valid alert key
    local parsed_alert_key, status = alert_keys.parse_alert_key(def_script.alert_key)
-
    if not parsed_alert_key then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: invalid alert key specified: %s",
-							   script_path, status))
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid alert key specified %s in %s from %s", status, mod_fname, script_path))
       return(false)
    end
 
    if(alerts_by_id[parsed_alert_key] ~= nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: alert key %d redefined, skipping", script_path, parsed_alert_key))
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", parsed_alert_key, mod_fname, script_path))
       return(false)
    end
 

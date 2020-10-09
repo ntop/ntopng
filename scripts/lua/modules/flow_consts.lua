@@ -58,7 +58,7 @@ local function loadStatusDefs()
 	       goto next_script
 	    end
 
-	    if not flow_consts.loadDefinition(def_script, mod_fname, defs_dir) then
+	    if not loadDefinition(def_script, mod_fname, defs_dir) then
 	       -- Retry reload
 	       package.loaded[mod_fname] = nil
 	    end
@@ -79,7 +79,7 @@ end
 
 -- ################################################################################
 
-function flow_consts.loadDefinition(def_script, mod_fname, script_path)
+function loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"status_key", "alert_severity", "alert_type", "i18n_title"}
 
    -- print("Loading "..script_path.."\n")
@@ -87,7 +87,7 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
    -- Check the required fields
    for _, k in pairs(required_fields) do
       if(def_script[k] == nil) then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s", k, script_path))
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
 	 return(false)
       end
    end
@@ -95,7 +95,7 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
    local def_id = def_script.status_key
 
    if(def_id == nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: missing status ID", script_path))
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing status ID in %s from %s", mod_fname, script_path))
       return(false)
    end
 
@@ -111,12 +111,12 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
    end
 
    if not valid then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: invalid status ID", script_path))
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid status ID in %s from %s", mod_fname, script_path))
       return(false)
    end
 
    if(status_by_id[def_id] ~= nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s: status ID %d redefined, skipping", script_path, def_id))
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Status ID %d redefined, skipping in %s from %s", def_id,  mod_fname, script_path))
       return(false)
    end
 
