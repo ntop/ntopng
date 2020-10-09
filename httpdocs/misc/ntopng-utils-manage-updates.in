@@ -286,6 +286,9 @@ function check_updates() {
 	if [ ! -z "${NTOPNG_VERSION}" ]; then
 		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_NEW_VERSION_AVAILABLE_KEY} ${NTOPNG_VERSION} EX 86400 >/dev/null 2>&1 
 
+		# Reset failure reason if any
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1
+
 		# Check if automatic updates are enabled
 		AUTO_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_AUTO_UPDATES_KEY} 2>/dev/null | grep 1)
 		if [ "${AUTO_UPDATES}" == "1" ]; then
