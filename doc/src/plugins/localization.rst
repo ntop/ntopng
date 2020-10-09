@@ -28,6 +28,8 @@ the `entity_thresholds.syn_victim_title` and `entity_thresholds.syn_victim_descr
 are localization keys. ntopng converts that keys to localized strings based on the
 current user language.
 
+All plugin files except :code:`manifest.lua`, which is only meant to be used for background operations, support localization.
+
 Plugins and Localization
 ------------------------
 
