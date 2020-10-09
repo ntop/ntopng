@@ -166,6 +166,10 @@ if auth.has_capability(auth.capabilities.preferences) then
     if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
  end
 
+ if _GET['show_advanced_prefs'] ~= nil then
+  show_advanced_prefs = (_GET['show_advanced_prefs'] == '1')
+ end
+
    page_utils.print_page_title(i18n("prefs.runtime_prefs"))
 
    if(false) then
@@ -1244,7 +1248,7 @@ function printStatsTimeseries()
   end
 
   if info["version.enterprise_edition"] then
-    prefsInformativeField("SNMP", i18n("prefs.snmp_timeseries_config_link", {url="?tab=snmp"}))
+    prefsInformativeField("SNMP", i18n("prefs.snmp_timeseries_config_link", {url="?tab=snmp&show_advanced_prefs=1"}))
   end
 
   prefsToggleButton(subpage_active, {
