@@ -850,7 +850,7 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=2>")
 
       local live_traffic_utils = require("live_traffic_utils")
-      live_traffic_utils.printLiveTrafficForm(ifId)
+      live_traffic_utils.printLiveTrafficForm(interface.getId())
 
       print("</td><td colspan=3></td></tr>\n")
    end
@@ -1205,7 +1205,7 @@ function update_icmp_table(ip_version) {
     url: ']]
   print(ntop.getHttpPrefix())
   print [[/lua/get_icmp_data.lua',
-    data: { ifid: "]] print(ifId.."")  print [[", version: ip_version },
+    data: { ifid: "]] print(interface.getId().."")  print [[", version: ip_version },
     success: function(content) {
       if(content) {
          $(icmp_table_body_id).html(content);
@@ -1241,7 +1241,7 @@ function update_arp_table() {
     url: ']]
   print(ntop.getHttpPrefix())
   print [[/lua/get_arp_data.lua',
-    data: { ifid: "]] print(ifId.."")  print [[" },
+    data: { ifid: "]] print(interface.getId().."")  print [[" },
     success: function(content) {
       if(content) {
          $('#iface_details_arp_tbody').html(content);
@@ -1416,7 +1416,7 @@ elseif(page == "config") then
    -- Flow dump check
    local interface_flow_dump = true
    if prefs.is_dump_flows_enabled then
-      interface_flow_dump = (ntop.getPref("ntopng.prefs.ifid_"..ifId..".is_flow_dump_disabled") ~= "1")
+      interface_flow_dump = (ntop.getPref("ntopng.prefs.ifid_"..interface.getId()..".is_flow_dump_disabled") ~= "1")
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
          local new_value = (_POST["interface_flow_dump"] == "1")
@@ -1424,7 +1424,7 @@ elseif(page == "config") then
          if new_value ~= interface_flow_dump then
             -- Value changed
             interface_flow_dump = new_value
-            ntop.setPref("ntopng.prefs.ifid_"..ifId..".is_flow_dump_disabled", ternary(interface_flow_dump, "0", "1"))
+            ntop.setPref("ntopng.prefs.ifid_"..interface.getId()..".is_flow_dump_disabled", ternary(interface_flow_dump, "0", "1"))
 
             messages[#messages + 1] = {
              type = "warning",
@@ -1509,7 +1509,7 @@ elseif(page == "config") then
    end
 
    local serialize_by_mac
-   local serialize_by_mac_key = string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", ifId)
+   local serialize_by_mac_key = string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs", interface.getId())
 
    if(_POST["lbd_hosts_as_macs"] ~= nil) then
       serialize_by_mac = _POST["lbd_hosts_as_macs"]
@@ -1560,12 +1560,12 @@ elseif(page == "config") then
    if _SERVER["REQUEST_METHOD"] == "POST" then
       if _POST["interface_top_talkers_creation"] ~= "1" then
 	 interface_top_talkers_creation = false
-	 top_talkers_utils.disableTop(ifId)
+	 top_talkers_utils.disableTop(interface.getId())
       else
-	 top_talkers_utils.enableTop(ifId)
+	 top_talkers_utils.enableTop(interface.getId())
       end
    else
-      if not top_talkers_utils.areTopEnabled(ifId) then
+      if not top_talkers_utils.areTopEnabled(interface.getId()) then
 	 interface_top_talkers_creation = false
       end
    end
@@ -1602,7 +1602,7 @@ elseif(page == "config") then
    -- Mirrored Traffic
    if not ntop.isnEdge() and interface.isPacketInterface() then
       local is_mirrored_traffic = false
-      local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", ifId)
+      local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", interface.getId())
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["is_mirrored_traffic"] == "1" then
@@ -1633,7 +1633,7 @@ elseif(page == "config") then
    -- Flows-Only Interface
    if not ntop.isnEdge() and not interface.isView() and not interface.isViewed() then
       local flows_only_interface = false
-      local flows_only_interface_pref = string.format("ntopng.prefs.ifid_%d.flows_only_interface", ifId)
+      local flows_only_interface_pref = string.format("ntopng.prefs.ifid_%d.flows_only_interface", interface.getId())
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["flows_only_interface"] == "1" then
@@ -1664,7 +1664,7 @@ elseif(page == "config") then
    -- Discard Probing Traffic
    if not ntop.isnEdge() and not interface.isPacketInterface() then
       local discard_probing_traffic = false
-      local discard_probing_traffic_pref = string.format("ntopng.prefs.ifid_%d.discard_probing_traffic", ifId)
+      local discard_probing_traffic_pref = string.format("ntopng.prefs.ifid_%d.discard_probing_traffic", interface.getId())
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["discard_probing_traffic"] == "1" then
@@ -1703,9 +1703,9 @@ elseif(page == "config") then
 	    interface_network_discovery = false
 	 end
 
-	 ntop.setPref(discover.getInterfaceNetworkDiscoveryEnabledKey(ifId), tostring(interface_network_discovery))
+	 ntop.setPref(discover.getInterfaceNetworkDiscoveryEnabledKey(interface.getId()), tostring(interface_network_discovery))
       else
-	 interface_network_discovery = ntop.getPref(discover.getInterfaceNetworkDiscoveryEnabledKey(ifId))
+	 interface_network_discovery = ntop.getPref(discover.getInterfaceNetworkDiscoveryEnabledKey(interface.getId()))
 
 	 if interface_network_discovery == "false" then
 	    interface_network_discovery = false
@@ -1853,7 +1853,7 @@ elseif(page == "config") then
 
       -- Show dynamic traffic in the master interface
       local show_dyn_iface_traffic = false
-      local show_dyn_iface_traffic_pref = string.format("ntopng.prefs.ifid_%d.show_dynamic_interface_traffic", ifId)
+      local show_dyn_iface_traffic_pref = string.format("ntopng.prefs.ifid_%d.show_dynamic_interface_traffic", interface.getId())
 
       if _SERVER["REQUEST_METHOD"] == "POST" then
 	 if _POST["show_dyn_iface_traffic"] == "1" then

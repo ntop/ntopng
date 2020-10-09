@@ -138,8 +138,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       processed = true;
     }
 
-    if (processed && !showDynamicInterfaceTraffic()) {
-      return false;
+    if(processed && !showDynamicInterfaceTraffic()) {
+      return true;
     }
   }
 

@@ -2281,16 +2281,7 @@ function getHumanReadableInterfaceName(interface_name)
    if not isEmptyString(custom_name) then
       return(shortenCollapse(custom_name))
    else
-      interface.select(interface_name)
-      local _ifstats = interface.getStats()
-
-      local nm = _ifstats.name
-      if(string.contains(nm, "{")) then -- Windows
-	 nm = _ifstats.description
-      end
-
-      -- print(interface_name.."=".._ifstats.name)
-      return(shortenCollapse(nm or ''))
+      return getInterfaceName(interface_name)
    end
 end
 
