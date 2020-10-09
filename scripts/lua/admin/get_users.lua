@@ -110,11 +110,10 @@ else
 end
 
 	 print ("  \"column_group\"     : \"" .. group_label .. "\", ")
-	 print ("  \"column_edit\"      : \"<a href='#password_dialog' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_key.."\\\"));'><span class='badge badge-info'>" .. i18n("manage_users.manage") .. "</span></a> ")
+	 print ("  \"column_edit\"      : \"<a href='#password_dialog' class='btn btn-sm btn-info' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_key.."\\\"));'><i class='fas fa-edit'></i></a> ")
 
-  if(key ~= "admin") then
-	    print ("<a href='#delete_user_dialog' role='button' class='add-on' data-toggle='modal' id='delete_btn_" .. key .. "'><span class='badge badge-danger'>" .. i18n("delete") .. "</span></a><script> $('#delete_btn_" .. js_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
-	 end
+   print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (key == 'admin' and 'disabled' or '') .."' data-toggle='modal' id='delete_btn_" .. key .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. js_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
+
 	 print ("\"}")
 	 num = num + 1
       end

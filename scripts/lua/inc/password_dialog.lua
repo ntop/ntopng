@@ -15,14 +15,18 @@ print [[
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="password_dialog_label">]] print(i18n("manage_users.manage_user_x", {user=[[<span id="password_dialog_title"></span>]]})) print[[ </h3>
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fas fa-times"></i></button>
+        <h5 class="modal-title" id="password_dialog_label">]] print(i18n("manage_users.manage_user_x", {user=[[<span class="password_dialog_title"></span>]]})) print[[ </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
 
 <div class="modal-body">
 
   <div class="tabbable"> <!-- Only required for left/right tabs -->
-  <ul class="nav nav-tabs" role="tablist" id="edit-user-container">
+  <div class='card'>
+  <div class='card-header'>
+  <ul class="nav nav-tabs card-header-tabs" role="tablist" id="edit-user-container">
     <li class="nav-item active"><a class="nav-link active" href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
 ]]
 
@@ -31,7 +35,8 @@ if(is_admin) then
 end
    print[[
   </ul>
-  <div class="tab-content">
+  </div>
+  <div class="card-body tab-content">
   <div class="tab-pane active" id="change-password-dialog">
 
   <div id="password_alert_placeholder"></div>
@@ -157,7 +162,7 @@ print [[
     </div>
 
     <script>
-    function toggleUserSettings() { 
+    function toggleUserSettings() {
       if ($("#host_role_select").val() == "unprivileged")
         $('#unprivileged_manage_input').show();
       else
@@ -290,7 +295,7 @@ print [[
     });
    }
 
-    return false;   
+    return false;
    });
 </script>
 
@@ -303,7 +308,7 @@ print [[
 function reset_pwd_dialog(user) {
       $.getJSON(']] print(ntop.getHttpPrefix()) print[[/lua/admin/get_user_info.lua?username='+user, function(data) {
 
-      $('#password_dialog_title').text(data.username);
+      $('.password_dialog_title').text(data.username);
       $('#password_dialog_username').val(data.username);
       $('#pref_dialog_username').val(data.username);
       $('#old_password_input').val('');
@@ -356,6 +361,8 @@ $('#password_reset_submit').click(function() {
 */
 </script>
 
+</div>
+</div>
 </div>
 </div>
 </div>

@@ -11,8 +11,10 @@ print [[
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-	<h3 id="add_user_dialog_label">]]print(add_user_msg)print[[</h3>
-	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+	<h5 class='modal-title' id="add_user_dialog_label">]]print(add_user_msg)print[[</h5>
+  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+    <span aria-hidden="true">&times;</span>
+  </button>
       </div>
 
 <div class="modal-body">
