@@ -37,8 +37,6 @@ end
 
 sendHTTPContentTypeHeader('text/html')
 
-
-local show_advanced_prefs = false
 local alerts_disabled = false
 local product = ntop.getInfo().product
 local message_info = ""
@@ -157,6 +155,20 @@ if auth.has_capability(auth.capabilities.preferences) then
       print[[</div>]]
    end
 
+  local selected_view = ternary(_GET['view'] == nil, 'simple', _GET['view'])
+  local show_advanced_prefs = (selected_view == 'expert')
+
+  if (_GET['view'] ~= nil) then
+    ntop.setPref(show_advanced_prefs_key, tostring(show_advanced_prefs))
+  else
+
+    local saved_value = ntop.getPref(show_advanced_prefs_key)
+    if (not isEmptyString(saved_value)) then
+      show_advanced_prefs = toboolean(saved_value)
+    end
+
+  end
+
    page_utils.print_page_title(i18n("prefs.runtime_prefs"))
 
    if(false) then
@@ -167,15 +179,6 @@ if auth.has_capability(auth.capabilities.preferences) then
       io.write("-------- POST ---------------\n")
       tprint(_POST)
       io.write("-----------------------\n")
-   end
-
-   if toboolean(_POST["show_advanced_prefs"]) ~= nil then
-      ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
-      show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
-      notifyNtopng(show_advanced_prefs_key, _POST["show_advanced_prefs"])
-   else
-      show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
-      if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
    end
 
    if hasAlertsDisabled() then
@@ -1244,7 +1247,7 @@ function printStatsTimeseries()
   end
 
   if info["version.enterprise_edition"] then
-    prefsInformativeField("SNMP", i18n("prefs.snmp_timeseries_config_link", {url="?tab=snmp"}))
+    prefsInformativeField("SNMP", i18n("prefs.snmp_timeseries_config_link", {url="?view=expert&tab=snmp"}))
   end
 
   prefsToggleButton(subpage_active, {
@@ -1447,47 +1450,29 @@ print(
 print[[
            <div class="list-group">]]
 
-printMenuSubpages(tab)
+printMenuSubpages(tab, selected_view)
 
-print[[
+local simple_view_class = (show_advanced_prefs and 'btn-secondary' or 'btn-primary active')
+local expert_view_class = (show_advanced_prefs and 'btn-primary active' or 'btn-secondary')
+
+print([[
            </div>
-           <br>
-           <div align="center">
+           <div class="text-center">
 
             <div id="prefs_toggle" class="btn-group">
-              <form method="post">
-<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
-<input type=hidden name="show_advanced_prefs" value="]]if show_advanced_prefs then print("false") else print("true") end print[["/>
-
-
-<br>
-<div class="btn-group btn-toggle">
-]]
-
-local cls_on      = "btn btn-sm"
-local onclick_on  = ""
-local cls_off     = cls_on
-local onclick_off = onclick_on
-if show_advanced_prefs then
-   cls_on  = cls_on..' btn-primary active'
-   cls_off = cls_off..' btn-secondary'
-   onclick_off = "this.form.submit();"
-else
-   cls_on = cls_on..' btn-secondary'
-   cls_off = cls_off..' btn-primary active'
-   onclick_on = "this.form.submit();"
-end
-print('<button type="button" class="'..cls_on..'" onclick="'..onclick_on..'">'..i18n("prefs.expert_view")..'</button>')
-print('<button type="button" class="'..cls_off..'" onclick="'..onclick_off..'">'..i18n("prefs.simple_view")..'</button>')
-
-print[[
-</div>
+              <form method='get'>
+                <input hidden name='tab' value=']]..tab..[['/>
+                <div class="btn-group btn-toggle mt-2">
+                  <button class='btn btn-sm ]].. expert_view_class ..[[' name='view' value='expert'>]].. i18n("prefs.expert_view") ..[[</button>
+                  <button class='btn btn-sm ]].. simple_view_class ..[[' name='view' value='simple'>]].. i18n("prefs.simple_view") ..[[</button>
+                </div>
               </form>
 
             </div>
 
            </div>
-
+]])
+print[[
         </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
 if(tab == "report") then
