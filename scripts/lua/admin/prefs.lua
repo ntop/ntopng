@@ -155,19 +155,16 @@ if auth.has_capability(auth.capabilities.preferences) then
       print[[</div>]]
    end
 
-  local selected_view = ternary(_GET['view'] == nil, 'simple', _GET['view'])
-  local show_advanced_prefs = (selected_view == 'expert')
+  local show_advanced_prefs = false
 
-  if (_GET['view'] ~= nil) then
-    ntop.setPref(show_advanced_prefs_key, tostring(show_advanced_prefs))
-  else
-
-    local saved_value = ntop.getPref(show_advanced_prefs_key)
-    if (not isEmptyString(saved_value)) then
-      show_advanced_prefs = toboolean(saved_value)
-    end
-
-  end
+  if toboolean(_POST["show_advanced_prefs"]) ~= nil then
+    ntop.setPref(show_advanced_prefs_key, _POST["show_advanced_prefs"])
+    show_advanced_prefs = toboolean(_POST["show_advanced_prefs"])
+    notifyNtopng(show_advanced_prefs_key, _POST["show_advanced_prefs"])
+ else
+    show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
+    if isEmptyString(show_advanced_prefs) then show_advanced_prefs = false end
+ end
 
    page_utils.print_page_title(i18n("prefs.runtime_prefs"))
 
@@ -1247,7 +1244,7 @@ function printStatsTimeseries()
   end
 
   if info["version.enterprise_edition"] then
-    prefsInformativeField("SNMP", i18n("prefs.snmp_timeseries_config_link", {url="?view=expert&tab=snmp"}))
+    prefsInformativeField("SNMP", i18n("prefs.snmp_timeseries_config_link", {url="?tab=snmp"}))
   end
 
   prefsToggleButton(subpage_active, {
@@ -1450,7 +1447,7 @@ print(
 print[[
            <div class="list-group">]]
 
-printMenuSubpages(tab, selected_view)
+printMenuSubpages(tab)
 
 local simple_view_class = (show_advanced_prefs and 'btn-secondary' or 'btn-primary active')
 local expert_view_class = (show_advanced_prefs and 'btn-primary active' or 'btn-secondary')
@@ -1460,11 +1457,11 @@ print([[
            <div class="text-center">
 
             <div id="prefs_toggle" class="btn-group">
-              <form method='get'>
-                <input hidden name='tab' value=']]..tab..[['/>
+              <form method='post'>
+                <input name="csrf" type="hidden" value="]].. ntop.getRandomCSRFValue() ..[[" />
                 <div class="btn-group btn-toggle mt-2">
-                  <button class='btn btn-sm ]].. expert_view_class ..[[' name='view' value='expert'>]].. i18n("prefs.expert_view") ..[[</button>
-                  <button class='btn btn-sm ]].. simple_view_class ..[[' name='view' value='simple'>]].. i18n("prefs.simple_view") ..[[</button>
+                  <button class='btn btn-sm ]].. expert_view_class ..[[' name='show_advanced_prefs' value='true'>]].. i18n("prefs.expert_view") ..[[</button>
+                  <button class='btn btn-sm ]].. simple_view_class ..[[' name='show_advanced_prefs' value='false'>]].. i18n("prefs.simple_view") ..[[</button>
                 </div>
               </form>
 

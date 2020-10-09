@@ -1364,7 +1364,6 @@ local known_parameters = {
    ["iffilter"]                = validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    = validateMode,                  -- Remote or Local users
    ["dashboard_mode"]          = validateDashboardMode,         -- Dashboard mode
-   ["view"]                    = validateViewPreferences,       -- Preferences view mode
    ["device_responsiveness"]   = validateDeviceResponsiveness,  -- Device responsiveness
    ["counters_since"]          = validateCounterSince,          -- Select actual or absolute counters
    ["err_counters_filter"]     = validateErrorsFilter,          -- Filter by errrrs, discards, both

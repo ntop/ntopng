@@ -100,13 +100,11 @@ function prefsGetActiveSubpage(show_advanced_prefs, tab)
   return subpage_active, tab
 end
 
-function printMenuSubpages(tab, selected_view)
-
-  selected_view = (selected_view or 'simple')
+function printMenuSubpages(tab)
 
   for _, subpage in ipairs(menu_subpages) do
     if not subpage.hidden then
-      local url = ternary(subpage.disabled, "#", ntop.getHttpPrefix() .. [[/lua/admin/prefs.lua?view=]].. selected_view ..[[&tab=]] .. (subpage.id))
+      local url = ternary(subpage.disabled, "#", ntop.getHttpPrefix() .. [[/lua/admin/prefs.lua?tab=]] .. (subpage.id))
       print[[<a href="]] print(url) print[[" class="list-group-item list-group-item-action]]
 
       if(tab == subpage.id) then
