@@ -27,6 +27,8 @@
 class SyslogStats {
  private:
   u_int32_t num_total_events;
+  u_int32_t num_malformed;
+  u_int32_t num_dispatched;
   u_int32_t num_unhandled;
   u_int32_t num_alerts;
   u_int32_t num_host_correlations;
@@ -36,8 +38,9 @@ class SyslogStats {
   SyslogStats();
 
   void resetStats();
-  void incStats(u_int32_t num_total_events, u_int32_t num_unhandled,
-    u_int32_t num_alerts, u_int32_t num_host_correlations, u_int32_t num_collected_flows);
+  void incStats(u_int32_t num_total_events, u_int32_t num_malformed,
+    u_int32_t num_dispatched, u_int32_t num_unhandled, u_int32_t num_alerts, 
+    u_int32_t num_host_correlations, u_int32_t num_collected_flows);
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();

@@ -174,8 +174,15 @@ end
 
 -- The function below is called for each received alert
 function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
+   local handled = false
+   local num_unhandled = 0
+   local num_alerts = 0
+   local num_collected_flows = 0
+
    local event = json.decode(message)
    if event == nil or type(event) ~= "table" then
+      num_unhandled = num_unhandled + 1
+      interface.incSyslogStats(1, 0, num_unhandled, num_alerts, 0, num_collected_flows)
       return
    end
 
@@ -193,30 +200,38 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
          parseFlowMetadata(event.flow, flow)
          if event.alert ~= nil then
             parseAlertMetadata(event.alert, flow)
+            num_alerts = num_alerts + 1
          else
+            num_unhandled = num_unhandled + 1
             flow = nil
          end
       else
+         num_unhandled = num_unhandled + 1
          flow = nil
       end
  
    elseif event.event_type == "netflow" and event.netflow ~= nil then
       parseNetflowMetadata(event.netflow, flow)
+      num_collected_flows = num_collected_flows + 1
 
    elseif event.event_type == "http" and event.http ~= nil then
       parseHTTPMetadata(event.http, flow)
+      num_collected_flows = num_collected_flows + 1
 
    elseif event.event_type == "fileinfo" then
       if event.app_proto == "http" and event.http ~= nil then
          parseHTTPMetadata(event.http, flow)
       end
       parseFileInfoMetadata(event.fileinfo, flow)
+      num_collected_flows = num_collected_flows + 1
 
    elseif event.event_type == "dns" and event.dns ~= nil then
       parseDNSMetadata(event.dns, flow) 
+      num_collected_flows = num_collected_flows + 1
 
    elseif event.event_type == "tls" and event.tls ~= nil then
       parseTLSMetadata(event.tls, flow) 
+      num_collected_flows = num_collected_flows + 1
 
    elseif event.event_type == "stats" and event.stats ~= nil then
       parseStats(event.stats)
@@ -224,6 +239,7 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
 
    else
       -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Unsupported Suricata event '"..event.event_type.."'")
+      num_unhandled = num_unhandled + 1
       flow = nil
    end
 
@@ -239,6 +255,8 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
       -- Processing flow or alert
       interface.processFlow(flow)
    end
+
+   interface.incSyslogStats(1, 0, num_unhandled, num_alerts, 0, num_collected_flows)
 end 
 
 -- #################################################################

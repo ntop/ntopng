@@ -354,10 +354,10 @@ class NetworkInterface : public AlertableEntity {
   virtual bool isSyslogInterface() const {
     return(getIfType() == interface_type_SYSLOG);
   }
-  void incSyslogStats(u_int32_t num_total_events,
-                      u_int32_t num_unhandled, u_int32_t num_alerts,
+  void incSyslogStats(u_int32_t num_total_events, u_int32_t num_malformed,
+                      u_int32_t num_dispatched, u_int32_t num_unhandled, u_int32_t num_alerts,
                       u_int32_t num_host_correlations, u_int32_t num_collected_flows) {
-    syslogStats.incStats(num_total_events, num_unhandled,
+    syslogStats.incStats(num_total_events, num_malformed, num_dispatched, num_unhandled,
       num_alerts, num_host_correlations, num_collected_flows);
   };
 

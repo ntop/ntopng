@@ -31,6 +31,8 @@ SyslogStats::SyslogStats() {
 
 void SyslogStats::resetStats() {
   num_total_events = 0;
+  num_malformed = 0;
+  num_dispatched = 0;
   num_unhandled = 0;
   num_alerts = 0;
   num_host_correlations = 0;
@@ -39,9 +41,12 @@ void SyslogStats::resetStats() {
 
 /* *************************************** */
 
-void SyslogStats::incStats(u_int32_t _num_total_events, u_int32_t _num_unhandled,
-    u_int32_t _num_alerts, u_int32_t _num_host_correlations, u_int32_t _num_collected_flows) {
+void SyslogStats::incStats(u_int32_t _num_total_events, u_int32_t _num_malformed,
+    u_int32_t _num_dispatched, u_int32_t _num_unhandled, u_int32_t _num_alerts, 
+    u_int32_t _num_host_correlations, u_int32_t _num_collected_flows) {
   num_total_events += _num_total_events;
+  num_malformed += _num_malformed;
+  num_dispatched += _num_dispatched;
   num_unhandled += _num_unhandled;
   num_alerts += _num_alerts;
   num_host_correlations += _num_host_correlations;
@@ -71,6 +76,16 @@ void SyslogStats::deserialize(json_object *o) {
     num_total_events = json_object_get_int64(obj); 
   else
     num_total_events = 0;
+
+  if(json_object_object_get_ex(o, "malformed", &obj))
+    num_malformed = json_object_get_int64(obj); 
+  else
+    num_malformed = 0;
+
+  if(json_object_object_get_ex(o, "dispatched", &obj))
+    num_dispatched = json_object_get_int64(obj); 
+  else
+    num_dispatched = 0;
 
   if(json_object_object_get_ex(o, "unhandled", &obj)) 
     num_unhandled = json_object_get_int64(obj);
@@ -103,6 +118,12 @@ json_object* SyslogStats::getJSONObject() {
   if(num_total_events > 0)
     json_object_object_add(my_object, "tot_events", json_object_new_int64(num_total_events));
 
+  if(num_malformed > 0)
+    json_object_object_add(my_object, "malformed", json_object_new_int64(num_malformed));
+
+  if(num_dispatched > 0)
+    json_object_object_add(my_object, "dispatched", json_object_new_int64(num_dispatched));
+
   if(num_unhandled > 0)
     json_object_object_add(my_object, "unhandled", json_object_new_int64(num_unhandled));
 
@@ -124,6 +145,8 @@ void SyslogStats::lua(lua_State* vm) {
   lua_newtable(vm);
 
   lua_push_uint64_table_entry(vm, "tot_events", num_total_events);
+  lua_push_uint64_table_entry(vm, "malformed", num_malformed);
+  lua_push_uint64_table_entry(vm, "dispatched", num_dispatched);
   lua_push_uint64_table_entry(vm, "unhandled", num_unhandled);
   lua_push_uint64_table_entry(vm, "alerts", num_alerts);
   lua_push_uint64_table_entry(vm, "host_correlations", num_host_correlations);
@@ -138,6 +161,8 @@ void SyslogStats::lua(lua_State* vm) {
 
 void SyslogStats::sum(SyslogStats *s) const {
   s->num_total_events += num_total_events;
+  s->num_malformed += num_malformed;
+  s->num_dispatched += num_dispatched;
   s->num_unhandled += num_unhandled;
   s->num_alerts += num_alerts;
   s->num_host_correlations += num_host_correlations;

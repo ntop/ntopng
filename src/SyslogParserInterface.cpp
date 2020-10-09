@@ -54,14 +54,17 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
   const char *producer_name = NULL;
   char *prio = NULL, *parsed_client_ip = NULL, *device = NULL, *application = NULL, *content = NULL;
   char *tmp;
+  u_int32_t num_total_events = 0, num_malformed = 0;
 
   if (producers_reload_requested) {
     doProducersMappingUpdate();
     producers_reload_requested = false;
   }
 
+  /* Event parsing */
+
   if (log_line == NULL || strlen(log_line) == 0)
-    return 0;
+    goto exit;
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Raw message: %s", log_line);
@@ -74,8 +77,10 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
 
   /* Look for <PRIO> */
   prio = strchr(log_line, '<');
-  if (prio == NULL)
-    return 0;
+  if (prio == NULL) {
+    num_malformed++;
+    goto exit;
+  }
 
   if (prio != log_line) { /* Parse TIMESTAMP;HOST; <PRIO> */
     prio[0] = '\0';
@@ -91,8 +96,10 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
 
   prio++;
   log_line = strchr(prio, '>');
-  if (log_line == NULL)
-    return 0;
+  if (log_line == NULL) {
+    num_malformed++;
+    goto exit;
+  }
 
   log_line[0] = '\0';
   log_line++;
@@ -136,6 +143,10 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
     content = log_line;
   }
  
+  num_total_events++;
+
+  /* Producer Lookup */
+
   if (producer_name == NULL && parsed_client_ip != NULL) {
     Utils::stringtolower(parsed_client_ip); /* normalize */
     producer_name = getProducerName(parsed_client_ip);
@@ -159,20 +170,23 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
     producer_name = getProducerName("*");
   }
 
-  if (producer_name == NULL) {
-    return 0;
-  }
+  if (producer_name == NULL)
+    goto exit;
 
 #ifdef SYSLOG_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Application: %s Message: %s",
     producer_name, content);
 #endif
 
+  /* Dispatching */
+
   if (le) 
     le->handleEvent(producer_name, content, 
       parsed_client_ip ? parsed_client_ip : client_ip, 
       prio ? atoi(prio) : 0);
 
+ exit:
+  incSyslogStats(num_total_events, num_malformed, 0, 0, 0, 0, 0);
   return 0;
 }
 

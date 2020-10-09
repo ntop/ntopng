@@ -1171,7 +1171,8 @@ static int ntop_interface_optimize_alerts(lua_State* vm) {
 
 static int ntop_interface_inc_syslog_stats(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
-  u_int32_t num_total_events;
+  u_int32_t num_received_events;
+  u_int32_t num_malformed;
   u_int32_t num_unhandled;
   u_int32_t num_alerts;
   u_int32_t num_host_correlations;
@@ -1181,22 +1182,26 @@ static int ntop_interface_inc_syslog_stats(lua_State* vm) {
   if(!iface) return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  num_total_events = lua_tonumber(vm, 1);
+  num_received_events = lua_tonumber(vm, 1);
 
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  num_unhandled = lua_tonumber(vm, 2);
+  num_malformed = lua_tonumber(vm, 2);
 
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  num_alerts = lua_tonumber(vm, 3);
+  num_unhandled = lua_tonumber(vm, 3);
 
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  num_host_correlations = lua_tonumber(vm, 4);
+  num_alerts = lua_tonumber(vm, 4);
 
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  num_collected_flows = lua_tonumber(vm, 5);
+  num_host_correlations = lua_tonumber(vm, 5);
 
-  iface->incSyslogStats(
-    num_total_events,
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  num_collected_flows = lua_tonumber(vm, 6);
+
+  iface->incSyslogStats(0,
+    num_malformed,
+    num_received_events,
     num_unhandled,
     num_alerts,
     num_host_correlations,

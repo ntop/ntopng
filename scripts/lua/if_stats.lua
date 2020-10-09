@@ -684,7 +684,8 @@ if((page == "overview") or (page == nil)) then
       print("<th nowrap>"..i18n("http_page.traffic_received")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(ifstats.eth.ingress.bytes).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span><td></td></tr>")
    end
 
-   if not interface.isPacketInterface() then
+   if interface.isSyslogInterface() then
+      -- Additional stats (e.g. Suricata)
       local external_json_stats = ntop.getCache("ntopng.prefs.ifid_"..tostring(ifid)..".external_stats")
       if not isEmptyString(external_json_stats) then
          local external_stats = json.decode(external_json_stats)
