@@ -38,6 +38,10 @@ local flow_keys = {
       status_suspicious_file_transfer     = 29,
       status_known_proto_on_non_std_port  = 30,
       status_flow_risk                    = 31,
+      status_unexpected_dhcp_server       = 32,
+      status_unexpected_dns_server        = 33,
+      status_unexpected_smtp_server       = 34,
+      
       -- Add here additional flow statuses when writing ntopng plugins.
       -- User plugins should use statuses under key user.
       -- WARNING: no not overlap with user; MAXIMUM status is 58 unless
