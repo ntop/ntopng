@@ -125,4 +125,4 @@ Consider now the entry
 
 Found in file `en.lua <https://github.com/ntop/ntopng/blob/26aa2ebecc3b446119ec981b2454b0ab12d488e2/scripts/locales/en.lua#L105>`_. The localized string contains parameter :code:`%{iface}`. This parameter will be replaced with the value found in key :code:`iface` of the parameters Lua table. So for example if the parameters Lua table is :code:`{iface="eno1"}`, localized string will become :code:`"eno1 download"`.
 
-.. _`an example here`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/example/locales
+.. _`an example here`: https://github.com/ntop/ntopng/tree/dev/scripts/plugins/examples/example/locales
