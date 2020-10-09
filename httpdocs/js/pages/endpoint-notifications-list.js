@@ -186,8 +186,6 @@ $(document).ready(function () {
                 $endpointsTable.ajax.reload(function (data) {
                     // disable endpoint type if a endpoint reached its max num config
                     disableTypes(data);
-                    // update the filters counter
-                    DataTableUtils.updateFilters(i18n.endpoint_type, $endpointsTable);
                 });
                 return;
             }
@@ -259,8 +257,6 @@ $(document).ready(function () {
                 $endpointsTable.ajax.reload(function (data) {
                     // re-enable endpoint type
                     disableTypes(data);
-                    // update the filters counter
-                    DataTableUtils.updateFilters(i18n.endpoint_type, $endpointsTable);
                 });
             }
         }
