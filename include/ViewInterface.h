@@ -34,7 +34,8 @@ class ViewInterface : public NetworkInterface {
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
-			ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats) const;
+			ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats,
+			SyslogStats *_syslogStats) const;
 
   bool addSubinterface(NetworkInterface *iface);
 

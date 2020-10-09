@@ -185,6 +185,7 @@ class NetworkInterface : public AlertableEntity {
   PacketStats pktStats;
   DSCPStats *dscpStats;
   L4Stats l4Stats;
+  SyslogStats syslogStats;
   FlowHash *flows_hash; /**< Hash used to store flows information. */
   u_int32_t last_remote_pps, last_remote_bps;
   TimeseriesExporter *influxdb_ts_exporter, *rrd_ts_exporter;
@@ -293,6 +294,7 @@ class NetworkInterface : public AlertableEntity {
 			   u_int32_t num_bytes, u_int pkt_overhead) {
     ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
   };
+
   /*
     Dequeues flows from `q` up to `budget` and executes `flow_lua_callback` on each of them.
     The number of flows dequeued is returned.
@@ -348,6 +350,16 @@ class NetworkInterface : public AlertableEntity {
   virtual bool isPacketInterface() const {
     return(getIfType() != interface_type_FLOW && getIfType() != interface_type_ZMQ);
   }
+
+  virtual bool isSyslogInterface() const {
+    return(getIfType() == interface_type_SYSLOG);
+  }
+  void incSyslogStats(u_int32_t num_total_events,
+                      u_int32_t num_unhandled, u_int32_t num_alerts,
+                      u_int32_t num_host_correlations, u_int32_t num_collected_flows) {
+    syslogStats.incStats(num_total_events, num_unhandled,
+      num_alerts, num_host_correlations, num_collected_flows);
+  };
 
 #if defined(linux) && !defined(HAVE_LIBCAP) && !defined(HAVE_NEDGE)
   /* Note: if we miss the capabilities, we block the overriding of this method. */
@@ -470,7 +482,8 @@ class NetworkInterface : public AlertableEntity {
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
-			ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats) const;
+			ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats,
+			SyslogStats *_syslogStats) const;
   inline DB *getDB() const         { return db;                  };
   inline EthStats* getStats()      { return(&ethStats);          };
   inline int get_datalink()        { return(pcap_datalink_type); };

@@ -5323,10 +5323,11 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats,
 				PacketStats *_pktStats,
 				TcpPacketStats *_tcpPacketStats,
 				ProtoStats *_discardedProbingStats,
-				DSCPStats *_dscpStats) const {
+				DSCPStats *_dscpStats,
+				SyslogStats *_syslogStats) const {
   tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats), localStats.sum(_localStats),
     pktStats.sum(_pktStats), tcpPacketStats.sum(_tcpPacketStats),
-    discardedProbingStats.sum(_discardedProbingStats);
+    discardedProbingStats.sum(_discardedProbingStats), syslogStats.sum(_syslogStats);
 
   if(ndpiStats)
     ndpiStats->sum(_ndpiStats);
@@ -5345,6 +5346,7 @@ void NetworkInterface::lua(lua_State *vm) {
   TcpPacketStats _tcpPacketStats;
   ProtoStats _discardedProbingStats;
   DSCPStats _dscpStats;
+  SyslogStats _syslogStats;
 
   lua_newtable(vm);
 
@@ -5445,7 +5447,7 @@ void NetworkInterface::lua(lua_State *vm) {
 
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
 	   &_ndpiStats, &_pktStats, &_tcpPacketStats, &_discardedProbingStats,
-           &_dscpStats);
+           &_dscpStats, &_syslogStats);
 
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
@@ -5454,6 +5456,7 @@ void NetworkInterface::lua(lua_State *vm) {
   _pktStats.lua(vm, "pktSizeDistribution");
   _tcpPacketStats.lua(vm, "tcpPacketStats");
   _dscpStats.lua(this, vm);
+  _syslogStats.lua(vm);
 
   if(discardProbingTraffic())
     _discardedProbingStats.lua(vm, "discarded_probing_");

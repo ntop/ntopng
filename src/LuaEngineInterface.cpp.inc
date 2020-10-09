@@ -1169,6 +1169,45 @@ static int ntop_interface_optimize_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_inc_syslog_stats(lua_State* vm) {
+  NetworkInterface *iface = getCurrentInterface(vm);
+  u_int32_t num_total_events;
+  u_int32_t num_unhandled;
+  u_int32_t num_alerts;
+  u_int32_t num_host_correlations;
+  u_int32_t num_collected_flows;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!iface) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  num_total_events = lua_tonumber(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  num_unhandled = lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  num_alerts = lua_tonumber(vm, 3);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  num_host_correlations = lua_tonumber(vm, 4);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  num_collected_flows = lua_tonumber(vm, 5);
+
+  iface->incSyslogStats(
+    num_total_events,
+    num_unhandled,
+    num_alerts,
+    num_host_correlations,
+    num_collected_flows);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static char *getAllowedNetworksHostsSqlFilter(lua_State* vm) {
   /* Lazy initialization */
   if(!getLuaVMUservalue(vm, sqlite_filters_loaded))
@@ -4408,6 +4447,20 @@ static int ntop_get_interface_service_map(lua_State* vm) {
 
 /* ****************************************** */
 
+// *** API ***
+static int ntop_interface_is_syslog_interface(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, ntop_interface->isSyslogInterface());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static const luaL_Reg ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
@@ -4634,18 +4687,22 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },
 
   /* Interface Alerts */
-  { "checkInterfaceAlerts",       ntop_check_interface_alerts         },
+  { "checkInterfaceAlerts",   ntop_check_interface_alerts             },
 
   /* Host Alerts */
-  { "checkHostsAlerts",           ntop_check_hosts_alerts             },
+  { "checkHostsAlerts",       ntop_check_hosts_alerts                 },
 
   /* Network Alerts */
-  { "checkNetworksAlerts",        ntop_check_networks_alerts          },
+  { "checkNetworksAlerts",    ntop_check_networks_alerts              },
 
   /* eBPF, Containers and Companion Interfaces */
   { "getPodsStats",           ntop_interface_get_pods_stats           },
   { "getContainersStats",     ntop_interface_get_containers_stats     },
   { "reloadCompanions",       ntop_interface_reload_companions        },
+
+  /* Syslog */
+  { "isSyslogInterface",      ntop_interface_is_syslog_interface      },
+  { "incSyslogStats",         ntop_interface_inc_syslog_stats         },
 
   { NULL,                     NULL }
 };

@@ -275,6 +275,7 @@ using namespace std;
 #include "FlowGrouper.h"
 #include "PacketStats.h"
 #include "EthStats.h"
+#include "SyslogStats.h"
 
 #include "LocalTrafficStats.h"
 #include "PacketDumperGeneric.h"
