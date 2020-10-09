@@ -99,8 +99,6 @@ Once you have installed all the prerequisites do
 
 Binary Packages
 ---------------
-- Debian/CentOS/Windows   http://packages.ntop.org
-- OSX			  Homebrew
-			  # brew update
-			  # brew install ntopng
+- Debian/CentOS/Windows/MacOS/Raspberry 
+  Go to http://packages.ntop.org
 
