@@ -2,6 +2,7 @@
 -- (C) 2013-20 - ntop.org
 --
 
+require "flow_utils"
 
 print('<link href="'.. ntop.getHttpPrefix()..'/datatables/datatables.min.css" rel="stylesheet"/>')
 
@@ -33,7 +34,7 @@ if(isAdministrator()) then
 
 
    if(ifid ~= nil) then
-print [[
+     print [[
 <input type=hidden name="ifid" value="]] print(ifid.."") print [[">
 <input type=hidden name="page" value="service_map">
 <input type=hidden name="action" value="reset">
@@ -43,7 +44,7 @@ print [[
 </button>
 </form>
 ]]
-end
+     end
    end
 
 print [[
@@ -55,23 +56,35 @@ $(document).ready(function() {
 local p = interface.serviceMap() or {}
 
 local keys = {}
+local keys_regex = {}
+local ports = {}
 
 local host_ip = _GET["host"]
 
 for k,v in pairs(p) do
    if((host_ip == nil)
 	 or (v.client == host_ip)
-      	 or (v.server == host_ip) ) then
-      if(keys[v.l7_proto] == nil) then
-	 keys[v.l7_proto] = 0
+      or (v.server == host_ip) ) then
+      local k = "^".. getL4ProtoName(v.l4_proto) .. "." .. v.l7_proto .."$"
+
+      keys_regex[v.l7_proto] = k
+
+      k = v.l7_proto
+      if(keys[k] == nil) then
+	 keys[k] = 0
       end
-      keys[v.l7_proto] = keys[v.l7_proto] + 1
+      keys[k] = keys[k] + 1
+
+      if(ports[v.server_port] == nil) then
+	 ports[v.server_port] = 0
+      end
+      ports[v.server_port] = ports[v.server_port] + 1      
    end
 end
 
 local id = 0
 for k,v in pairsByKeys(keys, asc) do
-   print("{ key: 'filter_"..id.."', regex: '"..k.."', label: '"..k.." ("..v..")', countable: false },\n")
+   print("{ key: 'filter_"..id.."', regex: '"..keys_regex[k].."', label: '"..k.." ("..v..")', countable: false },\n")
    id = id + 1
 end
 
