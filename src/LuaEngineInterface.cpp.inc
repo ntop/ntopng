@@ -4452,6 +4452,22 @@ static int ntop_get_interface_service_map(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flush_interface_service_map(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  ntop_interface->flushServiceMap();
+#endif
+  
+  lua_pushnil(vm);
+  
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 // *** API ***
 static int ntop_interface_is_syslog_interface(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -4573,6 +4589,7 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getNumFlows",                      ntop_get_num_flows       },
   { "periodicityStats",                 ntop_get_interface_periodicity_stats },
   { "serviceMap",                       ntop_get_interface_service_map },
+  { "flushServiceMap",                  ntop_flush_interface_service_map },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },

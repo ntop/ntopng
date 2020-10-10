@@ -23,7 +23,30 @@ print [[ </H3>
         </thead>
 </table>
 <p>
+<form>
+]]
 
+if(isAdministrator()) then
+   if(_GET["action"] == "reset") then
+      interface.flushServiceMap()
+   end
+
+
+   if(ifid ~= nil) then
+print [[
+<input type=hidden name="ifid" value="]] print(ifid.."") print [[">
+<input type=hidden name="page" value="service_map">
+<input type=hidden name="action" value="reset">
+
+<button id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger">
+ <i class="fas fa-undo-alt"></i> ]] print(i18n("flush_service_map_data")) print [[
+</button>
+</form>
+]]
+end
+   end
+
+print [[
 <script>
 $(document).ready(function() {
   const filters = [
@@ -33,11 +56,17 @@ local p = interface.serviceMap() or {}
 
 local keys = {}
 
+local host_ip = _GET["host"]
+
 for k,v in pairs(p) do
-   if(keys[v.l7_proto] == nil) then
-      keys[v.l7_proto] = 0
+   if((host_ip == nil)
+	 or (v.client == host_ip)
+      	 or (v.server == host_ip) ) then
+      if(keys[v.l7_proto] == nil) then
+	 keys[v.l7_proto] = 0
+      end
+      keys[v.l7_proto] = keys[v.l7_proto] + 1
    end
-   keys[v.l7_proto] = keys[v.l7_proto] + 1
 end
 
 local id = 0
@@ -53,8 +82,14 @@ print [[
 if(_GET["host"] ~= nil) then print("?host=".._GET["host"]) end
 
 print [[';
-  let config = DataTableUtils.getStdDatatableConfig();
-  config     = DataTableUtils.setAjaxConfig(config, url, 'data');
+  let config = DataTableUtils.getStdDatatableConfig( [ {
+            text: '<i class="fas fa-sync"></i>',
+            action: function(e, dt, node, config) {
+                $serviceTable.ajax.reload();
+            }
+        } ]);
+
+  config = DataTableUtils.setAjaxConfig(config, url, 'data');
 
   config["initComplete"] = function(settings, rows) {
     const tableAPI = settings.oInstance.api();
@@ -77,4 +112,5 @@ print [[';
  i18n.showing_x_to_y_rows = "]] print(i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'})) print[[";
 
 </script>
+
 ]]
