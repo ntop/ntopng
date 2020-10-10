@@ -78,6 +78,7 @@ local alert_keys = {
       alert_unexpected_dns_server          = {NO_PEN, 63},
       alert_unexpected_smtp_server         = {NO_PEN, 64},
       alert_unexpected_dhcp_server         = {NO_PEN, 65},
+      alert_unexpected_ntp_server          = {NO_PEN, 66},
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
