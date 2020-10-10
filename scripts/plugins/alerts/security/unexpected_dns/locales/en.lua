@@ -9,7 +9,7 @@ return {
 -- ####################### Input builder strings
 
    title = "Allowed DNS",
-   description = "Comma separated values of DNS IP. Example: 8.8.8.8,8.8.4.4,1.1.1.1",
+   description = "Comma separated values of allowed DNS IPs. Example: 8.8.8.8,8.8.4.4,1.1.1.1",
 
 -- ####################### Status strings
 
