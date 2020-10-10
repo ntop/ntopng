@@ -25,11 +25,6 @@ local script = {
       items = {},
    },
 
-  
-   -- The frequency for the periodicUpdate hook invocation. Must be
-   -- multiple of 30 seconds.
-   periodic_update_seconds = 30,
-
    gui = {
       i18n_title        = "unexpected_smtp.unexpected_smtp_title",
       i18n_description  = "unexpected_smtp.unexpected_smtp_description",
@@ -44,30 +39,31 @@ local script = {
 -- #################################################################
 
 function script.hooks.protocolDetected(now, conf)
-   ok = 0
-   server_ip =  flow.getServerKey()
+   if(table.len(conf.items) > 0) then
+      ok = 0
+      server_ip =  flow.getServerKey()
 
-   -- the fortmat of the string returned by flow.geServerKey() is "x.x.x.x@0", :sub(1, -3) deletes "@0"
-   server_ip = server_ip:sub(1, -3)
+      -- the string format returned by flow.geServerKey() is "x.x.x.x@0", :sub(1, -3) deletes "@0"
+      server_ip = server_ip:sub(1, -3)
+      
+      for _, smtp_ip in pairs(conf.items) do
+	 if server_ip == smtp_ip then
+	    ok = 1
+	 end
+      end
 
-   for _, smtp_ip in pairs(conf.items or script.default_value.items) do
-       if server_ip == smtp_ip then
-           ok = 1
-       end
+      if ok == 0 then
+	 flow.triggerStatus(
+	    flow_consts.status_types.status_unexpected_smtp.create(
+	       flow_consts.status_types.status_unexpected_smtp.alert_severity,
+	       server_ip
+	    ),
+	    100, -- flow_score
+	    0, -- cli_score
+	    100 --srv_score
+	 )
+      end
    end
-
-   if ok == 0 then
-          flow.triggerStatus(
-              flow_consts.status_types.status_unexpected_smtp.create(
-                  flow_consts.status_types.status_unexpected_smtp.alert_severity,
-                  server_ip
-              ),
-              100, -- flow_score
-              0, -- cli_score
-              100 --srv_score
-          )
-   end
-
 end
 
 -- #################################################################
