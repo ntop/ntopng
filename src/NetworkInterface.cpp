@@ -47,6 +47,7 @@ NetworkInterface::NetworkInterface(const char *name,
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 
   init();
+
   customIftype = custom_interface_type;
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   hooksEngine = NULL;
@@ -141,6 +142,19 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
+  #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  if(ntop->getPrefs()
+     && ntop->getPro()->has_valid_license()
+     && ntop->getPrefs()->isBehavourAnalysisEnabled()
+     && ifname
+     && strcmp(ifname, SYSTEM_INTERFACE_NAME)
+     ) {
+    pHash = new PeriodicityHash(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
+    sm    = new ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
+  } else
+    pHash = NULL, sm = NULL;
+#endif
+
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
       flowDumpLoopCreated = false, hookLoopCreated = false, bridge_interface = false;
@@ -171,14 +185,6 @@ NetworkInterface::NetworkInterface(const char *name,
   /* Lazy, instantiated on demand */
   custom_app_stats = NULL;
   flow_interfaces_stats = NULL;
-#endif
-
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  if(ntop->getPrefs() && ntop->getPro()->has_valid_license() && ntop->getPrefs()->isBehavourAnalysisEnabled()) {
-    pHash = new PeriodicityHash(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
-    sm    = new ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
-  } else
-    pHash = NULL, sm = NULL;
 #endif
 
   loadScalingFactorPrefs();

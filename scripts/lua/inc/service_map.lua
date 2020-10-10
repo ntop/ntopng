@@ -57,7 +57,6 @@ local p = interface.serviceMap() or {}
 
 local keys = {}
 local keys_regex = {}
-local ports = {}
 
 local host_ip = _GET["host"]
 
@@ -74,11 +73,6 @@ for k,v in pairs(p) do
 	 keys[k] = 0
       end
       keys[k] = keys[k] + 1
-
-      if(ports[v.server_port] == nil) then
-	 ports[v.server_port] = 0
-      end
-      ports[v.server_port] = ports[v.server_port] + 1      
    end
 end
 
