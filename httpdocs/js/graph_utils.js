@@ -17,9 +17,12 @@ function getSerieLabel(schema, serie, visualization, serie_index) {
   if(visualization && visualization.metrics_labels && visualization.metrics_labels[serie_index])
     return visualization.metrics_labels[serie_index];
 
-  if(serie.ext_label)
-      return serie.ext_label;
-  else if((schema == "top:local_senders") || (schema == "top:local_receivers")) {
+    if(serie.ext_label) {
+	if(new_label)
+	    return serie.ext_label + " (" + new_label + ")";
+	else
+	    return serie.ext_label;
+    }  else if((schema == "top:local_senders") || (schema == "top:local_receivers")) {
     if(serie.ext_label)
       return serie.ext_label;
     else
