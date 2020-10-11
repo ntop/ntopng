@@ -30,7 +30,6 @@ print [[
         </thead>
 </table>
 <p>
-<form>
 ]]
 
 if(isAdministrator()) then
@@ -41,7 +40,9 @@ if(isAdministrator()) then
 
    if(ifid ~= nil) then
      print [[
-<input type=hidden name="ifid" value="]] print(ifid.."") print [[">
+<div class="d-flex justify-content-start">  
+<form>
+	      <input type=hidden name="ifid" value="]] print(ifid.."") print [[">
 <input type=hidden name="page" value="service_map">
 <input type=hidden name="action" value="reset">
 
@@ -49,6 +50,9 @@ if(isAdministrator()) then
  <i class="fas fa-undo-alt"></i> ]] print(i18n("flush_service_map_data")) print [[
 </button>
 </form>
+&nbsp;
+<a href="]] print(ntop.getHttpPrefix()) print [[ /lua/get_service_map.lua" target="_blank" class="btn btn-primary" role="button" aria-disabled="true"><i class="fas fa-download"></i></a>
+</div>
 ]]
      end
    end

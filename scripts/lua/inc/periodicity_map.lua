@@ -28,7 +28,6 @@ print [[
         </thead>
 </table>
 <p>
-<form>
 ]]
 
 if(isAdministrator()) then
@@ -39,6 +38,10 @@ if(isAdministrator()) then
 
    if(ifid ~= nil) then
      print [[
+
+<div class="d-flex justify-content-start">
+
+<form>
 <input type=hidden name="ifid" value="]] print(ifid.."") print [[">
 <input type=hidden name="page" value="periodicity_map">
 <input type=hidden name="action" value="reset">
@@ -47,6 +50,9 @@ if(isAdministrator()) then
  <i class="fas fa-undo-alt"></i> ]] print(i18n("flush_periodicity_map_data")) print [[
 </button>
 </form>
+&nbsp;
+<a href="]] print(ntop.getHttpPrefix()) print [[ /lua/get_periodicity_map.lua" target="_blank" class="btn btn-primary" role="button" aria-disabled="true"><i class="fas fa-download"></i></a>
+</div>
 ]]
      end
    end
@@ -76,7 +82,7 @@ end
 
 print [[
    ];
-  let url    = ']] print(ntop.getHttpPrefix()) print [[/lua/get_periodicity_data.lua]]
+  let url    = ']] print(ntop.getHttpPrefix()) print [[/lua/get_periodicity_map.lua]]
 
 if(_GET["host"] ~= nil) then print("?host=".._GET["host"]) end
 
