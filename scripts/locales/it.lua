@@ -340,10 +340,10 @@ local lang = {
   ["activity_descriptions"] = {
     ["5min"] = "Esegue i task ai 5 minuti. Quando RRD è abilitato, scrive anche le serie temporali degli host.",
     ["daily"] = "Esegue i task giornalieri.",
+    ["dequeue_flows_for_hooks"] = "Identifica le entry idle nelle hash table e le elimina dalla memoria, esegue gli user script sui flussi, esporta i flussi sul database configurato.",
     ["discover"] = "Scansiona la rete per cercare dispositivi. L'attività non fa niente se nessuno scan è stato richiesto o programmato.",
     ["hourly"] = "Esegue i task orari.",
     ["housekeeping"] = "Emette notifiche per gli allarmi e le salva su disco, effettua i task di estrazione di n2disk, ricarica le liste quando necessario.",
-    ["dequeue_flows_for_hooks"] = "Identifica le entry idle nelle hash table e le elimina dalla memoria, esegue gli user script sui flussi, esporta i flussi sul database configurato.",
     ["minute"] = "Esegue i task al minuto, scrive le serie temporali al minuto. Quando InfluxDB è abilitato, scrive le serie temporali degli host.",
     ["second"] = "Scrive le serie temporali delle interfacce.",
     ["stats_update"] = "Calcola il throughput degli host, delle reti, e di altri elementi di traffico.",
@@ -1080,8 +1080,6 @@ local lang = {
     ["long_lived_description"] = "Emette un allarme quando un flusso dura più della durata massima configurata",
     ["malicious_signature"] = "Signature Malevole",
     ["malicious_signature_description"] = "Emette un allarme quando una signature potenzialmente malevola viene rilevata",
-    ["mud"] = "(Manufacturer Usage Description (MUD)",
-    ["mud_description"] = "Configura la generazione del Manufacturer Usage Description (MUD)",
     ["nedge_blocked"] = "Flussi Bloccati",
     ["nedge_blocked_description"] = "Emetti un allarme quando un flusso è bloccato a causa delle policy configurate",
     ["no_input"] = "Nessuna configurazione necessaria",
@@ -1965,10 +1963,6 @@ local lang = {
     ["host_pool"] = "Host Pool",
     ["host_traffic_policy"] = "Politica di Traffico dell'host",
     ["modify_host_pool_policy_btn"] = "Modifica la Politica dell'host pool",
-    ["mud_general_purpose"] = "General Purpose",
-    ["mud_is_recording"] = "Il MUD viene registrato",
-    ["mud_recording"] = "Registrazione MUD",
-    ["mud_special_purpose"] = "Special Purpose",
     ["trigger_alerts_for_host"] = "Genera allarmi per l'host %{host}",
     ["trigger_host_alerts"] = "Genera allarmi per l'host",
     ["unblock_host_traffic"] = "Sblocca Traffico Host",
@@ -2876,6 +2870,9 @@ local lang = {
     ["daily"] = {
       ["lua"] = "Effettua operazioni di pulizia dei dati vecchi. Esegue gli script giornalieri.",
     },
+    ["dequeue_flows_for_hooks"] = {
+      ["lua"] = "Gestisce il ciclo di vita dei flussi, degli host e di altre hash entry. Esegue gli user script. Dumpa i flussi sul database.",
+    },
     ["discover"] = {
       ["lua"] = "Esegue network discovery on-demand e periodiche.",
     },
@@ -2884,9 +2881,6 @@ local lang = {
     },
     ["housekeeping"] = {
       ["lua"] = "Processa gli allarmi generati, li inserisce nel database e li propaga verso endpoint esterni. Controlla l'estrazione con n2disk. Controlla e ricarica le liste.",
-    },
-    ["dequeue_flows_for_hooks"] = {
-      ["lua"] = "Gestisce il ciclo di vita dei flussi, degli host e di altre hash entry. Esegue gli user script. Dumpa i flussi sul database.",
     },
     ["minute"] = {
       ["lua"] = "Scrive dettagliate serie temporali per l'interfaccia quali ad esempio le applicazioni. Scrive le serie temporali per gli user script, per i pod e per i container. Esegue gli user script al minuto.",
@@ -3449,8 +3443,6 @@ local lang = {
       ["elephant_flows_r2l"] = "Soglia Flussi Elephant (Remoto a Locale)",
       ["excluded_applications"] = "Escludere applicazioni e categorie",
       ["flow_duration_threshold"] = "Soglia Durata Flusso",
-      ["max_mud_recording"] = "Interrompere registrazione MUD dopo:",
-      ["mud_enabled_devices"] = "Il MUD sarà abilitato automaticamente sulle device di tipo",
       ["template_not_implemented"] = "Il template non è ancora stato implementato!",
     },
   },
@@ -4049,7 +4041,6 @@ local lang = {
     ["elephant_flows_descr"] = "> %{l2r_bytes} (L2R), > %{r2l_bytes} (R2L)",
     ["exceptions"] = "Eccezioni: %{exceptions}",
     ["long_lived_flows_descr"] = "> %{duration}",
-    ["mud_enabled_on"] = "Abilitato automaticamente per: %{device_types}",
     ["note_apply_to_default"] = "La configurazione di <b>default</b> è 'Applicata a' ogni pool che non è incluso in ogni altra configurazione più specifica.",
     ["note_configsets"] = "Gli user script sono configurati e abilitati/disabilitati in base alla configurazione. Più configurazioni possono esser create, e ogni configurazione più essere 'Applicata a' pool differenti.",
     ["note_what_are_user_scripts"] = "Gli <a href=\"%{user_scripts_url}\">User Script</a> %{user_scripts_external} sono eseguiti periodicamente oppure quando un certo evento si verifica.",

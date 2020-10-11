@@ -107,7 +107,6 @@ let script_key_filter = "{{ script_list.script_filter }}";
 let page_url = "{* script_list.page_url *}";
 let apps_and_categories = {* script_list.apps_and_categories *};
 let device_types = {* script_list.device_types *};
-let mud_max_recording = {* script_list.mud_max_recording *};
 
 i18n.all = '{{ i18n("all", {}) }}';
 i18n.enabled = '{{ i18n("enabled", {}) }}';
@@ -130,8 +129,6 @@ i18n.script_search = "{{ i18n('scripts_list.script_search') }}";
 i18n.scripts_list = {};
 i18n.scripts_list.templates = {};
 i18n.scripts_list.templates.excluded_applications = "{{ i18n('scripts_list.templates.excluded_applications') }}";
-i18n.scripts_list.templates.mud_enabled_devices = "{{ i18n('scripts_list.templates.mud_enabled_devices') }}";
-i18n.scripts_list.templates.max_mud_recording = "{{ i18n('scripts_list.templates.max_mud_recording') }}";
 i18n.scripts_list.templates.flow_duration_threshold = "{{ i18n('scripts_list.templates.flow_duration_threshold') }}";
 i18n.scripts_list.templates.elephant_flows_l2r = "{{ i18n('scripts_list.templates.elephant_flows_l2r') }}";
 i18n.scripts_list.templates.elephant_flows_r2l = "{{ i18n('scripts_list.templates.elephant_flows_r2l') }}";

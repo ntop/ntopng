@@ -16,7 +16,6 @@ local template = require "template_utils"
 local user_scripts = require "user_scripts"
 local json = require "dkjson"
 local discover = require "discover_utils"
-local mud_utils = require "mud_utils"
 local rest_utils = require "rest_utils"
 local auth = require "auth"
 
@@ -102,14 +101,6 @@ end
 
 local device_types_list = {{elements = device_types}}
 
--- MUD max recording
-
-local mud_max_recording = {
-   {3600, mud_utils.formatMaxRecording(3600)},
-   {86400, mud_utils.formatMaxRecording(86400)},
-   {604800, mud_utils.formatMaxRecording(604800)},
-}
-
 local context = {
    script_list = {
       subdir = script_subdir,
@@ -122,7 +113,6 @@ local context = {
       page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
       apps_and_categories = json.encode(apps_and_categories),
       device_types = json.encode(device_types_list),
-      mud_max_recording = json.encode(mud_max_recording),
    },
    script_categories = script_categories,
    info = ntop.getInfo(),

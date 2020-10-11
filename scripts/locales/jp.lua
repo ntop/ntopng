@@ -330,10 +330,10 @@ local lang = {
   ["activity_descriptions"] = {
     ["5min"] = "5分間のタスクを実行します。RRDを使用すると、ホストの時系列データも書き込みます。",
     ["daily"] = "毎日のタスクを実行します。",
+    ["dequeue_flows_for_hooks"] = "アイドル状態のハッシュテーブルを特定した重要なアクティビティをエントリし、パージします。そして、フローでユーザースクリプトを実行し、エクスポートします。",
     ["discover"] = "デバイスのネットワークをスキャンします。スキャンが要求/計画されていない場合、このアクティビティは何もしません。",
     ["hourly"] = "毎時のタスクを実行します。",
     ["housekeeping"] = "ディスクに保存する、もしくは通知するアラートをチェックします。n2disk抽出ジョブを実行し、必要に応じてカテゴリリストをリロードします。",
-    ["dequeue_flows_for_hooks"] = "アイドル状態のハッシュテーブルを特定した重要なアクティビティをエントリし、パージします。そして、フローでユーザースクリプトを実行し、エクスポートします。",
     ["minute"] = "分単位のタスクを実行し、分単位の時系列データを書き込みます。InfluxDBを使用する場合、ホストの時系列データを書き込みます。",
     ["second"] = "インターフェイスの時系列データ及びその他の高頻度データを書き込みます。",
     ["stats_update"] = "アクティブなトラフィック要素のスループットを計算します。",
@@ -1104,8 +1104,6 @@ local lang = {
     ["long_lived_description"] = "フローが設定された期間を超えて継続したときにアラートをトリガーします",
     ["malicious_signature"] = "悪意のある署名",
     ["malicious_signature_description"] = "悪意のある可能性のある署名が検出されたときにアラートをトリガーする",
-    ["mud"] = "MUD",
-    ["mud_description"] = "ホストの製造元の使用法の説明（MUD）",
     ["nedge_blocked"] = "ブロックされたフロー",
     ["nedge_blocked_description"] = "設定されたポリシーが原因でフローがブロックされたときにアラートをトリガーします",
     ["no_input"] = "設定不要",
@@ -1987,10 +1985,6 @@ local lang = {
     ["host_pool"] = "ホストプール",
     ["host_traffic_policy"] = "ホストトラフィックポリシー",
     ["modify_host_pool_policy_btn"] = "ホストプールポリシーの変更",
-    ["mud_general_purpose"] = "一般的な目的",
-    ["mud_is_recording"] = "MUDが記録されています",
-    ["mud_recording"] = "MUDレコーディング",
-    ["mud_special_purpose"] = "特別な目的",
     ["rtt_monitor_description"] = "特定のホストのRTTを構成および監視する",
     ["rtt_monitor_enable"] = "RTT モニタはホストのステータスと遅延時間をモニタするのに利用されます. <a href=\"%{url}\">here</a>で有効化できます",
     ["trigger_alerts_for_host"] = "ホスト%{host}のアラートをトリガー",
@@ -2891,6 +2885,9 @@ local lang = {
     ["daily"] = {
       ["lua"] = "古いデータのクリーンアップを実行します。毎日の粒度でユーザースクリプトを実行します。",
     },
+    ["dequeue_flows_for_hooks"] = {
+      ["lua"] = "フロー、ホスト、その他のハッシュエントリのメモリ内ライフサイクルを処理します。フローユーザースクリプトを実行します。フローをデータベースにダンプします。",
+    },
     ["discover"] = {
       ["lua"] = "要求された定期的なネットワーク検出を実行します。",
     },
@@ -2899,9 +2896,6 @@ local lang = {
     },
     ["housekeeping"] = {
       ["lua"] = "プロセスはアラートを生成してデータベースに保存し、外部エンドポイントに伝達します。 n2disk抽出ジョブを確認します。Checks and reloads lists.",
-    },
-    ["dequeue_flows_for_hooks"] = {
-      ["lua"] = "フロー、ホスト、その他のハッシュエントリのメモリ内ライフサイクルを処理します。フローユーザースクリプトを実行します。フローをデータベースにダンプします。",
     },
     ["minute"] = {
       ["lua"] = "アプリケーションなどの拡張インターフェイス時系列データを保存します。ユーザースクリプト、ポッド、コンテナの時系列データを記述します。毎分ユーザースクリプトを実行します。",
@@ -3457,8 +3451,6 @@ local lang = {
       ["elephant_flows_r2l"] = "エレファントフローのしきい値（リモートからローカル）",
       ["excluded_applications"] = "除外されたアプリケーションとカテゴリ",
       ["flow_duration_threshold"] = "フロー継続時間のしきい値",
-      ["max_mud_recording"] = "後にMUDの記録を停止します:",
-      ["mud_enabled_devices"] = "デバイスのタイプでMUDが自動的に有効になります",
       ["template_not_implemented"] = "テンプレートはまだ実装されていません！",
     },
   },
@@ -4066,7 +4058,6 @@ local lang = {
     ["elephant_flows_descr"] = ">%{l2r_bytes}（L2R）,>%{r2l_bytes}（R2L）",
     ["exceptions"] = "例外：%{exceptions}",
     ["long_lived_flows_descr"] = ">%{duration}",
-    ["mud_enabled_on"] = "次に対して自動的に有効化: %{device_types}",
     ["note_apply_to_default"] = "<b>デフォルト</ b>構成は、他の構成に含まれていないターゲットに「適用」されます",
     ["note_configsets"] = "ユーザースクリプトは、構成ごとに有効化/無効化できます。複数の構成を作成でき、各構成を異なるターゲットに「適用」できます。",
     ["note_what_are_user_scripts"] = "<a href=\"%{user_scripts_url}\">ユーザースクリプト</a>%{user_scripts_external}は定期的に、または特定のイベントが発生したときに実行されます。",
