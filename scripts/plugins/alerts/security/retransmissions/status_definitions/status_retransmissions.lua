@@ -6,5 +6,5 @@ return {
 	alert_severity = alert_consts.alert_severities.error,
 	alert_type = alert_consts.alert_types.alert_retransmissions,
 	i18n_title = "Too many Retransmissions",
-	i18n_title = "The number of packet retransmitted in the flow has surpassed the given threeshold",
+	i18n_description = "The number of packet retransmitted in the flow has surpassed the given threeshold",
 }
