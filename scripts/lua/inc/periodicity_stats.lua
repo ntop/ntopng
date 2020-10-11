@@ -48,7 +48,13 @@ end
 print [[
    ];
   let url    = ']] print(ntop.getHttpPrefix()) print [[/lua/get_periodicity_data.lua';
-  let config = DataTableUtils.getStdDatatableConfig();
+  let config = DataTableUtils.getStdDatatableConfig( [ {
+            text: '<i class="fas fa-sync"></i>',
+            action: function(e, dt, node, config) {
+                $serviceTable.ajax.reload();
+            }
+        } ]);
+
   config     = DataTableUtils.setAjaxConfig(config, url, 'data');
 
   config["columnDefs"] = [
