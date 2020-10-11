@@ -3,10 +3,10 @@ local alert_keys = require "alert_keys"
 -- ##############################################
 
 
-local function createRetransmissions(alert_severity, retry_info)
+local function createRetransmissions(alert_severity, retransmissions_info)
 	local built = {
 		alert_serverity = alert_severity,
-		alert_type_params = retry_info
+		alert_type_params = retransmissions_info
 	}
 
 	return built

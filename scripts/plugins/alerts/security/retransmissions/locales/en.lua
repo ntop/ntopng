@@ -3,7 +3,7 @@
 --
 
 return {
-	retransmission_alert_description = "Alert when there are too many packets retransmitted in the flow",
-	retransmission_alert_title = "Retransmissions flow Alert"
+	retransmissions_alert_description = "Send an alert when there are too many retransmitted packets in the flow",
+	retransmissions_alert_title = "Retransmissions flow Alert"
 
 }

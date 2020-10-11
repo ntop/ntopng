@@ -1,6 +1,6 @@
 return {
-	title = "Retransmissions",
-	description = "Detect if an Host have an hourly retransmission percentage that excede the threesold",
+	title = "Retransmissions Monitor",
+	description = "Detects excessive retransmitted packets in a flow",
 	author = "Michele De Quattro",
 	dependecies = {},
 }
