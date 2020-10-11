@@ -41,16 +41,15 @@ local script = {
 function script.hooks.protocolDetected(now, conf)
    if flow.isServerUnicast() then
       if(table.len(conf.items) > 0) then
-         ok = 0
-         server_ip =  flow.getServerKey()
-         
-         -- the string format returned by flow.geServerKey() is "x.x.x.x@0", :sub(1, -3) deletes "@0"
-         server_ip = server_ip:sub(1, -3)
+         local ok = 0
+         local flow_info = flow.getInfo()
+         local server_ip = flow_info["srv.ip"]
          
          for _, dns_ip in pairs(conf.items) do
-      if server_ip == dns_ip then
-         ok = 1
-      end
+            if server_ip == dns_ip then
+               ok = 1
+               break
+            end
          end
          
          if ok == 0 then
