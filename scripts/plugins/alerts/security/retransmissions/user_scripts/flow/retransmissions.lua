@@ -16,8 +16,8 @@ local script = {
 
 	gui = {
 		-- I still need to modify the en.lua file
-		i18n_title = "Retransmitions flow Alert",
-		i18n_description = "Alert when there are too many packets retrasmitted in the flow",
+		i18n_title = "retransmissions.retransmission_alert_title",
+		i18n_description = "retransmissions.retransmission_alert_description",
 	}
 }
 

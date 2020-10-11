@@ -17,7 +17,7 @@ end
 
 
 return {
-	alert_key = alert_keys.user.alert_user_02,
+	alert_key = alert_keys.user.alert_too_many_retransmissions,
 	i18n_title = "Retransmissions alert",
 	icon = "fas fa-exclamation",
 	creator = createRetransmissions,
