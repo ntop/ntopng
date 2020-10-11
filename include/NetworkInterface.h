@@ -543,7 +543,7 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t getFlowMaxIdle();
 
   virtual void lua(lua_State* vm);
-  void luaPeriodicityStats(lua_State* vm);
+  void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address);
   void luaServiceMap(lua_State* vm, IpAddress *ip_address);
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline ServiceMap* getServiceMap()         { return(sMap);           };

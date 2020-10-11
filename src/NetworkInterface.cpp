@@ -7963,10 +7963,10 @@ next_host:
 
 /* *************************************** */
 
-void NetworkInterface::luaPeriodicityStats(lua_State* vm) {
+void NetworkInterface::luaPeriodicityStats(lua_State* vm, IpAddress *ip_address) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pMap) {
-    pMap->lua(vm, this);
+    pMap->lua(vm, this, ip_address);
     return;
   }
 #endif

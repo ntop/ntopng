@@ -4414,14 +4414,24 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
 
 static int ntop_get_interface_periodicity_map(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
+  IpAddress *ip = NULL;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
+    char *host = (char*)lua_tostring(vm, 1);
+
+    ip = new (std::nothrow) IpAddress();
+    if(ip) ip->set(host);
+  }
+
   if(ntop_interface)
-    ntop_interface->luaPeriodicityStats(vm);
+    ntop_interface->luaPeriodicityStats(vm, ip);
   else
     lua_pushnil(vm);
 
+  if(ip) delete ip;
+  
   return(CONST_LUA_OK);
 }
 

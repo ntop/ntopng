@@ -14,7 +14,7 @@ sendHTTPContentTypeHeader('application/json')
 local rsp = {}
 rsp.data  = {}
 
-local p = interface.periodicityMap() or {}
+local p = interface.periodicityMap(_GET["host"]) or {}
 
 for k,v in pairs(p) do
    local row = {}
@@ -33,8 +33,8 @@ for k,v in pairs(p) do
       table.insert(row, v.l7_proto)
    end
 
-   table.insert(row, buildHostHREF(v.client))
-   table.insert(row, buildHostHREF(v.server))
+   table.insert(row, buildHostHREF(v.client, "periodicity_map"))
+   table.insert(row, buildHostHREF(v.server, "periodicity_map"))
    table.insert(row, port)
    table.insert(row, v.num_periodic_loops_accounted)
    table.insert(row, v.frequency)

@@ -6,8 +6,14 @@ require "flow_utils"
 
 print('<link href="'.. ntop.getHttpPrefix()..'/datatables/datatables.min.css" rel="stylesheet"/>')
 
-print ("<H3>" .. i18n("service_map"))
-print [[ </H3>
+print ('<div class="d-flex justify-content-start"><H3>' .. i18n("service_map") .. "</H3>")
+
+if(_GET["host"] ~= nil) then
+   print('&nbsp; <A HREF="/lua/if_stats.lua?page=service_map"><span class="fas fa-ethernet"></span></A>')
+end
+
+print [[
+</div>
 <p>
 <table id="service_map" class="table table-bordered table-striped w-100">
         <thead>

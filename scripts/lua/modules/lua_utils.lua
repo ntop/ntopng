@@ -3909,7 +3909,7 @@ end
 
 local cache = {}
 
-function buildHostHREF(ip_address)
+function buildHostHREF(ip_address, page)
    local stats = cache[ip_address]
 
    if(stats == nil) then
@@ -3925,7 +3925,7 @@ function buildHostHREF(ip_address)
       local name = stats.name
 
       if((name == nil) or (name == "")) then name = ip_address end
-      return('<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..ip_address..'&page=service_map">'..name..'</A>')
+      return('<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..ip_address..'&page='..page..'">'..name..'</A>')
    end
 end
 

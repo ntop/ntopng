@@ -5,9 +5,14 @@
 
 print('<link href="'.. ntop.getHttpPrefix()..'/datatables/datatables.min.css" rel="stylesheet"/>')
 
-print ("<h3>" .. i18n("periodicity_map") .. "</h3>")
-print [[
+print ('<div class="d-flex justify-content-start"><H3>' .. i18n("periodicity_map") .. "</H3>")
 
+if(_GET["host"] ~= nil) then
+   print('&nbsp; <A HREF="/lua/if_stats.lua?page=periodicity_map"><span class="fas fa-ethernet"></span></A>')
+end
+
+print [[
+</div>
 <table id="periodicity_info" class="table table-bordered table-striped w-100">
         <thead>
             <tr>
@@ -71,7 +76,11 @@ end
 
 print [[
    ];
-  let url    = ']] print(ntop.getHttpPrefix()) print [[/lua/get_periodicity_data.lua';
+  let url    = ']] print(ntop.getHttpPrefix()) print [[/lua/get_periodicity_data.lua]]
+
+if(_GET["host"] ~= nil) then print("?host=".._GET["host"]) end
+
+print [[';
   let config = DataTableUtils.getStdDatatableConfig( [ {
             text: '<i class="fas fa-sync"></i>',
             action: function(e, dt, node, config) {

@@ -290,12 +290,24 @@ else
 
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
    local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
-   local service_map_available = nil
 
-   if(host["localhost"]) then
-	 service_map_available = interface.serviceMap(_GET["host"])
+   local periodicity_map = interface.periodicityMap(_GET["host"])
+   local periodicity_map_available = false
+   local service_map_available = false
+   
+   if(interface.serviceMap(_GET["host"]) ~= nil) then
+      service_map_available = true
    end
+   
+   local num_periodicity = 0
 
+   if(periodicity_map) then
+      num_periodicity = table.len(periodicity_map)
+      if(num_periodicity > 0) then
+	 periodicity_map_available = true
+      end
+   end
+   
    page_utils.print_navbar(title, url,
 			   {
 			      {
@@ -430,6 +442,12 @@ else
 				 active = page == "quotas",
 				 page_name = "quotas",
 				 label = i18n("quotas"),
+			      },
+			      {
+				 hidden = not periodicity_map_available,
+				 active = page == "periodicity_map",
+				 page_name = "periodicity_map",
+				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
 			      },
 			      {
 				 hidden = not service_map_available,
@@ -2082,6 +2100,9 @@ elseif(page == "alerts") then
 elseif (page == "quotas" and ntop.isnEdge() and ntop.isEnterpriseM() and host_pool_id ~= host_pools_instance.DEFAULT_POOL_ID and ifstats.inline) then
    local page_params = {ifid=ifId, pool=host_pool_id, host=hostkey, page=page}
    host_pools_nedge.printQuotas(host_pool_id, host, page_params)
+
+elseif (page == "periodicity_map") then
+      dofile(dirs.installdir .. "/scripts/lua/inc/periodicity_map.lua")
 
 elseif (page == "service_map") then
       dofile(dirs.installdir .. "/scripts/lua/inc/service_map.lua")
