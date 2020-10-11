@@ -355,7 +355,7 @@ local function loadAlertsDefs()
 	       goto next_script
             end
 
-            if not loadDefinition(def_script, mod_fname, defs_dir) then
+            if not alert_consts.loadDefinition(def_script, mod_fname, defs_dir) then
 	       -- Retry reload
 	       package.loaded[mod_fname] = nil
 	    end
@@ -375,7 +375,7 @@ end
 
 -- ##############################################
 
-function loadDefinition(def_script, mod_fname, script_path)
+function alert_consts.loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"alert_key", "i18n_title", "icon"}
 
    -- Check the required fields
