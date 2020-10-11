@@ -38,7 +38,7 @@ local function retransmissions_check(now)
 
 	if (c2s_retransmissions ~= nil and cli_sent_packets ~= nil) then
 		local perc_retryonsent = c2s_retransmissions/cli_sent_packets
-		-- io.write ("CLT: retry: ", c2s_retransmissions, "; mandati: ", cli_sent_packets, "; perc: ", perc_retryonsent,";\n") 
+		 
 		if (cli_sent_packets ~= 0 and perc_retryonsent >= 0.2) then
 			-- Send alert and decrease score of server (The scores are subject to change)
 			client_score = 2
@@ -48,7 +48,7 @@ local function retransmissions_check(now)
 	end
 	if (s2c_retransmissions ~= nil and cli_rcvd_packets ~= nil) then
 		local perc_retryonrcvd = s2c_retransmissions/cli_rcvd_packets
-		-- io.write ("SRV: retry: ", s2c_retransmissions, "; mandati: ", cli_rcvd_packets, "; perc: ", perc_retryonrcvd,";\n") 
+
 		if (cli_rcvd_packets ~= 0 and perc_retryonrcvd >= 0.2) then
 			-- Send alert and decrease score of client (The scores are subject to change)
 			client_score = 10
@@ -58,7 +58,7 @@ local function retransmissions_check(now)
 	end
 
 	if retry_flag then
-		-- io.write ("Sending an Alert\n") 
+		
 		flow.triggerStatus(
 			flow_consts.status_types.status_retransmissions.create(
 				flow_consts.status_types.status_retransmissions.alert_severity,
@@ -70,7 +70,6 @@ local function retransmissions_check(now)
 		)
 	end
 
-	-- io.write("---------\n")
 end
 
 -- ############################################
