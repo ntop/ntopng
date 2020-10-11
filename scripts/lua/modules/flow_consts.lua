@@ -58,7 +58,7 @@ local function loadStatusDefs()
 	       goto next_script
 	    end
 
-	    if not loadDefinition(def_script, mod_fname, defs_dir) then
+	    if not flow_consts.loadDefinition(def_script, mod_fname, defs_dir) then
 	       -- Retry reload
 	       package.loaded[mod_fname] = nil
 	    end
@@ -79,7 +79,7 @@ end
 
 -- ################################################################################
 
-function loadDefinition(def_script, mod_fname, script_path)
+function flow_consts.loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"status_key", "alert_severity", "alert_type", "i18n_title"}
 
    -- print("Loading "..script_path.."\n")
