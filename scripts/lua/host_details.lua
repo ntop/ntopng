@@ -26,7 +26,6 @@ local discover = require "discover_utils"
 local ui_utils = require "ui_utils"
 local page_utils = require "page_utils"
 local template = require "template_utils"
-local mud_utils = require "mud_utils"
 local fingerprint_utils = require "fingerprint_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
@@ -470,25 +469,6 @@ local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
    and snmp_location and snmp_location.host_has_snmp_location(host["mac"])
    and isAllowedSystemInterface()
 
-print[[<form id="delete-mud-form" method="post">]]
-print[[<input name="action" type="hidden" value="delete_mud" />]]
-print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-print[[</form>]]
-
-if(isAdministrator() and (_POST["action"] == "delete_mud")) then
-  mud_utils.deleteHostMUD(ifId, host_info.host)
-end
-
-local function printMudRecordingActions()
-   if mud_utils.hasRecordedMUD(ifId, host_info.host) then
-      print(" <a style=\"margin-left: 0.5em\" href=\""..ntop.getHttpPrefix().."/lua/rest/v1/get/host/mud.lua?host=".. host_info.host .."\"><i class=\"fas fa-download\"></i></a>")
-
-      if isAdministrator() then
-	 print("<a style=\"margin-left: 1em\" href=\"#\" onclick=\"$('#delete-mud-form').submit();\"><i class=\"fas fa-trash\"></i></a>")
-      end
-   end
-end
-
 if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
@@ -739,34 +719,6 @@ if am_utils and am_utils.isMeasurementAvailable('icmp') then
    print("</tr>")
 end
 
-
-if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.isMudScriptEnabled(ifId)) then
-   local cur_mud_pref = mud_utils.getCurrentHostMUDRecording(ifId, host_info.host, host["devtype"])
-   local in_progress = (cur_mud_pref ~= "disabled") and mud_utils.isMUDRecordingInProgress(ifId, host_info.host)
-   local dev_list = nil
-   local dev_lb = nil
-
-   print("<tr><th>"..i18n("flow_callbacks_config.mud").." <a href=\"https://developer.cisco.com/docs/mud/#!what-is-mud\" target=\"_blank\"><i class='fas fa-external-link-alt'></i></a></th><td colspan=2></li> ".. mud_utils.getMudPrefLabel(cur_mud_pref) .. " ")
-
-   if cur_mud_pref == "general_purpose" then
-      dev_list = discover.getGeneralPurposeDevicesList()
-      dev_lb = "host_details.list_of_general_purpose"
-   elseif cur_mud_pref == "special_purpose" then
-      dev_list = discover.getSpecialPurposeDevicesList()
-      dev_lb = "host_details.list_of_special_purpose"
-   end
-
-   if not table.empty(dev_list) then
-      print('<i class="fas fa-info-circle" title="'.. i18n(dev_lb, {list=table.concat(dev_list, ", ")}) ..'"></i>')
-   end
-
-   if in_progress then
-      print('<i class="fas fa-circle fa-sm" title="'.. i18n("host_config.mud_is_recording") ..'" style="margin-left: 0.5em; color: #FC2222"></i>')
-   end
-
-   printMudRecordingActions()
-   print("</td></tr>\n")
-end
 
 if(host["active_alerted_flows"] > 0) then
    print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
@@ -2145,10 +2097,6 @@ elseif (page == "config") then
          interface.reloadHideFromTop()
       end
 
-      if _POST["mud_recording"] then
-         mud_utils.setHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
-         interface.reloadHostPrefs(host_info.host)
-      end
    end
 
    -- NOTE: this only configures the alias associated to the IP address, not to the MAC
@@ -2183,25 +2131,6 @@ elseif (page == "config") then
 
    print[[</td>
       </tr>]]
-
-   if(host["localhost"] and ((host_vlan == nil) or (host_vlan == 0)) and mud_utils.isMudScriptEnabled(ifId)) then
-      local mud_recording_pref = mud_utils.getHostMUDRecordingPref(ifId, host_info.host, _POST["mud_recording"])
-
-      print [[<tr>
-         <th>]] print(i18n("host_config.mud_recording")) print[[ <a href="https://developer.cisco.com/docs/mud/#!what-is-mud" target="_blank"><i class='fas fa-external-link-alt'></i></a></th>
-         <td>
-               <select name="mud_recording" class="form-control" style="width:20em;">
-		  <option value="default" ]] if mud_recording_pref == "default" then print("selected") end print[[>]] print(i18n("default")) print[[</option>
-                  <option value="disabled" ]] if mud_recording_pref == "disabled" then print("selected") end print[[>]] print(i18n("traffic_recording.disabled")) print[[</option>
-                  <option value="general_purpose" ]] if mud_recording_pref == "general_purpose" then print("selected") end print[[>]] print(i18n("host_config.mud_general_purpose")) print[[</option>
-                  <option value="special_purpose" ]] if mud_recording_pref == "special_purpose" then print("selected") end print[[>]] print(i18n("host_config.mud_special_purpose")) print[[</option>
-               </select>]]
-
-      printMudRecordingActions()
-
-      print[[</td>
-      </tr>]]
-   end
 
    if(ifstats.inline and (host.localhost or host.systemhost)) then
       -- Traffic policy
