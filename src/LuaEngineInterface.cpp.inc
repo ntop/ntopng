@@ -4412,7 +4412,7 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_periodicity_stats(lua_State* vm) {
+static int ntop_get_interface_periodicity_map(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -4422,6 +4422,22 @@ static int ntop_get_interface_periodicity_stats(lua_State* vm) {
   else
     lua_pushnil(vm);
 
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flush_interface_periodicity_map(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  ntop_interface->flushPeriodicityMap();
+#endif
+  
+  lua_pushnil(vm);
+  
   return(CONST_LUA_OK);
 }
 
@@ -4587,7 +4603,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "getNumLocalHosts",                 ntop_get_num_local_hosts },
   { "getNumHosts",                      ntop_get_num_hosts       },
   { "getNumFlows",                      ntop_get_num_flows       },
-  { "periodicityStats",                 ntop_get_interface_periodicity_stats },
+  { "periodicityMap",                   ntop_get_interface_periodicity_map },
+  { "flushPeriodicityMap",              ntop_flush_interface_periodicity_map },
   { "serviceMap",                       ntop_get_interface_service_map },
   { "flushServiceMap",                  ntop_flush_interface_service_map },
 

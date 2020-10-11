@@ -60,7 +60,7 @@ msg = ""
 local is_packet_interface = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
 
-local periodicity_stats = interface.periodicityStats()
+local periodicity_map = interface.periodicityMap()
 local periodic_info_available = false
 local service_map_available = false
 
@@ -71,8 +71,8 @@ end
 
 local num_periodicity = 0
 
-if(periodicity_stats) then
-   num_periodicity = table.len(periodicity_stats)
+if(periodicity_map) then
+   num_periodicity = table.len(periodicity_map)
    if(num_periodicity > 0) then
       periodic_info_available = true
    end
@@ -349,8 +349,8 @@ page_utils.print_navbar(title, url,
 			      },
 			      {
 				 hidden = not periodic_info_available,
-				 active = page == "periodicity_stats",
-				 page_name = "periodicity_stats",
+				 active = page == "periodicity_map",
+				 page_name = "periodicity_map",
 				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
 			      },
 			      {
@@ -2066,8 +2066,8 @@ elseif(page == "unassigned_pool_devices") then
    dofile(dirs.installdir .. "/scripts/lua/unknown_devices.lua")
 elseif(page == "dhcp") then
     dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
-elseif page == "periodicity_stats" then
-      dofile(dirs.installdir .. "/scripts/lua/inc/periodicity_stats.lua")
+elseif page == "periodicity_map" then
+      dofile(dirs.installdir .. "/scripts/lua/inc/periodicity_map.lua")
 elseif page == "service_map" then
       dofile(dirs.installdir .. "/scripts/lua/inc/service_map.lua")
 elseif page == "traffic_report" then

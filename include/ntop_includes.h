@@ -320,6 +320,7 @@ using namespace std;
 #include "PeriodicityStats.h"
 #include "PeriodicityHash.h"
 #include "ServiceMap.h"
+#include "PeriodicityMap.h"
 #endif
 #include "NetworkInterface.h"
 #ifndef HAVE_NEDGE

@@ -64,7 +64,7 @@ for k,v in pairs(p) do
    if((host_ip == nil)
 	 or (v.client == host_ip)
       or (v.server == host_ip) ) then
-      local k = "^".. getL4ProtoName(v.l4_proto) .. "." .. v.l7_proto .."$"
+      local k = "^".. getL4ProtoName(v.l4_proto) .. ":" .. v.l7_proto .."$"
 
       keys_regex[v.l7_proto] = k
 

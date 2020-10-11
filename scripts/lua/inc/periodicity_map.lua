@@ -5,7 +5,7 @@
 
 print('<link href="'.. ntop.getHttpPrefix()..'/datatables/datatables.min.css" rel="stylesheet"/>')
 
-print ("<h3>" .. i18n("periodicity_stats") .. "</h3>")
+print ("<h3>" .. i18n("periodicity_map") .. "</h3>")
 print [[
 
 <table id="periodicity_info" class="table table-bordered table-striped w-100">
@@ -17,18 +17,42 @@ print [[
                 <th>]] print(i18n("port")) print [[</th>
                 <th>]] print(i18n("observations")) print [[</th>
                 <th>]] print(i18n("frequency")) print [[</th>
+                <th>]] print(i18n("last_seen")) print [[</th>
                 <th>]] print(i18n("info")) print [[</th>
             </tr>
         </thead>
 </table>
 <p>
+<form>
+]]
 
+if(isAdministrator()) then
+   if(_GET["action"] == "reset") then
+      interface.flushPeriodicityMap()
+   end
+
+
+   if(ifid ~= nil) then
+     print [[
+<input type=hidden name="ifid" value="]] print(ifid.."") print [[">
+<input type=hidden name="page" value="periodicity_map">
+<input type=hidden name="action" value="reset">
+
+<button id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger">
+ <i class="fas fa-undo-alt"></i> ]] print(i18n("flush_periodicity_map_data")) print [[
+</button>
+</form>
+]]
+     end
+   end
+
+print [[
 <script>
 $(document).ready(function() {
   const filters = [
 ]]
 
-local p = interface.periodicityStats() or {}
+local p = interface.periodicityMap() or {}
 
 local keys = {}
 
@@ -51,7 +75,7 @@ print [[
   let config = DataTableUtils.getStdDatatableConfig( [ {
             text: '<i class="fas fa-sync"></i>',
             action: function(e, dt, node, config) {
-                $serviceTable.ajax.reload();
+                $periodicityTable.ajax.reload();
             }
         } ]);
 

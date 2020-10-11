@@ -149,10 +149,10 @@ NetworkInterface::NetworkInterface(const char *name,
      && ifname
      && strcmp(ifname, SYSTEM_INTERFACE_NAME)
      ) {
-    pHash = new PeriodicityHash(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
-    sm    = new ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
+    pMap = new PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
+    sMap = new ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
   } else
-    pHash = NULL, sm = NULL;
+    pMap = NULL, sMap = NULL;
 #endif
 
   if(id >= 0) {
@@ -578,8 +578,8 @@ NetworkInterface::~NetworkInterface() {
   if(interfaceStats) delete interfaceStats;
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  if(pHash) delete pHash;
-  if(sm)    delete sm;
+  if(pMap) delete pMap;
+  if(sMap) delete sMap;
 #endif
 
   for(it = external_alerts.begin(); it != external_alerts.end(); ++it)
@@ -1635,8 +1635,8 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
   checkHostsToRestore();
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  if(pHash) pHash->purgeIdle(when);
-  if(sm)    sm->purgeIdle(when);
+  if(pMap) pMap->purgeIdle(when);
+  if(sMap) sMap->purgeIdle(when);
 #endif
 }
 
@@ -7965,8 +7965,8 @@ next_host:
 
 void NetworkInterface::luaPeriodicityStats(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  if(pHash) {
-    pHash->lua(vm, this);
+  if(pMap) {
+    pMap->lua(vm, this);
     return;
   }
 #endif
@@ -7978,8 +7978,8 @@ void NetworkInterface::luaPeriodicityStats(lua_State* vm) {
 
 void NetworkInterface::luaServiceMap(lua_State* vm, IpAddress *ip_address) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  if(sm) {    
-    sm->lua(vm, this, ip_address);
+  if(sMap) {    
+    sMap->lua(vm, this, ip_address);
     return;
   }
 #endif
@@ -7991,7 +7991,7 @@ void NetworkInterface::luaServiceMap(lua_State* vm, IpAddress *ip_address) {
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
 void NetworkInterface::updateFlowPeriodicity(Flow *f) {
-  if(pHash && f) pHash->updateElement(f, f->get_first_seen());
+  if(pMap && f) pMap->updateElement(f, f->get_first_seen());
 }
 #endif
 
@@ -7999,7 +7999,7 @@ void NetworkInterface::updateFlowPeriodicity(Flow *f) {
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
 void NetworkInterface::updateServiceMap(Flow *f) {
-  if(sm && f) sm->update(f, f->get_first_seen());
+  if(sMap && f) sMap->update(f, f->get_first_seen());
 }
 #endif
 

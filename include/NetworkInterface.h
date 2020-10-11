@@ -75,8 +75,8 @@ class NetworkInterface : public AlertableEntity {
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  PeriodicityHash *pHash;
-  ServiceMap *sm;
+  PeriodicityMap *pMap;
+  ServiceMap *sMap;
 #endif
 
   /* Flows queues waiting to be dumped */
@@ -546,8 +546,12 @@ class NetworkInterface : public AlertableEntity {
   void luaPeriodicityStats(lua_State* vm);
   void luaServiceMap(lua_State* vm, IpAddress *ip_address);
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  inline ServiceMap* getServiceMap() { return(sm); };
-  inline void flushServiceMap()      { if(sm) sm->flush(); };
+  inline ServiceMap* getServiceMap()         { return(sMap);           };
+  inline void flushServiceMap()              { if(sMap) sMap->flush(); };
+  inline PeriodicityMap* getPeriodicityMap() { return(pMap);           };
+  inline void flushPeriodicityMap()          { if(pMap) pMap->flush(); };
+  void updateFlowPeriodicity(Flow *f);
+  void updateServiceMap(Flow *f);  
 #endif
   void lua_hash_tables_stats(lua_State* vm);
   void lua_periodic_activities_stats(lua_State* vm);
@@ -901,11 +905,6 @@ class NetworkInterface : public AlertableEntity {
   virtual bool reproducePcapOriginalSpeed() const         { return(false);             }
   inline u_int32_t getNumEngagedAlerts()    const         { return num_alerts_engaged; };
   void releaseAllEngagedAlerts();
-
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  void updateFlowPeriodicity(Flow *f);
-  void updateServiceMap(Flow *f);
-#endif
 
   virtual void hookFlowLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */
   virtual void dumpFlowLoop(); /* Body of the loop that dequeues flows for the database dump */

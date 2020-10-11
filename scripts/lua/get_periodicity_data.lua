@@ -14,7 +14,7 @@ sendHTTPContentTypeHeader('application/json')
 local rsp = {}
 rsp.data  = {}
 
-local p = interface.periodicityStats() or {}
+local p = interface.periodicityMap() or {}
 
 for k,v in pairs(p) do
    local row = {}
@@ -28,7 +28,7 @@ for k,v in pairs(p) do
    end
 
    if(l4 ~= v.l7_proto) then
-      table.insert(row, l4 .. "." .. v.l7_proto)
+      table.insert(row, l4 .. ":" .. v.l7_proto)
    else
       table.insert(row, v.l7_proto)
    end
@@ -38,6 +38,7 @@ for k,v in pairs(p) do
    table.insert(row, port)
    table.insert(row, v.num_periodic_loops_accounted)
    table.insert(row, v.frequency)
+   table.insert(row, secondsToTime(os.time()-v.last_seen).. " "..i18n("details.ago"))
    table.insert(row, shortenString(v.info, 64))
 
    table.insert(rsp.data, row)
