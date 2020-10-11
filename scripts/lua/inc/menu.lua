@@ -299,10 +299,7 @@ page_utils.add_menubar_section(
 
 -- System Health
 
-page_utils.add_menubar_section({
-   hidden = not is_system_interface,
-   section = page_utils.menu_sections.health,
-   entries = {
+local health_entries = {
       {
          entry = page_utils.menu_entries.system_status,
          url = '/lua/system_stats.lua',
@@ -316,18 +313,52 @@ page_utils.add_menubar_section({
          url = '/lua/system_alerts_stats.lua',
       },
    }
+
+-- Add plugin entries relative to system health (e.g., redis) ...
+for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+   -- NOTE: match on the health key to only pick the right subset of entries
+   if entry.menu_entry.section == page_utils.menu_sections.health.key then
+      health_entries[#health_entries + 1] = {
+	 entry = page_utils.menu_entries[entry.menu_entry.key],
+	 url = entry.url,
+      }
+   end
+end
+
+page_utils.add_menubar_section({
+   hidden = not is_system_interface,
+   section = page_utils.menu_sections.health,
+   entries = health_entries
 })
 
 -- ##############################################
 
--- SNMP
+-- Pollers (e.g., SNMP, active monitoring)
 
-page_utils.add_menubar_section({
+local poller_entries = {}
+
+-- Add SNMP to the poller entries
+poller_entries[#poller_entries + 1] = {
+   entry = page_utils.menu_entries.snmp,
    hidden = not is_system_interface or not ntop.isEnterpriseM(),
    url = "/lua/pro/enterprise/snmpdevices_stats.lua",
-   section = page_utils.menu_sections.snmp
-})
+}
 
+-- Add plugin entries relative to pollers (e.g., active monitoring) ...
+for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
+   if entry.menu_entry.section == page_utils.menu_sections.pollers.key then
+      poller_entries[#poller_entries + 1] = {
+	 entry = page_utils.menu_entries[entry.menu_entry.key],
+	 url = entry.url,
+      }
+   end
+end
+
+page_utils.add_menubar_section({
+   hidden = not is_system_interface,
+   section = page_utils.menu_sections.pollers,
+   entries = poller_entries
+})
 
 -- ##############################################
 
@@ -337,20 +368,27 @@ local system_entries = {}
 
 -- Add plugin entries...
 for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
-   system_entries[#system_entries + 1] = {
-      entry = page_utils.menu_entries[entry.menu_entry.key],
-      url = entry.url,
-   }
+   -- Skip pollers, they've already been set under pollers section
+   if not entry.menu_entry.section == "pollers" then
+      system_entries[#system_entries + 1] = {
+	 entry = page_utils.menu_entries[entry.menu_entry.key],
+	 url = entry.url,
+      }
+   end
 end
 
 -- Possibly add nEdge entries
 if is_nedge then
+   -- Possibly add a divider if system_entries already contain elements
+   if #system_entries > 0 then
+      system_entries[#system_entries + 1] = {
+	 entry = page_utils.menu_entries.divider,
+	 hidden = not is_admin,
+      }
+   end
+
    for _, entry in ipairs(
       {
-	 {
-	    entry = page_utils.menu_entries.divider,
-	    hidden = not is_admin,
-	 },
 	 {
 	    entry = page_utils.menu_entries.system_setup,
 	    hidden = not is_admin,
@@ -376,13 +414,15 @@ if is_nedge then
    end
 end
 
-page_utils.add_menubar_section(
-   {
-      section = page_utils.menu_sections.system_stats,
-      hidden = not isAllowedSystemInterface() or not is_system_interface,
-      entries = system_entries,
-   }
-)
+if #system_entries > 0 then
+   page_utils.add_menubar_section(
+      {
+	 section = page_utils.menu_sections.system_stats,
+	 hidden = not isAllowedSystemInterface() or not is_system_interface,
+	 entries = system_entries,
+      }
+   )
+end
 
 -- ##############################################
 

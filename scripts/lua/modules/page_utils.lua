@@ -32,11 +32,11 @@ page_utils.menu_sections = {
    admin        = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
    dev   	= {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
    about	= {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
-   snmp         = {key = "snmp", i18n_title = "prefs.snmp", icon = "fas fa-tablet"},
-   health       = {key = "system_health", i18n_title = "health", icon = "fas fa-heartbeat"},
+   health       = {key = "system_health", i18n_title = "health", icon = "fas fa-laptop-medical"},
+   pollers      = {key = "pollers", i18n_title = "pollers", icon = "fas fa-heartbeat"},
    tools        = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
    pools        = {key = "pools", i18n_title = "pools.pools", icon = "fas fa-users"},
-   notifications = {key = "notifications", i18n_title = "endpoint_notifications.notifications", icon = "fas fa-flag"},
+   notifications = {key = "notifications", i18n_title = "endpoint_notifications.notifications", icon = "fas fa-bell"},
    -- nEdge
    views	= {key = "hosts", i18n_title = "views", icon = "fas fa-bars"},
 }
@@ -85,8 +85,8 @@ page_utils.menu_entries = {
     -- Interface
     interface	      	 = {key = "interface", i18n_title = "interface_ifname", section = "if_stats", visible_iface = true},
 
-    -- SNMP
-    snmp	      	 = {key = "snmp", i18n_title = "prefs.snmp", section = "snmp", visible_system = true},
+    -- Pollers
+    snmp	      	 = {key = "snmp", i18n_title = "prefs.snmp", section = "pollers", visible_system = true},
 
     -- Status (Health)
     system_status	 = {key = "status", i18n_title = "system_status", section = "system_health", visible_system = true},
