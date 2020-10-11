@@ -9,7 +9,6 @@ require "lua_utils"
 require "db_utils"
 require "historical_utils"
 require "rrd_paths"
-local page_utils =require("page_utils")
 local ui_utils = require("ui_utils")
 local dkjson = require("dkjson")
 local host_pools = require "host_pools"
@@ -313,8 +312,9 @@ end
 -- ########################################################
 
 function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options)
+   local page_utils =require("page_utils") -- Do not require at the top as it could conflict with plugins_utils.getMenuEntries
    local debug_rrd = false
-   local is_sistem_interface = page_utils.is_system_view()
+   local is_system_interface = page_utils.is_system_view()
    options = options or {}
 
    if((selectedEpoch == nil) or (selectedEpoch == "")) then
@@ -548,7 +548,7 @@ elseif string.contains(label, "packets") or string.contains(label, "flows") or l
    format_as_bytes = false
    format_as_bps = false
 else
-   formatter_fctn = (is_sistem_interface and "NtopUtils.fnone" or "NtopUtils.fbits")
+   formatter_fctn = (is_system_interface and "NtopUtils.fnone" or "NtopUtils.fbits")
 end
 
 print [[
@@ -581,7 +581,7 @@ if(stats ~= nil) then
      print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval), 1) .. '</td></tr>\n')
      print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(stats.average, 2)) .. '</td></tr>\n')
      print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(stats["95th_percentile"], 2)) .. '</td></tr>\n')
-   elseif is_sistem_interface then
+   elseif is_system_interface then
       if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. (formatValue(round(stats["min_val"], 2)) or "") .. '</td></tr>\n') end
       if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. (formatValue(round(stats["max_val"], 2)) or "") .. '</td></tr>\n') end
       print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval, 2)) .. '</td></tr>\n')
@@ -602,7 +602,7 @@ end
 print('   <tr><th>Time</th><td colspan=2><div id=when></div></td></tr>\n')
 
 -- hide Minute Interface Top Talker if we are in system interface
-if top_talkers_utils.areTopEnabled(ifid) and not is_sistem_interface then
+if top_talkers_utils.areTopEnabled(ifid) and not is_system_interface then
    print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
 end
 
