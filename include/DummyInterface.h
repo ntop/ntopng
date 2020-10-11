@@ -33,7 +33,7 @@ class DummyInterface : public ZMQParserInterface {
  public:
   DummyInterface();
 
-  const char* get_type()                  { return(CONST_INTERFACE_TYPE_DUMMY);      };
+  virtual const char* get_type()    const { return(CONST_INTERFACE_TYPE_DUMMY);      };
   virtual InterfaceType getIfType() const { return(interface_type_DUMMY);            };
   virtual bool is_ndpi_enabled() const    { return(false);  };
   virtual bool isPacketInterface() const  { return(false);  };

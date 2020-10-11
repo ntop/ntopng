@@ -105,7 +105,6 @@ print([[
 		});
 
 	   const toggleSystemInterface = (isSystemSwitching = false, $form = null) => {
-
 		  // if form it's empty it means the call was not invoked
 		  // by a form request
 		  // prevent the non admin user to switch in system interface

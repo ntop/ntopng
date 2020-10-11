@@ -66,7 +66,7 @@ class SyslogCollectorInterface : public SyslogParserInterface {
 
   int receive(int socket, char *client_ip);
 
-  inline const char* get_type()           { return(CONST_INTERFACE_TYPE_SYSLOG); };
+  virtual const char* get_type()    const { return(CONST_INTERFACE_TYPE_SYSLOG); };
   virtual InterfaceType getIfType() const { return(interface_type_SYSLOG); }
   inline char* getEndpoint(u_int8_t id)   { return(endpoint);   };
   virtual bool isPacketInterface() const  { return(false);      };

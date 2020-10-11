@@ -42,7 +42,7 @@ class ZCCollectorInterface : public ZMQParserInterface {
   ~ZCCollectorInterface();
 
   virtual InterfaceType getIfType() const { return(interface_type_ZC_FLOW);       };
-  inline const char* get_type()           { return(CONST_INTERFACE_TYPE_ZC_FLOW); };
+  virtual const char* get_type()    const { return(CONST_INTERFACE_TYPE_ZC_FLOW); };
   virtual bool is_ndpi_enabled() const    { return(false);      };
   inline void incrDrops(u_int32_t num)    { num_drops += num;   };
   virtual bool isPacketInterface() const  { return(false);      };

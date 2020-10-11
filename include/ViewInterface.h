@@ -54,7 +54,7 @@ class ViewInterface : public NetworkInterface {
      The total number of elements dequeued is returned. */
   u_int64_t viewDequeue(u_int budget);
   virtual InterfaceType getIfType() const { return interface_type_VIEW;           };
-  inline const char* get_type()           { return CONST_INTERFACE_TYPE_VIEW;     };
+  virtual const char* get_type()    const { return CONST_INTERFACE_TYPE_VIEW;     };
   virtual bool is_ndpi_enabled()    const { return false;                         };
   virtual bool isPacketInterface()  const { return is_packet_interface;           };
   void flowPollLoop();

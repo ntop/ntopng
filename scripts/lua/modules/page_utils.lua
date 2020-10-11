@@ -26,7 +26,7 @@ page_utils.menu_sections = {
    alerts       = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows        = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
    hosts        = {key = "hosts", i18n_title = "hosts", icon = "fas fa-laptop"},
-   exporters    = {key = "exporters", i18n_title = "flow_devices.exporters", icon = "fas fa-file-export"},
+   exporters    = {key = "exporters", i18n_title = "flow_devices.exporters", icon = "fas fa-file-export", zmq_only = true --[[ only for non-packet ZMQ interfaces --]] },
    if_stats     = {key = "if_stats", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
    admin        = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
@@ -812,6 +812,39 @@ function page_utils.is_valid_page(selected_page, available_pages)
 
    return false
 
+end
+
+-- ##############################################
+
+-- @brief Prepares the URL which will be used for the redirect after interface switch
+-- @param ifid The interface identifier of the interface that will be switched
+-- @param if_type The type of the interface that will be switched
+-- @return The URL
+function page_utils.switch_interface_form_action_url(ifid, if_type)
+   local action_url = ""
+   local is_system_interface = page_utils.is_system_view()
+   local page_params = table.clone(_GET)
+
+   -- Read the currently active page
+   local active_page = page_utils.get_active_section()
+
+   if is_system_interface then
+      -- If the currently selected interface is system,
+      -- then the switch redirects to the root and not to the
+      -- currently selected page
+      action_url = ntop.getHttpPrefix() .. '/'
+   elseif page_utils.menu_sections[active_page] and page_utils.menu_sections[active_page]["zmq_only"] and if_type ~= "zmq" and if_type ~= "custom" then
+      -- If the interface that will be switched is non-ZMQ, and the currently
+      -- selected page is for ZMQ-only interfaces, then a redirection to root
+      -- is performed, rather than preserving the current page
+      action_url = ntop.getHttpPrefix() .. '/'
+   end
+
+   -- Attach the interface id of the interface that will be switched
+   page_params.ifid = ifid
+
+   -- Return the url, preserving all existing page parameters (e.g., host=xx)
+   return getPageUrl(action_url, page_params)
 end
 
 -- ##############################################

@@ -50,9 +50,9 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   ZMQCollectorInterface(const char *_endpoint);
   ~ZMQCollectorInterface();
 
-  inline const char* get_type()           { return(CONST_INTERFACE_TYPE_ZMQ);      };
-  inline char* getEndpoint(u_int8_t id)   { return((id < num_subscribers) ?
-						   subscriber[id].endpoint : (char*)""); };
+  virtual const char* get_type()      const { return(CONST_INTERFACE_TYPE_ZMQ);      };
+  inline char* getEndpoint(u_int8_t id)     { return((id < num_subscribers) ?
+						     subscriber[id].endpoint : (char*)""); };
   virtual void checkPointCounters(bool drops_only);
   virtual bool isPacketInterface() const  { return(false);      };
   void collect_flows();

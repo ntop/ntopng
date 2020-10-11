@@ -261,7 +261,7 @@ else
    page_utils.add_menubar_section(
       {
 	 section = page_utils.menu_sections.exporters,
-	 hidden = (ifs.type ~= "zmq" or not ntop.isEnterpriseM()) or is_system_interface,
+	 hidden = ((ifs.type ~= "zmq" and ifs.type ~= "custom") or not ntop.isEnterpriseM()) or is_system_interface,
 	 entries = {
 	    {
 	       entry = page_utils.menu_entries.event_exporters,
@@ -803,6 +803,7 @@ local recording = {}
 local packetinterfaces = {}
 local ifnames = {}
 local ifdescr = {}
+local iftype = {}
 local ifHdescr = {}
 local ifCustom = {}
 local dynamic = {}
@@ -812,6 +813,7 @@ for v,k in pairs(iface_names) do
    local _ifstats = interface.getStats()
    ifnames[_ifstats.id] = k
    ifdescr[_ifstats.id] = _ifstats.description
+   iftype[_ifstats.id] = _ifstats.type
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
    if(_ifstats.isDynamic == true) then dynamic[k] = true end
@@ -842,25 +844,16 @@ for round = 1, 2 do
          v = ifnames[k]
 
 	 -- table.clone needed to modify some parameters while keeping the original unchanged
-         local page_params = table.clone(_GET)
-         page_params.ifid = k
-         -- ntop.g`tHttpPrefix()
-         local url_query = getPageUrl("", page_params)
-
          print([[<li class="nav-item">]])
 
          if(v == ifname and not is_system_interface) then
             print("<a class=\"dropdown-item active\" href=\"#\">")
          else
             -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
-            local action_url = ""
-            if(is_system_interface) then
-               action_url = ntop.getHttpPrefix() .. '/' .. url_query
-            else
-               action_url = url_query
-            end
 
-            print[[<form id="switch_interface_form_]] print(tostring(k)) print([[" method="post" action="]].. action_url ..[[]]) print[[">]]
+	    local action_url = page_utils.switch_interface_form_action_url(k, iftype[k])
+
+   print[[<form id="switch_interface_form_]] print(tostring(k)) print([[" method="post" action="]].. action_url ..[[]]) print[[">]]
             print[[<input name="switch_interface" type="hidden" value="1" />]]
             print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
             print[[</form>]]

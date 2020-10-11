@@ -5437,7 +5437,7 @@ void NetworkInterface::lua(lua_State *vm) {
   icmp_v6.lua(false, vm);
   lua_push_uint64_table_entry(vm, "arp.requests", arp_requests);
   lua_push_uint64_table_entry(vm, "arp.replies", arp_replies);
-  lua_push_str_table_entry(vm, "type", (char*)get_type());
+  lua_push_str_table_entry(vm, "type", get_type());
   lua_push_uint64_table_entry(vm, "speed", ifSpeed);
   lua_push_uint64_table_entry(vm, "mtu", ifMTU);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
