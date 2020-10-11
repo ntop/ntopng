@@ -536,6 +536,15 @@ function alerts_api.iec104Entity(flow)
 end
 
 -- ##############################################
+
+function alerts_api.lateralMovementEntity(flow)
+  return {
+    alert_entity = alert_consts.alert_entities.flow,
+    alert_entity_val = "flow"
+  }
+end
+
+-- ##############################################
 -- type_info building functions
 -- ##############################################
 

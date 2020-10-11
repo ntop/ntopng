@@ -80,6 +80,7 @@ local alert_keys = {
       alert_unexpected_dhcp_server         = {NO_PEN, 65},
       alert_unexpected_ntp_server          = {NO_PEN, 66},
       alert_too_many_retransmissions       = {NO_PEN, 67},
+      alert_lateral_movement               = {NO_PEN, 68},
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
