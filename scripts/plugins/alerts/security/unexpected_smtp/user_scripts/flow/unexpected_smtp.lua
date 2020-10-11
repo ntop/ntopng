@@ -40,28 +40,27 @@ local script = {
 
 function script.hooks.protocolDetected(now, conf)
    if(table.len(conf.items) > 0) then
-      ok = 0
-      server_ip =  flow.getServerKey()
-
-      -- the string format returned by flow.geServerKey() is "x.x.x.x@0", :sub(1, -3) deletes "@0"
-      server_ip = server_ip:sub(1, -3)
+      local ok = 0
+      local flow_info = flow.getInfo()
+      local server_ip = flow_info["srv.ip"]
       
       for _, smtp_ip in pairs(conf.items) do
-	 if server_ip == smtp_ip then
-	    ok = 1
-	 end
+         if server_ip == smtp_ip then
+            ok = 1
+            break
+         end
       end
 
       if ok == 0 then
-	 flow.triggerStatus(
-	    flow_consts.status_types.status_unexpected_smtp.create(
-	       flow_consts.status_types.status_unexpected_smtp.alert_severity,
-	       server_ip
-	    ),
-	    100, -- flow_score
-	    0, -- cli_score
-	    100 --srv_score
-	 )
+         flow.triggerStatus(
+            flow_consts.status_types.status_unexpected_smtp.create(
+               flow_consts.status_types.status_unexpected_smtp.alert_severity,
+               server_ip
+            ),
+            100, -- flow_score
+            0, -- cli_score
+            100 --srv_score
+         )
       end
    end
 end
