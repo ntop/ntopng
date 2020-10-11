@@ -980,6 +980,7 @@ function plugins_utils.cleanup()
   ntop.rmdir(os_utils.fixPath(dirs.workingdir .. "/plugins"))
   ntop.rmdir(ntop.getCurrentPluginsDir())
   ntop.rmdir(ntop.getShadowPluginsDir())
+  clearInternalState()
 end
 
 -- ##############################################
