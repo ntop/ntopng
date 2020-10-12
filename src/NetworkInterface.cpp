@@ -2423,7 +2423,7 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
      that are increased by flow user script hooks. Hence, by executing the purging here in this thread, we ensure
      consistency of counters.
   */
-  num_done += purgeQueuedIdleFlows();
+  purgeQueuedIdleFlows();
 
 #if DEBUG_FLOW_HOOKS
   if(num_done > 0)
