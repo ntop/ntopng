@@ -489,6 +489,7 @@ local lang = {
     ["alerts_ts_description"] = "Generate process alerts timeseries",
     ["all_hosts"] = "All Hosts",
     ["anomalous_tcp_flags"] = "Anomalous TCP Flags",
+    ["lateral_movement"] = "Lateral Movement",
     ["attack_mitigation_snmp_description"] = "Set the host SNMP access port admin status to down when the client score exceeds the specified threshold",
     ["attack_mitigation_snmp_title"] = "Attack Mitigation via SNMP",
     ["blacklisted_country"] = "Blacklisted Country",

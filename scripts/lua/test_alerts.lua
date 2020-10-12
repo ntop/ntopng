@@ -22,13 +22,13 @@ end
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- checks all the hosts of the current interface (TODO: iterate all interfaces)
-interface.checkHostsAlerts(true --[[ min --]])
+-- interface.checkHostsAlerts(true --[[ min --]])
 
 -- checks the current networks alerts
 -- interface.checkNetworksAlertsMin()
 
 -- checks the current interface alerts
--- interface.checkInterfaceAlertsMin()
+interface.checkInterfaceAlerts(true --[[ min --]])
 
 -- run the system scripts
 -- ntop.checkSystemScriptsMin()

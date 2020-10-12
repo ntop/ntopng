@@ -13,7 +13,7 @@ local json         = require("dkjson")
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param last_error A string with the lastest influxdb error
 -- @return A table with the alert built
-local function createLateralMovementError(alert_severity, alert_granularity, alert_subtype, last_error)
+local function createLateralMovementError(alert_severity, alert_granularity, last_error)
    local threshold_type = {
       alert_severity = alert_severity,
       alert_subtype = alert_subtype,

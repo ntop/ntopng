@@ -136,7 +136,6 @@ end
 --! @param when (optional) the time when the release event occurs
 --! @return true if the alert was successfully stored, false otherwise
 function alerts_api.store(entity_info, type_info, when)
-
   if(not areAlertsEnabled()) then
     return(false)
   end
@@ -529,15 +528,6 @@ end
 -- ##############################################
 
 function alerts_api.iec104Entity(flow)
-  return {
-    alert_entity = alert_consts.alert_entities.flow,
-    alert_entity_val = "flow"
-  }
-end
-
--- ##############################################
-
-function alerts_api.lateralMovementEntity(flow)
   return {
     alert_entity = alert_consts.alert_entities.flow,
     alert_entity_val = "flow"
