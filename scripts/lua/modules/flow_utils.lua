@@ -655,6 +655,7 @@ function getFlowKey(name)
       -- TODO: currently rtemplate is flat and PENs are ignored, we should add PEN there
 
       local pen, field = name:match("^(%d+)%.(%d+)$")
+
       local v = (rtemplate[tonumber(name)] or rtemplate[tonumber(field)])
       if(v == nil) then
 	 return(name)
@@ -1331,32 +1332,30 @@ end
 -- #######################
 
 function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
+   -- Make sure indices are strings as snmp_utils handles them as strings
+   input_idx = tostring(input_idx)
+   output_idx = tostring(output_idx)
+
    if not ntop.isPro() then
       return
    end
 
    if not isEmptyString(snmpdevice) then
-
       local snmp_cached_dev = require "snmp_cached_dev"
       local cached_device = snmp_cached_dev:create(snmpdevice)
 
-      if cached_device and cached_device["interfaces"] then
+      if cached_device and cached_device["interfaces"] and table.len(cached_device["interfaces"]) > 0 then
          local snmpurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host="..snmpdevice.. "'>"..snmpdevice.."</A>"
 
          local snmp_interfaces = cached_device["interfaces"]
          local inputurl, outputurl
 
          local function prepare_interface_url(idx, port)
+	    local snmp_utils = require "snmp_utils"
             local ifurl
 
 	    if port then
-	       local label = port["index"]
-
-	       if port["name"] and port["name"] ~= "" then
-	          label = shortenString(port["name"])
-	       end
-
-	       ifurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_interface_details.lua?host="..dev.."&snmp_port_idx="..port["index"].."'>"..label.."</A>"
+	       ifurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_interface_details.lua?host="..snmpdevice.."&snmp_port_idx="..port["index"].."'>"..snmp_utils.get_snmp_interface_label(port).."</A>"
 	    else
 	       ifurl = idx
 	    end

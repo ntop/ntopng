@@ -70,6 +70,10 @@ function flow_field_value_maps.map_field_value(ifid, field, value)
       -- do the actual mapping
       if pen_map[field_pen] then
 	 field, value = pen_map[field_pen].map_field_value(ifid, field_type, value)
+      elseif rtemplate[tonumber(field_type)] then
+	 -- If there's no match on pen_map, attempt at decoding using the nProbe rtemplate
+	 -- NOTE: see function getFlowKey in flow_utils.lua
+	 field = rtemplate[tonumber(field_type)]
       end
 
       -- override with static mappings with those received from nProbe on the options topic

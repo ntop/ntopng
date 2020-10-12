@@ -1363,7 +1363,6 @@ else
       end
       info = syminfo
 
-
       -- get SIP rows
       if(ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
         local sip_table_rows = getSIPTableRows(info)
