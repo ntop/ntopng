@@ -322,11 +322,11 @@ function handle_upgrade_requests() {
 	fi
 }
 
-# Check if the product is under maintenance
-maintenance_check
-
 # Run this cron script when the ntopng service is enabled only
 service_enabled_check
+
+# Check if the product is under maintenance
+maintenance_check
 
 # Check OEM mode
 OEM_MODE=$(${REDIS_CLI} ${REDIS_CLI_OPT} EXISTS ${REDIS_PRODUCT_NAME_KEY} 2>/dev/null | grep 1)
