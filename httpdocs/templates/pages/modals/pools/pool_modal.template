@@ -31,7 +31,7 @@
                     </div>
                     {# the host pool modal doesn't have the members field #}
                     {% if (pool.name ~= "host") then %}
-                    <div class="form-group row members-container">
+                    <div class="form-group row members-container" {* ((table.len(pool.all_members) > 0) and '' or 'style="display: none"') *}>
                         <label class="col-form-label col-sm-4" for="{{ modal_type }}-pool-members-input">
                             <b>{{ i18n("pools.members") }}</b>
                         </label>
