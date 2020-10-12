@@ -170,7 +170,7 @@ function maintenance_check() {
 			set_failure "no-license"
 			exit 0
 		fi
-	elif echo "${EXPIRY_EPOCH}${NOW}" | grep -q "^[0-9]\+$"; then
+	elif echo "${EXPIRY_EPOCH}" | grep -q "^[0-9]\+$"; then
 		if [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
 			# Expired maintenance
 			set_failure "expired-maintenance"
