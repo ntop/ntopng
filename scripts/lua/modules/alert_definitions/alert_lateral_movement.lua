@@ -37,9 +37,9 @@ local function formatLateralMovementErrorMessage(ifid, alert, status)
    local client = {host = msg.shost, vlan = vlan_id}
    local server = {host = msg.dhost, vlan = vlan_id}
 
-   local rsp = "<A HREF=\""..hostinfo2detailsurl(client) .."\">".. hostinfo2label(client) .."</A>"..
-      " <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i>" ..
-      "<A HREF=\""..hostinfo2detailsurl(server) .."\">".. hostinfo2label(server) .."</A>"..
+   local rsp = hostinfo2detailshref(client, nil, hostinfo2label(client))..
+      " <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
+      hostinfo2detailshref(server, nil, hostinfo2label(server))..
       " ["..i18n("port")..": "..msg.dport.."]"
    
    rsp = rsp .. "["..i18n("application")..": "..interface.getnDPIProtoName(msg.l7).."]"
