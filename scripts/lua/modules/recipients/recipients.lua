@@ -538,7 +538,7 @@ function recipients.get_all_recipients(exclude_builtin, include_stats)
    local cur_recipient_ids = _get_assigned_recipient_ids()
 
    for _, recipient_id in pairs(cur_recipient_ids) do
-      local recipient_details = recipients.get_recipient(recipient_id)
+      local recipient_details = recipients.get_recipient(recipient_id, include_stats)
 
       if recipient_details and (not exclude_builtin or not recipient_details.endpoint_conf.builtin) then
 	 res[#res + 1] = recipient_details
