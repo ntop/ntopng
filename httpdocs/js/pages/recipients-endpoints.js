@@ -196,7 +196,7 @@ $(document).ready(function () {
 
                     if (!recipient.endpoint_conf) return;
 
-                    const isBuiltin = recipient.endpoint_conf.builtin || false;
+                    const isBuiltin = (recipient.endpoint_conf && recipient.endpoint_conf.builtin) || false;
                     if (isBuiltin) return;
 
                     return DataTableUtils.createActionButtons([
