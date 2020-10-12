@@ -36,8 +36,7 @@ $(document).ready(function () {
 
             const $listEntry = $(`<a class='list-group-item list-group-item-action' href='#'><b>${pool.name}</b></a>`);
             $listEntry.append($(`<small class='text-muted d-block'>${i18n.pool_types[pool.key]}</small>`));
-            $listEntry.attr('href', `${http_prefix}/lua/admin/manage_pools.lua?pool=${pool.key}&pool_id=${pool.pool_id}`);
-
+            $listEntry.attr('href', `${http_prefix}/lua/admin/manage_pools.lua?page=${pool.key}&pool_id=${pool.pool_id}`);
             $list.append($listEntry);
         }
 

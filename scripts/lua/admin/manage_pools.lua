@@ -67,7 +67,7 @@ local pool_types = {
 
    -- Normal Pools
    ["interface"] = interface_pools,
-   ["network"] = local_network_pools,
+   ["local_network"] = local_network_pools,
    ["active_monitoring"] = active_monitoring_pools,
    ["snmp_device"] = snmp_device_pools,
    ["host"] = host_pools,
@@ -80,7 +80,13 @@ local pool_types = {
 }
 
 local pool_instance = (page ~= 'all' and pool_types[page]:create() or {})
-local pool_type = (page == "snmp_device" and "snmp/device" or page)
+local pool_type = page
+
+if pool_type == 'snmp_device' then
+   pool_type = "snmp/device"
+elseif pool_type == 'local_network' then
+   pool_type = 'network'
+end
 
 local menu = {
    entries = {
@@ -88,14 +94,14 @@ local menu = {
       -- Normal Pools
       { key = "host", title = i18n("pools.pool_names.host"), url = "?page=host", hidden = is_nedge},
       { key = "interface", title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = is_nedge},
-      { key = "local_network", title = i18n("pools.pool_names.local_network"), url = "?page=network", hidden = false},
-      { key = "snmp_device", title = i18n("pools.pool_names.snmp"), url = "?page=snmp_device", hidden = (not ntop.isPro() or is_nedge)},
+      { key = "local_network", title = i18n("pools.pool_names.local_network"), url = "?page=local_network", hidden = false},
+      { key = "snmp_device", title = i18n("pools.pool_names.snmp_device"), url = "?page=snmp_device", hidden = (not ntop.isPro() or is_nedge)},
       { key = "active_monitoring", title = i18n("pools.pool_names.active_monitoring"), url = "?page=active_monitoring", hidden = false },
 
    -- Default Only Pools
-      { key = "host_pool", title = i18n("pools.pool_names.host_pool_pool"), url = "?page=host_pool", hidden = false},
-      { key = "flow", title = i18n("pools.pool_names.flows"), url = "?page=flow", hidden = false},
-      { key = "mac", title = i18n("pools.pool_names.devices"), url = "?page=mac", hidden = false},
+      { key = "host_pool", title = i18n("pools.pool_names.host_pool"), url = "?page=host_pool", hidden = false},
+      { key = "flow", title = i18n("pools.pool_names.flow"), url = "?page=flow", hidden = false},
+      { key = "mac", title = i18n("pools.pool_names.mac"), url = "?page=mac", hidden = false},
       { key = "system", title = i18n("pools.pool_names.system"), url = "?page=system", hidden = false},
 
       -- All Pool

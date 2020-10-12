@@ -887,3 +887,7 @@ footer {
 .actions-group {
   min-width: 120px;
 }
+.scrollable-list {
+  max-height: 16rem;
+  overflow-y: auto;
+}
