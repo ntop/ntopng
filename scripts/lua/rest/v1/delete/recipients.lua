@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
 local rest_utils = require "rest_utils"
 local recipients = require "recipients"
-local recipients_instance = recipients:create()
 
-recipients_instance:cleanup()
+recipients.cleanup()
 rest_utils.answer(rest_utils.consts.success.ok)
