@@ -253,6 +253,7 @@ local function load_definitions(defs_dir, runtime_path)
 	    return(false)
 	 end
 
+	 -- tprint({"copying", fname, defs_dir, runtime_path})
 	 file_utils.copy_file(fname, defs_dir, runtime_path)
       end
    end
@@ -262,8 +263,15 @@ end
 
 -- ##############################################
 
-local function load_plugin_definitions(plugin, alert_definitions, status_definitions)
+local function load_plugin_alert_definitions(plugin)
   local alert_definitions = RUNTIME_PATHS.alert_definitions
+
+  return load_definitions(os_utils.fixPath(plugin.path .. "/alert_definitions"), alert_definitions)
+end
+
+-- ##############################################
+
+local function load_plugin_flow_status_definitions(plugin)
   local status_definitions
 
   if(plugin.edition == "community") then
@@ -274,8 +282,7 @@ local function load_plugin_definitions(plugin, alert_definitions, status_definit
     status_definitions = RUNTIME_PATHS.pro_status_definitions
   end
 
-  return(load_definitions(os_utils.fixPath(plugin.path .. "/alert_definitions"), alert_definitions)
-	    and load_definitions(os_utils.fixPath(plugin.path .. "/status_definitions"), status_definitions))
+  return load_definitions(os_utils.fixPath(plugin.path .. "/status_definitions"), status_definitions)
 end
 
 -- ##############################################
@@ -553,6 +560,22 @@ function plugins_utils.loadPlugins(community_plugins_only)
     ntop.mkdir(path)
   end
 
+  -- Load plugin alert definitions, i.e., definitions found under <plugin_name>/alert_definitions
+  -- alert definitions MUST be loaded before flow status definitions as, flow status definitions,
+  -- may depend on alert definitions
+  for _, plugin in ipairs(plugins) do
+     load_plugin_alert_definitions(plugin)
+  end
+  -- Make sure to invalidate the (possibly) already required alert_consts which depends on alert definitions.
+  -- By invalidating the module, we make sure all the newly loaded alert definitions will be picked up by any
+  -- subsequent `require "alert_consts"`
+  package.loaded["alert_consts"] = nil
+
+  -- Load plugin flow status definitions, i.e., definitions found under <plugin_name>/status_definitions
+  for _, plugin in ipairs(plugins) do
+     load_plugin_flow_status_definitions(plugin)
+  end
+
   -- Load the plugins following the dependecies order
   for _, plugin in ipairs(plugins) do
     if community_plugins_only and plugin.edition ~= "community" then
@@ -571,8 +594,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
       io.write(string.format("Loading plugin %s [edition: %s]\n", plugin.key, plugin.edition))
     end
 
-    if load_plugin_definitions(plugin) and
-        load_plugin_i18n(locales, en_locale, plugin) and
+    if load_plugin_i18n(locales, en_locale, plugin) and
         load_plugin_lint(plugin) and
         load_plugin_ts_schemas(plugin) and
         load_plugin_web_gui(plugin) and
