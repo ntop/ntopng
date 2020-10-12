@@ -69,8 +69,6 @@
                 snapshot.hidden.push($(this));
             });
 
-            console.log(snapshot)
-
             return snapshot;
         }
 
