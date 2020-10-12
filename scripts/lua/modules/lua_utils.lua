@@ -1381,6 +1381,7 @@ end
 -- ##############################################
 
 function getHostAltNamesKey(host_key)
+   if(host_key == nil) then return(nil) end
    return "ntopng.cache.host_labels."..host_key
 end
 
