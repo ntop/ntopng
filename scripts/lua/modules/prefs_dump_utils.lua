@@ -15,6 +15,10 @@ local empty_string_dump = "00000600CB7634C0FA2A9E49"
 
 -- ###########################################
 
+local patterns = {"ntopng.prefs.*", "ntopng.user.*"}
+
+-- ###########################################
+
 local function set_admin_prefs()
    -- User admin is always an administrator, let's make sure serialized values are correct
    ntop.setCache("ntopng.user.admin.group", "administrator")
@@ -30,8 +34,6 @@ function prefs_dump_utils.savePrefsToDisk()
    local where = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
 
    set_admin_prefs()
-
-   local patterns = {"ntopng.prefs.*", "ntopng.user.*"}
 
    local out = {}
    for _, pattern in pairs(patterns) do
@@ -83,8 +85,20 @@ function prefs_dump_utils.readPrefsFromDisk()
 	 return
       end
 
-      local json = require("dkjson")
+      -- To make sure the restore puts all keys in a consistent state,
+      -- before doing the actual restore, all the existing keys matching the bakcup/restore patterns
+      -- are deleted.
+      -- Failing to do this delete could result in inconsistent redis state as:
+      --   1. There could be redis keys not yet backed up to file (backup is done at most once every few seconds)
+      --   2. Redis keys not backed up to file could rely/depends on other keys that won't be restored.
+      for _, pattern in pairs(patterns) do
+	 local keys = ntop.getKeysCache(pattern)
+	 for k, _ in pairs(keys or {}) do
+	    ntop.delCache(k)
+	 end
+      end
 
+      local json = require("dkjson")
       local restore = json.decode(dump, 1, nil)
 
       for k,v in pairs(restore or {}) do
