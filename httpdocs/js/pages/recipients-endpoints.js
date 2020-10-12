@@ -145,7 +145,7 @@ $(document).ready(function () {
                     if (type == "display") {
 
                         let badge = '';
-                        const isBuiltin = recipient.endpoint_conf.builtin || false;
+                        const isBuiltin = (recipient.endpoint_conf && recipient.endpoint_conf.builtin) || false;
 
                         if (isBuiltin) {
                             badge = `<span class='badge badge-dark'>built-in</span>`;
