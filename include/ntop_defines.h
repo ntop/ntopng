@@ -310,33 +310,12 @@
 #define CONST_MAX_NUM_NETWORKS         255
 #define CONST_MAX_NUM_CHECKPOINTS      4
 
-#define BATADV_COMPAT_VERSION_15 15
-#define BATADV_COMPAT_VERSION_14 14
-
-//batman-adv compat version 14 packet types
-#define BATADV14_IV_OGM		 0x01
-#define BATADV14_ICMP		 0x02
-#define BATADV14_UNICAST	 0x03
-#define BATADV14_BCAST		 0x04
-#define BATADV14_VIS		 0x05
-#define BATADV14_UNICAST_FRAG	 0x06
-#define BATADV14_TT_QUERY	 0x07
-#define BATADV14_ROAM_ADV	 0x08
-#define BATADV14_UNICAST_4ADDR	 0x09
-#define BATADV14_CODED		 0x0a
+#define HOST_IS_DHCP_SERVER            0x01
+#define HOST_IS_DNS_SERVER             0x02
+#define HOST_IS_NTP_SERVER             0x03
+#define HOST_IS_SMTP_SERVER            0x04
 
 
-// batman-adv compat version 15 packet types
-#define BATADV15_IV_OGM          0x00
-#define BATADV15_BCAST           0x01
-#define BATADV15_CODED           0x02
-#define BATADV15_UNICAST_MIN     0x40
-#define BATADV15_UNICAST         0x40
-#define BATADV15_UNICAST_FRAG    0x41
-#define BATADV15_UNICAST_4ADDR   0x42
-#define BATADV15_ICMP            0x43
-#define BATADV15_UNICAST_TVLV    0x44
-#define BATADV15_UNICAST_MAX     0x7f
 
 // ICMP
 #ifndef ICMP_TIMESTAMP

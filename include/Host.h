@@ -33,8 +33,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
     Fingerprint ja3;
     Fingerprint hassh;
   } fingerprints;
-  bool stats_reset_requested, name_reset_requested, data_delete_requested, is_dhcp_server;
-  u_int16_t vlan_id, host_pool_id;
+  
+  bool stats_reset_requested, name_reset_requested, data_delete_requested;
+  u_int16_t vlan_id, host_pool_id, host_services_bitmap;
   HostStats *stats, *stats_shadow;
   OperatingSystem os;
   HostScore score;
@@ -106,10 +107,17 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline  bool isBroadcastDomainHost() const { return(is_in_broadcast_domain); };
   inline  bool serializeByMac() const { return(isBroadcastDomainHost() && isDhcpHost() && getMac() && iface->serializeLbdHostsAsMacs()); }
   inline  bool isDhcpHost()            const { return(is_dhcp_host); };
-  inline  bool isDhcpServer()          const { return(is_dhcp_server); };
-  inline  void setDhcpServer()               { is_dhcp_server = true; };
   inline  void setBroadcastDomainHost()      { is_in_broadcast_domain = true;  };
   inline  void setSystemHost()               { /* TODO: remove */              };
+
+  inline  bool isDhcpServer()          const { return(host_services_bitmap & (1 << HOST_IS_DHCP_SERVER)); }
+  inline  void setDhcpServer()               { host_services_bitmap |= 1 << HOST_IS_DHCP_SERVER;          }
+  inline  bool isDnsServer()          const  { return(host_services_bitmap & (1 << HOST_IS_DNS_SERVER));  }
+  inline  void setDnsServer()                { host_services_bitmap |= 1 << HOST_IS_DNS_SERVER;           }
+  inline  bool isSmtpServer()          const { return(host_services_bitmap & (1 << HOST_IS_SMTP_SERVER)); }
+  inline  void setSmtpServer()               { host_services_bitmap |= 1 << HOST_IS_SMTP_SERVER;          }
+  inline  bool isNtpServer()          const  { return(host_services_bitmap & (1 << HOST_IS_NTP_SERVER));  }
+  inline  void setNtpServer()                { host_services_bitmap |= 1 << HOST_IS_NTP_SERVER;           }
 
   bool isBroadcastHost()                     { return(ip.isBroadcastAddress()); }
   bool isMulticastHost()                     { return(ip.isMulticastAddress()); }
@@ -252,6 +260,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_time(lua_State* vm)          const;
   void lua_get_syn_flood(lua_State* vm)     const;
   void lua_get_flow_flood(lua_State*vm)     const;
+  void lua_get_services(lua_State *vm)      const;
   void lua_get_syn_scan(lua_State* vm)      const;
   void lua_get_anomalies(lua_State* vm)     const;
   void lua_get_num_alerts(lua_State* vm)    const;

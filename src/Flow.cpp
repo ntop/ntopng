@@ -466,7 +466,16 @@ void Flow::processDetectedProtocol() {
       protos.mdns.answer = strdup((char*)ndpiFlow->host_server_name);
     break;
 
+  case NDPI_PROTOCOL_NTP:
+    if(srv_port == ntohs(123) /* server */) srv_host->setNtpServer(); else cli_host->setNtpServer();
+    break;
+    
+  case NDPI_PROTOCOL_MAIL_SMTP:
+    srv_host->setSmtpServer();
+    break;
+    
   case NDPI_PROTOCOL_DNS:
+    if(cli_port == ntohs(53) /* server */) cli_host->setDnsServer(); else srv_host->setDnsServer();
   case NDPI_PROTOCOL_IEC60870:
     /* See Flow::processDNSPacket and Flow::processIEC60870Packet for dissection */
     break;

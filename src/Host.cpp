@@ -141,7 +141,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
   os = os_unknown;
-  prefs_loaded = is_dhcp_server = false;
+  prefs_loaded = false;
+  host_services_bitmap = 0;
   mud_pref = mud_recording_default;
 
   // readStats(); - Commented as if put here it's too early and the key is not yet set
@@ -175,7 +176,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   syn_flood_attacker_alert  = new AlertCounter();
   syn_flood_victim_alert    = new AlertCounter();
   flow_flood_attacker_alert = new AlertCounter();
-  flow_flood_victim_alert = new AlertCounter();
+  flow_flood_victim_alert   = new AlertCounter();
   syn_sent_last_min = synack_recvd_last_min = 0;
   syn_recvd_last_min = synack_sent_last_min = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
@@ -493,6 +494,23 @@ void Host::lua_get_flow_flood(lua_State *vm) const {
 
 /* ***************************************************** */
 
+void Host::lua_get_services(lua_State *vm) const {
+  if(host_services_bitmap == 0) return;
+
+  lua_newtable(vm);
+
+  if(isDhcpServer()) lua_push_bool_table_entry(vm, "dhcp", true);
+  if(isDnsServer()) lua_push_bool_table_entry(vm,  "dns",  true);
+  if(isSmtpServer()) lua_push_bool_table_entry(vm, "smtp", true);
+  if(isNtpServer()) lua_push_bool_table_entry(vm,  "ntp",  true);
+  
+  lua_pushstring(vm, "services");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* ***************************************************** */
+
 void Host::lua_get_syn_scan(lua_State *vm) const {
   u_int32_t hits;
 
@@ -649,8 +667,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
     lua_get_syn_flood(vm);
     lua_get_flow_flood(vm);
     lua_get_syn_scan(vm);
-
-    lua_push_bool_table_entry(vm, "dhcp_server", is_dhcp_server);
+    lua_get_services(vm);
   }
 
   lua_get_time(vm);
@@ -927,7 +944,8 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
     json_object_object_add(my_object, "broadcastDomainHost", json_object_new_boolean(isBroadcastDomainHost()));
     json_object_object_add(my_object, "is_blacklisted", json_object_new_boolean(isBlacklisted()));
-
+    json_object_object_add(my_object, "host_services_bitmap", json_object_new_int(host_services_bitmap));
+    
     /* Generic Host */
     json_object_object_add(my_object, "num_alerts", json_object_new_int(getNumEngagedAlerts()));
   }

@@ -281,10 +281,6 @@ else
       title = title.." &nbsp;<i class='fas fa-sitemap' aria-hidden='true' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
    end
 
-   if host.dhcpHost then
-      title = title.." <i class='fas fa-flash' aria-hidden='true' title='DHCP Host'></i>"
-   end
-
    local url = hostinfo2detailsurl(host, {tskey = _GET["tskey"]})
 
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
@@ -558,7 +554,7 @@ if((page == "overview") or (page == nil)) then
       print("<tr><th>"..i18n("name").."</th>")
 
       if(isAdministrator()) then
-	 print("<td><A HREF=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
+	 print("<td colspan=2><A HREF=\"http://" .. getIpUrl(host["ip"]) .. "\"> <span id=name>")
       else
 	 print("<td colspan=2>")
       end
@@ -592,14 +588,23 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(host["privatehost"] == true) then print(' <span class="badge badge-warning">'..i18n("details.label_private_ip")..'</span>') end
+
+      if(host.services) then
+	 if(host.services.dhcp) then print(' <span class="badge badge-info">'..i18n("details.label_dhcp_server")..'</span>') end
+	 if(host.services.dns)  then print(' <span class="badge badge-info">'..i18n("details.label_dns_server")..'</span>') end
+	 if(host.services.smtp) then print(' <span class="badge badge-info">'..i18n("details.label_smtp_server")..'</span>') end
+	 if(host.services.ntp)  then print(' <span class="badge badge-info">'..i18n("details.label_ntp_server")..'</span>') end
+      end
+
       if(host["dhcp_server"] == true) then print(' <span class="badge badge-info">'..i18n("details.label_dhcp_server")..'</span>') end
       if(host["systemhost"] == true) then print(' <span class="badge badge-info"><i class=\"fas fa-flag\" title=\"'..i18n("details.label_system_ip")..'\"></i></span>') end
       if(host["is_blacklisted"] == true) then print(' <span class="badge badge-danger">'..i18n("details.label_blacklisted_host")..'</span>') end
       if((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
-	 print(' <A HREF="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'..ntop.getHttpPrefix()..'/img/virustotal.svg\"></A> <i class=\"fas fa-external-link-alt\"></i>')
-   end
+	 print(' <A HREF="https://www.virustotal.com/gui/ip-address/'.. host["ip"] ..'/detection" target=_blank><img  width="100" height="20" src=\"'
+		  ..ntop.getHttpPrefix()..'/img/virustotal.svg\"></A> <i class=\"fas fa-external-link-alt\"></i>')
+      end
 
-      print("</td><td></td>\n")
+      print("</td>\n")
    end
 
 if(host["num_alerts"] > 0) then
