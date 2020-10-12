@@ -94,7 +94,7 @@ function prefs_dump_utils.readPrefsFromDisk()
       for _, pattern in pairs(patterns) do
 	 local keys = ntop.getKeysCache(pattern)
 	 for k, _ in pairs(keys or {}) do
-	    ntop.delCache(k)
+	    -- ntop.delCache(k)
 	 end
       end
 
