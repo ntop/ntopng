@@ -1517,7 +1517,7 @@ $(document).ready(function () {
                            ${data.length >= 72 ? `data-toggle='popover'  data-placement='top' data-html='true'` : ``}
                            title="${row.title}"
                            data-content="${data}" >
-                              ${truncate_string(data, 72, true)}
+                              ${truncate_string(data, 100, true)}
                            </span>`;
                }
 
