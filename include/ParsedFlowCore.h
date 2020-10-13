@@ -30,17 +30,19 @@ class ParsedFlowCore {
   u_int8_t src_tos, dst_tos;
   IpAddress src_ip, dst_ip;
   u_int32_t first_switched, last_switched;
+  u_int16_t deviceId;
   u_int8_t version; /* 0 so far */
+  u_int8_t l4_proto;
   u_int32_t device_ip;
   struct ndpi_in6_addr device_ipv6;
-  u_int16_t src_port, dst_port, inIndex, outIndex;
+  u_int16_t src_port, dst_port;
+  u_int16_t inIndex, outIndex;
   ndpi_proto l7_proto;
   u_int16_t vlan_id, pkt_sampling_rate;
-  u_int8_t l4_proto;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;
   u_int32_t in_fragments, out_fragments;
-  u_int8_t absolute_packet_octet_counters;
   u_int32_t src_as, dst_as, prev_adjacent_as, next_adjacent_as;
+  u_int8_t absolute_packet_octet_counters;
   struct {
     u_int8_t tcp_flags, client_tcp_flags, server_tcp_flags;
     u_int32_t ooo_in_pkts, ooo_out_pkts;

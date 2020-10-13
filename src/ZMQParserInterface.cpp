@@ -89,6 +89,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint, const char *custom_
   addMapping("POST_NAT_DST_IPV4_ADDR", POST_NAT_DST_IPV4_ADDR);
   addMapping("POST_NAPT_SRC_TRANSPORT_PORT", POST_NAPT_SRC_TRANSPORT_PORT);
   addMapping("POST_NAPT_DST_TRANSPORT_PORT", POST_NAPT_DST_TRANSPORT_PORT);
+  addMapping("OBSERVATION_POINT_ID", OBSERVATION_POINT_ID);
   addMapping("INGRESS_VRFID", INGRESS_VRFID);
   addMapping("IPV4_SRC_MASK", IPV4_SRC_MASK);
   addMapping("IPV4_DST_MASK", IPV4_DST_MASK);
@@ -486,6 +487,9 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow * const flow, u_int32_t fi
   case OUTPUT_SNMP:
     flow->outIndex = value->int_num;
     break;
+  case OBSERVATION_POINT_ID:
+    flow->deviceId = value->int_num;
+    break;
   case POST_NAT_SRC_IPV4_ADDR:
     if(ntop->getPrefs()->do_override_src_with_post_nat_src()) {
       if(value->string) {
@@ -817,6 +821,10 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
   case OUTPUT_SNMP:
     if(value->string) return (flow->outIndex == atoi(value->string));
     else return (flow->outIndex == value->int_num);
+
+  case OBSERVATION_POINT_ID:
+    if(value->string) return (flow->deviceId == atoi(value->string));
+    else return (flow->deviceId == value->int_num);
 
   case INGRESS_VRFID:
     if(value->string) return (flow->vrfId == (u_int) atoi(value->string));
