@@ -17,6 +17,9 @@ local prefs_dump_utils = require "prefs_dump_utils"
 -- Check and possibly restore preferences dumped to file
 prefs_dump_utils.check_restore_prefs_from_disk()
 
+-- Check and possibly perform a factory reset of preferences
+prefs_dump_utils.check_prefs_factory_reset()
+
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
    require("boot")

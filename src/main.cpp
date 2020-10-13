@@ -133,14 +133,14 @@ int main(int argc, char *argv[])
 
   ntop->registerPrefs(prefs, false);
   prefs->reloadPrefsFromRedis();
-  
+
   if((boot_activity = new ThreadedActivity(BOOT_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */
     /* NOTE: preferences restore from file is handled here */
     boot_activity->runSystemScript(time(NULL));
     delete boot_activity;
   }
-  
+
   prefs->registerNetworkInterfaces();
 
   if(prefs->get_num_user_specified_interfaces() == 0) {

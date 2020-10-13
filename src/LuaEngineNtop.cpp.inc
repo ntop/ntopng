@@ -1141,9 +1141,17 @@ static int ntop_zmq_disconnect(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_reload_preferences(lua_State* vm) {
-  lua_newtable(vm);
+  bool set_redis_defaults = false;
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN)
+    set_redis_defaults = lua_toboolean(vm, 1) ? true : false;
+
+  if(set_redis_defaults)
+    ntop->getRedis()->setDefaults();
+
   ntop->getPrefs()->reloadPrefsFromRedis();
 
+  lua_pushnil(vm);
   return(CONST_LUA_OK);
 }
 
