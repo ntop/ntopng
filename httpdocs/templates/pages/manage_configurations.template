@@ -8,7 +8,6 @@
     <div class="col-md-12">
         <div class="card card-shadow">
             <div class="card-body">
-                <p>{{ i18n("manage_configurations.description") }}</p>
                 <div class="radio-list">
                     {% for key, config in pairsByField(manage_configurations.configuration_items, 'order', asc) do %}
                         <div class="form-check">
@@ -26,23 +25,11 @@
             <div class="card-footer">
                 <button id="btn-import" data-toggle="modal" data-target="#import-modal" type="submit" value="import" class="btn btn-primary">
                     <i class='fas fa-file-import'></i>
-                    <span>
-                        {% if (manage_configurations.selected_item == 'all') then %}
-                            {{ i18n("restore") }}
-                        {% else %}
-                            {{ i18n("import") }}
-                        {% end %}
-                    </span>
+                    <span>{{ i18n("import") }}</span>
                 </button>
                 <a id="btn-export" download="{{ manage_configurations.selected_item }}_config.json" class="btn btn-primary" href="{{ ntop.getHttpPrefix() }}/lua/rest/v1/export/{{ manage_configurations.selected_item }}/config.lua?download=1">
                     <i class='fas fa-file-export'></i>
-                    <span>
-                        {% if (manage_configurations.selected_item == 'all') then %}
-                            {{ i18n("backup") }}
-                        {% else %}
-                            {{ i18n("export") }}
-                        {% end %}
-                    </span>
+                    <span>{{ i18n("export") }}</span>
                 </a>
                 <button {{ (manage_configurations.selected_item == "all" and 'disabled' or '') }} id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger">
                     <i class="fas fa-undo-alt"></i> {{ i18n("factory_reset")}}
@@ -86,8 +73,6 @@
 
     const importCSRF = "{{ ntop.getRandomCSRFValue() }}";
 
-    i18n.backup = "{{ i18n('backup') }}";
-    i18n.restore = "{{ i18n('restore') }}";
     i18n.import = "{{ i18n('import') }}";
     i18n.export = "{{ i18n('export') }}";
     i18n.invalid_file = "{{ i18n('invalid_file') }}"
