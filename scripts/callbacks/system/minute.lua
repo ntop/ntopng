@@ -11,13 +11,8 @@ require "lua_utils"
 local ts_dump = require "ts_min_dump_utils"
 local ts_utils = require("ts_utils_core")
 
-local prefs_changed = ntop.getCache("ntopng.prefs_changed")
-
-if(prefs_changed == "true") then
-   -- First delete prefs_changed then dump data
-   ntop.delCache("ntopng.prefs_changed")
-   prefs_dump_utils.savePrefsToDisk()
-end
+-- Check and possibly dump preferences to a file
+prefs_dump_utils.check_dump_prefs_to_disk()
 
 local ifstats = interface.getStats()
 local when = os.time()

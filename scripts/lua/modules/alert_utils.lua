@@ -1733,7 +1733,6 @@ function alert_utils.disableAlertsGeneration()
 
    -- Ensure we do not conflict with others
    ntop.setPref("ntopng.prefs.disable_alerts_generation", "1")
-   ntop.reloadPreferences()
    if(verbose) then io.write("[Alerts] Disable done\n") end
 end
 

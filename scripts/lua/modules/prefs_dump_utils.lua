@@ -7,6 +7,7 @@
 -- or restore them from disk
 
 local os_utils = require "os_utils"
+local prefs_reload_utils = require "prefs_reload_utils"
 
 local prefs_dump_utils = {}
 
@@ -29,11 +30,16 @@ end
 
 local debug = false
 
-function prefs_dump_utils.savePrefsToDisk()
+function prefs_dump_utils.check_dump_prefs_to_disk()
+   if not prefs_reload_utils.is_dump_prefs_to_disk_requested() then
+      -- nothing to do
+      return
+   end
+
+   -- Now do the actual dump
+
    local dirs = ntop.getDirs()
    local where = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
-
-   set_admin_prefs()
 
    local out = {}
    for _, pattern in pairs(patterns) do
@@ -46,18 +52,10 @@ function prefs_dump_utils.savePrefsToDisk()
 	 local dump = ntop.dumpCache(k)
 	 if dump ~= empty_string_dump then
 	    out[k] = dump
-	 elseif pattern == "ntopng.prefs.*" then
-	    -- Empty preferences can be found in redis due to
-	    -- previous implementations. Currently, empty preferences
-	    -- only stay in the in-memory cache implemented in class Redis
-	    -- (Redis::addToCache) and there's no longer need to have them
-	    -- written to redis. See Redis::isCacheable for the whole list
-	    -- of keys that are cached internally
-	    ntop.delCache(k)
 	 end
       end
    end
-   
+
    local json = require("dkjson")
    local dump = json.encode(out, nil, 1)
 
@@ -72,7 +70,12 @@ end
 
 -- ###########################################
 
-function prefs_dump_utils.readPrefsFromDisk()
+function prefs_dump_utils.check_restore_prefs_from_disk()
+   if not prefs_reload_utils.is_dump_prefs_to_disk_enabled() then
+      -- nothing to do
+      return
+   end
+
    local dirs = ntop.getDirs()
    local where = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
    local file = io.open(where, "r")
@@ -94,7 +97,7 @@ function prefs_dump_utils.readPrefsFromDisk()
       for _, pattern in pairs(patterns) do
 	 local keys = ntop.getKeysCache(pattern)
 	 for k, _ in pairs(keys or {}) do
-	    -- ntop.delCache(k)
+	    ntop.delCache(k)
 	 end
       end
 
@@ -107,7 +110,7 @@ function prefs_dump_utils.readPrefsFromDisk()
 	 if(v == empty_string_dump) then
 	    ntop.delCache(k)
 	    if(debug) then io.write("[RESTORE] Deleting empty value for "..k.."\n") end
-	 else 
+	 else
 	    if(debug) then io.write("[RESTORE] "..k.."="..v.."\n") end
 	    ntop.restoreCache(k,v)
 	 end

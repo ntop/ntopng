@@ -228,9 +228,8 @@ void Redis::checkDumpable(const char * const key) {
      This ensures settings persistance also upon redis flushes */
   if(!strncmp(key, "ntopng.prefs.", 13)
      || !strncmp(key, "ntopng.user.", 12)) {
-    ntop->getPrefs()->reloadPrefsFromRedis();
-    /* Tell housekeeping.lua to dump prefs to disk */
-    ntop->getRedis()->set((char*)PREFS_CHANGED, (char*)"true");
+    /* Tell housekeeping.lua to refresh in-memory prefs (and possibly dump them to runtimeprefs.json) */
+    ntop->getRedis()->set((char*)PREFS_CHANGED, "1");
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Going to refresh after change of: %s", key);
   }
 }

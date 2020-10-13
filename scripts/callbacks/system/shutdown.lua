@@ -23,7 +23,9 @@ local now = os.time()
 local ifnames = interface.getIfNames()
 
 alert_utils.notify_ntopng_stop()
-prefs_dump_utils.savePrefsToDisk()
+
+-- Check and possibly dump preferences to disk
+prefs_dump_utils.check_dump_prefs_to_disk()
 
 for _, ifname in pairs(ifnames) do
   interface.select(ifname)

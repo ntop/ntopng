@@ -208,7 +208,7 @@
 #define CUSTOM_NDPI_PROTOCOLS_ASSOCIATIONS_HASH "ntop.prefs.custom_nDPI_proto_categories"
 #define TRAFFIC_FILTERING_CACHE            "ntopng.trafficfiltering.cache"
 #define TRAFFIC_FILTERING_TO_RESOLVE       "ntopng.trafficfiltering.toresolve"
-#define PREFS_CHANGED            "ntopng.prefs_changed"
+#define PREFS_CHANGED            "ntopng.cache.prefs_changed"
 #define DROP_HOST_TRAFFIC        "ntopng.prefs.drop_host_traffic"
 #define HOST_TRAFFIC_QUOTA       "ntopng.prefs.hosts_quota"
 #define HTTP_ACL_MANAGEMENT_PORT "ntopng.prefs.http_acl_management_port"

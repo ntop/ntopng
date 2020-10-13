@@ -14,7 +14,11 @@ require "lua_utils"
 local lists_utils = require "lists_utils"
 local recording_utils = require "recording_utils"
 local plugins_utils = require "plugins_utils"
+local prefs_reload_utils = require "prefs_reload_utils"
 local now = os.time()
+
+-- Check and possibly reload changed preferences
+prefs_reload_utils.check_reload_prefs()
 
 -- Check and possibly reload plugins
 plugins_utils.checkReloadPlugins(now)

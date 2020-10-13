@@ -1561,9 +1561,4 @@ aysHandleForm("form", {
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
 
-if(_SERVER["REQUEST_METHOD"] == "POST") then
-   -- Something has changed
-  ntop.reloadPreferences()
-end
-
 end --[[ haveAdminPrivileges ]]
