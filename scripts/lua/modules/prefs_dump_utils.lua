@@ -5,10 +5,12 @@
 -- This file contains the description of all functions
 -- used to serialize ntopng runtime preferences to disk
 -- or restore them from disk
+local dirs = ntop.getDirs()
 
 local os_utils = require "os_utils"
 local prefs_reload_utils = require "prefs_reload_utils"
 local prefs_factory_reset_utils = require "prefs_factory_reset_utils"
+local json = require("dkjson")
 
 local prefs_dump_utils = {}
 
@@ -19,22 +21,23 @@ local empty_string_dump = "00000600CB7634C0FA2A9E49"
 
 local patterns = {"ntopng.prefs.*", "ntopng.user.*"}
 
+-- Path of the file used when doing periodic dumps of redis preferences to file
+local dump_prefs_to_disk_file_path = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
+
+-- Path of the file used when importing preferences from the UI
+local import_prefs_file_path = os_utils.fixPath(dirs.workingdir.."/import_runtimeprefs.json")
+
 -- ###########################################
 
 local debug = false
 
-function prefs_dump_utils.check_dump_prefs_to_disk()
-   if not prefs_reload_utils.is_dump_prefs_to_disk_requested() then
-      -- nothing to do
-      return
-   end
+-- ###########################################
 
-   -- Now do the actual dump
-
-   local dirs = ntop.getDirs()
-   local where = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
-
+-- @brief Dumps all preferences and user keys in a lua table
+-- @return The lua table with all the dumped keys
+function prefs_dump_utils.build_prefs_dump_table()
    local out = {}
+
    for _, pattern in pairs(patterns) do
       -- ntop.getKeysCache returns all the redis keys
       -- matching the given patter and SKIPS the in-memory
@@ -49,20 +52,58 @@ function prefs_dump_utils.check_dump_prefs_to_disk()
       end
    end
 
-   local json = require("dkjson")
-   local dump = json.encode(out, nil, 1)
-
-   local file,err = io.open(where, "w")
-   if(file ~= nil) then
-      file:write(dump)
-      file:close()
-   else
-      print("[ERROR] Unable to write file "..where..": "..err.."\n")
-   end
+   return out
 end
 
 -- ###########################################
 
+-- @brief Writes a lua table with dumped preferences and user keys to file
+-- @param prefs_dump_table A lua table generated with `prefs_dump_utils.build_prefs_dump_table()`
+-- @param file_path The full path to the destination file
+-- @return True on success, false on failure
+function prefs_dump_utils.write_prefs_dump_table_to_file(prefs_dump_table, file_path)
+   local dump = json.encode(prefs_dump_table)
+
+   local file,err = io.open(file_path, "w")
+   if file then
+      file:write(dump)
+      file:close()
+      return true
+   else
+      print("[ERROR] Unable to write file "..where..": "..err.."\n")
+   end
+
+   return false
+end
+
+-- ###########################################
+
+-- @brief Writes a preferences dump table to file
+function prefs_dump_utils.import_prefs_to_disk(prefs_dump_table)
+   -- Do the actual dump
+   local where = import_prefs_file_path
+   return prefs_dump_utils.write_prefs_dump_table_to_file(prefs_dump_table, where)
+end
+
+-- ###########################################
+
+-- @brief Checks if periodic preferences dump is enabled and possibly dump preferences to disk
+function prefs_dump_utils.check_dump_prefs_to_disk() 
+  if not prefs_reload_utils.is_dump_prefs_to_disk_requested() then
+      -- nothing to do
+      return
+   end
+
+   -- Now do the actual dump
+   local where = dump_prefs_to_disk_file_path
+
+   local out = prefs_dump_utils.build_prefs_dump_table()
+   prefs_dump_utils.write_prefs_dump_table_to_file(out, where)
+end
+
+-- ###########################################
+
+-- @brief Deletes all the existing keys matching preferences and user patterns
 local function delete_all_keys()
    for _, pattern in pairs(patterns) do
       local keys = ntop.getKeysCache(pattern)
@@ -74,15 +115,9 @@ end
 
 -- ###########################################
 
-function prefs_dump_utils.check_restore_prefs_from_disk()
-   if not prefs_reload_utils.is_dump_prefs_to_disk_enabled() then
-      -- nothing to do
-      return
-   end
-
-   local dirs = ntop.getDirs()
-   local where = os_utils.fixPath(dirs.workingdir.."/runtimeprefs.json")
-   local file = io.open(where, "r")
+-- @brief Restores preferences using preferences dump file located at `file_path`
+function prefs_dump_utils.restore_prefs_file(file_path)
+   local file = io.open(file_path, "r")
 
    if(file ~= nil) then
       local dump = file:read()
@@ -117,6 +152,40 @@ function prefs_dump_utils.check_restore_prefs_from_disk()
 
       -- Necessary to reload all the restored and deleted preferences
       ntop.reloadPreferences(true --[[ also reset Redis defaults (e.g., admin user name, group, password) --]])
+   end
+end
+
+-- ###########################################
+
+function prefs_dump_utils.check_restore_prefs_from_disk()
+   -- First, check if a preferences file has been imported via UI.
+   -- If this file has been imported, not it is time to load it
+   local where = import_prefs_file_path
+
+   if ntop.exists(where) then
+      -- Restore the file
+      prefs_dump_utils.restore_prefs_file(where)
+
+      -- Cleanup after restore. Cleanup includes both the imported file
+      -- and the file possibly created when doing periodic pref fumps
+      os.remove(import_prefs_file_path)
+      os.remove(dump_prefs_to_disk_file_path)
+
+      -- Done, leave
+      return
+   end
+
+   -- If there there was no preference file imported from the UI.
+   -- So we check if the periodic preferences dump to disk is enabled
+   -- and possibly do the import
+   if not prefs_reload_utils.is_dump_prefs_to_disk_enabled() then
+      -- nothing to do
+      return
+   end
+
+   where = dump_prefs_to_disk_file_path
+   if ntop.exists(where) then
+      prefs_dump_utils.restore_prefs_file(where)
    end
 end
 

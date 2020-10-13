@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.p
 
 require "lua_utils" 
 local import_export = require "import_export"
+local prefs_dump_utils = require "prefs_dump_utils"
 local prefs_factory_reset_utils = require "prefs_factory_reset_utils"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
@@ -43,7 +44,7 @@ function all_import_export:import(conf)
    local res = {}
 
    -- local success = all_config.restore(conf)
-   local success = true -- TODO
+   local success =  prefs_dump_utils.import_prefs_to_disk(conf)
 
    if not success then
       res.err = rest_utils.consts.err.internal_error
@@ -59,7 +60,7 @@ end
 -- @brief Export configuration
 -- @return The current configuration
 function all_import_export:export()
-   return {}
+   return prefs_dump_utils.build_prefs_dump_table()
 end
 
 -- ##############################################
