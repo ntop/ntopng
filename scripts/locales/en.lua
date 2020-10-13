@@ -3705,7 +3705,6 @@ local lang = {
     ["topk_heuristic_precision_title"] = "Top-K Heuristic",
     ["traffic_bridging"] = "Traffic Bridging",
     ["traffic_shaping"] = "Traffic Shaping",
-    ["ts_resolution_note1"] = "Timeseries retention time can be set <A HREF=\"%{url}\">here</A>.",
     ["ts_resolution_note2"] = "Lowering the resolution can create gaps in the existing data. It is advisable to <a target=_blank href=\"%{url}\">delete the database</a> %{external_icon}.",
     ["updates"] = "Updates",
     ["user_authentication"] = "User Authentication",
