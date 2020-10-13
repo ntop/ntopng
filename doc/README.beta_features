@@ -12,6 +12,11 @@ corresponding Redis preference. The correct sequence to follow is:
 List of beta/debug features and how to enable them
 --------------------------------------------------
 
+## [Feature] Enable periodic dump of preferences to a disk file which is the reloaded during startup.
+             Useful when ntopng is run on appliances that don't feature a persistent Redis.
+             In this case, it may be useful to dump changed preferences to a file and to restore them during boot.
+redis-cli set "ntopng.prefs.dump_prefs_to_disk" "1"
+
 ## [Feature] Disable InfluxDB data rollup via Continuous Queries
 redis-cli set "ntopng.prefs.disable_influxdb_rollup" "1"
 
