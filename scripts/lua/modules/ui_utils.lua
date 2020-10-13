@@ -26,4 +26,10 @@ function ui_utils.render_notes(notes_items)
     })
 end
 
+function ui_utils.create_navbar_title(title, subpage, title_link)
+
+    if isEmptyString(subpage) then return title end
+    return "<a href='".. title_link .."'>".. title .. "</a>&nbsp;/&nbsp;<span>"..subpage.."</span>"
+end
+
 return ui_utils

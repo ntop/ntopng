@@ -32,12 +32,12 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.active_monitor)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local page = _GET["page"] or "overview"
 local host = _GET["am_host"]
+
+local page = _GET["page"] or ('overview')
 local measurement = _GET["measurement"]
-local base_url =
-    plugins_utils.getUrl("active_monitoring_stats.lua") .. "?ifid=" ..
-        getInterfaceId(ifname)
+
+local base_url = plugins_utils.getUrl("active_monitoring_stats.lua") .. "?ifid=" .. getInterfaceId(ifname)
 local url = base_url
 local info = ntop.getInfo()
 local measurement_info
@@ -69,9 +69,10 @@ if host then
 end
 
 local title = i18n("graphs.active_monitoring")
+local host_label = ""
 
-if ((host ~= nil) and (page ~= "overview")) then
-    title = title .. ": " .. host.label
+if (host ~= nil) then
+    host_label = "(" .. host.label .. ")"
 end
 
 if auth.has_capability(auth.capabilities.active_monitoring) then
@@ -80,19 +81,22 @@ if auth.has_capability(auth.capabilities.active_monitoring) then
     end
 end
 
-page_utils.print_navbar(title, url, {
+
+local navbar_title = ui_utils.create_navbar_title(title, host_label, "/plugins/active_monitoring_stats.lua")
+
+page_utils.print_navbar(navbar_title, url, {
     {
         active = page == "overview" or not page,
         page_name = "overview",
         label = "<i class=\"fas fa-lg fa-home\"></i>",
-        url = base_url
+        url = (host ~= nil and url or base_url)
     }, {
-        hidden = not host or not ts_creation,
+        hidden = (host == nil) or not ts_creation,
         active = page == "historical",
         page_name = "historical",
         label = "<i class='fas fa-lg fa-chart-area'></i>"
     }, {
-       hidden = not auth.has_capability(auth.capabilities.active_monitoring) or
+        hidden = (host ~= nil) or not auth.has_capability(auth.capabilities.active_monitoring) or
             not plugins_utils.hasAlerts(getSystemInterfaceId(), {
                 entity = alert_consts.alertEntity("am_host")
             }),
@@ -121,7 +125,8 @@ if (page == "overview") then
     for key, info in pairs(active_monitoring_utils.getMeasurementsInfo()) do
         measurements_info[key] = {
             label = i18n(info.i18n_label) or info.i18n_label,
-            granularities = active_monitoring_utils.getAvailableGranularities(key),
+            granularities = active_monitoring_utils.getAvailableGranularities(
+                key),
             operator = info.operator,
             unit = i18n(info.i18n_unit) or info.i18n_unit,
             force_host = info.force_host,
@@ -139,13 +144,13 @@ if (page == "overview") then
         am_stats = {
             pool_filters = pool_filters,
             measurements_info = measurements_info,
-            get_host = (_GET["host"] ~= nil and _GET["host"] or ""),
+            get_host = (_GET["am_host"] or ""),
             pools = am_pool,
             notes = {
-              i18n("active_monitoring_stats.note3", {product = info.product}),
-              i18n("active_monitoring_stats.note_alert"),
-              i18n("active_monitoring_stats.note_availability")
-          }
+                i18n("active_monitoring_stats.note3", {product = info.product}),
+                i18n("active_monitoring_stats.note_alert"),
+                i18n("active_monitoring_stats.note_availability")
+            }
         }
     }
     -- template render
@@ -186,7 +191,8 @@ elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) 
         {
             schema = "am_host:val" .. suffix,
             label = am_ts_label,
-            value_formatter = measurement_info.value_js_formatter or "NtopUtils.fmillis",
+            value_formatter = measurement_info.value_js_formatter or
+                "NtopUtils.fmillis",
             metrics_labels = {am_metric_label},
             show_unreachable = true -- Show the unreachable host status as a red line
         }
@@ -207,7 +213,8 @@ elseif ((page == "historical") and (host ~= nil) and (measurement_info ~= nil)) 
                            url, selected_epoch,
                            {timeseries = timeseries, notes = notes})
 
-elseif ((page == "alerts") and auth.has_capability(auth.capabilities.active_monitoring)) then
+elseif ((page == "alerts") and
+    auth.has_capability(auth.capabilities.active_monitoring)) then
     local old_ifname = ifname
     local ts_utils = require("ts_utils")
     local influxdb = ts_utils.getQueryDriver()

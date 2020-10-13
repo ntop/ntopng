@@ -343,7 +343,7 @@ $(document).ready(function() {
                 $addHostModalHandler.invokeModalInit();
             }
         }
-    ]);
+    ], );
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/plugins/get_active_monitoring_hosts.lua`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         initComplete: function(settings, data) {

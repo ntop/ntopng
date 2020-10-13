@@ -289,11 +289,11 @@ else
    local periodicity_map = interface.periodicityMap(_GET["host"])
    local periodicity_map_available = false
    local service_map_available = false
-   
+
    if(interface.serviceMap(_GET["host"]) ~= nil) then
       service_map_available = true
    end
-   
+
    local num_periodicity = 0
 
    if(periodicity_map) then
@@ -302,7 +302,7 @@ else
 	 periodicity_map_available = true
       end
    end
-   
+
    page_utils.print_navbar(title, url,
 			   {
 			      {
@@ -715,7 +715,7 @@ if am_utils and am_utils.isMeasurementAvailable('icmp') then
 
       print([[
          <td colspan="2">
-            <a href=']].. ntop.getHttpPrefix() ..[[/plugins/active_monitoring_stats.lua?host=]].. host['ip'] ..[[&measurement=]].. icmp ..[['>]].. last_rtt ..[[</a>
+            <a href=']].. ntop.getHttpPrefix() ..[[/plugins/active_monitoring_stats.lua?am_host=]].. host['ip'] ..[[&measurement=]].. icmp ..[['>]].. last_rtt ..[[</a>
          </td>
       ]])
 
