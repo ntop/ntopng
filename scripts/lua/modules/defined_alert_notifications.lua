@@ -13,6 +13,8 @@ local alert_notification = require("alert_notification")
 local ALARM_THRESHOLD_LOW = 60
 local ALARM_THRESHOLD_HIGH = 90
 
+local IS_SYSTEM_INTERFACE = page_utils.is_system_view()
+
 --
 -- NOTE
 -- scripts/lua/modules/menu_alert_notifications.lua will call all NON-LOCAL functions in this file in sequence
@@ -142,6 +144,9 @@ end
 
 function defined_alert_notifications.DHCP_hosts(container)
 
+    -- In System Interface we can't collect the required data below
+    if (not IS_SYSTEM_INTERFACE) then return end
+
     local ifs = interface.getStats()
     local is_pcap_dump = interface.isPcapDumpInterface()
     local is_packet_interface = interface.isPacketInterface()
@@ -215,6 +220,10 @@ end
 -- ###############################################################
 
 function defined_alert_notifications.too_many_hosts(container)
+
+    -- In System Interface we can't get the hosts number from `interface.getNumHosts()`
+    if (not IS_SYSTEM_INTERFACE) then return end
+
     local level = nil
     local hosts = interface.getNumHosts()
     local hosts_pctg = math.floor(1 + ((hosts * 100) / prefs.max_num_hosts))
@@ -233,6 +242,10 @@ end
 -- ###############################################################
 
 function defined_alert_notifications.too_many_flows(container)
+
+    -- In System Interface we can't get the flows number from `interface.getNumFlows()`
+    if (not IS_SYSTEM_INTERFACE) then return end
+
     local level = nil
     local flows = interface.getNumFlows()
     local flows_pctg = math.floor(1 + ((flows * 100) / prefs.max_num_flows))
@@ -251,10 +264,13 @@ end
 -- ###############################################################
 
 function defined_alert_notifications.remote_probe_clock_drift(container)
-    local ifstats = interface.getStats()
-    local is_system_interface = page_utils.is_system_view()
 
-    if (ifstats["probe.remote_time"] ~= nil) and (not is_system_interface) then
+    -- In System Interface we can't collect the stats from `interface.getStats()`
+    if (not IS_SYSTEM_INTERFACE) then return end
+
+    local ifstats = interface.getStats()
+
+    if (ifstats["probe.remote_time"] ~= nil) then
         local tdiff = math.abs(os.time() - ifstats["probe.remote_time"])
         local level = nil
 
@@ -277,6 +293,10 @@ end
 --- if nIndex is not able to start/run/dump
 --- @param container table The table where the notification will be inserted
 function defined_alert_notifications.flow_dump(container)
+
+    -- In System Interface we can't collect the stats from `interface.getStats()`
+    if (not IS_SYSTEM_INTERFACE) then return end
+
     local ifstats = interface.getStats()
 
     if isAdministrator() and prefs.is_dump_flows_enabled and
