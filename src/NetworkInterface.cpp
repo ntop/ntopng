@@ -2424,7 +2424,7 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
      that are increased by flow user script hooks. Hence, by executing the purging here in this thread, we ensure
      consistency of counters.
   */
-  purgeQueuedIdleFlows();
+  num_done += purgeQueuedIdleFlows();
 
 #if DEBUG_FLOW_HOOKS
   if(num_done > 0)
@@ -2547,7 +2547,7 @@ void NetworkInterface::hookFlowLoop() {
     u_int64_t n = dequeueFlowsForHooks(16 /* protocol_detected_budget */, 4 /* active_budget */, 32 /* idle_budget */);
 
     if(n == 0)
-      _usleep(100);
+      _usleep(10000);
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
