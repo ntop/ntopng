@@ -234,6 +234,7 @@ NetworkInterface::NetworkInterface(const char *name,
   updateLbdIdentifier();
   updateDiscardProbingTraffic();
   updateFlowsOnlyInterface();
+  updateHooksEngineReload();
 }
 
 /* **************************************************** */
@@ -2374,10 +2375,10 @@ u_int64_t NetworkInterface::dequeueFlows(SPSCQueue<Flow *> *q, FlowLuaCall flow_
 /*
   Called periodically to decide if it is time to reload the lua engine used to execute flow user script hooks
  */
-void NetworkInterface::checkHooksEngineReload() {
+void NetworkInterface::updateHooksEngineReload() {
   time_t now = time(NULL);
 
-  if(hooks_engine_reload == 0 /* Need to be set for the first time */
+  if(hooks_engine_next_reload == 0 /* Need to be set for the first time */
      || now > hooks_engine_next_reload /* Time to reload */) {
     hooks_engine_reload = true;
     hooks_engine_next_reload = now + HOOKS_ENGINE_LIFETIME;
@@ -5523,7 +5524,7 @@ void NetworkInterface::lua_queues_stats(lua_State *vm) {
 /* **************************************************** */
 
 void NetworkInterface::runHousekeepingTasks() {
-  checkHooksEngineReload();
+  updateHooksEngineReload();
   periodicStatsUpdate();
 }
 

@@ -304,7 +304,7 @@ class NetworkInterface : public AlertableEntity {
     The lua engine for the execution of user script flow hooks is reused. This function
     periodically check and possibly decides to reload the engine.
    */
-  void checkHooksEngineReload();
+  void updateHooksEngineReload();
 
  public:
   /**
