@@ -2748,9 +2748,9 @@ local lang = {
   ["manage_configurations"] = {
     ["active_monitoring"] = "Active monitoring",
     ["config_import"] = "Import <span class='item'>{{ type }}</span> Configuration",
-    ["everything"] = "All configurations (import and factory reset require restart)",
-    ["manage_configuration"] = "Manage Configuration",
-    ["manage_configurations"] = "Manage Configurations",
+    ["everything"] = "All configurations",
+    ["manage_configuration"] = "Backup/Restore Configuration",
+    ["manage_configurations"] = "Backup/Restore Configurations",
     ["notifications"] = "Endpoints and recipients",
     ["pool_endpoint_recipients"] = "Pools (includes SNMP, active monitoring, user scripts, endpoints and recipients)",
     ["snmp"] = "SNMP",
