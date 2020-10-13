@@ -177,6 +177,7 @@ class Flow : public GenericHashEntry {
   struct {
     u_int32_t device_ip;
     u_int16_t in_index, out_index;
+    u_int16_t device_id;
   } flow_device;
 
   /* eBPF Information */
@@ -663,11 +664,12 @@ class Flow : public GenericHashEntry {
       +((float)(serverNwLatency.tv_usec + clientNwLatency.tv_usec)) / (float)1000000;
   }
   inline void setFlowApplLatency(float latency_msecs) { applLatencyMsec = latency_msecs; }
-  inline void setFlowDevice(u_int32_t device_ip, u_int16_t inidx, u_int16_t outidx) {
-    flow_device.device_ip = device_ip;
+  inline void setFlowDevice(u_int32_t device_ip, u_int16_t device_id, u_int16_t inidx, u_int16_t outidx) {
+    flow_device.device_ip = device_ip, flow_device.device_id = device_id;
     flow_device.in_index = inidx, flow_device.out_index = outidx;
   }
   inline u_int32_t getFlowDeviceIp()       { return flow_device.device_ip; };
+  inline u_int32_t getFlowDeviceId()       { return flow_device.device_id; };
   inline u_int16_t getFlowDeviceInIndex()  { return flow_device.in_index;  };
   inline u_int16_t getFlowDeviceOutIndex() { return flow_device.out_index; };
 

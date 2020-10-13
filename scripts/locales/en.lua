@@ -967,6 +967,7 @@ local lang = {
     ["arp_requests"] = "ARP Requests",
     ["as_client"] = "As Client",
     ["as_server"] = "As Server",
+    ["device_id"] = "Device ID",
     ["device_port"] = "Device Port",
     ["device_type"] = "Device Type",
     ["first_last_seen"] = "First / Last Seen",

@@ -1392,6 +1392,11 @@ else
 	 snmpdevice = syminfo["NPROBE_IPV4_ADDRESS"]
       end
 
+      if flow["device_id"] then
+         print("<tr><th>"..i18n("details.device_id").."</th>")
+         print("<td colspan=\"2\">"..flow["device_id"].."</td></tr>")
+      end
+
       if flow["in_index"] or flow["out_index"] then
 	 printFlowSNMPInfo(snmpdevice, flow["in_index"], flow["out_index"])
       end
