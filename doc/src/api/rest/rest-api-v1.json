@@ -3091,6 +3091,29 @@
 				}
 			}
 		},
+		"lua/rest/v1/reset/all/config.lua": {
+			"post": {
+				"tags": [
+					"All"
+				],
+				"summary": "Reset all configurations",
+				"description": "Reset all configurations",
+				"operationId": "reset_all_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
 		"lua/rest/v1/get/ntopng/users.lua": {
 			"post": {
 				"tags": [
