@@ -369,7 +369,7 @@ local function checkListsUpdate(timeout)
 	       end
 
 	       if(respcode > 0) then
-		  last_error = last_error .. i18n("category_lists.http_code", {err_code = respcode})
+		  last_error = string.format("%s %s", last_error, i18n("category_lists.http_code", {err_code = respcode}))
 	       end
 	    end
 
