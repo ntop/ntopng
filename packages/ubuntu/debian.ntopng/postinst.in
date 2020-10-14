@@ -70,16 +70,36 @@ echo "(Re)Starting @APP@..."
 if hash systemctl 2>/dev/null; then
     systemctl daemon-reload
     systemctl reset-failed
-    if hash deb-systemd-invoke 2>/dev/null; then
-        if [ -z "$PREV_VERSION" ]; then
-            # Enable on first installation only
+
+    # Enable service on first installation only
+    if [ -z "$PREV_VERSION" ]; then
+        if hash deb-systemd-invoke 2>/dev/null; then
             deb-systemd-invoke enable ntopng
-        fi
-        systemctl -q is-enabled ntopng && deb-systemd-invoke restart ntopng
-    else
-        if [ -z "$PREV_VERSION" ]; then
+        else
 	    systemctl enable ntopng
         fi
+    else
+        # Check previous version as up to 4.1.201014
+        # service was disabled in prerm during an upgrade
+        # This check will be removed at some point
+        VERS_DATE=$(echo $PREV_VERSION|cut -d"." -f3|cut -d"-" -f1)
+        VERS_MAJ=$(echo $PREV_VERSION|cut -d "." -f 1)
+        VERS_MIN=$(echo $PREV_VERSION|cut -d "." -f 2)
+        VERS_MAJ=$(printf "%02d" $VERS_MAJ)
+        VERS_MIN=$(printf "%02d" $VERS_MIN)
+        if [ "$VERS_MAJ$VERS_MIN$VERS_DATE" -lt "0401201015" ]; then
+            if hash deb-systemd-invoke 2>/dev/null; then
+                deb-systemd-invoke enable ntopng
+            else
+	        systemctl enable ntopng
+            fi
+        fi
+    fi
+
+    # Start service if enabled
+    if hash deb-systemd-invoke 2>/dev/null; then
+        systemctl -q is-enabled ntopng && deb-systemd-invoke restart ntopng
+    else
 	systemctl -q is-enabled ntopng && systemctl restart ntopng
     fi
     systemctl restart 'ntopng@*' --all
