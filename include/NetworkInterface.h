@@ -171,7 +171,8 @@ class NetworkInterface : public AlertableEntity {
     hookLoop /* Thread for the execution of flow user script hooks */;
   FlowAlertCheckLuaEngine *hooksEngine;   /* Lua engine used to execute flow user script hooks */
   volatile bool hooks_engine_reload;      /* Boolean indicating whether the hooksEngine should be reloaded */
-  time_t        hooks_engine_next_reload; /* The minimunm time for the next reload of the hooksEngine */       
+  time_t        hooks_engine_next_reload; /* The minimunm time for the next reload of the hooksEngine */
+  Condvar       hooks_condition;          /* Condition variable used to wait when no flows have been enqueued for hooks exec. */
   bool pollLoopCreated, flowDumpLoopCreated, hookLoopCreated;
   bool has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool flow_dump_disabled;

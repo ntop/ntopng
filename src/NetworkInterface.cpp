@@ -639,6 +639,12 @@ bool NetworkInterface::hookEnqueue(time_t t, Flow *f) {
 	Reference counter will be deleted when doing the dequeue.
        */
       f->incUses();
+
+      /*
+	Signal the waiter on the condition variable
+       */
+      hooks_condition.signal();
+
       ret = true;
     } else {
       /*
@@ -2420,6 +2426,22 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
   num_done += dequeueFlows(hookProtocolDetected, flow_lua_call_protocol_detected, protocol_detected_budget);
   num_done += dequeueFlows(hookPeriodicUpdate, flow_lua_call_periodic_update, active_budget);
 
+#ifndef WIN32
+  if(!isViewed() /* View interfaces will be possibly reworked, for now, we avoid waiting */
+     && num_done == 0) {
+    /*
+      No flow was dequeued. Let's wait for at most 1s. Cannot wait indefinitely
+      as we must ensure purgeQueuedIdleFlows() gets executed.
+    */
+    struct timespec hooks_wait_expire;
+
+    hooks_wait_expire.tv_sec = time(NULL) + 1,
+      hooks_wait_expire.tv_nsec = 0;
+
+    hooks_condition.timedWait(&hooks_wait_expire);
+  }
+#endif
+
   /* Purging of idle flows is done here as it involves decreasing certain hosts counters (such as host scores)
      that are increased by flow user script hooks. Hence, by executing the purging here in this thread, we ensure
      consistency of counters.
@@ -2430,6 +2452,7 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
   if(num_done > 0)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flows [%u]", num_done);
 #endif
+
 
   return num_done;
 }
@@ -2538,15 +2561,20 @@ void NetworkInterface::hookFlowLoop() {
   /* Now operational */
   while(isRunning()) {
     /*
-      Dequeue flows for dump. Use an unlimited budget for idle flows as they're high-priority and
-      thus we want to keep processing them if they're in the queue.
+      Dequeue flows for dump.
 
       To guarantee some sort of fairness and prioritization, different numbers are used for each
       of the three queues. Higher numbers are used for queues with higher-priority.
      */
     u_int64_t n = dequeueFlowsForHooks(16 /* protocol_detected_budget */, 4 /* active_budget */, 32 /* idle_budget */);
 
-    if(n == 0)
+    if(
+#ifndef WIN32
+       isView() /* Only sleep if this is a view interface (view interfaces will be reworked so it is OK for the time being).
+		   NOTE: This loop is not inited for viewed interfaces. */
+       &&
+#endif
+       n == 0 /* Sleep if nothing was done during the previous cycle */)
       _usleep(10000);
   }
 
