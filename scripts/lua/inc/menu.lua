@@ -990,7 +990,7 @@ end
 -- ########################################
 -- Network Load
 print([[
-   <li class="network-load" style="display: none;"></li>
+   <li class="network-load d-none d-sm-block"></li>
 ]])
 
 
