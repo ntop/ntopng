@@ -18,7 +18,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel") }}</button>
-                    <button type="submit" class="btn btn-danger">{{i18n("remove")}}</button>
+                    <button type="submit" class="btn btn-danger">{{i18n("delete")}}</button>
                 </div>
             </form>
         </div>

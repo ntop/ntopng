@@ -21,7 +21,7 @@
                 <div class="modal-body">
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="endpoint-name-input">
-                            <b>{{ i18n("endpoint_notifications.name") }}</b>:
+                            <b>{{ i18n("endpoint_notifications.name") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <input data-validation-empty-message="{{ i18n('validation.empty_name') }}" required name="name" type="text" class="form-control" id="endpoint-name-input">
@@ -29,7 +29,7 @@
                     </div>
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="endpoint-type-select">
-                            <b>{{ i18n("endpoint_notifications.type") }}</b>:
+                            <b>{{ i18n("endpoint_notifications.type") }}</b>
                         </label>
                         <div class="col-sm-5">
                             <select required name="type" class="form-control" id="endpoint-type-select">
