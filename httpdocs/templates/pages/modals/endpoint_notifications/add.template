@@ -17,7 +17,7 @@
                     </button>
                 </div>
             </div>
-            <form>
+            <form autocomplete="off">
                 <div class="modal-body">
                     <div class="form-group row">
                         <label class="col-form-label col-sm-3" for="endpoint-name-input">

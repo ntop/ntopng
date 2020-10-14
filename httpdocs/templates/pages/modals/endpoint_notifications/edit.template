@@ -17,7 +17,7 @@
                     </button>
                 </div>
             </div>
-            <form>
+            <form autocomplete="off">
                 <div class="modal-body">
                     <input type="text" hidden name="name">
                     <div class="endpoint-template-container pt-2">

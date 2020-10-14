@@ -17,7 +17,7 @@
                     </button>
                 </div>
             </div>
-            <form>
+            <form autocomplete="off">
                 <div class="modal-body">
                     <input type="number" hidden name="recipient_id">
                     <div class="form-group row">
