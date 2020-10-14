@@ -283,12 +283,14 @@ print[[
 		   $('#ram-process-used').html(']] print(i18n("ram_used")) print[[: ' + NtopUtils.bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
 		}
 
-                if(rsp.system_host_stats.dropped_alerts) {
-                  const drop_pct = rsp.system_host_stats.dropped_alerts / (rsp.system_host_stats.dropped_alerts + rsp.system_host_stats.written_alerts) * 100;
-                  $('#dropped-alerts').html(NtopUtils.fint(rsp.system_host_stats.dropped_alerts) + " [" + NtopUtils.fpercent(drop_pct) + "]");
-                } else {
-                  $('#dropped-alerts').html("0");
-                }
+		if (rsp.system_host_stats.dropped_alerts) {
+			const drop_pct = rsp.system_host_stats.dropped_alerts / (rsp.system_host_stats.dropped_alerts + rsp.system_host_stats.written_alerts) * 100;
+			$('#dropped-alerts').html(NtopUtils.fint(rsp.system_host_stats.dropped_alerts) + " [" + NtopUtils.fpercent(drop_pct) + "]");
+		}
+		else {
+			$('#dropped-alerts').html("0");
+		}
+
 		$('#stored-alerts').html(rsp.system_host_stats.written_alerts ? NtopUtils.fint(rsp.system_host_stats.written_alerts) : "0");
 		$('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? NtopUtils.fint(rsp.system_host_stats.alerts_queries) : "0");
 
@@ -305,22 +307,24 @@ print[[
 
 		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[) {
 
-		   var error_color = "#B94A48";
-                   if (!systemInterfaceEnabled) {
-                     if(rsp.engaged_alerts > 0) {
-		       msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
-		       msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
-		     }
-                   } else if (rsp.system_host_stats.engaged_alerts > 0) {
-                       /* Show engaged alerts also for the system interface (e.g., active monitoring engaged alerts) */
-		       msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_stats.lua?page=alerts\">"
-		       msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.system_host_stats.engaged_alerts)+"</span></a>";
-                   }
+			var error_color = "#B94A48";
 
-		   if(rsp.alerted_flows > 0) {
-			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status=alerted\">"
-		    msg += "<span class=\"badge badge-danger\">"+NtopUtils.addCommas(rsp.alerted_flows)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
-		   }
+			if (!systemInterfaceEnabled) {
+					if(rsp.engaged_alerts > 0) {
+						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
+						msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.engaged_alerts)+"</span></a>";
+					}
+			}
+			else if (rsp.system_host_stats.engaged_alerts > 0) {
+				/* Show engaged alerts also for the system interface (e.g., active monitoring engaged alerts) */
+				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_stats.lua?page=alerts\">"
+				msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.addCommas(rsp.system_host_stats.engaged_alerts)+"</span></a>";
+			}
+
+			if(rsp.alerted_flows > 0 && !(systemInterfaceEnabled)) {
+				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status=alerted\">"
+				msg += "<span class=\"badge badge-danger\">"+NtopUtils.addCommas(rsp.alerted_flows)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+			}
 		}
 
 		if((rsp.engaged_alerts > 0 || rsp.has_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false) {
@@ -345,7 +349,7 @@ print[[
 		}
 
         const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
-		if(num_remote_hosts > 0 && !systemInterfaceEnabled) {
+		if(num_remote_hosts > 0 && (!systemInterfaceEnabled)) {
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=remote\">";
 			var remote_hosts_label = "]] print(i18n("remote_hosts")) print[[";
 
@@ -364,7 +368,7 @@ print[[
 			msg += NtopUtils.addCommas(num_remote_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 		}
 
-	    if(rsp.num_devices > 0 && !systemInterfaceEnabled) {
+	    if(rsp.num_devices > 0 && (!systemInterfaceEnabled)) {
 	    	var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
 			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
 
@@ -383,7 +387,7 @@ print[[
 			msg += NtopUtils.addCommas(rsp.num_devices)+" ]] print(i18n("devices")) print[[</span></a>";
 	    }
 
-	    if(rsp.num_flows > 0 && !systemInterfaceEnabled) {
+	    if(rsp.num_flows > 0 && (!systemInterfaceEnabled)) {
     		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua\">";
 
 			if (rsp.flows_pctg < alarm_threshold_low) {
