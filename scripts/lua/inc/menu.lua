@@ -796,7 +796,7 @@ end -- num_ifaces > 0
 -- ##############################################
 
 print([[
-   <nav class="navbar navbar-expand-lg fixed-top navbar-light bg-light" id='n-navbar'>
+   <nav class="navbar navbar-expand-md navbar-expand-lg fixed-top navbar-light bg-light" id='n-navbar'>
       <ul class='navbar-nav mr-auto'>
          <li class='nav-item'>
             <button class='btn btn-outline-dark border-0 btn-sidebar' data-toggle='sidebar'>
@@ -990,7 +990,7 @@ end
 -- ########################################
 -- Network Load
 print([[
-   <li class="network-load d-none d-md-block d-lg-block"></li>
+   <li class="network-load" style="display: none;"></li>
 ]])
 
 
@@ -1024,7 +1024,7 @@ print(
 -- User Navbar Menu
 
 print([[
-<ul class='navbar-nav'>
+<ul class='navbar-nav flex-row'>
 ]])
 
 -- Render Blog Notifications
