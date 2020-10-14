@@ -344,6 +344,14 @@ local function checkListsUpdate(timeout)
 	    list.status.last_error = false
 	    list.status.num_errors = 0
 	    needs_reload = true
+
+	    alerts_api.store(
+	       alerts_api.categoryListsEntity(list_name),
+	       alert_consts.alert_types.alert_list_download_succeeded.create(
+		  alert_consts.alert_severities.info,
+		  list_name
+	       )
+	    )
 	 else
 	    -- failure
 	    local respcode = 0
