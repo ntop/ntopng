@@ -40,7 +40,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   OperatingSystem os;
   HostScore score;
   time_t last_stats_reset;
-  u_int32_t active_alerted_flows;
+  std::atomic<u_int32_t> active_alerted_flows;
   Bitmap misbehaving_flows_as_client_status, misbehaving_flows_as_server_status;
   
   /* Host data: update Host::deleteHostData when adding new fields */

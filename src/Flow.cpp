@@ -310,11 +310,16 @@ Flow::~Flow() {
     }
 
     iface->decNumMisbehavingFlows();
-  }
 
-  if(isFlowAlerted()) {
-    if(cli_u) cli_u->decNumAlertedFlows();
-    if(srv_u) srv_u->decNumAlertedFlows();
+    if(isFlowAlerted()) {
+      iface->decNumAlertedFlows(this);
+      if(cli_u) cli_u->decNumAlertedFlows();
+      if(srv_u) srv_u->decNumAlertedFlows();
+
+#ifdef ALERTED_FLOWS_DEBUG
+      iface_alert_dec = true;
+#endif
+    }
   }
 
   /*
@@ -2418,18 +2423,13 @@ void Flow::set_hash_entry_state_idle() {
 
     Unsafe pointers are used here to also handle 'viewed' interfaces with possibly unsafe host pointers.
    */
-  if(unsafeGetClient())
-    unsafeGetClient()->decNumFlows(get_last_seen(), true);
+  Host *cli_u = unsafeGetClient(), *srv_u = unsafeGetServer();
 
-  if(unsafeGetServer())
-    unsafeGetServer()->decNumFlows(get_last_seen(), false);
+  if(cli_u)
+    cli_u->decNumFlows(get_last_seen(), true);
 
-  if(isFlowAlerted()) {
-    iface->decNumAlertedFlows(this);
-#ifdef ALERTED_FLOWS_DEBUG
-    iface_alert_dec = true;
-#endif
-  }
+  if(srv_u)
+    srv_u->decNumFlows(get_last_seen(), false);
 
   GenericHashEntry::set_hash_entry_state_idle();
 }
@@ -5126,26 +5126,20 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
 
   if(first_alert) {
     /* This is the first alert for the flow, increment the counters */
-    if(!idle()) {
-      /* If idle() and not alerted, the interface
-       * counter for active alerted flows is not incremented as
-       * it means the purgeIdle() has traversed this flow and marked
-       * it as state_idle before it was alerted */
-      iface->incNumAlertedFlows(this);
+    iface->incNumAlertedFlows(this);
+
+    if(unsafeGetClient()) unsafeGetClient()->incNumAlertedFlows();
+    if(unsafeGetServer()) unsafeGetServer()->incNumAlertedFlows();
+
 #ifdef ALERTED_FLOWS_DEBUG
-      iface_alert_inc = true;
+    iface_alert_inc = true;
 #endif
-    }
 
-    if(cli_h) {
-      cli_h->incNumAlertedFlows();
+    if(cli_h)
       cli_h->incTotalAlerts(alert_type);
-    }
 
-    if(srv_h) {
-      srv_h->incNumAlertedFlows();
+    if(srv_h)
       srv_h->incTotalAlerts(alert_type);
-    }
   }
 
   /* Success - alert is dumped/notified from lua */

@@ -67,7 +67,7 @@ class NetworkInterface : public AlertableEntity {
   u_int8_t purgeRuns;
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   std::atomic<u_int32_t> num_alerts_engaged; /* Possibly touched by multiple concurrent threads */
-  u_int64_t num_active_alerted_flows, num_idle_alerted_flows;
+  std::atomic<u_int64_t> num_active_alerted_flows; /* Changed by multiple concurrent threads */
   u_int64_t num_active_misbehaving_flows, num_idle_misbehaving_flows;
   u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts, num_dropped_flow_scripts_calls;
   u_int64_t num_written_alerts, num_alerts_queries;

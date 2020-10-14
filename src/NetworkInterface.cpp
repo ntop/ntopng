@@ -291,7 +291,7 @@ void NetworkInterface::init() {
   num_written_alerts = num_alerts_queries = 0;
   memset(live_captures, 0, sizeof(live_captures));
   num_alerts_engaged = 0;
-  num_active_alerted_flows = num_idle_alerted_flows = 0;
+  num_active_alerted_flows = 0;
   has_stored_alerts = false;
 
   is_view = false;
@@ -7521,9 +7521,8 @@ void NetworkInterface::incNumAlertedFlows(Flow *f) {
 #ifdef ALERTED_FLOWS_DEBUG
   if(f) {
     char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[inc][num_active_alerted_flows: %u][num_idle_alerted_flows: %u] %s",
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[inc][num_active_alerted_flows: %u] %s",
 				 num_active_alerted_flows,
-				 num_idle_alerted_flows,
 				 f->print(buf, sizeof(buf)));
   }
 #endif
@@ -7533,14 +7532,13 @@ void NetworkInterface::incNumAlertedFlows(Flow *f) {
 /* *************************************** */
 
 void NetworkInterface::decNumAlertedFlows(Flow *f){
-  num_idle_alerted_flows++;
+  num_active_alerted_flows--;
 
 #ifdef ALERTED_FLOWS_DEBUG
   if(f) {
     char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[dec][num_active_alerted_flows: %u][num_idle_alerted_flows: %u] %s",
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[dec][num_active_alerted_flows: %u] %s",
 				 num_active_alerted_flows,
-				 num_idle_alerted_flows,
 				 f->print(buf, sizeof(buf)));
   }
 #endif
@@ -7549,12 +7547,7 @@ void NetworkInterface::decNumAlertedFlows(Flow *f){
 /* *************************************** */
 
 u_int64_t NetworkInterface::getNumActiveAlertedFlows() const {
-  if(num_active_alerted_flows >= num_idle_alerted_flows)
-    return num_active_alerted_flows - num_idle_alerted_flows;
-  else {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error, active alerted flows less than idle alerted flows");
-    return 0;
-  }
+  return num_active_alerted_flows;
 };
 
 /* *************************************** */
