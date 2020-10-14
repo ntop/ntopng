@@ -3910,11 +3910,11 @@ end
 
 local cache = {}
 
-function buildHostHREF(ip_address, page)
+function buildHostHREF(ip_address, vlan_id, page)
    local stats = cache[ip_address]
 
    if(stats == nil) then
-      stats = interface.getHostInfo(ip_address)
+      stats = interface.getHostInfo(ip_address, vlan_id)
       cache[ip_address] = { stats = stats }
    else
       stats = stats.stats
@@ -3924,9 +3924,14 @@ function buildHostHREF(ip_address, page)
       return(ip_address)
    else
       local name = stats.name
-
+      local res
+      
       if((name == nil) or (name == "")) then name = ip_address end
-      return('<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..ip_address..'&page='..page..'">'..name..'</A>')
+      res = '<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..ip_address
+      if(vlan_id ~= 0) then res = res .. "@"..vlan_id end
+      res = res  ..'&page='..page..'">'..name..'</A>'
+
+      return(res)
    end
 end
 

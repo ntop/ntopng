@@ -4420,7 +4420,7 @@ static int ntop_get_interface_periodicity_map(lua_State* vm) {
 
   if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
     char *host = (char*)lua_tostring(vm, 1);
-
+    
     ip = new (std::nothrow) IpAddress();
     if(ip) ip->set(host);
   }
@@ -4456,18 +4456,25 @@ static int ntop_flush_interface_periodicity_map(lua_State* vm) {
 static int ntop_get_interface_service_map(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress *ip = NULL;
+  u_int16_t vlan_id = 0;
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
     char *host = (char*)lua_tostring(vm, 1);
+    char buf[32], *at;
 
-    ip = new (std::nothrow) IpAddress();
-    if(ip) ip->set(host);
+    snprintf(buf, sizeof(buf), "%s", host);
+    if((at = strchr(buf, '@')) != NULL)
+      at[0] = '\0';
+
+    if(at) vlan_id = atoi(&at[1]);
+    ip = new (std::nothrow) IpAddress(); 
+    if(ip) ip->set(buf);
   }
   
   if(ntop_interface)
-    ntop_interface->luaServiceMap(vm, ip);
+    ntop_interface->luaServiceMap(vm, ip, vlan_id);
   else
     lua_pushnil(vm);
 

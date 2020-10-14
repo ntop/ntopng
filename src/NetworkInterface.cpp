@@ -8040,10 +8040,11 @@ void NetworkInterface::luaPeriodicityStats(lua_State* vm, IpAddress *ip_address)
 
 /* *************************************** */
 
-void NetworkInterface::luaServiceMap(lua_State* vm, IpAddress *ip_address) {
+void NetworkInterface::luaServiceMap(lua_State* vm, IpAddress *ip_address,
+				     u_int16_t vlan_id) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(sMap) {    
-    sMap->lua(vm, this, ip_address);
+    sMap->lua(vm, this, ip_address, vlan_id);
     return;
   }
 #endif
