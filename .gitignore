@@ -89,3 +89,4 @@ prime/
 stage/
 parts/
 hooks/.enabled
+dump.rdb
