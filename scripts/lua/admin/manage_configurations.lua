@@ -16,7 +16,7 @@ if not haveAdminPrivileges() then return end
 
 -- The order key is used to set an order for the rendered list in the page
 local configuration_items = {
-    all = {key = "all", label = i18n("manage_configurations.everything"), order = 0 },
+    all = {key = "all", label = i18n("manage_configurations.everything", {product = ntop.getInfo()["product"]}), order = 0 },
     snmp = {key = "snmp", label = i18n("manage_configurations.snmp"), order = 1},
     active_monitoring = {key = "active_monitoring", label = i18n("manage_configurations.active_monitoring"), order = 2},
     scripts = {key = "scripts", label = i18n("manage_configurations.user_scripts"), order = 3},

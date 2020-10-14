@@ -2748,9 +2748,9 @@ local lang = {
   ["manage_configurations"] = {
     ["active_monitoring"] = "Active monitoring",
     ["config_import"] = "Import <span class='item'>{{ type }}</span> Configuration",
-    ["everything"] = "All configurations",
-    ["manage_configuration"] = "Backup/Restore Configuration",
-    ["manage_configurations"] = "Backup/Restore Configurations",
+    ["everything"] = "Entire %{product} configuration (includes users, preferences, and all configurations below)",
+    ["manage_configuration"] = "Import/Export Configuration",
+    ["manage_configurations"] = "Import/Export Configurations",
     ["notifications"] = "Endpoints and recipients",
     ["pool_endpoint_recipients"] = "Pools (includes SNMP, active monitoring, user scripts, endpoints and recipients)",
     ["snmp"] = "SNMP",
@@ -2760,7 +2760,7 @@ local lang = {
       ["title"] = "Reset <span class='selected-item'>%{reset_element}</span> Configuration",
     },
     ["import_modal"] = {
-      ["all_title"] = "Restore ntopng Configuration",
+      ["all_title"] = "Import %{product} Configuration",
       ["title"] = "Import <span class='selected-item'>%{import_element}</span> Configuration",
     },
     ["messages"] = {
