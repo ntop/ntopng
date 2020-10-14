@@ -670,6 +670,14 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
     if(idleFlowsToDump && idleFlowsToDump->enqueue(f, true)) {
       f->incUses();
 
+      /*
+	Signal there's work to do.
+	Don't signal for view interfaces, they use sleep.
+       */
+#ifndef WIN32
+      if(!isViewed()) dump_condition.signal();
+#endif
+
 #if DEBUG_FLOW_DUMP
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
 #endif
@@ -681,6 +689,13 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
     /* Partial dump if active flows */
     if(activeFlowsToDump && activeFlowsToDump->enqueue(f, true)) {
       f->incUses();
+
+      /*
+	Signal there's work to do.
+       */
+#ifndef WIN32
+      if(!isViewed()) dump_condition.signal();
+#endif
 
 #if DEBUG_FLOW_DUMP
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
@@ -2431,7 +2446,8 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
      && num_done == 0) {
     /*
       No flow was dequeued. Let's wait for at most 1s. Cannot wait indefinitely
-      as we must ensure purgeQueuedIdleFlows() gets executed.
+      as we must ensure purgeQueuedIdleFlows() gets executed, and also to exit when it's
+      time to shutdown.
     */
     struct timespec hooks_wait_expire;
 
@@ -2545,7 +2561,30 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
       break;
   }
 
-  return idle_flows_done + active_flows_done;
+  /*
+    Wait until there's some work to do.
+    Don't wait for viewed interfaces to prevent one viewed interface to block all the other interfaces.
+    For viewed interfaces, this method is called sequentially in ViewInterface::dumpFlowLoop
+   */
+  u_int64_t num_done = idle_flows_done + active_flows_done;
+
+#ifndef WIN32
+  if(!isViewed()
+     && num_done == 0) {
+    /*
+      Do a timedwait to avoid blocking indefinitely. Failing to do this, for interfaces with no traffic,
+      would cause the calling thread to wait and ignore shutdown.
+     */
+    struct timespec dump_wait_expire;
+
+    dump_wait_expire.tv_sec = time(NULL) + 1,
+      dump_wait_expire.tv_nsec = 0;
+
+    dump_condition.timedWait(&dump_wait_expire);
+  }
+#endif
+
+  return num_done;
 }
 
 /* **************************************************** */
@@ -2600,8 +2639,11 @@ void NetworkInterface::dumpFlowLoop() {
     u_int64_t n = dequeueFlowsForDump(0 /* Unlimited budget for idle flows */,
 				      MAX_ACTIVE_FLOW_QUEUE_LEN /* Limited budged for active flows */);
 
-    if (n == 0)
-      _usleep(100);
+    if(n == 0) {
+#ifdef WIN32
+      _usleep(10000);
+#endif
+    }
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());

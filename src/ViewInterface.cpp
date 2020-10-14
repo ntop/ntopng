@@ -549,8 +549,8 @@ void ViewInterface::dumpFlowLoop() {
       n += viewed_interfaces[s]->dequeueFlowsForDump(MAX_IDLE_FLOW_QUEUE_LEN * 10 /* Limited budget for idle flows to */,
 						     MAX_ACTIVE_FLOW_QUEUE_LEN /* Limited budged for active flows */);
 
-    if (n == 0)
-      _usleep(100);
+    if(n == 0)
+      _usleep(10000);
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
