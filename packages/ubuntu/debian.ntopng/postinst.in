@@ -74,18 +74,13 @@ if hash systemctl 2>/dev/null; then
         if [ -z "$PREV_VERSION" ]; then
             # Enable on first installation only
             deb-systemd-invoke enable ntopng
-            deb-systemd-invoke restart ntopng
-        else
-            # Restart if already running only on upgrade
-            systemctl -q is-active ntopng && deb-systemd-invoke restart ntopng
         fi
+        systemctl -q is-enabled ntopng && deb-systemd-invoke restart ntopng
     else
         if [ -z "$PREV_VERSION" ]; then
 	    systemctl enable ntopng
-            systemctl restart ntopng
-        else
-	    systemctl -q is-active ntopng && systemctl restart ntopng
         fi
+	systemctl -q is-enabled ntopng && systemctl restart ntopng
     fi
     systemctl restart 'ntopng@*' --all
 elif [ -f /etc/init.d/ntopng ]; then

@@ -51,16 +51,21 @@ case "$1" in
 	if hash systemctl 2>/dev/null; then
 	    if hash deb-systemd-invoke 2>/dev/null; then
 		deb-systemd-invoke stop ntopng
-		deb-systemd-invoke disable ntopng
 		deb-systemd-invoke stop 'ntopng@*'
-		#disable doesn't want the star after the @, it takes it automatically
-		deb-systemd-invoke disable 'ntopng@'
+                if [ ! "$1" = "upgrade" ] ; then
+                    # Disable unless this is an upgrade
+		    deb-systemd-invoke disable ntopng
+		    #disable doesn't want the star after the @, it takes it automatically
+		    deb-systemd-invoke disable 'ntopng@'
+                fi
 	    else
 		systemctl stop ntopng
-		systemctl disable ntopng
 		systemctl stop 'ntopng@*' --all
-		#disable doesn't want the star after the @, it takes it automatically
-		systemctl disable 'ntopng@' --all
+                if [ ! "$1" = "upgrade" ] ; then
+		    systemctl disable ntopng
+		    #disable doesn't want the star after the @, it takes it automatically
+		    systemctl disable 'ntopng@' --all
+                fi
 	    fi
 	    systemctl daemon-reload
 	    systemctl reset-failed
