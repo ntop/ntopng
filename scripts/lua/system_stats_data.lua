@@ -40,7 +40,8 @@ if not ntop.isWindows() then
    -- interfaces
    local col = 1
    local num_items = 0
-   for if_id, if_info in pairs(storage_info.interfaces) do
+
+   for if_id, if_info in pairsByField(storage_info.interfaces, 'total', rev) do
       local item = {
 	    title = getInterfaceName(if_id),
 	    value = if_info.total,
