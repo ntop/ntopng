@@ -9,7 +9,7 @@ require "lua_utils"
 local json = require "dkjson"
 local discover = require "discover_utils"
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/json')
 
 -- Table parameters
 local currentPage = _GET["currentPage"]
