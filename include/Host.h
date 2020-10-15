@@ -41,7 +41,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   HostScore score;
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
-  Bitmap misbehaving_flows_as_client_status, misbehaving_flows_as_server_status;
   
   /* Host data: update Host::deleteHostData when adding new fields */
   struct {
@@ -145,12 +144,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void incLowGoodputFlows(time_t t, bool asClient);
   void decLowGoodputFlows(time_t t, bool asClient);
   inline void incNumMisbehavingFlows(bool asClient)   { stats->incNumMisbehavingFlows(asClient); };
-  inline void setMisbehavingFlowsStatusMap(Bitmap status, bool asClient)  { 
-    if (asClient)
-      misbehaving_flows_as_client_status.bitmapOr(status); 
-    else
-      misbehaving_flows_as_server_status.bitmapOr(status); 
-  };
   inline u_int16_t get_host_pool()    const { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()      const { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
@@ -334,8 +327,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline u_int32_t getTotalNumFlowsAsServer() const { return(stats->getTotalNumFlowsAsServer());  };
   inline u_int32_t getTotalNumMisbehavingOutgoingFlows() const { return stats->getTotalMisbehavingNumFlowsAsClient(); };
   inline u_int32_t getTotalNumMisbehavingIncomingFlows() const { return stats->getTotalMisbehavingNumFlowsAsServer(); };
-  inline Bitmap getMisbehavingOutgoingFlowsStatusMap() const { return misbehaving_flows_as_client_status; };
-  inline Bitmap getMisbehavingIncomingFlowsStatusMap() const { return misbehaving_flows_as_server_status; };
   inline u_int32_t getTotalNumUnreachableOutgoingFlows() const { return stats->getTotalUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumUnreachableIncomingFlows() const { return stats->getTotalUnreachableNumFlowsAsServer(); };
   inline u_int32_t getTotalNumHostUnreachableOutgoingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsClient(); };
@@ -381,8 +372,11 @@ class Host : public GenericHashEntry, public AlertableEntity {
       prefs_loaded = true;
     }
   }
-  inline MudRecording getMUDRecording()    { return(mud_pref); };
-  inline HostScore* getScore()             { return(&score);   };
+  inline MudRecording getMUDRecording()    { return(mud_pref);   };
+
+  inline u_int32_t getScore()        const { return score.get(); };
+  u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
+  u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
 
   inline void setOS(OperatingSystem _os) {
     Mac *mac = getMac();

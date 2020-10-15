@@ -31,6 +31,7 @@ class HostStats: public GenericTrafficElement {
 
   std::map<AlertType,u_int32_t> total_alerts;
   u_int32_t unreachable_flows_as_client, unreachable_flows_as_server;
+  /* Used concurrently in view interfaces, possibly removed after https://github.com/ntop/ntopng/issues/4596 */
   u_int32_t misbehaving_flows_as_client, misbehaving_flows_as_server;
   u_int32_t host_unreachable_flows_as_client, host_unreachable_flows_as_server;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;

@@ -417,7 +417,6 @@ void Host::lua_get_score(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "score.as_client",     score.getClient());
   lua_push_uint64_table_entry(vm, "score.as_server",     score.getServer());
   lua_push_uint64_table_entry(vm, "score.total",               score.get());
-  lua_push_uint64_table_entry(vm, "score.total_last_min_peak", score.getLastMinPeak(iface->getTimeLastPktRcvd()));
 }
 
 /* ***************************************************** */
@@ -567,8 +566,6 @@ void Host::lua_get_num_flows(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());
   lua_push_uint64_table_entry(vm, "misbehaving_flows.as_server", getTotalNumMisbehavingIncomingFlows());
   lua_push_uint64_table_entry(vm, "misbehaving_flows.as_client", getTotalNumMisbehavingOutgoingFlows());
-  lua_push_uint64_table_entry(vm, "misbehaving_flows_status_map.as_server", getMisbehavingIncomingFlowsStatusMap().get());
-  lua_push_uint64_table_entry(vm, "misbehaving_flows_status_map.as_client", getMisbehavingOutgoingFlowsStatusMap().get());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", getTotalNumUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
@@ -1372,6 +1369,18 @@ void Host::checkStatsReset() {
 void Host::checkBroadcastDomain() {
   if(iface->reloadHostsBroadcastDomain())
     is_in_broadcast_domain = iface->isLocalBroadcastDomainHost(this, false /* Non-inline call */);
+}
+
+/* *************************************** */
+
+u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client) {
+  return score.incValue(score_incr, score_category, as_client);
+}
+
+/* *************************************** */
+
+u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client) {
+  return score.decValue(score_decr, score_category, as_client);
 }
 
 /* *************************************** */

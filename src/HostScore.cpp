@@ -26,12 +26,11 @@
 HostScore::HostScore() {
   memset(&cli_score, 0, sizeof(cli_score)),
     memset(&srv_score, 0, sizeof(srv_score));
-  last_min_dec = 0, next_reset_decrement_time = 0;
 }
 
 /* *************************************** */
 
-u_int32_t HostScore::sum(bool as_client) {
+u_int32_t HostScore::sum(bool as_client) const {
   u_int32_t res = 0;
   const u_int16_t *src = as_client ? cli_score : srv_score;
 
@@ -58,6 +57,8 @@ u_int16_t HostScore::incValue(u_int16_t score, ScoreCategory score_category, boo
   if(score_category >= MAX_NUM_SCORE_CATEGORIES || score == 0)
     return 0;
 
+  m.lock(__FILE__, __LINE__);
+
   if(dst[score_category] + score <= (u_int16_t)-1) {
     /* Enough room to do a full increment by `score` */
     actual_inc = score;
@@ -68,6 +69,8 @@ u_int16_t HostScore::incValue(u_int16_t score, ScoreCategory score_category, boo
     actual_inc = (u_int16_t)-1 - dst[score_category];
     dst[score_category] += actual_inc;
   }
+
+  m.unlock(__FILE__, __LINE__);
 
   return actual_inc;
 }
@@ -81,22 +84,23 @@ u_int16_t HostScore::incValue(u_int16_t score, ScoreCategory score_category, boo
 
   HostScore::decValue must be called from the same thread of HostScore::incValue to prevent races.
 */
-u_int16_t HostScore::decValue(time_t when, u_int16_t score,
-			      ScoreCategory score_category, bool as_client) {
+u_int16_t HostScore::decValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
   u_int16_t *dst = as_client ? cli_score : srv_score;
 
   if((score_category >= MAX_NUM_SCORE_CATEGORIES)
      || (score == 0))
     return 0;
 
-  checkDecrementReset(when);
-  
+  m.lock(__FILE__, __LINE__);
+
   if(dst[score_category] - score >= 0)
     /* Decrement leaves the destination consistent */
-    dst[score_category] -= score, last_min_dec += score;
+    dst[score_category] -= score;
   else
     /* Something was wrong */
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Decrement of host score yielding a negative number.");
+
+  m.unlock(__FILE__, __LINE__);
 
   return score;
 }

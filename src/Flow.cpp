@@ -253,11 +253,10 @@ Flow::~Flow() {
   /*
     Get client and server hosts. Use unsafe* methods to get the client and server also for 'viewed' interfaces.
     For 'viewed' interfaces, host pointers are shared across multiple 'viewed' interfaces and thus they are termed as unsafe.
-    However, as Flow destructors are called by the view interface sequentially on all the 'viewed' interfaces,
-    it is safe to use usafe pointers.
 
-    NOTE: Host scores are decreased here in a safe way as ~Flows are deleted in the same thread that performs user script
-    hook calls which causes scores to be incremented.
+    IMPORTANT: only call here methods that are safe (e.g., locked or atomic-ed).
+
+    It is fundamental to only call 
    */
   Host *cli_u = unsafeGetClient(), *srv_u = unsafeGetServer();
 
@@ -265,14 +264,11 @@ Flow::~Flow() {
     cli_u->decUses(); /* Decrease the number of uses */
     cli_u->decNumFlows(get_last_seen(), true);
 
-    HostScore *clis = cli_u->getScore(); /* Decrease the score of the host */
-    if(clis) {
-      for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
-	ScoreCategory score_category = (ScoreCategory)i;
+    for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+      ScoreCategory score_category = (ScoreCategory)i;
 
-	if(cli_host_score[score_category])
-	  clis->decValue(get_last_seen(), cli_host_score[score_category], score_category, true  /* as client */);	
-      }
+      if(cli_host_score[score_category])
+	cli_u->decScoreValue(cli_host_score[score_category], score_category, true  /* as client */);	
     }
   }
 
@@ -283,14 +279,11 @@ Flow::~Flow() {
     srv_u->decUses(); /* Decrease the number of uses */
     srv_u->decNumFlows(get_last_seen(), false);
 
-    HostScore *srvs = srv_u->getScore(); /* Decrease the score of the host */
-    if(srvs) {
-      for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
-	ScoreCategory score_category = (ScoreCategory)i;
+    for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+      ScoreCategory score_category = (ScoreCategory)i;
 
-	if(srv_host_score[score_category])
-	  srvs->decValue(get_last_seen(), srv_host_score[score_category], score_category, false /* as server */);
-      }
+      if(srv_host_score[score_category])
+	srv_u->decScoreValue(srv_host_score[score_category], score_category, false /* as server */);
     }
   }
 
@@ -301,20 +294,9 @@ Flow::~Flow() {
     Perform other operations to decrease counters increased by flow user script hooks (we're in the same thread)
    */
   if(status_map.get() != status_normal) {
-#if 0
-    char buf[256];
-    printf("%s status=%d\n", print(buf, sizeof(buf)), status);
-#endif
+    if(cli_u) cli_u->incNumMisbehavingFlows(true);
 
-    if(cli_u) {
-      cli_u->setMisbehavingFlowsStatusMap(status_map, true);
-      cli_u->incNumMisbehavingFlows(true);
-    }
-
-    if(srv_u) {
-      srv_u->setMisbehavingFlowsStatusMap(status_map, false);
-      srv_u->incNumMisbehavingFlows(false);
-    }
+    if(srv_u) srv_u->incNumMisbehavingFlows(false);
 
     iface->decNumMisbehavingFlows();
 
@@ -5165,10 +5147,10 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
     because the actual increase could have caused an overflow).
   */
   if(unsafeGetClient())
-    cli_host_score[score_category] += unsafeGetClient()->getScore()->incValue(cli_inc, score_category, true  /* as client */);
+    cli_host_score[score_category] += unsafeGetClient()->incScoreValue(cli_inc, score_category, true  /* as client */);
 
   if(unsafeGetServer())
-    srv_host_score[score_category] += unsafeGetServer()->getScore()->incValue(srv_inc, score_category, false /* as server*/);
+    srv_host_score[score_category] += unsafeGetServer()->incScoreValue(srv_inc, score_category, false /* as server*/);
 
   if(!status_infos)
     status_infos = (StatusInfo*) calloc(BITMAP_NUM_BITS, sizeof(StatusInfo));

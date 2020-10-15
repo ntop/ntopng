@@ -4033,7 +4033,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_total_num_retx_sent:  r->elems[r->actNumEntries++].numericValue = h->getTcpPacketSentStats()->get_retr(); break;
   case column_total_num_retx_rcvd:  r->elems[r->actNumEntries++].numericValue = h->getTcpPacketRcvdStats()->get_retr(); break;
   case column_total_alerts:    r->elems[r->actNumEntries++].numericValue = h->getTotalAlerts(); break;
-  case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore()->get(); break;
+  case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore(); break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
