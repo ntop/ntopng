@@ -31,7 +31,7 @@ class Condvar {
  private:
   pthread_mutex_t mutex;
   pthread_cond_t  condvar;
-  int predicate;
+  bool predicate;
 
   int signal_waiters(bool signal_all);
   

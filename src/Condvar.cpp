@@ -32,7 +32,7 @@ Condvar::Condvar() {
 void Condvar::init() {
   pthread_mutex_init(&mutex, NULL);
   pthread_cond_init(&condvar, NULL);
-  predicate = 0;
+  predicate = false;
 }
 
 /* ************************************ */
@@ -52,10 +52,10 @@ int Condvar::wait() {
     return rc;
   }
 
-  while(predicate <= 0)
+  while(predicate == false)
     rc = pthread_cond_wait(&condvar, &mutex);
 
-  predicate--;
+  predicate = false;
 
   rc = pthread_mutex_unlock(&mutex);
 
@@ -73,14 +73,14 @@ int Condvar::timedWait(struct timespec *expiration) {
     return rc;
   }
 
-  while(predicate <= 0)
+  while(predicate == false)
     if((rc = pthread_cond_timedwait(&condvar, 
 				    &mutex, expiration)) == ETIMEDOUT) {
       pthread_mutex_unlock(&mutex);
       return rc;
     }
   
-  predicate--;
+  predicate = false;
   
   return(pthread_mutex_unlock(&mutex));
 }
@@ -92,7 +92,7 @@ int Condvar::signal_waiters(bool signal_all) {
 
   rc = pthread_mutex_lock(&mutex);
 
-  predicate++;
+  predicate = true;
 
   rc = pthread_mutex_unlock(&mutex);
 
