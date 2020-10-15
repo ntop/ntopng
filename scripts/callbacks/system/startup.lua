@@ -142,12 +142,7 @@ companion_interface_utils.initCompanions()
 
 -- ##################################################################
 
-lists_utils.clearErrors()
-lists_utils.downloadLists()
-lists_utils.reloadLists()
--- Need to do the actual reload also here as otherwise some
--- flows may be misdetected until housekeeping.lua is executed
-lists_utils.checkReloadLists()
+lists_utils.startup()
 
 -- ##################################################################
 

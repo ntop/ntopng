@@ -1883,7 +1883,7 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
     long response_code;
     char *content_type, *redirection;
     char ua[64];
-
+    
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -1897,17 +1897,22 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 		 password ? password : "");
 	curl_easy_setopt(curl, CURLOPT_COOKIE, auth);
       } else {
-	snprintf(auth, sizeof(auth), "%s:%s",
-		 username ? username : "",
-		 password ? password : "");
-	curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
-	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+	if(username && (username[0] != '\0')) {
+	  snprintf(auth, sizeof(auth), "%s:%s",
+		   username ? username : "",
+		   password ? password : "");
+	  curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
+	  curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+	}
       }
     }
 
     if(!strncmp(url, "https", 5)) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); 
+
+      curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, 1L); /* Enable ALPN */
+      curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_NPN, 1L);  /* Negotiate HTTP/2 if available */
     }
 
     if(form_data) {
@@ -1983,9 +1988,12 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout*1000);
 #endif
 
-    snprintf(ua, sizeof(ua), "%s [%s][%s]",
-	     PACKAGE_STRING, PACKAGE_MACHINE, PACKAGE_OS);
+    if(ntop->getTrace()->get_trace_level() > TRACE_LEVEL_NORMAL)
+      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    
+    snprintf(ua, sizeof(ua), "%s/%s/%s", PACKAGE_STRING, PACKAGE_MACHINE, PACKAGE_OS);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ua);
+    // curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl/7.54.0");
 
     if(vm) lua_newtable(vm);
 
