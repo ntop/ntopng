@@ -696,6 +696,10 @@ main#n-container {
   -webkit-overflow-scrolling: touch;
 }
 
+.dt-table-wrapper table.table tbody td {
+  vertical-align: middle;
+}
+
 details#dt-top-summary {
   margin: 1.25rem 0;
 }
