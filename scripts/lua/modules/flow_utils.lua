@@ -989,11 +989,11 @@ function getSIPTableRows(info)
      -- TODO: fix
      if tonumber(rtp_flow_key) ~= nil and interface.findFlowByKeyAndHashId(tonumber(rtp_flow_key), 0) ~= nil then
 	string_table = string_table..'&nbsp;'
-	string_table = string_table.."<A HREF=\""..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..rtp_flow_key
+	string_table = string_table.."<A class='btn btn-sm btn-info' HREF=\""..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..rtp_flow_key
 	string_table = string_table.."&label="..sip_rtp_src_address_ip..":"..sip_rtp_src_port
 	string_table = string_table.." <-> "
 	string_table = string_table..sip_rtp_dst_address_ip..":"..sip_rtp_dst_port.."\">"
-	string_table = string_table..'<span class="badge badge-info">'..i18n("flow_details.rtp_flow")..'</span></a>'
+	string_table = string_table..'<i class="fas fa-search-plus"></i></a>'
      end
      string_table = string_table.."</div></td></tr>\n"
 
@@ -1365,7 +1365,7 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
 
          local inputurl
          local outputurl
-         
+
          if input_idx then
             inputurl = prepare_interface_url(input_idx, snmp_interfaces[input_idx])
          end

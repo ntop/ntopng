@@ -187,9 +187,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       record["column_server_rtt"] = format_utils.formatMillis(value["server_tcp_info"]["rtt"])
    end
 
-   local column_key = "<A HREF='"
+   local column_key = "<A class='btn btn-sm btn-info' HREF='"
       ..ntop.getHttpPrefix().."/lua/flow_details.lua?flow_key="..value["ntopng.key"].."&flow_hash_id="..value["hash_entry_id"]
-      .."'><span class='badge badge-info'>Info</span></A>"
+      .."'><i class='fas fa-search-plus'></i></A>"
    if(have_nedge) then
       if (value["verdict.pass"]) then
 	 column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='badge badge-secondary block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..", "..value["hash_entry_id"]..");' style='cursor: pointer;'", "")).."><i class='fas fa-ban' /></span>"

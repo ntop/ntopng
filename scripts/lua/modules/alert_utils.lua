@@ -530,7 +530,7 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       local active_flow = interface.findFlowByKeyAndHashId(status_info["ntopng.key"], status_info["hash_entry_id"])
 
       if active_flow and active_flow["seen.first"] < tonumber(record["alert_tstamp"]) then
-	 return string.format("%s [%s: <A HREF='%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u'><span class='badge badge-info'>Info</span></A> %s]",
+	 return string.format("%s [%s: <A class='btn btn-sm btn-info' HREF='%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u'><i class='fas fa-search-plus'></i></A> %s]",
 			      flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info),
 			      i18n("flow"), ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"],
 			      getFlowLabel(active_flow, true, true))

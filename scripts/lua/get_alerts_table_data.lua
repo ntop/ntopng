@@ -111,7 +111,7 @@ for _key,_value in ipairs(alerts) do
 
    if engaged == true then
       column_duration = secondsToTime(os.time() - tonumber(_value["alert_tstamp"]))
-   elseif tonumber(_value["alert_tstamp_end"]) ~= nil 
+   elseif tonumber(_value["alert_tstamp_end"]) ~= nil
         and (tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"])) ~= 0 then
       column_duration = secondsToTime(tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"]))
    end
@@ -130,7 +130,7 @@ for _key,_value in ipairs(alerts) do
       if graph_utils.getAlertGraphLink then
 	 column_chart    = graph_utils.getAlertGraphLink(getInterfaceId(ifname), _value, alert_info, engaged)
 	 if not isEmptyString(column_chart) then
-	    column_chart = "<a href='".. column_chart .."'><i class='fas fa-search-plus drilldown-icon'></i></a>"
+	    column_chart = "<a class='btn btn-sm btn-info' href='".. column_chart .."'><i class='fas fa-search-plus drilldown-icon'></i></a>"
 	 end
       end
    end
@@ -163,7 +163,7 @@ for _key,_value in ipairs(alerts) do
    record["column_chart"] = column_chart
 
    res_formatted[#res_formatted + 1] = record
-	  
+
 end -- for
 
 local result = {}

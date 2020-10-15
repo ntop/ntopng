@@ -335,7 +335,7 @@ for _key, _value in pairsByKeys(vals, funct) do
       record["column_thpt"] = "0 "..throughput_type
    end
 
-   local column_info = hostinfo2detailshref(value, {page = "flows"}, "<span class='badge badge-info'>"..i18n("flows").."</span>")
+   local column_info = hostinfo2detailshref(value, {page = "flows"}, "<span class='btn btn-sm btn-info'><i class='fas fa-stream'></i></span>")
 
    if have_nedge and (host ~= nil) and (host.localhost or host.systemhost) then
       column_info = column_info.." <span title='"..
