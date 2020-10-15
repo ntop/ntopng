@@ -740,17 +740,20 @@ print[[
 
             if (rsp.status == 'installing') {
               $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
+              $('#updates-info-li').attr('title', '');
               $('#updates-install-li').hide();
               $('#admin-badge').hide();
 
             } else if (rsp.status == 'checking') {
               $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
+              $('#updates-info-li').attr('title', '');
               $('#updates-install-li').hide();
               $('#admin-badge').hide();
 
             } else if (rsp.status == 'update-avail' || rsp.status == 'upgrade-failure') {
 
-              $('#updates-info-li').html('<span class="badge badge-pill badge-danger">]] print(i18n("updates.available")) print[[</span> ]] print(info["product"]) print[[ ' + rsp.version + '!');
+              $('#updates-info-li').html('<span class="badge badge-pill badge-danger">]] print(i18n("updates.available")) print[[</span> ]] print(info["product"]) print[[ ' + rsp.version);
+              $('#updates-info-li').attr('title', '');
 
               var icon = '<i class="fas fa-download"></i>';
               $('#updates-install-li').attr('title', '');
