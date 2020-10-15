@@ -42,6 +42,7 @@ Flow::Flow(NetworkInterface *_iface,
   viewFlowStats = NULL;
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port, srv_port = _srv_port;
   cli_host = srv_host = NULL;
+  cli_ip_addr = srv_ip_addr = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
   srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
   alert_status_info = alert_status_info_shadow = NULL;
@@ -273,7 +274,9 @@ Flow::~Flow() {
 	  clis->decValue(get_last_seen(), cli_host_score[score_category], score_category, true  /* as client */);	
       }
     }
-  } else if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL */
+  }
+
+  if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow constructor */
     delete cli_ip_addr;
 
   if(srv_u) {
@@ -289,7 +292,9 @@ Flow::~Flow() {
 	  srvs->decValue(get_last_seen(), srv_host_score[score_category], score_category, false /* as server */);
       }
     }
-  } else if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL */
+  }
+
+  if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow constructor */
     delete srv_ip_addr;
 
   /*
@@ -456,7 +461,7 @@ void Flow::processDetectedProtocol() {
 
   switch(l7proto) {
   case NDPI_PROTOCOL_DHCP:
-    if(cli_port == ntohs(67) /* server */) cli_host->setDhcpServer();
+    if(cli_port == ntohs(67) /* server */ && get_cli_host()) get_cli_host()->setDhcpServer();
     break;
 
   case NDPI_PROTOCOL_BITTORRENT:
@@ -474,7 +479,8 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_NTP:
-    if(srv_port == ntohs(123) /* server */) srv_host->setNtpServer(); else cli_host->setNtpServer();
+    if(srv_port == ntohs(123) && get_srv_host()) get_srv_host()->setNtpServer();
+    else if(cli_port == ntohs(123) && get_cli_host()) get_cli_host()->setNtpServer();
     break;
     
   case NDPI_PROTOCOL_MAIL_SMTP:
@@ -482,7 +488,8 @@ void Flow::processDetectedProtocol() {
     break;
     
   case NDPI_PROTOCOL_DNS:
-    if(cli_port == ntohs(53) /* server */) cli_host->setDnsServer(); else srv_host->setDnsServer();
+    if(cli_port == ntohs(53) && get_cli_host())       get_cli_host()->setDnsServer();
+    else if(srv_port == ntohs(53) && get_srv_host())  get_srv_host()->setDnsServer();
   case NDPI_PROTOCOL_IEC60870:
     /* See Flow::processDNSPacket and Flow::processIEC60870Packet for dissection */
     break;
