@@ -9,6 +9,7 @@ require "lua_utils"
 local template = require "template_utils"
 local categories_utils = require "categories_utils"
 local lists_utils = require "lists_utils"
+local ui_utils = require "ui_utils"
 
 local category_filter = _GET["l7proto"]
 local ifId = getInterfaceId(ifname)
@@ -60,20 +61,19 @@ print(
       custom_alert_class = "",
       custom_dialog_class = "dialog-body-full-height",
       message = [[<p style='margin-bottom:5px;'>]] .. i18n("custom_categories.the_following_is_a_list_of_hosts", {category='<i id="selected_category_name"></i>'}) .. [[:</p>
-  <textarea id="category-hosts-list" spellcheck="false" style='width:100%; height:14em;'></textarea><br><br>
-  ]].. i18n("notes") ..[[
-  <ul>
-  <li>]].. i18n("custom_categories.each_host_separate_line") .. [[</li>
-  <li>]].. i18n("custom_categories.host_domain_or_cidr") .. [[</li>
-  <li>]].. i18n("custom_categories.domain_names_substrings", {s1="ntop.org", s2="mail.ntop.org", s3="ntop.org.example.com"}) ..[[</li>
-  </ul>]],
+  <textarea id="category-hosts-list" spellcheck="false" style='width:100%; height:14em;'></textarea>
+  ]].. ui_utils.render_notes({
+    {content = i18n("custom_categories.each_host_separate_line")},
+    {content = i18n("custom_categories.host_domain_or_cidr")},
+    {content = i18n("custom_categories.domain_names_substrings", {s1="ntop.org", s2="mail.ntop.org", s3="ntop.org.example.com"})}
+  }),
       confirm = i18n("save"),
       cancel = i18n("cancel"),
     }
   })
 )
 
-print [[<br>
+print [[
 <table><tbody><tr>
 ]]
 
@@ -235,6 +235,5 @@ print [[
      }
   });
 </script>
-<br><br>
 ]]
 

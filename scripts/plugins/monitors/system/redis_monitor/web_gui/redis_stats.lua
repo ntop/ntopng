@@ -156,7 +156,7 @@ $("#table-redis-stats").datatable({
        }
      }
    ], tableCallback: function() {
-      datatableInitRefreshRows($("#table-redis-stats"), "column_key", 5000, {"column_hits": addCommas});
+      datatableInitRefreshRows($("#table-redis-stats"), "column_key", 5000, {"column_hits": NtopUtils.addCommas});
    }
 });
 </script>

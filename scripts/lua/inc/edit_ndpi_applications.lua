@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local ui_utils = require "ui_utils"
 local graph_utils = require "graph_utils"
 local template = require "template_utils"
 
@@ -147,14 +148,13 @@ printMessageBanners(app_warnings)
 
 local function makeApplicationEditor(area_id, required)
   return [[
-  <textarea id="]] .. area_id .. [[" spellcheck="false" style='width:100%; height:14em;' ]] .. ternary(required, "required", "") .. [[></textarea><br><br>
-  ]].. i18n("notes") ..[[
-  <ul>
-  <li>]].. i18n("custom_categories.each_host_separate_line") .. [[</li>
-  <li>]].. i18n("custom_categories.host_domain_or_port") .. [[</li>
-  <li>]].. i18n("custom_categories.example_port_range", {example1="udp:443", example2="tcp:1230-1235"}) .. [[</li>
-  <li>]].. i18n("custom_categories.domain_names_substrings", {s1="ntop.org", s2="mail.ntop.org", s3="ntop.org.example.com"}) ..[[</li>
-  </ul>]]
+  <textarea id="]] .. area_id .. [[" spellcheck="false" style='width:100%; height:14em;' ]] .. ternary(required, "required", "") .. [[></textarea>
+  ]].. ui_utils.render_notes({
+    {content = i18n("custom_categories.each_host_separate_line")},
+    {content = i18n("custom_categories.host_domain_or_port")},
+    {content = i18n("custom_categories.example_port_range", {example1="udp:443", example2="tcp:1230-1235"})},
+    {content = i18n("custom_categories.domain_names_substrings", {s1="ntop.org", s2="mail.ntop.org", s3="ntop.org.example.com"})}
+  })
 end
 
 print(
@@ -193,38 +193,36 @@ print[[
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h3 class="modal-title">]] print(i18n("custom_categories.add_custom_app")) print[[</h3>
+          <h5 class="modal-title">]] print(i18n("custom_categories.add_custom_app")) print[[</h5>
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
+        <form id="add-application-form" method="post" data-toggle="validator" onsubmit="return addApplication()">
         <div class="modal-body">
-          <div class="container-fluid">
-            <form id="add-application-form" method="post" data-toggle="validator" onsubmit="return addApplication()">
-              <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-              <input type="hidden" name="action" value="add">
-              <input id="new-custom_hosts" type="hidden" name="custom_hosts">
+                <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+                <input type="hidden" name="action" value="add">
+                <input id="new-custom_hosts" type="hidden" name="custom_hosts">
 
-              <div class="row form-group has-feedback">
-                <label class="form-label">]] print(i18n("custom_categories.application_name")) print[[</label>
-                <input id="new-application" type="text" name="new_application" class="form-control" required>
-              </div>
+                <div class="form-group has-feedback">
+                  <label class="form-label">]] print(i18n("custom_categories.application_name")) print[[</label>
+                  <input id="new-application" type="text" name="new_application" class="form-control" required>
+                </div>
 
-              <div class="row form-group has-feedback">
-                <label class="form-label">]] print(i18n("custom_categories.custom_hosts")) print[[</label>
-                ]] print(makeApplicationEditor("new-application-hosts-list", true)) print[[
-              </div>
+                <div class="form-group has-feedback">
+                  <label class="form-label">]] print(i18n("custom_categories.custom_hosts")) print[[</label>
+                  ]] print(makeApplicationEditor("new-application-hosts-list", true)) print[[
+                </div>
 
-              <div class="form-group">
-                <button id="new-application-submit" type="submit" class="btn btn-primary btn-block">]] print(i18n("custom_categories.add_application")) print[[</button>
-              </div>
-            </div>
-          </form>
-        </div>
+                </div>
+                <div class='modal-footer'>
+                  <button id="new-application-submit" type="submit" class="btn btn-primary">]] print(i18n("custom_categories.add_application")) print[[</button>
+                </div>
+                </form>
       </div>
     </div>
   </div>
 ]]
 
-print [[<br>
+print [[
 <table><tbody><tr>
   <td style="white-space:nowrap; padding-right:1em;">]]
   if catid ~= nil then
@@ -275,24 +273,22 @@ print[[
   </td>
   </tr>
   </table>
-  <form id="protos_cat_form" lass="form-inline" style="margin-bottom: 0px;" method="post">
+  <form id="protos_cat_form" class="w-100 text-right" style="margin-bottom: 0px;" method="post">
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
     <div id="table-edit-ndpi-applications"></div>
-    <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
+    <button class="btn btn-primary" style="margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
   </form>
   ]]
 
 if not has_protos_file then
-  print(i18n("notes"))
-  print[[<ul>]]
-  print[[<li>]] print(i18n("custom_categories.option_needed", {
-    option="-p", url="https://www.ntop.org/guides/ntopng/web_gui/categories.html#custom-applications"
-  })) print[[</li>]]
+  print(ui_utils.render_notes({
+    {content = i18n("custom_categories.option_needed", {
+      option="-p", url="https://www.ntop.org/guides/ntopng/web_gui/categories.html#custom-applications"
+    })}
+  }))
 end
-print[[</ul>]]
 
 print[[
-  <br/><br/>
   <script type="text/javascript">
     aysHandleForm("#protos_cat_form", {
       handle_datatable: true,
