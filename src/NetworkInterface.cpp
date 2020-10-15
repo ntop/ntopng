@@ -2442,8 +2442,7 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
   num_done += dequeueFlows(hookPeriodicUpdate, flow_lua_call_periodic_update, active_budget);
 
 #ifndef WIN32
-  if(!isViewed() /* View interfaces will be possibly reworked, for now, we avoid waiting */
-     && num_done == 0) {
+  if(num_done == 0) {
     /*
       No flow was dequeued. Let's wait for at most 1s. Cannot wait indefinitely
       as we must ensure purgeQueuedIdleFlows() gets executed, and also to exit when it's
@@ -2607,14 +2606,15 @@ void NetworkInterface::hookFlowLoop() {
      */
     u_int64_t n = dequeueFlowsForHooks(16 /* protocol_detected_budget */, 4 /* active_budget */, 32 /* idle_budget */);
 
-    if(
-#ifndef WIN32
-       isView() /* Only sleep if this is a view interface (view interfaces will be reworked so it is OK for the time being).
-		   NOTE: This loop is not inited for viewed interfaces. */
-       &&
-#endif
-       n == 0 /* Sleep if nothing was done during the previous cycle */)
+    if(n == 0) {
+      /*
+	If windows, sleep if nothing was done during the previous cycle.
+	On non-windows, there's nothing do to as signal/waits are implemented to throttle the speed
+      */
+#ifdef WIN32
       _usleep(10000);
+#endif
+    }
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
@@ -6939,7 +6939,7 @@ bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int1
    Start the thread for the execution of flow user script hooks
  */
 bool NetworkInterface::initHookLoop() {
-  if(isViewed()) /* Don't init the loop for viewed interfaces: the loop is run by the view interface for all the viewed interfaces */
+  if(isView()) /* Don't init the loop for view interfaces: the loop is run by every viewed interface independently */
     return true;
 
   pthread_create(&hookLoop, NULL, ::hookLoop, (void*)this);
