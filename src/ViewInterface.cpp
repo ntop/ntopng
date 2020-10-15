@@ -532,11 +532,11 @@ void ViewInterface::dumpFlowLoop() {
       viewed interface to starve all the others.
     */
     for(u_int8_t s = 0; s < num_viewed_interfaces; s++)
-      n += viewed_interfaces[s]->dequeueFlowsForDump(MAX_IDLE_FLOW_QUEUE_LEN * 10 /* Limited budget for idle flows to */,
-						     MAX_ACTIVE_FLOW_QUEUE_LEN /* Limited budged for active flows */);
+      n += viewed_interfaces[s]->dequeueFlowsForDump(128 /* Limited budget for idle flows to */,
+						     32 /* Limited budged for active flows */);
 
     if(n == 0)
-      _usleep(10000);
+      _usleep(100);
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
