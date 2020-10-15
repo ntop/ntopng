@@ -276,7 +276,7 @@ Flow::~Flow() {
     }
   }
 
-  if(cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow constructor */
+  if(!cli_host && cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow constructor (viewed interfaces) */
     delete cli_ip_addr;
 
   if(srv_u) {
@@ -294,7 +294,7 @@ Flow::~Flow() {
     }
   }
 
-  if(srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow constructor */
+  if(!srv_host && srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow constructor (viewed interfaces) */
     delete srv_ip_addr;
 
   /*
@@ -479,7 +479,7 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_NTP:
-    if(srv_port == ntohs(123) && get_srv_host()) get_srv_host()->setNtpServer();
+    if(srv_port == ntohs(123) && get_srv_host())      get_srv_host()->setNtpServer();
     else if(cli_port == ntohs(123) && get_cli_host()) get_cli_host()->setNtpServer();
     break;
     
