@@ -262,6 +262,7 @@ Flow::~Flow() {
 
   if(cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
+    cli_u->decNumFlows(get_last_seen(), true);
 
     HostScore *clis = cli_u->getScore(); /* Decrease the score of the host */
     if(clis) {
@@ -277,6 +278,7 @@ Flow::~Flow() {
 
   if(srv_u) {
     srv_u->decUses(); /* Decrease the number of uses */
+    srv_u->decNumFlows(get_last_seen(), false);
 
     HostScore *srvs = srv_u->getScore(); /* Decrease the score of the host */
     if(srvs) {
@@ -2412,27 +2414,6 @@ void Flow::set_hash_entry_id(u_int assigned_hash_entry_id) {
 u_int Flow::get_hash_entry_id() const {
   return hash_entry_id;
 };
-
-/* *************************************** */
-
-void Flow::set_hash_entry_state_idle() {
-  /*
-    Number of flows is decreased here, that is, as soon as the flow goes idle,
-    rather than waiting the ~Flow. This has a beneficial impact as data are refreshed
-    earlier (there's no need to wait for the destructor).
-
-    Unsafe pointers are used here to also handle 'viewed' interfaces with possibly unsafe host pointers.
-   */
-  Host *cli_u = unsafeGetClient(), *srv_u = unsafeGetServer();
-
-  if(cli_u)
-    cli_u->decNumFlows(get_last_seen(), true);
-
-  if(srv_u)
-    srv_u->decNumFlows(get_last_seen(), false);
-
-  GenericHashEntry::set_hash_entry_state_idle();
-}
 
 /* *************************************** */
 

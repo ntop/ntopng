@@ -491,8 +491,6 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv() const;
   u_int64_t get_current_packets_srv2cli() const;
 
-  /* Methods to handle the flow in-memory lifecycle */
-  void set_hash_entry_state_idle();
   bool is_hash_entry_state_idle_transition_ready() const;
   void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const;
   void periodic_stats_update(const struct timeval *tv);
