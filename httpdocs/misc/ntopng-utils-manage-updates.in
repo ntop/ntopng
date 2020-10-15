@@ -233,7 +233,10 @@ function run_upgrade() {
 		[ $QUIET = false ] && echo "${PRODUCT} updated successfully"
 		# Cleanup new version available key
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} >/dev/null 2>&1 
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1
+
+		# Restart the service if not running (e.g. old prerm was disabling it)
+		/bin/systemctl -q is-active ${PRODUCT} || /bin/systemctl restart ${PRODUCT}
 	else
 		[ $QUIET = false ] && echo "Unable to update"
 		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "upgrade-failure" >/dev/null 2>&1
