@@ -14,6 +14,9 @@ local script = {
    -- Priority
    prio = -20, -- Lower priority (executed after) than default 0 priority
 
+   -- This module is disabled by default
+   default_enabled = false,
+   
    -- NOTE: hooks defined below
    hooks = {},
 
