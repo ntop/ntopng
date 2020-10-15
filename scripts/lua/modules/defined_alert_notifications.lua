@@ -145,7 +145,7 @@ end
 function defined_alert_notifications.DHCP_hosts(container)
 
     -- In System Interface we can't collect the required data below
-    if (not IS_SYSTEM_INTERFACE) then return end
+    if (IS_SYSTEM_INTERFACE) then return end
 
     local ifs = interface.getStats()
     local is_pcap_dump = interface.isPcapDumpInterface()
@@ -222,7 +222,7 @@ end
 function defined_alert_notifications.too_many_hosts(container)
 
     -- In System Interface we can't get the hosts number from `interface.getNumHosts()`
-    if (not IS_SYSTEM_INTERFACE) then return end
+    if (IS_SYSTEM_INTERFACE) then return end
 
     local level = nil
     local hosts = interface.getNumHosts()
@@ -244,7 +244,7 @@ end
 function defined_alert_notifications.too_many_flows(container)
 
     -- In System Interface we can't get the flows number from `interface.getNumFlows()`
-    if (not IS_SYSTEM_INTERFACE) then return end
+    if (IS_SYSTEM_INTERFACE) then return end
 
     local level = nil
     local flows = interface.getNumFlows()
@@ -266,7 +266,7 @@ end
 function defined_alert_notifications.remote_probe_clock_drift(container)
 
     -- In System Interface we can't collect the stats from `interface.getStats()`
-    if (not IS_SYSTEM_INTERFACE) then return end
+    if (IS_SYSTEM_INTERFACE) then return end
 
     local ifstats = interface.getStats()
 
@@ -295,7 +295,7 @@ end
 function defined_alert_notifications.flow_dump(container)
 
     -- In System Interface we can't collect the stats from `interface.getStats()`
-    if (not IS_SYSTEM_INTERFACE) then return end
+    if (IS_SYSTEM_INTERFACE) then return end
 
     local ifstats = interface.getStats()
 
