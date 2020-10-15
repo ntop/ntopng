@@ -33,6 +33,9 @@ print([[
 
 print[[
 <script type='text/javascript'>
+
+   const isAdministrator = ]] print(is_admin) print[[;
+
    /* Some localization strings to pass from lua to javascript */
    const i18n = {
       "no_results_found": "]] print(i18n("no_results_found")) print[[",
@@ -1099,14 +1102,16 @@ if (not info.oem) then
    </li>]])
 end
 
+local session_user = _SESSION['user']
+
 print([[
    <li class="nav-item">
       <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" data-toggle="dropdown">
          <i class='fas fa-user'></i>
       </a>
       <ul class="dropdown-menu dropdown-menu-right">
-         <li class='dropdown-item disabled'>
-            <i class='fas fa-user'></i> ]].. _SESSION['user'] ..[[
+         <li class='dropdown-item'>
+            <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a>
          </li>
       ]])
 

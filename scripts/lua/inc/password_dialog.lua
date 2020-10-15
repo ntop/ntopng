@@ -47,7 +47,7 @@ end
   password_alert.success = function(message) { $('#password_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
 </script>
 
-  <form data-toggle="validator" id="form_password_reset" class="form-inline" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua" accept-charset="UTF-8">
+  <form data-toggle="validator" id="form_password_reset" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/password_reset.lua" accept-charset="UTF-8">
 ]]
 
    print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
@@ -60,11 +60,10 @@ print [[
 
 local col_md_size = "6"
 
-print('<br>')
-
 if(not is_admin) then
    col_md_size = "4"
 print [[
+  <div class='form-group'>
   <label for="old_password_input">]] print(i18n("manage_users.old_password")) print[[</label>
   <div class='input-group mb-]] print(col_md_size) print[[ has-feedback'>
       <div class="input-group-prepend">
@@ -72,18 +71,22 @@ print [[
       </div>
       <input id="old_password_input" type="password" name="old_password" value="" class="form-control" required>
   </div>
+  </div>
    ]]
 end
 
 print [[
-  <label for="new_password_input">]] print(i18n("manage_users.new_password")) print[[</label>
-  <div class='input-group mb-]] print(col_md_size) print[['>
-      <div class="input-group-prepend"><span class="input-group-text">
-        <i class="fas fa-lock"></i></span>
-      </div>
+  <div class='form-group'>
+    <label for="new_password_input">]] print(i18n("manage_users.new_password")) print[[</label>
+    <div class='input-group mb-]] print(col_md_size) print[['>
+        <div class="input-group-prepend"><span class="input-group-text">
+          <i class="fas fa-lock"></i></span>
+        </div>
         <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
+    </div>
   </div>
 
+  <div class='form-group'>
   <label for="confirm_new_password_input">]] print(i18n("manage_users.new_password_confirm")) print[[</label>
   <div class='input-group md-]] print(col_md_size) print[['>
       <div class="input-group-prepend">
@@ -91,17 +94,16 @@ print [[
       </div>
         <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
   </div>
+  </div>
 
 
 <div><small>]] print(i18n("manage_users.allowed_passwd_charset")) print[[.  </small></div>
 
 <br>
 
-<div class="row">
-    <div class="form-group col-md-12 has-feedback">
-      <button id="password_reset_submit" class="btn btn-primary btn-block">]] print(i18n("manage_users.change_user_password")) print[[</button>
+    <div class="has-feedback text-right">
+      <button id="password_reset_submit" class="btn btn-primary">]] print(i18n("manage_users.change_user_password")) print[[</button>
     </div>
-</div>
 
 </form>
 </div> <!-- closes div "change-password-dialog" -->
@@ -117,7 +119,7 @@ print [[
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
   <input id="pref_dialog_username" type="hidden" name="username" value="" />
 
-<br>
+  <div class='form-group'>
   <label for="host_role_select">]] print(i18n("manage_users.user_role")) print[[</label>
   <div class='input-group mb-6'>
         <select id="host_role_select" name="user_role" class="form-control">
@@ -125,9 +127,11 @@ print [[
           <option value="administrator">]] print(i18n("manage_users.administrator")) print[[</option>
         </select>
   </div>
+  </div>
 
   <div id="unprivileged_manage_input">
 
+  <div class='form-group'>
   <label for="allowed_interface">]] print(i18n("manage_users.allowed_interface")) print[[</label>
   <div class='input-group mb-6'>
         <select name="allowed_interface" id="allowed_interface" class="form-control">
@@ -140,14 +144,18 @@ print [[
    print[[
         </select>
   </div>
+  </div>
 
+  <div class='form-group'>
     <label for="networks_input">]] print(i18n("manage_users.allowed_networks")) print[[</label>
     <div class='input-group mb-6'>
       <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control" required>
       <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[ 192.168.1.0/24,172.16.0.0/16</small>
     </div>
+  </div>
 
-    <div class="input-group mb-6">
+
+    <div class="form-group mb-6">
       <div class="form-check">]]
 
     print(template.gen("on_off_switch.html", {
@@ -174,6 +182,7 @@ print [[
 ]]
 
 print[[
+  <div class='form-group'>
     <label for="user_language">]] print(i18n("language")) print[[</label>
     <div class='input-group mb-6'>
       <div class="input-group-prepend">
@@ -187,11 +196,12 @@ end
 print[[
         </select>
     </div>
-<br>]]
+    </div>
+]]
 
 print[[
-    <div class="form-group col-md-12 has-feedback">
-      <button id="pref_change" class="btn btn-primary btn-block">]] print(i18n("manage_users.change_user_preferences")) print[[</button>
+    <div class="has-feedback text-right">
+      <button id="pref_change" class="btn btn-primary">]] print(i18n("manage_users.change_user_preferences")) print[[</button>
     </div>
   </form>
 </div> <!-- closes div "change-prefs-dialog" -->
@@ -287,8 +297,12 @@ print [[
       data: frmprefchange.serialize(),
       success: function (response) {
         if(response.result == 0) {
+
+          const destURL = new URL(window.location);
+          destURL.searchParams.delete('user');
+
           password_alert.success(response.message);
-          window.location.href= window.location.href;
+          window.location.href= destURL.toString();
        } else
           password_alert.error(response.message);
       }
