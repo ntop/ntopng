@@ -1911,8 +1911,13 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); 
 
+#ifdef CURLOPT_SSL_ENABLE_ALPN
       curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, 1L); /* Enable ALPN */
+#endif
+
+#ifdef CURLOPT_SSL_ENABLE_NPN
       curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_NPN, 1L);  /* Negotiate HTTP/2 if available */
+#endif
     }
 
     if(form_data) {
