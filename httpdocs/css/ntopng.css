@@ -4,6 +4,11 @@
   --padding-md-four: 1.5rem;
 }
 
+summary > span {
+  border-bottom: 1px dotted gray;
+  font-weight: bolder;
+  color: initial;
+}
 /*
 NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 

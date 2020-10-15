@@ -485,9 +485,7 @@ print(footer_refresh_rate.."")
 print[[ * 1000);  /* re-schedule every [interface-rate] seconds */
 
 //Enable tooltip without a fixer placement
-$(document).ready(function () { $("[rel='tooltip']").tooltip(); });
-$(document).ready(function () { $("a").tooltip({ 'selector': ''});});
-$(document).ready(function () { $("i").tooltip({ 'selector': ''});});
+$(document).ready(function () { $("[rel='tooltip'],a,i,summary>span").tooltip(); });
 
 //Automatically open dropdown-menu
 $(document).ready(function(){

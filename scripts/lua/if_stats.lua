@@ -445,7 +445,7 @@ if((page == "overview") or (page == nil)) then
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 
 	 print("<th nowrap>"..i18n("if_stats_overview.probe_timeout_lifetime")..
-		  " <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
+		  " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_timeout_lifetime").."'></i></sup></th><td nowrap>")
 
 	 if((ifstats["timeout.collected_lifetime"] ~= nil) and (ifstats["timeout.collected_lifetime"] > 0)) then
 	    -- We're in collector mode on the nProbe side
@@ -468,7 +468,7 @@ if((page == "overview") or (page == nil)) then
 	 local tdiff = math.abs(os.time()-ifstats["probe.remote_time"])
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 	 print("<th nowrap>"..i18n("if_stats_overview.remote_probe_time")..
-		  " <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_remote_probe_time").."'></i></sup>" ..
+		  " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_remote_probe_time").."'></i></sup>" ..
 		  "</th><td nowrap>")
 
 	 if(tdiff > 10) then print("<font color=red><b>") end
@@ -492,7 +492,7 @@ if((page == "overview") or (page == nil)) then
 	 end
 
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."'></i></sup></th>")
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_export_queue_full").." <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_drops_export_queue_full").."'></i></sup></th>")
 	 print("<td nowrap><span "..span_class.." id=if_zmq_drops_export_queue_full>"..formatValue(ifstats["zmq.drops.export_queue_full"]).."</span></td>")
 	 cur_i = cur_i + 1
       end
@@ -505,7 +505,7 @@ if((page == "overview") or (page == nil)) then
 	 end
 
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></th>")
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_drops").." <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_drops").."'></i></sup></th>")
 	 print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_drops>"..formatValue(ifstats["zmq.drops.flow_collection_drops"]).."</span></td>")
 	 cur_i = cur_i + 1
       end
@@ -518,7 +518,7 @@ if((page == "overview") or (page == nil)) then
 	 end
 
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
-	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_udp_socket_drops").." <sup><i class='fas fa-info-circle' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_udp_socket_drops").."'></i></sup></th>")
+	 print("<th nowrap>"..i18n("if_stats_overview.probe_zmq_drops_flow_collection_udp_socket_drops").." <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_probe_zmq_drops_flow_collection_udp_socket_drops").."'></i></sup></th>")
 	 print("<td nowrap><span "..span_class.." id=if_zmq_drops_flow_collection_udp_socket_drops>"..formatValue(ifstats["zmq.drops.flow_collection_udp_socket_drops"]).."</span></td>")
 	 cur_i = cur_i + 1
       end
@@ -585,7 +585,7 @@ if((page == "overview") or (page == nil)) then
       print("<th>".. ternary(ifstats.num_alerts_engaged > 0, warning, "") ..i18n("show_alerts.engaged_alerts")..
 	       ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:alerts_stats'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td colspan=2  nowrap><a href='".. ntop.getHttpPrefix() .."/lua/show_alerts.lua?ifid="..ifstats.id.."'>".. formatValue(ifstats.num_alerts_engaged) .."</a> <span id=engaged_alerts_trend></span></td>\n")
       print("<th width=250>".. ternary(ifstats.num_dropped_alerts > 0, warning, "")..i18n("show_alerts.dropped_alerts")..
-	       " <i class='fas fa-sm fa-info-circle' title='".. i18n("if_stats_overview.dropped_alerts_info") .."'></i>"..
+	       " <i class='fas fa-sm fa-question-circle ' title='".. i18n("if_stats_overview.dropped_alerts_info") .."'></i>"..
 	       ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:alerts_stats'><i class='fas fa-chart-area fa-sm'></i></A>", "")
 	       .."</th><td colspan=2><span id=dropped_alerts>" .. formatValue(ifstats.num_dropped_alerts) .. "</span> <span id=dropped_alerts_trend></span></td>\n</td>")
    end
@@ -1525,7 +1525,7 @@ elseif(page == "config") then
    -- LBD identifier
      print[[
 	<tr>
-	   <th width="30%">]] print(i18n("prefs.toggle_host_tskey_title")) print[[ <i class="fas fa-info-circle" title="]] print(i18n("prefs.toggle_host_tskey_description")) print[["></i></th>
+	   <th width="30%">]] print(i18n("prefs.toggle_host_tskey_title")) print[[ <i class="fas fa-question-circle " title="]] print(i18n("prefs.toggle_host_tskey_description")) print[["></i></th>
 	   <td>]]
       inline_select_form("lbd_hosts_as_macs", {i18n("ip_address"), i18n("mac_address")}, {"0", "1"}, serialize_by_mac)
 	print[[
@@ -1836,18 +1836,27 @@ elseif(page == "config") then
 
 	 print[[
 	   </select>
-	  ]]
-         print ("<br><br><small><p><b>"..i18n("notes").."</b><ul>"..
-		"<li>"..i18n("prefs.dynamic_interfaces_creation_description").."</li>"..
-		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_0").."</li>"..
-		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_4").."</li>"..
-		"<li>"..i18n("prefs.dynamic_interfaces_creation_note_1").."</li>")
-         if not is_packet_interface then
-            print("<li>"..i18n("prefs.dynamic_interfaces_creation_note_2").."</li>"..
-		  "<li>"..i18n("prefs.dynamic_interfaces_creation_note_3").."</li>")
-         end
-         print [[
-           </ul></small>
+     ]]
+
+     print([[
+        <small>
+        <details class='mt-2'>
+         <summary>
+            <span data-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
+               ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
+            </span>
+         </summary>
+         <p>]]..i18n("prefs.dynamic_interfaces_creation_description")..[[</p>
+         <p>]]..i18n("prefs.dynamic_interfaces_creation_note_0")..[[</p>
+         <p>]]..i18n("prefs.dynamic_interfaces_creation_note_4")..[[</p>
+         <p>]]..i18n("prefs.dynamic_interfaces_creation_note_1")..[[</p>
+         <p>]]..(not is_packet_interface and i18n("prefs.dynamic_interfaces_creation_note_2") or '') ..[[</p>
+         <p>]]..(not is_packet_interface and i18n("prefs.dynamic_interfaces_creation_note_3") or '') ..[[</p>
+        </details>
+        </small>
+     ]])
+
+    print[[
 	 </td>
        </tr>]]
 
@@ -1868,15 +1877,17 @@ elseif(page == "config") then
       end
 
       print [[<tr>
-	 <th>]] print(i18n("if_stats_config.show_dyn_iface_traffic")) print[[</th>
+    <th>
+    ]] print(i18n("if_stats_config.show_dyn_iface_traffic")) print[[
+       <i class='fas fa-question-circle ' data-toggle="tooltip" data-placement="top" title=']] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print[['></i>
+    </th>
     <td>]]
 
       print(template.gen("on_off_switch.html", {
 	 id = "show_dyn_iface_traffic",
 	 checked = show_dyn_iface_traffic,
        }))
-
-      print[[<br><br><small><p><b>]] print(i18n("notes")) print [[</b><ul><li>]] print(i18n("if_stats_config.show_dyn_iface_traffic_note")) print [[</li></ul></p></small>
+       print[[
 	 </td>
       </tr>]]
 

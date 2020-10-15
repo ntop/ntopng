@@ -40,6 +40,7 @@ local lang = {
   ["category"] = "Category",
   ["change_number_of_rows"] = "Change the number of rows per page",
   ["chart"] = "Chart",
+  ["click_to_expand"] = "Click to expand",
   ["client"] = "Client",
   ["clone"] = "Clone",
   ["close"] = "Close",
