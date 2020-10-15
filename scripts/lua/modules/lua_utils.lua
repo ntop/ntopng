@@ -3928,7 +3928,7 @@ function buildHostHREF(ip_address, vlan_id, page)
       
       if((name == nil) or (name == "")) then name = ip_address end
       res = '<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..ip_address
-      if(vlan_id ~= 0) then res = res .. "@"..vlan_id end
+      if(vlan_id and (vlan_id ~= 0)) then res = res .. "@"..vlan_id end
       res = res  ..'&page='..page..'">'..name..'</A>'
 
       return(res)
