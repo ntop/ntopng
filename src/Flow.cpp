@@ -2872,8 +2872,9 @@ bool Flow::get_partial_traffic_stats(PartializableFlowTrafficStats **dst,
     if(!(*dst = new (std::nothrow) PartializableFlowTrafficStats()))
       return(false);
     *first_partial = true;
-  } else
+  } else {
     *first_partial = false;
+  }
 
   stats.get_partial(*dst, fts);
 
