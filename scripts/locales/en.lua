@@ -2792,7 +2792,7 @@ local lang = {
     ["export_tab"] = "Export",
     ["hosts"] = "Hosts",
     ["inactive_interfaces_data"] = "Inactive Interfaces",
-    ["inactive_interfaces_description"] = "Manage data of <b>Inactive Interfaces</b>, you can delete cached info about these interfaces.",
+    ["inactive_interfaces_description"] = "Manage data of <b>Inactive Interfaces</b>, you can delete cached info about these interfaces.<br><br>If there isn't any inactive interface the button below will be disabled.",
     ["ip_or_mac_address"] = "IP or MAC Address or /24",
     ["local_hosts"] = "Local",
     ["mac_or_ip_required"] = "Please insert a valid IP or MAC Address",
@@ -2800,7 +2800,7 @@ local lang = {
     ["remote_hosts"] = "Remote",
     ["single"] = "Single",
     ["system_interface_data"] = "System Interface",
-    ["system_interface_description"] = "Manage cached data of the <b>System Interface</b>, you can delete the data to free up some space.",
+    ["system_interface_description"] = "Manage cached data of the <b>System Interface</b>, you can delete the data to free up some space.<br><br>If there is a pending request of deleting cached data then the button below will be disabled.",
     ["system_interface_note"] = "System Interface Data includes all the data located under the \"System\" menu entry, for example CPU, InfluxDB and SNMP data.",
   },
   ["manage_users"] = {
