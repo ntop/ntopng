@@ -1113,6 +1113,89 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
+const MultiSelect = (gui, hooks, script_subdir, script_key) => {
+
+   const $table_editor = $("#script-config-editor");
+   $("#script-config-editor").empty();
+
+   const render_template = () => {
+
+      const enabled = hooks.all.enabled;
+      const items_list = hooks.all.script_conf.items || [];
+
+      // create textarea to append
+      const $multiselect = generate_multi_select({
+         enabled: enabled,
+         name: 'item_list',
+         label: `Multisect Template Label:`,
+         selected_values: items_list,
+         groups: apps_and_categories
+      });
+
+      const $checkbox_enabled = generate_checkbox_enabled(
+         'multiselect-checkbox', enabled, function (e) {
+
+            const checked = $(this).prop('checked');
+            // if the checked option is false the disable the elements
+            (!checked)
+               ? $multiselect.find('select').attr("disabled", "")
+               : $multiselect.find('select').removeAttr("disabled");
+         }
+      );
+
+      // append elements on table
+      const $input_container = $(`<td></td>`);
+      $input_container.append($multiselect_bytes);
+
+      // initialize table row
+      const $container = $(`<tr></tr>`).append(
+         $(`<td class='text-center'></td>`).append($checkbox_enabled),
+         $input_container
+      );
+
+      $table_editor.append(`<tr class='text-center'><th>${i18n.enabled}</th></tr>`);
+
+      // append all inside the table
+      $table_editor.append($container);
+   }
+
+   const apply_event = (event) => {
+
+      const items_list = $(`select[name='item_list']`).val();
+
+      const template_data = {
+         all: {
+            enabled: hook_enabled,
+            script_conf: {
+               items: items_list,
+            }
+         }
+      }
+
+      apply_edits_script(template_data, script_subdir, script_key);
+   }
+
+   const reset_event = (event) => {
+      reset_script_defaults(script_key, script_subdir, (data_reset) => {
+
+         // reset textarea content
+         const items_list = data_reset.hooks.all.script_conf.items || [];
+         $(`select[name='item_list']`).val(items_list);
+
+         const enabled = data_reset.hooks.all.enabled || false;
+         $('#multiselect-checkbox').prop('checked', enabled);
+      });
+   }
+
+   return {
+      apply_click_event: apply_event,
+      reset_click_event: reset_event,
+      render: render_template,
+   }
+}
+
+/* ******************************************************* */
+
 const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_key = null) => {
 
    const $tableEditor = $("#script-config-editor");
@@ -1208,6 +1291,7 @@ const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
       items_list: ItemsList(gui, hooks, script_subdir, script_key),
       long_lived: LongLived(gui, hooks, script_subdir, script_key),
       elephant_flows: ElephantFlows(gui, hooks, script_subdir, script_key),
+      multi_select: MultiSelect(gui, hooks, script_subdir, script_key)
    }
 
    let template_chosen = templates[template_name];
