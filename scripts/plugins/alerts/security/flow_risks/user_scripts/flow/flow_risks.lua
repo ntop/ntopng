@@ -11,7 +11,7 @@ local plugins_utils = require "plugins_utils"
 
 local script = {
    -- Script category
-   category = user_scripts.script_categories.security, 
+   category = user_scripts.script_categories.security,
 
    -- Priority
    prio = -20, -- Lower priority (executed after) than default 0 priority
@@ -22,7 +22,49 @@ local script = {
    gui = {
       i18n_title = "flow_callbacks_config.flow_risk",
       i18n_description = "flow_callbacks_config.flow_risk_description",
-   }
+      input_builder = "multi_select",
+      i8n_multiselect_label = i18n("flow_callbacks_config.flow_risk_list"),
+
+      groups = {
+	 {
+	    elements = {
+	       { 1, i18n("flow_risk.ndpi_url_possible_xss") },
+	       { 2, i18n("flow_risk.ndpi_url_possible_sql_injection") },
+	       { 3, i18n("flow_risk.ndpi_url_possible_rce_injection") },
+	       { 4, i18n("flow_risk.ndpi_binary_application_transfer") },
+	       { 5, i18n("flow_risk.ndpi_known_protocol_on_non_standard_port") },
+	       { 6, i18n("flow_risk.ndpi_tls_selfsigned_certificate") },
+	       { 7, i18n("flow_risk.ndpi_tls_obsolete_version") },
+	       { 8, i18n("flow_risk.ndpi_tls_weak_cipher") },
+	       { 9, i18n("flow_risk.ndpi_tls_certificate_expired") },
+	       { 10, i18n("flow_risk.ndpi_tls_certificate_mismatch") },
+	       { 11, i18n("flow_risk.ndpi_http_suspicious_user_agent") },
+	       { 12, i18n("flow_risk.ndpi_http_numeric_ip_host") },
+	       { 13, i18n("flow_risk.ndpi_http_suspicious_url") },
+	       { 14, i18n("flow_risk.ndpi_http_suspicious_header") },
+	       { 15, i18n("flow_risk.ndpi_tls_not_carrying_https") },
+	       { 16, i18n("flow_risk.ndpi_suspicious_dga_domain") },
+	       { 17, i18n("flow_risk.ndpi_malformed_packet") },
+	       { 18, i18n("flow_risk.ndpi_ssh_obsolete_client_version_or_cipher") },
+	       { 19, i18n("flow_risk.ndpi_ssh_obsolete_server_version_or_cipher") },
+	       { 20, i18n("flow_risk.ndpi_smb_insecure_version") },
+	       { 21, i18n("flow_risk.ndpi_tls_suspicious_esni_usage") },
+	       { 22, i18n("flow_risk.ndpi_unsafe_protocol") },
+	       { 23, i18n("flow_risk.ndpi_dns_suspicious_traffic") },
+	       { 24, i18n("flow_risk.ndpi_tls_missing_sni") },   
+	    }
+	 }
+      }
+   },
+
+   default_value = {
+      items = {
+	 1,2,3,4,5,6,7,8,9,10,
+	 11,12,13,14,15,16,17,18,19,20,
+	 21,22,23,24
+      },
+   },
+
 }
 
 -- #################################################################
