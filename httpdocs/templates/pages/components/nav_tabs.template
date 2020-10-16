@@ -2,7 +2,7 @@
     {% for index, entry in pairsByKeys(entries) do %}
         {% if not entry.hidden then %}
         <li class="nav-item">
-            <a class="nav-link {{ ((entry.key == current_page or entry.active) and 'active' or '') }}" href="{{ entry.url }}">{{ entry.title }}</a>
+            <a class="nav-link {{ (entry.disabled and 'disabled' or '') }} {{ ((entry.key == current_page or entry.active) and 'active' or '') }}" href="{{ entry.url }}">{{ entry.title }}</a>
         </li>
         {% end %}
     {% end %}

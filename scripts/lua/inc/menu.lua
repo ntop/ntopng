@@ -487,11 +487,6 @@ page_utils.add_menubar_section({
 })
 
 -- ##############################################
-
-local inactive_interfaces = delete_data_utils.list_inactive_interfaces()
-local num_inactive_interfaces = ternary(not ntop.isnEdge(), table.len(inactive_interfaces or {}), 0)
-local delete_active_interface_requested_system = delete_data_utils.delete_active_interface_data_requested(getSystemInterfaceId())
-
 -- Admin
 page_utils.add_menubar_section(
    {
@@ -509,43 +504,22 @@ page_utils.add_menubar_section(
 	    url = '/lua/admin/prefs.lua',
     },
     {
+      entry = page_utils.menu_entries.scripts_config,
+      hidden = not is_admin,
+      url = '/lua/admin/scripts_config.lua',
+   },
+   {
+      entry = page_utils.menu_entries.divider,
+   },
+    {
       entry = page_utils.menu_entries.manage_configurations,
       hidden = not is_admin or is_windows,
       url = '/lua/admin/manage_configurations.lua',
    },
-	 {
-	    entry = page_utils.menu_entries.scripts_config,
-	    hidden = not is_admin,
-	    url = '/lua/admin/scripts_config.lua',
-    },
-	 {
-	    entry = page_utils.menu_entries.divider,
-	    hidden = not is_admin,
-    },
-    {
+   {
       entry = page_utils.menu_entries.manage_data,
-      hidden = not is_admin or is_system_interface,
+      hidden = not is_admin,
       url = '/lua/manage_data.lua',
-   },
-   {
-      hidden = (not is_system_interface or delete_active_interface_requested_system),
-      custom = ([[
-         <form class="interface_data_form" method="POST">
-            <li>
-               <a id='delete-system-interface' data-toggle='modal' href='#delete_active_interface_data_system'>]].. i18n("manage_data.delete_system_interface_data") ..[[</a>
-            </li>
-         </form>
-      ]])
-   },
-   {
-      hidden = (num_inactive_interfaces <= 0 or not is_system_interface) ,
-      custom = ([[
-         <form class="interface_data_form" id='form_delete_inactive_interfaces' method="POST">
-            <li>
-               <a id='delete-system-inactive' data-toggle='modal' href='#delete_inactive_interfaces_data_system'>]].. i18n("manage_data.delete_inactive_interfaces") ..[[</a>
-            </li>
-         </form>
-      ]])
    },
    {
       entry = page_utils.menu_entries.divider,
@@ -1243,9 +1217,6 @@ end
 
 -- end of main alerts
 print("</div>")
-
-
-dofile(dirs.installdir .. "/scripts/lua/inc/manage_data.lua")
 
 -- append password change modal
 if(not is_admin) then
