@@ -365,7 +365,7 @@ local function checkListsUpdate(timeout)
 	    alerts_api.store(
 	       alerts_api.categoryListsEntity(list_name),
 	       alert_consts.alert_types.alert_list_download_succeeded.create(
-		  alert_consts.alert_severities.info,
+		  alert_consts.alert_severities.notice,
 		  list_name
 	       )
 	    )

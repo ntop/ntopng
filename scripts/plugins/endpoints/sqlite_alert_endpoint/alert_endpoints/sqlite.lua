@@ -89,7 +89,7 @@ local function processStoreAlertFromQueue(alert)
   elseif((alert.alert_type == "user_activity") and (alert.scope == "login")) then
     entity_info = alerts_api.userEntity(alert.user)
     type_info = alert_consts.alert_types.alert_user_activity.create(
-       alert_consts.alert_severities.info,
+       alert_consts.alert_severities.notice,
        "login",
        nil,
        nil,

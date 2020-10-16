@@ -1130,13 +1130,16 @@ else
       alerted_status = flow["alerted_status"]
       local status_info = status_infos[alerted_status]
       local alert_info = flow2statusinfo(flow)
-      local message = flow_consts.getStatusDescription(alerted_status, alert_info)
+      local message =  flow_consts.getStatusDescription(alerted_status, alert_info)
+      local icon = flow_consts.getStatusIcon(alerted_status, message)
+
       if status_info then
 	 message = message .. string.format(" [%s: %d]", i18n("score"), status_info.score)
       end
-      message = message .. alert_utils.getConfigsetAlertLink(alert_info)
 
-      print("<tr><th width=30%><i class='fas fa-exclamation-triangle' style='color: #B94A48'></i> "..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
+      message = icon .. message .. alert_utils.getConfigsetAlertLink(alert_info)
+
+      print("<tr><th width=30%>"..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
       print(message)
       print("</td></tr>\n")
    end

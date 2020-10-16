@@ -20,8 +20,11 @@ local handler = {}
 function handler.handle_risk(flow_score, cli_score, srv_score)
    -- Set a flow status for the generic flow_risk. This will also
    -- cause an alert to be generated.
-   flow.setStatus(
-      flow_consts.status_types.status_flow_risk,
+   flow.triggerStatus(
+      flow_consts.status_types.status_flow_risk.create(
+	 flow_consts.status_types.status_flow_risk.alert_severity,
+	 flow.getInfo()
+      ),
       flow_score or 0, -- flow_score
       cli_score or 0,  -- cli_score
       srv_score or 0   -- srv_score

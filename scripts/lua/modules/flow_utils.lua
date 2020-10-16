@@ -196,10 +196,7 @@ function getFlowsFilter()
    if not isEmptyString(flow_status) then
       if flow_status == "normal" then
 	 pageinfo["alertedFlows"] = false
-	 pageinfo["misbehavingFlows"] = false
 	 pageinfo["filteredFlows"] = false
-      elseif flow_status == "misbehaving" then
-	 pageinfo["misbehavingFlows"] = true
       elseif flow_status == "alerted" then
 	 pageinfo["alertedFlows"] = true
       elseif flow_status == "filtered" then
@@ -1614,7 +1611,6 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
        local entries = {
 	  {"normal", i18n("flows_page.normal")},
-	  {"misbehaving", i18n("flows_page.all_misbehaving")},
 	  {"alerted", i18n("flows_page.all_alerted")},
        }
 
@@ -1627,7 +1623,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
              if status_stats[t] and status_stats[t].count > 0 then
                if first then
                  entries[#entries + 1] = '<li role="separator" class="divider"></li>'
-                 entries[#entries + 1] = '<li class="dropdown-header">'.. i18n("flow_details.mibehaving_flows") ..'</li>'
+                 entries[#entries + 1] = '<li class="dropdown-header">'.. i18n("flow_details.alerted_flows") ..'</li>'
                  first = false
                end
                entries[#entries + 1] = {string.format("%u", t), i18n(s.i18n_title) or s.i18n_title .. " ("..status_stats[t].count..")"}

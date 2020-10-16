@@ -44,10 +44,6 @@ local confset_id
 local alerted_user_script
 local cur_user_script
 
--- Save them as they are overridden
-local c_flow_set_status = flow.setStatus
-local c_flow_clear_status = flow.clearStatus
-
 local stats = {
    num_invocations = 0, 	-- Total number of invocations of this module
    num_complete_scripts = 0,	-- Number of invoked scripts on flows with THW completed
@@ -407,6 +403,18 @@ end
 
 -- #################################################################
 
+local function setStatus(flow_status_type, flow_score, cli_score, srv_score)
+   local status_key = flow_status_type.status_key
+
+   flow_score = math.min(math.max(flow_score or 0, 0), max_score)
+   cli_score = math.min(math.max(cli_score or 0, 0), max_score)
+   srv_score = math.min(math.max(srv_score or 0, 0), max_score)
+
+   return flow.setStatus(status_key, flow_score, cli_score, srv_score, cur_user_script.key, cur_user_script.category.id)
+end
+
+-- #################################################################
+
 -- @brief This provides an API that flow user_scripts can call in order to
 -- set a flow status bit. The status_info of the predominant status is
 -- saved for later use.
@@ -442,34 +450,7 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
       alerted_user_script = cur_user_script
    end
 
-   flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
-end
-
--- #################################################################
-
--- NOTE: overrides the C flow.setStatus (now saved in c_flow_set_status)
-function flow.setStatus(flow_status_type, flow_score, cli_score, srv_score)
-   local status_key = flow_status_type.status_key
-
-   flow_score = math.min(math.max(flow_score or 0, 0), max_score)
-   cli_score = math.min(math.max(cli_score or 0, 0), max_score)
-   srv_score = math.min(math.max(srv_score or 0, 0), max_score)
-
-   return c_flow_set_status(status_key, flow_score, cli_score, srv_score, cur_user_script.key, cur_user_script.category.id)
-end
-
--- #################################################################
-
--- NOTE: overrides the C flow.clearStatus (now saved in c_flow_clear_status)
-function flow.clearStatus(flow_status_type)
-   local status_key = flow_status_type.status_key
-
-   if c_flow_clear_status(status_key) then
-      -- The status has actually changed
-      if do_trace then
-	 trace_f(string.format("flow.clearStatus: predominant status changed to %d", flow.getPredominantStatus()))
-      end
-   end
+   setStatus(flow_status_type, flow_score, cli_score, srv_score)
 end
 
 -- #################################################################

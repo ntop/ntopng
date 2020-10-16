@@ -50,10 +50,15 @@ function script.hooks.all(now)
    if((flow.getPacketsRcvd() == 0) and (flow.getPacketsSent() > 0)) then
       -- Now check if the recipient isn't a broadcast/multicast address
       if not flow.isClientNoIP() and flow.isServerUnicast() and not unidirectionalProtoWhitelist(flow.getnDPIAppProtoId()) then
-         flow.setStatus(flow_consts.status_types.status_udp_unidirectional, 5--[[ flow score]], 5--[[ cli score ]], 1--[[ srv score ]])
+         flow.triggerStatus(
+	    flow_consts.status_types.status_udp_unidirectional.create(
+	       flow_consts.status_types.status_udp_unidirectional.severity
+	    ),
+	    5--[[ flow score]],
+	    5--[[ cli score ]],
+	    1--[[ srv score ]]
+	 )
       end
-   else
-      flow.clearStatus(flow_consts.status_types.status_udp_unidirectional)
    end
 end
 

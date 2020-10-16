@@ -6,7 +6,7 @@
 
 -- @brief Prepare an alert table used to generate the alert
 -- @param alert_severity A severity as defined in `alert_consts.alert_severities`
--- @param info A flow info table fetched with `flow.getBlacklistedInfo()`
+-- @param info A flow info table fetched with `flow.getInfo()`
 -- @return A table with the alert built
 local function createFlowRisk(alert_severity, info)
    local built = {

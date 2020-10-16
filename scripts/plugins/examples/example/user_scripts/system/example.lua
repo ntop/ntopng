@@ -99,7 +99,7 @@ function script.hooks.min(info)
 
   local alert_info = {
     alert_type = alert_consts.alert_types.alert_example,
-    alert_severity = alert_consts.alert_severities.info,
+    alert_severity = alert_consts.alert_severities.notice,
     alert_granularity = info.granularity,
     alert_type_params = {},
   }

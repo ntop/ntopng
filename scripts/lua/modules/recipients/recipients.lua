@@ -37,7 +37,7 @@ function recipients.initialize()
 	    "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]], 
 	    "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	    nil, -- User script categories
-	    nil, -- minimum severity
+	    alert_consts.alert_severities.notice.severity_id, -- minimum severity is notice (to avoid flooding) (*****)
 	    {} --[[ no recipient params --]]
 	 )
       end
@@ -497,9 +497,9 @@ function recipients.get_recipient(recipient_id, include_stats)
 	    end
 	 end
 
-	 -- Add minimum alert severity. nil or empty minimum severity read from the JSON assumes all severities, so a minimum of info
+	 -- Add minimum alert severity. nil or empty minimum severity assumes a minimum severity of notice
 	 if not tonumber(recipient_details["minimum_severity"]) then
-	    recipient_details["minimum_severity"] = alert_consts.alert_severities.info.severity_id
+	    recipient_details["minimum_severity"] = alert_consts.alert_severities.notice.severity_id -- Keep in sync with (*****)
 	 end
 
 	 -- Add also the endpoint configuration

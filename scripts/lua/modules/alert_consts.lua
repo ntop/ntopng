@@ -24,26 +24,74 @@ alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANA
 
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 4096
 
--- Alerts (see ntop_typedefs.h)
+-- Alerts (Keep severity_id in sync with ntop_typedefs.h AlertLevel)
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string", "syslog severity"}
 alert_consts.alert_severities = {
-  info = {
-    severity_id = 0,
-    label = "badge-info",
-    i18n_title = "alerts_dashboard.info",
-    syslog_severity = 6,
-  }, warning = {
-    severity_id = 1,
-    label = "badge-warning",
-    i18n_title = "alerts_dashboard.warning",
-    syslog_severity = 4,
-  }, error = {
-    severity_id = 2,
-    label = "badge-danger",
-    i18n_title = "alerts_dashboard.error",
-    syslog_severity = 3,
-  }
+   debug = {
+      severity_id = 0,
+      label = "badge-info",
+      icon = "fas fa-bug",
+      color = "black",
+      i18n_title = "alerts_dashboard.debug",
+      syslog_severity = 7,
+   },
+   info = {
+      severity_id = 1,
+      label = "badge-info",
+      icon = "fas fa-info-circle",
+      color = "blue",
+      i18n_title = "alerts_dashboard.info",
+      syslog_severity = 6,
+   },
+   notice = {
+      severity_id = 2,
+      label = "badge-info",
+      icon = "fas fa-hand-paper",
+      color = "blue",
+      i18n_title = "alerts_dashboard.notice",
+      syslog_severity = 5,
+   },
+   warning = {
+      severity_id = 3,
+      label = "badge-warning",
+      icon = "fas fa-exclamation-triangle",
+      color = "gold",
+      i18n_title = "alerts_dashboard.warning",
+      syslog_severity = 4,
+   },
+   error = {
+      severity_id = 4,
+      label = "badge-danger",
+      icon = "fas fa-exclamation-triangle",
+      color = "red",
+      i18n_title = "alerts_dashboard.error",
+      syslog_severity = 3,
+   },
+   critical = {
+      severity_id = 5,
+      label = "badge-danger",
+      icon = "fas fa-exclamation-triangle",
+      color = "purple",
+      i18n_title = "alerts_dashboard.critical",
+      syslog_severity = 2,
+   },
+   alert = {
+      severity_id = 6,
+      label = "badge-danger",
+      icon = "fas fa-bomb",
+      color = "red",
+      i18n_title = "alerts_dashboard.alert",
+      syslog_severity = 1,
+   },
+   emergency = {
+      severity_id = 7,
+      label = "badge-danger",
+      icon = "fas fa-bomb",
+      color = "purple",
+      i18n_title = "alerts_dashboard.error",
+      syslog_severity = 0,
+   }
 }
 
 -- ##############################################

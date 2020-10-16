@@ -75,30 +75,6 @@ static int ntop_flow_set_status(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_clear_status(lua_State* vm) {
-  FlowStatus new_status;
-  Bitmap old_bitmap;
-  Flow *f = ntop_flow_get_context_flow(vm);
-  bool changed = false;
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  new_status = (FlowStatus)lua_tonumber(vm, 1);
-
-  old_bitmap = f->getStatusBitmap();
-
-  if(old_bitmap.issetBit(new_status)) {
-    f->clearStatus(new_status);
-    changed = true;
-  }
-
-  lua_pushboolean(vm, changed);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_flow_is_status_set(lua_State* vm) {
   FlowStatus status;
   Flow *f = ntop_flow_get_context_flow(vm);
@@ -1119,7 +1095,6 @@ static const luaL_Reg ntop_flow_reg[] = {
 /* Public User Scripts API, documented at doc/src/api/lua_c/flow_user_scripts/flow.lua */
   { "getStatus",                ntop_flow_get_status                 },
   { "setStatus",                ntop_flow_set_status                 },
-  { "clearStatus",              ntop_flow_clear_status               },
   { "isStatusSet",              ntop_flow_is_status_set              },
   { "getPredominantStatus",     ntop_flow_get_predominant_status     },
   

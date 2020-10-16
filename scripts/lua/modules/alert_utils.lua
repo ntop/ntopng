@@ -1532,7 +1532,7 @@ function alert_utils.check_macs_alerts(ifid)
 	          alerts_api.store(
 	             alerts_api.macEntity(mac),
 		     alert_consts.alert_types.alert_device_connection.create(
-			alert_consts.alert_severities.info,
+			alert_consts.alert_severities.notice,
 			name
 		     )
 		  )
@@ -1556,7 +1556,7 @@ function alert_utils.check_macs_alerts(ifid)
                alerts_api.store(
 		  alerts_api.macEntity(mac),
 		  alert_consts.alert_types.alert_device_disconnection.create(
-		     alert_consts.alert_severities.info,
+		     alert_consts.alert_severities.notice,
 		     name
 		  )
 	       )
@@ -1695,7 +1695,7 @@ function alert_utils.check_host_pools_alerts(ifid)
 		  alerts_api.store(
 		     alerts_api.hostPoolEntity(pool),
 		     alert_consts.alert_types.alert_host_pool_connection.create(
-			alert_consts.alert_severities.info,
+			alert_consts.alert_severities.notice,
 			pool
 		     )
 		  )
@@ -1715,7 +1715,7 @@ function alert_utils.check_host_pools_alerts(ifid)
             alerts_api.store(
 	       alerts_api.hostPoolEntity(pool),
 	       alert_consts.alert_types.alert_host_pool_disconnection.create(
-		  alert_consts.alert_severities.info,
+		  alert_consts.alert_severities.notice,
 		  pool
 	       )
             )

@@ -291,7 +291,6 @@ class Flow : public GenericHashEntry {
 
   inline Bitmap getStatusBitmap()     const     { return(status_map);           }
   bool setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc, const char*script_key, ScriptCategory script_category);
-  void clearStatus(FlowStatus status);
   bool triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json);
   FlowStatus getPredominantStatus() const;
   inline const char* getStatusInfo() const      { return(alert_status_info);    }

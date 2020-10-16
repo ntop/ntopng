@@ -166,6 +166,24 @@ end
 
 -- ################################################################################
 
+-- @brief Given a flow status identified by `status_key`, returns an icon associated to the severity
+-- @param `status_key` A flow status identified
+-- @param `status info`, A human readable (localized) status info
+-- @return The HTML with icon and ALT text, or empty if no icon is available
+function flow_consts.getStatusIcon(status_key, status_info)
+   local status_def = status_by_id[tonumber(status_key)]
+
+   -- If the status has no severity associated or the severity has no icon, then return
+   if not status_def or not status_def.alert_severity or not status_def.alert_severity.icon then
+      return ""
+   end
+
+   -- Return the icon
+   return "<i class='"..status_def.alert_severity.icon.."' style='color: "..status_def.alert_severity.color..";'  title='"..noHtml(status_info) .."'></i> "
+end
+
+-- ################################################################################
+
 function flow_consts.getStatusTitle(status_key)
    local status_def = status_by_id[tonumber(status_key)]
 

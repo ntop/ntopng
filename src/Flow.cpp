@@ -953,15 +953,15 @@ void Flow::setExtraDissectionCompleted() {
     return;
   }
 
-  if((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)
+  if((protocol == IPPROTO_TCP)
+     || (protocol == IPPROTO_UDP)
      || (protocol == IPPROTO_ICMP)
      || (protocol == IPPROTO_ICMPV6)
      ) {
     /* nDPI is not allocated for non-TCP non-UDP flows so, in order to
        make sure custom cateories are properly populated, function ndpi_fill_ip_protocol_category
        must be called explicitly. */
-    if(ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED /* Override only if unspecified */
-       && get_cli_ip_addr()->get_ipv4() && get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
+    if(get_cli_ip_addr()->get_ipv4() && get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
       ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
 				     get_cli_ip_addr()->get_ipv4(), get_srv_ip_addr()->get_ipv4(),
 				     &ndpiDetectedProtocol);
@@ -5160,12 +5160,6 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
   }
 
   return true;
-}
-
-/* *************************************** */
-
-void Flow::clearStatus(FlowStatus status) {
-  status_map.clearBit(status);
 }
 
 /* *************************************** */

@@ -108,7 +108,7 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
 
    local entity = alerts_api.hostAlertEntity(host, 0)
 
-   local severity = alert_consts.alert_severities.info
+   local severity = alert_consts.alert_severities.notice
    if level <= 3 then
       severity = alert_consts.alert_severities.error
    elseif level <= 4 then

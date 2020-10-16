@@ -158,9 +158,14 @@ typedef u_int32_t AlertType;
 
 typedef enum {
   alert_level_none = -1,
-  alert_level_info = 0,
-  alert_level_warning,
-  alert_level_error
+  alert_level_debug = 0,
+  alert_level_info = 1,
+  alert_level_notice = 2,
+  alert_level_warning = 3,
+  alert_level_error = 4,
+  alert_level_critical = 5,
+  alert_level_alert = 6,
+  alert_level_emergency = 7
 } AlertLevel;
 
 /*

@@ -2,18 +2,19 @@
 -- (C) 2019-20 - ntop.org
 --
 
+-- #######################################################
+
 local alert_keys = require "alert_keys"
+-- @brief Prepare an alert table used to generate the alert
+-- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @return A table with the alert built
+local function createRemoteToRemote(alert_severity)
+   local built = {
+      alert_severity = alert_severity,
+      alert_type_params = {},
+   }
 
-local function remoteToRemoteFormatter(ifid, alert, info)
-  local alert_consts = require "alert_consts"
-
-  return(i18n("alert_messages.host_remote_to_remote",
-	      {
-		 url = hostinfo2detailsurl(hostinfo2hostkey(hostkey2hostinfo(alert.alert_entity_val))),
-		 flow_alerts_url = ntop.getHttpPrefix() .."/lua/show_alerts.lua?status=historical-flows&alert_type="..alert_consts.alertType("alert_remote_to_remote"),
-		 ip = info.host,
-		 mac = get_mac_url(info.mac),
-  }))
+   return built
 end
 
 -- #######################################################
@@ -21,6 +22,6 @@ end
 return {
   alert_key = alert_keys.ntopng.alert_remote_to_remote,
   i18n_title = "alerts_dashboard.remote_to_remote",
-  i18n_description = remoteToRemoteFormatter,
   icon = "fas fa-exclamation",
+  creator = createRemoteToRemote
 }
