@@ -74,8 +74,6 @@ Host::~Host() {
 
   freeHostNames();
 
-  if(flow_alert_counter) delete flow_alert_counter;
-
   if(syn_flood_attacker_alert)  delete syn_flood_attacker_alert;
   if(syn_flood_victim_alert)    delete syn_flood_victim_alert;
   if(flow_flood_attacker_alert) delete flow_flood_attacker_alert;
@@ -162,7 +160,6 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   num_active_flows_as_client = num_active_flows_as_server = 0;
   active_alerted_flows = 0;
 
-  flow_alert_counter = NULL;
   nextResolveAttempt = 0;
   vlan_id = _vlanId % MAX_NUM_VLAN,
   memset(&names, 0, sizeof(names));
@@ -1142,19 +1139,6 @@ void Host::luaUsedQuotas(lua_State* vm) {
     lua_newtable(vm);
 }
 #endif
-
-/* *************************************** */
-
-bool Host::incFlowAlertHits(time_t when) {
-  stats->incNumFlowAlerts();
-
-  if(flow_alert_counter
-     || (flow_alert_counter = new(std::nothrow) FlowAlertCounter(CONST_MAX_FLOW_ALERTS_PER_SECOND, CONST_MAX_THRESHOLD_CROSS_DURATION))) {
-    return flow_alert_counter->incHits(when);
-  }
-
-  return false;
-}
 
 /* *************************************** */
 

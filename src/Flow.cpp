@@ -5092,9 +5092,6 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
   alert_level = severity;
   alert_type = atype;
 
-  if(cli_h) cli_thresh = cli_h->incFlowAlertHits(when);
-  if(srv_h) srv_thresh = srv_h->incFlowAlertHits(when);
-
   if(first_alert) {
     /* This is the first alert for the flow, increment the counters */
     iface->incNumAlertedFlows(this);

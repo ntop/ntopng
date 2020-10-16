@@ -71,7 +71,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt;
 
-  FlowAlertCounter *flow_alert_counter;
 #ifdef NTOPNG_PRO
   TrafficShaper **host_traffic_shapers;
   bool has_blocking_quota, has_blocking_shaper;
@@ -314,7 +313,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool match(const AddressTree * const tree) const { return ip.match(tree); };
   void updateHostPool(bool isInlineCall, bool firstUpdate = false);
   virtual bool dropAllTraffic() const { return(false); };
-  bool incFlowAlertHits(time_t when);
   virtual bool setRemoteToRemoteAlerts() { return(false); };
   virtual void incrVisitedWebSite(char *hostname) {};
   inline void incTotalAlerts(AlertType alert_type) { stats->incTotalAlerts(alert_type); }
