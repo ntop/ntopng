@@ -136,6 +136,28 @@ static int ntop_flow_is_server_unicast(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_is_client_noip(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, (f->get_cli_ip_addr() && f->get_cli_ip_addr()->isEmpty()));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_is_server_noip(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushboolean(vm, (f->get_srv_ip_addr() && f->get_srv_ip_addr()->isEmpty()));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_is_unicast(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
   const IpAddress *cli_ip, *srv_ip;
@@ -1103,6 +1125,8 @@ static const luaL_Reg ntop_flow_reg[] = {
   
   { "isClientUnicast",          ntop_flow_is_client_unicast          },
   { "isServerUnicast",          ntop_flow_is_server_unicast          },
+  { "isClientNoIP",             ntop_flow_is_client_noip             },
+  { "isServerNoIP",             ntop_flow_is_server_noip             },
   { "isUnicast",                ntop_flow_is_unicast                 },
   { "isRemoteToRemote",         ntop_flow_is_remote_to_remote        },
   { "isLocalToRemote",          ntop_flow_is_local_to_remote         },

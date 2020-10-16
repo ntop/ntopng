@@ -500,7 +500,6 @@
 #define CONST_LUA_PARAM_ERROR         -1
 #define CONST_MAX_NUM_SYN_PER_SECOND     25 /* keep in sync with alert_utils.lua */
 #define CONST_MAX_NEW_FLOWS_SECOND       25 /* keep in sync with alert_utils.lua */
-#define CONST_MAX_FLOW_ALERTS_PER_SECOND 2
 #define CONST_ALERT_GRACE_PERIOD      60 /* No more than 1 alert/min */
 #define CONST_CONTACTED_BY            "contacted_by"
 #define CONST_CONTACTS                "contacted_peers" /* Peers contacted by this host */
@@ -642,7 +641,6 @@
 #define CONST_MAX_ES_MSG_QUEUE_LEN    8192
 #define CONST_MAX_MYSQL_QUEUE_LEN     8192
 #define CONST_MAX_NUM_READ_ALERTS     32
-#define CONST_MAX_THRESHOLD_CROSS_DURATION 3
 #define CONST_MAX_ACTIVITY_DURATION    86400 /* sec */
 #define CONST_TREND_TIME_GRANULARITY   1 /* sec */
 #define CONST_DEFAULT_PRIVATE_NETS     "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8,127.0.0.0/8"

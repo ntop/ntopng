@@ -5079,7 +5079,6 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
   bool first_alert = !isFlowAlerted();
   bool cli_thresh = false, srv_thresh = false;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
-  time_t when = time(NULL);
 
   /* Note: triggerAlert is called by flow.lua only after all the flow
    * status are processed (once every 5 seconds), so it is safe to use the shadow */
