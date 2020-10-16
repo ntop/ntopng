@@ -191,6 +191,39 @@ end
 -- ##############################################
 
 --
+-- MultiSelect template
+--
+
+local MultiSelectTemplate = {}
+
+function MultiSelectTemplate:new()
+
+  local object =Template:new("multi_select")
+  setmetatable(object, self)
+  self.__index = self
+
+  return object
+end
+
+function MultiSelectTemplate:parseConfig(script, conf)
+  return http_lint.validateListItems(script, conf)
+end
+
+function MultiSelectTemplate:describeConfig(script, hooks_conf)
+
+  if (not hooks_conf.all) then
+    return '' -- disabled, nothing to show
+  end
+
+  -- TODO: improve the summary message
+  local msg = 'Summary message for the table'
+
+  return (msg)
+end
+
+-- ##############################################
+
+--
 -- Long lived template
 --
 
@@ -240,4 +273,5 @@ return {
   items_list   	  = ItemsList:new(),
   elephant_flows  = ElephantFlowsTemplate:new(),
   long_lived	  = LongLivedTemplate:new(),
+  multi_select = MultiSelectTemplate:new()
 }
