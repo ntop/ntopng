@@ -179,7 +179,7 @@ function flow_consts.getStatusIcon(status_key, status_info)
    end
 
    -- Return the icon
-   return "<i class='"..status_def.alert_severity.icon.."' style='color: "..status_def.alert_severity.color..";'  title='"..noHtml(status_info) .."'></i> "
+   return "<i class='"..status_def.alert_severity.icon.."' title='"..noHtml(status_info) .."'></i> "
 end
 
 -- ################################################################################
