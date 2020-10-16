@@ -1121,8 +1121,6 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
    const $table_editor = $("#script-config-editor");
    $("#script-config-editor").empty();
 
-   console.log(gui);
-
    const render_template = () => {
 
       const enabled = hooks.all.enabled;
@@ -1167,6 +1165,7 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
 
    const apply_event = (event) => {
 
+      const hook_enabled = $('#multiselect-checkbox').prop('checked');
       const items_list = $(`select[name='item_list']`).val();
 
       const template_data = {
