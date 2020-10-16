@@ -15,6 +15,8 @@ local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
 local page_utils = require("page_utils")
 local ts_utils = require("ts_utils")
+local ui_utils = require("ui_utils")
+local local_network_pools = require ("local_network_pools")
 
 local network        = _GET["network"]
 local network_name   = _GET["network_cidr"]
@@ -110,6 +112,8 @@ elseif (page == "config") then
       return
    end
 
+   local local_network_pools_instance = local_network_pools:create()
+
    print[[
    <form id="network_config" class="form-inline" style="margin-bottom: 0px;" method="post">
    <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
@@ -118,6 +122,10 @@ elseif (page == "config") then
     if _SERVER["REQUEST_METHOD"] == "POST" then
       setLocalNetworkAlias(network_name, _POST["custom_name"])
       custom_name = getLocalNetworkAlias(network_name)
+      -- bind local network to pool
+      if (_POST["pool"]) then
+        local_network_pools_instance:bind_member(network_name, tonumber(_POST["pool"]))
+      end
     end
 
    print [[<tr>
@@ -126,6 +134,16 @@ elseif (page == "config") then
 	       <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[[">
 	 </td>
       </tr>]]
+
+  -- Local Network Pool
+  print([[
+    <tr>
+        <th>]].. i18n("pools.pool") ..[[</th>
+        <td>
+          ]].. ui_utils.render_pools_dropdown(local_network_pools_instance, network_name,"local_network") ..[[
+        </td>
+    </tr>
+  ]])
 
    print[[
    </table>

@@ -20,6 +20,9 @@ local format_utils  = require "format_utils"
 local top_talkers_utils = require "top_talkers_utils"
 local internals_utils = require "internals_utils"
 local page_utils = require("page_utils")
+local ui_utils = require("ui_utils")
+local interface_pools = require ("interface_pools")
+
 
 require "lua_utils"
 require "prefs_utils"
@@ -30,6 +33,7 @@ require "db_utils"
 local recording_utils = require "recording_utils"
 local companion_interface_utils = require "companion_interface_utils"
 local storage_utils = require "storage_utils"
+
 
 local have_nedge = ntop.isnEdge()
 
@@ -1411,6 +1415,7 @@ elseif(page == "config") then
       return
    end
 
+   local interface_pools_instance = interface_pools:create()
    local messages = {}
 
    -- Flow dump check
@@ -1431,6 +1436,13 @@ elseif(page == "config") then
              text = i18n("prefs.restart_needed", {product=info.product}),
            }
          end
+      end
+   end
+
+   if _SERVER["REQUEST_METHOD"] == "POST" then
+      -- bind interface to pool
+      if (_POST["pool"]) then
+         interface_pools_instance:bind_member(ifid, tonumber(_POST["pool"]))
       end
    end
 
@@ -1459,6 +1471,16 @@ elseif(page == "config") then
       print[[
          </td>
       </tr>]]
+
+      -- Interface Pool
+      print([[
+         <tr>
+            <th>]].. i18n("pools.pool") ..[[</th>
+            <td>
+               ]].. ui_utils.render_pools_dropdown(interface_pools_instance, ifid, "interface") ..[[
+            </td>
+         </tr>
+      ]])
 
       -- Interface speed
       if not have_nedge then

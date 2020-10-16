@@ -17,12 +17,36 @@ end
 function ui_utils.render_notes(notes_items)
 
     if notes_items == nil then
-        traceError(TRACE_ERROR, TRACE_DEBUG, "The notes table is nil!")
+        traceError(TRACE_DEBUG, TRACE_CONSOLE, "The notes table is nil!")
         return ""
     end
 
     return template_utils.gen("pages/components/notes.template", {
         notes = notes_items
+    })
+end
+
+function ui_utils.render_pools_dropdown(pools_instance, member, key)
+
+    if (pools_instance == nil) then
+        traceError(TRACE_DEBUG, TRACE_CONSOLE, "The pools instance is nil!")
+        return ""
+    end
+
+    if (member == nil) then
+        traceError(TRACE_DEBUG, TRACE_CONSOLE, "The member is nil!")
+        return ""
+    end
+
+    local selected_pool = pools_instance:get_pool_by_member(member)
+    local selected_pool_id = selected_pool and selected_pool.pool_id or pools_instance.DEFAULT_POOL_ID
+
+    local all_pools = pools_instance:get_all_pools()
+
+    return template_utils.gen("pages/components/pool-select.template", {
+        pools = all_pools,
+        selected_pool_id = selected_pool_id,
+        key = key,
     })
 end
 
