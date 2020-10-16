@@ -103,7 +103,7 @@ typedef struct {
 
 typedef struct {
   u_int8_t header_over;
-  char outbuf[2*65536];
+  char outbuf[3*65536];
   u_int num_bytes;
   lua_State* vm;
   bool return_content;

@@ -17,6 +17,7 @@ local delete_data_utils = require "delete_data_utils"
 local menu_alert_notifications = require("menu_alert_notifications")
 local host_pools = require "host_pools"
 local auth = require "auth"
+local blog_utils = require("blog_utils")
 
 local is_nedge = ntop.isnEdge()
 local is_admin = isAdministrator()
@@ -26,6 +27,8 @@ local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows(
 
 -- this is a global variable
 local is_system_interface = page_utils.is_system_view()
+
+blog_utils.fetchLatestPosts()
 
 print([[
    <div class='wrapper'>

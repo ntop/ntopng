@@ -35,7 +35,6 @@ local ts_utils = require "ts_utils"
 local user_scripts = require("user_scripts")
 local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
-local blog_utils = require("blog_utils")
 local notification_configs = require "notification_configs"
 
 host_pools_nedge.migrateHostPools()
@@ -208,8 +207,6 @@ end
 
 -- Show the warning at most 1 time per run
 ntop.delCache("ntopng.cache.rrd_format_change_warning_shown")
-
-blog_utils.fetchLatestPosts()
 
 -- Check if there is a local file to run
 local local_startup_file = "/usr/share/ntopng/local/scripts/callbacks/system/startup.lua"

@@ -95,7 +95,7 @@ end
 -- ###############################################################
 
 local function create_update_ntopng_notification(body)
-    local title = i18n("update")
+   local title = i18n("update")
     return alert_notification:create("update_alert", title, body, "info")
 end
 

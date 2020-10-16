@@ -3805,10 +3805,11 @@ end
 --- @return string message If there is a new major release then return a non-nil string
 --- containing the update message.
 function check_latest_major_release()
-
    -- get the latest major release
    local latest_version = ntop.getCache("ntopng.cache.major_release")
 
+   -- tprint(debug.traceback())
+   
    if isEmptyString(latest_version) then
      local rsp = ntop.httpGet("https://www.ntop.org/ntopng.version", "", "", 10 --[[ seconds ]])
 
@@ -3820,7 +3821,6 @@ function check_latest_major_release()
      end
 
      ntop.setCache("ntopng.cache.major_release", latest_version, 86400 --[[ recheck interval]])
-
    end
 
    return get_version_update_msg(info, latest_version)
