@@ -91,10 +91,13 @@ const generate_multi_select = (params, has_container = true) => {
 
    // add groups and items
    if (params.groups.length == 1) {
+
       params.groups[0].elements.forEach((element) => {
          $select.append($(`<option value='${element[0]}'>${element[1]}</option>`))
       });
-   } else {
+   }
+   else {
+
       params.groups.forEach((category) => {
 
          const $group = $(`<optgroup label='${category.label}'></optgroup>`);
@@ -117,7 +120,7 @@ const generate_multi_select = (params, has_container = true) => {
 
    if (has_container) {
       return $(`
-         <div class='form-group mt-3'>
+         <div class='form-group ${(params.containerCss || "mt-3")}'>
             <label>${params.label || 'Default Label'}</label>
          </div>
       `).append($select);
@@ -1118,6 +1121,8 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
    const $table_editor = $("#script-config-editor");
    $("#script-config-editor").empty();
 
+   console.log(gui);
+
    const render_template = () => {
 
       const enabled = hooks.all.enabled;
@@ -1127,9 +1132,10 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
       const $multiselect = generate_multi_select({
          enabled: enabled,
          name: 'item_list',
-         label: `Multisect Template Label:`,
+         label: gui.i8n_multiselect_label,
+         containerCss: 'm-0',
          selected_values: items_list,
-         groups: apps_and_categories
+         groups: gui.groups
       });
 
       const $checkbox_enabled = generate_checkbox_enabled(
@@ -1145,7 +1151,7 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
 
       // append elements on table
       const $input_container = $(`<td></td>`);
-      $input_container.append($multiselect_bytes);
+      $input_container.append($multiselect);
 
       // initialize table row
       const $container = $(`<tr></tr>`).append(
