@@ -2409,6 +2409,10 @@ u_int Flow::get_hash_entry_id() const {
 bool Flow::is_hash_entry_state_idle_transition_ready() const {
   bool ret = false;
 
+#ifdef EXPIRE_FLOWS_IMMEDIATELY
+  return(true); /* Debug only */
+#endif
+  
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
     return(isNetfilterIdleFlow());
