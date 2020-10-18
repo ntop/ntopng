@@ -31,6 +31,7 @@ GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
      to be 30% more than the maximum hash table size specified. This prevents memory from growing
      indefinitely when for example the purging is slow. */
   max_hash_size = _max_hash_size * 1.3;
+  upper_num_visited_entries = min_val(200000, (max_hash_size / 10));
   last_entry_id = 0;
   purge_step = max_val(num_hashes / PURGE_FRACTION, 1);
   walk_idle_start_hash_id = 0;
@@ -274,7 +275,7 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
   u_int i, num_detached = 0, buckets_checked = 0;
   time_t now = time(NULL);
   /* Visit all entries when force_idle is true */
-  u_int visit_fraction = !force_idle ? purge_step : num_hashes;
+  u_int visit_fraction = (!force_idle) ? purge_step : num_hashes;
   size_t idle_entries_shadow_old_size;
   vector<GenericHashEntry*>::const_iterator it;
 
@@ -306,7 +307,8 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
       visited too few elements we keep visiting until a minimum number
       of entries is reached
     */
-    if((j > visit_fraction) && (buckets_checked > MIN_NUM_VISITED_ENTRIES))
+    if((buckets_checked > upper_num_visited_entries)
+       || ((j > visit_fraction) && (buckets_checked > MIN_NUM_VISITED_ENTRIES)))
       break;
 
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;
@@ -426,8 +428,9 @@ u_int32_t GenericHash::getNumIdleEntries() const {
 
 bool GenericHash::hasEmptyRoom() {
   /* The check below has been added to avoid adding entries when the system is under pressure */
-  if((getNumIdleEntries() > 5000 /* Enable this mechanism when there is a consistent number of idle elements */) && (getNumIdleEntries() > getNumEntries())) {
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash full: [idle: %u][active: %u]", getNumIdleEntries(), getNumEntries());
+  if((getNumIdleEntries() > MIN_NUM_IDLE_ENTRIES_IF /* Enable this mechanism when there is a consistent number of idle elements */)
+     && (getNumIdleEntries() > getNumEntries())) {
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hash full: [idle: %u][active: %u]", getNumIdleEntries(), getNumEntries());    
     return(false);
   } else
     return((getNumEntries() + getNumIdleEntries() <= max_hash_size));

@@ -64,7 +64,7 @@ class NetworkInterface : public AlertableEntity {
   char *ifname, *ifDescription;
   bpf_u_int32 ipv4_network_mask, ipv4_network;
   const char *customIftype;
-  u_int8_t purgeRuns;
+  u_int8_t purgeRuns;  
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   std::atomic<u_int32_t> num_alerts_engaged; /* Possibly touched by multiple concurrent threads */
   std::atomic<u_int64_t> num_active_alerted_flows; /* Changed by multiple concurrent threads */

@@ -168,7 +168,7 @@
 #define MAX_USER_NETS_VAL_LEN     255
 #define NUM_HOSTS_RESOLVED_BITS   2 << 19 /* ~1 million */
 #define HOST_FAMILY_ID            ((u_int16_t)-1)
-#define FLOW_PURGE_FREQUENCY      2 /* sec */
+#define FLOW_PURGE_FREQUENCY      1 /* sec */
 #define HOST_PURGE_FREQUENCY      3 /* sec */
 #define OTHER_PURGE_FREQUENCY     5 /* sec - Other = ASs, MAC, Countries, VLANs */
 #define MAX_TCP_FLOW_IDLE        15 /* sec - how long to wait before idling a TCP flow with FIN/RST set or with incomplete TWH */
@@ -177,6 +177,7 @@
 #define MAX_REMOTE_HOST_IDLE     60 /* sec */
 #define MAX_HASH_ENTRY_IDLE      60 /* sec - Generic idle time for hash entries different from hosts and flows (i.e., ASes and Macs) */
 #define MAX_RRD_QUEUE_LEN        200000 /* timeseries in the queue */
+#define MIN_NUM_IDLE_ENTRIES_IF  5000
 #define INTF_RRD_RAW_DAYS        1
 #define INTF_RRD_1MIN_DAYS       30
 #define INTF_RRD_1H_DAYS         100
@@ -186,7 +187,7 @@
 #define OTHER_RRD_1H_DAYS        100
 #define OTHER_RRD_1D_DAYS        365
 #define CONST_DEFAULT_TOP_TALKERS_ENABLED        false
-#define PURGE_FRACTION           32 /* check 1/32 of hashes per iteration */
+#define PURGE_FRACTION           60 /* check 1/60 of hashes per iteration */
 #define MIN_NUM_VISITED_ENTRIES  1024
 #define MAX_NUM_QUEUED_ADDRS    500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
