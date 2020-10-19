@@ -154,7 +154,7 @@ function script.hooks.protocolDetected(now)
 
 	 if handler and handler.handle_risk then
 	    -- Handler expect three params, namely flow-, client- and server-scores
-	    handler.handle_risk(table.unpack(risk2scores[risk_id] or DEFAULT_SCORES))
+	    handler.handle_risk(risk_id, table.unpack(risk2scores[risk_id] or DEFAULT_SCORES))
 	 end
 
 	 ::continue::

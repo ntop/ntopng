@@ -6,12 +6,14 @@
 
 -- @brief Prepare an alert table used to generate the alert
 -- @param alert_severity A severity as defined in `alert_consts.alert_severities`
--- @param info A flow info table fetched with `flow.getInfo()`
+-- @param risk_id Integer nDPI flow risk identifier
 -- @return A table with the alert built
-local function createFlowRisk(alert_severity, info)
+local function createFlowRisk(alert_severity, risk_id)
    local built = {
       alert_severity = alert_severity,
-      alert_type_params = info,
+      alert_type_params = {
+	 risk_id = risk_id
+      },
    }
 
    return built

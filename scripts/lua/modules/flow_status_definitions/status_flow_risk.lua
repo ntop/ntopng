@@ -3,7 +3,7 @@
 --
 
 local status_keys = require "flow_keys"
-
+local flow_risk_utils = require "flow_risk_utils"
 local alert_consts = require("alert_consts")
 
 -- #################################################################
@@ -12,6 +12,10 @@ local function formatFlowRisk(info)
    -- No need to do special formatting of flow risk here, risks are already formatted
    -- inside the flow details page
    local res = i18n("alerts_dashboard.flow_risk")
+
+   if info.risk_id then
+      res = flow_risk_utils.risk_id_2_i18n(info.risk_id)
+   end
 
    return res
 end
