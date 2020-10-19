@@ -32,9 +32,10 @@ local function checkExternalAlert()
     -- Got an alert in JSON format, decoding
     local info = json.decode(info_json)
     if info ~= nil then
-      local flow_score = nil
-      local cli_score = nil
-      local srv_score = nil
+      -- Default scores used when no IDS utils is available
+      local flow_score = 100
+      local cli_score = 100
+      local srv_score = 100
 
       local status_info = flow_consts.status_types.status_external_alert.create(
         alert_consts.alertSeverityById(info.severity_id), info)

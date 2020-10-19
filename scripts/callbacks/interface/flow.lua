@@ -36,7 +36,7 @@ local score_enabled = nil
 
 local available_modules = nil
 
--- Keeps information about the current predominant alerted status
+-- Keeps information about the current alerted alerted status
 local alerted_status
 local alert_type_params
 local alerted_status_score
@@ -254,10 +254,13 @@ local function triggerFlowAlert(now, l4_proto)
       alert_type_params = json.encode(alert_type_params)
    end
 
-   local res = flow.triggerAlert(status_key,
+   local res = flow.triggerAlert(
+      status_key,
       alerted_status.alert_type.alert_key,
       alerted_status.alert_severity.severity_id,
-      now, alert_type_params)
+      alerted_status_score,
+      now,
+      alert_type_params)
 
    -- There's no lua table for the flow alert. Flow alert is generated from C and is returned to
    -- Lua as a JSON string. Hence, to dispatch it to the recipient, alert must be decoded from JSON.
@@ -290,12 +293,10 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    local all_modules = available_modules.modules
    local hooks = available_modules.l4_hooks[l4_proto]
 
-   -- Reset predominant status information
+   -- Reset alerted status information
    alerted_status = nil
    alert_type_params = nil
    alerted_status_score = -1
-
-   local use_score = ntop.isEnterpriseM()
 
    if hooks then
       hooks = hooks[mod_fn]
@@ -310,7 +311,7 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    end
 
    if do_trace then
-      trace_f(string.format("%s()[START]: bitmap=0x%x predominant=%d", mod_fn, flow.getStatus(), flow.getPredominantStatus()))
+      trace_f(string.format("%s()[START]: bitmap=0x%x alerted=%d", mod_fn, flow.getStatus(), flow.getAlertedStatus()))
    end
 
    local now = os.time()
@@ -379,8 +380,8 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    end
 
    if do_trace then
-      trace_f(string.format("%s()[END]: bitmap=0x%x predominant=%d score=%d flow.score=%d", 
-         mod_fn, flow.getStatus(), flow.getPredominantStatus(), 
+      trace_f(string.format("%s()[END]: bitmap=0x%x alerted=%d score=%d flow.score=%d", 
+         mod_fn, flow.getStatus(), flow.getAlertedStatus(), 
          alerted_status_score, flow.getAlertedStatusScore())
 )
    end
@@ -389,7 +390,7 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    -- triggered alert score (when score is supported)
    if areAlertsEnabled() and 
       alerted_status and 
-      (not use_score or (alerted_status_score > flow.getAlertedStatusScore())) then
+      (alerted_status_score > flow.getAlertedStatusScore()) then
 
       triggerFlowAlert(now, l4_proto)
 
@@ -416,7 +417,7 @@ end
 -- #################################################################
 
 -- @brief This provides an API that flow user_scripts can call in order to
--- set a flow status bit. The status_info of the predominant status is
+-- set a flow status bit. The status_info of the alerted status is
 -- saved for later use.
 function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
    local flow_status_type = status_info.status_type
@@ -430,8 +431,8 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
    end
 
    -- NOTE: The "flow_status_type.status_key < alerted_status.status_key" check must
-   -- correspond to the Flow::getPredominantStatus logic in order to determine
-   -- the same predominant status
+   -- correspond to the Flow::getAlertedStatus logic in order to determine
+   -- the same alerted status
    if((not alerted_status) or (flow_score > alerted_status_score) or
 	 ((flow_score == alerted_status_score) and (flow_status_type.status_key < alerted_status.status_key))) then
       -- The new alerted status as an higher score

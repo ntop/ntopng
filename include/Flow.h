@@ -32,11 +32,6 @@ typedef struct {
   u_int64_t last, next;
 } TCPSeqNum;
 
-typedef struct {
-  u_int16_t score;
-  char *script_key;
-} StatusInfo;
-
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -57,8 +52,8 @@ class Flow : public GenericHashEntry {
      of a flow, which is written into `alerted_status`.
   */
   Bitmap status_map;
-  FlowStatus alerted_status;      /* This is the status which has triggered the alert */
-  StatusInfo *status_infos;       /* An array of 64 StatusInfo, one for each status (lazy allocation upon setStatus call) */
+  FlowStatus alerted_status;       /* This is the status which has triggered the alert */
+  u_int16_t  alerted_status_score; /* The score associated to the alerted status */
   AlertType alert_type;
   AlertLevel alert_level;
   char *alert_status_info;        /* Alert specific status info */
@@ -291,10 +286,9 @@ class Flow : public GenericHashEntry {
 
   inline Bitmap getStatusBitmap()     const     { return(status_map);           }
   bool setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc, const char*script_key, ScriptCategory script_category);
-  bool triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char*alert_json);
-  FlowStatus getPredominantStatus() const;
+  bool triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, u_int16_t alerted_status_score, const char* alert_json);
+  FlowStatus getAlertedStatus() const;
   inline const char* getStatusInfo() const      { return(alert_status_info);    }
-  void statusInfosLua(lua_State* vm) const;
 
   bool isBlacklistedFlow()   const;
   bool isBlacklistedClient() const;
@@ -639,7 +633,7 @@ class Flow : public GenericHashEntry {
   inline void setNextAdjacentAS(u_int32_t v) { nextAdjacentAS = v; }
 
   inline ViewInterfaceFlowStats* getViewInterfaceFlowStats() { return(viewFlowStats); }
-  u_int16_t getAlertedStatusScore();
+  u_int16_t getAlertedStatusScore() const;
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
     if(client) {

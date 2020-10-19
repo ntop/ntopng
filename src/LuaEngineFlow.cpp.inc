@@ -866,12 +866,12 @@ static int ntop_flow_get_mud_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_get_predominant_status(lua_State* vm) {
+static int ntop_flow_get_alerted_status(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushinteger(vm, f->getPredominantStatus());
+  lua_pushinteger(vm, f->getAlertedStatus());
   return(CONST_LUA_OK);
 }
 
@@ -882,6 +882,7 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
   FlowStatus status;
   AlertType atype;
   AlertLevel severity;
+  u_int16_t alerted_status_score;
   bool triggered = false;
   const char *status_info = NULL;
   u_int32_t buflen;
@@ -902,14 +903,17 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
   severity = (AlertLevel)lua_tointeger(vm, 3);
 
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  now = (time_t) lua_tonumber(vm, 4);
+  alerted_status_score = lua_tointeger(vm, 4);
 
-  if(lua_type(vm, 5) == LUA_TSTRING)
-    status_info = lua_tostring(vm, 5);
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  now = (time_t) lua_tonumber(vm, 5);
+
+  if(lua_type(vm, 6) == LUA_TSTRING)
+    status_info = lua_tostring(vm, 6);
 
   lua_newtable(vm);
 
-  if(f->triggerAlert(status, atype, severity, status_info)) {
+  if(f->triggerAlert(status, atype, severity, alerted_status_score, status_info)) {
     /* The alert was successfully triggered */
     triggered = true;
 
@@ -1096,7 +1100,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getStatus",                ntop_flow_get_status                 },
   { "setStatus",                ntop_flow_set_status                 },
   { "isStatusSet",              ntop_flow_is_status_set              },
-  { "getPredominantStatus",     ntop_flow_get_predominant_status     },
+  { "getAlertedStatus",         ntop_flow_get_alerted_status         },
   
   { "isClientUnicast",          ntop_flow_is_client_unicast          },
   { "isServerUnicast",          ntop_flow_is_server_unicast          },

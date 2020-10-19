@@ -1124,19 +1124,14 @@ else
    -- ######################################
 
    local alerted_status = nil
-   local status_infos = flow["status_infos"]
 
    if flow["flow.alerted"] then
       alerted_status = flow["alerted_status"]
-      local status_info = status_infos[alerted_status]
       local alert_info = flow2statusinfo(flow)
       local message =  flow_consts.getStatusDescription(alerted_status, alert_info)
       local icon = flow_consts.getStatusIcon(alerted_status, message)
 
-      if status_info then
-	 message = message .. string.format(" [%s: %d]", i18n("score"), status_info.score)
-      end
-
+      message = message .. string.format(" [%s: %d]", i18n("score"), flow["alerted_status_score"])
       message = icon .. message .. alert_utils.getConfigsetAlertLink(alert_info)
 
       print("<tr><th width=30%>"..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
@@ -1153,33 +1148,18 @@ else
    end
 
    if(additional_status ~= 0) then
-      local configsets = user_scripts.getConfigsets()
-      local view_ifid
-
-      if interface.isViewed() then
-	 view_ifid = interface.viewedBy()
-      else
-	 view_ifid = ifid
-      end
-
-      -- Flows config is global, system-wide
-      local flows_config, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
-
-      print("<tr><th width=30%>"..status_icon..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
+      print("<tr><th width=30%>"..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
       for _, t in pairsByKeys(flow_consts.status_types) do
 	 local id = t.status_key
 
-         if ntop.bitmapIsSet(additional_status, id) then
-	    local status_info = status_infos[id]
-	    local detail = ""
+	 if ntop.bitmapIsSet(additional_status, id) then
+	    local alert_info = flow2statusinfo(flow)
+	    local message = flow_consts.getStatusDescription(id, alert_info)
+	    local icon = flow_consts.getStatusIcon(alerted_status, message)
 
-	    if status_info then
-	       detail = string.format(" [%s: %d]", i18n("score"), status_info.score)
-	       detail = detail .. alert_utils.getConfigsetAlertLink({alert_generation = {confset_id = confset_id, subdir = "flow", script_key = status_info.user_script}})
-	    end
-
-            print(flow_consts.getStatusDescription(id, flow2statusinfo(flow))..detail.."<br />")
-         end
+	    message = icon .. message
+	    print(message.."<br />")
+	 end
       end
       print("</td></tr>\n")
    end

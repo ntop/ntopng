@@ -48,8 +48,7 @@ Flow::Flow(NetworkInterface *_iface,
   alert_status_info = alert_status_info_shadow = NULL;
   alert_type = alert_none;
   alert_level = alert_level_none;
-  alerted_status = status_normal;
-  status_infos = NULL;
+  alerted_status = status_normal, alerted_status_score = 0;
   ndpi_flow_risk_bitmap = 0;
   iec104_typeid_mask[0] = 0, iec104_typeid_mask[1] = 0;
   detection_completed = false;
@@ -361,15 +360,6 @@ Flow::~Flow() {
 
   if(bt_hash)
     free(bt_hash);
-
-  if(status_infos) {
-    for(int i=0; i<BITMAP_NUM_BITS; i++) {
-      if(status_infos[i].script_key)
-	free(status_infos[i].script_key);
-    }
-
-    free(status_infos);
-  }
 
   if(packet_payload_match.payload)
     free(packet_payload_match.payload);
@@ -2718,7 +2708,7 @@ json_object* Flow::flow2json() {
 #endif
 
     json_object_object_add(my_object, "INTERFACE_ID", json_object_new_int(iface->get_id()));
-    json_object_object_add(my_object, "STATUS", json_object_new_int((u_int8_t)getPredominantStatus()));
+    json_object_object_add(my_object, "STATUS", json_object_new_int((u_int8_t)getAlertedStatus()));
   }
 
   return(my_object);
@@ -4492,17 +4482,13 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
 
 void Flow::lua_get_status(lua_State* vm) const {
   lua_push_bool_table_entry(vm, "flow.idle", idle());
-  lua_push_uint64_table_entry(vm, "flow.status", getPredominantStatus());
+  lua_push_uint64_table_entry(vm, "flow.status", getAlertedStatus());
   lua_push_uint64_table_entry(vm, "status_map", status_map.get());
-
-  statusInfosLua(vm);
-  lua_pushstring(vm, "status_infos");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
 
   if(isFlowAlerted()) {
     lua_push_bool_table_entry(vm, "flow.alerted", true);
-    lua_push_uint64_table_entry(vm, "alerted_status", alerted_status);
+    lua_push_uint64_table_entry(vm, "alerted_status", getAlertedStatus());
+    lua_push_uint64_table_entry(vm, "alerted_status_score", getAlertedStatusScore());
   }
 }
 
@@ -5071,9 +5057,8 @@ bool Flow::hasDissectedTooManyPackets() {
 
 /* ***************************************************** */
 
-bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, const char *alert_json) {
+bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, u_int16_t alert_score, const char *alert_json) {
   bool first_alert = !isFlowAlerted();
-  bool cli_thresh = false, srv_thresh = false;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
 
   /* Note: triggerAlert is called by flow.lua only after all the flow
@@ -5086,6 +5071,7 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
   alerted_status = status;
   alert_level = severity;
   alert_type = atype;
+  alerted_status_score = alert_score;
 
   if(first_alert) {
     /* This is the first alert for the flow, increment the counters */
@@ -5106,7 +5092,7 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
   }
 
   /* Success - alert is dumped/notified from lua */
-  return (cli_thresh || srv_thresh) && !getInterface()->read_from_pcap_dump() ? false : true;
+  return true;
 }
 
 
@@ -5140,16 +5126,6 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
 
   if(unsafeGetServer())
     srv_host_score[score_category] += unsafeGetServer()->incScoreValue(srv_inc, score_category, false /* as server*/);
-
-  if(!status_infos)
-    status_infos = (StatusInfo*) calloc(BITMAP_NUM_BITS, sizeof(StatusInfo));
-
-  if(status_infos && (status < BITMAP_NUM_BITS)) {
-    if(!status_infos[status].script_key)
-      status_infos[status].script_key = strdup(script_key);
-
-    status_infos[status].score += flow_inc;
-  }
 
   return true;
 }
@@ -5187,57 +5163,14 @@ void Flow::luaRetrieveExternalAlert(lua_State *vm) {
 
 /* *************************************** */
 
-FlowStatus Flow::getPredominantStatus() const {
-  int i;
-  u_int16_t max_score = 0;
-  FlowStatus status = status_normal;
-
-  if(status_infos) {
-    for(i=1 /* 0 is normal */; i<BITMAP_NUM_BITS; i++) {
-      if(status_map.issetBit(i)) {
-        if (status_infos[i].score > max_score) {
-          status = (FlowStatus)i;
-	  max_score = status_infos[i].score;
-        }
-      }
-    }
-  }
-
-  return(status);
+FlowStatus Flow::getAlertedStatus() const {
+  return alerted_status;
 }
 
 /* *************************************** */
 
-u_int16_t Flow::getAlertedStatusScore() {
-  if(!status_infos)
-    return(0);
-
-  return(status_infos[alerted_status].score);
-}
-
-/* *************************************** */
-
-void Flow::statusInfosLua(lua_State* vm) const {
-  int i;
-
-  lua_newtable(vm);
-
-  if(status_infos) {
-    for(i=0; i<BITMAP_NUM_BITS; i++) {
-      if(status_map.issetBit(i)) {
-	lua_newtable(vm);
-
-	if(status_infos[i].script_key)
-	  lua_push_str_table_entry(vm, "user_script", status_infos[i].script_key);
-
-	lua_push_int32_table_entry(vm, "score", status_infos[i].score);
-
-	lua_pushinteger(vm, i);
-	lua_insert(vm, -2);
-	lua_settable(vm, -3);
-      }
-    }
-  }
+u_int16_t Flow::getAlertedStatusScore() const {
+  return alerted_status_score;
 }
 
 /* *************************************** */
