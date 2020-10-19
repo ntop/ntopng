@@ -32,14 +32,27 @@ local function checkExternalAlert()
     -- Got an alert in JSON format, decoding
     local info = json.decode(info_json)
     if info ~= nil then
+      local flow_score = nil
+      local cli_score = nil
+      local srv_score = nil
 
-       -- Trigger flow alert
-       flow.triggerStatus(
-	  flow_consts.status_types.status_external_alert.create(
-             alert_consts.alertSeverityById(info.severity_id),
-             info
-	  ),
-	  nil, nil, nil)
+      local status_info = flow_consts.status_types.status_external_alert.create(
+        alert_consts.alertSeverityById(info.severity_id), info)
+
+      if ntop.isEnterpriseM() then
+        local ids_utils = require("ids_utils")
+
+        if ids_utils and status_info.alert_type_params and
+           status_info.alert_type_params.source == "suricata" then
+           local fs, cs, ss = ids_utils.computeScore(status_info.alert_type_params)
+           flow_score = fs
+           cli_score = cs
+           srv_score = ss
+        end
+      end
+
+      -- Trigger flow alert
+      flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
     end
   end
 end

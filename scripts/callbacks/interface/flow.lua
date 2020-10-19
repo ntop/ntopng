@@ -429,15 +429,6 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
       return
    end
 
-   if(flow_status_type and status_info and ids_utils and
-      status_key == flow_consts.status_types.status_external_alert.status_key and
-      status_info.alert_type_params and (status_info.alert_type_params.source == "suricata")) then
-      local fs, cs, ss = ids_utils.computeScore(status_info.alert_type_params)
-      flow_score = fs
-      cli_score = cs
-      srv_score = ss
-   end
-
    -- NOTE: The "flow_status_type.status_key < alerted_status.status_key" check must
    -- correspond to the Flow::getPredominantStatus logic in order to determine
    -- the same predominant status
