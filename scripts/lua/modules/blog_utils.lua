@@ -9,7 +9,7 @@ local blog_utils = {}
 
 local BLOG_FEED_KEY         = "ntopng.cache.blog_feed"
 local BLOG_NEXT_FEED_UPDATE = "ntopng.prefs.next_feed_update"
-local JSON_FEED             = "https://www.ntop.org/blog/feed/json"
+local JSON_FEED             = "https://feed.ntop.org/blog.json"
 
 -- Parse the date string, following this pattern: yyyy-mm-ddTH:M:S+00:00
 -- Return 0 if the date string is empty, otherwise it returns the right epoch
