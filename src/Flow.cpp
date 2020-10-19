@@ -370,8 +370,8 @@ void Flow::processDetectedProtocol() {
       The statement below can create issues sometimes as devices publish
       themselves with varisous names depending on the context (**)
     */
-    if(ndpiFlow->protos.mdns.answer[0] != '\0' && !protos.mdns.answer)
-      protos.mdns.answer = strdup(ndpiFlow->protos.mdns.answer);
+    if(ndpiFlow->host_server_name[0] != '\0' && !protos.mdns.answer)
+      protos.mdns.answer = strdup((char*)ndpiFlow->host_server_name);
     break;
 
   case NDPI_PROTOCOL_DNS:
@@ -3898,7 +3898,8 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
   if(dst_name) {
     unsigned long id;
     ndpi_protocol_match_result tmp;
-
+    ndpi_protocol_category_t c;
+    
     /* Match for custom protocols (protos.txt) */
     if((id = ndpi_match_string_subprotocol(ndpi_struct, (char*)dst_name, strlen(dst_name), &tmp, 1 /* host match */)) != 0) {
       if(id >= NDPI_MAX_SUPPORTED_PROTOCOLS) {
@@ -3913,8 +3914,8 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
     }
 
     /* Match for custom categories */
-    if(ndpi_match_custom_category(ndpi_struct, (char*)dst_name, strlen(dst_name), &id) == 0)
-      res->category = (ndpi_protocol_category_t)id;
+    if(ndpi_match_custom_category(ndpi_struct, (char*)dst_name, strlen(dst_name), &c) == 0)
+      res->category = c;
   }
 }
 

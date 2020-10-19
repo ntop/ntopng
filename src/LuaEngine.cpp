@@ -2011,7 +2011,7 @@ static int ntop_reloadCustomCategories(lua_State* vm) {
 static int ntop_match_custom_category(lua_State* vm) {
   char *host_to_match;
   NetworkInterface *iface;
-  unsigned long match;
+  ndpi_protocol_category_t match;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   iface = ntop->getFirstInterface();
@@ -2038,7 +2038,7 @@ static int ntop_get_tls_version_name(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   tls_version = (u_int16_t)lua_tonumber(vm, 1);
 
-  lua_pushstring(vm, ndpi_ssl_version2str(tls_version, &unknown_version));
+  lua_pushstring(vm, ndpi_ssl_version2str(NULL, tls_version, &unknown_version));
 
   return(CONST_LUA_OK);
 }

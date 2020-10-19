@@ -218,6 +218,8 @@ else
   fi
 fi
 
+AC_CHECK_LIB([gcrypt], [gcry_cipher_checktag], [LDFLAGS="${LDFLAGS} -lgcrypt"])
+
 AC_MSG_CHECKING(for ntopng professional edition)
 
 REDIS_SERVICE="redis.service"
