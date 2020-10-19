@@ -427,6 +427,12 @@ local function validateFlowStatus(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateFlowStatusSeverity(mode)
+   local modes = {"notice_and_lower", "warning", "error_and_higher"}
+
+   return validateChoice(modes, mode)
+end
+
 local function validateTCPFlowState(mode)
    local modes = { "established", "connecting", "closed", "reset" }
 
@@ -1734,6 +1740,7 @@ local known_parameters = {
    ["drop_flow_policy"]        = validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            = validateBroadcastUnicast,      -- flows_stats.lua
    ["flow_status"]             = validateFlowStatus,            -- flows_stats.lua
+   ["flow_status_severity"]    = validateFlowStatusSeverity,    -- flows_stats.lua
    ["flow_status_num"]         = validateFlowStatusNumber,      -- charts
    ["tcp_flow_state"]          = validateTCPFlowState,          -- flows_stats.lua
    ["traffic_profile"]         = http_lint.validateTrafficProfile, -- flows_stats.lua

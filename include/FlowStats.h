@@ -30,12 +30,13 @@ class FlowStats {
  private:
   u_int32_t counters[BITMAP_NUM_BITS];
   u_int32_t protocols[0x100];
+  u_int32_t alert_levels[ALERT_LEVEL_MAX_LEVEL];
 
  public:
   FlowStats();
   ~FlowStats();
 
-  void incStats(Bitmap status_bitmap, u_int8_t l4_protocol);
+  void incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel alert_level);
 
   void lua(lua_State* vm);
 

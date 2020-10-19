@@ -110,7 +110,15 @@ function dumpInterfaceStats(ifid)
       if prefs.are_alerts_enabled == true then
          res["engaged_alerts"]     = ifstats["num_alerts_engaged"] or 0
          res["dropped_alerts"]     = ifstats["num_dropped_alerts"] or 0
-	 res["alerted_flows"]      = ifstats["num_alerted_flows"] or 0
+
+	 -- Active flow alerts: total
+	 res["alerted_flows"]         = ifstats["num_alerted_flows"] or 0
+
+	 -- Active flow alerts: breakdown
+	 res["alerted_flows_notice"]  = ifstats["num_alerted_flows_notice"]  or 0
+	 res["alerted_flows_warning"] = ifstats["num_alerted_flows_warning"] or 0
+	 res["alerted_flows_error"]   = ifstats["num_alerted_flows_error"]   or 0
+
          res["has_alerts"]         = ifstats["has_alerts"]
          res["ts_alerts"] = {}
 

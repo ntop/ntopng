@@ -34,7 +34,7 @@ FlowStats::~FlowStats() {
 
 /* *************************************** */
 
-void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol) {
+void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel alert_level) {
   int i;
 
   for(i = 0; i < BITMAP_NUM_BITS; i++) {
@@ -43,6 +43,7 @@ void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol) {
   }
 
   protocols[l4_protocol]++;
+  alert_levels[alert_level]++;
 }
 
 /* *************************************** */
@@ -83,6 +84,30 @@ void FlowStats::lua(lua_State* vm) {
   lua_pushstring(vm, "l4_protocols");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  /* Alert levels */
+  u_int32_t alert_level_notice_and_lower = 0, alert_level_warning = 0, alert_level_error_and_higher = 0;
+
+  for(int i = 0; i < ALERT_LEVEL_MAX_LEVEL; i++) {
+    AlertLevel alert_level = (AlertLevel)i;
+
+    if(alert_level <= alert_level_notice)
+      alert_level_notice_and_lower += alert_levels[alert_level];
+    else if(alert_level == alert_level_warning)
+      alert_level_warning += alert_levels[alert_level];
+    else if(alert_level >= alert_level_error)
+      alert_level_error_and_higher += alert_levels[alert_level];
+  }
+
+  lua_newtable(vm);
+
+  if(alert_level_notice_and_lower > 0) lua_push_uint64_table_entry(vm, "notice_and_lower", alert_level_notice_and_lower);
+  if(alert_level_warning > 0)          lua_push_uint64_table_entry(vm, "warning",          alert_level_warning);
+  if(alert_level_error_and_higher > 0) lua_push_uint64_table_entry(vm, "error_and_higher", alert_level_error_and_higher);
+
+  lua_pushstring(vm, "alert_levels");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */
@@ -90,6 +115,7 @@ void FlowStats::lua(lua_State* vm) {
 void FlowStats::resetStats() {
   memset(counters, 0, sizeof(counters));
   memset(protocols, 0, sizeof(protocols));
+  memset(alert_levels, 0, sizeof(alert_levels));
 }
 
 /* *************************************** */

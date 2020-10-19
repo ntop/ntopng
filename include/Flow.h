@@ -288,7 +288,8 @@ class Flow : public GenericHashEntry {
   bool setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc, const char*script_key, ScriptCategory script_category);
   bool triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, u_int16_t alerted_status_score, const char* alert_json);
   FlowStatus getAlertedStatus() const;
-  inline const char* getStatusInfo() const      { return(alert_status_info);    }
+  inline AlertLevel getAlertedSeverity() const { return alert_level;        };
+  inline const char* getStatusInfo()     const { return(alert_status_info); };
 
   bool isBlacklistedFlow()   const;
   bool isBlacklistedClient() const;

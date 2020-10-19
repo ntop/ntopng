@@ -67,7 +67,10 @@ class NetworkInterface : public AlertableEntity {
   u_int8_t purgeRuns;  
   u_int32_t bridge_lan_interface_id, bridge_wan_interface_id;
   std::atomic<u_int32_t> num_alerts_engaged; /* Possibly touched by multiple concurrent threads */
-  std::atomic<u_int64_t> num_active_alerted_flows; /* Changed by multiple concurrent threads */
+  /* Counters for active alerts. Changed by multiple concurrent threads */
+  std::atomic<u_int64_t> num_active_alerted_flows_notice;  /* Counts all flow alerts with severity <= notice  */
+  std::atomic<u_int64_t> num_active_alerted_flows_warning; /* Counts all flow alerts with severity == warning */
+  std::atomic<u_int64_t> num_active_alerted_flows_error;   /* Counts all flow alerts with severity >= error   */
   u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts, num_dropped_flow_scripts_calls;
   u_int64_t num_written_alerts, num_alerts_queries;
   u_int64_t num_new_flows;
@@ -545,6 +548,7 @@ class NetworkInterface : public AlertableEntity {
   virtual u_int32_t getFlowMaxIdle();
 
   virtual void lua(lua_State* vm);
+  void luaAlertedFlows(lua_State* vm);
   void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address);
   void luaServiceMap(lua_State* vm, IpAddress *ip_address, u_int16_t vlan_id);
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
@@ -876,8 +880,8 @@ class NetworkInterface : public AlertableEntity {
   inline void profiling_section_exit(int id) { PROFILING_SECTION_EXIT(id); };
 #endif
 
-  void incNumAlertedFlows(Flow *f);
-  void decNumAlertedFlows(Flow *f);
+  void incNumAlertedFlows(Flow *f, AlertLevel severity);
+  void decNumAlertedFlows(Flow *f, AlertLevel severity);
   virtual u_int64_t getNumActiveAlertedFlows()      const;
   inline void setHasAlerts(bool has_stored_alerts)        { this->has_stored_alerts = has_stored_alerts; }
   inline void incNumAlertsEngaged()                       { num_alerts_engaged++; }

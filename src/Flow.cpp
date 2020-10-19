@@ -293,7 +293,7 @@ Flow::~Flow() {
     Perform other operations to decrease counters increased by flow user script hooks (we're in the same thread)
    */
   if(isFlowAlerted()) {
-    iface->decNumAlertedFlows(this);
+    iface->decNumAlertedFlows(this, alert_level);
     if(cli_u) cli_u->decNumAlertedFlows(true /* As client */);
     if(srv_u) srv_u->decNumAlertedFlows(false /* As server */);
 
@@ -2458,7 +2458,7 @@ void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
     ndpi_stats->incFlowsStats(detected_protocol.app_protocol);
   }
 
-  status_stats->incStats(getStatusBitmap(), protocol);
+  status_stats->incStats(getStatusBitmap(), protocol, alert_level);
 }
 
 /* *************************************** */
@@ -5061,6 +5061,29 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
   bool first_alert = !isFlowAlerted();
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
 
+  if(first_alert) {
+    /* This is the first alert for the flow, increment the counters */
+    iface->incNumAlertedFlows(this, severity);
+
+    if(unsafeGetClient()) unsafeGetClient()->incNumAlertedFlows(true /* As client */);
+    if(unsafeGetServer()) unsafeGetServer()->incNumAlertedFlows(false /* As server */);
+
+#ifdef ALERTED_FLOWS_DEBUG
+    iface_alert_inc = true;
+#endif
+
+    if(cli_h)
+      cli_h->incTotalAlerts(atype);
+
+    if(srv_h)
+      srv_h->incTotalAlerts(atype);
+  } else { /* Not the first alert triggered for this flow */
+    if(alert_level != severity) { /* If the new severity is different from the old severity ...*/
+      iface->decNumAlertedFlows(this, alert_level); /* Decrease the value previously increased for the former level */
+      iface->incNumAlertedFlows(this, severity);    /* Increase the value for the newly set level*/
+    }
+  }
+
   /* Note: triggerAlert is called by flow.lua only after all the flow
    * status are processed (once every 5 seconds), so it is safe to use the shadow */
   if(alert_status_info_shadow)
@@ -5072,24 +5095,6 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
   alert_level = severity;
   alert_type = atype;
   alerted_status_score = alert_score;
-
-  if(first_alert) {
-    /* This is the first alert for the flow, increment the counters */
-    iface->incNumAlertedFlows(this);
-
-    if(unsafeGetClient()) unsafeGetClient()->incNumAlertedFlows(true /* As client */);
-    if(unsafeGetServer()) unsafeGetServer()->incNumAlertedFlows(false /* As server */);
-
-#ifdef ALERTED_FLOWS_DEBUG
-    iface_alert_inc = true;
-#endif
-
-    if(cli_h)
-      cli_h->incTotalAlerts(alert_type);
-
-    if(srv_h)
-      srv_h->incTotalAlerts(alert_type);
-  }
 
   /* Success - alert is dumped/notified from lua */
   return true;

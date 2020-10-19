@@ -12,6 +12,7 @@ local graph_utils = require "graph_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local format_utils = require("format_utils")
 local flow_consts = require "flow_consts"
+local alert_consts = require "alert_consts"
 local json = require("dkjson")
 
 if ntop.isPro() then
@@ -93,6 +94,7 @@ function getFlowsFilter()
    local icmp_type   = _GET["icmp_type"]
    local icmp_code   = _GET["icmp_cod"]
    local flow_status = _GET["flow_status"]
+   local flow_status_severity = _GET["flow_status_severity"]
    local deviceIP    = _GET["deviceIP"]
    local inIfIdx     = _GET["inIfIdx"]
    local outIfIdx    = _GET["outIfIdx"]
@@ -203,6 +205,22 @@ function getFlowsFilter()
 	 pageinfo["filteredFlows"] = true
       else
 	 pageinfo["statusFilter"] = tonumber(flow_status)
+      end
+   end
+
+   if not isEmptyString(flow_status_severity) then
+      local s
+
+      if flow_status_severity == "notice_and_lower" then
+	 s = alert_consts.alert_severities.notice.severity_id
+      elseif flow_status_severity == "warning" then
+	 s = alert_consts.alert_severities.warning.severity_id
+      elseif flow_status_severity == "error_and_higher" then
+	 s = alert_consts.alert_severities.error.severity_id
+      end
+
+      if s then
+	 pageinfo["statusSeverityFilter"] = s
       end
    end
 
@@ -1626,7 +1644,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
                  entries[#entries + 1] = '<li class="dropdown-header">'.. i18n("flow_details.alerted_flows") ..'</li>'
                  first = false
                end
-               entries[#entries + 1] = {string.format("%u", t), i18n(s.i18n_title) or s.i18n_title .. " ("..status_stats[t].count..")"}
+               entries[#entries + 1] = {string.format("%u", t), (i18n(s.i18n_title) or s.i18n_title) .. " ("..status_stats[t].count..")"}
              end
           end
        end
@@ -1636,7 +1654,36 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        end
 
        printDropdownEntries(entries, base_url, flow_status_params, "flow_status", page_params.flow_status)
-    print[[\
+
+       print[[\
+	  </ul>\
+       </div>\
+    ']]
+
+       -- Flow Status Severity
+       local flow_status_severity_params = table.clone(page_params)
+       flow_status_severity_params["flow_status_severity"] = nil
+
+       print[[, '\
+       <div class="btn-group">\
+	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.flow_status_severity")) print(getParamFilter(page_params, "flow_status_severity")) print[[<span class="caret"></span></button>\
+	  <ul class="dropdown-menu scrollable-dropdown" role="menu">\
+	  <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, flow_status_severity_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>]]
+
+       local entries
+
+       entries = {}
+       local severity_stats = flowstats["alert_levels"]
+
+       for _, s in ipairs({"notice_and_lower", "warning", "error_and_higher"}) do
+	  if severity_stats[s] and severity_stats[s] > 0 then
+	     entries[#entries + 1] = {s, (i18n("flow_details."..s) or s) .." ("..severity_stats[s]..")"}
+	  end
+       end
+
+       printDropdownEntries(entries, base_url, flow_status_severity_params, "flow_status_severity", page_params.flow_status_severity)
+
+       print[[\
 	  </ul>\
        </div>\
     ']]

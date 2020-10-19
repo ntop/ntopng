@@ -29,7 +29,7 @@ alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 4096
 -- {"alert html string", "alert C enum value", "plain string", "syslog severity"}
 alert_consts.alert_severities = {
    debug = {
-      severity_id = 0,
+      severity_id = 1,
       label = "badge-info",
       icon = "fas fa-bug text-info",
       -- color = "black",
@@ -37,7 +37,7 @@ alert_consts.alert_severities = {
       syslog_severity = 7,
    },
    info = {
-      severity_id = 1,
+      severity_id = 2,
       label = "badge-info",
       icon = "fas fa-info-circle text-info",
       -- color = "blue",
@@ -45,7 +45,7 @@ alert_consts.alert_severities = {
       syslog_severity = 6,
    },
    notice = {
-      severity_id = 2,
+      severity_id = 3,
       label = "badge-info",
       icon = "fas fa-hand-paper text-primary",
       -- color = "blue",
@@ -53,7 +53,7 @@ alert_consts.alert_severities = {
       syslog_severity = 5,
    },
    warning = {
-      severity_id = 3,
+      severity_id = 4,
       label = "badge-warning",
       icon = "fas fa-exclamation-triangle text-warning",
       -- color = "gold",
@@ -61,7 +61,7 @@ alert_consts.alert_severities = {
       syslog_severity = 4,
    },
    error = {
-      severity_id = 4,
+      severity_id = 5,
       label = "badge-danger",
       icon = "fas fa-exclamation-triangle text-danger",
       -- color = "red",
@@ -69,7 +69,7 @@ alert_consts.alert_severities = {
       syslog_severity = 3,
    },
    critical = {
-      severity_id = 5,
+      severity_id = 6,
       label = "badge-danger",
       icon = "fas fa-exclamation-triangle text-danger",
       -- color = "purple",
@@ -77,7 +77,7 @@ alert_consts.alert_severities = {
       syslog_severity = 2,
    },
    alert = {
-      severity_id = 6,
+      severity_id = 7,
       label = "badge-danger",
       icon = "fas fa-bomb text-danger",
       -- color = "red",
@@ -85,7 +85,7 @@ alert_consts.alert_severities = {
       syslog_severity = 1,
    },
    emergency = {
-      severity_id = 7,
+      severity_id = 8,
       label = "badge-danger text-danger",
       icon = "fas fa-bomb",
       -- color = "purple",

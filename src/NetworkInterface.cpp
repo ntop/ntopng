@@ -290,7 +290,9 @@ void NetworkInterface::init() {
   num_written_alerts = num_alerts_queries = 0;
   memset(live_captures, 0, sizeof(live_captures));
   num_alerts_engaged = 0;
-  num_active_alerted_flows = 0;
+  num_active_alerted_flows_notice = 0,
+    num_active_alerted_flows_warning = 0,
+    num_active_alerted_flows_error = 0;
   has_stored_alerts = false;
 
   is_view = false;
@@ -3579,6 +3581,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int16_t port;
   int16_t local_network_id;
   u_int16_t vlan_id = 0, pool_filter, flow_status_filter;
+  AlertLevel flow_status_severity_filter = alert_level_none;
   u_int8_t ip_version;
   u_int8_t l4_protocol;
   u_int8_t *mac_filter;
@@ -3775,6 +3778,16 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
        && retriever->pag->flowStatusFilter(&flow_status_filter)
        && !f->getStatusBitmap().issetBit(flow_status_filter))
       return(false);
+
+    /* Flow Status severity filter */
+    if(retriever->pag
+       && retriever->pag->flowStatusFilter(&flow_status_severity_filter)) {
+      if(!f->isFlowAlerted()
+	 || (flow_status_severity_filter <= alert_level_notice && f->getAlertedSeverity() > alert_level_notice)
+	 || (flow_status_severity_filter == alert_level_warning && f->getAlertedSeverity() != alert_level_warning)
+	 || (flow_status_severity_filter >= alert_level_error && f->getAlertedSeverity() < alert_level_error)) 
+	return(false);
+    }
 
 #ifdef HAVE_NEDGE
     if(retriever->pag
@@ -5445,7 +5458,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
   lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
-  lua_push_int32_table_entry(vm, "num_alerted_flows", getNumActiveAlertedFlows());
+  luaAlertedFlows(vm);
   lua_push_int32_table_entry(vm, "num_dropped_alerts", num_dropped_alerts);
   lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs", periodicStatsUpdateFrequency());
 
@@ -7504,39 +7517,54 @@ bool NetworkInterface::enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_l
 
 /* *************************************** */
 
-void NetworkInterface::incNumAlertedFlows(Flow *f) {
-  num_active_alerted_flows++;
-
-#ifdef ALERTED_FLOWS_DEBUG
-  if(f) {
-    char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[inc][num_active_alerted_flows: %u] %s",
-				 num_active_alerted_flows,
-				 f->print(buf, sizeof(buf)));
+void NetworkInterface::incNumAlertedFlows(Flow *f, AlertLevel severity) {
+  switch(severity) {
+  case alert_level_debug:
+  case alert_level_info:
+  case alert_level_notice:
+    num_active_alerted_flows_notice++;
+    break;
+  case alert_level_warning:
+    num_active_alerted_flows_warning++;
+    break;
+  case alert_level_error:
+  case alert_level_critical:
+  case alert_level_alert:
+  case alert_level_emergency:
+    num_active_alerted_flows_error++;
+    break;
+  default:
+    break;
   }
-#endif
 }
-
 
 /* *************************************** */
 
-void NetworkInterface::decNumAlertedFlows(Flow *f){
-  num_active_alerted_flows--;
-
-#ifdef ALERTED_FLOWS_DEBUG
-  if(f) {
-    char buf[256];
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "[dec][num_active_alerted_flows: %u] %s",
-				 num_active_alerted_flows,
-				 f->print(buf, sizeof(buf)));
+void NetworkInterface::decNumAlertedFlows(Flow *f, AlertLevel severity){
+  switch(severity) {
+  case alert_level_debug:
+  case alert_level_info:
+  case alert_level_notice:
+    num_active_alerted_flows_notice--;
+    break;
+  case alert_level_warning:
+    num_active_alerted_flows_warning--;
+    break;
+  case alert_level_error:
+  case alert_level_critical:
+  case alert_level_alert:
+  case alert_level_emergency:
+    num_active_alerted_flows_error--;
+    break;
+  default:
+    break;
   }
-#endif
 };
 
 /* *************************************** */
 
 u_int64_t NetworkInterface::getNumActiveAlertedFlows() const {
-  return num_active_alerted_flows;
+  return num_active_alerted_flows_notice + num_active_alerted_flows_warning + num_active_alerted_flows_error;
 };
 
 /* *************************************** */
@@ -8001,6 +8029,17 @@ next_host:
     /* Always free the string retrieved from the queue */
     free(ip);
   }
+}
+
+/* *************************************** */
+
+void NetworkInterface::luaAlertedFlows(lua_State* vm) {
+  /* Total */
+  lua_push_int32_table_entry(vm, "num_alerted_flows", getNumActiveAlertedFlows());
+  /* Breakdown */
+  lua_push_int32_table_entry(vm, "num_alerted_flows_notice",  num_active_alerted_flows_notice);
+  lua_push_int32_table_entry(vm, "num_alerted_flows_warning", num_active_alerted_flows_warning);
+  lua_push_int32_table_entry(vm, "num_alerted_flows_error",   num_active_alerted_flows_error);
 }
 
 /* *************************************** */
