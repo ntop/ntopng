@@ -1030,10 +1030,7 @@ end
 local default_timeseries = {
    {schema="iface:flows",                 label=i18n("graphs.active_flows")},
    {schema="iface:new_flows",             label=i18n("graphs.new_flows"), value_formatter = {"NtopUtils.fflows", "NtopUtils.formatFlows"}},
-   {schema="custom:flow_misbehaving_vs_alerted", label=i18n("graphs.misbehaving_vs_alerted"),
-    value_formatter = {"NtopUtils.formatFlows", "NtopUtils.formatFlows"},
-    skip = hasAllowedNetworksSet(),
-    metrics_labels = {i18n("flow_details.mibehaving_flows"), i18n("flow_details.alerted_flows")}},
+   {schema="iface:alerted_flows",         label=i18n("graphs.total_alerted_flows")},
    {schema="iface:hosts",                 label=i18n("graphs.active_hosts")},
    {schema="iface:alerts_stats",          label=i18n("show_alerts.iface_engaged_dropped_alerts"), skip=hasAllowedNetworksSet()},
    {schema="custom:flows_vs_local_hosts", label=i18n("graphs.flows_vs_local_hosts"), check={"iface:flows", "iface:local_hosts"}, step=60},

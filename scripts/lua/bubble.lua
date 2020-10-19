@@ -31,7 +31,7 @@ print([[
 local modes = {
    { mode = 0, label = i18n("host_explorer_page.all_flows") },
    { mode = 1, label = i18n("host_explorer_page.unreach_flows") },
-   { mode = 2, label = i18n("host_explorer_page.misbehaving_flows") },
+   { mode = 2, label = i18n("host_explorer_page.alerted_flows") },
    { mode = 3, label = i18n("host_explorer_page.dns_queries") },
    { mode = 4, label = i18n("host_explorer_page.syn_distribution") },
    { mode = 5, label = i18n("host_explorer_page.syn_vs_rst") },
@@ -65,8 +65,8 @@ elseif(bubble_mode == 1) then
    x_label = 'Unreachable Flows as Server'
    y_label = 'Unreachable Flows as Client'
 elseif(bubble_mode == 2) then
-   x_label = 'Misbehaving Flows as Server'
-   y_label = 'Misbehaving Flows as Client'
+   x_label = 'Alerted Flows as Server'
+   y_label = 'Alerted Flows as Client'
 elseif(bubble_mode == 3) then
    x_label = 'Positive DNS Replies Received'
    y_label = 'DNS Queries Sent'
@@ -113,10 +113,10 @@ function processHost(hostname, host)
 	 line = { link = hostname, label = label, x = host["unreachable_flows.as_server"], y = host["unreachable_flows.as_client"], r = host["bytes.sent"]+host["bytes.rcvd"] }
       end
    elseif(bubble_mode == 2) then
-      if((host["misbehaving_flows.as_server"] ~= nil)
-	    and (host["misbehaving_flows.as_client"] ~= nil)
-	 and (host["misbehaving_flows.as_server"] + host["misbehaving_flows.as_client"] > 0)) then
-	 line = { link = hostname, label = label, x = host["misbehaving_flows.as_server"], y = host["misbehaving_flows.as_client"], r = host["misbehaving_flows.as_server"] + host["misbehaving_flows.as_client"] }
+      if((host["alerted_flows.as_server"] ~= nil)
+	    and (host["alerted_flows.as_client"] ~= nil)
+	 and (host["alerted_flows.as_server"] + host["alerted_flows.as_client"] > 0)) then
+	 line = { link = hostname, label = label, x = host["alerted_flows.as_server"], y = host["alerted_flows.as_client"], r = host["alerted_flows.as_server"] + host["alerted_flows.as_client"] }
 	 -- if(label == "74.125.20.109") then tprint(line) end
       end
    elseif(bubble_mode == 3) then

@@ -263,7 +263,7 @@ schema:addMetric("flows_as_server")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("host:misbehaving_flows", {step = 300, rrd_fname = "misbehaving_flows"})
+schema = ts_utils.newSchema("host:alerted_flows", {step = 300, rrd_fname = "alerted_flows"})
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("flows_as_client")
@@ -364,13 +364,6 @@ schema:addMetric("packets_rcvd")
 --##############################################
 
 schema = ts_utils.newSchema("host:total_alerts", {step = 300, rrd_fname = "total_alerts"})
-schema:addTag("ifid")
-schema:addTag("host")
-schema:addMetric("alerts")
-
---##############################################
-
-schema = ts_utils.newSchema("host:total_flow_alerts", {step = 300, rrd_fname = "total_flow_alerts"})
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("alerts")

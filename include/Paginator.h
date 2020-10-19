@@ -39,7 +39,7 @@ class Paginator {
   u_int16_t vlan_id_filter;
   u_int8_t ip_version /* Either 4 or 6 */;
   u_int8_t l4_protocol;
-  int8_t unicast_traffic, unidirectional_traffic, alerted_flows, misbehaving_flows, filtered_flows;
+  int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
   u_int32_t asn_filter;
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
@@ -176,10 +176,6 @@ class Paginator {
 
   inline bool alertedFlows(bool *f) const {
     if(alerted_flows != -1) { (*f) = (alerted_flows==1) ? true : false; return true; } return false;
-  }
-
-  inline bool misbehavingFlows(bool *f) const {
-    if(misbehaving_flows != -1) { (*f) = (misbehaving_flows==1) ? true : false; return true; } return false;
   }
 
   inline bool filteredFlows(bool *f) const {

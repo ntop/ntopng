@@ -293,22 +293,14 @@ Flow::~Flow() {
   /*
     Perform other operations to decrease counters increased by flow user script hooks (we're in the same thread)
    */
-  if(status_map.get() != status_normal) {
-    if(cli_u) cli_u->incNumMisbehavingFlows(true);
-
-    if(srv_u) srv_u->incNumMisbehavingFlows(false);
-
-    iface->decNumMisbehavingFlows();
-
-    if(isFlowAlerted()) {
-      iface->decNumAlertedFlows(this);
-      if(cli_u) cli_u->decNumAlertedFlows();
-      if(srv_u) srv_u->decNumAlertedFlows();
+  if(isFlowAlerted()) {
+    iface->decNumAlertedFlows(this);
+    if(cli_u) cli_u->decNumAlertedFlows(true /* As client */);
+    if(srv_u) srv_u->decNumAlertedFlows(false /* As server */);
 
 #ifdef ALERTED_FLOWS_DEBUG
-      iface_alert_dec = true;
+    iface_alert_dec = true;
 #endif
-    }
   }
 
   /*
@@ -5099,8 +5091,8 @@ bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity,
     /* This is the first alert for the flow, increment the counters */
     iface->incNumAlertedFlows(this);
 
-    if(unsafeGetClient()) unsafeGetClient()->incNumAlertedFlows();
-    if(unsafeGetServer()) unsafeGetServer()->incNumAlertedFlows();
+    if(unsafeGetClient()) unsafeGetClient()->incNumAlertedFlows(true /* As client */);
+    if(unsafeGetServer()) unsafeGetServer()->incNumAlertedFlows(false /* As server */);
 
 #ifdef ALERTED_FLOWS_DEBUG
     iface_alert_inc = true;
@@ -5130,10 +5122,6 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
 
   if(status == status_normal)
     return false;
-  
-  if(status_map.get() == status_normal)
-    /* First misbehaving status, let's increase the number of interface misbehaving flows */
-    iface->incNumMisbehavingFlows();
 
   if(!status_map.issetBit(status))
     status_map.setBit(status);

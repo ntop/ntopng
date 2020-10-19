@@ -561,8 +561,8 @@ void Host::lua_get_num_total_flows(lua_State* vm) const {
 void Host::lua_get_num_flows(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "active_flows.as_client", getNumOutgoingFlows());
   lua_push_uint64_table_entry(vm, "active_flows.as_server", getNumIncomingFlows());
-  lua_push_uint64_table_entry(vm, "misbehaving_flows.as_server", getTotalNumMisbehavingIncomingFlows());
-  lua_push_uint64_table_entry(vm, "misbehaving_flows.as_client", getTotalNumMisbehavingOutgoingFlows());
+  lua_push_uint64_table_entry(vm, "alerted_flows.as_server", getTotalNumAlertedIncomingFlows());
+  lua_push_uint64_table_entry(vm, "alerted_flows.as_client", getTotalNumAlertedOutgoingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", getTotalNumUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());

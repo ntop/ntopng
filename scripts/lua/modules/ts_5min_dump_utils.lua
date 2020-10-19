@@ -231,10 +231,10 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 				 flows_as_server = host["total_flows.as_server"]},
          when)
 
-  -- Number of misbehaving flows
-  ts_utils.append("host:misbehaving_flows", {ifid = ifstats.id, host = hostname,
-					   flows_as_client = host["misbehaving_flows.as_client"],
-					   flows_as_server = host["misbehaving_flows.as_server"]},
+  -- Number of alerted flows
+  ts_utils.append("host:alerted_flows", {ifid = ifstats.id, host = hostname,
+					   flows_as_client = host["alerted_flows.as_client"],
+					   flows_as_server = host["alerted_flows.as_server"]},
 		  when)
 
   -- Number of unreachable flows
@@ -305,12 +305,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
   -- Total number of alerts
   ts_utils.append("host:total_alerts", {ifid = ifstats.id, host = hostname,
-					   alerts = host["total_alerts"]},
-		  when)
-
-  -- Total number of flow alerts
-  ts_utils.append("host:total_flow_alerts", {ifid = ifstats.id, host = hostname,
-					   alerts = host["num_flow_alerts"]},
+					alerts = host["total_alerts"]},
 		  when)
 
   -- Engaged alerts

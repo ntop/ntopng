@@ -611,11 +611,7 @@ local locally_defined_custom_schemas = {
       axis = {1},
       tags_ignore = {nil, {user_script=1}},
       exclude = {num_calls=1},
-   }, ["custom:flow_misbehaving_vs_alerted"] = {
-      bases = {"iface:misbehaving_flows", "iface:alerted_flows"},
-      types = {"line", "line"},
-      axis = {1,1},
-   }
+   },
 }
 
 -- ##############################################

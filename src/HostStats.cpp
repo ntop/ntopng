@@ -27,11 +27,12 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   host = _host;
   iface = _host->getInterface();
 
-  misbehaving_flows_as_client = misbehaving_flows_as_server = 0;
+  alerted_flows_as_client = alerted_flows_as_server = 0;
   unreachable_flows_as_client = unreachable_flows_as_server = 0;
   host_unreachable_flows_as_client = host_unreachable_flows_as_server = 0;
   udp_sent_unicast = udp_sent_non_unicast = 0;
   total_num_flows_as_client = total_num_flows_as_server = 0;
+  total_alerts = 0;
   num_flow_alerts = 0;
 
   /* NOTE: deleted by ~GenericTrafficElement */
@@ -89,8 +90,8 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
   if(details_level >= details_high) {
     json_object_object_add(my_object, "flows.as_client", json_object_new_int(getTotalNumFlowsAsClient()));
     json_object_object_add(my_object, "flows.as_server", json_object_new_int(getTotalNumFlowsAsServer()));
-    json_object_object_add(my_object, "misbehaving_flows.as_client", json_object_new_int(getTotalMisbehavingNumFlowsAsClient()));
-    json_object_object_add(my_object, "misbehaving_flows.as_server", json_object_new_int(getTotalMisbehavingNumFlowsAsServer()));
+    json_object_object_add(my_object, "alerted_flows.as_client", json_object_new_int(getTotalAlertedNumFlowsAsClient()));
+    json_object_object_add(my_object, "alerted_flows.as_server", json_object_new_int(getTotalAlertedNumFlowsAsServer()));
     json_object_object_add(my_object, "unreachable_flows.as_client", json_object_new_int(unreachable_flows_as_client));
     json_object_object_add(my_object, "unreachable_flows.as_server", json_object_new_int(unreachable_flows_as_server));
     json_object_object_add(my_object, "host_unreachable_flows.as_client", json_object_new_int(host_unreachable_flows_as_client));
@@ -125,8 +126,8 @@ void HostStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host_detai
   }
 
   if(host_details) {
-    lua_push_uint64_table_entry(vm, "misbehaving_flows.as_client", getTotalMisbehavingNumFlowsAsClient());
-    lua_push_uint64_table_entry(vm, "misbehaving_flows.as_server", getTotalMisbehavingNumFlowsAsServer());
+    lua_push_uint64_table_entry(vm, "alerted_flows.as_client", getTotalAlertedNumFlowsAsClient());
+    lua_push_uint64_table_entry(vm, "alerted_flows.as_server", getTotalAlertedNumFlowsAsServer());
     lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", unreachable_flows_as_client);
     lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", unreachable_flows_as_server);
     lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", host_unreachable_flows_as_client);
@@ -178,13 +179,7 @@ void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level) {
 /* *************************************** */
 
 u_int32_t HostStats::getTotalAlerts() const {
-  std::map<AlertType, u_int32_t>::const_iterator it;
-  u_int32_t num_alerts = 0;
-
-  for(it = total_alerts.begin(); it != total_alerts.end(); ++it)
-    num_alerts += it->second;
-
-  return(num_alerts);
+  return total_alerts;
 }
 
 /* *************************************** */

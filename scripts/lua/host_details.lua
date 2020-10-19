@@ -726,7 +726,7 @@ end
 
 
 if(host["active_alerted_flows"] > 0) then
-   print("<tr><th><i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> "..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
+   print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
 end
 
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then
@@ -772,19 +772,19 @@ end
    end
 
    if interfaceHasNindexSupport() then
-      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=flows&zoom=1h&flow_status=misbehaving"><i class="fas fa-search-plus"></i></a>'
+      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=flows&zoom=1h&flow_status=alerted"><i class="fas fa-search-plus"></i></a>'
    end
 
    print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
    print("<tr><th>"..flows_th.."</th><td><span id=active_flows_as_client>" .. formatValue(host["active_flows.as_client"]) .. "</span> <span id=trend_as_active_client></span> \n")
    print("/ <span id=flows_as_client>" .. formatValue(host["flows.as_client"]) .. "</span> <span id=trend_as_client></span> \n")
-   print("/ <span id=misbehaving_flows_as_client>" .. formatValue(host["misbehaving_flows.as_client"]) .. "</span> <span id=trend_misbehaving_flows_as_client></span>")
+   print("/ <span id=alerted_flows_as_client>" .. formatValue(host["alerted_flows.as_client"]) .. "</span> <span id=trend_alerted_flows_as_client></span>")
    print(" / <span id=unreachable_flows_as_client>" .. formatValue(host["unreachable_flows.as_client"]) .. "</span> <span id=trend_unreachable_flows_as_client></span>")
    print("</td>")
 
    print("<td><span id=active_flows_as_server>" .. formatValue(host["active_flows.as_server"]) .. "</span>  <span id=trend_as_active_server></span> \n")
    print("/ <span id=flows_as_server>"..formatValue(host["flows.as_server"]) .. "</span> <span id=trend_as_server></span> \n")
-   print("/ <span id=misbehaving_flows_as_server>" .. formatValue(host["misbehaving_flows.as_server"]) .. "</span> <span id=trend_misbehaving_flows_as_server></span>")
+   print("/ <span id=alerted_flows_as_server>" .. formatValue(host["alerted_flows.as_server"]) .. "</span> <span id=trend_alerted_flows_as_server></span>")
    print(" / <span id=unreachable_flows_as_server>" .. formatValue(host["unreachable_flows.as_server"]) .. "</span> <span id=trend_unreachable_flows_as_server></span>")
    print("</td></tr>")
 
@@ -2205,12 +2205,11 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:score",                  label=i18n("score"), enterprise_only=true},
       {schema="host:active_flows",           label=i18n("graphs.active_flows")},
       {schema="host:total_flows",            label=i18n("db_explorer.total_flows")},
-      {schema="host:misbehaving_flows",        label=i18n("graphs.total_misbehaving_flows")},
+      {schema="host:alerted_flows",          label=i18n("graphs.total_alerted_flows")},
       {schema="host:unreachable_flows",      label=i18n("graphs.total_unreachable_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
       {schema="host:total_alerts",           label=i18n("details.alerts")},
       {schema="host:engaged_alerts",         label=i18n("show_alerts.engaged_alerts")},
-      {schema="host:total_flow_alerts",      label=i18n("show_alerts.flow_alerts")},
       {schema="host:host_unreachable_flows", label=i18n("graphs.host_unreachable_flows")},
       {schema="host:dns_qry_sent_rsp_rcvd",  label=i18n("graphs.dns_qry_sent_rsp_rcvd")},
       {schema="host:dns_qry_rcvd_rsp_sent",  label=i18n("graphs.dns_qry_rcvd_rsp_sent")},
@@ -2258,8 +2257,8 @@ if(not only_historical) and (host ~= nil) then
    print("var last_flows_as_client = " .. host["flows.as_client"] .. ";\n")
    print("var last_active_peers_as_server = " .. host["contacts.as_server"] .. ";\n")
    print("var last_active_peers_as_client = " .. host["contacts.as_client"] .. ";\n")
-   print("var last_misbehaving_flows_as_server = " .. host["misbehaving_flows.as_server"] .. ";\n")
-   print("var last_misbehaving_flows_as_client = " .. host["misbehaving_flows.as_client"] .. ";\n")
+   print("var last_alerted_flows_as_server = " .. host["alerted_flows.as_server"] .. ";\n")
+   print("var last_alerted_flows_as_client = " .. host["alerted_flows.as_client"] .. ";\n")
    print("var last_unreachable_flows_as_server = " .. host["unreachable_flows.as_server"] .. ";\n")
    print("var last_unreachable_flows_as_client = " .. host["unreachable_flows.as_client"] .. ";\n")
    print("var last_sent_tcp_retransmissions = " .. host["tcpPacketStats.sent"]["retransmissions"].. ";\n")
@@ -2375,10 +2374,10 @@ if(not only_historical) and (host ~= nil) then
    			$('#active_peers_as_client').html(NtopUtils.addCommas(host["contacts.as_client"]));
    			$('#active_peers_as_server').html(NtopUtils.addCommas(host["contacts.as_server"]));
    			$('#flows_as_client').html(NtopUtils.addCommas(host["flows.as_client"]));
-                        $('#misbehaving_flows_as_client').html(NtopUtils.addCommas(host["misbehaving_flows.as_client"]));
+                        $('#alerted_flows_as_client').html(NtopUtils.addCommas(host["alerted_flows.as_client"]));
                         $('#unreachable_flows_as_client').html(NtopUtils.addCommas(host["unreachable_flows.as_client"]));
    			$('#flows_as_server').html(NtopUtils.addCommas(host["flows.as_server"]));
-                        $('#misbehaving_flows_as_server').html(NtopUtils.addCommas(host["misbehaving_flows.as_server"]));
+                        $('#alerted_flows_as_server').html(NtopUtils.addCommas(host["alerted_flows.as_server"]));
                         $('#unreachable_flows_as_server').html(NtopUtils.addCommas(host["unreachable_flows.as_server"]));
    		  }]]
 
@@ -2500,8 +2499,8 @@ print [[
 			$('#peers_trend_as_active_server').html(NtopUtils.drawTrend(host["contacts.as_server"], last_active_peers_as_server, ""));
 			$('#trend_as_client').html(NtopUtils.drawTrend(host["flows.as_client"], last_flows_as_client, ""));
 			$('#trend_as_server').html(NtopUtils.drawTrend(host["flows.as_server"], last_flows_as_server, ""));
-			$('#trend_misbehaving_flows_as_server').html(NtopUtils.drawTrend(host["misbehaving_flows.as_server"], last_misbehaving_flows_as_server, " style=\"color: #B94A48;\""));
-			$('#trend_misbehaving_flows_as_client').html(NtopUtils.drawTrend(host["misbehaving_flows.as_client"], last_misbehaving_flows_as_client, " style=\"color: #B94A48;\""));
+			$('#trend_alerted_flows_as_server').html(NtopUtils.drawTrend(host["alerted_flows.as_server"], last_alerted_flows_as_server, " style=\"color: #B94A48;\""));
+			$('#trend_alerted_flows_as_client').html(NtopUtils.drawTrend(host["alerted_flows.as_client"], last_alerted_flows_as_client, " style=\"color: #B94A48;\""));
 			$('#trend_unreachable_flows_as_server').html(NtopUtils.drawTrend(host["unreachable_flows.as_server"], last_unreachable_flows_as_server, " style=\"color: #B94A48;\""));
 			$('#trend_unreachable_flows_as_client').html(NtopUtils.drawTrend(host["unreachable_flows.as_client"], last_unreachable_flows_as_client, " style=\"color: #B94A48;\""));
 
@@ -2533,8 +2532,8 @@ print [[
    			last_active_peers_as_client = host["contacts.as_client"];
    			last_active_peers_as_server = host["contacts.as_server"];
    			last_flows_as_client = host["flows.as_client"];
-   			last_misbehaving_flows_as_server = host["misbehaving_flows.as_server"];
-   			last_misbehaving_flows_as_client = host["misbehaving_flows.as_client"];
+   			last_alerted_flows_as_server = host["alerted_flows.as_server"];
+   			last_alerted_flows_as_client = host["alerted_flows.as_client"];
    			last_unreachable_flows_as_server = host["unreachable_flows.as_server"];
    			last_unreachable_flows_as_client = host["unreachable_flows.as_client"];
    			last_flows_as_server = host["flows.as_server"];

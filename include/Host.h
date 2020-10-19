@@ -142,7 +142,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void updateStats(periodic_stats_update_user_data_t *periodic_stats_update_user_data);
   void incLowGoodputFlows(time_t t, bool asClient);
   void decLowGoodputFlows(time_t t, bool asClient);
-  inline void incNumMisbehavingFlows(bool asClient)   { stats->incNumMisbehavingFlows(asClient); };
   inline u_int16_t get_host_pool()    const { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()      const { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
@@ -289,8 +288,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   void incNumFlows(time_t t, bool as_client);
   void decNumFlows(time_t t, bool as_client);
-  inline void incNumAlertedFlows()            { active_alerted_flows++; }
-  inline void decNumAlertedFlows()            { active_alerted_flows--; }
+  inline void incNumAlertedFlows(bool as_client) { active_alerted_flows++; if(stats) stats->incNumAlertedFlows(as_client); }
+  inline void decNumAlertedFlows(bool as_client) { active_alerted_flows--; }
   inline u_int32_t getNumAlertedFlows() const { return(active_alerted_flows); }
   inline void incNumUnreachableFlows(bool as_server) { if(stats) stats->incNumUnreachableFlows(as_server); }
   inline void incNumHostUnreachableFlows(bool as_server) { if(stats) stats->incNumHostUnreachableFlows(as_server); };
@@ -323,8 +322,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline u_int32_t getNumActiveFlows()    const { return(getNumOutgoingFlows()+getNumIncomingFlows()); }
   inline u_int32_t getTotalNumFlowsAsClient() const { return(stats->getTotalNumFlowsAsClient());  };
   inline u_int32_t getTotalNumFlowsAsServer() const { return(stats->getTotalNumFlowsAsServer());  };
-  inline u_int32_t getTotalNumMisbehavingOutgoingFlows() const { return stats->getTotalMisbehavingNumFlowsAsClient(); };
-  inline u_int32_t getTotalNumMisbehavingIncomingFlows() const { return stats->getTotalMisbehavingNumFlowsAsServer(); };
+  inline u_int32_t getTotalNumAlertedOutgoingFlows() const { return stats->getTotalAlertedNumFlowsAsClient(); };
+  inline u_int32_t getTotalNumAlertedIncomingFlows() const { return stats->getTotalAlertedNumFlowsAsServer(); };
   inline u_int32_t getTotalNumUnreachableOutgoingFlows() const { return stats->getTotalUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumUnreachableIncomingFlows() const { return stats->getTotalUnreachableNumFlowsAsServer(); };
   inline u_int32_t getTotalNumHostUnreachableOutgoingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsClient(); };

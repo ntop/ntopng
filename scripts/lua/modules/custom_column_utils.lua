@@ -19,8 +19,8 @@ custom_column_utils.available_custom_columns = {
    { "traffic_unknown", i18n("flows_page.total_bytes_unknown"), "bytes.ndpi.unknown", bytesToSize, "right" },
    { "num_flows_as_client", i18n("flows_page.flows_as_client"), "active_flows.as_client", format_utils.formatValue, "center", {page = "flows"} },
    { "num_flows_as_server", i18n("flows_page.flows_as_server"), "active_flows.as_server", format_utils.formatValue, "center", {page = "flows"} },
-   -- { "total_num_misbehaving_flows_as_client", i18n("total_outgoing_misbehaving_flows"), "misbehaving_flows.as_client", format_utils.formatValue, "center" },
-   -- { "total_num_misbehaving_flows_as_server", i18n("total_incoming_misbehaving_flows"), "misbehaving_flows.as_server", format_utils.formatValue, "center" },
+   { "total_num_alerted_flows_as_client", i18n("total_outgoing_alerted_flows"), "alerted_flows.as_client", format_utils.formatValue, "center" },
+   { "total_num_alerted_flows_as_server", i18n("total_incoming_alerted_flows"), "alerted_flows.as_server", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_client", i18n("total_outgoing_unreachable_flows"), "unreachable_flows.as_client", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_server", i18n("total_incoming_unreachable_flows"), "unreachable_flows.as_server", format_utils.formatValue, "center" },
    { "total_num_retx_sent", i18n("total_retransmissions_sent"), function(host_stats) return host_stats["tcpPacketStats.sent"]["retransmissions"] end, format_utils.formatValue, "center" },
@@ -60,7 +60,7 @@ function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatte
 	    if val ~= nil and val > 0 then
 	       val = c[4](val)
 	    else
-	       val = "0"
+	       val = ""
 	    end
 
 	   if((c[6] ~= nil) and (tonumber(val) ~= 0)) then

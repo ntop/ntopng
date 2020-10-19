@@ -29,10 +29,10 @@ class HostStats: public GenericTrafficElement {
   NetworkInterface *iface;
   Host *host;
 
-  std::map<AlertType,u_int32_t> total_alerts;
+  u_int32_t total_alerts;
   u_int32_t unreachable_flows_as_client, unreachable_flows_as_server;
   /* Used concurrently in view interfaces, possibly removed after https://github.com/ntop/ntopng/issues/4596 */
-  u_int32_t misbehaving_flows_as_client, misbehaving_flows_as_server;
+  u_int32_t alerted_flows_as_client, alerted_flows_as_server;
   u_int32_t host_unreachable_flows_as_client, host_unreachable_flows_as_server;
   u_int32_t total_num_flows_as_client, total_num_flows_as_server;
   u_int32_t num_flow_alerts;
@@ -79,14 +79,14 @@ class HostStats: public GenericTrafficElement {
   virtual void computeAnomalyIndex(time_t when) {};
 
   inline Host* getHost() const { return(host); }
-  inline void incNumMisbehavingFlows(bool as_client)   { if(as_client) misbehaving_flows_as_client++; else misbehaving_flows_as_server++; };
+  inline void incNumAlertedFlows(bool as_client)   { if(as_client) alerted_flows_as_client++; else alerted_flows_as_server++; };
   inline void incNumUnreachableFlows(bool as_server) { if(as_server) unreachable_flows_as_server++; else unreachable_flows_as_client++; }
   inline void incNumHostUnreachableFlows(bool as_server) { if(as_server) host_unreachable_flows_as_server++; else host_unreachable_flows_as_client++; };
-  inline void incNumFlowAlerts()                     { num_flow_alerts++; }
-  inline void incTotalAlerts(AlertType alert_type)   { total_alerts[alert_type]++; };
+  inline void incNumFlowAlerts()                     { num_flow_alerts++; };
+  inline void incTotalAlerts(AlertType alert_type)   { total_alerts++;    };
 
-  inline u_int32_t getTotalMisbehavingNumFlowsAsClient() const { return(misbehaving_flows_as_client);  };
-  inline u_int32_t getTotalMisbehavingNumFlowsAsServer() const { return(misbehaving_flows_as_server);  };
+  inline u_int32_t getTotalAlertedNumFlowsAsClient() const { return(alerted_flows_as_client);  };
+  inline u_int32_t getTotalAlertedNumFlowsAsServer() const { return(alerted_flows_as_server);  };
   inline u_int32_t getTotalUnreachableNumFlowsAsClient() const { return(unreachable_flows_as_client);  };
   inline u_int32_t getTotalUnreachableNumFlowsAsServer() const { return(unreachable_flows_as_server);  };
   inline u_int32_t getTotalHostUnreachableNumFlowsAsClient() const { return(host_unreachable_flows_as_client);  };

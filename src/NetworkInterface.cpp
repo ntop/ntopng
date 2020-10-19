@@ -279,7 +279,6 @@ void NetworkInterface::init() {
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
-  num_active_misbehaving_flows = num_idle_misbehaving_flows = 0;
   hosts_to_restore = new FifoStringsQueue(64);
 
   ip_addresses = "", networkStats = NULL,
@@ -3586,7 +3585,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   LocationPolicy client_policy;
   LocationPolicy server_policy;
   TcpFlowStateFilter tcp_flow_state_filter;
-  bool unicast, unidirectional, alerted_flows, misbehaving_flows;
+  bool unicast, unidirectional, alerted_flows;
   u_int32_t asn_filter;
   char* username_filter;
   char* pidname_filter;
@@ -3767,12 +3766,6 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       return(false);
 
     status = f->getPredominantStatus();
-
-    if(retriever->pag
-       && retriever->pag->misbehavingFlows(&misbehaving_flows)
-       && ((misbehaving_flows && status == status_normal)
-	   || (!misbehaving_flows && status != status_normal)))
-      return(false);
 
     if(retriever->pag
        && retriever->pag->alertedFlows(&alerted_flows)
@@ -4026,8 +4019,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_traffic_unknown: r->elems[r->actNumEntries++].numericValue = h->get_ndpi_stats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN); break;
   case column_num_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getNumOutgoingFlows(); break;
   case column_num_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getNumIncomingFlows(); break;
-  case column_total_num_misbehaving_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumMisbehavingOutgoingFlows(); break;
-  case column_total_num_misbehaving_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumMisbehavingIncomingFlows(); break;
+  case column_total_num_alerted_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAlertedOutgoingFlows(); break;
+  case column_total_num_alerted_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumAlertedIncomingFlows(); break;
   case column_total_num_unreachable_flows_as_client:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableOutgoingFlows(); break;
   case column_total_num_unreachable_flows_as_server:  r->elems[r->actNumEntries++].numericValue = h->getTotalNumUnreachableIncomingFlows(); break;
   case column_total_num_retx_sent:  r->elems[r->actNumEntries++].numericValue = h->getTcpPacketSentStats()->get_retr(); break;
@@ -4628,8 +4621,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_traffic_unknown")) retriever->sorter = column_traffic_unknown, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_num_flows_as_client")) retriever->sorter = column_num_flows_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_num_flows_as_server")) retriever->sorter = column_num_flows_as_server, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_total_num_misbehaving_flows_as_client")) retriever->sorter = column_total_num_misbehaving_flows_as_client, sorter = numericSorter;
-  else if(!strcmp(sortColumn, "column_total_num_misbehaving_flows_as_server")) retriever->sorter = column_total_num_misbehaving_flows_as_server, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_alerted_flows_as_client")) retriever->sorter = column_total_num_alerted_flows_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_total_num_alerted_flows_as_server")) retriever->sorter = column_total_num_alerted_flows_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_num_unreachable_flows_as_client")) retriever->sorter = column_total_num_unreachable_flows_as_client, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_num_unreachable_flows_as_server")) retriever->sorter = column_total_num_unreachable_flows_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_num_retx_sent")) retriever->sorter = column_total_num_retx_sent, sorter = numericSorter;
@@ -5456,7 +5449,6 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "has_alerts", hasAlerts());
   lua_push_int32_table_entry(vm, "num_alerts_engaged", getNumEngagedAlerts());
   lua_push_int32_table_entry(vm, "num_alerted_flows", getNumActiveAlertedFlows());
-  lua_push_int32_table_entry(vm, "num_misbehaving_flows", getNumActiveMisbehavingFlows());
   lua_push_int32_table_entry(vm, "num_dropped_alerts", num_dropped_alerts);
   lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs", periodicStatsUpdateFrequency());
 
@@ -7548,17 +7540,6 @@ void NetworkInterface::decNumAlertedFlows(Flow *f){
 
 u_int64_t NetworkInterface::getNumActiveAlertedFlows() const {
   return num_active_alerted_flows;
-};
-
-/* *************************************** */
-
-u_int64_t NetworkInterface::getNumActiveMisbehavingFlows() const {
-  if(num_active_misbehaving_flows >= num_idle_misbehaving_flows)
-    return num_active_misbehaving_flows - num_idle_misbehaving_flows;
-  else {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error, active misbehaving flows less than idle misbehaving flows");
-    return 0;
-  }
 };
 
 /* *************************************** */
