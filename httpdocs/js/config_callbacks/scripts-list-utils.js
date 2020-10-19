@@ -1125,7 +1125,6 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
 
       const enabled = hooks.all.enabled;
       const items_list = hooks.all.script_conf.items || [];
-
       // create textarea to append
       const $multiselect = generate_multi_select({
          enabled: enabled,
