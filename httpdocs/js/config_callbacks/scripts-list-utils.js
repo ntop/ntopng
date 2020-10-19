@@ -87,7 +87,7 @@ const generate_checkbox_enabled = (id, enabled, callback) => {
  */
 const generate_multi_select = (params, has_container = true) => {
 
-   const $select = $(`<select id='multiple-select' multiple class='form-control'></select>`);
+   const $select = $(`<select id='multiple-select' style="height: 10rem" multiple class='form-control'></select>`);
 
    // add groups and items
    if (params.groups.length == 1) {
