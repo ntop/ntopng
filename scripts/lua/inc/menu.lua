@@ -1083,6 +1083,7 @@ if (not info.oem) then
 end
 
 local session_user = _SESSION['user']
+local is_no_login_user = isNoLoginUser()
 
 print([[
    <li class="nav-item">
@@ -1090,10 +1091,17 @@ print([[
          <i class='fas fa-user'></i>
       </a>
       <ul class="dropdown-menu dropdown-menu-right">
-         <li class='dropdown-item'>
-            <a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a>
+         <li class='dropdown-item ]].. (is_no_login_user and 'disabled' or '') ..[['>]])
+
+         -- if is_no_login_user is true then don't render the hyperlink button to the users page
+         if (not is_no_login_user) then
+            print([[<a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a>]])
+         else
+            print([[<i class='fas fa-user'></i> ]].. session_user ..[[]])
+         end
+print([[
          </li>
-      ]])
+]])
 
 if (not _SESSION["localuser"] or not is_admin) and (not isNoLoginUser()) then
    print[[
