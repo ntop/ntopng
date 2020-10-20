@@ -94,7 +94,30 @@ if ts_utils.getDriverName() == "influxdb" then
    end
 end
 
--- Toogle System Interface
+-- Restart product code
+if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
+	print[[
+		<script type="text/javascript">
+		 const restartCSRF = ']] print(ntop.getRandomCSRFValue()) print[[';
+		 const restartService = function() {
+		   if (confirm(']] print(i18n("restart.confirm", {product=info.product})) print[[')) {
+			 $.ajax({
+			   type: 'POST',
+			   url: ']] print (ntop.getHttpPrefix()) print [[/lua/admin/service_restart.lua',
+			   data: {
+				 csrf: restartCSRF
+			   },
+			   success: function(rsp) {
+				 alert("]] print(i18n("restart.restarting", {product=info.product})) print[[");
+			   }
+			 });
+		   }
+		 }
+		 $('.restart-service').click(restartService);
+	   </script>
+	]]
+end
+
 
 -- render switchable system view
 print([[
@@ -161,7 +184,6 @@ if not info.oem then
 		<script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/utils/blog-notification-utils.js'></script>
 	]])
 end
-
 
 print [[
 <script type="text/javascript">

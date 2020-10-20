@@ -142,6 +142,48 @@ end
 
 -- ##################################################################
 
+local function create_restart_required_notification()
+
+    local title = i18n("restart.restart_required")
+    local description = i18n("manage_configurations.after_import_message", {product = ntop.getInfo()["product"] })
+
+    local action = nil
+    -- only the ntop packed can be restarted
+    if isAdministrator() and ntop.isPackage() and not ntop.isWindows() then
+        action = {
+            title = i18n("restart.restart_now"),
+            additional_classes = "restart-service",
+            url = "#"
+        }
+    end
+
+    return alert_notification:create(
+        "restart_required",
+        title,
+        description,
+        "danger",
+        action
+    )
+
+end
+
+-- ##################################################################
+
+-- TODO: stub function to be removed
+local function is_restart_required()
+    return false
+end
+
+function defined_alert_notifications.restart_required(container)
+
+    if is_restart_required() then
+        table.insert(container, create_restart_required_notification())
+    end
+
+end
+
+-- ##################################################################
+
 function defined_alert_notifications.DHCP_hosts(container)
 
     -- In System Interface we can't collect the required data below

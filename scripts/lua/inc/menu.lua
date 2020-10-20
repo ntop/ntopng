@@ -1153,34 +1153,12 @@ if(_SESSION["user"] ~= nil and (not isNoLoginUser())) then
    print [[/lua/logout.lua" onclick="return confirm(']] print(i18n("login.logout_message")) print [[')"><i class="fas fa-sign-out-alt"></i> ]] print(i18n("login.logout")) print[[</a></li>]]
  end
 
- -- Restart
+ -- Restart menu, the restart JS code can be found inside footer.lua
 if(is_admin and ntop.isPackage() and not ntop.isWindows()) then
    print [[
        <li class="dropdown-divider"></li>
-       <li class="nav-item"><a class="dropdown-item" id="restart-service-li" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
+       <li class="nav-item"><a class="dropdown-item restart-service" href="#"><i class="fas fa-redo-alt"></i> ]] print(i18n("restart.restart")) print[[</a></li>
    ]]
-
- print[[
-  <script type="text/javascript">
-   const restart_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
-   let restartService = function() {
-     if (confirm(']] print(i18n("restart.confirm", {product=info.product})) print[[')) {
-       $.ajax({
-         type: 'POST',
-         url: ']] print (ntop.getHttpPrefix()) print [[/lua/admin/service_restart.lua',
-         data: {
-           csrf: restart_csrf
-         },
-         success: function(rsp) {
-           alert("]] print(i18n("restart.restarting", {product=info.product})) print[[");
-         }
-       });
-     }
-   }
-   $('#restart-service-li').click(restartService);
- </script>
- ]]
-
 end
 
 print([[
