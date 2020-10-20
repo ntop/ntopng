@@ -277,7 +277,7 @@ else
 	    {
 	       entry = page_utils.menu_entries.sflow_exporters,
 	       hidden = table.len(interface.getSFlowDevices() or {}) == 0,
-	       url = '/lua/pro/enterprise/flowdevices_stats.lua?sflow_filter=All',
+	       url = '/lua/pro/enterprise/sflowdevices_stats.lua',
 	    },
 	    {
 	       entry = page_utils.menu_entries.flow_exporters,

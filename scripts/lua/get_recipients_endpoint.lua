@@ -25,10 +25,6 @@ end
 
 sendHTTPContentTypeHeader('application/json')
 
-if not haveAdminPrivileges(true) then
-    return
-end
-
 local recipients = recipients.get_all_recipients(false --[[ do NOT exclude builtin recipients --]] ,
 						 true --[[ include usage statistics --]])
 print(json.encode(recipients))

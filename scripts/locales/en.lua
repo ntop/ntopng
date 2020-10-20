@@ -703,6 +703,7 @@ local lang = {
     ["preferences"] = "Preferences",
     ["snmp"] = "SNMP",
     ["user_scripts"] = "User Scripts",
+    ["flowdevices"] = "Flow Devices",
   },
   ["categories_page"] = {
     ["search_application"] = "Search Application",

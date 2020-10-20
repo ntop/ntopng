@@ -37,6 +37,7 @@ auth.capabilities = {
    preferences       = {id = 4, label = i18n("capabilities.preferences")},
    developer         = {id = 5, label = i18n("capabilities.developer")},
    user_scripts      = {id = 6, label = i18n("capabilities.user_scripts")},
+   flowdevices       = {id = 7, label = i18n("capabilities.flowdevices")},
 }
 
 -- #######################
