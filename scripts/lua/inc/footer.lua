@@ -327,7 +327,7 @@ print[[
 			}
 
 			if(rsp.alerted_flows_error > 0 && !(systemInterfaceEnabled)) {
-				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status_severity=error_and_higher\">"
+				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status_severity=error_or_higher\">"
 				msg += "<span class=\"badge badge-danger\">"+NtopUtils.addCommas(rsp.alerted_flows_error)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 			}
 		}

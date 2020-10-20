@@ -428,7 +428,7 @@ local function validateFlowStatus(mode)
 end
 
 local function validateFlowStatusSeverity(mode)
-   local modes = {"notice_and_lower", "warning", "error_and_higher"}
+   local modes = {"notice_or_lower", "warning", "error_or_higher"}
 
    return validateChoice(modes, mode)
 end

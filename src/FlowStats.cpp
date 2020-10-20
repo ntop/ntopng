@@ -86,24 +86,35 @@ void FlowStats::lua(lua_State* vm) {
   lua_settable(vm, -3);
 
   /* Alert levels */
-  u_int32_t alert_level_notice_and_lower = 0, alert_level_warning = 0, alert_level_error_and_higher = 0;
+  u_int32_t count_notice_or_lower = 0, count_warning = 0, count_error_or_higher = 0;
 
   for(int i = 0; i < ALERT_LEVEL_MAX_LEVEL; i++) {
     AlertLevel alert_level = (AlertLevel)i;
 
-    if(alert_level <= alert_level_notice)
-      alert_level_notice_and_lower += alert_levels[alert_level];
-    else if(alert_level == alert_level_warning)
-      alert_level_warning += alert_levels[alert_level];
-    else if(alert_level >= alert_level_error)
-      alert_level_error_and_higher += alert_levels[alert_level];
+    switch(alert_level) {
+    case alert_level_debug:
+    case alert_level_info:
+    case alert_level_notice:
+      count_notice_or_lower += alert_levels[alert_level];
+      break;
+    case alert_level_warning:
+      count_warning += alert_levels[alert_level];
+      break;
+    case alert_level_error:
+    case alert_level_critical:
+    case alert_level_alert:
+    case alert_level_emergency:
+      count_error_or_higher += alert_levels[alert_level];
+    default:
+      break;
+    }
   }
 
   lua_newtable(vm);
 
-  if(alert_level_notice_and_lower > 0) lua_push_uint64_table_entry(vm, "notice_and_lower", alert_level_notice_and_lower);
-  if(alert_level_warning > 0)          lua_push_uint64_table_entry(vm, "warning",          alert_level_warning);
-  if(alert_level_error_and_higher > 0) lua_push_uint64_table_entry(vm, "error_and_higher", alert_level_error_and_higher);
+  if(count_notice_or_lower > 0) lua_push_uint64_table_entry(vm, "notice_or_lower", count_notice_or_lower);
+  if(count_warning > 0)         lua_push_uint64_table_entry(vm, "warning",         count_warning);
+  if(count_error_or_higher > 0) lua_push_uint64_table_entry(vm, "error_or_higher", count_error_or_higher);
 
   lua_pushstring(vm, "alert_levels");
   lua_insert(vm, -2);

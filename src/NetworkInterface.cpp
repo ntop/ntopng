@@ -3783,6 +3783,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     if(retriever->pag
        && retriever->pag->flowStatusFilter(&flow_status_severity_filter)) {
       if(!f->isFlowAlerted()
+	 || f->getAlertedSeverity() == alert_level_none
 	 || (flow_status_severity_filter <= alert_level_notice && f->getAlertedSeverity() > alert_level_notice)
 	 || (flow_status_severity_filter == alert_level_warning && f->getAlertedSeverity() != alert_level_warning)
 	 || (flow_status_severity_filter >= alert_level_error && f->getAlertedSeverity() < alert_level_error)) 
