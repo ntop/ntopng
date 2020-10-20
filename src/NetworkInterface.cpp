@@ -3581,7 +3581,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int16_t port;
   int16_t local_network_id;
   u_int16_t vlan_id = 0, pool_filter, flow_status_filter;
-  AlertLevel flow_status_severity_filter = alert_level_none;
+  AlertLevelGroup flow_status_severity_filter = alert_level_group_none;
   u_int8_t ip_version;
   u_int8_t l4_protocol;
   u_int8_t *mac_filter;
@@ -3784,9 +3784,9 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
        && retriever->pag->flowStatusFilter(&flow_status_severity_filter)) {
       if(!f->isFlowAlerted()
 	 || f->getAlertedSeverity() == alert_level_none
-	 || (flow_status_severity_filter <= alert_level_notice && f->getAlertedSeverity() > alert_level_notice)
-	 || (flow_status_severity_filter == alert_level_warning && f->getAlertedSeverity() != alert_level_warning)
-	 || (flow_status_severity_filter >= alert_level_error && f->getAlertedSeverity() < alert_level_error)) 
+	 || (flow_status_severity_filter == alert_level_group_notice_or_lower  && f->getAlertedSeverity() > alert_level_notice)
+	 || (flow_status_severity_filter == alert_level_group_warning          && f->getAlertedSeverity() != alert_level_warning)
+	 || (flow_status_severity_filter == alert_level_group_error_or_higher  && f->getAlertedSeverity() < alert_level_error)) 
 	return(false);
     }
 
@@ -7519,19 +7519,14 @@ bool NetworkInterface::enqueueFlowToCompanion(ParsedFlow * const pf, bool skip_l
 /* *************************************** */
 
 void NetworkInterface::incNumAlertedFlows(Flow *f, AlertLevel severity) {
-  switch(severity) {
-  case alert_level_debug:
-  case alert_level_info:
-  case alert_level_notice:
+  switch(Utils::mapAlertLevelToGroup(severity)) {
+  case alert_level_group_notice_or_lower:
     num_active_alerted_flows_notice++;
     break;
-  case alert_level_warning:
+  case alert_level_group_warning:
     num_active_alerted_flows_warning++;
     break;
-  case alert_level_error:
-  case alert_level_critical:
-  case alert_level_alert:
-  case alert_level_emergency:
+  case alert_level_group_error_or_higher:
     num_active_alerted_flows_error++;
     break;
   default:
@@ -7542,19 +7537,14 @@ void NetworkInterface::incNumAlertedFlows(Flow *f, AlertLevel severity) {
 /* *************************************** */
 
 void NetworkInterface::decNumAlertedFlows(Flow *f, AlertLevel severity){
-  switch(severity) {
-  case alert_level_debug:
-  case alert_level_info:
-  case alert_level_notice:
+  switch(Utils::mapAlertLevelToGroup(severity)) {
+  case alert_level_group_notice_or_lower:
     num_active_alerted_flows_notice--;
     break;
-  case alert_level_warning:
+  case alert_level_group_warning:
     num_active_alerted_flows_warning--;
     break;
-  case alert_level_error:
-  case alert_level_critical:
-  case alert_level_alert:
-  case alert_level_emergency:
+  case alert_level_group_error_or_higher:
     num_active_alerted_flows_error--;
     break;
   default:

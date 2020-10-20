@@ -474,6 +474,12 @@ local lang = {
     ["too_many_hosts"] = "%{iface} has too many hosts. Please extend the %{option} command line option",
     ["x_alerts"] = "%{num} alerts",
   },
+  ["severity_groups"] = {
+     ["group_none"] = "None",
+     ["group_notice_or_lower"] = "Notice or Lower",
+     ["group_warning"] = "Warning",
+     ["group_error_or_higher"] = "Error or Higher",
+  },
   ["alerts_dashboard"] = {
     ["active_flows_anomaly"] = "Active Flows Anomaly",
     ["alert"] = "Alert",
@@ -1370,9 +1376,6 @@ local lang = {
     ["dns_query"] = "DNS Query",
     ["docker"] = "Docker",
     ["docker_name"] = "Name",
-    ["notice_or_lower"] = "Notice or Lower",
-    ["warning"] = "Warning",
-    ["error_or_higher"] = "Error or Higher",
     ["drop_flow_traffic_btn"] = "Drop Flow Traffic",
     ["dropped_packets"] = "Dropped Packets",
     ["dtmf_tones_sent"] = "DTMF tones sent during the call",

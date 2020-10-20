@@ -4653,3 +4653,23 @@ ScoreCategory Utils::mapScriptToScoreCategory(ScriptCategory script_category) {
 }
 
 /* ****************************************************** */
+
+AlertLevelGroup Utils::mapAlertLevelToGroup(AlertLevel alert_level) {
+  switch(alert_level) {
+  case alert_level_debug:
+  case alert_level_info:
+  case alert_level_notice:
+    return alert_level_group_notice_or_lower;
+  case alert_level_warning:
+    return alert_level_group_warning;
+  case alert_level_error:
+  case alert_level_critical:
+  case alert_level_alert:
+  case alert_level_emergency:
+    return alert_level_group_error_or_higher;
+  default:
+    return alert_level_group_none;
+  }
+}
+
+/* ****************************************************** */

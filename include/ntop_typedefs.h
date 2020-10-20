@@ -170,6 +170,18 @@ typedef enum {
 } AlertLevel;
 
 /*
+  Used to group fine-grained AlertLevel into coarser-grained
+  groups. Each group contains one or multiple AlertLevel.
+ */
+typedef enum {
+  alert_level_group_none = 0,
+  alert_level_group_notice_or_lower = 1,
+  alert_level_group_warning = 2,
+  alert_level_group_error_or_higher = 3,
+  ALERT_LEVEL_GROUP_MAX_LEVEL = 4,
+} AlertLevelGroup;
+
+/*
   Keep in sync with alert_utils.lua:alert_entity_keys 
   This is field "entity_type" of JSON put on "ntopng.alerts.notifications_queue"
  */

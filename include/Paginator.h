@@ -44,7 +44,7 @@ class Paginator {
   u_int32_t deviceIP;
   u_int16_t inIndex, outIndex;
   u_int16_t pool_filter, flow_status_filter;
-  AlertLevel flow_status_severity_filter;
+  AlertLevelGroup flow_status_severity_filter;
   u_int8_t *mac_filter, icmp_type, icmp_code;
   DetailsLevel details_level;
   bool details_level_set;
@@ -143,8 +143,8 @@ class Paginator {
     if(flow_status_filter != ((u_int16_t)-1)) { (*f) = flow_status_filter; return true; } return false;
   }
 
-  inline bool flowStatusFilter(AlertLevel *f) const {
-    if(flow_status_severity_filter != alert_level_none) { (*f) = flow_status_severity_filter; return true; } return false;
+  inline bool flowStatusFilter(AlertLevelGroup *f) const {
+    if(flow_status_severity_filter != alert_level_group_none) { (*f) = flow_status_severity_filter; return true; } return false;
   }
 
   inline bool macFilter(u_int8_t **f) const {

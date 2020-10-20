@@ -96,6 +96,32 @@ alert_consts.alert_severities = {
 
 -- ##############################################
 
+-- Groups for alert severities to obtain coarser-grained groups of finer-grained alert severities.
+-- Used when grouping flow status severities into groups (shown in the UI header bar and flows page drilldown)
+--
+-- NOTE: keep it in sync with ntop_typedefs.h AlertLevelGroup
+--
+alert_consts.severity_groups = {
+   group_none = {
+      severity_group_id = 0,
+      i18n_title = "severity_groups.group_none",
+   },
+   notice_or_lower = {
+      severity_group_id = 1,
+      i18n_title = "severity_groups.group_notice_or_lower",
+   },
+   warning = {
+      severity_group_id = 2,
+      i18n_title = "severity_groups.group_warning",
+   },
+   error_or_higher = {
+      severity_group_id = 3,
+      i18n_title = "severity_groups.group_error_or_higher",
+   },
+}
+
+-- ##############################################
+
 -- See flow_consts.status_types in flow_consts for flow alerts
 
 -- Keep in sync with ntop_typedefs.h:AlertEntity

@@ -91,19 +91,14 @@ void FlowStats::lua(lua_State* vm) {
   for(int i = 0; i < ALERT_LEVEL_MAX_LEVEL; i++) {
     AlertLevel alert_level = (AlertLevel)i;
 
-    switch(alert_level) {
-    case alert_level_debug:
-    case alert_level_info:
-    case alert_level_notice:
+    switch(Utils::mapAlertLevelToGroup(alert_level)) {
+    case alert_level_group_notice_or_lower:
       count_notice_or_lower += alert_levels[alert_level];
       break;
-    case alert_level_warning:
+    case alert_level_group_warning:
       count_warning += alert_levels[alert_level];
       break;
-    case alert_level_error:
-    case alert_level_critical:
-    case alert_level_alert:
-    case alert_level_emergency:
+    case alert_level_group_error_or_higher:
       count_error_or_higher += alert_levels[alert_level];
     default:
       break;

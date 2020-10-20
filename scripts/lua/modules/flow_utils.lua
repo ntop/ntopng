@@ -209,18 +209,10 @@ function getFlowsFilter()
    end
 
    if not isEmptyString(flow_status_severity) then
-      local s
-
-      if flow_status_severity == "notice_or_lower" then
-	 s = alert_consts.alert_severities.notice.severity_id
-      elseif flow_status_severity == "warning" then
-	 s = alert_consts.alert_severities.warning.severity_id
-      elseif flow_status_severity == "error_or_higher" then
-	 s = alert_consts.alert_severities.error.severity_id
-      end
+      local s = alert_consts.severity_groups[flow_status_severity]
 
       if s then
-	 pageinfo["statusSeverityFilter"] = s
+	 pageinfo["statusSeverityFilter"] = s.severity_group_id
       end
    end
 
@@ -1675,9 +1667,10 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        entries = {}
        local severity_stats = flowstats["alert_levels"]
 
-       for _, s in ipairs({"notice_or_lower", "warning", "error_or_higher"}) do
+       for s, severity_details in pairsByField(alert_consts.severity_groups, "severity_group_id", asc) do
+
 	  if severity_stats[s] and severity_stats[s] > 0 then
-	     entries[#entries + 1] = {s, (i18n("flow_details."..s) or s) .." ("..severity_stats[s]..")"}
+	     entries[#entries + 1] = {s, (i18n(severity_details.i18n_title) or s) .." ("..severity_stats[s]..")"}
 	  end
        end
 
