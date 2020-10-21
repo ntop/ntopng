@@ -45,7 +45,7 @@ $(document).ready(function () {
 		data: 'out_errors'
 	    },
 	    {
-		data: 'snmp_ratio'
+		data: 'ratio'
 	    },
 	],
 	initComplete: function (settings, json) {

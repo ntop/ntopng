@@ -24,7 +24,7 @@ $(document).ready(function () {
 		data: 'out_bytes'
 	    },
 	    {
-		data: 'snmp_ratio'
+		data: 'ratio'
 	    },
 	],
 	initComplete: function (settings, json) {
