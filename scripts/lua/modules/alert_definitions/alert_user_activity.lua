@@ -200,7 +200,11 @@ local function userActivityFormatter(ifid, alert, info)
         return i18n('user_activity.bind_pool_member', {user=user, pool_id=decoded.params['pool_id'], member=decoded.params['member']})
 
       elseif decoded.name == 'add_pool' then
-        return i18n('user_activity.add_pool', {user=user, pool_name=decoded.params['pool_name'], members=decoded.params['members']})
+	 if isEmptyString(decoded.params['members']) then
+	    return i18n('user_activity.add_pool_with_no_members', {user=user, pool_name=decoded.params['pool_name']})
+	 else
+	    return i18n('user_activity.add_pool', {user=user, pool_name=decoded.params['pool_name'], members=decoded.params['members']})
+	 end
 
       elseif decoded.name == 'delete_pool' then
         return i18n('user_activity.delete_pool', {user=user, pool_id=decoded.params['pool_id']})

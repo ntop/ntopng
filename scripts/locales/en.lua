@@ -4559,6 +4559,7 @@ local lang = {
   ["user_activity"] = {
     ["add_ntopng_user"] = "User '%{user}' added new user %{new_user}.",
     ["add_pool"] = "User '%{user}' created new pool %{pool_name} with members '%{members}'.",
+    ["add_pool_with_no_members"] = "User '%{user}' created new pool %{pool_name}.",
     ["alerts_deleted"] = "User '%{user}' purged '%{status}' alerts.",
     ["bind_pool_member"] = "User '%{user}' added member %{member} to pool %{pool_id}.",
     ["changed_preference"] = "User '%{user}' changed settings for %{pref}.",
