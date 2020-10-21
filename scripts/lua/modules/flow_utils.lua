@@ -1380,12 +1380,13 @@ function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
             outputurl = prepare_interface_url(output_idx, snmp_interfaces[output_idx])
          end
 
-         print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.snmp_device").."</th><th>"..i18n("details.input_device_port").." / "..i18n("details.output_device_port").."</th></tr>")
-         print("<tr><td>"..snmpurl.."</td><td>"..(inputurl or "").." / "..(outputurl or "").."</td></tr>")
+         print("<tr><th rowspan='3'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.snmp_device").."</th><td>"..snmpurl.."</td></tr>")
+         print("<tr><th>"..i18n("details.input_device_port").."</th><td>"..(inputurl or "").."</td></tr>")
+	 print("<tr><th>"..i18n("details.output_device_port").."</th><td>"..(outputurl or "").."</td></tr>")
       end
    else
-      print("<tr><th>"..i18n("details.input_device_port").." / "..i18n("details.output_device_port").."</th>")
-      print("<td colspan=\"2\">"..(input_idx or "").." / "..(output_idx or "").."</td></tr>")
+      print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("details.input_device_port").."</th><td>"..(input_idx or "").."</td></tr>")
+      print("<tr><th>"..i18n("details.output_device_port").."</th><td>"..(output_idx or "").."</td></tr>")
    end
 end
 
