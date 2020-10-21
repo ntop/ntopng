@@ -548,6 +548,12 @@ if test $SYSTEM = "Darwin"; then
    fi
 else
   if test $SYSTEM = "Linux"; then
+    if [ test -f /usr/bin/clang++ ]; then
+      CC=clang
+      CXX=clang++
+      AC_MSG_RESULT(Using clang++ compiler)
+    fi
+    
     if [ test -f /etc/redhat-release ]; then
        if [ test -f /usr/bin/lsb_release ]; then
        	  dnl> CentOS 7
