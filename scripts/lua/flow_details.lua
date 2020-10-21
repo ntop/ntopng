@@ -1375,7 +1375,7 @@ else
 	 snmpdevice = syminfo["NPROBE_IPV4_ADDRESS"]
       end
 
-      if flow["device_id"] then
+      if flow["device_id"] and flow["device_id"] ~= 0 then
          print("<tr><th>"..i18n("details.device_id").."</th>")
          print("<td colspan=\"2\">"..flow["device_id"].."</td></tr>")
       end
