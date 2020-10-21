@@ -101,9 +101,11 @@ if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
 		dialog = {
 			id = 'restart-modal',
 			action = 'restartService()',
-			title = i18n("restart.restart"),
+			title = i18n("restart.restart_product", {product=info.product}),
 			message = i18n("restart.confirm", {product=info.product}),
-			custom_alert_class = 'alert alert-primary'
+			custom_alert_class = 'alert alert-danger',
+			confirm = i18n('restart.restart'),
+			confirm_button = 'btn-danger'
 		}
 	}))
 

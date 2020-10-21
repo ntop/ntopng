@@ -3874,6 +3874,7 @@ local lang = {
     ["confirm"] = "Do you want to restart %{product} now?",
     ["restart"] = "Restart",
     ["restart_now"] = "Restart now",
+    ["restart_product"] = "Restart %{product}",
     ["restart_required"] = "Restart Required",
     ["restarting"] = "Restarting %{product}... (this should take a few seconds)",
   },
