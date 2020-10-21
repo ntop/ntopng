@@ -58,18 +58,22 @@ $(document).ready(function() {
 
             // check if the request failed
             if (response.rc < 0) {
+                return;
+            }
 
-            }
-            else {
-                AlertNotificationUtils.showAlert({
-                    id: 'reset-configuration-alert',
-                    level: 'success',
-                    title: i18n.success,
-                    body: i18n.manage_configurations.messagges.reset_success,
-                    delay: 2000
-                });
-                $(`#reset-modal`).modal('hide');
-            }
+            const body = (key == 'all')
+                ? i18n.manage_configurations.messagges.reset_all_success
+                : i18n.manage_configurations.messagges.reset_success;
+
+            AlertNotificationUtils.showAlert({
+                id: 'reset-configuration-alert',
+                level: 'success',
+                title: i18n.success,
+                body: body,
+                delay: 2000
+            });
+
+            $(`#reset-modal`).modal('hide');
 
         }
         catch (exception) {

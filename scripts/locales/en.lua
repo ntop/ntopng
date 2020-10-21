@@ -474,12 +474,6 @@ local lang = {
     ["too_many_hosts"] = "%{iface} has too many hosts. Please extend the %{option} command line option",
     ["x_alerts"] = "%{num} alerts",
   },
-  ["severity_groups"] = {
-     ["group_none"] = "None",
-     ["group_notice_or_lower"] = "Notice or Lower",
-     ["group_warning"] = "Warning",
-     ["group_error_or_higher"] = "Error or Higher",
-  },
   ["alerts_dashboard"] = {
     ["active_flows_anomaly"] = "Active Flows Anomaly",
     ["alert"] = "Alert",
@@ -698,12 +692,12 @@ local lang = {
   ["capabilities"] = {
     ["active_monitoring"] = "Active Monitoring",
     ["developer"] = "Developer",
+    ["flowdevices"] = "Flow Devices",
     ["notifications"] = "Notifications",
     ["pools"] = "Pools",
     ["preferences"] = "Preferences",
     ["snmp"] = "SNMP",
     ["user_scripts"] = "User Scripts",
-    ["flowdevices"] = "Flow Devices",
   },
   ["categories_page"] = {
     ["search_application"] = "Search Application",
@@ -2790,6 +2784,7 @@ local lang = {
     },
     ["messages"] = {
       ["import_success"] = "The selected configuration has been imported successfully!",
+      ["reset_all_success"] = "Factory reset request issued successfully. Please <b>restart %{product}</b> to make the configuration factory reset effective.",
       ["reset_success"] = "The selected configuration has been reset successfully!",
     },
   },
@@ -3912,6 +3907,12 @@ local lang = {
       ["flow_duration_threshold"] = "Flow Duration Threshold",
       ["template_not_implemented"] = "The template  was not implemented yet!",
     },
+  },
+  ["severity_groups"] = {
+    ["group_error_or_higher"] = "Error or Higher",
+    ["group_none"] = "None",
+    ["group_notice_or_lower"] = "Notice or Lower",
+    ["group_warning"] = "Warning",
   },
   ["sflows_stats"] = {
     ["active_flows"] = "Active Flows",

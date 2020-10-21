@@ -39,6 +39,7 @@ page_utils.print_page_title(i18n("manage_configurations.manage_configurations"))
 
 
 print(template_utils.gen("pages/manage_configurations.template", {
+    info = info,
     template_utils = template_utils,
     manage_configurations = {
         selected_item = selected_item,
