@@ -19,14 +19,20 @@ end
 
 -- ###########################################
 
--- @brief Checks whether a factory reset has been requested and removes the possibly pending request
+-- @brief Clears a pending factory reset request. Should be called when
+--        the factory reset has been performed successfully
+function prefs_factory_reset_utils.clear_prefs_factory_reset_request()
+   -- Delete as factory reset is going to be performed by the caller
+   ntop.delCache(prefs_factory_reset_request_key)
+end
+
+-- ###########################################
+
+-- @brief Checks whether a factory reset has been requested
 function prefs_factory_reset_utils.is_prefs_factory_reset_requested()
    local dump_requested = ntop.getCache(prefs_factory_reset_request_key)
 
-   if dump_requested == "1" then      
-      -- Delete as factory reset is going to be performed by the caller
-      ntop.delCache(prefs_factory_reset_request_key)
-
+   if dump_requested == "1" then
       return true
    end
 

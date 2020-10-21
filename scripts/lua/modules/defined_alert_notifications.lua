@@ -9,6 +9,7 @@ local defined_alert_notifications = {}
 local page_utils = require('page_utils')
 local telemetry_utils = require("telemetry_utils")
 local alert_notification = require("alert_notification")
+local prefs_factory_reset_utils = require "prefs_factory_reset_utils"
 
 local ALARM_THRESHOLD_LOW = 60
 local ALARM_THRESHOLD_HIGH = 90
@@ -143,9 +144,8 @@ end
 -- ##################################################################
 
 local function create_restart_required_notification()
-
     local title = i18n("restart.restart_required")
-    local description = i18n("manage_configurations.after_import_message", {product = ntop.getInfo()["product"] })
+    local description = i18n("manage_configurations.after_reset_request", {product = ntop.getInfo()["product"] })
 
     local action = nil
     -- only the ntop packed can be restarted
@@ -169,9 +169,9 @@ end
 
 -- ##################################################################
 
--- TODO: stub function to be removed
 local function is_restart_required()
-    return false
+   -- Add here all the conditions for ntopng to be restarted
+   return prefs_factory_reset_utils.is_prefs_factory_reset_requested()
 end
 
 function defined_alert_notifications.restart_required(container)

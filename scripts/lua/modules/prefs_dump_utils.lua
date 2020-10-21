@@ -200,6 +200,9 @@ function prefs_dump_utils.check_prefs_factory_reset()
 
       -- Necessary as all the preferences have been deleted: defaults will be reloaded
       ntop.reloadPreferences(true --[[also reset Redis defaults (e..g, admin user name, group, password) --]])
+
+      -- Clear the pending request
+      prefs_factory_reset_utils.clear_prefs_factory_reset_request()
    end
 end
 

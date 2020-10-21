@@ -2771,7 +2771,7 @@ local lang = {
   },
   ["manage_configurations"] = {
     ["active_monitoring"] = "Active monitoring",
-    ["after_import_message"] = "Please <b>restart %{product}</b> in order to apply the new configuration imported. <b>Be aware</b> that any changes done to the imported items, before the restart, are not guaranteed to be saved!",
+    ["after_reset_request"] = "<b>Restart</b> %{product} to make the configuration factory reset effective.",
     ["config_import"] = "Import <span class='item'>{{ type }}</span> Configuration",
     ["everything"] = "Entire %{product} configuration (includes users, preferences, and all configurations below)",
     ["manage_configuration"] = "Manage Configuration",
@@ -2790,7 +2790,7 @@ local lang = {
     },
     ["messages"] = {
       ["import_success"] = "The selected configuration has been imported successfully!",
-      ["reset_success"] = "The selected configuration has been resetted successfully!",
+      ["reset_success"] = "The selected configuration has been reset successfully!",
     },
   },
   ["manage_data"] = {
