@@ -14,6 +14,12 @@ jQuery.fn.dataTableExt.absoluteFormatSecondsToHHMMSS = (data, type, row) => {
     if (type == "display") return NtopUtils.secondsToTime(delta);
     return data;
 };
+jQuery.fn.dataTableExt.sortBytes = (byte, type, row) => {
+
+    if (type == "display" && byte == 0) return '';
+    if (type == "display") return NtopUtils.bytesToSize(byte);
+    return byte;
+};
 
 class DataTableFiltersMenu {
 
@@ -195,6 +201,11 @@ class DataTableUtils {
      * Return a standard config for the Sprymedia (c) DataTables
      */
     static getStdDatatableConfig(dtButtons = [], dom = "<'d-flex'<'mr-auto'l><'dt-search'f>B>rtip") {
+
+        if (dtButtons.length == 0) {
+            dom = "fbrtip";
+        }
+
         return {
             dom: dom,
             pagingType: 'full_numbers',

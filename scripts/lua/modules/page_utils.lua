@@ -96,7 +96,8 @@ page_utils.menu_entries = {
     -- Exporters
     event_exporters   	 = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},
     sflow_exporters   	 = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "exporters"},
-    flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters"},
+    -- TODO: add a link to the documentation
+    flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters", help_link = "https://www.ntop.org"},
 
     -- Settings
     manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
@@ -175,10 +176,10 @@ end
 function page_utils.print_page_title(title)
 
    local help_link = page_utils.menu_entries[active_entry].help_link or ""
-   print("<header class='mb-3'>")
+   print("<header class='mb-3 d-flex align-items-center'>")
    print("<h2 class='d-inline-block'>".. title .."</h2>")
    if (not isEmptyString(help_link)) then
-      print("<a data-toggle='tooltip' title='".. i18n("open_documentation") .."' target='_newtab' href='".. help_link .."' class='text-muted float-right'><i class='fas fa-question-circle'></i></a>")
+      print("<a data-toggle='tooltip' title='".. i18n("open_documentation") .."' target='_newtab' href='".. help_link .."' class='text-muted ml-auto'><i class='fas fa-question-circle'></i></a>")
    end
    print("</header>")
 
