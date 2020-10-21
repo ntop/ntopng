@@ -96,11 +96,22 @@ end
 
 -- Restart product code
 if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
+
+	print(template.gen("modal_confirm_dialog.html", {
+		dialog = {
+			id = 'restart-modal',
+			action = 'restartService()',
+			title = i18n("restart.restart"),
+			message = i18n("restart.confirm", {product=info.product}),
+			custom_alert_class = 'alert alert-primary'
+		}
+	}))
+
 	print[[
 		<script type="text/javascript">
+
 		 const restartCSRF = ']] print(ntop.getRandomCSRFValue()) print[[';
 		 const restartService = function() {
-		   if (confirm(']] print(i18n("restart.confirm", {product=info.product})) print[[')) {
 			 $.ajax({
 			   type: 'POST',
 			   url: ']] print (ntop.getHttpPrefix()) print [[/lua/admin/service_restart.lua',
@@ -111,9 +122,12 @@ if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
 				 alert("]] print(i18n("restart.restarting", {product=info.product})) print[[");
 			   }
 			 });
-		   }
 		 }
-		 $('.restart-service').click(restartService);
+
+		 $('.restart-service').click(() => {
+			$('#restart-modal').modal('show');
+		 });
+
 	   </script>
 	]]
 end
