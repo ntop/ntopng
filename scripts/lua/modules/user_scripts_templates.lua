@@ -215,8 +215,31 @@ function MultiSelectTemplate:describeConfig(script, hooks_conf)
     return '' -- disabled, nothing to show
   end
 
-  -- TODO: improve the summary message
-  local msg = 'Summary message for the table'
+  local conf = hooks_conf.all.script_conf
+
+  local msg = ''
+  if not table.empty(conf.items) then
+
+    local temp_msg = {}
+    local groups = script.gui.groups
+
+    -- build a string containing selected elements separated by comma
+    for _, group in ipairs(groups) do
+      local elements = group.elements
+      for _, element in ipairs(elements) do
+
+        local id = element[1]
+        local label = element[2]
+
+        if table.has_key(conf.items, id) then
+          -- if the label is nil then use the id
+          table.insert(temp_msg, label or id)
+        end
+      end
+    end
+
+    msg = table.concat(temp_msg, ', ')
+  end
 
   return (msg)
 end
