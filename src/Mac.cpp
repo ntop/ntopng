@@ -186,9 +186,14 @@ void Mac::lua(lua_State* vm, bool show_details, bool asListElement) {
 /* *************************************** */
 
 bool Mac::isNull() const {
-  u_int8_t zero_mac[6] = {0};
+  u_int8_t zero_mac[3] = { 0 };
 
-  return !memcmp(mac, zero_mac, sizeof(mac));
+  /*
+    We need to compare only the manufacturer (3 byets instead of 6)
+    as there might be variations of 00:00:00:00:00:00
+    such as 00:00:00:00:01:01 that are basically alike
+  */
+  return(!memcmp(mac, zero_mac, sizeof(zero_mac)));
 }
 
 /* *************************************** */
