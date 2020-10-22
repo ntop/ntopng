@@ -6893,8 +6893,8 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_
       if((it = ip_mac.find(ipv4)) != ip_mac.end()) {
 	/* Found entry */
 	if(it->second != mac) {
-    u_char tmp[16];
-    Utils::int2mac(it->second, tmp);
+	  u_char tmp[16];
+	  Utils::int2mac(it->second, tmp);
 
 	  getAlertsQueue()->pushMacIpAssociationChangedAlert(ntohl(ipv4), tmp, _mac);
 

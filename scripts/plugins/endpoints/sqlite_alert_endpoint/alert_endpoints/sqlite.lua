@@ -62,7 +62,7 @@ local function processStoreAlertFromQueue(alert)
     )
   elseif(alert.alert_type == "mac_ip_association_change") then
     if(ntop.getPref("ntopng.prefs.ip_reassignment_alerts") == "1") then
-      local name = getSavedDeviceName(alert.new_mac)
+      local name = getDeviceName(alert.new_mac)
       entity_info = alerts_api.macEntity(alert.new_mac)
       type_info = alert_consts.alert_types.alert_mac_ip_association_change.create(
 	 alert_consts.alert_severities.warning,
