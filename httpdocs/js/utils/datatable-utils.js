@@ -15,10 +15,12 @@ jQuery.fn.dataTableExt.absoluteFormatSecondsToHHMMSS = (data, type, row) => {
     return data;
 };
 jQuery.fn.dataTableExt.sortBytes = (byte, type, row) => {
-
-    if (type == "display" && byte == 0) return '';
     if (type == "display") return NtopUtils.bytesToSize(byte);
     return byte;
+};
+jQuery.fn.dataTableExt.hideIfZero = (value, type, row) => {
+    if (type === "display" && value === 0) return "";
+    return value;
 };
 
 class DataTableFiltersMenu {

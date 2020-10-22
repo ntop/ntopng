@@ -94,6 +94,21 @@ if ts_utils.getDriverName() == "influxdb" then
    end
 end
 
+-- Dismiss Notification Code
+print([[
+	<script type='text/javascript'>
+		$(document).ready(function() {
+			$(`.alert-notification button.dismiss`).click(function() {
+				const action = $(this).data('pref');
+				const $toast = $(this).parents('.alert-notification')
+				NtopUtils.setPref(action, "]].. ntop.getRandomCSRFValue() ..[[", (data) =>{
+					if (data.success) $toast.toast('hide');
+				});
+			});
+		});
+	</script>
+]])
+
 -- Restart product code
 if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
 

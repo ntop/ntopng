@@ -97,7 +97,7 @@ page_utils.menu_entries = {
     event_exporters   	 = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},
     sflow_exporters   	 = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "exporters"},
     -- TODO: add a link to the documentation
-    flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters", help_link = "https://www.ntop.org"},
+    flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters", visible_iface = true, visible_system = false, help_link = "https://www.ntop.org"},
 
     -- Settings
     manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},

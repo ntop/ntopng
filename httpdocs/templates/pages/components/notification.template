@@ -10,12 +10,17 @@
     </div>
     <div class="toast-body">
         {* content.body *}
-        {% if (content.action) then %}
-        <div class="w-100 clearfix">
-            <a class="my-1 btn btn-gray btn-sm float-right {{content.action.additional_classes}}" href="{{ content.action.url }}">
-                {{ content.action.title }}
-            </a>
+        <div class="d-flex justify-content-end my-1">
+            {% if (content.action) then %}
+                <a class="btn btn-gray btn-sm {{content.action.additional_classes}}" href="{{ content.action.url }}">
+                    {{ content.action.title }}
+                </a>
+            {% end %}
+            {% if (model.settings.dismissable) then %}
+                <button class='dismiss btn btn-sm btn-danger ml-1' data-pref='{{ model.settings.pref }}'>
+                    {{ i18n("dismiss") }}
+                </button>
+            {% end %}
         </div>
-        {% end %}
     </div>
 </div>

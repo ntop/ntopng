@@ -43,7 +43,7 @@ alert_notification_levels = {
 -- @param action The link where the notification brings { url = "#", title = "Click Here!"}
 -- @param no_scope A list of pages where the notification won't render
 -- @return An AlertNotification instance
-function alert_notification:create(id, title, description, level, action, no_scope)
+function alert_notification:create(id, title, description, level, action, no_scope, settings)
 
     local this = {
         id              = id,
@@ -52,6 +52,7 @@ function alert_notification:create(id, title, description, level, action, no_sco
         level           = (alert_notification_levels[level] or alert_notification_levels.info),
         action          = (action or nil),
         no_scope        = no_scope or "",
+        settings        = settings or {dismissable = false, pref = nil} 
     }
 
     setmetatable(this, alert_notification)

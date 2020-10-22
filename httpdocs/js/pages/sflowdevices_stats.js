@@ -5,7 +5,7 @@ $(document).ready(function () {
 	{
 	}
     ]);
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/pro/rest/v1/get/sflowdevices/stats.lua`);
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/pro/rest/v1/get/sflowdevices/stats.lua`, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
 	columns: [
 	    {
