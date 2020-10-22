@@ -363,29 +363,29 @@ class NtopUtils {
 	}
 
 	// Convert bytes to human readable format
-	static bytesToSize(bytes) {
-		if (typeof (bytes) === "undefined")
-			return "-";
+    static bytesToSize(bytes) {
+	if (typeof (bytes) === "undefined")
+	    return "-";
 
-		var precision = 2;
-		var kilobyte = 1024;
-		var megabyte = kilobyte * 1024;
-		var gigabyte = megabyte * 1024;
-		var terabyte = gigabyte * 1024;
+	var precision = 2;
+	var kilobyte = 1024;
+	var megabyte = kilobyte * 1024;
+	var gigabyte = megabyte * 1024;
+	var terabyte = gigabyte * 1024;
 
-		if ((bytes >= 0) && (bytes < kilobyte))
-			return bytes.toFixed(precision) + " Bytes";
-		else if ((bytes >= kilobyte) && (bytes < megabyte))
-			return (bytes / kilobyte).toFixed(precision) + ' KB';
-		else if ((bytes >= megabyte) && (bytes < gigabyte))
-			return (bytes / megabyte).toFixed(precision) + ' MB';
-		else if ((bytes >= gigabyte) && (bytes < terabyte))
-			return (bytes / gigabyte).toFixed(precision) + ' GB';
-		else if (bytes >= terabyte)
-			return (bytes / terabyte).toFixed(precision) + ' TB';
-		else
-			return bytes.toFixed(precision) + ' Bytes';
-	}
+	if ((bytes >= 0) && (bytes < kilobyte))
+	    return parseFloat(bytes.toFixed(precision)) + " Bytes";
+	else if ((bytes >= kilobyte) && (bytes < megabyte))
+	    return parseFloat((bytes / kilobyte).toFixed(precision)) + ' KB';
+	else if ((bytes >= megabyte) && (bytes < gigabyte))
+	    return parseFloat((bytes / megabyte).toFixed(precision)) + ' MB';
+	else if ((bytes >= gigabyte) && (bytes < terabyte))
+	    return parseFloat((bytes / gigabyte).toFixed(precision)) + ' GB';
+	else if (bytes >= terabyte)
+	    return parseFloat((bytes / terabyte).toFixed(precision)) + ' TB';
+	else
+	    return parseFloat(bytes.toFixed(precision)) + ' Bytes';
+    }
 
 	static drawTrend(current, last, withColor) {
 		if (current == last) {
