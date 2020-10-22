@@ -217,8 +217,7 @@ void PF_RINGInterface::multiPacketPollLoop() {
 
         if(hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
 	dissectPacket(DUMMY_BRIDGE_INTERFACE_ID,
-		      (hdr.extended_hdr.rx_direction == 1) ? 
-		      true /* ingress */ : false /* egress */,
+		      (idx == 0) /* Assuming 0 ingress, 1 egress (TAP) */,
 		      NULL, (const struct pcap_pkthdr *) &hdr, buffer,
 		      &p, &srcHost, &dstHost, &flow);
 	sleep_time = step_sleep;
