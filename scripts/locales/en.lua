@@ -3644,8 +3644,6 @@ local lang = {
     ["toggle_informative_captive_portal_title"] = "Informative",
     ["toggle_internals_rrds_description"] = "Toggle the creation of <a href=\"%{url}\">internals</a> timeseries, e.g., hash tables entries, periodic activities duration and number of timeseries points written, plugins duration and number of calls.",
     ["toggle_internals_rrds_title"] = "Internals",
-    ["toggle_ip_reassignment_description"] = "Toggle alerts generated when an IP address, previously seen with a MAC address, is now seen with another MAC address. This alert might indicate an ARP spoof attempt.",
-    ["toggle_ip_reassignment_title"] = "IP Reassignment Alerts",
     ["toggle_ldap_anonymous_bind_description"] = "Enable anonymous binding.",
     ["toggle_ldap_anonymous_bind_title"] = "LDAP Anonymous Binding",
     ["toggle_ldap_auth"] = "Toggle LDAP Authentication",
