@@ -1507,6 +1507,8 @@ local lang = {
     ["web_mining_detected"] = "The website is known for mining cryptocurrencies on client devices",
   },
   ["flow_devices"] = {
+    ["snmp_ifindex"] = "SNMP Index",
+    ["snmp_ifname"] = "SNMP Interface",
     ["active_sflow"] = "Active sFlow Devices",
     ["all_device_ports"] = "All %{device} Ports",
     ["all_flow_devices"] = "All Flow Devices",
