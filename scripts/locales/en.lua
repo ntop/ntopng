@@ -4061,6 +4061,18 @@ local lang = {
     ["notification_webhook"] = "Notification Webhook",
     ["sender_username"] = "Sender Username",
   },
+  ["snmp_ratio_errors"] = {
+     ["ok"] = "OK",
+     ["snmp_timeseries_not_enabled"] = "SNMP timeseries not enabled.",
+     ["snmp_timeseries_not_existing"] = "SNMP timeseries not ready (too early or missing interface).",
+     ["snmp_timeseries_query_failed"] = "SNMP timeseries query failed.",
+     ["snmp_timeseries_zero_total"] = "SNMP timeseries query total is zero.",
+     ["flowdevice_timeseries_query_failed"] = "Flow device timeseries query failed",
+     ["flowdevice_timeseries_not_existing"] = "Flow device timeseries query not ready (too early or missing interface).",
+     ["timeseries_start_time_mismatch"] = "SNMP and flow device timeseries start times don't match.",
+     ["negative_ratio"] = "Negative ratio.",
+     ["nan_ratio"] = "Ratio is not a number.",
+  },
   ["snmp"] = {
     ["AlertDescription"] = "Alert Description",
     ["ConsoleDisplayBufferText"] = "Display Text",
