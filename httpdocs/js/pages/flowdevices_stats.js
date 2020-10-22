@@ -2,8 +2,13 @@ $(document).ready(function () {
     const TABLE_DATA_REFRESH = 15000;
 
     let dtConfig = DataTableUtils.getStdDatatableConfig([
-	{
-	}
+		{
+			text: '<i class="fas fa-sync"></i>',
+            className: 'btn-link',
+			action: () => {
+				$flowdevicesList.ajax.reload();
+			}
+		}
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/pro/rest/v1/get/flowdevices/stats.lua`, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
@@ -30,5 +35,5 @@ $(document).ready(function () {
 	}
     });
 
-    const $recipientsTable = $(`table#flowdevices-list`).DataTable(dtConfig);
+    const $flowdevicesList = $(`table#flowdevices-list`).DataTable(dtConfig);
 });
