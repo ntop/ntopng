@@ -1476,12 +1476,10 @@ end
 
 -- #################################
 
-function alert_utils.check_host_pools_alerts(ifid)
+function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled, alerts_on_quota_exceeded)
    local active_pools_set = getActivePoolsHashKey(ifid)
    local prev_active_pools = swapKeysValues(ntop.getMembersCache(active_pools_set)) or {}
-   local alert_pool_connection_enabled = ntop.getPref("ntopng.prefs.alerts.pool_connection_alert") == "1"
-   local alerts_on_quota_exceeded = ntop.isPro() and ntop.getPref("ntopng.prefs.alerts.quota_exceeded_alert") == "1"
-   local pools_stats = nil
+   local pools_stats = interface.getHostPoolsStats()
    local quota_exceeded_pools_key = getPoolsQuotaExceededItemsKey(ifid)
    local quota_exceeded_pools_values = ntop.getHashAllCache(quota_exceeded_pools_key) or {}
    local quota_exceeded_pools = {}
@@ -1503,10 +1501,6 @@ function alert_utils.check_host_pools_alerts(ifid)
          end
       end
       -- quota_exceeded_pools[pool] is like {Youtube={true, false}}, where true is bytes_exceeded, false is time_exceeded
-   end
-
-   if ntop.isPro() then
-      pools_stats = interface.getHostPoolsStats()
    end
 
    local pools = interface.getHostPoolsInfo()

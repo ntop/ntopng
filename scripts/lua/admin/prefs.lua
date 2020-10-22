@@ -306,14 +306,6 @@ function printAlerts()
   print('<thead class="thead-light"><tr id="row_alerts_informative_header" ')
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.status_alerts")..'</th></tr></thead>')
-  prefsToggleButton(subpage_active, {
-      field = "toggle_pool_activation_alert",
-      pref = "pool_connection_alert",
-      default = "0",
-      hidden = not showElements,
-      redis_prefix = "ntopng.prefs.alerts.",
-    })
-
   if ntop.isnEdge() then
     prefsToggleButton(subpage_active, {
       field = "toggle_quota_exceeded_alert",
