@@ -279,6 +279,8 @@ function handleCustomFlowField(key, value, snmpdevice)
       return(formatInterfaceId(value, "inIfIdx", snmpdevice))
    elseif key == 'OUTPUT_SNMP' then
       return(formatInterfaceId(value, "outIfIdx", snmpdevice))
+   elseif key == 'TOTAL_FLOWS_EXP' then
+      return(format_utils.formatValue(value))
    elseif key == 'EXPORTER_IPV4_ADDRESS' or
           key == 'NPROBE_IPV4_ADDRESS' then
       local hinfo = hostkey2hostinfo(value)
