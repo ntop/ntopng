@@ -336,7 +336,6 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when)
   dumpTopTalkers(_ifname, ifstats, verbose)
 
   user_scripts.schedulePeriodicScripts("min")
-  alert_utils.check_macs_alerts(ifstats.id)
   alert_utils.check_host_pools_alerts(ifstats.id)
 
   local iface_rrd_creation_enabled = areInterfaceTimeseriesEnabled(ifstats.id)
