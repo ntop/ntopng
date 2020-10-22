@@ -296,13 +296,6 @@ function printAlerts()
   hidden = not showElements,
   })
 
-  prefsToggleButton(subpage_active, {
-    field = "toggle_remote_to_remote_alerts",
-    pref = "remote_to_remote_alerts",
-    default = "0",
-    hidden = not showElements,
-  })
-
   print('<thead class="thead-light"><tr id="row_alerts_retention_header" ')
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.alerts_retention")..'</th></tr></thead>')

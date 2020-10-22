@@ -231,9 +231,6 @@ local menu_subpages = {
     disable_alerts_generation = {
       title       = i18n("prefs.disable_alerts_generation_title"),
       description = i18n("prefs.disable_alerts_generation_description"),
-    }, toggle_remote_to_remote_alerts = {
-      title       = i18n("prefs.toggle_remote_to_remote_alerts_title"),
-      description = i18n("prefs.toggle_remote_to_remote_alerts_description"),
     }, toggle_ip_reassignment_alerts = {
        title       = i18n("prefs.toggle_ip_reassignment_title"),
        description = i18n("prefs.toggle_ip_reassignment_description"),
@@ -253,15 +250,7 @@ local menu_subpages = {
     }, toggle_device_activation_alert = {
       title       = i18n("prefs.toggle_device_activation_alert_title"),
       description = i18n("prefs.toggle_device_activation_alert_description"),
-    }, toggle_pool_activation_alert = {
-      title       = i18n("prefs.toggle_pool_activation_alert_title"),
-      description = i18n("prefs.toggle_pool_activation_alert_description"),
-    }, toggle_quota_exceeded_alert = {
-      title       = i18n("prefs.toggle_quota_exceed_alert_title"),
-      description = i18n("prefs.toggle_quota_exceed_alert_description"),
-      hidden      = not ntop.isPro(),
     }
-    
   }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),

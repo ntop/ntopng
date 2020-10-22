@@ -5,23 +5,23 @@
 -- #######################################################
 
 local alert_keys = require "alert_keys"
--- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
--- @return A table with the alert built
-local function createRemoteToRemote(alert_severity)
-   local built = {
-      alert_severity = alert_severity,
-      alert_type_params = {},
-   }
 
-   return built
+-- #######################################################
+
+local function formatRemoteToRemoteMessage(ifid, alert, remote_to_remote_info)
+   local alert_consts = require("alert_consts")
+   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
+
+   return i18n("alert_messages.remote_to_remote", {
+		  entity = entity,
+   })
 end
 
 -- #######################################################
 
 return {
-  alert_key = alert_keys.ntopng.alert_remote_to_remote,
-  i18n_title = "alerts_dashboard.remote_to_remote",
-  icon = "fas fa-exclamation",
-  creator = createRemoteToRemote
+   alert_key = alert_keys.ntopng.alert_remote_to_remote,
+   i18n_title = "alerts_dashboard.remote_to_remote",
+   i18n_description = formatRemoteToRemoteMessage,
+   icon = "fas fa-exclamation",
 }
