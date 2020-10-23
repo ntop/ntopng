@@ -16,7 +16,8 @@ local function createListDownloadFailedType(alert_severity, list_name, last_erro
       alert_severity = alert_severity,
       alert_type_params = {
 	 name = list_name,
-	 err = last_error
+	 err = last_error,
+	 url = ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua"
       }
    }
 

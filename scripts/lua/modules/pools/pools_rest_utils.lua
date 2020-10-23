@@ -63,7 +63,7 @@ function pools_rest_utils.add_pool(pools)
    rest_utils.answer(rc, res)
 
    -- TRACKER HOOK
-   tracker.log('add_pool', { pool_name = name, members = members })
+   tracker.log('add_pool', { pool_name = name, members = members, pool_key = s.key })
 end
 
 -- ##############################################
@@ -112,7 +112,7 @@ function pools_rest_utils.edit_pool(pools)
    rest_utils.answer(rc)
 
    -- TRACKER HOOK
-   tracker.log('edit_pool', { pool_id = pool_id, pool_name = name, members = members })
+   tracker.log('edit_pool', { pool_id = pool_id, pool_name = name, members = members, pool_key = s.key })
 end
 
 -- ##############################################
@@ -136,8 +136,16 @@ function pools_rest_utils.delete_pool(pools)
 
    -- Create the instance
    local s = pools:create()
-   local res = s:delete_pool(pool_id)
 
+   -- Fetch the existing pool
+   local existing_pool = s:get_pool(pool_id)
+   if not existing_pool then
+      rest_utils.answer(rest_utils.consts.err.pool_not_found)
+      return
+   end
+
+   -- Delete the pool
+   local res = s:delete_pool(pool_id)
    if not res then
       rest_utils.answer(rest_utils.consts.err.pool_not_found)
       return
@@ -151,7 +159,7 @@ function pools_rest_utils.delete_pool(pools)
    rest_utils.answer(rc, res)
 
    -- TRACKER HOOK
-   tracker.log('delete_pool', { pool_id = pool_id })
+   tracker.log('delete_pool', { pool_id = pool_id,  pool_name = existing_pool["name"], pool_key = s.key })
 end
 
 -- ##############################################
@@ -202,8 +210,10 @@ function pools_rest_utils.bind_member(pools)
    local rc = rest_utils.consts.success.pool_member_bound
    rest_utils.answer(rc)
 
+   local dst_pool = s:get_pool(pool_id)
+
    -- TRACKER HOOK
-   tracker.log('bind_pool_member', { pool_id = pool_id, member = member })
+   tracker.log('bind_pool_member', { pool_id = pool_id, pool_name = dst_pool["name"], member = member, pool_key = s.key })
 end
 
 -- ##############################################
