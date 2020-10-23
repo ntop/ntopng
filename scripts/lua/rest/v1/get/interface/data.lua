@@ -205,10 +205,14 @@ function dumpInterfaceStats(ifid)
 	 res["zmqRecvStats"]["counters"] = ifstats.zmqRecvStats.counters
 	 res["zmqRecvStats"]["zmq_msg_rcvd"] = ifstats.zmqRecvStats.zmq_msg_rcvd
 	 res["zmqRecvStats"]["zmq_msg_drops"] = ifstats.zmqRecvStats.zmq_msg_drops
-	 res["zmqRecvStats"]["zmq_avg_msg_flows"] = math.max(1, ifstats.zmqRecvStats.flows / (ifstats.zmqRecvStats.zmq_msg_rcvd + 1)) 
+	 res["zmqRecvStats"]["zmq_avg_msg_flows"] = math.max(1, ifstats.zmqRecvStats.flows / (ifstats.zmqRecvStats.zmq_msg_rcvd + 1))
 
 	 res["zmq.num_flow_exports"] = ifstats["zmq.num_flow_exports"] or 0
          res["zmq.num_exporters"] = ifstats["zmq.num_exporters"] or 0
+
+	 res["zmq.drops.export_queue_full"] = ifstats["zmq.drops.export_queue_full"] or 0
+	 res["zmq.drops.flow_collection_drops"] = ifstats["zmq.drops.flow_collection_drops"] or 0
+	 res["zmq.drops.flow_collection_udp_socket_drops"] = ifstats["zmq.drops.flow_collection_udp_socket_drops"] or 0
       end
 
       res["tcpPacketStats"] = {}
