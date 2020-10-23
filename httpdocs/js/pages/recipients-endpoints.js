@@ -184,8 +184,13 @@ $(document).ready(function () {
             },
 	    {
 		data: "stats.num_uses",
-		className: "text-center",
-		width: "15%",
+		className: "text-right",
+		width: "10%",
+	    },
+	    {
+		data: "stats.num_drops",
+		className: "text-right",
+		width: "10%",
 	    },
             {
                 targets: -1,
