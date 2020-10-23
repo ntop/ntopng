@@ -186,11 +186,19 @@ $(document).ready(function () {
 		data: "stats.num_uses",
 		className: "text-right",
 		width: "10%",
+		render: function(data, type) {
+		    if (type == "display") return NtopUtils.fint(data);
+		    return data;
+		}
 	    },
 	    {
 		data: "stats.num_drops",
 		className: "text-right",
 		width: "10%",
+		render: function(data, type) {
+		    if (type == "display") return NtopUtils.fint(data);
+		    return data;
+		}
 	    },
             {
                 targets: -1,
