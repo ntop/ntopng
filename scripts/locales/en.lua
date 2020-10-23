@@ -1520,7 +1520,7 @@ local lang = {
     ["ratio_not_ready"] = "Computing flow ratio...",
     ["enable_flow_ratio"] = "Enable flow ratio",
     ["flow_ratio_timeseries_instructions"] = "To enable the Flow/Ratio column you must enable: <b>%{enable}</b>.",
-    ["snmp_polling"] = "If you add a SNMP Device, but the notification is always present, then you have to wait up to 5 minutes.",
+    ["snmp_polling"] = "If you add a SNMP Device, but the notification is always present, then you have to wait up to 30 minutes.",
     ["flow_ratio_snmp_instructions"] = "To enable the Flow/Ratio column you must <a target='_blank' href='%{href}'>add the device to the SNMP list</a>.",
     ["snmp_to_enable"] = "SNMP Timeseries",
     ["flow_to_enable"] = "Flow Device Timeseries",
