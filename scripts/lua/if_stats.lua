@@ -2163,8 +2163,8 @@ print [[/lua/rest/v1/get/interface/data.lua',
 	$('#if_out_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_upload));
 	$('#if_in_pkts').html(NtopUtils.addCommas(rsp.packets_download) + " Pkts");
 	$('#if_out_pkts').html(NtopUtils.addCommas(rsp.packets_upload)  + " Pkts");
-	$('#pkts_in_trend').html(NtopUtils.get_trend(last_in_pkts, rsp.bytes_download));
-	$('#pkts_out_trend').html(NtopUtils.get_trend(last_out_pkts, rsp.bytes_upload));
+	$('#pkts_in_trend').html(NtopUtils.get_trend(rsp.bytes_download, last_in_pkts));
+	$('#pkts_out_trend').html(NtopUtils.get_trend(rsp.bytes_upload, last_out_pkts));
 	last_in_pkts = rsp.bytes_download;
 	last_out_pkts = rsp.bytes_upload;
 
@@ -2193,11 +2193,9 @@ print [[/lua/rest/v1/get/interface/data.lua',
            $('#if_zmq_events').html(NtopUtils.addCommas(rsp.zmqRecvStats.events)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.events, last_zmq_events));
            $('#if_zmq_counters').html(NtopUtils.addCommas(rsp.zmqRecvStats.counters)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
            $('#if_zmq_msg_drops').html(NtopUtils.addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));
-
            $('#if_zmq_drops_export_queue_full').html(NtopUtils.addCommas(rsp["zmq.drops.export_queue_full"])+" "+NtopUtils.get_trend(rsp["zmq.drops.export_queue_full"], last_zmq_drops_export_queue_full));
            $('#if_zmq_drops_flow_collection_drops').html(NtopUtils.addCommas(rsp["zmq.drops.flow_collection_drops"])+" "+NtopUtils.get_trend(rsp["zmq.drops.flow_collection_drops"], last_zmq_drops_flow_collection_drops));
            $('#if_zmq_drops_flow_collection_udp_socket_drops').html(NtopUtils.addCommas(rsp["zmq.drops.flow_collection_udp_socket_drops"])+" "+NtopUtils.get_trend(rsp["zmq.drops.flow_collection_udp_socket_drops"], last_zmq_drops_flow_collection_udp_socket_drops));
-
            $('#if_zmq_msg_rcvd').html(NtopUtils.addCommas(rsp.zmqRecvStats.zmq_msg_rcvd)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.zmq_msg_rcvd, last_zmq_msg_rcvd));
            $('#if_zmq_avg_msg_flows').html(NtopUtils.addCommas(NtopUtils.formatValue(rsp.zmqRecvStats.zmq_avg_msg_flows)));
            $('#if_num_remote_zmq_flow_exports').html(NtopUtils.addCommas(rsp["zmq.num_flow_exports"])+" "+NtopUtils.get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
@@ -2209,6 +2207,9 @@ print [[/lua/rest/v1/get/interface/data.lua',
            last_zmq_events = rsp.zmqRecvStats.events;
            last_zmq_counters = rsp.zmqRecvStats.counters;
            last_zmq_msg_drops = rsp.zmqRecvStats.zmq_msg_drops;
+           last_zmq_drops_export_queue_full = rsp["zmq.drops.export_queue_full"];
+           last_zmq_drops_flow_collection_drops = rsp["zmq.drops.flow_collection_drops"];
+           last_zmq_drops_flow_collection_udp_socket_drops = rsp["zmq.drops.flow_collection_udp_socket_drops"];
            last_zmq_msg_rcvd = rsp.zmqRecvStats.zmq_msg_rcvd;
            last_zmq_avg_msg_flows = rsp.zmqRecvStats.zmq_avg_msg_flows;
            last_probe_zmq_exported_flows = rsp["zmq.num_flow_exports"];
@@ -2233,11 +2234,11 @@ if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
           $('#nfq_queue_total').removeClass("badge badge-danger");
         }
 	$('#nfq_queue_total').html(NtopUtils.fint(rsp.netfilter.nfq.queue_total) + " [" + NtopUtils.fint(rsp.netfilter.nfq.queue_pct) + " %]");
-        $('#nfq_queue_total_trend').html(NtopUtils.get_trend(last_nfq_queue_total, rsp.netfilter.nfq.queue_total));
+        $('#nfq_queue_total_trend').html(NtopUtils.get_trend(rsp.netfilter.nfq.queue_total, last_nfq_queue_total));
 	$('#nfq_handling_failed').html(NtopUtils.fint(rsp.netfilter.failures.handle_packet));
-        $('#nfq_handling_failed_trend').html(NtopUtils.get_trend(last_nfq_handling_failed, rsp.netfilter.failures.handle_packet));
+        $('#nfq_handling_failed_trend').html(NtopUtils.get_trend(rsp.netfilter.failures.handle_packet, last_nfq_handling_failed));
 	$('#nfq_enobufs').html(NtopUtils.fint(rsp.netfilter.failures.no_buffers));
-        $('#nfq_enobufs_trend').html(NtopUtils.get_trend(last_nfq_enobufs, rsp.netfilter.failures.no_buffers));
+        $('#nfq_enobufs_trend').html(NtopUtils.get_trend(rsp.netfilter.failures.no_buffers, last_nfq_enobufs));
 	$('#num_conntrack_entries').html(NtopUtils.fint(rsp.netfilter.nfq.num_conntrack_entries)+ " [" + NtopUtils.fint((rsp.netfilter.nfq.num_conntrack_entries*100)/rsp.num_flows) + " %]");
 ]]
 end
@@ -2246,7 +2247,7 @@ if ifstats.stats.discarded_probing_packets then
       print[[
 	$('#if_discarded_probing_bytes').html(NtopUtils.bytesToVolume(rsp.discarded_probing_bytes));
 	$('#if_discarded_probing_pkts').html(NtopUtils.formatPackets(rsp.discarded_probing_packets));
-        $('#if_discarded_probing_trend').html(NtopUtils.get_trend(last_discarded_probing_pkts, rsp.discarded_probing_packets));
+        $('#if_discarded_probing_trend').html(NtopUtils.get_trend(rsp.discarded_probing_packets, last_discarded_probing_pkts));
         last_discarded_probing_pkts = rsp.discarded_probing_packets;
 ]]
 end
@@ -2258,21 +2259,21 @@ print [[
 	var last_pkt_ooo =  ]] print(tostring(ifstats.tcpPacketStats.out_of_order)) print [[;
 	var last_pkt_lost = ]] print(tostring(ifstats.tcpPacketStats.lost)) print [[;
 
-	$('#pkt_retransmissions').html(NtopUtils.fint(rsp.tcpPacketStats.retransmissions)+" Pkts");  $('#pkt_retransmissions_trend').html(NtopUtils.get_trend(last_pkt_retransmissions, rsp.tcpPacketStats.retransmissions));
-	$('#pkt_ooo').html(NtopUtils.fint(rsp.tcpPacketStats.out_of_order)+" Pkts");  $('#pkt_ooo_trend').html(NtopUtils.get_trend(last_pkt_ooo, rsp.tcpPacketStats.out_of_order));
-	$('#pkt_lost').html(NtopUtils.fint(rsp.tcpPacketStats.lost)+" Pkts"); $('#pkt_lost_trend').html(NtopUtils.get_trend(last_pkt_lost, rsp.tcpPacketStats.lost));
+	$('#pkt_retransmissions').html(NtopUtils.fint(rsp.tcpPacketStats.retransmissions)+" Pkts");  $('#pkt_retransmissions_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.retransmissions, last_pkt_retransmissions));
+	$('#pkt_ooo').html(NtopUtils.fint(rsp.tcpPacketStats.out_of_order)+" Pkts");  $('#pkt_ooo_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.out_of_order, last_pkt_ooo));
+	$('#pkt_lost').html(NtopUtils.fint(rsp.tcpPacketStats.lost)+" Pkts"); $('#pkt_lost_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.lost, last_pkt_lost));
 	last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;
 	last_pkt_ooo = rsp.tcpPacketStats.out_of_order;
 	last_pkt_lost = rsp.tcpPacketStats.lost;
 
-	$('#pkts_trend').html(NtopUtils.get_trend(last_pkts, rsp.packets));
-	$('#drops_trend').html(NtopUtils.get_trend(last_drops, rsp.drops));
+	$('#pkts_trend').html(NtopUtils.get_trend(rsp.packets, last_pkts));
+	$('#drops_trend').html(NtopUtils.get_trend(rsp.drops, last_drops));
 	last_pkts = rsp.packets;
 	last_drops = rsp.drops;
 
-	$('#engaged_alerts_trend').html(NtopUtils.get_trend(last_engaged_alerts, rsp.engaged_alerts));
+	$('#engaged_alerts_trend').html(NtopUtils.get_trend(rsp.engaged_alerts, last_engaged_alerts));
 	last_engaged_alerts = rsp.engaged_alerts;
-	$('#dropped_alerts_trend').html(NtopUtils.get_trend(last_dropped_alerts, rsp.dropped_alerts));
+	$('#dropped_alerts_trend').html(NtopUtils.get_trend(rsp.dropped_alerts, last_dropped_alerts));
 	last_dropped_alerts = rsp.dropped_alerts;
         $('#dropped_alerts').html(last_dropped_alerts);
 
