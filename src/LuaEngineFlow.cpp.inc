@@ -276,6 +276,28 @@ static int ntop_flow_get_srv_tcp_issues(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_cli_retr_percentage(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushnumber(vm, (lua_Number)f->getCliRetrPercentage());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_srv_retr_percentage(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushnumber(vm, (lua_Number)f->getSrvRetrPercentage());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_retrieve_external_alert_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1155,6 +1177,8 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getAlertedStatusScore",    ntop_flow_get_alerted_status_score   },
   { "getClientTCPIssues",       ntop_flow_get_cli_tcp_issues         },
   { "getServerTCPIssues",       ntop_flow_get_srv_tcp_issues         },
+  { "getClientRetrPercentage",  ntop_flow_get_cli_retr_percentage    },
+  { "getServerRetrPercentage",  ntop_flow_get_srv_retr_percentage    }, 
   { "isDeviceProtocolNotAllowed", ntop_flow_is_dp_not_allowed        },
   { "isTCPConnectionRefused",   ntop_flow_is_tcp_connection_refused  },
   { "isTCPConnecting",          ntop_flow_is_tcp_connecting          },

@@ -4712,6 +4712,20 @@ u_int32_t Flow::getSrvTcpIssues() {
   return(stats.get_srv2cli_tcp_retr() + stats.get_srv2cli_tcp_ooo() + stats.get_srv2cli_tcp_lost());
 }
 
+double Flow::getCliRetrPercentage() {
+  if (get_packets_cli2srv() > 0)
+    return((double)stats.get_cli2srv_tcp_retr()/ (double)get_packets_cli2srv());
+  else
+    return 0;
+}
+
+double Flow::getSrvRetrPercentage() {
+  if (get_packets_srv2cli() > 0)
+    return((double)stats.get_srv2cli_tcp_retr()/ (double)get_packets_srv2cli());
+  else
+    return 0;
+}
+
 /* ***************************************************** */
 
 void Flow::lua_get_tcp_stats(lua_State *vm) const {
