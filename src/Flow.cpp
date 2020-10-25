@@ -4713,14 +4713,14 @@ u_int32_t Flow::getSrvTcpIssues() {
 }
 
 double Flow::getCliRetrPercentage() {
-  if (get_packets_cli2srv() > 0)
+  if(get_packets_cli2srv() > 10 /* Do not compute retrasmissions with too few packets */)
     return((double)stats.get_cli2srv_tcp_retr()/ (double)get_packets_cli2srv());
   else
     return 0;
 }
 
 double Flow::getSrvRetrPercentage() {
-  if (get_packets_srv2cli() > 0)
+  if(get_packets_srv2cli() > 10 /* Do not compute retrasmissions with too few packets */)
     return((double)stats.get_srv2cli_tcp_retr()/ (double)get_packets_srv2cli());
   else
     return 0;
