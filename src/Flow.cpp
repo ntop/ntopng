@@ -448,7 +448,8 @@ void Flow::processDetectedProtocol() {
     break;
     
   case NDPI_PROTOCOL_MAIL_SMTP:
-    srv_host->setSmtpServer();
+    if(get_srv_host())
+      get_srv_host()->setSmtpServer();
     break;
     
   case NDPI_PROTOCOL_DNS:
