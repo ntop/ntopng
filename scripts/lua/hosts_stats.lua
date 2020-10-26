@@ -552,11 +552,11 @@ if (_GET["page"] ~= "historical") then
         var data = jQuery.parseJSON(content);
         if (data.status == "BLOCKED") {
           $('#'+host_key+'_info').find('.block-badge')
-            .removeClass('badge-secondary').addClass('badge-danger');
+            .removeClass('btn-secondary').addClass('btn-danger');
           $('#'+host_key+'_ip').find('a').css("text-decoration", "line-through");
         } else if (data.status == "UNBLOCKED") {
           $('#'+host_key+'_info').find('.block-badge')
-            .removeClass('badge-danger').addClass('badge-secondary');
+            .removeClass('btn-danger').addClass('btn-secondary');
           $('#'+host_key+'_ip').find('a').css("text-decoration", "none");
         }
       },

@@ -340,7 +340,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    if have_nedge and (host ~= nil) and (host.localhost or host.systemhost) then
       column_info = column_info.." <span title='"..
 	 (ternary(drop_traffic, i18n("host_config.unblock_host_traffic"), i18n("host_config.drop_all_host_traffic")))..
-	 "' class='badge badge-"..(ternary(drop_traffic, "danger", "secondary")).." block-badge' "..
+	 "' class='btn btn-sm "..(ternary(drop_traffic, "btn-danger", "btn-secondary")).." block-badge' "..
 	 (ternary(isAdministrator(), "onclick='block_host(\""..symkey.."\", \""..hostinfo2url(value)..
 		     "\");' style='cursor: pointer;'", "")).."><i class='fas fa-ban' /></span>"
    end
