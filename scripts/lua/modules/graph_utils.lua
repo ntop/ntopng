@@ -9,7 +9,7 @@ require "lua_utils"
 require "db_utils"
 require "historical_utils"
 require "rrd_paths"
-local ui_utils = require("ui_utils")
+
 local dkjson = require("dkjson")
 local host_pools = require "host_pools"
 local top_talkers_utils = require "top_talkers_utils"
@@ -636,6 +636,7 @@ print[[
   </div>
 </div> <!-- closes div class "card" -->]]
 
+local ui_utils = require("ui_utils")
 print(ui_utils.render_notes(options.notes))
 
 print[[

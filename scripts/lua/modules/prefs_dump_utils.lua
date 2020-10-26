@@ -186,6 +186,7 @@ function prefs_dump_utils.check_restore_prefs_from_disk()
    where = dump_prefs_to_disk_file_path
    if ntop.exists(where) then
       prefs_dump_utils.restore_prefs_file(where)
+      os.remove(where)
    end
 end
 
