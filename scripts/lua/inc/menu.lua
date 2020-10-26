@@ -410,11 +410,6 @@ if is_nedge then
 	    hidden = not is_admin or not ntop.isRoutingMode(),
 	    url = '/lua/pro/nedge/admin/port_forwarding.lua',
 	 },
-	 {
-	    entry = page_utils.menu_entries.nedge_users,
-	    hidden = not is_admin or not is_system_interface,
-	    url = '/lua/pro/nedge/admin/nf_list_users.lua',
-	 },
    }) do
       system_entries[#system_entries + 1] = entry
    end
