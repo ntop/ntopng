@@ -154,7 +154,7 @@ function stall_check() {
 
 function maintenance_check() {
 
-	APP_BIN="/usr/local/bin/${PRODUCT}"
+	APP_BIN="/usr/bin/${PRODUCT}"
 
 	NOW=`date +'%s'`
 	EXPIRY_EPOCH=`${APP_BIN} --check-maintenance | cut -d' ' -f 1`
