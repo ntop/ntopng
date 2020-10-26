@@ -2141,19 +2141,6 @@ elseif (page == "config") then
 	 }))
       end
 
-      print[[<a class="btn btn-secondary btn-sm" href="]]
-      print(ntop.getHttpPrefix())
-
-      if not have_nedge then
-         print[[/lua/if_stats.lua?page=filtering&pool=]]
-         print(tostring(host["host_pool_id"]))
-         print[[#protocols">]] print(i18n("host_config.modify_host_pool_policy_btn")) print[[</a>]]
-      else
-         print[[/lua/pro/nedge/admin/nf_edit_user.lua]]
-         print(ternary(host_pool_id == host_pools_nedge.DEFAULT_POOL_ID, "", "?username=" .. host_pools_nedge.poolIdToUsername(host_pool_id)))
-         print[[">]] print(i18n("host_config.modify_host_pool_policy_btn")) print[[</a>]]
-      end
-
       print('</td></tr>')
 
       print('</form>')
