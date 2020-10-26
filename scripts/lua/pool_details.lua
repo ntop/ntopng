@@ -55,7 +55,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.host_pools)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local base_url = ntop.getHttpPrefix()..'/lua/pool_details.lua'
+local base_url = ntop.getHttpPrefix()..'/lua/pool_details.lua?pool='..pool_id
 local page_params = {}
 
 page_params["ifid"] = ifId
