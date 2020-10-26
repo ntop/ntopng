@@ -121,7 +121,8 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
       if(zmq_bind(subscriber[num_subscribers].socket, e) != 0) {
 	zmq_close(subscriber[num_subscribers].socket);
 	zmq_ctx_destroy(context);
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to ZMQ endpoint %s [collector]", e);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to ZMQ endpoint %s [collector]: %s (%d)",
+          e, strerror(errno), errno);
 	free(tmp);
 	throw("Unable to bind to the specified ZMQ endpoint");
       }
@@ -129,7 +130,8 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
       if(zmq_connect(subscriber[num_subscribers].socket, e) != 0) {
 	zmq_close(subscriber[num_subscribers].socket);
 	zmq_ctx_destroy(context);
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to ZMQ endpoint %s [probe]", e);
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to ZMQ endpoint %s [probe]: %s (%d)",
+          e, strerror(errno), errno);
 	free(tmp);
 	throw("Unable to connect to the specified ZMQ endpoint");
       }
