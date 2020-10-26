@@ -3902,6 +3902,11 @@ end
 
 -- ###########################################
 
+--- Perform a linear search to check if an element is inside a table
+--- @param t table The table to scan
+--- @param needle any The element to search
+--- @param comp function The compare function used to compare the searched element with others
+--- @return boolean True if the element is insie the table, False otherwise
 function table.contains(t, needle, comp)
 
    if (t == nil) then return false end
@@ -3919,6 +3924,7 @@ end
 
 -- ###########################################
 
+--- Insert an element inside the table if is not present
 function table.insertIfNotPresent(t, element, comp)
    if table.contains(t, element, comp) then return end
    t[#t+1] = element
