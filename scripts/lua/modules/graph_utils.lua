@@ -963,10 +963,8 @@ function graph_utils.printPoolChangeDropdown(ifId, pool_id, have_nedge)
    output[#output + 1] = [[
             </select>
         <a class='ml-1' href="]] .. ntop.getHttpPrefix() .. edit_pools_link .. [["><i class="fas fa-edit" aria-hidden="true" title="]]
-      ..(have_nedge and i18n("nedge.edit_users") or '')
-      .. [["></i> ]]
-      .. (have_nedge and i18n("nedge.edit_users") or '')
-      .. [[</a>
+      ..(have_nedge and i18n("edit") or '')
+      .. [["></i></a>
    </tr>]]
 
    print(table.concat(output, ''))
