@@ -59,6 +59,7 @@ nDPI
 ntopng
 packages/*.spec
 packages/etc/systemd/system/ntopng.service
+packages/etc/systemd/system/ntopng@.service
 Makefile
 *.pcap
 *.lua.cpp
