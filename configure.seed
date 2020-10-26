@@ -247,8 +247,8 @@ if [ test -f /usr/bin/lsb_release ]; then
 fi
 
 SERVICE_ALIAS=
-SERVICE_REQUIRES=${REDIS_SERVICE}
-SERVICE_WANTS=
+SERVICE_REQUIRES=
+SERVICE_WANTS=${REDIS_SERVICE}
 if test "$MACHINE" = "armv7l"; then
   SERVICE_AFTER="network.target syslog.target ${REDIS_SERVICE}"
   if test "${with_nedge+set}" = "set"; then
@@ -260,7 +260,7 @@ elif test "${with_nedge+set}" = "set"; then
   SERVICE_ALIAS="nedge.service"
 else
   SERVICE_AFTER="network.target syslog.target ${REDIS_SERVICE} pf_ring.service cluster.service mysql.service"
-  SERVICE_WANTS="pf_ring.service cluster.service"
+  SERVICE_WANTS="${SERVICE_WANTS} pf_ring.service cluster.service"
 fi
 
 APP=
@@ -786,6 +786,7 @@ AC_CONFIG_FILES(doc/doxygen.conf)
 AC_CONFIG_FILES(httpdocs/misc/ntopng-utils-manage-config)
 AC_CONFIG_FILES(httpdocs/misc/ntopng-utils-manage-updates)
 AC_CONFIG_FILES(packages/etc/systemd/system/ntopng.service)
+AC_CONFIG_FILES(packages/etc/systemd/system/ntopng@.service)
 
 AC_OUTPUT
 

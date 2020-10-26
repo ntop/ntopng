@@ -1,9 +1,9 @@
 [Unit]
-Description=ntopng high-speed web-based traffic monitoring and analysis tool
-After=network.target syslog.target redis.service pf_ring.service cluster.service mysql.service
-Requires=
-Wants=pf_ring.service cluster.service
-PartOf=pf_ring.service cluster.service
+Description=@APP@ high-speed web-based traffic monitoring and analysis tool
+After=@SERVICE_AFTER@
+Requires=@SERVICE_REQUIRES@
+Wants=@SERVICE_WANTS@
+PartOf=@SERVICE_WANTS@
 
 [Service]
 Type=simple

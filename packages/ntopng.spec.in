@@ -167,8 +167,11 @@ esac
 %endif
 
 %post
+%if 0%{?centos_ver} == 6
+# systemd takes care of this on centos 7 and newer
 echo 'Setting up redis auto startup'
 /sbin/chkconfig redis on
+%endif
 
 if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} != 6
