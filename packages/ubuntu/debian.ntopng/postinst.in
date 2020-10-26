@@ -55,14 +55,6 @@ CRON_CONF=/etc/cron.d/ntopng
 echo "Rebuilding ld cache..."
 /sbin/ldconfig
 
-if [ ! -f /usr/local/bin/@APP@ ] && [ ! -L /usr/local/bin/@APP@ ] ; then
-    ln -s /usr/bin/@APP@ /usr/local/bin/@APP@
-fi
-
-if [ -d /usr/local/share/ntopng ] ; then
-    mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled
-fi
-
 if [ -f /.dockerenv ]; then exit 0; fi
 
 # Start service after upgrade/install

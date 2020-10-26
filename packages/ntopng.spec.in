@@ -169,9 +169,6 @@ esac
 %post
 echo 'Setting up redis auto startup'
 /sbin/chkconfig redis on
-echo 'Creating link under /usr/local/bin'
-if test ! -e /usr/local/bin/ntopng ; then ln -s /usr/bin/ntopng /usr/local/bin/ntopng ; fi
-if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled; fi
 
 if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} != 6
@@ -237,9 +234,4 @@ if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} != 6
   %systemd_postun_with_restart ntopng.service
 %endif
-fi
-
-if [ $1 == 0 ] ; then
-    # Package removal, not upgrade
-    rm -f /usr/local/bin/ntopng > /dev/null 2>&1
 fi

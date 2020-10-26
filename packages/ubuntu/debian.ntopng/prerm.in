@@ -20,7 +20,7 @@ check_upgrade_declined()
 promt_license_expired()
 {
     local NOW=`date +'%s'`
-    local EXPIRY_EPOCH=`/usr/local/bin/@APP@ --check-maintenance | cut -d' ' -f 1`
+    local EXPIRY_EPOCH=`/usr/bin/@APP@ --check-maintenance | cut -d' ' -f 1`
 
     # always re-ask the question
     db_reset ntopng/license_expired_continue_installation || true

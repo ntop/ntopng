@@ -12,7 +12,7 @@ Type=simple
 # ExecStartPre=/bin/sh -c '/usr/bin/ntopng-utils-manage-config -a check-restore  && /usr/bin/ntopng-utils-manage-config -a restore || true'
 ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|^[ ]*--pid.*/s/^/#/" /etc/ntopng/ntopng-%i.conf > /run/ntopng-%i.conf'
 
-ExecStart=/usr/local/bin/ntopng /run/ntopng-%i.conf
+ExecStart=/usr/bin/ntopng /run/ntopng-%i.conf
 
 ExecStopPost=-/bin/rm -rf /run/ntopng-%i.conf /run/ntopng.pid
 

@@ -13,7 +13,7 @@ ExecStartPre=/bin/sh -c '/bin/cat /etc/ntopng/ntopng.conf > /run/ntopng.conf.raw
 ExecStartPre=/bin/sh -c '/bin/cat /etc/ntopng/ntopng.conf.d/*.conf >> /run/ntopng.conf.raw 2>/dev/null || true'
 ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|[ ]*--pid.*/s/^/#/" /run/ntopng.conf.raw > /run/ntopng.conf'
 
-ExecStart=/usr/local/bin/@APP@ /run/ntopng.conf
+ExecStart=/usr/bin/@APP@ /run/ntopng.conf
 
 ExecStopPost=-/bin/rm -rf /run/ntopng.conf /run/ntopng.conf.raw /run/ntopng.pid
 
