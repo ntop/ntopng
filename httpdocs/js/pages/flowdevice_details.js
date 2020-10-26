@@ -93,7 +93,7 @@ $(document).ready(function () {
 	
 	const $flowdeviceTable = $(`table#flowdevice-list`).DataTable(dtConfig);
 	
-	$('[data-notification-id="timeseries"] a.btn').click(function() {
+	$('[data-notification-id="flow_snmp_ratio"] a.btn').click(function() {
 		// Enable SNMP and FlowDevice Timseries
 		NtopUtils.setPref(
 			'flowdevice_timeseries', 

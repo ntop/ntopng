@@ -402,6 +402,8 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
     local snmp_cached_dev = require "snmp_cached_dev"
 
     local flow_device_ip = _GET["ip"]
+    if (isEmptyString(flow_device_ip)) then return end
+
     local cached_device = snmp_cached_dev:create(flow_device_ip)
     local is_ratio_available = snmp_utils.is_snmp_ratio_available(cached_device)
 

@@ -96,7 +96,6 @@ page_utils.menu_entries = {
     -- Exporters
     event_exporters   	 = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},
     sflow_exporters   	 = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "exporters"},
-    -- TODO: add a link to the documentation
     flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters", visible_iface = true, visible_system = false, help_link = "https://www.ntop.org"},
 
     -- Settings

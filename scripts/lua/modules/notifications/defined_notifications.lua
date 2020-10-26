@@ -150,7 +150,7 @@ local defined_notifications = {
         dismissable = true,
         predicate = predicates.exporters_SNMP_ratio_column,
         pages = {pages.flow_exporters.key},
-        subpages = {[pages.flow_exporters.key] = {'flow'}},
+        subpages = EMPTY_PAGES,
         excluded_pages = EMPTY_PAGES,
         excluded_subpages = EMPTY_PAGES
     }
