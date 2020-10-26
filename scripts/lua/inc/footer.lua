@@ -98,10 +98,10 @@ end
 print([[
 	<script type='text/javascript'>
 		$(document).ready(function() {
-			$(`.alert-notification button.dismiss`).click(function() {
-				const action = $(this).data('pref');
-				const $toast = $(this).parents('.alert-notification')
-				NtopUtils.setPref(action, "]].. ntop.getRandomCSRFValue() ..[[", (data) =>{
+			$(`.notification button.dismiss`).click(function() {
+				const $toast = $(this).parents('.notification');
+				const id = $toast.data("notificationId");
+				NotificationUtils.dismissNotification(id, "]].. ntop.getRandomCSRFValue() ..[[", (data) =>{
 					if (data.success) $toast.toast('hide');
 				});
 			});
@@ -155,7 +155,7 @@ print([[
 	<script type="text/javascript">
 
 		$(document).ready(function() {
-			AlertNotificationUtils.initAlerts();
+			NotificationUtils.initAlerts();
 		});
 
 	   const toggleSystemInterface = (isSystemSwitching = false, $form = null) => {

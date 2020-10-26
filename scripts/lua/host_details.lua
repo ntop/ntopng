@@ -31,8 +31,6 @@ local companion_interface_utils = require "companion_interface_utils"
 local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
 local plugins_utils = require "plugins_utils"
-local alert_notification = require("alert_notification")
-local menu_alert_notifications = require("menu_alert_notifications")
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 local host_pools_nedge
@@ -1894,10 +1892,6 @@ elseif(page == "processes") then
    local ebpf_utils = require "ebpf_utils"
    ebpf_utils.draw_processes_graph(host_info)
 elseif page == "geomap" then
-
-   menu_alert_notifications.render_notifications("host-geomap-notifications", {
-      alert_notification:create(0, i18n("warning"), i18n("geo_map.warning_accuracy"), "warning")
-   })
 
    print ([[
       <div class="container-fluid">

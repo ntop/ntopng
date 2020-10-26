@@ -9,10 +9,7 @@ require "lua_utils"
 
 local page_utils = require("page_utils")
 
-local alert_notification = require("alert_notification")
-local menu_alert_notifications = require("menu_alert_notifications")
 sendHTTPContentTypeHeader('text/html')
-
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.geo_map)
 
@@ -24,10 +21,6 @@ local num = hosts_stats["numHosts"]
 hosts_stats = hosts_stats["hosts"]
 
 if (num > 0) then
-
-  menu_alert_notifications.render_notifications("host-geomap-notifications", {
-    alert_notification:create(0, i18n("warning"), i18n("geo_map.warning_accuracy"), "warning")
-  })
 
   print ([[
     <div class="container-fluid">

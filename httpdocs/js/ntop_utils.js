@@ -797,7 +797,7 @@ class NtopUtils {
 					}
 
 					// show a success alert message
-					AlertNotificationUtils.showAlert({
+					NotificationUtils.showAlert({
 						id: 'import-configuration-alert',
 						level: 'success',
 						title: i18n.success,
@@ -879,12 +879,12 @@ class NtopUtils {
 	}
 
 	static setPref(action, csrf, success, failure) {
-		
+
 		if (action == undefined) {
 			console.warn("An action key must be defined to set a preference!");
 			return;
-		} 
-		
+		}
+
 		const empty = () => {};
 		const request = $.post(`${http_prefix}/lua/update_prefs.lua`, {action: action, csrf: csrf});
 		request.done(success || empty);

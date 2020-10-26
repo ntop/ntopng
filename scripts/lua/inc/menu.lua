@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 local alerts_api = require("alerts_api")
@@ -14,7 +15,7 @@ local ts_utils = require("ts_utils_core")
 local blog_utils = require("blog_utils")
 local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
-local menu_alert_notifications = require("menu_alert_notifications")
+local notifications_manager = require("notifications_manager")
 local host_pools = require "host_pools"
 local auth = require "auth"
 local blog_utils = require("blog_utils")
@@ -1169,7 +1170,7 @@ print([[<main id='n-container' class='px-md-4 px-sm-1'>]])
 
 -- ###################################################
 -- Render main alert notifications
-menu_alert_notifications.render_notifications("main-container", menu_alert_notifications.load_main_notifications())
+notifications_manager.render_notifications("main-container", notifications_manager.load_main_notifications())
 -- ###################################################
 
 print("<div class='main-alerts'>")

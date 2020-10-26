@@ -1,5 +1,4 @@
 const alertNotifications = {};
-let alertNotificationUtilsId = 0;
 
 class AlertNotification {
 
@@ -15,7 +14,7 @@ class AlertNotification {
     render() {
 
         const self = this;
-        const $toast = $(`<div class="toast alert-notification" role="alert"></div>`);
+        const $toast = $(`<div class="toast notification" role="alert"></div>`);
 
         // set toast expiracy
         if (this.delay !== 0) {
@@ -55,7 +54,7 @@ class AlertNotification {
         $toast.toast('show');
 
         $toast.on('hidden.bs.toast', function () {
-            AlertNotificationUtils.hideAlert(self.id);
+            NotificationUtils.hideAlert(self.id);
         });
 
         this.$element = $toast;
@@ -76,11 +75,11 @@ class AlertNotification {
 
 }
 
-class AlertNotificationUtils {
+class NotificationUtils {
 
     static initAlerts() {
 
-        $(`.toast.alert-notification`).each(function () {
+        $(`.toast.notification`).each(function () {
 
             const noScope = $(this).data("notificationNoScope");
             const pages = (noScope == "" || noScope == undefined) ? [] : noScope.split(";");
@@ -98,12 +97,12 @@ class AlertNotificationUtils {
     static hideAlert(notificationId) {
 
         if (!notificationId) {
-            console.warn("[AlertNotificationUtils] :: The notification id cannot be null!");
+            console.warn("[NotificationUtils] :: The notification id cannot be null!");
             return;
         }
 
         if (!(notificationId in alertNotifications)) {
-            console.warn("[AlertNotificationUtils] :: The notification hasn't been found!");
+            console.warn("[NotificationUtils] :: The notification hasn't been found!");
             return;
         }
 
@@ -114,7 +113,7 @@ class AlertNotificationUtils {
     static updateNotification(notificationId, body) {
 
         if (!(notificationId in alertNotifications)) {
-            throw '[AlertNotificationUtils] :: The notification was not found!';
+            throw '[NotificationUtils] :: The notification was not found!';
         }
 
         alertNotifications[notificationId].updateBody(body);
@@ -131,10 +130,10 @@ class AlertNotificationUtils {
 
         option.style = styles[option.level] || styles.warning;
 
-        if (option.id === undefined) throw '[AlertNotificationUtils] :: An AlertNotification must have an in id!';
+        if (option.id === undefined) throw '[NotificationUtils] :: An AlertNotification must have an in id!';
         if (option.id in alertNotifications) return;
-        if (option.title === undefined) throw '[AlertNotificationUtils]:: An AlertNotification must have a title!';
-        if (option.body === undefined) throw '[AlertNotificationUtils]:: An AlertNotification must have a body!';
+        if (option.title === undefined) throw '[NotificationUtils]:: An AlertNotification must have a title!';
+        if (option.body === undefined) throw '[NotificationUtils]:: An AlertNotification must have a body!';
 
         const notification = new AlertNotification(option);
         // render the notification inside the main container
@@ -146,13 +145,18 @@ class AlertNotificationUtils {
         return notification;
     }
 
-    static bindClosingEvent() {
+    static dismissNotification(id, csrf, success, failure) {
 
-        // send the notification id to the handler
-        $('.toast.alert-notification[data-notification-id]').on('hidden.bs.toast', function () {
-            $.post(`${http_prefix}/lua/handler_alert_notification.lua`,
-                { notification_id: $(this).data("notificationId"), action: `disposed` });
-        });
-    }
+		if (id == undefined) {
+			console.warn("An notification id must be defined to dismiss a notification!");
+			return;
+		}
+
+		const empty = () => {};
+		const request = $.post(`${http_prefix}/lua/dismiss_notification.lua`, {notification_id: id, csrf: csrf});
+		request.done(success || empty);
+		request.fail(failure || empty);
+	}
+
 
 }

@@ -3809,7 +3809,7 @@ function check_latest_major_release()
    local latest_version = ntop.getCache("ntopng.cache.major_release")
 
    -- tprint(debug.traceback())
-   
+
    if isEmptyString(latest_version) then
      local rsp = ntop.httpGet("https://www.ntop.org/ntopng.version", "", "", 10 --[[ seconds ]])
 
@@ -3902,6 +3902,30 @@ end
 
 -- ###########################################
 
+function table.contains(t, needle, comp)
+
+   if (t == nil) then return false end
+   if (type(t) ~= "table") then return false end
+
+   local default_compare = (function(e) return e == needle end)
+   comp = comp or default_compare
+
+   for _, element in ipairs(t) do
+      if comp(element) then return true end
+   end
+
+   return false
+end
+
+-- ###########################################
+
+function table.insertIfNotPresent(t, element, comp)
+   if table.contains(t, element, comp) then return end
+   t[#t+1] = element
+end
+
+-- ###########################################
+
 function table.has_key(table, key)
    return table[key] ~= nil
 end
@@ -3925,7 +3949,7 @@ function buildHostHREF(ip_address, vlan_id, page)
    else
       local name = stats.name
       local res
-      
+
       if((name == nil) or (name == "")) then name = ip_address end
       res = '<A HREF="'..ntop.getHttpPrefix()..'/lua/host_details.lua?host='..ip_address
       if(vlan_id and (vlan_id ~= 0)) then res = res .. "@"..vlan_id end

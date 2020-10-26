@@ -1349,6 +1349,9 @@ local known_parameters = {
    ["confset_id"]              = validateNumber,
    ["confset_name"]            = validateUnquoted,
 
+-- UI NOTIFICATIONS
+   ["notification_id"]        = validateSingleWord,
+
 -- NOTIFICATIONS ENDPOINT
    ["recipient_name"]         = validateUnquoted,
    ["recipient_id"]           = validateNumber,

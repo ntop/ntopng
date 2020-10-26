@@ -226,7 +226,7 @@ $(document).ready(function() {
         onSubmitSuccess: function (response, dataSent) {
             if (response.success) {
 
-                AlertNotificationUtils.showAlert({
+                NotificationUtils.showAlert({
                     title: i18n.success,
                     body: response.message,
                     level: 'success',
@@ -290,7 +290,7 @@ $(document).ready(function() {
         onSubmitSuccess: function (response, dataSent) {
             if (response.success) {
 
-                AlertNotificationUtils.showAlert({
+                NotificationUtils.showAlert({
                     title: i18n.success,
                     body: response.message,
                     level: 'success',
@@ -323,7 +323,7 @@ $(document).ready(function() {
         onSubmitSuccess: function (response, dataSent) {
             if (response.success) {
                 $(`#am-delete-modal`).modal('hide');
-                AlertNotificationUtils.showAlert({
+                NotificationUtils.showAlert({
                     title: i18n.success,
                     body: response.message,
                     level: 'success',
