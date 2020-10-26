@@ -192,9 +192,9 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       .."'><i class='fas fa-search-plus'></i></A>"
    if(have_nedge) then
       if (value["verdict.pass"]) then
-	 column_key = column_key.." <span title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='badge badge-secondary block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..", "..value["hash_entry_id"]..");' style='cursor: pointer;'", "")).."><i class='fas fa-ban' /></span>"
+	 column_key = column_key.." <span id='"..value["ntopng.key"].."_"..value["hash_entry_id"].."_block' ".."title='"..i18n("flow_details.drop_flow_traffic_btn").."' class='btn btn-sm btn-secondary block-badge' "..(ternary(isAdministrator(), "onclick='block_flow("..value["ntopng.key"]..", "..value["hash_entry_id"]..");' style='cursor: pointer;'", "")).."><i class='fas fa-ban' /></span>"
       else
-	 column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='badge badge-danger block-badge'><i class='fas fa-ban' /></span>"
+	 column_key = column_key.." <span title='"..i18n("flow_details.flow_traffic_is_dropped").."' class='btn btn-sm btn-danger block-badge'><i class='fas fa-ban' /></span>"
       end
    end
    record["column_key"] = column_key

@@ -1413,12 +1413,10 @@ function printBlockFlowJs()
         var data = jQuery.parseJSON(content);
         var row_id = flow_key + "_" + flow_hash_id;
         if (data.status == "BLOCKED") {
-          $('#'+row_id+'_info').find('.block-badge')
+          $('#'+row_id+'_block')
             .removeClass('badge-secondary')
             .addClass('badge-danger')
             .attr('title', ']] print(i18n("flow_details.flow_traffic_is_dropped")) print[[');
-          $('#'+row_id+'_application, #'+row_id+'_l4, #'+row_id+'_client, #'+row_id+'_server')
-            .css("text-decoration", "line-through");
         }
       },
       error: function(content) {
