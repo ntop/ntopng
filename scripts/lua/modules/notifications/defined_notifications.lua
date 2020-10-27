@@ -154,6 +154,7 @@ local defined_notifications = {
         dismissable = true,
         predicate = predicates.DHCP,
         pages = EMPTY_PAGES,
+        subpages = EMPTY_PAGES,
         excluded_pages = {pages.preferences.key},
         excluded_subpages = EMPTY_PAGES
     },
