@@ -11,15 +11,17 @@
           <span id="{{dialog.id}}_more_content"></span>
         </div>
       </div>
+      {% if dialog.no_footer then %}
+        {# empty #}
+      {% else %}
       <div class="modal-footer">
         {% if dialog.action ~= nil then %}
           <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
-        {% elseif dialog.no_footer then %}
-          {# empty #}
         {% else %}
           <button id="btn-confirm-action" type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
         {% end %}
       </div>
+      {% end %}
     </div>
   </div>
 </div>
