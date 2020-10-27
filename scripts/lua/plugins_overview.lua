@@ -23,8 +23,6 @@ local edition = _GET["edition"] or ""
 -- #######################################################
 
 if(isAdministrator() and (_POST["action"] == "reload")) then
-  local plugins_utils = require("plugins_utils")
-
   plugins_utils.loadPlugins()
   user_scripts.loadDefaultConfig()
 end

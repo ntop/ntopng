@@ -264,6 +264,13 @@ end
 -- ##############################################
 
 local function load_plugin_alert_definitions(plugin)
+  -- Reset all the possibly existing (and loaded) definitions
+  -- as new alert definitions are being loaded
+  local alert_consts = require "alert_consts"
+  alert_consts.resetDefinitions()
+
+  -- Now that existing alert definitions are clean, new alert definitions
+  -- can safely be loaded
   local alert_definitions = RUNTIME_PATHS.alert_definitions
 
   return load_definitions(os_utils.fixPath(plugin.path .. "/alert_definitions"), alert_definitions)
@@ -272,6 +279,15 @@ end
 -- ##############################################
 
 local function load_plugin_flow_status_definitions(plugin)
+  -- Reset all the possibly existing (and loaded) flow statuses.
+  -- This is necessary to forcefully re-execute `require`s during
+  -- the load of new flows statuses which is being performed
+  local flow_consts = require "flow_consts"
+  flow_consts.resetDefinitions()
+
+
+  -- Now that existing flow statuses have been cleaned, it is
+  -- safe to load new ones
   local status_definitions
 
   if(plugin.edition == "community") then
@@ -566,6 +582,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
   for _, plugin in ipairs(plugins) do
      load_plugin_alert_definitions(plugin)
   end
+
   -- Make sure to invalidate the (possibly) already required alert_consts which depends on alert definitions.
   -- By invalidating the module, we make sure all the newly loaded alert definitions will be picked up by any
   -- subsequent `require "alert_consts"`
@@ -769,8 +786,7 @@ function plugins_utils.hasAlerts(ifid, options)
 
   rv = (areAlertsEnabled() and
     (alert_utils.hasAlerts("historical", alert_utils.getTabParameters(opts, "historical")) or
-     alert_utils.hasAlerts("engaged", alert_utils.getTabParameters(opts, "engaged"))))
-
+	alert_utils.hasAlerts("engaged", alert_utils.getTabParameters(opts, "engaged"))))
   interface.select(old_iface)
   return(rv)
 end
