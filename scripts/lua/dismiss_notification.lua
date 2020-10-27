@@ -22,7 +22,7 @@ if isEmptyString(notification_id) then
 end
 
 -- try to dismiss the notification
-local success, message = notification_manager.dismiss_notification(notification_id)
+local success, message = notification_manager.dismiss_notification(tonumber(notification_id))
 result.success = success
 
 if not success then

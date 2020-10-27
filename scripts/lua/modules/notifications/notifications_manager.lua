@@ -11,7 +11,7 @@ local template = require("template_utils")
 local defined_notifications = require("defined_notifications")
 
 -- Redis Key used to store the notification status
-local REDIS_KEY = "ntopng.user.%s.dismissised_notices.notification_%s"
+local REDIS_KEY = "ntopng.user.%s.dismissised_notices.notification_%d"
 local notifications_manager = {}
 
 local function notification_has_been_dismissed(notification_id)

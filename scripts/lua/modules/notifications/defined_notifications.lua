@@ -42,95 +42,106 @@ local pages = page_utils.menu_entries
 
 local defined_notifications = {
     {
-        id = "contribute",
+        id = 0,
         dismissable = true,
         predicate = predicates.contribute,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = {pages.preferences.key}
+        excluded_pages = {pages.preferences.key},
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "about_page",
+        id = 1,
         dismissable = false,
         predicate = predicates.about_page,
         pages = {pages.about.key},
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "hosts_geomap",
+        id = 2,
         dismissable = true,
         predicate = predicates.hosts_geomap,
         pages = {pages.geo_map.key},
         subpages = { [pages.hosts.key] = {'geomap'} },
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "restart_required",
+        id = 3,
         dismissable = false,
         predicate = predicates.restart_required,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "flow_dump",
+        id = 4,
         dismissable = false,
         predicate = predicates.flow_dump,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "remote_probe_clock_drift",
+        id = 5,
         dismissable = false,
         predicate = predicates.remote_probe_clock_drift,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "temp_working_dir",
+        id = 6,
         dismissable = true,
         predicate = predicates.temp_working_dir,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "geo_ip",
+        id = 7,
         dismissable = true,
         predicate = predicates.geo_ip,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "update_ntopng",
+        id = 8,
         dismissable = false,
         predicate = predicates.update_ntopng,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "too_many_hosts",
+        id = 9,
         dismissable = false,
         predicate = predicates.too_many_hosts,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "too_many_flows",
+        id = 10,
         dismissable = false,
         predicate = predicates.too_many_flows,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "DHCP_range",
+        id = 11,
         dismissable = true,
         predicate = predicates.DHCP,
         pages = {pages.interfaces_status.key},
@@ -139,14 +150,15 @@ local defined_notifications = {
         excluded_subpages = {[pages.interfaces_status.key] = {'dhcp', 'config'}}
     },
     {
-        id = "DHCP_monitoring",
+        id = 12,
         dismissable = true,
         predicate = predicates.DHCP,
         pages = EMPTY_PAGES,
         excluded_pages = {pages.preferences.key},
+        excluded_subpages = EMPTY_PAGES
     },
     {
-        id = "flow_snmp_ratio",
+        id = 13,
         dismissable = true,
         predicate = predicates.exporters_SNMP_ratio_column,
         pages = {pages.flow_exporters.key},
