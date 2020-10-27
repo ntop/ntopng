@@ -13,6 +13,9 @@ Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtoo
 # Disable shared libs dependency check (needed by FPGA libs)
 AutoReqProv: no
 
+# Make sure .build-id is not part of the package
+%define _build_id_links none
+
 %description
 ntopng high-speed web-based traffic monitoring and analysis tool (libpcap)
 Web-based traffic monitoring

@@ -11,6 +11,9 @@ BuildArch: noarch
 # Temporary location where the RPM will be built
 BuildRoot:  %{_tmppath}/%{name}-%{version}-root
 
+# Make sure .build-id is not part of the package
+%define _build_id_links none
+
 %description
 Geolocation databases for ntopng and other ntop software packaged from https://db-ip.com
 
