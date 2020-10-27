@@ -1860,8 +1860,8 @@ static int ntop_http_post(lua_State* vm) {
   if(lua_type(vm, 7) == LUA_TBOOLEAN) /* Optional */
     use_cookie_authentication = lua_toboolean(vm, 7) ? true : false;
 
-  Utils::httpGetPost(vm, url, username, password, timeout, return_content,
-		     use_cookie_authentication, &stats, form_data, NULL, true, 0);
+  lua_pushboolean(vm, Utils::httpGetPost(vm, url, username, password, timeout, return_content,
+					 use_cookie_authentication, &stats, form_data, NULL, true, 0));
 
   return(CONST_LUA_OK);
 }
