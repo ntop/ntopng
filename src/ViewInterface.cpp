@@ -149,7 +149,8 @@ bool ViewInterface::addSubinterface(NetworkInterface *what) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Interface already belonging to a view [%s][%d]", what->get_name(), what->get_id());
       return(false);
     } else {
-      char buf[MAX_INTERFACE_NAME_LEN + strlen("viewed_") + 1];
+      char buf[MAX_INTERFACE_NAME_LEN + 7 /* strlen("viewed_") */ + 1];
+
       snprintf(buf, sizeof(buf), "viewed_%s", what->get_name());
       what->setViewed(this, num_viewed_interfaces);
       viewed_interfaces[num_viewed_interfaces] = what;

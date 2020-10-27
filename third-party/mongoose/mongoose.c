@@ -1077,6 +1077,15 @@ static void send_http_error(struct mg_connection *conn, int status,
   return PulseEvent(cv->broadcast) == 0 ? -1 : 0;
 }
 
+/* static */int pthread_cond_timedwait(pthread_cond_t* cv, pthread_mutex_t* mutex, const struct timespec* abstime) {
+    HANDLE handles[] = { cv->signal, cv->broadcast };
+    DWORD msec = abstime->tv_sec * 1000 + abstime->tv_sec / 1000;
+
+    ReleaseMutex(*mutex);
+    WaitForMultipleObjects(2, handles, FALSE, msec);
+    return WaitForSingleObject(*mutex, msec) == WAIT_OBJECT_0 ? 0 : -1;
+}
+
 /* static */int pthread_cond_destroy(pthread_cond_t *cv) {
   return CloseHandle(cv->signal) && CloseHandle(cv->broadcast) ? 0 : -1;
 }

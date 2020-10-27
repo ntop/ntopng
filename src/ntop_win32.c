@@ -140,6 +140,16 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
 }
 #endif
 
+#if 0
+/* static */int pthread_cond_timedwait(pthread_cond_t* cv, pthread_mutex_t* mutex, const struct timespec* abstime) {
+	HANDLE handles[] = { cv->signal, cv->broadcast };
+	DWORD msec = abstime->tv_sec * 1000 + abstime->tv_sec / 1000;
+
+	ReleaseMutex(*mutex);
+	WaitForMultipleObjects(2, handles, FALSE, msec);
+	return WaitForSingleObject(*mutex, msec) == WAIT_OBJECT_0 ? 0 : -1;
+}
+#endif
 /* ************************************ */
 
 unsigned long waitForNextEvent(unsigned long ulDelay /* ms */) {

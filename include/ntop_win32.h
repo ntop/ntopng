@@ -86,6 +86,7 @@ extern int pthread_mutex_init(pthread_mutex_t *mutex, void *unused);
 extern void pthread_mutex_destroy(pthread_mutex_t *mutex);
 extern int pthread_cond_init(pthread_cond_t *cv, const void *unused);
 extern int pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex);
+extern int pthread_cond_timedwait(pthread_cond_t* cv, pthread_mutex_t* mutex, const struct timespec* abstime);
 extern int pthread_cond_signal(pthread_cond_t *cv);
 extern int pthread_cond_broadcast(pthread_cond_t *cv);
 extern int pthread_cond_destroy(pthread_cond_t *cv);
