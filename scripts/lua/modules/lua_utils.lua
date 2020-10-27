@@ -2,6 +2,17 @@
 -- (C) 2014-20 - ntop.org
 --
 
+-- Hack to avoid include loops
+
+if(pragma_once_lua_utils == true) then
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_lua_utils = true
+
+-- ###############################################
+
 dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
