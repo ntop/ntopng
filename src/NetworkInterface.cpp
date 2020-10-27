@@ -2306,7 +2306,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
   if(companionQueue) {
     ParsedFlow *dequeued = NULL;
 
-    if(dequeueFlowFromCompanion(&dequeued)) {
+    while(dequeueFlowFromCompanion(&dequeued)) {
       Flow *flow = NULL;
       bool src2dst_direction, new_flow;
 
