@@ -23,7 +23,7 @@ function PieChart(name, update_url, url_params, units, refresh) {
   this.refresh = refresh;
   this.pieInterval;
 
-    var pieData = [];    
+    var pieData = [];
     var oldPieData = [];
     var filteredPieData = [];
     var rsp = create_pie_chart(name, units);
@@ -39,7 +39,7 @@ function PieChart(name, update_url, url_params, units, refresh) {
     var r = rsp[9];
     var textOffset = rsp[10];
 
-    
+
     // to run each time data is generated
 
     this.update = function() {
@@ -55,7 +55,7 @@ function PieChart(name, update_url, url_params, units, refresh) {
 		if(typeof(content) == "object")
 		    parsed_content = content;
 		else if(typeof(content) == "string")
-		    parsed_content = jQuery.parseJSON(content);
+			parsed_content = jQuery.parseJSON(content);
 
 		if(parsed_content)
  		    update_pie_chart(parsed_content);
@@ -101,7 +101,7 @@ function PieChart(name, update_url, url_params, units, refresh) {
 	    totalOctets += element.value;
 	    return (element.value > 0);
 	}
-  
+
 	if((filteredPieData.length > 0) && (oldPieData.length > 0)) {
 	    //REMOVE PLACEHOLDER CIRCLE
 	    arc_group.selectAll("circle").remove();
@@ -245,7 +245,7 @@ function PieChart(name, update_url, url_params, units, refresh) {
 	    nameLabels.transition().duration(tweenDuration).attrTween("transform", textTween);
 
 	    nameLabels.exit().remove();
-	}  
+	}
     }
 
     ///////////////////////////////////////////////////////////
@@ -380,7 +380,7 @@ function create_pie_chart(name, units) {
     var vis = d3.select(name).append("svg:svg")
 	.attr("width", w)
 	.attr("height", h)
-	.attr("viewBox","0 0 " + w + " " + h) 
+	.attr("viewBox","0 0 " + w + " " + h)
 	.attr("preserveAspectRatio","xMidYMid");
 
     //GROUP FOR ARCS/PATHS
@@ -393,7 +393,7 @@ function create_pie_chart(name, units) {
 	.attr("class", "label_group")
 	.attr("transform", "translate(" + (w/2) + "," + (h/2) + ")");
 
-    //GROUP FOR CENTER TEXT  
+    //GROUP FOR CENTER TEXT
     var center_group = vis.append("svg:g")
 	.attr("class", "center_group")
 	.attr("transform", "translate(" + (w/2) + "," + (h/2) + ")");

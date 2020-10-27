@@ -6,7 +6,8 @@
 <div class='my-3'></div>
 <script type='text/javascript'>
 window.onload = () => {
+   //interface.getStats()
    let refresh = 3000 /* ms */;
-   do_pie("#topApplicationProtocols", '@HTTP_PREFIX@/lua/iface_ndpi_stats.lua', { ndpistats_mode: "sinceStartup" }, "", refresh);
+   do_pie("#topApplicationProtocols", '@HTTP_PREFIX@/lua/rest/v1/get/interface/l7/stats.lua', { ndpistats_mode: "sinceStartup", ifid: interfaceID}, "", refresh);
 }
 </script>
