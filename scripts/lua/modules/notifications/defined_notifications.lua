@@ -166,6 +166,15 @@ local defined_notifications = {
         subpages = EMPTY_PAGES,
         excluded_pages = EMPTY_PAGES,
         excluded_subpages = EMPTY_PAGES
+    },
+    {
+        id = 14,
+        dismissable = false,
+        predicate = predicates.forced_community,
+        pages = {pages.about.key},
+        subpages = EMPTY_PAGES,
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
     }
 }
 

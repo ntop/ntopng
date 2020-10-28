@@ -82,6 +82,17 @@ local function create_contribute_notification_ui(notification)
     return notification_ui:create(notification.id, title, description, NotificationLevels.INFO, action, notification.dismissable)
 end
 
+
+-- ###############################################################
+
+local function create_forced_community_notification(notification)
+
+    local title = i18n("about.licence")
+    local description = i18n("about.forced_community_notification")
+
+    return notification_ui:create(notification.id, title, description, NotificationLevels.INFO, nil --[[ no action --]], notification.dismissable)
+end
+
 -- ###############################################################
 
 local function create_tempdir_notification_ui(notification)
@@ -452,6 +463,17 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
 
    table.insert(container, notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable))
 
+end
+
+-- ###############################################
+
+--- Create an instance for forced community notification
+--- @param notification table The notification is the logic model defined in defined_notifications
+--- @param container table Is the table where to put the new notification ui
+function predicates.forced_community(notification, container)
+   if ntop.getInfo()["pro.forced_community"] then
+        table.insert(container, create_forced_community_notification(notification))
+    end
 end
 
 -- ###############################################
