@@ -2103,7 +2103,7 @@ local lang = {
     ["note_working_internet_connection"] = "Have a working Internet connection.",
     ["unavailable_geolocation"] = "Geolocation not supported by your browser or disabled.",
     ["using_default_location"] = "Using default location.",
-    ["warning_accuracy"] = "Be aware that hosts might be misplaced as geolocation accuracy is set by the GeoIP database type.",
+    ["warning_accuracy"] = "Geolocation accuracy depends on the geolocation database and may be approximated.",
   },
   ["graphs"] = {
     ["95_perc"] = "95th Perc",
