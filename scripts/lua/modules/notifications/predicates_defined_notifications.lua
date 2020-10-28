@@ -416,6 +416,7 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
     if (isEmptyString(flow_device_ip)) then return end
 
     local cached_device = snmp_cached_dev:create(flow_device_ip)
+    tprint(cached_device)
     local is_ratio_available = snmp_utils.is_snmp_ratio_available(cached_device)
 
     if (is_ratio_available) then return end
@@ -442,22 +443,13 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
 
     elseif not flow_dev_creation or not snmp_dev_creation then
 
-        -- Are flow device and SNMP timeseries both disabled?
-        local both_disabled = (not snmp_dev_creation and not flow_dev_creation)
-
-        -- Build the message to show
-        local message_timeseries = i18n("flow_devices.flow_ratio_timeseries_instructions", {
-            enable = ternary(
-                both_disabled,
-                i18n("flow_devices.snmp_flow_to_enable"),
-                ternary(not snmp_dev_creation, i18n("flow_devices.snmp_to_enable"), i18n("flow_devices.flow_to_enable"))
-            )
-        })
+       -- Build the message to show
+       local message_timeseries = i18n("flow_devices.flow_ratio_timeseries_instructions")
 
         body = message_timeseries
         action = {
             url = '#',
-            title = ternary(both_disabled, i18n("enable_them"), i18n("enable_it"))
+            title = i18n("enable_them"),
         }
    end
 
