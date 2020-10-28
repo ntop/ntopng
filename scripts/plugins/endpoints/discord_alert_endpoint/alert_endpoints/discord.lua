@@ -91,8 +91,9 @@ function discord.sendMessage(message_body, settings)
       }
 
       local msg = json.encode(message)
+      local post_rc = ntop.httpPost(settings.url, msg)
 
-      if ntop.httpPost(settings.url, msg) then 
+      if(post_rc and (post_rc.RESPONSE_CODE == 204)) then 
 	 rc = true
 	 break 
       end
