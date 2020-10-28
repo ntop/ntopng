@@ -36,6 +36,9 @@ else
    interface.select(ifname)
 end
 
+-- trim right spaces
+query = string.rtrim(query)
+
 local ifid = interface.getId()
 
 if not hosts_only then
@@ -119,7 +122,7 @@ if not hosts_only then
          results[#results + 1] = {
             type = "snmp",
 	    name = matching_mac .. ' '..title,
-	    ip = snmp_device_ip, 
+	    ip = snmp_device_ip,
             snmp_port_idx = snmp_port_idx
          }
          cur_results = cur_results + 1
@@ -147,7 +150,7 @@ if not hosts_only then
          results[#results + 1] = {
             type = "snmp",
 	    name = title,
-	    ip = snmp_device_ip, 
+	    ip = snmp_device_ip,
             snmp_port_idx = snmp_port_idx
          }
          cur_results = cur_results + 1
@@ -168,7 +171,7 @@ if not hosts_only then
          local title = snmp_utils.get_snmp_device_label(snmp_device["ip"])
          results[#results + 1] = {
             type = "snmp_device",
-	    name = title.." ["..i18n("snmp.snmp_device").."]", 
+	    name = title.." ["..i18n("snmp.snmp_device").."]",
 	    ip = snmp_device["ip"]
          }
          cur_results = cur_results + 1
