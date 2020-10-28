@@ -36,9 +36,6 @@ else
    interface.select(ifname)
 end
 
--- trim right spaces
-query = string.rtrim(query)
-
 local ifid = interface.getId()
 
 if not hosts_only then
