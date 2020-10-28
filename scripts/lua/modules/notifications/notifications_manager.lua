@@ -52,7 +52,7 @@ function notifications_manager.load_main_notifications()
         -- check if we can add the notification inside the page
         local subpages = notification.subpages or {[current_page] = {}}
         local can_add = (table.len(notification.pages) == 0) or (
-            table.contains(notification.pages, current_page)) or (table.contains(subpages, curent_subpage))
+            table.contains(notification.pages, current_page)) or (table.contains(subpages[current_page], curent_subpage))
 
         if can_add then
             -- check the predicate function
@@ -62,6 +62,7 @@ function notifications_manager.load_main_notifications()
         -- used to jump to the next notification
         ::continue::
     end
+
 
     return container
 end
