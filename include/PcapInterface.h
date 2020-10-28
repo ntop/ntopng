@@ -34,10 +34,13 @@ class PcapInterface : public NetworkInterface {
   pcap_stat last_pcap_stat;
   u_int32_t getNumDroppedPackets();
   void cleanupPcapDumpDir();
+
   virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
 			   u_int32_t num_bytes, u_int pkt_overhead) {
-    if (!emulate_traffic_directions)
-      ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
+    if(!emulate_traffic_directions)
+      ethStats.incStats(ingressPacket, num_pkts, num_bytes, pkt_overhead);
+
+    ethStats.incProtoStats(proto, num_pkts, num_bytes);
   };
 
  public:
