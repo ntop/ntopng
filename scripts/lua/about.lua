@@ -202,7 +202,7 @@ print [[ <br><small>]] print(i18n("about.maxmind", {maxmind_url="http://www.maxm
 
 print("</td></tr>\n")
 end
-print("<tr><th><a href=\"http://www.d3js.org\" target=\"_blank\">Data-Driven Documents (d3js)</A></th><td colspan=2>2.9.1 / 3.0</td></tr>\n")
+print("<tr><th><a href=\"http://d3js.org\" target=\"_blank\">Data-Driven Documents (d3js)</A></th><td colspan=2>2.9.1 / 3.0</td></tr>\n")
 
 
 

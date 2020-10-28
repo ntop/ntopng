@@ -74,7 +74,7 @@ function telemetry_utils.print_overview()
 ]]
 
    print[[<tr><th>]] print(i18n("telemetry_page.telemetry_data")) print [[</th><td>
-<b>]] print(i18n("telemetry_page.crash_report")) print[[</b>. ]] print(i18n("telemetry_page.crash_report_descr", {product=ntop.getInfo()["product"]})) print [[<br><code>{"entity_type":1,"type":20,"when":1558634220,"entity_value":"ntopng","message":"Started after anomalous termination (<a href=\"https://www.ntop.org/support/need-help-2/need-help/\">bug report</a>) ]] print(info.product) print[[ v.]] print(info.version) print[[ (]] print(info.OS) print[[[pid: 28775][options: --interface \"tcp://*:1234c\" --interface \"eno1\" --interface \"view:tcp://*:1234c,eno1\" --local-networks \"192.168.2.0/24\" --disable-login \"1\" ]","severity":2}</code>
+<b>]] print(i18n("telemetry_page.crash_report")) print[[</b>. ]] print(i18n("telemetry_page.crash_report_descr", {product=ntop.getInfo()["product"]})) print [[<br><code>{"entity_type":1,"type":20,"when":1558634220,"entity_value":"ntopng","message":"Started after anomalous termination. ]] print(info.product) print[[ v.]] print(info.version) print[[ (]] print(info.OS) print[[[pid: 28775][options: --interface \"tcp://*:1234c\" --interface \"eno1\" --interface \"view:tcp://*:1234c,eno1\" --local-networks \"192.168.2.0/24\" --disable-login \"1\" ]","severity":2}</code>
 </td></tr>
 ]]
 
