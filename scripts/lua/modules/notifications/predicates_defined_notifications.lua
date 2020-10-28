@@ -100,7 +100,8 @@ local function create_tempdir_notification_ui(notification)
     local title = i18n("warning")
     local description = i18n("about.datadir_warning")
     local action = {
-        url = "https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/"
+        url = "https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/",
+        title = i18n("details.details")
     }
 
     return notification_ui:create(notification.id, title, description, NotificationLevels.WARNING, action, notification.dismissable)
