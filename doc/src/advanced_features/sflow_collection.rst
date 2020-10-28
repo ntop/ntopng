@@ -63,6 +63,22 @@ For each interface, ntopng shows the following information:
   - :code:`In Bytes`: ingress bytes counter of the interface
   - :code:`Out Bytes`: egress bytes counter of the interface
   - :code:`In Errors`: ingress errors packets counter of the interface
-  - :code:`Out Errors`: egress errors packets counter of the interface
+  - :code:`Out Errors`: ingress errors packets counter of the interface
+  - :code:`Counters/SNMP Ratio`: the ratio between the sFlow counters by the total traffic read via SNMP
+
+NetFlow Devices
+---------------
+
+How the Flow/SNMP Ratio is calculated?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :code:`Flow/SNMP` Ratio column is calculated by dividing the total interface traffic obtained using flows,
+by the total traffic of the same interface read via SNMP. As in flow-based analysis non-IP and layer 2 headers are not accounted,
+typical ratio values are between 0.8 and 0.9 (i.e. 0.9 means that 90%% of the received traffic as observed via SNMP has been reported in flows).
+Ratio is computed using the traffic over the latest 5 minutes, as periodic SNMP walks are performed at 5-minute intervals.
+Ratio is only computed when the following conditions are met:
+
+- Flow Device and SNMP timeseries are enabled
+- The device selected must support SNMP and must be configured in the SNMP devices page
 
 .. _`SNMP device`: ../active_monitoring/snmp.html
