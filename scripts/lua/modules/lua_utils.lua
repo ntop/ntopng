@@ -2285,6 +2285,11 @@ function getHumanReadableInterfaceName(interface_name)
    elseif tonumber(interface_name) ~= nil then
       -- convert ID to name
       interface_name = getInterfaceName(interface_name)
+   else
+      -- Parameter is a string, let's take it's id first
+      local interface_id = getInterfaceId(interface_name)
+      -- and then get the name
+      interface_name = getInterfaceName(interface_id)
    end
 
    local key = 'ntopng.prefs.'..interface_name..'.name'
