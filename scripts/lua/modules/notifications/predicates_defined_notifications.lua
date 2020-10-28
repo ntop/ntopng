@@ -409,6 +409,8 @@ end
 --- @param container table Is the table where to put the new notification ui
 function predicates.exporters_SNMP_ratio_column(notification, container)
 
+    if not ntop.isPro() then return end
+
     local snmp_utils = require "snmp_utils"
     local snmp_cached_dev = require "snmp_cached_dev"
 
@@ -416,13 +418,13 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
     if (isEmptyString(flow_device_ip)) then return end
 
     local cached_device = snmp_cached_dev:create(flow_device_ip)
-    tprint(cached_device)
+
     local is_ratio_available = snmp_utils.is_snmp_ratio_available(cached_device)
 
     if (is_ratio_available) then return end
 
     local title = i18n("flow_devices.enable_flow_ratio")
-    local body = ""
+    local body
     local action = nil
 
     -- Did the user add the device to the SNMP overview page?
@@ -433,7 +435,6 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
     local flow_dev_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1"
 
     if not device_exists then
-
         -- Build the message to show
         local message_snmp = i18n("flow_devices.flow_ratio_snmp_instructions", {
             href = ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmpdevices_stats.lua"
@@ -442,7 +443,6 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
         body = message_snmp
 
     elseif not flow_dev_creation or not snmp_dev_creation then
-
        -- Build the message to show
        local message_timeseries = i18n("flow_devices.flow_ratio_timeseries_instructions")
 
@@ -453,7 +453,9 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
         }
    end
 
-   table.insert(container, notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable))
+    if body then
+       table.insert(container, notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable))
+    end
 
 end
 
