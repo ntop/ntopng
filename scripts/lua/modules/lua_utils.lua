@@ -41,12 +41,12 @@ bitsToSizeMultiplier = format_utils.bitsToSizeMultiplier
 -- ##############################################
 
 -- Note: Regexs are applied by default. Pass plain=true to disable them.
-function string.contains(String,Start,plain)
-   if type(String) ~= 'string' or type(Start) ~= 'string' then
+function string.contains(str, start, is_plain)
+   if type(str) ~= 'string' or type(start) ~= 'string' then
       return false
    end
 
-   local i,j = string.find(String, Start, 1, plain)
+   local i, _ = string.find(str, start, 1, is_plain)
 
    return(i ~= nil)
 end
