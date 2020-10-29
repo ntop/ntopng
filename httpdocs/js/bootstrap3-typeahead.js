@@ -161,6 +161,9 @@
         this.query = this.$element.val() || this.$element.text() || '';
       }
 
+      // trim spaces
+      this.query.trim();
+
       if (this.query.length < this.options.minLength && !this.options.showHintOnFocus) {
         return this.shown ? this.hide() : this;
       }
@@ -211,7 +214,7 @@
 
     matcher: function (item) {
       var it = this.displayText(item);
-      return ~it.toLowerCase().indexOf(this.query.toLowerCase());
+      return ~it.toLowerCase().indexOf(this.query.trim().toLowerCase());
     },
 
     sorter: function (items) {
@@ -232,7 +235,7 @@
 
     highlighter: function (item) {
       var html = $('<div></div>');
-      var query = this.query;
+      var query = this.query.trim();
       var i = item.toLowerCase().indexOf(query.toLowerCase());
       var len = query.length;
       var leftPart;

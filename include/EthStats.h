@@ -40,8 +40,10 @@ class EthStats {
 
   void lua(lua_State *vm);
   void updateStats(const struct timeval *tv);
-  void incStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
+  void incStats(bool ingressPacket, u_int32_t num_pkts,
 		u_int32_t num_bytes, u_int pkt_overhead);
+  void incProtoStats(u_int16_t proto, u_int32_t num_pkts,
+		     u_int32_t num_bytes);
 
   inline void setNumPackets(bool ingressPacket, u_int64_t v) { 
     if(ingressPacket) rawIngress.setPkts(v); else rawEgress.setPkts(v);   

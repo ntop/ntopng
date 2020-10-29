@@ -100,7 +100,8 @@ local function create_tempdir_notification_ui(notification)
     local title = i18n("warning")
     local description = i18n("about.datadir_warning")
     local action = {
-        url = "https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/"
+        url = "https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/",
+        title = i18n("details.details")
     }
 
     return notification_ui:create(notification.id, title, description, NotificationLevels.WARNING, action, notification.dismissable)
@@ -409,6 +410,8 @@ end
 --- @param container table Is the table where to put the new notification ui
 function predicates.exporters_SNMP_ratio_column(notification, container)
 
+    if not ntop.isPro() then return end
+
     local snmp_utils = require "snmp_utils"
     local snmp_cached_dev = require "snmp_cached_dev"
 
@@ -416,12 +419,13 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
     if (isEmptyString(flow_device_ip)) then return end
 
     local cached_device = snmp_cached_dev:create(flow_device_ip)
+
     local is_ratio_available = snmp_utils.is_snmp_ratio_available(cached_device)
 
     if (is_ratio_available) then return end
 
     local title = i18n("flow_devices.enable_flow_ratio")
-    local body = ""
+    local body
     local action = nil
 
     -- Did the user add the device to the SNMP overview page?
@@ -432,7 +436,6 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
     local flow_dev_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1"
 
     if not device_exists then
-
         -- Build the message to show
         local message_snmp = i18n("flow_devices.flow_ratio_snmp_instructions", {
             href = ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmpdevices_stats.lua"
@@ -441,27 +444,19 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
         body = message_snmp
 
     elseif not flow_dev_creation or not snmp_dev_creation then
-
-        -- Are flow device and SNMP timeseries both disabled?
-        local both_disabled = (not snmp_dev_creation and not flow_dev_creation)
-
-        -- Build the message to show
-        local message_timeseries = i18n("flow_devices.flow_ratio_timeseries_instructions", {
-            enable = ternary(
-                both_disabled,
-                i18n("flow_devices.snmp_flow_to_enable"),
-                ternary(not snmp_dev_creation, i18n("flow_devices.snmp_to_enable"), i18n("flow_devices.flow_to_enable"))
-            )
-        })
+       -- Build the message to show
+       local message_timeseries = i18n("flow_devices.flow_ratio_timeseries_instructions")
 
         body = message_timeseries
         action = {
             url = '#',
-            title = ternary(both_disabled, i18n("enable_them"), i18n("enable_it"))
+            title = i18n("enable_them"),
         }
    end
 
-   table.insert(container, notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable))
+    if body then
+       table.insert(container, notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable))
+    end
 
 end
 

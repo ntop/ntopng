@@ -211,7 +211,7 @@ function run_upgrade() {
 		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Install
-		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated ${PRODUCT}
+		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated --with-new-pkgs ${PRODUCT}
 		RESULT=$?
 
 		# Check if installation is successful (we do not trust $?)
@@ -273,7 +273,7 @@ function check_updates() {
 			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "update-failure" >/dev/null 2>&1 
 		else
 			# Check update and get version
-			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
+			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes --with-new-pkgs upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
 			RESULT=0
 		fi
 	else

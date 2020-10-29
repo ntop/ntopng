@@ -30,13 +30,18 @@ EthStats::EthStats() {
 /* *************************************** */
 
 void EthStats::incStats(bool ingressPacket,
-			u_int16_t proto, u_int32_t num_pkts,
+			u_int32_t num_pkts,
 			u_int32_t num_bytes, u_int pkt_overhead) {
   if(ingressPacket)
     rawIngress.inc(num_pkts, num_bytes+pkt_overhead*num_pkts);
   else
     rawEgress.inc(num_pkts, num_bytes+pkt_overhead*num_pkts);
+};
 
+/* *************************************** */
+
+void EthStats::incProtoStats(u_int16_t proto,
+			     u_int32_t num_pkts, u_int32_t num_bytes) {
   switch(proto) {
   case ETHERTYPE_ARP:
     eth_ARP.inc(num_pkts, num_bytes);

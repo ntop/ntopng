@@ -297,7 +297,8 @@ class NetworkInterface : public AlertableEntity {
   bool getInterfaceBooleanPref(const char *pref_key, bool default_pref_value) const;
   virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
 			   u_int32_t num_bytes, u_int pkt_overhead) {
-    ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
+    ethStats.incStats(ingressPacket, num_pkts, num_bytes, pkt_overhead);
+    ethStats.incProtoStats(proto, num_pkts, num_bytes);
   };
 
   /*

@@ -43,7 +43,7 @@ local pages = page_utils.menu_entries
 local defined_notifications = {
     {
         id = 0,
-        dismissable = true,
+        dismissable = false,
         predicate = predicates.contribute,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -97,7 +97,7 @@ local defined_notifications = {
     },
     {
         id = 6,
-        dismissable = true,
+        dismissable = false,
         predicate = predicates.temp_working_dir,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -106,7 +106,7 @@ local defined_notifications = {
     },
     {
         id = 7,
-        dismissable = true,
+        dismissable = false,
         predicate = predicates.geo_ip,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
