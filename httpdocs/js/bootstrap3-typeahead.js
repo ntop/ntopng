@@ -216,7 +216,9 @@
 
     matcher: function (item) {
       var text = this.displayText(item);
-      // trim the final trailing spaces
+      // trim the final trailing spaces inside the query because the text variable
+      // doesn't contain the query substring with trailing spaces
+      // example: query=`AA:    ` it's not contained inside text=`AA:`
       return ~text.toLowerCase().indexOf(this.query.trimEnd().toLowerCase());
     },
 
