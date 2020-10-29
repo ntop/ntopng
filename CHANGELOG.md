@@ -49,6 +49,7 @@
 * Fixes CSRF vulnerabilities when POSTing JSON
 * Fixes heap-use-after-free on HTTP dissected last_url
 
+----------------------------------------------------------------
 
 #### ntopng 4.0 (March 2020)
 
@@ -125,8 +126,6 @@
 * Fixed nIndex missing data while performing some queries and throughput calculation
 
 ----------------------------------------------------------------
-
-## New features
 
 #### ntopng 3.8 (December 2018)
 
