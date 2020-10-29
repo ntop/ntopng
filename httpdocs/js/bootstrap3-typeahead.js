@@ -216,7 +216,8 @@
 
     matcher: function (item) {
       var text = this.displayText(item);
-      return ~text.toLowerCase().indexOf(this.query.toLowerCase());
+      // trim the final trailing spaces
+      return ~text.toLowerCase().indexOf(this.query.trimEnd().toLowerCase());
     },
 
     sorter: function (items) {
