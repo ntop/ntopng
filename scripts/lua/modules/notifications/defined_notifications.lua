@@ -106,7 +106,7 @@ local defined_notifications = {
     },
     {
         id = 7,
-        dismissable = false,
+        dismissable = true,
         predicate = predicates.geo_ip,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
