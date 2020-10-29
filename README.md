@@ -17,7 +17,6 @@ We build binary packages for the following platforms:
 * CentOS/RedHat Linux x64
 * Windows x64
 * RaspberryPI/BeagleBoard ARM (based on Ubuntu Linux)
-* Ubiquity Networks EdgeRouter (MIPS)
 
 Enjoy.
 
