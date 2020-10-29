@@ -251,6 +251,7 @@ function run_upgrade() {
 
 # Check for new ntopng updates available
 function check_updates() {
+	CRON_UPDATES=$1
 	NTOPNG_VERSION=""
 	RESULT=1
 	if [ "${OS}" == "DEBIAN" ]; then
@@ -292,10 +293,13 @@ function check_updates() {
 		# Reset failure reason if any
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1
 
-		# Check if automatic updates are enabled
-		AUTO_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_AUTO_UPDATES_KEY} 2>/dev/null | grep 1)
-		if [ "${AUTO_UPDATES}" == "1" ]; then
-			run_upgrade
+		# Check if this is run by cron (not a manual check)
+		if [ "${CRON_UPDATES}" = "1" ]; then
+			# Check if automatic updates are enabled by the user
+			AUTO_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_AUTO_UPDATES_KEY} 2>/dev/null | grep 1)
+			if [ "${AUTO_UPDATES}" == "1" ]; then
+				run_upgrade
+			fi
 		fi
 	else
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} >/dev/null 2>&1 
@@ -310,7 +314,7 @@ function check_updates_on_demand() {
 	CHECK_FOR_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_CHECK_FOR_UPDATES_KEY} 2>/dev/null | grep 1)
 	if [ "${CHECK_FOR_UPDATES}" == "1" ]; then
 		stall_check
-		check_updates
+		check_updates 0
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} >/dev/null 2>&1 
 	fi
 }
@@ -342,7 +346,7 @@ fi
 
 if [ $ACTION == "check-updates" ]; then
 
-	check_updates
+	check_updates 1
 
 elif [ $ACTION == "check-updates-on-demand" ]; then
 
