@@ -37,9 +37,11 @@ function stats_utils.collapse_stats(stats, min_slices, build_data, iterator, ord
         -- invoke build_data function to build data
         local data = build_data(key, value)
 
+        local value_pctg = data.value * UPPER_BOUND / 100
+
         -- if the value is less than the UPPER_BOUND then put the data
         -- inside less_than_upper_bound table
-        if (data.value <= UPPER_BOUND) then
+        if (value_pctg <= UPPER_BOUND) then
             less_than_upper_bound[#less_than_upper_bound + 1] = data
         else
             -- otherwise, add the data in the result directly
