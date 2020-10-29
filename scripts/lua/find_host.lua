@@ -272,5 +272,5 @@ end
 
 local resp = {interface = ifname,
 	      results = results}
-tprint(resp)
+
 print(json.encode(resp))
