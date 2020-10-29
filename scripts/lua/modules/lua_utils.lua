@@ -3948,6 +3948,19 @@ end
 
 -- ###########################################
 
+--- Fold right table with a custom function
+--- @param t table Table to fold
+--- @param func function Function to execute on table values
+--- @param val any The returned default value
+function table.foldr(t, func, val)
+   for i,v in pairs(t) do
+       val = func(val, v)
+   end
+   return val
+end
+
+-- ###########################################
+
 function table.has_key(table, key)
    return table[key] ~= nil
 end
