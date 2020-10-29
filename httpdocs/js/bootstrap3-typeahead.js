@@ -170,7 +170,9 @@
 
       var worker = $.proxy(function () {
 
+        // do the HTTP request to fetch data
         if ($.isFunction(this.source)) {
+          // invoke the source function and pass the query as data
           this.source(this.query, $.proxy(this.process, this));
         } else if (this.source) {
           this.process(this.source);
@@ -213,8 +215,8 @@
     },
 
     matcher: function (item) {
-      var it = this.displayText(item);
-      return ~it.toLowerCase().indexOf(this.query.trim().toLowerCase());
+      var text = this.displayText(item);
+      return ~text.toLowerCase().indexOf(this.query.toLowerCase());
     },
 
     sorter: function (items) {
@@ -551,7 +553,7 @@
   Typeahead.defaults = {
     source: [],
     items: 8,
-    menu: '<ul class="typeahead dropdown-menu" role="listbox"></ul>',
+    menu: '<ul class="typeahead dropdown-menu dropdown-menu-right" role="listbox"></ul>',
     item: '<li><a class="dropdown-item" href="#" role="option"></a></li>',
     minLength: 1,
     scrollHeight: 0,
