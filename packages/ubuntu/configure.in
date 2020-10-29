@@ -2,6 +2,13 @@ AC_INIT([Makefile.in], 1.0)
 
 AC_ARG_WITH(nedge,          [  --with-nedge            Enable nEdge device build])
 
+CUSTOM_NTOPNG_DOT_CONF=""
+IS_EXA8=0
+if test -f "/etc/hostname"; then
+    IS_EXA8=`grep EXA8 /etc/hostname |wc -l`
+    CUSTOM_NTOPNG_DOT_CONF='cp ../ntopng.conf.exa8 ./debian/ntopng/etc/ntopng/ntopng.conf'
+fi
+
 MACHINE=`uname -m`
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
@@ -70,6 +77,12 @@ if [ test -f /usr/bin/lsb_release ]; then
     PFRING_DEP=""
   fi
 
+  if test $IS_EXA8 = "1"; then
+    PFRING_VERS=""
+    PFRING_RELEASE=""
+    PFRING_DEP=""
+  fi
+  
   if test "$UBUNTU_RELEASE" = "12.04"; then
      EXTRA_DEPS=", libnuma1, libnetfilter-queue1"
   else
@@ -148,6 +161,7 @@ AC_SUBST(PFRING_DEP)
 AC_SUBST(LIBRRD)
 AC_SUBST(SUDO)
 AC_SUBST(CHOWN)
+AC_SUBST(CUSTOM_NTOPNG_DOT_CONF)
 
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(debian.ntopng/changelog)
