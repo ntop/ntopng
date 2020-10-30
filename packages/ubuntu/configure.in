@@ -6,7 +6,9 @@ CUSTOM_NTOPNG_DOT_CONF=""
 IS_EXA8=0
 if test -f "/etc/hostname"; then
     IS_EXA8=`grep EXA8 /etc/hostname |wc -l`
-    CUSTOM_NTOPNG_DOT_CONF='cp ../ntopng.conf.exa8 ./debian/ntopng/etc/ntopng/ntopng.conf'
+    if test $IS_EXA8 = "1"; then
+     CUSTOM_NTOPNG_DOT_CONF='cp ../ntopng.conf.exa8 ./debian/ntopng/etc/ntopng/ntopng.conf'
+    fi
 fi
 
 MACHINE=`uname -m`

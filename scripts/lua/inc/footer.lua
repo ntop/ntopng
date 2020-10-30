@@ -94,15 +94,25 @@ if ts_utils.getDriverName() == "influxdb" then
    end
 end
 
--- Dismiss Notification Code
+-- Dismiss Notification Code and Toggle Dark theme
 print([[
 	<script type='text/javascript'>
 		$(document).ready(function() {
+
 			$(`.notification button.dismiss`).click(function() {
 				const $toast = $(this).parents('.notification');
 				const id = $toast.data("notificationId");
 				NotificationUtils.dismissNotification(id, "]].. ntop.getRandomCSRFValue() ..[[", (data) =>{
 					if (data.success) $toast.toast('hide');
+				});
+			});
+
+			$(`.toggle-dark-theme`).click(function() {
+				const request = $.post(`]].. ntop.getHttpPrefix() ..[[/lua/update_prefs.lua`, {
+					action: 'toggle_theme', toggle_dark_theme: ]].. tostring(not page_utils.is_dark_mode_enabled()) ..[[
+				});
+				request.done(function(res) {
+					if (res.success) location.reload();
 				});
 			});
 		});

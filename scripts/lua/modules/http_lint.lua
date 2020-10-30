@@ -1562,6 +1562,7 @@ local known_parameters = {
    ["toggle_ndpi_flows_rrds"]                      = validateBool,
    ["toggle_internals_rrds"]                       = validateBool,
    ["toggle_local_hosts_one_way_ts"]               = validateBool,
+   ["toggle_dark_theme"]                           = validateBool,
 
    -- Input fields
    ["companion_interface"]                         = validateEmptyOr(validateInterface),

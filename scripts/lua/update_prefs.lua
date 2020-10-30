@@ -27,6 +27,11 @@ if isAdministrator() then
     ntop.setPref("ntopng.prefs.flow_device_port_rrd_creation", "1")
   elseif _POST["action"] == "flow_snmp_ratio" then
     ntop.setPref("ntopng.prefs.notifications.flow_snmp_ratio", "1")
+  elseif _POST["action"] == "toggle_theme" then
+    -- does the user want to toggle theme?
+    local enabled = toboolean(_POST['toggle_dark_theme'])
+    -- set dark theme or the default one
+    ntop.setPref("ntopng.prefs.theme", (enabled and "dark" or ""))
   end
   res.success = true
 end
