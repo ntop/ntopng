@@ -1,5 +1,56 @@
 # Changelog
 
+#### ntopng 4.2 (October 2020)
+
+## Breakthroughs
+
+* [Flexible Alert Handling](https://www.ntop.org/ntopng/using-ntopng-recipients-and-endpoints-for-flexible-alert-handling/)
+  * Added recipients and endpoints to send alerts to different recipients on different channels, including email, Discord, Slack and [Elasticsearch](https://www.ntop.org/ntop/using-elasticsearch-to-store-and-correlate-ntopng-alarms/)
+* Scalable SNMP v2c/v3 support
+
+## New features
+
+* Traffic Behavioral Analysis
+  * [Periodic Traffic](https://www.ntop.org/ntopng/mice-and-elephants-howto-detect-and-monitor-periodic-traffic/)
+  * Lateral Movements
+  * TLS with self-signed certificates, issuerDN, subjectDN
+* Support for [Industrial IOT and Scada](https://www.ntop.org/ndpi/monitoring-industrial-iot-scada-traffic-with-ndpi-and-ntopng/) with  modbus, DNP3 and IEC60870
+* Support for [attack mitigation via SNMP](https://www.ntop.org/ntop/how-attack-mitigation-works-via-snmp/)
+* Active monitoring
+  * Support for ICMP v4/v6, HTTP, HTTPS and Speedtest
+  * Ability to generate alerts upon unreachable or slow hosts or services
+* Detection of unexpected servers
+  * DHCP, NTP, SMTP, DNS
+* Services map
+* nIndex direct to maximixe flows dump performance
+* [MacOS package](https://www.ntop.org/announce/introducing-ntopng-for-macos-finally/)
+
+## Improvements
+
+* Implements per-category indicator of compromise `score`
+* Flexible configuration import/export/reset
+  * Ability to import/export/reset all the ntopng configurations or parts of it
+* Increased nIndex dump throughput by a factor 10
+* Increased user scripts execution throughput
+* Massive cleanup/simplifications of plugins to ease [community contributions](https://www.ntop.org/ntopng/a-step-by-step-guide-on-how-to-write-a-ntopng-plugin-from-scratch/)
+* Improved cardinality estimation (e.g., number of contacted hosts, number of contacted ports) using [Hyper-Log-Log](https://en.wikipedia.org/wiki/HyperLogLog)
+* Added DSCP information
+* Reworked handling of dissected virtual hosts to improve speed and reduce memory
+
+## nEdge
+
+* Support for hardware bypass
+
+## Fixes
+
+* Fixed race conditions in view interfaces
+* Fixed crash when restoring serialized hosts in memory
+* Fixed conditions causing high CPU load
+* Fixes CSRF vulnerabilities when POSTing JSON
+* Fixes heap-use-after-free on HTTP dissected last_url
+
+----------------------------------------------------------------
+
 #### ntopng 4.0 (March 2020)
 
 ## Breakthroughs
@@ -10,6 +61,7 @@
 * Active monitoring of hosts ICMP/ICMPv6/HTTP/HTTPS Round Trip Times (RTT)
 
 ## New features
+
 * X.509 client certificate authentication
 * ERSPAN transparent ethernet bridging
 * Webhook export module for exporting alarms
@@ -38,6 +90,7 @@
 * Alerts on duplex status change on SNMP interface
 
 ## Improvements
+
 * View interfaces are now optimized for big networks and use less memory
 * Systemd macros are now used to start/restart the ntopng services
 * Handles n2disk traffic extractions from recording processes non managed by ntopng
@@ -53,6 +106,7 @@
 * Exclude certain categories from Elephant/Long lived flows alerts
 
 ## nEdge
+
 * Ability to set up port forwarding
 * Support for Ubuntu 18.04
 * Fix users and other prefs deleted during nEdge data reset
@@ -61,6 +115,7 @@
 * DNS mapping port to avoid conflicts with system programs
 
 ## Fixes
+
 * Fixed export to mysql on shutdown in case of Pcap file in community mode
 * Fixed failing SYN-scan detection
 * Fixed ZMQ decompression errors with large templates
@@ -71,8 +126,6 @@
 * Fixed nIndex missing data while performing some queries and throughput calculation
 
 ----------------------------------------------------------------
-
-## New features
 
 #### ntopng 3.8 (December 2018)
 

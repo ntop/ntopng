@@ -28,7 +28,20 @@ local already_printed = {}
 local results = {}
 local query = _GET["query"]
 local hosts_only = _GET["hosts_only"]
-if(query == nil) then query = "" end
+if (query == nil) then
+   query = ""
+else
+
+   -- clean trailing spaces
+   query = trimString(query)
+   -- remove any decorator from string end
+   -- this is done because to the result we append additional
+   -- information that the original string doesn't have
+   -- example: 'Consglio nazionale della Sicurezza' doesn't contain
+   -- the substring 'Consiglio Nazionale dei Ministri [xxxx]'
+   query = query:gsub("% %[.*%]*", "")
+
+end
 
 if not isEmptyString(_GET["ifid"]) then
    interface.select(_GET["ifid"])

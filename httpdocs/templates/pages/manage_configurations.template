@@ -31,7 +31,7 @@
                     <i class='fas fa-file-export'></i>
                     <span>{{ i18n("export") }}</span>
                 </a>
-                <button {{ (manage_configurations.selected_item == "all" and 'disabled' or '') }} id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger">
+                <button id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger">
                     <i class="fas fa-undo-alt"></i> {{ i18n("factory_reset")}}
                 </button>
             </div>

@@ -9,6 +9,10 @@ summary > span {
   font-weight: bolder;
   color: initial;
 }
+
+code {
+  color: #393d44;
+}
 /*
 NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 

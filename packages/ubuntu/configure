@@ -583,6 +583,7 @@ PACKAGE_URL=''
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+CUSTOM_NTOPNG_DOT_CONF
 CHOWN
 SUDO
 LIBRRD
@@ -1703,6 +1704,13 @@ if test "${with_nedge+set}" = set; then :
 fi
 
 
+CUSTOM_NTOPNG_DOT_CONF=""
+IS_EXA8=0
+if test -f "/etc/hostname"; then
+    IS_EXA8=`grep EXA8 /etc/hostname |wc -l`
+    CUSTOM_NTOPNG_DOT_CONF='cp ../ntopng.conf.exa8 ./debian/ntopng/etc/ntopng/ntopng.conf'
+fi
+
 MACHINE=`uname -m`
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
@@ -1771,6 +1779,12 @@ if  test -f /usr/bin/lsb_release ; then
     PFRING_DEP=""
   fi
 
+  if test $IS_EXA8 = "1"; then
+    PFRING_VERS=""
+    PFRING_RELEASE=""
+    PFRING_DEP=""
+  fi
+
   if test "$UBUNTU_RELEASE" = "12.04"; then
      EXTRA_DEPS=", libnuma1, libnetfilter-queue1"
   else
@@ -1832,6 +1846,7 @@ GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[:space:]'`
 
 DATE=`date -R`
 KERNEL=`uname -r`
+
 
 
 
