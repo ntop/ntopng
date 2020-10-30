@@ -1782,19 +1782,29 @@ function alert_utils.formatAlertNotification(notif, options)
    if(options.show_severity == false) then
       severity = ""
    else
-      severity =  " [" .. alert_consts.alertSeverityLabel(notif.alert_severity, options.nohtml) .. "]"
+      severity =  " [" .. alert_consts.alertSeverityLabel(notif.alert_severity, options.nohtml, options.emoji) .. "]"
    end
 
-   when = formatEpoch(notif.alert_tstamp_end or notif.alert_tstamp or 0)
+   if(options.nodate == true) then
+      when = ""
+   else
+      when = formatEpoch(notif.alert_tstamp_end or notif.alert_tstamp or 0)
+      
+      if(not options.no_bracket_around_date) then
+	 when = "[" .. when .. "]"
+      end
 
-   if(not options.no_bracket_around_date) then
-      when = "[" .. when .. "]"
+      when = when .. " "
    end
-
-   local msg = string.format("%s %s%s [%s]",
+   
+   local msg = string.format("%s%s%s [%s]",
 			     when, ifname, severity,
 			     alert_consts.alertTypeLabel(notif.alert_type, options.nohtml))
 
+   if(options.nohtml == true) then
+      -- msg = msg:gsub('&nbsp;', "")
+   end
+   
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
       msg = msg.."["..alert_consts.alertEntityLabel(notif.alert_entity).."]"

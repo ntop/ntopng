@@ -95,7 +95,7 @@ end
 -- ##############################################
 
 local function formatTelegramMessage(alert)
-   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true})
+   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=false, no_bracket_around_date=true, emoji=true, nodate=true})
    
    return(msg)
 end
@@ -141,7 +141,11 @@ function telegram.dequeueRecipientAlerts(recipient, budget, high_priority)
        table.insert(alerts, formatTelegramMessage(json.decode(json_message)))       
     end
 
-    if not telegram.sendMessage(table.concat(alerts, "\n"), settings) then
+    local json_msg = table.concat(alerts, " | ")
+
+    -- traceError(TRACE_ERROR, TRACE_CONSOLE, json_msg)
+
+    if not telegram.sendMessage(json_msg, settings) then
       return {success=false, error_message="Unable to send alerts to the telegram"}
     end
 
