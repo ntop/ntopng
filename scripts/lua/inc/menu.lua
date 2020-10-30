@@ -1138,6 +1138,12 @@ print([[
 ]])
 end
 
+-- Rende Toggle Dark theme menu button
+print([[
+   <li class='dropdown-divider'></li>
+   <a class='dropdown-item toggle-dark-theme' href='#'><i class="fas fa-adjust"></i> Toggle Dark Theme</a>
+]])
+
 -- Logout
 
 if(_SESSION["user"] ~= nil and (not isNoLoginUser())) then
