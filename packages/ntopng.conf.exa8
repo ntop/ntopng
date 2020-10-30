@@ -75,4 +75,4 @@
 --http-port 127.0.0.1:8095
 -l 0
 -d /mnt/data/ntopng
---scripts-dir /usr/share/ntopng/scripts/
+---scripts-dir /usr/share/ntopng/scripts/
