@@ -1,0 +1,11 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+	    <b>{{ i18n("telegram_alert_endpoint.telegram_token") }}</b>
+    </label>
+    <div class="col-sm-5">
+	    <input
+	data-validation-message="{{ i18n('telegram_alert_endpoint.validation.invalid_token') }}"
+	data-pattern="telegram_token" name="telegram_token" type="text" class="form-control" />
+    </div>
+</div>
+<small>{* i18n('telegram_alert_endpoint.webhook_description.token_description') *}</small>
