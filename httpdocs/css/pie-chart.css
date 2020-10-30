@@ -1,12 +1,12 @@
 .pie-chart-box-left {
   width: 500px; /*380px;*/
-  margin-left:auto; 
+  margin-left:auto;
   margin-right:20px;
 }
 
 .pie-chart-box-right {
   width: 500px; /*380px;*/
-  margin-left:20px; 
+  margin-left:20px;
   margin-right:auto;
 }
 
@@ -24,7 +24,7 @@
 
 .pie-chart-small {
   width:100%;
-  display: -webkit-flex; /* Safari */  
+  display: -webkit-flex; /* Safari */
   display: flex;
   -webkit-align-items: center; /* Safari 7.0+ */
   align-items: center;

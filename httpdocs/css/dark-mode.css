@@ -3,6 +3,14 @@ html, body {
   color: #eee;
 }
 
+code {
+  color: rgb(248, 248, 242) !important;
+}
+
+.pie-chart {
+  background-color: #121212 !important;
+}
+
 svg:not(.leaflet-zoom-animated) {
   background-color: #121212;
   color: #eee;
@@ -54,9 +62,13 @@ a:hover, .btn-link:hover {
     background-color: #ff8a26 !important;
 }
 
-.bg-light, .card, .card-body {
+.bg-light, .card {
   background-color: #1f1f1f !important;
   color: #e2e2e2 !important;
+}
+
+.card-body {
+  background-color: #262626 !important;
 }
 
 .bg-white {
@@ -100,7 +112,8 @@ ul.navbar-nav li.nav-item.active > a.active {
 .dropdown-item {
   color: #e2e2e2;
 }
-.blog-section a:hover p, .blog-section a:hover small, .blog-section a:hover h6, .blog-section a:hover i {
+.blog-section a:hover p, .blog-section a:hover small, .blog-section a:hover h6, .blog-section a:hover i,
+.list-group-item-action:focus, .list-group-item-action:hover {
   color: #F39F53;
 }
 
@@ -224,10 +237,10 @@ ul.navbar-nav li.nav-item.active>a.active {
     color: #eee !important;
 }
 
-.form-control {
-  color: #d1d1d1;
-  background-color: #181818;
-  border: 1px solid #3c3c3c;
+.form-control, .btn[role=combobox] {
+  color: #d1d1d1 !important;
+  background-color: #181818 !important;
+  border: 1px solid #3c3c3c !important;
 }
 .form-control:disabled, .form-control[readonly] {
   background-color: #696969;
