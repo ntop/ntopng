@@ -774,6 +774,22 @@ function user_scripts.loadUnloadUserScripts(is_load)
 	    -- each available configuration existing for the user script
 	    local s = config.config[subdir.id][script.key]
 
+	    if not config.config then
+	       traceError(TRACE_ERROR,TRACE_CONSOLE, string.format("Configuration is missing"))
+	       return
+	    end
+
+	    if not config.config[subdir.id] then
+	       traceError(TRACE_ERROR,TRACE_CONSOLE, string.format("Missing subdir '%s' from config", subdir.id))
+	       return
+	    end
+
+	    if not config.config[subdir.id][script.key] then
+	       traceError(TRACE_ERROR,TRACE_CONSOLE,
+			  string.format("Script '%s' configuration is missing from subdir '%s'", script.key, subdir.id))
+	       return
+	    end
+
 	    if(s ~= nil) then
 	       for hook, hook_config in pairs(s) do
 		  -- For each configuration there are multiple hooks.
