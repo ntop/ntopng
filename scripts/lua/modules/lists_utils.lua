@@ -349,8 +349,9 @@ local function checkListsUpdate(timeout)
 
       if(shouldUpdate(list_name, list, now)) then
 	 local temp_fname = getListCacheFile(list_name, true)
-	 local msg = string.format("Updating list '%s' [%s]...", list_name, list.url)
-	 traceError(trace_level, TRACE_INFO, string.format("Updating list '%s'...", list_name))
+	 local msg = string.format("Updating list '%s' [%s]... ", list_name, list.url)
+
+	 traceError(trace_level, TRACE_INFO, string.format("Updating list '%s'... ", list_name))
 	 
 	 local started_at = os.time()
 	 local res = ntop.httpFetch(list.url, temp_fname, timeout)

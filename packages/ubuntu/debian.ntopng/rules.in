@@ -51,6 +51,7 @@ binary-arch: build install
 	mkdir -p ./debian/@APP@
 	cp -r ./usr/ ./debian/@APP@
 	cp -r ../etc/ ./debian/@APP@;
+	@CUSTOM_NTOPNG_DOT_CONF@
 	if test "@APP@" = "nedge"; \
 		then \
 		cp ../etc/ntopng/nedge.conf  ./debian/@APP@/etc/ntopng/ntopng.conf; \

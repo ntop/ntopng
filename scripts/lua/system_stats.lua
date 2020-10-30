@@ -124,7 +124,19 @@ if(page == "overview") then
       for i=0,32 do
          msg = ntop.listIndexCache("ntopng.trace", i)
          if(msg ~= nil) then
-            print(noHtml(msg).."<br>\n")
+
+            local text = noHtml(msg)
+
+            -- encapsule the ERROR or WARNING string in a badge
+            -- so the log are more visible
+            if text:find("ERROR") then
+               text = text:gsub("(ERROR)(:)", "<span class='badge badge-danger'>%1</span>")
+            elseif text:find("WARNING") then
+               text = text:gsub("(WARNING)(:)", "<span class='badge badge-warning'>%1</span>")
+            end
+
+            print(text)
+            print("<br>")
          end
       end
       print("</code></div></td></tr>\n")

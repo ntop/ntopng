@@ -653,7 +653,6 @@ class NtopUtils {
 			} else if (data.type == "snmp") {
 				form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_interface_details.lua");
 				NtopUtils._add_find_host_link(form, "snmp_port_idx", data.snmp_port_idx);
-				NtopUtils._add_find_host_link(form, "page", "layer_2");
 			} else if (data.type == "snmp_device") {
 				form.attr("action", http_prefix + "/lua/pro/enterprise/snmp_device_details.lua");
 			} else if (data.type == "asn") {

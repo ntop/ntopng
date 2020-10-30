@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local stats_utils = require("stats_utils")
 local rest_utils = require("rest_utils")
 local dscp_consts = require "dscp_consts"
 
@@ -17,7 +18,6 @@ local dscp_consts = require "dscp_consts"
 --
 
 local rc = rest_utils.consts.success.ok
-local res = {}
 
 local ifid = _GET["ifid"]
 local host_info = url2hostinfo(_GET)
@@ -45,11 +45,12 @@ if stats == nil then
    return
 end
 
-for key, value in pairsByKeys(stats.dscp, asc) do
-   res[#res + 1] = {
+
+local res = stats_utils.collapse_stats(stats.dscp, 2, function(key, value)
+   return {
       label = dscp_consts.ds_class_descr(key),
       value = ternary(received_stats, value['packets.rcvd'], value['packets.sent'])
    }
-end
+end, pairsByKeys, asc)
 
 rest_utils.answer(rc, res)
