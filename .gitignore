@@ -44,6 +44,7 @@ third-party/zeromq-*/tools/curve_keygen.o
 httpdocs/geoip/*
 httpdocs/ssl/ntopng-cert.pem
 httpdocs/misc/ntopng-utils-manage-config
+httpdocs/misc/ntopng-utils-manage-updates
 include/config.h.in
 autom4te.cache*
 *#

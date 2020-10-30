@@ -1,5 +1,5 @@
 --
--- (C) 2019-20 - ntop.org
+-- (C) 2020 - ntop.org
 --
 --
 
@@ -17,8 +17,8 @@ local script = {}
 -- @return a (possibly empty) table with parameter_name -> validator mappings
 function script.getAdditionalParameters(http_lint)
    return {
-      ["telegram_channel"]    = http_lint.validateEmptyOr(http_lint.validateSingleWord),
-      ["telegram_token"]  = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+      ["telegram_channel"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+      ["telegram_token"]   = http_lint.validateEmptyOr(http_lint.validateSingleWord),
   }
 end
 

@@ -1,5 +1,5 @@
 --
--- (C) 2020-21 - ntop.org
+-- (C) 2020 - ntop.org
 --
 
 --
@@ -58,7 +58,7 @@ end
 local function readSettings(recipient)
    local settings = {
       -- Endpoint
-     url = "https://api.telegram.org/bot" .. recipient.endpoint_params.token .. "/sendMessage?chat_id=" .. recipient.recipient_params.channel_name .. "&text=", -- this information is coming from the endpoint configuration recipient.endpoint_conf. ...
+     url = "https://api.telegram.org/bot" .. recipient.endpoint_conf.telegram_token .. "/sendMessage?chat_id=" .. recipient.recipient_params.telegram_channel .. "&text=", -- this information is coming from the endpoint configuration recipient.endpoint_conf. ...
   }
 
   return settings
@@ -73,22 +73,17 @@ function telegram.sendMessage(message_body, settings)
 
    if isEmptyString(settings.url) then
       return false
-   end
+   end   
 
    while retry_attempts > 0 do
---      local message = {
---	 content  = message_body,
---      }
 
-      -- local msg = json.encode(message)
-
-      -- Found Get way method to send messages, need to check if it's possible with Post method
+      -- In this case "httpGet" method is needed
 
       local post_rc = ntop.httpGet(settings.url .. message_body)
 
-      if(post_rc and (post_rc.RESPONSE_CODE == 204)) then 
-	 rc = true
-	 break 
+      if(post_rc and (post_rc.RESPONSE_CODE == 200)) then 
+	      rc = true
+	      break 
       end
       
       retry_attempts = retry_attempts - 1
