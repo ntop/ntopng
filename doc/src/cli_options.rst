@@ -21,7 +21,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | 2 - Decode DNS responses and don't
                                        |     resolve numeric IPs
                                        | 3 - Don't decode DNS responses and don't
-                                       |     resolve numeric IPs
+                                          |     resolve numeric IPs
    [--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),
                                        | view or pcap file path
    [--data-dir|-d] <path>              | Data directory (must be writable).
