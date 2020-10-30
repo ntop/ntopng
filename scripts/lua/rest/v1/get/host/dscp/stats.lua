@@ -36,6 +36,7 @@ end
 
 interface.select(ifid)
 
+local res = {}
 local tot = 0
 
 local stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
@@ -45,12 +46,13 @@ if stats == nil then
    return
 end
 
-
-local res = stats_utils.collapse_stats(stats.dscp, 2, function(key, value)
-   return {
+for key, value in pairsByKeys(stats.dscp, asc) do
+   res[#res + 1] = {
       label = dscp_consts.ds_class_descr(key),
       value = ternary(received_stats, value['packets.rcvd'], value['packets.sent'])
    }
-end, pairsByKeys, asc)
+end
 
-rest_utils.answer(rc, res)
+local collapsed = stats_utils.collapse_stats(res, 1)
+
+rest_utils.answer(rc, collapsed)

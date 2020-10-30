@@ -22,7 +22,22 @@ When flows dump is enabled, a new `Flow Dump Settings` tab appears in the prefer
 - `Limit the Number of Aggregated Flows`: allows to cap the number of aggregated flows dumped periodically when using nIndex or MySQL. MySQL and nIndex aggregate flows at 5-minute intervals to make certain queries faster. Reducing the number of aggregated flows may be useful to reduce the total number of exports performed and thus, the number of aggregated flows in the database.
 - `Maximum Number of Aggregated Flows Dumped Every 5 Minutes`: is used to specify the maximum number of aggregated flows dumped every 5-minutes.
 
-These settings are effective for all databases. The reminder of this section describes the peculiarities of MySQL, Elasticsearch and Logstash, whereas nIndex flows dump is described in detail in :ref:`Historical Flows`.
+These settings are effective for all databases.
+
+nIndex
+------
+
+In order to dump flows to disk using the nIndex support ntopng requires the `-F nindex` option to be specified.
+No additional configuration is required as this is natively supported, and flows are stored locally, thus no
+endpoint is required. The nIndex flows dump and instructions to extract data are described in detail in the 
+:ref:`Historical Flows` section.
+
+nIndex is an high-performance network-oriented database, however please note that, when collecting from a ZMQ
+interface, flows are processed by ntopng before dumping them to disk, and this is sometimes limiting the performance
+in case of an high number of flows per second. In this case the flow dump performance can be further increased
+by enabling the *direct* mode. The drawback with this mode is that flows are dumped as soon as they are collected,
+before any processing, thus less flow details will be available in the dump as flows are not augmented by ntopng.
+In order to enable this mode `-F nindex;direct` should be specified.
 
 MySQL
 -----

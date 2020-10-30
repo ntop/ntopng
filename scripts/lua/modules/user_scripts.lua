@@ -772,21 +772,37 @@ function user_scripts.loadUnloadUserScripts(is_load)
 	 for confid, config in pairs(configsets) do
 	    -- Call user script callbacks for
 	    -- each available configuration existing for the user script
-	    local s = config.config[subdir.id][script.key]
+	    if not config.config then
+	       traceError(TRACE_ERROR,TRACE_CONSOLE, string.format("Configuration is missing"))
+	       return
+	    end
 
-	    if(s ~= nil) then
-	       for hook, hook_config in pairs(s) do
-		  -- For each configuration there are multiple hooks.
-		  -- Some hooks can be enabled, whereas some other hooks can be disabled:
-		  -- methods onLoad/onUnload are only called for hooks that are enabled.
-		  if script and hook_config.enabled then
-		     -- onLoad/onUnload methods are ONLY called for user scripts that are enabled
-		     if is_load and script.onLoad then
-			-- This is a load operation
-			script.onLoad(hook, hook_config)
-		     elseif not is_load and script.onUnload then
-			-- This is an unload operation
-			script.onUnload(hook, hook_config)
+	    if not config.config[subdir.id] then
+	       traceError(TRACE_ERROR,TRACE_CONSOLE, string.format("Missing subdir '%s' from config", subdir.id))
+	       return
+	    end
+
+	    if not config.config[subdir.id][script.key] then
+	       -- Configuration can be empty (for example the first time a user script is added)
+	       traceError(TRACE_NORMAL,TRACE_CONSOLE,
+			  string.format("Script '%s' configuration is missing from subdir '%s'. New user script?", script.key, subdir.id))
+	    else
+	       local s = config.config[subdir.id][script.key]
+
+	       if(s ~= nil) then
+		  for hook, hook_config in pairs(s) do
+		     -- For each configuration there are multiple hooks.
+		     -- Some hooks can be enabled, whereas some other hooks can be disabled:
+		     -- methods onLoad/onUnload are only called for hooks that are enabled.
+		     if script and hook_config.enabled then
+			-- onLoad/onUnload methods are ONLY called for user scripts that are enabled
+			if is_load and script.onLoad then
+			   -- This is a load operation
+			   script.onLoad(hook, hook_config)
+			elseif not is_load and script.onUnload then
+			   -- This is an unload operation
+			   script.onUnload(hook, hook_config)
+			end
 		     end
 		  end
 	       end

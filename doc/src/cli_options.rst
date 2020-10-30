@@ -40,6 +40,9 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | and deserialize file
                                        | containing runtime preferences.
                                        | Default: /var/lib/ntopng
+   [--pcap-dir|-5] <path>              | Storage directory used for continuous traffic
+                                       | recording in PCAP format.
+                                       | Default: /var/lib/ntopng
    [--no-promisc|-u]                   | Don't set the interface in promisc mode.
    [--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.
                                        | Addr can be an IPv4 (192.168.1.1)
@@ -66,7 +69,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | A password can be specified after
                                        | the port when Redis auth is required.
                                        | By default password auth is disabled.
-                                       | On Unix <fmt> can also be the Redis socket file path.
+                                       | On unix <fmt> can also be the redis socket file path.
                                        | Port is ignored for socket-based connections.
                                        | Examples:
                                        | -r @2
@@ -75,14 +78,18 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | -r 129.168.1.3:6379:nt0pngPwD@0
                                        | -r /var/run/redis/redis.sock
                                        | -r /var/run/redis/redis.sock@2
-   [--core-affinity|-g] <cpu core ids> | Bind the capture/processing threads to
+   [--core-affinity|-g] <ids>          | Bind the capture/processing threads to
                                        | specific CPU cores (specified as a comma-
-                                       | separated list)
+                                       | separated list of core id)
+   [--other-core-affinity|-y] <ids>    | Bind service threads to specific CPU cores
+                                       | (specified as a comma-separated list of core id)
    [--user|-U] <sys user>              | Run ntopng with the specified user
-                                       | instead of nobody
+                                       | instead of ntopng
    [--dont-change-user|-s]             | Do not change user (debug only)
    [--shutdown-when-done]              | Terminate after reading the pcap (debug only)
-   [--zmq-encrypt-pwd <pwd>]           | Encrypt the ZMQ data using with <pwd>
+   [--zmq-encryption]                  | Enable ZMQ encryption
+   [--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only)
+   [--zmq-encryption-key <key>]        | ZMQ (export) encryption public key (-I only)
    [--disable-autologout|-q]           | Disable web logout for inactivity
    [--disable-login|-l] <mode>         | Disable user login authentication:
                                        | 0 - Disable login only for localhost
@@ -93,17 +100,26 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | (default: 131072)
    [--users-file|-u] <path>            | Users configuration file path
                                        | Default: ntopng-users.conf
+   [--original-speed]                  | Reproduce (-i) the pcap file at original speed
    [--pid|-G] <path>                   | Pid file path
    [--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)
    [--dump-flows|-F] <mode>            | Dump expired flows. Mode:
-                                       | nindex        Dump in nIndex
+                                       | nindex        Dump in nIndex (Enterprise only)
+                                       |   Format:
+                                       |   nindex[;direct]
+                                       |   Note: the direct option delivers higher performance
+                                       |   with less detailed flow information (it dumps raw flows)
+                                       |   when collecting from ZMQ.
                                        | es            Dump in ElasticSearch database
                                        |   Format:
-                                       |   es;<idx type>;<idx name>;<es URL>;<http auth>
+                                       |   es;<mapping type>;<idx name>;<es URL>;<http auth>
                                        |   Example:
                                        |   es;ntopng;ntopng-%Y.%m.%d;http://localhost:9200/_bulk;
-                                       |   Note: the <idx name> accepts the
-                                       |   strftime() format.
+                                       |   Notes:
+                                       |   The <idx name> accepts the strftime() format.
+                                       |   <mapping type>s have been removed starting at
+                                       |   ElasticSearch version 6. <mapping type> values whill therefore be
+                                       |   ignored when using versions greater than or equal to 6.
                                        |
                                        | logstash      Dump in LogStash engine
                                        |   Format:
@@ -128,7 +144,8 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |     ./nprobe ... --mysql="localhost:ntopng:nf:root:root"
                                        |     ./ntopng ... --dump-flows="mysql-nprobe;localhost;ntopng;nf;root;root"
    [--export-flows|-I] <endpoint>      | Export flows with the specified endpoint
-   [--hw-timestamp-mode <mode>]        | Enable hw timestamping/stripping.
+                                       | See https://wp.me/p1LxdS-O5 for a -I use case.
+   --hw-timestamp-mode <mode>          | Enable hw timestamping/stripping.
                                        | Supported TS modes are:
                                        | apcon - Timestamped pkts by apcon.com
                                        |         hardware devices
@@ -136,42 +153,37 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |         hardware devices
                                        | vss   - Timestamped pkts by vssmonitoring.com
                                        |         hardware devices
-   [--capture-direction]               | Specify packet capture direction
+   --capture-direction                 | Specify packet capture direction
                                        | 0=RX+TX (default), 1=RX only, 2=TX only
-   [--online-license-check]            | Check license online
-   [--enable-taps|-T]                  | Enable tap interfaces for dumping traffic
-   [--enable-user-scripts]             | Enable Lua user scripts
-   [--http-prefix|-Z] <prefix>         | HTTP prefix to be prepended to URLs.
+   --online-license-check              | Check the license online
+   [--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.
                                        | Useful when using ntopng behind a proxy.
-   [--instance-name|-N] <name>         | Assign a name to this ntopng instance.
+   [--instance-name|-N <name>]         | Assign a name to this ntopng instance.
    [--community]                       | Start ntopng in community edition.
    [--check-license]                   | Check if the license is valid.
    [--check-maintenance]               | Check until maintenance is included
                                        | in the license.
    [--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]
-   [--version|-V]                      | Print version and quit
-   [--print-ndpi-protocols]            | Print the nDPI protocols list
-   [--simulate-vlans]                  | Simulate VLAN traffic (debug only)
+   [--version|-V]                      | Print version and license information, then quit
+   --print-ndpi-protocols              | Print the nDPI protocols list
+   --ignore-macs                       | Ignore MAC addresses from traffic
+   --ignore-vlans                      | Ignore VLAN tags from traffic
+   --pcap-file-purge-flows             | Enable flow purge with pcap files (debug only)
+   --simulate-vlans                    | Simulate VLAN traffic (debug only)
+   --simulate-ips <num>                | Simulate IPs by choosing clients and servers among <num> random addresses
    [--help|-h]                         | Help
 
    Available interfaces (-i <interface index>):
-   1. dummy0
-   2. eno1
-   3. any
-   4. lo
-   5. enp5s0
-   6. enp2s0f0
-   7. docker0
-   8. br-ebebe1ec37ab
-   9. enp2s0f0d1
-   10. enp2s0f1
-   11. enp2s0f1d1
-   12. nflog
-   13. nfqueue
-   14. usbmon1
-   15. usbmon2
-   16. usbmon3
-   17. usbmon4
+      1. lo
+      2. enp2s0f0
+      3. enp2s0f1
+      4. enp2s0f2
+      5. enp2s0f3
+      6. eno1
+      7. enp5s0
+      8. docker0
+      9. enp1s0f0
+      10. enp1s0f1
 
 
 Some of the most important parameters are briefly discussed here.

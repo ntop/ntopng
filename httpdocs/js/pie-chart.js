@@ -168,14 +168,7 @@ function PieChart(name, update_url, url_params, units, refresh) {
 
 					const percentage = (d.value / totalOctets) * 100;
 					// approssimate the number to the third deciaml digit and show only the first decimal
-					let percentageLabel = (percentage.toFixed(3).slice(0, -2)) + "%";
-
-					// if the percentage is less than 0.1% then show
-					// the '< 0.1%' label because data are less significative
-					if (percentage <= 0.1) {
-						percentageLabel = `< 0.1%`;
-					}
-
+					let percentageLabel = percentage.toFixed(1) + "%";
 					return percentageLabel;
 				});
 
@@ -200,14 +193,7 @@ function PieChart(name, update_url, url_params, units, refresh) {
 				}).text(function (d) {
 					if (totalOctets <= 1) return "";
 					const percentage = (d.value / totalOctets) * 100;
-					let percentageLabel = (percentage.toFixed(3).slice(0, -2)) + "%";
-
-					// if the percentage is less than 0.1% then show
-					// the '< 0.1%' label because data are less significative
-					if (percentage <= 0.1) {
-						percentageLabel = `< 0.1%`;
-					}
-
+					let percentageLabel = percentage.toFixed(1) + "%";
 					return percentageLabel;
 				});
 
