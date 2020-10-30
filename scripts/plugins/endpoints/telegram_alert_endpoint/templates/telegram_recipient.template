@@ -1,0 +1,10 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        {{ i18n("telegram_alert_endpoint.username") }}
+    </label>
+    <div class="col-sm-5">
+        <input
+	data-validation-message="{{ i18n('telegram_alert_endpoint.validation.invalid_username') }}"
+	data-pattern="channel_name" name="telegram_channel" type="text" class="form-control" />
+    </div>
+</div>

@@ -23,10 +23,11 @@ if(_GET["iflocalstat_mode"] == "distribution") then
       local ifname = getInterfaceName(ifid)
       local eth = ifstats["eth"]
       local n = 0
-
+      
       local sum = eth.IPv4_packets+eth.IPv6_packets+eth.ARP_packets+eth.MPLS_packets+eth.other_packets
       local five = 0.05*sum
       local tot = 0
+      
       if(eth.IPv4_packets > five) then
 	 print('{ "label": "IPv4", "value": '..eth.IPv4_packets..' }') n = 1 tot = tot + eth.IPv4_packets
       end
