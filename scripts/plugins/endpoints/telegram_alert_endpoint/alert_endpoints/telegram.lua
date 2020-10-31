@@ -58,7 +58,7 @@ end
 local function readSettings(recipient)
    local settings = {
       -- Endpoint
-     url = "https://api.telegram.org/bot" .. recipient.endpoint_conf.telegram_token .. "/sendMessage?chat_id=" .. recipient.recipient_params.telegram_channel .. "&text=", -- this information is coming from the endpoint configuration recipient.endpoint_conf. ...
+     url = "https://api.telegram.org/bot" .. recipient.endpoint_conf.telegram_token .. "/sendMessage"
   }
 
   return settings
@@ -67,7 +67,7 @@ end
 -- ##############################################
 
 -- Function called whenever a message has to be sent out to telegram
-function telegram.sendMessage(message_body, settings)
+function telegram.sendMessage(recipient, message_body, settings)
    local rc = false
    local retry_attempts = 3
 
@@ -77,9 +77,17 @@ function telegram.sendMessage(message_body, settings)
 
    while retry_attempts > 0 do
 
-      -- In this case "httpGet" method is needed
+      tmp, tmp2 = string.match(message_body, "(.*) %[Info(.*)")
 
-      local post_rc = ntop.httpGet(settings.url .. message_body)
+      if tmp == nil then
+         tmp = message_body
+      end
+
+      -- In this case "httpPost" method is needed
+      local msg = json.encode(message_body)
+      data = '{"chat_id": "' .. recipient.recipient_params.telegram_channel .. '", "text": "' .. tmp .. '", "disable_notification": true}'
+
+      local post_rc = ntop.httpPost(settings.url, data)
 
       if(post_rc and (post_rc.RESPONSE_CODE == 200)) then 
 	      rc = true
@@ -95,7 +103,7 @@ end
 -- ##############################################
 
 local function formatTelegramMessage(alert)
-   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true})
+   local msg = alert_utils.formatAlertNotification(alert, {nohtml=true, add_cr=false, no_bracket_around_date=true, emoji=true, nodate=true})
    
    return(msg)
 end
@@ -141,8 +149,10 @@ function telegram.dequeueRecipientAlerts(recipient, budget, high_priority)
        table.insert(alerts, formatTelegramMessage(json.decode(json_message)))       
     end
 
-    if not telegram.sendMessage(table.concat(alerts, "\n"), settings) then
-      return {success=false, error_message="Unable to send alerts to the telegram"}
+    local json_msg = table.concat(alerts, " | ")
+
+    if not telegram.sendMessage(recipient, json_msg, settings) then
+      return {success=false, error_message="- unable to send alerts to the telegram"}
     end
 
     -- Remove the processed messages from the queue
@@ -162,7 +172,7 @@ function telegram.runTest(recipient)
 
   local settings = readSettings(recipient)
 
-  local success = telegram.sendMessage("test", settings)
+  local success = telegram.sendMessage(recipient, "test", settings)
 
   if not success then
     message_info = i18n("telegram_alert_endpoint.telegram_send_error")
