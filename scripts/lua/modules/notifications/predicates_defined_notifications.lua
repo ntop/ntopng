@@ -541,7 +541,6 @@ function predicates.bind_recipient_to_pools(notification, container)
     if (not IS_ADMIN) then return end
 
     local recipient_name = get_last_recipient_created()
-    tprint(recipient_name)
     -- Did the user created a new recipient? If not then return
     if (isEmptyString(recipient_name)) then return end
     -- Did the user bound the new recipient? If yes then return

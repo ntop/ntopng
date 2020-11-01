@@ -205,15 +205,16 @@ local defined_notifications = {
         subpages = EMPTY_PAGES,
         excluded_pages = {pages.manage_pools.key},
         excluded_subpages = EMPTY_PAGES
-    }
+    },
+    {
+        id = 18,
+        dismissable = true,
+        predicate = predicates.empty,
+        pages = EMPTY_PAGES,
+        subpages = EMPTY_PAGES,
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
+    },
 }
-
---[[
-    - notifica 1, [se non ci sono endpoint != builtin], Crea un <link>endpoint</link> per inviare alert verso l'esterno
-- notifica 2, [se non ci sono recipient != builtin], Crea un <link>recipient</link> per inviare alert verso  l'esterno
-- notifica 3 [se tutti i recipient != builtin non sono associati ad alcun pool], Associa i <link>recipient</link> ai <link>pool</link> per inviargli le alert
-
-visto che valutare le condizioni tra [] potrebbe esser costoso se fatto ad ogni caricamento di pagina, se necessario, usa del caching
-]]
 
 return defined_notifications
