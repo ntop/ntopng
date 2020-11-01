@@ -10,6 +10,8 @@ local page_utils = require("page_utils")
 local template = require("template_utils")
 local defined_notifications = require("defined_notifications")
 
+local MAX_NOTIFICATIONS_TO_DISPLAY = 3
+
 -- Redis Key used to store the notification status
 local REDIS_KEY = "ntopng.user.%s.dismissed_notifications.notification_%d"
 local notifications_manager = {}
@@ -27,6 +29,10 @@ function notifications_manager.load_main_notifications()
     local curent_subpage = _GET['page']
 
     for _, notification in ipairs(defined_notifications) do
+
+        -- We can only show MAX_NOTIFICATIONS_TO_DISPLAY notifications inside the page,
+        -- in order to not overwhelm the user
+        if (#container >= MAX_NOTIFICATIONS_TO_DISPLAY) then break end
 
         -- if the current page is excluded then don't show the notification
         if (table.contains(notification.excluded_pages, current_page)) then
@@ -68,7 +74,7 @@ function notifications_manager.load_main_notifications()
 end
 
 --- Dismiss the notification if the notification is is valid, otherwise return an error
---- @param notification_id string The notification to dismiss
+--- @param notification_id number The notification to dismiss
 --- @return (boolean, string) True if the notification has been dismissed
 function notifications_manager.dismiss_notification(notification_id)
 

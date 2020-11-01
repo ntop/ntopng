@@ -27,6 +27,7 @@ local lang = {
   ["available"] = "Available",
   ["backup"] = "Backup",
   ["begin"] = "Begin",
+  ["bind"] = "Bind",
   ["breakdown"] = "Breakdown",
   ["bridge"] = "Bridge",
   ["broadcast"] = "Broadcast",
@@ -47,6 +48,7 @@ local lang = {
   ["close"] = "Close",
   ["configure"] = "Configure",
   ["countries"] = "Countries",
+  ["create"] = "Create",
   ["dark"] = "Dark",
   ["date_from"] = "Begin Date/Time:",
   ["date_to"] = "End Date/Time:",
@@ -531,10 +533,6 @@ local lang = {
     ["flow_risk"] = "Flow Risk",
     ["flow_user_scripts_calls_drops_description"] = "%{num_drops} <a href='%{url}'>flow user scripts</a> calls were not invoked. Some misbehaving flows may go unnoticed.",
     ["flows_flood"] = "Flows Flood",
-    ["x_retx"] = "%{retx} Retransmissions",
-    ["x_ooo"] = "%{ooo} Out-of-Order",
-    ["x_lost"] = "%{lost} Lost",
-    ["out_of_x_total_packets"] = "out of %{tot} Packets",
     ["ghost_network_detected"] = "Ghost Network Detected",
     ["ghost_network_detected_description"] = "Subnet %{network} does not belong to the <a href='%{url}'>%{entity} networks</a>.",
     ["ghost_networks"] = "Ghost Networks",
@@ -586,6 +584,7 @@ local lang = {
     ["one_min"] = "Last Minute",
     ["one_reply"] = "%{count} %{what} reply",
     ["one_request"] = "%{count} %{what} request",
+    ["out_of_x_total_packets"] = "out of %{tot} Packets",
     ["periodic_activity_not_executed"] = "Periodic Activity Not Executed",
     ["periodic_activity_not_executed_descr"] = "Trigger an alert when a periodic activity is queued for execution but is not getting executed as all the worker threads are busy.",
     ["ping_issues"] = "Ping",
@@ -641,6 +640,9 @@ local lang = {
     ["user_scripts_calls_drops"] = "User Scripts Calls Dropped",
     ["warning"] = "Warning",
     ["web_mining"] = "Web Mining",
+    ["x_lost"] = "%{lost} Lost",
+    ["x_ooo"] = "%{ooo} Out-of-Order",
+    ["x_retx"] = "%{retx} Retransmissions",
   },
   ["alerts_thresholds_config"] = {
     ["active_local_hosts"] = "Local Hosts Alert",
@@ -1166,6 +1168,21 @@ local lang = {
     ["factory_reset"] = {
       ["body"] = "Are you sure to reset the <b>%{reset_element}</b>?<br>Resetting to Factory Default <b>you will permentaly lose all the %{reset_element} configured</b> yet.",
       ["title"] = "Reset Configuration: %{reset_element}",
+    },
+    ["hints"] = {
+      ["bind_pools"] = {
+        ["body"] = "Bind the new recipient <b>%{recipient_name}</b> to the defined pools.",
+        ["title"] = "Bind Recipient",
+      },
+      ["create_endpoint"] = {
+        ["action"] = "Create new one",
+        ["body"] = "Do you know? You can create <a target='_blank' href='%{link}'>endpoint</a> to send alerts!",
+        ["title"] = "Do you know what is an endpoint?",
+      },
+      ["create_recipients"] = {
+        ["body"] = "You can create new <a target='_blank' href='%{link}'>recipients</a> for the endpoint <b>%{endpoint_name}</b>.",
+        ["title"] = "Create Recipients",
+      },
     },
     ["recipients"] = {
       ["cc"] = "CC",

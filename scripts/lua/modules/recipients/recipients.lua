@@ -19,6 +19,10 @@ recipients.MAX_NUM_RECIPIENTS = 64
 
 -- ##############################################
 
+recipients.LAST_RECIPIENT_NAME_CREATED_CACHE_KEY = "ntopng.cache.endpoint_hints.last_recipient_created"
+
+-- ##############################################
+
 -- @brief Performs Initialization operations performed during startup
 function recipients.initialize()
    -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
@@ -34,7 +38,7 @@ function recipients.initialize()
 
 	 -- And the recipient
 	 recipients.add_recipient(
-	    "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]], 
+	    "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
 	    "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	    nil, -- User script categories
 	    alert_consts.alert_severities.notice.severity_id, -- minimum severity is notice (to avoid flooding) (*****)
@@ -360,7 +364,7 @@ function recipients.delete_recipient(recipient_id)
       -- Make sure the recipient exists
       local cur_recipient_details = recipients.get_recipient(recipient_id)
 
-      if cur_recipient_details then	 
+      if cur_recipient_details then
 	 -- Unbind the recipient from any assigned pool
 	 pools_lua_utils.unbind_all_recipient_id(recipient_id)
 
@@ -604,7 +608,7 @@ function recipients.dispatch_notification(notification, current_script)
       if #recipients > 0 then
 	 local json_notification = json.encode(notification)
 	 local is_high_priority = is_notification_high_priority(notification)
-	 
+
 	 for _, recipient_id in pairs(recipients) do
 	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification)
 	 end
@@ -737,7 +741,7 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
    -- Check, among all available recipients, those that are ready to export, depending on
    -- their EXPORT_FREQUENCY
    for _, recipient in pairs(cached_recipients) do
-      local module_name = recipient.endpoint_key 
+      local module_name = recipient.endpoint_key
 
       if modules_by_name[module_name] then
          local m = modules_by_name[module_name]

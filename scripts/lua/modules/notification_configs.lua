@@ -37,6 +37,12 @@ local notification_configs = {}
 
 -- #################################################################
 
+-- Key where it's saved the name of the latest endpoint created.
+-- This name is used for the notifications that help the user to create recipients
+notification_configs.LAST_ENDPOINT_NAME_CREATED_CACHE_KEY = "ntopng.cache.endpoint_hints.last_endpoint_created"
+
+-- #################################################################
+
 function notification_configs.get_types(exclude_builtin)
    local endpoint_types = {}
 
@@ -382,7 +388,7 @@ function notification_configs.add_configs_with_recipients(configs)
       local endpoint_conf_name = conf.endpoint_conf_name
       local conf_params = conf.endpoint_conf
 
-      if endpoint_key and endpoint_conf_name and conf_params and conf.recipients and 
+      if endpoint_key and endpoint_conf_name and conf_params and conf.recipients and
          not conf_params.builtin then
 
          local ret = notification_configs.add_config(endpoint_key, endpoint_conf_name, conf_params)

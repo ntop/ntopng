@@ -112,8 +112,8 @@ page_utils.menu_entries = {
     manage_configurations = { key = "manage_configurations", i18n_title = "manage_configurations.manage_configurations", section = "admin", visible_iface = false, visible_system = true},
 
     -- Notifications
-    endpoint_notifications = {key = "endpoint_notifications", i18n_title = "endpoint_notifications.endpoint_list", section="notifications", visible_iface = false, visible_system = true},
-    endpoint_recipients = {key = "endpoint_recipients", i18n_title = "endpoint_notifications.enpoint_recipients_list", section="notifications", visible_iface = false, visible_system = true},
+    endpoint_notifications = {key = "endpoint_notifications", i18n_title = "endpoint_notifications.endpoint_list", section="notifications", visible_iface = false, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/plugins/alert_endpoints.html"},
+    endpoint_recipients = {key = "endpoint_recipients", i18n_title = "endpoint_notifications.enpoint_recipients_list", section="notifications", visible_iface = false, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/plugins/alert_endpoints.html"},
 
     -- Tools
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
