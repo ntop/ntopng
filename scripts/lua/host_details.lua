@@ -285,10 +285,11 @@ else
    local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
 
    local periodicity_map = interface.periodicityMap(_GET["host"])
+   local service_map     = interface.serviceMap(_GET["host"])
    local periodicity_map_available = false
    local service_map_available = false
 
-   if(interface.serviceMap(_GET["host"]) ~= nil) then
+   if(service_map and (table.len(service_map) > 0)) then
       service_map_available = true
    end
 

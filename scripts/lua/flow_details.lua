@@ -870,7 +870,7 @@ else
 	 print("</td></tr>\n")
 
 	 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
-	 print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Velocity_factor\">"..i18n("flow_details.rtt_distance").."</A></th><td>")
+	 print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Velocity_factor\" target=\"_blank\">"..i18n("flow_details.rtt_distance").."</A> <i class=\"fas fa-external-link-alt\"></i></th><td>")
 	 local c_vacuum_km_s = 299792
 	 local c_vacuum_mi_s = 186000
 	 local fiber_vf      = .67
@@ -1022,8 +1022,8 @@ else
 
    if((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
      print("<tr><th width=30%>"..
-     '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-toggle="tooltip" title="'..i18n("flow_details.computed_as_tcp_window_size_rtt")..'">'..
-     i18n("flow_details.max_estimated_tcp_throughput").."</a><td nowrap> "..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ")
+     '<a href="https://en.wikipedia.org/wiki/TCP_tuning" data-toggle="tooltip" target=\"_blank\" title="'..i18n("flow_details.computed_as_tcp_window_size_rtt")..'">'..
+     i18n("flow_details.max_estimated_tcp_throughput").."</a> <i class=\"fas fa-external-link-alt\"></i><td nowrap> "..i18n("client").." <i class=\"fas fa-arrow-right\"></i> "..i18n("server")..": ")
      print(bitsToSize(flow["tcp.max_thpt.cli2srv"]))
      print("</td><td> "..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ")
      print(bitsToSize(flow["tcp.max_thpt.srv2cli"]))
@@ -1282,15 +1282,18 @@ else
       if(not isEmptyString(flow["host_server_name"])) then
 	 s = flow["host_server_name"]
       end
-      print("<A HREF=\"http://"..page_utils.safe_html(s).."\">"..page_utils.safe_html(s).."</A> <i class=\"fas fa-external-link-alt\"></i>")
+      print("<A HREF=\"http://"..page_utils.safe_html(s).."\" target=\"_blank\">"..page_utils.safe_html(s).."</A> <i class=\"fas fa-external-link-alt\"></i>")
       if(flow["category"] ~= nil) then print(" "..getCategoryIcon(flow["host_server_name"], flow["category"])) end
       printAddCustomHostRule(s)
       print("</td></tr>\n")
 
       print("<tr><th>"..i18n("flow_details.url").."</th><td colspan=2>")
       print("<A HREF=\"http://")
-      if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
-      print(page_utils.safe_html(flow["protos.http.last_url"]).."\">"..page_utils.safe_html(flow["protos.http.last_url"]).."</A> <i class=\"fas fa-external-link-alt\">")
+      -- if(flow["srv.port"] ~= 80) then print(":"..flow["srv.port"]) end
+
+      local last_url = page_utils.safe_html(flow["protos.http.last_url"])
+      local last_url_short = shortenString(last_url, 64)
+      print(last_url.."\" target=\"_blank\">"..last_url_short.."</A> <i class=\"fas fa-external-link-alt\">")
       print("</td></tr>\n")
 
       if not have_nedge and flow["protos.http.last_return_code"] and flow["protos.http.last_return_code"] ~= 0 then

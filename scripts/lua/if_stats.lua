@@ -65,15 +65,14 @@ local is_packet_interface = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
 
 local periodicity_map = interface.periodicityMap()
+local service_map     = interface.serviceMap()
 local periodic_info_available = false
 local service_map_available = false
+local num_periodicity = 0
 
-if(interface.serviceMap() ~= nil) then
+if(service_map and (table.len(service_map) > 0)) then
    service_map_available = true
 end
-
-
-local num_periodicity = 0
 
 if(periodicity_map) then
    num_periodicity = table.len(periodicity_map)
