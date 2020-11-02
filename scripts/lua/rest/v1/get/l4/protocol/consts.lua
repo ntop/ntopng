@@ -32,6 +32,7 @@ for _, l4_key in pairs(l4_keys) do
    -- 2.3 number 1
    res[#res + 1] = {
      name = l4_key[1], 
+     other = l4_key[2],
      id = l4_key[3],
    }
 end
