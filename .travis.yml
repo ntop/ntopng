@@ -11,7 +11,7 @@ install:
   - sudo apt-get install libglib2.0 libxml2-dev libpcap-dev librrd-dev redis-server libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libzmq3-dev git libjson-c-dev
 
 before_script:
-  - git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ..
+  - git clone -b 3.4-stable https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ..
   - ./autogen.sh
 
 script:
