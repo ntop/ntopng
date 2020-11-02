@@ -24,6 +24,8 @@ alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANA
 
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 4096
 
+-- Emoji Unicode Icons https://apps.timwhitlock.info/emoji/tables/unicode
+
 -- Alerts (Keep severity_id in sync with ntop_typedefs.h AlertLevel)
 -- each table entry is an array as:
 -- {"alert html string", "alert C enum value", "plain string", "syslog severity"}
@@ -35,6 +37,7 @@ alert_consts.alert_severities = {
       -- color = "black",
       i18n_title = "alerts_dashboard.debug",
       syslog_severity = 7,
+      emoji = "\xE2\x84\xB9"
    },
    info = {
       severity_id = 2,
@@ -43,6 +46,7 @@ alert_consts.alert_severities = {
       -- color = "blue",
       i18n_title = "alerts_dashboard.info",
       syslog_severity = 6,
+      emoji = "\xE2\x84\xB9"
    },
    notice = {
       severity_id = 3,
@@ -51,6 +55,7 @@ alert_consts.alert_severities = {
       -- color = "blue",
       i18n_title = "alerts_dashboard.notice",
       syslog_severity = 5,
+      emoji = "\xE2\x84\xB9"
    },
    warning = {
       severity_id = 4,
@@ -59,6 +64,7 @@ alert_consts.alert_severities = {
       -- color = "gold",
       i18n_title = "alerts_dashboard.warning",
       syslog_severity = 4,
+      emoji = "\xE2\x9A\xA0"
    },
    error = {
       severity_id = 5,
@@ -67,6 +73,7 @@ alert_consts.alert_severities = {
       -- color = "red",
       i18n_title = "alerts_dashboard.error",
       syslog_severity = 3,
+      emoji = "\xE2\x9D\x97"
    },
    critical = {
       severity_id = 6,
@@ -75,6 +82,7 @@ alert_consts.alert_severities = {
       -- color = "purple",
       i18n_title = "alerts_dashboard.critical",
       syslog_severity = 2,
+      emoji = "\xE2\x9B\x94"
    },
    alert = {
       severity_id = 7,
@@ -83,6 +91,7 @@ alert_consts.alert_severities = {
       -- color = "red",
       i18n_title = "alerts_dashboard.alert",
       syslog_severity = 1,
+      emoji = "\xF0\x9F\x9A\xA9"
    },
    emergency = {
       severity_id = 8,
@@ -91,6 +100,7 @@ alert_consts.alert_severities = {
       -- color = "purple",
       i18n_title = "alerts_dashboard.error",
       syslog_severity = 0,
+      emoji = "\xF0\x9F\x9A\xA9"
    }
 }
 
@@ -560,13 +570,17 @@ end
 
  -- ################################################################################
 
-function alert_consts.alertSeverityLabel(v, nohtml)
+function alert_consts.alertSeverityLabel(v, nohtml, emoji)
    local severity_id = alert_consts.alertSeverityRaw(v)
 
    if(severity_id) then
       local severity_info = alert_consts.alert_severities[severity_id]
       local title = i18n(severity_info.i18n_title) or severity_info.i18n_title
 
+      if(emoji) then
+	 title = (severity_info.emoji or "").. " " .. title
+      end
+      
       if(nohtml) then
         return(title)
       else
