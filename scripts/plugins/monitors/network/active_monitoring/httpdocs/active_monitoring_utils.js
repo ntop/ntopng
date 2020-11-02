@@ -342,6 +342,13 @@ $(document).ready(function() {
             action: function(e, dt, node, config) {
                 $addHostModalHandler.invokeModalInit();
             }
+        },
+        {
+            text: '<i class="fas fa-sync-alt"></i>',
+            className: 'btn-link',
+            action: function(e, dt, node, config) {
+                $amTable.ajax.reload();
+            }
         }
     ], );
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/plugins/get_active_monitoring_hosts.lua`);
