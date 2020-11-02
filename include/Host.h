@@ -371,7 +371,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   }
   inline MudRecording getMUDRecording()    { return(mud_pref);   };
 
-  inline u_int32_t getScore()        const { return score.get(); };
+  inline u_int32_t getScore()         const { return score.get(); };
+  inline u_int32_t getScoreAsClient() const { return score.getClient(); };
+  inline u_int32_t getScoreAsServer() const { return score.getServer(); };
   u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
   u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
 

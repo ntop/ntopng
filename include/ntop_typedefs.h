@@ -415,6 +415,8 @@ typedef enum {
   column_total_alerts,
   column_pool_id,
   column_score,
+  column_score_as_client,
+  column_score_as_server,
   /* Macs */
   column_num_hosts,
   column_manufacturer,

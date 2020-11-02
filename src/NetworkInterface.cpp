@@ -3877,7 +3877,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
       case column_duration:
 	retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
 	break;
-    case column_score:
+      case column_score:
         retriever->elems[retriever->actNumEntries++].numericValue = f->getScore();
         break;
       case column_thpt:
@@ -4038,6 +4038,8 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data, bool *matc
   case column_total_num_retx_rcvd:  r->elems[r->actNumEntries++].numericValue = h->getTcpPacketRcvdStats()->get_retr(); break;
   case column_total_alerts:    r->elems[r->actNumEntries++].numericValue = h->getTotalAlerts(); break;
   case column_score: r->elems[r->actNumEntries++].numericValue = h->getScore(); break;
+  case column_score_as_client: r->elems[r->actNumEntries++].numericValue = h->getScoreAsClient(); break;
+  case column_score_as_server: r->elems[r->actNumEntries++].numericValue = h->getScoreAsServer(); break;
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
@@ -4343,6 +4345,8 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_ndpi")) retriever->sorter = column_ndpi, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_duration")) retriever->sorter = column_duration, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_score")) retriever->sorter = column_score, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_score_as_client")) retriever->sorter = column_score_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_score_as_server")) retriever->sorter = column_score_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_thpt")) retriever->sorter = column_thpt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_client_rtt")) retriever->sorter = column_client_rtt, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_server_rtt")) retriever->sorter = column_server_rtt, sorter = numericSorter;
@@ -4640,6 +4644,8 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
   else if(!strcmp(sortColumn, "column_total_num_retx_rcvd")) retriever->sorter = column_total_num_retx_rcvd, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_total_alerts")) retriever->sorter = column_total_alerts, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_score")) retriever->sorter = column_score, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_score_as_client")) retriever->sorter = column_score_as_client, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_score_as_server")) retriever->sorter = column_score_as_server, sorter = numericSorter;
   else if(!strcmp(sortColumn, "column_pool_id")) retriever->sorter = column_pool_id, sorter = numericSorter;
   else {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn);
