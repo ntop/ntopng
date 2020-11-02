@@ -23,6 +23,8 @@ endpoint but each one with a different destination email address:
 Discord
 -------
 
+
+
 Telegram
 --------
 
@@ -53,7 +55,7 @@ Otherwise if you want to add the bot to a group chat and send messagges on that 
   - add to your group chat the bot you previosly created (searching for his name);
   - now add to that group chat `@getidsbot`;
 
-.. figure:: ../img/getidsbot_group_add.png
+.. figure:: ../img/telegram_getidsbot_group_add.png
 
   - copy the id the bot sent on the group chat;
 
