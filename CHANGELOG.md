@@ -5,8 +5,15 @@
 ## Breakthroughs
 
 * [Flexible Alert Handling](https://www.ntop.org/ntopng/using-ntopng-recipients-and-endpoints-for-flexible-alert-handling/)
-  * Added recipients and endpoints to send alerts to different recipients on different channels, including email, Discord, Slack and [Elasticsearch](https://www.ntop.org/ntop/using-elasticsearch-to-store-and-correlate-ntopng-alarms/)
-* Scalable SNMP v2c/v3 support
+* Added recipients and endpoints to send alerts to different recipients on different channels, including email, Discord, Slack and [Elasticsearch](https://www.ntop.org/ntop/using-elasticsearch-to-store-and-correlate-ntopng-alarms/)
+* Initial SCADA protocol support
+* Many internal components of ntopng have been rewritten in order to improve the overall ntopng performance, reduce system load, and capable of processing more data while reducing memory usage with respect to 4.0.
+* Cybersecurity extensions have been greatly enhanced by leveraging on the latest nDPI enhancements that enabled the creation of several user scripts able to supervise many security aspects of modern systems.
+* Behavioral traffic analysis and lateral traffic movement detection for finding cybersecurity threats in traffic noise.
+* Initial Scada support with native IEC 60870-5-104 support. We acknowledge switch.ch for having supported this development.
+* Consolidation of Suricata and external alerts integration to further open ntopng to the integration of commercial security devices.
+* SNMP support has been enhanced in terms of speed, SNMPv3 protocol support, and variety of supported devices.
+* New REST API that enabled the integration of ntopng with third party applications such as CheckMK.
 
 ## New features
 
