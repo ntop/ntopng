@@ -1173,16 +1173,16 @@ local lang = {
     },
     ["hints"] = {
       ["bind_pools"] = {
-        ["body"] = "Bind the new recipient to the default pools or create a new one!",
+	["body"] = "Last step! Bind recipients to pools to start delivering alerts to them.",
         ["title"] = "Bind Recipient",
       },
       ["create_endpoint"] = {
-        ["action"] = "Create new one",
-        ["body"] = "Do you know? You can create <a target='_blank' href='%{link}'>endpoint</a> to send alerts!",
-        ["title"] = "Do you know what is an endpoint?",
+        ["action"] = "Create",
+        ["body"] = "Create an <a target='_blank' href='%{link}'>endpoint</a> to start delivering alerts to the outside.",
+        ["title"] = "Create an Endpoint",
       },
       ["create_recipients"] = {
-        ["body"] = "You can create new <a target='_blank' href='%{link}'>recipients</a> for the new endpoint!",
+        ["body"] = "Create new <a target='_blank' href='%{link}'>recipients</a> to start delivering alerts to them.",
         ["title"] = "Create Recipients",
       },
     },
