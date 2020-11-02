@@ -1,3 +1,5 @@
+.. _BasicConceptsHostPools:
+
 Host Pools
 ##########
 

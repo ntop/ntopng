@@ -1,9 +1,14 @@
 Alerts
 ######
 
-ntopng implements flexible alerts handling. This session discusses basic concepts behind flexible alert handling and explains how to properly configure ntopng.
+ntopng alerts are:
+
+- Evaluated with User Scripts for pools of hosts, interfaces, SNMP devices, and other network elements
+- Delivered to recipients using type- or severity-based criteria
 
 .. toctree::
     :maxdepth: 2
 
-    basic_concepts
+    evaluating_alerts
+    delivering_alerts
+    available_recipients
