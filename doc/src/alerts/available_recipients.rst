@@ -56,17 +56,15 @@ After that navigate to Notification->Recipients and, just like before, click on 
 
 Then go back to Telegram. 
 If the bot have to personally send the alarms directly into the private chat then follow these steps:
-  - search for `@getidsbot` and start a conversation with it;
-  - copy the id the bot gave to you;
+  - search for `@getidsbot` and start a conversation with it
+  - copy the id the bot gave to you
 
 .. figure:: ../img/telegram_getidsbot_search.png
 
-Otherwise if you want to add the bot to a group chat and send messagges on that group, follow the following steps:
-  - add to your group chat the bot you previosly created (searching for his name);
-  - now add to that group chat `@getidsbot`;
-  - copy the id the bot sent on the group chat;
-
-.. figure:: ../img/getidsbot_group_add.png
+ Otherwise if you want to add the bot to a group chat and send messagges on that group, follow the following steps:
+  - add the bot you previosly created (searching for his name) to your group chat
+  - now add to that group chat `@getidsbot`
+  - copy the id the bot sent on the group chat
 
 .. figure:: ../img/telegram_getidsbot_copy_id_group.png
 
