@@ -19,7 +19,7 @@ recipients.MAX_NUM_RECIPIENTS = 64
 
 -- ##############################################
 
-recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.cache.endpoint_hints.recipient_created"
+recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.prefs.endpoint_hints.recipient_created"
 
 -- ##############################################
 
@@ -29,21 +29,21 @@ function recipients.initialize()
    -- For each builtin configuration type, a configuration and a recipient is created
    for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
       if endpoint.builtin then
-	 -- Add the configuration
-	 notification_configs.add_config(
-	    endpoint_key --[[ the type of the endpoint--]],
-	    "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
-	    {} --[[ no default params --]]
-	 )
+         -- Add the configuration
+         notification_configs.add_config(
+            endpoint_key --[[ the type of the endpoint--]],
+            "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
+            {} --[[ no default params --]]
+         )
 
-	 -- And the recipient
-	 recipients.add_recipient(
-	    "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
-	    "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
-	    nil, -- User script categories
-	    alert_consts.alert_severities.notice.severity_id, -- minimum severity is notice (to avoid flooding) (*****)
-	    {} --[[ no recipient params --]]
-	 )
+         -- And the recipient
+         recipients.add_recipient(
+            "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
+            "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
+            nil, -- User script categories
+            alert_consts.alert_severities.notice.severity_id, -- minimum severity is notice (to avoid flooding) (*****)
+            {} --[[ no recipient params --]]
+         )
       end
    end
 
@@ -266,11 +266,16 @@ end
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
 function recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
+
+   -- is_builtin default value is false
+   is_builtin = (is_builtin or false)
+
    local locked = _lock()
    local res = { status = "failed" }
 
    if locked then
       local ec = notification_configs.get_endpoint_config(endpoint_conf_name)
+      local is_builtin_endpoint = ec.endpoint_conf.builtin or false
 
       if ec["status"] == "OK" and endpoint_recipient_name then
 	 -- Is the endpoint already existing?
@@ -285,7 +290,7 @@ function recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, u
 	    local ok, status = check_endpoint_recipient_params(endpoint_key, recipient_params)
 
 	    if ok then
-	       local safe_params = status["safe_params"]
+          local safe_params = status["safe_params"]
 
 	       -- Assign the recipient id
 	       local recipient_id = _assign_recipient_id()
@@ -296,8 +301,8 @@ function recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, u
 	       ntop.recipient_register(recipient_id)
 
           -- Set a flag to indicate that a recipient has been created
-          if isEmptyString(ntop.getCache(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
-            ntop.setCache(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY, "1")
+          if (not is_builtin_endpoint) and isEmptyString(ntop.getPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
+            ntop.setPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY, "1")
           end
 
 	       res = {status = "OK", recipient_id = recipient_id}

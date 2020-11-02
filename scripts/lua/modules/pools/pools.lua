@@ -52,7 +52,7 @@ pools.MIN_ASSIGNED_POOL_ID = 1
 -- ##############################################
 
 -- Flag to remember if user bound a recipient to a pool
-pools.FIRST_RECIPIENT_BOUND_CACHE_KEY = "ntopng.cache.endpoint_hints.recipient_has_been_bound"
+pools.FIRST_RECIPIENT_BOUND_CACHE_KEY = "ntopng.prefs.endpoint_hints.recipient_has_been_bound"
 
 -- ##############################################
 
@@ -258,8 +258,8 @@ end
 
 --- Set a flag to indicate that a pool has been created/edited
 function pools:_set_cache_flag()
-    if isEmptyString(ntop.getCache(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY)) then
-        ntop.setCache(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY, "1")
+    if isEmptyString(ntop.getPref(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY)) then
+        ntop.setPref(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY, "1")
     end
 end
 
