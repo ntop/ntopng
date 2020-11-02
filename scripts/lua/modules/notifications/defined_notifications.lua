@@ -209,10 +209,10 @@ local defined_notifications = {
     {
         id = 18,
         dismissable = true,
-        predicate = predicates.empty,
+        predicate = predicates.unexpected_plugins,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = EMPTY_PAGES,
+        excluded_pages = {pages.scripts_config.key},
         excluded_subpages = EMPTY_PAGES
     },
 }

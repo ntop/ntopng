@@ -31,6 +31,7 @@ sendHTTPContentTypeHeader('text/html')
 local script_subdir = _GET["subdir"]
 local confset_id = _GET["confset_id"]
 local script_filter = _GET["user_script"]
+local search_filter = _GET["search_script"]
 local configset = user_scripts.getConfigsets()[tonumber(confset_id)]
 local script_type = user_scripts.getScriptType(script_subdir)
 interface.select(getSystemInterfaceId())
@@ -110,6 +111,7 @@ local context = {
       script_subdir = script_subdir,
       confset_name = confset_name,
       script_filter = script_filter,
+      search_filter = search_filter,
       page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
       apps_and_categories = json.encode(apps_and_categories),
       device_types = json.encode(device_types_list),

@@ -158,6 +158,9 @@ user_scripts.script_types = {
 
 -- ##############################################
 
+
+-- ##############################################
+
 -- @brief Given a category found in a user script, this method checks whether the category is valid
 -- and, if not valid, it assigns to the plugin a default category
 local function checkCategory(category)

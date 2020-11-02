@@ -1371,6 +1371,29 @@ const createScriptStatusButton = (row_data) => {
    return $button;
 };
 
+function delegateTooltips() {
+   $(`span[data-toggle='popover']`).popover({
+      trigger: 'manual',
+      html: true,
+      animation: false,
+  })
+  .on('mouseenter', function () {
+      let self = this;
+      $(this).popover("show");
+      $(".popover").on('mouseleave', function () {
+          $(self).popover('hide');
+      });
+  })
+  .on('mouseleave', function () {
+      let self = this;
+      setTimeout(function () {
+          if (!$('.popover:hover').length) {
+              $(self).popover('hide');
+          }
+      }, 50);
+  });
+}
+
 $(document).ready(function () {
 
    const CATEGORY_COLUMN_INDEX = 1;
@@ -1515,9 +1538,6 @@ $(document).ready(function () {
          // enable the disable all button if there are more than one enabled scripts
          if (enabled_count > 0) $(`#btn-disable-all`).removeAttr('disabled');
 
-         // select the correct tab
-         select_script_filter(enabled_count);
-
          // clean searchbox
          $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
 
@@ -1527,7 +1547,11 @@ $(document).ready(function () {
             hide_categories_dropdown();
          });
 
+         delegateTooltips();
+
          // update the tabs counters
+         const INDEX_SEARCH_COLUMN = 3;
+
          const $disabled_button = $(`#disabled-scripts`);
          const $all_button = $("#all-scripts");
          const $enabled_button = $(`#enabled-scripts`);
@@ -1535,6 +1559,34 @@ $(document).ready(function () {
          $all_button.html(`${i18n.all} (${enabled_count + disabled_count})`)
          $enabled_button.html(`${i18n.enabled} (${enabled_count})`);
          $disabled_button.html(`${i18n.disabled} (${disabled_count})`);
+
+         const filterButonEvent = ($button, searchValue, tab) => {
+            $('.filter-scripts-button').removeClass('active');
+            $button.addClass('active');
+            this.DataTable().columns(INDEX_SEARCH_COLUMN).search(searchValue).draw();
+            window.history.replaceState(undefined, undefined, tab);
+            delegateTooltips();
+         }
+
+         $all_button.click(function() {
+            filterButonEvent($(this), "", "#all");
+         });
+         $enabled_button.click(function() {
+            filterButonEvent($(this), "true", "#enabled");
+         });
+         $disabled_button.click(function() {
+            filterButonEvent($(this), "false", "#disabled");
+         });
+
+         // select the correct tab
+         select_script_filter(enabled_count);
+
+         if (script_search_filter) {
+            this.DataTable().columns(INDEX_SEARCH_COLUMN).search("").draw(true);
+            this.DataTable().search(script_search_filter).draw(true);
+            // disable the search box
+            $(`#scripts-config_filter input[type='search']`).attr("readonly", "");
+         }
 
          if (script_key_filter) {
             let elem = json.filter((x) => { return (x.key == script_key_filter); })[0];
@@ -1553,27 +1605,6 @@ $(document).ready(function () {
       },
       order: [[0, "asc"]],
       buttons: [
-         {
-            extend: "filterScripts",
-            attr: {
-               id: "all-scripts",
-            },
-            text: "All"
-         },
-         {
-            extend: "filterScripts",
-            attr: {
-               id: "enabled-scripts"
-            },
-            text: "Enabled"
-         },
-         {
-            extend: "filterScripts",
-            attr: {
-               id: "disabled-scripts"
-            },
-            text: "Disabled"
-         }
       ],
       columns: [
          {

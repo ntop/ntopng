@@ -533,30 +533,6 @@ path.link {
   height: auto !important;
 }
 
-.filter-scripts-button {
-  padding: 0;
-  background: none;
-  border: none;
-  color: #007bff;
-  padding: .5rem 1rem;
-}
-
-.filter-scripts-button.active {
-  color: #ffffff;
-  background-color: #007bff;
-  border-radius: 0.35rem;
-}
-
-.filter-scripts-button.active:hover {
-  background-color: #007bff;
-  color: #ffffff;
-}
-
-.filter-scripts-button:hover {
-  color: #0050a5;
-  background: none;
-}
-
 .square-btn {
   width: 2rem;
   height: 2rem;

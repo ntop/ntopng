@@ -5,6 +5,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local pools                     = require("pools")
+local user_script_utils         = require("user_scripts")
 local endpoint_configs          = require("notification_configs")
 local recipients_manager        = require("recipients")
 local page_utils                = require('page_utils')
@@ -22,6 +23,7 @@ local ALARM_THRESHOLD_LOW = 60
 local ALARM_THRESHOLD_HIGH = 90
 local IS_ADMIN = isAdministrator()
 local IS_SYSTEM_INTERFACE = page_utils.is_system_view()
+local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.user_scripts.unexpected_plugins_enabled"
 
 local predicates = {}
 
@@ -554,6 +556,30 @@ function predicates.bind_recipient_to_pools(notification, container)
     local hint = notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable)
     table.insert(container, hint)
 
+end
+
+--- Check if unexpected plugins are disabled and notifiy the user
+--- about their existance
+function predicates.unexpected_plugins(notification, container)
+
+    if (not IS_ADMIN) then return end
+    if not isEmptyString(ntop.getCache(UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY)) then return end
+
+    local url = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&search_script=unexpected#disabled"
+
+    -- TODO: missing documentation links
+    local title = i18n("user_scripts.hint.title")
+    local body = i18n("user_scripts.hint.body", {
+        link_DHCP = "https://ntop.org",
+        link_SMTP = "https://ntop.org",
+        link_DNS = "https://ntop.org",
+        link_NTP = "https://ntop.org",
+        product = info["product"]
+    })
+    local action = { url = url, title = i18n("configure")}
+
+    local hint = notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable)
+    table.insert(container, hint)
 end
 
 -- ###############################################

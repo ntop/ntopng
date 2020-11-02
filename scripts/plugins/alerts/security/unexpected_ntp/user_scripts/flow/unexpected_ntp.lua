@@ -5,18 +5,20 @@
 local user_scripts = require("user_scripts")
 local flow_consts = require("flow_consts")
 
+local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.user_scripts.unexpected_plugins_enabled"
+
 -- #################################################################
 
 local script = {
    -- Script category
-   category = user_scripts.script_categories.security, 
+   category = user_scripts.script_categories.security,
 
    -- Priority
    prio = -20, -- Lower priority (executed after) than default 0 priority
 
    -- This module is disabled by default
    default_enabled = false,
-   
+
    -- NOTE: hooks defined below
    hooks = {},
 
@@ -41,6 +43,16 @@ local script = {
 
 -- #################################################################
 
+function script.onEnable(hook, hook_config)
+   -- Set a flag to indicate to the notifications system that an unexpected plugin
+   -- has been enabled
+   if isEmptyString(ntop.getCache(UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY)) then
+      ntop.setCache(UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY, "1")
+   end
+end
+
+-- #################################################################
+
 function script.hooks.protocolDetected(now, conf)
    if(table.len(conf.items) > 0) then
       ok = 0
@@ -48,7 +60,7 @@ function script.hooks.protocolDetected(now, conf)
 
       -- the string format returned by flow.geServerKey() is "x.x.x.x@0", :sub(1, -3) deletes "@0"
       server_ip = server_ip:sub(1, -3)
-      
+
       for _, ntp_ip in pairs(conf.items) do
 	 if server_ip == ntp_ip then
 	    ok = 1

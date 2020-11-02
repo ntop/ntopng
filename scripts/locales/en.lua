@@ -4673,6 +4673,10 @@ local lang = {
     ["note_configsets"] = "User scripts are configured and enabled/disabled on a per-configuration basis. Multiple configurations can be created and each configuration can be 'Applied To' multiple pools.",
     ["note_what_are_user_scripts"] = "<a href=\"%{user_scripts_url}\">User scripts</a> %{user_scripts_external} are executed periodically or when a certain event occurs. ",
     ["stop_recording_after"] = "Stop recording after %{duration}",
+    ["hint"] = {
+      ["body"] = "Do you know? <b>%{product}</b> comes with flow user scripts such as Unexpected <a href='%{link_DHCP}' target='_about'>DHCP</a>, <a href='%{link_SMTP}' target='_about'>SMTP</a>, <a href='%{link_DNS}' target='_about'>DNS</a>, <a href='%{link_NTP}' target='_about'>NTP</a> would you like to configure them?",
+      ["title"] = "Flow User Scripts",
+    },
   },
   ["users"] = {
     ["add_new_user"] = "Add New User",
