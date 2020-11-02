@@ -1,3 +1,5 @@
+.. _DeliveringAlertsToRecipients:
+
 Delivering Alerts to Recipients
 ===============================
 

@@ -4,7 +4,7 @@ Evaluating Alerts
 User Scripts
 ------------
 
-ntopng alerts are evaluated with User Scripts. User Scripts are executed for hosts, interfaces, SNMP devices, and other network elements, and are configurable from the settings
+ntopng alerts are evaluated with :ref:`WebUIUserScripts`. User Scripts are executed for hosts, interfaces, SNMP devices, and other network elements, and are configurable from the settings
 
 
 .. figure:: ../img/alerts_user_scripts_management.png
@@ -32,7 +32,7 @@ User Script Configurations are applied to pools. Pools are used to group togethe
   :align: center
   :alt: Pools Management
 
-The configuration applied to each pool. shown in the table above, can be changed using the *Edit* button under *Actions*.
+The configuration applied to each pool, shown in the table above, can be changed using the *Edit* button under *Actions*.
 
 User Scripts run against all pool members will use the configuration specified for that pool. For example, an Interface pool **LAN pool** with interface :code:`eno1` can be created and associated with a User Scripts configuration **LAN config** as shown below
 

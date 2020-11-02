@@ -19,13 +19,7 @@ Certain alerts are configurable. For example, alerts can be triggered when certa
 - "Packet drops of an interface exceeds a given percentage of the total number of monitored packets"
 - "The total traffic originated at a network exceeds a certain threshold"
 
-Thresholds can be configured for:
-
-- Local hosts
-- Interfaces
-- Local networks
-
-ntopng :ref:`WebUIUserScripts` perform the evaluation of thresholds periodically at predefined time intervals:
+ntopng :ref:`WebUIUserScripts` perform the evaluation of thresholds periodically, at predefined time intervals:
 
 - Every minute
 - Every 5 minutes
@@ -107,11 +101,15 @@ User activities are available in the :ref:`BasicConceptSystemInterface`, under t
 Severity
 --------
 
-Event and threshold alerts are always associated with a severity that tells the importance of such occurrence. For example, the contact of a blacklisted host is emphasized with a *warning*, whereas a threshold crossed by an host is highlighted with an *error*. Currently, severity levels available are three:
+Event and threshold alerts are always associated with a severity that tells the importance of such occurrence. For example, the contact of a blacklisted host is emphasized with a *warning*, whereas a threshold crossed by an host is highlighted with an *error*. Currently, severity levels available those defined in RFC 3164, namely:
 
-- *Info*. Used for informative alerts, such as devices connections and disconnections or user activities, that don't directly represent any anomalous event or threshold. Identified with a light blue badge.
-- *Warning*. Used for alerts that deserve further investigation, such as a SYN probing. Identified with an orange badge.
-- *Error*. Used with user-configurable thresholds, for example a traffic threshold crossed by an host. Identified with a red badge.
+- *Emergency*: system is unusable
+- *Alert*: action must be taken immediately
+- *Critical*: critical conditions
+- *Error*: error conditions
+- *Warning*: warning conditions
+- *Notice*: normal but significant condition
+- *Debug*: debug-level messages
 
   
 Entities
@@ -123,6 +121,7 @@ Every alert has an entity and an entity value associated. The entity is the subj
 - **Interfaces**: monitored ntopng interfaces
 - **Networks**: ntopng local networks
 - **SNMP devices**: devices added to ntopng from the SNMP page
+- **SNMP device interfaces**: devices added to ntopng from the SNMP page
 - **Flows**: monitored flows
 - **Devices**: Layer-2 Mac addresses
 - **Host Pools**: the user-created host pools
@@ -133,89 +132,19 @@ For example, an alert triggered for host :code:`192.168.1.2` that has exceeded a
 
 Entities are not shown when browsing ntopng alert pages as they are clear from the context and alert messages. Understanding how entities work can be useful when propagating alerts to third-party endpoints such as syslog.
 
-
 Type
 ----
 
-The list of currently supported alerts, divided by entity, is outlined below:
+The full list of alerts is available under the Developer section, page *Alerts and Flow Status Definitions*.
 
-- Mac Addresses    
+.. figure:: ../img/basic_concepts_alert_definitions.png
+  :align: center
+  :alt: Alert Types
 
-  - **New Device** (event): Generated when a new Mac address is seen for the first time by ntopng on a particular interface.
-  - **Device Connection** (event): Generated when a previously-seen Mac address starts doing traffic after an inactivity period.
-  - **Device Disconnection** (event): Generated when a Mac address goes idle after an activity period.
-  - **IP/MAC Change** (event): Generated when the Mac address seen for a given IP changes, for example when the DHCP re-uses an IP address.
-  - **Device Protocols** (event): Generated when an anomalous protocol is detected. See `device protocols`_ for more details.
 
-- Host Pools
+Recipients
+----------
 
-  - **Host Pool Connection** (event): Generated when ntopng starts seeing traffic for at least one host belonging to a pool.
-  - **Host Pool Disconnection** (event): Generated when the last host of a pool becomes idle after an activity period.
-
-- SNMP Devices
-
-  - **Interface Status Change** (event): Indicates whether an interface of an SNMP configured device has changed its status, by going from Up to Down, or vice versa.
-  - **Interface Duplex Status Change** (event): Indicates whether an interface of an SNMP configured device has changed its *duplex* status, for example by going from full-duplex to half-duplex.
-  - **Interface Discards/Errors** (event): Indicates whether the *discards* or *errors* counters increased on an interface of an SNMP configured device.
-  - **Unresponsive Device** (event): Indicates whether a configured SNMP device no longer responds to SNMP queries.
-  - **Port Load Threshold** (event): Indicates whether the load (throughput with respect to the link speed) on a port of a configured SNMP device exceed a configured threshold.
-
-  Alerts for SNMP devices can be controlled from *Preferences* -> *SNMP* (after selecting *Expert View* mode). The same alerts can be also disabled for selected devices from *System* -> *SNMP* -> (device) -> (cog icon), and even selected interfaces from *System* -> *SNMP* -> (device) -> *Interfaces* -> (interface) -> (cog icon).
-
-- Flows
-
-  See below for a description of the misbehaving flows alerts.
-
-- Other Entities
-
-  - **TCP SYN Flood** (threshold): Indicates whether an host is exceeding a configurable number of SYN per second. In the alert message it is also indicated if an host is a flooder of if it is a victim of a SYN flood.
-  - **Flows Flood** (threshold): Indicates whether an host is creating a number of flows that exceeds a configurable maximum number of flows per second. In the alert message it is also indicated if an host is a flooder of if it is a victim of a flow flood.
-  - **Threshold Cross** (threshold): Indicates whether an host, a network or an interface has crossed a configurable threshold. Thresholds can be configured from host, network and interface details page.
-  - **Process** (event): Indicates ntopng process status changes, including normal and anomalous restarts.
-
-Alerts used only for the ntopng Edge edition are:
-
-- **Blocked Flow** (event): Generates an alert for every flow that is blocked by ntopng Edge due to configured policies.
-- **Quota Exceeded** (event): Signals a quota exceeded for one of the defined users.
-- **NFQ Flushed** (event): Indicates whether a flush of the underlying ntopng Edge netfilter queue has been flushed.
-
-Not all the types of alerts are generated by default. Alert generation on a per-type basis can be controlled from the ntopng preferences.
-
-Misbehaving Flows
------------------
-
-Ntopng can detect possibly anomalous flows, and report them as alerts. Such flows are called "Misbehaving Flows".
-
-Here is a list of possible flows alert types:
-
-  - **Flow Misbehavior** (event): Indicates a generic misbehavior. The alert description contains more details, namely:
-
-    + Slow TCP Connection
-    + Slow Application Header
-    + Slow Data Exchange (Slowloris?)
-    + Low Goodput
-    + TCP Connection Issues
-    + Severe TCP Connection Issues: Indicates that there are too many retransmissions, OOO or lost packets
-    + Elephant flow ("local to remote" or "remote to local"): Indicates that the flow is carrying a lot of data
-    + Data Exfiltration: The flow may be a data exfiltration attempt
-    + Long-lived flow: The flow is lasting too long
-  - **Suspicious Activity** (event): Indicates whether there is a suspicious flow activity, namely when there is one of the following:
-
-    + Suspicious TCP SYN Probing (or server port down)
-    + Suspicious TCP Probing
-    + TCP connection refused
-    + SSL certificate mismatch
-    + Invalid DNS query: This can indicate a DGA domain being contacted by a compromised host
-  - **Remote client and remote server** (event): Indicates whether a flow has both the client and the server in ntopng remote networks.
-  - **Blacklisted Flow** (event): Generated for flows that have the blacklisted client or the blacklisted server (or both).
-  - **Web Mining** (event): Used for flows that are supposed to perform mining activities.
-  - **Flow blocked** (event): In nEdge, this indicates that the flow has been blocked by policy enforcement
-  - **Protocol not allowed for this device type**: Anomalous traffic from a device. This occurs, for example, if a printer device performs Skype traffic, which is not expected to happen.
-  - **IDS alert**: an alert generated by an external IDS, e.g. Suricata
-
-Third-Party Endpoints
----------------------
-
-Alerts are not only available within the ntopng web GUI, they can also be propagated to the outside using third party endpoints that include mail, slack and syslog. To see the configuration details necessary to use the endpoints refer to :ref:`ThirdPartyAlertEndpoints`.
+Alerts are not only available within the ntopng web GUI, they can also be propagated to the outside using recipients that include mail, slack and syslog. To see the configuration details necessary to use recipients refer to :ref:`DeliveringAlertsToRecipients`.
 
 .. _`device protocols`: ../advanced_features/device_protocols.html
