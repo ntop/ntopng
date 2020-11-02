@@ -10,7 +10,7 @@ local page_utils = require("page_utils")
 local template = require("template_utils")
 local defined_notifications = require("defined_notifications")
 
-local MAX_NOTIFICATIONS_TO_DISPLAY = 2
+local MAX_NON_PRIORITY_NOTIFICATIONS_TO_SHOW = 1
 
 -- Redis Key used to store the notification status
 local REDIS_KEY = "ntopng.user.%s.dismissed_notifications.notification_%d"
@@ -28,11 +28,16 @@ function notifications_manager.load_main_notifications()
     local current_page = page_utils.get_active_entry()
     local curent_subpage = _GET['page']
 
+    local non_priority_notifications = 0
+
     for _, notification in pairsByField(defined_notifications, 'id', asc) do
 
-        -- We can only show MAX_NOTIFICATIONS_TO_DISPLAY notifications inside the page,
+
+        -- We can only show MAX_NON_PRIORITY_NOTIFICATIONS_TO_SHOW notifications inside the page,
         -- in order to not overwhelm the user
-        if (#container >= MAX_NOTIFICATIONS_TO_DISPLAY) then break end
+        if (non_priority_notifications>= MAX_NON_PRIORITY_NOTIFICATIONS_TO_SHOW) and not notification.has_priority then
+            goto continue
+        end
 
         -- if the current page is excluded then don't show the notification
         if (table.contains(notification.excluded_pages, current_page)) then
@@ -61,8 +66,15 @@ function notifications_manager.load_main_notifications()
             table.contains(notification.pages, current_page)) or (table.contains(subpages[current_page], curent_subpage))
 
         if can_add then
+            local container_size = #container
             -- check the predicate function
             notification.predicate(notification, container)
+
+            -- if the container size is increase then a notification
+            -- has been added
+            if #container > container_size and not notification.has_priority then
+                non_priority_notifications = non_priority_notifications + 1
+            end
         end
 
         -- used to jump to the next notification

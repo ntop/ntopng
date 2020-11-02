@@ -18,6 +18,7 @@ local pages = page_utils.menu_entries
     {
         id: string,
         dismissable: boolean,
+        has_priority: boolean,
         pages: array of page keys,
         subpages: table of arrays of subpages,
         excluded_pages: array of page keys
@@ -29,6 +30,8 @@ local pages = page_utils.menu_entries
 --- to make the Redis Key for the notification status (the dimiss status)
 
 --- dismissable: as the name suggest, this field indicates if a notifican can be dismissed by the user
+--- has_priority: the notifications with this flag enabled won't be count when rendering,
+--- so they will alway be displayed
 
 --- pages: this is an array of page keys that are used to show the notification to the right page
 --- subpages: this is a table containing key/value pairs where key='page entry key' and the
@@ -44,6 +47,7 @@ local defined_notifications = {
     {
         id = 0,
         dismissable = false,
+        has_priority = false,
         predicate = predicates.contribute,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -53,6 +57,7 @@ local defined_notifications = {
     {
         id = 1,
         dismissable = false,
+        has_priority = true,
         predicate = predicates.about_page,
         pages = {pages.about.key},
         subpages = EMPTY_PAGES,
@@ -62,6 +67,7 @@ local defined_notifications = {
     {
         id = 2,
         dismissable = true,
+        has_priority = false,
         predicate = predicates.hosts_geomap,
         pages = {pages.geo_map.key},
         subpages = { [pages.hosts.key] = {'geomap'} },
@@ -71,6 +77,7 @@ local defined_notifications = {
     {
         id = 3,
         dismissable = false,
+        has_priority = true,
         predicate = predicates.restart_required,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -80,6 +87,7 @@ local defined_notifications = {
     {
         id = 4,
         dismissable = false,
+        has_priority = true,
         predicate = predicates.flow_dump,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -89,6 +97,7 @@ local defined_notifications = {
     {
         id = 5,
         dismissable = false,
+        has_priority = true,
         predicate = predicates.remote_probe_clock_drift,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -98,6 +107,7 @@ local defined_notifications = {
     {
         id = 6,
         dismissable = false,
+        has_priority = false,
         predicate = predicates.temp_working_dir,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -107,6 +117,7 @@ local defined_notifications = {
     {
         id = 7,
         dismissable = true,
+        has_priority = false,
         predicate = predicates.geo_ip,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -116,6 +127,7 @@ local defined_notifications = {
     {
         id = 8,
         dismissable = false,
+        has_priority = false,
         predicate = predicates.update_ntopng,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -125,6 +137,7 @@ local defined_notifications = {
     {
         id = 9,
         dismissable = false,
+        has_priority = true,
         predicate = predicates.too_many_hosts,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -134,6 +147,7 @@ local defined_notifications = {
     {
         id = 10,
         dismissable = false,
+        has_priority = true,
         predicate = predicates.too_many_flows,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -141,8 +155,11 @@ local defined_notifications = {
         excluded_subpages = EMPTY_PAGES
     },
     {
+        -- The same predicate is used with the notification with id 12
+        -- because thery are mutually exclusive
         id = 11,
         dismissable = true,
+        has_priority = false,
         predicate = predicates.DHCP,
         pages = {pages.interfaces_status.key},
         subpages = EMPTY_PAGES,
@@ -152,6 +169,7 @@ local defined_notifications = {
     {
         id = 12,
         dismissable = true,
+        has_priority = false,
         predicate = predicates.DHCP,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -161,6 +179,7 @@ local defined_notifications = {
     {
         id = 13,
         dismissable = true,
+        has_priority = false,
         predicate = predicates.exporters_SNMP_ratio_column,
         pages = {pages.flow_exporters.key},
         subpages = EMPTY_PAGES,
@@ -170,6 +189,7 @@ local defined_notifications = {
     {
         id = 14,
         dismissable = false,
+        has_priority = false,
         predicate = predicates.forced_community,
         pages = {pages.about.key},
         subpages = EMPTY_PAGES,
@@ -180,6 +200,7 @@ local defined_notifications = {
         -- Hint to invite the user to create endpoints to send alert
         id = 15,
         dismissable = true,
+        has_priority = false,
         predicate = predicates.create_endpoint,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -190,6 +211,7 @@ local defined_notifications = {
         -- Hint to invite the user to create recipients for the endpoints
         id = 16,
         dismissable = true,
+        has_priority = false,
         predicate = predicates.create_recipients_for_endpoint,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -200,6 +222,7 @@ local defined_notifications = {
         -- Hint to invite the user to bind the recipients to some pools
         id = 17,
         dismissable = true,
+        has_priority = false,
         predicate = predicates.bind_recipient_to_pools,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
@@ -209,6 +232,7 @@ local defined_notifications = {
     {
         id = 18,
         dismissable = true,
+        has_priority = false,
         predicate = predicates.unexpected_plugins,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
