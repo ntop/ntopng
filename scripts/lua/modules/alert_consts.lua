@@ -73,7 +73,7 @@ alert_consts.alert_severities = {
       -- color = "red",
       i18n_title = "alerts_dashboard.error",
       syslog_severity = 3,
-      emoji = "\xF0\x9F\x9A\xA9"
+      emoji = "\xE2\x9D\x97"
    },
    critical = {
       severity_id = 6,
@@ -82,7 +82,7 @@ alert_consts.alert_severities = {
       -- color = "purple",
       i18n_title = "alerts_dashboard.critical",
       syslog_severity = 2,
-      emoji = "\xF0\x9F\x9A\xA9"
+      emoji = "\xE2\x9D\x97"
    },
    alert = {
       severity_id = 7,
