@@ -68,7 +68,6 @@ Each individual menu bar entry will be discussed below.
     interfaces
     settings
     administration
-    alerts
     host_search
     storage_monitor
     import_export
