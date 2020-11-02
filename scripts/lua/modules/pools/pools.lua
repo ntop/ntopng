@@ -51,7 +51,8 @@ pools.MIN_ASSIGNED_POOL_ID = 1
 
 -- ##############################################
 
-pools.RECIPIENT_BOUND_CACHE_KEY = "ntopng.cache.endpoint_hints.recipient_has_been_bound"
+-- Flag to remember if user bound a recipient to a pool
+pools.FIRST_RECIPIENT_BOUND_CACHE_KEY = "ntopng.cache.endpoint_hints.recipient_has_been_bound"
 
 -- ##############################################
 
@@ -255,11 +256,11 @@ end
 
 -- ##############################################
 
-function pools:_set_wizard_cache()
-    -- remove recipient name from the cache
-    ntop.delCache(recipients_mod.LAST_RECIPIENT_NAME_CREATED_CACHE_KEY)
-    -- remember the user bound the recipient
-    ntop.setCache(self.RECIPIENT_BOUND_CACHE_KEY, "true")
+--- Set a flag to indicate that a pool has been created/edited
+function pools:_set_cache_flag()
+    if isEmptyString(ntop.getCache(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY)) then
+        ntop.setCache(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY, "1")
+    end
 end
 
 -- ##############################################
@@ -317,7 +318,7 @@ function pools:add_pool(name, members, configset_id, recipients)
                 -- Now that everything is ok, the id can be assigned and the pool can be persisted with the assigned id
                 pool_id = self:_assign_pool_id()
                 self:_persist(pool_id, name, members, configset_id, recipients)
-                self:_set_wizard_cache()
+                self:_set_cache_flag()
             end
         end
 
@@ -399,7 +400,7 @@ function pools:edit_pool(pool_id, new_name, new_members, new_configset_id,
                 -- If here, all checks are valid and the pool can be edited
                 self:_persist(pool_id, new_name, new_members, new_configset_id,
                               new_recipients)
-                self:_set_wizard_cache()
+                self:_set_cache_flag()
                 -- Pool edited successfully
                 ret = true
             end

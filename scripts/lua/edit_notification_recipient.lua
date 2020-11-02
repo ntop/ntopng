@@ -9,9 +9,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. pa
 
 require "lua_utils"
 local json = require("dkjson")
-local plugins_utils = require "plugins_utils"
-local pools = require "pools"
-local notification_configs = require("notification_configs")
 local recipients_rest_utils = require "recipients_rest_utils"
 local recipients = require "recipients"
 local rest_utils = require "rest_utils"
@@ -47,16 +44,6 @@ if (action == "add") then
 					      categories,
 					      minimum_severity,
                      _POST)
-
-   -- tell to the notification manager that a recipient has been created
-   if (response.result.status == "OK") then
-      -- save recipient name inside the cache
-      ntop.setCache(recipients.LAST_RECIPIENT_NAME_CREATED_CACHE_KEY, recipient_name)
-      -- delete the name of the last endpoint created from the cache
-      ntop.delCache(notification_configs.LAST_ENDPOINT_NAME_CREATED_CACHE_KEY)
-      -- delete previous cache about pool binding
-      ntop.delCache(pools.RECIPIENT_BOUND_CACHE_KEY)
-  end
 
 elseif (action == "edit") then
    response.result = recipients.edit_recipient(recipient_id,

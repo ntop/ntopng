@@ -1,6 +1,8 @@
 --
 -- (C) 2020 - ntop.org
 --
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local pools                     = require("pools")
 local endpoint_configs          = require("notification_configs")
@@ -10,7 +12,6 @@ local telemetry_utils           = require("telemetry_utils")
 local notification_ui           = require("notification_ui")
 local prefs_factory_reset_utils = require ("prefs_factory_reset_utils")
 
-local dirs = ntop.getDirs()
 local info = ntop.getInfo()
 local prefs = ntop.getPrefs()
 
@@ -476,26 +477,26 @@ end
 
 -- ###############################################
 
---- Return the name of the last endpoint created
-local function get_last_endpoint_created()
-    return ntop.getCache(endpoint_configs.LAST_ENDPOINT_NAME_CREATED_CACHE_KEY)
+--- Did the user create an non builtin endpoint?
+local function user_has_created_endpoint()
+    return ntop.getCache(endpoint_configs.FIRST_ENDPOINT_CREATED_CACHE_KEY) == "1"
 end
 
---- Return the name of the last recipient created
-local function get_last_recipient_created()
-    return ntop.getCache(recipients_manager.LAST_RECIPIENT_NAME_CREATED_CACHE_KEY)
+--- Did the user create a recipient?
+local function user_has_created_recipient()
+    return ntop.getCache(recipients_manager.FIRST_RECIPIENT_CREATED_CACHE_KEY) == "1"
 end
 
---- Return true if a recipient has been bound
-local function user_bound_recipient()
-    return ntop.getCache(pools.RECIPIENT_BOUND_CACHE_KEY) == "true"
+--- Did the user bind a recipient to a pool?
+local function user_has_bound_recipient()
+    return ntop.getCache(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY) == "1"
 end
 
--- First notification
+--- Generate a notification to adive the user about notification endpoints
 function predicates.create_endpoint(notification, container)
 
     if (not IS_ADMIN) then return end
-    if (not isEmptyString(get_last_endpoint_created())) then return end
+    if (user_has_created_endpoint()) then return end
 
     local title = i18n("endpoint_notifications.hints.create_endpoint.title")
     local body = i18n("endpoint_notifications.hints.create_endpoint.body", {
@@ -505,26 +506,25 @@ function predicates.create_endpoint(notification, container)
         title = i18n("endpoint_notifications.hints.create_endpoint.action"),
         url = ntop.getHttpPrefix() .. "/lua/admin/endpoint_notifications_list.lua"
     }
+
     local hint = notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable)
 
     table.insert(container, hint)
 
 end
 
--- Second notification
+-- Generate a second notification to inform the user to create a recipient for the new endpoint
 function predicates.create_recipients_for_endpoint(notification, container)
 
     if (not IS_ADMIN) then return end
 
-    local endpoint_name = get_last_endpoint_created()
     -- Did the user created a new endpoint? If not then return
-    if (isEmptyString(endpoint_name)) then return end
+    if (not user_has_created_endpoint()) then return end
     -- Did the user created the new recipient? If yes then return
-    if (not isEmptyString(get_last_recipient_created())) then return end
+    if (user_has_created_recipient()) then return end
 
     local title = i18n("endpoint_notifications.hints.create_recipients.title")
     local body = i18n("endpoint_notifications.hints.create_recipients.body", {
-        endpoint_name = endpoint_name,
         link = "https://www.ntop.org/guides/ntopng/plugins/alert_endpoints.html"
     })
     local action = {
@@ -536,18 +536,16 @@ function predicates.create_recipients_for_endpoint(notification, container)
     table.insert(container, hint)
 end
 
+--- Generate a third notificiation to inform the user to bind the new recipients to a pool
 function predicates.bind_recipient_to_pools(notification, container)
 
     if (not IS_ADMIN) then return end
-
-    local recipient_name = get_last_recipient_created()
-    -- Did the user created a new recipient? If not then return
-    if (isEmptyString(recipient_name)) then return end
-    -- Did the user bound the new recipient? If yes then return
-    if (user_bound_recipient()) then return end
+    if (not user_has_created_endpoint()) then return end
+    if (not user_has_created_recipient()) then return end
+    if (user_has_bound_recipient()) then return end
 
     local title = i18n("endpoint_notifications.hints.bind_pools.title")
-    local body = i18n("endpoint_notifications.hints.bind_pools.body", { recipient_name = recipient_name,})
+    local body = i18n("endpoint_notifications.hints.bind_pools.body")
     local action = {
         url = ntop.getHttpPrefix() .. "/lua/admin/manage_pools.lua",
         title = i18n("bind")

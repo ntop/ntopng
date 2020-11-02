@@ -1173,7 +1173,7 @@ local lang = {
     },
     ["hints"] = {
       ["bind_pools"] = {
-        ["body"] = "Bind the new recipient <b>%{recipient_name}</b> to the defined pools.",
+        ["body"] = "Bind the new recipient to the default pools or create a new one!",
         ["title"] = "Bind Recipient",
       },
       ["create_endpoint"] = {
@@ -1182,7 +1182,7 @@ local lang = {
         ["title"] = "Do you know what is an endpoint?",
       },
       ["create_recipients"] = {
-        ["body"] = "You can create new <a target='_blank' href='%{link}'>recipients</a> for the endpoint <b>%{endpoint_name}</b>.",
+        ["body"] = "You can create new <a target='_blank' href='%{link}'>recipients</a> for the new endpoint!",
         ["title"] = "Create Recipients",
       },
     },

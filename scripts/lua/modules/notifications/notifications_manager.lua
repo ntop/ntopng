@@ -10,7 +10,7 @@ local page_utils = require("page_utils")
 local template = require("template_utils")
 local defined_notifications = require("defined_notifications")
 
-local MAX_NOTIFICATIONS_TO_DISPLAY = 3
+local MAX_NOTIFICATIONS_TO_DISPLAY = 2
 
 -- Redis Key used to store the notification status
 local REDIS_KEY = "ntopng.user.%s.dismissed_notifications.notification_%d"
@@ -28,7 +28,7 @@ function notifications_manager.load_main_notifications()
     local current_page = page_utils.get_active_entry()
     local curent_subpage = _GET['page']
 
-    for _, notification in ipairs(defined_notifications) do
+    for _, notification in pairsByField(defined_notifications, 'id', asc) do
 
         -- We can only show MAX_NOTIFICATIONS_TO_DISPLAY notifications inside the page,
         -- in order to not overwhelm the user

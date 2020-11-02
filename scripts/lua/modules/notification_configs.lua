@@ -5,6 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
 
 local plugins_utils = require("plugins_utils")
 local json = require "dkjson"
@@ -37,9 +38,8 @@ local notification_configs = {}
 
 -- #################################################################
 
--- Key where it's saved the name of the latest endpoint created.
--- This name is used for the notifications that help the user to create recipients
-notification_configs.LAST_ENDPOINT_NAME_CREATED_CACHE_KEY = "ntopng.cache.endpoint_hints.last_endpoint_created"
+-- Key where it's saved a boolean indicating if the first endpoint has been created
+notification_configs.FIRST_ENDPOINT_CREATED_CACHE_KEY = "ntopng.cache.endpoint_hints.endpoint_created"
 
 -- #################################################################
 
@@ -214,6 +214,11 @@ function notification_configs.add_config(endpoint_key, endpoint_conf_name, conf_
    if status.builtin then
       -- If the endpoint is a builtin endpoint, a special boolean safe param builtin is added to the configuration
       safe_params["builtin"] = true
+   else
+      if isEmptyString(ntop.getCache(notification_configs.FIRST_ENDPOINT_CREATED_CACHE_KEY)) then
+         -- set a flag to indicate that an endpoint has been created
+         ntop.setCache(notification_configs.FIRST_ENDPOINT_CREATED_CACHE_KEY, "1")
+      end
    end
 
    -- Set the config

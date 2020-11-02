@@ -19,7 +19,7 @@ recipients.MAX_NUM_RECIPIENTS = 64
 
 -- ##############################################
 
-recipients.LAST_RECIPIENT_NAME_CREATED_CACHE_KEY = "ntopng.cache.endpoint_hints.last_recipient_created"
+recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.cache.endpoint_hints.recipient_created"
 
 -- ##############################################
 
@@ -294,6 +294,11 @@ function recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, u
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
 	       ntop.recipient_register(recipient_id)
+
+          -- Set a flag to indicate that a recipient has been created
+          if isEmptyString(ntop.getCache(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
+            ntop.setCache(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY, "1")
+          end
 
 	       res = {status = "OK", recipient_id = recipient_id}
 	    end
