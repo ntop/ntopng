@@ -1800,10 +1800,6 @@ function alert_utils.formatAlertNotification(notif, options)
    local msg = string.format("%s%s%s [%s]",
 			     when, ifname, severity,
 			     alert_consts.alertTypeLabel(notif.alert_type, options.nohtml))
-
-   if(options.nohtml == true) then
-      -- msg = msg:gsub('&nbsp;', "")
-   end
    
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
@@ -1830,6 +1826,7 @@ function alert_utils.formatAlertNotification(notif, options)
 
    if options.nohtml then
       msg = msg .. noHtml(alert_message)
+      msg = msg:gsub('&nbsp;', "")
    else
       msg = msg .. alert_message
    end
