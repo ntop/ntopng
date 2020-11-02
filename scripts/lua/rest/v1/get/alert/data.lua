@@ -12,6 +12,12 @@ local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
 local json = require "dkjson"
 local rest_utils = require("rest_utils")
+local graph_utils = nil
+
+
+if ntop.isPro() then
+   graph_utils = require "graph_utils"
+end
 
 --
 -- Read alerts data
@@ -101,6 +107,10 @@ for _key,_value in ipairs(alerts) do
    record["msg"] = msg
    record["entity"] = alert_entity
    record["entity_val"] = alert_entity_val
+
+   if(graph_utils and graph_utils.getAlertGraphLink) then
+      record["drilldown"]  = graph_utils.getAlertGraphLink(ifid, _value, alert_info, engaged)
+   end
    -- record["value"] = _value
 
    res[#res + 1] = record
