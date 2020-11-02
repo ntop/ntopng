@@ -1667,13 +1667,15 @@ end
 
 -- #################################
 
-local function alertNotificationActionToLabel(action)
-   local label = ""
+local function alertNotificationActionToLabel(action, use_emoji)
+   local label = "["
 
    if action == "engage" then
-      label = "[Engaged]"
+      if(use_emoji) then label = label .."\xE2\x9D\x97 " end
+      label = label .. "Engaged]"
    elseif action == "release" then
-      label = "[Released]"
+      if(use_emoji) then label = label .."\xE2\x9C\x94 " end
+      label = label .. "Released]"
    end
 
    return label
@@ -1817,7 +1819,7 @@ function alert_utils.formatAlertNotification(notif, options)
    end
 
    -- add the label, that is, engaged or released
-   msg = msg .. " " .. alertNotificationActionToLabel(notif.action).. " "
+   msg = msg .. " " .. alertNotificationActionToLabel(notif.action, options.emoji).. " "
    local alert_message = alert_utils.formatAlertMessage(notif.ifid, notif)
 
    if(options.add_cr) then

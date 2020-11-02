@@ -24,7 +24,9 @@ alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANA
 
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 4096
 
--- Emoji Unicode Icons https://apps.timwhitlock.info/emoji/tables/unicode
+-- Emoji Unicode Icons
+-- https://apps.timwhitlock.info/emoji/tables/unicode
+-- https://www.unicode.org/emoji/charts/full-emoji-list.html
 
 -- Alerts (Keep severity_id in sync with ntop_typedefs.h AlertLevel)
 -- each table entry is an array as:
