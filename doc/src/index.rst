@@ -21,6 +21,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    advanced_features/index
    operating_ntopng_on_large_networks
    faq
+   performances/index
    plugins/index
    api/index
 
