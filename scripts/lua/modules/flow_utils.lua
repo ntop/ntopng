@@ -1797,15 +1797,28 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     print(getPageUrl(base_url, application_filter_params))
     print('">'..i18n("flows_page.all_proto")..'</a></li>')
 
-    for key, value in pairsByKeys(flowstats["ndpi"], asc) do
-       local class_active = ''
-       if(key == page_params.application) then
-	      class_active = 'active'
-       end
-       print('<li><a class="dropdown-item '..class_active..'" href="')
-       application_filter_params["application"] = key
+    if not isEmptyString(page_params["application"]) then
+       -- An application has been explicitly selected from the dropdown
+       -- so only that application is shown as dropdown a dropdown item.
+       -- The application will also include all sub-applications, e.g., DNS
+       -- will include DNS.Google, DNS.Facebook and so on.
+       print('<li><a class="dropdown-item active href="')
+       application_filter_params["application"] = page_params["application"]
        print(getPageUrl(base_url, application_filter_params))
-       print('">'..key..'</a></li>')
+       print('">'..page_params["application"]..'</a></li>')
+    else
+       -- No application selected in the dropdown. Show all the available applications
+       -- as reported in flowstats
+       for key, value in pairsByKeys(flowstats["ndpi"], asc) do
+	  local class_active = ''
+	  if(key == page_params.application) then
+	     class_active = 'active'
+	  end
+	  print('<li><a class="dropdown-item '..class_active..'" href="')
+	  application_filter_params["application"] = key
+	  print(getPageUrl(base_url, application_filter_params))
+	  print('">'..key..'</a></li>')
+       end
     end
 
     print("</ul> </div>'")
