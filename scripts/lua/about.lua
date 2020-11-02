@@ -75,17 +75,20 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
 
    print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fas fa-external-link-alt'></i>")
 
-print [[
+   if(not(ntop.getInfo()["pro.forced_community"])) then 
+      print [[
     <br><small>]]
-print(i18n("about.licence_generation", {
-	      purchase_url='http://shop.ntop.org/',
-	      universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'
-}))
+      print(i18n("about.licence_generation", {
+		    purchase_url='http://shop.ntop.org/',
+		    universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'
+      }))
 
 print[[</small>
 	 <p>
    ]]
-
+   end
+   
+if(not(ntop.getInfo()["pro.forced_community"])) then 
    print('<form class="form-inline" method="post" onsubmit="return trimLicenceSpaces();">')
 
    if(isAdministrator()) then
@@ -116,6 +119,7 @@ print[[</small>
 	 end
       end
    end
+end
 end
 
 print("</td></tr>")

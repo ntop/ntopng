@@ -325,6 +325,7 @@ local lang = {
     ["dropped_store_queries_alerts"] = "Queries/Stored/Dropped Alerts",
     ["flow_callbacks_directory"] = "Flow",
     ["forced_community_notification"] = "Community edition forced with --community. Remove this option to make license changes effective.",
+    ["forced_community_notification_short"] = "Community edition forced with --community",
     ["host_callbacks_directory"] = "Host",
     ["host_identifier_warning"] = "This interface is monitoring DHCP hosts. Please consider changing the <a href='%{url}'>%{name}</a> preference to \"Mac Address\".",
     ["idle"] = "idle",
@@ -1173,7 +1174,7 @@ local lang = {
     },
     ["hints"] = {
       ["bind_pools"] = {
-	["body"] = "Last step! Bind recipients to pools to start delivering alerts to them.",
+        ["body"] = "Last step! Bind recipients to pools to start delivering alerts to them.",
         ["title"] = "Bind Recipient",
       },
       ["create_endpoint"] = {

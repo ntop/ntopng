@@ -961,9 +961,13 @@ if (info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
       end
 
    else
-      print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge badge-warning">')
-      print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
-      print('</span></a></li>')
+      if(not(ntop.getInfo()["pro.forced_community"])) then
+	 print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge badge-warning">')
+	 print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
+	 print('</span></a></li>')
+      else
+	 print('<li class="nav-item nav-link"><span class="badge badge-warning">'..i18n("about.forced_community_notification_short")..'</span></li>')
+      end
    end
 end
 
