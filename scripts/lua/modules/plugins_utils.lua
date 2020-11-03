@@ -410,6 +410,7 @@ end
 
 local function load_plugin_alert_endpoints(plugin)
    local endpoints_path = os_utils.fixPath(plugin.path .. "/alert_endpoints")
+   local endpoints_template_path = os_utils.fixPath(plugin.path .. "/templates")
 
    if not ntop.exists(endpoints_path) then
       -- No alert endpoints for this plugin
@@ -422,12 +423,42 @@ local function load_plugin_alert_endpoints(plugin)
 	 local fname_path = os_utils.fixPath(endpoints_path .. "/" .. fname)
 	 local endpoint = load_plugin_file(fname_path)
 
-	 if endpoint and endpoint.onLoad then
-	    endpoint.onLoad()
+	 if not endpoint then
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Unable to load endpoint '%s'", fname))
+	    return false
+	 end
+
+	 -- Check for configuration templates existence
+	 if endpoint.conf_template and endpoint.conf_template.template_name then
+	    -- Stop if the template doesn't exist
+	    if not ntop.exists(os_utils.fixPath(endpoints_template_path.."/"..endpoint.conf_template.template_name)) then
+	       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing conf template '%s' in '%s' for endpoint '%s'",
+								    endpoint.conf_template.template_name,
+								    endpoints_template_path,
+								    fname))
+	       return false
+	    end
+	 end
+
+	 -- Check for recipient templates existence
+	 if endpoint.recipient_template and endpoint.recipient_template.template_name then
+	    -- Return if the recipient template doesn't exist
+	    if not ntop.exists(os_utils.fixPath(endpoints_template_path.."/"..endpoint.recipient_template.template_name)) then
+	       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing recipient template '%s' in '%s' for endpoint '%s'",
+								    endpoint.recipient_template.template_name,
+								    endpoints_template_path,
+								    fname))
+	       return false
+	    end
 	 end
 
 	 if not file_utils.copy_file(fname, endpoints_path, RUNTIME_PATHS.alert_endpoints) then
 	    return false
+	 end
+
+
+	 if endpoint and endpoint.onLoad then
+	    endpoint.onLoad()
 	 end
       end
    end
@@ -918,7 +949,6 @@ function plugins_utils.getLoadedAlertEndpoints()
 	 local key = string.sub(fname, 1, string.len(fname) - 4)
 
 	 local endpoint = require(key)
-
 	 if(endpoint) then
 	    if((type(endpoint.isAvailable) ~= "function") or endpoint.isAvailable()) then
 	       endpoint.full_path = full_path
