@@ -1389,6 +1389,7 @@ local known_parameters = {
    ["alertstats_type"]         = validateAlertStatsType,        -- A mode for alerts stats queries
    ["flowhosts_type"]          = validateFlowHostsType,         -- A filter for local/remote hosts in each of the two directions
    ["status"]                  = validateAlertStatus,           -- An alert type to filter
+   ["enabled_status"]          = validateSingleWord,            -- Can be: All, Enabled, Disabled
    ["hash_table"]              = validateSingleWord,            -- An internal ntopng hash_table
    ["periodic_script"]         = validateSingleWord,            -- A script under callbacks/interface executed by ntopng
    ["periodic_script_issue"]   = validateSingleWord,            -- Script issues under callbacks/interface executed by ntopng
