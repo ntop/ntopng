@@ -331,3 +331,7 @@ text, g text.tick {
 .toast, .toast-body {
   background-color: rgba(16, 16, 16, 0.85);
 }
+
+.btn-gray {
+  background-color: #414141!important;
+}

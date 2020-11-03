@@ -109,7 +109,8 @@ print([[
 
 			$(`.toggle-dark-theme`).click(function() {
 				const request = $.post(`]].. ntop.getHttpPrefix() ..[[/lua/update_prefs.lua`, {
-					action: 'toggle_theme', toggle_dark_theme: ]].. tostring(not page_utils.is_dark_mode_enabled()) ..[[
+					action: 'toggle_theme', toggle_dark_theme: ]].. tostring(not page_utils.is_dark_mode_enabled()) ..[[,
+					csrf: "]].. ntop.getRandomCSRFValue() ..[["
 				});
 				request.done(function(res) {
 					if (res.success) location.reload();
