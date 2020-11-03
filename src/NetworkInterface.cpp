@@ -1008,20 +1008,21 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool par
 	case flowhashing_vlan:
 	  vIface_type = CONST_INTERFACE_TYPE_VLAN;
 	  snprintf(buf, sizeof(buf), "%s [VLAN Id: %u]", ifname, (unsigned int)criteria);
-	  // snprintf(buf, sizeof(buf), "VLAN Id %u", criteria);
 	  break;
 
 	case flowhashing_probe_ip:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [Probe IP: %s]", ifname, Utils::intoaV4((unsigned int)criteria, buf1, sizeof(buf1)));
-	  // snprintf(buf, sizeof(buf), "Probe IP %s", Utils::intoaV4((unsigned int)criteria, buf1, sizeof(buf1)));
 	  break;
 
 	case flowhashing_iface_idx:
+	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
+	  snprintf(buf, sizeof(buf), "%s [IfIdx: %u]", ifname, (unsigned int)criteria);
+	  break;
+
 	case flowhashing_ingress_iface_idx:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [InIfIdx: %u]", ifname, (unsigned int)criteria);
-	  // snprintf(buf, sizeof(buf), "If Idx %u", (unsigned int)criteria);
 	  break;
 
 	case flowhashing_probe_ip_and_ingress_iface_idx:
@@ -1033,14 +1034,12 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool par
 	    vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	    snprintf(buf, sizeof(buf), "%s [Probe IP: %s][InIfIdx: %u]", ifname,
 		     Utils::intoaV4(nprobe_ip, buf1, sizeof(buf1)), if_id);
-	    // snprintf(buf, sizeof(buf), "Probe IP %s", Utils::intoaV4((unsigned int)criteria, buf1, sizeof(buf1)));
 	  }
 	  break;
 
 	case flowhashing_vrfid:
 	  vIface_type = CONST_INTERFACE_TYPE_FLOW;
 	  snprintf(buf, sizeof(buf), "%s [VRF Id: %u]", ifname, (unsigned int)criteria);
-	  // snprintf(buf, sizeof(buf), "VRF Id %u", (unsigned int)criteria);
 	  break;
 
 	default:

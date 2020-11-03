@@ -1808,7 +1808,7 @@ elseif(page == "config") then
 	i18n("prefs.none"),
 	i18n("prefs.vlan"),
 	i18n("prefs.probe_ip_address"),
-	i18n("prefs.flow_interface"),
+	i18n("prefs.ingress_egress_flow_interface"),
 	i18n("prefs.ingress_flow_interface"),
 	i18n("prefs.ingress_vrf_id"),
 	i18n("prefs.probe_ip_and_ingress_iface_idx")
