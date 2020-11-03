@@ -1341,52 +1341,55 @@ end
 -- #######################
 
 function printFlowSNMPInfo(snmpdevice, input_idx, output_idx)
+   local printed = false
+   
    -- Make sure indices are strings as snmp_utils handles them as strings
    input_idx = tostring(input_idx)
    output_idx = tostring(output_idx)
 
-   if not ntop.isPro() then
-      return
-   end
+   if ntop.isPro() then
+      if not isEmptyString(snmpdevice) then
+	 local snmp_cached_dev = require "snmp_cached_dev"
+	 local cached_device = snmp_cached_dev:create(snmpdevice)  
+	 
+	 if cached_device and cached_device["interfaces"] and table.len(cached_device["interfaces"]) > 0 then
+	    local snmpurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host="..snmpdevice.. "'>"..snmpdevice.."</A>"
 
-   if not isEmptyString(snmpdevice) then
-      local snmp_cached_dev = require "snmp_cached_dev"
-      local cached_device = snmp_cached_dev:create(snmpdevice)
+	    local snmp_interfaces = cached_device["interfaces"]
+	    local inputurl, outputurl
 
-      if cached_device and cached_device["interfaces"] and table.len(cached_device["interfaces"]) > 0 then
-         local snmpurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host="..snmpdevice.. "'>"..snmpdevice.."</A>"
+	    local function prepare_interface_url(idx, port)
+	       local snmp_utils = require "snmp_utils"
+	       local ifurl
 
-         local snmp_interfaces = cached_device["interfaces"]
-         local inputurl, outputurl
+	       if port then
+		  ifurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_interface_details.lua?host="..snmpdevice.."&snmp_port_idx="..port["index"].."'>"..snmp_utils.get_snmp_interface_label(port).."</A>"
+	       else
+		  ifurl = idx
+	       end
 
-         local function prepare_interface_url(idx, port)
-	    local snmp_utils = require "snmp_utils"
-            local ifurl
-
-	    if port then
-	       ifurl = "<A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_interface_details.lua?host="..snmpdevice.."&snmp_port_idx="..port["index"].."'>"..snmp_utils.get_snmp_interface_label(port).."</A>"
-	    else
-	       ifurl = idx
+	       return ifurl
 	    end
 
-	    return ifurl
-         end
+	    local inputurl
+	    local outputurl
 
-         local inputurl
-         local outputurl
+	    if input_idx then
+	       inputurl = prepare_interface_url(input_idx, snmp_interfaces[input_idx])
+	    end
+	    if output_idx then
+	       outputurl = prepare_interface_url(output_idx, snmp_interfaces[output_idx])
+	    end
 
-         if input_idx then
-            inputurl = prepare_interface_url(input_idx, snmp_interfaces[input_idx])
-         end
-         if output_idx then
-            outputurl = prepare_interface_url(output_idx, snmp_interfaces[output_idx])
-         end
-
-         print("<tr><th rowspan='3'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.snmp_device").."</th><td>"..snmpurl.."</td></tr>")
-         print("<tr><th>"..i18n("details.input_device_port").."</th><td>"..(inputurl or "").."</td></tr>")
-	 print("<tr><th>"..i18n("details.output_device_port").."</th><td>"..(outputurl or "").."</td></tr>")
+	    print("<tr><th rowspan='3'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("snmp.snmp_device").."</th><td>"..snmpurl.."</td></tr>")
+	    print("<tr><th>"..i18n("details.input_device_port").."</th><td>"..(inputurl or "").." (".. input_idx ..")</td></tr>")
+	    print("<tr><th>"..i18n("details.output_device_port").."</th><td>"..(outputurl or "").."(".. output_idx ..")</td></tr>")
+	    printed = true
+	 end
       end
-   else
+   end
+
+   if(printed == false) then
       print("<tr><th rowspan='2'>"..i18n("details.flow_snmp_localization").."</th><th>"..i18n("details.input_device_port").."</th><td>"..(input_idx or "").."</td></tr>")
       print("<tr><th>"..i18n("details.output_device_port").."</th><td>"..(output_idx or "").."</td></tr>")
    end
