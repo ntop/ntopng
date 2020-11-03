@@ -6,11 +6,6 @@ local template = require("template_utils")
 
 print [[
 
- <style type='text/css'>
-.largegroup {
-    width:500px
-}
-</style>
 <div id="password_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="password_dialog_label" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -375,7 +370,6 @@ $('#password_reset_submit').click(function() {
 */
 </script>
 
-</div>
 </div>
 </div>
 </div>
