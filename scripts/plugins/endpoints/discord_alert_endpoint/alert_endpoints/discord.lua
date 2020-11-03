@@ -93,11 +93,18 @@ function discord.sendMessage(message_body, settings)
       local msg = json.encode(message)
       local post_rc = ntop.httpPost(settings.url, msg)
 
-      if(post_rc and (post_rc.RESPONSE_CODE == 204)) then 
-	 rc = true
-	 break 
+      if post_rc then
+	 if post_rc.RESPONSE_CODE == 204 then
+	    -- Success
+	    rc = true
+	    break
+	 elseif post_rc.RESPONSE_CODE == 429 then
+	    -- Too many requests, don't retry as this would cause the situation to worsen
+	    -- https://httpstatuses.com/429
+	    return false, "Too many requests"
+	 end
       end
-      
+
       retry_attempts = retry_attempts - 1
    end
 
@@ -153,8 +160,9 @@ function discord.dequeueRecipientAlerts(recipient, budget, high_priority)
        table.insert(alerts, formatDiscordMessage(json.decode(json_message)))       
     end
 
-    if not discord.sendMessage(table.concat(alerts, "\n"), settings) then
-      return {success=false, error_message="Unable to send alerts to the discord"}
+    local res, msg = discord.sendMessage(table.concat(alerts, "\n"), settings)
+    if not res then
+      return {success = false, error_message = msg or "Unable to send alerts to Discord"}
     end
 
     -- Remove the processed messages from the queue
