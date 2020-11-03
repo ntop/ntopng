@@ -879,3 +879,6 @@ footer {
   max-height: 16rem;
   overflow-y: auto;
 }
+.largegroup {
+  width:500px
+}
