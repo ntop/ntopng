@@ -1108,7 +1108,7 @@ if (not _SESSION["localuser"] or not is_admin) and (not isNoLoginUser()) then
    print[[
          <li>
            <a class="dropdown-item" href='#password_dialog' data-toggle='modal'>
-             ]] print(i18n("login.change_password")) print[[
+             <i class='fas fa-key'></i> ]] print(i18n("login.change_password")) print[[
            </a>
          </li>
    ]]
@@ -1143,10 +1143,12 @@ print([[
 end
 
 -- Rende Toggle Dark theme menu button
+if is_admin then
 print([[
    <li class='dropdown-divider'></li>
    <a class='dropdown-item toggle-dark-theme' href='#'><i class="fas fa-adjust"></i> ]].. i18n("toggle_dark_theme") ..[[</a>
 ]])
+end
 
 -- Logout
 
