@@ -7,14 +7,14 @@ local json = require "dkjson"
 
 local webhook = {
    name = "Webhook",
-   conf_params = {
+   endpoint_params = {
       { param_name = "webhook_url" },
       { param_name = "webhook_sharedsecret", optional = true },
       { param_name = "webhook_username", optional = true },
       { param_name = "webhook_password", optional = true },
       -- TODO: configure severity (Errors, Errors and Warnings, All)
    },
-   conf_template = {
+   endpoint_template = {
       plugin_key = "webhook_alert_endpoint",
       template_name = "webhook_endpoint.template"
    },

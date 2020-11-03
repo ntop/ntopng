@@ -11,10 +11,10 @@ local sqlite = {
    name = "SQLite",
    builtin = true, -- Whether this endpoint can be configured from the UI. Disabled for the builtin SQLite
 
-   conf_params = {
+   endpoint_params = {
       -- No params, SQLite is builtin
    },
-   conf_template = {
+   endpoint_template = {
       plugin_key = "sqlite_alert_endpoint",
       template_name = "sqlite_endpoint.template"
    },

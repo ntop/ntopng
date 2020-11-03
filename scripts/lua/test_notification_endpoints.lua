@@ -45,25 +45,25 @@ assert(res["status"] == "failed" and res["error"]["type"] == "invalid_endpoint_c
 
 res = notification_configs.add_config("email", "ntop_email", nil)
 
-assert(res["status"] == "failed" and res["error"]["type"] == "invalid_conf_params")
+assert(res["status"] == "failed" and res["error"]["type"] == "invalid_endpoint_params")
 
--- see email.lua for mandatory conf_params
-local conf_params = {
+-- see email.lua for mandatory endpoint_params
+local endpoint_params = {
    smtp_server = "mail.ntop.org"
 }
 
-res = notification_configs.add_config("email", "ntop_email", conf_params)
+res = notification_configs.add_config("email", "ntop_email", endpoint_params)
 assert(res["status"] == "failed" and res["error"]["type"] == "missing_mandatory_param")
 
-conf_params = {
+endpoint_params = {
    smtp_server = "mail.ntop.org",
    email_sender = "tester@ntop.org"
 }
-res = notification_configs.add_config("email", "ntop_email", conf_params)
+res = notification_configs.add_config("email", "ntop_email", endpoint_params)
 assert(res["status"] == "OK")
 
 -- Duplicate addition
-res = notification_configs.add_config("email", "ntop_email", conf_params)
+res = notification_configs.add_config("email", "ntop_email", endpoint_params)
 assert(res["status"] == "failed" and res["error"]["type"] == "endpoint_config_already_existing")
 
 -- Delete the endpoint
@@ -71,23 +71,23 @@ res = notification_configs.delete_config("ntop_email")
 assert(res["status"] == "OK")
 
 -- Add also some optional params
-conf_params = {
+endpoint_params = {
    smtp_server = "mail.ntop.org",
    email_sender = "tester@ntop.org",
    smpt_username = "ntopuser",
    smtp_password = "ntoppassword"
 }
 
-res = notification_configs.add_config("email", "ntop_email", conf_params)
+res = notification_configs.add_config("email", "ntop_email", endpoint_params)
 assert(res["status"] == "OK")
 
 res = notification_configs.delete_config("ntop_email")
 assert(res["status"] == "OK")
 
 -- Add some garbage and make sure it is not written
-conf_params["garbage"] = "trash"
+endpoint_params["garbage"] = "trash"
 
-res = notification_configs.add_config("email", "ntop_email", conf_params)
+res = notification_configs.add_config("email", "ntop_email", endpoint_params)
 assert(res["status"] == "OK")
 
 res = notification_configs.get_endpoint_config("ntop_email")
@@ -98,13 +98,13 @@ assert(res["endpoint_conf"])
 assert(not res["endpoint_conf"]["garbage"])
 
 for k, v in pairs(res["endpoint_conf"]) do
-   assert(conf_params[k])
-   assert(conf_params[k] == v)
+   assert(endpoint_params[k])
+   assert(endpoint_params[k] == v)
 end
 
 -- Edit the config
-conf_params["smtp_server"] = "mail2.ntop.org"
-res = notification_configs.edit_config("ntop_email", conf_params)
+endpoint_params["smtp_server"] = "mail2.ntop.org"
+res = notification_configs.edit_config("ntop_email", endpoint_params)
 assert(res["status"] == "OK")
 
 res = notification_configs.get_endpoint_config("ntop_email")
@@ -115,14 +115,14 @@ assert(res["endpoint_conf"])
 assert(res["endpoint_conf"]["smtp_server"] == "mail2.ntop.org")
 
 -- Add another endpoint
-conf_params = {
+endpoint_params = {
    smtp_server = "mail.google.com",
    email_sender = "tester@google.com",
    smpt_username = "googleuser",
    smtp_password = "googlepassword"
 }
 
-res = notification_configs.add_config("email", "google_email", conf_params)
+res = notification_configs.add_config("email", "google_email", endpoint_params)
 assert(res["status"] == "OK")
 
 -- Get all configs

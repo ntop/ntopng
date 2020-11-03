@@ -30,7 +30,7 @@
 
 {% for endpoint_key, endpoint in pairsByKeys(notifications.endpoints, asc) do %}
     <template id="{{ endpoint_key }}-template">
-        {* plugins_utils.renderTemplate(endpoint.conf_template.plugin_key, endpoint.conf_template.template_name) *}
+        {* plugins_utils.renderTemplate(endpoint.endpoint_template.plugin_key, endpoint.endpoint_template.template_name) *}
     </template>
 {% end %}
 

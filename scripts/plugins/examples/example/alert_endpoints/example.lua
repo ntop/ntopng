@@ -7,9 +7,9 @@ local json = require "dkjson"
 local alert_consts = require("alert_consts")
 
 local example = {
-  conf_params = {
+  endpoint_params = {
   },
-  conf_template = {
+  endpoint_template = {
     plugin_key = "example_alert_endpoint",
     template_name = "example_endpoint.template"
   },

@@ -429,11 +429,11 @@ local function load_plugin_alert_endpoints(plugin)
 	 end
 
 	 -- Check for configuration templates existence
-	 if endpoint.conf_template and endpoint.conf_template.template_name then
+	 if endpoint.endpoint_template and endpoint.endpoint_template.template_name then
 	    -- Stop if the template doesn't exist
-	    if not ntop.exists(os_utils.fixPath(endpoints_template_path.."/"..endpoint.conf_template.template_name)) then
+	    if not ntop.exists(os_utils.fixPath(endpoints_template_path.."/"..endpoint.endpoint_template.template_name)) then
 	       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing conf template '%s' in '%s' for endpoint '%s'",
-								    endpoint.conf_template.template_name,
+								    endpoint.endpoint_template.template_name,
 								    endpoints_template_path,
 								    fname))
 	       return false

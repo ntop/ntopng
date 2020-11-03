@@ -50,13 +50,13 @@ at the beginning of the file:
 .. code:: lua
 
    local email = {
-     conf_params = {
+     endpoint_params = {
        { param_name = "smtp_server" },
        { param_name = "email_sender"},
        { param_name = "smtp_username", optional = true },
        { param_name = "smtp_password", optional = true },
      },
-     conf_template = {
+     endpoint_template = {
        plugin_key = "email_alert_endpoint",
        template_name = "email_endpoint.template"
      },
@@ -78,13 +78,13 @@ Here is a commented snippet for the email endpoint.
 .. code:: lua
 
   local email = {
-    conf_params = {
+    endpoint_params = {
       { param_name = "smtp_server" },
       { param_name = "email_sender"},
       { param_name = "smtp_username", optional = true },
       { param_name = "smtp_password", optional = true },
     },
-    conf_template = {
+    endpoint_template = {
       plugin_key = "email_alert_endpoint",
       template_name = "email_endpoint.template"
     },
@@ -213,9 +213,9 @@ how to log to console `flow flood attackers alerts`_.
 .. code:: lua
 
   local my_endpoint = {
-    conf_params = {
+    endpoint_params = {
     },
-    conf_template = {
+    endpoint_template = {
       plugin_key = "my_endpoint_alert_endpoint",
       template_name = "my_endpoint_endpoint.template"
     },

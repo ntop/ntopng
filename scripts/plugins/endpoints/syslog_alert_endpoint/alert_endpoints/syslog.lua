@@ -10,10 +10,10 @@ local alert_consts = require "alert_consts"
 local syslog = {
    name = "Syslog",
    conf_max_num = 1, -- At most 1 endpoint
-   conf_params = {
+   endpoint_params = {
       { param_name = "syslog_alert_format" },
    },
-   conf_template = {
+   endpoint_template = {
       plugin_key = "syslog_alert_endpoint",
       template_name = "syslog_endpoint.template"
    },

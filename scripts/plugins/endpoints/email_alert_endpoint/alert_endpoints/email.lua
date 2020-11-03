@@ -6,13 +6,13 @@ local plugins_utils = require "plugins_utils"
 
 local email = {
    name = "Email",
-   conf_params = {
+   endpoint_params = {
       { param_name = "smtp_server" },
       { param_name = "email_sender"},
       { param_name = "smtp_username", optional = true },
       { param_name = "smtp_password", optional = true },
    },
-   conf_template = {
+   endpoint_template = {
       plugin_key = "email_alert_endpoint",
       template_name = "email_endpoint.template"
    },

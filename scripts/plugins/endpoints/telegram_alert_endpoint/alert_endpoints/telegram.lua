@@ -14,12 +14,12 @@ local telegram = {
    name = "Telegram", -- A human readable name which will be shown in the UI
 
    -- (1) Endpoint (see )
-   conf_params = {
+   endpoint_params = {
       -- Define here the endpoint parameters used in the endpoint GUI
       { param_name = "telegram_token" }, -- Telegram token
    },
    
-   conf_template = {
+   endpoint_template = {
       plugin_key = endpoint_key, -- Unique string key
 
       -- Filename of the GUI block for this endpoint

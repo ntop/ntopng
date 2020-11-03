@@ -9,12 +9,12 @@ local alert_utils = require "alert_utils"
 
 local slack = {
    name = "Slack",
-   conf_params = {
+   endpoint_params = {
       { param_name = "slack_sender_username" },
       { param_name = "slack_webhook" },
       -- TODO: add severity (Errors, Errors and Warnings, All)
    },
-   conf_template = {
+   endpoint_template = {
       plugin_key = "slack_alert_endpoint",
       template_name = "slack_endpoint.template"
    },

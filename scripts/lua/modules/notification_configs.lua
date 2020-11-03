@@ -22,7 +22,7 @@ local json = require "dkjson"
 --
 local ENDPOINT_CONFIG_TO_ENDPOINT_KEY = "ntopng.prefs.notification_endpoint.endpoint_conf_name_endpoint_key"
 
--- A key to access a hash table containing mappings, for each endpoint_key, between every endpoint_conf_name and conf_params
+-- A key to access a hash table containing mappings, for each endpoint_key, between every endpoint_conf_name and endpoint_params
 --
 -- Example:
 -- notification endpoint mail has two configurations, `ntop_mail` and `customer_1_mail`, so the resulting entry
@@ -50,13 +50,13 @@ function notification_configs.get_types(exclude_builtin)
    local available_endpoints = plugins_utils.getLoadedAlertEndpoints()
 
    -- Then, we actually consider vaid types for the notification configs
-   -- only those modules that have their `conf_params` and `recipient_params`.
+   -- only those modules that have their `endpoint_params` and `recipient_params`.
    -- Eventually, when the migration between alert endpoints and generic notification endpoints
-   -- will be completed, all the available endpoints will have `conf_params` and `recipient_params`.
+   -- will be completed, all the available endpoints will have `endpoint_params` and `recipient_params`.
    for _, endpoint in ipairs(available_endpoints) do
-      if endpoint.conf_params and endpoint.recipient_params and endpoint.conf_template and endpoint.recipient_template then
+      if endpoint.endpoint_params and endpoint.recipient_params and endpoint.endpoint_template and endpoint.recipient_template then
 	 for _, k in pairs({"plugin_key", "template_name"}) do
-	    if not endpoint.conf_template[k] or not endpoint.recipient_template[k] then
+	    if not endpoint.endpoint_template[k] or not endpoint.recipient_template[k] then
 	       goto continue
 	    end
 	 end
@@ -111,15 +111,15 @@ end
 
 -- @brief Read the configuration parameters of an existing configuration
 -- @param endpoint_conf_name A string with the configuration name
--- @return A table with two keys: endpoint_key and conf_params or nil if the configuration isn't found
+-- @return A table with two keys: endpoint_key and endpoint_params or nil if the configuration isn't found
 local function read_endpoint_config_raw(endpoint_conf_name)
    local endpoint_key = ntop.getHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
 
    local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
-   local conf_params = ntop.getHashCache(k, endpoint_conf_name)
+   local endpoint_params = ntop.getHashCache(k, endpoint_conf_name)
 
-   if conf_params and conf_params ~= '' then
-      return {endpoint_key = endpoint_key, conf_params = conf_params}
+   if endpoint_params and endpoint_params ~= '' then
+      return {endpoint_key = endpoint_key, endpoint_params = endpoint_params}
    end
 end
 
@@ -153,24 +153,24 @@ end
 
 -- @brief Sanity checks for the endpoint configuration parameters
 -- @param endpoint_key A string with the notification endpoint key
--- @param conf_params A table with endpoint configuration params that will be possibly sanitized
+-- @param endpoint_params A table with endpoint configuration params that will be possibly sanitized
 -- @return false with a description of the error, or true, with a table containing sanitized configuration params.
-local function check_endpoint_config_params(endpoint_key, conf_params)
-   if not conf_params or not type(conf_params) == "table" then
-      return false, {status = "failed", error = {type = "invalid_conf_params"}}
+local function check_endpoint_config_params(endpoint_key, endpoint_params)
+   if not endpoint_params or not type(endpoint_params) == "table" then
+      return false, {status = "failed", error = {type = "invalid_endpoint_params"}}
    end
 
    -- Create a safe_params table with only expected params
    local endpoint = notification_configs.get_types()[endpoint_key]
    local safe_params = {}
    -- So iterate across all expected params of the current endpoint
-   for _, param in ipairs(endpoint.conf_params) do
+   for _, param in ipairs(endpoint.endpoint_params) do
       -- param is a lua table so we access its elements
       local param_name = param["param_name"]
       local optional = param["optional"]
 
-      if conf_params and conf_params[param_name] and not safe_params[param_name] then
-	 safe_params[param_name] = conf_params[param_name]
+      if endpoint_params and endpoint_params[param_name] and not safe_params[param_name] then
+	 safe_params[param_name] = endpoint_params[param_name]
       elseif not optional then
 	 return false, {status = "failed", error = {type = "missing_mandatory_param", missing_param = param_name}}
       end
@@ -184,9 +184,9 @@ end
 -- @brief Add a new configuration endpoint
 -- @param endpoint_key A string with the notification endpoint key
 -- @param endpoint_conf_name A string with the configuration name
--- @param conf_params A table with endpoint configuration params that will be possibly sanitized
+-- @param endpoint_params A table with endpoint configuration params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function notification_configs.add_config(endpoint_key, endpoint_conf_name, conf_params)
+function notification_configs.add_config(endpoint_key, endpoint_conf_name, endpoint_params)
    local ok, status = check_endpoint_key(endpoint_key)
    if not ok then
       return status
@@ -203,7 +203,7 @@ function notification_configs.add_config(endpoint_key, endpoint_conf_name, conf_
    end
 
    -- Are the submitted params those expected by the endpoint?
-   ok, status = check_endpoint_config_params(endpoint_key, conf_params)
+   ok, status = check_endpoint_config_params(endpoint_key, endpoint_params)
 
    if not ok then
       return status
@@ -231,9 +231,9 @@ end
 
 -- @brief Edit the configuration parameters of an existing endpoint
 -- @param endpoint_conf_name A string with the configuration name
--- @param conf_params A table with endpoint configuration params that will be possibly sanitized
+-- @param endpoint_params A table with endpoint configuration params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function notification_configs.edit_config(endpoint_conf_name, conf_params)
+function notification_configs.edit_config(endpoint_conf_name, endpoint_params)
    local ok, status = check_endpoint_conf_name(endpoint_conf_name)
    if not ok then
       return status
@@ -246,7 +246,7 @@ function notification_configs.edit_config(endpoint_conf_name, conf_params)
    end
 
    -- Are the submitted params those expected by the endpoint?
-   ok, status = check_endpoint_config_params(ec["endpoint_key"], conf_params)
+   ok, status = check_endpoint_config_params(ec["endpoint_key"], endpoint_params)
 
    if not ok then
       return status
@@ -312,7 +312,7 @@ function notification_configs.get_endpoint_config(endpoint_conf_name)
       status = "OK",
       endpoint_conf_name = endpoint_conf_name,
       endpoint_key = ec["endpoint_key"],
-      endpoint_conf = json.decode(ec["conf_params"])
+      endpoint_conf = json.decode(ec["endpoint_params"])
    }
 end
 
@@ -329,7 +329,7 @@ function notification_configs.get_configs(exclude_builtin)
       local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
       local all_configs = ntop.getHashAllCache(k) or {}
 
-      for conf_name, conf_params in pairs(all_configs) do
+      for conf_name, endpoint_params in pairs(all_configs) do
 	 local ec = notification_configs.get_endpoint_config(conf_name)
 
 	 if not exclude_builtin or not ec.endpoint_conf.builtin then
@@ -368,7 +368,7 @@ function notification_configs.reset_configs()
 	 local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
 	 local all_configs = ntop.getHashAllCache(k) or {}
 
-	 for conf_name, conf_params in pairs(all_configs) do
+	 for conf_name, endpoint_params in pairs(all_configs) do
 	    notification_configs.delete_config(conf_name)
 	 end
 
@@ -391,12 +391,12 @@ function notification_configs.add_configs_with_recipients(configs)
    for _, conf in ipairs(configs) do
       local endpoint_key = conf.endpoint_key
       local endpoint_conf_name = conf.endpoint_conf_name
-      local conf_params = conf.endpoint_conf
+      local endpoint_params = conf.endpoint_conf
 
-      if endpoint_key and endpoint_conf_name and conf_params and conf.recipients and
-         not conf_params.builtin then
+      if endpoint_key and endpoint_conf_name and endpoint_params and conf.recipients and
+         not endpoint_params.builtin then
 
-         local ret = notification_configs.add_config(endpoint_key, endpoint_conf_name, conf_params)
+         local ret = notification_configs.add_config(endpoint_key, endpoint_conf_name, endpoint_params)
 
          if not ret or not ret.status or ret.status ~= "OK" then
             rc = false
