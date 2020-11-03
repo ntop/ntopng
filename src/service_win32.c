@@ -608,7 +608,7 @@ void installService(int argc, char **argv)
 	schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 
 	if ( schSCManager ) {
-		schService = CreateService(schSCManager,   // SCManager database
+		schService = CreateServiceA(schSCManager,   // SCManager database
 			TEXT(SZSERVICENAME),        // name of service
 			TEXT(SZSERVICEDISPLAYNAME), // name to display
 			SERVICE_ALL_ACCESS,         // desired access
@@ -619,7 +619,7 @@ void installService(int argc, char **argv)
 			NULL,                       // no load ordering group
 			NULL,                       // no tag identifier
 			TEXT(SZDEPENDENCIES),       // dependencies
-			NULL,                       // LocalSystem account
+			TEXT("NT SERVICE\\ntopng"), // Virtual ntopng account
 			NULL);                      // no password
 
 		if (schService){
