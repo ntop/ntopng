@@ -817,7 +817,7 @@ void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
     u_int offset = 0;
     u_int64_t *allowedTypeIDs = ntop->getPrefs()->getIEC104AllowedTypeIDs();
     
-    while(offset < payload_len) {
+    while(offset + 1 < payload_len) {
       /* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id */
       u_int8_t len = payload[1+offset];
       
@@ -886,7 +886,8 @@ void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
 				       __FUNCTION__, payload_len, len, type_id,
 				       iec104_typeid_mask[0], iec104_typeid_mask[1]);
 #endif
-	}
+	} else /* payload_len < len */
+	  break;
       } else
 	break;
     }
