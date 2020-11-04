@@ -28,7 +28,22 @@ end
 local members = split(members_file_content, "\n")
 for _, member in ipairs(members) do
     -- TODO: add the member to the right host pool using pools_rest_utils
+
+    -- Expected format
+    -- 00:11:22:33:44:55
+    -- 192.168.1.10
+    -- 192.168.1.10@10
+    -- 192.168.1.0/24
+    -- 192.168.1.0@10/24
+    if(member ~= "") then 
+      if((not member:find("^%d+%.%d+%.%d+%.%d+"))
+        and (not member:find("^%w+:%w+:%w+:%w+:%w+:%w+:%w+:%w+"))
+        and (not member:find("^%w+:%w+:%w+:%w+:%w+:%w+$"))) then
+        traceError(TRACE_WARNING, TRACE_CONSOLE, "Pool import: skipping "..member)
+      else
+        ntop.setMembersCache("ntopng.prefs.host_pools.members."..pool_id, member)
+      end
+    end
 end
 
--- TODO: stub
 rest_utils.answer(rest_utils.consts.success.ok)
