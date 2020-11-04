@@ -50,8 +50,8 @@ end
 
 local function recipient2sendMessageSettings(recipient)
   local settings = {
-    webhook = recipient.endpoint_conf.endpoint_conf.slack_webhook,
-    sender_username = recipient.endpoint_conf.endpoint_conf.slack_sender_username,
+    webhook = recipient.endpoint_conf.slack_webhook,
+    sender_username = recipient.endpoint_conf.slack_sender_username,
   }
 
   return settings
