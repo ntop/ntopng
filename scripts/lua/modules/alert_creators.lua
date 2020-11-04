@@ -76,6 +76,20 @@ end
 
 -- ##############################################
 
+function alert_creators.createNoIfActivity(alert_severity, alert_granularity, ifid)
+   local no_if_activity_type = {
+      alert_granularity = alert_granularity,
+      alert_severity = alert_severity,
+      alert_type_params = {
+         ifname = ifname,
+      }
+   }
+
+   return no_if_activity_type
+end
+
+-- ##############################################
+
 return alert_creators
 
 -- ##############################################
