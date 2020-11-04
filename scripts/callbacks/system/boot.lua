@@ -31,13 +31,13 @@ if not ntop.isnEdge() then -- nEdge data deletion is handled in nf_config.lua
    delete_data_utils.delete_pcap_dump_interfaces_data()
 
    if delete_data_utils.delete_active_interface_data_requested() then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Deleting data for marked active interfaces...")
+      traceError(TRACE_INFO, TRACE_CONSOLE, "Deleting data for marked active interfaces...")
 
       local res = delete_data_utils.delete_active_interfaces_data()
 
       delete_data_utils.clear_request_delete_active_interface_data()
 
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Data deletion done.")
+      traceError(TRACE_INFO, TRACE_CONSOLE, "Data deletion done.")
    end
 end
 

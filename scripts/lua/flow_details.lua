@@ -843,7 +843,7 @@ else
       print("</td></tr>\n")
    end
 
-   if(flow.iec104) then
+   if(flow.iec104 and (table.len(flow.iec104) > 0)) then
       print("<tr><th width=30%>"..i18n("flow_details.iec104_mask").."</th><td colspan=2>")
 
       for k,v in pairsByKeys(flow.iec104, rev) do
