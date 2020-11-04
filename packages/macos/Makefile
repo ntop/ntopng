@@ -14,17 +14,8 @@ ntopng-build:
 	cp ./ntopng ${NTOPNG_BUILD}/usr/local/bin/
 	cp ./uninstall.sh ${NTOPNG_BUILD}/usr/local/bin/ntopng-uninstall.sh
 	cp ./ntopng-macos.conf ${NTOPNG_BUILD}/usr/local/etc/ntopng/ntopng.conf
-	#
-	cp /usr/local/opt/rrdtool/lib/librrd.8.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/json-c/lib/libjson-c.4.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/libmaxminddb/lib/libmaxminddb.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/libsodium/lib/libsodium.23.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/mysql/lib/libmysqlclient.21.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/openssl@1.1/lib/libssl.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/libgcrypt/lib/libgcrypt.20.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/zstd/lib/libzstd.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	#
+	@echo "Copying library dependencies..."
+	@./copylibs.sh ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/bin/redis-server ${NTOPNG_BUILD}/usr/local/bin/ntopng-redis-server
 
 	cp ../../httpdocs/geoip/dbip-asn-*.mmdb ../../httpdocs/geoip/dbip-country-*.mmdb ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/geoip
