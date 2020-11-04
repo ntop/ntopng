@@ -14,7 +14,7 @@ ntopng-build:
 	cp ./ntopng ${NTOPNG_BUILD}/usr/local/bin/
 	cp ./uninstall.sh ${NTOPNG_BUILD}/usr/local/bin/ntopng-uninstall.sh
 	cp ./ntopng-macos.conf ${NTOPNG_BUILD}/usr/local/etc/ntopng/ntopng.conf
-
+	#
 	cp /usr/local/opt/rrdtool/lib/librrd.8.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/json-c/lib/libjson-c.4.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/libmaxminddb/lib/libmaxminddb.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
@@ -22,25 +22,9 @@ ntopng-build:
 	cp /usr/local/opt/mysql/lib/libmysqlclient.21.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/openssl@1.1/lib/libssl.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/openssl@1.1/lib/libcrypto.1.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
+	cp /usr/local/opt/libgcrypt/lib/libgcrypt.20.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
 	cp /usr/local/opt/zstd/lib/libzstd.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/libpng/lib/libpng16.16.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/Cellar/pango/1.44.7/lib/libpangocairo-1.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/pango/lib/libpango-1.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/glib/lib/libgobject-2.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/glib/lib/libglib-2.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/harfbuzz/lib/libharfbuzz.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/cairo/lib/libcairo.2.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/gettext/lib/libintl.8.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/Cellar/pango/1.44.7/lib/libpangoft2-1.0.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/fontconfig/lib/libfontconfig.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/fribidi/lib/libfribidi.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/pcre/lib/libpcre.1.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/libffi/lib/libffi.7.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/freetype/lib/libfreetype.6.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/graphite2/lib/libgraphite2.3.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/pixman/lib/libpixman-1.0.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-	cp /usr/local/opt/net-snmp/lib/libnetsnmp.35.dylib ${NTOPNG_BUILD}/usr/local/opt/ntopng
-
+	#
 	cp /usr/local/bin/redis-server ${NTOPNG_BUILD}/usr/local/bin/ntopng-redis-server
 
 	cp ../../httpdocs/geoip/dbip-asn-*.mmdb ../../httpdocs/geoip/dbip-country-*.mmdb ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/geoip
