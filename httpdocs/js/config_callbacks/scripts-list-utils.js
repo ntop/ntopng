@@ -1604,8 +1604,32 @@ $(document).ready(function () {
          }
       },
       order: [[0, "asc"]],
-      buttons: [
-      ],
+      buttons: {
+         buttons: [
+             {
+                 text: '<i class="fas fa-sync"></i>',
+                 className: 'btn-link',
+                 action: function (e, dt, node, config) {
+                     $script_table.ajax.reload(function() {
+                        const [enabled_count, disabled_count] = count_scripts();
+                        // enable the disable all button if there are more than one enabled scripts
+                        if (enabled_count > 0) $(`#btn-disable-all`).removeAttr('disabled');
+                        $("#all-scripts").html(`${i18n.all} (${enabled_count + disabled_count})`)
+                        $(`#enabled-scripts`).html(`${i18n.enabled} (${enabled_count})`);
+                        $(`#disabled-scripts`).html(`${i18n.disabled} (${disabled_count})`);
+                     }, false);
+                 }
+             }
+         ],
+         dom: {
+             button: {
+                 className: 'btn btn-link'
+             },
+             container: {
+                 className: 'border-left ml-1 float-right'
+             }
+         }
+     },
       columns: [
          {
             data: 'title',

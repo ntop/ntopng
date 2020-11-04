@@ -129,6 +129,13 @@ $(document).ready(function () {
             action: function (e, dt, node, config) {
                 $('#add-recipient-modal').modal('show');
             }
+        },
+        {
+            text: '<i class="fas fa-sync"></i>',
+            enabled: CAN_CREATE_RECIPIENT,
+            action: function (e, dt, node, config) {
+                $recipientsTable.ajax.reload();
+            }
         }
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_recipients_endpoint.lua`);
@@ -182,24 +189,24 @@ $(document).ready(function () {
                 width: "15%",
                 render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS
             },
-	    {
-		data: "stats.num_uses",
-		className: "text-right",
-		width: "10%",
-		render: function(data, type) {
-		    if (type == "display") return NtopUtils.fint(data);
-		    return data;
-		}
-	    },
-	    {
-		data: "stats.num_drops",
-		className: "text-right",
-		width: "10%",
-		render: function(data, type) {
-		    if (type == "display") return NtopUtils.fint(data);
-		    return data;
-		}
-	    },
+            {
+                data: "stats.num_uses",
+                className: "text-right",
+                width: "10%",
+                render: function (data, type) {
+                    if (type == "display") return NtopUtils.fint(data);
+                    return data;
+                }
+            },
+            {
+                data: "stats.num_drops",
+                className: "text-right",
+                width: "10%",
+                render: function (data, type) {
+                    if (type == "display") return NtopUtils.fint(data);
+                    return data;
+                }
+            },
             {
                 targets: -1,
                 className: 'text-center',
@@ -212,9 +219,9 @@ $(document).ready(function () {
                     if (isBuiltin) return;
 
                     return DataTableUtils.createActionButtons([
-                        {class: 'btn-info', icon: 'fa fa-users', modal: '#users-recipient-modal'},
-                        {class: 'btn-info', icon: 'fa-edit', modal: '#edit-recipient-modal' },
-                        {class: 'btn-danger', icon: 'fa-trash', modal: '#remove-recipient-modal'},
+                        { class: 'btn-info', icon: 'fa fa-users', modal: '#users-recipient-modal' },
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-recipient-modal' },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-recipient-modal' },
                     ]);
                 }
             }
@@ -235,7 +242,7 @@ $(document).ready(function () {
             });
 
             // reload data each TABLE_DATA_REFRESH milliseconds
-            setInterval(() => { tableAPI.ajax.reload();  }, TABLE_DATA_REFRESH);
+            setInterval(() => { tableAPI.ajax.reload(); }, TABLE_DATA_REFRESH);
         }
     });
 
@@ -399,16 +406,16 @@ $(document).ready(function () {
     });
 
     /* bind recipient users button */
-    $(`table#recipient-list`).on('click', `a[href='#users-recipient-modal']`, async function() {
+    $(`table#recipient-list`).on('click', `a[href='#users-recipient-modal']`, async function () {
 
-        const {recipient_id, recipient_name} = $recipientsTable.row($(this).parent().parent()).data();
+        const { recipient_id, recipient_name } = $recipientsTable.row($(this).parent().parent()).data();
         $(`.recipient-name`).text(recipient_name);
         $(`.fetch-failed,.zero-user`).hide();
 
         try {
 
             const response = await fetch(`${http_prefix}/lua/rest/v1/get/recipient/pools.lua?recipient_id=${recipient_id}`);
-            const {rsp} = await response.json();
+            const { rsp } = await response.json();
 
             // if there are no pools for the selected recipient shows a message
             if (rsp.length == 0) {
@@ -437,7 +444,7 @@ $(document).ready(function () {
             .then(() => { $self.removeAttr("disabled"); });
     });
 
-    $(`[name='recipient_user_script_categories']`).on('changed.bs.select', function(e, clickedIndex, isSelected, previousValue) {
+    $(`[name='recipient_user_script_categories']`).on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
 
         const lessThanOne = $(this).val().length < 1;
 

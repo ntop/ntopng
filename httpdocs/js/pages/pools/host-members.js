@@ -37,6 +37,12 @@ $(document).ready(function () {
         {
             text: '<i class="fas fa-plus"></i>',
             action: () => { $(`#add-member-modal`).modal('show'); }
+        },
+        {
+            text: '<i class="fas fa-sync"></i>',
+            action: function(e, dt, node, config) {
+                $hostMembersTable.ajax.reload();
+            }
         }
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v1/get/host/pool/members.lua?pool=${queryPoolId}`, `rsp`);

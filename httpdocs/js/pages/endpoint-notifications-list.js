@@ -70,6 +70,13 @@ $(document).ready(function () {
             action: function (e, dt, node, config) {
                 $('#add-endpoint-modal').modal('show');
             }
+        },
+        {
+            text: '<i class="fas fa-sync"></i>',
+            className: 'btn-link',
+            action: function (e, dt, node, config) {
+                $endpointsTable.ajax.reload();
+            }
         }
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_notification_configs.lua`);

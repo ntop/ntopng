@@ -136,6 +136,13 @@ $(document).ready(function() {
             text: '<i class="fas fa-plus"></i>',
             enabled: !ADD_POOL_DISABLED && !IS_ALL_POOL,
             action: () => { $(`#add-pool`).modal('show'); }
+        },
+        {
+            text: '<i class="fas fa-sync"></i>',
+            enabled: !ADD_POOL_DISABLED && !IS_ALL_POOL,
+            action: function(e, dt, node, config) {
+                $poolTable.ajax.reload();
+            }
         }
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, endpoints.get_all_pools, 'rsp');
