@@ -57,8 +57,7 @@ script = {
   default_enabled = true,
   hooks = {
     -- Time past between one call and an other
-    min = check_interface_activity,
-    -- ["5mins"] = check_interface_activity,
+    ["5mins"] = check_interface_activity,
   },
 
   -- This script is only for alerts generation
