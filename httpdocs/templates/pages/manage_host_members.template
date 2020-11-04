@@ -54,6 +54,11 @@
                     </table>
                 </div>
             </div>
+            <div class="card-footer">
+                <a class="btn btn-secondary" data-toggle='modal' href="#import-modal">
+                    <i class='fas fa-file-import'></i> {{ i18n("host_pools.import_hosts") }}
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -75,6 +80,19 @@
 }) *}
 {* template_utils.gen("pages/modals/pools/remove_host_pool_member.template") *}
 
+{*
+    template_utils.gen("pages/modals/scripts_config/import_modal.html", {
+        dialog={
+            title   = i18n("host_pools.import_hosts_title", {pool = "<span class='member-name'></span>"}),
+            label   = "",
+            message = i18n("host_pools.config_import_message"),
+            cancel  = i18n("cancel"),
+            apply   = i18n("apply"),
+            input_description = i18n("host_pools.import_hosts_desc")
+        }
+      })
+*}
+
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-ipsorting.js"></script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-macsorting.js"></script>
@@ -83,6 +101,7 @@
     let addCsrf = "{{ ntop.getRandomCSRFValue() }}";
     let editCsrf = "{{ ntop.getRandomCSRFValue() }}";
     let removeCsrf = "{{ ntop.getRandomCSRFValue() }}";
+    const importCsrf = "{{ ntop.getRandomCSRFValue() }}";
 
     let queryPoolId = {{ manage_host_members.pool_id_get }};
     let selectedPool = { id: queryPoolId, name:  "{{selected_pool_name}}" };

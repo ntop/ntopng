@@ -1460,6 +1460,7 @@ local known_parameters = {
    ["search_script"]           = validateSingleWord,
    ["field_alias"]             = validateListOfTypeInline(validateFieldAlias),
    ["dscp_class"]              = validateSingleWord,
+   ["host_pool_members"]      = validateUnquoted,
 
    -- Widget and Datasources
    ["ds_hash"]                 = validateSingleWord,
