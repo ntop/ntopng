@@ -10,7 +10,7 @@ $(document).ready(function () {
 
         const params = {
             recipient_name: $(`${formSelector} [name='recipient_name']`).val(),
-            endpoint_conf_name: $(`${formSelector} [name='endpoint']`).val(),
+            endpoint_id: $(`${formSelector} [name='endpoint']`).val(),
             recipient_minimum_severity: $(`${formSelector} [name='recipient_minimum_severity']`).val(),
             recipient_user_script_categories: $(`${formSelector} [name='recipient_user_script_categories']`).val().join(",")
         };

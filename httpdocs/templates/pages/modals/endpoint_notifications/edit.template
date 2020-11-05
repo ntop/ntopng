@@ -18,8 +18,17 @@
                 </div>
             </div>
             <form autocomplete="off">
+                <input hidden name="endpoint_id">
                 <div class="modal-body">
-                    <input type="text" hidden name="name">
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="endpoint-name-input">
+                            <b>{{ i18n("endpoint_notifications.name") }}</b>
+                        </label>
+                        <div class="col-sm-5">
+                            <input data-validation-empty-message="{{ i18n('validation.empty_name') }}" required name="name" type="text" class="form-control" id="edit-endpoint-name-input">
+                        </div>
+                    </div>
+                    <hr>
                     <div class="endpoint-template-container pt-2">
                     </div>
                     <span class="invalid-feedback"></span>

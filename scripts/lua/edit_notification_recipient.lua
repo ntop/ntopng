@@ -38,8 +38,8 @@ local categories = recipients_rest_utils.parse_user_script_categories(_POST["rec
 local minimum_severity = recipients_rest_utils.parse_minimum_severity(_POST["recipient_minimum_severity"])
 
 if (action == "add") then
-   local endpoint_conf_name = _POST["endpoint_conf_name"]
-   response.result = recipients.add_recipient(endpoint_conf_name,
+   local endpoint_id = _POST["endpoint_id"]
+   response.result = recipients.add_recipient(endpoint_id,
 					      recipient_name,
 					      categories,
 					      minimum_severity,
@@ -54,8 +54,8 @@ elseif (action == "edit") then
 elseif (action == "remove") then
    response.result = recipients.delete_recipient(recipient_id)
 elseif (action == "test") then
-   local endpoint_conf_name = _POST["endpoint_conf_name"]
-   response.result = recipients.test_recipient(endpoint_conf_name, _POST)
+   local endpoint_id = _POST["endpoint_id"]
+   response.result = recipients.test_recipient(endpoint_id, _POST)
 else
    traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid 'action' parameter.")
    response.success = false

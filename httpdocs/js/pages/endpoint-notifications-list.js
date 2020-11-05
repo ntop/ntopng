@@ -39,6 +39,7 @@ $(document).ready(function () {
         const $inputsTemplate = $(`${formSelector} .endpoint-template-container [name]`);
 
         const params = {
+            endpoint_id: $(`${formSelector} [name='endpoint_id']`).val(),
             endpoint_conf_name: $(`${formSelector} [name='name']`).val(),
             endpoint_conf_type: $(`${formSelector} [name='type']`).val(),
         };
@@ -221,6 +222,7 @@ $(document).ready(function () {
             $(`#endpoint-type`).html(data.endpoint_conf_name);
             /* load the values inside the template */
             $(`#edit-endpoint-modal form [name='name']`).val(data.endpoint_conf_name);
+            $(`#edit-endpoint-modal form [name='endpoint_id']`).val(data.endpoint_id);
             $(`#edit-endpoint-modal form .endpoint-template-container [name]`).each(function (i, input) {
                 $(this).val(data.endpoint_conf[$(this).attr('name')]);
             });
@@ -241,7 +243,7 @@ $(document).ready(function () {
         beforeSumbit: (endpoint) => {
             return {
                 action: 'remove',
-                endpoint_conf_name: endpoint.endpoint_conf_name
+                endpoint_id: endpoint.endpoint_id
             };
         },
         onModalInit: (endpoint) => {

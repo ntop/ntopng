@@ -35,7 +35,7 @@
                             <select required name="endpoint" class="form-control" id="endpoint-select">
                                 {% for i, endpoint in ipairs(endpoint_list) do %}
 				                    {% if not endpoint.endpoint_conf.builtin then %}
-                                           <option {{ (i == 1 and "selected" or "") }} data-endpoint-key="{{ endpoint.endpoint_key }}" value="{{ endpoint.endpoint_conf_name }}">
+                                           <option {{ (i == 1 and "selected" or "") }} data-endpoint-key="{{ endpoint.endpoint_key }}" value="{{ endpoint.endpoint_id }}">
                                              {{ endpoint.endpoint_conf_name }}
                                          </option>
 				                    {% end %}

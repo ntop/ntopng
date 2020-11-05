@@ -104,13 +104,12 @@ end
 -- @param safe_params A table with endpoint configuration params already sanitized
 -- @return nil
 local function set_endpoint_config_params(endpoint_key, endpoint_id, endpoint_conf_name, safe_params)
-   if endpoint_id then
+   if tonumber(endpoint_id) then
       -- Format the integer identifier as a string representation of the same integer
       -- This is necessary as subsequent Redis cache sets work with strings and not integers
       endpoint_id = string.format("%d", endpoint_id)
    else
-      -- Backward compat: older identificator was a string with the name
-      endpoint_id = endpoint_conf_name
+      -- backward compatibility: we can ignore the cast to id because the it's a string (old endpoint type id)
    end
 
    -- Write the endpoint conf_name and its key in a hash
@@ -280,6 +279,7 @@ end
 -- @param endpoint_params A table with endpoint configuration params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
 function notification_configs.edit_config(endpoint_id, endpoint_conf_name, endpoint_params)
+
    local ok, status = check_endpoint_conf_name(endpoint_conf_name)
    if not ok then
       return status
@@ -289,7 +289,7 @@ function notification_configs.edit_config(endpoint_id, endpoint_conf_name, endpo
    if tonumber(endpoint_id) then
       endpoint_id = string.format("%d", endpoint_id)
    else
-      endpoint_id = endpoint_conf_name
+            -- backward compatibility: we can ignore the cast to id because the it's a string (old endpoint type id)
    end
 
    -- Is the config already existing?

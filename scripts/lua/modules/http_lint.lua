@@ -1019,6 +1019,10 @@ local function validateRoutingPolicyName(m)
    return validateUnquoted(m)
 end
 
+local function validateNumberOrUnquoted(p)
+   return validateNumber(p) or validateUnquoted(p)
+end
+
 function validateRoutingPolicyGateway(m)
    -- this is in the form "policyid_gwid"
    local parts = string.split(m, "_")
@@ -1113,6 +1117,8 @@ end
 local function validateOperatingMode(m)
    return validateChoice({"single_port_router", "routing", "bridging"}, m)
 end
+
+
 
 -- #################################################################
 
@@ -1358,7 +1364,7 @@ local known_parameters = {
    ["recipient_user_script_categories"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["recipient_minimum_severity"]       = validateNumber,
    ["endpoint_conf_name"]     = validateUnquoted,
-   ["endpoint_conf_id"]       = validateNumber,
+   ["endpoint_id"]       = validateNumberOrUnquoted,
    ["endpoint_conf_type"]     = validateUnquoted,
    ["cc"]                     = validateEmptyOr(validateSingleWord),
 

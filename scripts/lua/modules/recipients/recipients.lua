@@ -502,8 +502,8 @@ function recipients.get_recipient(recipient_id, include_stats)
 	 -- Add the integer recipient id
 	 recipient_details["recipient_id"] = tonumber(recipient_id)
 
-	 -- Add also the endpoint configuration name
-	 local ec = notification_configs.get_endpoint_config(recipient_details["endpoint_conf_name"])
+    -- Add also the endpoint configuration name
+	 local ec = notification_configs.get_endpoint_config(recipient_details["endpoint_id"])
 	 recipient_details["endpoint_conf_name"] =  ec["endpoint_conf_name"]
 	 recipient_details["endpoint_id"] =  ec["endpoint_id"]
 
@@ -575,7 +575,7 @@ function recipients.get_recipient_by_name(name)
       local recipient_details = recipients.get_recipient(recipient_id)
 
       if recipient_details and recipient_details["recipient_name"] and recipient_details["recipient_name"] == name then
-	 return recipient_details
+	      return recipient_details
       end
    end
 
