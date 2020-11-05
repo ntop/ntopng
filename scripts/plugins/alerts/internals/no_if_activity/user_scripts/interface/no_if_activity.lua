@@ -33,8 +33,10 @@ local function check_interface_activity(params)
       alert_consts.alerts_granularities.min
   )
 
+  local redis_key = NO_ACTIVITY_PLUGIN_CACHE_KEY .. ifname
+  
   -- Get from the cache the previous number of total packets received
-  local previous_counters = ntop.getCache(NO_ACTIVITY_PLUGIN_CACHE_KEY .. ifname)
+  local previous_counters = ntop.getCache(redis_key)
 
   previous_packets, previous_flows = string.match(previous_counters, "(.*)_(.*)")
 
