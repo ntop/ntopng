@@ -429,7 +429,9 @@ function recipients.get_recipients_by_conf(endpoint_id, include_stats)
    local all_recipients = recipients.get_all_recipients(false, include_stats)
 
    for _, recipient in pairs(all_recipients) do
-      if tonumber(recipient.endpoint_id) == tonumber(endpoint_id) then
+      -- Use tostring for backward compatibility, to handle
+      -- both integer and string endpoint_id
+      if tostring(recipient.endpoint_id) == tostring(endpoint_id) then
 	 res[#res + 1] = recipient
       end
    end
