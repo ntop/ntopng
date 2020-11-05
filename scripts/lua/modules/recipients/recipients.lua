@@ -412,7 +412,8 @@ function recipients.delete_recipients_by_conf(endpoint_id)
 
    local all_recipients = recipients.get_all_recipients()
    for _, recipient in pairs(all_recipients) do
-      if recipient.endpoint_id == endpoint_id then
+      -- Use tostring for backwards compatibility
+      if tostring(recipient.endpoint_id) == tostring(endpoint_id) then
 	 recipients.delete_recipient(recipient.recipient_id)
       end
    end

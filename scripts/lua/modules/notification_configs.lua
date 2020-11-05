@@ -151,7 +151,7 @@ local function read_endpoint_config_raw(endpoint_id)
    if endpoint_params and endpoint_params ~= '' then
       return {
 	 endpoint_key = endpoint_key,
-	 endpoint_id = tonumber(endpoint_id),
+	 endpoint_id = endpoint_id,
 	 -- For backward compatibility, endpoint_id is returned as the endpoint_conf_name when not name is found inside endpoint_conf
 	 endpoint_conf_name = endpoint_params.endpoint_conf_name or endpoint_id,
 	 endpoint_params = endpoint_params
@@ -341,6 +341,7 @@ function notification_configs.delete_config(endpoint_id)
 
    -- Delete the all the recipients associated to this config recipients
    local recipients = require "recipients"
+
    recipients.delete_recipients_by_conf(endpoint_id)
 
    -- Now delete the actual config
@@ -456,7 +457,7 @@ function notification_configs.add_configs_with_recipients(configs)
 
          local ret = notification_configs.add_config(endpoint_key, endpoint_conf_name, endpoint_params)
 
-         if not ret or not ret.status or ret.status ~= "OK" then
+         if not ret or not ret.endpoint_id then
             rc = false
          else
             -- Restore Recipients
@@ -466,7 +467,7 @@ function notification_configs.add_configs_with_recipients(configs)
                local minimum_severity = recipient_conf.minimum_severity
                local recipient_params = recipient_conf.recipient_params
 
-               ret = recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
+               ret = recipients.add_recipient(ret.endpoint_id, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
 
                if not ret or not ret.status or ret.status ~= "OK" then
                   rc = false
