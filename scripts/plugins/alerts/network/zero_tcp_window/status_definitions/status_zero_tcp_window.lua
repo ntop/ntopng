@@ -10,7 +10,7 @@ local alert_consts = require "alert_consts"
 -- #######################################################
 
 local function zeroTcpWindow(ifid, alert, zero_tcp_window_checks)
-   tprint(zero_tcp_window_checks)
+  -- tprint(zero_tcp_window_checks)
   if(zero_tcp_window_checks.is_client) then
     return(i18n("zero_tcp_window.status_zero_tcp_window_description" .. "Flow direction: Client -> Server")) -- .. flow.name)) Need to concatenate the name/id/infos of the flow to the description
   else
