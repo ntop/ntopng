@@ -37,6 +37,12 @@ $(document).ready(function () {
         {
             text: '<i class="fas fa-plus"></i>',
             action: () => { $(`#add-member-modal`).modal('show'); }
+        },
+        {
+            text: '<i class="fas fa-sync"></i>',
+            action: function(e, dt, node, config) {
+                $hostMembersTable.ajax.reload();
+            }
         }
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v1/get/host/pool/members.lua?pool=${queryPoolId}`, `rsp`);
@@ -101,6 +107,58 @@ $(document).ready(function () {
         $(`.edit-pool-link`).attr('href', `${http_prefix}/lua/admin/manage_pools.lua?pool=host&pool_id=${selectedPool.id}`);
         queryPoolId = selectedPool.id;
         history.pushState({ pool: queryPoolId }, '', location.href.replace(/pool\=[0-9]+/, `pool=${queryPoolId}`));
+    });
+
+    $(`[href='#import-modal']`).click(function() {
+        $(`.member-name`).html(selectedPool.name);
+    });
+
+    $(`input#import-input`).on('change', function () {
+        const filename = $(this).val().replace("C:\\fakepath\\", "");
+        $(`label[for='#import-input']`).html(filename);
+        $(`#btn-confirm-import`).removeAttr("disabled");
+    });
+
+    const oldLabelImportInput = $(`label[for='#import-input']`).html();
+    $(`#import-modal`).on('hidden.bs.modal', function () {
+        $(`#import-input`).val('');
+        $(`label[for='#import-input']`).html(oldLabelImportInput);
+        $("#import-error").hide().removeClass('text-warning').addClass('invalid-feedback');
+        $(`#btn-confirm-import`).attr("disabled", "disabled");
+    });
+
+    $(`#import-modal form`).submit(function(e) {
+        e.preventDefault();
+
+        const $button = $(`#btn-confirm-import`);
+
+        const inputFilename = $('#import-input')[0].files[0];
+        if (!inputFilename) {
+            $("#import-error").text(`${i18n.no_file}`).show();
+            $button.removeAttr("disabled");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.readAsText(inputFilename, "UTF-8");
+
+        reader.onload = (function() {
+            const req = $.post(`${http_prefix}/lua/rest/v1/import/pool/host_pool/members.lua`, {csrf: importCsrf, pool: selectedPool.id, host_pool_members: reader.result});
+            req.then(function(response) {
+
+                if (response.rc < 0) {
+                    $("#import-error").show().html(response.rc_str_hr);
+                    return;
+                }
+
+                location.reload();
+            });
+            req.fail(function(response) {
+                if (response.rc < 0) {
+                    $("#import-error").show().html(response.rc_str_hr);
+                }
+            });
+        });
     });
 
     $(window).on('popstate', function (e) {

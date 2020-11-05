@@ -240,7 +240,7 @@ void Flow::freeDPIMemory() {
 Flow::~Flow() {
   if(getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]", __FUNCTION__, getUses());
-  
+
 #ifdef ALERTED_FLOWS_DEBUG
   if(iface_alert_inc && !iface_alert_dec) {
     char buf[256];
@@ -255,7 +255,7 @@ Flow::~Flow() {
 
     IMPORTANT: only call here methods that are safe (e.g., locked or atomic-ed).
 
-    It is fundamental to only call 
+    It is fundamental to only call
    */
   Host *cli_u = unsafeGetClient(), *srv_u = unsafeGetServer();
 
@@ -267,7 +267,7 @@ Flow::~Flow() {
       ScoreCategory score_category = (ScoreCategory)i;
 
       if(cli_host_score[score_category])
-	cli_u->decScoreValue(cli_host_score[score_category], score_category, true  /* as client */);	
+	cli_u->decScoreValue(cli_host_score[score_category], score_category, true  /* as client */);
     }
   }
 
@@ -446,12 +446,12 @@ void Flow::processDetectedProtocol() {
     if(srv_port == ntohs(123) && get_srv_host())      get_srv_host()->setNtpServer();
     else if(cli_port == ntohs(123) && get_cli_host()) get_cli_host()->setNtpServer();
     break;
-    
+
   case NDPI_PROTOCOL_MAIL_SMTP:
     if(get_srv_host())
       get_srv_host()->setSmtpServer();
     break;
-    
+
   case NDPI_PROTOCOL_DNS:
     if(cli_port == ntohs(53) && get_cli_host())       get_cli_host()->setDnsServer();
     else if(srv_port == ntohs(53) && get_srv_host())  get_srv_host()->setDnsServer();
@@ -813,86 +813,116 @@ void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
   */
   switch(ndpi_get_lower_proto(proto_id)) {
   case NDPI_PROTOCOL_IEC60870:
-  {
-    u_int offset = 0;
-    u_int64_t *allowedTypeIDs = ntop->getPrefs()->getIEC104AllowedTypeIDs();
-    
-    while(offset + 1 < payload_len) {
-      /* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id */
-      u_int8_t len = payload[1+offset];
-      
-#ifdef DEBUG_IEC60870
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] %02X %02X %02X %02X",
-				   __FUNCTION__, payload[0], payload[1],
-				   payload[2], payload[3]);
-#endif
-      
-      if(len > 4) {
-	len -= 4;
-	
-	if(payload_len >= len) {
-	  u_int8_t  type_id = payload[6+offset];
-	  u_int8_t  cause_tx = payload[7+offset] & 0x3F;
-	  u_int8_t  negative = ((payload[7+offset] & 0x40)  == 0x40) ? true : false;
-	  u_int16_t asdu = /* ntohs */(*((u_int16_t*)&payload[10+offset]));
-	  u_int64_t bit;
-	  bool alerted = false;
-	  
-	  offset += len + 6;
-	  
-	  if(type_id < 64) {
-	    bit = ((u_int64_t)1) << type_id;
-	    
-	    iec104_typeid_mask[0] |= bit;
+    if((payload_len >= 6) && (payload[0] == 0x68 /* IEC magic byte */)) {
+      u_int offset = 1 /* Skip magic byte */;
+      u_int64_t *allowedTypeIDs = ntop->getPrefs()->getIEC104AllowedTypeIDs();
 
-	    if((allowedTypeIDs[0] & bit) == 0) alerted = true;
-	  } else if(type_id < 128) {
-	    bit = ((u_int64_t)1) << (type_id-64);
-	    iec104_typeid_mask[1] |= bit;
-
-	    if((allowedTypeIDs[1] & bit) == 0) alerted = true;	    
-	  }
-
-	  if(alerted) {
-	    json_object *my_object;
-	    
-	    if((my_object = json_object_new_object()) != NULL) {
-	      const char *json;
-	      
-	      json_object_object_add(my_object, "timestamp", json_object_new_int(packet_time));
-	      json_object_object_add(my_object, "client", get_cli_host()->get_ip()->getJSONObject());
-	      json_object_object_add(my_object, "server", get_srv_host()->get_ip()->getJSONObject());
-	      if(vlanId) json_object_object_add(my_object, "vlanId", json_object_new_int(vlanId));
-	      json_object_object_add(my_object, "type_id", json_object_new_int(type_id));
-	      json_object_object_add(my_object, "asdu", json_object_new_int(asdu));
-	      json_object_object_add(my_object, "cause_tx", json_object_new_int(cause_tx));	      
-	      json_object_object_add(my_object, "negative", json_object_new_boolean(negative));
-
-	      json = json_object_to_json_string(my_object);
+      while(offset /* Skip START byte */ < payload_len) {
+	/* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id */
+	u_int8_t len = payload[offset], pdu_type = ((payload[offset+1] & 0x01) == 0) ? 0 : (payload[offset+1] & 0x03);
 
 #ifdef DEBUG_IEC60870
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json);
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] %02X %02X %02X %02X",
+				     __FUNCTION__, payload[offset-1], payload[offset],
+				     payload[offset+1], payload[offset+2]);
 #endif
-	      
-	      ntop->getRedis()->rpush(CONST_IEC104_ALERT_QUEUE, json, 1024 /* Max queue size */);
-	      
-	      json_object_put(my_object); /* Free memory */
+
+#ifdef DEBUG_IEC60870
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] A-PDU Len %u/%u [pdu_type: %u][magic: %02X]", __FUNCTION__, len, payload_len, pdu_type, payload[offset-1]);
+#endif
+
+	if(len == 0) break; /* Something went wrong */
+
+	if(pdu_type != 0x0 /* Type I */) {
+	  offset += len + 2;
+	  continue;
+	}
+
+	if(len >= 6 /* Ignore 4 bytes APDUs */) {
+	  /* Skip magic(1), len(1), type/TX(2), RX(2) = 6 */
+	  len -= 6 /* Skip magic and len */, offset += 5 /* magic already skept */;
+
+	  if(payload_len >= (offset+len)) {
+	    u_int8_t  type_id = payload[offset];
+	    u_int8_t  cause_tx = payload[1+offset] & 0x3F;
+	    u_int8_t  negative = ((payload[1+offset] & 0x40) == 0x40) ? true : false;
+	    u_int16_t asdu;
+	    u_int64_t bit;
+	    bool alerted = false;
+
+	    offset += len + 2 /* magic and len */;
+
+	    if(len >= 6)
+	      asdu = /* ntohs */(*((u_int16_t*)&payload[4+offset]));
+	    else
+	      asdu = 0;
+
+#ifdef DEBUG_IEC60870
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] TypeId %u [offset %u/%u]", __FUNCTION__, type_id, offset, payload_len);
+#endif
+
+	    if(type_id < 64) {
+	      bit = ((u_int64_t)1) << type_id;
+
+	      iec104_typeid_mask[0] |= bit;
+
+	      if((allowedTypeIDs[0] & bit) == 0) alerted = true;
+	    } else if(type_id < 128) {
+	      bit = ((u_int64_t)1) << (type_id-64);
+	      iec104_typeid_mask[1] |= bit;
+
+	      if((allowedTypeIDs[1] & bit) == 0) alerted = true;
 	    }
-	  }
-	  
-	  /* Discard typeIds 127..255 */
+
+	    if(alerted) {
+	      json_object *my_object;
+
+	      if((my_object = json_object_new_object()) != NULL) {
+		const char *json;
+
+		json_object_object_add(my_object, "timestamp", json_object_new_int(packet_time));
+		json_object_object_add(my_object, "client", get_cli_host()->get_ip()->getJSONObject());
+		json_object_object_add(my_object, "server", get_srv_host()->get_ip()->getJSONObject());
+		if(vlanId) json_object_object_add(my_object, "vlanId", json_object_new_int(vlanId));
+		json_object_object_add(my_object, "type_id", json_object_new_int(type_id));
+		json_object_object_add(my_object, "asdu", json_object_new_int(asdu));
+		json_object_object_add(my_object, "cause_tx", json_object_new_int(cause_tx));
+		json_object_object_add(my_object, "negative", json_object_new_boolean(negative));
+
+		json = json_object_to_json_string(my_object);
+
 #ifdef DEBUG_IEC60870
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [payload_len: %u][len: %u][TypeID: %u][%llu/%llu]",
-				       __FUNCTION__, payload_len, len, type_id,
-				       iec104_typeid_mask[0], iec104_typeid_mask[1]);
+		ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json);
 #endif
-	} else /* payload_len < len */
+
+		ntop->getRedis()->rpush(CONST_IEC104_ALERT_QUEUE, json, 1024 /* Max queue size */);
+
+		json_object_put(my_object); /* Free memory */
+	      }
+	    }
+
+	    /* Discard typeIds 127..255 */
+#ifdef DEBUG_IEC60870
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [payload_len: %u][len: %u][TypeID: %u][%llu/%llu]",
+					 __FUNCTION__, payload_len, len, type_id,
+					 iec104_typeid_mask[0], iec104_typeid_mask[1]);
+#endif
+	  } else /* payload_len < len */
+	    break;
+	} else
 	  break;
-      } else
-	break;
+
+	if(payload[offset] == 0x68 /* IEC magic byte */)
+	  offset += 1; /* We skip the initial magic byte */
+	else {
+#ifdef DEBUG_IEC60870
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping IEC entry: no magic byte @ offset %u", offset);
+#endif
+	  break;
+	}
+      } /* while */
     }
-  }
-  break;
+    break;
 
   default:
     break;
@@ -1267,7 +1297,7 @@ char* Flow::print(char *buf, u_int buf_len) const {
 
 bool Flow::dumpFlow(time_t t, bool last_dump_before_free) {
   bool rc = false;
-   
+
   if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
 #ifdef TINY_FLOWS_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -1791,7 +1821,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
   }
 
-  /* 
+  /*
      Check (and possibly enqueue) the flow for processing by a view interface
    */
   getInterface()->viewEnqueue(tv->tv_sec, this);
@@ -1997,13 +2027,13 @@ const char* Flow::cipher_weakness2str(ndpi_cipher_weakness w) const {
 
 void Flow::luaScore(lua_State* vm) {
   u_int32_t tot;
-  
+
   lua_newtable(vm);
 
   lua_push_int32_table_entry(vm, "flow_score", getScore());
 
   /* ***************************************** */
-  
+
   lua_newtable(vm);
   for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++) {
     char tmp[8];
@@ -2011,13 +2041,13 @@ void Flow::luaScore(lua_State* vm) {
     snprintf(tmp, sizeof(tmp), "%u", i);
     lua_push_int32_table_entry(vm, tmp, cli_host_score[i] + srv_host_score[i]);
   }
-  
+
   lua_pushstring(vm, "host_categories_total");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-  
+
   /* ***************************************** */
-  
+
   lua_newtable(vm);
 
   tot = 0;
@@ -2033,12 +2063,12 @@ void Flow::luaScore(lua_State* vm) {
   lua_pushstring(vm, "host_score_total");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-  
+
   /* ***************************************** */
-  
+
   lua_pushstring(vm, "score");
   lua_insert(vm, -2);
-  lua_settable(vm, -3);  
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */
@@ -2102,7 +2132,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_get_dir_traffic(vm, false /* Server to Client */);
 
     luaScore(vm);
-    
+
     if(isICMP()) {
       lua_newtable(vm);
 
@@ -2220,18 +2250,18 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 #endif
 
       for(u_int j=0; j<2; j++) {
-	
+
 	for(u_int i=0; i<64; i++) {
 	  u_int64_t bit = ((u_int64_t)1) << i;
 
 	  if((iec104_typeid_mask[j] & bit) == bit) {
 	    char buf[8];
 	    u_int32_t v = i+(j*64);
-	    
+
 	    snprintf(buf, sizeof(buf), "%u", v);
 
 #ifdef DEBUG_IEC60870
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [bit %u] Setting %u", 
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [bit %u] Setting %u",
 					 __FUNCTION__, j, v);
 #endif
 
@@ -2396,7 +2426,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 #ifdef EXPIRE_FLOWS_IMMEDIATELY
   return(true); /* Debug only */
 #endif
-  
+
 #ifdef HAVE_NEDGE
   if(iface->getIfType() == interface_type_NETFILTER)
     return(isNetfilterIdleFlow());

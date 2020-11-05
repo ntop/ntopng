@@ -32,6 +32,9 @@ local ENDPOINT_CONFIG_TO_ENDPOINT_KEY = "ntopng.prefs.notification_endpoint.endp
 --
 local ENDPOINT_CONFIGS_KEY = "ntopng.prefs.notification_endpoint.endpoint_key_%s.configs"
 
+-- A key to atomically generate integer endpoint ids
+local ENDPOINT_NEXT_ID_KEY = "ntopng.prefs.notification_endpoint.next_endpoint_id"
+
 -- #################################################################
 
 local notification_configs = {}
@@ -75,51 +78,85 @@ end
 
 -- #################################################################
 
--- @brief Check if an endpoint configuration with name `endpoint_conf_name` exists
+-- @brief Check if an endpoint configuration identified with `endpoint_id` exists
 -- @param endpoint_conf_name A string with the configuration name
 -- @return true if the configuration exists, false otherwise
 local function is_endpoint_config_existing(endpoint_conf_name)
-   if not endpoint_conf_name or endpoint_conf_name == "" then
-      return false
+   local configs = notification_configs.get_configs()
+
+   for _, conf in pairs(configs) do
+      if conf.endpoint_conf_name == endpoint_conf_name then
+	 -- Another endpoint with the same name already existing
+	 return true
+      end
    end
 
-   local res = ntop.getHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
-
-   if res == nil or res == '' then
-      return false
-   end
-
-   return true
+   -- No other endpoint exists with the same name
+   return false
 end
 
 -- #################################################################
 
 -- @brief Set a configuration along with its params. Configuration name and params must be already sanitized
 -- @param endpoint_key A string with the notification endpoint key
+-- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_conf_name A string with the configuration name
 -- @param safe_params A table with endpoint configuration params already sanitized
 -- @return nil
-local function set_endpoint_config_params(endpoint_key, endpoint_conf_name, safe_params)
+local function set_endpoint_config_params(endpoint_key, endpoint_id, endpoint_conf_name, safe_params)
+   if endpoint_id then
+      -- Format the integer identifier as a string representation of the same integer
+      -- This is necessary as subsequent Redis cache sets work with strings and not integers
+      endpoint_id = string.format("%d", endpoint_id)
+   else
+      -- Backward compat: older identificator was a string with the name
+      endpoint_id = endpoint_conf_name
+   end
+
    -- Write the endpoint conf_name and its key in a hash
-   ntop.setHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name, endpoint_key)
+   ntop.setHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_id, endpoint_key)
+
+   -- Before storing the configuration as safe_params, we need to extend safe_params
+   -- to also include the endpoint configuration name.
+   -- This is necessary as endpoints are identified with integers in newer implementations
+   -- so the name must be stored in the configuration
+   safe_params["endpoint_conf_name"] = endpoint_conf_name
+   -- Endpoint config is the merge of safe_params plus the endpoint_conf_name
+
    -- Write the endpoint config in another hash
    local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
-   ntop.setHashCache(k, endpoint_conf_name, json.encode(safe_params))
+   ntop.setHashCache(k, endpoint_id, json.encode(safe_params))
 end
 
 -- #################################################################
 
 -- @brief Read the configuration parameters of an existing configuration
--- @param endpoint_conf_name A string with the configuration name
+-- @param endpoint_id An integer identifier of the endpoint
 -- @return A table with two keys: endpoint_key and endpoint_params or nil if the configuration isn't found
-local function read_endpoint_config_raw(endpoint_conf_name)
-   local endpoint_key = ntop.getHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
+local function read_endpoint_config_raw(endpoint_id)
+   if tonumber(endpoint_id) then
+      -- Subsequent Redis keys access work with strings so, the integer must be converted to its string representation
+      endpoint_id = string.format("%d", endpoint_id)
+   else
+      -- Old endpoint configs were strings, so there's nothing to do here
+   end
+
+   local endpoint_key = ntop.getHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_id)
 
    local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
-   local endpoint_params = ntop.getHashCache(k, endpoint_conf_name)
+   -- Endpoint params are saved as JSON
+   local endpoint_params_json = ntop.getHashCache(k, endpoint_id)
+   -- Decode params as a table
+   local endpoint_params = json.decode(endpoint_params_json)
 
    if endpoint_params and endpoint_params ~= '' then
-      return {endpoint_key = endpoint_key, endpoint_params = endpoint_params}
+      return {
+	 endpoint_key = endpoint_key,
+	 endpoint_id = endpoint_id,
+	 -- For backward compatibility, endpoint_id is returned as the endpoint_conf_name when not name is found inside endpoint_conf
+	 endpoint_conf_name = endpoint_params.endpoint_conf_name or endpoint_id,
+	 endpoint_params = endpoint_params
+      }
    end
 end
 
@@ -222,25 +259,41 @@ function notification_configs.add_config(endpoint_key, endpoint_conf_name, endpo
    end
 
    -- Set the config
-   set_endpoint_config_params(endpoint_key, endpoint_conf_name, safe_params)
 
-   return {status = "OK"}
+   -- Atomically generate and endpoint identificator
+   local endpoint_id = ntop.incrCache(ENDPOINT_NEXT_ID_KEY)
+
+   -- Save endpoint params, along with the newly generated identificator
+   set_endpoint_config_params(endpoint_key, endpoint_id, endpoint_conf_name, safe_params)
+
+   return {
+      status = "OK",
+      endpoint_id = endpoint_id -- This is the newly assigned enpoint it
+   }
 end
 
 -- #################################################################
 
 -- @brief Edit the configuration parameters of an existing endpoint
+-- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_conf_name A string with the configuration name
 -- @param endpoint_params A table with endpoint configuration params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function notification_configs.edit_config(endpoint_conf_name, endpoint_params)
+function notification_configs.edit_config(endpoint_id, endpoint_conf_name, endpoint_params)
    local ok, status = check_endpoint_conf_name(endpoint_conf_name)
    if not ok then
       return status
    end
 
+   -- TODO: remove when migration of edit_endpoint.lua is complete and passes the id
+   if tonumber(endpoint_id) then
+      endpoint_id = string.format("%d", endpoint_id)
+   else
+      endpoint_id = endpoint_conf_name
+   end
+
    -- Is the config already existing?
-   local ec = read_endpoint_config_raw(endpoint_conf_name)
+   local ec = read_endpoint_config_raw(endpoint_id)
    if not ec then
       return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
    end
@@ -255,7 +308,7 @@ function notification_configs.edit_config(endpoint_conf_name, endpoint_params)
    local safe_params = status["safe_params"]
 
    -- Overwrite the config
-   set_endpoint_config_params(ec["endpoint_key"], endpoint_conf_name, safe_params)
+   set_endpoint_config_params(ec["endpoint_key"], ec["endpoint_id"], endpoint_conf_name, safe_params)
 
    return {status = "OK"}
 end
@@ -263,28 +316,28 @@ end
 -- #################################################################
 
 -- @brief Delete the configuration parameters of an existing endpoint configuration
--- @param endpoint_conf_name A string with the configuration name
+-- @param endpoint_id An integer identifier of the endpoint
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
-function notification_configs.delete_config(endpoint_conf_name)
-   local ok, status = check_endpoint_conf_name(endpoint_conf_name)
-   if not ok then
-      return status
+function notification_configs.delete_config(endpoint_id)
+   -- TODO: remove when migration of edit_endpoint.lua is complete and passes the id
+   if tonumber(endpoint_id) then
+      endpoint_id = string.format("%d", endpoint_id)
    end
 
    -- Is the config already existing?
-   local ec = read_endpoint_config_raw(endpoint_conf_name)
+   local ec = read_endpoint_config_raw(endpoint_id)
    if not ec then
-      return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
+      return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_id}}
    end
 
    -- Delete the all the recipients associated to this config recipients
    local recipients = require "recipients"
-   recipients.delete_recipients_by_conf(endpoint_conf_name)
+   recipients.delete_recipients_by_conf(endpoint_id)
 
    -- Now delete the actual config
    local k = string.format(ENDPOINT_CONFIGS_KEY, ec["endpoint_key"])
-   ntop.delHashCache(k, endpoint_conf_name)
-   ntop.delHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_conf_name)
+   ntop.delHashCache(k, endpoint_id)
+   ntop.delHashCache(ENDPOINT_CONFIG_TO_ENDPOINT_KEY, endpoint_id)
 
    return {status = "OK"}
 end
@@ -292,27 +345,30 @@ end
 -- #################################################################
 
 -- @brief Retrieve the configuration parameters of an existing endpoint configuration
--- @param endpoint_conf_name A string with the configuration name
+-- @param endpoint_id An integer identifier of the endpoint
 -- @return A table with a key status which is either "OK" or "failed".
 --         When "failed", the table contains another key "error" with an indication of the issue.
 --         When "OK", the table contains "endpoint_conf_name", "endpoint_key", and "endpoint_conf" with the results
-function notification_configs.get_endpoint_config(endpoint_conf_name)
-   local ok, status = check_endpoint_conf_name(endpoint_conf_name)
-   if not ok then
-      return status
+function notification_configs.get_endpoint_config(endpoint_id)
+   -- Is the config already existing?
+   local ec = read_endpoint_config_raw(endpoint_id)
+
+   if not ec then
+      return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_id}}
    end
 
-   -- Is the config already existing?
-   local ec = read_endpoint_config_raw(endpoint_conf_name)
-   if not ec then
-      return {status = "failed", error = {type = "endpoint_config_not_existing", endpoint_conf_name = endpoint_conf_name}}
-   end
+   -- Decode endpoint configuration params
+   -- NOTE: in newer implementations, configuration params also contain the endpoint name
+   --       in older implementations, the endpoint name was used also as endpoint id
+   local endpoint_conf = ec["endpoint_params"]
 
    return {
       status = "OK",
-      endpoint_conf_name = endpoint_conf_name,
+      endpoint_id = endpoint_id,
+      -- For backward compatibility, endpoint_id is returned as the endpoint_conf_name when not name is found inside endpoint_conf
+      endpoint_conf_name = endpoint_conf["endpoint_conf_name"] or endpoint_id,
       endpoint_key = ec["endpoint_key"],
-      endpoint_conf = json.decode(ec["endpoint_params"])
+      endpoint_conf = endpoint_conf
    }
 end
 
@@ -329,8 +385,8 @@ function notification_configs.get_configs(exclude_builtin)
       local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
       local all_configs = ntop.getHashAllCache(k) or {}
 
-      for conf_name, endpoint_params in pairs(all_configs) do
-	 local ec = notification_configs.get_endpoint_config(conf_name)
+      for endpoint_id, endpoint_params in pairs(all_configs) do
+	 local ec = notification_configs.get_endpoint_config(endpoint_id)
 
 	 if not exclude_builtin or not ec.endpoint_conf.builtin then
 	    res[#res + 1] = ec
@@ -351,8 +407,8 @@ function notification_configs.get_configs_with_recipients(include_stats)
    local recipients = require "recipients"
    local configs = notification_configs.get_configs()
 
-   for conf_name, conf in pairs(configs) do
-      conf["recipients"] = recipients.get_recipients_by_conf(conf.endpoint_conf_name, include_stats)
+   for _, conf in pairs(configs) do
+      conf["recipients"] = recipients.get_recipients_by_conf(conf.endpoint_id, include_stats)
    end
 
    return configs
@@ -363,17 +419,10 @@ end
 -- @brief Clear all the existing endpoint configurations
 -- @return Always return a table {status = "OK"}
 function notification_configs.reset_configs()
-   for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
-      if not endpoint.builtin then
-	 local k = string.format(ENDPOINT_CONFIGS_KEY, endpoint_key)
-	 local all_configs = ntop.getHashAllCache(k) or {}
+   local all_configs = notification_configs.get_configs(true --[[ exclude builtin --]])
 
-	 for conf_name, endpoint_params in pairs(all_configs) do
-	    notification_configs.delete_config(conf_name)
-	 end
-
-	 ntop.delCache(k)
-      end
+   for _, endpoint_params in pairs(all_configs) do
+      notification_configs.delete_config(endpoint_params.endpoint_id)
    end
 
    return {status = "OK"}

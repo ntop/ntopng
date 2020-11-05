@@ -38,7 +38,7 @@ const NTOPNG_MIN_VISUAL_VALUE = 0.005;
 const REGEXES = {
 	ipv4: "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$",
 	ipv6: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\:){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$|^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$",
-	domainName: "^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$",
+	domainName: "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$|^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]).)*([A-Za-z]|[A-Za-z][A-Za-z0-9-]*[A-Za-z0-9])(:[0-9]{1,5})?",
 	macAddress: "^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$",
 	username: "^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$",
 	singleword: "^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$",
@@ -63,9 +63,9 @@ class NtopUtils {
 	}
 
 	/**
-     * Resolve a hostname by doing a DNS Resolve.
-     * @param {string} hostname The hostname to resolve
-     */
+	 * Resolve a hostname by doing a DNS Resolve.
+	 * @param {string} hostname The hostname to resolve
+	 */
 	static async resolveDNS(hostname = "ntop.org") {
 
 		// resolve the hostname by doing a fetch request to the backend
@@ -84,10 +84,10 @@ class NtopUtils {
 		return { rc: -1, rc_str: "FAILED_HTTP_REQUEST" };
 	}
 
-    /**
-     * Replace the inputs which contain the [data-pattern] attribute
-     * with the [pattern] attribute.
-     */
+	/**
+	 * Replace the inputs which contain the [data-pattern] attribute
+	 * with the [pattern] attribute.
+	 */
 	static initDataPatterns() {
 		// for each input with the data-pattern attribute
 		// substitute the data-pattern with the right regexes
@@ -344,15 +344,15 @@ class NtopUtils {
 		return string.charAt(0).toUpperCase() + string.slice(1);
 	}
 
-    static get_trend(actual, before) {
-	if((actual === undefined) || (before === undefined) || (actual == before)) {
-	    return ("<i class=\"fas fa-minus\"></i>");
-	} else if (actual > before) {
-	    return ("<i class=\"fas fa-arrow-up\"></i>");
-	} else {
-	    return ("<i class=\"fas fa-arrow-down\"></i>");
+	static get_trend(actual, before) {
+		if ((actual === undefined) || (before === undefined) || (actual == before)) {
+			return ("<i class=\"fas fa-minus\"></i>");
+		} else if (actual > before) {
+			return ("<i class=\"fas fa-arrow-up\"></i>");
+		} else {
+			return ("<i class=\"fas fa-arrow-down\"></i>");
+		}
 	}
-    }
 
 	static abbreviateString(str, len) {
 		if (!str)
@@ -363,29 +363,29 @@ class NtopUtils {
 	}
 
 	// Convert bytes to human readable format
-    static bytesToSize(bytes) {
-	if (typeof (bytes) === "undefined")
-	    return "-";
+	static bytesToSize(bytes) {
+		if (typeof (bytes) === "undefined")
+			return "-";
 
-	var precision = 2;
-	var kilobyte = 1024;
-	var megabyte = kilobyte * 1024;
-	var gigabyte = megabyte * 1024;
-	var terabyte = gigabyte * 1024;
+		var precision = 2;
+		var kilobyte = 1024;
+		var megabyte = kilobyte * 1024;
+		var gigabyte = megabyte * 1024;
+		var terabyte = gigabyte * 1024;
 
-	if ((bytes >= 0) && (bytes < kilobyte))
-	    return parseFloat(bytes.toFixed(precision)) + " Bytes";
-	else if ((bytes >= kilobyte) && (bytes < megabyte))
-	    return parseFloat((bytes / kilobyte).toFixed(precision)) + ' KB';
-	else if ((bytes >= megabyte) && (bytes < gigabyte))
-	    return parseFloat((bytes / megabyte).toFixed(precision)) + ' MB';
-	else if ((bytes >= gigabyte) && (bytes < terabyte))
-	    return parseFloat((bytes / gigabyte).toFixed(precision)) + ' GB';
-	else if (bytes >= terabyte)
-	    return parseFloat((bytes / terabyte).toFixed(precision)) + ' TB';
-	else
-	    return parseFloat(bytes.toFixed(precision)) + ' Bytes';
-    }
+		if ((bytes >= 0) && (bytes < kilobyte))
+			return parseFloat(bytes.toFixed(precision)) + " Bytes";
+		else if ((bytes >= kilobyte) && (bytes < megabyte))
+			return parseFloat((bytes / kilobyte).toFixed(precision)) + ' KB';
+		else if ((bytes >= megabyte) && (bytes < gigabyte))
+			return parseFloat((bytes / megabyte).toFixed(precision)) + ' MB';
+		else if ((bytes >= gigabyte) && (bytes < terabyte))
+			return parseFloat((bytes / gigabyte).toFixed(precision)) + ' GB';
+		else if (bytes >= terabyte)
+			return parseFloat((bytes / terabyte).toFixed(precision)) + ' TB';
+		else
+			return parseFloat(bytes.toFixed(precision)) + ' Bytes';
+	}
 
 	static drawTrend(current, last, withColor) {
 		if (current == last) {
@@ -573,18 +573,18 @@ class NtopUtils {
 		return form;
 	}
 
-    /*
-     * This function creates a javascript object where each k->v pair of the input object
-     * translates into two pairs in the output object: a key_[i]->k and a val_[i]->v, where
-     * i is an incremental index.
-     *
-     * The output object can then be serialized to an URL. This conversion is required for
-     * handling special characters: since ntopng strips special characters in _GET keys,
-     * _GET values must be used.
-     *
-     * This function performs the inverse conversion of lua paramsPairsDecode.
-     *
-     */
+	/*
+	 * This function creates a javascript object where each k->v pair of the input object
+	 * translates into two pairs in the output object: a key_[i]->k and a val_[i]->v, where
+	 * i is an incremental index.
+	 *
+	 * The output object can then be serialized to an URL. This conversion is required for
+	 * handling special characters: since ntopng strips special characters in _GET keys,
+	 * _GET values must be used.
+	 *
+	 * This function performs the inverse conversion of lua paramsPairsDecode.
+	 *
+	 */
 	static paramsPairsEncode(params) {
 		var i = 0;
 		var res = {};
@@ -734,7 +734,7 @@ class NtopUtils {
 	// To be used in conjunction with httpdocs/templates/config_list_components/import_modal.html
 	static importModalHelper(params) {
 
-		if (!params.loadConfigXHR) { throw("importModalHelper:: Missing 'loadConfigXHR' param"); return; }
+		if (!params.loadConfigXHR) { throw ("importModalHelper:: Missing 'loadConfigXHR' param"); return; }
 
 		const oldLabelImportInput = $(`label[for='#import-input']`).html();
 
@@ -744,7 +744,7 @@ class NtopUtils {
 			$(`#btn-confirm-import`).removeAttr("disabled");
 		});
 
-		$(`#import-modal`).on('hidden.bs.modal', function() {
+		$(`#import-modal`).on('hidden.bs.modal', function () {
 			$(`#import-input`).val('');
 			$(`label[for='#import-input']`).html(oldLabelImportInput);
 			$("#import-error").hide().removeClass('text-warning').addClass('invalid-feedback');
@@ -770,7 +770,7 @@ class NtopUtils {
 			const reader = new FileReader();
 			reader.readAsText(file, "UTF-8");
 
-			reader.onload = function() {
+			reader.onload = function () {
 				// Client-side configuration file format check
 				let jsonConfiguration = null
 				try { jsonConfiguration = JSON.parse(reader.result); } catch (e) { }
@@ -783,48 +783,48 @@ class NtopUtils {
 
 				// Submit configuration file
 				params.loadConfigXHR(reader.result)
-				.done((response, status, xhr) => {
+					.done((response, status, xhr) => {
 
-					if (response.rc < 0) {
-						$("#import-error").text(response.rc_str).show();
-						return;
-					}
+						if (response.rc < 0) {
+							$("#import-error").text(response.rc_str).show();
+							return;
+						}
 
-					// if the operation was successful call the successCallback
-					if (params.successCallback) {
-						params.successCallback(response);
-					}
+						// if the operation was successful call the successCallback
+						if (params.successCallback) {
+							params.successCallback(response);
+						}
 
-					// show a success alert message
-					NotificationUtils.showAlert({
-						id: 'import-configuration-alert',
-						level: 'success',
-						title: i18n.success,
-						body: i18n.manage_configurations.messagges.import_success,
-						delay: 2000
+						// show a success alert message
+						NotificationUtils.showAlert({
+							id: 'import-configuration-alert',
+							level: 'success',
+							title: i18n.success,
+							body: i18n.manage_configurations.messagges.import_success,
+							delay: 2000
+						});
+
+						$("#import-modal").modal('hide');
+
+					})
+					.fail(({ responseJSON }) => {
+
+						const PARTIAL_IMPORT_RC = -28;
+
+						if (params.failureCallback) {
+							params.failureCallback(responseJSON);
+						}
+
+						if (responseJSON && responseJSON.rc > 0) return;
+						if (responseJSON.rc == PARTIAL_IMPORT_RC)
+							$(`#import-error`).removeClass('invalid-feedback').addClass('text-warning');
+
+						$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || i18n.FAILED_HTTP_REQUEST).show();
+
+					})
+					.always(() => {
+						$button.removeAttr("disabled");
 					});
-
-					$("#import-modal").modal('hide');
-
-				})
-				.fail(({responseJSON}) => {
-
-					const PARTIAL_IMPORT_RC = -28;
-
-					if (params.failureCallback) {
-						params.failureCallback(responseJSON);
-					}
-
-					if (responseJSON && responseJSON.rc > 0) return;
-					if (responseJSON.rc == PARTIAL_IMPORT_RC)
-						$(`#import-error`).removeClass('invalid-feedback').addClass('text-warning');
-
-					$("#import-error").text(i18n.rest_consts[responseJSON.rc_str] || i18n.FAILED_HTTP_REQUEST).show();
-
-				})
-				.always(() => {
-					$button.removeAttr("disabled");
-				});
 			}
 		});
 	}
@@ -852,9 +852,9 @@ class NtopUtils {
 		$(formSelector)[0].reset();
 	}
 
-    /**
-     * Make a fetch call with a timeout option
-     */
+	/**
+	 * Make a fetch call with a timeout option
+	 */
 	static fetchWithTimeout(uri, options = {}, time = 5000) {
 
 		const controller = new AbortController()
@@ -884,8 +884,8 @@ class NtopUtils {
 			return;
 		}
 
-		const empty = () => {};
-		const request = $.post(`${http_prefix}/lua/update_prefs.lua`, {action: action, csrf: csrf});
+		const empty = () => { };
+		const request = $.post(`${http_prefix}/lua/update_prefs.lua`, { action: action, csrf: csrf });
 		request.done(success || empty);
 		request.fail(failure || empty);
 	}
@@ -899,13 +899,13 @@ class NtopUtils {
 	 */
 	static arrayToListString(array, limit) {
 
-        if (array == undefined) return "";
+		if (array == undefined) return "";
 
-        if (array.length > limit) {
-            return array.slice(0, limit).join(", ") + ` ${i18n.and_x_more.replace('$num', array.length - limit)}`;
-        }
+		if (array.length > limit) {
+			return array.slice(0, limit).join(", ") + ` ${i18n.and_x_more.replace('$num', array.length - limit)}`;
+		}
 
-        return array.slice(0, limit).join(", ");
+		return array.slice(0, limit).join(", ");
 	}
 
 	static buildURL(location, params = {}, hasReferer = false, refererParams = {}) {
@@ -933,8 +933,8 @@ class NtopUtils {
 
 	static getEditPoolLink(href, poolId) {
 		const url = new URL(href, window.location);
-        url.searchParams.set('pool_id', poolId);
-        return url.toString();
+		url.searchParams.set('pool_id', poolId);
+		return url.toString();
 	}
 
 	static getPoolLink(poolType, poolId = 0) {

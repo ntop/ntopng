@@ -33,7 +33,7 @@ if (action == "add") then
     local endpoint_conf_type = _POST["endpoint_conf_type"]
     response.result = notification_configs.add_config(endpoint_conf_type, endpoint_conf_name, _POST)
 elseif (action == "edit") then
-    response.result = notification_configs.edit_config(endpoint_conf_name, _POST)
+   response.result = notification_configs.edit_config(nil --[[ TODO: add the integer identitier --]], endpoint_conf_name, _POST)
 elseif (action == "remove") then
     response.result = notification_configs.delete_config(endpoint_conf_name)
 end

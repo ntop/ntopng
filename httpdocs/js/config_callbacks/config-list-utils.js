@@ -85,8 +85,28 @@ $(document).ready(function() {
 
     const $config_table = $("#config-list").DataTable({
         lengthChange: false,
+        dom: "<'d-flex'<'mr-auto'l><'dt-search'f>B>rtip",
         pagingType: 'full_numbers',
         stateSave: true,
+        buttons: {
+            buttons: [
+                {
+                    text: '<i class="fas fa-sync"></i>',
+                    className: 'btn-link',
+                    action: function (e, dt, node, config) {
+                        $config_table.ajax.reload();
+                    }
+                }
+            ],
+            dom: {
+                button: {
+                    className: 'btn btn-link'
+                },
+                container: {
+                    className: 'border-left ml-1 float-right'
+                }
+            }
+        },
         initComplete: function() {
             // clear searchbox datatable
             $(".dataTables_filter").find("input[type='search']").val('').trigger('keyup');
