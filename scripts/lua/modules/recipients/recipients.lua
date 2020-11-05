@@ -15,7 +15,7 @@ local recipients = {}
 
 -- ##############################################
 
-recipients.MAX_NUM_RECIPIENTS = 64
+recipients.MAX_NUM_RECIPIENTS = 64 -- Keep in sync with ntop_defines.h MAX_NUM_RECIPIENTS
 
 -- ##############################################
 
@@ -217,7 +217,7 @@ local function check_endpoint_recipient_params(endpoint_key, recipient_params)
    local safe_params = {}
    -- So iterate across all expected params of the current endpoint
    for _, param in ipairs(notification_configs.get_types()[endpoint_key].recipient_params) do
-     -- param is a lua table so we access its elements
+      -- param is a lua table so we access its elements
       local param_name = param["param_name"]
       local optional = param["optional"]
 
@@ -285,7 +285,7 @@ function recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, u
 	    local ok, status = check_endpoint_recipient_params(endpoint_key, recipient_params)
 
 	    if ok then
-          local safe_params = status["safe_params"]
+	       local safe_params = status["safe_params"]
 
 	       -- Assign the recipient id
 	       local recipient_id = _assign_recipient_id()
@@ -295,10 +295,10 @@ function recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, u
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
 	       ntop.recipient_register(recipient_id)
 
-          -- Set a flag to indicate that a recipient has been created
-          if not ec.endpoint_conf.builtin and isEmptyString(ntop.getPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
-            ntop.setPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY, "1")
-          end
+	       -- Set a flag to indicate that a recipient has been created
+	       if not ec.endpoint_conf.builtin and isEmptyString(ntop.getPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
+		  ntop.setPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY, "1")
+	       end
 
 	       res = {status = "OK", recipient_id = recipient_id}
 	    end
@@ -532,7 +532,7 @@ function recipients.get_recipient(recipient_id, include_stats)
          if include_stats then
 	    -- Read stats from C
 	    recipient_details["stats"] = ntop.recipient_stats(recipient_details["recipient_id"])
-          end
+	 end
       end
    end
 
@@ -619,8 +619,8 @@ function recipients.dispatch_notification(notification, current_script)
 	 end
       end
    else
---      traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")
---      tprint(debug.traceback())
+      --      traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")
+      --      tprint(debug.traceback())
    end
 end
 
