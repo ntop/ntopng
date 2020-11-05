@@ -3141,9 +3141,8 @@ void Flow::updateTcpWindow(u_int16_t window, bool src2dst_direction) {
   if(!window) {
     if(src2dst_direction)
       src2dst_tcp_window = 1;
-  }
-  else 
-      dst2src_tcp_window = 1;
+  } else 
+    dst2src_tcp_window = 1;
 }
 
 /* *************************************** */

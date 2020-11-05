@@ -42,7 +42,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
-  u_int8_t src2dst_tcp_window, dst2src_tcp_window, src2dst_tcp_window_check, dst2src_tcp_window_check;
+  u_int8_t src2dst_tcp_window:1, dst2src_tcp_window:1, src2dst_tcp_window_check:1, dst2src_tcp_window_check:1, _pad:4;
   u_int16_t cli_host_score[MAX_NUM_SCORE_CATEGORIES], srv_host_score[MAX_NUM_SCORE_CATEGORIES], flow_score;
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
