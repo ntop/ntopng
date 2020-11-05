@@ -30,20 +30,23 @@ function recipients.initialize()
    for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
       if endpoint.builtin then
          -- Add the configuration
-         notification_configs.add_config(
+         local res = notification_configs.add_config(
             endpoint_key --[[ the type of the endpoint--]],
             "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
             {} --[[ no default params --]]
          )
 
-         -- And the recipient
-         recipients.add_recipient(
-            "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
-            "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
-            nil, -- User script categories
-            alert_consts.alert_severities.notice.severity_id, -- minimum severity is notice (to avoid flooding) (*****)
-            {} --[[ no recipient params --]]
-         )
+	 -- Endpoint successfully created (or existing)
+	 if res and res.endpoint_id then
+	    -- And the recipient
+	    local recipient_res = recipients.add_recipient(
+	       res.endpoint_id --[[ the id of the endpoint --]],
+	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
+	       nil, -- User script categories
+	       alert_consts.alert_severities.notice.severity_id, -- minimum severity is notice (to avoid flooding) (*****)
+	       {} --[[ no recipient params --]]
+	    )
+	 end
       end
    end
 
@@ -424,8 +427,9 @@ function recipients.get_recipients_by_conf(endpoint_id, include_stats)
    local res = {}
 
    local all_recipients = recipients.get_all_recipients(false, include_stats)
+
    for _, recipient in pairs(all_recipients) do
-      if recipient.endpoint_id == endpoint_id then
+      if tonumber(recipient.endpoint_id) == tonumber(endpoint_id) then
 	 res[#res + 1] = recipient
       end
    end

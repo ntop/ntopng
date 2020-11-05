@@ -87,7 +87,7 @@ local function is_endpoint_config_existing(endpoint_conf_name)
    for _, conf in pairs(configs) do
       if conf.endpoint_conf_name == endpoint_conf_name then
 	 -- Another endpoint with the same name already existing
-	 return true
+	 return true, conf
       end
    end
 
@@ -151,7 +151,7 @@ local function read_endpoint_config_raw(endpoint_id)
    if endpoint_params and endpoint_params ~= '' then
       return {
 	 endpoint_key = endpoint_key,
-	 endpoint_id = endpoint_id,
+	 endpoint_id = tonumber(endpoint_id),
 	 -- For backward compatibility, endpoint_id is returned as the endpoint_conf_name when not name is found inside endpoint_conf
 	 endpoint_conf_name = endpoint_params.endpoint_conf_name or endpoint_id,
 	 endpoint_params = endpoint_params
@@ -234,8 +234,17 @@ function notification_configs.add_config(endpoint_key, endpoint_conf_name, endpo
    end
 
    -- Is the config already existing?
-   if is_endpoint_config_existing(endpoint_conf_name) then
-      return {status = "failed", error = {type = "endpoint_config_already_existing", endpoint_conf_name = endpoint_conf_name}}
+   local is_existing, existing_conf = is_endpoint_config_existing(endpoint_conf_name)
+   if is_existing then
+      return {status = "failed",
+	      endpoint_id = existing_conf.endpoint_id,
+	      endpoint_conf_name = existing_conf.endpoint_conf_name,
+
+	      error = {
+		 type = "endpoint_config_already_existing",
+		 endpoint_conf_name = existing_conf.endpoint_conf_name,
+	      }
+      }
    end
 
    -- Are the submitted params those expected by the endpoint?
