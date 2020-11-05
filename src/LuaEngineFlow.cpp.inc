@@ -336,7 +336,6 @@ static int ntop_flow_get_full_info(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flow_get_tcp_window_s2c(lua_State* vm) {
-  AddressTree *ptree = get_allowed_nets(vm);
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
@@ -349,7 +348,6 @@ static int ntop_flow_get_tcp_window_s2c(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flow_get_tcp_window_c2s(lua_State* vm) {
-  AddressTree *ptree = get_allowed_nets(vm);
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
@@ -362,7 +360,6 @@ static int ntop_flow_get_tcp_window_c2s(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flow_get_tcp_window_s2c_check(lua_State* vm) {
-  AddressTree *ptree = get_allowed_nets(vm);
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
@@ -375,7 +372,6 @@ static int ntop_flow_get_tcp_window_s2c_check(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flow_get_tcp_window_c2s_check(lua_State* vm) {
-  AddressTree *ptree = get_allowed_nets(vm);
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
@@ -388,7 +384,6 @@ static int ntop_flow_get_tcp_window_c2s_check(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flow_set_tcp_window_s2c_check(lua_State* vm) {
-  AddressTree *ptree = get_allowed_nets(vm);
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
@@ -401,7 +396,6 @@ static int ntop_flow_set_tcp_window_s2c_check(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flow_set_tcp_window_c2s_check(lua_State* vm) {
-  AddressTree *ptree = get_allowed_nets(vm);
   Flow *f = ntop_flow_get_context_flow(vm);
 
   if(!f) return(CONST_LUA_ERROR);
