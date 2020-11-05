@@ -11,7 +11,7 @@ local script
 -- #################################################################
 
 -- Name of the cache key, created from a fixed name + ifid
-local NO_ACTIVITY_PLUGIN_CACHE_KEY = "ntopng.cache.user_scripts.no_activity_plugins_enabled.ifid_"
+local NO_ACTIVITY_PLUGIN_CACHE_KEY = "ntopng.cache.user_scripts.no_activity_plugins_enabled.ifid"
 
 
 local function check_interface_activity(params)
@@ -19,19 +19,22 @@ local function check_interface_activity(params)
   -- Get total number of packets, flows and interface id
   local num_packets = params.entity_info.eth.packets
   local num_flows = params.entity_info.stats.flows
-  local ifid = params.entity_info.id
+  local ifid = tonumber(params.entity_info.id)
+  local tmp_if_table = interface.getIfNames()
+
+  -- Getting the interface name from the list of interfaces
+  local ifname = tmp_if_table[tostring(ifid)]
 
   -- Creating a string, used to put into the redis cache the number of packets and flows
   local new_counters = num_packets .. "_" .. num_flows
 
   local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.create(
       alert_consts.alert_severities.error,
-      alert_consts.alerts_granularities.min,
-      ifid
+      alert_consts.alerts_granularities.min
   )
 
   -- Get from the cache the previous number of total packets received
-  local previous_counters = ntop.getCache(NO_ACTIVITY_PLUGIN_CACHE_KEY .. params.entity_info.id)
+  local previous_counters = ntop.getCache(NO_ACTIVITY_PLUGIN_CACHE_KEY .. ifname)
 
   previous_packets, previous_flows = string.match(previous_counters, "(.*)_(.*)")
 
@@ -45,7 +48,7 @@ local function check_interface_activity(params)
     alerts_api.release(params.alert_entity, no_if_activity_type, nil, params.cur_alerts)
   end
 
-  ntop.setCache(NO_ACTIVITY_PLUGIN_CACHE_KEY .. params.entity_info.id, new_counters, 360)
+  ntop.setCache(NO_ACTIVITY_PLUGIN_CACHE_KEY .. ifname, new_counters, 360)
 end
 
 -- #################################################################
@@ -57,7 +60,8 @@ script = {
   default_enabled = true,
   hooks = {
     -- Time past between one call and an other
-    ["5mins"] = check_interface_activity,
+    --["5mins"] = check_interface_activity,
+    min = check_interface_activity,
   },
 
   -- This script is only for alerts generation
@@ -70,5 +74,43 @@ script = {
 }
 
 -- #################################################################
+
+function script.onEnable(hook, hook_config)
+  ntop.setPref(NO_ACTIVITY_PLUGIN_CACHE_KEY, "1")
+end
+
+-- #################################################################
+
+function script.onUnload(hook, hook_config)
+  local tmp_table = interface.getIfNames()
+
+  -- Removing the entries from the redis cache table
+  for k in pairs(tmp_table) do 
+    ntop.delCache(NO_ACTIVITY_PLUGIN_CACHE_KEY .. tmp_table[k]) 
+  end
+end
+
+-- #################################################################
+
+function script.onDisable(hook, hook_config)
+  local tmp_table = interface.getIfNames()
+
+  -- Removing the entries from the redis cache table
+  for k in pairs(tmp_table) do 
+    ntop.delCache(NO_ACTIVITY_PLUGIN_CACHE_KEY .. tmp_table[k]) 
+  end
+end
+
+-- #################################################################
+
+function script.onLoad(hook, hook_config)
+  if hook_config and hook_config.enabled then
+     ntop.setPref(NO_ACTIVITY_PLUGIN_CACHE_KEY, "1")
+  end
+
+end
+
+-- #################################################################
+
 
 return script

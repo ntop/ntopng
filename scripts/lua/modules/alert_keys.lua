@@ -82,7 +82,7 @@ local alert_keys = {
       alert_too_many_retransmissions       = {NO_PEN, 67}, -- No longer used
       alert_lateral_movement               = {NO_PEN, 68},
       alert_list_download_succeeded        = {NO_PEN, 69},
-      alert_no_if_activity                 = {NO_PEN, 70},
+      alert_no_if_activity                 = {NO_PEN, 70}, -- Found under scripts/plugins/alerts/internals/no_if_activity
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins

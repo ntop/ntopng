@@ -1,10 +1,10 @@
 --
--- (C) 2019-20 - ntop.org
+-- (C) 2020 - ntop.org
 --
 
 return {
   title = "Interface activity check",
-  description = "Detects if the interface is active or not, if not calls and triggers alerts",
+  description = "Detects if there is activity on a network interface, if not calls and triggers an alert",
   author = "ntop",
   dependencies = {},
 }
