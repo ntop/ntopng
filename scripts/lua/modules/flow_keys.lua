@@ -42,6 +42,7 @@ local flow_keys = {
       status_unexpected_dns_server        = 33,
       status_unexpected_smtp_server       = 34,
       status_unexpected_ntp_server        = 35,
+      status_zero_tcp_window              = 36,
       
       -- Add here additional flow statuses when writing ntopng plugins.
       -- User plugins should use statuses under key user.
