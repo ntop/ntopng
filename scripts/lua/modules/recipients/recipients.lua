@@ -234,17 +234,17 @@ end
 -- ##############################################
 
 -- @brief Set a configuration along with its params. Configuration name and params must be already sanitized
--- @param endpoint_conf_name A string with the notification endpoint configuration name
+-- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
-local function _set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
+local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
    -- Write the endpoint recipient config into another hash
    local k = _get_recipient_details_key(recipient_id)
 
-   ntop.setCache(k, json.encode({endpoint_conf_name = endpoint_conf_name,
+   ntop.setCache(k, json.encode({endpoint_id = endpoint_id,
 				 recipient_name = endpoint_recipient_name,
 				 user_script_categories = user_script_categories,
 				 minimum_severity = minimum_severity,
@@ -259,18 +259,18 @@ end
 -- ##############################################
 
 -- @brief Add a new recipient of an existing endpoint configuration and returns its id
--- @param endpoint_conf_name A string with the notification endpoint configuration name
+-- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
-function recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
+function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
    local locked = _lock()
    local res = { status = "failed" }
 
    if locked then
-      local ec = notification_configs.get_endpoint_config(endpoint_conf_name)
+      local ec = notification_configs.get_endpoint_config(endpoint_id)
 
       if ec["status"] == "OK" and endpoint_recipient_name then
 	 -- Is the endpoint already existing?
@@ -290,7 +290,7 @@ function recipients.add_recipient(endpoint_conf_name, endpoint_recipient_name, u
 	       -- Assign the recipient id
 	       local recipient_id = _assign_recipient_id()
 	       -- Persist the configuration
-	       _set_endpoint_recipient_params(recipient_id, endpoint_conf_name, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
+	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
 	       ntop.recipient_register(recipient_id)
@@ -330,7 +330,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_s
       if not rc then
 	 res = {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
       else
-	 local ec = notification_configs.get_endpoint_config(rc["endpoint_conf_name"])
+	 local ec = notification_configs.get_endpoint_config(rc["endpoint_id"])
 
 	 if ec["status"] ~= "OK" then
 	    res = ec
@@ -344,7 +344,13 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_s
 	       local safe_params = status["safe_params"]
 
 	       -- Persist the configuration
-	       _set_endpoint_recipient_params(recipient_id, rc["endpoint_conf_name"], endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
+	       _set_endpoint_recipient_params(
+		  rc["endpoint_id"],
+		  recipient_id,
+		  endpoint_recipient_name,
+		  user_script_categories,
+		  minimum_severity,
+		  safe_params)
 
 	       res = {status = "OK"}
 	    end
@@ -395,15 +401,15 @@ end
 
 -- ##############################################
 
--- @brief Delete all recipients having the given `endpoint_conf_name`
--- @param endpoint_conf_name An endpoint configuration key
+-- @brief Delete all recipients having the given `endpoint_id`
+-- @param endpoint_id An integer identifier of the endpoint
 -- @return nil
-function recipients.delete_recipients_by_conf(endpoint_conf_name)
+function recipients.delete_recipients_by_conf(endpoint_id)
    local ret = false
 
    local all_recipients = recipients.get_all_recipients()
    for _, recipient in pairs(all_recipients) do
-      if recipient.endpoint_conf_name == endpoint_conf_name then
+      if recipient.endpoint_id == endpoint_id then
 	 recipients.delete_recipient(recipient.recipient_id)
       end
    end
@@ -412,14 +418,14 @@ end
 -- ##############################################
 
 -- @brief Get all recipients having the given `endpoint_conf_name`
--- @param endpoint_conf_name An endpoint configuration key
+-- @param endpoint_id An integer identifier of the endpoint
 -- @return A lua array with recipients
-function recipients.get_recipients_by_conf(endpoint_conf_name, include_stats)
+function recipients.get_recipients_by_conf(endpoint_id, include_stats)
    local res = {}
 
    local all_recipients = recipients.get_all_recipients(false, include_stats)
    for _, recipient in pairs(all_recipients) do
-      if recipient.endpoint_conf_name == endpoint_conf_name then
+      if recipient.endpoint_id == endpoint_id then
 	 res[#res + 1] = recipient
       end
    end
@@ -429,10 +435,10 @@ end
 
 -- #################################################################
 
-function recipients.test_recipient(endpoint_conf_name, recipient_params)
+function recipients.test_recipient(endpoint_id, recipient_params)
    -- Get endpoint config
 
-   local ec = notification_configs.get_endpoint_config(endpoint_conf_name)
+   local ec = notification_configs.get_endpoint_config(endpoint_id)
    if ec["status"] ~= "OK" then
       return ec
    end
@@ -450,7 +456,8 @@ function recipients.test_recipient(endpoint_conf_name, recipient_params)
 
    -- Create dummy recipient
    local recipient = {
-      endpoint_conf_name = endpoint_conf_name,
+      endpoint_id = ec["endpoint_id"],
+      endpoint_conf_name = ec["endpoint_conf_name"],
       endpoint_conf = ec["endpoint_conf"],
       endpoint_key = ec["endpoint_key"],
       recipient_params = safe_params,
@@ -495,6 +502,11 @@ function recipients.get_recipient(recipient_id, include_stats)
 	 -- Add the integer recipient id
 	 recipient_details["recipient_id"] = tonumber(recipient_id)
 
+	 -- Add also the endpoint configuration name
+	 local ec = notification_configs.get_endpoint_config(recipient_details["endpoint_conf_name"])
+	 recipient_details["endpoint_conf_name"] =  ec["endpoint_conf_name"]
+	 recipient_details["endpoint_id"] =  ec["endpoint_id"]
+
 	 -- Add user script categories. nil or empty user script categories read from the JSON imply ANY AVAILABLE category
 	 if not recipient_details["user_script_categories"] or #recipient_details["user_script_categories"] == 0 then
 	    if not recipient_details["user_script_categories"] then
@@ -510,9 +522,6 @@ function recipients.get_recipient(recipient_id, include_stats)
 	 if not tonumber(recipient_details["minimum_severity"]) then
 	    recipient_details["minimum_severity"] = alert_consts.alert_severities.notice.severity_id -- Keep in sync with (*****)
 	 end
-
-	 -- Add also the endpoint configuration
-	 local ec = notification_configs.get_endpoint_config(recipient_details["endpoint_conf_name"])
 
 	 if ec then
 	    recipient_details["endpoint_conf"] = ec["endpoint_conf"]
