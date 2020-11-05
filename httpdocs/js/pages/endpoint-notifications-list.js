@@ -200,7 +200,7 @@ $(document).ready(function () {
 
             if (response.result.error) {
                 const localizedString = i18n[response.result.error.type];
-                $(`#add-endpoint-modal form span.invalid-feedback`).text(localizedString).show();
+                $(`#add-endpoint-modal form .invalid-feedback`).text(localizedString).show();
             }
 
         }

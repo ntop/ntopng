@@ -382,13 +382,13 @@
                 self.currentState = null;
 
                 if (self.options.resetAfterSubmit) self.cleanForm();
+                $feedbackLabel.hide();
+
                 self.options.onSubmitSuccess(response, dataToSend, self);
 
                 /* unbind the old closure on submit event and bind a new one */
                 $(self.element).off('submit', self.submitHandler);
                 self.delegateSubmit();
-
-                $feedbackLabel.hide();
             })
             .fail(function (jqxhr, textStatus, errorThrown) {
 
