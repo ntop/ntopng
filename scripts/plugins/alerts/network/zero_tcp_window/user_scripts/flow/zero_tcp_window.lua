@@ -31,16 +31,17 @@ script = {
 -- #################################################################
 
 local function check_tcp_window(now)
-  local is_client = false -- Does the client have TCP issues?
-  local is_server = false -- Does the server have TCP issues?
+  local is_client = false -- Does the client has TCP issues?
+  local is_server = false -- Does the server has TCP issues?
 
-  tprint("=================================")
-  tprint("Into periodic update")
-  tprint(flow.getTcpWndCli2SrvCheck())
-  tprint(flow.getTcpWndCli2Srv())
-  tprint(flow.getTcpWndSrv2CliCheck())
-  tprint(flow.getTcpWndSrv2Cli())
-
+  if(false) then
+    tprint("=================================")
+    tprint("Into periodic update")
+    tprint(flow.getTcpWndCli2SrvCheck())
+    tprint(flow.getTcpWndCli2Srv())
+    tprint(flow.getTcpWndSrv2CliCheck())
+    tprint(flow.getTcpWndSrv2Cli())
+  end
 
   -- Client -> Server
   if(flow.getTcpWndCli2SrvCheck() == false) then
