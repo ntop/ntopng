@@ -57,7 +57,8 @@ Flow::Flow(NetworkInterface *_iface,
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0;
   cli2srv_tos = srv2cli_tos = 0;
-
+  src2dst_tcp_window = dst2src_tcp_window = src2dst_tcp_window_check = dst2src_tcp_window_check = 0;
+    
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
