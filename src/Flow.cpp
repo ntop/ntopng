@@ -3105,6 +3105,18 @@ void Flow::updateTcpSeqIssues(const ParsedFlow *pf) {
 
 /* *************************************** */
 
+void Flow::updateTcpWindow(u_int16_t window, bool src2dst_direction) {
+  /* The update depends on the direction of the flow */
+  if(!window) {
+    if(src2dst_direction)
+      src2dst_tcp_window = 1;
+  }
+  else 
+      dst2src_tcp_window = 1;
+}
+
+/* *************************************** */
+
 void Flow::updateTcpFlags(const struct bpf_timeval *when,
 			  u_int8_t flags, bool src2dst_direction) {
   NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
