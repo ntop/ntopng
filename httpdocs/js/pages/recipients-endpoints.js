@@ -340,7 +340,7 @@ $(document).ready(function () {
                 const $self = $(this);
                 $self.attr("disabled");
                 const data = makeFormData(`#edit-recipient-modal form`);
-                data.endpoint_conf_name = recipient.endpoint_conf_name;
+                data.endpoint_id = recipient.endpoint_id;
                 testRecipient(data, $(this), $(`#edit-recipient-modal .test-feedback`)).then(() => {
                     $self.removeAttr("disabled");
                 });
