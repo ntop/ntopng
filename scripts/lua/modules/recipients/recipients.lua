@@ -507,7 +507,8 @@ function recipients.get_recipient(recipient_id, include_stats)
 	 recipient_details["recipient_id"] = tonumber(recipient_id)
 
     -- Add also the endpoint configuration name
-	 local ec = notification_configs.get_endpoint_config(recipient_details["endpoint_id"])
+    -- Use the endpoint id to get the endpoint configuration (use endpoint_conf_name for the old endpoints)
+	 local ec = notification_configs.get_endpoint_config(recipient_details["endpoint_id"] or recipient_details["endpoint_conf_name"])
 	 recipient_details["endpoint_conf_name"] =  ec["endpoint_conf_name"]
 	 recipient_details["endpoint_id"] =  ec["endpoint_id"]
 
