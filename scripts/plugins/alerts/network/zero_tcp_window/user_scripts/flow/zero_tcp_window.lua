@@ -5,6 +5,7 @@
 local alerts_api = require("alerts_api")
 local alert_consts = require "alert_consts"
 local user_scripts = require("user_scripts")
+local flow_consts  = require("flow_consts")
 
 local script
 
@@ -64,7 +65,7 @@ local function check_tcp_window(now)
   if is_client or is_server then
     flow.triggerStatus(
       flow_consts.status_types.status_zero_tcp_window.create(
-        flow_consts.status_types.status_zero_tcp_window.alert_severity,
+	 flow_consts.status_types.status_zero_tcp_window.alert_severity,
         is_client,
         is_server
      ),
@@ -78,6 +79,7 @@ end
 -- #################################################################
 
 script.hooks.periodicUpdate = check_tcp_window
+script.hooks.flowEnd        = check_tcp_window
 
 -- #################################################################
 

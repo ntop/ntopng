@@ -4,10 +4,13 @@
 
 local alert_keys = require "alert_keys"
 local alert_creators = require "alert_creators"
+local status_keys = require "flow_keys"
+local alert_consts = require "alert_consts"
 
 -- #######################################################
 
 local function zeroTcpWindow(ifid, alert, zero_tcp_window_checks)
+   tprint(zero_tcp_window_checks)
   if(zero_tcp_window_checks.is_client) then
     return(i18n("zero_tcp_window.status_zero_tcp_window_description" .. "Flow direction: Client -> Server")) -- .. flow.name)) Need to concatenate the name/id/infos of the flow to the description
   else
@@ -33,7 +36,7 @@ end
 -- #######################################################
 
 return {
-  status_keys = status_keys.ntopng.status_zero_tcp_window,
+  status_key = status_keys.ntopng.status_zero_tcp_window,
   alert_severity = alert_consts.alert_severities.warning,
   alert_type = alert_consts.alert_types.alert_connection_issues,
   i18n_title = "zero_tcp_window.stats_zero_tcp_window_title",
