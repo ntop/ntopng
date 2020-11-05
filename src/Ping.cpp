@@ -229,7 +229,7 @@ void Ping::pollResults() {
     if(select(fd_max+1, &mask, 0, 0, &wait_time) > 0) {
       unsigned char buf[1024];
       
-      if(FD_ISSET(sd, &mask)) {
+      if(sd != -1 && FD_ISSET(sd, &mask)) {
 	struct sockaddr_in addr;
 	socklen_t len = sizeof(addr);
 	
@@ -237,7 +237,7 @@ void Ping::pollResults() {
 	handleICMPResponse(buf, bytes, &addr.sin_addr, NULL);
       }
       
-      if(FD_ISSET(sd6, &mask)) {
+      if(sd6 != -1 && FD_ISSET(sd6, &mask)) {
 	struct sockaddr_in6 addr;
 	socklen_t len = sizeof(addr);
 	
