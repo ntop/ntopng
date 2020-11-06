@@ -1635,8 +1635,6 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 /* **************************************************** */
 
 void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
-  if(ntop->getGlobals()->isShutdown()) return;
-
   u_int n, m, o;
   last_pkt_rcvd = when;
 
