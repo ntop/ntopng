@@ -96,7 +96,7 @@ local function create_forced_community_notification(notification)
     local title = i18n("about.licence")
     local description = i18n("about.forced_community_notification")
 
-    return notification_ui:create(notification.id, title, description, NotificationLevels.INFO, nil --[[ no action --]], notification.dismissable)
+    return notification_ui:create(notification.id, title, description, NotificationLevels.WARNING, nil --[[ no action --]], notification.dismissable)
 end
 
 -- ###############################################################

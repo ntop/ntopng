@@ -126,7 +126,7 @@ local defined_notifications = {
     },
     {
         id = 8,
-        dismissable = false,
+        dismissable = true,
         has_priority = false,
         predicate = predicates.update_ntopng,
         pages = EMPTY_PAGES,
@@ -189,7 +189,7 @@ local defined_notifications = {
     {
         id = 14,
         dismissable = false,
-        has_priority = false,
+        has_priority = true,
         predicate = predicates.forced_community,
         pages = {},
         subpages = EMPTY_PAGES,
