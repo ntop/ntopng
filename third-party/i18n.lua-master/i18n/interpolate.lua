@@ -47,14 +47,22 @@ local function unescapePercentages(string)
 end
 
 local function interpolate(pattern, variables)
-  variables = variables or {}
   local result = pattern
+
+  -- ntop workaround for ticket https://github.com/ntop/ntopng/issues/4681
+ if((variables ~= nil) and (variables.url ~= nil)) then  
+   -- Make sure that URLs are not too long to break the screen
+   variables.url = shortenString(variables.url, 64)
+  end
+
+  variables = variables or {}
   result = interpolateValue(result, variables)
   result = interpolateField(result, variables)
   result = escapePercentages(result)
   result = string.format(result, unpack(variables))
   result = unescapePercentages(result)
-  return result
+
+return result
 end
 
 return interpolate
