@@ -25,6 +25,8 @@ local shell = {
       plugin_key = endpoint_key,
       template_name = "shell_recipient.template"
     },
+	
+    windows_exclude = false,
 }
 
 shell.EXPORT_FREQUENCY = 5
@@ -45,6 +47,16 @@ local function recipient2sendMessageSettings(recipient)
   }
 
   return settings
+end
+
+-- ##############################################
+
+function shell.setup()
+  local is_enabled = true
+
+  global_state = {}
+
+  return(is_enabled)
 end
 
 -- ##############################################
