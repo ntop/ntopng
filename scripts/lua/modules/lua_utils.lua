@@ -1030,6 +1030,13 @@ function getCategoriesWithProtocols()
    return protocol_categories
 end
 
+
+--
+-- Members supported format
+-- 192.168.1.10/32@10
+-- 00:11:22:33:44:55
+-- 
+
 function isValidPoolMember(member)
   if isEmptyString(member) then
     return false
@@ -1042,8 +1049,9 @@ function isValidPoolMember(member)
   -- vlan is mandatory here
   local vlan_idx = string.find(member, "@")
   if ((vlan_idx == nil) or (vlan_idx == 1)) then
-    return false
+     return false
   end
+  
   local other = string.sub(member, 1, vlan_idx-1)
   local vlan = tonumber(string.sub(member, vlan_idx+1))
   if (vlan == nil) or (vlan < 0) then
