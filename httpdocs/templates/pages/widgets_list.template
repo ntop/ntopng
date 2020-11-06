@@ -1,19 +1,21 @@
 <div class="container-fluid">
     <div class="row mb-3">
         <div class="col-12">
-            <table class="table w-100 table-bordered table-striped table-hover my-3" id="widgets-list">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Key</th>
-                        <th>Type</th>
-                        <th>Params</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table w-100 table-bordered table-striped table-hover my-3" id="widgets-list">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Key</th>
+                            <th>Type</th>
+                            <th>Params</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

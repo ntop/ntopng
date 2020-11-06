@@ -264,7 +264,9 @@ if (_GET["page"] ~= "historical") then
    local custom_name, custom_key, custom_align = custom_column_utils.getCustomColumnName()
 
    print [[
+      <div class='table-responsive'>
       <div id="table-hosts"></div>
+      </div>
 	 <script>
 	 var url_update = "]] print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_hosts_data.lua", page_params)) print[[";]]
 

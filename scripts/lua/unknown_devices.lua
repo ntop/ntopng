@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
+local ui_utils = require "ui_utils"
 local graph_utils = require "graph_utils"
 local template = require "template_utils"
 local host_pools = require "host_pools"
@@ -54,19 +55,18 @@ print(
 
 local pools = host_pools_instance:get_num_pools()
 local no_pools = (pools < 2)
+local notes = {
+   {content = i18n("unknown_devices.no_pools"), hidden = not no_pools},
+   {content = i18n("unknown_devices.devices_only_note")},
+}
 
 print [[
       <br>
-      <div id="table-mac"></div><br><br>]] print(i18n("notes")) print[[<ul>]]
+      <div class='table-responsive'><div id="table-mac"></div></div>]]
 
-if no_pools then
-   print([[<li>]]..i18n("unknown_devices.no_pools")..[[</li>]])
-end
-
-print([[<li>]]..i18n("unknown_devices.devices_only_note")..[[</li>]])
+print(ui_utils.render_notes(notes))
 
 print[[
-   </ul>
 	 <script>
 
    function assignDevicePool(mac_address) {
@@ -192,7 +192,7 @@ print[[
 
    if isAdministrator() then
       print[[
-         datatableAddActionButtonCallback.bind(this)(7, "mac_to_assign ='" + device_mac + "'; $('#assign_device_dialog_mac').html('" + device_mac +"'); $('#assign_device_dialog').modal('show');", "]] print(i18n("unknown_devices.assign_pool")) print[[");]]
+         datatableAddActionButtonCallback.bind(this)(7, "mac_to_assign ='" + device_mac + "'; $('#assign_device_dialog_mac').html('" + device_mac +"'); $('#assign_device_dialog').modal('show');", "<i class='fas fa-ring'></i>");]]
    end
 
 print[[

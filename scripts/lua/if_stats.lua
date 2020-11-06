@@ -367,6 +367,7 @@ page_utils.print_navbar(title, url,
 
 if((page == "overview") or (page == nil)) then
    local tags = {ifid = ifstats.id}
+   print("<div class='table-responsive'>")
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%>"..i18n("if_stats_overview.id").."</th><td colspan=6>" .. ifstats.id .. " ")
    if(ifstats.description ~= ifstats.name) then print(" ("..ifstats.description..")") end
@@ -888,8 +889,10 @@ if((page == "overview") or (page == nil)) then
    ]]
 
    print("</table>\n")
+   print("</div>")
 
 elseif page == "networks" and interface.isPacketInterface() then
+   print("<div class='table-responsive'>")
    print("<table class=\"table table-striped table-bordered\">")
 
    if(ifstats.ip_addresses ~= "") then
@@ -944,6 +947,7 @@ elseif page == "networks" and interface.isPacketInterface() then
       print("</td></tr>")
    end
    print("</table>")
+   print("</div>")
 
    print("<p><b>"..i18n("if_stats_overview.note").."</b>:<ul>")
    print("<li>"..i18n("if_stats_networks.note_iface_addresses").."</li>")
@@ -957,6 +961,7 @@ elseif page == "networks" and interface.isPacketInterface() then
 elseif((page == "packets")) then
    local nedge_hidden = ternary(have_nedge, 'class="hidden"', '')
 
+   print("<div class='table-responsive'>")
    print [[ <table class="table table-bordered table-striped"> ]]
    print("<tr " .. nedge_hidden .. "><th width=30% rowspan=3>" .. i18n("packets_page.tcp_packets_analysis") .. "</th><th>" .. i18n("packets_page.retransmissions") .."</th><td align=right><span id=pkt_retransmissions>".. formatPackets(ifstats.tcpPacketStats.retransmissions) .."</span> <span id=pkt_retransmissions_trend></span></td></tr>\n")
    print("<tr " .. nedge_hidden .. "></th><th>" .. i18n("packets_page.out_of_order") .. "</th><td align=right><span id=pkt_ooo>".. formatPackets(ifstats.tcpPacketStats.out_of_order) .."</span> <span id=pkt_ooo_trend></span></td></tr>\n")
@@ -970,6 +975,7 @@ elseif((page == "packets")) then
   	 <tr ]] print(nedge_hidden) print[[><th class="text-left">]] print(i18n("packets_page.version_vs_flags_distribution")) print[[</th>
 <td colspan=1><div class="pie-chart" id="ipverDistro"></div></td><td colspan=1><div class="pie-chart" id="flagsDistro"></div></td></tr>
       </table>
+   </div>
 
 	<script type='text/javascript'>
 	 window.onload=function() {
@@ -997,6 +1003,7 @@ elseif((page == "packets")) then
   ]]
 elseif(page == "DSCP") then
 
+   print("<div class='table-responsive'>")
   print [[
      <table id="dscp_table" class="table table-bordered table-striped tablesorter">
         <tr>
@@ -1004,7 +1011,7 @@ elseif(page == "DSCP") then
           <td colspan=4><div class="pie-chart" id="dscpGroups"></td>
         </tr>
      </table>
-
+   </div>
 <script>
  do_pie("#dscpGroups", ']] print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/interface/dscp/stats.lua', { ifid: "]] print(ifid) print [[" }, "", refresh);
 </script>
@@ -1022,6 +1029,8 @@ print[[
   </div>
   <div class='card-body tab-content'>
     <div id="applications" class="tab-pane in active">
+
+    <div class='table-responsive'>
       <table class="table table-bordered table-striped">
 ]]
 
@@ -1048,6 +1057,7 @@ print[[
           </td>
         </tr>
       </table>
+      </div>
      <table id="if_stats_ndpi" class="table table-bordered table-striped tablesorter">
        <thead>
          <tr>
@@ -1168,20 +1178,22 @@ print[[
   </div>
   <div class="card-body tab-content">
     <div id="icmp" class="tab-pane in active">
-      <br>
+      <div class='table-responsive'>
        <table id="icmp_table_4" class="table table-bordered table-striped tablesorter">
          <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th>]] print(i18n("icmp_page.icmp_type")) print [[</th><th>]] print(i18n("icmp_page.icmp_code")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
          <tbody id="iface_details_icmp_tbody_4">
          </tbody>
        </table>
+       </div>
     </div>
     <div id="icmpv6" class="tab-pane">
-      <br>
+      <div class='table-responsive'>
        <table id="icmp_table_6" class="table table-bordered table-striped tablesorter">
          <thead><tr><th>]] print(i18n("icmp_page.icmp_message")) print [[</th><th>]] print(i18n("icmp_page.icmp_type")) print [[</th><th>]] print(i18n("icmp_page.icmp_code")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
          <tbody id="iface_details_icmp_tbody_6">
          </tbody>
        </table>
+      </div>
     </div>
     </div>
     </div>
@@ -1219,11 +1231,13 @@ setInterval(update_icmp_tables, 5000);
 elseif(page == "ARP") then
 
   print [[
-     <table id="arp_table" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>]] print(i18n("arp_page.arp_type")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
-     <tbody id="iface_details_arp_tbody">
-     </tbody>
-     </table>
+     <div class='table-responsive'>
+      <table id="arp_table" class="table table-bordered table-striped tablesorter">
+      <thead><tr><th>]] print(i18n("arp_page.arp_type")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
+      <tbody id="iface_details_arp_tbody">
+      </tbody>
+      </table>
+     </div>
 
 <script>
 function update_arp_table() {
@@ -1274,6 +1288,8 @@ elseif(page == "historical") then
       timeseries = graph_utils.get_default_timeseries()
    })
 elseif(page == "trafficprofiles") then
+
+   print("<div class='table-responsive'>")
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">" .. i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" .. i18n("traffic") .. "</th></tr>\n")
    for pname,pbytes in pairs(ifstats.profiles) do
@@ -1289,7 +1305,7 @@ elseif(page == "trafficprofiles") then
 
 print [[
    </table>
-
+   </div>
    <script>
    let last_profile = [];
    const traffic_profiles_interval = window.setInterval(function() {
@@ -1441,6 +1457,7 @@ elseif(page == "config") then
    print[[
    <form id="iface_config" lass="form-inline" method="post">
    <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
+   <div class='table-responsive'>
    <table id="iface_config_table" class="table table-bordered table-striped">]]
 
    if ((not is_pcap_dump) and
@@ -1904,6 +1921,7 @@ elseif(page == "config") then
 
       print[[
    </table>
+   </div>
    <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
    </form>
    <script>
@@ -1941,6 +1959,7 @@ elseif(page == "snmp_bind") then
 
    print[[
 <form id="snmp_bind_form" method="post" style="margin-bottom:3em;">
+<div class='table-responsive'>
    <table class="table table-bordered table-striped">]]
 
    print[[
@@ -1986,7 +2005,7 @@ elseif(page == "snmp_bind") then
             </td>
       </tr>
    </table>
-
+   </div>
    <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
    <button id="snmp_bind_submit" class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>

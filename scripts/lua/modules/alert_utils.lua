@@ -1049,7 +1049,8 @@ function releaseAlert(idx) {
 	 end
 	 print [[
       <div class="tab-pane in" id="tab-]] print(t["div-id"]) print[[">
-	<div id="]] print(t["div-id"]) print[["></div>
+         <!-- Table to render --->
+	      <div class='table-responsive'><div id="]] print(t["div-id"]) print[["></div></div>
       </div>
 
       <script type="text/javascript">
@@ -1791,18 +1792,18 @@ function alert_utils.formatAlertNotification(notif, options)
       when = ""
    else
       when = formatEpoch(notif.alert_tstamp_end or notif.alert_tstamp or 0)
-      
+
       if(not options.no_bracket_around_date) then
 	 when = "[" .. when .. "]"
       end
 
       when = when .. " "
    end
-   
+
    local msg = string.format("%s%s%s [%s]",
 			     when, ifname, severity,
 			     alert_consts.alertTypeLabel(notif.alert_type, options.nohtml))
-   
+
    -- entity can be hidden for example when one is OK with just the message
    if options.show_entity then
       msg = msg.."["..alert_consts.alertEntityLabel(notif.alert_entity).."]"

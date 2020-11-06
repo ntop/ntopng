@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local dhcp_utils = require("dhcp_utils")
+local ui_utils = require("ui_utils")
 local template = require("template_utils")
 
 -- Administrator check
@@ -37,7 +38,6 @@ print[[
   <div id="table-dhcp"></div>
   <button id="dhcp-save" class="btn btn-primary" style="float:right; margin-right:1em;" onclick="if($(this).hasClass('disabled')) return false;" type="submit">]] print(i18n("save_settings")) print[[</button>
 </form>
-<br><br>
 
 <script>
   var range_to_delete;
@@ -217,9 +217,11 @@ print[[
     .validator(validator_options)
 </script>
 
-]] print(i18n("notes")) print[[
-  <ul>
-    <li>]] print(i18n("dhcp.dhcp_configuration_note")) print[[.</li>
-    <li>]] print(i18n("dhcp.dhcp_alert_note")) print[[.</li>
-  </ul>
 ]]
+
+local notes = {
+  {content = i18n("dhcp.dhcp_configuration_note")},
+  {content = i18n("dhcp.dhcp_alert_note")},
+}
+print("<div class='my-2'></div>")
+print(ui_utils.render_notes(notes))

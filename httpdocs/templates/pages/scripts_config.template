@@ -25,18 +25,20 @@
                     </ul>
                 </div>
                 <div class="card-body">
-                    <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
-                        <thead>
-                            <tr>
-                                <th class='w-25'>{{ i18n("config_scripts.config_name", {}) }}</th>
-                                {% if config_list.subdir ~= "flow" and config_list.subdir ~= "system" and  config_list.subdir ~= "syslog" then %}
-                                <th>{{ i18n("config_scripts.applied_to", {}) }}</th>
-                                {% end %}
-                                <th class='w-25'>{{ i18n("actions", {}) }}</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table id="config-list" class='table w-100 table-bordered table-striped table-hover mt-3'>
+                            <thead>
+                                <tr>
+                                    <th class='w-25'>{{ i18n("config_scripts.config_name", {}) }}</th>
+                                    {% if config_list.subdir ~= "flow" and config_list.subdir ~= "system" and  config_list.subdir ~= "syslog" then %}
+                                    <th>{{ i18n("config_scripts.applied_to", {}) }}</th>
+                                    {% end %}
+                                    <th class='w-25'>{{ i18n("actions", {}) }}</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="card-footer">
                     {* ui_utils.render_configuration_footer('scripts') *}

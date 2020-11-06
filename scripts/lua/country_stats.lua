@@ -19,7 +19,9 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title(i18n("countries"))
 
 print [[
-      <div id="table-country"></div>
+	<div class='table-responsive'>
+	  <div id="table-country"></div>
+	</div>
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())

@@ -16,7 +16,9 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title(i18n("http_servers_stats.local_http_servers"))
 
 print [[
-      <div id="table-http"></div>
+	<div class='table-responsive'>
+	  <div id="table-http"></div>
+	</div>
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())

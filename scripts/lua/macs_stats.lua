@@ -53,7 +53,9 @@ end
 page_utils.print_page_title('Mac List')
 
 print [[
+   <div class='table-responsive'>
       <div id="table-mac"></div>
+   </div>
 	 <script>
 	 var url_update = "]]
 

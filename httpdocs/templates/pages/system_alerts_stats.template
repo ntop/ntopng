@@ -8,12 +8,12 @@ This is the template for the "Alerts Status" page under the system interface
   <table class="table table-bordered table-striped">
     <tbody>
       <tr>
-	<th rowspan="2" width="20%">{{ i18n("system_alerts_stats.queues_status") }}</th>
+        <th rowspan="2" width="20%">{{ i18n("system_alerts_stats.queues_status") }}</th>
       <tr>
-	<th nowrap width="10%"> {{ i18n("system_alerts_stats.internal_alerts_queue") }} </th>
-	<td>
-	  <span id="internal_alerts_queue">...</span>
-	</td>
+        <th nowrap width="10%"> {{ i18n("system_alerts_stats.internal_alerts_queue") }} </th>
+        <td>
+          <span id="internal_alerts_queue">...</span>
+        </td>
       </tr>
     </tbody>
   </table>

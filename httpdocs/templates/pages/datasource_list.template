@@ -1,20 +1,22 @@
 <div class="container-fluid">
     <div class="row mb-3">
         <div class="col-12">
-            <table class="table w-100 table-bordered table-striped table-hover my-3" id="datasources-list">
-                <thead>
-                    <tr>
-                        <th>{{ i18n("name") }}</th>
-                        <th>{{ i18n("key") }}</th>
-                        <th>{{ i18n("datasources.scope") }}</th>
-                        <th>{{ i18n("datasources.origin") }}</th>
-                        <th>{{ i18n("datasources.retention") }}</th>
-                        <th>{{ i18n("actions") }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table w-100 table-bordered table-striped table-hover my-3" id="datasources-list">
+                    <thead>
+                        <tr>
+                            <th>{{ i18n("name") }}</th>
+                            <th>{{ i18n("key") }}</th>
+                            <th>{{ i18n("datasources.scope") }}</th>
+                            <th>{{ i18n("datasources.origin") }}</th>
+                            <th>{{ i18n("datasources.retention") }}</th>
+                            <th>{{ i18n("actions") }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

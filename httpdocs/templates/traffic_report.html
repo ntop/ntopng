@@ -1,4 +1,4 @@
-<div class="container-fluid" style="width:80em;">
+  <div class="table-responsive">
   <table class="table table-bordered table-sm table-striped">
   <thead>
     <tr>
@@ -29,7 +29,7 @@
           <td class=' text-right' ><div style="width:65%;"><a style="color:inherit;" href="{{report.values[1][i].link}}">{{report.values[1][i].time}}</a></div></td>
         {% end %}
       {% end %}
-      
+
       {% for j in range(2, #report.values) do %}
         {% if i == report.rows then %}
       <th class='text-right '>{{report.values[j][i].bytes}}</th><th class='text-right '>{{report.values[j][i].activity}}</th>  <!-- Total-->
