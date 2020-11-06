@@ -10,18 +10,22 @@ local alert_consts = require "alert_consts"
 -- #######################################################
 
 local function zeroTcpWindow(ifid, alert, zero_tcp_window_checks)
-  -- tprint(zero_tcp_window_checks)
-  if(zero_tcp_window_checks.is_client) then
-    return(i18n("zero_tcp_window.status_zero_tcp_window_description" .. "Flow direction: Client -> Server")) -- .. flow.name)) Need to concatenate the name/id/infos of the flow to the description
+  if(zero_tcp_window_checks == nil) then
+    return(i18n("zero_tcp_window.status_zero_tcp_window_description"))
   else
-    return(i18n("zero_tcp_window.status_zero_tcp_window_description" .. "Flow direction: Server -> Client")) -- .. flow.name)) Need to concatenate the name/id/infos of the flow to the description
+    if(zero_tcp_window_checks.is_client) then
+      return(i18n("zero_tcp_window.status_zero_tcp_window_description_c2s"))
+    else
+      return(i18n("zero_tcp_window.status_zero_tcp_window_description_s2c"))
+    end
   end
 end
 
 -- ##############################################
 
 local function createZeroTcpWindow(alert_severity, alert_granularity, is_server, is_client)
-  local zero_tcp_window_type = {
+tprint(debug.traceback())
+local zero_tcp_window_type = {
      alert_granularity = alert_granularity,
      alert_severity = alert_severity,
      alert_type_params = {

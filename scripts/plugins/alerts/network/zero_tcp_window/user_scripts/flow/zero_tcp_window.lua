@@ -60,9 +60,10 @@ local function check_tcp_window(now)
   end
 
   -- Now it's time to generate the alert, it either the client or the server has issues
-  -- is_client = true -- Uncomment to trigger an alert
+   --is_client = true -- Uncomment to trigger an alert
 
   if is_client or is_server then
+
     flow.triggerStatus(
       flow_consts.status_types.status_zero_tcp_window.create(
 	 flow_consts.status_types.status_zero_tcp_window.alert_severity,

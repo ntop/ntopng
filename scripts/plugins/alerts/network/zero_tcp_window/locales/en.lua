@@ -8,7 +8,9 @@ return {
 
 -- ####################### Status strings
 
-   status_zero_tcp_window_description = "Reported TCP window zero value for the flow: ",
+   status_zero_tcp_window_description     = "Reported TCP window zero value for ",
+   status_zero_tcp_window_description_c2s = "Reported client TCP window zero value for ",
+   status_zero_tcp_window_description_sec = "Reported server TCP window zero value for ",
 
 -- ####################### Alert strings
 
