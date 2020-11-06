@@ -57,9 +57,7 @@ function shell.sendMessage(alerts, settings)
   
   local msg = json.encode(alerts)
 
-  local cmd = settings.path .. " " .. settings.options .. " | ~/jq . " .. msg
-
-  tprint(cmd)
+  local cmd = settings.path .. " " .. settings.options .. " " .. msg
 
   local tmp_file = io.popen(cmd .. ' \necho _$?')
   local tmp_read = tmp_file:read'*a'
