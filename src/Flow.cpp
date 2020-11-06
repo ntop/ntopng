@@ -1843,17 +1843,22 @@ void Flow::hookProtocolDetectedCheck(time_t t) {
 /* *************************************** */
 
 void Flow::hookPeriodicUpdateCheck(time_t t) {
+  if(get_state() != hash_entry_state_active)
+    return; /* periodicUpdate hook is only for active flows */
+
   /*
     Enqueue is conditional here as it is only performed every 5 minutes when the flow is active.
    */
+  if(next_lua_call_periodic_update == 0)
+    next_lua_call_periodic_update = t + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS; /* Set the time of the new periodic call */
+
   if(trigger_immediate_periodic_update ||
-     (next_lua_call_periodic_update > 0 /* 0 means not-yet-set */
-      && next_lua_call_periodic_update <= t)) {
+     next_lua_call_periodic_update <= t) {
     if(getInterface()->hookEnqueue(t, this)) {
       /*
 	If the enqueue was successfull, we can update the time for the next periodic call update
        */
-      next_lua_call_periodic_update = t + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS; /* Set the time of the new periodic call */
+      next_lua_call_periodic_update = 0; /* Reset */
       if(trigger_immediate_periodic_update) trigger_immediate_periodic_update = false; /* Reset if necessary */
     }
   }
@@ -2868,7 +2873,11 @@ void Flow::housekeep(time_t t) {
     hookProtocolDetectedCheck(t);
     break;
   case hash_entry_state_active:
-    hookPeriodicUpdateCheck(t);
+    /*
+      The hook for periodicUpdate is checked when increasing flow stats inline
+      to guarantee timely execution.
+      hookPeriodicUpdateCheck(t);
+     */
     dumpCheck(t, false /* NOT the last dump before delete */);
     break;
   case hash_entry_state_idle:
@@ -3009,6 +3018,12 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
   updateSeen();
 
   /*
+    Check if it is time to enqueue the flow for periodicUpdate hook execution.
+    NOTE: Must be in the same thread of Flow::housekeep()
+  */
+  hookPeriodicUpdateCheck(when->tv_sec);
+
+  /*
     Do not update IAT during initial or final 3WH as we want to compute
     it only on the main traffic flow and not on connection or tear-down
   */
@@ -3097,7 +3112,13 @@ void Flow::addFlowStats(bool new_flow,
 
   updateSeen(last_seen);
 
-   /*
+  /*
+    Check if it is time to enqueue the flow for periodicUpdate hook execution
+    NOTE: Must be in the same thread of Flow::housekeep()
+  */
+  hookPeriodicUpdateCheck(last_seen);
+
+  /*
     The throughput is updated roughly by estimating
     the average throughput. This prevents
     having flows with seemingly zero throughput.

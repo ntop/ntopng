@@ -18,7 +18,6 @@ script = {
   -- NB atm working only for packet interfaces
   packet_interface_only = true,
   l4_proto = "tcp",
-  periodic_update_seconds = 60,
   
   -- NOTE: hooks defined below
   hooks = {},  

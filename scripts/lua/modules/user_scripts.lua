@@ -640,24 +640,6 @@ function user_scripts.load(ifid, script_type, subdir, options)
                end
             end
 
-	    if(rv.hooks["periodicUpdate"] ~= nil) then
-	       -- Set the update frequency
-	       local default_update_freq = 120		-- Default: every 2 minutes
-
-	       if(user_script.periodic_update_seconds ~= nil) then
-		  if((user_script.periodic_update_seconds % 30) ~= 0) then
-		     traceError(TRACE_WARNING, TRACE_CONSOLE, string.format(
-			"Update_periodicity '%s' is not multiple of 30 in '%s', using default (%u)",
-			user_script.periodic_update_seconds, user_script.key, default_update_freq))
-		     user_script.periodic_update_seconds = default_update_freq
-		  end
-	       else
-		  user_script.periodic_update_seconds = default_update_freq
-	       end
-
-	       user_script.periodic_update_divisor = math.floor(user_script.periodic_update_seconds / 30)
-	    end
-
             rv.modules[user_script.key] = user_script
          end
 

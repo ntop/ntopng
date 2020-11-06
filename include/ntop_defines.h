@@ -677,7 +677,7 @@
 #define FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME  "protocolDetected"
 #define FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME    "periodicUpdate"
 #define FLOW_LUA_CALL_IDLE_FN_NAME               "flowEnd"
-#define FLOW_LUA_CALL_PERIODIC_UPDATE_SECS       30
+#define FLOW_LUA_CALL_PERIODIC_UPDATE_SECS       60 /* One minute */
 
 /* Tiny Flows */
 #define CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED        true  /* disabled by default */

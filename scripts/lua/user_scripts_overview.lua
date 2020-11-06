@@ -28,10 +28,6 @@ local function printUserScripts()
 
             -- Hooks
             for hook in pairsByKeys(script.hooks) do
-              if((hook == "periodicUpdate") and (script.periodic_update_seconds ~= nil)) then
-                hook = string.format("%s (%us)", hook, script.periodic_update_seconds)
-              end
-
               hooks[#hooks + 1] = hook
             end
             hooks = table.concat(hooks, ", ")
