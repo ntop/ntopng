@@ -846,31 +846,28 @@ function isBroadcastMulticast(ip)
 end
 
 function isIPv4(address)
-  local chunks = {address:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")}
 
-  if #chunks == 4 then
-    for _, v in pairs(chunks) do
-      if (tonumber(v) < 0) or (tonumber(v) > 255) then
-        return false
+   -- Reuse the for loop to check the address validity
+   local checkAddress = (function(chunks)
+      for _, v in pairs(chunks) do
+         if (tonumber(v) < 0) or (tonumber(v) > 255) then
+            return false
+         end
       end
-    end
+      return true
+   end)
 
-    return true
-  end
+   local chunks = {address:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")}
+   local chunksWithPort = {address:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)%:(%d+)$")}
 
-  return false
-end
+   if #chunks == 4 then
+      return checkAddress(chunks)
+   elseif #chunksWithPort == 5 then
+      table.remove(chunksWithPort, 5)
+      return checkAddress(chunksWithPort)
+   end
 
---- Return true if the address is made up with <IPv4-Address>:<Port>
-function isIPv4WithPort(address)
-
-   local parts = split(address, ":")
-   if #parts ~= 2 then return false end
-
-   local isPortValid = ternary(tonumber(parts[2]) > 65535, false, true)
-   local isAddressValid = isIPv4(parts[1])
-
-   return isAddressValid and isPortValid
+   return false
 end
 
 function isIPv4Network(address)

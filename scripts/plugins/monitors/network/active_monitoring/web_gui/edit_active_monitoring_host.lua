@@ -28,7 +28,7 @@ local function reportError(msg)
 end
 
 local function isValidHostMeasurementCombination(host, measurement)
-   local host_v4 = isIPv4(host) or isIPv4WithPort(host)
+   local host_v4 = isIPv4(host)
    local host_v6 = isIPv6(host)
    local expected_ipv = ternary((measurement == "icmp6"), 6, 4)
 
