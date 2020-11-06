@@ -861,6 +861,18 @@ function isIPv4(address)
   return false
 end
 
+--- Return true if the address is made up with <IPv4-Address>:<Port>
+function isIPv4WithPort(address)
+
+   local parts = split(address, ":")
+   if #parts ~= 2 then return false end
+
+   local isPortValid = ternary(tonumber(parts[2]) > 65535, false, true)
+   local isAddressValid = isIPv4(parts[1])
+
+   return isAddressValid and isPortValid
+end
+
 function isIPv4Network(address)
    local parts = split(address, "/")
 

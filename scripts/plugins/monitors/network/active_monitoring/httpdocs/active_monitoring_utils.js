@@ -187,6 +187,7 @@ $(document).ready(function() {
     const $addHostModalHandler = $(`#am-add-form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/plugins/edit_active_monitoring_host.lua`,
+        resetAfterSubmit: false,
         csrf: am_csrf,
         onModalInit: function () {
             const $dialog = $('#am-add-modal');
@@ -214,6 +215,8 @@ $(document).ready(function() {
             const threshold = $("#input-add-threshold").val();
             const pool = $(`#select-add-pool`).val();
 
+            $(`#add-invalid-feedback`).hide();
+
             return {
                 action: 'add',
                 am_host: host,
@@ -236,7 +239,10 @@ $(document).ready(function() {
 
                 $(`#am-add-modal`).modal('hide');
                 $amTable.ajax.reload();
+                return;
             }
+
+            $(`#add-invalid-feedback`).show().text(response.error);
         }
     });
 
@@ -300,6 +306,8 @@ $(document).ready(function() {
 
                 $(`#am-edit-modal`).modal('hide');
                 $amTable.ajax.reload();
+
+                return;
             }
         }
     });
@@ -438,7 +446,7 @@ $(document).ready(function() {
                 sortable: false,
                 render: function(data, type, row) {
                     if(type === 'display' || type === 'filter') {
-                        if(row.last_measure)
+                        if (row.last_measure)
                             return `${row.last_measure} ${row.unit}`
                         else
                             return "";
