@@ -39,8 +39,9 @@ Geolocation::Geolocation() {
     docs_path
 #ifndef WIN32
     ,
-    "/var/lib/GeoIP",   // `geoipupdate` default install dir on Ubuntu 16,18 and Debian 10,9
-    "/usr/share/GeoIP"  // `geoipupdate` default install dir on Ubuntu 14 and Centos 7,8
+    "/var/lib/GeoIP",                    // `geoipupdate` default install dir on Ubuntu 16,18 and Debian 10,9
+    "/usr/share/GeoIP",                  // `geoipupdate` default install dir on Ubuntu 14 and Centos 7,8
+    "/usr/share/ntopng/httpdocs/geoip/"  // ntopng-data default install dir
 #endif
   };
 
