@@ -24,8 +24,7 @@ end
 -- ##############################################
 
 local function createZeroTcpWindow(alert_severity, alert_granularity, is_server, is_client)
-tprint(debug.traceback())
-local zero_tcp_window_type = {
+  local zero_tcp_window_type = {
      alert_granularity = alert_granularity,
      alert_severity = alert_severity,
      alert_type_params = {
