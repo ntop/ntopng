@@ -1,0 +1,10 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+        {{ i18n("shell_alert_endpoint.shell_options") }}
+    </label>
+    <div class="col-sm-5">
+        <input data-pattern="options" name="shell_options" type="text" class="form-control" />
+        <small class="text-muted">{{ i18n("optional_field") }}</small>
+    </div>
+</div>
+<small>{* i18n('shell_alert_endpoint.shell_description.option_description') *}</small>
