@@ -125,6 +125,9 @@ $(document).ready(function () {
         {
             text: '<i class="fas fa-plus"></i>',
             className: 'btn-link',
+            attr: {
+                id: 'btn-add-recipient',
+            },
             enabled: CAN_CREATE_RECIPIENT,
             action: function (e, dt, node, config) {
                 $('#add-recipient-modal').modal('show');
@@ -132,7 +135,6 @@ $(document).ready(function () {
         },
         {
             text: '<i class="fas fa-sync"></i>',
-            enabled: CAN_CREATE_RECIPIENT,
             action: function (e, dt, node, config) {
                 $recipientsTable.ajax.reload();
             }
@@ -231,6 +233,15 @@ $(document).ready(function () {
         initComplete: function (settings, json) {
 
             const tableAPI = settings.oInstance.api();
+
+            // initialize add button tooltip
+            if (!CAN_CREATE_RECIPIENT) {
+                // wrap the button inside a span to show tooltip as request by the bootstrap framework
+                $(`#btn-add-recipient`).wrap(function() {
+                    return `<span id='suggest-tooltip' title='${i18n.createEndpointFirst}' class='d-inline-block' data-toggle='tooltip'></span>`;
+                });
+                $(`#suggest-tooltip`).tooltip();
+            }
 
             // when the data has been fetched check if the url has a recipient_id param
             // if the recipient is builtin then cancel the modal opening
