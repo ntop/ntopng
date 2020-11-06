@@ -57,7 +57,7 @@ Flow::Flow(NetworkInterface *_iface,
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0;
   cli2srv_tos = srv2cli_tos = 0;
-  src2dst_tcp_window = dst2src_tcp_window = src2dst_tcp_window_check = dst2src_tcp_window_check = 0;
+  zero_window_alert_triggered = src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
     
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
@@ -3159,11 +3159,12 @@ void Flow::updateTcpSeqIssues(const ParsedFlow *pf) {
 
 void Flow::updateTcpWindow(u_int16_t window, bool src2dst_direction) {
   /* The update depends on the direction of the flow */
-  if(!window) {
+  if(window == 0) {
     if(src2dst_direction)
-      src2dst_tcp_window = 1;
-  } else 
-    dst2src_tcp_window = 1;
+      src2dst_tcp_zero_window = 1;
+    else 
+      dst2src_tcp_zero_window = 1;
+  }
 }
 
 /* *************************************** */
@@ -5279,5 +5280,17 @@ void Flow::lua_entropy(lua_State* vm) {
     lua_pushstring(vm, "entropy");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
+  }
+}
+
+/* *************************************** */
+
+/* Called by lua to check if a zero window alert needs to be triggered */
+void Flow::triggerZeroWindowAlert(bool *as_client, bool *as_server) {
+  *as_client = *as_server = false;
+
+  if(!zero_window_alert_triggered) {
+    if(src2dst_tcp_zero_window) *as_client = true, zero_window_alert_triggered = true;  
+    if(dst2src_tcp_zero_window) *as_server = true, zero_window_alert_triggered = true;  
   }
 }

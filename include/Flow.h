@@ -42,7 +42,7 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
-  u_int8_t src2dst_tcp_window:1, dst2src_tcp_window:1, src2dst_tcp_window_check:1, dst2src_tcp_window_check:1, _pad:4;
+  u_int8_t src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1, zero_window_alert_triggered:1, _pad:5;
   u_int16_t cli_host_score[MAX_NUM_SCORE_CATEGORIES], srv_host_score[MAX_NUM_SCORE_CATEGORIES], flow_score;
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
@@ -328,14 +328,7 @@ class Flow : public GenericHashEntry {
   json_object* flow2json();
   json_object* flow2es(json_object *flow_object);
 
-
-  inline bool getTcpWndCli2Srv()       const { return(src2dst_tcp_window);                     };
-  inline bool getTcpWndSrv2Cli()       const { return(dst2src_tcp_window);                     };
-  // these four method are used only by lua side
-  inline bool getTcpWndCli2SrvCheck()  const { return(src2dst_tcp_window_check);               };
-  inline bool getTcpWndSrv2CliCheck()  const { return(dst2src_tcp_window_check);               };
-  inline bool setTcpWndCli2SrvCheck()  const { return(src2dst_tcp_window_check);               };
-  inline bool setTcpWndSrv2CliCheck()  const { return(dst2src_tcp_window_check);               };
+  void triggerZeroWindowAlert(bool *as_client, bool *as_server);
   
   inline u_int8_t getTcpFlags()        const { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
   inline u_int8_t getTcpFlagsCli2Srv() const { return(src2dst_tcp_flags);                      };

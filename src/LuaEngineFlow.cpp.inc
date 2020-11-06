@@ -335,72 +335,16 @@ static int ntop_flow_get_full_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_get_tcp_window_s2c(lua_State* vm) {
+static int ntop_flow_trigger_zero_window_alert(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
-
+  bool as_client, as_server;
+  
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushboolean(vm, f->getTcpWndCli2Srv());
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_get_tcp_window_c2s(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, f->getTcpWndCli2Srv());
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_get_tcp_window_s2c_check(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, f->getTcpWndSrv2CliCheck());
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_get_tcp_window_c2s_check(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, f->getTcpWndCli2SrvCheck());
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_set_tcp_window_s2c_check(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, f->setTcpWndSrv2CliCheck());
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_flow_set_tcp_window_c2s_check(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, f->setTcpWndCli2SrvCheck());
+  f->triggerZeroWindowAlert(&as_client, &as_server);
+  lua_newtable(vm);
+  lua_push_bool_table_entry(vm, "client", as_client);
+  lua_push_bool_table_entry(vm, "server", as_server);
 
   return(CONST_LUA_OK);
 }
@@ -1209,12 +1153,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "isTwhOK",                  ntop_flow_is_twh_ok                  },
   { "isBidirectional",          ntop_flow_is_bidirectional           },
   { "getFullInfo",              ntop_flow_get_full_info              },
-  { "getTcpWndCli2Srv",         ntop_flow_get_tcp_window_c2s         },
-  { "getTcpWndSrv2Cli",         ntop_flow_get_tcp_window_s2c         },
-  { "getTcpWndCli2SrvCheck",    ntop_flow_get_tcp_window_c2s_check   },
-  { "getTcpWndSrv2CliCheck",    ntop_flow_get_tcp_window_s2c_check   },
-  { "setTcpWndCli2SrvCheck",    ntop_flow_set_tcp_window_c2s_check   },
-  { "setTcpWndSrv2CliCheck",    ntop_flow_set_tcp_window_s2c_check   },
+  { "isTcpZeroWinAlert",        ntop_flow_trigger_zero_window_alert  },  
   { "getKey",                   ntop_flow_get_key                    },
   { "getFirstSeen",             ntop_flow_get_first_seen             },
   { "getLastSeen",              ntop_flow_get_last_seen              },
