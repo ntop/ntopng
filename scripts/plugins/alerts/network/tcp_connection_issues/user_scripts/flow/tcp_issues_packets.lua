@@ -16,7 +16,6 @@ local script = {
    nedge_exclude = true,
    l4_proto = "tcp",
    three_way_handshake_ok = true,
-   periodic_update_seconds = 60,
 
    -- Default values (will be made configurable from the UI)
    default_low_goodput_min_duration_secs = 600, -- 5 minutes

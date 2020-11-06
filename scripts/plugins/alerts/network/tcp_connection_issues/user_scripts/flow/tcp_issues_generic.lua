@@ -18,7 +18,6 @@ local script = {
 
    -- NOTE: hooks defined below
    hooks = {},
-   periodic_update_seconds = 30,
 
    gui = {
       i18n_title = "flow_callbacks_config.tcp_issues_generic",

@@ -322,18 +322,6 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
       local hook_fn = mod.mod_fn
       local script = all_modules[mod_key]
 
-      if mod_fn == "periodicUpdate" then
-	 -- Check if the script should be invoked
-	 if (update_ctr % script.periodic_update_divisor) ~= 0 then
-	    if do_trace then
-	       trace_f(string.format("%s() [check: %s]: skipping periodicUpdate [ctr: %s, divisor: %s, frequency: %s]",
-				  mod_fn, mod_key, update_ctr, script.periodic_update_divisor, script.periodic_update_seconds))
-	    end
-
-	    goto continue
-	 end
-      end
-
       -- Check if the script requires the flow to have successfully completed the three-way handshake
       if script.three_way_handshake_ok and twh_in_progress then
 	 -- Check if the script wants the three way handshake completed

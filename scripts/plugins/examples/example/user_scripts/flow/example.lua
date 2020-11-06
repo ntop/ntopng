@@ -62,10 +62,6 @@ local script = {
 
   ----------------------------------------------------------------------
 
-  -- The frequency for the periodicUpdate hook invocation. Must be
-  -- multiple of 30 seconds.
-  periodic_update_seconds = 30,
-
   -- If true, the script will be executed on TCP flows only after the three
   -- way handshake is completed
   three_way_handshake_ok = false,
@@ -163,8 +159,7 @@ end
 
 -- #################################################################
 
--- An hook executed periodically. The update frequency is specified via the
--- periodic_update_seconds parameter.
+-- An hook executed periodically
 function script.hooks.periodicUpdate(now, config)
   print("flow:periodicUpdate hook called: " .. shortFlowLabel(flow.getInfo()))
 end
