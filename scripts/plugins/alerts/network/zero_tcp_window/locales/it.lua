@@ -3,14 +3,17 @@
 --
 
 return {
-   zero_tcp_window_description = "Attiva un allarme quando la finestra di un flusso TCP è zero",
-   zero_tcp_window_title = "Zero TCP Window",
+   zero_tcp_window_description = "Emette un allarme quando la TCP window di un flusso ha dimensione zero",
+   zero_tcp_window_title = "TCP Window Zero",
 
 -- ####################### Status strings
 
-   status_zero_tcp_window_description = "Individuato valore della finestra TCP a zero per il flusso: ",
+   status_zero_tcp_window_description     = "La TCP window è zero",
+   status_zero_tcp_window_description_c2s = "La TCP window del client è zero",
+   status_zero_tcp_window_description_sec = "La TCP window del server è zero",
 
 -- ####################### Alert strings
 
-   alert_zero_tcp_window_title = "Individuato valore della finestra TCP a zero"
- }
+   alert_zero_tcp_window_title = "TCP Window Zero",
+   alert_zero_tcp_window_description = "La TCP Window è Zero",
+}
