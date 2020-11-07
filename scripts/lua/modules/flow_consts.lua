@@ -171,11 +171,14 @@ function flow_consts.getStatusDescription(status_key, flowstatus_info)
 
    if(type(status_def.i18n_description) == "function") then
       -- formatter function
-      return(status_def.i18n_description(flowstatus_info))
+      local res = status_def.i18n_description(flowstatus_info)
+      return res
    elseif(status_def.i18n_description ~= nil) then
-      return(i18n(status_def.i18n_description) or status_def.i18n_description)
+      local res = i18n(status_def.i18n_description) or status_def.i18n_description
+      return res
    else
-      return(i18n(status_def.i18n_title) or status_def.i18n_title)
+      local res = i18n(status_def.i18n_title) or status_def.i18n_title
+      return res
    end
 end
 

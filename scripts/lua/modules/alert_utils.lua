@@ -571,7 +571,11 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       local msg = ""
 
       if not isEmptyString(record["flow_status"]) then
-         msg = msg..flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info).." "
+	 local status_description = flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info)
+
+	 if status_description then
+	    msg = msg..flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info).." "
+	 end
       end
 
       if not isEmptyString(flow) then

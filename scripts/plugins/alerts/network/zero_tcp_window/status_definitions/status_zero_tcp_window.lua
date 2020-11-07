@@ -9,15 +9,15 @@ local alert_consts = require "alert_consts"
 -- #######################################################
 
 local function formatZeroTcpWindow(info)
-   if(info == nil) then
-    return(i18n("zero_tcp_window.status_zero_tcp_window_description"))
-   else
-     if(info.is_client) then
-      return(i18n("zero_tcp_window.status_zero_tcp_window_description_c2s"))
-    else
-      return(i18n("zero_tcp_window.status_zero_tcp_window_description_s2c"))
-    end
-  end
+   if info then
+      if info.is_client then
+	 return i18n("zero_tcp_window.status_zero_tcp_window_description_c2s")
+      elseif info.is_server then
+	 return i18n("zero_tcp_window.status_zero_tcp_window_description_s2c")
+      end
+   end
+
+   return i18n("zero_tcp_window.status_zero_tcp_window_description")
 end
 
 

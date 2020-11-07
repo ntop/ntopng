@@ -10,7 +10,7 @@ return {
 
    status_zero_tcp_window_description     = "Reported TCP Zero Window",
    status_zero_tcp_window_description_c2s = "Reported client TCP zero window",
-   status_zero_tcp_window_description_sec = "Reported server TCP zero window ",
+   status_zero_tcp_window_description_s2c = "Reported server TCP zero window ",
 
 -- ####################### Alert strings
 
