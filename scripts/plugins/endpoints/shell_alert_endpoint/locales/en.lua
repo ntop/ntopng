@@ -16,7 +16,7 @@ return {
     shell_send_error = "Error trying to execute the script.", 
 
     shell_description = {
-        path_description = "Instructions:<ul><li>Copy here the path your script is in</ul>Note:<ul><li>The script must be inside \"/usr/share/ntopng/\"<li>The script is going to be called following this pattern \"script -options JSON\" where JSON is a JSON formatted string containing the alarms</lu>",
+        path_description = "Instructions:<ul><li>Select the script you would like to execute</ul>Note:<ul><li>The script must be inside \"/usr/share/ntopng/\"<li>The script is going to be called following this pattern \"script -options JSON\" where JSON is a JSON formatted string containing the alarms</lu>",
         option_description = "Instructions<ul><li>Insert here the options you want to pass to the script</ul>",
      }
  }

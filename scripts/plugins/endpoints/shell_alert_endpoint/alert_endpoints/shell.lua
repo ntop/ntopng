@@ -9,7 +9,7 @@ local endpoint_key = "shell_alert_endpoint"
 
 
 local shell = {
-    name = "Shell",
+    name = "Shell Script",
     endpoint_params = {
       { param_name = "shell_script" },
       -- TODO: configure severity (Errors, Errors and Warnings, All)
@@ -25,8 +25,9 @@ local shell = {
       plugin_key = endpoint_key,
       template_name = "shell_recipient.template"
     },
-	
-    windows_exclude = false,
+
+    -- This is not a script that is supposed to run on Windows
+    windows_exclude = true,
 }
 
 shell.EXPORT_FREQUENCY = 5
@@ -127,7 +128,7 @@ function shell.dequeueRecipientAlerts(recipient, budget, high_priority)
       table.insert(alerts, alert)
     end
 
-    if not telegram.sendMessage(alerts, settings) then
+    if not shell.sendMessage(alerts, settings) then
       return {success=false, error_message="- unable to execute the script"}
     end
 

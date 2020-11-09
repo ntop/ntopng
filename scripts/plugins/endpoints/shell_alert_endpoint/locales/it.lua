@@ -4,7 +4,7 @@
 
 
 return {
-    shell_script = "PERCORSO dello Script",
+    shell_script = "Percorso (path) dello Script",
     shell_options = "Opzioni",
 
     validation = {
@@ -16,7 +16,7 @@ return {
     shell_send_error = "Errore nell'esecuzione dello script.", 
 
     shell_description = {
-        path_description = "Istruzioni:<ul><li>Copiare qui il percorso in cui si trova lo script</ul>Note:<ul><li>Lo script deve essere all'interno di \"/usr/share/ntopng/\"<li>Lo script verrà richiamato nel seguente modo \"script -options JSON\" dove JSON è una stringa formattata JSON contenente gli allarmi</lu>",
+        path_description = "Istruzioni:<ul><li>Selezione lo script da eseguire</ul>Note:<ul><li>Lo script deve essere all'interno di \"/usr/share/ntopng/\"<li>Lo script verrà richiamato nel seguente modo \"script -options JSON\" dove JSON è una stringa formattata JSON contenente gli allarmi</lu>",
         option_description = "Istruzioni<ul><li>Inserire qui le opzioni che si vogliono passare allo script</ul>",
      }
  }
