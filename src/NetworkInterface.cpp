@@ -2582,6 +2582,11 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
   }
 #endif
 
+#ifdef NTOPNG_PRO
+  /* Flush possibly pending flows (avoids interfaces with almost no traffic to have their flows waiting in dump queues for too long) */
+  flushFlowDump();
+#endif
+
   return num_done;
 }
 
@@ -2932,9 +2937,6 @@ void NetworkInterface::periodicStatsUpdate() {
   struct timeval tv = periodicUpdateInitTime();
 
   if(db) {
-#ifdef NTOPNG_PRO
-    flushFlowDump();
-#endif
     db->updateStats(&tv);
   }
 
