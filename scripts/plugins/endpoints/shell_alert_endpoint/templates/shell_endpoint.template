@@ -1,0 +1,17 @@
+<div class="form-group row">
+    <label class="col-form-label col-sm-3">
+	    <b>{{ i18n("shell_alert_endpoint.shell_script") }}</b>
+    </label>
+    <div class="col-sm-5">
+    <select name="shell_script" class="form-control" required>
+        {%
+            for key, dir in pairs(ntop.readdir("/usr/share/ntopng")) do 
+                if(key:match('^(.*).sh')) then   
+        %}
+                    <option value='{{ key }}'>{{ dir }}</option>
+            {%  end  %}
+        {% end %}
+    </select>
+    </div>
+</div>
+<small>{* i18n('shell_alert_endpoint.shell_description.path_description') *}</small>
