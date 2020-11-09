@@ -4347,11 +4347,6 @@ local lang = {
     ["producer_type"] = "Log Producer Type",
     ["producers"] = "Syslog Log Producers",
   },
-  ["syslog_alert_endpoint"] = {
-    ["content"] = "Content",
-    ["syslog_alert_format"] = "Format",
-    ["text"] = "Text",
-  },
   ["system_alerts_stats"] = {
     ["internal_alerts_queue"] = "Internal Queue",
     ["notes_enq_deq"] = "'Fill Level' is the fraction of queued alerts, with reference to the queue size. 'Dropped' is the fraction of alerts dropped due to queue full, with reference to the total number of alerts",

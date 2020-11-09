@@ -64,6 +64,7 @@ local function validateChoiceInline(choices)
       end
    end
 end
+http_lint.validateChoiceInline = validateChoiceInline
 
 local function validateListOfType(l, validate_callback, separator)
    local separator = separator or ","
@@ -131,6 +132,7 @@ local function validateSyslogFormat(p)
 
    return false
 end
+http_lint.validateSyslogFormat = validateSyslogFormat
 
 local function validatePort(p)
    if not validateNumber(p) then
@@ -144,6 +146,7 @@ local function validatePort(p)
       return false
    end
 end
+http_lint.validatePort = validatePort
 
 local function validateUnquoted(p)
    -- This function only verifies that value does not contain single quotes, but
@@ -1582,7 +1585,6 @@ local known_parameters = {
    ["max_num_flow_alerts"]                         = validateNumber,
    ["max_num_packets_per_tiny_flow"]               = validateNumber,
    ["max_num_bytes_per_tiny_flow"]                 = validateNumber,
-   ["syslog_alert_format"]                         = validateEmptyOr(validateSyslogFormat),
    ["google_apis_browser_key"]                     = validateSingleWord,
    ["ldap_server_address"]                         = validateSingleWord,
    ["radius_server_address"]                       = validateSingleWord,

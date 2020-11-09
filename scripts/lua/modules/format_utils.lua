@@ -185,6 +185,10 @@ end
 
 -- format an epoch
 function format_utils.formatEpoch(epoch)
+  if epoch == nil then
+    epoch = os.time()
+  end
+
   if epoch == 0 then
     return("")
   else

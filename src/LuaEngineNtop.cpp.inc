@@ -1299,7 +1299,6 @@ static int ntop_send_udp_data(lua_State* vm) {
 
 static int ntop_send_tcp_data(lua_State* vm) {
   bool rv = true;
-#if 0
   char *host, *data;
   int port;
   int timeout = 0;
@@ -1318,7 +1317,6 @@ static int ntop_send_tcp_data(lua_State* vm) {
 
   rv = Utils::sendTCPData(host, port, data, timeout);
 
-#endif
   lua_pushboolean(vm, rv);
   return(CONST_LUA_OK);
 }
