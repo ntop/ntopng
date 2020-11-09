@@ -665,7 +665,7 @@ else
    end
 
    ifstats = interface.getStats()
-   print("<table class=\"table table-bordered table-striped\">\n")
+   print("<div class='table-responsive'><table class=\"table table-bordered table-striped\">\n")
    if ifstats.vlan and flow["vlan"] > 0 then
       print("<tr><th width=30%>")
       print(i18n("details.vlan_id"))
@@ -851,7 +851,7 @@ else
       end
       print("</td></tr>\n")
    end
-   
+
    print("<tr><th width=30%>"..i18n("flow_details.tos").."</th>")
    print("<td>"..(dscp_consts.dscp_descr(flow.tos.client.DSCP)) .." / ".. (dscp_consts.ecn_descr(flow.tos.client.ECN)) .."</td>")
    print("<td>"..(dscp_consts.dscp_descr(flow.tos.server.DSCP)) .." / ".. (dscp_consts.ecn_descr(flow.tos.server.ECN)) .."</td>")
@@ -1173,7 +1173,7 @@ else
 
       score_category_network  = (score_category_network*100)/tot
       score_category_security = 100 - score_category_network
-      
+
       print('<td><div class="progress"><div class="progress-bar bg-warning" style="width: '..score_category_network..'%;">'.. i18n("flow_details.score_category_network"))
       print('</div><div class="progress-bar bg-info" style="width: ' .. score_category_security .. '%;">' .. i18n("flow_details.score_category_security") .. '</div></div></td>\n')
       print("</tr>\n")
@@ -1185,7 +1185,7 @@ else
       print("<td>"..i18n("client").." <i class=\"fas fa-arrow-left\"></i> "..i18n("server")..": ".. string.format("%.3f", flow.entropy.server) .. "</td>")
       print("</tr>\n")
    end
-   
+
    if((flow.client_process == nil) and (flow.server_process == nil)) then
       print("<tr><th width=30%>"..i18n("flow_details.actual_peak_throughput").."</th><td width=20%>")
       if (throughput_type == "bps") then
@@ -1400,7 +1400,7 @@ else
 	 num = num + 1
       end
    end
-   print("</table>\n")
+   print("</table></div>\n")
 end
 
 print [[

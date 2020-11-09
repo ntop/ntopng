@@ -35,8 +35,10 @@ print[[
 <H3>]] print(i18n("dhcp.dhcp")) print[[</H3>
 
 <form id="table-dhcp-form" method="post" data-toggle="validator">
-  <div id="table-dhcp"></div>
-  <button id="dhcp-save" class="btn btn-primary" style="float:right; margin-right:1em;" onclick="if($(this).hasClass('disabled')) return false;" type="submit">]] print(i18n("save_settings")) print[[</button>
+  <div class='table-responsive'><div id="table-dhcp"></div></div>
+  <div class='text-right'>
+    <button id="dhcp-save" class="btn btn-primary mb-1" onclick="if($(this).hasClass('disabled')) return false;" type="submit">]] print(i18n("save_settings")) print[[</button>
+  </div>
 </form>
 
 <script>

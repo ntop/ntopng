@@ -14,7 +14,7 @@ end
 
 print [[
 </div>
-<p>
+<div class='table-responsive'>
 <table id="service_map" class="table table-bordered table-striped w-100">
         <thead>
             <tr>
@@ -29,7 +29,7 @@ print [[
             </tr>
         </thead>
 </table>
-<p>
+</div>
 ]]
 
 if(isAdministrator()) then
@@ -40,7 +40,7 @@ if(isAdministrator()) then
 
    if(ifid ~= nil) then
      print [[
-<div class="d-flex justify-content-start">  
+<div class="d-flex justify-content-start">
 <form>
 	      <input type=hidden name="ifid" value="]] print(ifid.."") print [[">
 <input type=hidden name="page" value="service_map">
@@ -122,7 +122,7 @@ print [[';
     filterMenuKey: 'protocol',
     columnIndex: columnProtocolIndex
   });
-  
+
 } );
 
  i18n.all = "]] print(i18n("all")) print [[";

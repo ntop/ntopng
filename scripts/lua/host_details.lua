@@ -465,7 +465,7 @@ local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
    and isAllowedSystemInterface()
 
 if((page == "overview") or (page == nil)) then
-   print("<table class=\"table table-bordered table-striped\">\n")
+   print("<div class='table-responsive'><table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
 	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " " .. discover.devtype2icon(host["device_type"]))
@@ -892,7 +892,7 @@ end
 
    elseif((page == "packets")) then
       print [[
-
+      <div class='table-responsive'>
       <table class="table table-bordered table-striped">
 	 ]]
 
@@ -933,7 +933,7 @@ end
 
       hostinfo2json(host_info)
       print [[
-      </table>
+      </table></div>
 
         <script type='text/javascript'>
 	       window.onload=function() {
@@ -966,12 +966,14 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
 	]]
 
    elseif((page == "DSCP")) then
+      print("<div class='table-responsive'>")
       print('<table class="table table-bordered table-striped">\n')
       print('<tr><th class="text-left">'..i18n("dscp_page.statistics_sent")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceSent"></div></td></tr>')
       print('<tr><th class="text-left">'..i18n("dscp_page.statistics_received")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceReceived"></div></td></tr>')
 
       print [[
       </table>
+      </div>
 
       <script type='text/javascript'>
         window.onload=function() {
@@ -984,6 +986,7 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
       ]]
 
    elseif((page == "ports")) then
+      print("<div class='table-responsive'>")
       print('<table class="table table-bordered table-striped">\n')
       if(host.cardinality) then
 	 print('<tr><th class="text-left">'..i18n("ports_page.num_contacted_ports")..'</th>')
@@ -995,7 +998,7 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
       print('<tr><th class="text-left">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
 
       print [[
-      </table>
+      </table></div>
 
         <script type='text/javascript'>
 	       window.onload=function() {
@@ -1160,6 +1163,7 @@ end
 	print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("traffic_page.no_traffic_observed_message").."</div>")
      else
       print [[
+         <div class="table-responsive">
       <table class="table table-bordered table-striped">]]
 
       if(host.cardinality) then
@@ -1215,7 +1219,7 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
       end
       print("</table></tr>\n")
 
-      print("</table>\n")
+      print("</table></div>\n")
    end
 
 
@@ -1263,6 +1267,7 @@ elseif((page == "ndpi")) then
       </div>
   <div class="tab-content card-body">
     <div id="applications" class="tab-pane in active">
+      <div class='table-responsive'>
       <table class="table table-bordered mt-1 table-striped">]]
 
       if(host.cardinality) then
@@ -1287,7 +1292,7 @@ elseif((page == "ndpi")) then
       <td><div class="pie-chart" id="topApplicationProtocols"></div></td>
       <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></div></td>
     </tr>
-  </table>]]
+  </table></div>]]
 
       local direction_filter = ""
 
@@ -1318,13 +1323,15 @@ elseif((page == "ndpi")) then
      </table>
     </div>
     <div id="categories" class="tab-pane">
-      <br>
+      <div class='table-responsive'>
       <table class="table table-bordered table-striped">
         <tr>
         <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print[[</th>
         <td colspan=2><div class="pie-chart" id="topApplicationCategories"></div></td>
       </tr>
       </table>
+      </div>
+      <div class='tables-responsive'>
      <table class="table table-bordered table-striped">
        <thead>
 	 <tr>
@@ -1336,6 +1343,7 @@ elseif((page == "ndpi")) then
        </thead>
        <tbody id="host_details_ndpi_categories_tbody"></tbody>
      </table>
+    </div>
     </div>
     </div>
     </div> <!-- close card -->
@@ -1426,7 +1434,7 @@ setInterval(update_ndpi_categories_table, 5000);
 
 elseif(page == "dns") then
       if(host["dns"] ~= nil) then
-	 print("<table class=\"table table-bordered table-striped\">\n")
+	 print("<div class='table-responsive'><table class=\"table table-bordered table-striped\">\n")
 	 print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th>"..i18n("dns_page.queries").."</th><th>"..i18n("dns_page.positive_replies").."</th><th>"..i18n("dns_page.error_replies").."</th><th colspan=2>"..i18n("dns_page.reply_breakdown").."</th></tr>")
 	 print("<tr><th>"..i18n("sent").."</th><td class=\"text-right\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
 
@@ -1493,7 +1501,7 @@ print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print
 	 end
 
 	print[[
-        </table>
+        </table></div>
        <small><b>]] print(i18n("dns_page.note")) print[[:</b><br>]] print(i18n("dns_page.note_dns_ratio")) print[[
 </small>
 ]]
@@ -1539,6 +1547,7 @@ setInterval(update_ja3_table, 5000);
 
 elseif(page == "ssh") then
   print [[
+     <div class='table-responsive'>
      <table id="myTable" class="table table-bordered table-striped tablesorter">
      <thead><tr><th>]] print('<A HREF="https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c" target="_blank">'..i18n("hassh_fingerprint")..'</A>') print[[</th>]]
   if not isEmptyString(companion_interface_utils.getCurrentCompanion(ifId)) then
@@ -1548,6 +1557,7 @@ elseif(page == "ssh") then
      <tbody id="host_details_hassh_tbody">
      </tbody>
      </table>
+     </div>
 
 <script>
 function update_hassh_table() {
@@ -1578,6 +1588,7 @@ setInterval(update_hassh_table, 5000);
 elseif(page == "http") then
    local http = host["http"]
    if http then
+      print("<div class='table-responsive'>")
       print("<table class=\"table table-bordered table-striped\">\n")
 
       if http["sender"]["query"]["total"] > 0 then
@@ -1641,6 +1652,7 @@ elseif(page == "http") then
       end
 
       print("</table>\n")
+      print("</div>")
    end
 
 
@@ -1696,7 +1708,7 @@ elseif(page == "sites") then
       require("flow_utils")
 
 print [[
-      <div id="table-flows"></div>
+      <div class='table-responsive'><div id="table-flows"></div></div>
 	 <script>
    var url_update = "]]
 

@@ -949,14 +949,11 @@ elseif page == "networks" and interface.isPacketInterface() then
    print("</table>")
    print("</div>")
 
-   print("<p><b>"..i18n("if_stats_overview.note").."</b>:<ul>")
-   print("<li>"..i18n("if_stats_networks.note_iface_addresses").."</li>")
-   print("<li>"..i18n("if_stats_networks.note_iface_bcast_domains").."</li>")
-
-   if has_ghost_networks then
-      print("<li>"..i18n("if_stats_networks.note_ghost_bcast_domains", {ghost_icon = ghost_icon}).."</li>")
-   end
-   print("</ul>")
+   print(ui_utils.render_notes({
+      {content = i18n("if_stats_networks.note_iface_addresses")},
+      {content = i18n("if_stats_networks.note_iface_bcast_domains")},
+      {content = i18n("if_stats_networks.note_ghost_bcast_domains", {ghost_icon = ghost_icon}), hidden = not has_ghost_networks}
+   }))
 
 elseif((page == "packets")) then
    local nedge_hidden = ternary(have_nedge, 'class="hidden"', '')

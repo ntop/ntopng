@@ -32,7 +32,6 @@ function notifications_manager.load_main_notifications()
 
     for _, notification in pairsByField(defined_notifications, 'id', asc) do
 
-
         -- We can only show MAX_NON_PRIORITY_NOTIFICATIONS_TO_SHOW notifications inside the page,
         -- in order to not overwhelm the user
         if (non_priority_notifications>= MAX_NON_PRIORITY_NOTIFICATIONS_TO_SHOW) and not notification.has_priority then
