@@ -120,25 +120,6 @@ void Logstash::sendLSdata() {
   size_t sentLength = 0;
   u_int len = 0, num_flows = 0;
 
-
-  server = gethostbyname(ntop->getPrefs()->get_ls_host());
-  portstr = ntop->getPrefs()->get_ls_port();
-
-  if(server == NULL || portstr == NULL) {
-    // can't send
-    return;
-  }
-
-  proto = ntop->getPrefs()->get_ls_proto();
-  if(proto && !strncmp(proto,"udp",3)) {
-    sendTCP = 0;
-  }
-  portno = atoi(portstr);
-
-  memset((char *) &serv_addr, 0, sizeof(serv_addr));
-  serv_addr.sin_family = AF_INET;
-  memcpy((char *)&serv_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
-
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
   portstr = ntop->getPrefs()->get_ls_port();
 
