@@ -1,0 +1,30 @@
+Introduction
+------------
+
+Sometimes you need to run multiple ntopng instances on the same host because
+- you want to keep data split on each instance
+- for debugging purposes you need to run the ntopng service and start another ntopng from a shell for analyzing a pcap file
+
+In order to run multiple instances you need to make sure they don't share any data directory and redis.
+
+Suppose that you are running an ntopng instance via systemd, and that you want to analyze debug.pcap file. In order
+to run this second instance you need to set
+- use a different HTTP(S) port other than the one used by the other instance (usually port 3000) (-w for HTTP, and -W for HTTPS)
+- use a dfferent redis partition (-r command line option)
+- use a unique data directory (-d command line option)
+
+Example:
+ntopng -w 3001 -d /tmp/data/ -r @2 -i debug.pcap
+
+
+Caveats
+-------
+
+1. If you use RRD the -d directory will be enough to keep your data private. If you use InfluxDB make sure
+   to use a unique database name to avoid mixing up data. You can set the Influx DB name from inside ntopng
+   using the menu Settings -> Timeseries -> InfluxDB Database.
+
+   Note that you need to set this unique database name if you use the second ntopng instance for permanently
+   montor traffic, as this is not necessary when analysing a pcap file as timeseries are not written.
+
+2. Each ntopng instance will have a separate user name, password etc. as if they were different instances,
