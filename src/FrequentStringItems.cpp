@@ -99,7 +99,7 @@ char* FrequentStringItems::json() {
 #ifdef TESTME
 
 void testme() {
-  FrequentStringItems *f = new FrequentStringItems(8);
+  FrequentStringItems *f = new (std::nothrow) FrequentStringItems(8);
 
   for(int i = 0; i<256; i++) {
     char buf[32];

@@ -41,14 +41,14 @@ GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
   iface = _iface;
   idle_entries = idle_entries_shadow = NULL;
 
-  table = new GenericHashEntry*[num_hashes];
+  table = new (std::nothrow) GenericHashEntry*[num_hashes];
   for(u_int i = 0; i < num_hashes; i++)
     table[i] = NULL;
 
-  locks = new RwLock*[num_hashes];
-  for(u_int i = 0; i < num_hashes; i++) locks[i] = new RwLock();
+  locks = new (std::nothrow) RwLock*[num_hashes];
+  for(u_int i = 0; i < num_hashes; i++) locks[i] = new (std::nothrow) RwLock();
 
-  idle_entries_in_use = new vector<GenericHashEntry*>;
+  idle_entries_in_use = new (std::nothrow) vector<GenericHashEntry*>;
 
   last_purged_hash = _num_hashes - 1;
 }

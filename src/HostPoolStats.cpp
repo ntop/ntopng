@@ -22,8 +22,8 @@
 #include "ntop_includes.h"
 
 HostPoolStats::HostPoolStats(NetworkInterface *iface) : GenericTrafficElement() {
-    ndpiStats = new nDPIStats();
-    totalStats = new nDPIStats();
+    ndpiStats = new (std::nothrow) nDPIStats();
+    totalStats = new (std::nothrow) nDPIStats();
     mustReset = false;
 
     if(iface && iface->getTimeLastPktRcvd() > 0)

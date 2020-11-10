@@ -44,11 +44,11 @@ Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _re
 
   redis = NULL, operational = false;
   initializationCompleted = false;
-  localToResolve = new FifoStringsQueue(MAX_NUM_QUEUED_ADDRS);
-  remoteToResolve = new FifoStringsQueue(MAX_NUM_QUEUED_ADDRS);
+  localToResolve = new (std::nothrow) FifoStringsQueue(MAX_NUM_QUEUED_ADDRS);
+  remoteToResolve = new (std::nothrow) FifoStringsQueue(MAX_NUM_QUEUED_ADDRS);
   reconnectRedis(giveup_on_failure);
   numCached = 0;
-  l = new Mutex();
+  l = new (std::nothrow) Mutex();
 
   if(operational) getRedisVersion();
 }

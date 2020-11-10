@@ -53,7 +53,7 @@ void GenericTrafficElement::resetStats() {
 /* *************************************** */
 
 GenericTrafficElement::GenericTrafficElement(const GenericTrafficElement &gte) {
-  ndpiStats = (gte.ndpiStats) ? new nDPIStats(*gte.ndpiStats) : NULL;
+  ndpiStats = (gte.ndpiStats) ? new (std::nothrow) nDPIStats(*gte.ndpiStats) : NULL;
 
   bytes_thpt = ThroughputStats(gte.bytes_thpt);
   pkts_thpt  = ThroughputStats(gte.pkts_thpt);
@@ -67,10 +67,10 @@ GenericTrafficElement::GenericTrafficElement(const GenericTrafficElement &gte) {
   tcp_packet_stats_rcvd = gte.tcp_packet_stats_rcvd;
 
 #ifdef NTOPNG_PRO
-  custom_app_stats = (gte.custom_app_stats) ? new CustomAppStats(*gte.custom_app_stats) : NULL;
+  custom_app_stats = (gte.custom_app_stats) ? new (std::nothrow) CustomAppStats(*gte.custom_app_stats) : NULL;
 #endif
 
-  dscpStats = (gte.dscpStats) ? new DSCPStats(*gte.dscpStats) : NULL;
+  dscpStats = (gte.dscpStats) ? new (std::nothrow) DSCPStats(*gte.dscpStats) : NULL;
 }
 
 /* *************************************** */
@@ -130,7 +130,7 @@ void GenericTrafficElement::deserialize(json_object *o, NetworkInterface *iface)
   if(json_object_object_get_ex(o, "rcvd", &obj))  rcvd.deserialize(obj);
   if(json_object_object_get_ex(o, "ndpiStats", &obj)) {
     if(ndpiStats) delete ndpiStats;
-    ndpiStats = new nDPIStats();
+    ndpiStats = new (std::nothrow) nDPIStats();
     ndpiStats->deserialize(iface, obj);
   }
 }

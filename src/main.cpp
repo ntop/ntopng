@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
   ntop->registerPrefs(prefs, false);
   prefs->reloadPrefsFromRedis();
 
-  if((boot_activity = new ThreadedActivity(BOOT_SCRIPT_PATH))) {
+  if((boot_activity = new (std::nothrow) ThreadedActivity(BOOT_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */
     /* NOTE: preferences restore from file is handled here */
     boot_activity->runSystemScript(time(NULL));
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
       /* [ zmq-collector.lua@tcp://127.0.0.1:5556 ] */
 #ifndef HAVE_NEDGE
       if(!strcmp(ifName, "dummy")) {
-	iface = new DummyInterface();
+	iface = new (std::nothrow) DummyInterface();
       } else if((strstr(ifName, "tcp://") || strstr(ifName, "ipc://"))) {
 	char *at = strchr(ifName, '@');
 	char *endpoint;
@@ -182,12 +182,12 @@ int main(int argc, char *argv[])
 	else
 	  endpoint = ifName;
 
-	iface = new ZMQCollectorInterface(endpoint);
+	iface = new (std::nothrow) ZMQCollectorInterface(endpoint);
       } else if(strstr(ifName, "syslog://")) {
-	iface = new SyslogCollectorInterface(ifName);
+	iface = new (std::nothrow) SyslogCollectorInterface(ifName);
 #if defined(HAVE_PF_RING) && (!defined(NTOPNG_EMBEDDED_EDITION)) && (!defined(__i686__)) && (!defined(__ARM_ARCH))
       } else if(strstr(ifName, "zcflow:")) {
-	iface = new ZCCollectorInterface(ifName);
+	iface = new (std::nothrow) ZCCollectorInterface(ifName);
 #endif
       } else
 #endif
@@ -206,13 +206,13 @@ int main(int argc, char *argv[])
 
 #if defined(HAVE_NEDGE)
         if(iface == NULL && strncmp(ifName, "nf:", 3) == 0)
-          iface = new NetfilterInterface(ifName);
+          iface = new (std::nothrow) NetfilterInterface(ifName);
 #endif
 
 #ifdef HAVE_PF_RING
 	if((iface == NULL) && (!strstr(ifName, ".pcap"))) {
 	  errno = 0;
-	  iface = new PF_RINGInterface(ifName);
+	  iface = new (std::nothrow) PF_RINGInterface(ifName);
 	}
 #endif
       }
@@ -279,14 +279,14 @@ int main(int argc, char *argv[])
       continue;
     }
 
-    if((iface = new ViewInterface(ifName)))
+    if((iface = new (std::nothrow) ViewInterface(ifName)))
       ntop->registerInterface(iface);
   }
 
   if(has_view_all) {
     NetworkInterface *iface = NULL;
 
-    if((iface = new ViewInterface("view:all")))
+    if((iface = new (std::nothrow) ViewInterface("view:all")))
       ntop->registerInterface(iface);
   }
   
@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
 
   /* Register the HTTP server before dropping the privileges. This is required
    * in order to possibly bind the HTTP server to privileged ports (< 1024) */
-  ntop->registerHTTPserver(new HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
+  ntop->registerHTTPserver(new (std::nothrow) HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
 
   /* Drop the privileges before initializing the network interfaces. This
    * is necessary as the initialization may create files/directories, which

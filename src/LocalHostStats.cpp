@@ -24,7 +24,7 @@
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
-  top_sites = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
+  top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = strdup("{}");
   dns  = new (std::nothrow) DnsStats();
   http = new (std::nothrow) HTTPstats(_host);
@@ -44,7 +44,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
-  top_sites = new FrequentStringItems(HOST_SITES_TOP_NUMBER);
+  top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = strdup("{}");
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;

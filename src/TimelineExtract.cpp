@@ -137,7 +137,7 @@ bool TimelineExtract::extractToDisk(u_int32_t id, NetworkInterface *iface,
 
   snprintf(out_path, sizeof(out_path), "%s/%u/extr_pcap/%u", ntop->getPrefs()->get_pcap_dir(), iface->get_id(), id);
 
-  dumper = new PacketDumper(iface, out_path);
+  dumper = new (std::nothrow) PacketDumper(iface, out_path);
 
   if (dumper == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize packet dumper");

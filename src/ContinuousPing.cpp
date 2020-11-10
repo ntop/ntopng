@@ -102,7 +102,7 @@ void ContinuousPing::ping(char *_addr, bool use_v6) {
 #endif
       it->second->heartbeat();
     } else {
-      v4_results[key] = new ContinuousPingStats();
+      v4_results[key] = new (std::nothrow) ContinuousPingStats();
 #ifdef TRACE_PING
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding host to ping %s", _addr);
 #endif
@@ -117,7 +117,7 @@ void ContinuousPing::ping(char *_addr, bool use_v6) {
 #endif
       it->second->heartbeat();
     } else {
-      v6_results[key] = new ContinuousPingStats();
+      v6_results[key] = new (std::nothrow) ContinuousPingStats();
 #ifdef TRACE_PING
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding host to ping %s", _addr);
 #endif

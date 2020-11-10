@@ -312,7 +312,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->device_ip) {
     // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() && ntop->getPro()->has_valid_license()) {
     if(!flow_interfaces_stats)
-      flow_interfaces_stats = new FlowInterfacesStats();
+      flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
 
     if(flow_interfaces_stats) {
       flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->inIndex,
