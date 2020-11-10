@@ -1361,7 +1361,7 @@ static int ntop_speedtest(lua_State* vm) {
 /* ****************************************** */
 
 static void build_redirect(const char *url, const char * query_string,
-	char *buf, size_t bufsize) {
+			   char *buf, size_t bufsize) {
   snprintf(buf, bufsize, "HTTP/1.1 302 Found\r\n"
      "Location: %s%s%s\r\n\r\n"
      "<html>\n"
