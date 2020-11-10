@@ -102,7 +102,7 @@ class Prefs {
   bool local_networks_set, shutdown_when_done, simulate_vlans, ignore_vlans, ignore_macs;
   u_int32_t num_simulated_ips;
   char *data_dir, *install_dir, *docs_dir, *scripts_dir,
-	  *callbacks_dir, *prefs_dir, *pcap_dir;
+	  *callbacks_dir, *pcap_dir;
   char *categorization_key;
   char *zmq_encryption_pwd;
   char *zmq_encryption_priv_key;
@@ -220,7 +220,6 @@ class Prefs {
   inline char* get_docs_dir()                                 { return(docs_dir);       }; // HTTP docs
   inline const char* get_scripts_dir()                        { return(scripts_dir);    };
   inline const char* get_callbacks_dir()                      { return(callbacks_dir);  };
-  inline const char* get_prefs_dir()                          { return(prefs_dir);      };
   inline const char* get_pcap_dir()                           { return(pcap_dir);       };
 #ifdef HAVE_TEST_MODE
   inline const char* get_test_script_path()                   { return(test_script_path); };

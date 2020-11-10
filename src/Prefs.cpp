@@ -63,7 +63,6 @@ Prefs::Prefs(Ntop *_ntop) {
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
   pcap_dir = NULL;
-  prefs_dir = NULL;
 #ifdef HAVE_TEST_MODE
   test_script_path = NULL;
 #endif
@@ -169,7 +168,6 @@ Prefs::~Prefs() {
   if(docs_dir)         free(docs_dir);
   if(scripts_dir)      free(scripts_dir);
   if(callbacks_dir)    free(callbacks_dir);
-  if(prefs_dir)        free(prefs_dir);
   if(pcap_dir)         free(pcap_dir);
   if(config_file_path) free(config_file_path);
   if(user)             free(user);
@@ -254,10 +252,6 @@ void usage() {
 	 "[--scripts-dir|-2] <path>           | Scripts directory.\n"
 	 "                                    | Default: %s\n"
 	 "[--callbacks-dir|-3] <path>         | Callbacks directory.\n"
-	 "                                    | Default: %s\n"
-	 "[--prefs-dir|-4] <path>             | Preferences directory used to serialize\n"
-	 "                                    | and deserialize file\n"
-	 "                                    | containing runtime preferences.\n"
 	 "                                    | Default: %s\n"
 	 "[--pcap-dir|-5] <path>              | Storage directory used for continuous traffic\n"
 	 "                                    | recording in PCAP format.\n"
@@ -1151,11 +1145,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     callbacks_dir = strdup(optarg);
     break;
 
-  case '4':
-    if(prefs_dir) free(prefs_dir);
-    prefs_dir = strdup(optarg);
-    break;
-
   case '5':
     if(pcap_dir) free(pcap_dir);
     pcap_dir = strdup(optarg);
@@ -1513,9 +1502,6 @@ int Prefs::checkOptions() {
   free(data_dir);
   data_dir = strdup(ntop->get_install_dir());
 
-  if(!prefs_dir)
-    prefs_dir = strdup(ntop->get_working_dir());
-
   if(!pcap_dir) 
     pcap_dir = strdup(ntop->get_working_dir());
 
@@ -1527,13 +1513,11 @@ int Prefs::checkOptions() {
   if(!docs_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate docs dir");      return(-1); }
   if(!scripts_dir[0])   { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate scripts dir");   return(-1); }
   if(!callbacks_dir[0]) { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate callbacks dir"); return(-1); }
-  if(!prefs_dir[0])     { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate prefs dir");     return(-1); }
   if(!pcap_dir[0])      { ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to locate pcap dir");   return(-1); }
 
   ntop->removeTrailingSlash(docs_dir);
   ntop->removeTrailingSlash(scripts_dir);
   ntop->removeTrailingSlash(callbacks_dir);
-  ntop->removeTrailingSlash(prefs_dir);
   ntop->removeTrailingSlash(pcap_dir);
 
   if(http_binding_address1 == NULL) http_binding_address1 = strdup(CONST_ANY_ADDRESS);

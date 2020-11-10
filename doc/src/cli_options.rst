@@ -36,10 +36,6 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        | Default: scripts
    [--callbacks-dir|-3] <path>         | Callbacks directory.
                                        | Default: scripts/callbacks
-   [--prefs-dir|-4] <path>             | Preferences directory used to serialize
-                                       | and deserialize file
-                                       | containing runtime preferences.
-                                       | Default: /var/lib/ntopng
    [--pcap-dir|-5] <path>              | Storage directory used for continuous traffic
                                        | recording in PCAP format.
                                        | Default: /var/lib/ntopng
