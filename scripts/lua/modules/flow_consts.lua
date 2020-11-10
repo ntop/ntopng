@@ -101,7 +101,7 @@ function flow_consts.loadDefinition(def_script, mod_fname, script_path)
    
    -- Check the required fields
    for _, k in pairs(required_fields) do
-      if(def_script[k] == nil) then
+      if(def_script[k] == nil and mod_fname ~= "status_new_api_demo" --[[ TODO: remove when migration done --]]) then
 	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
 	 return(false)
       end
@@ -187,17 +187,23 @@ end
 -- @brief Given a flow status identified by `status_key`, returns an icon associated to the severity
 -- @param `status_key` A flow status identified
 -- @param `status info`, A human readable (localized) status info
+-- @param `alerted_severity`, Optional, integer severity of the alert associated to this status
 -- @return The HTML with icon and ALT text, or empty if no icon is available
-function flow_consts.getStatusIcon(status_key, status_info)
+function flow_consts.getStatusIcon(status_key, status_info, alerted_severity)
    local status_def = status_by_id[tonumber(status_key)]
 
    -- If the status has no severity associated or the severity has no icon, then return
-   if not status_def or not status_def.alert_severity or not status_def.alert_severity.icon then
-      return ""
+   if status_def and status_def.alert_severity and status_def.alert_severity.icon then
+      -- Return the icon
+      return "<i class='"..status_def.alert_severity.icon.."' title='"..noHtml(status_info) .."'></i> "
    end
 
-   -- Return the icon
-   return "<i class='"..status_def.alert_severity.icon.."' title='"..noHtml(status_info) .."'></i> "
+   if status_def and alerted_severity then
+      local alert_consts = require "alert_consts"
+      return "<i class='"..alert_consts.alertSeverityById(alerted_severity).icon.."' title='"..noHtml(status_info) .."'></i> "
+   end
+
+   return ""
 end
 
 -- ################################################################################

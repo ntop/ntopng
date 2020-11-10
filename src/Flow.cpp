@@ -4555,6 +4555,7 @@ void Flow::lua_get_status(lua_State* vm) const {
     lua_push_bool_table_entry(vm, "flow.alerted", true);
     lua_push_uint64_table_entry(vm, "alerted_status", getAlertedStatus());
     lua_push_uint64_table_entry(vm, "alerted_status_score", getAlertedStatusScore());
+    lua_push_uint64_table_entry(vm, "alerted_severity", getAlertedSeverity());
   }
 }
 
