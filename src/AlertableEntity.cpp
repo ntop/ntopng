@@ -50,7 +50,7 @@ AlertableEntity::~AlertableEntity() {
 
 RwLock* AlertableEntity::getLock(ScriptPeriodicity p) {
   try {
-    if(locks[(u_int)p] || (locks[(u_int)p] = new (std::nothrow) RwLock()))
+    if(locks[(u_int)p] || (locks[(u_int)p] = new RwLock()))
       return locks[(u_int)p];
   } catch(std::bad_alloc& ba) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Memory allocation error");
