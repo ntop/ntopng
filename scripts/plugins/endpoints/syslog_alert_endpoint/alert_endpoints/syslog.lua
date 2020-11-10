@@ -110,7 +110,7 @@ function syslog.sendMessage(settings, notif, severity, syslog_format)
       msg = "<"..prio..">"..date.." "..tag.."["..pid.."]: "..msg
 
       if settings.protocol == 'tcp' then
-         ntop.send_tcp_data(settings.host, settings.port, msg, 1 --[[ timeout (msec) --]] )
+         ntop.send_tcp_data(settings.host, settings.port, msg.."\n", 1 --[[ timeout (msec) --]] )
       else
          ntop.send_udp_data(settings.host, settings.port, msg)
       end
