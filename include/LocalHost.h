@@ -30,6 +30,9 @@ class LocalHost : public Host, public SerializableElement {
   bool systemHost;
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
+
+  std::unordered_map<u_int32_t, IpAddress_id_struct> doh_dot_map;
+
   
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   OperatingSystem os;
@@ -66,7 +69,7 @@ class LocalHost : public Host, public SerializableElement {
   virtual void updateHostTrafficPolicy(char *key);
 
   virtual void luaHTTP(lua_State *vm)              const  { stats->luaHTTP(vm);         };
-  virtual void luaDNS(lua_State *vm, bool verbose) const  { stats->luaDNS(vm, verbose); };
+  virtual void luaDNS(lua_State *vm, bool verbose) const  { stats->luaDNS(vm, verbose, const_cast<std::unordered_map<unsigned int, IpAddress_id_struct>*>(&doh_dot_map)); };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  { stats->luaICMP(vm,isV4,verbose); };
   virtual void incrVisitedWebSite(char *hostname)         { stats->incrVisitedWebSite(hostname); };
   virtual HTTPstats* getHTTPstats()                const  { return(stats->getHTTPstats());       };
@@ -86,6 +89,10 @@ class LocalHost : public Host, public SerializableElement {
   virtual void lua_get_timeseries(lua_State* vm);  
   void custom_periodic_stats_update(const struct timeval *tv) {
   }
+
+  inline std::unordered_map<u_int32_t, IpAddress_id_struct>* getDohDotMap() { return(&doh_dot_map); };
+  virtual void incDohDoTUses(Host *srv_host);
+
 };
 
 #endif /* _LOCAL_HOST_H_ */

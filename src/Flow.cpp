@@ -456,6 +456,11 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_DNS:
     if(cli_port == ntohs(53) && get_cli_host())       get_cli_host()->setDnsServer();
     else if(srv_port == ntohs(53) && get_srv_host())  get_srv_host()->setDnsServer();
+  
+  case NDPI_PROTOCOL_DOH_DOT:
+    if(cli_host && srv_host && cli_host->isLocalHost())   cli_host->incDohDoTUses(srv_host);
+    break;
+  
   case NDPI_PROTOCOL_IEC60870:
     /* See Flow::processDNSPacket and Flow::processIEC60870Packet for dissection */
     break;

@@ -397,6 +397,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void incContactedService(char *name)       { stats->incContactedService(name);  }
 
   virtual void luaHostBehaviour(lua_State* vm) { lua_pushnil(vm); }
+  virtual void incDohDoTUses(Host *srv_host) {}
 };
 
 #endif /* _HOST_H_ */

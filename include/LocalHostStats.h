@@ -62,7 +62,7 @@ class LocalHostStats: public HostStats {
   virtual void deserialize(json_object *obj);
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
 
-  virtual void luaDNS(lua_State *vm, bool verbose) const  { if(dns) dns->lua(vm,verbose); }
+  virtual void luaDNS(lua_State *vm, bool verbose, std::unordered_map<u_int32_t, IpAddress_id_struct> *doh_dot_map) const  { if(dns) dns->lua(vm,verbose, doh_dot_map); }
   virtual void luaHTTP(lua_State *vm) const  { if(http) http->lua(vm); }
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { if (icmp) icmp->lua(isV4, vm, verbose); }
   virtual void incrVisitedWebSite(char *hostname);

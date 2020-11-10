@@ -91,6 +91,9 @@ void LocalHost::set_hash_entry_state_idle() {
 void LocalHost::initialize() {
   char buf[64], host[96], rsp[256];
   
+  doh_dot_map = std::unordered_map<u_int32_t, IpAddress_id_struct>(); 
+  doh_dot_map.reserve(10 /* initialize at a standard max dim of 10 elements */);
+
   stats = allocateStats();
   updateHostPool(true /* inline with packet processing */, true /* first inc */);
 
@@ -401,3 +404,13 @@ void LocalHost::reloadPrefs() {
 }
 
 /* *************************************** */
+
+void LocalHost::incDohDoTUses(Host *srv_host) {
+  IpAddress_id_struct tmp;
+
+  tmp.address = *(srv_host->get_ip()->clone());
+  tmp.vlan_id = srv_host->get_vlan_id();
+
+  /* unordered_map->insert, insert the element only if it is not already inside the map */
+  doh_dot_map.insert(std::make_pair(tmp.address.key(), tmp)); 
+}
