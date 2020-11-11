@@ -1094,6 +1094,8 @@ local lang = {
     ["dns_breakdown"] = "DNS Breakdown",
     ["dns_query_sent_distribution"] = "DNS Query Sent Distribution",
     ["dns_query_sent_vs_rcvd_distribution"] = "DNS Query Sent vs Rcvd Distribution",
+    ["doh_dot_server_uses"] = "Uses",
+    ["doh_dot_servers"] = "Contacted <A HREF=\"https://en.wikipedia.org/wiki/DNS_over_HTTPS\" target=_blank>DoH <i class='fas fa-external-link-alt'></i></A> / <A HREF=\"https://en.wikipedia.org/wiki/DNS_over_TLS\" target=_blank>DoT <i class='fas fa-external-link-alt'></i></A> Servers",
     ["error_replies"] = "Error Replies",
     ["note"] = "NOTE",
     ["note_dns_ratio"] = "Ideally the request vs reply DNS ratio should be 1 (one reply per request). When much lower than that then there are issues worth to be investigated as it means that the number of replies received is much lower than expected and this can indicate that we are using unresponsive DNS resolvers or that they are misconfigured (e.g. they have been move to another IP).",

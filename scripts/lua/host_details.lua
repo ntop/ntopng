@@ -1433,11 +1433,23 @@ setInterval(update_ndpi_categories_table, 5000);
    end
 
 elseif(page == "dns") then
+   if((host.DoH_DoT ~= nil) or (host["dns"] ~= nil)) then
+      print("<div class='table-responsive'><table class=\"table table-bordered table-striped\">\n")
+      
+      if(host.DoH_DoT ~= nil) then
+	 print("<tr><th>"..i18n("dns_page.doh_dot_servers").."</th><th colspan=4>"..i18n("dns_page.doh_dot_server_uses").."</th></tr>")
+	 
+	 for _, v in pairs(host.DoH_DoT) do
+	    print("<tr><th>"..buildHostHREF(v.ip, v.vlan_id, "overview").."</th><td colspan=4 align=right>"..formatValue(v.num_uses) .."</td>")
+	 end
+
+	 print("</td></tr>\n")
+      end
+      
       if(host["dns"] ~= nil) then
-	 print("<div class='table-responsive'><table class=\"table table-bordered table-striped\">\n")
 	 print("<tr><th>"..i18n("dns_page.dns_breakdown").."</th><th>"..i18n("dns_page.queries").."</th><th>"..i18n("dns_page.positive_replies").."</th><th>"..i18n("dns_page.error_replies").."</th><th colspan=2>"..i18n("dns_page.reply_breakdown").."</th></tr>")
 	 print("<tr><th>"..i18n("sent").."</th><td class=\"text-right\"><span id=dns_sent_num_queries>".. formatValue(host["dns"]["sent"]["num_queries"]) .."</span> <span id=trend_sent_num_queries></span></td>")
-
+	 
 	 print("<td class=\"text-right\"><span id=dns_sent_num_replies_ok>".. formatValue(host["dns"]["sent"]["num_replies_ok"]) .."</span> <span id=trend_sent_num_replies_ok></span></td>")
 	 print("<td class=\"text-right\"><span id=dns_sent_num_replies_error>".. formatValue(host["dns"]["sent"]["num_replies_error"]) .."</span> <span id=trend_sent_num_replies_error></span></td><td colspan=2>")
 	 graph_utils.breakdownBar(host["dns"]["sent"]["num_replies_ok"], "OK", host["dns"]["sent"]["num_replies_error"], "Error", 0, 100)
@@ -1464,48 +1476,48 @@ elseif(page == "dns") then
 	    print [[</td></tr>]]
 	 end
 
-         -- Charts
-         if((host["dns"]["sent"]["num_queries"] + host["dns"]["rcvd"]["num_queries"]) > 0) then
+	 -- Charts
+	 if((host["dns"]["sent"]["num_queries"] + host["dns"]["rcvd"]["num_queries"]) > 0) then
 	    print [[<tr><th>]] print(i18n("dns_page.dns_query_sent_vs_rcvd_distribution")) print[[</th>]]
-	 if(host["dns"]["sent"]["num_queries"] > 0) then
-	    print[[<td colspan=2>
+	    if(host["dns"]["sent"]["num_queries"] > 0) then
+	       print[[<td colspan=2>
 		     <div class="pie-chart" id="dnsSent"></div>
 		     <script type='text/javascript'>
 
 					 do_pie("#dnsSent", ']]
-            print (ntop.getHttpPrefix())
-            print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "sent" }, "", refresh);
+		  print (ntop.getHttpPrefix())
+	       print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "sent" }, "", refresh);
 				      </script>
 					 </td>
            ]]
-        else
-           print[[<td colspan=2>&nbsp;</td>]]
-         end
+	    else
+	       print[[<td colspan=2>&nbsp;</td>]]
+	    end
 
-
-	 if(host["dns"]["rcvd"]["num_queries"] > 0) then
-print [[
+	    if(host["dns"]["rcvd"]["num_queries"] > 0) then
+	       print [[
          <td colspan=2><div class="pie-chart" id="dnsRcvd"></div>
          <script type='text/javascript'>
 
 	     do_pie("#dnsRcvd", ']]
-print (ntop.getHttpPrefix())
-print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "recv" }, "", refresh);
+	       print (ntop.getHttpPrefix())
+	       print [[/lua/host_dns_breakdown.lua', { ]] print(hostinfo2json(host_info)) print [[, direction: "recv" }, "", refresh);
          </script>
          </td>
 ]]
-	 else
-	    print [[<td colspan=2>&nbsp;</td>]]
+	    else
+	       print [[<td colspan=2>&nbsp;</td>]]
+	    end
+	    print("</tr>")
 	 end
-	 print("</tr>")
-	 end
-
-	print[[
+	 
+	 print[[
         </table></div>
        <small><b>]] print(i18n("dns_page.note")) print[[:</b><br>]] print(i18n("dns_page.note_dns_ratio")) print[[
 </small>
 ]]
       end
+   end
 elseif(page == "tls") then
   print [[
      <table id="myTable" class="table table-bordered table-striped tablesorter">

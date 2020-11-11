@@ -24,13 +24,35 @@
 
 #include "ntop_includes.h"
 
+class DoHDoTStats {
+private:
+  IpAddress ip;
+  u_int16_t vlan_id;
+  u_int32_t num_uses;
+  
+public:
+  DoHDoTStats(IpAddress i, u_int16_t id) { ip = i, vlan_id = id, num_uses = 0; }
+
+  inline void incUses() { num_uses++; }
+
+  void lua(lua_State *vm) {
+    char buf[64];
+    
+    lua_push_str_table_entry(vm, "ip", ip.print(buf, sizeof(buf)));
+    lua_push_uint32_table_entry(vm, "vlan_id", vlan_id);
+    lua_push_uint32_table_entry(vm, "num_uses", num_uses);
+  }
+};
+
+/* ************************************************************ */
+
 class LocalHost : public Host, public SerializableElement {
  protected:
   int16_t local_network_id;
   bool systemHost;
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
-  std::unordered_map<u_int32_t, IpAddress_id_struct> doh_dot_map;
+  std::unordered_map<u_int32_t, DoHDoTStats*> doh_dot_map;
  
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   OperatingSystem os;
@@ -89,7 +111,6 @@ class LocalHost : public Host, public SerializableElement {
   void custom_periodic_stats_update(const struct timeval *tv) {
   }
 
-  inline std::unordered_map<u_int32_t, IpAddress_id_struct>* getDohDotMap() { return(&doh_dot_map); };
   virtual void incDohDoTUses(Host *srv_host);
 };
 

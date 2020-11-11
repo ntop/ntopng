@@ -804,9 +804,4 @@ typedef struct _ntop_if_t {
   _ntop_if_t *next;
 } ntop_if_t;
 
-typedef struct tmp {
-  IpAddress address;
-  u_int16_t vlan_id;
-} IpAddress_id_struct;
-
 #endif /* _NTOP_TYPEDEFS_H_ */
