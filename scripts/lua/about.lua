@@ -16,7 +16,6 @@ sendHTTPContentTypeHeader('text/html')
 page_utils.set_active_menu_entry(page_utils.menu_entries.about, { product=info.product })
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-print("<div class='container-fluid'>")
 print("<div class='row'>")
 print("<div class='col-12'>")
 
@@ -75,7 +74,7 @@ if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
 
    print("\" target=\"_blank\">".. info["pro.systemid"] .."</A> <i class='fas fa-external-link-alt'></i>")
 
-   if(not(ntop.getInfo()["pro.forced_community"])) then 
+   if(not(ntop.getInfo()["pro.forced_community"])) then
       print [[
     <br><small>]]
       print(i18n("about.licence_generation", {
@@ -87,8 +86,8 @@ print[[</small>
 	 <p>
    ]]
    end
-   
-if(not(ntop.getInfo()["pro.forced_community"])) then 
+
+if(not(ntop.getInfo()["pro.forced_community"])) then
    print('<form class="form-inline" method="post" onsubmit="return trimLicenceSpaces();">')
 
    if(isAdministrator()) then
@@ -213,7 +212,6 @@ print("<tr><th><a href=\"http://d3js.org\" target=\"_blank\">Data-Driven Documen
 print("</table>\n")
 print("</div>")
 
-print("</div>")
 print("</div>")
 print("</div>")
 
