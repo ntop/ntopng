@@ -26,6 +26,21 @@ const fixSubMenuPosition = ($submenu, $hoverButton) => {
 
 };
 
+$(window).scroll(function(){
+
+    const UPPER_LIMIT = 32;
+    const navbarHeight = $(`#n-navbar`).height();
+    const windowScrollTop = $(this).scrollTop();
+
+    if (windowScrollTop >= UPPER_LIMIT) {
+        $(`#n-navbar`).addClass("scrolled bg-light");
+    }
+    else {
+        $(`#n-navbar`).removeClass("scrolled bg-light");
+    }
+
+});
+
 $(document).ready(() => {
 
     const toggleSidebar = () => {

@@ -322,6 +322,7 @@
 
     #n-navbar {
         left: 0;
+        background-color: initial !important;
     }
 
     /** hide the ntop logo */
