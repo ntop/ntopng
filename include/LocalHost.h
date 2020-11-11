@@ -30,10 +30,8 @@ class LocalHost : public Host, public SerializableElement {
   bool systemHost;
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
-
   std::unordered_map<u_int32_t, IpAddress_id_struct> doh_dot_map;
-
-  
+ 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   OperatingSystem os;
   char *os_detail;
@@ -46,7 +44,8 @@ class LocalHost : public Host, public SerializableElement {
 
   char* getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key);
   char* getIpBasedSerializationKey(char *redis_key, size_t size);
-
+  void luaDoHDot(lua_State *vm);
+  
  public:
   LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
   LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
@@ -60,24 +59,24 @@ class LocalHost : public Host, public SerializableElement {
   virtual NetworkStats* getNetworkStats(int16_t networkId) {
     return(iface->getNetworkStats(networkId));
   };
-  virtual u_int32_t getActiveHTTPHosts()       const { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
-  virtual HostStats* allocateStats()                 { return(new LocalHostStats(this));               };
+  virtual u_int32_t getActiveHTTPHosts() { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
+  virtual HostStats* allocateStats()     { return(new LocalHostStats(this));               };
 
   virtual bool dropAllTraffic() const { return(drop_all_host_traffic); };
   virtual void inlineSetOSDetail(const char *_os_detail);
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
   virtual void updateHostTrafficPolicy(char *key);
 
-  virtual void luaHTTP(lua_State *vm)              const  { stats->luaHTTP(vm);         };
-  virtual void luaDNS(lua_State *vm, bool verbose) const  { stats->luaDNS(vm, verbose, const_cast<std::unordered_map<unsigned int, IpAddress_id_struct>*>(&doh_dot_map)); };
-  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  { stats->luaICMP(vm,isV4,verbose); };
-  virtual void incrVisitedWebSite(char *hostname)         { stats->incrVisitedWebSite(hostname); };
-  virtual HTTPstats* getHTTPstats()                const  { return(stats->getHTTPstats());       };
-  virtual DnsStats*  getDNSstats()                 const  { return(stats->getDNSstats());        };
-  virtual ICMPstats* getICMPstats()                const  { return(stats->getICMPstats());       };
-  virtual void luaTCP(lua_State *vm) const                { stats->lua(vm,false,details_normal); };
-  virtual u_int16_t getNumActiveContactsAsClient() const  { return stats->getNumActiveContactsAsClient(); };
-  virtual u_int16_t getNumActiveContactsAsServer() const  { return stats->getNumActiveContactsAsServer(); };
+  virtual void luaHTTP(lua_State *vm)              { stats->luaHTTP(vm);         };
+  virtual void luaDNS(lua_State *vm, bool verbose) { stats->luaDNS(vm, verbose); luaDoHDot(vm); };
+  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) { stats->luaICMP(vm,isV4,verbose); };
+  virtual void incrVisitedWebSite(char *hostname)  { stats->incrVisitedWebSite(hostname); };
+  virtual HTTPstats* getHTTPstats()                { return(stats->getHTTPstats());       };
+  virtual DnsStats*  getDNSstats()                 { return(stats->getDNSstats());        };
+  virtual ICMPstats* getICMPstats()                { return(stats->getICMPstats());       };
+  virtual void luaTCP(lua_State *vm)               { stats->lua(vm,false,details_normal); };
+  virtual u_int16_t getNumActiveContactsAsClient() { return stats->getNumActiveContactsAsClient(); };
+  virtual u_int16_t getNumActiveContactsAsServer() { return stats->getNumActiveContactsAsServer(); };
   virtual void reloadPrefs();
 
   virtual void deserialize(json_object *obj);
@@ -92,7 +91,6 @@ class LocalHost : public Host, public SerializableElement {
 
   inline std::unordered_map<u_int32_t, IpAddress_id_struct>* getDohDotMap() { return(&doh_dot_map); };
   virtual void incDohDoTUses(Host *srv_host);
-
 };
 
 #endif /* _LOCAL_HOST_H_ */

@@ -129,13 +129,13 @@ class HostStats: public GenericTrafficElement {
   inline HostPoolStats* getQuotaEnforcementStats() { return(quota_enforcement_stats); }
 #endif
 
-  virtual void luaHTTP(lua_State *vm) const {}
-  virtual void luaDNS(lua_State *vm, bool verbose, std::unordered_map<u_int32_t, IpAddress_id_struct> *doh_dot_map) const  {}
-  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  {}
+  virtual void luaHTTP(lua_State *vm) {}
+  virtual void luaDNS(lua_State *vm, bool verbose)  {}
+  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)  {}
   virtual void incrVisitedWebSite(char *hostname) {}
-  virtual HTTPstats* getHTTPstats()  const { return(NULL); }
-  virtual DnsStats*  getDNSstats()   const { return(NULL); }
-  virtual ICMPstats* getICMPstats()  const { return(NULL); }
+  virtual HTTPstats* getHTTPstats()  { return(NULL); }
+  virtual DnsStats*  getDNSstats()   { return(NULL); }
+  virtual ICMPstats* getICMPstats()  { return(NULL); }
 
   virtual void incCliContactedPorts(u_int16_t port)  { ; }
   virtual void incSrvPortsContacts(u_int16_t port)   { ; }
