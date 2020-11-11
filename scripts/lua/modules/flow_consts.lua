@@ -95,7 +95,7 @@ end
 -- ################################################################################
 
 function flow_consts.loadDefinition(def_script, mod_fname, script_path)
-   local required_fields = {"status_key", "alert_severity", "alert_type", "i18n_title"}
+   local required_fields = {"status_key", "alert_type", "i18n_title"}
 
    -- print("Loading "..script_path.."\n")
    
