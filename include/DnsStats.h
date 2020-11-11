@@ -42,8 +42,6 @@ class DnsStats {
   void deserializeStats(json_object *o, struct dns_stats *stats);
   json_object* getStatsJSONObject(struct dns_stats *stats);
   void luaStats(lua_State *vm, struct dns_stats *stats, const char *label, bool verbose);
-  void luaStats(lua_State *vm, std::unordered_map<u_int32_t, IpAddress_id_struct> *doh_dot_map, const char *label, bool verbose);
-
 
  public:
   DnsStats();
@@ -54,7 +52,7 @@ class DnsStats {
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();
-  void lua(lua_State *vm, bool verbose, std::unordered_map<u_int32_t, IpAddress_id_struct> *doh_dot_map);
+  void lua(lua_State *vm, bool verbose);
   bool hasAnomalies(time_t when);
   void luaAnomalies(lua_State* vm, time_t when);
 };

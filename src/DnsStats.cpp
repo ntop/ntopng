@@ -86,47 +86,11 @@ void DnsStats::luaStats(lua_State *vm, struct dns_stats *stats, const char *labe
 
 /* *************************************** */
 
-void DnsStats::luaStats(lua_State *vm, std::unordered_map<u_int32_t, IpAddress_id_struct> *doh_dot_map, const char *label, bool verbose) {
-  lua_newtable(vm);
-
-  if(doh_dot_map != nullptr) {
-    lua_push_uint64_table_entry(vm, "doh_dot_num", doh_dot_map->size());
-
-    if(doh_dot_map->size() > 0) {   
-      u_int8_t i = 0;
-      // Get an iterator pointing to begining of map
-      std::unordered_map<u_int32_t, IpAddress_id_struct>::iterator it = doh_dot_map->begin();
-
-      // Iterate over the map using iterator
-      while(it != doh_dot_map->end())
-      {
-        std::string result = "host_" + std::to_string(i);
-        const char *host_num = result.c_str();
-        lua_push_uint64_table_entry(vm, "ip", it->second.address.get_ipv4());
-        lua_push_uint64_table_entry(vm, "vlan_id", it->second.vlan_id);
-        //std::cout << it->second.address.get_ipv4() << "\n" << it->second.vlan_id << "\n";
-        lua_pushstring(vm, host_num);
-        lua_insert(vm, -2);
-        lua_settable(vm, -3);
-        it++;
-        i++;
-      }
-    }
-  }
-
-  lua_pushstring(vm, label);
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-}
-
-/* *************************************** */
-
-void DnsStats::lua(lua_State *vm, bool verbose, std::unordered_map<u_int32_t, IpAddress_id_struct> *doh_dot_map ) {
+void DnsStats::lua(lua_State *vm, bool verbose) {
   lua_newtable(vm);
 
   luaStats(vm, &sent_stats, "sent", verbose);
   luaStats(vm, &rcvd_stats, "rcvd", verbose);
-  luaStats(vm, doh_dot_map, "doh_dot", verbose);
 
   lua_pushstring(vm, "dns");
   lua_insert(vm, -2);

@@ -168,9 +168,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   }
   
   virtual int16_t get_local_network_id() const = 0;
-  virtual HTTPstats* getHTTPstats()           const { return(NULL);                  };
-  virtual DnsStats*  getDNSstats()            const { return(NULL);                  };
-  virtual ICMPstats* getICMPstats()           const { return(NULL);                  };
+  virtual HTTPstats* getHTTPstats()           { return(NULL);                  };
+  virtual DnsStats*  getDNSstats()            { return(NULL);                  };
+  virtual ICMPstats* getICMPstats()           { return(NULL);                  };
   inline void set_ipv4(u_int32_t _ipv4)             { ip.set(_ipv4);                 };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6);                 };
   inline u_int32_t key()                            { return(ip.key());              };
@@ -257,8 +257,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_num_alerts(lua_State* vm)    const;
   void lua_get_num_total_flows(lua_State* vm) const;
   void lua_get_num_flows(lua_State* vm)     const;
-  void lua_get_num_contacts(lua_State* vm)  const;
-  void lua_get_num_http_hosts(lua_State*vm) const;
+  void lua_get_num_contacts(lua_State* vm);
+  void lua_get_num_http_hosts(lua_State*vm);
   void lua_get_score(lua_State* vm);
   void lua_get_score_breakdown(lua_State* vm);
   void lua_get_os(lua_State* vm);
@@ -297,12 +297,12 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline void incFlagStats(bool as_client, u_int8_t flags, bool cumulative_flags)  {
     stats->incFlagStats(as_client, flags, cumulative_flags);
   };
-  virtual void luaHTTP(lua_State *vm)              const { };
-  virtual void luaDNS(lua_State *vm, bool verbose) const { };
-  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const    { };
-  virtual void luaTCP(lua_State *vm) const { };
-  virtual u_int16_t getNumActiveContactsAsClient() const  { return 0; };
-  virtual u_int16_t getNumActiveContactsAsServer() const  { return 0; };
+  virtual void luaHTTP(lua_State *vm)              { };
+  virtual void luaDNS(lua_State *vm, bool verbose) { };
+  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { };
+  virtual void luaTCP(lua_State *vm) { };
+  virtual u_int16_t getNumActiveContactsAsClient()  { return 0; };
+  virtual u_int16_t getNumActiveContactsAsServer()  { return 0; };
   inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
   inline TcpPacketStats* getTcpPacketRcvdStats() { return(stats->getTcpPacketRcvdStats()); }
 
@@ -316,7 +316,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void incrVisitedWebSite(char *hostname) {};
   inline void incTotalAlerts(AlertType alert_type) { stats->incTotalAlerts(alert_type); }
   inline u_int32_t getTotalAlerts()       { return(stats->getTotalAlerts()); }
-  virtual u_int32_t getActiveHTTPHosts()  const { return(0); };
+  virtual u_int32_t getActiveHTTPHosts()  { return(0); };
   inline u_int32_t getNumOutgoingFlows()  const { return(num_active_flows_as_client); }
   inline u_int32_t getNumIncomingFlows()  const { return(num_active_flows_as_server); }
   inline u_int32_t getNumActiveFlows()    const { return(getNumOutgoingFlows()+getNumIncomingFlows()); }

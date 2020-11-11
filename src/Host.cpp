@@ -571,14 +571,14 @@ void Host::lua_get_num_flows(lua_State* vm) const {
 
 /* ***************************************************** */
 
-void Host::lua_get_num_contacts(lua_State* vm) const {
+void Host::lua_get_num_contacts(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "contacts.as_client", getNumActiveContactsAsClient());
   lua_push_uint64_table_entry(vm, "contacts.as_server", getNumActiveContactsAsServer());
 }
 
 /* ***************************************************** */
 
-void Host::lua_get_num_http_hosts(lua_State* vm) const {
+void Host::lua_get_num_http_hosts(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "active_http_hosts", getActiveHTTPHosts());
 }
 

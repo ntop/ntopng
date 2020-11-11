@@ -414,3 +414,38 @@ void LocalHost::incDohDoTUses(Host *srv_host) {
   /* unordered_map->insert, insert the element only if it is not already inside the map */
   doh_dot_map.insert(std::make_pair(tmp.address.key(), tmp)); 
 }
+
+/* *************************************** */
+
+void LocalHost::luaDoHDot(lua_State *vm) {
+  if(doh_dot_map.size() == 0) return;
+  
+  lua_newtable(vm);
+
+  lua_push_uint64_table_entry(vm, "doh_dot_num", doh_dot_map.size());
+
+  if(doh_dot_map.size() > 0) {   
+    u_int8_t i = 0;
+    // Get an iterator pointing to begining of map
+    for(std::unordered_map<u_int32_t, IpAddress_id_struct>::iterator it = doh_dot_map.begin();
+	it != doh_dot_map.end(); ++it) {
+        std::string result = "host_" + std::to_string(i);
+        const char *host_num = result.c_str();
+
+	lua_newtable(vm);
+	lua_push_uint64_table_entry(vm, "ip", it->second.address.get_ipv4());
+        lua_push_uint64_table_entry(vm, "vlan_id", it->second.vlan_id);
+        //std::cout << it->second.address.get_ipv4() << "\n" << it->second.vlan_id << "\n";
+
+	lua_pushstring(vm, host_num);
+        lua_insert(vm, -2);
+        lua_settable(vm, -3);
+        i++;
+      }
+  }
+
+  lua_pushstring(vm, "doh_dot");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+

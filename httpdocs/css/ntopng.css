@@ -613,12 +613,14 @@ main#n-container {
 #n-navbar {
   left: var(--sidebar-width);
   z-index: 1000;
-  transition: 0.5s all;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: 0.2s ease-out all;
+  background-color: transparent;
+  box-shadow: none;
 }
 
-#n-navbar.scrolled.light {
-  background-color: #ececec6b !important;
+#n-navbar.scrolled {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(88, 49, 49, 0.06) !important;
+  background-color: initial;
 }
 
 .no-scroll {
@@ -810,9 +812,9 @@ td.dt-body-right {
 
 .notification-container {
   position: fixed;
-  top: 70px;
-  right: 12px;
-  z-index: 950;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1050;
 }
 
 .blog-section {

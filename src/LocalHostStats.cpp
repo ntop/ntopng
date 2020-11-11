@@ -148,10 +148,9 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
 
   if(details_level >= details_high) {
     luaICMP(vm,host->get_ip()->isIPv4(),true);
-    luaDNS(vm, true, nullptr);
+    luaDNS(vm, true);
     luaHTTP(vm);
     
-
     /* Contacts */
     lua_newtable(vm);
       
@@ -232,7 +231,7 @@ void LocalHostStats::lua_get_timeseries(lua_State* vm) {
   tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
   tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
 
-  if(dns) dns->lua(vm, false /* NOT verbose */, nullptr);
+  if(dns) dns->lua(vm, false /* NOT verbose */);
 
   if(icmp) {
     struct ts_icmp_stats icmp_s;
