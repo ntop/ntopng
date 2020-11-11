@@ -289,7 +289,7 @@ void ElasticSearch::pushEStemplate() {
   template_file.seekg(0, ios::end);    // go to the end
   length = template_file.tellg();      // report location (this is the length)
   template_file.seekg(0, ios::beg);    // go back to the beginning
-  postbuf = new char[length+1];        // allocate memory for a buffer of appropriate dimension
+  postbuf = new (std::nothrow) char[length+1];        // allocate memory for a buffer of appropriate dimension
   template_file.read(postbuf, length); // read the whole file into the buffer
   postbuf[length] = '\0';
   if(template_file.is_open())

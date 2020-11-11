@@ -1649,7 +1649,7 @@ void Prefs::add_network_interface(char *name, char *description) {
 /* ******************************************* */
 
 void Prefs::add_default_interfaces() {
-  NetworkInterface *dummy = new NetworkInterface("dummy");
+  NetworkInterface *dummy = new (std::nothrow) NetworkInterface("dummy");
   dummy->addAllAvailableInterfaces();
   delete dummy;
 };

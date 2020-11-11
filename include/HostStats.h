@@ -130,7 +130,7 @@ class HostStats: public GenericTrafficElement {
 #endif
 
   virtual void luaHTTP(lua_State *vm) const {}
-  virtual void luaDNS(lua_State *vm, bool verbose) const  {}
+  virtual void luaDNS(lua_State *vm, bool verbose, std::unordered_map<u_int32_t, IpAddress_id_struct> *doh_dot_map) const  {}
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  {}
   virtual void incrVisitedWebSite(char *hostname) {}
   virtual HTTPstats* getHTTPstats()  const { return(NULL); }

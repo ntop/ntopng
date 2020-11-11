@@ -170,10 +170,10 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   is_in_broadcast_domain = false;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
-  syn_flood_attacker_alert  = new AlertCounter();
-  syn_flood_victim_alert    = new AlertCounter();
-  flow_flood_attacker_alert = new AlertCounter();
-  flow_flood_victim_alert   = new AlertCounter();
+  syn_flood_attacker_alert  = new (std::nothrow) AlertCounter();
+  syn_flood_victim_alert    = new (std::nothrow) AlertCounter();
+  flow_flood_attacker_alert = new (std::nothrow) AlertCounter();
+  flow_flood_victim_alert   = new (std::nothrow) AlertCounter();
   syn_sent_last_min = synack_recvd_last_min = 0;
   syn_recvd_last_min = synack_sent_last_min = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);

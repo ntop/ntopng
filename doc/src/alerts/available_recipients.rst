@@ -74,6 +74,23 @@ Now add to the relative Pool the Telegram recipient you just created and it's do
 
 .. figure:: ../img/telegram_alerts.png
 
+Script
+------
+
+Create the script you want to execute each time the alert is triggered and put it inside the directory :code:`/usr/share/ntopng/`.
+Then create the new Endpoint, selecting the script you just created.
+
+.. figure:: ../img/shell_endpoint.png
+
+After that create a new recipient to associate with the new endpoint just created and inside the Options field insert the various options you want to pass to the shell script when executing.
+
+.. figure:: ../img/shell_recipient.png
+
+.. note::
+
+        The script must need at least one argument, that is the JSON object given to the script by the alert script, containing various informations about the alert itself.
+
+
 Webhook
 -------
 

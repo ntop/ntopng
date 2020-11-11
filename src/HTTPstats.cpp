@@ -498,7 +498,7 @@ bool HTTPstats::updateHTTPHostRequest(time_t t,
   */
   if((vh = virtualHosts->get(virtual_host_name)) == NULL) {
     if(virtualHosts->hasEmptyRoom()) {
-      if((vh = new VirtualHost(h, virtual_host_name)) == NULL) {
+      if((vh = new (std::nothrow) VirtualHost(h, virtual_host_name)) == NULL) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: are you running out of memory?");
       } else {
 	if(virtualHosts->add(vh, false /* no need to lock the bucket, purgeIdle is sequential wrt to this */) == false) {

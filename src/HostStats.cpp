@@ -36,10 +36,10 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   num_flow_alerts = 0;
 
   /* NOTE: deleted by ~GenericTrafficElement */
-  ndpiStats = new nDPIStats();
+  ndpiStats = new (std::nothrow) nDPIStats();
   //printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
 
-  dscpStats = new DSCPStats();
+  dscpStats = new (std::nothrow) DSCPStats();
 
   last_epoch_update = 0;
   total_activity_time = 0;
@@ -218,7 +218,7 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
 
 void HostStats::allocateQuotaEnforcementStats() {
       if(!quota_enforcement_stats) {
-        quota_enforcement_stats = new HostPoolStats(iface);
+        quota_enforcement_stats = new (std::nothrow) HostPoolStats(iface);
 
 #ifdef HOST_POOLS_DEBUG
         char buf[128];

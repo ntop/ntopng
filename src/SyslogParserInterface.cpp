@@ -36,7 +36,7 @@ SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *c
 
 void SyslogParserInterface::startPacketPolling() {
   /* Allocate the SyslogLuaEngine only after the plugins have been loaded */
-  le = new SyslogLuaEngine(this);
+  le = new (std::nothrow) SyslogLuaEngine(this);
 
   ParserInterface::startPacketPolling(); /* -> NetworkInterface::startPacketPolling(); */
 }

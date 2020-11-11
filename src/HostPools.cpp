@@ -43,7 +43,7 @@ HostPools::HostPools(NetworkInterface *_iface) {
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) routing_policy_id[i] = DEFAULT_ROUTING_TABLE_ID;
 
   if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t*))) == NULL
-     || (volatile_members_lock            = new Mutex*[MAX_NUM_HOST_POOLS]) == NULL
+     || (volatile_members_lock            = new (std::nothrow) Mutex*[MAX_NUM_HOST_POOLS]) == NULL
      || (pool_shaper = (u_int16_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int16_t))) == NULL
      || (schedule_bitmap = (u_int32_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int32_t))) == NULL
      || (enforce_quotas_per_pool_member   = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL
@@ -51,7 +51,7 @@ HostPools::HostPools(NetworkInterface *_iface) {
     throw 1;
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-    if((volatile_members_lock[i] = new Mutex()) == NULL)
+    if((volatile_members_lock[i] = new (std::nothrow) Mutex()) == NULL)
       throw 2;
   }
 #endif
@@ -65,7 +65,7 @@ HostPools::HostPools(NetworkInterface *_iface) {
     throw 1;
 
   latest_swap = 0;
-  if((swap_lock = new Mutex()) == NULL)
+  if((swap_lock = new (std::nothrow) Mutex()) == NULL)
     throw 3;
 
   if(_iface)
@@ -650,8 +650,8 @@ void HostPools::reloadPools() {
   if(!iface || (iface->get_id() == -1))
     return;
 
-  new_tree = new VlanAddressTree;
-  new_stats = new HostPoolStats*[MAX_NUM_HOST_POOLS];
+  new_tree = new (std::nothrow) VlanAddressTree;
+  new_stats = new (std::nothrow) HostPoolStats*[MAX_NUM_HOST_POOLS];
   for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)
     new_stats[i] = NULL;
 
@@ -659,9 +659,9 @@ void HostPools::reloadPools() {
 
   /* Always allocate default pool stats */
   if(stats && stats[0]) /* Duplicate existing statistics */
-    new_stats[0] = new HostPoolStats(*stats[0]);
+    new_stats[0] = new (std::nothrow) HostPoolStats(*stats[0]);
   else /* Brand new statistics */
-    new_stats[0] = new HostPoolStats(iface);
+    new_stats[0] = new (std::nothrow) HostPoolStats(iface);
 
   /* Keys are pool ids */
   if((num_pools = redis->smembers(kname, &pools)) == -1)
@@ -683,9 +683,9 @@ void HostPools::reloadPools() {
 
     if(_pool_id != 0) { /* Pool id 0 stats already updated */
       if(stats && stats[_pool_id]) /* Duplicate existing statistics */
-	new_stats[_pool_id] = new HostPoolStats(*stats[_pool_id]);
+	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(*stats[_pool_id]);
       else /* Brand new statistics */
-	new_stats[_pool_id] = new HostPoolStats(iface);
+	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
     }
 
     snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, _pool_id);

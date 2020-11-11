@@ -37,7 +37,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 #endif
   model = NULL, ssid = NULL;
   stats_reset_requested = data_delete_requested = false;
-  stats = new MacStats(_iface);
+  stats = new (std::nothrow) MacStats(_iface);
   stats_shadow = NULL;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
 
@@ -409,7 +409,7 @@ void Mac::checkDataReset() {
 
 void Mac::checkStatsReset() {
   if(statsResetRequested()) {
-    MacStats *new_stats = new MacStats(iface);
+    MacStats *new_stats = new (std::nothrow) MacStats(iface);
     stats_shadow = stats;
     stats = new_stats;
     last_stats_reset = ntop->getLastStatsReset();

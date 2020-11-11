@@ -149,8 +149,8 @@ NetworkInterface::NetworkInterface(const char *name,
      && ifname
      && strcmp(ifname, SYSTEM_INTERFACE_NAME)
      ) {
-    pMap = new PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
-    sMap = new ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
+    pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
+    sMap = new (std::nothrow) ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
   } else
     pMap = NULL, sMap = NULL;
 #endif
@@ -177,7 +177,7 @@ NetworkInterface::NetworkInterface(const char *name,
 #ifdef NTOPNG_PRO
   policer = NULL; /* possibly instantiated by subclass PacketBridge */
 #ifndef HAVE_NEDGE
-  flow_profiles = ntop->getPro()->has_valid_license() ? new FlowProfiles(id) : NULL;
+  flow_profiles = ntop->getPro()->has_valid_license() ? new (std::nothrow) FlowProfiles(id) : NULL;
   if(flow_profiles) flow_profiles->loadProfiles();
   shadow_flow_profiles = NULL;
 #endif
@@ -193,8 +193,8 @@ NetworkInterface::NetworkInterface(const char *name,
   ndpiStats = NULL;
   dscpStats = NULL;
 
-  host_pools = new HostPools(this);
-  bcast_domains = new BroadcastDomains(this);
+  host_pools = new (std::nothrow) HostPools(this);
+  bcast_domains = new (std::nothrow) BroadcastDomains(this);
 
 #ifdef __linux__
   /*
@@ -279,7 +279,7 @@ void NetworkInterface::init() {
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
-  hosts_to_restore = new FifoStringsQueue(64);
+  hosts_to_restore = new (std::nothrow) FifoStringsQueue(64);
 
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;
@@ -347,7 +347,7 @@ void NetworkInterface::init() {
 
 void NetworkInterface::initL7Policer() {
   /* Instantiate the policer */
-  policer = new L7Policer(this);
+  policer = new (std::nothrow) L7Policer(this);
 }
 
 #endif
@@ -395,7 +395,7 @@ void NetworkInterface::checkDisaggregationMode() {
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
-  sub_interfaces = ntop->getPrefs()->is_enterprise_m_edition() ? new SubInterfaces(this) : NULL;
+  sub_interfaces = ntop->getPrefs()->is_enterprise_m_edition() ? new (std::nothrow) SubInterfaces(this) : NULL;
 #endif
 #endif
 }
@@ -875,7 +875,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
     try {
       PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
-      ret = new Flow(this, vlan_id, l4_proto,
+      ret = new (std::nothrow) Flow(this, vlan_id, l4_proto,
 		     srcMac, src_ip, src_port,
 		     dstMac, dst_ip, dst_port,
 		     icmp_info,
@@ -1048,11 +1048,11 @@ NetworkInterface* NetworkInterface::getDynInterface(u_int64_t criteria, bool par
       }
 
       if(dynamic_cast<ZMQParserInterface*>(this))
-        sub_iface = new ZMQParserInterface(buf, vIface_type);
+        sub_iface = new (std::nothrow) ZMQParserInterface(buf, vIface_type);
       else if(dynamic_cast<SyslogParserInterface*>(this))
-        sub_iface = new SyslogParserInterface(buf, vIface_type);
+        sub_iface = new (std::nothrow) SyslogParserInterface(buf, vIface_type);
       else
-        sub_iface = new NetworkInterface(buf, vIface_type);
+        sub_iface = new (std::nothrow) NetworkInterface(buf, vIface_type);
 
       if(sub_iface) {
         if(!this->registerSubInterface(sub_iface, criteria)) {
@@ -2674,8 +2674,8 @@ static void* flowDumper(void* ptr) {
 /* **************************************************** */
 
 void NetworkInterface::startFlowDumping() {
-  idleFlowsToDump   = new SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN, "idleFlowsToDump");
-  activeFlowsToDump = new SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN, "activeFlowsToDump");
+  idleFlowsToDump   = new (std::nothrow) SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN, "idleFlowsToDump");
+  activeFlowsToDump = new (std::nothrow) SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN, "activeFlowsToDump");
 
   /*
     Precalculate constants that won't change during the execution.
@@ -3404,7 +3404,7 @@ Host* NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id, bool isInlineC
 
     h = info.h;
   } else {
-    IpAddress *ip = new IpAddress();
+    IpAddress *ip = new (std::nothrow) IpAddress();
 
     if(ip) {
       ip->set(host_ip);
@@ -3448,7 +3448,7 @@ void NetworkInterface::updateFlowProfiles() {
     }
 
     flow_profiles->dumpCounters();
-    shadow_flow_profiles = flow_profiles, newP = new FlowProfiles(id);
+    shadow_flow_profiles = flow_profiles, newP = new (std::nothrow) FlowProfiles(id);
 
     newP->loadProfiles(); /* and reload */
     flow_profiles = newP; /* Overwrite the current profiles */
@@ -6282,7 +6282,7 @@ u_int64_t NetworkInterface::getCheckPointNumDiscardedProbingBytes() const {
 
 void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
   if(interfaceStats == NULL)
-    interfaceStats = new InterfaceStatsHash(NUM_IFACE_STATS_HASH);
+    interfaceStats = new (std::nothrow) InterfaceStatsHash(NUM_IFACE_STATS_HASH);
 
   if(interfaceStats) {
     char a[64];
@@ -6312,7 +6312,7 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
 
   if(!ntop->getRedis()) return;
 
-  if((new_tree = new VlanAddressTree) == NULL) {
+  if((new_tree = new (std::nothrow) VlanAddressTree) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
   }
@@ -7005,7 +7005,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 #ifdef HAVE_MYSQL
       if(ntop->getPrefs()->is_enterprise_m_edition()
 	 && !ntop->getPrefs()->do_read_flows_from_nprobe_mysql())
-	db = new BatchedMySQLDB(this);
+	db = new (std::nothrow) BatchedMySQLDB(this);
 #endif
 #endif
 
@@ -7018,9 +7018,9 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     }
 #ifndef HAVE_NEDGE
     else if(ntop->getPrefs()->do_dump_flows_on_es())
-      db = new ElasticSearch(this);
+      db = new (std::nothrow) ElasticSearch(this);
     else if(ntop->getPrefs()->do_dump_flows_on_ls())
-      db = new Logstash(this);
+      db = new (std::nothrow) Logstash(this);
 #endif
   }
 
@@ -7279,7 +7279,7 @@ void NetworkInterface::reloadDhcpRanges() {
     }
 
     // +1 for final zero IP, which is used to indicate array termination
-    new_ranges = new dhcp_range[num_ranges+1];
+    new_ranges = new (std::nothrow) dhcp_range[num_ranges+1];
 
     if(new_ranges) {
       char *cur_pos = rsp;
@@ -7917,7 +7917,7 @@ AlertableEntity* NetworkInterface::lockExternalAlertable(AlertEntity entity, con
       return(NULL);
     }
 
-    alertable = new AlertableEntity(this, entity);
+    alertable = new (std::nothrow) AlertableEntity(this, entity);
     alertable->setEntityValue(entity_val);
     external_alerts[key] = alertable;
   } else

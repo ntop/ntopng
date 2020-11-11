@@ -29,7 +29,7 @@
  */
 Bloom::Bloom(u_int32_t _num_bloom_bits) {
   num_bloom_bits = Utils::pow2(_num_bloom_bits);
-  bitmask = new Bitmask(_num_bloom_bits);
+  bitmask = new (std::nothrow) Bitmask(_num_bloom_bits);
   mask = num_bloom_bits - 1;
 }
 

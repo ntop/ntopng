@@ -155,7 +155,7 @@ bool ViewInterface::addSubinterface(NetworkInterface *what) {
       what->setViewed(this, num_viewed_interfaces);
       viewed_interfaces[num_viewed_interfaces] = what;
       /* Instantiate the queue which will be used by the view interface to enqueue flows for this view */
-      viewed_interfaces_queues[num_viewed_interfaces] = new SPSCQueue<Flow *>(MAX_VIEW_INTERFACE_QUEUE_LEN, buf);
+      viewed_interfaces_queues[num_viewed_interfaces] = new (std::nothrow) SPSCQueue<Flow *>(MAX_VIEW_INTERFACE_QUEUE_LEN, buf);
       num_viewed_interfaces++;
       is_packet_interface &= what->isPacketInterface();
       return(true);

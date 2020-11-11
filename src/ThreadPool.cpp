@@ -37,7 +37,7 @@ static void* doRun(void* ptr)  {
 ThreadPool::ThreadPool(bool _high_priority, u_int8_t _pool_size,
 		       char *comma_separated_affinity_mask) {
   pool_size = _pool_size;
-  m = new Mutex();
+  m = new (std::nothrow) Mutex();
   pthread_cond_init(&condvar, NULL);
   terminating = false;
   high_priority = _high_priority; /* Not used yet */
@@ -154,7 +154,7 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
     return(false); /* Task still running or already queued, don't re-queue it */
   }
 
-  q = new QueuedThreadData(ta, path, iface, deadline);
+  q = new (std::nothrow) QueuedThreadData(ta, path, iface, deadline);
 
   if(!q) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create job");

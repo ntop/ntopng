@@ -54,10 +54,10 @@ extern struct keyval string_to_replace[]; /* Lua.cpp */
 
 Ntop::Ntop(char *appName) {
   ntop = this;
-  globals = new NtopGlobals();
-  extract = new TimelineExtract();
-  pa      = new PeriodicActivities();
-  address = new AddressResolution();
+  globals = new (std::nothrow) NtopGlobals();
+  extract = new (std::nothrow) TimelineExtract();
+  pa      = new (std::nothrow) PeriodicActivities();
+  address = new (std::nothrow) AddressResolution();
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
 #ifndef HAVE_NEDGE
@@ -75,7 +75,7 @@ Ntop::Ntop(char *appName) {
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
   malicious_ja3 = malicious_ja3_shadow = NULL;
-  new_malicious_ja3 = new std::set<std::string>();
+  new_malicious_ja3 = new (std::nothrow) std::set<std::string>();
   system_interface = NULL;
   purgeLoop_started = false;
 #ifndef WIN32
@@ -86,7 +86,7 @@ Ntop::Ntop(char *appName) {
 
 #ifndef WIN32
   if(can_send_icmp)
-    cping = new ContinuousPing();
+    cping = new (std::nothrow) ContinuousPing();
 #endif
 
   /* nDPI handling */
@@ -95,9 +95,9 @@ Ntop::Ntop(char *appName) {
   ndpi_struct = initnDPIStruct();
   ndpi_finalize_initalization(ndpi_struct);
 
-  internal_alerts_queue = new FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
+  internal_alerts_queue = new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
-  resolvedHostsBloom = new Bloom(NUM_HOSTS_RESOLVED_BITS);
+  resolvedHostsBloom = new (std::nothrow) Bloom(NUM_HOSTS_RESOLVED_BITS);
   
 #ifdef WIN32
   if(SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, working_dir) != S_OK) {
@@ -161,7 +161,7 @@ Ntop::Ntop(char *appName) {
   refreshPluginsDir();
 
 #ifdef NTOPNG_PRO
-  pro = new NtopPro();
+  pro = new (std::nothrow) NtopPro();
 #else
   pro = NULL;
 #endif
@@ -361,7 +361,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   if(quick_registration) return;
 
-  system_interface = new NetworkInterface(SYSTEM_INTERFACE_NAME, SYSTEM_INTERFACE_NAME);
+  system_interface = new (std::nothrow) NetworkInterface(SYSTEM_INTERFACE_NAME, SYSTEM_INTERFACE_NAME);
 
   /* License check could have increased the number of interfaces available */
   resetNetworkInterfaces();
@@ -411,7 +411,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 void Ntop::resetNetworkInterfaces() {
   if(iface) delete []iface;
 
-  if((iface = new NetworkInterface*[MAX_NUM_DEFINED_INTERFACES]()) == NULL)
+  if((iface = new (std::nothrow) NetworkInterface*[MAX_NUM_DEFINED_INTERFACES]()) == NULL)
     throw "Not enough memory";
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interfaces Available: %u", MAX_NUM_DEFINED_INTERFACES);
@@ -422,7 +422,7 @@ void Ntop::resetNetworkInterfaces() {
 void Ntop::createExportInterface() {
 #ifndef HAVE_NEDGE
   if(prefs->get_export_endpoint())
-    export_interface = new ExportInterface(prefs->get_export_endpoint());
+    export_interface = new (std::nothrow) ExportInterface(prefs->get_export_endpoint());
   else
     export_interface = NULL;
 #endif
@@ -901,14 +901,14 @@ void Ntop::loadLocalInterfaceAddress() {
 
 void Ntop::loadGeolocation() {
   if(geo != NULL) delete geo;
-  geo = new Geolocation();
+  geo = new (std::nothrow) Geolocation();
 }
 
 /* ******************************************* */
 
 void Ntop::loadMacManufacturers(char *dir) {
   if(mac_manufacturers != NULL) delete mac_manufacturers;
-  if((mac_manufacturers = new MacManufacturers(dir)) == NULL)
+  if((mac_manufacturers = new (std::nothrow) MacManufacturers(dir)) == NULL)
     throw "Not enough memory";
 }
 
@@ -2546,7 +2546,7 @@ void Ntop::shutdownAll() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing shutdown script");
 
   /* Exec shutdown script before shutting down ntopng */
-  if((shutdown_activity = new ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
+  if((shutdown_activity = new (std::nothrow) ThreadedActivity(SHUTDOWN_SCRIPT_PATH))) {
     /* Don't call run() as by the time the script will be run the delete below will free the memory */
     shutdown_activity->runSystemScript(time(NULL));
     delete shutdown_activity;
@@ -2804,7 +2804,7 @@ void Ntop::reloadJA3Hashes() {
 
   malicious_ja3_shadow = malicious_ja3;
   malicious_ja3 = new_malicious_ja3;
-  new_malicious_ja3 = new std::set<std::string>();
+  new_malicious_ja3 = new (std::nothrow) std::set<std::string>();
 }
 
 /* ******************************************* */

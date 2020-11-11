@@ -117,7 +117,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     exit(0);
   }
 
-  if((startup_activity = new ThreadedActivity(STARTUP_SCRIPT_PATH, false))) {
+  if((startup_activity = new (std::nothrow) ThreadedActivity(STARTUP_SCRIPT_PATH, false))) {
     /*
       Don't call run() as by the time the script will be run
       the delete below will free the memory 
@@ -133,16 +133,16 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   if(num_threads_no_priority > MAX_THREAD_POOL_SIZE)
     num_threads_no_priority = MAX_THREAD_POOL_SIZE;
 
-  high_priority_pool         = new ThreadPool(true,  num_threads);
-  standard_priority_pool     = new ThreadPool(false, num_threads);
-  longrun_priority_pool      = new ThreadPool(false, num_threads);
-  purge_idle_pool            = new ThreadPool(false, 1);
-  timeseries_pool            = new ThreadPool(false, 1);
-  notifications_pool         = new ThreadPool(false, 1);
-  periodic_user_scripts_pool = new ThreadPool(false, 2);
-  discover_pool              = new ThreadPool(false, 1);
-  housekeeping_pool          = new ThreadPool(false, 1);
-  no_priority_pool           = new ThreadPool(false, num_threads_no_priority);
+  high_priority_pool         = new (std::nothrow) ThreadPool(true,  num_threads);
+  standard_priority_pool     = new (std::nothrow) ThreadPool(false, num_threads);
+  longrun_priority_pool      = new (std::nothrow) ThreadPool(false, num_threads);
+  purge_idle_pool            = new (std::nothrow) ThreadPool(false, 1);
+  timeseries_pool            = new (std::nothrow) ThreadPool(false, 1);
+  notifications_pool         = new (std::nothrow) ThreadPool(false, 1);
+  periodic_user_scripts_pool = new (std::nothrow) ThreadPool(false, 2);
+  discover_pool              = new (std::nothrow) ThreadPool(false, 1);
+  housekeeping_pool          = new (std::nothrow) ThreadPool(false, 1);
+  no_priority_pool           = new (std::nothrow) ThreadPool(false, num_threads_no_priority);
   
   static activity_descr ad[] = {
     // Script                 Periodicity (s) Max (s)  Pool                        Align  !View  !PCAP  Reuse
@@ -174,7 +174,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   activity_descr *d = ad;
   
   while(d->path) {
-    ThreadedActivity *ta = new ThreadedActivity(d->path,
+    ThreadedActivity *ta = new (std::nothrow) ThreadedActivity(d->path,
 						d->periodicity,
 						d->max_duration_secs,
 						d->align_to_localtime,

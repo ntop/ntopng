@@ -183,15 +183,15 @@ AfterShutdownAction afterShutdownAction = after_shutdown_nop;
 
 int main() {
   const int num_runs = 1000;
-  ntop = new Ntop((char*)"test");
-  Prefs *prefs = new Prefs(ntop);
+  ntop = new (std::nothrow) Ntop((char*)"test");
+  Prefs *prefs = new (std::nothrow) Prefs(ntop);
   ntop->registerPrefs(prefs, false);
 
-  NetworkInterface *iface = new PcapInterface("lo");
+  NetworkInterface *iface = new (std::nothrow) PcapInterface("lo");
   ntop->registerInterface(iface);
 
   /* Calls interface.lua for interface lo */
-  AlertCheckLuaEngine *engine = new AlertCheckLuaEngine(alert_entity_interface, minute_script, iface);
+  AlertCheckLuaEngine *engine = new (std::nothrow) AlertCheckLuaEngine(alert_entity_interface, minute_script, iface);
   lua_State *L = engine->getState();
 
   /* Tip: try with a mix of lua compilation/runtime errors in interface.lua/required modules

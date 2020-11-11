@@ -26,7 +26,7 @@
 NtopGlobals::NtopGlobals() {
   start_time = time(NULL);
   file_id = 0;
-  trace = new Trace();  
+  trace = new (std::nothrow) Trace();  
   is_shutdown = shutdown_requested = false, do_decode_tunnels = true;
 };
 

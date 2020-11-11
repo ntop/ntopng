@@ -399,5 +399,5 @@ void IpAddress::dump() {
 /* ****************************** */
 
 IpAddress* IpAddress::clone() {
-  return(new IpAddress(*this));
+  return(new (std::nothrow) IpAddress(*this));
 }

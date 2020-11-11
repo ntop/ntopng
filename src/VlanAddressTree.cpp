@@ -24,7 +24,7 @@
 /* **************************************** */
 
 VlanAddressTree::VlanAddressTree() {
-  tree = new AddressTree*[MAX_NUM_VLAN];
+  tree = new (std::nothrow) AddressTree*[MAX_NUM_VLAN];
   memset(tree, 0, sizeof(AddressTree*) * MAX_NUM_VLAN);
 }
 
@@ -41,7 +41,7 @@ VlanAddressTree::~VlanAddressTree() {
 /* **************************************** */
 
 bool VlanAddressTree::addAddress(u_int16_t vlan_id, char *_net, const int16_t user_data) {
-  if(tree[vlan_id] || (tree[vlan_id] = new AddressTree()))
+  if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree()))
     return tree[vlan_id]->addAddress(_net, user_data);
 
   return false;
@@ -50,7 +50,7 @@ bool VlanAddressTree::addAddress(u_int16_t vlan_id, char *_net, const int16_t us
 /* **************************************** */
 
 bool VlanAddressTree::addAddresses(u_int16_t vlan_id, char *net, const int16_t user_data) {
-  if(tree[vlan_id] || (tree[vlan_id] = new AddressTree()))
+  if(tree[vlan_id] || (tree[vlan_id] = new (std::nothrow) AddressTree()))
     return tree[vlan_id]->addAddresses(net, user_data);
 
   return false;
