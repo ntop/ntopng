@@ -21,6 +21,7 @@ local rc = rest_utils.consts.success.ok
 local res = {}
 
 local username = _POST["username"]
+local auth_session_duration = _POST["auth_session_duration"] 
 
 if username == nil then
    rest_utils.answer(rest_utils.consts.err.invalid_args)
@@ -29,7 +30,13 @@ end
 
 username = string.lower(username)
 
-res.session = ntop.createUserSession(username)
+local duration = 0
+
+if not isEmptyString(auth_session_duration) then
+   duration = tonumber(auth_session_duration)
+end
+
+res.session = ntop.createUserSession(username, duration)
 
 if isEmptyString(res.session) then
    rest_utils.answer(rest_utils.consts.err.invalid_args)

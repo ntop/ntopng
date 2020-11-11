@@ -2079,14 +2079,17 @@ static int ntop_clear_user_lifetime(lua_State* vm) {
 static int ntop_create_user_session(lua_State* vm) {
   char *username;
   char session_id[NTOP_SESSION_ID_LENGTH];
+  u_int session_duration = 0;
   
   session_id[0] = '\0';
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
-
   if(strlen(username) == 0)
     return(CONST_LUA_PARAM_ERROR);
+
+  if(lua_type(vm, 2) == LUA_TNUMBER) /* Optional */
+    session_duration = lua_tonumber(vm, 2);
 
   /* Admin or the same user is allowed to get a session */
   if(!ntop->isUserAdministrator(vm)) {
@@ -2096,7 +2099,7 @@ static int ntop_create_user_session(lua_State* vm) {
       return(CONST_LUA_ERROR);
   }
   
-  ntop->get_HTTPserver()->authorize_noconn(username, session_id, sizeof(session_id));
+  ntop->get_HTTPserver()->authorize_noconn(username, session_id, sizeof(session_id), session_duration);
 
   lua_pushstring(vm, session_id);
   return CONST_LUA_OK;

@@ -156,8 +156,7 @@ static void create_session(const char * const user,
 			   bool localuser,
 			   char *session_id,
 			   u_int session_id_size,
-			   u_int *session_duration
-			   ) {
+			   u_int session_duration) {
   char key[256], random[64];
   char csrf[NTOP_CSRF_TOKEN_LENGTH];
   char val[128];
@@ -169,22 +168,11 @@ static void create_session(const char * const user,
 
   // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s\t%s", random, session_id);
 
-  // do_auto_logout() is the getter for the command-line specified
-  // preference that defaults to true (i.e., auto_logout is enabled by default)
-  // If do_auto_logout() is disabled, then the runtime auto logout preference
-  // is taken into account.
-  // If do_auto_logout() is false, then the auto logout is disabled regardless
-  // of runtime preferences.
-  if(!ntop->getPrefs()->do_auto_logout() || !ntop->getPrefs()->do_auto_logout_at_runtime())
-    *session_duration = EXTENDED_HTTP_SESSION_DURATION;
-  else
-    *session_duration = ntop->getPrefs()->get_auth_session_duration();
-
   /* Save session in redis */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
   snprintf(val, sizeof(val), "%s|%s|%s|%c", user, group, csrf, localuser ? '1' : '0');
 
-  ntop->getRedis()->set(key, val, *session_duration);
+  ntop->getRedis()->set(key, val, session_duration);
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s", session_id);
 
   HTTPserver::traceLogin(user, true);
@@ -199,7 +187,7 @@ static void set_session_cookie(const struct mg_connection * const conn,
 		       bool localuser,
 		       const char * const referer) {
   char session_id[64];
-  u_int session_duration = 0;
+  u_int session_duration;
 
   if(!strcmp(mg_get_request_info((struct mg_connection*)conn)->uri, "/metrics")
      || !strncmp(mg_get_request_info((struct mg_connection*)conn)->uri, LIVE_TRAFFIC_URL, strlen(LIVE_TRAFFIC_URL))
@@ -210,7 +198,18 @@ static void set_session_cookie(const struct mg_connection * const conn,
   if(HTTPserver::authorized_localhost_user_login(conn))
     return;
 
-  create_session(user, group, localuser, session_id, sizeof(session_id), &session_duration);
+  // do_auto_logout() is the getter for the command-line specified
+  // preference that defaults to true (i.e., auto_logout is enabled by default)
+  // If do_auto_logout() is disabled, then the runtime auto logout preference
+  // is taken into account.
+  // If do_auto_logout() is false, then the auto logout is disabled regardless
+  // of runtime preferences.
+  if(!ntop->getPrefs()->do_auto_logout() || !ntop->getPrefs()->do_auto_logout_at_runtime())
+    session_duration = EXTENDED_HTTP_SESSION_DURATION;
+  else
+    session_duration = ntop->getPrefs()->get_auth_session_duration();
+
+  create_session(user, group, localuser, session_id, sizeof(session_id), session_duration);
 
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
@@ -823,9 +822,8 @@ static void authorize(struct mg_connection *conn,
 
 // Used to retrieve a session cookie for third-party users via REST API
 // Note: there is no connection directly tied to this request (out of bound)
-bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int session_id_size) {
+bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int session_id_size, u_int session_duration) {
   char group[NTOP_GROUP_MAXLEN] = { 0 };
-  u_int session_duration = 0;
 
   /* Note: we are not checking the user password as the admin
    * or the same (authenticated) user is generating the session */
@@ -835,7 +833,7 @@ bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int sessio
     group[NTOP_GROUP_MAXLEN - 1] = '\0';
     ntop->getUserGroupLocal(username, group);
 
-    create_session(username, group, true, session_id, session_id_size, &session_duration);
+    create_session(username, group, true, session_id, session_id_size, session_duration);
 
     return(true);
   }

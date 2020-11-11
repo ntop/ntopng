@@ -3357,6 +3357,13 @@
 						"description": "Username",
 						"required": true,
 						"type": "string"
+					},
+					{
+						"name": "auth_session_duration",
+						"in": "formData",
+						"description": "Session duration (seconds). Default: 0 (no expiration).",
+						"required": false,
+						"type": "integer"
 					}
 				],
 				"responses": {

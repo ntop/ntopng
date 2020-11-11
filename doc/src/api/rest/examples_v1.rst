@@ -1522,7 +1522,7 @@ Change the Status of an SNMP Device Interface
 
 .. code:: bash
 
-   curl -s -u admin:admin  -H "Content-Type: application/json" -u admin:admin1 -d '{"host": "192.168.2.169", "snmp_admin_status": "up", "snmp_port_idx": 26}' http://127.0.0.1:3000/lua/pro/rest/v1/change/snmp/device/interface/status.lua
+   curl -s -u admin:admin  -H "Content-Type: application/json" -u admin:admin -d '{"host": "192.168.2.169", "snmp_admin_status": "up", "snmp_port_idx": 26}' http://127.0.0.1:3000/lua/pro/rest/v1/change/snmp/device/interface/status.lua
 
 Response:
 
@@ -1539,7 +1539,7 @@ Response:
 
 .. code:: bash
 
-   curl -s -u admin:admin  -H "Content-Type: application/json" -u admin:admin1 -d '{"host": "192.168.2.169", "snmp_admin_status": "down", "snmp_port_idx": 26}' http://127.0.0.1:3000/lua/pro/rest/v1/change/snmp/device/interface/status.lua
+   curl -s -u admin:admin  -H "Content-Type: application/json" -u admin:admin -d '{"host": "192.168.2.169", "snmp_admin_status": "down", "snmp_port_idx": 26}' http://127.0.0.1:3000/lua/pro/rest/v1/change/snmp/device/interface/status.lua
 
 Response:
 
@@ -1551,4 +1551,35 @@ Response:
      "rsp":[],
      "rc_str":"OK"
    }
+
+Misc
+----
+
+Create a Session Cookie
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"username": "admin"}' "http://192.168.1.1:3000/lua/rest/v1/create/ntopng/session.lua"
+
+Response:
+
+.. code:: json
+
+   {
+   	"rc":0,
+   	"rc_str":"OK",
+   	"rc_str_hr":"Success",
+   	"rsp":{
+   		"session":"3ff5cf2aba7168e9ef955c20291a9ad4"
+   	}
+   }
+
+Using the session:
+
+.. code:: bash
+
+   curl --cookie "user=admin; session=3ff5cf2aba7168e9ef955c20291a9ad4" "http://192.168.1.1:3000/lua/rest/get/interface/data.lua?ifid=1"
 
