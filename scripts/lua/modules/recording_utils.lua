@@ -880,7 +880,7 @@ function recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
 	 local last_epoch = tonumber(stats['LastDumpedEpoch'])
 
 	 if first_epoch > 0 and last_epoch > 0 and 
-         epoch_end > first_epoch and epoch_begin < last_epoch then
+              epoch_end > first_epoch and epoch_begin < last_epoch then
 	    info.epoch_begin = epoch_begin
 	    info.epoch_end = epoch_end
 	    if first_epoch > epoch_begin then

@@ -141,8 +141,8 @@ for k,v in ipairs(alerts) do
       local traffic_extraction_available = recording_utils.isActive(ifid) and recording_utils.isExtractionActive(ifid)
       if traffic_extraction_available then 
          -- Checking PCAP availability in the time window
-         local epoch_begin = v["first_seen"]
-         local epoch_end = v["alert_tstamp"]
+         local epoch_begin = tonumber(v["first_seen"])
+         local epoch_end = tonumber(v["alert_tstamp"])
          local window_info = recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
          if window_info.epoch_begin and window_info.epoch_end then
             -- Building BPF filter
