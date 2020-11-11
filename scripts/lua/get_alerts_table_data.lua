@@ -123,26 +123,40 @@ for k,v in ipairs(alerts) do
    local column_score    = format_utils.formatValue(tonumber(v["score"]))
    local alert_info      = alert_utils.getAlertInfo(v)
    local column_msg      = string.gsub(alert_utils.formatAlertMessage(ifid, v, alert_info), '"', "'")
-   local column_chart = nil
+   local column_chart = ""
 
    if ntop.isPro() then
       local graph_utils = require "graph_utils"
 
       if graph_utils.getAlertGraphLink then
-	 column_chart    = graph_utils.getAlertGraphLink(getInterfaceId(ifname), v, alert_info, engaged)
-	 if not isEmptyString(column_chart) then
-	    column_chart = "<a class='btn btn-sm btn-info' href='".. column_chart .."'><i class='fas fa-search-plus drilldown-icon'></i></a>"
+	 local chart_link = graph_utils.getAlertGraphLink(getInterfaceId(ifname), v, alert_info, engaged)
+	 if not isEmptyString(chart_link) then
+	    column_chart = column_chart.."<a class='btn btn-sm btn-info' href='".. chart_link .."'><i class='fas fa-search-plus drilldown-icon'></i></a>"
 	 end
       end
    end
 
    if alert_entity == "flow" then
-      local traffic_extraction_available = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
+      -- Checking PCAP data availability
+      local traffic_extraction_available = recording_utils.isActive(ifid) and recording_utils.isExtractionActive(ifid)
       if traffic_extraction_available then 
-         -- TODO allow pcap download with traffic matching the tuple
-         -- v["vlan_id"], v["cli_addr"], v["srv_addr"], v["cli_port"], v["srv_port"], v["proto"]
-         -- in the time interval v["first_seen"], v["alert_tstamp"]
-         --
+         -- Checking PCAP availability in the time window
+         local epoch_begin = v["first_seen"]
+         local epoch_end = v["alert_tstamp"]
+         local window_info = recording_utils.isDataAvailable(ifid, epoch_begin, epoch_end)
+         if window_info.epoch_begin and window_info.epoch_end then
+            -- Building BPF filter
+            local filter = "host "..v["cli_addr"].." and host "..v["srv_addr"]..
+                           " and port "..v["cli_port"].." and port "..v["srv_port"]
+            filer = filter.." and ip proto "..v["proto"]
+            if not isEmptyString(v["vlan_id"]) then
+               filer = filter.." and vlan "..v["vlan_id"]
+            end
+            
+            column_chart = column_chart.." <button class='btn btn-link btn-sm' title='"..i18n("traffic_recording.pcap_download").."' "
+              .."onclick='pcapDownload(this); return false;'"
+              .." data-filter='"..filter.."' data-epoch-begin='"..window_info.epoch_begin.."' data-epoch-end='"..window_info.epoch_end.."'><i class='fas fa-lg fa-download'></i></button>"
+         end
       end
    end
 
