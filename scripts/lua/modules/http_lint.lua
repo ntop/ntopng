@@ -1966,10 +1966,10 @@ local function validateParameter(k, v)
       end
 
       if ret then
-         return true, v
+         return true, "OK", v
       else
 	 -- io.write(debug.traceback())
-         return false, "Validation error"
+         return false, "Validation error", nil
       end
    end
 end
@@ -1982,11 +1982,11 @@ local function validateSpecialParameter(param, value)
 	 value = ntop.httpPurifyParam(value)
 
 	 if not v[1](suffix) then
-	    return false, "Special Validation, parameter key"
+	    return false, "Special Validation, parameter key", nil
 	 elseif not v[2](value) then
-	    return false, "Special Validation, parameter value"
+	    return false, "Special Validation, parameter value", nil
 	 else
-	    return true
+	    return true, "OK", value
 	 end
       end
    end
@@ -2034,7 +2034,7 @@ local function lintParams()
    local additional_params = plugins_utils.extendLintParams(http_lint, known_parameters)
 
    for _,id in pairs(params_to_validate) do
-      for k,v in pairs(id) do
+      for k, v in pairs(id) do
          if(debug) then io.write("[LINT] Validating ["..k.."]["..v.."]\n") end
 
          if enableValidation then
@@ -2043,16 +2043,20 @@ local function lintParams()
                  ((id == _POST) and relaxPostValidation))) then
                if(debug) then io.write("[LINT] Parameter "..k.." is empty but we are in relax mode, so it can pass\n") end
             else
-               local success, message = validateSpecialParameter(k, v)
+               local success, message, purified = validateSpecialParameter(k, v)
 
-               if not success then
+	       if success then
+		  id[k] = purified
+	       else
                   if message ~= nil then
 		     -- tprint("k: "..k.. " v: "..v.. " success: "..tostring(success).. " message: "..message)
                      http_lint.validationError(id, k, v, message)
                   else
-                     success, message = validateParameter(k, v)
+                     success, message, purified = validateParameter(k, v)
 
-                     if not success then
+		     if success then
+			id[k] = purified
+		     else
                         if message ~= nil then
                            http_lint.validationError(id, k, v, message)
                         else
