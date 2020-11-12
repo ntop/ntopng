@@ -10,7 +10,6 @@
 -- @return A table with the alert built
 local function createBlacklisted(alert_severity, info)
    local built = {
-      alert_severity = alert_severity,
       alert_type_params = info,
    }
 

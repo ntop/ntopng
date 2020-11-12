@@ -46,6 +46,7 @@ end
 
 return {
   status_key = status_keys.ntopng.status_external_alert,
+  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.external_alert,
   i18n_title = "alerts_dashboard.external_alert",
   i18n_description = formatExternalAlert

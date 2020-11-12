@@ -2,9 +2,8 @@ local alert_keys = require "alert_keys"
 
 -- #################################################
 
-local function createUnexpectedDHCP(alert_severity, dhcp_info)
+local function createUnexpectedDHCP(dhcp_info)
     local built = {
-        alert_severity= alert_severity,
         alert_type_params = dhcp_info 
     }
 

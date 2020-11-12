@@ -5,6 +5,7 @@
 local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
 local alerts_api = require "alerts_api"
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -27,7 +28,7 @@ function script.hooks.protocolDetected(now)
    if(flow.getnDPICategoryName() == "Mining") then
       local web_mining_detected_type = flow_consts.status_types.status_web_mining_detected.create()
 
-      alerts_api.trigger_status(web_mining_detected_type, flow_consts.status_types.status_web_mining_detected.alert_severity, 50, 10, 50)
+      alerts_api.trigger_status(web_mining_detected_type, alert_consts.alert_severities.error, 50, 10, 50)
    end
 end
 

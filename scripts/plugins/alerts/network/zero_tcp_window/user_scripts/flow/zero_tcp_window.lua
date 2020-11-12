@@ -57,7 +57,7 @@ local function check_tcp_window(now)
          zerowin.server
       )
 
-      alerts_api.trigger_status(zero_tcp_window_type, flow_consts.status_types.status_zero_tcp_window.alert_severity, client_score, server_score, high_score)   
+      alerts_api.trigger_status(zero_tcp_window_type, alert_consts.alert_severities.warning, client_score, server_score, high_score)   
    end
 end
 

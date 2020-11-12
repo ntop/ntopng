@@ -13,9 +13,8 @@ local alert_keys = require "alert_keys"
 -- @param cli_blacklisted Boolean indicating whether the client belongs to a blacklisted country
 -- @param srv_blacklisted Boolean indicating whether the server belongs to a blacklisted country
 -- @return A table with the alert built
-local function createBlacklistedCountry(alert_severity, cli_country, srv_country, cli_blacklisted, srv_blacklisted)
+local function createBlacklistedCountry(cli_country, srv_country, cli_blacklisted, srv_blacklisted)
    local built = {
-      alert_severity = alert_severity,
       alert_type_params = {
 	 cli_country = cli_country,
 	 srv_country = srv_country,

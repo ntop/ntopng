@@ -9,6 +9,7 @@
 local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
 local alerts_api = require "alerts_api"
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -53,7 +54,7 @@ function script.hooks.all(now)
       if not flow.isClientNoIP() and flow.isServerUnicast() and not unidirectionalProtoWhitelist(flow.getnDPIAppProtoId()) then
          local udp_unidirectional_type = flow_consts.status_types.status_udp_unidirectional.create()
 
-         alerts_api.trigger_status(udp_unidirectional_type, flow_consts.status_types.status_udp_unidirectional.severity, 5, 5, 1)
+         alerts_api.trigger_status(udp_unidirectional_type, alert_consts.alert_severities.notice, 5, 1, 5)
       end
    end
 end

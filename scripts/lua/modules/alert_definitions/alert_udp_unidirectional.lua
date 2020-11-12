@@ -7,9 +7,8 @@ local alert_keys = require "alert_keys"
 -- @brief Prepare an alert table used to generate the alert
 -- @param alert_severity A severity as defined in `alert_consts.alert_severities`
 -- @return A table with the alert built
-local function createUDPUnidirectional(alert_severity)
+local function createUDPUnidirectional()
    local built = {
-      alert_severity = alert_severity,
       alert_type_params = {},
    }
 

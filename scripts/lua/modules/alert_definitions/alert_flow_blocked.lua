@@ -11,7 +11,6 @@ local alert_keys = require "alert_keys"
 -- @return A table with the alert built
 local function createFlowBlocked(alert_severity)
    local built = {
-      alert_severity = alert_severity,
       alert_type_params = {
       }
    }

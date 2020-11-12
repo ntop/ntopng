@@ -5,6 +5,7 @@
 local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
 local alerts_api = require "alerts_api"
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -29,7 +30,7 @@ function script.hooks.protocolDetected(now)
         server_ip
       )
 
-      alerts_api.trigger_status(remote_to_remote_type, flow_consts.status_types.status_remote_to_remote.alert_severity, 10, 10, 10)
+      alerts_api.trigger_status(remote_to_remote_type, alert_consts.alert_severities.notice, 10, 10, 10)
   end
 end
 

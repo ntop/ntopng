@@ -5,6 +5,7 @@
 local flow_consts = require("flow_consts")
 local user_scripts = require ("user_scripts")
 local alerts_api = require "alerts_api"
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -43,7 +44,7 @@ function script.hooks.periodicUpdate(now)
     if  cur_goodput <= script.default_low_goodput_threshold_pct then
       local low_goodput_type = flow_consts.status_types.status_low_goodput.create()
 
-      alerts_api.trigger_status(low_goodput_type, flow_consts.status_types.status_low_goodput.alert_severity, 10, 10, 10)
+      alerts_api.trigger_status(low_goodput_type, alert_consts.alert_severities.info, 10, 10, 10)
 	 end
       end
    end

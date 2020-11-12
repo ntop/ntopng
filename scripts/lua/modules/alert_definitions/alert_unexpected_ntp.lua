@@ -2,9 +2,8 @@ local alert_keys = require "alert_keys"
 
 -- #################################################
 
-local function createUnexpectedNTP(alert_severity, ntp_info)
+local function createUnexpectedNTP(ntp_info)
     local built = {
-        alert_severity= alert_severity,
         alert_type_params = ntp_info 
     }
 

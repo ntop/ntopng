@@ -7,7 +7,7 @@ local alert_keys = require "alert_keys"
 -- #######################################################
 
 -- Called by flow.triggerStatus() in zero_tcp_window.lua 
-local function createZeroTcpWindow(alert_severity, is_client, is_server)
+local function createZeroTcpWindow(is_client, is_server)
    local zero_tcp_window_type = {
       alert_type_params = {
 	 is_client = is_client,
