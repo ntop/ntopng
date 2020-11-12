@@ -6,6 +6,7 @@ local flow_consts = require("flow_consts")
 local json = require ("dkjson")
 local user_scripts = require ("user_scripts")
 local alert_consts = require("alert_consts")
+local alerts_api = require "alerts_api"
 
 -- #################################################################
 
@@ -37,7 +38,8 @@ local function checkExternalAlert()
       local srv_score = 100
 
       local status_info = flow_consts.status_types.status_external_alert.create(
-        alert_consts.alertSeverityById(info.severity_id), info)
+        info
+      )
 
       if ntop.isEnterpriseM() then
         local ids_utils = require("ids_utils")
@@ -52,7 +54,7 @@ local function checkExternalAlert()
       end
 
       -- Trigger flow alert
-      flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
+      alerts_api.trigger_status(status_info, alert_consts.alertSeverityById(info.severity_id), cli_score, srv_score, flow_score)
     end
   end
 end

@@ -2,9 +2,8 @@ local alert_keys = require "alert_keys"
 
 -- #################################################
 
-local function createUnexpectedDNS(alert_severity, dns_info)
+local function createUnexpectedDNS(dns_info)
     local built = {
-        alert_severity= alert_severity,
         alert_type_params = dns_info 
     }
 

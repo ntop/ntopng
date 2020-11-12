@@ -2,7 +2,9 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alerts_api = require "alerts_api"
 local flow_consts = require("flow_consts")
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -21,15 +23,12 @@ local handler = {}
 function handler.handle_risk(risk_id, flow_score, cli_score, srv_score)
    -- Set a flow status for the generic flow_risk. This will also
    -- cause an alert to be generated.
-   flow.triggerStatus(
-      flow_consts.status_types.status_flow_risk.create(
-	 flow_consts.status_types.status_flow_risk.alert_severity,
-	 risk_id
-      ),
-      flow_score or 0, -- flow_score
-      cli_score or 0,  -- cli_score
-      srv_score or 0   -- srv_score
+   local flow_risk_type = flow_consts.status_types.status_flow_risk.create(
+      risk_id
    )
+   
+   alerts_api.trigger_status(flow_risk_type, alert_consts.alert_severities.warning, cli_score or 0, srv_score or 0, flow_score or 0)
+
 end
 
 -- #################################################################

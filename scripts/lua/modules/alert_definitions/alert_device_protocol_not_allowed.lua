@@ -13,9 +13,8 @@ local alert_keys = require "alert_keys"
 -- @param devproto_forbidden_peer A string with the forbidden peer, one of 'cli' or 'srv'
 -- @param devproto_forbidden_id The nDPI ID of the forbidden application protocol
 -- @return A table with the alert built
-local function createDeviceProtocolNotAllowed(alert_severity, cli_devtype, srv_devtype, devproto_forbidden_peer, devproto_forbidden_id)
+local function createDeviceProtocolNotAllowed(cli_devtype, srv_devtype, devproto_forbidden_peer, devproto_forbidden_id)
    local built = {
-      alert_severity = alert_severity,
       alert_type_params = {
 	 ["cli.devtype"] = cli_devtype,
 	 ["srv.devtype"] = srv_devtype,

@@ -10,9 +10,8 @@ local alert_keys = require "alert_keys"
 -- @param alert_severity A severity as defined in `alert_consts.alert_severities`
 -- @param info A lua table containing flow information obtained with `flow.getInfo()`
 -- @return A table with the alert built
-local function createKPoNSPAlert(alert_severity, info)
+local function createKPoNSPAlert(info)
    local built = {
-      alert_severity = alert_severity,
       alert_type_params = info
    }
 

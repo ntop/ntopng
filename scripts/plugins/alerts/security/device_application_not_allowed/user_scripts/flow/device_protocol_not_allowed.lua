@@ -4,6 +4,8 @@
 
 local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
+local alerts_api = require "alerts_api"
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -47,18 +49,14 @@ function script.hooks.protocolDetected(now)
       srv_score = 80
     end
 
-    flow.triggerStatus(
-       flow_consts.status_types.status_device_protocol_not_allowed.create(
-	  flow_consts.status_types.status_device_protocol_not_allowed.alert_severity,
-	  alert_info["cli.devtype"],
-	  alert_info["srv.devtype"],
-	  alert_info["devproto_forbidden_peer"],
-	  alert_info["devproto_forbidden_id"]
-       ),
-       flow_score,
-       cli_score,
-       srv_score
-    )
+    local dev_proto_not_allowed_type = flow_consts.status_types.status_device_protocol_not_allowed.create(
+        alert_info["cli.devtype"],
+        alert_info["srv.devtype"],
+        alert_info["devproto_forbidden_peer"],
+        alert_info["devproto_forbidden_id"]
+      )
+     
+    alerts_api.trigger_status(dev_proto_not_allowed_type, alert_consts.alert_severities.error, cli_score, srv_score, flow_score)
   end
 end
 

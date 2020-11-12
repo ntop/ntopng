@@ -34,7 +34,6 @@ end
 
 return {
   status_key = status_keys.ntopng.status_suspicious_file_transfer,
-  alert_severity = alert_consts.alert_severities.error,
   -- scripts/lua/modules/alert_keys.lua
   alert_type = alert_consts.alert_types.alert_suspicious_file_transfer,
   -- scripts/locales/en.lua

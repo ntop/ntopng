@@ -4,6 +4,8 @@
 
 local flow_consts = require("flow_consts")
 local user_scripts = require ("user_scripts")
+local alerts_api = require "alerts_api"
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -66,35 +68,28 @@ local function check_tcp_issues(now)
 
    if is_client or is_server then
       if is_severe then
-	 flow.triggerStatus(
-	    flow_consts.status_types.status_tcp_severe_connection_issues.create(
-	       flow_consts.status_types.status_tcp_severe_connection_issues.alert_severity,
-	       flow.getTCPStats(),
-	       flow.getPacketsSent(),
-	       flow.getPacketsRcvd(),
-	       true, -- Severe issues
-	       is_client,
-	       is_server
-	    ),
-	    20 --[[ flow score]],
-	    20 --[[ cli score ]],
-	    20 --[[ srv score ]]
-	 )
+         local tcp_severe_connection_issues_type = flow_consts.status_types.status_tcp_severe_connection_issues.create(
+            flow.getTCPStats(),
+            flow.getPacketsSent(),
+            flow.getPacketsRcvd(),
+            true, -- Severe issues
+            is_client,
+            is_server
+         )
+
+         alerts_api.trigger_status(tcp_severe_connection_issues_type, alert_consts.alert_severities.warning, 20, 20, 20)
+
       else
-	 flow.triggerStatus(
-	    flow_consts.status_types.status_tcp_connection_issues.create(
-	       flow_consts.status_types.status_tcp_connection_issues.alert_severity,
-	       flow.getTCPStats(),
-	       flow.getPacketsSent(),
-	       flow.getPacketsRcvd(),
-	       false, -- Issues are NOT severe
-	       is_client,
-	       is_server
-	    ),
-	    10 --[[ flow score]],
-	    10 --[[ cli score ]],
-	    10 --[[ srv score ]]
-	 )
+         local tcp_severe_connection_issues_type = flow_consts.status_types.status_tcp_severe_connection_issues.create(
+            flow.getTCPStats(),
+            flow.getPacketsSent(),
+            flow.getPacketsRcvd(),
+            false, -- Issues are NOT severe
+            is_client,
+            is_server
+         )
+
+         alerts_api.trigger_status(tcp_severe_connection_issues_type, alert_consts.alert_severities.warning, 10, 10, 10)
       end
    end
 end
