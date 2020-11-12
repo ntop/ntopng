@@ -27,7 +27,6 @@ end
 return {
    -- scripts/lua/modules/flow_keys.lua
    status_key = status_keys.ntopng.status_flow_risk,
-   alert_severity = alert_consts.alert_severities.warning,
    -- scripts/lua/modules/alert_keys.lua
    alert_type = alert_consts.alert_types.alert_flow_risk,
    -- scripts/locales/en.lua

@@ -31,7 +31,6 @@ end
 
 return {
   status_key = status_keys.ntopng.status_blacklisted_country,
-  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_blacklisted_country,
   i18n_title = "alerts_dashboard.blacklisted_country",
   i18n_description = formatBlacklistedFlow

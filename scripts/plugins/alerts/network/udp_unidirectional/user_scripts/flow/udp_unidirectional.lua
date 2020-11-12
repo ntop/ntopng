@@ -8,6 +8,7 @@
 
 local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
+local alerts_api = require "alerts_api"
 
 -- #################################################################
 
@@ -50,14 +51,9 @@ function script.hooks.all(now)
    if((flow.getPacketsRcvd() == 0) and (flow.getPacketsSent() > 0)) then
       -- Now check if the recipient isn't a broadcast/multicast address
       if not flow.isClientNoIP() and flow.isServerUnicast() and not unidirectionalProtoWhitelist(flow.getnDPIAppProtoId()) then
-         flow.triggerStatus(
-	    flow_consts.status_types.status_udp_unidirectional.create(
-	       flow_consts.status_types.status_udp_unidirectional.severity
-	    ),
-	    5--[[ flow score]],
-	    5--[[ cli score ]],
-	    1--[[ srv score ]]
-	 )
+         local udp_unidirectional_type = flow_consts.status_types.status_udp_unidirectional.create()
+
+         alerts_api.trigger_status(udp_unidirectional_type, flow_consts.status_types.status_udp_unidirectional.severity, 5, 5, 1)
       end
    end
 end

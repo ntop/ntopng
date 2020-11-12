@@ -10,7 +10,6 @@ local alert_consts = require("alert_consts")
 
 return {
   status_key = status_keys.ntopng.status_potentially_dangerous,
-  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_potentially_dangerous_protocol,
   i18n_title = "flow_details.potentially_dangerous_protocol"
 }

@@ -4,6 +4,7 @@
 
 local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
+local alerts_api = require "alerts_api"
 
 -- #################################################################
 
@@ -24,11 +25,9 @@ local script = {
 
 function script.hooks.periodicUpdate(now)
    if flow.isNotPurged() then
-      flow.triggerStatus(
-	 flow_consts.status_types.status_not_purged.create(
-	    flow_consts.status_types.status_not_purged.alert_severity
-	 )
-      )
+      local not_purged_type = flow_consts.status_types.status_not_purged.create()
+
+      alerts_api.trigger_status(not_purged_type, flow_consts.status_types.status_not_purged.alert_severity, 10, 10, 10)
    end
 end
 

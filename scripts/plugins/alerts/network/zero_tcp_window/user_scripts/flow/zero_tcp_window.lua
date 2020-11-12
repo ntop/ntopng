@@ -51,17 +51,13 @@ local function check_tcp_window(now)
 	 server_score = high_score
       end
 
-      -- Now it's time to generate the alert      
-      flow.triggerStatus(
-	 flow_consts.status_types.status_zero_tcp_window.create(
-	    flow_consts.status_types.status_zero_tcp_window.alert_severity,
-	    zerowin.client,
-	    zerowin.server
-	 ),
-	 high_score   --[[ flow score]],
-	 client_score --[[ cli score ]],
-	 server_score --[[ srv score ]]
+      -- Now it's time to generate the alert   
+      local zero_tcp_window_type = flow_consts.status_types.status_zero_tcp_window.create(
+         zerowin.client,
+         zerowin.server
       )
+
+      alerts_api.trigger_status(zero_tcp_window_type, flow_consts.status_types.status_zero_tcp_window.alert_severity, client_score, server_score, high_score)   
    end
 end
 
