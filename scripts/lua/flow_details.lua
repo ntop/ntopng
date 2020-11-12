@@ -1129,7 +1129,7 @@ else
       alerted_status = flow["alerted_status"]
       local alert_info = flow2statusinfo(flow)
       local message =  flow_consts.getStatusDescription(alerted_status, alert_info)
-      local icon = flow_consts.getStatusIcon(alerted_status, message, flow["alerted_severity"])
+      local icon = flow_consts.getStatusIcon(message, flow["alerted_severity"])
 
       message = message .. string.format(" [%s: %d]", i18n("score"), flow["alerted_status_score"])
       message = icon .. message .. alert_utils.getConfigsetAlertLink(alert_info)
@@ -1155,9 +1155,7 @@ else
 	 if ntop.bitmapIsSet(additional_status, id) then
 	    local alert_info = flow2statusinfo(flow)
 	    local message = flow_consts.getStatusDescription(id, alert_info)
-	    local icon = flow_consts.getStatusIcon(alerted_status, message)
 
-	    message = icon .. message
 	    print(message.."<br />")
 	 end
       end
