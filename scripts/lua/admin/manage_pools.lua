@@ -127,6 +127,7 @@ local context = {
     json = json,
     menu = menu,
     ui_utils = ui_utils,
+    is_nedge = ntop.isnEdge(),
     pool = {
         name = page,
         pool_families = pool_families,

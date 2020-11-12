@@ -99,7 +99,7 @@ $(document).ready(function() {
 
                     const buttons = [
                         { class: 'btn-info', icon: 'fa-edit', modal: '#edit-pool' },
-                        { class: `btn-danger ${(pool.pool_id == DEFAULT_POOL_ID) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool'}
+                        { class: `btn-danger ${(pool.pool_id == DEFAULT_POOL_ID || IS_NEDGE) ? 'disabled' : '' }`, icon: 'fa-trash', modal: '#remove-pool'}
                     ];
 
                     if (poolType == "host") {
@@ -134,7 +134,7 @@ $(document).ready(function() {
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
-            enabled: !ADD_POOL_DISABLED && !IS_ALL_POOL,
+            enabled: !ADD_POOL_DISABLED && !IS_ALL_POOL && !IS_NEDGE,
             action: () => { $(`#add-pool`).modal('show'); }
         },
         {

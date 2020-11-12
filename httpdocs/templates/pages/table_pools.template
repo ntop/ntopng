@@ -72,6 +72,7 @@ pool = pool
     const ADD_POOL_DISABLED = {{ (not pool.is_all_pool and pool.instance:default_only() or false)}};
     const IS_ALL_POOL = {{ pool.is_all_pool }};
     const DEFAULT_POOL_ID = {{ (pool.instance.DEFAULT_POOL_ID or 0) }};
+    const IS_NEDGE = {{ is_nedge or false }};
 
     Object.freeze(all_members);
     Object.freeze(endpoints);
