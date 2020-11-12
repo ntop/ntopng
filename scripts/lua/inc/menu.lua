@@ -732,7 +732,7 @@ print[[
               var icon = '<i class="fas fa-download"></i>';
               $('#updates-install-li').attr('title', '');
               if (rsp.status !== 'update-avail') {
-                icon = '<i class="fas fa-exclamation-triangle"></i>';
+                icon = '<i class="fas fa-exclamation-triangle text-danger"></i>';
                 $('#updates-install-li').attr('title', "]] print(i18n("updates.update_failure_message")) print [[: " + rsp.status);
               }
               $('#updates-install-li').html(icon + " ]] print(i18n("updates.install")) print[[");
@@ -749,7 +749,7 @@ print[[
               var icon = '';
               $('#updates-info-li').attr('title', '');
               if (rsp.status !== 'not-avail') {
-                icon = '<i class="fas fa-exclamation-triangle"></i> ';
+                icon = '<i class="fas fa-exclamation-triangle text-danger"></i> ';
                 $('#updates-info-li').attr('title', "]] print(i18n("updates.update_failure_message")) print [[: " + rsp.status);
               }
               $('#updates-info-li').html(icon + ']] print(i18n("updates.no_updates")) print[[');
