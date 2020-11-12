@@ -4495,8 +4495,8 @@ local lang = {
     ["traffic_profiles"] = "Traffic Profiles",
   },
   ["traffic_recording"] = {
+    ["about_to_download_flow"] = "About to extract traffic from <b>%{date_begin}</b> to <b>%{date_end}</b> matching the selected flow. A PCAP file will be downloaded.",
     ["about_to_extract"] = "About to extract traffic from <b>%{date_begin}</b> to <b>%{date_end}</b>",
-    ["about_to_extract_flow"] = "About to extract traffic from <b>%{date_begin}</b> to <b>%{date_end} matching the selected flow</b>",
     ["active_since"] = "Active Since",
     ["archive"] = "Archive",
     ["completed"] = "Completed",

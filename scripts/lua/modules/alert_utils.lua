@@ -877,7 +877,7 @@ function alert_utils.drawAlertPCAPDownloadDialog(ifid)
   print(template.gen("traffic_extraction_dialog.html", { dialog = {
      id = modalID,
      title = i18n("traffic_recording.pcap_download"),
-     message = i18n("traffic_recording.about_to_extract_flow", {date_begin = '<span id="'.. modalID ..'_begin">', date_end = '<span id="'.. modalID ..'_end">'}),
+     message = i18n("traffic_recording.about_to_download_flow", {date_begin = '<span id="'.. modalID ..'_begin">', date_end = '<span id="'.. modalID ..'_end">'}),
      submit = i18n("traffic_recording.download"),
      form_method = "post",
      validator_options = "{ custom: { bpf: bpfValidator }, errors: { bpf: '"..i18n("traffic_recording.invalid_bpf").."' } }",
