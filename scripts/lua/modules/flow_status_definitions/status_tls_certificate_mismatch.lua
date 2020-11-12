@@ -29,7 +29,6 @@ end
 
 return {
   status_key = status_keys.ntopng.status_tls_certificate_mismatch,
-  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_potentially_dangerous_protocol,
   i18n_title = "flow_details.tls_certificate_mismatch",
   i18n_description = formatTLSCertificateMismatch

@@ -23,7 +23,6 @@ end
 
 return {
   status_key = status_keys.ntopng.status_tls_certificate_selfsigned,
-  alert_severity = alert_consts.alert_severities.error,
   -- When a self-signed certificate il found an alert of type alert_potentially_dangerous_protocol
   -- is generated (see alert_potentially_dangerous_protocol.lua)
   alert_type = alert_consts.alert_types.alert_potentially_dangerous_protocol,

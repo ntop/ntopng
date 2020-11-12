@@ -16,7 +16,6 @@ end
 
 return {
   status_key = status_keys.ntopng.status_elephant_local_to_remote,
-  alert_severity = alert_consts.alert_severities.error,
   alert_type = alert_consts.alert_types.alert_flow_misbehaviour,
   i18n_title = "flow_details.elephant_flow_l2r",
   i18n_description = formatElephantStatus

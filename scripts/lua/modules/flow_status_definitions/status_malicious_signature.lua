@@ -42,7 +42,6 @@ end
 
 return {
   status_key = status_keys.ntopng.status_malicious_signature,
-  alert_severity = alert_consts.alert_severities.warning,
   alert_type = alert_consts.alert_types.alert_malicious_signature,
   i18n_title = "alerts_dashboard.malicious_signature_detected",
   i18n_description = formatMaliciousSignature
