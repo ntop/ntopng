@@ -72,8 +72,8 @@ function rest_utils.rc(ret_const, response)
    return json.encode(client_rsp)
 end
 
-function rest_utils.answer(ret_const, response)
-   sendHTTPHeader('application/json', nil, nil, ret_const.http_code)
+function rest_utils.answer(ret_const, response, extra_headers)
+   sendHTTPHeader('application/json', nil, extra_headers, ret_const.http_code)
    print(rest_utils.rc(ret_const, response))
 end
 

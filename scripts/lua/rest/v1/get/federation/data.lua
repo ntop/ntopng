@@ -13,11 +13,6 @@ local tracker       = require("tracker")
 local rc = rest_utils.consts.success.ok
 local res = {}
 
-if not haveAdminPrivileges() then
-   rest_utils.answer(rest_utils.consts.err.not_granted, res)
-   return
-end
-
 -- TODO: collect real statistics about the running ntopng instance
 res = {
     total_traffic = {up = 100, down = 100},
@@ -27,4 +22,8 @@ res = {
     version = "v1"
 }
 
-rest_utils.answer(rc, res)
+
+local origin        = _SERVER["origin"] or '*'
+local extra_headers = { 'Access-Control-Allow-Origin: '..origin }
+
+rest_utils.answer(rc, res, extra_headers)
