@@ -79,10 +79,6 @@ end
 -- ##############################################
 
 function pools:_initialize()
-    if ntop.isnEdge() then
-        return -- Do not perform initialization for nEdge: pools are managed by host_pools_nedge.lua
-    end
-
     local locked = self:_lock()
 
     if locked then

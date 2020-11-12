@@ -92,10 +92,10 @@ local menu = {
    entries = {
 
       -- Normal Pools
-      { key = "host", title = i18n("pools.pool_names.host"), url = "?page=host", hidden = is_nedge},
-      { key = "interface", title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = is_nedge},
+      { key = "host", title = i18n("pools.pool_names.host"), url = "?page=host", hidden = false},
+      { key = "interface", title = i18n("pools.pool_names.interface"), url = "?page=interface", hidden = false},
       { key = "local_network", title = i18n("pools.pool_names.local_network"), url = "?page=local_network", hidden = false},
-      { key = "snmp_device", title = i18n("pools.pool_names.snmp_device"), url = "?page=snmp_device", hidden = (not ntop.isPro() or is_nedge)},
+      { key = "snmp_device", title = i18n("pools.pool_names.snmp_device"), url = "?page=snmp_device", hidden = not ntop.isPro() or is_nedge},
       { key = "active_monitoring", title = i18n("pools.pool_names.active_monitoring"), url = "?page=active_monitoring", hidden = false },
 
    -- Default Only Pools
@@ -127,7 +127,7 @@ local context = {
     json = json,
     menu = menu,
     ui_utils = ui_utils,
-    is_nedge = ntop.isnEdge(),
+    is_nedge = is_nedge,
     pool = {
         name = page,
         pool_families = pool_families,

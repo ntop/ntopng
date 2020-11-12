@@ -363,7 +363,7 @@ for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
 end
 
 page_utils.add_menubar_section({
-   hidden = not is_system_interface or ntop.isnEdge(),
+   hidden = not is_system_interface,
    section = page_utils.menu_sections.pollers,
    entries = poller_entries
 })
@@ -448,7 +448,7 @@ page_utils.add_menubar_section({
 -- Pools
 
 page_utils.add_menubar_section({
-   hidden = not is_system_interface or ntop.isnEdge(),
+   hidden = not is_system_interface,
    section = page_utils.menu_sections.pools,
    entries = {
       {
@@ -458,7 +458,7 @@ page_utils.add_menubar_section({
       },
       {
          entry = page_utils.menu_entries.host_members,
-         hidden = not is_admin or is_nedge,
+         hidden = not is_admin,
          url = '/lua/admin/manage_host_members.lua',
       }
    }
@@ -468,7 +468,7 @@ page_utils.add_menubar_section({
 
 page_utils.add_menubar_section({
    section = page_utils.menu_sections.notifications,
-   hidden = not is_system_interface or ntop.isnEdge(),
+   hidden = not is_system_interface,
    entries = {
       {
          entry = page_utils.menu_entries.endpoint_notifications,
