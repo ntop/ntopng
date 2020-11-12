@@ -825,6 +825,78 @@ end
 
 -- #################################
 
+function alert_utils.drawAlertPCAPDownloadDialog(ifid)
+   local modalID = "pcapDownloadModal"
+
+   print[[
+   <script>
+   function bpfValidator(filter_field) {
+      // no pre validation required as the user is not
+      // supposed to edit the filter here
+      return true;
+   }
+
+   function pcapDownload(item) {
+     var modalID = "]] print(modalID) print [[";
+     var bpf_filter = item.getAttribute('data-filter');
+     var epoch_begin = item.getAttribute('data-epoch-begin');
+     var epoch_end = item.getAttribute('data-epoch-end');
+     var date_begin = new Date(epoch_begin * 1000);
+     var date_end = new Date(epoch_begin * 1000);
+     var epoch_begin_formatted = $.datepicker.formatDate('M dd, yy ', date_begin)+date_begin.getHours()
+       +":"+date_begin.getMinutes()+":"+date_begin.getSeconds(); 
+     var epoch_end_formatted = $.datepicker.formatDate('M dd, yy ', date_end)
+       +date_end.getHours()+":"+date_end.getMinutes()+":"+date_end.getSeconds();
+
+     $('#'+modalID+'_ifid').val(]] print(ifid) print [[);
+     $('#'+modalID+'_epoch_begin').val(epoch_begin);
+     $('#'+modalID+'_epoch_end').val(epoch_end);
+     $('#'+modalID+'_begin').text(epoch_begin_formatted);
+     $('#'+modalID+'_end').text(epoch_end_formatted);
+     $('#'+modalID+'_query_items').html("");
+     $('#'+modalID+'_chart_link').val("");
+
+     $('#'+modalID+'_bpf_filter').val(bpf_filter);
+     $('#'+modalID).modal('show');
+
+     $("#]] print(modalID) print [[ form:data(bs.validator)").each(function(){
+       $(this).data("bs.validator").validate();
+     });
+   }
+
+   function submitPcapDownload(form) {
+     var frm = $('#'+form.id);
+     window.open(']] print(ntop.getHttpPrefix()) print [[/lua/rest/v1/get/pcap/live_extraction.lua?' + frm.serialize(), '_self', false);
+     $('#]] print(modalID) print [[').modal('hide');
+     return false;
+   }
+
+   </script>
+]]
+
+  print(template.gen("traffic_extraction_dialog.html", { dialog = {
+     id = modalID,
+     title = i18n("traffic_recording.pcap_download"),
+     message = i18n("traffic_recording.about_to_extract_flow", {date_begin = '<span id="'.. modalID ..'_begin">', date_end = '<span id="'.. modalID ..'_end">'}),
+     submit = i18n("traffic_recording.download"),
+     form_method = "post",
+     validator_options = "{ custom: { bpf: bpfValidator }, errors: { bpf: '"..i18n("traffic_recording.invalid_bpf").."' } }",
+     form_action = ntop.getHttpPrefix().."/lua/traffic_extraction.lua",
+     form_onsubmit = "submitPcapDownload",
+     advanced_class = "d-none",
+     extract_now_class = "d-none", -- direct download only
+  }}))
+
+   print(template.gen("modal_confirm_dialog.html", { dialog = {
+      id = "no-recording-data",
+      title = i18n("traffic_recording.pcap_download"),
+      message = "<span id='no-recording-data-message'></span>",
+   }}))
+
+end
+
+-- #################################
+
 function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
    local alert_items = {}
    local url_params = {}
