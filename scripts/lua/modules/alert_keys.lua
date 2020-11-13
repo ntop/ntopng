@@ -84,6 +84,7 @@ local alert_keys = {
       alert_list_download_succeeded        = {NO_PEN, 69},
       alert_no_if_activity                 = {NO_PEN, 70}, -- Found under scripts/plugins/alerts/internals/no_if_activity
       alert_zero_tcp_window                = {NO_PEN, 71},
+      alert_flow_low_goodput               = {NO_PEN, 72},
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins

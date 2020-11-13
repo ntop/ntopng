@@ -669,6 +669,17 @@ static int ntop_flow_get_goodput_bytes(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_goodput_ratio(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushnumber(vm, (float)(100*f->get_goodput_bytes()) / (float)f->get_bytes());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_client_key(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
   Host *h;
@@ -1165,6 +1176,7 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getBytesRcvd",             ntop_flow_get_bytes_rcvd             },
   { "getBytes",                 ntop_flow_get_bytes                  },
   { "getGoodputBytes",          ntop_flow_get_goodput_bytes          },
+  { "getGoodputRatio",          ntop_flow_get_goodput_ratio          },
   { "getClientKey",             ntop_flow_get_client_key             },
   { "getServerKey",             ntop_flow_get_server_key             },
   { "getnDPICategoryName",      ntop_flow_get_ndpi_cat_name          },
