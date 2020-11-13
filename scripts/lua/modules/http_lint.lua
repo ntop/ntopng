@@ -1231,7 +1231,7 @@ local known_parameters = {
                                                                -- In NO case query should be executed directly without validation.
 -- UNQUOTED (Not Generally dangerous)
    ["referer"]                 = validateUnquoted,             -- An URL referer
-   ["url"]                     = validateUnquoted,             -- An URL
+   ["url"]                     = { webhookCleanup, validateUnquoted }, -- An URL
    ["label"]                   = validateUnquoted,             -- A device label
    ["os"]                      = validateNumber,               -- An Operating System id
    ["info"]                    = validateUnquoted,             -- An information message
