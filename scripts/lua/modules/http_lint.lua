@@ -980,6 +980,7 @@ local function validateListOfTypeInline(t)
       return validateListOfType(l, t)
    end
 end
+http_lint.validateListOfTypeInline = validateListOfTypeInline
 
 local function validateIfFilter(i)
    if validateNumber(i) or i == "all" then
