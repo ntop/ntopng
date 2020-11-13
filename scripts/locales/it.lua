@@ -317,7 +317,7 @@ local lang = {
     ["directories"] = "Cartelle",
     ["dropped_store_queries_alerts"] = "Allarmi Queries/Salvate/Perse",
     ["flow_callbacks_directory"] = "Flusso",
-    ["forced_community_notification"] = "Edizione Community forzata con --community. Rimuovere questa opzione affinchè i cambiamenti sulle licenze abbiano effetto",
+    ["forced_community_notification"] = "Edizione Community forzata con --community con una licenza installata. Rimuovere questa opzione per utilizzare la licenza installata",
     ["host_callbacks_directory"] = "Host",
     ["host_identifier_warning"] = "Questa interfaccia monitora host DHCP. Cambiare la preferenza <a href='%{url}'>%{name}</a> a \"Mac Address\".",
     ["idle"] = "idle",

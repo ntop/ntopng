@@ -324,7 +324,7 @@ local lang = {
     ["directories"] = "Directories",
     ["dropped_store_queries_alerts"] = "Queries/Stored/Dropped Alerts",
     ["flow_callbacks_directory"] = "Flow",
-    ["forced_community_notification"] = "Community edition forced with <code>--community</code>. Remove this option to make license changes effective.",
+    ["forced_community_notification"] = "Community edition forced with <code>--community</code> with a ntop license installed. Please remove this option to enable the installed license.",
     ["forced_community_notification_short"] = "Community edition forced with --community",
     ["host_callbacks_directory"] = "Host",
     ["host_identifier_warning"] = "This interface is monitoring DHCP hosts. Please consider changing the <a href='%{url}'>%{name}</a> preference to \"Mac Address\".",
