@@ -17,8 +17,8 @@ local script = {
   hooks = {},
 
   gui = {
-    i18n_title = "flow_callbacks_config.low_goodput",
-    i18n_description = "flow_callbacks_config.low_goodput_description",
+    i18n_title = "low_goodput.title",
+    i18n_description = "low_goodput.description",
   }
 }
 
