@@ -472,7 +472,7 @@ end
 --- @param notification table The notification is the logic model defined in defined_notifications
 --- @param container table Is the table where to put the new notification ui
 function predicates.forced_community(notification, container)
-   if ntop.getInfo()["pro.forced_community"] then
+   if(ntop.getInfo()["pro.forced_community"] and ntop.exists("/etc/ntopng.license")) then
         table.insert(container, create_forced_community_notification(notification))
     end
 end
