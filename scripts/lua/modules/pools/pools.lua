@@ -78,6 +78,21 @@ end
 
 -- ##############################################
 
+-- @brief Start a pool transaction. Useful to do bulk imports or other operations that may require multiple steps
+--        By default, all operations are non-transational, that is, every operation atomically changes the status of pools.
+--        To perform multiple, non-atomic operations, a transaction can be started.
+--        NOTE: currently, transactions are not supported, unless implemented in pools.lua subclasses
+function pools:start_transaction()
+end
+
+-- ##############################################
+
+-- @brief Ends a pool transaction.
+function pools:end_transaction()
+end
+
+-- ##############################################
+
 function pools:_initialize()
     local locked = self:_lock()
 
@@ -912,10 +927,10 @@ function pools:bind_member_if_not_already_bound(member, pool_id)
             -- Member already existing
             if assigned_members[member]["pool_id"] == pool_id then
                 -- Member is bound to the same pool as the parameter `pool_id`
-                ret, err = true, pools.ERRORS.NO_ERROR
+	       ret, err = true, pools.ERRORS.NO_ERROR
             else
                 -- Member is bound to another pool
-                ret, err = false, pools.ERRORS.ALREADY_BOUND
+	       ret, err = false, pools.ERRORS.ALREADY_BOUND
             end
         else
             -- Member isn't bound to any pool, safe to add it

@@ -38,6 +38,30 @@ end
 
 -- ##############################################
 
+-- @brief Start a pool transaction.
+--        See pools:start_transaction() for additional comments
+function host_pools:start_transaction()
+   -- OVERRIDE
+   self.transaction_started = true
+end
+
+-- ##############################################
+
+-- @brief Ends a pool transaction.
+function host_pools:end_transaction()
+   -- Perform end-of-transaction operations. Basically all the operations
+   -- that are needed when doing a _persist
+   -- Reload pools
+    ntop.reloadHostPools()
+
+    -- Reload periodic scripts
+    ntop.reloadPeriodicScripts()
+
+    self.transaction_started = nil
+end
+
+-- ##############################################
+
 -- @brief Given a member key, returns a table of member details such as member name.
 function host_pools:get_member_details(member)
     local res = {}
@@ -197,11 +221,16 @@ function host_pools:_persist(pool_id, name, members, configset_id, recipients)
     -- Recipients
     ntop.setHashCache(pool_details_key, "recipients", json.encode(recipients));
 
-    -- Reload pools
-    ntop.reloadHostPools()
+    -- Only reload if a transaction is not started. If a transaction is in progress
+    -- no reload is performed: it is UP TO THE CALLER to call end_transaction and
+    -- which will perform these operations
+    if not self.transaction_started then
+       -- Reload pools
+       ntop.reloadHostPools()
 
-    -- Reload periodic scripts
-    ntop.reloadPeriodicScripts()
+       -- Reload periodic scripts
+       ntop.reloadPeriodicScripts()
+    end
 
     -- Return the assigned pool_id
     return pool_id

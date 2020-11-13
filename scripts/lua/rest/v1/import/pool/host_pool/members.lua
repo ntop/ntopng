@@ -27,6 +27,9 @@ end
 
 local s = host_pools:create()
 local members = split(members_file_content, "\n")
+
+host_pools:start_transaction()
+
 for _, member in ipairs(members) do
    -- TODO: add the member to the right host pool using pools_rest_utils
    
@@ -65,5 +68,7 @@ for _, member in ipairs(members) do
       end
    end
 end
+
+host_pools:end_transaction()
 
 rest_utils.answer(rest_utils.consts.success.ok)
