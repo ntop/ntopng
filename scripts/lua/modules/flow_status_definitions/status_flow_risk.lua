@@ -13,7 +13,7 @@ local function formatFlowRisk(info)
    -- inside the flow details page
    local res = i18n("alerts_dashboard.flow_risk")
 
-   if info.risk_id then
+   if((info ~= nil) and info.risk_id) then
       res = flow_risk_utils.risk_id_2_i18n(info.risk_id)
    end
 
