@@ -3,6 +3,6 @@
 --
 
 return {
-   description = "Trigger alerts when flow goodput is too low (&lt;= 50%)", -- 
+   description = "Trigger alerts when flow goodput is too low (&lt;= 60%)", -- 
    title = "Low Goodput",
 }
