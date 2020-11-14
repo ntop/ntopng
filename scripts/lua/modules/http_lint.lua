@@ -1191,7 +1191,14 @@ local function validateListItems(script, conf, key)
    elseif(item_type == "device_type") then
       item_validator = validateDeviceType
       err_label = "Bad device type"
+   elseif(item_type == "ip_address") then
+      item_validator = validateIpAddress
+      err_label = "Bad address"
+   elseif(item_type == "mac_address") then
+      item_validator = validateMac
+      err_label = "Bad address"
    end
+   
 
    if(type(conf_items) == "table") then
       for _, item in ipairs(conf_items) do

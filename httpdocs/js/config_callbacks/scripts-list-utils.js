@@ -658,22 +658,8 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
 
    const apply_event = (event) => {
 
-      const special_char_regexp = /[\@\#\<\>\\\/\?\'\"\`\~\|\:\;\!\&\*\(\)\{\}\[\]\_\-\+\=\%\$\^]/g;
       const hook_enabled = $('#itemslist-checkbox').prop('checked');
-
-      let $error_label = $('#itemslist-textarea').parent().find('.invalid-feedback');
-      $error_label.fadeOut();
-
       const textarea_value = $('#itemslist-textarea').val().trim();
-
-      // if the textarea value contains special characters such as #, @, ... then alert the user
-      if (special_char_regexp.test(textarea_value)) {
-         $error_label.fadeIn().text(`${i18n.items_list_comma}`);
-         return;
-      }
-
-      // hide label
-      $error_label.hide();
 
       const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim()) : [];
 
