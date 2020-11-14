@@ -35,7 +35,7 @@ local script = {
       i18n_description  = "unexpected_dhcp.unexpected_dhcp_description",
 
       input_builder     = "items_list",
-      item_list_type    = "string",
+      item_list_type    = "ip_address",
       input_title       = i18n("unexpected_dhcp.title"),
       input_description = i18n("unexpected_dhcp.description"),
    }
