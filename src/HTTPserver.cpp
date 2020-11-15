@@ -879,6 +879,7 @@ static int handle_lua_request(struct mg_connection *conn) {
   bool localuser = false;
   char *referer = (char*)mg_get_header(conn, "Referer");
   u_int8_t whitelisted;
+  u_int8_t authorized = 0;
 
   strncpy(group, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN-1);
   group[NTOP_GROUP_MAXLEN - 1] = '\0';
@@ -966,7 +967,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	
 	if(scope != NULL && strcmp(scope, "public") != 0) {
 	  /* This is a private URL and it needs authentication */
-	  u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
+	  authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
 
 	  if(!authorized) {
 	    char referer[255];
@@ -1004,7 +1005,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	const char *scope  = json_object_get_string(json_object_object_get(j, "scope"));
 	if(strcmp(scope, "public") != 0) {
 	  /* This is a private URL and it needs authentication */
-	  u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
+	  authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
 
 	  if(!authorized) {
 	    char referer[255];
@@ -1045,9 +1046,9 @@ static int handle_lua_request(struct mg_connection *conn) {
 
   whitelisted = isWhitelistedURI(request_info->uri);
 
-  if(!isStaticResourceUrl(request_info, len)) {
+  if(!isStaticResourceUrl(request_info, len) && !authorized) {
     /* Only check authorized for non-static resources */
-    u_int8_t authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
+    authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
 
     /* Make sure there are existing interfaces for username. */
     if(!ntop->checkUserInterfaces(username)) {
