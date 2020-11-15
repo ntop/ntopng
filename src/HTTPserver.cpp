@@ -975,6 +975,8 @@ static int handle_lua_request(struct mg_connection *conn) {
 	    redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
 	    return(1); /* Handled */
 	  }
+	} else {
+        authorized = 1;
 	}
 
         if (origin != NULL) {
@@ -1013,6 +1015,8 @@ static int handle_lua_request(struct mg_connection *conn) {
 	    redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
 	    return(1); /* Handled */
 	  }
+	} else {
+        authorized = 1;
 	}
 #endif
 
