@@ -4,7 +4,7 @@
 
 return {
    unexpected_new_device_title = "Unexpected Device Connected",
-   unexpected_new_device_description = "Trigger an alert when an unexpected device connects to the network.",
+   unexpected_new_device_description = "Trigger an alert first time an unexpected (i.e. not part of the allowed MAC addresses list) device connects to the network.",
 
    -- ####################### Input builder strings
 
