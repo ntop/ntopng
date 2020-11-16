@@ -47,8 +47,9 @@ $(document).ready(function () {
         const body = { action: 'test', csrf: pageCsrf };
         $.extend(body, data);
 
+        $button.attr("disabled", "disabled");
         $button.find('span.spinner-border').fadeIn();
-        $feedbackLabel.removeClass(`text-danger text-success`).text(`${i18n.testing_recipient}...`).show();
+        $feedbackLabel.removeClass(`alert-danger alert-success`).text(`${i18n.testing_recipient}...`).show();
 
         try {
 
@@ -61,16 +62,16 @@ $(document).ready(function () {
             }, 5000);
             const { result } = await request.json();
 
-            if (result.status == "failed") {
+            if (result.status === "failed") {
                 $button.find('span.spinner-border').fadeOut(function () {
-                    $feedbackLabel.addClass(`text-danger`).html(result.error.message);
+                    $feedbackLabel.addClass(`alert-danger`).html(result.error.message);
                 });
                 return;
             }
 
             // show a green label to alert the endpoint message
             $button.find('span.spinner-border').fadeOut(function () {
-                $feedbackLabel.addClass('text-success').html(i18n.working_recipient).fadeOut(3000);
+                $feedbackLabel.addClass('alert-success').html(i18n.working_recipient).fadeOut(3000);
             });
 
         }
@@ -78,16 +79,17 @@ $(document).ready(function () {
 
             $button.find('span.spinner-border').fadeOut(function () {
 
-                $feedbackLabel.addClass(`text-danger`);
+                $feedbackLabel.addClass(`alert-danger`);
 
                 if (err.message == "Response timed out") {
                     $feedbackLabel.html(i18n.timed_out);
                     return;
                 }
-
                 $feedbackLabel.html(i18n.server_error);
-
             });
+        }
+        finally {
+            $button.removeAttr("disabled");
         }
 
     }

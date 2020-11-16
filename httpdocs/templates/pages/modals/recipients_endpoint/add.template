@@ -79,9 +79,10 @@
                             <span style="display: none;" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             {{ i18n("endpoint_notifications.test_recipient") }}
                         </button>
-                        <span style="display: none;" class="test-feedback"></span>
                     </div>
                     <button type="submit" class="btn btn-primary">{{i18n("add")}}</button>
+                    <div class="alert alert-info test-feedback w-100" style="display: none;">
+                    </div>
                 </div>
             </form>
         </div>
