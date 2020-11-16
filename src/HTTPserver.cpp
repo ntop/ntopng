@@ -144,7 +144,11 @@ void HTTPserver::traceLogin(const char *user, bool authorized) {
 // Generate session ID. buf must be 33 bytes in size.
 // Note that it is easy to steal session cookies by sniffing traffic.
 // This is why all communication must be SSL-ed.
-static void generate_session_id(char *buf, const char *random, const char *user, const char *group) {
+static void generate_session_id(char *buf, const char *user, const char *group) {
+  char random[64];
+
+  snprintf(random, sizeof(random), "%d", rand());
+
   mg_md5(buf, random, user, group, NULL);
 }
 
@@ -157,16 +161,14 @@ static void create_session(const char * const user,
 			   char *session_id,
 			   u_int session_id_size,
 			   u_int session_duration) {
-  char key[256], random[64];
+  char key[256];
   char csrf[NTOP_CSRF_TOKEN_LENGTH];
   char val[128];
 
-  snprintf(random, sizeof(random), "%d", rand());
-
-  generate_session_id(session_id, random, user, group);
+  generate_session_id(session_id, user, group);
   generate_csrf_token(csrf);
 
-  // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s\t%s", random, session_id);
+  // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s", session_id);
 
   /* Save session in redis */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
