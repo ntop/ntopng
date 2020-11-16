@@ -22,10 +22,13 @@ local function formatUnexpectedNewDevice(ifid, alert, info)
 
       if access_port then
         return(i18n("unexpected_new_device.status_unexpected_new_device_description_pro", {
-          device = info.device,
+          mac_address = info.device,
           host_url = getMacUrl(alert.alert_entity_val),
-          snmp_url = snmpDeviceUrl(access_port.snmp_device_ip),
-          device_ip = access_port.snmp_device_ip,
+          port = access_port.id,
+	  port_url = snmpIfaceUrl(access_port.snmp_device_ip, access_port.id),
+	  interface_name = access_port.name,
+	  ip = access_port.snmp_device_ip,
+	  ip_url = snmpDeviceUrl(access_port.snmp_device_ip), 
         }))
       end
     end
@@ -33,8 +36,8 @@ local function formatUnexpectedNewDevice(ifid, alert, info)
   
   -- Non enterprise software or the host hasn't an snmp location
   return(i18n("unexpected_new_device.status_unexpected_new_device_description", {
-    device = info.device,
-    url = getMacUrl(alert.alert_entity_val),
+    mac_address = info.device,
+    host_url = getMacUrl(alert.alert_entity_val),
   }))
 end
 
