@@ -7,7 +7,7 @@ local template = require("template_utils")
 print [[
 
 <div id="password_dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="password_dialog_label" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="password_dialog_label">]] print(i18n("manage_users.manage_user_x", {user=[[<span class="password_dialog_title"></span>]]})) print[[ </h5>
@@ -29,6 +29,8 @@ if(is_admin) then
    print[[<li class="nav-item" id="li_change_prefs"><a class="nav-link" href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
 end
    print[[
+    <li class="nav-item"><a class="nav-link" href="#user-token-tab" role="tab" data-toggle="tab"> ]] print(i18n("login.auth_token")) print[[ </a></li>
+  
   </ul>
   </div>
   <div class="card-body tab-content">
@@ -94,7 +96,7 @@ print [[
 
 <div><small>]] print(i18n("manage_users.allowed_passwd_charset")) print[[.  </small></div>
 
-<br>
+<hr>
 
     <div class="has-feedback text-right">
       <button id="password_reset_submit" class="btn btn-primary">]] print(i18n("manage_users.change_user_password")) print[[</button>
@@ -195,6 +197,7 @@ print[[
 ]]
 
 print[[
+    <hr>
     <div class="has-feedback text-right">
       <button id="pref_change" class="btn btn-primary">]] print(i18n("manage_users.change_user_preferences")) print[[</button>
     </div>
@@ -203,7 +206,56 @@ print[[
 ]]
 end
 
-print [[<script>
+-- get the user token from redis
+local user_token = "Example Token"
+
+print([[
+  <div class='tab-pane' id='user-token-tab'>
+    <div class="form-group has-error">
+      <label for="token-input">]] .. i18n("manage_users.token") ..[[</label>
+      <div class='d-flex'>
+        <input value=']].. user_token ..[[' readonly class='form-control' id='input-token'>
+        <button ]].. (isEmptyString(user_token) and "style='display: none'" or "") ..[[ class="btn btn-light border ml-1" data-placement="bottom" id="btn-copy-token">
+          <i class='fas fa-copy'></i>
+        </button>
+      </div>
+    </div>
+    <hr>
+    <div class='w-100 text-right'>
+      <button class='btn btn-secondary' ]].. (not isEmptyString(user_token) and "disabled" or "") ..[[ id='btn-generate_token'>]].. i18n("login.generate_token") ..[[</button>
+    </div>
+  </div>
+]])
+
+print [[
+  <script type='text/javascript'>
+
+  $(document).ready(function() {
+
+    $(`#btn-copy-token`).click(function() {
+      
+      const $this = $(this);
+      const inputToken = document.querySelector('#input-token');
+      inputToken.select();
+
+      // copy the token to the clipboard
+      document.execCommand("copy");
+
+      // show a tooltip
+      $this.tooltip({title: ']] print(i18n("copied")) print[[!', delay: {show: 50, hide: 300}});
+      $this.tooltip('show');
+      // destroy the tooltip after the hide event
+      $this.on('hidden.bs.tooltip', function () {
+        $this.tooltip('dispose');
+      });
+    });
+
+    $(`#btn-copy-token`).click(async function() {
+      // TODO: fetch the REST api to get the token
+    });
+
+  });
+
   $("#lifetime_unlimited").click(function() {
     $("#lifetime_selection_table label").attr("disabled", "disabled");
     $("#lifetime_selection_table input").attr("disabled", "disabled");
