@@ -206,13 +206,21 @@ local function isZCInterface(ifname)
   return false
 end
 
+local function isRecordingEnabledInCache(ifid)
+  local enabled = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
+  if not isEmptyString(enabled) and 
+     (enabled == "true" or enabled == "1") then
+     return true
+  end
+  return false
+end
+
 local function getInUseExtInterfaces(current_ifid)
   local inuse_ext_interfaces = {}
   local ntopng_interfaces = interface.getIfNames()
   for other_ifid,other_ifname in pairs(ntopng_interfaces) do
     if other_ifid ~= current_ifid then
-      local enabled = ntop.getCache('ntopng.prefs.ifid_'..other_ifid..'.traffic_recording.enabled')
-      if not isEmptyString(enabled) and enabled == "true" then
+      if isRecordingEnabledInCache(other_ifid) then
         local other_ext_ifname = ntop.getCache('ntopng.prefs.ifid_'..other_ifid..'.traffic_recording.ext_ifname')
         if not isEmptyString(other_ext_ifname) then
           inuse_ext_interfaces[other_ext_ifname] = true
@@ -612,8 +620,7 @@ local function isRecordingEnabled(ifid)
   local cur_provider = recording_utils.getCurrentTrafficRecordingProvider(ifid)
 
   if cur_provider == "ntopng" then
-    local record_traffic = ntop.getCache('ntopng.prefs.ifid_'..ifid..'.traffic_recording.enabled')
-    if record_traffic == "true" then
+    if isRecordingEnabledInCache(ifid) then
       return true
     end
   else
@@ -823,8 +830,7 @@ local function allInterfacesStorageUsage(ifid)
   local ntopng_interfaces = interface.getIfNames()
   for id,name in pairs(ntopng_interfaces) do
     if ifid == nil or id ~= ifid then
-      local enabled = ntop.getCache('ntopng.prefs.ifid_'..id..'.traffic_recording.enabled')
-      if enabled == "true" then
+      if isRecordingEnabledInCache(id) then
         local disk_space = ntop.getCache('ntopng.prefs.ifid_'..id..'.traffic_recording.disk_space')
         local if_disk_space = 0
         if not isEmptyString(disk_space) then
