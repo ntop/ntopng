@@ -35,8 +35,14 @@ local function check(measurement, hosts, granularity)
     end
 
     -- HTTP results are retrieved immediately
-    local rv = ntop.httpGet(full_url, nil, nil, 10 --[[ timeout ]], host.save_result == true --[[ whether to return the content --]],
-      nil, false --[[ don't follow redirects ]])
+    local rv
+    if host.token then
+       rv = ntop.httpGetAuthToken(full_url, host.token, 10 --[[ timeout ]], host.save_result == true --[[ whether to return the content --]],
+				  nil, true --[[ follow redirects ]])
+    else
+       rv = ntop.httpGet(full_url, nil, nil, 10 --[[ timeout ]], host.save_result == true --[[ whether to return the content --]],
+			 nil, false --[[ don't follow redirects ]])
+    end
 
     if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
       local total_time = rv.HTTP_STATS.TOTAL_TIME * 1000
