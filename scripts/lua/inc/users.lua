@@ -8,7 +8,7 @@ page_utils.print_page_title(title)
 
 
 print [[
-      <div id="table-users"></div>
+    <div class='table-responsive'><div id="table-users"></div></div>
 	 <script>
 	 $("#table-users").datatable({
 		url: "]]
@@ -74,10 +74,3 @@ print [[",
 	 </script>
 
    ]]
-print([[
-	<script type='text/javascript'>
-	$(document).ready(function() {
-
-	});
-	</script>
-]])
