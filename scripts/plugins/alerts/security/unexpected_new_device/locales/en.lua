@@ -14,7 +14,7 @@ return {
    -- ####################### Status strings
 
    status_unexpected_new_device_description = "Unexpected mac address device <a href=\"%{url}\">%{device}</a> connected to the network.",
-   status_unexpected_new_device_description_pro = "Unexpected mac address device <a href=\"%{url}\">%{device}</a> connected to the network. Snmp infos: <a href=\"" .. hostinfo2detailsurl(mac, {page = "snmp"}) .. "\">%{device}</a>",
+   status_unexpected_new_device_description_pro = "Unexpected mac address device <a href=\"%{host_url}\">%{device}</a> connected to the network. Snmp infos: <a href=\"%{snmp_url}\">%{device_ip}</a>",
 
    -- ####################### Alert strings
 

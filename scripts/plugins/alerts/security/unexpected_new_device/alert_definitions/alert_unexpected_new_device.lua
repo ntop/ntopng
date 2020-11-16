@@ -2,27 +2,32 @@
 -- (C) 2020 - ntop.org
 --
 
+local dirs = ntop.getDirs()
 local alert_keys = require "alert_keys"
 local alert_creators = require "alert_creators"
-if(ntop.isPro()) then
-  package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-  snmp_utils = require "snmp_utils"
-  snmp_location = require "snmp_location"
-end
+
 
 -- #######################################################
 
 local function formatUnexpectedNewDevice(ifid, alert, info)
   -- Pro description
   if(ntop.isPro()) then
-    snmp_location.host_has_snmp_location(info.mac)
+    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+    local snmp_location = require "snmp_location"
+
+    has_snmp_location = snmp_location.host_has_snmp_location(info.mac)
     -- The host has an snmp location
     if has_snmp_location then
-      return(i18n("unexpected_new_device.status_unexpected_new_device_description_pro", {
-        device = info.device,
-        url = getMacUrl(alert.alert_entity_val),
-        mac = info.mac,
-      }))
+      local access_port = snmp_location.get_host_access_port(info.mac)
+
+      if access_port then
+        return(i18n("unexpected_new_device.status_unexpected_new_device_description_pro", {
+          device = info.device,
+          host_url = getMacUrl(alert.alert_entity_val),
+          snmp_url = snmpDeviceUrl(access_port.snmp_device_ip),
+          device_ip = access_port.snmp_device_ip,
+        }))
+      end
     end
   end
   
