@@ -59,22 +59,6 @@ local function check_device_connection_disconnection(params)
 
 				      active_devices[mac] = 1
 
-				      if not seen_devices[mac] then
-					 -- First time we see a device
-					 ntop.setHashCache(seen_devices_hash, mac, tostring(os.time()))
-
-					 local name = getDeviceName(mac)
-					 setSavedDeviceName(mac, name)
-
-					 alerts_api.store(
-					    alerts_api.macEntity(mac),
-					    alert_consts.alert_types.alert_new_device.create(
-					       alert_consts.alert_severities.warning,
-					       name
-					    )
-					 )
-				      end
-
 				      if not prev_active_devices[mac] then
 					 -- Device connection
 					 ntop.setMembersCache(active_devices_set, mac)

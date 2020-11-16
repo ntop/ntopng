@@ -613,7 +613,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
    const $table_editor = $("#script-config-editor");
 
    const render_template = () => {
-
+      const enabled = hooks.all ? hooks.all.enabled : hooks.min.enabled
       const $component_container = $(`<tr></tr>`);
       const callback_checkbox = function (e) {
 
@@ -629,15 +629,14 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       };
 
       const $checkbox_enabled = generate_checkbox_enabled(
-         'itemslist-checkbox', hooks.all.enabled, callback_checkbox
+         'itemslist-checkbox', enabled, callback_checkbox
       );
 
-      const items_list = hooks.all.script_conf.items || [];
-      const $text_area = $(`
+      const items_list = hooks.all ? hooks.all.script_conf.items : (hooks.min.script_conf.items || []);      const $text_area = $(`
          <td>
             <div class='form-group template w-100'>
                <textarea
-                  ${!hooks.all.enabled ? "readonly" : ""}
+                  ${!enabled ? "readonly" : ""}
                   name='items-list'
                   id='itemslist-textarea'
                   class="w-100 form-control"
@@ -662,9 +661,9 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       const textarea_value = $('#itemslist-textarea').val().trim();
 
       const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim()) : [];
-
+      const hook = (hooks.all === undefined) ? "min" : "all"; 
       const template_data = {
-         all: {
+         [hook]: {
             enabled: hook_enabled,
             script_conf: {
                items: items_list
@@ -682,7 +681,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       reset_script_defaults(script_key, script_subdir, (reset_data) => {
 
          const items_list = reset_data.hooks.all.script_conf.items;
-         const enabled = reset_data.hooks.all.enabled;
+         const enabled = reset_data.hooks.all ? reset_data.hooks.all.enabled : reset_data.hooks.min.enabled;
 
          // set textarea value with default's one
          $('#itemslist-textarea').val(items_list.join(','));
