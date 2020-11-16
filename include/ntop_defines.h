@@ -926,6 +926,8 @@
 #define MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN      4096
 #define PREF_NTOP_LOCAL_AUTH          NTOPNG_PREFS_PREFIX".local.auth_enabled"
 
+#define NTOP_API_TOKENS               "ntopng.api_tokens"
+
 /* Elastic Search */
 #define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
 #define NTOP_ES6_TEMPLATE             "ntopng_template_elk6.json"

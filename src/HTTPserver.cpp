@@ -464,20 +464,32 @@ static int getAuthorizedUser(struct mg_connection *conn,
   string auth_header = auth_header_p ? auth_header_p  : "";
   istringstream iss(auth_header);
   getline(iss, auth_type, ' ');
+
   if(auth_type == "Basic") {
     string decoded_auth, user_s = "", pword_s = "";
     /* In case auth type is Basic, info are encoded in base64 */
     getline(iss, auth_string, ' ');
     decoded_auth = Utils::base64_decode(auth_string);
     istringstream authss(decoded_auth);
+
     getline(authss, user_s, ':');
     getline(authss, pword_s, ':');
 
     strncpy(username, user_s.c_str(), NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return ntop->checkGuiUserPassword(conn, username, pword_s.c_str(), group, localuser);
+  } else if(auth_type == "Token") {
+    getline(iss, auth_string, ' ');
+      
+    if((ntop->getRedis()->hashGet(NTOP_API_TOKENS, auth_string.c_str(), username, username_len) < 0)
+       || (username[0] == '\0')) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Unknown authorization token %s",
+				   auth_string.c_str());
+      return(0);
+    } else
+      return(1);    
   }
-
+  
   /* NOTE: this is the only cookie needed for gui authentication */
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
 
