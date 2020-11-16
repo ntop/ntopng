@@ -1729,7 +1729,8 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 
 /* **************************************** */
 
-bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *message, char *smtp_server, char *username, char *password) {
+bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *message,
+		     char *smtp_server, char *username, char *password) {
   bool ret = true;
   const char *ret_str = "";
 
@@ -1934,18 +1935,19 @@ static int progress_callback(void *clientp, double dltotal, double dlnow, double
 /* **************************************** */
 
 /* form_data is in format param=value&param1=&value1... */
-bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
-			char *password, int timeout,
-			bool return_content,
+bool Utils::httpGetPost(lua_State* vm, char *url,
+			/* NOTE if user_header_token != NULL, username AND password are ignored, and vice-versa */
+			char *username, char *password, char *user_header_token,
+			int timeout, bool return_content,
 			bool use_cookie_authentication,
 			HTTPTranferStats *stats, const char *form_data,
 			char *write_fname, bool follow_redirects, int ip_version) {
-  CURL *curl;
+  CURL *curl = curl_easy_init();
   FILE *out_f = NULL;
   bool ret = true;
-
-  curl = curl_easy_init();
-
+  char tokenBuffer[64];  
+  bool used_tokenBuffer = false;
+  
   if(curl) {
     DownloadState *state = NULL;
     ProgressState progressState;
@@ -1957,26 +1959,32 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
     memset(stats, 0, sizeof(HTTPTranferStats));
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
-    if(username || password) {
-      char auth[64];
-
-      if(use_cookie_authentication) {
-	snprintf(auth, sizeof(auth),
-		 "user=%s; password=%s",
-		 username ? username : "",
-		 password ? password : "");
-	curl_easy_setopt(curl, CURLOPT_COOKIE, auth);
-      } else {
-	if(username && (username[0] != '\0')) {
-	  snprintf(auth, sizeof(auth), "%s:%s",
+    if(user_header_token != NULL) {
+      snprintf(tokenBuffer, sizeof(tokenBuffer), "Authorization: Token %s", user_header_token);
+    } else {
+      tokenBuffer[0] = '\0';
+      
+      if(username || password) {
+	char auth[64];
+	
+	if(use_cookie_authentication) {
+	  snprintf(auth, sizeof(auth),
+		   "user=%s; password=%s",
 		   username ? username : "",
 		   password ? password : "");
-	  curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
-	  curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+	  curl_easy_setopt(curl, CURLOPT_COOKIE, auth);
+	} else {
+	  if(username && (username[0] != '\0')) {
+	    snprintf(auth, sizeof(auth), "%s:%s",
+		     username ? username : "",
+		     password ? password : "");
+	    curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
+	    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+	  }
 	}
       }
     }
-
+    
     if(!strncmp(url, "https", 5)) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); 
@@ -2000,8 +2008,23 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 	struct curl_slist *hs = NULL;
 	
 	hs = curl_slist_append(hs, "Content-Type: application/json");
+
+	if(tokenBuffer[0] != '\0') {
+	  hs = curl_slist_append(hs, tokenBuffer);
+	  used_tokenBuffer = true;
+	}
+
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
       }
+    }
+
+    if((tokenBuffer[0] != '\0') && (!used_tokenBuffer)) {
+      struct curl_slist *hs = NULL;
+
+      snprintf(tokenBuffer, sizeof(tokenBuffer), "Authorization: Token %s", user_header_token);
+      hs = curl_slist_append(hs, tokenBuffer);
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
+      used_tokenBuffer = true;
     }
     
     if(write_fname) {
@@ -2124,12 +2147,12 @@ bool Utils::httpGetPost(lua_State* vm, char *url, char *username,
 /* **************************************** */
 
 long Utils::httpGet(const char * const url,
-		    const char * const username, const char * const password,
-		    int timeout,
-		    char * const resp, const u_int resp_len) {
-  CURL *curl;
+		    /* NOTE if user_header_token != NULL, username AND password are ignored, and vice-versa */
+		    const char * const username, const char * const password, const char * const user_header_token,
+		    int timeout, char * const resp, const u_int resp_len) {
+  CURL *curl = curl_easy_init();
   long response_code = 0;
-  curl = curl_easy_init();
+  char tokenBuffer[64];
 
   if(curl) {
     char *content_type;
@@ -2141,16 +2164,24 @@ long Utils::httpGet(const char * const url,
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
 
-    if(username || password) {
-      char auth[64];
+    if(user_header_token == NULL) {
+      if(username || password) {
+	char auth[64];
+	
+	snprintf(auth, sizeof(auth), "%s:%s",
+		 username ? username : "",
+		 password ? password : "");
+	curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
+	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+      }
+    } else {
+      struct curl_slist *hs = NULL;
 
-      snprintf(auth, sizeof(auth), "%s:%s",
-	       username ? username : "",
-	       password ? password : "");
-      curl_easy_setopt(curl, CURLOPT_USERPWD, auth);
-      curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_BASIC);
+      snprintf(tokenBuffer, sizeof(tokenBuffer), "Authorization: Token %s", user_header_token);
+      hs = curl_slist_append(hs, tokenBuffer);
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, hs);
     }
-
+    
     if(!strncmp(url, "https", 5)) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);

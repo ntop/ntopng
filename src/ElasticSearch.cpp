@@ -206,7 +206,7 @@ const char * const ElasticSearch::get_es_version() {
     if(buf) {
       long http_ret_code = Utils::httpGet(es_version_query_url,
 					  ntop->getPrefs()->get_es_user(), ntop->getPrefs()->get_es_pwd(),
-					  5,
+					  NULL /* user_header_token */, 5,
 					  buf, buf_len);
       if(http_ret_code == 200) {
 	json_object *o, *obj, *obj2;
