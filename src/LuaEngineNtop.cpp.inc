@@ -2158,6 +2158,24 @@ static int ntop_create_user_session(lua_State* vm) {
   return CONST_LUA_OK;
 }
 
+/* ******************************************* */
+
+static int ntop_create_user_api_token(lua_State* vm) {
+  char *username = NULL;
+  char api_token[NTOP_SESSION_ID_LENGTH];  
+  api_token[0] = '\0';
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  
+  if(ntop->get_HTTPserver()->create_api_token(username, api_token, sizeof(api_token)))
+    lua_pushstring(vm, api_token);
+  else
+    lua_pushnil(vm);
+
+  return CONST_LUA_OK;
+}
+
 /* ****************************************** */
 
 static int ntop_delete_user(lua_State* vm) {
@@ -5810,6 +5828,7 @@ static const luaL_Reg ntop_reg[] = {
   { "clearUserLifetime",    ntop_clear_user_lifetime },
   { "deleteUser",           ntop_delete_user },
   { "createUserSession",    ntop_create_user_session },
+  { "createUserAPIToken",   ntop_create_user_api_token },
   { "isLoginDisabled",      ntop_is_login_disabled },
   { "isLoginBlacklisted",   ntop_is_login_blacklisted },
   { "getNetworkNameById",   ntop_network_name_by_id },

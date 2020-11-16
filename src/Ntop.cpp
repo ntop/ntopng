@@ -2077,6 +2077,17 @@ bool Ntop::addUserLifetime(const char * const username, u_int32_t lifetime_secs)
 
 /* ******************************************* */
 
+bool Ntop::addUserAPIToken(const char * const username, const char *api_token) {
+  char key[CONST_MAX_LEN_REDIS_KEY];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
+  ntop->getRedis()->set(key, api_token);
+
+  return(true);
+}
+
+/* ******************************************* */
+
 bool Ntop::clearUserLifetime(const char * const username) {
   char key[64], val[64];
 
@@ -2155,6 +2166,18 @@ bool Ntop::deleteUser(char *username) {
   snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
   ntop->getRedis()->del(key);
 
+  /* 
+     Delete the API Token, first from the hash of all tokens,
+     then from the user
+  */
+  char api_token[NTOP_SESSION_ID_LENGTH];
+  if(getUserAPIToken(username, api_token, sizeof(api_token))) {
+    ntop->getRedis()->hashDel(NTOPNG_API_TOKEN_PREFIX, api_token);
+  }
+
+  snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
+  ntop->getRedis()->del(key);
+
   return true;
 }
 
@@ -2181,6 +2204,19 @@ bool Ntop::getUserAllowedIfname(const char * const username, char *buf, size_t b
   char key[64];
 
   snprintf(key, sizeof(key), CONST_STR_USER_ALLOWED_IFNAME, username ? username : "");
+
+  if(ntop->getRedis()->get(key, buf, buflen) >= 0)
+    return true;
+
+  return false;
+}
+
+/* ******************************************* */
+
+bool Ntop::getUserAPIToken(const char * const username, char *buf, size_t buflen) const {
+  char key[CONST_MAX_LEN_REDIS_KEY];
+
+  snprintf(key, sizeof(key), CONST_STR_USER_API_TOKEN, username);
 
   if(ntop->getRedis()->get(key, buf, buflen) >= 0)
     return true;

@@ -147,6 +147,7 @@ void HTTPserver::traceLogin(const char *user, bool authorized) {
 static void generate_session_id(char *buf, const char *user, const char *group) {
   char random[64];
 
+  srand((int)time(0));
   snprintf(random, sizeof(random), "%d", rand());
 
   mg_md5(buf, random, user, group, NULL);
@@ -481,7 +482,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
   } else if(auth_type == "Token") {
     getline(iss, auth_string, ' ');
       
-    if((ntop->getRedis()->hashGet(NTOP_API_TOKENS, auth_string.c_str(), username, username_len) < 0)
+    if((ntop->getRedis()->hashGet(NTOPNG_API_TOKEN_PREFIX, auth_string.c_str(), username, username_len) < 0)
        || (username[0] == '\0')) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Unknown authorization token %s",
 				   auth_string.c_str());
@@ -853,6 +854,37 @@ bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int sessio
   }
 
   return(false);
+}
+
+
+/* ****************************************** */
+
+bool HTTPserver::create_api_token(const char *username, char *api_token, u_int api_token_size) {
+  /* Note: we are not checking the user password as the admin
+   * or the same (authenticated) user is generating the session */
+  if(ntop->getUserAPIToken(username, api_token, api_token_size)) {
+    /* Token already existing */
+    return true;
+  } else if(ntop->existsUserLocal(username)) {
+    /*
+      Use the same random generator used for the sessions
+     */
+    generate_session_id(api_token, username, NULL);
+
+    /*
+      Set the token in the hash of all tokens
+     */
+    ntop->getRedis()->hashSet(NTOPNG_API_TOKEN_PREFIX, api_token, username);
+
+    /*
+      Set the token as a per-user attribute
+    */
+    ntop->addUserAPIToken(username, api_token);
+
+    return true;
+  }
+
+  return false;
 }
 
 /* ****************************************** */

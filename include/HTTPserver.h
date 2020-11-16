@@ -60,6 +60,10 @@ class HTTPserver {
   static void traceLogin(const char *user, bool authorized);
 
   bool authorize_noconn(char *username, char *session_id, u_int session_id_size, u_int session_duration);
+  /*
+    Creates an REST API token for user identified with `username`
+   */
+  bool create_api_token(const char *username, char *api_token, u_int api_token_size);
 
   inline char*     get_docs_dir()    { return(docs_dir);         };
   inline char*     get_scripts_dir() { return(scripts_dir);      };
