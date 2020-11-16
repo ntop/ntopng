@@ -4438,7 +4438,9 @@ static int ntop_get_interface_periodicity_map(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flush_interface_periodicity_map(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+#endif
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4486,7 +4488,9 @@ static int ntop_get_interface_service_map(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_flush_interface_service_map(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+#endif
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 

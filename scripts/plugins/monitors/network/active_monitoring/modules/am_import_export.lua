@@ -4,12 +4,14 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" .. package.path
 require "lua_utils" 
 local import_export = require "import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local plugins_utils = require("plugins_utils")
+local host_pools = require "host_pools"
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 -- ##############################################
@@ -51,9 +53,9 @@ function am_import_export:import(conf)
       local host = am_utils.key2host(host_key)
 
       if old_hosts[host_key] then
-         am_utils.editHost(host.host, host.measurement, conf.threshold, conf.granularity)
+         am_utils.editHost(host.host, host.measurement, conf.threshold, conf.granularity, host_pools.DEFAULT_POOL_ID, conf.token, conf.save_result, conf.readonly)
       else
-         am_utils.addHost(host.host, host.measurement, conf.threshold, conf.granularity)
+         am_utils.addHost(host.host, host.measurement, conf.threshold, conf.granularity, host_pools.DEFAULT_POOL_ID, conf.token, conf.save_result, conf.readonly)
       end
    end
 

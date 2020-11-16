@@ -144,7 +144,12 @@ void HTTPserver::traceLogin(const char *user, bool authorized) {
 // Generate session ID. buf must be 33 bytes in size.
 // Note that it is easy to steal session cookies by sniffing traffic.
 // This is why all communication must be SSL-ed.
-static void generate_session_id(char *buf, const char *random, const char *user, const char *group) {
+static void generate_session_id(char *buf, const char *user, const char *group) {
+  char random[64];
+
+  srand((int)time(0));
+  snprintf(random, sizeof(random), "%d", rand());
+
   mg_md5(buf, random, user, group, NULL);
 }
 
@@ -157,16 +162,14 @@ static void create_session(const char * const user,
 			   char *session_id,
 			   u_int session_id_size,
 			   u_int session_duration) {
-  char key[256], random[64];
+  char key[256];
   char csrf[NTOP_CSRF_TOKEN_LENGTH];
   char val[128];
 
-  snprintf(random, sizeof(random), "%d", rand());
-
-  generate_session_id(session_id, random, user, group);
+  generate_session_id(session_id, user, group);
   generate_csrf_token(csrf);
 
-  // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s\t%s", random, session_id);
+  // ntop->getTrace()->traceEvent(TRACE_ERROR, "==> %s", session_id);
 
   /* Save session in redis */
   snprintf(key, sizeof(key), "sessions.%s", session_id);
@@ -462,20 +465,32 @@ static int getAuthorizedUser(struct mg_connection *conn,
   string auth_header = auth_header_p ? auth_header_p  : "";
   istringstream iss(auth_header);
   getline(iss, auth_type, ' ');
+
   if(auth_type == "Basic") {
     string decoded_auth, user_s = "", pword_s = "";
     /* In case auth type is Basic, info are encoded in base64 */
     getline(iss, auth_string, ' ');
     decoded_auth = Utils::base64_decode(auth_string);
     istringstream authss(decoded_auth);
+
     getline(authss, user_s, ':');
     getline(authss, pword_s, ':');
 
     strncpy(username, user_s.c_str(), NTOP_USERNAME_MAXLEN);
     username[NTOP_USERNAME_MAXLEN - 1] = '\0';
     return ntop->checkGuiUserPassword(conn, username, pword_s.c_str(), group, localuser);
+  } else if(auth_type == "Token") {
+    getline(iss, auth_string, ' ');
+      
+    if((ntop->getRedis()->hashGet(NTOPNG_API_TOKEN_PREFIX, auth_string.c_str(), username, username_len) < 0)
+       || (username[0] == '\0')) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Unknown authorization token %s",
+				   auth_string.c_str());
+      return(0);
+    } else
+      return(1);    
   }
-
+  
   /* NOTE: this is the only cookie needed for gui authentication */
   mg_get_cookie(conn, "session", session_id, sizeof(session_id));
 
@@ -839,6 +854,37 @@ bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int sessio
   }
 
   return(false);
+}
+
+
+/* ****************************************** */
+
+bool HTTPserver::create_api_token(const char *username, char *api_token, u_int api_token_size) {
+  /* Note: we are not checking the user password as the admin
+   * or the same (authenticated) user is generating the session */
+  if(ntop->getUserAPIToken(username, api_token, api_token_size)) {
+    /* Token already existing */
+    return true;
+  } else if(ntop->existsUserLocal(username)) {
+    /*
+      Use the same random generator used for the sessions
+     */
+    generate_session_id(api_token, username, NULL);
+
+    /*
+      Set the token in the hash of all tokens
+     */
+    ntop->getRedis()->hashSet(NTOPNG_API_TOKEN_PREFIX, api_token, username);
+
+    /*
+      Set the token as a per-user attribute
+    */
+    ntop->addUserAPIToken(username, api_token);
+
+    return true;
+  }
+
+  return false;
 }
 
 /* ****************************************** */

@@ -1446,8 +1446,59 @@ static int ntop_http_get(lua_State* vm) {
   if(lua_type(vm, 8) == LUA_TNUMBER)
     ip_version = lua_tointeger(vm, 8);
 
-  Utils::httpGetPost(vm, url, username, pwd, timeout, return_content,
-		    use_cookie_authentication, &stats, NULL, NULL, follow_redirects, ip_version);
+  Utils::httpGetPost(vm, url, username, pwd, NULL /* user_header_token */,
+		     timeout, return_content,
+		     use_cookie_authentication, &stats, NULL, NULL,
+		     follow_redirects, ip_version);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+// *** API ***
+static int ntop_http_get_auth_token(lua_State* vm) {
+  char *url, *auth_token = NULL;
+  int timeout = 30;
+  bool return_content = true, use_cookie_authentication = false;
+  bool follow_redirects = true;
+  int ip_version = 0;
+  HTTPTranferStats stats;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((url = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((auth_token = (char*)lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  if(lua_type(vm, 3) == LUA_TNUMBER) {
+    timeout = lua_tointeger(vm, 3);
+    if(timeout < 1) timeout = 1;
+  }
+
+  /*
+    This optional parameter specifies if the result of HTTP GET has to be returned
+    to LUA or not. Usually the content has to be returned, but in some causes
+    it just matters to time (for instance when use for testing HTTP services)
+  */
+  if(lua_type(vm, 4) == LUA_TBOOLEAN)
+    return_content = lua_toboolean(vm, 4) ? true : false;  
+
+  if(lua_type(vm, 5) == LUA_TBOOLEAN)
+    use_cookie_authentication = lua_toboolean(vm, 5) ? true : false;
+
+  if(lua_type(vm, 6) == LUA_TBOOLEAN)
+    follow_redirects = lua_toboolean(vm, 6) ? true : false;  
+
+  if(lua_type(vm, 7) == LUA_TNUMBER)
+    ip_version = lua_tointeger(vm, 7);
+
+  Utils::httpGetPost(vm, url, NULL /* username */, NULL /* pwd */, auth_token,
+		     timeout, return_content,
+		     use_cookie_authentication, &stats, NULL, NULL,
+		     follow_redirects, ip_version);
 
   return(CONST_LUA_OK);
 }
@@ -1886,7 +1937,8 @@ static int ntop_http_post(lua_State* vm) {
   if(lua_type(vm, 7) == LUA_TBOOLEAN) /* Optional */
     use_cookie_authentication = lua_toboolean(vm, 7) ? true : false;
 
-  Utils::httpGetPost(vm, url, username, password, timeout, return_content,
+  Utils::httpGetPost(vm, url, username, password, NULL /* user_header_token */,
+		     timeout, return_content,
 		     use_cookie_authentication, &stats, form_data, NULL, true, 0);
 
   return(CONST_LUA_OK);
@@ -1911,8 +1963,9 @@ static int ntop_http_fetch(lua_State* vm) {
   snprintf(fname, sizeof(fname), "%s", f);
   ntop->fixPath(fname);
 
-  Utils::httpGetPost(vm, url, NULL, NULL, timeout,
-    false, false, &stats, NULL, fname, true, 0);
+  Utils::httpGetPost(vm, url, NULL, NULL, NULL /* user_header_token */,
+		     timeout,
+		     false, false, &stats, NULL, fname, true, 0);
 
   return(CONST_LUA_OK);
 }
@@ -2102,6 +2155,24 @@ static int ntop_create_user_session(lua_State* vm) {
   ntop->get_HTTPserver()->authorize_noconn(username, session_id, sizeof(session_id), session_duration);
 
   lua_pushstring(vm, session_id);
+  return CONST_LUA_OK;
+}
+
+/* ******************************************* */
+
+static int ntop_create_user_api_token(lua_State* vm) {
+  char *username = NULL;
+  char api_token[NTOP_SESSION_ID_LENGTH];  
+  api_token[0] = '\0';
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  
+  if(ntop->get_HTTPserver()->create_api_token(username, api_token, sizeof(api_token)))
+    lua_pushstring(vm, api_token);
+  else
+    lua_pushnil(vm);
+
   return CONST_LUA_OK;
 }
 
@@ -5757,6 +5828,7 @@ static const luaL_Reg ntop_reg[] = {
   { "clearUserLifetime",    ntop_clear_user_lifetime },
   { "deleteUser",           ntop_delete_user },
   { "createUserSession",    ntop_create_user_session },
+  { "createUserAPIToken",   ntop_create_user_api_token },
   { "isLoginDisabled",      ntop_is_login_disabled },
   { "isLoginBlacklisted",   ntop_is_login_blacklisted },
   { "getNetworkNameById",   ntop_network_name_by_id },
@@ -5770,6 +5842,7 @@ static const luaL_Reg ntop_reg[] = {
 
   /* HTTP */
   { "httpGet",              ntop_http_get            },
+  { "httpGetAuthToken",     ntop_http_get_auth_token },
   { "httpPost",             ntop_http_post           },
   { "httpFetch",            ntop_http_fetch          },
   { "postHTTPJsonData",     ntop_post_http_json_data },

@@ -406,11 +406,13 @@ class Ntop {
 	       char *allowed_networks, char *allowed_ifname, char *host_pool_id,
 	       char *language, bool allow_pcap_download);
   bool addUserLifetime(const char * const username, u_int32_t lifetime_secs); /* Captive portal users may expire */
+  bool addUserAPIToken(const char * const username, const char *api_token);
   bool clearUserLifetime(const char * const username);
   bool isCaptivePortalUser(const char * const username);
   bool deleteUser(char *username);
   bool getUserHostPool(char *username, u_int16_t *host_pool_id);
   bool getUserAllowedIfname(const char * const username, char *buf, size_t buflen) const;
+  bool getUserAPIToken(const char * const username, char *buf, size_t buflen) const;
   bool hasUserLimitedLifetime(const char * const username, int32_t *lifetime_secs);
   void setWorkingDir(char *dir);
   void fixPath(char *str, bool replaceDots = true);

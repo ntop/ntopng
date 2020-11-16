@@ -29,12 +29,28 @@ local am_hosts_key = string.format("ntopng.prefs.ifid_%d.am_hosts", getSystemInt
 
 -- ##############################################
 
+-- @brief Key used to save the result of the measurement (if requested)
+--        Used for example to save the page fetched with HTTP/HTTPs measurements
+local function am_last_result_key(key)
+  return string.format("ntopng.cache.ifid_%d.am_hosts.last_result." .. key, getSystemInterfaceId())
+end
+
+-- ##############################################
+
 local function am_last_updates_key(key)
   return string.format("ntopng.cache.ifid_%d.am_hosts.last_update_v1." .. key, getSystemInterfaceId())
 end
 
 local function am_hour_stats_key(key)
   return string.format("ntopng.cache.ifid_%d.am_hosts.hour_stats." .. key, getSystemInterfaceId())
+end
+
+-- ##############################################
+
+function am_utils.setLastResult(key, last_result)
+   if not isEmptyString(last_result) then
+      ntop.setCache(am_last_result_key(key), last_result)
+   end
 end
 
 -- ##############################################
@@ -241,6 +257,20 @@ end
 
 -- ##############################################
 
+-- @brief Returns the possibly saved result of a measurement
+function am_utils.getLastResult(host, measurement)
+  local key = am_utils.getAmHostKey(host, measurement)
+  local val = ntop.getCache(am_last_result_key(key))
+
+  if not isEmptyString(val) then
+     return val
+  end
+
+  return nil
+end
+
+-- ##############################################
+
 -- Only used for the formatting, don't use as a key as the "/"
 -- character is escaped in HTTP parameters
 function am_utils.formatAmHost(host, measurement)
@@ -302,6 +332,9 @@ local function deserializeAmPrefs(host_key, val, config_only)
     if v then
       rv.threshold = tonumber(v.threshold) or 500
       rv.granularity = v.granularity or "min"
+      rv.token = v.token
+      rv.save_result = v.save_result
+      rv.readonly = v.readonly
     end
   end
 
@@ -372,7 +405,15 @@ end
 
 -- ##############################################
 
-function am_utils.addHost(host, measurement, am_value, granularity, pool)
+-- @brief Add and host as part of the active monitoring
+-- @param measurement A string with the type of measurement which will be performed
+-- @param am_value A number used as threshold con consider the measurement failed
+-- @param granularity One of `supported_granularities`, indicating the granularity of the measurement
+-- @param pool The pool_id `host` will be associated to
+-- @param token A string with an ntopng `token` used to fetch data from other ntopngs in a federation [optional]
+-- @param save_result Whether the result fetched with the measure should be saved (e.g., the HTTP response) [optional]
+-- @param readonly Bool used by the GUI to know if, when true, an entry is considered read only hence it cannot be modified/deleted [optional]
+function am_utils.addHost(host, measurement, am_value, granularity, pool, token, save_result, readonly)
   local active_monitoring_pools = require("active_monitoring_pools")
   local am_pool = active_monitoring_pools:create()
   local host_key = am_utils.getAmHostKey(host, measurement)
@@ -380,6 +421,9 @@ function am_utils.addHost(host, measurement, am_value, granularity, pool)
   ntop.setHashCache(am_hosts_key, host_key, serializeAmPrefs({
     threshold = tonumber(am_value) or 500,
     granularity = granularity or "min",
+    token = token, -- ntopng auth token
+    save_result = save_result, -- save the result
+    readonly = readonly
   }))
 
   -- Bind the host from any existing pool
@@ -412,6 +456,9 @@ function am_utils.deleteHost(host, measurement)
   alerts_api.releaseEntityAlerts(am_host_entity)
 
   am_utils.discardHostTimeseries(host, measurement)
+
+  -- Remove possibly saved results
+  ntop.delCache(am_last_result_key(host_key))
 
   -- Remove the redis keys of the host
   ntop.delCache(am_last_updates_key(host_key))
@@ -737,7 +784,7 @@ end
 
 -- ##############################################
 
-function am_utils.editHost(host, measurement, threshold, granularity, pool)
+function am_utils.editHost(host, measurement, threshold, granularity, pool, token, save_result, readonly)
   local existing = am_utils.getHost(host, measurement)
 
   if(existing == nil) then
@@ -775,7 +822,7 @@ function am_utils.editHost(host, measurement, threshold, granularity, pool)
     end
   end
 
-  am_utils.addHost(host, measurement, threshold, granularity, pool)
+  am_utils.addHost(host, measurement, threshold, granularity, pool, token, save_result, readonly)
 
   return(true)
 end

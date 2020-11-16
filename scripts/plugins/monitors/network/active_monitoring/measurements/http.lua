@@ -35,7 +35,7 @@ local function check(measurement, hosts, granularity)
     end
 
     -- HTTP results are retrieved immediately
-    local rv = ntop.httpGet(full_url, nil, nil, 10 --[[ timeout ]], false --[[ don't return content ]],
+    local rv = ntop.httpGet(full_url, nil, nil, 10 --[[ timeout ]], host.save_result == true --[[ whether to return the content --]],
       nil, false --[[ don't follow redirects ]])
 
     if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
@@ -47,6 +47,13 @@ local function check(measurement, hosts, granularity)
 	resolved_addr = rv.RESOLVED_IP,
 	value = total_time,
       }
+
+      -- Check if the result of the measurement has to be saved
+      if host.save_result and not isEmptyString(rv.CONTENT) then
+	 local plugins_utils = require "plugins_utils"
+	 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+	 am_utils.setLastResult(key, rv.CONTENT)
+      end
 
       -- HTTP/S specific metrics
       if(host.measurement == "https") then

@@ -89,12 +89,13 @@ public:
   static bool sendMail(lua_State* vm, char *from, char *to, char *cc, char *message, char *smtp_server, char *username, char *password);
   static bool postHTTPTextFile(lua_State* vm, char *username, char *password,
 			       char *url, char *path, int timeout, HTTPTranferStats *stats);
-  static bool httpGetPost(lua_State* vm, char *url, char *username,
-		      char *password, int timeout, bool return_content,
-		      bool use_cookie_authentication, HTTPTranferStats *stats, const char *form_data,
-          char *write_fname, bool follow_redirects, int ip_version);
+  static bool httpGetPost(lua_State* vm, char *url,
+			  char *username, char *password, char *user_header_token,
+			  int timeout, bool return_content,
+			  bool use_cookie_authentication, HTTPTranferStats *stats, const char *form_data,
+			  char *write_fname, bool follow_redirects, int ip_version);
   static long httpGet(const char * const url,
-		      const char * const username, const char * const password,
+		      const char * const username, const char * const password, const char * const user_header_token,
 		      int timeout,
 		      char * const resp, const u_int resp_len);
   static bool progressCanContinue(ProgressState *progressState);

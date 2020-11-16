@@ -237,6 +237,8 @@
 #define SYSLOG_PRODUCERS_MAP_KEY "ntopng.syslog.ifid_%u.producers_map"
 #define NTOPNG_PREFS_PREFIX     "ntopng.prefs"
 #define NTOPNG_CACHE_PREFIX     "ntopng.cache"
+#define NTOPNG_USER_PREFIX      "ntopng.user"
+#define NTOPNG_API_TOKEN_PREFIX "ntopng.api_tokens"
 #define MAC_CUSTOM_DEVICE_TYPE  NTOPNG_PREFS_PREFIX".device_types.%s"
 #define NTOP_HOSTS_SERIAL       "ntopng.host_serial"
 #define MAX_NUM_INTERFACE_IDS   256
@@ -256,16 +258,17 @@
 #define CONST_STR_NTOPNG_LICENSE       "ntopng.license"
 #define CONST_STR_NTOPNG_KEY           "ntopng.key"
 #define CONST_STR_PRODUCT_NAME_KEY     "ntopng.product_name"
-#define CONST_STR_USER_GROUP           "ntopng.user.%s.group"
-#define CONST_STR_USER_FULL_NAME       "ntopng.user.%s.full_name"
-#define CONST_STR_USER_PASSWORD        "ntopng.user.%s.password"
-#define CONST_STR_USER_NETS            "ntopng.user.%s.allowed_nets"
-#define CONST_STR_USER_ALLOWED_IFNAME  "ntopng.user.%s.allowed_ifname"
-#define CONST_STR_USER_HOST_POOL_ID    "ntopng.user.%s.host_pool_id"
-#define CONST_STR_USER_LANGUAGE        "ntopng.user.%s.language"
-#define CONST_STR_USER_ALLOW_PCAP      "ntopng.user.%s.allow_pcap"
-#define CONST_STR_USER_EXPIRE          "ntopng.user.%s.expire"
-#define CONST_STR_USER_CAPABILITIES    "ntopng.user.%s.capabilities"
+#define CONST_STR_USER_GROUP           NTOPNG_USER_PREFIX".%s.group"
+#define CONST_STR_USER_FULL_NAME       NTOPNG_USER_PREFIX".%s.full_name"
+#define CONST_STR_USER_PASSWORD        NTOPNG_USER_PREFIX".%s.password"
+#define CONST_STR_USER_NETS            NTOPNG_USER_PREFIX".%s.allowed_nets"
+#define CONST_STR_USER_ALLOWED_IFNAME  NTOPNG_USER_PREFIX".%s.allowed_ifname"
+#define CONST_STR_USER_HOST_POOL_ID    NTOPNG_USER_PREFIX".%s.host_pool_id"
+#define CONST_STR_USER_LANGUAGE        NTOPNG_USER_PREFIX".%s.language"
+#define CONST_STR_USER_ALLOW_PCAP      NTOPNG_USER_PREFIX".%s.allow_pcap"
+#define CONST_STR_USER_EXPIRE          NTOPNG_USER_PREFIX".%s.expire"
+#define CONST_STR_USER_CAPABILITIES    NTOPNG_USER_PREFIX".%s.capabilities"
+#define CONST_STR_USER_API_TOKEN       NTOPNG_USER_PREFIX".%s.api_token"
 #define CONST_ALLOWED_NETS             "allowed_nets"
 #define CONST_ALLOWED_IFNAME           "allowed_ifname"
 #define CONST_USER_LANGUAGE            "language"
@@ -925,6 +928,8 @@
 #define MAX_HTTP_AUTHENTICATOR_LEN    256
 #define MAX_HTTP_AUTHENTICATOR_RETURN_DATA_LEN      4096
 #define PREF_NTOP_LOCAL_AUTH          NTOPNG_PREFS_PREFIX".local.auth_enabled"
+
+#define NTOP_API_TOKENS               "ntopng.api_tokens"
 
 /* Elastic Search */
 #define NTOP_ES_TEMPLATE              "ntopng_template_elk.json"
