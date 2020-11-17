@@ -434,9 +434,10 @@ function reset_pwd_dialog(user) {
 
         if (data.api_token === "") {
           $(`#btn-copy-token`).hide();
+          $(`#input-token`).val(']] print(i18n("manage_users.token_not_generated")) print[[');
         }
         else {
-        $(`#btn-copy-token`).show();
+          $(`#btn-copy-token`).show();
         }
       }
       else {

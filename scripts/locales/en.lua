@@ -2928,6 +2928,7 @@ local lang = {
     ["the_auth_can_be_perpetual"] = "The authentication can be perpetual or can expire after the specified time",
     ["the_host_pool_associated"] = "The host pool that will be associated to the user upon successful authentication",
     ["token"] = "Token",
+    ["token_not_generated"] = "Token not generated yet",
     ["unlimited"] = "Unlimited",
     ["user_role"] = "User Role",
     ["web_captive_users"] = "Web/Captive Portal Users",
