@@ -2188,16 +2188,19 @@ static int ntop_get_user_api_token(lua_State* vm) {
   // get the username param from the Lua vm
   if ((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+  char *curr_user = getLuaVMUserdata(vm,user);
+  if (ntop->isUserAdministrator(vm) || strncmp(curr_user, username, strlen(username)) == 0) {
 
-  if (ntop->getUserAPIToken(username, api_token, NTOP_SESSION_ID_LENGTH)) {
-    lua_pushstring(vm, api_token);
-  }
-  else {
-    lua_pushnil(vm);
-  }
+    if (ntop->getUserAPIToken(username, api_token, NTOP_SESSION_ID_LENGTH)) {
+      lua_pushstring(vm, api_token);
+    }
+    else {
+      lua_pushnil(vm);
+    }
 
-  return CONST_LUA_OK;
+    return CONST_LUA_OK;
+  }
+  return(CONST_LUA_ERROR);
 }
 
 /* ****************************************** */

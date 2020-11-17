@@ -109,7 +109,7 @@ print [[
 if(is_admin) then
 
 print [[
-</div>
+  </div>
 <div class="tab-pane" id="change-prefs-dialog">
 
   <form data-toggle="validator" id="form_pref_change" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
@@ -206,15 +206,22 @@ print[[
 ]]
 end
 
+if not is_admin then
+print("</div>")
+end
+
 -- get the user token from redis
+local api_token = ntop.getUserAPIToken(_SESSION['user'])
+local input_value = api_token or i18n("manage_users.token_not_generated")
+
 print([[
   <div class='tab-pane' id='user-token-tab'>
     <div class="form-group has-error">
       <label for="token-input">]] .. i18n("manage_users.token") ..[[</label>
       <div class='d-flex'>
-        <input readonly class='form-control' id='input-token'>
-        <input readonly hidden id='input-username'>
-        <button style='display: none' class="btn btn-light border ml-1" data-placement="bottom" id="btn-copy-token">
+        <input readonly class='form-control' id='input-token' value=']].. input_value ..[['>
+        <input readonly hidden id='input-username' value=']].._SESSION['user'] ..[['>
+        <button ]].. (isEmptyString(api_token) and "style='display: none'" or "") ..[[ class="btn btn-light border ml-1" data-placement="bottom" id="btn-copy-token">
           <i class='fas fa-copy'></i>
         </button>
       </div>
@@ -251,14 +258,7 @@ print [[
 
     $(`#btn-generate_token`).click(async function(e) {
 
-      if (!isAdministrator && loggedUser !== data.username) {
-        e.preventDefaults();
-        return;
-      }
-      
-      $(this).attr("disabled", "disabled");
-
-      const user = $(`#input-username`).val();
+      const user = $(`#input-username`).val() || loggedUser;
       const response = await fetch(`${http_prefix}/lua/rest/v1/create/ntopng/api_token.lua`, {
         method: 'POST',
         body: JSON.stringify({username: user, csrf: ']] print(ntop.getRandomCSRFValue()) print [['}),
@@ -462,7 +462,6 @@ $('#password_reset_submit').click(function() {
 */
 </script>
 
-</div>
 </div>
 </div>
 </div>
