@@ -33,6 +33,11 @@ else
    }
 end
 
+-- the infrastructure dashboard is available only in the Enterprise L
+if ntop.isEnterpriseL() then
+   configuration_items['infrastructure'] = {key = "infrastructure", label = i18n("manage_configurations.infrastructure_instances"), order = 6}
+end
+
 local selected_item = (table.has_key(configuration_items, _GET["item"]) and _GET["item"] or "all")
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.manage_configurations)

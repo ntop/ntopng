@@ -1,7 +1,7 @@
 --
 -- (C) 2020 - ntop.org
 --
--- 
+--
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
@@ -20,6 +20,10 @@ local rest_utils = {
          pool_added                                 = { http_code = 200, rc = 0, str = "POOL_ADDED_SUCCESSFULLY"},
          pool_edited                                = { http_code = 200, rc = 0, str = "POOL_EDITED_SUCCESSFULLY"},
          pool_member_bound                          = { http_code = 200, rc = 0, str = "POOL_MEMBER_BOUND_SUCCESSFULLY"},
+         -- infrastructure Dashboard
+         infrastructure_instance_added                  = { http_code = 200, rc = 0, str = "INFRASTRUCTURE_INSTANCE_ADDED"},
+         infrastructure_instance_edited                 = { http_code = 200, rc = 0, str = "INFRASTRUCTURE_INSTANCE_EDITED"},
+         infrastructure_instance_deleted                = { http_code = 200, rc = 0, str = "INFRASTRUCTURE_INSTANCE_DELETED"},
       },
       err = {
          not_found                                  = { http_code = 404, rc =  -1, str = "NOT_FOUND"},
@@ -47,9 +51,24 @@ local rest_utils = {
          user_already_existing                      = { http_code = 409, rc = -23, str = "USER_ALREADY_EXISTING"},
          user_does_not_exist                        = { http_code = 409, rc = -24, str = "USER_DOES_NOT_EXIST"},
          edit_user_failed                           = { http_code = 400, rc = -25, str = "EDIT_USER_FAILED"},
-	 snmp_device_interface_status_change_failed = { http_code = 400, rc = -26, str = "SNMP_DEVICE_INTERFACE_STATUS_CHANGE_FAILED"},
+	      snmp_device_interface_status_change_failed = { http_code = 400, rc = -26, str = "SNMP_DEVICE_INTERFACE_STATUS_CHANGE_FAILED"},
          configuration_file_mismatch                = { http_code = 400, rc = -27, str = "CONFIGURATION_FILE_MISMATCH" },
          partial_import                             = { http_code = 409, rc = -28, str = "PARTIAL_IMPORT" },
+         -- Infrastructure Dashboard
+         add_infrastructure_instance_failed             = { http_code = 409, rc = -29, str = "ADD_INFRASTRUCTURE_INSTANCE_FAILED"},
+         edit_infrastructure_instance_failed            = { http_code = 409, rc = -30, str = "EDIT_INFRASTRUCTURE_INSTANCE_FAILED"},
+         delete_infrastructure_instance_failed          = { http_code = 409, rc = -31, str = "DELETE_INFRASTRUCTURE_INSTANCE_FAILED"},
+         infrastructure_instance_not_found              = { http_code = 404, rc = -32, str = "INFRASTRUCTURE_INSTANCE_NOT_FOUND"},
+
+         infrastructure_instance_empty_id               = { http_code = 409, rc = -33, str = "INFRASTRUCTURE_INSTANCE_EMPTY_ID"},
+         infrastructure_instance_empty_alias            = { http_code = 409, rc = -34, str = "INFRASTRUCTURE_INSTANCE_EMPTY_ALIAS"},
+         infrastructure_instance_empty_url              = { http_code = 409, rc = -35, str = "INFRASTRUCTURE_INSTANCE_EMPTY_URL"},
+         infrastructure_instance_empty_token            = { http_code = 409, rc = -36, str = "INFRASTRUCTURE_INSTANCE_EMPTY_TOKEN"},
+
+         infrastructure_instance_same_id               = { http_code = 409, rc = -37, str = "INFRASTRUCTURE_INSTANCE_SAME_ID"},
+         infrastructure_instance_same_alias            = { http_code = 409, rc = -38, str = "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"},
+         infrastructure_instance_same_url              = { http_code = 409, rc = -39, str = "INFRASTRUCTURE_INSTANCE_SAME_URL"},
+         infrastructure_instance_same_token            = { http_code = 409, rc = -40, str = "INFRASTRUCTURE_INSTANCE_SAME_TOKEN"},
       },
    }
 }

@@ -11,26 +11,26 @@ require "lua_utils"
 local import_export = require "import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
-local federation_utils = require("federation_utils")
+local infrastructure_utils = require("infrastructure_utils")
 
 -- ##############################################
 
-local federation_import_export = {}
+local infrastructure_import_export = {}
 
 -- ##############################################
 
-function federation_import_export:create(args)
+function infrastructure_import_export:create(args)
     -- Instance of the base class
-    local _federation_import_export = import_export:create()
+    local _infrastructure_import_export = import_export:create()
 
     -- Subclass using the base class instance
-    self.key = "federation"
+    self.key = "infrastructure"
     -- self is passed as argument so it will be set as base class metatable
     -- and this will actually make it possible to override functions
-    local _federation_import_export_instance = _federation_import_export:create(self)
+    local _infrastructure_import_export_instance = _infrastructure_import_export:create(self)
 
     -- Return the instance
-    return _federation_import_export_instance
+    return _infrastructure_import_export_instance
 end
 
 -- ##############################################
@@ -38,10 +38,10 @@ end
 -- @brief Import configuration
 -- @param conf The configuration to be imported
 -- @return A table with a key "success" set to true is returned on success. A key "err" is set in case of failure, with one of the errors defined in rest_utils.consts.err.
-function federation_import_export:import(conf)
+function infrastructure_import_export:import(conf)
    local res = {}
 
-   local success = federation_utils.restore(conf)
+   local success = infrastructure_utils.restore(conf)
 
    if not success then
       res.err = rest_utils.consts.err.internal_error
@@ -56,18 +56,18 @@ end
 
 -- @brief Export configuration
 -- @return The current configuration
-function federation_import_export:export()
-   local conf = federation_utils.get_all_instances()
+function infrastructure_import_export:export()
+   local conf = infrastructure_utils.get_all_instances()
    return conf
 end
 
 -- ##############################################
 
 -- @brief Reset configuration
-function federation_import_export:reset()
-    federation_utils.remove_all_instances()
+function infrastructure_import_export:reset()
+    infrastructure_utils.remove_all_instances()
 end
 
 -- ##############################################
 
-return federation_import_export
+return infrastructure_import_export

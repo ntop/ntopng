@@ -9,7 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 require "lua_utils"
 
 local plugins_utils = require("plugins_utils")
-local federation_import_export = require("federation_import_export")
+local infrastructure_import_export = require("infrastructure_import_export")
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local import_export_rest_utils = require "import_export_rest_utils"
@@ -29,5 +29,5 @@ end
 
 local download = _GET["download"] 
 local instances = {}
-instances["federation"] = federation_import_export:create()
+instances["infrastructure"] = infrastructure_import_export:create()
 import_export_rest_utils.export(instances, not isEmptyString(download))

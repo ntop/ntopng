@@ -1484,9 +1484,11 @@ local known_parameters = {
 -- Topology SNMP Devices
    ["topology_host"]                   = validateIPV4,
 
--- Federation Dashboard
+-- Infrastructure Dashboard
    ["alias"]                  = validateSingleWord,
    ["token"]                  = validateSingleWord,
+   ["instance_id"]            = validateSingleWord,
+   ["stats"]                  = validateBool,
 
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,

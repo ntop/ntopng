@@ -116,7 +116,15 @@ else
 	    {
 	       entry = page_utils.menu_entries.traffic_dashboard,
 	       url = ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua',
-	    },
+       },
+       {
+          entry = page_utils.menu_entries.infrastructure_dashboard,
+          hidden = not ntop.isEnterpriseL(),
+          url = '/lua/pro/enterprise/infrastructure_dashboard.lua'
+       },
+       {
+         entry = page_utils.menu_entries.divider,
+       },
 	    {
 	       entry = page_utils.menu_entries.network_discovery,
 	       hidden = not interface.isDiscoverableInterface() or interface.isLoopback(),
@@ -776,7 +784,7 @@ end -- num_ifaces > 0
 -- ##############################################
 
 print([[
-   <nav class="navbar navbar-expand-md navbar-expand-lg fixed-top navbar-light bg-light" id='n-navbar'>
+   <nav class="navbar navbar-expand-md navbar-expand-lg fixed-top navbar-light" id='n-navbar'>
       <ul class='navbar-nav mr-auto'>
          <li class='nav-item'>
             <button class='btn btn-outline-dark border-0 btn-sidebar' data-toggle='sidebar'>
