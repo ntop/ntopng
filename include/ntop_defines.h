@@ -1056,7 +1056,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define MAX_THREAD_POOL_SIZE         1
 #else
 #define DEFAULT_THREAD_POOL_SIZE     2
-#define MAX_THREAD_POOL_SIZE         5
+#define MAX_THREAD_POOL_SIZE        32
 #endif
 
 #define DONT_NOT_EXPIRE_BEFORE_SEC        15 /* sec */
