@@ -408,7 +408,7 @@ if is_nedge then
 	 {
 	    entry = page_utils.menu_entries.system_setup,
 	    hidden = not is_admin,
-	    url = '/lua/pro/nedge/system_setup/interfaces.lua',
+	    url = '/lua/system_setup_ui/interfaces.lua',
 	 },
 	 {
 	    entry = page_utils.menu_entries.dhcp_leases,

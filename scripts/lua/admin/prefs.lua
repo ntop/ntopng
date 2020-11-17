@@ -821,7 +821,7 @@ function printAuthentication()
     prefsInformativeField(i18n("notes"), i18n("prefs.auth_methods_order"))
   else
     prefsInformativeField(i18n("notes"), i18n("nedge.authentication_gui_and_captive_portal",
-      {product = product, url = ntop.getHttpPrefix() .. "/lua/pro/nedge/system_setup/captive_portal.lua"}))
+      {product = product, url = ntop.getHttpPrefix() .. "/lua/pro/nedge/system_setup_ui/captive_portal.lua"}))
   end
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')

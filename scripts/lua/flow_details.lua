@@ -10,7 +10,7 @@ require "lua_utils"
 local alert_utils = require "alert_utils"
 local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
-local NfConfig = nil
+local nf_config = nil
 local flow_consts = require "flow_consts"
 local dscp_consts = require "dscp_consts"
 require "flow_utils"
@@ -21,7 +21,7 @@ if ntop.isPro() then
 
    if ntop.isnEdge() then
       package.path = dirs.installdir .. "/scripts/lua/pro/nedge/modules/?.lua;" .. package.path
-      NfConfig = require("nf_config")
+      nf_config = require("nf_config")
    end
 end
 
@@ -761,7 +761,7 @@ else
       -- ENABLE MARKER DEBUG
       if ntop.isnEdge() and false then
         print("<tr><th width=30%>"..i18n("flow_details.flow_marker").."</th>")
-        print("<td colspan=2>".. NfConfig.formatMarker(flow["marker"]) .."</td>")
+        print("<td colspan=2>".. nf_config.formatMarker(flow["marker"]) .."</td>")
         print("</tr>")
       end
 

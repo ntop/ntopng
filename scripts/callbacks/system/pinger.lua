@@ -10,20 +10,21 @@ package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. pack
 
 if ntop.isnEdge() then
    package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
+   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
 
    -- Select the NetfilterInterface, as by default the System interface is selected
    interface.select(nil)
 
    require("lua_utils")
-   local NfConfig = require("nf_config")
+   local nf_config = require("nf_config")
 
-   NfConfig.checkPolicyChange()
+   nf_config.checkPolicyChange()
 
    if ntop.isRoutingMode() then
      local ping_utils = require('ping_utils')
-     local nf_config = NfConfig:readable()
+     local nf_config_instance = nf_config:create()
 
-     nf_config:recheckGatewaysInformationFromSystem()
-     ping_utils.check_status(nf_config)
+     nf_config_instance:recheckGatewaysInformationFromSystem()
+     ping_utils.check_status(nf_config_instance)
    end
 end
