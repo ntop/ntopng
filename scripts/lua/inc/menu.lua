@@ -39,6 +39,7 @@ print[[
 <script type='text/javascript'>
 
    const isAdministrator = ]] print(is_admin) print[[;
+   const loggedUser = "]] print(_SESSION['user']) print[[";
    const interfaceID = ]] print(interface.getStats().id) print[[;
 
    /* Some localization strings to pass from lua to javascript */

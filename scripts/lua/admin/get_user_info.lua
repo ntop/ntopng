@@ -51,8 +51,11 @@ if(haveAdminPrivileges()) then
          if value["allow_pcap_download"] then
            print(' "allow_pcap_download": true,\n')
          end
+		
+	local api_token = ntop.getUserAPIToken(key) or ""
 
 	 print(' "username": "'..key..'",\n')
+	 print(' "api_token": "' ..api_token.. '",\n')
 	 print(' "password": "'..value["password"]..'",\n')
 	 print(' "full_name": "'..value["full_name"]..'",\n')
 	 print(' "group": "'..value["group"]..'"\n')

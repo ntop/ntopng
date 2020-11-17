@@ -207,22 +207,21 @@ print[[
 end
 
 -- get the user token from redis
-local user_token = "Example Token"
-
 print([[
   <div class='tab-pane' id='user-token-tab'>
     <div class="form-group has-error">
       <label for="token-input">]] .. i18n("manage_users.token") ..[[</label>
       <div class='d-flex'>
-        <input value=']].. user_token ..[[' readonly class='form-control' id='input-token'>
-        <button ]].. (isEmptyString(user_token) and "style='display: none'" or "") ..[[ class="btn btn-light border ml-1" data-placement="bottom" id="btn-copy-token">
+        <input readonly class='form-control' id='input-token'>
+        <input readonly hidden id='input-username'>
+        <button style='display: none' class="btn btn-light border ml-1" data-placement="bottom" id="btn-copy-token">
           <i class='fas fa-copy'></i>
         </button>
       </div>
     </div>
     <hr>
     <div class='w-100 text-right'>
-      <button class='btn btn-secondary' ]].. (not isEmptyString(user_token) and "disabled" or "") ..[[ id='btn-generate_token'>]].. i18n("login.generate_token") ..[[</button>
+      <button class='btn btn-secondary' id='btn-generate_token'>]].. i18n("login.generate_token") ..[[</button>
     </div>
   </div>
 ]])
@@ -250,8 +249,30 @@ print [[
       });
     });
 
-    $(`#btn-copy-token`).click(async function() {
-      // TODO: fetch the REST api to get the token
+    $(`#btn-generate_token`).click(async function(e) {
+
+      if (!isAdministrator && loggedUser !== data.username) {
+        e.preventDefaults();
+        return;
+      }
+      
+      $(this).attr("disabled", "disabled");
+
+      const user = $(`#input-username`).val();
+      const response = await fetch(`${http_prefix}/lua/rest/v1/create/ntopng/api_token.lua`, {
+        method: 'POST',
+        body: JSON.stringify({username: user, csrf: ']] print(ntop.getRandomCSRFValue()) print [['}),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      });
+
+      const data = await response.json();
+      const token = data.rsp.api_token;
+      $(`#input-token`).val(token);
+      $(`#btn-copy-token`).show();
+
+      $(this).removeAttr("disabled");
     });
 
   });
@@ -404,6 +425,24 @@ function reset_pwd_dialog(user) {
         $("#lifetime_unlimited").click();
         if (typeof resol_selector_set_value === "function")
           resol_selector_set_value("#lifetime_secs", 3600);
+      }
+
+     if (isAdministrator || loggedUser === data.username) {
+        $(`[href="#user-token-tab"]`).show();
+        $(`#input-username`).val(data.username);
+        $(`#input-token`).val(data.api_token);
+
+        if (data.api_token === "") {
+          $(`#btn-copy-token`).hide();
+        }
+        else {
+        $(`#btn-copy-token`).show();
+        }
+      }
+      else {
+        $(`#input-token`).val('');
+        $(`#input-username`).val('');
+        $(`[href="#user-token-tab"]`).hide();
       }
 
       $('#form_pref_change').show();

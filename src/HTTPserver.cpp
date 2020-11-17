@@ -862,10 +862,7 @@ bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int sessio
 bool HTTPserver::create_api_token(const char *username, char *api_token, u_int api_token_size) {
   /* Note: we are not checking the user password as the admin
    * or the same (authenticated) user is generating the session */
-  if(ntop->getUserAPIToken(username, api_token, api_token_size)) {
-    /* Token already existing */
-    return true;
-  } else if(ntop->existsUserLocal(username)) {
+  if(ntop->existsUserLocal(username)) {
     /*
       Use the same random generator used for the sessions
      */
