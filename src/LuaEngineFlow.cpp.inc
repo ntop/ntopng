@@ -655,18 +655,6 @@ static int ntop_flow_get_bytes(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
-
-/* ****************************************** */
-
-static int ntop_flow_get_goodput_bytes(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  lua_pushinteger(vm, f->get_goodput_bytes());
-  return(CONST_LUA_OK);
-}
-
 /* ****************************************** */
 
 static int ntop_flow_get_goodput_ratio(lua_State* vm) {
@@ -1175,7 +1163,6 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getBytesSent",             ntop_flow_get_bytes_sent             },
   { "getBytesRcvd",             ntop_flow_get_bytes_rcvd             },
   { "getBytes",                 ntop_flow_get_bytes                  },
-  { "getGoodputBytes",          ntop_flow_get_goodput_bytes          },
   { "getGoodputRatio",          ntop_flow_get_goodput_ratio          },
   { "getClientKey",             ntop_flow_get_client_key             },
   { "getServerKey",             ntop_flow_get_server_key             },

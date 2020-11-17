@@ -13,6 +13,10 @@ local script = {
   -- Script category
   category = user_scripts.script_categories.network,
 
+  packet_interface_only = true,
+  nedge_exclude = true,
+  l4_proto = "tcp",
+
   -- NOTE: hooks defined below
   hooks = {},
 
