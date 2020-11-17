@@ -261,6 +261,7 @@ class DataTableUtils {
                     ${action.modal ? "data-toggle='modal'" : ""}
                     class='btn btn-sm ${action.class}'
                     ${action.hidden ? "style='display: none'" : ''}
+                    ${action.external ? "target='_about'" : ""}
                     >
                     <i class='fas ${action.icon}'></i>
                 </a>
