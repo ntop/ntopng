@@ -2724,7 +2724,9 @@ static int ntop_check_license(lua_State* vm) {
 
 static int ntop_get_info(lua_State* vm) {
   char rsp[256];
+#ifdef NTOPNG_PRO
   char buf[128];
+#endif
 #ifndef HAVE_NEDGE
   int major, minor, patch;
 #endif
