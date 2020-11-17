@@ -258,6 +258,9 @@ bool ThreadedActivity::isQueueable(NetworkInterface *iface) const {
 /* ******************************************* */
 
 bool ThreadedActivity::isDeadlineApproaching(time_t deadline) const {
+  if (terminating)
+    return true;
+
   /*
     The deadline is approaching if the current time is closer than deadline_approaching_secs
     with reference to the deadline passed as parameter
