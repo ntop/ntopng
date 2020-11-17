@@ -23,6 +23,8 @@ local ALARM_THRESHOLD_LOW = 60
 local ALARM_THRESHOLD_HIGH = 90
 local IS_ADMIN = isAdministrator()
 local IS_SYSTEM_INTERFACE = page_utils.is_system_view()
+local IS_PCAP_DUMP = interface.isPcapDumpInterface()
+local IS_PACKET_INTERFACE = interface.isPacketInterface()
 local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.user_scripts.unexpected_plugins_enabled"
 
 local predicates = {}
@@ -208,10 +210,8 @@ function predicates.DHCP(notification, container)
     -- In System Interface we can't collect the required data
     if (IS_SYSTEM_INTERFACE) then return false end
     local ifs = interface.getStats()
-    local is_pcap_dump = interface.isPcapDumpInterface()
-    local is_packet_interface = interface.isPacketInterface()
 
-    if (not(ifs.has_seen_dhcp_addresses and IS_ADMIN and (not is_pcap_dump) and is_packet_interface)) then
+    if (not(ifs.has_seen_dhcp_addresses and IS_ADMIN and (not IS_PCAP_DUMP) and IS_PACKET_INTERFACE)) then
         return
     end
 
@@ -499,6 +499,7 @@ function predicates.create_endpoint(notification, container)
 
     if (not IS_ADMIN) then return end
     if (user_has_created_endpoint()) then return end
+    if IS_PCAP_DUMP then return end
 
     local title = i18n("endpoint_notifications.hints.create_endpoint.title")
     local body = i18n("endpoint_notifications.hints.create_endpoint.body", {
@@ -519,6 +520,7 @@ end
 function predicates.create_recipients_for_endpoint(notification, container)
 
     if (not IS_ADMIN) then return end
+    if IS_PCAP_DUMP then return end
 
     -- Did the user created a new endpoint? If not then return
     if (not user_has_created_endpoint()) then return end
@@ -545,6 +547,7 @@ function predicates.bind_recipient_to_pools(notification, container)
     if (not user_has_created_endpoint()) then return end
     if (not user_has_created_recipient()) then return end
     if (user_has_bound_recipient()) then return end
+    if IS_PCAP_DUMP then return end
 
     local title = i18n("endpoint_notifications.hints.bind_pools.title")
     local body = i18n("endpoint_notifications.hints.bind_pools.body")
