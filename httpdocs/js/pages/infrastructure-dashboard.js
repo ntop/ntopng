@@ -26,13 +26,16 @@ $(document).ready(function() {
         columns: [
             /* Alias Column */
             { width: '20%', data: 'alias', render: (alias, type, instance) => {
-                if (type !== 'display' || instance.am_success) return alias;
+                if ((type !== 'display' || instance.am_success)) return alias;
+                if (instance.error_message === undefined) return alias;
                 return `<span data-toggle='tooltip' data-placement='bottom' title='${i18n.rest[instance.error_message]}'>${alias} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i></span>`;
             }},
             /* Status Column */
-            { width: '5%', className: 'text-center', data: 'am_success', render: (am_success, type) => {
+            { width: '5%', className: 'text-center', data: 'am_success', render: (am_success, type, instance) => {
                 if (type === "display") {
-                    return `<span class='badge badge-${am_success ? 'success' : 'danger'}'>${am_success ? i18n.up : i18n.unreachable}</span>`;
+                    const badgeColor = (am_success && !instance.am_error) ? 'success' : (!am_success && instance.am_error) ? 'danger' : 'secondary';
+                    const badgeText = (am_success && !instance.am_error) ? i18n.up : (!am_success && instance.am_error) ? i18n.unreachable : i18n.not_polled_yet;
+                    return `<span class='badge badge-${badgeColor}'>${badgeText}</span>`;
                 }
                 return am_success;
             }},

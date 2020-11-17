@@ -2647,6 +2647,7 @@ local lang = {
     ["information"] = "Information",
     ["infrastructure_dashboard"] = "Infrastructure Dashboard",
     ["name"] = "Name",
+    ["not_polled_yet"] = "Not polled yet",
     ["ntopng_instance"] = "%{product} Instance",
     ["remove_instance"] = "Do you really want to delete '%{instance}' instance?",
     ["status"] = "Status",

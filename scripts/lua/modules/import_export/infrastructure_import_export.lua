@@ -6,12 +6,16 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" .. package.path
 package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils" 
 local import_export = require "import_export"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
+local pools = require("pools")
 local infrastructure_utils = require("infrastructure_utils")
+local plugins_utils = require("plugins_utils")
+local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
 -- ##############################################
 
@@ -41,12 +45,21 @@ end
 function infrastructure_import_export:import(conf)
    local res = {}
 
-   local success = infrastructure_utils.restore(conf)
+   local success, restored = infrastructure_utils.restore(conf)
 
    if not success then
       res.err = rest_utils.consts.err.internal_error
    else
       res.success = true
+
+      -- restore active monitoring hosts
+      for _, instance in ipairs(restored) do
+         -- get the measurement from the url
+         local measurement = ternary(instance.url:starts("https"), "https", "http")
+         local host = instance.url:gsub(measurement .. "://", "")
+         am_utils.addHost(host, measurement, 99, "5mins", pools.DEFAULT_POOL_ID, instance.token, true, true)
+      end
+      
    end
 
    return res
@@ -65,7 +78,18 @@ end
 
 -- @brief Reset configuration
 function infrastructure_import_export:reset()
-    infrastructure_utils.remove_all_instances()
+
+   local instances = infrastructure_utils.get_all_instances()
+   infrastructure_utils.remove_all_instances()
+
+   for _, instance in ipairs(instances) do
+      -- get the measurement from the url
+      local measurement = ternary(instance.url:starts("https"), "https", "http")
+      local host = instance.url:gsub(measurement .. "://", "")
+      -- remove the active monitoring host
+      am_utils.deleteHost(host, measurement)
+   end
+
 end
 
 -- ##############################################
