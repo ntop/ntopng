@@ -120,7 +120,7 @@ else
        },
        {
           entry = page_utils.menu_entries.infrastructure_dashboard,
-          hidden = not ntop.isEnterpriseL(),
+          hidden = not ntop.isEnterpriseL() or not isAdministrator,
           url = '/lua/pro/enterprise/infrastructure_dashboard.lua'
        },
        {
