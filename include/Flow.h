@@ -755,6 +755,8 @@ class Flow : public GenericHashEntry {
   inline bool timeToPeriodicDump(u_int sec) {
     return((sec - get_first_seen() < CONST_DB_DUMP_FREQUENCY) || (sec - get_partial_last_seen() < CONST_DB_DUMP_FREQUENCY));
   }
+
+  u_char* getCommunityId(u_char *community_id, u_int community_id_len);
 };
 
 #endif /* _FLOW_H_ */

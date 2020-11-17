@@ -1292,6 +1292,42 @@ void Host::get_geocoordinates(float *latitude, float *longitude) {
 
 /* *************************************** */
 
+void Host::serialize_geocoordinates(ndpi_serializer *s, const char *prefix) {
+  char *continent = NULL, *country = NULL, *city = NULL, buf[64];
+  float latitude = 0, longitude = 0;
+  
+  ntop->getGeolocation()->getInfo(&ip, &continent, &country, &city, &latitude, &longitude);
+
+  if(city) {
+    snprintf(buf, sizeof(buf), "%s_city_name", prefix);
+    ndpi_serialize_string_string(s, buf, city);
+  }
+
+  if(country) {
+    snprintf(buf, sizeof(buf), "%s_country_name", prefix);
+    ndpi_serialize_string_string(s, buf, country);
+  }
+
+  if(continent) {
+    snprintf(buf, sizeof(buf), "%s_continent_name", prefix);
+    ndpi_serialize_string_string(s, buf, continent);
+  }
+
+  if(longitude) {
+    snprintf(buf, sizeof(buf), "%s_location_lon", prefix);
+    ndpi_serialize_string_float(s, buf, longitude, "%.f");
+  }
+
+  if(latitude) {
+    snprintf(buf, sizeof(buf), "%s_location_lat", prefix);
+    ndpi_serialize_string_float(s, buf, latitude, "%.f");
+  }
+
+  ntop->getGeolocation()->freeInfo(&continent, &country, &city);  
+}
+
+/* *************************************** */
+
 bool Host::isOneWayTraffic() const {
   /* When both directions are at zero, it means no periodic update has visited the host yet,
      so nothing can be said about its traffic directions. One way is only returned when 

@@ -2758,6 +2758,37 @@ json_object* Flow::flow2json() {
 
 /* *************************************** */
 
+u_char* Flow::getCommunityId(u_char *community_id, u_int community_id_len) {
+  if(cli_host && srv_host) {
+    IpAddress *c = cli_host->get_ip(), *s = srv_host->get_ip();
+    u_int8_t icmp_type = 0, icmp_code = 0;
+
+    if(c->isIPv4()) {
+      if(get_protocol() == IPPROTO_ICMP)
+	icmp_type = protos.icmp.cli2srv.icmp_type, icmp_code = protos.icmp.cli2srv.icmp_code;
+
+      if(ndpi_flowv4_flow_hash(protocol, c->get_ipv4(), s->get_ipv4(), get_cli_port(), get_srv_port(),
+			       icmp_type, icmp_code,
+			       community_id, sizeof(community_id)) == 0)
+	return(community_id);
+    } else {
+      if(get_protocol() == IPPROTO_ICMPV6)
+	icmp_type = protos.icmp.cli2srv.icmp_type, icmp_code = protos.icmp.cli2srv.icmp_code;
+    
+      if(ndpi_flowv6_flow_hash(protocol, (struct ndpi_in6_addr*)c->get_ipv6(),
+			       (struct ndpi_in6_addr*)s->get_ipv6(), get_cli_port(), get_srv_port(),
+			       icmp_type, icmp_code,
+			       community_id, sizeof(community_id)) == 0)
+	return(community_id);
+    }
+  }
+  
+  community_id[0] = '\0';
+  return(community_id);
+}
+
+/* *************************************** */
+
 /* Create a JSON in the alerts format
  * Using the nDPI json serializer instead of jsonc for faster speed (~2.5x) */
 void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
@@ -2765,7 +2796,8 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   u_int32_t buflen;
   const char *info;
   char buf[64];
-
+  u_char community_id[200];
+  
   ndpi_init_serializer(&json_info, ndpi_serialization_format_json);
 
   /* AlertsManager::storeFlowAlert requires a string */
@@ -2800,8 +2832,9 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   ndpi_serialize_string_string(s, "cli_addr", get_cli_ip_addr()->print(buf, sizeof(buf)));
   ndpi_serialize_string_boolean(s, "cli_blacklisted", isBlacklistedClient());
   ndpi_serialize_string_int32(s, "cli_port", get_cli_port());
+
   if(cli_host) {
-    ndpi_serialize_string_string(s, "cli_country", cli_host->get_country(buf, sizeof(buf)));
+    cli_host->serialize_geocoordinates(s, "cli");
     ndpi_serialize_string_string(s, "cli_os", cli_host->getOSDetail(buf, sizeof(buf)));
     ndpi_serialize_string_int32(s, "cli_asn", cli_host->get_asn());
     ndpi_serialize_string_boolean(s, "cli_localhost", cli_host->isLocalHost());
@@ -2810,12 +2843,16 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   ndpi_serialize_string_string(s, "srv_addr", get_srv_ip_addr()->print(buf, sizeof(buf)));
   ndpi_serialize_string_boolean(s, "srv_blacklisted", isBlacklistedServer());
   ndpi_serialize_string_int32(s, "srv_port", get_srv_port());
+
   if(srv_host) {
-    ndpi_serialize_string_string(s, "srv_country", srv_host->get_country(buf, sizeof(buf)));
+    srv_host->serialize_geocoordinates(s, "srv");
     ndpi_serialize_string_string(s, "srv_os", srv_host->getOSDetail(buf, sizeof(buf)));
     ndpi_serialize_string_int32(s, "srv_asn", srv_host->get_asn());
     ndpi_serialize_string_boolean(s, "srv_localhost", srv_host->isLocalHost());
   }
+
+  ndpi_serialize_string_string(s, "community_id",
+			       (char*)getCommunityId(community_id, sizeof(community_id)));
 }
 
 /* *************************************** */
