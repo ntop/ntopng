@@ -3944,6 +3944,7 @@ function table.contains(t, needle, comp)
 
    if (t == nil) then return false end
    if (type(t) ~= "table") then return false end
+   if (#t == 0) then return false end
 
    local default_compare = (function(e) return e == needle end)
    comp = comp or default_compare
