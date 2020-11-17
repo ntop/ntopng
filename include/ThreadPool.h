@@ -29,7 +29,7 @@ class QueuedThreadData {
   ThreadedActivity *j;
   char *script_path;
   NetworkInterface *iface;
-  bool high_priority;
+  bool adaptive_pool_size;
   time_t deadline;
   
   QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface, time_t _deadline) {
@@ -42,17 +42,25 @@ class QueuedThreadData {
 	
 class ThreadPool {
  private:
-  bool terminating, high_priority;
-  u_int8_t pool_size;
+  bool terminating, adaptive_pool_size;
   pthread_cond_t condvar;
   Mutex *m;
-  pthread_t *threadsState;
+  #ifdef __linux__
+  cpu_set_t affinity_mask;
+#endif
+
+  std::vector <pthread_t> threadsState;
   std::queue <QueuedThreadData*> threads;
 
   QueuedThreadData* dequeueJob(bool waitIfEmpty);
+
+  /*
+    Creates and starts a new pool thread
+   */
+  void spawn();
   
  public:
-  ThreadPool(bool _high_priority, u_int8_t _pool_size, char *comma_separated_affinity_mask = NULL);
+  ThreadPool(bool _adaptive_pool_size, u_int8_t _pool_size, char *comma_separated_affinity_mask = NULL);
   virtual ~ThreadPool();
 
   void shutdown();

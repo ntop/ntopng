@@ -34,34 +34,24 @@ static void* doRun(void* ptr)  {
 
 /* **************************************************** */
 
-ThreadPool::ThreadPool(bool _high_priority, u_int8_t _pool_size,
-		       char *comma_separated_affinity_mask) {
-  pool_size = _pool_size;
-  m = new Mutex();
+ThreadPool::ThreadPool(bool _adaptive_pool_size, u_int8_t _pool_size,
+                       char *comma_separated_affinity_mask) {
+  m = new (std::nothrow) Mutex();
   pthread_cond_init(&condvar, NULL);
   terminating = false;
-  high_priority = _high_priority; /* Not used yet */
+  adaptive_pool_size = _adaptive_pool_size;
 
 #ifdef __linux__
-  cpu_set_t mask, *mask_to_set;
-  
-  if(comma_separated_affinity_mask != NULL) {
-    Utils::setAffinityMask(comma_separated_affinity_mask, &mask);
-    mask_to_set = &mask;
-  } else
-    mask_to_set = ntop->getPrefs()->get_other_cpu_affinity_mask();
+  CPU_ZERO(&affinity_mask);
+
+  if(comma_separated_affinity_mask)
+    Utils::setAffinityMask(comma_separated_affinity_mask, &affinity_mask);
+  else if(ntop->getPrefs()->get_other_cpu_affinity())
+    Utils::setAffinityMask(ntop->getPrefs()->get_other_cpu_affinity(), &affinity_mask);
 #endif
-  
-  if((threadsState = (pthread_t*)malloc(sizeof(pthread_t)*pool_size)) == NULL)
-    throw("Not enough memory");
-  
-  for(int i=0; i<pool_size; i++) {
-    if(pthread_create(&threadsState[i], NULL, doRun, (void*)this) == 0) {
-#ifdef __linux__
-      Utils::setThreadAffinityWithMask(threadsState[i], mask_to_set);
-#endif
-    }
-  }
+
+  for(int i = 0; i < _pool_size; i++)
+    spawn();
 }
 
 /* **************************************************** */
@@ -70,17 +60,32 @@ ThreadPool::~ThreadPool() {
   void *res;
 
   shutdown();
-  
-  for(int i=0; i<pool_size; i++) {
+
+  for(vector<pthread_t>::const_iterator it = threadsState.begin(); it != threadsState.end(); ++it) {
 #ifdef THREAD_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Threads still running %d", pool_size-i);
 #endif
-    pthread_join(threadsState[i], &res);    
+    pthread_join(*it, &res);
   }
-  free(threadsState);
+
+  threadsState.clear();
 
   pthread_cond_destroy(&condvar);
   delete m;
+}
+
+/* **************************************************** */
+
+void ThreadPool::spawn() {
+  pthread_t new_thread;
+
+  if(pthread_create(&new_thread, NULL, doRun, (void*)this) == 0) {
+    threadsState.push_back(new_thread);
+
+#ifdef __linux__
+    Utils::setThreadAffinityWithMask(new_thread, &affinity_mask);
+#endif
+  }
 }
 
 /* **************************************************** */
@@ -144,9 +149,27 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
 #endif
 
     if(stats) {
-      if(ta_state == threaded_activity_state_queued)
+      if(ta_state == threaded_activity_state_queued) {
+	/*
+	  If here, the periodic activity has been waiting in queue for too long and no thread has dequeued it.
+	  Hence, we can try and spawn an additional thread, up to a maximum
+	*/
+#ifdef THREAD_DEBUG
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Waiting in queue for too long [%u][%u][%u]", threadsState.size(), MAX_THREAD_POOL_SIZE, ntop->get_num_interfaces() + 1);
+#endif
+
+	if(adaptive_pool_size
+	   && threadsState.size() < MAX_THREAD_POOL_SIZE
+	   && threadsState.size() < ntop->get_num_interfaces() + 1 /* System Interface */) {
+	  spawn();
+
+#ifdef THREAD_DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "New thread spawned [%u]", threadsState.size());
+#endif
+	}
+
         stats->setNotExecutedAttivity(true);
-      else if(ta_state == threaded_activity_state_running
+      } else if(ta_state == threaded_activity_state_running
 	      && stats->getDeadline() < scheduled_time)
         stats->setSlowPeriodicActivity(true);
     }
