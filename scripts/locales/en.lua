@@ -2668,8 +2668,8 @@ local lang = {
       ["username"] = "Username",
     },
     ["validation"] = {
-      ["abort_add"] = "Abort Add",
-      ["abort_edit"] = "Abort Edit",
+      ["abort_add"] = "Abort add of new instance?",
+      ["abort_edit"] = "Abort edit of the current instance?",
     },
   },
   ["internals"] = {
