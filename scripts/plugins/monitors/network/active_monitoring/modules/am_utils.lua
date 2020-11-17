@@ -414,10 +414,9 @@ end
 -- @param save_result Whether the result fetched with the measure should be saved (e.g., the HTTP response) [optional]
 -- @param readonly Bool used by the GUI to know if, when true, an entry is considered read only hence it cannot be modified/deleted [optional]
 function am_utils.addHost(host, measurement, am_value, granularity, pool, token, save_result, readonly)
-   host = "localhost:3000/lua/rest/v1/get/interface/data.lua?ifid=0"
-   token = "e08f7b422c962dd761dd517ff9491c5b"
-   save_result = true
-   readonly = true
+   
+  save_result = save_result or false
+  readonly = readonly or false
 
   local active_monitoring_pools = require("active_monitoring_pools")
   local am_pool = active_monitoring_pools:create()
