@@ -69,7 +69,7 @@ end
 -- ##############################################
 
 -- Loads temporary configuration
-local function loadConfig(fname, guess)
+function system_config:_load_config(fname, guess)
   local dirs = ntop.getDirs()
   local config
 
@@ -91,7 +91,7 @@ local function loadConfig(fname, guess)
       sys_utils.execShellCmd("mkdir -p " .. dirs.workingdir)
       sys_utils.execShellCmd("cp " .. STOCK_CONF_FILE .. " " .. CONF_FILE)
 
-      return loadConfig(fname, false)
+      return self:_load_config(fname, false)
     else
       config = self:_guess_config()
 
@@ -112,7 +112,7 @@ end
 function system_config:readable()
    self.readonly = true
 
-   self.config = loadConfig(CONF_FILE, true)
+   self.config = self:_load_config(CONF_FILE, true)
    self.conf_handler = self:getConfHandler()
 end
 
@@ -122,9 +122,9 @@ function system_config:editable()
    self.readonly = false
 
    if ntop.exists(CONF_FILE_EDITED) then
-      self.config = loadConfig(CONF_FILE_EDITED)
+      self.config = self:_load_config(CONF_FILE_EDITED)
    else
-      self.config = loadConfig(CONF_FILE, true)
+      self.config = self:_load_config(CONF_FILE, true)
    end
 
    self.conf_handler = self:getConfHandler()
@@ -153,7 +153,7 @@ function system_config:discard()
 
    if not self.readonly and isAdministrator() then
       os.remove(CONF_FILE_EDITED)
-      self.config = loadConfig(CONF_FILE, true)
+      self.config = self:_load_config(CONF_FILE, true)
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unable to discard a readonly configuration.")
    end
@@ -161,7 +161,7 @@ end
 
 -- ##############################################
 
-local function _applyOperatingModeSettings(config)
+function system_config:_apply_operating_mode_settings(config)
   if config.globals.operating_mode == "bridging" then
     -- We currently force DHCP off on bridge mode
     config.dhcp_server.enabled = false
@@ -181,7 +181,7 @@ function system_config:setOperatingMode(mode)
   end
 
   self.config.globals.operating_mode = mode
-  _applyOperatingModeSettings(self.config)
+  self:_apply_operating_mode_settings(self.config)
   self:setDhcpFromLan()
   return true
 end
@@ -353,7 +353,7 @@ function system_config:hasValidDhcpRange(first_ip, last_ip)
    return isValidDhcpRange(lan_config, first_ip, last_ip)
 end
 
-local function fixDhcpFromLan(config, lan_iface)
+function system_config:_fix_dhcp_from_lan(config, lan_iface)
   local dhcp_config = config.dhcp_server
   local lan_network = config.interfaces.configuration[lan_iface].network
 
@@ -376,7 +376,7 @@ end
 
 function system_config:setDhcpFromLan()
   local lan_iface = self:getLanInterface()
-  return fixDhcpFromLan(self.config, lan_iface)
+  return self:_fix_dhcp_from_lan(self.config, lan_iface)
 end
 
 -- ##############################################
@@ -550,8 +550,8 @@ end
 
 -- ##############################################
 
-local function getChangedSections(new_config, force_all_changes)
-  local orig_config = loadConfig(CONF_FILE, false)
+function system_config:_get_changed_sections(new_config, force_all_changes)
+  local orig_config = self:_load_config(CONF_FILE, false)
   local changed = {}
 
   -- Check for new / changed sections
@@ -602,7 +602,7 @@ end
 -- ##############################################
 
 function system_config:needsReboot()
-  return isRebootRequired(getChangedSections(self.config))
+  return isRebootRequired(self:_get_changed_sections(self.config))
 end
 
 -- ##############################################
@@ -624,7 +624,7 @@ end
 -- ##############################################
 
 function system_config:needsSelfRestart()
-  return isSelfRestartRequired(getChangedSections(self.config))
+  return isSelfRestartRequired(self:_get_changed_sections(self.config))
 end
 
 -- ##############################################
@@ -632,7 +632,7 @@ end
 -- Save the configuration changes as a temporary config
 function system_config:save()
    if not self.readonly and isAdministrator() then
-      local orig_config = loadConfig(CONF_FILE, false)
+      local orig_config = self:_load_config(CONF_FILE, false)
 
       if configDiffers(self.config, orig_config) then
          dumpConfig(CONF_FILE_EDITED, self.config)
@@ -682,7 +682,7 @@ function system_config:checkFactoryReset()
     traceError(TRACE_NORMAL, TRACE_CONSOLE, "Removing data and configuration...")
     ntop.rmdir(dirs.workingdir)
 
-    self.config = loadConfig(CONF_FILE, true)
+    self.config = self:_load_config(CONF_FILE, true)
     return true
   end
 
@@ -800,7 +800,7 @@ function system_config:_handleChangedSections(changed_sections, is_rebooting)
 end
 
 function system_config:applyChanges()
-   local changed_sections   = getChangedSections(self.config, system_config.isFirstStart())
+   local changed_sections   = self:_get_changed_sections(self.config, system_config.isFirstStart())
    local is_rebooting       = isRebootRequired(changed_sections)
    local is_self_restarting = isSelfRestartRequired(changed_sections)
 
@@ -961,15 +961,6 @@ function system_config:isBridgeOverVLANTrunkEnabled()
   end
 
   return false
-end
-
--- NOTE: can't rely on the main routing table when having multiple gateways!
-local function interfaceGetDefaultGateway(iface)
-  local res = sys_utils.execShellCmd("ip route show | grep \"^default via\" | grep \"" .. iface .. "\"")
-
-  if not isEmptyString(res) then
-    return split(res, " ")[3]
-  end
 end
 
 local function gatewayGetInterface(gateway)
@@ -1193,11 +1184,11 @@ local function findDnsPreset(preset_name)
   return nil
 end
 
-local function getDefaultGlobalDnsPreset()
+function system_config:_get_default_global_dns_preset()
   return findDnsPreset("google")
 end
 
-local function getDefaultChildSafeDnsPreset()
+function system_config:_get_default_childsafe_dns_preset()
   return findDnsPreset("opendns_familyshield")
 end
 
@@ -1208,14 +1199,14 @@ function system_config:getDnsConfig()
   local conf = self.config.globals.dns
 
   if DEPRECATED_DNS_PRESETS[conf.global] then
-    local new_preset = getDefaultGlobalDnsPreset()
+    local new_preset = self:_get_default_global_dns_preset()
     conf.global_preset = new_preset.id
     conf.global = new_preset.primary_dns
     conf.secondary = new_preset.secondary_dns
   end
 
   if DEPRECATED_DNS_PRESETS[conf.child_safe] then
-    local new_preset = getDefaultChildSafeDnsPreset()
+    local new_preset = self:_get_default_childsafe_dns_preset()
     conf.child_preset = new_preset.id
     conf.child_safe = new_preset.primary_dns
   end
@@ -1266,70 +1257,6 @@ function system_config:_guess_config()
    -- Must override
 
    return config
-end
-
--- ##############################################
-
-local allowed_interfaces
-
--- @brief Use the logic in ntopng to list available interfaces
---        and avoid interface name with characters that could
---        lead to injections
-local function allowedDevName(devname)
-   if isEmptyString(devname) then
-      return false
-   end
-
-   -- Do some caching
-   if not allowed_interfaces then
-      allowed_interfaces = ntop.listInterfaces()
-   end
-
-   -- Interface is allowed if it appears in the list retrieved from C
-   return allowed_interfaces[devname]
-end
-
--- ##############################################
-
-local function splitDevNames(c, delimiter)
-   local ret = {}
-   local cmd = sys_utils.execShellCmd(c)
-
-   if((cmd ~= "") and (cmd ~= nil)) then
-
-      local devs = split(cmd, "\n")
-
-      if(delimiter == nil) then
-	 local rv = {}
-         for idx, dev in pairs(devs) do
-	   if not isEmptyString(dev) and allowedDevName(dev) then
-	      rv[#rv + 1] = dev
-           end
-         end
-
-         return rv
-      end
-
-      for _,a in pairs(devs) do
-	 local p = split(a, delimiter)
-
-	 if(p ~= nil) then
-	    local name = p[1]
-	    local addr = p[2]
-
-	    if(addr and name) then
-	       name = trimSpace(name)
-	       addr = trimSpace(addr)
-
-	       if allowedDevName(name) then
-		  ret[name] = addr:gsub("%s+", "")
-	       end
-	    end
-	 end
-      end
-   end
-
-   return ret
 end
 
 -- ##############################################
