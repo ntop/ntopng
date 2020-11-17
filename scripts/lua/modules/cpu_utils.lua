@@ -5,7 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local system_utils = {}
+local cpu_utils = {}
 local alert_utils = require "alert_utils"
 
 -- #################################
@@ -92,7 +92,7 @@ end
 
 -- #################################
 
-function system_utils.compute_cpu_states()
+function cpu_utils.compute_cpu_states()
    if not ntop.isWindows() then
       local f = io.open("/proc/stat", "r")
 
@@ -114,7 +114,7 @@ end
 -- #################################
 
 -- Returns all the available cpu states in %
-function system_utils.get_cpu_states()
+function cpu_utils.get_cpu_states()
    local states_delta_line = ntop.getCache(CPU_STATES_DELTA)
 
    if states_delta_line and states_delta_line ~= "" then
@@ -141,12 +141,12 @@ end
 
 -- #################################
 
-function system_utils.systemHostStats()
+function cpu_utils.systemHostStats()
    local cur_id = interface.getId()
    interface.select(getSystemInterfaceId())
 
    local system_host_stats =  ntop.systemHostStat()
-   system_host_stats["cpu_states"] = system_utils.get_cpu_states()
+   system_host_stats["cpu_states"] = cpu_utils.get_cpu_states()
    system_host_stats["engaged_alerts"] = alert_utils.getNumAlerts("engaged", {})
 
    interface.select(tostring(cur_id))
@@ -156,5 +156,5 @@ end
 
 -- #################################
 
-return system_utils
+return cpu_utils
 

@@ -12,7 +12,7 @@ local json = require("dkjson")
 local ts_utils = require("ts_utils_core")
 local plugins_utils = require("plugins_utils")
 local periodic_activities_utils = require "periodic_activities_utils"
-local system_utils = require("system_utils")
+local cpu_utils = require("cpu_utils")
 
 sendHTTPHeader('application/json')
 
@@ -127,7 +127,7 @@ function dumpInterfaceStats(ifid)
 	    res["out_of_maintenance"] = true
 	 end
       end
-      res["system_host_stats"] = system_utils.systemHostStats()
+      res["system_host_stats"] = cpu_utils.systemHostStats()
       res["hosts_pctg"] = hosts_pctg
       res["flows_pctg"] = flows_pctg
       res["macs_pctg"] = macs_pctg

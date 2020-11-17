@@ -10,7 +10,7 @@ local json = require ("dkjson")
 local page_utils = require("page_utils")
 local tracker = require("tracker")
 local storage_utils = require("storage_utils")
-local system_utils = require("system_utils")
+local cpu_utils = require("cpu_utils")
 
 if not isAllowedSystemInterface() then
    sendHTTPContentTypeHeader('text/html')
@@ -23,7 +23,7 @@ end
 
 sendHTTPContentTypeHeader('application/json')
 
-local stats = system_utils.systemHostStats()
+local stats = cpu_utils.systemHostStats()
 stats.epoch = os.time()
 stats.storage = storage_utils.storageInfo()
 

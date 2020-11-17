@@ -10,7 +10,7 @@ local json = require ("dkjson")
 local page_utils = require("page_utils")
 local tracker = require("tracker")
 local storage_utils = require("storage_utils")
-local system_utils = require("system_utils")
+local cpu_utils = require("cpu_utils")
 local rest_utils = require("rest_utils")
 
 --
@@ -27,7 +27,7 @@ if not isAllowedSystemInterface() then
 end
 
 local rc = rest_utils.consts.success.ok
-local res = system_utils.systemHostStats()
+local res = cpu_utils.systemHostStats()
 res.epoch = os.time()
 res.storage = storage_utils.storageInfo()
 

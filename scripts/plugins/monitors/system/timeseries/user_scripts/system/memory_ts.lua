@@ -4,7 +4,7 @@
 
 local ts_utils = require("ts_utils_core")
 local user_scripts = require("user_scripts")
-local system_utils = require("system_utils")
+local cpu_utils = require("cpu_utils")
 
 local script = {
   -- Script category
@@ -29,7 +29,7 @@ local script = {
 
 function script.hooks.min(params)
    if params.ts_enabled then
-      local system_host_stats = system_utils.systemHostStats()
+      local system_host_stats = cpu_utils.systemHostStats()
 
       if((system_host_stats.mem_ntopng_resident ~= nil) and
 	 (system_host_stats.mem_ntopng_virtual ~= nil)) then

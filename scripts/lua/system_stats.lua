@@ -11,7 +11,7 @@ local page_utils = require("page_utils")
 local plugins_utils = require("plugins_utils")
 local alert_consts = require("alert_consts")
 local internals_utils = require "internals_utils"
-local system_utils = require("system_utils")
+local cpu_utils = require("cpu_utils")
 local ts_utils = require "ts_utils"
 local graph_utils = require("graph_utils")
 local alert_utils = require("alert_utils")
@@ -71,7 +71,7 @@ if(page == "overview") then
 
    local system_rowspan = 1
    local ntopng_rowspan = 20
-   local system_host_stats = system_utils.systemHostStats()
+   local system_host_stats = cpu_utils.systemHostStats()
    local has_system = false
 
    if system_host_stats["cpu_load"] ~= nil then  system_rowspan = system_rowspan + 1; has_system = true end
