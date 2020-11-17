@@ -478,10 +478,13 @@ $(document).ready(function() {
                 sortable: false,
                 name: 'actions',
                 class: 'text-center',
-                render: function() {
+                render: function(_, type, host) {
+
+                    const disabled = (host.readonly) ? 'disabled' : '';
+
                     return DataTableUtils.createActionButtons([
-                        { class: 'btn-info', icon: 'fa-edit', modal: '#am-edit-modal' },
-                        { class: 'btn-danger', icon: 'fa-trash', modal: '#am-delete-modal'}
+                        { class: `btn-info ${disabled}`, icon: 'fa-edit', modal: '#am-edit-modal', },
+                        { class: `btn-danger ${disabled}`, icon: 'fa-trash', modal: '#am-delete-modal', }
                     ]);
                 }
             }

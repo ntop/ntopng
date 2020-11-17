@@ -104,7 +104,8 @@ for key, am_host in pairs(am_hosts) do
        hours = hourly_stats or {},
        unit = i18n(m_info.i18n_unit) or m_info.i18n_unit,
        jitter = column_jitter,
-       pool = pool_id
+       pool = pool_id,
+       readonly = am_host.readonly
     }
 
     ::continue::
