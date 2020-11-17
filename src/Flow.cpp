@@ -2089,7 +2089,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   bool src_match = true, dst_match = true;
   bool mask_flow;
   bool has_json_info = false;
-
+  u_char community_id[200];
+  
   if(ptree) {
     if(src_ip) src_match = src_ip->match(ptree);
     if(dst_ip) dst_match = dst_ip->match(ptree);
@@ -2126,7 +2127,9 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     lua_tos(vm);
     lua_get_protocols(vm);
-
+    lua_push_str_table_entry(vm, "community_id",
+			     (char*)getCommunityId(community_id, sizeof(community_id)));
+			     
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     if((!mask_flow) && trafficProfile && ntop->getPro()->has_valid_license())
@@ -2769,7 +2772,7 @@ u_char* Flow::getCommunityId(u_char *community_id, u_int community_id_len) {
 
       if(ndpi_flowv4_flow_hash(protocol, c->get_ipv4(), s->get_ipv4(), get_cli_port(), get_srv_port(),
 			       icmp_type, icmp_code,
-			       community_id, sizeof(community_id)) == 0)
+			       community_id, community_id_len) == 0)
 	return(community_id);
     } else {
       if(get_protocol() == IPPROTO_ICMPV6)
@@ -2778,7 +2781,7 @@ u_char* Flow::getCommunityId(u_char *community_id, u_int community_id_len) {
       if(ndpi_flowv6_flow_hash(protocol, (struct ndpi_in6_addr*)c->get_ipv6(),
 			       (struct ndpi_in6_addr*)s->get_ipv6(), get_cli_port(), get_srv_port(),
 			       icmp_type, icmp_code,
-			       community_id, sizeof(community_id)) == 0)
+			       community_id, community_id_len) == 0)
 	return(community_id);
     }
   }
