@@ -369,6 +369,7 @@ end
 -- ##############################################
 
 function recipients.delete_recipient(recipient_id)
+   recipient_id = tonumber(recipient_id)
    local pools_lua_utils = require "pools_lua_utils"
    local ret = false
 
