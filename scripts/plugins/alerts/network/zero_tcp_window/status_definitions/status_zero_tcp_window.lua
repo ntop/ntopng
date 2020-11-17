@@ -27,7 +27,7 @@ return {
    status_key = status_keys.ntopng.status_zero_tcp_window,
    alert_severity = alert_consts.alert_severities.warning,
    alert_type = alert_consts.alert_types.alert_zero_tcp_window,
-   i18n_title = "zero_tcp_window.stats_zero_tcp_window_title",
+   i18n_title = "zero_tcp_window.zero_tcp_window_title",
    i18n_description = formatZeroTcpWindow,
    icon = "fas fa-arrow-circle-up",
 }
