@@ -76,7 +76,7 @@ Prefs::Prefs(Ntop *_ntop) {
   export_zmq_encryption_key = NULL;
   es_index = es_url = es_user = es_pwd = es_host = NULL;
   https_port = 0; // CONST_DEFAULT_NTOP_PORT+1;
-  change_user = true, daemonize = false;
+  change_user = true;
   user = strdup(CONST_DEFAULT_NTOP_USER);
   user_set = false;
   http_binding_address1 = NULL;
@@ -108,6 +108,9 @@ Prefs::Prefs(Ntop *_ntop) {
   read_flows_from_mysql = false;
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
+#ifndef HAVE_NEDGE
+  appliance = false;
+#endif
 
   if(!(ifNames = (InterfaceInfo*)calloc(UNLIMITED_NUM_INTERFACES, sizeof(InterfaceInfo)))
      || !(deferred_interfaces_to_register = (char**)calloc(UNLIMITED_NUM_INTERFACES, sizeof(char*))))
@@ -116,6 +119,8 @@ Prefs::Prefs(Ntop *_ntop) {
   json_labels_string_format = true;
 #ifdef WIN32
   daemonize = true;
+#else
+  daemonize = false;
 #endif
   export_endpoint = NULL;
   enable_ixia_timestamps = enable_vss_apcon_timestamps = false;
@@ -774,6 +779,9 @@ static const struct option long_options[] = {
   { "zmq-encryption-key-priv",           required_argument, NULL, 220 },
   { "simulate-ips",                      required_argument, NULL, 221 },
   { "zmq-encryption-key",                required_argument, NULL, 222 },
+#ifndef HAVE_NEDGE
+  { "appliance",                    no_argument,       NULL, 223 },
+#endif
 #ifdef NTOPNG_PRO
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
@@ -1424,10 +1432,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     simulate_vlans = true;
     break;
 
-  case 221:
-    num_simulated_ips = atoi(optarg);
-    break;
-
   case 215:
     zmq_encryption_pwd = strdup(optarg);
     break;
@@ -1451,9 +1455,19 @@ int Prefs::setOption(int optkey, char *optarg) {
     zmq_encryption_priv_key = strdup(optarg);
     break;
 
+  case 221:
+    num_simulated_ips = atoi(optarg);
+    break;
+
   case 222:
     export_zmq_encryption_key = strdup(optarg);
     break;
+
+#ifndef HAVE_NEDGE
+  case 223:
+    appliance = true;
+    break;
+#endif
 
 #ifdef NTOPNG_PRO
   case 252:

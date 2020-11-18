@@ -4,33 +4,42 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
 
 local system_setup_ui_utils = require "system_setup_ui_utils"
 require "lua_utils"
 require "prefs_utils"
 prefsSkipRedis(true)
 
-local nf_config = require("nf_config"):create(true)
+if not (ntop.isnEdge() or ntop.isAppliance()) then
+   return
+end
 
-system_setup_ui_utils.process_apply_discard_config(nf_config)
+local sys_config
+if ntop.isnEdge() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
+   sys_config = require("nf_config"):create(true)
+else -- ntop.isAppliance()
+   package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" .. package.path
+   sys_config = require("appliance_config"):create(true)
+end
+
+system_setup_ui_utils.process_apply_discard_config(sys_config)
 
 if (_POST["lan_interfaces"] ~= nil) and (_POST["wan_interfaces"] ~= nil) then
-  nf_config:setLanWanIfaces(split(_POST["lan_interfaces"], ","), split(_POST["wan_interfaces"], ","))
+  sys_config:setLanWanIfaces(split(_POST["lan_interfaces"], ","), split(_POST["wan_interfaces"], ","))
 
-  local mode = nf_config:getOperatingMode()
+  local mode = sys_config:getOperatingMode()
 
   if (mode ~= "bridging") then
     -- Ensure we are on static mode on the lan inteface
-    local lan_iface = nf_config:getLanInterface()
-    nf_config:setInterfaceMode(lan_iface, "static")
+    local lan_iface = sys_config:getLanInterface()
+    sys_config:setInterfaceMode(lan_iface, "static")
   end
 
-  nf_config:save()
+  sys_config:save()
 end
 
-local mode = nf_config:getOperatingMode()
+local mode = sys_config:getOperatingMode()
 
 local min_lan_ifaces = "1"
 local max_lan_ifaces = "1"
@@ -69,7 +78,7 @@ end
 local print_page_body = function()
   printPageSection(i18n("prefs.network_interfaces"))
 
-  local ifaces = nf_config:getAllInterfaces()
+  local ifaces = sys_config:getAllInterfaces()
 
   print[[
   <tr>
@@ -185,5 +194,5 @@ local print_page_body = function()
   printSaveButton()
 end
 
-system_setup_ui_utils.print_setup_page(print_page_body, nf_config)
+system_setup_ui_utils.print_setup_page(print_page_body, sys_config)
 

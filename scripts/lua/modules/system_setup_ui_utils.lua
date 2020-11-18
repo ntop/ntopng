@@ -11,6 +11,13 @@ local template = require "template_utils"
 local json = require "dkjson"
 local page_utils = require("page_utils")
 
+local is_nedge = ntop.isnEdge()
+local is_appliance = ntop.isAppliance()
+
+if not (is_nedge or is_appliance) then
+   return
+end
+
 local subpages = {
    {name = "mode",               nedge_only = false, label = i18n("nedge.setup_mode"), url = "mode.lua"},
    {name = "network_interfaces", nedge_only = false, label = i18n("prefs.network_interfaces"), url = "interfaces.lua" },
@@ -29,12 +36,12 @@ local subpages = {
 
 local system_setup_ui_utils = {}
 
-function system_setup_ui_utils.process_apply_discard_config(nf_config)
-   if table.len(_POST) > 0 and nf_config then
+function system_setup_ui_utils.process_apply_discard_config(sys_config)
+   if table.len(_POST) > 0 and sys_config then
       if _POST["nedge_config_action"] == "discard" then
-         nf_config:discard()
+         sys_config:discard()
       elseif _POST["nedge_config_action"] == "make_permanent" then
-         nf_config:applyChanges()
+         sys_config:applyChanges()
       end
    end
 end
@@ -53,31 +60,31 @@ function system_setup_ui_utils.print_page_before()
    return true
 end
 
-function system_setup_ui_utils.print_setup_page(print_page_body_callback, nf_config, warnings)
+function system_setup_ui_utils.print_setup_page(print_page_body_callback, sys_config, warnings)
    warnings = warnings or {}
 
    if not system_setup_ui_utils.print_page_before() then
      return false
    end
 
-   system_setup_ui_utils.print_page_after(print_page_body_callback, nf_config, warnings)
+   system_setup_ui_utils.print_page_after(print_page_body_callback, sys_config, warnings)
    return true
 end
 
-function system_setup_ui_utils.print_page_after(print_page_body_callback, nf_config, warnings)
-   system_setup_ui_utils.printConfigChange(nf_config, warnings)
-   system_setup_ui_utils.printPageBody(nf_config, print_page_body_callback)
+function system_setup_ui_utils.print_page_after(print_page_body_callback, sys_config, warnings)
+   system_setup_ui_utils.printConfigChange(sys_config, warnings)
+   system_setup_ui_utils.printPageBody(sys_config, print_page_body_callback)
 end
 
-function system_setup_ui_utils.printConfigChange(nf_config, warnings)
-   local first_start = nf_config.isFirstStart()
-   local config_changed = nf_config.configChanged()
+function system_setup_ui_utils.printConfigChange(sys_config, warnings)
+   local first_start = sys_config.isFirstStart()
+   local config_changed = sys_config.configChanged()
 
    if config_changed or first_start then
-      local dhcp_config = nf_config:getDhcpServerConfig()
+      local dhcp_config = sys_config:getDhcpServerConfig()
 
       if dhcp_config.enabled then
-         if not nf_config:hasValidDhcpRange(dhcp_config.subnet.first_ip, dhcp_config.subnet.last_ip) then
+         if not sys_config:hasValidDhcpRange(dhcp_config.subnet.first_ip, dhcp_config.subnet.last_ip) then
             warnings[#warnings + 1] = i18n("nedge.invalid_dhcp_range")
          end
       end
@@ -112,7 +119,7 @@ function system_setup_ui_utils.printConfigChange(nf_config, warnings)
 
       print[[<div class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle fa-sm"></i> ]]
       print[[<strong>]] print(i18n("nedge.setup_config_edited_title")) print[[</strong> ]]
-      print(ternary(not nf_config.configChanged(), i18n("nedge.apply_the_initial_device_configuration"), i18n("nedge.setup_config_edited_descr")))
+      print(ternary(not sys_config.configChanged(), i18n("nedge.apply_the_initial_device_configuration"), i18n("nedge.setup_config_edited_descr")))
       print[[<button style="visibility:hidden;">&nbsp;</button>]]
       print[[<div style="display: inline-block; float: right;">]]
 
@@ -130,9 +137,9 @@ function system_setup_ui_utils.printConfigChange(nf_config, warnings)
   <input type="hidden" name="nedge_config_action" value="make_permanent">
 ]]
 
-      if nf_config:needsReboot() then
+      if sys_config:needsReboot() then
          print[[<button type="button" data-toggle="modal" data-target="#config_apply_dialog_reboot" class="btn btn-primary">]] print(i18n("nedge.setup_apply")) print[[</button>]]
-      elseif nf_config:needsSelfRestart() then
+      elseif sys_config:needsSelfRestart() then
          print[[<button type="button" data-toggle="modal" data-target="#config_apply_dialog_restart_self" class="btn btn-primary">]] print(i18n("nedge.setup_apply")) print[[</button>]]
       else
          print[[<button type="submit" class="btn btn-primary">]] print(i18n("nedge.setup_apply")) print[[</button>]]
@@ -151,7 +158,7 @@ function system_setup_ui_utils.printConfigChange(nf_config, warnings)
    end
 end
 
-function system_setup_ui_utils.printPageBody(nf_config, print_page_body_callback)
+function system_setup_ui_utils.printPageBody(sys_config, print_page_body_callback)
    print[[
 <table class="table">
   <col width="20%">
@@ -161,13 +168,17 @@ function system_setup_ui_utils.printPageBody(nf_config, print_page_body_callback
       <div class="list-group">
 ]]
 
-   local mode = nf_config:getOperatingMode()
+   local mode = sys_config:getOperatingMode()
    for _, subpage in ipairs(subpages) do
-      if (subpage.routing_only == true) and (not nf_config:isMultipathRoutingEnabled()) then
+      if not is_nedge and subpage.nedge_only then
          goto continue
       end
 
-      if (subpage.vlan_trunk == false) and (nf_config:isBridgeOverVLANTrunkEnabled()) then
+      if (subpage.routing_only == true) and (not sys_config:isMultipathRoutingEnabled()) then
+         goto continue
+      end
+
+      if (subpage.vlan_trunk == false) and (sys_config:isBridgeOverVLANTrunkEnabled()) then
          goto continue
       end
 

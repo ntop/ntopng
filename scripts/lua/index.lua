@@ -16,11 +16,18 @@ if (is_system_interface) then
   return
 end
 
-if(ntop.isnEdge()) then
-  package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
-  local nf_config = require("nf_config"):create()
+if ntop.isnEdge() or ntop.isAppliance() then
+  local sys_config
 
-  if nf_config.isFirstStart() then
+  if ntop.isnEdge() then
+    package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
+    sys_config = require("nf_config"):create()
+  else -- ntop.isAppliance()
+    package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" .. package.path
+    sys_config = require("appliance_config"):create()
+  end
+
+  if sys_config.isFirstStart() then
     print(ntop.httpRedirect(ntop.getHttpPrefix().."lua/system_setup_ui/interfaces.lua"))
     return
   end

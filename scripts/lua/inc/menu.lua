@@ -21,6 +21,7 @@ local auth = require "auth"
 local blog_utils = require("blog_utils")
 
 local is_nedge = ntop.isnEdge()
+local is_appliance = ntop.isAppliance()
 local is_admin = isAdministrator()
 local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
@@ -395,7 +396,7 @@ for k, entry in pairsByField(page_utils.plugins_menu, "sort_order", rev) do
 end
 
 -- Possibly add nEdge entries
-if is_nedge then
+if is_nedge or is_appliance then
    -- Possibly add a divider if system_entries already contain elements
    if #system_entries > 0 then
       system_entries[#system_entries + 1] = {
@@ -403,7 +404,9 @@ if is_nedge then
 	 hidden = not is_admin,
       }
    end
+end
 
+if is_nedge then
    for _, entry in ipairs(
       {
 	 {
@@ -420,6 +423,19 @@ if is_nedge then
 	    entry = page_utils.menu_entries.port_forwarding,
 	    hidden = not is_admin or not ntop.isRoutingMode(),
 	    url = '/lua/pro/nedge/admin/port_forwarding.lua',
+	 },
+   }) do
+      system_entries[#system_entries + 1] = entry
+   end
+end
+
+if is_appliance then
+   for _, entry in ipairs(
+      {
+	 {
+	    entry = page_utils.menu_entries.system_setup,
+	    hidden = not is_admin,
+	    url = '/lua/system_setup_ui/interfaces.lua',
 	 },
    }) do
       system_entries[#system_entries + 1] = entry

@@ -2405,6 +2405,18 @@ static int ntop_is_nedge_enterprise(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_appliance(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+#ifndef HAVE_NEDGE
+  lua_pushboolean(vm, ntop->getPrefs()->is_appliance());
+#else
+  lua_pushboolean(vm, false);
+#endif
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_run_extraction(lua_State *vm) {
   int id, ifid;
   time_t time_from, time_to;
@@ -5780,6 +5792,7 @@ static const luaL_Reg ntop_reg[] = {
   { "isnEdge",                ntop_is_nedge },
   { "isnEdgeEnterprise",      ntop_is_nedge_enterprise },
   { "isPackage",              ntop_is_package },
+  { "isAppliance",            ntop_is_appliance },
 
   /* Historical database */
   { "insertMinuteSampling",          ntop_stats_insert_minute_sampling },

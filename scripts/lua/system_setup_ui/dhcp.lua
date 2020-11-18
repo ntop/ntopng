@@ -4,9 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
 
 local system_setup_ui_utils = require "system_setup_ui_utils"
 local ipv4_utils = require("ipv4_utils")
@@ -14,15 +11,26 @@ require "lua_utils"
 require "prefs_utils"
 prefsSkipRedis(true)
 
-local nf_config = require("nf_config"):create(true)
+if not (ntop.isnEdge() or ntop.isAppliance()) then
+   return
+end
 
-system_setup_ui_utils.process_apply_discard_config(nf_config)
+local sys_config
+if ntop.isnEdge() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
+   sys_config = require("nf_config"):create(true)
+else -- ntop.isAppliance()
+   package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" .. package.path
+   sys_config = require("appliance_config"):create(true)
+end
+
+system_setup_ui_utils.process_apply_discard_config(sys_config)
 
 local warnings = {}
 
 if table.len(_POST) > 0 then
    local changed = false
-   local dhcp_config = nf_config:getDhcpServerConfig()
+   local dhcp_config = sys_config:getDhcpServerConfig()
 
    if (_POST["dhcp_server_enabled"] ~= nil) then
       dhcp_config.enabled = ternary(_POST["dhcp_server_enabled"] == "1", true, false)
@@ -36,19 +44,19 @@ if table.len(_POST) > 0 then
    end
 
    if changed then
-      nf_config:setDhcpServerConfig(dhcp_config)
-      nf_config:save()
+      sys_config:setDhcpServerConfig(dhcp_config)
+      sys_config:save()
    end
 end
 
-local dhcp_config = nf_config:getDhcpServerConfig()
+local dhcp_config = sys_config:getDhcpServerConfig()
 
-if not dhcp_config.enabled and nf_config:isMultipathRoutingEnabled() then
+if not dhcp_config.enabled and sys_config:isMultipathRoutingEnabled() then
    warnings[#warnings + 1] = i18n("nedge.dhcp_disabled_warning")
 end
 
 local print_page_body = function()
-   local lan_network = nf_config:getStaticLanNetwork()
+   local lan_network = sys_config:getStaticLanNetwork()
 
    printPageSection(i18n("nedge.dhcp_server"))
 
@@ -82,5 +90,5 @@ local print_page_body = function()
    printSaveButton(msg)
 end
 
-system_setup_ui_utils.print_setup_page(print_page_body, nf_config, warnings)
+system_setup_ui_utils.print_setup_page(print_page_body, sys_config, warnings)
 

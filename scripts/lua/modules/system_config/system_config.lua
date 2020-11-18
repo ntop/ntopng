@@ -981,6 +981,77 @@ local function ifaceGetNetwork(iface)
   end
 end
 
+-- ##############################################
+
+function system_config:getStaticLanNetwork()
+  local lan_iface = self:getLanInterface()
+  local lan_config = self.config.interfaces.configuration[lan_iface].network
+  local lan_network = ipv4_utils.addressToNetwork(lan_config.ip, lan_config.netmask)
+
+  return {
+    iface = lan_iface,
+    network = lan_network,
+    cidr = lan_network,
+    ip = lan_config.ip,
+    netmask = lan_config.netmask,
+  }
+end
+
+-- Returns true if the interface is currently up and running
+local function isInterfaceLinkUp(ifname)
+  local opstatus = sys_utils.execShellCmd("cat /sys/class/net/" .. ifname .. "/operstate 2>/dev/null")
+  return starts(opstatus, "up")
+end
+
+function system_config:getDisabledWans(check_wans_with_linkdown)
+  if check_wans_with_linkdown == nil then check_wans_with_linkdown = false end
+
+  -- table.clone needed to modify some parameters while keeping the original unchanged
+  local disabled = table.clone(self.config.disabled_wans)
+
+  if check_wans_with_linkdown then
+    local roles = self:getAllInterfaces()
+
+    for iface, role in pairs(roles) do
+      if role == "wan" then
+        if (disabled[iface] ~= true) and (not isInterfaceLinkUp(iface)) then
+          disabled[iface] = true
+        end
+      end
+    end
+  end
+
+  return disabled
+end
+
+function system_config:setDisabledWans(disabled_wans)
+  self.config.disabled_wans = disabled_wans
+end
+
+function system_config:_checkDisabledInterfaces()
+  local ifaces = self:getAllInterfaces()
+  local disabled_wans = self.config.disabled_wans
+
+  for iface, role in pairs(ifaces) do
+    if role == "wan" then
+      local is_disabled = (disabled_wans[iface] == true)
+      local currently_disabled = not isInterfaceUp(iface)
+
+      if is_disabled ~= currently_disabled then
+        if is_disabled then
+          traceError(TRACE_NORMAL, TRACE_CONSOLE, "Disable interface " .. iface)
+          sys_utils.execCmd("ip link set dev " .. iface .. " down")
+        else
+          traceError(TRACE_NORMAL, TRACE_CONSOLE, "Enable interface " .. iface)
+          sys_utils.execCmd("ip link set dev " .. iface .. " up")
+        end
+      end
+    end
+  end
+end
+
+-- ##############################################
+
 function system_config:getGatewayPingAddress(gwname)
   local gw = self.config.gateways[gwname]
 
@@ -1188,30 +1259,10 @@ function system_config:_get_default_global_dns_preset()
   return findDnsPreset("google")
 end
 
-function system_config:_get_default_childsafe_dns_preset()
-  return findDnsPreset("opendns_familyshield")
-end
-
 -- ##############################################
 
 function system_config:getDnsConfig()
-  -- look for expired services
-  local conf = self.config.globals.dns
-
-  if DEPRECATED_DNS_PRESETS[conf.global] then
-    local new_preset = self:_get_default_global_dns_preset()
-    conf.global_preset = new_preset.id
-    conf.global = new_preset.primary_dns
-    conf.secondary = new_preset.secondary_dns
-  end
-
-  if DEPRECATED_DNS_PRESETS[conf.child_safe] then
-    local new_preset = self:_get_default_childsafe_dns_preset()
-    conf.child_preset = new_preset.id
-    conf.child_safe = new_preset.primary_dns
-  end
-
-  return conf
+  return self.config.globals.dns
 end
 
 function system_config:setDnsConfig(config)
@@ -1248,6 +1299,86 @@ function system_config:setGlobalDnsForgingEnabled(enabled)
   self.config.globals.dns.forge_global = ternary(enabled, true, false)
 end
 
+-- ##############################################
+
+function system_config:isMultipathRoutingEnabled()
+  return false -- nf_config overrides this
+end
+
+-- ##############################################
+
+-- NOTE: can't rely on the main routing table when having multiple gateways!
+function system_config._interface_get_default_gateway(iface)
+  local res = sys_utils.execShellCmd("ip route show | grep \"^default via\" | grep \"" .. iface .. "\"")
+
+  if not isEmptyString(res) then
+    return split(res, " ")[3]
+  end
+end
+
+-- ##############################################
+
+local allowed_interfaces
+
+-- @brief Use the logic in ntopng to list available interfaces
+--        and avoid interface name with characters that could
+--        lead to injections
+local function allowedDevName(devname)
+   if isEmptyString(devname) then
+      return false
+   end
+
+   -- Do some caching
+   if not allowed_interfaces then
+      allowed_interfaces = ntop.listInterfaces()
+   end
+
+   -- Interface is allowed if it appears in the list retrieved from C
+   return allowed_interfaces[devname]
+end
+
+-- ##############################################
+
+function system_config._split_dev_names(c, delimiter)
+   local ret = {}
+   local cmd = sys_utils.execShellCmd(c)
+
+   if((cmd ~= "") and (cmd ~= nil)) then
+
+      local devs = split(cmd, "\n")
+
+      if(delimiter == nil) then
+	 local rv = {}
+         for idx, dev in pairs(devs) do
+	   if not isEmptyString(dev) and allowedDevName(dev) then
+	      rv[#rv + 1] = dev
+           end
+         end
+
+         return rv
+      end
+
+      for _,a in pairs(devs) do
+	 local p = split(a, delimiter)
+
+	 if(p ~= nil) then
+	    local name = p[1]
+	    local addr = p[2]
+
+	    if(addr and name) then
+	       name = trimSpace(name)
+	       addr = trimSpace(addr)
+
+	       if allowedDevName(name) then
+		  ret[name] = addr:gsub("%s+", "")
+	       end
+	    end
+	 end
+      end
+   end
+
+   return ret
+end
 
 -- ##############################################
 

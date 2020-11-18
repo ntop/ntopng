@@ -4,8 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
 
 local system_setup_ui_utils = require "system_setup_ui_utils"
 local json = require("dkjson")
@@ -13,9 +11,23 @@ require "lua_utils"
 require "prefs_utils"
 prefsSkipRedis(true)
 
-local nf_config = require("nf_config"):create(true)
+local is_nedge = ntop.isnEdge()
+local is_appliance = ntop.isAppliance()
 
-system_setup_ui_utils.process_apply_discard_config(nf_config)
+if not (is_nedge or is_appliance) then
+   return
+end
+
+local sys_config
+if is_nedge then
+   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
+   sys_config = require("nf_config"):create(true)
+else -- ntop.isAppliance()
+   package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" .. package.path
+   sys_config = require("appliance_config"):create(true)
+end
+
+system_setup_ui_utils.process_apply_discard_config(sys_config)
 
 local function findDnsPreset(preset_name)
   for _, preset in pairs(DNS_PRESETS) do
@@ -28,7 +40,7 @@ local function findDnsPreset(preset_name)
 end
 
 if table.len(_POST) > 0 then
-  local dns_config = nf_config:getDnsConfig()
+  local dns_config = sys_config:getDnsConfig()
   local changed = false
 
   if _POST["global_dns_preset"] ~= nil then
@@ -49,18 +61,20 @@ if table.len(_POST) > 0 then
     end
   end
 
-  if _POST["child_dns_preset"] ~= nil then
-    local child_dns = _POST["child_primary_dns"]
-    local preset = findDnsPreset(_POST["child_dns_preset"])
+  if is_nedge then
+    if _POST["child_dns_preset"] ~= nil then
+      local child_dns = _POST["child_primary_dns"]
+      local preset = findDnsPreset(_POST["child_dns_preset"])
 
-    if preset ~= nil then
-      child_dns = preset.primary_dns
-    end
+      if preset ~= nil then
+        child_dns = preset.primary_dns
+      end
 
-    if not isEmptyString(child_dns) then
-      dns_config.child_preset = ternary(preset ~= nil, _POST["child_dns_preset"], "custom")
-      dns_config.child_safe = child_dns
-      changed = true
+      if not isEmptyString(child_dns) then
+        dns_config.child_preset = ternary(preset ~= nil, _POST["child_dns_preset"], "custom")
+        dns_config.child_safe = child_dns
+        changed = true
+      end
     end
   end
 
@@ -70,8 +84,8 @@ if table.len(_POST) > 0 then
   end
 
   if changed then
-    nf_config:setDnsConfig(dns_config)
-    nf_config:save()
+    sys_config:setDnsConfig(dns_config)
+    sys_config:save()
   end
 end
 
@@ -94,10 +108,10 @@ local function getDnsPresets(childsafe)
 end
 
 local print_page_body = function()
-  local dns_config = nf_config:getDnsConfig()
+  local dns_config = sys_config:getDnsConfig()
 
   -- Global DNS
-  local dns_forging = nf_config:isGlobalDnsForgingEnabled()
+  local dns_forging = sys_config:isGlobalDnsForgingEnabled()
 
   printPageSection(i18n("nedge.global_dns"))
   prefsToggleButton(subpage_active, {
@@ -122,15 +136,17 @@ local print_page_body = function()
           "", "global_secondary_dns", dns_config.secondary or "0.0.0.0", nil, true, nil, nil,
           {required=false, pattern=getIPv4Pattern()})
 
-  -- Child Safe DNS
-  local dns_keys, dns_values = getDnsPresets(true)
+  if is_nedge then
+    -- Child Safe DNS
+    local dns_keys, dns_values = getDnsPresets(true)
 
-  printPageSection(i18n("prefs.safe_search_dns_title"))
-  prefsDropdownFieldPrefs(i18n("nedge.dns_server_preset"), i18n("nedge.dns_server_preset_descr"), "child_dns_preset", dns_values, dns_config.child_preset or "custom", true, {keys=dns_keys})
+    printPageSection(i18n("prefs.safe_search_dns_title"))
+    prefsDropdownFieldPrefs(i18n("nedge.dns_server_preset"), i18n("nedge.dns_server_preset_descr"), "child_dns_preset", dns_values, dns_config.child_preset or "custom", true, {keys=dns_keys})
 
-  prefsInputFieldPrefs(i18n("prefs.safe_search_dns_title"), i18n("nedge.the_primary_dns_server"),
-          "", "child_primary_dns", dns_config.child_safe or "0.0.0.0", nil, true, nil, nil,
-          {required=true, pattern=getIPv4Pattern()})
+    prefsInputFieldPrefs(i18n("prefs.safe_search_dns_title"), i18n("nedge.the_primary_dns_server"),
+            "", "child_primary_dns", dns_config.child_safe or "0.0.0.0", nil, true, nil, nil,
+            {required=true, pattern=getIPv4Pattern()})
+  end
 
   printSaveButton()
 
@@ -171,4 +187,4 @@ local print_page_body = function()
   ]]
 end
 
-system_setup_ui_utils.print_setup_page(print_page_body, nf_config)
+system_setup_ui_utils.print_setup_page(print_page_body, sys_config)

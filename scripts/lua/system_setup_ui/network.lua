@@ -4,8 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
 
 local system_setup_ui_utils = require "system_setup_ui_utils"
 local template = require "template_utils"
@@ -13,13 +11,28 @@ require "prefs_utils"
 require "lua_utils"
 prefsSkipRedis(true)
 
-local nf_config = require("nf_config"):create(true)
-local operating_mode = nf_config:getOperatingMode()
-system_setup_ui_utils.process_apply_discard_config(nf_config)
+local is_nedge = ntop.isnEdge()
+local is_appliance = ntop.isAppliance()
+
+if not (is_nedge or is_appliance) then
+   return
+end
+
+local sys_config
+if is_nedge then
+   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
+   sys_config = require("nf_config"):create(true)
+else -- ntop.isAppliance()
+   package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" .. package.path
+   sys_config = require("appliance_config"):create(true)
+end
+
+local operating_mode = sys_config:getOperatingMode()
+system_setup_ui_utils.process_apply_discard_config(sys_config)
 
 if table.len(_POST) > 0 then
-  local interfaces_config = nf_config:getInterfacesConfiguration()
-  local disabled_wans = nf_config:getDisabledWans()
+  local interfaces_config = sys_config:getInterfacesConfiguration()
+  local disabled_wans = sys_config:getDisabledWans()
   local config_found = false
   
   -- Interface id to name mappings
@@ -46,22 +59,24 @@ if table.len(_POST) > 0 then
       if _POST[fields.gw] ~= nil then config.network.gateway = _POST[fields.gw] end
       if _POST[fields.netmask] ~= nil then config.network.netmask = _POST[fields.netmask] end
       if _POST[fields.mode] ~= nil then config.network.mode = _POST[fields.mode] end
-      if _POST[fields.upload] ~= nil then config.speed.upload = tonumber(_POST[fields.upload]) end
-      if _POST[fields.download] ~= nil then config.speed.download = tonumber(_POST[fields.download]) end
+      if is_nedge then
+         if _POST[fields.upload] ~= nil then config.speed.upload = tonumber(_POST[fields.upload]) end
+         if _POST[fields.download] ~= nil then config.speed.download = tonumber(_POST[fields.download]) end
+      end
       if _POST[fields.iface_on] ~= nil then disabled_wans[if_name] = ternary(_POST[fields.iface_on] == "1", false, true) end
       if _POST[fields.nat_on] ~= nil then config.masquerade = ternary(_POST[fields.nat_on] == "1", true, false) end
     end
   end
 
   if config_found then
-    nf_config:setDisabledWans(disabled_wans)
-    nf_config:setInterfacesConfiguration(interfaces_config)
-    nf_config:setDhcpFromLan()
-    nf_config:save()
+    sys_config:setDisabledWans(disabled_wans)
+    sys_config:setInterfacesConfiguration(interfaces_config)
+    sys_config:setDhcpFromLan()
+    sys_config:save()
   end
 end
 
-local disabled_wans = nf_config:getDisabledWans()
+local disabled_wans = sys_config:getDisabledWans()
 
 -- Static ip configuration
 local function printLanLikeConfig(if_name, if_id, ifconf)
@@ -139,31 +154,34 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface)
   local ten_megabits = 1000 * 10
   local one_hundred_gbits = 1000 * 1000 * 100
 
-  prefsInputFieldPrefs(i18n("nedge.download_speed"), i18n("nedge.download_description"),
+  if is_nedge then
+
+    prefsInputFieldPrefs(i18n("nedge.download_speed"), i18n("nedge.download_description"),
       "", "iface_down_"..if_id, ifconf.speed.download or ten_megabits, "number", true, nil, nil,
       {min=fifty_six_kbits, max=one_hundred_gbits, tformat="kmg", format_spec=FMT_TO_DATA_RATES_KBPS})
 
-  prefsInputFieldPrefs(i18n("nedge.upload_speed"), i18n("nedge.upload_description"),
+    prefsInputFieldPrefs(i18n("nedge.upload_speed"), i18n("nedge.upload_description"),
       "", "iface_up_"..if_id, ifconf.speed.upload or ten_megabits, "number", true, nil, nil,
       {min=fifty_six_kbits, max=one_hundred_gbits, tformat="kmg", format_spec=FMT_TO_DATA_RATES_KBPS})
 
-  if not bridge_interface then
-    prefsToggleButton(subpage_active, {
-      title = i18n("nedge.enable_nat"),
-      description = i18n("nedge.enable_nat_descr"),
-      content = "",
-      field = "iface_nat_" .. if_id,
-      pref = "",
-      redis_prefix = "",
-      default = ternary(ifconf.masquerade, "1", "0"),
-      to_switch = nil,
-    })
+    if not bridge_interface then
+      prefsToggleButton(subpage_active, {
+        title = i18n("nedge.enable_nat"),
+        description = i18n("nedge.enable_nat_descr"),
+        content = "",
+        field = "iface_nat_" .. if_id,
+        pref = "",
+        redis_prefix = "",
+        default = ternary(ifconf.masquerade, "1", "0"),
+        to_switch = nil,
+      })
+    end
   end
 end
 
 local function print_routing_page_body()
-  local all_interfaces = nf_config:getAllInterfaces()
-  local interfaces_config = nf_config:getInterfacesConfiguration()
+  local all_interfaces = sys_config:getAllInterfaces()
+  local interfaces_config = sys_config:getInterfacesConfiguration()
 
   if table.len(all_interfaces) > 0 then
     -- Assign an unique id to the interface
@@ -196,12 +214,12 @@ local function print_routing_page_body()
 end
 
 local function print_bridging_page_body()
-  local if_name = nf_config:getBridgeInterfaceName()
-  local interfaces_config = nf_config:getInterfacesConfiguration()
+  local if_name = sys_config:getBridgeInterfaceName()
+  local interfaces_config = sys_config:getInterfacesConfiguration()
 
   printWanLikeConfig(if_name, "0", interfaces_config[if_name], true)
   printSaveButton()
 end
 
-system_setup_ui_utils.print_setup_page(ternary(operating_mode == "bridging", print_bridging_page_body, print_routing_page_body), nf_config)
+system_setup_ui_utils.print_setup_page(ternary(operating_mode == "bridging", print_bridging_page_body, print_routing_page_body), sys_config)
 

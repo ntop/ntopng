@@ -4,8 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
 
 local system_setup_ui_utils = require "system_setup_ui_utils"
 require "lua_utils"
@@ -13,16 +11,28 @@ require "prefs_utils"
 local tz_utils = require("tz_utils")
 prefsSkipRedis(true)
 
-local nf_config = require("nf_config"):create(true)
+if not (ntop.isnEdge() or ntop.isAppliance()) then
+   return
+end
+
+local sys_config
+if ntop.isnEdge() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
+   sys_config = require("nf_config"):create(true)
+else -- ntop.isAppliance()
+   package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" .. package.path
+   sys_config = require("appliance_config"):create(true)
+end
+
 local now = os.time()
 
-system_setup_ui_utils.process_apply_discard_config(nf_config)
+system_setup_ui_utils.process_apply_discard_config(sys_config)
 
 local timezones = tz_utils.ListTimeZones()
 local system_timezone = tz_utils.TimeZone()
 
 local default_custom_date
-local date_time_config = nf_config:getDateTimeConfig()
+local date_time_config = sys_config:getDateTimeConfig()
 
 if date_time_config.custom_date then
    default_custom_date = makeTimeStamp(date_time_config.custom_date)
@@ -54,13 +64,13 @@ if table.len(_POST) > 0 then
    end
 
    if changed then
-      nf_config:setDateTimeConfig(date_time_config)
-      nf_config:save()
+      sys_config:setDateTimeConfig(date_time_config)
+      sys_config:save()
    end
 end
 
 local print_page_body = function()
-   local date_time_config = nf_config:getDateTimeConfig()
+   local date_time_config = sys_config:getDateTimeConfig()
 
    local timezone_keys, timezone_values = {}, {}
    for k, v in ipairs(timezones) do
@@ -94,5 +104,5 @@ local print_page_body = function()
    printSaveButton()
 end
 
-system_setup_ui_utils.print_setup_page(print_page_body, nf_config, warnings)
+system_setup_ui_utils.print_setup_page(print_page_body, sys_config, warnings)
 

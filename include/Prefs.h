@@ -130,6 +130,10 @@ class Prefs {
   char *ls_host,*ls_port,*ls_proto;
   bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level 
 			      has been provided on the command line.*/
+#ifndef HAVE_NEDGE
+  bool appliance;
+#endif
+
 #ifdef HAVE_TEST_MODE
   char *test_script_path;
 #endif
@@ -362,16 +366,19 @@ class Prefs {
   inline u_int32_t get_safe_search_dns_ip()      { return(safe_search_dns_ip);                          };
   inline u_int32_t get_global_primary_dns_ip()   { return(global_primary_dns_ip);                       };
   inline u_int32_t get_global_secondary_dns_ip() { return(global_secondary_dns_ip);                     };
-  inline bool isGlobalDNSDefined()               { return(global_primary_dns_ip ? true : false);        };
-  inline HostMask getHostMask()                  { return(hostMask);                                    };
+  inline bool      isGlobalDNSDefined()          { return(global_primary_dns_ip ? true : false);        };
+  inline HostMask  getHostMask()                 { return(hostMask);                                    };
   inline u_int16_t get_auto_assigned_pool_id()   { return(auto_assigned_pool_id);                       };
   inline u_int16_t is_routing_mode()             { return(routing_mode_enabled);                        };
-  inline bool isGlobalDnsForgingEnabled()        { return(global_dns_forging_enabled);                  };
-  inline bool     reproduceOriginalSpeed()       { return(reproduce_at_original_speed);                 };
-  inline void     doReproduceOriginalSpeed()     { reproduce_at_original_speed = true;                  };
-  inline bool     purgeHostsFlowsOnPcapFiles()   { return(pcap_file_purge_hosts_flows);                 };
-  inline bool     isBehavourAnalysisEnabled()    { return(enable_behaviour_analysis);                   };
-  inline void     enableBehaviourAnalysis()      { enable_behaviour_analysis = true;                    };
+#ifndef HAVE_NEDGE
+  inline bool      is_appliance()                { return(appliance);                                   };
+#endif
+  inline bool      isGlobalDnsForgingEnabled()   { return(global_dns_forging_enabled);                  };
+  inline bool      reproduceOriginalSpeed()      { return(reproduce_at_original_speed);                 };
+  inline void      doReproduceOriginalSpeed()    { reproduce_at_original_speed = true;                  };
+  inline bool      purgeHostsFlowsOnPcapFiles()  { return(pcap_file_purge_hosts_flows);                 };
+  inline bool      isBehavourAnalysisEnabled()   { return(enable_behaviour_analysis);                   };
+  inline void      enableBehaviourAnalysis()     { enable_behaviour_analysis = true;                    };
   inline u_int64_t* getIEC104AllowedTypeIDs()    { return(iec104_allowed_typeids);                      };
   void setIEC104AllowedTypeIDs(char *protos);
   void validate();
