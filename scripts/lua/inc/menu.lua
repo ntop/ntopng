@@ -1100,29 +1100,29 @@ print([[
       <a href='#' class="nav-link dropdown-toggle mx-2 dark-gray" data-toggle="dropdown">
          <i class='fas fa-user'></i>
       </a>
-      <ul class="dropdown-menu dropdown-menu-right">
-         <li class='dropdown-item ]].. (is_no_login_user and 'disabled' or '') ..[['>]])
+      <ul class="dropdown-menu dropdown-menu-right">]])
 
-         -- if is_no_login_user is true then don't render the hyperlink button to the users page
-         if (not is_no_login_user) then
-            print([[<a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a>]])
-         else
-            print([[<i class='fas fa-user'></i> ]].. session_user ..[[]])
-         end
-print([[
-         </li>
-]])
-
-if (not _SESSION["localuser"] or not is_admin) and (not isNoLoginUser()) then
+if (not _SESSION["localuser"] or not is_admin) and (not is_no_login_user) then
    print[[
          <li>
            <a class="dropdown-item" href='#password_dialog' data-toggle='modal'>
-             <i class='fas fa-key'></i> ]] print(i18n("login.change_password")) print[[
+             <i class='fas fa-user'></i> ]] print(i18n("manage_users.manage_user_x", {user = _SESSION["user"]})) print[[
            </a>
          </li>
    ]]
-end
+else
+   print([[<li class='dropdown-item ]].. (is_no_login_user and 'disabled' or '') ..[['>]])
 
+   -- if is_no_login_user is true then don't render the hyperlink button to the users page
+   if (not is_no_login_user) then
+      print([[<a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a>]])
+   else
+      print([[<i class='fas fa-user'></i> ]].. session_user ..[[]])
+   end
+   print([[
+         </li>
+]])
+end
 
 -- Render nendge services
 if is_nedge and is_admin then
@@ -1161,7 +1161,7 @@ end
 
 -- Logout
 
-if(_SESSION["user"] ~= nil and (not isNoLoginUser())) then
+if(_SESSION["user"] ~= nil and (not is_no_login_user)) then
    print[[
 
  <li class='dropdown-divider'></li>

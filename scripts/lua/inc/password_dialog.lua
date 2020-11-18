@@ -228,7 +228,7 @@ print([[
     </div>
     <hr>
     <div class='w-100 text-right'>
-      <button class='btn btn-secondary' id='btn-generate_token'>]].. i18n("login.generate_token") ..[[</button>
+      <button class='btn btn-primary' id='btn-generate_token'>]].. i18n("login.generate_token") ..[[</button>
     </div>
   </div>
 ]])
