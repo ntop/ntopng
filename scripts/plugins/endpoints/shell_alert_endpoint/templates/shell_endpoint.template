@@ -9,8 +9,23 @@
                 if(key:match('^(.*).sh')) then   
         %}
                     <option value='{{ key }}'>{{ dir }}</option>
-            {%  end  %}
-        {% end %}
+            {%  
+                end  
+            %}
+        {% 
+            end 
+        %}
+        {%
+            for key, dir in pairs(ntop.readdir("scripts/shell")) do 
+                if(key:match('^(.*).sh')) then   
+        %}
+                    <option value='{{ key }}'>{{ dir }}</option>
+            {%  
+                end  
+            %}
+        {% 
+            end 
+        %}
     </select>
     </div>
 </div>

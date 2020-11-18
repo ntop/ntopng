@@ -82,10 +82,11 @@ local alert_keys = {
       alert_too_many_retransmissions       = {NO_PEN, 67}, -- No longer used
       alert_lateral_movement               = {NO_PEN, 68},
       alert_list_download_succeeded        = {NO_PEN, 69},
-      alert_no_if_activity                 = {NO_PEN, 70}, -- Found under scripts/plugins/alerts/internals/no_if_activity
+      alert_no_if_activity                 = {NO_PEN, 70}, -- scripts/plugins/alerts/internals/no_if_activity
       alert_zero_tcp_window                = {NO_PEN, 71},
       alert_flow_low_goodput               = {NO_PEN, 72},
-      alert_unexpected_new_device          = {NO_PEN, 73}, -- Found under scripts/plugins/alerts/security/unexpected_new_device
+      alert_unexpected_new_device          = {NO_PEN, 73}, -- scripts/plugins/alerts/security/unexpected_new_device
+      alert_shell_script_executed          = {NO_PEN, 74}, -- scripts/plugins/endpoints/shell_alert_endpoint
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
