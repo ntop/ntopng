@@ -1,7 +1,7 @@
 Introduction
 ------------
 
-VyOS (https://www.vyos.io) is a popular open-source router and firewall platform based on Linux,
+VyOS (https://www.vyos.io) is a popular open-source router and firewall platform based on Linux.
 
 
 Prerequisites
@@ -36,7 +36,7 @@ Release:	8.11
 Codename:	jessie
 ```
 
-Futhermore please make sure you use the best mirror for your country (in this example we used the Italian Debian mirror).
+Furthermore please make sure you use the best mirror for your country (in this example we used the Italian Debian mirror).
 
 You are now ready to do
 
@@ -44,7 +44,7 @@ You are now ready to do
 apt-get update
 ```
 
-and your VyOS installation will now look like a Debian box where you can install yout favorite packages.
+and your VyOS installation will now look like a Debian box where you can install your favorite packages.
 
 How to install ntopng
 ---------------------
@@ -54,7 +54,7 @@ As this point you have two options. You can:
 - (we suggest this option) install ntop maintained binary packages available at https://packages.ntop.org
 for your Debian distribution on top of which VyOS sits.
 
-Additional Packages
--------------------
+Installing Additional Packages
+------------------------------
 Id you decided to use binary packages, you can also install additional ntop packages such as nProbe that
 can turn your VyOS router installation in a full fledged DPI-based NetFlow/IPFIX probe or remote probe for a ntopng installation running on a remote server.
