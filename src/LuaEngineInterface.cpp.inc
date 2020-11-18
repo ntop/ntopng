@@ -1112,24 +1112,6 @@ static int ntop_interface_get_engaged_alerts_count(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_inc_num_dropped_alerts(lua_State* vm) {
-  NetworkInterface *iface = getCurrentInterface(vm);
-  u_int32_t num_dropped;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!iface) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  num_dropped = lua_tonumber(vm, 1);
-
-  iface->incNumDroppedAlerts(num_dropped);
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_interface_get_engaged_alerts(lua_State* vm) {
   AlertEntity entity_type = alert_entity_none;
   const char *entity_value = NULL;
@@ -4359,18 +4341,6 @@ static int ntop_interface_check_context(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_check_dropped_alerts(lua_State* vm) {
-  NetworkInterface *iface = getCurrentInterface(vm);
-
-  if(!iface)
-    return(CONST_LUA_ERROR);
-
-  lua_pushinteger(vm, iface->checkDroppedAlerts());
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_interface_release_engaged_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
 
@@ -4738,10 +4708,8 @@ static const luaL_Reg ntop_interface_reg[] = {
   { "triggerExternalAlert",   ntop_interface_store_external_alert     },
   { "releaseExternalAlert",   ntop_interface_release_external_alert   },
   { "checkContext",           ntop_interface_check_context            },
-  { "checkDroppedAlerts",     ntop_interface_check_dropped_alerts     },
   { "getEngagedAlerts",       ntop_interface_get_engaged_alerts       },
   { "getEngagedAlertsCount",  ntop_interface_get_engaged_alerts_count },
-  { "incNumDroppedAlerts",    ntop_interface_inc_num_dropped_alerts   },
   { "getAlerts",              ntop_interface_get_alerts               },
   { "releaseEngagedAlerts",   ntop_interface_release_engaged_alerts   },
   { "incTotalHostAlerts",     ntop_interface_inc_total_host_alerts    },

@@ -24,34 +24,29 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.min(params)
-  local available_interfaces = interface.getIfNames()
+local function dropped_alerts_check(params)
+   local dropped_alerts = interface.getStats()["num_dropped_alerts"]
 
-  -- Add the system interface id
-  available_interfaces[getSystemInterfaceId()] = getSystemInterfaceName()
+   -- Compute the delta with the previous value for drops
+   local delta_drops = alerts_api.interface_delta_val(script.key, params.granularity, dropped_alerts, true --[[ skip first --]])
 
-  for _, iface in pairs(available_interfaces) do
-    interface.select(iface)
+   local alert_type = alert_consts.alert_types.alert_dropped_alerts.create(
+      alert_consts.alert_severities.error,
+      alert_consts.alerts_granularities[params.granularity],
+      interface.getId(),
+      delta_drops
+   )
 
-    local new_dropped_alerts = interface.checkDroppedAlerts()
-
-    local alert_type = alert_consts.alert_types.alert_dropped_alerts.create(
-       alert_consts.alert_severities.error,
-       alert_consts.alerts_granularities.min,
-       interface.getId(),
-       new_dropped_alerts
-    )
-
-    -- Note: required for the trigger/release below
-    interface.select(getSystemInterfaceId())
-
-    if(new_dropped_alerts > 0) then
+   if(delta_drops > 0) then
       alerts_api.trigger(params.alert_entity, alert_type, nil, params.cur_alerts)
-    else
+   else
       alerts_api.release(params.alert_entity, alert_type, nil, params.cur_alerts)
-    end
-  end
+   end
 end
+
+-- #################################################################
+
+script.hooks.min = dropped_alerts_check
 
 -- #################################################################
 
