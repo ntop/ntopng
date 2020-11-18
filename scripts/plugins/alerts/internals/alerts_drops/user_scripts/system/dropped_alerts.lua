@@ -25,8 +25,6 @@ local script = {
 -- #################################################################
 
 local function dropped_alerts_check(params)
-   tprint("system: "..tostring(interface.getId()).. " key: "..script.key)
-   -- local dropped_alerts = interface.getStats()["num_dropped_alerts"]
    -- Fetch system host stats
    local system_host_stats =  ntop.systemHostStat()
 
