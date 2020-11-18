@@ -50,16 +50,14 @@ function infrastructure_import_export:import(conf)
    if not success then
       res.err = rest_utils.consts.err.internal_error
    else
-      res.success = true
 
+      -- set success to true
+      res.success = true
       -- restore active monitoring hosts
       for _, instance in ipairs(restored) do
-         -- get the measurement from the url
-         local measurement = ternary(instance.url:starts("https"), "https", "http")
-         local host = instance.url:gsub(measurement .. "://", "")
-         am_utils.addHost(host, measurement, 99, "5mins", pools.DEFAULT_POOL_ID, instance.token, true, true)
+         -- add the instance to the active monitoring
+         infrastructure_utils.add_instance_to_active_monitoring(instance)
       end
-      
    end
 
    return res
@@ -79,15 +77,11 @@ end
 -- @brief Reset configuration
 function infrastructure_import_export:reset()
 
-   local instances = infrastructure_utils.get_all_instances()
-   infrastructure_utils.remove_all_instances()
+   local removed_instances = infrastructure_utils.remove_all_instances()
 
-   for _, instance in ipairs(instances) do
+   for _, instance in ipairs(removed_instances) do
       -- get the measurement from the url
-      local measurement = ternary(instance.url:starts("https"), "https", "http")
-      local host = instance.url:gsub(measurement .. "://", "")
-      -- remove the active monitoring host
-      am_utils.deleteHost(host, measurement)
+      infrastructure_utils.delete_from_active_monitoring(instance)
    end
 
 end

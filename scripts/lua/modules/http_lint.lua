@@ -1151,6 +1151,19 @@ end
 
 -- #################################################################
 
+function validateToken(token)
+
+   if (not token) then return false end
+   if (string.len(token) ~= 32) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "The token lenght must be of 32 characters!")
+      return false 
+   end
+
+   return true
+end
+
+-- #################################################################
+
 local function validateFieldAlias(key_value_pair)
    -- Validates parameters such as:
    -- packets.sent=tpd
@@ -1485,8 +1498,8 @@ local known_parameters = {
    ["topology_host"]                   = validateIPV4,
 
 -- Infrastructure Dashboard
-   ["alias"]                  = validateSingleWord,
-   ["token"]                  = validateSingleWord,
+   ["alias"]                  = validateUnchecked,
+   ["token"]                  = validateToken,
    ["instance_id"]            = validateSingleWord,
    ["stats"]                  = validateBool,
 

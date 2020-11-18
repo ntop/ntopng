@@ -46,6 +46,7 @@ const REGEXES = {
 	singleword: "^(?=[a-zA-Z0-9._\-]{3,20}$)(?!.*[_.\-]{2})[^_.\-].*[^_.\-]$",
 	email: "[A-Za-z0-9._%+-]{2,}@[a-zA-Z\-]{1,}([.]{1}[a-zA-Z]{2,}|[.]{1}[a-zA-Z]{2,}[.]{1}[a-zA-Z]{2,})",
 	https: "^https?://.+$",
+	token: "^[0-9a-f]{32}"
 };
 
 class NtopUtils {

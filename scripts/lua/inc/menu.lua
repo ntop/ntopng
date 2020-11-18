@@ -120,11 +120,6 @@ else
 	       url = ntop.isPro() and '/lua/pro/dashboard.lua' or '/lua/index.lua',
        },
        {
-          entry = page_utils.menu_entries.infrastructure_dashboard,
-          hidden = not ntop.isEnterpriseL() or not is_admin,
-          url = '/lua/pro/enterprise/infrastructure_dashboard.lua'
-       },
-       {
          entry = page_utils.menu_entries.divider,
        },
 	    {
@@ -353,7 +348,13 @@ page_utils.add_menubar_section({
 
 -- Pollers (e.g., SNMP, active monitoring)
 
-local poller_entries = {}
+local poller_entries = {
+   {
+      entry = page_utils.menu_entries.infrastructure_dashboard,
+      hidden = not ntop.isEnterpriseL() or not isAdministrator,
+      url = '/lua/pro/enterprise/infrastructure_dashboard.lua'
+   }
+}
 
 -- Add SNMP to the poller entries
 poller_entries[#poller_entries + 1] = {

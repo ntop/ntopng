@@ -2659,12 +2659,17 @@ local lang = {
       ["upload"] = "Upload",
     },
     ["modal"] = {
+      ["failed_login"] = "The authentication has failed, please check if the User Authentication Token has been changed!",
+      ["hint_token"] = "A Token can be generated from the user profile page.",
       ["insert_instance"] = "%{product}-instance",
       ["instance_alias"] = "Instance Alias",
       ["instance_url"] = "URL",
       ["password"] = "Password",
+      ["successfull_login"] = "Authenticated works correctly!",
       ["test_auth"] = "Test Authentication",
-      ["token"] = "Token",
+      ["testing_authentication"] = "Testing authentication",
+      ["token"] = "User Authentication Token",
+      ["unknown_host"] = "The authentication has failed, please check if the URL is right!",
       ["username"] = "Username",
     },
     ["validation"] = {
