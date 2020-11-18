@@ -17,7 +17,10 @@ local script = {}
 -- @params http_lint a reference to the scripts/lua/modules/http_lint.lua module
 -- @return a (possibly empty) table with parameter_name -> validator mappings
 function script.getAdditionalParameters(http_lint)
-   return {}
+   return {
+      ["shell_script"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+      ["shell_options"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+   }
 end
 
 -- ##############################################
