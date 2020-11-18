@@ -72,6 +72,7 @@ template <typename T> class FifoQueue {
     lua_push_uint64_table_entry(vm, "pct_in_queue", (num_enqueued - num_dequeued) / (float)(max_size + 1) * 100);
     /* The percentage of not enqueued, with reference to the total number of not enqueued plus enqueued */
     lua_push_uint64_table_entry(vm,  "pct_not_enqueued", num_not_enqueued / (float)(num_not_enqueued + num_enqueued + 1) * 100);
+    lua_push_uint64_table_entry(vm,  "num_not_enqueued", num_not_enqueued);
 
     lua_pushstring(vm, table_name);
     lua_insert(vm, -2);

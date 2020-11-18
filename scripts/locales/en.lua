@@ -2682,6 +2682,7 @@ local lang = {
   ["internals"] = {
     ["alert_drops"] = "Alerts Drops",
     ["alert_drops_descr"] = "Trigger an alert when alerts are dropped. Likely, this is due to too many alerts generated or slow recipients.",
+    ["system_alert_drops_descr"] = "Trigger an alert when alerts are dropped as there is no room in the internal alerts queue. Likely, this is due to too many alerts generated.",
     ["all_hash_tables"] = "All Hash Tables",
     ["all_periodic_activities"] = "All Periodic Activities",
     ["all_user_script_targets"] = "All User Script Targets",
