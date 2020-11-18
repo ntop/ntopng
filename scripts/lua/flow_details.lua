@@ -1185,7 +1185,7 @@ else
    end
 
    if((flow.community_id ~= nil) and (flow.community_id ~= "")) then
-      print("<tr><th width=30%><A HREF=\"https://github.com/corelight/community-id-spec\">CommunityId</A> <i class=\"fas fa-external-link-alt\"></i></th><td colspan=2>".. flow.community_id .."</td></tr>\n")
+      print("<tr><th width=30%><A HREF=\"https://github.com/corelight/community-id-spec\" target=\"_blank\">CommunityId</A> <i class=\"fas fa-external-link-alt\"></i></th><td colspan=2>".. flow.community_id .."</td></tr>\n")
    end
 
    if((flow.client_process == nil) and (flow.server_process == nil)) then
