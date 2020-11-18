@@ -68,7 +68,7 @@ $(document).ready(function() {
             /* Flows Column */
             { width: '10%', className: 'text-center', data: 'am.num_flows' },
             /* Alerts Column */
-            { width: '10%', className: 'text-center', data: 'am.engaged_alerts' },
+            { width: '10%', className: 'text-center', data: 'am.num_alerts' },
             /* Last Update Column */
             { width: '10%', className: 'text-center', data: 'am.epoch', render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS },
             /* Action Column */
