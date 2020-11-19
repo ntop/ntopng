@@ -648,6 +648,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   char addr_buf[64];
   char session_buf[64];
   char ifid_buf[32];
+  const char* origin_header;
   bool send_redirect = false;
   IpAddress client_addr;
 
@@ -801,6 +802,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   if(request_info->remote_user)  lua_push_str_table_entry(L, "REMOTE_USER", (char*)request_info->remote_user);
   if(request_info->query_string) lua_push_str_table_entry(L, "QUERY_STRING", (char*)request_info->query_string);
 
+  /* Additional headers can be added eventually */
+  origin_header = mg_get_header(conn, "Origin");
+  if(origin_header) lua_push_str_table_entry(L, "Origin", origin_header);
+  
   for(int i=0; ((request_info->http_headers[i].name != NULL)
 		&& request_info->http_headers[i].name[0] != '\0'); i++)
     lua_push_str_table_entry(L,
