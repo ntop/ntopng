@@ -1151,6 +1151,18 @@ end
 
 -- #################################################################
 
+function validateToken(token)
+
+   if (not token) then return false end
+   if (string.len(token) ~= 32) then return false end
+   -- iterate over each byte of the string
+   if (token:match("^%x+$") == nil) then return false end
+
+   return true
+end
+
+-- #################################################################
+
 local function validateFieldAlias(key_value_pair)
    -- Validates parameters such as:
    -- packets.sent=tpd
@@ -1485,10 +1497,11 @@ local known_parameters = {
    ["topology_host"]                   = validateIPV4,
 
 -- Infrastructure Dashboard
-   ["alias"]                  = validateSingleWord,
-   ["token"]                  = validateSingleWord,
+   ["alias"]                  = validateUnquoted,
+   ["token"]                  = validateToken,
    ["instance_id"]            = validateSingleWord,
    ["stats"]                  = validateBool,
+   ["threshold"]              = validateNumber,
 
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,

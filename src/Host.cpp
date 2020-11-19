@@ -442,13 +442,12 @@ void Host::lua_get_min_info(lua_State *vm) const {
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
   lua_push_bool_table_entry(vm, "is_broadcast", ip.isBroadcastAddress());
   lua_push_bool_table_entry(vm, "is_multicast", ip.isMulticastAddress());
+#ifdef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "childSafe", isChildSafe());
-#ifdef NTOPNG_PRO
   lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);
   lua_push_bool_table_entry(vm, "has_blocking_shaper", has_blocking_shaper);
-#endif
-
   lua_push_bool_table_entry(vm, "drop_all_host_traffic", dropAllTraffic());
+#endif
 }
 
 /* ***************************************************** */

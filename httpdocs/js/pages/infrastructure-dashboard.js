@@ -1,13 +1,25 @@
+const testAuthentication = async (remoteUrl, token) => {
+
+    const url = new URL(`${remoteUrl}/${ENDPOINT_URL}`).toString();
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Origin': window.location.origin,
+                'Authorization': `Token ${token}`
+            }
+        });
+        return [(response.status == 200 && !response.redirected), true];
+    }
+    catch (e) {
+        return [false, false];
+    }
+}
+
 $(document).ready(function() {
 
     const reloadTable = () => {
         $(`[data-toggle='tooltip']`).tooltip();
         $infrastructureTable.ajax.reload();
-    }
-
-    const testAuthentication = async (url, token) => {
-
-
     }
 
     let dtConfig = DataTableUtils.getStdDatatableConfig([
@@ -22,11 +34,10 @@ $(document).ready(function() {
     ]);
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v1/get/infrastructure/instance.lua?stats=true`, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
-        responsive: true,
         columns: [
             /* Alias Column */
             { width: '20%', data: 'alias', render: (alias, type, instance) => {
-                if ((type !== 'display' || instance.am_success)) return alias;
+                if ((type !== 'display' || instance.am_success)) return `<b>${alias}</b> (${instance.url})`;
                 if (instance.error_message === undefined) return alias;
                 return `<span data-toggle='tooltip' data-placement='bottom' title='${i18n.rest[instance.error_message]}'>${alias} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i></span>`;
             }},
@@ -56,7 +67,7 @@ $(document).ready(function() {
             /* Flows Column */
             { width: '10%', className: 'text-center', data: 'am.num_flows' },
             /* Alerts Column */
-            { width: '10%', className: 'text-center', data: 'am.engaged_alerts' },
+            { width: '10%', className: 'text-center', data: 'am.num_alerts' },
             /* Last Update Column */
             { width: '10%', className: 'text-center', data: 'am.epoch', render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS },
             /* Action Column */
@@ -103,8 +114,10 @@ $(document).ready(function() {
         beforeSumbit: () => {
             const data = {};
             $(`#add-instance-modal form input`).each(function() {
-                data[$(this).attr('name')] = $(this).val();
+                data[$(this).attr('name')] = $(this).val().trim();
             });
+            // clean the url
+            data.url = new URL(data.url).origin;
             return data;
         },
         onSubmitSuccess: (response) => {
@@ -133,9 +146,11 @@ $(document).ready(function() {
         beforeSumbit: (instance) => {
             const data = {};
             $(`#edit-instance-modal form input`).each(function() {
-                data[$(this).attr('name')] = $(this).val();
+                data[$(this).attr('name')] = $(this).val().trim();
             });
             data.instance_id = instance.id;
+            // clean the url
+            data.url = new URL(data.url).origin;
             return data;
         },
         onSubmitSuccess: (response) => {
@@ -185,7 +200,40 @@ $(document).ready(function() {
         $removeInstanceModal.invokeModalInit(selectedInstance);
     });
 
-    $(`.test-auth`).click(function() {
+    $(`.test-auth`).click(async function(e) {
+        
+        e.preventDefault();
+
+        const $button = $(this);
+        const $form = $button.parents('form');
+
+        const $feedbackLabel = $form.find(`.auth-log`);
+        $button.attr("disabled", "disabled");
+        $button.find('span.spinner-border').fadeIn();
+        $feedbackLabel.addClass('alert-info');
+        $feedbackLabel.removeClass(`alert-danger alert-success`).text(`${i18n.testing_authentication}...`).show();
+
+        const remoteUrl = $form.find(`[name='url']`).val().trim();
+        const token = $form.find(`[name='token']`).val().trim();
+
+        const [success, fetched] = await testAuthentication(remoteUrl, token);
+
+        if (!success) {
+            $button.find('span.spinner-border').fadeOut(function () {
+                const errorMessage = (!fetched) ? i18n.unknown_host : i18n.failed_login;
+                $feedbackLabel.removeClass('alert-info').addClass(`alert-danger`).html(errorMessage);
+            });
+            $button.removeAttr("disabled");
+            return;
+        }
+
+        // show a green label to alert the endpoint message
+        $button.find('span.spinner-border').fadeOut(function () {
+            $feedbackLabel.removeClass('alert-info').addClass('alert-success').html(i18n.successfull_login).fadeOut(3000, function() {
+                $feedbackLabel.removeClass(`alert-success`);
+            });
+        });
+        $button.removeAttr("disabled");
 
     });
 

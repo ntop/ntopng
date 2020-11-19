@@ -740,6 +740,11 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
       return
    end
 
+   -- Dequeue alerts from the internal C queue
+   local alert_utils = require "alert_utils"
+   alert_utils.process_notifications_from_c_queue()
+
+   -- Dequeue alerts enqueued into per-recipient queues from user scripts
    if not cached_recipients then
       -- Cache recipients to avoid re-reading them constantly
       cached_recipients = recipients.get_all_recipients()

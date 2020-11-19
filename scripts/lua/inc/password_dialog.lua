@@ -10,7 +10,7 @@ print [[
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="password_dialog_label">]] print(i18n("manage_users.manage_user_x", {user=[[<span class="password_dialog_title"></span>]]})) print[[ </h5>
+        <h5 class="modal-title" id="password_dialog_label">]] print(i18n("manage_users.manage_user_x", {user=[[<span class="password_dialog_title">]].. _SESSION['user'] ..[[</span>]]})) print[[ </h5>
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -22,19 +22,18 @@ print [[
   <div class='card'>
   <div class='card-header'>
   <ul class="nav nav-tabs card-header-tabs" role="tablist" id="edit-user-container">
-    <li class="nav-item active"><a class="nav-link active" href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
 ]]
-
-if(is_admin) then
-   print[[<li class="nav-item" id="li_change_prefs"><a class="nav-link" href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
-end
+    if(is_admin) then
+      print[[<li class="nav-item active" id="li_change_prefs"><a class="nav-link active" href="#change-prefs-dialog" role="tab" data-toggle="tab"> ]] print(i18n("prefs.preferences")) print[[ </a></li>]]
+    end
    print[[
+    <li class="nav-item ]] print(ternary(is_admin, "", "active")) print[["><a class="nav-link ]] print(ternary(is_admin, "", "active")) print[[" href="#change-password-dialog" role="tab" data-toggle="tab"> ]] print(i18n("login.password")) print[[ </a></li>
     <li class="nav-item"><a class="nav-link" href="#user-token-tab" role="tab" data-toggle="tab"> ]] print(i18n("login.auth_token")) print[[ </a></li>
   
   </ul>
   </div>
   <div class="card-body tab-content">
-  <div class="tab-pane active" id="change-password-dialog">
+  <div class="tab-pane ]] print(ternary(is_admin, "", "active")) print[[" id="change-password-dialog">
 
   <div id="password_alert_placeholder"></div>
 
@@ -110,7 +109,7 @@ if(is_admin) then
 
 print [[
   </div>
-<div class="tab-pane" id="change-prefs-dialog">
+<div class="tab-pane ]] print(ternary(is_admin, "active", "")) print[[" id="change-prefs-dialog">
 
   <form data-toggle="validator" id="form_pref_change" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/admin/change_user_prefs.lua">
     <input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
@@ -146,14 +145,14 @@ print [[
   <div class='form-group'>
     <label for="networks_input">]] print(i18n("manage_users.allowed_networks")) print[[</label>
     <div class='input-group mb-6'>
-      <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control" required>
-      <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[ 192.168.1.0/24,172.16.0.0/16</small>
+      <input id="networks_input" type="text" name="allowed_networks" value="" class="form-control w-100" required>
     </div>
+    <small>]] print(i18n("manage_users.allowed_networks_descr")) print[[ 192.168.1.0/24,172.16.0.0/16</small>
   </div>
 
 
     <div class="form-group mb-6">
-      <div class="form-check">]]
+      <div class="form-check pl-0">]]
 
     print(template.gen("on_off_switch.html", {
      id = "allow_pcap_input",
@@ -322,8 +321,8 @@ print [[
         var response = jQuery.parseJSON(data);
         if(response.result == 0) {
           password_alert.success(response.message);
-   	  // window.location.href = 'users.lua';
-          window.location.href = window.location.href;
+          const url = new URL(window.location);
+          window.location.href = url.origin + url.pathname;
 
        } else
           password_alert.error(response.message);

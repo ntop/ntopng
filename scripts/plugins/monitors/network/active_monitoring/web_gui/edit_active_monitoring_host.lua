@@ -42,8 +42,11 @@ local function isValidHostMeasurementCombination(host, measurement)
       return(false)
    end
 
+   -- split the hostname from the full host
+   local splittedHost = split(host, ":")
+
    -- Host is a domain, try to resolve it to validate it
-   if(ntop.resolveHost(host, ternary((expected_ipv == 4), true, false)) ~= nil) then
+   if(ntop.resolveHost(splittedHost[1], ternary((expected_ipv == 4), true, false)) ~= nil) then
       -- Valid Host
       return(true)
    end

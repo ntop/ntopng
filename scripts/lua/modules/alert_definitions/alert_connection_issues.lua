@@ -15,9 +15,8 @@ local alert_keys = require "alert_keys"
 -- @param client_issues A boolean indicating if the client has connection issues
 -- @param server_issues A boolean indicating if the server has connection issues
 -- @return A table with the alert built
-local function createConnectionIssues(alert_severity, tcp_stats, cli2srv_pkts, srv2cli_pkts, is_severe, client_issues, server_issues)
+local function createConnectionIssues(tcp_stats, cli2srv_pkts, srv2cli_pkts, is_severe, client_issues, server_issues)
    local built = {
-      alert_severity = alert_severity,
       alert_type_params = {
 	 tcp_stats = tcp_stats,
 	 cli2srv_pkts = cli2srv_pkts,

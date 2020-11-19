@@ -286,7 +286,7 @@ void NetworkInterface::init() {
   hide_from_top = hide_from_top_shadow = NULL;
 
   gettimeofday(&last_periodic_stats_update, NULL);
-  num_live_captures = 0, num_dropped_alerts = 0, checked_dropped_alerts = 0, prev_dropped_alerts = 0;
+  num_live_captures = 0, num_dropped_alerts = 0, prev_dropped_alerts = 0;
   num_written_alerts = num_alerts_queries = 0;
   memset(live_captures, 0, sizeof(live_captures));
   num_alerts_engaged = 0;
@@ -7944,22 +7944,6 @@ void NetworkInterface::unlockExternalAlertable(AlertableEntity *alertable) {
 struct ndpi_detection_module_struct* NetworkInterface::get_ndpi_struct() const {
   return(ntop->get_ndpi_struct());
 };
-
-/* *************************************** */
-
-/* Checks if there are new dropped alerts since the last check.
- * This is only intented to be called by the alerts_drops system plugin.
- * The prev_dropped_alerts cannot be reused because that is handled by another
- * thread (the interface minute thread). */
-u_int32_t NetworkInterface::checkDroppedAlerts() {
-  u_int32_t cur_dropped_alerts = num_dropped_alerts;
-  u_int32_t new_drops;
-
-  new_drops = cur_dropped_alerts - checked_dropped_alerts;
-  checked_dropped_alerts = cur_dropped_alerts;
-
-  return(new_drops);
-}
 
 /* *************************************** */
 

@@ -434,7 +434,6 @@ class NetworkInterface : public AlertableEntity {
   inline void incKeepAlivePkts(u_int32_t num)       { tcpPacketStats.incKeepAlive(num); };
   virtual void checkPointCounters(bool drops_only);
   bool registerSubInterface(NetworkInterface *sub_iface, u_int64_t criteria);
-  u_int32_t checkDroppedAlerts();
 
   /* Overridden in ViewInterface.cpp */
   virtual u_int64_t getCheckPointNumPackets();

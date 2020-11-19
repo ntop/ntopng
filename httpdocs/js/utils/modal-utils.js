@@ -329,7 +329,6 @@
                 isValid &= input.validity.valid;
             });
 
-
             isValid
                 ? $(this.element).find(`[type='submit'],[type='test']`).removeAttr("disabled")
                 : $(this.element).find(`[type='submit'],[type='test']`).attr("disabled", "disabled");

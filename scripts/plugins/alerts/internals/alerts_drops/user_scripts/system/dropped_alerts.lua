@@ -18,40 +18,43 @@ local script = {
 
   gui = {
     i18n_title = "internals.alert_drops",
-    i18n_description = "internals.alert_drops_descr",
+    i18n_description = "internals.system_alert_drops_descr",
   },
 }
 
 -- #################################################################
 
-function script.hooks.min(params)
-  local available_interfaces = interface.getIfNames()
+local function dropped_alerts_check(params)
+   -- Fetch system host stats
+   local system_host_stats =  ntop.systemHostStat()
 
-  -- Add the system interface id
-  available_interfaces[getSystemInterfaceId()] = getSystemInterfaceName()
+   -- Fetch the number of dropped alerts out of system host stats
+   -- The number fetched is the number of drops occured in the internal queue, that is,
+   -- in the queue currently used to generate alerts from C
+   local dropped_alerts = system_host_stats["alerts_stats"]["alert_queues"]["internal_alerts_queue"]["num_not_enqueued"]
 
-  for _, iface in pairs(available_interfaces) do
-    interface.select(iface)
+   -- Compute the delta with the previous value for drops
+   local delta_drops = alerts_api.interface_delta_val(script.key, params.granularity, dropped_alerts, true --[[ skip first --]])
 
-    local new_dropped_alerts = interface.checkDroppedAlerts()
+   local alert_type = alert_consts.alert_types.alert_dropped_alerts.create(
+      alert_consts.alert_severities.error,
+      alert_consts.alerts_granularities[params.granularity],
+      interface.getId(),
+      delta_drops
+   )
 
-    local alert_type = alert_consts.alert_types.alert_dropped_alerts.create(
-       alert_consts.alert_severities.error,
-       alert_consts.alerts_granularities.min,
-       interface.getId(),
-       new_dropped_alerts
-    )
-
-    -- Note: required for the trigger/release below
-    interface.select(getSystemInterfaceId())
-
-    if(new_dropped_alerts > 0) then
+   if(delta_drops > 0) then
       alerts_api.trigger(params.alert_entity, alert_type, nil, params.cur_alerts)
-    else
+   else
       alerts_api.release(params.alert_entity, alert_type, nil, params.cur_alerts)
-    end
-  end
+   end
+
+
 end
+
+-- #################################################################
+
+script.hooks.min = dropped_alerts_check
 
 -- #################################################################
 

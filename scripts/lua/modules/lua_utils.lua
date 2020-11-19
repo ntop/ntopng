@@ -3663,10 +3663,9 @@ function generate_select(id, name, is_required, is_disabled, options, additional
    local disabled_flag = (is_disabled and "disabled" or "")
    local name_attr = (name ~= "" and "name='" .. name .. "'" or "")
    local parsed_options = ""
-
    for i, option in ipairs(options) do
       parsed_options = parsed_options .. ([[
-         <option value="]].. option.value ..[[">]].. option.title ..[[</option>
+         <option ]].. (i == 1 and "selected" or "") ..[[ value="]].. option.value ..[[">]].. option.title ..[[</option>
       ]])
    end
 
