@@ -1,13 +1,14 @@
 $(document).ready(function() {
 
     const MAX_RECIPIENTS = 3;
+    const DEFAULT_MEASUREMENT = "cicmp";
 
     const getMeasurementRegex = (measurement) => {
-
         switch (measurement) {
             default:
             case "http":
             case "https":
+                return `${NtopUtils.REGEXES["ipv4WithPort"]}|${NtopUtils.REGEXES["domainNameWithPort"]}`;
             case "icmp":
             case "cicmp":
                 return `${NtopUtils.REGEXES["ipv4"]}|${NtopUtils.REGEXES["domainName"]}`
@@ -556,7 +557,7 @@ $(document).ready(function() {
 
     });
 
-    $(`#input-add-host`).attr('pattern', getMeasurementRegex($("#select-add-measurement").val()));
-    $(`#input-edit-host`).attr('pattern', getMeasurementRegex($("#select-edit-measurement").val()));
+    $(`#input-add-host`).attr('pattern', getMeasurementRegex(DEFAULT_MEASUREMENT));
+    $(`#input-edit-host`).attr('pattern', getMeasurementRegex(DEFAULT_MEASUREMENT));
 
 });
