@@ -2826,7 +2826,7 @@ static int ntop_get_info(lua_State* vm) {
     lua_push_str_table_entry(vm, "version.httpd", (char*)mg_version());
     lua_push_str_table_entry(vm, "version.git", (char*)NTOPNG_GIT_RELEASE);
     lua_push_str_table_entry(vm, "version.curl", (char*)LIBCURL_VERSION);
-    lua_push_str_table_entry(vm, "version.luajit", (char*)LUA_RELEASE);
+    lua_push_str_table_entry(vm, "version.lua", (char*)LUA_RELEASE);
 #ifdef HAVE_MAXMINDDB
     lua_push_str_table_entry(vm, "version.geoip", (char*)MMDB_lib_version());
 #endif
