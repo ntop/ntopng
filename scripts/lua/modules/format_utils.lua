@@ -269,7 +269,7 @@ end
 function format_utils.formatConnectionIssues(info)
    local res = i18n("flow_details.tcp_connection_issues")
 
-   if info.client_issues and info.tcp_stats and info.cli2srv_pkts then
+   if info and info.client_issues and info.tcp_stats and info.cli2srv_pkts then
       local retx = info.tcp_stats["cli2srv.retransmissions"]
       local ooo =  info.tcp_stats["cli2srv.out_of_order"]
       local lost = info.tcp_stats["cli2srv.lost"]
@@ -295,7 +295,7 @@ function format_utils.formatConnectionIssues(info)
       end
    end
 
-   if info.server_issues and info.tcp_stats and info.srv2cli_pkts then
+   if info and info.server_issues and info.tcp_stats and info.srv2cli_pkts then
       local retx = info.tcp_stats["srv2cli.retransmissions"]
       local ooo =  info.tcp_stats["srv2cli.out_of_order"]
       local lost = info.tcp_stats["srv2cli.lost"]
