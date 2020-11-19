@@ -15,11 +15,11 @@ local function formatTLSCertificateMismatch(flowstatus_info)
 
    local crts = {}
    if not isEmptyString(flowstatus_info["tls_crt.cli"]) then
-      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.client_requested"), flowstatus_info["tls_crt.cli"])
+      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.client_requested"), flowstatus_info["tls_crt.cli"]:gsub(",", ", "))
    end
 
    if not isEmptyString(flowstatus_info["tls_crt.srv"]) then
-      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.tls_server_names"), flowstatus_info["tls_crt.srv"])
+      crts[#crts + 1] = string.format("[%s: %s]", i18n("flow_details.tls_server_names"), flowstatus_info["tls_crt.srv"]:gsub(",", ", "))
    end
 
    return string.format("%s %s", i18n("flow_details.tls_certificate_mismatch"), table.concat(crts, " "))
