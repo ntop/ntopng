@@ -1,7 +1,6 @@
 const testAuthentication = async (remoteUrl, token) => {
 
-    const url = new URL(`${remoteUrl}/${ENDPOINT_URL}`).origin;
-
+    const url = new URL(`${remoteUrl}/${ENDPOINT_URL}`).toString();
     try {
         const response = await fetch(url, {
             headers: {
