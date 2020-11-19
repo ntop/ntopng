@@ -641,7 +641,7 @@ static void redirect_to_login(struct mg_connection *conn,
 
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
 	      "Expires: 0\r\n"
-	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
+	      "Cache-Control: no-store, no-cache, must-revalidate\r\n"
 	      "Pragma: no-cache\r\n"
 	      "Content-Type: text/html; charset=UTF-8\r\n"
 	      "Content-Length: %lu\r\n"
@@ -842,7 +842,7 @@ bool HTTPserver::authorize_noconn(char *username, char *session_id, u_int sessio
 
   /* Note: we are not checking the user password as the admin
    * or the same (authenticated) user is generating the session */
-  if (ntop->existsUserLocal(username)) {
+  if(ntop->existsUserLocal(username)) {
 
     strncpy(group, NTOP_UNKNOWN_GROUP, NTOP_GROUP_MAXLEN-1);
     group[NTOP_GROUP_MAXLEN - 1] = '\0';
@@ -937,7 +937,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
 #ifdef HAVE_NEDGE
   if(!ntop->getPro()->has_valid_license()) {
-    if (! ntop->getGlobals()->isShutdown()) {
+    if(! ntop->getGlobals()->isShutdown()) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "License expired, shutting down...");
       ntop->getGlobals()->shutdown();
       ntop->shutdown();
@@ -1002,10 +1002,10 @@ static int handle_lua_request(struct mg_connection *conn) {
         json_object *jscope, *jorigin;
 	const char *scope  = NULL, *origin = NULL;
 
-        if (json_object_object_get_ex(j, "scope", &jscope))
+        if(json_object_object_get_ex(j, "scope", &jscope))
           scope = json_object_get_string(jscope);
 
-        if (json_object_object_get_ex(j, "origin", &jorigin))
+        if(json_object_object_get_ex(j, "origin", &jorigin))
           origin = json_object_get_string(jorigin);
 	
 	if(scope != NULL && strcmp(scope, "public") != 0) {
@@ -1018,11 +1018,10 @@ static int handle_lua_request(struct mg_connection *conn) {
 	    redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
 	    return(1); /* Handled */
 	  }
-	} else {
-        authorized = 1;
-	}
+	} else
+	  authorized = 1;	
 
-        if (origin != NULL) {
+        if(origin != NULL) {
           original_uri = request_info->uri;       
 	  snprintf(tmp_uri, sizeof(tmp_uri),  "/lua/datasources/%s", origin);
         }
@@ -1043,7 +1042,7 @@ static int handle_lua_request(struct mg_connection *conn) {
         json_object *jorigin;
 	const char *origin = NULL;
 
-        if (json_object_object_get_ex(j, "origin", &jorigin))
+        if(json_object_object_get_ex(j, "origin", &jorigin))
           origin = json_object_get_string(jorigin);
 
 #if 0
@@ -1063,7 +1062,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	}
 #endif
 
-        if (origin != NULL) {	
+        if(origin != NULL) {	
           original_uri = request_info->uri;       
           snprintf(tmp_uri, sizeof(tmp_uri),  "/lua/widgets/%s", origin);
         }
@@ -1094,6 +1093,30 @@ static int handle_lua_request(struct mg_connection *conn) {
   whitelisted = isWhitelistedURI(request_info->uri);
 
   if(!isStaticResourceUrl(request_info, len) && !authorized) {
+    /* Add support for CORS https://javascript.info/fetch-crossorigin#step-1-preflight-request */
+    if(!strcmp(request_info->request_method, "OPTIONS")) {
+      const char *req_method;
+      
+      if((req_method = mg_get_header(conn, "Access-Control-Request-Method")) != NULL) {
+	const char *req_headers;
+	
+	if((strcmp(req_method, "GET") == 0) 
+	   && (req_headers = mg_get_header(conn, "Access-Control-Request-Headers"))) {
+	  const char *origin = mg_get_header(conn, "Origin");
+
+	  mg_printf(conn, "HTTP/1.1 200 OK\r\n"
+		    "Access-Control-Allow-Origin: %s\r\n"
+		    "Access-Control-Allow-Methods: %s\r\n"
+		    "Access-Control-Allow-Headers: %s\r\n"
+		    "Access-Control-Max-Age: 3600\r\n"
+		    "\r\n",
+		    origin ? origin : "*",
+		    req_method, req_headers);
+	  return(1); /* Handled */		
+	}
+      }
+    }
+	  	  
     /* Only check authorized for non-static resources */
     authorized = getAuthorizedUser(conn, request_info, username, sizeof(username), group, csrf, &localuser);
 
@@ -1128,7 +1151,7 @@ static int handle_lua_request(struct mg_connection *conn) {
       }
 
       return(1);
-    } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
+    } else if((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0)
         && (strcmp(request_info->uri, LOGOUT_URL) != 0)
          && authorized
         && ntop->mustChangePassword(username)) {
