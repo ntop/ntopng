@@ -1121,24 +1121,20 @@ print([[
 
 if (not _SESSION["localuser"] or not is_admin) and (not is_no_login_user) then
    print[[
-         <li>
-           <a class="dropdown-item" href='#password_dialog' data-toggle='modal'>
-             <i class='fas fa-user'></i> ]] print(i18n("manage_users.manage_user_x", {user = _SESSION["user"]})) print[[
-           </a>
-         </li>
+         <a class="dropdown-item" href='#password_dialog' data-toggle='modal'>
+            <i class='fas fa-user'></i> ]] print(i18n("manage_users.manage_user_x", {user = _SESSION["user"]})) print[[
+         </a>
    ]]
 else
-   print([[<li class='dropdown-item ]].. (is_no_login_user and 'disabled' or '') ..[['>]])
 
-   -- if is_no_login_user is true then don't render the hyperlink button to the users page
    if (not is_no_login_user) then
-      print([[<a href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a>]])
+      print([[<a class='dropdown-item' href=']].. ntop.getHttpPrefix() ..[[/lua/admin/users.lua?user=]].. session_user:gsub("%.", "\\\\\\\\.") ..[['><i class='fas fa-user'></i> ]].. session_user ..[[</a>]])
    else
+      print([[<li class='dropdown-item disabled'>]])
       print([[<i class='fas fa-user'></i> ]].. session_user ..[[]])
+      print([[</li>]])
    end
-   print([[
-         </li>
-]])
+   
 end
 
 -- Render nendge services
