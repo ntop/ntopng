@@ -69,6 +69,8 @@ local rest_utils = {
          infrastructure_instance_same_alias            = { http_code = 409, rc = -38, str = "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"},
          infrastructure_instance_same_url              = { http_code = 409, rc = -39, str = "INFRASTRUCTURE_INSTANCE_SAME_URL"},
          infrastructure_instance_same_token            = { http_code = 409, rc = -40, str = "INFRASTRUCTURE_INSTANCE_SAME_TOKEN"},
+
+         infrastructure_instance_already_existing      = { http_code = 409, rc = -41, str = "INFRASTRUCTURE_INSTANCE_ALREADY_EXISTING"}
       },
    }
 }
