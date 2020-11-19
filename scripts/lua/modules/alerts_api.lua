@@ -130,6 +130,18 @@ end
 
 -- ##############################################
 
+--! @brief Adds host information to the alert (only works for host alerts)
+--! @param alert_json Host info will be placed in key `host_info` of table `alert_json`
+local function addAlertHostInfo(alert_json)
+   if alert_json then
+      -- Add only minimal information to keep the final result as small as possible
+      alert_json.host_info = host.getMinInfo()
+   end
+end
+
+
+-- ##############################################
+
 --! @param type_info data returned by one of the type_info building functions
 function alerts_api.trigger_status(type_info, alert_severity, cli_score, srv_score, flow_score)
    type_info.status_type.alert_severity = alert_severity
@@ -180,7 +192,9 @@ function alerts_api.store(entity_info, type_info, when)
   addAlertPoolInfo(entity_info, alert_to_store)
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
-    -- NOTE: for engaged alerts this operation is performed during trigger in C
+     -- NOTE: for engaged alerts this operation is performed during trigger in C
+    host.checkContext(entity_info.alert_entity_val)
+    addAlertHostInfo(alert_to_store)
     interface.incTotalHostAlerts(entity_info.alert_entity_val, type_info.alert_type.alert_key)
   end
 
@@ -284,6 +298,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     host.checkContext(entity_info.alert_entity_val)
     triggered = host.storeTriggeredAlert(table.unpack(params))
+    addAlertHostInfo(triggered)
   elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
     interface.checkContext(entity_info.alert_entity_val)
     triggered = interface.storeTriggeredAlert(table.unpack(params))
@@ -360,6 +375,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     host.checkContext(entity_info.alert_entity_val)
     released = host.releaseTriggeredAlert(table.unpack(params))
+    addAlertHostInfo(released)
   elseif(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
     interface.checkContext(entity_info.alert_entity_val)
     released = interface.releaseTriggeredAlert(table.unpack(params))
