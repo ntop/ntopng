@@ -1502,7 +1502,7 @@ local known_parameters = {
    ["topology_host"]                   = validateIPV4,
 
 -- Infrastructure Dashboard
-   ["alias"]                  = validateUnchecked,
+   ["alias"]                  = validateUnquoted,
    ["token"]                  = validateToken,
    ["instance_id"]            = validateSingleWord,
    ["stats"]                  = validateBool,
