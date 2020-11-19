@@ -37,9 +37,10 @@ $(document).ready(function() {
         columns: [
             /* Alias Column */
             { width: '20%', data: 'alias', render: (alias, type, instance) => {
-                if ((type !== 'display' || instance.am_success)) return `<b>${alias}</b> (${instance.url})`;
-                if (instance.error_message === undefined) return alias;
-                return `<span data-toggle='tooltip' data-placement='bottom' title='${i18n.rest[instance.error_message]}'>${alias} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i></span>`;
+                if ((type !== 'display' || instance.am_success)) return alias;
+                if (instance.error_message === undefined && type !== "display") return alias;
+                if (instance.errorMessage === undefined && type === "display") return `<b>${alias}</b> (${instance.url})`;
+                return `<span data-toggle='tooltip' data-placement='bottom' title='${i18n.rest[instance.error_message]}'><b>${alias}</b> (${instance.url})<i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i></span>`;
             }},
             /* Status Column */
             { width: '5%', className: 'text-center', data: 'am_success', render: (am_success, type, instance) => {
