@@ -22,7 +22,7 @@
 
 /* ****************************************** */
 
-static int ntop_host_get_min_fields(lua_State* vm) {
+static int ntop_host_get_min_info(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
@@ -405,7 +405,7 @@ static const luaL_Reg ntop_host_reg[] = {
   { "getTsKey",               ntop_host_get_ts_key              },
 /* END Public API */
 
-  { "getMinInfo",             ntop_host_get_min_fields          },
+  { "getMinInfo",             ntop_host_get_min_info            },
   { "getInfo",                ntop_host_get_basic_fields        },
   { "getFullInfo",            ntop_host_get_all_fields          },
   { "getCachedAlertValue",    ntop_host_get_cached_alert_value  },
