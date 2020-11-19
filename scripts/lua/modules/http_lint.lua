@@ -1156,12 +1156,7 @@ function validateToken(token)
    if (not token) then return false end
    if (string.len(token) ~= 32) then return false end
    -- iterate over each byte of the string
-   for b in token:gmatch("%x%x") do
-      -- if the byte is not valid then return false
-      if (tonumber(b, 16) == nil) then 
-          return false
-      end
-  end
+   if (token:match("^%x+$") == nil) then return false end
 
    return true
 end
