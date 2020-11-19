@@ -64,13 +64,14 @@ local rest_utils = {
          infrastructure_instance_empty_alias            = { http_code = 409, rc = -34, str = "INFRASTRUCTURE_INSTANCE_EMPTY_ALIAS"},
          infrastructure_instance_empty_url              = { http_code = 409, rc = -35, str = "INFRASTRUCTURE_INSTANCE_EMPTY_URL"},
          infrastructure_instance_empty_token            = { http_code = 409, rc = -36, str = "INFRASTRUCTURE_INSTANCE_EMPTY_TOKEN"},
+         infrastructure_instance_empty_threshold        = { http_code = 409, rc = -37, str = "INFRASTRUCTURE_INSTANCE_EMPTY_THRESHOLD"},
 
-         infrastructure_instance_same_id               = { http_code = 409, rc = -37, str = "INFRASTRUCTURE_INSTANCE_SAME_ID"},
-         infrastructure_instance_same_alias            = { http_code = 409, rc = -38, str = "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"},
-         infrastructure_instance_same_url              = { http_code = 409, rc = -39, str = "INFRASTRUCTURE_INSTANCE_SAME_URL"},
-         infrastructure_instance_same_token            = { http_code = 409, rc = -40, str = "INFRASTRUCTURE_INSTANCE_SAME_TOKEN"},
+         infrastructure_instance_same_id               = { http_code = 409, rc = -38, str = "INFRASTRUCTURE_INSTANCE_SAME_ID"},
+         infrastructure_instance_same_alias            = { http_code = 409, rc = -39, str = "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"},
+         infrastructure_instance_same_url              = { http_code = 409, rc = -40, str = "INFRASTRUCTURE_INSTANCE_SAME_URL"},
+         infrastructure_instance_same_token            = { http_code = 409, rc = -41, str = "INFRASTRUCTURE_INSTANCE_SAME_TOKEN"},
 
-         infrastructure_instance_already_existing      = { http_code = 409, rc = -41, str = "INFRASTRUCTURE_INSTANCE_ALREADY_EXISTING"}
+         infrastructure_instance_already_existing      = { http_code = 409, rc = -42, str = "INFRASTRUCTURE_INSTANCE_ALREADY_EXISTING"}
       },
    }
 }
