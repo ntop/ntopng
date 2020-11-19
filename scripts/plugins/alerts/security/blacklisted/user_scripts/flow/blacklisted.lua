@@ -28,18 +28,24 @@ function script.hooks.protocolDetected(now)
    if flow.isBlacklisted() then
       local info = flow.getBlacklistedInfo()
       local flow_score = 100
-      local cli_score, srv_score
+      local cli_score, srv_score, attacker, victim
 
       if info["blacklisted.srv"] then
          cli_score = flow_consts.max_score
          srv_score = 5
+         attacker = "server"
+         victim = "client"
       else
          cli_score = 5
          srv_score = 10
+         attacker = "client"
+         victim = "server"
       end
 
       local blacklisted_type = flow_consts.status_types.status_blacklisted.create(
-         info
+         info,
+         attacker,
+         victim
       )
      
       alerts_api.trigger_status(blacklisted_type, alert_consts.alert_severities.error, cli_score, srv_score, flow_score)

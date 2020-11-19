@@ -54,7 +54,7 @@ function script.hooks.protocolDetected(now, conf)
   local srv_country = flow.getServerCountry()
   local is_blacklisted = false
   local flow_score = 60
-  local cli_score, srv_score
+  local cli_score, srv_score, attacker, victim
   local info = {cli_blacklisted = false, srv_blacklisted = false}
 
   if(cli_country and blacklisted_countries[cli_country]) then
@@ -62,6 +62,8 @@ function script.hooks.protocolDetected(now, conf)
     is_blacklisted = true
     cli_score = 60
     srv_score = 10
+    attacker = "client"
+    victim = "server"
   end
 
   if(srv_country and blacklisted_countries[srv_country]) then
@@ -69,6 +71,8 @@ function script.hooks.protocolDetected(now, conf)
     is_blacklisted = true
     cli_score = 10
     srv_score = 60
+    attacker = "server"
+    victim = "client"
   end
 
   if(is_blacklisted) then
@@ -80,7 +84,9 @@ function script.hooks.protocolDetected(now, conf)
         cli_country,
         srv_country,
         info.cli_blacklisted,
-        info.srv_blacklisted
+        info.srv_blacklisted,
+        attacker,
+        victim
       )
      
     alerts_api.trigger_status(blacklisted_country_type, alert_consts.alert_severities.error, cli_score, srv_score, flow_score)

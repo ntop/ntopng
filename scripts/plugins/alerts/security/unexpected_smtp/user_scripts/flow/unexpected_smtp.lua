@@ -60,7 +60,9 @@ function script.hooks.protocolDetected(now, conf)
 
       if ok == 0 then
          local unexpected_smtp_type = flow_consts.status_types.status_unexpected_smtp.create(
-            server_ip
+            server_ip,
+            "server",
+            "client"
          )
 
          alerts_api.trigger_status(unexpected_smtp_type, alert_consts.alert_severities.error, 0, 100, 100)
