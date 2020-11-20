@@ -35,10 +35,7 @@ $(document).ready(function() {
         columns: [
             /* Alias Column */
             { width: '15%', data: 'alias', render: (alias, type, instance) => {
-                if ((type !== 'display' && instance.am_success)) return alias;
-                if (type === "display" && instance.am_success) return alias; 
-                if (type === "display" && !instance.am_success && instance.error_message === undefined) return alias; 
-                return `<span data-toggle='tooltip' data-placement='bottom' title='${i18n.rest[instance.error_message]}'>${alias} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i></span>`;
+		return alias;
             }},
             /* URL Column */
             { width: '15%', data: 'url', render: (url, type, instance) => {     
