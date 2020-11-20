@@ -115,7 +115,7 @@ if (page == "overview") then
     local pool_filters = {}
     for key, value in pairs(am_pool:get_all_pools()) do
         pool_filters[#pool_filters + 1] =
-            {key = "pool-" .. key, label = value.name, regex = key}
+            {key = "pool-" .. key, label = value.name, regex = tostring(value.pool_id)}
     end
 
     local measurements_info = {}
