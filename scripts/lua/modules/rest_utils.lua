@@ -76,6 +76,7 @@ local rest_utils = {
 	 infrastructure_instance_check_failed       = { http_code = 409, rc = -43, str = "INFRASTRUCTURE_INSTANCE_CHECK_FAILED"},
 	 infrastructure_instance_check_not_found    = { http_code = 409, rc = -44, str = "INFRASTRUCTURE_INSTANCE_CHECK_NOT_FOUND"},
 	 infrastructure_instance_check_invalid_rsp  = { http_code = 409, rc = -45, str = "INFRASTRUCTURE_INSTANCE_CHECK_INVALID_RESPONSE"},
+	 infrastructure_instance_check_auth_failed  = { http_code = 409, rc = -46, str = "INFRASTRUCTURE_INSTANCE_CHECK_AUTH_FAILED"},
       },
    }
 }

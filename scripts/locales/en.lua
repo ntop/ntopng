@@ -3937,6 +3937,7 @@ local lang = {
     ["CONFIGURATION_FILE_MISMATCH"] = "The uploaded file is not a valid configuration file!",
     ["DELETE_POOL_FAILED"] = "Unable to delete a pool with the submitted params",
     ["EDIT_POOL_FAILED"] = "Unable to edit a pool with the submitted params",
+    ["INFRASTRUCTURE_INSTANCE_CHECK_AUTH_FAILED"] = "Authorization failed. Invalid token",
     ["INFRASTRUCTURE_INSTANCE_CHECK_INVALID_RESPONSE"] = "Invalid response received. Expected JSON",
     ["INFRASTRUCTURE_INSTANCE_CHECK_FAILED"] = "Unable to perform the request. Destination unreachable.",
     ["INFRASTRUCTURE_INSTANCE_CHECK_NOT_FOUND"] = "Not found",
