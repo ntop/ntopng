@@ -71,7 +71,9 @@ function script.hooks.protocolDetected(now, conf)
 
          if ok == 0 then
             local unexpected_dhcp_type = flow_consts.status_types.status_unexpected_dhcp.create(
-               server_ip
+               server_ip,
+               flow_info["srv.ip"],
+               flow_info["cli.ip"]
             )
 
             alerts_api.trigger_status(unexpected_dhcp_type, alert_consts.alert_severities.error, 0, 100, 100)

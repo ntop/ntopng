@@ -3,6 +3,8 @@
 --
 
 local alert_keys = require "alert_keys"
+local format_utils = require "format_utils"
+local json = require("dkjson")
 
 -- #######################################################
 
@@ -50,6 +52,7 @@ function requestReplyRatioFormatter(ifid, alert, info)
 
   return(i18n(subtype_info[1], {
     entity = entity,
+    host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
     granularity = engine_label,
     ratio = ratio,
     requests = i18n(
