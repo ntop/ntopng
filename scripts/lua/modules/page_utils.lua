@@ -375,7 +375,7 @@ function page_utils.print_navbar(title, base_url, items_table, label_url)
 
    print[[
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">]]
+<nav class="navbar navbar-shadow navbar-expand-lg navbar-light bg-light mb-4">]]
 
    if label_url == nil then
       print(title)

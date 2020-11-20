@@ -22,7 +22,6 @@ if(_POST["ntopng_license"] ~= nil) then
    ntop.setCache('ntopng.license', trimSpace(_POST["ntopng_license"]))
    ntop.checkLicense()
 end
-print("<div class='container-fluid'>")
 
 
 print("<div class='row'>")
@@ -48,7 +47,6 @@ print("<tr><th nowrap rowspan=2>"..i18n("about.defs_directories").."</th><td>"..
 print("<td>"..i18n("flow_details.flow_status").."</td><td>".. table.concat(flow_consts.getDefinititionDirs(), "\n") .."</td></tr>\n")
 
 print("</table>\n")
-print("</div>")
 print("</div>")
 print("</div>")
 
