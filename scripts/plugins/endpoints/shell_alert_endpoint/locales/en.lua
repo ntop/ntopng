@@ -9,14 +9,14 @@ return {
 
     validation = {
         empty_path = "Shell script path cannot be empty.",
-        invalid_path = "Invalid shell script path. The script must be into the directory \"/usr/share/ntopng/\".",
+        invalid_path = "Invalid shell script path. The script must be stored in \"/usr/share/ntopng/scripts/shell/\" and end with .sh.",
         invalid_script = "Invalid script. Script not secure.",
      },
 
-    shell_send_error = "Error trying to execute the script.", 
+    shell_send_error = "Error while trying to run the script.", 
 
     shell_description = {
-        path_description = "Instructions:<ul><li>Select the script you would like to execute</ul>Note:<ul><li>The script must be inside \"/usr/share/ntopng/\"<li>The script is going to be called following this pattern \"script -options JSON\" where JSON is a JSON formatted string containing the alarms</lu>",
+        path_description = "Note:<ul><li>The script must be stored in \"/usr/share/ntopng/scripts/shell/\"<li>The script options alert.* are expanded at runtime with the alert values</lu>",
         option_description = "Instructions<ul><li>Insert here the options you want to pass to the script</ul>",
      }
  }

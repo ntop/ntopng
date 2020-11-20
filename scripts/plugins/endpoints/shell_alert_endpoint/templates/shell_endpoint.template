@@ -5,8 +5,8 @@
     <div class="col-sm-5">
     <select name="shell_script" class="form-control" required>
         {%
-            for key, dir in pairs(ntop.readdir("/usr/share/ntopng")) do 
-                if(key:match('^(.*).sh')) then   
+            for key, dir in pairs(ntop.readdir("/usr/share/ntopng/scripts/shell/")) do 
+                if(key:match('^(.*).sh$')) then   
         %}
                     <option value='{{ key }}'>{{ dir }}</option>
             {%  
@@ -16,8 +16,8 @@
             end 
         %}
         {%
-            for key, dir in pairs(ntop.readdir("scripts/shell")) do 
-                if(key:match('^(.*).sh')) then   
+            for key, dir in pairs(ntop.readdir(dirs.installdir.."/scripts/shell")) do 
+                if(key:match('^(.*).sh$')) then   
         %}
                     <option value='{{ key }}'>{{ dir }}</option>
             {%  

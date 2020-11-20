@@ -33,9 +33,9 @@ print("<tr><th>") print(i18n("about.licence")) print("</th><td colspan=2>")
 
 info["ntopng.license"] = ntop.getCache('ntopng.license')
 if(info["pro.release"] == false) then
-   print("<A HREF=\"http://www.gnu.org/licenses/gpl.html\" target=\"_blank\">".. info["license"] .."</A><br>")
+   print("<A HREF=\"http://www.gnu.org/licenses/gpl.html\" target=\"_blank\">".. info["license"] .."</A> <i class='fas fa-external-link-alt'></i><br>")
 else
-   print("<A HREF=\"https://svn.ntop.org/svn/ntop/trunk/legal/LicenseAgreement/\" target=\"_blank\">EULA</A><br>")
+   print("<A HREF=\"https://svn.ntop.org/svn/ntop/trunk/legal/LicenseAgreement/\" target=\"_blank\">EULA</A> <i class='fas fa-external-link-alt'></i><br>")
 end
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
@@ -125,7 +125,7 @@ print("</td></tr>")
 
 vers = string.split(info["version.git"], ":")
 if((vers ~= nil) and (vers[2] ~= nil)) then
-   ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\">"..info["version"].." ("..info["revision"]..")</A>"
+   ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\">"..info["version"].." ("..info["revision"]..")</A> <i class='fas fa-external-link-alt'></i>"
 else
    ntopng_git_url = info["version"]
 end
@@ -151,20 +151,20 @@ if (ndpi_ver ~= nil) then
      vers = string.split(v_all, ":")
      ndpi_hash = vers[1]
      ndpi_date = vers[2]
-     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</a></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/commit/\"".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
+     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</a> <i class='fas fa-external-link-alt'></i></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/commit/\"".. ndpi_hash ..">"..ndpi_date.."</A></td></tr>\n")
   else
-     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</A></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/\">"..ndpi_ver.."</A></td></tr>\n")
+     print("<tr><th><A href=\"http://www.ntop.org/products/ndpi/\" target=\"_blank\">nDPI</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2> <A HREF=\"https://github.com/ntop/nDPI/\">"..ndpi_ver.."</A></td></tr>\n")
   end
 end
 
-print("<tr><th><a href=\"https://curl.haxx.se\" target=\"_blank\">cURL</A></th><td colspan=2>"..info["version.curl"].."</td></tr>\n")
+print("<tr><th><a href=\"https://curl.haxx.se\" target=\"_blank\">cURL</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>"..info["version.curl"].."</td></tr>\n")
 
-print("<tr><th><a href=\"https://twitter.github.io/\" target=\"_blank\"><i class=\'fab fa-twitter fa-lg'></i> Twitter Bootstrap</A></th><td colspan=2>4.4.0</td></tr>\n")
-print("<tr><th><a href=\"https://github.com/FortAwesome/Font-Awesome\" target=\"_blank\"><i class=\'fab fa-font-awesome fa-lg'></i> Font Awesome</A></th><td colspan=2>5.11.2</td></tr>\n")
-print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A></th><td colspan=2>"..info["version.rrd"].."</td></tr>\n")
+print("<tr><th><a href=\"https://twitter.github.io/\" target=\"_blank\"><i class=\'fab fa-twitter fa-lg'></i> Twitter Bootstrap</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>4.4.0</td></tr>\n")
+print("<tr><th><a href=\"https://github.com/FortAwesome/Font-Awesome\" target=\"_blank\"><i class=\'fab fa-font-awesome fa-lg'></i> Font Awesome</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>5.11.2</td></tr>\n")
+print("<tr><th><a href=\"http://www.rrdtool.org/\" target=\"_blank\">RRDtool</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>"..info["version.rrd"].."</td></tr>\n")
 
 if(info["version.nindex"] ~= nil) then
-   print("<tr><th>nIndex</th><td colspan=2>"..info["version.nindex"].."</td></tr>\n")
+   print("<tr><th>ntop nIndex</th><td colspan=2>"..info["version.nindex"].."</td></tr>\n")
 end
 
 if ts_utils.getDriverName() == "influxdb" then
@@ -191,21 +191,21 @@ $(function() {
    end
 end
 
-print("<tr><th><a href=\"http://www.redis.io\" target=\"_blank\">Redis</A> Server</th><td colspan=2>"..info["version.redis"].."</td></tr>\n")
-print("<tr><th><a href=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server</A></th><td colspan=2>"..info["version.httpd"].."</td></tr>\n")
-print("<tr><th><a href=\"http://www.luajit.org\" target=\"_blank\">LuaJIT</A></th><td colspan=2>"..info["version.luajit"].."</td></tr>\n")
+print("<tr><th><a href=\"http://www.redis.io\" target=\"_blank\">Redis</A>  <i class='fas fa-external-link-alt'></i> Server</th><td colspan=2>"..info["version.redis"].."</td></tr>\n")
+print("<tr><th><a href=\"https://github.com/valenok/mongoose\" target=\"_blank\">Mongoose web server</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>"..info["version.httpd"].."</td></tr>\n")
+print("<tr><th><a href=\"http://www.lua.org\" target=\"_blank\">Lua</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>"..info["version.lua"].."</td></tr>\n")
 if info["version.zmq"] ~= nil then
-   print("<tr><th><a href=\"http://www.zeromq.org\" target=\"_blank\">ØMQ</A></th><td colspan=2>"..info["version.zmq"].."</td></tr>\n")
+   print("<tr><th><a href=\"http://www.zeromq.org\" target=\"_blank\">ØMQ</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>"..info["version.zmq"].."</td></tr>\n")
 end
 if(info["version.geoip"] ~= nil) then
-print("<tr><th><a href=\"http://www.maxmind.com\" target=\"_blank\">GeoLite</A></th><td colspan=2>"..info["version.geoip"])
+print("<tr><th><a href=\"http://www.maxmind.com\" target=\"_blank\">GeoLite</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>"..info["version.geoip"])
 
 print [[ <br><small>]] print(i18n("about.maxmind", {maxmind_url="http://www.maxmind.com/"})) print[[</small>
 ]]
 
 print("</td></tr>\n")
 end
-print("<tr><th><a href=\"http://d3js.org\" target=\"_blank\">Data-Driven Documents (d3js)</A></th><td colspan=2>2.9.1 / 3.0</td></tr>\n")
+print("<tr><th><a href=\"http://d3js.org\" target=\"_blank\">Data-Driven Documents (d3js)</A> <i class='fas fa-external-link-alt'></i></th><td colspan=2>2.9.1 / 3.0</td></tr>\n")
 
 
 
