@@ -365,7 +365,7 @@ $(document).ready(function() {
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/plugins/get_active_monitoring_hosts.lua`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         searching: (get_host === ""),
-        lenghtChange: (get_host === ""),
+        lengthChange: (get_host === ""),
         initComplete: function(settings, data) {
 
             if (get_host != "") {
