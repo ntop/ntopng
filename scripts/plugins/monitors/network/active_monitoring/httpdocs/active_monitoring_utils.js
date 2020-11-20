@@ -366,6 +366,7 @@ $(document).ready(function() {
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         searching: (get_host === ""),
         lengthChange: (get_host === ""),
+        paging: (get_host === ""),
         initComplete: function(settings, data) {
 
             if (get_host != "") {
