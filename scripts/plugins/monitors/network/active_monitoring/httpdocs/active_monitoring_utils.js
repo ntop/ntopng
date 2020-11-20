@@ -364,7 +364,6 @@ $(document).ready(function() {
     ], );
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/plugins/get_active_monitoring_hosts.lua`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
-        searching: (get_host === ""),
         lengthChange: (get_host === ""),
         paging: (get_host === ""),
         initComplete: function(settings, data) {
@@ -499,7 +498,7 @@ $(document).ready(function() {
     const $amTable = $("#am-table").DataTable(dtConfig);
     addMeasurementFilter($amTable);
     addAlertedFilter($amTable);
-    addPoolFilter($amTable);
+    console.log(addPoolFilter($amTable));
 
     $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
         const amData = getAmData($amTable, $(this));
