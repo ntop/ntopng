@@ -139,7 +139,8 @@ function system_config:getConfHandler()
   local os = info.OS
   local config_target = "network_ifaces"
 
-  if string.find(os, "Ubuntu 18%.") ~= nil then
+  if string.find(os, "Ubuntu 18%.") ~= nil or 
+     string.find(os, "Ubuntu 20%.") ~= nil then
     config_target = "netplan"
   end
 
@@ -400,11 +401,11 @@ end
 function system_config:getWanInterface()
   local mode = self:getOperatingMode()
 
-  if mode ~= "single_port_router" then
-    return nil
-  else
+  if mode == "single_port_router" then
     return self.config.globals.available_modes.single_port_router.interfaces.wan
   end
+
+  return nil
 end
 
 -- Get all the interfaces, along with their roles
@@ -656,7 +657,7 @@ end
 -- ##############################################
 
 -- This functions handles configuration changes which do not need a reboot
-function system_config:_handleChangedSections(changed_sections, is_rebooting)
+function system_config:_handleChangedCommonSections(changed_sections, is_rebooting)
   -- Note: we must update DHCP also when interfaces/dns changes
   if changed_sections["dhcp_server"] or changed_sections["globals"] then
     self:_writeDhcpServerConfiguration()
@@ -708,37 +709,27 @@ function system_config:_handleChangedSections(changed_sections, is_rebooting)
 	self.config.date_time.custom_date = nil
      end
   end
+end
 
-  if not is_rebooting and (changed_sections["gateways"] or changed_sections["static_routes"] or changed_sections["routing"] or changed_sections["disabled_wans"] or changed_sections["port_forwarding"]) then
-    if self:isMultipathRoutingEnabled() then
-      -- Don't reload the rules here as it may execute it concurrently
-      -- with the pinger thread. The pinger thread will call
-      -- recheckGatewaysInformationFromSystem which checks the redis key
-      ntop.setCache(ROUTING_POLICIES_RELOAD_KEY, "1")
-      self:checkHostPoolsRoutingIds(getInterfaceId(ifname))
-    end
-  end
-
-  if not is_rebooting and (changed_sections["shapers"] or changed_sections["disabled_wans"]) then
-    self:reloadShapingRules()
-  end
+function system_config:_handleChangedSections(changed_sections, is_rebooting) 
+  self:_handleChangedCommonSections(changed_sections, is_rebooting)
 end
 
 function system_config:applyChanges()
-   local changed_sections   = self:_get_changed_sections(self.config, system_config.isFirstStart())
-   local is_rebooting       = isRebootRequired(changed_sections)
-   local is_self_restarting = isSelfRestartRequired(changed_sections)
+  local changed_sections   = self:_get_changed_sections(self.config, system_config.isFirstStart())
+  local is_rebooting       = isRebootRequired(changed_sections)
+  local is_self_restarting = isSelfRestartRequired(changed_sections)
 
-   self:_handleChangedSections(changed_sections, is_rebooting)
+  self:_handleChangedSections(changed_sections, is_rebooting)
 
-   self:makePermanent()
+  self:makePermanent()
 
-   if is_rebooting then
-      self:writeSystemFiles()
-      sys_utils.rebootSystem()
-   elseif is_self_restarting then
-      sys_utils.restartSelf()
-   end
+  if is_rebooting then
+    self:writeSystemFiles()
+    sys_utils.rebootSystem()
+  elseif is_self_restarting then
+    sys_utils.restartSelf()
+  end
 end
 
 -- ##############################################
@@ -930,6 +921,8 @@ local function isInterfaceLinkUp(ifname)
   return starts(opstatus, "up")
 end
 
+-- ##############################################
+
 function system_config:getDisabledWans(check_wans_with_linkdown)
   if check_wans_with_linkdown == nil then check_wans_with_linkdown = false end
 
@@ -954,6 +947,8 @@ end
 function system_config:setDisabledWans(disabled_wans)
   self.config.disabled_wans = disabled_wans
 end
+
+-- ##############################################
 
 function system_config:_checkDisabledInterfaces()
   local ifaces = self:getAllInterfaces()
@@ -1003,136 +998,15 @@ end
 
 -- ##############################################
 
-local function getGatewaysInfoCache()
-  local cache = ntop.getCache("ntopng.cache.gateways_info")
-  local gateways_info_cache = nil
-
-  if not isEmptyString(cache) then
-    gateways_info_cache = json.decode(cache)
-  end
-
-  return gateways_info_cache
-end
-
-local function setGatewaysInfoCache(gateways_info)
-  ntop.setCache("ntopng.cache.gateways_info", json.encode(gateways_info))
-end
-
--- Sync gateways information from system.
--- Note: you should normally use _getGatewaysInfo (cache version).
-function system_config:_getGatewaysInformationFromSystem()
-  local gateways_config = self.config.gateways
-  local gw_ctr = 0
-  local ifaces_roles = self:getAllInterfaces()
-  local disabled_wans = self:getDisabledWans(true)
-  local gateways_info = {}
-
-  -- NOTE: we *must* use pairsByKeys here to provide consistent counters
-  for gateway_name, gateway in pairsByKeys(gateways_config) do
-    local gateway_ip = nil
-    local iface = nil
-    local system_gateway
-
-    if gateway.ip ~= nil then
-      gateway_ip = gateway.ip
-      iface = gatewayGetInterface(gateway_ip)
-      system_gateway = false
-    elseif (gateway.interface ~= nil) and (ifaces_roles[gateway.interface] == "wan") and (not disabled_wans[gateway.interface]) then
-      iface = gateway.interface
-      gateway_ip = nil
-      system_gateway = true
-
-      if gateway_ip == nil then
-        if self.config.interfaces.configuration[iface].network.mode == "static" then
-          gateway_ip = self.config.interfaces.configuration[iface].network.gateway
-        elseif not isEmptyString(self:getInterfaceAddress(iface)) then
-          -- Note: the gateway returned here may be related to some old configuration.
-          -- We can assume it's valid only if the interface has already taken an ip address during this boot
-          gateway_ip = self:dhcpInterfaceGetGateway(iface)
-        end
-      end
-    end
-
-    if (gateway_ip ~= nil) and (iface ~= nil) then
-      local network = ifaceGetNetwork(iface)
-      local skip = false
-
-      if (network ~= nil) and (not system_gateway) then
-        -- Additional check: we verify that the returned interface network is in the same range of the gateway, otherwise we assume the gateway is unreachable
-        local addr, mask = ipv4_utils.cidr_2_addr(network)
-
-        if not ipv4_utils.includes(addr, mask, gateway_ip) then
-          skip = true
-        end
-      end
-
-      if (network ~= nil) and (not skip) then
-        local marker = self.BASE_GATEWAY_PING_FWMARK_ID + gw_ctr
-        local routing_table_id = self.BASE_GATEWAY_PING_ROUTING_ID + gw_ctr
-        gw_ctr = gw_ctr + 1
-
-        gateways_info[gateway_name] = {
-          ip = gateway_ip,
-          interface = iface,
-          network = network,
-          ping_marker = marker,
-          ping_routing_id = routing_table_id,
-          system_gateway = system_gateway,
-          -- NOTE: adding the interface IP here to trigger reconfiguration when it changes
-          interface_ip = self:getInterfaceAddress(iface),
-        }
-      end
-    end
-  end
-
-  return gateways_info
-end
-
--- To be called periodically to automatically respond to interface IP changes
--- (e.g. for DHCP client).
-function system_config:recheckGatewaysInformationFromSystem()
-  local cached_info = self:_getGatewaysInfo(false)
-  local new_info = self:_getGatewaysInformationFromSystem()
-  local reload_requested = (ntop.getPref(ROUTING_POLICIES_RELOAD_KEY) == "1")
-
-  if reload_requested or (not table.compare(cached_info, new_info)) then
-    -- Something changed: update cache and reload policies
-    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Gateways status changed, reloading...")
-    setGatewaysInfoCache(new_info)
-    self:_reloadRoutingRules(new_info)
-
-    -- need to reload forwarding as the WAN IPs may be changed
-    self:reloadPortForwarding()
-    ntop.delCache(ROUTING_POLICIES_RELOAD_KEY)
-  end
-end
-
--- Returns gateways information. If discard_cache is true than information is read
--- from system again.
-function system_config:_getGatewaysInfo(discard_cache)
-  if not discard_cache then
-    local cache = getGatewaysInfoCache()
-
-    if not isEmptyString(cache) then
-      return cache
-    end
-  else
-    self:_checkDisabledInterfaces()
-  end
-
-  local gateways_info = self:_getGatewaysInformationFromSystem()
-  setGatewaysInfoCache(gateways_info)
-  return gateways_info
-end
-
 function system_config:getInterfacesConfiguration()
   return self.config.interfaces.configuration or {}
 end
 
-
 function system_config:setInterfacesConfiguration(config)
   self.config.interfaces.configuration = config
 end
+
+-- ##############################################
 
 function system_config:setInterfaceMode(iface, mode)
   local net_config = self.config.interfaces.configuration[iface]
@@ -1198,6 +1072,16 @@ end
 
 -- ##############################################
 
+function system_config:isGlobalDnsForgingEnabled()
+  return self.config.globals.dns.forge_global
+end
+
+function system_config:setGlobalDnsForgingEnabled(enabled)
+  self.config.globals.dns.forge_global = ternary(enabled, true, false)
+end
+
+-- ##############################################
+
 function system_config:getLanRecoveryIpConfig()
   return self.config.globals.lan_recovery_ip
 end
@@ -1214,16 +1098,6 @@ end
 
 function system_config:setStaticLeases(leases)
   self.config.dhcp_server.leases = leases
-end
-
--- ##############################################
-
-function system_config:isGlobalDnsForgingEnabled()
-  return self.config.globals.dns.forge_global
-end
-
-function system_config:setGlobalDnsForgingEnabled(enabled)
-  self.config.globals.dns.forge_global = ternary(enabled, true, false)
 end
 
 -- ##############################################

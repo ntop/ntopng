@@ -194,6 +194,7 @@ local lang = {
   ["outgoingflows"] = "Active Outgoing Flows",
   ["overview"] = "Overview",
   ["packets"] = "Packets",
+  ["passive"] = "Passive",
   ["peers"] = "Peers",
   ["percentage"] = "Percentage",
   ["periodicity_map"] = "Periodicity Map",

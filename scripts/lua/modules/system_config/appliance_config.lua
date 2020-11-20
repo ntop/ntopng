@@ -50,6 +50,18 @@ end
 
 -- ##############################################
 
+-- Returns the supported modes
+function appliance_config:getSupportedModes()
+  local all_modes = {
+    { name = "passive", label = i18n("passive") },
+    { name = "bridging", label = i18n("bridge") },
+  }
+
+  return all_modes
+end
+
+-- ##############################################
+
 function appliance_config:_get_config_skeleton()
    local config = {}
    local defaults = { }
@@ -69,7 +81,7 @@ function appliance_config:_get_config_skeleton()
          ["lan_recovery_ip"] =  {
             ["ip"] =  "192.168.160.10",
             ["netmask"] =  "255.255.255.0",
-            ["comment"] =  "Static LAN IP address used to reach the box. In bridging mode it is set on the bridge interface, in routing mode on the first (in case of multiple interfaces) LAN interface"
+            ["comment"] =  "Static LAN IP address used to reach the box set on the bridge interface"
          },
 	 ["management_access"] = {
 	    ["bind_to"] = "lan",
@@ -171,7 +183,6 @@ function appliance_config:_guess_config()
    -- NOTE: we use pairsByKeys to impose an order across multiple guesses
    for name, _ in pairsByKeys(devs) do
       local addr = ip_devs[name]
-      -- print("==> "..tostring(name).."\n")
 
       -- Not TUN/dummy/lo interface
       if((name ~= "lo") and (not starts(name, "dummy")) and not(ntop.exists('/sys/class/net/'.. name ..'/tun_flags')) and not string.contains(name, ":")) then
@@ -195,8 +206,6 @@ function appliance_config:_guess_config()
             if(addr ~= nil) then
                wired[name]["ip"] = addr
             end
-
-            -- print("[WIRED] ==> "..name.."\n")
          end
       end
    end
@@ -206,6 +215,27 @@ function appliance_config:_guess_config()
    -- TODO modify this after supporting the other modes:
    -- e.g. for bridge interface the lan should be br0
    lan_iface = wired_default
+
+   -- ###################
+   -- Passive
+
+   local passive = {}
+
+   if(wired_default ~= nil) then
+      passive["interfaces"] = {}
+      passive["interfaces"]["unused"] = {}
+      passive["interfaces"]["lan"] = wired_default
+      passive["comment"] = "Passive monitoring appliance"
+
+      for a, b in pairsByKeys(wired) do
+         if a ~= wired_default then
+            table.insert(passive["interfaces"]["unused"], a)
+         end
+      end
+
+      config["globals"]["available_modes"]["passive"] = passive
+      operating_mode = "passive"
+   end
 
    -- ###################
    -- Bridge interfaces
@@ -283,9 +313,6 @@ function appliance_config:_guess_config()
    end
 
    -- ###################
-
-   -- TODO standard or bridging
-   operating_mode = "bridging"
 
    if(operating_mode ~= nil) then
       config["globals"]["operating_mode"] = operating_mode

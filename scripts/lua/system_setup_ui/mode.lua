@@ -37,39 +37,22 @@ end
 local print_page_body = function()
   printPageSection(i18n("nedge.setup_mode"))
 
+  local all_modes = sys_config:getSupportedModes()
   local available_modes = sys_config:getAvailableModes()
-
-  local all_modes_labels = {
-    --i18n("nedge.single_port_router"),
-    i18n("nedge.router"),
-    i18n("bridge"),
-  }
-
-  local all_modes_values = {
-    --"single_port_router",
-    "routing",
-    "bridging",
-  }
 
   local modes_labels = {}
   local modes_values = {}
 
---tprint(available_modes)
-
-  for idx, mode in pairs(all_modes_values) do
-    if available_modes[mode] then
-      modes_labels[#modes_labels + 1] = all_modes_labels[idx]
-      modes_values[#modes_values + 1] = mode
+  for idx, mode in pairs(all_modes) do
+    if available_modes[mode.name] then
+      modes_labels[#modes_labels + 1] = mode.label
+      modes_values[#modes_values + 1] = mode.name
     end
   end
 
   local current_mode = sys_config:getOperatingMode()
 
-  local elementToSwitch = nil
-  local showElementArray = nil
-  local javascriptAfterSwitch = nil
-  local showElement = nil
-  local bridge_only = (not ntop.isnEdgeEnterprise())
+  local bridge_only = (is_nedge and not ntop.isnEdgeEnterprise())
 
   multipleTableButtonPrefs(i18n("nedge.setup_mode"),
 			   i18n("nedge.set_the_device_mode"),
@@ -78,7 +61,11 @@ local print_page_body = function()
 			   "primary",
 			   "operating_mode",
 			   "", bridge_only,
-			   elementToSwitch, showElementArray, javascriptAfterSwitch, showElement, current_mode)
+			   nil, -- elementToSwitch
+			   nil, -- showElementArray
+			   nil, -- javascriptAfterSwitch
+			   nil, --showElement
+			   current_mode)
 
   if is_nedge and bridge_only then
     prefsInformativeField("", i18n("nedge.router_mode_requires_enterprise"), true)
