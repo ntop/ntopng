@@ -72,7 +72,7 @@ local title = i18n("graphs.active_monitoring")
 local host_label = ""
 
 if (host ~= nil) then
-    host_label = "(" .. host.label .. ")"
+    host_label = active_monitoring_utils.format_label(host)
 end
 
 if auth.has_capability(auth.capabilities.active_monitoring) then

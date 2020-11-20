@@ -435,7 +435,10 @@ void Host::lua_get_os(lua_State *vm) {
 
 void Host::lua_get_min_info(lua_State *vm) const {
   lua_push_bool_table_entry(vm, "localhost", isLocalHost());
+  lua_push_bool_table_entry(vm, "systemhost", isSystemHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
+  lua_push_int32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
+  
 #ifdef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "childSafe", isChildSafe());
   lua_push_bool_table_entry(vm, "has_blocking_quota", has_blocking_quota);

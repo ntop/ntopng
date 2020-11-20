@@ -3,10 +3,13 @@
 --
 
 local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local template_utils = require("template_utils")
+
 local ui_utils = {}
+
 
 function ui_utils.render_configuration_footer(item)
     return template_utils.gen('pages/components/manage-configuration-link.template', {item = item})

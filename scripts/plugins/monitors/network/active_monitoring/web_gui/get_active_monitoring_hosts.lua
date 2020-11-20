@@ -12,6 +12,9 @@ local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
 
+local ui_utils = require("ui_utils")
+
+
 local active_monitoring_pools = require("active_monitoring_pools")
 local am_pool = active_monitoring_pools:create()
 local assigned_members = am_pool:get_assigned_members()
@@ -86,10 +89,10 @@ for key, am_host in pairs(am_hosts) do
     else
       pool_id = am_pool.DEFAULT_POOL_ID
     end
-
     res[#res + 1] = {
        key = key,
-       url = am_host.label,
+       formatted_label = am_utils.format_label(am_host),
+       label = am_host.label,
        host = am_host.host,
        alerted = alerted,
        measurement = am_host.measurement,

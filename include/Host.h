@@ -116,7 +116,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline  void setSmtpServer()               { host_services_bitmap |= 1 << HOST_IS_SMTP_SERVER;          }
   inline  bool isNtpServer()          const  { return(host_services_bitmap & (1 << HOST_IS_NTP_SERVER));  }
   inline  void setNtpServer()                { host_services_bitmap |= 1 << HOST_IS_NTP_SERVER;           }
-
+  inline  u_int16_t getServicesMap()         { return(host_services_bitmap);                              }
+  
   bool isBroadcastHost()                     { return(ip.isBroadcastAddress()); }
   bool isMulticastHost()                     { return(ip.isMulticastAddress()); }
 

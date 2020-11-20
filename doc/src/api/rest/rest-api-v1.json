@@ -3114,7 +3114,53 @@
 				}
 			}
 		},
-		"lua/rest/v1/get/ntopng/users.lua": {
+		"/lua/pro/rest/v1/check/infrastructure/config.lua": {
+			"post": {
+				"tags": [
+					"All"
+				],
+				"summary": "Test an infrastructure configuration",
+				"description": "Uses an url and token to connect to the REST API of an ntopng in the infrastructure",
+				"operationId": "check_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "url",
+						"in": "query",
+						"description": "The URL of the ntopng in the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "token",
+						"in": "query",
+						"description": "The REST API Token for the authentication",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-42": {
+						"description": "INFRASTRUCTURE_INSTANCE_ALREADY_EXISTING"
+					},
+					"-43": {
+						"description": "INFRASTRUCTURE_INSTANCE_CHECK_FAILED"
+					},
+					"-44": {
+						"description": "INFRASTRUCTURE_INSTANCE_CHECK_NOT_FOUND"
+					},
+					"-45": {
+						"description": "INFRASTRUCTURE_INSTANCE_CHECK_INVALID_RESPONSE"
+					}
+				}
+			}
+		},
+	        "lua/rest/v1/get/ntopng/users.lua": {
 			"post": {
 				"tags": [
 					"Users"

@@ -57,7 +57,15 @@ if page == "snmp" and not ntop.isPro() then
    return
 end
 
-page_utils.print_page_title(i18n("pools.pools"))
+local url = ntop.getHttpPrefix() .. "/lua/admin/manage_pools.lua"
+page_utils.print_navbar(i18n("pools.pools"), url, {
+    {
+        active = true,
+        page_name = "home",
+        label = "<i class=\"fas fa-lg fa-home\"></i>",
+        url = url
+    }
+})
 
 -- ************************************* ------
 

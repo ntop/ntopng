@@ -218,6 +218,19 @@ end
 
 -- ##############################################
 
+--- Format the label of an host, if the host belong to the infrastructure page
+--- then append a badge
+function am_utils.format_label(host)
+
+  if (host.token) then
+    return string.gsub(host.label, "/lua/.+",  " <span class='badge badge-info'>".. i18n("infrastructure_dashboard.infrastructure") .."</span>")
+  end
+
+  return host.label
+end
+
+-- ##############################################
+
 function am_utils.dropHourStats(host_key)
   ntop.delCache(am_hour_stats_key(host_key))
 end

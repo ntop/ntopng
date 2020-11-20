@@ -610,6 +610,11 @@ main#n-container {
   max-width: 12rem;
 }
 
+.navbar-shadow {
+  box-shadow: var(0, 0, transparent, 0 0 #0000), var(0, 0, transparent, 0 0 #0000), var(0 1px 3px 0 rgba(0,0,0,0.1),0 1px 2px 0 rgba(0,0,0,0.06));
+  border-radius: .25rem;
+}
+
 #n-navbar {
   left: var(--sidebar-width);
   z-index: 1000;
@@ -796,6 +801,10 @@ td.dt-body-right {
 .scrollable-log {
   height: 16rem;
   overflow-y: scroll;
+}
+
+.scrollable-log > code {
+  word-break: break-all;
 }
 
 .toast {

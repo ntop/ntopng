@@ -2,6 +2,7 @@ $(document).ready(function() {
 
     const MAX_RECIPIENTS = 3;
     const DEFAULT_MEASUREMENT = "cicmp";
+    const INFRASTRUCTURE_ENDPOINT = "/lua/rest/v1/get/system/data.lua";
 
     const getMeasurementRegex = (measurement) => {
         switch (measurement) {
@@ -348,6 +349,7 @@ $(document).ready(function() {
         {
             text: '<i class="fas fa-plus"></i>',
             className: 'btn-link',
+            enabled: (get_host === ""),
             action: function(e, dt, node, config) {
                 $addHostModalHandler.invokeModalInit();
             }
@@ -362,10 +364,13 @@ $(document).ready(function() {
     ], );
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/plugins/get_active_monitoring_hosts.lua`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        searching: (get_host === ""),
+        lengthChange: (get_host === ""),
+        paging: (get_host === ""),
         initComplete: function(settings, data) {
 
             if (get_host != "") {
-                $amTable.search(get_host).draw(true);
+                $amTable.columns(0).search(get_host).draw(true);
                 $amTable.state.clear();
             }
 
@@ -374,19 +379,18 @@ $(document).ready(function() {
         },
         columns: [
             {
-                data: 'url',
-		        render: function(href, type, row) {
+                data: 'formatted_label',
+		        render: function(label, type, row) {
                     if (type === 'display') {
-                        if (href == "" || href == undefined) return "";
+                        if (label == "" || label == undefined) return "";
+
 			                if(row.alerted) {
-			                    return ` ${href} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
+			                    return `${label} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
                             }
-                            else {
-                                return `${href}`
-			                }
+                           
+                            return label;
                     }
-                    // The raw data must be returned here for sorting
-                    return(href);
+                    return(row.label);
                 }
             },
             {
@@ -435,7 +439,7 @@ $(document).ready(function() {
             },
             {
                 data: 'last_mesurement_time',
-                className: 'dt-body-right dt-head-center'
+                className: 'text-center'
             },
             {
                 data: 'last_ip',
@@ -443,7 +447,7 @@ $(document).ready(function() {
             },
             {
                 data: 'last_measure',
-                className: 'dt-body-right dt-head-center',
+                className: 'text-center',
                 sortable: false,
                 render: function(data, type, row) {
                     if(type === 'display' || type === 'filter') {
