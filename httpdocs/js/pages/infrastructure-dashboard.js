@@ -65,11 +65,25 @@ $(document).ready(function() {
                 return throughput;
             }},
             /* Hosts Column */
-            { width: '10%', className: 'text-center', data: 'am.hosts' },
+            { width: '10%', className: 'text-center', data: 'am.hosts', render: (hosts, type) => {
+                if (type === "display") return NtopUtils.fint(hosts);
+                return hosts;
+            }},
             /* Flows Column */
-            { width: '10%', className: 'text-center', data: 'am.flows' },
-            /* Alerts Column */
-            { width: '10%', className: 'text-center', data: 'am.num_alerts_engaged' },
+            { width: '10%', className: 'text-center', data: 'am.flows', render: (flows, type) => {
+                if (type === "display") return NtopUtils.fint(flows);
+                return flows;
+            } },
+            /* Engaged Alerts Column */
+            { width: '10%', className: 'text-center', data: 'am.num_alerts_engaged', render: (num_alerts_engaged, type) => {
+                if (type === "display") return NtopUtils.fint(num_alerts_engaged);
+                return num_alerts_engaged;
+            } },
+            /* Flow Alerts Column */
+            { width: '10%', className: 'text-center', data: 'am.num_alerted_flows', render: (num_alerted_flows, type) => {
+                if (type === "display") return NtopUtils.fint(num_alerted_flows);
+                return num_alerted_flows;
+            } },
             /* Last Update Column */
             { width: '10%', className: 'text-center', data: 'last_update.when', render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS },
             /* Action Column */
