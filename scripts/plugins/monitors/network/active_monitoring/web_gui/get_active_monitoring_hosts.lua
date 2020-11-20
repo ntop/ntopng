@@ -92,7 +92,7 @@ for key, am_host in pairs(am_hosts) do
 
     res[#res + 1] = {
        key = key,
-       url = ui_utils.format_label_am(am_host.label),
+       url = am_utils.format_label(am_host),
        host = am_host.host,
        alerted = alerted,
        measurement = am_host.measurement,
