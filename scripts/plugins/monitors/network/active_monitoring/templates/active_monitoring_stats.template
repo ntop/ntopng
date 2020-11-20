@@ -122,7 +122,7 @@
     i18n.some_recipients = "{{i18n('pools.some_recipients')}}";
     i18n.infrastructure = "{{ i18n('infrastructure_dashboard.infrastructure') }}"
 
-    let get_host = "{{ am_stats.get_host }}";
+    let get_host = "{* am_stats.get_host *}";
     let am_csrf = "{{ ntop.getRandomCSRFValue()}}";
     let import_csrf = "{{ ntop.getRandomCSRFValue()}}";
     const measurements_info = {*json.encode(am_stats.measurements_info)*};

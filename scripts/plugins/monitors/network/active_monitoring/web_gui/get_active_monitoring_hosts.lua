@@ -89,10 +89,10 @@ for key, am_host in pairs(am_hosts) do
     else
       pool_id = am_pool.DEFAULT_POOL_ID
     end
-
     res[#res + 1] = {
        key = key,
-       url = am_utils.format_label(am_host),
+       formatted_label = am_utils.format_label(am_host),
+       label = am_host.label,
        host = am_host.host,
        alerted = alerted,
        measurement = am_host.measurement,
