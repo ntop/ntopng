@@ -106,12 +106,12 @@ $(document).ready(function() {
 
     const $infrastructureTable = $(`#infrastructure-table`).DataTable(dtConfig);
 
-    const STATUS_COLUMN_INDEX = 1;
+    const STATUS_COLUMN_INDEX = 3;
     const infrastructureDashboardFilterMenu = new DataTableFiltersMenu({
         filterTitle: i18n.status,
         filters: [
-           { key: 'up', label: i18n.up, countable: true, regex: 'true' },
-           { key: 'unreachable', label: i18n.unreachable, countable: true, regex: 'false' },
+           { key: 'up', label: i18n.up, countable: true, regex: true },
+           { key: 'error', label: i18n.error, countable: true, regex: false },
         ],
         columnIndex: STATUS_COLUMN_INDEX,
         tableAPI: $infrastructureTable,
