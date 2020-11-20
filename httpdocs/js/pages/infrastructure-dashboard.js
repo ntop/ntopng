@@ -37,9 +37,8 @@ $(document).ready(function() {
         columns: [
             /* Alias Column */
             { width: '20%', data: 'alias', render: (alias, type, instance) => {
-                if ((type !== 'display' || instance.am_success)) return alias;
-                if (instance.error_message === undefined && type !== "display") return alias;
-                if (instance.errorMessage === undefined && type === "display") return `<b>${alias}</b> (${instance.url})`;
+                if ((type !== 'display' && instance.am_success)) return alias;
+                if (instance.error_message === undefined && type === "display") return `<b>${alias}</b> (${instance.url})`;
                 return `<span data-toggle='tooltip' data-placement='bottom' title='${i18n.rest[instance.error_message]}'><b>${alias}</b> (${instance.url})<i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i></span>`;
             }},
             /* Status Column */
@@ -70,7 +69,7 @@ $(document).ready(function() {
             /* Alerts Column */
             { width: '10%', className: 'text-center', data: 'am.num_alerts' },
             /* Last Update Column */
-            { width: '10%', className: 'text-center', data: 'am.epoch', render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS },
+            { width: '10%', className: 'text-center', data: 'last_update.when', render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS },
             /* Action Column */
             {
                 targets: -1,
