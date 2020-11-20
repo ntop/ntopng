@@ -109,6 +109,7 @@ print([[
                     </tbody>
                 </table>
         </div>
+    </div>
     <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
     <script type='text/javascript'>
 
