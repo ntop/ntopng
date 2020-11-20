@@ -324,28 +324,20 @@ function format_utils.formatConnectionIssues(info)
 end
 
 function format_utils.formatAddressCategory(host)
+   if host == nil then
+      return ""
+   end
+
    local addr_category = ""
+
+   if host["is_blacklisted"] then
+      addr_category = addr_category .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i> "
+   end
 
    if(host["localhost"] == true) then
       addr_category = addr_category .. '<span class="badge badge-success">'..i18n("details.label_local_host")..'</span>'
    else 
       addr_category = addr_category .. '<span class="badge badge-secondary">'..i18n("details.label_remote")..'</span>'
-   end
-  
-   if(host["is_multicast"] == true) then 
-      addr_category = addr_category .. ' <span class="badge badge-secondary">Multicast</span> '
-   end
-
-   if(host["is_broadcast"] == true) then 
-      addr_category = addr_category .. ' <span class="badge badge-secondary">Broadcast</span> '
-   end
-
-   if host["broadcast_domain_host"] then
-      addr_category = addr_category .. " <span class='badge badge-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
-   end
-
-   if(host["privatehost"] == true) then 
-      addr_category = addr_category .. ' <span class="badge badge-warning">'..i18n("details.label_private_ip")..'</span>'
    end
 
    return addr_category

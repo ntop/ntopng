@@ -563,15 +563,27 @@ if((page == "overview") or (page == nil)) then
       end
 
       -- tprint(host) io.write("\n")
-      print(host_label .. "</span></A> <i class=\"fas fa-external-link-alt\"></i> ")
-
-      if host["is_blacklisted"] then
-	 print(" <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>")
-      end
+      print(host_label .. "</span></A> <i class=\"fas fa-external-link-alt\"></i> ")      
 
       print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))
 
       print(format_utils.formatAddressCategory(host))
+
+      if(host["is_multicast"] == true) then 
+         print(' <span class="badge badge-secondary">Multicast</span> ')
+      end
+   
+      if(host["is_broadcast"] == true) then 
+         print(' <span class="badge badge-secondary">Broadcast</span> ')
+      end
+   
+      if host["broadcast_domain_host"] then
+         print(" <span class='badge badge-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>")
+      end
+   
+      if(host["privatehost"] == true) then 
+         print(' <span class="badge badge-warning">'..i18n("details.label_private_ip")..'</span>')
+      end
 
       if(host.services) then
 	 if(host.services.dhcp) then print(' <span class="badge badge-info">'..i18n("details.label_dhcp_server")..'</span>') end
