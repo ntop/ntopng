@@ -209,7 +209,9 @@ case "$1" in
     echo 'you can use the software even after maintenance is expired, however updating it after'
     echo '1 year would prevent ntopng from running. If you have automatic updates enabled, and'
     echo 'maintenance is expired, it is recommended to put the package updates on hold by adding'
-    echo 'the "exclude=ntopng*" directive in /etc/yum.conf'
+    echo 'the "exclude=ntopng*" directive in /etc/yum.conf. Alternatively it is possible to install'
+    echo 'the versionlock plugin with "yum install yum-plugin-versionlock" and lock the ntopng'
+    echo 'version with "yum versionlock ntopng" (it can be unlocked with "yum versionlock clear")'
     echo ''
   ;;
 esac
