@@ -132,7 +132,7 @@ static size_t curl_hdf(char *buffer, size_t size, size_t nitems, void *userp);
 
 /* ****************************************************** */
 
-char* Utils::jsonLabel(int label, const char *label_str,char *buf, u_int buf_len){
+char* Utils::jsonLabel(int label, const char *label_str,char *buf, u_int buf_len) {
   if(ntop->getPrefs()->json_labels_as_strings()) {
     snprintf(buf, buf_len, "%s", label_str);
   } else
