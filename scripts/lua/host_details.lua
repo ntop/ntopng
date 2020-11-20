@@ -563,7 +563,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       -- tprint(host) io.write("\n")
-      print(host_label .. "</span></A> <i class=\"fas fa-external-link-alt\"></i> ")      
+      print(host_label .. "</span></A> <i class=\"fas fa-external-link-alt\"></i> ")
 
       print(hostinfo2detailshref(host, {page = "config"}, ' <i class="fas fa-sm fa-cog" aria-hidden="true"></i> '))
 

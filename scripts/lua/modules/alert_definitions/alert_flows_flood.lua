@@ -5,6 +5,7 @@
 local alert_keys = require "alert_keys"
 local alert_creators = require "alert_creators"
 local format_utils = require "format_utils"
+local json = require("dkjson")
 
 -- #######################################################
 

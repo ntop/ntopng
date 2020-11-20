@@ -324,7 +324,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   triggered.action = "engage"
 
   addAlertPoolInfo(entity_info, triggered)
-
+  
   -- Emit the notification only if the notification hasn't already been emitted.
   -- This is to avoid alert storms when ntopng is restarted. Indeeed,
   -- if there are 100 alerts triggered when ntopng is switched off, chances are the

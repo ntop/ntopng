@@ -324,20 +324,18 @@ function format_utils.formatConnectionIssues(info)
 end
 
 function format_utils.formatAddressCategory(host)
-   if host == nil then
-      return ""
-   end
-
    local addr_category = ""
 
-   if host["is_blacklisted"] then
-      addr_category = addr_category .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
-   end
+   if host ~= nil then 
+      if host["is_blacklisted"] then
+         addr_category = addr_category .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
+      end
 
-   if(host["localhost"] == true) then
-      addr_category = addr_category .. ' <span class="badge badge-success">'..i18n("details.label_local_host")..'</span>'
-   else 
-      addr_category = addr_category .. ' <span class="badge badge-secondary">'..i18n("details.label_remote")..'</span>'
+      if(host["localhost"] == true) then
+         addr_category = addr_category .. ' <span class="badge badge-success">'..i18n("details.label_local_host")..'</span>'
+      else 
+         addr_category = addr_category .. ' <span class="badge badge-secondary">'..i18n("details.label_remote")..'</span>'
+      end
    end
 
    return addr_category

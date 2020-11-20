@@ -31,6 +31,7 @@ function script.hooks.protocolDetected(now)
     local proto_info = flow.getDeviceProtoAllowedInfo()
     local flow_score = 80
     local cli_score, srv_score, attacker, victim
+    local flow_info = flow.getInfo()
 
     local alert_info = {
       ["cli.devtype"] = proto_info["cli.devtype"],
@@ -42,15 +43,15 @@ function script.hooks.protocolDetected(now)
       alert_info["devproto_forbidden_id"] = proto_info["cli.disallowed_proto"]
       cli_score = 80
       srv_score = 5
-      attacker = "client"
-      victim = "server"
+      attacker = flow_info.cli.ip
+      victim = flow_info.srv.ip
     else
       alert_info["devproto_forbidden_peer"] = "srv"
       alert_info["devproto_forbidden_id"] = proto_info["srv.disallowed_proto"]
       cli_score = 5
       srv_score = 80
-      attacker = "server"
-      victim = "client"
+      attacker = flow_info.srv.ip
+      victim = flow_info.cli.ip
     end
 
     local dev_proto_not_allowed_type = flow_consts.status_types.status_device_protocol_not_allowed.create(

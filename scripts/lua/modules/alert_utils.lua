@@ -541,8 +541,10 @@ local function formatRawFlow(record, flow_json, skip_add_links)
    local flow = {
       ["cli.ip"] = record["cli_addr"], ["cli.port"] = tonumber(record["cli_port"]),
       ["cli.blacklisted"] = tostring(record["cli_blacklisted"]) == "1",
+      ["cli.localhost"] = tostring(record["cli_localhost"]) == "1",
       ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
       ["srv.blacklisted"] = tostring(record["srv_blacklisted"]) == "1",
+      ["srv.localhost"] = tostring(record["srv_localhost"]) == "1",
       ["vlan"] = record["vlan_id"]}
 
    flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds, {page = "alerts"}) or "").."] "
