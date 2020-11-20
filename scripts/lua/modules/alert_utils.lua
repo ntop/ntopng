@@ -1822,7 +1822,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
       local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
       local host = active_monitoring_utils.key2host(alert.alert_entity_val)
 
-      if host and host.measurement then
+      if host and host.measurement and not host.is_infrastructure then
 	 msg = msg .. ' <a href="'.. ntop.getHttpPrefix() ..'/plugins/active_monitoring_stats.lua?am_host='
            .. host.host .. '&measurement='.. host.measurement ..'&page=overview"><i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>'
       end

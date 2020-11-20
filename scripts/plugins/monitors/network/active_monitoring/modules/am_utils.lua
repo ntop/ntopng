@@ -218,19 +218,6 @@ end
 
 -- ##############################################
 
---- Format the label of an host, if the host belong to the infrastructure page
---- then append a badge
-function am_utils.format_label(host)
-
-  if (host.token) then
-    return string.gsub(host.label, "/lua/.+",  " <span class='badge badge-info'>".. i18n("infrastructure_dashboard.infrastructure") .."</span>")
-  end
-
-  return host.label
-end
-
--- ##############################################
-
 function am_utils.dropHourStats(host_key)
   ntop.delCache(am_hour_stats_key(host_key))
 end
@@ -284,6 +271,25 @@ end
 
 -- ##############################################
 
+-- @brief Check if this is an infrastructure active monitoring url
+local function is_infrastructure(host)
+   if not ntop.isEnterpriseM() or isEmptyString(host) then
+      return false
+   end
+
+   package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+   local infrastructure_utils = require("infrastructure_utils")
+
+   -- The host is considered an infrastructure host if it contains the endpoint in the name
+   if host:find(infrastructure_utils.ENDPOINT_TO_EXTRACT_DATA) then
+      return true
+   end
+
+   return false
+end
+
+-- ##############################################
+
 -- Only used for the formatting, don't use as a key as the "/"
 -- character is escaped in HTTP parameters
 function am_utils.formatAmHost(host, measurement)
@@ -294,7 +300,14 @@ function am_utils.formatAmHost(host, measurement)
     --return(host)
   --end
 
-  return(string.format("%s://%s", measurement, host))
+  -- Make a smarter way to determine infrastructure labels
+  local res = string.format("%s://%s", measurement, host)
+  if is_infrastructure(host) then
+     -- Make a nicer label for infrastructure hosts
+     res = res:gsub("/lua/.+",  " <span class='badge badge-info'>".. i18n("infrastructure_dashboard.infrastructure") .."</span>")
+  end
+
+  return res
 end
 
 -- ##############################################
@@ -304,6 +317,7 @@ function am_utils.key2host(host_key)
 
   return {
     label = am_utils.formatAmHost(host, measurement),
+    is_infrastructure = is_infrastructure(host),
     measurement = measurement,
     host = host,
   }

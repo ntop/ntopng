@@ -91,7 +91,6 @@ for key, am_host in pairs(am_hosts) do
     end
     res[#res + 1] = {
        key = key,
-       formatted_label = am_utils.format_label(am_host),
        label = am_host.label,
        host = am_host.host,
        alerted = alerted,

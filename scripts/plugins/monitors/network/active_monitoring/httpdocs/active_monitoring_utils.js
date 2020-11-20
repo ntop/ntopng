@@ -379,7 +379,7 @@ $(document).ready(function() {
         },
         columns: [
             {
-                data: 'formatted_label',
+                data: 'label',
 		        render: function(label, type, row) {
                     if (type === 'display') {
                         if (label == "" || label == undefined) return "";
