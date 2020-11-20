@@ -292,7 +292,7 @@ end
 
 -- Only used for the formatting, don't use as a key as the "/"
 -- character is escaped in HTTP parameters
-function am_utils.formatAmHost(host, measurement)
+function am_utils.formatAmHost(host, measurement, isHtml)
   local m_info = am_utils.getMeasurementInfo(measurement)
 
   --if m_info and m_info.force_host then
@@ -304,7 +304,11 @@ function am_utils.formatAmHost(host, measurement)
   local res = string.format("%s://%s", measurement, host)
   if is_infrastructure(host) then
      -- Make a nicer label for infrastructure hosts
-     res = res:gsub("/lua/.+",  " <span class='badge badge-info'>".. i18n("infrastructure_dashboard.infrastructure") .."</span>")
+     if isHtml then
+      res = res:gsub("/lua/.+",  " <span class='badge badge-info'>".. i18n("infrastructure_dashboard.infrastructure") .."</span>")
+     else 
+      res = res:gsub("/lua/.+",  " [".. i18n("infrastructure_dashboard.infrastructure") .. "]")
+    end
   end
 
   return res
@@ -316,7 +320,7 @@ function am_utils.key2host(host_key)
   local host, measurement = key2amhost(host_key)
 
   return {
-    label = am_utils.formatAmHost(host, measurement),
+    label = am_utils.formatAmHost(host, measurement, false),
     is_infrastructure = is_infrastructure(host),
     measurement = measurement,
     host = host,

@@ -369,7 +369,7 @@ $(document).ready(function() {
         initComplete: function(settings, data) {
 
             if (get_host != "") {
-                $amTable.columns(0).search(get_host).draw(true);
+                $amTable.search(get_host).draw(true);
                 $amTable.state.clear();
             }
 
@@ -378,18 +378,20 @@ $(document).ready(function() {
         },
         columns: [
             {
-                data: 'label',
-		        render: function(label, type, row) {
+                data: 'html_label',
+		        render: function(html_label, type, row) {
+                    
                     if (type === 'display') {
-                        if (label == "" || label == undefined) return "";
+                        if (html_label == "" || html_label == undefined) return "";
 
 			                if(row.alerted) {
-			                    return `${label} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
+			                    return `${html_label} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
                             }
                            
-                            return label;
+                            return html_label;
                     }
-                    return(row.label);
+
+                    return (row.label);
                 }
             },
             {
@@ -397,7 +399,7 @@ $(document).ready(function() {
                 class: 'text-center',
                 sortable: false,
                  render: function(href, type, row) {
-                    if(type === 'display' || type === 'filter') {
+                    if(type === 'display') {
                         if (href == "" || href == undefined) return "";
                         return `<a href='${href}'><i class='fas fa-chart-area'></i></a>`
                     }
