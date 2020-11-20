@@ -36,6 +36,7 @@ $(document).ready(function() {
             /* Alias Column */
             { width: '15%', data: 'alias', render: (alias, type, instance) => {
                 if ((type !== 'display' && instance.am_success)) return alias;
+                if (type === "display" && instance.am_success) return alias; 
                 return `<span data-toggle='tooltip' data-placement='bottom' title='${i18n.rest[instance.error_message]}'>${alias} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i></span>`;
             }},
             /* URL Column */
@@ -58,24 +59,17 @@ $(document).ready(function() {
                 }
                 return am_success;
             }},
-            /* Download Column */
-            { width: '10%', className: 'text-center', data: 'am.throughput', render: (throughput, type, instance) => {
-                if (throughput === undefined) return throughput;
-                if (type !== "display") return throughput.download;
-                return `${NtopUtils.fbits(throughput.download)} <i class='fas fa-arrow-down'></i>`;
-            }},
-            /* Upload Column */
-            { width: '10%', className: 'text-center', data: 'am.throughput', render: (throughput, type, instance) => {
-                if (throughput === undefined) return throughput;
-                if (type !== "display") return throughput.upload;
-                return `${NtopUtils.fbits(throughput.upload)} <i class='fas fa-arrow-up'></i>`;
+            /* Throughput Column */
+            { width: '10%', className: 'text-center', data: 'am.throughput_bps', render: (throughput, type, instance) => {
+                if (type === "display") return `${NtopUtils.fbits(throughput)}`;
+                return throughput;
             }},
             /* Hosts Column */
-            { width: '10%', className: 'text-center', data: 'am.num_hosts' },
+            { width: '10%', className: 'text-center', data: 'am.hosts' },
             /* Flows Column */
-            { width: '10%', className: 'text-center', data: 'am.num_flows' },
+            { width: '10%', className: 'text-center', data: 'am.flows' },
             /* Alerts Column */
-            { width: '10%', className: 'text-center', data: 'am.num_alerts' },
+            { width: '10%', className: 'text-center', data: 'am.num_alerts_engaged' },
             /* Last Update Column */
             { width: '10%', className: 'text-center', data: 'last_update.when', render: $.fn.dataTableExt.absoluteFormatSecondsToHHMMSS },
             /* Action Column */
@@ -94,7 +88,7 @@ $(document).ready(function() {
 
             const $table = dtSettings.oInstance.api();
             $(`[data-toggle='tooltip']`).tooltip();
-            setInterval(() => reloadTable(), 300000000 /* 5 minutes */);
+            setInterval(() => reloadTable(), 60000 /* 1 minute */);
         }
     });
 
