@@ -41,7 +41,17 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.endpoint_notifications)
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-page_utils.print_page_title(i18n("endpoint_notifications.endpoint_list"))
+
+local url = ntop.getHttpPrefix() .. "/lua/admin/endpoint_notifications_list.lua"
+page_utils.print_navbar(i18n("endpoint_notifications.endpoint_list"), url, {
+    {
+        active = true,
+        page_name = "home",
+        label = "<i class=\"fas fa-lg fa-home\"></i>",
+        url = url
+    }
+})
+
 
 -- localize endpoint name types in a table
 local endpoints_types = notification_configs.get_types(false)

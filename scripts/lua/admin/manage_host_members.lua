@@ -33,7 +33,15 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.host_members)
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_page_title(i18n("host_pools.host_members"))
+local url = ntop.getHttpPrefix() .. "/lua/admin/manage_host_members.lua"
+page_utils.print_navbar(i18n("host_pools.host_members"), url, {
+    {
+        active = true,
+        page_name = "home",
+        label = "<i class=\"fas fa-lg fa-home\"></i>",
+        url = url
+    }
+})
 
 -- ************************************* ------
 

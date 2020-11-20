@@ -31,7 +31,15 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- print a notification container used by the AJAX operations
 notifications_manager.render_notifications('recipients', {})
 
-page_utils.print_page_title(i18n("endpoint_notifications.recipient_list"))
+local url = ntop.getHttpPrefix() .. "/lua/admin/recipients_list.lua"
+page_utils.print_navbar(i18n("endpoint_notifications.recipient_list"), url, {
+    {
+        active = true,
+        page_name = "home",
+        label = "<i class=\"fas fa-lg fa-home\"></i>",
+        url = url
+    }
+})
 
 -- localize endpoint name types in a table
 local endpoints_types = notification_configs.get_types()
