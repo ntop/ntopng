@@ -10,7 +10,7 @@ require "lua_utils"
 require "prefs_utils"
 prefsSkipRedis(true)
 
-if not (ntop.isnEdge() or ntop.isAppliance()) then
+if not (ntop.isnEdge() or ntop.isAppliance()) or not isAdministrator() then
    return
 end
 

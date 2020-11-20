@@ -14,7 +14,7 @@ prefsSkipRedis(true)
 local is_nedge = ntop.isnEdge()
 local is_appliance = ntop.isAppliance()
 
-if not (is_nedge or is_appliance) then
+if not (is_nedge or is_appliance) or not isAdministrator() then
    return
 end
 

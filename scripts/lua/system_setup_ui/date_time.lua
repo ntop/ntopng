@@ -11,7 +11,7 @@ require "prefs_utils"
 local tz_utils = require("tz_utils")
 prefsSkipRedis(true)
 
-if not (ntop.isnEdge() or ntop.isAppliance()) then
+if not (ntop.isnEdge() or ntop.isAppliance()) or not isAdministrator() then
    return
 end
 

@@ -150,7 +150,6 @@ end
 
 -- Discards the temporary config and loads the persistent one
 function system_config:discard()
-
    if not self.readonly and isAdministrator() then
       os.remove(CONF_FILE_EDITED)
       self.config = self:_load_config(CONF_FILE, true)
@@ -644,7 +643,6 @@ function system_config:save()
    end
 end
 
-
 -- Save the current temporary config as persistent
 function system_config:makePermanent(force_write)
    if (not self.readonly or force_write) and isAdministrator() then
@@ -653,79 +651,6 @@ function system_config:makePermanent(force_write)
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unable to make a readonly configuration permanent.")
    end
-end
-
-function system_config:prepareFactoryReset()
-  -- To be read on next boot
-  if isAdministrator() then
-    ntop.setPref("ntopng.prefs.factory_reset", "1")
-    sys_utils.rebootSystem()
-  end
-end
-
-function system_config:isFactoryReset()
-  return ntop.getPref("ntopng.prefs.factory_reset") == "1"
-end
-
-function system_config:isDataReset()
-  return ntop.getPref(DATA_RESET_KEY) == "1"
-end
-
-function system_config:clearDataReset()
-  ntop.delCache(DATA_RESET_KEY)
-end
-
-function system_config:checkFactoryReset()
-  if self:isFactoryReset() then
-    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Resetting redis configuration...")
-    ntop.flushCache()
-    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Removing data and configuration...")
-    ntop.rmdir(dirs.workingdir)
-
-    self.config = self:_load_config(CONF_FILE, true)
-    return true
-  end
-
-  return false
-end
-
--- ##############################################
-
-function system_config:prepareFactoryReset()
-  -- To be read on next boot
-  if isAdministrator() then
-    ntop.setPref("ntopng.prefs.factory_reset", "1")
-    sys_utils.rebootSystem()
-  end
-end
-
--- ##############################################
-
-function system_config:prepareDataReset()
-  -- To be read on next start
-  if isAdministrator() then
-    ntop.setPref(DATA_RESET_KEY, "1")
-    sys_utils.restartSelf()
-  end
-end
-
--- ##############################################
-
-function system_config:checkDataReset()
-   if self:isDataReset() then
-      local delete_data_utils = require "delete_data_utils"
-
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Performing data reset...")
-
-      local res = delete_data_utils.delete_all_interfaces_data()
-
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Data reset done.")
-
-      self:clearDataReset()
-    return true
-  end
-
-  return false
 end
 
 -- ##############################################
@@ -962,6 +887,8 @@ function system_config:isBridgeOverVLANTrunkEnabled()
 
   return false
 end
+
+-- ##############################################
 
 local function gatewayGetInterface(gateway)
   -- Useful to find the interface which would route traffic to some address

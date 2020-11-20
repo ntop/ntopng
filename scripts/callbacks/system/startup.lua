@@ -37,6 +37,29 @@ local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
 local notification_configs = require "notification_configs"
 
+-- ##################################################################
+
+traceError(TRACE_NORMAL, TRACE_CONSOLE, "Processing startup.lua: please hold on...")
+
+-- ##################################################################
+
+if ntop.isAppliance() then
+   package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" .. package.path
+
+   -- Discard any pending, unfinished, unsaved configuration
+   local appliance_config = require("appliance_config"):create(true):discard()
+
+   -- Load the actual valid configuration
+   appliance_config = require("appliance_config"):create(false)
+
+   -- Apply some config prefs
+   local vlan_trunk = appliance_config:isBridgeOverVLANTrunkEnabled()
+   ntop.setPref("ntopng.prefs.enable_vlan_trunk_bridge", ternary(vlan_trunk, "1", "0"))
+
+   -- Load possibly changed prefs
+   ntop.reloadPreferences()
+end
+
 host_pools_nedge.migrateHostPools()
 if ntop.isnEdge() then
    host_pools_nedge.initPools()
@@ -46,8 +69,6 @@ if(ntop.isPro()) then
    shaper_utils = require "shaper_utils"
    shaper_utils.initShapers()
 end
-
-traceError(TRACE_NORMAL, TRACE_CONSOLE, "Processing startup.lua: please hold on...")
 
 -- ##################################################################
 
