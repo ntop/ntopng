@@ -18,14 +18,14 @@ local function formatFlowsFlood(ifid, alert, threshold_info)
   if(alert.alert_subtype == "flow_flood_attacker") then
     return i18n("alert_messages.flow_flood_attacker", {
       entity = firstToUpper(entity),
-      host_category = format_utils.formatAddressCategory(alert.host_info),
+      host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
       value = string.format("%u", math.ceil(value)),
       threshold = threshold_info.threshold,
     })
   else
     return i18n("alert_messages.flow_flood_victim", {
       entity = firstToUpper(entity),
-      host_category = format_utils.formatAddressCategory(alert.host_info),
+      host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
       value = string.format("%u", math.ceil(value)),
       threshold = threshold_info.threshold,
     })

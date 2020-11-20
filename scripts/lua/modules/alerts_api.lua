@@ -132,10 +132,12 @@ end
 
 --! @brief Adds host information to the alert (only works for host alerts)
 --! @param alert_json Host info will be placed in key `host_info` of table `alert_json`
-local function addAlertHostInfo(alert_json)
-   if alert_json then
+local function addAlertHostInfo(triggered)
+   if triggered then
       -- Add only minimal information to keep the final result as small as possible
-      alert_json.host_info = host.getMinInfo()
+      alert = json.decode(triggered.alert_json)
+      alert.alert_generation.host_info = host.getMinInfo()
+      triggered.alert_json = json.encode(alert)
    end
 end
 

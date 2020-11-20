@@ -15,7 +15,7 @@ local function formatRemoteToRemoteMessage(ifid, alert, remote_to_remote_info)
 
    return i18n("alert_messages.remote_to_remote", {
         entity = entity,
-        host_category = format_utils.formatAddressCategory(alert.host_info),
+        host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
    })
 end
 
