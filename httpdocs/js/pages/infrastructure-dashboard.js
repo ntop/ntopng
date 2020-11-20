@@ -1,22 +1,20 @@
-const testAuthentication = async (remoteUrl, token) => {
-
-    const url = new URL(`${remoteUrl}/${ENDPOINT_URL}`).toString();
-    try {
-        const response = await fetch(url, {
-            headers: {
-                'Origin': window.location.origin,
-                'Authorization': `Token ${token}`
-            }
-        });
-        return [(response.status == 200 && !response.redirected), true];
-    }
-    catch (e) {
-        return [false, false];
-    }
-}
-
 $(document).ready(function() {
 
+    const testAuthentication = async (remoteUrl, token) => {
+        
+        const response = await fetch(`${http_prefix}/lua/pro/rest/v1/check/infrastructure/config.lua`, {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({token: token, url: remoteUrl, csrf: pageCsrf})
+        });
+        const data = await response.json();
+        console.log(data);
+        const hasLoggedIn = (data.rc == 0);
+        const errorMessage = (data.rc_str);
+
+        return [hasLoggedIn, errorMessage];
+    }
+    
     const reloadTable = () => {
         $(`[data-toggle='tooltip']`).tooltip();
         $infrastructureTable.ajax.reload();
@@ -36,16 +34,26 @@ $(document).ready(function() {
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             /* Alias Column */
-            { width: '20%', data: 'alias', render: (alias, type, instance) => {
+            { width: '15%', data: 'alias', render: (alias, type, instance) => {
                 if ((type !== 'display' && instance.am_success)) return alias;
-                if (instance.error_message === undefined && type === "display") return `<b>${alias}</b> (${instance.url})`;
-                return `<span data-toggle='tooltip' data-placement='bottom' title='${i18n.rest[instance.error_message]}'><b>${alias}</b> (${instance.url})<i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i></span>`;
+                return `<span data-toggle='tooltip' data-placement='bottom' title='${i18n.rest[instance.error_message]}'>${alias} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i></span>`;
+            }},
+            /* URL Column */
+            { width: '15%', data: 'url', render: (url, type, instance) => {     
+                if (type !== 'display') return url;
+                const label = url.replace(/(http(s)?)\:\/\//, '');
+                return `<a href='${url}' target='_self'>${label} </a><i class='fas fas fa-external-link-alt'></i>`;
+            }},
+            /* Chart Column */
+            { width: '5%', data: 'chart', className: 'text-center', render: (chart, type, instance) => {
+                if (type !== 'display') return chart;
+                return `<a href='${chart}'><i class='fas fa-chart-area'></i></a>`;
             }},
             /* Status Column */
             { width: '5%', className: 'text-center', data: 'am_success', render: (am_success, type, instance) => {
                 if (type === "display") {
-                    const badgeColor = (am_success && !instance.am_error) ? 'success' : (!am_success && instance.am_error) ? 'danger' : 'secondary';
-                    const badgeText = (am_success && !instance.am_error) ? i18n.up : (!am_success && instance.am_error) ? i18n.unreachable : i18n.not_polled_yet;
+                    const badgeColor = (am_success && !instance.am_error) ? 'success' : (!am_success && instance.error_message !== undefined) ? 'danger' : 'secondary';
+                    const badgeText = (am_success && !instance.am_error) ? i18n.up : (!am_success && instance.error_message !== undefined) ? i18n.error : i18n.not_polled_yet;
                     return `<span class='badge badge-${badgeColor}'>${badgeText}</span>`;
                 }
                 return am_success;
@@ -54,13 +62,13 @@ $(document).ready(function() {
             { width: '10%', className: 'text-center', data: 'am.throughput', render: (throughput, type, instance) => {
                 if (throughput === undefined) return throughput;
                 if (type !== "display") return throughput.download;
-                return `<i class='fas fa-arrow-down'></i> ${NtopUtils.fbits(throughput.download.bps)}`
+                return `${NtopUtils.fbits(throughput.download)} <i class='fas fa-arrow-down'></i>`;
             }},
             /* Upload Column */
             { width: '10%', className: 'text-center', data: 'am.throughput', render: (throughput, type, instance) => {
                 if (throughput === undefined) return throughput;
                 if (type !== "display") return throughput.upload;
-                return `<i class='fas fa-arrow-up'></i> ${NtopUtils.fbits(throughput.upload.bps)}`
+                return `${NtopUtils.fbits(throughput.upload)} <i class='fas fa-arrow-up'></i>`;
             }},
             /* Hosts Column */
             { width: '10%', className: 'text-center', data: 'am.num_hosts' },
@@ -73,11 +81,10 @@ $(document).ready(function() {
             /* Action Column */
             {
                 targets: -1,
-                width: '10%',
+                width: '8%',
                 className: 'text-center',
                 data: null,
                 render: (_, type, instance) => DataTableUtils.createActionButtons([
-                    { class: 'btn-info', icon: 'fa-external-link-square-alt', href: new URL(instance.url).origin, external: true },
                     { class: 'btn-info', icon: 'fa-edit', modal: '#edit-instance-modal' },
                     { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-instance-modal' },
                 ])
@@ -140,7 +147,14 @@ $(document).ready(function() {
         dontDisableSubmit: true,
         onModalInit: (instance) => {
             $(`#edit-instance-modal form input`).each(function() {
-                $(this).val(instance[$(this).attr('name')]);
+                
+                const name = $(this).attr('name');
+                if (name == "threshold") {
+                    $(this).val(instance[name] / 1000);
+                    return;
+                }
+
+                $(this).val(instance[name]);
             });
         },
         beforeSumbit: (instance) => {
@@ -216,12 +230,12 @@ $(document).ready(function() {
         const remoteUrl = $form.find(`[name='url']`).val().trim();
         const token = $form.find(`[name='token']`).val().trim();
 
-        const [success, fetched] = await testAuthentication(remoteUrl, token);
+        const [success, errorMessage] = await testAuthentication(remoteUrl, token);
 
         if (!success) {
             $button.find('span.spinner-border').fadeOut(function () {
-                const errorMessage = (!fetched) ? i18n.unknown_host : i18n.failed_login;
-                $feedbackLabel.removeClass('alert-info').addClass(`alert-danger`).html(errorMessage);
+                // TODO: read from i18n
+                $feedbackLabel.removeClass('alert-info').addClass(`alert-danger`).html(i18n.rest[errorMessage]);
             });
             $button.removeAttr("disabled");
             return;

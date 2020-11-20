@@ -2,6 +2,7 @@ $(document).ready(function() {
 
     const MAX_RECIPIENTS = 3;
     const DEFAULT_MEASUREMENT = "cicmp";
+    const INFRASTRUCTURE_ENDPOINT = "/lua/rest/v1/get/system/data.lua";
 
     const getMeasurementRegex = (measurement) => {
         switch (measurement) {
@@ -378,12 +379,12 @@ $(document).ready(function() {
 		        render: function(href, type, row) {
                     if (type === 'display') {
                         if (href == "" || href == undefined) return "";
+
 			                if(row.alerted) {
-			                    return ` ${href} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
+			                    return `${href} <i class="fas fa-exclamation-triangle" style="color: #f0ad4e;"></i>`
                             }
-                            else {
-                                return `${href}`
-			                }
+                           
+                            return href;
                     }
                     // The raw data must be returned here for sorting
                     return(href);
@@ -435,7 +436,7 @@ $(document).ready(function() {
             },
             {
                 data: 'last_mesurement_time',
-                className: 'dt-body-right dt-head-center'
+                className: 'text-center'
             },
             {
                 data: 'last_ip',
@@ -443,7 +444,7 @@ $(document).ready(function() {
             },
             {
                 data: 'last_measure',
-                className: 'dt-body-right dt-head-center',
+                className: 'text-center',
                 sortable: false,
                 render: function(data, type, row) {
                     if(type === 'display' || type === 'filter') {

@@ -3,10 +3,18 @@
 --
 
 local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local template_utils = require("template_utils")
+local infrastructure_utils
+if (ntop.isEnterpriseL()) then
+    infrastructure_utils = require("infrastructure_utils")
+end 
+
 local ui_utils = {}
+
 
 function ui_utils.render_configuration_footer(item)
     return template_utils.gen('pages/components/manage-configuration-link.template', {item = item})
@@ -53,6 +61,16 @@ function ui_utils.create_navbar_title(title, subpage, title_link)
 
     if isEmptyString(subpage) then return title end
     return "<a href='".. title_link .."'>".. title .. "</a>&nbsp;/&nbsp;<span>"..subpage.."</span>"
+end
+
+function ui_utils.format_label_am(host)
+
+    if (ntop.isEnterpriseL()) then 
+        -- replace path used inside infrastructure utils
+        return string.gsub(host, "/"..infrastructure_utils.ENDPOINT_TO_EXTRACT_DATA, " <span class='badge badge-info'>".. i18n("infrastructure_dashboard.infrastructure") .."</span>")
+    end
+
+    return host
 end
 
 return ui_utils
