@@ -23,7 +23,7 @@ local function formatBATFlow(info)
       end
 
       res = i18n("alerts_dashboard.suspicious_file_transfer_url",
-		 {url = info["protos.http.last_url"],
+		 {url = shortenString(info["protos.http.last_url"], 64),
 		  type_icon = type_icon})
    end
 
