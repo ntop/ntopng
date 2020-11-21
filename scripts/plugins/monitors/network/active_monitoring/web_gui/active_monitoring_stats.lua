@@ -57,9 +57,10 @@ if (not user_scripts.isSystemScriptEnabled("active_monitoring")) then
 end
 
 if (not isEmptyString(host) and not isEmptyString(measurement)) then
-    host = active_monitoring_utils.getHost(host, measurement)
-    measurement_info = active_monitoring_utils.getMeasurementInfo(
-                           host.measurement)
+   host = active_monitoring_utils.getHost(host, measurement)
+   if host then
+      measurement_info = active_monitoring_utils.getMeasurementInfo(host.measurement)
+   end
 else
     host = nil
 end
