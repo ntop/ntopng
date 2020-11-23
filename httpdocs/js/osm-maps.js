@@ -95,10 +95,10 @@ $(document).ready(function () {
         // these are two map providers provided by: https://leaflet-extras.github.io/leaflet-providers/preview/
         const layers = {
             light: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            dark: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+            // dark: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
         };
         // select the right layer
-        const layer = ($("body").hasClass("dark")) ? layers.dark : layers.light;
+        const layer = layers.light;
         const user_coords = [current_user_position.coords.latitude, current_user_position.coords.longitude];
 
         if (user_coords[0] == 0 && user_coords[1] == 0) {
