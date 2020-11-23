@@ -34,13 +34,13 @@ function script.hooks.protocolDetected(now)
       if info["blacklisted.srv"] then
          cli_score = flow_consts.max_score
          srv_score = 5
-         attacker = flow_info.srv.ip
-         victim = flow_info.cli.ip
+         attacker = flow_info["srv.ip"]
+         victim = flow_info["cli.ip"]
       else
          cli_score = 5
          srv_score = 10
-         attacker = flow_info.cli.ip
-         victim = flow_info.srv.ip
+         attacker = flow_info["cli.ip"]
+         victim = flow_info["srv.ip"]
       end
 
       local blacklisted_type = flow_consts.status_types.status_blacklisted.create(
