@@ -86,6 +86,14 @@ function syslog.sendMessage(settings, notif, severity, syslog_format)
 	 show_severity = false,
 	 show_entity = false})
       msg = json.encode(notif)
+   elseif syslog_format and syslog_format == "ecs" then
+     if ntop.isEnterpriseM() then
+        package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+        local ecs_format = require "ecs_format"
+        msg = ecs_format.format(notif)
+     else
+        return false
+     end
    else -- syslog_format == "plaintext"
       -- prepare a plaintext message
       msg = alert_utils.formatAlertNotification(notif, {

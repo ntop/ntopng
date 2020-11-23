@@ -126,7 +126,10 @@ end
 http_lint.validateNumber = validateNumber
 
 local function validateSyslogFormat(p)
-   if p == "plaintext" or p == "json" then
+   if p == "plaintext" or
+      p == "json" or
+      p == "ecs"
+   then
       return true
    end
 

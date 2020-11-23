@@ -6,6 +6,13 @@
         <select name="syslog_alert_format" class="form-control" required>
             <option value="plaintext">{{ i18n("syslog_alert_endpoint.text") }}</option>
             <option value="json">JSON</option>
+{%
+  if ntop.isEnterpriseM() then
+%}
+            <option value="ecs">ECS</option>
+{%
+  end
+%}
         </select>
     </div>
 </div>
