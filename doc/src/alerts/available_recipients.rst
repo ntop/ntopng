@@ -74,10 +74,10 @@ Now add to the relative Pool the Telegram recipient you just created and it's do
 
 .. figure:: ../img/telegram_alerts.png
 
-Script
+Shell Script
 ------
 
-Create the script you want to execute each time the alert is triggered and put it inside the directory :code:`/usr/share/ntopng/`.
+Create the script you want to execute each time the alert is triggered and put it inside the directory :code:`/usr/share/ntopng/scripts/shell/`.
 Then create the new Endpoint, selecting the script you just created.
 
 .. figure:: ../img/shell_endpoint.png
@@ -88,7 +88,7 @@ After that create a new recipient to associate with the new endpoint just create
 
 .. note::
 
-        The script must need at least one argument, that is the JSON object given to the script by the alert script, containing various informations about the alert itself.
+        The script must be a shell script (.sh extention).
 
 
 Webhook
@@ -130,44 +130,93 @@ The Elasticsearch connection can be tested by clicking the "Test Connection" but
 
   Elasticsearch alert endpoint requires at least Elasticsearch version 7. Version can be tested by clicking the "Test Connection" button of the preferences.
 
-Alerts are sent to Elasticsearch in JSON format. The the following keys are always present:
+Alerts are sent to Elasticsearch in JSON format, following the ECS format (more info at <https://www.elastic.co/guide/en/ecs/current/index.html>). The following keys are always present:
 
 - :code:`@timestamp`: UTC/GMT alert detection date and time in ISO format yyyy-MM-dd'T'HH:mm:ss.SSSZ.
-- :code:`alert_tstamp`: Alert detection Unix epoch
-- :code:`alert_tstamp_end`: Alert release Unix epoch for :ref:`Released Alerts`, otherwise this key is not present.
-- :code:`alert_type`:  one of {`alert_blacklisted_country`, ` alert_broadcast_domain_too_large`, `alert_device_connection`, ...}. Strings list available at `/lua/defs_overview.lua`.
-- :code:`alert_severity`: one of {`info`, `warning`, `error`}.
-- :code:`alert_entity`: one of {`interface`, `host`, `network`, ...}. `List of all the available types <https://github.com/ntop/ntopng/blob/fae050b90a8eacf8d1dd64b9142b02b5f54753c8/scripts/lua/modules/alert_consts.lua#L299>`_.
-- :code:`alert_entity_val`: A string representing the current alert entity. For hosts the format is `<ip>@<vlan>`, e.g.,  `127.0.0.1@0`.
-- :code:`ifname`: The interface name string where the alert was detected, e.g., `eno1`.
-- :code:`ntopng_instance_id`: The ntopng instance name string where the alert was detected., e.g., `ntopng-instance-brx1`. Instance name can be configured with option :code:`--instance-name`.
-- :code:`engaged`: A boolean which is true for :ref:`Engaged Alerts`, false otherwise.
-- :code:`alert_subtype`: A string subtype which depends on the :code:`alert_type`. For example threshold cross can have subtype `bytes`, `packets`, `score`, etc.
-- :code:`alert_granularity`: one of {`min`, `5min`, `hour`, `day`}, empty. Empty when the alert doesn't come out of a periodic check (e.g., broadcast domain too large). `List of all the available granularities <https://github.com/ntop/ntopng/blob/fae050b90a8eacf8d1dd64b9142b02b5f54753c8/scripts/lua/modules/alert_consts.lua#L346>`_.
-- :code:`alert_json`: A JSON string with additional, alert-specific information (e.g., the broadcast domain, the threshold set, the exceeded value).
-- :code:`alert_msg`: A human readable string text message of the alert.
+- :code:`message`: the message field containing the log message
+- :code:`ecs.version`: ECS version this event conforms to. 
+- :code:`event.category`: represent the category of the event, one of {`authentication`, `configuration`, `database`, ...}. `List of all the available types <https://www.elastic.co/guide/en/ecs/current/ecs-allowed-values-event-category.html>`
+- :code:`event.created`: contains the date/time when the event was first read, in ISO format yyyy-MM-dd'T'HH:mm:ss.SSSZ.
+- :code:`event.dataset`: name of the dataset.
+- :code:`event.kind`: gives high-level information about what type of information the event contains, one of {`alert`, `event`, `metric`, `state`, `pipeline_error`, `signal`}.
+- :code:`event.module`: name of the module this data is coming from.
+- :code:`event.risk_score`: risk score or priority of the event.
+- :code:`event.severity`: the numeric severity of the event according to your event source.
+- :code:`event.severity_label`: the severity of the event written in human readable format, one of {`low`, `medium`, `high`, `critical`}.
+- :code:`organization.name`: organization name.
+- :code:`rule.name`: the name of the rule or signature generating the event.
 
 :ref:`Flow Alerts` have the following additional fields:
 
-- :code:`flow_status`: one of {`status_blacklisted`, `status_data_exfiltration`, `status_suspicious_tcp_probing`}. Strings list available at `/lua/defs_overview.lua`.
-- :code:`first_seen`: Flow first seen Unix epoch.
-- :code:`l7_proto`: A string with the detected nDPI protocol, e.g., `HTTP.Google`.
-- :code:`cli_asn`: Integer with the client ASN or empty when ASN information is not available.
-- :code:`srv_asn`: Integer with the server ASN or empty when ASN information is not available.
-- :code:`cli_country`: ISO 3166 alpha-2 country code string for the client or empty when country information is not available.
-- :code:`srv_country`: ISO 3166 alpha-2 country code string for the server or empty when country information is not available.
-- :code:`cli_port`: Integer of the client flow port.
-- :code:`srv_port`: Integer of the server flow port.
-- :code:`cli_os`: A string with the detected client operating system or empty when operating system is not available.
-- :code:`srv_os`: A string with the detected server operating system or empty when operating system is not available.
-- :code:`vlan_id`: Integer of the flow VLAN. Integer is zero when the flow has no VLAN.
-- :code:`srv2cli_bytes`: Integer with the number of bytes transferred from the server to the client when the alert was generated.
-- :code:`cli2srv_bytes`: Integer with the number of bytes transferred from the client to the server when the alert was generated.
-- :code:`cli2srv_packets`: Integer with the number of packets transferred from the client to the server when the alert was generated.
-- :code:`srv2cli_packets`: Integer with the number of packets transferred from the server to the client when the alert was generated.
-- :code:`cli_addr`: A string with the client IPv4 or IPv6 address.
-- :code:`srv_addr`: A string with the server IPv4 or IPv6 address.
-- :code:`score`: The flow score integer.
+- :code:`source.ip`: IP address of the source (IPv4 or IPv6).
+- :code:`source.port`: port of the source.
+- :code:`source.as.number`: unique number allocated to the autonomous system. The autonomous system number (ASN) uniquely identifies each network on the Internet.
+- :code:`source.geo.city_name`: geolocalization of the source, city name (when available).
+- :code:`source.geo.continent_name`: geolocalization of the source, continent name (when available).
+- :code:`source.geo.country_name`: geolocalization of the source, country name (when available).
+- :code:`source.geo.country_iso_code`: geolocalization of the source, country ISO code (when available).
+- :code:`source.geo.location.lat`: latitude of the source.
+- :code:`source.geo.location.lon`: longitude of the source.
+- :code:`network.community_id`: a hash of source and destination IPs and ports, as well as the protocol used in a communication. This is a tool-agnostic standard to identify flows.
+- :code:`network.protocol`: L7 Network protocol name. ex. http, lumberjack, tls.
+- :code:`network.transport`: L4 Network protocol name. ex. tcp, udp.
+- :code:`network.vlan.id`: VLAN ID.
+- :code:`destination.ip`: IP address of the destination (IPv4 or IPv6).
+- :code:`destination.port`: port of the destination.
+- :code:`destination.as.number`: unique number allocated to the autonomous system. The autonomous system number (ASN) uniquely identifies each network on the Internet.
+- :code:`destination.geo.city_name`: geolocalization of the destination, city name (when available).
+- :code:`destination.geo.continent_name`: geolocalization of the destination, continent name (when available).
+- :code:`destination.geo.country_name`: geolocalization of the destination, country name (when available).
+- :code:`destination.geo.country_iso_code`: geolocalization of the destination, country ISO code (when available).
+- :code:`destination.geo.location.lat`: latitude of the destination.
+- :code:`destination.geo.location.lon`: longitude of the destination.
+
+.. code:: lua
+
+   json_format = {
+     "organization": {
+       "name": "ntop"
+     },
+     "rule": {
+       "name": "Low Goodput Ratio"
+     },
+     "ecs": {
+       "version": "1.6.0"
+     },
+     "event": {
+       "severity_label": "low",
+       "created": "2020-11-23T14:20:56.0Z",
+       "category": "network",
+       "module": "ntopng",
+       "kind": "alert",
+       "severity": 3,
+       "dataset": "alerts",
+       "risk_score": 10
+     },
+     "source": {
+       "port": 60952,
+       "ip": "192.168.1.29"
+     },
+     "destination": {
+       "geo": {
+         "continent_name": "NA",
+         "country_iso_code": "US"
+       },
+       "ip": "23.206.251.35",
+       "as": {
+         "number": 16625
+       },
+       "port": 80
+     },
+     "network": {
+       "community_id": "1:fUGQhJ6nxu/LILCAW+Lb8dF4sKU=",
+       "transport": "tcp",
+       "protocol": "http"
+     },
+     "message": "{\"cli_os\":\"Intel Mac OS X 10_13_6\",\"cli_continent_name\":\"\",\"flow_status\":12,\"cli_blacklisted\":false,\"alert_entity\":4,\"alert_entity_val\":\"flow\",\"proto.ndpi\":\"HTTP\",\"srv_localhost\":false,\"proto\":6,\"alert_tstamp\":1606141256,\"cli_addr\":\"192.168.1.29\",\"srv_addr\":\"23.206.251.35\",\"srv2cli_packets\":5,\"alert_severity\":3,\"srv_continent_name\":\"NA\",\"srv_os\":\"\",\"srv_asn\":16625,\"community_id\":\"1:fUGQhJ6nxu/LILCAW+Lb8dF4sKU=\",\"first_seen\":1606141240,\"score\":10,\"action\":\"store\",\"cli_localhost\":true,\"cli_port\":60952,\"cli_city_name\":\"\",\"srv2cli_bytes\":558,\"is_flow_alert\":true,\"alert_type\":72,\"cli2srv_bytes\":681,\"alert_json\":\"{\"info\":\"ocsp.int-x3.letsencrypt.org/MFgwVqADAgEAME8wTTBLMAkGBSsOAwIaBQAEFH7maudymrP8%2BKIgZGwWoS1gcQhdBBSoSmpjBH3duubRObemRWXv86jsoQISAz5JqGV%2B4ao1EMKq6MZy01gX\",\"status_info\":\"{\"goodput_ratio\":39.790153503418,\"ntopng.key\":3631703348,\"alert_generation\":{\"subdir\":\"flow\",\"script_key\":\"low_goodput\",\"confset_id\":0},\"hash_entry_id\":8210}\"}\",\"cli_country_name\":\"\",\"cli2srv_packets\":6,\"srv_country_name\":\"US\",\"cli_asn\":0,\"srv_port\":80,\"pool_id\":0,\"srv_city_name\":\"\",\"l7_master_proto\":7,\"ifid\":0,\"srv_blacklisted\":false,\"vlan_id\":0,\"l7_proto\":7}", 
+     "@timestamp": "2020-11-23T14:20:56.0Z"
+   }
+
 
 Slack
 -----
