@@ -52,7 +52,7 @@ local function interpolate(pattern, variables)
   -- ntop workaround for ticket https://github.com/ntop/ntopng/issues/4681
  if((variables ~= nil) and (variables.url ~= nil)) then  
    -- Make sure that URLs are not too long to break the screen
-   variables.url = shortenString(variables.url, 64)
+   variables.url = shortenString(variables.url, 256)
   end
 
   variables = variables or {}
