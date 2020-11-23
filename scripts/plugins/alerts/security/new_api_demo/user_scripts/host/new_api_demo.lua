@@ -25,7 +25,7 @@ local script = {
 -- #################################################################
 
 function script.hooks.min(params)
-   if true then -- TODO: set to true to execute
+   if false then -- TODO: set to true to execute
       local Alert = alert_consts.alert_types.alert_host_new_api_demo.new()
 
       Alert:set_severity(alert_consts.alert_severities.error)
