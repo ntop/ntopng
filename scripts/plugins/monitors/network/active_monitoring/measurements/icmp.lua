@@ -158,7 +158,7 @@ return {
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
       operator = "gt",
       -- If set, indicates a maximum threshold value
-      max_threshold = nil,
+      max_threshold = 10000,
       -- If set, indicates the default threshold value
       default_threshold = nil,
       -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
@@ -187,7 +187,7 @@ return {
       i18n_am_ts_label = "graphs.num_ms_rtt",
       i18n_am_ts_metric = "flow_details.round_trip_time",
       operator = "gt",
-      max_threshold = nil,
+      max_threshold = 10000,
       default_threshold = nil,
       additional_timeseries = {},
       value_js_formatter = "NtopUtils.fmillis",
