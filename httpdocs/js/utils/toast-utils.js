@@ -1,6 +1,6 @@
-const alertNotifications = {};
+const globalToasts = {};
 
-class AlertNotification {
+class Toast {
 
     constructor({ title, body, link, delay = 0, id, style } = {}) {
         this.title = title;
@@ -54,7 +54,7 @@ class AlertNotification {
         $toast.toast('show');
 
         $toast.on('hidden.bs.toast', function () {
-            NotificationUtils.hideAlert(self.id);
+            ToastUtils.hideToast(self.id);
         });
 
         this.$element = $toast;
@@ -64,7 +64,7 @@ class AlertNotification {
 
     updateBody(body) {
 
-        if (this.$element == undefined) throw '[AlertNotification] :: The notification has not been rendered yet!';
+        if (this.$element == undefined) throw 'The notification has not been rendered yet!';
         this.$element.find('.toast-body span').text(body);
     }
 
@@ -75,48 +75,38 @@ class AlertNotification {
 
 }
 
-class NotificationUtils {
+class ToastUtils {
 
-    static initAlerts() {
+    static initToasts() {
 
         $(`.toast.notification`).each(function () {
-
-            const noScope = $(this).data("notificationNoScope");
-            const pages = (noScope == "" || noScope == undefined) ? [] : noScope.split(";");
-
-            // if the current page match the no-scoping attribute
-            // then doesn't show the notification
-            if (pages.length > 0 && pages.some((page) => location.href.contains(page))) {
-                $(this).remove();
-            }
-
             $(this).toast('show');
         });
     }
 
-    static hideAlert(notificationId) {
+    static hideToast(toastId) {
 
-        if (!notificationId) {
-            console.warn("[NotificationUtils] :: The notification id cannot be null!");
+        if (!toastId) {
+            console.warn("The toast id cannot be null!");
             return;
         }
 
-        if (!(notificationId in alertNotifications)) {
-            console.warn("[NotificationUtils] :: The notification hasn't been found!");
+        if (!(toastId in globalToasts)) {
+            console.warn("The toast hasn't been found!");
             return;
         }
 
-        alertNotifications[notificationId].destroy();
-        delete alertNotifications[notificationId];
+        globalToasts[toastId].destroy();
+        delete globalToasts[toastId];
     }
 
-    static updateNotification(notificationId, body) {
+    static updateToast(toastId, body) {
 
-        if (!(notificationId in alertNotifications)) {
-            throw '[NotificationUtils] :: The notification was not found!';
+        if (!(toastId in globalToasts)) {
+            throw 'The toast was not found!';
         }
 
-        alertNotifications[notificationId].updateBody(body);
+        globalToasts[toastId].updateBody(body);
     }
 
     static showAlert(option) {
@@ -130,30 +120,30 @@ class NotificationUtils {
 
         option.style = styles[option.level] || styles.warning;
 
-        if (option.id === undefined) throw '[NotificationUtils] :: An AlertNotification must have an in id!';
-        if (option.id in alertNotifications) return;
-        if (option.title === undefined) throw '[NotificationUtils]:: An AlertNotification must have a title!';
-        if (option.body === undefined) throw '[NotificationUtils]:: An AlertNotification must have a body!';
+        if (option.id === undefined) throw 'A toast must have an in id!';
+        if (option.id in globalToasts) return;
+        if (option.title === undefined) throw 'A toast must have a title!';
+        if (option.body === undefined) throw 'A toast must have a body!';
 
-        const notification = new AlertNotification(option);
-        // render the notification inside the main container
-        $(`#main-container`).prepend(notification.render());
+        const toast = new Toast(option);
+        // render the toast inside the main container
+        $(`#main-container`).prepend(toast.render());
 
-        // push the notification inside the global container
-        alertNotifications[option.id] = notification;
+        // push the toast inside the global container
+        globalToasts[option.id] = toast;
 
-        return notification;
+        return toast;
     }
 
-    static dismissNotification(id, csrf, success, failure) {
+    static dismissToast(id, csrf, success, failure) {
 
 		if (id == undefined) {
-			console.warn("An notification id must be defined to dismiss a notification!");
+			console.warn("A Toast ID must be defined to dismiss a toast!");
 			return;
 		}
 
 		const empty = () => {};
-		const request = $.post(`${http_prefix}/lua/dismiss_notification.lua`, {notification_id: id, csrf: csrf});
+		const request = $.post(`${http_prefix}/lua/dismiss_toast.lua`, {toast_id: id, csrf: csrf});
 		request.done(success || empty);
 		request.fail(failure || empty);
 	}

@@ -101,8 +101,8 @@ print([[
 
 			$(`.notification button.dismiss`).click(function() {
 				const $toast = $(this).parents('.notification');
-				const id = $toast.data("notificationId");
-				NotificationUtils.dismissNotification(id, "]].. ntop.getRandomCSRFValue() ..[[", (data) =>{
+				const id = $toast.data("toastId");
+				ToastUtils.dismissToast(id, "]].. ntop.getRandomCSRFValue() ..[[", (data) =>{
 					if (data.success) $toast.toast('hide');
 				});
 			});
@@ -174,7 +174,7 @@ print([[
 				}
 			})
 
-			NotificationUtils.initAlerts();
+			ToastUtils.initToasts();
 		});
 
 	   const toggleSystemInterface = (isSystemSwitching = false, $form = null) => {

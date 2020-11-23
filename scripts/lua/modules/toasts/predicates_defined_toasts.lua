@@ -10,13 +10,13 @@ local endpoint_configs          = require("notification_configs")
 local recipients_manager        = require("recipients")
 local page_utils                = require('page_utils')
 local telemetry_utils           = require("telemetry_utils")
-local notification_ui           = require("notification_ui")
+local toast_ui                  = require("toast_ui")
 local prefs_factory_reset_utils = require ("prefs_factory_reset_utils")
 
 local info = ntop.getInfo()
 local prefs = ntop.getPrefs()
 
-local NotificationLevels = notification_ui.NotificationLevels
+local ToastLevel = toast_ui.ToastLevels
 
 -- Constants
 local ALARM_THRESHOLD_LOW = 60
@@ -31,7 +31,7 @@ local predicates = {}
 
 -- ###############################################################
 
-local function create_DHCP_range_missing_notification(notification)
+local function create_DHCP_range_missing_notification(toast)
 
     local title = i18n("about.configure_dhcp_range")
     local description = i18n("about.dhcp_range_missing_warning", {
@@ -40,13 +40,13 @@ local function create_DHCP_range_missing_notification(notification)
         dhcp_url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?page=dhcp"
     })
 
-    return notification_ui:create(notification.id, title, description, NotificationLevels.WARNING, nil, notification.dismissable)
+    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, nil, toast.dismissable)
 
 end
 
 -- ###############################################################
 
-local function create_DCHP_monitoring_notification(notification)
+local function create_DCHP_monitoring_toast(toast)
 
     local title = i18n("about.dhcp_monitoring_title")
     local description = i18n("about.host_identifier_warning", {
@@ -54,13 +54,13 @@ local function create_DCHP_monitoring_notification(notification)
         url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"
     })
 
-    return notification_ui:create(notification.id, title, description, NotificationLevels.WARNING, nil, notification.dismissable)
+    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, nil, toast.dismissable)
 
 end
 
 -- ###############################################################
 
-local function create_geo_ip_notification_ui(notification)
+local function create_geo_ip_toast_ui(toast)
 
     local title = i18n("geolocation_unavailable_title")
     local description = i18n("geolocation_unavailable", {
@@ -69,12 +69,12 @@ local function create_geo_ip_notification_ui(notification)
         icon = "fas fa-external-link-alt"
     })
 
-    return notification_ui:create(notification.id, title, description, NotificationLevels.WARNING, nil, notification.dismissable)
+    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, nil, toast.dismissable)
 end
 
 -- ###############################################################
 
-local function create_contribute_notification_ui(notification)
+local function create_contribute_toast_ui(toast)
 
     local title = i18n("about.contribute_to_project")
     local description = i18n("about.telemetry_data_opt_out_msg", {
@@ -87,23 +87,23 @@ local function create_contribute_notification_ui(notification)
         title = i18n("configure")
     }
 
-    return notification_ui:create(notification.id, title, description, NotificationLevels.INFO, action, notification.dismissable)
+    return toast_ui:new(toast.id, title, description, ToastLevel.INFO, action, toast.dismissable)
 end
 
 
 -- ###############################################################
 
-local function create_forced_community_notification(notification)
+local function create_forced_community_toast(notification)
 
     local title = i18n("about.licence")
-    local description = i18n("about.forced_community_notification")
+    local description = i18n("about.forced_community_toast")
 
-    return notification_ui:create(notification.id, title, description, NotificationLevels.WARNING, nil --[[ no action --]], notification.dismissable)
+    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, nil --[[ no action --]], toast.dismissable)
 end
 
 -- ###############################################################
 
-local function create_tempdir_notification_ui(notification)
+local function create_tempdir_toast_ui(toast)
 
     local title = i18n("warning")
     local description = i18n("about.datadir_warning")
@@ -112,65 +112,65 @@ local function create_tempdir_notification_ui(notification)
         title = i18n("details.details")
     }
 
-    return notification_ui:create(notification.id, title, description, NotificationLevels.WARNING, action, notification.dismissable)
+    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, action, toast.dismissable)
 end
 
 -- ###############################################################
 
-local function create_update_ntopng_notification(notification, body)
+local function create_update_ntopng_toast(toast, body)
 
     local title = i18n("update")
-    return notification_ui:create(notification.id, title, body, NotificationLevels.INFO, nil, notification.dismissable)
+    return toast_ui:new(toast.id, title, body, ToastLevel.INFO, nil, toast.dismissable)
 end
 
 -- ###############################################################
 
-local function create_too_many_flows_notification(notification, level)
+local function create_too_many_flows_toast(toast, level)
 
     local title = i18n("too_many_flows")
     local desc = i18n("about.you_have_too_many_flows",
                       {product = info["product"]})
 
-    return notification_ui:create(notification.id, title, desc, level, nil, notification.dismissable)
+    return toast_ui:new(toast.id, title, desc, level, nil, toast.dismissable)
 end
 
 -- ###############################################################
 
-local function create_too_many_hosts_notification(notification, level)
+local function create_too_many_hosts_toast(toast, level)
 
     local title = i18n("too_many_hosts")
     local desc = i18n("about.you_have_too_many_hosts",
                       {product = info["product"]})
 
-    return notification_ui:create(notification.id, title, desc, level, nil, notification.dismissable)
+    return toast_ui:new(toast.id, title, desc, level, nil, toast.dismissable)
 end
 
 -- ###############################################################
 
-local function create_remote_probe_clock_drift_notification(notification, level)
+local function create_remote_probe_clock_drift_toast(toast, level)
 
     local title = i18n("remote_probe_clock_drift")
     local desc = i18n("about.you_need_to_sync_remote_probe_time",
                       {url = ntop.getHttpPrefix() .. "/lua/if_stats.lua"})
 
-    return notification_ui:create(notification.id, title, desc, level, nil, notification.dismissable)
+    return toast_ui:new(toast.id, title, desc, level, nil, toast.dismissable)
 end
 
 -- ##################################################################
 
-local function create_flow_dump_notification_ui(notification)
+local function create_flow_dump_toast_ui(toast)
 
     local title = i18n("flow_dump_not_working_title")
     local description = i18n("flow_dump_not_working", {
         icon = "fas fa-external-link-alt"
     })
 
-    return notification_ui:create(notification.id, title, description, NotificationLevels.WARNING, nil, notification.dismissable)
+    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, nil, toast.dismissable)
 end
 
 -- ##################################################################
 
-local function create_restart_required_notification(notification)
+local function create_restart_required_toast(toast)
 
     local title = i18n("restart.restart_required")
     local description = i18n("manage_configurations.after_reset_request", {
@@ -187,25 +187,25 @@ local function create_restart_required_notification(notification)
         }
     end
 
-    return notification_ui:create(notification.id, title, description, NotificationLevels.DANGER, action, notification.dismissable)
+    return toast_ui:new(toast.id, title, description, ToastLevel.DANGER, action, toast.dismissable)
 
 end
 
 -- ##################################################################
 
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.restart_required(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.restart_required(toast, container)
 
     if prefs_factory_reset_utils.is_prefs_factory_reset_requested() then
-        table.insert(container, create_restart_required_notification(notification))
+        table.insert(container, create_restart_required_toast(toast))
     end
 
 end
 
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.DHCP(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.DHCP(toast, container)
 
     -- In System Interface we can't collect the required data
     if (IS_SYSTEM_INTERFACE) then return false end
@@ -221,7 +221,7 @@ function predicates.DHCP(notification, container)
     if (not lbd_serialize_by_mac) and
         (ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then
 
-        table.insertIfNotPresent(container, create_DCHP_monitoring_notification(notification), function(n) return n.id == notification.id end)
+        table.insertIfNotPresent(container, create_DCHP_monitoring_toast(toast), function(n) return n.id == toast.id end)
 
     elseif isEmptyString(_POST["dhcp_ranges"]) then
 
@@ -229,56 +229,56 @@ function predicates.DHCP(notification, container)
         local ranges = dhcp_utils.listRanges(ifs.id)
 
         if (table.empty(ranges)) then
-            table.insertIfNotPresent(container, create_DHCP_range_missing_notification(notification), function(n) return n.id == notification.id end)
+            table.insertIfNotPresent(container, create_DHCP_range_missing_toast(toast), function(n) return n.id == toast.id end)
         end
     end
 
 end
 
---- Create an instance for the geoip alert notification
+--- Create an instance for the geoip alert toast
 --- if the user doesn't have geoIP installed
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.geo_ip(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.geo_ip(toast, container)
     if IS_ADMIN and not ntop.hasGeoIP() then
-        table.insert(container, create_geo_ip_notification_ui(notification))
+        table.insert(container, create_geo_ip_toast_ui(toast))
     end
 end
 
 --- Create an instance for the temp working directory alert
 --- if ntopng is running inside /var/tmp
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.temp_working_dir(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.temp_working_dir(toast, container)
     if (dirs.workingdir == "/var/tmp/ntopng") then
-        table.insert(container, create_tempdir_notification_ui(notification))
+        table.insert(container, create_tempdir_toast_ui(toast))
     end
 end
 
---- Create an instance for contribute alert notification
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.contribute(notification, container)
+--- Create an instance for contribute alert toast
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.contribute(toast, container)
     if (not info.oem) and (not telemetry_utils.dismiss_notice()) then
-        table.insert(container, create_contribute_notification_ui(notification))
+        table.insert(container, create_contribute_toast_ui(toast))
     end
 end
 
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.update_ntopng(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.update_ntopng(toast, container)
     -- check if ntopng is oem and the user is an Administrator
     local is_not_oem_and_administrator = IS_ADMIN and not info.oem
     local message = check_latest_major_release()
 
     if is_not_oem_and_administrator and not isEmptyString(message) then
-        table.insert(container, create_update_ntopng_notification(notification, message))
+        table.insert(container, create_update_ntopng_toast(toast, message))
     end
 end
 
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.too_many_hosts(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.too_many_hosts(toast, container)
 
     -- In System Interface we can't get the hosts number from `interface.getNumHosts()`
     if (IS_SYSTEM_INTERFACE) then return end
@@ -288,19 +288,19 @@ function predicates.too_many_hosts(notification, container)
     local hosts_pctg = math.floor(1 + ((hosts * 100) / prefs.max_num_hosts))
 
     if (hosts_pctg >= ALARM_THRESHOLD_LOW and hosts_pctg <= ALARM_THRESHOLD_HIGH) then
-        level = NotificationLevels.WARNING
+        level = ToastLevel.WARNING
     elseif (hosts_pctg > ALARM_THRESHOLD_HIGH) then
-        level = NotificationLevels.DANGER
+        level = ToastLevel.DANGER
     end
 
     if (level ~= nil) then
-        table.insert(container, create_too_many_hosts_notification(notification, level))
+        table.insert(container, create_too_many_hosts_toast(toast, level))
     end
 end
 
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.too_many_flows(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.too_many_flows(toast, container)
 
     -- In System Interface we can't get the flows number from `interface.getNumFlows()`
     if (IS_SYSTEM_INTERFACE) then return end
@@ -310,19 +310,19 @@ function predicates.too_many_flows(notification, container)
     local flows_pctg = math.floor(1 + ((flows * 100) / prefs.max_num_flows))
 
     if (flows_pctg >= ALARM_THRESHOLD_LOW and flows_pctg <= ALARM_THRESHOLD_HIGH) then
-        level = NotificationLevels.WARNING
+        level = ToastLevel.WARNING
     elseif (flows_pctg > ALARM_THRESHOLD_HIGH) then
-        level = NotificationLevels.DANGER
+        level = ToastLevel.DANGER
     end
 
     if (level ~= nil) then
-        table.insert(container, create_too_many_flows_notification(notification, level))
+        table.insert(container, create_too_many_flows_toast(toast, level))
     end
 end
 
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.remote_probe_clock_drift(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.remote_probe_clock_drift(toast, container)
 
     -- In System Interface we can't collect the stats from `interface.getStats()`
     if (IS_SYSTEM_INTERFACE) then return end
@@ -335,22 +335,22 @@ function predicates.remote_probe_clock_drift(notification, container)
         local level = nil
 
         if (tdiff >= 10 and tdiff <= 30) then
-            level = NotificationLevels.WARNING
+            level = ToastLevel.WARNING
         elseif (tdiff > 30) then
-            level = NotificationLevels.DANGER
+            level = ToastLevel.DANGER
         end
 
         if (level ~= nil) then
-            table.insert(container, create_remote_probe_clock_drift_notification(notification, level))
+            table.insert(container, create_remote_probe_clock_drift_toast(toast, level))
         end
     end
 end
 
---- Create an instance for the nIndex alert notification
+--- Create an instance for the nIndex alert toast
 --- if nIndex is not able to start/run/dump
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.flow_dump(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.flow_dump(toast, container)
 
     -- In System Interface we can't collect the stats from `interface.getStats()`
     if (IS_SYSTEM_INTERFACE) then return end
@@ -361,13 +361,13 @@ function predicates.flow_dump(notification, container)
         prefs.is_dump_flows_runtime_enabled and not ifstats.isFlowDumpDisabled and
         not ifstats.isFlowDumpRunning and not ifstats.isViewed then
 
-        table.insert(container, create_flow_dump_notification_ui(notification))
+        table.insert(container, create_flow_dump_toast_ui(toast))
     end
 end
 
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.about_page(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.about_page(toast, container)
 
     if (_POST["ntopng_license"] ~= nil) then
 
@@ -379,42 +379,42 @@ function predicates.about_page(notification, container)
 
         if (info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
            table.insert(container,
-            notification_ui:create(notification.id, i18n("info"), i18n("about.create_license_l"), NotificationLevels.INFO, {
+            toast_ui:new(toast.id, i18n("info"), i18n("about.create_license_l"), ToastLevel.INFO, {
                 url = "https://www.ntop.org/support/faq/what-is-included-in-ntopng-enterprise-l/",
                 title = i18n("details.details")
             })
         )
         elseif (not info["version.enterprise_l_edition"] and info["pro.license"] ~= "") then
-           table.insert(container, notification_ui:create(notification.id, i18n("info"), i18n("about.create_license"), NotificationLevels.INFO))
+           table.insert(container, toast_ui:new(toast.id, i18n("info"), i18n("about.create_license"), ToastLevel.INFO))
         end
 
      end
 end
 
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.hosts_geomap(notification, container)
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.hosts_geomap(toast, container)
 
     local hosts_stats = interface.getHostsInfo()
     local num = hosts_stats["numHosts"]
     if (num > 0) then
         table.insert(container,
-            notification_ui:create(notification.id, i18n("warning"), i18n("geo_map.warning_accuracy"), NotificationLevels.WARNING, nil, notification.dismissable)
+            toast_ui:new(toast.id, i18n("warning"), i18n("geo_map.warning_accuracy"), ToastLevel.WARNING, nil, toast.dismissable)
         )
     end
 end
 
---- This is a simple placeholder for new notifications
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.empty(notification, container)
+--- This is a simple placeholder for new toasts
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.empty(toast, container)
     -- do nothing!
 end
 
---- Generate two notifications if the SNMP ratio is not available for exporters
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.exporters_SNMP_ratio_column(notification, container)
+--- Generate two toasts if the SNMP ratio is not available for exporters
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.exporters_SNMP_ratio_column(toast, container)
 
     if not ntop.isPro() then return end
 
@@ -424,7 +424,7 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
     local flow_device_ip = _GET["ip"]
     if (isEmptyString(flow_device_ip)) then return end
 
-    local cached_device = snmp_cached_dev:create(flow_device_ip)
+    local cached_device = snmp_cached_dev:new(flow_device_ip)
 
     local is_ratio_available = snmp_utils.is_snmp_ratio_available(cached_device)
 
@@ -461,19 +461,19 @@ function predicates.exporters_SNMP_ratio_column(notification, container)
    end
 
     if body then
-       table.insert(container, notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable))
+       table.insert(container, toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable))
     end
 
 end
 
 -- ###############################################
 
---- Create an instance for forced community notification
---- @param notification table The notification is the logic model defined in defined_notifications
---- @param container table Is the table where to put the new notification ui
-function predicates.forced_community(notification, container)
+--- Create an instance for forced community toast
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.forced_community(toast, container)
    if(ntop.getInfo()["pro.forced_community"] and ntop.exists("/etc/ntopng.license")) then
-        table.insert(container, create_forced_community_notification(notification))
+        table.insert(container, create_forced_community_toast(toast))
     end
 end
 
@@ -494,8 +494,8 @@ local function user_has_bound_recipient()
     return ntop.getCache(pools.FIRST_RECIPIENT_BOUND_CACHE_KEY) == "1"
 end
 
---- Generate a notification to adive the user about notification endpoints
-function predicates.create_endpoint(notification, container)
+--- Generate a toast to adive the user about toast endpoints
+function predicates.create_endpoint(toast, container)
 
     if (not IS_ADMIN) then return end
     if (user_has_created_endpoint()) then return end
@@ -510,14 +510,14 @@ function predicates.create_endpoint(notification, container)
         url = ntop.getHttpPrefix() .. "/lua/admin/endpoint_notifications_list.lua"
     }
 
-    local hint = notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable)
+    local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
 
     table.insert(container, hint)
 
 end
 
--- Generate a second notification to inform the user to create a recipient for the new endpoint
-function predicates.create_recipients_for_endpoint(notification, container)
+-- Generate a second toast to inform the user to create a recipient for the new endpoint
+function predicates.create_recipients_for_endpoint(toast, container)
 
     if (not IS_ADMIN) then return end
     if IS_PCAP_DUMP then return end
@@ -536,12 +536,12 @@ function predicates.create_recipients_for_endpoint(notification, container)
         title = i18n("create")
     }
 
-    local hint = notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable)
+    local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
     table.insert(container, hint)
 end
 
 --- Generate a third notificiation to inform the user to bind the new recipients to a pool
-function predicates.bind_recipient_to_pools(notification, container)
+function predicates.bind_recipient_to_pools(toast, container)
 
     if (not IS_ADMIN) then return end
     if (not user_has_created_endpoint()) then return end
@@ -556,14 +556,14 @@ function predicates.bind_recipient_to_pools(notification, container)
         title = i18n("bind")
     }
 
-    local hint = notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable)
+    local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
     table.insert(container, hint)
 
 end
 
 --- Check if unexpected plugins are disabled and notifiy the user
 --- about their existance
-function predicates.unexpected_plugins(notification, container)
+function predicates.unexpected_plugins(toast, container)
 
     if (not IS_ADMIN) then return end
     if not isEmptyString(ntop.getCache(UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY)) then return end
@@ -581,7 +581,7 @@ function predicates.unexpected_plugins(notification, container)
     })
     local action = { url = url, title = i18n("configure")}
 
-    local hint = notification_ui:create(notification.id, title, body, NotificationLevels.INFO, action, notification.dismissable)
+    local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
     table.insert(container, hint)
 end
 

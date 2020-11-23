@@ -819,7 +819,7 @@ td.dt-body-right {
   margin-bottom: .2rem;
 }
 
-.notification-container {
+.toast-container {
   position: fixed;
   top: 0.5rem;
   right: 0.5rem;

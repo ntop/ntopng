@@ -3,17 +3,17 @@
 --
 
 local page_utils = require("page_utils")
-local predicates = require("predicates_defined_notifications")
+local predicates = require("predicates_defined_toasts")
 
 -- Placeholder for pages/excluded, subpages/excluded tables
 local EMPTY_PAGES = {}
 local pages = page_utils.menu_entries
 
---- Define a new notification is easy, here is 3 steps to follow:
---- 1) choose a new notification id that must be unique
---- 2) define the dismissability of the notification with `dismissable` field
---- 3) define a predicate function that generate the ui for the notification
---- Following there is a structure of a notification:
+--- Define a new toast is easy, here is 3 steps to follow:
+--- 1) choose a new toast id that must be unique
+--- 2) define the dismissability of the toast with `dismissable` field
+--- 3) define a predicate function that generate the ui for the toast
+--- Following there is a structure of a toast:
 --[[
     {
         id: string,
@@ -26,14 +26,14 @@ local pages = page_utils.menu_entries
     }
 ]]--
 
---- id: The id field defines an unique notification to be displayed. This field is used
---- to make the Redis Key for the notification status (the dimiss status)
+--- id: The id field defines an unique toast to be displayed. This field is used
+--- to make the Redis Key for the toast status (the dimiss status)
 
 --- dismissable: as the name suggest, this field indicates if a notifican can be dismissed by the user
---- has_priority: the notifications with this flag enabled won't be count when rendering,
+--- has_priority: the toasts with this flag enabled won't be count when rendering,
 --- so they will alway be displayed
 
---- pages: this is an array of page keys that are used to show the notification to the right page
+--- pages: this is an array of page keys that are used to show the toast to the right page
 --- subpages: this is a table containing key/value pairs where key='page entry key' and the
 --- value is an array of subpages string, for example ({['if_stats'] = {'DHCP', 'config', ...}})
 --- Be aware that the subpage is obtained by the _GET 'page' param.
@@ -41,9 +41,9 @@ local pages = page_utils.menu_entries
 --- excluded_pages: is the opposite of pages
 --- excluded_subpages: is the opposite of subpages
 
---- It's a good convention to put the predicate functions inside the module: `predicates_defined_notifications`
+--- It's a good convention to put the predicate functions inside the module: `predicates_defined_toasts`
 
-local defined_notifications = {
+local defined_toats = {
     {
         id = 0,
         dismissable = false,
@@ -155,7 +155,7 @@ local defined_notifications = {
         excluded_subpages = EMPTY_PAGES
     },
     {
-        -- The same predicate is used with the notification with id 12
+        -- The same predicate is used with the toast with id 12
         -- because thery are mutually exclusive
         id = 11,
         dismissable = true,
@@ -241,4 +241,4 @@ local defined_notifications = {
     },
 }
 
-return defined_notifications
+return defined_toats

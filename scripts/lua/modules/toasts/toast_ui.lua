@@ -5,10 +5,9 @@ require("lua_utils")
 local json = require "dkjson"
 local template = require "template_utils"
 
-local notification_ui = {}
-notification_ui.__index = notification_ui
-
-NotificationLevels = {
+local ToastUI = {}
+ToastUI.__index = ToastUI
+ToastLevels = {
    SUCCESS = {
       icon = "fa-check-circle",
       bg_color = "success",
@@ -35,43 +34,41 @@ NotificationLevels = {
    },
 }
 
-notification_ui.NotificationLevels = NotificationLevels
+ToastUI.ToastLevels = ToastLevels
 
---- Create an instance of an AlertNotification class
--- @param id The notification id
+--- Create an instance of an Alerttoast class
+-- @param id The toast id
 -- @param title The title shows at the top
--- @param description The notification description (its body)
+-- @param description The toast description (its body)
 -- @param level Use different style: danger|info|warning|success
--- @param action The link where the notification brings { url = "#", title = "Click Here!"}
--- @return An AlertNotification instance
-function notification_ui:create(id, title, description, level, action, dismissable)
+-- @param action The link where the toast brings { url = "#", title = "Click Here!"}
+-- @return A Toast UI instance
+function ToastUI:new(id, title, description, level, action, dismissable)
 
    local this = {
        id              = id,
        title           = (title or i18n("info")),
        description     = (description or i18n("description")),
-       level           = (level or NotificationLevels.INFO),
+       level           = (level or ToastLevels.INFO),
        action          = (action or nil),
        dismissable     = dismissable or false
    }
 
-   setmetatable(this, notification_ui)
+   setmetatable(this, ToastUI)
 
    return this
 end
 
--- Return the rendered HTML template for the notification
+-- Return the rendered HTML template for the toast
 -- to be displayed. The return string can be printed inside the page
 -- with the `print` method
-function notification_ui:render()
+function ToastUI:render()
 
-   local context = {
-       notification = self
-   }
+   local context = { toast = self }
 
-   -- Generate the template from the notification.template file
-   return template.gen('pages/components/notification.template', context)
+   -- Generate the template from the toast.template file
+   return template.gen('pages/components/toast.template', context)
 end
 
 
-return notification_ui
+return ToastUI

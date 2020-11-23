@@ -4,7 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/toasts/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 require "lua_utils"
 local alerts_api = require("alerts_api")
@@ -12,10 +12,9 @@ local recording_utils = require "recording_utils"
 local remote_assistance = require "remote_assistance"
 local telemetry_utils = require "telemetry_utils"
 local ts_utils = require("ts_utils_core")
-local blog_utils = require("blog_utils")
 local page_utils = require("page_utils")
 local delete_data_utils = require "delete_data_utils"
-local notifications_manager = require("notifications_manager")
+local toasts_manager = require("toasts_manager")
 local host_pools = require "host_pools"
 local auth = require "auth"
 local blog_utils = require("blog_utils")
@@ -1206,8 +1205,8 @@ print([[
 print([[<main id='n-container' class='px-md-4 px-sm-1'>]])
 
 -- ###################################################
--- Render main alert notifications
-notifications_manager.render_notifications("main-container", notifications_manager.load_main_notifications())
+-- Render toasts
+toasts_manager.render_toasts("main-container", toasts_manager.load_main_toasts())
 -- ###################################################
 
 print("<div class='main-alerts'>")
