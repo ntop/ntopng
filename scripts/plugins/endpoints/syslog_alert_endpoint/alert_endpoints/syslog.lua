@@ -90,7 +90,7 @@ function syslog.sendMessage(settings, notif, severity, syslog_format)
      if ntop.isEnterpriseM() then
         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
         local ecs_format = require "ecs_format"
-        msg = ecs_format.format(notif)
+        msg = json.encode(ecs_format.format(notif))
      else
         return false
      end
