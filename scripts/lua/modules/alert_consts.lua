@@ -513,6 +513,22 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
       return created
    end
 
+   -- EXPERIMENTAL: Do the subclassing
+   if def_script.Alert then
+      local alert_factory = function()
+	 local Alert = require("alert"):new(def_script.Alert)
+	 -- Add the parsed key
+	 Alert:set_def_script(def_script)
+	 -- And possibly creators and and formatters
+	 if def_script.creator then Alert:set_creator(def_script.creator) end
+	 if def_script.formatter then Alert:set_formatter(def_script.formatter) end
+	 -- Place the subclassed Alert instance into the place of Alert
+	 return Alert
+      end
+
+      def_script.new = alert_factory
+   end
+
    def_script.alert_key = parsed_alert_key
    def_script.create = creator
    alert_consts.alert_types[mod_fname] = def_script
