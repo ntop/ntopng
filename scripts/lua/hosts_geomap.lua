@@ -23,7 +23,6 @@ hosts_stats = hosts_stats["hosts"]
 if (num > 0) then
 
   print ([[
-    <div class="container-fluid">
       <div class="row">
         <div class='col-md-12 col-lg-12 col-xs-12 mb-4'>
   ]])
@@ -38,7 +37,6 @@ if (num > 0) then
           <div style="height: 720px" id="map-canvas"></div>
         </div>
       </div>
-    </div>
   ]])
 
   print([[
