@@ -12,7 +12,7 @@ local defined_toasts = require("defined_toasts")
 local MAX_NON_PRIORITY_TOASTS_TO_SHOW = 1
 
 -- Redis Key used to store the toast status
-local REDIS_KEY = "ntopng.user.%s.dismissed_notifications.notification_%d"
+local REDIS_KEY = "ntopng.user.%s.dismissed_toasts.toast_%d"
 local toats_manager = {}
 
 local function toast_has_been_dismissed(toast_id)

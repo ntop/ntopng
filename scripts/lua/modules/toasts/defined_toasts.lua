@@ -236,7 +236,7 @@ local defined_toats = {
         predicate = predicates.unexpected_plugins,
         pages = EMPTY_PAGES,
         subpages = EMPTY_PAGES,
-        excluded_pages = {pages.scripts_config.key},
+        excluded_pages = {pages.scripts_config.key, pages.preferences.key},
         excluded_subpages = EMPTY_PAGES
     },
 }
