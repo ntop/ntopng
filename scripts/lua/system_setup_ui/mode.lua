@@ -51,7 +51,6 @@ local print_page_body = function()
   end
 
   local current_mode = sys_config:getOperatingMode()
-
   local bridge_only = (is_nedge and not ntop.isnEdgeEnterprise())
 
   multipleTableButtonPrefs(i18n("nedge.setup_mode"),

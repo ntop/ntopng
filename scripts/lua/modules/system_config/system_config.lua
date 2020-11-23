@@ -196,15 +196,12 @@ end
 -- ##############################################
 
 -- Returns the current operating mode
+-- nf_config overrides this
 function system_config:getOperatingMode()
-  local bridge_only = (not ntop.isnEdgeEnterprise())
-
-  -- license check
-  if not bridge_only then
-    return self.config.globals.operating_mode
-  else
+  if not self.config.globals.operating_mode then
     return "bridging"
   end
+  return self.config.globals.operating_mode
 end
 
 -- ##############################################
@@ -383,7 +380,11 @@ end
 
 function system_config:getUnusedInterfaces()
   local mode = self:getOperatingMode()
-  return self.config.globals.available_modes[mode].interfaces.unused or {}
+  if mode then
+    return self.config.globals.available_modes[mode].interfaces.unused or {}
+  else
+    return {}
+  end
 end
 
 -- Get the LAN interface, based on the current operating mode
@@ -520,26 +521,20 @@ function system_config:getLocalIpv4Address()
   return lan_address
 end
 
--- Get the physical LAN interfaces, based on the current operating mode
-function system_config:getPhysicalLanInterfaces()
-  local mode = self:getOperatingMode()
+-- ##############################################
 
-  if mode == "bridging" then
-    return self.config.globals.available_modes.bridging.interfaces.lan
-  else
-    return {self.config.globals.available_modes[mode].interfaces.lan, }
-  end
+-- Get the physical LAN interfaces, based on the current operating mode
+-- nf_config and appliance_config override this
+function system_config:getPhysicalLanInterfaces()
+  local interfaces = {}
+  return interfaces
 end
 
 -- Get the physical WAN interfaces, based on the current operating mode
+-- nf_config and appliance_config override this
 function system_config:getPhysicalWanInterfaces()
-  local mode = self:getOperatingMode()
-
-  if mode == "single_port_router" then
-    return {self.config.globals.available_modes[mode].interfaces.wan, }
-  else
-    return self.config.globals.available_modes[mode].interfaces.wan
-  end
+  local interfaces = {}
+  return interfaces
 end
 
 -- ##############################################
@@ -1102,8 +1097,9 @@ end
 
 -- ##############################################
 
+-- nf_config overrides this
 function system_config:isMultipathRoutingEnabled()
-  return false -- nf_config overrides this
+  return false
 end
 
 -- ##############################################
@@ -1183,11 +1179,9 @@ end
 
 -- ##############################################
 
+-- nf_config and appliance_config override this
 function system_config:_guess_config()
    local config = {}
-
-   -- Must override
-
    return config
 end
 

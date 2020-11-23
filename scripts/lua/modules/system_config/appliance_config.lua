@@ -62,6 +62,32 @@ end
 
 -- ##############################################
 
+-- Get the physical LAN interfaces, based on the current operating mode
+-- nf_config overrides this
+function appliance_config:getPhysicalLanInterfaces()
+  local mode = self:getOperatingMode()
+  if mode == "passive" then
+    return { self.config.globals.available_modes[mode].interfaces.lan, }
+  elseif mode == "bridging" then
+    return self.config.globals.available_modes[mode].interfaces.lan
+  else
+    return {}
+  end
+end
+
+-- Get the physical WAN interfaces, based on the current operating mode
+-- nf_config and appliance_config overrides this
+function appliance_config:getPhysicalWanInterfaces()
+  local mode = self:getOperatingMode()
+  if not mode or mode == "passive" then
+    return {}
+  else
+    return self.config.globals.available_modes.bridging.interfaces.wan
+  end
+end
+
+-- ##############################################
+
 function appliance_config:_get_config_skeleton()
    local config = {}
    local defaults = { }

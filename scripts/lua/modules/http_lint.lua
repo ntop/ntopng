@@ -1121,10 +1121,8 @@ local function validateCIDR(m)
 end
 
 local function validateOperatingMode(m)
-   return validateChoice({"single_port_router", "routing", "bridging"}, m)
+   return validateChoice({"single_port_router", "routing", "bridging", "passive"}, m)
 end
-
-
 
 -- #################################################################
 
