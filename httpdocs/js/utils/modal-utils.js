@@ -244,11 +244,21 @@
                     }
 
                     if (input.validity.patternMismatch) {
-                        input.setCustomValidity("Invalid input.");
+                        input.setCustomValidity("Pattern mismatch.");
                         return [false, validation.data.validationMessage || i18n.invalid_field];
                     }
 
-                    // toggle validity to true
+                    if (input.validity.rangeOverflow) {
+                        input.setCustomValidity("Value exceed the maximum value.");
+                        return [false, validation.data.rangeOverflowMessage || i18n.invalid_field];
+                    }
+
+                    if (input.validity.rangeUnderflow) {
+                        input.setCustomValidity("Value is under the minimum value.");
+                        return [false, validation.data.rangeUnderflowMessage || i18n.invalid_field];
+                    }
+
+                    // set validation to true
                     input.setCustomValidity("");
                     return [true, "Success"];
                 }
@@ -260,9 +270,11 @@
                             validationMessage: $input.data('validationMessage'),
                             validationEmptyMessage: $input.data('validationEmptyMessage'),
                             cannotBeEmpty: ($input.attr('required') === "required") || ($input.data("validationNotEmpty") == true),
-                            resolveDNS: $input.data('validationResolvedns')
+                            resolveDNS: $input.data('validationResolvedns'),
+                            rangeOverflowMessage: $input.data('validationRangeOverflowMessage'),
+                            rangeUnderflowMessage: $input.data('validationUnderflowOverflowMessage'),
                         },
-                        isInputEmpty: (typeof($input.val()) == "string" ? $input.val().trim() == "" : false)
+                        isInputEmpty: (typeof($input.val()) === "string" ? $input.val().trim() == "" : false)
                     };
 
                     const [isValid, messageToShow] = await validInput(validation);
@@ -294,12 +306,12 @@
                     if (timeoutId != -1) clearTimeout(timeoutId);
 
                     if (!$input.attr("formnovalidate")) {
-                        // trigger input validation after 500msec
+                        // trigger input validation after 300msec
                         timeoutId = setTimeout(() => {
                             checkValidation();
                             // trigger form validation to enable the submit button
                             self.toggleFormSubmission();
-                        }, 500);
+                        }, 300);
                         // the user has changed the input, we can abort the first close attempt
                         self.firstCloseAttempt = false;
                     }

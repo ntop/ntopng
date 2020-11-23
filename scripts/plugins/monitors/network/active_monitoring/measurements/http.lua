@@ -169,7 +169,7 @@ return {
       -- If set, indicates the default threshold value
       default_threshold = nil,
       -- If set, indicates a maximum threshold value
-      max_threshold = nil,
+      max_threshold = 10000,
       -- A list of additional timeseries (the am_host:val_* is always shown) to show in the charts.
       -- See https://www.ntop.org/guides/ntopng/api/timeseries/adding_new_timeseries.html#charting-new-metrics .
       additional_timeseries = {{
@@ -201,17 +201,17 @@ return {
       i18n_am_ts_metric = "flow_details.round_trip_time",
       operator = "gt",
       default_threshold = nil,
-      max_threshold = nil,
+      max_threshold = 10000,
       additional_timeseries = {{
-	schema="am_host:https_stats",
-	label=i18n("graphs.http_stats"),
-	metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") },
+	    schema="am_host:https_stats",
+	    label=i18n("graphs.http_stats"),
+	    metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") },
       }},
       chart_scaling_value = 1,
       value_js_formatter = "NtopUtils.fmillis",
       i18n_chart_notes = {
-	"active_monitoring_stats.app_connect_descr",
-	"active_monitoring_stats.other_https_descr"
+	      "active_monitoring_stats.app_connect_descr",
+	      "active_monitoring_stats.other_https_descr"
       },
       force_host = nil,
       unreachable_alert_i18n = nil,
