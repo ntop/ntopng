@@ -35,7 +35,7 @@ info["ntopng.license"] = ntop.getCache('ntopng.license')
 if(info["pro.release"] == false) then
    print("<A HREF=\"http://www.gnu.org/licenses/gpl.html\" target=\"_blank\">".. info["license"] .."</A> <i class='fas fa-external-link-alt'></i><br>")
 else
-   print("<A HREF=\"https://svn.ntop.org/svn/ntop/trunk/legal/LicenseAgreement/\" target=\"_blank\">EULA</A> <i class='fas fa-external-link-alt'></i><br>")
+   print("<A HREF=\"https://www.ntop.org/support/faq/what-is-the-end-user-license-agreement-for-binary-products/\" target=\"_blank\">EULA</A> <i class='fas fa-external-link-alt'></i><br>")
 end
 
 if(info["pro.systemid"] and (info["pro.systemid"] ~= "")) then
