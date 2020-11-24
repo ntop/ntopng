@@ -21,6 +21,8 @@ recipients.MAX_NUM_RECIPIENTS = 64 -- Keep in sync with ntop_defines.h MAX_NUM_R
 
 recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.prefs.endpoint_hints.recipient_created"
 
+local default_builtin_minimum_severity = alert_consts.alert_severities.info.severity_id -- minimum severity is notice (to avoid flooding) (*****)
+
 -- ##############################################
 
 -- @brief Performs Initialization operations performed during startup
@@ -32,7 +34,7 @@ function recipients.initialize()
          -- Add the configuration
          local res = notification_configs.add_config(
             endpoint_key --[[ the type of the endpoint--]],
-            "builtin_config_"..endpoint_key --[[ the name of the endpoint configuration --]],
+            "builtin_endpoint_"..endpoint_key --[[ the name of the endpoint configuration --]],
             {} --[[ no default params --]]
          )
 
@@ -43,7 +45,7 @@ function recipients.initialize()
 	       res.endpoint_id --[[ the id of the endpoint --]],
 	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	       nil, -- User script categories
-	       alert_consts.alert_severities.notice.severity_id, -- minimum severity is notice (to avoid flooding) (*****)
+	       default_builtin_minimum_severity,
 	       {} --[[ no recipient params --]]
 	    )
 	 end
@@ -529,7 +531,7 @@ function recipients.get_recipient(recipient_id, include_stats)
 
 	 -- Add minimum alert severity. nil or empty minimum severity assumes a minimum severity of notice
 	 if not tonumber(recipient_details["minimum_severity"]) then
-	    recipient_details["minimum_severity"] = alert_consts.alert_severities.notice.severity_id -- Keep in sync with (*****)
+	    recipient_details["minimum_severity"] = default_builtin_minimum_severity
 	 end
 
 	 if ec then
