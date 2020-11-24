@@ -175,12 +175,14 @@ print_page_body = function()
       saveSelectValue(inverse_input);
     }
 
-    $("#lan_ifaces").change(function() { handleSelect("#lan_ifaces", "#wan_ifaces",
-      ]] print(min_lan_ifaces) print[[, ]] print(min_wan_ifaces)
-      print[[, ]] print(ternary(isEmptyString(max_lan_ifaces), 'undefined', max_lan_ifaces)) print[[); });
-    $("#wan_ifaces").change(function() { handleSelect("#wan_ifaces", "#lan_ifaces",
-      ]] print(min_wan_ifaces) print[[, ]] print(min_lan_ifaces)
-      print[[, ]] print(ternary(isEmptyString(max_wan_ifaces), 'undefined', max_wan_ifaces)) print[[); });
+    $("#lan_ifaces").change(function() { handleSelect("#lan_ifaces", "#wan_ifaces", ]]
+      print(min_lan_ifaces) print[[, ]]
+      print(ternary(isEmptyString(min_wan_ifaces), 'undefined', min_wan_ifaces)) print[[, ]]
+      print(ternary(isEmptyString(max_lan_ifaces), 'undefined', max_lan_ifaces)) print[[); });
+    $("#wan_ifaces").change(function() { handleSelect("#wan_ifaces", "#lan_ifaces", ]]
+      print(ternary(isEmptyString(min_wan_ifaces), 'undefined', min_wan_ifaces)) print[[, ]]
+      print(min_lan_ifaces) print[[, ]]
+      print(ternary(isEmptyString(max_wan_ifaces), 'undefined', max_wan_ifaces)) print[[); });
 
     saveSelectValue($("#lan_ifaces"));
     saveSelectValue($("#wan_ifaces"));

@@ -82,12 +82,12 @@ end
 -- nf_config overrides this
 function appliance_config:getPhysicalLanInterfaces()
   local mode = self:getOperatingMode()
+  if not mode then return {} end
+
   if mode == "passive" then
     return { self.config.globals.available_modes[mode].interfaces.lan, }
   elseif mode == "bridging" then
     return self.config.globals.available_modes[mode].interfaces.lan
-  else
-    return {}
   end
 end
 
@@ -95,11 +95,9 @@ end
 -- nf_config and appliance_config overrides this
 function appliance_config:getPhysicalWanInterfaces()
   local mode = self:getOperatingMode()
-  if not mode or mode == "passive" then
-    return {}
-  else
-    return self.config.globals.available_modes.bridging.interfaces.wan
-  end
+  if not mode then return {} end
+
+  return self.config.globals.available_modes[mode].interfaces.wan
 end
 
 -- ##############################################
@@ -263,15 +261,23 @@ function appliance_config:_guess_config()
 
    local passive = {}
 
-   if(wired_default ~= nil) then
+   local management = nil
+   if wan_iface then
+      management = wan_iface
+   elseif table.len(wired) > 1 then
+      management = wired[0]
+   end
+   if management ~= nil then
       passive["interfaces"] = {}
+      passive["interfaces"]["lan"] = management
+      passive["interfaces"]["wan"] = {}
       passive["interfaces"]["unused"] = {}
-      passive["interfaces"]["lan"] = wired_default
       passive["comment"] = "Passive monitoring appliance"
 
       for a, b in pairsByKeys(wired) do
-         if a ~= wired_default then
-            table.insert(passive["interfaces"]["unused"], a)
+         if a ~= passive["interfaces"]["lan"] then
+            -- table.insert(passive["interfaces"]["unused"], a)
+            table.insert(passive["interfaces"]["wan"], a)
          end
       end
 
