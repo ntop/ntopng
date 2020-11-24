@@ -59,13 +59,13 @@ local function print_page_body()
   local descr = i18n("nedge.lan_recovery_ip_descr", {product=info["product"]}) .. "<br><b>" .. i18n("nedge.lan_recovery_warning") .. "</b>"
   system_setup_ui_utils.printPrivateAddressSelector(i18n("nedge.lan_recovery_ip"), descr, "lan_recovery_ip", "lan_recovery_netmask", lan_recovery.ip, true)
 
+  print('<tr><th colspan=2 style="text-align:right;">')
   if is_nedge then
-    print('<tr><th colspan=2 style="text-align:right;">')
     print('<button class="btn btn-danger disable-on-dirty" type="button" onclick="$(\'#factoryResetDialog\').modal(\'show\');" style="width:200px; float:left;">'..i18n("nedge.factory_reset")..'</button>')
     print('<button class="btn btn-danger disable-on-dirty" type="button" onclick="$(\'#dataResetDialog\').modal(\'show\');" style="width:200px; float:left; margin-left:10px;"> '..i18n("nedge.data_reset")..'</button>')
-    print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')
-    print('</th></tr>')
   end
+  print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')
+  print('</th></tr>')
 end
 
 if not system_setup_ui_utils.print_page_before() then

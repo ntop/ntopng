@@ -284,7 +284,7 @@ function system_setup_ui_utils.printPrivateAddressSelector(label, comment, ip_ke
    end
 
    if extra.net_select ~= false then
-      print[[<select name="]] print(field_id) print[[_net" class="form-control">]]
+      print[[<select name="]] print(field_id) print[[_net" class="form-control d-inline-block" style="width: 9.6rem">]]
 
       for _, preset in pairs(networks_presets) do
          print[[<option value="]] print(preset.prefix) print[["]]
