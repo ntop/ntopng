@@ -695,6 +695,10 @@ local lang = {
     ["thresholds_single_source"] = "%{source} %{alt_name} Configuration",
     ["throughput"] = "Throughput Alert",
   },
+  ["appliance"] = {
+    ["capture_interfaces"] = "Capture Interfaces",
+    ["management"] = "Management Interface",
+  },
   ["arp_page"] = {
     ["arp_type"] = "ARP Type",
   },

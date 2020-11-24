@@ -24,6 +24,12 @@ local tz_utils = require "tz_utils"
 
 -- ##############################################
 
+-- NOTE:
+-- - The LAN interface in "passive" mode is the Management Interface
+-- - WAN interfaces in "passive" mode are the Capture Interfaces
+
+-- ##############################################
+
 local appliance_config = {}
 
 -- ##############################################
@@ -58,6 +64,16 @@ function appliance_config:getSupportedModes()
   }
 
   return all_modes
+end
+
+-- ##############################################
+
+function appliance_config:getOperatingMode()
+  if not self.config.globals.operating_mode then
+    return "passive"
+  end
+
+  return self.config.globals.operating_mode
 end
 
 -- ##############################################

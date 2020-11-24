@@ -25,34 +25,18 @@ end
 
 system_setup_ui_utils.process_apply_discard_config(sys_config)
 
+local mode = sys_config:getOperatingMode()
+
 if (_POST["lan_interfaces"] ~= nil) and (_POST["wan_interfaces"] ~= nil) then
   sys_config:setLanWanIfaces(split(_POST["lan_interfaces"], ","), split(_POST["wan_interfaces"], ","))
 
-  local mode = sys_config:getOperatingMode()
-
-  if (mode ~= "bridging") then
+  if (mode == "routing") then
     -- Ensure we are on static mode on the lan inteface
     local lan_iface = sys_config:getLanInterface()
     sys_config:setInterfaceMode(lan_iface, "static")
   end
 
   sys_config:save()
-end
-
-local mode = sys_config:getOperatingMode()
-
-local min_lan_ifaces = "1"
-local max_lan_ifaces = "1"
-local min_wan_ifaces = "1"
-local max_wan_ifaces = ""
-
-if mode == "routing" then
-  max_lan_ifaces = "1"
-  max_wan_ifaces = ""
-elseif mode == "bridging" then
-  -- temporary limits - we need to support multiple LAN interfaces in C code
-  max_lan_ifaces = "1"
-  max_wan_ifaces = "1"
 end
 
 local function valuesToKeys(t)
@@ -75,7 +59,33 @@ local function printIfSelected(iface, interfaces_set)
   print([[>]] .. iface .. [[</option>]])
 end
 
-local print_page_body = function()
+local print_page_body
+
+-- Interaface limits configuration
+local min_lan_ifaces = "1"
+local min_wan_ifaces = "1"
+local max_lan_ifaces = "1"
+local max_wan_ifaces = ""
+if mode == "routing" then
+  -- nothing to change
+elseif mode == "bridging" then
+  -- temporary limits - we need to support multiple LAN interfaces in C code
+  max_wan_ifaces = "1"
+elseif mode == "passive" then
+  min_wan_ifaces = ""
+end
+
+local lan_label
+local wan_label
+if mode == "passive" then
+  lan_label = i18n("appliance.management")
+  wan_label = i18n("appliance.capture_interfaces")
+else
+  lan_label = i18n("nedge.lan")
+  wan_label = i18n("nedge.wan")
+end
+
+print_page_body = function()
   printPageSection(i18n("prefs.network_interfaces"))
 
   local ifaces = sys_config:getAllInterfaces()
@@ -87,7 +97,7 @@ local print_page_body = function()
       <input name="wan_interfaces" type="hidden">
 
       <div class="form-group" style="width:40%; margin-left:5%; display:inline-block;">
-        <label for="lan_ifaces">]] print(i18n("nedge.lan")) print[[</label>
+        <label for="lan_ifaces">]] print(lan_label) print[[</label>
         <select id="lan_ifaces" class="form-control" name="lan_ifaces" style="min-height: 150px;" multiple>]]
 
   for iface, role in pairsByKeys(ifaces) do
@@ -97,7 +107,7 @@ local print_page_body = function()
   print[[</select>
       </div>
       <div class="form-group" style="width:40%; margin-right:5%; display:inline-block; float:right;">
-        <label for="wan_ifaces" >]] print(i18n("nedge.wan")) print[[</label>
+        <label for="wan_ifaces" >]] print(wan_label) print[[</label>
         <select id="wan_ifaces" class="form-control" name="wan_ifaces" style="min-height: 150px;" multiple>]]
 
   for iface, role in pairsByKeys(ifaces) do
@@ -167,10 +177,10 @@ local print_page_body = function()
 
     $("#lan_ifaces").change(function() { handleSelect("#lan_ifaces", "#wan_ifaces",
       ]] print(min_lan_ifaces) print[[, ]] print(min_wan_ifaces)
-     print[[, ]] print(ternary(isEmptyString(max_lan_ifaces), 'undefined', max_lan_ifaces)) print[[); });
+      print[[, ]] print(ternary(isEmptyString(max_lan_ifaces), 'undefined', max_lan_ifaces)) print[[); });
     $("#wan_ifaces").change(function() { handleSelect("#wan_ifaces", "#lan_ifaces",
       ]] print(min_wan_ifaces) print[[, ]] print(min_lan_ifaces)
-     print[[, ]] print(ternary(isEmptyString(max_wan_ifaces), 'undefined', max_wan_ifaces)) print[[); });
+      print[[, ]] print(ternary(isEmptyString(max_wan_ifaces), 'undefined', max_wan_ifaces)) print[[); });
 
     saveSelectValue($("#lan_ifaces"));
     saveSelectValue($("#wan_ifaces"));
@@ -189,7 +199,6 @@ local print_page_body = function()
     });
   </script>
 ]]
-
 
   printSaveButton()
 end

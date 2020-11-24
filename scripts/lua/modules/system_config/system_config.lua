@@ -196,11 +196,8 @@ end
 -- ##############################################
 
 -- Returns the current operating mode
--- nf_config overrides this
+-- nf_config and appliance_config override this
 function system_config:getOperatingMode()
-  if not self.config.globals.operating_mode then
-    return "bridging"
-  end
   return self.config.globals.operating_mode
 end
 
