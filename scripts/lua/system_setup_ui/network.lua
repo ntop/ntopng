@@ -95,18 +95,26 @@ local function printLanLikeConfig(if_name, if_id, ifconf)
 end
 
 -- Static/Dynamic ip configuration, with gateway and speed
-local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface)
+local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, routing_interface)
   local mode = ifconf.network.mode or "static"
   local show_static = ternary(mode == "static", true, false)
-  local title = ternary(bridge_interface, i18n("bridge"), i18n("nedge.network_conf_iface_title", {ifname = if_name, ifrole = i18n("nedge.wan")}))
+  local title
   local mode_values = {"static", "dhcp"}
   local mode_labels = {i18n("nedge.network_conf_static"), i18n("nedge.network_conf_dhcp")}
+
+  if bridge_interface then
+    title = i18n("bridge")
+  elseif routing_interface then
+    title = i18n("nedge.network_conf_iface_title", {ifname = if_name, ifrole = i18n("nedge.wan")})
+  else
+    title = i18n("appliance.management")
+  end
 
   printPageSection("<span id='" .. if_name .. "_interface'>" .. title  .. "</span>")
 
   print[[<input type="hidden" name="iface_id_]] print(if_id) print[[" value="]] print(if_name) print[[" />]]
 
-  if not bridge_interface then
+  if routing_interface then
     prefsToggleButton(subpage_active, {
       title = i18n("nedge.enable_interface"),
       description = i18n("nedge.enable_interface_descr"),
@@ -117,12 +125,13 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface)
       default = ternary(not disabled_wans[if_name], "1", "0"),
       to_switch = nil,
     })
-  else
+  end
+
+  if bridge_interface then
      -- in bridge mode, we allow the bridge to be on a VLAN trunk
      mode_values[#mode_values + 1] = "vlan_trunk"
      mode_labels[#mode_labels + 1] = i18n("nedge.network_conf_vlan_trunk")
   end
-
 
   local elementToSwitch = {"iface_ip_"..if_id, "iface_gw_"..if_id, "iface_netmask_"..if_id}
   local showElementArray = {true, false, false}
@@ -149,12 +158,11 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface)
           "", "iface_gw_"..if_id, ifconf.network.gateway or "0.0.0.0", nil, show_static, nil, nil,
           {required=true, pattern=getIPv4Pattern()})
 
-  -- Speed (kbps)
-  local fifty_six_kbits = 56
-  local ten_megabits = 1000 * 10
-  local one_hundred_gbits = 1000 * 1000 * 100
-
   if is_nedge then
+    -- Speed (kbps)
+    local fifty_six_kbits = 56
+    local ten_megabits = 1000 * 10
+    local one_hundred_gbits = 1000 * 1000 * 100
 
     prefsInputFieldPrefs(i18n("nedge.download_speed"), i18n("nedge.download_description"),
       "", "iface_down_"..if_id, ifconf.speed.download or ten_megabits, "number", true, nil, nil,
@@ -164,7 +172,7 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface)
       "", "iface_up_"..if_id, ifconf.speed.upload or ten_megabits, "number", true, nil, nil,
       {min=fifty_six_kbits, max=one_hundred_gbits, tformat="kmg", format_spec=FMT_TO_DATA_RATES_KBPS})
 
-    if not bridge_interface then
+    if routing_interface then
       prefsToggleButton(subpage_active, {
         title = i18n("nedge.enable_nat"),
         description = i18n("nedge.enable_nat_descr"),
@@ -177,6 +185,22 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface)
       })
     end
   end
+end
+
+local function print_passive_page_body()
+  local if_name = sys_config:getBridgeInterfaceName()
+  local interfaces_config = sys_config:getInterfacesConfiguration()
+
+  printWanLikeConfig(if_name, "0", interfaces_config[if_name], false, false)
+  printSaveButton()
+end
+
+local function print_bridging_page_body()
+  local if_name = sys_config:getBridgeInterfaceName()
+  local interfaces_config = sys_config:getInterfacesConfiguration()
+
+  printWanLikeConfig(if_name, "0", interfaces_config[if_name], true, false)
+  printSaveButton()
 end
 
 local function print_routing_page_body()
@@ -203,7 +227,7 @@ local function print_routing_page_body()
     -- Wan after
     for if_name, role in pairsByKeys(all_interfaces, asc_insensitive) do
       if (role == "wan") and (interfaces_config[if_name] ~= nil) then
-        printWanLikeConfig(if_name, ifname_to_id[if_name], interfaces_config[if_name])
+        printWanLikeConfig(if_name, ifname_to_id[if_name], interfaces_config[if_name], true)
       end
     end
   else
@@ -213,13 +237,14 @@ local function print_routing_page_body()
   printSaveButton()
 end
 
-local function print_bridging_page_body()
-  local if_name = sys_config:getBridgeInterfaceName()
-  local interfaces_config = sys_config:getInterfacesConfiguration()
-
-  printWanLikeConfig(if_name, "0", interfaces_config[if_name], true)
-  printSaveButton()
+local print_page_body_callback
+if operating_mode == "passive" then
+  print_page_body_callback = print_passive_page_body
+elseif operating_mode == "bridging" then
+  print_page_body_callback = print_bridging_page_body
+else -- operating_mode == "routing"
+  print_page_body_callback = print_routing_page_body
 end
 
-system_setup_ui_utils.print_setup_page(ternary(operating_mode == "bridging", print_bridging_page_body, print_routing_page_body), sys_config)
+system_setup_ui_utils.print_setup_page(print_page_body_callback, sys_config)
 
