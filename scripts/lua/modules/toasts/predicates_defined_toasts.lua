@@ -11,7 +11,8 @@ local recipients_manager        = require("recipients")
 local page_utils                = require('page_utils')
 local telemetry_utils           = require("telemetry_utils")
 local toast_ui                  = require("toast_ui")
-local prefs_factory_reset_utils = require ("prefs_factory_reset_utils")
+local delete_data_utils         = require("delete_data_utils")
+local prefs_factory_reset_utils = require("prefs_factory_reset_utils")
 
 local info = ntop.getInfo()
 local prefs = ntop.getPrefs()
@@ -170,13 +171,10 @@ end
 
 -- ##################################################################
 
-local function create_restart_required_toast(toast)
+--- 
+local function create_restart_required_toast(toast, description)
 
     local title = i18n("restart.restart_required")
-    local description = i18n("manage_configurations.after_reset_request", {
-        product = ntop.getInfo()["product"]
-    })
-
     local action = nil
     -- only the ntop packed can be restarted
     if IS_ADMIN and ntop.isPackage() and not ntop.isWindows() then
@@ -197,8 +195,17 @@ end
 --- @param container table Is the table where to put the new toast ui
 function predicates.restart_required(toast, container)
 
+    -- ifname is defined globally
+    local delete_active_interface_requested = delete_data_utils.delete_active_interface_data_requested(ifname)
+    if delete_active_interface_requested then
+        table.insert(container, create_restart_required_toast(toast, i18n("delete_data.restart_product_toast", {
+            product = ntop.getInfo()["product"]
+        })))
+    end
     if prefs_factory_reset_utils.is_prefs_factory_reset_requested() then
-        table.insert(container, create_restart_required_toast(toast))
+        table.insert(container, create_restart_required_toast(toast, i18n("manage_configurations.after_reset_request", {
+            product = ntop.getInfo()["product"]
+        })))
     end
 
 end

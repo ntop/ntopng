@@ -994,6 +994,7 @@ local lang = {
     ["msg_err_unknown"] = "An unknown error occurred.",
     ["node_nindex_flows"] = "WARNING: nIndex is enabled for flows dump, historical flows information will not be deleted.",
     ["note_persistent_data"] = "All the persistent data is deleted. Data include traffic counters, timeseries, flows, alerts, and Redis caches.",
+    ["restart_product_toast"] = "Restart %{product} to make the deletion of active interface effective.",
   },
   ["details"] = {
     ["additional_mac_address"] = "Additional MAC Address",

@@ -33,8 +33,6 @@ end
 
 local info = ntop.getInfo()
 
-local delete_data_utils = require "delete_data_utils"
-
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.manage_data)
@@ -177,6 +175,7 @@ if not delete_active_interface_requested then
                 product = ntop.getInfo().product
             }),
             confirm = i18n("delete"),
+            custom_alert_class = 'alert alert-danger',
             confirm_button = "btn-danger"
         }
     }))
