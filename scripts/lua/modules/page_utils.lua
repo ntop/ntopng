@@ -90,7 +90,7 @@ page_utils.menu_entries = {
     infrastructure_dashboard = {key = "infrastructure_dashboard", i18n_title = "infrastructure_dashboard.infrastructure_dashboard", section = "pollers", visible_iface = false, visible_system = true},
 
     -- Status (Health)
-    system_status	 = {key = "status", i18n_title = "system_status", section = "system_health", visible_system = true},
+    system_status	 = {key = "system_status", i18n_title = "system_status", section = "system_health", visible_system = true},
     interfaces_status	 = {key = "interfaces_status", i18n_title = "system_interfaces_status", section = "system_health", visible_system = true},
     alerts_status	 = {key = "alerts_status", i18n_title = "system_alerts_status", section = "system_health", visible_system = true},
 
@@ -371,54 +371,19 @@ end
 -- #################################
 
 function page_utils.print_navbar(title, base_url, items_table, label_url)
-   -- label_url: is the link for navabr-brand, the default link is #
 
-   print[[
+   local help_link = page_utils.menu_entries[active_entry].help_link or nil
 
-<nav class="navbar navbar-shadow navbar-expand-lg navbar-light bg-light mb-4">]]
-
-   if label_url == nil then
-      print(title)
-   else
-      print[[
-         <a class="navbar-brand" href="]] print((label_url and label_url or '#')) print[["><small>]] print(title) print[[</small></a>
-      ]]
-   end
-
-print[[
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse scroll-x" id="navbarNav">
-    <ul class="navbar-nav">]]
-
-   for _, item in ipairs(items_table) do
-      if not item["hidden"] then
-	 local badge = ''
-	 if tonumber(item["badge_num"]) and tonumber(item["badge_num"]) > 0 then
-	    badge = string.format(' <span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">%u</span>', tonumber(item["badge_num"]))
-	 end
-
-	 if item["active"] then
-	    print(string.format("<li class=\"nav-item active\">%s<a class=\"nav-link active\" href=\"#\">%s</a></li>", badge, item["label"]))
-	 else
-	    local url
-
-	    if(not isEmptyString(item["url"])) then
-		   url = item["url"]
-	    else
-		   url = base_url .. "&page=" .. item["page_name"]
-	    end
-
-	    print(string.format("<li class=\"nav-item\">%s<a class=\"nav-link\" href=\"%s\">%s</a></li>", badge, url, item["label"]))
-	 end
-      end
-   end
-   print[[
-    </ul>
-  </div>
-</nav>
-]]
+   local context = {
+      navbar = {
+         title = title,
+         base_url = base_url,
+         items_table = items_table,
+         label_url = label_url,
+         help_link = help_link
+      }
+   }
+   print(template_utils.gen("pages/components/page-navbar.template", context))
 end
 
 -- #################################

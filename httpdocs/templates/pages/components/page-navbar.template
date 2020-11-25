@@ -1,0 +1,58 @@
+<nav class="navbar navbar-shadow navbar-expand-lg navbar-light bg-light mb-4">
+    {% if (navbar.label_url == nil) then %}
+        <span class="mr-1">{* navbar.title *}</span>
+    {% else %}
+        <a class="navbar-brand" href="{* (navbar.label_url and navbar.label_url or '#') *}">
+            <small>{* navbar.title *}</small>
+        </a>
+    {% end %}
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse scroll-x" id="navbarNav">
+        <ul class="navbar-nav">
+            {% for _, item in ipairs(navbar.items_table) do %}
+
+                {% if (not item.hidden) then %}
+ 
+                    {% if (item.active) then %}
+
+                        <li class="nav-item nav-link active">
+                            {% if tonumber(item.badge_num) and tonumber(item.badge_num) > 0 then %}
+                                <span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">{{ item.badge_num }}</span>
+                            {% end %}
+                            {* item.label *}
+                        </li>
+                    {% else %}
+
+                        {%
+                            local url
+                            if (not isEmptyString(item.url)) then
+                                url = item.url
+                            else
+                                url = navbar.base_url .. "&page=" .. item.page_name
+                            end
+                        %}
+
+                        <a href="{{ url }}" class="nav-item nav-link">
+                            {% if tonumber(item.badge_num) and tonumber(item.badge_num) > 0 then %}
+                                <span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">{{ item.badge_num }}</span>
+                            {% end %}
+                            {* item.label *}
+                        </a>
+
+                    {% end %}
+
+                {% end %}
+
+            {% end %}
+        </ul>
+        {% if (navbar.help_link ~= nil) then %}
+        <ul class="navbar-nav ml-auto">
+            <a target='_newtab' href='{* navbar.help_link *}' class='nav-item nav-link text-muted'>
+                <i class='fas fa-question-circle'></i>
+            </a>
+        </ul>
+        {% end %}
+    </div>
+</nav>
