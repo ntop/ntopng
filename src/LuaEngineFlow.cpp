@@ -19,6 +19,7 @@
  *
  */
 
+#include "ntop_includes.h"
 
 /* ****************************************** */
 
@@ -1151,6 +1152,16 @@ static int ntop_flow_set_custom_info(lua_State* vm) {
 
 /* ****************************************** */
 
+void lua_push_rawdata_table_entry(lua_State *L, const char *key, u_int32_t len, u_int8_t *payload) {
+  if(L) {
+    lua_pushstring(L, key);
+    lua_pushlstring(L, (const char*)payload, (size_t)len);
+    lua_settable(L, -3);
+  }
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_ndpi_match_packet(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1174,7 +1185,7 @@ static int ntop_flow_get_ndpi_match_packet(lua_State* vm) {
 
 /* **************************************************************** */
 
-static const luaL_Reg ntop_flow_reg[] = {
+static luaL_Reg _ntop_flow_reg[] = {
 /* Public User Scripts API, documented at doc/src/api/lua_c/flow_user_scripts/flow.lua */
   { "getStatus",                ntop_flow_get_status                 },
   { "setStatus",                ntop_flow_set_status                 },
@@ -1270,4 +1281,4 @@ static const luaL_Reg ntop_flow_reg[] = {
   { NULL,                       NULL }
 };
 
-
+luaL_Reg *ntop_flow_reg = _ntop_flow_reg;

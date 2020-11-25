@@ -19,6 +19,7 @@
  *
  */
 
+#include "ntop_includes.h"
 
 /* ****************************************** */
 
@@ -37,6 +38,7 @@ static int ntop_network_get_network_stats(lua_State* vm) {
 
 static int ntop_network_get_alerts(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
+
   return ntop_get_alerts(vm, c->network);
 }
 
@@ -136,7 +138,7 @@ static int ntop_network_release_triggered_alert(lua_State* vm) {
 
 /* **************************************************************** */
 
-static const luaL_Reg ntop_network_reg[] = {
+static luaL_Reg _ntop_network_reg[] = {
 /* Public User Scripts API, documented at doc/src/api/lua_c/network_user_scripts/network.lua */
   { "getNetworkStats",          ntop_network_get_network_stats       },
 /* END Public API */
@@ -151,3 +153,4 @@ static const luaL_Reg ntop_network_reg[] = {
   { NULL,                     NULL }
 };
 
+luaL_Reg *ntop_network_reg = _ntop_network_reg;

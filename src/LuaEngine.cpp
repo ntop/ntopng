@@ -29,15 +29,13 @@
 #define LIB_VERSION "1.4.7"
 #endif
 
-extern "C" {
-#include "rrd.h"
-};
-
-#include "../third-party/speedtest.c"
-
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } }; /* TODO remove */
-static int live_extraction_num = 0;
-static Mutex live_extraction_num_lock;
+
+extern luaL_Reg *ntop_interface_reg;
+extern luaL_Reg *ntop_reg;
+extern luaL_Reg *ntop_host_reg;
+extern luaL_Reg *ntop_network_reg;
+extern luaL_Reg *ntop_flow_reg;
 
 /* ******************************* */
 
@@ -179,62 +177,272 @@ LuaEngine::~LuaEngine() {
 
 /* ****************************************** */
 
-#include "LuaEngineInterface.cpp.inc"
-#include "LuaEngineNtop.cpp.inc"
-#include "LuaEngineHost.cpp.inc"
-#include "LuaEngineNetwork.cpp.inc"
-#include "LuaEngineFlow.cpp.inc"
-
-/* ****************************************** */
-
-void LuaEngine::luaRegister(lua_State *L, const ntop_class_reg *reg) {
-  static const luaL_Reg _meta[] = { { NULL, NULL } };
+void LuaEngine::luaRegister(lua_State *L, const char *class_name, luaL_Reg *class_methods) {
+  const luaL_Reg _meta[] = { { NULL, NULL } };
   int lib_id, meta_id;
-
+  
   /* newclass = {} */
   lua_createtable(L, 0, 0);
   lib_id = lua_gettop(L);
 
   /* metatable = {} */
-  luaL_newmetatable(L, reg->class_name);
+  luaL_newmetatable(L, class_name);
   meta_id = lua_gettop(L);
   luaL_setfuncs(L, _meta, 0);
 
   /* metatable.__index = class_methods */
   lua_newtable(L);
-  luaL_setfuncs(L, reg->class_methods, 0);
+  luaL_setfuncs(L, class_methods, 0);
   lua_setfield(L, meta_id, "__index");
 
   /* class.__metatable = metatable */
   lua_setmetatable(L, lib_id);
 
   /* _G["Foo"] = newclass */
-  lua_setglobal(L, reg->class_name);
+  lua_setglobal(L, class_name);
 }
 
 /* ****************************************** */
 
-void LuaEngine::luaRegisterInternalRegs(lua_State *L) {
-  int i;
+static int ntop_lua_http_print(lua_State* vm) {
+  struct mg_connection *conn;
+  char *printtype;
+  int t;
 
-  ntop_class_reg ntop_lua_reg[] = {
-    { "interface", ntop_interface_reg },
-    { "ntop",      ntop_reg           },
-    { "host",      ntop_host_reg      },
-    { "network",   ntop_network_reg   },
-    { "flow",      ntop_flow_reg      },
-    {NULL,         NULL}
-  };
+  conn = getLuaVMUserdata(vm, conn);
 
-  for(i=0; ntop_lua_reg[i].class_name != NULL; i++)
-    LuaEngine::luaRegister(L, &ntop_lua_reg[i]);
+  /* ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__); */
+
+  /* Handle binary blob */
+  if((lua_type(vm, 2) == LUA_TSTRING)
+     && (printtype = (char*)lua_tostring(vm, 2)) != NULL)
+    if(!strncmp(printtype, "blob", 4)) {
+      char *str = NULL;
+
+      if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+      if((str = (char*)lua_tostring(vm, 1)) != NULL) {
+	int len = strlen(str);
+
+	if(len <= 1)
+	  mg_printf(conn, "%c", str[0]);
+	else
+	  return(CONST_LUA_PARAM_ERROR);
+      }
+
+      lua_pushnil(vm);
+      return(CONST_LUA_OK);
+    }
+
+  switch(t = lua_type(vm, 1)) {
+  case LUA_TNIL:
+    mg_printf(conn, "%s", "nil");
+    break;
+
+  case LUA_TBOOLEAN:
+  {
+    int v = lua_toboolean(vm, 1);
+
+    mg_printf(conn, "%s", v ? "true" : "false");
+  }
+  break;
+
+  case LUA_TSTRING:
+  {
+    char *str = (char*)lua_tostring(vm, 1);
+
+    if(str && (strlen(str) > 0))
+      mg_printf(conn, "%s", str);
+  }
+  break;
+
+  case LUA_TNUMBER:
+  {
+    char str[64];
+
+    snprintf(str, sizeof(str), "%f", (float)lua_tonumber(vm, 1));
+    mg_printf(conn, "%s", str);
+  }
+  break;
+
+  case LUA_TTABLE:
+    {
+      lua_pushnil(vm);
+
+      while(lua_next(vm, -2) != 0) {
+	const char *key = lua_tostring(vm, -2);
+
+	if(lua_isstring(vm, -1))
+	  mg_printf(conn, "%s = %s", key, lua_tostring(vm, -1));
+	else if(lua_isnumber(vm, -1))
+	  mg_printf(conn, "%s = %d", key, (int)lua_tonumber(vm, -1));
+	else if(lua_istable(vm, -1)) {
+	  mg_printf(conn, "%s", key);
+	  // PrintTable(vm);
+	}
+	lua_pop(vm, 1);
+      }
+    }
+  break;
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled",
+				 __FUNCTION__, t);
+    return(CONST_LUA_ERROR);
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
+
+int ntop_lua_cli_print(lua_State* vm) {
+  int t;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  switch(t = lua_type(vm, 1)) {
+  case LUA_TSTRING:
+  {
+    char *str = (char*)lua_tostring(vm, 1);
+
+    if(str && (strlen(str) > 0))
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", str);
+  }
+  break;
+
+  case LUA_TNUMBER:
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%f", (float)lua_tonumber(vm, 1));
+    break;
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled",
+				 __FUNCTION__, t);
+    return(CONST_LUA_ERROR);
+  }
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
+
+static int __ntop_lua_handlefile(lua_State* L, char *script_path, bool ex) {
+  int rc;
+  LuaHandler *lh = new LuaHandler(L, script_path);
+
+  rc = lh->luaL_dofileM(ex);
+  delete lh;
+  return rc;
+}
+
+/* ****************************************** */
+
+/* This function is called by Lua scripts when the call require(...) */
+static int ntop_lua_require(lua_State* L) {
+  char *script_name;
+
+  if(lua_type(L, 1) != LUA_TSTRING ||
+     (script_name = (char*)lua_tostring(L, 1)) == NULL)
+    return 0;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s)", __FUNCTION__, script_name);
+
+  lua_getglobal( L, "package" );
+  lua_getfield( L, -1, "path" );
+
+  string cur_path = lua_tostring( L, -1 ), parsed, script_path = "";
+  stringstream input_stringstream(cur_path);
+  while(getline(input_stringstream, parsed, ';')) {
+    /* Example: package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path */
+    unsigned found = parsed.find_last_of("?");
+    if(found) {
+      string s = parsed.substr(0, found) + script_name + ".lua";
+      size_t first_dot = s.find("."), last_dot  = s.rfind(".");
+
+      /*
+	Lua transforms file names when directories are used.
+	Example:  i18n/version.lua -> i18n.version.lua
+
+	So we need to revert this logic back and the code
+	below is doing exactly this
+      */
+      if((first_dot != string::npos)
+	 && (last_dot != string::npos)
+	 && (first_dot != last_dot))
+	s.replace(first_dot, 1, "/");
+
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] Searching %s", __FUNCTION__, s.c_str());
+
+      if(Utils::file_exists(s.c_str())) {
+	script_path = s;
+	ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] Found %s", __FUNCTION__, s.c_str());
+	break;
+      }
+    }
+  }
+
+  if(script_path == "" ||
+	  __ntop_lua_handlefile(L, (char *)script_path.c_str(),  false)) {
+    if(lua_type(L, -1) == LUA_TSTRING) {
+      const char *err = lua_tostring(L, -1);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path.c_str(), err ? err : "");
+    }
+
+    return 0;
+  }
+
+  return 1;
+}
+
+/* ****************************************** */
+
+static int ntop_lua_xfile(lua_State* L, bool ex) {
+  char *script_path;
+  int ret;
+
+  if(lua_type(L, 1) != LUA_TSTRING ||
+     (script_path = (char*)lua_tostring(L, 1)) == NULL)
+    return 0;
+
+  ret = __ntop_lua_handlefile(L, script_path, ex);
+
+  if(ret && (!lua_isnil(L, -1))) {
+    const char *msg = lua_tostring(L, -1);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure %s", msg);
+  }
+
+  return !ret;
+}
+
+/* ****************************************** */
+
+static int ntop_lua_dofile(lua_State* L) {
+  return ntop_lua_xfile(L, true);
+}
+
+/* ****************************************** */
+
+static int ntop_lua_loadfile(lua_State* L) {
+  return ntop_lua_xfile(L, false);
+}
+
+#endif
+
+/* ****************************************** */
 
 void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
   if(!L) return;
 
-  LuaEngine::luaRegisterInternalRegs(L);
-
+  /* ntop add-ons */
+  luaRegister(L, "interface", ntop_interface_reg);
+  luaRegister(L, "ntop",      ntop_reg);
+  luaRegister(L, "host",      ntop_host_reg);
+  luaRegister(L, "network",   ntop_network_reg);
+  luaRegister(L, "flow",      ntop_flow_reg);
+  
   if(http_mode) {
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps data on HTTP server */
     lua_register(L, "print", ntop_lua_http_print);
@@ -628,6 +836,26 @@ bool LuaEngine::setParamsTable(lua_State* vm,
 
 /* ****************************************** */
 
+void build_redirect(const char *url, const char * query_string,
+		    char *buf, size_t bufsize) {
+  snprintf(buf, bufsize, "HTTP/1.1 302 Found\r\n"
+     "Location: %s%s%s\r\n\r\n"
+     "<html>\n"
+     "<head>\n"
+     "<title>Moved</title>\n"
+     "</head>\n"
+     "<body>\n"
+     "<h1>Moved</h1>\n"
+     "<p>This page has moved to <a href=\"%s\">%s</a>.</p>\n"
+     "</body>\n"
+     "</html>\n", url,
+     query_string ? "?" : "",
+     query_string ? query_string : "",
+     url, url);
+}
+
+/* ****************************************** */
+
 int LuaEngine::handle_script_request(struct mg_connection *conn,
 				     const struct mg_request_info *request_info,
 				     char *script_path, bool *attack_attempt,
@@ -768,8 +996,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     *attack_attempt = setParamsTable(L, request_info, "_POST", NULL /* Empty */);
 
   if(send_redirect) {
-    char buf[512];
-    char uri[512];
+    char buf[512], uri[512];
+    
     snprintf(uri, sizeof(uri), "%s%s", ntop->getPrefs()->get_http_prefix(), request_info->uri);
     build_redirect(uri, request_info->query_string, buf, sizeof(buf));
 

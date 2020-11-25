@@ -19,6 +19,7 @@
  *
  */
 
+#include "ntop_includes.h"
 
 /* ****************************************** */
 
@@ -118,6 +119,7 @@ static int ntop_host_set_cached_alert_value(lua_State* vm) {
 
 static int ntop_host_get_alerts(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
+
   return ntop_get_alerts(vm, c->host);
 }
 
@@ -387,9 +389,90 @@ static int ntop_host_get_behaviour_info(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable, int idx) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *key, *alert_subtype, *alert_json;
+  ScriptPeriodicity periodicity;
+  AlertLevel alert_severity;
+  AlertType alert_type;
+  Host *host;
+  bool triggered;
+
+  if(!alertable || !c->iface) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_severity = (AlertLevel)lua_tointeger(vm, idx++);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_type = (AlertType)lua_tonumber(vm, idx++);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((alert_subtype = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((alert_json = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  triggered = alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
+    alert_severity, alert_type, alert_subtype, alert_json);
+
+  if(triggered && (host = dynamic_cast<Host*>(alertable)))
+    host->incTotalAlerts(alert_type);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *alertable, int idx) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *key;
+  ScriptPeriodicity periodicity;
+  time_t when;
+
+  if(!c->iface || !alertable) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  when = (time_t)lua_tonumber(vm, idx++);
+
+  /* The released alert will be pushed to LUA */
+  alertable->releaseAlert(vm, std::string(key), periodicity, when);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_store_triggered_alert(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+
+  return ntop_store_triggered_alert(vm, c->host);
+}
+
+/* ****************************************** */
+
+static int ntop_host_release_triggered_alert(lua_State* vm) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+
+  return ntop_release_triggered_alert(vm, c->host);
+}
+
 /* **************************************************************** */
 
-static const luaL_Reg ntop_host_reg[] = {
+static luaL_Reg _ntop_host_reg[] = {
 /* Public User Scripts API, documented at doc/src/api/lua_c/host_user_scripts/host.lua */
   { "getIp",                  ntop_host_get_ip                  },
   { "getApplicationBytes",    ntop_host_get_application_bytes   },
@@ -423,3 +506,4 @@ static const luaL_Reg ntop_host_reg[] = {
   { NULL,                     NULL }
 };
 
+luaL_Reg *ntop_host_reg = _ntop_host_reg;

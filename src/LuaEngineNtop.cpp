@@ -19,6 +19,16 @@
  *
  */
 
+#include "ntop_includes.h"
+
+extern "C" {
+#include "rrd.h"
+};
+
+#include "../third-party/speedtest.c"
+
+static int live_extraction_num = 0;
+static Mutex live_extraction_num_lock;
 
 /* ******************************* */
 
@@ -1140,6 +1150,79 @@ static int ntop_zmq_disconnect(lua_State* vm) {
 
 /* ****************************************** */
 
+#ifndef HAVE_NEDGE
+static int ntop_zmq_receive(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  void *subscriber;
+  int size;
+  struct zmq_msg_hdr h;
+  char *payload;
+  int payload_len;
+  zmq_pollitem_t item;
+  int rc;
+
+  subscriber = getLuaVMUserdata(vm, zmq_subscriber);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  item.socket = subscriber;
+  item.events = ZMQ_POLLIN;
+  do {
+    rc = zmq_poll(&item, 1, 1000);
+    if(rc < 0 || !ntop_interface->isRunning()) /* CHECK */
+      return(CONST_LUA_PARAM_ERROR);
+  } while (rc == 0);
+
+  size = zmq_recv(subscriber, &h, sizeof(h), 0);
+
+  if(size != sizeof(h) || h.version != ZMQ_MSG_VERSION) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported publisher version [%d]", h.version);
+    return -1;
+  }
+
+  payload_len = h.size + 1;
+  if((payload = (char*)malloc(payload_len)) != NULL) {
+    size = zmq_recv(subscriber, payload, payload_len, 0);
+    payload[h.size] = '\0';
+
+    if(size > 0) {
+      enum json_tokener_error jerr = json_tokener_success;
+      json_object *o = json_tokener_parse_verbose(payload, &jerr);
+
+      if(o != NULL) {
+	struct json_object_iterator it = json_object_iter_begin(o);
+	struct json_object_iterator itEnd = json_object_iter_end(o);
+
+	while (!json_object_iter_equal(&it, &itEnd)) {
+	  char *key   = (char*)json_object_iter_peek_name(&it);
+	  const char *value = json_object_get_string(json_object_iter_peek_value(&it));
+
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]=[%s]", key, value);
+
+	  json_object_iter_next(&it);
+	}
+
+	json_object_put(o);
+      } else
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s]: %s",
+				     json_tokener_error_desc(jerr),
+				     payload);
+
+      lua_pushfstring(vm, "%s", payload);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", h.size, payload);
+      free(payload);
+      return(CONST_LUA_OK);
+    } else {
+      free(payload);
+      return(CONST_LUA_PARAM_ERROR);
+    }
+  } else
+    return(CONST_LUA_PARAM_ERROR);
+}
+#endif
+
+/* ****************************************** */
+
 static int ntop_reload_preferences(lua_State* vm) {
   bool set_redis_defaults = false;
 
@@ -1356,26 +1439,6 @@ static int ntop_speedtest(lua_State* vm) {
     lua_pushnil(vm);
 
   return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static void build_redirect(const char *url, const char * query_string,
-			   char *buf, size_t bufsize) {
-  snprintf(buf, bufsize, "HTTP/1.1 302 Found\r\n"
-     "Location: %s%s%s\r\n\r\n"
-     "<html>\n"
-     "<head>\n"
-     "<title>Moved</title>\n"
-     "</head>\n"
-     "<body>\n"
-     "<h1>Moved</h1>\n"
-     "<p>This page has moved to <a href=\"%s\">%s</a>.</p>\n"
-     "</body>\n"
-     "</html>\n", url,
-     query_string ? "?" : "",
-     query_string ? query_string : "",
-     url, url);
 }
 
 /* ****************************************** */
@@ -2318,16 +2381,6 @@ void lua_push_float_table_entry(lua_State *L, const char *key, float value) {
   if(L) {
     lua_pushstring(L, key);
     lua_pushnumber(L, value);
-    lua_settable(L, -3);
-  }
-}
-
-/* ****************************************** */
-
-void lua_push_rawdata_table_entry(lua_State *L, const char *key, u_int32_t len, u_int8_t *payload) {
-  if(L) {
-    lua_pushstring(L, key);
-    lua_pushlstring(L, (const char*)payload, (size_t)len);
     lua_settable(L, -3);
   }
 }
@@ -4645,235 +4698,6 @@ static int ntop_set_preference(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_lua_http_print(lua_State* vm) {
-  struct mg_connection *conn;
-  char *printtype;
-  int t;
-
-  conn = getLuaVMUserdata(vm, conn);
-
-  /* ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__); */
-
-  /* Handle binary blob */
-  if((lua_type(vm, 2) == LUA_TSTRING)
-     && (printtype = (char*)lua_tostring(vm, 2)) != NULL)
-    if(!strncmp(printtype, "blob", 4)) {
-      char *str = NULL;
-
-      if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-      if((str = (char*)lua_tostring(vm, 1)) != NULL) {
-	int len = strlen(str);
-
-	if(len <= 1)
-	  mg_printf(conn, "%c", str[0]);
-	else
-	  return(CONST_LUA_PARAM_ERROR);
-      }
-
-      lua_pushnil(vm);
-      return(CONST_LUA_OK);
-    }
-
-  switch(t = lua_type(vm, 1)) {
-  case LUA_TNIL:
-    mg_printf(conn, "%s", "nil");
-    break;
-
-  case LUA_TBOOLEAN:
-  {
-    int v = lua_toboolean(vm, 1);
-
-    mg_printf(conn, "%s", v ? "true" : "false");
-  }
-  break;
-
-  case LUA_TSTRING:
-  {
-    char *str = (char*)lua_tostring(vm, 1);
-
-    if(str && (strlen(str) > 0))
-      mg_printf(conn, "%s", str);
-  }
-  break;
-
-  case LUA_TNUMBER:
-  {
-    char str[64];
-
-    snprintf(str, sizeof(str), "%f", (float)lua_tonumber(vm, 1));
-    mg_printf(conn, "%s", str);
-  }
-  break;
-
-  case LUA_TTABLE:
-    {
-      lua_pushnil(vm);
-
-      while(lua_next(vm, -2) != 0) {
-	const char *key = lua_tostring(vm, -2);
-
-	if(lua_isstring(vm, -1))
-	  mg_printf(conn, "%s = %s", key, lua_tostring(vm, -1));
-	else if(lua_isnumber(vm, -1))
-	  mg_printf(conn, "%s = %d", key, (int)lua_tonumber(vm, -1));
-	else if(lua_istable(vm, -1)) {
-	  mg_printf(conn, "%s", key);
-	  // PrintTable(vm);
-	}
-	lua_pop(vm, 1);
-      }
-    }
-  break;
-
-  default:
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled",
-				 __FUNCTION__, t);
-    return(CONST_LUA_ERROR);
-  }
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-int ntop_lua_cli_print(lua_State* vm) {
-  int t;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  switch(t = lua_type(vm, 1)) {
-  case LUA_TSTRING:
-  {
-    char *str = (char*)lua_tostring(vm, 1);
-
-    if(str && (strlen(str) > 0))
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", str);
-  }
-  break;
-
-  case LUA_TNUMBER:
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%f", (float)lua_tonumber(vm, 1));
-    break;
-
-  default:
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled",
-				 __FUNCTION__, t);
-    return(CONST_LUA_ERROR);
-  }
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
-
-static int __ntop_lua_handlefile(lua_State* L, char *script_path, bool ex) {
-  int rc;
-  LuaHandler *lh = new LuaHandler(L, script_path);
-
-  rc = lh->luaL_dofileM(ex);
-  delete lh;
-  return rc;
-}
-
-/* ****************************************** */
-
-/* This function is called by Lua scripts when the call require(...) */
-static int ntop_lua_require(lua_State* L) {
-  char *script_name;
-
-  if(lua_type(L, 1) != LUA_TSTRING ||
-     (script_name = (char*)lua_tostring(L, 1)) == NULL)
-    return 0;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s)", __FUNCTION__, script_name);
-
-  lua_getglobal( L, "package" );
-  lua_getfield( L, -1, "path" );
-
-  string cur_path = lua_tostring( L, -1 ), parsed, script_path = "";
-  stringstream input_stringstream(cur_path);
-  while(getline(input_stringstream, parsed, ';')) {
-    /* Example: package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path */
-    unsigned found = parsed.find_last_of("?");
-    if(found) {
-      string s = parsed.substr(0, found) + script_name + ".lua";
-      size_t first_dot = s.find("."), last_dot  = s.rfind(".");
-
-      /*
-	Lua transforms file names when directories are used.
-	Example:  i18n/version.lua -> i18n.version.lua
-
-	So we need to revert this logic back and the code
-	below is doing exactly this
-      */
-      if((first_dot != string::npos)
-	 && (last_dot != string::npos)
-	 && (first_dot != last_dot))
-	s.replace(first_dot, 1, "/");
-
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] Searching %s", __FUNCTION__, s.c_str());
-
-      if(Utils::file_exists(s.c_str())) {
-	script_path = s;
-	ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] Found %s", __FUNCTION__, s.c_str());
-	break;
-      }
-    }
-  }
-
-  if(script_path == "" ||
-	  __ntop_lua_handlefile(L, (char *)script_path.c_str(),  false)) {
-    if(lua_type(L, -1) == LUA_TSTRING) {
-      const char *err = lua_tostring(L, -1);
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]", script_path.c_str(), err ? err : "");
-    }
-
-    return 0;
-  }
-
-  return 1;
-}
-
-/* ****************************************** */
-
-static int ntop_lua_xfile(lua_State* L, bool ex) {
-  char *script_path;
-  int ret;
-
-  if(lua_type(L, 1) != LUA_TSTRING ||
-     (script_path = (char*)lua_tostring(L, 1)) == NULL)
-    return 0;
-
-  ret = __ntop_lua_handlefile(L, script_path, ex);
-
-  if(ret && (!lua_isnil(L, -1))) {
-    const char *msg = lua_tostring(L, -1);
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure %s", msg);
-  }
-
-  return !ret;
-}
-
-/* ****************************************** */
-
-static int ntop_lua_dofile(lua_State* L) {
-  return ntop_lua_xfile(L, true);
-}
-
-/* ****************************************** */
-
-static int ntop_lua_loadfile(lua_State* L) {
-  return ntop_lua_xfile(L, false);
-}
-
-#endif
-
-/* ****************************************** */
-
 static int ntop_is_login_disabled(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5697,9 +5521,95 @@ static int ndpi_is_custom_application(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+static int ntop_exec_single_sql_query(lua_State *vm) {
+  char *sql;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((sql = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+#ifdef HAVE_MYSQL
+  MySQLDB::exec_single_query(vm, sql);
+  return(CONST_LUA_OK);
+#else
+  return(CONST_LUA_ERROR);
+#endif
+}
+
+/* ****************************************** */
+
+static int ntop_reload_device_protocols(lua_State *vm) {
+  DeviceType device_type = device_unknown;
+  char *dir; /* client or server */
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TTABLE) != CONST_LUA_OK)
+    return(CONST_LUA_PARAM_ERROR);
+
+  device_type = (DeviceType) lua_tointeger(vm, 1);
+  if((dir = (char *) lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
+
+  ntop->refreshAllowedProtocolPresets(device_type, !!strcmp(dir, "server"), vm, 3);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_ndpi_protocol_category(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int proto;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  proto = (u_int)lua_tonumber(vm, 1);
+
+  ndpi_protocol_category_t category = ntop->get_ndpi_proto_category(proto);
+
+  lua_newtable(vm);
+  lua_push_int32_table_entry(vm, "id", category);
+  lua_push_str_table_entry(vm, "name", (char*)ntop_interface->get_ndpi_category_name(category));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_set_ndpi_protocol_category(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  u_int16_t proto;
+  ndpi_protocol_category_t category;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  proto = (u_int16_t)lua_tonumber(vm, 1);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  category = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
+
+  ntop->setnDPIProtocolCategory(proto, category);
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
 /* **************************************************************** */
 
-static const luaL_Reg ntop_reg[] = {
+static luaL_Reg _ntop_reg[] = {
   { "getDirs",          ntop_get_dirs },
   { "getInfo",          ntop_get_info },
   { "getUptime",        ntop_get_uptime },
@@ -5714,7 +5624,7 @@ static const luaL_Reg ntop_reg[] = {
   { "md5",              ntop_md5 },
   { "hasRadiusSupport", ntop_has_radius_support },
   { "hasLdapSupport",   ntop_has_ldap_support },
-  { "execSingleSQLQuery", ntop_interface_exec_single_sql_query },
+  { "execSingleSQLQuery", ntop_exec_single_sql_query },
   { "resetStats",       ntop_reset_stats },
   { "getCurrentPluginsDir", ntop_get_current_plugins_dir },
   { "getShadowPluginsDir",  ntop_get_shadow_plugins_dir },
@@ -6033,3 +5943,5 @@ static const luaL_Reg ntop_reg[] = {
 
   { NULL,          NULL}
 };
+
+luaL_Reg *ntop_reg = _ntop_reg;

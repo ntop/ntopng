@@ -48,7 +48,7 @@ static const char* dirs[] = {
   NULL
 };
 
-extern struct keyval string_to_replace[]; /* Lua.cpp */
+extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 
 /* ******************************************* */
 

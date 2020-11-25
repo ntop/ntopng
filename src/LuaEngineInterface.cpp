@@ -19,6 +19,7 @@
  *
  */
 
+#include "ntop_includes.h"
 
 /* ****************************************** */
 
@@ -36,7 +37,7 @@ static NetworkInterface* handle_null_interface(lua_State* vm) {
 
 /* ****************************************** */
 
-static NetworkInterface* getCurrentInterface(lua_State* vm) {
+NetworkInterface* getCurrentInterface(lua_State* vm) {
   NetworkInterface *ntop_interface;
 
   ntop_interface = getLuaVMUserdata(vm, iface);
@@ -71,7 +72,7 @@ static int ntop_set_active_interface_id(lua_State* vm) {
 
 /* ****************************************** */
 
-static inline bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
+bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
   return (((allowed_ifname == NULL) || (allowed_ifname[0] == '\0')) /* Periodic script / unrestricted user */
 	  || (!strncmp(allowed_ifname, iface, strlen(allowed_ifname))));
 }
@@ -472,7 +473,7 @@ static int ntop_interface_dump_live_captures(lua_State* vm) {
 
 /* ****************************************** */
 
-static AddressTree* get_allowed_nets(lua_State* vm) {
+AddressTree* get_allowed_nets(lua_State* vm) {
   AddressTree *ptree;
 
   ptree = getLuaVMUserdata(vm, allowedNets);
@@ -739,24 +740,6 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_exec_single_sql_query(lua_State *vm) {
-  char *sql;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((sql = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-#ifdef HAVE_MYSQL
-  MySQLDB::exec_single_query(vm, sql);
-  return(CONST_LUA_OK);
-#else
-  return(CONST_LUA_ERROR);
-#endif
-}
-
-/* ****************************************** */
-
 /* NOTE: do not call directly, use alerts_api instead */
 static int ntop_interface_store_alert(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -919,7 +902,7 @@ static int ntop_interface_reload_companions(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_alerts(lua_State* vm, AlertableEntity *entity) {
+int ntop_get_alerts(lua_State* vm, AlertableEntity *entity) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   u_int idx = 0;
   ScriptPeriodicity periodicity = no_periodicity;
@@ -938,86 +921,8 @@ static int ntop_get_alerts(lua_State* vm, AlertableEntity *entity) {
 
 static int ntop_interface_get_alerts(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
+
   return ntop_get_alerts(vm, c->iface);
-}
-
-/* ****************************************** */
-
-static int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable, int idx = 1) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-  char *key, *alert_subtype, *alert_json;
-  ScriptPeriodicity periodicity;
-  AlertLevel alert_severity;
-  AlertType alert_type;
-  Host *host;
-  bool triggered;
-
-  if(!alertable || !c->iface) return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((key = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_severity = (AlertLevel)lua_tointeger(vm, idx++);
-
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  alert_type = (AlertType)lua_tonumber(vm, idx++);
-
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((alert_subtype = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((alert_json = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
-
-  triggered = alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
-    alert_severity, alert_type, alert_subtype, alert_json);
-
-  if(triggered && (host = dynamic_cast<Host*>(alertable)))
-    host->incTotalAlerts(alert_type);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *alertable, int idx = 1) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-  char *key;
-  ScriptPeriodicity periodicity;
-  time_t when;
-
-  if(!c->iface || !alertable) return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((key = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  when = (time_t)lua_tonumber(vm, idx++);
-
-  /* The released alert will be pushed to LUA */
-  alertable->releaseAlert(vm, std::string(key), periodicity, when);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_host_store_triggered_alert(lua_State* vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-  return ntop_store_triggered_alert(vm, c->host);
-}
-
-/* ****************************************** */
-
-static int ntop_host_release_triggered_alert(lua_State* vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
-  return ntop_release_triggered_alert(vm, c->host);
 }
 
 /* ****************************************** */
@@ -1055,6 +960,7 @@ static int ntop_interface_store_external_alert(lua_State* vm) {
 
 static int ntop_interface_release_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
+
   return ntop_release_triggered_alert(vm, c->iface);
 }
 
@@ -1562,29 +1468,6 @@ static int ntop_get_ndpi_category_name(lua_State* vm) {
     lua_pushstring(vm, ntop_interface->get_ndpi_category_name(category));
   else
     lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_ndpi_protocol_category(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int proto;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop_interface)
-    return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  proto = (u_int)lua_tonumber(vm, 1);
-
-  ndpi_protocol_category_t category = ntop->get_ndpi_proto_category(proto);
-
-  lua_newtable(vm);
-  lua_push_int32_table_entry(vm, "id", category);
-  lua_push_str_table_entry(vm, "name", (char*)ntop_interface->get_ndpi_category_name(category));
 
   return(CONST_LUA_OK);
 }
@@ -2184,79 +2067,6 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
-
-/* ****************************************** */
-
-#ifndef HAVE_NEDGE
-static int ntop_zmq_receive(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  void *subscriber;
-  int size;
-  struct zmq_msg_hdr h;
-  char *payload;
-  int payload_len;
-  zmq_pollitem_t item;
-  int rc;
-
-  subscriber = getLuaVMUserdata(vm, zmq_subscriber);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  item.socket = subscriber;
-  item.events = ZMQ_POLLIN;
-  do {
-    rc = zmq_poll(&item, 1, 1000);
-    if(rc < 0 || !ntop_interface->isRunning()) /* CHECK */
-      return(CONST_LUA_PARAM_ERROR);
-  } while (rc == 0);
-
-  size = zmq_recv(subscriber, &h, sizeof(h), 0);
-
-  if(size != sizeof(h) || h.version != ZMQ_MSG_VERSION) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported publisher version [%d]", h.version);
-    return -1;
-  }
-
-  payload_len = h.size + 1;
-  if((payload = (char*)malloc(payload_len)) != NULL) {
-    size = zmq_recv(subscriber, payload, payload_len, 0);
-    payload[h.size] = '\0';
-
-    if(size > 0) {
-      enum json_tokener_error jerr = json_tokener_success;
-      json_object *o = json_tokener_parse_verbose(payload, &jerr);
-
-      if(o != NULL) {
-	struct json_object_iterator it = json_object_iter_begin(o);
-	struct json_object_iterator itEnd = json_object_iter_end(o);
-
-	while (!json_object_iter_equal(&it, &itEnd)) {
-	  char *key   = (char*)json_object_iter_peek_name(&it);
-	  const char *value = json_object_get_string(json_object_iter_peek_value(&it));
-
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]=[%s]", key, value);
-
-	  json_object_iter_next(&it);
-	}
-
-	json_object_put(o);
-      } else
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s]: %s",
-				     json_tokener_error_desc(jerr),
-				     payload);
-
-      lua_pushfstring(vm, "%s", payload);
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[%u] %s", h.size, payload);
-      free(payload);
-      return(CONST_LUA_OK);
-    } else {
-      free(payload);
-      return(CONST_LUA_PARAM_ERROR);
-    }
-  } else
-    return(CONST_LUA_PARAM_ERROR);
-}
-#endif
 
 /* ****************************************** */
 
@@ -3924,26 +3734,6 @@ static int ntop_get_active_flows_stats(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_set_ndpi_protocol_category(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  u_int16_t proto;
-  ndpi_protocol_category_t category;
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  proto = (u_int16_t)lua_tonumber(vm, 1);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  category = (ndpi_protocol_category_t)lua_tointeger(vm, 2);
-
-  ntop->setnDPIProtocolCategory(proto, category);
-
-  lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 /* curl -i -XPOST "http://localhost:8086/write?precision=s&db=ntopng" --data-binary 'profile:traffic,ifid=0,profile=a profile bytes=2506351 1559634840' */
 static int ntop_append_influx_db(lua_State* vm) {
   bool rv = false;
@@ -4242,31 +4032,6 @@ static int ntop_reload_shapers(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_reload_device_protocols(lua_State *vm) {
-  DeviceType device_type = device_unknown;
-  char *dir; /* client or server */
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
-    return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
-    return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TTABLE) != CONST_LUA_OK)
-    return(CONST_LUA_PARAM_ERROR);
-
-  device_type = (DeviceType) lua_tointeger(vm, 1);
-  if((dir = (char *) lua_tostring(vm, 2)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  ntop->refreshAllowedProtocolPresets(device_type, !!strcmp(dir, "server"), vm, 3);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_interface_get_cached_alert_value(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
   char *key;
@@ -4489,7 +4254,7 @@ static int ntop_interface_is_syslog_interface(lua_State* vm) {
 
 /* ****************************************** */
 
-static const luaL_Reg ntop_interface_reg[] = {
+static luaL_Reg _ntop_interface_reg[] = {
   { "setActiveInterfaceId",     ntop_set_active_interface_id },
   { "getIfNames",               ntop_get_interface_names },
   { "getFirstInterfaceId",      ntop_get_first_interface_id },
@@ -4736,3 +4501,4 @@ static const luaL_Reg ntop_interface_reg[] = {
 };
 
 
+luaL_Reg *ntop_interface_reg = _ntop_interface_reg;
