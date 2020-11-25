@@ -3,7 +3,8 @@
 --
 
 local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
+
 
 local plugins_utils = {}
 local os_utils = require("os_utils")

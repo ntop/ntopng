@@ -4,7 +4,8 @@
 -- Module to keep things in common across pools of various type
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
+
 
 require "lua_utils"
 local pools = require "pools"

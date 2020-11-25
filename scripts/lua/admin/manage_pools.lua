@@ -4,14 +4,15 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/recipients/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
+
 
 require "lua_utils"
 local page_utils = require "page_utils"
 local ui_utils = require "ui_utils"
 local json = require "dkjson"
 local template_utils = require "template_utils"
-local notification_configs = require "notification_configs"
+local endpoints = require("endpoints")
 
 local host_pools              = require "host_pools"
 local flow_pools              = require "flow_pools"
@@ -123,7 +124,7 @@ for _, entry in ipairs(menu.entries) do
    pool_families[entry.key] = entry.title
 end
 
-local endpoints = {
+local rest_endpoints = {
    get_all_pools  = (page == "all" and ALL_POOL_GET_ENDPOINT or string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/%s/pools.lua", pool_type)),
    add_pool       = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/add/%s/pool.lua", pool_type),
    edit_pool      = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/edit/%s/pool.lua", pool_type),
@@ -144,8 +145,8 @@ local context = {
         all_members = (page ~= "all" and pool_instance:get_all_members() or {}),
         configsets = (page ~= "all" and pool_instance:get_available_configset_ids() or {}),
         assigned_members = (page ~= "all" and pool_instance:get_assigned_members() or {}),
-        endpoints = endpoints,
-        endpoint_types = notification_configs.get_types(),
+        endpoints = rest_endpoints,
+        endpoint_types = endpoints.get_types(),
         notification_recipients = recipients.get_all_recipients()
     }
 }

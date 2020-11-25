@@ -35,7 +35,7 @@ local ts_utils = require "ts_utils"
 local user_scripts = require("user_scripts")
 local presets_utils = require "presets_utils"
 local prefs = ntop.getPrefs()
-local notification_configs = require "notification_configs"
+local endpoints = require("endpoints")
 
 -- ##################################################################
 

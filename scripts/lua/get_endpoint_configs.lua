@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local plugins_utils = require("plugins_utils")
-local notification_configs = require("notification_configs")
+local endpoints = require("endpoints")
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local auth = require "auth"
@@ -24,6 +24,6 @@ end
 
 sendHTTPContentTypeHeader('application/json')
 
-local endpoints = notification_configs.get_configs_with_recipients(true)
+local endpoint_configs = endpoints.get_configs_with_recipients(true)
 
-print(json.encode(endpoints))
+print(json.encode(endpoint_configs))

@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local json = require "dkjson"
 local alert_consts = require "alert_consts"
-local notification_configs = require("notification_configs")
+local endpoints = require("endpoints")
 
 -- ##############################################
 
@@ -29,10 +29,10 @@ local default_builtin_minimum_severity = alert_consts.alert_severities.info.seve
 function recipients.initialize()
    -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
    -- For each builtin configuration type, a configuration and a recipient is created
-   for endpoint_key, endpoint in pairs(notification_configs.get_types()) do
+   for endpoint_key, endpoint in pairs(endpoints.get_types()) do
       if endpoint.builtin then
          -- Add the configuration
-         local res = notification_configs.add_config(
+         local res = endpoints.add_config(
             endpoint_key --[[ the type of the endpoint--]],
             "builtin_endpoint_"..endpoint_key --[[ the name of the endpoint configuration --]],
             {} --[[ no default params --]]
@@ -221,7 +221,7 @@ local function check_endpoint_recipient_params(endpoint_key, recipient_params)
    -- Create a safe_params table with only expected params
    local safe_params = {}
    -- So iterate across all expected params of the current endpoint
-   for _, param in ipairs(notification_configs.get_types()[endpoint_key].recipient_params) do
+   for _, param in ipairs(endpoints.get_types()[endpoint_key].recipient_params) do
       -- param is a lua table so we access its elements
       local param_name = param["param_name"]
       local optional = param["optional"]
@@ -275,7 +275,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_scr
    local res = { status = "failed" }
 
    if locked then
-      local ec = notification_configs.get_endpoint_config(endpoint_id)
+      local ec = endpoints.get_endpoint_config(endpoint_id)
 
       if ec["status"] == "OK" and endpoint_recipient_name then
 	 -- Is the endpoint already existing?
@@ -335,7 +335,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_s
       if not rc then
 	 res = {status = "failed", error = {type = "endpoint_recipient_not_existing", endpoint_recipient_name = endpoint_recipient_name}}
       else
-	 local ec = notification_configs.get_endpoint_config(rc["endpoint_id"])
+	 local ec = endpoints.get_endpoint_config(rc["endpoint_id"])
 
 	 if ec["status"] ~= "OK" then
 	    res = ec
@@ -448,7 +448,7 @@ end
 function recipients.test_recipient(endpoint_id, recipient_params)
    -- Get endpoint config
 
-   local ec = notification_configs.get_endpoint_config(endpoint_id)
+   local ec = endpoints.get_endpoint_config(endpoint_id)
    if ec["status"] ~= "OK" then
       return ec
    end
@@ -474,7 +474,7 @@ function recipients.test_recipient(endpoint_id, recipient_params)
    }
 
    -- Get endpoint module
-   local modules_by_name = notification_configs.get_types()
+   local modules_by_name = endpoints.get_types()
    local module_name = recipient.endpoint_key
    local m = modules_by_name[module_name]
    if not m then
@@ -514,7 +514,7 @@ function recipients.get_recipient(recipient_id, include_stats)
 
     -- Add also the endpoint configuration name
     -- Use the endpoint id to get the endpoint configuration (use endpoint_conf_name for the old endpoints)
-	 local ec = notification_configs.get_endpoint_config(recipient_details["endpoint_id"] or recipient_details["endpoint_conf_name"])
+	 local ec = endpoints.get_endpoint_config(recipient_details["endpoint_id"] or recipient_details["endpoint_conf_name"])
 	 recipient_details["endpoint_conf_name"] =  ec["endpoint_conf_name"]
 	 recipient_details["endpoint_id"] =  ec["endpoint_id"]
 
@@ -538,7 +538,7 @@ function recipients.get_recipient(recipient_id, include_stats)
 	    recipient_details["endpoint_conf"] = ec["endpoint_conf"]
 	    recipient_details["endpoint_key"] = ec["endpoint_key"]
 
-	    local modules_by_name = notification_configs.get_types()
+	    local modules_by_name = endpoints.get_types()
 	    local cur_module = modules_by_name[recipient_details["endpoint_key"]]
 	    if cur_module and cur_module.format_recipient_params then
 	       -- Add a formatted output of recipient params
@@ -765,7 +765,7 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
 	 return
       end
    end
-   local modules_by_name = notification_configs.get_types()
+   local modules_by_name = endpoints.get_types()
    local ready_recipients = {}
 
    -- Check, among all available recipients, those that are ready to export, depending on

@@ -80,7 +80,7 @@ $(document).ready(function () {
             }
         }
     ]);
-    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_notification_configs.lua`);
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_endpoint_configs.lua`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             {

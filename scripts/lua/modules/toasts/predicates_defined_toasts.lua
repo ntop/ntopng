@@ -6,7 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local pools                     = require("pools")
 local user_script_utils         = require("user_scripts")
-local endpoint_configs          = require("notification_configs")
+local endpoint_configs          = require("endpoints")
 local recipients_manager        = require("recipients")
 local page_utils                = require('page_utils')
 local telemetry_utils           = require("telemetry_utils")

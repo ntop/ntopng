@@ -11,7 +11,7 @@ local ui_utils = require("ui_utils")
 local template = require "template_utils"
 local json = require "dkjson"
 local plugins_utils = require("plugins_utils")
-local notification_configs = require("notification_configs")
+local endpoints = require("endpoints")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -21,7 +21,7 @@ end
 
 local function get_max_configs_available()
     local availables = {}
-    local types = notification_configs.get_types(true --[[ exclude builtin --]])
+    local types = endpoints.get_types(true --[[ exclude builtin --]])
 
     for endpoint_key, endpoint in pairsByKeys(types, asc) do
         local conf_max_num = endpoint.conf_max_num
@@ -54,7 +54,7 @@ page_utils.print_navbar(i18n("endpoint_notifications.endpoint_list"), url, {
 
 
 -- localize endpoint name types in a table
-local endpoints_types = notification_configs.get_types(false)
+local endpoints_types = endpoints.get_types(false)
 local endpoint_types_labels = {}
 -- create a table to filter recipient by endpoint's type
 local endpoint_type_filters = {}
@@ -75,7 +75,7 @@ end
 -- Prepare the response
 local context = {
     notifications = {
-        endpoints = notification_configs.get_types(true --[[ exclude builtin --]]),
+        endpoints = endpoints.get_types(true --[[ exclude builtin --]]),
         endpoints_info = get_max_configs_available(),
         endpoint_types_labels = endpoint_types_labels,
         filters = {

@@ -15,8 +15,8 @@ local plugins_utils = require("plugins_utils")
 local toasts_manager = require("toasts_manager")
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
-local notification_configs = require("notification_configs")
-local endpoints = notification_configs.get_configs(true)
+local endpoint_configs = require("endpoints")
+local endpoints = endpoint_configs.get_configs(true)
 
 if not haveAdminPrivileges() then
     return
@@ -42,7 +42,7 @@ page_utils.print_navbar(i18n("endpoint_notifications.recipient_list"), url, {
 })
 
 -- localize endpoint name types in a table
-local endpoints_types = notification_configs.get_types()
+local endpoints_types = endpoint_configs.get_types()
 local endpoint_types_labels = {}
 -- create a table to filter recipient by endpoint's type
 local endpoint_type_filters = {}

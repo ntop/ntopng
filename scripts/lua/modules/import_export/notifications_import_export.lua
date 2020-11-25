@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.p
 require "lua_utils" 
 local import_export = require "import_export"
 local json = require "dkjson"
-local notification_configs = require "notification_configs"
+local endpoints = require("endpoints")
 local rest_utils = require "rest_utils"
 
 -- ##############################################
@@ -41,7 +41,7 @@ end
 function notifications_import_export:import(conf)
    local res = {}
 
-   local success = notification_configs.add_configs_with_recipients(conf)
+   local success = endpoints.add_configs_with_recipients(conf)
 
    if not success then
       res.err = rest_utils.consts.err.partial_import
@@ -57,7 +57,7 @@ end
 -- @brief Export configuration
 -- @return The current configuration
 function notifications_import_export:export()
-   local conf = notification_configs.get_configs_with_recipients()
+   local conf = endpoints.get_configs_with_recipients()
    return conf
 end
 
@@ -65,7 +65,7 @@ end
 
 -- @brief Reset configuration
 function notifications_import_export:reset()
-   notification_configs.reset_configs()
+   endpoints.reset_configs()
 end
 
 -- ##############################################
