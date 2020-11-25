@@ -9,9 +9,6 @@ $(document).ready(function () {
 				data: 'ifindex',
 				width: '10%',
 				render: (ifindex, type) => {
-					if (type == "display") {
-						return `<a href='${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${flowDeviceIP}&snmp_port_idx=${ifindex}'>${ifindex}</a>`;
-					}
 					return ifindex;
 				}
 			},
