@@ -53,6 +53,8 @@ if table.len(_POST) > 0 then
         download = "iface_down_" .. if_id,
         iface_on = "iface_on_" .. if_id,
         nat_on = "iface_nat_" .. if_id,
+        primary_dns = "iface_primary_dns_" .. if_id,
+        secondary_dns = "iface_secondary_dns_" .. if_id,
       }
 
       if _POST[fields.ip] ~= nil then config.network.ip = _POST[fields.ip] end
@@ -65,6 +67,8 @@ if table.len(_POST) > 0 then
       end
       if _POST[fields.iface_on] ~= nil then disabled_wans[if_name] = ternary(_POST[fields.iface_on] == "1", false, true) end
       if _POST[fields.nat_on] ~= nil then config.masquerade = ternary(_POST[fields.nat_on] == "1", true, false) end
+      if _POST[fields.primary_dns] ~= nil then config.network.primary_dns = _POST[fields.primary_dns] end
+      if _POST[fields.secondary_dns] ~= nil then config.network.secondary_dns = _POST[fields.secondary_dns] end
     end
   end
 
@@ -84,7 +88,6 @@ local function printLanLikeConfig(if_name, if_id, ifconf)
 
   print[[<input type="hidden" name="iface_id_]] print(if_id) print[[" value="]] print(if_name) print[[" />]]
 
-  --system_setup_ui_utils.printPrivateAddressSelector(i18n("nedge.lan_ip_addr"), i18n("nedge.lan_ip_addr_descr"), "iface_ip_"..if_id, "iface_netmask_"..if_id, ifconf.network.ip, showEnabled)
   prefsInputFieldPrefs(i18n("ip_address"), i18n("nedge.network_conf_iface_ip"),
           "", "iface_ip_"..if_id, ifconf.network.ip or "192.168.1.1", nil, nil, nil, nil,
           {required=true, pattern=getIPv4Pattern()})
@@ -135,6 +138,12 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, rout
 
   local elementToSwitch = {"iface_ip_"..if_id, "iface_gw_"..if_id, "iface_netmask_"..if_id}
   local showElementArray = {true, false, false}
+  if not bridge_interface and not routing_interface then
+    table.insert(elementToSwitch, "iface_primary_dns_"..if_id)
+    table.insert(showElementArray, false)
+    table.insert(elementToSwitch, "iface_secondary_dns_"..if_id)
+    table.insert(showElementArray, false)
+  end
 
   multipleTableButtonPrefs(i18n("nedge.mode"),
           i18n("nedge.network_conf_iface_descr"),
@@ -157,6 +166,16 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, rout
   prefsInputFieldPrefs(i18n("nedge.default_gateway"), i18n("nedge.network_conf_iface_gw"),
           "", "iface_gw_"..if_id, ifconf.network.gateway or "0.0.0.0", nil, show_static, nil, nil,
           {required=true, pattern=getIPv4Pattern()})
+
+  if not bridge_interface and not routing_interface then
+    prefsInputFieldPrefs(i18n("prefs.primary_dns"), i18n("nedge.the_primary_dns_server"),
+            "", "iface_primary_dns_"..if_id, ifconf.network.primary_dns or "0.0.0.0", nil, show_static, nil, nil,
+            {required=true, pattern=getIPv4Pattern()})
+
+    prefsInputFieldPrefs(i18n("prefs.secondary_dns"), i18n("nedge.the_secondary_dns_server"),
+            "", "iface_secondary_dns_"..if_id, ifconf.network.secondary_dns or "0.0.0.0", nil, show_static, nil, nil,
+            {required=false, pattern=getIPv4Pattern()})
+  end
 
   if is_nedge then
     -- Speed (kbps)
