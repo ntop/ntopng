@@ -13,7 +13,7 @@ return {
 
 -- ####################### Status strings
 
-    status_unexpected_smtp_description = "Unexpected SMTP server found:",
+    status_unexpected_smtp_description = "Unexpected SMTP server found: %{server}",
 
 -- ####################### Alert strings
 

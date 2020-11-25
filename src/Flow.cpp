@@ -4757,6 +4757,9 @@ void Flow::lua_get_ip(lua_State *vm, bool client) const {
 						    h->isLocalHost()));
 
     lua_push_uint64_table_entry(vm, client ? "cli.key" : "srv.key", mask_host ? 0 : h->key());
+
+    if(h->isProtocolServer())
+      lua_push_bool_table_entry(vm, client ? "cli.protocol_server" : "srv.protocol_server", true);
   } else if(h_ip) {
     /* Host hasn't been instantiated but we still have the ip address (e.g, in viewed interfaces) */
     lua_push_str_table_entry(vm, client ? "cli.ip" : "srv.ip", h_ip->print(buf, sizeof(buf)));
@@ -4815,6 +4818,12 @@ void Flow::lua_get_min_info(lua_State *vm) {
 
   if(cli_ip) lua_push_str_table_entry(vm, "cli.ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
   if(srv_ip) lua_push_str_table_entry(vm, "srv.ip", get_srv_ip_addr()->print(buf, sizeof(buf)));
+
+  if(get_cli_host() && get_cli_host()->isProtocolServer())
+    lua_push_bool_table_entry(vm, "cli.protocol_server", true);
+  else if(get_srv_host() && get_srv_host()->isProtocolServer())
+    lua_push_bool_table_entry(vm, "srv.protocol_server", true);
+
   lua_push_int32_table_entry(vm, "cli.port", get_cli_port());
   lua_push_int32_table_entry(vm, "srv.port", get_srv_port());
   lua_push_bool_table_entry(vm, "cli.localhost", cli_host ? cli_host->isLocalHost() : false);

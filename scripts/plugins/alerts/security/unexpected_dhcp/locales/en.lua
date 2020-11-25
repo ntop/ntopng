@@ -13,7 +13,7 @@ return {
 
 -- ####################### Status strings
 
-    status_unexpected_dhcp_description = "Unexpected DHCP server found:",
+    status_unexpected_dhcp_description = "Unexpected DHCP server found: %{server}",
 
 -- ####################### Alert strings
 

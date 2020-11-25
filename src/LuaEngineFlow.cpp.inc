@@ -698,6 +698,48 @@ static int ntop_flow_get_server_key(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_proto_client_ip(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+  Host *c, *s;
+  char buf[64];
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  c = f->get_cli_host(), s = f->get_srv_host();
+  if(c && s) {
+    if(c->isProtocolServer())
+      lua_pushstring(vm, s->get_string_key(buf, sizeof(buf)));
+    else
+      lua_pushstring(vm, c->get_string_key(buf, sizeof(buf)));      
+  } else
+    lua_pushstring(vm, c ? c->get_string_key(buf, sizeof(buf)) : "");
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_proto_server_ip(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+  Host *c, *s;
+  char buf[64];
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  c = f->get_cli_host(), s = f->get_srv_host();
+  if(c && s) {
+    if(c->isProtocolServer())
+      lua_pushstring(vm, c->get_string_key(buf, sizeof(buf)));
+    else
+      lua_pushstring(vm, s->get_string_key(buf, sizeof(buf)));      
+  } else
+    lua_pushstring(vm, s ? c->get_string_key(buf, sizeof(buf)) : "");
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_is_dp_not_allowed(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1166,6 +1208,8 @@ static const luaL_Reg ntop_flow_reg[] = {
   { "getGoodputRatio",          ntop_flow_get_goodput_ratio          },
   { "getClientKey",             ntop_flow_get_client_key             },
   { "getServerKey",             ntop_flow_get_server_key             },
+  { "getFlowProtoClientIP",     ntop_flow_get_proto_client_ip        },
+  { "getFlowProtoServerIP",     ntop_flow_get_proto_server_ip        },
   { "getnDPICategoryName",      ntop_flow_get_ndpi_cat_name          },
   { "getnDPIProtocolName",      ntop_flow_get_ndpi_protocol_name     },
   { "getnDPICategoryId",        ntop_flow_get_ndpi_category_id       },

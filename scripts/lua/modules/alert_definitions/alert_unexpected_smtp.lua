@@ -2,9 +2,12 @@ local alert_keys = require "alert_keys"
 
 -- #################################################
 
-local function createUnexpectedSMTP(smtp_info)
+local function createUnexpectedSMTP(client_ip, server_ip)
     local built = {
-        alert_type_params = smtp_info 
+       alert_type_params = {
+	  client_ip = client_ip,
+	  server_ip = server_ip
+       }       
     }
 
     return built

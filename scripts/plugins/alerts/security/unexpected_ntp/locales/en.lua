@@ -13,7 +13,7 @@ return {
 
 -- ####################### Status strings
 
-    status_unexpected_ntp_description = "Unexpected NTP server found:",
+    status_unexpected_ntp_description = "Unexpected NTP server found: %{server}",
 
 -- ####################### Alert strings
 

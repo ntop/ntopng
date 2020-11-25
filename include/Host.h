@@ -117,7 +117,12 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline  bool isNtpServer()          const  { return(host_services_bitmap & (1 << HOST_IS_NTP_SERVER));  }
   inline  void setNtpServer()                { host_services_bitmap |= 1 << HOST_IS_NTP_SERVER;           }
   inline  u_int16_t getServicesMap()         { return(host_services_bitmap);                              }
-  
+  /*
+    NOTE: update the fucntion below when a new isXXXServer is added 
+    Return true if this host is a server for known protocols 
+  */
+  inline bool  isProtocolServer()     const  { return(isDhcpServer() || isDnsServer() || isSmtpServer() || isNtpServer()); }
+						      
   bool isBroadcastHost()                     { return(ip.isBroadcastAddress()); }
   bool isMulticastHost()                     { return(ip.isMulticastAddress()); }
 

@@ -13,7 +13,7 @@ return {
 
 -- ####################### Status strings
 
-    status_unexpected_dns_description = "Unexpected DNS server found:",
+    status_unexpected_dns_description = "Unexpected DNS server found: %{server}",
 
 -- ####################### Alert strings
 
