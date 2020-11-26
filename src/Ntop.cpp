@@ -1091,11 +1091,6 @@ void Ntop::getUsers(lua_State* vm) {
     if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
       lua_push_uint64_table_entry(vm, "host_pool_id", atoi(val));
 
-
-    snprintf(key, CONST_MAX_LEN_REDIS_VALUE, CONST_STR_USER_EXPIRE, username);
-    if(ntop->getRedis()->get(key, val, CONST_MAX_LEN_REDIS_VALUE) >= 0)
-      lua_push_float_table_entry(vm, "limited_lifetime", atoi(val));
-
     lua_pushstring(vm, username);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -2071,23 +2066,6 @@ bool Ntop::addUserAPIToken(const char * const username, const char *api_token) {
 
 /* ******************************************* */
 
-bool Ntop::hasUserLimitedLifetime(const char * const username, int32_t *lifetime_secs) {
-  char key[64], val[64];
-
-  snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
-
-  if(ntop->getRedis()->get(key, val, sizeof(val)) >= 0
-     && val[0] != '\0' /* Caching may set an empty string as default value */) {
-    if(lifetime_secs)
-      *lifetime_secs = atoi(val);
-    return(true);
-  }
-
-  return(false);
-}
-
-/* ******************************************* */
-
 bool Ntop::isCaptivePortalUser(const char * const username) {
   char key[64], val[64];
 
@@ -2128,9 +2106,6 @@ bool Ntop::deleteUser(char *username) {
   ntop->getRedis()->del(key);
 
   snprintf(key, sizeof(key), CONST_STR_USER_HOST_POOL_ID, username);
-  ntop->getRedis()->del(key);
-
-  snprintf(key, sizeof(key), CONST_STR_USER_EXPIRE, username);
   ntop->getRedis()->del(key);
 
   /* 
@@ -2698,11 +2673,10 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client, lu
 
 bool Ntop::addIPToLRUMatches(u_int32_t client_ip,
 			     u_int16_t user_pool_id,
-			     char *label,
-			     int32_t lifetime_secs, char *ifname) {
+			     char *label, char *ifname) {
   for(int i=0; i<num_defined_interfaces; i++) {
     if(iface[i]->is_bridge_interface() && (strcmp(iface[i]->get_name(), ifname) == 0)) {
-      iface[i]->addIPToLRUMatches(client_ip, user_pool_id, label, lifetime_secs);
+      iface[i]->addIPToLRUMatches(client_ip, user_pool_id, label);
       return true;
     }
   }

@@ -242,7 +242,6 @@ static int checkCaptive(const struct mg_connection *conn,
       This user logged onto ntopng via the captive portal
     */
     u_int16_t host_pool_id;
-    int32_t limited_lifetime = -1; /* Unlimited by default */
 
 #ifdef DEBUG
     char buf[32];
@@ -260,10 +259,9 @@ static int checkCaptive(const struct mg_connection *conn,
       return(0);
 
     ntop->getUserHostPool(username, &host_pool_id);
-    ntop->hasUserLimitedLifetime(username, &limited_lifetime);
 
     if(!ntop->addIPToLRUMatches(htonl((unsigned int)conn->request_info.remote_ip),
-			    host_pool_id, label, limited_lifetime, bridge_interface))
+			    host_pool_id, label, bridge_interface))
       return(0);
 
     /* Success */

@@ -411,7 +411,6 @@ class Ntop {
   bool getUserHostPool(char *username, u_int16_t *host_pool_id);
   bool getUserAllowedIfname(const char * const username, char *buf, size_t buflen) const;
   bool getUserAPIToken(const char * const username, char *buf, size_t buflen) const;
-  bool hasUserLimitedLifetime(const char * const username, int32_t *lifetime_secs);
   void setWorkingDir(char *dir);
   void fixPath(char *str, bool replaceDots = true);
   void removeTrailingSlash(char *str);
@@ -453,8 +452,7 @@ class Ntop {
   inline NetworkInterface* getSystemInterface() { return(system_interface); }
 #ifdef NTOPNG_PRO
   bool addToNotifiedInformativeCaptivePortal(u_int32_t client_ip);
-  bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
-			 char *label, int32_t lifetime_secs, char *ifname);
+  bool addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, char *label, char *ifname);
 #endif /* NTOPNG_PRO */
   
   DeviceProtocolBitmask* getDeviceAllowedProtocols(DeviceType t) { return(&deviceProtocolPresets[t]); }

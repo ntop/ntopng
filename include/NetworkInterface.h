@@ -807,8 +807,7 @@ class NetworkInterface : public AlertableEntity {
 #ifdef NTOPNG_PRO
   virtual bool getCustomAppDetails(u_int32_t remapped_app_id, u_int32_t *const pen, u_int32_t *const app_field, u_int32_t *const app_id) { return false; };
   virtual void addToNotifiedInformativeCaptivePortal(u_int32_t client_ip) { ; };
-  virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id,
-				 char *label, int32_t lifetime_sec) { ; };
+  virtual void addIPToLRUMatches(u_int32_t client_ip, u_int16_t user_pool_id, char *label) { ; };
 #endif
 
   inline char* mdnsResolveIPv4(u_int32_t ipv4addr /* network byte order */,
