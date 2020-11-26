@@ -231,7 +231,7 @@ $(document).ready(function() {
         onSubmitSuccess: function (response, dataSent) {
             if (response.success) {
 
-                NotificationUtils.showAlert({
+                ToastUtils.showToast({
                     title: i18n.success,
                     body: response.message,
                     level: 'success',
@@ -298,7 +298,7 @@ $(document).ready(function() {
         onSubmitSuccess: function (response, dataSent) {
             if (response.success) {
 
-                NotificationUtils.showAlert({
+                ToastUtils.showToast({
                     title: i18n.success,
                     body: response.message,
                     level: 'success',
@@ -333,7 +333,7 @@ $(document).ready(function() {
         onSubmitSuccess: function (response, dataSent) {
             if (response.success) {
                 $(`#am-delete-modal`).modal('hide');
-                NotificationUtils.showAlert({
+                ToastUtils.showToast({
                     title: i18n.success,
                     body: response.message,
                     level: 'success',

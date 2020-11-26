@@ -109,7 +109,7 @@ class ToastUtils {
         globalToasts[toastId].updateBody(body);
     }
 
-    static showAlert(option) {
+    static showToast(option) {
 
         const styles = {
             warning: { bg: 'warning', text: 'text-dark', icon: 'fa-exclamation-circle' },
@@ -122,7 +122,7 @@ class ToastUtils {
 
         if (option.id === undefined) throw 'A toast must have an in id!';
         if (option.id in globalToasts) return;
-        if (option.title === undefined) throw 'A toast must have a title!';
+        if (option.title === undefined) throw 'A toast must have a title!'; 
         if (option.body === undefined) throw 'A toast must have a body!';
 
         const toast = new Toast(option);

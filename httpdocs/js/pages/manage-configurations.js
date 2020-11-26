@@ -65,7 +65,7 @@ $(document).ready(function() {
                 ? i18n.manage_configurations.messagges.reset_all_success
                 : i18n.manage_configurations.messagges.reset_success;
 
-            NotificationUtils.showAlert({
+            ToastUtils.showToast({
                 id: 'reset-configuration-alert',
                 level: 'success',
                 title: i18n.success,

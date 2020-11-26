@@ -800,7 +800,7 @@ class NtopUtils {
 						}
 
 						// show a success alert message
-						NotificationUtils.showAlert({
+						ToastUtils.showToast({
 							id: 'import-configuration-alert',
 							level: 'success',
 							title: i18n.success,
