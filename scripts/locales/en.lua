@@ -51,6 +51,7 @@ local lang = {
   ["countries"] = "Countries",
   ["create"] = "Create",
   ["dark"] = "Dark",
+  ["data_flush_confirm"] = "Do you really want to flush all data ?",
   ["date_from"] = "Begin Date/Time:",
   ["date_to"] = "End Date/Time:",
   ["day"] = "Day",

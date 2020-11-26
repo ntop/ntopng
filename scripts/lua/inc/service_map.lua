@@ -46,7 +46,7 @@ if(isAdministrator()) then
 <input type=hidden name="page" value="service_map">
 <input type=hidden name="action" value="reset">
 
-<button id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger">
+<button id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger" onclick="return confirm(']] print(i18n("data_flush_confirm")) print [[')">
  <i class="fas fa-undo-alt"></i> ]] print(i18n("flush_service_map_data")) print [[
 </button>
 </form>
