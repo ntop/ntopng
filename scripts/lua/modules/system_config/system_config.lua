@@ -24,11 +24,6 @@ local STOCK_CONF_FILE = "/etc/ntopng/system.config"
 
 local DATA_RESET_KEY = "ntopng.prefs.data_reset"
 
--- At this id start the fwmark ids for gateways ping
-system_config.BASE_GATEWAY_PING_FWMARK_ID = 3000
--- At this id start the routing tables allocated for gateway pings
-system_config.BASE_GATEWAY_PING_ROUTING_ID = 200
-
 -- ##############################################
 
 system_config.readonly = true
@@ -162,10 +157,12 @@ end
 -- ##############################################
 
 function system_config:_apply_operating_mode_settings(config)
-  if config.globals.operating_mode == "bridging" then
-    -- We currently force DHCP off on bridge mode
-    config.dhcp_server.enabled = false
-  end
+   if config.globals.operating_mode == "bridging" then
+      -- We currently force DHCP off on bridge mode
+      if config.dhcp_server then
+         config.dhcp_server.enabled = false
+      end
+   end
 end
 
 -- ##############################################
@@ -176,14 +173,19 @@ end
 --  single_port_router
 --
 function system_config:setOperatingMode(mode)
-  if not self.config.globals.available_modes[mode] then
-    return false
-  end
+   if not self.config.globals.available_modes[mode] then
+     return false
+   end
 
-  self.config.globals.operating_mode = mode
-  self:_apply_operating_mode_settings(self.config)
-  self:setDhcpFromLan()
-  return true
+   self.config.globals.operating_mode = mode
+   self:_apply_operating_mode_settings(self.config)
+
+   -- Set DHCP on nedge
+   if self.config.dhcp_server then
+      self:setDhcpFromLan()
+   end
+
+   return true
 end
 
 -- ##############################################
@@ -252,125 +254,6 @@ end
 -- Setup the date and time configuration
 function system_config:setDateTimeConfig(config)
   self.config.date_time = config
-end
-
--- ##############################################
-
--- Returns true if the DHCP server is enabled
-function system_config:isDhcpServerEnabled()
-  return self.config.dhcp_server.enabled
-end
-
--- Gets the current DHCP server configuration
-function system_config:getDhcpServerConfig()
-  return self.config.dhcp_server
-end
-
--- Setup DHCP server
-function system_config:setDhcpServerConfig(config)
-  self.config.dhcp_server = config
-end
-
-function system_config:dhcpInterfaceGetGateway(iface)
-  return self.conf_handler.dhcpInterfaceGetGateway(iface)
-end
-
--- Note: for now we assume network.online target gives us a valid IP address on the DHCP bridge interfaces.
--- Dropping this assumption would require to implement ntopng AddressList shadow for runtime add.
-function system_config:getLocalNetwork()
-  local lan_iface = self:getLanInterface()
-
-  -- table.clone needed to modify some parameters while keeping the original unchanged
-  local lan_config = table.clone(self.config.interfaces.configuration[lan_iface])
-
-  if lan_config ~= nil then
-    if lan_config.network.mode == "dhcp" then
-      -- Get from system (e.g. on dhcp bridge interfaces)
-      local address, netmask = self:getInterfaceAddress(lan_iface)
-      local gateway
-
-      if address and netmask then
-        gateway = self:dhcpInterfaceGetGateway(lan_iface)
-      else
-        traceError(TRACE_WARNING, TRACE_CONSOLE, "Cannot determine LAN network. Falling back to default 192.168.1.0/24")
-        netmask = "255.255.255.0"
-        gateway = "192.168.1.1"
-        address = "192.168.1.2"
-      end
-
-      return {
-        netmask = netmask,
-        gateway = gateway,
-        mode = "dhcp",
-        ip = address,
-        cidr = ipv4_utils.addressToNetwork(address, netmask),
-      }
-    elseif lan_config.network.mode == "static" then
-      local cidr = ipv4_utils.addressToNetwork(lan_config.network.ip, lan_config.network.netmask)
-      lan_config.network.cidr = cidr
-
-      return lan_config.network
-    elseif lan_config.network.mode == "vlan_trunk" then
-      -- not possible to guess any lan configuration when the
-      -- bridge is operating on a VLAN trunk
-      return nil
-    end
-  end
-end
-
-local function isValidDhcpRangeBound(lan_config, lan_network, broadcast, range_bound)
-   return (lan_config.ip ~= range_bound) and
-      (broadcast ~= range_bound) and ipv4_utils.includes(lan_network, lan_config.netmask, range_bound)
-end
-
-local function isValidDhcpRange(lan_config, first_ip, last_ip)
-   local lan_network = ntop.networkPrefix(lan_config.ip, ipv4_utils.netmask(lan_config.netmask))
-   local broadcast = ipv4_utils.broadcast_address(lan_config.ip, lan_config.netmask)
-
-   if isValidDhcpRangeBound(lan_config, lan_network, broadcast, first_ip) and
-            isValidDhcpRangeBound(lan_config, lan_network, broadcast, last_ip) then
-      return (ipv4_utils.cmp(lan_config.ip, first_ip) < 0) and
-               (ipv4_utils.cmp(broadcast, last_ip) > 0) and
-               (ipv4_utils.cmp(first_ip, last_ip) <= 0)
-   end
-
-   return false
-end
-
-function system_config:hasValidDhcpRange(first_ip, last_ip)
-   local lan_config = self:getLocalNetwork()
-
-   if not lan_config then
-      return false
-   end
-
-   return isValidDhcpRange(lan_config, first_ip, last_ip)
-end
-
-function system_config:_fix_dhcp_from_lan(config, lan_iface)
-  local dhcp_config = config.dhcp_server
-  local lan_network = config.interfaces.configuration[lan_iface].network
-
-  local ip = lan_network.ip
-  local netmask = lan_network.netmask
-  local network = ntop.networkPrefix(ip, ipv4_utils.netmask(netmask))
-  local broadcast = ipv4_utils.broadcast_address(network, netmask)
-
-  dhcp_config.subnet.netmask = netmask
-  dhcp_config.subnet.gateway = ip
-  dhcp_config.subnet.network = network
-  dhcp_config.subnet.broadcast = broadcast
-
-  if not isValidDhcpRange(lan_network, dhcp_config.subnet.first_ip, dhcp_config.subnet.last_ip) then
-    local dhcp_range = ipv4_utils.get_possible_dhcp_range(ip, network, broadcast)
-    dhcp_config.subnet.first_ip = dhcp_range.first_ip
-    dhcp_config.subnet.last_ip = dhcp_range.last_ip
-  end
-end
-
-function system_config:setDhcpFromLan()
-  local lan_iface = self:getLanInterface()
-  return self:_fix_dhcp_from_lan(self.config, lan_iface)
 end
 
 -- ##############################################
@@ -650,20 +533,6 @@ end
 
 -- This functions handles configuration changes which do not need a reboot
 function system_config:_handleChangedCommonSections(changed_sections, is_rebooting)
-  -- Note: we must update DHCP also when interfaces/dns changes
-  if changed_sections["dhcp_server"] or changed_sections["globals"] then
-    self:_writeDhcpServerConfiguration()
-    self:_enableDisableDhcpService()
-
-    if not is_rebooting then
-       if self:isDhcpServerEnabled() then
-	  sys_utils.restartService("isc-dhcp-server")
-       else
-	  sys_utils.stopService("isc-dhcp-server")
-       end
-    end
-  end
-
   if changed_sections["date_time"] then
      -- drift accounts for the time between the user clicked 'save' and when it actually clicked 'apply'
      -- only when it is requested to set a custom date
@@ -805,48 +674,6 @@ function system_config:_writeNetworkInterfaces()
   self.conf_handler.closeNetworkInterfacesConfigFile(f)
 end
 
-function system_config:_writeDhcpServerConfiguration()
-  local lan_iface = self:getLanInterface()
-  local dhcp_config = self.config.dhcp_server
-  local global_config = self.config.globals
-  local dns_config = self:getDnsConfig()
-
-  local f = sys_utils.openFile("/etc/default/isc-dhcp-server", "w")
-  f:write("INTERFACES=\""..lan_iface.."\"\n")
-  f:close()
-
-  f = sys_utils.openFile("/etc/dhcp/dhcpd.conf", "w")
-  for _, opt in ipairs(dhcp_config.options) do
-    f:write(opt .. ";\n")
-  end
-
-  f:write("\n")
-  f:write("subnet ".. dhcp_config.subnet.network .." netmask ".. dhcp_config.subnet.netmask .." {\n")
-  f:write("  range " .. dhcp_config.subnet.first_ip .. " " .. dhcp_config.subnet.last_ip .. ";\n")
-  f:write("  option domain-name-servers " .. table.concat({
-      dns_config.global,
-      ternary(not isEmptyString(dns_config.secondary), dns_config.secondary, nil)
-    },", ") .. ";\n")
-  f:write("  option routers " .. dhcp_config.subnet.gateway .. ";\n")
-  f:write("  option broadcast-address " .. dhcp_config.subnet.broadcast .. ";\n")
-
-  for _, opt in ipairs(dhcp_config.subnet.options) do
-    f:write("  " .. opt .. ";\n")
-  end
-
-  f:write("}\n")
-
-  for mac, lease in pairs(dhcp_config.leases) do
-    f:write("\n")
-    f:write("host " .. lease.hostname .. " {\n")
-    f:write("  hardware ethernet " .. mac .. ";\n")
-    f:write("  fixed-address " .. lease.ip .. ";\n")
-    f:write("}\n")
-  end
-
-  f:close()
-end
-
 function system_config:writeSystemFiles()
   if system_config.isFirstStart() then
     self:verifyNetworkInterfaces()
@@ -966,30 +793,6 @@ end
 
 -- ##############################################
 
-function system_config:getGatewayPingAddress(gwname)
-  local gw = self.config.gateways[gwname]
-
-  if (gw == nil) or (gw.ping_address == nil) then
-    return "8.8.8.8"
-  end
-
-  return gw.ping_address
-end
-
--- ##############################################
-
-function system_config:getGatewayMaxRTT(gwname)
-  local gw = self.config.gateways[gwname]
-
-  if (gw == nil) or (gw.max_rtt_ms == nil) then
-    return 5000
-  end
-
-  return gw.max_rtt_ms
-end
-
--- ##############################################
-
 function system_config:getInterfacesConfiguration()
   return self.config.interfaces.configuration or {}
 end
@@ -1080,16 +883,6 @@ end
 
 function system_config:setLanRecoveryIpConfig(config)
   self.config.globals.lan_recovery_ip = config
-end
-
--- ##############################################
-
-function system_config:getStaticLeases()
-  return self.config.dhcp_server.leases or {}
-end
-
-function system_config:setStaticLeases(leases)
-  self.config.dhcp_server.leases = leases
 end
 
 -- ##############################################

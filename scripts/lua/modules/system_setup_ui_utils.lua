@@ -81,11 +81,14 @@ function system_setup_ui_utils.printConfigChange(sys_config, warnings)
    local config_changed = sys_config.configChanged()
 
    if config_changed or first_start then
-      local dhcp_config = sys_config:getDhcpServerConfig()
 
-      if dhcp_config.enabled then
-         if not sys_config:hasValidDhcpRange(dhcp_config.subnet.first_ip, dhcp_config.subnet.last_ip) then
-            warnings[#warnings + 1] = i18n("nedge.invalid_dhcp_range")
+      if is_nedge then
+         local dhcp_config = sys_config:getDhcpServerConfig()
+
+         if dhcp_config.enabled then
+            if not sys_config:hasValidDhcpRange(dhcp_config.subnet.first_ip, dhcp_config.subnet.last_ip) then
+               warnings[#warnings + 1] = i18n("nedge.invalid_dhcp_range")
+            end
          end
       end
 

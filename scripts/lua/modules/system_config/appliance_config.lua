@@ -112,12 +112,6 @@ function appliance_config:_get_config_skeleton()
       ["disabled_wans"] = {},
       ["globals"] = {
          ["available_modes"] = {},
-         ["dns"] =  {
-            ["global_preset"] = default_global_dns.id,
-            ["global"] =  default_global_dns.primary_dns,
-            ["secondary"] =  default_global_dns.secondary_dns,
-            ["forge_global"] = false
-         },
          ["lan_recovery_ip"] =  {
             ["ip"] =  "192.168.160.10",
             ["netmask"] =  "255.255.255.0",
@@ -131,37 +125,11 @@ function appliance_config:_get_config_skeleton()
          ["comment"]= "List of available network interfaces. Only those listed in globals.operating_mode are actually configured",
          ["configuration"] = {}
       },
-      ["gateways"] = {
-      },
-      ["static_routes"] = {
-      },
       ["date_time"] = {
 	 ["ntp_sync"] = {
 	    ["enabled"] = true,
 	 },
 	 ["timezone"] = "Europe/Rome",
-      },
-      ["dhcp_server"] = {
-         ["enabled"] = false,
-         ["options"] = {
-            "ddns-update-style none",
-            "log-facility local7",
-            "authoritative"
-         },
-         ["subnet"] = {
-            ["network"] = "192.168.1.0",
-            ["netmask"] = "255.255.255.0",
-            ["first_ip"] = "192.168.1.10",
-            ["last_ip"] = "192.168.1.200",
-            ["gateway"] = "192.168.1.1",
-            ["broadcast"] = "192.168.1.255",
-            ["options"] = {
-               "option domain-name \"ntop.local\"",
-               "default-lease-time 600",
-               "max-lease-time 7200"
-            }
-         },
-         ["leases"] = {}
       }
    }
    return config
@@ -215,9 +183,6 @@ function appliance_config:_guess_config()
       -- Wired
       else
          if not system_config.is_virtual_interface(name) then
-            -- Add per-interface gateway
-            config.gateways[name] = {interface=name, ping_address="8.8.8.8"}
-
             wired_devs[name] = { }
 
             if some_wired == nil then
@@ -427,9 +392,6 @@ function appliance_config:_guess_config()
    --for a,b in pairs(wifi_devs) do
       --config["interfaces"]["configuration"][a] = { ["family"] = "wireless", ["network"] = { ["mode"] = "dhcp" } }
    --end
-
-   -- Make sure we have a valid DHCP range
-   self:_fix_dhcp_from_lan(config, lan_iface)
 
    -- Make sure to apply the mode specific settings
    self:_apply_operating_mode_settings(config)
