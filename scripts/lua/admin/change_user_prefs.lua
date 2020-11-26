@@ -18,9 +18,6 @@ local language  = _POST["user_language"]
 -- for captive portal users
 local old_host_pool_id = _POST["old_host_pool_id"]
 local new_host_pool_id = _POST["host_pool_id"]
-local limited_lifetime = _POST["lifetime_limited"]
-local unlimited_lifetime = _POST["lifetime_unlimited"]
-local lifetime_secs = tonumber((_POST["lifetime_secs"] or -1))
 
 if(false) then
    io.write("\n")
@@ -70,18 +67,6 @@ end
 if(language ~= nil) then
    if(not ntop.changeUserLanguage(username, language)) then
       print ("{ \"result\" : -1, \"message\" : \"Error in changing the user language\" }")
-      return
-   end
-end
-
-if(limited_lifetime ~= nil) then
-   if not ntop.addUserLifetime(username, lifetime_secs) then
-      print ("{ \"result\" : -1, \"message\" : \"Error in changing the host lifetime\" }")
-      return
-   end
-elseif(unlimited_lifetime ~= nil) then
-   if not ntop.clearUserLifetime(username) then
-      print ("{ \"result\" : -1, \"message\" : \"Error in clearing the host lifetime\" }")
       return
    end
 end

@@ -1773,7 +1773,6 @@ local known_parameters = {
    ["drop_host_traffic"]       = validateBool,                  -- to drop an host traffic
    ["lifetime_limited"]        = validateEmptyOr(validateOnOff), -- set if user should have a limited lifetime
    ["lifetime_unlimited"]      = validateEmptyOr(validateOnOff), -- set if user should have an unlimited lifetime
-   ["lifetime_secs"]           = validateNumber,                -- user lifetime in seconds
    ["edit_profiles"]           = validateEmpty,                 -- set when editing traffic profiles
    ["edit_policy"]             = validateEmpty,                 -- set when editing policy
    ["edit_device_policy"]      = validateEmpty,                 -- set when editing device policy

@@ -338,11 +338,6 @@ function host_pools_nedge.deletePoolMember(pool_id, member_and_vlan)
 
   local members_key = get_pool_members_key(pool_id)
 
-  -- Possible delete volatile member
-  if ntop.isPro() then
-    interface.removeVolatileMemberFromPool(member_and_vlan, tonumber(pool_id))
-  end
-
   -- Possible delete non-volatile member
   ntop.delMembersCache(members_key, member_and_vlan)
 end
@@ -387,25 +382,11 @@ function host_pools_nedge.getPoolMembers(pool_id)
   local members = {}
 
   local all_members = ntop.getMembersCache(members_key) or {}
-  local volatile = {}
-
-  if ntop.isPro() then
-    for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
-      if not v.expired then
-        all_members[#all_members + 1] = v["member"]
-        volatile[v["member"]] = v["residual_lifetime"]
-      end
-    end
-  end
 
   for _,v in pairsByValues(all_members, asc) do
     local hostinfo = hostkey2hostinfo(v)
-    local residual_lifetime = NULL
-    if volatile[v] ~= nil then
-      residual_lifetime = volatile[v];
-    end
 
-    members[#members + 1] = {address=hostinfo["host"], vlan=hostinfo["vlan"], key=v, residual=residual_lifetime}
+    members[#members + 1] = {address=hostinfo["host"], vlan=hostinfo["vlan"], key=v}
   end
 
   return members
@@ -470,13 +451,6 @@ end
 
 function host_pools_nedge.emptyPool(pool_id)
   local members_key = get_pool_members_key(pool_id)
-
-  if ntop.isPro() then
-    -- Remove volatile members
-    for _,v in pairs(interface.getHostPoolsVolatileMembers()[tonumber(pool_id)] or {}) do
-      interface.removeVolatileMemberFromPool(v.member, tonumber(pool_id))
-    end
-  end
 
   -- Remove non-volatile members
   ntop.delCache(members_key)

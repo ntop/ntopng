@@ -412,19 +412,6 @@ function reset_pwd_dialog(user) {
         $('#old_host_pool_id').val(data.host_pool_id);
         $('#host_pool_id option[value = '+data.host_pool_id+']').attr('selected','selected');
       }
-      if(data.limited_lifetime) {
-        $("#lifetime_selection_table label").removeAttr("disabled");
-        $("#lifetime_selection_table input").removeAttr("disabled");
-        $("#lifetime_limited").click();
-        if (typeof resol_selector_set_value === "function")
-          resol_selector_set_value("#lifetime_secs", data.limited_lifetime);
-      } else {
-        $("#lifetime_selection_table label").attr("disabled", "disabled");
-        $("#lifetime_selection_table input").attr("disabled", "disabled");
-        $("#lifetime_unlimited").click();
-        if (typeof resol_selector_set_value === "function")
-          resol_selector_set_value("#lifetime_secs", 3600);
-      }
 
      if (isAdministrator || loggedUser === data.username) {
         $(`[href="#user-token-tab"]`).show();

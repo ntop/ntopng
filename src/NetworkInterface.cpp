@@ -1184,7 +1184,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
        && (srcMac->locate() == located_on_lan_interface)) {
       if(!host_pools->findMacPool(srcMac->get_mac(), &mac_pool) || (mac_pool == NO_HOST_POOL_ID)) {
         mac_str = Utils::formatMac(srcMac->get_mac(), bufMac, sizeof(bufMac));
-        host_pools->addToPool(mac_str, ntop->getPrefs()->get_auto_assigned_pool_id(), 0);
+        host_pools->addToPool(mac_str, ntop->getPrefs()->get_auto_assigned_pool_id());
       }
     }
 #endif

@@ -17,9 +17,6 @@ if(haveAdminPrivileges()) then
 
 	 if value["group"] == "captive_portal" then
 	    print(' "host_pool_id": "'..value["host_pool_id"]..'",\n')
-	    if value["limited_lifetime"] then
-	       print(' "limited_lifetime": '..value["limited_lifetime"]..',\n')
-	    end
 	 else
 	    print(' "allowed_nets": "'..value["allowed_nets"]..'",\n')
 	    print(' "allowed_ifname": "'..value["allowed_ifname"]..'",\n')

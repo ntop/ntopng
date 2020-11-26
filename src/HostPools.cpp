@@ -42,18 +42,11 @@ HostPools::HostPools(NetworkInterface *_iface) {
 
   for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) routing_policy_id[i] = DEFAULT_ROUTING_TABLE_ID;
 
-  if((volatile_members = (volatile_members_t**)calloc(MAX_NUM_HOST_POOLS, sizeof(volatile_members_t*))) == NULL
-     || (volatile_members_lock            = new (std::nothrow) Mutex*[MAX_NUM_HOST_POOLS]) == NULL
-     || (pool_shaper = (u_int16_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int16_t))) == NULL
+  if((pool_shaper = (u_int16_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int16_t))) == NULL
      || (schedule_bitmap = (u_int32_t*)calloc(MAX_NUM_HOST_POOLS, sizeof(u_int32_t))) == NULL
      || (enforce_quotas_per_pool_member   = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL
      || (enforce_shapers_per_pool_member  = (bool*)calloc(MAX_NUM_HOST_POOLS, sizeof(bool))) == NULL)
     throw 1;
-
-  for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-    if((volatile_members_lock[i] = new (std::nothrow) Mutex()) == NULL)
-      throw 2;
-  }
 #endif
 
   stats = stats_shadow = NULL;
@@ -126,31 +119,7 @@ HostPools::~HostPools() {
     free(enforce_quotas_per_pool_member);
   if(enforce_shapers_per_pool_member)
     free(enforce_shapers_per_pool_member);
-  if(volatile_members_lock) {
-    for(int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
-      if(volatile_members_lock[i])
-	delete volatile_members_lock[i];
-    }
 
-    delete []volatile_members_lock;
-  }
-
-  if(volatile_members) {
-    for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
-      volatile_members_t *current, *tmp;
-
-      HASH_ITER(hh, volatile_members[pool_id], current, tmp) {
-	HASH_DEL(volatile_members[pool_id], current);
-	free(current->host_or_mac);
-	free(current);
-      }
-
-      if(volatile_members[pool_id])
-	free(volatile_members[pool_id]);
-    }
-
-    free(volatile_members);
-  }
 #endif
 }
 
@@ -326,94 +295,6 @@ void HostPools::incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t n
 
 #ifdef NTOPNG_PRO
 
-void HostPools::reloadVolatileMembers(VlanAddressTree *_trees) {
-  volatile_members_t *current, *tmp;
-  char *at, *member;
-  bool rc;
-  u_int16_t vlan_id;
-
-  if(!_trees)
-    return;
-
-  for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
-
-    if(!volatile_members[pool_id])
-      continue;
-
-    volatile_members_lock[pool_id]->lock(__FILE__, __LINE__);
-
-    if(stats && stats[pool_id]) { /* The pool exists */
-      HASH_ITER(hh, volatile_members[pool_id], current, tmp) {
-	member = strdup(current->host_or_mac);
-
-	if((at = strchr(member, '@'))) {
-	  vlan_id = atoi(at + 1);
-	  *at = '\0';
-	} else
-	  vlan_id = 0;
-
-	if(!(rc = _trees->addAddress(vlan_id, member, pool_id))
-#ifdef HOST_POOLS_DEBUG
-	    || true
-#endif
-	     )
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				       "%s VOLATILE tree node for %s [vlan %i] [host pool: %i]",
-				       rc ? "Successfully added" : "Unable to add",
-				       member, vlan_id,
-				       pool_id);
-
-
-	free(member);
-      }
-    } else { /* The pool no longer exists */
-      HASH_ITER(hh, volatile_members[pool_id], current, tmp) {
-	HASH_DEL(volatile_members[pool_id], current);
-	free(current->host_or_mac);
-	free(current);
-      }
-    }
-
-    volatile_members_lock[pool_id]->unlock(__FILE__, __LINE__);
-  }
-
-#ifdef HAVE_NEDGE
-  /* Note: we must re-evaluate the active flows as a captive portal host may be blocked now */
-  if(iface && (iface->getIfType() == interface_type_NETFILTER))
-    ((NetfilterInterface *) iface)->setPolicyChanged();
-#endif
-};
-
-/* *************************************** */
-
-void HostPools::addVolatileMember(char *host_or_mac, u_int16_t host_pool_id, time_t lifetime) {
-  volatile_members_t *m;
-
-  if(!host_or_mac || host_pool_id >= MAX_NUM_HOST_POOLS)
-    return;
-
-  volatile_members_lock[host_pool_id]->lock(__FILE__, __LINE__);
-
-  HASH_FIND_STR(volatile_members[host_pool_id], host_or_mac, m);
-
-  if(m == NULL) {
-    m = (volatile_members_t*)calloc(1, sizeof(volatile_members_t));
-    m->host_or_mac = strdup(host_or_mac);
-    HASH_ADD_STR(volatile_members[host_pool_id], host_or_mac, m);
-  }
-  m->lifetime = time(NULL) + lifetime;
-
-#ifdef HOST_POOLS_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-    "Adding %s VOLATILE MEMBER to the hash table [host pool: %i] [lifetime: %i]",
-    host_or_mac, host_pool_id, lifetime);
-#endif
-
-  volatile_members_lock[host_pool_id]->unlock(__FILE__, __LINE__);
-}
-
-/* *************************************** */
-
 void HostPools::incPoolNumDroppedFlows(u_int16_t pool_id) {
   HostPoolStats *hps = getPoolStats(pool_id);
 
@@ -461,135 +342,22 @@ void HostPools::checkPoolsStatsReset() {
 
 /* *************************************** */
 
-void HostPools::luaVolatileMembers(lua_State *vm) {
-  volatile_members_t *current, *tmp;
-  int i;
-  time_t now = time(NULL);
-
-  if(!vm)
-    return;
-
-  lua_newtable(vm);
-
-  for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
-
-    if(!volatile_members[pool_id])
-      continue;
-
-    volatile_members_lock[pool_id]->lock(__FILE__, __LINE__);
-
-    if(stats && stats[pool_id]) { /* The pool exists */
-      lua_newtable(vm);
-
-      i = 0;
-      HASH_ITER(hh, volatile_members[pool_id], current, tmp) {
-	lua_newtable(vm);
-
-	lua_push_str_table_entry(vm, "member", current->host_or_mac);
-	lua_push_float_table_entry(vm, "residual_lifetime", current->lifetime - now);
-	lua_push_bool_table_entry(vm, "expired", current->lifetime - now < 0);
-
-	lua_rawseti(vm, -2, ++i);
-      }
-
-      lua_rawseti(vm, -2, pool_id);
-    }
-
-    volatile_members_lock[pool_id]->unlock(__FILE__, __LINE__);
-  }
-};
-
-/* *************************************** */
-
 void HostPools::addToPool(char *host_or_mac,
-			  u_int16_t user_pool_id,
-			  int32_t lifetime_secs) {
+			  u_int16_t user_pool_id) {
   char key[128], pool_buf[16];
 
 #ifdef HOST_POOLS_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Adding %s as %s host pool member [pool id: %i]",
+			       "Adding %s as host pool member [pool id: %i]",
 			       host_or_mac,
-			       lifetime_secs <= 0 ? "PERMANENT" : "VOLATILE",
 			       user_pool_id);
 #endif
 
-  if(lifetime_secs > 0)
-    addVolatileMember(host_or_mac, user_pool_id, (u_int32_t)lifetime_secs);
-
-  else {
-    snprintf(pool_buf, sizeof(pool_buf), "%u", user_pool_id);
-    snprintf(key, sizeof(key), HOST_POOL_MEMBERS_KEY, pool_buf);
-    ntop->getRedis()->sadd(key, host_or_mac); /* New member added */
-  }
+  snprintf(pool_buf, sizeof(pool_buf), "%u", user_pool_id);
+  snprintf(key, sizeof(key), HOST_POOL_MEMBERS_KEY, pool_buf);
+  ntop->getRedis()->sadd(key, host_or_mac); /* New member added */
 
   reloadPools();
-}
-
-/* *************************************** */
-
-void HostPools::purgeExpiredVolatileMembers() {
-  volatile_members_t *current, *tmp;
-  bool purged = false;
-  time_t now = time(NULL);
-
-  for(int pool_id = 0; pool_id < MAX_NUM_HOST_POOLS; pool_id++) {
-    volatile_members_lock[pool_id]->lock(__FILE__, __LINE__);
-
-    HASH_ITER(hh, volatile_members[pool_id], current, tmp) {
-#ifdef HOST_POOLS_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				   "Checking VOLATILE MEMBER %s [pool id: %i] for expiration...",
-				   current->host_or_mac,
-				   pool_id);
-#endif
-
-      if(current->lifetime < now) {
-	purged = true;
-
-#ifdef HOST_POOLS_DEBUG
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Purging expired VOLATILE MEMBER %s [pool id: %i]",
-				     current->host_or_mac,
-				     pool_id);
-#endif
-
-	HASH_DEL(volatile_members[pool_id], current);
-	free(current->host_or_mac);
-	free(current);
-      }
-    }
-
-    volatile_members_lock[pool_id]->unlock(__FILE__, __LINE__);
-  }
-
-  if(purged)
-    reloadPools();
-}
-
-/* *************************************** */
-
-void HostPools::removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id) {
-  volatile_members_t *m;
-  bool purged = false;
-
-  if(user_pool_id == NO_HOST_POOL_ID || user_pool_id >= MAX_NUM_HOST_POOLS || !host_or_mac)
-    return;
-
-  volatile_members_lock[user_pool_id]->lock(__FILE__, __LINE__);
-
-  HASH_FIND_STR(volatile_members[user_pool_id], host_or_mac, m);
-  if(m) {
-    HASH_DEL(volatile_members[user_pool_id], m);
-    free(m->host_or_mac);
-    free(m);
-    purged = true;
-  }
-
-  volatile_members_lock[user_pool_id]->unlock(__FILE__, __LINE__);
-
-  if(purged)
-    reloadPools();
 }
 
 #endif
@@ -775,10 +543,6 @@ void HostPools::reloadPools() {
 
   if(pools) free(pools);
 
-#ifdef NTOPNG_PRO
-  if(ntop->getPrefs()->isCaptivePortalEnabled())
-    reloadVolatileMembers(new_tree /* Reload only on the new */);
-#endif
   swap(new_tree, new_stats);
 
   iface->refreshHostPools();

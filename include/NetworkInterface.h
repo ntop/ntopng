@@ -703,7 +703,6 @@ class NetworkInterface : public AlertableEntity {
   void updateFlowsL7Policy();
 #endif
   void resetPoolsStats(u_int16_t pool_filter);
-  inline void luaHostPoolsVolatileMembers(lua_State *vm) { if (host_pools) host_pools->luaVolatileMembers(vm); };
 #endif
   inline void luaHostPoolsStats(lua_State *vm)           { if (host_pools) host_pools->luaStats(vm);           };
   void refreshHostPools();

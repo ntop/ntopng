@@ -47,11 +47,6 @@ class HostPools {
   u_int32_t *schedule_bitmap;
   bool *enforce_quotas_per_pool_member;   /* quotas can be pool-wide or per pool member */
   bool *enforce_shapers_per_pool_member;
-  volatile_members_t **volatile_members;
-  Mutex **volatile_members_lock;
-
-  void reloadVolatileMembers(VlanAddressTree *_trees);
-  void addVolatileMember(char *host_or_mac, u_int16_t user_pool_id, time_t lifetime);
 #endif
   inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
     if((host_pool_id >= max_num_pools) || (!stats))
@@ -164,10 +159,7 @@ class HostPools {
   inline u_int32_t getPoolSchedule(u_int16_t pool_id) {
     return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? schedule_bitmap[pool_id] : DEFAULT_TIME_SCHEDULE);
   }
-  void luaVolatileMembers(lua_State *vm);
-  void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
-  void removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id);
-  void purgeExpiredVolatileMembers();
+  void addToPool(char *host_or_mac, u_int16_t user_pool_id);
 
   inline bool isChildrenSafePool(u_int16_t pool_id) {
     return((pool_id < max_num_pools) ? children_safe[pool_id] : false);

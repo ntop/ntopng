@@ -2150,46 +2150,6 @@ static int ntop_add_user(lua_State* vm) {
   return CONST_LUA_OK;
 }
 
-/* ****************************************** */
-
-static int ntop_add_user_lifetime(lua_State* vm) {
-  char *username;
-  int32_t num_secs;
-  bool rv = false;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  num_secs = (int32_t)lua_tonumber(vm, 2);
-
-  if(num_secs > 0)
-    rv = ntop->addUserLifetime(username, num_secs);
-
-  lua_pushboolean(vm, rv);
-  return CONST_LUA_OK; /* Negative or zero lifetimes means unlimited */
-}
-
-/* ****************************************** */
-
-static int ntop_clear_user_lifetime(lua_State* vm) {
-  char *username;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
-
-  lua_pushboolean(vm, ntop->clearUserLifetime(username));
-  return CONST_LUA_OK;
-}
-
 /* ******************************************* */
 
 static int ntop_create_user_session(lua_State* vm) {
@@ -5821,8 +5781,6 @@ static luaL_Reg _ntop_reg[] = {
   { "changeUserLanguage",   ntop_change_user_language  },
   { "changeUserPermission", ntop_change_user_permission },
   { "addUser",              ntop_add_user },
-  { "addUserLifetime",      ntop_add_user_lifetime },
-  { "clearUserLifetime",    ntop_clear_user_lifetime },
   { "deleteUser",           ntop_delete_user },
   { "createUserSession",    ntop_create_user_session },
   { "createUserAPIToken",   ntop_create_user_api_token },

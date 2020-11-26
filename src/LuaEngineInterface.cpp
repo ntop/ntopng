@@ -1301,26 +1301,6 @@ static int ntop_get_host_pool_interface_stats(lua_State* vm) {
 /* ****************************************** */
 
 #ifdef NTOPNG_PRO
-/**
- * @brief Get the Host Pool volatile members
- *
- * @param vm The lua state.
- * @return @ref CONST_LUA_OK
- */
-static int ntop_get_host_pool_volatile_members(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  nDPIStats stats;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_interface && ntop_interface->getHostPools()) {
-    ntop_interface->luaHostPoolsVolatileMembers(vm);
-    return(CONST_LUA_OK);
-  } else
-    return(CONST_LUA_ERROR);
-}
-
-/* ****************************************** */
 
 /**
  * @brief Get the Host statistics corresponding to the amount of host quotas used
@@ -3731,45 +3711,6 @@ static int ntop_reset_pools_quotas(lua_State *vm) {
 }
 #endif
 
-/* ****************************************** */
-
-static int ntop_purge_expired_host_pools_members(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_interface && ntop_interface->getHostPools()) {
-    ntop_interface->getHostPools()->purgeExpiredVolatileMembers();
-
-    lua_pushnil(vm);
-    return(CONST_LUA_OK);
-  } else
-    return(CONST_LUA_ERROR);
-}
-
-/* ****************************************** */
-
-static int ntop_remove_volatile_member_from_pool(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_or_mac;
-  u_int16_t pool_id;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if((host_or_mac = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  pool_id = (u_int16_t)lua_tonumber(vm, 2);
-
-  if(ntop_interface && ntop_interface->getHostPools()) {
-    ntop_interface->getHostPools()->removeVolatileMemberFromPool(host_or_mac, pool_id);
-
-    lua_pushnil(vm);
-    return(CONST_LUA_OK);
-  } else
-    return(CONST_LUA_ERROR);
-}
 #endif
 
 /* ****************************************** */
@@ -4365,9 +4306,6 @@ static luaL_Reg _ntop_interface_reg[] = {
 #ifdef HAVE_NEDGE
   { "resetPoolsQuotas",                 ntop_reset_pools_quotas               },
 #endif
-  { "getHostPoolsVolatileMembers",      ntop_get_host_pool_volatile_members   },
-  { "purgeExpiredPoolsMembers",         ntop_purge_expired_host_pools_members },
-  { "removeVolatileMemberFromPool",     ntop_remove_volatile_member_from_pool },
   { "getHostUsedQuotasStats",           ntop_get_host_used_quotas_stats       },
 
   /* SNMP */

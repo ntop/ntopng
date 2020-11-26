@@ -36,8 +36,6 @@ local allowed_interface = _POST["allowed_interface"]
 local language = _POST["user_language"]
 local allow_pcap_download = _POST["allow_pcap_download"]
 local host_pool_id = _POST["host_pool_id"]
-local limited_lifetime = _POST["lifetime_limited"]
-local lifetime_secs = tonumber((_POST["lifetime_secs"] or -1))
 
 if username == nil or full_name == nil or password == nil or
    confirm_password == nil or host_role == nil or networks == nil or
@@ -70,11 +68,6 @@ end
 
 if not ntop.addUser(username, full_name, password, host_role, networks, 
 		    getInterfaceName(allowed_interface), host_pool_id, language, allow_pcap_download_enabled) then
-   rest_utils.answer(rest_utils.consts.err.add_user_failed, res)
-   return
-end
-
-if limited_lifetime and not ntop.addUserLifetime(username, lifetime_secs) then
    rest_utils.answer(rest_utils.consts.err.add_user_failed, res)
    return
 end
