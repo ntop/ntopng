@@ -78,6 +78,16 @@ end
 
 -- ##############################################
 
+function system_config:getPassiveInterfaceName()
+  if self.config.globals.available_modes["passive"] then
+    return self.config.globals.available_modes["passive"]["interfaces"]["lan"]
+  end
+
+  return nil
+end
+
+-- ##############################################
+
 -- Get the physical LAN interfaces, based on the current operating mode
 -- nf_config overrides this
 function appliance_config:getPhysicalLanInterfaces()
@@ -102,13 +112,27 @@ end
 
 -- ##############################################
 
-function appliance_config:_get_config_skeleton()
-   local config = {}
-   local defaults = { }
-   local default_global_dns = self:_get_default_global_dns_preset()
+local function findDnsPreset(preset_name)
+  require("prefs_utils")
 
+  for _, preset in pairs(DNS_PRESETS) do
+    if preset.id == preset_name then
+      return preset
+    end
+  end
+
+  return nil
+end
+
+function system_config:_get_default_global_dns_preset()
+  return findDnsPreset("google")
+end
+
+-- ##############################################
+
+function appliance_config:_get_config_skeleton()
    local config = {
-      ["defaults"] = defaults,
+      ["defaults"] = {},
       ["disabled_wans"] = {},
       ["globals"] = {
          ["available_modes"] = {},
@@ -132,6 +156,7 @@ function appliance_config:_get_config_skeleton()
 	 ["timezone"] = "Europe/Rome",
       }
    }
+
    return config
 end
 
@@ -139,29 +164,26 @@ end
 
 function appliance_config:_guess_config()
    local config = self:_get_config_skeleton()
+   local default_global_dns = self:_get_default_global_dns_preset()
    local wired_default = nil
    local devs = system_config.get_all_interfaces()
-   local wired_devs  = { }
+   local wired_devs  = {}
    local wifi_devs = system_config.get_wifi_interfaces()
    local ip_devs = system_config.get_ip_interfaces()
    local dhcp_ifaces = system_config.get_dhcp_interfaces() 
    local bridge_devs = system_config.get_bridge_interfaces()
-   local lan_iface
-   local wan_iface = nil
+   local wan_iface = system_config.get_default_gw_interface()
 
    -- set the timezone to the current system timezone
-
    if not isEmptyString(tz_utils.TimeZone()) then
       config["date_time"]["timezone"] = tz_utils.TimeZone()
    end
 
-   -- Find the wan interface
-   local rv = sys_utils.execShellCmd("ip route show | grep \"default via\" | awk '{printf \"%s\", $5}'")
-   if not isEmptyString(rv) and devs[rv] ~= nil then
-      wan_iface = rv
+   if wan_iface and not devs[wan_iface] then
+      wan_iface = nil -- safety check
    end
 
-   local some_wired = nil
+   local first_wired = nil
    local static_wired = nil
 
    -- NOTE: we use pairsByKeys to impose an order across multiple guesses
@@ -183,10 +205,10 @@ function appliance_config:_guess_config()
       -- Wired
       else
          if not system_config.is_virtual_interface(name) then
-            wired_devs[name] = { }
+            wired_devs[name] = {}
 
-            if some_wired == nil then
-               some_wired = name
+            if first_wired == nil then
+               first_wired = name
             end
 
             if name ~= wan_iface and dhcp_ifaces[name] == nil and static_wired == nil then
@@ -200,11 +222,10 @@ function appliance_config:_guess_config()
       end
    end
 
-   wired_default = static_wired or some_wired
+   -- Set wired_default to the first interface, possibly not the wan or dhcp
+   wired_default = static_wired or first_wired
 
-   -- TODO modify this after supporting the other modes:
-   -- e.g. for bridge interface the lan should be br0
-   lan_iface = wired_default
+   local operating_mode = nil
 
    -- ###################
    -- Passive
@@ -215,7 +236,7 @@ function appliance_config:_guess_config()
    if wan_iface then
       management = wan_iface
    elseif table.len(wired_devs) > 1 then
-      management = wired_devs[0]
+      management = first_wired
    end
    if management ~= nil then
       passive["interfaces"] = {}
@@ -232,14 +253,16 @@ function appliance_config:_guess_config()
       end
 
       config["globals"]["available_modes"]["passive"] = passive
-      operating_mode = "passive"
+
+      if operating_mode == nil then
+         operating_mode = "passive"
+      end
    end
 
    -- ###################
    -- Bridge interfaces
 
    local bridging = {}
-   local operating_mode = nil
    local bridging_defined = false
    local bridge_ifname = nil
 
@@ -258,7 +281,7 @@ function appliance_config:_guess_config()
             bridging["interfaces"]["wan"] = {}
 
             for n,c in pairsByKeys(b.ports) do
-               if(n == 1) then
+               if n == 1 then
                   table.insert(bridging["interfaces"]["lan"], c)
                else
                   table.insert(bridging["interfaces"]["wan"], c)
@@ -266,8 +289,11 @@ function appliance_config:_guess_config()
                used_ifaces[c] = true
             end
 
-            operating_mode = "bridging"
             bridging_defined = true
+
+            if operating_mode == nil then
+               operating_mode = "bridging"
+            end
             break
          end
       end
@@ -283,16 +309,16 @@ function appliance_config:_guess_config()
    end
 
    -- If we do not have a bridge interface but have enough interfaces
-   if((not bridging_defined) and(table.len(wired_devs) > 1)) then
+   if (not bridging_defined) and (table.len(wired_devs) > 1) then
       local n = 0
       bridge_ifname = "br0"
 
       bridging["name"] = bridge_ifname
-      bridging["interfaces"] = {unused={}}
+      bridging["interfaces"] = { unused = {} }
       bridging["comment"] = "Transparent bridge"
 
       for a,b in pairsByKeys(wired_devs) do
-         if(n == 0) then
+         if n == 0 then
             bridging["interfaces"]["lan"] = { a }
          elseif(n == 1) then
             bridging["interfaces"]["wan"] = { a }
@@ -306,13 +332,13 @@ function appliance_config:_guess_config()
       bridging_defined = true
    end
 
-   if(bridging_defined) then
+   if bridging_defined then
       config["globals"]["available_modes"]["bridging"] = bridging
    end
 
    -- ###################
 
-   if(operating_mode ~= nil) then
+   if operating_mode ~= nil then
       config["globals"]["operating_mode"] = operating_mode
    end
 
@@ -320,14 +346,17 @@ function appliance_config:_guess_config()
    -- Network configuration
 
    for a,b in pairs(wired_devs) do
-      local speed = (interface.getMaxIfSpeed(a) or 10) * 1000 -- Mbps to Kbps that are more tc-friendly :)
 
       config["interfaces"]["configuration"][a] = {
-         ["family"] = "wired", ["masquerade"] = true, ["network"] = {  },
-         ["speed"] = {["upload"] = speed, ["download"] = speed} }
+         ["family"] = "wired",
+         ["network"] = {
+            ["primary_dns"] =  default_global_dns.primary_dns,
+            ["secondary_dns"] =  default_global_dns.secondary_dns
+         }
+      }
 
       -- Note: we force static on the wired_default if not in bridging mode
-      if dhcp_ifaces[a] and ((a ~= wired_default) or (operating_mode == "bridging")) then
+      if dhcp_ifaces[a] and (a ~= wired_default or operating_mode == "bridging") then
          config["interfaces"]["configuration"][a]["network"]["mode"] = "dhcp"
          config["interfaces"]["configuration"][a]["network"]["ip"] = "192.168.10.1"
          config["interfaces"]["configuration"][a]["network"]["netmask"] = "255.255.255.0"
@@ -361,37 +390,38 @@ function appliance_config:_guess_config()
          if not isEmptyString(gateway) then
             config["interfaces"]["configuration"][a]["network"]["gateway"] = gateway
          end
-
-         -- config["interfaces"]["configuration"][a]["network"]["primary_dns"] = "8.8.8.8"
-         -- config["interfaces"]["configuration"][a]["network"]["secondary_dns"] = "8.8.4.4"
-
       end
    end
 
-   if(wired_default ~= nil) then
+   if wired_default ~= nil then
       -- Add the aliased interface to the configuration
-       config["interfaces"]["configuration"][wired_default..":1"] = { ["family"] = "wired", ["network"]={},
-          ["speed"] = {["upload"]= speed, ["download"] = speed}  }
+      config["interfaces"]["configuration"][wired_default..":1"] = { 
+        ["family"] = "wired",
+        ["network"] = {}
+      }
       config["interfaces"]["configuration"][wired_default..":1"]["network"]["mode"] = "static"
       config["interfaces"]["configuration"][wired_default..":1"]["network"]["ip"] = "192.168.10.1"
       config["interfaces"]["configuration"][wired_default..":1"]["network"]["netmask"] = "255.255.255.0"
    end
 
-   if(bridge_ifname ~= nil) then
-      local speed = 100 * 1000 -- Kbps, not really important here
-
+   if bridge_ifname ~= nil then
       -- Add the bridge interface to the configuration
-      config["interfaces"]["configuration"][bridge_ifname] = { ["family"] = "bridge", ["network"]={},
-          ["speed"] = {["upload"]= speed, ["download"] = speed}  }
+      config["interfaces"]["configuration"][bridge_ifname] = {
+         ["family"] = "bridge",
+         ["network"] = {
+            ["primary_dns"] =  default_global_dns.primary_dns,
+            ["secondary_dns"] =  default_global_dns.secondary_dns
+         }
+      }
       config["interfaces"]["configuration"][bridge_ifname]["network"]["mode"] = "dhcp"
       config["interfaces"]["configuration"][bridge_ifname]["network"]["ip"] = "192.168.20.1"
       config["interfaces"]["configuration"][bridge_ifname]["network"]["netmask"] = "255.255.255.0"
    end
 
    -- Not supported right now
-   --for a,b in pairs(wifi_devs) do
-      --config["interfaces"]["configuration"][a] = { ["family"] = "wireless", ["network"] = { ["mode"] = "dhcp" } }
-   --end
+   -- for a,b in pairs(wifi_devs) do
+   --     config["interfaces"]["configuration"][a] = { ["family"] = "wireless", ["network"] = { ["mode"] = "dhcp" } }
+   -- end
 
    -- Make sure to apply the mode specific settings
    self:_apply_operating_mode_settings(config)

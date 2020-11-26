@@ -138,7 +138,7 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, rout
 
   local elementToSwitch = {"iface_ip_"..if_id, "iface_gw_"..if_id, "iface_netmask_"..if_id}
   local showElementArray = {true, false, false}
-  if not bridge_interface and not routing_interface then
+  if not is_nedge then
     table.insert(elementToSwitch, "iface_primary_dns_"..if_id)
     table.insert(showElementArray, false)
     table.insert(elementToSwitch, "iface_secondary_dns_"..if_id)
@@ -167,7 +167,7 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, rout
           "", "iface_gw_"..if_id, ifconf.network.gateway or "0.0.0.0", nil, show_static, nil, nil,
           {required=true, pattern=getIPv4Pattern()})
 
-  if not bridge_interface and not routing_interface then
+  if not is_nedge then
     prefsInputFieldPrefs(i18n("prefs.primary_dns"), i18n("nedge.the_primary_dns_server"),
             "", "iface_primary_dns_"..if_id, ifconf.network.primary_dns or "0.0.0.0", nil, show_static, nil, nil,
             {required=true, pattern=getIPv4Pattern()})
@@ -207,7 +207,7 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, rout
 end
 
 local function print_passive_page_body()
-  local if_name = sys_config:getBridgeInterfaceName()
+  local if_name = sys_config:getPassiveInterfaceName()
   local interfaces_config = sys_config:getInterfacesConfiguration()
 
   printWanLikeConfig(if_name, "0", interfaces_config[if_name], false, false)

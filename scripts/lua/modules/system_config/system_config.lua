@@ -600,6 +600,19 @@ function system_config:_writeNetworkInterfaceConfig(f, iface, network_conf, brid
   self.conf_handler.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, bridge_ifaces)
 end
 
+function system_config:_writePassiveModeNetworkConfig(f)
+  local network_config = self.config.interfaces.configuration
+  local mode_config = self.config.globals.available_modes["passive"]
+
+  -- Lan interface
+  self:_writeNetworkInterfaceConfig(f, mode_config.lan, network_config[mode_config.lan].network)
+
+  -- Capture interfaces
+  -- for _, iface in ipairs(mode_config.interfaces.wan) do
+  --  self:_writeNetworkInterfaceConfig(f, iface, {mode="manual"})
+  -- end
+end
+
 function system_config:_writeBridgeModeNetworkConfig(f)
   local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["bridging"]
@@ -661,7 +674,9 @@ function system_config:_writeNetworkInterfaces()
     self:_writeNetworkInterfaceConfig(f, "lo", {mode="loopback"})
   end
 
-  if mode == "bridging" then
+  if mode == "passive" then
+    self:_writePassiveModeNetworkConfig(f)
+  elseif mode == "bridging" then
     self:_writeBridgeModeNetworkConfig(f)
   elseif mode == "routing" then
     self:_writeRoutingModeNetworkConfig(f)
@@ -839,24 +854,6 @@ end
 
 -- ##############################################
 
-local function findDnsPreset(preset_name)
-  require("prefs_utils")
-
-  for _, preset in pairs(DNS_PRESETS) do
-    if preset.id == preset_name then
-      return preset
-    end
-  end
-
-  return nil
-end
-
-function system_config:_get_default_global_dns_preset()
-  return findDnsPreset("google")
-end
-
--- ##############################################
-
 function system_config:getDnsConfig()
   return self.config.globals.dns
 end
@@ -883,13 +880,6 @@ end
 
 function system_config:setLanRecoveryIpConfig(config)
   self.config.globals.lan_recovery_ip = config
-end
-
--- ##############################################
-
--- nf_config overrides this
-function system_config:isMultipathRoutingEnabled()
-  return false
 end
 
 -- ##############################################
@@ -1049,6 +1039,18 @@ function system_config.get_dhcp_interfaces()
    end
 
    return dhcp_ifaces
+end
+
+-- ##############################################
+
+-- Find the wan interface reading the default gw
+function system_config.get_default_gw_interface()
+   local dev = sys_utils.execShellCmd("ip route show | grep \"default via\" | awk '{printf \"%s\", $5}'")
+   if not isEmptyString(dev) then
+      return dev
+   end
+
+   return nil
 end
 
 -- ##############################################

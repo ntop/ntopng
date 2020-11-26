@@ -17,8 +17,14 @@ function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, 
 
     if not isEmptyString(network_conf.gateway) then
       f:write("\tgateway " .. network_conf.gateway .. "\n")
-      f:write("\tdns-nameservers " .. table.concat({dns_config.global, dns_config.secondary}, " ") .. "\n")
+
+      if network_conf.primary_dns and network_conf.secondary_dns then
+        f:write("\tdns-nameservers " .. table.concat({network_conf.primary_dns, network_conf.secondary_dns}, " ") .. "\n")
+      elseif dns_config then
+        f:write("\tdns-nameservers " .. table.concat({dns_config.global, dns_config.secondary}, " ") .. "\n")
+      end
     end
+
   elseif network_conf.mode == "vlan_trunk" then
     -- nothing to configure for a vlan-trunk bridge interface 
     f:write("iface " .. iface .. " inet manual\n")
