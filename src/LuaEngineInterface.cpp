@@ -617,7 +617,7 @@ static int ntop_interface_name2id(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
- 
+
 /* ****************************************** */
 
 static int ntop_interface_reset_counters(lua_State* vm) {
@@ -817,7 +817,7 @@ static int ntop_interface_store_flow_alert(lua_State* vm) {
      || ((am = ntop_interface->getAlertsManager()) == NULL))
     return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, 1) != LUA_TTABLE) 
+  if(lua_type(vm, 1) != LUA_TTABLE)
     return(CONST_LUA_ERROR);
 
   ret = am->storeFlowAlert(vm, 1,  &rowid);
@@ -1197,10 +1197,10 @@ static int ntop_process_flow(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop_interface) 
+  if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
-  if(lua_type(vm, 1) != LUA_TTABLE) 
+  if(lua_type(vm, 1) != LUA_TTABLE)
     return(CONST_LUA_ERROR);
 
   if(!dynamic_cast<ParserInterface*>(ntop_interface))
@@ -1225,7 +1225,7 @@ static int ntop_update_syslog_producers(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop_interface) 
+  if(!ntop_interface)
     return(CONST_LUA_ERROR);
 
   syslog_parser_interface = dynamic_cast<SyslogParserInterface*>(ntop_interface);
@@ -2755,7 +2755,7 @@ static int ntop_drop_flow_traffic(lua_State* vm) {
     lua_pushboolean(vm, true);
   } else
     lua_pushboolean(vm, false);
- 
+
   return(CONST_LUA_OK);
 }
 
@@ -3125,139 +3125,6 @@ static int ntop_reload_host_prefs(lua_State* vm) {
   lua_pushboolean(vm, (host != NULL));
   return(CONST_LUA_OK);
 }
-
-/* ****************************************** */
-
-#ifdef HAVE_NEDGE
-
-static int ntop_set_lan_ip_address(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-
-  const char* ip = lua_tostring(vm, 1);
-
-  if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
-    ((NetfilterInterface *)ntop_interface)->setLanIPAddress(inet_addr(ip));
-
-  if(ntop->get_HTTPserver())
-    ntop->get_HTTPserver()->setCaptiveRedirectAddress(ip);
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_set_lan_interface(lua_State* vm) {
-  char *lan_ifname;
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  lan_ifname = (char*)lua_tostring(vm, 1);
-
-  ntop->getPrefs()->set_lan_interface(lan_ifname);
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_set_wan_interface(lua_State* vm) {
-  char *lan_ifname;
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  lan_ifname = (char*)lua_tostring(vm, 1);
-
-  ntop->getPrefs()->set_wan_interface(lan_ifname);
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_refresh_device_protocols_policies_pref(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  ntop->getPrefs()->refreshDeviceProtocolsPolicyPref();
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_policy_change_marker(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
-    lua_pushinteger(vm, ((NetfilterInterface *)ntop_interface)->getPolicyChangeMarker());
-  else
-    lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
-}
-
-static int ntop_update_flows_shapers(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
-  if(ntop_interface)
-    ntop_interface->updateFlowsL7Policy();
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_l7_policy_info(lua_State* vm) {
-  u_int16_t pool_id;
-  u_int8_t shaper_id;
-  ndpi_protocol proto;
-  DeviceType dev_type;
-  bool as_client;
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  L7PolicySource_t policy_source;
-  DeviceProtoStatus device_proto_status;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop_interface || !ntop_interface->getL7Policer()) return(CONST_LUA_ERROR);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-
-  pool_id = (u_int16_t)lua_tointeger(vm, 1);
-  proto.master_protocol = (u_int16_t)lua_tointeger(vm, 2);
-  proto.app_protocol = proto.master_protocol;
-  proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED; // important for ndpi_get_proto_category below
-
-  // set appropriate category based on the protocols
-  proto.category = ndpi_get_proto_category(ntop_interface->get_ndpi_struct(), proto);
-
-  dev_type = (DeviceType)lua_tointeger(vm, 3);
-  as_client = lua_toboolean(vm, 4);
-
-  if(ntop->getPrefs()->are_device_protocol_policies_enabled() &&
-      ((device_proto_status = ntop->getDeviceAllowedProtocolStatus(dev_type, proto, pool_id, as_client)) != device_proto_allowed)) {
-    shaper_id = DROP_ALL_SHAPER_ID;
-    policy_source = policy_source_device_protocol;
-  } else {
-    shaper_id = ntop_interface->getL7Policer()->getShaperIdForPool(pool_id, proto, !as_client, &policy_source);
-  }
-
-  lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "shaper_id", shaper_id);
-  lua_push_str_table_entry(vm, "policy_source", (char*)Utils::policySource2Str(policy_source));
-
-  return(CONST_LUA_OK);
-}
-
-#endif
 
 /* ****************************************** */
 
@@ -4150,12 +4017,12 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
 static int ntop_get_interface_periodicity_map(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress *ip = NULL;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
     char *host = (char*)lua_tostring(vm, 1);
-    
+
     ip = new (std::nothrow) IpAddress();
     if(ip) ip->set(host);
   }
@@ -4166,7 +4033,7 @@ static int ntop_get_interface_periodicity_map(lua_State* vm) {
     lua_pushnil(vm);
 
   if(ip) delete ip;
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -4176,15 +4043,15 @@ static int ntop_flush_interface_periodicity_map(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 #endif
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   ntop_interface->flushPeriodicityMap();
 #endif
-  
+
   lua_pushnil(vm);
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -4194,7 +4061,7 @@ static int ntop_get_interface_service_map(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress *ip = NULL;
   u_int16_t vlan_id = 0;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
@@ -4206,17 +4073,17 @@ static int ntop_get_interface_service_map(lua_State* vm) {
       at[0] = '\0';
 
     if(at) vlan_id = atoi(&at[1]);
-    ip = new (std::nothrow) IpAddress(); 
+    ip = new (std::nothrow) IpAddress();
     if(ip) ip->set(buf);
   }
-  
+
   if(ntop_interface)
     ntop_interface->luaServiceMap(vm, ip, vlan_id);
   else
     lua_pushnil(vm);
 
   if(ip) delete ip;
-  
+
   return(CONST_LUA_OK);
 }
 
@@ -4226,17 +4093,111 @@ static int ntop_flush_interface_service_map(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 #endif
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   ntop_interface->flushServiceMap();
 #endif
-  
+
   lua_pushnil(vm);
-  
+
   return(CONST_LUA_OK);
 }
+
+/* ****************************************** */
+
+#ifdef HAVE_NEDGE
+
+static int ntop_update_flows_shapers(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface)
+    ntop_interface->updateFlowsL7Policy();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_policy_change_marker(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
+    lua_pushinteger(vm, ((NetfilterInterface *)ntop_interface)->getPolicyChangeMarker());
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_set_lan_ip_address(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+
+  const char* ip = lua_tostring(vm, 1);
+
+  if(ntop_interface && (ntop_interface->getIfType() == interface_type_NETFILTER))
+    ((NetfilterInterface *)ntop_interface)->setLanIPAddress(inet_addr(ip));
+
+  if(ntop->get_HTTPserver())
+    ntop->get_HTTPserver()->setCaptiveRedirectAddress(ip);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_l7_policy_info(lua_State* vm) {
+  u_int16_t pool_id;
+  u_int8_t shaper_id;
+  ndpi_protocol proto;
+  DeviceType dev_type;
+  bool as_client;
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  L7PolicySource_t policy_source;
+  DeviceProtoStatus device_proto_status;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface || !ntop_interface->getL7Policer()) return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+
+  pool_id = (u_int16_t)lua_tointeger(vm, 1);
+  proto.master_protocol = (u_int16_t)lua_tointeger(vm, 2);
+  proto.app_protocol = proto.master_protocol;
+  proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED; // important for ndpi_get_proto_category below
+
+  // set appropriate category based on the protocols
+  proto.category = ndpi_get_proto_category(ntop_interface->get_ndpi_struct(), proto);
+
+  dev_type = (DeviceType)lua_tointeger(vm, 3);
+  as_client = lua_toboolean(vm, 4);
+
+  if(ntop->getPrefs()->are_device_protocol_policies_enabled() &&
+      ((device_proto_status = ntop->getDeviceAllowedProtocolStatus(dev_type, proto, pool_id, as_client)) != device_proto_allowed)) {
+    shaper_id = DROP_ALL_SHAPER_ID;
+    policy_source = policy_source_device_protocol;
+  } else {
+    shaper_id = ntop_interface->getL7Policer()->getShaperIdForPool(pool_id, proto, !as_client, &policy_source);
+  }
+
+  lua_newtable(vm);
+  lua_push_uint64_table_entry(vm, "shaper_id", shaper_id);
+  lua_push_str_table_entry(vm, "policy_source", (char*)Utils::policySource2Str(policy_source));
+
+  return(CONST_LUA_OK);
+}
+
+#endif
 
 /* ****************************************** */
 
@@ -4392,7 +4353,7 @@ static luaL_Reg _ntop_interface_reg[] = {
 
   /* InfluxDB */
   { "appendInfluxDB",                   ntop_append_influx_db                 },
-  
+
   /* RRD queue */
   { "rrd_enqueue",                      ntop_rrd_queue_push                   },
   { "rrd_dequeue",                      ntop_rrd_queue_pop                    },

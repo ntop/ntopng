@@ -5607,6 +5607,51 @@ static int ntop_set_ndpi_protocol_category(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+#ifdef HAVE_NEDGE
+
+static int ntop_set_lan_interface(lua_State* vm) {
+  char *lan_ifname;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  lan_ifname = (char*)lua_tostring(vm, 1);
+
+  ntop->getPrefs()->set_lan_interface(lan_ifname);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_set_wan_interface(lua_State* vm) {
+  char *lan_ifname;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  lan_ifname = (char*)lua_tostring(vm, 1);
+
+  ntop->getPrefs()->set_wan_interface(lan_ifname);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_refresh_device_protocols_policies_pref(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->getPrefs()->refreshDeviceProtocolsPolicyPref();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+#endif
+
 /* **************************************************************** */
 
 static luaL_Reg _ntop_reg[] = {
