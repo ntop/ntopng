@@ -130,7 +130,7 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, rout
     })
   end
 
-  if bridge_interface then
+  if is_nedge and bridge_interface then
      -- in bridge mode, we allow the bridge to be on a VLAN trunk
      mode_values[#mode_values + 1] = "vlan_trunk"
      mode_labels[#mode_labels + 1] = i18n("nedge.network_conf_vlan_trunk")

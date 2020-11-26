@@ -171,16 +171,13 @@ end
 
 function appliance_config:_guess_config()
    local config = self:_get_config_skeleton()
-   local devs   = { }
-   local wifi   = { }
-   local bridge = { }
-   local wired  = { }
-   local dhcp_ifaces = {}
    local wired_default = nil
-   local wifi_default = nil
-   local ip_devs   = system_config._split_dev_names('ip addr | awk \'$1 == "inet" && $7 { split( $2, addr, "/" ); print $7, addr[1] }\'', " ")
-   local devs      = system_config._split_dev_names('cat /proc/net/dev', ":")
-   local wifi_devs = system_config._split_dev_names('cat /proc/net/wireless', ":")
+   local devs = system_config.get_all_interfaces()
+   local wired_devs  = { }
+   local wifi_devs = system_config.get_wifi_interfaces()
+   local ip_devs = system_config.get_ip_interfaces()
+   local dhcp_ifaces = system_config.get_dhcp_interfaces() 
+   local bridge_devs = system_config.get_bridge_interfaces()
    local lan_iface
    local wan_iface = nil
 
@@ -188,26 +185,6 @@ function appliance_config:_guess_config()
 
    if not isEmptyString(tz_utils.TimeZone()) then
       config["date_time"]["timezone"] = tz_utils.TimeZone()
-   end
-
-   -- Necessary for inactive wifi devices
-   for dev in pairs(devs) do
-      local rv = sys_utils.execShellCmd("iwconfig 2>/dev/null | grep \"" .. dev .. "\" | grep \"IEEE 802.11\"")
-      if not isEmptyString(rv) then
-         wifi_devs[dev] = 1
-      end
-   end
-
-   -- Find DHCP interface
-   local res = sys_utils.execShellCmd('ps aux | grep dhclient')
-   if not isEmptyString(res) then
-      for _, line in pairs(split(res, "\n")) do
-         local name = line:gmatch(".([^.]+).leases")()
-
-         if devs[name] ~= nil then
-            dhcp_ifaces[name] = 1
-         end
-      end 
    end
 
    -- Find the wan interface
@@ -219,32 +196,40 @@ function appliance_config:_guess_config()
    local some_wired = nil
    local static_wired = nil
 
-   -- Identify the type of the devices in the system
    -- NOTE: we use pairsByKeys to impose an order across multiple guesses
    for name, _ in pairsByKeys(devs) do
       local addr = ip_devs[name]
 
-      -- Not TUN/dummy/lo interface
-      if((name ~= "lo") and (not starts(name, "dummy")) and not(ntop.exists('/sys/class/net/'.. name ..'/tun_flags')) and not string.contains(name, ":")) then
-         if(ntop.exists('/sys/class/net/'.. name ..'/bridge')) then
-            local devs = system_config._split_dev_names('ls /sys/class/net/'.. name ..'/brif/', nil)
+      -- Bridge
+      if bridge_devs[name] then
+         if addr then
+            bridge_devs[name]["ip"] = addr
+         end
 
-            bridge[name] = { ["ports"] = devs }
-            if(addr ~= nil) then bridge[name]["ip"] = addr end
-         elseif(wifi_devs[name] ~= nil) then
-            wifi[name]   = { }
-            if(addr ~= nil) then wifi[name]["ip"] = addr end
-            if(wifi_default == nil) then wifi_default = name end
-         else
+      -- WiFi
+      elseif wifi_devs[name] then
+         if addr then
+            wifi_devs[name]["ip"] = addr
+         end
+
+      -- Wired
+      else
+         if not system_config.is_virtual_interface(name) then
             -- Add per-interface gateway
             config.gateways[name] = {interface=name, ping_address="8.8.8.8"}
 
-            wired[name] = { }
-            if(some_wired == nil) then some_wired = name end
-	    if((name ~= wan_iface) and (dhcp_ifaces[name] == nil) and (static_wired == nil)) then static_wired = name end
+            wired_devs[name] = { }
 
-            if(addr ~= nil) then
-               wired[name]["ip"] = addr
+            if some_wired == nil then
+               some_wired = name
+            end
+
+            if name ~= wan_iface and dhcp_ifaces[name] == nil and static_wired == nil then
+               static_wired = name
+            end
+
+            if addr then
+               wired_devs[name]["ip"] = addr
             end
          end
       end
@@ -264,8 +249,8 @@ function appliance_config:_guess_config()
    local management = nil
    if wan_iface then
       management = wan_iface
-   elseif table.len(wired) > 1 then
-      management = wired[0]
+   elseif table.len(wired_devs) > 1 then
+      management = wired_devs[0]
    end
    if management ~= nil then
       passive["interfaces"] = {}
@@ -274,7 +259,7 @@ function appliance_config:_guess_config()
       passive["interfaces"]["unused"] = {}
       passive["comment"] = "Passive monitoring appliance"
 
-      for a, b in pairsByKeys(wired) do
+      for a, b in pairsByKeys(wired_devs) do
          if a ~= passive["interfaces"]["lan"] then
             -- table.insert(passive["interfaces"]["unused"], a)
             table.insert(passive["interfaces"]["wan"], a)
@@ -294,10 +279,10 @@ function appliance_config:_guess_config()
    local bridge_ifname = nil
 
    -- If we currently have a bridge interface, use its configuration
-   if table.len(bridge) > 0 then
+   if table.len(bridge_devs) > 0 then
       local used_ifaces = {}
 
-      for a,b in pairsByKeys(bridge) do
+      for a,b in pairsByKeys(bridge_devs) do
          if table.len(b.ports) > 1 then
             bridge_ifname = a
             bridging["name"] = a
@@ -324,7 +309,7 @@ function appliance_config:_guess_config()
 
       if bridging_defined then
          -- add other interfaces to the unused ones
-         for iface,_ in pairsByKeys(wired) do
+         for iface,_ in pairsByKeys(wired_devs) do
             if used_ifaces[iface] == nil then
                table.insert(bridging["interfaces"]["unused"], iface)
             end
@@ -333,7 +318,7 @@ function appliance_config:_guess_config()
    end
 
    -- If we do not have a bridge interface but have enough interfaces
-   if((not bridging_defined) and(table.len(wired) > 1)) then
+   if((not bridging_defined) and(table.len(wired_devs) > 1)) then
       local n = 0
       bridge_ifname = "br0"
 
@@ -341,7 +326,7 @@ function appliance_config:_guess_config()
       bridging["interfaces"] = {unused={}}
       bridging["comment"] = "Transparent bridge"
 
-      for a,b in pairsByKeys(wired) do
+      for a,b in pairsByKeys(wired_devs) do
          if(n == 0) then
             bridging["interfaces"]["lan"] = { a }
          elseif(n == 1) then
@@ -369,7 +354,7 @@ function appliance_config:_guess_config()
    -- ###################
    -- Network configuration
 
-   for a,b in pairs(wired) do
+   for a,b in pairs(wired_devs) do
       local speed = (interface.getMaxIfSpeed(a) or 10) * 1000 -- Mbps to Kbps that are more tc-friendly :)
 
       config["interfaces"]["configuration"][a] = {
@@ -411,6 +396,10 @@ function appliance_config:_guess_config()
          if not isEmptyString(gateway) then
             config["interfaces"]["configuration"][a]["network"]["gateway"] = gateway
          end
+
+         -- config["interfaces"]["configuration"][a]["network"]["primary_dns"] = "8.8.8.8"
+         -- config["interfaces"]["configuration"][a]["network"]["secondary_dns"] = "8.8.4.4"
+
       end
    end
 
@@ -435,7 +424,7 @@ function appliance_config:_guess_config()
    end
 
    -- Not supported right now
-   --for a,b in pairs(wifi) do
+   --for a,b in pairs(wifi_devs) do
       --config["interfaces"]["configuration"][a] = { ["family"] = "wireless", ["network"] = { ["mode"] = "dhcp" } }
    --end
 

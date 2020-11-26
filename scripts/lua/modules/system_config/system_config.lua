@@ -1176,6 +1176,90 @@ end
 
 -- ##############################################
 
+-- Check TUN/dummy/lo interface
+function system_config.is_virtual_interface(name)
+   return (name == "lo" or 
+           starts(name, "dummy") or 
+           ntop.exists('/sys/class/net/'.. name ..'/tun_flags') or 
+           string.contains(name, ":"))
+end
+
+-- ##############################################
+
+-- Find all interfaces
+function system_config.get_all_interfaces()
+   local devs = system_config._split_dev_names('cat /proc/net/dev', ":")
+   return devs
+end
+
+-- ##############################################
+
+-- Find all bridge interfaces
+function system_config.get_bridge_interfaces()
+   local devs = system_config.get_all_interfaces()
+   local bridge_devs = {}
+
+   for name, _ in pairsByKeys(devs) do
+      if not system_config.is_virtual_interface(name) then
+         if(ntop.exists('/sys/class/net/'.. name ..'/bridge')) then
+            local devs = system_config._split_dev_names('ls /sys/class/net/'.. name ..'/brif/', nil)
+            bridge_devs[name] = { ["ports"] = devs }
+         end
+      end
+   end
+
+   return bridge_devs
+end
+
+-- ##############################################
+
+-- Find WiFi interfaces
+function system_config.get_wifi_interfaces()
+   local wifi_devs = system_config._split_dev_names('cat /proc/net/wireless', ":")
+   
+   -- Necessary for inactive wifi devices
+   local devs = system_config.get_all_interfaces()
+   for dev in pairs(devs) do
+      local rv = sys_utils.execShellCmd("iwconfig 2>/dev/null | grep \"" .. dev .. "\" | grep \"IEEE 802.11\"")
+      if not isEmptyString(rv) then
+         wifi_devs[dev] = {}
+      end
+   end
+
+   return wifi_devs
+end
+
+-- ##############################################
+
+-- Find interfaces with IP configured
+ function system_config.get_ip_interfaces()
+  local ip_devs = system_config._split_dev_names('ip addr | awk \'$1 == "inet" && $7 { split( $2, addr, "/" ); print $7, addr[1] }\'', " ")
+  return ip_devs
+end
+
+-- ##############################################
+
+-- Find DHCP interface
+function system_config.get_dhcp_interfaces()
+   local dhcp_ifaces = {}
+
+   local res = sys_utils.execShellCmd('ps aux | grep dhclient')
+   if not isEmptyString(res) then
+      local devs = system_config.get_all_interfaces()
+      for _, line in pairs(split(res, "\n")) do
+         local name = line:gmatch(".([^.]+).leases")()
+
+         if devs[name] ~= nil then
+            dhcp_ifaces[name] = {}
+         end
+      end 
+   end
+
+   return dhcp_ifaces
+end
+
+-- ##############################################
+
 -- nf_config and appliance_config override this
 function system_config:_guess_config()
    local config = {}

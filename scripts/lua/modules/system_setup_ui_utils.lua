@@ -23,7 +23,7 @@ local subpages = {
    {name = "network_interfaces", nedge_only = false, label = i18n("prefs.network_interfaces"), url = "interfaces.lua" },
    {name = "network_setup",      nedge_only = false, label = i18n("nedge.interfaces_configuration"), url = "network.lua"},
    {name = "dhcp",               nedge_only = false, label = i18n("nedge.dhcp_server"), url = "dhcp.lua", routing_only = true},
-   {name = "dns",                nedge_only = false, label = i18n("nedge.dns_configuration"), url = "dns.lua", vlan_trunk = false, passive_excluded = true},
+   {name = "dns",                nedge_only = true, label = i18n("nedge.dns_configuration"), url = "dns.lua", vlan_trunk = false},
    {name = "captive_portal",     nedge_only = true,  label = i18n("prefs.toggle_captive_portal_title"), url = "captive_portal.lua", vlan_trunk = false},
    {name = "shapers",            nedge_only = true,  label = i18n("nedge.shapers"), url="shapers.lua"},
    {name = "gateways",           nedge_only = true,  label = i18n("nedge.gateways"), url = "gateways.lua", routing_only = true},
@@ -171,8 +171,6 @@ function system_setup_ui_utils.printPageBody(sys_config, print_page_body_callbac
    local mode = sys_config:getOperatingMode()
    for _, subpage in ipairs(subpages) do
       if not is_nedge and subpage.nedge_only then
-         goto continue
-      elseif mode == "passive" and subpage.passive_excluded == true then
          goto continue
       elseif (subpage.routing_only == true) and (not sys_config:isMultipathRoutingEnabled()) then
          goto continue
