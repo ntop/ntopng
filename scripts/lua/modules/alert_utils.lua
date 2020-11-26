@@ -648,7 +648,7 @@ end
 
 -- #################################
 
-local function drawDropdown(status, selection_name, active_entry, entries_table, button_label, get_params, actual_entries)
+local function drawDropdown(status, selection_name, active_entry, entries_table, button_label, get_params, actual_entries, sort_by_label)
    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
    local id_to_label
    if selection_name == "severity" then
@@ -657,6 +657,9 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
       id_to_label = alert_consts.alertTypeLabel
    end
 
+   -- sort the dropdown entries by alphabetically order
+   sort_by_label = sort_by_label or false
+   
    actual_entries = actual_entries or getMenuEntries(status, selection_name, get_params)
 
    local buttons = '<div class="btn-group">'
@@ -676,12 +679,20 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
    if active_entry == nil then class_active = 'active' end
    buttons = buttons..'<li><a class="dropdown-item '..class_active..'" href="?status='..status..dropdownUrlParams(get_params)..'">All</a></i>'
 
+   -- add a label to each entry
    for _, entry in pairs(actual_entries) do
+      local id = tonumber(entry["id"])
+      entry.label = id_to_label(id, true)
+   end
+
+   local table_iterator = ternary(sort_by_label, pairsByField(actual_entries, 'label', asc), pairs(actual_entries))
+
+   for _, entry in table_iterator do
       local id = tonumber(entry["id"])
       local count = entry["count"]
 
       if(id >= 0) then
-        local label = id_to_label(id, true)
+        local label = entry.label
 
         class_active = ""
         if label == active_entry then class_active = 'active' end
@@ -1161,12 +1172,12 @@ function releaseAlert(idx) {
 	    title = title .. " <small><A HREF='"..ntop.getHttpPrefix().. base_url .. "?ifid="..string.format("%d", ifid).."&page=historical&ts_schema="..t["chart"].."'><i class='fas fa-chart-area fa-sm'></i></A></small>"
 	 end
 
-	 if(options.hide_filters ~= true)  then
+	 if(not options.hide_filters)  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
 	    local alert_severities = {}
 	    for s, _ in pairs(alert_consts.alert_severities) do alert_severities[#alert_severities +1 ] = s end
 	    local alert_types = {}
-	    for s, _ in pairs(alert_consts.alert_types) do alert_types[#alert_types +1 ] = s end
+       for s, _ in pairs(alert_consts.alert_types) do alert_types[#alert_types +1 ] = s end
 	    local type_menu_entries = nil
 	    local sev_menu_entries = nil
 
@@ -1185,8 +1196,8 @@ function releaseAlert(idx) {
 	       end
 	    end
 
-	    print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))
-	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities, i18n("alerts_dashboard.alert_severity"), get_params, sev_menu_entries))
+	    print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries, true))
+	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities, i18n("alerts_dashboard.alert_severity"), get_params, sev_menu_entries, true))
 	 elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
 	    if entity == "host" then
 	       title = title .. " - " .. firstToUpper(alert_consts.formatAlertEntity(getInterfaceId(ifname), entity, _GET["entity_val"], nil))
