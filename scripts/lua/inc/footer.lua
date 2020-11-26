@@ -7,6 +7,7 @@ require "lua_utils"
 local ts_utils = require("ts_utils_core")
 
 local template = require "template_utils"
+local stats_utils = require("stats_utils")
 local page_utils = require "page_utils"
 
 local have_nedge = ntop.isnEdge()
@@ -482,9 +483,15 @@ print[[
 			msg += NtopUtils.addCommas(rsp.num_flows)+" ]] print(i18n("flows")) print[[ </span> </a>";
 
 			if (rsp.flow_export_drops > 0) {
-		   		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.addCommas(rsp.flow_export_drops)+" Export drop";
-		   		if(rsp.flow_export_drops > 1) msg += "s";
-				msg += "</span></a>";
+
+				const export_pctg = rsp.flow_export_drops / rsp.num_flows
+				if (export_pctg > ]] print(stats_utils.UPPER_BOUND_INFO_EXPORTS) print[[) {
+
+					const badge_class = (export_pctg <= ]] print(stats_utils.UPPER_BOUND_WARNING_EXPORTS) print[[) ? 'warning' : 'danger';
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge badge-"+badge_class+"\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.addCommas(rsp.flow_export_drops)+" Export drop";
+					if(rsp.flow_export_drops > 1) msg += "s";
+					msg += "</span></a>";
+				}
 			}
 
 	    }

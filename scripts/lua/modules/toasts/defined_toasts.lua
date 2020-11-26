@@ -239,6 +239,16 @@ local defined_toats = {
         excluded_pages = {pages.scripts_config.key, pages.preferences.key},
         excluded_subpages = EMPTY_PAGES
     },
+    {
+        id = 19,
+        dismissable = false,
+        has_priority = true,
+        predicate = predicates.export_drops,
+        pages = EMPTY_PAGES,
+        subpages = EMPTY_PAGES,
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES,
+    }
 }
 
 return defined_toats

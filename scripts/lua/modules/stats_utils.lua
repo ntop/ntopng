@@ -5,10 +5,14 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
--- Stats Utils is a module with some utilities to manipolate statistics data
-local stats_utils = {}
-
 require("lua_utils")
+-- Stats Utils is a module with some utilities to manipolate statistics data
+local stats_utils = {
+
+    -- Upper bounds to get severity for the export drops
+    UPPER_BOUND_INFO_EXPORTS = 0.10,
+    UPPER_BOUND_WARNING_EXPORTS = 0.20
+}
 
 --- Collapse the collected statistics inside an 'Other' entry if
 --- there are stats less than 1% and these stats are greater or equal `min_slices`
@@ -51,5 +55,18 @@ function stats_utils.collapse_stats(stats, min_slices)
 
     return collapsed
 end
+
+-- ###############################################
+
+function stats_utils.get_severity_by_export_drops(drops, total_flows)
+
+    local drops_pctg = (drops / total_flows)
+    if drops_pctg <= stats_utils.UPPER_BOUND_INFO_EXPORTS then return "INFO" end
+    if drops_pctg <= stats_utils.UPPER_BOUND_WARNING_EXPORTS then return "WARNING" end
+
+    return "DANGER"
+end
+
+-- ###############################################
 
 return stats_utils

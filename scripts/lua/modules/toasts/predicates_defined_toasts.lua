@@ -11,6 +11,7 @@ local recipients_manager        = require("recipients")
 local page_utils                = require('page_utils')
 local telemetry_utils           = require("telemetry_utils")
 local toast_ui                  = require("toast_ui")
+local stats_utils               = require("stats_utils")
 local delete_data_utils         = require("delete_data_utils")
 local prefs_factory_reset_utils = require("prefs_factory_reset_utils")
 
@@ -416,7 +417,7 @@ end
 --- @param container table Is the table where to put the new toast ui
 function predicates.empty(toast, container)
     -- do nothing!
-end
+end 
 
 --- Generate two toasts if the SNMP ratio is not available for exporters
 --- @param toast table The toast is the logic model defined in defined_toasts
@@ -590,6 +591,33 @@ function predicates.unexpected_plugins(toast, container)
 
     local hint = toast_ui:new(toast.id, title, body, ToastLevel.INFO, action, toast.dismissable)
     table.insert(container, hint)
+end
+
+-- ###############################################
+
+function predicates.export_drops(toast, container)
+
+    if (IS_SYSTEM_INTERFACE) then return end
+    local is_dump_flows_enabled = prefs.is_dump_flows_enabled
+    
+    if is_dump_flows_enabled then
+
+        local ifstats = interface.getStats()
+        local total_flows = ifstats.stats.flows
+        local flow_export_drops = ifstats.stats_since_reset.flow_export_drops
+        
+        local severity = ToastLevels[stats_utils.get_severity_by_export_drops(flow_export_drops, total_flows)]
+
+        -- for the info severity don't show anything
+        if severity == ToastLevels.INFO then return end
+
+        local body = i18n("about.too_many_exports", {
+            product = "<b>" .. info.product .. "</b>"
+        })
+        local hint = toast_ui:new(toast.id, i18n("too_many_exports"), body, severity, nil, toast.dismissable)
+        table.insert(container, hint)
+    end
+
 end
 
 -- ###############################################
