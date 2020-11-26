@@ -91,6 +91,11 @@ a:hover, .btn-link:hover {
   background-color: #ff7500;
 }
 
+.nav-link {
+  color: rgb(255 255 255 / 50%) !important;
+}
+
+ul.navbar-nav li.nav-item.active,
 ul.navbar-nav li.nav-item.active > a.active {
   color: #e9e9e9 !important;
   font-weight: 600;
