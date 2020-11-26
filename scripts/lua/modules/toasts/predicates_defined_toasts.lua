@@ -95,10 +95,10 @@ end
 
 -- ###############################################################
 
-local function create_forced_community_toast(notification)
+local function create_forced_community_toast(toast)
 
     local title = i18n("about.licence")
-    local description = i18n("about.forced_community_toast")
+    local description = i18n("about.forced_community_notification")
 
     return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, nil --[[ no action --]], toast.dismissable)
 end
