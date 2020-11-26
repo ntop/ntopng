@@ -191,8 +191,6 @@ page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, netw
 if (_GET["page"] ~= "historical") then
    if(asn ~= nil) then
       print [[
-   <div class='card'>
-   <div class='card-header'>
   <ul class="nav nav-tabs card-header-tabs">
     <li class="nav-item" class="active"><a class="nav-link active" data-toggle="tab" href="#home">]] print(i18n("hosts_stats.hosts")) print[[</a></li>
 ]]
@@ -208,7 +206,7 @@ if (_GET["page"] ~= "historical") then
       end
    end
 
-   print("</ul></div>") -- close .card-header
+   print("</ul>") -- close .card-header
 
    if(asn ~= nil) then
       print [[
@@ -587,9 +585,6 @@ if (_GET["page"] ~= "historical") then
 <div id="prefix" class="tab-pane"></div>
 <div id="bgp" class="tab-pane"></div>
 
-</div>
-</div>
-</div>
 
 <script>
    $(document).ready(function() {
