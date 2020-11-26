@@ -3305,7 +3305,7 @@ local lang = {
     ["networks"] = "Networks",
     ["networks_traffic_with_ipver"] = "%{networks} with IPv%{ipver} traffic",
     ["note_broader_network"] = "The broader network will not include hosts defined in smaller networks.",
-    ["note_overlapping_networks"] = "<b>NOTE</b>: In case you have defined overlapping networks:",
+    ["note_overlapping_networks"] = "In case you have defined overlapping networks:",
     ["note_see_both_network_entries"] = "You will see both network entries in the above table.",
   },
   ["nindex"] = {
@@ -4500,7 +4500,7 @@ local lang = {
     ["telemetry_data_no_consent"] = "No preference expressed",
   },
   ["top_hosts"] = {
-    ["note"] = "<b>Note</b><br>This page will refresh every few seconds to report top hosts activities.<p>When a host makes traffic a vertical bar is displayed so that you can see the most active hosts.",
+    ["note"] = "This page will refresh every few seconds to report top hosts activities.<p>When a host makes traffic a vertical bar is displayed so that you can see the most active hosts.",
     ["top_hosts_local"] = "Top Hosts (Local)",
   },
   ["topk_heuristic"] = {

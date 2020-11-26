@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local rest_utils = require("rest_utils")
+local stats_utils = require("stats_utils")
 
 --
 -- Read statistics about nDPI application protocols on an interface
@@ -110,44 +111,14 @@ end
 
 local _ifstats = computeL7Stats(stats, show_breed, show_ndpi_category)
 
--- Print up to this number of entries
-local max_num_entries = 5
-
--- Print entries whose value >= 3% of the total
-local threshold = (tot * 3) / 100
-
-local num = 0
-local accumulate = 0
-
 for key, value in pairsByValues(_ifstats, rev) do
-   if(value < threshold) then
-      break
-   end
 
    res[#res + 1] = {
       label = key,
       value = value,
       url = getAppUrl(key),
    }
-
-   accumulate = accumulate + value
-   num = num + 1
-
-   if(num == max_num_entries) then
-      break
-   end
 end
 
-if(tot == 0) then
-   tot = 1
-end
-
--- In case there is some leftover do print it as "Other"
-if(accumulate < tot) then
-   res[#res + 1] = {
-      label = i18n("other"),
-      value = (tot-accumulate),
-   }
-end
-
-rest_utils.answer(rc, res)
+local collapsed = stats_utils.collapse_stats(res, 3, 3 --[[ threshold ]])
+rest_utils.answer(rc, collapsed)

@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local rest_utils = require("rest_utils")
+local stats_utils = require("stats_utils")
 local dscp_consts = require "dscp_consts"
 
 --
@@ -43,4 +44,6 @@ for key, value in pairsByKeys(stats.dscp, asc) do
    }
 end
 
-rest_utils.answer(rc, res)
+local collapsed = stats_utils.collapse_stats(res, 1)
+
+rest_utils.answer(rc, collapsed)

@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local page_utils = require("page_utils")
+local ui_utils = require("ui_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -128,8 +129,9 @@ print [[
        </script>
 ]]
 
-print(i18n("network_stats.note_overlapping_networks").."<ol>")
-print("<li>"..i18n("network_stats.note_see_both_network_entries"))
-print("<li>"..i18n("network_stats.note_broader_network").."</ol>")
+print(ui_utils.render_notes({
+	{content = i18n("network_stats.note_see_both_network_entries")},
+	{content = i18n("network_stats.note_broader_network")}
+}, i18n("network_stats.note_overlapping_networks"), true))
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

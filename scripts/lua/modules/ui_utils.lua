@@ -16,7 +16,7 @@ function ui_utils.render_configuration_footer(item)
 end
 
 --- Single note element: { content = 'note description', hidden = true|false }
-function ui_utils.render_notes(notes_items)
+function ui_utils.render_notes(notes_items, title, is_ordered)
 
     if notes_items == nil then
         traceError(TRACE_DEBUG, TRACE_CONSOLE, "The notes table is nil!")
@@ -24,7 +24,9 @@ function ui_utils.render_notes(notes_items)
     end
 
     return template_utils.gen("pages/components/notes.template", {
-        notes = notes_items
+        notes = notes_items,
+        is_ordered = is_ordered,
+        title = title
     })
 end
 

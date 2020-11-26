@@ -191,8 +191,9 @@ page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, netw
 if (_GET["page"] ~= "historical") then
    if(asn ~= nil) then
       print [[
-<div class="container-fluid">
-  <ul class="nav nav-tabs">
+   <div class='card'>
+   <div class='card-header'>
+  <ul class="nav nav-tabs card-header-tabs">
     <li class="nav-item" class="active"><a class="nav-link active" data-toggle="tab" href="#home">]] print(i18n("hosts_stats.hosts")) print[[</a></li>
 ]]
 
@@ -207,10 +208,11 @@ if (_GET["page"] ~= "historical") then
       end
    end
 
-   print("</ul>")
+   print("</ul></div>") -- close .card-header
 
    if(asn ~= nil) then
       print [[
+   <div class='card-body'>
   <div class="tab-content">
 <div id="home" class="tab-pane in active">
 ]]
@@ -265,7 +267,7 @@ if (_GET["page"] ~= "historical") then
 
    print [[
       <div class='table-responsive'>
-      <div id="table-hosts"></div>
+         <div id="table-hosts"></div>
       </div>
 	 <script>
 	 var url_update = "]] print(getPageUrl(ntop.getHttpPrefix() .. "/lua/get_hosts_data.lua", page_params)) print[[";]]
@@ -576,6 +578,7 @@ if (_GET["page"] ~= "historical") then
       print [[
 </div>
 
+
 <script src="/js/ripe_widget_api.js"></script>
 
 <div id="asinfo" class="tab-pane"></div>
@@ -584,6 +587,8 @@ if (_GET["page"] ~= "historical") then
 <div id="prefix" class="tab-pane"></div>
 <div id="bgp" class="tab-pane"></div>
 
+</div>
+</div>
 </div>
 
 <script>

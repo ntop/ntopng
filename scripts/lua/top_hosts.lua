@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require("page_utils")
+local ui_utils = require("ui_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -47,11 +48,14 @@ print [[
 </script>
 
 <script src="]] print(ntop.getHttpPrefix()) print [[/js/cubism_ntop.v1.js"></script>
+<div class='card'>
+<div class='card-body'>
 <div id="tophosts"></div>
+</div>
+</div>
 ]]
 
-print(i18n("top_hosts.note"))
-
+print(ui_utils.render_notes({}, i18n("top_hosts.note")))
 
 print [[
 <script>

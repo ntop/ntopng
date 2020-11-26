@@ -21,8 +21,7 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.host_explorer)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 print([[
-	<h2>Host Explorer</h2>
-	<hr>
+	<h2 class='mb-4'>Host Explorer</h2>
 ]])
 
 -- https://www.d3-graph-gallery.com/graph/bubble_template.html

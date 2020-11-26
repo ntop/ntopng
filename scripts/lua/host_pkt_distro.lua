@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json  = require "dkjson"
+local stats_utils = require("stats_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -33,24 +34,11 @@ else
       end
    end
 
-   local tot = 0
    for key, value in pairs(what) do
-      tot = tot + value
-   end
-
-   local threshold = (5 * tot) / 100
-
-   local s = 0
-   for key, value in pairs(what) do
-      if(value > threshold) then
-	 res[#res + 1] = {label = key, value = value}
-	 s = s + value
-      end
-   end
-
-   if tot > s then
-      res[#res + 1] = {label = "Other", value = (tot - s)}
+      res[#res + 1] = {label = key, value = value}
    end
 end
 
-print(json.encode(res))
+local collapsed = stats_utils.collapse_stats(res, 1, 5 --[[ threshold ]])
+
+print(json.encode(collapsed))

@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require "dkjson"
+local stats_utils = require("stats_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -50,6 +51,8 @@ end
 
 if table.len(res) == 0 then
    res[#res + 1] = {label = "Other", value = 100}
+else
+   res = stats_utils.collapse_stats(res, 1, 1 --[[ threshold ]])
 end
 
 print(json.encode(res))

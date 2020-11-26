@@ -34,7 +34,11 @@ if (num > 0) then
             </button>
             <p id='error-message'></p>
           </div>
-          <div style="height: 720px" id="map-canvas"></div>
+          <div class="d-flex justify-content-center align-items-center" style="height: 720px" id="map-canvas">
+              <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+          </div>
         </div>
       </div>
   ]])

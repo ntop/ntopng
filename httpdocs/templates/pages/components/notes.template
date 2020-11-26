@@ -1,10 +1,16 @@
 <div class="notes bg-light border">
     <b>{{ i18n("notes") }}</b>
-    <ul>
+    {% if (not isEmptyString(title)) then %}
+        <p class='mb-1'>{* title *}</p>
+    {% end %}
+    {%
+        local tag = ternary(is_ordered, "ol", "ul")    
+    %}
+    <{{tag}}>
         {% for i, note in ipairs(notes) do %}
             {% if not note.hidden then %}
                 <li>{* note.content *}</li>
             {% end %}
         {% end %}
-    </ul>
+    </{{tag}}>
 </div>

@@ -1360,7 +1360,7 @@ elseif((page == "ndpi")) then
 
       print[[ do_pie("#topApplicationProtocols", ']]
       print (ntop.getHttpPrefix())
-      print [[/lua/rest/v1/get/host/l7/stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
+   print [[/lua/rest/v1/get/host/l7/stats.lua', { ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info)) print [[ }, "", refresh);
 
 				   do_pie("#topApplicationCategories", ']]
       print (ntop.getHttpPrefix())
@@ -1551,8 +1551,9 @@ setInterval(update_ja3_table, 5000);
 </script>
 ]]
 
-
-   print("<b>"..i18n("notes").."</b><ul><li>"..i18n("fingerprint_note").."</li></ul>")
+   print(ui_utils.render_notes({
+      {content = i18n("fingerprint_note")}
+   }))
 
 elseif(page == "ssh") then
   print [[
