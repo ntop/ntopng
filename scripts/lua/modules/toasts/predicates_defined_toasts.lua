@@ -431,7 +431,7 @@ function predicates.exporters_SNMP_ratio_column(toast, container)
     local flow_device_ip = _GET["ip"]
     if (isEmptyString(flow_device_ip)) then return end
 
-    local cached_device = snmp_cached_dev:new(flow_device_ip)
+    local cached_device = snmp_cached_dev:create(flow_device_ip)
 
     local is_ratio_available = snmp_utils.is_snmp_ratio_available(cached_device)
 
