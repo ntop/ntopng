@@ -5,38 +5,38 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+-- Import the classes library.
+local classes = require "classes"
+
 -- ##############################################
 
-local Alert = { }
+local Alert = classes.class()
 
 -- ##############################################
 
-function Alert:new(subclass)
-   local this = subclass or {}
-
-   setmetatable(this, self)
-   self.__index = self
-
-   return this
+function Alert:init()
 end
 
 -- ##############################################
 
-function Alert:format() tprint("base format") end
+function Alert:format()
+   tprint("base format")
+end
 
 -- ##############################################
 
 function Alert:_build_type_info()
-   return {
+   local type_info =  {
       -- Keys necessary for the engine
-      alert_type = self.def_script,
+      alert_type = self.meta,
       alert_subtype = self.alert_subtype,
       alert_granularity = self.alert_granularity,
       alert_severity = self.alert_severity,
-      alert_type = self.def_script,
-      -- Stuff added in subclasses by users
-      alert_type_params = self.alert_type_params
+      -- Stuff added in subclasses :init
+      alert_type_params = self.alert_type_params or {}
    }
+
+   return type_info
 end
 
 -- ##############################################
@@ -52,12 +52,6 @@ function Alert:release(entity_info, when, cur_alerts)
    local alerts_api = require "alerts_api"
    return alerts_api.release(entity_info, self:_build_type_info(), nil, cur_alerts)
 end
-
--- ##############################################
-
-function Alert:set_def_script(def_script) self.def_script = def_script end
-function Alert:set_creator(creator) self.create = creator end
-function Alert:set_formatter(formatter) self.format = formatter end
 
 -- ##############################################
 

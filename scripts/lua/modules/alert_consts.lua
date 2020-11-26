@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local alert_consts = {}
 local alert_keys = require "alert_keys"
+local alert = require "alert" -- The alert base class
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
 local plugins_utils = require("plugins_utils")
@@ -479,63 +480,77 @@ end
 function alert_consts.loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"alert_key", "i18n_title", "icon"}
 
-   -- Check the required fields
-   for _, k in pairs(required_fields) do
-      if(def_script[k] == nil) then
-         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
-         return(false)
-      end
-   end
-
-   -- Sanity check: make sure this is a valid alert key
-   local parsed_alert_key, status = alert_keys.parse_alert_key(def_script.alert_key)
-   if not parsed_alert_key then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid alert key specified %s in %s from %s", status, mod_fname, script_path))
-      return(false)
-   end
-
-   if(alerts_by_id[parsed_alert_key] ~= nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", parsed_alert_key, mod_fname, script_path))
-      return(false)
-   end
-
-   -- Save the original creator to wrap it with the aim of attaching the `alert_type`
-   -- This avoids repeating the alert type twice in every alert definition file
-   local cur_creator = def_script.creator
-   local creator = function(...)
-      local created = {}
-
-      if cur_creator then
-         created = cur_creator(...)
+   if mod_fname ~= "alert_host_new_api_demo" then
+      -- Check the required fields
+      for _, k in pairs(required_fields) do
+	 if(def_script[k] == nil) then
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
+	    return(false)
+	 end
       end
 
-      created["alert_type"] = def_script
-      return created
-   end
-
-   -- EXPERIMENTAL: Do the subclassing
-   if def_script.Alert then
-      local alert_factory = function()
-	 local Alert = require("alert"):new(def_script.Alert)
-	 -- Add the parsed key
-	 Alert:set_def_script(def_script)
-	 -- And possibly creators and and formatters
-	 if def_script.creator then Alert:set_creator(def_script.creator) end
-	 if def_script.formatter then Alert:set_formatter(def_script.formatter) end
-	 -- Place the subclassed Alert instance into the place of Alert
-	 return Alert
+      -- Sanity check: make sure this is a valid alert key
+      local parsed_alert_key, status = alert_keys.parse_alert_key(def_script.alert_key)
+      if not parsed_alert_key then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid alert key specified %s in %s from %s", status, mod_fname, script_path))
+	 return(false)
       end
 
-      def_script.new = alert_factory
+      if(alerts_by_id[parsed_alert_key] ~= nil) then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", parsed_alert_key, mod_fname, script_path))
+	 return(false)
+      end
+
+      -- Save the original creator to wrap it with the aim of attaching the `alert_type`
+      -- This avoids repeating the alert type twice in every alert definition file
+      local cur_creator = def_script.creator
+      local creator = function(...)
+	 local created = {}
+
+	 if cur_creator then
+	    created = cur_creator(...)
+	 end
+
+	 created["alert_type"] = def_script
+	 return created
+      end
+
+      def_script.alert_key = parsed_alert_key
+      def_script.create = creator
+      alert_consts.alert_types[mod_fname] = def_script
+      alerts_by_id[parsed_alert_key] = mod_fname
+
+      -- Success
+      return(true)
+   else -- EXPERIMENTAL: will become new API
+
+      -- Check the required metadata fields
+      for _, k in pairs(required_fields) do
+	 if(def_script.meta[k] == nil) then
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
+	    return(false)
+	 end
+      end
+
+      -- Sanity check: make sure this is a valid alert key
+      local parsed_alert_key, status = alert_keys.parse_alert_key(def_script.meta.alert_key)
+      if not parsed_alert_key then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid alert key specified %s in %s from %s", status, mod_fname, script_path))
+	 return(false)
+      end
+
+      if(alerts_by_id[parsed_alert_key] ~= nil) then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", parsed_alert_key, mod_fname, script_path))
+	 return(false)
+      end
+
+      def_script.meta.alert_key = parsed_alert_key
+      alert_consts.alert_types[mod_fname] = def_script
+      alerts_by_id[parsed_alert_key] = mod_fname
+
+      -- Success
+      return(true)
    end
-
-   def_script.alert_key = parsed_alert_key
-   def_script.create = creator
-   alert_consts.alert_types[mod_fname] = def_script
-   alerts_by_id[parsed_alert_key] = mod_fname
-
-   -- Success
-   return(true)
 end
  
 -- ##############################################
@@ -545,12 +560,13 @@ function alert_consts.alertTypeLabel(v, nohtml)
 
    if(alert_key) then
       local type_info = alert_consts.alert_types[alert_key]
-      local title = i18n(type_info.i18n_title) or type_info.i18n_title
+      -- TODO: .meta is the new format, OR are for compatibility and can be removed when migration is done
+      local title = i18n(type_info.i18n_title or type_info.meta.i18n_title) or type_info.i18n_title or type_info.meta.i18n_title
 
       if(nohtml) then
         return(title)
       else
-        return(string.format('<i class="%s"></i> %s', type_info.icon, title))
+        return(string.format('<i class="%s"></i> %s', type_info.icon or type_info.meta.icon, title))
       end
    end
 

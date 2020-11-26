@@ -26,28 +26,26 @@ local script = {
 
 function script.hooks.min(params)
    if false then -- TODO: set to true to execute
-      local Alert = alert_consts.alert_types.alert_host_new_api_demo.new()
-
-      Alert:set_severity(alert_consts.alert_severities.error)
-      Alert:set_granularity(params.granularity)
-
-      Alert:set_params(
+      local alert = alert_consts.alert_types.alert_host_new_api_demo.new(
 	 "one_param",
 	 "another_param"
       )
 
+      alert:set_severity(alert_consts.alert_severities.error)
+      alert:set_granularity(params.granularity)
+
       if cond then
-	 Alert:set_attacker()
+	 alert:set_attacker()
       end
 
       if another_cond then
-	 Alert:set_victim()
+	 alert:set_victim()
       end
 
       if true then
-	 Alert:trigger(params.alert_entity, nil, params.cur_alerts)
+	 alert:trigger(params.alert_entity, nil, params.cur_alerts)
       else
-	 Alert:release(params.alert_entity, nil, params.cur_alerts)
+	 alert:release(params.alert_entity, nil, params.cur_alerts)
       end
    end
 end
