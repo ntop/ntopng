@@ -82,12 +82,17 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * c
 
 void RecipientQueues::lua(lua_State* vm) {
   u_int64_t num_drops = 0, num_uses = 0;
-  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++)
+  u_int8_t fill_pct = 0; /* Maximum fill pct among all queues */
+  for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++) {
     num_drops +=  drops_by_prio[i],
       num_uses += uses_by_prio[i];
+    if(queues_by_prio[i] && queues_by_prio[i]->fillPct() > fill_pct)
+      fill_pct = queues_by_prio[i]->fillPct();
+  }
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "last_use", last_use);
   lua_push_uint64_table_entry(vm, "num_drops", num_drops);
   lua_push_uint64_table_entry(vm, "num_uses", num_uses);
+  lua_push_uint64_table_entry(vm, "fill_pct", fill_pct);
 }

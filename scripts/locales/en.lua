@@ -1162,6 +1162,7 @@ local lang = {
     ["name"] = "Name",
     ["notifications"] = "Notifications",
     ["num_drops"] = "Drops",
+    ["fill_pct"] = "Fill",
     ["num_uses"] = "Uses",
     ["recipient_category"] = "Category Filter",
     ["recipient_list"] = "Recipients",

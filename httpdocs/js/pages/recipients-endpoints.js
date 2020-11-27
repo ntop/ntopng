@@ -212,6 +212,15 @@ $(document).ready(function () {
                 }
             },
             {
+                data: "stats.fill_pct",
+                className: "text-right",
+                width: "5%",
+                render: function (data, type) {
+                    if (type == "display") return NtopUtils.fpercent(data);
+                    return data;
+                }
+            },
+            {
                 targets: -1,
                 className: 'text-center',
                 data: null,
