@@ -616,7 +616,7 @@ void Ntop::start() {
 
 bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id, u_int8_t *network_mask_bits) {
   u_int8_t nmask_bits;
-  *network_id = address->findAddress(family, addr, &nmask_bits);
+  *network_id = this->findAddress(family, addr, &nmask_bits);
 
   if(*network_id != -1 && network_mask_bits)
     *network_mask_bits = nmask_bits;
@@ -773,7 +773,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	snprintf(buf2, bufsize, "%s/%u", inet_ntoa(IPAddr), bits);
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local nw [%s]",
 				     buf2, iface[id]->get_description());
-	address->setLocalNetwork(buf2);
+	addLocalNetwork(buf2);
 	iface[id]->addInterfaceNetwork(buf2, buf);
       }
     }
@@ -850,7 +850,7 @@ void Ntop::loadLocalInterfaceAddress() {
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 local network for %s",
 				     net_buf, iface[ifId]->get_name());
 	iface[ifId]->addInterfaceNetwork(net_buf, buf_orig2);
-	address->setLocalNetwork(net_buf);
+	addLocalNetwork(net_buf);
       }
     } else if(ifa->ifa_addr->sa_family == AF_INET6) {
       struct sockaddr_in6 *s6 =(struct sockaddr_in6 *)(ifa->ifa_netmask);
@@ -883,7 +883,7 @@ void Ntop::loadLocalInterfaceAddress() {
 				     net_buf, iface[ifId]->get_name());
 
 	iface[ifId]->addInterfaceNetwork(net_buf, buf_orig);
-	address->setLocalNetwork(net_buf);
+	addLocalNetwork(net_buf);
       }
     }
   }
@@ -2312,7 +2312,7 @@ void Ntop::setLocalNetworks(char *_nets) {
     nets = strdup(_nets);
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting local networks to %s", nets);
-  address->setLocalNetworks(nets);
+  addLocalNetwork(nets);
   free(nets);
 };
 
@@ -2967,3 +2967,58 @@ void Ntop::refreshPluginsDir() {
 #endif
 }
 
+/* ******************************************* */
+
+inline int16_t Ntop::findAddress(int family, void *addr, u_int8_t *network_mask_bits) {
+  return(tree.findAddress(family, addr, network_mask_bits));
+}
+
+/* **************************************** */
+
+u_int8_t Ntop::getLocalNetworkId(const char *address_str) {
+  u_int8_t i;
+
+  for(i = 0; i< tree.getNumAddresses(); i++) {
+    if(!strcmp(address_str, addressString[i]))
+      return(i);
+  }
+
+  return((u_int8_t)-1);
+}
+
+/* ******************************************* */
+
+bool Ntop::addAddress(char *_net) {
+  char *net;
+  int id = tree.getNumAddresses();
+  
+  if(id >= CONST_MAX_NUM_NETWORKS) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s",
+				 id, _net);
+    return(false);
+  }
+  
+  if((net = strdup(_net)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+    return(false);
+  }
+
+  tree.addAddresses(net);
+
+  free(net);
+
+  addressString[id] = strdup(_net);
+  return(true);
+}
+
+/* ******************************************* */
+
+/* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
+void Ntop::addLocalNetwork(const char *rule) {
+  char *tmp, *net = strtok_r((char *) rule, ",", &tmp);
+  
+  while(net != NULL) {
+    if(!addAddress(net)) return;
+    net = strtok_r(NULL, ",", &tmp);   
+  }
+}

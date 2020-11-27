@@ -37,17 +37,6 @@ AddressResolution::AddressResolution() {
     throw 2;
 }
 
-/* ******************************************* */
-
-/* Format: 131.114.21.0/24,10.0.0.0/255.0.0.0 */
-bool AddressResolution::setLocalNetworks(char *rule) { return(localNetworks.addAddresses(rule)); }
-
-/* ******************************************* */
-
-int16_t AddressResolution::findAddress(int family, void *addr, u_int8_t *network_mask_bits) {
-  return(localNetworks.findAddress(family, addr, network_mask_bits));
-}
-
 /* **************************************** */
 
 AddressResolution::~AddressResolution() {

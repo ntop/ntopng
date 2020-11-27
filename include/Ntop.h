@@ -88,6 +88,11 @@ class Ntop {
   std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoSerializerQueue *internal_alerts_queue;
   Recipients recipients; /* Handle notification recipients */
+  
+  /* Local network address list */
+  char *addressString[CONST_MAX_NUM_NETWORKS];
+  AddressTree tree;
+
 #ifndef WIN32
   ContinuousPing *cping;
 #endif
@@ -95,6 +100,10 @@ class Ntop {
 #ifdef __linux__
   int inotify_fd;
 #endif
+
+  /* For local network */
+  inline int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
+  bool addAddress(char *_net);
 
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
@@ -421,12 +430,9 @@ class Ntop {
   void runHousekeepingTasks();
   void runShutdownTasks();
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };
-  inline u_int8_t getLocalNetworkId(const char *network_name) { return(address->get_local_network_id(network_name)); }
-  inline const char* getLocalNetworkName(int16_t local_network_id) {
-    return(address->get_local_network((u_int8_t)local_network_id));
-  };
+  
   void getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix);
-  inline void addLocalNetwork(const char *network)           { address->setLocalNetwork((char*)network); }
+  void addLocalNetwork(const char *network);
   void createExportInterface();
   void resetNetworkInterfaces();
   void initElasticSearch();
@@ -443,7 +449,6 @@ class Ntop {
 
   inline NtopPro* getPro()              { return((NtopPro*)pro); };
 
-  inline u_int8_t getNumLocalNetworks()       { return(address->getNumLocalNetworks()); };
   void loadTrackers();
   bool isATrackerHost(char *host);
   bool isExistingInterface(const char * const name) const;
@@ -499,6 +504,17 @@ class Ntop {
   void getUserGroupLocal(const char * const user, char *group) const;
   bool existsUserLocal(const char * const user) { char val[64]; return getUserPasswordHashLocal(user, val); }
   void purgeLoopBody();
+
+  /* Local network address list methods */
+  inline u_int8_t getNumLocalNetworks()       { return tree.getNumAddresses();    };
+  inline const char* getLocalNetworkName(int16_t local_network_id) {
+    return(((u_int8_t)local_network_id < tree.getNumAddresses()) ? addressString[(u_int8_t)local_network_id] : NULL);
+  };
+  
+  u_int8_t getLocalNetworkId(const char *network_name);
+  
+  //void getAddresses(lua_State* vm)            { return(tree.getAddresses(vm));                               };
+  
 };
 
 extern Ntop *ntop;
