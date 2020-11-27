@@ -5569,6 +5569,23 @@ static int ntop_set_ndpi_protocol_category(lua_State* vm) {
 
 /* ****************************************** */
 
+/* Replace the interfaces configured with -i with the provided one */
+static int ntop_override_interface(lua_State* vm) {
+  char *ifname;
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  ifname = (char*)lua_tostring(vm, 1);
+
+  ntop->getPrefs()->resetDeferredInterfacesToRegister();
+  ntop->getPrefs()->addDeferredInterfaceToRegister(ifname);
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 
 static int ntop_set_lan_interface(lua_State* vm) {
@@ -5929,6 +5946,9 @@ static luaL_Reg _ntop_reg[] = {
   { "setWanInterface",       ntop_set_wan_interface        },
   { "refreshDeviceProtocolsPoliciesConf", ntop_refresh_device_protocols_policies_pref },
 #endif
+
+  /* Appliance */
+  { "overrideInterface",     ntop_override_interface       },
 
   /* System User Scripts */
   { "checkSystemScriptsMin",     ntop_check_system_scripts_min       },

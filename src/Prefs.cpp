@@ -1024,9 +1024,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Interface name too long (exceeding %d characters): ignored %s",
 				   MAX_INTERFACE_NAME_LEN - 1, optarg);
-    else if(num_deferred_interfaces_to_register < UNLIMITED_NUM_INTERFACES)
-      deferred_interfaces_to_register[num_deferred_interfaces_to_register++] = strdup(optarg);
-    else
+    else if(!addDeferredInterfaceToRegister(optarg))
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces specified with -i: ignored %s", optarg);
     break;
 
@@ -1834,6 +1832,30 @@ void Prefs::refreshDeviceProtocolsPolicyPref() {
 
 void Prefs::refreshDbDumpPrefs() {
   enable_runtime_flows_dump = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_RUNTIME_FLOWS_DUMP, true);
+}
+
+/* *************************************** */
+
+void Prefs::resetDeferredInterfacesToRegister() {
+  for(int i = 0; i < num_deferred_interfaces_to_register; i++) {
+    if(deferred_interfaces_to_register[i] != NULL) {
+      free(deferred_interfaces_to_register[i]);
+      deferred_interfaces_to_register[i] = NULL;
+    }
+  }
+  num_deferred_interfaces_to_register = 0;
+}
+
+/* *************************************** */
+
+bool Prefs::addDeferredInterfaceToRegister(const char *ifname) {
+  if(num_deferred_interfaces_to_register < UNLIMITED_NUM_INTERFACES) {
+    deferred_interfaces_to_register[num_deferred_interfaces_to_register] = strdup(ifname);
+    num_deferred_interfaces_to_register++;
+    return true;
+  } else {
+    return false;
+  }
 }
 
 /* *************************************** */

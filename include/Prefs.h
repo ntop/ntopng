@@ -275,6 +275,8 @@ class Prefs {
   virtual void lua(lua_State* vm);
   void reloadPrefsFromRedis();
   void loadInstanceNameDefaults();
+  void resetDeferredInterfacesToRegister();
+  bool addDeferredInterfaceToRegister(const char *ifname);
   void registerNetworkInterfaces();
   void refreshHostsAlertsPrefs();
   void refreshDeviceProtocolsPolicyPref();

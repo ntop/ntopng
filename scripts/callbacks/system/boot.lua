@@ -41,6 +41,21 @@ if not ntop.isnEdge() then -- nEdge data deletion is handled in nf_config.lua
    end
 end
 
+if ntop.isAppliance() then
+   package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" .. package.path
+
+   local appliance_config = require("appliance_config"):create()
+
+   if not appliance_config.isFirstStart() then
+      if appliance_config:getOperatingMode() == "bridging" then
+         local br_name = appliance_config:getBridgeInterfaceName()
+         if br_name ~= nil then
+           ntop.overrideInterface(br_name);
+         end
+      end
+   end
+end
+
 -- NOTE: cannot reload plugins here as we must first drop the privileges
 -- They will be loaded in startup.lua . Here we only delete old directories.
 local plugins_utils = require "plugins_utils"

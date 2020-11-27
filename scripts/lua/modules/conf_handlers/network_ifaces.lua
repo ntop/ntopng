@@ -54,8 +54,16 @@ end
 -- ################################################################
 
 function config.openNetworkInterfacesConfigFile()
+  local network_conf_file = "ntop.conf"
+  local network_custom_conf_file = "ntop_mgmt.conf"
+
+  if ntop.isnEdge() then
+    network_conf_file = "nedge.conf"
+    network_custom_conf_file = "nedge_mgmt.conf"
+  end
+
   -- verify that the file is actually included
-  for _, source in ipairs({"nedge.conf", "nedge_mgmt.conf"}) do
+  for _, source in ipairs({network_conf_file, network_custom_conf_file}) do
     local source_line = "source /etc/network/interfaces.d/"..source
     local res = sys_utils.execShellCmd("grep \"^" .. source_line .. "\" /etc/network/interfaces 2>/dev/null")
 
@@ -68,7 +76,7 @@ function config.openNetworkInterfacesConfigFile()
     end
   end
 
-  return sys_utils.openFile("/etc/network/interfaces.d/nedge.conf", "w")
+  return sys_utils.openFile("/etc/network/interfaces.d/"..network_conf_file, "w")
 end
 
 -- ################################################################

@@ -75,7 +75,9 @@ if table.len(_POST) > 0 then
   if config_found then
     sys_config:setDisabledWans(disabled_wans)
     sys_config:setInterfacesConfiguration(interfaces_config)
-    sys_config:setDhcpFromLan()
+    if is_nedge then
+      sys_config:setDhcpFromLan()
+    end
     sys_config:save()
   end
 end

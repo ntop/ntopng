@@ -603,14 +603,10 @@ end
 function system_config:_writePassiveModeNetworkConfig(f)
   local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["passive"]
+  local lan_config = network_config[mode_config.interfaces.lan]
 
   -- Lan interface
-  self:_writeNetworkInterfaceConfig(f, mode_config.lan, network_config[mode_config.lan].network)
-
-  -- Capture interfaces
-  -- for _, iface in ipairs(mode_config.interfaces.wan) do
-  --  self:_writeNetworkInterfaceConfig(f, iface, {mode="manual"})
-  -- end
+  self:_writeNetworkInterfaceConfig(f, mode_config.interfaces.lan, lan_config.network)
 end
 
 function system_config:_writeBridgeModeNetworkConfig(f)
