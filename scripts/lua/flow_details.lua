@@ -843,12 +843,57 @@ else
       print("</td></tr>\n")
    end
 
-   if(flow.iec104 and (table.len(flow.iec104) > 0)) then
-      print("<tr><th width=30%>"..i18n("flow_details.iec104_mask").."</th><td colspan=2>")
-
-      for k,v in pairsByKeys(flow.iec104, rev) do
-	 print("<li>"..iec104_typeids2str(tonumber(k)).."</li>\n")
+   if(flow.iec104 and (table.len(flow.iec104.typeid) > 0)) then
+      print("<tr><th rowspan=4 width=30%><A HREF='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104</A> <i class='fas fa-external-link-alt'></i></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
+      
+      total = 0
+      for k,v in pairsByKeys(flow.iec104.typeid, rev) do
+	 total = total + v
       end
+
+      print("<table border width=100%>")
+      for k,v in pairsByValues(flow.iec104.typeid, rev) do
+	 local pctg = (v*100)/total
+	 local key = iec104_typeids2str(tonumber(k))
+
+	 print(string.format("<th>%s</th><td align=right>%.3f %%</td></tr>\n", key, pctg))
+      end
+      
+      print("</table>\n")
+      print("</td></tr>\n")
+      
+      -- #########################
+
+      print("<tr><th>".. i18n("flow_details.iec104_transitions") .."</th><td>")
+      
+      print("<table border width=100%>")
+      for k,v in pairsByValues(flow.iec104.typeid_transitions, rev) do
+	 local pctg = (v*100)/total
+	 local keys = split(k, ",")
+	 local key = iec104_typeids2str(tonumber(keys[1]))
+
+	 if(keys[1] == keys[2]) then
+	    key = key ..' <i class="fas fa-exchange-alt"></i> '
+	 else
+	    key = key ..' <i class="fas fa-arrow-right"></i> '
+	 end
+
+	 key = key .. iec104_typeids2str(tonumber(keys[2]))
+	 
+	 print(string.format("<tr><th>%s</th><td align=right>%.3f %%</td></tr>\n", key, pctg))
+      end
+      
+      print("</table>\n")
+      print("</td></tr>\n")
+
+      -- #########################
+	 
+      print("<tr><th>"..i18n("flow_details.iec104_latency").."</th><td>")
+      print(string.format("%.4f ms (%.4f msec)", flow.iec104.ack_time.average, flow.iec104.ack_time.stddev))
+      print("</td></tr>\n")
+
+      print("<tr><th>"..i18n("flow_details.iec104_msg_loss").."</th><td>")
+      print(formatValue(flow.iec104.pkt_lost.rx).." RX / "..formatValue(flow.iec104.pkt_lost.tx).." TX")
       print("</td></tr>\n")
    end
 

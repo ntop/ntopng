@@ -89,7 +89,7 @@ class Flow : public GenericHashEntry {
   json_object *json_info;
   ndpi_serializer *tlv_info;
   char *host_server_name, *bt_hash;
-  u_int64_t iec104_typeid_mask[2]; /* [0] = lower 64 bit [1] = upper 64 bit */
+  IEC104Stats *iec104;
   OperatingSystem operating_system;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
@@ -275,6 +275,7 @@ class Flow : public GenericHashEntry {
   void updateEntropy(struct ndpi_analyze_struct *e, u_int8_t *payload, u_int payload_len);
   void lua_entropy(lua_State* vm);
   void luaScore(lua_State* vm);
+  void luaIEC104(lua_State* vm);
   
  public:
   Flow(NetworkInterface *_iface,
@@ -379,8 +380,9 @@ class Flow : public GenericHashEntry {
 		     u_int8_t *payload, u_int16_t payload_len);
   void setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len);
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time);
-  void processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
-			     const u_char *payload, u_int16_t payload_len, u_int64_t packet_time);
+  void processIEC60870Packet(bool src2dst_direction, const u_char *ip_packet, u_int16_t ip_len,
+			     const u_char *payload, u_int16_t payload_len,
+			     struct timeval *packet_time);
   
   void endProtocolDissection();
   inline void setCustomApp(custom_app_t ca) {

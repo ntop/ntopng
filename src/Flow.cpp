@@ -28,7 +28,6 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
 						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
 // #define DEBUG_DISCOVERY
 // #define DEBUG_UA
-// #define DEBUG_IEC60870
 
 /* *************************************** */
 
@@ -50,15 +49,13 @@ Flow::Flow(NetworkInterface *_iface,
   alert_level = alert_level_none;
   alerted_status = status_normal, alerted_status_score = 0;
   ndpi_flow_risk_bitmap = 0;
-  iec104_typeid_mask[0] = 0, iec104_typeid_mask[1] = 0;
   detection_completed = false;
   extra_dissection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
-  periodic_update_ctr = 0;
-  cli2srv_tos = srv2cli_tos = 0;
+  periodic_update_ctr = 0, cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
   zero_window_alert_triggered = src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
-    
+
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
@@ -317,8 +314,10 @@ Flow::~Flow() {
     ndpi_term_serializer(tlv_info);
     free(tlv_info);
   }
+  
   if(host_server_name)              free(host_server_name);
-
+  if(iec104)                        delete iec104;
+  
   if(cli_ebpf) delete cli_ebpf;
   if(srv_ebpf) delete srv_ebpf;
 
@@ -457,7 +456,8 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_DNS:
     if(cli_port == ntohs(53) && get_cli_host())       get_cli_host()->setDnsServer();
     else if(srv_port == ntohs(53) && get_srv_host())  get_srv_host()->setDnsServer();
-  
+    break;
+
   case NDPI_PROTOCOL_IEC60870:
     /* See Flow::processDNSPacket and Flow::processIEC60870Packet for dissection */
     break;
@@ -470,8 +470,8 @@ void Flow::processDetectedProtocol() {
     } else if(protos.tls.client_requested_server_name
 	      && cli_host
 	      && cli_host->isLocalHost())
-      cli_host->incrVisitedWebSite(protos.tls.client_requested_server_name);  
-  
+      cli_host->incrVisitedWebSite(protos.tls.client_requested_server_name);
+
     if(cli_host) cli_host->incContactedService(protos.tls.client_requested_server_name);
     break;
 
@@ -793,146 +793,21 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
 /* *************************************** */
 
 /* Special handling of IEC60870 which is always performed. */
-void Flow::processIEC60870Packet(const u_char *ip_packet, u_int16_t ip_len,
-				 const u_char *payload, u_int16_t payload_len, u_int64_t packet_time) {
-  ndpi_protocol proto_id;
-
+void Flow::processIEC60870Packet(bool tx_direction,
+				 const u_char *ip_packet, u_int16_t ip_len,
+				 const u_char *payload, u_int16_t payload_len,
+				 struct timeval *packet_time) {
   /* Exits if the flow isn't IEC60870 or it the interface is not a packet-interface */
   if(!isIEC60870()
      || (!getInterface()->isPacketInterface())
      || (payload_len < 6))
     return;
 
-  /* Instruct nDPI to continue the dissection
-     See https://github.com/ntop/ntopng/commit/30f52179d9f7a1eb774534def93d55c77d6070bc#diff-20b1df29540b6de59ceb6c6d2f3afdb5R387
-  */
-  ndpiFlow->check_extra_packets = 1, ndpiFlow->max_extra_packets_to_check = 10;
-
-  proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow,
-					   ip_packet, ip_len, packet_time,
-					   (struct ndpi_id_struct*) cli_id, (struct ndpi_id_struct*) srv_id);
-
-  /*
-    A IEC60870 flow won't change to a non-IEC60870 flow. However, this check is
-    just in case for safety. What can change is the application protocol, e.g.,
-    a IEC60870.Google can become IEC60870.Facebook.
-  */
-  switch(ndpi_get_lower_proto(proto_id)) {
-  case NDPI_PROTOCOL_IEC60870:
-    if((payload_len >= 6) && (payload[0] == 0x68 /* IEC magic byte */)) {
-      u_int offset = 1 /* Skip magic byte */;
-      u_int64_t *allowedTypeIDs = ntop->getPrefs()->getIEC104AllowedTypeIDs();
-
-      while(offset /* Skip START byte */ < payload_len) {
-	/* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id */
-	u_int8_t len = payload[offset], pdu_type = ((payload[offset+1] & 0x01) == 0) ? 0 : (payload[offset+1] & 0x03);
-
-#ifdef DEBUG_IEC60870
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] %02X %02X %02X %02X",
-				     __FUNCTION__, payload[offset-1], payload[offset],
-				     payload[offset+1], payload[offset+2]);
-#endif
-
-#ifdef DEBUG_IEC60870
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] A-PDU Len %u/%u [pdu_type: %u][magic: %02X]", __FUNCTION__, len, payload_len, pdu_type, payload[offset-1]);
-#endif
-
-	if(len == 0) break; /* Something went wrong */
-
-	if(pdu_type != 0x0 /* Type I */) {
-	  offset += len + 2;
-	  continue;
-	}
-
-	if(len >= 6 /* Ignore 4 bytes APDUs */) {
-	  /* Skip magic(1), len(1), type/TX(2), RX(2) = 6 */
-	  len -= 6 /* Skip magic and len */, offset += 5 /* magic already skept */;
-
-	  if(payload_len >= (offset+len)) {
-	    u_int8_t  type_id = payload[offset];
-	    u_int8_t  cause_tx = payload[1+offset] & 0x3F;
-	    u_int8_t  negative = ((payload[1+offset] & 0x40) == 0x40) ? true : false;
-	    u_int16_t asdu;
-	    u_int64_t bit;
-	    bool alerted = false;
-
-	    offset += len + 2 /* magic and len */;
-
-	    if(len >= 6)
-	      asdu = /* ntohs */(*((u_int16_t*)&payload[4+offset]));
-	    else
-	      asdu = 0;
-
-#ifdef DEBUG_IEC60870
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] TypeId %u [offset %u/%u]", __FUNCTION__, type_id, offset, payload_len);
-#endif
-
-	    if(type_id < 64) {
-	      bit = ((u_int64_t)1) << type_id;
-
-	      iec104_typeid_mask[0] |= bit;
-
-	      if((allowedTypeIDs[0] & bit) == 0) alerted = true;
-	    } else if(type_id < 128) {
-	      bit = ((u_int64_t)1) << (type_id-64);
-	      iec104_typeid_mask[1] |= bit;
-
-	      if((allowedTypeIDs[1] & bit) == 0) alerted = true;
-	    }
-
-	    if(alerted) {
-	      json_object *my_object;
-
-	      if((my_object = json_object_new_object()) != NULL) {
-		const char *json;
-
-		json_object_object_add(my_object, "timestamp", json_object_new_int(packet_time));
-		json_object_object_add(my_object, "client", get_cli_host()->get_ip()->getJSONObject());
-		json_object_object_add(my_object, "server", get_srv_host()->get_ip()->getJSONObject());
-		if(vlanId) json_object_object_add(my_object, "vlanId", json_object_new_int(vlanId));
-		json_object_object_add(my_object, "type_id", json_object_new_int(type_id));
-		json_object_object_add(my_object, "asdu", json_object_new_int(asdu));
-		json_object_object_add(my_object, "cause_tx", json_object_new_int(cause_tx));
-		json_object_object_add(my_object, "negative", json_object_new_boolean(negative));
-
-		json = json_object_to_json_string(my_object);
-
-#ifdef DEBUG_IEC60870
-		ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json);
-#endif
-
-		ntop->getRedis()->rpush(CONST_IEC104_ALERT_QUEUE, json, 1024 /* Max queue size */);
-
-		json_object_put(my_object); /* Free memory */
-	      }
-	    }
-
-	    /* Discard typeIds 127..255 */
-#ifdef DEBUG_IEC60870
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [payload_len: %u][len: %u][TypeID: %u][%llu/%llu]",
-					 __FUNCTION__, payload_len, len, type_id,
-					 iec104_typeid_mask[0], iec104_typeid_mask[1]);
-#endif
-	  } else /* payload_len < len */
-	    break;
-	} else
-	  break;
-
-	if(payload[offset] == 0x68 /* IEC magic byte */)
-	  offset += 1; /* We skip the initial magic byte */
-	else {
-#ifdef DEBUG_IEC60870
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping IEC entry: no magic byte @ offset %u", offset);
-#endif
-	  break;
-	}
-      } /* while */
-    }
-    break;
-
-  default:
-    break;
-  }
+  if(iec104 == NULL)
+    iec104 = new (std::nothrow) IEC104Stats();
+    
+  if(iec104)
+    iec104->processPacket(this, tx_direction, payload, payload_len, packet_time);
 }
 
 /* *************************************** */
@@ -2091,7 +1966,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   bool mask_flow;
   bool has_json_info = false;
   u_char community_id[200];
-  
+
   if(ptree) {
     if(src_ip) src_match = src_ip->match(ptree);
     if(dst_ip) dst_match = dst_ip->match(ptree);
@@ -2130,7 +2005,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_get_protocols(vm);
     lua_push_str_table_entry(vm, "community_id",
 			     (char*)getCommunityId(community_id, sizeof(community_id)));
-			     
+
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
     if((!mask_flow) && trafficProfile && ntop->getPro()->has_valid_license())
@@ -2255,41 +2130,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       }
     }
 
-    if(isIEC60870()) {
-      lua_newtable(vm);
-
-#ifdef DEBUG_IEC60870
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [%llu/%llu]",
-				   __FUNCTION__, iec104_typeid_mask[0], iec104_typeid_mask[1]);
-#endif
-
-      for(u_int j=0; j<2; j++) {
-
-	for(u_int i=0; i<64; i++) {
-	  u_int64_t bit = ((u_int64_t)1) << i;
-
-	  if((iec104_typeid_mask[j] & bit) == bit) {
-	    char buf[8];
-	    u_int32_t v = i+(j*64);
-
-	    snprintf(buf, sizeof(buf), "%u", v);
-
-#ifdef DEBUG_IEC60870
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] [bit %u] Setting %u",
-					 __FUNCTION__, j, v);
-#endif
-
-	    lua_push_bool_table_entry(vm, buf, true);
-	  }
-	}
-      }
-
-      lua_pushstring(vm, "iec104");
-      lua_insert(vm, -2);
-      lua_settable(vm, -3);
-
-    }
-
+    if(iec104) iec104->lua(vm);
+    
     if (!has_json_info)
       lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
@@ -2594,7 +2436,7 @@ json_object* Flow::flow2json() {
     json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_BLACKLISTED, "SRC_ADDR_BLACKLISTED", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_boolean(get_cli_host()->isBlacklisted()));
     json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_SERVICES, "SRC_ADDR_SERVICES", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_int(get_cli_host()->getServicesMap()));  
+			   json_object_new_int(get_cli_host()->getServicesMap()));
   }
 
   if(srv_ip) {
@@ -2612,9 +2454,9 @@ json_object* Flow::flow2json() {
     json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_BLACKLISTED, "DST_ADDR_BLACKLISTED", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_boolean(get_srv_host()->isBlacklisted()));
     json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_SERVICES, "DST_ADDR_SERVICES", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_int(get_cli_host()->getServicesMap()));  
+			   json_object_new_int(get_cli_host()->getServicesMap()));
   }
- 
+
   json_object_object_add(my_object, Utils::jsonLabel(SRC_TOS, "SRC_TOS", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(getTOS(true)));
   json_object_object_add(my_object, Utils::jsonLabel(DST_TOS, "DST_TOS", jsonbuf, sizeof(jsonbuf)),
@@ -2795,7 +2637,7 @@ u_char* Flow::getCommunityId(u_char *community_id, u_int community_id_len) {
     } else {
       if(get_protocol() == IPPROTO_ICMPV6)
 	icmp_type = protos.icmp.cli2srv.icmp_type, icmp_code = protos.icmp.cli2srv.icmp_code;
-    
+
       if(ndpi_flowv6_flow_hash(protocol, (struct ndpi_in6_addr*)c->get_ipv6(),
 			       (struct ndpi_in6_addr*)s->get_ipv6(), get_cli_port(), get_srv_port(),
 			       icmp_type, icmp_code,
@@ -2803,7 +2645,7 @@ u_char* Flow::getCommunityId(u_char *community_id, u_int community_id_len) {
 	return(community_id);
     }
   }
-  
+
   community_id[0] = '\0';
   return(community_id);
 }
@@ -2818,7 +2660,7 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   const char *info;
   char buf[64];
   u_char community_id[200];
-  
+
   ndpi_init_serializer(&json_info, ndpi_serialization_format_json);
 
   /* AlertsManager::storeFlowAlert requires a string */
@@ -3224,7 +3066,7 @@ void Flow::updateTcpWindow(u_int16_t window, bool src2dst_direction) {
   if(window == 0) {
     if(src2dst_direction)
       src2dst_tcp_zero_window = 1;
-    else 
+    else
       dst2src_tcp_zero_window = 1;
   }
 }
@@ -5362,7 +5204,9 @@ void Flow::triggerZeroWindowAlert(bool *as_client, bool *as_server) {
   *as_client = *as_server = false;
 
   if(!zero_window_alert_triggered) {
-    if(src2dst_tcp_zero_window) *as_client = true, zero_window_alert_triggered = true;  
-    if(dst2src_tcp_zero_window) *as_server = true, zero_window_alert_triggered = true;  
+    if(src2dst_tcp_zero_window) *as_client = true, zero_window_alert_triggered = true;
+    if(dst2src_tcp_zero_window) *as_server = true, zero_window_alert_triggered = true;
   }
 }
+
+/* *************************************** */

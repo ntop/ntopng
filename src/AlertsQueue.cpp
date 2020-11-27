@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019 - ntop.org
+ * (C) 2019-20 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -53,7 +53,7 @@ void AlertsQueue::pushAlertJson(ndpi_serializer *alert, const char *atype, const
 /* **************************************************** */
 
 void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
-    u_int32_t ip, u_int32_t router_ip, int vlan_id) {
+					    u_int32_t ip, u_int32_t router_ip, int vlan_id) {
   ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())
@@ -61,7 +61,7 @@ void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
 
   tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
 
-  if (tlv) {
+  if(tlv) {
     char cli_mac_s[32], sender_mac_s[32];
     char ipbuf[64], router_ip_buf[64], *ip_s, *router_ip_s;
 
@@ -71,7 +71,7 @@ void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
     router_ip_s = Utils::intoaV4(router_ip, router_ip_buf, sizeof(router_ip_buf));
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "IP not in DHCP range: %s (mac=%s, sender=%s, router=%s)",
-				       ipbuf, cli_mac_s, sender_mac_s, router_ip_s);
+				 ipbuf, cli_mac_s, sender_mac_s, router_ip_s);
 
     ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
 
@@ -95,7 +95,7 @@ void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_m
 
   tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
 
-  if (tlv) {
+  if(tlv) {
     char oldmac_s[32], newmac_s[32], ipbuf[32], *ip_s;
 
     Utils::formatMac(old_mac, oldmac_s, sizeof(oldmac_s));
@@ -103,7 +103,7 @@ void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_m
     ip_s = Utils::intoaV4(ip, ipbuf, sizeof(ipbuf));
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "IP %s: modified MAC association %s -> %s",
-				       ip_s, oldmac_s, newmac_s);
+				 ip_s, oldmac_s, newmac_s);
 
     ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
 
@@ -118,7 +118,7 @@ void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_m
 /* **************************************************** */
 
 void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, const u_int8_t *dst_mac,
-    u_int32_t spa, u_int32_t tpa, int vlan_id) {
+						   u_int32_t spa, u_int32_t tpa, int vlan_id) {
   ndpi_serializer *tlv;
 
   if(ntop->getPrefs()->are_alerts_disabled())
@@ -126,7 +126,7 @@ void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, cons
 
   tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
 
-  if (tlv) {
+  if(tlv) {
     char src_mac_s[32], dst_mac_s[32], spa_buf[32], tpa_buf[32];
     char *spa_s, *tpa_s;
 
@@ -157,7 +157,7 @@ void AlertsQueue::pushRemoteToRemoteAlert(Host *host) {
 
   tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
 
-  if (tlv) {
+  if(tlv) {
     char ipbuf[64], macbuf[32];
 
     ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
@@ -180,7 +180,7 @@ void AlertsQueue::pushLoginTrace(const char*user, bool authorized) {
 
   tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
 
-  if (tlv) {
+  if(tlv) {
     ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
 
     ndpi_serialize_string_string(tlv, "scope", "login");
@@ -200,7 +200,7 @@ void AlertsQueue::pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queu
 
   tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
 
-  if (tlv) {
+  if(tlv) {
     ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
 
     ndpi_serialize_string_int32(tlv, "tot",     queue_len);

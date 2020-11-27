@@ -387,6 +387,7 @@ using namespace std;
 #include "Host.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"
+#include "IEC104Stats.h"
 #include "Flow.h"
 #include "FlowHash.h"
 #include "MacHash.h"
