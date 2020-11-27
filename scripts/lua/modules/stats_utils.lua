@@ -60,13 +60,17 @@ end
 
 -- ###############################################
 
-function stats_utils.get_severity_by_export_drops(drops, total_flows)
-
-    local drops_pctg = (drops / total_flows)
-    if drops_pctg <= stats_utils.UPPER_BOUND_INFO_EXPORTS then return "INFO" end
-    if drops_pctg <= stats_utils.UPPER_BOUND_WARNING_EXPORTS then return "WARNING" end
-
-    return "DANGER"
+function stats_utils.get_severity_by_export_drops(export_drops, total_exports)
+   if export_drops and total_exports then
+      local drops_fraction = export_drops / (export_drops + total_exports + 1)
+      if drops_fraction <= stats_utils.UPPER_BOUND_INFO_EXPORTS then
+	 return "INFO"
+      elseif drops_fraction <= stats_utils.UPPER_BOUND_WARNING_EXPORTS then
+	 return "WARNING"
+      elseif drops_fraction > stats_utils.UPPER_BOUND_WARNING_EXPORTS then
+      return "DANGER"
+      end
+   end
 end
 
 -- ###############################################

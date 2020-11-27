@@ -737,10 +737,11 @@ if((page == "overview") or (page == nil)) then
       local export_rate      = ifstats.stats.flow_export_rate
       local export_drops     = ifstats.stats.flow_export_drops
       local export_drops_pct = 0
-      if export_drops == nill then
 
+      if not export_drops or not export_count then
+	 -- Nothing to do
       elseif export_drops > 0 and export_count > 0 then
-	 export_drops_pct = export_drops / export_count * 100
+	 export_drops_pct = export_drops / (export_count + export_drops) * 100
       elseif export_drops > 0 then
 	 export_drops_pct = 100
       end
@@ -765,12 +766,11 @@ if((page == "overview") or (page == nil)) then
       print(i18n("if_stats_overview.dropped_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:dumped_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
 
       local span_danger = ""
-      if export_drops == nil then
-
-
-      elseif(export_drops > 0) then
+      if not export_drops then
+      elseif export_drops > 0 then
 	 span_danger = ' class="badge badge-danger"'
       end
+
       print("<td><span id=exported_flows_drops "..span_danger..">"..formatValue(export_drops).."</span>&nbsp;")
       print("<span id=exported_flows_drops_pct "..span_danger..">["
 	       ..formatValue(round(export_drops_pct, 2)).."%]</span></td>")
@@ -2314,7 +2314,7 @@ print [[
           if(rsp.flow_export_count > 0) {
             $('#exported_flows_drops_pct')
               .addClass("badge badge-danger")
-              .html("[" + Math.round(rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_count) * 100 * 1000) / 1000 + "%]");
+              .html("[" + NtopUtils.fpercent(rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_drops + 1) * 100) + "]");
           } else {
             $('#exported_flows_drops_pct').addClass("badge badge-danger").html("[100%]");
           }

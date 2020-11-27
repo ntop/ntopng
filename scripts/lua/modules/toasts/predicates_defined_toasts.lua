@@ -603,9 +603,8 @@ function predicates.export_drops(toast, container)
     if is_dump_flows_enabled then
 
         local ifstats = interface.getStats()
-        local total_flows = ifstats.stats.flows
+        local total_flows = ifstats.stats_since_reset.flow_export_count
         local flow_export_drops = ifstats.stats_since_reset.flow_export_drops
-        
         local severity = ToastLevels[stats_utils.get_severity_by_export_drops(flow_export_drops, total_flows)]
 
         -- for the info severity don't show anything

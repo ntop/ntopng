@@ -241,7 +241,7 @@ local defined_toats = {
     },
     {
         id = 19,
-        dismissable = false,
+        dismissable = true,
         has_priority = true,
         predicate = predicates.export_drops,
         pages = EMPTY_PAGES,
