@@ -4107,6 +4107,7 @@ local lang = {
     ["alerts_are_disabled_message"] = "Alerts are disabled. Please check the preferences page to enable them.",
     ["alerts_queries"] = "Alerts Queries",
     ["alerts_to_purge"] = "Alerts to Purge",
+    ["alerts_to_purge_x"] = "%{filter} alert(s) to purge",
     ["confirm_delete_alert"] = "Do you really want to delete the specified alert",
     ["confirm_release_alert"] = "Do you really want to release the specified alert?",
     ["daily"] = "Daily",

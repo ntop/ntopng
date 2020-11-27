@@ -1398,8 +1398,18 @@ $("[clicked=1]").trigger("click");
 
     -- the dont_print_footer option is used to skip the card footer printing
     if not options.dont_print_footer then print([[<div class='card-footer'>]]) end
-	 print('<div id="alertsActionsPanel">')
-	 print(i18n("show_alerts.alerts_to_purge") .. ': ')
+
+   local purge_label
+   if (_GET['alert_type']) then
+      purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. alert_consts.alertTypeLabel(_GET["alert_type"], true) .. "</b>"})
+   elseif (_GET['alert_severity']) then
+      purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. alert_consts.alertSeverityLabel(_GET["alert_severity"], true) .. "</b>"})
+   else
+      purge_label = i18n("show_alerts.alerts_to_purge")
+   end
+
+    print('<div id="alertsActionsPanel">')
+    print(purge_label .. ': ')
 	 print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if has_fixed_period then print("none") else print("inline") end print[[; width:14em; margin:0 1em;">]]
 	 local all_msg = ""
 
@@ -1427,7 +1437,7 @@ $("[clicked=1]").trigger("click");
 	 local delete_params = alert_utils.getTabParameters(url_params, nil)
 	 delete_params.epoch_end = -1
 
-	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-secondary"> <span id="purgeBtnMessage">]]
+	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-danger"> <span id="purgeBtnMessage">]]
 	 print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
 	 print[[</span></button>
    </div> <!-- closes alertsActionsPanel -->]]
