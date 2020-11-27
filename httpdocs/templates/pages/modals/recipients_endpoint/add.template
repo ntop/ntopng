@@ -71,6 +71,17 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-sm-3" for="recipient-name-input">
+                            <b>{{ i18n("endpoint_notifications.add_to_all") }}</b>
+                        </label>
+                        <div class="col-form-label col-sm-5">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" name="bind_to_all_pools" id="input-add-to-all">
+                                <label class="custom-control-label" for="input-add-to-all"></label>
+                            </div>
+                        </div>  
+                    </div>
                     <span class="invalid-feedback"></span>
                 </div>
                 <div class="modal-footer">

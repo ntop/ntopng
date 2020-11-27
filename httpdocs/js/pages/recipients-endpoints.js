@@ -12,7 +12,8 @@ $(document).ready(function () {
             recipient_name: $(`${formSelector} [name='recipient_name']`).val(),
             endpoint_id: $(`${formSelector} [name='endpoint']`).val(),
             recipient_minimum_severity: $(`${formSelector} [name='recipient_minimum_severity']`).val(),
-            recipient_user_script_categories: $(`${formSelector} [name='recipient_user_script_categories']`).val().join(",")
+            recipient_user_script_categories: $(`${formSelector} [name='recipient_user_script_categories']`).val().join(","),
+            bind_to_all_pools: $(`${formSelector} [name='bind_to_all_pools']`).val() === "on"
         };
 
         // load each recipient params inside the template container in params

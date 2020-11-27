@@ -19,7 +19,7 @@
                                 <th>{{ i18n('endpoint_notifications.time_since_last_use') }}</th>
                                 <th>{{ i18n('endpoint_notifications.num_uses') }}</th>
                                 <th>{{ i18n('endpoint_notifications.num_drops') }}</th>
-				<th>{{ i18n('endpoint_notifications.fill_pct') }}</th>
+				                <th>{{ i18n('endpoint_notifications.fill_pct') }}</th>
                                 <th>{{ i18n('actions') }}</th>
                             </tr>
                         </thead>
