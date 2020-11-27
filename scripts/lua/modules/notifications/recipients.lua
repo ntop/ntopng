@@ -46,6 +46,7 @@ function recipients.initialize()
 	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
 	       nil, -- User script categories
 	       default_builtin_minimum_severity,
+	       false, -- Do Not add it to every pool automatically
 	       {} --[[ no recipient params --]]
 	    )
 	 end
@@ -268,9 +269,10 @@ end
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
 -- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
+-- @param bind_to_all_pools A boolean indicating whether this recipient should be bound to all existing pools
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
-function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)
+function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_script_categories, minimum_severity, bind_to_all_pools, recipient_params)
    local locked = _lock()
    local res = { status = "failed" }
 
@@ -303,6 +305,12 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_scr
 	       -- Set a flag to indicate that a recipient has been created
 	       if not ec.endpoint_conf.builtin and isEmptyString(ntop.getPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
 		  ntop.setPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY, "1")
+	       end
+
+	       if bind_to_all_pools then
+		  local pools_lua_utils = require "pools_lua_utils"
+
+		  pools_lua_utils.bind_all_recipient_id(recipient_id)
 	       end
 
 	       res = {status = "OK", recipient_id = recipient_id}

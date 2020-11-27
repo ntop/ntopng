@@ -342,8 +342,7 @@ end
 
 -- ##############################################
 
-function pools:edit_pool(pool_id, new_name, new_members, new_configset_id,
-                         new_recipients)
+function pools:edit_pool(pool_id, new_name, new_members, new_configset_id, new_recipients)
     local ret = false
 
     local locked = self:_lock()
@@ -785,6 +784,53 @@ function pools:unbind_all_recipient_id(recipient_id)
 
         self:_unlock()
     end
+end
+
+-- ##############################################
+
+-- @brief Bind a recipient to all pools
+function pools:bind_all_recipient_id(recipient_id)
+   if not recipient_id then
+      -- Invalid argument
+      return
+   end
+
+   local locked = self:_lock()
+
+   if locked then
+      local all_pools = self:get_all_pools()
+
+      for _, pool in pairs(all_pools) do
+ 	 local found = false
+
+	 -- All the recipients for the current pool
+	 local new_recipients = {}
+
+	 if pool["recipients"] then
+	    for _, cur_recipient in pairs(pool["recipients"]) do
+	       if tonumber(cur_recipient.recipient_id) == tonumber(recipient_id) then
+		  -- Already bound for this pool, nothing to do
+		  found = true
+		  break
+	       else
+		  -- Prepare a lua array with integer recipient ids
+		  new_recipients[#new_recipients + 1] = tonumber(cur_recipient.recipient_id)
+	       end
+	    end
+
+	    if not found then
+	       -- Append the recipient to the array of pool recipients
+	       new_recipients[#new_recipients + 1] = tonumber(recipient_id)
+
+	       -- Rewrite the pool using the extended recipients array
+	       self:_persist(pool["pool_id"], pool["name"], pool["members"],
+			     pool["configset_id"], new_recipients)
+	    end
+	 end
+      end
+
+      self:_unlock()
+   end
 end
 
 -- ##############################################

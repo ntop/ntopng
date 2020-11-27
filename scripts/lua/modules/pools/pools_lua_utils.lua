@@ -68,6 +68,17 @@ end
 
 -- ##############################################
 
+-- @brief Call `instance:bind_all_configset_id` for every available pools `instance`
+function pools_lua_utils.bind_all_recipient_id(recipient_id)
+   local all_instances = pools_lua_utils.all_pool_instances_factory()
+
+   for _, instance in pairs(all_instances) do
+      instance:bind_all_recipient_id(recipient_id)
+   end
+end
+
+-- ##############################################
+
 -- @brief Returns the pool url for a pool with a given `pool_key`
 -- @param pool_key A pool key string as found inside `create` method of any pools instance.
 --                 If no pool key is found, the home of the pool url is returned.

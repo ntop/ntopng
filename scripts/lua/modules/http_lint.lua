@@ -1383,6 +1383,7 @@ local known_parameters = {
 
 -- NOTIFICATIONS ENDPOINT
    ["recipient_name"]         = validateUnquoted,
+   ["bind_to_all_pools"]      = validateBool,
    ["recipient_id"]           = validateNumber,
    ["recipient_user_script_categories"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
    ["recipient_minimum_severity"]       = validateNumber,
