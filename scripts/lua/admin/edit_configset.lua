@@ -118,6 +118,7 @@ local context = {
    },
    script_categories = script_categories,
    info = ntop.getInfo(),
+   json = json
 }
 
 -- print config_list.html template

@@ -1290,6 +1290,17 @@ const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
       console.warn("The chosen template doesn't exist yet. See the avaible templates.")
    }
 
+   // check if the script has an action button
+   const hasActionButton = gui.input_action_i18n !== undefined && gui.input_action_url !== undefined;
+   if (hasActionButton) {
+      $(`.action-button-container`).show();
+      delegateActionButton(gui);
+   }
+   else {
+      $(`.action-button-container`).hide();
+      $(`#action-error`).hide();
+   }
+
    // restore Apply/Reset button
    $(`#btn-apply,#btn-reset`).show();
 
@@ -1355,6 +1366,47 @@ const createScriptStatusButton = (row_data) => {
 
    return $button;
 };
+
+function delegateActionButton(gui) {
+
+   const $button = $(`#btn-action`);
+   $button.text(gui.input_action_i18n);
+   $button.off('click').click(function (e) {
+
+      e.preventDefault();
+
+      if (gui.input_action_confirm && !window.confirm(gui.input_action_i18n_confirm)) {
+         return;
+      }
+
+      $button.attr("disabled", "disabled");
+      const $alert = $(`#action-error`);
+      $alert.hide();
+
+      const req = $.post(`${http_prefix}/${gui.input_action_url}`, {csrf: pageCsrf});
+      req.then(function ({rc, rc_str}) {
+         
+         // if the return code is zero then everything went alright
+         if (rc == 0) {
+            $alert.removeClass('alert-danger').addClass('alert-success').html(i18n.rest[rc_str]).show().fadeOut(3000);
+            return;
+         }
+         // otherwise show an error!
+         $alert.removeClass('alert-success').addClass('alert-danger').html(i18n.rest[rc_str]).show();
+      });
+      req.fail(function (jqXHR) {
+         if (jqXHR.status == 404) {
+            NtopUtils.check_status_code(jqXHR.status, jqXHR.statusText, $alert);
+            return;
+         }
+         const {rc_str} = jqXHR.responseJSON;
+         $alert.removeClass('alert-success').addClass('alert-danger').html(i18n.rest[rc_str]).show();
+      });
+      req.always(function() {
+         $button.removeAttr("disabled");
+      });
+   });
+}
 
 function delegateTooltips() {
    $(`span[data-toggle='popover']`).popover({

@@ -3,33 +3,38 @@
         <div class="modal-content">
             <form id='edit-form' method='post'>
                 <div class="modal-header">
-                    <h5 class="modal-title"><span id='script-name'></span>
-                    </h5>
-
+                    <h5 class="modal-title"><span id='script-name'></span></h5>
                 </div>
                 <div class="modal-body">
 
                     <table class='table table-borderless' id='script-config-editor'>
                     </table>
 
-		    <div id='script-description' class='alert alert-light' role='alert'>
+                    <div id='script-description' class='alert alert-light' role='alert'>
                     </div>
 
                     <span class='invalid-feedback' id='apply-error'></span>
                 </div>
                 <div class="modal-footer">
-                    <button id='btn-reset' title='Reset Default ntopng values' type='button' class='btn btn-danger mr-auto'>
+                    <button id='btn-reset' title='Reset Default ntopng values' type='button'
+                        class='btn btn-danger'>
                         {{ i18n("scripts_list.reset_default") }}
                     </button>
-                    <button type="button" title='{{ i18n("cancel", {}) }}' class="btn btn-secondary" data-dismiss="modal">
+                    <div class="action-button-container" >
+                        <span class="border mr-2 vertical-align"></span>
+                        <button id="btn-action" class="btn btn-secondary">{ action }</button>
+                    </div>
+                    <button type="button" title='{{ i18n("cancel", {}) }}' class="btn btn-secondary ml-auto"
+                        data-dismiss="modal">
                         {{ i18n("cancel", {}) }}
                     </button>
                     <button id="btn-apply" title='{{ i18n("apply", {}) }}' type="submit" class="btn btn-primary">
                         {{ i18n("apply", {}) }}
                     </button>
+                    <div class="alert alert-danger w-100" id="action-error" style="display: none;">
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 </div>
-

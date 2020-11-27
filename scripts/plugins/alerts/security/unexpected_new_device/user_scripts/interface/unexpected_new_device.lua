@@ -110,7 +110,12 @@ script = {
 	input_builder     = "items_list",
 	item_list_type    = "mac_address",
 	input_title       = i18n("unexpected_new_device.title"),
-	input_description = i18n("unexpected_new_device.description"),
+   input_description = i18n("unexpected_new_device.description"),
+   
+   -- input_action_i18n = "Action Button",
+   -- input_action_url = "lua/rest/v1/delete/host/pool.lua",
+   -- input_action_confirm = true,
+   -- input_action_i18n_confirm = "Would you like to confirm the action",
    },
 }
 
