@@ -499,6 +499,7 @@ local lang = {
     ["alert"] = "Alert",
     ["alert_counts"] = "Counts",
     ["alert_duration"] = "Duration",
+    ["alert_periodicity_update"] = "Flow Periodicity Changed",
     ["alert_severity"] = "Severity",
     ["alert_snmp_device_reset_description"] = "SNMP device <a href=\"%{url}\">%{device}</a> has been restarted",
     ["alert_snmp_device_reset_title"] = "SNMP Device Restart",
