@@ -22,7 +22,7 @@
 #include "ntop_includes.h"
 
 // #define DEBUG_IEC60870
-//#define IEC60870_TRACE
+// #define IEC60870_TRACE
 
 /* *************************************** */
 
@@ -30,6 +30,7 @@ IEC104Stats::IEC104Stats() {
   memset(&pkt_lost, 0, sizeof(pkt_lost));
   last_type_i = 0;
   memset(&last_i_apdu, 0, sizeof(last_i_apdu));
+  memset(&stats, 0, sizeof(stats));
   i_s_apdu = ndpi_alloc_data_analysis(32 /* sliding window side */);
   tx_seq_num = rx_seq_num = 0;
 }
@@ -50,6 +51,10 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
     u_int64_t *allowedTypeIDs = ntop->getPrefs()->getIEC104AllowedTypeIDs();
     std::unordered_map<u_int16_t, u_int32_t>::iterator it;
 
+    lock.wrlock(__FILE__, __LINE__);
+
+    if(tx_direction) stats.forward_msgs++; else stats.reverse_msgs++;
+    
     while(offset /* Skip START byte */ < payload_len) {
       /* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id */
       u_int8_t len = payload[offset], pdu_type = ((payload[offset+1] & 0x01) == 0) ? 0 : (payload[offset+1] & 0x03);
@@ -64,7 +69,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] A-PDU Len %u/%u [pdu_type: %u][magic: %02X]",
 				   __FUNCTION__, len, payload_len, pdu_type, payload[offset-1]);
 #endif
-
+      
       if(len == 0) break; /* Something went wrong */
 
       switch(pdu_type) {
@@ -73,12 +78,15 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "A-PDU U-%u", (payload[offset+1] & 0xFC) >> 2);
 #endif
 	/* No rx and tx to be updated */
+	stats.type_u++;
 	break;
 
       case 0x01: /* S */
 	if(len >= 4) {
-	  // u_int16_t rx = ((((u_int16_t)payload[offset+4]) << 8) + payload[offset+3]) >> 1;
-	  
+#ifdef IEC60870_TRACE
+	  u_int16_t rx = ((((u_int16_t)payload[offset+4]) << 8) + payload[offset+3]) >> 1;
+#endif
+
 	  if(last_i_apdu.tv_sec != 0) {
 	    float     ms =  Utils::msTimevalDiff(packet_time, &last_i_apdu);
 
@@ -96,30 +104,68 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
 	  /* No rx and tx to be updated */
 	}
+
+	stats.type_s++;
 	break;
       }
 
       if(pdu_type != 0x0 /* Type I */) {
 	offset += len + 2;
+	stats.type_other++;
 	continue;
       }
 
       /* From now on, only Type I packets are processed */
       memcpy(&last_i_apdu, packet_time, sizeof(struct timeval));
+      stats.type_i++;
 
       if(len >= 6 /* Ignore 4 bytes APDUs */) {
-	u_int16_t value;
+	u_int16_t rx_value, tx_value;
 	bool initial_run = ((rx_seq_num == 0) && (tx_seq_num == 0)) ? true : false;
 
-	value = ((((u_int16_t)payload[offset+2]) << 8) + payload[offset+1]) >> 1;
-	if(tx_direction && (!initial_run))
-	  pkt_lost.tx += abs(value-(tx_seq_num+1));
-	tx_seq_num = value;
+	tx_value = ((((u_int16_t)payload[offset+2]) << 8) + payload[offset+1]) >> 1;
+	rx_value = ((((u_int16_t)payload[offset+4]) << 8) + payload[offset+3]) >> 1;
 
-	value = ((((u_int16_t)payload[offset+4]) << 8) + payload[offset+3]) >> 1;
-	if((!tx_direction) && (!initial_run))
-	  pkt_lost.rx += abs(value-(rx_seq_num+1));
-	rx_seq_num = value;
+	if(!tx_direction) {
+	  /* Counters are swapped */
+	  u_int16_t v = rx_value;
+	  
+	  rx_value = tx_value;
+	  tx_value = v;
+	}
+
+	if((tx_value == tx_seq_num) && (rx_value == rx_seq_num)) {
+	  stats.retransmitted_msgs++;
+	  lock.unlock(__FILE__, __LINE__);
+	  return;
+	}
+	
+	if(!initial_run) {
+	  u_int32_t diff = abs(tx_value-(tx_seq_num+1));
+
+	  /* Check for id reset (16 bit only) */
+	  if(diff != 32768) pkt_lost.tx += diff;
+	}
+	tx_seq_num = tx_value;
+
+	if(!tx_direction) {
+	  if(!initial_run) {
+	    u_int32_t diff = abs(rx_value-rx_seq_num);
+	    
+	    /* Check for id reset (16 bit only) */
+	    if(diff != 32768) pkt_lost.rx += diff;
+	  }
+
+	  rx_value++; /* The next RX will be increased by 1 */
+	} else {
+	  if(!initial_run) {
+	    u_int32_t diff = abs(rx_value-rx_seq_num);
+
+	    /* Check for id reset (16 bit only) */
+	    if(diff != 32768) pkt_lost.rx += diff;
+	  }
+	}
+	rx_seq_num = rx_value;
 
 	/* Skip magic(1), len(1), type/TX(2), RX(2) = 6 */
 	len -= 6 /* Skip magic and len */, offset += 5 /* magic already skept */;
@@ -144,7 +190,8 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 #endif
 
 #ifdef IEC60870_TRACE
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "A-PDU I-%u [rx: %u][tx: %u][lost rx/tx: %u/%u]",
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] A-PDU I-%-3u [rx: %u][tx: %u][lost rx/tx: %u/%u]",
+				       tx_direction ? "->" : "<-",
 				       type_id, rx_seq_num , tx_seq_num,
 				       pkt_lost.rx, pkt_lost.tx);
 #endif
@@ -225,6 +272,8 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	break;
       }
     } /* while */
+
+    lock.unlock(__FILE__, __LINE__);
   }
 }
 
@@ -232,6 +281,8 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
 void IEC104Stats::lua(lua_State* vm) {
   lua_newtable(vm);
+
+  lock.rdlock(__FILE__, __LINE__);
 
   /* *************************** */
 
@@ -262,6 +313,22 @@ void IEC104Stats::lua(lua_State* vm) {
   }
 
   lua_pushstring(vm, "typeid_transitions");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lock.unlock(__FILE__, __LINE__);
+
+  /* *************************** */
+
+  lua_newtable(vm);
+  lua_push_int32_table_entry(vm, "type_i", stats.type_i);
+  lua_push_int32_table_entry(vm, "type_s", stats.type_s);
+  lua_push_int32_table_entry(vm, "type_u", stats.type_u);
+  lua_push_int32_table_entry(vm, "type_other", stats.type_other);
+  lua_push_int32_table_entry(vm, "forward_msgs", stats.forward_msgs);
+  lua_push_int32_table_entry(vm, "reverse_msgs", stats.reverse_msgs);
+  lua_push_int32_table_entry(vm, "retransmitted_msgs", stats.retransmitted_msgs);
+  lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 

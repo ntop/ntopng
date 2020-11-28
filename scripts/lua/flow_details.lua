@@ -296,6 +296,14 @@ local tls_cipher_suites = {
    SSL2_RC4_64_WITH_MD5=0x080080,
 }
 
+local function colorNotZero(v)
+   if(v == 0) then
+      return("0")
+   else
+      return('<span style="color: red">'..formatValue(v).."</span>")
+   end
+end
+
 local function cipher2str(c)
    if(c == nil) then return end
 
@@ -844,7 +852,7 @@ else
    end
 
    if(flow.iec104 and (table.len(flow.iec104.typeid) > 0)) then
-      print("<tr><th rowspan=4 width=30%><A HREF='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104</A> <i class='fas fa-external-link-alt'></i></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
+      print("<tr><th rowspan=5 width=30%><A HREF='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104</A> <i class='fas fa-external-link-alt'></i></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
       
       total = 0
       for k,v in pairsByKeys(flow.iec104.typeid, rev) do
@@ -865,6 +873,11 @@ else
       -- #########################
 
       print("<tr><th>".. i18n("flow_details.iec104_transitions") .."</th><td>")
+
+      total = 0
+      for k,v in pairsByValues(flow.iec104.typeid_transitions, rev) do
+	 total = total+v
+      end
       
       print("<table border width=100%>")
       for k,v in pairsByValues(flow.iec104.typeid_transitions, rev) do
@@ -889,12 +902,46 @@ else
       -- #########################
 	 
       print("<tr><th>"..i18n("flow_details.iec104_latency").."</th><td>")
-      print(string.format("%.4f ms (%.4f msec)", flow.iec104.ack_time.average, flow.iec104.ack_time.stddev))
+      if(flow.iec104.ack_time.stddev > flow.iec104.ack_time.average) then
+	 on = "<font color=red>"
+	 off = "</font>"
+      else
+	 on = ""
+	 off = ""
+      end
+      if((flow.iec104.ack_time.average > 1000) or (flow.iec104.ack_time.stddev > 1000)) then
+	 print(string.format("%.3f sec (%s%.3f sec%s)", flow.iec104.ack_time.average/1000, on, (flow.iec104.ack_time.stddev/1000), off))
+      else
+	 print(string.format("%.3f ms (%s%.3f msec%s)", flow.iec104.ack_time.average, on, flow.iec104.ack_time.stddev, off))
+      end
+      print("</td></tr>\n")
+
+      print("<tr><th>"..i18n("flow_details.iec104_msg_breakdown").."</th><td>")
+      local total = flow.iec104.stats.forward_msgs + flow.iec104.stats.reverse_msgs
+      local pctg = string.format("%.1f", (flow.iec104.stats.forward_msgs * 100) / total)
+
+      if(flow["srv.port"] == 2404) then
+	 -- we need to swap directions
+	 pctg = 100-pctg	 
+      end
+      
+      print('<div class="progress"><div class="progress-bar bg-warning" style="width: ' .. pctg .. '%;">'..pctg..'% </div>')
+      pctg = 100-pctg
+      print('<div class="progress-bar bg-info" style="width: ' .. pctg .. '%;">'..pctg..'% </div></div>')
+      -- print(formatValue(flow.iec104.stats.forward_msgs).." RX / "..formatValue(flow.iec104.stats.reverse_msgs).." TX")
       print("</td></tr>\n")
 
       print("<tr><th>"..i18n("flow_details.iec104_msg_loss").."</th><td>")
-      print(formatValue(flow.iec104.pkt_lost.rx).." RX / "..formatValue(flow.iec104.pkt_lost.tx).." TX")
+      print("<i class=\"fas fa-arrow-left\"></i> "..colorNotZero(flow.iec104.pkt_lost.rx)..", <i class=\"fas fa-arrow-right\"></i> "..colorNotZero(flow.iec104.pkt_lost.tx).." / ")
+
+      if(flow.iec104.stats.retransmitted_msgs == 0) then
+	 print("0")
+      else
+	 print(colorNotZero(flow.iec104.stats.retransmitted_msgs))
+      end
+      print(" Retransmitted")
       print("</td></tr>\n")
+
    end
 
    print("<tr><th width=30%>"..i18n("flow_details.tos").."</th>")

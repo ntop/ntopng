@@ -26,9 +26,14 @@
 
 class IEC104Stats {
  private:
+  RwLock lock;
   struct {
     u_int32_t tx, rx;
   } pkt_lost; /* Counter for packet loss sequences */
+  struct {
+    u_int32_t type_i, type_s, type_u, type_other;
+    u_int32_t forward_msgs, reverse_msgs, retransmitted_msgs;
+  } stats;
   std::unordered_map<u_int16_t, u_int32_t> type_i_transitions;
   std::unordered_map<u_int16_t, u_int32_t> typeid_uses;
   u_int16_t last_type_i;
