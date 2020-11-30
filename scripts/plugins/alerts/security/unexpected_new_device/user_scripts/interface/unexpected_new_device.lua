@@ -2,6 +2,7 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local alerts_api = require "alerts_api"
 local alert_utils = require "alert_utils"
@@ -72,7 +73,7 @@ local function check_allowed_mac(params)
                alerts_api.store(
                   alerts_api.macEntity(mac),
                   alert_consts.alert_types.alert_unexpected_new_device.create(
-                     alert_consts.alert_severities.warning,
+                     alert_severities.warning,
                      device,
                      mac
                   )

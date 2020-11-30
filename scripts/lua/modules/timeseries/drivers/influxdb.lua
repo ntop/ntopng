@@ -973,12 +973,13 @@ function driver:_droppedPointsAlert()
 
    if ntop.getCache(k) ~= "1" then
       local alerts_api = require("alerts_api")
-      local alert_consts = require "alert_consts"
+      local alert_severities = require "alert_severities"
+local alert_consts = require "alert_consts"
 
       alerts_api.store(
         alerts_api.influxdbEntity(self.url),
         alert_consts.alert_types.alert_influxdb_export_failure.create(
-	   alert_consts.alert_severities.error,
+	   alert_severities.error,
 	   alert_consts.alerts_granularities.min,
 	   self.url
 	)

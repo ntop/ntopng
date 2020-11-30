@@ -5,6 +5,7 @@
 local user_scripts = require("user_scripts")
 local ts_utils = require("ts_utils_core")
 local alerts_api = require("alerts_api")
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 
 local script = {
@@ -58,7 +59,7 @@ script.hooks["min"] = function(params)
       local influxdb = ts_utils.getQueryDriver()
 
       local alert_type = alert_consts.alert_types.alert_influxdb_error.create(
-	 alert_consts.alert_severities.error,
+	 alert_severities.error,
 	 alert_consts.alerts_granularities.min,
 	 last_error
       )

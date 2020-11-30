@@ -3,6 +3,7 @@
 --
 
 local alerts_api = require("alerts_api")
+local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local user_scripts = require("user_scripts")
 
@@ -36,7 +37,7 @@ local function request_reply_ratio(params)
     local replies = alerts_api.host_delta_val(to_check_key .. "_replies", params.granularity, values[2], skip_first)
     local ratio = (replies * 100) / (requests+1)
     local req_repl_type = alert_consts.alert_types.alert_request_reply_ratio.create(
-       alert_consts.alert_severities.warning,
+       alert_severities.warning,
        alert_consts.alerts_granularities[params.granularity],
        key,
        requests,

@@ -13,6 +13,7 @@ local template = require "template_utils"
 local json = require("dkjson")
 local host_pools = require "host_pools"
 local recovery_utils = require "recovery_utils"
+local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
 local telemetry_utils = require "telemetry_utils"
@@ -457,7 +458,7 @@ function alert_utils.checkDeleteStoredAlerts()
 
       local type_info = {
          alert_type = alert_consts.alert_types[alert_consts.alertTypeRaw(_POST["alert_type"])],
-         alert_severity = alert_consts.alert_severities[alert_consts.alertSeverityRaw(_POST["alert_severity"])],
+         alert_severity = alert_severities[alert_consts.alertSeverityRaw(_POST["alert_severity"])],
          alert_subtype = _POST["alert_subtype"],
          alert_granularity = alert_consts.alerts_granularities[alert_consts.sec2granularity(_POST["alert_granularity"])],
       }
@@ -1175,7 +1176,7 @@ function releaseAlert(idx) {
 	 if(not options.hide_filters)  then
 	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
 	    local alert_severities = {}
-	    for s, _ in pairs(alert_consts.alert_severities) do alert_severities[#alert_severities +1 ] = s end
+	    for s, _ in pairs(alert_severities) do alert_severities[#alert_severities +1 ] = s end
 	    local alert_types = {}
        for s, _ in pairs(alert_consts.alert_types) do alert_types[#alert_types +1 ] = s end
 	    local type_menu_entries = nil
@@ -1621,7 +1622,7 @@ function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled
 		     alerts_api.store(
 			alerts_api.hostPoolEntity(pool),
 			alert_consts.alert_types.alert_quota_exceeded.create(
-			   alert_consts.alert_severities.warning,
+			   alert_severities.warning,
 			   "traffic_quota",
 			   pool,
 			   proto,
@@ -1635,7 +1636,7 @@ function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled
 		     alerts_api.store(
 			alerts_api.hostPoolEntity(pool),
 			alert_consts.alert_types.alert_quota_exceeded.create(
-			   alert_consts.alert_severities.warning,
+			   alert_severities.warning,
 			   "time_quota",
 			   pool,
 			   proto,
@@ -1679,7 +1680,7 @@ function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled
 		  alerts_api.store(
 		     alerts_api.hostPoolEntity(pool),
 		     alert_consts.alert_types.alert_host_pool_connection.create(
-			alert_consts.alert_severities.notice,
+			alert_severities.notice,
 			pool
 		     )
 		  )
@@ -1699,7 +1700,7 @@ function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled
             alerts_api.store(
 	       alerts_api.hostPoolEntity(pool),
 	       alert_consts.alert_types.alert_host_pool_disconnection.create(
-		  alert_consts.alert_severities.notice,
+		  alert_severities.notice,
 		  pool
 	       )
             )
@@ -1951,7 +1952,7 @@ local function processStoreAlertFromQueue(alert)
       local router_info = {host = alert.router_ip, vlan = alert.vlan_id}
       entity_info = alerts_api.hostAlertEntity(alert.client_ip, alert.vlan_id)
       type_info = alert_consts.alert_types.alert_ip_outsite_dhcp_range.create(
-	 alert_consts.alert_severities.warning,
+	 alert_severities.warning,
 	 router_info,
 	 alert.mac_address,
 	 alert.client_mac,
@@ -1962,7 +1963,7 @@ local function processStoreAlertFromQueue(alert)
 	 local name = getDeviceName(alert.new_mac)
 	 entity_info = alerts_api.macEntity(alert.new_mac)
 	 type_info = alert_consts.alert_types.alert_mac_ip_association_change.create(
-	    alert_consts.alert_severities.warning,
+	    alert_severities.warning,
 	    name,
 	    alert.ip,
 	    alert.old_mac,
@@ -1972,11 +1973,11 @@ local function processStoreAlertFromQueue(alert)
    elseif(alert.alert_type == "login_failed") then
       entity_info = alerts_api.userEntity(alert.user)
       type_info = alert_consts.alert_types.alert_login_failed.create(
-	 alert_consts.alert_severities.warning
+	 alert_severities.warning
       )
    elseif(alert.alert_type == "broadcast_domain_too_large") then
       entity_info = alerts_api.macEntity(alert.src_mac)
-      type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.create(alert_consts.alert_severities.warning, alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
+      type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.create(alert_severities.warning, alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
    elseif(alert.alert_type == "remote_to_remote") then
       if(ntop.getPref("ntopng.prefs.remote_to_remote_alerts") == "1") then
 	 local host_info = {host = alert.host, vlan = alert.vlan}
@@ -1986,7 +1987,7 @@ local function processStoreAlertFromQueue(alert)
    elseif((alert.alert_type == "user_activity") and (alert.scope == "login")) then
       entity_info = alerts_api.userEntity(alert.user)
       type_info = alert_consts.alert_types.alert_user_activity.create(
-	 alert_consts.alert_severities.notice,
+	 alert_severities.notice,
 	 "login",
 	 nil,
 	 nil,
@@ -1996,7 +1997,7 @@ local function processStoreAlertFromQueue(alert)
    elseif(alert.alert_type == "nfq_flushed") then
       entity_info = alerts_api.interfaceAlertEntity(alert.ifid)
       type_info = alert_consts.alert_types.alert_nfq_flushed.create(
-	 alert_consts.alert_severities.error,
+	 alert_severities.error,
 	 getInterfaceName(alert.ifid),
 	 alert.pct,
 	 alert.tot,
@@ -2094,7 +2095,7 @@ local function notify_ntopng_status(started)
 
   local entity_info = alerts_api.processEntity(entity_value)
   local type_info = alert_consts.alert_types.alert_process_notification.create(
-     alert_consts.alert_severities[alert_consts.alertSeverityRaw(severity)],
+     alert_severities[alert_consts.alertSeverityRaw(severity)],
      event,
      msg_details
   )

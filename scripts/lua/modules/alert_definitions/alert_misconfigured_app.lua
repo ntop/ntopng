@@ -7,7 +7,7 @@ local alert_keys = require "alert_keys"
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param alert_subtype A string with the subtype of the alert
 -- @return A table with the alert built
@@ -26,7 +26,8 @@ end
 -- #######################################################
 
 local function formatMisconfiguredApp(ifid, alert, threshold_info)
-  local alert_consts = require("alert_consts")
+  local alert_severities = require "alert_severities"
+local alert_consts = require("alert_consts")
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
 
   if alert.alert_subtype == "too_many_flows" then

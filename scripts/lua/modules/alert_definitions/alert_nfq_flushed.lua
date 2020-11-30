@@ -7,7 +7,7 @@ local alert_keys = require "alert_keys"
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param ifname The name of the interface
 -- @param ptc The percentage of NFQ fill level
 -- @param tot Thee total number of packets in the NFQ

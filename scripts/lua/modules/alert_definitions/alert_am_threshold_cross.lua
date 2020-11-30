@@ -8,7 +8,7 @@ local format_utils = require("format_utils")
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param value A number indicating the measure which crossed the threshold
 -- @param threshold A number indicating the threshold compared with `value`  using operator

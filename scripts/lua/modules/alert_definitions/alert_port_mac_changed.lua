@@ -7,7 +7,7 @@ local alert_keys = require "alert_keys"
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param device_ip A string with the ip address of the snmp device
 -- @param if_index The index of the port that changed
 -- @param interface_name The string with the name of the port that changed

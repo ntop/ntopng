@@ -10,7 +10,7 @@ local format_utils = require "format_utils"
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param ps_name A string with the name of the periodic activity
 -- @param max_duration_ms The maximum duration taken by this periodic activity to run, in milliseconds

@@ -4,6 +4,7 @@
 
 local status_keys = require "flow_keys"
 
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 
 -- This file defines a new flow status, with key "status_example" (the file name).
@@ -39,7 +40,7 @@ return {
   i18n_description = formatExampleStatus,
 
   -- The severity of the alert triggered based on this status
-  alert_severity = alert_consts.alert_severities.error,
+  alert_severity = alert_severities.error,
 
   -- The alert associated to this status. "alert_example" here corresponds
   -- to the alert key of example/alert_definitions/alert_example.lua

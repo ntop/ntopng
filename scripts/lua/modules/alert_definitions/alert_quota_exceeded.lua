@@ -10,7 +10,7 @@ local alert_keys = require "alert_keys"
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param alert_subtype A string with the subtype of the alert
 -- @param pool The host pool structure
 -- @param proto The Layer-7 application which exceeded the quota

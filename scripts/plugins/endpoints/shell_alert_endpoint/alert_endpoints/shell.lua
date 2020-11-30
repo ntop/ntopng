@@ -5,6 +5,7 @@
 require "lua_utils"
 local json = require "dkjson"
 local alerts_api = require "alerts_api"
+local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 
 local endpoint_key = "shell_alert_endpoint"
@@ -128,7 +129,7 @@ function shell.runScript(alerts, settings)
     -- for security reasons
     local entity_info = alerts_api.processEntity("ntopng")
     local type_info = alert_consts.alert_types.alert_shell_script_executed.create(
-       alert_consts.alert_severities.notice,
+       alert_severities.notice,
        exec_script,
        alert_consts.alertTypeLabel(alert["alert_type"], true)
     )

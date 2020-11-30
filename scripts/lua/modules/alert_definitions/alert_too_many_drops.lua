@@ -7,7 +7,7 @@ local alert_keys = require "alert_keys"
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param drops The number of dropped packets
 -- @param drop_perc The percentage of dropped packets with reference to the total number of packets (recevied + dropped)

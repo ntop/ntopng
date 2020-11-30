@@ -3156,6 +3156,9 @@
 					},
 					"-45": {
 						"description": "INFRASTRUCTURE_INSTANCE_CHECK_INVALID_RESPONSE"
+					},
+					"-46": {
+						"description": "INFRASTRUCTURE_INSTANCE_CHECK_AUTH_FAILED"
 					}
 				}
 			}

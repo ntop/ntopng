@@ -5,7 +5,7 @@
 local user_scripts = require("user_scripts")
 local flow_consts = require("flow_consts")
 local alerts_api = require "alerts_api"
-local alert_consts = require("alert_consts")
+local alert_severities = require "alert_severities"
 
 local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.user_scripts.unexpected_plugins_enabled"
 
@@ -78,7 +78,7 @@ function script.hooks.protocolDetected(now, conf)
       if ok == 0 then
          local unexpected_ntp_type = flow_consts.status_types.status_unexpected_ntp.create(client_ip, server_ip)
 
-         alerts_api.trigger_status(unexpected_ntp_type, alert_consts.alert_severities.error, 0, 100, 100)
+         alerts_api.trigger_status(unexpected_ntp_type, alert_severities.error, 0, 100, 100)
       end
    end
 end

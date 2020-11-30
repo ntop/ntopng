@@ -12,7 +12,7 @@ local alert_creators = {}
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param alert_subtype A string indicating the subtype for this threshold cross (e.g,. 'bytes', 'active', 'packets', ...)
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param metric Same as `alert_subtype`
@@ -39,7 +39,7 @@ end
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param device The a string with the name or ip address of the device that connected/disconnected
 -- @return A table with the alert built
 function alert_creators.createDeviceConnectionDisconnection(alert_severity, device)
@@ -56,7 +56,7 @@ end
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param host_pool A string with the host pool id
 -- @return A table with the alert built
 function alert_creators.createPoolConnectionDisconnection(alert_severity, host_pool)

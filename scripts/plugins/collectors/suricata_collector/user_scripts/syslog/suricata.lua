@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "flow_utils"
 local json = require ("dkjson")
-local alert_consts = require("alert_consts")
+local alert_severities = require "alert_severities"
 local user_scripts = require("user_scripts")
 
 local syslog_module = {
@@ -64,10 +64,10 @@ end
 -- #################################################################
 
 local function parseAlertMetadata(event_alert, flow)
-   local severity = alert_consts.alert_severities.error
+   local severity = alert_severities.error
 
    if event_alert.severity ~= nil and event_alert.severity > 1 then
-      severity = alert_consts.alert_severities.warning
+      severity = alert_severities.warning
    end
 
    local external_alert = {

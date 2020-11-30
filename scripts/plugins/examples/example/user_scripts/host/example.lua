@@ -2,6 +2,7 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local alerts_api = require("alerts_api")
 
@@ -150,7 +151,7 @@ function script.hooks.min(info)
 
   local alert_info = {
      alert_type = alert_consts.alert_types.alert_example,
-     alert_severity = alert_consts.alert_severities.notice,
+     alert_severity = alert_severities.notice,
      alert_granularity = info.granularity,
      alert_type_params = {
 	some_value = 1234,

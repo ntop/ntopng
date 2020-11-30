@@ -5,7 +5,7 @@
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param risk_id Integer nDPI flow risk identifier
 -- @return A table with the alert built
 local function createFlowRisk(risk_id)

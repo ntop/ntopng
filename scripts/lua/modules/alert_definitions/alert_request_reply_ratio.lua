@@ -9,7 +9,7 @@ local json = require("dkjson")
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param alert_subtype A string with the subtype of the alert
 -- @param requests The number of requests

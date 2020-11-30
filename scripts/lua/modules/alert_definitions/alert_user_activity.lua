@@ -10,7 +10,7 @@ local pools_lua_utils = require "pools_lua_utils"
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param scope A string indicating the scope, one of 'function' or 'login'
 -- @param name The name of the function when the scope is 'function' or nil
 -- @param params Function parameters when the scope is 'function' or nil

@@ -6,6 +6,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
+local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local pools = require "pools"
 
@@ -70,7 +71,7 @@ end
 -- @brief Returns an array of recipient ids responsible for a given an `entity_id` and a `pool_id`
 -- @param entity_id One of alert_consts.alert_entities
 -- @param pool_id The pool id of an existing entity pool
--- @param alert_severity An integer alert severity id as found in `alert_consts.alert_severities`
+-- @param alert_severity An integer alert severity id as found in `alert_severities`
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return An array of recipient ids
 function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, alert_severity, current_script)

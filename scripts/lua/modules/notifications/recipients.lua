@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local json = require "dkjson"
+local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local endpoints = require("endpoints")
 
@@ -21,7 +22,7 @@ recipients.MAX_NUM_RECIPIENTS = 64 -- Keep in sync with ntop_defines.h MAX_NUM_R
 
 recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.prefs.endpoint_hints.recipient_created"
 
-local default_builtin_minimum_severity = alert_consts.alert_severities.info.severity_id -- minimum severity is notice (to avoid flooding) (*****)
+local default_builtin_minimum_severity = alert_severities.info.severity_id -- minimum severity is notice (to avoid flooding) (*****)
 
 -- ##############################################
 
@@ -243,7 +244,7 @@ end
 -- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
--- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
+-- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param safe_params A table with endpoint recipient params already sanitized
 -- @return nil
 local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
@@ -268,7 +269,7 @@ end
 -- @param endpoint_id An integer identifier of the endpoint
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
--- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
+-- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param bind_to_all_pools A boolean indicating whether this recipient should be bound to all existing pools
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
@@ -330,7 +331,7 @@ end
 -- @param recipient_id The integer recipient identificator
 -- @param endpoint_recipient_name A string with the recipient name
 -- @param user_script_categories A Lua array with already-validated ids as found in `user_scripts.script_categories` or nil to indicate all categories
--- @param minimum_severity An already-validated integer alert severity id as found in `alert_consts.alert_severities` or nil to indicate no minimum severity
+-- @param minimum_severity An already-validated integer alert severity id as found in `alert_severities` or nil to indicate no minimum severity
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
 function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, recipient_params)

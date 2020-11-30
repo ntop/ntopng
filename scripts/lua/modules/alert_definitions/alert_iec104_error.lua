@@ -9,7 +9,7 @@ local json         = require("dkjson")
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param last_error A string with the lastest influxdb error
 -- @return A table with the alert built

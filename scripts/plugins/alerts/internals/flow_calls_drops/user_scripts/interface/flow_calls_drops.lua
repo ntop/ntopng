@@ -3,6 +3,7 @@
 --
 
 local alerts_api = require("alerts_api")
+local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local user_scripts = require("user_scripts")
 
@@ -15,7 +16,7 @@ local function check_interface_drops(params)
   local num_dropped = info.stats.num_dropped_flow_scripts_calls
   local delta_dropped = alerts_api.interface_delta_val(script.key, params.granularity, num_dropped)
   local drops_type = alert_consts.alert_types.alert_user_script_calls_drops.create(
-     alert_consts.alert_severities.error,
+     alert_severities.error,
      alert_consts.alerts_granularities.min,
      "flow",
      delta_dropped

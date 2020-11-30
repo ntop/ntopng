@@ -3,6 +3,7 @@
 --
 
 local alerts_api = require("alerts_api")
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 
@@ -28,7 +29,7 @@ local function check_interface_idle(params)
   end
 
   local idle_type = alert_consts.alert_types.alert_slow_purge.create(
-     alert_consts.alert_severities.warning,
+     alert_severities.warning,
      alert_consts.alerts_granularities.min,
      max_idle,
      max_idle_perc,

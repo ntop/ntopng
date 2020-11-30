@@ -2,6 +2,7 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
@@ -12,7 +13,7 @@ local script
 
 local function alert_info(ps_name, max_duration_ms)
    local alert_info = alert_consts.alert_types.alert_slow_periodic_activity.create(
-      alert_consts.alert_severities.warning,
+      alert_severities.warning,
       alert_consts.alerts_granularities.min,
       ps_name,
       max_duration_ms

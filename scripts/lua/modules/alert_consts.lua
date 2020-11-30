@@ -6,6 +6,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
+local alert_severities = require "alert_severities"
 local alert_consts = {}
 local alert_keys = require "alert_keys"
 local alert = require "alert" -- The alert base class
@@ -24,88 +25,6 @@ end
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS
 
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 4096
-
--- Emoji Unicode Icons
--- https://apps.timwhitlock.info/emoji/tables/unicode
--- https://www.unicode.org/emoji/charts/full-emoji-list.html
-
--- Alerts (Keep severity_id in sync with ntop_typedefs.h AlertLevel)
--- each table entry is an array as:
--- {"alert html string", "alert C enum value", "plain string", "syslog severity"}
-alert_consts.alert_severities = {
-   debug = {
-      severity_id = 1,
-      label = "badge-info",
-      icon = "fas fa-bug text-info",
-      -- color = "black",
-      i18n_title = "alerts_dashboard.debug",
-      syslog_severity = 7,
-      emoji = "\xE2\x84\xB9"
-   },
-   info = {
-      severity_id = 2,
-      label = "badge-info",
-      icon = "fas fa-info-circle text-info",
-      -- color = "blue",
-      i18n_title = "alerts_dashboard.info",
-      syslog_severity = 6,
-      emoji = "\xE2\x84\xB9"
-   },
-   notice = {
-      severity_id = 3,
-      label = "badge-info",
-      icon = "fas fa-hand-paper text-primary",
-      -- color = "blue",
-      i18n_title = "alerts_dashboard.notice",
-      syslog_severity = 5,
-      emoji = "\xE2\x84\xB9"
-   },
-   warning = {
-      severity_id = 4,
-      label = "badge-warning",
-      icon = "fas fa-exclamation-triangle text-warning",
-      -- color = "gold",
-      i18n_title = "alerts_dashboard.warning",
-      syslog_severity = 4,
-      emoji = "\xE2\x9A\xA0"
-   },
-   error = {
-      severity_id = 5,
-      label = "badge-danger",
-      icon = "fas fa-exclamation-triangle text-danger",
-      -- color = "red",
-      i18n_title = "alerts_dashboard.error",
-      syslog_severity = 3,
-      emoji = "\xE2\x9D\x97"
-   },
-   critical = {
-      severity_id = 6,
-      label = "badge-danger",
-      icon = "fas fa-exclamation-triangle text-danger",
-      -- color = "purple",
-      i18n_title = "alerts_dashboard.critical",
-      syslog_severity = 2,
-      emoji = "\xE2\x9D\x97"
-   },
-   alert = {
-      severity_id = 7,
-      label = "badge-danger",
-      icon = "fas fa-bomb text-danger",
-      -- color = "red",
-      i18n_title = "alerts_dashboard.alert",
-      syslog_severity = 1,
-      emoji = "\xF0\x9F\x9A\xA9"
-   },
-   emergency = {
-      severity_id = 8,
-      label = "badge-danger text-danger",
-      icon = "fas fa-bomb",
-      -- color = "purple",
-      i18n_title = "alerts_dashboard.error",
-      syslog_severity = 0,
-      emoji = "\xF0\x9F\x9A\xA9"
-   }
-}
 
 -- ##############################################
 
@@ -236,30 +155,30 @@ alert_consts.ids_rule_maker = {
 
 -- ##############################################
 
-alert_consts.alert_entities_id_to_key = {}
-alert_consts.alert_severities_id_to_key = {}
-alert_consts.alerts_granularities_id_to_key = {}
-alert_consts.alerts_granularities_seconds_to_key = {}
+local alert_entities_id_to_key = {}
+local alert_severities_id_to_key = {}
+local alerts_granularities_id_to_key = {}
+local alerts_granularities_seconds_to_key = {}
 
 local function initMappings()
    -- alert_entities_id_to_key
    for key, entity_info in pairs(alert_consts.alert_entities) do
-      alert_consts.alert_entities_id_to_key[entity_info.entity_id] = key
+      alert_entities_id_to_key[entity_info.entity_id] = key
    end
 
    -- alert_severities_id_to_key 
-   for key, severity_info in pairs(alert_consts.alert_severities) do
-      alert_consts.alert_severities_id_to_key[severity_info.severity_id] = key
+   for key, severity_info in pairs(alert_severities) do
+      alert_severities_id_to_key[severity_info.severity_id] = key
    end
 
    -- alerts_granularities_id_to_key 
    for key, granularity_info in pairs(alert_consts.alerts_granularities) do
-     alert_consts.alerts_granularities_id_to_key[granularity_info.granularity_id] = key
+     alerts_granularities_id_to_key[granularity_info.granularity_id] = key
    end
 
    -- alerts_granularities_seconds_to_key
    for key, granularity_info in pairs(alert_consts.alerts_granularities) do
-     alert_consts.alerts_granularities_seconds_to_key[granularity_info.granularity_seconds] = key
+     alerts_granularities_seconds_to_key[granularity_info.granularity_seconds] = key
    end
 end
 
@@ -391,12 +310,12 @@ end
 
 function alert_consts.alertEntityRaw(entity_id)
    entity_id = tonumber(entity_id)
-   return alert_consts.alert_entities_id_to_key[entity_id]
+   return alert_entities_id_to_key[entity_id]
 end
 
 function alert_consts.alertEntityById(entity_id)
    entity_id = tonumber(entity_id)
-   return alert_consts.alert_entities[alert_consts.alert_entities_id_to_key[entity_id]]
+   return alert_consts.alert_entities[alert_entities_id_to_key[entity_id]]
 end
 
 function alert_consts.alertEntity(v)
@@ -592,14 +511,14 @@ end
 -- ##############################################
 
 function alert_consts.alertLevelToSyslogLevel(v)
-  return alert_consts.alert_severities[v].syslog_severity
+  return alert_severities[v].syslog_severity
 end
 
 -- ################################################################################
 
 function alert_consts.alertSeverityRaw(severity_id)
    severity_id = tonumber(severity_id)
-   return alert_consts.alert_severities_id_to_key[severity_id] 
+   return alert_severities_id_to_key[severity_id] 
 end
 
  -- ################################################################################
@@ -608,7 +527,7 @@ function alert_consts.alertSeverityLabel(v, nohtml, emoji)
    local severity_id = alert_consts.alertSeverityRaw(v)
 
    if(severity_id) then
-      local severity_info = alert_consts.alert_severities[severity_id]
+      local severity_info = alert_severities[severity_id]
       local title = i18n(severity_info.i18n_title) or severity_info.i18n_title
 
       if(emoji) then
@@ -628,7 +547,7 @@ end
 -- ################################################################################
 
 function alert_consts.alertSeverity(v)
-   return(alert_consts.alert_severities[v].severity_id)
+   return(alert_severities[v].severity_id)
 end
  
 -- ################################################################################
@@ -636,9 +555,9 @@ end
 function alert_consts.alertSeverityById(severity_id)
    local key = alert_consts.alertSeverityRaw(severity_id)
    if key == nil then 
-      return alert_consts.alert_severities.error
+      return alert_severities.error
    end
-   return(alert_consts.alert_severities[key])
+   return(alert_severities[key])
 end
 
 -- ################################################################################
@@ -653,7 +572,7 @@ end
 -- Rename engine -> granulariy
 local function alertEngineRaw(granularity_id)
    granularity_id = tonumber(granularity_id)
-   return alert_consts.alerts_granularities_id_to_key[granularity_id] 
+   return alerts_granularities_id_to_key[granularity_id] 
 end
  
 -- ################################################################################
@@ -698,7 +617,7 @@ end
 
 function alert_consts.sec2granularity(seconds)
    seconds = tonumber(seconds)
-   return alert_consts.alerts_granularities_seconds_to_key[seconds]
+   return alerts_granularities_seconds_to_key[seconds]
 end
  
 -- Load definitions now

@@ -3,6 +3,7 @@
 --
 
 local user_scripts = require("user_scripts")
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local flow_consts = require "flow_consts"
 local alerts_api = require "alerts_api"
@@ -31,7 +32,7 @@ function script.hooks.min(params)
 	 "another_param"
       )
 
-      alert:set_severity(alert_consts.alert_severities.error)
+      alert:set_severity(alert_severities.error)
       alert:set_granularity(params.granularity)
 
       if cond then

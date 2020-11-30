@@ -7,7 +7,7 @@ local alert_keys = require "alert_keys"
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param alert_subtype A string indicating the subtype for this alert, one of 'arc_added', 'arc_removed'
 -- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param node1 A string with the name of the first of the two peers involved in the change

@@ -13,7 +13,8 @@ local tracker = {}
 function tracker.log(f_name, f_args)
   local alert_utils = require("alert_utils")
   local alerts_api = require("alerts_api")
-  local alert_consts = require "alert_consts"
+  local alert_severities = require "alert_severities"
+local alert_consts = require "alert_consts"
   local stats = interface.getStats()
 
   if stats == nil then
@@ -41,7 +42,7 @@ function tracker.log(f_name, f_args)
   alerts_api.store(
      alerts_api.userEntity(entity_value),
      alert_consts.alert_types.alert_user_activity.create(
-	alert_consts.alert_severities.notice,
+	alert_severities.notice,
 	'function',
 	f_name,
 	f_args,

@@ -7,7 +7,7 @@ local alert_keys = require "alert_keys"
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param router_info The host info of the router
 -- @param mac The mac address of the device outside the range
 -- @param client_mac The client mac as seen in the DHCP packet as string

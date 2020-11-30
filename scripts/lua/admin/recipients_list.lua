@@ -14,7 +14,7 @@ local json = require "dkjson"
 local plugins_utils = require("plugins_utils")
 local toasts_manager = require("toasts_manager")
 local user_scripts = require("user_scripts")
-local alert_consts = require("alert_consts")
+local alert_severities = require "alert_severities"
 local endpoint_configs = require("endpoints")
 local endpoints = endpoint_configs.get_configs(true)
 
@@ -72,7 +72,7 @@ local context = {
         endpoint_list = endpoints,
         can_create_recipient = can_create_recipient,
         script_categories = user_scripts.script_categories,
-        alert_severities = alert_consts.alert_severities,
+        alert_severities = alert_severities,
         filters = {
             endpoint_types = endpoint_type_filters
         }

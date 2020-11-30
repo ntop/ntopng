@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 
 
 local json = require("dkjson")
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local os_utils = require("os_utils")
 local recipients = require "recipients"
@@ -425,7 +426,7 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
     -- does not work in lua
     alerts_api.release(entity_info, {
       alert_type = alert_consts.alert_types[alert_consts.alertTypeRaw(alert.alert_type)],
-      alert_severity = alert_consts.alert_severities[alert_consts.alertSeverityRaw(alert.alert_severity)],
+      alert_severity = alert_severities[alert_consts.alertSeverityRaw(alert.alert_severity)],
       alert_subtype = alert.alert_subtype,
       alert_granularity = alert_consts.alerts_granularities[alert_consts.sec2granularity(alert.alert_granularity)],
     })
@@ -570,7 +571,7 @@ end
 function alerts_api.remoteToRemoteType(host_info, mac)
   return({
     alert_type = alert_consts.alert_types.alert_remote_to_remote,
-    alert_severity = alert_consts.alert_severities.warning,
+    alert_severity = alert_severities.warning,
     alert_type_params = {
       host = hostinfo2label(host_info),
       mac = mac,
@@ -583,7 +584,7 @@ end
 function alerts_api.tooManyDropsType(drops, drop_perc, threshold)
   return({
     alert_type = alert_consts.alert_types.alert_too_many_drops,
-    alert_severity = alert_consts.alert_severities.error,
+    alert_severity = alert_severities.error,
     alert_granularity = alert_consts.alerts_granularities.min,
     alert_type_params = {
       drops = drops, drop_perc = drop_perc, edge = threshold,
@@ -601,7 +602,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value)
   local alarmed = false
 
   local threshold_type = alert_type.create(
-     alert_consts.alert_severities.error,
+     alert_severities.error,
      script.key,
      alert_consts.alerts_granularities[params.granularity],
      params.user_script.key,
@@ -633,7 +634,7 @@ end
 function alerts_api.anomaly_check_function(params)
   local anomal_key = params.user_script.key
   local type_info = params.user_script.anomaly_type_builder(
-     alert_consts.alert_severities.error,
+     alert_severities.error,
      alert_consts.alerts_granularities.min,
      anomal_key
   )

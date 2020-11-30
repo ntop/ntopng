@@ -4,6 +4,7 @@
 
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local json = require("dkjson")
 
@@ -36,7 +37,7 @@ local function storeTopologyChangedAlert(info, arc, nodes, subtype)
 
    if(#parts == 2) then
       local alert_type = alert_consts.alert_types.alert_snmp_topology_changed.create(
-	 alert_consts.alert_severities.warning,
+	 alert_severities.warning,
 	 subtype,
 	 info.granularity,
 	 parts[1], -- node1

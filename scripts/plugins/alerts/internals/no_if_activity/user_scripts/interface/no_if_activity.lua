@@ -3,6 +3,7 @@
 --
 
 local alerts_api = require("alerts_api")
+local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local user_scripts = require("user_scripts")
 
@@ -29,7 +30,7 @@ local function check_interface_activity(params)
   local new_counters = num_packets .. "_" .. num_flows
 
   local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.create(
-      alert_consts.alert_severities.error,
+      alert_severities.error,
       alert_consts.alerts_granularities.min
   )
 

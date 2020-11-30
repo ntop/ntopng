@@ -5,6 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local alerts_api = require "alerts_api"
 local user_scripts = require("user_scripts")
@@ -108,11 +109,11 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
 
    local entity = alerts_api.hostAlertEntity(host, 0)
 
-   local severity = alert_consts.alert_severities.notice
+   local severity = alert_severities.notice
    if level <= 3 then
-      severity = alert_consts.alert_severities.error
+      severity = alert_severities.error
    elseif level <= 4 then
-      severity = alert_consts.alert_severities.warning
+      severity = alert_severities.warning
    end
 
    local type_info = alert_consts.alert_types.alert_host_log.create(

@@ -9,6 +9,7 @@ local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 local os_utils = require("os_utils")
 local alerts_api = require("alerts_api")
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local lua_path_utils = require("lua_path_utils")
 
@@ -709,7 +710,7 @@ local function amThresholdCrossType(value, threshold, ip, granularity, entity_in
   local m_info = am_utils.getMeasurementInfo(host.measurement)
 
   local alert_type = alert_consts.alert_types.alert_am_threshold_cross.create(
-     alert_consts.alert_severities.warning,
+     alert_severities.warning,
      alert_consts.alerts_granularities[granularity],
      value,
      threshold,

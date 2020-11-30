@@ -3,6 +3,7 @@
 --
 
 local alerts_api = require("alerts_api")
+local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
 local script
@@ -15,7 +16,7 @@ local function check_ghost_networks(params)
       local key = params.user_script.key .. "__" .. domain
       local delta_hits = alerts_api.interface_delta_val(key, params.granularity, domain_info.hits)
       local ghost_network_type = alert_consts.alert_types.alert_ghost_network.create(
-	 alert_consts.alert_severities.warning,
+	 alert_severities.warning,
 	 alert_consts.alerts_granularities[params.granularity],
 	 domain
       )

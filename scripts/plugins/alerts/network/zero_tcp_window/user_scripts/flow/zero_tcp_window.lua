@@ -3,7 +3,7 @@
 --
 
 local alerts_api = require("alerts_api")
-local alert_consts = require "alert_consts"
+local alert_severities = require "alert_severities"
 local user_scripts = require("user_scripts")
 local flow_consts  = require("flow_consts")
 
@@ -57,7 +57,7 @@ local function check_tcp_window(now)
          zerowin.server
       )
 
-      alerts_api.trigger_status(zero_tcp_window_type, alert_consts.alert_severities.warning, client_score, server_score, high_score)   
+      alerts_api.trigger_status(zero_tcp_window_type, alert_severities.warning, client_score, server_score, high_score)   
    end
 end
 

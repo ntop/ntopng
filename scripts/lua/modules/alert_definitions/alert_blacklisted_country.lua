@@ -7,7 +7,7 @@ local alert_keys = require "alert_keys"
 -- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_consts.alert_severities`
+-- @param alert_severity A severity as defined in `alert_severities`
 -- @param cli_country ISO 3166-1 alpha-2 client country code
 -- @param srv_country ISO 3166-1 alpha-2 server country code
 -- @param cli_blacklisted Boolean indicating whether the client belongs to a blacklisted country
@@ -19,9 +19,9 @@ local function createBlacklistedCountry(cli_country, srv_country, cli_blackliste
 	 cli_country = cli_country,
 	 srv_country = srv_country,
 	 cli_blacklisted = cli_blacklisted,
-    srv_blacklisted = srv_blacklisted,
-    attacker = attacker,
-    victim = victim,
+	 srv_blacklisted = srv_blacklisted,
+	 attacker = attacker,
+	 victim = victim,
       }
    }
 
