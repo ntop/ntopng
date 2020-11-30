@@ -46,11 +46,17 @@ end
 -- ##############################################
 
 local function alertTypeDescription(v)
-  local alert_key = alert_consts.alertTypeRaw(v)
+   local alert_key = alert_consts.alertTypeRaw(v)
 
-  if(alert_key) then
-    return(alert_consts.alert_types[alert_key].i18n_description)
-  end
+   if(alert_key) then
+      if alert_consts.alert_types[alert_key].format then
+	 -- New API
+	 return alert_consts.alert_types[alert_key].format
+      else
+	 -- Possible removed once migration is done
+	 return(alert_consts.alert_types[alert_key].i18n_description)
+      end
+   end
 
   return nil
 end
@@ -1832,7 +1838,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
       -- localization string
       msg = i18n(description, msg)
     elseif(type(description) == "function") then
-      msg = description(ifid, alert, msg)
+       msg = description(ifid, alert, msg)
     end
   end
 
