@@ -2863,6 +2863,7 @@ static int ntop_get_info(lua_State* vm) {
     }
 #endif
     lua_push_str_table_entry(vm, "pro.license", ntop->getPro()->get_license());
+    lua_push_bool_table_entry(vm, "pro.has_valid_license", ntop->getPro()->has_valid_license());
     lua_push_str_table_entry(vm, "pro.license_type", ntop->getPro()->get_license_type(buf, sizeof(buf)));
     lua_push_bool_table_entry(vm, "pro.forced_community", ntop->getPro()->is_forced_community());
     lua_push_bool_table_entry(vm, "pro.out_of_maintenance", ntop->getPro()->is_out_of_maintenance());
