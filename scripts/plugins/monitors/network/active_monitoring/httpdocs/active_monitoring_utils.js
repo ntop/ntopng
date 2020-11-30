@@ -162,6 +162,22 @@ $(document).ready(function() {
             $granularities.val(old_val);
     }
 
+    const dialogRefreshPeriodicity = ($modal) => {
+
+        const $periodicityGroup = $modal.find(`[name='granularity']`).parents('.form-group');
+        const selectedMeasurement = $modal.find(".measurement-select").val();
+        if (!selectedMeasurement || !measurements_info[selectedMeasurement]) return;
+        const measurement = measurements_info[selectedMeasurement];
+
+        if (measurement.granularities.length == 1) {
+            $periodicityGroup.hide();
+        }
+        else {
+            $periodicityGroup.show();
+        }
+
+    }
+
     const getAmData = ($am_table, $button_caller) => {
 
         const row_data = $am_table.row($button_caller.parent().parent()).data();
@@ -210,6 +226,7 @@ $(document).ready(function() {
             $(`#am-add-form select[name='pool']`).trigger('change');
 
             dialogRefreshMeasurement($dialog, null, true /* use defaults */);
+            dialogRefreshPeriodicity($dialog);
         },
         beforeSumbit: function () {
             const host = $("#input-add-host").val(), measurement = $("#select-add-measurement").val();
@@ -275,6 +292,7 @@ $(document).ready(function() {
             $(`#am-edit-form select[name='pool']`).trigger('change');
 
             dialogRefreshMeasurement($dialog, amData.granularity);
+            dialogRefreshPeriodicity($dialog);
         },
         beforeSumbit: function (amData) {
 
@@ -500,7 +518,6 @@ $(document).ready(function() {
     const $amTable = $("#am-table").DataTable(dtConfig);
     addMeasurementFilter($amTable);
     addAlertedFilter($amTable);
-    console.log(addPoolFilter($amTable));
 
     $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
         const amData = getAmData($amTable, $(this));
@@ -520,6 +537,7 @@ $(document).ready(function() {
         if ($(`#input-edit-host`).val().length > 0) $(`#am-edit-form`)[0].reportValidity();
 
         dialogRefreshMeasurement($("#am-edit-modal"));
+        dialogRefreshPeriodicity($("#am-edit-modal"));
     });
 
     // select the first pattern based to the first selected measurement
@@ -536,6 +554,7 @@ $(document).ready(function() {
         if ($(`#input-add-host`).val().length > 0) $(`#am-add-form`)[0].reportValidity();
 
         dialogRefreshMeasurement($("#am-add-modal"));
+        dialogRefreshPeriodicity($("#am-add-modal"));
     });
 
     // on changing the associated pool updates the link to the edit pool
