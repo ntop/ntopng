@@ -3137,7 +3137,7 @@ patricia_node_t* Utils::ptree_match(const patricia_tree_t *tree, int family, con
   else
     fill_prefix_mac(&prefix, (u_int8_t*)addr, bits, tree->maxbits);
 
-  if (prefix.bitlen <= tree->maxbits) { /* safety check */
+  if (prefix.bitlen > tree->maxbits) { /* safety check */
     char buf[128];
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad radix tree lookup for %s (prefix len = %u, tree max len = %u)",
       Utils::ptree_prefix_print(&prefix, buf, sizeof(buf)) ? buf : "-",
