@@ -632,6 +632,11 @@ page_utils.add_menubar_section(
             url = '/lua/about.lua',
          },
          {
+            entry = page_utils.menu_entries.license,
+            hidden = info["pro.forced_community"],
+            url = '/lua/license.lua',
+         },
+         {
             entry = page_utils.menu_entries.telemetry,
             url = '/lua/telemetry.lua',
          },

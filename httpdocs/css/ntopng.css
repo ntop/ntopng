@@ -13,6 +13,16 @@ summary > span {
 code {
   color: #393d44;
 }
+
+/* Hide Horizontal Scrollbar */
+.table-responsive::-webkit-scrollbar {
+  display: none;
+}
+.table-responsive {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 /*
 NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 

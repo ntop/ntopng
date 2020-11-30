@@ -1,0 +1,75 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body card-shadow">
+                <div class="row">
+                    <div class="col-md-6">
+                        {% if info["pro.license_type"] then %}
+                            {% 
+                                local badge_class = ternary(info["pro.has_valid_license"], 'badge-success', 'badge-danger') 
+                                local badge_title = ternary(info["pro.has_valid_license"], i18n("license_page.valid"), i18n("license_page.not_valid"))
+                            %}
+                            <h4 class="mb-0">{{ i18n("license_page.status") }}: <span class="badge {{ badge_class }}">{{ badge_title }}</span></h4>
+                            <small class="text-muted">{{ info["pro.license_type"] }}</small>
+                        {% end %}
+                        <p class="mt-2">
+                            SystemId: <a href="" target="_blank"><code>{{ info["pro.systemid"] }}</code></a> <i class='fas fa-external-link-alt'></i>
+                            <br>
+                            {% if not(info["pro.forced_community"]) then %}
+                            <small>
+                                {* 
+                                    i18n("about.licence_generation", {
+                                        purchase_url='http://shop.ntop.org/',
+                                        universities_url='http://www.ntop.org/support/faq/do-you-charge-universities-no-profit-and-research/'
+                                    })
+                                *}
+                            </small>
+                            <br>
+                            {% end %}
+                        </p>
+                        {% if license.is_admin then %}
+                            {% if (info["pro.use_redis_license"] or (info["pro.license"] == "")) then %}
+                                <form class="form" method="post" id="license-form" onsubmit="return trimLicenceSpaces();">
+                                    <div class="form-group w-100">
+                                        <input type="hidden" name="csrf" value="{{ ntop.getRandomCSRFValue() }}">
+                                        <textarea style="resize: none;" pattern="{* getLicensePattern() *}" class="form-control w-100" rows="5" id="ntopng_license" name="ntopng_license" placeholder="{{ i18n("about.specify_licence") }}">{{ info["ntopng.license"] }}</textarea>
+                                    </div>
+                                </form>
+                            {% else %}
+                                {% if info["pro.license"] then %}
+                                    <p>
+                                        {{ i18n("about.licence") }}: <code>{{ info["pro.license"] }}</code><br>
+                                        {% if (info["pro.license_ends_at"] ~= nil and info["pro.license_days_left"] ~= nil) then %}
+                                            {*
+                                                i18n("about.maintenance", {
+                                                    _until = "<i>"..format_utils.formatEpoch(info["pro.license_ends_at"]).."</i>",
+                                                    days_left = info["pro.license_days_left"]
+                                                })
+                                            *}
+                                        {% end %}
+                                    </p>
+                                {% end %}
+                            {% end %}
+                        {% end %}
+                    </div>
+                </div>
+            </div>
+            {% if license.is_admin then %}
+                {% if info["pro.use_redis_license"] or (info["pro.license"] == "") then %}
+                    <div class="card-footer text-right">
+                        <button form="license-form" class="btn btn-primary">
+                            <i class="fas fa-save"></i> {{ i18n("about.save_licence") }}
+                        </button>
+                    </div>
+                {% end %}
+            {% end %}
+        </div>
+        {* ui_utils.render_notes({{content = i18n("license_page.agreement") .. ': <a target="_blank" href="{{ license.external_link }}">EULA</a> <i class="fas fa-external-link-alt"></i>' }}) *}
+    </div>
+</div>
+<script>
+    function trimLicenceSpaces() {
+        $("#ntopng_license").val($("#ntopng_license").val().trim());
+        return true;
+    }
+ </script>

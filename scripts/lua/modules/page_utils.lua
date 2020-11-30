@@ -139,6 +139,7 @@ page_utils.menu_entries = {
 
     -- Help
     about   		 = {key = "about", i18n_title = "about.about", section = "about", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/help_menu.html?#about"},
+    license        = {key = "license", i18n_title = "license_page.license", section = "about", visible_iface = true, visible_system = true},
     telemetry    	 = {key = "telemetry", i18n_title = "telemetry", section = "about", visible_iface = true, visible_system = true},
     blog         	 = {key = "blog", i18n_title = "about.ntop_blog", section = "about"},
     telegram         	 = {key = "telegram", i18n_title = "about.telegram", section = "about"},
