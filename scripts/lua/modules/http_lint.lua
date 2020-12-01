@@ -1332,6 +1332,11 @@ local known_parameters = {
    ["ndpi_old_cat_id"]         = validateNumber,                -- An ndpi category id before change
    ["new_application"]         = validateSingleWord,            -- A new nDPI application protocol name
 
+-- Wireless
+   ["wifi_enabled"]            = validateBool,
+   ["wifi_ssid"]               = validateSingleWord,
+   ["wpa_passphrase"]          = { passwordCleanup, validatePassword }, -- Wifi password
+
 -- Remote probe
    ["ifIdx"]                   = validateNumber,                -- A generic switch/router port id
    ["inIfIdx"]                 = validateNumber,                -- A switch/router INPUT port id (%INPUT_SNMP)

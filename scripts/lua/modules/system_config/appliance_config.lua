@@ -130,6 +130,16 @@ end
 
 -- ##############################################
 
+function system_config:getWirelessConfiguration()
+  return self.config.wireless or {}
+end
+
+function system_config:setWirelessConfiguration(config)
+  self.config.wireless = config
+end
+
+-- ##############################################
+
 function appliance_config:_get_config_skeleton()
    local config = {
       ["defaults"] = {},
@@ -154,6 +164,11 @@ function appliance_config:_get_config_skeleton()
 	    ["enabled"] = true,
 	 },
 	 ["timezone"] = "Europe/Rome",
+      },
+      ["wireless"] = {
+         ["enabled"] = false,
+         ["ssid"] = "ntopng",
+         ["passphrase"] = "",
       }
    }
 
@@ -274,7 +289,7 @@ function appliance_config:_guess_config()
          if table.len(b.ports) > 1 then
             bridge_ifname = a
             bridging["name"] = a
-            bridging["interfaces"] = {unused={}}
+            bridging["interfaces"] = { unused = {} }
             bridging["comment"] = "Transparent bridge"
 
             bridging["interfaces"]["lan"] = {}
@@ -418,9 +433,16 @@ function appliance_config:_guess_config()
       config["interfaces"]["configuration"][bridge_ifname]["network"]["netmask"] = "255.255.255.0"
    end
 
-   -- Not supported right now
+   -- ###################
+   -- Wireless configuration
+
+   -- TODO detect actual wireless settings
+
    -- for a,b in pairs(wifi_devs) do
-   --     config["interfaces"]["configuration"][a] = { ["family"] = "wireless", ["network"] = { ["mode"] = "dhcp" } }
+   --    config["interfaces"]["configuration"][a] = {
+   --       ["family"] = "wireless",
+   --       ["network"] = {}
+   --    }
    -- end
 
    -- Make sure to apply the mode specific settings

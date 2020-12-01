@@ -2430,6 +2430,19 @@ static int ntop_is_appliance(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_iot_bridge(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+#ifndef HAVE_NEDGE
+  bool is_supported = true; // TODO
+  lua_pushboolean(vm, ntop->getPrefs()->is_appliance() && is_supported);
+#else
+  lua_pushboolean(vm, false);
+#endif
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_run_extraction(lua_State *vm) {
   int id, ifid;
   time_t time_from, time_to;
@@ -5726,6 +5739,7 @@ static luaL_Reg _ntop_reg[] = {
   { "isnEdgeEnterprise",      ntop_is_nedge_enterprise },
   { "isPackage",              ntop_is_package },
   { "isAppliance",            ntop_is_appliance },
+  { "isIoTBridge",            ntop_is_iot_bridge },
 
   /* Historical database */
   { "insertMinuteSampling",          ntop_stats_insert_minute_sampling },

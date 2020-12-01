@@ -13,25 +13,27 @@ local page_utils = require("page_utils")
 
 local is_nedge = ntop.isnEdge()
 local is_appliance = ntop.isAppliance()
+local is_iot_bridge = ntop.isIoTBridge()
 
 if not (is_nedge or is_appliance) then
    return
 end
 
 local subpages = {
-   {name = "mode",               nedge_only = false, label = i18n("nedge.setup_mode"), url = "mode.lua"},
-   {name = "network_interfaces", nedge_only = false, label = i18n("prefs.network_interfaces"), url = "interfaces.lua" },
-   {name = "network_setup",      nedge_only = false, label = i18n("nedge.interfaces_configuration"), url = "network.lua"},
-   {name = "dhcp",               nedge_only = true, label = i18n("nedge.dhcp_server"), url = "dhcp.lua", routing_only = true},
-   {name = "dns",                nedge_only = true, label = i18n("nedge.dns_configuration"), url = "dns.lua", vlan_trunk = false},
-   {name = "captive_portal",     nedge_only = true,  label = i18n("prefs.toggle_captive_portal_title"), url = "captive_portal.lua", vlan_trunk = false},
-   {name = "shapers",            nedge_only = true,  label = i18n("nedge.shapers"), url="shapers.lua"},
-   {name = "gateways",           nedge_only = true,  label = i18n("nedge.gateways"), url = "gateways.lua", routing_only = true},
-   {name = "static_routes",      nedge_only = true,  label = i18n("nedge.static_routes"), url = "static_routes.lua", routing_only = true},
-   {name = "routing",            nedge_only = true,  label = i18n("nedge.routing_policies"), url = "routing.lua", routing_only = true},
-   {name = "date_time",          nedge_only = false, label = i18n("nedge.date_time"), url = "date_time.lua"},
-   {name = "security",           nedge_only = true,  label = i18n("nedge.security"), url = "security.lua", vlan_trunk = false},
-   {name = "misc",               nedge_only = false, label = i18n("prefs.misc"), url = "misc.lua"},
+   { name = "mode",               nedge = false, appliance = true,                       url = "mode.lua",           label = i18n("nedge.setup_mode")                  },
+   { name = "wifi",               nedge = false, appliance = true, iot_bridge = true,    url = "wifi.lua",           label = i18n("prefs.wifi")                        },
+   { name = "network_interfaces", nedge = false, appliance = true,                       url = "interfaces.lua",     label = i18n("prefs.network_interfaces")          },
+   { name = "network_setup",      nedge = false, appliance = true,                       url = "network.lua",        label = i18n("nedge.interfaces_configuration")    },
+   { name = "dhcp",               nedge = true,  appliance = false, routing_only = true, url = "dhcp.lua",           label = i18n("nedge.dhcp_server")                 },
+   { name = "dns",                nedge = true,  appliance = false, vlan_trunk = false,  url = "dns.lua",            label = i18n("nedge.dns_configuration")           },
+   { name = "captive_portal",     nedge = true,  appliance = false, vlan_trunk = false,  url = "captive_portal.lua", label = i18n("prefs.toggle_captive_portal_title") },
+   { name = "shapers",            nedge = true,  appliance = false,                      url = "shapers.lua",        label = i18n("nedge.shapers")                     },
+   { name = "gateways",           nedge = true,  appliance = false, routing_only = true, url = "gateways.lua",       label = i18n("nedge.gateways")                    },
+   { name = "static_routes",      nedge = true,  appliance = false, routing_only = true, url = "static_routes.lua",  label = i18n("nedge.static_routes")               },
+   { name = "routing",            nedge = true,  appliance = false, routing_only = true, url = "routing.lua",        label = i18n("nedge.routing_policies")            },
+   { name = "date_time",          nedge = false, appliance = true,                       url = "date_time.lua",      label = i18n("nedge.date_time")                   },
+   { name = "security",           nedge = true,  appliance = false, vlan_trunk = false,  url = "security.lua",       label = i18n("nedge.security")                    },
+   { name = "misc",               nedge = false, appliance = true,                       url = "misc.lua",           label = i18n("prefs.misc")                        },
 }
 
 local system_setup_ui_utils = {}
@@ -173,12 +175,13 @@ function system_setup_ui_utils.printPageBody(sys_config, print_page_body_callbac
 
    local mode = sys_config:getOperatingMode()
    for _, subpage in ipairs(subpages) do
-      if not is_nedge then
-         if subpage.nedge_only then
-            goto continue
-         end
-
-      else -- nedge
+      if is_appliance and not subpage.appliance then
+         goto continue
+      elseif not is_iot_bridge and subpage.iot_bridge then
+         goto continue
+      elseif is_nedge and not subpage.nedge then
+         goto continue
+      elseif is_nedge then
          if (subpage.routing_only == true) and (not sys_config:isMultipathRoutingEnabled()) then
             goto continue
          elseif (subpage.vlan_trunk == false) and (sys_config:isBridgeOverVLANTrunkEnabled()) then
@@ -187,7 +190,7 @@ function system_setup_ui_utils.printPageBody(sys_config, print_page_body_callbac
       end
 
       print("<a href=\""..ntop.getHttpPrefix().."/lua/")
-      if subpage.nedge_only then
+      if is_nedge and not subpage.appliance then
          print("pro/nedge/")
       end
       print("system_setup_ui/")

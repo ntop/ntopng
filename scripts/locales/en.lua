@@ -701,7 +701,13 @@ local lang = {
   },
   ["appliance"] = {
     ["capture_interfaces"] = "Capture Interfaces",
+    ["enable_wifi"] = "Enable Wi-Fi",
+    ["enable_wifi_descr"] = "Enable or disable the Wi-Fi interface.",
     ["management"] = "Management Interface",
+    ["ssid"] = "SSID",
+    ["ssid_descr"] = "Wi-Fi name (Service Set IDentifier).",
+    ["wpa_passphrase"] = "Passphrase",
+    ["wpa_passphrase_descr"] = "WPA passphrase.",
   },
   ["arp_page"] = {
     ["arp_type"] = "ARP Type",
@@ -3868,6 +3874,7 @@ local lang = {
     ["webhook_url_description"] = "Send notification to this URL in JSON format.",
     ["webhook_url_title"] = "Notification URL",
     ["webhook_username_description"] = "The username to be used in case of HTTP authentication (optional).",
+    ["wifi"] = "Wireless",
     ["zmq_interfaces"] = "ZMQ Interfaces",
   },
   ["processes_stats"] = {
