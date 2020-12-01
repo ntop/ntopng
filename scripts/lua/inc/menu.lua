@@ -606,12 +606,10 @@ if not info.oem and auth.has_capability(auth.capabilities.developer) then
 	    },
 	    {
 	       entry = page_utils.menu_entries.widgets_list,
-	       hidden = true,
 	       url = '/lua/widgets_list.lua',
 	    },
 	    {
 	       entry = page_utils.menu_entries.datasources_list,
-	       hidden = true,
 	       url = '/lua/datasources_list.lua',
 	    },
 	 },
