@@ -128,7 +128,7 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
 
     case ASN_COUNTER64:
       {
-	u_int64_t v = (vp->val.counter64->high << 32) + vp->val.counter64->low;
+	u_int64_t v = ((u_int64_t) vp->val.counter64->high << 32) + vp->val.counter64->low;
 
 #ifdef NATIVE_TYPE
 	lua_push_uint32_table_entry(vm, rsp_oid, v);

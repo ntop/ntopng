@@ -642,7 +642,7 @@ static void redirect_to_login(struct mg_connection *conn,
 	      "Cache-Control: no-store, no-cache, must-revalidate\r\n"
 	      "Pragma: no-cache\r\n"
 	      "Content-Type: text/html; charset=UTF-8\r\n"
-	      "Content-Length: %lu\r\n"
+	      "Content-Length: %u\r\n"
 	      "Location: http://%s:%u%s%s%s%s\r\n\r\n%s",
               strlen(wispr_data),
               ntop->get_HTTPserver()->getCaptiveRedirectAddress(), // LAN address
