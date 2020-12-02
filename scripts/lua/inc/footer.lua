@@ -168,6 +168,15 @@ print([[
 
 		$(document).ready(function() {
 
+		   /* fix the dropdown overflow */
+		   $('.table-responsive').on('show.bs.dropdown', function () {
+				$('.table-responsive').css( "overflow", "inherit" );
+		   });
+		   
+		   $('.table-responsive').on('hide.bs.dropdown', function () {
+				$('.table-responsive').css( "overflow", "auto" );
+		   })
+
 			// ignore scientific numbers input
 			$(`.ignore-scientific`).keypress(function(e) {
 				if (e.which != 8 && e.which != 0 && e.which < 48 || e.which > 57) {
