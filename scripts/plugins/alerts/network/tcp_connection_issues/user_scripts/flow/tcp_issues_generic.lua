@@ -40,6 +40,7 @@ local function check_tcp_issues(now)
 
    -- Client -> Server
    local cli_issues = flow.getClientTCPIssues()
+
    if(cli_issues > min_issues_count) then
       local cli2srv_pkts = flow.getPacketsSent()
 
@@ -80,7 +81,7 @@ local function check_tcp_issues(now)
          alerts_api.trigger_status(tcp_severe_connection_issues_type, alert_severities.warning, 20, 20, 20)
 
       else
-         local tcp_severe_connection_issues_type = flow_consts.status_types.status_tcp_severe_connection_issues.create(
+         local tcp_connection_issues_type = flow_consts.status_types.status_tcp_connection_issues.create(
             flow.getTCPStats(),
             flow.getPacketsSent(),
             flow.getPacketsRcvd(),
@@ -89,7 +90,7 @@ local function check_tcp_issues(now)
             is_server
          )
 
-         alerts_api.trigger_status(tcp_severe_connection_issues_type, alert_severities.warning, 10, 10, 10)
+         alerts_api.trigger_status(tcp_connection_issues_type, alert_severities.info, 10, 10, 10)
       end
    end
 end
