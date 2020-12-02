@@ -140,6 +140,60 @@ end
 
 -- ##############################################
 
+-- @brief Sorted iteration of a table whose keys are strings in dotted decimal format
+--        Can be used to sort dotted-decimal IPs, SNMP oids, etc.
+-- @param t The table to be iterated
+-- @param f The sort function, either `asc` or `rev`
+-- @return An iterator
+function pairsByDottedDecimalKeys(t, f)
+   local sorter = {}
+
+   -- Build a support array for the actual sorting
+   for key, value in pairs(t) do
+      sorter[#sorter + 1] = {
+	 sorter = key:split("%.") or {key}, -- An array that will be used to sort
+	 key = key, -- Original key
+	 value = value -- Original value
+      }
+   end
+
+   table.sort(sorter,
+	      function(left, right)
+		 -- The minimum of the two lengths, used to to the comparisons
+		 local len = math.min(#left.sorter, #right.sorter)
+
+		 for i = 1, len do
+		    -- Convert elements to numbers
+		    local left_number, right_number = tonumber(left.sorter[i]), tonumber(right.sorter[i])
+
+		    if left_number ~= right_number then
+		       -- If numbers are different, compare them using the sort function
+		       return f(left_number, right_number)
+		    elseif i == len then
+		       -- This is the lat time we do the comparison:
+		       -- When lengths are not equal, legths are used at tie breaker
+		       return f(#left.sorter, #right.sorter)
+		    end
+		 end
+	      end
+   )
+
+   local i = 0
+   local iter = function()
+      i = i + 1
+
+      if sorter[i] == nil then
+	 return
+      end
+
+      return sorter[i].key, sorter[i].value
+   end
+
+   return iter
+end
+
+-- ##############################################
+
 function pairsByField(t, field, f)
   local a = {}
   for n in pairs(t) do table.insert(a, n) end
