@@ -248,16 +248,18 @@ $(document).ready(function () {
     let dtConfig = DataTableUtils.getStdDatatableConfig( [
         {
             text: '<i class="fas fa-plus"></i>',
-            className: 'btn-link',
             action: function (e, dt, node, config) {
                 $('#add-datasource-modal').modal('show');
             }
+        },
+        {
+            text: '<i class="fas fa-sync"></i>',
+            action: function (e, dt, node, config) {
+                $datasourcesTable.ajax.reload();
+            }
         }
     ]);
-    dtConfig = DataTableUtils.setAjaxConfig(
-        dtConfig,
-        `${http_prefix}/lua/get_datasources.lua`,
-    );
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig,`${http_prefix}/lua/get_datasources.lua`);
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             { data: 'alias' },
@@ -266,31 +268,36 @@ $(document).ready(function () {
                 render: (hash) => `<a target=\"_blank\" href=\"/datasources/${hash}\"'>${hash}</a>`
             },
             { data: 'scope' },
-            { data: 'origin' },
-            { data: 'data_retention' },
+            { data: 'origin', render: (origin, type) => {
+                if (type === "display") return `<code>${origin}</code>`;
+                return origin;
+            }},
+            { data: 'data_retention', widht: '5%', render: (retention, type) => {
+                if (type === "display") return NtopUtils.fint(retention);
+                return retention;
+            } },
             {
                 targets: -1,
                 className: 'text-center',
                 data: null,
+                width: '10%',
                 render: function (data) {
 
                     const isDeleteDisabled = data.in_use;
-
-                    return (`
-                        <div class='btn-group btn-group-sm'>
-                            <a data-toggle='modal' href='#edit-datasource-modal' class="btn btn-info">Edit</a>
-                            <a
-                                data-toggle='modal'
-                                href='${isDeleteDisabled ? '#' : '#remove-datasource-modal'}'
-                                class="btn btn-${isDeleteDisabled ? 'secondary' : 'danger'}"></a>
-                        </div<
-                    `);
+                    return DataTableUtils.createActionButtons([
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-datasource-modal' },
+                        { 
+                            class: `btn-danger ${isDeleteDisabled ? 'disabled' : ''}`, 
+                            icon: 'fa-trash', 
+                            modal: '#remove-datasource-modal'
+                        },
+                    ]);
                 }
-            }
-        ]
+            },
+        ],
     });
 
-    const $datasources_table = $(`#datasources-list`).DataTable(dtConfig);
+    const $datasourcesTable = $(`#datasources-list`).DataTable(dtConfig);
 
     const prepareFormData = (form) => {
 
@@ -308,35 +315,30 @@ $(document).ready(function () {
                 tags[$(this).attr('data-name')] = $(this).val();
             });
 
-            serialized.schemas[schemaKey] = {
-                metric: metric,
-                tags: tags
-            };
+            serialized.schemas[schemaKey] = { metric: metric, tags: tags };
         });
 
         return serialized;
     }
 
-    let rowData = null;
-
-    const edit_datasource_modal = $('#edit-datasource-modal form').modalHandler({
+    const $editDatasourceHandler = $('#edit-datasource-modal form').modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_datasources.lua`,
         csrf: ds_csrf,
-        beforeSumbit: function () {
-            return {
-                action: 'edit',
-                JSON: JSON.stringify(prepareFormData(`#edit-datasource-modal form`))
-            };
+        resetAfterSubmit: false,
+        beforeSumbit: function (selectedDatasource) {
+
+            const ds = prepareFormData(`#edit-datasource-modal form`);
+            ds.hash = selectedDatasource.hash;
+
+            return { action: 'edit', JSON: JSON.stringify(ds) };
         },
-        loadFormData: function() {
-            return rowData;
-        },
-        onModalInit: function(data) {
+        onModalInit: function(selectedDatasource) {
+            $(`.datasource-name`).text(selectedDatasource.alias);
 
             /* fill default datasource values */
             $(`#edit-datasource-modal form`).find('[name]').each(function(e) {
-                $(this).val(data[$(this).attr('name')]);
+                $(this).val(selectedDatasource[$(this).attr('name')]);
             });
 
             const $sourcesContainer = $(`#edit-datasource-modal .ds-source-container`);
@@ -345,22 +347,18 @@ $(document).ready(function () {
             $sourcesContainer.hide().empty();
 
             /* if the origin is of type timeseries then prepare sources */
-            if (data.origin != "timeseries.lua") return;
+            if (selectedDatasource.origin != "timeseries.lua") return;
 
-            const schemas = data.schemas;
+            const schemas = selectedDatasource.schemas;
             for (const [key, schema] of Object.entries(schemas)) {
 
                 const source = timeseriesSourceBuilder.buildNewSource(
                     `#edit-ds-source-container`,
-                    `source-${data.hash}-${schema.metric}`
+                    `source-${selectedDatasource.hash}-${schema.metric}`
                 );
 
                 source.setCardTitle(`${key} / ${schema.metric}`);
-                source.fillSource({
-                    schema: key,
-                    metric: schema.metric,
-                    tags: schema.tags
-                });
+                source.fillSource({ schema: key, metric: schema.metric, tags: schema.tags });
 
                 $sourcesContainer.append(source.$domElement);
             }
@@ -370,17 +368,20 @@ $(document).ready(function () {
         },
         onSubmitSuccess: function(response) {
             if (response.success) {
-                $datasources_table.ajax.reload();
+                $datasourcesTable.ajax.reload();
                 timeseriesSourceBuilder.emptyCurrentSources();
                 $('#edit-datasource-modal').modal('hide');
+            }
+            else {
+                $(`#edit-datasource-modal .invalid-feedback`).show().text(response.message);
             }
         }
     });
 
     /* bind edit datasource event */
     $(`#datasources-list`).on('click', `a[href='#edit-datasource-modal']`, function (e) {
-        rowData = $datasources_table.row($(this).parent().parent()).data();
-        edit_datasource_modal.invokeModalInit();
+        const selectedDatasource = $datasourcesTable.row($(this).parent().parent()).data();
+        $editDatasourceHandler.invokeModalInit(selectedDatasource);
     });
 
     /* bind add datasource event */
@@ -388,6 +389,7 @@ $(document).ready(function () {
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_datasources.lua`,
         csrf: ds_csrf,
+        resetAfterSubmit: false,
         beforeSumbit: function () {
             return {
                 action: 'add',
@@ -400,40 +402,40 @@ $(document).ready(function () {
                 $(`#add-ds-source-container`).fadeOut().empty();
                 $(`#btn-add-source`).fadeOut();
                 timeseriesSourceBuilder.emptyCurrentSources();
-                $datasources_table.ajax.reload();
+                $datasourcesTable.ajax.reload();
+            }
+            else {
+                $(`#add-datasource-modal .invalid-feedback`).show().text(response.message);
             }
         }
     }).invokeModalInit();
 
-    let dsRowData = null;
-
-    const remove_ds_modal = $(`#remove-datasource-modal form`).modalHandler({
+    const $removeDatasourceHandler = $(`#remove-datasource-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_datasources.lua`,
         dontDisableSubmit: true,
         csrf: ds_csrf,
-        beforeSumbit: () => {
-            return {
-                action: 'remove',
-                JSON: JSON.stringify({
-                    ds_key: $(`#remove-datasource-modal form input[name='ds_key']`).val()
-                })
+        beforeSumbit: (datasource) => {
+            return { action: 'remove', JSON: JSON.stringify({ ds_key: datasource.hash}) }
+        },
+        onModalInit: (datasource) => {
+            $(`.datasource-name`).text(datasource.alias);
+        },
+        onSubmitSuccess: (response) => {
+            if (response.success) {
+                $datasourcesTable.ajax.reload();
+                $('#remove-datasource-modal').modal('hide');
             }
-        },
-        loadFormData: () => dsRowData.hash,
-        onModalInit: function (data) {
-            $(`#remove-datasource-modal form input[name='ds_key']`).val(data);
-        },
-        onSubmitSuccess: function (response) {
-            $datasources_table.ajax.reload();
-            $('#remove-datasource-modal').modal('hide');
+            else {
+                $(`#remove-datasource-modal .invalid-feedback`).show().text(response.message);
+            }
         }
     });
 
     /* bind remove datasource event */
     $(`#datasources-list`).on('click', `a[href='#remove-datasource-modal']`, function (e) {
-        dsRowData = $datasources_table.row($(this).parent().parent()).data();
-        remove_ds_modal.invokeModalInit();
+        const selectedDatasource = $datasourcesTable.row($(this).parent().parent()).data();
+        $removeDatasourceHandler.invokeModalInit(selectedDatasource);
     });
 
     /* **************************************************************************************** */

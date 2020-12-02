@@ -841,6 +841,11 @@ class NtopUtils {
 				return;
 			}
 			else {
+
+				// clean the string
+				if (typeof obj.value === "string") {
+					obj.value = obj.value.trim();
+				}
 				serialized[obj.name] = obj.value;
 			}
 		});

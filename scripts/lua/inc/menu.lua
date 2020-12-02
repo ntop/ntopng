@@ -602,7 +602,6 @@ if not info.oem and auth.has_capability(auth.capabilities.developer) then
 	    },
 	    {
 	       entry = page_utils.menu_entries.divider,
-	       hidden = true,
 	    },
 	    {
 	       entry = page_utils.menu_entries.widgets_list,

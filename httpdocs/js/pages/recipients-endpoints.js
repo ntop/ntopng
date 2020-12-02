@@ -199,7 +199,7 @@ $(document).ready(function () {
                 className: "text-right",
                 width: "10%",
                 render: function (data, type) {
-                    if (type == "display") return NtopUtils.fint(data);
+                    if (type === "display") return NtopUtils.fint(data);
                     return data;
                 }
             },

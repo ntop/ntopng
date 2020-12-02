@@ -258,14 +258,21 @@ class DataTableUtils {
             let button = (`
                 <a
                     href='${action.href || action.modal}'
+                    data-placement='bottom'
                     ${action.modal ? "data-toggle='modal'" : ""}
                     class='btn btn-sm ${action.class}'
                     ${action.hidden ? "style='display: none'" : ''}
                     ${action.external ? "target='_about'" : ""}
+                    ${action.title ? `title='${action.title}'` : ""}
                     >
                     <i class='fas ${action.icon}'></i>
                 </a>
             `);
+
+            // add a wrapper for the disabled button to show a tooltip
+            if (action.class.contains("disabled")) {
+                button = `<span class='d-inline-block' data-placement='bottom' ${action.title ? `title='${action.title}'` : ""}>${button}</span>`;
+            }
 
             buttons.push(button);
         });
@@ -316,6 +323,17 @@ class DataTableUtils {
                 });
             };
         }
+
+        const userInitComplete = extension.initComplete;
+
+        const initComplete = (settings, json) => {
+            if (userInitComplete !== undefined) userInitComplete(settings, json);
+            // turn on tooltips
+            $(`.actions-group [title]`).tooltip('enable');
+        };
+
+        // override initComplete function
+        extension.initComplete = initComplete;
 
         return $.extend({}, config, extension);
     }

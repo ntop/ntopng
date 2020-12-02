@@ -3,9 +3,14 @@ $(document).ready(function() {
     let dtConfig = DataTableUtils.getStdDatatableConfig([
         {
             text: '<i class="fas fa-plus"></i>',
-            className: 'btn-link',
             action: function(e, dt, node, config) {
                 $('#add-widget-modal').modal('show');
+            }
+        },
+        {
+            text: '<i class="fas fa-sync"></i>',
+            action: function (e, dt, node, config) {
+                $widgetTable.ajax.reload();
             }
         }
     ]);
@@ -21,86 +26,74 @@ $(document).ready(function() {
             },
             {
                 targets: -1,
+                width: '10%',
                 className: 'text-center',
                 data: null,
                 render: function () {
-                    return (`
-                    <div class='btn-group btn-group-sm'>
-                        <a href='#edit-widget-modal' data-toggle='modal' class="btn btn-info">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href='#embed-widget-modal' data-toggle='modal' class="btn btn-info">
-                            <i class="fas fa-code"></i>
-                        </a>
-                        <a href='#remove-widget-modal' data-toggle='modal' class="btn btn-danger">
-                            <i class="fas fa-trash"></i>
-                        </a>
-                    </div>
-                `);
+                    return DataTableUtils.createActionButtons([
+                        { class: 'btn-info', icon: 'fa-code', modal: '#embed-widget-modal' },
+                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-widget-modal' },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-widget-modal' },
+                    ]);
                 }
             }
         ]
     });
 
-    const $widgets_table = $(`#widgets-list`).DataTable(dtConfig);
+    const $widgetTable = $(`#widgets-list`).DataTable(dtConfig);
 
     $(`#widgets-list`).on('click', `a[href='#embed-widget-modal']`, function(e) {
-        const rowData = $widgets_table.row($(this).parent().parent()).data();
-        console.log(rowData);
+        const rowData = $widgetTable.row($(this).parent().parent()).data();
         $(`#embded-container`).text(`
-            <div
-                class='ntop-widget'
-                data-ntop-widget-params='${JSON.stringify(rowData.params)}'
-                data-ntop-widget-key='${rowData.key}'>
-            </div>
+            <div class='ntop-widget' data-ntop-widget-params='${JSON.stringify(rowData.params)}' data-ntop-widget-key='${rowData.key}'></div>
         `);
     });
 
-    let removeWRowData = null;
-
-    const remove_widget_modal = $(`#remove-widget-modal form`).modalHandler({
+    const $removeWidgetHandler = $(`#remove-widget-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_widgets.lua`,
         csrf: remove_csrf,
         dontDisableSubmit: true,
-        beforeSumbit: () => {
+        beforeSumbit: (selectedWidget) => {
             return {
                 action: 'remove',
-                JSON: JSON.stringify({
-                    widget_key: removeWRowData.key
-                })
+                JSON: JSON.stringify({ widget_key: selectedWidget.key })
             };
         },
-        onModalInit: function(data) {
-            $(`#remove-widget-modal form input[name='widget_key']`).val(data);
+        onModalInit: function(selectedWidget) {
+            $(`.widget-name`).text(selectedWidget.name);
         },
         onSubmitSuccess: function(response) {
             if (response.success) {
-                $widgets_table.ajax.reload();
+                $widgetTable.ajax.reload();
                 $('#remove-widget-modal').modal('hide');
+            }
+            else {
+                $(`#remove-widget-modal .invalid-feedback`).show().text(response.message);
             }
         }
     });
 
     $(`#widgets-list`).on('click', `a[href='#remove-widget-modal']`, function(e) {
-        removeWRowData = $widgets_table.row($(this).parent().parent()).data();
-        remove_widget_modal.invokeModalInit();
+        const selectedWidget = $widgetTable.row($(this).parent().parent()).data();
+        $removeWidgetHandler.invokeModalInit(selectedWidget);
     });
 
-    let editWRowData = null;
 
-    const edit_widget_modal = $(`#edit-widget-modal form`).modalHandler({
+    const $editWidgetHandler = $(`#edit-widget-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_widgets.lua`,
         csrf: edit_csrf,
-        beforeSumbit: function() {
+        resetAfterSubmit: false,
+        beforeSumbit: function(selectedWidget) {
+
+            const data = NtopUtils.serializeFormArray($(`#edit-widget-modal form`).serializeArray());
+            data.widget_key = selectedWidget.key;
+
             return {
                 action: 'edit',
-                JSON: JSON.stringify(NtopUtils.serializeFormArray($(`#edit-widget-modal form`).serializeArray()))
+                JSON: JSON.stringify(data)
             };
-        },
-        loadFormData: function() {
-            return editWRowData;
         },
         onModalInit: function(data) {
 
@@ -109,30 +102,37 @@ $(document).ready(function() {
                 type:       data.type,
                 ds_hash:    data.ds_hash,
                 interface:  data.params.ifid,
-                widget_key: data.key,
             }, data.params);
 
+            // remove duplicated interfaceid
             delete editParams.ifid;
 
+            $(`.widget-name`).text(editParams.name);
             $(`#edit-widget-modal form`).find('[name]').each(function(e) {
                 $(this).val(editParams[$(this).attr('name')]);
             });
         },
         onSubmitSuccess: function(response) {
-            $widgets_table.ajax.reload();
-            $('#edit-widget-modal').modal('hide');
+            if (response.success) {
+                $widgetTable.ajax.reload();
+                $('#edit-widget-modal').modal('hide');
+            }
+            else {
+                $(`#edit-widget-modal .invalid-feedback`).show().text(response.message);
+            }
         }
     });
 
     $(`#widgets-list`).on('click', `a[href='#edit-widget-modal']`, function(e) {
-        editWRowData = $widgets_table.row($(this).parent().parent()).data();
-        edit_widget_modal.invokeModalInit();
+        const selectedWidget = $widgetTable.row($(this).parent().parent()).data();
+        $editWidgetHandler.invokeModalInit(selectedWidget);
     });
 
     $(`#add-widget-modal form`).modalHandler({
         method: 'post',
         endpoint: `${http_prefix}/lua/edit_widgets.lua`,
         csrf: add_csrf,
+        resetAfterSubmit: false,
         beforeSumbit: function() {
             const submitOptions = {
                 action: 'add',
@@ -141,8 +141,13 @@ $(document).ready(function() {
             return submitOptions;
         },
         onSubmitSuccess: function(response) {
-            $widgets_table.ajax.reload();
-            $('#add-widget-modal').modal('hide');
+            if (response.success){
+                $widgetTable.ajax.reload();
+                $('#add-widget-modal').modal('hide');
+            }
+            else {
+                $(`#add-widget-modal .invalid-feedback`).show().text(response.message);
+            }
         }
     }).invokeModalInit();
 

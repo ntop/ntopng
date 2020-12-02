@@ -1,29 +1,43 @@
-<div class="container-fluid">
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="table-responsive">
-                <table class="table w-100 table-bordered table-striped table-hover my-3" id="widgets-list">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Key</th>
-                            <th>Type</th>
-                            <th>Params</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table w-100 table-bordered table-striped table-hover my-3" id="widgets-list">
+                        <thead>
+                            <tr>
+                                <th>{{i18n("widgets_page.name")}}</th>
+                                <th>{{i18n("widgets_page.key")}}</th>
+                                <th>{{i18n("widgets_page.type")}}</th>
+                                <th>{{i18n("widgets_page.params")}}</th>
+                                <th>{{i18n("widgets_page.actions")}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-{* template_utils.gen("pages/modals/widgets/add.template", widgets_list) *}
+{# Add Widget Modal #}
+{* 
+    template_utils.gen("pages/modals/widgets/widget-modal.template", {
+        widgets_list = widgets_list,
+        modal_type = "add"
+    }) 
+*}
+{# Edit Widget Modal #}
+{* 
+    template_utils.gen("pages/modals/widgets/widget-modal.template", {
+        widgets_list = widgets_list,
+        modal_type = "edit"
+    }) 
+*}
 {* template_utils.gen("pages/modals/widgets/remove.template", widgets_list) *}
 {* template_utils.gen("pages/modals/widgets/embed.template", widgets_list) *}
-{* template_utils.gen("pages/modals/widgets/edit.template", widgets_list) *}
 
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">

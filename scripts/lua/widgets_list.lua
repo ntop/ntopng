@@ -22,7 +22,16 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.widgets_list)
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
-page_utils.print_page_title("Widgets")
+
+local url = ntop.getHttpPrefix() .. "/lua/widgets_list.lua"
+page_utils.print_navbar(i18n("widgets_page.widgets"), url, {
+    {
+        active = true,
+        page_name = "home",
+        label = "<i class=\"fas fa-lg fa-home\"></i>",
+        url = url
+    }
+})
 
 -- Get all interface names and ids
 local iface_names = interface.getIfNames()

@@ -39,8 +39,9 @@ local json_data = _POST["JSON"]
 local data = json.decode(json_data)
 local params = format_params(data)
 
-local response = {
-}
+tprint(data)
+
+local response = {}
 
 if (action == "add") then
     response.success, response.message = widgets_utils.add_widget(data.name, data.ds_hash, data.type, params)
