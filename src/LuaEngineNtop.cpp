@@ -2433,7 +2433,10 @@ static int ntop_is_appliance(lua_State *vm) {
 static int ntop_is_iot_bridge(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 #ifndef HAVE_NEDGE
-  bool is_supported = true; // TODO
+  bool is_supported = false;
+#ifdef NTOPNG_EMBEDDED_EDITION
+  is_supported = true; /* TODO Restrict this check to supported devices */
+#endif
   lua_pushboolean(vm, ntop->getPrefs()->is_appliance() && is_supported);
 #else
   lua_pushboolean(vm, false);

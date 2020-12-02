@@ -21,7 +21,7 @@ end
 
 local subpages = {
    { name = "mode",               nedge = false, appliance = true,                       url = "mode.lua",           label = i18n("nedge.setup_mode")                  },
-   { name = "wifi",               nedge = false, appliance = true, iot_bridge = true,    url = "wifi.lua",           label = i18n("prefs.wifi")                        },
+   { name = "wifi",               nedge = false, appliance = true,                       url = "wifi.lua",           label = i18n("prefs.wifi")                        },
    { name = "network_interfaces", nedge = false, appliance = true,                       url = "interfaces.lua",     label = i18n("prefs.network_interfaces")          },
    { name = "network_setup",      nedge = false, appliance = true,                       url = "network.lua",        label = i18n("nedge.interfaces_configuration")    },
    { name = "dhcp",               nedge = true,  appliance = false, routing_only = true, url = "dhcp.lua",           label = i18n("nedge.dhcp_server")                 },
@@ -177,7 +177,9 @@ function system_setup_ui_utils.printPageBody(sys_config, print_page_body_callbac
    for _, subpage in ipairs(subpages) do
       if is_appliance and not subpage.appliance then
          goto continue
-      elseif not is_iot_bridge and subpage.iot_bridge then
+      elseif (not is_iot_bridge or mode == "passive") and subpage.name == "wifi" then
+         goto continue
+      elseif (is_iot_bridge and mode == "bridging") and subpage.name == "network_interfaces" then
          goto continue
       elseif is_nedge and not subpage.nedge then
          goto continue

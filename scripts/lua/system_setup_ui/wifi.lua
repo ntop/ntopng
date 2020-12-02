@@ -39,8 +39,6 @@ end
 local function print_wifi_page_body()
   local wifi_config = sys_config:getWirelessConfiguration()
 
-tprint(wifi_config)
-
   printPageSection("<span id='wifi_interface'>" .. i18n("prefs.wifi")  .. "</span>")
 
   local elementToSwitch = { "wifi_ssid", "wpa_passphrase" }
@@ -63,7 +61,7 @@ tprint(wifi_config)
     "wifi_ssid",
     wifi_config.ssid or "ntopng",
     nil,
-    wifi_config.enabled,
+    wifi_config.enabled == true,
     nil,
     nil,
     {
@@ -78,11 +76,11 @@ tprint(wifi_config)
     "wpa_passphrase",
     wifi_config.passphrase or "",
     "password",
-    wifi_config.enabled,
+    wifi_config.enabled == true,
     nil,
     nil,
     {
-      required = false
+      required = true
     }
   )
 

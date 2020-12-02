@@ -610,26 +610,49 @@ function system_config:_writePassiveModeNetworkConfig(f)
 end
 
 function system_config:_writeBridgeModeNetworkConfig(f)
-  local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["bridging"]
-  local bridge_ifaces = {}
 
-  -- Lan interfaces
-  for _, iface in ipairs(mode_config.interfaces.lan) do
-    self:_writeNetworkInterfaceConfig(f, iface, {mode="manual"})
-    bridge_ifaces[#bridge_ifaces + 1] = iface
+  if ntop.isIoTBridge() then
+    package.path = dirs.installdir .. "/scripts/lua/modules/conf_handlers/?.lua;" .. package.path
+    local wireless = require("wireless.lua")
+
+    -- Bridge mode on IoT bridge, setting up Wireless
+    if (self.config.wireless.enabled) then
+      -- WiFi Access Point (creates a br0)
+      wireless.configureWiFiAccessPoint(
+        self.config.wireless.ssid,
+        self.config.wireless.wpa_passphrase)
+
+      -- Bridge interface
+      local br_name = mode_config.name
+      local br_config = network_config[br_name]
+      self:_writeNetworkInterfaceConfig(f, br_name, br_config.network, nil)
+
+    else
+      wireless.disableWiFi()
+    end
+
+  else
+    local network_config = self.config.interfaces.configuration
+    local bridge_ifaces = {}
+
+    -- Lan interfaces
+    for _, iface in ipairs(mode_config.interfaces.lan) do
+      self:_writeNetworkInterfaceConfig(f, iface, { mode="manual" })
+      bridge_ifaces[#bridge_ifaces + 1] = iface
+    end
+
+    -- Wan interfaces
+    for _, iface in ipairs(mode_config.interfaces.wan) do
+      self:_writeNetworkInterfaceConfig(f, iface, { mode="manual" })
+      bridge_ifaces[#bridge_ifaces + 1] = iface
+    end
+
+    -- Bridge interface
+    local br_name = mode_config.name
+    local br_config = network_config[br_name]
+    self:_writeNetworkInterfaceConfig(f, br_name, br_config.network, bridge_ifaces)
   end
-
-  -- Wan interfaces
-  for _, iface in ipairs(mode_config.interfaces.wan) do
-    self:_writeNetworkInterfaceConfig(f, iface, {mode="manual"})
-    bridge_ifaces[#bridge_ifaces + 1] = iface
-  end
-
-  -- Bridge interface
-  local br_name = mode_config.name
-  local br_config = network_config[br_name]
-  self:_writeNetworkInterfaceConfig(f, br_name, br_config.network, bridge_ifaces)
 end
 
 function system_config:_writeRoutingModeNetworkConfig(f)
