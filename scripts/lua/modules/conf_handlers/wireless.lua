@@ -11,9 +11,13 @@ config.DEBUG = true
 -- ##############################################
 
 function config.execCmd(cmd, verbose)
+   if verbose or config.DEBUG then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "[execCmd] "..cmd)
+   end
+
    local out = sys_utils.execCmd(cmd)
    if verbose or config.DEBUG then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "[execCmd][output] ".. out)
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "[execCmd] -> ".. tostring(out))
    end
 end
 

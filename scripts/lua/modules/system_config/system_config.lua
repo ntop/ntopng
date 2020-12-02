@@ -610,18 +610,19 @@ function system_config:_writePassiveModeNetworkConfig(f)
 end
 
 function system_config:_writeBridgeModeNetworkConfig(f)
+  local network_config = self.config.interfaces.configuration
   local mode_config = self.config.globals.available_modes["bridging"]
 
   if ntop.isIoTBridge() then
     package.path = dirs.installdir .. "/scripts/lua/modules/conf_handlers/?.lua;" .. package.path
-    local wireless = require("wireless.lua")
+    local wireless = require("wireless")
 
     -- Bridge mode on IoT bridge, setting up Wireless
     if (self.config.wireless.enabled) then
       -- WiFi Access Point (creates a br0)
       wireless.configureWiFiAccessPoint(
         self.config.wireless.ssid,
-        self.config.wireless.wpa_passphrase)
+        self.config.wireless.passphrase)
 
       -- Bridge interface
       local br_name = mode_config.name
@@ -633,7 +634,6 @@ function system_config:_writeBridgeModeNetworkConfig(f)
     end
 
   else
-    local network_config = self.config.interfaces.configuration
     local bridge_ifaces = {}
 
     -- Lan interfaces

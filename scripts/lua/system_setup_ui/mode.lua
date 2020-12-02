@@ -39,7 +39,6 @@ local print_page_body = function()
 
   local all_modes = sys_config:getSupportedModes()
   local available_modes = sys_config:getAvailableModes()
-
   local modes_labels = {}
   local modes_values = {}
 

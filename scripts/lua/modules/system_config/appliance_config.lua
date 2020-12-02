@@ -347,6 +347,18 @@ function appliance_config:_guess_config()
       bridging_defined = true
    end
 
+   if not bridging_defined and ntop.isIoTBridge() then
+      bridge_ifname = "br0"
+      bridging["name"] = bridge_ifname
+      bridging["interfaces"] = {
+        lan = { "wlan0" },
+        wan = { management },
+        unused = {} 
+      }
+      bridging["comment"] = "Wireless bridge"
+      bridging_defined = true
+   end
+
    if bridging_defined then
       config["globals"]["available_modes"]["bridging"] = bridging
    end
