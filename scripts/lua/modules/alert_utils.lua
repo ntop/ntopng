@@ -655,7 +655,7 @@ end
 
 -- #################################
 
-local function drawDropdown(status, selection_name, active_entry, entries_table, button_label, get_params, actual_entries, sort_by_label)
+local function drawDropdown(status, selection_name, active_entry, entries_table, button_label, get_params, actual_entries)
    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
    local id_to_label
    if selection_name == "severity" then
@@ -663,9 +663,6 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
    elseif selection_name == "type" then
       id_to_label = alert_consts.alertTypeLabel
    end
-
-   -- sort the dropdown entries by alphabetically order
-   sort_by_label = sort_by_label or false
    
    actual_entries = actual_entries or getMenuEntries(status, selection_name, get_params)
 
@@ -692,9 +689,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
       entry.label = id_to_label(id, true)
    end
 
-   local table_iterator = ternary(sort_by_label, pairsByField(actual_entries, 'label', asc), pairs(actual_entries))
-
-   for _, entry in table_iterator do
+   for _, entry in pairsByField(actual_entries, 'label', asc) do
       local id = tonumber(entry["id"])
       local count = entry["count"]
 
@@ -1203,8 +1198,8 @@ function releaseAlert(idx) {
 	       end
 	    end
 
-	    print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries, true))
-	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities, i18n("alerts_dashboard.alert_severity"), get_params, sev_menu_entries, true))
+	    print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))
+	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities, i18n("alerts_dashboard.alert_severity"), get_params, sev_menu_entries))
 	 elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
 	    if entity == "host" then
 	       title = title .. " - " .. firstToUpper(alert_consts.formatAlertEntity(getInterfaceId(ifname), entity, _GET["entity_val"], nil))
