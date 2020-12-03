@@ -85,7 +85,7 @@ end
 
 -- Configure wireless as access point
 -- NOTE: password must be 8..63 chars        
-function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase)
+function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase, network_conf)
    local p_len = string.len(wpa_passphrase)
 
    if p_len < 8 or p_len > 63 then
@@ -118,9 +118,17 @@ function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase)
    f:write("Bridge=br0\n")
    f:close()
 
-   local dhcpcd_conf_deny = "denyinterfaces wlan0 eth0"
-   local dhcpcd_conf_bridge = "interface br0"
-   config.execCmd("grep -qxF '"..dhcpcd_conf_deny.."' /etc/dhcpcd.conf || echo '\\n# ntopng\\n"..dhcpcd_conf_deny.."\\n"..dhcpcd_conf_bridge.."' >> /etc/dhcpcd.conf")
+   -- Configure dhcp
+   config.execCmd("sed -i '/^interface/ d' /etc/dhcpcd.conf")
+   config.execCmd("sed -i '/^denyinterfaces/ d' /etc/dhcpcd.conf")
+   local dhcpcd_deny = "wlan0 eth0"
+   if network_conf.mode ~= "dhcp" then
+      dhcpcd_deny = dhcpcd_deny.." br0"
+   end
+   config.execCmd("echo 'denyinterfaces "..dhcpcd_deny.."\\n' >> /etc/dhcpcd.conf")
+   if network_conf.mode == "dhcp" then
+      config.execCmd("echo 'interface br0\\n' >> /etc/dhcpcd.conf")
+   end
 
    -- Create configuration file
    local f = sys_utils.openFile("/etc/hostapd/hostapd.conf", "w")

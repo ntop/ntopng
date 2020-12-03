@@ -614,6 +614,9 @@ function system_config:_writeBridgeModeNetworkConfig(f)
   local mode_config = self.config.globals.available_modes["bridging"]
 
   if ntop.isIoTBridge() then
+    local br_name = mode_config.name
+    local br_config = network_config[br_name]
+
     package.path = dirs.installdir .. "/scripts/lua/modules/conf_handlers/?.lua;" .. package.path
     local wireless = require("wireless")
     -- Bridge mode on IoT bridge, setting up Wireless
@@ -621,10 +624,14 @@ function system_config:_writeBridgeModeNetworkConfig(f)
       -- WiFi Access Point (creates a br0)
       wireless.configureWiFiAccessPoint(f,
         self.config.wireless.ssid,
-        self.config.wireless.passphrase)
+        self.config.wireless.passphrase,
+        br_config.network)
     else
       wireless.disableWiFi()
     end
+
+    -- Bridge interface
+    self:_writeNetworkInterfaceConfig(f, br_name, br_config.network, bridge_ifaces)
 
   else
     local bridge_ifaces = {}
@@ -674,12 +681,16 @@ function system_config:_writeSinglePortModeInterfaces(f)
   self:_writeNetworkInterfaceConfig(f, wan_iface, network_config[wan_iface].network)
 end
 
+function system_config:_getRecoveryInterface()
+  return self:getLanInterface() .. ":2"
+end
+
 function system_config:_writeNetworkInterfaces()
   local mode = self:getOperatingMode()
   local f = self.conf_handler.openNetworkInterfacesConfigFile()
 
   local recovery_conf = self:getLanRecoveryIpConfig()
-  local recovery_iface = self:getLanInterface() .. ":2"
+  local recovery_iface = self:_getRecoveryInterface()
   local is_configured, fnames = self.conf_handler.isConfiguredInterface("lo")
 
   if not is_configured then
@@ -698,9 +709,7 @@ function system_config:_writeNetworkInterfaces()
   end
 
   -- Configure backup interface
-  if not ntop.isIoTBridge() then
-    self:_writeNetworkInterfaceConfig(f, recovery_iface, { mode="static", ip=recovery_conf.ip, netmask=recovery_conf.netmask })
-  end
+  self:_writeNetworkInterfaceConfig(f, recovery_iface, { mode="static", ip=recovery_conf.ip, netmask=recovery_conf.netmask })
 
   self.conf_handler.closeNetworkInterfacesConfigFile(f)
 end

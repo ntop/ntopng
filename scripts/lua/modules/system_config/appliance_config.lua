@@ -441,8 +441,6 @@ function appliance_config:_guess_config()
          }
       }
       config["interfaces"]["configuration"][bridge_ifname]["network"]["mode"] = "dhcp"
-      config["interfaces"]["configuration"][bridge_ifname]["network"]["ip"] = "192.168.20.1"
-      config["interfaces"]["configuration"][bridge_ifname]["network"]["netmask"] = "255.255.255.0"
    end
 
    -- ###################
