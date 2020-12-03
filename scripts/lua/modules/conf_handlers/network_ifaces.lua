@@ -88,8 +88,8 @@ end
 -- ################################################################
 
 function config.backupNetworkInterfacesFiles(to_backup)
-    os.rename("/etc/network/interfaces", "/etc/network/interfaces.old")
-    traceError(TRACE_WARNING, TRACE_CONSOLE, "/etc/network/interfaces has been moved to /etc/network/interfaces.old")
+  os.rename("/etc/network/interfaces", "/etc/network/interfaces.old")
+  traceError(TRACE_WARNING, TRACE_CONSOLE, "/etc/network/interfaces has been moved to /etc/network/interfaces.old")
 end
 
 -- ################################################################

@@ -619,15 +619,9 @@ function system_config:_writeBridgeModeNetworkConfig(f)
     -- Bridge mode on IoT bridge, setting up Wireless
     if (self.config.wireless.enabled) then
       -- WiFi Access Point (creates a br0)
-      wireless.configureWiFiAccessPoint(
+      wireless.configureWiFiAccessPoint(f,
         self.config.wireless.ssid,
         self.config.wireless.passphrase)
-
-      -- Bridge interface
-      local br_name = mode_config.name
-      local br_config = network_config[br_name]
-      self:_writeNetworkInterfaceConfig(f, br_name, br_config.network, nil)
-
     else
       wireless.disableWiFi()
     end
@@ -692,6 +686,7 @@ function system_config:_writeNetworkInterfaces()
     self:_writeNetworkInterfaceConfig(f, "lo", {mode="loopback"})
   end
 
+  -- Configure interfaces depending on working mode
   if mode == "passive" then
     self:_writePassiveModeNetworkConfig(f)
   elseif mode == "bridging" then
@@ -702,7 +697,10 @@ function system_config:_writeNetworkInterfaces()
     self:_writeSinglePortModeInterfaces(f)
   end
 
-  self:_writeNetworkInterfaceConfig(f, recovery_iface, {mode="static", ip=recovery_conf.ip, netmask=recovery_conf.netmask})
+  -- Configure backup interface
+  if not ntop.isIoTBridge() then
+    self:_writeNetworkInterfaceConfig(f, recovery_iface, { mode="static", ip=recovery_conf.ip, netmask=recovery_conf.netmask })
+  end
 
   self.conf_handler.closeNetworkInterfacesConfigFile(f)
 end

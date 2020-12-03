@@ -85,13 +85,23 @@ end
 
 -- Configure wireless as access point
 -- NOTE: password must be 8..63 chars        
-function config.configureWiFiAccessPoint(ssid, wpa_passphrase)
+function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase)
    local p_len = string.len(wpa_passphrase)
 
    if p_len < 8 or p_len > 63 then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Wrong WPA password length")
       return false
    end
+
+   nf:write("auto lo\n")
+   nf:write("iface lo inet loopback\n\n")
+
+   nf:write("auto eth0\n")
+   nf:write("iface eth0 inet manual\n\n")
+
+   nf:write("auto wlan0\n")
+   nf:write("iface wlan0 inet manual\n")
+   nf:write("	wireless-mode Master\n")
 
    local f = sys_utils.openFile("/etc/systemd/network/bridge-br0.netdev", "w")
    if not f then return false end
