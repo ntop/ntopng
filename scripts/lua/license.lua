@@ -57,9 +57,7 @@ if(ntop.isnEdge()) then
     end
  end
 
-local systemIdHref = string.format("https://shop.ntop.org/mkntopng/?systemid=%s&version=%s&edition=%s", info["pro.systemid"], version[1], edition)
-
-
+local systemIdHref = string.format("https://shop.ntop.org/mkntopng?systemid=%s&version=%s&edition=%s", info["pro.systemid"], version[1], edition)
 local context = {
     info = info,
     format_utils = format_utils,

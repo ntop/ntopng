@@ -10,10 +10,16 @@
                                 local badge_title = ternary(info["pro.has_valid_license"], i18n("license_page.valid"), i18n("license_page.not_valid"))
                             %}
                             <h4 class="mb-0">{{ i18n("license_page.status") }}: <span class="badge {{ badge_class }}">{{ badge_title }}</span></h4>
-                            <small class="text-muted">{{ info["pro.license_type"] }}</small>
+                            <small class="text-muted">
+                                {{ info["pro.license_type"] }}
+                                {% if info["pro.demo_ends_at"] ~= nil and string.lower(info["pro.license_type"]) ~= "permanent" then %}
+                                    {% local rest = info["pro.demo_ends_at"] - os.time() %}
+                                    - <b>{{ i18n("about.licence_expires_in", {time=secondsToTime(rest)}) }}</b>
+                                {% end %}
+                            </small>
                         {% end %}
                         <p class="mt-2">
-                            SystemId: <a href="" target="_blank"><code>{{ info["pro.systemid"] }}</code></a> <i class='fas fa-external-link-alt'></i>
+                            SystemId: <a href="{* license.systemIdHref *}" target="_blank">{{ info["pro.systemid"] }}</a> <i class='fas fa-external-link-alt'></i>
                             <br>
                             {% if not(info["pro.forced_community"]) then %}
                             <small>
@@ -38,11 +44,12 @@
                             {% else %}
                                 {% if info["pro.license"] then %}
                                     <p>
-                                        {{ i18n("about.licence") }}: <code>{{ info["pro.license"] }}</code><br>
+                                        {{ i18n("about.licence") }}: {{ info["pro.license"] }}
+                                        <br>
                                         {% if (info["pro.license_ends_at"] ~= nil and info["pro.license_days_left"] ~= nil) then %}
                                             {*
                                                 i18n("about.maintenance", {
-                                                    _until = "<i>"..format_utils.formatEpoch(info["pro.license_ends_at"]).."</i>",
+                                                    _until = format_utils.formatEpoch(info["pro.license_ends_at"]),
                                                     days_left = info["pro.license_days_left"]
                                                 })
                                             *}
