@@ -207,7 +207,6 @@ static int ntop_set_https_bind_addr(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifdef HAVE_NEDGE
 static int ntop_shutdown(lua_State* vm) {
   char *action;
   extern AfterShutdownAction afterShutdownAction;
@@ -233,7 +232,6 @@ static int ntop_shutdown(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
-#endif
 
 /* ****************************************** */
 
@@ -5978,7 +5976,6 @@ static luaL_Reg _ntop_reg[] = {
 #ifdef HAVE_NEDGE
   { "setHTTPBindAddr",       ntop_set_http_bind_addr       },
   { "setHTTPSBindAddr",      ntop_set_https_bind_addr      },
-  { "shutdown",              ntop_shutdown                 },
   { "setRoutingMode",        ntop_set_routing_mode         },
   { "isRoutingMode",         ntop_is_routing_mode          },
   { "setLanInterface",       ntop_set_lan_interface        },
@@ -5988,6 +5985,9 @@ static luaL_Reg _ntop_reg[] = {
 
   /* Appliance */
   { "overrideInterface",     ntop_override_interface       },
+
+  /* nEdge and Appliance */
+  { "shutdown",              ntop_shutdown                 },
 
   /* System User Scripts */
   { "checkSystemScriptsMin",     ntop_check_system_scripts_min       },

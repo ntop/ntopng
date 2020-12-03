@@ -616,7 +616,6 @@ function system_config:_writeBridgeModeNetworkConfig(f)
   if ntop.isIoTBridge() then
     package.path = dirs.installdir .. "/scripts/lua/modules/conf_handlers/?.lua;" .. package.path
     local wireless = require("wireless")
-
     -- Bridge mode on IoT bridge, setting up Wireless
     if (self.config.wireless.enabled) then
       -- WiFi Access Point (creates a br0)

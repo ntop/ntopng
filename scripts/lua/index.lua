@@ -18,17 +18,20 @@ end
 
 if ntop.isnEdge() or ntop.isAppliance() then
   local sys_config
+  local first_start_page
 
   if ntop.isnEdge() then
     package.path = dirs.installdir .. "/pro/scripts/lua/nedge/modules/system_config/?.lua;" .. package.path
     sys_config = require("nf_config"):create()
+    first_start_page = "interfaces.lua"
   else -- ntop.isAppliance()
     package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" .. package.path
     sys_config = require("appliance_config"):create()
+    first_start_page = "mode.lua"
   end
 
   if sys_config.isFirstStart() then
-    print(ntop.httpRedirect(ntop.getHttpPrefix().."lua/system_setup_ui/interfaces.lua"))
+    print(ntop.httpRedirect(ntop.getHttpPrefix().."lua/system_setup_ui/"..first_start_page))
     return
   end
 end

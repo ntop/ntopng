@@ -435,7 +435,7 @@ if is_appliance then
 	 {
 	    entry = page_utils.menu_entries.system_setup,
 	    hidden = not is_admin,
-	    url = '/lua/system_setup_ui/interfaces.lua',
+	    url = '/lua/system_setup_ui/mode.lua',
 	 },
    }) do
       system_entries[#system_entries + 1] = entry

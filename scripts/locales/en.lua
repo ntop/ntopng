@@ -707,7 +707,7 @@ local lang = {
     ["ssid"] = "SSID",
     ["ssid_descr"] = "Wi-Fi name (Service Set IDentifier).",
     ["wpa_passphrase"] = "Passphrase",
-    ["wpa_passphrase_descr"] = "WPA passphrase.",
+    ["wpa_passphrase_descr"] = "WPA passphrase (min 8 characters and less than 64).",
   },
   ["arp_page"] = {
     ["arp_type"] = "ARP Type",

@@ -29,7 +29,15 @@ system_setup_ui_utils.process_apply_discard_config(sys_config)
 
 if table.len(_POST) > 0 then
    if not isEmptyString(_POST["operating_mode"]) then
-      sys_config:setOperatingMode(_POST["operating_mode"])
+      local mode = _POST["operating_mode"]
+      sys_config:setOperatingMode(mode)
+
+      if ntop.isIoTBridge() then
+         local wifi_config = sys_config:getWirelessConfiguration()
+         wifi_config.enabled = ternary(mode == "bridging", true, false)
+         sys_config:setWirelessConfiguration(wifi_config)
+      end
+
       sys_config:save()
    end
 end
