@@ -403,6 +403,95 @@ local function iec104_typeids2str(c)
    return(c)
 end
 
+local function drawiecgraph(iec, total)
+   local nodes = {}
+   local nodes_id = {}
+   
+   -- tprint(iec)
+
+   for k,v in pairs(iec) do
+      local keys = split(k, ",")
+
+      nodes[keys[1]] = true
+      nodes[keys[2]] = true
+   end
+      
+   print [[ <script type="text/javascript" src="/js/vis-network.min.js"></script>
+
+      <div style="width:100%; height:30vh; " id="myiecflow"></div>
+
+  <script type="text/javascript">
+      var nodes = null;
+      var edges = null;
+      var network = null;
+
+      function draw() {
+        // create people.
+        // value corresponds with the age of the person
+        nodes = [
+]]
+      local i = 1
+   for k,_ in pairs(nodes) do
+      local label = iec104_typeids2str(tonumber(k))
+
+      print("{ id: "..i..", label: \""..label.."\" },\n")
+      nodes_id[k] = i
+      i = i + 1
+   end
+
+print [[
+   ];
+
+        // create connections between people
+        // value corresponds with the amount of contact between two people
+        edges = [
+]]
+
+
+   for k,v in pairs(iec) do
+      local keys = split(k, ",")
+      local label = string.format("%.3f %%", (v*100)/total)
+      
+      nodes[keys[1]] = true
+      nodes[keys[2]] = true
+
+      print("{ from: "..nodes_id[keys[1]]..", to: "..nodes_id[keys[2]]..", value: "..v..", title: \""..label.."\", arrows: \"to\" },\n")
+   end
+
+print [[
+        ];
+
+        // Instantiate our network object.
+        var container = document.getElementById("myiecflow");
+        var data = {
+          nodes: nodes,
+          edges: edges,
+        };
+        var options = {
+autoResize: true,
+          nodes: {
+            shape: "dot",
+            scaling: {
+              label: {
+                min: 2,
+                max: 80,
+              },
+             shadow: true,
+             smooth: true,
+            },
+          },
+        };
+        network = new vis.Network(container, data, options);
+      }
+
+draw();
+
+
+    </script>
+       ]]
+end
+
+   
 local function ja3url(what, safety)
    if(what == nil) then
       print("&nbsp;")
@@ -851,7 +940,7 @@ else
       print("</td></tr>\n")
    end
 
-   if(flow.iec104 and (table.len(flow.iec104.typeid) > 0)) then
+   if(flow.iec104 and (table.len(flow.iec104.typeid) > 0)) then 
       print("<tr><th rowspan=5 width=30%><A HREF='https://en.wikipedia.org/wiki/IEC_60870-5'>IEC 60870-5-104</A> <i class='fas fa-external-link-alt'></i></th><th>"..i18n("flow_details.iec104_mask").."</th><td>")
       
       total = 0
@@ -872,13 +961,15 @@ else
       
       -- #########################
 
-      print("<tr><th>".. i18n("flow_details.iec104_transitions") .."</th><td>")
-
       total = 0
       for k,v in pairsByValues(flow.iec104.typeid_transitions, rev) do
 	 total = total+v
       end
       
+      print("<tr><th>".. i18n("flow_details.iec104_transitions"))
+      drawiecgraph(flow.iec104.typeid_transitions, total)
+      print("</th><td>")
+
       print("<table border width=100%>")
       for k,v in pairsByValues(flow.iec104.typeid_transitions, rev) do
 	 local pctg = (v*100)/total
@@ -941,7 +1032,6 @@ else
       end
       print(" Retransmitted")
       print("</td></tr>\n")
-
    end
 
    print("<tr><th width=30%>"..i18n("flow_details.tos").."</th>")
