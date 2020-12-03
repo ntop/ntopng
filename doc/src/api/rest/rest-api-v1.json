@@ -28,7 +28,11 @@
 		{
 			"name": "Users",
 			"description": "ntopng users management"
-	 	}
+		 },
+		 {
+			"name": "Infrastructures",
+			"description": "Manage infrastructure configurations"
+		 }
 	],
 	"schemes": [
 		"https",
@@ -1456,7 +1460,7 @@
 				}
 			}
 		},
-	    		"lua/pro/rest/v1/edit/snmp/device/device.lua": {
+		"lua/pro/rest/v1/edit/snmp/device/device.lua": {
 			"get": {
 				"tags": [
 					"SNMP"
@@ -3163,7 +3167,7 @@
 				}
 			}
 		},
-	        "lua/rest/v1/get/ntopng/users.lua": {
+	    "lua/rest/v1/get/ntopng/users.lua": {
 			"post": {
 				"tags": [
 					"Users"
@@ -3421,6 +3425,323 @@
 					},
 					"-5": {
 						"description": "INVALID_ARGUMENTS"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v1/get/infrastructure/instance.lua": {
+			"get": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Get one or all infrastructure configs",
+				"description": "Get one or all infrastructure configs",
+				"operationId": "get_infrastructure_configs",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"instance_id": "string",
+						"required": false
+					},
+					{
+						"stats": "boolean",
+						"required": false,
+						"description": "Add statistics collected by the active monitoring module"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-32": {
+						"description": "INFRASTRUCTURE_INSTANCE_NOT_FOUND"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v1/add/infrastructure/instance.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Add a new infrastructure configuration",
+				"description": "Add a new infrastructure configuration",
+				"operationId": "add_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "url",
+						"description": "The URL of the ntopng in the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "alias",
+						"description": "An alias for the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "token",
+						"description": "The REST API Token for the authentication",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "threshold",
+						"description": "A threshold used by the active monitoring",
+						"required": true,
+						"type": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-34": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_ALIAS"
+					},
+					"-35": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_URL"
+					},
+					"-36": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_TOKEN"
+					},
+					"-37": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_THRESHOLD"
+					},
+					"-39": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"
+					},
+					"-40": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_URL"
+					},
+					"-41": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_TOKEN"
+					},
+					"-42": {
+						"description": "INFRASTRUCTURE_INSTANCE_ALREADY_EXISTING"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v1/edit/infrastructure/instance.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Edit an existing infrastructure configuration",
+				"description": "Edit an existing infrastructure configuration",
+				"operationId": "edit_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "instance_id",
+						"description": "The ID of the infrastructure configuration to edit",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "url",
+						"description": "The URL of the ntopng in the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "alias",
+						"description": "An alias for the infrastructure",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "token",
+						"description": "The REST API Token for the authentication",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "threshold",
+						"description": "A threshold used by the active monitoring",
+						"required": true,
+						"type": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-32": {
+						"description": "INFRASTRUCTURE_INSTANCE_NOT_FOUND"
+					},
+					"-33": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_ID"
+					},
+					"-34": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_ALIAS"
+					},
+					"-35": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_URL"
+					},
+					"-36": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_TOKEN"
+					},
+					"-37": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_THRESHOLD"
+					},
+					"-39": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"
+					},
+					"-40": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_URL"
+					},
+					"-41": {
+						"description": "INFRASTRUCTURE_INSTANCE_SAME_TOKEN"
+					}
+				}
+			}
+		},
+		"/lua/pro/rest/v1/delete/infrastructure/instance.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Delete an existing infrastructure configuration",
+				"description": "Delete an existing infrastructure configuration",
+				"operationId": "delete_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+					{
+						"name": "instance_id",
+						"description": "The ID of the infrastructure to delete",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-32": {
+						"description": "INFRASTRUCTURE_INSTANCE_NOT_FOUND"
+					},
+					"-33": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_ID"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/import/infrastructure/config.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Import the Infrastructure configuration providing a JSON file",
+				"description": "Import the configuration for all infrastructure configurations",
+				"operationId": "import_infrastructure_configs",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					},
+					"-5": {
+						"description": "INVALID_ARGUMENTS"
+					},
+					"-27": {
+						"description": "CONFIGURATION_FILE_MISMATCH"
+					},
+					"-28": {
+						"description": "PARTIAL_IMPORT"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/export/infrastructure/config.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Export the Infrastructure configurations as a JSON file",
+				"description": "Export the configuration for the infrastructure configurations",
+				"operationId": "export_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [	{
+						"name": "download",
+						"in": "query",
+						"description": "Download as file (no REST envelope)",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
+					}
+				}
+			}
+		},
+		"lua/rest/v1/reset/infrastructure/config.lua": {
+			"post": {
+				"tags": [
+					"Infrastructures"
+				],
+				"summary": "Reset all infrastructure configurations",
+				"description": "Reset all infrastructure configurations",
+				"operationId": "reset_all_infrastructure_config",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+				],
+				"responses": {
+					"0": {
+						"description": "OK"
+					},
+					"-3": {
+						"description": "NOT_GRANTED"
 					}
 				}
 			}

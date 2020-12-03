@@ -51,7 +51,7 @@ local rest_utils = {
          user_already_existing                      = { http_code = 409, rc = -23, str = "USER_ALREADY_EXISTING"},
          user_does_not_exist                        = { http_code = 409, rc = -24, str = "USER_DOES_NOT_EXIST"},
          edit_user_failed                           = { http_code = 400, rc = -25, str = "EDIT_USER_FAILED"},
-	 snmp_device_interface_status_change_failed = { http_code = 400, rc = -26, str = "SNMP_DEVICE_INTERFACE_STATUS_CHANGE_FAILED"},
+	      snmp_device_interface_status_change_failed = { http_code = 400, rc = -26, str = "SNMP_DEVICE_INTERFACE_STATUS_CHANGE_FAILED"},
          configuration_file_mismatch                = { http_code = 400, rc = -27, str = "CONFIGURATION_FILE_MISMATCH" },
          partial_import                             = { http_code = 409, rc = -28, str = "PARTIAL_IMPORT" },
          -- Infrastructure Dashboard
@@ -73,10 +73,10 @@ local rest_utils = {
 
          infrastructure_instance_already_existing   = { http_code = 409, rc = -42, str = "INFRASTRUCTURE_INSTANCE_ALREADY_EXISTING"},
 
-	 infrastructure_instance_check_failed       = { http_code = 409, rc = -43, str = "INFRASTRUCTURE_INSTANCE_CHECK_FAILED"},
-	 infrastructure_instance_check_not_found    = { http_code = 409, rc = -44, str = "INFRASTRUCTURE_INSTANCE_CHECK_NOT_FOUND"},
-	 infrastructure_instance_check_invalid_rsp  = { http_code = 409, rc = -45, str = "INFRASTRUCTURE_INSTANCE_CHECK_INVALID_RESPONSE"},
-	 infrastructure_instance_check_auth_failed  = { http_code = 409, rc = -46, str = "INFRASTRUCTURE_INSTANCE_CHECK_AUTH_FAILED"},
+         infrastructure_instance_check_failed       = { http_code = 409, rc = -43, str = "INFRASTRUCTURE_INSTANCE_CHECK_FAILED"},
+         infrastructure_instance_check_not_found    = { http_code = 409, rc = -44, str = "INFRASTRUCTURE_INSTANCE_CHECK_NOT_FOUND"},
+         infrastructure_instance_check_invalid_rsp  = { http_code = 409, rc = -45, str = "INFRASTRUCTURE_INSTANCE_CHECK_INVALID_RESPONSE"},
+         infrastructure_instance_check_auth_failed  = { http_code = 409, rc = -46, str = "INFRASTRUCTURE_INSTANCE_CHECK_AUTH_FAILED"},
       },
    }
 }
