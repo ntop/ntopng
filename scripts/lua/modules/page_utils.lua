@@ -103,6 +103,7 @@ page_utils.menu_entries = {
     manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
     preferences	     	 = {key = "preferences", i18n_title = "prefs.preferences", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#preferences"},
     scripts_config	 = {key = "scripts_config", i18n_title = "about.user_scripts", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
+    license              = {key = "license", i18n_title = "license_page.license", section = "admin", visible_iface = true, visible_system = true},
     profiles	      	 = {key = "profiles", i18n_title = "traffic_profiles.traffic_profiles", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/advanced_features/traffic_profiles.html"},
     categories	      	 = {key = "categories", i18n_title = "custom_categories.apps_and_categories", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/categories.html#custom-applications"},
     category_lists    	 = {key = "category_lists", i18n_title = "category_lists.category_lists", section = "admin", visible_iface = true, visible_system = true},
@@ -139,7 +140,6 @@ page_utils.menu_entries = {
 
     -- Help
     about   		 = {key = "about", i18n_title = "about.about", section = "about", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/help_menu.html?#about"},
-    license        = {key = "license", i18n_title = "license_page.license", section = "about", visible_iface = true, visible_system = true},
     telemetry    	 = {key = "telemetry", i18n_title = "telemetry", section = "about", visible_iface = true, visible_system = true},
     blog         	 = {key = "blog", i18n_title = "about.ntop_blog", section = "about"},
     telegram         	 = {key = "telegram", i18n_title = "about.telegram", section = "about"},

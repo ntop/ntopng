@@ -530,6 +530,11 @@ page_utils.add_menubar_section(
       hidden = not is_admin,
       url = '/lua/admin/scripts_config.lua',
    },
+         {
+            entry = page_utils.menu_entries.license,
+            hidden = info["pro.forced_community"],
+            url = '/lua/license.lua',
+         },
    {
       entry = page_utils.menu_entries.divider,
    },
@@ -627,11 +632,6 @@ page_utils.add_menubar_section(
          {
             entry = page_utils.menu_entries.about,
             url = '/lua/about.lua',
-         },
-         {
-            entry = page_utils.menu_entries.license,
-            hidden = info["pro.forced_community"],
-            url = '/lua/license.lua',
          },
          {
             entry = page_utils.menu_entries.telemetry,

@@ -339,7 +339,7 @@ local lang = {
     ["last_log"] = "Last Log Trace",
     ["licence"] = "License",
     ["licence_expires_in"] = "License expires in %{time}",
-    ["licence_generation"] = "Click on the above URL to generate your professional version license, or purchase a license at <a href=\"%{purchase_url}\">e-shop</a>.<br>If you are no-profit, research or an education institution please read <a href=\"%{universities_url}\">this</a>.",
+    ["licence_generation"] = "Click on the above URL to generate your professional version license, or purchase a license at <a href=\"%{purchase_url}\">e-shop</a>  <i class=\"fas fa-external-link-alt\"></i>.<br>If you are no-profit, research or an education institution please read <a href=\"%{universities_url}\">this</a>  <i class=\"fas fa-external-link-alt\"></i>.",
     ["licence_status"] = "License",
     ["maintenance"] = "Maintenance: Until %{_until} [%{days_left} days left]",
     ["maintenance_expired"] = "%{product} maintenance expired",
