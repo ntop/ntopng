@@ -34,7 +34,7 @@
                 <th>{{ i18n("about.licence") }}</th>
                 <td>
                     {% if license.is_admin then %}
-                        {% if (info["pro.use_redis_license"] or (info["pro.license"] == "")) then %}
+                        {% if (info["pro.use_redis_license"] or (info["pro.license_encoded"] == "")) then %}
                             <form class="form" method="post" id="license-form" onsubmit="return trimLicenceSpaces();">
                                 <div class="form-group w-100">
                                     <input type="hidden" name="csrf" value="{{ ntop.getRandomCSRFValue() }}">
@@ -45,8 +45,8 @@
                                 </button>
                             </form>
                         {% else %}
-                            {% if info["pro.license"] then %}
-                                {{ info["pro.license"] }}
+                            {% if info["pro.license_encoded"] then %}
+			        <textarea readonly style="resize: none;" class="form-control w-50" rows="5">{{ info["pro.license_encoded"] }}</textarea>
                             {% end %}
                         {% end %}
                     {% end %}
