@@ -12,6 +12,7 @@ local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local nf_config = nil
 local flow_consts = require "flow_consts"
+local alert_consts = require "alert_consts"
 local dscp_consts = require "dscp_consts"
 require "flow_utils"
 
@@ -1331,7 +1332,7 @@ else
 
    if(additional_status ~= 0) then
       print("<tr><th width=30%>"..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
-      for _, t in pairsByKeys(flow_consts.status_types) do
+      for _, t in pairsByKeys(flow_consts.status_types) do -- TODO: remove when the new alerts api migration is done
 	 local id = t.status_key
 
 	 if ntop.bitmapIsSet(additional_status, id) then
@@ -1339,6 +1340,16 @@ else
 	    local message = flow_consts.getStatusDescription(id, alert_info)
 
 	    print(message.."<br />")
+	 end
+      end
+      for _, t in pairsByKeys(alert_consts.alert_types) do -- TODO: make default when the alert migration is done
+	 if t.meta and t.meta.status_key then
+	    local id = t.meta.status_key
+
+	    if  ntop.bitmapIsSet(additional_status, id) then
+	       local message = alert_consts.alertTypeLabel(t.meta.alert_key, true)
+	       print(message.."<br />")
+	    end
 	 end
       end
       print("</td></tr>\n")

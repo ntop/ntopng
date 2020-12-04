@@ -53,7 +53,7 @@ local function alertTypeDescription(v)
 	 -- New API
 	 return alert_consts.alert_types[alert_key].format
       else
-	 -- Possible removed once migration is done
+	 -- TODO: Possible removed once migration is done
 	 return(alert_consts.alert_types[alert_key].i18n_description)
       end
    end
@@ -504,7 +504,7 @@ end
 
 -- #################################
 
-local function formatRawFlow(record, flow_json, skip_add_links)
+local function formatRawFlow(ifid, alert, alert_json, skip_alert_description)
    require "flow_utils"
    local time_bounds
    local add_links = (not skip_add_links)
@@ -512,59 +512,48 @@ local function formatRawFlow(record, flow_json, skip_add_links)
    if interfaceHasNindexSupport() and not skip_add_links then
       -- only add links if nindex is present
       add_links = true
-      time_bounds = {getAlertTimeBounds(record)}
+      time_bounds = {getAlertTimeBounds(alert)}
    end
 
-   local decoded
-
-   if(type(flow_json) == "table") then
-     decoded = flow_json
-   else
-     decoded = json.decode(flow_json) or {}
+   -- TODO: adapter just to be compatible with old alerts, can be removed at some point
+   if alert_json["status_info"] then
+      alert_json = json.decode(alert_json["status_info"])
    end
-
-   if((type(decoded["status_info"]) == "string") and
-         (string.sub(decoded["status_info"], 1, 1) == "{")) then
-      -- status_info may contain a JSON string or a plain message
-      decoded["status_info"] = json.decode(decoded["status_info"])
-   end
-
-   local status_info = decoded.status_info
 
    -- active flow lookup
-   if not interface.isView() and status_info and status_info["ntopng.key"] and status_info["hash_entry_id"] and record["alert_tstamp"] then
+   if not interface.isView() and alert_json and alert_json["ntopng.key"] and alert_json["hash_entry_id"] and alert["alert_tstamp"] then
       -- attempt a lookup on the active flows
-      local active_flow = interface.findFlowByKeyAndHashId(status_info["ntopng.key"], status_info["hash_entry_id"])
+      local active_flow = interface.findFlowByKeyAndHashId(alert_json["ntopng.key"], alert_json["hash_entry_id"])
 
-      if active_flow and active_flow["seen.first"] < tonumber(record["alert_tstamp"]) then
+      if active_flow and active_flow["seen.first"] < tonumber(alert["alert_tstamp"]) then
 	 return string.format("%s [%s: <A class='btn btn-sm btn-info' HREF='%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u'><i class='fas fa-search-plus'></i></A> %s]",
-			      flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info),
+			      ternary(skip_alert_description, '', flow_consts.getStatusDescription(tonumber(alert["flow_status"]), alert_json)),
 			      i18n("flow"), ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"],
 			      getFlowLabel(active_flow, true, true))
       end
    end
 
-   -- pretend record is a flow to reuse getFlowLabel
+   -- pretend alert is a flow to reuse getFlowLabel
    local flow = {
-      ["cli.ip"] = record["cli_addr"], ["cli.port"] = tonumber(record["cli_port"]),
-      ["cli.blacklisted"] = tostring(record["cli_blacklisted"]) == "1",
-      ["cli.localhost"] = tostring(record["cli_localhost"]) == "1",
-      ["srv.ip"] = record["srv_addr"], ["srv.port"] = tonumber(record["srv_port"]),
-      ["srv.blacklisted"] = tostring(record["srv_blacklisted"]) == "1",
-      ["srv.localhost"] = tostring(record["srv_localhost"]) == "1",
-      ["vlan"] = record["vlan_id"]}
+      ["cli.ip"] = alert["cli_addr"], ["cli.port"] = tonumber(alert["cli_port"]),
+      ["cli.blacklisted"] = tostring(alert["cli_blacklisted"]) == "1",
+      ["cli.localhost"] = tostring(alert["cli_localhost"]) == "1",
+      ["srv.ip"] = alert["srv_addr"], ["srv.port"] = tonumber(alert["srv_port"]),
+      ["srv.blacklisted"] = tostring(alert["srv_blacklisted"]) == "1",
+      ["srv.localhost"] = tostring(alert["srv_localhost"]) == "1",
+      ["vlan"] = alert["vlan_id"]}
 
    flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds, {page = "alerts"}) or "").."] "
-   local l4_proto_label = l4_proto_to_string(record["proto"] or 0) or ""
+   local l4_proto_label = l4_proto_to_string(alert["proto"] or 0) or ""
 
    if not isEmptyString(l4_proto_label) then
       flow = flow.."[" .. l4_proto_label .. "] "
    end
 
-   local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
+   local l7proto_name = interface.getnDPIProtoName(tonumber(alert["l7_proto"]) or 0)
 
-   if record["l7_master_proto"] and record["l7_master_proto"] ~= "0" then
-      local l7proto_master_name = interface.getnDPIProtoName(tonumber(record["l7_master_proto"]))
+   if alert["l7_master_proto"] and alert["l7_master_proto"] ~= "0" then
+      local l7proto_master_name = interface.getnDPIProtoName(tonumber(alert["l7_master_proto"]))
 
       if l7proto_master_name ~= l7proto_name then
 	 l7proto_name = string.format("%s.%s", l7proto_master_name, l7proto_name)
@@ -575,15 +564,17 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
    end
 
-   if decoded ~= nil then
+   if alert_json ~= nil then
       -- render the json
       local msg = ""
 
-      if not isEmptyString(record["flow_status"]) then
-	 local status_description = flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info)
+      if not isEmptyString(alert["flow_status"]) then
+	 if not skip_alert_description then
+	    local status_description = flow_consts.getStatusDescription(tonumber(alert["flow_status"]), alert_json)
 
-	 if status_description then
-	    msg = msg..flow_consts.getStatusDescription(tonumber(record["flow_status"]), status_info).." "
+	    if status_description then
+	       msg = msg..status_description.." "
+	    end
 	 end
       end
 
@@ -591,18 +582,18 @@ local function formatRawFlow(record, flow_json, skip_add_links)
          msg = msg..flow.." "
       end
 
-      if not isEmptyString(decoded["info"]) then
+      if not isEmptyString(alert_json["info"]) then
          local lb = ""
-         if (flow_consts.getStatusType(record["flow_status"]) == "status_blacklisted")
+         if (flow_consts.getStatusType(alert["flow_status"]) == "status_blacklisted")
                   and (not flow["srv.blacklisted"]) and (not flow["cli.blacklisted"]) then
             lb = " <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
          end
 	 local info
 
-	 if string.len(decoded["info"]) > 60 then
-	    info = "<abbr title=\"".. decoded["info"] .."\">".. shortenString(decoded["info"], 60)
+	 if string.len(alert_json["info"]) > 60 then
+	    info = "<abbr title=\"".. alert_json["info"] .."\">".. shortenString(alert_json["info"], 60)
 	 else
-	    info = decoded["info"]
+	    info = alert_json["info"]
 	 end
          msg = msg.."["..i18n("info")..": " .. info ..lb.."] "
       end
@@ -610,8 +601,8 @@ local function formatRawFlow(record, flow_json, skip_add_links)
       flow = msg
    end
 
-   if status_info then
-      flow = flow..getFlowStatusInfo(record, status_info)
+   if alert_json then
+      flow = flow..getFlowStatusInfo(alert, alert_json)
    end
 
    return flow
@@ -1819,26 +1810,33 @@ end
 
 function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   local msg
-
   if(alert_json == nil) then
    alert_json = alert_utils.getAlertInfo(alert)
   end
 
-  if(alert.alert_entity == alert_consts.alertEntity("flow") or (alert.alert_entity == nil)) then
-    msg = formatRawFlow(alert, alert_json)
+  -- TODO: remove this if with "flow" once migration to the new alerts API is completed
+  if(alert.alert_entity == alert_consts.alertEntity("flow") or not alert.alert_entity) and flow_consts.getStatusType(alert["flow_status"]) then
+     -- condition  flow_consts.getStatusType(alert["flow_status"] is used to format flow-alerts using the new API as regular alert.
+     msg = formatRawFlow(ifid, alert, alert_json, false --[[ don't skip alert description --]])
   else
     msg = alert_json
     local description = alertTypeDescription(alert.alert_type)
+
     if(type(description) == "string") then
       -- localization string
       msg = i18n(description, msg)
     elseif(type(description) == "function") then
-       msg = description(ifid, alert, msg)
+      msg = description(ifid, alert, msg)
     end
   end
 
   if(type(msg) == "table") then
    return("")
+  end
+
+  -- Append flow information to the alert message
+  if alert.alert_entity == alert_consts.alertEntity("flow") or not alert.alert_entity then
+     msg = msg.. " "..formatRawFlow(ifid, alert, alert_json, true --[[ skip alert description, description already set --]])
   end
 
   if(msg) then

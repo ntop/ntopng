@@ -43,7 +43,7 @@ function script.hooks.min(params)
 	 alert:set_victim()
       end
 
-      if true then
+      if math.random(2) == 1 then
 	 alert:trigger(params.alert_entity, nil, params.cur_alerts)
       else
 	 alert:release(params.alert_entity, nil, params.cur_alerts)

@@ -55,7 +55,7 @@ local flow_keys = {
       status_user_02                      = 60,
       status_user_03                      = 61,
       status_user_04                      = 62,
-      status_user_05                      = 63,
+      status_user_05                      = 63, -- Seems this is not seen by Lua, use until 62
       -- WARNING: do not add any extra status greater than 63
       -- unless class Bitmap inside Flow has been extended to
       -- accomodate more than 64 bits.

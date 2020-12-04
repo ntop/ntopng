@@ -41,6 +41,29 @@ end
 
 -- ##############################################
 
+function Alert:_build_flow_status_info()
+   local flow_status_info = {
+      status_type = {
+	 status_key = self.meta.status_key,
+	 alert_type = self.meta,
+      },
+      alert_severity = self.alert_severity,
+      -- Stuff added in subclasses :init
+      alert_type_params = self.alert_type_params or {}
+   }
+
+   return flow_status_info
+end
+
+-- ##############################################
+
+function Alert:trigger_status(cli_score, srv_score, flow_score)
+   local alerts_api = require "alerts_api"
+   alerts_api.trigger_status(self:_build_flow_status_info(), self.alert_severity, cli_score, srv_score, flow_score)
+end
+
+-- ##############################################
+
 function Alert:trigger(entity_info, when, cur_alerts)
    local alerts_api = require "alerts_api"
    return alerts_api.trigger(entity_info, self:_build_type_info(), nil, cur_alerts)

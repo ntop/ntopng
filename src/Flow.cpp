@@ -2656,18 +2656,13 @@ u_char* Flow::getCommunityId(u_char *community_id, u_int community_id_len) {
  * Using the nDPI json serializer instead of jsonc for faster speed (~2.5x) */
 void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   ndpi_serializer json_info;
-  u_int32_t buflen;
-  const char *info;
   char buf[64];
   u_char community_id[200];
-
   ndpi_init_serializer(&json_info, ndpi_serialization_format_json);
 
   /* AlertsManager::storeFlowAlert requires a string */
-  info = getFlowInfo();
-  ndpi_serialize_string_string(&json_info, "info", info ? info : "");
   ndpi_serialize_string_string(&json_info, "status_info", alert_status_info ? alert_status_info : "");
-  ndpi_serialize_string_string(s, "alert_json", ndpi_serializer_get_buffer(&json_info, &buflen));
+  ndpi_serialize_string_string(s, "alert_json", alert_status_info ? alert_status_info : "");
   ndpi_term_serializer(&json_info);
 
   ndpi_serialize_string_int32(s, "ifid", iface->get_id());

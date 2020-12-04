@@ -399,7 +399,7 @@ end
 function alert_consts.loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"alert_key", "i18n_title", "icon"}
 
-   if mod_fname ~= "alert_host_new_api_demo" then
+   if mod_fname ~= "alert_host_new_api_demo" and mod_fname ~= "alert_flow_new_api_demo" then -- TODO: remove when new api migration done
       -- Check the required fields
       for _, k in pairs(required_fields) do
 	 if(def_script[k] == nil) then

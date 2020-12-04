@@ -4,7 +4,7 @@
 
 local user_scripts = require("user_scripts")
 local alert_severities = require "alert_severities"
-local flow_consts = require "flow_consts"
+local alert_consts = require "alert_consts"
 local alerts_api = require "alerts_api"
 
 -- #################################################################
@@ -27,13 +27,14 @@ local script = {
 function script.hooks.protocolDetected(now)
    if false then -- TODO: set to true to execute
       local cli_score, srv_score, flow_score = 10, 10, 10
-
-      local status_type = flow_consts.status_types.status_new_api_demo.create(
-	 "one_param",
-	 "another_param"
+      local alert = alert_consts.alert_types.alert_flow_new_api_demo.new(
+	 "one_flow_param",
+	 "another_flow_param"
       )
 
-      alerts_api.trigger_status(status_type, alert_severities.error, cli_score, srv_score, flow_score)
+      alert:set_severity(alert_severities.error)
+
+      alert:trigger_status(cli_score, srv_score, flow_score)
    end
 end
 

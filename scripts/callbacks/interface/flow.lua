@@ -219,6 +219,7 @@ end
 local function augumentFlowStatusInfo(l4_proto, flow_status)
    flow_status["ntopng.key"] = flow.getKey()
    flow_status["hash_entry_id"] = flow.getHashEntryId()
+   flow_status["info"] = flow.getInfo()["info"] or ''
 
    if l4_proto == 1 --[[ ICMP ]] then
       -- NOTE: this information is parsed by getFlowStatusInfo()
@@ -392,9 +393,7 @@ end
 
 -- #################################################################
 
-local function setStatus(flow_status_type, flow_score, cli_score, srv_score)
-   local status_key = flow_status_type.status_key
-
+local function setStatus(status_key, flow_score, cli_score, srv_score)
    flow_score = math.min(math.max(flow_score or 0, 0), max_score)
    cli_score = math.min(math.max(cli_score or 0, 0), max_score)
    srv_score = math.min(math.max(srv_score or 0, 0), max_score)
@@ -430,7 +429,7 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
       alerted_user_script = cur_user_script
    end
 
-   setStatus(flow_status_type, flow_score, cli_score, srv_score)
+   setStatus(status_key, flow_score, cli_score, srv_score)
 end
 
 -- #################################################################
