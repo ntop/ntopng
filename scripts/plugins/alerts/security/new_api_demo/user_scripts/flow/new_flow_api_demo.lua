@@ -25,7 +25,7 @@ local script = {
 -- #################################################################
 
 function script.hooks.protocolDetected(now)
-   if true then -- TODO: set to true to execute
+   if false then -- TODO: set to true to execute
       local cli_score, srv_score, flow_score = 10, 10, 10
       local alert = alert_consts.alert_types.alert_flow_new_api_demo.new(
 	 "one_flow_param",

@@ -57,14 +57,4 @@ end
 
 -- #######################################################
 
-function alert_flow_new_api_demo.format_flow_status(flow_status_info)
-   if not flow_status_info then
-      -- Currently, flow_status_info can be nil
-   end
-
-   return i18n("new_api_demo.flow_new_api_demo_flow_status_info_description")
-end
-
--- #######################################################
-
 return alert_flow_new_api_demo
