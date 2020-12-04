@@ -179,8 +179,7 @@ function system_setup_ui_utils.printPageBody(sys_config, print_page_body_callbac
          goto continue
       elseif (not is_iot_bridge or mode == "passive") and subpage.name == "wifi" then
          goto continue
-      elseif (is_iot_bridge and mode == "bridging") and 
-             (subpage.name == "network_interfaces" or subpage.name == "network_setup") then
+      elseif (is_iot_bridge and mode == "bridging") and subpage.name == "network_interfaces" then
          goto continue
       elseif is_nedge and not subpage.nedge then
          goto continue
