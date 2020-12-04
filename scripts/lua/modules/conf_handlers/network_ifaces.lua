@@ -31,7 +31,7 @@ function config.writeNetworkInterfaceConfig(f, iface, network_conf, dns_config, 
   else
     f:write("iface " .. iface .. " inet " .. network_conf.mode .. "\n")
 
-    if network_conf.mode == "dhcp" then
+    if ntop.isnEdge() and network_conf.mode == "dhcp" then
       f:write("\tpre-up /bin/rm -f /var/lib/dhcp/dhclient.".. iface ..".leases\n")
     end
   end

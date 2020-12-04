@@ -93,9 +93,6 @@ function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase, network_conf)
       return false
    end
 
-   nf:write("auto lo\n")
-   nf:write("iface lo inet loopback\n\n")
-
    nf:write("auto eth0\n")
    nf:write("iface eth0 inet manual\n\n")
 
