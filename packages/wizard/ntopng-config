@@ -1,0 +1,505 @@
+#!/bin/bash
+#
+#  Copyright (C) 2002-20 - ntop.org
+#
+#  http://www.ntop.org/
+#
+
+# Global variable used to check if ntopng exists
+NTOPNG_CONFIG_PATH="/etc/ntopng"
+
+NTOPNG_STD_NAME="ntopng.conf"
+
+function showHelp {
+    {
+	company="(C) 1998-20 ntop.org\n\n"
+	usage="Usage:\n\tntopng-conf\n\tor\n\tntopng-conf <command line options>\n\nOptions:\n"
+	X_option="[-X] <num>          | Set max number of active flows to <num>\n"
+	x_option="[-x] <num>          | Set max number of active hosts to <num>\n"
+
+	help_print=$company
+	help_print+=$usage
+	help_print+=$X_option
+	help_print+=$x_option
+
+	printf "%b" "$help_print"
+    }
+}
+
+function fastChangeOption {
+    {
+	TMP=$(awk "/^$1=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
+	if [[ ${TMP[@]} == "" ]]; then
+	    echo "-$1=$2" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+	else
+	    sed -i "/-$1=/c\\-$1=$2" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null
+	fi
+
+
+        exitstatus=$?
+        if [ "$exitstatus" = "0" ]; then
+            echo "$1 option value succesfully changed. Now set to $2."
+        else
+            echo "Error trying to modify the configuration file."
+        fi
+    }
+}
+
+function checkArgs {
+    {
+	echo "Inside checkArgs"
+	# A POSIX variable
+	OPTIND=1         # Reset in case getopts has been used previously in the shell.
+
+	# Initialize our own variables:
+	output_file=""
+	verbose=0
+
+	while [[ "$#" -gt 0 ]]; do
+    	    case $1 in
+        	-h|--help) showHelp;;
+        	-x) fastChangeOption "x" "$2";;
+        	-X) fastChangeOption "X" "$2";;
+		*) echo "Unknown parameter passed: $1. Check -h for more infos"; exit 1 ;;
+    	    esac
+	done
+    }
+}
+
+# Exit function
+function checkExit {
+    {
+	if (whiptail --title "Exit" --yesno "Do you want to exit?" 8 78); then
+    	    exit
+	else
+    	    manageMenu
+	fi
+    }
+}
+
+function goBack {
+    {
+	manageMenu
+    }
+}
+
+# Start the ntopng service
+function start {
+    {
+	# Removing the result from the stdout
+	systemctl start "ntopng" 2>/dev/null
+	exitstatus=$?
+
+        if [ "$exitstatus" = "0" ]; then
+            whiptail --title "Report" --msgbox "ntopng successfully started." 12 80
+        else
+            whiptail --title "Error" --msgbox "Error trying to start ntopng service." 12 80
+        fi
+
+	manageMenu
+    }
+}
+
+# Stop the ntopng service
+function stop {
+    {
+        # Removing the result from the stdout
+        systemctl stop "ntopng" 2>/dev/null
+
+	exitstatus=$?
+        if [ "$exitstatus" = "0" ]; then
+            whiptail --title "Report" --msgbox "ntopng successfully stopped." 12 80
+	else
+	    whiptail --title "Error" --msgbox "Error trying to stop ntopng service." 12 80
+	fi
+
+	manageMenu
+    }
+}
+
+# Restart the ntopng service
+function restart {
+    {
+	# Removing the result from the stdout
+        systemctl restart "ntopng" 2>/dev/null
+
+	exitstatus=$?
+        if [ "$exitstatus" = "0" ]; then
+            whiptail --title "Report" --msgbox "ntopng successfully restarted." 12 80
+        else
+            whiptail --title "Error" --msgbox "Error trying to restart ntopng service." 12 80
+        fi
+
+	manageMenu
+    }
+}
+
+# Check status of the ntopng service
+function status {
+    {
+        # Removing the result from the stdout
+        OUT=`systemctl status "ntopng"`
+
+        whiptail --title "Report" --scrolltext --msgbox "$OUT" 24 100
+
+	manageMenu
+    }
+}
+
+function getValue {
+    {
+	OPTION=$1
+	TMP=$(awk "/-$OPTION=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
+
+	VALUE=${TMP#*=}
+
+	if [[ $VALUE == "" ]]; then
+	    return "-1"
+	fi
+
+	checkNumber "$VALUE" "$OPTION"
+    }
+}
+
+function checkNumber {
+    {
+	msg=""
+	if [[ $1 -eq -1 ]]; then
+	    msg="No value found. Insert the new value."
+	else
+	    msg="Current value: '$1'. Insert the new value."
+	fi
+	while true; do
+            NEW_VALUE=$(
+                whiptail --inputbox "$msg" 12 80 --title "Edit $2 Option Value" 3>&1 1>&2 2>&3
+                     )
+            exitstatus=$?
+            if [ "$exitstatus" = "1" ]; then
+                manageMenu
+            fi
+
+            editValue "$2" "$NEW_VALUE"
+
+	    whiptail --title "Input Error" --msgbox "Invalid value. Please insert a valid value (Integer only)." 12 80
+        done
+    }
+}
+
+function editValue {
+    {
+	TMP=$(awk "/^-$1=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
+
+        if [[ ${TMP[@]} == "" ]]; then
+            echo "-$1=$2" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+        else
+            sed -i "/-$1=/c\\-$1=$2" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null
+        fi
+
+	exitstatus=$?
+        if [ "$exitstatus" = "0" ]; then
+            whiptail --title "Report" --msgbox "$1 option value succesfully changed. Now set to $2." 12 80
+        else
+            whiptail --title "Error" --msgbox "Error trying to modify the configuration file." 12 80
+        fi
+
+	manageMenu
+    }
+}
+
+function checkOption {
+    {
+	TMP=$(awk "/^$1=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
+
+        j=0
+        for i in "${TMP[@]}"
+        do
+            VALUE=${i//$1=/}
+            TMP[$j]=$VALUE
+            j=$((j+1))
+        done
+
+	$2 "${TMP[@]}"
+    }
+}
+
+function editLocList {
+    {
+	TMP=$1
+	if [[ ${TMP[0]} == "" ]]; then
+	    if (whiptail --title "Configure New Local Network" --yesno "No configured Local Network List.\nDo you want to add a new Local Network List?" 12 80); then
+                checkLocList "$1"
+            else
+                manageMenu
+            fi
+	else
+	    if (whiptail --title "Configure New Local Network" --yesno "Currently configured Local Network List:\n$1\nDo you want to add a new Local Network List?" 12 80); then
+                checkLocList "$1"
+            else
+                manageMenu
+            fi
+	fi
+    }
+}
+
+function checkLocList {
+    {
+	TMP=$1
+	COLLECTOR_IP=""
+
+	while true; do
+            COLLECTOR_IP=$(
+                whiptail --inputbox "Insert the IP address of the collector." 12 80 --title "IP address" 3>&1 1>&2 2>&3
+                	)
+
+            exitstatus=$?
+            if [ "$exitstatus" = "1" ]; then
+                editConf
+            fi
+
+            if [[ $COLLECTOR_IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+                break
+            fi
+
+	    whiptail --title "Input error" --msgbox "Invalid value. Please insert a valid IP Network List (e.g. 127.0.0.1/24)." 12 80
+        done
+
+	BYTES=""
+
+	while true; do
+            BYTES=$(
+                whiptail --inputbox "Insert the bytes value." 12 80 --title "IP address" 3>&1 1>&2 2>&3
+                 )
+
+            exitstatus=$?
+            if [ "$exitstatus" = "1" ]; then
+                editConf
+            fi
+
+            if [[ $BYTES -ge 1 ]] || [[ $BYTES -le 32 ]]; then
+                break
+            fi
+
+            whiptail --title "Input error" --msgbox "Invalid value. Please insert a value between 1 and 32." 12 80
+        done
+
+	COLLECTOR_IP+="\/$BYTES"
+
+	if [[ ${TMP[0]} == "" ]]; then
+            echo "-m=$COLLECTOR_IP" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+        else
+            LINE_NUM=$(awk "/^-m=/{ print NR; exit }" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
+            sed -i "${LINE_NUM}s/$/ \\n\-m=$COLLECTOR_IP/" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+        fi
+
+	exitstatus=$?
+        if [ "$exitstatus" = "0" ]; then
+            whiptail --title "Report" --msgbox "Successfully added $IF to the list of Local Network List." 12 80
+        else
+            whiptail --title "Error" --msgbox "Error trying to add $IF to the configuration file." 12 80
+        fi
+
+        editConf
+    }
+}
+
+function editIf {
+    {
+	TMP=$1
+	if [[ ${TMP[0]} == "" ]]; then
+	    if (whiptail --title "Configure New Interface" --yesno "No configured Interface:\n$1\nDo you want to add a new interface?" 12 80); then
+            	checkIf "$1"
+            else
+            	manageMenu
+            fi
+	else
+	    if (whiptail --title "Configure New Interface" --yesno "Currently configured Interface:\n$1\n\nDo you want to add a new interface?" 12 80); then
+                checkIf "$1"
+            else
+                manageMenu
+            fi
+	fi
+    }
+}
+
+function checkIf {
+    {
+	FILES=$(cat /proc/net/dev | grep ':'| cut -d ':' -f 1 | tr -d '[:blank:]')
+        ARGS=()
+	j=0
+
+        for LINE in $FILES; do
+	    if [[ $TMP == *"$LINE"* ]]; then
+
+    		# Interface $LINE already configured
+		continue
+	    fi
+
+            ARGS+=("${LINE}")
+	    ARGS+=("Interface ${LINE}")
+
+            if [[ $j -eq 0 ]]; then
+                ARGS+=("ON")
+                j=$((j+1))
+            else
+                ARGS+=("OFF")
+            fi
+        done
+
+	if [[ $j -eq 0 ]]; then
+	    whiptail --title "Report" --msgbox "Sorry you have no more interfaces to add" 12 80
+	    editConf
+	fi
+	
+	IF=$(
+            whiptail --title "Interface list" --radiolist "Select an Interface:" 25 78 16 \
+                     "${ARGS[@]}" 3>&2 2>&1 1>&3
+          )
+
+	if [[ ! "$IF" == "" ]]; then
+	    exitstatus=$?
+            if [[ "$exitstatus" = "1" ]]; then
+		createMenu
+            fi
+	    
+	    if [[ ${TMP[0]} == "" ]]; then
+		"\n\-i=$IF" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+	    else
+		LINE_NUM=$(awk "/^-i=/{ print NR; exit }" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
+		sed -i "${LINE_NUM}s/$/ \\n\-i=$IF/" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+	    fi
+	    
+	    exitstatus=$?
+	    if [ "$exitstatus" = "0" ]; then
+		whiptail --title "Report" --msgbox "Successfully added $IF to the list of Interfaces." 12 80
+            else
+		whiptail --title "Error" --msgbox "Error trying to add $IF to the configuration file." 12 80
+            fi
+	    
+	    editConf
+	else
+	    createMenu
+	fi
+    }
+}
+
+function editConf {
+    {
+	CHOICE=$(
+            whiptail --title "Edit ntopng.conf" --menu "Choose an option to change:" 25 78 16 \
+                     "<-- Back" "Return to the main menu." \
+                     "Flows" "Edit the max number of active flows." \
+                     "Hosts" "Edit the max number of active hosts." \
+                     "Networks" "Edit local network list." \
+                     "Interfaces" "Add a new interface to the configuration." 3>&2 2>&1 1>&3
+              )
+
+	# Choosing the choice
+        case $CHOICE in
+            "<-- Back")
+                goBack
+                ;;
+            "Flows")
+		getValue "$CHOICE"
+                ;;
+            "Hosts")
+                getValue "$CHOICE"
+                ;;
+            "Networks")
+		checkOption "-m" "editLocList"
+                ;;
+            "Interfaces")
+                checkOption "-i" "editIf"
+                ;;
+        esac
+
+	manageMenu
+    }
+}
+
+# Managing menu
+function manageMenu {
+    {
+	# Checking if no configuration exists
+	if [ -z "$(ls -A $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null)" ]; then
+	    whiptail --title "Warning" --msgbox "No ntopng configuration found." 12 80
+	    return
+	fi
+
+	CHOICE=$(
+            whiptail --title "Manage ntopng.conf" --menu "Choose an option:" 25 78 16 \
+        	     "<-- Exit" "Return to the main menu." \
+                     "Start" "Start ntopng.conf service." \
+                     "Stop" "Stop ntopng.conf service." \
+                     "Restart" "Restart ntopng.conf service." \
+                     "Edit" "Edit ntopng.conf configuration." 3>&2 2>&1 1>&3
+              )
+
+	# Choosing the choice
+        case $CHOICE in
+            "<-- Exit")
+                checkExit
+                ;;
+            "Start")
+                start
+                ;;
+            "Stop")
+                stop
+		;;
+            "Restart")
+                restart
+                ;;
+            "Edit")
+                editConf
+                ;;
+        esac
+    }
+}
+
+# Changing the colors of whiptail
+export NEWT_COLORS='
+root=black,blue
+listbox=black,lightgray
+actlistbox=black,lightgray
+checkbox=black,lightgray
+'
+
+if [ "$EUID" -ne 0 ]
+then
+    echo "This tool requires root privileges. Try again with \"sudo \" please ..."
+    exit
+fi
+
+# Check for local templates presence
+if [ -d "./templates" ]
+then
+    TEMPLATE_HOME="./templates"
+fi
+
+# Check for local templates presence
+if [ ! -d "$NTOPNG_CONFIG_PATH" ]
+then
+    echo "No $NTOPNG_CONFIG_PATH directory: something went wrong."
+    exit
+fi
+
+# Checking if arguments are passed, if they are don't run the main loop
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+	    showHelp
+	    exit 0
+	    ;;
+        -x)
+	    fastChangeOption "x" "$2"
+	    exit 0
+	    ;;
+        -X)
+	    fastChangeOption "X" "$2"
+	    exit 0
+	    ;;
+        *) echo "Unknown parameter passed: $1. Check -h for more infos"; exit 1 ;;
+    esac
+done
+
+# Starting the main loop
+manageMenu
