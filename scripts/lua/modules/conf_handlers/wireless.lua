@@ -5,6 +5,9 @@
 local sys_utils = require("sys_utils")
 local config = {}
 
+config.APPLY_ON_REBOOT = true
+config.DEFAULT_BRIDGE_DEVICE_NAME = "br0"
+config.DEFAULT_WIRED_DEVICE_NAME = "eth0"
 config.DEFAULT_WIFI_DEVICE_NAME = "wlan0"
 config.DEBUG = false
 
@@ -23,7 +26,7 @@ function config.execCmd(cmd, verbose)
 
    local out = sys_utils.execCmd(cmd)
    if verbose or config.DEBUG then
-      traceError(TRACE_NORMAL, TRACE_CONSOLE, "[execCmd] -> ".. tostring(out))
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "[execCmd] Output: ".. tostring(out))
    end
 end
 
@@ -37,48 +40,60 @@ end
 
 function config.getWiFiDeviceName()
    local rsp = config.readCmd("cat /proc/net/wireless | grep ':'| cut -d ':' -f 1 | tr -d '[:blank:]'")
+   local dev = string.gsub(rsp, "\n", "")
 
-   return(string.gsub(rsp, "\n", ""))
+   if isEmptyString(dev) then
+      dev = config.DEFAULT_WIFI_DEVICE_NAME
+   end
+
+   return dev
 end
 
 -- ##############################################
 
 function config.enableWiFi()
    local wifi_dev = config.getWiFiDeviceName()
-
    if wifi_dev == "" then return false end
 
-   config.execCmd("ifconfig "..wifi_dev.." up")
-   config.execCmd("ifconfig "..wifi_dev.." power auto")
+   if not config.APPLY_ON_REBOOT then
+      config.execCmd("ifconfig "..wifi_dev.." up")
+      config.execCmd("ifconfig "..wifi_dev.." power auto")
+   end
 
    config.execCmd("/bin/systemctl unmask hostapd")
    config.execCmd("/bin/systemctl enable hostapd")
-   config.execCmd("/bin/systemctl enable systemd-networkd")
-   config.execCmd("/bin/systemctl restart hostapd")
-
    --config.execCmd("service hostapd enable", true)
-   --config.execCmd("service hostapd restart", true)
 
-   return(true)
+   config.execCmd("/bin/systemctl enable systemd-networkd")
+
+   if not config.APPLY_ON_REBOOT then
+      config.execCmd("/bin/systemctl restart hostapd")
+      --config.execCmd("service hostapd restart", true)
+   end
+
+   return true
 end
 
 -- ##############################################      
 
 function config.disableWiFi()
    local wifi_dev = config.getWiFiDeviceName()
-
    if wifi_dev == "" then return false end
 
-   config.execCmd("/bin/systemctl stop hostapd")
-   config.execCmd("/bin/systemctl disable hostapd")
+   if not config.APPLY_ON_REBOOT then
+      config.execCmd("/bin/systemctl stop hostapd")
+      --config.execCmd("service hostapd stop", true)
+   end
 
-   --config.execCmd("service hostapd stop", true)
+   config.execCmd("/bin/systemctl disable hostapd")
    --config.execCmd("service hostapd disable", true)
 
-   config.execCmd("ifconfig "..wifi_dev.." power off", true)
-   config.execCmd("ifconfig "..wifi_dev.." down", true)
+   if not config.APPLY_ON_REBOOT then
+      config.execCmd("ifconfig "..wifi_dev.." power off", true)
+      config.execCmd("ifconfig "..wifi_dev.." down", true)
+   end
 
-   return(true)
+   return true
 end
 
 -- ##############################################      
@@ -86,53 +101,57 @@ end
 -- Configure wireless as access point
 -- NOTE: password must be 8..63 chars        
 function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase, network_conf)
-   local p_len = string.len(wpa_passphrase)
+   local bridge_dev = config.DEFAULT_BRIDGE_DEVICE_NAME;
+   local wired_dev = config.DEFAULT_WIFI_DEVICE_NAME
+   local wifi_dev = config.getWiFiDeviceName()
+   if wifi_dev == "" then return false end
 
+   local p_len = string.len(wpa_passphrase)
    if p_len < 8 or p_len > 63 then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Wrong WPA password length")
       return false
    end
 
-   nf:write("auto eth0\n")
-   nf:write("iface eth0 inet manual\n\n")
+   nf:write("auto "..wired_dev.."\n")
+   nf:write("iface "..wired_dev.." inet manual\n\n")
 
-   nf:write("auto wlan0\n")
-   nf:write("iface wlan0 inet manual\n")
+   nf:write("auto "..wifi_dev.."\n")
+   nf:write("iface "..wifi_dev.." inet manual\n")
    nf:write("	wireless-mode Master\n")
 
-   local f = sys_utils.openFile("/etc/systemd/network/bridge-br0.netdev", "w")
+   local f = sys_utils.openFile("/etc/systemd/network/bridge-"..bridge_dev..".netdev", "w")
    if not f then return false end
    f:write("[NetDev]\n")
-   f:write("Name=br0\n")
+   f:write("Name="..bridge_dev.."\n")
    f:write("Kind=bridge\n")
    f:close()
 
-   local f = sys_utils.openFile("/etc/systemd/network/br0-member-eth0.network", "w")
+   local f = sys_utils.openFile("/etc/systemd/network/"..bridge_dev.."-member-"..wired_dev..".network", "w")
    if not f then return false end
    f:write("[Match]\n")
-   f:write("Name=eth0\n")
+   f:write("Name="..wired_dev.."\n")
    f:write("[Network]\n")
-   f:write("Bridge=br0\n")
+   f:write("Bridge="..bridge_dev.."\n")
    f:close()
 
    -- Configure dhcp
    config.execCmd("sed -i '/^interface/ d' /etc/dhcpcd.conf")
    config.execCmd("sed -i '/^denyinterfaces/ d' /etc/dhcpcd.conf")
-   local dhcpcd_deny = "wlan0 eth0"
+   local dhcpcd_deny = wifi_dev.." "..wired_dev
    if network_conf.mode ~= "dhcp" then
-      dhcpcd_deny = dhcpcd_deny.." br0"
+      dhcpcd_deny = dhcpcd_deny.." "..bridge_dev
    end
    config.execCmd("echo 'denyinterfaces "..dhcpcd_deny.."\\n' >> /etc/dhcpcd.conf")
    if network_conf.mode == "dhcp" then
-      config.execCmd("echo 'interface br0\\n' >> /etc/dhcpcd.conf")
+      config.execCmd("echo 'interface "..bridge_dev.."\\n' >> /etc/dhcpcd.conf")
    end
 
    -- Create configuration file
    local f = sys_utils.openFile("/etc/hostapd/hostapd.conf", "w")
    if not f then return false end
    f:write("country_code=IT\n")
-   f:write("interface=wlan0\n")
-   f:write("bridge=br0\n")
+   f:write("interface="..wifi_dev.."\n")
+   f:write("bridge="..bridge_dev.."\n")
    f:write("ssid="..ssid.."\n")
    f:write("hw_mode=g\n") -- hw_mode=a to use 5GHz
    f:write("channel=6\n")
@@ -164,7 +183,7 @@ function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase, network_conf)
 
    config.enableWiFi()
 
-   return(true)
+   return true
 end
 
 -- ##############################################
