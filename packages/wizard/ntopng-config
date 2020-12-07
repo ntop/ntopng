@@ -28,41 +28,52 @@ function showHelp {
 
 function fastChangeOption {
     {
-	TMP=$(awk "/^$1=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
-	if [[ ${TMP[@]} == "" ]]; then
-	    echo "-$1=$2" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
-	else
-	    sed -i "/-$1=/c\\-$1=$2" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null
-	fi
+        INPUT=$2
+        TMP=$(awk "/^-$1=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
 
+        if [[ $2 == \** ]]; then
+            i=${TMP[0]}
+            VALUE=${INPUT#*\*}
+            ACTUAL_VALUE=${i#*=}
+
+            if ! [[ "$VALUE" =~ ^[0-9]+$ ]]; then
+                echo "Sorry integers only"
+                exit 0
+            fi
+
+            if [[ ${TMP[@]} == "" ]]; then
+                echo "Sorry, no Value configured cannot multiply"
+                exit 0
+            fi
+
+            INPUT=$((ACTUAL_VALUE*VALUE))
+        else
+            if ! [[ "$2" =~ ^[0-9]+$ ]]; then
+                echo "Sorry integers only"
+                exit 0
+            fi
+
+            if [[ ${TMP[@]} == "" ]]; then
+	            echo "-$1=$2" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+
+                exitstatus=$?
+                if [ "$exitstatus" = "0" ]; then
+                    echo "-$1 option value succesfully changed. Now set to $2."
+                else
+                    echo "Error trying to modify the configuration file."
+                fi
+                exit 0
+            fi
+        fi
+	
+	    sed -i "/-$1=/c\\-$1=$INPUT" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null
 
         exitstatus=$?
         if [ "$exitstatus" = "0" ]; then
-            echo "$1 option value succesfully changed. Now set to $2."
+            echo "-$1 option value succesfully changed. Now set to $INPUT."
         else
             echo "Error trying to modify the configuration file."
         fi
-    }
-}
-
-function checkArgs {
-    {
-	echo "Inside checkArgs"
-	# A POSIX variable
-	OPTIND=1         # Reset in case getopts has been used previously in the shell.
-
-	# Initialize our own variables:
-	output_file=""
-	verbose=0
-
-	while [[ "$#" -gt 0 ]]; do
-    	    case $1 in
-        	-h|--help) showHelp;;
-        	-x) fastChangeOption "x" "$2";;
-        	-X) fastChangeOption "X" "$2";;
-		*) echo "Unknown parameter passed: $1. Check -h for more infos"; exit 1 ;;
-    	    esac
-	done
     }
 }
 
@@ -138,23 +149,28 @@ function restart {
 function status {
     {
         # Removing the result from the stdout
-        OUT=`systemctl status "ntopng"`
+        OUT=$(systemctl status 'ntopng' 2>/dev/null)
 
-        whiptail --title "Report" --scrolltext --msgbox "$OUT" 24 100
+        exitstatus=$?
+        if [ "$exitstatus" = "0" ]; then
+            whiptail --title "Report" --scrolltext --msgbox "$OUT" 24 100
+        else
+            whiptail --title "Error" --msgbox "ntopng service not found." 12 80
+        fi
 
-	manageMenu
+	    manageMenu
     }
 }
 
 function getValue {
     {
 	OPTION=$1
-	TMP=$(awk "/-$OPTION=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
+	TMP=$(awk "/$OPTION=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
 
 	VALUE=${TMP#*=}
 
-	if [[ $VALUE == "" ]]; then
-	    return "-1"
+	if [[ ${#VALUE} == 0 ]]; then
+	    VALUE="-1"
 	fi
 
 	checkNumber "$VALUE" "$OPTION"
@@ -174,8 +190,8 @@ function checkNumber {
                 whiptail --inputbox "$msg" 12 80 --title "Edit $2 Option Value" 3>&1 1>&2 2>&3
                      )
             exitstatus=$?
-            if [ "$exitstatus" = "1" ]; then
-                manageMenu
+            if [ "$exitstatus" = "1" ] || [ "$exitstatus" = "255" ]; then
+                editConf
             fi
 
             editValue "$2" "$NEW_VALUE"
@@ -187,17 +203,17 @@ function checkNumber {
 
 function editValue {
     {
-	TMP=$(awk "/^-$1=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
+	TMP=$(awk "/^$1=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
 
         if [[ ${TMP[@]} == "" ]]; then
-            echo "-$1=$2" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+            echo "$1=$2" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
         else
-            sed -i "/-$1=/c\\-$1=$2" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null
+            sed -i "/$1=/c\\$1=$2" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null
         fi
 
 	exitstatus=$?
         if [ "$exitstatus" = "0" ]; then
-            whiptail --title "Report" --msgbox "$1 option value succesfully changed. Now set to $2." 12 80
+            whiptail --title "Report" --msgbox "Value succesfully changed. Now set to $2." 12 80
         else
             whiptail --title "Error" --msgbox "Error trying to modify the configuration file." 12 80
         fi
@@ -218,24 +234,24 @@ function checkOption {
             j=$((j+1))
         done
 
-	$2 "${TMP[@]}"
+	    $2 "${TMP[@]}"
     }
 }
 
 function editLocList {
     {
 	TMP=$1
-	if [[ ${TMP[0]} == "" ]]; then
+	if [[ ${TMP[@]} == "" ]]; then
 	    if (whiptail --title "Configure New Local Network" --yesno "No configured Local Network List.\nDo you want to add a new Local Network List?" 12 80); then
                 checkLocList "$1"
             else
-                manageMenu
+                editConf
             fi
 	else
-	    if (whiptail --title "Configure New Local Network" --yesno "Currently configured Local Network List:\n$1\nDo you want to add a new Local Network List?" 12 80); then
+	    if (whiptail --title "Configure New Local Network" --yesno --scrolltext "Currently configured Local Network List:\n\n$1\n\nDo you want to add a new Local Network List?" 12 80); then
                 checkLocList "$1"
             else
-                manageMenu
+                editConf
             fi
 	fi
     }
@@ -252,7 +268,7 @@ function checkLocList {
                 	)
 
             exitstatus=$?
-            if [ "$exitstatus" = "1" ]; then
+            if [ "$exitstatus" = "1" ] || [ "$exitstatus" = "255" ]; then
                 editConf
             fi
 
@@ -260,7 +276,7 @@ function checkLocList {
                 break
             fi
 
-	    whiptail --title "Input error" --msgbox "Invalid value. Please insert a valid IP Network List (e.g. 127.0.0.1/24)." 12 80
+	    whiptail --title "Input error" --msgbox "Invalid value. Please insert a valid IP Network List (e.g. 127.0.0.1)." 12 80
         done
 
 	BYTES=""
@@ -271,11 +287,11 @@ function checkLocList {
                  )
 
             exitstatus=$?
-            if [ "$exitstatus" = "1" ]; then
+            if [ "$exitstatus" = "1" ] || [ "$exitstatus" = "255" ]; then
                 editConf
             fi
 
-            if [[ $BYTES -ge 1 ]] || [[ $BYTES -le 32 ]]; then
+            if [[ $BYTES -ge 1 ]] && [[ $BYTES -le 32 ]]; then
                 break
             fi
 
@@ -284,7 +300,7 @@ function checkLocList {
 
 	COLLECTOR_IP+="\/$BYTES"
 
-	if [[ ${TMP[0]} == "" ]]; then
+	if [[ ${TMP[@]} == "" ]]; then
             echo "-m=$COLLECTOR_IP" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
         else
             LINE_NUM=$(awk "/^-m=/{ print NR; exit }" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
@@ -305,17 +321,17 @@ function checkLocList {
 function editIf {
     {
 	TMP=$1
-	if [[ ${TMP[0]} == "" ]]; then
-	    if (whiptail --title "Configure New Interface" --yesno "No configured Interface:\n$1\nDo you want to add a new interface?" 12 80); then
+	if [[ ${TMP[@]} == "" ]]; then
+	    if (whiptail --title "Configure New Interface" --yesno "No configured Interface:\nDo you want to add a new Interface?" 12 80); then
             	checkIf "$1"
             else
-            	manageMenu
+            	editConf
             fi
 	else
-	    if (whiptail --title "Configure New Interface" --yesno "Currently configured Interface:\n$1\n\nDo you want to add a new interface?" 12 80); then
+	    if (whiptail --title "Configure New Interface" --yesno "Currently configured Interface:\n\n$1\n\nDo you want to add a new Interface?" 25 78); then
                 checkIf "$1"
             else
-                manageMenu
+                editConf
             fi
 	fi
     }
@@ -323,45 +339,109 @@ function editIf {
 
 function checkIf {
     {
-	FILES=$(cat /proc/net/dev | grep ':'| cut -d ':' -f 1 | tr -d '[:blank:]')
-        ARGS=()
-	j=0
+        CHOICE=$(
+            whiptail --title "Configure New Interface" --menu "Choose the type of Interface you want to add:" 12 80 5 \
+                     "Standard" "Choose one from the Interface List of your device (e.g. 'eth0')." \
+                     "Custom" "Custom configuration (e.g. 'tcp://127.0.0.1:3000')." 3>&2 2>&1 1>&3
+              )
+        
+        if [[ $? = "1" ]] || [[ $? = "255" ]]; then
+            editConf
+        fi
 
-        for LINE in $FILES; do
-	    if [[ $TMP == *"$LINE"* ]]; then
+        IF=""
+        PRINT_IF=""
 
-    		# Interface $LINE already configured
-		continue
-	    fi
+	    # Choosing the choice
+        case $CHOICE in
+            "Standard")
+		        FILES=$(cat /proc/net/dev | grep ':'| cut -d ':' -f 1 | tr -d '[:blank:]')
+                ARGS=()
+                j=0
 
-            ARGS+=("${LINE}")
-	    ARGS+=("Interface ${LINE}")
+                for LINE in $FILES; do
+                    if [[ $TMP == *"$LINE"* ]]; then
+                    # Interface $LINE already configured
+                    continue
+                fi
 
-            if [[ $j -eq 0 ]]; then
-                ARGS+=("ON")
-                j=$((j+1))
-            else
-                ARGS+=("OFF")
-            fi
-        done
+                ARGS+=("${LINE}")
+                ARGS+=("Interface ${LINE}")
 
-	if [[ $j -eq 0 ]]; then
-	    whiptail --title "Report" --msgbox "Sorry you have no more interfaces to add" 12 80
-	    editConf
-	fi
-	
-	IF=$(
-            whiptail --title "Interface list" --radiolist "Select an Interface:" 25 78 16 \
-                     "${ARGS[@]}" 3>&2 2>&1 1>&3
-          )
+                    if [[ $j -eq 0 ]]; then
+                        ARGS+=("ON")
+                        j=$((j+1))
+                    else
+                        ARGS+=("OFF")
+                    fi
+                done
 
-	if [[ ! "$IF" == "" ]]; then
-	    exitstatus=$?
-            if [[ "$exitstatus" = "1" ]]; then
-		createMenu
-            fi
+                if [[ $j -eq 0 ]]; then
+                    whiptail --title "Report" --msgbox "Sorry you have no more interfaces to add" 12 80
+                    editConf
+                fi
+
+                IF=$(
+                    whiptail --title "Interface list" --radiolist "Select an Interface:" 25 78 16 \
+                            "${ARGS[@]}" 3>&2 2>&1 1>&3
+                )
+
+                PRINT_IF=$IF
+                ;;
+            "Custom")
+                IP=""
+
+                while true; do
+                    IP=$(
+                        whiptail --inputbox "Insert the IP address of the custom Interface." 12 80 --title "IP address" 3>&1 1>&2 2>&3
+                            )
+
+                    exitstatus=$?
+                    if [ "$exitstatus" = "1" ] || [ "$exitstatus" = "255" ]; then
+                        editConf
+                    fi
+
+                    if [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]] || [ "$IP" = "*" ]; then
+                        break
+                    fi
+
+                    whiptail --title "Input error" --msgbox "Invalid value. Please insert a valid IP Network List (e.g. 127.0.0.1)." 12 80
+                done
+
+                PORT=""
+
+                while true; do
+                    PORT=$(
+                        whiptail --inputbox "Insert the Port Number." 12 80 --title "Port Number" 3>&1 1>&2 2>&3
+                        )
+
+                    exitstatus=$?
+                    if [ "$exitstatus" = "1" ] || [ "$exitstatus" = "255" ]; then
+                        editConf
+                    fi
+
+                    if [[ $PORT -ge 1 ]] && [[ $PORT -le 65535 ]]; then
+                        break
+                    fi
+
+                    whiptail --title "Input error" --msgbox "Invalid value. Please insert a value between 1 and 65535." 12 80
+                done
+
+                PRINT_IF="tcp://$IP:$PORT"
+                IF="tcp:\/\/$IP:$PORT"
+
+                if [[ $TMP == *"$PRINT_IF"* ]]; then
+                    whiptail --title "Error" --msgbox "Interface $PRINT_IF already configured." 12 80
+                    # Interface $LINE already configured
+                    checkIf $1
+                fi
+                ;;
+            *)
+                editConf
+                ;;
+        esac
 	    
-	    if [[ ${TMP[0]} == "" ]]; then
+	    if [[ ${TMP[@]} == "" ]]; then
 		"\n\-i=$IF" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
 	    else
 		LINE_NUM=$(awk "/^-i=/{ print NR; exit }" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
@@ -370,22 +450,19 @@ function checkIf {
 	    
 	    exitstatus=$?
 	    if [ "$exitstatus" = "0" ]; then
-		whiptail --title "Report" --msgbox "Successfully added $IF to the list of Interfaces." 12 80
+		whiptail --title "Report" --msgbox "Successfully added $PRINT_IF to the list of Interfaces." 12 80
             else
-		whiptail --title "Error" --msgbox "Error trying to add $IF to the configuration file." 12 80
+		whiptail --title "Error" --msgbox "Error trying to add $PRINT_IF to the configuration file." 12 80
             fi
 	    
 	    editConf
-	else
-	    createMenu
-	fi
     }
 }
 
 function editConf {
     {
 	CHOICE=$(
-            whiptail --title "Edit ntopng.conf" --menu "Choose an option to change:" 25 78 16 \
+            whiptail --title "Edit ntopng.conf" --nocancel --menu "Choose an option to change:" 25 78 16 \
                      "<-- Back" "Return to the main menu." \
                      "Flows" "Edit the max number of active flows." \
                      "Hosts" "Edit the max number of active hosts." \
@@ -399,16 +476,19 @@ function editConf {
                 goBack
                 ;;
             "Flows")
-		getValue "$CHOICE"
+		        getValue "-X"
                 ;;
             "Hosts")
-                getValue "$CHOICE"
+                getValue "-x"
                 ;;
             "Networks")
-		checkOption "-m" "editLocList"
+		        checkOption "-m" "editLocList"
                 ;;
             "Interfaces")
                 checkOption "-i" "editIf"
+                ;;
+            *)
+                editConf
                 ;;
         esac
 
@@ -426,8 +506,9 @@ function manageMenu {
 	fi
 
 	CHOICE=$(
-            whiptail --title "Manage ntopng.conf" --menu "Choose an option:" 25 78 16 \
+            whiptail --title "Manage ntopng.conf" --nocancel --menu "Choose an option:" 25 78 16 \
         	     "<-- Exit" "Return to the main menu." \
+                     "Status" "Show ntopng.conf service status." \
                      "Start" "Start ntopng.conf service." \
                      "Stop" "Stop ntopng.conf service." \
                      "Restart" "Restart ntopng.conf service." \
@@ -438,6 +519,9 @@ function manageMenu {
         case $CHOICE in
             "<-- Exit")
                 checkExit
+                ;;
+            "Status")
+                status
                 ;;
             "Start")
                 start
@@ -450,6 +534,9 @@ function manageMenu {
                 ;;
             "Edit")
                 editConf
+                ;;
+            *)
+                manageMenu
                 ;;
         esac
     }
