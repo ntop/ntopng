@@ -135,7 +135,22 @@ function system_config:getWirelessConfiguration()
 end
 
 function system_config:setWirelessConfiguration(config)
+  if config.enabled then
+    if isEmptyString(config.ssid) then
+      return false
+    end
+
+    if not isEmptyString(config.passphrase) then
+      local len = string.len(config.passphrase)
+      if len < 8 or len > 63 then
+        return false
+      end
+    end
+  end
+
   self.config.wireless = config
+
+  return true
 end
 
 -- ##############################################

@@ -32,8 +32,10 @@ if _POST["wifi_enabled"] ~= nil then
   if _POST["wifi_ssid"] ~= nil then wifi_config.ssid = _POST["wifi_ssid"] end
   if _POST["wpa_passphrase"] ~= nil then wifi_config.passphrase = _POST["wpa_passphrase"] end
 
-  sys_config:setWirelessConfiguration(wifi_config)
-  sys_config:save()
+  local success = sys_config:setWirelessConfiguration(wifi_config)
+  if success then
+    sys_config:save()
+  end
 end
 
 local function print_wifi_page_body()
@@ -80,7 +82,9 @@ local function print_wifi_page_body()
     nil,
     nil,
     {
-      required = true
+      required = true,
+      minlength = 8,
+      maxlength = 63,
     }
   )
 

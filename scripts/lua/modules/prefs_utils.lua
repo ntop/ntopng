@@ -241,6 +241,22 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     end
   end
 
+  if extra.minlength ~= nil then
+    if extra.tformat ~= nil then
+      attributes["data-minlength"] = extra.minlength
+    else
+      attributes["minlength"] = extra.minlength
+    end
+  end
+
+  if extra.maxlength ~= nil then
+    if extra.tformat ~= nil then
+      attributes["data-maxlength"] = extra.maxlength
+    else
+      attributes["maxlength"] = extra.maxlength
+    end
+  end
+
   if extra.step ~= nil then
     if extra.tformat ~= nil then
       attributes["data-step"] = extra.step
