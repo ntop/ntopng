@@ -52,6 +52,7 @@ cp $HOME/ntopng/ntopng $RPM_BUILD_ROOT/usr/bin
 strip $RPM_BUILD_ROOT/usr/bin/ntopng
 cp $HOME/ntopng/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
 cp -Lr $HOME/ntopng/httpdocs $HOME/ntopng/scripts $RPM_BUILD_ROOT/usr/share/ntopng  # L to dereference symlinks
+cp $HOME/ntopng/packages/wizard/ntopng-config $RPM_BUILD_ROOT/usr/bin
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-config $RPM_BUILD_ROOT/usr/bin
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-updates $RPM_BUILD_ROOT/usr/bin
 %if 0%{?centos_ver} != 6
@@ -100,6 +101,7 @@ rm -fr $RPM_BUILD_ROOT
 %files
 /usr/bin/ntopng
 /usr/bin/ntopctl
+/usr/bin/ntopng-config
 /usr/bin/ntopng-utils-manage-config
 /usr/bin/ntopng-utils-manage-updates
 /usr/share/man/man8/ntopng.8.gz
@@ -175,6 +177,10 @@ esac
 echo 'Setting up redis auto startup'
 /sbin/chkconfig redis on
 %endif
+
+/bin/chown ntopng:ntopng /usr/bin/ntopng-config
+/bin/chmod gou+s /usr/bin/ntopng-config
+/bin/chown -R ntopng:ntopng /etc/ntopng
 
 if [ ! -f /.dockerenv ]; then
 %if 0%{?centos_ver} != 6
