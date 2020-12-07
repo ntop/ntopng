@@ -708,7 +708,7 @@ local lang = {
     ["ssid"] = "SSID",
     ["ssid_descr"] = "Wi-Fi name (Service Set IDentifier).",
     ["wpa_passphrase"] = "Passphrase",
-    ["wpa_passphrase_descr"] = "WPA passphrase (min 8 characters and less than 64).",
+    ["wpa_passphrase_descr"] = "WPA2 passphrase (min 8 characters and less than 64).",
   },
   ["arp_page"] = {
     ["arp_type"] = "ARP Type",
@@ -3168,7 +3168,7 @@ local lang = {
     ["higher_priority"] = "Higher Priority",
     ["hostname"] = "Hostname",
     ["hostname_lease_exists"] = "A static lease with hostname \"%{hostname}\" already exists.",
-    ["interfaces_configuration"] = "Interfaces Configuration",
+    ["interfaces_configuration"] = "Interfaces",
     ["internal_ip"] = "Internal IP (LAN)",
     ["internal_port"] = "Internal Port (LAN)",
     ["internal_port_number"] = "Internal port number",
