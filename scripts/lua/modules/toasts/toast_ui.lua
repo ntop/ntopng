@@ -67,7 +67,15 @@ function ToastUI:render()
    local context = { toast = self }
 
    -- Generate the template from the toast.template file
-   return template.gen('pages/components/toast.template', context)
+   local res = template.gen('pages/components/toast.template', context)
+
+   -- If the toast action also involves the opening of a dialog,
+   -- let's print the modal code
+   if self.action and self.action.dialog then
+      res = res..template.gen('modal_confirm_dialog.html', {dialog = self.action.dialog})
+   end
+
+   return res
 end
 
 

@@ -27,3 +27,10 @@
         </div>
     </div>
 </div>
+
+{% if toast.action and toast.action.js then %}
+    <script type="text/javascript">
+    	    const toastCSRF = "{{ ntop.getRandomCSRFValue() }}";
+    </script>
+    <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/{{ toast.action.js }}"></script>
+{% end %}

@@ -111,7 +111,7 @@ local function create_tempdir_toast_ui(toast)
     local description = i18n("about.datadir_warning")
     local action = {
         url = "https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/",
-        title = i18n("details.details")
+        title = i18n("details.details"),
     }
 
     return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, action, toast.dismissable)
@@ -140,11 +140,28 @@ end
 
 local function create_too_many_hosts_toast(toast, level)
 
+    local info = ntop.getInfo()
     local title = i18n("too_many_hosts")
     local desc = i18n("about.you_have_too_many_hosts",
                       {product = info["product"]})
+    local action = {
+       url = "#",
+       additional_classes = "toast-config-change",
+       title = i18n("details.details"),
+       js = "toast-config-change.js",
+       dialog = {
+	  id = 'toast-config-change-modal',
+	  action = 'toastConfigChange()',
+	  title = i18n("restart.restart_product", {product=info.product}),
+	  message = i18n("restart.confirm", {product=info.product}),
+	  custom_alert_class = 'alert alert-danger',
+	  confirm = i18n('restart.restart'),
+	  confirm_button = 'btn-danger'
+       }
+    }
 
-    return toast_ui:new(toast.id, title, desc, level, nil, toast.dismissable)
+
+    return toast_ui:new(toast.id, title, desc, level, action, toast.dismissable)
 end
 
 -- ###############################################################
