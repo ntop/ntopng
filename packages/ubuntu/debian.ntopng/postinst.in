@@ -46,6 +46,10 @@ if [ ! -d "$DATA_DIR" ]; then
     /bin/chmod 700 $DATA_DIR
 fi
 
+/bin/chown ntopng:ntopng /usr/bin/ntopng-config
+/bin/chmod gou+s /usr/bin/ntopng-config
+/bin/chown -R ntopng:ntopng /etc/ntopng
+
 LOGROTATE_CONF=/etc/logrotate.d/ntopng
 /bin/chmod 644 $LOGROTATE_CONF
 
