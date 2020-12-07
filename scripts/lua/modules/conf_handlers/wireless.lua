@@ -9,6 +9,7 @@ config.APPLY_ON_REBOOT = true
 config.DEFAULT_BRIDGE_DEVICE_NAME = "br0"
 config.DEFAULT_WIRED_DEVICE_NAME = "eth0"
 config.DEFAULT_WIFI_DEVICE_NAME = "wlan0"
+config.DEFAULT_COUNTRY_CODE = "IT"
 config.DEBUG = false
 
 -- ##############################################
@@ -101,8 +102,9 @@ end
 -- Configure wireless as access point
 -- NOTE: password must be 8..63 chars        
 function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase, network_conf)
+   local country_code = config.DEFAULT_COUNTRY_CODE
    local bridge_dev = config.DEFAULT_BRIDGE_DEVICE_NAME;
-   local wired_dev = config.DEFAULT_WIFI_DEVICE_NAME
+   local wired_dev = config.DEFAULT_WIRED_DEVICE_NAME
    local wifi_dev = config.getWiFiDeviceName()
    if wifi_dev == "" then return false end
 
@@ -112,10 +114,10 @@ function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase, network_conf)
       return false
    end
 
-   nf:write("auto "..wired_dev.."\n")
-   nf:write("iface "..wired_dev.." inet manual\n\n")
+   nf:write("\nauto "..wired_dev.."\n")
+   nf:write("iface "..wired_dev.." inet manual\n")
 
-   nf:write("auto "..wifi_dev.."\n")
+   nf:write("\nauto "..wifi_dev.."\n")
    nf:write("iface "..wifi_dev.." inet manual\n")
    nf:write("	wireless-mode Master\n")
 
@@ -146,10 +148,18 @@ function config.configureWiFiAccessPoint(nf, ssid, wpa_passphrase, network_conf)
       config.execCmd("echo 'interface "..bridge_dev.."\\n' >> /etc/dhcpcd.conf")
    end
 
-   -- Create configuration file
+   -- Create wpa_supplicant configuration file
+   local f = sys_utils.openFile("/etc/wpa_supplicant/wpa_supplicant.conf", "w")
+   if not f then return false end
+   f:write("ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n")
+   f:write("update_config=1\n")
+   f:write("country="..country_code.."\n")
+   f:close()
+
+   -- Create hostapd configuration file
    local f = sys_utils.openFile("/etc/hostapd/hostapd.conf", "w")
    if not f then return false end
-   f:write("country_code=IT\n")
+   f:write("country_code="..country_code.."\n")
    f:write("interface="..wifi_dev.."\n")
    f:write("bridge="..bridge_dev.."\n")
    f:write("ssid="..ssid.."\n")
