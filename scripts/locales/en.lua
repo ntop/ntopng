@@ -368,8 +368,8 @@ local lang = {
     ["uptime"] = "Uptime",
     ["user_scripts"] = "User Scripts",
     ["version"] = "Version",
-    ["you_have_too_many_flows"] = "Too many flows for %{product} leading to packet drops and high CPU load. Please tune -x/-X and restart %{product}",
-    ["you_have_too_many_hosts"] = "Too many hosts for %{product} leading to packet drops and high CPU load. Please tune -x/-X and restart %{product}",
+    ["you_have_too_many_flows"] = "Too many flows for %{product} leading to packet drops and high CPU load. Please tune -x/-X or click the button below to double the actual number. After that restart %{product}",
+    ["you_have_too_many_hosts"] = "Too many hosts for %{product} leading to packet drops and high CPU load. Please tune -x/-X or click the button below to double the actual number. After that restart %{product}",
     ["you_need_to_sync_remote_probe_time"] = "You must synchronize the clock of ntopng and remote probe hosts as the <a href=\"%{url}\">clock drift</A> is too large and this will affect collected flow data.",
   },
   ["active_monitoring_stats"] = {
@@ -492,8 +492,10 @@ local lang = {
     ["test_failed"] = "Test Failed",
     ["threshold_crossed"] = "%{granularity} <b>%{metric}</b> crossed by %{entity}%{host_category} [%{value} %{op} %{threshold}]",
     ["too_many_drops"] = "%{iface} has too many dropped packets [&gt %{max_drops}%%]",
-    ["too_many_flows"] = "%{iface} has too many flows. Please extend the %{option} command line option",
-    ["too_many_hosts"] = "%{iface} has too many hosts. Please extend the %{option} command line option",
+    ["too_many_flows"] = "%{iface} has too many flows. Please extend the %{option} command line option.",
+    ["too_many_flows_title"] = "Double Max Flows",
+    ["too_many_hosts"] = "%{iface} has too many hosts. Please extend the %{option} command line option.",
+    ["too_many_hosts_title"] = "Double Max Hosts",
     ["x_alerts"] = "%{num} alerts",
   },
   ["alerts_dashboard"] = {
@@ -708,7 +710,7 @@ local lang = {
     ["ssid"] = "SSID",
     ["ssid_descr"] = "Wi-Fi name (Service Set IDentifier).",
     ["wpa_passphrase"] = "Passphrase",
-    ["wpa_passphrase_descr"] = "WPA2 passphrase (min 8 characters and less than 64).",
+    ["wpa_passphrase_descr"] = "WPA passphrase (min 8 characters and less than 64).",
   },
   ["arp_page"] = {
     ["arp_type"] = "ARP Type",

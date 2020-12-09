@@ -14,6 +14,7 @@ local toast_ui                  = require("toast_ui")
 local stats_utils               = require("stats_utils")
 local delete_data_utils         = require("delete_data_utils")
 local prefs_factory_reset_utils = require("prefs_factory_reset_utils")
+local configuration_utils       = require "configuration_utils"
 
 local info = ntop.getInfo()
 local prefs = ntop.getPrefs()
@@ -133,7 +134,23 @@ local function create_too_many_flows_toast(toast, level)
     local desc = i18n("about.you_have_too_many_flows",
                       {product = info["product"]})
 
-    return toast_ui:new(toast.id, title, desc, level, nil, toast.dismissable)
+    local action = {
+        url = ntop.getHttpPrefix() .. "/lua/rest/v1/edit/ntopng/incr_hosts.lua",
+        additional_classes = "toast-config-change",
+        title = i18n("alert_messages.too_many_flows_title"),
+        js = "toast-config-change.js",
+        dialog = {
+            id = 'toast-config-change-modal',
+            action = 'toastConfigFlowChanges()',
+            title = i18n("restart.restart_product", {product=info.product}),
+            message = i18n("restart.confirm", {product=info.product}),
+            custom_alert_class = 'alert alert-danger',
+            confirm = i18n('restart.restart'),
+            confirm_button = 'btn-danger'
+        }
+    }
+
+    return toast_ui:new(toast.id, title, desc, level, action, toast.dismissable)
 end
 
 -- ###############################################################
@@ -145,18 +162,18 @@ local function create_too_many_hosts_toast(toast, level)
     local desc = i18n("about.you_have_too_many_hosts",
                       {product = info["product"]})
     local action = {
-       url = "#",
+       url = ntop.getHttpPrefix() .. "/lua/rest/v1/edit/ntopng/incr_hosts.lua",
        additional_classes = "toast-config-change",
-       title = i18n("details.details"),
+       title = i18n("alert_messages.too_many_flows_title"),
        js = "toast-config-change.js",
        dialog = {
-	  id = 'toast-config-change-modal',
-	  action = 'toastConfigChange()',
-	  title = i18n("restart.restart_product", {product=info.product}),
-	  message = i18n("restart.confirm", {product=info.product}),
-	  custom_alert_class = 'alert alert-danger',
-	  confirm = i18n('restart.restart'),
-	  confirm_button = 'btn-danger'
+        id = 'toast-config-change-modal',
+        action = 'toastConfigHostChanges()',
+        title = i18n("restart.restart_product", {product=info.product}),
+        message = i18n("restart.confirm", {product=info.product}),
+        custom_alert_class = 'alert alert-danger',
+        confirm = i18n('restart.restart'),
+        confirm_button = 'btn-danger'
        }
     }
 
@@ -221,6 +238,12 @@ function predicates.restart_required(toast, container)
         })))
     end
     if prefs_factory_reset_utils.is_prefs_factory_reset_requested() then
+        table.insert(container, create_restart_required_toast(toast, i18n("manage_configurations.after_reset_request", {
+            product = ntop.getInfo()["product"]
+        })))
+    end
+    tprint(configuration_utils.restart_required())
+    if configuration_utils.restart_required() then
         table.insert(container, create_restart_required_toast(toast, i18n("manage_configurations.after_reset_request", {
             product = ntop.getInfo()["product"]
         })))

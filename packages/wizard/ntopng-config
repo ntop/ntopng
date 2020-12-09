@@ -65,8 +65,10 @@ function fastChangeOption {
                 exit 0
             fi
         fi
-	
-	    sed -i "/-$1=/c\\-$1=$INPUT" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null
+
+	echo "$(<$NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)" | sed 's/root/0/' - >$NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 
+	# Sed cannot be used due to ownership problems	
+	#    sed -i "/-$1=/c\\-$1=$INPUT" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null
 
         exitstatus=$?
         if [ "$exitstatus" = "0" ]; then
@@ -549,13 +551,13 @@ listbox=black,lightgray
 actlistbox=black,lightgray
 checkbox=black,lightgray
 '
-
+: '
 if [ "$EUID" -ne 0 ]
 then
     echo "This tool requires root privileges. Try again with \"sudo \" please ..."
     exit
 fi
-
+'
 # Check for local templates presence
 if [ -d "./templates" ]
 then
@@ -587,6 +589,12 @@ while [[ "$#" -gt 0 ]]; do
         *) echo "Unknown parameter passed: $1. Check -h for more infos"; exit 1 ;;
     esac
 done
+
+if [ "$EUID" -ne 0 ]
+then
+    echo "This tool requires root privileges. Try again with \"sudo \" please ..."
+    exit
+fi
 
 # Starting the main loop
 manageMenu
