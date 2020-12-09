@@ -18,7 +18,7 @@ local script
 -- #################################################################
 
 local function getSavedDeviceNameKey(mac)
-   return "ntopng.cache.devnames." .. mac
+   return UNEXPECTED_DEV_CONN_PLUGINS_ENABLED_CACHE_KEY .. "." .. mac
 end
 
 -- #################################################################
@@ -113,10 +113,10 @@ script = {
 	input_title       = i18n("unexpected_new_device.title"),
    input_description = i18n("unexpected_new_device.description"),
    
-   -- input_action_i18n = "Action Button",
-   -- input_action_url = "lua/rest/v1/delete/host/pool.lua",
-   -- input_action_confirm = true,
-   -- input_action_i18n_confirm = "Would you like to confirm the action",
+   input_action_i18n = "Reset Learned Devices",
+   input_action_url = "lua/rest/v1/delete/host/new_devices.lua",
+   input_action_confirm = true,
+   input_action_i18n_confirm = "Are you sure to reset the learned devices?",
    },
 }
 
