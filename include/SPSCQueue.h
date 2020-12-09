@@ -48,7 +48,7 @@ template <typename T> class SPSCQueue {
    */
   SPSCQueue(u_int32_t size, const char * const _name) {
     queue_size = Utils::pow2(size);
-    queue.reserve(queue_size);
+    queue.resize(queue_size);
     tail = shadow_tail = queue_size-1;
     head = shadow_head = 0;
     num_failed_enqueues = 0;
