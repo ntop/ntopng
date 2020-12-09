@@ -164,7 +164,7 @@ local function create_too_many_hosts_toast(toast, level)
     local action = {
        url = "#",
        additional_classes = "toast-config-change",
-       title = i18n("alert_messages.too_many_flows_title"),
+       title = i18n("alert_messages.too_many_hosts_title"),
        js = "toast-config-change.js",
        dialog = {
         id = 'toast-config-change-modal',
@@ -242,7 +242,6 @@ function predicates.restart_required(toast, container)
             product = ntop.getInfo()["product"]
         })))
     end
-    tprint(configuration_utils.restart_required())
     if configuration_utils.restart_required() then
         table.insert(container, create_restart_required_toast(toast, i18n("manage_configurations.after_reset_request", {
             product = ntop.getInfo()["product"]
