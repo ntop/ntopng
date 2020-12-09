@@ -135,7 +135,7 @@ local function create_too_many_flows_toast(toast, level)
                       {product = info["product"]})
 
     local action = {
-        url = ntop.getHttpPrefix() .. "/lua/rest/v1/edit/ntopng/incr_hosts.lua",
+        url = "#",
         additional_classes = "toast-config-change",
         title = i18n("alert_messages.too_many_flows_title"),
         js = "toast-config-change.js",
@@ -162,7 +162,7 @@ local function create_too_many_hosts_toast(toast, level)
     local desc = i18n("about.you_have_too_many_hosts",
                       {product = info["product"]})
     local action = {
-       url = ntop.getHttpPrefix() .. "/lua/rest/v1/edit/ntopng/incr_hosts.lua",
+       url = "#",
        additional_classes = "toast-config-change",
        title = i18n("alert_messages.too_many_flows_title"),
        js = "toast-config-change.js",
