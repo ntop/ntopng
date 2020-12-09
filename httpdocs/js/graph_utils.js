@@ -411,7 +411,7 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
   var max_interval = findActualStep(step, params.epoch_begin) * 8;
   var initial_interval = (params.epoch_end - params.epoch_begin);
   var is_max_zoom = (initial_interval <= max_interval);
-  var url = http_prefix + "/lua/rest/get/timeseries/ts.lua";
+  var url = http_prefix + "/lua/rest/v1/get/timeseries/ts.lua";
   var first_load = true;
   var first_time_loaded = true;
   var manual_trigger_extra_series = {}; // keeps track of series manually shown/hidden by the user
@@ -806,7 +806,9 @@ function attachStackedChartCallback(chart, schema_name, chart_id, zoom_reset_id,
 
     // Load data via ajax
     pending_chart_request = $.get(url, req_params, function(data) {
-      if(data && data.error)
+        data = data.rsp; /* Adapts the response to the new REST API v1 */
+
+	if(data && data.error)
         chart.noData(data.error);
 
       if(!data || !data.series || !data.series.length || !checkSeriesConsinstency(schema_name, data.count, data.series)) {

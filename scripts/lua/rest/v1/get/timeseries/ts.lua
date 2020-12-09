@@ -2,6 +2,12 @@
 -- (C) 2013-20 - ntop.org
 --
 
+--
+-- Example of REST call
+-- 
+-- curl -u admin:admin -X POST -d '{"ts_schema":"host:traffic", "ts_query": "ifid:3,host:192.168.1.98", "epoch_begin": "1532180495", "epoch_end": "1548839346"}' -H "Content-Type: application/json" "http://127.0.0.1:3000/lua/rest/get/timeseries/ts.lua"
+--
+
 local dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
@@ -14,33 +20,15 @@ local ts_common = require("ts_common")
 local json = require("dkjson")
 local rest_utils = require("rest_utils")
 
---
--- Read timeseries data
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 3, "ts_schema":"host:traffic", "ts_query": "host:192.168.1.98", "epoch_begin": "1532180495", "epoch_end": "1548839346"}' http://localhost:3000/lua/rest/v1/get/timeseries/ts.lua
---
--- NOTE: in case of invalid login, no error is returned but redirected to login
---
-
-local rc = rest_utils.consts.success.ok
-local res = {}
-
-local ifid = _GET["ifid"]
-local query            = _GET["ts_query"]
-local ts_schema        = _GET["ts_schema"]
-local tstart           = _GET["epoch_begin"]
-local tend             = _GET["epoch_end"]
+local ts_schema = _GET["ts_schema"]
+local query     = _GET["ts_query"]
+local tstart    = _GET["epoch_begin"]
+local tend      = _GET["epoch_end"]
 local compare_backward = _GET["ts_compare"]
-local extended_times   = _GET["extended"]
-local ts_aggregation   = _GET["ts_aggregation"]
+local tags      = _GET["ts_query"]
+local extended_times  = _GET["extended"]
+local ts_aggregation  = _GET["ts_aggregation"]
 local no_fill = tonumber(_GET["no_fill"])
-
-if isEmptyString(ifid) then
-  rc = rest_utils.consts.err.invalid_interface
-  rest_utils.answer(rc)
-  return
-end
-
-interface.select(ifid)
 
 -- Epochs in _GET are assumed to be adjusted to UTC. This is always the case when the browser submits epoch using a
 -- datetimepicker (e.g., from any chart page).
@@ -63,9 +51,7 @@ interface.select(ifid)
 
 tstart = tonumber(tstart) or (os.time() - 3600)
 tend = tonumber(tend) or os.time()
-tags = tsQueryToTags(query)
-
-tags.ifid = ifid
+tags = tsQueryToTags(tags)
 
 if _GET["tskey"] then
   -- this can contain a MAC address for local broadcast domain hosts
@@ -85,6 +71,26 @@ if(no_fill == 1) then
   options.fill_value = 0/0 -- NaN
 end
 
+-- Not necessary anymore as the influxdb driver:query method uses the
+-- series last timestamp to avoid going in the future
+--[[
+-- Check end time bound and realign if necessary
+local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
+
+if (tend > latest_tstamp) and ((tend - latest_tstamp) <= ts_utils.MAX_EXPORT_TIME) then
+  local delta = tend - latest_tstamp
+  local alignment = (tend - tstart) / options.max_num_points
+
+  delta = delta + (alignment - delta % alignment)
+  tend = math.floor(tend - delta)
+  tstart = math.floor(tstart - delta)
+end
+]]
+
+if tags.ifid then
+  interface.select(tags.ifid)
+end
+
 if((ts_schema == "top:flow_user_script:duration")
     or (ts_schema == "top:elem_user_script:duration")
     or (ts_schema == "custom:flow_user_script:total_stats")
@@ -92,8 +98,6 @@ if((ts_schema == "top:flow_user_script:duration")
   -- NOTE: Temporary fix for top user scripts page
   tags.user_script = nil
 end
-
-sendHTTPHeader('application/json')
 
 local function performQuery(tstart, tend, keep_total, additional_options)
   local res
@@ -134,13 +138,14 @@ else
 end
 
 if res == nil then
+  res = {}
+
   if(ts_utils.getLastError() ~= nil) then
     res["tsLastError"] = ts_utils.getLastError()
     res["error"] = ts_utils.getLastErrorMessage()
   end
 
-  rc = rest_utils.consts.err.internal_error
-  rest_utils.answer(rc, res)
+  rest_utils.answer(rest_utils.consts.err.internal_error, res)
   return
 end
 
@@ -207,4 +212,4 @@ if extended_times then
   end
 end
 
-rest_utils.answer(rc, res)
+rest_utils.answer(rest_utils.consts.success.ok, res)
