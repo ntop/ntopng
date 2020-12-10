@@ -696,7 +696,8 @@ typedef enum {
   os_android,
   os_laserjet,
   os_apple_airport,
-  os_max_os /* Keep as last element */
+  os_max_os, /* Keep as last element */
+  os_any
 } OperatingSystem;
 
 /* Action to be performed after ntopng shutdown*/

@@ -1488,7 +1488,7 @@ static int ntop_get_batched_interface_hosts(lua_State* vm, LocationPolicy locati
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true, filtered_hosts = false, blacklisted_hosts = false, hide_top_hidden = false;
   char *sortColumn = (char*)"column_ip", *country = NULL, *mac_filter = NULL;
-  OperatingSystem os_filter = ((OperatingSystem)-1);
+  OperatingSystem os_filter = os_any;
   bool a2zSortOrder = true;
   u_int16_t vlan_filter = (u_int16_t)-1;
   u_int32_t asn_filter = (u_int32_t)-1;
@@ -1540,7 +1540,7 @@ static int ntop_get_interface_hosts(lua_State* vm, LocationPolicy location) {
   bool show_details = true, filtered_hosts = false, blacklisted_hosts = false;
   char *sortColumn = (char*)"column_ip", *country = NULL, *mac_filter = NULL;
   bool a2zSortOrder = true;
-  OperatingSystem os_filter = ((OperatingSystem)-1);
+  OperatingSystem os_filter = os_any;
   u_int16_t vlan_filter = (u_int16_t)-1;
   u_int32_t asn_filter = (u_int32_t)-1;
   int16_t network_filter = -2;
@@ -1624,7 +1624,7 @@ static int ntop_get_grouped_interface_hosts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   bool show_details = true;
   char *country = NULL;
-  OperatingSystem os_filter = ((OperatingSystem)-1);
+  OperatingSystem os_filter = os_any;
   char *groupBy = (char*)"column_ip";
   bool filtered_hosts = false;
   u_int16_t vlan_filter = (u_int16_t)-1;
