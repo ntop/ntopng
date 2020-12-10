@@ -142,10 +142,10 @@ local function create_too_many_flows_toast(toast, level)
         dialog = {
             id = 'toast-config-change-modal',
             action = 'toastConfigFlowChanges()',
-            title = i18n("restart.restart_product", {product=info.product}),
-            message = i18n("restart.confirm", {product=info.product}),
+            title = i18n("too_many_flows"),
+            message = i18n("too_many_flows_details"),
             custom_alert_class = 'alert alert-danger',
-            confirm = i18n('restart.restart'),
+            confirm = i18n('too_many_flows'),
             confirm_button = 'btn-danger'
         }
     }
@@ -169,10 +169,10 @@ local function create_too_many_hosts_toast(toast, level)
        dialog = {
         id = 'toast-config-change-modal',
         action = 'toastConfigHostChanges()',
-        title = i18n("restart.restart_product", {product=info.product}),
-        message = i18n("restart.confirm", {product=info.product}),
+        title = i18n("too_many_hosts"),
+        message = i18n("too_many_hosts_details"),
         custom_alert_class = 'alert alert-danger',
-        confirm = i18n('restart.restart'),
+        confirm = i18n('too_many_hosts'),
         confirm_button = 'btn-danger'
        }
     }

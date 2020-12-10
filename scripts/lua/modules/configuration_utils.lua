@@ -9,7 +9,7 @@ local rest_utils = require("rest_utils")
 local conf_utils = {}
 
 local redis_key = "increased_max_num_host_or_flows"
-local dir = "/bin/ntopng/ntopng-config"
+local dir = "/usr/bin/ntopng-config"
 
 -- ################################################################
 

@@ -66,9 +66,8 @@ function fastChangeOption {
             fi
         fi
 
-	echo "$(<$NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)" | sed 's/root/0/' - >$NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 
-	# Sed cannot be used due to ownership problems	
-	#    sed -i "/-$1=/c\\-$1=$INPUT" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME 2>/dev/null
+	    sed "/-$1=/c\\-$1=$INPUT" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME > /tmp/$NTOPNG_STD_NAME
+        mv -f /tmp/$NTOPNG_STD_NAME $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
 
         exitstatus=$?
         if [ "$exitstatus" = "0" ]; then
