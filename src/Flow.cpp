@@ -1176,7 +1176,7 @@ char* Flow::print(char *buf, u_int buf_len) const {
 
 /* *************************************** */
 
-bool Flow::dumpFlow(time_t t, bool last_dump_before_free) {
+bool Flow::dump(time_t t, bool last_dump_before_free) {
   bool rc = false;
 
   if(!ntop->getPrefs()->is_tiny_flows_export_enabled() && isTiny()) {
@@ -1766,7 +1766,7 @@ void Flow::dumpCheck(time_t t, bool last_dump_before_free) {
          || !ntop->getPrefs()->do_dump_flows_direct() /* Direct dump not enabled */ )
 #endif
     ) {
-    dumpFlow(t, last_dump_before_free);
+    dump(t, last_dump_before_free);
   }
 }
 

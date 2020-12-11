@@ -448,7 +448,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 #endif
      )) {
     /* Dump flow */
-    flow->dumpFlow(zflow->last_switched, true /* last dump before free */);
+    flow->dump(zflow->last_switched, true /* last dump before free */);
   }
 #endif
 

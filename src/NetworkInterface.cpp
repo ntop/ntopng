@@ -684,7 +684,6 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 #endif
     } else {
       incNumQueueDroppedFlows(1);
-      // delete f; /* Delete is up to the caller */
     }
   } else {
     /* Partial dump if active flows */
