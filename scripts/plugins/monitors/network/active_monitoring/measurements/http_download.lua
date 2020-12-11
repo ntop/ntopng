@@ -27,7 +27,7 @@ local function check(measurement, hosts, granularity)
   result[measurement] = {}
 
   for key, host in pairs(hosts) do
-    local domain_name = "https://" .. host.host
+    local domain_name = host.host
 
     if do_trace then
       print("[ActiveMonitoring] GET "..domain_name.."\n")
@@ -122,7 +122,7 @@ return {
     measurements = {
        {
       -- The unique key for the measurement
-      key = "bandwidth",
+      key = "Throughput",
       -- The localization string for this measurement
       i18n_label = "active_monitoring_stats.http_download",
       -- The function called periodically to send the host probes
@@ -155,12 +155,12 @@ return {
       -- A list of additional notes (localization strings) to show into the timeseries charts
       i18n_chart_notes = {},
       -- If set, the user cannot change the host
-      force_host = "www.keycdn.com",
+      force_host = nil,
       -- An alternative localization string for the unrachable alert message
       unreachable_alert_i18n = "alert_messages.http_download_failed",
        },
     },
  
     -- A setup function to possibly disable the plugin
-    setup = check_binary,
+    setup = nil,
  }
