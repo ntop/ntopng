@@ -301,8 +301,13 @@ function am_utils.formatAmHost(host, measurement, isHtml)
     --return(host)
   --end
 
+  local res = host
+
+  if not host:starts(measurement) then
+     res = string.format("%s://%s", measurement, host)
+  end
+
   -- Make a smarter way to determine infrastructure labels
-  local res = string.format("%s://%s", measurement, host)
   if is_infrastructure(host) then
      -- Make a nicer label for infrastructure hosts
      if isHtml then

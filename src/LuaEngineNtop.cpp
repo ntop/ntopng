@@ -1586,7 +1586,7 @@ static int ntop_http_get_startup_epoch(lua_State* vm) {
 
 static int ntop_http_purify_param(lua_State* vm) {
   char *str, *buf;
-  bool strict = false, allowURL = false, allowDots = false;
+  bool strict = false, allowURL = true, allowDots = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 

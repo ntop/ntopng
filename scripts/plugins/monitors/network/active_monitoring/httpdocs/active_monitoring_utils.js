@@ -9,7 +9,7 @@ $(document).ready(function() {
             default:
             case "http":
             case "https":
-                return `${NtopUtils.REGEXES["ipv4WithPort"]}|${NtopUtils.REGEXES["domainNameWithPort"]}`;
+                return `${NtopUtils.REGEXES["url"]}`;
             case "icmp":
             case "cicmp":
                 return `${NtopUtils.REGEXES["ipv4"]}|${NtopUtils.REGEXES["domainName"]}`
@@ -522,6 +522,7 @@ $(document).ready(function() {
     $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
         const amData = getAmData($amTable, $(this));
         $editModalHandler.invokeModalInit(amData);
+	$(`#input-edit-host`).attr('pattern', getMeasurementRegex(amData.measurement));
     });
 
     $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
@@ -533,6 +534,7 @@ $(document).ready(function() {
         const selectedMeasurement = $(this).val();
         // change the pattern depending on the selected measurement
         $(`#input-edit-host`).attr('pattern', getMeasurementRegex(selectedMeasurement));
+
         // trigger form validation
         if ($(`#input-edit-host`).val().length > 0) $(`#am-edit-form`)[0].reportValidity();
 

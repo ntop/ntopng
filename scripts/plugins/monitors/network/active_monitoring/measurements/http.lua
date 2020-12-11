@@ -28,19 +28,18 @@ local function check(measurement, hosts, granularity)
 
   for key, host in pairs(hosts) do
     local domain_name = host.host
-    local full_url = string.format("%s://%s", host.measurement, domain_name)
 
     if do_trace then
-      print("[ActiveMonitoring] GET "..full_url.."\n")
+      print("[ActiveMonitoring] GET "..domain_name.."\n")
     end
 
     -- HTTP results are retrieved immediately
     local rv
     if host.token then
-       rv = ntop.httpGetAuthToken(full_url, host.token, 10 --[[ timeout ]], host.save_result == true --[[ whether to return the content --]],
+       rv = ntop.httpGetAuthToken(domain_name, host.token, 10 --[[ timeout ]], host.save_result == true --[[ whether to return the content --]],
 				  nil, true --[[ follow redirects ]])
     else
-       rv = ntop.httpGet(full_url, nil, nil, 10 --[[ timeout ]], host.save_result == true --[[ whether to return the content --]],
+       rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], host.save_result == true --[[ whether to return the content --]],
 			 nil, false --[[ don't follow redirects ]])
     end
 
@@ -93,13 +92,6 @@ end
 
 -- #################################################################
 
--- @brief HTTP check
-local function check_https(hosts, granularity)
-   check("https", hosts, granularity)
-end
-
--- #################################################################
-
 -- The function responsible for collecting the results.
 -- It must return a table containing a list of hosts along with their retrieved
 -- measurement. The keys of the table are the host key. The values have the following format:
@@ -118,14 +110,6 @@ local function collect_http(granularity)
    -- TODO: curl_multi_perform could be used to perform the requests
    -- asynchronously, see https://curl.haxx.se/libcurl/c/curl_multi_perform.html
    return collect("http", granularity)
-end
-
--- #################################################################
-
-local function collect_https(granularity)
-   -- TODO: curl_multi_perform could be used to perform the requests
-   -- asynchronously, see https://curl.haxx.se/libcurl/c/curl_multi_perform.html
-   return collect("https", granularity)
 end
 
 -- #################################################################
@@ -149,7 +133,7 @@ return {
       -- The unique key for the measurement
       key = "http",
       -- The localization string for this measurement
-      i18n_label = "http",
+      i18n_label = "http_s",
       -- The function called periodically to send the host probes
       check = check_http,
       -- The function responsible for collecting the results
@@ -188,32 +172,6 @@ return {
       -- If set, the user cannot change the host
       force_host = nil,
       -- An alternative localization string for the unrachable alert message
-      unreachable_alert_i18n = nil,
-    }, {
-      key = "https",
-      i18n_label = "https",
-      check = check_https,
-      collect_results = collect_https,
-      granularities = {"min", "5mins", "hour"},
-      i18n_unit = "active_monitoring_stats.msec",
-      i18n_jitter_unit = nil,
-      i18n_am_ts_label = "graphs.num_ms_rtt",
-      i18n_am_ts_metric = "flow_details.round_trip_time",
-      operator = "gt",
-      default_threshold = nil,
-      max_threshold = 10000,
-      additional_timeseries = {{
-	    schema="am_host:https_stats",
-	    label=i18n("graphs.http_stats"),
-	    metrics_labels = { i18n("graphs.name_lookup"), i18n("graphs.app_connect"), i18n("other") },
-      }},
-      chart_scaling_value = 1,
-      value_js_formatter = "NtopUtils.fmillis",
-      i18n_chart_notes = {
-	      "active_monitoring_stats.app_connect_descr",
-	      "active_monitoring_stats.other_https_descr"
-      },
-      force_host = nil,
       unreachable_alert_i18n = nil,
     },
   },

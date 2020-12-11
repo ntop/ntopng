@@ -28,27 +28,36 @@ local function reportError(msg)
 end
 
 local function isValidHostMeasurementCombination(host, measurement)
+   -- Strips the prefix (either http:// or https://) and a possible port
+   host = host:match('^%w+://([^/:]+)') or host -- https://localhost:3000 becomes localhost
+
    local host_v4 = isIPv4(host)
    local host_v6 = isIPv6(host)
-   local expected_ipv = ternary((measurement == "icmp6"), 6, 4)
+   local expected_ipv6 = (measurement == "icmp6" or measurement == "cicmp6")
+   local expected_ipv4 = (measurement == "icmp" or measurement == "cicmp")
 
-   if(((expected_ipv == 6) and host_v6) or
-	 ((expected_ipv == 4) and host_v4)) then
+   if(((expected_ipv6) and host_v6) or ((expected_ipv4) and host_v4)) then
       -- IP address version matches
       return(true)
-   elseif(((expected_ipv == 6) and host_v4) or
-	  ((expected_ipv == 4) and host_v6)) then
+   elseif(((expected_ipv6) and host_v4) or ((expected_ipv4) and host_v6)) then
+      -- IP address version mismatch
       reportError(i18n("active_monitoring_stats.invalid_combination"))
       return(false)
-   end
-
-   -- split the hostname from the full host
-   local splittedHost = split(host, ":")
-
-   -- Host is a domain, try to resolve it to validate it
-   if(ntop.resolveHost(splittedHost[1], ternary((expected_ipv == 4), true, false)) ~= nil) then
-      -- Valid Host
+   elseif expected_ipv6 and not host_v6 and ntop.resolveHost(host, false) then
+      -- Symbolic IPv6
       return(true)
+   elseif expected_ipv4 and not host_v4 and ntop.resolveHost(host, true) then
+      -- Symbolic IPv4
+      return(true)
+   elseif not host_v4 and not host_v6 and not expected_ipv4 and not expected_ipv6 then
+      -- Host is a domain, try to resolve it as ipv4, then ipv6
+      if ntop.resolveHost(host, true) then
+	 -- Valid Host
+	 return(true)
+      elseif ntop.resolveHost(host, false) then
+	 -- Valid Host
+	 return(true)
+      end
    end
 
    reportError(i18n("active_monitoring_stats.invalid_host"))
