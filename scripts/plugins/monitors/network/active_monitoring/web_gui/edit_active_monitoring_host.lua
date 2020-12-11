@@ -43,6 +43,10 @@ local function isValidHostMeasurementCombination(host, measurement)
       -- IP address version mismatch
       reportError(i18n("active_monitoring_stats.invalid_combination"))
       return(false)
+   elseif not expected_ipv6 and not expected_ipv4 and (host_v4 or host_v6) then
+      -- A numeric IP address requested for a measure, e.g.,  HTTP, that
+      -- does not specify a version
+      return(true)
    elseif expected_ipv6 and not host_v6 and ntop.resolveHost(host, false) then
       -- Symbolic IPv6
       return(true)
