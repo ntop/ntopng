@@ -88,6 +88,7 @@ local alert_keys = {
       alert_unexpected_new_device          = {NO_PEN, 73}, -- scripts/plugins/alerts/security/unexpected_new_device
       alert_shell_script_executed          = {NO_PEN, 74}, -- scripts/plugins/endpoints/shell_alert_endpoint
       alert_periodicity_update             = {NO_PEN, 75}, -- pro/scripts/enterprise_l_plugins/alerts/network/periodicity_update
+      alert_dns_positive_error_ratio       = {NO_PEN, 76}, -- pro/scripts/enterprise_l_plugins/alerts/network/dns_positive_error_ratio
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
       -- WARNING: make sure integers do NOT OVERLAP with
