@@ -105,8 +105,8 @@ void Logstash::startLoop() {
 /* **************************************** */
 
 void Logstash::sendLSdata() {
-  const u_int watermark = 8, min_buf_size = 512;
-  char postbuf[16384];
+  const u_int watermark = 8, min_buf_size = 1024;
+  char *postbuf;
   char *proto = NULL;
   struct hostent *server = NULL;
   char *portstr = NULL;
@@ -118,7 +118,7 @@ void Logstash::sendLSdata() {
   int skipDequeue = 0;
   int sent = 0;
   size_t sentLength = 0;
-  u_int len = 0, num_flows = 0;
+  u_int len = 0, num_flows = 0, postbuf_len = 32768;
 
   server = gethostbyname(ntop->getPrefs()->get_ls_host());
   portstr = ntop->getPrefs()->get_ls_port();
@@ -128,6 +128,9 @@ void Logstash::sendLSdata() {
     return;
   }
 
+  if((postbuf = (char*)malloc(postbuf_len)) == NULL)
+    return;
+  
   proto = ntop->getPrefs()->get_ls_proto();
   if(proto && !strncmp(proto, "udp", 3)) {
     sendTCP = 0;
@@ -188,19 +191,29 @@ void Logstash::sendLSdata() {
 	// Next loop should start dequeuing again if all goes well
 	skipDequeue = 2;
       } else {
+	int rc;
+	
         listMutex.lock(__FILE__, __LINE__);
 	// clear buffer to get rid of garbage bytes
-        memset(&postbuf[0],0,sizeof(postbuf));
+        memset(&postbuf[0],0,postbuf_len);
         postbuf[0] = '\0';
-
-        for(u_int i=0; (i<watermark) && ((sizeof(postbuf)-len) > min_buf_size); i++) {
+	
+        for(u_int i=0; (i<watermark) && ((postbuf_len-len) > min_buf_size); i++) {
           struct string_list *prev;
+	  
   	  if(!(tail && tail->str)) {
             // No events in queue
 	    break;
 	  }
           prev = tail->prev;
-	  len += snprintf(&postbuf[len], sizeof(postbuf)-len, "%s\n", tail->str), num_flows++;
+	  
+	  rc = snprintf(&postbuf[len], postbuf_len-len, "%s\n", tail->str);
+
+	  if(rc > 0)
+	    num_flows++, len += rc;
+	  else
+	    break; /* Handle it at next iteration as there is no room left */
+	  
           free(tail->str);
           free(tail);
           tail = prev;
@@ -243,7 +256,7 @@ void Logstash::sendLSdata() {
       }
       else{
         // UDP
-        retval = sendto(sockfd, postbuf, sizeof(postbuf), 0,
+        retval = sendto(sockfd, postbuf, postbuf_len, 0,
 			(struct sockaddr *)&serv_addr, sizeof(serv_addr));
 	if(retval <= 0) {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[LS] UDP send failed [%d]", retval);
@@ -268,6 +281,8 @@ void Logstash::sendLSdata() {
   } /* while */
 
   closesocket(sockfd);
+
+  free(postbuf);
 }
 
 #endif
