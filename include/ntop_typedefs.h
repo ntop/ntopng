@@ -738,6 +738,9 @@ typedef struct {
 typedef struct {
   lua_State* vm;
   time_t last_conn_check;
+  struct {
+    u_int32_t download, upload;
+  } bytes;
 } ProgressState;
 
 struct pcap_disk_timeval {

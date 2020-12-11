@@ -1929,6 +1929,8 @@ bool Utils::progressCanContinue(ProgressState *progressState) {
 static int progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
   ProgressState *progressState = (ProgressState*) clientp;
 
+  progressState->bytes.download = (u_int32_t)dlnow,  progressState->bytes.upload = (u_int32_t)ulnow;
+  
   return Utils::progressCanContinue(progressState) ? 0 /* continue */ : 1 /* stop transfer */;
 }
 
@@ -2127,6 +2129,11 @@ bool Utils::httpGetPost(lua_State* vm, char *url,
       if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
 	lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
 
+      if(!form_data) {
+	lua_push_uint64_table_entry(vm, "BYTES_DOWNLOAD", progressState.bytes.download);
+	lua_push_uint64_table_entry(vm, "BYTES_UPLOAD", progressState.bytes.upload);
+      }
+      
       if(!ret)
 	lua_push_bool_table_entry(vm, "IS_PARTIAL", true);
     }
