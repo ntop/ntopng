@@ -5310,7 +5310,7 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t 
   for(i=0; i<(int)num_supported_protocols; i++) {
     char buf[8];
 
-    if((((u_int8_t)filter == (u_int8_t)-1)
+    if(((filter == NDPI_PROTOCOL_ANY_CATEGORY)
 	|| proto_defaults[i].protoCategory == filter) &&
 	(!skip_critical || !Utils::isCriticalNetworkProtocol(i))) {
       snprintf(buf, sizeof(buf), "%d", i);

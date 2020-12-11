@@ -2995,7 +2995,7 @@ static int ntop_get_interface_endpoint(lua_State* vm) {
 
 static int ntop_get_ndpi_protocols(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  ndpi_protocol_category_t category_filter = (ndpi_protocol_category_t)((u_int8_t)-1);
+  ndpi_protocol_category_t category_filter = NDPI_PROTOCOL_ANY_CATEGORY;
   bool skip_critical = false;
 
   if(ntop_interface == NULL)
