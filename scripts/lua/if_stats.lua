@@ -726,8 +726,8 @@ if((page == "overview") or (page == nil)) then
       if prefs.is_dump_flows_to_es_enabled == true then
 	 dump_to = "ElasticSearch"
       end
-      if prefs.is_dump_flows_to_ls_enabled == true then
-	 dump_to = "Logstash"
+      if prefs.is_dump_flows_to_syslog_enabled == true then
+	 dump_to = "Syslog"
       end
       if prefs.is_nindex_enabled == true then
 	 dump_to = "nIndex"

@@ -65,7 +65,7 @@ class Ntop {
   struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
-  Logstash *logstash; /**< Pointer of Logstash. */
+  SyslogDump *syslog; /**< Pointer of Logstash. */
   ExportInterface *export_interface;
 #endif
   TimelineExtract *extract;
@@ -436,7 +436,6 @@ class Ntop {
   void createExportInterface();
   void resetNetworkInterfaces();
   void initElasticSearch();
-  void initLogstash(); 
 
   inline u_int32_t getStarttime()        { return((u_int32_t)start_time); }
   inline char*     getStarttimeString()  { return(epoch_buf);             }

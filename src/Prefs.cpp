@@ -98,7 +98,7 @@ Prefs::Prefs(Ntop *_ntop) {
   pid_path = strdup(DEFAULT_PID_PATH);
   packet_filter = NULL;
   num_interfaces = 0, enable_auto_logout = true, enable_auto_logout_at_runtime = true;
-  dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_ls = dump_flows_on_nindex = false;
+  dump_flows_on_es = dump_flows_on_mysql = dump_flows_on_syslog = dump_flows_on_nindex = false;
   dump_json_flows_on_disk = load_json_flows_from_disk_to_nindex = dump_ext_json = false;
   routing_mode_enabled = false;
   global_dns_forging_enabled = false;
@@ -343,6 +343,7 @@ void usage() {
 #else
 	 "                                    |   nindex\n"
 #endif
+	 "                                    |\n"
 #endif
 	 "                                    | es            Dump in ElasticSearch database\n"
 	 "                                    |   Format:\n"
@@ -355,11 +356,7 @@ void usage() {
 	 "                                    |   ElasticSearch version 6. <mapping type> values whill therefore be\n"
 	 "                                    |   ignored when using versions greater than or equal to 6.\n"
 	 "                                    |\n"
-	 "                                    | logstash      Dump in LogStash engine\n"
-	 "                                    |   Format:\n"
-	 "                                    |   logstash;<host>;<proto>;<port>\n"
-	 "                                    |   Example:\n"
-	 "                                    |   logstash;localhost;tcp;5510\n"
+	 "                                    | syslog        Dump in syslog\n"
 	 "                                    |\n"
 #ifdef HAVE_MYSQL
 	 "                                    | mysql         Dump in MySQL database\n"
@@ -1317,22 +1314,13 @@ int Prefs::setOption(int optkey, char *optarg) {
 	}
       }  else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
-    } else if(!strncmp(optarg, "logstash", strlen("logstash"))) {
-      /* logstash;<host[@port]; */
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to get host for logstash");
-      optarg = Utils::tokenizer(&optarg[9],';',&ls_host);
-      optarg = Utils::tokenizer(optarg,';',&ls_proto);
-      ls_port = strdup(optarg ? optarg : NULL);
-
-      if(ls_host && ls_proto && ls_port){
-	ntop->getTrace()->traceEvent(TRACE_INFO," Dumping flows to logstash.");
-	dump_flows_on_ls = true;
-      } else {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F logstash;....");
-      }
-    } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Discarding -F %s: value out of range", optarg);
+    }
+#ifndef WIN32
+    else if(!strncmp(optarg, "syslog", strlen("syslog"))) {
+      dump_flows_on_syslog = true;
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "DUmping flows to syslog in JSON format");
+    }
+#endif
 #endif
     break;
 
@@ -1711,7 +1699,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled", dump_flows_on_mysql || read_flows_from_mysql);
   if(mysql_dbname) lua_push_str_table_entry(vm, "mysql_dbname", mysql_dbname);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_es_enabled", dump_flows_on_es);
-  lua_push_bool_table_entry(vm, "is_dump_flows_to_ls_enabled", dump_flows_on_ls);
+  lua_push_bool_table_entry(vm, "is_dump_flows_to_syslog_enabled", dump_flows_on_syslog);
 #if defined(HAVE_NINDEX) && defined(NTOPNG_PRO)
   lua_push_bool_table_entry(vm, "is_nindex_enabled", do_dump_flows_on_nindex());
 #endif

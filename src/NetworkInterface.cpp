@@ -2651,7 +2651,7 @@ void NetworkInterface::dumpFlowLoop() {
     }
   }
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump loop completed for %s", get_name());
 }
 
 /* **************************************************** */
@@ -2695,7 +2695,8 @@ void NetworkInterface::startFlowDumping() {
     /*
       Use labels for JSON fields when exporting to ElasticSearch or LogStash.
      */
-    flows_dump_json_use_labels = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_ls();
+    flows_dump_json_use_labels = ntop->getPrefs()->do_dump_flows_on_es()
+      || ntop->getPrefs()->do_dump_flows_on_syslog();
   }
 
   if(!isViewed()) { /* Do not spawn the dumper thread for viewed interfaces - it's the view interface that has the dumper thread */
@@ -2937,9 +2938,8 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
   struct timeval tv = periodicUpdateInitTime();
 
-  if(db) {
-    db->updateStats(&tv);
-  }
+  if(db)
+    db->updateStats(&tv);  
 
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
@@ -7020,8 +7020,8 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 #ifndef HAVE_NEDGE
     else if(ntop->getPrefs()->do_dump_flows_on_es())
       db = new (std::nothrow) ElasticSearch(this);
-    else if(ntop->getPrefs()->do_dump_flows_on_ls())
-      db = new (std::nothrow) Logstash(this);
+    else if(ntop->getPrefs()->do_dump_flows_on_syslog())
+      db = new (std::nothrow) SyslogDump(this);
 #endif
   }
 

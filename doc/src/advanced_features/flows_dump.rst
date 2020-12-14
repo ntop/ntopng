@@ -3,7 +3,7 @@
 Flows Dump
 ==========
 
-Ntopng supports flows dump towards multiple downstream databases, namely MySQL, Elasticsearch, Logstash and nIndex. Flows dump is enabled using option :code:`-F`.
+Ntopng supports flows dump towards multiple downstream databases, namely MySQL, Elasticsearch, Syslog and nIndex. Flows dump is enabled using option :code:`-F`.
 
 When flows dump is enabled, a new `Flow Dump Settings` tab appears in the preferences.
 
@@ -182,31 +182,8 @@ Data Rotation:
 The official Curator tool from Elastic can be used to manage and rotate Indexes created by ntopng
 according to the user preferences and requirements.
 
-Logstash
---------
+Syslog
+------
 
-Logstash is an open source, server-side data processing pipeline that ingests data from a multitude of
-sources simultaneously, transforms it, and then sends it to a downstream 'stash' such as ElasticSearch.
-Ntopng can connect to a Logstash instance and send monitored flows to that instance.
-
-To dump expired flows to Logstash ntopng requires the -F modifier followed by a string in the following
-format:
-
-.. code:: bash
-
-  logstash;<host>;<proto>;<port>
-
-The string has 4 semi-colon separated fields
-- `logstash` instructs ntopng to dump flows to Logstash
-- `<host>` contains the name or IP address of the host that is running Logstash
-- `<proto>` specifies the protocol (e.g., tcp) to be used for the flow export
-- `<port>` indicates the port on which the Logstash process is listening
-
-Example:
-
-.. code:: bash
-
-  logstash;localhost;tcp;5510
-
-An handy video-tutorial that shows how to send monitored flows to Logstash is available at
-https://youtu.be/tluAUEeqkCk.
+Syslog (not available on Windows) is a versatile way to dump flows in JSON. This allows external applications
+to consume log entries easily, as well to be used to ingest data into systems such as Logstash.

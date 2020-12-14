@@ -338,7 +338,7 @@ using namespace std;
 #include "Redis.h"
 #ifndef HAVE_NEDGE
 #include "ElasticSearch.h"
-#include "Logstash.h"
+#include "SyslogDump.h"
 #endif
 #ifdef HAVE_NINDEX
 #include "TextDump.h"

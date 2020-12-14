@@ -19,26 +19,18 @@
  *
  */
 
-#ifndef _LOGSTASH_H_
-#define _LOGSTASH_H_
+#ifndef _SYSLOG_H_
+#define _SYSLOG_H_
 
 #include "ntop_includes.h"
 
-class Logstash : public DB {
- private:
-  pthread_t lsThreadLoop;
-  u_int num_queued_elems;
-  struct string_list *head, *tail;
-  Mutex listMutex;
-  bool reportDrops;
-
+class SyslogDump : public DB {
  public:
-  Logstash(NetworkInterface *_iface);
-  virtual ~Logstash();
-  void sendLSdata();
+  SyslogDump(NetworkInterface *_iface);
+  virtual ~SyslogDump();
 
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
-  virtual void startLoop();
+  virtual void startLoop() { ; }
 };
 
 

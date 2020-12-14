@@ -117,11 +117,7 @@ ntopng supports a large number of command line parameters. To see what they are,
                                        |   ElasticSearch version 6. <mapping type> values whill therefore be
                                        |   ignored when using versions greater than or equal to 6.
                                        |
-                                       | logstash      Dump in LogStash engine
-                                       |   Format:
-                                       |   logstash;<host>;<proto>;<port>
-                                       |   Example:
-                                       |   logstash;localhost;tcp;5510
+                                       | syslog      Dump in syslog
                                        |
                                        | mysql         Dump in MySQL database
                                        |   Format:

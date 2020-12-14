@@ -2382,9 +2382,7 @@ json_object* Flow::flow2json() {
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
-  if(ntop->getPrefs()->do_dump_flows_on_es()
-     || ntop->getPrefs()->do_dump_flows_on_ls()
-     ) {
+  if(ntop->getPrefs()->do_dump_flows_on_es()) {
     struct tm* tm_info;
 
     t = last_seen;
@@ -2397,13 +2395,6 @@ json_object* Flow::flow2json() {
       https://msdn.microsoft.com/en-us/library/fe06s4ak.aspx
     */
     strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.0Z", tm_info);
-
-    if(ntop->getPrefs()->do_dump_flows_on_ls()) {
-      /*  Add current timestamp differently for Logstash, in case of delay
-       *  Note: Logstash generates it's own @timestamp field on input
-       */
-      json_object_object_add(my_object,"ntop_timestamp",json_object_new_string(buf));
-    }
 
     if(ntop->getPrefs()->do_dump_flows_on_es()) {
       json_object_object_add(my_object, "@timestamp", json_object_new_string(buf));
