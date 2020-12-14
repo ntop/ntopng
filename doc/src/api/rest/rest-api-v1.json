@@ -1353,6 +1353,44 @@
 				}
 			}
 		},
+		"lua/pro/rest/v1/get/host/top/local/talkers.lua": {
+			"get": {
+				"tags": [
+					"Hosts"
+				],
+				"summary": "Get Top local talkers",
+				"description": "Get the Top 10 local talkers",
+				"operationId": "get_local_talkers",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [],
+				"responses": {
+					"0": {
+						"description": "OK"
+					}
+				}
+			}
+		},
+		"lua/pro/rest/v1/get/host/top/remote/talkers.lua": {
+			"get": {
+                                "tags": [
+                                        "Hosts"
+                                ],
+                                "summary": "Get Top remote talkers",
+                                "description": "Get the Top 10 remote talkers",
+				"operationId": "get_remote_talkers",
+                                "produces": [
+                                        "application/json"
+                                ],
+                                "parameters": [],
+                                "responses": {
+                                        "0": {
+                                                "description": "OK"
+                                        }
+                                }
+                        }
+                },
 		"lua/pro/rest/v1/add/snmp/device.lua": {
 			"get": {
 				"tags": [

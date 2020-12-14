@@ -90,7 +90,7 @@ script = {
    -- Script category
    category = user_scripts.script_categories.network,
 
-   default_enabled = true,
+   default_enabled = false,
 
    -- This script is only for alerts generation
    is_alert = true,
