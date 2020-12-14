@@ -7,6 +7,7 @@ $(document).ready(function() {
     const getMeasurementRegex = (measurement) => {
         switch (measurement) {
             default:
+            case "throughput":
             case "http":
             case "https":
                 return `${NtopUtils.REGEXES["url"]}`;

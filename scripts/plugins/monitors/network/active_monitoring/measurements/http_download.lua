@@ -2,10 +2,6 @@
 -- (C) 2020 - ntop.org
 --
 
---
--- This module implements the HTTP probe.
---
-
 local ts_utils = require("ts_utils_core")
 
 local do_trace = false
@@ -122,7 +118,7 @@ return {
     measurements = {
        {
       -- The unique key for the measurement
-      key = "Throughput",
+      key = "throughput",
       -- The localization string for this measurement
       i18n_label = "active_monitoring_stats.http_download",
       -- The function called periodically to send the host probes
