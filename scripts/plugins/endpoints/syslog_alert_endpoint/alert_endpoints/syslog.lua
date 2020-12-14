@@ -132,8 +132,8 @@ end
 -- Dequeue alerts from a recipient queue for sending notifications
 function syslog.dequeueRecipientAlerts(recipient, budget, high_priority)   
    local settings = readSettings(recipient)
-
    local notifications = {}
+
    for i = 1, budget do
       local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
       if notification then 
