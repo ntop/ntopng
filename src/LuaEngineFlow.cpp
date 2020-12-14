@@ -1004,19 +1004,15 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
 
     /* Only proceed if there is some space in the queues */
     f->flow2alertJson(&flow_json, now);
+
     if(!first_alert)
       ndpi_serialize_string_boolean(&flow_json, "replace_alert", true);
-
-    // alert_entity MUST be in sync with alert_consts.lua flow alert entity
-    ndpi_serialize_string_int32(&flow_json, "alert_entity", alert_entity_flow);
-    ndpi_serialize_string_string(&flow_json, "alert_entity_val", "flow");
-    // flows don't have any pool for now
-    ndpi_serialize_string_int32(&flow_json, "pool_id", NO_HOST_POOL_ID);
 
     flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
     if(flow_str)
       lua_push_str_table_entry(vm, "alert_json", flow_str);
+
     ndpi_term_serializer(&flow_json);
   }
 

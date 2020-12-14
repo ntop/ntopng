@@ -13,6 +13,7 @@ local have_nedge = ntop.isnEdge()
 local nf_config = nil
 local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
+local alert_utils = require "alert_utils"
 local dscp_consts = require "dscp_consts"
 require "flow_utils"
 
@@ -1309,17 +1310,35 @@ else
    local alerted_status = nil
 
    if flow["flow.alerted"] then
-      alerted_status = flow["alerted_status"]
-      local alert_info = flow2statusinfo(flow)
-      local message =  flow_consts.getStatusDescription(alerted_status, alert_info)
-      local icon = flow_consts.getStatusIcon(message, flow["alerted_severity"])
+      local flow_alert = interface.flowAlertByKeyAndHashId(tonumber(flow_key), tonumber(flow_hash_id)) -- new API
 
-      message = message .. string.format(" [%s: %d]", i18n("score"), flow["alerted_status_score"])
-      message = icon .. message .. alert_utils.getConfigsetAlertLink(alert_info)
+      if flow_alert then
+	 flow_alert = json.decode(flow_alert)
+      end
 
-      print("<tr><th width=30%>"..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
-      print(message)
-      print("</td></tr>\n")
+      if flow_consts.getStatusType(flow["alerted_status"]) then -- TODO AM: remove when the new alerts api migration is done
+	 alerted_status = flow["alerted_status"]
+	 local alert_info = flow2statusinfo(flow)
+	 local message =  flow_consts.getStatusDescription(alerted_status, alert_info)
+	 local icon = flow_consts.getStatusIcon(message, flow["alerted_severity"])
+
+	 message = message .. string.format(" [%s: %d]", i18n("score"), flow["alerted_status_score"])
+	 message = icon .. message .. alert_utils.getConfigsetAlertLink(alert_info)
+
+	 print("<tr><th width=30%>"..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
+	 print(message)
+	 print("</td></tr>\n")
+      else -- TODO AM: make default when the alert migration is done
+	 -- This unifies the format of the alert message
+	 local message = alert_utils.formatAlertMessage(ifid, flow_alert, json.decode(flow_alert["alert_json"]))
+
+	 message = message .. string.format(" [%s: %d]", i18n("score"), flow["alerted_status_score"])
+
+	 print("<tr><th width=30%>"..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
+	 print(message)
+	 print("</td></tr>\n")
+
+      end
    end
 
    local additional_status = flow["status_map"]
@@ -1332,7 +1351,7 @@ else
 
    if(additional_status ~= 0) then
       print("<tr><th width=30%>"..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
-      for _, t in pairsByKeys(flow_consts.status_types) do -- TODO: remove when the new alerts api migration is done
+      for _, t in pairsByKeys(flow_consts.status_types) do -- TODO AM: remove when the new alerts api migration is done
 	 local id = t.status_key
 
 	 if ntop.bitmapIsSet(additional_status, id) then
@@ -1342,7 +1361,7 @@ else
 	    print(message.."<br />")
 	 end
       end
-      for _, t in pairsByKeys(alert_consts.alert_types) do -- TODO: make default when the alert migration is done
+      for _, t in pairsByKeys(alert_consts.alert_types) do -- TODO AM: make default when the alert migration is done
 	 if t.meta and t.meta.status_key then
 	    local id = t.meta.status_key
 

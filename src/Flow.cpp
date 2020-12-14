@@ -2667,6 +2667,12 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   ndpi_serialize_string_int32(s, "alert_type", alert_type);
   ndpi_serialize_string_int32(s, "alert_severity", alert_level);
 
+  // alert_entity MUST be in sync with alert_consts.lua flow alert entity
+  ndpi_serialize_string_int32(s, "alert_entity", alert_entity_flow);
+  ndpi_serialize_string_string(s, "alert_entity_val", "flow");
+  // flows don't have any pool for now
+  ndpi_serialize_string_int32(s, "pool_id", NO_HOST_POOL_ID);
+
   ndpi_serialize_string_int32(s, "vlan_id", get_vlan_id());
   ndpi_serialize_string_int32(s, "proto", protocol);
   ndpi_serialize_string_string(s, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
