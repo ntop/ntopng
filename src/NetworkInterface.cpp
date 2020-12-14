@@ -606,6 +606,10 @@ NetworkInterface::~NetworkInterface() {
   if(dhcp_ranges_shadow)    delete[] dhcp_ranges_shadow;
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
   if(ifname)                free(ifname);
+
+  if(hookProtocolDetected) delete hookProtocolDetected;
+  if(hookPeriodicUpdate)   delete hookPeriodicUpdate;
+  if(hookFlowEnd)          delete hookFlowEnd;
 }
 
 /* **************************************************** */
