@@ -1336,6 +1336,7 @@ else
    local alerted_status = nil
 
    if flow["flow.alerted"] then
+      alerted_status = flow["alerted_status"]
       local flow_alert = interface.flowAlertByKeyAndHashId(tonumber(flow_key), tonumber(flow_hash_id)) -- new API
 
       if flow_alert then
@@ -1343,7 +1344,6 @@ else
       end
 
       if flow_consts.getStatusType(flow["alerted_status"]) then -- TODO AM: remove when the new alerts api migration is done
-	 alerted_status = flow["alerted_status"]
 	 local alert_info = flow2statusinfo(flow)
 	 local message =  flow_consts.getStatusDescription(alerted_status, alert_info)
 	 local icon = flow_consts.getStatusIcon(message, flow["alerted_severity"])
@@ -1356,7 +1356,7 @@ else
 	 print("</td></tr>\n")
       else -- TODO AM: make default when the alert migration is done
 	 -- This unifies the format of the alert message
-	 local message = alert_utils.formatAlertMessage(ifid, flow_alert, json.decode(flow_alert["alert_json"]))
+	 local message = alert_utils.formatAlertMessage(ifid, flow_alert, json.decode(flow_alert["alert_json"]), true --[[ skip live data, we're already in the live flow page --]])
 
 	 message = message .. string.format(" [%s: %d]", i18n("score"), flow["alerted_status_score"])
 

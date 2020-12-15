@@ -1808,7 +1808,7 @@ end
 
 -- #################################
 
-function alert_utils.formatAlertMessage(ifid, alert, alert_json)
+function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
   local msg
 
   if(alert_json == nil) then
@@ -1836,7 +1836,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
   end
 
   -- Append flow information to the alert message
-  if(alert.alert_entity == alert_consts.alertEntity("flow") or not alert.alert_entity) and not flow_consts.getStatusType(alert["flow_status"]) then
+  if(alert.alert_entity == alert_consts.alertEntity("flow") or not alert.alert_entity) and not flow_consts.getStatusType(alert["flow_status"]) and not skip_live_data then
      msg = msg.. " "..formatRawFlow(ifid, alert, alert_json, true --[[ skip alert description, description already set --]])
   end
 
