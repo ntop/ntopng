@@ -3,6 +3,7 @@
 --
 
 require "flow_utils"
+local lua_utils = require "lua_utils"
 
 print('<link href="'.. ntop.getHttpPrefix()..'/datatables/datatables.min.css" rel="stylesheet"/>')
 
@@ -36,9 +37,12 @@ for k,v in pairs(p) do
 
       key = v["client"] .. "," .. v["server"]
       if proto_number[key] == nil then
-         proto_number[key] = 1
+         proto_number[key] = { 1, v.l7_proto}
       else
-         proto_number[key] = proto_number[key] + 1
+         proto_number[key][1] = proto_number[key][1] + 1
+         if proto_number[key][1] <= 3 then
+            proto_number[key][2] = proto_number[key][2] .. ", " .. v.l7_proto
+         end
       end
    end
 end
@@ -61,10 +65,15 @@ if num_services > 0 then
       local i = 1
 
    for k,_ in pairs(nodes) do
-      local keys = split(k, ",")
-      local label = k
+      local hinfo = hostkey2hostinfo(k)
+      local label = shortenString(hostinfo2label(hinfo), 16)
 
-      print("{ id: "..i..", label: \""..label.."\" },\n")
+      if isBroadcastMulticast(k) == true then
+         print('{ id: '..i..', value: \"' .. k .. '\", label: \"'..label..'\", color: "#7BE141"},\n')
+      else
+         print("{ id: "..i..", value: \"" .. k .. "\", label: \""..label.."\" },\n")
+      end
+      
       nodes_id[k] = i
       i = i + 1
    end
@@ -79,14 +88,13 @@ if num_services > 0 then
 
    for k,v in pairs(proto_number) do
       local keys = split(k, ",")
-      local value_proto = v
-      local title = 1
+      local title = v[2]
 
-      if num_services > 0 then
-         title = string.format("%.3f %%", (value_proto * 100) / num_services)
+      if v[1] > 3 then
+         title = title .. ", other " .. v[1] - 3 .. "..."
       end
       
-      print("{ from: " ..nodes_id[keys[1]] .. ", to: " .. nodes_id[keys[2]] .. ", value: " .. "1" .. ", title: \"" .. title .. "\", arrows: \"to\" },\n")
+      print("{ from: " .. nodes_id[keys[1]] .. ", to: " .. nodes_id[keys[2]] .. ", value: " .. "1" .. ", title: \"" .. title .. "\", arrows: \"to\" },\n")
    end
 
    print [[
@@ -104,10 +112,9 @@ if num_services > 0 then
 	  nodes: {
             shape: "dot",
             scaling: {
-	      label: {
-		min: 2,
-		max: 80,
-	      },
+         label: false,
+         min: 30,
+         max: 30,
             },
             shadow: true,
 	    // smooth: true,
@@ -119,7 +126,7 @@ if num_services > 0 then
       const target = params.nodes[0];
       const node_selected = nodes.find(n => n.id == target);
       console.log(node_selected);
-      window.location.href = http_prefix + '/lua/host_details.lua?host=' + node_selected.label + '&page=service_map';
+      window.location.href = http_prefix + '/lua/host_details.lua?host=' + node_selected.value + '&page=service_map';
    });
 
 }
