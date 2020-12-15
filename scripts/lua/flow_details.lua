@@ -449,8 +449,24 @@ print [[
         edges = [
 ]]
 
+local uni = {}
+local bi = {}
 
    for k,v in pairs(iec) do
+      local keys = split(k, ",")
+
+      if(iec[keys[2]..","..keys[1]] == nil) then
+	 uni[k] = v
+      else
+	 if(keys[2] < keys[1]) then
+	    bi[keys[2]..","..keys[1]] = v
+	 else
+	    bi[keys[1]..","..keys[2]] = v
+	 end
+      end
+   end
+
+   for k,v in pairs(uni) do
       local keys = split(k, ",")
       local label = string.format("%.3f %%", (v*100)/total)
       
@@ -458,6 +474,16 @@ print [[
       nodes[keys[2]] = true
 
       print("{ from: "..nodes_id[keys[1]]..", to: "..nodes_id[keys[2]]..", value: "..v..", title: \""..label.."\", arrows: \"to\" },\n")
+   end
+
+   for k,v in pairs(bi) do
+      local keys = split(k, ",")
+      local label = string.format("%.3f %%", (v*100)/total)
+      
+      nodes[keys[1]] = true
+      nodes[keys[2]] = true
+
+      print("{ from: "..nodes_id[keys[1]]..", to: "..nodes_id[keys[2]]..", value: "..v..", title: \""..label.."\", arrows: \"to,from\" },\n")
    end
 
 print [[
