@@ -44,8 +44,8 @@ Redis::Redis(const char *_redis_host, const char *_redis_password, u_int16_t _re
 
   redis = NULL, operational = false;
   initializationCompleted = false;
-  localToResolve = new (std::nothrow) FifoStringsQueue(MAX_NUM_QUEUED_ADDRS);
-  remoteToResolve = new (std::nothrow) FifoStringsQueue(MAX_NUM_QUEUED_ADDRS);
+  localToResolve = new (std::nothrow) StringFifoQueue(MAX_NUM_QUEUED_ADDRS);
+  remoteToResolve = new (std::nothrow) StringFifoQueue(MAX_NUM_QUEUED_ADDRS);
   reconnectRedis(giveup_on_failure);
   numCached = 0;
   l = new (std::nothrow) Mutex();
@@ -695,7 +695,7 @@ int Redis::pushHostToResolve(char *hostname, bool dont_check_for_existence, bool
 
   if(!found) {
     /* Add to the list of addresses to resolve */
-    FifoStringsQueue *q = localHost ? localToResolve : remoteToResolve;
+    StringFifoQueue *q = localHost ? localToResolve : remoteToResolve;
 
     q->enqueue(hostname);
   } else

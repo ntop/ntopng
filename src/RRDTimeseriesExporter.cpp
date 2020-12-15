@@ -24,7 +24,7 @@
 /* ******************************************************* */
 
 RRDTimeseriesExporter::RRDTimeseriesExporter(NetworkInterface *_if) : TimeseriesExporter(_if) {
-  ts_queue = new (std::nothrow) FifoStringsQueue(MAX_RRD_QUEUE_LEN);
+  ts_queue = new (std::nothrow) StringFifoQueue(MAX_RRD_QUEUE_LEN);
 }
 
 /* ******************************************************* */

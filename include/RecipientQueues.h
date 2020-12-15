@@ -27,7 +27,7 @@
 
 class RecipientQueues {
  private:
-  FifoStringsQueue *queues_by_prio[RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES];
+  StringFifoQueue *queues_by_prio[RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES];
   /* Counters for the number of drops occurred when enqueuing */
   u_int64_t drops_by_prio[RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES];
   /* Counters for the number of enqueues */

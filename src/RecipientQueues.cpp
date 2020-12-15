@@ -67,7 +67,7 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * c
     Lazily allocate the queue and then enqueue the notification
    */
   if(queues_by_prio[prio]
-     || (queues_by_prio[prio] = new (nothrow) FifoStringsQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))
+     || (queues_by_prio[prio] = new (nothrow) StringFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))
     res = queues_by_prio[prio]->enqueue((char*)notification);
 
   if(!res)

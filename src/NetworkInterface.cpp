@@ -279,7 +279,7 @@ void NetworkInterface::init() {
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
-  hosts_to_restore = new (std::nothrow) FifoStringsQueue(64);
+  hosts_to_restore = new (std::nothrow) StringFifoQueue(64);
 
   ip_addresses = "", networkStats = NULL,
     pcap_datalink_type = 0, cpu_affinity = -1;

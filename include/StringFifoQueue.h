@@ -20,16 +20,16 @@
  */
 
 
-#ifndef _FIFO_STRINGS_QUEUE_H
-#define _FIFO_STRINGS_QUEUE_H
+#ifndef _STRING_FIFO_QUEUE_H
+#define _STRING_FIFO_QUEUE_H
 
 #include "ntop_includes.h"
 
-class FifoStringsQueue : public FifoQueue<char*> {
+class StringFifoQueue : public FifoQueue<char*> {
  public:
-  FifoStringsQueue(u_int32_t queue_size) : FifoQueue<char*>(queue_size) {}
+  StringFifoQueue(u_int32_t queue_size) : FifoQueue<char*>(queue_size) {}
 
-  ~FifoStringsQueue() {
+  ~StringFifoQueue() {
     while(!q.empty()) {
       char *s = q.front();
 
@@ -65,4 +65,4 @@ class FifoStringsQueue : public FifoQueue<char*> {
   }
 };
 
-#endif /* _FIFO_STRINGS_QUEUE_H */
+#endif /* _STRING_FIFO_QUEUE_H */

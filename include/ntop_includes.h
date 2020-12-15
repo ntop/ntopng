@@ -313,7 +313,7 @@ using namespace std;
 #include "FlowAlertCheckLuaEngine.h"
 #include "SyslogLuaEngine.h"
 #include "FifoQueue.h"
-#include "FifoStringsQueue.h"
+#include "StringFifoQueue.h"
 #include "FifoSerializerQueue.h"
 #include "RRDTimeseriesExporter.h"
 #include "RecipientQueues.h"

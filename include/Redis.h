@@ -51,7 +51,7 @@ class Redis {
   bool operational;
   bool initializationCompleted;
   std::map<std::string, StringCache> stringCache;
-  FifoStringsQueue *localToResolve, *remoteToResolve;
+  StringFifoQueue *localToResolve, *remoteToResolve;
   u_int numCached;
 
   char* getRedisVersion();

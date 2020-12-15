@@ -103,7 +103,7 @@ class NetworkInterface : public AlertableEntity {
   bool flows_dump_json_use_labels;
 
   /* Queue containing the ip@vlan strings of the hosts to restore. */
-  FifoStringsQueue *hosts_to_restore;
+  StringFifoQueue *hosts_to_restore;
 
   /* External alerts contain alertable entities other than host/interface/network
    * which are dynamically allocated when an alert for them occurs.

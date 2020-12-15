@@ -26,7 +26,7 @@
 
 class RRDTimeseriesExporter : public TimeseriesExporter {
  private:
-  FifoStringsQueue *ts_queue;
+  StringFifoQueue *ts_queue;
 
  public:
   RRDTimeseriesExporter(NetworkInterface *_if);
