@@ -113,18 +113,20 @@ if num_services > 0 then
    ]]
 
    for k,v in pairs(proto_number) do
-      local keys = split(k, ",")
       local title = v[5]
+      local arrow = ""
 
       if v[1] > 3 then
          title = title .. ", other " .. v[1] - 3 .. "..."
       end
-      
+
       if v[2] == true then
-         print("{ from: " .. nodes_id[keys[1]] .. ", to: " .. nodes_id[keys[2]] .. ", value: " .. "1" .. ", title: \"" .. title .. "\", arrows: \"to;from\" },\n")
-      else      
-         print("{ from: " .. nodes_id[keys[1]] .. ", to: " .. nodes_id[keys[2]] .. ", value: " .. "1" .. ", title: \"" .. title .. "\", arrows: \"to\" },\n")
+         arrow = "to;from"
+      else
+         arrow = "to"
       end
+         
+      print("{ from: " .. nodes_id[v[3]] .. ", to: " .. nodes_id[v[4]] .. ", value: " .. "1" .. ", title: \"" .. title .. "\", arrows: \"" .. arrow .. "\" },\n")      
    end
 
    print [[
