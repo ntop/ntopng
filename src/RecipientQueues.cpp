@@ -63,18 +63,26 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * c
   bool res = false;
   AlertFifoItem item;
 
+  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES ||
+     (!queues_by_prio[prio] && 
+      !(queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
+    /* Queue not available */
+    drops_by_prio[prio]++;
+    return false;
+  }
+
+  /* Qnqueue the notification */
+
   item.level = alert_level_none; /* TODO set severity level */
   item.alert = strdup(notification);
 
-  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
-    return false;
+  if(item.alert) {
 
-  /*
-    Lazily allocate the queue and then enqueue the notification
-   */
-  if(queues_by_prio[prio]
-     || (queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))
     res = queues_by_prio[prio]->enqueue(item);
+
+    if (!res)
+      free(item.alert);
+  }
 
   if(!res)
     drops_by_prio[prio]++;
