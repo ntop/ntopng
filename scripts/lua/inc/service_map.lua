@@ -12,6 +12,124 @@ if(_GET["host"] ~= nil) then
    print('&nbsp; <A HREF="/lua/if_stats.lua?page=service_map"><span class="fas fa-ethernet"></span></A>')
 end
 
+local p = interface.serviceMap() or {}
+local host_ip = _GET["host"]
+
+--
+-- Draw service map
+--
+
+local nodes = {}
+local nodes_id = {}
+local proto_number = {}
+local num_services = 0
+
+-- tprint(iec)
+
+for k,v in pairs(p) do
+   local key = ""
+   if((host_ip == nil) or (v.client == host_ip) or (v.server == host_ip) ) then
+      num_services = num_services + 1
+
+      nodes[v["client"]] = true
+      nodes[v["server"]] = true
+
+      key = v["client"] .. "," .. v["server"]
+      if proto_number[key] == nil then
+         proto_number[key] = 1
+      else
+         proto_number[key] = proto_number[key] + 1
+      end
+   end
+end
+
+if num_services > 0 then
+   print [[ </div> <div> <script type="text/javascript" src="/js/vis-network.min.js"></script>
+
+   <div style="width:100%; height:30vh; " id="myiecflow"></div>
+
+   <script type="text/javascript">
+      var nodes = null;
+      var edges = null;
+      var network = null;
+
+      function draw() {
+      // create people.
+      // value corresponds with the age of the person
+      nodes = [
+   ]]
+      local i = 1
+
+   for k,_ in pairs(nodes) do
+      local keys = split(k, ",")
+      local label = k
+
+      print("{ id: "..i..", label: \""..label.."\" },\n")
+      nodes_id[k] = i
+      i = i + 1
+   end
+
+   print [[
+   ];
+
+      // create connections between people
+      // value corresponds with the amount of contact between two people
+      edges = [
+   ]]
+
+   for k,v in pairs(proto_number) do
+      local keys = split(k, ",")
+      local value_proto = v
+      local title = 1
+
+      if num_services > 0 then
+         title = string.format("%.3f %%", (value_proto * 100) / num_services)
+      end
+      
+      print("{ from: " ..nodes_id[keys[1]] .. ", to: " .. nodes_id[keys[2]] .. ", value: " .. "1" .. ", title: \"" .. title .. "\", arrows: \"to\" },\n")
+   end
+
+   print [[
+      ];
+
+      // Instantiate our network object.
+      var container = document.getElementById("myiecflow");
+      var data = {
+         nodes: nodes,
+         edges: edges,
+      };
+      var options = {
+   autoResize: true,
+         nodes: {
+            shape: "dot",
+            scaling: {
+            label: {
+               min: 2,
+               max: 80,
+            },
+            shadow: true,
+            smooth: true,
+            },
+         },
+         arrows: {
+            to: {
+               type: "circle"
+            }
+         }
+      };
+      network = new vis.Network(container, data, options);
+      }
+
+   draw();
+
+   </script>
+      ]]
+end
+
+--
+-- End service map draw
+--
+
 print [[
 </div>
 <div class='table-responsive'>
@@ -63,12 +181,8 @@ $(document).ready(function() {
   const filters = [
 ]]
 
-local p = interface.serviceMap() or {}
-
 local keys = {}
 local keys_regex = {}
-
-local host_ip = _GET["host"]
 
 for k,v in pairs(p) do
    if((host_ip == nil)
