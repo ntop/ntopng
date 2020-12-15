@@ -19,51 +19,46 @@
  *
  */
 
-
-#ifndef _STRING_FIFO_QUEUE_H
-#define _STRING_FIFO_QUEUE_H
+#ifndef _ALERT_FIFO_QUEUE_H
+#define _ALERT_FIFO_QUEUE_H
 
 #include "ntop_includes.h"
 
-class StringFifoQueue : public FifoQueue<char*> {
+typedef struct {
+  AlertLevel level;
+  char *alert;
+} AlertFifoItem;
+
+class AlertFifoQueue : public FifoQueue<AlertFifoItem> {
  public:
-  StringFifoQueue(u_int32_t queue_size) : FifoQueue<char*>(queue_size) {}
+  AlertFifoQueue(u_int32_t queue_size) : FifoQueue<AlertFifoItem>(queue_size) {}
 
-  ~StringFifoQueue() {
+  ~AlertFifoQueue() {
     while(!q.empty()) {
-      char *s = q.front();
-
+      AlertFifoItem item = q.front();
       q.pop();
-      free(s);
+      free(item.alert);
     }
   }
 
-  bool enqueue(char* item) {
-    bool rv;
-    
+  AlertFifoItem dequeue() {
+    AlertFifoItem rv;
+
     m.lock(__FILE__, __LINE__);
 
-    if(canEnqueue()) {
-      char *d = strdup(item);
-
-      if(d) {
-	q.push(d);
-	rv = true;
-      } else {
-	rv = false;
-      }
-    } else
-      rv = false;
-
-    if(rv)
-      num_enqueued++;
-    else
-      num_not_enqueued++;
-
+    if(q.empty()) {
+      rv.level = alert_level_none;
+      rv.alert = NULL;
+    } else {
+      rv = q.front();
+      q.pop();
+      num_dequeued++;
+    }
     m.unlock(__FILE__, __LINE__);
-    
+
     return(rv);
   }
+
 };
 
-#endif /* _STRING_FIFO_QUEUE_H */
+#endif /* _ALERT_FIFO_QUEUE_H */

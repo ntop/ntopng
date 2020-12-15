@@ -40,11 +40,30 @@ template <typename T> class FifoQueue {
   virtual ~FifoQueue() { ; }
   
   /*
-    Subclasses will implement it as sometimes the buffer
+    Subclasses might override this as sometimes the buffer
     needs to be duplicated as for strings
   */
-  virtual bool enqueue(T item) = 0;
-  
+  bool enqueue(T item) {
+    bool rv;
+    
+    m.lock(__FILE__, __LINE__);
+
+    if(canEnqueue()) {
+      q.push(item);
+      rv = true;
+    } else
+      rv = false;
+
+    if(rv)
+      num_enqueued++;
+    else
+      num_not_enqueued++;
+
+    m.unlock(__FILE__, __LINE__);
+    
+    return(rv);
+  }
+ 
   T dequeue() {
     T rv;
 

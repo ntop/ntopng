@@ -41,7 +41,7 @@ RecipientQueues::~RecipientQueues() {
 /* *************************************** */
 
 char* RecipientQueues::dequeue(RecipientNotificationPriority prio) {
-  char *res = NULL;
+  AlertFifoItem res;
 
   if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
     return NULL;
@@ -49,16 +49,22 @@ char* RecipientQueues::dequeue(RecipientNotificationPriority prio) {
   if(queues_by_prio[prio])
     res = queues_by_prio[prio]->dequeue();
 
-  if(res)
+  if(res.alert)
     last_use = time(NULL);
 
-  return res;
+  /* TODO return severity level */
+
+  return res.alert;
 }
 
 /* *************************************** */
 
 bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * const notification) {
   bool res = false;
+  AlertFifoItem item;
+
+  item.level = alert_level_none; /* TODO set severity level */
+  item.alert = strdup(notification);
 
   if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
     return false;
@@ -67,8 +73,8 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * c
     Lazily allocate the queue and then enqueue the notification
    */
   if(queues_by_prio[prio]
-     || (queues_by_prio[prio] = new (nothrow) StringFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))
-    res = queues_by_prio[prio]->enqueue((char*)notification);
+     || (queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))
+    res = queues_by_prio[prio]->enqueue(item);
 
   if(!res)
     drops_by_prio[prio]++;
