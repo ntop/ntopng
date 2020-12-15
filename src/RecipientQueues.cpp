@@ -43,11 +43,11 @@ RecipientQueues::~RecipientQueues() {
 char* RecipientQueues::dequeue(RecipientNotificationPriority prio) {
   AlertFifoItem res;
 
-  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES)
+  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES || 
+     !queues_by_prio[prio])
     return NULL;
 
-  if(queues_by_prio[prio])
-    res = queues_by_prio[prio]->dequeue();
+  res = queues_by_prio[prio]->dequeue();
 
   if(res.alert)
     last_use = time(NULL);
