@@ -42,10 +42,11 @@ class RecipientQueues {
   /**
   * @brief Dequeues a notification from a `recipient_id` queue, given a certain priority
   * @param prio The priority of the notification
+  * @param notification The dequeued notification
   *
-  * @return A pointer to a notification string, or NULL if there was no notification in the queue. The pointer MUST be `free`d after use
+  * @return Boolean, true if the dequeue was successful and `notification` is populated correctly, false otherwise
   */
-  char *dequeue(RecipientNotificationPriority prio);
+  bool dequeue(RecipientNotificationPriority prio, AlertFifoItem *notification);
   /**
   * @brief Enqueues a notification to a `recipient_id` queue, depending on the priority
   * @param recipient_id An integer recipient identifier
@@ -54,7 +55,7 @@ class RecipientQueues {
   *
   * @return True if the enqueue succeeded, false otherwise
   */
-  bool enqueue(RecipientNotificationPriority prio, const char * const notification);
+  bool enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification);
   /**
    * @brief Returns queue status (drops and uses)
    * @param vm A Lua VM instance

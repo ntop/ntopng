@@ -38,11 +38,12 @@ Recipients::~Recipients() {
 
 /* *************************************** */
 
-char* Recipients::dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio) {
-  char * res = NULL;
+bool Recipients::dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification) {
+  bool res = false;
 
-  if(recipient_id >= MAX_NUM_RECIPIENTS)
-    return NULL;
+  if(recipient_id >= MAX_NUM_RECIPIENTS
+     || !notification)
+    return false;
 
   m.lock(__FILE__, __LINE__);
 
@@ -50,7 +51,7 @@ char* Recipients::dequeue(u_int16_t recipient_id, RecipientNotificationPriority 
     /*
       Dequeue the notification for a given priority
     */
-    res = recipient_queues[recipient_id]->dequeue(prio);
+    res = recipient_queues[recipient_id]->dequeue(prio, notification);
   }
 
   m.unlock(__FILE__, __LINE__);
@@ -60,10 +61,11 @@ char* Recipients::dequeue(u_int16_t recipient_id, RecipientNotificationPriority 
 
 /* *************************************** */
 
-bool Recipients::enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const char * const notification) {
+bool Recipients::enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification) {
   bool res = false;
 
-  if(recipient_id >= MAX_NUM_RECIPIENTS)
+  if(recipient_id >= MAX_NUM_RECIPIENTS
+     || !notification)
     return false;
 
   m.lock(__FILE__, __LINE__);

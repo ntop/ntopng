@@ -24,11 +24,6 @@
 
 #include "ntop_includes.h"
 
-typedef struct {
-  AlertLevel level;
-  char *alert;
-} AlertFifoItem;
-
 class AlertFifoQueue : public FifoQueue<AlertFifoItem> {
  public:
   AlertFifoQueue(u_int32_t queue_size) : FifoQueue<AlertFifoItem>(queue_size) {}
@@ -47,7 +42,7 @@ class AlertFifoQueue : public FifoQueue<AlertFifoItem> {
     m.lock(__FILE__, __LINE__);
 
     if(q.empty()) {
-      rv.level = alert_level_none;
+      rv.alert_severity = alert_level_none;
       rv.alert = NULL;
     } else {
       rv = q.front();

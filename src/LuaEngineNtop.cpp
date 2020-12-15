@@ -5409,6 +5409,8 @@ static int ntop_recipient_enqueue(lua_State* vm) {
   bool high_priority;
   const char *alert;
   bool rv = false;
+  AlertFifoItem notification;
+  AlertLevel alert_severity;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   recipient_id = lua_tointeger(vm, 1);
@@ -5419,9 +5421,16 @@ static int ntop_recipient_enqueue(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert = lua_tostring(vm, 3);
 
-  rv = ntop->recipient_enqueue(recipient_id,
-			       high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
-			       alert);
+  if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_severity = (AlertLevel)lua_tonumber(vm, 4);
+
+  if((notification.alert = strdup(alert))) {
+    notification.alert_severity = alert_severity;
+
+    rv = ntop->recipient_enqueue(recipient_id,
+				 high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
+				 &notification);
+  }
 
   if(!rv) {
     NetworkInterface *iface = getCurrentInterface(vm);
@@ -5431,6 +5440,9 @@ static int ntop_recipient_enqueue(lua_State* vm) {
       if(ctx->threaded_activity_stats)
 	ctx->threaded_activity_stats->setAlertsDrops();
     }
+
+    if(notification.alert)
+      free(notification.alert);
   }
 
   lua_pushboolean(vm, rv);
@@ -5442,7 +5454,8 @@ static int ntop_recipient_enqueue(lua_State* vm) {
 static int ntop_recipient_dequeue(lua_State* vm) {
   u_int16_t recipient_id;
   bool high_priority;
-  char *alert;
+  AlertFifoItem notification;
+  bool res;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   recipient_id = lua_tointeger(vm, 1);
@@ -5450,12 +5463,17 @@ static int ntop_recipient_dequeue(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   high_priority = lua_toboolean(vm, 2);
 
-  alert = ntop->recipient_dequeue(recipient_id,
-				  high_priority ? recipient_notification_priority_high : recipient_notification_priority_low);
+  res = ntop->recipient_dequeue(recipient_id,
+				high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
+				  &notification);
 
-  if(alert) {
-    lua_pushstring(vm, alert);
-    free(alert);
+  if(res && notification.alert) {
+    lua_newtable(vm);
+
+    lua_push_str_table_entry(vm, "alert", notification.alert);
+    lua_push_uint64_table_entry(vm, "alert_severity", notification.alert_severity);
+
+    free(notification.alert);
   } else
     lua_pushnil(vm);
 

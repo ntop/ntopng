@@ -79,24 +79,20 @@ function syslog.sendMessage(settings, notif, severity, syslog_format)
    local msg
 
    if syslog_format and syslog_format == "json" then
-      -- send out the json message but prepare a nice
-      -- message
-      notif.message  = alert_utils.formatAlertNotification(notif, {
-         nohtml = true,
-	 show_severity = false,
-	 show_entity = false})
-      msg = json.encode(notif)
+      -- Send it plain, notif is already a json-encoded string
+      -- so for efficiency, no decoding is done
+      msg = notif
    elseif syslog_format and syslog_format == "ecs" then
      if ntop.isEnterpriseM() then
         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
         local ecs_format = require "ecs_format"
-        msg = json.encode(ecs_format.format(notif))
+        msg = json.encode(ecs_format.format(json.decode(notif)))
      else
         return false
      end
    else -- syslog_format == "plaintext"
       -- prepare a plaintext message
-      msg = alert_utils.formatAlertNotification(notif, {
+      msg = alert_utils.formatAlertNotification(json.decode(notif), {
          nohtml = true,
 	 show_severity = true,
 	 show_entity = true})
@@ -147,27 +143,9 @@ function syslog.dequeueRecipientAlerts(recipient, budget, high_priority)
       return {success = true, more_available = false}
    end
 
-   -- Separate by severity and channel
-   local alerts_by_types = {}
-
-   for _, json_message in ipairs(notifications) do
-      local notif = json.decode(json_message)
-      if notif.alert_entity then
-         alerts_by_types[notif.alert_entity] = alerts_by_types[notif.alert_entity] or {}
-         alerts_by_types[notif.alert_entity][notif.alert_severity] = alerts_by_types[notif.alert_entity][notif.alert_severity] or {}
-         table.insert(alerts_by_types[notif.alert_entity][notif.alert_severity], notif)
-      end
-   end
-
-   for _, by_severity in pairs(alerts_by_types) do
-      for severity, sev_notifications in pairs(by_severity) do
-        severity = alert_consts.alertSeverityRaw(severity)
-
-	 -- Most recent notifications first
-	 for _, notif in pairsByValues(sev_notifications, alert_utils.notification_timestamp_rev) do
-            syslog.sendMessage(settings, notif, severity, recipient.endpoint_conf.syslog_alert_format)
-	 end
-      end
+   -- Most recent notifications first
+   for _, notification in ipairs(notifications) do
+      syslog.sendMessage(settings, notification.alert, notification.alert_severity, recipient.endpoint_conf.syslog_alert_format)
    end
 
    return {success = true,  more_available = true}

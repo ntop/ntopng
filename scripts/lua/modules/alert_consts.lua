@@ -541,7 +541,7 @@ end
 -- ##############################################
 
 function alert_consts.alertLevelToSyslogLevel(v)
-  return alert_severities[v].syslog_severity
+   return alert_severities[alert_consts.alertSeverityRaw(v)].syslog_severity
 end
 
 -- ################################################################################

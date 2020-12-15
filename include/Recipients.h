@@ -37,20 +37,20 @@ class Recipients {
   /**
   * @brief Dequeues a notification from a `recipient_id` queue, given a certain priority
   * @param recipient_id An integer recipient identifier
-  * @param prio The priority of the notification
+  * @param notification The dequeued notification
   *
-  * @return A pointer to a notification string, or NULL if there was no notification in the queue. The pointer MUST be `free`d after use
+  * @return Boolean, true if the dequeue was successful and `notification` is populated correctly, false otherwise
   */
-  char *dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio);
+  bool dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification);
   /**
   * @brief Enqueues a notification to a `recipient_id` queue, depending on the priority
   * @param recipient_id An integer recipient identifier
   * @param prio The priority of the notification
-  * @param notification A string containing the notification
+  * @param notification The notification to be enqueued
   *
   * @return True if the enqueue succeeded, false otherwise
   */
-  bool enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const char * const notification);
+  bool enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification);
   /**
   * @brief Registers a recipient identified with `recipient_id` so its notification can be enqueued/dequeued
   * @param recipient_id An integer recipient identifier

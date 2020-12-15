@@ -131,7 +131,7 @@ function email.dequeueRecipientAlerts(recipient, budget, high_priority)
     for i = 1, MAX_ALERTS_PER_EMAIL do
        local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
        if notification then 
-	  notifications[#notifications + 1] = notification
+	  notifications[#notifications + 1] = notification.alert
        else
 	  break
        end

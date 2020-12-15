@@ -40,49 +40,39 @@ RecipientQueues::~RecipientQueues() {
 
 /* *************************************** */
 
-char* RecipientQueues::dequeue(RecipientNotificationPriority prio) {
-  AlertFifoItem res;
+bool RecipientQueues::dequeue(RecipientNotificationPriority prio, AlertFifoItem *notification) {
+  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES
+     || !queues_by_prio[prio]
+     || !notification)
+    return false;
 
-  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES || 
-     !queues_by_prio[prio])
-    return NULL;
+  *notification = queues_by_prio[prio]->dequeue();
 
-  res = queues_by_prio[prio]->dequeue();
-
-  if(res.alert)
+  if(notification->alert) {
     last_use = time(NULL);
+    return true;
+  }
 
-  /* TODO return severity level */
-
-  return res.alert;
+  return false;
 }
 
 /* *************************************** */
 
-bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const char * const notification) {
+bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification) {
   bool res = false;
-  AlertFifoItem item;
 
-  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES ||
-     (!queues_by_prio[prio] && 
-      !(queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
+  if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES
+     || !notification
+     || !notification->alert
+     || (!queues_by_prio[prio] &&
+	 !(queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
     /* Queue not available */
     drops_by_prio[prio]++;
     return false;
   }
 
-  /* Qnqueue the notification */
-
-  item.level = alert_level_none; /* TODO set severity level */
-  item.alert = strdup(notification);
-
-  if(item.alert) {
-
-    res = queues_by_prio[prio]->enqueue(item);
-
-    if (!res)
-      free(item.alert);
-  }
+  /* Enqueue the notification */
+  res = queues_by_prio[prio]->enqueue(*notification);
 
   if(!res)
     drops_by_prio[prio]++;

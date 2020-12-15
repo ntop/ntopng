@@ -982,14 +982,14 @@ void Ntop::lua_alert_queues_stats(lua_State* vm) {
 
 /* ******************************************* */
 
-bool Ntop::recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const char * const notification) {
+bool Ntop::recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification) {
   return recipients.enqueue(recipient_id, prio, notification);
 }
 
 /* ******************************************* */
 
-char* Ntop::recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio) {
-  return recipients.dequeue(recipient_id, prio);
+bool Ntop::recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification) {
+  return recipients.dequeue(recipient_id, prio, notification);
 }
 
 /* ******************************************* */

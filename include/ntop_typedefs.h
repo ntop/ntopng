@@ -204,6 +204,12 @@ typedef enum {
   IPV6 = 6
 } IPVersion;
 
+/* Used to queue/dequeue elements in recipient queues via AlertFifoQueue.h */
+typedef struct {
+  AlertLevel alert_severity;
+  char *alert;
+} AlertFifoItem;
+
 struct zmq_msg_hdr_v0 {
   char url[32];
   u_int32_t version;
