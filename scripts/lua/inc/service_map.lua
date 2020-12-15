@@ -35,13 +35,39 @@ for k,v in pairs(p) do
       nodes[v["client"]] = true
       nodes[v["server"]] = true
 
-      key = v["client"] .. "," .. v["server"]
-      if proto_number[key] == nil then
-         proto_number[key] = { 1, v.l7_proto}
+      if v["client"] > v["server"] then
+         key = v["client"] .. "," .. v["server"]
+         if proto_number[key] == nil then
+            proto_number[key] = { 1, false , v["client"], v["server"], v.l7_proto} -- { num_recurrencies, bidirection true | monodirectional false, client_ip, server_ip, l7_proto}
+         else
+            proto_number[key][1] = proto_number[key][1] + 1
+
+            -- Don't show more then 3 l7 protocols
+            if proto_number[key][1] <= 3 then
+               proto_number[key][5] = proto_number[key][5] .. ", " .. v.l7_proto
+            end
+
+            -- Checking direction of the service, false monodirectional and true bidirectional
+            if v["server"] ~= proto_number[key][4] then
+               proto_number[key][2] = true
+            end
+         end
       else
-         proto_number[key][1] = proto_number[key][1] + 1
-         if proto_number[key][1] <= 3 then
-            proto_number[key][2] = proto_number[key][2] .. ", " .. v.l7_proto
+         key = v["server"] .. "," .. v["client"]
+         if proto_number[key] == nil then
+            proto_number[key] = { 1, false , v["client"], v["server"], v.l7_proto} -- { num_recurrencies, bidirection true | monodirectional false, client_ip, server_ip, l7_proto}
+         else
+            proto_number[key][1] = proto_number[key][1] + 1
+
+            -- Don't show more then 3 l7 protocols
+            if proto_number[key][1] <= 3 then
+               proto_number[key][5] = proto_number[key][5] .. ", " .. v.l7_proto
+            end
+
+            -- Checking direction of the service, false monodirectional and true bidirectional
+            if v["server"] ~= proto_number[key][4] then
+               proto_number[key][2] = true
+            end
          end
       end
    end
@@ -88,13 +114,17 @@ if num_services > 0 then
 
    for k,v in pairs(proto_number) do
       local keys = split(k, ",")
-      local title = v[2]
+      local title = v[5]
 
       if v[1] > 3 then
          title = title .. ", other " .. v[1] - 3 .. "..."
       end
       
-      print("{ from: " .. nodes_id[keys[1]] .. ", to: " .. nodes_id[keys[2]] .. ", value: " .. "1" .. ", title: \"" .. title .. "\", arrows: \"to\" },\n")
+      if v[2] == true then
+         print("{ from: " .. nodes_id[keys[1]] .. ", to: " .. nodes_id[keys[2]] .. ", value: " .. "1" .. ", title: \"" .. title .. "\", arrows: \"to;from\" },\n")
+      else      
+         print("{ from: " .. nodes_id[keys[1]] .. ", to: " .. nodes_id[keys[2]] .. ", value: " .. "1" .. ", title: \"" .. title .. "\", arrows: \"to\" },\n")
+      end
    end
 
    print [[
