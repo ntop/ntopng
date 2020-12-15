@@ -192,8 +192,9 @@ function format_utils.formatEpoch(epoch)
   if epoch == 0 then
     return("")
   else
-    -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
-    return(os.date("!%d/%m/%Y %X", epoch + getFrontendTzSeconds()))
+     local t = epoch + getFrontendTzSeconds()
+     -- specify the ! to indicate UTC time so that adding getFrontendTzSeconds() will give expected results
+     return(os.date("!%d/%m/%Y %X", t))
   end
 end
 

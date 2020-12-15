@@ -4795,8 +4795,8 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
 			       protos.tls.client_requested_server_name);
 
     if(protos.tls.notBefore && protos.tls.notAfter) {
-      lua_push_int32_table_entry(vm, "protos.tls.notBefore", protos.tls.notBefore);
-      lua_push_int32_table_entry(vm, "protos.tls.notAfter", protos.tls.notAfter);
+      lua_push_uint32_table_entry(vm, "protos.tls.notBefore", protos.tls.notBefore);
+      lua_push_uint32_table_entry(vm, "protos.tls.notAfter", protos.tls.notAfter);
     }
 
     if(protos.tls.ja3.client_hash) {
