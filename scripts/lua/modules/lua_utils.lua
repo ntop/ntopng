@@ -827,22 +827,13 @@ function isBroadMulticast(ip)
 end
 
 function isBroadcastMulticast(ip)
-   -- check NoIP
-   if(ip == "0.0.0.0") then
+   local ainfo = interface.getAddressInfo(ip)
+   
+   if(ainfo.is_multicast or ainfo.is_broadcast) then
       return true
+   else
+      return false
    end
-
-   -- check IPv6
-   t = string.split(ip, "%.")
-
-   if(t ~= nil) then
-      -- check Multicast / Broadcast
-      if(tonumber(t[1]) >= 224) then
-	 return true
-      end
-   end
-
-   return false
 end
 
 function isIPv4(address)

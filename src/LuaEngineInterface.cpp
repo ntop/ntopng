@@ -4087,6 +4087,27 @@ static int ntop_flush_interface_service_map(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_address_info(lua_State* vm) {
+  char *addr;
+  IpAddress ip;
+  int16_t network_id;
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  addr = (char*)lua_tostring(vm, 1);
+
+  ip.set(addr);
+
+  lua_newtable(vm);
+  lua_push_bool_table_entry(vm, "is_blacklisted", ip.isBlacklistedAddress());
+  lua_push_bool_table_entry(vm, "is_broadcast",   ip.isBroadcastAddress());
+  lua_push_bool_table_entry(vm, "is_multicast",   ip.isMulticastAddress());
+  lua_push_bool_table_entry(vm, "is_local",       ip.isLocalHost(&network_id));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 
 static int ntop_update_flows_shapers(lua_State* vm) {
@@ -4305,6 +4326,9 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "flushPeriodicityMap",              ntop_flush_interface_periodicity_map },
   { "serviceMap",                       ntop_get_interface_service_map },
   { "flushServiceMap",                  ntop_flush_interface_service_map },
+
+  /* Addresses */
+  { "getAddressInfo",                   ntop_get_address_info },
 
   /* Mac */
   { "getMacsInfo",                      ntop_get_interface_macs_info },
