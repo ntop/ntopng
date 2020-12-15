@@ -46,7 +46,7 @@ end
 if num_services > 0 then
    print [[ </div> <div> <script type="text/javascript" src="/js/vis-network.min.js"></script>
 
-   <div style="width:100%; height:30vh; " id="myiecflow"></div>
+   <div style="width:100%; height:30vh; " id="services_map"></div><p>
 
    <script type="text/javascript">
       var nodes = null;
@@ -93,32 +93,36 @@ if num_services > 0 then
       ];
 
       // Instantiate our network object.
-      var container = document.getElementById("myiecflow");
-      var data = {
-         nodes: nodes,
-         edges: edges,
-      };
-      var options = {
-   autoResize: true,
-         nodes: {
+	  var container = document.getElementById("services_map");
+	  var data = {
+	  nodes: nodes,
+	  edges: edges,
+	  };
+	  
+	  var options = {
+	  autoResize: true,
+	  nodes: {
             shape: "dot",
             scaling: {
-            label: {
-               min: 2,
-               max: 80,
+	      label: {
+		min: 2,
+		max: 80,
+	      },
             },
             shadow: true,
-            smooth: true,
-            },
-         },
-         arrows: {
-            to: {
-               type: "circle"
-            }
-         }
-      };
-      network = new vis.Network(container, data, options);
-      }
+	    // smooth: true,
+	  },
+	  };
+	  network = new vis.Network(container, data, options);
+
+   network.on("doubleClick", function (params) {
+      const target = params.nodes[0];
+      const node_selected = nodes.find(n => n.id == target);
+      console.log(node_selected);
+      window.location.href = http_prefix + '/lua/host_details.lua?host=' + node_selected.label + '&page=service_map';
+   });
+
+}
 
    draw();
 
