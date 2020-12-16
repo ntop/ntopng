@@ -1655,7 +1655,7 @@ local function isCompatibleVersion(version)
   local current = toVersion(version)
   local required = toVersion(MIN_INFLUXDB_SUPPORTED_VERSION)
 
-  if (version == nil) or (required == nil) then
+  if (current == nil) or (required == nil) then
     return false
   end
 
