@@ -93,9 +93,16 @@ if num_services > 0 then
 
    for k,_ in pairs(nodes) do
       local hinfo = hostkey2hostinfo(k)
-      local label = shortenString(hostinfo2label(hinfo), 16)
-      local ainfo = interface.getAddressInfo(k)
+      local label
+      local ainfo = interface.getAddressInfo(k)      
+      local stats = interface.getHostInfo(hinfo.host, hinfo.vlan)
 
+      if(stats and (stats.name ~= "")) then
+	 label = shortenString(stats.name, 16)
+      else
+	 label = shortenString(hostinfo2label(hinfo), 16)
+      end
+      
       if(ainfo.is_multicast or ainfo.is_broadcast) then
          print('{ id: '..i..', value: \"' .. k .. '\", label: \"'..label..'\", color: "#7BE141"},\n')
       else
