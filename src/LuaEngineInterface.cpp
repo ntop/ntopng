@@ -4087,6 +4087,21 @@ static int ntop_flush_interface_service_map(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_service_map_learning_status(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_interface)
+    ntop_interface->luaServiceMapStatus(vm);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_address_info(lua_State* vm) {
   char *addr;
   IpAddress ip;

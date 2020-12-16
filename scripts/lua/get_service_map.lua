@@ -40,8 +40,9 @@ for k,v in pairs(p) do
    table.insert(row, v.num_uses)
    table.insert(row, secondsToTime(os.time()-v.last_seen).. " "..i18n("details.ago"))
    table.insert(row, shortenString(v.info, 64))
-
+   
    table.insert(rsp.data, row)
+   table.insert(row, v.service_acceptance)
 end
 
 print(json.encode(rsp))
