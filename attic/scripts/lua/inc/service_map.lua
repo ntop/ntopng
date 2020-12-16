@@ -143,22 +143,23 @@ if num_services > 0 then
       // Instantiate our network object.
 	  var container = document.getElementById("services_map");
 	  var data = {
-	  nodes: nodes,
-	  edges: edges,
+      nodes: nodes,
+      edges: edges,
 	  };
 	  
 	  var options = {
-	  autoResize: true,
-	  nodes: {
-            shape: "dot",
-            scaling: {
-         label: false,
-         min: 30,
-         max: 30,
-            },
-            shadow: true,
-	    // smooth: true,
-	  },
+      autoResize: true,
+      nodes: {
+               shape: "dot",
+               scaling: {
+            label: false,
+            min: 30,
+            max: 30,
+               },
+               shadow: true,
+         // smooth: true,
+      },
+      physics: false // disable physiscs for the graph
 	  };
 	  network = new vis.Network(container, data, options);
 
