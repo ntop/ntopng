@@ -81,6 +81,7 @@ page_utils.menu_entries = {
     hosts_treemap	 = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts", visible_iface = true},
     host_explorer	 = {key = "host_explorer", i18n_title = "host_explorer", section = "hosts", visible_iface = true},
     containers	      	 = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts", visible_iface = true},
+    service_map      = {key = "service_map", i18n_title="service_map", section = "hosts", visible_iface = true, visible_system = false},
     pods	      	 = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts", visible_iface = true},
 
     -- Interface

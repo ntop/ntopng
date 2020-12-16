@@ -4078,6 +4078,10 @@ local lang = {
       ["template_not_implemented"] = "The template  was not implemented yet!",
     },
   },
+  ["service_map_page"] = {
+    ["graph_view"] = "Graph View",
+    ["table_view"] = "Table View",
+  },
   ["severity_groups"] = {
     ["group_error_or_higher"] = "Error or Higher",
     ["group_none"] = "None",

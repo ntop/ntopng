@@ -225,6 +225,12 @@ else
 
    -- ##############################################
 
+   local service_map     = interface.serviceMap()
+   local service_map_available = false
+   if(service_map and (table.len(service_map) > 0)) then
+      service_map_available = true
+   end
+
    -- Hosts
    page_utils.add_menubar_section(
       {
@@ -291,7 +297,12 @@ else
 	    },
 	    {
 	       entry = page_utils.menu_entries.divider,
-	    },
+       },
+       {
+         entry = page_utils.menu_entries.service_map,
+         hidden = not service_map_available,
+         url = '/lua/service_map.lua',
+       },
 	    {
 	       entry = page_utils.menu_entries.geo_map,
 	       hidden = interface.isLoopback() or not ntop.hasGeoIP(),

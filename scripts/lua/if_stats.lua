@@ -65,14 +65,8 @@ local is_packet_interface = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
 
 local periodicity_map = interface.periodicityMap()
-local service_map     = interface.serviceMap()
 local periodic_info_available = false
-local service_map_available = false
 local num_periodicity = 0
-
-if(service_map and (table.len(service_map) > 0)) then
-   service_map_available = true
-end
 
 if(periodicity_map) then
    num_periodicity = table.len(periodicity_map)
@@ -355,12 +349,6 @@ page_utils.print_navbar(title, url,
 				 active = page == "periodicity_map",
 				 page_name = "periodicity_map",
 				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
-			      },
-			      {
-				 hidden = not service_map_available,
-				 active = page == "service_map",
-				 page_name = "service_map",
-				 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
 			      },
 			   }
    )
@@ -2104,8 +2092,6 @@ elseif(page == "dhcp") then
     dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
 elseif page == "periodicity_map" then
       dofile(dirs.installdir .. "/scripts/lua/inc/periodicity_map.lua")
-elseif page == "service_map" then
-      dofile(dirs.installdir .. "/scripts/lua/inc/service_map.lua")
 elseif page == "traffic_report" then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 end

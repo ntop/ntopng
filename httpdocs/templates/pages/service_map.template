@@ -1,0 +1,126 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                    {% if page == "graph" then %}
+                        <div style="width: 100%; height: 65vh; " id="services_map"></div>
+                    {% else %}
+                        <div class='table-responsive'>
+                            <table id="service_map_table" class="table table-bordered table-striped w-100">
+                                <thead>
+                                    <tr>
+                                        <th>{{ i18n("protocol") }}</th>
+                                        <th>{{ i18n("client") }}</th>
+                                        <th>{{ i18n("server") }}</th>
+                                        <th>{{ i18n("vlan_id") }}</th>
+                                        <th>{{ i18n("port") }}</th>
+                                        <th>{{ i18n("num_uses") }}</th>
+                                        <th>{{ i18n("last_seen") }}</th>
+                                        <th>{{ i18n("info") }}</th>
+                                        <th>{{ i18n("service_acceptance") }}</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    {% end %}
+            </div>
+            {% if is_admin and (ifid ~= nil) then %}
+            <div class="card-footer">
+                <form>
+                    <input type=hidden name="ifid" value="{{ifid}}">
+                    <input type=hidden name="page" value="service_map">
+                    <input type=hidden name="action" value="reset">
+
+                    <button id="btn-factory-reset" data-target='#reset-modal' data-toggle="modal" class="btn btn-danger" onclick="return confirm('{{ i18n('data_flush_confirm') }}')">
+                        <i class="fas fa-undo-alt"></i> {{i18n("flush_service_map_data")}}
+                    </button>
+                </form>
+                <a href="{{ ntop.getHttpPrefix() }}/lua/get_service_map.lua" target="_blank" class="btn btn-primary" role="button" aria-disabled="true"><i class="fas fa-download"></i></a>
+            </div>
+            {% end %}
+        </div>
+    </div>
+</div>
+<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet" />
+<script type="text/javascript">
+    i18n.warning ="{{ i18n('warning', {}) }}";
+    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n.search = "{{ i18n('search') }}";
+</script>
+{% if page == "graph" then %}
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/vis-network.min.js"></script>
+<script type="text/javascript">
+
+    const MIN_SCALE = 0.29;
+    const container = document.getElementById("services_map");
+    const data = {
+        nodes: {* json.encode(service_map.graph_ui.nodes) *},
+        edges: {* json.encode(service_map.graph_ui.edges) *}
+    };
+
+    const options = {
+        autoResize: true,
+        nodes: {
+            shape: "dot",
+            scaling: {
+                label: false,
+                min: 30,
+                max: 30,
+            },
+            shadow: true,
+        },
+        physics: false
+    };
+    
+    const network = new vis.Network(container, data, options);
+
+    network.on("doubleClick", function (params) {
+        const target = params.nodes[0];
+        const selected_node = nodes.find(n => n.id == target);
+        window.location.href = http_prefix + '/lua/host_details.lua?host=' + selected_node.value + '&page=service_map';
+    });
+
+    /* This event can be used to define a custom context menu*/
+    network.on("oncontext", function(e) {
+    });
+
+    network.on('zoom', function(e) {
+        if (network.getScale() <=  MIN_SCALE) {
+            network.moveTo({
+                scale: MIN_SCALE + 0.01,
+                position: {x: 0, y: 0},
+                animation: { duration: 1000, easingFunction: 'easeInOutCubic' }
+            });
+        }
+    });
+</script>
+{% else %}
+
+<script type="text/javascript">
+    $(document).ready(function() {
+
+        let config = DataTableUtils.getStdDatatableConfig( [ {
+            text: '<i class="fas fa-sync"></i>',
+            action: function(e, dt, node, config) {
+                $serviceTable.ajax.reload();
+            }
+        } ]);
+        config = DataTableUtils.setAjaxConfig(config, "{{ntop.getHttpPrefix()}}/lua/get_service_map.lua", 'data');
+
+        const $serviceTable = $('#service_map_table').DataTable(config);
+
+        /* Filter on protocol column */
+        const columnProtocolIndex = 0;
+        const filters = {* json.encode(service_map.table.filters) *};
+        const periodicityMenuFilters = new DataTableFiltersMenu({
+            filterTitle: "{{ i18n('protocol') }}",
+            tableAPI: $serviceTable,
+            filters: filters,
+            filterMenuKey: 'protocol',
+            columnIndex: columnProtocolIndex
+        });
+
+    });
+</script>
+
+{% end %}
