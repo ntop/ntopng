@@ -1208,6 +1208,7 @@ local lang = {
     ["remove_recipient_message"] = "Do you really want to delete '%{recipient}' recipient?",
     ["select_type"] = "Select an Endpoint Type",
     ["server_error"] = "Something went wrong. Try later.",
+    ["status"] = "Node Status",
     ["test_recipient"] = "Check",
     ["testing_recipient"] = "Testing the recipient",
     ["time_since_last_use"] = "Time Since Last Use",

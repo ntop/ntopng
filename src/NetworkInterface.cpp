@@ -5571,6 +5571,14 @@ void NetworkInterface::lua(lua_State *vm) {
 
 /* *************************************** */
 
+void NetworkInterface::luaServiceMapStatus(lua_State *vm) {
+  lua_newtable(vm);
+
+  if(sMap) lua_push_bool_table_entry(vm, "service_map_learning_status", sMap->getLearningStatus());
+}
+
+/* *************************************** */
+
 void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
   /* Hash tables stats */
   GenericHash *gh[] = {

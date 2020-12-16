@@ -4326,6 +4326,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "flushPeriodicityMap",              ntop_flush_interface_periodicity_map },
   { "serviceMap",                       ntop_get_interface_service_map },
   { "flushServiceMap",                  ntop_flush_interface_service_map },
+  { "serviceMapLearningStatus",         ntop_interface_service_map_learning_status },
 
   /* Addresses */
   { "getAddressInfo",                   ntop_get_address_info },

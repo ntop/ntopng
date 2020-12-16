@@ -13,9 +13,11 @@ if(_GET["host"] ~= nil) then
    print('&nbsp; <A HREF="/lua/if_stats.lua?page=service_map"><span class="fas fa-ethernet"></span></A>')
 end
 
+local p1 = interface.serviceMapLearningStatus()
 local p = interface.serviceMap() or {}
 local host_ip = _GET["host"]
 
+tprint(p1)
 --
 -- Draw service map
 --
@@ -188,6 +190,7 @@ print [[
                 <th>]] print(i18n("num_uses")) print [[</th>
                 <th>]] print(i18n("last_seen")) print [[</th>
                 <th>]] print(i18n("info")) print [[</th>
+                <th>]] print(i18n("status")) print [[</th>
             </tr>
         </thead>
 </table>
