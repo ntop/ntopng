@@ -25,6 +25,8 @@ AS_IF([test "${with_sanitizer+set}" = set],[
     CPP=$CC
 ])
 
+PWD=`pwd`
+
 dnl> Add /usr/local/ /opt/local
 CFLAGS="${CFLAGS} -I${PWD} -I${PWD}/include"
 CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
@@ -49,6 +51,9 @@ if test "${with_test_mode+set}" = set; then
   AC_DEFINE(HAVE_TEST_MODE, 1, [ntopng/nEdge test mode enabled])
 fi
 
+AC_CHECK_LIB([gpg-error], [gpg_strerror], [LDFLAGS="${LDFLAGS} -lgpg-error"])
+AC_CHECK_LIB([atomic], [__atomic_exchange_8], [LDFLAGS="${LDFLAGS} -latomic"])
+  
 NEDGE=0
 if test "${with_nedge+set}" = set; then
   AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
@@ -306,7 +311,6 @@ fi
 CFLAGS="${CFLAGS} -I../PF_RING/userland/nbpf"
 PRO_HEADERS='$(wildcard pro/*.h)'
 PRO_MAKEFILE_INC="include ./pro/inc.Makefile"
-PWD=`pwd`
 dnl> Remove heading spaces
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng professional release])
