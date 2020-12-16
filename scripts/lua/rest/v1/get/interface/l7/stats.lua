@@ -120,5 +120,5 @@ for key, value in pairsByValues(_ifstats, rev) do
    }
 end
 
-local collapsed = stats_utils.collapse_stats(res, 3, 3 --[[ threshold ]])
+local collapsed = stats_utils.collapse_stats(res, 1, 3 --[[ threshold ]])
 rest_utils.answer(rc, collapsed)
