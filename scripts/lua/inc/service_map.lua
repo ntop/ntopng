@@ -13,7 +13,6 @@ if(_GET["host"] ~= nil) then
    print('&nbsp; <A HREF="/lua/if_stats.lua?page=service_map"><span class="fas fa-ethernet"></span></A>')
 end
 
-local p1 = interface.serviceMapLearningStatus()
 local p = interface.serviceMap() or {}
 local host_ip = _GET["host"]
 
