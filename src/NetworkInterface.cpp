@@ -5572,9 +5572,11 @@ void NetworkInterface::lua(lua_State *vm) {
 /* *************************************** */
 
 void NetworkInterface::luaServiceMapStatus(lua_State *vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   lua_newtable(vm);
 
   if(sMap) lua_push_bool_table_entry(vm, "service_map_learning_status", sMap->getLearningStatus());
+#endif
 }
 
 /* *************************************** */
