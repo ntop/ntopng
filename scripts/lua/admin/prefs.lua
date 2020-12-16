@@ -596,7 +596,16 @@ function printMisc()
 			  field = "toggle_behaviour_analysis",
 			  default = "0",
 			  pref = "is_behaviour_analysis_enabled", -- redis preference
+			  to_switch = {"behaviour_analysis_learning_period"},
      })
+
+     local behaviour_analysis_learning_period = ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1"
+
+     prefsInputFieldPrefs(subpage_active.entries["behaviour_analysis_learning_period"].title, subpage_active.entries["behaviour_analysis_learning_period"].description,
+			  "ntopng.prefs.","behaviour_analysis_learning_period",
+			  prefs.behaviour_analysis_learning_period,
+			  "number", behaviour_analysis_learning_period, nil, nil, {min=3600, tformat="hd"})
+
   end
 
   -- #####################

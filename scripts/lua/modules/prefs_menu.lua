@@ -334,7 +334,6 @@ local menu_subpages = {
        description = i18n("prefs.mgmt_acl_description", {product=info.product}),
     },
     }}, {id="misc",          label=i18n("prefs.misc"),                 advanced=false, pro_only=false,  hidden=false, entries={
-
     toggle_send_telemetry_data = {
       title       = i18n("prefs.toggle_send_telemetry_data_title"),
       description = i18n("prefs.toggle_send_telemetry_data_description", { product = info.product}),
@@ -350,7 +349,11 @@ local menu_subpages = {
     }, topk_heuristic_precision = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
+    }, behaviour_analysis_learning_period = {
+      title       = i18n("prefs.behaviour_analysis_learning_period_title"),
+      description = i18n("prefs.behaviour_analysis_learning_period_description"),
     }
+
   }}, {id="updates", label=i18n("prefs.updates"), advanced=false, pro_only=false, hidden=(is_windows or (not ntop.isPackage())), entries={
     toggle_autoupdates = {
       title       = i18n("prefs.toggle_autoupdates_title"),

@@ -56,6 +56,7 @@ Prefs::Prefs(Ntop *_ntop) {
   default_l7policy = PASS_ALL_SHAPER_ID;
   device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
   max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES;
+  behaviour_analysis_learning_period = CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD;
   auth_session_duration = HTTP_SESSION_DURATION;
   auth_session_midnight_expiration = HTTP_SESSION_MIDNIGHT_EXPIRATION;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
@@ -689,6 +690,7 @@ void Prefs::reloadPrefsFromRedis() {
 
 void Prefs::refreshBehaviourAnalysis() {
   enable_behaviour_analysis  = getDefaultBoolPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS, false);
+  behaviour_analysis_learning_period = getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD, CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD);
 }
 
 /* ******************************************* */
@@ -1757,6 +1759,8 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "max_extracted_pcap_bytes", max_extracted_pcap_bytes);
 
   lua_push_uint64_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
+
+  lua_push_uint64_table_entry(vm, "behaviour_analysis_learning_period", behaviour_analysis_learning_period);
 
   lua_push_str_table_entry(vm, "safe_search_dns",
 			   Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));
