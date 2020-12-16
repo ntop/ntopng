@@ -22,6 +22,7 @@ local active_entry = nil
 -- #################################
 
 page_utils.menu_sections = {
+   shortcuts    = {key = "shortcut", i18n_title = "shortcuts", icon = "fas fa-bolt"},
    dashboard    = {key = "dashboard", i18n_title = "index_page.dashboard", icon = "fas fa-tachometer-alt"},
    alerts       = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows        = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},

@@ -245,6 +245,7 @@ local lang = {
   ["service_acceptance"] = "Service Status",
   ["service_map"] = "Service Map",
   ["settings"] = "Settings",
+  ["shortcuts"] = "Shortcuts",
   ["showing_x_to_y_rows"] = "Showing %{x} to %{y} of %{tot} rows",
   ["similarity"] = "Similarity",
   ["speed"] = "Speed",

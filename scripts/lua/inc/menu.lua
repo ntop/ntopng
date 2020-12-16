@@ -108,6 +108,44 @@ if is_nedge then
 else
    -- ##############################################
 
+   -- Shortcuts
+   -- The Shortcuts entry are used to go to the System interface pages
+   -- without using the Interface dropdown. The section is hidden
+   -- in system interface.
+   page_utils.add_menubar_section({
+      section = page_utils.menu_sections.shortcuts,
+      hidden = is_system_interface or not is_admin,
+      entries = {
+         {
+            entry = page_utils.menu_entries.snmp,
+            hidden = not ntop.isEnterpriseM(),
+            url = "/lua/pro/enterprise/snmpdevices_stats.lua"
+         },
+         {
+            entry = page_utils.menu_entries.divider,
+            hidden = not ntop.isEnterpriseM(),
+         },
+         {
+            entry = page_utils.menu_entries.manage_pools,
+            hidden = not is_admin,
+            url = '/lua/admin/manage_pools.lua'
+         },
+         {
+            entry = page_utils.menu_entries.divider,
+         },
+         {
+            entry = page_utils.menu_entries.endpoint_notifications,
+            hidden = not is_admin,
+            url = '/lua/admin/endpoint_notifications_list.lua',
+         },
+         {
+            entry = page_utils.menu_entries.endpoint_recipients,
+            hidden = not is_admin,
+            url = '/lua/admin/recipients_list.lua',
+         },
+      }
+   })
+
    -- Dashboard
    page_utils.add_menubar_section(
       {
