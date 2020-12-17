@@ -270,20 +270,34 @@ void SyslogCollectorInterface::closeConnection(syslog_client *client) {
 
 /* **************************************************** */
 
-int SyslogCollectorInterface::receive(int socket, char *client_ip) {
+int SyslogCollectorInterface::receive(int socket, char *client_ip, bool use_recvfrom) {
   char buffer[8192];
   int len, received_total = 0;
   int buffer_size = sizeof(buffer) - 1;
   char *line, *pos;
+  struct sockaddr_in client_addr;
+  socklen_t client_addr_len = sizeof(client_addr);
+  char ip_str[INET_ADDRSTRLEN];
 
   do {
-    len = recv(socket, (char *) buffer, buffer_size, 
+
+    if (use_recvfrom)
+      len = recvfrom(socket,
+        (void *) buffer, buffer_size,
+#ifndef WIN32
+        MSG_DONTWAIT
+#else
+        0
+#endif
+        , (struct sockaddr *) &client_addr, &client_addr_len);
+    else
+      len = recv(socket, (char *) buffer, buffer_size, 
 #ifndef WIN32
         MSG_DONTWAIT
 #else
 	0
 #endif
-	);
+      );
 
     if(len < 0) {
       if(errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -299,6 +313,10 @@ int SyslogCollectorInterface::receive(int socket, char *client_ip) {
       return -1;
 
     } else if(len > 0) {
+      if (client_ip == NULL && use_recvfrom) {
+        inet_ntop(AF_INET, &client_addr.sin_addr, ip_str, sizeof(ip_str));
+        client_ip = ip_str;      
+      }
       received_total += len;
       buffer[len] = '\0';
       line = strtok_r(buffer, "\n", &pos);
@@ -322,7 +340,7 @@ int SyslogCollectorInterface::receiveFromClient(syslog_client *client) {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to receive from %s:%d", 
     client->ip_str, client->address.sin_port);
 
-  return receive(client->socket, client->ip_str);
+  return receive(client->socket, client->ip_str, false);
 }
 
 /* **************************************************** */
@@ -363,7 +381,7 @@ void SyslogCollectorInterface::collect_events() {
           
       if (udp_socket.enable){
         if (FD_ISSET(udp_socket.sock, &read_fds)) {
-          if(receive(udp_socket.sock, NULL) != 0)
+          if(receive(udp_socket.sock, NULL, true) != 0)
             ntop->getTrace()->traceEvent(TRACE_ERROR, "Error receiving from UDP socket fd");
         }
 

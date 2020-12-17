@@ -64,7 +64,7 @@ class SyslogCollectorInterface : public SyslogParserInterface {
   void closeConnection(syslog_client *client);
   int receiveFromClient(syslog_client *client);
 
-  int receive(int socket, char *client_ip);
+  int receive(int socket, char *client_ip, bool use_recvfrom);
 
   virtual const char* get_type()    const { return(CONST_INTERFACE_TYPE_SYSLOG); };
   virtual InterfaceType getIfType() const { return(interface_type_SYSLOG); }
