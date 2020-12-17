@@ -301,6 +301,10 @@ function am_utils.formatAmHost(host, measurement, isHtml)
     --return(host)
   --end
 
+  if(host == nil) then
+     return(nil)
+  end
+  
   local res = host
 
   if not host:starts(measurement) then
