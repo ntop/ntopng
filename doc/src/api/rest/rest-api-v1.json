@@ -1364,7 +1364,14 @@
 				"produces": [
 					"application/json"
 				],
-				"parameters": [],
+				"parameters": [{
+                                                "name": "ifid",
+                                                "in": "query",
+                                                "description": "Interface ID",
+                                                "required": true,
+                                                "type": "number"
+                                        }
+                                ],
 				"responses": {
 					"0": {
 						"description": "OK"
@@ -1383,7 +1390,14 @@
                                 "produces": [
                                         "application/json"
                                 ],
-                                "parameters": [],
+                                "parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface ID",
+						"required": true,
+						"type": "number"
+					}
+				],
                                 "responses": {
                                         "0": {
                                                 "description": "OK"
