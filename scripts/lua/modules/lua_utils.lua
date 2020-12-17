@@ -645,13 +645,13 @@ function hasAlertsDisabled()
 end
 
 function hasNindexSupport()
-   if not ntop.isEnterpriseM() or ntop.isWindows() then
+   if not ntop.isPro() or ntop.isWindows() then
       return false
    end
 
    -- TODO optimize
    if prefs == nil then
-    prefs = ntop.getPrefs()
+      prefs = ntop.getPrefs()
    end
 
    if prefs.is_nindex_enabled then
