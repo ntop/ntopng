@@ -418,6 +418,7 @@ local lang = {
     ["pool"] = "Pool",
     ["rtt_vs_jitter"] = "Mean RTT / Jitter",
     ["speedtest"] = "Speedtest",
+    ["throughput"] = "Throughput",
     ["upload_speed"] = "Upload Speed",
     ["validation"] = {
       ["abort_add"] = "Abort add Active Monitoring record?",

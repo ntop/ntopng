@@ -116,9 +116,9 @@ return {
       -- The localization string for the Jitter unit (e.g. "ms", "Mbits")
       i18n_jitter_unit = nil,
       -- The localization string for the Active Monitoring timeseries menu entry
-      i18n_am_ts_label = "active_monitoring_stats.download_speed",
+      i18n_am_ts_label = "active_monitoring_stats.throughput",
       -- The localization string for the Active Monitoring metric in the chart
-      i18n_am_ts_metric = "active_monitoring_stats.download_speed",
+      i18n_am_ts_metric = "active_monitoring_stats.throughput",
       -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
       operator = "lt",
       -- If set, indicates a maximum threshold value
