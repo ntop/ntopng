@@ -9,7 +9,6 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 local alerts_api = require("alerts_api")
 local recording_utils = require "recording_utils"
-local remote_assistance = require "remote_assistance"
 local telemetry_utils = require "telemetry_utils"
 local ts_utils = require("ts_utils_core")
 local page_utils = require("page_utils")
@@ -500,22 +499,6 @@ if #system_entries > 0 then
       }
    )
 end
-
--- ##############################################
-
--- Tools
-
-page_utils.add_menubar_section({
-   hidden = not is_system_interface,
-   section = page_utils.menu_sections.tools,
-   entries = {
-      {
-         entry = page_utils.menu_entries.remote_assistance,
-         hidden = not is_admin or not remote_assistance.isAvailable(),
-         url = '/lua/admin/remote_assistance.lua',
-      },
-   }
-})
 
 -- ##############################################
 

@@ -15,7 +15,6 @@ local periodic_activities_utils = require "periodic_activities_utils"
 local cpu_utils = require("cpu_utils")
 local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
-local remote_assistance = require("remote_assistance")
 local alert_consts = require("alert_consts")
 local rest_utils = require("rest_utils")
 
@@ -233,14 +232,6 @@ function dumpInterfaceStats(ifid)
 
       if(ifstats["profiles"] ~= nil) then
          res["profiles"] = ifstats["profiles"]
-      end
-
-      if remote_assistance.isAvailable() then
-         if remote_assistance.isEnabled() then
-            res["remote_assistance"] = {
-               status = remote_assistance.getStatus(),
-            }
-         end
       end
 
       if recording_utils.isAvailable() then

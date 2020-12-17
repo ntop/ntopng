@@ -234,11 +234,9 @@ install_service_conf() {
 
 ALLOWED_OPTIONS_N2DISK="is-active|log|stats|list"
 ALLOWED_OPTIONS_N2DISK_NTOPNG="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log|stats|set-license"
-ALLOWED_OPTIONS_N2N="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log"
 
 print_usage() {
     echo "Usage:"
-    echo " n2n {${ALLOWED_OPTIONS_N2N}} [params]"
     echo " n2disk-ntopng {${ALLOWED_OPTIONS_N2DISK_NTOPNG}} [params]"
     echo " n2disk {${ALLOWED_OPTIONS_N2DISK}} [params]"
     exit 1
@@ -289,17 +287,6 @@ case "$1" in
 	    check_license
 	else
 	    check_interface "$3"
-	fi
-	;;
-
-    n2n)
-	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2N}"
-
-	SERVICE_NAME="edge-ntopng"
-	CONFIG_INSTALL_TARGET="install-n2n-conf"
-
-	if [ ! -z "$3" ]; then
-	    SERVICE_PARAM="$3"
 	fi
 	;;
 

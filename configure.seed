@@ -533,7 +533,6 @@ if test -f "/etc/centos-release"; then
   fi
 fi
 
-CENTOS_N2N_DEP=""
 CFLAGS="${CFLAGS} -Wall"
 OS=""
 if test $SYSTEM = "Darwin"; then
@@ -559,10 +558,7 @@ else
     fi
     
     if [ test -f /etc/redhat-release ]; then
-       if [ test -f /usr/bin/lsb_release ]; then
-       	  dnl> CentOS 7
-	  CENTOS_N2N_DEP=", n2n"
-       fi
+       :
     else
         if [ test -f /usr/bin/lsb_release ]; then
          OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
@@ -777,7 +773,6 @@ AC_SUBST(SERVICE_REQUIRES)
 AC_SUBST(SERVICE_WANTS)
 AC_SUBST(SERVICE_ALIAS)
 AC_SUBST(APP)
-AC_SUBST(CENTOS_N2N_DEP)
 AC_SUBST(RPM_SIGN_CMD)
 AC_SUBST(LIBRRD_LD_FLAGS)
 AC_SUBST(STABLE_SUFFIX)

@@ -106,8 +106,6 @@ local function userActivityFormatter(ifid, alert, info)
 	    if service_name == 'n2disk-ntopng' and decoded.params[2] ~= nil then
 	       local service_instance = decoded.params[2]
 	       return i18n('user_activity.recording_disabled', {user=user, ifname=service_instance})
-	    elseif service_name == 'n2n' then
-	       return i18n('user_activity.remote_assistance_disabled', {user=user})
 	    end
 
 	 elseif decoded.name == 'enableService' and decoded.params[1] ~= nil then
@@ -115,8 +113,6 @@ local function userActivityFormatter(ifid, alert, info)
 	    if service_name == 'n2disk-ntopng' and decoded.params[2] ~= nil then
 	       local service_instance = decoded.params[2]
 	       return i18n('user_activity.recording_enabled', {user=user, ifname=service_instance})
-	    elseif service_name == 'n2n' then
-	       return i18n('user_activity.remote_assistance_enabled', {user=user})
 	    end
 
 	    -- File download

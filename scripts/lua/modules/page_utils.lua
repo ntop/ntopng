@@ -121,7 +121,6 @@ page_utils.menu_entries = {
 
     -- Tools
     export_data    	 = {key = "export_data", i18n_title = "manage_data.export", section = "tools"},
-    remote_assistance    = {key = "remote_assistance", i18n_title = "remote_assistance.remote_assistance", section = "tools", help_link = "https://www.ntop.org/guides/ntopng/remote_assistance.html"},
 
     -- Pools
     host_members	     	   = {key = "host_members", i18n_title = "host_pools.host_members", section = "pools", visible_iface = false, visible_system = true},

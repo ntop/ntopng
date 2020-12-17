@@ -145,13 +145,6 @@ ntop.delCache("ntopng.influx_file_queue")
 
 -- ##################################################################
 
--- Check remote assistance expiration
-local remote_assistance = require "remote_assistance"
-remote_assistance.checkAvailable()
-remote_assistance.checkExpiration()
-
--- ##################################################################
-
 local recording_utils = require "recording_utils"
 recording_utils.checkAvailable()
 

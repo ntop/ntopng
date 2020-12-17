@@ -1,7 +1,6 @@
 require "lua_utils"
 
 local recording_utils = require "recording_utils"
-local remote_assistance = require "remote_assistance"
 local plugins_utils = require("plugins_utils")
 
 local prefs = ntop.getPrefs()
@@ -307,11 +306,6 @@ local menu_subpages = {
     max_extracted_pcap_bytes = {
       title       = i18n("traffic_recording.max_extracted_pcap_bytes_title"),
       description = i18n("traffic_recording.max_extracted_pcap_bytes_description"),
-    },
-  }}, {id="remote_assistance", label=i18n("remote_assistance.remote_assistance"), advanced=true,  pro_only=false, hidden=(not remote_assistance.isAvailable()), entries={
-    n2n_supernode = {
-      title       = i18n("prefs.n2n_supernode_title"),
-      description = i18n("prefs.n2n_supernode_description", {url="https://www.ntop.org/products/n2n"}),
     },
   }}, {id="retention", label=i18n("prefs.data_retention"), advanced=true, pro_only=false, hidden=false, entries={
     data_retention = {

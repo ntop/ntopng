@@ -514,14 +514,6 @@ print[[
 			msg += NtopUtils.addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></span></a>";
 	    }
 
-	    if (rsp.remote_assistance != undefined && (!systemInterfaceEnabled)) {
-
-	    	var status = rsp.remote_assistance.status;
-		  	var status_label = (status == "active") ? "success" : "danger";
-	      	msg += "<a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/remote_assistance.lua?tab=status\"><span class=\"badge badge-" + status_label + "\" title=\"]] print(i18n("remote_assistance.remote_assistance")) print[[\">";
-	      	msg += "<i class=\"fas fa-comment-dots fa-lg\"></i></span></a>";
-	    }
-
 	    if (rsp.traffic_recording != undefined && (!systemInterfaceEnabled)) {
 
 			var status_label="primary";
