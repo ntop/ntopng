@@ -74,15 +74,18 @@ install manually `npcap drivers <https://nmap.org/npcap/>`_. If Wireshark is
 already installed on Windows, then `npcap drivers <https://nmap.org/npcap/>`_
 are already installed and no drviver installation is necessary.
 
-.. note::
+In case you see a message as the one below
+ 
+.. figure:: ./img/missing_pcap.png
 
-   In case you see a message as the one below
+it means that your capture drivers have not been properly installed and that you have to install them as described in this section.
+
+
+.. note::   
+   If during installation the installer complains for missing MSVCR120.DLL or MSVCR120P.DLL please
+   download `Visual C++ Redistributable Package <https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package>`_
+
    
-   .. figure:: ./img/missing_pcap.png
-
-   it means that your capture drivers have not been properly installed and that you have to install them as described in this section.
-
-	    
 Versions
 ========
 
