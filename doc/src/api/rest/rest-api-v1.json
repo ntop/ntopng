@@ -1360,10 +1360,20 @@
 				"produces": [
 					"application/json"
 				],
-				"parameters": [],
+				"parameters": [{
+                                                "name": "ifid",
+                                                "in": "query",
+                                                "description": "Interface ID",
+                                                "required": true,
+                                                "type": "number"
+                                        }
+                                ],
 				"responses": {
 					"0": {
 						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
 					}
 				}
 			}
@@ -1379,11 +1389,21 @@
 				"produces": [
 					"application/json"
 				],
-				"parameters": [],
+				"parameters": [{
+                                                "name": "ifid",
+                                                "in": "query",
+                                                "description": "Interface ID",
+                                                "required": true,
+                                                "type": "number"
+                                        }
+                                ],
 				"responses": {
 					"0": {
 						"description": "OK"
-					}
+					},
+					"-2": {
+                                                "description": "INVALID_INTERFACE"
+                                        }
 				}
 			}
 		},
