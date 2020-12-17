@@ -99,6 +99,12 @@ local function getBatchedIterator(batched_function, field, function_params)
    end
 end
 
+-- A batched iterator over the active flows
+-- @param flows_filter A table containing flow filters matching those specified in Paginator.cpp
+function callback_utils.getFlowsIterator(flows_filter)
+   return getBatchedIterator(interface.getBatchedFlowsInfo, "flows",  flows_filter)
+end
+
 -- A batched iterator over the local hosts with timeseries
 function callback_utils.getLocalHostsTsIterator(...)
    return getBatchedIterator(interface.getBatchedLocalHostsTs, "hosts", { ... })
@@ -122,6 +128,32 @@ end
 -- A batched iterator over the l2 devices
 function callback_utils.getDevicesIterator(...)
    return getBatchedIterator(interface.getBatchedMacsInfo, "macs", { ... })
+end
+
+-- ########################################################
+
+-- Iterates each active flow on the ifname interface.
+-- Each flow is passed to the callback with some more information.
+function callback_utils.foreachFlow(ifname, deadline, callback, ...)
+   interface.select(ifname)
+
+   local iterator = callback_utils.getFlowsIterator({...})
+
+   for flow_key, flow in iterator do
+
+      if(ntop.isShutdown()) then return true end
+
+      if ((deadline ~= nil) and (os.time() >= deadline)) then
+	 -- Out of time
+	 return false
+      end
+
+      if callback(flow_key, flow) == false then
+	 return false
+      end
+   end
+
+   return true
 end
 
 -- ########################################################

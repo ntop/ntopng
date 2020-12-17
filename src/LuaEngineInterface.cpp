@@ -2156,10 +2156,6 @@ static int ntop_get_interface_flows_info(lua_State* vm) {
 
 static int ntop_get_batched_interface_flows_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char buf[64];
-  char *host_ip = NULL;
-  u_int16_t vlan_id = 0;
-  Host *host = NULL;
   Paginator *p = NULL;
   u_int32_t begin_slot = 0;
   bool walk_all = false;
@@ -2175,17 +2171,11 @@ static int ntop_get_batched_interface_flows_info(lua_State* vm) {
   if(lua_type(vm, 1) == LUA_TNUMBER)
     begin_slot = (u_int32_t)lua_tonumber(vm, 1);
 
-  if(lua_type(vm, 2) == LUA_TSTRING) {
-    get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
-    host = ntop_interface->getHost(host_ip, vlan_id, false /* Not an inline call */);
-  }
+  if(lua_type(vm, 2) == LUA_TTABLE)
+    p->readOptions(vm, 2);
 
-  if(lua_type(vm, 3) == LUA_TTABLE)
-    p->readOptions(vm, 3);
-
-  if(ntop_interface
-     && (!host_ip || host))
-    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), host, p);
+  if(ntop_interface)
+    ntop_interface->getFlows(vm, &begin_slot, walk_all, get_allowed_nets(vm), NULL, p);
   else
     lua_pushnil(vm);
 
