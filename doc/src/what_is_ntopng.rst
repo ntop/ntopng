@@ -58,8 +58,6 @@ will start and ntopng will be installed, along with its dependencies.
 The installation procedure installs
 
 - ntopng
-- `Win10Pcap
-  <http://www.win10pcap.org>`_ drivers.
 - `Microsoft Visual C++ Redistributable
   <https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads>`_
 - `Redis <https://redis.io/>`_
@@ -68,30 +66,23 @@ The installation procedure installs
 
    If upgrading from an earlier version of ntopng for Windows, it is
    safe to skip the installation of any ntopng dependency. It is safe
-   to respond 'No' or click 'Cancel' when prompted to install WinPcap
-   drivers, Microsoft Visual C++ Redistributable, and Redis.
+   to respond 'No' or click 'Cancel' when prompted to install 
+   Microsoft Visual C++ Redistributable, and Redis.
 
-By default, the ntopng installer comes with Win10Pcap drivers. However,
-if using a recent Windows version (e.g., Windows 10), it is
-recommended to install `npcap drivers <https://nmap.org/npcap/>`_
-before installing ntopng and then, when prompted by the ntopng
-installer, skip the installation of WinPcap drivers. npcap drivers are
-better maintained but their license doesn't allow the redistribution
-in the ntopng installer.
+By default, the ntopng installer comes without capture drivers. You need to
+install manually `npcap drivers <https://nmap.org/npcap/>`_. If Wireshark is
+already installed on Windows, then `npcap drivers <https://nmap.org/npcap/>`_
+are already installed and no drviver installation is necessary.
 
 .. note::
 
-   If Wireshark is already installed on Windows, then
-   `npcap drivers <https://nmap.org/npcap/>`_ are already installed. In this case, it is
-   safe to run the ntopng installer and skip WinPcap drivers
-   installation, without any extra step to download or install npcap
-   drivers.
-
-The Windows package does NOT contain geolocation files, due to restrictions as
-reported later in this section. So you need to download the geolocation files
-and then copy them into C:\\Program Files\\ntopng\\httpdocs\\geoip\\ directory, and
-then restart ntopng.
+   In case you see a message as the one below
    
+   .. figure:: ./img/missing_pcap.png
+
+   it means that your capture drivers have not been properly installed and that you have to install them as described in this section.
+
+	    
 Versions
 ========
 
