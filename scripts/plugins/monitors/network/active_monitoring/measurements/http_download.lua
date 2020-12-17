@@ -32,7 +32,7 @@ local function check(measurement, hosts, granularity)
     -- HTTP results are retrieved immediately
     local rv
     if host.token then
-       rv = ntop.httpGetAuthToken(domain_name, host.token, 10 --[[ timeout ]], host.save_result == true --[[ whether to return the content --]],
+       rv = ntop.httpGetAuthToken(domain_name, host.token, 10 --[[ timeout ]], host.save_result == false --[[ whether to return the content --]],
 				  nil, true --[[ follow redirects ]])
     else
        rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], host.save_result == false --[[ whether to return the content --]],
@@ -50,22 +50,6 @@ local function check(measurement, hosts, granularity)
 	    value = bandwidth,
         resolved_addr = rv.RESOLVED_IP,
 	 }
-
-      -- Check if the result of the measurement has to be saved
-      if host.save_result and not isEmptyString(rv.CONTENT) then
-	 local plugins_utils = require "plugins_utils"
-	 local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
-	 am_utils.setLastResult(key, rv.CONTENT)
-      end
-
-      -- HTTP specific metrics
-      ts_utils.append("am_host:http_stats_" .. granularity, {
-	    ifid = getSystemInterfaceId(),
-	    host = host.host,
-	    metric = host.measurement,
-	    lookup_ms = lookup_time * 1000,
-	    other_ms = (total_time - lookup_time * 1000),
-	}, when)
     end
   end
 end
