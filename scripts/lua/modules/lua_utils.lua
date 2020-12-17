@@ -4002,6 +4002,33 @@ function buildHostHREF(ip_address, vlan_id, page)
    end
 end
 
+function builServiceMapHREF(ip_address, vlan_id)
+
+   local stats = cache[ip_address]
+
+   if(stats == nil) then
+      stats = interface.getHostInfo(ip_address, vlan_id)
+      cache[ip_address] = { stats = stats }
+   else
+      stats = stats.stats
+   end
+
+   if(stats == nil) then
+      return(ip_address)
+   else
+      local name = stats.name
+      local res
+
+      if((name == nil) or (name == "")) then name = ip_address end
+      res = '<a href="'..ntop.getHttpPrefix()..'/lua/service_map.lua?host='..ip_address
+
+      if(vlan_id and (vlan_id ~= 0)) then res = res .. "@"..vlan_id end
+      res = res  ..'&page=graph">'..name..'</A>'
+
+      return(res)
+   end
+end
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions

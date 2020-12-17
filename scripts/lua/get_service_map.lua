@@ -33,8 +33,8 @@ for k,v in pairs(p) do
       table.insert(row, v.l7_proto)
    end
 
-   table.insert(row, buildHostHREF(v.client, v.vlan_id, "service_map"))
-   table.insert(row, buildHostHREF(v.server, v.vlan_id, "service_map"))
+   table.insert(row, builServiceMapHREF(v.client, v.vlan_id))
+   table.insert(row, builServiceMapHREF(v.server, v.vlan_id))
    table.insert(row, v.vlan_id or 0)
    table.insert(row, port)
    table.insert(row, v.num_uses)

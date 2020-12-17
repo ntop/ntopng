@@ -447,7 +447,8 @@ else
 				 hidden = not service_map_available,
 				 active = page == "service_map",
 				 page_name = "service_map",
-				 label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
+             label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
+             url = ntop.getHttpPrefix() .. "/lua/service_map.lua?host=" .. host_ip
 			      },
 			      {
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
@@ -2058,9 +2059,6 @@ elseif (page == "quotas" and ntop.isnEdge() and ntop.isEnterpriseM() and host_po
 
 elseif (page == "periodicity_map") then
       dofile(dirs.installdir .. "/scripts/lua/inc/periodicity_map.lua")
-
-elseif (page == "service_map") then
-      dofile(dirs.installdir .. "/scripts/lua/inc/service_map.lua")
 
 elseif (page == "config") then
    if(not isAdministrator()) then

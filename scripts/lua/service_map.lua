@@ -12,6 +12,7 @@ local page_utils = require("page_utils")
 local ui_utils = require("ui_utils")
 local template = require "template_utils"
 local json = require "dkjson"
+local ifs = interface.getStats()
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -33,6 +34,7 @@ local function generate_graph(service_map, host_ip)
         local key = ""
         if ((host_ip == nil) or (v.client == host_ip) or (v.server == host_ip)) then
 
+            num_services = num_services + 1
             nodes[v["client"]] = true
             nodes[v["server"]] = true
       
@@ -79,7 +81,7 @@ local function generate_graph(service_map, host_ip)
 end
 
 --- Generate nodes to be used by the js plugin
-local function generate_ui_graph(map_nodes, proto_number)
+local function generate_ui_graph(map_nodes, saved_positions, proto_number)
     
     local nodes_id = {}
     local nodes = {}
@@ -87,23 +89,28 @@ local function generate_ui_graph(map_nodes, proto_number)
 
     local i = 1
 
-    for k,_ in pairs(map_nodes) do
+    for k, _ in pairs(map_nodes) do
 
         local hinfo = hostkey2hostinfo(k)
         local label = shortenString(hostinfo2label(hinfo), 16)
         local ainfo = interface.getAddressInfo(k)
-        local node = {id = i, value = k, label = label}
+        local node = {id = k, value = k, label = label}
 
         if (ainfo.is_multicast or ainfo.is_broadcast) then
             node.color = "#7BE141"
         end
-        
-        nodes_id[k] = i
+
+        if (saved_positions[node.id] ~= nil) then
+            node.x = saved_positions[node.id].x
+            node.y = saved_positions[node.id].y
+        end
+
+        nodes_id[k] = node.id
         nodes[#nodes+1] = node
         i = i + 1
     end
 
-    for k,v in pairs(proto_number) do
+    for k, v in pairs(proto_number) do
 
         local title = v[5]
         local arrow = ""
@@ -166,31 +173,59 @@ local function generate_filters(service_map)
     return filters
 end
 
+local function get_saved_graph_view()
+
+    -- If a graph view hasn't been saved yet, then use the default View
+    local GRAPH_VIEW_DEFAULT = {scale = 1, position = {x = 0, y = 0}}
+    local ifid = ifs.id
+    local GRAPH_VIEW_REDIS_KEY = string.format("ntopng.prefs.service_map.%d.graph", ifid)
+
+    local network_info = json.decode(ntop.getPref(GRAPH_VIEW_REDIS_KEY))
+    if (network_info == nil) then
+        return {}, GRAPH_VIEW_DEFAULT
+    end
+
+    local nodes_position = network_info.positions or {}
+    local network_layout = network_info.network or GRAPH_VIEW_DEFAULT
+
+    return nodes_position, network_layout
+end
+
 local host_ip = _GET["host"]
-local page = _GET["page"]
+local page = _GET["page"] or "graph"
 
 local nodes, proto_number, num_services = generate_graph(service_map, host_ip)
-local ui_nodes, ui_edges = generate_ui_graph(nodes, proto_number)
+local saved_nodes_position, view_layout = get_saved_graph_view()
+local ui_nodes, ui_edges = generate_ui_graph(nodes, saved_nodes_position, proto_number)
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.service_map)
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local url = ntop.getHttpPrefix() .. "/lua/service_map.lua"
-page_utils.print_navbar(i18n("service_map"), url, {
+local title = i18n("service_map")
+local host_label = ""
+
+if host_ip ~= nil then
+    local hinfo = hostkey2hostinfo(host_ip)
+    local label = shortenString(hostinfo2label(hinfo), 16)
+    host_label = label
+end
+
+local navbar_title = ui_utils.create_navbar_title(title, host_label, "/lua/service_map.lua")
+
+page_utils.print_navbar(navbar_title, url, {
     {
-        active = page == nil or page == "home",
-        page_name = "home",
-        label = "<i class=\"fas fa-lg fa-home\"></i>",
-        url = url
+        active = page == nil or page == "graph",
+        page_name = "graph",
+        label = '<i class="fas fa-lg fa-project-diagram"></i>',
     },
     {
-        active = page == "graph",
-        hideen = (num_services == 0), 
-        page_name = "graph",
-        label = i18n("snmp.snmp_topology"),
-        url = url .. "?page=graph"
+        active = page == "table",
+        hidden = (num_services == 0) or (host_ip ~= nil), 
+        page_name = "table",
+        label = '<i class="fas fa-lg fa-table"></i>',
+        url = ntop.getHttpPrefix() .. "/lua/service_map.lua?page=table"
     }
 })
 
@@ -198,11 +233,15 @@ local context = {
     json = json,
     is_admin = is_admin,
     page = page,
+    ifid = ifs.id,
     service_map = {
         num_services = num_services,
         graph_ui = {
             nodes = ui_nodes,
-            edges = ui_edges
+            edges = ui_edges,
+            saved = {
+                layout = view_layout
+            }
         },
         table = {
             filters = generate_filters(service_map)
