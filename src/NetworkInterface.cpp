@@ -5960,7 +5960,7 @@ u_int NetworkInterface::printAvailableInterfaces(bool printHelp, int idx,
     ntop->getTrace()->traceEvent(TRACE_WARNING, "that you have administrative rights,");
     ntop->getTrace()->traceEvent(TRACE_WARNING, "and that you have network interfaces installed.");
 #else
-  https://nmap.org/npcap/    ntop->getTrace()->traceEvent(TRACE_WARNING, "No interfaces available: are you superuser?");
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "No interfaces available: are you superuser?");
 #endif
   }
 
