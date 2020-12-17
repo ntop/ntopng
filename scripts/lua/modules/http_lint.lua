@@ -1508,7 +1508,8 @@ local known_parameters = {
    ["token"]                  = validateToken,
    ["instance_id"]            = validateSingleWord,
    ["stats"]                  = validateBool,
-   ["threshold"]              = validateNumber,
+   ["rtt_threshold"]          = validateNumber,
+   ["bandwidth_threshold"]    = validateNumber,
 
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,

@@ -3536,8 +3536,14 @@
 						"type": "string"
 					},
 					{
-						"name": "threshold",
-						"description": "A threshold used by the active monitoring",
+						"name": "rtt_threshold",
+						"description": "RTT threshold used by the active monitoring",
+						"required": true,
+						"type": "int32"
+					},
+					{
+						"name": "bandwidth_threshold",
+						"description": "Bandwidth threshold used by the active monitoring",
 						"required": true,
 						"type": "int32"
 					}
@@ -3562,7 +3568,7 @@
 						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_TOKEN"
 					},
 					"-37": {
-						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_THRESHOLD"
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_RTT_THRESHOLD"
 					},
 					"-39": {
 						"description": "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"
@@ -3575,6 +3581,9 @@
 					},
 					"-42": {
 						"description": "INFRASTRUCTURE_INSTANCE_ALREADY_EXISTING"
+					},
+					"-47": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_BANDWIDTH_THRESHOLD"
 					}
 				}
 			}
@@ -3616,8 +3625,14 @@
 						"type": "string"
 					},
 					{
-						"name": "threshold",
-						"description": "A threshold used by the active monitoring",
+						"name": "rtt_threshold",
+						"description": "RTT threshold used by the active monitoring",
+						"required": true,
+						"type": "int32"
+					},
+					{
+						"name": "bandwidth_threshold",
+						"description": "Bandwidth threshold used by the active monitoring",
 						"required": true,
 						"type": "int32"
 					}
@@ -3648,7 +3663,7 @@
 						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_TOKEN"
 					},
 					"-37": {
-						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_THRESHOLD"
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_RTT_THRESHOLD"
 					},
 					"-39": {
 						"description": "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"
@@ -3658,6 +3673,9 @@
 					},
 					"-41": {
 						"description": "INFRASTRUCTURE_INSTANCE_SAME_TOKEN"
+					},
+					"-47": {
+						"description": "INFRASTRUCTURE_INSTANCE_EMPTY_BANDWIDTH_THRESHOLD"
 					}
 				}
 			}

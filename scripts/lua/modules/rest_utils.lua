@@ -64,7 +64,7 @@ local rest_utils = {
          infrastructure_instance_empty_alias        = { http_code = 409, rc = -34, str = "INFRASTRUCTURE_INSTANCE_EMPTY_ALIAS"},
          infrastructure_instance_empty_url          = { http_code = 409, rc = -35, str = "INFRASTRUCTURE_INSTANCE_EMPTY_URL"},
          infrastructure_instance_empty_token        = { http_code = 409, rc = -36, str = "INFRASTRUCTURE_INSTANCE_EMPTY_TOKEN"},
-         infrastructure_instance_empty_threshold    = { http_code = 409, rc = -37, str = "INFRASTRUCTURE_INSTANCE_EMPTY_THRESHOLD"},
+         infrastructure_instance_empty_rtt_threshold         = { http_code = 409, rc = -37, str = "INFRASTRUCTURE_INSTANCE_EMPTY_RTT_THRESHOLD"},
 
          infrastructure_instance_same_id            = { http_code = 409, rc = -38, str = "INFRASTRUCTURE_INSTANCE_SAME_ID"},
          infrastructure_instance_same_alias         = { http_code = 409, rc = -39, str = "INFRASTRUCTURE_INSTANCE_SAME_ALIAS"},
@@ -77,6 +77,7 @@ local rest_utils = {
          infrastructure_instance_check_not_found    = { http_code = 409, rc = -44, str = "INFRASTRUCTURE_INSTANCE_CHECK_NOT_FOUND"},
          infrastructure_instance_check_invalid_rsp  = { http_code = 409, rc = -45, str = "INFRASTRUCTURE_INSTANCE_CHECK_INVALID_RESPONSE"},
          infrastructure_instance_check_auth_failed  = { http_code = 409, rc = -46, str = "INFRASTRUCTURE_INSTANCE_CHECK_AUTH_FAILED"},
+         infrastructure_instance_empty_bandwidth_threshold   = { http_code = 409, rc = -47, str = "INFRASTRUCTURE_INSTANCE_EMPTY_BANDWIDTH_THRESHOLD"},
       },
    }
 }

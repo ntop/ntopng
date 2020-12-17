@@ -35,7 +35,7 @@ $(document).ready(function() {
         columns: [
             /* Alias Column */
             { width: '15%', data: 'alias', render: (alias, type, instance) => {
-		return alias;
+		        return alias;
             }},
             /* URL Column */
             { width: '15%', data: 'url', render: (url, type, instance) => {     
@@ -155,7 +155,7 @@ $(document).ready(function() {
             $(`#edit-instance-modal form input`).each(function() {
                 
                 const name = $(this).attr('name');
-                if (name == "threshold") {
+                if (name == "rtt_threshold") {
                     $(this).val(instance[name] / 1000);
                     return;
                 }
