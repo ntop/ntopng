@@ -219,6 +219,7 @@ page_utils.print_navbar(navbar_title, url, {
         active = page == nil or page == "graph",
         page_name = "graph",
         label = '<i class="fas fa-lg fa-project-diagram"></i>',
+        url = ntop.getHttpPrefix() .. "/lua/service_map.lua?page=graph"
     },
     {
         active = page == "table",
