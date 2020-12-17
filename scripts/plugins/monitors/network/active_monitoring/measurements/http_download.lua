@@ -32,11 +32,18 @@ local function check(measurement, hosts, granularity)
     -- HTTP results are retrieved immediately
     local rv
     if host.token then
-       rv = ntop.httpGetAuthToken(domain_name, host.token, 10 --[[ timeout ]], host.save_result == false --[[ whether to return the content --]],
+      local suffix = s:sub(-domain_name.len("/"))
+      if (suffix == "/") then
+        domain_name = domain_name .. "lua/10mb.lua"
+      else
+        domain_name = domain_name .. "/lua/10mb.lua"
+      end
+
+      rv = ntop.httpGetAuthToken(domain_name, host.token, 10 --[[ timeout ]], host.save_result == false --[[ whether to return the content --]],
 				  nil, true --[[ follow redirects ]])
     else
        rv = ntop.httpGet(domain_name, nil, nil, 10 --[[ timeout ]], host.save_result == false --[[ whether to return the content --]],
-			 nil, false --[[ don't follow redirects ]])
+			 nil, true --[[ don't follow redirects ]])
     end
 
     if(rv and rv.HTTP_STATS and (rv.HTTP_STATS.TOTAL_TIME > 0)) then
