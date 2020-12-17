@@ -89,6 +89,9 @@ end
 
 -- The function below is called for each received alert
 function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
+   local num_unhandled = 0
+   local num_alerts = 0
+
    -- Priority = Facility * 8 + Level
    local facility = math.floor(priority / 8)
    local level = priority - (facility * 8)
@@ -98,44 +101,47 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
 
    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "[host="..host.."][facility="..facility_name.."][level="..level_name.."][message="..message.."]")
 
-   if isEmptyString(host) then
-      return
+   if not isEmptyString(host) then
+      -- Discard info messages
+      if level <= syslog_conf.host_log.all.script_conf.threshold then
+
+         local entity = alerts_api.hostAlertEntity(host, 0)
+
+         local severity = alert_severities.notice
+         if level <= 3 then
+            severity = alert_severities.error
+         elseif level <= 4 then
+            severity = alert_severities.warning
+         end
+
+         local type_info = alert_consts.alert_types.alert_host_log.create(
+            getLogSubtype(message),
+            severity,
+            host,
+            level_name,
+            facility_name,
+            message)
+
+         -- Deliver alert
+         alerts_api.store(entity, type_info)
+
+         -- Deliver to companion if any
+         local companion_of = companion_interface_utils.getCurrentCompanionOf(interface.getId())
+         local curr_iface = tostring(interface.getId())
+         for _, m in pairs(companion_of) do
+            interface.select(m)
+            alerts_api.store(entity, type_info)
+         end
+         interface.select(curr_iface)
+
+         num_alerts = num_alerts + 1
+      end
+
+   else
+      num_unhandled = num_unhandled + 1
    end
 
-   -- Discard info messages
-   if level > syslog_conf.host_log.all.script_conf.threshold then
-      return
-   end
-
-   local entity = alerts_api.hostAlertEntity(host, 0)
-
-   local severity = alert_severities.notice
-   if level <= 3 then
-      severity = alert_severities.error
-   elseif level <= 4 then
-      severity = alert_severities.warning
-   end
-
-   local type_info = alert_consts.alert_types.alert_host_log.create(
-      getLogSubtype(message),
-      severity,
-      host,
-      level_name,
-      facility_name,
-      message)
-
-   -- Deliver alert
-   alerts_api.store(entity, type_info)
-
-   -- Deliver to companion if any
-   local companion_of = companion_interface_utils.getCurrentCompanionOf(interface.getId())
-   local curr_iface = tostring(interface.getId())
-   for _, m in pairs(companion_of) do
-      interface.select(m)
-      alerts_api.store(entity, type_info)
-   end
-   interface.select(curr_iface)
-
+   interface.incSyslogStats(1, 0, num_unhandled, num_alerts, 0, 0)
 end 
 
 -- #################################################################
