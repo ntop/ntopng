@@ -5956,11 +5956,11 @@ u_int NetworkInterface::printAvailableInterfaces(bool printHelp, int idx,
   if(numInterfaces == 0) {
 #ifdef WIN32
     ntop->getTrace()->traceEvent(TRACE_WARNING, "No interfaces available! This application cannot work");
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Make sure that winpcap is installed properly,");
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Make sure that https://nmap.org/npcap/ is installed,");
     ntop->getTrace()->traceEvent(TRACE_WARNING, "that you have administrative rights,");
     ntop->getTrace()->traceEvent(TRACE_WARNING, "and that you have network interfaces installed.");
 #else
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "No interfaces available: are you superuser?");
+  https://nmap.org/npcap/    ntop->getTrace()->traceEvent(TRACE_WARNING, "No interfaces available: are you superuser?");
 #endif
   }
 
@@ -7034,8 +7034,10 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 #ifndef HAVE_NEDGE
     else if(ntop->getPrefs()->do_dump_flows_on_es())
       db = new (std::nothrow) ElasticSearch(this);
+#ifndef WIN32
     else if(ntop->getPrefs()->do_dump_flows_on_syslog())
       db = new (std::nothrow) SyslogDump(this);
+#endif
 #endif
   }
 

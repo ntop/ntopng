@@ -23,6 +23,8 @@
 
 #ifndef HAVE_NEDGE
 
+#ifndef WIN32
+
 /* **************************************** */
 
 SyslogDump::SyslogDump(NetworkInterface *_iface) : DB(_iface) {
@@ -42,5 +44,5 @@ bool SyslogDump::dumpFlow(time_t when, Flow *f, char *msg) {
   return(true); /* OK */
 }
 
-
+#endif /* WIN32 */
 #endif

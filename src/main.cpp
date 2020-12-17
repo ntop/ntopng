@@ -300,7 +300,12 @@ int main(int argc, char *argv[])
   }
   
   if(ntop->getFirstInterface() == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
+#ifdef WIN32
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Please make sure you have installed the https://nmap.org/npcap/ driver");
+#else
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Startup error: missing super-user privileges ?");
+#endif
+
     exit(0);
   }
 

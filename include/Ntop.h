@@ -65,7 +65,9 @@ class Ntop {
   struct ndpi_detection_module_struct *ndpi_struct, *ndpi_struct_shadow;
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
+#ifndef WIN32
   SyslogDump *syslog; /**< Pointer of Logstash. */
+#endif
   ExportInterface *export_interface;
 #endif
   TimelineExtract *extract;

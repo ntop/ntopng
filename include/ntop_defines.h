@@ -102,7 +102,6 @@
 
 #ifdef WIN32
 #undef PACKAGE_OSNAME
-#define localtime_r(a,b)	localtime(a)
 #ifdef _WIN64
 #define PACKAGE_OSNAME            "Win64"
 #else
