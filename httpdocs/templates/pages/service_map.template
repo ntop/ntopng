@@ -152,13 +152,19 @@
 <script type="text/javascript">
     $(document).ready(function() {
 
+        const host = "{{ service_map.host }}";
+        let url = `{{ntop.getHttpPrefix()}}/lua/get_service_map.lua`;
+        if (host !== "") {
+            url = url + `?host=${host}`;
+        }
+
         let config = DataTableUtils.getStdDatatableConfig( [ {
             text: '<i class="fas fa-sync"></i>',
             action: function(e, dt, node, config) {
                 $serviceTable.ajax.reload();
             }
         } ]);
-        config = DataTableUtils.setAjaxConfig(config, `{{ntop.getHttpPrefix()}}/lua/get_service_map.lua?host={{ service_map.host }}`, 'data');
+        config = DataTableUtils.setAjaxConfig(config, url, 'data');
 
         const $serviceTable = $('#service_map_table').DataTable(config);
 
