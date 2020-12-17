@@ -44,6 +44,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROO
 mkdir -p $RPM_BUILD_ROOT/var/lib/ntopng
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/etc/sudoers.d/
+mkdir -p $RPM_BUILD_ROOT/etc/rsyslog.d/
 mkdir -p $RPM_BUILD_ROOT/etc/cron.d/
 %if 0%{?centos_ver} == 6
 mkdir -p $RPM_BUILD_ROOT/etc/init.d 
@@ -80,6 +81,7 @@ else
    cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
 fi
 cp $HOME/ntopng/packages/etc/sudoers.d/ntopng      $RPM_BUILD_ROOT/etc/sudoers.d/
+cp $HOME/ntopng/packages/etc/rsyslog.d/20-ntopng.conf $RPM_BUILD_ROOT/etc/rsyslog.d/
 cp $HOME/ntopng/packages/etc/logrotate.d/ntopng    $RPM_BUILD_ROOT/etc/logrotate.d/
 cp $HOME/ntopng/packages/etc/cron.d/ntopng         $RPM_BUILD_ROOT/etc/cron.d/
 
@@ -115,6 +117,7 @@ rm -fr $RPM_BUILD_ROOT
 %endif
 /etc/logrotate.d/ntopng
 /etc/sudoers.d/ntopng
+/etc/rsyslog.d/20-ntopng.conf
 /etc/cron.d/ntopng
 /usr/share/ntopng
 # Don't overwrite ntopng-cert.pem is the file is already present
