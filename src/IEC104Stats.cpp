@@ -258,8 +258,8 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	  /* Discard typeIds 127..255 */
 	} else /* payload_len < len */
 	  break;
-      } else {
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "*** short APDUs");
+      } else {	
+	// ntop->getTrace()->traceEvent(TRACE_WARNING, "*** short APDUs");
 	break;
       }
 
