@@ -158,7 +158,7 @@
                 $serviceTable.ajax.reload();
             }
         } ]);
-        config = DataTableUtils.setAjaxConfig(config, "{{ntop.getHttpPrefix()}}/lua/get_service_map.lua", 'data');
+        config = DataTableUtils.setAjaxConfig(config, `{{ntop.getHttpPrefix()}}/lua/get_service_map.lua?host={{ service_map.host }}`, 'data');
 
         const $serviceTable = $('#service_map_table').DataTable(config);
 

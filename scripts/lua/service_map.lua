@@ -214,19 +214,26 @@ end
 
 local navbar_title = ui_utils.create_navbar_title(title, host_label, "/lua/service_map.lua")
 
+local graph_url = ntop.getHttpPrefix() .. "/lua/service_map.lua?page=graph"
+local table_url = ntop.getHttpPrefix() .. "/lua/service_map.lua?page=table"
+if (host_ip ~= nil) then
+    table_url = table_url .. "&host=" .. host_ip
+    graph_url = graph_url .. "&host=" .. host_ip
+end
+
 page_utils.print_navbar(navbar_title, url, {
     {
         active = page == nil or page == "graph",
         page_name = "graph",
         label = '<i class="fas fa-lg fa-project-diagram"></i>',
-        url = ntop.getHttpPrefix() .. "/lua/service_map.lua?page=graph"
+        url = graph_url
     },
     {
         active = page == "table",
-        hidden = (num_services == 0) or (host_ip ~= nil), 
+        hidden = (num_services == 0), 
         page_name = "table",
         label = '<i class="fas fa-lg fa-table"></i>',
-        url = ntop.getHttpPrefix() .. "/lua/service_map.lua?page=table"
+        url = table_url
     }
 })
 
@@ -236,6 +243,7 @@ local context = {
     page = page,
     ifid = ifs.id,
     service_map = {
+        host = host_ip,
         num_services = num_services,
         graph_ui = {
             nodes = ui_nodes,
