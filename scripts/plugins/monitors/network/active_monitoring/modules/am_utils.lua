@@ -231,11 +231,15 @@ function am_utils.getAmHostKey(host, measurement)
   return(string.format("%s@%s", measurement, host))
 end
 
+-- @brief Extract the measurement and the host from the key
+--        which is the concatenation of <measurement>@<host>
 local function key2amhost(host)
-  local parts = string.split(host, "@")
+   -- Examples: http@https://maina:maina2@develv5:3003/lua/cane
+   --           https://maina:maina2@develv5:3003/lua/cane
+  local measurement, amhost = string.match(host, "^([^@]+)@(.+)")
 
-  if(parts and (#parts == 2)) then
-    return parts[2], parts[1]
+  if measurement and amhost then
+     return amhost, measurement
   end
 end
 
@@ -455,7 +459,6 @@ end
 -- @param save_result Whether the result fetched with the measure should be saved (e.g., the HTTP response) [optional]
 -- @param readonly Bool used by the GUI to know if, when true, an entry is considered read only hence it cannot be modified/deleted [optional]
 function am_utils.addHost(host, measurement, am_value, granularity, pool, token, save_result, readonly)
-   
   save_result = save_result or false
   readonly = readonly or false
 
