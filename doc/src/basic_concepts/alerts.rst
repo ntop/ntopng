@@ -85,7 +85,6 @@ These activities include:
 - Flows data downloaded
 - Alerts settings changes: alerts disabled or enabled, alerts data deleted
 - Failed or successful logins
-- Remote assistance enabled or disabled
 - Traffic recording enabled or disabled
 - Hosts/interfaces data deleted
 - SNMP device added or removed
