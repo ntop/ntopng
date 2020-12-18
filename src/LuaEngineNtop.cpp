@@ -5137,6 +5137,10 @@ static int __ntop_rrd_status(lua_State* vm, int status, char *filename, char *cf
       ntop->getTrace()->traceEvent(TRACE_ERROR,
                                    "Error '%s' while calling rrd_fetch_r(%s, %s): is the RRD corrupted perhaps?",
                                    err, filename, cf);
+
+      if(strstr(err, "fetching cdp from rra") != NULL)
+	unlink(filename); /* 99,99999% this is a corrupted file */
+	
       return(CONST_LUA_ERROR);
     }
   }
