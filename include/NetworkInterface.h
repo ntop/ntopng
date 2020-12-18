@@ -175,6 +175,7 @@ class NetworkInterface : public AlertableEntity {
     hookLoop /* Thread for the execution of flow user script hooks */;
   FlowAlertCheckLuaEngine *hooksEngine;   /* Lua engine used to execute flow user script hooks */
   volatile bool hooks_engine_reload;      /* Boolean indicating whether the hooksEngine should be reloaded */
+  volatile bool user_scripts_reload;      /* Boolean indicating whether a reload of user scripts has been requested */
   time_t        hooks_engine_next_reload; /* The minimunm time for the next reload of the hooksEngine */
   Condvar       hooks_condition;          /* Condition variable used to wait when no flows have been enqueued for hooks exec. */
   bool pollLoopCreated, flowDumpLoopCreated, hookLoopCreated;
@@ -865,6 +866,11 @@ class NetworkInterface : public AlertableEntity {
   virtual bool read_from_pcap_dump()      const { return(false); };
   virtual bool read_from_pcap_dump_done() const { return(false); };
   virtual void set_read_from_pcap_dump_done()   { ; };
+  /*
+    Issue a request for user scripts reload. This is called by ntopng when user scripts should be reloaded,
+    e.g., after a configuration change.
+   */
+  inline void request_user_scripts_reload()  { if(!user_scripts_reload) user_scripts_reload = true;    };
   virtual void updateDirectionStats()        { ; }
   void reloadDhcpRanges();
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };

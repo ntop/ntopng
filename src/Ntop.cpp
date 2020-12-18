@@ -2980,6 +2980,24 @@ void Ntop::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t p
 
 /* *************************************** */
 
+void Ntop::reloadPeriodicScripts() {
+  /*
+    Request a reload of all the VMs currently executing periodic activities
+   */
+  if(pa) pa->reloadVMs();
+
+  /*
+    Notify interfaces that a reload of user scripts should be performed.
+    Interfaces need to know this for example to reload the VM responsible for
+    the execution of flow hook user scripts.
+   */
+  for(u_int i = 0; i < get_num_interfaces(); i++) {
+    if(getInterface(i)) getInterface(i)->request_user_scripts_reload();
+  }
+};
+
+/* *************************************** */
+
 void Ntop::refreshPluginsDir() {
 #ifdef WIN32
   snprintf(plugins0_dir, sizeof(plugins0_dir), "%s\\plugins0", get_working_dir());

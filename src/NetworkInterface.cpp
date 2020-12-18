@@ -52,6 +52,7 @@ NetworkInterface::NetworkInterface(const char *name,
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   hooksEngine = NULL;
   hooks_engine_reload = false;
+  user_scripts_reload = false;
   hooks_engine_next_reload = 0;
   flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in NetworkInterface::startFlowDumping */
   flows_dump_json_use_labels = false; /* Dump of JSON labels disabled by default, possibly enabled in NetworkInterface::startFlowDumping */
@@ -2402,8 +2403,14 @@ u_int64_t NetworkInterface::dequeueFlows(SPSCQueue<Flow *> *q, FlowLuaCall flow_
 void NetworkInterface::updateHooksEngineReload() {
   time_t now = time(NULL);
 
-  if(hooks_engine_next_reload == 0 /* Need to be set for the first time */
-     || now > hooks_engine_next_reload /* Time to reload */) {
+  if(user_scripts_reload) { /* A user scripts reload has been requested (e.g., due to a config change): hooks MUST be reloaded as well */
+    hooks_engine_next_reload = 0; /* Reset to force a reload as soon as possible below */
+    user_scripts_reload = false;   /* Notify ntop */
+  }
+
+  if(!hooks_engine_reload /* Make sure a reload is not already in progress */
+     && (hooks_engine_next_reload == 0 /* Need to be set for the first time (or has been reset) */
+	 || now > hooks_engine_next_reload /* Time to reload */)) {
     hooks_engine_reload = true;
     hooks_engine_next_reload = now + HOOKS_ENGINE_LIFETIME;
   }
