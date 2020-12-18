@@ -102,10 +102,21 @@ $(document).ready(function() {
 
         // Populate the measurements dropdown
         $m_sel.find('option').remove();
-        var sorted_measurements = $.map(measurements_info, (v,k) => {return(k)}).sort();
+
+	// Sort measurements according to their localized labels
+	var sorted_measurements = [];
+	for(var k in measurements_info)
+	    sorted_measurements.push([k, measurements_info[k]]);
+
+	sorted_measurements.sort(function(a, b){
+	    a = a[1]; b = b[1];
+	    if(a.label < b.label) { return -1; }
+	    if(a.label > b.label) { return 1;  }
+	    return 0;
+	});
 
         for(var i=0; i<sorted_measurements.length; i++) {
-            var k = sorted_measurements[i];
+            var k = sorted_measurements[i][0];
             var m_info = measurements_info[k];
 
             if((k == cur_measurement) || !measurements_to_skip[k])
