@@ -2130,7 +2130,7 @@ function isPausedInterface(current_ifname)
       return(_POST["toggle_local"] == "0")
    end
 
-  state = ntop.getCache("ntopng.prefs."..current_ifname.."_not_idle")
+  state = ntop.getCache("ntopng.prefs.ifid_"..tostring(interface.name2id(current_ifname)).."_not_idle")
   if(state == "0") then return true else return false end
 end
 
@@ -2201,7 +2201,7 @@ end
 
 function getInterfaceSpeed(ifid)
    local ifname = getInterfaceName(ifid)
-   local ifspeed = ntop.getCache('ntopng.prefs.'..ifname..'.speed')
+   local ifspeed = ntop.getCache('ntopng.prefs.ifid_'..tostring(ifid)..'.speed')
    if not isEmptyString(ifspeed) and tonumber(ifspeed) ~= nil then
       ifspeed = tonumber(ifspeed)
    else
@@ -2300,7 +2300,7 @@ function getHumanReadableInterfaceName(interface_name)
       interface_name = getInterfaceName(interface_id)
    end
 
-   local key = 'ntopng.prefs.'..interface_name..'.name'
+   local key = 'ntopng.prefs.ifid_'..tostring(getInterfaceId(interface_name))..'.name'
    local custom_name = ntop.getCache(key)
 
    if not isEmptyString(custom_name) then

@@ -72,7 +72,7 @@ iface_id = interface.name2id(ifname)
 -- Load from or set in redis the refresh frequency for the top flow sankey
 
 refresh = _GET["refresh"]
-refresh_key = 'ntopng.prefs.'.._SESSION["user"]..'.'..ifname..'.top_flow_refresh'
+refresh_key = 'ntopng.prefs.'.._SESSION["user"]..'.'..tostring(iface_id)..'.top_flow_refresh'
 
 if (refresh ~= nil) then
   ntop.setCache(refresh_key,refresh)

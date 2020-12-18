@@ -120,10 +120,10 @@ print('<br><h2>Redis</h2>')
 print('<p>The ntopng lua class provide a few methods to get information about the redis cache.</p>')
 
 print('<h4>ntopng set and get (key,value) in redis cache</h4>')
-print('<pre><code>key_name = "ntopng.prefs."..ifname..".name"\ntest_name = "redis_cache_set_name"\nkey_speed = "ntopng.prefs."..ifname..".speed"\ntest_speed = "123456"\n\nntop.setCache(key_name,test_name)\nntop.setCache(key_speed,test_speed)\n\nntop.getCache(key_name)\nntop.getCache(key_speed)</code></pre>')
-key_name = 'ntopng.prefs.'..ifname..'.name'
+print('<pre><code>key_name = "ntopng.prefs.ifid_"..tostring(interface.name2id(ifname))..".name"\ntest_name = "redis_cache_set_name"\nkey_speed = "ntopng.prefs."..ifname..".speed"\ntest_speed = "123456"\n\nntop.setCache(key_name,test_name)\nntop.setCache(key_speed,test_speed)\n\nntop.getCache(key_name)\nntop.getCache(key_speed)</code></pre>')
+key_name = 'ntopng.prefs.ifid_'..tostring(interface.name2id(ifname))..'.name'
 test_name = "redis_cache_set_name"
-key_speed = 'ntopng.prefs.'..ifname..'.speed'
+key_speed = 'ntopng.prefs.ifid_'..tostring(interface.name2id(ifname))..'.speed'
 test_speed = "123456"
 
 ntop.setCache(key_name,test_name)

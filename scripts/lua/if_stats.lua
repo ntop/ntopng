@@ -148,9 +148,9 @@ if (isAdministrator()) then
       end
 
       -- TODO move keys to new schema: replace ifstats.name with ifid
-      ntop.setCache('ntopng.prefs.'..ifstats.name..'.name', custom_name)
+      ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.name', custom_name)
 
-      local ifspeed_cache = 'ntopng.prefs.'..ifstats.name..'.speed'
+      local ifspeed_cache = 'ntopng.prefs.ifid_'..ifstats.id..'.speed'
       if isEmptyString(_POST["ifSpeed"]) then
          ntop.delCache(ifspeed_cache)
       else
@@ -363,7 +363,7 @@ if((page == "overview") or (page == nil)) then
 
    if not is_pcap_dump and ifstats["type"] ~= "netfilter" then
       print("<tr><th width=250>"..i18n("if_stats_overview.state").."</th><td colspan=6>")
-      state = toggleTableButton("", "", i18n("if_stats_overview.active"), "1","primary", i18n("if_stats_overview.paused"), "0","primary", "toggle_local", "ntopng.prefs."..if_name.."_not_idle")
+      state = toggleTableButton("", "", i18n("if_stats_overview.active"), "1","primary", i18n("if_stats_overview.paused"), "0","primary", "toggle_local", "ntopng.prefs.ifid_"..tostring(ifid).."_not_idle")
 
       if(state == "0") then
 	 on_state = true
@@ -549,7 +549,7 @@ if((page == "overview") or (page == nil)) then
    if is_physical_iface and not ifstats.isView then
       print("<tr>")
       print("<th>"..i18n("mtu").."</th><td colspan=2  nowrap>"..ifstats.mtu.." "..i18n("bytes").."</td>\n")
-      local speed_key = 'ntopng.prefs.'..ifname..'.speed'
+      local speed_key = 'ntopng.prefs.ifid_'..tostring(interface.name2id(ifname))..'.speed'
       local speed = ntop.getCache(speed_key)
       if (tonumber(speed) == nil) then
 	      speed = ifstats.speed
