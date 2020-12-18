@@ -199,8 +199,13 @@ function alerts_api.store(entity_info, type_info, when)
   addAlertPoolInfo(entity_info, alert_to_store)
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
-     -- NOTE: for engaged alerts this operation is performed during trigger in C
-    host.checkContext(entity_info.alert_entity_val)
+    -- NOTE: for engaged alerts this operation is performed during trigger in C
+    
+    -- Note: this is not required as there is no state (required for engage/release only)
+    -- and this has been removed as it creates issues with external alerts (e.g. syslog)
+    -- as there is no active host matching the alert.
+    -- host.checkContext(entity_info.alert_entity_val)
+
     addAlertHostInfo(alert_to_store)
     interface.incTotalHostAlerts(entity_info.alert_entity_val, type_info.alert_type.alert_key)
   end
