@@ -2,6 +2,7 @@
 -- (C) 2019-20 - ntop.org
 --
 
+local dirs = ntop.getDirs()
 local alert_keys = require "alert_keys"
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
