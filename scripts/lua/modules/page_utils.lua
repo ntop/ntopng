@@ -22,7 +22,7 @@ local active_entry = nil
 -- #################################
 
 page_utils.menu_sections = {
-   shortcuts    = {key = "shortcut", i18n_title = "shortcuts", icon = "fas fa-bolt"},
+   shortcuts    = {key = "shortcut", i18n_title = "shortcuts", icon = "fas fa-fast-forward"},
    dashboard    = {key = "dashboard", i18n_title = "index_page.dashboard", icon = "fas fa-tachometer-alt"},
    alerts       = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows        = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
@@ -51,7 +51,10 @@ page_utils.menu_sections = {
 -- help_link: this variable contains the contextual link to the documentation
 
 page_utils.menu_entries = {
-    -- Dashboard
+   -- Shortcuts
+   active_monitoring = {key = "active_monitor", i18n_title = "active_monitoring_stats.active_monitoring"},
+
+   -- Dashboard
     traffic_dashboard 	= {key = "traffic_dashboard", i18n_title = "dashboard.traffic_dashboard", section = "dashboard", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/dashboard.html"},
     network_discovery 	= {key = "network_discovery", i18n_title = "discover.network_discovery",  section = "dashboard", visible_iface = true},
     traffic_report    	= {key = "traffic_report",    i18n_title = "report.traffic_report",	section = "dashboard", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/report.html"},

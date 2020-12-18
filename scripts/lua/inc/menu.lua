@@ -121,6 +121,10 @@ else
             url = "/lua/pro/enterprise/snmpdevices_stats.lua"
          },
          {
+            entry = page_utils.menu_entries.active_monitoring,
+            url = "/plugins/active_monitoring_stats.lua"
+         },
+         {
             entry = page_utils.menu_entries.divider,
             hidden = not ntop.isEnterpriseM(),
          },
