@@ -495,7 +495,7 @@ class Ntop {
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(get_ndpi_struct(), proto)); };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
-  inline void reloadPeriodicScripts() { if(pa) pa->reloadVMs(); };
+  void reloadPeriodicScripts();
 #ifndef WIN32
   inline ContinuousPing* getContinuousPing() { return(cping); }
 #endif
