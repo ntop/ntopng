@@ -1375,6 +1375,9 @@
 				"responses": {
 					"0": {
 						"description": "OK"
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
 					}
 				}
 			}
@@ -1401,7 +1404,10 @@
                                 "responses": {
                                         "0": {
                                                 "description": "OK"
-                                        }
+                                        },
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					}
                                 }
                         }
                 },
