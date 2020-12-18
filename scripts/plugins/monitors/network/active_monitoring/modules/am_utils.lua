@@ -279,18 +279,19 @@ end
 -- @brief Check if this is an infrastructure active monitoring url
 local function is_infrastructure(host)
    if not ntop.isEnterpriseM() or isEmptyString(host) then
-      return false
+      return false, nil
    end
 
    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
    local infrastructure_utils = require("infrastructure_utils")
 
    -- The host is considered an infrastructure host if it contains the endpoint in the name
-   if host:find(infrastructure_utils.ENDPOINT_TO_EXTRACT_DATA) then
-      return true
+   if host:find(infrastructure_utils.ENDPOINT_TO_EXTRACT_DATA) or host:find(infrastructure_utils.SUFFIX_THROUGHPUT) then
+      local instance = infrastructure_utils.get_instance_by_host(host)
+      return true, instance.alias
    end
 
-   return false
+   return false, nil
 end
 
 -- ##############################################
@@ -310,19 +311,20 @@ function am_utils.formatAmHost(host, measurement, isHtml)
   end
   
   local res = host
-
-  if not host:starts(measurement) then
-     res = string.format("%s://%s", measurement, host)
-  end
+  local is_infr, infr_name = is_infrastructure(host)
 
   -- Make a smarter way to determine infrastructure labels
-  if is_infrastructure(host) then
+  if is_infr then
+
      -- Make a nicer label for infrastructure hosts
+     -- If the am host contains a name for the infrastructure use it
      if isHtml then
-      res = res:gsub("/lua/.+",  " <span class='badge badge-info'>".. i18n("infrastructure_dashboard.infrastructure") .."</span>")
+      res = infr_name .. " <i class='fas fa-building'></i>"
      else 
-      res = res:gsub("/lua/.+",  " [".. i18n("infrastructure_dashboard.infrastructure") .. "]")
+      res = infr_name .. " [".. i18n("infrastructure_dashboard.infrastructure") .. "]"
     end
+  else
+    res = host
   end
 
   return res
@@ -471,7 +473,7 @@ function am_utils.addHost(host, measurement, am_value, granularity, pool, token,
     granularity = granularity or "min",
     token = token, -- ntopng auth token
     save_result = save_result, -- save the result
-    readonly = readonly
+    readonly = readonly,
   }))
 
   -- Bind the host from any existing pool

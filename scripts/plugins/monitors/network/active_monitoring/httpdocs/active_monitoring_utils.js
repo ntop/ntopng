@@ -414,6 +414,10 @@ $(document).ready(function() {
                 }
             },
             {
+                data: 'measurement',
+                width: '5%'
+            },
+            {
                 data: 'chart',
                 class: 'text-center',
                 sortable: false,
