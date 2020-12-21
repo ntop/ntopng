@@ -1635,7 +1635,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
        local status_stats = flowstats["status"]
        local first = true
-       for _, s in pairsByKeys(flow_consts.status_types) do
+       for _, s in pairsByKeys(flow_consts.status_types) do  -- TODO AM: remove when the new alerts api migration is done
           local t = s.status_key
 
           if(t > 0) then
@@ -1648,6 +1648,21 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
                entries[#entries + 1] = {string.format("%u", t), (i18n(s.i18n_title) or s.i18n_title) .. " ("..status_stats[t].count..")"}
              end
           end
+       end
+
+       for _, t in pairsByKeys(alert_consts.alert_types) do -- TODO AM: make default when the alert migration is done
+	  if t.meta and t.meta.status_key then
+	     local id = t.meta.status_key
+
+	     if status_stats[id] and status_stats[id].count > 0 then
+		if first then
+		   entries[#entries + 1] = '<li role="separator" class="divider"></li>'
+		   entries[#entries + 1] = '<li class="dropdown-header">'.. i18n("flow_details.alerted_flows") ..'</li>'
+		   first = false
+		end
+		entries[#entries + 1] = {string.format("%u", id), (alert_consts.alertTypeLabel(t.meta.alert_key, true)) .. " ("..status_stats[id].count..")"}
+	     end
+	  end
        end
 
        if isBridgeInterface(ifstats) then
