@@ -78,6 +78,13 @@ end
 
 -- ##############################################
 
+function Alert:store(entity_info)
+   local alerts_api = require "alerts_api"
+   return alerts_api.store(entity_info, self:_build_type_info())
+end
+
+-- ##############################################
+
 function Alert:set_severity(severity)
    self.alert_severity = severity
 end
