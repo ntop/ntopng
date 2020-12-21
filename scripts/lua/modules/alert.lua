@@ -84,6 +84,12 @@ end
 
 -- ##############################################
 
+function Alert:set_subtype(subtype)
+   self.alert_subtype = subtype
+end
+
+-- ##############################################
+
 function Alert:set_granularity(granularity)
    local alert_consts = require "alert_consts"
    self.alert_granularity = alert_consts.alerts_granularities[granularity]
