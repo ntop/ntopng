@@ -1393,7 +1393,15 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     switch(l4_proto) {
     case IPPROTO_TCP:
       flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
-      flow->updateTcpWindow(ntohs(tcph->window) ,src2dst_direction);
+
+      if((tcp_flags & (TH_RST | TH_FIN)) == 0) {
+	/*
+	  Ignore Zero-window on flow termination as this case
+	  is not necessary a zero windon indication 
+	*/
+	flow->updateTcpWindow(ntohs(tcph->window), src2dst_direction);
+      }
+      
       flow->updateTcpSeqNum(when, ntohl(tcph->seq), ntohl(tcph->ack_seq), ntohs(tcph->window),
 			    tcp_flags, l4_len - (4 * tcph->doff),
 			    src2dst_direction);
