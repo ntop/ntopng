@@ -2,7 +2,6 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local flow_consts = require("flow_consts")
 local user_scripts = require ("user_scripts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"

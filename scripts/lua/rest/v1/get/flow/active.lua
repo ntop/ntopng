@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "flow_utils"
 local format_utils = require("format_utils")
-local flow_consts = require "flow_consts"
 local flow_utils = require "flow_utils"
 local icmp_utils = require "icmp_utils"
 local json = require "dkjson"

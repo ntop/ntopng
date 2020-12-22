@@ -3,7 +3,6 @@
 --
 
 local alerts_api = require "alerts_api"
-local flow_consts = require("flow_consts")
 local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
 

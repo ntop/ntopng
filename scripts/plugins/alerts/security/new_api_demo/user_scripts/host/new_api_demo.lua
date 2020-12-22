@@ -5,7 +5,6 @@
 local user_scripts = require("user_scripts")
 local alert_severities = require "alert_severities"
 local alert_consts = require("alert_consts")
-local flow_consts = require "flow_consts"
 local alerts_api = require "alerts_api"
 
 -- #################################################################

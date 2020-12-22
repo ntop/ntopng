@@ -2,7 +2,6 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local flow_consts = require("flow_consts")
 
 -- This is a user script executed by scripts/callbacks/interface/flow.lua .
 -- Changes to this script must be applied by reloading the plugins from

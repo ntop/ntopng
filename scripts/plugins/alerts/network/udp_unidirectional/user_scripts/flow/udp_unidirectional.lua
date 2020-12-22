@@ -6,7 +6,6 @@
 -- scripts/callbacks/status_defs/status_udp_unidirectional.lua
 -- scripts/callbacks/interface/flow/udp.lua
 
-local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"

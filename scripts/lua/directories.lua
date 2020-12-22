@@ -8,7 +8,6 @@ require "lua_utils"
 local page_utils = require "page_utils"
 local os_utils = require "os_utils"
 local user_scripts = require "user_scripts"
-local flow_consts = require "flow_consts"
 local alert_consts = require "alert_consts"
 
 sendHTTPContentTypeHeader('text/html')

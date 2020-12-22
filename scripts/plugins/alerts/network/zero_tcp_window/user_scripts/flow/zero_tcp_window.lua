@@ -5,7 +5,6 @@
 local alerts_api = require("alerts_api")
 local alert_severities = require "alert_severities"
 local user_scripts = require("user_scripts")
-local flow_consts  = require("flow_consts")
 local alert_consts = require("alert_consts")
 
 local script
