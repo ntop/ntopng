@@ -6,6 +6,7 @@ local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"
+local alert_consts = require "alert_consts"
 
 -- #################################################################
 
@@ -33,9 +34,13 @@ local function checkFlowGoodput()
   
    if(ratio <= 60) then
       local cli_score, srv_score, flow_score = 10, 10, 10
-      alerts_api.trigger_status(flow_consts.status_types.status_low_goodput.create(ratio),
-				alert_severities.notice,
-				cli_score, srv_score, flow_score)
+      local alert = alert_consts.alert_types.alert_flow_low_goodput.new(
+        ratio
+      )
+
+      alert:set_severity(alert_severities.notice)
+
+      alert:trigger_status(cli_score, srv_score, flow_score)
    end
 end
 

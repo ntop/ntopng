@@ -36,19 +36,21 @@ local function request_reply_ratio(params)
     local requests = alerts_api.host_delta_val(to_check_key .. "_requests", params.granularity, values[1], skip_first)
     local replies = alerts_api.host_delta_val(to_check_key .. "_replies", params.granularity, values[2], skip_first)
     local ratio = (replies * 100) / (requests+1)
-    local req_repl_type = alert_consts.alert_types.alert_request_reply_ratio.create(
-       alert_severities.warning,
-       alert_consts.alerts_granularities[params.granularity],
-       key,
-       requests,
-       replies
-    )
+
+    local alert = alert_consts.alert_types.alert_request_reply_ratio.new(
+      requests,
+      replies
+      )
+
+      alert:set_severity(alert_severities.warning)
+      alert:set_granularity(params.granularity)
+      alert:set_subtype(key)
 
     -- 10: some meaningful value
     if((requests + replies > 10) and (ratio < tonumber(params.user_script_config.threshold))) then
-      alerts_api.trigger(params.alert_entity, req_repl_type, nil, params.cur_alerts)
+      alert:trigger(params.alert_entity, nil, params.cur_alerts)
     else
-      alerts_api.release(params.alert_entity, req_repl_type, nil, params.cur_alerts)
+      alert:release(params.alert_entity, nil, params.cur_alerts)
     end
   end
 end

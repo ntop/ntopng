@@ -2,52 +2,41 @@
 -- (C) 2019-20 - ntop.org
 --
 
--- ##############################################
-
 local alert_keys = require "alert_keys"
-local status_keys = require "flow_keys"
--- Import the classes library.
-local classes = require "classes"
--- Make sure to import the Superclass!
-local alert = require "alert"
 
--- ##############################################
-
-local alert_potentially_dangerous_protocol = classes.class(alert)
-
--- ##############################################
-
-alert_potentially_dangerous_protocol.meta = {
-   status_key = status_keys.ntopng.status_potentially_dangerous,
-   alert_key = alert_keys.ntopng.alert_potentially_dangerous_protocol,
-   i18n_title = "flow_details.potentially_dangerous_protocol",
-   icon = "fas fa-exclamation",
-}
-
--- ##############################################
+-- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
+-- @param tls_version A string indicating the TLS version detected, or nil when version is not available
+-- @param tls_info A lua table with TLS info gererated calling `flow.getTLSInfo()`
 -- @return A table with the alert built
-function alert_potentially_dangerous_protocol:init()
-   -- Call the parent constructor
-   self.super:init()
+local function createPotentiallyDangerous(tls_version, tls_info)
+   tls_info = tls_info or {}
+   local server_cn = tls_info["protos.tls.server_names"] or ""
+   local client_cn = tls_info["protos.tls.client_requested_server_name"] or ""
 
-   self.alert_type_params = {
-      -- No params
+   local built = {
+      alert_type_params = {
+	 tls_version = tls_version,
+	 ["tls_crt.cli"] = client_cn,
+	 ["tls_crt.srv"] = server_cn,
+	 ["tls_crt.notBefore"] = tls_info["protos.tls.notBefore"],
+	 ["tls_crt.notAfter"]  = tls_info["protos.tls.notAfter"],
+	 ["tls_crt.issuerDN"]  = tls_info["protos.tls.issuerDN"] or "",
+	 ["tls_crt.now"] = os.time(),
+	 ["cli_ja3_signature"] = tls_info["protos.tls.ja3.client_hash"],
+      }
    }
+
+   return built
 end
 
 -- #######################################################
 
--- @brief Format an alert into a human-readable string
--- @param ifid The integer interface id of the generated alert
--- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
--- @param alert_type_params Table `alert_type_params` as built in the `:init` method
--- @return A human-readable string
-function alert_potentially_dangerous_protocol.format(ifid, alert, alert_type_params)
-   return i18n("flow_details.potentially_dangerous_protocol")
-end
-
--- #######################################################
-
-return alert_potentially_dangerous_protocol
+return {
+  alert_key = alert_keys.ntopng.alert_potentially_dangerous_protocol,
+  i18n_title = "alerts_dashboard.potentially_dangerous_protocol",
+  i18n_description = "alert_messages.potentially_dangerous_protocol_description",
+  icon = "fas fa-exclamation",
+  creator = createPotentiallyDangerous,
+}

@@ -28,18 +28,19 @@ local function check_interface_idle(params)
     end
   end
 
-  local idle_type = alert_consts.alert_types.alert_slow_purge.create(
-     alert_severities.warning,
-     alert_consts.alerts_granularities.min,
-     max_idle,
-     max_idle_perc,
-     threshold
-  )
+  local alert = alert_consts.alert_types.alert_slow_purge.new(
+    max_idle,
+    max_idle_perc,
+    threshold
+      )
 
+  alert:set_severity(alert_severities.warning)
+  alert:set_granularity(params.granularity)
+  
   if max_idle_perc > threshold then
-    alerts_api.trigger(params.alert_entity, idle_type, nil, params.cur_alerts)
+    alert:trigger(params.alert_entity, nil, params.cur_alerts)
   else
-    alerts_api.release(params.alert_entity, idle_type, nil, params.cur_alerts)
+    alert:release(params.alert_entity, nil, params.cur_alerts)
   end
 end
 

@@ -1610,32 +1610,30 @@ function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled
 	       local prev_exceeded = pool_exceeded_quotas[proto] or {false,false}
 
 	       if alerts_on_quota_exceeded then
-		  if info.bytes_exceeded and not prev_exceeded[1] then
-		     alerts_api.store(
-			alerts_api.hostPoolEntity(pool),
-			alert_consts.alert_types.alert_quota_exceeded.create(
-			   alert_severities.warning,
-			   "traffic_quota",
+        if info.bytes_exceeded and not prev_exceeded[1] then
+         local alert = alert_consts.alert_types.alert_quota_exceeded.new(
+            "traffic_quota",
 			   pool,
 			   proto,
 			   info.bytes_value,
 			   info.bytes_quota
-			)
-		     )
+         )
+
+         alert:set_severity(alert_severities.warning)
+         alert:store(alerts_api.hostPoolEntity(pool))
 		  end
 
-		  if info.time_exceeded and not prev_exceeded[2] then
-		     alerts_api.store(
-			alerts_api.hostPoolEntity(pool),
-			alert_consts.alert_types.alert_quota_exceeded.create(
-			   alert_severities.warning,
-			   "time_quota",
+		  if info.time_exceeded and not prev_exceeded[2] then           
+         local alert = alert_consts.alert_types.alert_quota_exceeded.new(
+            "time_quota",
 			   pool,
 			   proto,
 			   info.time_value,
 			   info.time_quota
-			)
-		     )
+         )
+
+         alert:set_severity(alert_severities.warning)
+         alert:store(alerts_api.hostPoolEntity(pool))
 		  end
 	       end
 
@@ -1668,15 +1666,14 @@ function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled
 	       -- Pool connection
 	       ntop.setMembersCache(active_pools_set, pool)
 
-	       if alert_pool_connection_enabled then
-		  alerts_api.store(
-		     alerts_api.hostPoolEntity(pool),
-		     alert_consts.alert_types.alert_host_pool_connection.create(
-			alert_severities.notice,
-			pool
-		     )
-		  )
-	       end
+         if alert_pool_connection_enabled then
+            local alert = alert_consts.alert_types.alert_host_pool_connection.new(
+               pool
+            )
+
+            alert:set_severity(alert_severities.notice)
+            alert:store(alerts_api.hostPoolEntity(pool))
+         end
 	    end
 	 end
       end
@@ -1689,13 +1686,12 @@ function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled
          ntop.delMembersCache(active_pools_set, pool)
 
          if alert_pool_connection_enabled then
-            alerts_api.store(
-	       alerts_api.hostPoolEntity(pool),
-	       alert_consts.alert_types.alert_host_pool_disconnection.create(
-		  alert_severities.notice,
-		  pool
-	       )
+            local alert = alert_consts.alert_types.alert_host_pool_disconnection.new(
+               pool
             )
+
+            alert:set_severity(alert_severities.notice)
+            alert:store(alerts_api.hostPoolEntity(pool))
          end
       end
    end

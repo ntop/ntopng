@@ -2,45 +2,53 @@
 -- (C) 2019-20 - ntop.org
 --
 
+-- ##############################################
+
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local alert_keys = require "alert_keys"
 
--- #######################################################
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
 
--- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
--- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
--- @param ifid The integer id of the interface which is dropping alerts
--- @param num_dropped The number of alerts dropped
--- @return A table with the alert built
-local function createDroppedAlerts(alert_severity, alert_granularity, ifid, num_dropped)
-   local threshold_type = {
-      alert_severity = alert_severity,
-      alert_granularity = alert_granularity,
-      alert_type_params = {
-	 ifid = ifid,
-	 num_dropped = num_dropped,
-      },
+-- ##############################################
+
+local alert_dropped_alerts = classes.class(alert)
+
+alert_dropped_alerts.meta = {
+  alert_key = alert_keys.ntopng.alert_dropped_alerts,
+  i18n_title = i18n("show_alerts.dropped_alerts"),
+  icon = "fas fa-exclamation-triangle",
+}
+
+-- ##############################################
+
+function alert_dropped_alerts:init(ifid, num_dropped)
+   -- Call the paren constructor
+   self.super:init()
+
+   self.alert_type_params = {
+      ifid = ifid,
+      num_dropped = num_dropped,
    }
-
-   return threshold_type
 end
 
 -- #######################################################
 
-local function formatDroppedAlerts(ifid, alert, alert_info)
-  return(i18n("alert_messages.iface_alerts_dropped", {
-    iface = getHumanReadableInterfaceName(alert_info.ifid),
-    num_dropped = alert_info.num_dropped,
-    url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. alert_info.ifid
+-- @brief Format an alert into a human-readable string
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function alert_dropped_alerts.format(ifid, alert, alert_type_params)
+   return(i18n("alert_messages.iface_alerts_dropped", {
+    iface = getHumanReadableInterfaceName(alert_type_params.ifid),
+    num_dropped = alert_type_params.num_dropped,
+    url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. alert_type_params.ifid
   }))
 end
 
 -- #######################################################
 
-return {
-  alert_key = alert_keys.ntopng.alert_dropped_alerts,
-  i18n_title = i18n("show_alerts.dropped_alerts"),
-  icon = "fas fa-exclamation-triangle",
-  i18n_description = formatDroppedAlerts,
-  creator = createDroppedAlerts,
-}
+return alert_dropped_alerts

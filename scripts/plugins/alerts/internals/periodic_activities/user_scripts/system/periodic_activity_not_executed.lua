@@ -9,19 +9,6 @@ local user_scripts = require("user_scripts")
 
 local script
 
--- ##############################################
-
-local function alert_info(ps_name, last_queued_time)
-   local alert_info = alert_consts.alert_types.alert_periodic_activity_not_executed.create(
-      alert_severities.warning,
-      alert_consts.alerts_granularities.min,
-      ps_name,
-      last_queued_time
-   )
-
-   return alert_info
-end
-
 -- #################################################################
 
 local function check_periodic_activity_not_executed(params)
@@ -29,14 +16,20 @@ local function check_periodic_activity_not_executed(params)
 
    for ps_name, ps_stats in pairs(scripts_stats) do
       local delta = alerts_api.interface_delta_val(script.key..ps_name --[[ metric name --]], params.granularity, ps_stats["num_not_executed"] or 0)
-      local info = alert_info(ps_name, ps_stats["last_queued_time"] or 0)
 
+      local alert = alert_consts.alert_types.alert_periodic_activity_not_executed.new(
+         ps_stats["last_queued_time"] or 0
+      )
+
+      alert:set_severity(alert_severities.warning)
+      alert:set_granularity(alert_consts.alerts_granularities.min)
+      alert:set_subtype(ps_name)
       if delta > 0 then
 	 -- tprint({ps_name = ps_name, s = ">>>>>>>>>>>>>>>>>>>>>> TRIGGER"})
-      	 alerts_api.trigger(params.alert_entity, info, nil, params.cur_alerts)
+         alert:trigger(params.alert_entity, nil, params.cur_alerts)
       else
 	 -- tprint({ps_name = ps_name, s = "---------------------- RELEASE"})
-      	 alerts_api.release(params.alert_entity, info, nil, params.cur_alerts)
+         alert:release(params.alert_entity, nil, params.cur_alerts)
       end
    end
 end

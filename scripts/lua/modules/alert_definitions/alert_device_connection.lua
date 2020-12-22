@@ -2,29 +2,49 @@
 -- (C) 2019-20 - ntop.org
 --
 
+-- ##############################################
+
 local alert_keys = require "alert_keys"
 local alert_creators = require "alert_creators"
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
 
--- #######################################################
+-- ##############################################
+
+local alert_device_connection = classes.class(alert)
+
+-- ##############################################
+
+alert_device_connection.meta = {
+  alert_key = alert_keys.ntopng.alert_device_connection,
+  i18n_title = "alerts_dashboard.device_connection",
+  icon = "fas fa-sign-in",
+}
+
+-- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
 -- @param device The a string with the name or ip address of the device that connected the network
 -- @return A table with the alert built
-local function createDeviceConnection(alert_severity, device)
-  local built = {
-    alert_severity = alert_severity,
-    alert_type_params = {
-       device = device,
-    },
-  }
+function alert_device_connection:init(device)
+   -- Call the paren constructor
+   self.super:init()
 
-  return built
+   self.alert_type_params = {
+    device = device,
+   }
 end
 
 -- #######################################################
 
-local function formatDeviceConnectionAlert(ifid, alert, info)
+-- @brief Format an alert into a human-readable string
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function alert_device_connection.format(ifid, alert, alert_type_params)
   return(i18n("alert_messages.device_has_connected", {
     device = info.device,
     url = getMacUrl(alert.alert_entity_val),
@@ -33,10 +53,4 @@ end
 
 -- #######################################################
 
-return {
-  alert_key = alert_keys.ntopng.alert_device_connection,
-  i18n_title = "alerts_dashboard.device_connection",
-  i18n_description = formatDeviceConnectionAlert,
-  icon = "fas fa-sign-in",
-  creator = alert_creators.createDeviceConnectionDisconnection,
-}
+return alert_device_connection

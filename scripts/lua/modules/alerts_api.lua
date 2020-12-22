@@ -606,16 +606,17 @@ function alerts_api.checkThresholdAlert(params, alert_type, value)
   local threshold_config = params.user_script_config
   local alarmed = false
 
-  local threshold_type = alert_type.create(
-     alert_severities.error,
-     script.key,
-     alert_consts.alerts_granularities[params.granularity],
-     params.user_script.key,
-     value,
-     threshold_config.operator,
-     threshold_config.threshold
+  local alert = alert_type.new(
+    params.user_script.key,
+    value,
+    threshold_config.operator,
+    threshold_config.threshold
   )
 
+  alert:set_severity(alert_severities.error)
+  alert:set_granularity(params.granularity)
+  alert:set_subtype(script.key)
+  
   -- Retrieve the function to be used for the threshold check.
   -- The function depends on the operator, i.e., "gt", or "lt".
   -- When there's no operator, the default "gt" function is taken from the available
@@ -624,9 +625,9 @@ function alerts_api.checkThresholdAlert(params, alert_type, value)
   if op_fn and op_fn(value, threshold_config.threshold) then alarmed = true end
 
   if(alarmed) then
-    return(alerts_api.trigger(params.alert_entity, threshold_type, nil, params.cur_alerts))
+    alert:trigger(params.alert_entity, nil, params.cur_alerts)
   else
-    return(alerts_api.release(params.alert_entity, threshold_type, nil, params.cur_alerts))
+    alert:release(params.alert_entity, nil, params.cur_alerts)
   end
 end
 
@@ -638,16 +639,16 @@ end
 -- which returns a type_info for the given anomaly.
 function alerts_api.anomaly_check_function(params)
   local anomal_key = params.user_script.key
-  local type_info = params.user_script.anomaly_type_builder(
-     alert_severities.error,
-     alert_consts.alerts_granularities.min,
-     anomal_key
-  )
+  local type_info = params.user_script.anomaly_type_builder()
+
+  type_info:set_severity(alert_severities.error)
+  type_info:set_granularity(params.granularity)
+  type_info:set_subtype(anomal_key)
 
   if params.entity_info.anomalies[anomal_key] then
-    return alerts_api.trigger(params.alert_entity, type_info, nil, params.cur_alerts)
+    type_info:trigger(params.alert_entity, nil, params.cur_alerts)
   else
-    return alerts_api.release(params.alert_entity, type_info, nil, params.cur_alerts)
+    type_info:release(params.alert_entity, nil, params.cur_alerts)
   end
 end
 

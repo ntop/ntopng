@@ -400,115 +400,41 @@ end
 function alert_consts.loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"alert_key", "i18n_title", "icon"}
 
-   if mod_fname ~= "alert_host_new_api_demo" and mod_fname ~= "alert_flow_new_api_demo"
-      and mod_fname ~= "alert_malicious_signature"
-      and mod_fname ~= "alert_elephant_local_to_remote"
-      and  mod_fname ~= "alert_elephant_remote_to_local"
-      and  mod_fname ~= "alert_flow_blocked"
-      and  mod_fname ~= "alert_tls_old_version"
-      and  mod_fname ~= "alert_tls_certificate_mismatch"
-      and  mod_fname ~= "alert_tls_certificate_expired"
-      and  mod_fname ~= "alert_tls_unsafe_ciphers"
-      and  mod_fname ~= "alert_tls_certificate_selfsigned"
-      and  mod_fname ~= "alert_potentially_dangerous_protocol"
-      and  mod_fname ~= "alert_snmp_device_reset"
-      and  mod_fname ~= "alert_port_mac_changed"
-      and  mod_fname ~= "alert_port_duplexstatus_change"
-      and  mod_fname ~= "alert_port_errors"
-      and  mod_fname ~= "alert_port_status_change"
-      and  mod_fname ~= "alert_port_load_threshold_exceeded"
-      and  mod_fname ~= "alert_data_exfiltration"
-      and  mod_fname ~= "alert_dns_data_exfiltration"
-      and  mod_fname ~= "alert_tcp_connection_refused"
-      and  mod_fname ~= "alert_suspicious_tcp_syn_probing"
-      and  mod_fname ~= "alert_suspicious_tcp_probing"
-      and  mod_fname ~= "alert_dns_invalid_query"
-      and  mod_fname ~= "alert_attack_mitigation_via_snmp"
-      and  mod_fname ~= "alert_lateral_movement"
-      and  mod_fname ~= "alert_periodicity_update"
-      and  mod_fname ~= "alert_dns_positive_error_ratio"
-      and  mod_fname ~= "alert_iec104_error"
-   and mod_fname ~= "alert_longlived"
-   then -- TODO: remove when new api migration done
-      -- Check the required fields
-      for _, k in pairs(required_fields) do
-	 if(def_script[k] == nil) then
-	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
-	    return(false)
-	 end
+   -- Check the required metadata fields
+   for _, k in pairs(required_fields) do
+      if(def_script.meta[k] == nil) then
+         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
+         return(false)
       end
-
-      -- Sanity check: make sure this is a valid alert key
-      local parsed_alert_key, status = alert_keys.parse_alert_key(def_script.alert_key)
-      if not parsed_alert_key then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid alert key specified %s in %s from %s", status, mod_fname, script_path))
-	 return(false)
-      end
-
-      if(alerts_by_id[parsed_alert_key] ~= nil) then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", parsed_alert_key, mod_fname, script_path))
-	 return(false)
-      end
-
-      -- Save the original creator to wrap it with the aim of attaching the `alert_type`
-      -- This avoids repeating the alert type twice in every alert definition file
-      local cur_creator = def_script.creator
-      local creator = function(...)
-	 local created = {}
-
-	 if cur_creator then
-	    created = cur_creator(...)
-	 end
-
-	 created["alert_type"] = def_script
-	 return created
-      end
-
-      def_script.alert_key = parsed_alert_key
-      def_script.create = creator
-      alert_consts.alert_types[mod_fname] = def_script
-      alerts_by_id[parsed_alert_key] = mod_fname
-
-      -- Success
-      return(true)
-   else -- EXPERIMENTAL: will become new API
-
-      -- Check the required metadata fields
-      for _, k in pairs(required_fields) do
-	 if(def_script.meta[k] == nil) then
-	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
-	    return(false)
-	 end
-      end
-
-      -- Sanity check: make sure this is a valid alert key
-      local parsed_alert_key, status = alert_keys.parse_alert_key(def_script.meta.alert_key)
-      if not parsed_alert_key then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid alert key specified %s in %s from %s", status, mod_fname, script_path))
-	 return(false)
-      end
-
-      if(alerts_by_id[parsed_alert_key] ~= nil) then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", parsed_alert_key, mod_fname, script_path))
-	 return(false)
-      end
-
-      if def_script.meta.status_key and alerts_by_flow_status_id[def_script.meta.status_key] then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Status key %d redefined, skipping in %s from %s", def_script.meta.status_key, mod_fname, script_path))
-	 return(false)
-      end
-
-      def_script.meta.alert_key = parsed_alert_key
-      alert_consts.alert_types[mod_fname] = def_script
-      alerts_by_id[parsed_alert_key] = mod_fname
-      if def_script.meta.status_key then
-	 -- Add the module to the modules table keyd by flow status - if flow status is present for this alert
-	 alerts_by_flow_status_id[def_script.meta.status_key] = mod_fname
-      end
-
-      -- Success
-      return(true)
    end
+
+   -- Sanity check: make sure this is a valid alert key
+   local parsed_alert_key, status = alert_keys.parse_alert_key(def_script.meta.alert_key)
+   if not parsed_alert_key then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid alert key specified %s in %s from %s", status, mod_fname, script_path))
+      return(false)
+   end
+
+   if(alerts_by_id[parsed_alert_key] ~= nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", parsed_alert_key, mod_fname, script_path))
+      return(false)
+   end
+
+   if def_script.meta.status_key and alerts_by_flow_status_id[def_script.meta.status_key] then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Status key %d redefined, skipping in %s from %s", def_script.meta.status_key, mod_fname, script_path))
+      return(false)
+   end
+
+   def_script.meta.alert_key = parsed_alert_key
+   alert_consts.alert_types[mod_fname] = def_script
+   alerts_by_id[parsed_alert_key] = mod_fname
+   if def_script.meta.status_key then
+      -- Add the module to the modules table keyd by flow status - if flow status is present for this alert
+      alerts_by_flow_status_id[def_script.meta.status_key] = mod_fname
+   end
+
+   -- Success
+   return(true)
 end
  
 -- ##############################################
