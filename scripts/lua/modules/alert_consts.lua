@@ -576,6 +576,10 @@ end
 
 -- @brief Returns the label of an alert, given the flow status the alert is associated to
 function alert_consts.statusTypeLabel(flow_status_key, nohtml)
+   if flow_status_key == 0 then
+      return i18n("flows_page.normal")
+   end
+
    local alert_key = alert_consts.flowStatusTypeRaw(flow_status_key)
 
    if alert_key then
