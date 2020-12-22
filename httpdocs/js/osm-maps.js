@@ -44,13 +44,11 @@ $(document).ready(function () {
     }
 
     const display_errors = (errors) => {
-
         const error_messages = {
             1: 'Permission denied',
             2: 'Position unavailable',
             3: 'Request timeout'
         };
-
         const error_code = error_messages[errors.code];
 
         show_positions({ coords: { latitude: 0, longitude: 0 }});
@@ -122,7 +120,8 @@ $(document).ready(function () {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(hosts_map);
 
-        $.get(`${http_prefix}/lua/get_geo_hosts.lua?${zoomIP || ''}`).then((data) => {
+        $.get(`${http_prefix}/lua/get_geo_hosts.lua?${zoomIP || ''}`)
+        .then((data) => {
             draw_markers(data, map_markers, hosts_map);
         })
         .fail(({ status, statusText }) => {

@@ -2173,6 +2173,7 @@ local lang = {
     ["geo_ip"] = "Geo IP",
     ["geo_map"] = "Geo Map",
     ["geolocation_error"] = "Geolocation error",
+    ["geolocation_warning"] = "Warning",
     ["hosts_geomap"] = "Hosts GeoMap",
     ["latitude"] = "Latitude",
     ["longitude"] = "Longitude",
@@ -2184,7 +2185,7 @@ local lang = {
     ["note_requirements_visualize_maps"] = "In order to visualize maps you must",
     ["note_working_internet_connection"] = "Have a working Internet connection.",
     ["unavailable_geolocation"] = "Geolocation not supported by your browser or disabled.",
-    ["using_default_location"] = "Using default location.",
+    ["using_default_location"] = "Using default location, maybe the browser geolocation is turned off.",
     ["warning_accuracy"] = "Geolocation accuracy depends on the geolocation database and may be approximated.",
   },
   ["graphs"] = {
