@@ -4077,7 +4077,7 @@ static int ntop_flush_interface_service_map(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_service_map_learning_status(lua_State* vm) {
+static int ntop_interface_service_map_set_status(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int64_t hash_id;
   ServiceAcceptance acceptance;
@@ -4099,7 +4099,7 @@ static int ntop_interface_service_map_learning_status(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_interface_service_map_set_status(lua_State* vm) {
+static int ntop_interface_service_map_learning_status(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
