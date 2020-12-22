@@ -5,7 +5,7 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "flow_keys"
+local status_keys = require "status_keys"
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local flow_risk_utils = require "flow_risk_utils"

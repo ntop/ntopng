@@ -5,7 +5,7 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "flow_keys"
+local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
