@@ -4079,9 +4079,32 @@ static int ntop_flush_interface_service_map(lua_State* vm) {
 
 static int ntop_interface_service_map_learning_status(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  u_int64_t hash_id;
+  ServiceAcceptance acceptance;
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  if(ntop_interface) {
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+    hash_id = (u_int64_t)lua_tonumber(vm, 1);
+
+    if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+    acceptance = (ServiceAcceptance)lua_tonumber(vm, 2);
+
+    ntop_interface->getServiceMap()->setStatus(hash_id, acceptance);
+  }
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_service_map_set_status(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  
   if(ntop_interface)
     ntop_interface->luaServiceMapStatus(vm);
   else
@@ -4332,6 +4355,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "serviceMap",                       ntop_get_interface_service_map },
   { "flushServiceMap",                  ntop_flush_interface_service_map },
   { "serviceMapLearningStatus",         ntop_interface_service_map_learning_status },
+  { "serviceMapSetStatus",              ntop_interface_service_map_set_status },
 
   /* Addresses */
   { "getAddressInfo",                   ntop_get_address_info },
