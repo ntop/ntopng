@@ -4,34 +4,36 @@
 	</div>
 </div>
 <div class="row">
-	<div class="col">
 		<table class="table table-striped table-bordered table-sm w-100">
 			<tr>
-				<th colspan="2"> {{ i18n("plugins_overview.alert_key") }} </th>
+			  <th colspan="3" width="80%"> {{ i18n("plugins_overview.alert_key") }} </th>
+			  <th width="20%"> {{ i18n("plugins_overview.status_key") }} </th>
 			</tr>
+
 			{% for alert_key = 0, 65535 do %}
-			{% if alert_consts.getAlertType(alert_key) then %}
+			{% local alert_type = alert_consts.getAlertType(alert_key) %}
+			{% if alert_type and alert_consts.alert_types[alert_type] then %}
+
 			<tr>
 				<td class="text-right"> {{ string.format("%i", alert_key) }} </td>
-				<td> {{ string.format("%s", alert_consts.getAlertType(alert_key)) }} </td>
+				<td> {{ string.format("%s", alert_type) }} </td>
+				{% if alert_consts.alert_types[alert_type].meta then %}
+
+				<td>
+				  {{ string.format("%s", alert_consts.alertTypeLabel(alert_key, true)) }}
+				</td>
+
+				<td class="text-right">
+				{% if alert_consts.alert_types[alert_type].meta.status_key then %}
+				{{ string.format("%i", alert_consts.alert_types[alert_type].meta.status_key) }}
+				{% end %}
+				</td>
+
+				{% else %}
+				<td colspan="2"><small><i>*To be migrated</i></small></td>
+				{% end %}
 			</tr>
 			{% end %}
 			{% end %}
 		</table>
-	</div>
-	<div class="col">
-		<table class="table table-striped table-bordered table-sm w-100">
-			<tr>
-				<th colspan="2"> {{ i18n("plugins_overview.status_key") }} </th>
-			</tr>
-			{% for status_id = 0, 63 do %}
-			{% if flow_consts.getStatusType(status_id) then %}
-			<tr>
-				<td class="text-right"> {{ string.format("%i", status_id) }} </td>
-				<td> {{ string.format("%s", flow_consts.getStatusType(status_id)) }} </td>
-			</tr>
-			{% end %}
-			{% end %}
-		</table>
-	</div>
 </div>

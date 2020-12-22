@@ -3426,7 +3426,7 @@ local lang = {
     ["reload_plugins"] = "Reload Plugins",
     ["script"] = "Script",
     ["source_location"] = "Source Location",
-    ["status_key"] = "Status Key",
+    ["status_key"] = "Flow Status Key",
     ["type"] = "Type",
   },
   ["policy_presets"] = {
