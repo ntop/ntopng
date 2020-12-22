@@ -279,31 +279,6 @@ end
 
 -- ##############################################
 
-local function load_plugin_flow_status_definitions(plugin)
-  -- Reset all the possibly existing (and loaded) flow statuses.
-  -- This is necessary to forcefully re-execute `require`s during
-  -- the load of new flows statuses which is being performed
-  local flow_consts = require "flow_consts"
-  flow_consts.resetDefinitions()
-
-
-  -- Now that existing flow statuses have been cleaned, it is
-  -- safe to load new ones
-  local status_definitions
-
-  if(plugin.edition == "community") then
-    status_definitions = RUNTIME_PATHS.status_definitions
-  else
-    -- It's necessary to split pro plugins to avoid errors on demo mode end
-    -- while loading pro scripts
-    status_definitions = RUNTIME_PATHS.pro_status_definitions
-  end
-
-  return load_definitions(os_utils.fixPath(plugin.path .. "/status_definitions"), status_definitions)
-end
-
--- ##############################################
-
 local function load_plugin_ts_schemas(plugin)
   local src_path = os_utils.fixPath(plugin.path .. "/ts_schemas")
   local ts_path = os_utils.fixPath(RUNTIME_PATHS.ts_schemas .. "/" .. plugin.key)
@@ -619,11 +594,6 @@ function plugins_utils.loadPlugins(community_plugins_only)
   -- By invalidating the module, we make sure all the newly loaded alert definitions will be picked up by any
   -- subsequent `require "alert_consts"`
   package.loaded["alert_consts"] = nil
-
-  -- Load plugin flow status definitions, i.e., definitions found under <plugin_name>/status_definitions
-  for _, plugin in ipairs(plugins) do
-     load_plugin_flow_status_definitions(plugin)
-  end
 
   -- Load the plugins following the dependecies order
   for _, plugin in ipairs(plugins) do

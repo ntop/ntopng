@@ -1635,22 +1635,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
        local status_stats = flowstats["status"]
        local first = true
-       for _, s in pairsByKeys(flow_consts.status_types) do  -- TODO AM: remove when the new alerts api migration is done
-          local t = s.status_key
-
-          if(t > 0) then
-             if status_stats[t] and status_stats[t].count > 0 then
-               if first then
-                 entries[#entries + 1] = '<li role="separator" class="divider"></li>'
-                 entries[#entries + 1] = '<li class="dropdown-header">'.. i18n("flow_details.alerted_flows") ..'</li>'
-                 first = false
-               end
-               entries[#entries + 1] = {string.format("%u", t), (i18n(s.i18n_title) or s.i18n_title) .. " ("..status_stats[t].count..")"}
-             end
-          end
-       end
-
-       for _, t in pairsByKeys(alert_consts.alert_types) do -- TODO AM: make default when the alert migration is done
+       for _, t in pairsByKeys(alert_consts.alert_types) do
 	  if t.meta and t.meta.status_key then
 	     local id = t.meta.status_key
 
@@ -1945,7 +1930,7 @@ function getFlowsTableTitle()
       local flow_status_id = tonumber(_GET["flow_status"])
 
       if(flow_status_id ~= nil) then
-	 status_type = flow_consts.getStatusTitle(_GET["flow_status"])
+	 status_type = alert_consts.statusTypeLabel(tonumber(_GET["flow_status"]), true)
       else
 	 status_type = _GET["flow_status"]
       end

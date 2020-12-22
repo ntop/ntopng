@@ -19,7 +19,6 @@ local format_utils = require "format_utils"
 local telemetry_utils = require "telemetry_utils"
 local tracker = require "tracker"
 local alerts_api = require "alerts_api"
-local flow_consts = require "flow_consts"
 local icmp_utils = require "icmp_utils"
 local user_scripts = require "user_scripts"
 
@@ -504,7 +503,7 @@ end
 
 -- #################################
 
-local function formatRawFlow(ifid, alert, alert_json, skip_alert_description)
+local function formatRawFlow(ifid, alert, alert_json)
    require "flow_utils"
    local time_bounds
    local add_links = (not skip_add_links)
@@ -527,7 +526,7 @@ local function formatRawFlow(ifid, alert, alert_json, skip_alert_description)
 
       if active_flow and active_flow["seen.first"] < tonumber(alert["alert_tstamp"]) then
 	 return string.format("%s [%s: <A class='btn btn-sm btn-info' HREF='%s/lua/flow_details.lua?flow_key=%u&flow_hash_id=%u'><i class='fas fa-search-plus'></i></A> %s]",
-			      ternary(skip_alert_description, '', flow_consts.getStatusDescription(tonumber(alert["flow_status"]), alert_json)),
+			      '',
 			      i18n("flow"), ntop.getHttpPrefix(), active_flow["ntopng.key"], active_flow["hash_entry_id"],
 			      getFlowLabel(active_flow, true, true))
       end
@@ -568,26 +567,12 @@ local function formatRawFlow(ifid, alert, alert_json, skip_alert_description)
       -- render the json
       local msg = ""
 
-      if not isEmptyString(alert["flow_status"]) then
-	 if not skip_alert_description then
-	    local status_description = flow_consts.getStatusDescription(tonumber(alert["flow_status"]), alert_json)
-
-	    if status_description then
-	       msg = msg..status_description.." "
-	    end
-	 end
-      end
-
       if not isEmptyString(flow) then
          msg = msg..flow.." "
       end
 
       if not isEmptyString(alert_json["info"]) then
          local lb = ""
-         if (flow_consts.getStatusType(alert["flow_status"]) == "status_blacklisted")
-                  and (not flow["srv.blacklisted"]) and (not flow["cli.blacklisted"]) then
-            lb = " <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
-         end
 	 local info
 
 	 if string.len(alert_json["info"]) > 60 then
@@ -1811,20 +1796,14 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
    alert_json = alert_utils.getAlertInfo(alert)
   end
 
-  -- TODO: remove this if with "flow" once migration to the new alerts API is completed
-  if(alert.alert_entity == alert_consts.alertEntity("flow") or not alert.alert_entity) and flow_consts.getStatusType(alert["flow_status"]) then
-     -- condition  flow_consts.getStatusType(alert["flow_status"] is used to format flow-alerts using the new API as regular alert.
-     msg = formatRawFlow(ifid, alert, alert_json, false --[[ don't skip alert description --]])
-  else
-    msg = alert_json
-    local description = alertTypeDescription(alert.alert_type)
+  msg = alert_json
+  local description = alertTypeDescription(alert.alert_type)
 
-    if(type(description) == "string") then
-      -- localization string
-      msg = i18n(description, msg)
-    elseif(type(description) == "function") then
-      msg = description(ifid, alert, msg)
-    end
+  if(type(description) == "string") then
+     -- localization string
+     msg = i18n(description, msg)
+  elseif(type(description) == "function") then
+     msg = description(ifid, alert, msg)
   end
 
   if(type(msg) == "table") then
@@ -1832,7 +1811,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
   end
 
   -- Append flow information to the alert message
-  if(alert.alert_entity == alert_consts.alertEntity("flow") or not alert.alert_entity) and not flow_consts.getStatusType(alert["flow_status"]) and not skip_live_data then
+  if(alert.alert_entity == alert_consts.alertEntity("flow") or not alert.alert_entity) and not skip_live_data then
      msg = msg.. " "..formatRawFlow(ifid, alert, alert_json, true --[[ skip alert description, description already set --]])
   end
 

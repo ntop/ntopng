@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "flow_utils"
 local format_utils = require("format_utils")
-local flow_consts = require "flow_consts"
+local alert_consts = require "alert_consts"
 local flow_utils = require "flow_utils"
 local icmp_utils = require "icmp_utils"
 local json = require "dkjson"
@@ -267,22 +267,8 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    local column_proto_l4 = ''
    if value["alerted_status"] then
-      local status_info = flow_consts.getStatusDescription(value["alerted_status"], flow2statusinfo(value))
-      column_proto_l4 = flow_consts.getStatusIcon(status_info, value["alerted_severity"]) -- "<i class='fas fa-exclamation-triangle' style=' title='"..noHtml(status_info) .."'></i> "
-   elseif value["status_map"] and value["flow.status"] ~= flow_consts.status_types.status_normal.status_key then
-      local title = ''
-
-      for _, t in pairs(flow_consts.status_types) do
-         local id = t.status_key
-	 if ntop.bitmapIsSet(value["status_map"], id) then
-	    if title ~= '' then
-	       title = title..'\n'
-	    end
-	    title = title..flow_consts.getStatusDescription(id, flow2statusinfo(value))
-	 end
-      end
-
-      column_proto_l4 = "<i class='fas fa-exclamation-circle' style='color: orange;' title='"..noHtml(title) .."'></i> "
+      local status_info = alert_consts.statusTypeLabel(value["alerted_status"], true)
+      column_proto_l4 = alert_consts.statusTypeIcon(value["alerted_status"], value["alerted_severity"]) -- "<i class='fas fa-exclamation-triangle' style=' title='"..noHtml(status_info) .."'></i> "
    end
 
    column_proto_l4 = column_proto_l4..value["proto.l4"]

@@ -54,8 +54,6 @@ alert_consts.severity_groups = {
 
 -- ##############################################
 
--- See flow_consts.status_types in flow_consts for flow alerts
-
 -- Keep in sync with ntop_typedefs.h:AlertEntity
 alert_consts.alert_entities = {
    interface = {
@@ -332,7 +330,6 @@ end
 
 -- ##############################################
 
--- NOTE: flow alerts are formatted based on their status. See flow_consts.status_types.
 -- See alert_consts.resetDefinitions()
 alert_consts.alert_types = {}
 local alerts_by_id      = {} -- All available alerts keyed by alert id
@@ -587,6 +584,23 @@ function alert_consts.statusTypeLabel(flow_status_key, nohtml)
    end
 
    return i18n("unknown")
+end
+
+-- ##############################################
+
+-- @brief Given a flow status identified by `status_key`, returns an icon associated to the severity
+-- @param `status info`, A human readable (localized) status info
+-- @param `alerted_severity`, Integer severity of the alert associated to this status
+-- @return The HTML with icon and ALT text, or empty if no icon is available
+function alert_consts.statusTypeIcon(status_info, alerted_severity)
+   local severity = alert_consts.alertSeverityById(alerted_severity)
+
+   if severity then
+      local alert_consts = require "alert_consts"
+      return "<i class='"..severity.icon.."' title='"..noHtml(alert_consts.statusTypeLabel(status_info, true)) .."'></i> "
+   end
+
+   return ""
 end
 
 -- ##############################################
