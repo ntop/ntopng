@@ -4028,15 +4028,12 @@ static int ntop_flush_interface_periodicity_map(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_service_map(lua_State* vm) {
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress *ip = NULL;
   u_int16_t vlan_id = 0;
-#endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
     char *host = (char*)lua_tostring(vm, 1);
     char buf[32], *at;
@@ -4056,7 +4053,6 @@ static int ntop_get_interface_service_map(lua_State* vm) {
     lua_pushnil(vm);
 
   if(ip) delete ip;
-#endif
 
   return(CONST_LUA_OK);
 }
