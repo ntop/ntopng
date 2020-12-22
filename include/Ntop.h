@@ -92,8 +92,8 @@ class Ntop {
   Recipients recipients; /* Handle notification recipients */
   
   /* Local network address list */
-  char *addressString[CONST_MAX_NUM_NETWORKS];
-  AddressTree tree;
+  char *local_network_names[CONST_MAX_NUM_NETWORKS];
+  AddressTree local_network_tree;
 
 #ifndef WIN32
   ContinuousPing *cping;
@@ -104,8 +104,8 @@ class Ntop {
 #endif
 
   /* For local network */
-  inline int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
-  bool addAddress(char *_net);
+  inline int16_t localNetworkLookup(int family, void *addr, u_int8_t *network_mask_bits = NULL);
+  bool addLocalNetwork(char *_net);
 
   void loadLocalInterfaceAddress();
   void initAllowedProtocolPresets();
@@ -434,7 +434,7 @@ class Ntop {
   bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };
   
   void getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix);
-  void addLocalNetwork(const char *network);
+  void addLocalNetworkList(const char *network);
   void createExportInterface();
   void resetNetworkInterfaces();
   void initElasticSearch();
@@ -507,15 +507,14 @@ class Ntop {
   void purgeLoopBody();
 
   /* Local network address list methods */
-  inline u_int8_t getNumLocalNetworks()       { return tree.getNumAddresses();    };
+  inline u_int8_t getNumLocalNetworks()       { return local_network_tree.getNumAddresses();    };
   inline const char* getLocalNetworkName(int16_t local_network_id) {
-    return(((u_int8_t)local_network_id < tree.getNumAddresses()) ? addressString[(u_int8_t)local_network_id] : NULL);
+    return(((u_int8_t)local_network_id < local_network_tree.getNumAddresses()) ? local_network_names[(u_int8_t)local_network_id] : NULL);
   };
   
   u_int8_t getLocalNetworkId(const char *network_name);
   
-  //void getAddresses(lua_State* vm)            { return(tree.getAddresses(vm));                               };
-  
+  //void getLocalAddresses(lua_State* vm) { return(local_network_tree.getAddresses(vm)); };
 };
 
 extern Ntop *ntop;

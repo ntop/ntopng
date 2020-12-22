@@ -4578,7 +4578,7 @@ static int ntop_add_local_network(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((local_network = (char*)lua_tostring(vm, 1)) == NULL)  return(CONST_LUA_PARAM_ERROR);
 
-  ntop->addLocalNetwork(local_network);
+  ntop->addLocalNetworkList(local_network);
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
