@@ -4020,7 +4020,7 @@ function builServiceMapHREF(ip_address, vlan_id)
       local res
 
       if((name == nil) or (name == "")) then name = ip_address end
-      res = '<a href="'..ntop.getHttpPrefix()..'/lua/service_map.lua?host='..ip_address
+      res = '<a href="'..ntop.getHttpPrefix()..'/lua/pro/enterprise/service_map.lua?host='..ip_address
 
       if(vlan_id and (vlan_id ~= 0)) then res = res .. "@"..vlan_id end
       res = res  ..'&page=graph">'..name..'</A>'

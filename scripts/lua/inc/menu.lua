@@ -303,8 +303,8 @@ else
        },
        {
          entry = page_utils.menu_entries.service_map,
-         hidden = not service_map_available,
-         url = '/lua/service_map.lua',
+         hidden = not service_map_available or not ntop.isEnterpriseM(),
+         url = '/lua/pro/enterprise/service_map.lua',
        },
 	    {
 	       entry = page_utils.menu_entries.geo_map,

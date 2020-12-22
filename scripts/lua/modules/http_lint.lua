@@ -1511,6 +1511,10 @@ local known_parameters = {
    ["rtt_threshold"]          = validateNumber,
    ["bandwidth_threshold"]    = validateNumber,
 
+-- Service Map
+   ["service_id"]            = validateNumber,
+   ["service_state"]         = validateNumber,
+
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,
    ["plugin_path"]              = validateLuaScriptPath,

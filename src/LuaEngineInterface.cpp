@@ -4081,12 +4081,15 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int64_t hash_id;
   ServiceAcceptance acceptance;
-  
+  char* buff;
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_interface) {
-    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-    hash_id = (u_int64_t)lua_tonumber(vm, 1);
+
+    if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+    if((buff = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+    hash_id = strtoull(buff, NULL, 10);
 
     if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
     acceptance = (ServiceAcceptance)lua_tonumber(vm, 2);

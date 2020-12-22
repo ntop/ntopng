@@ -4066,7 +4066,9 @@ local lang = {
     },
   },
   ["service_map_page"] = {
+    ["fetch_error"] = "Error while fetching Service Map Status.",
     ["graph_view"] = "Graph View",
+    ["learning"] = "The Service Map is <b>learning</b>...",
     ["table_view"] = "Table View",
   },
   ["severity_groups"] = {
