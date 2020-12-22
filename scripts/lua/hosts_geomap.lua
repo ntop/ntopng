@@ -32,7 +32,7 @@ if (num > 0) then
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
-            <p id='error-message'></p>
+            <span id='error-message'></span>
           </div>
           <div class="d-flex justify-content-center align-items-center" style="height: 720px" id="map-canvas">
               <div class="spinner-border text-primary" role="status">
@@ -55,15 +55,13 @@ if (num > 0) then
       const zoomIP = undefined;
 
       const display_localized_error = (error_code) => {
-        $('#geomap-alert p').html(`]].. i18n("geo_map.geolocation_error") ..[[[${error_code}]: ]].. i18n("geo_map.using_default_location") ..[[`);
-        $('#geomap-alert').removeClass('alert-info').addClass('alert-danger').show();
+        $('#geomap-alert #error-message').html(`<b>]].. i18n("geo_map.geolocation_warning") ..[[</b>: ]].. i18n("geo_map.using_default_location") ..[[`);
+        $('#geomap-alert').removeClass('alert-danger').addClass('alert-warning').show();
       }
 
       const display_localized_no_geolocation_msg = () => {
-
           $('#geomap-alert p').html(`]].. i18n("geo_map.unavailable_geolocation") .. ' ' .. i18n("geo_map.using_default_location") ..[[`);
           $('#geomap-alert').addClass('alert-info').removeClass('alert-danger').show();
-
       }
     </script>
     <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js" type='text/javascript'></script>

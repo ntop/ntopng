@@ -1925,7 +1925,7 @@ elseif page == "geomap" then
               <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
-              <p id='error-message'></p>
+              <span id='error-message'></span>
             </div>
             <div style="height: 720px" id="map-canvas"></div>
           </div>
@@ -1942,10 +1942,10 @@ elseif page == "geomap" then
         const zoomIP = "ifid=]]..ifId..[[&]].. hostinfo2url(host_info) ..[[";
          console.log(zoomIP);
 
-        const display_localized_error = (error_code) => {
-          $('#geomap-alert p').html(`]].. i18n("geo_map.geolocation_error") ..[[[${error_code}]: ]].. i18n("geo_map.using_default_location") ..[[`);
-          $('#geomap-alert').removeClass('alert-info').addClass('alert-danger').show();
-        }
+         const display_localized_error = (error_code) => {
+            $('#geomap-alert #error-message').html(`<b>]].. i18n("geo_map.geolocation_warning") ..[[</b>: ]].. i18n("geo_map.using_default_location") ..[[`);
+            $('#geomap-alert').removeClass('alert-danger').addClass('alert-warning').show();
+         }
 
         const display_localized_no_geolocation_msg = () => {
 
