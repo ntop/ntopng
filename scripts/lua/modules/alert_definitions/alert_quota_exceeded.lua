@@ -2,75 +2,59 @@
 -- (C) 2019-20 - ntop.org
 --
 
--- ##############################################
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+
 local alert_keys = require "alert_keys"
--- Import the classes library.
-local classes = require "classes"
--- Make sure to import the Superclass!
-local alert = require "alert"
 
--- ##############################################
-
-local alert_quota_exceeded = classes.class(alert)
-
--- ##############################################
-
-alert_quota_exceeded.meta = {
-  alert_key = alert_keys.ntopng.alert_quota_exceeded,
-  i18n_title = "alerts_dashboard.quota_exceeded",
-  icon = "fas fa-thermometer-full",
-}
-
--- ##############################################
+-- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
+-- @param alert_severity A severity as defined in `alert_severities`
+-- @param alert_subtype A string with the subtype of the alert
 -- @param pool The host pool structure
 -- @param proto The Layer-7 application which exceeded the quota
 -- @param value The latest measured value
 -- @param quota The quota set
 -- @return A table with the alert built
-function alert_quota_exceeded:init(pool, proto, value, quota)
+local function createPoolQuotaExceeded(alert_severity, alert_subtype, pool, proto, value, quota)
    local host_pools = require "host_pools"
-
-   -- Call the paren constructor
-   self.super:init()
+   -- Instantiate host pools
    local host_pools_instance = host_pools:create()
 
-   self.alert_type_params = {
-    pool = host_pools_instance:get_pool_name(pool),
-    proto = proto,
-    value = value,
-    quota = quota,
+   local built = {
+      alert_subtype = alert_subtype,
+      alert_severity = alert_severity,
+      alert_type_params = {
+	 pool = host_pools_instance:get_pool_name(pool),
+	 proto = proto,
+	 value = value,
+	 quota = quota,
+      },
    }
+
+   return built
 end
 
 -- #######################################################
 
--- @brief Format an alert into a human-readable string
--- @param ifid The integer interface id of the generated alert
--- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
--- @param alert_type_params Table `alert_type_params` as built in the `:init` method
--- @return A human-readable string
-function alert_quota_exceeded.format(ifid, alert, alert_type_params)
+local function quotaExceededFormatter(ifid, alert, info)
   local quota_str
   local value_str
   local subject_str
 
   if alert.alert_subtype == "traffic_quota" then
-    quota_str = bytesToSize(alert_type_params.quota)
-    value_str = bytesToSize(alert_type_params.value)
-    subject_str = i18n("alert_messages.proto_bytes_quotas", {proto=alert_type_params.proto})
+    quota_str = bytesToSize(info.quota)
+    value_str = bytesToSize(info.value)
+    subject_str = i18n("alert_messages.proto_bytes_quotas", {proto=info.proto})
   else
-    quota_str = secondsToTime(alert_type_params.quota)
-    value_str = secondsToTime(alert_type_params.value)
-    subject_str = i18n("alert_messages.proto_time_quotas", {proto=alert_type_params.proto})
+    quota_str = secondsToTime(info.quota)
+    value_str = secondsToTime(info.value)
+    subject_str = i18n("alert_messages.proto_time_quotas", {proto=info.proto})
   end
 
   return(i18n("alert_messages.subject_quota_exceeded", {
-    pool = alert_type_params.pool,
+    pool = info.pool,
     url = getHostPoolUrl(alert.alert_entity_val),
     subject = subject_str,
     quota = quota_str,
@@ -80,4 +64,10 @@ end
 
 -- #######################################################
 
-return alert_quota_exceeded
+return {
+  alert_key = alert_keys.ntopng.alert_quota_exceeded,
+  i18n_title = "alerts_dashboard.quota_exceeded",
+  i18n_description = quotaExceededFormatter,
+  icon = "fas fa-thermometer-full",
+  creator = createPoolQuotaExceeded,
+}

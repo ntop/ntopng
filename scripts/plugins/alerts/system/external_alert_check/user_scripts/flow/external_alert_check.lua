@@ -37,16 +37,12 @@ local function checkExternalAlert()
       local cli_score = 100
       local srv_score = 100
 
-      local status_info = alert_consts.alert_types.alert_external.new(
+      local status_info = flow_consts.status_types.status_external_alert.create(
         info
       )
-        
+
       if ntop.isEnterpriseM() then
         local ids_utils = require("ids_utils")
-
-        local alert = alert_consts.alert_types.alert_external.new(
-          info
-        )
 
         if ids_utils and status_info.alert_type_params and
            status_info.alert_type_params.source == "suricata" then
@@ -58,9 +54,7 @@ local function checkExternalAlert()
       end
 
       -- Trigger flow alert
-      alert:set_severity(alert_consts.alertSeverityById(info.severity_id))
-
-      alert:trigger_status(cli_score, srv_score, flow_score)
+      alerts_api.trigger_status(status_info, alert_consts.alertSeverityById(info.severity_id), cli_score, srv_score, flow_score)
     end
   end
 end

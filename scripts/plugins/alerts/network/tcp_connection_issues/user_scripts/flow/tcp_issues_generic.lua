@@ -6,7 +6,6 @@ local flow_consts = require("flow_consts")
 local user_scripts = require ("user_scripts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"
-local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -70,7 +69,7 @@ local function check_tcp_issues(now)
 
    if is_client or is_server then
       if is_severe then
-         local alert = alert_consts.alert_types.alert_connection_issues.new(
+         local tcp_severe_connection_issues_type = flow_consts.status_types.status_tcp_severe_connection_issues.create(
             flow.getTCPStats(),
             flow.getPacketsSent(),
             flow.getPacketsRcvd(),
@@ -79,12 +78,10 @@ local function check_tcp_issues(now)
             is_server
          )
 
-         alert:set_severity(alert_severities.warning)
-
-         alert:trigger_status(20, 20, 20)
+         alerts_api.trigger_status(tcp_severe_connection_issues_type, alert_severities.warning, 20, 20, 20)
 
       else
-         local alert = alert_consts.alert_types.alert_connection_issues.new(
+         local tcp_connection_issues_type = flow_consts.status_types.status_tcp_connection_issues.create(
             flow.getTCPStats(),
             flow.getPacketsSent(),
             flow.getPacketsRcvd(),
@@ -93,9 +90,7 @@ local function check_tcp_issues(now)
             is_server
          )
 
-         alert:set_severity(alert_severities.info)
-
-         alert:trigger_status(10, 10, 10)
+         alerts_api.trigger_status(tcp_connection_issues_type, alert_severities.info, 10, 10, 10)
       end
    end
 end

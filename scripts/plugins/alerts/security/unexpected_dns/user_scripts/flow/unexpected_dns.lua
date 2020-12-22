@@ -6,7 +6,6 @@ local user_scripts = require("user_scripts")
 local flow_consts = require("flow_consts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"
-local alert_consts = require("alert_consts")
 
 local UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY = "ntopng.cache.user_scripts.unexpected_plugins_enabled"
 
@@ -78,14 +77,9 @@ function script.hooks.protocolDetected(now, conf)
       end
 
       if ok == 0 then
-         local alert = alert_consts.alert_types.alert_unexpected_dns_server.new(
-            client_ip, 
-            server_ip
-         )
+         local unexpected_dns_type = flow_consts.status_types.status_unexpected_dns.create(client_ip, server_ip)
 
-         alert:set_severity(alert_severities.error)
-
-         alert:trigger_status(0, 100, 100)
+         alerts_api.trigger_status(unexpected_dns_type, alert_severities.error, 0, 100, 100)
       end
    end
 end

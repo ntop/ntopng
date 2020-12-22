@@ -5,7 +5,6 @@
 local alerts_api = require "alerts_api"
 local flow_consts = require("flow_consts")
 local alert_severities = require "alert_severities"
-local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -22,13 +21,11 @@ function handler.handle_risk(risk_id, flow_score, cli_score, srv_score)
    local url = http_info["protos.http.last_url"] or ""
 
    -- Set flow status and trigger an alert when a suspicious file transfer is detected
-   local alert = alert_consts.alert_types.alert_suspicious_file_transfer.new(
+   local suspicious_file_transfer_type = flow_consts.status_types.status_suspicious_file_transfer.create(
       http_info
    )
-
-   alert:set_severity(alert_severities.error)
-
-   alert:trigger_status(cli_score or 0, srv_score or 0, flow_score or 0)
+   
+   alerts_api.trigger_status(suspicious_file_transfer_type, alert_severities.error, cli_score or 0, srv_score or 0, flow_score or 0)
    
 end
 

@@ -6,7 +6,6 @@ local alerts_api = require("alerts_api")
 local alert_severities = require "alert_severities"
 local user_scripts = require("user_scripts")
 local flow_consts  = require("flow_consts")
-local alert_consts = require("alert_consts")
 
 local script
 
@@ -52,14 +51,13 @@ local function check_tcp_window(now)
 	 server_score = high_score
       end
 
-      local alert = alert_consts.alert_types.alert_zero_tcp_window.new(
+      -- Now it's time to generate the alert   
+      local zero_tcp_window_type = flow_consts.status_types.status_zero_tcp_window.create(
          zerowin.client,
          zerowin.server
       )
 
-      alert:set_severity(alert_severities.warning)
-
-      alert:trigger_status(client_score, server_score, high_score) 
+      alerts_api.trigger_status(zero_tcp_window_type, alert_severities.warning, client_score, server_score, high_score)   
    end
 end
 

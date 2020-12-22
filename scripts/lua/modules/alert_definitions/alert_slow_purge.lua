@@ -2,59 +2,39 @@
 -- (C) 2019-20 - ntop.org
 --
 
--- ##############################################
-
 local alert_keys = require "alert_keys"
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-
 local format_utils = require "format_utils"
--- Import the classes library.
-local classes = require "classes"
--- Make sure to import the Superclass!
-local alert = require "alert"
 
--- ##############################################
-
-local alert_slow_purge = classes.class(alert)
-
--- ##############################################
-
-alert_slow_purge.meta = {
-  alert_key = alert_keys.ntopng.alert_slow_purge,
-  i18n_title = "alerts_dashboard.slow_purge",
-  icon = "fas fa-exclamation",
-}
-
--- ##############################################
+-- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
+-- @param alert_severity A severity as defined in `alert_severities`
+-- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param idle Number of entries in state idle
 -- @param idle_perc Fraction of entries in state idle, with reference to the total number of entries (idle + active)
 -- @param threshold Threshold compared against idle_perc
 -- @return A table with the alert built
-function alert_slow_purge:init(idle, idle_perc, threshold)
-   -- Call the paren constructor
-   self.super:init()
-
-   self.alert_type_params = {
-    idle = idle,
-    idle_perc = idle_perc,
-    edge = threshold,
+local function createSlowPurge(alert_severity, alert_granularity, idle, idle_perc, threshold)
+   local built = {
+      alert_severity = alert_severity,
+      alert_granularity = alert_granularity,
+      alert_type_params = {
+	 idle = idle,
+	 idle_perc = idle_perc,
+	 edge = threshold,
+      },
    }
+
+   return built
 end
 
 -- #######################################################
 
--- @brief Format an alert into a human-readable string
--- @param ifid The integer interface id of the generated alert
--- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
--- @param alert_type_params Table `alert_type_params` as built in the `:init` method
--- @return A human-readable string
-function alert_slow_purge.format(ifid, alert, alert_type_params)
+local function formatSlowPurge(ifid, alert, threshold_info)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
-  local max_idle_perc = format_utils.round(alert_type_params.edge or 0, 0)
-  local actual_idle_perc = format_utils.round(alert_type_params.idle_perc or 0, 0)
+  local max_idle_perc = format_utils.round(threshold_info.edge or 0, 0)
+  local actual_idle_perc = format_utils.round(threshold_info.idle_perc or 0, 0)
 
   return(i18n("alert_messages.slow_purge", {
     iface = entity, idle = actual_idle_perc, max_idle = max_idle_perc,
@@ -64,4 +44,10 @@ end
 
 -- #######################################################
 
-return alert_slow_purge
+return {
+  alert_key = alert_keys.ntopng.alert_slow_purge,
+  i18n_title = "alerts_dashboard.slow_purge",
+  icon = "fas fa-exclamation",
+  i18n_description = formatSlowPurge,
+  creator = createSlowPurge,
+}

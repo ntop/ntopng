@@ -4,7 +4,6 @@
 
 local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
-local alert_consts = require("alert_consts")
 
 local script
 
@@ -17,20 +16,18 @@ local function check_interface_drops(params)
   local stats = info.stats_since_reset
   local threshold = tonumber(params.user_script_config.threshold)
   local drop_perc = math.min(stats.drops * 100.0 / (stats.drops + stats.packets + 1), 100)
-  
-  local alert = alert_consts.alert_types.alert_too_many_drops.new(
-    stats.drops,
-    drop_perc,
-    threshold
-    )
-
-  alert:set_severity(alert_severities.error)
-  alert:set_granularity(params.granularity)
+  local drops_type = alert_consts.alert_types.alert_too_many_drops.create(
+     alert_severities.error,
+     alert_consts.alerts_granularities.min,
+     stats.drops,
+     drop_perc,
+     threshold
+  )
 
   if((stats.packets > 100) and (drop_perc > threshold)) then
-    alert:trigger(params.alert_entity, nil, params.cur_alerts)
+     alerts_api.trigger(params.alert_entity, drops_type, nil, params.cur_alerts)
   else
-    alert:release(params.alert_entity, nil, params.cur_alerts)
+    alerts_api.release(params.alert_entity, drops_type, nil, params.cur_alerts)
   end
 end
 

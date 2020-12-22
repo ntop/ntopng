@@ -70,14 +70,14 @@ local function check_allowed_mac(params)
 
             -- Check if the new mac address is expected or not
             if not mac_list[mac] then
-               local alert = alert_consts.alert_types.alert_unexpected_new_device.create(
-                  device,
-                  mac
+               alerts_api.store(
+                  alerts_api.macEntity(mac),
+                  alert_consts.alert_types.alert_unexpected_new_device.create(
+                     alert_severities.warning,
+                     device,
+                     mac
+                  )
                )
-
-               alert:set_severity(alert_severities.warning)
-
-               alert:store(alerts_api.macEntity(mac))
             end
          end
       end

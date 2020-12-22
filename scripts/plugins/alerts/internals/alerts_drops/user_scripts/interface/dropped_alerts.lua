@@ -31,18 +31,17 @@ local function dropped_alerts_check(params)
    -- Compute the delta with the previous value for drops
    local delta_drops = alerts_api.interface_delta_val(script.key, params.granularity, dropped_alerts, true --[[ skip first --]])
 
-   local alert = alert_consts.alert_types.alert_dropped_alerts.new(
+   local alert_type = alert_consts.alert_types.alert_dropped_alerts.create(
+      alert_severities.error,
+      alert_consts.alerts_granularities[params.granularity],
       interface.getId(),
       delta_drops
-      )
-
-   alert:set_severity(alert_severities.error)
-   alert:set_granularity(params.granularity)
+   )
 
    if(delta_drops > 0) then
-      alert:trigger(params.alert_entity, nil, params.cur_alerts)
+      alerts_api.trigger(params.alert_entity, alert_type, nil, params.cur_alerts)
    else
-      alert:release(params.alert_entity, nil, params.cur_alerts)
+      alerts_api.release(params.alert_entity, alert_type, nil, params.cur_alerts)
    end
 end
 

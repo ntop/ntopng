@@ -9,6 +9,19 @@ local user_scripts = require("user_scripts")
 
 local script
 
+-- ##############################################
+
+local function alert_info(ps_name, max_duration_ms)
+   local alert_info = alert_consts.alert_types.alert_slow_periodic_activity.create(
+      alert_severities.warning,
+      alert_consts.alerts_granularities.min,
+      ps_name,
+      max_duration_ms
+   )
+
+   return alert_info
+end
+
 -- #################################################################
 
 local function check_slow_periodic_activity(params)
@@ -16,21 +29,15 @@ local function check_slow_periodic_activity(params)
 
    for ps_name, ps_stats in pairs(scripts_stats) do
       local delta = alerts_api.interface_delta_val(script.key..ps_name --[[ metric name --]], params.granularity, ps_stats["num_is_slow"] or 0)
+      
+      local info = alert_info(ps_name, (ps_stats["max_duration_secs"] or 0) * 1000)
 
-      local alert = alert_consts.alert_types.alert_slow_periodic_activity.new(
-         ps_name,
-         (ps_stats["max_duration_secs"] or 0) * 1000
-         )
-   
-      alert:set_severity(alert_severities.warning)
-      alert:set_granularity(alert_consts.alerts_granularities.min)
-      alert:set_subtype(ps_name)
       if delta > 0 then
 	 -- tprint({ps_name = ps_name, s = ">>>>>>>>>>>>>>>>>>>>>> TRIGGER"})
-         alert:trigger(params.alert_entity, nil, params.cur_alerts)
+	 alerts_api.trigger(params.alert_entity, info, nil, params.cur_alerts)
       else
 	 -- tprint({ps_name = ps_name, s = "---------------------- RELEASE"})
-         alert:release(params.alert_entity, nil, params.cur_alerts)
+	 alerts_api.release(params.alert_entity, info, nil, params.cur_alerts)
       end
    end
 end

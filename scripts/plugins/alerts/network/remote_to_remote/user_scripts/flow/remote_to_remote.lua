@@ -6,8 +6,6 @@ local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"
-local alert_consts = require "alert_consts"
-
 
 -- #################################################################
 
@@ -28,11 +26,11 @@ local script = {
 
 function script.hooks.protocolDetected(now)
    if(flow.isRemoteToRemote() and flow.isUnicast()) then
-    local alert = alert_consts.alert_types.alert_remote_to_remote.new()
+      local remote_to_remote_type = flow_consts.status_types.status_remote_to_remote.create(
+        server_ip
+      )
 
-      alert:set_severity(alert_severities.notice)
-
-      alert:trigger_status(cli_score, srv_score, flow_score)
+      alerts_api.trigger_status(remote_to_remote_type, alert_severities.notice, 10, 10, 10)
   end
 end
 
