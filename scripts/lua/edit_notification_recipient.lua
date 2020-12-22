@@ -37,7 +37,7 @@ local recipient_id = _POST["recipient_id"]
 local recipient_name = _POST["recipient_name"]
 local categories = recipients_rest_utils.parse_user_script_categories(_POST["recipient_user_script_categories"])
 local minimum_severity = recipients_rest_utils.parse_minimum_severity(_POST["recipient_minimum_severity"])
-local bind_to_all_pools = _POST["bind_to_all_pools"]
+local bind_to_all_pools = _POST["bind_to_all_pools"] == "true"
 
 if (action == "add") then
    local endpoint_id = _POST["endpoint_id"]
