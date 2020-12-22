@@ -400,7 +400,36 @@ end
 function alert_consts.loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"alert_key", "i18n_title", "icon"}
 
-   if mod_fname ~= "alert_host_new_api_demo" and mod_fname ~= "alert_flow_new_api_demo" then -- TODO: remove when new api migration done
+   if mod_fname ~= "alert_host_new_api_demo" and mod_fname ~= "alert_flow_new_api_demo"
+      and mod_fname ~= "alert_malicious_signature"
+      and mod_fname ~= "alert_elephant_local_to_remote"
+      and  mod_fname ~= "alert_elephant_remote_to_local"
+      and  mod_fname ~= "alert_flow_blocked"
+      and  mod_fname ~= "alert_tls_old_version"
+      and  mod_fname ~= "alert_tls_certificate_mismatch"
+      and  mod_fname ~= "alert_tls_certificate_expired"
+      and  mod_fname ~= "alert_tls_unsafe_ciphers"
+      and  mod_fname ~= "alert_tls_certificate_selfsigned"
+      and  mod_fname ~= "alert_potentially_dangerous_protocol"
+      and  mod_fname ~= "alert_snmp_device_reset"
+      and  mod_fname ~= "alert_port_mac_changed"
+      and  mod_fname ~= "alert_port_duplexstatus_change"
+      and  mod_fname ~= "alert_port_errors"
+      and  mod_fname ~= "alert_port_status_change"
+      and  mod_fname ~= "alert_port_load_threshold_exceeded"
+      and  mod_fname ~= "alert_data_exfiltration"
+      and  mod_fname ~= "alert_dns_data_exfiltration"
+      and  mod_fname ~= "alert_tcp_connection_refused"
+      and  mod_fname ~= "alert_suspicious_tcp_syn_probing"
+      and  mod_fname ~= "alert_suspicious_tcp_probing"
+      and  mod_fname ~= "alert_dns_invalid_query"
+      and  mod_fname ~= "alert_attack_mitigation_via_snmp"
+      and  mod_fname ~= "alert_lateral_movement"
+      and  mod_fname ~= "alert_periodicity_update"
+      and  mod_fname ~= "alert_dns_positive_error_ratio"
+      and  mod_fname ~= "alert_iec104_error"
+   and mod_fname ~= "alert_longlived"
+   then -- TODO: remove when new api migration done
       -- Check the required fields
       for _, k in pairs(required_fields) do
 	 if(def_script[k] == nil) then

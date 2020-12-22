@@ -89,6 +89,20 @@ local alert_keys = {
       alert_shell_script_executed          = {NO_PEN, 74}, -- scripts/plugins/endpoints/shell_alert_endpoint
       alert_periodicity_update             = {NO_PEN, 75}, -- pro/scripts/enterprise_l_plugins/alerts/network/periodicity_update
       alert_dns_positive_error_ratio       = {NO_PEN, 76}, -- pro/scripts/enterprise_l_plugins/alerts/network/dns_positive_error_ratio
+      alert_elephant_local_to_remote       = {NO_PEN, 77},
+      alert_elephant_remote_to_local       = {NO_PEN, 78},
+      alert_longlived                      = {NO_PEN, 79},
+      alert_tls_old_protocol_version       = {NO_PEN, 80},
+      alert_tls_certificate_mismatch       = {NO_PEN, 81},
+      alert_tls_certificate_expired        = {NO_PEN, 82},
+      alert_tls_unsafe_ciphers             = {NO_PEN, 83},
+      alert_tls_certificate_selfsigned     = {NO_PEN, 84},
+      alert_data_exfiltration              = {NO_PEN, 85},
+      alert_dns_data_exfiltration          = {NO_PEN, 86},
+      alert_tcp_connection_refused         = {NO_PEN, 87},
+      alert_suspicious_tcp_syn_probing     = {NO_PEN, 88},
+      alert_suspicious_tcp_probing         = {NO_PEN, 89},
+      alert_dns_invalid_query              = {NO_PEN, 90},
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
       -- WARNING: make sure integers do NOT OVERLAP with

@@ -5,6 +5,7 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
+local status_keys = require "flow_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -12,31 +13,28 @@ local alert = require "alert"
 
 -- ##############################################
 
-local alert_port_errors = classes.class(alert)
+local alert_tls_old_version = classes.class(alert)
 
 -- ##############################################
 
-alert_port_errors.meta = {
-   alert_key = alert_keys.ntopng.alert_port_errors,
-   i18n_title = "alerts_dashboard.snmp_port_errors",
+alert_tls_old_version.meta = {
+   status_key = status_keys.ntopng.status_tls_old_protocol_version,
+   alert_key = alert_keys.ntopng.alert_tls_old_protocol_version,
+   i18n_title = "flow_details.tls_old_protocol_version",
    icon = "fas fa-exclamation",
 }
 
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param device_ip A string with the ip address of the snmp device
--- @param if_index The index of the port that changed
--- @param interface_name The string with the name of the port that changed
+-- @param tls_version A number indicating the TLS version detected, or nil when version is not available
 -- @return A table with the alert built
-function alert_port_errors:init(device_ip, if_index, interface_name)
-   -- Call the paren constructor
+function alert_tls_old_version:init(tls_version)
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {
-      device = device_ip,
-      interface = if_index,
-      interface_name = interface_name,
+      tls_version = tls_version,
    }
 end
 
@@ -47,16 +45,22 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function alert_port_errors.format(ifid, alert, alert_type_params)
-   return(i18n("alerts_dashboard.snmp_port_errors_increased",
-	       {
-		  device = alert_type_params.device,
-		  port = alert_type_params.interface_name or alert_type_params.interface,
-		  url = snmpDeviceUrl(alert_type_params.device),
-		  port_url = snmpIfaceUrl(alert_type_params.device, alert_type_params.interface)
-   }))
+function alert_tls_old_version.format(ifid, alert, alert_type_params)
+   local msg = i18n("flow_details.tls_old_protocol_version")
+
+   if(alert_type_params and alert_type_params.tls_version) then
+      local ver_str = ntop.getTLSVersionName(alert_type_params.tls_version)
+
+      if(ver_str == nil) then
+	 ver_str = string.format("%u", alert_type_params.tls_version)
+      end
+
+      msg = msg .. " (" .. ver_str .. ")"
+   end
+
+   return(msg)
 end
 
 -- #######################################################
 
-return alert_port_errors
+return alert_tls_old_version

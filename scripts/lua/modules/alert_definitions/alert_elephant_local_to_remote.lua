@@ -1,6 +1,9 @@
 --
 -- (C) 2019-20 - ntop.org
 --
+--
+-- (C) 2019-20 - ntop.org
+--
 
 -- ##############################################
 
@@ -13,27 +16,30 @@ local alert = require "alert"
 
 -- ##############################################
 
-local alert_potentially_dangerous_protocol = classes.class(alert)
+local alert_elephant_local_to_remote = classes.class(alert)
 
 -- ##############################################
 
-alert_potentially_dangerous_protocol.meta = {
-   status_key = status_keys.ntopng.status_potentially_dangerous,
-   alert_key = alert_keys.ntopng.alert_potentially_dangerous_protocol,
-   i18n_title = "flow_details.potentially_dangerous_protocol",
+alert_elephant_local_to_remote.meta = {
+   status_key = status_keys.ntopng.status_elephant_local_to_remote,
+   alert_key = alert_keys.ntopng.alert_elephant_local_to_remote,
+   i18n_title = "flow_details.elephant_flow_l2r",
    icon = "fas fa-exclamation",
 }
 
--- ##############################################
+-- #######################################################
 
 -- @brief Prepare an alert table used to generate the alert
+-- @param l2r_threshold Local-to-Remote threshold, in bytes, for a flow to be considered an elephant
+-- @param r2l_threshold Remote-to-Local threshold, in bytes, for a flow to be considered an elephant
 -- @return A table with the alert built
-function alert_potentially_dangerous_protocol:init()
+function alert_elephant_local_to_remote:init(l2r_threshold, r2l_threshold)
    -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {
-      -- No params
+      ["elephant.l2r_threshold"] = l2r_threshold,
+      ["elephant.r2l_threshold"] = r2l_threshold,
    }
 end
 
@@ -44,10 +50,12 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function alert_potentially_dangerous_protocol.format(ifid, alert, alert_type_params)
-   return i18n("flow_details.potentially_dangerous_protocol")
+function alert_elephant_local_to_remote.format(ifid, alert, alert_type_params)
+   return formatElephantFlowStatus(alert_type_params, true --[[ l2r ]])
 end
 
 -- #######################################################
 
-return alert_potentially_dangerous_protocol
+return alert_elephant_local_to_remote
+
+-- #######################################################
