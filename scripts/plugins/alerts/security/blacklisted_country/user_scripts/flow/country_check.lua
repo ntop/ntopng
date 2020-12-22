@@ -6,6 +6,7 @@ local user_scripts = require("user_scripts")
 local flow_consts = require("flow_consts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"
+local alert_consts = require("alert_consts")
 
 local script = {
   -- Script category
@@ -81,16 +82,18 @@ function script.hooks.protocolDetected(now, conf)
     info.cli_country = cli_country
     info.srv_country = srv_country
 
-    local blacklisted_country_type = flow_consts.status_types.status_blacklisted_country.create(
-        cli_country,
-        srv_country,
-        info.cli_blacklisted,
-        info.srv_blacklisted,
-        attacker,
-        victim
-      )
-     
-    alerts_api.trigger_status(blacklisted_country_type, alert_severities.error, cli_score, srv_score, flow_score)
+    local alert = alert_consts.alert_types.alert_blacklisted_country.new(
+      cli_country,
+      srv_country,
+      info.cli_blacklisted,
+      info.srv_blacklisted
+    )
+    
+    alert:set_severity(alert_severities.error)
+    alert:set_attacker(attacker)
+    alert:set_victim(victim)
+
+    alert:trigger_status(cli_score, srv_score, flow_score)
   end
 end
 

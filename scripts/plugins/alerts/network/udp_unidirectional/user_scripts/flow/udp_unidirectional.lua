@@ -10,6 +10,7 @@ local flow_consts = require("flow_consts")
 local user_scripts = require("user_scripts")
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"
+local alert_consts = require("alert_consts")
 
 -- #################################################################
 
@@ -52,9 +53,11 @@ function script.hooks.all(now)
    if((flow.getPacketsRcvd() == 0) and (flow.getPacketsSent() > 0)) then
       -- Now check if the recipient isn't a broadcast/multicast address
       if not flow.isClientNoIP() and flow.isServerUnicast() and not unidirectionalProtoWhitelist(flow.getnDPIAppProtoId()) then
-         local udp_unidirectional_type = flow_consts.status_types.status_udp_unidirectional.create()
+         local alert = alert_consts.alert_types.alert_udp_unidirectional.new()
 
-         alerts_api.trigger_status(udp_unidirectional_type, alert_severities.notice, 5, 1, 5)
+         alert:set_severity(alert_severities.notice)
+
+         alert:trigger_status(5, 1, 5)
       end
    end
 end

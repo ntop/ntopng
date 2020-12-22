@@ -2,41 +2,59 @@
 -- (C) 2019-20 - ntop.org
 --
 
+-- ##############################################
+
 local alert_keys = require "alert_keys"
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
 local format_utils = require "format_utils"
 local json = require("dkjson")
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
 
--- #######################################################
+-- ##############################################
+
+local alert_request_reply_ratio = classes.class(alert)
+
+-- ##############################################
+
+alert_request_reply_ratio.meta = {
+  alert_key = alert_keys.ntopng.alert_request_reply_ratio,
+  i18n_title = "entity_thresholds.request_reply_ratio_title",
+  icon = "fas fa-exclamation",
+}
+
+-- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
--- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
--- @param alert_subtype A string with the subtype of the alert
 -- @param requests The number of requests
 -- @param replies The number of replies
 -- @return A table with the alert built
-local function createRequestReplyRatio(alert_severity, alert_granularity, alert_subtype, requests, replies)
-   local built = {
-      alert_subtype = alert_subtype,
-      alert_granularity = alert_granularity,
-      alert_severity = alert_severity,
-      alert_type_params = {
-	 requests = requests,
-	 replies = replies,
-      }
-   }
+function alert_request_reply_ratio:init(requests, replies)
+   -- Call the paren constructor
+   self.super:init()
 
-   return built
+   self.alert_type_params = {
+    requests = requests,
+    replies = replies,
+   }
 end
 
 -- #######################################################
 
-function requestReplyRatioFormatter(ifid, alert, info)
+-- @brief Format an alert into a human-readable string
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function alert_request_reply_ratio.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
 
   local entity = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"]))
   local engine_label = alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["alert_granularity"])))
-  local ratio = round(math.min((info.replies * 100) / (info.requests + 1), 100), 1)
+  local ratio = round(math.min((alert_type_params.replies * 100) / (alert_type_params.requests + 1), 100), 1)
 
   -- {i18_string, what}
   local subtype_to_info = {
@@ -56,20 +74,14 @@ function requestReplyRatioFormatter(ifid, alert, info)
     granularity = engine_label,
     ratio = ratio,
     requests = i18n(
-      ternary(info.requests == 1, "alerts_dashboard.one_request", "alerts_dashboard.many_requests"),
-      {count = formatValue(info.requests), what = subtype_info[2]}),
+      ternary(alert_type_params.requests == 1, "alerts_dashboard.one_request", "alerts_dashboard.many_requests"),
+      {count = formatValue(alert_type_params.requests), what = subtype_info[2]}),
     replies =  i18n(
-      ternary(info.replies == 1, "alerts_dashboard.one_reply", "alerts_dashboard.many_replies"),
-      {count = formatValue(info.replies), what = subtype_info[2]}),
+      ternary(alert_type_params.replies == 1, "alerts_dashboard.one_reply", "alerts_dashboard.many_replies"),
+      {count = formatValue(alert_type_params.replies), what = subtype_info[2]}),
   }))
 end
 
 -- #######################################################
 
-return {
-  alert_key = alert_keys.ntopng.alert_request_reply_ratio,
-  i18n_title = "entity_thresholds.request_reply_ratio_title",
-  i18n_description = requestReplyRatioFormatter,
-  icon = "fas fa-exclamation",
-  creator = createRequestReplyRatio,
-}
+return alert_request_reply_ratio

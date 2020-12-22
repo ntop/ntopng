@@ -34,11 +34,11 @@ local function check_interface_activity(params)
   -- Creating a string, used to put into the redis cache the number of packets and flows
   local new_counters = num_packets .. "_" .. num_flows .. "_" .. num_logs
 
-  local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.create(
-      alert_severities.error,
-      alert_consts.alerts_granularities.min
-  )
+  local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.new()
 
+  no_if_activity_type:set_severity(alert_severities.error)
+  no_if_activity_type:set_granularity(params.granularity)
+  
   local redis_key = NO_ACTIVITY_PLUGIN_CACHE_KEY .. ifname
   
   -- Get from the cache the previous number of total packets received
@@ -52,10 +52,10 @@ local function check_interface_activity(params)
   if(tonumber(previous_packets) == num_packets and
      tonumber(previous_flows)   == num_flows and
      tonumber(previous_logs)    == num_logs) then
-    alerts_api.trigger(params.alert_entity, no_if_activity_type, nil, params.cur_alerts)
+     no_if_activity_type:trigger(params.alert_entity, nil, params.cur_alerts)
 
   else -- One of the two or both stats were different, so the interface is still active
-    alerts_api.release(params.alert_entity, no_if_activity_type, nil, params.cur_alerts)
+    no_if_activity_type:release(params.alert_entity, nil, params.cur_alerts)
   end
 
   ntop.setCache(NO_ACTIVITY_PLUGIN_CACHE_KEY .. ifname, new_counters, 360)

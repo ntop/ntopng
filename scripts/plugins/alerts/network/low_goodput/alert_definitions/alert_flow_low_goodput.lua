@@ -2,28 +2,60 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local alert_keys = require "alert_keys"
+-- ##############################################
 
--- #######################################################
+local alert_keys = require "alert_keys"
+local status_keys = require "flow_keys"
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
+local format_utils = require("format_utils")
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
+
+-- ##############################################
+
+local alert_flow_low_goodput = classes.class(alert)
+
+-- ##############################################
+
+alert_flow_low_goodput.meta = {
+   status_key = status_keys.ntopng.status_low_goodput,
+   alert_key = alert_keys.ntopng.alert_flow_low_goodput,
+   i18n_title = "alerts_dashboard.flow_low_goodput",
+   icon = "fas fa-exclamation",
+}
+
+-- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
 -- @param alert_severity A severity as defined in `alert_severities`
 -- @return A table with the alert built
-local function createFlowLowGoodput(goodput_ratio)
-   local built = {
-      alert_type_params = {
-	 goodput_ratio = goodput_ratio
-      }
-   }
+function alert_flow_low_goodput:init(goodput_ratio)
+   -- Call the parent constructor
+   self.super:init()
 
-   return built
+   self.alert_type_params = {
+      goodput_ratio = goodput_ratio
+   }
 end
 
 -- #######################################################
 
-return {
-   alert_key = alert_keys.ntopng.alert_flow_low_goodput,
-   i18n_title = "alerts_dashboard.flow_low_goodput",
-   icon = "fas fa-exclamation",
-   creator = createFlowLowGoodput,
-}
+-- @brief Format an alert into a human-readable string
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function alert_flow_low_goodput.format(ifid, alert, alert_type_params)
+   if alert_type_params and alert_type_params.goodput_ratio then
+      return i18n("flow_details.flow_low_goodput", { ratio = format_utils.round(alert_type_params.goodput_ratio, 2) })
+   end
+
+   return(i18n("alerts_dashboard.flow_low_goodput"))
+end
+
+-- #######################################################
+
+return alert_flow_low_goodput

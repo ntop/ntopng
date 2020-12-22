@@ -2,30 +2,48 @@
 -- (C) 2019-20 - ntop.org
 --
 
+-- ##############################################
+
 local alert_keys = require "alert_keys"
 
--- #######################################################
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
+
+-- ##############################################
+
+local alert_ghost_network = classes.class(alert)
+
+-- ##############################################
+
+alert_ghost_network.meta = {
+  alert_key = alert_keys.ntopng.alert_ghost_network,
+  i18n_title = "alerts_dashboard.ghost_network_detected",
+  icon = "fas fa-ghost",
+}
+
+-- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
--- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
--- @param network The string CIDR of the ghost network
+-- @param one_param The first alert param
+-- @param another_param The second alert param
 -- @return A table with the alert built
-local function createGhostNetwork(alert_severity, alert_granularity, network)
-   local built = {
-      alert_severity = alert_severity,
-      alert_granularity = alert_granularity,
-      alert_subtype = network,
-      alert_type_params = {
-      },
-   }
+function alert_ghost_network:init()
+   -- Call the paren constructor
+   self.super:init()
 
-   return built
+   self.alert_type_params = {}
 end
 
 -- #######################################################
 
-local function ghostNetworkFormatter(ifid, alert, info)
+-- @brief Format an alert into a human-readable string
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function alert_ghost_network.format(ifid, alert, alert_type_params)
   return(i18n("alerts_dashboard.ghost_network_detected_description", {
     network = alert.alert_subtype,
     entity = getInterfaceName(ifid),
@@ -35,10 +53,4 @@ end
 
 -- #######################################################
 
-return {
-  alert_key = alert_keys.ntopng.alert_ghost_network,
-  i18n_title = "alerts_dashboard.ghost_network_detected",
-  i18n_description = ghostNetworkFormatter,
-  icon = "fas fa-ghost",
-  creator = createGhostNetwork,
-}
+return alert_ghost_network
