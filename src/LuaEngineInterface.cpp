@@ -4028,12 +4028,15 @@ static int ntop_flush_interface_periodicity_map(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_get_interface_service_map(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress *ip = NULL;
   u_int16_t vlan_id = 0;
+#endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
     char *host = (char*)lua_tostring(vm, 1);
     char buf[32], *at;
@@ -4053,6 +4056,7 @@ static int ntop_get_interface_service_map(lua_State* vm) {
     lua_pushnil(vm);
 
   if(ip) delete ip;
+#endif
 
   return(CONST_LUA_OK);
 }
@@ -4078,13 +4082,16 @@ static int ntop_flush_interface_service_map(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_service_map_set_status(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   u_int64_t hash_id;
   ServiceAcceptance acceptance;
   char* buff;
+#endif
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(ntop_interface) {
 
     if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
@@ -4096,6 +4103,7 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
 
     ntop_interface->getServiceMap()->setStatus(hash_id, acceptance);
   }
+#endif
 
   return(CONST_LUA_OK);
 }
@@ -4103,15 +4111,19 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
 /* ****************************************** */
 
 static int ntop_interface_service_map_learning_status(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  
+#endif
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(ntop_interface)
     ntop_interface->luaServiceMapStatus(vm);
   else
     lua_pushnil(vm);
+#endif
 
   return(CONST_LUA_OK);
 }
