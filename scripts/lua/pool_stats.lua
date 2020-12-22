@@ -61,17 +61,7 @@ print ('sort: [ ["' .. getDefaultTableSort("pool_id") ..'","' .. getDefaultTable
 
 print [[
         showPagination: true,
-        buttons: [ ]]
-
-if isAdministrator() then
-   if not have_nedge then
-      print [['<a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?page=pools#create" class="add-on btn"><i class="fas fa-plus" aria-hidden="true"></i></a>']]
-   else
-      print [['<a href="]] print(ntop.getHttpPrefix()) print[[/lua/pro/nedge/admin/nf_list_users.lua" class="add-on btn"><i class="fas fa-edit" aria-hidden="true"></i></a>']]
-   end
-end
-
-print[[ ],
+        buttons: [ ],
         columns: [
         {
             title: "Key",
