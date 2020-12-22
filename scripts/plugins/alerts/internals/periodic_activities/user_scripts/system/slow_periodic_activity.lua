@@ -22,10 +22,10 @@ local function check_slow_periodic_activity(params)
       local alert = alert_consts.alert_types.alert_slow_periodic_activity.new(
          ps_name,
          ps_stats["max_duration_secs"] * 1000
-         )
+      )
    
       alert:set_severity(alert_severities.warning)
-      alert:set_granularity(alert_consts.alerts_granularities.min)
+      alert:set_granularity(params.granularity)
       alert:set_subtype(ps_name)
 
       if delta > 0 then
