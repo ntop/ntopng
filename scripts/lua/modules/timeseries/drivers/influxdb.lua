@@ -976,15 +976,17 @@ function driver:_droppedPointsAlert()
       local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 
-      alerts_api.store(
-        alerts_api.influxdbEntity(self.url),
-        alert_consts.alert_types.alert_influxdb_export_failure.create(
-	   alert_severities.error,
-	   alert_consts.alerts_granularities.min,
-	   self.url
-	)
+      local alert = alert_consts.alert_types.alert_influxdb_export_failure.new(
+        alert_severities.error,
+        alert_consts.alerts_granularities.min,
+        self.url
       )
 
+      alert:set_severity(alert_severities.error)
+      alert:set_granularity(alert_consts.alerts_granularities.min)
+
+      alert:store(alerts_api.influxdbEntity(self.url))
+      
       -- Just to avoid doing :trigger too often
       ntop.setCache(k, "1", alert_periodicity / 2)
    end

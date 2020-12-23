@@ -2,49 +2,58 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local alert_keys = require "alert_keys"
+-- ##############################################
 
--- #######################################################
+local alert_keys = require "alert_keys"
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
+
+-- ##############################################
+
+local alert_process_notification = classes.class(alert)
+
+-- ##############################################
+
+alert_process_notification.meta = {
+  alert_key = alert_keys.ntopng.alert_process_notification,
+  i18n_title = "alerts_dashboard.process",
+  icon = "fas fa-truck",
+}
+
+-- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
 -- @param event_type The string with the type of event
 -- @param msg_details The details of the event
 -- @return A table with the alert built
-local function createProcessNotification(alert_severity, event_type, msg_details)
-  local built = {
-     alert_severity = alert_severity,
-     alert_type_params = {
-	msg_details = msg_details,
-	event_type = event_type,
-     },
-  }
+function alert_process_notification:init(event_type, msg_details)
+   -- Call the paren constructor
+   self.super:init()
 
-  return built
+   self.alert_type_params = {
+    msg_details = msg_details,
+    event_type = event_type,
+   }
 end
 
 -- #######################################################
 
-local function processNotificationFormatter(ifid, alert, info)
-  if info.event_type == "start" then
-    return string.format("%s %s", i18n("alert_messages.ntopng_start"), info.msg_details)
-  elseif info.event_type == "stop" then
-    return string.format("%s %s", i18n("alert_messages.ntopng_stop"), info.msg_details)
-  elseif info.event_type == "update" then
-    return string.format("%s %s", i18n("alert_messages.ntopng_update"), info.msg_details)
-  elseif info.event_type == "anomalous_termination" then
-    return string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), info.msg_details)
+function alert_process_notification.format(ifid, alert, alert_type_params)
+  if alert_type_params.event_type == "start" then
+    return string.format("%s %s", i18n("alert_messages.ntopng_start"), alert_type_params.msg_details)
+  elseif alert_type_params.event_type == "stop" then
+    return string.format("%s %s", i18n("alert_messages.ntopng_stop"), alert_type_params.msg_details)
+  elseif alert_type_params.event_type == "update" then
+    return string.format("%s %s", i18n("alert_messages.ntopng_update"), alert_type_params.msg_details)
+  elseif alert_type_params.event_type == "anomalous_termination" then
+    return string.format("%s %s", i18n("alert_messages.ntopng_anomalous_termination", {url="https://www.ntop.org/support/need-help-2/need-help/"}), alert_type_params.msg_details)
   end
 
-  return "Unknown Process Event: " .. (info.event_type or "")
+  return "Unknown Process Event: " .. (alert_type_params.event_type or "")
 end
 
 -- #######################################################
 
-return {
-  alert_key = alert_keys.ntopng.alert_process_notification,
-  i18n_title = "alerts_dashboard.process",
-  i18n_description = processNotificationFormatter,
-  icon = "fas fa-truck",
-  creator = createProcessNotification,
-}
+return alert_process_notification

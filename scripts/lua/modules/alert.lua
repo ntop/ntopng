@@ -20,7 +20,7 @@ end
 -- ##############################################
 
 function Alert:format()
-   tprint("base format")
+   --tprint("base format")
 end
 
 -- ##############################################

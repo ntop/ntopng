@@ -30,7 +30,7 @@ alert_unexpected_ntp_server.meta = {
 -- @param one_flow_param The first alert param
 -- @param another_flow_param The second alert param
 -- @return A table with the alert built
-function alert_unexpected_ntp_server:init(one_flow_param, another_flow_param)
+function alert_unexpected_ntp_server:init(client_ip, server_ip)
    -- Call the parent constructor
    self.super:init()
 

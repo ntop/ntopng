@@ -358,13 +358,14 @@ local function checkListsUpdate(timeout)
 	    list.status.num_errors = 0
 	    needs_reload = true
 
-	    alerts_api.store(
-	       alerts_api.categoryListsEntity(list_name),
-	       alert_consts.alert_types.alert_list_download_succeeded.create(
-		  alert_severities.notice,
-		  list_name
-	       )
-	    )
+       local alert = alert_consts.alert_types.alert_list_download_succeeded.new(
+	      list_name
+       )
+
+       alert:set_severity(alert_severities.notice)
+       alert:set_granularity(params.granularity)
+
+       alert:store(alerts_api.categoryListsEntity(list_name))
 
 	    msg = msg .. "OK"
 	 else
@@ -391,14 +392,14 @@ local function checkListsUpdate(timeout)
 	    list.status.last_error = last_error
 	    list.status.num_errors = list.status.num_errors + 1
 
-	    alerts_api.store(
-	       alerts_api.categoryListsEntity(list_name),
-	       alert_consts.alert_types.alert_list_download_failed.create(
-		  alert_severities.error,
-		  list_name,
-		  last_error
-	       )
-	    )
+       local alert = alert_consts.alert_types.alert_list_download_failed.new(
+	      list_name,
+		   last_error
+       )
+
+       alert:set_severity(alert_severities.error)
+
+	    alert:store(alerts_api.categoryListsEntity(list_name))
 
 	    msg = msg .. "ERROR ["..last_error.."]"
 	 end

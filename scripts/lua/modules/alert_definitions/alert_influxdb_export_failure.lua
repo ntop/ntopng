@@ -2,33 +2,46 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local alert_keys = require "alert_keys"
+-- ##############################################
 
--- #######################################################
+local alert_keys = require "alert_keys"
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
+
+-- ##############################################
+
+local alert_influxdb_export_failure = classes.class(alert)
+
+-- ##############################################
+
+alert_influxdb_export_failure.meta = {
+   alert_key = alert_keys.ntopng.alert_influxdb_export_failure,
+   i18n_title = "alerts_dashboard.influxdb_export_failure",
+   icon = "fas fa-database",
+}
+
+-- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
--- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
 -- @param influxdb The url used to export the points
 -- @return A table with the alert built
-local function createInfluxdbDroppedPoints(alert_severity, alert_granularity, influxdb)
-   local built = {
-      alert_severity = alert_severity,
-      alert_granularity = alert_granularity,
-      alert_type_params = {
-	 influxdb = influxdb,
-      },
-   }
+function alert_influxdb_export_failure:init(influxdb)
+   -- Call the paren constructor
+   self.super:init()
 
-   return built
+   self.alert_type_params = {
+      influxdb = influxdb,
+   }
 end
 
 -- #######################################################
 
-return {
-  alert_key = alert_keys.ntopng.alert_influxdb_export_failure,
-  i18n_title = "alerts_dashboard.influxdb_export_failure",
-  i18n_description = "alert_messages.influxdb_dropped_points",
-  icon = "fas fa-database",
-  creator = createInfluxdbDroppedPoints,
-}
+function alert_influxdb_export_failure.format(ifid, alert, alert_type_params)
+   return i18n("alert_messages.influxdb_dropped_points")
+end
+
+-- #######################################################
+
+return alert_influxdb_export_failure

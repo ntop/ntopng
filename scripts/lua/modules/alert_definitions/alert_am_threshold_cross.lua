@@ -2,44 +2,49 @@
 -- (C) 2019-20 - ntop.org
 --
 
+-- ##############################################
+
 local alert_keys = require "alert_keys"
 local format_utils = require("format_utils")
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
 
--- #######################################################
+-- ##############################################
 
--- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
--- @param alert_granularity A granularity as defined in `alert_consts.alerts_granularities`
--- @param value A number indicating the measure which crossed the threshold
--- @param threshold A number indicating the threshold compared with `value`  using operator
--- @param ip A string with the ip address of the host crossing the threshold
--- @param host A string with the host key
--- @param operator A string indicating the operator used when evaluating the threshold, one of "gt", ">", "<"
--- @param unit The unit of measure of value and threshold
--- @return A table with the alert built
-local function createActiveMonitoringTxCross(alert_severity, alert_granularity, value, threshold, ip, host, operator, unit)
-   local threshold_type = {
-      alert_severity = alert_severity,
-      alert_granularity = alert_granularity,
-      alert_type_params = {
-	 value = value,
-	 threshold = threshold,
-	 ip = ip,
-	 host = host,
-	 operator = operator,
-	 unit = unit
-      },
+local alert_am_threshold_cross = classes.class(alert)
+
+-- ##############################################
+
+alert_am_threshold_cross.meta = {
+   alert_key = alert_keys.ntopng.alert_am_threshold_cross,
+   i18n_title = "graphs.active_monitoring",
+   icon = "fas fa-exclamation",
+}
+
+-- ##############################################
+
+function alert_am_threshold_cross:init(value, threshold, ip, host, operator, unit)
+   -- Call the paren constructor
+   self.super:init()
+
+   self.alert_type_params = {
+      value = value,
+      threshold = threshold,
+      ip = ip,
+      host = host,
+      operator = operator,
+      unit = unit
    }
-
-   return threshold_type
 end
 
 -- #######################################################
 
-local function thresholdCrossFormatter(ifid, alert, info)
+function alert_am_threshold_cross.format(ifid, alert, alert_type_params)
    local msg
-   local host = info.host
-   local numeric_ip = info.ip
+   local host = alert_type_params.host
+   local numeric_ip = alert_type_params.ip
    local ip_label = host and host.label or numeric_ip
 
    if numeric_ip ~= host.host then
@@ -48,10 +53,10 @@ local function thresholdCrossFormatter(ifid, alert, info)
       numeric_ip = ""
    end
 
-   if(info.value == 0) then -- host unreachable
-      if(info.alt_i18n) then
+   if(alert_type_params.value == 0) then -- host unreachable
+      if(alert_type_params.alt_i18n) then
 	 -- The measurement may have defined a custom message via unreachable_alert_i18n
-	 msg = i18n(info.alt_i18n) or info.alt_i18n
+	 msg = i18n(alert_type_params.alt_i18n) or alert_type_params.alt_i18n
       end
 
       -- Fallback
@@ -61,7 +66,7 @@ local function thresholdCrossFormatter(ifid, alert, info)
 		  numeric_ip = numeric_ip})
       end
    else -- host too slow
-      if info.operator == "lt" then
+      if alert_type_params.operator == "lt" then
 	 i18n_s = "alert_messages.measurement_too_low_msg"
       else
 	 i18n_s = "alert_messages.measurement_too_high_msg"
@@ -69,8 +74,8 @@ local function thresholdCrossFormatter(ifid, alert, info)
 
       local unit = "active_monitoring_stats.msec"
 
-      if info.unit then
-	 unit = info.unit
+      if alert_type_params.unit then
+	 unit = alert_type_params.unit
       end
 
       unit = i18n(unit) or unit
@@ -82,8 +87,8 @@ local function thresholdCrossFormatter(ifid, alert, info)
       local msg_table = {
 	 host = ip_label,
 	 numeric_ip = numeric_ip,
-	 am_value = format_utils.round(info.value, 2),
-	 threshold = info.threshold,
+	 am_value = format_utils.round(alert_type_params.value, 2),
+	 threshold = alert_type_params.threshold,
 	 unit = unit,
       }
 
@@ -95,10 +100,4 @@ end
 
 -- #######################################################
 
-return {
-  alert_key = alert_keys.ntopng.alert_am_threshold_cross,
-  i18n_title = "graphs.active_monitoring",
-  i18n_description = thresholdCrossFormatter,
-  icon = "fas fa-exclamation",
-  creator = createActiveMonitoringTxCross,
-}
+return alert_am_threshold_cross

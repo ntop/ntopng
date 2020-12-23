@@ -34,7 +34,7 @@ end
 -- @param alert_severity A severity as defined in `alert_severities`
 -- @param host_pool A string with the host pool id
 -- @return A table with the alert built
-function alert_creators.createPoolConnectionDisconnection(alert_severity, host_pool)
+function alert_creators.createPoolConnectionDisconnection(host_pool)
    local host_pools = require "host_pools"
    -- Instantiate host pools
    local host_pools_instance = host_pools:create()

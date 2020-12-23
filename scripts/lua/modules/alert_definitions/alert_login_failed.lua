@@ -2,27 +2,45 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local alert_keys = require "alert_keys"
+-- ##############################################
 
--- #######################################################
+local alert_keys = require "alert_keys"
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
+
+-- ##############################################
+
+local alert_login_failed = classes.class(alert)
+
+-- ##############################################
+
+alert_login_failed.meta = {
+  alert_key = alert_keys.ntopng.alert_login_failed,
+  i18n_title = "alerts_dashboard.login_failed",
+  icon = "fas fa-sign-in",
+}
+
+-- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
 -- @return A table with the alert built
-local function createLoginFailedType(alert_severity)
-  local built = {
-     alert_severity = alert_severity,
-     alert_type_params = {
-     },
-  }
+function alert_login_failed:init()
+   -- Call the paren constructor
+   self.super:init()
 
-  return built
+   self.alert_type_params = {}
 end
-
 
 -- #######################################################
 
-local function loginFailedFormatter(ifid, alert, info)
+-- @brief Format an alert into a human-readable string
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function alert_login_failed.format(ifid, alert, alert_type_params)
   return(i18n("user_activity.login_not_authorized", {
     user = alert.alert_entity_val,
   }))
@@ -30,10 +48,4 @@ end
 
 -- #######################################################
 
-return {
-  alert_key = alert_keys.ntopng.alert_login_failed,
-  i18n_title = "alerts_dashboard.login_failed",
-  i18n_description = loginFailedFormatter,
-  icon = "fas fa-sign-in",
-  creator = createLoginFailedType,
-}
+return alert_login_failed

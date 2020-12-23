@@ -2,47 +2,56 @@
 -- (C) 2019-20 - ntop.org
 --
 
-local alert_keys = require "alert_keys"
+-- ##############################################
 
--- #######################################################
+local alert_keys = require "alert_keys"
+-- Import the classes library.
+local classes = require "classes"
+-- Make sure to import the Superclass!
+local alert = require "alert"
+
+-- ##############################################
+
+local alert_nfq_flushed = classes.class(alert)
+
+-- ##############################################
+
+alert_nfq_flushed.meta = {
+  alert_key = alert_keys.ntopng.alert_nfq_flushed,
+  i18n_title = "alerts_dashboard.nfq_flushed",
+  icon = "fas fa-angle-double-down",
+}
+
+-- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param alert_severity A severity as defined in `alert_severities`
 -- @param ifname The name of the interface
 -- @param ptc The percentage of NFQ fill level
 -- @param tot Thee total number of packets in the NFQ
 -- @param dropped The number of packets dropped
 -- @return A table with the alert built
-local function createNfqFlushedType(alert_severity, ifname, pct, tot, dropped)
-   local built = {
-      alert_severity = alert_severity,
-      alert_type_params = {
-	 ifname = ifname,
-	 pct = pct,
-	 tot = tot,
-	 dropped = dropped,
-      },
-   }
+function alert_nfq_flushed:init(ifname, pct, tot, dropped)
+   -- Call the paren constructor
+   self.super:init()
 
-   return built
+   self.alert_type_params = {
+    ifname = ifname,
+    pct = pct,
+    tot = tot,
+    dropped = dropped,
+   }
 end
 
 -- #######################################################
 
-local function nfwFlushedFormatter(ifid, alert, info)
+function alert_nfq_flushed.format(ifid, alert, alert_type_params)
   return(i18n("alert_messages.nfq_flushed", {
-    name = info.ifname, pct = info.pct,
-    tot = info.tot, dropped = info.dropped,
+    name = alert_type_params.ifname, pct = alert_type_params.pct,
+    tot = alert_type_params.tot, dropped = alert_type_params.dropped,
     url = ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid,
   }))
 end
 
 -- #######################################################
 
-return {
-  alert_key = alert_keys.ntopng.alert_nfq_flushed,
-  i18n_title = "alerts_dashboard.nfq_flushed",
-  i18n_description = nfwFlushedFormatter,
-  icon = "fas fa-angle-double-down",
-  creator = createNfqFlushedType,
-}
+return alert_nfq_flushed

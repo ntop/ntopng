@@ -723,9 +723,7 @@ local function amThresholdCrossType(value, threshold, ip, granularity, entity_in
   local host = am_utils.key2host(entity_info.alert_entity_val)
   local m_info = am_utils.getMeasurementInfo(host.measurement)
 
-  local alert_type = alert_consts.alert_types.alert_am_threshold_cross.create(
-     alert_severities.warning,
-     alert_consts.alerts_granularities[granularity],
+  local alert_type = alert_consts.alert_types.alert_am_threshold_cross.new(
      value,
      threshold,
      ip,
@@ -733,6 +731,9 @@ local function amThresholdCrossType(value, threshold, ip, granularity, entity_in
      m_info.operator,
      m_info.i18n_unit
   )
+
+  alert_type:set_severity(alert_severities.warning)
+  alert_type:set_granularity(alert_consts.alerts_granularities[granularity])
 
   return alert_type
 end
@@ -754,7 +755,7 @@ function am_utils.triggerAlert(numeric_ip, ip_label, current_value, upper_thresh
     end
   end
 
-  return alerts_api.trigger(entity_info, type_info)
+  return type_info:release(entity_info)
 end
 
 -- ##############################################
@@ -763,7 +764,7 @@ function am_utils.releaseAlert(numeric_ip, ip_label, current_value, upper_thresh
   local entity_info = alerts_api.amThresholdCrossEntity(ip_label)
   local type_info = amThresholdCrossType(current_value, upper_threshold, numeric_ip, granularity, entity_info)
 
-  return alerts_api.release(entity_info, type_info)
+  return type_info:release(entity_info)
 end
 
 -- ##############################################

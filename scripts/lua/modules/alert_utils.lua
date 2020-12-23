@@ -1812,7 +1812,11 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
 
   -- Append flow information to the alert message
   if(alert.alert_entity == alert_consts.alertEntity("flow") or not alert.alert_entity) and not skip_live_data then
-     msg = msg.. " "..formatRawFlow(ifid, alert, alert_json, true --[[ skip alert description, description already set --]])
+      if msg == nil then 
+         msg = formatRawFlow(ifid, alert, alert_json, true --[[ skip alert description, description already set --]])
+      else
+         msg = msg.. " "..formatRawFlow(ifid, alert, alert_json, true --[[ skip alert description, description already set --]])
+      end
   end
 
   if(msg) then
@@ -1926,33 +1930,36 @@ local function processStoreAlertFromQueue(alert)
    if(alert.alert_type == "misconfigured_dhcp_range") then
       local router_info = {host = alert.router_ip, vlan = alert.vlan_id}
       entity_info = alerts_api.hostAlertEntity(alert.client_ip, alert.vlan_id)
-      type_info = alert_consts.alert_types.alert_ip_outsite_dhcp_range.create(
-	 alert_severities.warning,
+      type_info = alert_consts.alert_types.alert_ip_outsite_dhcp_range.new(
 	 router_info,
 	 alert.mac_address,
 	 alert.client_mac,
 	 alert.sender_mac
       )
+      type_info:set_severity(alert_severities.warning)
+      type_info:set_subtype(string.format("%s_%s_%s", hostinfo2hostkey(router_info), alert.client_mac, alert.sender_mac))
    elseif(alert.alert_type == "mac_ip_association_change") then
       if(ntop.getPref("ntopng.prefs.ip_reassignment_alerts") == "1") then
-	 local name = getDeviceName(alert.new_mac)
-	 entity_info = alerts_api.macEntity(alert.new_mac)
-	 type_info = alert_consts.alert_types.alert_mac_ip_association_change.create(
-	    alert_severities.warning,
-	    name,
-	    alert.ip,
-	    alert.old_mac,
-	    alert.new_mac
-	 )
+         local name = getDeviceName(alert.new_mac)
+         entity_info = alerts_api.macEntity(alert.new_mac)
+         type_info = alert_consts.alert_types.alert_mac_ip_association_change.new(
+            name,
+            alert.ip,
+            alert.old_mac,
+            alert.new_mac
+         )
+         type_info:set_severity(alert_severities.warning)
+         type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
       end
    elseif(alert.alert_type == "login_failed") then
       entity_info = alerts_api.userEntity(alert.user)
-      type_info = alert_consts.alert_types.alert_login_failed.create(
-	 alert_severities.warning
-      )
+      type_info = alert_consts.alert_types.alert_login_failed.new()
+      type_info:set_severity(alert_severities.warning)
    elseif(alert.alert_type == "broadcast_domain_too_large") then
       entity_info = alerts_api.macEntity(alert.src_mac)
-      type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.create(alert_severities.warning, alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
+      type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.new(alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
+      type_info:set_severity(alert_severities.warning)
+      type_info:set_subtype(string.format("%u_%s_%s_%s_%s", vlan, src_mac, spa, dst_mac, tpa))
    elseif(alert.alert_type == "remote_to_remote") then
       if(ntop.getPref("ntopng.prefs.remote_to_remote_alerts") == "1") then
 	 local host_info = {host = alert.host, vlan = alert.vlan}
@@ -1961,23 +1968,25 @@ local function processStoreAlertFromQueue(alert)
       end
    elseif((alert.alert_type == "user_activity") and (alert.scope == "login")) then
       entity_info = alerts_api.userEntity(alert.user)
-      type_info = alert_consts.alert_types.alert_user_activity.create(
-	 alert_severities.notice,
-	 "login",
-	 nil,
-	 nil,
-	 nil,
-	 "authorized"
+      type_info = alert_consts.alert_types.alert_user_activity.new(
+         "login",
+         nil,
+         nil,
+         nil,
+         "authorized"
       )
+      type_info:set_severity(alert_severities.notice)
+      type_info:set_subtype("login//")
    elseif(alert.alert_type == "nfq_flushed") then
       entity_info = alerts_api.interfaceAlertEntity(alert.ifid)
-      type_info = alert_consts.alert_types.alert_nfq_flushed.create(
-	 alert_severities.error,
-	 getInterfaceName(alert.ifid),
-	 alert.pct,
-	 alert.tot,
-	 alert.dropped
+      type_info = alert_consts.alert_types.alert_nfq_flushed.new(
+         getInterfaceName(alert.ifid),
+         alert.pct,
+         alert.tot,
+         alert.dropped
       )
+
+      type_info:set_severity(alert_severities.error)
    else
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_type or ""))
    end
@@ -2068,15 +2077,16 @@ local function notify_ntopng_status(started)
       telemetry_utils.notify(obj)
    end
 
-  local entity_info = alerts_api.processEntity(entity_value)
-  local type_info = alert_consts.alert_types.alert_process_notification.create(
-     alert_severities[alert_consts.alertSeverityRaw(severity)],
-     event,
-     msg_details
-  )
+   local entity_info = alerts_api.processEntity(entity_value)
+   local type_info = alert_consts.alert_types.alert_process_notification.new(
+      event,
+      msg_details
+   )
 
-  interface.select(getSystemInterfaceId())
-  return(alerts_api.store(entity_info, type_info))
+   type_info:set_severity(alert_severities[alert_consts.alertSeverityRaw(severity)])
+
+   interface.select(getSystemInterfaceId())
+   return(type_info:store(entity_info))
 end
 
 function alert_utils.notify_ntopng_start()

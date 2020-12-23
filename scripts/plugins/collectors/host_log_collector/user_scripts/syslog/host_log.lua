@@ -114,23 +114,24 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
             severity = alert_severities.warning
          end
 
-         local type_info = alert_consts.alert_types.alert_host_log.create(
-            getLogSubtype(message),
-            severity,
+         local type_info = alert_consts.alert_types.alert_host_log.new(
             host,
             level_name,
             facility_name,
             message)
+         
+         type_info:set_subtype(getLogSubtype(message))
+         type_info:set_severity(severity)
 
          -- Deliver alert
-         alerts_api.store(entity, type_info)
+         type_info:store(entity)
 
          -- Deliver to companion if any
          local companion_of = companion_interface_utils.getCurrentCompanionOf(interface.getId())
          local curr_iface = tostring(interface.getId())
          for _, m in pairs(companion_of) do
             interface.select(m)
-            alerts_api.store(entity, type_info)
+            type_info:store(entity)
          end
          interface.select(curr_iface)
 

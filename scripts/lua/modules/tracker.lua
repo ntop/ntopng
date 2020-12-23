@@ -39,16 +39,17 @@ local alert_consts = require "alert_consts"
   local old_iface = ifid
   interface.select(getSystemInterfaceId())
 
-  alerts_api.store(
-     alerts_api.userEntity(entity_value),
-     alert_consts.alert_types.alert_user_activity.create(
-	alert_severities.notice,
-	'function',
-	f_name,
-	f_args,
-	remote_addr
-     )
+  local alert = alert_consts.alert_types.alert_user_activity.new(
+    'function',
+    f_name,
+    f_args,
+    remote_addr
   )
+
+  alert:set_severity(alert_severities.notice)
+  alert:set_subtype('function'.."/"..(f_name or '').."/"..(remote_addr or ''))
+
+  alert:store(alerts_api.userEntity(entity_value))
 
   interface.select(tostring(old_iface))
 end
