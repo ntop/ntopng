@@ -14,7 +14,6 @@ local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(true)
 local is_admin = isAdministrator()
 
-
 interface.select(ifname)
 local iface_id = interface.name2id(ifname)
 local _ifstats = interface.getStats()
@@ -49,7 +48,7 @@ print ([[
 			<div class="col-4 pl-md-0 text-left">
 				<small>
 					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
-				  		]] .. (info.product .. ' ' .. getNtopngRelease(info) .." v.".. info.version) ..[[
+				  		]] .. info.product .. ' ' .. getNtopngRelease(info) .." v.".. info.version.. " (".. info["OS"] ..")" ..[[
 					</a>
 					|
 					<a href="https://github.com/ntop/ntopng">
