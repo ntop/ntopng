@@ -1514,6 +1514,7 @@ local known_parameters = {
 -- Service Map
    ["service_id"]            = validateNumber,
    ["service_state"]         = validateNumber,
+   ["set_service_state"]    = validateNumber,
 
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,
