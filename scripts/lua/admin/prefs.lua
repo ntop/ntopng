@@ -804,7 +804,7 @@ function printNetworkBehaviour()
     "learning-status-thead"
   }
 
-  local LEARNING_STATUS = {
+  local LEARNING_STATUS = { -- Keep it in sync with ntop_typedefs.h ServiceAcceptance
     ALLOWED = "0",
     DENIED = "1",
     UNKNOWN = "2"

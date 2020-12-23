@@ -589,6 +589,8 @@
 #define CONST_PREFS_CLIENT_X509_AUTH                    NTOPNG_PREFS_PREFIX".is_client_x509_auth_enabled"
 #define CONST_PREFS_BEHAVIOUR_ANALYSIS                  NTOPNG_PREFS_PREFIX".is_behaviour_analysis_enabled"
 #define CONST_PREFS_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD  NTOPNG_PREFS_PREFIX".behaviour_analysis_learning_period"
+#define CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_DURING_LEARNING  NTOPNG_PREFS_PREFIX".behaviour_analysis_learning_status_during_learning"
+#define CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_POST_LEARNING  NTOPNG_PREFS_PREFIX".behaviour_analysis_learning_status_post_learning"
 
 #define CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD  7200 // 2 hours by default
 

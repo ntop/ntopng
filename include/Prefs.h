@@ -53,6 +53,8 @@ class Prefs {
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis;
   u_int32_t behaviour_analysis_learning_period;
+  ServiceAcceptance behaviour_analysis_learning_status_during_learning,
+    behaviour_analysis_learning_status_post_learning;
   TsDriver timeseries_driver;
   u_int64_t iec104_allowed_typeids[2];  
   u_int32_t auth_session_duration;
@@ -383,6 +385,8 @@ class Prefs {
   inline void      enableBehaviourAnalysis()     { enable_behaviour_analysis = true;                    };
   inline bool      isBehavourAnalysisEnabled()   { return(enable_behaviour_analysis);                   };
   inline u_int32_t behaviourAnalysisLearningPeriod() { return behaviour_analysis_learning_period;       };
+  inline ServiceAcceptance behaviourAnalysisStatusDuringLearning() { return behaviour_analysis_learning_status_during_learning; };
+  inline ServiceAcceptance behaviourAnalysisStatusPostLearning()   { return behaviour_analysis_learning_status_post_learning;   };
   inline u_int64_t* getIEC104AllowedTypeIDs()    { return(iec104_allowed_typeids);                      };
   void setIEC104AllowedTypeIDs(char *protos);
   void validate();

@@ -57,6 +57,8 @@ Prefs::Prefs(Ntop *_ntop) {
   device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
   max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES;
   behaviour_analysis_learning_period = CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD;
+  behaviour_analysis_learning_status_during_learning = service_allowed;
+  behaviour_analysis_learning_status_post_learning = service_allowed;
   auth_session_duration = HTTP_SESSION_DURATION;
   auth_session_midnight_expiration = HTTP_SESSION_MIDNIGHT_EXPIRATION;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
@@ -691,6 +693,8 @@ void Prefs::reloadPrefsFromRedis() {
 void Prefs::refreshBehaviourAnalysis() {
   enable_behaviour_analysis  = getDefaultBoolPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS, false);
   behaviour_analysis_learning_period = getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD, CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD);
+  behaviour_analysis_learning_status_during_learning = (ServiceAcceptance)getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_DURING_LEARNING, service_allowed);
+  behaviour_analysis_learning_status_post_learning = (ServiceAcceptance)getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_POST_LEARNING, service_allowed);
 }
 
 /* ******************************************* */
