@@ -564,29 +564,6 @@ function printMisc()
 			      h_labels, h_values, "0", "primary", "toggle_host_mask", "ntopng.prefs.host_mask")
   end
 
-  -- ######################
-
-  if ntop.isPro() then
-     print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.behaviour")..'</th></tr></thead>')
-
-     prefsToggleButton(subpage_active, {
-			  field = "toggle_behaviour_analysis",
-			  default = "0",
-			  pref = "is_behaviour_analysis_enabled", -- redis preference
-			  to_switch = {"behaviour_analysis_learning_period"},
-     })
-
-     local behaviour_analysis_learning_period = ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1"
-
-     prefsInputFieldPrefs(subpage_active.entries["behaviour_analysis_learning_period"].title, subpage_active.entries["behaviour_analysis_learning_period"].description,
-			  "ntopng.prefs.","behaviour_analysis_learning_period",
-			  prefs.behaviour_analysis_learning_period,
-			  "number", behaviour_analysis_learning_period, nil, nil, {min=3600, tformat="hd"})
-
-  end
-
-  -- #####################
-
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -811,6 +788,84 @@ function printAuthentication()
   end
 
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+  print('</table>')
+  print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />]]
+  print('</form>')
+end
+
+-- #####################
+
+function printNetworkBehaviour()
+
+  local elements_to_switch = {
+    "behaviour_analysis_learning_period", 
+    "row_behaviour_analysis_learning_status_during_learning", 
+    "row_behaviour_analysis_learning_status_post_learning",
+    "learning-status-thead"
+  }
+
+  local LEARNING_STATUS = {
+    ALLOWED = "0",
+    DENIED = "1",
+    UNKNOWN = "2"
+  }
+
+  print('<form method="post">')
+  print('<table class="table">')
+
+  -- ######################
+
+  if ntop.isPro() then
+    print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.behaviour")..'</th></tr></thead>')
+
+    prefsToggleButton(subpage_active, {
+        field = "toggle_behaviour_analysis",
+        default = "0",
+        pref = "is_behaviour_analysis_enabled", -- redis preference
+        to_switch = elements_to_switch,
+    })
+
+    local behaviour_analysis_learning_period = ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1"
+
+    prefsInputFieldPrefs(
+        subpage_active.entries["behaviour_analysis_learning_period"].title, 
+        subpage_active.entries["behaviour_analysis_learning_period"].description,
+        "ntopng.prefs.","behaviour_analysis_learning_period",
+        prefs.behaviour_analysis_learning_period,
+        "number", behaviour_analysis_learning_period, nil, nil, {min=3600, tformat="hd"})
+
+    print('<thead class="thead-light"><tr id="learning-status-thead"><th colspan=2 class="info">'..i18n("traffic_behaviour.learning")..'</th></tr></thead>')
+
+    multipleTableButtonPrefs(
+        subpage_active.entries["behaviour_analysis_learning_status_during_learning"].title,
+        subpage_active.entries["behaviour_analysis_learning_status_during_learning"].description,
+        {i18n("traffic_behaviour.unknown"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
+        {LEARNING_STATUS.UNKNOWN, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
+        LEARNING_STATUS.ALLOWED, -- [default value]
+        "primary", -- [selected color]
+        "behaviour_analysis_learning_status_during_learning",
+        "ntopng.prefs.behaviour_analysis_learning_status_during_learning",  -- [redis key]
+        false, -- [disabled]
+        {}, nil, nil, true--[[show]])
+      
+    multipleTableButtonPrefs(
+      subpage_active.entries["behaviour_analysis_learning_status_post_learning"].title,
+      subpage_active.entries["behaviour_analysis_learning_status_post_learning"].description,
+      {i18n("traffic_behaviour.unknown"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
+      {LEARNING_STATUS.UNKNOWN, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
+      LEARNING_STATUS.ALLOWED, -- [default value]
+      "primary",
+      "behaviour_analysis_learning_status_post_learning",
+      "ntopng.prefs.behaviour_analysis_learning_status_post_learning", 
+      false,
+      {}, nil, nil, true--[[show]])
+
+  end
+
+  -- #####################
+ 
+  print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
+
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />]]
   print('</form>')
@@ -1403,7 +1458,7 @@ print([[
            </div>
 ]])
 print[[
-        </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
+        </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;>]]
 
 if(tab == "report") then
    printReportVisualization()
@@ -1439,6 +1494,10 @@ end
 
 if(tab == "recording") then
    printRecording()
+end
+
+if(tab == "traffic_behaviour") then
+  printNetworkBehaviour()
 end
 
 if(tab == "retention") then

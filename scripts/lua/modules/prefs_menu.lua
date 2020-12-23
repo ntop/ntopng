@@ -241,7 +241,30 @@ local menu_subpages = {
       description = i18n("prefs.toggle_mysql_check_open_files_limit_description"),
       hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),
     }
-  }}, {id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
+  }}, { id ="traffic_behaviour",
+    label=i18n("prefs.traffic_behaviour"),  
+    advanced=false, 
+    pro_only=true, 
+    hidden=false,
+    entries={
+      toggle_behaviour_analysis = {
+        title       = i18n("prefs.toggle_behaviour_analysis_title"),
+        description = i18n("prefs.toggle_behaviour_analysis_description"),
+      },
+      behaviour_analysis_learning_period = {
+        title       = i18n("prefs.behaviour_analysis_learning_period_title"),
+        description = i18n("prefs.behaviour_analysis_learning_period_description"),
+      },
+      behaviour_analysis_learning_status_during_learning = {
+        title = i18n("prefs.behaviour_analysis_status_during_learning_title"),
+        description = i18n("prefs.behaviour_analysis_status_during_learning_description")
+      },
+      behaviour_analysis_learning_status_post_learning = {
+        title = i18n("prefs.behaviour_analysis_status_post_learning_title"),
+        description = i18n("prefs.behaviour_analysis_status_post_learning_description")
+      }
+    }
+  },{id="protocols",     label=i18n("prefs.protocols"),            advanced=false, pro_only=false,  hidden=false, entries={
     toggle_top_sites = {
       title       = i18n("prefs.toggle_top_sites_title"),
       description = i18n("prefs.toggle_top_sites_description", {url="https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"})},
@@ -337,16 +360,10 @@ local menu_subpages = {
     }, toggle_host_mask = {
       title       = i18n("prefs.toggle_host_mask_title"),
       description = i18n("prefs.toggle_host_mask_description"),
-    }, toggle_behaviour_analysis = {
-      title       = i18n("prefs.toggle_behaviour_analysis_title"),
-      description = i18n("prefs.toggle_behaviour_analysis_description"),
     }, topk_heuristic_precision = {
       title       = i18n("prefs.topk_heuristic_precision_title"),
       description = i18n("prefs.topk_heuristic_precision_description"),
-    }, behaviour_analysis_learning_period = {
-      title       = i18n("prefs.behaviour_analysis_learning_period_title"),
-      description = i18n("prefs.behaviour_analysis_learning_period_description"),
-    }
+    }, 
 
   }}, {id="updates", label=i18n("prefs.updates"), advanced=false, pro_only=false, hidden=(is_windows or (not ntop.isPackage())), entries={
     toggle_autoupdates = {
