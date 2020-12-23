@@ -28,14 +28,11 @@ icon = "fas fa-arrow-circle-up",
 -- @param one_param The first alert param
 -- @param another_param The second alert param
 -- @return A table with the alert built
-function alert_no_if_activity:init(one_param, another_param)
+function alert_no_if_activity:init()
    -- Call the paren constructor
    self.super:init()
 
-   self.alert_type_params = {
-      one_param = one_param,
-      another_param = another_param
-   }
+   self.alert_type_params = {}
 end
 
 -- #######################################################
@@ -46,7 +43,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_no_if_activity.format(ifid, alert, alert_type_params)
-  i18n("no_if_activity.status_no_activity_description")
+  return(i18n("no_if_activity.status_no_activity_description"))
 end
 
 -- #######################################################
