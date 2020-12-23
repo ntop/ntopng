@@ -156,6 +156,7 @@ local lang = {
   ["local_traffic"] = "Local Traffic",
   ["lua_c_api"] = "Lua/C API",
   ["mac_address"] = "Mac Address",
+  ["maps"] = "Maps",
   ["max_rate"] = "Max Rate",
   ["memory"] = "Memory",
   ["missing_x_parameter"] = "Missing \"%{param}\" parameter",

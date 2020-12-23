@@ -312,21 +312,6 @@ else
 	    {
 	       entry = page_utils.menu_entries.divider,
        },
-       {
-         entry = page_utils.menu_entries.service_map,
-         hidden = not service_map_available or not ntop.isEnterpriseM(),
-         url = '/lua/pro/enterprise/service_map.lua',
-       },
-       {
-         entry = page_utils.menu_entries.periodicity_map,
-         hidden = not periodic_info_available or not ntop.isEnterpriseM(),
-         url = '/lua/pro/enterprise/periodicity_map.lua',
-       },
-	    {
-	       entry = page_utils.menu_entries.geo_map,
-	       hidden = interface.isLoopback() or not ntop.hasGeoIP(),
-	       url = '/lua/hosts_geomap.lua',
-	    },
 	    {
 	       entry = page_utils.menu_entries.host_explorer,
 	       url = '/lua/bubble.lua',
@@ -334,6 +319,31 @@ else
 	 },
       }
    )
+
+  -- ##############################################
+   
+  -- Maps
+   page_utils.add_menubar_section({
+      section = page_utils.menu_sections.maps,
+      hidden = is_system_interface,
+      entries = {
+         {
+            entry = page_utils.menu_entries.service_map,
+            hidden = not ntop.isEnterpriseL(),
+            url = '/lua/pro/enterprise/service_map.lua',
+          },
+          {
+            entry = page_utils.menu_entries.periodicity_map,
+            hidden = not ntop.isEnterpriseL(),
+            url = '/lua/pro/enterprise/periodicity_map.lua',
+          },
+          {
+             entry = page_utils.menu_entries.geo_map,
+             hidden = interface.isLoopback() or not ntop.hasGeoIP(),
+             url = '/lua/hosts_geomap.lua',
+          },
+      }
+   })
 
    -- ##############################################
 

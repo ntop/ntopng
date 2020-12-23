@@ -292,12 +292,6 @@ page_utils.print_navbar(title, url,
 				 page_name = "traffic_recording",
 				 label = "<i class=\"fas fa-lg fa-hdd\"></i>",
                },
-               {
-                  hidden = (not service_map_available and not ntop.isEnterpriseM()),
-                  page_name = "service_map",
-                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?page=table",
-                  label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
-               },
 			      {
 				 hidden = not isAdministrator() or not areAlertsEnabled(),
 				 active = page == "alerts",
@@ -344,7 +338,13 @@ page_utils.print_navbar(title, url,
 				 active = page == "dhcp",
 				 page_name = "dhcp",
 				 label = "<i class=\"fas fa-lg fa-bolt\"></i>",
-			      },
+               },
+               {
+                  hidden = (not service_map_available and not ntop.isEnterpriseM()),
+                  page_name = "service_map",
+                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?page=table",
+                  label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
+               },
 			   }
    )
 

@@ -27,6 +27,7 @@ page_utils.menu_sections = {
    alerts       = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows        = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
    hosts        = {key = "hosts", i18n_title = "hosts", icon = "fas fa-laptop"},
+   maps         = {key = "maps", i18n_title = "maps", icon = "fas fa-map"},
    exporters    = {key = "exporters", i18n_title = "flow_devices.exporters", icon = "fas fa-file-export", zmq_only = true --[[ only for non-packet ZMQ interfaces --]] },
    if_stats     = {key = "if_stats", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
@@ -80,12 +81,9 @@ page_utils.menu_entries = {
     operating_systems	 = {key = "operating_systems", i18n_title = "operating_systems", section = "hosts", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#operating-systems"},
     http_servers	 = {key = "http_servers", i18n_title = "http_servers_stats.http_servers", section = "hosts", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#http-servers-local"},
     top_hosts	      	 = {key = "top_hosts", i18n_title = "processes_stats.top_hosts", section = "hosts", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#top-hosts-local"},
-    geo_map	      	 = {key = "geo_map", i18n_title = "geo_map.geo_map", section = "hosts", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#geo-map"},
     hosts_treemap	 = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts", visible_iface = true},
     host_explorer	 = {key = "host_explorer", i18n_title = "host_explorer", section = "hosts", visible_iface = true},
     containers	      	 = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts", visible_iface = true},
-    service_map      = {key = "service_map", i18n_title="service_map", section = "hosts", visible_iface = true, visible_system = false},
-    periodicity_map = {key = "periodicity_map", i18n_title="periodicity_map", section = "hosts", visible_iface = true, visible_system = false},
     pods	      	 = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts", visible_iface = true},
 
     -- Interface
@@ -104,6 +102,11 @@ page_utils.menu_entries = {
     event_exporters   	 = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "exporters"},
     sflow_exporters   	 = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "exporters"},
     flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters", visible_iface = true, visible_system = false, help_link = "https://www.ntop.org"},
+
+   -- Map
+   service_map      = {key = "service_map", i18n_title="service_map", section = "maps", visible_iface = true, visible_system = false},
+   periodicity_map = {key = "periodicity_map", i18n_title="periodicity_map", section = "maps", visible_iface = true, visible_system = false},
+   geo_map	      	 = {key = "geo_map", i18n_title = "geo_map.geo_map", section = "maps", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#geo-map"},
 
     -- Settings
     manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
