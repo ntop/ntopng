@@ -4106,6 +4106,34 @@ static int ntop_interface_service_map_set_status(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_service_map_set_multiple_status(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  ServiceAcceptance current_status = service_unknown, new_status = service_unknown;
+  u_int16_t proto_id = 0xFF;
+  char* l7_proto = NULL;
+#endif
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  if(ntop_interface) {
+
+    if(lua_type(vm, 1) == LUA_TSTRING)  l7_proto       = (char*)lua_tostring(vm, 1);
+    if(lua_type(vm, 2) == LUA_TNUMBER)  current_status = (ServiceAcceptance)lua_tonumber(vm, 2);
+    if(lua_type(vm, 3) == LUA_TNUMBER)  new_status     = (ServiceAcceptance)lua_tonumber(vm, 3);
+
+    if(l7_proto != NULL) proto_id = ndpi_get_protocol_id(ntop_interface->get_ndpi_struct(), l7_proto);
+
+    ntop_interface->getServiceMap()->setBatchStatus(proto_id, current_status, new_status);
+  }
+#endif
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_interface_service_map_learning_status(lua_State* vm) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
@@ -4367,6 +4395,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "flushServiceMap",                  ntop_flush_interface_service_map },
   { "serviceMapLearningStatus",         ntop_interface_service_map_learning_status },
   { "serviceMapSetStatus",              ntop_interface_service_map_set_status },
+  { "serviceMapSetMultipleStatus",      ntop_interface_service_map_set_multiple_status },
 
   /* Addresses */
   { "getAddressInfo",                   ntop_get_address_info },

@@ -816,8 +816,9 @@ typedef struct _ntop_if_t {
 
 typedef enum {
   service_allowed = 0,
-  service_denied  = 1,
-  service_unknown = 2
+  service_denied,
+  service_undecided,
+  service_unknown
 } ServiceAcceptance;
 
 #endif /* _NTOP_TYPEDEFS_H_ */
