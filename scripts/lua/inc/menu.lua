@@ -228,12 +228,23 @@ else
 
    -- ##############################################
 
-   local service_map     = interface.serviceMap()
+   local service_map = interface.serviceMap()
    local service_map_available = false
    if(service_map and (table.len(service_map) > 0)) then
       service_map_available = true
    end
+   
+   local periodicity_map = interface.periodicityMap()
+   local periodic_info_available = false
+   local num_periodicity = 0
 
+   if(periodicity_map) then
+      num_periodicity = table.len(periodicity_map)
+      if(num_periodicity > 0) then
+         periodic_info_available = true
+      end
+   end
+   
    -- Hosts
    page_utils.add_menubar_section(
       {
@@ -305,6 +316,12 @@ else
          entry = page_utils.menu_entries.service_map,
          hidden = not service_map_available or not ntop.isEnterpriseM(),
          url = '/lua/pro/enterprise/service_map.lua',
+       },
+       {
+         entry = page_utils.menu_entries.periodicity_map,
+         suffix = " ("..num_periodicity..")",
+         hidden = not periodic_info_available or not ntop.isEnterpriseM(),
+         url = '/lua/pro/enterprise/periodicity_map.lua',
        },
 	    {
 	       entry = page_utils.menu_entries.geo_map,

@@ -440,7 +440,8 @@ else
 			      {
 				 hidden = not periodicity_map_available,
 				 active = page == "periodicity_map",
-				 page_name = "periodicity_map",
+             page_name = "periodicity_map",
+             url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?page=table&host=" .. host_ip,
 				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
 			      },
 			      {

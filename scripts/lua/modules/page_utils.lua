@@ -85,6 +85,7 @@ page_utils.menu_entries = {
     host_explorer	 = {key = "host_explorer", i18n_title = "host_explorer", section = "hosts", visible_iface = true},
     containers	      	 = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts", visible_iface = true},
     service_map      = {key = "service_map", i18n_title="service_map", section = "hosts", visible_iface = true, visible_system = false},
+    periodicity_map = {key = "periodicity_map", i18n_title="periodicity_map", section = "hosts", visible_iface = true, visible_system = false},
     pods	      	 = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts", visible_iface = true},
 
     -- Interface
@@ -570,7 +571,10 @@ function page_utils.print_menubar()
 		     end
 
 		     print[[>]]
-		     print(i18n(section_entry.entry.i18n_title) or section_entry.entry.i18n_title)
+           print(i18n(section_entry.entry.i18n_title) or section_entry.entry.i18n_title)
+           if section_entry.suffix then
+            print(section_entry.suffix)
+           end
 		     if external_link then
 			print(" <i class='fas fa-external-link-alt'></i>")
 		     end
