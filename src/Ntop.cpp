@@ -37,14 +37,11 @@
 Ntop *ntop;
 
 static const char* dirs[] = {
-  NULL,
-#ifndef WIN32
-  CONST_DEFAULT_INSTALL_DIR,
-#else
-  NULL,
-#endif
+  NULL,                      /* Populated at runtime */
+  NULL,                      /* Populated at runtime for WIN32 builds */
   CONST_ALT_INSTALL_DIR,
   CONST_ALT2_INSTALL_DIR,
+  CONST_DEFAULT_INSTALL_DIR, /* Last is the <path> specified with ./configure --prefix <path>, defaulting to /usr/local */
   NULL
 };
 
@@ -144,16 +141,18 @@ Ntop::Ntop(char *appName) {
 
   install_dir[0] = '\0';
 
-  for(int i=0; dirs[i] != NULL; i++) {
-    char path[MAX_PATH];
-    struct stat statbuf;
+  for(int i = 0; i < COUNT_OF(dirs); i++) {
+    if(dirs[i]) {
+      char path[MAX_PATH];
+      struct stat statbuf;
 
-    snprintf(path, sizeof(path), "%s/scripts/lua/index.lua", dirs[i]);
-    fixPath(path);
+      snprintf(path, sizeof(path), "%s/scripts/lua/index.lua", dirs[i]);
+      fixPath(path);
 
-    if(stat(path, &statbuf) == 0) {
-      snprintf(install_dir, sizeof(install_dir), "%s", dirs[i]);
-      break;
+      if(stat(path, &statbuf) == 0) {
+	snprintf(install_dir, sizeof(install_dir), "%s", dirs[i]);
+	break;
+      }
     }
   }
 #endif
@@ -2229,15 +2228,17 @@ char* Ntop::getValidPath(char *__path) {
     snprintf(_path, MAX_PATH, "%s", __path);
 
   /* relative paths */
-  for(int i=0; dirs[i] != NULL; i++) {
-    char path[2*MAX_PATH];
+  for(int i = 0; i < COUNT_OF(dirs); i++) {
+    if(dirs[i]) {
+      char path[2*MAX_PATH];
 
-    snprintf(path, sizeof(path), "%s/%s", dirs[i], _path);
-    fixPath(path);
+      snprintf(path, sizeof(path), "%s/%s", dirs[i], _path);
+      fixPath(path);
 
-    if(stat(path, &buf) == 0) {
-      free(__path);
-      return(strdup(path));
+      if(stat(path, &buf) == 0) {
+	free(__path);
+	return(strdup(path));
+      }
     }
   }
 
