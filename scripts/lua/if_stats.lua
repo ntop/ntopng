@@ -340,11 +340,18 @@ page_utils.print_navbar(title, url,
 				 label = "<i class=\"fas fa-lg fa-bolt\"></i>",
                },
                {
-                  hidden = (not service_map_available and not ntop.isEnterpriseM()),
+                  hidden = (not ntop.isEnterpriseL()),
                   page_name = "service_map",
-                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?page=table",
+                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua",
+                  label = "<i class=\"fas fa-lg fa-clock\"></i>",
+               },
+               {
+                  hidden = (not ntop.isEnterpriseL()),
+                  page_name = "service_map",
+                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua",
                   label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
                },
+              
 			   }
    )
 
