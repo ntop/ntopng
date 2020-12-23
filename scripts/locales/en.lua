@@ -2544,7 +2544,7 @@ local lang = {
     ["forbidden"] = "Forbidden page",
     ["internal_error"] = "Internal server error",
     ["not_found"] = "The requested page cannot be found",
-    ["pro_only"] = "Professional edition license required",
+    ["pro_only"] = "Professional/Enterprise edition license required",
     ["shut_start"] = "Unable to serve requests at this time, possibly starting up or shutting down",
   },
   ["icmp_page"] = {
