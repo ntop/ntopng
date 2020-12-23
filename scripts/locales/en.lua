@@ -4079,11 +4079,11 @@ local lang = {
     ["graph_view"] = "Graph View",
     ["learning"] = "The Service Map is <b>learning</b>...",
     ["note_1"] = "During the <b>learning</b>, a service status cannot be changed.",
-    ["note_2"] = "The services with the Unknown (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be Allowed (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or Denied (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).",
+    ["note_2"] = "The services with the Undefined (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be Allowed (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or Denied (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).",
     ["set_state"] = "Set %{label} service(s) status to: ",
     ["status"] = "Status",
     ["table_view"] = "Table View",
-    ["unknown"] = "Unknown",
+    ["undefined"] = "Undefined",
   },
   ["severity_groups"] = {
     ["group_error_or_higher"] = "Error or Higher",
