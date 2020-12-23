@@ -38,6 +38,7 @@ class DataTableFiltersMenu {
         this.filterMenuKey = filterMenuKey;
         this.columnIndex = columnIndex;
         this.preventUpdate = false;
+        this.currentFilterSelected = undefined;
         this.$datatableWrapper = $(tableAPI.context[0].nTableWrapper);
 
         // when the datatable has been initialized render the dropdown
@@ -49,6 +50,10 @@ class DataTableFiltersMenu {
         this.tableAPI.on('draw', function() {
             self._update();
         });
+    }
+
+    get selectedFilter() {
+        return this.currentFilterSelected;
     }
 
     _countEntries(regex, data = []) {
@@ -98,6 +103,8 @@ class DataTableFiltersMenu {
             if (filter.callback) filter.callback();
             // perform the table filtering
             self.tableAPI.column(self.columnIndex).search(filter.regex, true, false).draw();
+            // set current filter
+            self.currentFilterSelected = filter;
         });
 
         return $entry;
