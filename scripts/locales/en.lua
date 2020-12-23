@@ -220,6 +220,7 @@ local lang = {
   ["reason"] = "Reason",
   ["received"] = "Received",
   ["refresh"] = "Refresh",
+  ["reload_graph"] = "Reload Graph",
   ["remote_hosts"] = "Remote Hosts",
   ["remote_networks"] = "Remote Networks",
   ["remote_probe_clock_drift"] = "Remote probe clock drift",

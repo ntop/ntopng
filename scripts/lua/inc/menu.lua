@@ -319,7 +319,6 @@ else
        },
        {
          entry = page_utils.menu_entries.periodicity_map,
-         suffix = " ("..num_periodicity..")",
          hidden = not periodic_info_available or not ntop.isEnterpriseM(),
          url = '/lua/pro/enterprise/periodicity_map.lua',
        },
