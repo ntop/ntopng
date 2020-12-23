@@ -797,13 +797,6 @@ end
 
 function printNetworkBehaviour()
 
-  local elements_to_switch = {
-    "behaviour_analysis_learning_period", 
-    "row_behaviour_analysis_learning_status_during_learning", 
-    "row_behaviour_analysis_learning_status_post_learning",
-    "learning-status-thead"
-  }
-
   local LEARNING_STATUS = { -- Keep it in sync with ntop_typedefs.h ServiceAcceptance
     ALLOWED = "0",
     DENIED = "1",
@@ -822,7 +815,7 @@ function printNetworkBehaviour()
         field = "toggle_behaviour_analysis",
         default = "0",
         pref = "is_behaviour_analysis_enabled", -- redis preference
-        to_switch = elements_to_switch,
+        to_switch = {"learning-status-thead", "behaviour_analysis_learning_period", "row_behaviour_analysis_learning_status_during_learning", "row_behaviour_analysis_learning_status_post_learning"},
     })
 
     local behaviour_analysis_learning_period = ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1"
@@ -1458,7 +1451,7 @@ print([[
            </div>
 ]])
 print[[
-        </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;>]]
+        </td><td colspan=2 style="padding-left: 14px;border-left-style: groove; border-width:1px; border-color: #e0e0e0;">]]
 
 if(tab == "report") then
    printReportVisualization()
