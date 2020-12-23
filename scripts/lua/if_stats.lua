@@ -64,21 +64,16 @@ msg = ""
 local is_packet_interface = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
 
-local periodicity_map = interface.periodicityMap()
-local periodic_info_available = false
-local num_periodicity = 0
-
-if(periodicity_map) then
-   num_periodicity = table.len(periodicity_map)
-   if(num_periodicity > 0) then
-      periodic_info_available = true
-   end
-end
-
 local ifstats = interface.getStats()
 
 if page == "syslog_producers" and not ifstats.isSyslog then
    page = "overview"
+end
+
+local service_map = interface.serviceMap()
+local service_map_available = false
+if(service_map and (table.len(service_map) > 0)) then
+   service_map_available = true
 end
 
 local disaggregation_criterion_key = "ntopng.prefs.dynamic_sub_interfaces.ifid_"..tostring(ifid)..".mode"
@@ -296,7 +291,13 @@ page_utils.print_navbar(title, url,
 				 active = page == "traffic_recording",
 				 page_name = "traffic_recording",
 				 label = "<i class=\"fas fa-lg fa-hdd\"></i>",
-			      },
+               },
+               {
+                  hidden = (not service_map_available and not ntop.isEnterpriseM()),
+                  page_name = "service_map",
+                  url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?page=table",
+                  label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
+               },
 			      {
 				 hidden = not isAdministrator() or not areAlertsEnabled(),
 				 active = page == "alerts",
@@ -343,12 +344,6 @@ page_utils.print_navbar(title, url,
 				 active = page == "dhcp",
 				 page_name = "dhcp",
 				 label = "<i class=\"fas fa-lg fa-bolt\"></i>",
-			      },
-			      {
-				 hidden = not periodic_info_available,
-				 active = page == "periodicity_map",
-				 page_name = "periodicity_map",
-				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
 			      },
 			   }
    )
@@ -2090,8 +2085,6 @@ elseif(page == "unassigned_pool_devices") then
    dofile(dirs.installdir .. "/scripts/lua/unknown_devices.lua")
 elseif(page == "dhcp") then
     dofile(dirs.installdir .. "/scripts/lua/admin/dhcp.lua")
-elseif page == "periodicity_map" then
-      dofile(dirs.installdir .. "/scripts/lua/inc/periodicity_map.lua")
 elseif page == "traffic_report" then
    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
 end
