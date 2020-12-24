@@ -24,6 +24,30 @@ end
 
 -- ##############################################
 
+-- @Brief Checks if a dotted-decimal SNMP OID starts with another dotted-decimal SNMP OID
+-- @param oid_string The string-encoded dotted-decimal SNMP OID to check
+-- @param oid_string_start A string-encoded dotted-decimal SNMP OID prefix
+-- @return True if `oid_string` starts with `oid_string_start` or false otherwise
+function string.oid_starts(oid_string, oid_string_start)
+   if type(oid_string) ~= 'string' or type(oid_string_start) ~= 'string' then
+      return false
+   end
+
+   -- Make sure both OIDs end with a dot, to avoid
+   -- considering 1.3.6.1.4.1.99 starting with 1.3.6.1.4.1.9
+   if not string.ends(oid_string, ".") then
+      oid_string = oid_string.."."
+   end
+
+   if not string.ends(oid_string_start, ".") then
+      oid_string_start = oid_string_start.."."
+   end
+
+   return string.sub(oid_string , 1, string.len(oid_string_start)) == oid_string_start
+end
+
+-- ##############################################
+
 -- Print contents of `tbl`, with indentation.
 -- You can call it as tprint(mytable)
 -- The other two parameters should not be set
