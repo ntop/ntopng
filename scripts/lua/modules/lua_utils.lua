@@ -3990,7 +3990,8 @@ function buildHostHREF(ip_address, vlan_id, page)
    if(stats == nil) then
       return(ip_address)
    else
-      local name = stats.name
+      local hinfo = hostkey2hostinfo(ip_address)
+      local name  = hostinfo2label(hinfo)
       local res
 
       if((name == nil) or (name == "")) then name = ip_address end
@@ -4016,7 +4017,8 @@ function builMapHREF(ip_address, vlan_id, map, default_page)
    if(stats == nil) then
       return(ip_address)
    else
-      local name = stats.name
+      local hinfo = hostkey2hostinfo(ip_address)
+      local name  = hostinfo2label(hinfo)
       local res
 
       if((name == nil) or (name == "")) then name = ip_address end
