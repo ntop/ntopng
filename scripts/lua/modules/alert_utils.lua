@@ -2016,9 +2016,10 @@ function alert_utils.process_notifications_from_c_queue()
 
       local entity_info, type_info = processStoreAlertFromQueue(alert)
 
-      if((type_info ~= nil) and (entity_info ~= nil)) then
-	 alerts_api.store(entity_info, type_info, alert.alert_tstamp)
+      if type_info and entity_info then
+	 type_info:store(entity_info)
       end
+
 
       budget_used = budget_used + 1
    end
