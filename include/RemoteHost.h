@@ -26,7 +26,6 @@
 
 class RemoteHost : public Host {
  private:
-  bool remote_to_remote_alerts;
   void initialize();
 
  public:
@@ -35,7 +34,6 @@ class RemoteHost : public Host {
   virtual ~RemoteHost();
 
   void set_hash_entry_state_idle();
-  virtual bool setRemoteToRemoteAlerts();
   virtual int16_t get_local_network_id() const { return(-1);                };
   virtual bool isLocalHost()  const            { return(false);             };
   virtual bool isSystemHost() const            { return(false);             };

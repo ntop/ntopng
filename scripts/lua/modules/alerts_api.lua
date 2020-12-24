@@ -573,19 +573,6 @@ end
 -- type_info building functions
 -- ##############################################
 
-function alerts_api.remoteToRemoteType(host_info, mac)
-  return({
-    alert_type = alert_consts.alert_types.alert_remote_to_remote,
-    alert_severity = alert_severities.warning,
-    alert_type_params = {
-      host = hostinfo2label(host_info),
-      mac = mac,
-    },
-  })
-end
-
--- ##############################################
-
 function alerts_api.tooManyDropsType(drops, drop_perc, threshold)
   return({
     alert_type = alert_consts.alert_types.alert_too_many_drops,

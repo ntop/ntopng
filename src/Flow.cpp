@@ -1681,15 +1681,6 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
       }
 #endif
     }
-
-    /* Check and possibly enqueue host remote-to-remote alerts */
-    // TODO migrate to lua
-    if(!cli_host->isLocalHost() && !srv_host->isLocalHost()
-       && get_cli_ip_addr()->isNonEmptyUnicastAddress()
-       && get_srv_ip_addr()->isNonEmptyUnicastAddress()
-       && !cli_host->setRemoteToRemoteAlerts()) {
-      iface->getAlertsQueue()->pushRemoteToRemoteAlert(cli_host);
-    }
   } /* Closes if(cli_host && srv_host) */
 
   /* Non-Packet interfaces (e.g., ZMQ) have flow throughput stats updated as soon as the flow is received.

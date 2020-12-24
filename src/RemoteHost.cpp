@@ -68,17 +68,5 @@ void RemoteHost::initialize() {
     ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true);
   }
 
-  remote_to_remote_alerts = false;
   iface->incNumHosts(false /* Remote Host */);
-}
-
-/* *************************************** */
-
-bool RemoteHost::setRemoteToRemoteAlerts() {
-  if(!remote_to_remote_alerts) {
-    remote_to_remote_alerts = true;
-    return false;
-  }
-
-  return true;
 }

@@ -149,29 +149,6 @@ void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, cons
 
 /* **************************************************** */
 
-void AlertsQueue::pushRemoteToRemoteAlert(Host *host) {
-  ndpi_serializer *tlv;
-
-  if(ntop->getPrefs()->are_alerts_disabled())
-    return;
-
-  tlv = (ndpi_serializer *) calloc(1, sizeof(ndpi_serializer));
-
-  if(tlv) {
-    char ipbuf[64], macbuf[32];
-
-    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
-
-    ndpi_serialize_string_string(tlv, "host", host->get_ip()->print(ipbuf, sizeof(ipbuf)));
-    ndpi_serialize_string_int32(tlv, "vlan", host->get_vlan_id());
-    ndpi_serialize_string_string(tlv, "mac_address", host->getMac() ? host->getMac()->print(macbuf, sizeof(macbuf)) : "");
-
-    pushAlertJson(tlv, "remote_to_remote");
-  }
-}
-
-/* **************************************************** */
-
 void AlertsQueue::pushLoginTrace(const char*user, bool authorized) {
   ndpi_serializer *tlv;
 

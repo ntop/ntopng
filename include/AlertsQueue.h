@@ -39,7 +39,6 @@ class AlertsQueue {
 				 u_int32_t ip, u_int32_t router_ip, int vlan_id);
   void pushMacIpAssociationChangedAlert(u_int32_t ip, u_int8_t *old_mac, u_int8_t *new_mac);
   void pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac, const u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa, int vlan_id);
-  void pushRemoteToRemoteAlert(Host *host);
   void pushLoginTrace(const char*user, bool authorized);
   void pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queue_dropped);
 };

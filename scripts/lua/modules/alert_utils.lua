@@ -1960,12 +1960,6 @@ local function processStoreAlertFromQueue(alert)
       type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.new(alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
       type_info:set_severity(alert_severities.warning)
       type_info:set_subtype(string.format("%u_%s_%s_%s_%s", vlan, src_mac, spa, dst_mac, tpa))
-   elseif(alert.alert_type == "remote_to_remote") then
-      if(ntop.getPref("ntopng.prefs.remote_to_remote_alerts") == "1") then
-	 local host_info = {host = alert.host, vlan = alert.vlan}
-	 entity_info = alerts_api.hostAlertEntity(alert.host, alert.vlan)
-	 type_info = alerts_api.remoteToRemoteType(host_info, alert.mac_address)
-      end
    elseif((alert.alert_type == "user_activity") and (alert.scope == "login")) then
       entity_info = alerts_api.userEntity(alert.user)
       type_info = alert_consts.alert_types.alert_user_activity.new(
