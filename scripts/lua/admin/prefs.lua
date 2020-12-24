@@ -818,16 +818,14 @@ function printNetworkBehaviour()
         to_switch = {"learning-status-thead", "behaviour_analysis_learning_period", "row_behaviour_analysis_learning_status_during_learning", "row_behaviour_analysis_learning_status_post_learning"},
     })
 
-    local behaviour_analysis_learning_period = ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1"
+    local is_behaviour_analysis_enabled = ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1"
 
     prefsInputFieldPrefs(
         subpage_active.entries["behaviour_analysis_learning_period"].title, 
         subpage_active.entries["behaviour_analysis_learning_period"].description,
         "ntopng.prefs.","behaviour_analysis_learning_period",
         prefs.behaviour_analysis_learning_period,
-        "number", behaviour_analysis_learning_period, nil, nil, {min=3600, tformat="hd"})
-
-    print('<thead class="thead-light"><tr id="learning-status-thead"><th colspan=2 class="info">'..i18n("traffic_behaviour.learning")..'</th></tr></thead>')
+        "number", is_behaviour_analysis_enabled, nil, nil, {min=3600, tformat="hd"})
 
     multipleTableButtonPrefs(
         subpage_active.entries["behaviour_analysis_learning_status_during_learning"].title,
@@ -839,7 +837,7 @@ function printNetworkBehaviour()
         "behaviour_analysis_learning_status_during_learning",
         "ntopng.prefs.behaviour_analysis_learning_status_during_learning",  -- [redis key]
         false, -- [disabled]
-        {}, nil, nil, true--[[show]])
+        {}, nil, nil, is_behaviour_analysis_enabled --[[show]])
       
     multipleTableButtonPrefs(
       subpage_active.entries["behaviour_analysis_learning_status_post_learning"].title,
@@ -851,7 +849,7 @@ function printNetworkBehaviour()
       "behaviour_analysis_learning_status_post_learning",
       "ntopng.prefs.behaviour_analysis_learning_status_post_learning", 
       false,
-      {}, nil, nil, true--[[show]])
+      {}, nil, nil, is_behaviour_analysis_enabled --[[show]])
 
   end
 
