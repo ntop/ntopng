@@ -1919,7 +1919,6 @@ elseif(page == "processes") then
 elseif page == "geomap" then
 
    print ([[
-      <div class="container-fluid">
         <div class="row">
           <div class='col-md-12 col-lg-12 col-xs-12 mb-4'>
             <div id='geomap-alert' style="display: none" role="alert" class='alert alert-danger'>
@@ -1928,10 +1927,13 @@ elseif page == "geomap" then
               </button>
               <span id='error-message'></span>
             </div>
-            <div style="height: 720px" id="map-canvas"></div>
+            <div class="d-flex justify-content-center align-items-center" style="height: 720px" id="map-canvas">
+               <div class="spinner-border text-primary" role="status">
+                  <span class="sr-only">Loading...</span>
+               </div>
+            </div> 
           </div>
         </div>
-      </div>
       <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.css"/>
       <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.Default.css"/>
       <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.css"/>
