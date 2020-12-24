@@ -40,7 +40,7 @@ end
 -- #######################################################
 
 function alert_list_download_succeeded.format(ifid, alert, alert_type_params)
-   return i18n("category_lists.download_succeeded")
+   return i18n("category_lists.download_succeeded", {name = alert_type_params.name})
 end
 
 -- #######################################################

@@ -363,7 +363,6 @@ local function checkListsUpdate(timeout)
        )
 
        alert:set_severity(alert_severities.notice)
-       alert:set_granularity(params.granularity)
 
        alert:store(alerts_api.categoryListsEntity(list_name))
 
