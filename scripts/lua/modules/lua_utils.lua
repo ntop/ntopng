@@ -2287,20 +2287,25 @@ function shortenCollapse(s, max_len)
    return s
 end
 
+-- ##############################################
+
 function getHumanReadableInterfaceName(interface_name)
+   local interface_id = nil
+   
    if(interface_name == "__system__") then
       return(i18n("system"))
    elseif tonumber(interface_name) ~= nil then
       -- convert ID to name
+      interface_id = tonumber(interface_name)
       interface_name = getInterfaceName(interface_name)
    else
       -- Parameter is a string, let's take it's id first
-      local interface_id = getInterfaceId(interface_name)
+      interface_id = getInterfaceId(interface_name)
       -- and then get the name
       interface_name = getInterfaceName(interface_id)
    end
 
-   local key = 'ntopng.prefs.ifid_'..tostring(getInterfaceId(interface_name))..'.name'
+   local key = 'ntopng.prefs.ifid_'..tostring(interface_id)..'.name'
    local custom_name = ntop.getCache(key)
 
    if not isEmptyString(custom_name) then

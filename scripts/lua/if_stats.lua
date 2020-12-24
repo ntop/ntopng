@@ -142,7 +142,6 @@ if (isAdministrator()) then
         custom_name = "tcp://" .. string.sub(custom_name, 7)
       end
 
-      -- TODO move keys to new schema: replace ifstats.name with ifid
       ntop.setCache('ntopng.prefs.ifid_'..ifstats.id..'.name', custom_name)
 
       local ifspeed_cache = 'ntopng.prefs.ifid_'..ifstats.id..'.speed'
