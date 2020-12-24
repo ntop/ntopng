@@ -42,7 +42,13 @@ end
 -- #######################################################
 
 function alert_list_download_failed.format(ifid, alert, alert_type_params)
-   return i18n("category_lists.error_occurred")
+   return i18n("category_lists.error_occurred",
+	       {
+		  url = alert_type_params.url,
+		  name = alert_type_params.name,
+		  err = alert_type_params.err
+	       }
+   )
 end
 
 -- #######################################################
