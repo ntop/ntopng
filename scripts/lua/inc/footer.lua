@@ -168,13 +168,7 @@ print([[
 		$(document).ready(function() {
 
 			$('.table-responsive').on('shown.bs.dropdown', function (e) {
-				var $table = $(this),
-					$menu = $(e.target).find('.dropdown-menu'),
-					tableOffsetHeight = $table.offset().top + $table.height(),
-					menuOffsetHeight = $menu.offset().top + $menu.outerHeight(true);
-			
-				if (menuOffsetHeight > tableOffsetHeight)
-				  $table.css("padding-bottom", menuOffsetHeight - tableOffsetHeight);
+				console.log(e);
 			});
 			
 			$('.table-responsive').on('hide.bs.dropdown', function () {

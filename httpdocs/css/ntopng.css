@@ -2,6 +2,7 @@
   --sidebar-width: 4.5rem;
   --footer-height: 4rem;
   --padding-md-four: 1.5rem;
+  --scrollable-dropdown-height: 20rem;
 }
 
 summary > span {
@@ -545,10 +546,15 @@ path.link {
   scroll on y-axis
 */
 .scrollable-dropdown {
-  max-height: 20rem;
+  max-height: var(--scrollable-dropdown-height);
   height: auto;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Workaround for dropdowns being clipped by the table height */
+.table-responsive {
+  min-height: calc(var(--scrollable-dropdown-height) + 5rem);
 }
 
 .dark-gray {
