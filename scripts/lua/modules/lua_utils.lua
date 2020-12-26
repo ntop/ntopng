@@ -1660,16 +1660,22 @@ end
 -- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
 -- @return A string containing the a href link or a plain string without a href
 function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, href_check)
-   local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
+   local detailLevel = ntop.getCache("ntopng.prefs.hosts_ts_creation")
 
-   if not isEmptyString(hostdetails_url) then
-      res = string.format("<a href='%s' data-toggle='tooltip' title='%s'>%s</a>",
-			  hostdetails_url, href_tooltip or '', href_value or '')
-   else
-      res = href_value or ''
+   if(detailLevel == "full") then
+      local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
+      
+      if not isEmptyString(hostdetails_url) then
+	 res = string.format("<a href='%s' data-toggle='tooltip' title='%s'>%s</a>",
+			     hostdetails_url, href_tooltip or '', href_value or '')
+      else
+	 res = href_value or ''
+      end
+
+      return res
+   else      
+      return(href_value)
    end
-
-   return res
 end
 
 -- ##############################################
@@ -2785,7 +2791,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info)
       if((info ~= nil) and (info ~= "")) then hist_url = hist_url.."&info="..info end
       print('&nbsp;')
       -- print('<span class="badge badge-info">')
-      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="Flows seen in the last hour"><i class="fas fa-history fa-lg"></i></a>')
+      print('<a href="'..hist_url..'&epoch_begin='..tostring(ago1h)..'" title="'..i18n("db_explorer.last_hour_flows")..'"><i class="fas fa-history fa-lg"></i></a>')
       -- print('</span>')
    end
 end
