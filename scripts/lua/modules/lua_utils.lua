@@ -1661,21 +1661,25 @@ end
 -- @return A string containing the a href link or a plain string without a href
 function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, href_check)
    local detailLevel = ntop.getCache("ntopng.prefs.hosts_ts_creation")
-
+   
    if(detailLevel == "full") then
-      local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
-      
-      if not isEmptyString(hostdetails_url) then
-	 res = string.format("<a href='%s' data-toggle='tooltip' title='%s'>%s</a>",
-			     hostdetails_url, href_tooltip or '', href_value or '')
-      else
-	 res = href_value or ''
-      end
+      local l7 = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
 
-      return res
-   else      
-      return(href_value)
+      if(l7 ~= "none") then
+	 local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
+	 
+	 if not isEmptyString(hostdetails_url) then
+	    res = string.format("<a href='%s' data-toggle='tooltip' title='%s'>%s</a>",
+				hostdetails_url, href_tooltip or '', href_value or '')
+	 else
+	    res = href_value or ''
+	 end
+	 
+	 return res
+      end
    end
+   
+   return(href_value)
 end
 
 -- ##############################################
