@@ -123,24 +123,6 @@ if auth.has_capability(auth.capabilities.preferences) then
       ts_utils.setupAgain()
    end
 
-   local slack_channels_key = "ntopng.prefs.alerts.slack_channels"
-
-   for k, v in pairs(_POST) do
-    if starts(k, "slack_ch_") then
-      local alert_entity = tonumber(split(k, "slack_ch_")[2])
-      local alert_entity_raw = alert_consts.alertEntityRaw(alert_entity)
-
-      if alert_entity_raw then
-        -- map entity -> channel name
-        if alert_entity_raw == v then
-          ntop.delHashCache(slack_channels_key, alert_entity_raw)
-        else
-          ntop.setHashCache(slack_channels_key, alert_entity_raw, v)
-        end
-      end
-    end
-   end
-
    page_utils.set_active_menu_entry(page_utils.menu_entries.preferences)
 
    dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
