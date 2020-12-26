@@ -600,9 +600,10 @@ function prefsToggleButton(subpage_active, params)
   local options = table.merge(defaults, params)
   local redis_key = get_pref_redis_key(options)
 
-  if (subpage_active.entries[options.field] ~= nil) then
-    traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing entry '" .. options.field .. "' inside entries field")
-  end
+  -- used for debugging purpose:
+  -- if (subpage_active.entries[options.field] ~= nil) then
+  --  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing entry '" .. options.field .. "' inside entries field")
+  -- end
 
   return toggleTableButtonPrefs(params.title or subpage_active.entries[options.field].title,
     (params.description or subpage_active.entries[options.field].description) .. (params.content or subpage_active.entries[options.field].content or ""),
