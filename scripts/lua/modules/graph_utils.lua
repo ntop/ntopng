@@ -431,7 +431,6 @@ print[[
 <div class='card-body'>
   <div class="tab-content">
     <div class="tab-pane active in" id="historical-tab-chart">
-    <div class="table-responsive">
 <table border=0>
 <tr><td valign="top">
 ]]
@@ -611,7 +610,7 @@ print [[
    </table>
 ]]
 
-print[[</div></td></tr></table></div>
+print[[</div></td></tr></table>
 
     </div> <!-- closes div id "historical-tab-chart "-->
 ]]

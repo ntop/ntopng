@@ -789,7 +789,7 @@ else
    end
 
    ifstats = interface.getStats()
-   print("<div class='table-responsive'><table class=\"table table-bordered table-striped\">\n")
+   print("<table class=\"table table-bordered table-striped\">\n")
    if ifstats.vlan and flow["vlan"] > 0 then
       print("<tr><th width=30%>")
       print(i18n("details.vlan_id"))
@@ -1607,7 +1607,7 @@ else
 	 num = num + 1
       end
    end
-   print("</table></div>\n")
+   print("</table>\n")
 end
 
 print [[

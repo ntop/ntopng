@@ -223,7 +223,7 @@ print[[
 ]]
 
 print [[
-  <div class="table-responsive"><table><tbody><tr>
+  <table><tbody><tr>
   <td style="white-space:nowrap; padding-right:1em;">]]
   if catid ~= nil then
     local key = interface.getnDPICategoryName(tonumber(catid))
@@ -272,7 +272,7 @@ print(
 print[[
   </td>
   </tr>
-  </table></div>
+  </table>
   <form id="protos_cat_form" class="w-100 text-right" style="margin-bottom: 0px;" method="post">
     <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">
     <div id="table-edit-ndpi-applications"></div>

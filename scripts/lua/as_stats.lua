@@ -19,9 +19,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title(i18n("as_stats.autonomous_systems"))
 
 print [[
-	<div class='table-responsive'>
 	  <div id="table-as"></div>
-	  </div>
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())

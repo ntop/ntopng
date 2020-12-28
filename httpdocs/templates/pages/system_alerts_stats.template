@@ -4,7 +4,6 @@
 This is the template for the "Alerts Status" page under the system interface
 #}
 
-<div class="table-responsive-lg table-responsive-md">
   <table class="table table-bordered table-striped">
     <tbody>
       <tr>
@@ -17,7 +16,6 @@ This is the template for the "Alerts Status" page under the system interface
       </tr>
     </tbody>
   </table>
-</div>
 
 <br>
 <div class="notes bg-light border">

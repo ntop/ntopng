@@ -260,9 +260,7 @@ local function printPeriodicActivitiesTable(base_url, ifid, ts_creation)
    }
 
    print[[
-      <div class='table-responsive'>
 <div id="table-internals-periodic-activities"></div>
-</div>
 <b>]] print(i18n("notes")) print[[</b>
 <ul>
    <li>]] print(i18n("internals.status_description")) print[[</li><ul>

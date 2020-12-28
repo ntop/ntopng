@@ -62,7 +62,7 @@ local notes = {
 
 print [[
       <br>
-      <div class='table-responsive'><div id="table-mac"></div></div>]]
+      <div id="table-mac"></div>]]
 
 print(ui_utils.render_notes(notes))
 

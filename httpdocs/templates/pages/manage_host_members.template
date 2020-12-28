@@ -41,7 +41,6 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
                     <table id="host-members-table" class="table table-bordered table-striped w-100">
                         <thead>
                             <tr>
@@ -52,7 +51,6 @@
                         </thead>
                         <tbody></tbody>
                     </table>
-                </div>
             </div>
             <div class="card-footer">
                 <a class="btn btn-secondary" data-toggle='modal' href="#import-modal">

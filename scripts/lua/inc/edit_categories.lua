@@ -74,7 +74,7 @@ print(
 )
 
 print [[
-<div class="table-responsive"><table><tbody><tr>
+<table><tbody><tr>
 ]]
 
 if not isEmptyString(category_filter) then
@@ -115,7 +115,7 @@ print(
 print[[
   </td>
   </tr>
-</table></div>
+</table>
 
 <form id="custom-cat-form" lass="form-inline" style="margin-bottom: 0px;" method="post">
   <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[">

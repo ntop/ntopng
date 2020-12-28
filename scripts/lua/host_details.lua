@@ -467,7 +467,7 @@ local has_snmp_location = host['localhost'] and (host["mac"] ~= "")
    and isAllowedSystemInterface()
 
 if((page == "overview") or (page == nil)) then
-   print("<div class='table-responsive'><table class=\"table table-bordered table-striped\">\n")
+   print("<table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
 	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " " .. discover.devtype2icon(host["device_type"]))
@@ -891,7 +891,6 @@ end
 
    elseif((page == "packets")) then
       print [[
-      <div class='table-responsive'>
       <table class="table table-bordered table-striped">
 	 ]]
 
@@ -932,7 +931,7 @@ end
 
       hostinfo2json(host_info)
       print [[
-      </table></div>
+      </table>
 
         <script type='text/javascript'>
 	       window.onload=function() {
@@ -965,14 +964,12 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
 	]]
 
    elseif((page == "DSCP")) then
-      print("<div class='table-responsive'>")
       print('<table class="table table-bordered table-striped">\n')
       print('<tr><th class="text-left">'..i18n("dscp_page.statistics_sent")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceSent"></div></td></tr>')
       print('<tr><th class="text-left">'..i18n("dscp_page.statistics_received")..'</th><td colspan=5><div class="pie-chart" id="dscpPrecedenceReceived"></div></td></tr>')
 
       print [[
       </table>
-      </div>
 
       <script type='text/javascript'>
         window.onload=function() {
@@ -985,7 +982,6 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
       ]]
 
    elseif((page == "ports")) then
-      print("<div class='table-responsive'>")
       print('<table class="table table-bordered table-striped">\n')
       if(host.cardinality) then
 	 print('<tr><th class="text-left">'..i18n("ports_page.num_contacted_ports")..'</th>')
@@ -997,7 +993,7 @@ print [[/lua/get_arp_data.lua', { ifid: "]] print(ifId.."") print ('", '..hostin
       print('<tr><th class="text-left">'..i18n("ports_page.server_ports")..'</th><td colspan=5><div class="pie-chart" id="serverPortsDistro"></div></td></tr>')
 
       print [[
-      </table></div>
+      </table>
 
         <script type='text/javascript'>
 	       window.onload=function() {
@@ -1162,7 +1158,6 @@ end
 	print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("traffic_page.no_traffic_observed_message").."</div>")
      else
       print [[
-         <div class="table-responsive">
       <table class="table table-bordered table-striped">]]
 
       if(host.cardinality) then
@@ -1218,7 +1213,7 @@ print [[/lua/host_l4_stats.lua', { ifid: "]] print(ifId.."") print('", '..hostin
       end
       print("</table></tr>\n")
 
-      print("</table></div>\n")
+      print("</table>\n")
    end
 
 
@@ -1433,7 +1428,7 @@ setInterval(update_ndpi_categories_table, 5000);
 
 elseif(page == "dns") then
    if((host.DoH_DoT ~= nil) or (host["dns"] ~= nil)) then
-      print("<div class='table-responsive'><table class=\"table table-bordered table-striped\">\n")
+      print("<table class=\"table table-bordered table-striped\">\n")
       
       if(host.DoH_DoT ~= nil) then
 	 print("<tr><th>"..i18n("dns_page.doh_dot_servers").."</th><th colspan=4>"..i18n("dns_page.doh_dot_server_uses").."</th></tr>")
@@ -1511,7 +1506,7 @@ elseif(page == "dns") then
 	 end
 	 
 	 print[[
-        </table></div>
+        </table>
        <small><b>]] print(i18n("dns_page.note")) print[[:</b><br>]] print(i18n("dns_page.note_dns_ratio")) print[[
 </small>
 ]]
@@ -1559,7 +1554,6 @@ setInterval(update_ja3_table, 5000);
 
 elseif(page == "ssh") then
   print [[
-     <div class='table-responsive'>
      <table id="myTable" class="table table-bordered table-striped tablesorter">
      <thead><tr><th>]] print('<A HREF="https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c" target="_blank">'..i18n("hassh_fingerprint")..'</A>') print[[</th>]]
   if not isEmptyString(companion_interface_utils.getCurrentCompanion(ifId)) then
@@ -1569,7 +1563,6 @@ elseif(page == "ssh") then
      <tbody id="host_details_hassh_tbody">
      </tbody>
      </table>
-     </div>
 
 <script>
 function update_hassh_table() {
@@ -1600,7 +1593,6 @@ setInterval(update_hassh_table, 5000);
 elseif(page == "http") then
    local http = host["http"]
    if http then
-      print("<div class='table-responsive'>")
       print("<table class=\"table table-bordered table-striped\">\n")
 
       if http["sender"]["query"]["total"] > 0 then
@@ -1664,7 +1656,6 @@ elseif(page == "http") then
       end
 
       print("</table>\n")
-      print("</div>")
    end
 
 
@@ -1720,7 +1711,7 @@ elseif(page == "sites") then
       require("flow_utils")
 
 print [[
-      <div class='table-responsive'><div id="table-flows"></div></div>
+      <div id="table-flows"></div>
 	 <script>
    var url_update = "]]
 

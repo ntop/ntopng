@@ -1117,7 +1117,7 @@ function releaseAlert(idx) {
 	 print [[
       <div class="tab-pane in" id="tab-]] print(t["div-id"]) print[[">
          <!-- Table to render --->
-	      <div class='table-responsive'><div id="]] print(t["div-id"]) print[["></div></div>
+	      <div id="]] print(t["div-id"]) print[["></div>
       </div>
 
       <script type="text/javascript">

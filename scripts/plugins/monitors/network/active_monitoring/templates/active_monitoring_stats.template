@@ -8,26 +8,24 @@
     <div class="col-md-12">
         <div class="card card-shadow">
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table w-100 table-striped table-hover table-bordered" id="am-table">
-                        <thead>
-                          <tr>
-                            <th>{{i18n("flow_details.url")}}</th>
-                            <th>{{i18n("active_monitoring_stats.measurement")}}</th>
-                            <th>{{i18n("chart")}}</th>
-                            <th>{{i18n("threshold")}}</th>
-                            <th>{{i18n("active_monitoring.24h")}}</th>
-                            <th>{{i18n("active_monitoring_stats.last_measurement")}}</th>
-                            <th>{{i18n("system_stats.last_ip")}}</th>
-                            <th>{{i18n("active_monitoring_stats.measurement")}}</th>
-                            <th>{{i18n("active_monitoring_stats.alerted")}}</th>
-                            <th>{{i18n("active_monitoring_stats.pool")}}</th>
-                            <th>{{i18n("active_monitoring_stats.jitter")}}</th>
-                            <th>{{i18n("actions")}}</th>
-                          </tr>
-                        </thead>
-                      </table>
-                </div>
+                <table class="table w-100 table-striped table-hover table-bordered" id="am-table">
+                    <thead>
+                        <tr>
+                        <th>{{i18n("flow_details.url")}}</th>
+                        <th>{{i18n("active_monitoring_stats.measurement")}}</th>
+                        <th>{{i18n("chart")}}</th>
+                        <th>{{i18n("threshold")}}</th>
+                        <th>{{i18n("active_monitoring.24h")}}</th>
+                        <th>{{i18n("active_monitoring_stats.last_measurement")}}</th>
+                        <th>{{i18n("system_stats.last_ip")}}</th>
+                        <th>{{i18n("active_monitoring_stats.measurement")}}</th>
+                        <th>{{i18n("active_monitoring_stats.alerted")}}</th>
+                        <th>{{i18n("active_monitoring_stats.pool")}}</th>
+                        <th>{{i18n("active_monitoring_stats.jitter")}}</th>
+                        <th>{{i18n("actions")}}</th>
+                        </tr>
+                    </thead>
+                    </table>
             </div>
             <div class="card-footer">
                 {* ui_utils.render_configuration_footer('active_monitoring') *}

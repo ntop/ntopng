@@ -111,7 +111,6 @@ print[[
     <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
 
     <div id="assistance-config" class="tab-pane in active">
-    <div class="table-responsive">
       <table class="table table-striped table-bordered">
         <tr>
           <th width=22%>]] print(i18n("remote_assistance.enable_remote_assistance")) print [[</th>
@@ -172,7 +171,6 @@ end
           </td>
         </tr>
       </table>
-      </div>
     </div>
 
     <input type="hidden" name="accept_tos" data-ays-ignore="true" value="0" class="hidden" />
@@ -240,7 +238,7 @@ print[[
   </script>
 ]]
 else -- tab == "status"
-  print("<div class='table-responsive'><table class=\"table table-bordered table-striped\">\n")
+  print("<div class=''><table class=\"table table-bordered table-striped\">\n")
   print("<tr><th width='15%' nowrap>"..i18n("interface").."</th><td>".. remote_assistance.getInterfaceName() .."</td></tr>\n")
   print("<tr><th width='15%' nowrap>"..i18n("ip_address").."</th><td>".. remote_assistance.getIpAddress() .."</td></tr>\n")
   print("<tr><th width='15%' nowrap>"..i18n("prefs.n2n_supernode_title").."</th><td>".. remote_assistance.getSupernode() .." <a href=\"".. ntop.getHttpPrefix() .."/lua/admin/prefs.lua?tab=remote_assistance\"><i class=\"fas fa-cog fa-lg\"></i></a></td></tr>\n")

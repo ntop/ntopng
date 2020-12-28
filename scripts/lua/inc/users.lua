@@ -8,7 +8,7 @@ page_utils.print_page_title(title)
 
 
 print [[
-    <div class='table-responsive'><div id="table-users"></div></div>
+    <div id="table-users"></div>
 	 <script>
 	 $("#table-users").datatable({
 		url: "]]

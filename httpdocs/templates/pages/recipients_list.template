@@ -9,7 +9,6 @@
     <div class="col-md-12">
         <div class="card card-shadow">
             <div class="card-body">
-                <div class="table-responsive">
                     <table class="table w-100 table-bordered table-striped table-hover my-3" id="recipient-list">
                         <thead>
                             <tr>
@@ -24,7 +23,6 @@
                             </tr>
                         </thead>
                     </table>
-                </div>
             </div>
             <div class="card-footer">
                 {* ui_utils.render_configuration_footer('notifications') *}

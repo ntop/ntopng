@@ -167,14 +167,6 @@ print([[
 
 		$(document).ready(function() {
 
-			$('.table-responsive').on('shown.bs.dropdown', function (e) {
-				console.log(e);
-			});
-			
-			$('.table-responsive').on('hide.bs.dropdown', function () {
-				$(this).css("padding-bottom", 0);
-			})
-
 			// ignore scientific numbers input
 			$(`.ignore-scientific`).keypress(function(e) {
 				if (e.which != 8 && e.which != 0 && e.which < 48 || e.which > 57) {

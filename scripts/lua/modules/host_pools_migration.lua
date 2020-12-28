@@ -612,7 +612,6 @@ function host_pools_migration.printQuotas(pool_id, host, page_params)
       ". " .. i18n("host_pools.create_new_quotas_here", {url=ntop.getHttpPrefix()..url}) .. "</div>")
   else
     print[[
-      <div class="table-responsive">
     <table class="table table-bordered table-striped">
     <thead>
       <tr>
@@ -624,7 +623,6 @@ function host_pools_migration.printQuotas(pool_id, host, page_params)
     <tbody id="pool_quotas_ndpi_tbody">
     </tbody>
     </table>
-    </div>
     <script>
       function update_ndpi_table() {
         $.ajax({

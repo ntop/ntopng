@@ -74,7 +74,7 @@ if (page == "flows" or page == nil) then
    page_utils.print_page_title(active_msg)
 
 print [[
-      <div class='table-responsive'><div id="table-flows"></div></div>
+      <div id="table-flows"></div>
         <script>
    var url_update = "]]
 

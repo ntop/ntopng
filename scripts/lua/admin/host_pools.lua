@@ -273,7 +273,7 @@ print [[
   </ul>
   <div class="tab-content">
     <div id="manage" class="tab-pane">
-<br/><div class="table-responsive"><table><tbody><tr>
+<br/><table><tbody><tr>
 ]]
 
 print('<td style="white-space:nowrap; padding-right:1em;">') print(i18n("host_pools.pool")) print(': <select id="pool_selector" class="form-control pool-selector" style="display:inline; width:14em;" onchange="document.location.href=\'?ifid=') print(ifId.."") print('&page=pools&pool=\' + $(this).val() + \'#manage\';">')
@@ -332,7 +332,7 @@ print(
    })
 )
 print('</td>')
-print('</tr></tbody></table></div>')
+print('</tr></tbody></table>')
 
 if no_pools then
    print[[<script>$("#pool_selector").attr("disabled", "disabled");</script>]]

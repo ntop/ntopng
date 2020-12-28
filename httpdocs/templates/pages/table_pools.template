@@ -11,7 +11,6 @@
                 {* template_utils.gen("pages/components/nav_tabs.template", menu) *}
             </div>
             <div class="card-body">
-                <div class="table-responsive">
                     <table class="table table-bordered table-striped w-100" id="table-pools">
                         <thead>
                             <tr>
@@ -28,7 +27,6 @@
                         <tbody>
                         </tbody>
                     </table>
-                </div>
             </div>
             <div class="card-footer">
                 {* ui_utils.render_configuration_footer('pool') *}
