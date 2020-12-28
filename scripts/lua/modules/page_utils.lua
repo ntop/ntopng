@@ -104,8 +104,8 @@ page_utils.menu_entries = {
     flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters", visible_iface = true, visible_system = false, help_link = "https://www.ntop.org"},
 
    -- Map
-   service_map      = {key = "service_map", i18n_title="service_map", section = "maps", visible_iface = true, visible_system = false},
-   periodicity_map = {key = "periodicity_map", i18n_title="periodicity_map", section = "maps", visible_iface = true, visible_system = false},
+   service_map      = {key = "service_map", i18n_title="service", section = "maps", visible_iface = true, visible_system = false},
+   periodicity_map = {key = "periodicity_map", i18n_title="periodicity", section = "maps", visible_iface = true, visible_system = false},
    geo_map	      	 = {key = "geo_map", i18n_title = "geo_map.geo_map", section = "maps", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#geo-map"},
 
     -- Settings
