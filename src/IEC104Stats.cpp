@@ -54,7 +54,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
     lock.wrlock(__FILE__, __LINE__);
 
     if(tx_direction) stats.forward_msgs++; else stats.reverse_msgs++;
-    
+
     while(offset /* Skip START byte */ < payload_len) {
       /* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id */
       u_int8_t len = payload[offset], pdu_type = ((payload[offset+1] & 0x01) == 0) ? 0 : (payload[offset+1] & 0x03);
@@ -69,7 +69,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] A-PDU Len %u/%u [pdu_type: %u][magic: %02X]",
 				   __FUNCTION__, len, payload_len, pdu_type, payload[offset-1]);
 #endif
-      
+
       if(len == 0) break; /* Something went wrong */
 
       switch(pdu_type) {
@@ -129,7 +129,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	if(!tx_direction) {
 	  /* Counters are swapped */
 	  u_int16_t v = rx_value;
-	  
+
 	  rx_value = tx_value;
 	  tx_value = v;
 	}
@@ -139,7 +139,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	  lock.unlock(__FILE__, __LINE__);
 	  return;
 	}
-	
+
 	if(!initial_run) {
 	  u_int32_t diff = abs(tx_value-(tx_seq_num+1));
 
@@ -151,7 +151,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	if(!tx_direction) {
 	  if(!initial_run) {
 	    u_int32_t diff = abs(rx_value-rx_seq_num);
-	    
+
 	    /* Check for id reset (16 bit only) */
 	    if(diff != 32768) pkt_lost.rx += diff;
 	  }
@@ -205,28 +205,30 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	      json_object *my_object;
 
 	      type_i_transitions[transition] = 1;
+
+	      if(f->get_duration() > CONST_IEC104_LEARNING_TIME) {
 #ifdef IEC60870_TRACE
-	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found mew transition %u -> %u", last_type_i, type_id);
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found mew transition %u -> %u", last_type_i, type_id);
 #endif
 
-	      if((my_object = json_object_new_object()) != NULL) {
-		const char *json;
+		if((my_object = json_object_new_object()) != NULL) {
+		  const char *json;
 
-		json_object_object_add(my_object, "timestamp", json_object_new_int(packet_time->tv_sec));
-		json_object_object_add(my_object, "flow_key", json_object_new_int(f->key()));
-		json_object_object_add(my_object, "flow_hash_entry_id", json_object_new_int(f->get_hash_entry_id()));
-		json_object_object_add(my_object, "from", json_object_new_int(last_type_i));
-		json_object_object_add(my_object, "to", json_object_new_int(type_id));
+		  json_object_object_add(my_object, "timestamp", json_object_new_int(packet_time->tv_sec));
+		  json_object_object_add(my_object, "flow_key", json_object_new_int(f->key()));
+		  json_object_object_add(my_object, "flow_hash_entry_id", json_object_new_int(f->get_hash_entry_id()));
+		  json_object_object_add(my_object, "from", json_object_new_int(last_type_i));
+		  json_object_object_add(my_object, "to", json_object_new_int(type_id));
 
-		json = json_object_to_json_string(my_object);
-		
+		  json = json_object_to_json_string(my_object);
+
 #ifdef DEBUG_IEC60870
-		ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json);
+		  ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json);
 #endif
-		
-		ntop->getRedis()->rpush(CONST_IEC104_FLOW_ALERT_QUEUE, json, 1024 /* Max queue size */);
-		
-		json_object_put(my_object); /* Free memory */		
+
+		  ntop->getRedis()->rpush(CONST_IEC104_FLOW_ALERT_QUEUE, json, 1024 /* Max queue size */);
+		  json_object_put(my_object); /* Free memory */
+		}
 	      }
 	    } else
 	      type_i_transitions[transition] = it->second + 1;
@@ -283,7 +285,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	  /* Discard typeIds 127..255 */
 	} else /* payload_len < len */
 	  break;
-      } else {	
+      } else {
 	// ntop->getTrace()->traceEvent(TRACE_WARNING, "*** short APDUs");
 	break;
       }
