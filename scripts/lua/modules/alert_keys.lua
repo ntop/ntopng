@@ -103,6 +103,8 @@ local alert_keys = {
       alert_suspicious_tcp_syn_probing     = {NO_PEN, 88},
       alert_suspicious_tcp_probing         = {NO_PEN, 89},
       alert_dns_invalid_query              = {NO_PEN, 90},
+      alert_iec_invalid_transition         = {NO_PEN, 91},
+      
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
       -- WARNING: make sure integers do NOT OVERLAP with
