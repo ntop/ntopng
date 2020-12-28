@@ -201,9 +201,34 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
 	    it = type_i_transitions.find(transition);
 
-	    if(it == type_i_transitions.end())
+	    if(it == type_i_transitions.end()) {
+	      json_object *my_object;
+
 	      type_i_transitions[transition] = 1;
-	    else
+#ifdef IEC60870_TRACE
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found mew transition %u -> %u", last_type_i, type_id);
+#endif
+
+	      if((my_object = json_object_new_object()) != NULL) {
+		const char *json;
+
+		json_object_object_add(my_object, "timestamp", json_object_new_int(packet_time->tv_sec));
+		json_object_object_add(my_object, "flow_key", json_object_new_int(f->key()));
+		json_object_object_add(my_object, "flow_hash_entry_id", json_object_new_int(f->get_hash_entry_id()));
+		json_object_object_add(my_object, "from", json_object_new_int(last_type_i));
+		json_object_object_add(my_object, "to", json_object_new_int(type_id));
+
+		json = json_object_to_json_string(my_object);
+		
+#ifdef DEBUG_IEC60870
+		ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json);
+#endif
+		
+		ntop->getRedis()->rpush(CONST_IEC104_FLOW_ALERT_QUEUE, json, 1024 /* Max queue size */);
+		
+		json_object_put(my_object); /* Free memory */		
+	      }
+	    } else
 	      type_i_transitions[transition] = it->second + 1;
 	  }
 

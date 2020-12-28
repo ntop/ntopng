@@ -2635,9 +2635,13 @@ static int ntop_get_interface_find_flow_by_key_and_hash_id(lua_State* vm) {
   u_int hash_id;
   Flow *f;
   AddressTree *ptree = get_allowed_nets(vm);
-
+  bool set_context = false;
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+
+  /* Optional: set context */
+  if(lua_type(vm, 3) == LUA_TBOOLEAN) set_context = lua_toboolean(vm, 3) ? true : false;
 
   key = (u_int32_t)lua_tonumber(vm, 1);
   hash_id = (u_int)lua_tonumber(vm, 2);
@@ -2650,6 +2654,13 @@ static int ntop_get_interface_find_flow_by_key_and_hash_id(lua_State* vm) {
     return(CONST_LUA_ERROR);
   else {
     f->lua(vm, ptree, details_high, false);
+
+    if(set_context) {
+      struct ntopngLuaContext *c = getLuaVMContext(vm);
+      
+      c->flow = f, c->iface = f->getInterface();
+    }
+    
     return(CONST_LUA_OK);
   }
 }
@@ -2662,7 +2673,7 @@ static int ntop_get_interface_flow_alert_by_key_and_hash_id(lua_State* vm) {
   u_int hash_id;
   Flow *f;
   AddressTree *ptree = get_allowed_nets(vm);
-
+  
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
 
