@@ -426,7 +426,8 @@ void Flow::processDetectedProtocol() {
 
   switch(l7proto) {
   case NDPI_PROTOCOL_DHCP:
-    if(cli_port == ntohs(67) /* server */ && get_cli_host()) get_cli_host()->setDhcpServer();
+    if(cli_port == ntohs(67) /* client */ && get_cli_host())      get_cli_host()->setDhcpServer();
+    else if(srv_port == ntohs(67) /* server */ && get_srv_host()) get_srv_host()->setDhcpServer();
     break;
 
   case NDPI_PROTOCOL_BITTORRENT:
@@ -444,13 +445,18 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_NTP:
-    if(srv_port == ntohs(123) && get_srv_host())      get_srv_host()->setNtpServer();
-    else if(cli_port == ntohs(123) && get_cli_host()) get_cli_host()->setNtpServer();
+    if(cli_port == ntohs(123) && get_cli_host())      get_cli_host()->setNtpServer();
+    else if(srv_port == ntohs(123) && get_srv_host()) get_srv_host()->setNtpServer();
     break;
 
+  case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_SMTP:
-    if(get_srv_host())
+    if(get_srv_host()
+       && (srv_port == ntohs(25) || srv_port == ntohs(465) || srv_port == ntohs(587)))
       get_srv_host()->setSmtpServer();
+    if(get_cli_host()
+       && (cli_port == ntohs(25) || cli_port == ntohs(465) || cli_port == ntohs(587)))
+      get_cli_host()->setSmtpServer();
     break;
 
   case NDPI_PROTOCOL_DNS:
