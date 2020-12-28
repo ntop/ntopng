@@ -1266,7 +1266,7 @@ elseif((page == "ndpi")) then
       </div>
   <div class="tab-content card-body">
     <div id="applications" class="tab-pane in active">
-      <div class='table-responsive'>
+      <div class='table-sm-responsive'>
       <table class="table table-bordered mt-1 table-striped">]]
 
       if(host.cardinality) then
@@ -1322,7 +1322,7 @@ elseif((page == "ndpi")) then
      </table>
     </div>
     <div id="categories" class="tab-pane">
-      <div class='table-responsive'>
+      <div class='table-sm-responsive'>
       <table class="table table-bordered table-striped">
         <tr>
         <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("categories")})) print[[</th>
