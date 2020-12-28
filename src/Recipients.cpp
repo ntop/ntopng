@@ -124,3 +124,20 @@ void Recipients::lua(u_int16_t recipient_id, lua_State* vm) {
 
   m.unlock(__FILE__, __LINE__);
 }
+/* *************************************** */
+
+time_t Recipients::last_use(u_int16_t recipient_id) {
+  time_t res = 0;
+
+  if(recipient_id >= MAX_NUM_RECIPIENTS)
+    return 0;
+
+  m.lock(__FILE__, __LINE__);
+
+  if(recipient_queues[recipient_id])
+    res = recipient_queues[recipient_id]->get_last_use();
+
+  m.unlock(__FILE__, __LINE__);
+
+  return res;
+}

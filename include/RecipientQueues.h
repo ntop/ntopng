@@ -63,7 +63,12 @@ class RecipientQueues {
    * @return
    */
   void lua(lua_State* vm);
-
+  /**
+   * @brief Returns queue last use
+   *
+   * @return An epoch with the last use, or 0 if never used.
+   */
+  inline time_t get_last_use() const { return last_use; };
 };
 
 #endif /* _RECIPIENT_QUEUES_ */

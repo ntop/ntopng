@@ -73,6 +73,13 @@ class Recipients {
    * @return
    */
   void lua(u_int16_t recipient_id, lua_State* vm);
+  /**
+   * @brief Returns the last use (i.e., successful dequeue) of a given recipient
+   * @param recipient_id An integer recipient identifier
+   *
+   * @return An epoch with the last use, or 0 if never used.
+   */
+  time_t last_use(u_int16_t recipient_id);
 };
 
 #endif /* _RECIPIENTS_ */

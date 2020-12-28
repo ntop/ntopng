@@ -999,6 +999,12 @@ void Ntop::recipient_stats(u_int16_t recipient_id, lua_State* vm) {
 
 /* ******************************************* */
 
+time_t Ntop::recipient_last_use(u_int16_t recipient_id) {
+  return recipients.last_use(recipient_id);
+}
+
+/* ******************************************* */
+
 void Ntop::recipient_delete(u_int16_t recipient_id) {
   recipients.delete_recipient(recipient_id);
   /* Trigger a reload of periodic scripts to refresh them with new recipients */

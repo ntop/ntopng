@@ -725,22 +725,17 @@ end
 
 -- #################################################################
 
-local function check_endpoint_export(recipient_id, export_frequency)
-   local k = string.format("ntopng.cache.notification_recipient_export_time.recipient_id_%d", recipient_id)
-   local cached_val = tonumber(ntop.getCache(k))
+-- @brief Check if it time to export notifications towards recipient identified with `recipient_id`, depending on its `xport_frequency`
+-- @param recipient_id The integer recipient identifier
+-- @param export_frequency The recipient export frequency in seconds
+-- @param now The current epoch
+-- @return True if it is time to export notifications towards the recipient, or False otherwise
+local function check_endpoint_export(recipient_id, export_frequency, now)
+   -- Read the epoch of the last time the recipient was used
+   local last_use = ntop.recipient_last_use(recipient_id)
+   local res = last_use + export_frequency <= now
 
-   if cached_val then
-      -- Cached key exists. TTL not eached, not yet time to export
-      -- tprint({endpoint_recipient_name, "cached"})
-      return false
-   else
-      -- Cached key doesn't exists: TTL has expired
-      -- Set the cache with TTL equal to the export_frequency and do the export!
-
-      ntop.setCache(k, "1", export_frequency)
-      -- tprint({endpoint_recipient_name, "time to export!!"})
-      return true
-   end
+   return res
 end
 
 -- #################################################################
@@ -789,7 +784,7 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
 
       if modules_by_name[module_name] then
          local m = modules_by_name[module_name]
-	 if force_export or check_endpoint_export(recipient.recipient_id, m.EXPORT_FREQUENCY) then
+	 if force_export or check_endpoint_export(recipient.recipient_id, m.EXPORT_FREQUENCY, now) then
 	    ready_recipients[#ready_recipients + 1] = {recipient = recipient, recipient_id = recipient.recipient_id, mod = m}
 	 end
       end

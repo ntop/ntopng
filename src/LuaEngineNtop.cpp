@@ -5499,6 +5499,19 @@ static int ntop_recipient_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_recipient_last_use(lua_State* vm) {
+  u_int16_t recipient_id;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  recipient_id = lua_tointeger(vm, 1);
+
+  lua_pushinteger(vm, ntop->recipient_last_use(recipient_id));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_recipient_delete(lua_State* vm) {
   u_int16_t recipient_id;
 
@@ -5987,6 +6000,7 @@ static luaL_Reg _ntop_reg[] = {
   { "recipient_enqueue",     ntop_recipient_enqueue           },
   { "recipient_dequeue",     ntop_recipient_dequeue           },
   { "recipient_stats",       ntop_recipient_stats             },
+  { "recipient_last_use",    ntop_recipient_last_use          },
   { "recipient_delete",      ntop_recipient_delete            },
   { "recipient_register",    ntop_recipient_register          },
 
