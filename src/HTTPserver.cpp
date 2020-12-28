@@ -45,10 +45,12 @@ int send_error(struct mg_connection *conn, int status, const char *reason, const
 
   (void) mg_printf(conn,
 		   "HTTP/1.1 %d %s\r\n"
+		   "Server: ntopng %s (%s)\r\n"
 		   "Content-Type: text/html\r\n"
 		   "Connection: close\r\n"
-		   "\r\n", status, reason);
-
+		   "\r\n", status, reason,
+		   PACKAGE_VERSION, PACKAGE_MACHINE);
+  
   /* Errors 1xx, 204 and 304 MUST NOT send a body */
   if(status > 199 && status != 204 && status != 304) {
     char buf[BUFSIZ];
@@ -91,11 +93,15 @@ static void redirect_to_ssl(struct mg_connection *conn,
 
     if(p)
       mg_printf(conn, "HTTP/1.1 302 Found\r\n"
+		"Server: ntopng %s (%s)\r\n"
 		"Location: https://%.*s:%u/%s\r\n\r\n",
+		PACKAGE_VERSION, PACKAGE_MACHINE,
 		(int) (p - host), host, ntop->getPrefs()->get_https_port(), request_info->uri);
     else
       mg_printf(conn, "HTTP/1.1 302 Found\r\n"
+		"Server: ntopng %s (%s)\r\n"
 		"Location: https://%s:%u/%s\r\n\r\n",
+		PACKAGE_VERSION, PACKAGE_MACHINE,
 		host, ntop->getPrefs()->get_https_port(), request_info->uri);
   } else {
     mg_printf(conn, "%s", "HTTP/1.1 500 Error\r\n\r\nHost: header is not set");
@@ -216,8 +222,10 @@ static void set_session_cookie(const struct mg_connection * const conn,
 
   /* http://en.wikipedia.org/wiki/HTTP_cookie */
   mg_printf((struct mg_connection *)conn, "HTTP/1.1 302 Found\r\n"
+	    "Server: ntopng %s (%s)\r\n"
 	    "Set-Cookie: session=%s; path=/; max-age=%u;%s\r\n"  // Session ID
 	    "Location: %s\r\n\r\n",
+	    PACKAGE_VERSION, PACKAGE_MACHINE,
 	    session_id, session_duration, get_secure_cookie_attributes(mg_get_request_info((struct mg_connection*)conn)),
 	    referer ? referer : "/");
 }
@@ -638,12 +646,14 @@ static void redirect_to_login(struct mg_connection *conn,
     const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData();
 
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
+	      "Server: ntopng %s (%s)\r\n"
 	      "Expires: 0\r\n"
 	      "Cache-Control: no-store, no-cache, must-revalidate\r\n"
 	      "Pragma: no-cache\r\n"
 	      "Content-Type: text/html; charset=UTF-8\r\n"
 	      "Content-Length: %u\r\n"
 	      "Location: http://%s:%u%s%s%s%s\r\n\r\n%s",
+	      PACKAGE_VERSION, PACKAGE_MACHINE,
               (unsigned int)strlen(wispr_data),
               ntop->get_HTTPserver()->getCaptiveRedirectAddress(), // LAN address
               CAPTIVE_PORTAL_PORT,
@@ -663,10 +673,12 @@ static void redirect_to_login(struct mg_connection *conn,
 
     mg_printf(conn,
 	      "HTTP/1.1 302 Found\r\n"
+	      "Server: ntopng %s (%s)\r\n"
 	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 	      "Set-Cookie: user=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
 	      "Set-Cookie: password=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
 	      "Location: %s%s%s%s\r\n\r\n",
+	      PACKAGE_VERSION, PACKAGE_MACHINE,
 	      session_id,
 	      get_secure_cookie_attributes(request_info),
 	      ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
@@ -702,8 +714,10 @@ int redirect_to_error_page(struct mg_connection *conn,
   
   mg_printf(conn,
 	    "HTTP/1.1 302 Found\r\n"
+	    "Server: ntopng %s (%s)\r\n"
 	    "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
 	    "Location: %s%s?message=%s%s%s&error_message=%s\r\n\r\n%s\n\r", /* FIX */
+	    PACKAGE_VERSION, PACKAGE_MACHINE,
 	    session_id,
 	    get_secure_cookie_attributes(request_info),
 	    ntop->getPrefs()->get_http_prefix(),
@@ -738,9 +752,11 @@ static void redirect_to_please_wait(struct mg_connection *conn,
 
   mg_printf(conn,
 	    "HTTP/1.1 302 Found\r\n"
+	    "Server: ntopng %s (%s)\r\n"
 	    // "HTTP/1.1 401 Unauthorized\r\n"
 	    // "WWW-Authenticate: Basic\r\n"
 	    "Location: %s%s%s%s\r\n\r\n",
+	    PACKAGE_VERSION, PACKAGE_MACHINE,
 	    ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)PLEASE_WAIT_URL, buf, sizeof(buf)),
 	    (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
 	    (referer[0] != '\0') ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
@@ -764,9 +780,10 @@ static void redirect_to_password_change(struct mg_connection *conn,
 
   mg_printf(conn,
 	    "HTTP/1.1 302 Found\r\n"
+	    "Server: ntopng %s (%s)\r\n"
 	    "Set-Cookie: session=%s; path=/;%s\r\n"  // Session ID
 	    "Location: %s%s%s%s\r\n\r\n", /* FIX */
-	    session_id,
+	    PACKAGE_VERSION, PACKAGE_MACHINE, session_id,
 	    get_secure_cookie_attributes(request_info),
 	    ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)CHANGE_PASSWORD_ULR, buf, sizeof(buf)),
 	    (referer[0] != '\0') ? (char*)"?referer=" : (char*)"",
@@ -978,10 +995,12 @@ static int handle_lua_request(struct mg_connection *conn) {
 #endif
   if(!strcmp(request_info->uri, HOTSPOT_DETECT_URL)) {
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
+	      "Server: ntopng %s (%s)\r\n"
 	      "Expires: 0\r\n"
 	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
 	      "Pragma: no-cache\r\n"
 	      "Location: http://%s%s%s%s\r\n\r\n",
+	      PACKAGE_VERSION, PACKAGE_MACHINE,
 	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
 	      HOTSPOT_DETECT_LUA_URL,
 	      request_info->query_string ? "?" : "",
@@ -1073,11 +1092,13 @@ static int handle_lua_request(struct mg_connection *conn) {
 #if 0
  else if(!strcmp(request_info->uri, KINDLE_WIFISTUB_URL)) {
     mg_printf(conn, "HTTP/1.1 302 Found\r\n"
+	      "Server: ntopng %s (%s)\r\n"
 	      "Expires: 0\r\n"
 	      "Cache-Control: no-store, no-cache, must-revalidate\t\n"
 	      "Pragma: no-cache\r\n"
 	      "Referer: %s\r\n"
 	      "Location: http://%s:%u%s%s%s\r\n\r\n",
+	      PACKAGE_VERSION, PACKAGE_MACHINE,
 	      request_info->uri,
 	      mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char*)"",
 	      CAPTIVE_PORTAL_PORT,
@@ -1103,11 +1124,13 @@ static int handle_lua_request(struct mg_connection *conn) {
 	  const char *origin = mg_get_header(conn, "Origin");
 
 	  mg_printf(conn, "HTTP/1.1 200 OK\r\n"
+		    "Server: ntopng %s (%s)\r\n"
 		    "Access-Control-Allow-Origin: %s\r\n"
 		    "Access-Control-Allow-Methods: %s\r\n"
 		    "Access-Control-Allow-Headers: %s\r\n"
 		    "Access-Control-Max-Age: 3600\r\n"
 		    "\r\n",
+		    PACKAGE_VERSION, PACKAGE_MACHINE,
 		    origin ? origin : "*",
 		    req_method, req_headers);
 	  return(1); /* Handled */		
@@ -1128,10 +1151,13 @@ static int handle_lua_request(struct mg_connection *conn) {
       // send error and expire session cookie
       mg_printf(conn,
 		"HTTP/1.1 403 Forbidden\r\n"
+		"Server: ntopng %s (%s)\r\n"
 		"Content-Type: text/html\r\n"
 		"Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 		"Connection: close\r\n"
-		"\r\n\r\n%s", session_id,
+		"\r\n\r\n%s",
+		PACKAGE_VERSION, PACKAGE_MACHINE,
+		session_id,
 		get_secure_cookie_attributes(request_info),
 		ACCESS_DENIED_INTERFACES);
 
