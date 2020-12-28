@@ -14,7 +14,7 @@ local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
 
-local do_benchmark = true          -- Compute benchmarks and store their results
+local do_benchmark = false         -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
 local do_trace = false             -- Trace lua calls
 
