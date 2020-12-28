@@ -57,7 +57,31 @@ local function create_DCHP_monitoring_toast(toast)
         url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config"
     })
 
-    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, nil, toast.dismissable)
+    local action = {
+       url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config",
+       title = i18n("configure")
+    }
+
+    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, action, toast.dismissable)
+end
+
+-- ###############################################################
+
+local function create_DHCP_range_missing_toast(toast)
+
+    local title = i18n("about.dhcp_monitoring_title")
+    local description = i18n("about.dhcp_range_missing_warning", {
+        name = i18n("prefs.toggle_host_tskey_title"),
+        url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=config",
+        dhcp_url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=dhcp"
+    })
+
+    local action = {
+       url = ntop.getHttpPrefix().."/lua/if_stats.lua?page=dhcp",
+       title = i18n("configure")
+    }
+
+    return toast_ui:new(toast.id, title, description, ToastLevel.WARNING, action, toast.dismissable)
 
 end
 
@@ -263,7 +287,7 @@ function predicates.DHCP(toast, container)
     end
 
     local lbd_serialize_by_mac = (_POST["lbd_hosts_as_macs"] == "1") or
-                                     (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs",ifs.id)) == "1")
+       (ntop.getPref(string.format("ntopng.prefs.ifid_%u.serialize_local_broadcast_hosts_as_macs",ifs.id)) == "1")
 
     if (not lbd_serialize_by_mac) and
         (ntop.getPref(string.format("ntopng.prefs.ifid_%u.disable_host_identifier_message", ifs.id)) ~= "1") then

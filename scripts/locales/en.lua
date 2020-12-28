@@ -330,7 +330,7 @@ local lang = {
     ["datadir_warning"] = "Please <A HREF=\"https://www.ntop.org/support/faq/migrate-the-data-directory-in-ntopng/\">migrate your data</A>",
     ["defs_directories"] = "Definitions Directories",
     ["dhcp_monitoring_title"] = "Monitoring DHCP Hosts",
-    ["dhcp_range_missing_warning"] = "The <a href='%{url}'>%{name}</a> preference is ineffective. Please configure the <a href='%{dhcp_url}'>DHCP range</a> appropriately.",
+    ["dhcp_range_missing_warning"] = "Configure <a href='%{dhcp_url}'>DHCP ranges</a> to make <a href='%{url}'>%{name}</a> preference effective.",
     ["directories"] = "Directories",
     ["dropped_store_queries_alerts"] = "Queries/Stored/Dropped Alerts",
     ["flow_callbacks_directory"] = "Flow",
