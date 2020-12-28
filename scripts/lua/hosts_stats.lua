@@ -191,6 +191,7 @@ page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, netw
 if (_GET["page"] ~= "historical") then
    if(asn ~= nil) then
       print [[
+   <div class='card'><div class='card-header'>
   <ul class="nav nav-tabs card-header-tabs">
     <li class="nav-item" class="active"><a class="nav-link active" data-toggle="tab" href="#home">]] print(i18n("hosts_stats.hosts")) print[[</a></li>
 ]]
@@ -208,6 +209,10 @@ if (_GET["page"] ~= "historical") then
 
    print("</ul>") -- close .card-header
 
+   if (asn ~= nil) then
+      print("</div>")
+   end
+   
    if(asn ~= nil) then
       print [[
    <div class='card-body'>
@@ -584,8 +589,15 @@ if (_GET["page"] ~= "historical") then
 <div id="geoloc" class="tab-pane"></div>
 <div id="prefix" class="tab-pane"></div>
 <div id="bgp" class="tab-pane"></div>
+]]
 
+if (asn ~= nil) then
+   print("</div>")
+   print("</div>")
+   print("</div>")
+end
 
+print[[
 <script>
    $(document).ready(function() {
       var tab_id_to_widget = {

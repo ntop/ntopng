@@ -28,7 +28,8 @@ local already_printed = {}
 local results = {}
 local query = _GET["query"]
 local hosts_only = _GET["hosts_only"]
-if (query == nil) then
+
+if (isEmptyString(query)) then
    query = ""
 else
 

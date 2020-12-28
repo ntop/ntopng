@@ -416,6 +416,16 @@
     },
 
     keydown: function (e) {
+
+      // prevent spacing at the start
+      let currentValue = this.$element.val() || this.$element.text();
+      currentValue = currentValue.trim();
+
+      if (e.keyCode == 32 && currentValue === "") {
+        e.preventDefault();
+        return;
+      }
+
       this.suppressKeyPressRepeat = ~$.inArray(e.keyCode, [40,38,9,13,27]);
       if (!this.shown && e.keyCode == 40) {
         this.lookup();
@@ -450,7 +460,6 @@
         case 17: // ctrl
         case 18: // alt
           break;
-
         case 9: // tab
         case 13: // enter
           if (!this.shown) return;
