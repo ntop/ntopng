@@ -557,6 +557,7 @@
 #define CONST_IFACE_ID_PREFS                NTOPNG_PREFS_PREFIX".iface_id"
 #define CONST_IFACE_SCALING_FACTOR_PREFS    NTOPNG_PREFS_PREFIX".iface_%d.scaling_factor"
 #define CONST_IFACE_HIDE_FROM_TOP_PREFS     NTOPNG_PREFS_PREFIX".iface_%d.hide_from_top"
+#define CONST_IFACE_GW_MACS_PREFS           NTOPNG_PREFS_PREFIX".iface_%d.gw_macs"
 #define CONST_IFACE_COMPANIONS_SET          NTOPNG_PREFS_PREFIX".companion_interface.ifid_%d.companion_of"
 #define CONST_IFACE_DYN_IFACE_MODE_PREFS    NTOPNG_PREFS_PREFIX".dynamic_sub_interfaces.ifid_%d.mode"
 #define CONST_REMOTE_HOST_IDLE_PREFS        NTOPNG_PREFS_PREFIX".non_local_host_max_idle"

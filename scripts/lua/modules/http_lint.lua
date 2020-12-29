@@ -941,6 +941,10 @@ local function validateNetworksWithVLANList(l)
    return validateListOfType(l, validateNetworkWithVLAN)
 end
 
+local function validateMacList(l)
+   return validateListOfType(l, validateMac)
+end
+
 local function validateACLNetworksList(l)
    -- networks in the ACL are preceeded by a + or a - sign
    -- and are (currently) used for the mongoose webserver ACL
@@ -1861,6 +1865,7 @@ local known_parameters = {
    ["per_ip_slower_rate"]      = validateNumber,
    ["user_policy"]             = validateNumber,
    ["hide_from_top"]           = validateNetworksWithVLANList,
+   ["gw_macs"]                 = validateMacList,
    ["top_hidden"]              = validateBool,
    ["packets_drops_perc"]      = validateEmptyOr(validateNumber),
    ["operating_system"]        = validateNumber,

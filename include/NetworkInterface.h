@@ -201,6 +201,9 @@ class NetworkInterface : public AlertableEntity {
   ThroughputStats bytes_thpt, pkts_thpt;
   struct timeval last_periodic_stats_update;
 
+  MacHash *gw_macs; /**< Hash used to identify traffic direction based on gw MAC. */
+  bool gw_macs_reload_requested;
+
   /* Mac */
   MacHash *macs_hash; /**< Hash used to store MAC information. */
 
@@ -768,6 +771,8 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void reloadCompanions() {};
   void reloadHideFromTop(bool refreshHosts=true);
+  void requestGwMacsReload() { gw_macs_reload_requested = true; };
+  void reloadGwMacs();
 
   inline bool serializeLbdHostsAsMacs()             { return(lbd_serialize_by_mac); }
   void checkReloadHostsBroadcastDomain();
@@ -858,8 +863,9 @@ class NetworkInterface : public AlertableEntity {
   TimeseriesExporter* getInfluxDBTSExporter();
   TimeseriesExporter* getRRDTSExporter();
 
-  inline uint32_t getMaxSpeed() const        { return(ifSpeed);     }
-  inline bool isLoopback() const             { return(is_loopback); }
+  inline uint32_t getMaxSpeed() const      { return(ifSpeed);     }
+  inline bool isLoopback() const           { return(is_loopback); }
+  inline bool isGwMac(u_int8_t a[6]) const { return(gw_macs->getNumEntries() > 0 && gw_macs->get(a, false) != NULL); }
 
   virtual bool read_from_pcap_dump()      const { return(false); };
   virtual bool read_from_pcap_dump_done() const { return(false); };

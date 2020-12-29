@@ -277,6 +277,7 @@ void NetworkInterface::init() {
   flows_hash = NULL, hosts_hash = NULL;
   macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
   countries_hash = NULL;
+  gw_macs = NULL;
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -514,6 +515,7 @@ void NetworkInterface::deleteDataStructures() {
   if(countries_hash)        { delete(countries_hash);  countries_hash = NULL;  }
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
+  if(gw_macs)               { delete(gw_macs);    gw_macs = NULL;    }
 
   if(companionQueue) {
     for(u_int16_t i = 0; i < COMPANION_QUEUE_LEN; i++)
@@ -1673,6 +1675,9 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
   if(pMap) pMap->purgeIdle(when);
   if(sMap) sMap->purgeIdle(when);
 #endif
+
+  if (gw_macs_reload_requested)
+    reloadGwMacs();
 }
 
 /* **************************************************** */
@@ -1685,7 +1690,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 				     u_int16_t *ndpiProtocol,
 				     Host **srcHost, Host **dstHost,
 				     Flow **flow) {
-  struct ndpi_ethhdr *ethernet, dummy_ethernet;
+  struct ndpi_ethhdr *ethernet = NULL, dummy_ethernet;
   u_int64_t time;
   u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
   u_int32_t null_type;
@@ -1809,6 +1814,10 @@ datalink_check:
   }
 
 decode_packet_eth:
+  /* Setting traffic direction based on MAC (if any configured) */
+  if (ethernet && isGwMac(ethernet->h_dest))
+    ingressPacket = false;
+
   switch(eth_type) {
   case ETHERTYPE_PPOE:
     ip_offset += 6 /* PPPoE */;
@@ -6214,6 +6223,8 @@ void NetworkInterface::allocateStructures() {
     ndpiStats        = new nDPIStats(true /* Enable throughput calculation */);
     dscpStats        = new DSCPStats();
 
+    gw_macs          = new MacHash(this, 32, 64);
+
     if(!isViewed()) {
       alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
       alertsQueue   = new AlertsQueue(this);
@@ -6235,6 +6246,8 @@ void NetworkInterface::allocateStructures() {
   setEntityValue(buf);
 
   refreshHasAlerts();
+  
+  reloadGwMacs();
 }
 
 /* **************************************** */
@@ -6323,6 +6336,46 @@ void NetworkInterface::processInterfaceStats(sFlowInterfaceStats *stats) {
 
     interfaceStats->set(stats);
   }
+}
+
+/* **************************************** */
+
+void NetworkInterface::reloadGwMacs() {
+  char kname[64];
+  char **macs = NULL;
+
+  if(!ntop->getRedis()) return;
+
+  gw_macs->cleanup();
+
+  snprintf(kname, sizeof(kname), CONST_IFACE_GW_MACS_PREFS, id);
+  int num_macs = ntop->getRedis()->smembers(kname, &macs);
+  for(int i=0; i<num_macs; i++) {
+    Mac *m = NULL;
+    u_int8_t addr[6];
+    char *mac = macs[i];
+
+    if(!mac) continue;
+
+    Utils::parseMac(addr, mac);
+
+    try {
+      if((m = new Mac(this, addr)) != NULL) {
+	if(!gw_macs->add(m, true)) {
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough root in GW macs hash");
+	  delete m;
+	}
+      }
+    } catch(std::bad_alloc& ba) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+    }
+
+    free(mac);
+  }
+
+  if(macs) free(macs);
+
+  gw_macs_reload_requested = false;
 }
 
 /* **************************************** */

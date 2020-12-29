@@ -3114,6 +3114,19 @@ static int ntop_reload_hide_from_top(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_gw_macs(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  if(!ntop_interface) return(CONST_LUA_ERROR);
+  ntop_interface->requestGwMacsReload();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_reload_dhcp_ranges(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4394,6 +4407,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "name2id",                          ntop_interface_name2id },
   { "loadScalingFactorPrefs",           ntop_load_scaling_factor_prefs },
   { "reloadHideFromTop",                ntop_reload_hide_from_top },
+  { "reloadGwMacs",                     ntop_reload_gw_macs },
   { "reloadDhcpRanges",                 ntop_reload_dhcp_ranges },
   { "reloadHostPrefs",                  ntop_reload_host_prefs },
   { "setHostOperatingSystem",           ntop_set_host_operating_system },

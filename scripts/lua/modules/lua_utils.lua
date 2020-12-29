@@ -3473,6 +3473,12 @@ end
 
 -- ###########################################
 
+function getGwMacsSet(ifid)
+   return "ntopng.prefs.iface_" .. ifid .. ".gw_macs"
+end
+
+-- ###########################################
+
 function printWarningAlert(message)
    print[[<div class="alert alert-warning alert-dismissable" role="alert">]]
    print[[<a class="close" data-dismiss="alert" aria-label="close">&times;</a>]]

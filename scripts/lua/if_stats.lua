@@ -172,6 +172,17 @@ if (isAdministrator()) then
 
       interface.reloadHideFromTop()
 
+      -- Gw MAC addresses - used to compute traffic direction
+      local gw_macs_set = getGwMacsSet(ifstats.id)
+      ntop.delCache(gw_macs_set)
+      for _, mac in pairs(split(_POST["gw_macs"] or "", ",")) do
+         mac = trimSpace(mac)
+         if not isEmptyString(mac) then
+            ntop.setMembersCache(gw_macs_set, mac)
+         end
+      end
+      interface.reloadGwMacs()
+
       setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
 
       local sf = tonumber(_POST["scaling_factor"])
@@ -1524,6 +1535,38 @@ elseif(page == "config") then
 	print[[
 	   </td>
 	</tr>]]
+
+   -- Gw Macs for Address-Based Traffic Directions
+   local rv = ntop.getMembersCache(getGwMacsSet(ifstats.id)) or {}
+   local members = {}
+
+   -- impose sort order
+   for _, addr in pairsByValues(rv, asc) do
+      members[#members + 1] = addr
+   end
+
+   local gw_macs = table.concat(members, ",")
+
+   print[[
+	<tr>
+	   <th>]] print(i18n("if_stats_config.gw_macs")) print[[</th>
+	   <td>]]
+
+   print('<input style="width:36em;" class="form-control" name="gw_macs" placeholder="'..i18n("if_stats_config.gw_macs_example", {example="00:11:22:33:44:55,00:11:22:33:44:66"})..'" value="' .. gw_macs .. '">')
+
+   print([[
+        <small>
+        <details class='mt-2'>
+         <summary>
+            <span data-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
+               ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
+            </span>
+         </summary>
+         <p>]]..i18n("if_stats_config.gw_macs_description")..[[</p>
+        </details>
+        </small>
+	   </td>
+	</tr>]])
 
    -- Hidden from top
    local rv = ntop.getMembersCache(getHideFromTopSet(ifstats.id)) or {}

@@ -294,6 +294,7 @@ using namespace std;
 #include "InterfaceStatsHash.h"
 #include "GenericHash.h"
 #include "GenericHashEntry.h"
+#include "MacHash.h"
 #if defined(NTOPNG_PRO) && defined(HAVE_NINDEX)
 #include "nindex_api.h"
 #endif
@@ -393,7 +394,6 @@ using namespace std;
 #include "IEC104Stats.h"
 #include "Flow.h"
 #include "FlowHash.h"
-#include "MacHash.h"
 #include "VlanHash.h"
 #include "AutonomousSystemHash.h"
 #include "CountriesHash.h"
