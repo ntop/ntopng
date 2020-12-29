@@ -552,11 +552,6 @@ path.link {
   overflow-x: hidden;
 }
 
-/* Workaround for dropdowns being clipped by the table height */
-.table-responsive {
-  min-height: calc(var(--scrollable-dropdown-height) + 5rem);
-}
-
 .dark-gray {
   color: #363943;
 }
