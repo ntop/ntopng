@@ -224,32 +224,62 @@ end
 function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, start_time, end_time)
    local active_entries = {}
    local active_idx = 1 -- index in active_entries
-   local needs_separator = false
-   local separator_label = nil
    local tdiff = (end_time - start_time)
 
    -- Sort entries based on label, preserving groups
    local graph_menu_entries_sorted = {}
    local sort_table = {}
+   local needs_separator = false
+   local separator_label = nil
+   local first
    for _, entry in ipairs(graph_menu_entries) do
-     if entry.needs_separator or entry.label == nil then
+     if entry.needs_separator 
+        or entry.label == nil -- divider
+     then
+       -- sort group
+       first = true
        for k,v in pairsByKeys(sort_table) do
+         if first then
+           v.needs_separator = needs_separator
+           v.separator_label = separator_label
+           first = false
+         end
          graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = v
        end
-       if entry.label == nil then -- divider?
-         graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = entry
-       end
+
+       -- backup group separator, if any
+       needs_separator = entry.needs_separator or false
+       separator_label = entry.separator_label
+       -- reset group separator on this item
+       entry.needs_separator = false
+       entry.separator_label = nil
+
+       -- append
        sort_table = {}
-     end
-     if entry.label ~= nil then
+       if entry.label == nil then -- divider
+         graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = entry
+       else
+         sort_table[entry.label] = entry
+       end
+     else
+       -- append
        sort_table[entry.label] = entry
      end
    end
+   -- sort group
+   first = true
    for k,v in pairsByKeys(sort_table) do
-     graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = v
+      if first then
+         v.needs_separator = needs_separator
+         v.separator_label = separator_label
+         first = false
+      end
+      graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = v
    end
 
    -- Print entries
+   needs_separator = false
+   separator_label = nil
    for _, entry in ipairs(graph_menu_entries_sorted) do
 
       if active_idx ~= 1 then
