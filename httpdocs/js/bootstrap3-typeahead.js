@@ -158,11 +158,8 @@
       if (typeof(query) != 'undefined' && query !== null) {
         this.query = query;
       } else {
-        this.query = this.$element.val() || this.$element.text() || '';
+        this.query = this.$element.val().trim() || this.$element.text().trim() || '';
       }
-
-      // trim spaces
-      this.query.trim();
 
       if (this.query.length < this.options.minLength && !this.options.showHintOnFocus) {
         return this.shown ? this.hide() : this;
@@ -420,8 +417,8 @@
       // prevent spacing at the start
       let currentValue = this.$element.val() || this.$element.text();
       currentValue = currentValue.trim();
-
-      if (e.keyCode == 32 && currentValue === "") {
+      
+      if (e.keyCode == 32 && currentValue === "" || e.keyCode === 32 && e.target.selectionStart == 0) {
         e.preventDefault();
         return;
       }
@@ -465,13 +462,13 @@
           if (!this.shown) return;
           this.select();
           break;
-
         case 27: // escape
           if (!this.shown) return;
           this.hide();
           break;
       }
 
+    
 
     },
 
