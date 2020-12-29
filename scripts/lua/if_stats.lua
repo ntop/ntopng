@@ -64,6 +64,8 @@ msg = ""
 local is_packet_interface = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
 
+local is_mirrored_traffic = false
+
 local ifstats = interface.getStats()
 
 if page == "syslog_producers" and not ifstats.isSyslog then
@@ -173,16 +175,33 @@ if (isAdministrator()) then
       interface.reloadHideFromTop()
 
       if is_packet_interface then
-         -- Gw MAC addresses - used to compute traffic direction
-         local gw_macs_set = getGwMacsSet(ifstats.id)
-         ntop.delCache(gw_macs_set)
-         for _, mac in pairs(split(_POST["gw_macs"] or "", ",")) do
-            mac = trimSpace(mac)
-            if not isEmptyString(mac) then
-               ntop.setMembersCache(gw_macs_set, mac)
+         if _POST["gw_macs"] ~= nil then
+            -- Gw MAC addresses - used to compute traffic direction
+            local gw_macs_set = getGwMacsSet(ifstats.id)
+            ntop.delCache(gw_macs_set)
+            for _, mac in pairs(split(_POST["gw_macs"] or "", ",")) do
+               mac = trimSpace(mac)
+               if not isEmptyString(mac) then
+                  ntop.setMembersCache(gw_macs_set, mac)
+               end
             end
+            interface.reloadGwMacs()
          end
-         interface.reloadGwMacs()
+      end
+
+      if not ntop.isnEdge() and is_packet_interface then
+         local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", interface.getId())
+
+         if _SERVER["REQUEST_METHOD"] == "POST" then
+            if _POST["is_mirrored_traffic"] == "1" then
+ 	       is_mirrored_traffic = true
+	    end
+
+	    ntop.setPref(is_mirrored_traffic_pref, ternary(is_mirrored_traffic == true, '1', '0'))
+	    interface.updateTrafficMirrored()
+         else
+	    is_mirrored_traffic = ternary(ntop.getPref(is_mirrored_traffic_pref) == '1', true, false)
+         end
       end
 
       setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
@@ -228,7 +247,7 @@ if _SERVER["REQUEST_METHOD"] == "POST" and not isEmptyString(_POST["traffic_reco
 end
 
 local has_traffic_recording_page =  (recording_utils.isAvailable()
-	  and (interface.isPacketInterface()
+	  and (is_packet_interface
 		  or ((recording_utils.isSupportedZMQInterface(ifid) and not table.empty(ext_interfaces)))
 		  or (recording_utils.getCurrentTrafficRecordingProvider(ifid) ~= "ntopng")))
 
@@ -252,7 +271,7 @@ page_utils.print_navbar(title, url,
 				 label = "<i class=\"fas fa-lg fa-home\"></i>",
 			      },
 			      {
-				 hidden = not interface.isPacketInterface() or ntop.isnEdge() or interface.isView(),
+				 hidden = not is_packet_interface or ntop.isnEdge() or interface.isView(),
 				 active = page == "networks",
 				 page_name = "networks",
 				 label = i18n("networks"),
@@ -519,7 +538,7 @@ if((page == "overview") or (page == nil)) then
       print("</tr>")
    end
 
-   local is_physical_iface = (interface.isPacketInterface()) and (not is_pcap_dump)
+   local is_physical_iface = is_packet_interface and (not is_pcap_dump)
 
    local label = getHumanReadableInterfaceName(ifstats.name)
    local s
@@ -776,7 +795,7 @@ if((page == "overview") or (page == nil)) then
       print("<span id=exported_flows_drops_pct "..span_danger..">["
 	       ..formatValue(round(export_drops_pct, 2)).."%]</span></td>")
 
-      if not interface.isPacketInterface() then
+      if not is_packet_interface then
          print("<th nowrap>"..i18n("if_stats_overview.direct_mode").."</th>")
          print("<td>"..ternary(prefs.is_dump_flows_direct_enabled, i18n("enabled"), i18n("disabled")).."</td>")
       else
@@ -839,7 +858,7 @@ if((page == "overview") or (page == nil)) then
       end
    end
 
-   if (ntop.isPcapDownloadAllowed() and ifstats.isView == false and ifstats.isDynamic == false and interface.isPacketInterface()) then
+   if ntop.isPcapDownloadAllowed() and ifstats.isView == false and ifstats.isDynamic == false and is_packet_interface then
       print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=2>")
 
       local live_traffic_utils = require("live_traffic_utils")
@@ -891,7 +910,7 @@ if((page == "overview") or (page == nil)) then
 
    print("</table>\n")
 
-elseif page == "networks" and interface.isPacketInterface() then
+elseif page == "networks" and is_packet_interface then
    print("<table class=\"table table-striped table-bordered\">")
 
    if(ifstats.ip_addresses ~= "") then
@@ -1497,7 +1516,7 @@ elseif(page == "config") then
 
    if not have_nedge then
      -- Scaling factor
-     if interface.isPacketInterface() and not have_nedge then
+     if is_packet_interface and not have_nedge then
 	local label = ntop.getCache("ntopng.prefs.iface_"..tostring(ifid)..".scaling_factor")
 	if((label == nil) or (label == "")) then label = "1" end
 
@@ -1537,40 +1556,6 @@ elseif(page == "config") then
 	print[[
 	   </td>
 	</tr>]]
-
-   if is_packet_interface then
-      -- Gw Macs for Address-Based Traffic Directions
-      local rv = ntop.getMembersCache(getGwMacsSet(ifstats.id)) or {}
-      local members = {}
-
-      -- impose sort order
-      for _, addr in pairsByValues(rv, asc) do
-         members[#members + 1] = addr
-      end
-
-      local gw_macs = table.concat(members, ",")
-
-      print[[
-	<tr>
-	   <th>]] print(i18n("if_stats_config.gw_macs")) print[[</th>
-	   <td>]]
-
-      print('<input style="width:36em;" class="form-control" name="gw_macs" placeholder="'..i18n("if_stats_config.gw_macs_example", {example="00:11:22:33:44:55,00:11:22:33:44:66"})..'" value="' .. gw_macs .. '">')
-
-      print([[
-        <small>
-        <details class='mt-2'>
-         <summary>
-            <span data-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
-               ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
-            </span>
-         </summary>
-         <p>]]..i18n("if_stats_config.gw_macs_description")..[[</p>
-        </details>
-        </small>
-	   </td>
-	</tr>]])
-   end
 
    -- Hidden from top
    local rv = ntop.getMembersCache(getHideFromTopSet(ifstats.id)) or {}
@@ -1640,22 +1625,7 @@ elseif(page == "config") then
    end
 
    -- Mirrored Traffic
-   if not ntop.isnEdge() and interface.isPacketInterface() then
-      local is_mirrored_traffic = false
-      local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", interface.getId())
-
-      if _SERVER["REQUEST_METHOD"] == "POST" then
-	 if _POST["is_mirrored_traffic"] == "1" then
-	    is_mirrored_traffic = true
-	 end
-
-	 ntop.setPref(is_mirrored_traffic_pref,
-		      ternary(is_mirrored_traffic == true, '1', '0'))
-	 interface.updateTrafficMirrored()
-      else
-	 is_mirrored_traffic = ternary(ntop.getPref(is_mirrored_traffic_pref) == '1', true, false)
-      end
-
+   if not ntop.isnEdge() and is_packet_interface then
       print [[<tr>
 	 <th>]] print(i18n("if_stats_config.is_mirrored_traffic")) print[[</th>
     <td>]]
@@ -1668,6 +1638,40 @@ elseif(page == "config") then
       print[[
 	 </td>
       </tr>]]
+   end
+
+   if is_packet_interface and is_mirrored_traffic then
+      -- Gw Macs for Address-Based Traffic Directions
+      local rv = ntop.getMembersCache(getGwMacsSet(ifstats.id)) or {}
+      local members = {}
+
+      -- impose sort order
+      for _, addr in pairsByValues(rv, asc) do
+         members[#members + 1] = addr
+      end
+
+      local gw_macs = table.concat(members, ",")
+
+      print[[
+	<tr>
+	   <th>]] print(i18n("if_stats_config.gw_macs")) print[[</th>
+	   <td>]]
+
+      print('<input style="width:36em;" class="form-control" name="gw_macs" placeholder="'..i18n("if_stats_config.gw_macs_example", {example="00:11:22:33:44:55,00:11:22:33:44:66"})..'" value="' .. gw_macs .. '">')
+
+      print([[
+        <small>
+        <details class='mt-2'>
+         <summary>
+            <span data-toggle="tooltip" data-placement="right" title=']].. i18n("click_to_expand") ..[['>
+               ]]..i18n("notes")..[[ <i class='fas fa-question-circle '></i>
+            </span>
+         </summary>
+         <p>]]..i18n("if_stats_config.gw_macs_description")..[[</p>
+        </details>
+        </small>
+	   </td>
+	</tr>]])
    end
 
    -- Flows-Only Interface
@@ -1702,7 +1706,7 @@ elseif(page == "config") then
    end
 
    -- Discard Probing Traffic
-   if not ntop.isnEdge() and not interface.isPacketInterface() then
+   if not ntop.isnEdge() and not is_packet_interface then
       local discard_probing_traffic = false
       local discard_probing_traffic_pref = string.format("ntopng.prefs.ifid_%d.discard_probing_traffic", interface.getId())
 
@@ -1814,7 +1818,7 @@ elseif(page == "config") then
 	       label = string.format("%s (%s)", provider["name"], provider["conf"])
 	    end
 
-	    if provider["name"] == "ntopng" and not interface.isPacketInterface() then
+	    if provider["name"] == "ntopng" and not is_packet_interface then
 	       -- non-packet interfaces
 	       label = "None"
 	    end
