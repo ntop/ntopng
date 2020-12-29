@@ -1516,20 +1516,24 @@ bool Utils::postHTTPJsonData(char *username, char *password, char *url,
 				   "Unable to post data to (%s): %s",
 				   url, curl_easy_strerror(res));
     } else {
+      long http_code = 0;
+      
       ntop->getTrace()->traceEvent(TRACE_INFO, "Posted JSON to %s", url);
       readCurlStats(curl, stats, NULL);
 
-      long http_code = 0;
       curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
       // Success if http_code is 2xx, failure otherwise
       if(http_code >= 200 && http_code <= 299)
 	ret = true;
+      else
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unexpected HTTP response code received %u", http_code);
     }
     
     /* always cleanup */
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
-  }
+  } else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to initialize curl");
 
   return(ret);
 }
