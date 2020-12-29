@@ -40,6 +40,26 @@ LuaReusableEngine::~LuaReusableEngine() {
 
 /* ******************************* */
 
+void LuaReusableEngine::setNextVmReload(time_t t) {
+  /*
+    Set the next_reload
+   */
+  next_reload = t;
+
+  /*
+    Also put the next_reload into the vm state,
+    so that it can be read from Lua scripts as well.
+   */
+  lua_State *cur_state;
+  ntopngLuaContext *cur_ctx;
+  if(vm
+     && (cur_state = vm->getState())
+     && (cur_ctx = getLuaVMContext(cur_state)))
+    cur_ctx->next_reload = next_reload;
+}
+
+/* ******************************* */
+
 void LuaReusableEngine::reloadVm(time_t now) {
   if(vm) {
     delete vm;
@@ -60,7 +80,7 @@ void LuaReusableEngine::reloadVm(time_t now) {
   }
 
   if(vm->load_script(script_path, iface) == 0) {
-    next_reload = now + reload_interval;
+    setNextVmReload(now + reload_interval);
   } else {
     /* Retry next time */
     delete vm;

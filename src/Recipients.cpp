@@ -124,6 +124,7 @@ void Recipients::lua(u_int16_t recipient_id, lua_State* vm) {
 
   m.unlock(__FILE__, __LINE__);
 }
+
 /* *************************************** */
 
 time_t Recipients::last_use(u_int16_t recipient_id) {

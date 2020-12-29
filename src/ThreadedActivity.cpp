@@ -453,9 +453,13 @@ LuaEngine* ThreadedActivity::loadVm(char *script_path, NetworkInterface *iface, 
 	vms[iface->get_id()] = engine;
       }
 
-      vms_mutex.unlock(__FILE__, __LINE__);
-
+      /*
+	Make sure the getVm is locked, as another thread
+	could be accessing the context to set variables
+       */
       l = engine->getVm(when);
+
+      vms_mutex.unlock(__FILE__, __LINE__);
     } else {
       /* NOTE: this needs to be deallocated by the caller */
       l = new LuaEngine(NULL);

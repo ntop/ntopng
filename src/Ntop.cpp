@@ -1008,7 +1008,7 @@ time_t Ntop::recipient_last_use(u_int16_t recipient_id) {
 void Ntop::recipient_delete(u_int16_t recipient_id) {
   recipients.delete_recipient(recipient_id);
   /* Trigger a reload of periodic scripts to refresh them with new recipients */
-  ntop->reloadPeriodicScripts();
+  reloadPeriodicScripts();
 }
 
 /* ******************************************* */
@@ -1016,7 +1016,7 @@ void Ntop::recipient_delete(u_int16_t recipient_id) {
 void Ntop::recipient_register(u_int16_t recipient_id) {
   recipients.register_recipient(recipient_id);
   /* Trigger a reload of periodic scripts to refresh them with new recipients */
-  ntop->reloadPeriodicScripts();
+  reloadPeriodicScripts();
 }
 
 /* ******************************************* */

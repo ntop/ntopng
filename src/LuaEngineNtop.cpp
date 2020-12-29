@@ -1427,6 +1427,16 @@ static int ntop_script_get_deadline(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_script_get_next_vm_reload(lua_State* vm) {
+  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+
+  lua_pushinteger(vm, ctx && ctx->next_reload ? ctx->next_reload : 0);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_speedtest(lua_State* vm) {
   json_object *rc = speedtest();
 
@@ -6036,6 +6046,7 @@ static luaL_Reg _ntop_reg[] = {
   /* Periodic scripts (ThreadedActivity.cpp) */
   { "isDeadlineApproaching",     ntop_script_is_deadline_approaching },
   { "getDeadline",               ntop_script_get_deadline            },
+  { "getNextVmReload",           ntop_script_get_next_vm_reload      },
 
   /* Speedtest */
   { "speedtest",                 ntop_speedtest                      },

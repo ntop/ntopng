@@ -71,40 +71,6 @@ end
 
 -- ##############################################
 
--- @brief Key to store a flag for signaling recipient changes
--- @return A string key
-local function _get_recipients_changed_key()
-   local key = string.format("ntopng.cache.recipients.recipients_changed")
-
-   return key
-end
-
--- ##############################################
-
--- @brief Mark a recipients change (must be called when adding/deleteding/editing a recipient)
--- @return nil
-function recipients.set_recipients_change()
-   ntop.setCache(_get_recipients_changed_key(), "1")
-end
-
--- ##############################################
-
--- @brief Checks whether recipients have changed. If recipients have changed, the change is acknowledged
--- @return True if recipients have changed, false otherwise.
-local function _check_recipients_change()
-   local res = ntop.getCache(_get_recipients_changed_key()) ~= ""
-
-   if res then
-      -- A change in recipients has occurred
-      -- Remove the key to aknowledge the change
-      ntop.delCache(_get_recipients_changed_key())
-   end
-
-   return res
-end
-
--- ##############################################
-
 local function _lock()
    local max_lock_duration = 5 -- seconds
    local max_lock_attempts = 5 -- give up after at most this number of attempts
@@ -257,9 +223,6 @@ local function _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoin
 				 minimum_severity = minimum_severity,
 				 recipient_params = safe_params}))
 
-   -- Notify a change in the recipients
-   recipients.set_recipients_change()
-
    return recipient_id
 end
 
@@ -366,6 +329,10 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_s
 		  minimum_severity,
 		  safe_params)
 
+	       -- Finally, register the recipient in C to make sure also the C knows about this edit
+	       -- and periodic scripts can be reloaded
+	       ntop.recipient_register(tonumber(rc["endpoint_id"]))
+
 	       res = {status = "OK"}
 	    end
 	 end
@@ -399,9 +366,6 @@ function recipients.delete_recipient(recipient_id)
 
 	 -- Remove the recipient_id from the set of all currently existing recipient ids
 	 ntop.delMembersCache(_get_recipient_ids_key(), string.format("%d", recipient_id))
-
-	 -- Notify a change in the recipients
-	 recipients.set_recipients_change()
 
 	 -- Finally, remove the recipient from C
 	 ntop.recipient_delete(recipient_id)
@@ -758,21 +722,9 @@ function recipients.process_notifications(now, deadline, periodic_frequency, for
    -- Dequeue alerts enqueued into per-recipient queues from user scripts
    if not cached_recipients then
       -- Cache recipients to avoid re-reading them constantly
+      -- NOTE: in case of recipient add/edit/delete, the vm executing this
+      -- function is reloaded and thus, recipients, are re-cached automatically
       cached_recipients = recipients.get_all_recipients()
-   else
-      -- Make sure the recipients cache is still valid (i.e., no recipient changes have occurred in the meanwhile)
-      local locked = _lock()
-
-      if locked then
-	 if _check_recipients_change() then
-	    -- If there has been a change, a reload is performed
-	    cached_recipients = recipients.get_all_recipients()
-	 end
-	 _unlock()
-      else
-	 -- Unable to acquire the lock, exit (will retry later)
-	 return
-      end
    end
    local modules_by_name = endpoints.get_types()
    local ready_recipients = {}

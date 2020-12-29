@@ -663,6 +663,13 @@ struct ntopngLuaContext {
     bool stopped;
   } live_capture;
 
+  /* 
+     Indicate the time when the vm will be reloaded.
+     This can be used so that Lua scripts running in an infinite-loop fashion, e.g., notifications.lua,
+     can know when to break so they can be reloaded with new configurations.
+     Useful when user scripts change or when recipient configurations change.
+   */
+  time_t next_reload;
   /* Periodic scripts (ThreadedActivity.cpp) */
   time_t deadline;
   const ThreadedActivity *threaded_activity;
