@@ -865,7 +865,8 @@ class NetworkInterface : public AlertableEntity {
 
   inline uint32_t getMaxSpeed() const      { return(ifSpeed);     }
   inline bool isLoopback() const           { return(is_loopback); }
-  inline bool isGwMac(u_int8_t a[6]) const { return(gw_macs->getNumEntries() > 0 && gw_macs->get(a, false) != NULL); }
+  inline bool isGwMacConfigured() const    { return(gw_macs->getNumEntries() > 0); }
+  inline bool isGwMac(u_int8_t a[6]) const { return(isGwMacConfigured() && gw_macs->get(a, false) != NULL); }
 
   virtual bool read_from_pcap_dump()      const { return(false); };
   virtual bool read_from_pcap_dump_done() const { return(false); };
