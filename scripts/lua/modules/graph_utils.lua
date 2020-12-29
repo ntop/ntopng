@@ -419,13 +419,13 @@ function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selected
             <li class="nav-item active"> <a class="nav-link active" href="#historical-tab-chart" role="tab" data-toggle="tab"> Chart </a> </li>
 ]]
 
-local show_historical_tabs = ntop.getPrefs().is_dump_flows_to_mysql_enabled and options.show_historical
+   local show_historical_tabs = ntop.getPrefs().is_dump_flows_to_mysql_enabled and options.show_historical
 
-if show_historical_tabs then
-   print('<li class="nav-item"><a class="nav-link" href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
-end
+   if show_historical_tabs then
+      print('<li class="nav-item"><a class="nav-link" href="#historical-flows" role="tab" data-toggle="tab" id="tab-flows-summary"> Flows </a> </li>\n')
+   end
 
-print[[
+   print[[
 </ul>
 </div>
 <div class='card-body'>
@@ -435,64 +435,64 @@ print[[
 <tr><td valign="top">
 ]]
 
-local page_params = {
-   ts_schema = schema,
-   zoom = zoomLevel or '',
-   epoch = selectedEpoch or '',
-   tskey = options.tskey,
-}
+   local page_params = {
+      ts_schema = schema,
+      zoom = zoomLevel or '',
+      epoch = selectedEpoch or '',
+      tskey = options.tskey,
+   }
 
-if(options.timeseries) then
-   print [[
+   if(options.timeseries) then
+      print [[
    <div class="dropdown d-inline">
       <button class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">Timeseries <span class="caret"></span></button>
       <div class="dropdown-menu scrollable-dropdown">
-   ]]
+      ]]
 
-   graph_common.printSeries(options, tags, start_time, end_time, baseurl, page_params)
-   graph_common.printGraphMenuEntries(graph_common.printEntry, nil, start_time, end_time)
+      graph_common.printSeries(options, tags, start_time, end_time, baseurl, page_params)
+      graph_common.printGraphMenuEntries(graph_common.printEntry, nil, start_time, end_time)
 
-   print [[
+      print [[
       </div>
    </div><!-- /btn-group -->
-   ]]
-end -- options.timeseries
+      ]]
+   end -- options.timeseries
 
-print('<span class="mx-1">Timeframe:</span><div class="btn-group btn-group-toggle" data-toggle="buttons" id="graph_zoom">\n')
+   print('<span class="mx-1">Timeframe:</span><div class="btn-group btn-group-toggle" data-toggle="buttons" id="graph_zoom">\n')
 
-for k,v in ipairs(graph_common.zoom_vals) do
-   -- display 1 minute button only for networks and interface stats
-   -- but exclude applications. Application statistics are gathered
-   -- every 5 minutes
-   if graph_common.zoom_vals[k][1] == '1m' and min_zoom ~= '1m' then
-      goto continue
-   elseif graph_common.zoom_vals[k][1] == '5m' and min_zoom ~= '1m' and min_zoom ~= '5m' then
-      goto continue
+   for k,v in ipairs(graph_common.zoom_vals) do
+      -- display 1 minute button only for networks and interface stats
+      -- but exclude applications. Application statistics are gathered
+      -- every 5 minutes
+      if graph_common.zoom_vals[k][1] == '1m' and min_zoom ~= '1m' then
+         goto continue
+      elseif graph_common.zoom_vals[k][1] == '5m' and min_zoom ~= '1m' and min_zoom ~= '5m' then
+         goto continue
+      end
+
+      if(graph_common.zoom_vals[k][1] == zoomLevel) then
+         print([[<label class="btn bg-primary text-white">]])
+      else
+         print([[<label class="btn btn-link">]])
+      end
+
+      local params = table.merge(page_params, {zoom=graph_common.zoom_vals[k][1]})
+
+      -- Additional parameters
+      if tags.protocol ~= nil then
+         params["protocol"] = tags.protocol
+      end
+      if tags.category ~= nil then
+         params["category"] = tags.category
+      end
+
+      local url = getPageUrl(baseurl, params)
+
+      print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..url..'">'.. graph_common.zoom_vals[k][1] ..'</input></label>\n')
+      ::continue::
    end
 
-   if(graph_common.zoom_vals[k][1] == zoomLevel) then
-      print([[<label class="btn bg-primary text-white">]])
-   else
-      print([[<label class="btn btn-link">]])
-   end
-
-   local params = table.merge(page_params, {zoom=graph_common.zoom_vals[k][1]})
-
-   -- Additional parameters
-   if tags.protocol ~= nil then
-      params["protocol"] = tags.protocol
-   end
-   if tags.category ~= nil then
-      params["category"] = tags.category
-   end
-
-   local url = getPageUrl(baseurl, params)
-
-   print('<input type="radio" name="options" id="zoom_level_'..k..'" value="'..url..'">'.. graph_common.zoom_vals[k][1] ..'</input></label>\n')
-   ::continue::
-end
-
-print [[
+   print [[
 </div>
 </div>
 
@@ -516,129 +516,128 @@ print [[
 <div style="margin-left: 10px; display: table">
 <div id="chart_container" style="display: table-row">
 
-]]
+   ]]
 
-local format_as_bps = true
-local format_as_bytes = false
-local formatter_fctn
+   local format_as_bps = true
+   local format_as_bytes = false
+   local formatter_fctn
 
-local label = data.series[1].label
+   local label = data.series[1].label
 
-if label == "load_percentage" then
-   formatter_fctn = "NtopUtils.ffloat"
-   format_as_bps = false
-elseif label == "resident_bytes" then
-   formatter_fctn = "NtopUtils.bytesToSize"
-   format_as_bytes = true
-elseif string.contains(label, "pct") then
-   formatter_fctn = "NtopUtils.fpercent"
-   format_as_bps = false
-   format_as_bytes = false
-elseif schema == "process:num_alerts" then
-   formatter_fctn = "NtopUtils.falerts"
-   format_as_bps = false
-   format_as_bytes = false
-elseif label:contains("millis") or label:contains("_ms") then
-   formatter_fctn = "NtopUtils.fmillis"
-   format_as_bytes = false
-   format_as_bps = false
-elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") or label:contains("alerts") then
-   formatter_fctn = "NtopUtils.fint"
-   format_as_bytes = false
-   format_as_bps = false
-else
-   formatter_fctn = (is_system_interface and "NtopUtils.fnone" or "NtopUtils.fbits")
-end
+   if label == "load_percentage" then
+      formatter_fctn = "NtopUtils.ffloat"
+      format_as_bps = false
+   elseif label == "resident_bytes" then
+      formatter_fctn = "NtopUtils.bytesToSize"
+      format_as_bytes = true
+   elseif string.contains(label, "pct") then
+      formatter_fctn = "NtopUtils.fpercent"
+      format_as_bps = false
+      format_as_bytes = false
+   elseif schema == "process:num_alerts" then
+      formatter_fctn = "NtopUtils.falerts"
+      format_as_bps = false
+      format_as_bytes = false
+   elseif label:contains("millis") or label:contains("_ms") then
+      formatter_fctn = "NtopUtils.fmillis"
+      format_as_bytes = false
+      format_as_bps = false
+   elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") or label:contains("alerts") then
+      formatter_fctn = "NtopUtils.fint"
+      format_as_bytes = false
+      format_as_bps = false
+   else
+      formatter_fctn = (is_system_interface and "NtopUtils.fnone" or "NtopUtils.fbits")
+   end
 
-print [[
+   print [[
    <table class="table table-bordered table-striped" style="border: 0; margin-right: 10px; display: table-cell">
    ]]
 
-print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
+   print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
 
-local stats = data.statistics
+   local stats = data.statistics
 
-if(stats ~= nil) then
-  local minval_time = stats.min_val_idx and (data.start + data.step * stats.min_val_idx) or 0
-  local maxval_time = stats.max_val_idx and (data.start + data.step * stats.max_val_idx) or 0
-  local lastval_time = data.start + data.step * (data.count-1)
-  local lastval = 0
+   if(stats ~= nil) then
+      local minval_time = stats.min_val_idx and (data.start + data.step * stats.min_val_idx) or 0
+      local maxval_time = stats.max_val_idx and (data.start + data.step * stats.max_val_idx) or 0
+      local lastval_time = data.start + data.step * (data.count-1)
+      local lastval = 0
 
-  for _, serie in pairs(data.series) do
-     lastval = lastval + (serie.data[data.count] or 0)
-  end
+      for _, serie in pairs(data.series) do
+         lastval = lastval + (serie.data[data.count] or 0)
+      end
 
-   if format_as_bytes then
-      if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bytesToSize((stats.min_val*8) or "") .. '</td></tr>\n') end
-      if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bytesToSize((stats.max_val*8) or "") .. '</td></tr>\n') end
-      print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. bytesToSize(lastval*8)  .. '</td></tr>\n')
-      print('   <tr><th>Average</th><td colspan=2>' .. bytesToSize(stats.average*8) .. '</td></tr>\n')
-      print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bytesToSize(stats["95th_percentile"]*8) .. '</td></tr>\n')
-   elseif(not format_as_bps) then
-     if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. formatValue(stats.min_val or "") .. '</td></tr>\n') end
-     if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. formatValue(stats.max_val or "") .. '</td></tr>\n') end
-     print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval), 1) .. '</td></tr>\n')
-     print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(stats.average, 2)) .. '</td></tr>\n')
-     print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(stats["95th_percentile"], 2)) .. '</td></tr>\n')
-   elseif is_system_interface then
-      if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. (formatValue(round(stats["min_val"], 2)) or "") .. '</td></tr>\n') end
-      if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. (formatValue(round(stats["max_val"], 2)) or "") .. '</td></tr>\n') end
-      print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval, 2)) .. '</td></tr>\n')
-      print('   <tr><th>Average</th><td colspan=2>' ..formatValue(round(stats["average"], 2)).. '</td></tr>\n')
-      print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' ..(formatValue(round(stats["95th_percentile"], 2)) or '') .. '</td></tr>\n')
-      print('   <tr><th>Total Traffic</th><td colspan=2>' .. (stats.total or '') .. '</td></tr>\n')
-   else
-     if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bitsToSize((stats.min_val*8) or "") .. '</td></tr>\n') end
-     if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bitsToSize((stats.max_val*8) or "") .. '</td></tr>\n') end
-     print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. bitsToSize(lastval*8)  .. '</td></tr>\n')
-     print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(stats.average*8) .. '</td></tr>\n')
-     print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bitsToSize(stats["95th_percentile"]*8) .. '</td></tr>\n')
-     print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(stats.total) .. '</td></tr>\n')
-  end
+      if format_as_bytes then
+         if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bytesToSize((stats.min_val*8) or "") .. '</td></tr>\n') end
+         if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bytesToSize((stats.max_val*8) or "") .. '</td></tr>\n') end
+         print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. bytesToSize(lastval*8)  .. '</td></tr>\n')
+         print('   <tr><th>Average</th><td colspan=2>' .. bytesToSize(stats.average*8) .. '</td></tr>\n')
+         print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bytesToSize(stats["95th_percentile"]*8) .. '</td></tr>\n')
+      elseif(not format_as_bps) then
+         if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. formatValue(stats.min_val or "") .. '</td></tr>\n') end
+         if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. formatValue(stats.max_val or "") .. '</td></tr>\n') end
+         print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval), 1) .. '</td></tr>\n')
+         print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(stats.average, 2)) .. '</td></tr>\n')
+         print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. formatValue(round(stats["95th_percentile"], 2)) .. '</td></tr>\n')
+      elseif is_system_interface then
+         if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. (formatValue(round(stats["min_val"], 2)) or "") .. '</td></tr>\n') end
+         if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. (formatValue(round(stats["max_val"], 2)) or "") .. '</td></tr>\n') end
+         print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. formatValue(round(lastval, 2)) .. '</td></tr>\n')
+         print('   <tr><th>Average</th><td colspan=2>' ..formatValue(round(stats["average"], 2)).. '</td></tr>\n')
+         print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' ..(formatValue(round(stats["95th_percentile"], 2)) or '') .. '</td></tr>\n')
+         print('   <tr><th>Total Traffic</th><td colspan=2>' .. (stats.total or '') .. '</td></tr>\n')
+      else
+         if(minval_time > 0) then print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' .. bitsToSize((stats.min_val*8) or "") .. '</td></tr>\n') end
+         if(maxval_time > 0) then print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' .. bitsToSize((stats.max_val*8) or "") .. '</td></tr>\n') end
+         print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' .. bitsToSize(lastval*8)  .. '</td></tr>\n')
+         print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(stats.average*8) .. '</td></tr>\n')
+         print('   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' .. bitsToSize(stats["95th_percentile"]*8) .. '</td></tr>\n')
+         print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(stats.total) .. '</td></tr>\n')
+      end
+   end
 
-end
+   print('   <tr><th>Time</th><td colspan=2><div id=when></div></td></tr>\n')
 
-print('   <tr><th>Time</th><td colspan=2><div id=when></div></td></tr>\n')
-
--- hide Minute Interface Top Talker if we are in system interface
-if top_talkers_utils.areTopEnabled(ifid) and not is_system_interface then
-   print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
-end
+   -- hide Minute Interface Top Talker if we are in system interface
+   if top_talkers_utils.areTopEnabled(ifid) and not is_system_interface then
+      print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
+   end
 
 
-print [[
+   print [[
    </table>
-]]
+   ]]
 
-print[[</div></td></tr></table>
+   print[[</div></td></tr></table>
 
     </div> <!-- closes div id "historical-tab-chart "-->
-]]
+   ]]
 
-if show_historical_tabs then
-   local host = tags.host -- can be nil
-   local l7proto = tags.protocol or ""
-   local k2info = hostkey2hostinfo(host)
+   if show_historical_tabs then
+      local host = tags.host -- can be nil
+      local l7proto = tags.protocol or ""
+      local k2info = hostkey2hostinfo(host)
 
-   print('<div class="tab-pane" id="historical-flows">')
-   if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
-      -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
-      historicalFlowsTab(ifid, k2info["host"] or '', start_time, end_time, l7proto, '', '', '', k2info["vlan"])
-   else
-      printGraphTopFlows(ifid, k2info["host"] or '', _GET["epoch"], zoomLevel, l7proto, k2info["vlan"])
+      print('<div class="tab-pane" id="historical-flows">')
+      if tonumber(start_time) ~= nil and tonumber(end_time) ~= nil then
+         -- if both start_time and end_time are vaid epoch we can print finer-grained top flows
+         historicalFlowsTab(ifid, k2info["host"] or '', start_time, end_time, l7proto, '', '', '', k2info["vlan"])
+      else
+         printGraphTopFlows(ifid, k2info["host"] or '', _GET["epoch"], zoomLevel, l7proto, k2info["vlan"])
+      end
+      print('</div>')
    end
-   print('</div>')
-end
 
-print[[
+   print[[
   </div> <!-- closes div class "tab-content" -->
   </div>
 </div> <!-- closes div class "card" -->]]
 
-local ui_utils = require("ui_utils")
-print(ui_utils.render_notes(options.notes))
+   local ui_utils = require("ui_utils")
+   print(ui_utils.render_notes(options.notes))
 
-print[[
+   print[[
 <script>
 
 var palette = new Rickshaw.Color.Palette();
@@ -651,26 +650,26 @@ var graph = new Rickshaw.Graph( {
 				   series: [
 				]]
 
-for serie_idx, serie in ipairs(data.series) do
-   print("{name: \"" .. serie.label .. "\"")
-   print("\n, color: '".. graph_colors[serie_idx] .."', data: [")
+   for serie_idx, serie in ipairs(data.series) do
+      print("{name: \"" .. serie.label .. "\"")
+      print("\n, color: '".. graph_colors[serie_idx] .."', data: [")
 
-   local t = data.start
+      local t = data.start
 
-   for i, val in ipairs(serie.data) do
-      print("{x: " .. t)
-      if (format_as_bps) then
-        print(",y: " .. (val*8) .. "},\n")
-      else
-        print(",y: " .. val .. "},\n")
+      for i, val in ipairs(serie.data) do
+         print("{x: " .. t)
+         if (format_as_bps) then
+            print(",y: " .. (val*8) .. "},\n")
+         else
+            print(",y: " .. val .. "},\n")
+         end
+         t = t + data.step
       end
-      t = t + data.step
+
+      print("]},")
    end
 
-   print("]},")
-end
-
-print [[
+   print [[
 				]} );
 
 graph.render();
@@ -690,19 +689,19 @@ var Hover = Rickshaw.Class.create(Rickshaw.Graph.HoverDetail, {
 
 		var formattedXValue = NtopUtils.fdate(point.value.x); // point.formattedXValue;
 		var formattedYValue = ]]
-	  print(formatter_fctn)
-	  print [[(point.value.y); // point.formattedYValue;
+   print(formatter_fctn)
+   print [[(point.value.y); // point.formattedYValue;
 		var infoHTML = "";
 ]]
 
-print[[
+   print[[
 
 infoHTML += "<ul>";
 $.ajax({
 	  type: 'GET',
 	  url: ']]
-	  print(ntop.getHttpPrefix().."/lua/get_top_talkers.lua?epoch='+point.value.x+'&addvlan=true")
-	    print [[',
+   print(ntop.getHttpPrefix().."/lua/get_top_talkers.lua?epoch='+point.value.x+'&addvlan=true")
+   print [[',
 		  data: { epoch: point.value.x },
 		  async: false,
 		  success: function(content) {
@@ -732,7 +731,7 @@ $.ajax({
    });
 infoHTML += "</ul>";]]
 
-print [[
+   print [[
 		this.element.innerHTML = '';
 		this.element.style.left = graph.x(point.value.x) + 'px';
 
@@ -797,31 +796,31 @@ yAxis.render();
 
 ]]
 
-if zoomLevel ~= nextZoomLevel then
-print[[
+   if zoomLevel ~= nextZoomLevel then
+      print[[
 $("#chart").click(function() {
   if(hover.selected_epoch)
     window.location.href = ']]
-print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel)
+      print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel)
 
-if tags.protocol ~= nil then
-   print("&protocol=" .. tags.protocol)
-elseif tags.category ~= nil then
-   print("&category=" .. tags.category)
-end
+      if tags.protocol ~= nil then
+         print("&protocol=" .. tags.protocol)
+      elseif tags.category ~= nil then
+         print("&category=" .. tags.category)
+      end
 
-print('&epoch=')
-print[['+hover.selected_epoch;
+      print('&epoch=')
+      print[['+hover.selected_epoch;
 });]]
-end
+   end
 
-print[[
+   print[[
 </script>
 
 ]]
-else
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No data found</div>")
-end -- if(data)
+   else
+      print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> No data found</div>")
+   end -- if(data)
 end
 
 -- #################################################
