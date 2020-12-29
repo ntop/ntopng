@@ -22,7 +22,7 @@ local function check_periodic_activity_not_executed(params)
       )
 
       alert:set_severity(alert_severities.warning)
-      alert:set_granularity(alert_consts.alerts_granularities.min)
+      alert:set_granularity(params.granularity)
       alert:set_subtype(ps_name)
       if delta > 0 then
 	 -- tprint({ps_name = ps_name, s = ">>>>>>>>>>>>>>>>>>>>>> TRIGGER"})
