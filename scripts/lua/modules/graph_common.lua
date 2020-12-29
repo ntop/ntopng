@@ -228,7 +228,30 @@ function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, 
    local separator_label = nil
    local tdiff = (end_time - start_time)
 
+   -- Sort entries based on label, preserving groups
+   local graph_menu_entries_sorted = {}
+   local sort_table = {}
    for _, entry in ipairs(graph_menu_entries) do
+     if entry.needs_separator or entry.label == nil then
+       for k,v in pairsByKeys(sort_table) do
+         graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = v
+       end
+       if entry.label == nil then -- divider?
+         graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = entry
+       end
+       sort_table = {}
+     end
+     if entry.label ~= nil then
+       sort_table[entry.label] = entry
+     end
+   end
+   for k,v in pairsByKeys(sort_table) do
+     graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = v
+   end
+
+   -- Print entries
+   for _, entry in ipairs(graph_menu_entries_sorted) do
+
       if active_idx ~= 1 then
 	 needs_separator = needs_separator or entry.needs_separator
 	 separator_label = separator_label or entry.separator_label
