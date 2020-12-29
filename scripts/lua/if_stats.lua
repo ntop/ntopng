@@ -172,16 +172,18 @@ if (isAdministrator()) then
 
       interface.reloadHideFromTop()
 
-      -- Gw MAC addresses - used to compute traffic direction
-      local gw_macs_set = getGwMacsSet(ifstats.id)
-      ntop.delCache(gw_macs_set)
-      for _, mac in pairs(split(_POST["gw_macs"] or "", ",")) do
-         mac = trimSpace(mac)
-         if not isEmptyString(mac) then
-            ntop.setMembersCache(gw_macs_set, mac)
+      if is_packet_interface then
+         -- Gw MAC addresses - used to compute traffic direction
+         local gw_macs_set = getGwMacsSet(ifstats.id)
+         ntop.delCache(gw_macs_set)
+         for _, mac in pairs(split(_POST["gw_macs"] or "", ",")) do
+            mac = trimSpace(mac)
+            if not isEmptyString(mac) then
+               ntop.setMembersCache(gw_macs_set, mac)
+            end
          end
+         interface.reloadGwMacs()
       end
-      interface.reloadGwMacs()
 
       setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
 
@@ -1536,25 +1538,26 @@ elseif(page == "config") then
 	   </td>
 	</tr>]]
 
-   -- Gw Macs for Address-Based Traffic Directions
-   local rv = ntop.getMembersCache(getGwMacsSet(ifstats.id)) or {}
-   local members = {}
+   if is_packet_interface then
+      -- Gw Macs for Address-Based Traffic Directions
+      local rv = ntop.getMembersCache(getGwMacsSet(ifstats.id)) or {}
+      local members = {}
 
-   -- impose sort order
-   for _, addr in pairsByValues(rv, asc) do
-      members[#members + 1] = addr
-   end
+      -- impose sort order
+      for _, addr in pairsByValues(rv, asc) do
+         members[#members + 1] = addr
+      end
 
-   local gw_macs = table.concat(members, ",")
+      local gw_macs = table.concat(members, ",")
 
-   print[[
+      print[[
 	<tr>
 	   <th>]] print(i18n("if_stats_config.gw_macs")) print[[</th>
 	   <td>]]
 
-   print('<input style="width:36em;" class="form-control" name="gw_macs" placeholder="'..i18n("if_stats_config.gw_macs_example", {example="00:11:22:33:44:55,00:11:22:33:44:66"})..'" value="' .. gw_macs .. '">')
+      print('<input style="width:36em;" class="form-control" name="gw_macs" placeholder="'..i18n("if_stats_config.gw_macs_example", {example="00:11:22:33:44:55,00:11:22:33:44:66"})..'" value="' .. gw_macs .. '">')
 
-   print([[
+      print([[
         <small>
         <details class='mt-2'>
          <summary>
@@ -1567,6 +1570,7 @@ elseif(page == "config") then
         </small>
 	   </td>
 	</tr>]])
+   end
 
    -- Hidden from top
    local rv = ntop.getMembersCache(getHideFromTopSet(ifstats.id)) or {}
