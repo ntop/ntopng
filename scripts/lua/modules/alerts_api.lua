@@ -89,8 +89,11 @@ end
 -- ##############################################
 
 local function get_alert_triggered_key(type_info)
-  if((type_info == nil) or (type_info.alert_type == nil)) then
-      tprint(debug.traceback())
+  if type_info == nil or type_info.alert_type == nil or type_info.alert_type.alert_key == nil then
+    if type_info == nil then traceError(TRACE_ERROR, TRACE_CONSOLE, "type_info is nil") end
+    if type_info.alert_type == nil then traceError(TRACE_ERROR, TRACE_CONSOLE, "type_info.alert_type is nil") end
+    if type_info.alert_type.alert_key == nil then traceError(TRACE_ERROR, TRACE_CONSOLE, "type_info.alert_type.alert_key is nil") end
+    traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
   end
 
   return(string.format("%d@%s", type_info.alert_type.alert_key, type_info.alert_subtype or ""))
