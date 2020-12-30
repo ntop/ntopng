@@ -47,7 +47,8 @@ end
 
 function telemetry_utils.dismiss_notice()
    local dism = ntop.getPref(TELEMETRY_ENABLED_KEY)
-   return not isAdministrator() or dism ~= ""
+   local disabled = ntop.getPref("ntopng.prefs.disable_telemetry_data_message") == "1"
+   return not isAdministrator() or dism ~= "" or disabled
 end
 
 function telemetry_utils.print_overview()

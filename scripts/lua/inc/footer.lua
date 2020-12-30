@@ -250,6 +250,12 @@ function checkMigrationMessage(data) {
     $("#move-rrd-to-influxdb").show();
 }
 
+$(`[data-toast-id='0'`).on('hide.bs.toast', function() {
+	$.post(']] print(ntop.getHttpPrefix()) print[[/lua/update_prefs.lua', {
+		csrf: ']] print(ntop.getRandomCSRFValue()) print[[', action: 'disable-telemetry-data'
+	});
+});
+
 $("#move-rrd-to-influxdb, #host-id-message-warning, #influxdb-error-msg").on("close.bs.alert", function() {
   $.ajax({
 		type: 'POST',
