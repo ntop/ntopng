@@ -251,6 +251,7 @@ local function triggerFlowAlert(now, trigger_status, trigger_type_params, trigge
       trigger_status.alert_severity.severity_id,
       trigger_status_score,
       now,
+      trigger_status.alert_type.status_always_notify == true,
       trigger_type_params)
 
    -- There's no lua table for the flow alert. Flow alert is generated from C and is returned to
@@ -400,6 +401,8 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
       alerted_user_script = cur_user_script
    end
 
+   setStatus(status_info.status_type.status_key, flow_score, cli_score, srv_score)
+
    -- A notification is only emitted for the predominant status, once all flow user scripts have been processed
    -- and all statuses have been set.
    -- However, if the current status has the `status_always_notify`, a notification MUST always be emitted
@@ -407,8 +410,6 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
    if status_info.status_type.alert_type.status_always_notify then
       triggerFlowAlert(os.time(), status_info.status_type, status_info["alert_type_params"], flow_score)
    end
-
-   setStatus(status_info.status_type.status_key, flow_score, cli_score, srv_score)
 end
 
 -- #################################################################

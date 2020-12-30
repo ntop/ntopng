@@ -543,7 +543,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
   u_int16_t cli_port = 0, srv_port = 0;
   bool cli_is_localhost = false, srv_is_localhost = false;
   bool cli_is_blacklisted = false, srv_is_blacklisted = false;
-  bool replace_alert = false;
+  bool replace_alert = false, status_always_notify = false;
   u_int16_t score = 0;
   u_int64_t first_seen = 0;
   u_int64_t cli2srv_bytes = 0, srv2cli_bytes = 0;
@@ -644,6 +644,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
           srv_is_blacklisted = lua_toboolean(L, -1);
 	else if(!strcmp(key, "replace_alert"))
 	  replace_alert = lua_toboolean(L, -1);
+	else if(!strcmp(key, "status_always_notify"))
+	  status_always_notify = lua_toboolean(L, -1);
 	break;
 
       default:
@@ -663,66 +665,71 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
 
   m.lock(__FILE__, __LINE__);
 
-  /* Check if this alert already exists ...*/
-  snprintf(query, sizeof(query),
-	   "SELECT rowid, alert_counter, cli2srv_bytes, srv2cli_bytes, cli2srv_packets, srv2cli_packets "
-	   "FROM %s "
-	   "WHERE vlan_id = ? AND proto = ? AND l7_master_proto = ? AND l7_proto = ? "
-	   "AND cli_addr = ? AND srv_addr = ? AND cli_port = ? AND srv_port = ? "
-	   "%s "
-	   "LIMIT 1; ",
-	   ALERTS_MANAGER_FLOWS_TABLE_NAME,
-	   replace_alert ? "AND first_seen = ?" : "AND alert_tstamp >= ? AND alert_type = ? AND alert_severity = ? AND flow_status = ?");
+  /* 
+     Check if this alert already exists (to possibly update / replace it, rather than inserting a new alert in the database)
+     NOTE: If status_always_notify is true, existence is NOT checked.
+  */
+  if(!status_always_notify) { 
+    snprintf(query, sizeof(query),
+	     "SELECT rowid, alert_counter, cli2srv_bytes, srv2cli_bytes, cli2srv_packets, srv2cli_packets "
+	     "FROM %s "
+	     "WHERE vlan_id = ? AND proto = ? AND l7_master_proto = ? AND l7_proto = ? "
+	     "AND cli_addr = ? AND srv_addr = ? AND cli_port = ? AND srv_port = ? "
+	     "%s "
+	     "LIMIT 1; ",
+	     ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	     replace_alert ? "AND first_seen = ?" : "AND alert_tstamp >= ? AND alert_type = ? AND alert_severity = ? AND flow_status = ?");
 
-  if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
-     || sqlite3_bind_int(stmt,    1, vlan_id)
-     || sqlite3_bind_int(stmt,    2, protocol)
-     || sqlite3_bind_int(stmt,    3, ndpi_master_protocol)
-     || sqlite3_bind_int(stmt,    4, ndpi_app_protocol)
-     || sqlite3_bind_text(stmt,   5, cli_ip, -1, SQLITE_STATIC)
-     || sqlite3_bind_text(stmt,   6, srv_ip, -1, SQLITE_STATIC)
-     || sqlite3_bind_int(stmt,    7, cli_port)
-     || sqlite3_bind_int(stmt,    8, srv_port)) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-    rc = -3;
-    goto out;
-  }
-
-  iface->incNumAlertsQueries();
-
-  if(replace_alert) {
-    /* Match the exact flow */
-    if(sqlite3_bind_int(stmt,    9, first_seen)) {
+    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)
+       || sqlite3_bind_int(stmt,    1, vlan_id)
+       || sqlite3_bind_int(stmt,    2, protocol)
+       || sqlite3_bind_int(stmt,    3, ndpi_master_protocol)
+       || sqlite3_bind_int(stmt,    4, ndpi_app_protocol)
+       || sqlite3_bind_text(stmt,   5, cli_ip, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt,   6, srv_ip, -1, SQLITE_STATIC)
+       || sqlite3_bind_int(stmt,    7, cli_port)
+       || sqlite3_bind_int(stmt,    8, srv_port)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-      rc = -4;
+      rc = -3;
       goto out;
     }
-  } else {
-    /* Match similar flows */
-    if(sqlite3_bind_int64(stmt,  9, static_cast<long int>(tstamp) - ALERTS_MANAGER_MAX_AGGR_SECS)
-       || sqlite3_bind_int(stmt,    10, static_cast<int>(alert_type))
-       || sqlite3_bind_int(stmt,    11, static_cast<int>(alert_severity))
-       || sqlite3_bind_int(stmt,    12, (int)status)) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
-      rc = -5;
-      goto out;
+
+    iface->incNumAlertsQueries();
+
+    if(replace_alert) {
+      /* Match the exact flow */
+      if(sqlite3_bind_int(stmt,    9, first_seen)) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+	rc = -4;
+	goto out;
+      }
+    } else {
+      /* Match similar flows */
+      if(sqlite3_bind_int64(stmt,  9, static_cast<long int>(tstamp) - ALERTS_MANAGER_MAX_AGGR_SECS)
+	 || sqlite3_bind_int(stmt,    10, static_cast<int>(alert_type))
+	 || sqlite3_bind_int(stmt,    11, static_cast<int>(alert_severity))
+	 || sqlite3_bind_int(stmt,    12, (int)status)) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
+	rc = -5;
+	goto out;
+      }
     }
-  }
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sqlite3_expanded_sql(stmt));
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sqlite3_expanded_sql(stmt));
 #endif
 
-  /* Try and read the rowid (if the record exists) */
-  if((rc = exec_statement(stmt)) == SQLITE_ROW) {
-    cur_rowid = sqlite3_column_int(stmt, 0);
-    cur_counter = sqlite3_column_int(stmt, 1);
-    cur_cli2srv_bytes = sqlite3_column_int(stmt, 2);
-    cur_srv2cli_bytes = sqlite3_column_int(stmt, 3);
-    cur_cli2srv_packets = sqlite3_column_int(stmt, 4);
-    cur_srv2cli_packets = sqlite3_column_int(stmt, 5);
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [rowid: %u][cur_counter: %u]\n", sqlite3_column_text(stmt, 0), cur_rowid, cur_counter);
-  }
+    /* Try and read the rowid (if the record exists) */
+    if((rc = exec_statement(stmt)) == SQLITE_ROW) {
+      cur_rowid = sqlite3_column_int(stmt, 0);
+      cur_counter = sqlite3_column_int(stmt, 1);
+      cur_cli2srv_bytes = sqlite3_column_int(stmt, 2);
+      cur_srv2cli_bytes = sqlite3_column_int(stmt, 3);
+      cur_cli2srv_packets = sqlite3_column_int(stmt, 4);
+      cur_srv2cli_packets = sqlite3_column_int(stmt, 5);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [rowid: %u][cur_counter: %u]\n", sqlite3_column_text(stmt, 0), cur_rowid, cur_counter);
+    }
+  } /* Ends check to see if the alert was already existing */
 
   if(cur_rowid != (u_int64_t)-1) { /* Already existing record found, update it */
     snprintf(query, sizeof(query),

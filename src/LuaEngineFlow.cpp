@@ -968,6 +968,7 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
   u_int32_t buflen;
   time_t now;
   bool first_alert;
+  bool status_always_notify;
 
   if(!f) return(CONST_LUA_ERROR);
 
@@ -988,8 +989,11 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   now = (time_t) lua_tonumber(vm, 5);
 
-  if(lua_type(vm, 6) == LUA_TSTRING)
-    status_info = lua_tostring(vm, 6);
+  if(ntop_lua_check(vm, __FUNCTION__, 6, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  status_always_notify = lua_toboolean(vm, 6);
+
+  if(lua_type(vm, 7) == LUA_TSTRING)
+    status_info = lua_tostring(vm, 7);
 
   lua_newtable(vm);
 
@@ -1007,6 +1011,9 @@ static int ntop_flow_trigger_alert(lua_State* vm) {
 
     if(!first_alert)
       ndpi_serialize_string_boolean(&flow_json, "replace_alert", true);
+
+    if(status_always_notify)
+      ndpi_serialize_string_boolean(&flow_json, "status_always_notify", true);
 
     flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
 
