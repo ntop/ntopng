@@ -64,12 +64,16 @@ msg = ""
 local is_packet_interface = interface.isPacketInterface()
 local is_pcap_dump = interface.isPcapDumpInterface()
 
-local is_mirrored_traffic = false
-
 local ifstats = interface.getStats()
 
 if page == "syslog_producers" and not ifstats.isSyslog then
    page = "overview"
+end
+
+local is_mirrored_traffic = false
+local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", interface.getId())
+if not ntop.isnEdge() and is_packet_interface then
+   is_mirrored_traffic = ternary(ntop.getPref(is_mirrored_traffic_pref) == '1', true, false)
 end
 
 local service_map = interface.serviceMap()
@@ -190,18 +194,14 @@ if (isAdministrator()) then
       end
 
       if not ntop.isnEdge() and is_packet_interface then
-         local is_mirrored_traffic_pref = string.format("ntopng.prefs.ifid_%d.is_traffic_mirrored", interface.getId())
-
-         if _SERVER["REQUEST_METHOD"] == "POST" then
-            if _POST["is_mirrored_traffic"] == "1" then
- 	       is_mirrored_traffic = true
-	    end
-
-	    ntop.setPref(is_mirrored_traffic_pref, ternary(is_mirrored_traffic == true, '1', '0'))
-	    interface.updateTrafficMirrored()
+         if _POST["is_mirrored_traffic"] == "1" then
+ 	    is_mirrored_traffic = true
          else
-	    is_mirrored_traffic = ternary(ntop.getPref(is_mirrored_traffic_pref) == '1', true, false)
-         end
+ 	    is_mirrored_traffic = false
+	 end
+
+	 ntop.setPref(is_mirrored_traffic_pref, ternary(is_mirrored_traffic == true, '1', '0'))
+	 interface.updateTrafficMirrored()
       end
 
       setInterfaceRegreshRate(ifstats.id, tonumber(_POST["ifRate"]))
@@ -567,7 +567,6 @@ if((page == "overview") or (page == nil)) then
    if(ifstats.inline) then
       print(" "..i18n("if_stats_overview.in_path_interface"))
    end
-
    if(ifstats.has_traffic_directions) then
       print(" ".. i18n("if_stats_overview.has_traffic_directions") .. " ")
    end

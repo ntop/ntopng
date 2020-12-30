@@ -1698,7 +1698,6 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t len_on_wire = h->len * scalingFactor;
-
   *flow = NULL;
 
   /* Note summy ethernet is always 0 unless sender_mac is set (Netfilter only) */
@@ -5499,7 +5498,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
   lua_push_bool_table_entry(vm, "has_seen_dhcp_addresses", hasSeenDHCPAddresses());
-  lua_push_bool_table_entry(vm, "has_traffic_directions", (areTrafficDirectionsSupported() && (!is_traffic_mirrored)) || isGwMacConfigured());
+  /* Note: source MAC is now used to get traffic direction when not areTrafficDirectionsSupported() */
+  lua_push_bool_table_entry(vm, "has_traffic_directions", (!isTrafficMirrored() || isGwMacConfigured()));
   lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
   lua_push_bool_table_entry(vm, "has_seen_external_alerts", hasSeenExternalAlerts());
