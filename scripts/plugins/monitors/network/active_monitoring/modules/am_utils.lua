@@ -807,30 +807,22 @@ end
 -- ##############################################
 
 -- Resolve the domain name into an IP if necessary
-function am_utils.resolveHost(domain_name, is_v6)
-   local ip_address = nil
+function am_utils.resolveHost(domain_name)
+   local ip_address = domain_name
 
-   if not isIPv4(domain_name) and not is_v6 then
-     ip_address = ntop.resolveHost(domain_name, true --[[IPv4 --]])
-
-     if not ip_address then
-	if do_trace then
-	   print("[ActiveMonitoring] Could not resolve IPv4 host: ".. domain_name .."\n")
-	end
-     end
-   elseif not isIPv6(domain_name) and is_v6 then
-      ip_address = ntop.resolveHost(domain_name, false --[[IPv6 --]])
+   if not isIPv4(domain_name) and not isIPv6(domain_name) then
+      -- Symbolic name, try first to resolve as IPv4, then as IPv6
+      ip_address = ntop.resolveHost(domain_name, true --[[IPv4 --]])
 
       if not ip_address then
-	if do_trace then
-	   print("[ActiveMonitoring] Could not resolve IPv6 host: ".. domain_name .."\n")
-	end
+	 -- IPv4 resolution failed, attempt at resolving ipv6
+	 ip_address = ntop.resolveHost(domain_name, false --[[IPv6 --]])
       end
    else
-     ip_address = domain_name
+      -- Regular IPv4 or IPv6, no need to resolve
    end
 
-  return(ip_address)
+   return ip_address
 end
 
 -- ##############################################

@@ -13,10 +13,7 @@ $(document).ready(function() {
                 return `${NtopUtils.REGEXES["url"]}`;
             case "icmp":
             case "cicmp":
-                return `${NtopUtils.REGEXES["ipv4"]}|${NtopUtils.REGEXES["domainName"]}`
-            case "cicmp6":
-            case "icmp6":
-                return `${NtopUtils.REGEXES["ipv6"]}|${NtopUtils.REGEXES["domainName"]}`
+                return `${NtopUtils.REGEXES["ipv4"]}|${NtopUtils.REGEXES["ipv6"]}|${NtopUtils.REGEXES["domainName"]}`
         }
     }
 

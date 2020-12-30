@@ -49,27 +49,8 @@ local function isValidHostMeasurementCombination(host, measurement)
 
    local host_v4 = isIPv4(host)
    local host_v6 = isIPv6(host)
-   local expected_ipv6 = (measurement == "icmp6" or measurement == "cicmp6")
-   local expected_ipv4 = (measurement == "icmp" or measurement == "cicmp")
 
-   if(((expected_ipv6) and host_v6) or ((expected_ipv4) and host_v4)) then
-      -- IP address version matches
-      return(true)
-   elseif(((expected_ipv6) and host_v4) or ((expected_ipv4) and host_v6)) then
-      -- IP address version mismatch
-      reportError(i18n("active_monitoring_stats.invalid_combination"))
-      return(false)
-   elseif not expected_ipv6 and not expected_ipv4 and (host_v4 or host_v6) then
-      -- A numeric IP address requested for a measure, e.g.,  HTTP, that
-      -- does not specify a version
-      return(true)
-   elseif expected_ipv6 and not host_v6 and ntop.resolveHost(host, false) then
-      -- Symbolic IPv6
-      return(true)
-   elseif expected_ipv4 and not host_v4 and ntop.resolveHost(host, true) then
-      -- Symbolic IPv4
-      return(true)
-   elseif not host_v4 and not host_v6 and not expected_ipv4 and not expected_ipv6 then
+   if not host_v4 and not host_v6 then
       -- Host is a domain, try to resolve it as ipv4, then ipv6
       if ntop.resolveHost(host, true) then
 	 -- Valid Host
@@ -77,11 +58,13 @@ local function isValidHostMeasurementCombination(host, measurement)
       elseif ntop.resolveHost(host, false) then
 	 -- Valid Host
 	 return(true)
+      else
+	 reportError(i18n("active_monitoring_stats.invalid_host"))
+	 return(false)
       end
    end
 
-   reportError(i18n("active_monitoring_stats.invalid_host"))
-   return(false)
+   return(true)
 end
 -- ################################################
 
