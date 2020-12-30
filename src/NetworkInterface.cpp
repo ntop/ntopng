@@ -56,6 +56,7 @@ NetworkInterface::NetworkInterface(const char *name,
   hooks_engine_next_reload = 0;
   flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in NetworkInterface::startFlowDumping */
   flows_dump_json_use_labels = false; /* Dump of JSON labels disabled by default, possibly enabled in NetworkInterface::startFlowDumping */
+  memset(ifMac, 0, sizeof(ifMac));
 
 #ifdef WIN32
   if(name == NULL) name = "1"; /* First available interface */
@@ -1814,9 +1815,18 @@ datalink_check:
   }
 
 decode_packet_eth:
-  /* Setting traffic direction based on MAC (if any configured) */
-  if (ethernet && isGwMac(ethernet->h_dest))
-    ingressPacket = false;
+  /* Setting traffic direction based on MAC */
+  if (ethernet) {
+    if (isTrafficMirrored()) {
+      /* Mirror */
+      if (isGwMac(ethernet->h_dest))
+        ingressPacket = false;
+    } else if (!areTrafficDirectionsSupported()) {
+      /* Interface with no direction info */
+      if (isInterfaceMac(ethernet->h_source))
+        ingressPacket = false;
+    }
+  }
 
   switch(eth_type) {
   case ETHERTYPE_PPOE:

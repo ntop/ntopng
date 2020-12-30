@@ -62,6 +62,7 @@ class NIndexFlowDB;
 class NetworkInterface : public AlertableEntity {
  protected:
   char *ifname, *ifDescription;
+  u_int8_t ifMac[6];
   bpf_u_int32 ipv4_network_mask, ipv4_network;
   const char *customIftype;
   u_int8_t purgeRuns;  
@@ -867,6 +868,7 @@ class NetworkInterface : public AlertableEntity {
   inline bool isLoopback() const           { return(is_loopback); }
   inline bool isGwMacConfigured() const    { return(gw_macs->getNumEntries() > 0); }
   inline bool isGwMac(u_int8_t a[6]) const { return(isGwMacConfigured() && gw_macs->get(a, false) != NULL); }
+  inline bool isInterfaceMac(u_int8_t a[6]) const { return(memcmp(a, ifMac, sizeof(ifMac)) == 0); }
 
   virtual bool read_from_pcap_dump()      const { return(false); };
   virtual bool read_from_pcap_dump_done() const { return(false); };
