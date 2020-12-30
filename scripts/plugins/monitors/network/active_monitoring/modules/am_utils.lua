@@ -733,7 +733,7 @@ local function amThresholdCrossType(value, threshold, ip, granularity, entity_in
   )
 
   alert_type:set_severity(alert_severities.warning)
-  alert_type:set_granularity(alert_consts.alerts_granularities[granularity])
+  alert_type:set_granularity(granularity)
 
   return alert_type
 end
@@ -755,7 +755,7 @@ function am_utils.triggerAlert(numeric_ip, ip_label, current_value, upper_thresh
     end
   end
 
-  return type_info:release(entity_info)
+  return type_info:trigger(entity_info)
 end
 
 -- ##############################################
