@@ -52,9 +52,14 @@ local script = {
 function script.hooks.min(params)
   local sf = host.getSynScan()
   local value = sf["hits.syn_scan_attacker"] or 0
+  local attacker = nil
+
+  if value ~= 0 then
+    attacker = params.alert_entity.alert_entity_val
+  end
 
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert
-  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_tcp_syn_scan, value)
+  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_tcp_syn_scan, value, attacker)
 end
 
 -- #################################################################

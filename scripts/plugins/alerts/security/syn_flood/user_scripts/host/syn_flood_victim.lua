@@ -39,9 +39,14 @@ local script = {
 function script.hooks.min(params)
   local sf = host.getSynFlood()
   local value = sf["hits.syn_flood_victim"] or 0
+  local victim = nil
+
+  if value ~= 0 then
+    victim = params.alert_entity.alert_entity_val
+  end
 
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert
-  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_tcp_syn_flood, value)
+  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_tcp_syn_flood, value, nil, victim)
 end
 
 -- #################################################################

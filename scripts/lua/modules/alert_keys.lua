@@ -104,6 +104,7 @@ local alert_keys = {
       alert_suspicious_tcp_probing         = {NO_PEN, 89},
       alert_dns_invalid_query              = {NO_PEN, 90},
       alert_iec_invalid_transition         = {NO_PEN, 91},
+      alert_fail2ban_executed              = {NO_PEN, 92}, -- pro/scripts/pro_plugins/endpoints/fail2ban_alert_endpoint
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins

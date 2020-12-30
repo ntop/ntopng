@@ -36,6 +36,14 @@ function Alert:_build_type_info()
       alert_type_params = self.alert_type_params or {}
    }
 
+   if self.alert_attacker ~= nil then
+      type_info.alert_type_params.alert_attacker = self.alert_attacker
+   end
+
+   if self.alert_victim ~= nil then
+      type_info.alert_type_params.alert_victim = self.alert_victim
+   end
+
    return type_info
 end
 
@@ -51,6 +59,14 @@ function Alert:_build_flow_status_info()
       -- Stuff added in subclasses :init
       alert_type_params = self.alert_type_params or {}
    }
+
+   if self.alert_attacker ~= nil then
+      flow_status_info.alert_type_params.alert_attacker = self.alert_attacker
+   end
+
+   if self.alert_victim ~= nil then
+      flow_status_info.alert_type_params.alert_victim = self.alert_victim
+   end
 
    return flow_status_info
 end
@@ -104,8 +120,8 @@ end
 
 -- ##############################################
 
-function Alert:set_attacker(attacker) self.attacker = attacker end
-function Alert:set_victim(victim) self.victim = victim end
+function Alert:set_attacker(attacker) self.alert_attacker = attacker end
+function Alert:set_victim(victim) self.alert_victim = victim end
 function Alert:set_origin(origin) self.origin = origin end
 function Alert:set_target(target) self.target = target end
 

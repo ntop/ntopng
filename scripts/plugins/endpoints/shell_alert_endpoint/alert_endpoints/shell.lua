@@ -128,13 +128,14 @@ function shell.runScript(alerts, settings)
     -- Storing an alert-notice in regard of the shell script execution
     -- for security reasons
     local entity_info = alerts_api.processEntity("ntopng")
-    local type_info = alert_consts.alert_types.alert_shell_script_executed.create(
-       alert_severities.notice,
-       exec_script,
-       alert_consts.alertTypeLabel(alert["alert_type"], true)
+    local type_info = alert_consts.alert_types.alert_shell_script_executed.new(
+      exec_script,
+      alert_consts.alertTypeLabel(alert["alert_type"], true)
     )
+  
+    type_info:set_severity(alert_severities.notice)
 
-    alerts_api.store(entity_info, type_info)
+    type_info:store(entity_info)
   end -- for
 
   return true

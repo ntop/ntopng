@@ -590,7 +590,7 @@ end
 -- ##############################################
 
 -- TODO document
-function alerts_api.checkThresholdAlert(params, alert_type, value)
+function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, victim)
   local user_scripts = require "user_scripts"
   local script = params.user_script
   local threshold_config = params.user_script_config
@@ -606,6 +606,14 @@ function alerts_api.checkThresholdAlert(params, alert_type, value)
   alert:set_severity(alert_severities.error)
   alert:set_granularity(params.granularity)
   alert:set_subtype(script.key)
+
+  if attacker ~= nil then
+    alert:set_attacker(attacker)
+  end
+
+  if victim ~= nil then
+    alert:set_victim(victim)
+  end
   
   -- Retrieve the function to be used for the threshold check.
   -- The function depends on the operator, i.e., "gt", or "lt".

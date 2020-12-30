@@ -49,9 +49,14 @@ local script = {
 -- Defines an hook which is executed every minute
 function script.hooks.min(params)
   local value = params.entity_info["hits.syn_scan_victim"] or 0
+  local victim = nil
 
+  if value ~= 0 then
+    victim = params.alert_entity.alert_entity_val
+  end
+  
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert
-  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_tcp_syn_scan, value)
+  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_tcp_syn_scan, value, nil, victim)
 end
 
 -- #################################################################
