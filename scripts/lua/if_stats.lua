@@ -1638,11 +1638,31 @@ elseif(page == "config") then
        }))
 
       print[[
+
+<script type="text/javascript">
+$("#is_mirrored_traffic").change(function(e) {
+  const value = $(this).is(":checked");
+  if (value) {
+    toggle_mirrored_traffic_function_on();
+  } else {
+    toggle_mirrored_traffic_function_off();
+  }
+});
+
+function toggle_mirrored_traffic_function_on(){
+  $(`#is_mirrored_traffic`).val("1");
+  $("#gw_macs_tr").css("display","table-row");
+}
+
+function toggle_mirrored_traffic_function_off(){
+  $(`#is_mirrored_traffic`).val("0");
+  $("#gw_macs_tr").css("display","none");
+}
+</script>
+
 	 </td>
       </tr>]]
-   end
 
-   if is_packet_interface and is_mirrored_traffic then
       -- Gw Macs for Address-Based Traffic Directions
       local rv = ntop.getMembersCache(getGwMacsSet(ifstats.id)) or {}
       local members = {}
@@ -1654,10 +1674,10 @@ elseif(page == "config") then
 
       local gw_macs = table.concat(members, ",")
 
-      print[[
-	<tr>
-	   <th>]] print(i18n("if_stats_config.gw_macs")) print[[</th>
-	   <td>]]
+      print([[
+	<tr id="gw_macs_tr" style="display: ]] .. ternary(is_mirrored_traffic, "table-row", "none") .. [[;">
+	   <th>]] .. i18n("if_stats_config.gw_macs") .. [[</th>
+	   <td>]])
 
       print('<input style="width:36em;" class="form-control" name="gw_macs" placeholder="'..i18n("if_stats_config.gw_macs_example", {example="00:11:22:33:44:55,00:11:22:33:44:66"})..'" value="' .. gw_macs .. '">')
 
