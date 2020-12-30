@@ -77,7 +77,6 @@ Flow::Flow(NetworkInterface *_iface,
   bytes_thpt_srv2cli  = 0, goodput_bytes_thpt_srv2cli = 0;
   pkts_thpt = 0, pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
-  packet_payload_match.payload = NULL, packet_payload_match.payload_len = 0;
   external_alert = NULL;
   trigger_immediate_periodic_update = false;
   current_flow_lua_call = flow_lua_call_protocol_detected; /* Lua calls start from protocoldetected */
@@ -314,10 +313,10 @@ Flow::~Flow() {
     ndpi_term_serializer(tlv_info);
     free(tlv_info);
   }
-  
+
   if(host_server_name)              free(host_server_name);
   if(iec104)                        delete iec104;
-  
+
   if(cli_ebpf) delete cli_ebpf;
   if(srv_ebpf) delete srv_ebpf;
 
@@ -361,9 +360,6 @@ Flow::~Flow() {
 
   if(bt_hash)
     free(bt_hash);
-
-  if(packet_payload_match.payload)
-    free(packet_payload_match.payload);
 
   freeDPIMemory();
   if(icmp_info) delete(icmp_info);
@@ -473,12 +469,11 @@ void Flow::processDetectedProtocol() {
     if(ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_DOH_DOT) {
       if(cli_host && srv_host && cli_host->isLocalHost())
 	cli_host->incDohDoTUses(srv_host);
-    } else if(protos.tls.client_requested_server_name
-	      && cli_host
-	      && cli_host->isLocalHost())
-      cli_host->incrVisitedWebSite(protos.tls.client_requested_server_name);
+    } else if((ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name[0] != '\0')
+	      && cli_host && cli_host->isLocalHost())
+      cli_host->incrVisitedWebSite(ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name);
 
-    if(cli_host) cli_host->incContactedService(protos.tls.client_requested_server_name);
+    if(cli_host) cli_host->incContactedService(ndpiFlow->protos.stun_ssl.ssl.client_requested_server_name);
     break;
 
   case NDPI_PROTOCOL_HTTP:
@@ -677,22 +672,11 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
   if(detected) {
     ndpi_flow_risk_bitmap = ndpiFlow->risk;
     updateProtocol(proto_id);
-    setProtocolDetectionCompleted();
-    setMatchedPacketPayload(payload, payload_len);
   }
 
-  if(detection_completed && !needsExtraDissection())
+  if(detection_completed && !needsExtraDissection()) {
     setExtraDissectionCompleted();
-}
-
-/* *************************************** */
-
-void Flow::setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len) {
-  if((payload_len > 0) && (packet_payload_match.payload_len == 0)) {
-    if((packet_payload_match.payload = (u_int8_t*)malloc(payload_len*sizeof(u_int8_t))) != NULL) {
-      memcpy(packet_payload_match.payload, payload, payload_len);
-      packet_payload_match.payload_len = payload_len;
-    }
+    setProtocolDetectionCompleted();
   }
 }
 
@@ -811,7 +795,7 @@ void Flow::processIEC60870Packet(bool tx_direction,
 
   if(iec104 == NULL)
     iec104 = new (std::nothrow) IEC104Stats();
-    
+
   if(iec104)
     iec104->processPacket(this, tx_direction, payload, payload_len, packet_time);
 }
@@ -2130,7 +2114,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     }
 
     if(iec104) iec104->lua(vm);
-    
+
     if (!has_json_info)
       lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
@@ -2759,9 +2743,9 @@ void Flow::housekeep(time_t t) {
       Possibly the time to giveup and end the protocol dissection.
       This happens when a flow with an incomplete TWH stops receiving packets for example.
      */
-    if(((t - get_last_seen()) > 5 /* sec */)
-       && iface->get_ndpi_struct() && get_ndpi_flow()) {
-      endProtocolDissection();
+    if(iface->get_ndpi_struct() && get_ndpi_flow()) {
+      if((t - get_last_seen()) > 5 /* sec */)
+	endProtocolDissection();
     }
     break;
   case hash_entry_state_flow_protocoldetected:

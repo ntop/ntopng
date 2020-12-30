@@ -101,16 +101,6 @@ class Flow : public GenericHashEntry {
   time_t next_lua_call_periodic_update; /* The time at which the periodic lua script on this flow shall be called */
   u_int32_t periodic_update_ctr;
 
-  /* 
-     The structure below is used to store the packet payload of
-     nDPI protocol match (one packet only). In case of protocol
-     guess, no payload is saved (i.e. length will be zero)
-  */
-  struct {
-    u_int16_t payload_len;
-    u_int8_t *payload;
-  } packet_payload_match;
-    
   union {
     struct {
       char *last_url;
@@ -378,7 +368,6 @@ class Flow : public GenericHashEntry {
   void setDetectedProtocol(ndpi_protocol proto_id);
   void processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time,
 		     u_int8_t *payload, u_int16_t payload_len);
-  void setMatchedPacketPayload(u_int8_t *payload, u_int16_t payload_len);
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t packet_time);
   void processIEC60870Packet(bool src2dst_direction, const u_char *ip_packet, u_int16_t ip_len,
 			     const u_char *payload, u_int16_t payload_len,
@@ -726,10 +715,6 @@ class Flow : public GenericHashEntry {
   }
 
   inline u_int16_t getTLSVersion()  { return(isTLS() ? (protos.tls.tls_version) : 0); }
-
-  inline void getnDPIMatchPacket(u_int16_t *payload_len, u_int8_t **payload) {
-    *payload_len = packet_payload_match.payload_len, *payload = packet_payload_match.payload;
-  }
 
   inline void setTOS(u_int8_t tos, bool is_cli_tos) { if(is_cli_tos) cli2srv_tos = tos; srv2cli_tos = tos; }
   inline u_int8_t getTOS(bool is_cli_tos) const { return (is_cli_tos ? cli2srv_tos : srv2cli_tos); }
