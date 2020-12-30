@@ -30,7 +30,6 @@ end
 local do_benchmark = false         -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
 local do_trace = false             -- Trace lua calls
-local calculate_stats = false
 local flows_config = nil
 local score_enabled = nil
 
@@ -43,17 +42,6 @@ local alerted_status_score
 local confset_id
 local alerted_user_script
 local cur_user_script
-
-local stats = {
-   num_invocations = 0, 	-- Total number of invocations of this module
-   num_complete_scripts = 0,	-- Number of invoked scripts on flows with THW completed
-   num_partial_scripts = 0,	-- Number of invoked scripts on flows with THW not-completed
-   num_try_alerts = 0,  	-- Number of calls to triggerFlowAlert
-   num_skipped_to_time = 0,     -- Number of calls skipped due to no time left
-   partial_scripts = {},	-- List of scripts invoked on flow with THW not-completed
-}
-
-local max_score = flow_consts.max_score
 
 -- #################################################################
 
@@ -204,10 +192,6 @@ function teardown()
    if available_modules then
       user_scripts.teardown(available_modules, do_benchmark, do_print_benchmark)
    end
-
-   if calculate_stats then
-      tprint(stats)
-   end
 end
 
 -- #################################################################
@@ -283,10 +267,6 @@ end
 -- @param mod_fn the callback to call
 -- @return true if some module was called, false otherwise
 local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
-   if calculate_stats then
-      stats.num_invocations = stats.num_invocations + 1
-   end
-
    if not available_modules then
       return true
    end
@@ -343,15 +323,6 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
 	 goto continue
       end
 
-      if calculate_stats then
-	 if twh_in_progress then
-	    stats.num_partial_scripts = stats.num_partial_scripts + 1
-	    stats.partial_scripts[mod_key] = 1
-	 else
-	    stats.num_complete_scripts = stats.num_complete_scripts + 1
-	 end
-      end
-
       if do_trace then
 	 local info = flow.getInfo()
 
@@ -382,10 +353,6 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
       (alerted_status_score > flow.getAlertedStatusScore()) then
 
       triggerFlowAlert(now, l4_proto)
-
-      if calculate_stats then
-	 stats.num_try_alerts = stats.num_try_alerts + 1
-      end
    end
 
    return true
@@ -394,9 +361,9 @@ end
 -- #################################################################
 
 local function setStatus(status_key, flow_score, cli_score, srv_score)
-   flow_score = math.min(math.max(flow_score or 0, 0), max_score)
-   cli_score = math.min(math.max(cli_score or 0, 0), max_score)
-   srv_score = math.min(math.max(srv_score or 0, 0), max_score)
+   flow_score = math.min(math.max(flow_score or 0, 0), flow_consts.max_score)
+   cli_score = math.min(math.max(cli_score or 0, 0), flow_consts.max_score)
+   srv_score = math.min(math.max(srv_score or 0, 0), flow_consts.max_score)
 
    return flow.setStatus(status_key, flow_score, cli_score, srv_score, cur_user_script.key, cur_user_script.category.id)
 end
@@ -407,8 +374,6 @@ end
 -- set a flow status bit. The status_info of the alerted status is
 -- saved for later use.
 function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
-   local flow_status_type = status_info.status_type
-   local status_key = flow_status_type.status_key
    flow_score = flow_score or 0
 
    if(tonumber(status_info) ~= nil) then
@@ -421,15 +386,15 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
    -- correspond to the Flow::getAlertedStatus logic in order to determine
    -- the same alerted status
    if((not alerted_status) or (flow_score > alerted_status_score) or
-	 ((flow_score == alerted_status_score) and (flow_status_type.status_key < alerted_status.status_key))) then
+	 ((flow_score == alerted_status_score) and (status_info.status_type.status_key < alerted_status.status_key))) then
       -- The new alerted status as an higher score
-      alerted_status = flow_status_type
+      alerted_status = status_info.status_type
       alert_type_params = status_info["alert_type_params"] or {}
       alerted_status_score = flow_score
       alerted_user_script = cur_user_script
    end
 
-   setStatus(status_key, flow_score, cli_score, srv_score)
+   setStatus(status_info.status_type.status_key, flow_score, cli_score, srv_score)
 end
 
 -- #################################################################
