@@ -242,6 +242,7 @@ Flow::~Flow() {
 #ifdef ALERTED_FLOWS_DEBUG
   if(iface_alert_inc && !iface_alert_dec) {
     char buf[256];
+    
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[MISMATCH][inc but not dec][alerted: %u] %s",
 				 isFlowAlerted() ? 1 : 0, print(buf, sizeof(buf)));
   }
@@ -655,11 +656,6 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
     return;
   }
 
-#if 0
-  if(detected && (proto_id.app_protocol == NDPI_PROTOCOL_UNKNOWN))
-    printf("Detected: %d/%d\n", proto_id.master_protocol, proto_id.app_protocol);
-#endif
-
 #ifdef NTOPNG_PRO
   // Update the profile even if the detection is not yet completed.
   // Indeed, even if the L7 detection is not yet completed
@@ -673,12 +669,11 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
   if(detected) {
     ndpi_flow_risk_bitmap = ndpiFlow->risk;
     updateProtocol(proto_id);
-  }
-
-  if(detection_completed && !needsExtraDissection()) {
-    setExtraDissectionCompleted();
     setProtocolDetectionCompleted();
   }
+
+  if(detection_completed && (!needsExtraDissection()))
+    setExtraDissectionCompleted();
 }
 
 /* *************************************** */
