@@ -70,6 +70,7 @@ pfring *PF_RINGInterface::pfringSocketInit(const char *name) {
 			       (version & 0xFFFF0000) >> 16, (version & 0x0000FF00) >> 8, version & 0x000000FF,
 			       name);
 
+  pfring_get_bound_device_address(handle, ifMac);
   pfring_set_poll_watermark(handle, 8);
   pfring_set_application_name(handle, (char*)"ntopng");
   pfring_enable_rss_rehash(handle);

@@ -2489,7 +2489,7 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
 
 /* **************************************** */
 
-#if defined(linux) || defined(__FreeBSD__) || defined(__APPLE__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
 
 void Utils::readMac(char *_ifname, dump_mac_t mac_addr) {
   char ifname[32];
@@ -2609,7 +2609,7 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
 /* **************************************** */
 
 u_int32_t Utils::getMaxIfSpeed(const char *_ifname) {
-#if defined(linux) && (!defined(__GNUC_RH_RELEASE__) || (__GNUC_RH_RELEASE__ != 44))
+#if defined(__linux__) && (!defined(__GNUC_RH_RELEASE__) || (__GNUC_RH_RELEASE__ != 44))
   int sock, rc;
   struct ifreq ifr;
   struct ethtool_cmd edata;
@@ -2677,7 +2677,7 @@ u_int32_t Utils::getMaxIfSpeed(const char *_ifname) {
 /* **************************************** */
 
 int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
-#if defined(linux)
+#if defined(__linux__)
   struct ifreq ifr = {0};
   struct ethtool_value ethv;
   int fd;
@@ -2709,7 +2709,7 @@ int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
 /* **************************************** */
 
 int Utils::ethtoolSet(const char *ifname, int cmd, uint32_t v) {
-#if defined(linux)
+#if defined(__linux__)
   struct ifreq ifr = {0};
   struct ethtool_value ethv;
   int fd;
@@ -2741,7 +2741,7 @@ int Utils::ethtoolSet(const char *ifname, int cmd, uint32_t v) {
 /* **************************************** */
 
 int Utils::disableOffloads(const char *ifname) {
-#if defined(linux)
+#if defined(__linux__)
   uint32_t v = 0;
 
 #ifdef ETHTOOL_GGRO

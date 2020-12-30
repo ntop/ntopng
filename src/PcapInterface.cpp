@@ -95,6 +95,8 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx) : NetworkInterfac
       read_pkts_from_pcap_dump = false;
       pcap_datalink_type = pcap_datalink(pcap_handle);
 
+      Utils::readMac(ifname, ifMac);
+
 #ifndef WIN32
       if(pcap_setdirection(pcap_handle, ntop->getPrefs()->getCaptureDirection()) != 0)
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");

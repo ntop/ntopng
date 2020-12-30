@@ -96,7 +96,7 @@
 #ifdef HAVE_TEST_MODE
 #include <libgen.h>
 #endif
-#if defined(linux)
+#if defined(__linux__)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
 #include <ifaddrs.h>
