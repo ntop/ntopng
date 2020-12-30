@@ -59,6 +59,7 @@ Prefs::Prefs(Ntop *_ntop) {
   behaviour_analysis_learning_period = CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD;
   behaviour_analysis_learning_status_during_learning = service_allowed;
   behaviour_analysis_learning_status_post_learning = service_allowed;
+  iec60870_learning_period = CONST_IEC104_LEARNING_TIME;
   auth_session_duration = HTTP_SESSION_DURATION;
   auth_session_midnight_expiration = HTTP_SESSION_MIDNIGHT_EXPIRATION;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
@@ -695,6 +696,7 @@ void Prefs::refreshBehaviourAnalysis() {
   behaviour_analysis_learning_period = getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD, CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD);
   behaviour_analysis_learning_status_during_learning = (ServiceAcceptance)getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_DURING_LEARNING, service_allowed);
   behaviour_analysis_learning_status_post_learning = (ServiceAcceptance)getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_POST_LEARNING, service_allowed);
+  iec60870_learning_period = getDefaultPrefsValue(CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD, CONST_IEC104_LEARNING_TIME);
 }
 
 /* ******************************************* */
@@ -1765,6 +1767,7 @@ void Prefs::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "ewma_alpha_percent", ewma_alpha_percent);
 
   lua_push_uint64_table_entry(vm, "behaviour_analysis_learning_period", behaviour_analysis_learning_period);
+  lua_push_uint64_table_entry(vm, "iec60870_learning_period", iec60870_learning_period);
 
   lua_push_str_table_entry(vm, "safe_search_dns",
 			   Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));

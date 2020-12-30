@@ -833,6 +833,15 @@ function printNetworkBehaviour()
       false,
       {}, nil, nil, is_behaviour_analysis_enabled --[[show]])
 
+    print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.iec60870")..'</th></tr></thead>')
+
+    prefsInputFieldPrefs(
+        subpage_active["iec60870_learning_period"].title, 
+        subpage_active["iec60870_learning_period"].description,
+        "ntopng.prefs.","iec60870_learning_period",
+        prefs.iec60870_learning_period,
+        "number", nil, nil, nil, {min=21600, tformat="h"})
+
   end
 
   -- #####################

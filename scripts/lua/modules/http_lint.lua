@@ -1592,6 +1592,7 @@ local known_parameters = {
    ["behaviour_analysis_learning_period"]          = validateNumber,
    ["behaviour_analysis_learning_status_during_learning"] = validateNumber,
    ["behaviour_analysis_learning_status_post_learning"]   = validateNumber,
+   ["iec60870_learning_period"]                    = validateNumber,
    ["toggle_src_and_dst_using_ports"]              = validateBool,
    ["toggle_device_activation_alert"]              = validateBool,
    ["toggle_device_first_seen_alert"]              = validateBool,
