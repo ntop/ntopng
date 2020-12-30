@@ -1278,7 +1278,7 @@ setInterval(update_arp_table, 5000);
 ]]
 
 elseif(page == "historical") then
-   local schema = _GET["ts_schema"] or "iface:traffic"
+   local schema = _GET["ts_schema"]
    local selected_epoch = _GET["epoch"] or ""
    local tags = {
       ifid = ifid,
@@ -1289,21 +1289,29 @@ elseif(page == "historical") then
    }
    url = url.."&page=historical"
 
+   if(schema == nil) then
+      if(ifstats.has_traffic_directions) then
+	 schema = "iface:traffic_rxtx"
+      else
+	 schema = "iface:traffic"
+      end
+   end
+   
    local top_enabled = top_talkers_utils.areTopEnabled(ifid)
 
    graph_utils.drawGraphs(ifstats.id, schema, tags, _GET["zoom"], url, selected_epoch, {
-      top_protocols = "top:iface:ndpi",
-      top_categories = "top:iface:ndpi_categories",
-      top_profiles = "top:profile:traffic",
-      top_senders = ternary(top_enabled, "top:local_senders", nil),
-      top_receivers = ternary(top_enabled, "top:local_receivers", nil),
-      l4_protocols = "iface:l4protos",
-      dscp_classes = "iface:dscp",
-      show_historical = not ifstats.isViewed,
-      timeseries = graph_utils.get_default_timeseries()
+			     top_protocols = "top:iface:ndpi",
+			     top_categories = "top:iface:ndpi_categories",
+			     top_profiles = "top:profile:traffic",
+			     top_senders = ternary(top_enabled, "top:local_senders", nil),
+			     top_receivers = ternary(top_enabled, "top:local_receivers", nil),
+			     l4_protocols = "iface:l4protos",
+			     dscp_classes = "iface:dscp",
+			     show_historical = not ifstats.isViewed,
+			     timeseries = graph_utils.get_default_timeseries()
    })
 elseif(page == "trafficprofiles") then
-
+   
    print("<table class=\"table table-striped table-bordered\">\n")
    print("<tr><th width=15%><a href=\""..ntop.getHttpPrefix().."/lua/pro/admin/edit_profiles.lua\">" .. i18n("traffic_profiles.profile_name") .. "</A></th><th width=5%>" .. i18n("chart") .. "</th><th>" .. i18n("traffic") .. "</th></tr>\n")
    for pname,pbytes in pairs(ifstats.profiles) do
