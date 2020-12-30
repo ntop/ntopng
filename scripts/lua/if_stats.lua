@@ -552,7 +552,10 @@ if((page == "overview") or (page == nil)) then
       s = s .. " <a href=\""..url.."&page=config\"><i class=\"fas fa-cog fa-sm\" title=\"Configure Interface Name\"></i></a>"
    end
 
-   print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2"><p style="word-break: break-all">' .. s ..'</p></td>\n')
+   print('<tr><th width="250">'..i18n("name")..'</th><td colspan="2"><p style="word-break: break-all">')
+   print(s)
+   if(ifstats.mac and ifstats.mac ~= "00:00:00:00:00:00") then print(" [" .. ifstats.mac .. "]"); end
+   print('</p></td>\n')
 
    print("<th>"..i18n("if_stats_overview.family").."</th><td colspan=2>")
    if(ifstats.type == "zmq") then
