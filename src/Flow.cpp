@@ -466,6 +466,7 @@ void Flow::processDetectedProtocol() {
 
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_TLS:
+  case NDPI_PROTOCOL_QUIC:
     if(ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_DOH_DOT) {
       if(cli_host && srv_host && cli_host->isLocalHost())
 	cli_host->incDohDoTUses(srv_host);
