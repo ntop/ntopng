@@ -27,7 +27,7 @@ local slack = {
    },
 }
 
-slack.EXPORT_FREQUENCY = 60
+slack.EXPORT_FREQUENCY = 5
 slack.prio = 500
 local MAX_ALERTS_PER_MESSAGE = 5
 
@@ -67,7 +67,6 @@ function slack.sendMessage(entity_type, severity, text, settings)
   end
 
   local message = {
-    channel = "#" .. channel_name,
     icon_emoji = alert_severity_to_emoji[severity] or alert_severity_to_emoji.default,
     username = settings.sender_username .. " [" .. string.upper(severity)  .. "]",
     text = text,
@@ -140,7 +139,7 @@ function slack.dequeueRecipientAlerts(recipient, budget, high_priority)
 
       messages = table.concat(messages, "\n")
 
-      if not slack.sendMessage(entity_type, severity, messages) then
+      if not slack.sendMessage(entity_type, severity, messages, settings) then
         -- Note: upon failure we'll possibly resend already sent messages
         return {success=false, error_message="Unable to send slack messages"}
       end
