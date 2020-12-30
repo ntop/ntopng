@@ -36,11 +36,13 @@ function Alert:_build_type_info()
       alert_type_params = self.alert_type_params or {}
    }
 
-   if self.alert_attacker ~= nil then
+   -- Add the attacker to the alert params (if present)
+   if self.alert_attacker then
       type_info.alert_type_params.alert_attacker = self.alert_attacker
    end
 
-   if self.alert_victim ~= nil then
+   -- Add the victim to the alert params (if present)
+   if self.alert_victim then
       type_info.alert_type_params.alert_victim = self.alert_victim
    end
 

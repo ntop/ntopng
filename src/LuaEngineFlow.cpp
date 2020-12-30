@@ -415,7 +415,7 @@ static int ntop_flow_get_alerted_status_score(lua_State* vm) {
 
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushnumber(vm, f->getAlertedStatusScore());
+  lua_pushinteger(vm, f->getAlertedStatusScore());
 
   return(CONST_LUA_OK);
 }

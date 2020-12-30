@@ -42,6 +42,7 @@ local alerted_status_score
 local confset_id
 local alerted_user_script
 local cur_user_script
+local cur_l4_proto
 
 -- #################################################################
 
@@ -198,14 +199,13 @@ end
 
 -- @brief Store more information into the flow status. Such information
 -- does not depend the specific flow status being triggered
--- @param l4_proto the flow L4 protocol ID
 -- @param flow_status the status table to augument
-local function augumentFlowStatusInfo(l4_proto, flow_status)
+local function augumentFlowStatusInfo(flow_status)
    flow_status["ntopng.key"] = flow.getKey()
    flow_status["hash_entry_id"] = flow.getHashEntryId()
    flow_status["info"] = flow.getInfo()["info"] or ''
 
-   if l4_proto == 1 --[[ ICMP ]] then
+   if cur_l4_proto == 1 --[[ ICMP ]] then
       -- NOTE: this information is parsed by getFlowStatusInfo()
       flow_status["icmp"] = flow.getICMPStatusInfo()
    end
@@ -213,39 +213,45 @@ end
 
 -- #################################################################
 
-local function triggerFlowAlert(now, l4_proto)
+-- @brief Trigger a flow alert (and dispatch the alert to the notification modules)
+-- @param now A unix epoch of the present time
+-- @param trigger_status The status that is being triggered, obtained as `status_info.status_type`
+-- @param trigger_type_params A table of params associated to the status
+-- @param trigger_status_score The score associated to the status that is being triggered
+-- @return True if the alert has been triggered, false otherwise
+local function triggerFlowAlert(now, trigger_status, trigger_type_params, trigger_status_score)
    if not areAlertsEnabled() then
       return(false)
    end
 
    local cli_key = flow.getClientKey()
    local srv_key = flow.getServerKey()
-   local status_key = alerted_status.status_key
+   local status_key = trigger_status.status_key
 
    if do_trace then
       trace_f(string.format("flow.triggerAlert(type=%s, severity=%s)",
-			 alert_consts.alertTypeRaw(alerted_status.alert_type.alert_key),
-			 alert_consts.alertSeverityRaw(alerted_status.alert_severity.severity_id)))
+			 alert_consts.alertTypeRaw(trigger_status.alert_type.alert_key),
+			 alert_consts.alertSeverityRaw(trigger_status.alert_severity.severity_id)))
    end
 
-   alert_type_params = alert_type_params or {}
+   trigger_type_params = trigger_type_params or {}
 
-   if type(alert_type_params) == "table" then
+   if type(trigger_type_params) == "table" then
       -- NOTE: porting this to C is not feasable as the lua table can contain
       -- arbitrary data
-      augumentFlowStatusInfo(l4_proto, alert_type_params)
-      alerts_api.addAlertGenerationInfo(alert_type_params, alerted_user_script, confset_id)
+      augumentFlowStatusInfo(trigger_type_params)
+      alerts_api.addAlertGenerationInfo(trigger_type_params, alerted_user_script, confset_id)
 
-      alert_type_params = json.encode(alert_type_params)
+      trigger_type_params = json.encode(trigger_type_params)
    end
 
    local res = flow.triggerAlert(
       status_key,
-      alerted_status.alert_type.alert_key,
-      alerted_status.alert_severity.severity_id,
-      alerted_status_score,
+      trigger_status.alert_type.alert_key,
+      trigger_status.alert_severity.severity_id,
+      trigger_status_score,
       now,
-      alert_type_params)
+      trigger_type_params)
 
    -- There's no lua table for the flow alert. Flow alert is generated from C and is returned to
    -- Lua as a JSON string. Hence, to dispatch it to the recipient, alert must be decoded from JSON.
@@ -278,6 +284,7 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
    alerted_status = nil
    alert_type_params = nil
    alerted_status_score = -1
+   cur_l4_proto = l4_proto
 
    if hooks then
       hooks = hooks[mod_fn]
@@ -348,11 +355,12 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
 
    -- Only trigger the alert if its score is greater than the currently
    -- triggered alert score (when score is supported)
-   if areAlertsEnabled() and 
-      alerted_status and 
-      (alerted_status_score > flow.getAlertedStatusScore()) then
-
-      triggerFlowAlert(now, l4_proto)
+   if areAlertsEnabled() and alerted_status and alerted_status_score > flow.getAlertedStatusScore() then
+      -- Only trigger if the `alerted_status` has no `status_always_notify`. When the `alerted_status`
+      -- has `status_always_notify` set to true, the alert has already been triggered.
+      if not alerted_status.alert_type.status_always_notify then
+	 triggerFlowAlert(now, alerted_status, alert_type_params, alerted_status_score)
+      end
    end
 
    return true
@@ -382,16 +390,22 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
       return
    end
 
-   -- NOTE: The "flow_status_type.status_key < alerted_status.status_key" check must
-   -- correspond to the Flow::getAlertedStatus logic in order to determine
-   -- the same alerted status
-   if((not alerted_status) or (flow_score > alerted_status_score) or
-	 ((flow_score == alerted_status_score) and (status_info.status_type.status_key < alerted_status.status_key))) then
+   -- Decide if this triggered status is also the alerted status, that is, the predominant
+   -- alerted status for this flow
+   if not alerted_status or flow_score > alerted_status_score then
       -- The new alerted status as an higher score
       alerted_status = status_info.status_type
       alert_type_params = status_info["alert_type_params"] or {}
       alerted_status_score = flow_score
       alerted_user_script = cur_user_script
+   end
+
+   -- A notification is only emitted for the predominant status, once all flow user scripts have been processed
+   -- and all statuses have been set.
+   -- However, if the current status has the `status_always_notify`, a notification MUST always be emitted
+   -- even if it is not the predominant status.
+   if status_info.status_type.alert_type.status_always_notify then
+      triggerFlowAlert(os.time(), status_info.status_type, status_info["alert_type_params"], flow_score)
    end
 
    setStatus(status_info.status_type.status_key, flow_score, cli_score, srv_score)

@@ -22,6 +22,7 @@ alert_flow_new_api_demo.meta = {
    alert_key = alert_keys.user.alert_user_02,
    i18n_title = "New Flow API Demo",
    icon = "fas fa-exclamation",
+   status_always_notify = true, -- Optional, if true, a notification is always emitted even when the status is not predominant or every time flow.triggerStatus is called
 }
 
 -- ##############################################
