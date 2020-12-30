@@ -204,11 +204,9 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	    if(it == type_i_transitions.end()) {
 	      json_object *my_object;
 
-	      type_i_transitions[transition] = 1;
-
-	      if(f->get_duration() > CONST_IEC104_LEARNING_TIME) {
+	      if(f->get_duration() > ntop->getPrefs()->getIEC60870LearingPeriod()) {
 #ifdef IEC60870_TRACE
-		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found mew transition %u -> %u", last_type_i, type_id);
+		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found new transition %u -> %u", last_type_i, type_id);
 #endif
 
 		if((my_object = json_object_new_object()) != NULL) {
@@ -229,7 +227,10 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 		  ntop->getRedis()->rpush(CONST_IEC104_FLOW_ALERT_QUEUE, json, 1024 /* Max queue size */);
 		  json_object_put(my_object); /* Free memory */
 		}
-	      }
+		
+		type_i_transitions[transition] = 2; /* Post Learning */
+	      } else
+		type_i_transitions[transition] = 1; /* During Learning */
 	    } else
 	      type_i_transitions[transition] = it->second + 1;
 	  }
