@@ -188,6 +188,10 @@ AC_ARG_WITH(ndpi-includes,
       NDPI_CUST_INC="-I$withval -I$withval/../lib/third_party/include"
    ])
 
+if test -d /usr/local/include/ndpi ; then :
+   echo "WARNING: /usr/local/include/ndpi is present and might lead to compile errors"
+fi
+
 PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
    NDPI_INC=`echo $NDPI_CFLAGS | sed -e "s/[ ]*$//"`
    # Use static libndpi library as building against the dynamic library fails
@@ -784,6 +788,7 @@ AC_SUBST(STABLE_SUFFIX)
 AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
+AC_CONFIG_FILES(packages/FreeBSD/build.sh)
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(tools/json2tlv/Makefile)
 AC_CONFIG_FILES(doc/doxygen.conf)

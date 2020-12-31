@@ -489,8 +489,13 @@
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
+#if defined(__FreeBSD__)
+#define CONST_ALT_INSTALL_DIR        "/usr/local/share/ntopng"
+#define CONST_ALT2_INSTALL_DIR       "/usr/share/ntopng"
+#else
 #define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"
 #define CONST_ALT2_INSTALL_DIR       "/usr/local/share/ntopng"
+#endif
 #define CONST_HTTP_PREFIX_STRING     "@HTTP_PREFIX@"
 #define CONST_NTOP_STARTUP_EPOCH     "@NTOP_STARTUP_EPOCH@"
 #define CONST_NTOP_PRODUCT_NAME      "@NTOP_PRODUCT_NAME@"

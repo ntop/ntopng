@@ -25,7 +25,7 @@ extern "C" {
 #include "third-party/fast-sha1/sha1-fast.c"
 }
 
-#if defined(__OpenBSD__) || defined(__APPLE__)
+#if defined(__OpenBSD__) || defined(__APPLE__) || defined(__FreeBSD__)
 #include <net/if_dl.h>
 #endif
 
@@ -3648,7 +3648,7 @@ int Utils::retainWriteCapabilities() {
 
   cap_free(caps);
 #else
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(__FreeBSD__)
   rc = -1;
   ntop->getTrace()->traceEvent(TRACE_WARNING, "ntopng has not been compiled with libcap-dev");
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Network discovery and other privileged activities will fail");
@@ -3660,7 +3660,7 @@ int Utils::retainWriteCapabilities() {
 
 /* ****************************************************** */
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) || !defined(__FreeBSD__)
 static int _setWriteCapabilities(int enable) {
   int rc = 0;
 
@@ -3706,7 +3706,7 @@ int Utils::gainWriteCapabilities() {
   if(ntop && !ntop->hasDroppedPrivileges())
     return(0);
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) || !defined(__FreeBSD__)
   return(_setWriteCapabilities(true));
 #else
   return(0);
@@ -3719,7 +3719,7 @@ int Utils::dropWriteCapabilities() {
   if(ntop && !ntop->hasDroppedPrivileges())
     return(0);
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) || !defined(__FreeBSD__)
   return(_setWriteCapabilities(false));
 #else
   return(0);

@@ -1,0 +1,82 @@
+#!/bin/sh
+
+HERE=`pwd`
+
+STAGEDIR=${HERE}/stage
+NTOPNG_HOME=${HERE}/../..
+rm -rf ${STAGEDIR}
+mkdir -p ${STAGEDIR}
+
+#######
+
+cat >> ${STAGEDIR}/+MANIFEST <<EOF
+name:        ntopng
+version:     "@PACKAGE_VERSION@"
+origin:      net/ntopng
+comment:     "High speed network traffic monitor"
+desc:        "Web-based network traffic monitoring tool"
+maintainer:  packager@ntop.org
+www:         https://www.ntop.org
+prefix:      /
+EOF
+
+echo "deps: {" >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" json-c         >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" libgcrypt      >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" libmaxminddb   >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" libpcap        >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" libzmq4        >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" mysql80-client >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" rrdtool        >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" lua53          >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" libsodium      >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" sqlite3        >> ${STAGEDIR}/+MANIFEST
+echo "}" >> ${STAGEDIR}/+MANIFEST
+
+cp -r usr ${STAGEDIR}
+mkdir -p ${STAGEDIR}/usr/local/bin ${STAGEDIR}/usr/local/share/ntopng
+cp ../../ntopng ${STAGEDIR}/usr/local/bin/ntopng
+strip ${STAGEDIR}/usr/local/bin/ntopng
+mkdir -p ${STAGEDIR}/usr/local/etc/ntopng
+cp ../etc/ntopng/ntopng.conf ${STAGEDIR}/usr/local/etc/ntopng
+
+#######
+
+cp ${NTOPNG_HOME}/ntopng.8 ${STAGEDIR}/usr/local/share/man/man8
+cp -r ${NTOPNG_HOME}/httpdocs ${STAGEDIR}/usr/local/share/ntopng
+rm -f ${STAGEDIR}/usr/local/share/ntopng/httpdocs/misc/ntopng-utils-manage*
+cp -Lr ${NTOPNG_HOME}/scripts ${STAGEDIR}/usr/local/share/ntopng  # L to dereference symlinks
+mv ${STAGEDIR}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${STAGEDIR}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+if test -d "${NTOPNG_HOME}/pro"; then \
+mkdir ${STAGEDIR}/usr/local/share/ntopng/pro; \
+cp -r ${NTOPNG_HOME}/pro/httpdocs ${STAGEDIR}/usr/local/share/ntopng/pro; \
+cp -r ${NTOPNG_HOME}/pro/scripts ${STAGEDIR}/usr/local/share/ntopng/pro; \
+rm -rf ${STAGEDIR}/usr/local/share/ntopng/pro/scripts/lua/nedge; \
+cd ${STAGEDIR}/usr/local/share/ntopng/scripts/lua; rm -rf pro; ln -s ../../pro/scripts/lua pro; \
+find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}/pro/utils/snzip -c -i {} -o {}r \;; \
+find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
+find ${STAGEDIR}/usr/local/share/ntopng/pro/scripts -name "*.luar" | xargs renamex -s/.luar/.lua/s; \
+fi
+rm -f ${STAGEDIR}/usr/local/share/ntopng/httpdocs/geoip/*
+find ${STAGEDIR}/usr/local/share/ntopng -name "*~"   | xargs /bin/rm -f
+find ${STAGEDIR}/usr/local/share/ntopng -name ".svn" | xargs /bin/rm -rf
+find ${STAGEDIR}/usr/local/share/ntopng -name ".git*" | xargs /bin/rm -rf
+find . -name "*#" -exec /bin/rm {} ';'
+find . -name "*~" -exec /bin/rm {} ';'
+
+#######
+
+# Add GeoIP files
+cp ~/dat_files/* ${STAGEDIR}/usr/local/share/ntopng/httpdocs/geoip/
+
+
+# List of files to package
+cd $STAGEDIR
+find . -type f | sed '$d' > ${STAGEDIR}/plist
+cd $HERE
+
+rm -f *.txz
+pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o $HERE
+
+tar -tvf ntopng-@PACKAGE_VERSION@.txz
+

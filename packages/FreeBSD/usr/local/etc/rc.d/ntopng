@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# PROVIDE: ntopng
+# REQUIRE: LOGIN netif redis
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf to enable ntopng:
+#
+# ntopng_enable (bool):		Set it to "YES" to enable ntopng
+#				Default is "NO".
+# ntopng_flags (flags):		Set extra flags to ntopng
+#				Empty by default.
+# ntopng_pidfile (path):	Path to the pidfile
+#				Default /var/run/ntopng/ntopng.pid
+#
+
+. /etc/rc.subr
+
+name=ntopng
+desc="Web-based network traffic monitoring tool"
+rcvar=ntopng_enable
+
+load_rc_config $name
+
+: ${ntopng_enable:=NO}
+: ${ntopng_pidfile:=/var/run/ntopng/ntopng.pid}
+
+start_precmd=ntopng_precmd
+command=/usr/local/bin/ntopng
+command_args="/usr/local/etc/ntopng/ntopng.conf"
+
+ntopng_precmd()
+{
+	local rundir=${ntopng_pidfile%/*}
+	if [ ! -d $rundir ] ; then
+		install -d -m 0755 -o ntopng -g ntopng $rundir
+	fi
+}
+
+run_rc_command "$1"

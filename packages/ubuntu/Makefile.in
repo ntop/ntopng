@@ -35,7 +35,7 @@ ntopng-prep:
 	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
-	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".git" | xargs /bin/rm -rf
+	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".git*" | xargs /bin/rm -rf
 	@find . -name "*#" -exec /bin/rm {} ';'
 	@find . -name "*~" -exec /bin/rm {} ';'
 
