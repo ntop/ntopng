@@ -1635,18 +1635,22 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
        local status_stats = flowstats["status"]
        local first = true
-       for _, t in pairsByKeys(alert_consts.alert_types) do
-	  if t.meta and t.meta.status_key then
-	     local id = t.meta.status_key
 
-	     if status_stats[id] and status_stats[id].count > 0 then
-		if first then
-		   entries[#entries + 1] = '<li role="separator" class="divider"></li>'
-		   entries[#entries + 1] = '<li class="dropdown-header">'.. i18n("flow_details.alerted_flows") ..'</li>'
-		   first = false
-		end
-		entries[#entries + 1] = {string.format("%u", id), (alert_consts.alertTypeLabel(t.meta.alert_key, true)) .. " ("..status_stats[id].count..")"}
+       -- Add labels to allow alphabetic sort
+       for status_key, status in pairs(status_stats) do
+	  if status.count > 0 then
+	     status.label =  alert_consts.statusTypeLabel(status_key, true --[[ no html --]])
+	  end
+       end
+
+       for status_key, status in pairsByField(status_stats, "label", asc) do
+	  if status.count > 0 then
+	     if first then
+		entries[#entries + 1] = '<li role="separator" class="divider"></li>'
+		entries[#entries + 1] = '<li class="dropdown-header">'.. i18n("flow_details.alerted_flows") ..'</li>'
+		first = false
 	     end
+	     entries[#entries + 1] = {string.format("%u", status_key), (status.label) .. " ("..status.count..")"}
 	  end
        end
 
