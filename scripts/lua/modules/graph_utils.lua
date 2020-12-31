@@ -1037,7 +1037,7 @@ local default_timeseries = {
    {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
    {schema="iface:traffic",               label=i18n("traffic")},
    {schema="iface:score",                 label=i18n("score"), enterprise_only=true},
-   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_txrx"), layout={
+   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_rxtx"), layout={
       ["bytes_sent"] = "area",
       ["bytes_rcvd"] = "line"
    } },
