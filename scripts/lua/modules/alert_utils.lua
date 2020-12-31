@@ -1247,7 +1247,6 @@ function releaseAlert(idx) {
             sortable: true,
 	    css: {
 	       textAlign: 'center',
-          whiteSpace: 'nowrap',
 	    }
 	 },
 
