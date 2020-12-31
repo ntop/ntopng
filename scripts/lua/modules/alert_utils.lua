@@ -1418,6 +1418,8 @@ $("[clicked=1]").trigger("click");
 	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-danger"> <span id="purgeBtnMessage">]]
 	 print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
 	 print[[</span></button>
+
+         <a href="#" class="btn btn-primary" role="button" aria-disabled="true" onclick="downloadAlerts();"><i class="fas fa-download"></i></a>
    </div> <!-- closes alertsActionsPanel -->]]
 
    if not options.dont_print_footer then print([[</div> <!-- card-footer -->]]) end
@@ -1455,6 +1457,37 @@ function checkModalDelete() {
    form.attr("action", "?" + $.param(get_params));
    form.appendTo('body').submit();
    return false;
+}
+
+function downloadAlerts() {
+    $.ajax({
+	type: 'POST',
+	contentType: "application/json",
+	dataType: "json",
+	url: `${http_prefix}/lua/rest/v1/get/alert/data.lua`,
+	data: JSON.stringify(getTabSpecificParams()),
+	success: function(rsp) {
+	 // Convert the Byte Data to BLOB object.
+	 // Source: https://www.aspsnippets.com/Articles/Download-File-in-AJAX-Response-Success-using-jQuery.aspx
+
+	  var blob = new Blob([JSON.stringify(rsp.rsp)], { type: "application/octetstream" });
+
+	  //Check the Browser type and download the File.
+	  var isIE = false || !!document.documentMode;
+	  if (isIE) {
+	    window.navigator.msSaveBlob(blob, fileName);
+	  } else {
+	    var url = window.URL || window.webkitURL;
+	    var link = url.createObjectURL(blob);
+	    var a = $("<a />");
+	    a.attr("download", "alerts.json");
+	    a.attr("href", link);
+	    $("body").append(a);
+	    a[0].click();
+	    $("body").remove(a);
+	    }
+	  }
+    });
 }
 
 var cur_alert_num_req = null;

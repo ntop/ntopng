@@ -55,12 +55,7 @@ if what == "engaged" then
    engaged = true
 end
 
-local alert_options = {
-   epoch_begin = epoch_begin,
-   epoch_end = epoch_end,
-   alert_type = alert_type,
-   alert_severity = alert_severity,
-}
+local alert_options = _GET
 
 local alerts = alert_utils.getAlerts(what, alert_options)
 
