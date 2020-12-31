@@ -1519,6 +1519,7 @@ local known_parameters = {
    ["service_id"]            = validateNumber,
    ["service_state"]         = validateNumber,
    ["set_service_state"]    = validateNumber,
+   ["service_l7proto"]      = validateSingleWord,
    ["map"]                 = validateUnquoted,
 
 -- Script editor
