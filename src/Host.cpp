@@ -698,6 +698,10 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
 
   num_resolve_attempts++;
 
+  getResolvedName(name_buf, sizeof(name_buf));
+  if(name_buf[0])
+    goto out;
+
   /* Most relevant names goes first */
   if(isBroadcastDomainHost()) {
     Mac *cur_mac = getMac(); /* Cache it as it can change */
@@ -721,10 +725,6 @@ char* Host::get_name(char *buf, u_int buf_len, bool force_resolution_if_not_foun
     goto out;
 
   getNetbiosName(name_buf, sizeof(name_buf));
-  if(name_buf[0])
-    goto out;
-
-  getResolvedName(name_buf, sizeof(name_buf));
   if(name_buf[0])
     goto out;
 
