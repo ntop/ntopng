@@ -511,7 +511,7 @@ void MySQLDB::open_log() {
   static char sql_log_path[MAX_PATH];
 
   if(ntop->getPrefs()->is_sql_log_enabled()) {
-    snprintf(sql_log_path, sizeof(sql_log_path), "%s/%d/ntopng_sql.log",
+    snprintf(sql_log_path, sizeof(sql_log_path)-1, "%s/%d/ntopng_sql.log",
 	     ntop->get_working_dir(), iface->get_id());
 
     log_fd = fopen(sql_log_path, "a");

@@ -28,7 +28,10 @@ MONGOOSE_HOME=${PWD}/third-party/mongoose
 MONGOOSE_INC=-I$(MONGOOSE_HOME)
 ######
 
-LUA_PLATFORM=generic
+LUA_PLATFORM=generi
+LUA_HOME=${PWD}/third-party/lua-5.3.5
+LUA_INC=-I$(LUA_HOME)/src
+LUA_LIB=$(LUA_HOME)/src/liblua.a
 
 ifeq ($(OS),Linux)
 	LUA_PLATFORM=linux
@@ -36,11 +39,9 @@ else ifeq ($(OS),Darwin)
 	LUA_PLATFORM=macosx
 else ifeq ($(OS), $(filter $(OS), FreeBSD))
 	LUA_PLATFORM=freebsd
+	LUA_LIB=/usr/local/lib/liblua-5.3.a
 endif
 
-LUA_HOME=${PWD}/third-party/lua-5.3.5
-LUA_INC=-I$(LUA_HOME)/src
-LUA_LIB=$(LUA_HOME)/src/liblua.a
 
 ######
 LIBRRDTOOL_HOME=${PWD}/third-party/rrdtool-1.4.8

@@ -4340,7 +4340,8 @@ int mg_upload(struct mg_connection *conn, const char *destination_dir) {
       s = fname;
     }
     // Open file in binary mode. TODO: set an exclusive lock.
-    snprintf(path, sizeof(path), "%s/%s", destination_dir, s);
+    snprintf(path, sizeof(path)-1, "%s/%s", destination_dir, s);
+    
     if ((fp = fopen(path, "wb")) == NULL) {
       break;
     }

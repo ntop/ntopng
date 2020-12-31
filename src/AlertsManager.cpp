@@ -24,7 +24,7 @@
 static const char *hex_chars = "0123456789ABCDEF";
 
 AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
-  char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
+  char filePath[MAX_PATH+16], fileFullPath[MAX_PATH], fileName[MAX_PATH];
 
   snprintf(filePath, sizeof(filePath), "%s/%d/alerts/",
            ntop->get_working_dir(), ifid);
@@ -298,7 +298,7 @@ int AlertsManager::parseEntityValueIp(const char *alert_entity_value, struct in6
   if(!alert_entity_value)
     return(-1);
 
-  strncpy(tmp_entity, alert_entity_value, sizeof(tmp_entity));
+  snprintf(tmp_entity, sizeof(tmp_entity)-1, "%s", alert_entity_value);
 
   /* Ignore VLAN */
   if((sep = strchr(tmp_entity, '@')))

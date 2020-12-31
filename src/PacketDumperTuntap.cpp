@@ -110,7 +110,7 @@ int PacketDumperTuntap::openTap(char *dev, /* user-definable interface name, eg.
     fd = open(tap_device, O_RDWR);
     if(fd > 0) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully open %s", tap_device);
-      snprintf(dev_name, sizeof(dev_name), "%s", tap_device); 
+      snprintf(dev_name, sizeof(dev_name)-1, "%s", tap_device); 
       break;
     }
   }

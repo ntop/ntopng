@@ -51,6 +51,48 @@ if test "${with_test_mode+set}" = set; then
   AC_DEFINE(HAVE_TEST_MODE, 1, [ntopng/nEdge test mode enabled])
 fi
 
+CFLAGS="${CFLAGS} -Wall"
+OS=""
+if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
+   dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
+   CC=clang
+   CXX=clang++   
+   dnl> CXX=clang++ -fsanitize=address -fsanitize-address-use-after-scope
+   OSXV=`sw_vers -productVersion`
+   if test $SYSTEM = "Darwin"; then
+     OS="MacOSX $OSXV"
+   else
+     OS=`uname -or`
+   fi
+   if test $MACHINE = "x86_64"; then
+      LDFLAGS="${LDFLAGS} -L/usr/local/opt/ntopng"
+      #LINK_OPTS="-pagezero_size 10000 -image_base 100000000 -image_base 7fff04c4a000"
+      RES=`g++ -Wall -fno-color-diagnostics Prefs.cpp 2>&1 | grep "unrecognized command line option "|wc -l`
+      if test $RES -eq 0; then
+            CFLAGS="-fno-color-diagnostics $CFLAGS"
+      fi
+   fi
+else
+  if test $SYSTEM = "Linux"; then
+    if [ test -f /usr/bin/clang++ ]; then
+      CC=clang
+      CXX=clang++
+      AC_MSG_RESULT(Using clang++ compiler)
+    fi
+    
+    if [ test -f /etc/redhat-release ]; then
+       :
+    else
+        if [ test -f /usr/bin/lsb_release ]; then
+         OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
+        fi
+    fi
+  fi
+fi
+
+dnl> Remove spaces
+OS="${OS#"${OS%%[![:space:]]*}"}"
+
 AC_CHECK_LIB([gpg-error], [gpg_strerror], [LDFLAGS="${LDFLAGS} -lgpg-error"])
 AC_CHECK_LIB([atomic], [__atomic_exchange_8], [LDFLAGS="${LDFLAGS} -latomic"])
   
@@ -282,11 +324,7 @@ PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 if test "${with_nedge+set}" != set; then
   if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" || test $MACHINE = "aarch64"; then
     cd ../PF_RING/userland/nbpf; ./configure; make; cd -
-
-    dnl> nbpf for FreeBSD is linked statically
-    if test $SYSTEM != "FreeBSD"; then
-      LDFLAGS="${LDFLAGS} -L../PF_RING/userland/nbpf -lnbpf"
-    fi
+    LDFLAGS="${LDFLAGS} -L../PF_RING/userland/nbpf -lnbpf"
   fi
 fi
 
@@ -350,7 +388,11 @@ if test $SYSTEM = "Linux"; then
   fi
 else
 dnl> wget -O config.guess 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
-  OSNAME=`./config.guess`
+  if test $SYSTEM = "FreeBSD"; then
+    OSNAME=$OS
+  else
+    OSNAME=`./config.guess`
+  fi
 fi
 AC_DEFINE_UNQUOTED(PACKAGE_OSNAME, "${OSNAME}", [OS name])
 
@@ -532,43 +574,6 @@ if test -f "/etc/centos-release"; then
     RPM_SIGN_CMD="./packages/rpm-sign.exp"
   fi
 fi
-
-CFLAGS="${CFLAGS} -Wall"
-OS=""
-if test $SYSTEM = "Darwin"; then
-   dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
-   CXX=clang++
-   dnl> CXX=clang++ -fsanitize=address -fsanitize-address-use-after-scope
-   OSXV=`sw_vers -productVersion`
-   OS="MacOSX $OSXV"
-   if test $MACHINE = "x86_64"; then
-      LDFLAGS="${LDFLAGS} -L/usr/local/opt/ntopng"
-      #LINK_OPTS="-pagezero_size 10000 -image_base 100000000 -image_base 7fff04c4a000"
-      RES=`g++ -Wall -fno-color-diagnostics Prefs.cpp 2>&1 | grep "unrecognized command line option "|wc -l`
-      if test $RES -eq 0; then
-            CFLAGS="-fno-color-diagnostics $CFLAGS"
-      fi
-   fi
-else
-  if test $SYSTEM = "Linux"; then
-    if [ test -f /usr/bin/clang++ ]; then
-      CC=clang
-      CXX=clang++
-      AC_MSG_RESULT(Using clang++ compiler)
-    fi
-    
-    if [ test -f /etc/redhat-release ]; then
-       :
-    else
-        if [ test -f /usr/bin/lsb_release ]; then
-         OS=`/usr/bin/lsb_release -d|cut -d ':' -f 2`
-        fi
-    fi
-  fi
-fi
-
-dnl> Remove spaces
-OS="${OS#"${OS%%[![:space:]]*}"}"
 
 AC_CHECK_LIB([maxminddb], [MMDB_lookup_sockaddr])
 AC_HAVE_HEADERS(maxminddb.h)

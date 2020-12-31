@@ -938,7 +938,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
 	    if(!(o = json_tokener_parse(post_data))
 	       || !json_object_object_get_ex(o, "csrf", &csrf_o)
-	       || !strncpy(csrf, json_object_get_string(csrf_o), sizeof(csrf))
+	       || !strncpy(csrf, json_object_get_string(csrf_o), sizeof(csrf)-1)
 	       || strncmp(session_csrf, csrf, NTOP_CSRF_TOKEN_LENGTH)) {
 	      /*
 		Either the CSRF token has not been submitted as part of the JSON, or

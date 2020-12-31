@@ -482,8 +482,8 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
 
   memset(pbuf, 0, pbuf_len);
 
-  memcpy(eth->h_dest, multicast_mac, sizeof(struct ndpi_ethhdr));
-  memcpy(eth->h_source, sender_mac, sizeof(struct ndpi_ethhdr));
+  memcpy(eth->h_dest, (u_int8_t*)multicast_mac, sizeof(multicast_mac));
+  memcpy(eth->h_source, (u_int8_t*)sender_mac, sizeof(sender_mac));  
   eth->h_proto = htons(0x0800);
 
   data = &pbuf[sizeof(struct ndpi_ethhdr) + sizeof(struct ndpi_iphdr) + sizeof(struct ndpi_udphdr)];

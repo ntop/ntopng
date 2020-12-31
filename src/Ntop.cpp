@@ -141,7 +141,7 @@ Ntop::Ntop(char *appName) {
 
   install_dir[0] = '\0';
 
-  for(int i = 0; i < COUNT_OF(dirs); i++) {
+  for(int i = 0; i < (int)COUNT_OF(dirs); i++) {
     if(dirs[i]) {
       char path[MAX_PATH];
       struct stat statbuf;
@@ -2234,7 +2234,7 @@ char* Ntop::getValidPath(char *__path) {
     snprintf(_path, MAX_PATH, "%s", __path);
 
   /* relative paths */
-  for(int i = 0; i < COUNT_OF(dirs); i++) {
+  for(int i = 0; i < (int)COUNT_OF(dirs); i++) {
     if(dirs[i]) {
       char path[2*MAX_PATH];
 

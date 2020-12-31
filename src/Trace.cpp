@@ -161,7 +161,7 @@ void Trace::traceEvent(int eventTraceLevel, const char* _file,
 
     while(buf[strlen(buf)-1] == '\n') buf[strlen(buf)-1] = '\0';
 
-    snprintf(out_buf, sizeof(out_buf), "%s [%s:%d] %s%s", theDate, file, line, extra_msg, buf);
+    snprintf(out_buf, sizeof(out_buf)-1, "%s [%s:%d] %s%s", theDate, file, line, extra_msg, buf);
 
     if(logFd) {
       rotate_mutex.lock(__FILE__, __LINE__); /* Need to lock as a rotation may be in progress */

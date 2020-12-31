@@ -162,14 +162,14 @@ bool AddressResolution::resolveHost(char *host, char *rsp, u_int rsp_len, bool v
 
 /* **************************************************** */
 
-static void* resolveLoop(void* ptr) {
-  Utils::setThreadName("resolveLoop");
-
+void* resolveLoop(void* ptr) {
   AddressResolution *a = (AddressResolution*)ptr;
   Redis *r = ntop->getRedis();
   u_int no_resolution_loops = 0;
   const u_int max_num_idle_loops = 3;
 
+  Utils::setThreadName("resolveLoop");
+  
   while(!ntop->getGlobals()->isShutdown()) {
     char numeric_ip[64];
     int rc = r->popHostToResolve(numeric_ip, sizeof(numeric_ip));

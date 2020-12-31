@@ -5349,7 +5349,7 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t 
     if(((filter == NDPI_PROTOCOL_ANY_CATEGORY)
 	|| proto_defaults[i].protoCategory == filter) &&
 	(!skip_critical || !Utils::isCriticalNetworkProtocol(i))) {
-      snprintf(buf, sizeof(buf), "%d", i);
+      snprintf(buf, sizeof(buf)-1, "%d", i);
       if(!proto_defaults[i].protoName)
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "NULL protoname for index %d!!", i);
       else
