@@ -4587,7 +4587,7 @@ local lang = {
     ["allowed"] = "Allowed",
     ["denied"] = "Denied",
     ["learning"] = "Learning",
-    ["unknown"] = "Unknown",
+    ["undecided"] = "Undecided",
   },
   ["traffic_page"] = {
     ["flow_distribution"] = "Flow Distribution",

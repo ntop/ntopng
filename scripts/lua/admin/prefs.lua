@@ -782,7 +782,7 @@ function printNetworkBehaviour()
   local LEARNING_STATUS = { -- Keep it in sync with ntop_typedefs.h ServiceAcceptance
     ALLOWED = "0",
     DENIED = "1",
-    UNKNOWN = "2"
+    UNDECIDED = "2"
   }
 
   print('<form method="post">')
@@ -812,8 +812,8 @@ function printNetworkBehaviour()
     multipleTableButtonPrefs(
         subpage_active.entries["behaviour_analysis_learning_status_during_learning"].title,
         subpage_active.entries["behaviour_analysis_learning_status_during_learning"].description,
-        {i18n("traffic_behaviour.unknown"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
-        {LEARNING_STATUS.UNKNOWN, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
+        {i18n("traffic_behaviour.undecided"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
+        {LEARNING_STATUS.UNDECIDED, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
         LEARNING_STATUS.ALLOWED, -- [default value]
         "primary", -- [selected color]
         "behaviour_analysis_learning_status_during_learning",
@@ -824,8 +824,8 @@ function printNetworkBehaviour()
     multipleTableButtonPrefs(
       subpage_active.entries["behaviour_analysis_learning_status_post_learning"].title,
       subpage_active.entries["behaviour_analysis_learning_status_post_learning"].description,
-      {i18n("traffic_behaviour.unknown"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
-      {LEARNING_STATUS.UNKNOWN, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
+      {i18n("traffic_behaviour.undecided"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")}, 
+      {LEARNING_STATUS.UNDECIDED, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED},
       LEARNING_STATUS.ALLOWED, -- [default value]
       "primary",
       "behaviour_analysis_learning_status_post_learning",
