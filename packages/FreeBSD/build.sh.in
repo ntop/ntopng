@@ -11,7 +11,7 @@ mkdir -p ${STAGEDIR}
 
 cat >> ${STAGEDIR}/+MANIFEST <<EOF
 name:        ntopng
-version:     "@PACKAGE_VERSION@"
+version:     "@PACKAGE_VERSION@,1"
 origin:      net/ntopng
 comment:     "High speed network traffic monitor"
 desc:        "Web-based network traffic monitoring tool"
@@ -78,5 +78,6 @@ cd $HERE
 rm -f *.txz
 pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o $HERE
 
-tar -tvf ntopng-@PACKAGE_VERSION@.txz
-cp ntopng-@PACKAGE_VERSION@.txz ~/binary_packages/
+tar -tvf ntopng-@PACKAGE_VERSION@,1.txz
+/bin/rm -f ~/binary_packages/ntopng-*.txz
+cp ntopng-@PACKAGE_VERSION@,1.txz ~/binary_packages/
