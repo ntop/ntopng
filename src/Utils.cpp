@@ -2919,12 +2919,18 @@ u_int32_t Utils::macHash(const u_int8_t * const mac) {
 
 /* ****************************************************** */
 
+bool Utils::isEmptyMac(u_int8_t *mac) {
+  u_int8_t zero[6] = { 0, 0, 0, 0, 0, 0 };
+
+  return (memcmp(mac, zero, 6) == 0);
+}
+
+/* ****************************************************** */
+
 /* https://en.wikipedia.org/wiki/Multicast_address */
 /* https://hwaddress.com/company/private */
 bool Utils::isSpecialMac(u_int8_t *mac) {
-  u_int8_t zero[6] = { 0, 0, 0, 0, 0, 0 };
-
-  if(memcmp(mac, zero, 6) == 0)
+  if(isEmptyMac(mac))
     return(true);
   else {
     u_int16_t v2 = (mac[0] << 8) + mac[1];
