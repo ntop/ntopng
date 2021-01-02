@@ -232,7 +232,7 @@ local http_status_code_map = {
 
 -- ##############################################
 
-function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers, status_code)   
+function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers, status_code)
    info = ntop.getInfo(false)
    local cookie_attr = ntop.getCookieAttributes()
    local lines = {
@@ -244,34 +244,34 @@ function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_h
       'Content-Type: '.. mime,
       'Last-Modified: '..os.date("!%a, %m %B %Y %X %Z"),
    }
-   
+
    if(_SESSION ~= nil) then
       lines[#lines + 1] = 'Set-Cookie: session='.._SESSION["session"]..'; max-age=' .. maxage .. '; path=/; ' .. cookie_attr
    end
-   
+
    if(ifname ~= nil) then
       lines[#lines + 1] = 'Set-Cookie: ifname=' .. ifname .. '; path=/' .. cookie_attr
    end
-   
+
    if(content_disposition ~= nil) then
       lines[#lines + 1] = 'Content-Disposition: '..content_disposition
    end
-   
+
    if type(extra_headers) == "table" then
       for hname, hval in pairs(extra_headers) do
 	 lines[#lines + 1] = hname..': '..hval
       end
    end
-   
+
    if not status_code then
       status_code = 200
    end
-   
+
    local status_descr = http_status_code_map[status_code]
    if not status_descr then
       status_descr = "Unknown"
    end
-   
+
    -- Buffer the HTTP reply and write it in one "print" to avoid fragmenting
    -- it into multiple packets, to ease HTTP debugging with wireshark.
    print("HTTP/1.1 " .. status_code .. " " .. status_descr .. "\r\n" .. table.concat(lines, "\r\n") .. "\r\n\r\n")
@@ -285,7 +285,7 @@ end
 
 -- ##############################################
 
-function sendHTTPHeader(mime, content_disposition, extra_headers, status_code)   
+function sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
    sendHTTPHeaderIfName(mime, nil, 3600, content_disposition, extra_headers, status_code)
 end
 
@@ -828,7 +828,7 @@ end
 
 function isBroadcastMulticast(ip)
    local ainfo = interface.getAddressInfo(ip)
-   
+
    if(ainfo.is_multicast or ainfo.is_broadcast) then
       return true
    else
@@ -1023,7 +1023,7 @@ end
 -- Members supported format
 -- 192.168.1.10/32@10
 -- 00:11:22:33:44:55
--- 
+--
 
 function isValidPoolMember(member)
   if isEmptyString(member) then
@@ -1039,7 +1039,7 @@ function isValidPoolMember(member)
   if ((vlan_idx == nil) or (vlan_idx == 1)) then
      return false
   end
-  
+
   local other = string.sub(member, 1, vlan_idx-1)
   local vlan = tonumber(string.sub(member, vlan_idx+1))
   if (vlan == nil) or (vlan < 0) then
@@ -1658,28 +1658,39 @@ end
 -- @param href_value A string containing the visible value shown between a href tags
 -- @param href_tooltip A string containing a tooltip shown when hovering the mouse on the link
 -- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
+-- @param href_only_with_ts True means that a HREF is geneated only of there are timeseries for this host
 -- @return A string containing the a href link or a plain string without a href
-function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, href_check)
-   local detailLevel = ntop.getCache("ntopng.prefs.hosts_ts_creation")
-   
-   if(detailLevel == "full") then
-      local l7 = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
+function hostinfo2detailshref(host_info, href_params, href_value, href_tooltip, href_check, href_only_with_ts)
+   local show_href = false
 
-      if(l7 ~= "none") then
-	 local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
-	 
-	 if not isEmptyString(hostdetails_url) then
-	    res = string.format("<a href='%s' data-toggle='tooltip' title='%s'>%s</a>",
-				hostdetails_url, href_tooltip or '', href_value or '')
-	 else
-	    res = href_value or ''
+   if(href_only_with_ts == true) then
+      local detailLevel = ntop.getCache("ntopng.prefs.hosts_ts_creation")
+
+      if(detailLevel == "full") then
+	 local l7 = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
+
+	 if(l7 ~= "none") then
+	    show_href = true
 	 end
-	 
-	 return res
       end
+   else
+      show_href = true
    end
-   
-   return(href_value)
+
+   if(show_href) then
+      local hostdetails_url = hostinfo2detailsurl(host_info, href_params, href_check)
+
+      if not isEmptyString(hostdetails_url) then
+	 res = string.format("<a href='%s' data-toggle='tooltip' title='%s'>%s</a>",
+			     hostdetails_url, href_tooltip or '', href_value or '')
+      else
+	 res = href_value or ''
+      end
+
+      return res
+   else
+      return(href_value)
+   end
 end
 
 -- ##############################################
@@ -2301,7 +2312,7 @@ end
 
 function getHumanReadableInterfaceName(interface_name)
    local interface_id = nil
-   
+
    if(interface_name == "__system__") then
       return(i18n("system"))
    elseif tonumber(interface_name) ~= nil then
