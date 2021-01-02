@@ -4089,11 +4089,11 @@ local lang = {
     ["learning"] = "The Service Map is <b>learning</b>...",
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",
     ["note_1"] = "During the <b>learning</b>, a service status cannot be changed.",
-    ["note_2"] = "The services with the Undefined (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be Allowed (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or Denied (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).",
+    ["note_2"] = "The services with the <b>Undecided</b> (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be <b>Allowed</b> (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or <b>Denied</b> (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).",
     ["set_state"] = "Set %{label} service(s) status to: ",
     ["status"] = "Status",
     ["table_view"] = "Table View",
-    ["undefined"] = "Undefined",
+    ["undecided"] = "Undecided",
   },
   ["severity_groups"] = {
     ["group_error_or_higher"] = "Error or Higher",
