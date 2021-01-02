@@ -42,21 +42,21 @@ cp ../etc/ntopng/ntopng.conf ${STAGEDIR}/usr/local/etc/ntopng
 
 #######
 
+mkdir -p ${STAGEDIR}/usr/local/share/man/man8
 cp ${NTOPNG_HOME}/ntopng.8 ${STAGEDIR}/usr/local/share/man/man8
 cp -r ${NTOPNG_HOME}/httpdocs ${STAGEDIR}/usr/local/share/ntopng
 rm -f ${STAGEDIR}/usr/local/share/ntopng/httpdocs/misc/ntopng-utils-manage*
 cp -Lr ${NTOPNG_HOME}/scripts ${STAGEDIR}/usr/local/share/ntopng  # L to dereference symlinks
 mv ${STAGEDIR}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy ${STAGEDIR}/usr/local/share/ntopng/httpdocs/ssl/ntopng-cert.pem
-if test -d "${NTOPNG_HOME}/pro"; then \
-mkdir ${STAGEDIR}/usr/local/share/ntopng/pro; \
-cp -r ${NTOPNG_HOME}/pro/httpdocs ${STAGEDIR}/usr/local/share/ntopng/pro; \
-cp -r ${NTOPNG_HOME}/pro/scripts ${STAGEDIR}/usr/local/share/ntopng/pro; \
-rm -rf ${STAGEDIR}/usr/local/share/ntopng/pro/scripts/lua/nedge; \
-cd ${STAGEDIR}/usr/local/share/ntopng/scripts/lua; rm -rf pro; ln -s ../../pro/scripts/lua pro; \
-find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}/pro/utils/snzip -c -i {} -o {}r \;; \
-find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
-find ${STAGEDIR}/usr/local/share/ntopng/pro/scripts -name "*.luar" | xargs renamex -s/.luar/.lua/s; \
-fi
+mkdir ${STAGEDIR}/usr/local/share/ntopng/pro
+cp -r ${NTOPNG_HOME}/pro/httpdocs ${STAGEDIR}/usr/local/share/ntopng/pro
+cp -r ${NTOPNG_HOME}/pro/scripts ${STAGEDIR}/usr/local/share/ntopng/pro
+rm -rf ${STAGEDIR}/usr/local/share/ntopng/pro/scripts/lua/nedge
+cd ${STAGEDIR}/usr/local/share/ntopng/scripts/lua; rm -rf pro; cp -r ../../pro/scripts/lua pro
+find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec ${NTOPNG_HOME}/pro/utils/snzip -c -i {} -o {}r \;
+find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';';
+find ${STAGEDIR}/usr/local/share/ntopng/pro/scripts -name "*.luar" | xargs renamex -s/.luar/.lua/s;
+
 rm -f ${STAGEDIR}/usr/local/share/ntopng/httpdocs/geoip/*
 find ${STAGEDIR}/usr/local/share/ntopng -name "*~"   | xargs /bin/rm -f
 find ${STAGEDIR}/usr/local/share/ntopng -name ".svn" | xargs /bin/rm -rf
@@ -79,4 +79,4 @@ rm -f *.txz
 pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o $HERE
 
 tar -tvf ntopng-@PACKAGE_VERSION@.txz
-
+cp ntopng-@PACKAGE_VERSION@.txz ~/binary_packages/
