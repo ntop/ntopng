@@ -31,10 +31,16 @@ command_args="/usr/local/etc/ntopng/ntopng.conf"
 
 ntopng_precmd()
 {
-	local rundir=${ntopng_pidfile%/*}
-	if [ ! -d $rundir ] ; then
-		install -d -m 0755 -o ntopng -g ntopng $rundir
-	fi
+    local rundir=${ntopng_pidfile%/*}
+
+    if ! id "ntopng" >/dev/null 2>&1; then
+	# nopng user does not exist: create it !
+	pw useradd ntopng -s /sbin/nologin -d /nonexistent -c "ntopng user" -w no
+    fi
+    
+    if [ ! -d $rundir ] ; then
+   	install -d -m 0755 -o ntopng -g ntopng $rundir
+    fi
 }
 
 run_rc_command "$1"
