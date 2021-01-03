@@ -62,7 +62,7 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
    if test $SYSTEM = "Darwin"; then
      OS="MacOSX $OSXV"
    else
-     OS=`uname -or`
+     OS=`uname -or | cut -d '-' -f 1`
    fi
    if test $MACHINE = "x86_64"; then
       LDFLAGS="${LDFLAGS} -L/usr/local/opt/ntopng"
