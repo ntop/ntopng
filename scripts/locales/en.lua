@@ -2081,6 +2081,7 @@ local lang = {
   ["flow_risk"] = {
     ["ndpi_binary_application_transfer"] = "Suspicious File Transfer",
     ["ndpi_dns_suspicious_traffic"] = "Suspicious DNS Traffic",
+    ["ndpi_http_invalid_content"] = "Invalid HTTP content",
     ["ndpi_http_numeric_ip_host"] = "HTTP Numeric IP Host",
     ["ndpi_http_suspicious_header"] = "HTTP Suspicious Header",
     ["ndpi_http_suspicious_url"] = "HTTP Suspicious URL",
