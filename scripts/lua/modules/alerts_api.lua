@@ -88,15 +88,20 @@ end
 
 -- ##############################################
 
-local function get_alert_triggered_key(type_info)
-  if type_info == nil or type_info.alert_type == nil or type_info.alert_type.alert_key == nil then
-    if type_info == nil then traceError(TRACE_ERROR, TRACE_CONSOLE, "type_info is nil") end
-    if type_info.alert_type == nil then traceError(TRACE_ERROR, TRACE_CONSOLE, "type_info.alert_type is nil") end
-    if type_info.alert_type.alert_key == nil then traceError(TRACE_ERROR, TRACE_CONSOLE, "type_info.alert_type.alert_key is nil") end
-    traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
-  end
+local function get_alert_triggered_key(alert_key, alert_subtype)
+   if not alert_key or not alert_subtype then
+      if not alert_subtype then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, "alert_subtype is nil")
+      end
+      if not alert_key then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, "alert_key is nil")
+      end
+      traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
+   end
 
-  return(string.format("%d@%s", type_info.alert_type.alert_key, type_info.alert_subtype or ""))
+   local res = string.format("%d@%s", alert_key, alert_subtype)
+
+   return res
 end
 
 -- ##############################################
@@ -273,7 +278,6 @@ end
 --! @note The actual trigger is performed asynchronously
 --! @note false is also returned if an existing alert is found and refreshed
 function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
-
   if(not areAlertsEnabled()) then
     return(false)
   end
@@ -302,7 +306,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
 
   local alert_json = json.encode(type_info.alert_type_params)
   local triggered
-  local alert_key_name = get_alert_triggered_key(type_info)
+  local alert_key_name = get_alert_triggered_key(type_info.alert_type.alert_key, subtype)
 
   local params = {
     alert_key_name, granularity_id,
@@ -361,7 +365,6 @@ end
 --! @note The actual release is performed asynchronously
 --! @return true on success, false otherwise
 function alerts_api.release(entity_info, type_info, when, cur_alerts)
-
   if(not areAlertsEnabled()) then
     return(false)
   end
@@ -377,7 +380,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   end
 
   when = when or os.time()
-  local alert_key_name = get_alert_triggered_key(type_info)
+  local alert_key_name = get_alert_triggered_key(type_info.alert_type.alert_key, subtype)
   local ifid = interface.getId()
   local params = {alert_key_name, granularity_id, when}
   local released = nil
@@ -429,15 +432,22 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
     alerts = interface.getEngagedAlerts(entity_info.alert_entity.entity_id, entity_info.alert_entity_val)
   end
 
-  for _, alert in pairs(alerts) do
-    -- NOTE: do not pass alerts here as a parameters as deleting items while
-    -- does not work in lua
-    alerts_api.release(entity_info, {
-      alert_type = alert_consts.alert_types[alert_consts.alertTypeRaw(alert.alert_type)],
-      alert_severity = alert_severities[alert_consts.alertSeverityRaw(alert.alert_severity)],
-      alert_subtype = alert.alert_subtype,
-      alert_granularity = alert_consts.alerts_granularities[alert_consts.sec2granularity(alert.alert_granularity)],
-    })
+  for _, cur_alert in pairs(alerts) do
+     -- NOTE: do not pass alerts here as a parameters as deleting items while
+     -- does not work in lua
+
+     local cur_alert_type = alert_consts.alert_types[alert_consts.alertTypeRaw(cur_alert.alert_type)]
+     -- Instantiate the alert.
+     -- NOTE: No parameter is passed to :new() as parameters are NOT used when releasing alerts
+     -- This may change in the future.
+     local cur_alert_instance = cur_alert_type:new(--[[ empty, no parameters for the release --]])
+
+     -- Set alert params.
+     cur_alert_instance:set_severity(alert_severities[alert_consts.alertSeverityRaw(cur_alert.alert_severity)])
+     cur_alert_instance:set_subtype(cur_alert.alert_subtype)
+     cur_alert_instance:set_granularity(alert_consts.sec2granularity(cur_alert.alert_granularity))
+
+     cur_alert_instance:release(entity_info)
   end
 end
 
