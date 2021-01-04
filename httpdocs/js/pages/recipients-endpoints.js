@@ -227,10 +227,10 @@ $(document).ready(function () {
                 data: null,
                 render: function (_, type, recipient) {
 
-                    if (!recipient.endpoint_conf) return;
+                    if (!recipient.endpoint_conf) return '';
 
                     const isBuiltin = (recipient.endpoint_conf && recipient.endpoint_conf.builtin) || false;
-                    if (isBuiltin) return;
+                    if (isBuiltin) return '';
 
                     return DataTableUtils.createActionButtons([
                         { class: 'btn-info', icon: 'fa fa-users', modal: '#users-recipient-modal' },

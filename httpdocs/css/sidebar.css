@@ -268,6 +268,7 @@
 
 @media (min-width: 320px) and (max-width: 480px) {
 
+
     footer {
         font-size: 0.8rem;
         height: 6rem;
@@ -275,7 +276,7 @@
     }
 
     .body {
-        padding-top: 7rem;
+        padding-top: 3rem;
     }
 
     main#n-container {

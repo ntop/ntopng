@@ -577,12 +577,12 @@ path.link {
 }
 
 main#n-container {
-  overflow-x: hidden;
+  height: 100%;
   display: flex;
   flex-flow: column;
   display: inline-block;
   width: 100%;
-  padding-left: calc(var(--sidebar-width) + 1.3rem) !important;
+  padding-left: calc(var(--sidebar-width) + 1rem) !important;
 }
 
 .info-stats div.down,
@@ -894,4 +894,7 @@ footer {
 }
 .largegroup {
   width:500px
+}
+.dtr-details {
+  width: 100%;
 }

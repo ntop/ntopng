@@ -865,8 +865,8 @@ end -- num_ifaces > 0
 -- ##############################################
 
 print([[
-   <nav class="navbar navbar-expand-md navbar-expand-lg fixed-top navbar-light" id='n-navbar'>
-      <ul class='navbar-nav mr-auto'>
+   <nav class="navbar navbar-expand-md navbar-expand-lg fixed-top navbar-light justify-content-between" id='n-navbar'>
+      <ul class='navbar-nav flex-row flex-wrap'>
          <li class='nav-item'>
             <button class='btn btn-outline-dark border-0 btn-sidebar' data-toggle='sidebar'>
                <i class="fas fa-bars"></i>
@@ -1022,7 +1022,7 @@ print([[
 if not is_pcap_dump and not is_system_interface then
 
    print([[
-      <li class='nav-item d-none d-md-flex d-lg-flex ml-2'>
+      <li class='nav-item d-none d-sm-done d-md-flex d-lg-flex ml-2'>
          <div class='info-stats'>
             ]].. page_utils.generate_info_stats() ..[[
          </div>
@@ -1063,7 +1063,7 @@ end
 -- ########################################
 -- Network Load
 print([[
-   <li class="network-load d-none d-sm-block"></li>
+   <li class="network-load d-none d-lg-inline"></li>
 ]])
 
 
@@ -1071,11 +1071,17 @@ print([[
 -- end of navbar-nav
 print('</ul>')
 
+print([[
+<ul class='navbar-nav flex-row ml-auto'>
+]])
+
 -- ########################################
 -- Searchbox hosts
 -- append searchbox
 
+
 if (not is_system_interface) then
+   print("<li class='nav-item'>")
    print(
       template.gen("typeahead_input.html", {
             typeahead={
@@ -1093,14 +1099,12 @@ if (not is_system_interface) then
             }
       })
    )
+   print("</li>")
 end
 
 -- #########################################
 -- User Navbar Menu
 
-print([[
-<ul class='navbar-nav flex-row'>
-]])
 
 -- Render Blog Notifications
 if (not info.oem) then

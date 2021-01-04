@@ -125,7 +125,7 @@ $(document).ready(function () {
                 render: (_, type, endpoint) => {
 
                     const isBuiltin = endpoint.endpoint_conf.builtin || false;
-                    if (isBuiltin) return;
+                    if (isBuiltin) return '';
 
                     return DataTableUtils.createActionButtons([
                         {class: 'btn-info', icon: 'fa-edit', modal: '#edit-endpoint-modal' },

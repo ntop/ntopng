@@ -163,7 +163,7 @@ class DataTableFiltersMenu {
         $dropdownContainer.append($dropdownButton);
         $dropdownContainer.append($menuContainer);
         // append the dropdown menu inside the filter wrapper
-        this.$datatableWrapper.find('.dataTables_filter').prepend($dropdownContainer);
+        $dropdownContainer.insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent())
 
         this._selectFilterFromState(this.filterMenuKey);
     }
@@ -209,7 +209,7 @@ class DataTableUtils {
     /**
      * Return a standard config for the Sprymedia (c) DataTables
      */
-    static getStdDatatableConfig(dtButtons = [], dom = "<'d-flex'<'mr-auto'l><'dt-search'f>B>rtip") {
+    static getStdDatatableConfig(dtButtons = [], dom = "<'d-flex flex-wrap'<'mr-auto'l><'dt-search'f>B>rtip") {
 
         if (dtButtons.length == 0) {
             dom = "fbrtip";
@@ -231,6 +231,7 @@ class DataTableUtils {
                 }
             },
             saveState: true,
+            responsive: true,
             buttons: {
                 buttons: dtButtons,
                 dom: {
@@ -238,7 +239,7 @@ class DataTableUtils {
                         className: 'btn btn-link'
                     },
                     container: {
-                        className: 'border-left ml-1 float-right'
+                        className: 'border-left ml-1 d-flex flex-md-row'
                     }
                 }
             }
