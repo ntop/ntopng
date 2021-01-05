@@ -351,9 +351,10 @@ void LocalHostStats::saveOldSites() {
       hour = 23;
     else
       hour = t_now.tm_hour - 1;
+
     /* List key = ntopng.cache.top_sites_hour_done | value = 1.1.1.1@2_1_11 */
     snprintf(hour_done, sizeof(hour_done), "%s@%u_%u_%u", host->get_ip()->print(ip_buf, sizeof(ip_buf)), 
-              host->get_vlan_id(), host->getInterface()->get_id(), );
+              host->get_vlan_id(), host->getInterface()->get_id(), hour);
 
     ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED, hour_done, 3600);
     current_cycle = 0;
