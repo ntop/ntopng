@@ -23,6 +23,40 @@ end
 
 -- ##############################################
 
+-- @brief Parses params submitted along with the REST endpoint request
+-- @param params_table A table with submitted params, either _POST or _GET
+-- @return True if parameters parsing is successful, false otherwise
+function datasource:_rest_read_params(params_table)
+   if not params_table then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      self.parsed_params = nil
+      return false
+   end
+
+   self.parsed_params = {}
+   for _, param in pairs(self.meta.params or {}) do
+      local parsed_param = params_table[param]
+
+      -- Assumes all params mandatory and not empty
+      -- May override this behavior in subclasses
+      if isEmptyString(parsed_param) then
+	 -- Send the error response
+	 rest_utils.answer(rest_utils.consts.err.invalid_args)
+	 -- Reset any possibly set param
+	 self.parsed_params = nil
+
+	 return false
+      end
+
+      self.parsed_params[param] = parsed_param
+   end
+
+   -- Ok, parsin has been successful
+   return true
+end
+
+-- ##############################################
+
 -- @brief Deserializes REST endpoint response into an internal datamodel
 -- @param rest_response_data Response data as obtained from the REST call
 function datasource:deserialize(rest_response_data)

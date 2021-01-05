@@ -26,8 +26,11 @@ local packet_distro = classes.class(datasource)
 packet_distro.meta = {
    i18n_title = "Interface Packet Distribution",
    icon = "fas fa-exclamation",
-   rest_endpoint = "/lua/rest/v1/datasources/interface/packet_distro.lua",
+   rest_endpoint = "/lua/rest/v1/get/datasource/interface/packet_distro.lua",
    datamodel = datamodel,
+   params = {
+      "ifid" -- validated according to http_lint.lua
+   },
 }
 
 -- ##############################################
@@ -40,19 +43,28 @@ end
 
 -- #######################################################
 
-function packet_distro.rest_response()
-   -- TODO: parse get params
-  local m = packet_distro.meta.datamodel:create("packet distro")
-  local when = os.time()
-  local dataset = getInterfaceName(interface.getId()).. " Packet Distribution"
+function packet_distro:rest_send_response()
+   if not self:_rest_read_params(_POST) then
+      -- Params parsing has failed, error response already sent by the caller
+      return
+   end
 
-  m:appendRow(when, dataset, {1, 2})
-  m:appendRow(when, dataset, {3, 4})
+   -- If here, all parameters listed in self.meta.params have been parsed successfully
+   -- and are available in self.parsed_params
 
-  rest_utils.answer(
-     rest_utils.consts.success.ok,
-     m:getAsTable() -- TODO: this should be a generic response, not Table
-  )
+   interface.select(self.parsed_params.ifid)
+
+   local m = self.meta.datamodel:create("packet distro")
+   local when = os.time()
+   local dataset = getInterfaceName(interface.getId()).. " Packet Distribution"
+
+   m:appendRow(when, dataset, {1, 2})
+   m:appendRow(when, dataset, {3, 4})
+
+   rest_utils.answer(
+      rest_utils.consts.success.ok,
+      m:getAsTable() -- TODO: this should be a generic response, not Table
+   )
 end
 
 -- #######################################################
