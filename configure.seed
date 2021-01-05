@@ -25,11 +25,11 @@ AS_IF([test "${with_sanitizer+set}" = set],[
     CPP=$CC
 ])
 
-PWD=`pwd`
+HERE=`pwd`
 
 dnl> Add /usr/local/ /opt/local
-CFLAGS="${CFLAGS} -I${PWD} -I${PWD}/include"
-CPPFLAGS="${CPPFLAGS} -I${PWD} -I${PWD}/include"
+CFLAGS="${CFLAGS} -I${HERE} -I${HERE}/include"
+CPPFLAGS="${CPPFLAGS} -I${HERE} -I${HERE}/include"
 NTOPNG_VERSION="@VERSION@"
 NTOPNG_SHORT_VERSION="@SHORT_VERSION@"
 
@@ -53,10 +53,13 @@ fi
 
 CFLAGS="${CFLAGS} -Wall"
 OS=""
+MAKE=make
+
 if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
    dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
    CC=clang
-   CXX=clang++   
+   CXX=clang++
+   MAKE=gmake
    dnl> CXX=clang++ -fsanitize=address -fsanitize-address-use-after-scope
    OSXV=`sw_vers -productVersion`
    if test $SYSTEM = "Darwin"; then
@@ -79,7 +82,7 @@ else
       CXX=clang++
       AC_MSG_RESULT(Using clang++ compiler)
     fi
-    
+
     if [ test -f /etc/redhat-release ]; then
        :
     else
@@ -95,7 +98,7 @@ OS="${OS#"${OS%%[![:space:]]*}"}"
 
 AC_CHECK_LIB([gpg-error], [gpg_strerror], [LDFLAGS="${LDFLAGS} -lgpg-error"])
 AC_CHECK_LIB([atomic], [__atomic_exchange_8], [LDFLAGS="${LDFLAGS} -latomic"])
-  
+
 NEDGE=0
 if test "${with_nedge+set}" = set; then
   AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
@@ -215,7 +218,7 @@ PKG_CHECK_MODULES([NDPI], [libndpi >= 2.0], [
             AC_MSG_RESULT(found $NDPI_LIB)
          else
             AC_MSG_RESULT(not found $NDPI_LIB: compiling)
-            cd $NDPI_HOME; ./autogen.sh; make; cd -
+            cd $NDPI_HOME; ./autogen.sh; ${MAKE}; cd -
          fi
          NDPI_INC="-I$NDPI_HOME/src/include -I$NDPI_HOME/src/lib/third_party/include"
          NDPI_LIB=$NDPI_HOME/src/lib/libndpi.a
@@ -235,7 +238,7 @@ fi
 
 if test -z "$NDPI_INC" || test -z "$NDPI_LIB" ; then :
   echo "Could not find nDPI"
-  echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; make; cd ../ntopng"
+  echo "Please do cd ..; git clone https://github.com/ntop/nDPI.git; cd nDPI; ./autogen.sh; ${MAKE}; cd ../ntopng"
   echo "and try again"
   exit 1
 fi
@@ -256,7 +259,7 @@ dnl> if test -f "/usr/bin/lsb_release"; then
 dnl>   UBUNTU_RELEASE=`lsb_release -r|cut -f 2|cut -f 1 -d '.'`
 dnl>   if test "$UBUNTU_RELEASE" = "18" || test "$UBUNTU_RELEASE" = "20"; then
 dnl>     cd third-party/json-c && cmake . && make && cd -
-dnl>     JSON_HOME=${PWD}/third-party/json-c
+dnl>     JSON_HOME=${HERE}/third-party/json-c
 dnl>     JSON_INC=-I$JSON_HOME
 dnl>     JSON_LIB=$JSON_HOME/libjson-c.a
 dnl>   fi
@@ -327,7 +330,7 @@ PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
 
 if test "${with_nedge+set}" != set; then
   if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" || test $MACHINE = "aarch64"; then
-    cd ../PF_RING/userland/nbpf; ./configure; make; cd -
+    cd ../PF_RING/userland/; ./configure; cd ./nbpf; ${MAKE}; cd ${HERE}
     LDFLAGS="${LDFLAGS} -L../PF_RING/userland/nbpf -lnbpf"
   fi
 fi
@@ -337,8 +340,8 @@ if test "${with_nedge+set}" != set; then
   if test -d "${HOME}/nIndex"; then
     NINDEX_HOME=${HOME}/nIndex
   else
-    if test -d "${PWD}/../nIndex"; then
-     NINDEX_HOME=${PWD}/../nIndex
+    if test -d "${HERE}/../nIndex"; then
+     NINDEX_HOME=${HERE}/../nIndex
     fi
   fi
 
@@ -357,8 +360,8 @@ dnl> Remove heading spaces
 AC_DEFINE_UNQUOTED(NTOPNG_PRO, 1, [Building ntopng professional])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_RELEASE, "r${PRO_GIT_RELEASE}", [ntopng professional release])
 AC_DEFINE_UNQUOTED(NTOPNG_PRO_GIT_DATE, "${PRO_GIT_DATE}", [ntopng professional date])
-DUMMY=`cd ./pro; make build`
-PRO_INCS="${PRO_INCS} -I${PWD}/pro -I${PWD}/pro/utils -I${PWD}/pro/third-party/libb64-1.2.1/include"
+DUMMY=`cd ./pro; ${MAKE} build`
+PRO_INCS="${PRO_INCS} -I${HERE}/pro -I${HERE}/pro/utils -I${HERE}/pro/third-party/libb64-1.2.1/include"
 
 if test -r "../license/systemId.c"; then :
   LICENSELIBS="-L`pwd`/../license -llicense"
@@ -415,14 +418,19 @@ if test -d "/usr/include/hiredis"; then
   HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
   HIREDIS_LIB="`pkg-config --libs hiredis` -lhiredis"
 else
-  HIREDIS_INC="-I ${PWD}/third-party/hiredis"
+  HIREDIS_INC="-I ${HERE}/third-party/hiredis"
 fi
 
 if test "${with_nedge+set}" != set; then
  PF_RING_HOME=${HOME}/PF_RING
- if test -d ${PF_RING_HOME}; then
-   AC_MSG_CHECKING(for PF_RING source installed in $PF_RING_HOME)
- fi
+
+  if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
+     # No need to check for PF_RING
+  else
+    if test -d ${PF_RING_HOME}; then
+      AC_MSG_CHECKING(for PF_RING source installed in $PF_RING_HOME)
+    fi
+  fi
 
  if test -f "/usr/local/lib/libpfring.a" || test -f "/opt/pfring/lib/libpfring.a" || test -f "${PF_RING_HOME}/userland/lib/libpfring.a"; then
   AC_DEFINE_UNQUOTED(HAVE_PF_RING, 1, [Native PF_RING support])
@@ -694,11 +702,6 @@ if test x$GIT = x; then
   AC_MSG_RESULT(FATAL ERROR: git is not installed on your host)
 fi
 
-WGET=`which wget`
-if test x$WGET = x; then
-  AC_MSG_RESULT(ERROR. wget is not installed on your host: you cannot download GeoIP data)
-fi
-
 umask 002
 
 INSTALL_DIR=${prefix}
@@ -722,6 +725,7 @@ if test $GIT_BRANCH != "dev"; then
   STABLE_SUFFIX="-stable"
 fi
 
+PWD=${HERE}
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
 AC_DEFINE_UNQUOTED(PACKAGE_MACHINE, "$MACHINE", [Architecture of this host])
 AC_DEFINE_UNQUOTED(PACKAGE_OS, "${OS}", [OS Name])
