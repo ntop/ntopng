@@ -59,7 +59,9 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
    dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
    CC=clang
    CXX=clang++
-   MAKE=gmake
+   if test $SYSTEM = "FreeBSD"; then
+    MAKE=gmake
+   fi
    dnl> CXX=clang++ -fsanitize=address -fsanitize-address-use-after-scope
    OSXV=`sw_vers -productVersion`
    if test $SYSTEM = "Darwin"; then
@@ -425,7 +427,7 @@ if test "${with_nedge+set}" != set; then
  PF_RING_HOME=${HOME}/PF_RING
 
   if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
-     # No need to check for PF_RING
+     echo "No need to check for PF_RING: platform not supported"
   else
     if test -d ${PF_RING_HOME}; then
       AC_MSG_CHECKING(for PF_RING source installed in $PF_RING_HOME)
