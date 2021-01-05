@@ -43,28 +43,18 @@ end
 
 -- #######################################################
 
-function packet_distro:rest_send_response()
-   if not self:_rest_read_params(_POST) then
-      -- Params parsing has failed, error response already sent by the caller
-      return
-   end
-
-   -- If here, all parameters listed in self.meta.params have been parsed successfully
+function packet_distro:fetch()
+   -- Assumes all parameters listed in self.meta.params have been parsed successfully
    -- and are available in self.parsed_params
 
-   interface.select(self.parsed_params.ifid)
+   interface.select(tostring(self.parsed_params.ifid))
 
-   local m = self.meta.datamodel:create("packet distro")
+   self.datamodel_instance = self.meta.datamodel:create("packet distro")
    local when = os.time()
    local dataset = getInterfaceName(interface.getId()).. " Packet Distribution"
 
-   m:appendRow(when, dataset, {1, 2})
-   m:appendRow(when, dataset, {3, 4})
-
-   rest_utils.answer(
-      rest_utils.consts.success.ok,
-      m:getAsTable() -- TODO: this should be a generic response, not Table
-   )
+   self.datamodel_instance:appendRow(when, dataset, {1, 2})
+   self.datamodel_instance:appendRow(when, dataset, {3, 4})
 end
 
 -- #######################################################

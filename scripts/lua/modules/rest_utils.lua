@@ -54,6 +54,7 @@ local rest_utils = {
 	 snmp_device_interface_status_change_failed = { http_code = 400, rc = -26, str = "SNMP_DEVICE_INTERFACE_STATUS_CHANGE_FAILED"},
          configuration_file_mismatch                = { http_code = 400, rc = -27, str = "CONFIGURATION_FILE_MISMATCH" },
          partial_import                             = { http_code = 409, rc = -28, str = "PARTIAL_IMPORT" },
+
          -- Infrastructure Dashboard
          add_infrastructure_instance_failed         = { http_code = 409, rc = -29, str = "ADD_INFRASTRUCTURE_INSTANCE_FAILED"},
          edit_infrastructure_instance_failed        = { http_code = 409, rc = -30, str = "EDIT_INFRASTRUCTURE_INSTANCE_FAILED"},
@@ -78,6 +79,11 @@ local rest_utils = {
          infrastructure_instance_check_invalid_rsp  = { http_code = 409, rc = -45, str = "INFRASTRUCTURE_INSTANCE_CHECK_INVALID_RESPONSE"},
          infrastructure_instance_check_auth_failed  = { http_code = 409, rc = -46, str = "INFRASTRUCTURE_INSTANCE_CHECK_AUTH_FAILED"},
          infrastructure_instance_empty_bandwidth_threshold   = { http_code = 409, rc = -47, str = "INFRASTRUCTURE_INSTANCE_EMPTY_BANDWIDTH_THRESHOLD"},
+
+	 --Widgets
+	 widgets_missing_transformation = { http_code = 409, rc = -48, str = "WIDGETS_MISSING_TRANSFORMATION"},
+	 widgets_missing_datasources = { http_code = 409, rc = -49, str = "WIDGETS_MISSING_DATASOURCES"},
+	 widgets_missing_datasource_params = { http_code = 409, rc = -50, str = "WIDGETS_MISSING_DATASOURCE_PARAMS"},
       },
    }
 }

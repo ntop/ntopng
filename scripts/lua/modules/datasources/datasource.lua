@@ -23,12 +23,11 @@ end
 
 -- ##############################################
 
--- @brief Parses params submitted along with the REST endpoint request
--- @param params_table A table with submitted params, either _POST or _GET
+-- @brief Parses params
+-- @param params_table A table with submitted params
 -- @return True if parameters parsing is successful, false otherwise
-function datasource:_rest_read_params(params_table)
+function datasource:read_params(params_table)
    if not params_table then
-      rest_utils.answer(rest_utils.consts.err.invalid_args)
       self.parsed_params = nil
       return false
    end
@@ -40,8 +39,6 @@ function datasource:_rest_read_params(params_table)
       -- Assumes all params mandatory and not empty
       -- May override this behavior in subclasses
       if isEmptyString(parsed_param) then
-	 -- Send the error response
-	 rest_utils.answer(rest_utils.consts.err.invalid_args)
 	 -- Reset any possibly set param
 	 self.parsed_params = nil
 
@@ -57,6 +54,37 @@ end
 
 -- ##############################################
 
+-- @brief Parses params submitted along with the REST endpoint request. If parsing fails, a REST error is sent.
+-- @param params_table A table with submitted params, either _POST or _GET
+-- @return True if parameters parsing is successful, false otherwise
+function datasource:_rest_read_params(params_table)
+   if not self:read_params(params_table) then
+      rest_utils.answer(rest_utils.consts.err.widgets_missing_datasource_params)
+      return false
+   end
+
+   return true
+end
+
+-- ##############################################
+
+-- @brief Send datasource data via REST
+function datasource:rest_send_response()
+   if not self:_rest_read_params(_POST) then
+      -- Params parsing has failed, error response already sent by the caller
+      return
+   end
+
+   self:fetch()
+
+   rest_utils.answer(
+      rest_utils.consts.success.ok,
+      self.datamodel_instance:getAsTable() -- TODO: this should be a generic response, not Table
+   )
+end
+
+-- ##############################################
+
 -- @brief Deserializes REST endpoint response into an internal datamodel
 -- @param rest_response_data Response data as obtained from the REST call
 function datasource:deserialize(rest_response_data)
@@ -65,10 +93,10 @@ function datasource:deserialize(rest_response_data)
       local when = os.time()
 
       if data and data.rc == rest_utils.consts.success.ok.rc then
-	 self.m = self.meta.datamodel:create(data.rsp.header)
+	 self.datamodel_instance = self.meta.datamodel:create(data.rsp.header)
 
 	 for _, row in ipairs(data.rsp.rows) do
-	    self.m:appendRow(when, data.rsp.header, row)
+	    self.datamodel_instance:appendRow(when, data.rsp.header, row)
 	 end
       end
    end
@@ -81,7 +109,7 @@ end
 -- @param transformation The transformation to be applied
 -- @return transformed data
 function datasource:transform(transformation)
-   return self.m:getData(transformation)
+   return self.datamodel_instance:getData(transformation)
 end
 
 -- ##############################################

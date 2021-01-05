@@ -6,6 +6,7 @@ local widgets_utils = {}
 
 require ("lua_utils")
 local json = require("dkjson")
+local rest_utils = require "rest_utils"
 local datasources_utils = require("datasources_utils")
 
 -- Widget Element Model:
@@ -207,6 +208,54 @@ function widgets_utils.generate_response(widget, params)
 	 success = true,
 	 data = response
    })
+end
+
+-- @brief Generate a rest response for the widget, by requesting data from multiple datasources and filtering it
+function widgets_utils.rest_response()
+   if not _POST then
+      rest_utils.answer(rest_utils.consts.err.invalid_args)
+      return
+   end
+
+   -- Missing transformation
+   if not _POST["transformation"] then
+      rest_utils.answer(rest_utils.consts.err.widgets_missing_transformation)
+      return
+   end
+
+   -- Check for datasources
+   if not _POST["datasources"] or table.len(_POST["datasources"]) == 0 then
+      rest_utils.answer(rest_utils.consts.err.widgets_missing_datasources)
+      return
+   end
+
+   local datasources_data = {}
+   for _, datasource in pairs(_POST["datasources"]) do
+      -- TODO: implement proper getter
+      -- local ds = datasources_utils.get(datasource.ds_hash)
+
+      -- Pretend all datasources are the same pkt distro for now
+      -- TODO: replace with above
+      local packet_distro = require "interface.packet_distro"
+      local datasource_instance = packet_distro:new()
+
+      -- Parse params into the instance
+      if not datasource_instance:read_params(datasource.params) then
+	 rest_utils.answer(rest_utils.consts.err.widgets_missing_datasource_params)
+	 return
+      end
+
+      -- Fetch according to datasource parameters received via REST
+      datasource_instance:fetch()
+
+      -- Transform the data according to the requested transformation
+      -- and set the transformed data as result
+      local transformed_data = datasource_instance:transform(_POST["transformation"])
+
+      datasources_data[datasource.ds_hash] = transformed_data
+   end
+   
+   rest_utils.answer(rest_utils.consts.success.ok, datasources_data)
 end
 
 return widgets_utils
