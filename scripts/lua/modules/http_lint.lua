@@ -634,6 +634,10 @@ local function validateIPV4(p)
    return isIPv4(p)
 end
 
+local function validateTransformation(t)
+   return validateChoice({"pie", "donut"}, t)
+end
+
 local function validateIpAddress(p)
    if (isIPv4(p) or isIPv6(p)) then
       return true
@@ -1503,6 +1507,8 @@ local known_parameters = {
 
    -- Widget and Datasources
    ["ds_hash"]                 = validateSingleWord,
+   ["ds_name"]                 = validateSingleWord,
+   ["transformation"]          = validateTransformation,
 
 -- Topology SNMP Devices
    ["topology_host"]                   = validateIPV4,
@@ -1991,11 +1997,24 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
 local function validateParameter(k, v)
    if(known_parameters[k] == nil) then
+      -- Attempt at recursively validate tables
       if(type(v) == "table") then
-        v = "(table)"
+	 for table_key, table_value in pairs(v) do
+	    local success, message, purified = validateParameter(table_key, table_value)
+
+	    -- Stop, if any of the table value fails the validation against
+	    -- the expected table key
+	    if not success then
+	       return success, message, nil
+	    end
+	 end
+
+	 -- Success, all the table keys have been validated successfully
+         return true, "OK", v
+      else
+	 error("[LINT] Validation error: Unknown key "..k.." [value: "..v.."]: missing validation perhaps?\n")
+	 return false, nil
       end
-      error("[LINT] Validation error: Unknown key "..k.." [value: "..v.."]: missing validation perhaps?\n")
-      return false, nil
    else
       local ret
       local f = known_parameters[k]
