@@ -24,7 +24,6 @@ echo "deps: {" >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" json-c         >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" libgcrypt      >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" libmaxminddb   >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" libpcap        >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" libzmq4        >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" mysql80-client >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" rrdtool        >> ${STAGEDIR}/+MANIFEST
@@ -32,6 +31,7 @@ pkg query "  %n: { version: \"%v\", origin: %o }" lua53          >> ${STAGEDIR}/
 pkg query "  %n: { version: \"%v\", origin: %o }" libsodium      >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" sqlite3        >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" redis          >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" zstd           >> ${STAGEDIR}/+MANIFEST
 echo "}" >> ${STAGEDIR}/+MANIFEST
 
 cp -r usr ${STAGEDIR}

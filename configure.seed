@@ -54,6 +54,7 @@ fi
 CFLAGS="${CFLAGS} -Wall"
 OS=""
 MAKE=make
+LIBPCAP=-lpcap
 
 if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
    dnl> https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
@@ -427,7 +428,7 @@ if test "${with_nedge+set}" != set; then
  PF_RING_HOME=${HOME}/PF_RING
 
   if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
-     echo "No need to check for PF_RING: platform not supported"
+     LIBPCAP="${PF_RING_HOME}/userland/libpcap/libpcap.a"
   else
     if test -d ${PF_RING_HOME}; then
       AC_MSG_CHECKING(for PF_RING source installed in $PF_RING_HOME)
@@ -788,6 +789,7 @@ AC_SUBST(SERVICE_REQUIRES)
 AC_SUBST(SERVICE_WANTS)
 AC_SUBST(SERVICE_ALIAS)
 AC_SUBST(APP)
+AC_SUBST(LIBPCAP)
 AC_SUBST(RPM_SIGN_CMD)
 AC_SUBST(LIBRRD_LD_FLAGS)
 AC_SUBST(STABLE_SUFFIX)
