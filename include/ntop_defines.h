@@ -483,6 +483,8 @@
 #define CONST_DEFAULT_PACKETS_DROP_PERCENTAGE_ALERT       5
 #define CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED 0
 #define CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL   3600 /* Every hour by default */
+#define HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS                "ntopng.cache.top_sites"
+#define HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED         "ntopng.cache.top_sites_hour_done"
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"

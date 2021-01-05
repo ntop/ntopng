@@ -34,6 +34,7 @@ class LocalHostStats: public HostStats {
   
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
+  u_int8_t current_cycle;
 
   Cardinality num_contacted_hosts_as_client, /* # of hosts contacted by this host   */
     num_host_contacts_as_server,             /* # of hosts that contacted this host */
@@ -43,6 +44,7 @@ class LocalHostStats: public HostStats {
     contacts_as_cli, contacts_as_srv;        /* Minute reset host contacts          */
 
   void updateHostContacts();
+  void saveOldSites();
   
  public:
   LocalHostStats(Host *_host);

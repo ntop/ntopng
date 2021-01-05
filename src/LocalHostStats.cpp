@@ -31,6 +31,19 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   icmp = new (std::nothrow) ICMPstats();
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
+  current_cycle = 0;
+
+  if (_host != NULL) {
+    char ip_buf[64], redis_key[128];
+    time_t now = time(NULL); 
+    struct tm t_now;
+    localtime_r(&now, &t_now);
+    
+    snprintf(redis_key, sizeof(redis_key), "%s@%u_%u_%u", _host->get_ip()->print(ip_buf, sizeof(ip_buf)),
+              _host->get_vlan_id(), _host->getInterface()->get_id(), t_now.tm_hour);
+
+    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED, redis_key);
+  }
   
   num_contacted_hosts_as_client.init(8);       /* 128 bytes */
   num_host_contacts_as_server.init(8);         /* 128 bytes */
@@ -51,6 +64,18 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   icmp = NULL;
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
+
+  if (this->host != NULL) {
+    char ip_buf[64], redis_key[128];
+    time_t now = time(NULL); 
+    struct tm t_now;
+    localtime_r(&now, &t_now);
+    
+    snprintf(redis_key, sizeof(redis_key), "%s@%u_%u_%u", this->host->get_ip()->print(ip_buf, sizeof(ip_buf)),
+              this->host->get_vlan_id(), this->host->getInterface()->get_id(), t_now.tm_hour);
+
+    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED, redis_key);
+  }
 }
 
 /* *************************************** */
@@ -61,6 +86,18 @@ LocalHostStats::~LocalHostStats() {
   if(dns)             delete dns;
   if(http)            delete http;
   if(icmp)            delete icmp;
+
+  if (host != NULL) {
+    char ip_buf[64], redis_key[128];
+    time_t now = time(NULL); 
+    struct tm t_now;
+    localtime_r(&now, &t_now);
+
+    snprintf(redis_key, sizeof(redis_key), "%s@%u_%u_%u", host->get_ip()->print(ip_buf, sizeof(ip_buf)), 
+              host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_hour);
+
+    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED, redis_key, 3600);
+  }
 }
 
 /* *************************************** */
@@ -104,8 +141,11 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
   
   if(top_sites && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
     if(nextSitesUpdate > 0) {
-      if(old_sites)
-	free(old_sites);
+      if(old_sites) {
+        if(host != NULL)
+          this->saveOldSites();
+	      free(old_sites);
+      }
       old_sites = top_sites->json();
     }
 
@@ -281,3 +321,44 @@ void LocalHostStats::incStats(time_t when, u_int8_t l4_proto,
       udp_sent_non_unicast += sent_bytes;
   }
 }
+
+/* *************************************** */
+
+void LocalHostStats::saveOldSites() {
+  char ip_buf[64], redis_key[128];
+  int minute = 0;
+  /* Using the epoch */
+  time_t now = time(NULL); 
+  struct tm t_now;
+  localtime_r(&now, &t_now);
+  minute = t_now.tm_min - (t_now.tm_min % 5);
+
+  if (!strcmp(old_sites, "{}") || !strcmp(old_sites, "{ }"))
+    return;
+
+  /* String like `ntopng.cache_1.1.1.1@2_1_11_45` */
+  /* An other way is to use the localtime_r and compose the string like `ntopng.cache_1.1.1.1@2_1_1609761600` */
+  snprintf(redis_key, sizeof(redis_key), "%s_%s@%u_%u_%d_%u", (char*) NTOPNG_CACHE_PREFIX, 
+            host->get_ip()->print(ip_buf, sizeof(ip_buf)), host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_hour, minute);
+
+  ntop->getRedis()->set(redis_key , old_sites, 7200);
+
+  if (minute == 0 && current_cycle > 0) {
+    char hour_done[128];
+    int hour = 0;
+
+    if (t_now.tm_hour == 0) 
+      hour = 23;
+    else
+      hour = t_now.tm_hour - 1;
+    /* List key = ntopng.cache.top_sites_hour_done | value = 1.1.1.1@2_1_11 */
+    snprintf(hour_done, sizeof(hour_done), "%s@%u_%u_%u", host->get_ip()->print(ip_buf, sizeof(ip_buf)), 
+              host->get_vlan_id(), host->getInterface()->get_id(), );
+
+    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED, hour_done, 3600);
+    current_cycle = 0;
+  } else 
+    current_cycle++;
+}
+
+/* *************************************** */
