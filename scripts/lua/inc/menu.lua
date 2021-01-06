@@ -312,10 +312,6 @@ else
 	    {
 	       entry = page_utils.menu_entries.divider,
        },
-	    {
-	       entry = page_utils.menu_entries.host_explorer,
-	       url = '/lua/bubble.lua',
-	    },
 	 },
       }
    )
@@ -341,6 +337,10 @@ else
              entry = page_utils.menu_entries.geo_map,
              hidden = interface.isLoopback() or not ntop.hasGeoIP(),
              url = '/lua/hosts_geomap.lua',
+          },
+          {
+             entry = page_utils.menu_entries.hosts_map,
+             url = '/lua/hosts_map.lua',
           },
       }
    })

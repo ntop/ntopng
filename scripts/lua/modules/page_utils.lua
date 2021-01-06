@@ -82,7 +82,6 @@ page_utils.menu_entries = {
     http_servers	 = {key = "http_servers", i18n_title = "http_servers_stats.http_servers", section = "hosts", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#http-servers-local"},
     top_hosts	      	 = {key = "top_hosts", i18n_title = "processes_stats.top_hosts", section = "hosts", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#top-hosts-local"},
     hosts_treemap	 = {key = "hosts_treemap", i18n_title = "tree_map.hosts_treemap", section = "hosts", visible_iface = true},
-    host_explorer	 = {key = "host_explorer", i18n_title = "host_explorer", section = "hosts", visible_iface = true},
     containers	      	 = {key = "containers", i18n_title = "containers_stats.containers", section = "hosts", visible_iface = true},
     pods	      	 = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts", visible_iface = true},
 
@@ -104,10 +103,11 @@ page_utils.menu_entries = {
     flow_exporters   	 = {key = "flow_exporters", i18n_title = "flow_devices.exporters", section = "exporters", visible_iface = true, visible_system = false, help_link = "https://www.ntop.org"},
 
    -- Map
-   service_map      = {key = "service_map", i18n_title="service", section = "maps", visible_iface = true, visible_system = false},
-   periodicity_map = {key = "periodicity_map", i18n_title="periodicity", section = "maps", visible_iface = true, visible_system = false},
+   service_map           = {key = "service_map", i18n_title="service", section = "maps", visible_iface = true, visible_system = false},
+   periodicity_map       = {key = "periodicity_map", i18n_title="periodicity", section = "maps", visible_iface = true, visible_system = false},
    geo_map	      	 = {key = "geo_map", i18n_title = "geo_map.geo_map", section = "maps", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#geo-map"},
-
+   hosts_map	         = {key = "hosts_map", i18n_title = "hosts_map", section = "maps", visible_iface = true},
+   
     -- Settings
     manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
     preferences	     	 = {key = "preferences", i18n_title = "prefs.preferences", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#preferences"},
