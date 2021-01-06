@@ -35,6 +35,22 @@ packet_distro.meta = {
 
 -- ##############################################
 
+-- Human-friendly labels for the distribution
+packet_distro.labels = {
+   ['upTo64']    = '<= 64',
+   ['upTo128']   = '64 <= 128',
+   ['upTo256']   = '128 <= 256',
+   ['upTo512']   = '256 <= 512',
+   ['upTo1024']  = '512 <= 1024',
+   ['upTo1518']  = '1024 <= 1518',
+   ['upTo2500']  = '1518 <= 2500',
+   ['upTo6500']  = '2500 <= 6500',
+   ['upTo9000']  = '6500 <= 9000',
+   ['above9000'] = '> 9000'
+}
+
+-- ##############################################
+
 -- @brief Datasource constructor
 function packet_distro:init()
    -- Call the paren constructor
@@ -48,13 +64,14 @@ function packet_distro:fetch()
    -- and are available in self.parsed_params
 
    interface.select(tostring(self.parsed_params.ifid))
+   local ifstats = interface.getStats()
+   local size_bins = ifstats["pktSizeDistribution"]["size"]
 
-   self.datamodel_instance = self.meta.datamodel:create("packet distro")
-   local when = os.time()
-   local dataset = getInterfaceName(interface.getId()).. " Packet Distribution"
+   self.datamodel_instance = self.meta.datamodel:create(self.meta.i18n_title)
 
-   self.datamodel_instance:appendRow(when, dataset, {1, 2})
-   self.datamodel_instance:appendRow(when, dataset, {3, 4})
+   for bin, num_packets in pairs(size_bins) do
+      self.datamodel_instance:append(packet_distro.labels[bin], num_packets)
+   end
 end
 
 -- #######################################################

@@ -26,7 +26,8 @@ function datamodel:create(labels)
    setmetatable(ret,datamodel)  -- Create the class
 
    ret.column_labels = labels
-   ret.datasets      = {}
+   ret.datasets      = {} -- Possibly legacy, to be removed
+   ret._data         = {} -- New data container
 
    return(ret)
 end
@@ -121,6 +122,7 @@ end
 -- ######################################
 
 -- Return the data
+-- NOTE: Legacy, use get_data instead
 function datamodel:getData(transformation, dataset_name)
    transformation = string.lower(transformation)
    
@@ -133,6 +135,26 @@ function datamodel:getData(transformation, dataset_name)
    else
       return({})
    end
+end
+
+-- ######################################
+
+-- @brief append data to the model.
+-- @param data_key The key identifying the data, i.e., a timestamp (for timeseries) or a string (for histograms)
+-- @param data_values The value or values associated to the data key. Can be a salar or an array.
+function datamodel:append(data_key, data_values)
+   -- Always append ordered data
+   self._data[#self._data + 1] = {
+      k = data_key, -- The Key
+      v = data_values -- The Values
+   }
+end
+
+-- ######################################
+
+-- @brief Returns datamodel data as-is, without any transformation
+function datamodel:get_data()
+   return self._data
 end
 
 -- ######################################

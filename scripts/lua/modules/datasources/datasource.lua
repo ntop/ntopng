@@ -79,7 +79,7 @@ function datasource:rest_send_response()
 
    rest_utils.answer(
       rest_utils.consts.success.ok,
-      self.datamodel_instance:getAsTable() -- TODO: this should be a generic response, not Table
+      self.datamodel_instance:get_data()
    )
 end
 
