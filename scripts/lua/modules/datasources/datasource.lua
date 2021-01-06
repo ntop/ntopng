@@ -93,7 +93,7 @@ function datasource:deserialize(rest_response_data)
       local when = os.time()
 
       if data and data.rc == rest_utils.consts.success.ok.rc then
-	 self.datamodel_instance = self.meta.datamodel:create(data.rsp.header)
+	 self.datamodel_instance = self.meta.datamodel:new(data.rsp.header)
 
 	 for _, row in ipairs(data.rsp.rows) do
 	    self.datamodel_instance:appendRow(when, data.rsp.header, row)

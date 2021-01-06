@@ -1,9 +1,15 @@
 --
--- (C) 2020 - ntop.org
+-- (C) 2021 - ntop.org
 --
 
-local datamodel = {}
-datamodel.__index = datamodel
+-- Import the classes library.
+local classes = require "classes"
+
+-- ##############################################
+
+local datamodel = classes.class()
+
+-- ##############################################
 
 local datamodel_colors = {
    'rgba(255, 127, 14, 1)',
@@ -20,16 +26,10 @@ local datamodel_colors = {
 
 -- ######################################
 
-function datamodel:create(labels)
-   local ret = {}
-
-   setmetatable(ret,datamodel)  -- Create the class
-
-   ret.column_labels = labels
-   ret.datasets      = {} -- Possibly legacy, to be removed
-   ret._data         = {} -- New data container
-
-   return(ret)
+function datamodel:init(labels)
+   self.column_labels = labels
+   self.datasets      = {} -- Possibly legacy, to be removed
+   self._data         = {} -- New data container
 end
 
 -- ######################################

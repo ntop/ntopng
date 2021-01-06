@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require("lua_utils")
 local datasources_utils = require("datasources_utils")
-local datamodel = require("datamodel_utils")
+local datamodel = require("datamodel")
 local ts_utils = require "ts_utils"
 
 local function reportError(msg)
@@ -53,7 +53,7 @@ if (rsp ~= nil) then
       table.insert(labels, v.label)
    end
 
-   m = datamodel:create(labels)
+   m = datamodel:new(labels)
 
    for k, v in pairs(rsp.series) do
       local when = start

@@ -13,7 +13,7 @@ local classes = require "classes"
 -- Import the base class
 local datasource = require "datasource"
 -- This is the datamodel used to represent data associated with this datasource
-local datamodel = require "datamodel_utils"
+local datamodel = require "datamodel"
 -- Rest utilities
 local rest_utils = require "rest_utils"
 
@@ -67,7 +67,7 @@ function packet_distro:fetch()
    local ifstats = interface.getStats()
    local size_bins = ifstats["pktSizeDistribution"]["size"]
 
-   self.datamodel_instance = self.meta.datamodel:create(self.meta.i18n_title)
+   self.datamodel_instance = self.meta.datamodel:new(self.meta.i18n_title)
 
    for bin, num_packets in pairs(size_bins) do
       self.datamodel_instance:append(packet_distro.labels[bin], num_packets)

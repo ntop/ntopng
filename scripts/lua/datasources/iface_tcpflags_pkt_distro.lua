@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require("lua_utils")
 local datasources_utils = require("datasources_utils")
-local datamodel = require("datamodel_utils")
+local datamodel = require("datamodel")
 
 local pkt_distribution = {
    ['syn'] = 'SYN',
@@ -42,7 +42,7 @@ if(table.len(res) == 0) then
 end
 
 -- Prepare the results
-local m = datamodel:create(labels)
+local m = datamodel:new(labels)
 local dataset = ifname.." TCP Flags"
 
 m:appendRow(when, dataset, slices)

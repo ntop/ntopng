@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require("lua_utils")
 local datasources_utils = require("datasources_utils")
-local datamodel = require("datamodel_utils")
+local datamodel = require("datamodel")
 
 local function reportError(msg)
     print(json.encode({ error = msg, success = false, csrf = ntop.getRandomCSRFValue() }))
@@ -63,7 +63,7 @@ end
 
 -- Prepare the results
 
-local m = datamodel:create(labels)
+local m = datamodel:new(labels)
 local dataset = ifname.." Packet Distribution"
 
 m:appendRow(when, dataset, slices)
