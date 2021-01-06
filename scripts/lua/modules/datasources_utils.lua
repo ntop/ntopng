@@ -1,16 +1,28 @@
 --
--- (C) 2020 - ntop.org
+-- (C) 2021 - ntop.org
 --
-local datasources_utils = {}
 
+-- ##############################################
+
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/datasources/?.lua;" .. package.path
+
+local os_utils = require "os_utils"
 require ("lua_utils")
 local json = require("dkjson")
 
 local REDIS_BASE_KEY = "ntopng.datasources"
 
+local datasources_utils = {}
+
+-- ##############################################
+
 local function create_hash_source(alias, data_retention, origin)
     return ntop.md5(alias .. origin .. tostring(data_retention))
 end
+
+-- ##############################################
 
 local function is_source_valid(alias, data_retention, scope, origin)
 
@@ -25,6 +37,8 @@ local function is_source_valid(alias, data_retention, scope, origin)
 
     return true
 end
+
+-- ##############################################
 
 local function alias_exists(alias)
 
@@ -41,6 +55,8 @@ local function alias_exists(alias)
     return false
 end
 
+-- ##############################################
+
 -- Check if the passed hash is saved inside redis.
 -- @return True if the hash is contained, false otherwise
 function datasources_utils.is_hash_valid(hash)
@@ -51,6 +67,8 @@ function datasources_utils.is_hash_valid(hash)
     return true
 
 end
+
+-- ##############################################
 
 -------------------------------------------------------------------------------
 -- Create a new data source and save it to redis.
@@ -83,6 +101,8 @@ function datasources_utils.add_source(alias, data_retention, scope, origin, sche
     ntop.setHashCache(REDIS_BASE_KEY, ds_hash, json.encode(new_datasource))
     return true, ds_hash
 end
+
+-- ##############################################
 
 -------------------------------------------------------------------------------
 -- Edit the data source
@@ -120,6 +140,8 @@ function datasources_utils.edit_source(hash_source, alias, data_retention, scope
     return true
 end
 
+-- ##############################################
+
 -------------------------------------------------------------------------------
 -- Delete the data source from redis
 -- @param hash_source The hash of the source to be removed (not nil)
@@ -140,6 +162,8 @@ function datasources_utils.delete_source(hash_source)
     return true
 end
 
+-- ##############################################
+
 -------------------------------------------------------------------------------
 -- Get a datasource stored in redis
 -- @return The searched datasources stored in redis, or nil in case of error
@@ -150,11 +174,14 @@ function datasources_utils.get(ds_hash)
    return(json.decode(ds))
 end
 
+-- ##############################################
+
 -------------------------------------------------------------------------------
 -- Get all datasources stored in redis
 -- @return An array of datasources stored in redis, if no any sources was found
 -- it returns an empty array
 -------------------------------------------------------------------------------
+
 function datasources_utils.get_all_sources()
 
     local sources = ntop.getHashAllCache(REDIS_BASE_KEY)
@@ -170,6 +197,8 @@ function datasources_utils.get_all_sources()
 
     return all_sources
 end
+
+-- ##############################################
 
 function datasources_utils.prepareResponse(datasets, timestamps, unit)
    local response = {}
@@ -187,5 +216,37 @@ function datasources_utils.prepareResponse(datasets, timestamps, unit)
 
    return response
 end
+
+-- ##############################################
+
+-- @brief Returns all the available datasource types, i.e., all possible subclasses of datasource.lua in modules/datasources
+function datasources_utils.get_all_source_types()
+   local datasources_dir = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/datasources/")
+   local res = {}
+
+   -- The base datasources directory
+   for datasource_dir in pairs(ntop.readdir(datasources_dir)) do
+      -- Datasource sub-directories, e.g., /interface, /host, etc
+      local datasource_dir_path = os_utils.fixPath(string.format("%s/%s", datasources_dir, datasource_dir))
+
+      if ntop.isdir(datasource_dir_path) then
+	 for datasource_file in pairs(ntop.readdir(datasource_dir_path)) do
+	    -- Load all sub-classes of datasources.lua (and exclude datasources.lua itself)
+	    if datasource_file:match("%.lua$") then
+	       -- Do the require and return the required module, if successful
+	       local datasource = require(string.format("%s.%s", datasource_dir, datasource_file:gsub("%.lua$", "")))
+
+	       if datasource then
+		  res[#res + 1] = datasource
+	       end
+	    end
+	 end
+      end
+   end
+
+   return res
+end
+
+-- ##############################################
 
 return datasources_utils

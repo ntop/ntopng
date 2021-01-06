@@ -14,6 +14,7 @@ local alerts_api = require("alerts_api")
 local format_utils = require("format_utils")
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
+local datasources_utils = require "datasources_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -24,6 +25,16 @@ if not isAdministrator() then
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
+
+-- List all available datasource types
+local all_datasource_types =  datasources_utils.get_all_source_types()
+for _, ds_type in pairs(all_datasource_types) do
+   tprint({ds_type.meta.i18n_title, ds_type.meta.rest_endpoint})
+
+   local instance = ds_type:new()
+   -- Do things with instance...
+end
+
 
 local packet_distro = require "interface.packet_distro"
 local datasource = packet_distro:new()
@@ -44,17 +55,17 @@ local datasource = packet_distro:new()
 -- Read data from the REST endpoint bound to the datasource
 -- NOTE: Host is hardcoded here for test purposes, it will vary depending on what will be specified when creating the datasource
 -- NOTE: The auth token will be necessary as well
-local url = "http://127.0.0.1:3000"..datasource.meta.rest_endpoint
-tprint(url)
-local rsp = ntop.httpGet(url)
+-- local url = "http://127.0.0.1:3000"..datasource.meta.rest_endpoint
+-- tprint(url)
+-- local rsp = ntop.httpGet(url)
 
 -- Deserialize the response into the datasource
-datasource:deserialize(rsp)
+-- datasource:deserialize(rsp)
 
 -- Apply wanted transformations
-local table_transf = datasource:transform("table")
-local donut_transf = datasource:transform("donut")
-local multibar_transf = datasource:transform("multibar")
+-- local table_transf = datasource:transform("table")
+-- local donut_transf = datasource:transform("donut")
+-- local multibar_transf = datasource:transform("multibar")
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
