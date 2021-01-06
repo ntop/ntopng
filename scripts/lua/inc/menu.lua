@@ -667,17 +667,7 @@ if not info.oem and auth.has_capability(auth.capabilities.developer) then
 	       entry = page_utils.menu_entries.api,
 	       url = 'https://www.ntop.org/guides/ntopng/api/',
 	    },
-	    {
-	       entry = page_utils.menu_entries.divider,
-	    },
-	    {
-	       entry = page_utils.menu_entries.widgets_list,
-	       url = '/lua/widgets_list.lua',
-	    },
-	    {
-	       entry = page_utils.menu_entries.datasources_list,
-	       url = '/lua/datasources_list.lua',
-	    },
+	   
 	 },
       }
    )
