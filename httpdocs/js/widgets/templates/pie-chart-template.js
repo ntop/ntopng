@@ -5,47 +5,48 @@ export default class PieChartTemplate extends ChartTemplate {
     constructor(params) {
         super(params);
         this._isDonut = false;
-        console.log(this);
     }
 
     _addGraph() {
 
         const self = this;
+        if (self._defaultOptions.widget.widgetFetchedData === undefined) {
+            return;
+        }
+
         nv.addGraph(function() {
 
             const pieChart = nv.models.pieChart();
 
-            pieChart.x(d => d.label);
-            pieChart.y(d => d.value);
-            pieChart.height(self._height);
-            pieChart.width(self._width);
-            pieChart.showTooltipPercent(true);
-            pieChart.donut(self._isDonut);
-            pieChart.labelType("percent");
+            // set the data label
+            pieChart
+                .x(d => d.k)
+                .y(d => d.v);
+            pieChart 
+                .showTooltipPercent(true)
+                .showLegend(false)
+                .showLabels(true)     //Display pie labels
+                .labelThreshold(.05)  //Configure the minimum slice size for labels to show up
+                .labelType("key") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
+                .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
+                .donutRatio(0.35)     //Configure how big you want the donut hole size to be.
 
-            d3.select(`#${self._defaultOptions.domId}`)
-            .append('b')
-            .text(self._defaultOptions.widget.widgetFetchedData.title);
+            //pieChart.labelType("percent");
 
-            d3.select(`#${self._defaultOptions.domId}`)
+            const selectedChart = d3.select(`#${self._defaultOptions.domId}`);
+
+            selectedChart
+                .append('b')
+                .text(self._defaultOptions.widget.widgetFetchedData.title || "Test Widget #" + self._defaultOptions.widget.widgetId);
+
+            selectedChart
                 .append('svg')
-                .datum(self._data.data)
+                .datum(self._data.rsp[0].data)
                 .transition()
-                .duration(1750)
+                .duration(1500)
+                .attr("preserveAspectRatio", "xMidYMid")
                 .call(pieChart);
-
-            if (self._defaultOptions.widget.intervalTime) {
-                self._intervalId = setInterval(async function() {
-                    const newData = await self._updateData();
-                    self._data = newData.data;
-                    d3.select(`#${self._defaultOptions.domId}>svg`)
-                        .datum(newData.data)
-                        .transition()
-                        .duration(1750)
-                        .call(pieChart);
-                }, self._defaultOptions.widget.intervalTime);
-            }
-
+    
             self._chart = pieChart;
             return pieChart;
         });
@@ -54,12 +55,9 @@ export default class PieChartTemplate extends ChartTemplate {
     render() {
 
         const container = super.render();
-        /* if I have no data to show then don't add the graph! */
-        if (this._data.length != 0) {
-            container.setAttribute('style', `width:${this._width}px;height:${this._width}px`);
-            this._addGraph();
-        }
+        container.setAttribute('style', `width:${this._width}px; height:${this._width}px`);
 
+        this._addGraph();
         return container;
     }
 

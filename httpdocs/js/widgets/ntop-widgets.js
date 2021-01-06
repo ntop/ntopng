@@ -6,12 +6,11 @@ import MultiBarChartTemplate from './templates/multibar-chart-template.js';
 export default class NtopWidget {
 
     constructor(params) {
-        /* this is widget indentifier inside ntopng */
-        this.widgetKey = params.widgetKey;
+        this.widgetId = params.widgetId;
         /* the widget type which indicate the template will be chosen */
         this.widgetType = params.widgetType;
         /* this object contains all the paramters that will be sent to datasource assocaited to the widget */
-        this.widgetGetParams = params.widgetGetParams;
+        this.endpointParams = params.endpointParams;
         /* the dom element container of the widget */
         this.widgetElementDom = params.widgetElementDom;
         /* this boolean indicate if the data fetch has been completed successfully */
@@ -26,13 +25,11 @@ export default class NtopWidget {
 
         try {
 
+            // try to get data from the datasource
             const widgetEndPointResponse = await this.getWidgetData();
-
-            this.widgetName = widgetEndPointResponse.widgetName;
-            this.widgetType = this.widgetType || widgetEndPointResponse.widgetType;
-            this.intervalTime = widgetEndPointResponse.dsRetention;
-            this.widgetFetchedData = widgetEndPointResponse.data;
-
+            // Datasource Retention: this.intervalTime = widgetEndPointResponse.dsRetention;
+            this.widgetFetchedData = widgetEndPointResponse;
+        
             this.widgetInitialized = true;
         }
         catch (e) {
@@ -48,10 +45,13 @@ export default class NtopWidget {
 
     async renderWidget() {
 
-        if (!this.widgetInitialized) throw new Error('The widget has not been initialzed yet!');
+        if (!this.widgetInitialized) {
+            throw new Error('The widget has not been initialzed yet!');
+        }
 
         const selectedType = this.widgetType;
         const widgetTemplate = this._getWidgetTemplate(selectedType);
+
         this.widgetTemplate = widgetTemplate;
         this.widgetElementDom.appendChild(widgetTemplate.render());
     }
@@ -61,36 +61,31 @@ export default class NtopWidget {
         const params = { widget: this };
 
         switch (widgetType) {
-            case 'table':       return new TableTemplate(params);
             case 'pie':         return new PieChartTemplate(params);
-            case 'donut':       return new DonutChartTemplate(params);
-            case 'multibar':    return new MultiBarChartTemplate(params);
+            //case 'table':       return new TableTemplate(params);
+            // case 'donut':       return new DonutChartTemplate(params);
+            // case 'multibar':    return new MultiBarChartTemplate(params);
             default: throw new Error('The widget type is not valid!');
         }
     }
 
     _fetchWidgetData() {
         const endpoint = this.widgetEndPoint;
-        const searchParams = new URLSearchParams({
-            JSON: JSON.stringify(this._serializeParamaters())
-        });
-        endpoint.search = searchParams.toString();
-        return fetch(endpoint.toString());
+        return fetch(endpoint.toString(), {method: 'POST', body: JSON.stringify(this._serializeParamaters())});
     }
 
     _buildWidgetEndpoint(ntopngEndpointUrl) {
-        return new URL(`/lua/widgets/widget.lua`, ntopngEndpointUrl.toString());
+        return new URL(`/lua/rest/v1/get/widget/data.lua`, ntopngEndpointUrl.toString());
     }
 
     _serializeParamaters() {
-        return {
-            ifid: this.widgetGetParams.ifid,
-            key: this.widgetGetParams.key,
-            begin_time: this.widgetGetParams.beginTime,
-            end_time: this.widgetGetParams.endTime,
-            widget_key: this.widgetKey,
-            widget_type: this.widgetType
-        }
+
+        const payload = {
+            datasources: this.endpointParams,
+            transformation: this.widgetType,
+        };
+
+        return payload;
     }
 
 }

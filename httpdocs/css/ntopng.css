@@ -898,3 +898,10 @@ footer {
 .dtr-details {
   width: 100%;
 }
+
+.ntop-widget-container > .error-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}

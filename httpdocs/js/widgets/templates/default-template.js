@@ -6,14 +6,15 @@ export default class WidgetTemplate {
 
     constructor(params) {
 
-        if (this.constructor == WidgetTemplate) {
+        if (this.constructor === WidgetTemplate) {
             throw new Error('Cannot instantiate an abstract class!');
         }
 
         this._defaultOptions = {
             widget: params.widget,
-            domId: `ntop-widget-${params.widget.widgetKey}-${params.widget.widgetType}`
+            domId: `ntop-widget-${params.widget.widgetId}-${params.widget.widgetType}`
         };
+
         this._data = params.widget.widgetFetchedData || [];
         this._intervalId = 0;
     }
@@ -26,13 +27,13 @@ export default class WidgetTemplate {
     render() {
 
         const container = document.createElement('div');
-        container.setAttribute('class', 'ntop-widget-container');
+        container.setAttribute('class', 'ntop-widget-container rounded border p-2');
         container.setAttribute('id', this._defaultOptions.domId);
 
-        if (this._data.length == 0) {
+        if (this._data === undefined || this._data.length == 0) {
             const emptyContainer = document.createElement('div');
-            emptyContainer.classList = "border p-2";
-            emptyContainer.innerHTML = `Widget <i>${this._defaultOptions.widget.widgetName}</i>: <b>No data was found.</b>`;
+            emptyContainer.classList = "error-box border border-danger";
+            emptyContainer.innerHTML = `<b>No data has been fetched from the datasource.</b>`;
             container.appendChild(emptyContainer);
         }
 
@@ -50,10 +51,12 @@ export class ChartTemplate extends WidgetTemplate {
     }
 
     _checkNVSupport() {
-        if (!nv) throw new Error("NVD3 not found! Do you have included in your page?");
+        if (!nv) {
+            throw new Error("NVD3 not found! Do you have included in your page?");
+        }
     }
 
-    _addGraph() { }
+    _addGraph() { /* empty */ }
 
     render() {
         this._checkNVSupport();
