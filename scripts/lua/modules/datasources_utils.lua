@@ -8,6 +8,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/datasources/?.lua;" .. package.path
 
+local datasource_keys = require "datasource_keys"
 local os_utils = require "os_utils"
 require ("lua_utils")
 local json = require("dkjson")
@@ -219,10 +220,21 @@ end
 
 -- ##############################################
 
--- @brief Returns all the available datasource types, i.e., all possible subclasses of datasource.lua in modules/datasources
-function datasources_utils.get_all_source_types()
+-- A cache of all the available datasources, keyed by datasource_keys as found in datasource_keys.lua
+local source_key_source_type_cache
+
+-- ##############################################
+
+local function cache_source_types(recache)
+   if source_key_source_type_cache and not recache then
+      -- Already cached
+      return
+   end
+
+   -- Cache available datasource types
+   source_key_source_type_cache = {}
+
    local datasources_dir = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/datasources/")
-   local res = {}
 
    -- The base datasources directory
    for datasource_dir in pairs(ntop.readdir(datasources_dir)) do
@@ -237,14 +249,41 @@ function datasources_utils.get_all_source_types()
 	       local datasource = require(string.format("%s.%s", datasource_dir, datasource_file:gsub("%.lua$", "")))
 
 	       if datasource then
-		  res[#res + 1] = datasource
+		  source_key_source_type_cache[datasource.meta.datasource_key] = datasource
 	       end
 	    end
 	 end
       end
    end
+end
+
+-- ##############################################
+
+-- @brief Returns all the available datasource types, i.e., all possible subclasses of datasource.lua in modules/datasources
+function datasources_utils.get_all_source_types()
+   local res = {}
+
+   -- Build the cache, if not already built
+   cache_source_types()
+
+   for datasource_key, datasource in pairs(source_key_source_type_cache) do
+      res[#res + 1] = datasource
+   end
 
    return res
+end
+
+-- ##############################################
+
+-- @brief Returns a datasource, given its `datasource_key` identifier
+-- @param datasource_key One of the keys defined in datasource_keys.lua
+-- @return The datasource that can be then instantiated with :new()
+function datasources_utils.get_source_type_by_key(datasource_key)
+   -- Build the cache (if not already built)
+   cache_source_types()
+
+   -- Return the cached datasource
+   return source_key_source_type_cache[datasource_key]
 end
 
 -- ##############################################

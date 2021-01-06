@@ -15,6 +15,7 @@ local format_utils = require("format_utils")
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local datasources_utils = require "datasources_utils"
+local datasource_keys = require "datasource_keys"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -35,6 +36,9 @@ for _, ds_type in pairs(all_datasource_types) do
    -- Do things with instance...
 end
 
+-- Attempt at getting a datasource by key
+local ds = datasources_utils.get_source_type_by_key(datasource_keys.interface_packet_distro)
+assert(ds.meta.datasource_key == datasource_keys.interface_packet_distro)
 
 local packet_distro = require "interface.packet_distro"
 local datasource = packet_distro:new()

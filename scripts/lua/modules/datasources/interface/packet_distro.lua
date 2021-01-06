@@ -12,6 +12,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/datasources/?.lua;" .. p
 local classes = require "classes"
 -- Import the base class
 local datasource = require "datasource"
+-- Import the datasource keys
+local datasource_keys = require "datasource_keys"
 -- This is the datamodel used to represent data associated with this datasource
 local datamodel = require "datamodel"
 -- Rest utilities
@@ -24,6 +26,7 @@ local packet_distro = classes.class(datasource)
 -- ##############################################
 
 packet_distro.meta = {
+   datasource_key = datasource_keys.interface_packet_distro, -- Uniquely identifies this datasource
    i18n_title = "Interface Packet Distribution",
    icon = "fas fa-exclamation",
    rest_endpoint = "/lua/rest/v1/get/datasource/interface/packet_distro.lua",
