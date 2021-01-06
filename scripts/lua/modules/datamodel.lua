@@ -159,4 +159,19 @@ end
 
 -- ######################################
 
+-- Transform and return datamodel data
+function datamodel:transform(transformation)
+   -- TODO: implement transformations
+   if(transformation == "table") then
+   elseif(transformation == "donut") then
+   elseif(transformation == "multibar") then
+   else
+   end
+
+   -- TODO: return transformed data
+   return self:get_data()
+end
+
+-- ######################################
+
 return(datamodel)

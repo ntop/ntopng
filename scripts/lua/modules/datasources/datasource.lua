@@ -109,7 +109,7 @@ end
 -- @param transformation The transformation to be applied
 -- @return transformed data
 function datasource:transform(transformation)
-   return self.datamodel_instance:getData(transformation)
+   return self.datamodel_instance:transform(transformation)
 end
 
 -- ##############################################
