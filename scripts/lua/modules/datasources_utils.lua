@@ -6,7 +6,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/datasources/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/rest/v1/get/datasource/?.lua;" .. package.path
 
 local datasource_keys = require "datasource_keys"
 local os_utils = require "os_utils"
@@ -234,7 +234,7 @@ local function cache_source_types(recache)
    -- Cache available datasource types
    source_key_source_type_cache = {}
 
-   local datasources_dir = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/datasources/")
+   local datasources_dir = os_utils.fixPath(dirs.installdir .. "/scripts/lua/rest/v1/get/datasource/")
 
    -- The base datasources directory
    for datasource_dir in pairs(ntop.readdir(datasources_dir)) do

@@ -17,6 +17,11 @@ local datasource = classes.class()
 
 -- ##############################################
 
+-- This is the base REST prefix for all the available datasources
+datasource.BASE_REST_PREFIX = "/lua/rest/v1/get/datasource/"
+
+-- ##############################################
+
 -- @brief Base class constructor
 function datasource:init()
 end
@@ -70,6 +75,15 @@ end
 
 -- @brief Send datasource data via REST
 function datasource:rest_send_response()
+   -- Make sure this is a direct REST request and not just a require() that needs this class
+   if not _SERVER -- Not executing a Lua script initiated from the web server (i.e., backend execution)
+   or not _SERVER["URI"] -- Cannot reliably determine if this is a REST request
+   or not _SERVER["URI"]:starts(datasource.BASE_REST_PREFIX) -- Web Lua script execution but not for this REST endpoint
+   then
+      -- Don't send any REST response
+      return
+   end
+
    if not self:_rest_read_params(_POST) then
       -- Params parsing has failed, error response already sent by the caller
       return
