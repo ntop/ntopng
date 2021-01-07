@@ -30,25 +30,25 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 print([[
     <div class='row my-1'>
         <div class='col-3'>
-            <div class='ntop-widget d-inline-block' data-ntop-widget-datasource='5892c01345bb9f1cc8d7b7bdeab0e6e5' data-ntop-widget-type='pie' data-ntop-widget-params='{"ifid":0}'>
+            <div class='ntop-widget d-inline-block' data-ntop-widget-datasource='interface_packet_distro' data-ntop-widget-type='pie' data-ntop-widget-params='{"ifid":0}'>
             </div>
         </div>
         <div class='col-9'>
             <div class='w-50'>
                 <code>
-                &lt;div class='ntop-widget d-inline-block' data-ntop-widget-datasource='5892c01345bb9f1cc8d7b7bdeab0e6e5' data-ntop-widget-type='pie' <span class='text-danger'>data-ntop-widget-params='{"ifid":0}'</span>&gt;	
+                &lt;div class='ntop-widget d-inline-block' data-ntop-widget-datasource='interface_packet_distro' data-ntop-widget-type='pie' <span class='text-danger'>data-ntop-widget-params='{"ifid":0}'</span>&gt;	
                 &lt;/div&gt;
                 </code>	
             </div>
         </div>
         <div class='col-3 my-2'>
-            <div class='ntop-widget d-inline-block' data-ntop-widget-datasource='5892c01345bb9f1cc8d7b7bdeab0e6e5' data-ntop-widget-type='pie' data-ntop-widget-params='{"ifid":9}'>
+            <div class='ntop-widget d-inline-block' data-ntop-widget-datasource='interface_packet_distro' data-ntop-widget-type='pie' data-ntop-widget-params='{"ifid":9}'>
             </div>
         </div>
         <div class='col-9'>
             <div class='w-50'>
                 <code>
-                &lt;div class='ntop-widget d-inline-block' data-ntop-widget-datasource='5892c01345bb9f1cc8d7b7bdeab0e6e5' data-ntop-widget-type='pie' <span class='text-danger'>data-ntop-widget-params='{"ifid":11}'</span>&gt;	
+                &lt;div class='ntop-widget d-inline-block' data-ntop-widget-datasource='interface_packet_distro' data-ntop-widget-type='pie' <span class='text-danger'>data-ntop-widget-params='{"ifid":11}'</span>&gt;	
                 &lt;/div&gt;
                 </code>	
             </div>

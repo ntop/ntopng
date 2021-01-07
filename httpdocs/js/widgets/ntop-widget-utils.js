@@ -23,7 +23,7 @@ class NtopWidgetUtils {
 
             const widgetType = widgetDomElement.dataset.ntopWidgetType;
             const widgetParams = widgetDomElement.dataset.ntopWidgetParams;
-            const datasourceHash = widgetDomElement.dataset.ntopWidgetDatasource;
+            const datasourceType = widgetDomElement.dataset.ntopWidgetDatasource;
 
             const widgetEndpoint = buildWidgetEndpointURL(widgetDomElement.dataset.ntopWidgetEndpoint);
             const { ifid } = JSON.parse(widgetParams);
@@ -35,7 +35,7 @@ class NtopWidgetUtils {
                 widgetType: widgetType,
                 endpointParams: [
                     {
-                        ds_hash: datasourceHash,
+                        ds_type: datasourceType,
                         params: {ifid: ifid}
                     }
                 ]
