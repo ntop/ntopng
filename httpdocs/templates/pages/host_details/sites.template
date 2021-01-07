@@ -6,7 +6,7 @@
                     <thead>                
                         <tr>
                             <th>{{ i18n("sites_page.current_sites") }}</th>
-                            <th>{{i18n("sites_page.contacts")}}</th> 
+                            <th>{{ i18n("sites_page.contacts") }}</th> 
                         </tr>
                     </thead>
                     <tbody>
@@ -26,6 +26,13 @@
         </div>
     </div>
 </div>
+<div class="notes bg-light border">
+    <b>{{ i18n('notes') }}</b>
+    <ul>
+        <li>{* i18n('top_host_sites.note_protocol_used') *}</li>
+        <li>{* i18n('top_host_sites.note_tot_entries') *}</li>
+    </ul>
+</div>
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">
     i18n.warning ="{{ i18n('warning', {}) }}";
@@ -43,6 +50,7 @@ $(document).ready(function() {
     let dtConfig = DataTableUtils.getStdDatatableConfig();
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${topSitesEndpoint}&hour={{ sites.default_granularity }}`, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        order: [[1,'desc']],
         columnsDefs: [
             {targets: [1], render: function (data, type) {
                     if (type === "display") return NtopUtils.fint(data);

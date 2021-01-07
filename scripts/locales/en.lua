@@ -3908,8 +3908,8 @@ local lang = {
     ["toggle_thpt_content_title"] = "Throughput Unit",
     ["toggle_tiny_flows_dump_description"] = "Toggle the dump of tiny flows, that are flows with few packets or bytes. Reduces flow cardinality in databases, speeds-up inserts and searches. Tuning tiny flows can help to limit flow cardinality while not reducing visibility on dumped information.",
     ["toggle_tiny_flows_dump_title"] = "Tiny Flows Dump",
-    ["toggle_top_sites_description"] = "Toggle the creation of top visited web sites for local hosts. Top sites are created using an <a href=\"%{url}\">heuristic</a> that maintain no more than 20 sites per local host. The heuristic fully operates in memory and does not require any interaction with the disk. Top sites are cleared every 5 minutes. An historical archive of top visited web sites can be created, for each local host, by periodically polling the JSON <i class=\"fas fa-download fa-sm\"></i> download link accessible from the host details page.",
-    ["toggle_top_sites_title"] = "Top HTTP Sites",
+    ["toggle_top_sites_description"] = "Toggle the creation of top visited web sites for local hosts. Top sites are created using an <a href=\"%{url}\">heuristic</a> that maintain no more than 20 sites per local host. The heuristic fully operates in memory and does not require any interaction with the disk. Top sites are cleared every 5 minutes. An historical archive of top visited web sites can be created, for each local host, by periodically polling the JSON <i class=\"fas fa-download fa-sm\"></i> download link accessible from the host details page. The application protocols of these sites are: TLS, QUIC and HTTP",
+    ["toggle_top_sites_title"] = "Top Visited Sites",
     ["toggle_traffic_rrd_creation_description"] = "Toggle the creation of bytes and packets timeseries.",
     ["toggle_traffic_rrd_creation_title"] = "Traffic",
     ["toggle_users_rrds_description"] = "Toggle the creation of bytes and applications timeseries for defined users.",
@@ -4623,6 +4623,8 @@ local lang = {
     ["current"] = "Current",
     ["day"] = "Previous day",
     ["last_5_min"] = "Last 5 minutes",
+    ["note_protocol_used"] = "Application Protocols providing infos: HTTP, TLS, QUIC.",
+    ["note_tot_entries"] = "Maximum 20 records are provided per host."
   },
   ["top_hosts"] = {
     ["note"] = "This page will refresh every few seconds to report top hosts activities.<p>When a host makes traffic a vertical bar is displayed so that you can see the most active hosts.",
