@@ -668,10 +668,6 @@ local lang = {
     ["suspicious_device_protocol"] = "Suspicious Device Protocol",
     ["suspicious_file_transfer"] = "Suspicious File Transfer",
     ["suspicious_file_transfer_url"] = "%{type_icon} Detected suspicious file transfer [%{url}]",
-<<<<<<< HEAD
-    ["tcp_syn_flood"] = "TCP SYN Flood",
-=======
->>>>>>> bc132cc74... Added Victim and Attacker shown into the Developer page
     ["tcp_syn_flood_attacker"] = "TCP SYN Flood Attacker",
     ["tcp_syn_flood_victim"] = "TCP SYN Flood Victim",
     ["tcp_syn_scan"] = "TCP SYN Scan",
@@ -3453,11 +3449,8 @@ local lang = {
   ["plugins_overview"] = {
     ["action_view"] = "Open the user script source in the code editor",
     ["alert_key"] = "Alert Key",
-<<<<<<< HEAD
-=======
     ["has_victim"] = "Victim",
     ["has_attacker"] = "Attacker",
->>>>>>> bc132cc74... Added Victim and Attacker shown into the Developer page
     ["edition_only"] = "%{edition} Only",
     ["filters"] = "Filters",
     ["has_attacker"] = "Attacker configurable",
