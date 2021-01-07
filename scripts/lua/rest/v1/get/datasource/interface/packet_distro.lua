@@ -29,7 +29,6 @@ packet_distro.meta = {
    datasource_key = datasource_keys.interface_packet_distro, -- Uniquely identifies this datasource
    i18n_title = "Interface Packet Distribution",
    icon = "fas fa-exclamation",
-   rest_endpoint = "/lua/rest/v1/get/datasource/interface/packet_distro.lua",
    datamodel = datamodel,
    params = {
       "ifid" -- validated according to http_lint.lua
