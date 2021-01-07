@@ -4628,6 +4628,8 @@ local lang = {
     ["8"] = "8:00 - 8:59",
     ["9"] = "9:00 - 9:59",
     ["day"] = "Previous day",
+    ["current"] = "Current",
+    ["last_5_min"] = "Last 5 minutes"
   },
   ["top_hosts"] = {
     ["note"] = "This page will refresh every few seconds to report top hosts activities.<p>When a host makes traffic a vertical bar is displayed so that you can see the most active hosts.",

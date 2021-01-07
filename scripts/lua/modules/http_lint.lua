@@ -1739,7 +1739,7 @@ local known_parameters = {
 --
 
 -- PAGE SPECIFIC
-   ["hour"]                    = validateEmptyOr(validateNumber),
+   ["hour"]                    = validateEmptyOr(validateSingleWord),
    ["iflocalstat_mode"]        = validateIfaceLocalStatsMode,   -- A mode for iface_local_stats.lua
    ["clisrv"]                  = validateClientOrServer,        -- Client or Server filter
    ["report"]                  = validateReportMode,            -- A mode for traffic report

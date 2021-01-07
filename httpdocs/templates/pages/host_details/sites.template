@@ -8,7 +8,7 @@
                             <label>{{ i18n("granularity") }}</label>
                             <div class="d-flex">
                                 <select class="form-control" id="select-granularity">
-                                    {% for key, label in ipairs(sites.granularities) do %}
+                                    {% for key, label in pairs(sites.granularities) do %}
                                         <option value="{{ key }}">{{ label }}</option>
                                     {% end %}
                                 </select>
@@ -23,9 +23,7 @@
                     <thead>                
                         <tr>
                             <th>{{ i18n("sites_page.current_sites") }}</th>
-                            <th>{{i18n("sites_page.contacts")}}</th>
-                            <th>{{i18n("sites_page.last_5_minutes_sites")}}</th>
-                            <th>{{i18n("sites_page.contacts")}}</th>        
+                            <th>{{i18n("sites_page.contacts")}}</th> 
                         </tr>
                     </thead>
                     <tbody>

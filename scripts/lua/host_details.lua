@@ -1680,7 +1680,7 @@ elseif(page == "sites") then
             ifid = ifId,
             vlan = host_vlan,
             granularities = sites_granularities,
-            default_granularity = 0
+            default_granularity = "current"
          }
       }
 
