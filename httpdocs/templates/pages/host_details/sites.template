@@ -1,22 +1,6 @@
 <div class="row">
     <div class="col-12">
         <div class="card card-shadow">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col-md-4 col-sm-12">
-                        <div class="form-group">
-                            <label>{{ i18n("sites_page.time_range") }}</label>
-                            <div class="d-flex">
-                                <select class="form-control" id="select-granularity">
-                                    {% for key, label in pairs(sites.granularities) do %}
-                                        <option value="{{ key }}">{{ label }}</option>
-                                    {% end %}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div class="card-body">
                 <table id="table-sites" class="table table-striped table-hover table-bordered w-100">
                     <thead>                
@@ -28,6 +12,16 @@
                     <tbody>
                     </tbody>
                 </table>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex align-items-center">
+                    <label class="mb-0">{{ i18n("sites_page.time_range") }}</label>
+                    <select class="form-control ml-2" id="select-granularity" style="width: 16rem">
+                        {% for key, label in pairs(sites.granularities) do %}
+                            <option value="{{ key }}">{{ label }}</option>
+                        {% end %}
+                    </select>
+                </div>
             </div>
         </div>
     </div>
