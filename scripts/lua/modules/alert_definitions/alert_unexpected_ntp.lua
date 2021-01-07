@@ -22,6 +22,8 @@ alert_unexpected_ntp_server.meta = {
    alert_key = alert_keys.ntopng.alert_unexpected_ntp_server,
    i18n_title = "unexpected_ntp.alert_unexpected_ntp_title",
    icon = "fas fa-exclamation",
+   has_victim = true,
+   has_attacker = true,
 }
 
 -- ##############################################

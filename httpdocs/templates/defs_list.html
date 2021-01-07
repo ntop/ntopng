@@ -7,8 +7,10 @@
 	<div class="col-md-12">
 		<table class="table table-striped table-bordered table-sm w-100">
 			<tr>
-			  <th colspan="3" width="80%"> {{ i18n("plugins_overview.alert_key") }} </th>
-			  <th width="20%"> {{ i18n("plugins_overview.status_key") }} </th>
+			  <th colspan="3" width="60%"> {{ i18n("plugins_overview.alert_key") }} </th>
+			  <th width="12%"> {{ i18n("plugins_overview.has_attacker") }} </th>
+			  <th width="12%"> {{ i18n("plugins_overview.has_victim") }} </th>
+			  <th width="16%"> {{ i18n("plugins_overview.status_key") }} </th>
 			</tr>
 
 			{% for alert_key = 0, 65535 do %}
@@ -23,6 +25,27 @@
 				<td>
 				  {{ string.format("%s", alert_consts.alertTypeLabel(alert_key, true)) }}
 				</td>
+
+				{% if alert_consts.alert_types[alert_type].meta.has_attacker or alert_consts.alert_types[alert_type].meta.has_victim then %}
+					<td class="text-right">
+					{% if alert_consts.alert_types[alert_type].meta.has_attacker then %}
+					{{ string.format("%s", i18n("alert.settings.has_attacker")) }}
+					{% else %}
+					{{ string.format("%s", i18n("alert.settings.hasnt_attacker")) }}
+					{% end %}
+					</td>
+
+					<td class="text-right">
+					{% if alert_consts.alert_types[alert_type].meta.has_victim then %}
+					{{ string.format("%s", i18n("alert.settings.has_victim")) }}
+					{% else %}
+					{{ string.format("%s", i18n("alert.settings.hasnt_victim")) }}
+					{% end %}
+					</td>
+				{% else %}
+					<td class="text-right"></td>
+					<td class="text-right"></td>
+				{% end %}
 
 				<td class="text-right">
 				{% if alert_consts.alert_types[alert_type].meta.status_key then %}

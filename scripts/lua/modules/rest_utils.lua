@@ -93,7 +93,7 @@ local rest_utils = {
 function rest_utils.rc(ret_const, response)
    local ret_code = ret_const.rc
    local rc_str   = ret_const.str  -- String associated to the return code
-   local rc_str_hr -- String associated to the retrun code, human readable
+   local rc_str_hr -- String associated to the return code, human readable
 
    -- Prepare the human readable string
    rc_str_hr = i18n("rest_consts."..rc_str) or "Unknown"

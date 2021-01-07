@@ -23,7 +23,7 @@ local alert_keys = {
       alert_flow_blacklisted               = {NO_PEN, 8},
       alert_flow_blocked                   = {NO_PEN, 9},
       alert_flow_misbehaviour              = {NO_PEN, 10}, -- No longer used
-      alert_flows_flood                    = {NO_PEN, 11},
+      alert_flows_flood                    = {NO_PEN, 11}, -- No longer used, check alert_flows_flood_attacker and alert_flows_flood_victim
       alert_ghost_network                  = {NO_PEN, 12},
       alert_host_pool_connection           = {NO_PEN, 13},
       alert_host_pool_disconnection        = {NO_PEN, 14},
@@ -58,8 +58,8 @@ local alert_keys = {
       alert_snmp_device_reset              = {NO_PEN, 43},
       alert_snmp_topology_changed          = {NO_PEN, 44},
       alert_suspicious_activity            = {NO_PEN, 45}, -- No longer used
-      alert_tcp_syn_flood                  = {NO_PEN, 46},
-      alert_tcp_syn_scan                   = {NO_PEN, 47},
+      alert_tcp_syn_flood                  = {NO_PEN, 46}, -- No longer used, check alert_tcp_syn_flood_attacker and alert_tcp_syn_flood_victim
+      alert_tcp_syn_scan                   = {NO_PEN, 47}, -- No longer used, check alert_tcp_syn_scan_attacker and alert_tcp_syn_scan_victim
       alert_test_failed                    = {NO_PEN, 48},
       alert_threshold_cross                = {NO_PEN, 49},
       alert_too_many_drops                 = {NO_PEN, 50},
@@ -105,6 +105,12 @@ local alert_keys = {
       alert_dns_invalid_query              = {NO_PEN, 90},
       alert_iec_invalid_transition         = {NO_PEN, 91},
       alert_fail2ban_executed              = {NO_PEN, 92}, -- pro/scripts/pro_plugins/endpoints/fail2ban_alert_endpoint
+      alert_flows_flood_attacker           = {NO_PEN, 93},
+      alert_flows_flood_victim             = {NO_PEN, 94},
+      alert_tcp_syn_flood_attacker         = {NO_PEN, 95},
+      alert_tcp_syn_flood_victim           = {NO_PEN, 96},
+      alert_tcp_syn_scan_attacker          = {NO_PEN, 97},
+      alert_tcp_syn_scan_victim            = {NO_PEN, 98},
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins

@@ -45,7 +45,7 @@ function script.hooks.min(params)
   end
 
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert
-  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_tcp_syn_flood, value, attacker)
+  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_tcp_syn_flood_attacker, value, attacker)
 end
 
 -- #################################################################

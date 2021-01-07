@@ -22,6 +22,8 @@ alert_unexpected_dhcp_server.meta = {
    alert_key = alert_keys.ntopng.alert_unexpected_dhcp_server,
    i18n_title = "unexpected_dhcp.alert_unexpected_dhcp_title",
    icon = "fas fa-exclamation",
+   has_victim = true,
+   has_attacker = true,
 }
 
 -- ##############################################

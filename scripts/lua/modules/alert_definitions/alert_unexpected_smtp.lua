@@ -22,6 +22,8 @@ alert_unexpected_smtp_server.meta = {
    alert_key = alert_keys.ntopng.alert_unexpected_smtp_server,
    i18n_title = "unexpected_smtp.alert_unexpected_smtp_title",
    icon = "fas fa-exclamation",
+   has_victim = true,
+   has_attacker = true,
 }
 
 -- ##############################################
