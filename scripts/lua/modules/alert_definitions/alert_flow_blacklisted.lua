@@ -24,8 +24,6 @@ alert_flow_blacklisted.meta = {
    alert_key = alert_keys.ntopng.alert_flow_blacklisted,
    i18n_title = "alerts_dashboard.blacklisted_flow",
    icon = "fas fa-exclamation",
-   has_victim = true,
-   has_attacker = true,
 }
 
 -- ##############################################

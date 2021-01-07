@@ -73,8 +73,6 @@ function script.hooks.protocolDetected(now, conf)
          )
 
          alert:set_severity(alert_severities.error)
-         alert:set_attacker(server_ip)
-         alert:set_victim(client_ip)
          
          alert:trigger_status(0, 100, 100)
       end

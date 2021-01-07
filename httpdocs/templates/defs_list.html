@@ -27,21 +27,21 @@
 				</td>
 
 				{% if alert_consts.alert_types[alert_type].meta.has_attacker or alert_consts.alert_types[alert_type].meta.has_victim then %}
-					<td class="text-right">
-					{% if alert_consts.alert_types[alert_type].meta.has_attacker then %}
-					{{ string.format("%s", i18n("alert.settings.has_attacker")) }}
-					{% else %}
-					{{ string.format("%s", i18n("alert.settings.hasnt_attacker")) }}
-					{% end %}
-					</td>
+				<td class="text-right">
+				  {% if alert_consts.alert_types[alert_type].meta.has_attacker then %}
+				  <strong>
+				    <span style="color: #008000;">✓</span>
+				  </strong>
+				  {% end %}
+				</td>
 
-					<td class="text-right">
-					{% if alert_consts.alert_types[alert_type].meta.has_victim then %}
-					{{ string.format("%s", i18n("alert.settings.has_victim")) }}
-					{% else %}
-					{{ string.format("%s", i18n("alert.settings.hasnt_victim")) }}
-					{% end %}
-					</td>
+				<td class="text-right">
+				  {% if alert_consts.alert_types[alert_type].meta.has_victim then %}
+				  <strong>
+				    <span style="color: #008000;">✓</span>
+				  </strong>
+				  {% end %}
+				</td>
 				{% else %}
 					<td class="text-right"></td>
 					<td class="text-right"></td>

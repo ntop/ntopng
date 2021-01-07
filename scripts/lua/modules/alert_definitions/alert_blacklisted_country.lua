@@ -24,8 +24,6 @@ alert_blacklisted_country.meta = {
    alert_key = alert_keys.ntopng.alert_blacklisted_country,
    i18n_title = "alerts_dashboard.blacklisted_country",
    icon = "fas fa-exclamation",
-   has_victim = true,
-   has_attacker = true,
 }
 
 -- ##############################################

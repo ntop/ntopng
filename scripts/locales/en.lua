@@ -454,12 +454,6 @@ local lang = {
         ["no_victim"] = "Victim requested, but no victim set.",
       },
     },
-    ["settings"] = {
-      ["has_attacker"] = "Yes",
-      ["has_victim"] = "Yes",
-      ["hasnt_attacker"] = "No",
-      ["hasnt_victim"] = "No",
-    },
   },
   ["alert_messages"] = {
     ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",
@@ -3451,8 +3445,8 @@ local lang = {
     ["alert_key"] = "Alert Key",
     ["edition_only"] = "%{edition} Only",
     ["filters"] = "Filters",
-    ["has_attacker"] = "Attacker configurable",
-    ["has_victim"] = "Victim configurable",
+    ["has_attacker"] = "Known Attacker",
+    ["has_victim"] = "Known Victim",
     ["hooks"] = "Hooks",
     ["loaded_plugins"] = "Loaded Plugins",
     ["plugin"] = "Plugin",

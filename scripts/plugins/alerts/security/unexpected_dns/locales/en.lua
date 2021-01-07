@@ -17,5 +17,5 @@ return {
 
 -- ####################### Alert strings
 
-   alert_unexpected_dns_title = "Unexpected DNS found"
+   alert_unexpected_dns_title = "Unexpected DNS Server Found"
 }

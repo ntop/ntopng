@@ -75,21 +75,19 @@ end
 
 -- ##############################################
 
-function Alert:check_attacker_victim()
+function Alert:_check_alert_data()
    if self == nil then
       return true
    end
 
-   if self.meta ~= nil then
-      if self.meta.has_victim ~= nil and self.alert_victim == nil then
-         traceError(TRACE_ERROR, TRACE_CONSOLE, "alert.alert_error.configuration.no_victim")
-         return false
-      end
+   if self.meta.has_victim and not self.alert_victim then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "alert.alert_error.configuration.no_victim")
+      return false
+   end
 
-      if self.meta.has_attacker ~= nil and self.alert_attacker == nil then
-         traceError(TRACE_ERROR, TRACE_CONSOLE, "alert.alert_error.configuration.no_attacker")
-         return false
-      end
+   if self.meta.has_attacker and not self.alert_attacker then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "alert.alert_error.configuration.no_attacker")
+      return false
    end
 
    return true
@@ -99,14 +97,15 @@ end
 
 function Alert:trigger_status(cli_score, srv_score, flow_score)
    local alerts_api = require "alerts_api"
-   if self.meta.status_key == nil then
+
+   if not self.meta.status_key then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "alert.alert_error.configuration.no_status_key")
    end
 
-   if self.check_attacker_victim() == false then
+   if not self._check_alert_data() then
       return
    end
-   
+
    alerts_api.trigger_status(self:_build_flow_status_info(), self.alert_severity, cli_score, srv_score, flow_score)
 end
 
@@ -114,10 +113,11 @@ end
 
 function Alert:trigger(entity_info, when, cur_alerts)
    local alerts_api = require "alerts_api"
-   if self.check_attacker_victim() == false then
+
+   if not self._check_alert_data() then
       return
    end
-   
+
    return alerts_api.trigger(entity_info, self:_build_type_info(), nil, cur_alerts)
 end
 
@@ -125,10 +125,11 @@ end
 
 function Alert:release(entity_info, when, cur_alerts)
    local alerts_api = require "alerts_api"
-   if self.check_attacker_victim() == false then
+
+   if not self._check_alert_data() then
       return
    end
-   
+
    return alerts_api.release(entity_info, self:_build_type_info(), nil, cur_alerts)
 end
 
@@ -136,10 +137,11 @@ end
 
 function Alert:store(entity_info)
    local alerts_api = require "alerts_api"
-   if self.check_attacker_victim() == false then
+
+   if not self._check_alert_data() then
       return
    end
-   
+
    return alerts_api.store(entity_info, self:_build_type_info())
 end
 
