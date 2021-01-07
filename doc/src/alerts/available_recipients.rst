@@ -90,6 +90,21 @@ After that create a new recipient to associate with the new endpoint just create
 
         The script must be a shell script (.sh extention).
 
+Fail2Ban
+------
+
+First of all, install Fail2Ban, for infos about the download check `Fail2Ban <https://www.fail2ban.org/wiki/index.php/Downloads>`_.
+After that you will be able to see the Fail2Ban Endpoint.
+
+After creating the endpoint, create a new recipient to associate with the new endpoint just created and put inside the JAIL option the JAIL that's going to be used to ban the dangerous IP (to have more infos about the JAIL check `here <https://www.fail2ban.org/wiki/index.php/MANUAL_0_8#Jails>`_).
+
+.. figure:: ../img/f2b_recipient.png
+
+.. note::
+
+        If the Recipient Check isn't succesfull, be sure that ntopng has sudo privileges and that the JAIL added is a correct one.
+
+        Fail2Ban Endpoint isn't going to be called for each alert but only for those that supports it, in the specific case only those with the Attacker available; check into ntopng WEB GUI under :code:`Developer->Alert and Flow Status Definitions` to see if the Attackers and Victims are available or not.
 
 Webhook
 -------
