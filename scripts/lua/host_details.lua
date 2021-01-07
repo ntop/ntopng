@@ -8,11 +8,15 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local snmp_utils
 local snmp_location
+local host_sites_update
+local sites_granularities = nil
+
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    snmp_utils = require "snmp_utils"
    snmp_location = require "snmp_location"
    shaper_utils = require("shaper_utils")
+   host_sites_update = require("host_sites_update")
 end
 
 require "lua_utils"
@@ -20,8 +24,6 @@ local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
 require "historical_utils"
 local json = require ("dkjson")
-
-
 local discover = require "discover_utils"
 local ui_utils = require "ui_utils"
 local page_utils = require "page_utils"
@@ -281,6 +283,10 @@ else
 
    local url = hostinfo2detailsurl(host, {tskey = _GET["tskey"]})
 
+   if (ntop.isPro()) then
+      sites_granularities = host_sites_update.getGranularitySites(host_ip, host_vlan, ifId)
+   end
+
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
    local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
 
@@ -390,7 +396,7 @@ else
 				 label = i18n("flows"),
 			      },
 			      {
-				 hidden = only_historical or not host["localhost"] or (table.len(top_sites) == 0 and table.len(top_sites_old) == 0),
+				 hidden = only_historical or not host["localhost"] or (table.len(sites_granularities) == 0),
 				 active = page == "sites",
 				 page_name = "sites",
 				 label = i18n("sites_page.sites"),
@@ -1665,42 +1671,21 @@ elseif(page == "sites") then
       print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
 
    elseif table.len(top_sites) > 0 or table.len(top_sites_old) > 0 then
-      print("<table class=\"table table-bordered table-striped\">\n")
+     
+      local context = {
+         json = json,
+         template = template,
+         sites = {
+            host = host_ip,
+            ifid = ifId,
+            vlan = host_vlan,
+            granularities = sites_granularities,
+            default_granularity = 0
+         }
+      }
 
-      local old_top_len = table.len(top_sites_old)  if(old_top_len > 10) then old_top_len = 10 end
-      local top_len = table.len(top_sites)          if(top_len > 10) then top_len = 10 end
-      if(old_top_len > top_len) then num = old_top_len else num = top_len end
+      print(template.gen("pages/host_details/sites.template", context))
 
-      print("<tr><th rowspan="..(1+num)..">"..i18n("sites_page.top_visited_sites").."</th><th>"..i18n("sites_page.current_sites").."</th><th>"..i18n("sites_page.contacts").."</th><th>"..i18n("sites_page.last_5_minutes_sites").."</th><th>"..i18n("sites_page.contacts").."</th></tr>\n")
-      local sites = {}
-      for k,v in pairsByValues(top_sites, rev) do
-	 table.insert(sites, { k, v })
-      end
-
-      local sites_old = {}
-      for k,v in pairsByValues(top_sites_old, rev) do
-	 table.insert(sites_old, { k, v })
-      end
-
-      for i = 1,num do
-	 if(sites[i] == nil) then sites[i] = { "", 0 } end
-	 if(sites_old[i] == nil) then sites_old[i] = { "", 0 } end
-	 print("<tr><th>")
-	 if(sites[i][1] ~= "") then
-	    print(formatWebSite(sites[i][1]).."</th><td align=right>"..sites[i][2].."</td>\n")
-	 else
-	    print("&nbsp;</th><td>&nbsp;</td>\n")
-	 end
-
-	 if(sites_old[i][1] ~= "") then
-	    print("<th>"..formatWebSite(sites_old[i][1]).."</th><td align=right>"..sites_old[i][2].."</td>\n")
-	 else
-	    print("<th>&nbsp;</th><td>&nbsp;</td>\n")
-	 end
-
-	 print("</tr>")
-      end
-      print("</table>\n")
    else
       local msg = i18n("sites_page.top_sites_not_seen")
       print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
