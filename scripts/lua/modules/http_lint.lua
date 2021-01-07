@@ -1506,8 +1506,7 @@ local known_parameters = {
    ["host_pool_members"]      = validateUnquoted,
 
    -- Widget and Datasources
-   ["ds_hash"]                 = validateSingleWord,
-   ["ds_name"]                 = validateSingleWord,
+   ["ds_type"]                 = validateSingleWord,
    ["transformation"]          = validateTransformation,
 
 -- Topology SNMP Devices

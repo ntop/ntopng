@@ -8,6 +8,7 @@ require ("lua_utils")
 local json = require("dkjson")
 local rest_utils = require "rest_utils"
 local datasources_utils = require("datasources_utils")
+local datasource_keys = require "datasource_keys"
 
 -- Widget Element Model:
 -- name: the widget name
@@ -231,13 +232,22 @@ function widgets_utils.rest_response()
 
    local datasources_data = {}
    for _, datasource in pairs(_POST["datasources"]) do
-      -- TODO: implement proper getter
-      -- local ds = datasources_utils.get(datasource.ds_hash)
+      -- Check if the datasource is valid and existing
+      if not datasource.ds_type then
+	 rest_utils.answer(rest_utils.consts.err.widgets_missing_datasource_type)
+	 return
+      end
 
-      -- Pretend all datasources are the same pkt distro for now
-      -- TODO: replace with above
-      local packet_distro = require "interface.packet_distro"
-      local datasource_instance = packet_distro:new()
+      if not datasource_keys[datasource.ds_type] then
+	 rest_utils.answer(rest_utils.consts.err.widgets_unknown_datasource_type)
+	 return
+      end
+
+      -- Get the actual datasource key
+      local datasource_key = datasource_keys[datasource.ds_type]
+      -- Fetch the datasource class using the key
+      local datasource_type = datasources_utils.get_source_type_by_key(datasource_key)
+      local datasource_instance = datasource_type:new()
 
       -- Parse params into the instance
       if not datasource_instance:read_params(datasource.params) then

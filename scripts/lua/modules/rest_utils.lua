@@ -83,7 +83,9 @@ local rest_utils = {
 	 --Widgets
 	 widgets_missing_transformation = { http_code = 409, rc = -48, str = "WIDGETS_MISSING_TRANSFORMATION"},
 	 widgets_missing_datasources = { http_code = 409, rc = -49, str = "WIDGETS_MISSING_DATASOURCES"},
-	 widgets_missing_datasource_params = { http_code = 409, rc = -50, str = "WIDGETS_MISSING_DATASOURCE_PARAMS"},
+	 widgets_missing_datasource_type = { http_code = 409, rc = -50, str = "WIDGETS_MISSING_DATASOURCE_TYPE"},
+	 widgets_unknown_datasource_type = { http_code = 409, rc = -51, str = "WIDGETS_UNKNOWN_DATASOURCE_TYPE"},
+	 widgets_missing_datasource_params = { http_code = 409, rc = -52, str = "WIDGETS_MISSING_DATASOURCE_PARAMS"},
       },
    }
 }

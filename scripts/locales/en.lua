@@ -4045,6 +4045,8 @@ local lang = {
     ["WIDGETS_MISSING_DATASOURCES"] = "Missing datasources",
     ["WIDGETS_MISSING_DATASOURCE_PARAMS"] = "Missing datasource params",
     ["WIDGETS_MISSING_TRANSFORMATION"] = "Missing transformation",
+    ["WIDGETS_MISSING_DATASOURCE_TYPE"] = "Missing datasource type",
+    ["WIDGETS_UNKNOWN_DATASOURCE_TYPE"] = "Unknown datasource type",
   },
   ["restart"] = {
     ["confirm"] = "Do you want to restart %{product} now?",

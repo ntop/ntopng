@@ -48,14 +48,11 @@ local datasource = packet_distro:new()
 -- Datasource
 -- $ curl --silent --insecure -u "admin:admin1" -H "Content-Type: application/json" -d '{"ifid":0}' "http://127.0.0.1:3000/lua/rest/v1/get/datasource/interface/packet_distro.lua"
 --
--- {"rc_str_hr":"Success","rc":0,"rsp":{"header":"packet distro","rows":[[1,2],[3,4]]},"rc_str":"OK"}
---
 --
 -- Widget with multiple datasources
--- $ curl --silent --insecure -u "admin:admin1" -H "Content-Type: application/json" -d '{"transformation": "donut", "datasources":[{"ds_hash":"7e58949ab5cd0cce880283701f42d38a", "params":{"ifid":0}}, {"ds_hash":"7e58949ab5cd0cce880283701f42d38a", "params":{"ifid":0}}]}' "http://127.0.0.1:3000/lua/rest/v1/get/widget/data.lua"
+-- $ curl --silent --insecure -u "admin:admin1" -H "Content-Type: application/json" -d '{"transformation": "donut", "datasources":[{"ds_type":"interface_packet_distro", "params":{"ifid":0}}, {"ds_type":"interface_packet_distro", "params":{"ifid":0}}]}' "http://127.0.0.1:3000/lua/rest/v1/get/widget/data.lua"
 --
--- {"rc":0,"rc_str_hr":"Success","rsp":{"7e58949ab5cd0cce880283701f42d38a":{"title":"eno1 Packet Distribution","data":[{"value":1},{"value":2}]}},"rc_str":"OK"}
-
+--
 -- Read data from the REST endpoint bound to the datasource
 -- NOTE: Host is hardcoded here for test purposes, it will vary depending on what will be specified when creating the datasource
 -- NOTE: The auth token will be necessary as well
