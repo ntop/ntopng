@@ -20,7 +20,7 @@ local context = {
    alert_consts = alert_consts,
 }
 
-print(template.gen("defs_list.html", context))
+print(template.gen("pages/alerts/defs_overview.template", context))
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
