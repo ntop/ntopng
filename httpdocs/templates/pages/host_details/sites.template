@@ -31,6 +31,8 @@
     <ul>
         <li>{* i18n('top_host_sites.note_protocol_used') *}</li>
         <li>{* i18n('top_host_sites.note_tot_entries') *}</li>
+        <li>{* i18n('top_host_sites.note_time_range') *}</li>
+        <li>{* i18n('top_host_sites.note_yesterday_data') *}</li>
     </ul>
 </div>
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
