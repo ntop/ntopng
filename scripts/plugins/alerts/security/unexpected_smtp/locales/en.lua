@@ -17,5 +17,5 @@ return {
 
 -- ####################### Alert strings
 
-   alert_unexpected_smtp_title = "Unexpected SMTP Server Found"
+   alert_unexpected_smtp_title = "Unexpected SMTP server found"
 }

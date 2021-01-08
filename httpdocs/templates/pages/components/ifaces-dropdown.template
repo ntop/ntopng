@@ -1,0 +1,71 @@
+{% -- Generate forms for the actual switch of the currently active interface %}
+
+{% for k, v in pairsByValues(ifnames, asc) do %}
+<form id="maina_switch_interface_form_{{ k }}" method="POST" action="{{ action_urls[k] }}">
+  <input name="switch_interface" type="hidden" value="1" />
+  <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
+</form>
+{% end %}
+
+
+{% -- Print out the interfaces dropdown %}
+
+<li class="nav-item d-flex align-items-center">
+<select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
+  {% -- The System optgroup, ONLY for admins %}
+  {% if isAdministrator() then %}
+    <optgroup label="{{ i18n('system') }}">
+      {% local selected = '' %}
+
+      {% if is_system_interface then %}
+        {% selected = 'selected=""' %}
+      {% end %}
+
+      <option value="system" {{ selected }}>{{ i18n('system') }}</option>
+    </optgroup>
+  {% end %}
+
+  {% -- The Interfaces optgroup %}
+  <optgroup label="{{ i18n('interfaces') }}">
+    {% for round = 1, 2 do -- First round: only physical interfaces, second round: only virtual interfaces %}
+      {% for k, v in pairsByValues(ifnames, asc) do %}
+        {% if round == 1 and ifCustom[k] then %}
+          {% -- Nothing to do, this round is for physical, non-disaggregated interfaces ... %}
+        {% elseif round == 2 and not ifCustom[k] then %}
+          {% -- Nothing to do, this round is for disaggregated interfaces only ... %}
+        {% else %}
+          {% local icons, selected = {}, '' %}
+
+          {% if tonumber(k) == interface.getId() and not is_system_interface then %}
+            {% selected = 'selected=""' %}
+          {% end %}
+
+          {% if packetinterfaces[v] then %}
+            {% icons[#icons + 1] = "<i class='fas fa-ethernet'></i>" %}
+          {% end %}
+
+          {% if views[v] then %}
+            {% icons[#icons + 1] = "<i class='fas fa-eye'></i>" %}
+          {% end %}
+
+          {% if dynamic[v] then %}
+            {% icons[#icons + 1] = "<i class='fas fa-code-branch'></i>" %}
+          {% end %}
+
+          {% if drops[v] then %}
+            {% icons[#icons + 1] = "<i class='fas fa-tint'></i>" %}
+          {% end %}
+
+          {% if recording[v] then %}
+            {% icons[#icons + 1] = "<i class='fas fa-hdd'></i>" %}
+          {% end %}
+
+          <option data-tokens="{{ k }}" value="{{ k }}" {{ selected }} data-content="{{ table.concat(icons, ' ')}} {{ ifHdescr[k] }}">{{ ifHdescr[k] }}</option>
+        {% end %}
+      {% end %}
+    {% end %}
+  </optgroup>
+</select>
+</li>
+
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/components/ifaces-dropdown.js"></script>

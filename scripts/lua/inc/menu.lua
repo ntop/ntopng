@@ -17,6 +17,7 @@ local toasts_manager = require("toasts_manager")
 local host_pools = require "host_pools"
 local auth = require "auth"
 local blog_utils = require("blog_utils")
+local template_utils = require "template_utils"
 
 local is_nedge = ntop.isnEdge()
 local is_appliance = ntop.isAppliance()
@@ -862,36 +863,7 @@ print([[
                <i class="fas fa-bars"></i>
             </button>
          </li>
-         <li id="button-switch-interface" class='nav-item d-flex align-items-center dropdown'>
-            <a class="btn border-dark dropdown-toggle" data-toggle="dropdown" href="#">
-               ]])
-if is_system_interface then
-   print(i18n("system"))
-else
-   if ifs.hasSubInterfaces then
-      print('<i class="fas fa-ethernet"></i> <i class="fas fa-code-branch"></i> ')
-   elseif ifs.isDynamic then
-      print('<i class="fas fa-code-branch"></i>  ')
-   else
-      print('<i class="fas fa-ethernet"></i> ')
-   end
-   print(getHumanReadableInterfaceName(ifname))
-end
-print([[
-            </a>
-            <ul class='dropdown-menu'>
-]])
-
-if ntop.isAdministrator() then
-   print([[
-               <li>
-                  <button id="btn-trigger-system-mode" class="dropdown-item ]].. (is_system_interface and "active" or "") ..[[">
-                     ]].. (is_system_interface and "<i class='fas fa-check'></i>" or "") ..[[ ]] .. i18n("system") .. [[
-                  </button>
-               </li>
-               <li class='dropdown-divider'></li>
-   ]])
-end
+ ]])
 
 -- ##############################################
 -- Interfaces Selector
@@ -901,18 +873,18 @@ local drops = {}
 local recording = {}
 local packetinterfaces = {}
 local ifnames = {}
-local ifdescr = {}
 local iftype = {}
 local ifHdescr = {}
 local ifCustom = {}
 local dynamic = {}
+local action_urls = {}
 
 for v,k in pairs(iface_names) do
    interface.select(k)
    local _ifstats = interface.getStats()
    ifnames[_ifstats.id] = k
-   ifdescr[_ifstats.id] = _ifstats.description
    iftype[_ifstats.id] = _ifstats.type
+   action_urls[_ifstats.id] = page_utils.switch_interface_form_action_url(_ifstats.id, _ifstats.type)
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
    if(_ifstats.isView == true) then views[k] = true end
    if(_ifstats.isDynamic == true) then dynamic[k] = true end
@@ -921,91 +893,42 @@ for v,k in pairs(iface_names) do
    if(_ifstats.stats_since_reset.drops * 100 > _ifstats.stats_since_reset.packets) then
       drops[k] = true
    end
-   ifHdescr[_ifstats.id] = getHumanReadableInterfaceName(_ifstats.description.."")
    ifCustom[_ifstats.id] = _ifstats.customIftype
-end
 
--- First round: only physical interfaces
--- Second round: only virtual interfaces
+   local descr = getHumanReadableInterfaceName(v)
 
-for round = 1, 2 do
-
-   for k,_ in pairsByValues(ifHdescr, asc) do
-
-      local descr
-
-      if((round == 1) and (ifCustom[k] ~= nil)) then
-	 -- do nothing
-      elseif((round == 2) and (ifCustom[k] == nil)) then
-	 -- do nothing
-      else
-
-         v = ifnames[k]
-
-	 -- table.clone needed to modify some parameters while keeping the original unchanged
-         print([[<li class="nav-item">]])
-
-         if(v == ifname and not is_system_interface) then
-            print("<a class=\"dropdown-item active\" href=\"#\">")
-         else
-            -- NOTE: the actual interface switching is performed in C in LuaEngine::handle_script_request
-
-	    local action_url = page_utils.switch_interface_form_action_url(k, iftype[k])
-
-   print[[<form id="switch_interface_form_]] print(tostring(k)) print([[" method="post" action="]].. action_url ..[[]]) print[[">]]
-            print[[<input name="switch_interface" type="hidden" value="1" />]]
-            print[[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />]]
-            print[[</form>]]
-
-            print([[<a class="dropdown-item" href="javascript:void(0);" onclick="toggleSystemInterface(false, $('#switch_interface_form_]]) print(tostring(k)) print[['));">]]
-         end
-
-         if((v == ifname) and not is_system_interface) then print("<i class=\"fas fa-check\"></i> ") end
-         if(isPausedInterface(v)) then  print('<i class="fas fa-pause"></i> ') end
-
-         if(views[v] == true) then
-            print(' <i class="fas fa-eye" aria-hidden="true"></i> ')
-         end
-
-         if(dynamic[v] == true) then
-            print('<i class="fas fa-code-branch" aria-hidden="true"></i> ')
-         end
-
-         if(drops[v] == true) then
-            print('<i class="fas fa-tint" aria-hidden="true"></i> ')
-         end
-
-         if(recording[v] == true) then
-            print('<i class="fas fa-hdd" aria-hidden="true"></i> ')
-         end
-
-         descr = getHumanReadableInterfaceName(v.."")
-
-         if(string.contains(descr, "{")) then -- Windows
-            descr = ifdescr[k]
-         else
-	         if(descr ~= ifdescr[k]) and (not views[v]) then
-	            if(descr == shortenCollapse(ifdescr[k])) then
-		            descr = ifdescr[k]
-	            else
-		            descr = descr .. " (".. ifdescr[k] ..")" -- Add description
-	            end
-	         end
-         end
-
-         print(descr)
-         print("</a>")
-         print("</li>")
+   if ntop.isWindows() and string.contains(descr, "{") then -- Windows
+      descr = _ifstats.description
+   else
+      if descr ~= _ifstats.description and not views[k] then
+      	 if descr == shortenCollapse(_ifstats.description) then
+      	    descr = _ifstats.description
+      	 else
+      	    descr = descr .. " (".. _ifstats.description ..")" -- Add description
+      	 end
       end
    end
+
+   ifHdescr[_ifstats.id] = descr
 end
 
 interface.select(ifs.id.."")
 
-print([[
-         </ul>
-      </li>
-]])
+local context = {
+   ifnames = ifnames,
+   iftype = iftype,
+   views = views,
+   dynamic = dynamic,
+   recording = recording,
+   packetinterfaces = packetinterfaces,
+   drops = drops,
+   ifHdescr = ifHdescr,
+   ifCustom = ifCustom,
+   action_urls = action_urls,
+   is_system_interface = is_system_interface,
+}
+
+print(template_utils.gen("pages/components/ifaces-dropdown.template", context))
 
 -- ##############################################
 -- Up/Down info

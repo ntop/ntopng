@@ -17,5 +17,5 @@ return {
 
 -- ####################### Alert strings
 
-   alert_unexpected_dhcp_title = "Unexpected DHCP Server Found"
+   alert_unexpected_dhcp_title = "Unexpected DHCP found"
 }

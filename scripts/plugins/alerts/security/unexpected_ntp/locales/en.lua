@@ -17,5 +17,5 @@ return {
 
 -- ####################### Alert strings
 
-   alert_unexpected_ntp_title = "Unexpected NTP Server Found"
+   alert_unexpected_ntp_title = "Unexpected NTP server found"
 }
