@@ -199,18 +199,6 @@ print([[
 		  });
 	   }
 	]])
-
-	if (not page_utils.is_system_view()) then
-
-		print([[
-		$(document).ready(function() {
-			$("#btn-trigger-system-mode").click(function(e) {
-				toggleSystemInterface(]].. (is_admin and "true" or "false") ..[[);
-			});
-		});
-		]])
-	end
-
 print([[
 	</script>
 ]])

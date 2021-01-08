@@ -1,7 +1,7 @@
 {% -- Generate forms for the actual switch of the currently active interface %}
 
 {% for k, v in pairsByValues(ifnames, asc) do %}
-<form id="maina_switch_interface_form_{{ k }}" method="POST" action="{{ action_urls[k] }}">
+<form id="switch_interface_form_{{ k }}" method="POST" action="{{ action_urls[k] }}">
   <input name="switch_interface" type="hidden" value="1" />
   <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
 </form>
@@ -40,7 +40,9 @@
             {% selected = 'selected=""' %}
           {% end %}
 
-          {% if packetinterfaces[v] then %}
+          {% if pcapdump[v] then %}
+            {% icons[#icons + 1] = "<i class='fas fa-file'></i>" %}
+          {% elseif packetinterfaces[v] then %}
             {% icons[#icons + 1] = "<i class='fas fa-ethernet'></i>" %}
           {% end %}
 

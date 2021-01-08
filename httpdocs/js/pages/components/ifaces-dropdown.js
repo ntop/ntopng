@@ -17,7 +17,7 @@ $(function () {
           if(selected_value == "system")
 	      toggleSystemInterface(true);
           else
-              toggleSystemInterface(false, $('#maina_switch_interface_form_' + selected_value));
+              toggleSystemInterface(false, $('#switch_interface_form_' + selected_value));
       }
   });
 });

@@ -872,6 +872,7 @@ local views = {}
 local drops = {}
 local recording = {}
 local packetinterfaces = {}
+local pcapdump = {}
 local ifnames = {}
 local iftype = {}
 local ifHdescr = {}
@@ -883,9 +884,9 @@ for v,k in pairs(iface_names) do
    interface.select(k)
    local _ifstats = interface.getStats()
    ifnames[_ifstats.id] = k
-   iftype[_ifstats.id] = _ifstats.type
    action_urls[_ifstats.id] = page_utils.switch_interface_form_action_url(_ifstats.id, _ifstats.type)
    --io.write("["..k.."/"..v.."][".._ifstats.id.."] "..ifnames[_ifstats.id].."=".._ifstats.id.."\n")
+   if interface.isPcapDumpInterface() then pcapdump[k] = true end
    if(_ifstats.isView == true) then views[k] = true end
    if(_ifstats.isDynamic == true) then dynamic[k] = true end
    if(recording_utils.isEnabled(_ifstats.id)) then recording[k] = true end
@@ -916,10 +917,10 @@ interface.select(ifs.id.."")
 
 local context = {
    ifnames = ifnames,
-   iftype = iftype,
    views = views,
    dynamic = dynamic,
    recording = recording,
+   pcapdump = pcapdump,
    packetinterfaces = packetinterfaces,
    drops = drops,
    ifHdescr = ifHdescr,
