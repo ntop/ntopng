@@ -455,7 +455,7 @@ print[[
 				msg += "<span title=\"" + macs_label +"\" class=\"badge badge-danger\">";
 			}
 
-			msg += NtopUtils.addCommas(rsp.num_devices)+" ]] print(i18n("devices")) print[[</span></a>";
+			msg += NtopUtils.addCommas(rsp.num_devices)+" <i class=\"fas fa-ethernet\"></i></span></a>";
 	    }
 
 	    if(rsp.num_flows > 0 && (!systemInterfaceEnabled)) {
