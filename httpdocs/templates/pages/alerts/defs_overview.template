@@ -8,12 +8,12 @@
 		<table id="alert-overview" class="table table-striped table-bordered w-100">
             <thead>
                 <tr>
-                    <th width="5%"> {{ i18n("plugins_overview.alert_key") }} </th>
+                    <th width="10%"> {{ i18n("plugins_overview.alert_key") }} </th>
                     <th width="35%"> {{ i18n("plugins_overview.alert_key_string") }} </th>
-                    <th width="35%"> {{ i18n("plugins_overview.alert_name") }} </th>
+                    <th width="20%"> {{ i18n("plugins_overview.alert_name") }} </th>
                     <th width="10%"> {{ i18n("plugins_overview.has_attacker") }} </th>
                     <th width="10%"> {{ i18n("plugins_overview.has_victim") }} </th>
-                    <th width="5%"> {{ i18n("plugins_overview.status_key") }} </th>
+                    <th width="10%"> {{ i18n("plugins_overview.status_key") }} </th>
                 </tr>
             </thead>
             <tbody>
