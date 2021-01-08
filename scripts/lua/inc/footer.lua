@@ -389,12 +389,12 @@ print[[
 
 			if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {
 				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status_severity=warning\">"
-				msg += "<span class=\"badge badge-warning\">"+NtopUtils.addCommas(rsp.alerted_flows_warning)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+				msg += "<span class=\"badge badge-warning\">"+NtopUtils.addCommas(rsp.alerted_flows_warning)+ " <i class=\"fas fa-water\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 			}
 
 			if(rsp.alerted_flows_error > 0 && !(systemInterfaceEnabled)) {
 				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status_severity=error_or_higher\">"
-				msg += "<span class=\"badge badge-danger\">"+NtopUtils.addCommas(rsp.alerted_flows_error)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+				msg += "<span class=\"badge badge-danger\">"+NtopUtils.addCommas(rsp.alerted_flows_error)+ " <i class=\"fas fa-water\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 			}
 		}
 
@@ -473,7 +473,7 @@ print[[
 				msg += "<span class=\"badge badge-danger\">";
 			}
 
-			msg += NtopUtils.addCommas(rsp.num_flows)+" ]] print(i18n("flows")) print[[ </span> </a>";
+			msg += NtopUtils.addCommas(rsp.num_flows)+" <i class=\"fas fa-water\"></i>  </span> </a>";
 
 			if (rsp.flow_export_drops > 0) {
 				const export_pctg = rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_drops + 1);
