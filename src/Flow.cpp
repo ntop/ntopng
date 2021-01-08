@@ -2401,12 +2401,15 @@ json_object* Flow::flow2json() {
     }
 
     /* Custom information elements not supported (yet) by nProbe */
+    int16_t cli_network_id = 0;
     json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_LOCAL, "SRC_ADDR_LOCAL", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_boolean(get_cli_host()->isLocalHost()));
+			   json_object_new_boolean(cli_ip->isLocalHost(&cli_network_id)));
     json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_BLACKLISTED, "SRC_ADDR_BLACKLISTED", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_boolean(get_cli_host()->isBlacklisted()));
-    json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_SERVICES, "SRC_ADDR_SERVICES", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_int(get_cli_host()->getServicesMap()));
+			   json_object_new_boolean(cli_ip->isBlacklistedAddress()));
+
+    if(get_cli_host())
+      json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_SERVICES, "SRC_ADDR_SERVICES", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_int(get_cli_host()->getServicesMap()));
   }
 
   if(srv_ip) {
@@ -2419,12 +2422,15 @@ json_object* Flow::flow2json() {
     }
 
     /* Custom information elements not supported (yet) by nProbe */
+    int16_t srv_network_id = 0;
     json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_LOCAL, "DST_ADDR_LOCAL", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_boolean(get_srv_host()->isLocalHost()));
+			   json_object_new_boolean(srv_ip->isLocalHost(&srv_network_id)));
     json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_BLACKLISTED, "DST_ADDR_BLACKLISTED", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_boolean(get_srv_host()->isBlacklisted()));
-    json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_SERVICES, "DST_ADDR_SERVICES", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_int(get_cli_host()->getServicesMap()));
+			   json_object_new_boolean(srv_ip->isBlacklistedAddress()));
+
+    if(get_srv_host())
+      json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_SERVICES, "DST_ADDR_SERVICES", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_int(get_srv_host()->getServicesMap()));
   }
 
   json_object_object_add(my_object, Utils::jsonLabel(SRC_TOS, "SRC_TOS", jsonbuf, sizeof(jsonbuf)),
