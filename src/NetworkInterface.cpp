@@ -242,6 +242,7 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
+  nextSitesUpdate = 0;
   ifname = NULL, bridge_lan_interface_id = bridge_wan_interface_id = 0;
   inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
@@ -279,6 +280,10 @@ void NetworkInterface::init() {
   macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
   countries_hash = NULL;
   gw_macs = NULL;
+
+  top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
+  old_sites = strdup("{}");
+  removeRedisSitesKey();
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -614,6 +619,10 @@ NetworkInterface::~NetworkInterface() {
   if(hookProtocolDetected) delete hookProtocolDetected;
   if(hookPeriodicUpdate)   delete hookPeriodicUpdate;
   if(hookFlowEnd)          delete hookFlowEnd;
+
+  if(top_sites)       delete top_sites;
+  if(old_sites)       free(old_sites);
+  addRedisSitesKey();
 }
 
 /* **************************************************** */
@@ -2974,6 +2983,8 @@ void NetworkInterface::periodicStatsUpdate() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s]", __FUNCTION__, get_name());
 #endif
   struct timeval tv = periodicUpdateInitTime();
+
+  updateSitesStats(&tv);
 
   if(db)
     db->updateStats(&tv);  
@@ -5566,6 +5577,14 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "mtu", ifMTU);
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
   bcast_domains->lua(vm);
+
+  if (top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
+    char *cur_sites = top_sites->json();
+    
+    lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
+    lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
+    if(cur_sites) free(cur_sites);
+  }
 
   /* Anomalies */
   lua_newtable(vm);
@@ -8165,5 +8184,109 @@ void NetworkInterface::updateServiceMap(Flow *f) {
   if(sMap && f) sMap->update(f, f->get_first_seen());
 }
 #endif
+
+/* *************************************** */
+
+void NetworkInterface::updateSitesStats(const struct timeval *tv) {
+  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
+    if(nextSitesUpdate > 0) {
+      if(old_sites) {
+        this->saveOldSites();
+	      free(old_sites);
+      }
+      old_sites = top_sites->json();
+    }
+
+    nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::saveOldSites() {
+  char redis_key[128];
+  int minute = 0;
+  /* Using the epoch */
+  time_t now = time(NULL); 
+  struct tm t_now;
+  localtime_r(&now, &t_now);
+  minute = t_now.tm_min - (t_now.tm_min % 5);
+
+  if (!strcmp(old_sites, "{}") || !strcmp(old_sites, "{ }"))
+    return;
+
+  snprintf(redis_key, sizeof(redis_key), "%s_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+            get_id(), t_now.tm_mday, t_now.tm_hour, minute);
+
+  /* String like `ntopng.1_17_11_45` */
+  /* An other way is to use the localtime_r and compose the string like `ntopng.cache_2_1609761600` */
+  
+
+  ntop->getRedis()->set(redis_key , old_sites, 7200);
+
+  if (minute == 0 && current_cycle > 0) {
+    char hour_done[128];
+    int hour = 0;
+
+    if (t_now.tm_hour == 0) 
+      hour = 23;
+    else
+      hour = t_now.tm_hour - 1;
+
+    /* List key = ntopng.cache.top_sites_hour_done | value = 1_17_11 */
+    snprintf(hour_done, sizeof(hour_done), "%u_%d_%d", get_id(), t_now.tm_mday, hour);
+    
+    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, hour_done, 3600);
+    current_cycle = 0;
+  } else 
+    current_cycle++;
+}
+
+/* *************************************** */
+
+void NetworkInterface::removeRedisSitesKey() {
+  char redis_hour_key[128], redis_daily_key[128];
+  time_t now = time(NULL); 
+  struct tm t_now;
+  localtime_r(&now, &t_now);
+
+  snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", get_id(), t_now.tm_mday, t_now.tm_hour);
+
+  ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
+
+  snprintf(redis_daily_key, sizeof(redis_daily_key), "%d_%d", get_id(), t_now.tm_mday);
+
+  ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
+}
+
+/* *************************************** */
+  
+void NetworkInterface::addRedisSitesKey() {
+  char redis_hour_key[128], redis_daily_key[128];
+  time_t now = time(NULL); 
+  struct tm t_now;
+  localtime_r(&now, &t_now);
+
+  snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", get_id(), t_now.tm_mday, t_now.tm_hour);
+
+  ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
+
+  snprintf(redis_daily_key, sizeof(redis_daily_key), "%d_%d", get_id(), t_now.tm_mday);
+
+  ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);  
+}
+
+/* *************************************** */
+
+void NetworkInterface::incrVisitedWebSite(char *hostname) {
+  char *firstdot = NULL, *nextdot = NULL;
+
+  firstdot = strchr(hostname, '.');
+
+  if(firstdot)
+    nextdot = strchr(&firstdot[1], '.');
+
+  top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
+}
 
 /* *************************************** */

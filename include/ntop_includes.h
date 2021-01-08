@@ -217,6 +217,7 @@ using namespace std;
 #include "TcpPacketStats.h"
 #include "DSCPStats.h"
 #include "ntop_typedefs.h"
+#include "FrequentStringItems.h"
 #include "Alert.h"
 #include "AlertableEntity.h"
 #include "Trace.h"
@@ -348,7 +349,6 @@ using namespace std;
 #include "TextDump.h"
 #include "NIndexFlowDB.h"
 #endif
-#include "FrequentStringItems.h"
 #ifdef NTOPNG_PRO
 #include "NtopPro.h"
 #include "DnsHostMapping.h"

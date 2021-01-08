@@ -45,6 +45,8 @@ class LocalHostStats: public HostStats {
 
   void updateHostContacts();
   void saveOldSites();
+  void removeRedisSitesKey(Host *host);
+  void addRedisSitesKey(Host *host);
   
  public:
   LocalHostStats(Host *_host);

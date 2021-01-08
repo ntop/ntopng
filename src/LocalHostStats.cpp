@@ -33,17 +33,8 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   num_contacts_as_cli = num_contacts_as_srv = 0;
   current_cycle = 0;
 
-  if (_host != NULL) {
-    char ip_buf[64], redis_key[128];
-    time_t now = time(NULL); 
-    struct tm t_now;
-    localtime_r(&now, &t_now);
-    
-    snprintf(redis_key, sizeof(redis_key), "%s@%u_%u_%u", _host->get_ip()->print(ip_buf, sizeof(ip_buf)),
-              _host->get_vlan_id(), _host->getInterface()->get_id(), t_now.tm_hour);
-
-    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED, redis_key);
-  }
+  if (_host != NULL)
+    removeRedisSitesKey(_host);
   
   num_contacted_hosts_as_client.init(8);       /* 128 bytes */
   num_host_contacts_as_server.init(8);         /* 128 bytes */
@@ -65,17 +56,8 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
 
-  if (this->host != NULL) {
-    char ip_buf[64], redis_key[128];
-    time_t now = time(NULL); 
-    struct tm t_now;
-    localtime_r(&now, &t_now);
-    
-    snprintf(redis_key, sizeof(redis_key), "%s@%u_%u_%u", this->host->get_ip()->print(ip_buf, sizeof(ip_buf)),
-              this->host->get_vlan_id(), this->host->getInterface()->get_id(), t_now.tm_hour);
-
-    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED, redis_key);
-  }
+  if (host != NULL)
+    removeRedisSitesKey(host);
 }
 
 /* *************************************** */
@@ -87,17 +69,9 @@ LocalHostStats::~LocalHostStats() {
   if(http)            delete http;
   if(icmp)            delete icmp;
 
-  if (host != NULL) {
-    char ip_buf[64], redis_key[128];
-    time_t now = time(NULL); 
-    struct tm t_now;
-    localtime_r(&now, &t_now);
-
-    snprintf(redis_key, sizeof(redis_key), "%s@%u_%u_%u", host->get_ip()->print(ip_buf, sizeof(ip_buf)), 
-              host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_hour);
-
-    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED, redis_key, 3600);
-  }
+  if (host != NULL)
+    addRedisSitesKey(host);
+  
 }
 
 /* *************************************** */
@@ -122,6 +96,7 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
       nextdot = strchr(&firstdot[1], '.');
 
     top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
+    iface->incrVisitedWebSite(hostname);
   }
 }
 
@@ -325,7 +300,7 @@ void LocalHostStats::incStats(time_t when, u_int8_t l4_proto,
 /* *************************************** */
 
 void LocalHostStats::saveOldSites() {
-  char ip_buf[64], redis_key[128];
+  char host_buf[128], redis_key[128];
   int minute = 0;
   /* Using the epoch */
   time_t now = time(NULL); 
@@ -336,10 +311,14 @@ void LocalHostStats::saveOldSites() {
   if (!strcmp(old_sites, "{}") || !strcmp(old_sites, "{ }"))
     return;
 
-  /* String like `ntopng.cache_1.1.1.1@2_1_11_45` */
+  /* String like `ntopng.cache_1.1.1.1@2_1_17_11_45` */
   /* An other way is to use the localtime_r and compose the string like `ntopng.cache_1.1.1.1@2_1_1609761600` */
-  snprintf(redis_key, sizeof(redis_key), "%s_%s@%u_%u_%d_%u", (char*) NTOPNG_CACHE_PREFIX, 
-            host->get_ip()->print(ip_buf, sizeof(ip_buf)), host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_hour, minute);
+  if (this->host->isDhcpHost()) 
+    snprintf(redis_key, sizeof(redis_key), "%s_%s@%d_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+            this->host->getMac()->print(host_buf, sizeof(host_buf)), host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday, t_now.tm_hour, minute);
+  else 
+    snprintf(redis_key, sizeof(redis_key), "%s_%s@%d_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+            this->host->get_ip()->print(host_buf, sizeof(host_buf)), host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday, t_now.tm_hour, minute);
 
   ntop->getRedis()->set(redis_key , old_sites, 7200);
 
@@ -352,14 +331,81 @@ void LocalHostStats::saveOldSites() {
     else
       hour = t_now.tm_hour - 1;
 
-    /* List key = ntopng.cache.top_sites_hour_done | value = 1.1.1.1@2_1_11 */
-    snprintf(hour_done, sizeof(hour_done), "%s@%u_%u_%u", host->get_ip()->print(ip_buf, sizeof(ip_buf)), 
-              host->get_vlan_id(), host->getInterface()->get_id(), hour);
+    /* List key = ntopng.cache.top_sites_hour_done | value = 1.1.1.1@2_1_17_11 */
+    if (this->host->isDhcpHost()) 
+      snprintf(hour_done, sizeof(hour_done), "%s@%d_%d_%d_%d", this->host->getMac()->print(host_buf, sizeof(host_buf)), 
+              host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday, hour);
+    else 
+      snprintf(hour_done, sizeof(hour_done), "%s@%d_%d_%d_%d", this->host->get_ip()->print(host_buf, sizeof(host_buf)), 
+              host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday, hour);
+    
 
-    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS_PUSHED, hour_done, 3600);
+    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, hour_done, 3600);
     current_cycle = 0;
   } else 
     current_cycle++;
+}
+
+/* *************************************** */
+
+void LocalHostStats::removeRedisSitesKey(Host *host) {
+  char host_buf[128], redis_hour_key[128], redis_daily_key[128];
+  time_t now = time(NULL); 
+  struct tm t_now;
+  localtime_r(&now, &t_now);
+
+  if (host->isDhcpHost()) {
+    snprintf(redis_hour_key, sizeof(redis_hour_key), "%s@%u_%u_%d_%u", host->getMac()->print(host_buf, sizeof(host_buf)), 
+            host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday, t_now.tm_hour);
+
+    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
+
+    snprintf(redis_daily_key, sizeof(redis_daily_key), "%s@%u_%u_%d", host->getMac()->print(host_buf, sizeof(host_buf)), 
+              host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday);
+
+    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
+  } else {
+    snprintf(redis_hour_key, sizeof(redis_hour_key), "%s@%u_%u_%d_%u", host->get_ip()->print(host_buf, sizeof(host_buf)), 
+        host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday, t_now.tm_hour);
+
+    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
+
+    snprintf(redis_daily_key, sizeof(redis_daily_key), "%s@%u_%u_%d", host->get_ip()->print(host_buf, sizeof(host_buf)), 
+              host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday);
+
+    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
+  } 
+}
+
+/* *************************************** */
+  
+void LocalHostStats::addRedisSitesKey(Host *host) {
+  char host_buf[128], redis_hour_key[128], redis_daily_key[128];
+  time_t now = time(NULL); 
+  struct tm t_now;
+  localtime_r(&now, &t_now);
+
+  if (host->isDhcpHost()) {
+    snprintf(redis_hour_key, sizeof(redis_hour_key), "%s@%u_%u_%d_%u", host->getMac()->print(host_buf, sizeof(host_buf)),  
+              host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday, t_now.tm_hour);
+
+    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
+
+    snprintf(redis_daily_key, sizeof(redis_daily_key), "%s@%u_%u_%d", host->getMac()->print(host_buf, sizeof(host_buf)), 
+              host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday);
+
+    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
+  } else {
+    snprintf(redis_hour_key, sizeof(redis_hour_key), "%s@%u_%u_%d_%u", host->get_ip()->print(host_buf, sizeof(host_buf)), 
+            host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday, t_now.tm_hour);
+
+    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
+
+    snprintf(redis_daily_key, sizeof(redis_daily_key), "%s@%u_%u_%d", host->get_ip()->print(host_buf, sizeof(host_buf)), 
+              host->get_vlan_id(), host->getInterface()->get_id(), t_now.tm_mday);
+
+    ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
+  }   
 }
 
 /* *************************************** */

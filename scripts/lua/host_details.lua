@@ -284,7 +284,7 @@ else
    local url = hostinfo2detailsurl(host, {tskey = _GET["tskey"]})
 
    if (ntop.isPro()) then
-      sites_granularities = host_sites_update.getGranularitySites(host_ip, host_vlan, ifId)
+      sites_granularities = host_sites_update.getGranularitySites(host_ip, host_vlan, ifId, false)
    end
 
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
@@ -1670,12 +1670,13 @@ elseif(page == "sites") then
       local msg = i18n("sites_page.top_sites_not_enabled_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=protocols"})
       print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
 
-   elseif table.len(top_sites) > 0 or table.len(top_sites_old) > 0 then
-     
+   elseif table.len(sites_granularities) > 0 then
+      local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/pro/rest/v1/get/host/top/local/sites.lua?ifid=%s&host=%s&vlan=%s", ifId, host_ip, host_vlan)
       local context = {
          json = json,
          template = template,
          sites = {
+            endpoint = endpoint,
             host = host_ip,
             ifid = ifId,
             vlan = host_vlan,
@@ -1684,7 +1685,7 @@ elseif(page == "sites") then
          }
       }
 
-      print(template.gen("pages/host_details/sites.template", context))
+      print(template.gen("pages/top_sites.template", context))
 
    else
       local msg = i18n("sites_page.top_sites_not_seen")

@@ -6,11 +6,13 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 
+local top_sites_update
 local snmp_utils
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    package.path = dirs.installdir .. "/pro/scripts/callbacks/?.lua;" .. package.path
    snmp_utils = require "snmp_utils"
+   top_sites_update = require("host_sites_update")
 end
 
 local json = require "dkjson"
@@ -36,6 +38,7 @@ local storage_utils = require "storage_utils"
 
 
 local have_nedge = ntop.isnEdge()
+local sites_granularities = nil
 
 if ntop.isPro() then
    shaper_utils = require("shaper_utils")
@@ -262,6 +265,10 @@ print('\n<script>var refresh = '..getInterfaceRefreshRate(ifstats.id)..' * 1000;
 local short_name = getHumanReadableInterfaceName(ifname)
 local title = i18n("interface") .. ": " .. short_name
 
+if (ntop.isPro()) then
+   sites_granularities = top_sites_update.getGranularitySites(nil, nil, ifId, true)
+end
+
 page_utils.print_navbar(title, url,
 			   {
 			      {
@@ -304,7 +311,13 @@ page_utils.print_navbar(title, url,
 				 active = page == "ARP",
 				 page_name = "ARP",
 				 label = i18n("arp"),
-			      },
+               },
+               {
+                  hidden = (table.len(sites_granularities) == 0),
+                  active = page == "sites",
+                  page_name = "sites",
+                  label = i18n("sites_page.sites"),
+               },
 			      {
 				 hidden = not charts_available,
 				 active = page == "historical",
@@ -1280,6 +1293,31 @@ setInterval(update_arp_table, 5000);
 </script>
 
 ]]
+
+elseif(page == "sites") then
+   if not prefs.are_top_talkers_enabled then
+      local msg = i18n("sites_page.top_sites_not_enabled_message",{url=ntop.getHttpPrefix().."/lua/admin/prefs.lua?tab=protocols"})
+      print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+
+   elseif table.len(sites_granularities) > 0 then
+      local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/pro/rest/v1/get/interface/top/sites.lua?ifid=%s", ifid)
+      local context = {
+         json = json,
+         template = template,
+         sites = {
+            endpoint = endpoint,
+            ifid = ifid,
+            granularities = sites_granularities,
+            default_granularity = "current"
+         }
+      }
+
+      print(template.gen("pages/top_sites.template", context))
+
+   else
+      local msg = i18n("sites_page.top_sites_not_seen")
+      print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
+   end
 
 elseif(page == "historical") then
    local schema = _GET["ts_schema"]

@@ -82,6 +82,12 @@ class NetworkInterface : public AlertableEntity {
   ServiceMap *sMap;
 #endif
 
+  /* Variables used by top sites periodic update */
+  u_int8_t current_cycle = 0;
+  FrequentStringItems *top_sites;
+  char *old_sites;
+  time_t nextSitesUpdate;
+
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
   Condvar dump_condition; /* Condition variable used to wait when no flows have been enqueued for dump */
@@ -289,6 +295,13 @@ class NetworkInterface : public AlertableEntity {
 		Paginator *p,
 		const char *sortColumn);
 
+  /* Functions used to update top sites of the interface */
+  void saveOldSites();
+  void removeRedisSitesKey();
+  void addRedisSitesKey();
+  void updateSitesStats(const struct timeval *tv);
+
+
   bool isNumber(const char *str);
   bool checkIdle();
   bool checkPeriodicStatsUpdateTime(const struct timeval *tv);
@@ -345,6 +358,7 @@ class NetworkInterface : public AlertableEntity {
 		      void *user_data);
 
   void checkDisaggregationMode();
+  void incrVisitedWebSite(char *hostname);
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
   inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };

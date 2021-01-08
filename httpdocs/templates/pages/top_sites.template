@@ -47,7 +47,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
 
-    const topSitesEndpoint = `${http_prefix}/lua/pro/rest/v1/get/host/top/local/sites.lua?ifid={{ sites.ifid }}&host={{ sites.host }}&vlan={{ sites.vlan }}`;
+    const topSitesEndpoint = "{* sites.endpoint *}"
     
     let dtConfig = DataTableUtils.getStdDatatableConfig();
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${topSitesEndpoint}&hour={{ sites.default_granularity }}`, 'rsp');
