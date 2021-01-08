@@ -107,6 +107,40 @@ if not hosts_only then
       end
    end
 
+   -- Look by interface name
+   if isAdministrator() then
+      local if_names = interface.getIfNames()
+      cur_results = 0
+
+      for ifid, ifname in pairs(if_names) do
+	 if tonumber(ifid) == interface.getId() then
+	    -- Don't list the currently active interface
+	    goto continue
+	 end
+
+	 if((cur_results >= max_group_items) or (#results >= max_total_items)) then
+	    break
+	 end
+
+	 local hr_name = getHumanReadableInterfaceName(ifname)
+
+	 if hr_name ~= ifname then
+	    hr_name = string.format("%s (%s)", hr_name, ifname)
+	 end
+
+	 if string.contains(string.lower(hr_name), string.lower(query)) then
+	    results[#results + 1] = {
+	       name = hr_name,
+	       type = "interface",
+	       ifid = ifid,
+	    }
+	    cur_results = cur_results + 1
+	 end
+
+	 ::continue::
+      end
+   end
+
    -- Check also in the mac addresses of snmp devices
    -- The query can be partial so we can't use functions to
    -- test if it'a an IPv4, an IPv6, or a mac as they would yield
