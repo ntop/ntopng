@@ -37,6 +37,30 @@ Sub-tables can be extended adding new :code:`alert_key` s to either the :code:`n
 
 .. _Alert Description:
 
+
+.. _Status Key:
+
+Flow Status Key
+---------------
+
+The :code:`status_key` is a constant uniquely identifying the status used only by alerts regarding flows. Constants are available in file `flow_keys.lua <https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/flow_keys.lua>`_. The file contains a table :code:`flow_keys` with two sub-tables:
+
+- :code:`ntopng`
+- :code:`user`
+
+Plugins distributed with ntopng must have their :code:`status_key` s defined in sub-table :code:`ntopng`. User plugins must have their :code:`status_key` s defined in sub-table :code:`user`.
+
+Sub-tables can be extended adding new :code:`status_key` s to either the :code:`ntopng` or the :code:`user` table. Each :code:`status_key` has an integer number assigned which `must be unique`.
+
+.. note::
+
+  Status keys are guaranteed to be constant and never changing, even across ntopng releases.
+
+.. warning::
+
+  Prior to 2020-04-15 there was no concept of :code:`status_key`. Backward compatibility with statuses generated before that date is not ensured.
+
+
 Alert Description
 -----------------
 
@@ -124,3 +148,21 @@ called automatically with the three parameters as described above. This function
 :code:`alert_consts.formatAlertEntity` to properly format the alert
 (remember that either an host or a network can be a flooder) and then
 returns an :code:`i18n` localized string.
+
+.. _Alert Summary:
+
+Alert Summary
+-------------
+
+It is possible to find all the Alerts defined with their general infos into ntopng WEB GUI in the section :code:`Developer -> Alert and Flow Status Definitions`.
+
+The general infos are:
+
+- :code:`Alert Key`: The constant uniquely identifying this alert defined above with :code:`alert_key`.
+- :code:`Alert Key String`: The string indicating the title of the alert, defined above with :code:`i18n_title`.
+- :code:`Alert Name`: A human readable string indicating the name of the alert.
+- :code:`Known Attacker`: Checked if an attacker is set up by the alert script.
+- :code:`Known Victim`: Checked if a victim is set up by the alert script.
+- :code:`Flow Status Key`: The constant uniquely identifying the status, defined above with :code:`status_key`.
+
+.. figure:: ../img/alert_overview.png

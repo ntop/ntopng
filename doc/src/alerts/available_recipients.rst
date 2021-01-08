@@ -104,7 +104,7 @@ After creating the endpoint, create a new recipient to associate with the new en
 
         If the Recipient Check isn't succesfull, be sure that ntopng has sudo privileges and that the JAIL added is a correct one.
 
-        Fail2Ban Endpoint isn't going to be called for each alert but only for those that supports it, in the specific case only those with the Attacker available; check into ntopng WEB GUI under :code:`Developer->Alert and Flow Status Definitions` to see if the Attackers and Victims are available or not.
+        Fail2Ban Endpoint isn't going to be called for each alert but only for those that supports it, in the specific case only those with the Attacker available; check the specific user guide section for more infos :ref:`Alert Summary`.
 
 Webhook
 -------
