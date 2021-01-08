@@ -661,7 +661,8 @@ class NtopUtils {
 				form.attr("action", http_prefix + "/lua/hosts_stats.lua");
 				NtopUtils._add_find_host_link(form, "asn", data.asn);
 			} else if (data.type == "interface") {
-				// TODO: toggleSystemInterface(false, $('#switch_interface_form_' + data.ifid));
+				toggleSystemInterface(false, $('#switch_interface_form_' + data.ifid));
+				return false;
 			} else {
 				form.attr("action", http_prefix + "/lua/host_details.lua");
 				NtopUtils._add_find_host_link(form, "mode", "restore");

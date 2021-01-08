@@ -67,7 +67,7 @@
           .val(item["{{typeahead.json_key}}"])
           .closest("form");
 
-        if ({*typeahead.before_submit or "$.noop"*}(form, item) !== "false")
+        if ({*typeahead.before_submit or "$.noop"*}(form, item) !== false)
           form.submit();
       }
     }, addItem: {name:"", no_results:true},
