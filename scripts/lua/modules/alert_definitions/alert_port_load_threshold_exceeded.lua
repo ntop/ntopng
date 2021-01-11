@@ -33,7 +33,7 @@ alert_port_load_threshold_exceeded.meta = {
 -- @param load_threshold The threshold configured for the load
 -- @return A table with the alert built
 function alert_port_load_threshold_exceeded:init(device_ip, if_index, interface_name, in_load, out_load, load_threshold)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

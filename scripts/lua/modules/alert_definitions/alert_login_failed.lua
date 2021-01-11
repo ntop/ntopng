@@ -27,7 +27,7 @@ alert_login_failed.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
 function alert_login_failed:init()
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {}

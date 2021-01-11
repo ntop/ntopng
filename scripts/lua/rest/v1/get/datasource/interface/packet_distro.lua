@@ -55,7 +55,7 @@ packet_distro.labels = {
 
 -- @brief Datasource constructor
 function packet_distro:init()
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 end
 

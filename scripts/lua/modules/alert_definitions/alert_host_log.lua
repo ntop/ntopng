@@ -28,7 +28,7 @@ alert_host_log.meta = {
 -- @param host The string with the name or ip address of the host
 -- @return A table with the alert built
 function alert_host_log:init(host, level, facility, message)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

@@ -29,7 +29,7 @@ alert_list_download_failed.meta = {
 -- @param last_error The string of the error which caused the failure
 -- @return A table with the alert built
 function alert_list_download_failed:init(list_name, last_error)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

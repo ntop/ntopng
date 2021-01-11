@@ -29,7 +29,7 @@ alert_process_notification.meta = {
 -- @param msg_details The details of the event
 -- @return A table with the alert built
 function alert_process_notification:init(event_type, msg_details)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

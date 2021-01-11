@@ -33,7 +33,7 @@ alert_slow_purge.meta = {
 -- @param threshold Threshold compared against idle_perc
 -- @return A table with the alert built
 function alert_slow_purge:init(idle, idle_perc, threshold)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

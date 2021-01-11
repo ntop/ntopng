@@ -33,7 +33,7 @@ alert_request_reply_ratio.meta = {
 -- @param replies The number of replies
 -- @return A table with the alert built
 function alert_request_reply_ratio:init(requests, replies)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

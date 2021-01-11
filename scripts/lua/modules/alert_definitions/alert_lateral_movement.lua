@@ -29,7 +29,7 @@ alert_lateral_movement.meta = {
 --                   {"event":"create","shost":"192.168.2.153","dhost":"224.0.0.68","dport":1968,"vlan_id":0,"l4":17,"l7":0,"first_seen":1602488355,"last_seen":1602488355,"num_uses":1}
 -- @return A table with the alert built
 function alert_lateral_movement:init(last_error)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

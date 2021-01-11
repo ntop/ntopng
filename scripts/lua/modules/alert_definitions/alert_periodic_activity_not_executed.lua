@@ -31,7 +31,7 @@ alert_periodic_activity_not_executed.meta = {
 -- @param last_queued_time The time when the periodic activity was executed for the last time, as a unix epoch
 -- @return A table with the alert built
 function alert_periodic_activity_not_executed:init(last_queued_time)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

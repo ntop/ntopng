@@ -31,7 +31,7 @@ alert_ip_outsite_dhcp_range.meta = {
 -- @param sender_mac The sender mac as seen in the DHCP packet as string
 -- @return A table with the alert built
 function alert_ip_outsite_dhcp_range:init(router_info, mac, client_mac, sender_mac)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

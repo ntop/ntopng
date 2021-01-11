@@ -35,7 +35,7 @@ alert_quota_exceeded.meta = {
 function alert_quota_exceeded:init(pool, proto, value, quota)
    local host_pools = require "host_pools"
 
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
    local host_pools_instance = host_pools:create()
 

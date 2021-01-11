@@ -36,7 +36,7 @@ alert_threshold_cross.meta = {
 -- @param threshold A number indicating the threshold compared with `value`  using operator
 -- @return A table with the alert built
 function alert_threshold_cross:init(metric, value, operator, threshold)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = alert_creators.createThresholdCross(metric, value, operator, threshold)

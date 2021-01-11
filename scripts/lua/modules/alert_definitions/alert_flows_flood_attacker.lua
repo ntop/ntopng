@@ -35,7 +35,7 @@ alert_flows_flood_attacker.meta = {
 -- @param another_param The second alert param
 -- @return A table with the alert built
 function alert_flows_flood_attacker:init(metric, value, operator, threshold)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = alert_creators.createThresholdCross(metric, value, operator, threshold)

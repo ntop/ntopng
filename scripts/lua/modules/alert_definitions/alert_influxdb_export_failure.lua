@@ -28,7 +28,7 @@ alert_influxdb_export_failure.meta = {
 -- @param influxdb The url used to export the points
 -- @return A table with the alert built
 function alert_influxdb_export_failure:init(influxdb)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

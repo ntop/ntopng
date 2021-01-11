@@ -27,7 +27,7 @@ alert_unexpected_new_device.meta = {
 -- ##############################################
 
 function alert_unexpected_new_device:init(device, mac)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

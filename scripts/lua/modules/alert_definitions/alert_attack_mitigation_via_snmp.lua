@@ -33,7 +33,7 @@ alert_attack_mitigation_via_snmp.meta = {
 -- @param success Whether the admin status of the port has been successfully toggled to down
 -- @return A table with the alert built
 function alert_attack_mitigation_via_snmp:init(metric, value, operator, threshold, access_port, success)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

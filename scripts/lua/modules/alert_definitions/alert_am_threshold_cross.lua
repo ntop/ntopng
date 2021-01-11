@@ -26,7 +26,7 @@ alert_am_threshold_cross.meta = {
 -- ##############################################
 
 function alert_am_threshold_cross:init(value, threshold, ip, host, operator, unit)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

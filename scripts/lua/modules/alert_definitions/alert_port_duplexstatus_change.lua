@@ -31,7 +31,7 @@ alert_port_duplexstatus_change.meta = {
 -- @param status The new duplex status
 -- @return A table with the alert built
 function alert_port_duplexstatus_change:init(device_ip, if_index, interface_name, status)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

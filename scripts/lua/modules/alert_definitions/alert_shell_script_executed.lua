@@ -25,7 +25,7 @@ alert_shell_script_executed.meta = {
 -- ##############################################
 
 function alert_shell_script_executed:init(script_exec_comm, alert_type)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

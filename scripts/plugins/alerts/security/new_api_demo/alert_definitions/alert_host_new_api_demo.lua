@@ -29,7 +29,7 @@ alert_host_new_api_demo.meta = {
 -- @param another_param The second alert param
 -- @return A table with the alert built
 function alert_host_new_api_demo:init(one_param, another_param)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

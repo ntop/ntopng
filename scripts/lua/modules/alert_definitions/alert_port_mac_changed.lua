@@ -33,7 +33,7 @@ alert_port_mac_changed.meta = {
 -- @param prev_seen_port The index of the previous port
 -- @return A table with the alert built
 function alert_port_mac_changed:init(device_ip, if_index, interface_name, mac, prev_seen_device, prev_seen_port)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

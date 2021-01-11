@@ -29,7 +29,7 @@ alert_device_disconnection.meta = {
 -- @param device The a string with the name or ip address of the device that connected/disconnected
 -- @return A table with the alert built
 function alert_device_disconnection:init(device)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

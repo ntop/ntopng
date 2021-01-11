@@ -28,7 +28,7 @@ alert_influxdb_error.meta = {
 -- @param last_error A string with the lastest influxdb error
 -- @return A table with the alert built
 function alert_influxdb_error:init(last_error)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

@@ -31,7 +31,7 @@ alert_nfq_flushed.meta = {
 -- @param dropped The number of packets dropped
 -- @return A table with the alert built
 function alert_nfq_flushed:init(ifname, pct, tot, dropped)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

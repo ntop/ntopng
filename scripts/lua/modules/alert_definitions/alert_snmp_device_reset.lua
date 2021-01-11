@@ -28,7 +28,7 @@ alert_snmp_device_reset.meta = {
 -- @param device_ip A string with the ip address of the snmp device
 -- @return A table with the alert built
 function alert_snmp_device_reset:init(device_ip)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

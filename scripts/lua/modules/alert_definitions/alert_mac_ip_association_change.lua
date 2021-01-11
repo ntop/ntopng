@@ -31,7 +31,7 @@ alert_mac_ip_association_change.meta = {
 -- @param new_mac The new MAC
 -- @return A table with the alert built
 function alert_mac_ip_association_change:init(device, ip, old_mac, new_mac)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

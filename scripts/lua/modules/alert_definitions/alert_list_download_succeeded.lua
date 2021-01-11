@@ -29,7 +29,7 @@ alert_list_download_succeeded.meta = {
 -- @param list_name The name of the succeeded list as string
 -- @return A table with the alert built
 function alert_list_download_succeeded:init(list_name)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

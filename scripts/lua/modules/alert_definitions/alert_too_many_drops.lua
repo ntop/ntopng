@@ -32,7 +32,7 @@ alert_too_many_drops.meta = {
 -- @param threshold A number indicating the threshold compared with `drop_perc`
 -- @return A table with the alert built
 function alert_too_many_drops:init(drops, drop_perc, threshold)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

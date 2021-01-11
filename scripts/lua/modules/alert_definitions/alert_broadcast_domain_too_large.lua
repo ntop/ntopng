@@ -29,7 +29,7 @@ alert_broadcast_domain_too_large.meta = {
 -- @param another_param The second alert param
 -- @return A table with the alert built
 function alert_broadcast_domain_too_large:init(src_mac, dst_mac, vlan, spa, tpa)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

@@ -25,7 +25,7 @@ alert_fail2ban_executed.meta = {
 -- ##############################################
 
 function alert_fail2ban_executed:init(script_exec_comm, jail, ip, alert_type)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

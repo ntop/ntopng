@@ -25,7 +25,7 @@ alert_dropped_alerts.meta = {
 -- ##############################################
 
 function alert_dropped_alerts:init(ifid, num_dropped)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

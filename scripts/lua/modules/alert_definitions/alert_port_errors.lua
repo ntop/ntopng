@@ -30,7 +30,7 @@ alert_port_errors.meta = {
 -- @param interface_name The string with the name of the port that changed
 -- @return A table with the alert built
 function alert_port_errors:init(device_ip, if_index, interface_name)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

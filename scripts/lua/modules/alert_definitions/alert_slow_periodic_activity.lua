@@ -34,7 +34,7 @@ alert_slow_periodic_activity.meta = {
 -- @param max_duration_ms The maximum duration taken by this periodic activity to run, in milliseconds
 -- @return A table with the alert built
 function alert_slow_periodic_activity:init(ps_name, max_duration_ms)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {

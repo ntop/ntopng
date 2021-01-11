@@ -26,7 +26,7 @@ alert_host_pool_connection.meta = {
 -- ##############################################
 
 function alert_host_pool_connection:init(pool)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = alert_creators.createPoolConnectionDisconnection(pool)

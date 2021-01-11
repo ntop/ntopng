@@ -31,7 +31,7 @@ alert_tcp_syn_scan_victim.meta = {
 -- ##############################################
 
 function alert_tcp_syn_scan_victim:init(metric, value, operator, threshold)
-   -- Call the paren constructor
+   -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = alert_creators.createThresholdCross(metric, value, operator, threshold)
