@@ -337,9 +337,26 @@ function format_utils.formatAddressCategory(host)
       else 
          addr_category = addr_category .. ' <span class="badge badge-secondary">'..i18n("details.label_remote")..'</span>'
       end
+
+      if(host["is_multicast"] == true) then 
+         addr_category = addr_category .. " <span class='badge badge-primary'>" ..i18n("multicast").. "</span> "
+      end
+      
+      if(host["is_broadcast"] == true) then 
+         addr_category = addr_category .. " <span class='badge badge-dark'>" ..i18n("broadcast").. "</span> "
+      end
+      
+      if host["broadcast_domain_host"] then
+         addr_category = addr_category .. " <span class='badge badge-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
+      end
+      
+      if(host["privatehost"] == true) then 
+         addr_category = addr_category .. ' <span class="badge badge-warning">'..i18n("details.label_private_ip")..'</span>'
+      end
    end
 
    return addr_category
 end
+
 
 return format_utils

@@ -267,8 +267,6 @@ for _key, _value in pairsByKeys(vals, funct) do
       column_ip = column_ip .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
    end
 
-   record["column_ip"] = column_ip
-
    if(url ~= nil) then
       record["column_url"] = url
    end
@@ -349,24 +347,12 @@ for _key, _value in pairsByKeys(vals, funct) do
    record["column_traffic"] = bytesToSize(value["bytes.sent"]+value["bytes.rcvd"])
    record["column_alerts"] = tostring((value["num_alerts"] or 0))
 
+   local column_location = ""
    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
-      local column_location = ""
-      if value["localhost"] == true --[[or value["systemhost"] == true --]] then
-	 column_location = "<span class='badge badge-success'>"..i18n("hosts_stats.label_local_host").."</span>"
-      elseif value["is_multicast"] == true then
-	 column_location = "<span class='badge badge-primary'>" ..i18n("multicast").. "</span>"
-      elseif value["is_broadcast"] == true then
-	 column_location = "<span class='badge badge-dark'>" ..i18n("broadcast").. "</span>"
-      else
-	 column_location = "<span class='badge badge-secondary'>"..i18n("hosts_stats.label_remote_host").."</span>"
-      end
-
-      if value["broadcast_domain_host"] then
-	 column_location = column_location.." <span class='badge badge-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
-      end
-
-      record["column_location"] = column_location
+      column_location = format_utils.formatAddressCategory(host)
    end
+
+   record["column_ip"] = column_ip .. column_location
 
    record["column_num_flows"] = format_utils.formatValue(value["active_flows.as_client"] + value["active_flows.as_server"])
 

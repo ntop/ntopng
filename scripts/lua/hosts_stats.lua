@@ -448,15 +448,6 @@ if (_GET["page"] ~= "historical") then
 
    print [[
 			     {
-			     title: "]] print(i18n("hosts_stats.location")) print[[",
-				 field: "column_location",
-				 sortable: false,
-	 	             css: {
-			        textAlign: 'center'
-			     }
-
-				 },
-			     {
 			     title: "]] print(i18n("flows")) print[[",
 				 field: "column_num_flows",
 				 sortable: true,
