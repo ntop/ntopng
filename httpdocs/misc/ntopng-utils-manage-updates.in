@@ -329,9 +329,6 @@ function handle_upgrade_requests() {
 	fi
 }
 
-# Run this cron script when the ntopng service is enabled only
-service_enabled_check
-
 # Check if the product is under maintenance
 maintenance_check
 
@@ -345,6 +342,9 @@ if [ "${OEM_MODE}" == "1" ]; then
 fi
 
 if [ $ACTION == "check-updates" ]; then
+
+	# Run automatic update check when the ntopng service is enabled only
+	service_enabled_check
 
 	check_updates 1
 
