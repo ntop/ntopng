@@ -11,7 +11,10 @@
 {% -- Print out the interfaces dropdown %}
 
 <li class="nav-item d-flex align-items-center">
-<select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
+
+{% local ifname_len = is_system_interface and string.len(i18n('system')) or string.len(ifHdescr[interface.getId()]) %}
+
+<select name="interfaces-dropdown" id="interfaces-dropdown" class="selectpicker" data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
   {% -- The System optgroup, ONLY for admins %}
   {% if isAdministrator() then %}
     <optgroup label="{{ i18n('system') }}">
@@ -21,7 +24,8 @@
         {% selected = 'selected=""' %}
       {% end %}
 
-      <option value="system" {{ selected }}>{{ i18n('system') }}</option>
+      {% -- Blank spaces to set the minimum length for the dropdown %}
+      <option value="system" {{ selected }} data-content="{{ i18n('system') }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;">{{ i18n('system') }}</option>
     </optgroup>
   {% end %}
 
