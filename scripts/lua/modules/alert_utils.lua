@@ -1991,7 +1991,7 @@ local function processStoreAlertFromQueue(alert)
       entity_info = alerts_api.macEntity(alert.src_mac)
       type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.new(alert.src_mac, alert.dst_mac, alert.vlan_id, alert.spa, alert.tpa)
       type_info:set_severity(alert_severities.warning)
-      type_info:set_subtype(string.format("%u_%s_%s_%s_%s", vlan, src_mac, spa, dst_mac, tpa))
+      type_info:set_subtype(string.format("%u_%s_%s_%s_%s", alert.vlan_id, alert.src_mac, alert.spa, alert.dst_mac, alert.tpa))
    elseif((alert.alert_type == "user_activity") and (alert.scope == "login")) then
       entity_info = alerts_api.userEntity(alert.user)
       type_info = alert_consts.alert_types.alert_user_activity.new(
