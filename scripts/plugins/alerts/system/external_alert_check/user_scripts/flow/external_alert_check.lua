@@ -30,26 +30,23 @@ local function checkExternalAlert()
   if(info_json ~= nil) then
     -- Got an alert in JSON format, decoding
     local info = json.decode(info_json)
+
     if info ~= nil then
       -- Default scores used when no IDS utils is available
       local flow_score = 100
       local cli_score = 100
       local srv_score = 100
 
-      local status_info = alert_consts.alert_types.alert_external.new(
+      local alert = alert_consts.alert_types.external_alert.new(
         info
       )
         
       if ntop.isEnterpriseM() then
         local ids_utils = require("ids_utils")
 
-        local alert = alert_consts.alert_types.alert_external.new(
-          info
-        )
-
-        if ids_utils and status_info.alert_type_params and
-           status_info.alert_type_params.source == "suricata" then
-           local fs, cs, ss = ids_utils.computeScore(status_info.alert_type_params)
+        if ids_utils and alert.alert_type_params and
+           alert.alert_type_params.source == "suricata" then
+           local fs, cs, ss = ids_utils.computeScore(alert.alert_type_params)
            flow_score = fs
            cli_score = cs
            srv_score = ss
