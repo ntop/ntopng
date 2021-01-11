@@ -270,6 +270,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_os(lua_State* vm);
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
+  void lua_get_visual_name(lua_State *vm);
   
   void resolveHostName();
   char *get_host_label(char * const buf, ssize_t buf_size);

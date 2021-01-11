@@ -1477,6 +1477,11 @@ function hostinfo2label(host_info)
    -- Name info from C (e.g. DHCP name)
    if not isEmptyString(host_info["name"]) then
       return host_info["name"]
+   else 
+      local name = interface.getHostName(ip, host_info["vlan"])
+      if name ~= nil and not isEmptyString(name) then
+         return name
+      end
    end
 
    -- Try to get the resolved name

@@ -3529,6 +3529,25 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
+bool NetworkInterface::getHostVisualName(lua_State* vm,
+           AddressTree *allowed_hosts,
+				   char *host_ip, u_int16_t vlan_id) {
+  Host *h;
+  bool ret;
+
+  h = findHostByIP(allowed_hosts, host_ip, vlan_id);
+
+  if(h) {
+    h->lua_get_visual_name(vm);
+    ret = true;
+  } else
+    ret = false;
+
+  return ret;
+}
+
+/* **************************************************** */
+
 void NetworkInterface::checkReloadHostsBroadcastDomain() {
   time_t bcast_domains_last_update = bcast_domains->getLastUpdate();
 

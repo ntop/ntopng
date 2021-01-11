@@ -592,6 +592,13 @@ void Host::lua_get_fingerprints(lua_State* vm) {
 
 /* ***************************************************** */
 
+void Host::lua_get_visual_name(lua_State* vm) {
+  char buf[64];
+  lua_pushstring(vm, get_visual_name(buf, sizeof(buf)));
+}
+
+/* ***************************************************** */
+
 void Host::lua(lua_State* vm, AddressTree *ptree,
 	       bool host_details, bool verbose,
 	       bool returnHost, bool asListElement) {
