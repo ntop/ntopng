@@ -282,6 +282,7 @@ void NetworkInterface::init() {
 
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = strdup("{}");
+
   removeRedisSitesKey();
 
   reload_hosts_bcast_domain = false;
@@ -8240,18 +8241,20 @@ void NetworkInterface::saveOldSites() {
 /* *************************************** */
 
 void NetworkInterface::removeRedisSitesKey() {
-  char redis_hour_key[128], redis_daily_key[128];
-  time_t now = time(NULL); 
-  struct tm t_now;
-  localtime_r(&now, &t_now);
-
-  snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", get_id(), t_now.tm_mday, t_now.tm_hour);
-
-  ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
-
-  snprintf(redis_daily_key, sizeof(redis_daily_key), "%d_%d", get_id(), t_now.tm_mday);
-
-  ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
+  if(ntop->getRedis()) {
+    char redis_hour_key[128], redis_daily_key[128];
+    time_t now = time(NULL); 
+    struct tm t_now;
+    localtime_r(&now, &t_now);
+    
+    snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", get_id(), t_now.tm_mday, t_now.tm_hour);
+    
+    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
+    
+    snprintf(redis_daily_key, sizeof(redis_daily_key), "%d_%d", get_id(), t_now.tm_mday);
+    
+    ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
+  }
 }
 
 /* *************************************** */
