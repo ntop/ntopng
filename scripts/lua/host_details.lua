@@ -290,21 +290,24 @@ else
    local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(host["mac"])
    local has_icmp = ((table.len(host["ICMPv4"]) + table.len(host["ICMPv6"])) ~= 0)
 
-   local periodicity_map = interface.periodicityMap(_GET["host"])
-   local service_map     = interface.serviceMap(_GET["host"])
    local periodicity_map_available = false
    local service_map_available = false
-
-   if(service_map and (table.len(service_map) > 0)) then
-      service_map_available = true
-   end
-
    local num_periodicity = 0
 
-   if(periodicity_map) then
-      num_periodicity = table.len(periodicity_map)
-      if(num_periodicity > 0) then
-	 periodicity_map_available = true
+   if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
+      local service_map = interface.serviceMap(_GET["host"])
+
+      if service_map and (table.len(service_map) > 0) then
+         service_map_available = true
+      end
+   end
+
+   if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
+      local periodicity_map = interface.periodicityMap(_GET["host"])
+
+      if periodicity_map and (table.len(periodicity_map) > 0) then
+         num_periodicity = table.len(periodicity_map)
+         periodicity_map_available = true
       end
    end
 

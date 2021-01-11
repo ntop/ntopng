@@ -229,19 +229,20 @@ else
 
    -- ##############################################
 
-   local service_map = interface.serviceMap()
    local service_map_available = false
-   if(service_map and (table.len(service_map) > 0)) then
-      service_map_available = true
-   end
-   
-   local periodicity_map = interface.periodicityMap()
-   local periodic_info_available = false
-   local num_periodicity = 0
+   if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
+      local service_map = interface.serviceMap()
 
-   if(periodicity_map) then
-      num_periodicity = table.len(periodicity_map)
-      if(num_periodicity > 0) then
+      if service_map and (table.len(service_map) > 0) then
+         service_map_available = true
+      end
+   end
+
+   local periodic_info_available = false
+   if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
+      local periodicity_map = interface.periodicityMap()
+
+      if periodicity_map and (table.len(periodicity_map) > 0) then
          periodic_info_available = true
       end
    end
@@ -326,12 +327,12 @@ else
       entries = {
          {
             entry = page_utils.menu_entries.service_map,
-            hidden = not ntop.isEnterpriseL(),
+            hidden = not service_map_available,
             url = '/lua/pro/enterprise/service_map.lua',
           },
           {
             entry = page_utils.menu_entries.periodicity_map,
-            hidden = not ntop.isEnterpriseL(),
+            hidden = not periodic_info_available,
             url = '/lua/pro/enterprise/periodicity_map.lua',
           },
           {
