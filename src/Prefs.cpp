@@ -1326,7 +1326,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 #ifndef WIN32
     else if(!strncmp(optarg, "syslog", strlen("syslog"))) {
       dump_flows_on_syslog = true;
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "DUmping flows to syslog in JSON format");
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumping flows to syslog in JSON format");
     }
 #endif
 #endif

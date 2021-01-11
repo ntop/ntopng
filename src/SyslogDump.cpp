@@ -28,7 +28,10 @@
 /* **************************************** */
 
 SyslogDump::SyslogDump(NetworkInterface *_iface) : DB(_iface) {
-  openlog("ntopng", LOG_PID, LOG_DAEMON);
+  openlog(NULL        /* If ident is NULL, the program name is used */,
+	  LOG_PID     /* Include PID with each message */
+	  | LOG_CONS  /* Write directly to system console if there is an error while sending to system logger */,
+	  LOG_DAEMON  /* System daemons without separate facility value */);
 }
 
 /* **************************************** */
@@ -41,6 +44,14 @@ SyslogDump::~SyslogDump() {
 
 bool SyslogDump::dumpFlow(time_t when, Flow *f, char *msg) {
   syslog(LOG_INFO, "%s", msg);
+
+  /*
+    syslog() returns void, always assumes success.
+    In case of errors when sending to the logger, msg is printed directly to console
+    as LOG_CONS is specified with openlog()
+  */
+  incNumExportedFlows();
+
   return(true); /* OK */
 }
 
