@@ -242,7 +242,6 @@ NetworkInterface::NetworkInterface(const char *name,
 /* **************************************************** */
 
 void NetworkInterface::init() {
-  nextSitesUpdate = 0;
   ifname = NULL, bridge_lan_interface_id = bridge_wan_interface_id = 0;
   inline_interface = false,
     has_vlan_packets = false, has_ebpf_events = false,
@@ -2984,8 +2983,6 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
   struct timeval tv = periodicUpdateInitTime();
 
-  updateSitesStats(&tv);
-
   if(db)
     db->updateStats(&tv);  
 
@@ -5581,8 +5578,10 @@ void NetworkInterface::lua(lua_State *vm) {
   if (top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
     char *cur_sites = top_sites->json();
     
-    lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
-    lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
+    if(strcmp(cur_sites, "{}") != 0)
+      lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
+    if(strcmp(old_sites, "{}") != 0)
+      lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
     if(cur_sites) free(cur_sites);
   }
 
@@ -8187,17 +8186,13 @@ void NetworkInterface::updateServiceMap(Flow *f) {
 
 /* *************************************** */
 
-void NetworkInterface::updateSitesStats(const struct timeval *tv) {
-  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
-    if(nextSitesUpdate > 0) {
-      if(old_sites) {
-        this->saveOldSites();
-	      free(old_sites);
-      }
-      old_sites = top_sites->json();
+void NetworkInterface::updateSitesStats() {
+  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
+    if(old_sites) {
+      this->saveOldSites();
+      free(old_sites);
     }
-
-    nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
+    old_sites = top_sites->json();
   }
 }
 

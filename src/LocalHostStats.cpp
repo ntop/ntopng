@@ -156,8 +156,10 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
   if((!mask_host) && top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
     char *cur_sites = top_sites->json();
     
-    lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
-    lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
+    if(strcmp(cur_sites, "{}") != 0)
+      lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
+    if(strcmp(old_sites, "{}") != 0)
+      lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
     if(cur_sites) free(cur_sites);
   }
 

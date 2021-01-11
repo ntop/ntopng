@@ -86,7 +86,6 @@ class NetworkInterface : public AlertableEntity {
   u_int8_t current_cycle = 0;
   FrequentStringItems *top_sites;
   char *old_sites;
-  time_t nextSitesUpdate;
 
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
@@ -299,7 +298,6 @@ class NetworkInterface : public AlertableEntity {
   void saveOldSites();
   void removeRedisSitesKey();
   void addRedisSitesKey();
-  void updateSitesStats(const struct timeval *tv);
 
 
   bool isNumber(const char *str);
@@ -350,6 +348,8 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
   void reloadCustomCategories();
+
+  void updateSitesStats();
 
   virtual bool walker(u_int32_t *begin_slot,
 		      bool walk_all,

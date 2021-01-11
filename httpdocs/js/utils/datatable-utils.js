@@ -22,6 +22,20 @@ jQuery.fn.dataTableExt.hideIfZero = (value, type, row) => {
     if (type === "display" && value === 0) return "";
     return value;
 };
+jQuery.fn.dataTableExt.showProgress = (percentage, type, row) => {
+    if (type === "display") {
+        const fixed = percentage.toFixed(1)
+        return `
+        <div class="d-flex align-items-center">
+        <span class="progress w-100">
+          <span class="progress-bar bg-warning" role="progressbar" style="width: ${fixed}%" aria-valuenow="${fixed}" aria-valuemin="0" aria-valuemax="100"></span>
+        </span>
+        <span>${fixed}%</span>
+        </div>
+        `
+    }
+    return percentage;
+};
 
 class DataTableFiltersMenu {
 

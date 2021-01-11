@@ -7,6 +7,7 @@
                         <tr>
                             <th>{{ i18n("sites_page.current_sites") }}</th>
                             <th>{{ i18n("sites_page.contacts") }}</th> 
+                            <th>{{ i18n("percentage") }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -53,11 +54,13 @@ $(document).ready(function() {
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${topSitesEndpoint}&hour={{ sites.default_granularity }}`, 'rsp');
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         order: [[1,'desc']],
-        columnsDefs: [
-            {targets: [1], render: function (data, type) {
+        columns: [
+            {data: "site"},
+            {data: "contacts", render: function (data, type) {
                     if (type === "display") return NtopUtils.fint(data);
                     return data;
-            }}
+            }}, 
+            {data: "percentage" , render: $.fn.dataTableExt.showProgress}
         ]
     })
 

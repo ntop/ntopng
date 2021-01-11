@@ -3509,6 +3509,21 @@ static int ntop_update_interface_direction_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_update_interface_top_sites(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->updateSitesStats();
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_stats_update_freq(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4323,6 +4338,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getStats",                 ntop_get_interface_stats },
   { "getStatsUpdateFreq",       ntop_get_interface_stats_update_freq },
   { "updateDirectionStats",     ntop_update_interface_direction_stats },
+  { "updateTopSites",           ntop_update_interface_top_sites},
   { "resetCounters",            ntop_interface_reset_counters },
   { "resetHostStats",           ntop_interface_reset_host_stats },
   { "deleteHostData",           ntop_interface_delete_host_data },
