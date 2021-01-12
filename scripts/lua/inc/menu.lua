@@ -580,41 +580,49 @@ page_utils.add_menubar_section(
       hidden = not is_admin,
       entries = {
 	 {
+	    entry = page_utils.menu_entries.nedge_users,
+	    hidden = not is_admin or not is_nedge,
+	    url = '/lua/pro/nedge/admin/nf_list_users.lua',
+	 },
+	 {
 	    entry = page_utils.menu_entries.manage_users,
 	    hidden = not _SESSION["localuser"] or not is_admin,
 	    url = '/lua/admin/users.lua',
 	 },
 	 {
+	    entry = page_utils.menu_entries.divider,
+	 },
+	 {
 	    entry = page_utils.menu_entries.preferences,
 	    hidden = not is_admin,
 	    url = '/lua/admin/prefs.lua',
-    },
-    {
-      entry = page_utils.menu_entries.scripts_config,
-      hidden = not is_admin,
-      url = '/lua/admin/scripts_config.lua',
-   },
+	 },
+	 {
+	    entry = page_utils.menu_entries.scripts_config,
+	    hidden = not is_admin,
+	    url = '/lua/admin/scripts_config.lua',
+	 },
          {
             entry = page_utils.menu_entries.license,
             hidden = info["pro.forced_community"],
             url = '/lua/license.lua',
          },
-   {
-      entry = page_utils.menu_entries.divider,
-   },
-    {
-      entry = page_utils.menu_entries.manage_configurations,
-      hidden = not is_admin or is_windows,
-      url = '/lua/admin/manage_configurations.lua',
-   },
-   {
-      entry = page_utils.menu_entries.manage_data,
-      hidden = not is_admin,
-      url = '/lua/manage_data.lua',
-   },
-   {
-      entry = page_utils.menu_entries.divider,
-   },
+	 {
+	    entry = page_utils.menu_entries.divider,
+	 },
+	 {
+	    entry = page_utils.menu_entries.manage_configurations,
+	    hidden = not is_admin or is_windows,
+	    url = '/lua/admin/manage_configurations.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.manage_data,
+	    hidden = not is_admin,
+	    url = '/lua/manage_data.lua',
+	 },
+	 {
+	    entry = page_utils.menu_entries.divider,
+	 },
 	 {
 	    entry = page_utils.menu_entries.profiles,
 	    hidden = not is_admin or not ntop.isPro() or is_nedge,

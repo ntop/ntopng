@@ -108,8 +108,9 @@ page_utils.menu_entries = {
    geo_map	      	 = {key = "geo_map", i18n_title = "geo_map.geo_map", section = "maps", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#geo-map"},
    hosts_map	         = {key = "hosts_map", i18n_title = "hosts_map", section = "maps", visible_iface = true},
    
-    -- Settings
-    manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
+   -- Settings
+   nedge_users          = {key = "nedge_users", i18n_title = "manage_users.manage_users", section = "admin", help_link = "https://www.ntop.org/guides/nedge/users.html#"},
+   manage_users	 = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
     preferences	     	 = {key = "preferences", i18n_title = "prefs.preferences", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#preferences"},
     scripts_config	 = {key = "scripts_config", i18n_title = "about.user_scripts", section = "admin", visible_iface = true, visible_system = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/user_scripts.html"},
     license              = {key = "license", i18n_title = "license_page.license", section = "admin", visible_iface = true, visible_system = true},
@@ -163,7 +164,6 @@ page_utils.menu_entries = {
     system_setup         = {key = "system_setup", i18n_title = "nedge.system_setup", section = "system_stats", help_link = "https://www.ntop.org/guides/nedge/get_started.html"},
     dhcp_leases          = {key = "dhcp_leases", i18n_title = "nedge.dhcp_leases", section = "system_stats"},
     port_forwarding      = {key = "port_forwarding", i18n_title = "nedge.port_forwarding", section = "system_stats"},
-    nedge_users          = {key = "nedge_users", i18n_title = "manage_users.manage_users", section = "system_stats", help_link = "https://www.ntop.org/guides/nedge/users.html#"},
 }
 
 -- Extend the menu entries with the plugins
