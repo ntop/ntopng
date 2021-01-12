@@ -19,6 +19,8 @@
 // THE SOFTWARE.
 
 #if defined(_WIN32)
+#define NO_SSL_DL
+
 #if 0 /* ntop */
 #define _CRT_SECURE_NO_WARNINGS // Disable deprecation warning in VS2005
 #endif

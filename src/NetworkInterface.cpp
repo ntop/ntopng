@@ -8264,6 +8264,8 @@ void NetworkInterface::removeRedisSitesKey() {
     char redis_hour_key[128], redis_daily_key[128];
     time_t now = time(NULL); 
     struct tm t_now;
+
+    memset(&t_now, 0, sizeof(t_now));
     localtime_r(&now, &t_now);
     
     snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", get_id(), t_now.tm_mday, t_now.tm_hour);
@@ -8282,6 +8284,8 @@ void NetworkInterface::addRedisSitesKey() {
   char redis_hour_key[128], redis_daily_key[128];
   time_t now = time(NULL); 
   struct tm t_now;
+
+  memset(&t_now, 0, sizeof(t_now));
   localtime_r(&now, &t_now);
 
   snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", get_id(), t_now.tm_mday, t_now.tm_hour);

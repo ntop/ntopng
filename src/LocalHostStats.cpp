@@ -307,6 +307,8 @@ void LocalHostStats::saveOldSites() {
   /* Using the epoch */
   time_t now = time(NULL); 
   struct tm t_now;
+
+  memset(&t_now, 0, sizeof(t_now));
   localtime_r(&now, &t_now);
   minute = t_now.tm_min - (t_now.tm_min % 5);
 
@@ -354,6 +356,8 @@ void LocalHostStats::removeRedisSitesKey(Host *host) {
   char host_buf[128], redis_hour_key[128], redis_daily_key[128];
   time_t now = time(NULL); 
   struct tm t_now;
+
+  memset(&t_now, 0, sizeof(t_now));
   localtime_r(&now, &t_now);
 
   if (host->isDhcpHost()) {
@@ -385,6 +389,8 @@ void LocalHostStats::addRedisSitesKey(Host *host) {
   char host_buf[128], redis_hour_key[128], redis_daily_key[128];
   time_t now = time(NULL); 
   struct tm t_now;
+
+  memset(&t_now, 0, sizeof(t_now));
   localtime_r(&now, &t_now);
 
   if (host->isDhcpHost()) {
