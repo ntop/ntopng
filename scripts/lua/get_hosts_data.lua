@@ -287,7 +287,12 @@ for _key, _value in pairsByKeys(vals, funct) do
    if(long_names) then
       column_name = value["name"]
    else
-      column_name = shortHostName(value["name"])
+      column_name = value["name"]
+
+      if not isIPv4(column_name) and not isIPv6(column_name) then
+         column_name = shortenString(column_name, 24)
+      end
+
       is_short = true
    end
 
@@ -297,11 +302,11 @@ for _key, _value in pairsByKeys(vals, funct) do
       if label ~= value["ip"] then
 	 if(is_short == true) then
 	    if(value["name"] ~= label) then
-	       column_name = column_name .. " ["..label.."]"
+	       column_name = column_name .. " ["..shortenString(label, 24).."]"
 	    end
 	 else
 	    if column_name ~= label then
-	       column_name = column_name .. " ["..label.."]"
+	       column_name = column_name .. " ["..shortenString(label, 24).."]"
 	    end
 	 end
       end
