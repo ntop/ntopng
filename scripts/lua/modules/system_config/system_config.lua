@@ -55,6 +55,12 @@ end
 
 -- ##############################################
 
+function system_config.configFile()
+   return CONF_FILE
+end
+
+-- ##############################################
+
 function system_config.configChanged()
    return ntop.exists(CONF_FILE_EDITED)
 end
