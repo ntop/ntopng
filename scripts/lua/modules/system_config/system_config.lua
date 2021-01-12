@@ -22,8 +22,6 @@ local CONF_FILE_EDITED = CONF_FILE..".edited"
 local CONF_FILE_RELOAD = CONF_FILE..".reload" -- to force first start
 local STOCK_CONF_FILE = "/etc/ntopng/system.config"
 
-local DATA_RESET_KEY = "ntopng.prefs.data_reset"
-
 -- ##############################################
 
 system_config.readonly = true
