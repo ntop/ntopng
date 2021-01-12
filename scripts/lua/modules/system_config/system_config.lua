@@ -879,6 +879,24 @@ end
 
 -- ##############################################
 
+function system_config.findDnsPreset(preset_name)
+  require("prefs_utils")
+
+  for _, preset in pairs(DNS_PRESETS) do
+    if preset.id == preset_name then
+      return preset
+    end
+  end
+
+  return nil
+end
+
+function system_config:_get_default_global_dns_preset()
+  return system_config.findDnsPreset("google")
+end
+
+-- ##############################################
+
 function system_config:getDnsConfig()
   return self.config.globals.dns
 end

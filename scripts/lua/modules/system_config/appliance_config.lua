@@ -78,7 +78,7 @@ end
 
 -- ##############################################
 
-function system_config:getPassiveInterfaceName()
+function appliance_config:getPassiveInterfaceName()
   if self.config.globals.available_modes["passive"] then
     return self.config.globals.available_modes["passive"]["interfaces"]["lan"]
   end
@@ -110,31 +110,14 @@ function appliance_config:getPhysicalWanInterfaces()
   return self.config.globals.available_modes[mode].interfaces.wan
 end
 
--- ##############################################
-
-local function findDnsPreset(preset_name)
-  require("prefs_utils")
-
-  for _, preset in pairs(DNS_PRESETS) do
-    if preset.id == preset_name then
-      return preset
-    end
-  end
-
-  return nil
-end
-
-function system_config:_get_default_global_dns_preset()
-  return findDnsPreset("google")
-end
 
 -- ##############################################
 
-function system_config:getWirelessConfiguration()
+function appliance_config:getWirelessConfiguration()
   return self.config.wireless or {}
 end
 
-function system_config:setWirelessConfiguration(config)
+function appliance_config:setWirelessConfiguration(config)
   if config.enabled then
     if isEmptyString(config.ssid) then
       return false
