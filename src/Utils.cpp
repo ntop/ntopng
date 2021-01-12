@@ -303,10 +303,10 @@ int Utils::setAffinityMask(char *cores_list, cpu_set_t *mask) {
 
   CPU_ZERO(mask);
 
-  if (cores_list == NULL)
+  if(cores_list == NULL)
     return 0;
 
-  if (num_cores <= 1) 
+  if(num_cores <= 1) 
     return 0;
 
   core_id_s = strtok_r(cores_list, ",", &tmp);
@@ -331,7 +331,7 @@ int Utils::setAffinityMask(char *cores_list, cpu_set_t *mask) {
 int Utils::setThreadAffinityWithMask(pthread_t thread, cpu_set_t *mask) {
   int ret = -1;
 
-  if (mask == NULL || CPU_COUNT(mask) == 0)
+  if(mask == NULL || CPU_COUNT(mask) == 0)
     return(0);
 
 #ifdef HAVE_LIBCAP
@@ -994,7 +994,7 @@ int Utils::ifname2id(const char *name) {
     return INVALID_INTERFACE_ID;
 
 #ifdef WIN32
-  else if (isdigit(name[0]))
+  else if(isdigit(name[0]))
       return(atoi(name));
 #endif
   else if(!strncmp(name, "-", 1))
@@ -1252,7 +1252,7 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
   bool rc = false;
 
   server = gethostbyname(host);
-  if (server == NULL)
+  if(server == NULL)
     return false;
 
   memset((char*)&serv_addr, 0, sizeof(serv_addr));
@@ -1262,15 +1262,15 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-  if (sockfd < 0) {
+  if(sockfd < 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
     return false;
   }
 
 #ifndef WIN32
-  if (timeout == 0) {
+  if(timeout == 0) {
     retval = fcntl(sockfd, F_SETFL, fcntl(sockfd,F_GETFL,0) | O_NONBLOCK);
-    if (retval == -1) {
+    if(retval == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Error setting NONBLOCK flag");
       closesocket(sockfd);
       return false;
@@ -1280,7 +1280,7 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
     tv_timeout.tv_sec  = timeout/1000;
     tv_timeout.tv_usec = (timeout%1000)*1000;
     retval = setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &tv_timeout, sizeof(tv_timeout));
-    if (retval == -1) {
+    if(retval == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Error setting send timeout: %s", strerror(errno));
       closesocket(sockfd);
       return false;
@@ -1288,7 +1288,7 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
   }
 #endif
 
-  if (connect(sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0
+  if(connect(sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0
      && (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN ||
 	 errno == ENETUNREACH  || errno == ETIMEDOUT )) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,"Could not connect to remote party");
@@ -1301,7 +1301,7 @@ bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */
 
   rc = true;
   retval = send(sockfd, data, strlen(data), 0);
-  if (retval <= 0) {
+  if(retval <= 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Send failed: %s (%d)",
       strerror(errno), errno);
     rc = false;
@@ -1754,14 +1754,14 @@ bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *messag
 
   if(curl) {
 
-    if (username != NULL && password != NULL) {
+    if(username != NULL && password != NULL) {
       curl_easy_setopt(curl, CURLOPT_USERNAME, username);
       curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, smtp_server);
 
-    if (strncmp(smtp_server, "smtps://", 8) == 0)
+    if(strncmp(smtp_server, "smtps://", 8) == 0)
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
     else /* Try using SSL */
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
@@ -1815,7 +1815,7 @@ bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *messag
     lua_newtable(vm);
     lua_push_bool_table_entry(vm, "success", ret);
     lua_push_str_table_entry(vm, "msg", ret_str);
-  } else if (!ret)
+  } else if(!ret)
     /*
       If not lua VM has been passed, in case of error, a message is logged to stdout
      */
@@ -2342,7 +2342,7 @@ ticks Utils::gettickspersec() {
   _usleep(1001);
 
   ret = (Utils::getticks() - tick_start - tick_delta) * 1000; /*kHz -> Hz*/
-  if (ret == 0) ret = 1; /* Avoid invalid values */
+  if(ret == 0) ret = 1; /* Avoid invalid values */
 
   return(ret);
 #else
@@ -2678,13 +2678,15 @@ u_int32_t Utils::getMaxIfSpeed(const char *_ifname) {
 
 int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
 #if defined(__linux__)
-  struct ifreq ifr = {0};
+  struct ifreq ifr;
   struct ethtool_value ethv;
   int fd;
 
+  memset(&ifr, 0, sizeof(ifr));
+  
   fd = socket(AF_INET, SOCK_DGRAM, 0);
 
-  if (fd == -1)
+  if(fd == -1)
     return -1;
 
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
@@ -2692,7 +2694,7 @@ int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
   ethv.cmd = cmd;
   ifr.ifr_data = (char *) &ethv;
 
-  if (ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
+  if(ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
     close(fd);
     return -1;
   }
@@ -2710,13 +2712,15 @@ int Utils::ethtoolGet(const char *ifname, int cmd, uint32_t *v) {
 
 int Utils::ethtoolSet(const char *ifname, int cmd, uint32_t v) {
 #if defined(__linux__)
-  struct ifreq ifr = {0};
+  struct ifreq ifr;
   struct ethtool_value ethv;
   int fd;
 
+  memset(&ifr, 0, sizeof(ifr));
+  
   fd = socket(AF_INET, SOCK_DGRAM, 0);
 
-  if (fd == -1)
+  if(fd == -1)
     return -1;
 
   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
@@ -2725,7 +2729,7 @@ int Utils::ethtoolSet(const char *ifname, int cmd, uint32_t v) {
   ethv.data = v;
   ifr.ifr_data = (char *) &ethv;
 
-  if (ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
+  if(ioctl(fd, SIOCETHTOOL, (char *) &ifr) < 0) {
     close(fd);
     return -1;
   }
@@ -2745,27 +2749,27 @@ int Utils::disableOffloads(const char *ifname) {
   uint32_t v = 0;
 
 #ifdef ETHTOOL_GGRO
-  if (Utils::ethtoolGet(ifname, ETHTOOL_GGRO, &v) == 0 && v != 0)
+  if(Utils::ethtoolGet(ifname, ETHTOOL_GGRO, &v) == 0 && v != 0)
     Utils::ethtoolSet(ifname, ETHTOOL_SGRO, 0);
 #endif
 
 #ifdef ETHTOOL_GGSO
-  if (Utils::ethtoolGet(ifname, ETHTOOL_GGSO, &v) == 0 && v != 0)
+  if(Utils::ethtoolGet(ifname, ETHTOOL_GGSO, &v) == 0 && v != 0)
     Utils::ethtoolSet(ifname, ETHTOOL_SGSO, 0);
 #endif
 
 #ifdef ETHTOOL_GTSO
-  if (Utils::ethtoolGet(ifname, ETHTOOL_GTSO, &v) == 0 && v != 0)
+  if(Utils::ethtoolGet(ifname, ETHTOOL_GTSO, &v) == 0 && v != 0)
     Utils::ethtoolSet(ifname, ETHTOOL_STSO, 0);
 #endif
 
 #ifdef ETHTOOL_GSG
-  if (Utils::ethtoolGet(ifname, ETHTOOL_GSG, &v) == 0 && v != 0)
+  if(Utils::ethtoolGet(ifname, ETHTOOL_GSG, &v) == 0 && v != 0)
     Utils::ethtoolSet(ifname, ETHTOOL_SSG, 0);
 #endif
 
 #ifdef ETHTOOL_GFLAGS
-  if (Utils::ethtoolGet(ifname, ETHTOOL_GFLAGS, &v) == 0 && (v & ETH_FLAG_LRO))
+  if(Utils::ethtoolGet(ifname, ETHTOOL_GFLAGS, &v) == 0 && (v & ETH_FLAG_LRO))
     Utils::ethtoolSet(ifname, ETHTOOL_SFLAGS, v & ~ETH_FLAG_LRO);
 #endif
 
@@ -3154,7 +3158,7 @@ patricia_node_t* Utils::ptree_match(const patricia_tree_t *tree, int family, con
   else
     fill_prefix_mac(&prefix, (u_int8_t*)addr, bits, tree->maxbits);
 
-  if (prefix.bitlen > tree->maxbits) { /* safety check */
+  if(prefix.bitlen > tree->maxbits) { /* safety check */
     char buf[128];
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad radix tree lookup for %s (prefix len = %u, tree max len = %u)",
       Utils::ptree_prefix_print(&prefix, buf, sizeof(buf)) ? buf : "-",
@@ -4004,7 +4008,7 @@ char *Utils::ntop_lookupdev(char *ifname_out, int ifname_size) {
 
   ifname_out[0] = '\0';
 
-  if (pcap_findalldevs(&pdevs, ebuf) != 0) 
+  if(pcap_findalldevs(&pdevs, ebuf) != 0) 
     goto err;
 
   pdev = pdevs;
@@ -4514,7 +4518,7 @@ json_object *Utils::cloneJSONSimple(json_object *src) {
   struct json_object_iterator obj_itEnd = json_object_iter_end(src);
   json_object *obj = json_object_new_object();
 
-  if (obj == NULL)
+  if(obj == NULL)
     return NULL;
 
   while(!json_object_iter_equal(&obj_it, &obj_itEnd)) {
@@ -4605,7 +4609,7 @@ void Utils::tlv2lua(lua_State *vm, ndpi_serializer *serializer) {
 
   rc = ndpi_init_deserializer(&deserializer, serializer);
 
-  if (rc == -1)
+  if(rc == -1)
     return;
 
   while((et = ndpi_deserialize_get_item_type(&deserializer, &kt)) != ndpi_serialization_unknown) {
@@ -4619,7 +4623,7 @@ void Utils::tlv2lua(lua_State *vm, ndpi_serializer *serializer) {
     int64_t i64;
     u_int8_t bkp;
 
-    if (et == ndpi_serialization_end_of_record) {
+    if(et == ndpi_serialization_end_of_record) {
       ndpi_deserialize_next(&deserializer);
       return;
     }
@@ -4690,7 +4694,7 @@ void Utils::tlv2lua(lua_State *vm, ndpi_serializer *serializer) {
 /* ****************************************************** */
   
 u_int16_t Utils::country2u16(const char *country_code) {
-  if (country_code == NULL || strlen(country_code) < 2) return 0;
+  if(country_code == NULL || strlen(country_code) < 2) return 0;
   return ((((u_int16_t) country_code[0]) << 8) | ((u_int16_t) country_code[1]));
 }
 
@@ -4701,7 +4705,7 @@ int Utils::snappend(char *str, size_t size, const char *tobeappended, const char
 
   ret = snprintf(&str[len], size, "%s%s", (len > 0 && separator) ? separator : "", tobeappended);
 
-  if (ret < 0)
+  if(ret < 0)
     return ret;
 
   return len + ret;
@@ -4735,7 +4739,7 @@ bool Utils::isPingSupported() {
     sd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
 #endif
 
-    if (sd != -1) {
+    if(sd != -1) {
         close(sd);
 
         return(true);
@@ -4763,7 +4767,7 @@ char *Utils::ifname2devname(const char *ifname, char *devname, int devname_size)
 
   /* strip trailing "@" */
   at = strchr(devname, '@');
-  if (at != NULL)
+  if(at != NULL)
     at[0] = '\0';
 
   return devname;
