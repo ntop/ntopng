@@ -25,7 +25,7 @@ local subpages = {
    { name = "network_interfaces", nedge = true,  appliance = true,                       url = "interfaces.lua",     label = i18n("prefs.network_interfaces")          },
    { name = "network_setup",      nedge = true,  appliance = true,                       url = "network.lua",        label = i18n("nedge.interfaces_configuration")    },
    { name = "dhcp",               nedge = true,  appliance = false, routing_only = true, url = "dhcp.lua",           label = i18n("nedge.dhcp_server")                 },
-   { name = "dns",                nedge = true,  appliance = false, vlan_trunk = false,  url = "dns.lua",            label = i18n("nedge.dns_configuration")           },
+   { name = "dns",                nedge = true,  appliance = true, vlan_trunk = false,   url = "dns.lua",            label = i18n("nedge.dns_configuration")           },
    { name = "captive_portal",     nedge = true,  appliance = false, vlan_trunk = false,  url = "captive_portal.lua", label = i18n("prefs.toggle_captive_portal_title") },
    { name = "shapers",            nedge = true,  appliance = false,                      url = "shapers.lua",        label = i18n("nedge.shapers")                     },
    { name = "gateways",           nedge = true,  appliance = false, routing_only = true, url = "gateways.lua",       label = i18n("nedge.gateways")                    },
