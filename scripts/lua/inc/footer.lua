@@ -48,11 +48,7 @@ print ([[
 			<div class="col-4 pl-md-0 text-left">
 				<small>
 					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
-				  		]] .. info.product .. ' ' .. getNtopngRelease(info) .." v.".. info.version.. " (".. info["OS"] ..")" ..[[
-					</a>
-					|
-					<a href="https://github.com/ntop/ntopng">
-						<i class="fab fa-github"></i>
+				  		]] .. getNtopngRelease(info) ..[[
 					</a>
 				</small>
 			</div>

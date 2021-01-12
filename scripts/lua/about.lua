@@ -38,13 +38,7 @@ else
    ntopng_git_url = info["version"]
 end
 
-print("<tr><th>"..i18n("about.version").."</th><td colspan=2>"..ntopng_git_url.." - ")
-
-printntopngRelease(info)
-
-if((info["OS"] ~= nil) and (info["OS"] ~= "")) then
-   print("<tr><th>"..i18n("about.built_on").."</th><td colspan=2>"..info["OS"].."</td></tr>\n")
-end
+print("<tr><th>"..i18n("about.version").."</th><td colspan=2>"..getNtopngRelease(info).."</td></tr>\n")
 
 print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
 print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td colspan=2>".. info["product"] .." "..info["command_line"].."</td></tr>\n")

@@ -3396,52 +3396,39 @@ end
 
 -- ###########################################
 
-function printntopngRelease(info)
-   if info.oem then
-      return ""
-   end
-
-   if(info["version.enterprise_l_edition"]) then
-      print(" Enterprise L")
-   elseif(info["version.enterprise_m_edition"]) then
-      print(" Enterprise M")
-   elseif(info["version.enterprise_edition"]) or (info["version.nedge_enterprise_edition"]) then
-      print(" Enterprise")
-   elseif(info["version.nedge_edition"] or info["pro.release"]) then
-      print(" Professional")
-   else
-      print(" Community")
-   end
-
-   if(info["version.embedded_edition"] == true) then
-      print("/Embedded")
-   end
-
-   print(" Edition</td></tr>\n")
-end
-
 function getNtopngRelease(ntopng_info)
+   local release
+
    if ntopng_info.oem or ntopng_info["version.nedge_edition"] then
-      return ""
-   end
-
-   if(ntopng_info["version.enterprise_l_edition"]) then
-      return "Enterprise L"
+      release = ""
+   elseif(ntopng_info["version.enterprise_l_edition"]) then
+      release =  "Enterprise L"
    elseif(ntopng_info["version.enterprise_m_edition"]) then
-      return "Enterprise M"
+      release =  "Enterprise M"
    elseif(ntopng_info["version.enterprise_edition"]) or (ntopng_info["version.nedge_enterprise_edition"]) then
-      return "Enterprise"
+      release =  "Enterprise"
    elseif(ntopng_info["pro.release"]) then
-      return "Professional"
+      release =  "Professional"
+   elseif(ntopng_info["version.embedded_edition"]) then
+      release = "/Embedded"
    else
-      return "Community"
+      release =  "Community"
    end
 
-   if(ntopng_info["version.embedded_edition"] == true) then
-      return"/Embedded"
+   -- E.g., ntopng edge v.4.3.210112 (Ubuntu 16.04.6 LTS)
+   local res = string.format("%s %s v.%s (%s)", ntopng_info.product, release, ntopng_info.version, ntopng_info.OS)
+
+   if not ntopng_info.oem then
+      local vers = string.split(ntopng_info["version.git"], ":")
+
+      if vers and vers[2] then
+	 local ntopng_git_url = "<A HREF=\"https://github.com/ntop/ntopng/commit/".. vers[2] .."\"><i class='fab fa-github'></i></A>"
+
+	 res = string.format("%s | %s", res, ntopng_git_url)
+      end
    end
 
-   return ""
+   return res
 end
 
 -- ###########################################
