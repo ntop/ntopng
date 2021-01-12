@@ -21,7 +21,7 @@ if ntop.isPro() then
    shaper_utils = require("shaper_utils")
 
    if ntop.isnEdge() then
-      package.path = dirs.installdir .. "/scripts/lua/pro/nedge/modules/?.lua;" .. package.path
+      package.path = dirs.installdir .. "/scripts/lua/pro/nedge/modules/system_config/?.lua;" .. package.path
       nf_config = require("nf_config")
    end
 end
