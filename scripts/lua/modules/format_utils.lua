@@ -328,7 +328,7 @@ function format_utils.formatAddressCategory(host)
    local addr_category = ""
 
    if host ~= nil then 
-      if host["is_blacklisted"] then
+      if(host["is_blacklisted"] == true) then
          addr_category = addr_category .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
       end
 
@@ -346,12 +346,16 @@ function format_utils.formatAddressCategory(host)
          addr_category = addr_category .. " <span class='badge badge-dark'>" ..i18n("broadcast").. "</span> "
       end
       
-      if host["broadcast_domain_host"] then
+      if(host["broadcast_domain_host"] == true) then
          addr_category = addr_category .. " <span class='badge badge-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
       end
       
       if(host["privatehost"] == true) then 
          addr_category = addr_category .. ' <span class="badge badge-warning">'..i18n("details.label_private_ip")..'</span>'
+      end
+
+      if(host["dhcpHost"] == true) then
+         addr_category = addr_category .. ' <i class=\"fas fa-bolt\" title=\"'..i18n("details.label_dhcp_server")..'\"></i>'
       end
    end
 
