@@ -101,7 +101,11 @@ ifeq (@NEDGE@, 0)
 
  HAS_ZSTD=$(shell pkg-config --exists libzstd && echo 0)
  ifeq ($(HAS_ZSTD), 0)
+   ifeq ($(OS), $(filter $(OS), FreeBSD))
+	ZSTD_LIB = /usr/local/lib/libzstd.a
+     else
 	ZSTD_LIB = $(shell pkg-config --libs libzstd)
+   endif
  endif
 endif
 

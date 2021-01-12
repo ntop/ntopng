@@ -21,11 +21,9 @@ prefix:      /
 EOF
 
 echo "deps: {" >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" json-c         >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" libgcrypt      >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" libmaxminddb   >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" libzmq4        >> ${STAGEDIR}/+MANIFEST
-pkg query "  %n: { version: \"%v\", origin: %o }" mysql80-client >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" rrdtool        >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" lua53          >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" libsodium      >> ${STAGEDIR}/+MANIFEST

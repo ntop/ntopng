@@ -247,13 +247,18 @@ if test -z "$NDPI_INC" || test -z "$NDPI_LIB" ; then :
 fi
 dnl finish: nDPI handling
 
-pkg-config --exists json-c
-if test "$?" -ne 1; then
-  JSON_INC=`pkg-config --cflags json-c`
-  JSON_LIB=`pkg-config --libs json-c`
+if test $SYSTEM = "FreeBSD"; then
+   JSON_LIB=/usr/local/lib/libjson-c.a
+   JSON_INC=`pkg-config --cflags json-c`
 else
-  echo "Please install libjson-c-dev package prerequisite"
-  exit -1
+   pkg-config --exists json-c
+   if test "$?" -ne 1; then
+     JSON_INC=`pkg-config --cflags json-c`
+     JSON_LIB=`pkg-config --libs json-c`
+   else
+     echo "Please install libjson-c-dev package prerequisite"
+     exit -1
+   fi
 fi
 
 dnl> Temporary using json-c from third party on Ubuntu 18/20
@@ -611,7 +616,10 @@ else
   exit 1
 fi
 
-if test "${with_nedge+set}" != set; then
+if test $SYSTEM = "FreeBSD"; then
+   MYSQL_LIB=/usr/local/lib/mysql/libmysqlclient.a
+else
+ if test "${with_nedge+set}" != set; then
   AC_CHECK_TOOL(MARIADB, mariadb_config)
   if test "x$ac_cv_prog_ac_ct_MARIADB" = "xmariadb_config"; then
     MYSQLTOOL="mariadb_config"
@@ -640,6 +648,7 @@ if test "${with_nedge+set}" != set; then
     echo "MySQL libraries not found. Please install them as specified in README.compilation"
     exit 1
   fi
+ fi
 fi
 
 AC_CHECK_LIB([expat], [XML_ParserCreate], expat=true)
