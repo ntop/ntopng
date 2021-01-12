@@ -20,10 +20,10 @@ if not (is_nedge or is_appliance) then
 end
 
 local subpages = {
-   { name = "mode",               nedge = false, appliance = true,                       url = "mode.lua",           label = i18n("nedge.setup_mode")                  },
+   { name = "mode",               nedge = true,  appliance = true,                       url = "mode.lua",           label = i18n("nedge.setup_mode")                  },
    { name = "wifi",               nedge = false, appliance = true,                       url = "wifi.lua",           label = i18n("prefs.wifi")                        },
-   { name = "network_interfaces", nedge = false, appliance = true,                       url = "interfaces.lua",     label = i18n("prefs.network_interfaces")          },
-   { name = "network_setup",      nedge = false, appliance = true,                       url = "network.lua",        label = i18n("nedge.interfaces_configuration")    },
+   { name = "network_interfaces", nedge = true,  appliance = true,                       url = "interfaces.lua",     label = i18n("prefs.network_interfaces")          },
+   { name = "network_setup",      nedge = true,  appliance = true,                       url = "network.lua",        label = i18n("nedge.interfaces_configuration")    },
    { name = "dhcp",               nedge = true,  appliance = false, routing_only = true, url = "dhcp.lua",           label = i18n("nedge.dhcp_server")                 },
    { name = "dns",                nedge = true,  appliance = false, vlan_trunk = false,  url = "dns.lua",            label = i18n("nedge.dns_configuration")           },
    { name = "captive_portal",     nedge = true,  appliance = false, vlan_trunk = false,  url = "captive_portal.lua", label = i18n("prefs.toggle_captive_portal_title") },
@@ -31,9 +31,9 @@ local subpages = {
    { name = "gateways",           nedge = true,  appliance = false, routing_only = true, url = "gateways.lua",       label = i18n("nedge.gateways")                    },
    { name = "static_routes",      nedge = true,  appliance = false, routing_only = true, url = "static_routes.lua",  label = i18n("nedge.static_routes")               },
    { name = "routing",            nedge = true,  appliance = false, routing_only = true, url = "routing.lua",        label = i18n("nedge.routing_policies")            },
-   { name = "date_time",          nedge = false, appliance = true,                       url = "date_time.lua",      label = i18n("nedge.date_time")                   },
+   { name = "date_time",          nedge = true,  appliance = true,                       url = "date_time.lua",      label = i18n("nedge.date_time")                   },
    { name = "security",           nedge = true,  appliance = false, vlan_trunk = false,  url = "security.lua",       label = i18n("nedge.security")                    },
-   { name = "misc",               nedge = false, appliance = true,                       url = "misc.lua",           label = i18n("prefs.misc")                        },
+   { name = "misc",               nedge = true,  appliance = true,                       url = "misc.lua",           label = i18n("prefs.misc")                        },
 }
 
 local system_setup_ui_utils = {}
@@ -174,6 +174,7 @@ function system_setup_ui_utils.printPageBody(sys_config, print_page_body_callbac
 ]]
 
    local mode = sys_config:getOperatingMode()
+
    for _, subpage in ipairs(subpages) do
       if is_appliance and not subpage.appliance then
          goto continue
