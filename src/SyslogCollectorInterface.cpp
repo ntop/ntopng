@@ -283,7 +283,10 @@ int SyslogCollectorInterface::receive(int socket, char *client_ip, bool use_recv
 
     if (use_recvfrom)
       len = recvfrom(socket,
-        (void *) buffer, buffer_size,
+#ifndef WIN32
+      (void *)
+#endif
+          buffer, buffer_size,
 #ifndef WIN32
         MSG_DONTWAIT
 #else

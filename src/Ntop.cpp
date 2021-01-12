@@ -41,7 +41,9 @@ static const char* dirs[] = {
   NULL,                      /* Populated at runtime for WIN32 builds */
   CONST_ALT_INSTALL_DIR,
   CONST_ALT2_INSTALL_DIR,
+#ifndef WIN32
   CONST_DEFAULT_INSTALL_DIR, /* Last is the <path> specified with ./configure --prefix <path>, defaulting to /usr/local */
+#endif
   NULL
 };
 
