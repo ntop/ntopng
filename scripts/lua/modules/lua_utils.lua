@@ -1476,12 +1476,7 @@ function hostinfo2label(host_info)
 
    -- Name info from C (e.g. DHCP name)
    if not isEmptyString(host_info["name"]) then
-      return host_info["name"]
-   else 
-      local name = interface.getHostName(ip, host_info["vlan"])
-      if name ~= nil and not isEmptyString(name) then
-         return name
-      end
+      return host_info["name"]      
    end
 
    -- Try to get the resolved name
@@ -4042,6 +4037,7 @@ function builMapHREF(ip_address, vlan_id, map, default_page)
       return(ip_address)
    else
       local hinfo = hostkey2hostinfo(ip_address)
+      hinfo["name"] = interface.getHostName(hinfo.host, hinfo.vlan)
       local name  = hostinfo2label(hinfo)
       local res
 
