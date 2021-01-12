@@ -229,4 +229,4 @@ if(ntop.exists(local_startup_file)) then
    dofile(local_startup_file)
 end
 
-traceError(TRACE_NORMAL, TRACE_CONSOLE, "Startup completed: ntopng is now operational")
+traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")
