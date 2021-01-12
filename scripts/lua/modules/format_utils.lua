@@ -355,7 +355,7 @@ function format_utils.formatAddressCategory(host)
       end
 
       if(host["dhcpHost"] == true) then
-         addr_category = addr_category .. ' <i class=\"fas fa-bolt\" title=\"'..i18n("details.label_dhcp_server")..'\"></i>'
+         addr_category = addr_category .. ' <i class=\"fas fa-bolt\" title=\"'..i18n("details.label_dhcp")..'\"></i>'
       end
    end
 

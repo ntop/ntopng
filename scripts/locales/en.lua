@@ -1083,6 +1083,7 @@ local lang = {
     ["label_dhcp_server"] = "DHCP Server",
     ["label_dns_server"] = "DNS Server",
     ["label_local_host"] = "Local",
+    ["label_dhcp"]       = "DCHP",
     ["label_ntp_server"] = "NTP Server",
     ["label_private_ip"] = "Private",
     ["label_remote"] = "Remote",
