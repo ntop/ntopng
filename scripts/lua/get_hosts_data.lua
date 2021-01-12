@@ -281,19 +281,29 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    local column_name
+   local is_short = false
 
    -- Visualize both the MDNS/DHCP name from C and (possibly) the host label
    if(long_names) then
       column_name = value["name"]
    else
       column_name = shortHostName(value["name"])
+      is_short = true
    end
 
    if(value["ip"] ~= nil) then
       local label = hostinfo2label(value)
 
-      if label ~= value["ip"] and column_name ~= label then
-	 column_name = column_name .. " ["..label.."]"
+      if label ~= value["ip"] then
+	 if(is_short == true) then
+	    if(value["name"] ~= label) then
+	       column_name = column_name .. " ["..label.."]"
+	    end
+	 else
+	    if column_name ~= label then
+	       column_name = column_name .. " ["..label.."]"
+	    end
+	 end
       end
    end
 
