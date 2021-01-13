@@ -11,6 +11,11 @@ local ts_dump = require "ts_5min_dump_utils"
 
 -- ########################################################
 
+if(ntop.isPro()) then
+  package.path = dirs.installdir .. "/pro/scripts/callbacks/interface/?.lua;" .. package.path
+  require('5min')
+end
+
 local verbose = ntop.verboseTrace()
 local when = os.time()
 local config = ts_dump.getConfig()
