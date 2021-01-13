@@ -406,6 +406,7 @@ $(document).ready(function() {
         columns: [
             {
                 data: 'html_label',
+                width: '20%',
 		        render: function(html_label, type, row) {
                     
                     if (type === 'display') {
@@ -423,11 +424,12 @@ $(document).ready(function() {
             },
             {
                 data: 'measurement',
-                width: '5%'
+                width: "100px",
             },
             {
                 data: 'chart',
                 class: 'text-center',
+                width: "100px",
                 sortable: false,
                  render: function(href, type, row) {
                     if(type === 'display') {
@@ -514,6 +516,7 @@ $(document).ready(function() {
                 data: null,
                 sortable: false,
                 name: 'actions',
+                width: "200px",
                 class: 'text-center',
                 render: function(_, type, host) {
 
