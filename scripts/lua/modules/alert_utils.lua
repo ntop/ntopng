@@ -462,7 +462,7 @@ function alert_utils.checkDeleteStoredAlerts()
       }
 
       local type_info = {
-         alert_type = alert_consts.alert_types[alert_consts.alertTypeRaw(_POST["alert_type"])],
+         alert_type = (alert_consts.alert_types[alert_consts.alertTypeRaw(_POST["alert_type"])]).meta,
          alert_severity = alert_severities[alert_consts.alertSeverityRaw(_POST["alert_severity"])],
          alert_subtype = _POST["alert_subtype"],
          alert_granularity = alert_consts.alerts_granularities[alert_consts.sec2granularity(_POST["alert_granularity"])],
