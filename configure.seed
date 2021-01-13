@@ -806,6 +806,7 @@ AC_CONFIG_HEADERS(include/config.h)
 AC_CONFIG_FILES(packages/ntopng.spec)
 AC_CONFIG_FILES(packages/ntopng-data.spec)
 AC_CONFIG_FILES(packages/FreeBSD/build.sh)
+AC_CONFIG_FILES(packages/OPNsense/build.sh)
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(tools/json2tlv/Makefile)
 AC_CONFIG_FILES(doc/doxygen.conf)
@@ -822,6 +823,10 @@ fi
 
 if test -f "httpdocs/misc/ntopng-utils-manage-updates"; then
   chmod +x httpdocs/misc/ntopng-utils-manage-updates
+fi
+
+if test -f "packages/OPNsense/build.sh"; then
+  chmod +x packages/OPNsense/build.sh
 fi
 
 echo ""

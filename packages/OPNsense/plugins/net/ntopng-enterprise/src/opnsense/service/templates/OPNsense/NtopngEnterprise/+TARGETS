@@ -1,0 +1,2 @@
+ntopng:/etc/rc.conf.d/ntopng
+ntopng.conf:/usr/local/etc/ntopng.conf

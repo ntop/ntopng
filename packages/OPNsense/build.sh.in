@@ -1,0 +1,61 @@
+#!/bin/sh
+
+PWD=`pwd`
+
+STAGEDIR=${PWD}/stage
+rm -rf ${STAGEDIR}
+mkdir -p ${STAGEDIR}
+
+#######
+
+# Build content
+
+mkdir -p ${STAGEDIR}/usr/local
+cp -r plugins/net/ntopng-enterprise/src/* ${STAGEDIR}/usr/local/
+
+#######
+
+# Build plist
+
+PREFIX_LEN=$(echo ${STAGEDIR} | wc -m)
+find ${STAGEDIR} -type f -follow -print | cut -c ${PREFIX_LEN}- > plist
+mv plist ${STAGEDIR}/
+
+#######
+
+# Build +MANIFEST
+
+cat >> ${STAGEDIR}/+MANIFEST <<EOF
+name:        os-ntopng-enterprise
+version:     "@PACKAGE_VERSION@"
+origin:      opnsense/os-ntopng-enterprise
+comment:     "Network Traffic Analysis and Flow Collection"
+desc:        "ntopng is a high-speed web-based network traffic analysis and flow collection tool"
+maintainer:  packager@ntop.org
+www:         https://www.ntop.org
+prefix:      /
+deps: {
+  ntopng: { version: "@PACKAGE_VERSION@", origin: net/ntopng }
+}
+EOF
+
+# Build +POST_INSTALL
+
+cat >> ${STAGEDIR}/+POST_INSTALL <<EOF
+if /usr/local/etc/rc.d/configd status > /dev/null; then
+    /usr/local/etc/rc.d/configd restart
+fi
+/usr/local/etc/rc.configure_plugins
+EOF
+
+#######
+
+# Build package
+
+pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o .
+
+tar -tvf os-ntopng-enterprise-@PACKAGE_VERSION@.txz
+
+/bin/rm -f ~/binary_packages/os-ntopng-enterprise-*
+cp os-ntopng-enterprise-@PACKAGE_VERSION@.txz ~/binary_packages/
+
