@@ -248,7 +248,7 @@ local function print_routing_page_body()
     -- Wan after
     for if_name, role in pairsByKeys(all_interfaces, asc_insensitive) do
       if (role == "wan") and (interfaces_config[if_name] ~= nil) then
-        printWanLikeConfig(if_name, ifname_to_id[if_name], interfaces_config[if_name], true)
+        printWanLikeConfig(if_name, ifname_to_id[if_name], interfaces_config[if_name], false, true)
       end
     end
   else
