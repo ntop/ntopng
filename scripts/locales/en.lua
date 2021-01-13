@@ -294,6 +294,7 @@ local lang = {
   ["traffic"] = "Traffic",
   ["traffic_policy"] = "Traffic Policy",
   ["undo"] = "Undo",
+  ["unicast_only"] = "Unicast Only",
   ["unknowers"] = "Unknown Traffic Volume",
   ["unknown"] = "Unknown",
   ["unlimited"] = "&infin;",

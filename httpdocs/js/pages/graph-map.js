@@ -86,11 +86,14 @@ function setEventListenersNetwork(network) {
         let query = "";
         // same thing for the host_pool_id
         if (hostPoolId !== "") {
-            query += `&host_pool_id=${hostPoolId}`;
+            query = `&host_pool_id=${hostPoolId}`;
         }
         // for the VLAN id as well
         if (vlanId !== "") {
-            query += `&vlan=${vlanId}`;
+            query = `&vlan=${vlanId}`;
+        }
+        if (unicastOnly !== "") {
+            query = `&unicast_only=true`;
         }
 
         if (selectedNode !== undefined && host === "") {
@@ -142,6 +145,9 @@ function loadGraph(container, options) {
     // for the VLAN id as well
     if (vlanId !== "") {
         dataRequest.vlan = vlanId;
+    }
+    if (unicastOnly !== "") {
+        dataRequest.unicast_only = true;
     }
 
     const request = $.get(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, dataRequest);
