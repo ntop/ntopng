@@ -4049,6 +4049,7 @@ static int ntop_get_interface_periodicity_map(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress *ip = NULL;
   u_int16_t vlan_id = 0, host_pool_id = 0;
+  bool unicast = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4058,9 +4059,10 @@ static int ntop_get_interface_periodicity_map(lua_State* vm) {
   }
   if(lua_type(vm, 2) == LUA_TNUMBER)  vlan_id      = (u_int16_t)lua_tonumber(vm, 2);
   if(lua_type(vm, 3) == LUA_TNUMBER)  host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
+  if(lua_type(vm, 4) == LUA_TBOOLEAN) unicast      = (bool)lua_toboolean(vm, 4);
 
   if(ntop_interface)
-    ntop_interface->luaPeriodicityStats(vm, ip, vlan_id, host_pool_id);
+    ntop_interface->luaPeriodicityStats(vm, ip, vlan_id, host_pool_id, unicast);
   else
     lua_pushnil(vm);
 
@@ -4093,6 +4095,7 @@ static int ntop_get_interface_service_map(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress *ip = NULL;
   u_int16_t vlan_id = 0, host_pool_id = 0;
+  bool unicast = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -4102,9 +4105,10 @@ static int ntop_get_interface_service_map(lua_State* vm) {
   }
   if(lua_type(vm, 2) == LUA_TNUMBER)  vlan_id      = (u_int16_t)lua_tonumber(vm, 2);
   if(lua_type(vm, 3) == LUA_TNUMBER)  host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
+  if(lua_type(vm, 4) == LUA_TBOOLEAN) unicast      = (bool)lua_toboolean(vm, 4);
 
   if(ntop_interface)
-    ntop_interface->luaServiceMap(vm, ip, vlan_id, host_pool_id);
+    ntop_interface->luaServiceMap(vm, ip, vlan_id, host_pool_id, unicast);
   else
     lua_pushnil(vm);
 
