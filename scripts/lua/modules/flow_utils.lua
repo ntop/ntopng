@@ -1457,7 +1457,7 @@ function printL4ProtoDropdown(base_url, page_params, l4_proto)
 
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.l4_protocol")) print[[]] print(l4proto_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
+      <ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" id="flow_dropdown">\
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, l4proto_params_non_tcp)) print[[">]] print(i18n("flows_page.all_l4_protocols")) print[[</a></li>]]
 
     if l4_proto then
@@ -1508,7 +1508,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 
    print[[, '<div class="btn-group float-right">\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.device_ip")) print[[]] print(cur_dev_filter) print[[<span class="caret"></span></button>\
-      <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
+      <ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" id="flow_dropdown">\
 	 <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dev_params)) print[[">]] print(i18n("flows_page.all_devices")) print[[</a></li>\]]
    for _, dev_ip in ipairs(devips) do
       local dev_name = dev_ip
