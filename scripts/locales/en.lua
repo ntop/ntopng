@@ -98,6 +98,7 @@ local lang = {
   ["export"] = "Export",
   ["factory_reset"] = "Factory Reset",
   ["filter"] = "Filter",
+  ["filter_by"] = "Filter by",
   ["fingerprint_note"] = "Application name is set only if ntopng is configured to receive a eBPF feed via ZMQ",
   ["flow"] = "Flow",
   ["flow_alerts_search_criteria"] = "Flow Alerts Search Criteria",
