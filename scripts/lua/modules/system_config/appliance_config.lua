@@ -398,7 +398,7 @@ function appliance_config:_guess_config()
             netmask = "255.255.255.0"
          else
             -- The device has an IP address
-            local addresses = getAllInterfaceAddresses(a)
+            local addresses = system_config.getAllInterfaceAddresses(a)
             for _, addr in pairs(addresses) do
                if addr.ip == ip_devs[a] then
                   netmask = addr.netmask

@@ -354,7 +354,7 @@ local function isInterfaceUp(ifname)
 end
 
 -- returns all the IP addresses associated to one interface
-local function getAllInterfaceAddresses(ifname)
+function system_config.getAllInterfaceAddresses(ifname)
   local res = sys_utils.execShellCmd("ip addr show ".. ifname .." | grep -Po 'inet \\K[\\d.]+/[\\d]+'")
   local rv = {}
 
@@ -378,7 +378,7 @@ end
 -- available excluding the recovery IP
 function system_config:getInterfaceAddress(ifname)
   local recovery_conf = self:getLanRecoveryIpConfig()
-  local addresses = getAllInterfaceAddresses(ifname)
+  local addresses = system_config.getAllInterfaceAddresses(ifname)
 
   for _, addr in ipairs(addresses) do
     if addr.ip ~= recovery_conf.ip then
@@ -744,7 +744,7 @@ end
 
 -- ##############################################
 
-local function gatewayGetInterface(gateway)
+function system_config.gatewayGetInterface(gateway)
   -- Useful to find the interface which would route traffic to some address
   local res = sys_utils.execShellCmd("ip route get " .. gateway)
 
@@ -754,7 +754,7 @@ local function gatewayGetInterface(gateway)
 end
 
 -- TODO use more reliable information
-local function ifaceGetNetwork(iface)
+function system_config.ifaceGetNetwork(iface)
   local res = sys_utils.execShellCmd("ip route show | grep \"scope link\" | grep \"proto kernel\" | grep \"" .. iface .. "\"")
 
   if not isEmptyString(res) then
@@ -1062,7 +1062,7 @@ end
 -- ##############################################
 
 -- Find interfaces with IP configured
- function system_config.get_ip_interfaces()
+function system_config.get_ip_interfaces()
   local ip_devs = system_config._split_dev_names('ip addr | awk \'$1 == "inet" && $7 { split( $2, addr, "/" ); print $7, addr[1] }\'', " ")
   return ip_devs
 end
