@@ -4048,18 +4048,19 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
 static int ntop_get_interface_periodicity_map(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress *ip = NULL;
+  u_int16_t vlan_id = 0, host_pool_id = 0;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(lua_type(vm, 1) == LUA_TSTRING) /* Optional */ {
-    char *host = (char*)lua_tostring(vm, 1);
-
+  if(lua_type(vm, 1) == LUA_TSTRING) {
     ip = new (std::nothrow) IpAddress();
-    if(ip) ip->set(host);
+    if(ip) ip->set((char*)lua_tostring(vm, 1));    
   }
+  if(lua_type(vm, 2) == LUA_TNUMBER)  vlan_id      = (u_int16_t)lua_tonumber(vm, 2);
+  if(lua_type(vm, 3) == LUA_TNUMBER)  host_pool_id = (u_int16_t)lua_tonumber(vm, 3);
 
   if(ntop_interface)
-    ntop_interface->luaPeriodicityStats(vm, ip);
+    ntop_interface->luaPeriodicityStats(vm, ip, vlan_id, host_pool_id);
   else
     lua_pushnil(vm);
 

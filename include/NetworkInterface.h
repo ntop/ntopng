@@ -569,7 +569,7 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void lua(lua_State* vm);
   void luaAlertedFlows(lua_State* vm);
-  void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address);
+  void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address, u_int16_t vlan_id, u_int16_t host_pool_id);
   void luaServiceMap(lua_State* vm, IpAddress *ip_address, u_int16_t vlan_id, u_int16_t host_pool_id);
   void luaServiceMapStatus(lua_State *vm);
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
