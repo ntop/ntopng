@@ -907,7 +907,7 @@ for v,k in pairs(iface_names) do
    if ntop.isWindows() and string.contains(descr, "{") then -- Windows
       descr = _ifstats.description
    else
-      if descr ~= _ifstats.description and not views[k] then
+      if descr ~= _ifstats.description and not views[k] and not pcapdump[k] then
       	 if descr == shortenCollapse(_ifstats.description) then
       	    descr = _ifstats.description
       	 else
