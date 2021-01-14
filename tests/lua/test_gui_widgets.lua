@@ -25,39 +25,33 @@ end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
--- Value to change: data-ntop-widget-datasource
-
+-- NOTE: THE NTOP WIDGET SCRIPTS MUST BE LOADED FIRST!
 print([[
-    <div class='row my-1'>
-        <div class='col-3'>
-            <div class='ntop-widget d-inline-block' data-ntop-widget-datasource='interface_packet_distro' data-ntop-widget-type='pie' data-ntop-widget-params='{"ifid":0}'>
-            </div>
-        </div>
-        <div class='col-9'>
-            <div class='w-50'>
-                <code>
-                &lt;div class='ntop-widget d-inline-block' data-ntop-widget-datasource='interface_packet_distro' data-ntop-widget-type='pie' <span class='text-danger'>data-ntop-widget-params='{"ifid":0}'</span>&gt;	
-                &lt;/div&gt;
-                </code>	
-            </div>
-        </div>
-        <div class='col-3 my-2'>
-            <div class='ntop-widget d-inline-block' data-ntop-widget-datasource='interface_packet_distro' data-ntop-widget-type='pie' data-ntop-widget-params='{"ifid":9}'>
-            </div>
-        </div>
-        <div class='col-9'>
-            <div class='w-50'>
-                <code>
-                &lt;div class='ntop-widget d-inline-block' data-ntop-widget-datasource='interface_packet_distro' data-ntop-widget-type='pie' <span class='text-danger'>data-ntop-widget-params='{"ifid":11}'</span>&gt;	
-                &lt;/div&gt;
-                </code>	
-            </div>
-        </div>
-    </div>
+
+    <script type='text/javascript'>
+        window.__NTOPNG_WIDGET_CSRF__ = "]].. ntop.getRandomCSRFValue() ..[[";
+    </script>
+    <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/ntop-widgets.esm.js"></script>
+    <script nomodule src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/ntop-widgets.js"></script>
+
 ]])
 
 print([[
-    <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/widgets/ntop-widget-utils.js"></script>
+    <div class='row my-4'>
+        <div class='col-12'>
+            <ntop-widget transformation="pie" width="400px" height="400px">
+                <b class='mb-2'>Interfaces 0 (external) + 9 (internal)</b>
+                <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
+                <ntop-datasource type="interface_packet_distro" params-ifid='9'></ntop-datasource>
+            </ntop-widget>
+        </div>
+        <div class='col-12 my-1'>
+            <ntop-widget transformation="donut" width="400px" height="400px">
+                <b class='mb-2'>Interface 9 (Donut)</b>
+                <ntop-datasource type="interface_packet_distro" params-ifid='9'></ntop-datasource>
+            </ntop-widget>
+        </div>
+    </div>
 ]])
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
