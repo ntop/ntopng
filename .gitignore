@@ -92,3 +92,5 @@ stage/
 parts/
 hooks/.enabled
 dump.rdb
+packages/FreeBSD/build.sh
+packages/OPNsense/build.sh
