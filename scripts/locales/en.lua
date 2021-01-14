@@ -4113,6 +4113,7 @@ local lang = {
     ["allowed"] = "Allowed",
     ["denied"] = "Denied",
     ["fetch_error"] = "Error while fetching Service Map Status.",
+    ["filter_hosts"] = "Filter hosts",
     ["graph_view"] = "Graph View",
     ["learning"] = "The Service Map is <b>learning</b>...",
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",

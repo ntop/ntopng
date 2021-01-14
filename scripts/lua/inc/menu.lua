@@ -311,9 +311,6 @@ else
 	       hidden = is_pcap_dump,
 	       url = '/lua/top_hosts.lua',
 	    },
-	    {
-	       entry = page_utils.menu_entries.divider,
-       },
 	 },
       }
    )

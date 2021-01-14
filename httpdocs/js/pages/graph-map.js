@@ -9,7 +9,6 @@ let edgesDataser = [];
 
 const SAVE_TIMEOUT = 500;
 const MIN_SCALE = 0.15;
-const VIEW_CSRF = "{{ ntop.getRandomCSRFValue() }}";
 
 if (MAP === undefined) {
     console.error("The MAP constant is not defined!");

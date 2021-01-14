@@ -184,32 +184,32 @@ local remote_js = json.encode(remote_hosts)
 print ([[
 
 	 <script type="text/javascript" src="/js/Chart.bundle.min.js"></script>
-
-	 <div class="dropdown mb-3">
-	 <button class="btn btn-light dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and 'Visualization' or current_label) ..[[
-	 <span class="caret"></span></button>
-	 <ul class="dropdown-menu scrollable-dropdown" role="menu" aria-labelledby="menu1">
-	 ]])
-
-for i,v in pairs(modes) do
-   print('<li class="dropdown-item"><a class="dropdown-link" tabindex="-1" href="?bubble_mode='..tostring(i-1)..'">'..v.label..'</a></li>\n')
-end
-
-print [[
-      </ul>
-	   </div>
-
-<div class="container">
     <div class="row">
 	<div class="col-12">
 	    <div class="card">
-		<div class="card-body">
-		    <canvas id="canvas"></canvas>
-		</div>
+			<div class="card-body">
+			<div class='d-flex align-items-center justify-content-end mb-3'>
+				<label class="m-0 mr-1">]]..i18n("filter") ..[[: </label>
+				<div class="dropdown">
+				<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and 'Visualization' or (current_label .. '<i class="fas fa-filter"></i>')) ..[[
+				<span class="caret"></span></button>
+				<ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" aria-labelledby="menu1">
+				]])
+
+			for i,v in pairs(modes) do
+			print('<a class="dropdown-item" tabindex="-1" href="?bubble_mode='..tostring(i-1)..'">'..v.label..'</a>')
+			end
+
+			print [[
+				</ul>
+				</div>
+				</div>
+				<canvas id="canvas"></canvas>
+				
+			</div>
 	    </div>
 	</div>
-     </div>
-</div>
+    </div>
 
 <script type="text/javascript">
 

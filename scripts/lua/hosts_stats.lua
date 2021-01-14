@@ -161,7 +161,23 @@ if(vlan ~= nil) then
 end
 
 if(pool ~= nil) then
+
+   local link_service_map = ""
+   local link_periodicity_map = ""
    local charts_available = areHostPoolsTimeseriesEnabled(ifstats.id)
+
+   if (ntop.isPro() and tonumber(pool) ~= host_pools_instance.DEFAULT_POOL_ID) then
+      local service_map_available = table.len(interface.serviceMap(nil, nil, tonumber(pool))) > 0
+      local periodicity_map_available = table.len(interface.periodicityMap(nil, nil, tonumber(pool))) > 0
+
+      if (service_map_available) then
+         link_service_map = "<a class='ml-1' href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/service_map.lua?host_pool_id=".. pool .."'><i class='fas fa-concierge-bell'></i></a>"
+      end
+      if (periodicity_map_available) then
+         link_periodicity_map = "<a class='ml-1' href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/periodicity_map.lua?host_pool_id=".. pool .."'><i class='fas fa-clock'></i></a>"
+      end
+   end
+
    local pool_edit = ""
    local pool_link
    local title
@@ -182,7 +198,8 @@ if(pool ~= nil) then
    pool_title = " "..i18n(ternary(have_nedge, "hosts_stats.user_title", "hosts_stats.pool_title"),
 		     {poolname=host_pools_instance:get_pool_name(pool)})
       .."<small>".. pool_edit ..
-      ternary(charts_available, "&nbsp; <A HREF='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool="..pool.."'><i class='fas fa-chart-area fa-sm' title='"..i18n("chart") .. "'></i></A>", "")..
+      ternary(charts_available, " <a href='"..ntop.getHttpPrefix().."/lua/pool_details.lua?page=historical&pool="..pool.."'><i class='fas fa-chart-area fa-sm' title='"..i18n("chart") .. "'></i></a>", "")
+      ..link_service_map .. link_periodicity_map..
       "</small>"
 end
 
