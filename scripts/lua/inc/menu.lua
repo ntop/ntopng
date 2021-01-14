@@ -587,9 +587,6 @@ page_utils.add_menubar_section(
 	    url = '/lua/admin/users.lua',
 	 },
 	 {
-	    entry = page_utils.menu_entries.divider,
-	 },
-	 {
 	    entry = page_utils.menu_entries.preferences,
 	    hidden = not is_admin,
 	    url = '/lua/admin/prefs.lua',
