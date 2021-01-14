@@ -358,7 +358,7 @@ void LocalHostStats::removeRedisSitesKey(Host *host) {
   struct tm t_now;
 
   if (host->getMac() == NULL)
-    return
+    return;
 
   memset(&t_now, 0, sizeof(t_now));
   localtime_r(&now, &t_now);
