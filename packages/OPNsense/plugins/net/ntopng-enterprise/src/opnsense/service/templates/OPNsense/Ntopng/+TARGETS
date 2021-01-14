@@ -1,2 +1,3 @@
 ntopng:/etc/rc.conf.d/ntopng
 ntopng.conf:/usr/local/etc/ntopng.conf
+ntopng.license:/usr/local/etc/ntopng.license

@@ -11,6 +11,10 @@
             <Required>N</Required>
             <Multiple>N</Multiple>
         </interface>
+        <collector type="BooleanField">
+            <default>0</default>
+            <Required>Y</Required>
+        </collector>
         <httpport type="PortField">
             <Required>Y</Required>
             <default>3000</default>
@@ -45,5 +49,9 @@
                 <Option3 value="3">Do not decode DNS responses and do not resolve numeric IPs</Option3>
             </OptionValues>
         </dnsmode>
+        <licensekey type="TextField">
+            <Required>N</Required>
+            <default></default>
+        </licensekey>
     </items>
 </model>
