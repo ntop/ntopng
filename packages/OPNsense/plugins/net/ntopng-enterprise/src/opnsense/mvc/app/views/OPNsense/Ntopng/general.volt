@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 <!-- Navigation bar -->
 <ul class="nav nav-tabs" data-tabs="tabs" id="maintabs">
     <li class="active"><a data-toggle="tab" href="#general">{{ lang._('General') }}</a></li>
+    <li class=""><a data-toggle="tab" href="#info">{{ lang._('Info') }}</a></li>
 </ul>
 
 <div class="tab-content content-box tab-content">
@@ -47,6 +48,35 @@ POSSIBILITY OF SUCH DAMAGE.
                 <hr />
                 <button class="btn btn-primary" id="saveAct" type="button"><b>{{ lang._('Save') }}</b> <i id="saveAct_progress"></i></button>
             </div>
+        </div>
+    </div>
+
+    <div id="info" class="tab-pane fade in">
+        <div class="content-box" style="padding-bottom: 1.5em;">
+            <table class="table table-striped table-condensed">
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="control-label">
+                            <b>{{ lang._('Version') }}</b>
+                        </div>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control " size="50" id="versionBox" disabled>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="control-label">
+                            <b>{{ lang._('System ID') }}</b>
+                        </div>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control " size="50" id="systemidBox" disabled>
+                    </td>
+                </tr>
+            </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -78,5 +108,9 @@ $( document ).ready(function() {
         });
     });
 
+    ajaxCall(url="/api/ntopng/service/info", sendData={}, callback=function(data, status) {
+        $("#versionBox").val(data['version']);
+        $("#systemidBox").val(data['systemid']);
+    });
 });
 </script>

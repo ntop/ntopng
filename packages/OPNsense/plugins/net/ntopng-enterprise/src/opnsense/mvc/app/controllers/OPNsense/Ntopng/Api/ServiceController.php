@@ -58,4 +58,34 @@ class ServiceController extends ApiMutableServiceControllerBase
         $response = $backend->configdRun("firmware plugin redis");
         return $response;
     }
+
+    /**
+     * get info about the ntopng service
+     * @return array
+     */
+    public function infoAction()
+    {
+        if ($this->request->isPost()) {
+            /* $param   = $this->request->getPost('param-name'); */
+
+            $backend = new Backend();
+
+            $version = $backend->configdpRun(
+                "ntopng",
+                array("version")
+            );
+
+           $system_id = $backend->configdpRun(
+                "ntopng",
+                array("systemid")
+            );
+
+            return array(
+               "version" => $version,
+               "systemid" => $system_id
+           );
+        }
+
+        return array("message" => "Unable to run logs action");
+    }
 }
