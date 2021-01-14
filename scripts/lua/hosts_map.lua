@@ -191,7 +191,7 @@ print ([[
 			<div class='d-flex align-items-center justify-content-end mb-3'>
 				<label class="m-0 mr-1">]]..i18n("filter") ..[[: </label>
 				<div class="dropdown">
-				<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and 'Visualization' or (current_label .. '<i class="fas fa-filter"></i>')) ..[[
+				<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and i18n("all") or (current_label .. '<i class="fas fa-filter"></i>')) ..[[
 				<span class="caret"></span></button>
 				<ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" aria-labelledby="menu1">
 				]])

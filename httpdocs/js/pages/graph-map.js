@@ -160,6 +160,7 @@ function loadGraph(container, options) {
         const datasets = {nodes: nodesDataset, edges: edgesDataset};
 
         network = new vis.Network(container, datasets, options);
+        saveTopologyView(network);
         setEventListenersNetwork(network);
     });
 }
