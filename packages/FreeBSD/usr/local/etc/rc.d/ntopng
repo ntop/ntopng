@@ -27,7 +27,7 @@ load_rc_config $name
 
 start_precmd=ntopng_precmd
 command=/usr/local/bin/ntopng
-command_args="/usr/local/etc/ntopng/ntopng.conf"
+command_args="-G ${ntopng_pidfile} -e"
 
 ntopng_precmd()
 {
