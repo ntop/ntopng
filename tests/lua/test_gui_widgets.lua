@@ -29,7 +29,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 print([[
 
     <script type='text/javascript'>
-        window.__NTOPNG_WIDGET_CSRF__ = "]].. ntop.getRandomCSRFValue() ..[[";
+        // window.__NTOPNG_WIDGET_CSRF__ = "]].. ntop.getRandomCSRFValue() ..[[";
     </script>
     <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/ntop-widgets.esm.js"></script>
     <script nomodule src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/ntop-widgets.js"></script>
@@ -39,14 +39,13 @@ print([[
 print([[
     <div class='row my-4'>
         <div class='col-12'>
-            <ntop-widget transformation="pie" width="400px" height="400px">
-                <b class='mb-2'>Interfaces 0 (external) + 9 (internal)</b>
+            <ntop-widget transformation="pie" update="15000" width="600px" height="400px">
+                <b class='mb-2'>Interface 0</b>
                 <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
-                <ntop-datasource type="interface_packet_distro" params-ifid='9'></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-12 my-1'>
-            <ntop-widget transformation="donut" width="400px" height="400px">
+            <ntop-widget transformation="donut" update="15000" width="600px" height="400px">
                 <b class='mb-2'>Interface 9 (Donut)</b>
                 <ntop-datasource type="interface_packet_distro" params-ifid='9'></ntop-datasource>
             </ntop-widget>
