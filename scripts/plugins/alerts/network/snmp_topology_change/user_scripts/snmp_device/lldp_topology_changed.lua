@@ -47,8 +47,6 @@ local function storeTopologyChangedAlert(info, arc, nodes, subtype)
       alert:set_granularity(info.granularity)
       alert:set_subtype(subtype)
 
-      alert:trigger_status(cli_score, srv_score, flow_score)
-
       alert:store(info.alert_entity)
    end
 end
