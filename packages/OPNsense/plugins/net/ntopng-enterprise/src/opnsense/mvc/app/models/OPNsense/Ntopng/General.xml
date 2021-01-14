@@ -1,5 +1,5 @@
 <model>
-    <mount>//OPNsense/ntopngenterprise/general</mount>
+    <mount>//OPNsense/ntopng/general</mount>
     <description>ntopng configuration</description>
     <version>0.0.1</version>
     <items>

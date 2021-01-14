@@ -31,12 +31,12 @@
  *
  */
 
-namespace OPNsense\NtopngEnterprise\Api;
+namespace OPNsense\Ntopng\Api;
 
 use OPNsense\Base\ApiMutableModelControllerBase;
 
 class GeneralController extends ApiMutableModelControllerBase
 {
-    protected static $internalModelClass = '\OPNsense\NtopngEnterprise\General';
+    protected static $internalModelClass = '\OPNsense\Ntopng\General';
     protected static $internalModelName = 'general';
 }

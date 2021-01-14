@@ -1,0 +1,9 @@
+<acl>
+   <page-ntopng-config>
+      <name>Services: ntopng</name>
+      <patterns>
+         <pattern>ui/ntopng/*</pattern>
+         <pattern>api/ntopng/*</pattern>
+      </patterns>
+   </page-ntopng-config>
+</acl>

@@ -1,9 +1,0 @@
-<acl>
-   <page-ntopngenterprise-config>
-      <name>Services: ntopngenterprise</name>
-      <patterns>
-         <pattern>ui/ntopngenterprise/*</pattern>
-         <pattern>api/ntopngenterprise/*</pattern>
-      </patterns>
-   </page-ntopngenterprise-config>
-</acl>

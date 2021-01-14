@@ -29,13 +29,10 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-namespace OPNsense\NtopngEnterprise;
+namespace OPNsense\Ntopng;
 
-class GeneralController extends \OPNsense\Base\IndexController
+use OPNsense\Base\BaseModel;
+
+class General extends BaseModel
 {
-    public function indexAction()
-    {
-        $this->view->generalForm = $this->getForm("general");
-        $this->view->pick('OPNsense/NtopngEnterprise/general');
-    }
 }

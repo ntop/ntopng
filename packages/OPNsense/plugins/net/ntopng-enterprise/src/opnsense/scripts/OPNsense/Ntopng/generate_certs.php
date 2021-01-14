@@ -2,6 +2,9 @@
 <?php
 
 /*
+ *    Copyright (C) 2021 ntop
+ *    Based on the ntopng plugin by Michael Muenz <m.muenz@gmail.com>
+ *
  *    Copyright (C) 2015 Deciso B.V.
  *    All rights reserved.
  *
@@ -40,8 +43,8 @@ $cert_pem_content = '';
 
 // traverse Postfix plugin for certficiates
 $configObj = Config::getInstance()->object();
-if (isset($configObj->OPNsense->ntopngenterprise)) {
-    foreach ($configObj->OPNsense->ntopngenterprise->children() as $find_cert) {
+if (isset($configObj->OPNsense->ntopng)) {
+    foreach ($configObj->OPNsense->ntopng->children() as $find_cert) {
         $cert_refid = (string)$find_cert->cert;
         // if httpsport has a certificate attached, search for its contents
         if ($cert_refid != "") {

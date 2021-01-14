@@ -31,20 +31,20 @@
  *
  */
 
-namespace OPNsense\NtopngEnterprise\Api;
+namespace OPNsense\Ntopng\Api;
 
 use OPNsense\Base\ApiMutableServiceControllerBase;
 use OPNsense\Core\Backend;
-use OPNsense\NtopngEnterprise\General;
+use OPNsense\Ntopng\General;
 
 /**
  * Class ServiceController
- * @package OPNsense\NtopngEnterprise
+ * @package OPNsense\Ntopng
  */
 class ServiceController extends ApiMutableServiceControllerBase
 {
-    protected static $internalServiceClass = '\OPNsense\NtopngEnterprise\General';
-    protected static $internalServiceTemplate = 'OPNsense/NtopngEnterprise';
+    protected static $internalServiceClass = '\OPNsense\Ntopng\General';
+    protected static $internalServiceTemplate = 'OPNsense/Ntopng';
     protected static $internalServiceEnabled = 'enabled';
     protected static $internalServiceName = 'ntopng';
 

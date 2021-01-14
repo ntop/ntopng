@@ -53,26 +53,26 @@ POSSIBILITY OF SUCH DAMAGE.
 
 <script>
 $( document ).ready(function() {
-    var data_get_map = {'frm_general_settings':"/api/ntopngenterprise/general/get"};
+    var data_get_map = {'frm_general_settings':"/api/ntopng/general/get"};
     mapDataToFormUI(data_get_map).done(function(data){
         formatTokenizersUI();
         $('.selectpicker').selectpicker('refresh');
     });
 
-    updateServiceControlUI('ntopngenterprise');
+    updateServiceControlUI('ntopng');
 
     // check if Redis plugin is installed
-    ajaxCall(url="/api/ntopngenterprise/service/checkredis", sendData={}, callback=function(data,status) {
+    ajaxCall(url="/api/ntopng/service/checkredis", sendData={}, callback=function(data,status) {
 	    if (data == "0") {
             $('#missing_redis').show();
         }
     });
 
     $("#saveAct").click(function(){
-        saveFormToEndpoint(url="/api/ntopngenterprise/general/set", formid='frm_general_settings',callback_ok=function(){
+        saveFormToEndpoint(url="/api/ntopng/general/set", formid='frm_general_settings',callback_ok=function(){
         $("#saveAct_progress").addClass("fa fa-spinner fa-pulse");
-            ajaxCall(url="/api/ntopngenterprise/service/reconfigure", sendData={}, callback=function(data,status) {
-		updateServiceControlUI('ntopngenterprise');
+            ajaxCall(url="/api/ntopng/service/reconfigure", sendData={}, callback=function(data,status) {
+		updateServiceControlUI('ntopng');
                 $("#saveAct_progress").removeClass("fa fa-spinner fa-pulse");
             });
         });
