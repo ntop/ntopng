@@ -53,5 +53,9 @@
             <Required>N</Required>
             <default></default>
         </licensekey>
+        <community type="BooleanField">
+            <default>0</default>
+            <Required>Y</Required>
+        </community>
     </items>
 </model>
