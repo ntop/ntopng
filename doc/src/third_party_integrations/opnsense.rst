@@ -105,6 +105,6 @@ redirect you to the ntopng Web GUI.
 By default ntopng analyses traffic from all the interfaces. Select the *advanced mode*
 to select a specific interface. Alternatively it is possible to use the *Connect to nProbe*
 switch to collect traffic information from a local nProbe instance (please take a look
-at the *os-nprobe* plugin).
+at the *os-nprobe* `nProbe plugin guide <https://www.ntop.org/guides/nprobe/third_party_integrations/opnsense.html>`_).
 
 
