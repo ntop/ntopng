@@ -47,6 +47,8 @@ class LocalHostStats: public HostStats {
   void saveOldSites();
   void removeRedisSitesKey(Host *host);
   void addRedisSitesKey(Host *host);
+  void getCurrentTime(struct tm *t_now);
+  void addRemoveRedisKey(Host *host, char *host_buf, struct tm *t_now, bool push);
   
  public:
   LocalHostStats(Host *_host);

@@ -39,6 +39,7 @@ class FrequentStringItems {
  public:
   FrequentStringItems(u_int32_t _max_items, bool _thread_safe = true) { max_items =_max_items, max_items_threshold = 2*_max_items, thread_safe = _thread_safe; }
   
+  inline u_int32_t getSize() { return q.size(); };
   void add(char *key, u_int32_t value);
   char* json();
 };
