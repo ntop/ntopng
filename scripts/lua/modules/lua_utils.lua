@@ -1460,7 +1460,7 @@ function hostinfo2label(host_info)
 
    -- If local broadcast domain host and DHCP, try to get the label associated
    -- to the MAC address
-   if host_info["mac"] and (host_info["broadcast_domain_host"] ~= false) and (host_info["dhcpHost"] ~= false) then
+   if host_info["mac"] and (host_info["broadcast_domain_host"] or host_info["dhcpHost"]) then
       alt_name = getHostAltName(host_info["mac"])
 
       if not isEmptyString(alt_name) then
@@ -1733,6 +1733,8 @@ function flowinfo2hostname(flow_info, host_type, alerts_view)
    local hostinfo = {
       host = flow_info[host_type..".ip"],
       mac = flow_info[host_type..".mac"],
+      dhcpHost = flow_info[host_type..".dhcpHost"],
+      broadcast_domain_host = flow_info[host_type..".broadcast_domain_host"],
       vlan = flow_info["vlan"],
    }
 
