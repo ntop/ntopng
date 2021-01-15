@@ -19,6 +19,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    historical_flows
    advanced_features/index
    operating_ntopng_on_large_networks
+   third_party_integrations/index
    faq
    performances/index
    plugins/index
