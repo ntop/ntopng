@@ -33,6 +33,11 @@ packet_distro.meta = {
    params = {
       "ifid" -- validated according to http_lint.lua
    },
+   -- A URL possibly formatted with parsed_params sent via REST
+   url = "/lua/if_stats.lua?ifid={{ params.ifid }}&page=packets",
+   -- Possibly add placeholders to replace keys and values, e.g., 
+   -- k is the `k` in the response data, v is the `v` in the response data
+   -- url = "/lua/if_stats.lua?ifid={{ params.ifid }}&page=packets&key=__k__&value=__v__",
 }
 
 -- ##############################################
@@ -57,6 +62,8 @@ packet_distro.labels = {
 function packet_distro:init()
    -- Call the parent constructor
    self.super:init()
+
+   self.datasource_key_str = datasource_keys[datasource.ds_type]
 end
 
 -- #######################################################

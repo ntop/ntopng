@@ -213,7 +213,7 @@ end
 
 -- @brief Generate a rest response for the widget, by requesting data from multiple datasources and filtering it
 function widgets_utils.rest_response()
-   if not _POST then
+   if not _POST or table.len(_POST) == 0 then
       rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end
@@ -262,7 +262,11 @@ function widgets_utils.rest_response()
       -- and set the transformed data as result
       local transformed_data = datasource_instance:transform(_POST["transformation"])
 
-      datasources_data[#datasources_data + 1] = {datasource = datasource, data = transformed_data}
+      datasources_data[#datasources_data + 1] = {
+	 datasource = datasource,
+	 metadata = datasource_instance:get_metadata(),
+	 data = transformed_data
+      }
    end
    
    rest_utils.answer(rest_utils.consts.success.ok, datasources_data)

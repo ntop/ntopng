@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/datasources/?.lua;" .. p
 
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
+local template = require "resty.template"
 -- Import the classes library.
 local classes = require "classes"
 
@@ -114,6 +115,25 @@ function datasource:deserialize(rest_response_data)
 	 end
       end
    end
+end
+
+-- ##############################################
+
+-- @brief Returns instance metadata, which depends on the current instance and parsed_params
+function datasource:get_metadata()
+   local res = {}
+
+   -- Render a url with submitted parsed_params
+   if self.meta.url then
+      local url_func = template.compile(self.meta.url, nil, true)
+      local url_rendered = url_func({
+	    params = self.parsed_params,
+      })
+
+      res["url"] = url_rendered
+   end
+
+   return res
 end
 
 -- ##############################################
