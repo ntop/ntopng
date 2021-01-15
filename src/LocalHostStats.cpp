@@ -346,10 +346,10 @@ void LocalHostStats::saveOldSites() {
   if(!host->getInterface())
     return;
 
-  host->get_tskey(host_buf, sizeof(host_buf));
-
-  if(!host_buf)
+  if(!host->get_mac() && !host->get_ip())
     return;
+
+  host->get_tskey(host_buf, sizeof(host_buf));
 
   getCurrentTime(&t_now);
 
@@ -385,13 +385,12 @@ void LocalHostStats::saveOldSites() {
 
 void LocalHostStats::removeRedisSitesKey(Host *host) {
   char host_buf[128];
-  time_t now = time(NULL); 
   struct tm t_now;
 
-  host->get_tskey(host_buf, sizeof(host_buf));
-
-  if(!host_buf)
+  if(!host->get_mac() && !host->get_ip())
     return;
+
+  host->get_tskey(host_buf, sizeof(host_buf));
 
   getCurrentTime(&t_now);
   addRemoveRedisKey(host, host_buf, &t_now, false);
@@ -401,13 +400,12 @@ void LocalHostStats::removeRedisSitesKey(Host *host) {
   
 void LocalHostStats::addRedisSitesKey(Host *host) {
   char host_buf[128];
-  time_t now = time(NULL); 
   struct tm t_now;
 
-  host->get_tskey(host_buf, sizeof(host_buf));
-
-  if(!host_buf)
+  if(!host->get_mac() && !host->get_ip())
     return;
+
+  host->get_tskey(host_buf, sizeof(host_buf));
 
   getCurrentTime(&t_now);   
   addRemoveRedisKey(host, host_buf, &t_now, true);
