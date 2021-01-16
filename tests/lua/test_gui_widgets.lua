@@ -36,21 +36,58 @@ print([[
 
 ]])
 
+local ifaces = interface.getIfNames()
+local options = {}
+for id, ifname in pairs(ifaces) do
+    options[#options+1] = string.format("<option %s value='%d'>%s</option>", ternary(id == 0, 'selected', ''), id, ifname)
+end
+
 print([[
     <div class='row my-4'>
-        <div class='col-12'>
-            <ntop-widget transformation="pie" update="15000" width="600px" height="400px">
-                <b class='mb-2'>Interface 0</b>
+
+        <div class='col-6'>
+            <div class='form-group mb-2'>
+                <label><b>Select an interface for the first Widget:</b></label>
+                <select style='width: 600px' class='form-control' id='select-first'>
+                    ]].. table.concat(options, '\n') ..[[
+                </select>
+            </div>
+            <ntop-widget id='first-widget' transformation="pie" update="5000" width="600px" height="400px">
                 <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
             </ntop-widget>
         </div>
-        <div class='col-12 my-1'>
-            <ntop-widget transformation="donut" update="15000" width="600px" height="400px">
-                <b class='mb-2'>Interface 9 (Donut)</b>
-                <ntop-datasource type="interface_packet_distro" params-ifid='9'></ntop-datasource>
+        <div class='col-6'>
+            <div class='form-group mb-2'>
+                <label><b>Select an interface for the second Widget:</b></label>
+                <select style='width: 600px' class='form-control' id='select-second'>
+                    ]].. table.concat(options, '\n') ..[[
+                </select>
+            </div>
+            <ntop-widget id='second-widget' class='d-inline-block' transformation="donut" update="5000" width="600px" height="400px">
+                <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
             </ntop-widget>
         </div>
     </div>
+]])
+
+print([[
+
+<script type='text/javascript'>
+$(document).ready(function() {
+    $(`#select-first`).on('change', async function() {
+        const value = $(this).val();
+        $(`#first-widget ntop-datasource`).attr("params-ifid", value);
+        await $(`#first-widget`)[0].forceUpdate();
+    });
+
+    $(`#select-second`).on('change', async function() {
+        const value = $(this).val();
+        $(`#second-widget ntop-datasource`).attr("params-ifid", value);
+        await $(`#second-widget`)[0].forceUpdate();
+    });
+});
+</script>
+
 ]])
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
