@@ -1,0 +1,8 @@
+{% if helpers.exists('OPNsense.ntopng.general.enabled') and OPNsense.ntopng.general.enabled == '1' %}
+ntopng_var_script="/usr/local/opnsense/scripts/OPNsense/Ntopng/setup.sh"
+ntopng_enable="YES"
+ntopng_flags="/usr/local/etc/ntopng.conf"
+{% else %}
+ntopng_enable="NO"
+{% endif %}
+ntopng_var_mfs="/var/db/ntopng"
