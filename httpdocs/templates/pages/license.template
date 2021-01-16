@@ -38,7 +38,7 @@
                             <form class="form" method="post" id="license-form" onsubmit="return trimLicenceSpaces();">
                                 <div class="form-group w-100">
                                     <input type="hidden" name="csrf" value="{{ ntop.getRandomCSRFValue() }}">
-                                    <textarea style="resize: none;" pattern="{* getLicensePattern() *}" class="form-control w-50" rows="5" id="ntopng_license" name="ntopng_license" placeholder="{{ i18n("about.specify_licence") }}">{{ info["ntopng.license"] }}</textarea>
+                                    <textarea style="resize: none;" pattern="{* getLicensePattern() *}" class="form-control w-50" rows="7" id="ntopng_license" name="ntopng_license" placeholder="{{ i18n("about.specify_licence") }}">{{ info["ntopng.license"] }}</textarea>
                                 </div>
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save"></i> {{ i18n("about.save_licence") }}
@@ -46,7 +46,7 @@
                             </form>
                         {% else %}
                             {% if info["pro.license_encoded"] then %}
-			        <textarea readonly style="resize: none;" class="form-control w-50" rows="5">{{ info["pro.license_encoded"] }}</textarea>
+			        <textarea readonly style="resize: none;" class="form-control w-50" rows="7">{{ info["pro.license_encoded"] }}</textarea>
                             {% end %}
                         {% end %}
                     {% end %}

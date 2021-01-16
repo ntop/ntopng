@@ -39,6 +39,7 @@ else
 end
 
 print("<tr><th>"..i18n("about.version").."</th><td colspan=2>"..getNtopngRelease(info).."</td></tr>\n")
+print("<tr><th>"..i18n("about.system_id").."</th><td colspan=2>"..info["pro.systemid"].." <A HREF=\"".. ntop.getHttpPrefix() .. "/lua/license.lua\"><i class=\"fas fa-cog\"></i></A></td></tr>\n")
 
 print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit</td></tr>\n")
 print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td colspan=2>".. info["product"] .." "..info["command_line"].."</td></tr>\n")
