@@ -147,7 +147,7 @@ when the license has been purchased on https://shop.ntop.org/.
    (example: :code:`export http_proxy=http://<ip>:<port>`).
 
 Once the license has been generated, it can be applied to ntopng
-simply by visiting page "Help"->"About" of the web GUI and
+simply by visiting page "Settings"->"License" of the web GUI and
 pasting the license key in the license form.
 
 Alternatively, the license key can be placed in a one-line file
