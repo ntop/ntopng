@@ -903,15 +903,61 @@ for v,k in pairs(iface_names) do
 
    if ntop.isWindows() and string.contains(descr, "{") then -- Windows
       descr = _ifstats.description
+   elseif ntop.isEnterpriseM() and _ifstats.isDynamic and _ifstats.dynamic_interface_probe_ip then
+      -- Attempt at printing SNMP information rather than plain disaggregated IPs
+      local snmp_utils = require "snmp_utils"
+      local snmp_cached_dev = require "snmp_cached_dev"
+      local cached_device = snmp_cached_dev:create(_ifstats.dynamic_interface_probe_ip)
+      local snmp_name, snmp_if_name
+
+      if cached_device then
+	 -- See if there is a name for this exporter in SNMP
+	 if cached_device.system and cached_device.system.name then
+	    snmp_name = cached_device.system.name
+
+	    -- Now check for the existance of the interface name
+	    if _ifstats.dynamic_interface_inifidx then
+	       if cached_device.interfaces and cached_device.interfaces[tostring(_ifstats.dynamic_interface_inifidx)] then
+		  snmp_if_name = snmp_utils.get_snmp_interface_label(cached_device.interfaces[tostring(_ifstats.dynamic_interface_inifidx)], true)
+	       else
+		  snmp_if_name = _ifstats.dynamic_interface_inifidx
+	       end
+	    end
+	 end
+      end
+
+      if snmp_name then
+	 -- Something has been found in SNMP
+	 local fmt = ""
+
+	 if snmp_if_name then
+	    -- There's the interface name as well
+	    fmt = string.format("%s [%s]", snmp_name, snmp_if_name)
+	 else
+	    -- Only the device name
+	    fmt = string.format("%s", snmp_name)
+	 end
+
+	 if descr ~= _ifstats.description then
+	    -- There's a custom alias
+	    descr = string.format("%s (%s)", descr, fmt)
+	 else
+	    descr = fmt
+	 end
+      end
    else
       if descr ~= _ifstats.description and not views[k] and not pcapdump[k] then
+tprint("qui")
       	 if descr == shortenCollapse(_ifstats.description) then
       	    descr = _ifstats.description
+	    tprint("here.. "..descr)
       	 else
       	    descr = descr .. " (".. _ifstats.description ..")" -- Add description
       	 end
       end
    end
+
+--   tprint({k, dynamic[k], _ifstats.dynamic_interface_probe_ip, _ifstats.dynamic_interface_inifidx})
 
    ifHdescr[_ifstats.id] = descr
 end

@@ -156,7 +156,13 @@ class NetworkInterface : public AlertableEntity {
   AddressTree interface_networks;
   int id;
   bool bridge_interface;
-  bool is_dynamic_interface, show_dynamic_interface_traffic;
+
+  bool is_dynamic_interface;             /* Whether this is a dynamic interface */
+  bool show_dynamic_interface_traffic;   /* Show traffic of this dynamic interface */
+  u_int64_t dynamic_interface_criteria;  /* Criteria identifying this dynamic interface */
+  FlowHashingEnum dynamic_interface_mode; /* Mode (e.g., Probe IP, VLAN ID, etc */
+
+
   bool is_traffic_mirrored, is_loopback;
   bool discard_probing_traffic;
   bool flows_only_interface; /* Only allocates flows for the interface (e.g., no hosts, ases, etc) */
@@ -571,6 +577,7 @@ class NetworkInterface : public AlertableEntity {
   void luaAlertedFlows(lua_State* vm);
   void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address, u_int16_t vlan_id, u_int16_t host_pool_id, bool unicast);
   void luaServiceMap(lua_State* vm, IpAddress *ip_address, u_int16_t vlan_id, u_int16_t host_pool_id, bool unicast);
+  void luaSubInterface(lua_State *vm);
   void luaServiceMapStatus(lua_State *vm);
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline ServiceMap* getServiceMap()         { return(sMap);           };
@@ -856,7 +863,7 @@ class NetworkInterface : public AlertableEntity {
   }
 
   inline bool isSubInterface()                { return(is_dynamic_interface);            };
-  inline void setSubInterface()               { is_dynamic_interface = true;             };
+  void setSubInterface(FlowHashingEnum mode, u_int64_t criteria);
   bool isLocalBroadcastDomainHost(Host * const h, bool is_inline_call);
   inline MDNS* getMDNS() { return(mdns); }
   inline NetworkDiscovery* getNetworkDiscovery() { return(discovery); }

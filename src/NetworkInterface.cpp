@@ -251,7 +251,6 @@ void NetworkInterface::init() {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0,
     next_idle_flow_purge = next_idle_host_purge = 0,
     running = false, customIftype = NULL,
-    is_dynamic_interface = false, show_dynamic_interface_traffic = false,
     is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
     discard_probing_traffic = false;
     flows_only_interface = false;
@@ -279,6 +278,10 @@ void NetworkInterface::init() {
   macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
   countries_hash = NULL;
   gw_macs = NULL;
+
+  is_dynamic_interface = false, show_dynamic_interface_traffic = false;
+  dynamic_interface_criteria = 0;
+  dynamic_interface_mode = flowhashing_none;
 
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = strdup("{}");
@@ -979,13 +982,21 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 
 /* **************************************************** */
 
+void NetworkInterface::setSubInterface(FlowHashingEnum mode, u_int64_t criteria) {
+  is_dynamic_interface = true,
+    dynamic_interface_mode = mode,
+    dynamic_interface_criteria = criteria;
+};
+
+/* **************************************************** */
+
 /* NOTE: the interface is deleted when this method returns false */
-bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface, u_int64_t criteria) {
+bool NetworkInterface::registerSubInterface(NetworkInterface *sub_iface,  u_int64_t criteria) {
   /* registerInterface deletes the interface on failure */
   if(!ntop->registerInterface(sub_iface))
     return false;
 
-  sub_iface->setSubInterface();
+  sub_iface->setSubInterface(flowHashingMode, criteria);
 
   /* allocateStructures must be called after registering the interface.
    * This is needed because StoreManager calles ntop->getInterfaceById. */
@@ -5514,6 +5525,8 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "isView", isView()); /* View interface */
   lua_push_bool_table_entry(vm, "isViewed", isViewed()); /* Viewed interface */
   lua_push_bool_table_entry(vm, "isDynamic", isSubInterface()); /* An runtime-instantiated interface */
+  if(isSubInterface())
+    luaSubInterface(vm);
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "hasSubInterfaces", (sub_interfaces && sub_interfaces->getNumSubInterfaces()) || (flowHashingMode != flowhashing_none));
@@ -5644,6 +5657,24 @@ void NetworkInterface::lua(lua_State *vm) {
   if(custom_app_stats)
     custom_app_stats->lua(vm);
 #endif
+}
+
+/* *************************************** */
+
+void NetworkInterface::luaSubInterface(lua_State *vm) {
+  char buf[64];
+
+  switch(dynamic_interface_mode) {
+  case flowhashing_probe_ip:
+    lua_push_str_table_entry(vm, "dynamic_interface_probe_ip", Utils::intoaV4(dynamic_interface_criteria, buf, sizeof(buf)));
+    break;
+  case flowhashing_probe_ip_and_ingress_iface_idx:
+    lua_push_str_table_entry(vm, "dynamic_interface_probe_ip", Utils::intoaV4(dynamic_interface_criteria >> 32, buf, sizeof(buf)));
+    lua_push_uint64_table_entry(vm, "dynamic_interface_inifidx", dynamic_interface_criteria & 0xFFFFFFFF);
+    break;
+  default:
+    break;
+  }
 }
 
 /* *************************************** */
