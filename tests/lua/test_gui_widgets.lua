@@ -53,7 +53,7 @@ print([[
                 </select>
             </div>
             <ntop-widget id='first-widget' transformation="pie" update="5000" width="600px" height="400px">
-                <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro" params-ifid='0'></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6'>
@@ -64,7 +64,7 @@ print([[
                 </select>
             </div>
             <ntop-widget id='second-widget' class='d-inline-block' transformation="donut" update="5000" width="600px" height="400px">
-                <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro" params-ifid='0'></ntop-datasource>
             </ntop-widget>
         </div>
     </div>
