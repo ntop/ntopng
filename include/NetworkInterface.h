@@ -87,6 +87,9 @@ class NetworkInterface : public AlertableEntity {
   FrequentStringItems *top_sites;
   char *old_sites;
 
+  FrequentStringItems *top_os;
+  char *old_os;
+
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
   Condvar dump_condition; /* Condition variable used to wait when no flows have been enqueued for dump */
@@ -301,10 +304,11 @@ class NetworkInterface : public AlertableEntity {
 		const char *sortColumn);
 
   /* Functions used to update top sites of the interface */
-  void saveOldSites();
+  void saveOldSitesAndOs(u_int8_t top);
+  void getCurrentTime(struct tm *t_now);
+  void addRemoveRedisKey(struct tm *t_now, bool push);
   void removeRedisSitesKey();
   void addRedisSitesKey();
-
 
   bool isNumber(const char *str);
   bool checkIdle();
@@ -365,6 +369,7 @@ class NetworkInterface : public AlertableEntity {
 
   void checkDisaggregationMode();
   void incrVisitedWebSite(char *hostname);
+  void incrOS(char *hostname);
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
   inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };

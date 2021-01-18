@@ -486,6 +486,10 @@
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_KEYS                "ntopng.cache.top_sites"
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED    "ntopng.cache.top_sites_hour_done"
 #define HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED     "ntopng.cache.top_sites_day_done"
+#define HASHKEY_LOCAL_HOSTS_TOP_SITES_RESET               "ntopng.cache.top_sites.reset"
+#define HASHKEY_IFACE_TOP_OS                              "ntopng.cache.top_os"
+#define HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED             "ntopng.cache.top_os_hour_done"
+#define HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED              "ntopng.cache.top_os_day_done"
 #define CONST_DEFAULT_DOCS_DIR       "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR    "scripts"
 #define CONST_DEFAULT_CALLBACKS_DIR  "scripts/callbacks"
@@ -584,6 +588,7 @@
 #define CONST_SAFE_SEARCH_DNS               NTOPNG_PREFS_PREFIX".safe_search_dns"
 #define CONST_GLOBAL_DNS                    NTOPNG_PREFS_PREFIX".global_dns"
 #define CONST_SECONDARY_DNS                 NTOPNG_PREFS_PREFIX".secondary_dns"
+#define CONST_MAX_NUM_DAYS_ALERTS_BEFORE_DEL NTOPNG_PREFS_PREFIX".max_num_days_before_delete_alert"
 #define CONST_MAX_NUM_ALERTS_PER_ENTITY     NTOPNG_PREFS_PREFIX".max_num_alerts_per_entity"
 #define CONST_MAX_NUM_FLOW_ALERTS           NTOPNG_PREFS_PREFIX".max_num_flow_alerts"
 #define CONST_PROFILES_PREFS                NTOPNG_PREFS_PREFIX".profiles"
@@ -863,6 +868,7 @@
 
 #define ALERTS_MANAGER_MAX_ENTITY_ALERTS     1024
 #define ALERTS_MANAGER_MAX_FLOW_ALERTS       16384
+#define ALERTS_MAX_DAYS_BEFORE_PURGE         365
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
 #define ALERTS_MANAGER_STORE_NAME            "alerts_v20.db"

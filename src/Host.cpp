@@ -1381,6 +1381,7 @@ void Host::checkStatsReset() {
     HostStats *new_stats = allocateStats();
     stats_shadow = stats;
     stats = new_stats;
+    stats_shadow->resetTopSitesData();
 
     /* Reset internal state */
 #ifdef NTOPNG_PRO

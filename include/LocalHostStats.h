@@ -45,10 +45,10 @@ class LocalHostStats: public HostStats {
 
   void updateHostContacts();
   void saveOldSites();
-  void removeRedisSitesKey(Host *host);
-  void addRedisSitesKey(Host *host);
+  void removeRedisSitesKey();
+  void addRedisSitesKey();
   void getCurrentTime(struct tm *t_now);
-  void addRemoveRedisKey(Host *host, char *host_buf, struct tm *t_now, bool push);
+  void addRemoveRedisKey(char *host_buf, struct tm *t_now, bool push);
   
  public:
   LocalHostStats(Host *_host);
@@ -67,6 +67,7 @@ class LocalHostStats: public HostStats {
   virtual void getJSONObject(json_object *my_object, DetailsLevel details_level);
   virtual void deserialize(json_object *obj);
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
+  virtual void resetTopSitesData();
 
   virtual void luaDNS(lua_State *vm, bool verbose)  { if(dns) dns->lua(vm, verbose); }
   virtual void luaHTTP(lua_State *vm)  { if(http) http->lua(vm); }
