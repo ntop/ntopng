@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/datamodel/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/rest/v1/get/datasource/?.lua;" .. package.path
 
 -- ##############################################
@@ -15,7 +16,7 @@ local datasource = require "datasource"
 -- Import the datasource keys
 local datasource_keys = require "datasource_keys"
 -- This is the datamodel used to represent data associated with this datasource
-local datamodel = require "datamodel"
+local datamodel = require "slices"
 -- Rest utilities
 local rest_utils = require "rest_utils"
 
@@ -76,11 +77,17 @@ function packet_distro:fetch()
    local ifstats = interface.getStats()
    local size_bins = ifstats["pktSizeDistribution"]["size"]
 
-   self.datamodel_instance = self.meta.datamodel:new(self.meta.i18n_title)
+   self.datamodel_instance = self.meta.datamodel.new(
+      self.meta.i18n_title,
+      10 --[[ Maximum number of slices ]],
+      3 --[[ Percentage under which the slice is ignored and added to other --]])
 
    for bin, num_packets in pairsByKeys(size_bins) do
       self.datamodel_instance:append(packet_distro.labels[bin], num_packets)
    end
+
+   -- Consolidate `append`ed data
+   self.datamodel_instance:consolidate()
 end
 
 -- #######################################################
