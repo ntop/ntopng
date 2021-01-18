@@ -150,7 +150,7 @@ void ElasticSearch::indexESdata() {
       len = 0, num_flows = 0;
 
       listMutex.lock(__FILE__, __LINE__);
-      for(u_int i=0; (i < num_queued_elems) && (len <= ES_BULK_BUFFER_SIZE - sizeof(header) - sizeof(tail->str) - 10000 ); i++) {
+      for(u_int i=0; (i < num_queued_elems) && (len <= ES_BULK_BUFFER_SIZE - strlen(header) - strlen(tail->str) -5 ); i++) {
         struct string_list *prev;
         prev = tail->prev;
         len += snprintf(&postbuf[len], ES_BULK_BUFFER_SIZE-len, "%s\n%s\n", header, tail->str), num_flows++;
