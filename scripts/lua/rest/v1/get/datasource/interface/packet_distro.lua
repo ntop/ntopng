@@ -78,7 +78,7 @@ function packet_distro:fetch()
 
    self.datamodel_instance = self.meta.datamodel:new(self.meta.i18n_title)
 
-   for bin, num_packets in pairs(size_bins) do
+   for bin, num_packets in pairsByKeys(size_bins) do
       self.datamodel_instance:append(packet_distro.labels[bin], num_packets)
    end
 end
