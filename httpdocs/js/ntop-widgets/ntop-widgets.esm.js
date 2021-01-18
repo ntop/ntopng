@@ -1,0 +1,1 @@
+import{p as t,b as e}from"./p-099cdd7f.js";(()=>{const e=import.meta.url,d={};return""!==e&&(d.resourcesUrl=new URL(".",e).href),t(d)})().then((t=>e([["p-0bf3d2bd",[[0,"ntop-datasource",{ds_type:[1,"type"]}],[1,"ntop-widget",{update:[2],transformation:[1],width:[1],height:[1],fetchedData:[32],forceUpdate:[64]}]]]],t)));
