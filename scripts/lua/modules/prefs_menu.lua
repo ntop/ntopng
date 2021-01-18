@@ -236,7 +236,10 @@ local menu_subpages = {
     }, max_num_flow_alerts = {
       title       = i18n("prefs.max_num_flow_alerts_title"),
       description = i18n("prefs.max_num_flow_alerts_description"),
-    }, toggle_mysql_check_open_files_limit = {
+    }, max_num_days_before_delete_alert = {
+      title       = i18n("prefs.max_num_days_before_delete_alert_title"),
+      description = i18n("prefs.max_num_days_before_delete_alert_description"),
+    },toggle_mysql_check_open_files_limit = {
       title       = i18n("prefs.toggle_mysql_check_open_files_limit_title"),
       description = i18n("prefs.toggle_mysql_check_open_files_limit_description"),
       hidden      = (prefs.is_dump_flows_to_mysql_enabled == false),

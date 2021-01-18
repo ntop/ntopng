@@ -276,6 +276,9 @@ function printAlerts()
   prefsInputFieldPrefs(subpage_active.entries["max_num_flow_alerts"].title, subpage_active.entries["max_num_flow_alerts"].description,
         "ntopng.prefs.", "max_num_flow_alerts", prefs.max_num_flow_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
 
+  prefsInputFieldPrefs(subpage_active.entries["max_num_days_before_delete_alert"].title, subpage_active.entries["max_num_days_before_delete_alert"].description,
+        "ntopng.prefs.", "max_num_days_before_delete_alert", prefs.max_num_days_before_delete_alert, "number", showElements, false, nil, {min=1, max=365 --[[ TODO check min/max ]], tformat="d"})
+
   print('<tr><th colspan=2 style="text-align:right;">')
   print('<button class="btn btn-secondary" type="button" onclick="$(\'#flushAlertsData\').modal(\'show\');" style="width:230px; float:left;">'..i18n("show_alerts.reset_alert_database")..'</button>')
   print('<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button>')

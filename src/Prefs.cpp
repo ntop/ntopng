@@ -591,6 +591,7 @@ void Prefs::reloadPrefsFromRedis() {
 							       CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED),
 
     max_num_alerts_per_entity = getDefaultPrefsValue(CONST_MAX_NUM_ALERTS_PER_ENTITY, ALERTS_MANAGER_MAX_ENTITY_ALERTS),
+    max_num_days_before_delete_alert = getDefaultPrefsValue(CONST_MAX_NUM_DAYS_ALERTS_BEFORE_DEL, ALERTS_MAX_DAYS_BEFORE_PURGE), 
     max_num_flow_alerts = getDefaultPrefsValue(CONST_MAX_NUM_FLOW_ALERTS, ALERTS_MANAGER_MAX_FLOW_ALERTS),
 
     enable_flow_device_port_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, false),
@@ -1751,6 +1752,7 @@ void Prefs::lua(lua_State* vm) {
 
   lua_push_bool_table_entry(vm,"is_tiny_flows_export_enabled",             enable_tiny_flows_export);
   lua_push_uint64_table_entry(vm, "max_num_alerts_per_entity", max_num_alerts_per_entity);
+  lua_push_uint64_table_entry(vm, "max_num_days_before_delete_alert", max_num_days_before_delete_alert);
   lua_push_uint64_table_entry(vm, "max_num_flow_alerts", max_num_flow_alerts);
 
   lua_push_bool_table_entry(vm, "is_flow_device_port_rrd_creation_enabled", enable_flow_device_port_rrd_creation);

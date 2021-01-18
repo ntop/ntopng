@@ -41,4 +41,7 @@ if ntop.getPrefs()["is_dump_flows_to_mysql_enabled"] and not ifstats.isViewed th
 end
 
 ts_utils.deleteOldData(interface_id)
+
+-- Deletes old alerts; alerts older then, by default, 365 days ago
+alert_utils.deleteOldData(interface_id, os.time() - (86500 * tonumber(prefs.max_num_days_before_delete_alert)))
 alert_utils.optimizeAlerts()

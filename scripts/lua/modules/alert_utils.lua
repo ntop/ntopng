@@ -200,7 +200,8 @@ local function performAlertsQuery(statement, what, opts, force_query, group_by)
    local res
 
    -- Uncomment to debug the queries
-   --tprint(statement.." (from "..what..") WHERE "..query .. " ".. group_by)
+   -- tprint(statement.." (from "..what..") WHERE "..query .. " ".. group_by)
+   
 
    if((what == "engaged") or (what == "historical")) then
       res = interface.queryAlertsRaw(statement, query, group_by, force_query)
@@ -2123,5 +2124,20 @@ end
 function alert_utils.notify_ntopng_stop()
    return(notify_ntopng_status(false))
 end
+
+-- A redis set with mac addresses as keys
+function alert_utils.deleteOldData(interface_id, epoch_end)
+   local opts = {}
+
+   opts["ifid"] = interface_id
+   opts["epoch_end"] = tostring(epoch_end)
+   opts["status"] = "historical"
+
+   deleteAlerts("historical", opts)
+
+   opts["status"] = "historical-flows"
+   deleteAlerts("historical-flows", opts)
+end
+
 
 return alert_utils

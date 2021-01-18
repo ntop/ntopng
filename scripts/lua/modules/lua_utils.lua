@@ -2457,7 +2457,7 @@ function formatBreed(breed)
    elseif(breed == "Fun") then
       return("<i class='fas fa-smile' alt='Fun Protocol'></i>")
    elseif(breed == "Unsafe") then
-      return("<i class='fas fa-thumbs-down'></i>")
+      return("<i class='fas fa-thumbs-down' style='color: red'></i>")
    elseif(breed == "Dangerous") then
       return("<i class='fas fa-exclamation-triangle'></i>")
    else
