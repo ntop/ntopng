@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 <!-- Navigation bar -->
 <ul class="nav nav-tabs" data-tabs="tabs" id="maintabs">
     <li class="active"><a data-toggle="tab" href="#general">{{ lang._('General') }}</a></li>
-    <li class=""><a data-toggle="tab" href="#info">{{ lang._('Info') }}</a></li>
+    <li class=""><a data-toggle="tab" href="/ui/ntopng/license" style="color: #555555">{{ lang._('License') }}</a></li>
 </ul>
 
 <div class="tab-content content-box tab-content">
@@ -52,35 +52,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	    </div>
         </div>
     </div>
-
-    <div id="info" class="tab-pane fade in">
-        <div class="content-box" style="padding-bottom: 1.5em;">
-            <table class="table table-striped table-condensed">
-            <tbody>
-                <tr>
-                    <td>
-                        <div class="control-label">
-                            <b>{{ lang._('Version') }}</b>
-                        </div>
-                    </td>
-                    <td>
-                        <input type="text" class="form-control " size="50" id="versionBox" disabled>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="control-label">
-                            <b>{{ lang._('System ID') }}</b>
-                        </div>
-                    </td>
-                    <td>
-                        <input type="text" class="form-control " size="50" id="systemidBox" disabled>
-                    </td>
-                </tr>
-            </tbody>
-            </table>
-        </div>
-    </div>
+    <div id="license" class="tab-pane fade in">
 </div>
 
 <script>
@@ -117,18 +89,13 @@ $( document ).ready(function() {
 
     $("#saveAct").click(function(){
         saveFormToEndpoint(url="/api/ntopng/general/set", formid='frm_general_settings',callback_ok=function(){
-        $("#saveAct_progress").addClass("fa fa-spinner fa-pulse");
+            $("#saveAct_progress").addClass("fa fa-spinner fa-pulse");
             ajaxCall(url="/api/ntopng/service/reconfigure", sendData={}, callback=function(data,status) {
 		updateServiceControlUI('ntopng');
                 $("#saveAct_progress").removeClass("fa fa-spinner fa-pulse");
 	        updateNtopngURL();
             });
         });
-    });
-
-    ajaxCall(url="/api/ntopng/service/info", sendData={}, callback=function(data, status) {
-        $("#versionBox").val(data['version']);
-        $("#systemidBox").val(data['systemid']);
     });
 });
 </script>

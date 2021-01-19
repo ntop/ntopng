@@ -49,13 +49,5 @@
                 <Option3 value="3">Do not decode DNS responses and do not resolve numeric IPs</Option3>
             </OptionValues>
         </dnsmode>
-        <licensekey type="TextField">
-            <Required>N</Required>
-            <default></default>
-        </licensekey>
-        <community type="BooleanField">
-            <default>0</default>
-            <Required>Y</Required>
-        </community>
     </items>
 </model>

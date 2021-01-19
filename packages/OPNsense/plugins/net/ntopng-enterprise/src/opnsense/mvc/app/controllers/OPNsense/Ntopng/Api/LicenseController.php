@@ -1,10 +1,7 @@
 <?php
 
 /**
- *    Copyright (C) 2021 ntop
- *    Based on the ntopng plugin by Michael Muenz <m.muenz@gmail.com>
- *
- *    Copyright (C) 2018 Michael Muenz <m.muenz@gmail.com>
+ *    Copyright (C) 2020 ntop
  *
  *    All rights reserved.
  *
@@ -33,29 +30,53 @@
 
 namespace OPNsense\Ntopng\Api;
 
-use OPNsense\Base\ApiMutableServiceControllerBase;
+use OPNsense\Base\ApiMutableModelControllerBase;
 use OPNsense\Core\Backend;
-use OPNsense\Ntopng\General;
 
 /**
- * Class ServiceController
+ * Class LicenseController
  * @package OPNsense\Ntopng
  */
-class ServiceController extends ApiMutableServiceControllerBase
+class LicenseController extends ApiMutableModelControllerBase
 {
-    protected static $internalServiceClass = '\OPNsense\Ntopng\General';
-    protected static $internalServiceTemplate = 'OPNsense/Ntopng';
-    protected static $internalServiceEnabled = 'enabled';
-    protected static $internalServiceName = 'ntopng';
-
-    /**
-     * check if Redis plugin is installed
-     * @return array
-     */
-    public function checkredisAction()
+    protected static $internalModelClass = '\OPNsense\Ntopng\License';
+    protected static $internalModelName = 'license';
+    
+    public function infoAction()
     {
-        $backend = new Backend();
-        $response = $backend->configdRun("firmware plugin redis");
-        return $response;
+        if ($this->request->isPost()) {
+	    /* $param   = $this->request->getPost('param-name'); */
+
+            $backend = new Backend();
+
+            $version = $backend->configdpRun(
+                "ntopng",
+                array("version")
+            );
+
+	    $system_id = $backend->configdpRun(
+                "ntopng",
+                array("systemid")
+            );
+
+	    $license_status = $backend->configdpRun(
+                "ntopng",
+                array("license")
+            );
+
+	    $maintenance = $backend->configdpRun(
+                "ntopng",
+                array("maintenance")
+            );
+
+            return array(
+	        "version" => $version,
+	        "systemid" => $system_id,
+	        "license" => $license_status,
+	        "maintenance" => $maintenance
+	    );
+        }
+
+        return array("message" => "Unable to run logs action");
     }
 }
