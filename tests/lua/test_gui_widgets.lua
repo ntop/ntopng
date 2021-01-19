@@ -28,11 +28,8 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- NOTE: THE NTOP WIDGET SCRIPTS MUST BE LOADED FIRST!
 print([[
 
-    <script type='text/javascript'>
-        // window.__NTOPNG_WIDGET_CSRF__ = "]].. ntop.getRandomCSRFValue() ..[[";
-    </script>
-    <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/ntop-widgets.esm.js"></script>
-    <script nomodule src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/ntop-widgets.js"></script>
+    <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets-dev/ntop-widgets.esm.js"></script>
+    <script nomodule src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets-dev/ntop-widgets.js"></script>
 
 ]])
 
@@ -48,23 +45,23 @@ print([[
         <div class='col-6'>
             <div class='form-group mb-2'>
                 <label><b>Select an interface for the first Widget:</b></label>
-                <select style='width: 600px' class='form-control' id='select-first'>
+                <select class='form-control w-100' id='select-first'>
                     ]].. table.concat(options, '\n') ..[[
                 </select>
             </div>
-            <ntop-widget id='first-widget' transformation="pie" update="5000" width="600px" height="400px">
-                <ntop-datasource src="interface_packet_distro" params-ifid='0'></ntop-datasource>
+            <ntop-widget id='first-widget' transformation="pie" update="5000" height="400px">
+                <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6'>
             <div class='form-group mb-2'>
                 <label><b>Select an interface for the second Widget:</b></label>
-                <select style='width: 600px' class='form-control' id='select-second'>
+                <select class='form-control w-100' id='select-second'>
                     ]].. table.concat(options, '\n') ..[[
                 </select>
             </div>
-            <ntop-widget id='second-widget' class='d-inline-block' transformation="donut" update="5000" width="600px" height="400px">
-                <ntop-datasource src="interface_packet_distro" params-ifid='0'></ntop-datasource>
+            <ntop-widget id='second-widget' display='raw' transformation="donut" update="6000" height="400px">
+                <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
             </ntop-widget>
         </div>
     </div>
