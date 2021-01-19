@@ -303,8 +303,56 @@ void LocalHostStats::getCurrentTime(struct tm *t_now) {
 
 /* *************************************** */
 
+void LocalHostStats::deserializeTopSites(char* redis_key_current) {
+  char *json;
+  const u_int json_len = 16384;
+  json_object *j;
+  enum json_tokener_error jerr;
+
+  return;
+
+  if((json = (char*)malloc(json_len)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+    return;
+  }
+
+  if((ntop->getRedis()->get(redis_key_current, json, json_len) == -1)
+     || (json[0] == '\0')
+     )
+    return; /* Nothing found */
+
+  j = json_tokener_parse_verbose(json, &jerr);
+
+  if(j) {
+    struct json_object_iterator it = json_object_iter_begin(j);
+    struct json_object_iterator itEnd = json_object_iter_end(j);
+
+  #ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
+  #endif
+
+    while(!json_object_iter_equal(&it, &itEnd)) {
+      u_int32_t value;
+      char *key     = (char *) json_object_iter_peek_name(&it);
+      json_object *jvalue = json_object_iter_peek_value(&it);
+
+      value = json_object_get_int64(jvalue);
+
+      top_sites->add(key, value);
+    }
+  } else {
+    #ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
+    #endif
+  }
+
+
+}
+
+/* *************************************** */
+
 void LocalHostStats::addRemoveRedisKey(char *host_buf, struct tm *t_now, bool push) {
-  char redis_hour_key[256], redis_daily_key[256];
+  char redis_hour_key[256], redis_daily_key[256], redis_key_current[256];
   int iface;
 
   if(!host->getInterface())
@@ -315,13 +363,20 @@ void LocalHostStats::addRemoveRedisKey(char *host_buf, struct tm *t_now, bool pu
   snprintf(redis_hour_key, sizeof(redis_hour_key), "%s_%u_%d_%u", host_buf, iface, t_now->tm_mday, t_now->tm_hour);
   snprintf(redis_daily_key, sizeof(redis_daily_key), "%s_%u_%d", host_buf, iface, t_now->tm_mday);
 
+  snprintf(redis_key_current, sizeof(redis_key_current), "%s.serialized_current_top_sites.%s_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+            host_buf, iface, t_now->tm_mday);
+
   if(push) {
     ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
     ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
+    
+    if(top_sites->getSize())
+      ntop->getRedis()->set(redis_key_current , top_sites->json(), 3600);
   }
   else {
     ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
     ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
+    deserializeTopSites(redis_key_current);
   }
 }
 
