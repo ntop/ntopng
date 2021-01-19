@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 <!-- Navigation bar -->
 <ul class="nav nav-tabs" data-tabs="tabs" id="maintabs">
     <li class="active"><a data-toggle="tab" href="#general">{{ lang._('General') }}</a></li>
-    <li class=""><a data-toggle="tab" href="/ui/ntopng/license" style="color: #555555">{{ lang._('License') }}</a></li>
+    <li class=""><a href="/ui/ntopng/license" style="color: #555555">{{ lang._('License') }}</a></li>
 </ul>
 
 <div class="tab-content content-box tab-content">

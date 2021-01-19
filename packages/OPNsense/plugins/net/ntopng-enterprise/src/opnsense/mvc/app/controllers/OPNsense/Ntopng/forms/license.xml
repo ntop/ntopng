@@ -2,7 +2,7 @@
     <field>
         <id>license.licensekey</id>
         <label>License Key</label>
-        <type>text</type>
+        <type>textbox</type>
         <help>License key for activating ntopng Enterprise.</help>
     </field>
     <field>
