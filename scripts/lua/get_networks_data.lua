@@ -74,6 +74,7 @@ end
 
 local res_formatted = {}
 local cur_row = 0
+local tot_row_in_page = 0
 
 for n, _ in pairsByValues(sort_helper, ternary(sOrder, asc, rev)) do
    cur_row = cur_row + 1
@@ -85,7 +86,9 @@ for n, _ in pairsByValues(sort_helper, ternary(sOrder, asc, rev)) do
    local record = network2record(interface.getId(), networks_stats[n])
    res_formatted[#res_formatted + 1] = record
 
-   if cur_row >= perPage then
+   tot_row_in_page = tot_row_in_page + 1
+
+   if tot_row_in_page >= perPage then
       break
    end
 
