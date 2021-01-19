@@ -48,7 +48,7 @@ class LocalHostStats: public HostStats {
   void removeRedisSitesKey();
   void addRedisSitesKey();
   void getCurrentTime(struct tm *t_now);
-  void addRemoveRedisKey(char *host_buf, struct tm *t_now, bool push);
+  void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
   void deserializeTopSites(char* redis_key_current);
   
  public:

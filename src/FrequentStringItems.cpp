@@ -76,21 +76,41 @@ void FrequentStringItems::prune() {
 
 /* ******************************************************** */
 
-char* FrequentStringItems::json() {
+/*
+  Entries are sorted first and only the top X (by value)
+  are serialized to JSON
+*/
+char* FrequentStringItems::json(u_int32_t max_num_items) {
   json_object *j;
   char *rsp;
-
+  vector<pair<std::string, u_int32_t>> vec;
+  
   if((j = json_object_new_object()) == NULL) return(NULL);
 
   m.lock(__FILE__, __LINE__);
 
   for(std::map<std::string, u_int32_t>::iterator it = q.begin(); it != q.end(); ++it)
-    json_object_object_add(j, it->first.c_str(), json_object_new_int64(it->second));
+    vec.push_back(make_pair(it->first, it->second));
 
-  rsp = strdup(json_object_to_json_string(j));
-  json_object_put(j);
   m.unlock(__FILE__, __LINE__);
+
+  std::sort(vec.begin(), vec.end(), [](const pair<std::string, u_int32_t> &a, const pair<std::string, u_int32_t> &b) {
+    /* Sort by value (top to bottom) */
+    return(a.second > b.second);
+  });
   
+  for(int i = 0; i < vec.size(); i++) {
+    if(i == max_num_items) break;
+    
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u", vec[i].first.c_str(), vec[i].second);
+    
+    json_object_object_add(j, vec[i].first.c_str(), json_object_new_int64(vec[i].second));
+  }
+											     
+  rsp = strdup(json_object_to_json_string(j));
+
+  json_object_put(j); /* Free memory */
+    
   return(rsp);
 }
 

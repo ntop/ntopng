@@ -344,15 +344,14 @@ void LocalHostStats::deserializeTopSites(char* redis_key_current) {
       }
     }
 
-    json_object_put(j);
-  } else {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
-  }
+    json_object_put(j); /* Free memory */
+  } else
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);  
 }
 
 /* *************************************** */
 
-void LocalHostStats::addRemoveRedisKey(char *host_buf, struct tm *t_now, bool push) {
+void LocalHostStats::serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize) {
   char redis_hour_key[256], redis_daily_key[256], redis_key_current[256];
   int iface;
 
@@ -367,14 +366,13 @@ void LocalHostStats::addRemoveRedisKey(char *host_buf, struct tm *t_now, bool pu
   snprintf(redis_key_current, sizeof(redis_key_current), "%s.serialized_current_top_sites.%s_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
             host_buf, iface, t_now->tm_mday);
 
-  if(push) {
+  if(do_serialize) {
     ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
     ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
     
     if(top_sites->getSize())
-      ntop->getRedis()->set(redis_key_current , top_sites->json(), 3600);
-  }
-  else {
+      ntop->getRedis()->set(redis_key_current , top_sites->json(2*HOST_SITES_TOP_NUMBER), 3600);
+  } else {
     ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
     ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
     deserializeTopSites(redis_key_current);
@@ -442,7 +440,7 @@ void LocalHostStats::removeRedisSitesKey() {
   host->get_tskey(host_buf, sizeof(host_buf));
 
   getCurrentTime(&t_now);
-  addRemoveRedisKey(host_buf, &t_now, false);
+  serializeDeserialize(host_buf, &t_now, false);
 }
 
 /* *************************************** */
@@ -457,7 +455,7 @@ void LocalHostStats::addRedisSitesKey() {
   host->get_tskey(host_buf, sizeof(host_buf));
 
   getCurrentTime(&t_now);   
-  addRemoveRedisKey(host_buf, &t_now, true);
+  serializeDeserialize(host_buf, &t_now, true);
 }
 
 /* *************************************** */

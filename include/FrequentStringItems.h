@@ -41,7 +41,7 @@ class FrequentStringItems {
   
   inline u_int32_t getSize() { return q.size(); };
   void add(char *key, u_int32_t value);
-  char* json();
+  char* json(u_int32_t max_num_items = (u_int32_t)-1);
 };
 
 #endif /* _FREQUENT_STRING_ITEMS_H_ */
