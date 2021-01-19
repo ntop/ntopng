@@ -37,6 +37,7 @@ static void* esLoop(void* ptr) {
 
 ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
   snprintf(es_version, sizeof(es_version), "%c", '0');
+  es_version_inited = false;
   num_queued_elems = 0;
   head = NULL;
   tail = NULL;
@@ -192,9 +193,7 @@ void ElasticSearch::indexESdata() {
 
 /* Send ntopng index template to Elastic Search */
 const char * const ElasticSearch::get_es_version() {
-  static bool version_inited = false;
-
-  if(!version_inited) { /* lazy... */
+  if(!es_version_inited) { /* lazy... */
     u_int buf_len =
 #ifdef HAVE_CURL
       CURL_MAX_WRITE_SIZE;
@@ -241,7 +240,8 @@ const char * const ElasticSearch::get_es_version() {
 	  const char *ver = json_object_get_string(obj2);
 
 	  snprintf(es_version, sizeof(es_version), "%c", ver && ver[0] ? ver[0] : '0');
-	  version_inited = true;
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found Elasticsearch version %s [%s]", es_version, ver);
+	  es_version_inited = true;
 	}
       } else {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to query ES to get its version");
