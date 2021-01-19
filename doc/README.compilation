@@ -66,7 +66,7 @@ On MacOSX (using mac ports)
 port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git 
 
 On FreeBSD
-See README.FreeBSD
+sudo pkg install gcc git autoconf automake libtool pkgconf gmake sudo libmaxminddb libsodium mysql56-client rrdtool lua53 zip json-c libzmq4 libgcrypt librdkafka bison flex libpcap rename cmake redis
 
 On Cubro EXA8
 - apt-get install libmysqlclient-dev
