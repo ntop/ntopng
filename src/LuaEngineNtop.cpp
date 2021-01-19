@@ -1192,7 +1192,7 @@ static int ntop_zmq_receive(lua_State* vm) {
 	struct json_object_iterator itEnd = json_object_iter_end(o);
 
 	while (!json_object_iter_equal(&it, &itEnd)) {
-	  char *key   = (char*)json_object_iter_peek_name(&it);
+	  char *key         = (char*)json_object_iter_peek_name(&it);
 	  const char *value = json_object_get_string(json_object_iter_peek_value(&it));
 
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]=[%s]", key, value);

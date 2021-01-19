@@ -309,8 +309,6 @@ void LocalHostStats::deserializeTopSites(char* redis_key_current) {
   json_object *j;
   enum json_tokener_error jerr;
 
-  return;
-
   if((json = (char*)malloc(json_len)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return;
@@ -323,30 +321,33 @@ void LocalHostStats::deserializeTopSites(char* redis_key_current) {
 
   j = json_tokener_parse_verbose(json, &jerr);
 
-  if(j) {
-    struct json_object_iterator it = json_object_iter_begin(j);
-    struct json_object_iterator itEnd = json_object_iter_end(j);
-
-  #ifdef DEBUG
+  if(j != NULL) {    
+#ifdef DEBUG
+    u_int num = 0;
+    
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
-  #endif
+#endif
+    
+    json_object_object_foreach(j, key, val) {
+      if(key) {
+	enum json_type type = json_object_get_type(val);
 
-    while(!json_object_iter_equal(&it, &itEnd)) {
-      u_int32_t value;
-      char *key     = (char *) json_object_iter_peek_name(&it);
-      json_object *jvalue = json_object_iter_peek_value(&it);
+	if(type == json_type_int) {
+	  u_int32_t value = json_object_get_int64(val);
 
-      value = json_object_get_int64(jvalue);
-
-      top_sites->add(key, value);
+#ifdef DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, key, value);
+#endif
+	  
+	  top_sites->add(key, value);
+	}
+      }
     }
+
+    json_object_put(j);
   } else {
-    #ifdef DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
-    #endif
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
   }
-
-
 }
 
 /* *************************************** */
