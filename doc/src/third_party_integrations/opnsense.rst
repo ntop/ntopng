@@ -68,10 +68,9 @@ License Configuration
 
 .. note::
 
-   ntopng Community Edition is free of charge and does not require a license. Skip this
-   section if you want to run ntopng in Community mode.
+   ntopng Community Edition is free of charge and does not require a license.
 
-Go to *Services* > *ntopng Enterprise* > *Info* to get all the information required
+Go to *Services* > *ntopng Enterprise* > *License* to get all the information required
 by the license generator (*Version* and *System ID*).
 
 .. figure:: ../img/opnsense_ntopng_info.png
@@ -80,8 +79,12 @@ by the license generator (*Version* and *System ID*).
 
   ntopng Info
 
-The license can be installed in the *General* page when configuring ntopng as described
-in the next section.
+The license can be installed through the same page by pasting it in the *License Key*
+box and saving the configuration. The service should be restarted in the *General* page.
+
+Please note that ntopng runs by default as Enterprise in demo mode. In order to run
+ntopng in Community mode please check the *Community Mode* flag, save the configuration
+and restart the service through the *General* page.
 
 ntopng Configuration
 ====================
@@ -91,7 +94,6 @@ the ntopng service. A basic configuration usually includes the below steps:
 
   1. Enable the service by checking *Enable ntopng*
   2. Configure a port and select a *Certificate* for enabling HTTPS support for the GUI
-  3. Configure a license for enabling ntopng Pro/Enterprise or select *Community Mode*
 
 .. figure:: ../img/opnsense_ntopng_conf.png
   :align: center
