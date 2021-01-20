@@ -62,51 +62,6 @@ end
 
 -- ##############################################
 
--- @brief Parses params
--- @param params_table A table with submitted params
--- @return An integer dataset id upon success, nil otherwise
-function datasource:add_dataset(params_table)
-   if not params_table then
-      return nil
-   end
-
-   local cur_params = {}
-   for _, param in pairs(self.meta.params or {}) do
-      local parsed_param = params_table[param]
-
-      -- Assumes all params mandatory and not empty
-      -- May override this behavior in subclasses
-      if isEmptyString(parsed_param) then
-	 return nil
-      end
-
-      cur_params[param] = parsed_param
-   end
-
-   -- Ok, parsing has been successful
-   self._dataset_params[#self._dataset_params + 1] = cur_params
-
-   -- The id is basically the position in the array of dataset_params
-   return #self._dataset_params
-end
-
--- ##############################################
-
--- @brief Fetches data of every added dataset
-function datasource:fetch_data()
-   -- Instantiate the datamodel
-   self._datamodel_instance = self.meta.datamodel.new(
-      self.meta.i18n_title
-   )
-
-   -- Fetch datasets data
-   for dataset_id, dataset_params in ipairs(self._dataset_params) do
-      self:_fetch(dataset_id, dataset_params)
-   end
-end
-
--- ##############################################
-
 -- @brief Parses params submitted along with the REST endpoint request. If parsing fails, a REST error is sent.
 -- @param params_table A table with submitted params, either _POST or _GET
 -- @return True if parameters parsing is successful, false otherwise
@@ -191,16 +146,6 @@ end
 -- @return transformed data
 function datasource:transform(transformation)
    return self.datamodel_instance:transform(transformation)
-end
-
--- ##############################################
-
--- @brief Transform data according to the specified transformation
--- @param data The data to be transformed
--- @param transformation The transformation to be applied
--- @return transformed data
-function datasource:transform_data(transformation)
-   return self._datamodel_instance:datasets_get_data(transformation)
 end
 
 -- ##############################################

@@ -92,25 +92,6 @@ end
 
 -- #######################################################
 
--- New version, throw fetch() when done
-function packet_distro:_fetch(dataset_id, dataset_params)
-   -- Assumes all parameters listed in self.meta.params have been parsed successfully
-   -- and are available in dataset_params
-
-   interface.select(tostring(dataset_params.ifid))
-   local ifstats = interface.getStats()
-   local size_bins = ifstats["pktSizeDistribution"]["size"]
-
-   for bin, num_packets in pairsByKeys(size_bins) do
-      self._datamodel_instance:dataset_append(dataset_id, packet_distro.slices[bin], num_packets)
-   end
-
-   -- Add metadata to the dataset
-   self._datamodel_instance:dataset_metadata(dataset_id, getHumanReadableInterfaceName(getInterfaceName(ifstats.id)) --[[ This is the label --]])
-end
-
--- #######################################################
-
 -- Checks if this module is being loaded as part of a REST request to this endpoint or not.
 -- If the module is being loaded as part of a REST request, then a response is sent, otherwise nothing is done.
 -- Must call this to ensure REST responses are sent when necessary

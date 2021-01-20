@@ -230,53 +230,6 @@ function widgets_utils.rest_response()
       return
    end
 
-   -- local res = {}
-
-   -- for _, datasource in pairs(_POST["datasources"]) do
-   --    -- Check if the datasource is valid and existing
-   --    if not datasource.ds_type then
-   -- 	 rest_utils.answer(rest_utils.consts.err.widgets_missing_datasource_type)
-   -- 	 return
-   --    end
-
-   --    if not datasource_keys[datasource.ds_type] then
-   -- 	 rest_utils.answer(rest_utils.consts.err.widgets_unknown_datasource_type)
-   -- 	 return
-   --    end
-
-   --    -- Missing datasets for this datasource
-   --    if not datasource.datasets or table.len(datasource.datasets) == 0 then
-   -- 	 -- TODO: handle error missing datasets
-   -- 	 return
-   --    end
-
-   --    -- Get the actual datasource key
-   --    local datasource_key = datasource_keys[datasource.ds_type]
-   --    -- Fetch the datasource class using the key
-   --    local datasource_type = datasources_utils.get_source_type_by_key(datasource_key)
-   --    -- Instantiate the datasource
-   --    local datasource_instance = datasource_type.new()
-
-   --    for _, dataset in pairs(datasource.datasets) do
-   -- 	 local dataset_id = datasource_instance:add_dataset(dataset.params)
-
-   -- 	 -- Failed to add a dataset to the datasource
-   -- 	 if not dataset_id then
-   -- 	    -- TODO: handle failure to add dataset
-   -- 	    return
-   -- 	 end
-   --    end
-
-   --    -- Now all the datasources are ready and set up. Let's fetch their data
-   --    datasource_instance:fetch_data()
-
-   --    res[#res + 1] = datasource_instance:transform_data()
-   -- end
-
-   -- rest_utils.answer(rest_utils.consts.success.ok, res)
-   -- if true then return end
-   -- -- REMOVE below
-
    local datasources_data = {}
    for _, datasource in pairs(_POST["datasources"]) do
       -- Check if the datasource is valid and existing
