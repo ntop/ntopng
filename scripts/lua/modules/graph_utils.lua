@@ -33,7 +33,7 @@ end
 
 -- ########################################################
 
-local graph_colors = {
+graph_utils.graph_colors = {
    '#1f77b4',
    '#ff7f0e',
    '#2ca02c',
@@ -652,7 +652,7 @@ var graph = new Rickshaw.Graph( {
 
    for serie_idx, serie in ipairs(data.series) do
       print("{name: \"" .. serie.label .. "\"")
-      print("\n, color: '".. graph_colors[serie_idx] .."', data: [")
+      print("\n, color: '".. graph_utils.graph_colors[serie_idx] .."', data: [")
 
       local t = data.start
 

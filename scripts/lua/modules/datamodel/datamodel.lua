@@ -4,6 +4,8 @@
 
 -- Import the classes library.
 local classes = require "classes"
+-- Import some colors for eyecandy
+local colors = require "graph_utils".graph_colors
 
 -- ##############################################
 
@@ -24,12 +26,13 @@ end
 -- @param data_url A URL associated to this data identified with `data_key` (optional)
 -- @param data_color A color associated to this data identified with `data_color` (optional)
 function datamodel:append(data_key, data_values, data_url, data_color)
+   tprint(colors)
    -- Always append ordered data
    self._data[#self._data + 1] = {
       k = data_key,       -- The Key
       v = data_values,    -- The Values
       url = data_url,
-      color = data_color,
+      color = colors[(#self._data - 1) % #colors],
    }
 end
 
@@ -73,6 +76,18 @@ end
 
 -- ######################################
 
+function datamodel:get_data_colors()
+   local res = {}
+
+   for _, data in ipairs(self._data) do
+      res[#res + 1] = data.color
+   end
+
+   return res
+end
+
+-- ######################################
+
 -- Transform and return datamodel data
 function datamodel:transform(transformation)
    if transformation == "aggregate" then
@@ -85,7 +100,8 @@ function datamodel:transform(transformation)
    return {
       label  = self.column_labels,
       keys   = self:get_data_keys(),
-      values = self:get_data_values()
+      values = self:get_data_values(),
+      colors = self:get_data_colors()
    }
 end
 
