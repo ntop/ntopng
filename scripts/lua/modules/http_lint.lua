@@ -635,7 +635,7 @@ local function validateIPV4(p)
 end
 
 local function validateTransformation(t)
-   return validateChoice({"pie", "donut"}, t)
+   return validateChoice({"none", "aggregate"}, t)
 end
 
 local function validateIpAddress(p)
@@ -1507,6 +1507,7 @@ local known_parameters = {
 
    -- Widget and Datasources
    ["ds_type"]                 = validateSingleWord,
+   ["ds_name"]                 = validateSingleWord,
    ["transformation"]          = validateTransformation,
 
 -- Topology SNMP Devices

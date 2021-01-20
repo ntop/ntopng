@@ -44,17 +44,17 @@ packet_distro.meta = {
 -- ##############################################
 
 -- Human-friendly labels for the distribution
-packet_distro.labels = {
-   ['upTo64']    = '<= 64',
-   ['upTo128']   = '64 <= 128',
-   ['upTo256']   = '128 <= 256',
-   ['upTo512']   = '256 <= 512',
-   ['upTo1024']  = '512 <= 1024',
-   ['upTo1518']  = '1024 <= 1518',
-   ['upTo2500']  = '1518 <= 2500',
-   ['upTo6500']  = '2500 <= 6500',
-   ['upTo9000']  = '6500 <= 9000',
-   ['above9000'] = '> 9000'
+packet_distro.slices = {
+   { key = 'upTo64',    label = '<= 64'        },
+   { key = 'upTo128',   label = '64 <= 128'    },
+   { key = 'upTo256',   label = '128 <= 256'   },
+   { key = 'upTo512',   label = '256 <= 512'   },
+   { key = 'upTo1024',  label = '512 <= 1024'  },
+   { key = 'upTo1518',  label = '1024 <= 1518' },
+   { key = 'upTo2500',  label = '1518 <= 2500' },
+   { key = 'upTo6500',  label = '2500 <= 6500' },
+   { key = 'upTo9000',  label = '6500 <= 9000' },
+   { key = 'above9000', label = '> 9000'       },
 }
 
 -- ##############################################
@@ -78,16 +78,35 @@ function packet_distro:fetch()
    local size_bins = ifstats["pktSizeDistribution"]["size"]
 
    self.datamodel_instance = self.meta.datamodel.new(
-      self.meta.i18n_title,
+      getHumanReadableInterfaceName(getInterfaceName(ifstats.id)),
       10 --[[ Maximum number of slices ]],
       3 --[[ Percentage under which the slice is ignored and added to other --]])
 
-   for bin, num_packets in pairsByKeys(size_bins) do
-      self.datamodel_instance:append(packet_distro.labels[bin], num_packets)
+   for _, slice in ipairs(packet_distro.slices) do
+      self.datamodel_instance:append(slice.label, size_bins[slice.key] or 0)
    end
 
    -- Consolidate `append`ed data
-   self.datamodel_instance:consolidate()
+--   self.datamodel_instance:consolidate()
+end
+
+-- #######################################################
+
+-- New version, throw fetch() when done
+function packet_distro:_fetch(dataset_id, dataset_params)
+   -- Assumes all parameters listed in self.meta.params have been parsed successfully
+   -- and are available in dataset_params
+
+   interface.select(tostring(dataset_params.ifid))
+   local ifstats = interface.getStats()
+   local size_bins = ifstats["pktSizeDistribution"]["size"]
+
+   for bin, num_packets in pairsByKeys(size_bins) do
+      self._datamodel_instance:dataset_append(dataset_id, packet_distro.slices[bin], num_packets)
+   end
+
+   -- Add metadata to the dataset
+   self._datamodel_instance:dataset_metadata(dataset_id, getHumanReadableInterfaceName(getInterfaceName(ifstats.id)) --[[ This is the label --]])
 end
 
 -- #######################################################
