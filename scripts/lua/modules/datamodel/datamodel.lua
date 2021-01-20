@@ -26,7 +26,6 @@ end
 -- @param data_url A URL associated to this data identified with `data_key` (optional)
 -- @param data_color A color associated to this data identified with `data_color` (optional)
 function datamodel:append(data_key, data_values, data_url, data_color)
-   tprint(colors)
    -- Always append ordered data
    self._data[#self._data + 1] = {
       k = data_key,       -- The Key
