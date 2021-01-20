@@ -32,7 +32,7 @@ function datamodel:append(data_key, data_values, data_url, data_color)
       k = data_key,       -- The Key
       v = data_values,    -- The Values
       url = data_url,
-      color = colors[(#self._data - 1) % #colors],
+      color = colors[#self._data % #colors],
    }
 end
 
