@@ -36,7 +36,7 @@ end
 -- ######################################
 
 -- @brief Data consolidation to be called after `append`ing data
-function datamodel:consolidate()
+function datamodel:aggregate()
    -- Possibly implemented in subclasses
 end
 
@@ -75,21 +75,18 @@ end
 
 -- Transform and return datamodel data
 function datamodel:transform(transformation)
-   -- TODO: implement transformations
    if transformation == "aggregate" then
       -- Transform, enforce maximum number of results, % returned
-   elseif transformation == "none" then
-      -- All data is returned, no filtering, no reduction
-      return {
-	 label  = self.column_labels,
-	 keys   = self:get_data_keys(),
-	 values = self:get_data_values()
-      }
-   else
+      self:aggregate()
+   else -- transformation == "none", i.e., all data is returned, no filtering, no reduction
+
    end
 
-   -- TODO: return transformed data
-   return self:get_data()
+   return {
+      label  = self.column_labels,
+      keys   = self:get_data_keys(),
+      values = self:get_data_values()
+   }
 end
 
 -- ######################################

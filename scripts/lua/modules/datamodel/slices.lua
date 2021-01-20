@@ -43,43 +43,50 @@ end
 
 -- #######################################################
 
--- @brief Consolidates `append`ed data, enforcing `max_num_slices` and `other_threshold_pct`
+-- @brief Aggregates `append`ed data, enforcing `max_num_slices` and `other_threshold_pct`
 --        OVERRIDE
-function slices:consolidate()
-   local consolidated = {}
+function slices:aggregate()
+   local aggregated = {}
+   local other
    local total_value = 0
    local cur_slice = 1
 
    -- Compute the total
-   for slice_key, slice in pairs(self._data) do
+   for _, slice in ipairs(self._data) do
       total_value = total_value + slice.v
    end
 
    -- Sort by descending `v`alue of slice
-   for slice_key, slice in pairsByField(self._data, 'v', rev) do
+   for _, slice in pairsByField(self._data, 'v', rev) do
+      local slice_key = slice.k
+
       if cur_slice < self.meta.max_num_slices and slice.v / total_value * 100 > self.meta.other_threshold_pct then
 	 -- Preserve this slice
-	 consolidated[slice_key] = slice
+	 aggregated[#aggregated + 1] = slice
       else
 	 -- Start adding to the 'other' slice
-	 if not consolidated.other then
-	    consolidated.other = slice
-	    consolidated.other.k = 'other'
+	 if not other then
+	    other = slice
+	    other.k = 'other'
 	 else
 	    -- Sum the current `other` value with the value for this slice
-	    consolidated.other.v = consolidated.other.v + slice.v
+	    other.v = other.v + slice.v
 	 end
       end
 
       cur_slice = cur_slice + 1
    end
 
-   self._data = consolidated
+   if other then
+      aggregated[#aggregated + 1] = other
+   end
+
+   self._data = aggregated
 end
 
 -- #######################################################
 
--- @brief Returns (possibly consolidated) data
+-- @brief Returns (possibly aggregated) data
 function slices:get_data()
    local res = {}
 

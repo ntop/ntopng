@@ -85,9 +85,6 @@ function packet_distro:fetch()
    for _, slice in ipairs(packet_distro.slices) do
       self.datamodel_instance:append(slice.label, size_bins[slice.key] or 0)
    end
-
-   -- Consolidate `append`ed data
---   self.datamodel_instance:consolidate()
 end
 
 -- #######################################################
