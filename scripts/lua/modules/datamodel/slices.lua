@@ -57,7 +57,7 @@ function slices:aggregate()
    end
 
    -- Sort by descending `v`alue of slice
-   for _, slice in pairsByField(self._data, 'v', rev) do
+   for _, slice in ipairs(self._data) do
       local slice_key = slice.k
 
       if cur_slice < self.meta.max_num_slices and slice.v / total_value * 100 > self.meta.other_threshold_pct then
