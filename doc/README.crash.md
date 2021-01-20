@@ -9,13 +9,15 @@ crash is needed.
 
 An easy way to get a stack trace on Linux is to run ntopng through the *gdb* debugger:
 
-1. Install gdb (e.g. `sudo apt-get install gdb`)
-2. Stop the running service: `sudo systemctl stop ntopng`
-3. Start gdb: `gdb --args ntopng /etc/ntopng/ntopng.conf`
-4. Execute `handle SIG33 nostop noprint pass` and `handle SIGPIPE nostop noprint pass`
-5. Execute `run` to start debunning ntopng
-6. Wait for the crash to occur
-7. Now run `bt` into gdb to get a stack trace of the crash
+1. Ask to the ntop team a binary with debug symbols, specifing ntopng version
+2. Install gdb (e.g. `sudo apt-get install gdb`)
+3. Stop the running service: `sudo systemctl stop ntopng`
+4. Start gdb: `gdb --args <downloaded binary path> /etc/ntopng/ntopng.conf`
+5. Execute `handle SIG33 nostop noprint pass` and `handle SIGPIPE nostop noprint pass`
+6. Execute `run` to start debugging ntopng
+7. Wait for the crash to occur
+8. Now run `bt` into gdb to get a stack trace of the crash
+9. Send the bt output to ntop team
 
 # Windows
 
