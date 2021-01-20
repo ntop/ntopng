@@ -102,22 +102,7 @@ POSSIBILITY OF SUCH DAMAGE.
 </div>
 
 <script>
-$( document ).ready(function() {
-    var data_get_map = {'frm_license_settings':"/api/ntopng/license/get"};
-    mapDataToFormUI(data_get_map).done(function(data){
-        formatTokenizersUI();
-        $('.selectpicker').selectpicker('refresh');
-    });
-
-    $("#saveAct").click(function(){
-        saveFormToEndpoint(url="/api/ntopng/license/set", formid='frm_license_settings',callback_ok=function(){
-            $("#saveAct_progress").addClass("fa fa-spinner fa-pulse");
-            ajaxCall(url="/api/ntopng/service/reconfigure", sendData={}, callback=function(data,status) {
-                $("#saveAct_progress").removeClass("fa fa-spinner fa-pulse");
-            });
-        });
-    });
-
+function updateLicenseInfo() {
     ajaxCall(url="/api/ntopng/license/info", sendData={}, callback=function(data, status) {
         let version = data['version'].trim();
 	let systemid = data['systemid'].trim();
@@ -132,6 +117,25 @@ $( document ).ready(function() {
         $("#licenseBox").html(license);
         $("#maintenanceBox").html(maintenance);
     });
+}
 
+$( document ).ready(function() {
+    var data_get_map = {'frm_license_settings':"/api/ntopng/license/get"};
+    mapDataToFormUI(data_get_map).done(function(data){
+        formatTokenizersUI();
+        $('.selectpicker').selectpicker('refresh');
+    });
+
+    $("#saveAct").click(function(){
+        saveFormToEndpoint(url="/api/ntopng/license/set", formid='frm_license_settings',callback_ok=function(){
+            $("#saveAct_progress").addClass("fa fa-spinner fa-pulse");
+            ajaxCall(url="/api/ntopng/service/reconfigure", sendData={}, callback=function(data,status) {
+                $("#saveAct_progress").removeClass("fa fa-spinner fa-pulse");
+                updateLicenseInfo();
+            });
+        });
+    });
+
+    updateLicenseInfo();
 });
 </script>
