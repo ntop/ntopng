@@ -111,6 +111,7 @@ local alert_keys = {
       alert_tcp_syn_flood_victim           = {NO_PEN, 96},
       alert_tcp_syn_scan_attacker          = {NO_PEN, 97},
       alert_tcp_syn_scan_victim            = {NO_PEN, 98},
+      alert_remote_to_local_insecure_proto = {NO_PEN, 99},
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins

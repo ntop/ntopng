@@ -44,6 +44,8 @@ local flow_keys = {
       status_unexpected_ntp_server        = 35,
       status_zero_tcp_window              = 36,
       status_iec_invalid_transition       = 37,
+      status_remote_to_local_insecure_proto = 38,
+      
       
       -- Add here additional flow statuses when writing ntopng plugins.
       -- User plugins should use statuses under key user.
