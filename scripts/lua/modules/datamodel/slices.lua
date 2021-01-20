@@ -86,18 +86,4 @@ end
 
 -- #######################################################
 
--- @brief Returns (possibly aggregated) data
-function slices:get_data()
-   local res = {}
-
-   -- Returns data sorted according to keys
-   for slice_key, slice in pairsByKeys(self._data, asc) do
-      res[#res + 1] = slice
-   end
-
-   return res
-end
-
--- #######################################################
-
 return slices
