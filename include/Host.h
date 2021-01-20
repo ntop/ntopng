@@ -103,7 +103,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual bool isLocalHost()  const = 0;
   virtual bool isSystemHost() const = 0;
   inline  bool isBroadcastDomainHost() const { return(is_in_broadcast_domain); };
-  inline  bool serializeByMac() const { return((isBroadcastDomainHost() || isDhcpHost()) && iface->serializeLbdHostsAsMacs()); }
+  inline  bool serializeByMac()        const { return(isLocalHost() && iface->serializeLbdHostsAsMacs()); }
   inline  bool isDhcpHost()            const { return(is_dhcp_host); };
   inline  void setBroadcastDomainHost()      { is_in_broadcast_domain = true;  };
   inline  void setSystemHost()               { /* TODO: remove */              };
