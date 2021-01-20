@@ -94,3 +94,4 @@ hooks/.enabled
 dump.rdb
 packages/FreeBSD/build.sh
 packages/OPNsense/build.sh
+!packages/OPNsense/plugins/net/ntopng-enterprise/src/opnsense/service/templates/OPNsense/Ntopng/ntopng
