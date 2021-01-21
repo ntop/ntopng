@@ -27,7 +27,6 @@ function vlan_table_setID (row) {
 }
 
 function vlan_row_update(vlan_key) {
-  //var url = "@HTTP_PREFIX@/lua/get_grouped_hosts_data.lua?grouped_by=vlan&vlan="+vlan_key;
   var url = "@HTTP_PREFIX@/lua/get_vlan_data.lua?vlan="+vlan_key;
 
   $.ajax({

@@ -4411,7 +4411,7 @@ int Utils::periodicityToSeconds(ScriptPeriodicity p) {
 /* ****************************************************** */
 
 /* TODO move into nDPI */
-OperatingSystem Utils::getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype) {
+OSType Utils::getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype) {
   /*
     Inefficient with many signatures but ok for the
     time being that we have little data

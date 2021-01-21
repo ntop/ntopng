@@ -23,7 +23,7 @@ print [[
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_grouped_hosts_data.lua?grouped_by=os]]
+print [[/lua/get_oses_data.lua]]
 
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/os_stats_id.inc")
@@ -59,7 +59,7 @@ print [[
 	     {
 			     title: "]] print(i18n("name")) print[[",
 				 field: "column_id",
-				 sortable: true,
+				 sortable: false,
                              css: {
 			        textAlign: 'left'
 			     }
@@ -80,7 +80,7 @@ print [[
 			     {
 			     title: "]] print(i18n("show_alerts.alerts")) print[[",
 				 field: "column_alerts",
-				 sortable: true,
+				 sortable: false,
                              css: {
 			        textAlign: 'center'
 			     }

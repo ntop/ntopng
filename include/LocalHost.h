@@ -55,7 +55,6 @@ class LocalHost : public Host, public SerializableElement {
   std::unordered_map<u_int32_t, DoHDoTStats*> doh_dot_map;
  
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
-  OperatingSystem os;
   char *os_detail;
   bool drop_all_host_traffic;
   /* END Host data: */

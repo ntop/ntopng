@@ -57,6 +57,7 @@ Host::~Host() {
 
   if(mac)           mac->decUses();
   if(as)            as->decUses();
+  if(os)            os->decUses();
   if(country)       country->decUses();
   if(vlan)          vlan->decUses();
 
@@ -138,7 +139,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
-  os = os_unknown;
+  os = NULL;
   prefs_loaded = false;
   host_services_bitmap = 0;
   mud_pref = mud_recording_default;
@@ -892,8 +893,9 @@ void Host::periodic_stats_update(const struct timeval *tv) {
   checkBroadcastDomain();
 
   /* OS detection */
-  if((os == os_unknown) && cur_mac && cur_mac->getFingerprint())
-    os = Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType());
+  if(os && (os->get_os_type() == os_unknown) && cur_mac && cur_mac->getFingerprint())
+    setOS(Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType()), 
+          true);
 
   stats->updateStats(tv);
 
@@ -940,7 +942,6 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     get_name(buf, sizeof(buf), false);
     if(strlen(buf)) json_object_object_add(my_object, "symbolic_name", json_object_new_string(buf));
     if(asname)      json_object_object_add(my_object, "asname",    json_object_new_string(asname ? asname : (char*)""));
-    json_object_object_add(my_object, "os_id", json_object_new_int(getOS()));
 
     json_object_object_add(my_object, "localHost", json_object_new_boolean(isLocalHost()));
     json_object_object_add(my_object, "systemHost", json_object_new_boolean(isSystemHost()));
@@ -1479,4 +1480,38 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
     k = get_hostkey(buf, bufsize);
   
   return(k);
+}
+
+/* *************************************** */
+
+void Host::setOS(OSType _os, bool is_inline_call) {
+  Mac *mac = getMac();
+
+  if(!mac || (mac->getDeviceType() != device_networking)) {
+    if(!os || os->get_os_type() != _os) {
+      if(os) os->decUses();
+
+      if((os = iface->getOS(_os, true /* Create if missing */, is_inline_call /* Inline call */)) != NULL)
+        os->incUses();
+    }
+  }
+}
+
+/* *************************************** */
+
+OSType Host::getOS() const {
+  Mac *mac = getMac();
+
+  if(!mac || (mac->getDeviceType() != device_networking))
+    return(os ? os->get_os_type() : os_unknown);
+
+  return(os_unknown);
+}
+
+
+void Host::incOSStats(time_t when, u_int16_t proto_id,
+		       u_int64_t sent_packets, u_int64_t sent_bytes,
+		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+  if(os)
+    os->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
 }

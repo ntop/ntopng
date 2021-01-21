@@ -27,7 +27,7 @@ function os_table_setID (row) {
 }
 
 function os_row_update(os_key) {
-   var url = "@HTTP_PREFIX@/lua/get_grouped_hosts_data.lua?grouped_by=os&os="+os_key;
+   var url = "@HTTP_PREFIX@/lua/get_os_data.lua?os="+os_key;
 
   $.ajax({
     type: 'GET',

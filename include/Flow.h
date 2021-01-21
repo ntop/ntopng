@@ -90,7 +90,7 @@ class Flow : public GenericHashEntry {
   ndpi_serializer *tlv_info;
   char *host_server_name, *bt_hash;
   IEC104Stats *iec104;
-  OperatingSystem operating_system;
+  OSType operating_system;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update; 
   u_int32_t marker;

@@ -461,6 +461,7 @@ typedef enum {
   walker_ases,
   walker_countries,
   walker_vlans,
+  walker_oses
 } WalkerType;
 
 typedef enum {
@@ -711,7 +712,7 @@ typedef enum {
   os_apple_airport,
   os_max_os, /* Keep as last element */
   os_any
-} OperatingSystem;
+} OSType;
 
 /* Action to be performed after ntopng shutdown*/
 typedef enum {

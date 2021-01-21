@@ -29,6 +29,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   IpAddress ip;
   Mac *mac;
   char *asname;
+
   struct {
     Fingerprint ja3;
     Fingerprint hassh;
@@ -37,7 +38,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool stats_reset_requested, name_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id, host_services_bitmap;
   HostStats *stats, *stats_shadow;
-  OperatingSystem os;
   HostScore score;
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
@@ -63,6 +63,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
   AutonomousSystem *as;
+  OperatingSystem *os;
   Country *country;
   Vlan *vlan;
 
@@ -229,6 +230,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline u_int32_t get_asn()             const { return(asn);              }
   inline char*     get_asname()          const { return(asname);           }
   inline AutonomousSystem* get_as()      const { return(as);               }
+
   inline bool isPrivateHost()            const { return(ip.isPrivateAddress()); }
   bool isLocalInterfaceAddress();
   char* get_visual_name(char *buf, u_int buf_len);
@@ -385,19 +387,11 @@ class Host : public GenericHashEntry, public AlertableEntity {
   u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
   u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
 
-  inline void setOS(OperatingSystem _os) {
-    Mac *mac = getMac();
-    if(!mac || (mac->getDeviceType() != device_networking))
-      os = _os;
-  }
-
-  inline OperatingSystem getOS() const {
-    Mac *mac = getMac();
-    if(!mac || (mac->getDeviceType() != device_networking))
-      return(os);
-    return(os_unknown);
-  }
-
+  void setOS(OSType _os, bool is_inline_call);
+  OSType getOS() const;
+  void incOSStats(time_t when, u_int16_t proto_id,
+		       u_int64_t sent_packets, u_int64_t sent_bytes,
+		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
   void incCliContactedHosts(IpAddress *peer) { stats->incCliContactedHosts(peer); }
   void incCliContactedPorts(u_int16_t port)  { stats->incCliContactedPorts(port); }
   void incSrvHostContacts(IpAddress *peer)   { stats->incSrvHostContacts(peer);   }

@@ -38,6 +38,8 @@ class Vlan;
 class VlanHash;
 class AutonomousSystem;
 class AutonomousSystemHash;
+class OperatingSystem;
+class OperatingSystemHash;
 class Country;
 class CountriesHash;
 class DB;
@@ -225,6 +227,9 @@ class NetworkInterface : public AlertableEntity {
   /* Autonomous Systems */
   AutonomousSystemHash *ases_hash; /**< Hash used to store Autonomous Systems information. */
 
+  /* Operating Systems */
+  OperatingSystemHash *oses_hash; /**< Hash used to store Operating Systems information. */
+
   /* Countries */
   CountriesHash *countries_hash;
 
@@ -272,7 +277,7 @@ class NetworkInterface : public AlertableEntity {
 		bool host_details,
 		LocationPolicy location,
 		char *countryFilter, char *mac_filter,
-		u_int16_t vlan_id, OperatingSystem osFilter,
+		u_int16_t vlan_id, OSType osFilter,
 		u_int32_t asnFilter, int16_t networkFilter,
 		u_int16_t pool_filter, bool filtered_hosts,
 		bool blacklisted_hosts, bool hide_top_hidden,
@@ -283,6 +288,8 @@ class NetworkInterface : public AlertableEntity {
 		char *sortColumn);
   int sortASes(struct flowHostRetriever *retriever,
 	       char *sortColumn);
+  int sortOSes(struct flowHostRetriever *retriever,
+         char *sortColumn);
   int sortCountries(struct flowHostRetriever *retriever,
 	       char *sortColumn);
   int sortVLANs(struct flowHostRetriever *retriever,
@@ -352,6 +359,7 @@ class NetworkInterface : public AlertableEntity {
   bool initHookLoop(); /* Initialize the loop to dequeue flows for the execution of user script hooks */
   bool initFlowDump(u_int8_t num_dump_interfaces);
   u_int32_t getASesHashSize();
+  u_int32_t getOSesHashSize();
   u_int32_t getCountriesHashSize();
   u_int32_t getVLANsHashSize();
   u_int32_t getMacsHashSize();
@@ -604,7 +612,7 @@ class NetworkInterface : public AlertableEntity {
 			 AddressTree *allowed_hosts,
 			 bool host_details, LocationPolicy location,
 			 char *countryFilter, char *mac_filter,
-			 u_int16_t vlan_id, OperatingSystem osFilter,
+			 u_int16_t vlan_id, OSType osFilter,
 			 u_int32_t asnFilter, int16_t networkFilter,
 			 u_int16_t pool_filter, bool filtered_hosts,
 			 bool blacklisted_hosts, bool hide_top_hidden,
@@ -620,11 +628,12 @@ class NetworkInterface : public AlertableEntity {
 			  AddressTree *allowed_hosts,
 			  bool host_details, LocationPolicy location,
 			  char *countryFilter,
-			  u_int16_t vlan_id, OperatingSystem osFilter,
+			  u_int16_t vlan_id, OSType osFilter,
 			  u_int32_t asnFilter, int16_t networkFilter,
 			  u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter,
 			  char *groupColumn);
   int getActiveASList(lua_State* vm, const Paginator *p);
+  int getActiveOSList(lua_State* vm, const Paginator *p);
   int getActiveCountriesList(lua_State* vm, const Paginator *p);
   int getActiveVLANList(lua_State* vm,
 			char *sortColumn, u_int32_t maxHits,
@@ -703,6 +712,7 @@ class NetworkInterface : public AlertableEntity {
   void runShutdownTasks();
   Vlan* getVlan(u_int16_t vlanId, bool create_if_not_present, bool is_inline_call);
   AutonomousSystem *getAS(IpAddress *ipa, bool create_if_not_present, bool is_inline_call);
+  OperatingSystem *getOS(OSType os, bool create_if_not_present, bool is_inline_call);
   Country* getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call);
   virtual Mac*  getMac(u_int8_t _mac[6], bool create_if_not_present, bool is_inline_call);
   virtual Host* getHost(char *host_ip, u_int16_t vlan_id, bool is_inline_call);
@@ -830,6 +840,7 @@ class NetworkInterface : public AlertableEntity {
   bool resetMacStats(lua_State* vm, char *mac, bool delete_data);
   bool setMacDeviceType(char *strmac, DeviceType dtype, bool alwaysOverwrite);
   bool getASInfo(lua_State* vm, u_int32_t asn);
+  bool getOSInfo(lua_State* vm, OSType os_type);
   bool getCountryInfo(lua_State* vm, const char *country);
   bool getVLANInfo(lua_State* vm, u_int16_t vlan_id);
   inline void incNumHosts(bool local) { if(local) numLocalHosts++; numHosts++; };

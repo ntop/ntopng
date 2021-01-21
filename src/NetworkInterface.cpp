@@ -275,7 +275,7 @@ void NetworkInterface::init() {
       num_new_flows = 0;
 
   flows_hash = NULL, hosts_hash = NULL;
-  macs_hash = NULL, ases_hash = NULL, vlans_hash = NULL;
+  macs_hash = NULL, ases_hash = NULL, oses_hash = NULL, vlans_hash = NULL;
   countries_hash = NULL;
   gw_macs = NULL;
 
@@ -523,6 +523,7 @@ void NetworkInterface::deleteDataStructures() {
   if(flows_hash)            { delete(flows_hash); flows_hash = NULL; }
   if(hosts_hash)            { delete(hosts_hash); hosts_hash = NULL; }
   if(ases_hash)             { delete(ases_hash);  ases_hash = NULL;  }
+  if(oses_hash)             { delete(oses_hash);  oses_hash = NULL;  }
   if(countries_hash)        { delete(countries_hash);  countries_hash = NULL;  }
   if(vlans_hash)            { delete(vlans_hash); vlans_hash = NULL; }
   if(macs_hash)             { delete(macs_hash);  macs_hash = NULL;  }
@@ -785,6 +786,12 @@ u_int32_t NetworkInterface::getASesHashSize() {
 
 /* **************************************************** */
 
+u_int32_t NetworkInterface::getOSesHashSize() {
+  return(oses_hash ? oses_hash->getNumEntries() : 0);
+}
+
+/* **************************************************** */
+
 u_int32_t NetworkInterface::getCountriesHashSize() {
   return(countries_hash ? countries_hash->getNumEntries() : 0);
 }
@@ -834,6 +841,10 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 
   case walker_ases:
     ret = ases_hash ? ases_hash->walk(begin_slot, walk_all, walker, user_data) : false;
+    break;
+
+  case walker_oses:
+    ret = oses_hash ? oses_hash->walk(begin_slot, walk_all, walker, user_data) : false;
     break;
 
   case walker_countries:
@@ -2835,6 +2846,7 @@ void NetworkInterface::cleanup() {
   if(flows_hash)      flows_hash->cleanup();
   if(hosts_hash)      hosts_hash->cleanup();
   if(ases_hash)       ases_hash->cleanup();
+  if(oses_hash)       oses_hash->cleanup();
   if(countries_hash)  countries_hash->cleanup();
   if(vlans_hash)      vlans_hash->cleanup();
   if(macs_hash)       macs_hash->cleanup();
@@ -3059,6 +3071,7 @@ u_int64_t NetworkInterface::purgeQueuedIdleEntries() {
   GenericHash *ghs[] = { /* Flows are done separately by NetworkInterface::purgeQueuedIdleFlows() */
 			hosts_hash,
 			ases_hash,
+      oses_hash,
 			countries_hash,
 			vlans_hash,
 			macs_hash
@@ -3319,6 +3332,13 @@ struct as_find_info {
 
 /* **************************************************** */
 
+struct os_find_info {
+  OSType os_id;
+  OperatingSystem *os;
+};
+
+/* **************************************************** */
+
 struct vlan_find_info {
   u_int16_t vlan_id;
   Vlan *vl;
@@ -3389,6 +3409,21 @@ static bool find_as_by_asn(GenericHashEntry *he, void *user_data, bool *matched)
 
   if((info->as == NULL) && info->asn == as->get_asn()) {
     info->as = as;
+    *matched = true;
+    return(true); /* found */
+  }
+
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
+static bool find_os(GenericHashEntry *he, void *user_data, bool *matched) {
+  struct os_find_info *info = (struct os_find_info*)user_data;
+  OperatingSystem *os = (OperatingSystem*)he;
+
+  if((info->os == NULL) && info->os_id == os->get_os_type()) {
+    info->os = os;
     *matched = true;
     return(true); /* found */
   }
@@ -3605,6 +3640,7 @@ struct flowHostRetrieveList {
   Mac *macValue;
   Vlan *vlanValue;
   AutonomousSystem *asValue;
+  OperatingSystem *osValue;
   Country *countryVal;
   u_int64_t numericValue;
   const char *stringValue;
@@ -3632,7 +3668,7 @@ struct flowHostRetriever {
   bool hideTopHidden;         /* Not used in flow_search_walker */
   const AddressTree * cidr_filter; /* Not used in flow_search_walker */
   u_int16_t vlan_id;
-  OperatingSystem osFilter;
+  OSType osFilter;
   u_int32_t asnFilter;
   u_int32_t uidFilter;
   u_int32_t pidFilter;
@@ -4250,6 +4286,46 @@ static bool as_search_walker(GenericHashEntry *he, void *user_data, bool *matche
 
 /* **************************************************** */
 
+static bool os_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
+  struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
+  OperatingSystem *os = (OperatingSystem*)he;
+
+  if(r->actNumEntries >= r->maxNumEntries)
+    return(true); /* Limit reached */
+
+  if(!os || os->idle())
+    return(false); /* false = keep on walking */
+
+  r->elems[r->actNumEntries].osValue = os;
+
+  switch(r->sorter) {
+  case column_since:
+    r->elems[r->actNumEntries++].numericValue = os->get_first_seen();
+    break;
+
+  case column_thpt:
+    r->elems[r->actNumEntries++].numericValue = os->getBytesThpt();
+    break;
+
+  case column_traffic:
+    r->elems[r->actNumEntries++].numericValue = os->getNumBytes();
+    break;
+
+  case column_num_hosts:
+    r->elems[r->actNumEntries++].numericValue = os->getNumHosts();
+    break;
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", r->sorter);
+    break;
+  }
+
+  *matched = true;
+  return(false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
 static bool country_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
   Country *country = (Country*)he;
@@ -4648,7 +4724,7 @@ int NetworkInterface::sortHosts(u_int32_t *begin_slot,
 				bool host_details,
 				LocationPolicy location,
 				char *countryFilter, char *mac_filter,
-				u_int16_t vlan_id, OperatingSystem osFilter,
+				u_int16_t vlan_id, OSType osFilter,
 				u_int32_t asnFilter, int16_t networkFilter,
 				u_int16_t pool_filter, bool filtered_hosts,
 				bool blacklisted_hosts, bool hide_top_hidden,
@@ -4826,6 +4902,39 @@ int NetworkInterface::sortASes(struct flowHostRetriever *retriever, char *sortCo
 
 /* **************************************************** */
 
+int NetworkInterface::sortOSes(struct flowHostRetriever *retriever, char *sortColumn) {
+  int (*sorter)(const void *_a, const void *_b);
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  if(retriever == NULL)
+    return(-1);
+
+  retriever->actNumEntries = 0,
+    retriever->maxNumEntries = getOSesHashSize();
+    retriever->elems = (struct flowHostRetrieveList*)calloc(sizeof(struct flowHostRetrieveList), retriever->maxNumEntries);
+
+  if(retriever->elems == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Out of memory :-(");
+    return(-1);
+  }
+
+  if((!strcmp(sortColumn, "column_traffic")) || (!strcmp(sortColumn, "column_"))) retriever->sorter = column_traffic, sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_since"))        retriever->sorter = column_since,        sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_thpt"))         retriever->sorter = column_thpt,         sorter = numericSorter;
+  else if(!strcmp(sortColumn, "column_hosts"))        retriever->sorter = column_num_hosts,    sorter = numericSorter;
+  else ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown sort column %s", sortColumn), sorter = numericSorter;
+
+  // make sure the caller has disabled the purge!!
+  walker(&begin_slot, walk_all,  walker_oses, os_search_walker, (void*)retriever);
+
+  qsort(retriever->elems, retriever->actNumEntries, sizeof(struct flowHostRetrieveList), sorter);
+
+  return(retriever->actNumEntries);
+}
+
+/* **************************************************** */
+
 int NetworkInterface::sortCountries(struct flowHostRetriever *retriever,
 	       char *sortColumn) {
   int (*sorter)(const void *_a, const void *_b);
@@ -4902,7 +5011,7 @@ int NetworkInterface::getActiveHostsList(lua_State* vm,
 					 AddressTree *allowed_hosts,
 					 bool host_details, LocationPolicy location,
 					 char *countryFilter, char *mac_filter,
-					 u_int16_t vlan_id, OperatingSystem osFilter,
+					 u_int16_t vlan_id, OSType osFilter,
 					 u_int32_t asnFilter, int16_t networkFilter,
 					 u_int16_t pool_filter, bool filtered_hosts,
 					 bool blacklisted_hosts, bool hide_top_hidden,
@@ -5065,7 +5174,7 @@ int NetworkInterface::getActiveHostsGroup(lua_State* vm,
 					  AddressTree *allowed_hosts,
 					  bool host_details, LocationPolicy location,
 					  char *countryFilter,
-					  u_int16_t vlan_id, OperatingSystem osFilter,
+					  u_int16_t vlan_id, OSType osFilter,
 					  u_int32_t asnFilter, int16_t networkFilter,
 					  u_int16_t pool_filter, bool filtered_hosts,
 					  u_int8_t ipver_filter,
@@ -5366,6 +5475,7 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle) {
 
     n = (macs_hash ? macs_hash->purgeIdle(&tv, force_idle) : 0)
       + (ases_hash ? ases_hash->purgeIdle(&tv, force_idle) : 0)
+      + (oses_hash ? oses_hash->purgeIdle(&tv, force_idle) : 0)
       + (countries_hash ? countries_hash->purgeIdle(&tv, force_idle) : 0)
       + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle) : 0);
 
@@ -5695,7 +5805,7 @@ void NetworkInterface::lua_hash_tables_stats(lua_State *vm) {
   /* Hash tables stats */
   GenericHash *gh[] = {
     flows_hash, hosts_hash, macs_hash,
-    vlans_hash, ases_hash, countries_hash
+    vlans_hash, ases_hash, oses_hash, countries_hash
   };
 
   lua_newtable(vm);
@@ -5842,6 +5952,45 @@ AutonomousSystem* NetworkInterface::getAS(IpAddress *ipa, bool create_if_not_pre
     try {
       if((ret = new AutonomousSystem(this, ipa)) != NULL) {
 	if(!ases_hash->add(ret,
+			   !is_inline_call /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
+          /* Note: this should never happen as we are checking hasEmptyRoom() */
+	  delete ret;
+	  return(NULL);
+	}
+      }
+    } catch(std::bad_alloc& ba) {
+      static bool oom_warning_sent = false;
+
+      if(!oom_warning_sent) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+	oom_warning_sent = true;
+      }
+
+      return(NULL);
+    }
+  }
+
+  return(ret);
+}
+
+/* **************************************************** */
+
+OperatingSystem* NetworkInterface::getOS(OSType os_type, bool create_if_not_present, bool is_inline_call) {
+  OperatingSystem *ret = NULL;
+
+  if(!oses_hash)
+    return(NULL);
+
+  ret = oses_hash->get(os_type, is_inline_call);
+
+  if((ret == NULL) && create_if_not_present) {
+
+    if(!oses_hash->hasEmptyRoom())
+      return(NULL);
+
+    try {
+      if((ret = new OperatingSystem(this, os_type)) != NULL) {
+	if(!oses_hash->add(ret,
 			   !is_inline_call /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
           /* Note: this should never happen as we are checking hasEmptyRoom() */
 	  delete ret;
@@ -6298,6 +6447,7 @@ void NetworkInterface::allocateStructures() {
 	  hosts_hash     = new HostHash(this, num_hashes, ntop->getPrefs()->get_max_num_hosts());
 	  /* The number of ASes cannot be greater than the number of hosts */
 	  ases_hash      = new AutonomousSystemHash(this, ndpi_min(num_hashes, 4096), 32768);
+    oses_hash      = new OperatingSystemHash(this, ndpi_min(num_hashes, 1024), 32768);
 	  countries_hash = new CountriesHash(this, ndpi_min(num_hashes, 1024), 32768);
 	  vlans_hash     = new VlanHash(this, 1024, 2048);
 	  macs_hash      = new MacHash(this, ndpi_min(num_hashes, 8192), 32768);
@@ -6631,6 +6781,52 @@ int NetworkInterface::getActiveASList(lua_State* vm, const Paginator *p) {
   return(retriever.actNumEntries);
 }
 
+/* **************************************** */
+
+int NetworkInterface::getActiveOSList(lua_State* vm, const Paginator *p) {
+  struct flowHostRetriever retriever;
+  DetailsLevel details_level;
+
+  if(!p)
+    return(-1);
+
+  if(sortOSes(&retriever, p->sortColumn()) < 0) {
+    return(-1);
+  }
+
+  if(!p->getDetailsLevel(&details_level))
+    details_level = details_normal;
+
+  lua_newtable(vm);
+  lua_push_uint64_table_entry(vm, "numOSes", retriever.actNumEntries);
+
+  lua_newtable(vm);
+
+  if(p->a2zSortOrder()) {
+    for(int i = p->toSkip(), num = 0; i < (int)retriever.actNumEntries && num < (int)p->maxHits(); i++, num++) {
+      OperatingSystem *os = retriever.elems[i].osValue;
+
+      os->lua(vm, details_level, false);
+      lua_rawseti(vm, -2, num + 1); /* Must use integer keys to preserve and iterate inorder with ipairs */
+    }
+  } else {
+    for(int i = (retriever.actNumEntries - 1 - p->toSkip()), num = 0; i >= 0 && num < (int)p->maxHits(); i--, num++) {
+      OperatingSystem *os = retriever.elems[i].osValue;
+
+      os->lua(vm, details_level, false);
+      lua_rawseti(vm, -2, num + 1);
+    }
+  }
+
+  lua_pushstring(vm, "OSes");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  // finally free the elements regardless of the sorted kind
+  if(retriever.elems) free(retriever.elems);
+
+  return(retriever.actNumEntries);
+}
 
 /* **************************************** */
 
@@ -6958,6 +7154,28 @@ bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn) {
 
   if(info.as) {
     info.as->lua(vm, details_higher, false);
+    ret = true;
+  } else
+    ret = false;
+
+  return ret;
+}
+
+/* **************************************** */
+
+bool NetworkInterface::getOSInfo(lua_State* vm, OSType os_type) {
+  struct os_find_info info;
+  bool ret;
+  u_int32_t begin_slot = 0;
+  bool walk_all = true;
+
+  memset(&info, 0, sizeof(info));
+  info.os_id = os_type;
+
+  walker(&begin_slot, walk_all,  walker_oses, find_os, (void*)&info);
+
+  if(info.os) {
+    info.os->lua(vm, details_higher, false);
     ret = true;
   } else
     ret = false;
@@ -8293,7 +8511,7 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
   /* String like `ntopng.cache.1_17_11_45` */
   /* An other way is to use the localtime_r and compose the string like `ntopng.cache_2_1609761600` */
   
-
+  
   ntop->getRedis()->set(redis_key , old_sites, 7200);
 
   if (minute == 0 && current_cycle > 0) {

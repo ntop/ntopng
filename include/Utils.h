@@ -223,7 +223,7 @@ public:
     return(bitmap1 | bitmap2);
   }
 
-  static OperatingSystem getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype);
+  static OSType getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype);
   static DeviceType getDeviceTypeFromOsDetail(const char *os_detail);
   static u_int32_t pow2(u_int32_t v);
 #ifdef __linux__
