@@ -313,7 +313,8 @@ class NetworkInterface : public AlertableEntity {
   /* Functions used to update top sites of the interface */
   void saveOldSitesAndOs(u_int8_t top);
   void getCurrentTime(struct tm *t_now);
-  void addRemoveRedisKey(struct tm *t_now, bool push);
+  void deserializeTopOsAndSites(char* redis_key_current, bool do_top_sites);
+  void serializeDeserialize(struct tm *t_now, bool do_serialize);
   void removeRedisSitesKey();
   void addRedisSitesKey();
 

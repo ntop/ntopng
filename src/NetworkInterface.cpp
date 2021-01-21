@@ -289,8 +289,6 @@ void NetworkInterface::init() {
   old_sites = NULL;
   old_os    = NULL;
 
-  removeRedisSitesKey();
-
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
   hosts_to_restore = new (std::nothrow) StringFifoQueue(64);
@@ -627,9 +625,9 @@ NetworkInterface::~NetworkInterface() {
   if(hookPeriodicUpdate)   delete hookPeriodicUpdate;
   if(hookFlowEnd)          delete hookFlowEnd;
 
+  addRedisSitesKey();
   if(top_sites)       delete top_sites;
   if(old_sites)       free(old_sites);
-  addRedisSitesKey();
 }
 
 /* **************************************************** */
@@ -6355,9 +6353,11 @@ bool NetworkInterface::isInterfaceNetwork(const IpAddress * const ipa, int netwo
 /* **************************************** */
 
 void NetworkInterface::allocateStructures() {
+  removeRedisSitesKey();
+
   u_int8_t numNetworks = ntop->getNumLocalNetworks();
   char buf[16];
-
+  
   try {
     if(get_id() >= 0) {
       u_int32_t num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_flows()/4);
@@ -8414,6 +8414,9 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
   /* Using the epoch */
   struct tm t_now;
 
+  if (!ntop->getRedis())
+    return;
+
   if (top == 1) {
     if (!old_sites)
       return;
@@ -8435,8 +8438,10 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
   /* String like `ntopng.cache.1_17_11_45` */
   /* An other way is to use the localtime_r and compose the string like `ntopng.cache_2_1609761600` */
   
-  
-  ntop->getRedis()->set(redis_key , old_sites, 7200);
+  if (top == 1)
+    ntop->getRedis()->set(redis_key , old_sites, 7200);
+  else
+    ntop->getRedis()->set(redis_key , old_os, 7200);
 
   if (minute == 0 && current_cycle > 0) {
     char hour_done[64];
@@ -8448,6 +8453,7 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
       hour = t_now.tm_hour - 1;
 
     /* List key = ntopng.cache.top_sites_hour_done | value = 1_17_11 */
+    /* List key = ntopng.cache.top_os_hour_done    | value = 1_17_11 */
     snprintf(hour_done, sizeof(hour_done), "%d_%d_%d", id, t_now.tm_mday, hour);
     
     if (top == 1)
@@ -8470,22 +8476,89 @@ void NetworkInterface::getCurrentTime(struct tm *t_now) {
 
 /* *************************************** */
 
-void NetworkInterface::addRemoveRedisKey(struct tm *t_now, bool push) {
-  char redis_hour_key[64], redis_daily_key[64];
+void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do_top_sites) {
+  char *json;
+  const u_int json_len = 16384;
+  json_object *j;
+  enum json_tokener_error jerr;
+
+  if((json = (char*)malloc(json_len)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+    return;
+  }
+
+  if((ntop->getRedis()->get(redis_key_current, json, json_len) == -1)
+     || (json[0] == '\0')
+     )
+    return; /* Nothing found */
+
+  j = json_tokener_parse_verbose(json, &jerr);
+
+  if(j != NULL) {    
+#ifdef DEBUG
+    u_int num = 0;
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
+#endif
+    
+    json_object_object_foreach(j, key, val) {
+      if(key) {
+	enum json_type type = json_object_get_type(val);
+
+	if(type == json_type_int) {
+	  u_int32_t value = json_object_get_int64(val);
+
+#ifdef DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, key, value);
+#endif
+	  
+    if (do_top_sites)
+	    top_sites->add(key, value);
+    else
+      top_os->add(key, value);
+	}
+      }
+    }
+
+    json_object_put(j); /* Free memory */
+  } else
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);  
+}
+
+/* *************************************** */
+
+void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize) {
+  char redis_hour_key[64], redis_daily_key[64], redis_key_current_sites[64], redis_key_current_os[64];
 
   if(!ntop->getRedis())
     return;
 
   snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", id, t_now->tm_mday, t_now->tm_hour);
   snprintf(redis_daily_key, sizeof(redis_daily_key), "%d_%d", id, t_now->tm_mday);
+  snprintf(redis_key_current_sites, sizeof(redis_key_current_sites), "%s.serialized_current_top_sites.%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+            id, t_now->tm_mday);
+  snprintf(redis_key_current_os, sizeof(redis_key_current_os), "%s.serialized_current_top_os.%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+            id, t_now->tm_mday);
 
-  if(push) {
+  if(do_serialize) {
     ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
     ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
+    ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
+    ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED, redis_daily_key, 3600);
+    if(top_sites->getSize()) 
+      ntop->getRedis()->set(redis_key_current_sites , top_sites->json(2*HOST_SITES_TOP_NUMBER), 3600);
+    if(top_os->getSize()) 
+      ntop->getRedis()->set(redis_key_current_os , top_os->json(2*HOST_SITES_TOP_NUMBER), 3600);
   }
   else {
     ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, redis_hour_key);
     ntop->getRedis()->lrem((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key);
+    ntop->getRedis()->lrem((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, redis_hour_key);
+    ntop->getRedis()->lrem((char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED, redis_daily_key);
+    deserializeTopOsAndSites(redis_key_current_sites, false);
+    deserializeTopOsAndSites(redis_key_current_os, true);
+    ntop->getRedis()->del(redis_key_current_sites);
+    ntop->getRedis()->del(redis_key_current_os);
   }
 }
 
@@ -8499,7 +8572,7 @@ void NetworkInterface::removeRedisSitesKey() {
     return;
 
   getCurrentTime(&t_now);
-  addRemoveRedisKey(&t_now, false);
+  serializeDeserialize(&t_now, false);
 }
 
 /* *************************************** */
@@ -8512,7 +8585,7 @@ void NetworkInterface::addRedisSitesKey() {
     return;
 
   getCurrentTime(&t_now);
-  addRemoveRedisKey(&t_now, true);
+  serializeDeserialize(&t_now, true);
 }
 
 /* *************************************** */
