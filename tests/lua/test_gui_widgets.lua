@@ -57,8 +57,7 @@ print([[
                     Stacked Bar Chart (Interface/Packet Distro)
                 </h3>
                 <ntop-datasource src="interface_packet_distro?ifid=0"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=15"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=3"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
@@ -67,8 +66,7 @@ print([[
                     Line + 2xBars (Interface/Packet Distro)
                 </h3>
                 <ntop-datasource src="interface_packet_distro?ifid=0" type="line" styling='{"fill": false}'></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=9" type="bar"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=15" type="bar"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=3" type="bar"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
@@ -77,8 +75,7 @@ print([[
                     3x Lines (No Fill, 2xFills) (Interface/Packet Distro)
                 </h3>
                 <ntop-datasource src="interface_packet_distro?ifid=0" type="line" styling='{"fill": false}'></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=9" type="line"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=15" type="line"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=3" type="line"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
@@ -87,8 +84,8 @@ print([[
                     Scatter (Interface/Packet Distro)
                 </h3>
                 <ntop-datasource src="interface_packet_distro?ifid=0" type="scatter"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=9" type="scatter"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=15" type="scatter"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=3" type="scatter"></ntop-datasource>
+
             </ntop-widget>
         </div>
     </div>
