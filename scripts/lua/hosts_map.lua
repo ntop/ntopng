@@ -191,7 +191,7 @@ print ([[
 			<div class='d-flex align-items-center justify-content-end mb-3'>
 				<label class="m-0 mr-1">]]..i18n("filter") ..[[: </label>
 				<div class="dropdown">
-				<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and i18n("all") or (current_label .. '<i class="fas fa-filter"></i>')) ..[[
+				<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and i18n("flows_page.all_flows") or (current_label .. '<i class="fas fa-filter"></i>')) ..[[
 				<span class="caret"></span></button>
 				<ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" aria-labelledby="menu1">
 				]])
@@ -204,8 +204,9 @@ print ([[
 				</ul>
 				</div>
 				</div>
+				<div style='height: 75vh'>
 				<canvas id="canvas"></canvas>
-				
+				</div>
 			</div>
 	    </div>
 	</div>
@@ -273,6 +274,8 @@ print [[
    data: data,
    type: "bubble",
        options: {
+		   responsive: true,
+		   maintainAspectRatio: false,
 	 scales: { xAxes: [{ display: true, scaleLabel: { display: true, labelString: ']] print(x_label) print [[' } }],
 		    yAxes: [{ display: true, scaleLabel: { display: true, labelString: ']] print(y_label) print [[' } }]
 		 },
