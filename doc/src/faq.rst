@@ -54,6 +54,39 @@ pcaps
 
 Saving pcaps means saving all the traffic seen into files. This allows to go back in time and fetch all the traffic packets seen at any past point in time. This can be highly challenging in terms of space used. To save pcaps, refer to :ref:`UsingNtopngWithN2disk`.
 
+Maximum Number of Interfaces
+============================
+
+The recommended number of interfaces monitored by an ntopng running on a commodity quad-core hardware is 8. However, the actual maximum number of interfaces can be greater than 8, when adequate hardware is used.
+
+The maximum number of interfaces depends on the license, as is highlighted in the following table
+
+
++--------------+-------------------------------+
+|              | Maximum Number of Interfaces  |
++--------------+-------------------------------+
+| Community    | 8                             |
++--------------+-------------------------------+
+| Pro          | 8                             |
++--------------+-------------------------------+
+| Enterprise M | 16                            |
++--------------+-------------------------------+
+| Enterprise L | 32                            |
++--------------+-------------------------------+
+
+Limits above also apply when disaggregated interfaces are used. For example, the maximum 32 interfaces limit can be hit when:
+
+- 32 interfaces are used without disaggregation
+- A single interface is configured with disaggregation resulting in 31 disaggregated sub-interfaces
+- Two interfaces are configured with disaggregation resulting in 15 and 16 disaggregated sub-interfaces, respectively
+
+nIndex
+------
+
+The maximum number of interfaces that can be used with nIndex is 16. When more than 16 interfaces are used, those exceeding 16 will work but without nIndex support.
+
+
+
 Hardware Sizing
 ===============
 
