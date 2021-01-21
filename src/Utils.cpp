@@ -3058,6 +3058,15 @@ bool Utils::isSpecialMac(u_int8_t *mac) {
 
 /* ****************************************************** */
 
+bool Utils::isBroadcastMac(u_int8_t *mac) {
+  u_int8_t broad[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+  
+  return(memcmp(mac, broad, 6) == 0);
+
+}
+
+/* ****************************************************** */
+
 void Utils::parseMac(u_int8_t *mac, const char *symMac) {
   int _mac[6] = { 0 };
 

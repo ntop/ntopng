@@ -30,7 +30,7 @@ class Mac : public GenericHashEntry, public SerializableElement {
   u_int8_t mac[6];
   u_int16_t host_pool_id;
   u_int32_t bridge_seen_iface_id; /* != 0 for bridge interfaces only */
-  bool special_mac, lockDeviceTypeChanges;
+  bool special_mac, lockDeviceTypeChanges, broadcast_mac;
   bool stats_reset_requested, data_delete_requested;
   const char *manuf;
   MacStats *stats, *stats_shadow;
@@ -173,6 +173,8 @@ class Mac : public GenericHashEntry, public SerializableElement {
     else
       return(false);
   }
+
+  inline bool isBroadcast() { return(broadcast_mac); }
 };
 
 #endif /* _MAC_H_ */

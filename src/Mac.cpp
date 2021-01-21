@@ -23,9 +23,10 @@
 
 /* *************************************** */
 
-Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
-  : GenericHashEntry(_iface) {
+Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6]) : GenericHashEntry(_iface) {
   memcpy(mac, _mac, 6);
+
+  broadcast_mac = Utils::isBroadcastMac(mac);
   special_mac = Utils::isSpecialMac(mac);
   source_mac = false, fingerprint = NULL;
   bridge_seen_iface_id = 0, lockDeviceTypeChanges = false;

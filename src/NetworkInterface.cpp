@@ -2878,7 +2878,9 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
       return;
     }
 
-    if(_src_ip && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
+    if(_src_ip
+       && (/* src_mac->isBroadcast() || */ /* <-- not necessary as src MAC can't be broadcast :-) */
+	   _src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*src) = new (std::nothrow) LocalHost(this, src_mac, vlanId, _src_ip);
       PROFILING_SECTION_EXIT(4);
@@ -2919,7 +2921,8 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
     }
 
     if(_dst_ip
-       && (_dst_ip->isLocalHost(&local_network_id)
+       && (dst_mac->isBroadcast()
+	   || _dst_ip->isLocalHost(&local_network_id)
 	   || _dst_ip->isLocalInterfaceAddress())) {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, _dst_ip);
