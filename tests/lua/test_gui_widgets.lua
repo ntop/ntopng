@@ -28,8 +28,8 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- NOTE: THE NTOP WIDGET SCRIPTS MUST BE LOADED FIRST!
 print([[
 
-    <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets-dev/ntop-widgets.esm.js"></script>
-    <script nomodule src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets-dev/ntop-widgets.js"></script>
+    <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/ntop-widgets.esm.js"></script>
+    <script nomodule src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/index.js"></script>
 
 ]])
 
@@ -41,50 +41,57 @@ end
 
 print([[
     <div class='row my-4'>
-
         <div class='col-6'>
-            <div class='form-group mb-2'>
-                <label><b>Select an interface for the first Widget:</b></label>
-                <select class='form-control w-100' id='select-first'>
-                    ]].. table.concat(options, '\n') ..[[
-                </select>
-            </div>
-            <ntop-widget id='first-widget' transformation="pie" update="5000" height="400px">
-                <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
+            <ntop-widget id='first-widget' type="pie" update="5000" height='30rem'>
+                <ntop-datasource src="interface_packet_distro?ifid=0"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6'>
-            <div class='form-group mb-2'>
-                <label><b>Select an interface for the second Widget:</b></label>
-                <select class='form-control w-100' id='select-second'>
-                    ]].. table.concat(options, '\n') ..[[
-                </select>
-            </div>
-            <ntop-widget id='second-widget' display='raw' transformation="donut" update="6000" height="400px">
-                <ntop-datasource type="interface_packet_distro" params-ifid='0'></ntop-datasource>
+            <ntop-widget id='second-widget' display='none' type="donut" update="5000" height='30rem'>
+                <ntop-datasource src="interface_packet_distro?ifid=0"></ntop-datasource>
+            </ntop-widget>
+        </div>
+        <div class='col-6 my-4'>
+            <ntop-widget id='third-widget' display='raw' type="stackedBar" update="5000" height='28.5rem' width='100%'>
+                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
+                    Stacked Bar Chart (Interface/Packet Distro)
+                </h3>
+                <ntop-datasource src="interface_packet_distro?ifid=0"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=15"></ntop-datasource>
+            </ntop-widget>
+        </div>
+        <div class='col-6 my-4'>
+            <ntop-widget id='fourth-widget' update="5000" height='100%' width='100%'>
+                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
+                    Line + 2xBars (Interface/Packet Distro)
+                </h3>
+                <ntop-datasource src="interface_packet_distro?ifid=0" type="line" styling='{"fill": false}'></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=9" type="bar"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=15" type="bar"></ntop-datasource>
+            </ntop-widget>
+        </div>
+        <div class='col-6 my-4'>
+            <ntop-widget id='fifth-widget' display='raw' update="5000" height='100%' width='100%'>
+                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
+                    3x Lines (No Fill, 2xFills) (Interface/Packet Distro)
+                </h3>
+                <ntop-datasource src="interface_packet_distro?ifid=0" type="line" styling='{"fill": false}'></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=9" type="line"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=15" type="line"></ntop-datasource>
+            </ntop-widget>
+        </div>
+        <div class='col-6 my-4'>
+            <ntop-widget id='sixth-widget' display='raw' update="5000" height='100%' width='100%'>
+                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
+                    Scatter (Interface/Packet Distro)
+                </h3>
+                <ntop-datasource src="interface_packet_distro?ifid=0" type="scatter"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=9" type="scatter"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=15" type="scatter"></ntop-datasource>
             </ntop-widget>
         </div>
     </div>
-]])
-
-print([[
-
-<script type='text/javascript'>
-$(document).ready(function() {
-    $(`#select-first`).on('change', async function() {
-        const value = $(this).val();
-        $(`#first-widget ntop-datasource`).attr("params-ifid", value);
-        await $(`#first-widget`)[0].forceUpdate();
-    });
-
-    $(`#select-second`).on('change', async function() {
-        const value = $(this).val();
-        $(`#second-widget ntop-datasource`).attr("params-ifid", value);
-        await $(`#second-widget`)[0].forceUpdate();
-    });
-});
-</script>
-
 ]])
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
