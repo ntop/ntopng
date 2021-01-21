@@ -9,11 +9,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-if(ntop.isPro()) then
-   package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
-   require("startup")
-end
-
 require "lua_utils"
 
 -- Important: load this before any other alert related module
@@ -40,6 +35,11 @@ local endpoints = require("endpoints")
 -- ##################################################################
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Processing startup.lua: please hold on...")
+
+if ntop.isPro() then
+   package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
+   require("startup")
+end
 
 -- ##################################################################
 
