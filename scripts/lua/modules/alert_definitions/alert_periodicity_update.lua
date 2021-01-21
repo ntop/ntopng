@@ -10,6 +10,8 @@ local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
 
+require("lua_utils")
+
 -- ##############################################
 
 local alert_periodicity_update = classes.class(alert)
@@ -73,7 +75,7 @@ function alert_periodicity_update.format(ifid, alert, alert_type_params)
 
       rsp = rsp .. "["..i18n("application")..": "..interface.getnDPIProtoName(msg.l7).."]"
       if not isEmptyString(msg.info) then
-	 rsp = rsp .. "[" .. msg.info .. "]"
+	 rsp = rsp .. "[" .. shortenString(msg.info, 24) .. "]"
       end
    end
 
