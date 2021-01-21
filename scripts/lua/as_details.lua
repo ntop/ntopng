@@ -89,7 +89,9 @@ if isEmptyString(page) or page == "historical" then
          top_protocols = "top:asn:ndpi",
          timeseries = {
             {schema="asn:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
-            {schema="asn:rtt",                 label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
+			{schema="asn:rtt",                 label=i18n("graphs.num_ms_rtt"), nedge_exclude=1},
+			{schema="asn:traffic_sent",        label=i18n("graphs.traffic_sent"), nedge_exclude=1},
+			{schema="asn:traffic_rcvd",        label=i18n("graphs.traffic_rcvd"), nedge_exclude=1},
 	    {schema="asn:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
 	    {schema="asn:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
 	    {schema="asn:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},

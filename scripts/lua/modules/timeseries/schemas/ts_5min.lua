@@ -88,6 +88,20 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("asn:traffic_sent", {step=300, rrd_fname="bytes_sent"})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("bytes")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("asn:traffic_rcvd", {step=300, rrd_fname="bytes_rcvd"})
+schema:addTag("ifid")
+schema:addTag("asn")
+schema:addMetric("bytes")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("asn:ndpi", {step=300})
 schema:addTag("ifid")
 schema:addTag("asn")

@@ -60,6 +60,11 @@ function ts_dump.asn_update_rrds(when, ifstats, verbose)
     ts_utils.append("asn:traffic", {ifid=ifstats.id, asn=asn,
               bytes_sent=asn_stats["bytes.sent"], bytes_rcvd=asn_stats["bytes.rcvd"]}, when)
 
+    ts_utils.append("asn:traffic_sent", {ifid=ifstats.id, asn=asn,
+              bytes=asn_stats["bytes.sent"]}, when)
+
+    ts_utils.append("asn:traffic_rcvd", {ifid=ifstats.id, asn=asn,
+              bytes=asn_stats["bytes.rcvd"]}, when)
     -- Save ASN ndpi stats
     if asn_stats["ndpi"] ~= nil then
       for proto_name, proto_stats in pairs(asn_stats["ndpi"]) do
