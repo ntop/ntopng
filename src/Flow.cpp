@@ -333,14 +333,14 @@ Flow::~Flow() {
   } else if(isDNS()) {
     if(protos.dns.last_query)   free(protos.dns.last_query);
     if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
-  } else if (isMDNS()) {
+  } else if(isMDNS()) {
     if(protos.mdns.answer)           free(protos.mdns.answer);
     if(protos.mdns.name)             free(protos.mdns.name);
     if(protos.mdns.name_txt)         free(protos.mdns.name_txt);
     if(protos.mdns.ssid)             free(protos.mdns.ssid);
-  } else if (isSSDP()) {
+  } else if(isSSDP()) {
     if(protos.ssdp.location)         free(protos.ssdp.location);
-  } else if (isNetBIOS()) {
+  } else if(isNetBIOS()) {
     if(protos.netbios.name)          free(protos.netbios.name);
   } else if(isSSH()) {
     if(protos.ssh.client_signature)  free(protos.ssh.client_signature);
@@ -2040,9 +2040,12 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_get_tcp_info(vm);
 
     if(!mask_flow) {
+      char buf[64];
+      char *info = getFlowInfo(buf, sizeof(buf));
+      
       if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
       if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
-      lua_push_str_table_entry(vm, "info", getFlowInfo() ? getFlowInfo() : (char*)"");
+      lua_push_str_table_entry(vm, "info", info ? info : (char*)"");
     }
 
     if(isDNS() && protos.dns.last_query) {
@@ -2094,20 +2097,20 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(get_json_info()) {
       lua_push_str_table_entry(vm, "moreinfo.json", json_object_to_json_string(get_json_info()));
       has_json_info = true;
-    } else if (get_tlv_info()) {
+    } else if(get_tlv_info()) {
       ndpi_deserializer deserializer;
 
-      if (ndpi_init_deserializer(&deserializer, get_tlv_info()) == 0) {
+      if(ndpi_init_deserializer(&deserializer, get_tlv_info()) == 0) {
         ndpi_serializer serializer;
 
-        if (ndpi_init_serializer(&serializer, ndpi_serialization_format_json) >= 0) {
+        if(ndpi_init_serializer(&serializer, ndpi_serialization_format_json) >= 0) {
           char *buffer;
           u_int32_t buffer_len;
 
           ndpi_deserialize_clone_all(&deserializer, &serializer);
           buffer = ndpi_serializer_get_buffer(&serializer, &buffer_len);
 
-          if (buffer) {
+          if(buffer) {
             lua_push_str_table_entry(vm, "moreinfo.json", buffer);
             has_json_info = true;
           }
@@ -2119,7 +2122,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 
     if(iec104) iec104->lua(vm);
 
-    if (!has_json_info)
+    if(!has_json_info)
       lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
     if(cli_ebpf) cli_ebpf->lua(vm, true);
@@ -2570,13 +2573,14 @@ json_object* Flow::flow2json() {
 
   if(ntop->getPrefs()->do_dump_extended_json()) {
     const char *info;
-
+    char buf[64];
+    
     /* Add items usually dumped on nIndex (useful for debugging) */
 
     json_object_object_add(my_object, "FLOW_TIME", json_object_new_int(last_seen));
 
     if(cli_ip) {
-      if (cli_ip->isIPv4()) {
+      if(cli_ip->isIPv4()) {
         json_object_object_add(my_object,
           Utils::jsonLabel(IP_PROTOCOL_VERSION, "IP_PROTOCOL_VERSION", jsonbuf, sizeof(jsonbuf)),
           json_object_new_int(4));
@@ -2587,8 +2591,9 @@ json_object* Flow::flow2json() {
       }
     }
 
-    info = getFlowInfo();
-    if (info)
+    info = getFlowInfo(buf, sizeof(buf));
+    
+    if(info)
       json_object_object_add(my_object, "INFO", json_object_new_string(info));
 
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
@@ -3203,10 +3208,13 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 
 /* *************************************** */
 
-const char* Flow::getFlowInfo() {
+char* Flow::getFlowInfo(char *buf, u_int buf_len) {
   if(custom_flow_info)
     return(custom_flow_info);
 
+  if(iec104)
+    return(iec104->getFlowInfo(buf, buf_len));
+      
   if(!isMaskedFlow()) {
     if(isDNS() && protos.dns.last_query)
       return protos.dns.last_query;
@@ -3380,7 +3388,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet KeepAlive");
 	  cnt_keep_alive++;
 	} else if(tcp_seq_s2d.last == seq_num) {
-          if (tcp_seq_s2d.next != tcp_seq_s2d.last) {
+          if(tcp_seq_s2d.next != tcp_seq_s2d.last) {
 	    cnt_retx++;
 	    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[src2dst] Packet retransmission");
           }
@@ -3411,7 +3419,7 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when,
 	  if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet KeepAlive");
 	  cnt_keep_alive++;
 	} else if(tcp_seq_d2s.last == seq_num) {
-          if (tcp_seq_d2s.next != tcp_seq_d2s.last) {
+          if(tcp_seq_d2s.next != tcp_seq_d2s.last) {
 	    cnt_retx++;
 	    if(debug) ntop->getTrace()->traceEvent(TRACE_WARNING, "[dst2src] Packet retransmission");
           }
@@ -4641,8 +4649,9 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
 void Flow::lua_get_min_info(lua_State *vm) {
   const IpAddress *cli_ip = get_cli_ip_addr();
   const IpAddress *srv_ip = get_srv_ip_addr();
-  char buf[32];
-
+  char buf[64];
+  char *info = getFlowInfo(buf, sizeof(buf));
+  
   lua_newtable(vm);
 
   if(cli_ip) lua_push_str_table_entry(vm, "cli.ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
@@ -4668,7 +4677,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "srv2cli.bytes", get_bytes_srv2cli());
   lua_push_uint64_table_entry(vm, "cli2srv.packets", get_packets_cli2srv());
   lua_push_uint64_table_entry(vm, "srv2cli.packets", get_packets_srv2cli());
-  if(getFlowInfo()) lua_push_str_table_entry(vm, "info", getFlowInfo());
+  if(info) lua_push_str_table_entry(vm, "info", info);
 }
 
 /* ***************************************************** */

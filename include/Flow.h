@@ -340,7 +340,7 @@ class Flow : public GenericHashEntry {
   u_int32_t getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum, u_int32_t payloadLen) ;
   static double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end, struct timeval *result, u_short divide_by_two);
-  const char* getFlowInfo();
+  char* getFlowInfo(char *buf, u_int buf_len);
   inline char* getFlowServerInfo() {
     return (isTLS() && protos.tls.client_requested_server_name) ? protos.tls.client_requested_server_name : host_server_name;
   }

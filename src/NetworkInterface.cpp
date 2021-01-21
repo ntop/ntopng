@@ -4016,8 +4016,12 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
 	  retriever->elems[retriever->actNumEntries++].numericValue = 0;
 	break;
       case column_info:
-	flow_info = f->getFlowInfo();
-	retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char*)"";
+	{
+	  char buf[64];
+	  
+	  flow_info = f->getFlowInfo(buf, sizeof(buf));
+	  retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char*)"";
+	}
 	break;
       default:
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: column %d not handled", retriever->sorter);

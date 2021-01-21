@@ -32,7 +32,7 @@ IEC104Stats::IEC104Stats() {
   memset(&last_i_apdu, 0, sizeof(last_i_apdu));
   memset(&stats, 0, sizeof(stats));
   i_s_apdu = ndpi_alloc_data_analysis(32 /* sliding window side */);
-  tx_seq_num = rx_seq_num = 0;
+  tx_seq_num = rx_seq_num = 0, infobuf[0] = '\0';
 }
 
 /* *************************************** */
@@ -79,13 +79,13 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 #endif
 	/* No rx and tx to be updated */
 	stats.type_u++;
+
+	snprintf(infobuf, sizeof(infobuf)-1, "%s U", tx_direction ? "->" : "<-");
 	break;
 
       case 0x01: /* S */
 	if(len >= 4) {
-#ifdef IEC60870_TRACE
 	  u_int16_t rx = ((((u_int16_t)payload[offset+4]) << 8) + payload[offset+3]) >> 1;
-#endif
 
 	  if(last_i_apdu.tv_sec != 0) {
 	    float     ms =  Utils::msTimevalDiff(packet_time, &last_i_apdu);
@@ -103,8 +103,10 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	  }
 
 	  /* No rx and tx to be updated */
+	  snprintf(infobuf, sizeof(infobuf)-1, "%s S, RX %u",
+		   tx_direction ? "->" : "<-", rx);
 	}
-
+	
 	stats.type_s++;
 	break;
       }
@@ -171,7 +173,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	len -= 6 /* Skip magic and len */, offset += 5 /* magic already skept */;
 
 	if(payload_len >= (offset+len)) {
-	  u_int8_t  type_id = payload[offset];
+	  u_int8_t  type_id  = payload[offset];
 	  u_int8_t  cause_tx = payload[offset+1] & 0x3F;
 	  u_int8_t  negative = ((payload[offset+1] & 0x40) == 0x40) ? true : false;
 	  u_int16_t asdu;
@@ -196,6 +198,11 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 				       pkt_lost.rx, pkt_lost.tx);
 #endif
 
+	  snprintf(infobuf, sizeof(infobuf)-1,
+		   "%s I, RX %u, TX %u",
+		   tx_direction ? "->" : "<-",
+		   rx_seq_num, tx_seq_num);
+	  
 	  if(!initial_run) {
 	    u_int32_t transition = (last_type_i << 8) + type_id;
 
@@ -383,4 +390,11 @@ void IEC104Stats::lua(lua_State* vm) {
   lua_pushstring(vm, "iec104");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+char* IEC104Stats::getFlowInfo(char *buf, u_int buf_len) {
+  snprintf(buf, buf_len-1, "%s", infobuf);
+  return(buf);
 }

@@ -34,6 +34,7 @@ class IEC104Stats {
     u_int32_t type_i, type_s, type_u, type_other;
     u_int32_t forward_msgs, reverse_msgs, retransmitted_msgs;
   } stats;
+  char infobuf[32];
   std::unordered_map<u_int16_t, u_int32_t> type_i_transitions;
   std::unordered_map<u_int16_t, u_int32_t> typeid_uses;
   u_int16_t last_type_i;
@@ -50,6 +51,7 @@ class IEC104Stats {
 		     struct timeval *packet_time);
 
   void lua(lua_State* vm);
+  char* getFlowInfo(char *buf, u_int buf_len);
 };
 
 #endif /* _IEC104_STATS_H_ */
