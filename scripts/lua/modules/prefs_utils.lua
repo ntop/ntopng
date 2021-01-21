@@ -57,10 +57,11 @@ function isSubpageAvailable(subpage, show_advanced_prefs)
   if show_advanced_prefs == nil then
     show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
   end
-
+  tprint(info)
   if (subpage.hidden) or
      ((subpage.advanced) and (not show_advanced_prefs)) or
      ((subpage.pro_only) and (not ntop.isPro())) or
+     (subpage.enterprise_l_only and (not info["version.enterprise_l_edition"])) or
      ((subpage.enterprise_only) and (not info["version.enterprise_edition"]) and (not have_nedge)) or
      (subpage.nedge_hidden) and (have_nedge) then
     return false

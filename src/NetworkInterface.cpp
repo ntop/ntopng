@@ -148,6 +148,7 @@ NetworkInterface::NetworkInterface(const char *name,
   if(ntop->getPrefs()
      && ntop->getPro()->has_valid_license()
      && ntop->getPrefs()->isBehavourAnalysisEnabled()
+     && ntop->getPrefs()->is_enterprise_l_edition()
      && ifname
      && strcmp(ifname, SYSTEM_INTERFACE_NAME)
      ) {
