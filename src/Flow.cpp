@@ -1447,7 +1447,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
       if(cli_host
 	 && !(get_cli_ip_addr()->isBroadcastAddress()
 	      || get_cli_ip_addr()->isMulticastAddress()))
-	cli_host->setOS(operating_system, false);
+	cli_host->setOS(operating_system);
     }
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:

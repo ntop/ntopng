@@ -176,7 +176,7 @@ void LocalHost::deserialize(json_object *o) {
   if(json_object_object_get_ex(o, "last_stats_reset", &obj)) last_stats_reset = json_object_get_int64(obj);
 
   if(json_object_object_get_ex(o, "os_id", &obj))
-    setOS((OSType)json_object_get_int(obj), true);
+    inlineSetOS((OSType)json_object_get_int(obj));
 
   /* We commented the line below to avoid strings too long */
 #if 0

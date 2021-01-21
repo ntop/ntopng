@@ -26,7 +26,7 @@
 Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHashEntry(_iface),
 									   AlertableEntity(_iface, alert_entity_host) {
   ip.set(ipAddress);
-  initialize(NULL, _vlanId, true);
+  initialize(NULL, _vlanId);
 }
 
 /* *************************************** */
@@ -42,7 +42,7 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
 			       ip.print(buf, sizeof(buf)), ip.isBroadcastAddress() ? 1 : 0);
 #endif
 
-  initialize(_mac, _vlanId, true);
+  initialize(_mac, _vlanId);
 }
 
 /* *************************************** */
@@ -132,14 +132,14 @@ void Host::housekeepAlerts(ScriptPeriodicity p) {
 
 /* *************************************** */
 
-void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
+void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
   char buf[64];
 
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be changed by deserialize */
-  os = NULL;
+  os = NULL, os_type = os_unknown;
   prefs_loaded = false;
   host_services_bitmap = 0;
   mud_pref = mud_recording_default;
@@ -166,6 +166,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   memset(&names, 0, sizeof(names));
   asn = 0, asname = NULL;
   as = NULL, country = NULL;
+  os = NULL, os_type = os_unknown;
   reloadHostBlacklist();
   is_dhcp_host = false;
   is_in_broadcast_domain = false;
@@ -179,7 +180,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
   syn_recvd_last_min = synack_sent_last_min = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
 
-  if(init_all && ip.getVersion() /* IP is set */) {
+  if(ip.getVersion() /* IP is set */) {
     char country_name[64];
     
     if((as = iface->getAS(&ip, true /* Create if missing */, true /* Inline call */)) != NULL) {
@@ -193,6 +194,8 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId, bool init_all) {
     if((country = iface->getCountry(country_name, true /* Create if missing */, true /* Inline call */ )) != NULL)
       country->incUses();
   }
+
+  inlineSetOS(os_unknown);
 
   reloadHideFromTop();
   reloadDhcpHost();
@@ -885,6 +888,7 @@ bool Host::is_hash_entry_state_idle_transition_ready() const {
 
 void Host::periodic_stats_update(const struct timeval *tv) {
   Mac *cur_mac = getMac();
+  OSType cur_os_type = os_type, cur_os_from_fingerprint = os_unknown;
 
   checkReloadPrefs();
   checkNameReset();
@@ -892,10 +896,20 @@ void Host::periodic_stats_update(const struct timeval *tv) {
   checkStatsReset();
   checkBroadcastDomain();
 
-  /* OS detection */
-  if(os && (os->get_os_type() == os_unknown) && cur_mac && cur_mac->getFingerprint())
-    setOS(Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType()), 
-          true);
+  /* Update the pointer to the operating system according to what is specified in cur_os_type, if necessary */
+  if(!os
+     || os->get_os_type() != cur_os_type)
+    inlineSetOS(cur_os_type);
+
+  /*
+    Update  the operating system, according to what comes from the fingerprint, if necessary.
+    The actual pointer will be update above during the next call
+   */
+  if(cur_os_type == os_unknown
+     && cur_mac
+     && cur_mac->getFingerprint()
+     && (cur_os_from_fingerprint = Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType())) != cur_os_type)
+    setOS(cur_os_from_fingerprint);
 
   stats->updateStats(tv);
 
@@ -1470,6 +1484,51 @@ char* Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize) {
 
 /* *************************************** */
 
+/*
+  Private method, called periodically to update the OperatingSystem os pointer
+  to what is set in os_type by setters using setOS
+ */
+void Host::inlineSetOS(OSType _os) {
+  if(!os
+     || os->get_os_type() != _os) {
+    if(os) os->decUses();
+
+    if((os = iface->getOS(_os, true /* Create if missing */, true /* Inline call */)) != NULL)
+      os->incUses();
+  }
+}
+
+/* *************************************** */
+
+/*
+  Public method to set the operating system
+ */
+void Host::setOS(OSType _os) {
+  Mac *mac = getMac();
+
+  if(!mac || (mac->getDeviceType() != device_networking))
+    os_type = _os;
+}
+
+/* *************************************** */
+
+OSType Host::getOS() const {
+  return os_type;
+}
+
+/* *************************************** */
+
+void Host::incOSStats(time_t when, u_int16_t proto_id,
+		       u_int64_t sent_packets, u_int64_t sent_bytes,
+		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
+  OperatingSystem *cur_os = os; /* Cache the pointer as it can change (similar to what is done for MAC addresses) */
+
+  if(cur_os)
+    cur_os->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
+}
+
+/* *************************************** */
+
 char* Host::get_tskey(char *buf, size_t bufsize) {
   char *k;
   Mac *cur_mac = getMac(); /* Cache macs as they can be swapped/updated */
@@ -1480,38 +1539,4 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
     k = get_hostkey(buf, bufsize);
   
   return(k);
-}
-
-/* *************************************** */
-
-void Host::setOS(OSType _os, bool is_inline_call) {
-  Mac *mac = getMac();
-
-  if(!mac || (mac->getDeviceType() != device_networking)) {
-    if(!os || os->get_os_type() != _os) {
-      if(os) os->decUses();
-
-      if((os = iface->getOS(_os, true /* Create if missing */, is_inline_call /* Inline call */)) != NULL)
-        os->incUses();
-    }
-  }
-}
-
-/* *************************************** */
-
-OSType Host::getOS() const {
-  Mac *mac = getMac();
-
-  if(!mac || (mac->getDeviceType() != device_networking))
-    return(os ? os->get_os_type() : os_unknown);
-
-  return(os_unknown);
-}
-
-
-void Host::incOSStats(time_t when, u_int16_t proto_id,
-		       u_int64_t sent_packets, u_int64_t sent_bytes,
-		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes) {
-  if(os)
-    os->incStats(when, proto_id, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
 }

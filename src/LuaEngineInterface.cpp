@@ -1748,7 +1748,7 @@ static int ntop_set_host_operating_system(lua_State* vm) {
 #endif
 
   if(ntop_interface && host && os < os_max_os && os != os_unknown)
-    host->setOS(os, false);
+    host->setOS(os);
 
   lua_pushnil(vm);
 

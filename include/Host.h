@@ -63,9 +63,11 @@ class Host : public GenericHashEntry, public AlertableEntity {
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
   AutonomousSystem *as;
-  OperatingSystem *os;
   Country *country;
   Vlan *vlan;
+
+  OperatingSystem *os; /* Pointer to an instance of operating system, used internally to handle operating system statistics    */
+  OSType os_type;      /* Operating system type, equivalent to os->get_os_type(), used by operating system setters and getters */
 
   Mutex m;
   u_int32_t mac_last_seen;
@@ -80,7 +82,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool is_in_broadcast_domain;
   bool is_dhcp_host;
 
-  void initialize(Mac *_mac, u_int16_t _vlan_id, bool init_all);
+  void initialize(Mac *_mac, u_int16_t _vlan_id);
+  void inlineSetOS(OSType _os);
   bool statsResetRequested();
   void checkStatsReset();
 #ifdef NTOPNG_PRO
@@ -387,7 +390,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
   u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
 
-  void setOS(OSType _os, bool is_inline_call);
+  void setOS(OSType _os);
   OSType getOS() const;
   void incOSStats(time_t when, u_int16_t proto_id,
 		       u_int64_t sent_packets, u_int64_t sent_bytes,
