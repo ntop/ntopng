@@ -60,29 +60,3 @@ OperatingSystem* OperatingSystemHash::get(OSType os_type, bool is_inline_call) {
     return(head);
   }
 }
-
-/* ************************************ */
-
-#ifdef AS_DEBUG
-
-static bool print_oses(GenericHashEntry *_as, void *user_data) {
-  OperatingSystem *as = (OperatingSystem*)_as;
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Operating System [os: %u] [num_uses: %u]",
-			       as->get_os(),
-			       os->getNumHosts());
-  
-  return(false); /* false = keep on walking */
-}
-
-/* ************************************ */
-
-void OperatingSystemHash::printHash() {
-  disablePurge();
-
-  walk(print_oses, NULL);
-  
-  enablePurge();
-}
-
-#endif

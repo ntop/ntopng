@@ -29,7 +29,6 @@
 class OperatingSystem : public GenericHashEntry, public GenericTrafficElement, public SerializableElement {
  private:
   OSType os_type;
-  u_int32_t round_trip_time;
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  {
     if(first_seen == 0) first_seen = t,
@@ -61,7 +60,6 @@ class OperatingSystem : public GenericHashEntry, public GenericTrafficElement, p
     incRcvdStats(when, rcvd_packets, rcvd_bytes);
   }
 
-  void updateRoundTripTime(u_int32_t rtt_msecs);
   void lua(lua_State* vm, DetailsLevel details_level, bool asListElement);
 
   inline void deserialize(json_object *obj) {

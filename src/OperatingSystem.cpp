@@ -27,7 +27,6 @@
 
 OperatingSystem::OperatingSystem(NetworkInterface *_iface, OSType _os_type) 
                 : GenericHashEntry(_iface), GenericTrafficElement() {
-  round_trip_time = 0;
   os_type = _os_type;
 
 #ifdef AS_DEBUG
@@ -56,28 +55,6 @@ OperatingSystem::~OperatingSystem() {
 
 /* *************************************** */
 
-void OperatingSystem::updateRoundTripTime(u_int32_t rtt_msecs) {
-  /* EWMA formula is EWMA(n) = (alpha_percent * sample + (100 - alpha_percent) * EWMA(n-1)) / 100
-
-     We read the EWMA alpha_percent from the preferences
-  */
-  u_int8_t ewma_alpha_percent = ntop->getPrefs()->get_ewma_alpha_percent();
-
-#ifdef AS_RTT_DEBUG
-  u_int32_t old_rtt = round_trip_time;
-#endif
-  if(round_trip_time)
-    Utils::update_ewma(rtt_msecs, &round_trip_time, ewma_alpha_percent);
-  else
-    round_trip_time = rtt_msecs;
-#ifdef AS_RTT_DEBUG
-  printf("Updating rtt EWMA: [os: %u][sample msecs: %u][old rtt: %u][new rtt: %u][alpha percent: %u]\n",
-	 os_type, rtt_msecs, old_rtt, round_trip_time, ewma_alpha_percent);
-#endif
-}
-
-/* *************************************** */
-
 void OperatingSystem::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
   lua_newtable(vm);
 
@@ -94,7 +71,6 @@ void OperatingSystem::lua(lua_State* vm, DetailsLevel details_level, bool asList
     lua_push_uint64_table_entry(vm, "duration", get_duration());
 
     lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
-    lua_push_uint64_table_entry(vm, "round_trip_time", round_trip_time);
 
     if(details_level >= details_higher) {
       if(ndpiStats) ndpiStats->lua(iface, vm);

@@ -1620,49 +1620,6 @@ static int ntop_add_macs_ip_addresses(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_grouped_interface_hosts(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  bool show_details = true;
-  char *country = NULL;
-  OSType os_filter = os_any;
-  char *groupBy = (char*)"column_ip";
-  bool filtered_hosts = false;
-  u_int16_t vlan_filter = (u_int16_t)-1;
-  u_int32_t asn_filter = (u_int32_t)-1;
-  u_int16_t pool_filter = (u_int16_t)-1;
-  u_int8_t ipver_filter = (u_int8_t)-1;
-  int16_t network_filter = -2;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(lua_type(vm, 1) == LUA_TBOOLEAN) show_details = lua_toboolean(vm, 1) ? true : false;
-  if(lua_type(vm, 2) == LUA_TSTRING)  groupBy    = (char*)lua_tostring(vm, 2);
-  if(lua_type(vm, 3) == LUA_TSTRING)  country = (char*)lua_tostring(vm, 3);
-  if(lua_type(vm, 4) == LUA_TNUMBER)  os_filter      = (OSType)lua_tointeger(vm, 4);
-  if(lua_type(vm, 5) == LUA_TNUMBER)  vlan_filter    = (u_int16_t)lua_tonumber(vm, 5);
-  if(lua_type(vm, 6) == LUA_TNUMBER)  asn_filter     = (u_int32_t)lua_tonumber(vm, 6);
-  if(lua_type(vm, 7) == LUA_TNUMBER)  network_filter = (int16_t)lua_tonumber(vm, 7);
-  if(lua_type(vm, 8) == LUA_TNUMBER)  pool_filter    = (u_int16_t)lua_tonumber(vm, 8);
-  if(lua_type(vm, 9) == LUA_TNUMBER)  ipver_filter   = (u_int8_t)lua_tonumber(vm, 9);
-
-  if((!ntop_interface)
-     || ntop_interface->getActiveHostsGroup(vm,
-					    &begin_slot, walk_all,
-					    get_allowed_nets(vm),
-					    show_details, location_all,
-					    country,
-					    vlan_filter, os_filter,
-					    asn_filter, network_filter,
-					    pool_filter, filtered_hosts, ipver_filter, groupBy) < 0)
-    return(CONST_LUA_ERROR);
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static u_int8_t str_2_location(const char *s) {
   if(! strcmp(s, "lan")) return located_on_lan_interface;
   else if(! strcmp(s, "wan")) return located_on_wan_interface;
@@ -2365,38 +2322,6 @@ static int ntop_get_interface_host_country(lua_State* vm) {
     return(CONST_LUA_OK);
   }
 }
-
-/* ****************************************** */
-#ifdef NOTUSED
-static int ntop_get_grouped_interface_host(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *country_s = NULL, *os_s = NULL;
-  u_int16_t vlan_n,    *vlan_ptr    = NULL;
-  u_int32_t as_n,      *as_ptr      = NULL;
-  int16_t   network_n, *network_ptr = NULL;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(lua_type(vm, 1) == LUA_TNUMBER) vlan_n    = (u_int16_t)lua_tonumber(vm, 1), vlan_ptr  = &vlan_n;
-  if(lua_type(vm, 2) == LUA_TNUMBER) as_n      = (u_int32_t)lua_tonumber(vm, 2), as_ptr    = &as_n;
-  if(lua_type(vm, 3) == LUA_TNUMBER) network_n = (int16_t)lua_tonumber(vm, 3), network_ptr = &network_n;
-  if(lua_type(vm, 4) == LUA_TSTRING) country_s = (char*)lua_tostring(vm, 4);
-  if(lua_type(vm, 5) == LUA_TSTRING) os_s      = (char*)lua_tostring(vm, 5);
-
-  if(!ntop_interface
-     || ntop_interface->getActiveHostsGroup(vm,
-					    &begin_slot, walk_all,
-					    get_allowed_nets(vm), false, false,
-					    country_s, vlan_ptr, os_s, as_ptr,
-					    network_ptr, (char*)"column_ip", (char*)"country",
-					    CONST_MAX_NUM_HITS, 0 /* toSkip */, true /* a2zSortOrder */) < 0)
-    return(CONST_LUA_ERROR);
-
-  return(CONST_LUA_OK);
-}
-#endif
 
 /* ****************************************** */
 
@@ -4443,7 +4368,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getHostInfo",              ntop_get_interface_host_info },
   { "getHostName",              ntop_get_interface_host_visual_name },
   { "getHostCountry",           ntop_get_interface_host_country },
-  { "getGroupedHosts",          ntop_get_grouped_interface_hosts },
   { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },
   { "getNetworksStats",         ntop_get_interface_networks_stats       },
   { "getNetworkStats",          ntop_get_interface_network_stats        },

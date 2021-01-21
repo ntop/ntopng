@@ -32,10 +32,6 @@ class OperatingSystemHash : public GenericHash {
   OperatingSystemHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
   OperatingSystem* get(OSType os, bool is_inline_call);
-
-#ifdef AS_DEBUG
-  void printHash();
-#endif
 };
 
 #endif /* _AUTONOMOUS_SYSTEM_HASH_H_ */

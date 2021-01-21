@@ -622,16 +622,6 @@ class NetworkInterface : public AlertableEntity {
 			 const AddressTree * const cidr_filter,
 			 char *sortColumn, u_int32_t maxHits,
 			 u_int32_t toSkip, bool a2zSortOrder);
-  int getActiveHostsGroup(lua_State* vm,
-			  u_int32_t *begin_slot,
-			  bool walk_all,
-			  AddressTree *allowed_hosts,
-			  bool host_details, LocationPolicy location,
-			  char *countryFilter,
-			  u_int16_t vlan_id, OSType osFilter,
-			  u_int32_t asnFilter, int16_t networkFilter,
-			  u_int16_t pool_filter, bool filtered_hosts, u_int8_t ipver_filter,
-			  char *groupColumn);
   int getActiveASList(lua_State* vm, const Paginator *p);
   int getActiveOSList(lua_State* vm, const Paginator *p);
   int getActiveCountriesList(lua_State* vm, const Paginator *p);
