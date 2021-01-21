@@ -204,7 +204,7 @@ print ([[
 				</ul>
 				</div>
 				</div>
-				<div style='height: 75vh'>
+				<div style='height: 60vh'>
 				<canvas id="canvas"></canvas>
 				</div>
 			</div>
