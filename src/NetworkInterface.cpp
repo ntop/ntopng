@@ -8347,6 +8347,32 @@ void NetworkInterface::luaAlertedFlows(lua_State* vm) {
 
 /* *************************************** */
 
+void NetworkInterface::luaPeriodicityFilteringMenu(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  if(pMap) {
+    pMap->luaFilteringMenu(vm, this);
+    return;
+  }
+#endif
+
+  lua_pushnil(vm);
+}
+
+/* *************************************** */
+
+void NetworkInterface::luaServiceFilteringMenu(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  if(sMap) {
+    sMap->luaFilteringMenu(vm, this);
+    return;
+  }
+#endif
+
+  lua_pushnil(vm);
+}
+
+/* *************************************** */
+
 void NetworkInterface::luaPeriodicityStats(lua_State* vm, IpAddress *ip_address,
 				     u_int16_t vlan_id, u_int16_t host_pool_id, bool unicast,
              u_int32_t first_seen, u_int16_t filter_ndpi_proto) {

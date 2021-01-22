@@ -589,6 +589,8 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void lua(lua_State* vm);
   void luaAlertedFlows(lua_State* vm);
+  void luaPeriodicityFilteringMenu(lua_State* vm);
+  void luaServiceFilteringMenu(lua_State* vm);
   void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address, u_int16_t vlan_id, u_int16_t host_pool_id, 
                             bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto);
   void luaServiceMap(lua_State* vm, IpAddress *ip_address, u_int16_t vlan_id, u_int16_t host_pool_id, 

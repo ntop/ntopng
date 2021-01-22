@@ -4194,6 +4194,44 @@ static int ntop_interface_service_map_learning_status(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_periodicity_proto_filtering_menu(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+#endif
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  if(ntop_interface)
+    ntop_interface->luaPeriodicityFilteringMenu(vm);
+  else
+    lua_pushnil(vm);
+#endif
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_service_proto_filtering_menu(lua_State* vm) {
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+#endif
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  if(ntop_interface)
+    ntop_interface->luaServiceFilteringMenu(vm);
+  else
+    lua_pushnil(vm);
+#endif
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_address_info(lua_State* vm) {
   char *addr;
   IpAddress ip;
@@ -4438,6 +4476,8 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "serviceMapLearningStatus",         ntop_interface_service_map_learning_status },
   { "serviceMapSetStatus",              ntop_interface_service_map_set_status },
   { "serviceMapSetMultipleStatus",      ntop_interface_service_map_set_multiple_status },
+  { "periodicityFilteringMenu",         ntop_get_interface_periodicity_proto_filtering_menu },
+  { "serviceFilteringMenu",             ntop_get_interface_service_proto_filtering_menu },
 
   /* Addresses */
   { "getAddressInfo",                   ntop_get_address_info },
