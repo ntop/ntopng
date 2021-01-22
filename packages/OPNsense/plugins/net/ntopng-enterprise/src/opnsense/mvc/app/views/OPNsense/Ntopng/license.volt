@@ -96,6 +96,8 @@ POSSIBILITY OF SUCH DAMAGE.
             <div class="col-md-12">
                 <hr />
                 <button class="btn btn-primary" id="saveAct" type="button"><b>{{ lang._('Save') }}</b> <i id="saveAct_progress"></i></button>
+	        <hr />
+		<span id='shopLinkBox'></span>
             </div>
         </div>
     </div>
@@ -108,10 +110,20 @@ function updateLicenseInfo() {
 	let systemid = data['systemid'].trim();
 	let license = data['license'].trim();
 	let maintenance = data['maintenance'].trim();
+
+	if (version !== '' && systemid !== '') {
+            $("#shopLinkBox").html("").html("Go to the " +
+	    "<a href='https://shop.ntop.org' target='_blank'>e-shop</a>" +
+	    " to purchase a license, then go to the " +
+	    "<a href='https://shop.ntop.org/mkntopng/?systemid=" + systemid + "&version=" + version + "&edition=enterprise' target='_blank'>license generator</a>" +
+	    " to generate an Enterprise license.");
+	}
+
 	if (version === '') version = 'Unable to read the ntopng version';
 	if (systemid === '') systemid = 'Unable to read the System ID';
 	if (license === '') license = 'Not found';
 	if (maintenance === '') maintenance = '-';
+
         $("#versionBox").html(version);
         $("#systemidBox").html(systemid);
         $("#licenseBox").html(license);
