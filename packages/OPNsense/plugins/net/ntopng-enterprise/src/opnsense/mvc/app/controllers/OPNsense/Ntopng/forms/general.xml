@@ -20,15 +20,9 @@
     </field>
     <field>
         <id>general.httpport</id>
-        <label>HTTP Port</label>
+        <label>HTTP(S) Port</label>
         <type>text</type>
-        <help>HTTP Port this service listens on.</help>
-    </field>
-    <field>
-        <id>general.httpsport</id>
-        <label>HTTPS Port</label>
-        <type>text</type>
-        <help>HTTPS Port this service listens on. If you enable HTTPS you will be redirected from HTTP to HTTPS. Please select a certificate below</help>
+        <help>HTTP port this service listens on. To enable HTTPS on this port please select a certificate below.</help>
     </field>
     <field>
         <id>general.cert</id>

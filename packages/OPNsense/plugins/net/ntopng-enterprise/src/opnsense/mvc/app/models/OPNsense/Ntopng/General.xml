@@ -19,26 +19,9 @@
             <Required>Y</Required>
             <default>3000</default>
         </httpport>
-        <httpsport type="PortField">
-            <Required>N</Required>
-            <Constraints>
-                <check001>
-                    <ValidationMessage>Please select a HTTPS port and a valid certificate</ValidationMessage>
-                    <type>AllOrNoneConstraint</type>
-                    <addFields>
-                        <field1>cert</field1>
-                    </addFields>
-                </check001>
-            </Constraints>
-        </httpsport>
         <cert type="CertificateField">
             <Type>cert</Type>
             <Required>N</Required>
-            <Constraints>
-                <check001>
-                    <reference>httpsport.check001</reference>
-                </check001>
-            </Constraints>
         </cert>
         <dnsmode type="OptionField">
             <Required>N</Required>

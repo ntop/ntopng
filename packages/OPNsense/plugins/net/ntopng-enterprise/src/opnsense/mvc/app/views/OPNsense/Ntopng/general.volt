@@ -56,12 +56,15 @@ POSSIBILITY OF SUCH DAMAGE.
 </div>
 
 <script>
+let http_prefix = "http://";
 let hostname = '';
 let port = 3000;
 
 function updateNtopngURL() {
   port = document.getElementById("general.httpport").value;
-  let ntopng_url = 'http://' + hostname + ':' + port;
+  let cert = document.getElementById("general.cert").value.trim();
+  if (cert !== '') http_prefix = "https://";
+  let ntopng_url = http_prefix + hostname + ':' + port;
   $("#ntopngLinkBox").html("").html("Once ntopng is running <a href='" + ntopng_url + "' target='_blank'>click here to open the Web Interface</a>.");
 }
 
