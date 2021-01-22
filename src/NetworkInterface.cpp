@@ -144,20 +144,6 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
-  #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  if(ntop->getPrefs()
-     && ntop->getPro()->has_valid_license()
-     && ntop->getPrefs()->isBehavourAnalysisEnabled()
-     && ntop->getPrefs()->is_enterprise_l_edition()
-     && ifname
-     && strcmp(ifname, SYSTEM_INTERFACE_NAME)
-     ) {
-    pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
-    sMap = new (std::nothrow) ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
-  } else
-    pMap = NULL, sMap = NULL;
-#endif
-
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
       flowDumpLoopCreated = false, hookLoopCreated = false, bridge_interface = false;
@@ -6404,6 +6390,21 @@ void NetworkInterface::allocateStructures() {
       oom_warning_sent = true;
     }
   }
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  if(ntop->getPrefs()
+     && ntop->getPro()->has_valid_license()
+     && ntop->getPrefs()->isBehavourAnalysisEnabled()
+     && ntop->getPrefs()->is_enterprise_l_edition()
+     && ifname
+     && strcmp(ifname, SYSTEM_INTERFACE_NAME)
+     && !isViewed() /* Skip for viewed interface, only store service maps in the view to save memory */
+     ) {
+    pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
+    sMap = new (std::nothrow) ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
+  } else
+    pMap = NULL, sMap = NULL;
+#endif
 
   // Keep format in sync with alerts_api.interfaceAlertEntity(ifid)
   snprintf(buf, sizeof(buf), "%d", get_id());
