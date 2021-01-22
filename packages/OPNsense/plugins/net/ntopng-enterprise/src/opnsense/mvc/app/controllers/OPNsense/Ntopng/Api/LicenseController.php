@@ -59,6 +59,11 @@ class LicenseController extends ApiMutableModelControllerBase
                 array("systemid")
             );
 
+	    $edition = $backend->configdpRun(
+                "ntopng",
+                array("edition")
+	    );
+
 	    $license_status = $backend->configdpRun(
                 "ntopng",
                 array("license")
@@ -72,6 +77,7 @@ class LicenseController extends ApiMutableModelControllerBase
             return array(
 	        "version" => $version,
 	        "systemid" => $system_id,
+	        "edition" => $edition,
 	        "license" => $license_status,
 	        "maintenance" => $maintenance
 	    );

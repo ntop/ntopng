@@ -71,6 +71,17 @@ POSSIBILITY OF SUCH DAMAGE.
                     <tr>
                         <td>
                             <div class="control-label">
+                                <b>{{ lang._('Edition') }}</b>
+                            </div>
+                        </td>
+                        <td>
+				<span id="editionBox"></span>
+                        </td>
+			<td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="control-label">
                                 <b>{{ lang._('License Status') }}</b>
                             </div>
                         </td>
@@ -108,6 +119,7 @@ function updateLicenseInfo() {
     ajaxCall(url="/api/ntopng/license/info", sendData={}, callback=function(data, status) {
         let version = data['version'].trim();
 	let systemid = data['systemid'].trim();
+	let edition = data['edition'].trim();
 	let license = data['license'].trim();
 	let maintenance = data['maintenance'].trim();
 
@@ -126,6 +138,7 @@ function updateLicenseInfo() {
 
         $("#versionBox").html(version);
         $("#systemidBox").html(systemid);
+        $("#editionBox").html(edition);
         $("#licenseBox").html(license);
         $("#maintenanceBox").html(maintenance);
     });
