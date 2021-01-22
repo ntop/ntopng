@@ -1,7 +1,9 @@
 /**
- * (C) 2020 - ntop.org
- * Script used by the Service and Periodicity Map.
+ * (C) 2020-21 - ntop.org
+ * Script used by the network inside the Service/Periodicity Map.
  */
+
+let network;
 let updateViewStateId;
 let highlightActive = false;
 let nodesDataset = [];
@@ -14,24 +16,7 @@ if (MAP === undefined) {
     console.error("The MAP constant is not defined!");
 }
 
-function saveTopologyView(network) {
-
-    // get all nodes position
-    const positions = network.getPositions(data.nodes.map(x => x.id));
-
-    // save the nodes position, the network scale and the network view position
-    const info = {
-        positions: positions,
-        network: {
-            scale: network.getScale(),
-            position: network.getViewPosition()
-        }
-    };
-
-    $.post(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, { JSON: JSON.stringify(info), csrf: VIEW_CSRF, map: MAP, action: 'save_view' });
-}
-
-const options = { 
+const defaultOptions = { 
     autoResize: true, 
     nodes: { 
         shape: "dot", 
@@ -62,15 +47,32 @@ const options = {
         barnesHut: {
             springConstant: 0,
             avoidOverlap: 0.3,
-            gravitationalConstant: -500,
+            gravitationalConstant: -1000,
             damping: 0.65,
             centralGravity: 0
         },
         stabilization: {
-            onlyDynamicEdges: true
+            onlyDynamicEdges: false
         }
     }
 };
+
+function saveTopologyView(network) {
+
+    // get all nodes position
+    const positions = network.getPositions(data.nodes.map(x => x.id));
+
+    // save the nodes position, the network scale and the network view position
+    const info = {
+        positions: positions,
+        network: {
+            scale: network.getScale(),
+            position: network.getViewPosition()
+        }
+    };
+
+    $.post(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, { JSON: JSON.stringify(info), csrf: VIEW_CSRF, map: MAP, action: 'save_view' });
+}
 
 function setEventListenersNetwork(network) {
 
@@ -123,14 +125,15 @@ function setEventListenersNetwork(network) {
 
     network.on("dragEnd", function(e) {
 
-        if (SAVE_TIMEOUT !== undefined) {
+        if (updateViewStateId !== undefined) {
             clearTimeout(updateViewStateId);
         }
+
         saveTopologyView(network);
     });
 }
 
-function loadGraph(container, options) {
+function loadGraph(container) {
 
     const dataRequest = { action: 'load_graph', map: MAP};
     // if an host has been defined inside the URL query then add it to the request
@@ -159,8 +162,33 @@ function loadGraph(container, options) {
         edgesDataset = new vis.DataSet(edges);
         const datasets = {nodes: nodesDataset, edges: edgesDataset};
 
-        network = new vis.Network(container, datasets, options);
+        network = new vis.Network(container, datasets, defaultOptions);
         saveTopologyView(network);
         setEventListenersNetwork(network);
     });
 }
+
+function stabilizeNetwork(network) {
+    
+    if (network === undefined) {
+        console.error("The network is undefined!");
+        return;
+    }
+
+    if (!(network instanceof vis.Network)) {
+        console.error("Not a vis.Network instance!");
+        return;
+    }
+
+    network.stabilize(1000);
+
+    setTimeout(() => {
+        saveTopologyView(network);
+    }, 1000);
+
+    $(`#autolayout-modal`).modal('hide');
+}
+
+$(document).ready(function() {
+    $(`button[data-toggle="tooltip"]`).tooltip();
+});
