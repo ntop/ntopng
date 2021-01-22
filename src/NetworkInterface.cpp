@@ -8343,10 +8343,11 @@ void NetworkInterface::luaAlertedFlows(lua_State* vm) {
 /* *************************************** */
 
 void NetworkInterface::luaPeriodicityStats(lua_State* vm, IpAddress *ip_address,
-				     u_int16_t vlan_id, u_int16_t host_pool_id, bool unicast) {
+				     u_int16_t vlan_id, u_int16_t host_pool_id, bool unicast,
+             u_int32_t first_seen, u_int16_t filter_ndpi_proto) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(pMap) {
-    pMap->lua(vm, true, this, ip_address, vlan_id, host_pool_id, unicast);
+    pMap->lua(vm, true, this, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen);
     return;
   }
 #endif
@@ -8357,10 +8358,11 @@ void NetworkInterface::luaPeriodicityStats(lua_State* vm, IpAddress *ip_address,
 /* *************************************** */
 
 void NetworkInterface::luaServiceMap(lua_State* vm, IpAddress *ip_address,
-				     u_int16_t vlan_id, u_int16_t host_pool_id, bool unicast) {
+				     u_int16_t vlan_id, u_int16_t host_pool_id, bool unicast,
+             u_int32_t first_seen, u_int16_t filter_ndpi_proto) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   if(sMap) {    
-    sMap->lua(vm, false, this, ip_address, vlan_id, host_pool_id, unicast);
+    sMap->lua(vm, false, this, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen);
     return;
   }
 #endif
