@@ -836,7 +836,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot,
 
 Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
 				u_int16_t vlan_id,  u_int32_t deviceIP,
-				u_int16_t inIndex,  u_int16_t outIndex,
+				u_int32_t inIndex,  u_int32_t outIndex,
 				const ICMPinfo * const icmp_info,
   				IpAddress *src_ip,  IpAddress *dst_ip,
   				u_int16_t src_port, u_int16_t dst_port,
@@ -3604,7 +3604,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   char* username_filter;
   char* pidname_filter;
   u_int32_t deviceIP = 0;
-  u_int16_t inIndex, outIndex;
+  u_int32_t inIndex, outIndex;
   u_int8_t icmp_type, icmp_code;
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE

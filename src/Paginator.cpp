@@ -60,7 +60,7 @@ Paginator::Paginator() {
   flow_status_severity_filter = alert_level_group_none;
 
   deviceIP = 0;
-  inIndex = outIndex = (u_int16_t)-1;
+  inIndex = outIndex = (u_int32_t)-1;
   asn_filter = (u_int32_t)-1;
 
   icmp_type = u_int8_t(-1);
