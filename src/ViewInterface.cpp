@@ -445,11 +445,20 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
       /* Important: findFlowHosts can allocate new hosts. The first_partial condition
        * is used to call `incNumFlows` and `incUses` on the hosts below, so it is essential that
        * findFlowHosts is called only when first_partial is true. */
-      if(first_partial)
+      if(first_partial) {
 	findFlowHosts(f->get_vlan_id(),
 		      NULL /* no src mac yet */, (IpAddress*)cli_ip, &cli_host,
 		      NULL /* no dst mac yet */, (IpAddress*)srv_ip, &srv_host);
-      else {
+
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+	/*
+	  For view interfaces, service and periodicity maps need to be updated there,
+	  only the first time a flow is seen.
+	 */
+	updateFlowPeriodicity(f);
+	updateServiceMap(f);
+#endif
+      } else {
 	/* The unsafe pointers can be used here as ViewInterface::viewed_flows_walker is
 	 * called synchronously with the ViewInterface purgeIdle. This also saves some
 	 * unnecessary hash table lookup time. */
