@@ -36,7 +36,7 @@ class ParsedFlowCore {
   u_int32_t device_ip;
   struct ndpi_in6_addr device_ipv6;
   u_int16_t src_port, dst_port;
-  u_int16_t inIndex, outIndex;
+  u_int32_t inIndex, outIndex;
   ndpi_proto l7_proto;
   u_int16_t vlan_id, pkt_sampling_rate;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes, vrfId;

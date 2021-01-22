@@ -42,7 +42,7 @@ class Paginator {
   int8_t unicast_traffic, unidirectional_traffic, alerted_flows, filtered_flows;
   u_int32_t asn_filter;
   u_int32_t deviceIP;
-  u_int16_t inIndex, outIndex;
+  u_int32_t inIndex, outIndex;
   u_int16_t pool_filter, flow_status_filter;
   AlertLevelGroup flow_status_severity_filter;
   u_int8_t *mac_filter, icmp_type, icmp_code;
@@ -127,12 +127,12 @@ class Paginator {
     if(deviceIP) { (*f) = deviceIP; return true; } return false;
   }
 
-  inline bool inIndexFilter(u_int16_t *f) const {
-    if(inIndex != (u_int16_t)-1) { (*f) = inIndex; return true; } return false;
+  inline bool inIndexFilter(u_int32_t *f) const {
+    if(inIndex != (u_int32_t)-1) { (*f) = inIndex; return true; } return false;
   }
 
-  inline bool outIndexFilter(u_int16_t *f) const {
-    if(outIndex != (u_int16_t)-1) { (*f) = outIndex; return true; } return false;
+  inline bool outIndexFilter(u_int32_t *f) const {
+    if(outIndex != (u_int32_t)-1) { (*f) = outIndex; return true; } return false;
   }
 
   inline bool poolFilter(u_int16_t *f) const {
