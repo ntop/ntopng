@@ -1338,12 +1338,12 @@ void Host::serialize_geocoordinates(ndpi_serializer *s, const char *prefix) {
 
   if(longitude) {
     snprintf(buf, sizeof(buf), "%s_location_lon", prefix);
-    ndpi_serialize_string_float(s, buf, longitude, "%.f");
+    ndpi_serialize_string_float(s, buf, longitude, "%f");
   }
 
   if(latitude) {
     snprintf(buf, sizeof(buf), "%s_location_lat", prefix);
-    ndpi_serialize_string_float(s, buf, latitude, "%.f");
+    ndpi_serialize_string_float(s, buf, latitude, "%f");
   }
 
   ntop->getGeolocation()->freeInfo(&continent, &country, &city);  
