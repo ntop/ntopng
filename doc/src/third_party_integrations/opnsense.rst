@@ -41,7 +41,9 @@ Plugin Installation
 
    Plugins installation in OPNsense requires you to log in as administrator.
 
-Go to the *System* > *Firmware* > *Plugins* page and click on the *Check for updates*.
+Point the browser to the OPNsense management page, go to the *System* > *Firmware* > *Plugins* page,
+and click on the *Check for updates*.
+
 
 .. figure:: ../img/opnsense_check_for_updates.png
   :align: center
@@ -49,13 +51,10 @@ Go to the *System* > *Firmware* > *Plugins* page and click on the *Check for upd
 
   Plugins - Check For Updates
 
-
 The *os-ntopng-enterprise* plugin should appear in the list, in addition to the built-in
 *os-ntopng* plugin, which does not provide enhanced and Enterprise features (please make
 sure you remove it in case the latter is already installed).
 
-Install both *os-ntopng-enterprise* and the *os-redis* (which is a requirement) plugins by
-clicking on the *+* symbol.
 
 .. figure:: ../img/opnsense_plugins_installed.png
   :align: center
@@ -63,21 +62,48 @@ clicking on the *+* symbol.
 
   ntopng and Redis Plugins Installation
 
-License Configuration
-=====================
+Install plugin *os-ntopng-enterprise*, then install plugin *os-redis* (which is a requirement) by
+clicking on the *+* symbol.
+
+.. warning::
+
+  The installation log of *os-ntopng-enterprise* may ask to execute commands to start and enable :code:`redis`.
+  Ignore those commands as :code:`redis` will be managed from its plugin *os-redis*.
+
+
+To configure the *os-redis* plugin, go to *Services* > *Redis*, select *Enable Redis* and click *Apply*.
+
+
+.. figure:: ../img/opnsense_redis_enable.png
+  :align: center
+  :alt: Redis Configuration
+
+  Redis Configuration
+
+Plugin *os-ntopng-enterprise* configuration is shown in the following section.
+
+
+ntopng Configuration
+====================
+
+License
+-------
 
 .. note::
 
    ntopng Community Edition is free of charge and does not require a license.
 
-Go to *Services* > *ntopng Enterprise* > *Settings* > *License* to get all the information required
-by the license generator (*Version* and *System ID*).
+To run a licensed version of ntopng, a license key needs to be generated. To generate a license
+key, ntopng *Version* and *System ID* are required. To obtain this information go to
+*Services* > *ntopng Enterprise* > *Settings* > *License*.
 
 .. figure:: ../img/opnsense_ntopng_info.png
   :align: center
   :alt: ntopng Info
 
   ntopng Info
+
+The link at the bottom of the page can be followed to generate the license key.
 
 The license can be installed through the same page by pasting it in the *License Key*
 box and saving the configuration. The service should be restarted in the *General* page.
@@ -86,14 +112,14 @@ Please note that ntopng runs by default as Enterprise in demo mode. In order to 
 ntopng in Community mode please check the *Community Mode* flag, save the configuration
 and restart the service through the *General* page.
 
-ntopng Configuration
-====================
+Service
+-------
 
 Going to *Services* > *ntopng Enterprise* > *Settings* > *General* it is possible to configure
 the ntopng service. A basic configuration usually includes the below steps:
 
   1. Enable the service by checking *Enable ntopng*
-  2. Configure a port and select a *Certificate* for enabling HTTPS support for the GUI
+  2. Configure a port and select a *Certificate* to run the GUI in HTTPS-only mode
 
 .. figure:: ../img/opnsense_ntopng_conf.png
   :align: center
