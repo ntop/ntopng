@@ -144,6 +144,10 @@ NetworkInterface::NetworkInterface(const char *name,
     }
   }
 
+#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+  pMap = NULL, sMap = NULL;
+#endif
+
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
       flowDumpLoopCreated = false, hookLoopCreated = false, bridge_interface = false;
