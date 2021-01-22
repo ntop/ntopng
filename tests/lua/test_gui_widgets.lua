@@ -47,8 +47,13 @@ print([[
             </ntop-widget>
         </div>
         <div class='col-6'>
-            <ntop-widget id='second-widget' display='none' type="donut" update="5000" height='30rem'>
+            <ntop-widget id='second-widget' type="radar" update="5000" width='100%' height='25rem'>
+                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
+                    Radar (Interface/Packet Distro)
+                </h3>
                 <ntop-datasource src="interface_packet_distro?ifid=0"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=15"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
@@ -57,7 +62,7 @@ print([[
                     Stacked Bar Chart (Interface/Packet Distro)
                 </h3>
                 <ntop-datasource src="interface_packet_distro?ifid=0"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=3"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
@@ -66,7 +71,7 @@ print([[
                     Line + 2xBars (Interface/Packet Distro)
                 </h3>
                 <ntop-datasource src="interface_packet_distro?ifid=0" type="line" styling='{"fill": false}'></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=3" type="bar"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=9" type="bar"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
@@ -75,7 +80,7 @@ print([[
                     3x Lines (No Fill, 2xFills) (Interface/Packet Distro)
                 </h3>
                 <ntop-datasource src="interface_packet_distro?ifid=0" type="line" styling='{"fill": false}'></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=3" type="line"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=9" type="line"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
@@ -84,7 +89,7 @@ print([[
                     Scatter (Interface/Packet Distro)
                 </h3>
                 <ntop-datasource src="interface_packet_distro?ifid=0" type="scatter"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=3" type="scatter"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=9" type="scatter"></ntop-datasource>
 
             </ntop-widget>
         </div>
