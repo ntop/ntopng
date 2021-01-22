@@ -2112,7 +2112,8 @@ void ZMQParserInterface::lua(lua_State* vm) {
       lua_push_str_table_entry(vm, "probe.probe_version", zrs->remote_probe_version);
     if(zrs->remote_probe_os[0] != '\0')
       lua_push_str_table_entry(vm, "probe.probe_os", zrs->remote_probe_os);
-    lua_push_uint64_table_entry(vm, "probe.remote_time", zrs->remote_time);
+    lua_push_uint64_table_entry(vm, "probe.remote_time", zrs->remote_time); /* remote time when last event has been sent */
+    lua_push_uint64_table_entry(vm, "probe.local_time", zrs->local_time); /* local time when last event has been received */
 
     lua_push_uint64_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports - zmq_remote_initial_exported_flows);
     lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);

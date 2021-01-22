@@ -329,9 +329,10 @@ function predicates.remote_probe_clock_drift(notification, container)
 
     local ifstats = interface.getStats()
 
-    if (ifstats["probe.remote_time"] ~= nil) then
+    if ifstats["probe.remote_time"] ~= nil and 
+       ifstats["probe.local_time"] ~= nil then
 
-        local tdiff = math.abs(os.time() - ifstats["probe.remote_time"])
+        local tdiff = math.abs(ifstats["probe.local_time"] - ifstats["probe.remote_time"])
         local level = nil
 
         if (tdiff >= 10 and tdiff <= 30) then

@@ -468,7 +468,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if not isEmptyString(ifstats["probe.remote_time"]) then
-	 local tdiff = math.abs(os.time()-ifstats["probe.remote_time"])
+	 local tdiff = math.abs(ifstats["probe.local_time"]-ifstats["probe.remote_time"])
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 	 print("<th nowrap>"..i18n("if_stats_overview.remote_probe_time")..
 		  " <sup><i class='fas fa-question-circle ' title='"..i18n("if_stats_overview.note_remote_probe_time").."'></i></sup>" ..
