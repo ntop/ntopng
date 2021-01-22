@@ -94,8 +94,9 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 	     "`IP_DST_ADDR` varchar(48) DEFAULT NULL,"
 	     "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
 	     "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
-	     "`BYTES` int(10) unsigned DEFAULT NULL,"
-	     "`PACKETS` int(10) unsigned DEFAULT NULL,"
+	     "`IN_BYTES` bigint unsigned DEFAULT 0,"
+	     "`OUT_BYTES` bigint unsigned DEFAULT 0,"
+	     "`PACKETS` int unsigned DEFAULT 0,"
 	     "`FIRST_SWITCHED` int(10) unsigned DEFAULT NULL,"
 	     "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
 	     "`INFO` varchar(255) DEFAULT NULL,"
@@ -131,8 +132,9 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 	     "`IP_DST_ADDR` int(10) unsigned DEFAULT NULL,"
 	     "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
 	     "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
-	     "`BYTES` int(10) unsigned DEFAULT NULL,"
-	     "`PACKETS` int(10) unsigned DEFAULT NULL,"
+	     "`IN_BYTES` bigint unsigned DEFAULT 0,"
+	     "`OUT_BYTES` bigint unsigned DEFAULT 0,"
+	     "`PACKETS` int unsigned DEFAULT 0,"
 	     "`FIRST_SWITCHED` int(10) unsigned DEFAULT NULL,"
 	     "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
 	     "`INFO` varchar(255) DEFAULT NULL,"
@@ -310,8 +312,8 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 
       snprintf(sql, sizeof(sql),
 	       "ALTER TABLE `%sv%hu` "
-	       "CHANGE BYTES IN_BYTES INT(10) DEFAULT 0, "
-	       "ADD OUT_BYTES INT(10) DEFAULT 0 AFTER IN_BYTES",
+	       "CHANGE BYTES IN_BYTES BIGINT DEFAULT 0, "
+	       "ADD OUT_BYTES BIGINT DEFAULT 0 AFTER IN_BYTES",
 	       ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
       exec_sql_query(&mysql, sql, true, true);
     }
@@ -595,7 +597,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json,
 			       char *values_buf, size_t values_buf_len) const {
   char cli_str[64], srv_str[64], *json_buf, *info_buf, buf[64];
   u_int32_t packets, first_seen, last_seen;
-  u_int32_t bytes_cli2srv, bytes_srv2cli;
+  u_int64_t bytes_cli2srv, bytes_srv2cli;
   size_t len;
 
   if(!values_buf || !values_buf_len || !f)
