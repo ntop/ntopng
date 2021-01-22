@@ -70,7 +70,7 @@ License Configuration
 
    ntopng Community Edition is free of charge and does not require a license.
 
-Go to *Services* > *ntopng Enterprise* > *License* to get all the information required
+Go to *Services* > *ntopng Enterprise* > *Settings* > *License* to get all the information required
 by the license generator (*Version* and *System ID*).
 
 .. figure:: ../img/opnsense_ntopng_info.png
@@ -89,7 +89,7 @@ and restart the service through the *General* page.
 ntopng Configuration
 ====================
 
-Going to *Services* > *ntopng Enterprise* > *General* it is possible to configure
+Going to *Services* > *ntopng Enterprise* > *Settings* > *General* it is possible to configure
 the ntopng service. A basic configuration usually includes the below steps:
 
   1. Enable the service by checking *Enable ntopng*
