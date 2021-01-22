@@ -56,3 +56,13 @@ function ntopng_services()
 
     return $services;
 }
+
+function ntopng_syslog()
+{
+    $logfacilities = array();
+
+    $logfacilities['ntopng'] = array('facility' => array('ntopng'));
+
+    return $logfacilities;
+}
+

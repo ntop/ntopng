@@ -1,5 +1,8 @@
 <menu>
     <Services>
-        <Ntopng VisibleName="ntopng Enterprise" cssClass="fa fa-binoculars fa-fw" url="/ui/ntopng/general/index" />
+        <Ntopng VisibleName="ntopng Enterprise" cssClass="fa fa-binoculars fa-fw">
+          <Settings VisibleName="Settings" order="10" url="/ui/ntopng/general/index" />
+	  <Log VisibleName="Log File" order="30" url="/ui/diagnostics/log/core/ntopng"/>
+	</Ntopng>
     </Services>
 </menu>
