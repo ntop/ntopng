@@ -74,13 +74,31 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
       switch(pdu_type) {
       case 0x03: /* U */
+	{
+	  u_int8_t u_type = (payload[offset+1] & 0xFC) >> 2;
+	  const char *u_type_str;
+	  
 #ifdef IEC60870_TRACE
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "A-PDU U-%u", (payload[offset+1] & 0xFC) >> 2);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "A-PDU U-%u", (payload[offset+1] & 0xFC) >> 2);
 #endif
-	/* No rx and tx to be updated */
-	stats.type_u++;
+	  /* No rx and tx to be updated */
+	  stats.type_u++;
 
-	snprintf(infobuf, sizeof(infobuf)-1, "%s U", tx_direction ? "->" : "<-");
+	  switch(u_type) {
+	  case 0x10:
+	    u_type_str = "act";
+	    break;
+
+	  case 0x20:
+	    u_type_str = "con";
+	    break;
+
+	  default:
+	    u_type_str = "err";
+	    break;
+	  }	  
+	  snprintf(infobuf, sizeof(infobuf)-1, "%s U (TESTFR %s)", tx_direction ? "->" : "<-", u_type_str);
+	}
 	break;
 
       case 0x01: /* S */
