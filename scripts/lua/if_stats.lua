@@ -523,7 +523,7 @@ print[[
 	 cur_i = cur_i + 1
       end
 
-      if not isEmptyString(ifstats["probe.remote_time"]) then
+      if not isEmptyString(ifstats["probe.local_time"]) and not isEmptyString(ifstats["probe.remote_time"]) then
 	 local tdiff = math.abs(ifstats["probe.local_time"]-ifstats["probe.remote_time"])
 	 if cur_i >= max_items_per_row then print("</tr><tr>"); cur_i = 0 end
 	 print("<th nowrap>"..i18n("if_stats_overview.remote_probe_time")..
