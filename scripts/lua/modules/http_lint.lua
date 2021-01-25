@@ -1527,6 +1527,8 @@ local known_parameters = {
    ["set_service_state"]    = validateNumber,
    ["service_l7proto"]      = validateSingleWord,
    ["map"]                 = validateUnquoted,
+   ["age"]          = validateSingleWord,
+   ["first_seen"]    = validateNumber,
 
 -- Script editor
    ["plugin_file_path"]         = validateLuaScriptPath,

@@ -57,6 +57,13 @@ const defaultOptions = {
     }
 };
 
+function getTimestampByTime(time) {
+    if (time === 'day') return Math.floor(Date.now() / 1000) - 86400;
+    if (time === 'week') return Math.floor(Date.now() / 1000) - 604800;
+    if (time === 'month') return Math.floor(Date.now() / 1000) - 2419200;
+    return Math.floor(Date.now() / 1000);
+}
+
 function saveTopologyView(network) {
 
     // get all nodes position
@@ -140,16 +147,20 @@ function loadGraph(container) {
     if (host !== "") {
         dataRequest.host = host;
     }
-    // same thing for the host_pool_id
     if (hostPoolId !== "") {
         dataRequest.host_pool_id = hostPoolId;
     }
-    // for the VLAN id as well
     if (vlanId !== "") {
         dataRequest.vlan = vlanId;
     }
     if (unicastOnly !== "") {
         dataRequest.unicast_only = true;
+    }
+    if (l7proto !== "") {
+        dataRequest.l7proto = l7proto;
+    }
+    if (age !== "") {
+        dataRequest.first_seen = getTimestampByTime(age);
     }
 
     const request = $.get(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, dataRequest);

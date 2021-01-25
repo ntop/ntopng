@@ -3969,6 +3969,21 @@ end
 
 -- ###########################################
 
+function build_query_url(excluded)
+
+   local query = "?"
+
+   for key, value in pairs(_GET) do
+      if not(table.contains(excluded, key)) then
+         query = query .. string.format("%s=%s&", key, value)
+      end
+   end
+
+   return query
+end
+
+-- ###########################################
+
 --- Insert an element inside the table if is not present
 function table.insertIfNotPresent(t, element, comp)
    if table.contains(t, element, comp) then return end
