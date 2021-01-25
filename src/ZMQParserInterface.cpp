@@ -1069,7 +1069,6 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const ch
 
 bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
   bool invalid_flow = false;
-  u_int32_t max_drift, boundary;
   bool rc = false;
 
   if(flow->vlan_id && ntop->getPrefs()->do_ignore_vlans())
@@ -1114,11 +1113,19 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
     if(flow->pkt_sampling_rate == 0)
       flow->pkt_sampling_rate = 1;
 
+#if 0
+    u_int32_t max_drift, boundary;
+
+    /*
+      Disabled as this causes timestamps to be altered at every run, invalidating
+      first and last switched, as well as throughput data.
+    */
+
     if(getTimeLastPktRcvdRemote() > 0) {
       /*
-	 Adjust time to make sure time won't break ntopng
+	Adjust time to make sure time won't break ntopng
 
-	 getTimeLastPktRcvdRemote() can be zero at boot so the if()...
+	getTimeLastPktRcvdRemote() can be zero at boot so the if()...
       */
       max_drift = 2*flow_max_idle;
       boundary = getTimeLastPktRcvdRemote() - max_drift;
@@ -1146,11 +1153,6 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
       }
     }
 
-#if 0
-    /*
-      Disabled as this causes timestamps to be altered at every run, invalidating
-      first and last switched, as well as throughput data.
-    */
     /* We need to fix the clock drift */
     time_t now = time(NULL);
 
@@ -1177,7 +1179,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
       /* Old nProbe */
 
       if(!getTimeLastPktRcvd())
-        setTimeLastPktRcvd(now);
+	setTimeLastPktRcvd(now);
 
       /* NOTE: do not set TimeLastPktRcvdRemote here as doing so will trigger the
        * drift calculation above on next flows, leading to incorrect timestamps.
@@ -1551,7 +1553,7 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char * const payload, int paylo
   enum json_tokener_error jerr = json_tokener_success;
 
 #if 0
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", payload, strlen(payload));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", payload, strlen(payload));
   printf("\n\n%s\n\n", payload);
 #endif
 

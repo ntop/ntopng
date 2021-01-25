@@ -217,10 +217,10 @@ class Flow : public GenericHashEntry {
 #endif
   struct timeval last_update_time;
 
-  float bytes_thpt, goodput_bytes_thpt, top_bytes_thpt, top_goodput_bytes_thpt, top_pkts_thpt;
+  float top_bytes_thpt, top_goodput_bytes_thpt, top_pkts_thpt;
   float bytes_thpt_cli2srv, goodput_bytes_thpt_cli2srv;
   float bytes_thpt_srv2cli, goodput_bytes_thpt_srv2cli;
-  float pkts_thpt, pkts_thpt_cli2srv, pkts_thpt_srv2cli;
+  float pkts_thpt_cli2srv, pkts_thpt_srv2cli;
   ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
   char* intoaV4(unsigned int addr, char* buf, u_short bufLen);
   void allocDPIMemory();
@@ -428,8 +428,9 @@ class Flow : public GenericHashEntry {
   bool hasDissectedTooManyPackets();
   bool get_partial_traffic_stats_view(PartializableFlowTrafficStats *delta, bool *first_partial);
   bool update_partial_traffic_stats_db_dump();
-  inline float get_bytes_thpt()          const { return(bytes_thpt);                      };
-  inline float get_goodput_bytes_thpt()  const { return(goodput_bytes_thpt);              };
+  inline float get_pkts_thpt()           const { return(pkts_thpt_cli2srv + pkts_thpt_srv2cli);                   };
+  inline float get_bytes_thpt()          const { return(bytes_thpt_cli2srv + bytes_thpt_srv2cli);                 };
+  inline float get_goodput_bytes_thpt()  const { return(goodput_bytes_thpt_cli2srv + goodput_bytes_thpt_srv2cli); };
   inline time_t get_partial_first_seen() const { return(last_db_dump.first_seen); };
   inline time_t get_partial_last_seen()  const { return(last_db_dump.last_seen);  };
   inline u_int32_t get_duration()        const { return((u_int32_t)(get_last_seen() - get_first_seen())); };

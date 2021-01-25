@@ -72,10 +72,10 @@ Flow::Flow(NetworkInterface *_iface,
 
   operating_system = os_unknown;
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0, last_update_time.tv_usec = 0,
-    bytes_thpt = 0, goodput_bytes_thpt = 0, top_bytes_thpt = 0, top_pkts_thpt = 0;
+    top_bytes_thpt = 0, top_pkts_thpt = 0;
   bytes_thpt_cli2srv  = 0, goodput_bytes_thpt_cli2srv = 0;
   bytes_thpt_srv2cli  = 0, goodput_bytes_thpt_srv2cli = 0;
-  pkts_thpt = 0, pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
+  pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
   external_alert = NULL;
   trigger_immediate_periodic_update = false;
@@ -1555,20 +1555,14 @@ void Flow::updateThroughputStats(float tdiff_msec,
 
     if((bytes_msec > 0) || iface->isPacketInterface()) {
       // refresh trend stats for the overall throughput
-      if(bytes_thpt < bytes_msec)      bytes_thpt_trend = trend_up;
-      else if(bytes_thpt > bytes_msec) bytes_thpt_trend = trend_down;
-      else                             bytes_thpt_trend = trend_stable;
+      if(get_bytes_thpt() < bytes_msec)      bytes_thpt_trend = trend_up;
+      else if(get_bytes_thpt() > bytes_msec) bytes_thpt_trend = trend_down;
+      else                                   bytes_thpt_trend = trend_stable;
 
       // refresh goodput stats for the overall throughput
-      if(goodput_bytes_thpt < goodput_bytes_msec)      goodput_bytes_thpt_trend = trend_up;
-      else if(goodput_bytes_thpt > goodput_bytes_msec) goodput_bytes_thpt_trend = trend_down;
-      else                                             goodput_bytes_thpt_trend = trend_stable;
-
-#if DEBUG_TREND
-      u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][bytes: %lu][bits_thpt: %.4f Mbps]",
-				   bytes_msec, diff_bytes, (bytes_thpt*8)/((float)(1024*1024)));
-#endif
+      if(get_goodput_bytes_thpt() < goodput_bytes_msec)      goodput_bytes_thpt_trend = trend_up;
+      else if(get_goodput_bytes_thpt() > goodput_bytes_msec) goodput_bytes_thpt_trend = trend_down;
+      else                                                   goodput_bytes_thpt_trend = trend_stable;
 
       // update the old values with the newly calculated ones
       bytes_thpt_cli2srv         = bytes_msec_cli2srv;
@@ -1576,12 +1570,17 @@ void Flow::updateThroughputStats(float tdiff_msec,
       goodput_bytes_thpt_cli2srv = goodput_bytes_msec_cli2srv;
       goodput_bytes_thpt_srv2cli = goodput_bytes_msec_srv2cli;
 
-      bytes_thpt = bytes_msec, goodput_bytes_thpt = goodput_bytes_msec;
-      if(top_bytes_thpt < bytes_thpt) top_bytes_thpt = bytes_thpt;
-      if(top_goodput_bytes_thpt < goodput_bytes_thpt) top_goodput_bytes_thpt = goodput_bytes_thpt;
+#if DEBUG_TREND
+      u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[tdiff_msec: %.2f][diff_bytes: %lu][diff_sent_bytes: %lu][diff_rcvd_bytes: %lu][bytes_thpt: %.4f]",
+				   tdiff_msec, diff_bytes, diff_sent_bytes, diff_rcvd_bytes, get_bytes_thpt() * 8);
+#endif
+
+      if(top_bytes_thpt < get_bytes_thpt()) top_bytes_thpt = get_bytes_thpt();
+      if(top_goodput_bytes_thpt < get_goodput_bytes_thpt()) top_goodput_bytes_thpt = get_goodput_bytes_thpt();
 
 #ifdef NTOPNG_PRO
-      throughputTrend.update(bytes_thpt), goodputTrend.update(goodput_bytes_thpt);
+      throughputTrend.update(get_bytes_thpt()), goodputTrend.update(get_goodput_bytes_thpt());
       thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec + 1);
 
 #ifdef DEBUG_TREND
@@ -1607,19 +1606,18 @@ void Flow::updateThroughputStats(float tdiff_msec,
       if(pkts_msec_cli2srv < 0) pkts_msec_cli2srv = 0;
       if(pkts_msec_srv2cli < 0) pkts_msec_srv2cli = 0;
 
-      if(pkts_thpt < pkts_msec)      pkts_thpt_trend = trend_up;
-      else if(pkts_thpt > pkts_msec) pkts_thpt_trend = trend_down;
-      else                           pkts_thpt_trend = trend_stable;
+      if(get_pkts_thpt() < pkts_msec)      pkts_thpt_trend = trend_up;
+      else if(get_pkts_thpt() > pkts_msec) pkts_thpt_trend = trend_down;
+      else                                 pkts_thpt_trend = trend_stable;
 
       pkts_thpt_cli2srv = pkts_msec_cli2srv;
       pkts_thpt_srv2cli = pkts_msec_srv2cli;
-      pkts_thpt = pkts_msec;
-      if(top_pkts_thpt < pkts_thpt) top_pkts_thpt = pkts_thpt;
+      if(top_pkts_thpt < get_pkts_thpt()) top_pkts_thpt = get_pkts_thpt();
 
 #if DEBUG_TREND
       u_int64_t diff_pkts = diff_sent_packets + diff_rcvd_packets;
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msec: %.1f][tdiff: %f][pkts: %lu][pkts_thpt: %.2f pps]",
-				   pkts_msec, tdiff_msec, diff_pkts, pkts_thpt);
+				   pkts_msec, tdiff_msec, diff_pkts, get_pkts_thpt());
 #endif
     }
   }
@@ -3003,11 +3001,13 @@ void Flow::addFlowStats(bool new_flow,
     thp_delta_time = difftime(last_seen, get_last_seen());
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][bytes : %u][thpt: %.2f]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
 			       first_seen, last_seen,
 			       get_last_seen(),
 			       last_seen - first_seen,
 			       last_seen - get_last_seen(),
+			       in_bytes,
+			       out_bytes,
 			       in_bytes + out_bytes,
 			       ((in_bytes + out_bytes) / thp_delta_time) / 1024 / 1024 * 8);
 #endif
@@ -3020,15 +3020,6 @@ void Flow::addFlowStats(bool new_flow,
   */
   hookPeriodicUpdateCheck(last_seen);
 
-  /*
-    The throughput is updated roughly by estimating
-    the average throughput. This prevents
-    having flows with seemingly zero throughput.
-   */
-  updateThroughputStats(thp_delta_time * 1000,
-			in_pkts, in_bytes, 0,
-			out_pkts, out_bytes, 0);
-
   if(cli2srv_direction) {
     stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);
     stats.incStats(false, out_pkts, out_bytes, out_goodput_bytes);
@@ -3039,10 +3030,35 @@ void Flow::addFlowStats(bool new_flow,
     ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
   }
 
-  if(bytes_thpt == 0 && last_seen >= first_seen + 1) {
-    /* Do a fist estimation while waiting for the periodic activities */
-    bytes_thpt = (get_bytes_cli2srv() + get_bytes_srv2cli()) / (float)(last_seen - first_seen),
-      pkts_thpt = (get_packets_cli2srv() + get_packets_srv2cli()) / (float)(last_seen - first_seen);
+  /*
+    The throughput is updated roughly by estimating
+    the average throughput. This prevents
+    having flows with seemingly zero throughput.
+  */
+  if(!new_flow && thp_delta_time <= 5) {
+    /* 
+       If here, delta time is too small to enable meaningful throughput calculations
+       using only bytes/packets delta. In this case, totals are used and averaged
+       using the overall flow lifetime.
+     */
+    if(cli2srv_direction)
+      updateThroughputStats(get_duration() * 1000,
+			    get_packets_cli2srv(), get_bytes_cli2srv(), 0,
+			    get_packets_srv2cli(), get_bytes_srv2cli(), 0);
+    else
+      updateThroughputStats(get_duration() * 1000,
+			    get_packets_srv2cli(), get_bytes_srv2cli(), 0,
+			    get_packets_cli2srv(), get_bytes_cli2srv(), 0);
+  } else {
+    /*
+      If here, delta time is enough to enable throughput estimations using
+      bytes/packets delta. In this case, we can give throughput values
+      that are averaged using the time delta, and not the overall flow lifetime.
+     */
+    if(cli2srv_direction)
+      updateThroughputStats(thp_delta_time * 1000, in_pkts, in_bytes, 0, out_pkts, out_bytes, 0);
+    else
+      updateThroughputStats(thp_delta_time * 1000, out_pkts, out_bytes, 0, in_pkts, in_bytes, 0);
   }
 }
 
@@ -4507,10 +4523,10 @@ void Flow::lua_get_bytes(lua_State* vm) const {
 void Flow::lua_get_throughput(lua_State* vm) const {
   // overall throughput stats
   lua_push_float_table_entry(vm,  "top_throughput_bps",   top_bytes_thpt);
-  lua_push_float_table_entry(vm,  "throughput_bps",       bytes_thpt);
+  lua_push_float_table_entry(vm,  "throughput_bps",       get_bytes_thpt());
   lua_push_uint64_table_entry(vm, "throughput_trend_bps", bytes_thpt_trend);
   lua_push_float_table_entry(vm,  "top_throughput_pps",   top_pkts_thpt);
-  lua_push_float_table_entry(vm,  "throughput_pps",       pkts_thpt);
+  lua_push_float_table_entry(vm,  "throughput_pps",       get_pkts_thpt());
   lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
 
   // throughput stats cli2srv and srv2cli breakdown
