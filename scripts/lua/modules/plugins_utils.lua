@@ -125,13 +125,13 @@ end
 -- @brief Lists the all available plugins
 -- @returns a sorted table with plugins as values.
 -- @notes Plugins must be loaded based according to the sort order to honor dependencies
-local function listPlugins()
+local function listPlugins(community_plugins_only)
    local plugins = {}
    local plugins_with_deps = {}
    local rv = {}
    local source_dirs = {{"community", plugins_utils.COMMUNITY_SOURCE_DIR}}
 
-   if ntop.isPro() then
+   if not community_plugins_only and ntop.isPro() then
       source_dirs[#source_dirs + 1] = {"pro", plugins_utils.PRO_SOURCE_DIR}
 
       if ntop.isEnterpriseM() then
@@ -535,7 +535,7 @@ end
 -- other threads to see intermediate states and half-populated directories.
 function plugins_utils.loadPlugins(community_plugins_only)
   local locales_utils = require("locales_utils")
-  local plugins = listPlugins()
+  local plugins = listPlugins(community_plugins_only)
   local loaded_plugins = {}
   local locales = {}
   local path_map = {}
