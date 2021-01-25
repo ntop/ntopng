@@ -108,6 +108,7 @@ public:
   static char *ifname2devname(const char *ifname, char *devname, int devname_size);
   static void readMac(char *ifname, dump_mac_t mac_addr);
   static u_int32_t readIPv4(char *ifname);
+  static bool readIPv6(char *ifname, struct sockaddr_in6 *sin);
   static u_int32_t getMaxIfSpeed(const char *ifname);
   static u_int16_t getIfMTU(const char *ifname);
   static int ethtoolGet(const char *ifname, int cmd, uint32_t *v);

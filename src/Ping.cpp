@@ -58,7 +58,7 @@ void Ping::setOpts(int fd) {
 
 /* ****************************************** */
 
-Ping::Ping() {
+Ping::Ping(char *ifname) {
   ping_id = rand(), cnt = 0;
   running = true;
 
@@ -85,6 +85,19 @@ Ping::Ping() {
 				   strerror(errno));
   } else {
     setOpts(sd);
+
+    if(ifname) {
+      struct sockaddr_in sin;
+
+      sin.sin_family = AF_INET;
+      sin.sin_addr.s_addr = Utils::readIPv4(ifname);
+
+      if (sin.sin_addr.s_addr != 0) {
+        if (bind(sd, (struct sockaddr *) &sin, sizeof(struct sockaddr_in)) == -1)
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv4 Address, error: %s", 
+              strerror(errno));
+      }
+    }
   }
 
   if(sd6 == -1) {
@@ -94,6 +107,17 @@ Ping::Ping() {
 				   strerror(errno));
   } else {
     setOpts(sd6);
+
+    if(ifname) {
+      struct sockaddr_in6 sin;
+
+      sin.sin6_family = AF_INET6;
+      if (Utils::readIPv6(ifname, &sin)) {
+        if (bind(sd6, (struct sockaddr *) &sin, sizeof(struct sockaddr_in6)) == -1) 
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv6 Address, error %s", 
+              strerror(errno));
+      }
+    }
   }
 
   if((sd == -1) && (sd6 == -1))

@@ -2575,6 +2575,36 @@ u_int32_t Utils::readIPv4(char *ifname) {
 
 /* **************************************** */
 
+bool Utils::readIPv6(char *ifname, struct sockaddr_in6 *sin) {
+  bool rc = false;
+#ifndef WIN32
+  struct ifreq ifr;
+  int fd;
+  
+  memset(&ifr, 0, sizeof(ifr));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
+  ifr.ifr_addr.sa_family = AF_INET6;
+
+  if((fd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_IPV6)) < 0) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to create socket");
+  } else {
+    if(ioctl(fd, SIOCGIFADDR, &ifr) == -1)
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read IPv6 for device %s", ifname);
+    else {
+      memcpy (sin->sin6_addr.s6_addr, &((((struct sockaddr_in6*)&ifr.ifr_addr)->sin6_addr).s6_addr),
+                sizeof (struct sockaddr_in6));
+      rc = true;
+    }
+
+    closesocket(fd);
+  }
+#endif
+
+  return rc;
+}
+
+/* **************************************** */
+
 u_int16_t Utils::getIfMTU(const char *ifname) {
 #ifdef WIN32
   return(CONST_DEFAULT_MAX_PACKET_SIZE);

@@ -41,7 +41,7 @@ class Ping {
   void handleICMPResponse(unsigned char *buf, u_int buf_len, struct in_addr *ip, struct in6_addr *ip6);
   
  public:
-  Ping();
+  Ping(char *ifname = NULL);
   ~Ping();
 
   int  ping(char *_addr, bool use_v6);
