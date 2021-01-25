@@ -4025,8 +4025,23 @@ void Utils::listInterfaces(lua_State* vm) {
       lua_push_str_table_entry(vm, "description", cur->description);
 
       if(cur->module) {
-	lua_push_str_table_entry(vm, "module", cur->module);
-	lua_push_bool_table_entry(vm, "license", !!cur->license);
+        struct sockaddr_in sin;
+        struct sockaddr_in6 sin6;
+
+        lua_push_str_table_entry(vm, "module", cur->module);
+        lua_push_bool_table_entry(vm, "license", !!cur->license);
+        
+        sin.sin_family = AF_INET;
+        sin6.sin6_family = AF_INET6;
+        sin.sin_addr.s_addr = Utils::readIPv4(cur->name);
+
+        if(sin.sin_addr.s_addr != 0) {
+          lua_push_int32_table_entry(vm, "ipv4", sin.sin_addr.s_addr);
+        }
+          
+        if(Utils::readIPv6(cur->name, &sin6)) {
+          lua_push_str_table_entry(vm, "ipv6", (char *) sin6.sin6_addr.s6_addr);
+        }
       }
 
       lua_pushstring(vm, cur->name);
