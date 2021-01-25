@@ -778,14 +778,14 @@ function plugins_utils.hasAlerts(ifid, options)
   local alert_utils = require("alert_utils")
 
   local opts = table.merge(options, {ifid = ifid})
-  local old_iface = iface
+  local old_ifid = interface.getId()
   local rv
   interface.select(ifid)
 
   rv = (areAlertsEnabled() and
     (alert_utils.hasAlerts("historical", alert_utils.getTabParameters(opts, "historical")) or
 	alert_utils.hasAlerts("engaged", alert_utils.getTabParameters(opts, "engaged"))))
-  interface.select(old_iface)
+  interface.select(''..old_ifid)
   return(rv)
 end
 
