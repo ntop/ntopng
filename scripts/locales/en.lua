@@ -3445,6 +3445,9 @@ local lang = {
     ["stats_update.lua"] = "Updates system stats (e.g., CPU load).",
     ["timeseries.lua"] = "Writes timeseries data to InfluxDB. Has no effect when InfluxDB is not used.",
   },
+  ["periodicity_map_page"] = {
+    ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> Hosts.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li>",
+  },
   ["please_wait_page"] = {
     ["command"] = "Command",
     ["database"] = "Database",
@@ -4133,7 +4136,7 @@ local lang = {
     ["graph_view"] = "Graph View",
     ["learning"] = "The Service Map is <b>learning</b>...",
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",
-    ["node_descr"] = "The Nodes represents the Hosts and have different colors representing different types of Hosts: - Green for Local Host; - Grey for Remote Hosts; - Blue for Multicast Hosts; Light blue for Broadcast Hosts;<li>The Arcs represents a communication between Hosts. If you move your Mouse above an Arc, the Application protocols used by the communication will be shown. Arcs have different colors representing different types of communication: - Green for Allowed Services; - Red for Denied Services; - Yellow for Unknown Services;<li>It is possible to double click on a Node to go to the Map of the Host represented by the selected node.<li>It is possible to multi-filter the Map by using the relative filters.<li>It is possible to go to the Hosts Info by left clicking on the Ip Address shown on the left side above the Map.<li>It is possible to switch to the table version of the map by clicking on <i class='fas fa-lg fa-table'></i>",
+    ["node_descr"] = "Hosts are represented as circles: <font color=#28a745>Local</font>, <font color=#6c757d>Remote</font>, <font color=#007bff>Multicast</font>, <font color=#17a2b8>Broadcast</font> Hosts.<li>Arcs represent a communication between two hosts: <font color=#28a745>allowed</font>, <font color=red>denied</font>, and <font color=#ffc107>undecided</font> service status.<li>Double click on a node to jump to the host page. Use the mouse wheel to zoom in/out.</li>",
     ["note_1"] = "During the <b>learning</b>, a service status cannot be changed.",
     ["note_2"] = "The services with the <b>Undecided</b> (<kbd class='bg-warning text-dark'><i class='fas fa-hourglass-half'></i></kbd>) status require a confirmation by the user. Once a service status has been confirmed it can be <b>Allowed</b> (<kbd class='bg-success'><i class='fas fa-check'></i></kbd>) or <b>Denied</b> (<kbd class='bg-danger'><i class='fas fas fa-times'></i></kbd>).",
     ["protocols"] = "Protocols",
@@ -4147,9 +4150,6 @@ local lang = {
       ["month"] = "Since Last Month",
       ["week"] = "Since Last Week",
     },
-  },
-  ["periodicity_map_page"] = {
-    ["node_descr"] = "The Nodes represents the Hosts and have different colors representing different types of Hosts: - Green for Local Host; - Grey for Remote Hosts; - Blue for Multicast Hosts; Light blue for Broadcast Hosts;<li>The Arcs represents a communication between Hosts. If you move your Mouse above an Arc, the Application protocols used by the communication will be shown.<li>It is possible to double click on a Node to go to the Map of the Host represented by the selected node.<li>It is possible to multi-filter the Map by using the relative filters.<li>It is possible to go to the Hosts Info by left clicking on the Ip Address shown on the left side above the Map.<li>It is possible to switch to the table version of the map by clicking on <i class='fas fa-lg fa-table'></i>",
   },
   ["severity_groups"] = {
     ["group_error_or_higher"] = "Error or Higher",
