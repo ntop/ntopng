@@ -1283,7 +1283,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
-    } else if(!strncmp(optarg, "mysql", 5)) {
+    }
+    else if(!strncmp(optarg, "mysql", 5)) {
+#ifdef HAVE_MYSQL
       if(!strncmp(optarg, "mysql-nprobe", 12))
 	read_flows_from_mysql = true;
       else
@@ -1323,6 +1325,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 	}
       }  else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid format for -F mysql;....");
+#else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "-F mysql is not available (missing MySQL support)");
+#endif
     }
 #ifndef WIN32
     else if(!strncmp(optarg, "syslog", strlen("syslog"))) {
