@@ -1667,7 +1667,7 @@ static int ntop_ping_host(lua_State* vm) {
     continuous = lua_toboolean(vm, 3) ? true : false;
 
   if(!continuous) {
-    /* Pin one shot */
+    /* Ping one shot */
 
     if(getLuaVMUservalue(vm, ping) == NULL) {
       Ping *ping;
