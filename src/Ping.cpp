@@ -74,13 +74,13 @@ Ping::Ping(char *ifname) {
   sd  = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
   sd6 = socket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 #endif
-  
+
 #if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
   Utils::dropWriteCapabilities();
 #endif
 
   if(sd == -1) {
-    if (errno != EPROTONOSUPPORT /* Avoid flooding logs when IPv4 is not supported */)
+    if(errno != EPROTONOSUPPORT /* Avoid flooding logs when IPv4 is not supported */)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv4 socket creation error: %s",
 				   strerror(errno));
   } else {
@@ -92,17 +92,17 @@ Ping::Ping(char *ifname) {
       sin.sin_family = AF_INET;
       sin.sin_addr.s_addr = Utils::readIPv4(ifname);
 
-      if (sin.sin_addr.s_addr != 0) {
-        if (bind(sd, (struct sockaddr *) &sin, sizeof(struct sockaddr_in)) == -1)
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv4 Address, error: %s", 
-              strerror(errno));
+      if(sin.sin_addr.s_addr != 0) {
+        if(::bind(sd, (struct sockaddr *) &sin, sizeof(struct sockaddr_in)) == -1)
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv4 Address, error: %s",
+				       strerror(errno));
       }
     }
   }
 
   if(sd6 == -1) {
-    if (errno != EPROTONOSUPPORT &&
-        errno != EAFNOSUPPORT) /* Avoid flooding logs when IPv6 is not supported */
+    if(errno != EPROTONOSUPPORT &&
+       errno != EAFNOSUPPORT) /* Avoid flooding logs when IPv6 is not supported */
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv6 socket creation error: %s",
 				   strerror(errno));
   } else {
@@ -112,10 +112,10 @@ Ping::Ping(char *ifname) {
       struct sockaddr_in6 sin;
 
       sin.sin6_family = AF_INET6;
-      if (Utils::readIPv6(ifname, &sin)) {
-        if (bind(sd6, (struct sockaddr *) &sin, sizeof(struct sockaddr_in6)) == -1) 
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv6 Address, error %s", 
-              strerror(errno));
+      if(Utils::readIPv6(ifname, &sin)) {
+        if(::bind(sd6, (struct sockaddr *) &sin, sizeof(struct sockaddr_in6)) == -1)
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv6 Address, error %s",
+				       strerror(errno));
       }
     }
   }
@@ -161,19 +161,19 @@ int Ping::ping(char *_addr, bool use_v6) {
   u_int i;
   struct timeval *tv;
   ssize_t res;
-  
+
   if(hname == NULL)
     return(-1);
 
   if(use_v6) {
     bzero(&addr6, sizeof(addr6));
-    
+
     addr6.sin6_family = hname->h_addrtype;
     addr6.sin6_port = 0;
     memcpy(&addr6.sin6_addr, hname->h_addr, sizeof(addr6.sin6_addr));
   } else {
     bzero(&addr, sizeof(addr));
-    
+
     addr.sin_family = hname->h_addrtype;
     addr.sin_port = 0;
     addr.sin_addr.s_addr = *(long*)hname->h_addr;
@@ -181,7 +181,7 @@ int Ping::ping(char *_addr, bool use_v6) {
 
   bzero(&pckt, sizeof(pckt));
   pckt.hdr.type = use_v6 ? ICMP6_ECHO_REQUEST : ICMP_ECHO;
-  
+
   /*
     NOTE:
     each connection must have a unique ID, otherwise some replies
@@ -190,7 +190,7 @@ int Ping::ping(char *_addr, bool use_v6) {
   pckt.hdr.un.echo.id = htons(ping_id + cnt);
 
   for(i = 0; i < sizeof(pckt.msg)-1; i++) pckt.msg[i] = i+'0';
-  
+
   pckt.msg[i] = 0;
   pckt.hdr.un.echo.sequence = htons(cnt++);
   tv = (struct timeval*)pckt.msg;
@@ -228,7 +228,7 @@ int Ping::ping(char *_addr, bool use_v6) {
 
     m.unlock(__FILE__, __LINE__);
   }
-    
+
   return res;
 }
 
@@ -252,25 +252,25 @@ void Ping::pollResults() {
 
     if(select(fd_max+1, &mask, 0, 0, &wait_time) > 0) {
       unsigned char buf[1024];
-      
+
       if(sd != -1 && FD_ISSET(sd, &mask)) {
 	struct sockaddr_in addr;
 	socklen_t len = sizeof(addr);
-	
+
 	bytes = recvfrom(sd, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
 	handleICMPResponse(buf, bytes, &addr.sin_addr, NULL);
       }
-      
+
       if(sd6 != -1 && FD_ISSET(sd6, &mask)) {
 	struct sockaddr_in6 addr;
 	socklen_t len = sizeof(addr);
-	
+
 	bytes = recvfrom(sd6, buf, sizeof(buf), 0, (struct sockaddr*)&addr, &len);
 	handleICMPResponse(buf, bytes, NULL, &addr.sin6_addr);
       }
     }
   }
-			       
+
 #ifdef TRACE_PING
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "... polling done");
 #endif
@@ -350,20 +350,20 @@ void Ping::collectResponses(lua_State* vm, bool v6) {
   std::map<std::string /* IP */, float /* RTT */> *results = v6 ? &results_v6 : &results_v4;
   std::map<std::string /* IP */, bool> *pinged = v6 ? &pinged_v6 : &pinged_v4;
   lua_newtable(vm);
-  
+
   m.lock(__FILE__, __LINE__);
-  
+
   for(std::map<std::string,float>::const_iterator it = results->begin(); it != results->end(); ++it) {
     if(it->first.c_str()[0])
       lua_push_float_table_entry(vm, it->first.c_str(), it->second);
-    
+
     pinged->erase(it->first);
   }
 
 #ifdef TRACE_PING
   for(std::map<std::string,bool>::const_iterator it = pinged->begin(); it != pinged->end(); ++it)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "No response received from %s", it->first.c_str());
-#endif  
+#endif
 
   pinged->clear();
   results->clear();
@@ -373,13 +373,13 @@ void Ping::collectResponses(lua_State* vm, bool v6) {
 
 /* ****************************************************** */
 
-float Ping::getRTT(std::string who, bool v6) {  
+float Ping::getRTT(std::string who, bool v6) {
   std::map<std::string /* IP */, float /* RTT */>::const_iterator it;
   std::map<std::string /* IP */, float /* RTT */> *results = v6 ? &results_v6 : &results_v4;
   float f;
-  
+
   m.lock(__FILE__, __LINE__);
-  
+
   it = results->find(who);
 
   if(it != results->end())
