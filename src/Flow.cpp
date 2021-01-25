@@ -672,8 +672,10 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
     setProtocolDetectionCompleted();
   }
 
-  if(detection_completed && (!needsExtraDissection()))
+  if(detection_completed && (!needsExtraDissection())) {
     setExtraDissectionCompleted();
+    updateProtocol(proto_id);    
+  }
 }
 
 /* *************************************** */
@@ -863,7 +865,13 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
   if(ndpiDetectedProtocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
     ndpiDetectedProtocol.master_protocol = proto_id.master_protocol;
 
-  if(ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+  if((ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+     || (/*
+	   Update the protocols when adding a subprotocol, not when things 
+	   are totally different
+	 */
+	 (ndpiDetectedProtocol.master_protocol == ndpiDetectedProtocol.app_protocol)
+	 && (ndpiDetectedProtocol.app_protocol != proto_id.app_protocol)))	 
     ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
 
   /* NOTE: only overwrite the category if it was not set.
