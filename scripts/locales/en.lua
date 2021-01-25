@@ -4148,6 +4148,9 @@ local lang = {
       ["week"] = "Since Last Week",
     },
   },
+  ["periodicity_map_page"] = {
+    ["node_descr"] = "The Nodes represents the Hosts and have different colors representing different types of Hosts: - Green for Local Host; - Grey for Remote Hosts; - Blue for Multicast Hosts; Light blue for Broadcast Hosts;<li>The Arcs represents a communication between Hosts. If you move your Mouse above an Arc, the Application protocols used by the communication will be shown.<li>It is possible to double click on a Node to go to the Map of the Host represented by the selected node.<li>It is possible to multi-filter the Map by using the relative filters.<li>It is possible to go to the Hosts Info by left clicking on the Ip Address shown on the left side above the Map.<li>It is possible to switch to the table version of the map by clicking on <i class='fas fa-lg fa-table'></i>",
+  },
   ["severity_groups"] = {
     ["group_error_or_higher"] = "Error or Higher",
     ["group_none"] = "None",
