@@ -325,8 +325,8 @@ $(document).ready(function () {
 
     // initialize the DataTable with the created config
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
-    addPoolFilters($snmpTable);
-    addResponsivenessFilter($snmpTable);
+    addPoolFilters($snmpTable).init();
+    addResponsivenessFilter($snmpTable).init();
 
     $(`#add-snmp-device-modal form`).modalHandler({
         method: 'post',

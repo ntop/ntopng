@@ -276,7 +276,7 @@ $(document).ready(function () {
         columnIndex: COLUMN_INDEX_ENDPOINT_TYPE,
         tableAPI: $recipientsTable,
         filterMenuKey: 'endpoint-type'
-    });
+    }).init();
 
     /* bind add endpoint event */
     $(`#add-recipient-modal form`).modalHandler({

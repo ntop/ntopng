@@ -91,7 +91,7 @@ $(document).ready(function () {
         filterMenuKey: 'host-members',
         filterTitle: i18n.member_type,
         columnIndex: INDEX_MEMBER_FILTER,
-    })
+    }).init();
 
     $(`#host-members-table`).on('click', `a[href='#remove-member-host-pool']`, function (e) {
         const memberRowData = $hostMembersTable.row($(this).parent().parent()).data();

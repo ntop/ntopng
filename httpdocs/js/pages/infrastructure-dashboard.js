@@ -116,7 +116,7 @@ $(document).ready(function() {
         columnIndex: STATUS_COLUMN_INDEX,
         tableAPI: $infrastructureTable,
         filterMenuKey: 'status',
-    });
+    }).init();
 
      /* bind add endpoint event */
      $(`#add-instance-modal form`).modalHandler({

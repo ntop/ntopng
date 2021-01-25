@@ -1,3 +1,7 @@
+/**
+ * (C) 2020-21 - ntop.org
+ */
+
 jQuery.fn.dataTableExt.sErrMode = 'console';
 jQuery.fn.dataTableExt.formatSecondsToHHMMSS = (data, type, row) => {
     if (isNaN(data)) return data;
@@ -44,9 +48,7 @@ class DataTableFiltersMenu {
      * @param {options}
      */
     constructor({tableAPI, filterMenuKey, filterTitle, filters, columnIndex}) {
-
-        const self = this;
-
+        this.rawFilters = filters;
         this.tableAPI = tableAPI;
         this.filterTitle = filterTitle;
         this.filterMenuKey = filterMenuKey;
@@ -54,20 +56,27 @@ class DataTableFiltersMenu {
         this.preventUpdate = false;
         this.currentFilterSelected = undefined;
         this.$datatableWrapper = $(tableAPI.context[0].nTableWrapper);
+    }
+
+    get selectedFilter() {
+        return this.currentFilterSelected;
+    }
+
+    init() {
+
+        const self = this;
 
         // when the datatable has been initialized render the dropdown
         this.$datatableWrapper.on('init.dt', function() {
-            self._render(filters);
+            self._render(self.rawFilters);
         });
 
         // on ajax reload then update the datatable entries
         this.tableAPI.on('draw', function() {
             self._update();
         });
-    }
 
-    get selectedFilter() {
-        return this.currentFilterSelected;
+        return self;
     }
 
     _countEntries(regex, data = []) {
@@ -160,16 +169,7 @@ class DataTableFiltersMenu {
         }
 
         // the All entry is created by the object
-        const allFilter = {
-            key: 'all',
-            label: i18n.all,
-            regex: '',
-            countable: false,
-            callback: () => {
-                this.$dropdown.title.parent().find('i.fas.fa-filter').remove();
-                this.$dropdown.title.html(`${this.filterTitle}`);
-            }
-        };
+        const allFilter = this._generateAllFilter();
 
         $menuContainer.prepend(this._createMenuEntry(allFilter));
 
@@ -190,6 +190,19 @@ class DataTableFiltersMenu {
 
         // save the current table state
         tableAPI.state.save();
+    }
+
+    _generateAllFilter() {
+        return {
+            key: 'all',
+            label: i18n.all,
+            regex: '',
+            countable: false,
+            callback: () => {
+                this.$dropdown.title.parent().find('i.fas.fa-filter').remove();
+                this.$dropdown.title.html(`${this.filterTitle}`);
+            }
+        };
     }
 
     _update() {
@@ -214,6 +227,64 @@ class DataTableFiltersMenu {
             // update the selected button counter
             this.$dropdown.button.find('.counter').text(`(${count})`);
         }
+    }
+
+}
+
+class DataTableRangeFiltersMenu extends DataTableFiltersMenu {
+    
+    constructor(params) {
+
+        super(params);
+
+        const self = this;
+        this.selectedMin = Number.MIN_VALUE;
+        this.selectedMax = Number.MAX_VALUE;
+
+        $.fn.dataTable.ext.search.push(
+            function( settings, data, dataIndex ) {
+
+                const min = self.selectedMin || Number.MIN_VALUE;
+                const max = self.selectedMax || Number.MAX_VALUE;
+
+                const currentValue = parseFloat(data[params.columnIndex]) || 0;
+
+                return ((isNaN(min) && isNaN(max)) || 
+                    (isNaN(min) && currentValue <= max ) || 
+                    (min <= currentValue && isNaN(max) ) || 
+                    (min <= currentValue && currentValue <= max));
+            }
+        );
+
+        this.tableAPI.draw();
+        params.rawFilters = params.filters.map((filter) => {
+        
+            filter.regex = '';
+            filter.min = filter.min || Number.MIN_VALUE;
+            filter.max = filter.max || Number.MAX_VALUE;
+            filter.countable = false;
+        
+            filter.callback = () => { 
+                self.selectedMax = filter.max;
+                self.selectedMin = filter.min;
+                self.tableAPI.draw(); 
+            };
+
+            return filter;
+        });
+
+    }
+
+    _generateAllFilter() {
+        const all = super._generateAllFilter();
+        const oldCallback = all.callback;
+        all.callback = () => {
+            oldCallback();
+            this.selectedMin = Number.MIN_VALUE;
+            this.selectedMax = Number.MAX_VALUE;
+            this.tableAPI.draw();
+        }
+        return all;
     }
 
 }

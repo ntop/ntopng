@@ -27,7 +27,7 @@ $(document).ready(function() {
             filters: poolsFilter,
             filterMenuKey: 'pools',
             columnIndex: POOL_COLUMN_INDEX
-        });
+        }).init();
     }
 
     const addMeasurementFilter = (tableAPI) => {
@@ -532,8 +532,8 @@ $(document).ready(function() {
     });
 
     const $amTable = $("#am-table").DataTable(dtConfig);
-    addMeasurementFilter($amTable);
-    addAlertedFilter($amTable);
+    addMeasurementFilter($amTable).init();
+    addAlertedFilter($amTable).init();
 
     $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
         const amData = getAmData($amTable, $(this));
