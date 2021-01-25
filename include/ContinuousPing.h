@@ -41,7 +41,7 @@ class ContinuousPing {
   void collectProtoResponse(lua_State* vm, std::map<std::string,ContinuousPingStats*> *w);
 
  public:
-  ContinuousPing();
+  ContinuousPing(char *ifname);
   ~ContinuousPing();
 
   void runPingCampaign();

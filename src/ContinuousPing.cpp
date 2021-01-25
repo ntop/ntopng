@@ -57,9 +57,9 @@ static void* pollerFctn(void* ptr) {
 
 /* ***************************************** */
 
-ContinuousPing::ContinuousPing() {
+ContinuousPing::ContinuousPing(char *ifname) {
   try {
-    pinger = new Ping();
+    pinger = new Ping(ifname);
 
     if(pinger)
       pthread_create(&poller, NULL, pollerFctn, (void*)this);

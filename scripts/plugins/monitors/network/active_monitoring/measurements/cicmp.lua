@@ -27,6 +27,7 @@ local resolved_hosts = {}
 local function check_continuous(measurement, hosts, granularity)
   local plugins_utils = require("plugins_utils")
   local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
+  local ifname = nil
 
   am_hosts[measurement] = {}
   resolved_hosts[measurement] = {}
@@ -44,7 +45,7 @@ local function check_continuous(measurement, hosts, granularity)
     end
 
     -- ICMP results are retrieved in batch (see below ntop.collectPingResults)
-    ntop.pingHost(ip_address, isIPv6(ip_address), true --[[ continuous ICMP]])
+    ntop.pingHost(ip_address, isIPv6(ip_address), true --[[ continuous ICMP]], ifname)
 
     am_hosts[measurement][ip_address] = {
       key = key,

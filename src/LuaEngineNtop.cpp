@@ -1651,7 +1651,7 @@ static int ntop_ping_host(lua_State* vm) {
   lua_pushnil(vm);
   return(CONST_LUA_OK);
 #else
-  char *host;
+  char *host, *ifname = NULL;
   bool is_v6;
   bool continuous = false;
 
@@ -1666,6 +1666,9 @@ static int ntop_ping_host(lua_State* vm) {
   if(lua_type(vm, 3) == LUA_TBOOLEAN)
     continuous = lua_toboolean(vm, 3) ? true : false;
 
+  if(lua_type(vm, 4) == LUA_TSTRING)
+    ifname = (char *)lua_tostring(vm, 4);
+
   if(!continuous) {
     /* Ping one shot */
 
@@ -1673,7 +1676,7 @@ static int ntop_ping_host(lua_State* vm) {
       Ping *ping;
 
       try {
-	ping = new Ping();
+	ping = new Ping(ifname);
       } catch(...) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
 	ping = NULL;
