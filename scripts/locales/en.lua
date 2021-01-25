@@ -4140,6 +4140,12 @@ local lang = {
     ["status"] = "Status",
     ["table_view"] = "Table View",
     ["undecided"] = "Undecided",
+    ["aging"] = {
+      ["aging"] = "Aging",
+      ["day"] = "Last Day",
+      ["month"] = "Since Last Month",
+      ["week"] = "Since Last Week",
+    },
   },
   ["severity_groups"] = {
     ["group_error_or_higher"] = "Error or Higher",
