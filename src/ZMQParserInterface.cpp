@@ -1069,7 +1069,6 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow * const flow, const ch
 
 bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
   bool invalid_flow = false;
-  u_int32_t max_drift, boundary;
   bool rc = false;
 
   if(flow->vlan_id && ntop->getPrefs()->do_ignore_vlans())
@@ -1114,6 +1113,14 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
     if(flow->pkt_sampling_rate == 0)
       flow->pkt_sampling_rate = 1;
 
+#if 0
+    u_int32_t max_drift, boundary;
+    /*
+      Disabled as this causes timestamps to be altered at every run, invalidating
+      first and last switched, as well as throughput data.
+    */
+    /* We need to fix the clock drift */
+
     if(getTimeLastPktRcvdRemote() > 0) {
       /*
 	 Adjust time to make sure time won't break ntopng
@@ -1146,12 +1153,6 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
       }
     }
 
-#if 0
-    /*
-      Disabled as this causes timestamps to be altered at every run, invalidating
-      first and last switched, as well as throughput data.
-    */
-    /* We need to fix the clock drift */
     time_t now = time(NULL);
 
     if(getTimeLastPktRcvdRemote() > 0) {

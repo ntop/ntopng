@@ -3069,11 +3069,13 @@ void Flow::addFlowStats(bool new_flow,
     thp_delta_time = difftime(last_seen, get_last_seen());
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][bytes : %u][thpt: %.2f]",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
 			       first_seen, last_seen,
 			       get_last_seen(),
 			       last_seen - first_seen,
 			       last_seen - get_last_seen(),
+			       in_bytes,
+			       out_bytes,
 			       in_bytes + out_bytes,
 			       ((in_bytes + out_bytes) / thp_delta_time) / 1024 / 1024 * 8);
 #endif
@@ -3086,15 +3088,6 @@ void Flow::addFlowStats(bool new_flow,
   */
   hookPeriodicUpdateCheck(last_seen);
 
-  /*
-    The throughput is updated roughly by estimating
-    the average throughput. This prevents
-    having flows with seemingly zero throughput.
-   */
-  updateThroughputStats(thp_delta_time * 1000,
-			in_pkts, in_bytes, 0,
-			out_pkts, out_bytes, 0);
-
   if(cli2srv_direction) {
     stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);
     stats.incStats(false, out_pkts, out_bytes, out_goodput_bytes);
@@ -3105,10 +3098,35 @@ void Flow::addFlowStats(bool new_flow,
     ip_stats_s2d.pktFrag += out_fragments, ip_stats_d2s.pktFrag += in_fragments;
   }
 
-  if(bytes_thpt == 0 && last_seen >= first_seen + 1) {
-    /* Do a fist estimation while waiting for the periodic activities */
-    bytes_thpt = (get_bytes_cli2srv() + get_bytes_srv2cli()) / (float)(last_seen - first_seen),
-      pkts_thpt = (get_packets_cli2srv() + get_packets_srv2cli()) / (float)(last_seen - first_seen);
+  /*
+    The throughput is updated roughly by estimating
+    the average throughput. This prevents
+    having flows with seemingly zero throughput.
+  */
+  if(!new_flow && thp_delta_time <= 5) {
+    /*
+       If here, delta time is too small to enable meaningful throughput calculations
+       using only bytes/packets delta. In this case, totals are used and averaged
+       using the overall flow lifetime.
+    */
+    if(cli2srv_direction)
+      updateThroughputStats(get_duration() * 1000,
+			    get_packets_cli2srv(), get_bytes_cli2srv(), 0,
+			    get_packets_srv2cli(), get_bytes_srv2cli(), 0);
+    else
+      updateThroughputStats(get_duration() * 1000,
+			    get_packets_srv2cli(), get_bytes_srv2cli(), 0,
+			    get_packets_cli2srv(), get_bytes_cli2srv(), 0);
+  } else {
+    /*
+      If here, delta time is enough to enable throughput estimations using
+      bytes/packets delta. In this case, we can give throughput values
+      that are averaged using the time delta, and not the overall flow lifetime.
+    */
+    if(cli2srv_direction)
+      updateThroughputStats(thp_delta_time * 1000, in_pkts, in_bytes, 0, out_pkts, out_bytes, 0);
+    else
+      updateThroughputStats(thp_delta_time * 1000, out_pkts, out_bytes, 0, in_pkts, in_bytes, 0);
   }
 }
 
