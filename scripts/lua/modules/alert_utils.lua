@@ -1301,7 +1301,7 @@ function releaseAlert(idx) {
                var explorer_url = data["column_explorer"];
 
                if(explorer_url) {
-                  datatableAddLinkButtonCallback.bind(this)(10, explorer_url, "<i class='fab fa-wpexplorer'></i>");
+                  datatableAddLinkButtonCallback.bind(this)(10, explorer_url, "<i class='fab fa-wpexplorer'></i>", "]] print(i18n("show_alerts.explorer")) print[[");
                   disable_alerts_dialog = "#disable_flows_alerts";
                }
 
@@ -1319,6 +1319,8 @@ function releaseAlert(idx) {
 
                   return true;
                });
+
+               $(`a[title]`).tooltip();
          });
       }
    });
