@@ -9,6 +9,19 @@
 
                     <table class='table table-borderless' id='script-config-editor'>
                     </table>
+                    
+                    <div class="form-group row" style="padding: .75rem 1.25rem" id="alert-severity-select">
+                        <label class="col-sm-4 col-form-label">
+                            Alert Severity:
+                        </label>
+                        <div class="col-sm-6">
+                          <select class="form-control" name="severity">
+                            {% for key, severity in pairsByField(alert_severities, 'severity_id', asc) do %}
+                                <option name='{{ severity.severity_id }}'>{{ i18n(severity.i18n_title) }}</option>
+                            {% end %}
+                          </select>
+                        </div>
+                    </div>
 
                     <div id='script-description' class='alert alert-light' role='alert'>
                     </div>

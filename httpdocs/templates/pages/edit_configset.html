@@ -99,13 +99,15 @@
           confirm = i18n("user_scripts.disable_all"),
           custom_alert_class = 'alert alert-danger',
           confirm_button = 'btn-danger',
-      }
+      },
   })
 *}
 
 
 {# include modals for edit_configset.lua #}
-{* script_list.template_utils.gen("pages/modals/edit_configset/edit_config_modal.html") *}
+{* script_list.template_utils.gen("pages/modals/edit_configset/edit_config_modal.html", {
+  alert_severities = script_list.alert_severities
+}) *}
 {# add css, js files #}
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">

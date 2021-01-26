@@ -3,7 +3,6 @@
 String.prototype.titleCase = function () {
 
    return this.toLowerCase().split(' ').map(function (word) {
-
       return word.replace(word[0], word[0].toUpperCase());
    }).join(' ');
 
@@ -315,6 +314,11 @@ const get_unit_times = (seconds) => {
 
 const apply_edits_script = (template_data, script_subdir, script_key) => {
 
+   const severitySelected = $(`#alert-severity-select select`).val();
+   if (severitySelected !== undefined) {
+      template_data.severity = severitySelected;
+   }
+
    const $apply_btn = $('#btn-apply');
    const $error_label = $("#apply-error");
 
@@ -383,6 +387,8 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
 }
 
 /* ******************************************************* */
+
+// TEMPALTES:
 
 const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
@@ -1204,6 +1210,9 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
    }
 }
 
+// END OF TEMPLATES
+
+
 /* ******************************************************* */
 
 // get script key and script name
@@ -1275,6 +1284,10 @@ const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
    // get template name
    const template_name = gui.input_builder;
 
+   // get alert severity if present
+   const hookKeys = Object.keys(hooks);
+   const severity = hooks[hookKeys[0]].script_conf.severity;
+
    const templates = {
       threshold_cross: ThresholdCross(gui, hooks, script_subdir, script_key),
       items_list: ItemsList(gui, hooks, script_subdir, script_key),
@@ -1299,6 +1312,15 @@ const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
    else {
       $(`.action-button-container`).hide();
       $(`#action-error`).hide();
+   }
+
+   if (severity !== undefined) {
+      $(`#alert-severity-select`).show();
+      $(`#alert-severity-select select`).val(severity.severity_id);
+   }
+   else {
+      $(`#alert-severity-select`).hide();
+      $(`#alert-severity-select select`).val('');
    }
 
    // restore Apply/Reset button
