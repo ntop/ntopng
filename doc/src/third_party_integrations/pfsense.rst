@@ -67,10 +67,10 @@ The license should be installed under /usr/local/etc/ntopng.license
 ntopng Configuration
 ====================
 
-The ntopng configuration file is located under /usr/local/etc/ntopng/ntopng.conf,
-please open it with the preferred editor in case the default settings should be
-modified. Add a new line with the *--community* option to run ntopng in Community
-mode.
+A sample ntopng configuration file is located under /usr/local/etc/ntopng/ntopng.conf.sample,
+please copy it to /usr/local/etc/ntopng.conf and open it with the preferred editor in case 
+the default settings should be modified. Add a new line with the *--community* option to run
+ntopng in Community mode.
 
 Enable ntopng and redis with the below commands:
 
