@@ -80,6 +80,7 @@ class Ntop {
   long time_offset;
   time_t start_time; /**< Time when start() was called */
   time_t last_stats_reset, last_ndpi_reload;
+  u_int32_t last_modified_static_file_epoch;
   bool ndpi_cleanup_needed;
   int udp_socket;
   NtopPro *pro;
@@ -439,8 +440,10 @@ class Ntop {
   void resetNetworkInterfaces();
   void initElasticSearch();
 
-  inline u_int32_t getStarttime()        { return((u_int32_t)start_time); }
-  inline char*     getStarttimeString()  { return(epoch_buf);             }
+  inline u_int32_t getStartTime()       { return((u_int32_t)start_time); }
+  inline char*     getStartTimeString() { return(epoch_buf);             }
+  inline u_int32_t getLastModifiedStaticFileEpoch()         { return(last_modified_static_file_epoch); }
+  inline void      setLastModifiedStaticFileEpoch(u_int32_t t) { if(t > last_modified_static_file_epoch) last_modified_static_file_epoch = t; }
   inline u_int32_t getUptime()          { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
   inline int getUdpSock()               { return(udp_socket); }
 

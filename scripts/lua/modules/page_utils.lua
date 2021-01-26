@@ -274,9 +274,8 @@ end
 -- #################################
 
 function page_utils.print_header(title)
-
   local http_prefix = ntop.getHttpPrefix()
-  local startup_epoch = ntop.getStartupEpoch()
+  local static_file_epoch = ntop.getStaticFileEpoch()..""
 
   local dark_mode = page_utils.is_dark_mode_enabled(_POST["toggle_theme"])
 
@@ -319,17 +318,17 @@ function page_utils.print_header(title)
     <link href="]] print(http_prefix) print[[/css/pie-chart.css" rel="stylesheet">
     <!-- http://kamisama.github.io/cal-heatmap/v2/ -->
     <link href="]] print(http_prefix) print[[/css/nv.d3.css" rel="stylesheet">
-    <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(startup_epoch) print[[" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/custom_theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
     <!--[if lt IE 9]>
       <script src="]] print(http_prefix) print[[/js/html5shiv.js"></script>
     <![endif]-->
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(static_file_epoch) print[["></script>
     <script type="text/javascript" src="]] print(http_prefix) print[[/popper-1.12.9/js/popper.min.js" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/js/bootstrap.min.js?]] print(startup_epoch) print[[" integrity="sha384-3qaqj0lc6sV/qpzrc1N5DC6i1VRn/HyX4qdPaiEFbn54VjQBEU341pvjz7Dv3n6P" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(startup_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(startup_epoch) print[["></script>
-    <script type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js?]] print(startup_epoch) print[["></script>
-    <script async type="text/javascript" src="]] print(http_prefix) print[[/selectpicker/js/bootstrap-select.min.js?]] print(startup_epoch) print[["></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/js/bootstrap.min.js?]] print(static_file_epoch) print[[" integrity="sha384-3qaqj0lc6sV/qpzrc1N5DC6i1VRn/HyX4qdPaiEFbn54VjQBEU341pvjz7Dv3n6P" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/deps.min.js?]] print(static_file_epoch) print[["></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/ntop.min.js?]] print(static_file_epoch) print[["></script>
+    <script type="text/javascript" src="]] print(http_prefix) print[[/js/tempusdominus.min.js?]] print(static_file_epoch) print[["></script>
+    <script async type="text/javascript" src="]] print(http_prefix) print[[/selectpicker/js/bootstrap-select.min.js?]] print(static_file_epoch) print[["></script>
   </head>]]
   print([[
      <body class="body ]].. (dark_mode and "dark" or "") ..[[">
@@ -357,7 +356,7 @@ function page_utils.print_header_minimal(title)
         <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/fontawesome.css" rel="stylesheet">
         <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/brands.css" rel="stylesheet">
         <link href="]] print(http_prefix) print[[/fontawesome-free-5.11.2-web/css/solid.css" rel="stylesheet">
-        <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(startup_epoch) print[["></script>
+        <script type="text/javascript" src="]] print(http_prefix) print[[/js/jquery_bootstrap.min.js?]] print(static_file_epoch) print[["></script>
         <link type="text/css" rel="stylesheet" href="]] print(http_prefix) print[[/css/rickshaw.css">
         <script src="]] print(http_prefix) print[[/js/validator.js"></script>
         <style>

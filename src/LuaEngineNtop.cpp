@@ -1588,7 +1588,16 @@ static int ntop_http_get_prefix(lua_State* vm) {
 static int ntop_http_get_startup_epoch(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  lua_pushstring(vm, ntop->getStarttimeString());
+  lua_pushinteger(vm, ntop->getLastModifiedStaticFileEpoch());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_http_get_static_file_epoch(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushinteger(vm, ntop->getLastModifiedStaticFileEpoch());
   return(CONST_LUA_OK);
 }
 
@@ -5867,6 +5876,7 @@ static luaL_Reg _ntop_reg[] = {
   { "httpRedirect",         ntop_http_redirect          },
   { "getHttpPrefix",        ntop_http_get_prefix        },
   { "getStartupEpoch",      ntop_http_get_startup_epoch },
+  { "getStaticFileEpoch",   ntop_http_get_static_file_epoch },
   { "httpPurifyParam",      ntop_http_purify_param      },
 
   /* Admin */

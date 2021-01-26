@@ -67,7 +67,7 @@ Ntop::Ntop(char *appName) {
   num_defined_interfaces = 0;
   num_dump_interfaces = 0;
   iface = NULL;
-  start_time = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
+  start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
   ndpiReloadInProgress = false;
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
@@ -450,11 +450,11 @@ void Ntop::start() {
   if(PACKAGE_OS[0] != '\0')
     getTrace()->traceEvent(TRACE_NORMAL, "Built on %s", PACKAGE_OS);
 
-  start_time = time(NULL);
+  last_modified_static_file_epoch = start_time = time(NULL);
   snprintf(epoch_buf, sizeof(epoch_buf), "%u", (u_int32_t)start_time);
 
   string_to_replace[i].key = CONST_HTTP_PREFIX_STRING, string_to_replace[i].val = ntop->getPrefs()->get_http_prefix(); i++;
-  string_to_replace[i].key = CONST_NTOP_STARTUP_EPOCH, string_to_replace[i].val = ntop->getStarttimeString(); i++;
+  string_to_replace[i].key = CONST_NTOP_STARTUP_EPOCH, string_to_replace[i].val = ntop->getStartTimeString(); i++;
   string_to_replace[i].key = CONST_NTOP_PRODUCT_NAME, string_to_replace[i].val =
 #ifdef HAVE_NEDGE
     ntop->getPro()->get_product_name()

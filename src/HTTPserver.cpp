@@ -191,10 +191,10 @@ static void create_session(const char * const user,
 
 // Create a new session and set the session Cookie
 static void set_session_cookie(const struct mg_connection * const conn,
-                       const char * const user,
-		       const char * const group,
-		       bool localuser,
-		       const char * const referer) {
+			       const char * const user,
+			       const char * const group,
+			       bool localuser,
+			       const char * const referer) {
   char session_id[64];
   u_int session_duration;
 
@@ -1308,8 +1308,22 @@ static int handle_lua_request(struct mg_connection *conn) {
        ) {
       return(redirect_to_error_page(conn, request_info, "forbidden", NULL, NULL));
     } else {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Serving file %s%s",
-				   ntop->get_HTTPserver()->get_docs_dir(), request_info->uri);
+      char path[256];
+      struct stat s;
+      snprintf(path, sizeof(path)-1, "%s%s",
+	       ntop->get_HTTPserver()->get_docs_dir(), request_info->uri);
+      
+      if(stat(path, &s) == 0) {
+	ntop->setLastModifiedStaticFileEpoch((u_int32_t)s.st_mtimespec.tv_sec);
+
+#if 0
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HTTP] Serving file %s [%u]",
+				     path,
+				     ntop->getLastModifiedStaticFileEpoch());
+#endif
+      }
+      
+      ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Serving file %s", path);
       request_info->query_string = ""; /* Discard things like ?v=4.4.0 */
       return(0); /* This is a static document so let mongoose handle it */
     }
