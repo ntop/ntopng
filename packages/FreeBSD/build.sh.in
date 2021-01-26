@@ -37,11 +37,7 @@ mkdir -p ${STAGEDIR}/usr/local/bin ${STAGEDIR}/usr/local/share/ntopng
 cp ../../ntopng ${STAGEDIR}/usr/local/bin/ntopng
 strip ${STAGEDIR}/usr/local/bin/ntopng
 mkdir -p ${STAGEDIR}/usr/local/etc/ntopng
-cp ../etc/ntopng/ntopng.conf ${STAGEDIR}/usr/local/etc/ntopng
-
-# Start ntopng in background
-echo "-e=" >> ${STAGEDIR}/usr/local/etc/ntopng/ntopng.conf
-
+cp ../etc/ntopng/ntopng.conf ${STAGEDIR}/usr/local/etc/ntopng/ntopng.conf.sample
 
 #######
 
