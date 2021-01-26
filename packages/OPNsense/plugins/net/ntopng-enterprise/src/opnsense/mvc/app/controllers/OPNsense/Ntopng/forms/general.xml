@@ -13,6 +13,13 @@
         <help>Select the interface to listen to. Set to none if you want to choose the interface via ntopng UI.</help>
     </field>
     <field>
+        <id>general.localnet</id>
+        <label>Local Networks</label>
+        <type>text</type>
+        <advanced>true</advanced>
+        <help>Configure the local networks (CIDR format, comma-separated list).</help>
+    </field>
+    <field>
         <id>general.collector</id>
         <label>Connect to nProbe</label>
         <type>checkbox</type>

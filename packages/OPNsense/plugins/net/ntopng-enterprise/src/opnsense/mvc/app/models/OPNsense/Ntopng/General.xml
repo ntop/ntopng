@@ -11,6 +11,10 @@
             <Required>N</Required>
             <Multiple>N</Multiple>
         </interface>
+        <localnet type="TextField">
+            <Required>N</Required>
+            <default></default>
+        </localnet>
         <collector type="BooleanField">
             <default>0</default>
             <Required>Y</Required>
