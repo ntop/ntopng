@@ -1113,15 +1113,15 @@ else
    end
 
    if((flow["protos.tls.ja3.client_hash"] ~= nil) or (flow["protos.tls.ja3.server_hash"] ~= nil)) then
-      print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3</A></th><td>')
+      print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA3C / JA3S</A></th><td>')
       if(flow["protos.tls.ja3.client_malicious"]) then
-        print('<i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
+	 print('<font color=red><i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i></font> ')
       end
 
       ja3url(flow["protos.tls.ja3.client_hash"], nil)
       print("</td><td>")
       if(flow["protos.tls.ja3.server_malicious"]) then
-        print('<i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i> ')
+        print('<font color=red><i class="fas fa-ban" title="'.. i18n("alerts_dashboard.malicious_signature_detected") ..'"></i></font> ')
       end
 
       ja3url(flow["protos.tls.ja3.server_hash"], flow["protos.tls.ja3.server_unsafe_cipher"])
