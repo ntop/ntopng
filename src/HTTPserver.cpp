@@ -1314,7 +1314,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	       ntop->get_HTTPserver()->get_docs_dir(), request_info->uri);
       
       if(stat(path, &s) == 0) {
-	ntop->setLastModifiedStaticFileEpoch((u_int32_t)s.st_mtim.tv_sec);
+	ntop->setLastModifiedStaticFileEpoch((u_int32_t)s.st_mtime);
 
 #if 0
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HTTP] Serving file %s [%u]",
