@@ -27,16 +27,16 @@ print("<h2 class='mb-4'>"..i18n("hosts_map").."</h2>")
 
 
 local modes = {
-   { mode = 0, label = i18n("hosts_map_page.all_flows") },
-   { mode = 1, label = i18n("hosts_map_page.unreach_flows") },
-   { mode = 2, label = i18n("hosts_map_page.alerted_flows") },
-   { mode = 3, label = i18n("hosts_map_page.dns_queries") },
-   { mode = 4, label = i18n("hosts_map_page.syn_distribution") },
-   { mode = 5, label = i18n("hosts_map_page.syn_vs_rst") },
-   { mode = 6, label = i18n("hosts_map_page.syn_vs_synack") },
-   { mode = 7, label = i18n("hosts_map_page.tcp_pkts_sent_vs_rcvd") },
-   { mode = 8, label = i18n("hosts_map_page.tcp_bytes_sent_vs_rcvd") },
-   { mode = 9, label = i18n("hosts_map_page.alerted_flows") }
+	{ mode = 0, label = i18n("hosts_map_page.all_flows") },
+	{ mode = 9, label = i18n("hosts_map_page.active_alert_flows") },
+	{ mode = 3, label = i18n("hosts_map_page.dns_queries") },
+	{ mode = 4, label = i18n("hosts_map_page.syn_distribution") },
+	{ mode = 5, label = i18n("hosts_map_page.syn_vs_rst") },
+	{ mode = 6, label = i18n("hosts_map_page.syn_vs_synack") },
+	{ mode = 7, label = i18n("hosts_map_page.tcp_pkts_sent_vs_rcvd") },
+	{ mode = 8, label = i18n("hosts_map_page.tcp_bytes_sent_vs_rcvd") },
+	{ mode = 2, label = i18n("hosts_map_page.alerted_flows") },
+	{ mode = 1, label = i18n("hosts_map_page.unreach_flows") }
 }
 
 local show_remote  = true

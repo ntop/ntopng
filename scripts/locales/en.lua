@@ -2491,7 +2491,8 @@ local lang = {
     ["hosts_parameter_missing_message"] = "Hosts parameter is missing (internal error ?)",
   },
   ["hosts_map_page"] = {
-    ["alerted_flows"] = "Alerted Flows",
+    ["alerted_flows"] = "Total Alerted Flows",
+    ["active_alert_flows"] = "Active Alerted Flows",
     ["all_flows"] = "All Flows",
     ["dns_queries"] = "DNS Queries vs Replies",
     ["syn_distribution"] = "SYN Distribution",
