@@ -98,10 +98,12 @@ function storage_utils.storageInfo(refresh_cache, timeout)
   for id, name in pairs(ifnames) do
     local ifid = tonumber(id)
     local if_info = storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache, timeout)
-    info.interfaces[ifid] = if_info
-    info.total = info.total + if_info.total
-    if if_info.pcap ~= nil then
-      info.pcap_total = info.pcap_total + if_info.pcap
+    if if_info then
+      info.interfaces[ifid] = if_info
+      info.total = info.total + if_info.total
+      if if_info.pcap ~= nil then
+        info.pcap_total = info.pcap_total + if_info.pcap
+      end
     end
   end
 
