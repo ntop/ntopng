@@ -10,6 +10,7 @@
 local datasource_keys = {
    -- Keys for interface datasources coded in datasources/interface, datasources/host, etc
    interface_packet_distro = 0,
+   snmp_device_interfaces_status = 1,
 }
 
 -- ##############################################

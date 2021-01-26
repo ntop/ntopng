@@ -8,6 +8,11 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/rest/v1/get/datasource/?.lua;" .. package.path
 
+if ntop.isPro() then
+   -- Add Pro datasources
+   package.path = dirs.installdir .. "/pro/scripts/lua/rest/v1/get/datasource/?.lua;" .. package.path
+end
+
 local datasource_keys = require "datasource_keys"
 local os_utils = require "os_utils"
 require ("lua_utils")
@@ -234,22 +239,29 @@ local function cache_source_types(recache)
    -- Cache available datasource types
    source_key_source_type_cache = {}
 
-   local datasources_dir = os_utils.fixPath(dirs.installdir .. "/scripts/lua/rest/v1/get/datasource/")
+   local datasources_dir = {os_utils.fixPath(dirs.installdir .. "/scripts/lua/rest/v1/get/datasource/")}
+
+   if ntop.isPro() then
+      datasources_dir[#datasources_dir + 1] = os_utils.fixPath(dirs.installdir .. "/pro/scripts/lua/rest/v1/get/datasource/")
+   end
 
    -- The base datasources directory
-   for datasource_dir in pairs(ntop.readdir(datasources_dir)) do
-      -- Datasource sub-directories, e.g., /interface, /host, etc
-      local datasource_dir_path = os_utils.fixPath(string.format("%s/%s", datasources_dir, datasource_dir))
+   for _, datasource_path in ipairs(datasources_dir) do
+      for datasource_dir in pairs(ntop.readdir(datasource_path)) do
+	 -- Datasource sub-directories, e.g., /interface, /host, etc
+	 local datasource_dir_path = os_utils.fixPath(string.format("%s/%s", datasource_path, datasource_dir))
 
-      if ntop.isdir(datasource_dir_path) then
-	 for datasource_file in pairs(ntop.readdir(datasource_dir_path)) do
-	    -- Load all sub-classes of datasources.lua (and exclude datasources.lua itself)
-	    if datasource_file:match("%.lua$") then
-	       -- Do the require and return the required module, if successful
-	       local datasource = require(string.format("%s.%s", datasource_dir, datasource_file:gsub("%.lua$", "")))
+	 if ntop.isdir(datasource_dir_path) then
+	    for datasource_file in pairs(ntop.readdir(datasource_dir_path)) do
+	       -- Load all sub-classes of datasources.lua (and exclude datasources.lua itself)
 
-	       if datasource then
-		  source_key_source_type_cache[datasource.meta.datasource_key] = datasource
+	       if datasource_file:match("%.lua$") then
+		  -- Do the require and return the required module, if successful
+		  local datasource = require(string.format("%s.%s", datasource_dir, datasource_file:gsub("%.lua$", "")))
+
+		  if datasource then
+		     source_key_source_type_cache[datasource.meta.datasource_key] = datasource
+		  end
 	       end
 	    end
 	 end
