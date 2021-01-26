@@ -39,7 +39,7 @@ Host::Host(NetworkInterface *_iface, Mac *_mac,
   char buf[32];
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting %s [broadcast: %u]",
-			       ip.print(buf, sizeof(buf)), ip.isBroadcastAddress() ? 1 : 0);
+			       ip.print(buf, sizeof(buf)), isBroadcastHost() ? 1 : 0);
 #endif
 
   initialize(_mac, _vlanId);
@@ -444,8 +444,8 @@ void Host::lua_get_min_info(lua_State *vm) const {
   lua_push_bool_table_entry(vm, "broadcast_domain_host", isBroadcastDomainHost());
   lua_push_bool_table_entry(vm, "dhcpHost", isDhcpHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
-  lua_push_bool_table_entry(vm, "is_broadcast", ip.isBroadcastAddress());
-  lua_push_bool_table_entry(vm, "is_multicast", ip.isMulticastAddress());
+  lua_push_bool_table_entry(vm, "is_broadcast", isBroadcastHost());
+  lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());
   lua_push_int32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
   
 #ifdef HAVE_NEDGE

@@ -127,8 +127,8 @@ class Host : public GenericHashEntry, public AlertableEntity {
   */
   inline bool  isProtocolServer()     const  { return(isDhcpServer() || isDnsServer() || isSmtpServer() || isNtpServer()); }
 						      
-  bool isBroadcastHost()                     { return(ip.isBroadcastAddress()); }
-  bool isMulticastHost()                     { return(ip.isMulticastAddress()); }
+  bool isBroadcastHost()              const  { return(ip.isBroadcastAddress() || (mac && mac->isBroadcast())); }
+  bool isMulticastHost()              const  { return(ip.isMulticastAddress()); }
 
   inline nDPIStats* get_ndpi_stats()   const { return(stats->getnDPIStats()); };
 
