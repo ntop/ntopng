@@ -492,6 +492,22 @@ static int ntop_is_windows(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_is_freebsd(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm,
+#ifdef __FreeBSD__
+		  1
+#else
+		  0
+#endif
+		  );
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_startCustomCategoriesReload(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -5962,6 +5978,7 @@ static luaL_Reg _ntop_reg[] = {
   /* Runtime */
   { "hasGeoIP",                ntop_has_geoip                },
   { "isWindows",               ntop_is_windows               },
+  { "isFreeBSD",               ntop_is_freebsd               },
   { "elasticsearchConnection", ntop_elasticsearch_connection },
   { "getInstanceName",         ntop_get_instance_name        },
 
