@@ -2903,6 +2903,8 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
   PROFILING_SECTION_EXIT(3);
 
   if((*dst) == NULL) {
+    bool is_broad;
+    
     if(!hosts_hash->hasEmptyRoom()) {
       *dst = NULL;
       has_too_many_hosts = true;
@@ -2910,12 +2912,15 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
     }
 
     if(_dst_ip
-       && ((dst_mac && dst_mac->isBroadcast())
+       && ((dst_mac && (is_broad = dst_mac->isBroadcast()))
 	   || _dst_ip->isLocalHost(&local_network_id)
-	   || _dst_ip->isLocalInterfaceAddress())) {
+	   || _dst_ip->isLocalInterfaceAddress())) {      
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, _dst_ip);
       PROFILING_SECTION_EXIT(4);
+
+      if((*dst) && is_broad)
+	bcast_domains->inlineAddAddress((*dst)->get_ip(), 24 /* We use /24 just to be safe */);
     } else {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
       (*dst) = new (std::nothrow) RemoteHost(this, dst_mac, vlanId, _dst_ip);
