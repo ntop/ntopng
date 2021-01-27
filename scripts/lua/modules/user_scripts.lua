@@ -1007,8 +1007,10 @@ end
 -- ##############################################
 
 -- @brief Update the configuration of a specific script in a configset
-function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
+function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config, additional_params)
    local configsets = user_scripts.getConfigsets()
+   -- additional_params contains additional paramas for script conf such as the severity
+   additional_params = additional_params or {}
    new_config = new_config or {}
    local applied_config = {}
 
@@ -1020,10 +1022,15 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
    local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
 
    if(script) then
+
       -- Try to validate the configuration
       for hook, conf in pairs(new_config) do
 	 local valid = true
     local rv_or_err = ""
+
+      for key, value in pairs(additional_params) do
+         conf.script_conf[key] = value
+      end
 
 	 if(conf.enabled == nil) then
 	    return false, "Missing 'enabled' item"

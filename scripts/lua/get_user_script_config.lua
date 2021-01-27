@@ -57,6 +57,7 @@ end
 local result = {
   hooks = {},
   gui = {},
+  metadata = {}
 }
 
 if(script.gui) then
@@ -73,6 +74,14 @@ if(script.gui) then
   end
 
   result.gui.input_builder = script.gui.input_builder
+end
+
+if (script.default_value) then
+  result.metadata.default_value = script.default_value
+end
+
+if (script.is_alert) then
+  result.metadata.is_alert = script.is_alert
 end
 
 local hooks_config = user_scripts.getScriptConfig(config_set, script, subdir)

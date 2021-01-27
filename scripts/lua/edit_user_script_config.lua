@@ -26,6 +26,7 @@ sendHTTPContentTypeHeader('application/json')
 local subdir = _POST["script_subdir"]
 local confset_id = tonumber(_POST["confset_id"] or user_scripts.DEFAULT_CONFIGSET_ID)
 local script_key = _POST["script_key"]
+local alert_severity = _POST['alert_severity']
 
 -- ################################################
 
@@ -62,7 +63,12 @@ end
 
 local result = {}
 
-local success, err = user_scripts.updateScriptConfig(confset_id, script_key, subdir, data)
+local additional_params = {}
+if alert_severity ~= nil then
+  additional_params.severity = alert_consts.alertSeverityById(alert_severity)
+end
+
+local success, err = user_scripts.updateScriptConfig(confset_id, script_key, subdir, data, additional_params)
 
 result.success = success
 

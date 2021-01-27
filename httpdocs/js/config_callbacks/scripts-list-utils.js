@@ -314,10 +314,8 @@ const get_unit_times = (seconds) => {
 
 const apply_edits_script = (template_data, script_subdir, script_key) => {
 
-   const severitySelected = $(`#alert-severity-select select`).val();
-   if (severitySelected !== undefined) {
-      template_data.severity = severitySelected;
-   }
+   const severitySelected = $(`#script-config-editor select[name='severity']`).val();
+   const alert_severity = severitySelected || undefined;
 
    const $apply_btn = $('#btn-apply');
    const $error_label = $("#apply-error");
@@ -330,6 +328,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       script_subdir: script_subdir,
       script_key: script_key,
       csrf: pageCsrf,
+      alert_severity: alert_severity,
       JSON: JSON.stringify(template_data),
       confset_id: confset_id
    })
@@ -440,7 +439,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
             $select = $(`<span class='input-group-text'>&${field_operator}</span>`).data('value', field_operator);
          }
 
-         const $field = $(`<div class='input-group template w-50'></div>`);
+         const $field = $(`<div class='input-group template' style='width: 14rem'></div>`);
          $field.append($(`<div class='input-group-prepend'></div>`).append($select));
          $field.append(`<input
                            type='number'
@@ -480,8 +479,8 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
          // append label and checkbox inside the row
          $input_container.append(
-            $(`<td class='text-center'></td>`).append($checkbox),
-            $(`<td>${(hook.label ? hook.label.titleCase() : "")}</td>`),
+            $(`<td class='text-center align-middle'></td>`).append($checkbox),
+            $(`<td class='align-middle'>${(hook.label ? hook.label.titleCase() : "")}</td>`),
             $(`<td></td>`).append($field)
          );
 
@@ -573,7 +572,15 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
       reset_script_defaults(script_key, script_subdir, (data) => {
 
-         const { hooks } = data;
+         const { hooks, metadata } = data;
+         const hasSeverity = metadata.is_alert || false;
+
+         if (hasSeverity) {
+            const defaultSeverity = metadata.default_value.severity;
+            if (defaultSeverity !== undefined) {
+               $(`#script-config-editor select[name='severity']`).val(defaultSeverity.severity_id);
+            }
+         }
 
          // reset default values
          for (key in hooks) {
@@ -1219,7 +1226,7 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
 const initScriptConfModal = (script_key, script_title, script_desc) => {
 
    // change title to modal
-   $("#script-name").html(`<b>${script_title}</b>`);
+   $("#script-name").html(script_title);
    $('#script-description').text(script_desc);
 
    $("#modal-script form").off('submit');
@@ -1250,6 +1257,9 @@ const initScriptConfModal = (script_key, script_title, script_desc) => {
          // render template
          template.render();
 
+         // get alert severity if present
+         appendSeveritySelect(data);
+
          // bind on_apply event on apply button
          $("#edit-form").off("submit").on('submit', template.apply_click_event);
          $("#btn-reset").off("click").on('click', template.reset_click_event);
@@ -1279,15 +1289,12 @@ const get_search_toggle_value = hash => hash == "#enabled" ? 'true' : (hash == "
 
 /* ******************************************************* */
 
-const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
+const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key) => {
 
    // get template name
    const template_name = gui.input_builder;
-
-   // get alert severity if present
-   const hookKeys = Object.keys(hooks);
-   const severity = hooks[hookKeys[0]].script_conf.severity;
-
+   
+   
    const templates = {
       threshold_cross: ThresholdCross(gui, hooks, script_subdir, script_key),
       items_list: ItemsList(gui, hooks, script_subdir, script_key),
@@ -1295,14 +1302,14 @@ const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
       elephant_flows: ElephantFlows(gui, hooks, script_subdir, script_key),
       multi_select: MultiSelect(gui, hooks, script_subdir, script_key)
    }
-
+   
    let template_chosen = templates[template_name];
    if (!template_chosen) {
       template_chosen = EmptyTemplate();
       // this message is for the developers
       console.warn("The chosen template doesn't exist yet. See the avaible templates.")
    }
-
+   
    // check if the script has an action button
    const hasActionButton = gui.input_action_i18n !== undefined && gui.input_action_url !== undefined;
    if (hasActionButton) {
@@ -1313,16 +1320,7 @@ const TemplateBuilder = ({ gui, hooks }, script_subdir, script_key) => {
       $(`.action-button-container`).hide();
       $(`#action-error`).hide();
    }
-
-   if (severity !== undefined) {
-      $(`#alert-severity-select`).show();
-      $(`#alert-severity-select select`).val(severity.severity_id);
-   }
-   else {
-      $(`#alert-severity-select`).hide();
-      $(`#alert-severity-select select`).val('');
-   }
-
+   
    // restore Apply/Reset button
    $(`#btn-apply,#btn-reset`).show();
 
@@ -1388,6 +1386,23 @@ const createScriptStatusButton = (row_data) => {
 
    return $button;
 };
+
+function appendSeveritySelect(data) {
+   const hasSeverity = data.metadata.is_alert || false;
+   if (hasSeverity && data.metadata.default_value.severity !== undefined) {
+
+      let severity = data.metadata.default_value.severity.severity_id;
+
+      const hooksKeys = Object.keys(data.hooks);
+      const scriptConfSeverity = data.hooks[hooksKeys[0]].script_conf.severity;
+
+      if (scriptConfSeverity) {
+         severity = scriptConfSeverity.severity_id;
+      }
+      $(`#script-config-editor`).append($($(`#severity-template`).html()));
+      $(`#script-config-editor select[name='severity']`).val(severity);
+   }
+}
 
 function delegateActionButton(gui) {
 

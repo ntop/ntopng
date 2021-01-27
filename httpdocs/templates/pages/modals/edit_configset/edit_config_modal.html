@@ -4,25 +4,15 @@
             <form id='edit-form' method='post'>
                 <div class="modal-header">
                     <h5 class="modal-title"><span id='script-name'></span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
 
                     <table class='table table-borderless' id='script-config-editor'>
                     </table>
                     
-                    <div class="form-group row" style="padding: .75rem 1.25rem" id="alert-severity-select">
-                        <label class="col-sm-4 col-form-label">
-                            {{ i18n("scripts_list.alert_severity") }}
-                        </label>
-                        <div class="col-sm-6">
-                          <select class="form-control" name="severity">
-                            {% for key, severity in pairsByField(alert_severities, 'severity_id', asc) do %}
-                                <option value='{{ severity.severity_id }}'>{{ i18n(severity.i18n_title) }}</option>
-                            {% end %}
-                          </select>
-                        </div>
-                    </div>
-
                     <div id='script-description' class='alert alert-light' role='alert'>
                     </div>
 
@@ -37,11 +27,7 @@
                         <span class="border mr-2 vertical-align"></span>
                         <button id="btn-action" class="btn btn-secondary">{ action }</button>
                     </div>
-                    <button type="button" title='{{ i18n("cancel", {}) }}' class="btn btn-secondary ml-auto"
-                        data-dismiss="modal">
-                        {{ i18n("cancel", {}) }}
-                    </button>
-                    <button id="btn-apply" title='{{ i18n("apply", {}) }}' type="submit" class="btn btn-primary">
+                    <button id="btn-apply" title='{{ i18n("apply", {}) }}' type="submit" class="btn btn-primary ml-auto">
                         {{ i18n("apply", {}) }}
                     </button>
                     <div class="alert alert-danger w-100" id="action-error" style="display: none;">
@@ -51,3 +37,20 @@
         </div>
     </div>
 </div>
+<template id="severity-template">
+<tr>
+    <td>
+       
+    </td>
+    <td class="align-middle">
+        {{ i18n("scripts_list.alert_severity") }}
+    </td>
+    <td>
+        <select class="form-control" style='width: 14rem' name="severity">
+            {% for key, severity in pairsByField(alert_severities, 'severity_id', asc) do %}
+                <option value='{{ severity.severity_id }}'>{{ i18n(severity.i18n_title) }}</option>
+            {% end %}
+        </select>
+    </td>
+</tr>
+</template>
