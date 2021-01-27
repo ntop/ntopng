@@ -14,6 +14,13 @@ local script = {
    -- Script category
    category = user_scripts.script_categories.security, 
 
+   -- This script is only for alerts generation
+   is_alert = true,
+   
+   default_value = {
+      severity = alert_severities.error,
+   },
+
    -- NOTE: hooks defined below
    hooks = {},
 
@@ -25,7 +32,7 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.protocolDetected(now)
+function script.hooks.protocolDetected(now, conf)
    if flow.isBlacklisted() then
       local flow_info = flow.getInfo()
       local info = flow.getBlacklistedInfo()
@@ -48,7 +55,7 @@ function script.hooks.protocolDetected(now)
          info
       )
 
-      alert:set_severity(alert_severities.error)
+      alert:set_severity(conf.severity)
       alert:set_attacker(attacker)
       alert:set_victim(victim)
 

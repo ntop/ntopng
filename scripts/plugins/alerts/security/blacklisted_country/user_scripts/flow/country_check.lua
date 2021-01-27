@@ -17,8 +17,12 @@ local script = {
   -- This module is disabled by default
   default_enabled = false,
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
   -- The default configuration of this script
   default_value = {
+    severity = alert_severities.error,
     items = {},
   },
 
@@ -88,7 +92,7 @@ function script.hooks.protocolDetected(now, conf)
       info.srv_blacklisted
     )
     
-    alert:set_severity(alert_severities.error)
+    alert:set_severity(conf.severity)
     alert:set_attacker(attacker)
     alert:set_victim(victim)
 

@@ -1023,7 +1023,7 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config)
       -- Try to validate the configuration
       for hook, conf in pairs(new_config) do
 	 local valid = true
-	 local rv_or_err = ""
+    local rv_or_err = ""
 
 	 if(conf.enabled == nil) then
 	    return false, "Missing 'enabled' item"
@@ -1345,7 +1345,16 @@ function user_scripts.getTargetHookConfig(target_config, script, hook)
       return(default_config)
    end
 
-   return(script_conf[hook] or default_config)
+   local conf = script_conf[hook] or default_config
+   local default_values = script.default_value or {}
+
+   for key, value in pairs(default_values) do
+      if not conf.script_conf[key] then
+         conf.script_conf[key] = value
+      end
+   end
+
+   return conf
 end
 
 -- ##############################################

@@ -21,7 +21,7 @@ local function check_interface_drops(params)
     delta_dropped
       )
 
-  alert:set_severity(alert_severities.error)
+  alert:set_severity(params.user_script_config.severity)
   alert:set_granularity(params.granularity)
 
   if(delta_dropped > 0) then
@@ -44,6 +44,10 @@ script = {
 
   -- This script is only for alerts generation
   is_alert = true,
+
+  default_value = {
+    severity = alert_severities.error,
+  },
 
   gui = {
     i18n_title = "show_alerts.flow_user_scripts_drops_title",

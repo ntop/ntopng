@@ -18,6 +18,13 @@ script = {
   -- NB atm working only for packet interfaces
   packet_interface_only = true,
   l4_proto = "tcp",
+
+   -- This script is only for alerts generation
+   is_alert = true,
+
+  default_value = {
+   severity = alert_severities.warning,
+  },
   
   -- NOTE: hooks defined below
   hooks = {},  
@@ -30,7 +37,7 @@ script = {
 
 -- #################################################################
 
-local function check_tcp_window(now)
+local function check_tcp_window(now, conf)
    local zerowin = flow.isTcpZeroWinAlert()
 
    if(zerowin.client or zerowin.server) then
@@ -56,7 +63,7 @@ local function check_tcp_window(now)
          zerowin.server
       )
 
-      alert:set_severity(alert_severities.warning)
+      alert:set_severity(conf.severity)
 
       alert:trigger_status(client_score, server_score, high_score) 
    end

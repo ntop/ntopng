@@ -42,7 +42,7 @@ local function request_reply_ratio(params)
       replies
       )
 
-      alert:set_severity(alert_severities.warning)
+      alert:set_severity(params.user_script_config.severity)
       alert:set_granularity(params.granularity)
       alert:set_subtype(key)
 
@@ -76,6 +76,7 @@ script = {
     -- "< 50%"
     operator = "lt",
     threshold = 50,
+    severity = alert_severities.warning,
   },
 
   gui = {

@@ -613,7 +613,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
     threshold_config.threshold
   )
 
-  alert:set_severity(alert_severities.error)
+  alert:set_severity(threshold_config.severity)
   alert:set_granularity(params.granularity)
   alert:set_subtype(script.key)
 

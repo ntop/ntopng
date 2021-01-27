@@ -17,6 +17,13 @@ local script = {
   nedge_exclude = true,
   l4_proto = "tcp",
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
+  default_value = {
+    severity = alert_severities.notice,
+  },
+
   -- NOTE: hooks defined below
   hooks = {},
 
@@ -28,7 +35,7 @@ local script = {
 
 -- #################################################################
 
-local function checkFlowGoodput()
+local function checkFlowGoodput(now, conf)
    local ratio = flow.getGoodputRatio()
   
    if(ratio <= 60) then
@@ -37,7 +44,7 @@ local function checkFlowGoodput()
         ratio
       )
 
-      alert:set_severity(alert_severities.notice)
+      alert:set_severity(conf.severity)
 
       alert:trigger_status(cli_score, srv_score, flow_score)
    end

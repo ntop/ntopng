@@ -21,7 +21,7 @@ local function check_periodic_activity_not_executed(params)
          ps_stats["last_queued_time"] or 0
       )
 
-      alert:set_severity(alert_severities.warning)
+      alert:set_severity(params.user_script_config.severity)
       alert:set_granularity(params.granularity)
       alert:set_subtype(ps_name)
       if delta > 0 then
@@ -42,6 +42,10 @@ script = {
 
   -- This script is only for alerts generation
   is_alert = true,
+
+  default_value = {
+   severity = alert_severities.warning,
+  },
 
   hooks = {
     min = check_periodic_activity_not_executed,

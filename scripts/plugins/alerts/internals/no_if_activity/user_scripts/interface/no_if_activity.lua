@@ -22,7 +22,7 @@ local function check_interface_activity(params)
 
    local no_if_activity_type = alert_consts.alert_types.alert_no_if_activity.new()
 
-   no_if_activity_type:set_severity(alert_severities.error)
+   no_if_activity_type:set_severity(params.user_script_config.severity)
    no_if_activity_type:set_granularity(params.granularity)
 
    local delta_packets = alerts_api.interface_delta_val(params.user_script.key..".pkts" --[[ metric name --]], params.granularity, num_packets or 0)
@@ -60,6 +60,10 @@ script = {
 
    -- This script is only for alerts generation
    is_alert = true,
+
+   default_value = {
+      severity = alert_severities.error,
+   },
 
    gui = {
       i18n_title        = "no_if_activity.no_if_activity_title",

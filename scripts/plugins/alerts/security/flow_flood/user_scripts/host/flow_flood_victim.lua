@@ -5,6 +5,7 @@
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 local user_scripts = require("user_scripts")
+local alert_severities = require "alert_severities"
 
 local script = {
   -- Script category
@@ -16,6 +17,7 @@ local script = {
     -- "> 50"
     operator = "gt",
     threshold = 256,
+    severity = alert_severities.error,
   },
 
   -- This script is only for alerts generation

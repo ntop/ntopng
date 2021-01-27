@@ -27,8 +27,12 @@ local script = {
    -- use this plugin only with this protocol
    l7_proto_id = 3, -- 3 == SMTP
 
+   -- This script is only for alerts generation
+   is_alert = true,
+
    -- Specify the default value whe clicking on the "Reset Default" button
    default_value = {
+      severity = alert_severities.error,
       items = {},
    },
 
@@ -72,7 +76,7 @@ function script.hooks.protocolDetected(now, conf)
             server_ip
          )
 
-         alert:set_severity(alert_severities.error)
+         alert:set_severity(conf.severity)
          alert:set_attacker(server_ip)
          alert:set_victim(client_ip)
          

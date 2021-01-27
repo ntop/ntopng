@@ -18,6 +18,13 @@ local script = {
    l4_proto = "tcp",
    three_way_handshake_ok = true,
 
+   -- This script is only for alerts generation
+   is_alert = true,
+
+   default_value = {
+      severity = alert_severities.warning,
+   },
+
    -- NOTE: hooks defined below
    hooks = {},
 
@@ -33,7 +40,7 @@ local severe_issues_ratio = 3	-- 1/3
 
 -- #################################################################
 
-local function check_tcp_issues(now)
+local function check_tcp_issues(now, conf)
    local is_client = false -- Does the client have TCP issues?
    local is_server = false -- Does the server have TCP issues?
    local is_severe = false -- Whether the exceeded one is the severe threshold
@@ -78,7 +85,7 @@ local function check_tcp_issues(now)
             is_server
          )
 
-         alert:set_severity(alert_severities.warning)
+         alert:set_severity(conf.severity)
 
          alert:trigger_status(20, 20, 20)
 

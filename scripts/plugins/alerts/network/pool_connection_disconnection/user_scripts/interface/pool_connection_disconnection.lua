@@ -5,6 +5,7 @@
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local user_scripts = require("user_scripts")
+local alert_severities = require "alert_severities"
 
 -- #################################################################
 
@@ -15,7 +16,7 @@ local script
 local function check_pool_connection_disconnection(params)
    local ifid = interface.getId()
    -- TODO: migrate code from alert utils to here
-   alert_utils.check_host_pools_alerts(ifid, true --[[ alert_pool_connection_enabled --]], false --[[ alerts_on_quota_exceeded --]])
+   alert_utils.check_host_pools_alerts(params, ifid, true --[[ alert_pool_connection_enabled --]], false --[[ alerts_on_quota_exceeded --]])
 end
 
 -- #################################################################
@@ -28,6 +29,10 @@ script = {
 
    -- This script is only for alerts generation
    is_alert = true,
+
+   default_value = {
+      severity = alert_severities.warning,
+   },
 
    hooks = {
       min = check_pool_connection_disconnection,

@@ -13,6 +13,14 @@ local script = {
   -- Script category
   category = user_scripts.script_categories.security,
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
+  default_value = {
+    severity = alert_severities.error,
+    items = {},
+  },
+
   -- NOTE: hooks defined below
   hooks = {},
 
@@ -24,11 +32,11 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.protocolDetected(now)
+function script.hooks.protocolDetected(now, conf)
    if(flow.getnDPICategoryName() == "Mining") then
       local alert = alert_consts.alert_types.alert_web_mining.new()
 
-      alert:set_severity(alert_severities.error)
+      alert:set_severity(conf.severity)
 
       alert:trigger_status(50, 10, 50)
    end

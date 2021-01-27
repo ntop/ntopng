@@ -14,6 +14,10 @@ local script = {
   -- This script is only for alerts generation
   is_alert = true,
 
+  default_value = {
+   severity = alert_severities.error,
+  },
+
   -- See below
   hooks = {},
 
@@ -42,7 +46,7 @@ local function dropped_alerts_check(params)
       delta_drops
       )
 
-   alert:set_severity(alert_severities.error)
+   alert:set_severity(params.user_script_config.severity)
    alert:set_granularity(params.granularity)
 
    if(delta_drops > 0) then

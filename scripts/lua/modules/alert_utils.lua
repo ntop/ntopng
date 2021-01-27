@@ -1589,7 +1589,7 @@ end
 
 -- #################################
 
-function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled, alerts_on_quota_exceeded)
+function alert_utils.check_host_pools_alerts(params, ifid, alert_pool_connection_enabled, alerts_on_quota_exceeded)
    local active_pools_set = getActivePoolsHashKey(ifid)
    local prev_active_pools = swapKeysValues(ntop.getMembersCache(active_pools_set)) or {}
    local pools_stats = interface.getHostPoolsStats()
@@ -1639,7 +1639,7 @@ function alert_utils.check_host_pools_alerts(ifid, alert_pool_connection_enabled
 			   info.bytes_quota
          )
 
-         alert:set_severity(alert_severities.warning)
+         alert:set_severity(params.user_script_config.severity)
          alert:store(alerts_api.hostPoolEntity(pool))
 		  end
 

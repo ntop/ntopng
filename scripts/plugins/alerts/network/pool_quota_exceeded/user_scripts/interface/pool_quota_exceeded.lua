@@ -5,6 +5,7 @@
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local user_scripts = require("user_scripts")
+local alert_severities = require "alert_severities"
 
 -- #################################################################
 
@@ -15,7 +16,7 @@ local script
 local function check_pool_quota_exceeded(params)
    local ifid = interface.getId()
    -- TODO: migrate code from alert utils to here
-   alert_utils.check_host_pools_alerts(ifid, false --[[ alert_pool_connection_enabled --]], true --[[ alerts_on_quota_exceeded --]])
+   alert_utils.check_host_pools_alerts(params, ifid, false --[[ alert_pool_connection_enabled --]], true --[[ alerts_on_quota_exceeded --]])
 end
 
 -- #################################################################
@@ -28,6 +29,10 @@ script = {
 
    -- This script is only for alerts generation
    is_alert = true,
+
+   default_value = {
+      severity = alert_severities.warning,
+   },
 
    -- This is only for nEdge
    nedge_only = true,

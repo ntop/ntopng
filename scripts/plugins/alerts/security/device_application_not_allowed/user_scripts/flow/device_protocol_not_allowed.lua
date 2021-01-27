@@ -13,6 +13,13 @@ local script = {
   -- Script category
   category = user_scripts.script_categories.security, 
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
+  default_value = {
+    severity = alert_severities.error,
+  },
+
   -- NOTE: hooks defined below
   hooks = {},
 
@@ -26,7 +33,7 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.protocolDetected(now)
+function script.hooks.protocolDetected(now, conf)
   if(flow.isDeviceProtocolNotAllowed()) then
     local proto_info = flow.getDeviceProtoAllowedInfo()
     local flow_score = 80
@@ -61,7 +68,7 @@ function script.hooks.protocolDetected(now)
       alert_info["devproto_forbidden_id"]
     )
 
-    alert:set_severity(alert_severities.error)
+    alert:set_severity(conf.severity)
     alert:set_attacker(attacker)
     alert:set_victim(victim)
 

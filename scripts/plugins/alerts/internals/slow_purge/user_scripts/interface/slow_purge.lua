@@ -34,7 +34,7 @@ local function check_interface_idle(params)
     threshold
       )
 
-  alert:set_severity(alert_severities.warning)
+  alert:set_severity(params.user_script_config.severity)
   alert:set_granularity(params.granularity)
   
   if max_idle_perc > threshold then
@@ -55,6 +55,7 @@ local script = {
     -- "> 50%"
     operator = "gt",
     threshold = 50,
+    severity = alert_severities.warning,
   },
 
   -- This script is only for alerts generation

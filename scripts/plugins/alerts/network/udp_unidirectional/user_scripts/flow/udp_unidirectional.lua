@@ -19,6 +19,13 @@ local script = {
 
    l4_proto = "udp",
 
+   -- This script is only for alerts generation
+   is_alert = true,
+
+   default_value = {
+      severity = alert_severities.notice,
+   },
+
    -- NOTE: hooks defined below
    hooks = {},
 
@@ -48,13 +55,13 @@ end
 
 -- #################################################################
 
-function script.hooks.all(now)
+function script.hooks.all(now, conf)
    if((flow.getPacketsRcvd() == 0) and (flow.getPacketsSent() > 0)) then
       -- Now check if the recipient isn't a broadcast/multicast address
       if not flow.isClientNoIP() and flow.isServerUnicast() and not unidirectionalProtoWhitelist(flow.getnDPIAppProtoId()) then
          local alert = alert_consts.alert_types.alert_udp_unidirectional.new()
 
-         alert:set_severity(alert_severities.notice)
+         alert:set_severity(conf.severity)
 
          alert:trigger_status(5, 1, 5)
       end

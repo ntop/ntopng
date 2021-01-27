@@ -16,6 +16,10 @@ local script = {
    -- NOTE: hooks defined below
    hooks = {},
 
+   default_value = {
+      severity = alert_severities.error,
+   },
+
    gui = {
       i18n_title = "New Host Alert API Demo",
       i18n_description = "Demonstrate the use of the new API for host alerts",
@@ -31,7 +35,7 @@ function script.hooks.min(params)
 	 "another_param"
       )
 
-      alert:set_severity(alert_severities.error)
+      alert:set_severity(params.user_script_config.severity)
       alert:set_granularity(params.granularity)
 
       if cond then

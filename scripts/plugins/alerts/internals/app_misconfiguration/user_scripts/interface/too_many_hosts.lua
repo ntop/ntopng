@@ -5,6 +5,7 @@
 local user_scripts = require("user_scripts")
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
+local alert_severities = require "alert_severities"
 
 local script = {
   -- Script category
@@ -15,6 +16,10 @@ local script = {
 
   -- This script is only for alerts generation
   is_alert = true,
+
+  default_value = {
+    severity = alert_severities.warning,
+  },
 
   hooks = {
     min = alerts_api.anomaly_check_function,

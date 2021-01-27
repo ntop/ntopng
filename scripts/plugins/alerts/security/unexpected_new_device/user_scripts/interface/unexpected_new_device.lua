@@ -75,7 +75,7 @@ local function check_allowed_mac(params)
                   mac
                )
 
-               alert:set_severity(alert_severities.warning)
+               alert:set_severity(params.user_script_config.severity)
 
                alert:store(alerts_api.macEntity(mac))
             end
@@ -97,6 +97,7 @@ script = {
 
    -- Specify the default value whe clicking on the "Reset Default" button
    default_value = {
+     severity = alert_severities.warning,
 	  items = {},
    },
 

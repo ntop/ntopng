@@ -17,6 +17,13 @@ local script = {
   -- NOTE: hooks defined below
   hooks = {},
 
+  -- This script is only for alerts generation
+  is_alert = true,
+
+  default_value = {
+    severity = alert_severities.notice,
+  },
+
   gui = {
     i18n_title = "flow_callbacks_config.remote_to_remote",
     i18n_description = "flow_callbacks_config.remote_to_remote_description",
@@ -25,11 +32,11 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.protocolDetected(now)
+function script.hooks.protocolDetected(now, conf)
    if(flow.isRemoteToRemote() and flow.isUnicast()) then
     local alert = alert_consts.alert_types.alert_remote_to_remote.new()
 
-      alert:set_severity(alert_severities.notice)
+      alert:set_severity(conf.severity)
 
       alert:trigger_status(cli_score, srv_score, flow_score)
   end
