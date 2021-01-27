@@ -535,7 +535,7 @@ function printGUI()
 		       "ntopng.prefs.",
 		       "http_acl_management_port",
 		       "", false, nil, nil, nil, {style = {width = "25em;"},
-						  attributes = {spellcheck = "false", maxlength = 64, pattern = getACLPattern()}})
+						  attributes = {spellcheck = "false", maxlength = 512, pattern = getACLPattern()}})
 
   -- #####################
 
