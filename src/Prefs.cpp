@@ -880,7 +880,7 @@ void Prefs::setCommandLineString(int optkey, const char * optarg){
 
 /* NOTE: avoid Redis connection in this function */
 static void printVersionInformation() {
-    printf("v.%s\t[%s%s build]\n", PACKAGE_VERSION,
+    printf("Version:\t%s [%s%s build]\n", PACKAGE_VERSION,
 #ifndef HAVE_NEDGE
 #ifdef NTOPNG_PRO
 	   "Enterprise/Professional"
