@@ -1354,7 +1354,9 @@ function user_scripts.getTargetHookConfig(target_config, script, hook)
 
    local conf = script_conf[hook] or default_config
    local default_values = script.default_value or {}
-
+	
+   -- Each new default value will be added to the conf.script_conf table
+   -- in this way if future values need to be added here there won't be problems
    for key, value in pairs(default_values) do
       if not conf.script_conf[key] then
          conf.script_conf[key] = value
