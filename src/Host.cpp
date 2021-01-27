@@ -437,7 +437,10 @@ void Host::lua_get_os(lua_State *vm) {
 
 /* ***************************************************** */
 
-void Host::lua_get_min_info(lua_State *vm) const {
+void Host::lua_get_min_info(lua_State *vm) {
+  char buf[64];
+
+  lua_push_str_table_entry(vm, "name", get_visual_name(buf, sizeof(buf)));
   lua_push_bool_table_entry(vm, "localhost", isLocalHost());
   lua_push_bool_table_entry(vm, "systemhost", isSystemHost());
   lua_push_bool_table_entry(vm, "privatehost", isPrivateHost());
@@ -592,13 +595,6 @@ void Host::lua_get_num_http_hosts(lua_State* vm) {
 void Host::lua_get_fingerprints(lua_State* vm) {
   fingerprints.ja3.lua("ja3_fingerprint", vm);
   fingerprints.hassh.lua("hassh_fingerprint", vm);
-}
-
-/* ***************************************************** */
-
-void Host::lua_get_visual_name(lua_State* vm) {
-  char buf[64];
-  lua_pushstring(vm, get_visual_name(buf, sizeof(buf)));
 }
 
 /* ***************************************************** */

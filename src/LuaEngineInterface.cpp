@@ -2281,7 +2281,7 @@ static int ntop_get_interface_host_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_host_visual_name(lua_State* vm) {
+static int ntop_get_interface_get_host_min_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
   u_int16_t vlan_id = 0;
@@ -2295,7 +2295,7 @@ static int ntop_get_interface_host_visual_name(lua_State* vm) {
   /* Optional VLAN id */
   if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
 
-  if((!ntop_interface) || !ntop_interface->getHostVisualName(vm, get_allowed_nets(vm), host_ip, vlan_id))
+  if((!ntop_interface) || !ntop_interface->getHostMinInfo(vm, get_allowed_nets(vm), host_ip, vlan_id))
     return(CONST_LUA_ERROR);
   else
     return(CONST_LUA_OK);
@@ -4419,7 +4419,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getBatchedRemoteHostsInfo",   ntop_get_batched_interface_remote_hosts_info },
   { "getBatchedLocalHostsTs",   ntop_get_batched_interface_local_hosts_ts },
   { "getHostInfo",              ntop_get_interface_host_info },
-  { "getHostName",              ntop_get_interface_host_visual_name },
+  { "getHostMinInfo",           ntop_get_interface_get_host_min_info },
   { "getHostCountry",           ntop_get_interface_host_country },
   { "addMacsIpAddresses",       ntop_add_macs_ip_addresses },
   { "getNetworksStats",         ntop_get_interface_networks_stats       },

@@ -3569,7 +3569,7 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
-bool NetworkInterface::getHostVisualName(lua_State* vm,
+bool NetworkInterface::getHostMinInfo(lua_State* vm,
            AddressTree *allowed_hosts,
 				   char *host_ip, u_int16_t vlan_id) {
   Host *h;
@@ -3578,7 +3578,8 @@ bool NetworkInterface::getHostVisualName(lua_State* vm,
   h = findHostByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h) {
-    h->lua_get_visual_name(vm);
+    lua_newtable(vm);
+    h->lua_get_min_info(vm);
     ret = true;
   } else
     ret = false;

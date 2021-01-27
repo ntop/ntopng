@@ -249,7 +249,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
 	   bool verbose, bool returnHost, bool asListElement);
 
   void lua_get_bins(lua_State* vm)            const;
-  void lua_get_min_info(lua_State* vm)        const;
   void lua_get_ip(lua_State* vm)              const;
   void lua_get_localhost_info(lua_State* vm)  const;
   void lua_get_mac(lua_State* vm)             const;
@@ -268,6 +267,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_num_alerts(lua_State* vm)    const;
   void lua_get_num_total_flows(lua_State* vm) const;
   void lua_get_num_flows(lua_State* vm)     const;
+  void lua_get_min_info(lua_State* vm);
   void lua_get_num_contacts(lua_State* vm);
   void lua_get_num_http_hosts(lua_State*vm);
   void lua_get_score(lua_State* vm);
@@ -275,7 +275,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_os(lua_State* vm);
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
-  void lua_get_visual_name(lua_State *vm);
   
   void resolveHostName();
   char *get_host_label(char * const buf, ssize_t buf_size);

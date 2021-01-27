@@ -4054,7 +4054,11 @@ function builMapHREF(ip_address, vlan_id, map, default_page)
       return(ip_address)
    else
       local hinfo = hostkey2hostinfo(ip_address)
-      hinfo["name"] = interface.getHostName(hinfo.host, hinfo.vlan)
+      local hmininfo = interface.getHostMinInfo(hinfo.host, hinfo.vlan)
+      for key, value in pairs(hmininfo) do
+          hinfo[key] = value
+      end
+      
       local name  = hostinfo2label(hinfo)
       local res
 
