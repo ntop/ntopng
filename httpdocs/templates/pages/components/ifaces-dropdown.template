@@ -66,7 +66,7 @@
             {% icons[#icons + 1] = "<i class='fas fa-hdd'></i>" %}
           {% end %}
 
-          <option data-tokens="{{ k }}" value="{{ k }}" {{ selected }} data-content="{{ table.concat(icons, ' ')}} {{ ifHdescr[k] }}">{{ ifHdescr[k] }}</option>
+          <option data-tokens="{{ k }}" value="{{ k }}" {{ selected }} data-content="{{ table.concat(icons, ' ')}} {{ shortenCollapse(ifHdescr[k]) }}">{{ ifHdescr[k] }}</option>
         {% end %}
       {% end %}
     {% end %}

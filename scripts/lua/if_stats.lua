@@ -263,7 +263,7 @@ local url = ntop.getHttpPrefix()..'/lua/if_stats.lua?ifid=' .. ifid
 print('\n<script>var refresh = '..getInterfaceRefreshRate(ifstats.id)..' * 1000; /* ms */;</script>\n')
 
 local short_name = getHumanReadableInterfaceName(ifname)
-local title = i18n("interface") .. ": " .. short_name
+local title = i18n("interface") .. ": " .. shortenCollapse(short_name)
 
 if (ntop.isPro()) then
    sites_granularities = top_sites_update.getGranularitySites(nil, nil, ifId, true)
