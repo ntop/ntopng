@@ -909,3 +909,8 @@ footer {
 .no-wrap {
   white-space: nowrap;
 }
+
+.resizable-y-container {
+  resize: vertical;
+  overflow: auto;
+}
