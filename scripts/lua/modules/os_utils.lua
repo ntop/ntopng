@@ -99,7 +99,7 @@ function os_utils.execWithOutput(c, ret_code_success)
    if f_name then
       os.remove(f_name)
    else
-      local retcode = rv[3]
+      retcode = rv[3]
    end
 
    if retcode ~= ret_code_success then
