@@ -25,7 +25,7 @@ sendHTTPContentTypeHeader('application/json')
 
 local info = {}
 
-if not ntop.isWindows() and not ntop.isFreeBSD() then
+if not ntop.isWindows() then
    local storage_info = storage_utils.storageInfo()
 
    if not storage_info then
