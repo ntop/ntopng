@@ -2491,8 +2491,8 @@ local lang = {
     ["hosts_parameter_missing_message"] = "Hosts parameter is missing (internal error ?)",
   },
   ["hosts_map_page"] = {
-    ["alerted_flows"] = "Total Alerted Flows",
     ["active_alert_flows"] = "Active Alerted Flows",
+    ["alerted_flows"] = "Total Alerted Flows",
     ["all_flows"] = "All Flows",
     ["dns_queries"] = "DNS Queries vs Replies",
     ["syn_distribution"] = "SYN Distribution",
@@ -2622,6 +2622,8 @@ local lang = {
     ["trigger_interface_alerts"] = "Trigger Interface Alerts",
   },
   ["if_stats_networks"] = {
+    ["no_broadcast_domains"] = "No broadcast domains inferred by inspecting ARP traffic.",
+    ["no_ip_addresses_read"] = "No IP addresses read from the configuration.",
     ["note_ghost_bcast_domains"] = "The %{ghost_icon} highlights ghost broadcast domains (i.e. not belonging to any of the interface IP addresses networks).",
     ["note_iface_addresses"] = "IP addresses are read from the interface configuration.",
     ["note_iface_bcast_domains"] = "Broadcast domains are inferred by inspecting ARP traffic.",

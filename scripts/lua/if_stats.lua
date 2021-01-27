@@ -960,6 +960,7 @@ print[[
    print("</div>") -- close of table responsive
 
 elseif page == "networks" and is_packet_interface then
+
    print("<table class=\"table table-striped table-bordered\">")
 
    if(ifstats.ip_addresses ~= "") then
@@ -984,6 +985,10 @@ elseif page == "networks" and is_packet_interface then
 
 	 print("</ul></td></tr>")
       end
+   else
+      print("<tr><th width=250>"..i18n("ip_address").."</th><td colspan=5>")
+      print(i18n("if_stats_networks.no_ip_addresses_read"))
+      print("</td></tr>")
    end
 
    local has_ghost_networks = false
@@ -1011,6 +1016,10 @@ elseif page == "networks" and is_packet_interface then
 	 print("</ul>")
       end
 
+      print("</td></tr>")
+   else
+      print("<tr><th width=250>"..i18n("broadcast_domain").."</th><td colspan=5>")
+      print(i18n('if_stats_networks.no_broadcast_domains'))
       print("</td></tr>")
    end
    print("</table>")
