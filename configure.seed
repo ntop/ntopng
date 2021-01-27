@@ -618,6 +618,8 @@ fi
 
 if test $SYSTEM = "FreeBSD"; then
    MYSQL_LIB=/usr/local/lib/mysql/libmysqlclient.a
+    MYSQL_INC="-I /usr/local/include/mysql/"
+   AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
 else
  if test "${with_nedge+set}" != set; then
   AC_CHECK_TOOL(MARIADB, mariadb_config)
