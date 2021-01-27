@@ -905,3 +905,7 @@ footer {
   align-items: center;
   height: 100%;
 }
+
+.no-wrap {
+  white-space: nowrap;
+}
