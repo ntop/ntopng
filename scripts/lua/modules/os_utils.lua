@@ -13,6 +13,7 @@ local os_utils = {}
 local NTOPCTL_CMD = "/usr/bin/ntopctl"
 local NTOPNG_CONFIG_TOOL = "/usr/bin/ntopng-utils-manage-config"
 local is_windows = ntop.isWindows()
+local is_freebsd = ntop.isFreeBSD()
 
 -- ########################################################
 
@@ -62,28 +63,44 @@ end
 --! @note redirect the stderr of the command if the command is expected to fail
 function os_utils.execWithOutput(c, ret_code_success)
    local debug = false
-   
+   local f_name = nil 
+   local f 
+
+   ret_code_success = ret_code_success or 0
+
    if(is_windows) then
       return nil
    end
 
    if(debug) then tprint(c) end
-   
-   local f = io.popen(c, 'r')
-   if(f == nil) then
+
+   if is_freebsd then
+      f_name = os.tmpname()
+      os.execute(c.." > "..f_name)
+      f = io.open(f_name, 'r')
+   else
+      f = io.popen(c, 'r')
+   end  
+
+   if f == nil then
       return nil, -1
    end
-   
-   ret_code_success = ret_code_success or 0
   
    local ret_string = f:read('*a')
 
-   if(ret_string ~= nil) then
+   if ret_string ~= nil then
       if(debug) then tprint(s) end
    end
    
    local rv = { f:close() }
-   local retcode = rv[3]
+
+   local retcode = ret_code_success
+
+   if f_name then
+      os.remove(f_name)
+   else
+      local retcode = rv[3]
+   end
 
    if retcode ~= ret_code_success then
       return nil, retcode
