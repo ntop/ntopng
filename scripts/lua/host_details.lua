@@ -1901,9 +1901,9 @@ elseif page == "geomap" then
       <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.css"/>
       <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.Default.css"/>
       <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.css"/>
-      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.js" type="text/javascript"></script>
-      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.curve.js" type="text/javascript"></script>
-      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.markercluster.js" type="text/javascript"></script>
+      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.js?]] .. ntop.getStaticFileEpoch() ..[[" type="text/javascript"></script>
+      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.curve.js?]] .. ntop.getStaticFileEpoch() ..[[" type="text/javascript"></script>
+      <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.markercluster.js?]] .. ntop.getStaticFileEpoch() ..[[" type="text/javascript"></script>
       <script type='text/javascript'>
 
         const zoomIP = "ifid=]]..ifId..[[&]].. hostinfo2url(host_info) ..[[";
@@ -1921,7 +1921,7 @@ elseif page == "geomap" then
 
         }
       </script>
-      <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js"  type='text/javascript'></script>
+      <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js?]] .. ntop.getStaticFileEpoch() ..[["  type='text/javascript'></script>
    ]])
 
 
@@ -2204,7 +2204,7 @@ elseif(page == "traffic_report") then
 end
 
 if(not only_historical) and (host ~= nil) then
-   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
+   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js]] print(ntop.getStaticFileEpoch()) print[["></script>]]
 
    print [[
    <script>

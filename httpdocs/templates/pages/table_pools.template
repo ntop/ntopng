@@ -99,4 +99,4 @@ pool = pool
     };
 
 </script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/pools/pools.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/pools/pools.js?{{ ntop.getStaticFileEpoch() }}"></script>

@@ -68,4 +68,4 @@
     i18n.pool_types = {* json.encode(i18n('pools.pool_name')) *};
 
 </script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/recipients-endpoints.js?{{ ntop.getStaticFileEpoch() }}"></script>

@@ -2417,7 +2417,7 @@ end
 end
 
 if (host ~= nil) then
-   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
+   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js?]] print(ntop.getStaticFileEpoch()) print[["></script>]]
 
    print [[
    <script>

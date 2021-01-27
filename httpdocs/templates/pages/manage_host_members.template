@@ -92,8 +92,8 @@
 *}
 
 <link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-ipsorting.js"></script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-macsorting.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-ipsorting.js?{{ ntop.getStaticFileEpoch() }}"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/utils/datatable-macsorting.js?{{ ntop.getStaticFileEpoch() }}"></script>
 <script type="text/javascript">
 
     let addCsrf = "{{ ntop.getRandomCSRFValue() }}";
@@ -125,5 +125,5 @@
         BIND_POOL_MEMBER_ALREADY_BOUND: "{{ i18n('rest_consts.BIND_POOL_MEMBER_ALREADY_BOUND') }}"
     };
 </script>
-<script src="{{ ntop.getHttpPrefix() }}/js/pages/pools/host-members.js" type="text/javascript">
+<script src="{{ ntop.getHttpPrefix() }}/js/pages/pools/host-members.js?{{ ntop.getStaticFileEpoch() }}" type="text/javascript">
 </script>

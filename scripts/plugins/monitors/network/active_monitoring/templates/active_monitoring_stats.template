@@ -128,4 +128,4 @@
     const poolsFilter = {* json.encode(am_stats.pool_filters)*};
 
 </script>
-<script type='text/javascript' src='{{ plugins_utils.getHttpdocsDir("active_monitoring")}}/active_monitoring_utils.js?]] ..(ntop.getStartupEpoch())}}'></script>
+<script type='text/javascript' src='{{ plugins_utils.getHttpdocsDir("active_monitoring")}}/active_monitoring_utils.js?{{ ntop.getStaticFileEpoch() }}'></script>

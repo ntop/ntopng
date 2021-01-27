@@ -27,4 +27,4 @@ This is the template for the "Alerts Status" page under the system interface
 </div>
 
 {# load the necessary javascript for the page #}
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/system_alerts_stats.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/system_alerts_stats.js?{{ ntop.getStaticFileEpoch() }}"></script>

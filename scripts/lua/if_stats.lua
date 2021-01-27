@@ -1151,7 +1151,7 @@ print[[
 ]]
 
 print [[
-<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js?]] print(ntop.getStaticFileEpoch()) print[["></script>
 	<script type='text/javascript'>
 	 window.onload=function() {]]
 
@@ -2456,7 +2456,7 @@ print [[
 ]]
 
 print [[
-	 <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>
+	 <script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js?]] print(ntop.getStaticFileEpoch()) print[["></script>
 <script>
 $(document).ready(function()
     {

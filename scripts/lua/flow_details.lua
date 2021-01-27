@@ -330,7 +330,7 @@ local function drawiecgraph(iec, total)
       nodes[keys[2]] = true
    end
       
-   print [[ <script type="text/javascript" src="/js/vis-network.min.js"></script>
+   print [[ <script type="text/javascript" src="/js/vis-network.min.js?]] print(ntop.getStaticFileEpoch()) print[["></script>
 
       <div style="width:100%; height:30vh; " id="myiecflow"></div>
 

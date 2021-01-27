@@ -87,4 +87,4 @@
     i18n.manage_configurations.messagges.import_success = "{{ i18n('manage_configurations.messages.import_success') }}";
 
 </script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/manage-configurations.js"></script>
+<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/manage-configurations.js?{{ ntop.getStaticFileEpoch() }}"></script>

@@ -47,9 +47,9 @@ if (num > 0) then
     <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.css"/>
     <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.Default.css"/>
     <link rel="stylesheet" href="]].. ntop.getHttpPrefix() ..[[/leaflet/MarkerCluster.css"/>
-    <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.js" type="text/javascript"></script>
-    <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.curve.js" type="text/javascript"></script>
-    <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.markercluster.js" type="text/javascript"></script>
+    <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.js?]].. ntop.getStaticFileEpoch() ..[[" type="text/javascript"></script>
+    <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.curve.js?]].. ntop.getStaticFileEpoch() ..[[" type="text/javascript"></script>
+    <script src="]].. ntop.getHttpPrefix() ..[[/leaflet/leaflet.markercluster.js?]].. ntop.getStaticFileEpoch() ..[[" type="text/javascript"></script>
     <script type='text/javascript'>
 
       const zoomIP = undefined;
@@ -64,7 +64,7 @@ if (num > 0) then
           $('#geomap-alert').addClass('alert-info').removeClass('alert-danger').show();
       }
     </script>
-    <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js" type='text/javascript'></script>
+    <script src="]].. ntop.getHttpPrefix() ..[[/js/osm-maps.js?]].. ntop.getStaticFileEpoch() ..[[" type='text/javascript'></script>
   ]])
 
 else

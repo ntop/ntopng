@@ -43,7 +43,7 @@ print [[
      </div>
 </div>
 
-<script src="]] print(ntop.getHttpPrefix()) print[[/js/sankey.js"></script>
+<script src="]] print(ntop.getHttpPrefix()) print[[/js/sankey.js?]] print(ntop.getStaticFileEpoch()) print[["></script>
 
 <script>
 ]]

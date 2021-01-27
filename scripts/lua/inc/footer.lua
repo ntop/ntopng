@@ -215,7 +215,7 @@ if not info.oem then
 		<script type='text/javascript'>
 			const blogNotificationCsrf = "]].. ntop.getRandomCSRFValue() ..[[";
 		</script>
-		<script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/utils/blog-notification-utils.js'></script>
+		<script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/utils/blog-notification-utils.js?]].. ntop.getStaticFileEpoch() ..[['></script>
 	]])
 end
 

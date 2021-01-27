@@ -180,7 +180,7 @@ print("</div>")
 print("</center>")
 print [[
   <link href="/css/bubble-chart.css" rel="stylesheet">
-  <script src="/js/bubble-chart.js"></script>
+  <script src="/js/bubble-chart.js?]] print(ntop.getStaticFileEpoch()) print[["></script>
 
 <script>
   var bubble = do_bubble_chart("bubble_chart", ']]
