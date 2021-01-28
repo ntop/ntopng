@@ -1421,6 +1421,7 @@ const createScriptStatusButton = (row_data) => {
 
 function appendSeveritySelect(data) {
 
+   console.log(data)
    const hasSeverity = data.metadata.is_alert || false;
 
    if (data.metadata.default_value === undefined) return;
@@ -1439,8 +1440,7 @@ function appendSeveritySelect(data) {
       let $container;
       let $select = $($(`#severity-template`).html());
       const label = i18n.scripts_list.alert_severity;
-
-      if (data.gui.input_builder === "elephant_flows") {
+      if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder )) {
          $container = $(`<tr></tr>`);
          $select.addClass('d-inline');
          $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
@@ -1763,7 +1763,6 @@ $(document).ready(function () {
          {
             data: 'title',
             render: function (data, type, row) {
-
                if (type == 'display') return `<b>${data}</b>`;
                return data;
             },
