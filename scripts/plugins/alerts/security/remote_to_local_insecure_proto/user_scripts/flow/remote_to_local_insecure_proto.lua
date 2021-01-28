@@ -33,7 +33,7 @@ local script = {
 
 -- #################################################################
 
-function script.hooks.protocolDetected(params)
+function script.hooks.protocolDetected(now, conf)
    -- Is Remote to Local?
    if flow.isRemoteToLocal() then
       local flow_info = flow.getInfo()
@@ -80,11 +80,7 @@ function script.hooks.protocolDetected(params)
             breed_or_category
          )
 
-         if cli_score >= (flow_consts.max_score // 2) then
-            alert:set_severity(params.user_script_config.severity)
-         else
-            alert:set_severity(params.user_script_config.severity)
-         end
+         alert:set_severity(conf.severity)
 
          alert:trigger_status(cli_score, srv_score, flow_score)
       end
