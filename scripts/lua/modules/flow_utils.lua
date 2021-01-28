@@ -1863,15 +1863,6 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
     print("</ul> </div>'")
 
-    -- IP version selector
-    -- table.clone needed to modify some parameters while keeping the original unchanged
-    local ipversion_params = table.clone(page_params)
-    ipversion_params["version"] = nil
-
-    print[[, '<div class="btn-group float-right">]]
-    printIpVersionDropdown(base_url, ipversion_params)
-    print [[</div>']]
-
     -- DSCP selector
     -- table.clone needed to modify some parameters while keeping the original unchanged
     local dscp_params = table.clone(page_params)
@@ -1879,6 +1870,15 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
     print[[, '<div class="btn-group float-right">]]
     printDSCPDropdown(base_url, dscp_params, flowstats["dscps"] or {})
+    print [[</div>']]
+
+    -- IP version selector
+    -- table.clone needed to modify some parameters while keeping the original unchanged
+    local ipversion_params = table.clone(page_params)
+    ipversion_params["version"] = nil
+
+    print[[, '<div class="btn-group float-right">]]
+    printIpVersionDropdown(base_url, ipversion_params)
     print [[</div>']]
 
     -- L4 protocol selector
