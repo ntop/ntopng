@@ -38,19 +38,9 @@
     </div>
 </div>
 <template id="severity-template">
-<tr>
-    <td>
-       
-    </td>
-    <td class="align-middle">
-        {{ i18n("scripts_list.alert_severity") }}
-    </td>
-    <td>
-        <select class="form-control" style='width: 14rem' name="severity">
-            {% for key, severity in pairsByField(alert_severities, 'severity_id', asc) do %}
-                <option value='{{ severity.severity_id }}'>{{ i18n(severity.i18n_title) }}</option>
-            {% end %}
-        </select>
-    </td>
-</tr>
+<select class="form-control" style='width: 14rem' name="severity">
+    {% for key, severity in pairsByField(alert_severities, 'severity_id', asc) do %}
+        <option value='{{ severity.severity_id }}'>{{ i18n(severity.i18n_title) }}</option>
+    {% end %}
+</select>
 </template>

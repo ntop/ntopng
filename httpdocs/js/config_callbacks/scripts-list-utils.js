@@ -1019,10 +1019,10 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       $input_container.append(
          $input_box_l2r
             .prepend($radio_button_l2r)
-            .prepend($(`<div class='col-7'><label class='pl-2'>${i18n.scripts_list.templates.elephant_flows_l2r}</label></div>`)),
+            .prepend($(`<label class='col-7 col-form-label'>${i18n.scripts_list.templates.elephant_flows_l2r}</label>`)),
          $input_box_r2l
             .prepend($radio_button_r2l)
-            .prepend($(`<div class='col-7'><label class='pl-2'>${i18n.scripts_list.templates.elephant_flows_r2l}</label></div>`)),
+            .prepend($(`<label class='col-7 col-form-label'>${i18n.scripts_list.templates.elephant_flows_r2l}</label>`)),
          $multiselect_bytes
       );
 
@@ -1420,6 +1420,7 @@ const createScriptStatusButton = (row_data) => {
 };
 
 function appendSeveritySelect(data) {
+
    const hasSeverity = data.metadata.is_alert || false;
 
    if (data.metadata.default_value === undefined) return;
@@ -1434,7 +1435,26 @@ function appendSeveritySelect(data) {
       if (scriptConfSeverity) {
          severity = scriptConfSeverity.severity_id;
       }
-      $(`#script-config-editor`).append($($(`#severity-template`).html()));
+
+      let $container;
+      let $select = $($(`#severity-template`).html());
+      const label = i18n.scripts_list.alert_severity;
+
+      if (data.gui.input_builder === "elephant_flows") {
+         $container = $(`<tr></tr>`);
+         $select.addClass('d-inline');
+         $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
+            $(`<label class='col-3 col-form-label'>${label}</label>`),
+            $(`<div class='col-4'></div>`).append($select))
+         ));
+      }
+      else {
+         $container = $(`<tr><td></td></tr>`);
+         $container.append($(`<td class='align-middle'>${label}</td>`));
+         $container.append($(`<td></td>`).append($select));
+      }
+
+      $(`#script-config-editor`).append($container);
       $(`#script-config-editor select[name='severity']`).val(severity);
    }
 }
