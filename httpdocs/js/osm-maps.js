@@ -21,7 +21,7 @@ $(document).ready(function () {
 
         return L.marker(L.latLng(lat, lng), settings).bindPopup(`
             <div class='infowin'>
-                <a href='/lua/host_details.lua?host=${title}'>${title}</a>
+                <a href='${http_prefix}/lua/host_details.lua?host=${title}'>${title}</a>
                 <hr>
                 ${html}
             </div>

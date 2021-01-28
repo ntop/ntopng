@@ -59,7 +59,7 @@ $(document).ready(function() {
     {% if (monaco_editor.plugin_file_url == nil) then %}
     const src = "";
     {% else %}
-    const src = getSourceFile('{* monaco_editor.plugin_file_url *}');
+    const src = getSourceFile('{{ ntop.getHttpPrefix() }}{* monaco_editor.plugin_file_url *}');
     {% end %}
 
     require.config({ paths: { 'vs': '{{ ntop.getHttpPrefix() }}/monaco-editor/min/vs' }});

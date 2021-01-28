@@ -37,9 +37,9 @@ presets_utils.init()
 
 local base_url = ""
 if is_nedge then
-   base_url = "/lua/pro/nedge/admin/nf_edit_user.lua"
+   base_url = ntop.getHttpPrefix().."/lua/pro/nedge/admin/nf_edit_user.lua"
 else
-   base_url = "/lua/admin/edit_device_protocols.lua"
+   base_url = ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua"
 end
 
 -- ###################################################################
