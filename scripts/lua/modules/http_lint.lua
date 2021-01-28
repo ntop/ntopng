@@ -1413,6 +1413,7 @@ local known_parameters = {
    ["_"]                       = validateEmptyOr(validateNumber), -- jQuery nonce in ajax requests used to prevent browser caching
    ["__"]                      = validateUnquoted,              -- see LDAP prefs page
    ["ifid"]                    = validateInterface,             -- An ntopng interface ID
+   ["ifname"]                  = validateSingleWord,
    ["iffilter"]                = validateIfFilter,              -- An interface ID or 'all'
    ["mode"]                    = validateMode,                  -- Remote or Local users
    ["dashboard_mode"]          = validateDashboardMode,         -- Dashboard mode

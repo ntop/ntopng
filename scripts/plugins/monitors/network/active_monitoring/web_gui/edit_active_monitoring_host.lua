@@ -20,6 +20,7 @@ local action      = _POST["action"]
 local host        = _POST["am_host"]
 local measurement = _POST["measurement"]
 local pool        = _POST["pool"]
+local ifname      = _POST["ifname"]
 
 local rv = {}
 

@@ -242,6 +242,7 @@ $(document).ready(function() {
             const granularity = $("#select-add-granularity").val();
             const threshold = $("#input-add-threshold").val();
             const pool = $(`#select-add-pool`).val();
+            const iface = $(`#am-add-form select[name='iface']`).val();
 
             $(`#add-invalid-feedback`).hide();
 
@@ -251,7 +252,8 @@ $(document).ready(function() {
                 threshold: threshold,
                 measurement: measurement,
                 granularity: granularity,
-                pool: pool
+                pool: pool,
+                ifname: iface
             }
         },
         onSubmitSuccess: function (response, dataSent) {
@@ -300,6 +302,13 @@ $(document).ready(function() {
             $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), amData.pool || DEFAULT_POOL));
             $(`#am-edit-form select[name='pool']`).trigger('change');
 
+            if (['icmp', 'cicmp'].includes(amData.measurement)) {
+                $(`#am-edit-form .interface-group`).show();
+            }
+            else {
+                $(`#am-edit-form .interface-group`).hide();
+            }
+
             dialogRefreshMeasurement($dialog, amData.granularity);
             dialogRefreshPeriodicity($dialog);
         },
@@ -309,6 +318,7 @@ $(document).ready(function() {
             const granularity = $("#select-edit-granularity").val();
             const threshold = $("#input-edit-threshold").val();
             const pool = $(`#select-edit-pool`).val();
+            const iface = $(`#am-edit-form select[name='iface']`).val();
 
             return {
                 action: 'edit',
@@ -319,6 +329,7 @@ $(document).ready(function() {
                 old_measurement: amData.measurement,
                 granularity: granularity,
                 old_granularity: amData.granularity,
+                ifname: iface,
                 pool: pool
             };
         },
@@ -379,6 +390,7 @@ $(document).ready(function() {
             enabled: (get_host === ""),
             action: function(e, dt, node, config) {
                 $addHostModalHandler.invokeModalInit();
+                $("#select-add-measurement").trigger('change');
             }
         },
         {
@@ -538,7 +550,7 @@ $(document).ready(function() {
     $('#am-table').on('click', `a[href='#am-edit-modal']`, function(e) {
         const amData = getAmData($amTable, $(this));
         $editModalHandler.invokeModalInit(amData);
-	$(`#input-edit-host`).attr('pattern', getMeasurementRegex(amData.measurement));
+	    $(`#input-edit-host`).attr('pattern', getMeasurementRegex(amData.measurement));
     });
 
     $('#am-table').on('click', `a[href='#am-delete-modal']`, function(e) {
@@ -570,6 +582,13 @@ $(document).ready(function() {
         $(`#input-add-host`).attr('pattern', getMeasurementRegex(selectedMeasurement));
         // trigger form validation
         if ($(`#input-add-host`).val().length > 0) $(`#am-add-form`)[0].reportValidity();
+
+        if (['icmp', 'cicmp'].includes(selectedMeasurement)) {
+            $(`#am-add-form .interface-group`).show();
+        }
+        else {
+            $(`#am-add-form .interface-group`).hide();
+        }
 
         dialogRefreshMeasurement($("#am-add-modal"));
         dialogRefreshPeriodicity($("#am-add-modal"));
