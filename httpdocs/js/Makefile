@@ -13,7 +13,7 @@ DEP_MIN_JS_SRC=ie_fix.js rickshaw.js pie-chart.js gauge.js \
 NTOP_MIN_JS=ntop.min.js
 NTOP_MIN_JS_SRC=datatable_utils.js ays_utils.js string_utils.js ntop_utils.js graph_utils.js \
 		  ebpf_utils.js ntopng_validators.js main.js \
-		  notification-daemon.js utils/modal-utils.js utils/datatable-utils.js utils/toast-utils.js
+		  utils/modal-utils.js utils/datatable-utils.js utils/toast-utils.js
 
 minify: $(JQUERY_BOOTSTRAP_MIN_JS) $(DEP_MIN_JS) $(NTOP_MIN_JS)
 
