@@ -1023,8 +1023,6 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
 
    if(script) then
 
-      tprint(script)
-
       -- Try to validate the configuration
       for hook, conf in pairs(new_config) do
 	 local valid = true
