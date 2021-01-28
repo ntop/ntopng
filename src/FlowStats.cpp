@@ -45,8 +45,11 @@ void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel 
 
   protocols[l4_protocol]++;
   alert_levels[alert_level]++;
-  dscps[dscp_cli2srv]++;
-  dscps[dscp_srv2cli]++;
+  if(dscp_cli2srv != dscp_srv2cli) {
+    dscps[dscp_cli2srv]++;
+    dscps[dscp_srv2cli]++;
+  } else 
+    dscps[dscp_cli2srv]++;
 }
 
 /* *************************************** */

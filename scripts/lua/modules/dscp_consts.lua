@@ -8,28 +8,28 @@ local dscp_consts = {}
 -- ################################################################################
 
 local DSCP = {
-   [0x00] = "Best Effort (CS0)",
+   [0x00] = "Best Effort [CS0]",
    [0x01] = "LE",
-   [0x08] = "Priority (CS1)",
-   [0x0A] = "Priority (AF11)",
-   [0x0C] = "Priority (AF12)",
-   [0x0E] = "Priority (AF13)",
-   [0x10] = "Immediate (CS2)",
-   [0x12] = "Immediate (AF21)",
-   [0x14] = "Immediate (AF22)",
-   [0x16] = "Immediate (AF23)",
-   [0x18] = "Flash/Voice (CS3)",
-   [0x1A] = "Flash/Voice (AF31)",
-   [0x1C] = "Flash/Voice (AF32)",
-   [0x1E] = "Flash/Voice (AF33)",
-   [0x20] = "Flash Override (CS4)",
-   [0x22] = "Flash Override (AF41)",
-   [0x24] = "Flash Override (AF42)",
-   [0x26] = "Flash Override (AF43)",
-   [0x28] = "Critical (CS5)",
-   [0x2E] = "Critical(EF)",
-   [0x30] = "Internetwork Control (CS6)",
-   [0x38] = "Network Control (CS7)"
+   [0x08] = "Priority [CS1]",
+   [0x0A] = "Priority [AF11]",
+   [0x0C] = "Priority [AF12]",
+   [0x0E] = "Priority [AF13]",
+   [0x10] = "Immediate [CS2]",
+   [0x12] = "Immediate [AF21]",
+   [0x14] = "Immediate [AF22]",
+   [0x16] = "Immediate [AF23]",
+   [0x18] = "Flash/Voice [CS3]",
+   [0x1A] = "Flash/Voice [AF31]",
+   [0x1C] = "Flash/Voice [AF32]",
+   [0x1E] = "Flash/Voice [AF33]",
+   [0x20] = "Flash Override [CS4]",
+   [0x22] = "Flash Override [AF41]",
+   [0x24] = "Flash Override [AF42]",
+   [0x26] = "Flash Override [AF43]",
+   [0x28] = "Critical [CS5]",
+   [0x2E] = "Critical [EF]",
+   [0x30] = "Internetwork Control [CS6]",
+   [0x38] = "Network Control [CS7]"
 }
 
 local DSCP_class = {
@@ -67,7 +67,7 @@ local DS_class = {
 function dscp_consts.dscp_descr(id)
    local descr = DSCP[id]
    if descr == nil then
-     descr = "Unknown ("..id..")"
+     descr = "Unknown ["..id.."]"
    end
    return descr
 end
