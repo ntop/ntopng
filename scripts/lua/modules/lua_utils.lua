@@ -24,6 +24,7 @@ require "ntop_utils"
 locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
+local dscp_consts = require "dscp_consts"
 
 -- TODO: replace those globals with locals everywhere
 
@@ -440,6 +441,56 @@ function printVLANFilterDropdown(base_url, page_params)
    print[[
 
       </ul>]]
+end
+
+-- ##############################################
+
+function printDSCPDropdown(base_url, page_params, dscp_list)
+   local dscp = _GET["dscp"]
+   local dscp_filter
+   if not isEmptyString(dscp) then
+      dscp_filter = '<span class="fas fa-filter"></span>'
+   else
+      dscp_filter = ''
+   end
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
+   local dscp_params = table.clone(page_params)
+   dscp_params["dscp"] = nil
+   -- Used to possibly remove tcp state filters when selecting a non-TCP l4 protocol
+   local dscp_params_non_filter = table.clone(dscp_params)
+   if dscp_params_non_filter["dscp"] then
+      dscp_params_non_filter["dscp"] = nil
+   end
+
+   local ordered_dscp_list = {}
+
+   for key, value in pairs(dscp_list) do
+      local name = dscp_consts.dscp_descr(key)
+      ordered_dscp_list[name] = {}
+      ordered_dscp_list[name]["id"] = key
+      ordered_dscp_list[name]["count"] = value.count
+   end
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.dscp")) print[[]] print(dscp_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" id="flow_dropdown">\
+         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, dscp_params_non_filter)) print[[">]] print(i18n("flows_page.all_dscp")) print[[</a></li>]]
+
+   for key, value in pairsByKeys(ordered_dscp_list, asc) do
+	  print[[<li]]
+
+	  print([[><a class="dropdown-item ]].. (tonumber(dscp) == value.id and 'active' or '') ..[[" href="]])
+
+	  local dscp_table = ternary(key ~= 6, dscp_params_non_filter, dscp_params)
+
+	  dscp_table["dscp"] = value.id
+	  print(getPageUrl(base_url, dscp_table))
+
+	  print[[">]] print(key) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
+   end
+
+   print[[</ul>]]
 end
 
 -- ##############################################

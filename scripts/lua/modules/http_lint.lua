@@ -1912,6 +1912,7 @@ local known_parameters = {
    ["old_dhcp_ranges"]         = validateListOfTypeInline(validateIpRange),
    ["icmp_type"]               = validateNumber,
    ["icmp_cod"]                = validateNumber,
+   ["dscp"]                    = validateNumber,
    ["snmp_timeout_sec"]        = validateNumber,
    ["hosts_only"]              = validateBool,
    ["referal_url"]             = validateUnquoted,

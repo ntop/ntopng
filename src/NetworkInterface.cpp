@@ -3707,7 +3707,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   char* pidname_filter;
   u_int32_t deviceIP = 0;
   u_int32_t inIndex, outIndex;
-  u_int8_t icmp_type, icmp_code;
+  u_int8_t icmp_type, icmp_code, dscp_filter;
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
   char *traffic_profile_filter;
@@ -3848,6 +3848,12 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       if((!f->isICMP()) || (cur_type != icmp_type) || (cur_code != icmp_code))
         return(false);
      }
+
+    if(retriever->pag
+       && retriever->pag->dscpFilter(&dscp_filter)
+       && f->getCli2SrvDSCP() != dscp_filter
+       && f->getSrv2CliDSCP() != dscp_filter)
+      return(false);
 
     if(retriever->pag
        && retriever->pag->portFilter(&port)

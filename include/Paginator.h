@@ -45,7 +45,7 @@ class Paginator {
   u_int32_t inIndex, outIndex;
   u_int16_t pool_filter, flow_status_filter;
   AlertLevelGroup flow_status_severity_filter;
-  u_int8_t *mac_filter, icmp_type, icmp_code;
+  u_int8_t *mac_filter, icmp_type, icmp_code, dscp_filter;
   DetailsLevel details_level;
   bool details_level_set;
   LocationPolicy client_mode;
@@ -169,6 +169,10 @@ class Paginator {
 
   inline bool icmpValue(u_int8_t *code, u_int8_t *typ) const {
     if((icmp_type != u_int8_t(-1)) && (icmp_code != u_int8_t(-1))) { (*typ) = icmp_type; (*code) = icmp_code; return true; } return false;
+  }
+
+  inline bool dscpFilter(u_int8_t *f) const {
+    if(dscp_filter != (u_int8_t)-1) { (*f) = dscp_filter; return true; } return false;
   }
 
   inline bool unidirectionalTraffic(bool *f) const {

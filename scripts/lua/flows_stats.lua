@@ -41,6 +41,7 @@ local vlan = _GET["vlan"]
 local port = _GET["port"]
 local icmp_type = _GET["icmp_type"]
 local icmp_code = _GET["icmp_cod"]
+local dscp_filter = _GET["dscp"]
 local traffic_profile = _GET["traffic_profile"]
 
 -- remote exporters address and interfaces
@@ -157,6 +158,10 @@ end
 if((icmp_type ~= nil) and (icmp_code ~= nil)) then
   page_params["icmp_type"] = icmp_type
   page_params["icmp_cod"] = icmp_code
+end
+
+if(dscp_filter ~= nil) then
+   page_params["dscp"] = dscp_filter
 end
 
 if(traffic_profile ~= nil) then

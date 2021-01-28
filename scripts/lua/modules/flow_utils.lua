@@ -76,30 +76,31 @@ function getFlowsFilter()
    local perPage     = _GET["perPage"]
 
    -- Other Filters
-   local port        = _GET["port"]
-   local application = _GET["application"]
-   local category    = _GET["category"]
-   local network_id  = _GET["network"]
+   local port         = _GET["port"]
+   local application  = _GET["application"]
+   local category     = _GET["category"]
+   local network_id   = _GET["network"]
    local traffic_profile = _GET["traffic_profile"]
    local traffic_type = _GET["traffic_type"]
-   local flowhosts_type = _GET["flowhosts_type"]
+   local flowhosts_type  = _GET["flowhosts_type"]
    local ipversion    = _GET["version"]
    local l4proto      = _GET["l4proto"]
-   local vlan        = _GET["vlan"]
-   local username = _GET["username"]
-   local host   = _GET["host"]
-   local pid_name = _GET["pid_name"]
-   local container   = _GET["container"]
-   local pod         = _GET["pod"]
-   local icmp_type   = _GET["icmp_type"]
-   local icmp_code   = _GET["icmp_cod"]
-   local flow_status = _GET["flow_status"]
+   local vlan         = _GET["vlan"]
+   local username     = _GET["username"]
+   local host         = _GET["host"]
+   local pid_name     = _GET["pid_name"]
+   local container    = _GET["container"]
+   local pod          = _GET["pod"]
+   local icmp_type    = _GET["icmp_type"]
+   local icmp_code    = _GET["icmp_cod"]
+   local dscp_filter  = _GET["dscp"]
+   local flow_status  = _GET["flow_status"]
    local flow_status_severity = _GET["flow_status_severity"]
-   local deviceIP    = _GET["deviceIP"]
-   local inIfIdx     = _GET["inIfIdx"]
-   local outIfIdx    = _GET["outIfIdx"]
-   local asn         = _GET["asn"]
-   local tcp_state   = _GET["tcp_flow_state"]
+   local deviceIP     = _GET["deviceIP"]
+   local inIfIdx      = _GET["inIfIdx"]
+   local outIfIdx     = _GET["outIfIdx"]
+   local asn          = _GET["asn"]
+   local tcp_state    = _GET["tcp_flow_state"]
 
    if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
       sortColumn = getDefaultTableSort("flows")
@@ -262,6 +263,10 @@ function getFlowsFilter()
 
    pageinfo["icmp_type"] = tonumber(icmp_type)
    pageinfo["icmp_code"] = tonumber(icmp_code)
+
+   if not isEmptyString(dscp_filter) then
+      pageinfo["dscpFilter"] = tonumber(dscp_filter)
+   end
 
    if not isEmptyString(tcp_state) then
       pageinfo["tcpFlowStateFilter"] = tcp_state
@@ -1865,6 +1870,15 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
     print[[, '<div class="btn-group float-right">]]
     printIpVersionDropdown(base_url, ipversion_params)
+    print [[</div>']]
+
+    -- DSCP selector
+    -- table.clone needed to modify some parameters while keeping the original unchanged
+    local dscp_params = table.clone(page_params)
+    dscp_params["dscp"] = nil
+
+    print[[, '<div class="btn-group float-right">]]
+    printDSCPDropdown(base_url, dscp_params, flowstats["dscps"] or {})
     print [[</div>']]
 
     -- L4 protocol selector

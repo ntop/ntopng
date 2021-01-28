@@ -34,7 +34,8 @@ FlowStats::~FlowStats() {
 
 /* *************************************** */
 
-void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel alert_level) {
+void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel alert_level, 
+                          u_int8_t dscp_cli2srv, u_int8_t dscp_srv2cli) {
   int i;
 
   for(i = 0; i < BITMAP_NUM_BITS; i++) {
@@ -44,6 +45,8 @@ void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel 
 
   protocols[l4_protocol]++;
   alert_levels[alert_level]++;
+  dscps[dscp_cli2srv]++;
+  dscps[dscp_srv2cli]++;
 }
 
 /* *************************************** */
@@ -85,6 +88,24 @@ void FlowStats::lua(lua_State* vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
+  lua_newtable(vm);
+
+  for(int i = 0; i < 64; i++) {
+    if(unlikely(dscps[i] > 0)) {
+      lua_newtable(vm);
+
+      lua_push_uint64_table_entry(vm, "count", dscps[i]);
+
+      lua_pushinteger(vm, i);
+      lua_insert(vm, -2);
+      lua_rawset(vm, -3);
+    }
+  }
+
+  lua_pushstring(vm, "dscps");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
   /* Alert levels */
   u_int32_t count_notice_or_lower = 0, count_warning = 0, count_error_or_higher = 0;
 
@@ -122,6 +143,7 @@ void FlowStats::resetStats() {
   memset(counters, 0, sizeof(counters));
   memset(protocols, 0, sizeof(protocols));
   memset(alert_levels, 0, sizeof(alert_levels));
+  memset(dscps, 0, sizeof(dscps));
 }
 
 /* *************************************** */
