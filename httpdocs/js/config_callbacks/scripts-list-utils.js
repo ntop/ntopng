@@ -1421,6 +1421,9 @@ const createScriptStatusButton = (row_data) => {
 
 function appendSeveritySelect(data) {
    const hasSeverity = data.metadata.is_alert || false;
+
+   if (data.metadata.default_value === undefined) return;
+
    if (hasSeverity && data.metadata.default_value.severity !== undefined) {
 
       let severity = data.metadata.default_value.severity.severity_id;
