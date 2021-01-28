@@ -83,7 +83,7 @@ local alert_severities = {
       label = "badge-danger text-danger",
       icon = "fas fa-bomb",
       -- color = "purple",
-      i18n_title = "alerts_dashboard.error",
+      i18n_title = "alerts_dashboard.emergency",
       syslog_severity = 0,
       emoji = "\xF0\x9F\x9A\xA9"
    }
