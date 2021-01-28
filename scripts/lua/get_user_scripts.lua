@@ -93,6 +93,7 @@ for script_name, script in pairs(scripts.modules) do
       all_hooks = all_hooks,
       is_enabled = not table.empty(enabled_hooks),
       edit_url = user_scripts.getScriptEditorUrl(script),
+      is_alert = script.is_alert or false,
       input_handler = input_handler,
       value_description = script.template:describeConfig(script, hooks)
     }

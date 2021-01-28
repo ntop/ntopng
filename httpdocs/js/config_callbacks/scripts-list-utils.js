@@ -332,30 +332,30 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       JSON: JSON.stringify(template_data),
       confset_id: confset_id
    })
-      .done((d, status, xhr) => {
+   .done((d, status, xhr) => {
 
-         if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+      if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
-         if (!d.success) {
+      if (!d.success) {
 
-            $error_label.text(d.error).show();
-            // re enable button
-            $apply_btn.removeAttr('disabled');
-         }
-
-         // if the operation was successfull then reload the page
-         if (d.success) reloadPageAfterPOST();
-      })
-      .fail(({ status, statusText }) => {
-
-         NtopUtils.check_status_code(status, statusText, $error_label);
-
-         if (status == 200) {
-            $error_label.text(`${i18n.expired_csrf}`).show();
-         }
-
+         $error_label.text(d.error).show();
+         // re enable button
          $apply_btn.removeAttr('disabled');
-      });
+      }
+
+      // if the operation was successfull then reload the page
+      if (d.success) reloadPageAfterPOST();
+   })
+   .fail(({ status, statusText }, a, b) => {
+
+      NtopUtils.check_status_code(status, statusText, $error_label);
+
+      if (status == 200) {
+         $error_label.text(`${i18n.expired_csrf}`).show();
+      }
+
+      $apply_btn.removeAttr('disabled');
+   });
 }
 
 const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
@@ -370,6 +370,16 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
 
          // if there is an error about the http request
          if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+
+         const {metadata} = reset_data;
+         const hasSeverity = metadata.is_alert || false;
+
+         if (hasSeverity) {
+            const defaultSeverity = metadata.default_value.severity;
+            if (defaultSeverity !== undefined) {
+               $(`#script-config-editor select[name='severity']`).val(defaultSeverity.severity_id);
+            }
+         }
 
          // call callback function to reset fields
          callback_reset(reset_data);
@@ -572,15 +582,7 @@ const ThresholdCross = (gui, hooks, script_subdir, script_key) => {
 
       reset_script_defaults(script_key, script_subdir, (data) => {
 
-         const { hooks, metadata } = data;
-         const hasSeverity = metadata.is_alert || false;
-
-         if (hasSeverity) {
-            const defaultSeverity = metadata.default_value.severity;
-            if (defaultSeverity !== undefined) {
-               $(`#script-config-editor select[name='severity']`).val(defaultSeverity.severity_id);
-            }
-         }
+         const { hooks } = data;
 
          // reset default values
          for (key in hooks) {
@@ -1198,6 +1200,33 @@ const MultiSelect = (gui, hooks, script_subdir, script_key) => {
 
 /* ******************************************************* */
 
+const AlertSeverity = (gui, hooks, script_subdir, script_key) => {
+
+   const $tableEditor = $("#script-config-editor");
+
+   return {
+      apply_click_event: function () { 
+
+         const template_data = {
+            all: {
+               enabled: true,
+               script_conf: {}
+            }
+         }
+
+         apply_edits_script(template_data, script_subdir, script_key);
+      },
+      reset_click_event: function () { 
+         reset_script_defaults(script_key, script_subdir, (data_reset) => {});
+      },
+      render: function () {
+         $tableEditor.empty();
+      },
+   }
+}
+
+/* ******************************************************* */
+
 const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_key = null) => {
 
    const $tableEditor = $("#script-config-editor");
@@ -1223,11 +1252,11 @@ const EmptyTemplate = (gui = null, hooks = null, script_subdir = null, script_ke
 /* ******************************************************* */
 
 // get script key and script name
-const initScriptConfModal = (script_key, script_title, script_desc) => {
+const initScriptConfModal = (script_key, script_title, script_desc, is_alert) => {
 
    // change title to modal
    $("#script-name").html(script_title);
-   $('#script-description').text(script_desc);
+   $('#script-description').html(script_desc);
 
    $("#modal-script form").off('submit');
    $("#modal-script").on("submit", "form", function (e) {
@@ -1252,7 +1281,7 @@ const initScriptConfModal = (script_key, script_title, script_desc) => {
          // hide previous error
          $("#apply-error").hide();
 
-         const template = TemplateBuilder(data, script_subdir, script_key);
+         const template = TemplateBuilder(data, script_subdir, script_key, is_alert);
 
          // render template
          template.render();
@@ -1289,7 +1318,7 @@ const get_search_toggle_value = hash => hash == "#enabled" ? 'true' : (hash == "
 
 /* ******************************************************* */
 
-const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key) => {
+const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key, is_alert) => {
 
    // get template name
    const template_name = gui.input_builder;
@@ -1304,10 +1333,13 @@ const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key) =>
    }
    
    let template_chosen = templates[template_name];
-   if (!template_chosen) {
+   if (!template_chosen && !is_alert) {
       template_chosen = EmptyTemplate();
       // this message is for the developers
       console.warn("The chosen template doesn't exist yet. See the avaible templates.")
+   }
+   else if (!template_chosen && is_alert) {
+      template_chosen = AlertSeverity(gui, hooks, script_subdir, script_key);
    }
    
    // check if the script has an action button
@@ -1776,7 +1808,7 @@ $(document).ready(function () {
                const isScriptEnabled = script.is_enabled;
 
                const srcCodeButtonEnabled = data.edit_url && isScriptEnabled ? '' : 'disabled';
-               const editScriptButtonEnabled = !script.input_handler || !isScriptEnabled ? 'disabled' : '';
+               const editScriptButtonEnabled = ((!script.is_alert && !script.input_handler) || !isScriptEnabled) ? 'disabled' : '';
 
                return DataTableUtils.createActionButtons([
                   { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit' },
@@ -1823,8 +1855,9 @@ $(document).ready(function () {
       const script_key = row_data.key;
       const script_title = row_data.title;
       const script_desc = row_data.description;
+      const is_alert = row_data.is_alert;
 
-      initScriptConfModal(script_key, script_title, script_desc);
+      initScriptConfModal(script_key, script_title, script_desc, is_alert);
    });
 
    /**
