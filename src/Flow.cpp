@@ -331,7 +331,7 @@ Flow::~Flow() {
     if(protos.http.last_url)    free(protos.http.last_url);
     if(protos.http.last_content_type) free(protos.http.last_content_type);
   } else if(isDNS()) {
-    if(protos.dns.last_query)   free(protos.dns.last_query);
+    if(protos.dns.last_query)        free(protos.dns.last_query);
     if(protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
   } else if(isMDNS()) {
     if(protos.mdns.answer)           free(protos.mdns.answer);
@@ -442,23 +442,23 @@ void Flow::processDetectedProtocol() {
     break;
 
   case NDPI_PROTOCOL_NTP:
-    if(cli_port == ntohs(123) && get_cli_host())      get_cli_host()->setNtpServer();
-    else if(srv_port == ntohs(123) && get_srv_host()) get_srv_host()->setNtpServer();
+    if(cli_port == ntohs(123) && get_cli_host())      get_cli_host()->setNtpServer(), get_srv_host()->incNTPContactCardinality(get_cli_host()); 
+    else if(srv_port == ntohs(123) && get_srv_host()) get_srv_host()->setNtpServer(), get_cli_host()->incNTPContactCardinality(get_srv_host());
     break;
 
   case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_SMTP:
     if(get_srv_host()
        && (srv_port == ntohs(25) || srv_port == ntohs(465) || srv_port == ntohs(587)))
-      get_srv_host()->setSmtpServer();
+      get_srv_host()->setSmtpServer(), get_cli_host()->incSMTPContactCardinality(get_srv_host());
     if(get_cli_host()
        && (cli_port == ntohs(25) || cli_port == ntohs(465) || cli_port == ntohs(587)))
-      get_cli_host()->setSmtpServer();
+      get_cli_host()->setSmtpServer(), get_srv_host()->incSMTPContactCardinality(get_cli_host());
     break;
 
   case NDPI_PROTOCOL_DNS:
-    if(cli_port == ntohs(53) && get_cli_host())       get_cli_host()->setDnsServer();
-    else if(srv_port == ntohs(53) && get_srv_host())  get_srv_host()->setDnsServer();
+    if(cli_port == ntohs(53) && get_cli_host())       { get_cli_host()->setDnsServer(); get_srv_host()->incDNSContactCardinality(get_cli_host());  }
+    else if(srv_port == ntohs(53) && get_srv_host())  { get_srv_host()->setDnsServer(); get_cli_host()->incDNSContactCardinality(get_srv_host()); }
     break;
 
   case NDPI_PROTOCOL_IEC60870:

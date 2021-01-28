@@ -402,6 +402,10 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   virtual void luaHostBehaviour(lua_State* vm) { lua_pushnil(vm); }
   virtual void incDohDoTUses(Host *srv_host) {}
+
+  virtual void incNTPContactCardinality(Host *h)  { ; }
+  virtual void incDNSContactCardinality(Host *h)  { ; }
+  virtual void incSMTPContactCardinality(Host *h) { ; }    
 };
 
 #endif /* _HOST_H_ */

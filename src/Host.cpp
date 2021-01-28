@@ -606,7 +606,6 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   char ip_buf[64], *ipaddr = NULL;
   bool mask_host = Utils::maskHost(isLocalHost());
 
-
   if((ptree && (!match(ptree))) || mask_host)
     return;
 

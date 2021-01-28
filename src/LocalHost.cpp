@@ -128,6 +128,10 @@ void LocalHost::initialize() {
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->incNumHosts();
 
+  num_dns_servers.init(5);
+  num_smtp_servers.init(5);
+  num_ntp_servers.init(5);
+  
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
 			       ip.print(buf, sizeof(buf)),
@@ -238,6 +242,20 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 	    host_details, verbose, returnHost,
 	    false /* asListElement possibly handled later */);
 
+  /* *** */
+  
+  lua_newtable(vm);
+
+  lua_push_uint32_table_entry(vm, "dns",  num_dns_servers.getEstimate());
+  lua_push_uint32_table_entry(vm, "smtp", num_smtp_servers.getEstimate());
+  lua_push_uint32_table_entry(vm, "ntp",  num_ntp_servers.getEstimate());
+  
+  lua_pushstring(vm, "server_contacts");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  /* *** */
+  
   lua_push_int32_table_entry(vm, "local_network_id", local_network_id);
 
   local_net = ntop->getLocalNetworkName(local_network_id);
@@ -255,7 +273,7 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
     lua_settable(vm, -3);
   }
   
-  /* Don't add abythiubg beyond this line (due to lua indexing) */
+  /* Don't add anything beyond this line (due to lua indexing) */
 }
 
 /* *************************************** */
@@ -452,3 +470,4 @@ void LocalHost::luaDoHDot(lua_State *vm) {
   lua_settable(vm, -3);
 }
 
+/* *************************************** */

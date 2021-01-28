@@ -53,7 +53,10 @@ class LocalHost : public Host, public SerializableElement {
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
   std::unordered_map<u_int32_t, DoHDoTStats*> doh_dot_map;
- 
+
+  /* Estimate of the number of critical servers used by this host */
+  Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
+  
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
   bool drop_all_host_traffic;
@@ -111,6 +114,10 @@ class LocalHost : public Host, public SerializableElement {
   }
 
   virtual void incDohDoTUses(Host *srv_host);
+
+  virtual void incNTPContactCardinality(Host *h)  { num_ntp_servers.addElement(h->get_ip()->key());  }
+  virtual void incDNSContactCardinality(Host *h)  { num_dns_servers.addElement(h->get_ip()->key());  }
+  virtual void incSMTPContactCardinality(Host *h) { num_smtp_servers.addElement(h->get_ip()->key()); }
 };
 
 #endif /* _LOCAL_HOST_H_ */

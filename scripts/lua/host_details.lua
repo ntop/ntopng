@@ -119,6 +119,14 @@ if((host == nil) and ((_GET["mode"] == "restore"))) then
    end
 end
 
+function formatContacts(v)
+   if(v > 5) then
+      return("<font color=red><b>"..formatValue(v).."</b></font>")
+   else
+      return(formatValue(v))
+   end
+end
+
 local function scoreBreakdown(what)
    local score_category_network  = what[0]
    local score_category_security = what[1]
@@ -792,6 +800,13 @@ end
       print("</tr>")
    end
 
+   if(host.server_contacts ~= nil) then
+      print("<tr><th>"..i18n("details.server_contacts").."</th><td colspan=2>")
+      print("<b>DNS</b>: "..formatContacts(host.server_contacts.dns).." / ")
+      print("<b>SMTP</b>: "..formatContacts(host.server_contacts.smtp).." / ");
+      print("<b>NTP</b>: "..formatContacts(host.server_contacts.ntp).."</td></tr>");
+   end
+   
    if host["tcp.packets.seq_problems"] == true then
       local tcp_seq_label = "TCP: "..i18n("details.retransmissions").." / "..i18n("details.out_of_order").." / "..i18n("details.lost").." / "..i18n("details.keep_alive")
 
