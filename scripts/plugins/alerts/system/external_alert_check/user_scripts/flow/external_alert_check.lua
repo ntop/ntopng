@@ -6,12 +6,19 @@ local json = require ("dkjson")
 local user_scripts = require ("user_scripts")
 local alert_consts = require("alert_consts")
 local alerts_api = require "alerts_api"
+local alert_severities = require "alert_severities"
 
 -- #################################################################
 
 local script = {
   -- NOTE: hooks defined below
   hooks = {},
+
+  is_alert = true,
+
+  default_value = {
+    severity = alert_severities.warning,
+  },
 
   gui = {
     i18n_title = "flow_callbacks_config.ext_alert",
@@ -21,7 +28,7 @@ local script = {
 
 -- #################################################################
 
-local function checkExternalAlert()
+local function checkExternalAlert(config)
 
   -- Check for external alert (clear on read, thus it will not be
   -- returned in the next call)
@@ -54,7 +61,7 @@ local function checkExternalAlert()
       end
 
       -- Trigger flow alert
-      alert:set_severity(alert_consts.alertSeverityById(info.severity_id))
+      alert:set_severity(config.severity)
 
       alert:trigger_status(cli_score, srv_score, flow_score)
     end
@@ -63,14 +70,14 @@ end
 
 -- #################################################################
 
-function script.hooks.periodicUpdate(now)
-   checkExternalAlert()
+function script.hooks.periodicUpdate(now, config)
+   checkExternalAlert(config)
 end
 
 -- #################################################################
 
 function script.hooks.flowEnd(now, config)
-   checkExternalAlert()
+   checkExternalAlert(config)
 end
 
 -- #################################################################

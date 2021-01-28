@@ -13,7 +13,7 @@ local handler = {}
 -- #################################################################
 
 -- @brief See risk_handler.lua
-function handler.handle_risk(risk_id, flow_score, cli_score, srv_score)
+function handler.handle_risk(conf, risk_id, flow_score, cli_score, srv_score)
    -- NDPI_BINARY_APPLICATION_TRANSFER
    -- scripts/lua/modules/alert_definitions/alert_suspicious_file_transfer.lua
 
@@ -25,7 +25,7 @@ function handler.handle_risk(risk_id, flow_score, cli_score, srv_score)
       http_info
    )
 
-   alert:set_severity(alert_severities.error)
+   alert:set_severity(conf.severity)
 
    alert:trigger_status(cli_score or 0, srv_score or 0, flow_score or 0)
    

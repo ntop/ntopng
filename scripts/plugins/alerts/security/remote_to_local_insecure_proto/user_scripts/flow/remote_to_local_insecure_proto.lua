@@ -16,6 +16,12 @@ local script = {
 
    default_enabled = true,
    
+   is_alert = true,
+
+   default_value = {
+     severity = alert_severities.error,
+   },
+
    -- NOTE: hooks defined below
    hooks = {},
 
@@ -75,9 +81,9 @@ function script.hooks.protocolDetected(params)
          )
 
          if cli_score >= (flow_consts.max_score // 2) then
-            alert:set_severity(alert_severities.error)
+            alert:set_severity(params.user_script_config.severity)
          else
-            alert:set_severity(alert_severities.warning)
+            alert:set_severity(params.user_script_config.severity)
          end
 
          alert:trigger_status(cli_score, srv_score, flow_score)
