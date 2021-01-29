@@ -25,6 +25,7 @@ local is_admin = isAdministrator()
 local is_windows = ntop.isWindows()
 local info = ntop.getInfo()
 local updates_supported = (is_admin and ntop.isPackage() and not ntop.isWindows())
+local has_local_auth = (ntop.getPref("ntopng.prefs.local.auth_enabled") ~= '0')
 
 -- this is a global variable
 local is_system_interface = page_utils.is_system_view()
@@ -583,7 +584,9 @@ page_utils.add_menubar_section(
 	 },
 	 {
 	    entry = page_utils.menu_entries.manage_users,
-	    hidden = not _SESSION["localuser"] or not is_admin,
+            -- Note: 'not _SESSION["localuser"]' indicates that this is an external
+            -- user (e.g. LDAP), in that case allow users management if fallback is enabled.
+	    hidden = not is_admin or (not _SESSION["localuser"] and not has_local_auth),
 	    url = '/lua/admin/users.lua',
 	 },
 	 {
