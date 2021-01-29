@@ -1421,7 +1421,6 @@ const createScriptStatusButton = (row_data) => {
 
 function appendSeveritySelect(data) {
 
-   console.log(data)
    const hasSeverity = data.metadata.is_alert || false;
 
    if (data.metadata.default_value === undefined) return;
