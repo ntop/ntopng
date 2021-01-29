@@ -1439,7 +1439,7 @@ function appendSeveritySelect(data) {
       let $container;
       let $select = $($(`#severity-template`).html());
       const label = i18n.scripts_list.alert_severity;
-      if (["elephant_flows", "long_lived", "items_list", "multi_select"].includes(data.gui.input_builder )) {
+      if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder )) {
          $container = $(`<tr></tr>`);
          $select.addClass('d-inline');
          $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
