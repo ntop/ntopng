@@ -401,6 +401,7 @@ local lang = {
     ["bad_action_param"] = "Bad \"action\" paramater",
     ["config_reset_confirm"] = "Do you really want to discard the current configuration and reset it to default?",
     ["confirm_delete"] = "Do you want really remove this record?",
+    ["default_interface"] = "Default Interface",
     ["download_speed"] = "Download Speed",
     ["edit_record"] = "Edit Active Monitoring Record",
     ["empty_action"] = "Something went wrong (empty action). Reload the page and try again.",

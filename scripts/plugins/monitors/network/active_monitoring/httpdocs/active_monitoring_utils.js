@@ -520,7 +520,7 @@ $(document).ready(function() {
             },
             {
                 data: 'jitter',
-                className: 'dt-body-right dt-head-center',
+                className: 'dt-body-right dt-head-center no-wrap',
                 sortable: false,
             },
             {
