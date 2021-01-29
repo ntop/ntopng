@@ -4060,7 +4060,7 @@ static int ntop_checkpoint_host_talker(lua_State* vm) {
 
   get_host_vlan_info((char*)lua_tostring(vm, 2), &host_ip, &vlan_id, buf, sizeof(buf));
 
-  if(iface && !iface->isView())
+  if(iface && !iface->isViewed())
     iface->checkPointHostTalker(vm, host_ip, vlan_id);
   else
     lua_pushnil(vm);
