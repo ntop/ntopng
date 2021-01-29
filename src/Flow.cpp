@@ -2329,17 +2329,17 @@ bool Flow::is_hash_entry_state_idle_transition_ready() const {
 void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
   ndpi_protocol detected_protocol = get_detected_protocol();
 
-  ndpi_stats->incStats(0, detected_protocol.master_protocol,
-		       get_packets_cli2srv(), get_bytes_cli2srv(),
-		       get_packets_srv2cli(), get_bytes_srv2cli());
-  ndpi_stats->incFlowsStats(detected_protocol.master_protocol);
-
   if(detected_protocol.app_protocol != detected_protocol.master_protocol
      && detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
     ndpi_stats->incStats(0, detected_protocol.app_protocol,
 			 get_packets_cli2srv(), get_bytes_cli2srv(),
 			 get_packets_srv2cli(), get_bytes_srv2cli());
     ndpi_stats->incFlowsStats(detected_protocol.app_protocol);
+  } else {
+    ndpi_stats->incStats(0, detected_protocol.master_protocol,
+		       get_packets_cli2srv(), get_bytes_cli2srv(),
+		       get_packets_srv2cli(), get_bytes_srv2cli());
+    ndpi_stats->incFlowsStats(detected_protocol.master_protocol);
   }
 
   status_stats->incStats(getStatusBitmap(), protocol, alert_level, getCli2SrvDSCP(), getSrv2CliDSCP());
