@@ -991,7 +991,11 @@ else
 	 print('<div class="progress-bar bg-info" style="width: ' .. (srv2cli * 100 / rtt) .. '%;">' .. srv2cli .. ' ms (server)</div></div>')
 	 print("</td></tr>\n")
 
-	 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
+	 c = interface.getAddressInfo(flow["cli.ip"])
+	 s = interface.getAddressInfo(flow["srv.ip"])
+
+	 if(not(c.is_private and s.is_private)) then
+-- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
 	 print("<tr><th width=30%><A HREF=\"https://en.wikipedia.org/wiki/Velocity_factor\" target=\"_blank\">"..i18n("flow_details.rtt_distance").."</A> <i class=\"fas fa-external-link-alt\"></i></th><td>")
 	 local c_vacuum_km_s = 299792
 	 local c_vacuum_mi_s = 186000
@@ -1002,6 +1006,7 @@ else
 
 	 print(formatValue(toint(dd_fiber_km)).." Km</td><td>"..formatValue(toint(dd_fiber_mi)).." Miles")
 	 print("</td></tr>\n")
+	 end
       end
    end
 

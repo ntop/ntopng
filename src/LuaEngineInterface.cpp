@@ -4246,6 +4246,7 @@ static int ntop_get_address_info(lua_State* vm) {
   lua_push_bool_table_entry(vm, "is_blacklisted", ip.isBlacklistedAddress());
   lua_push_bool_table_entry(vm, "is_broadcast",   ip.isBroadcastAddress());
   lua_push_bool_table_entry(vm, "is_multicast",   ip.isMulticastAddress());
+  lua_push_bool_table_entry(vm, "is_private",     ip.isPrivateAddress());
   lua_push_bool_table_entry(vm, "is_local",       ip.isLocalHost(&network_id));
 
   return(CONST_LUA_OK);
