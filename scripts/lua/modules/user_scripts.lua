@@ -32,6 +32,7 @@ user_scripts.field_units = {
   flow_sec = "field_units.flow_sec",
   percentage = "field_units.percentage",
   syn_min = "field_units.syn_min",
+  contacts = "field_units.contacts",
 }
 
 -- ##############################################

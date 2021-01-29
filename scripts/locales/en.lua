@@ -740,6 +740,12 @@ local lang = {
     ["threshold_type"] = "Callback",
     ["thresholds_single_source"] = "%{source} %{alt_name} Configuration",
     ["throughput"] = "Throughput Alert",
+    ["dns_contacts_title"] = "Too Many DNS Contacts",
+    ["dns_contacts_description"] = "Trigger an alert when an Host contacts too many times a DNS Server",
+    ["ntp_contacts_title"] = "Too Many NTP Contacts",
+    ["ntp_contacts_description"] = "Trigger an alert when an Host contacts too many times an NTP Server",
+    ["smtp_contacts_title"] = "Too Many SMTP Contacts",
+    ["smtp_contacts_description"] = "Trigger an alert when an Host contacts too many times an SMTP Server",
   },
   ["appliance"] = {
     ["capture_interfaces"] = "Capture Interfaces",
@@ -1334,6 +1340,7 @@ local lang = {
   },
   ["field_units"] = {
     ["bytes"] = "Bytes",
+    ["contacts"] = "Tot. Contacts",
     ["flow_sec"] = "Flows/sec",
     ["flows"] = "Flows",
     ["hosts"] = "Hosts",
