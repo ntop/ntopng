@@ -34,7 +34,7 @@ local script = {
 	       { 4, i18n("flow_risk.ndpi_binary_application_transfer") },
 	       { 5, i18n("flow_risk.ndpi_known_protocol_on_non_standard_port") },
 	       -- { 6, i18n("flow_risk.ndpi_tls_selfsigned_certificate") }, -- handled in tls_certificate_selfsigned.lua
-	       -- { 7, i18n("flow_risk.ndpi_tls_obsolete_version") },       -- handled in tls_old_version.lua
+	       -- { 7, i18n("flow_risk.ndpi_tls_obsolete_version") },       -- handled in tls_old_protocol_version.lua
 	       -- { 8, i18n("flow_risk.ndpi_tls_weak_cipher") },            -- handled in tls_certificate_expired.lua
 	       -- { 9, i18n("flow_risk.ndpi_tls_certificate_expired") },    -- handled in tls_certificate_expired.lua 
 	       -- { 10, i18n("flow_risk.ndpi_tls_certificate_mismatch") },  -- handled in tls_certificate_mismatch.lua TODO: migrate to flow risk
