@@ -62,7 +62,7 @@ Ping::Ping(char *ifname) {
   ping_id = rand(), cnt = 0;
   running = true;
 
-#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && !defined(HAVE_NEDGE)
   if(Utils::gainWriteCapabilities() == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
@@ -75,7 +75,7 @@ Ping::Ping(char *ifname) {
   sd6 = socket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 #endif
 
-#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && !defined(HAVE_NEDGE)
   Utils::dropWriteCapabilities();
 #endif
 
