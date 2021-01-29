@@ -1443,6 +1443,7 @@ local known_parameters = {
    ["profile"]                 = http_lint.validateTrafficProfile,        -- Traffic Profile name
    ["delete_profile"]          = http_lint.validateTrafficProfile,        -- A Traffic Profile to delete
    ["alert_type"]              = validateNumber,                -- An alert type enum
+   ["alert_l7_proto"]          = validateNumber,                -- An alert l7 protocol
    ["alert_subtype"]           = validateSingleWord,            -- An alert subtype string
    ["alert_severity"]          = validateNumber,                -- An alert severity enum
    ["alert_granularity"]       = validateNumber,                -- An alert granularity

@@ -162,6 +162,12 @@ local function performAlertsQuery(statement, what, opts, force_query, group_by)
       wargs[#wargs+1] = "AND alert_severity = "..(opts.alert_severity)
    end
 
+   if what == "historical-flows" then
+      if tonumber(opts.alert_l7_proto) ~= nil then
+         wargs[#wargs+1] = "AND l7_proto = "..(opts.alert_l7_proto)
+      end
+   end
+
    if((not isEmptyString(opts.sortColumn)) and (not isEmptyString(opts.sortOrder))) then
       local order_by
 
@@ -605,12 +611,15 @@ local function getMenuEntries(status, selection_name, get_params)
    -- Remove previous filters
    params.alert_severity = nil
    params.alert_type = nil
+   params.l7_proto = nil
 
    if selection_name == "severity" then
       actual_entries = performAlertsQuery("select alert_severity id, count(*) count", status, params, nil, "alert_severity" --[[ group by ]])
-    elseif selection_name == "type" then
+   elseif selection_name == "type" then
       actual_entries = performAlertsQuery("select alert_type id, count(*) count", status, params, nil, "alert_type" --[[ group by ]])
-   end
+   elseif selection_name == "l7_proto" then
+      actual_entries = performAlertsQuery("select l7_proto id, count(*) count", status, params, nil, "l7_proto" --[[ group by ]])
+  end
 
    return(actual_entries)
 end
@@ -639,6 +648,8 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
       id_to_label = alert_consts.alertSeverityLabel
    elseif selection_name == "type" then
       id_to_label = alert_consts.alertTypeLabel
+   elseif selection_name == "l7_proto" then
+      id_to_label = interface.getnDPIProtoName
    end
    
    actual_entries = actual_entries or getMenuEntries(status, selection_name, get_params)
@@ -647,7 +658,11 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
 
    button_label = button_label or firstToUpper(selection_name)
    if active_entry ~= nil and active_entry ~= "" then
-      button_label = firstToUpper(active_entry)..'<span class="fas fa-filter"></span>'
+      if selection_name == "l7_proto" then 
+         button_label = firstToUpper(interface.getnDPIProtoName(active_entry))..'<span class="fas fa-filter"></span>'
+      else
+         button_label = firstToUpper(active_entry)..'<span class="fas fa-filter"></span>'
+      end
    end
 
    buttons = buttons..'<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..button_label
@@ -658,12 +673,12 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
    local class_active = ""
 
    if active_entry == nil then class_active = 'active' end
-   buttons = buttons..'<li><a class="dropdown-item '..class_active..'" href="?status='..status..dropdownUrlParams(get_params)..'">All</a></i>'
+   buttons = buttons..'<li><a class="dropdown-item '..class_active..'" href="?status='..status..'">All</a></i>'
 
    -- add a label to each entry
    for _, entry in pairs(actual_entries) do
       local id = tonumber(entry["id"])
-      entry.label = id_to_label(id, true)
+      entry.label = firstToUpper(id_to_label(id, true))
    end
 
    for _, entry in pairsByField(actual_entries, 'label', asc) do
@@ -1157,12 +1172,15 @@ function releaseAlert(idx) {
 	    for s, _ in pairs(alert_severities) do alert_severities[#alert_severities +1 ] = s end
 	    local alert_types = {}
        for s, _ in pairs(alert_consts.alert_types) do alert_types[#alert_types +1 ] = s end
+       local l7_proto = {}
 	    local type_menu_entries = nil
-	    local sev_menu_entries = nil
+       local sev_menu_entries = nil
+       local l7_proto_entries = nil
 
-	    local a_type, a_severity = nil, nil
+       local a_type, a_severity, a_l7_proto = nil, nil, nil
 	    if clicked == "1" then
-	       if tonumber(_GET["alert_type"]) ~= nil then a_type = alert_consts.alertTypeLabel(_GET["alert_type"], true) end
+          if tonumber(_GET["alert_type"]) ~= nil then a_type = alert_consts.alertTypeLabel(_GET["alert_type"], true) end
+          if tonumber(_GET["alert_l7_proto"]) ~= nil then a_l7_proto = tonumber(_GET["alert_l7_proto"]) end
 	       if tonumber(_GET["alert_severity"]) ~= nil then a_severity = alert_consts.alertSeverityLabel(_GET["alert_severity"], true) end
 	    end
 
@@ -1171,11 +1189,15 @@ function releaseAlert(idx) {
 
 	       if(res ~= nil) then
 		  type_menu_entries = menuEntriesToDbFormat(res.type)
-		  sev_menu_entries = menuEntriesToDbFormat(res.severities)
+        sev_menu_entries = menuEntriesToDbFormat(res.severities)
+        --l7_proto_entries = menuEntriesToDbFormat(res.l7_proto)
 	       end
-	    end
-
-	    print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))
+       end
+       
+       print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))
+       if t["status"] == "historical-flows" then
+         print(drawDropdown(t["status"], "l7_proto", a_l7_proto, l7_proto, i18n("application"), get_params, l7_proto_entries))                    
+       end
 	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities, i18n("alerts_dashboard.alert_severity"), get_params, sev_menu_entries))
 	 elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
 	    if entity == "host" then
@@ -1262,10 +1284,10 @@ function releaseAlert(idx) {
 	 },
 
 	 {
-	    title: "]]print(i18n("drilldown"))print[[",
-	    field: "column_chart",
+	    title: "]]print(i18n("application"))print[[",
+	    field: "column_ndpi",
             sortable: false,
-	    hidden: ]] print(ternary(not interfaceHasNindexSupport() or ntop.isPro(), "false", "true")) print[[,
+	    hidden: ]] print(ternary(t["status"] ~= "historical-flows", "true", "false")) print[[,
 	    css: {
 	       textAlign: 'center'
 	    }
@@ -1299,6 +1321,10 @@ function releaseAlert(idx) {
                var alert_key = alert_key[0];
                var data = table_data[row_id];
                var explorer_url = data["column_explorer"];
+
+               if(data["column_drilldown"]) {
+                  datatableAddLinkButtonCallback.bind(this)(10, data["column_drilldown"], "<i class='fas fa-search-plus drilldown-icon'></i>");
+               }
 
                if(explorer_url) {
                   datatableAddLinkButtonCallback.bind(this)(10, explorer_url, "<i class='fab fa-wpexplorer'></i>", "]] print(i18n("show_alerts.explorer")) print[[");
@@ -1384,6 +1410,8 @@ $("[clicked=1]").trigger("click");
       purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. alert_consts.alertTypeLabel(_GET["alert_type"], true) .. "</b>"})
    elseif (_GET['alert_severity']) then
       purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. alert_consts.alertSeverityLabel(_GET["alert_severity"], true) .. "</b>"})
+   elseif (_GET['alert_l7_proto']) then
+      purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. interface.getnDPIProtoName(tonumber(_GET["alert_l7_proto"])) .. "</b>"})
    else
       purge_label = i18n("show_alerts.alerts_to_purge")
    end
@@ -1441,6 +1469,7 @@ function getTabSpecificParams() {
 
    if (tab_specific.status == "]] print(_GET["status"]) print[[") {
       tab_specific.alert_severity = ]] if tonumber(_GET["alert_severity"]) ~= nil then print(_GET["alert_severity"]) else print('""') end print[[;
+      tab_specific.alert_l7_proto = ]] if tonumber(_GET["alert_l7_proto"]) ~= nil then print(_GET["alert_l7_proto"]) else print('""') end print[[;
       tab_specific.alert_type = ]] if tonumber(_GET["alert_type"]) ~= nil then print(_GET["alert_type"]) else print('""') end print[[;
    }
 
@@ -1504,7 +1533,9 @@ $('#buttonOpenDeleteModal').on('click', function() {
 	 if tonumber(_GET["alert_severity"]) ~= nil then
 	    print(' with severity "'..alert_consts.alertSeverityLabel(_GET["alert_severity"], true)..'" ')
 	 elseif tonumber(_GET["alert_type"]) ~= nil then
-	    print(' with type "'..alert_consts.alertTypeLabel(_GET["alert_type"], true)..'" ')
+       print(' with type "'..alert_consts.alertTypeLabel(_GET["alert_type"], true)..'" ')
+    elseif tonumber(_GET["alert_l7_proto"]) ~= nil then
+       print(' with type "'..interface.getnDPIProtoName(tonumber(_GET["alert_l7_proto"]))..'" ')
 	 end
 	 print[[');
    if (lb.length == 1)

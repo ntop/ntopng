@@ -123,7 +123,16 @@ for k,v in ipairs(alerts) do
    local column_score    = format_utils.formatValue(tonumber(v["score"]))
    local alert_info      = alert_utils.getAlertInfo(v)
    local column_msg      = string.gsub(alert_utils.formatAlertMessage(ifid, v, alert_info), '"', "'")
-   local column_chart = ""
+   local column_chart     = ""
+   local column_drilldown = ""
+   local column_ndpi      = ""
+
+   if v["l7_proto"] and v["l7_master_proto"] then
+      local app = create_ndpi_proto_name(v)
+      local breed = interface.getnDPIProtoBreed(tonumber(v["l7_proto"]))
+
+      column_ndpi = "<A HREF='".. ntop.getHttpPrefix().."/lua/hosts_stats.lua?protocol=" .. v["l7_proto"] .."'>"..app.." " .. formatBreed(breed) .."</A>"
+   end
 
    if ntop.isPro() then
       local graph_utils = require "graph_utils"
@@ -131,7 +140,7 @@ for k,v in ipairs(alerts) do
       if graph_utils.getAlertGraphLink then
 	 local chart_link = graph_utils.getAlertGraphLink(getInterfaceId(ifname), v, alert_info, engaged)
 	 if not isEmptyString(chart_link) then
-	    column_chart = column_chart.."<a class='btn btn-sm btn-info' href='".. chart_link .."'><i class='fas fa-search-plus drilldown-icon'></i></a>"
+      column_drilldown = chart_link
 	 end
       end
    end
@@ -185,7 +194,9 @@ for k,v in ipairs(alerts) do
    record["column_msg"] = column_msg
    record["column_entity_id"] = alert_entity
    record["column_entity_val"] = alert_entity_val
+   record["column_ndpi"] = column_ndpi
    record["column_chart"] = column_chart
+   record["column_drilldown"] = column_drilldown
 
    res_formatted[#res_formatted + 1] = record
 

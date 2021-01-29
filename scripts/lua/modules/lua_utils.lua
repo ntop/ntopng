@@ -4035,6 +4035,35 @@ end
 
 -- ###########################################
 
+function create_ndpi_proto_name(v)
+   local app = ""
+
+   if v["proto.ndpi"] then
+      app = getApplicationLabel(v["proto.ndpi"])
+   else
+      local master_proto = interface.getnDPIProtoName(tonumber(v["l7_master_proto"]))
+      local app_proto    = interface.getnDPIProtoName(tonumber(v["l7_proto"]))
+
+      if master_proto == app_proto then
+         app = app_proto
+      elseif master_proto == "Unknown" then
+         app = app_proto
+      else
+         app = master_proto
+
+         if app_proto ~= "Unknown" then
+            app = app .. "." .. app_proto
+         end
+      end
+           
+      app = getApplicationLabel(app)  
+   end
+
+   return app
+end
+
+-- ###########################################
+
 --- Insert an element inside the table if is not present
 function table.insertIfNotPresent(t, element, comp)
    if table.contains(t, element, comp) then return end
