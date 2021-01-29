@@ -13,7 +13,7 @@ local handler = {}
 -- #################################################################
 
 -- @brief See risk_handler.lua
-function handler.handle_risk(conf, risk_id, flow_score, cli_score, srv_score)
+function handler.handle_risk(risk_id, flow_score, cli_score, srv_score)
    -- NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT
 
    -- Set the flow status and trigger an alert when a known protocol is found to use a non-standard port  
@@ -21,7 +21,7 @@ function handler.handle_risk(conf, risk_id, flow_score, cli_score, srv_score)
       flow.getInfo()
    )
 
-   alert:set_severity(conf.severity)
+   alert:set_severity(alert_severities.info)
 
    alert:trigger_status(cli_score or 0, srv_score or 0, flow_score or 0)
 

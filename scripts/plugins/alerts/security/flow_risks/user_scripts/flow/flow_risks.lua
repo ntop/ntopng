@@ -6,7 +6,6 @@ local user_scripts = require "user_scripts"
 local flow_risks = require "flow_risk_utils"
 local plugins_utils = require "plugins_utils"
 local alerts_api = require "alerts_api"
-local alert_severities = require "alert_severities"
 
 -- #################################################################
 
@@ -58,10 +57,7 @@ local script = {
       }
    },
 
-   is_alert = true,
-
    default_value = {
-      severity = alert_severities.error,
       items = {
 	 1,2,3,4,5,
 	 -- 6,7,8,9,10,
@@ -175,7 +171,7 @@ function script.hooks.protocolDetected(now, conf)
 
 	 if handler and handler.handle_risk then
 	    -- Handler expect three params, namely flow-, client- and server-scores
-	    handler.handle_risk(conf, risk_id, table.unpack(risk2scores[risk_id] or DEFAULT_SCORES))
+	    handler.handle_risk(risk_id, table.unpack(risk2scores[risk_id] or DEFAULT_SCORES))
 	 end
 
 	 ::continue::

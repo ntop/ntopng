@@ -15,11 +15,11 @@ local script = {
    category = user_scripts.script_categories.security, 
 
    default_enabled = true,
-   
+
    is_alert = true,
 
    default_value = {
-     severity = alert_severities.error,
+	severity = alert_severities.warning	
    },
 
    -- NOTE: hooks defined below
