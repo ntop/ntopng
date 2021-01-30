@@ -22,6 +22,7 @@ alert_data_exfiltration.meta = {
    alert_key = alert_keys.ntopng.alert_data_exfiltration,
    i18n_title = "flow_details.data_exfiltration",
    icon = "fas fa-exclamation",
+   status_keep_increasing_scores = true, -- Keep increasing the score so the longer the flow, the higher the score
 }
 
 -- ##############################################

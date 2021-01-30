@@ -369,12 +369,23 @@ end
 
 -- #################################################################
 
-local function setStatus(status_key, flow_score, cli_score, srv_score)
+local function setStatus(status_info, flow_score, cli_score, srv_score)
    flow_score = math.min(math.max(flow_score or 0, 0), flow_consts.max_score)
    cli_score = math.min(math.max(cli_score or 0, 0), flow_consts.max_score)
    srv_score = math.min(math.max(srv_score or 0, 0), flow_consts.max_score)
 
-   return flow.setStatus(status_key, flow_score, cli_score, srv_score, cur_user_script.key, cur_user_script.category.id)
+   -- A status is always set multiple times, causing flow scores to be increased every time, unless
+   -- an explicity flag `status_keep_increasing_scores` is telling not to do so.
+   -- There are flows (e.g., those representing security risks) where it is meaningful to increase scores multiple times
+   -- so the longer the flow the higher the risk.
+   -- There are other flows (e.g., long-lived flows kept active with keepalive) where it is pointless and misleading to
+   -- keep increasing the score as this would result in flows with high scores only because they are long lived (See #4993),
+   if not flow.isStatusSet(status_info.status_type.status_key) or status_info.status_type.alert_type.status_keep_increasing_scores then
+      return flow.setStatus(status_info.status_type.status_key, flow_score, cli_score, srv_score, cur_user_script.key, cur_user_script.category.id)
+   end
+
+   -- Status already set and multiple score increases disabled with `status_keep_increasing_scores`
+   return true
 end
 
 -- #################################################################
@@ -401,7 +412,7 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
       alerted_user_script = cur_user_script
    end
 
-   setStatus(status_info.status_type.status_key, flow_score, cli_score, srv_score)
+   setStatus(status_info, flow_score, cli_score, srv_score)
 
    -- A notification is only emitted for the predominant status, once all flow user scripts have been processed
    -- and all statuses have been set.

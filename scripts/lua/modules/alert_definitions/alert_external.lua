@@ -20,6 +20,7 @@ external_alert.meta = {
    status_key = status_keys.ntopng.status_external_alert,
    i18n_title = "alerts_dashboard.external_alert",
    icon = "fas fa-eye",
+   status_keep_increasing_scores = true, -- Every time an external alert is set, scores are increased accordingly
 }
 
 -- #######################################################

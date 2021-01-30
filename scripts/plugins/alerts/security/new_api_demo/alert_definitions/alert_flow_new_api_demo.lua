@@ -23,6 +23,7 @@ alert_flow_new_api_demo.meta = {
    i18n_title = "New Flow API Demo",
    icon = "fas fa-exclamation",
    status_always_notify = true, -- Optional, if true, a notification is always emitted even when the status is not predominant or every time flow.triggerStatus is called
+   status_keep_increasing_scores = true, -- Optional, if true, causes scores to be increased every time the status is set. (See #4993)
 }
 
 -- ##############################################

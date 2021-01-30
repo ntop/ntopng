@@ -5146,7 +5146,7 @@ bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
     cli_host_score[score_category] += unsafeGetClient()->incScoreValue(cli_inc, score_category, true  /* as client */);
 
   if(unsafeGetServer())
-    srv_host_score[score_category] += unsafeGetServer()->incScoreValue(srv_inc, score_category, false /* as server*/);
+    srv_host_score[score_category] += unsafeGetServer()->incScoreValue(srv_inc, score_category, false /* as server */);
 
   return true;
 }
