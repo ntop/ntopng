@@ -131,7 +131,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       if(value["cli.systemhost"] == true) then src_name = src_name .. "&nbsp;<i class='fas fa-flag'></i>" end
       src_key = hostinfo2detailshref(flow2hostinfo(value, "cli"), nil, src_name, cli_tooltip, false)
 
-      if value["cli.port"] > 0 then
+      if value["cli.port"] > 0 or value["proto.l4"] == "TCP" or value["proto.l4"] == "UDP" then
 	 src_port = "<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?port=" .. value["cli.port"]
 	 if(host ~= nil) then src_port = src_port .. "&host="..host end
 	 src_port = src_port .. "'>"..ntop.getservbyport(value["cli.port"], string.lower(value["proto.l4"])).."</A>"
@@ -153,7 +153,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
       if(value["srv.systemhost"] == true) then dst_name = dst_name .. "&nbsp;<i class='fas fa-flag'></i>" end
       dst_key = hostinfo2detailshref(flow2hostinfo(value, "srv"), nil, dst_name, srv_tooltip, false)
 
-      if value["srv.port"] > 0 then
+      if value["srv.port"] > 0 or value["proto.l4"] == "TCP" or value["proto.l4"] == "UDP" then
 	 dst_port="<A HREF='"..ntop.getHttpPrefix().."/lua/flows_stats.lua?port=" .. value["srv.port"]
 	 if(host ~= nil) then dst_port = dst_port .. "&host="..host end
 	 dst_port = dst_port .. "'>"..ntop.getservbyport(value["srv.port"], string.lower(value["proto.l4"])).."</A>"
