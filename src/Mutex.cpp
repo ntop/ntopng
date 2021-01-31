@@ -69,7 +69,7 @@ void Mutex::unlock(const char *filename, const int line, bool trace_errors) {
   rc = pthread_mutex_unlock(&the_mutex);
 
   if(rc != 0) {
-    if(trace_errors)
+    if(trace_errors && (errno != 0))
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "pthread_mutex_unlock() returned %d [%s][errno=%d]",
 				   rc, strerror(rc), errno);
