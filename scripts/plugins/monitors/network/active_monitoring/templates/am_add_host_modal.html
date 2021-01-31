@@ -79,31 +79,16 @@
 						</label>
 						<div class="col-sm-5">
 							<select class="form-control" name="iface">
-								<option selected>{{ i18n("active_monitoring_stats.default_interface") }}</option>
-								{% for k, name in pairsByKeys(interface.getIfNames(), asc) do %}
-									{%
-										
-										local address = ""
-										interface.select(name)
-										local stats = interface.getStats()
-
-										if stats.ip_addresses ~= nil then
-											local tokens = split(stats.ip_addresses, ",")
-											for _,s in pairs(tokens) do
-												
-												local t = string.split(s, "/")			
-												
-												-- select only the IPv4 address
-												if ((t ~= nil) and isIPv4(t[1])) then
-													address = t[1]
-													break
-												end
-										 	end
-										end
-
-									%}
-								{% if(address ~= "") then  %}
-								<option value='{{ name }}'>{{ name }} ({{ address }})</option>
+							  <option selected>{{ i18n("active_monitoring_stats.default_interface") }}</option>
+							  {%
+							     for name,v in pairsByKeys(ntop.listInterfaces(), asc) do
+							  local addr = ""
+							  if(v.ipv4 ~= nil) then addr = addr..v.ipv4 end
+							  if(v.ipv6 ~= nil) then addr = addr.." "..v.ipv6 end
+							  
+							  if(addr ~= "") then
+							  %}
+								<option value='{{ name }}'>{{ name }} ({{ addr }})</option>
 								{% end %}
 								{% end %}
 							</select>
