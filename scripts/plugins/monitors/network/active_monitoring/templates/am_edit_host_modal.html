@@ -101,8 +101,10 @@
 										 	end
 										end
 
-									%}
-									<option value='{{ name }}'>{{ name }} ({{ address }})</option>
+								%}
+								{% if(address ~= "") then  %}
+								<option value='{{ name }}'>{{ name }} ({{ address }})</option>
+								{% end %}
 								{% end %}
 							</select>
 						</div>
