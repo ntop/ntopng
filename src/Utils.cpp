@@ -2575,29 +2575,51 @@ u_int32_t Utils::readIPv4(char *ifname) {
 
 /* **************************************** */
 
-bool Utils::readIPv6(char *ifname, struct sockaddr_in6 *sin) {
+bool Utils::readIPv6(char *ifname, struct in6_addr *sin) {
   bool rc = false;
-#ifndef WIN32
-  struct ifreq ifr;
-  int fd;
+#ifdef __linux__
+  FILE *f;
+  int scope, prefix;
+  unsigned char ipv6[16];
+  char dname[IFNAMSIZ];
 
-  memset(&ifr, 0, sizeof(ifr));
-  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
-  ifr.ifr_addr.sa_family = AF_INET6;
+  f = fopen("/proc/net/if_inet6", "r");
+  if (f == NULL)
+    return(false);  
 
-  if((fd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_IPV6)) < 0) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to create socket");
-  } else {
-    if(ioctl(fd, SIOCGIFADDR, &ifr) == -1)
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read IPv6 for device %s", ifname);
-    else {
-      memcpy (sin->sin6_addr.s6_addr, &((((struct sockaddr_in6*)&ifr.ifr_addr)->sin6_addr).s6_addr),
-                sizeof (struct sockaddr_in6));
+  while (19 == fscanf(f,
+		      " %2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx %*x %x %x %*x %s",
+		      &ipv6[0],
+		      &ipv6[1],
+		      &ipv6[2],
+		      &ipv6[3],
+		      &ipv6[4],
+		      &ipv6[5],
+		      &ipv6[6],
+		      &ipv6[7],
+		      &ipv6[8],
+		      &ipv6[9],
+		      &ipv6[10],
+		      &ipv6[11],
+		      &ipv6[12],
+		      &ipv6[13],
+		      &ipv6[14],
+		      &ipv6[15],
+		      &prefix,
+		      &scope,
+		      dname)) {
+
+    if (strcmp(ifname, dname) != 0)
+      continue;    
+    
+    if(scope == 0x0000U /* IPV6_ADDR_GLOBAL */) {
+      memcpy(sin, ipv6, sizeof(ipv6));
       rc = true;
+      break;
     }
-
-    closesocket(fd);
   }
+  
+  fclose(f);
 #endif
 
   return rc;
@@ -4034,7 +4056,7 @@ void Utils::listInterfaces(lua_State* vm) {
           lua_push_str_table_entry(vm, "ipv4", Utils::intoaV4(ntohl(sin.sin_addr.s_addr), buf, sizeof(buf)));
 
         sin6.sin6_family = AF_INET6;
-        if(Utils::readIPv6(cur->name, &sin6)) {
+        if(Utils::readIPv6(cur->name, &sin6.sin6_addr)) {
 	  struct ndpi_in6_addr* ip6 = (struct ndpi_in6_addr*)&sin6.sin6_addr;
 	  char* ip = Utils::intoaV6(*ip6, 128, buf, sizeof(buf));
 
