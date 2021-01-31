@@ -94,7 +94,7 @@
 												local t = string.split(s, "/")			
 												
 												-- select only the IPv4 address
-												if (isIPv4(t[1])) then
+												if ((t ~= nil) and isIPv4(t[1])) then
 													address = t[1]
 													break
 												end
