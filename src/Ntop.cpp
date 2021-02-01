@@ -85,7 +85,7 @@ Ntop::Ntop(char *appName) {
 
 #ifndef WIN32
   if(can_send_icmp)
-    cping = new (std::nothrow) ContinuousPing(NULL);
+    cping = new (std::nothrow) ContinuousPing();
 #endif
 
   /* nDPI handling */

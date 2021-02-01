@@ -304,6 +304,7 @@ $(document).ready(function() {
 
             if (['icmp', 'cicmp'].includes(amData.measurement)) {
                 $(`#am-edit-form .interface-group`).show();
+                $(`#am-edit-form .interface-group [name='iface']`).val(amData.ifname);
             }
             else {
                 $(`#am-edit-form .interface-group`).hide();

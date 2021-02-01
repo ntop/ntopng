@@ -377,6 +377,7 @@ local function deserializeAmPrefs(host_key, val, config_only)
     local v = json.decode(val)
 
     if v then
+      rv.ifname = v.ifname or ''
       rv.threshold = tonumber(v.threshold) or 500
       rv.granularity = v.granularity or "min"
       rv.token = v.token
@@ -460,7 +461,7 @@ end
 -- @param token A string with an ntopng `token` used to fetch data from other ntopngs in a federation [optional]
 -- @param save_result Whether the result fetched with the measure should be saved (e.g., the HTTP response) [optional]
 -- @param readonly Bool used by the GUI to know if, when true, an entry is considered read only hence it cannot be modified/deleted [optional]
-function am_utils.addHost(host, measurement, am_value, granularity, pool, token, save_result, readonly)
+function am_utils.addHost(host, ifname, measurement, am_value, granularity, pool, token, save_result, readonly)
   save_result = save_result or false
   readonly = readonly or false
 
@@ -469,6 +470,7 @@ function am_utils.addHost(host, measurement, am_value, granularity, pool, token,
   local host_key = am_utils.getAmHostKey(host, measurement)
 
   ntop.setHashCache(am_hosts_key, host_key, serializeAmPrefs({
+    ifname = ifname or '',
     threshold = tonumber(am_value) or 500,
     granularity = granularity or "min",
     token = token, -- ntopng auth token
@@ -827,7 +829,7 @@ end
 
 -- ##############################################
 
-function am_utils.editHost(host, measurement, threshold, granularity, pool, token, save_result, readonly)
+function am_utils.editHost(host, iface, measurement, threshold, granularity, pool, token, save_result, readonly)
   local existing = am_utils.getHost(host, measurement)
 
   if(existing == nil) then
@@ -865,7 +867,7 @@ function am_utils.editHost(host, measurement, threshold, granularity, pool, toke
     end
   end
 
-  am_utils.addHost(host, measurement, threshold, granularity, pool, token, save_result, readonly)
+  am_utils.addHost(host, iface, measurement, threshold, granularity, pool, token, save_result, readonly)
 
   return(true)
 end

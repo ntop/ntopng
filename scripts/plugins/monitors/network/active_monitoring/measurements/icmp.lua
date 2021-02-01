@@ -26,7 +26,6 @@ local resolved_hosts = {}
 local function check_oneshot(measurement, hosts, granularity)
   local plugins_utils = require("plugins_utils")
   local am_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
-  local ifname = nil
 
   am_hosts[measurement] = {}
   resolved_hosts[measurement] = {}
@@ -34,6 +33,7 @@ local function check_oneshot(measurement, hosts, granularity)
   for key, host in pairs(hosts) do
     local domain_name = host.host
     local ip_address = am_utils.resolveHost(domain_name)
+    local ifname = host.ifname
 
     if do_trace then
       print("["..measurement.."] Pinging address "..tostring(ip_address).."/"..domain_name.."\n")

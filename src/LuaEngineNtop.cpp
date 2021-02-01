@@ -1720,7 +1720,7 @@ static int ntop_ping_host(lua_State* vm) {
     ContinuousPing *c = ntop->getContinuousPing();
 
     if(c)
-      c->ping(host, is_v6);
+      c->ping(host, is_v6, ifname);
     else {
       lua_pushnil(vm);
       return(CONST_LUA_OK);

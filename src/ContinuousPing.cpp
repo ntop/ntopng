@@ -57,14 +57,14 @@ static void* pollerFctn(void* ptr) {
 
 /* ***************************************** */
 
-ContinuousPing::ContinuousPing(char *ifname) {
+ContinuousPing::ContinuousPing() {
   try {
-    pinger = new Ping(ifname);
+    pinger = new Ping(NULL);
 
     if(pinger)
       pthread_create(&poller, NULL, pollerFctn, (void*)this);
   } catch(...) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to crete continuous pinger");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create continuous pinger");
     pinger = NULL;
   }
 }
@@ -86,7 +86,7 @@ ContinuousPing::~ContinuousPing() {
 /* ***************************************** */
 
 /* Add a new host or refresh the existing one */
-void ContinuousPing::ping(char *_addr, bool use_v6) {
+void ContinuousPing::ping(char *_addr, bool use_v6, char *ifname) {
   std::string key = std::string(_addr);
   std::map<std::string,ContinuousPingStats*>::iterator it;
 

@@ -41,11 +41,11 @@ class ContinuousPing {
   void collectProtoResponse(lua_State* vm, std::map<std::string,ContinuousPingStats*> *w);
 
  public:
-  ContinuousPing(char *ifname);
+  ContinuousPing();
   ~ContinuousPing();
 
   void runPingCampaign();
-  void ping(char *_addr, bool use_v6);
+  void ping(char *_addr, bool use_v6, char *ifname);
   void pollResults();
   void collectResponses(lua_State* vm, bool v6);
 };

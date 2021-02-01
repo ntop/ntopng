@@ -45,6 +45,7 @@ for key, am_host in pairs(am_hosts) do
     local column_last_update = ""
     local column_last_value = ""
     local column_jitter = ""
+    local column_ifname = am_host.ifname or ""
     local last_update = am_utils.getLastAmUpdate(am_host.host, am_host.measurement)
     local alerted = 0
 
@@ -102,6 +103,7 @@ for key, am_host in pairs(am_hosts) do
        value_js_formatter = m_info.value_js_formatter,
        last_mesurement_time = column_last_update,
        last_ip = column_last_ip,
+       ifname = column_ifname,
        granularity = am_host.granularity,
        availability = availability or "",
        hours = hourly_stats or {},
