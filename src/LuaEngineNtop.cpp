@@ -1815,6 +1815,18 @@ static int ntop_is_administrator(lua_State* vm) {
 
 /* ****************************************** */
 
+static bool allowLocalUserManagement(lua_State* vm) {
+  if (!ntop->isLocalUser(vm) && !ntop->isLocalAuthEnabled()) 
+   return(false);
+
+  if(!ntop->isUserAdministrator(vm))
+    return(false);
+
+  return(true);
+}
+
+/* ****************************************** */
+
 static int ntop_reset_user_password(lua_State* vm) {
   char *who, *username, *old_password, *new_password;
   bool is_admin = ntop->isUserAdministrator(vm);
@@ -1835,11 +1847,11 @@ static int ntop_reset_user_password(lua_State* vm) {
   if((new_password = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   /* non-local users cannot change their local password */
-  if(!ntop->isLocalUser(vm))
+  if((strcmp(who, username) == 0) && !ntop->isLocalUser(vm))
     return(CONST_LUA_ERROR);
 
   /* only the administrator can change other users passwords */
-  if(!is_admin && (strcmp(who, username)))
+  if((strcmp(who, username) != 0) && !allowLocalUserManagement(vm))
     return(CONST_LUA_ERROR);
 
   /* only the administrator can use and empty old password */
@@ -1857,7 +1869,8 @@ static int ntop_change_user_role(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1875,7 +1888,9 @@ static int ntop_change_allowed_nets(lua_State* vm) {
   char *username, *allowed_nets;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1893,7 +1908,9 @@ static int ntop_change_allowed_ifname(lua_State* vm) {
   char *username, *allowed_ifname;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1911,7 +1928,9 @@ static int ntop_change_user_host_pool(lua_State* vm) {
   char *username, *host_pool_id;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1929,7 +1948,9 @@ static int ntop_change_user_full_name(lua_State* vm) {
   char *username, *full_name;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1947,7 +1968,9 @@ static int ntop_change_user_language(lua_State* vm) {
   char *username, *language;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1966,7 +1989,9 @@ static int ntop_change_user_permission(lua_State* vm) {
   bool allow_pcap_download = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -2151,7 +2176,8 @@ static int ntop_add_user(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -2269,7 +2295,8 @@ static int ntop_delete_user(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);

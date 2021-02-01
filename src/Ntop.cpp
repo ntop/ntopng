@@ -1365,10 +1365,21 @@ void Ntop::getUserGroupLocal(const char * const user, char *group) const {
 
 /* ******************************************* */
 
+bool Ntop::isLocalAuthEnabled() const {
+  char val[64];
+
+  if((ntop->getRedis()->get((char*)PREF_NTOP_LOCAL_AUTH, val, sizeof(val)) >= 0) && val[0] == '0')
+    return(false);
+
+  return(true);
+}
+
+/* ******************************************* */
+
 bool Ntop::checkUserPasswordLocal(const char * const user, const char * const password, char *group) const {
   char val[64], password_hash[33];
 
-  if((ntop->getRedis()->get((char*)PREF_NTOP_LOCAL_AUTH, val, sizeof(val)) >= 0) && val[0] == '0')
+  if(!isLocalAuthEnabled())
     return(false);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Checking Local auth");

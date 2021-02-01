@@ -2259,6 +2259,28 @@ static int ntop_get_interface_network_stats(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_address_info(lua_State* vm) {
+  char *addr;
+  IpAddress ip;
+  int16_t network_id;
+  
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  addr = (char*)lua_tostring(vm, 1);
+
+  ip.set(addr);
+
+  lua_newtable(vm);
+  lua_push_bool_table_entry(vm, "is_blacklisted", ip.isBlacklistedAddress());
+  lua_push_bool_table_entry(vm, "is_broadcast",   ip.isBroadcastAddress());
+  lua_push_bool_table_entry(vm, "is_multicast",   ip.isMulticastAddress());
+  lua_push_bool_table_entry(vm, "is_private",     ip.isPrivateAddress());
+  lua_push_bool_table_entry(vm, "is_local",       ip.isLocalHost(&network_id));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_host_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -4230,28 +4252,6 @@ static int ntop_get_interface_service_proto_filtering_menu(lua_State* vm) {
   else
     lua_pushnil(vm);
 #endif
-
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
-static int ntop_get_address_info(lua_State* vm) {
-  char *addr;
-  IpAddress ip;
-  int16_t network_id;
-  
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  addr = (char*)lua_tostring(vm, 1);
-
-  ip.set(addr);
-
-  lua_newtable(vm);
-  lua_push_bool_table_entry(vm, "is_blacklisted", ip.isBlacklistedAddress());
-  lua_push_bool_table_entry(vm, "is_broadcast",   ip.isBroadcastAddress());
-  lua_push_bool_table_entry(vm, "is_multicast",   ip.isMulticastAddress());
-  lua_push_bool_table_entry(vm, "is_private",     ip.isPrivateAddress());
-  lua_push_bool_table_entry(vm, "is_local",       ip.isLocalHost(&network_id));
 
   return(CONST_LUA_OK);
 }
