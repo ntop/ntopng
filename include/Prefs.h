@@ -139,9 +139,9 @@ class Prefs {
   bool appliance;
 #endif
 
-#ifdef HAVE_TEST_MODE
-  char *test_script_path;
-#endif
+  char *test_pre_script_path;
+  char *test_post_script_path;
+
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
   void setCommandLineString(int optkey, const char * optarg);
@@ -230,9 +230,8 @@ class Prefs {
   inline const char* get_scripts_dir()                        { return(scripts_dir);    };
   inline const char* get_callbacks_dir()                      { return(callbacks_dir);  };
   inline const char* get_pcap_dir()                           { return(pcap_dir);       };
-#ifdef HAVE_TEST_MODE
-  inline const char* get_test_script_path()                   { return(test_script_path); };
-#endif
+  inline const char* get_test_pre_script_path()               { return(test_pre_script_path); };
+  inline const char* get_test_post_script_path()              { return(test_post_script_path); };
   inline char* get_export_endpoint()                    { return(export_endpoint);};
   inline char* get_export_zmq_encryption_key()          { return(export_zmq_encryption_key); };
   inline char* get_categorization_key()                 { return(categorization_key); };

@@ -93,9 +93,7 @@
 #ifndef WIN32
 #include <grp.h>
 #endif
-#ifdef HAVE_TEST_MODE
-#include <libgen.h>
-#endif
+//#include <libgen.h>
 #if defined(__linux__)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios

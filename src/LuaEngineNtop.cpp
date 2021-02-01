@@ -2964,11 +2964,7 @@ static int ntop_get_info(lua_State* vm) {
 #endif
   }
 
-#ifdef HAVE_TEST_MODE
-  lua_push_bool_table_entry(vm, "test_mode", true);
-#endif
-
-    return(CONST_LUA_OK);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */

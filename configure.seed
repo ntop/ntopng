@@ -47,10 +47,6 @@ PRO_LIBS=
 AC_ARG_WITH(nedge,          [  --with-nedge          Enable nEdge device build])
 AC_ARG_WITH(nedge,          [  --with-test-mode      Enable ntopng/nEdge test mode])
 
-if test "${with_test_mode+set}" = set; then
-  AC_DEFINE(HAVE_TEST_MODE, 1, [ntopng/nEdge test mode enabled])
-fi
-
 CFLAGS="${CFLAGS} -Wall"
 OS=""
 MAKE=make

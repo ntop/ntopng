@@ -228,6 +228,7 @@ public:
   static OSType getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype);
   static DeviceType getDeviceTypeFromOsDetail(const char *os_detail);
   static u_int32_t pow2(u_int32_t v);
+  static int exec(const char * const command);
 #ifdef __linux__
   static void deferredExec(const char * const command);
 #endif
@@ -242,6 +243,7 @@ public:
     are used to 'compress' alert levels into a reduced number of (grouped) levels.
    */
   static AlertLevelGroup mapAlertLevelToGroup(AlertLevel alert_level);
+  static bool hasExtension(const char *path, const char *ext);
 };
 
 #endif /* _UTILS_H_ */

@@ -67,9 +67,7 @@ Prefs::Prefs(Ntop *_ntop) {
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
   pcap_dir = NULL;
-#ifdef HAVE_TEST_MODE
-  test_script_path = NULL;
-#endif
+  test_pre_script_path = test_post_script_path = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
@@ -765,6 +763,7 @@ static const struct option long_options[] = {
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
   { "pcap-dir",                          required_argument, NULL, '5' },
+  { "test-script-pre",                   required_argument, NULL, 206 },
   { "pcap-file-purge-flows",             no_argument,       NULL, 207 },
   { "original-speed",                    no_argument,       NULL, 208 },
   { "online-check",                      no_argument,       NULL, 209 },
@@ -778,9 +777,7 @@ static const struct option long_options[] = {
   { "ignore-macs",                       no_argument,       NULL, 216 },
 #endif
   { "ignore-vlans",                      no_argument,       NULL, 217 },
-#ifdef HAVE_TEST_MODE
   { "test-script",                       required_argument, NULL, 218 },
-#endif
   { "zmq-encryption",                    no_argument,       NULL, 219 },
   { "zmq-encryption-key-priv",           required_argument, NULL, 220 },
   { "simulate-ips",                      required_argument, NULL, 221 },
@@ -1394,6 +1391,11 @@ int Prefs::setOption(int optkey, char *optarg) {
     max_num_flows = max_val(atoi(optarg), 1024);
     break;
 
+  case 206:
+    if(test_pre_script_path) free(test_pre_script_path);
+    test_pre_script_path = strdup(optarg);
+    break;
+
   case 207:
     pcap_file_purge_hosts_flows = true;
     break;
@@ -1491,12 +1493,10 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 #endif
 
-#ifdef HAVE_TEST_MODE
   case 218:
-    if(test_script_path) free(test_script_path);
-    test_script_path = strdup(optarg);
+    if(test_post_script_path) free(test_post_script_path);
+    test_post_script_path = strdup(optarg);
     break;
-#endif
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown option -%c: Ignored.", (char)optkey);

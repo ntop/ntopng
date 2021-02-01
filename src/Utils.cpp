@@ -4645,6 +4645,29 @@ u_int32_t Utils::pow2(u_int32_t v) {
 
 /* ****************************************************** */
 
+int Utils::exec(const char * const command) {
+  int rc = 0;
+
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
+  if(!command || command[0] == '\0')
+    return 0;
+
+  fflush(stdout);
+
+  rc = system(command);
+
+  /*
+  if (rc == -1)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failed command %s: %d/%s",
+				 command_buf, errno, strerror(errno));
+  */
+#endif
+
+  return rc;
+}
+
+/* ****************************************************** */
+
 #ifdef __linux__
 void Utils::deferredExec(const char * const command) {
   char command_buf[256];
@@ -4874,6 +4897,14 @@ AlertLevelGroup Utils::mapAlertLevelToGroup(AlertLevel alert_level) {
   default:
     return alert_level_group_none;
   }
+}
+
+/* ****************************************************** */
+  
+bool Utils::hasExtension(const char *path, const char *ext) {
+  int str_len = strlen(path);
+  int ext_len = strlen(ext);
+  return (str_len >= ext_len) && (strcmp(&path[str_len - ext_len], ext) == 0);
 }
 
 /* ****************************************************** */

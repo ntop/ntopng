@@ -188,6 +188,44 @@ static void* packetPollLoop(void* ptr) {
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
 
+  /* Test Script (Pre Analysis) */ 
+  if(ntop->getPrefs()->get_test_pre_script_path()) {
+    const char *test_pre_script_path = ntop->getPrefs()->get_test_pre_script_path();
+
+#if 0 /* Lua support */
+    if (Utils::hasExtension(test_pre_script_path, ".lua")) {
+      char test_path[MAX_PATH];
+      const char *sep;
+
+      /* Execute as Lua script */
+
+      if((sep = strrchr(test_pre_script_path, '/')) == NULL)
+        sep = test_pre_script_path;
+      else
+        sep++;
+
+      snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
+               ntop->getPrefs()->get_scripts_dir(), sep);
+
+      if(Utils::file_exists(test_path)) {
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s", test_path);
+        LuaEngine *l = new (std::nothrow)LuaEngine(NULL);
+	if(l) {
+	  l->run_script(test_path, iface);
+	  delete l;
+	}
+      }
+    } else 
+#endif
+    {
+
+      /* Execute as Bash script */
+      
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Pre Script '%s'", test_pre_script_path);
+      Utils::exec(test_pre_script_path);
+    }
+  }
+
   do {
     if(pcap_list != NULL) {
       char path[256], *fname;
@@ -338,33 +376,43 @@ static void* packetPollLoop(void* ptr) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_description());
 
-#ifdef HAVE_TEST_MODE
-  char test_path[MAX_PATH];
-  const char * test_script_path = ntop->getPrefs()->get_test_script_path();
-  const char *sep;
+  /* Test Script (Post Analysis) */ 
+  if(ntop->getPrefs()->get_test_post_script_path()) {
+    const char *test_post_script_path = ntop->getPrefs()->get_test_post_script_path();
 
-  if(test_script_path) {
-    if((sep = strrchr(test_script_path, '/')) == NULL)
-      sep = test_script_path;
-    else
-      sep++;
+#if 0 /* Lua support */
+    if (Utils::hasExtension(test_post_script_path, ".lua")) {
+      char test_path[MAX_PATH];
+      const char *sep;
 
-    snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
-	     ntop->getPrefs()->get_scripts_dir(),
-	     sep);
+      /* Execute as Lua script */
 
-    if(test_script_path && Utils::file_exists(test_path)) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s",
-				   test_path);
+      if((sep = strrchr(test_post_script_path, '/')) == NULL)
+        sep = test_post_script_path;
+      else
+        sep++;
 
-	LuaEngine *l = new (std::nothrow)LuaEngine();
+      snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
+               ntop->getPrefs()->get_scripts_dir(), sep);
+
+      if(Utils::file_exists(test_path)) {
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s", test_path);
+        LuaEngine *l = new (std::nothrow)LuaEngine(NULL);
 	if(l) {
 	  l->run_script(test_path, iface);
 	  delete l;
 	}
+      }
+    } else 
+#endif
+    {
+
+      /* Execute as Bash script */
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Post Script '%s'", test_post_script_path);
+      Utils::exec(test_post_script_path);
     }
   }
-#endif
 
   if(ntop->getPrefs()->shutdownWhenDone())
     ntop->getGlobals()->shutdown();
