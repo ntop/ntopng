@@ -99,7 +99,7 @@ char* FrequentStringItems::json(u_int32_t max_num_items) {
     return(a.second > b.second);
   });
   
-  for(int i = 0; i < vec.size(); i++) {
+  for(u_int i = 0; i < vec.size(); i++) {
     if(i == max_num_items) break;
     
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u", vec[i].first.c_str(), vec[i].second);
