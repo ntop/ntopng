@@ -43,6 +43,8 @@ class LocalHostStats: public HostStats {
     num_host_contacted_ports_as_server,      /* # of different server ports contacted by remote peers */
     contacts_as_cli, contacts_as_srv;        /* Minute reset host contacts          */
 
+  DynamicStats *peers;
+
   void updateHostContacts();
   void saveOldSites();
   void removeRedisSitesKey();
@@ -73,6 +75,7 @@ class LocalHostStats: public HostStats {
   virtual void luaDNS(lua_State *vm, bool verbose)  { if(dns) dns->lua(vm, verbose); }
   virtual void luaHTTP(lua_State *vm)  { if(http) http->lua(vm); }
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { if (icmp) icmp->lua(isV4, vm, verbose); }
+  virtual void luaPeers(lua_State *vm);
   virtual void incrVisitedWebSite(char *hostname);
   virtual void lua_get_timeseries(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
@@ -85,6 +88,12 @@ class LocalHostStats: public HostStats {
 
   virtual void incCliContactedPorts(u_int16_t port)  { num_contacted_ports_as_client.addElement(port);      }
   virtual void incSrvPortsContacts(u_int16_t port)   { num_host_contacted_ports_as_server.addElement(port); }
+
+  virtual u_int32_t getSlidingAvgCliContactedPeers() { return(peers->getCliSlidingEstimate()); };
+  virtual u_int32_t getSlidingAvgSrvContactedPeers() { return(peers->getSrvSlidingEstimate()); };
+  virtual u_int32_t getTotAvgCliContactedPeers()     { return(peers->getCliTotEstimate()); };
+  virtual u_int32_t getTotAvgSrvContactedPeers()     { return(peers->getSrvTotEstimate()); };
+  virtual bool getSlidingWinStatus()                 { return(peers->getSlidingWinStatus()); };
 
   virtual void incCliContactedHosts(IpAddress *peer) {
     peer->incCardinality(&num_contacted_hosts_as_client);

@@ -94,6 +94,7 @@ class LocalHost : public Host, public SerializableElement {
   virtual void luaHTTP(lua_State *vm)              { stats->luaHTTP(vm);         };
   virtual void luaDNS(lua_State *vm, bool verbose) { stats->luaDNS(vm, verbose); luaDoHDot(vm); };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) { stats->luaICMP(vm,isV4,verbose); };
+  virtual void lua_peers_stats(lua_State* vm);
   virtual void incrVisitedWebSite(char *hostname)  { stats->incrVisitedWebSite(hostname); };
   virtual HTTPstats* getHTTPstats()                { return(stats->getHTTPstats());       };
   virtual DnsStats*  getDNSstats()                 { return(stats->getDNSstats());        };

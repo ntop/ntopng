@@ -361,6 +361,19 @@ static int ntop_host_is_local(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+int ntop_host_get_dynamic_stats(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  if(!h)
+    return(CONST_LUA_ERROR);
+
+  /* The released alert will be pushed to LUA */
+  h->lua_peers_stats(vm);
+
+  return(CONST_LUA_OK);
+}
 
 /* ****************************************** */
 
@@ -502,6 +515,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "getSynScan",             ntop_host_get_syn_scan            },
   { "getScore",               ntop_host_get_score               },
   { "getBehaviourInfo",       ntop_host_get_behaviour_info      },
+  { "getDynamicStats",        ntop_host_get_dynamic_stats       },
   
   { NULL,                     NULL }
 };

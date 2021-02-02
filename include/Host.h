@@ -350,6 +350,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool isOneWayTraffic()  const;
   bool isTwoWaysTraffic() const;
   virtual void lua_get_timeseries(lua_State* vm) { lua_pushnil(vm); };
+  virtual void lua_peers_stats(lua_State* vm)    { lua_pushnil(vm); };
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
 
   virtual void serialize(json_object *obj, DetailsLevel details_level);

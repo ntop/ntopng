@@ -318,7 +318,7 @@
 #define HOST_IS_NTP_SERVER             0x03
 #define HOST_IS_SMTP_SERVER            0x04
 
-
+#define MAX_DYNAMIC_STATS_VALUES       10
 
 // ICMP
 #ifndef ICMP_TIMESTAMP

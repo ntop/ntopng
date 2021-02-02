@@ -303,6 +303,15 @@ void LocalHost::inlineSetOSDetail(const char *_os_detail) {
 
 /* *************************************** */
 
+void LocalHost::lua_peers_stats(lua_State* vm) {
+  if(initial_ts_point)
+    initial_ts_point->luaPeers(vm);
+  else
+    lua_pushnil(vm);
+}
+
+/* *************************************** */
+
 /* Optimized method to fetch timeseries data for the host. Only returns
  * the ::Lua of the needed fields. Moreover, some fields are represented
  * in a compact way to speedup insertion and lookup (e.g. nDPIStats::lua with tsLua) */

@@ -26,9 +26,12 @@
 LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = NULL;
+
   dns  = new (std::nothrow) DnsStats();
   http = new (std::nothrow) HTTPstats(_host);
   icmp = new (std::nothrow) ICMPstats();
+  peers = new (std::nothrow) DynamicStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
+
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
   current_cycle = 0;
@@ -46,12 +49,14 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
 
 LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
+  peers = new (std::nothrow) DynamicStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
   old_sites = NULL;
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;
   icmp = NULL;
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
+  
 }
 
 /* *************************************** */
@@ -62,6 +67,7 @@ LocalHostStats::~LocalHostStats() {
   if(dns)             delete dns;
   if(http)            delete http;
   if(icmp)            delete icmp;
+  if(peers)           delete(peers);
 }
 
 /* *************************************** */
@@ -123,6 +129,10 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
 
 void LocalHostStats::updateHostContacts() {
   num_contacts_as_cli = contacts_as_cli.getEstimate(), num_contacts_as_srv = contacts_as_srv.getEstimate();
+  if(peers) {
+    peers->addElement(num_contacts_as_cli, true);
+    peers->addElement(num_contacts_as_srv, false);
+  }
   contacts_as_cli.reset(), contacts_as_srv.reset();
 }
 
@@ -180,6 +190,37 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
     lua_settable(vm, -3);
     
   }  
+}
+
+/* *************************************** */
+
+void LocalHostStats::luaPeers(lua_State *vm) {
+  if (peers) {
+    if (peers->getSlidingWinStatus()) {
+      lua_newtable(vm);
+
+      lua_push_int32_table_entry(vm, "contacted_peers_in_last_min_as_cli",
+                num_contacts_as_cli); 
+      lua_push_int32_table_entry(vm, "contacted_peers_in_last_min_as_srv",
+                num_contacts_as_srv); 
+      lua_push_int32_table_entry(vm, "sliding_avg_peers_as_client",
+                peers->getCliSlidingEstimate()); 
+      lua_push_int32_table_entry(vm, "sliding_avg_peers_as_server",
+                peers->getSrvSlidingEstimate());
+      lua_push_int32_table_entry(vm, "tot_avg_peers_as_client",
+                peers->getCliTotEstimate());
+      lua_push_int32_table_entry(vm, "tot_avg_peers_as_server",
+                peers->getSrvTotEstimate());
+
+      lua_pushstring(vm, "peers");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+
+      return;
+    }
+  }
+
+  lua_pushnil(vm);
 }
 
 /* *************************************** */
