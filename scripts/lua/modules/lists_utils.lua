@@ -278,7 +278,9 @@ local function getNextListUpdate(list)
    local next_update
    
    -- align if possible
-   if interval == 3600 then
+   if interval == 0 then
+      next_update = -1
+   elseif interval == 3600 then
       next_update = ntop.roundTime(list.status.last_update, 3600, false)
    elseif interval == 86400 then
       next_update = ntop.roundTime(list.status.last_update, 86400, true --[[ UTC align ]])
@@ -301,6 +303,10 @@ function shouldUpdate(list_name, list, now)
    
    list_file = getListCacheFile(list_name, false)
    next_update = getNextListUpdate(list, now)
+
+   if next_update == -1 then
+      return false
+   end
 
    if(false) then
       tprint('---------------')

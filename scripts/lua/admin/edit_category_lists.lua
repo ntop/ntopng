@@ -131,6 +131,7 @@ print[[
                   <select name="list_update" class="form-control">
                     <option value="86400">]] print(i18n("alerts_thresholds_config.daily")) print[[</option>
                     <option value="3600">]] print(i18n("alerts_thresholds_config.hourly")) print[[</option>
+                    <option value="0">]] print(i18n("alerts_thresholds_config.manual")) print[[</option>
                   </select>
                 </div>
               </div>
