@@ -1018,8 +1018,6 @@ if (_POST["ntopng_license"] == nil) and (info["pro.systemid"] and (info["pro.sys
          print('<li class="nav-item nav-link"><a href="https://shop.ntop.org"><span class="badge badge-warning">')
          print(i18n("about.upgrade_to_professional")..' <i class="fas fa-external-link-alt"></i>')
          print('</span></a></li>')
-      else
-	      print('<li class="nav-item nav-link"><span class="badge badge-warning">'..i18n("about.forced_community_notification_short")..'</span></li>')
       end
    end
 end
