@@ -9,7 +9,10 @@ Prerequisites
 How to Run The Tests
 --------------------
 
-Perform the tests running
+Perform all the tests running:
 
 $ do.sh
-   
+
+In order to run a specific test, specify the name of the yaml file:
+
+$ ./do.sh get_host_active_01.yaml   

@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+# Running this script without parameters, all tests in the tests folder will be executed.
+#
+# ./do.sh
+#
+# In order to run a specific test, provide the name of the yaml file in the tests folder.
+#
+# ./do.sh get_host_active_01.yaml
+#
 
 RC=0
 
@@ -82,14 +91,15 @@ ntopng_run() {
 
 #
 # Run tests and compare the output with the expected output
+# Params:
+# $1 - List of tests to run
 #
 run_tests() {
+    TESTS="${1}"
+    TESTS_ARR=( $TESTS )
+    NUM_TESTS=${#TESTS_ARR[@]}
 
-    # Read tests
-    NUM_TESTS=`/bin/ls tests/*.yaml | wc -l`
-    TESTS=`cd tests; /bin/ls *.yaml`
     I=1
-
     for T in ${TESTS}; do 
         TEST=${T%.yaml}
 
@@ -171,6 +181,16 @@ run_tests() {
     ntopng_cleanup
 }
 
-run_tests
+run_all_tests() {
+    # Read tests
+    TESTS=`cd tests; /bin/ls *.yaml`
+    run_tests "${TESTS}"
+}
+
+if [ -z "${1}" ]; then
+    run_all_tests
+else
+    run_tests "${1}"
+fi
 
 exit $RC
