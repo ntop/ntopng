@@ -1664,7 +1664,17 @@ static int ntop_get_prefs(lua_State* vm) {
 static int ntop_is_ping_available(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  lua_pushboolean(vm, ntop->canSendIcmp());
+  lua_pushboolean(vm, ntop->canSendICMP());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_is_ping_iface_available(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, ntop->canSelectNetworkIfaceICMP());
 
   return(CONST_LUA_OK);
 }
@@ -1700,18 +1710,25 @@ static int ntop_ping_host(lua_State* vm) {
     if(getLuaVMUservalue(vm, ping) == NULL) {
       Ping *ping;
 
+#ifdef __linux__
+      /* We support ICMP over multiple interfaces */
       try {
 	ping = new Ping(ifname);
       } catch(...) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
 	ping = NULL;
       }
-
+#else
+      ping = ntop->getPing();
+#endif
+      
       if(ping == NULL) {
 	lua_pushnil(vm);
 	return(CONST_LUA_OK);
       } else
 	getLuaVMUservalue(vm, ping) = ping;
+
+      ping = ntop->getPing();
     }
 
     getLuaVMUservalue(vm, ping)->ping(host, is_v6);
@@ -5930,9 +5947,10 @@ static luaL_Reg _ntop_reg[] = {
   { "getPrefs",          ntop_get_prefs },
 
   /* Ping */
-  { "isPingAvailable",	    ntop_is_ping_available      },
-  { "pingHost",             ntop_ping_host              },
-  { "collectPingResults",   ntop_collect_ping_results   },
+  { "isPingAvailable",	    ntop_is_ping_available       },
+  { "isPingIfaceAvailable", ntop_is_ping_iface_available },
+  { "pingHost",             ntop_ping_host               },
+  { "collectPingResults",   ntop_collect_ping_results    },
 
   /* HTTP utils */
   { "httpRedirect",         ntop_http_redirect          },

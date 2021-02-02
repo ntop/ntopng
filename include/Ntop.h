@@ -99,6 +99,7 @@ class Ntop {
 
 #ifndef WIN32
   ContinuousPing *cping;
+  Ping *ping;
 #endif
   
 #ifdef __linux__
@@ -452,7 +453,14 @@ class Ntop {
 
   inline u_int getNumCPUs()             { return(num_cpus); }
   inline void setNumCPUs(u_int num)     { num_cpus = num; }
-  inline bool canSendIcmp()             { return(can_send_icmp); }
+  inline bool canSendICMP()               { return(can_send_icmp); }
+  inline bool canSelectNetworkIfaceICMP() {
+#ifdef __linux__
+    return(can_send_icmp);
+#else
+    return(false);
+#endif
+  }  
 
   inline NtopPro* getPro()              { return((NtopPro*)pro); };
 
@@ -505,6 +513,7 @@ class Ntop {
   void reloadPeriodicScripts();
 #ifndef WIN32
   inline ContinuousPing* getContinuousPing() { return(cping); }
+  inline Ping*           getPing()           { return(ping);  }
 #endif
   inline bool hasDroppedPrivileges()         { return(privileges_dropped); }
   inline void setDroppedPrivileges()         { privileges_dropped = true; }

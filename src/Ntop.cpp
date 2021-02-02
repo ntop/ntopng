@@ -78,14 +78,19 @@ Ntop::Ntop(char *appName) {
   system_interface = NULL;
   purgeLoop_started = false;
 #ifndef WIN32
-  cping = NULL;
+  cping = NULL, ping = NULL;
 #endif
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
 
 #ifndef WIN32
-  if(can_send_icmp)
+  if(can_send_icmp) {
     cping = new (std::nothrow) ContinuousPing();
+
+#ifndef __linux__
+    ping = new (std::nothrow)Ping(NULL /* System interface */);
+#endif
+  }
 #endif
 
   /* nDPI handling */
@@ -265,7 +270,9 @@ Ntop::~Ntop() {
 
 #ifndef WIN32
   if(cping)               delete cping;
+  if(ping)                delete ping;
 #endif
+  
   if(udp_socket != -1)    closesocket(udp_socket);
 
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
