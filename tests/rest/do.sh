@@ -16,8 +16,6 @@ ntopng_cleanup() {
     # Make sure no other process is running
     killall -9 ntopng > /dev/null 2>&1 || true
 
-    sleep 1
-
     # Cleanup old test stuff
     redis-cli -n "${NTOPNG_TEST_REDIS}" "flushdb" > /dev/null 2>&1
     rm -rf "${NTOPNG_TEST_DATADIR}"
@@ -35,6 +33,7 @@ ntopng_init_conf() {
     echo "--shutdown-when-done" >> ${NTOPNG_TEST_CONF}
     echo "--disable-login=1" >> ${NTOPNG_TEST_CONF}
     echo "--dont-change-user" >> ${NTOPNG_TEST_CONF}
+    echo "--pid=/tmp/ntopng.pid" >> ${NTOPNG_TEST_CONF}
 
     cat <<EOF >> "${NTOPNG_TEST_CUSTOM_PROTOS}"
 # charles
@@ -54,14 +53,10 @@ EOF
 # $1 - Pcap files (Optional)
 # $2 - Pre Script (Optional) 
 # $3 - Post Script (Optional) 
-# $4 - Output file
+# $4 - Script Output file
+# $5 - ntopng Output file
 #
 ntopng_run() {
-    INPUT=""
-    PRE_SCRIPT=""
-    POST_SCRIPT=""
-    OUT=""
-
     if [ ! -z "${1}" ]; then
         # TODO handle folder with multiple PCAPs
         echo "-i=${TESTS_PATH}/pcap/${PCAP}" >> ${NTOPNG_TEST_CONF}
@@ -80,7 +75,7 @@ ntopng_run() {
 
     # Start the test
 
-    cd ../../; ./ntopng ${NTOPNG_TEST_CONF}
+    cd ../../; ./ntopng ${NTOPNG_TEST_CONF} | grep "ERROR:\|WARNING:" > ${5}
 
     cd ${TESTS_PATH}
 }
@@ -98,7 +93,7 @@ run_tests() {
     for T in ${TESTS}; do 
         TEST=${T%.yaml}
 
-	echo "[>] Running test '${TEST}' [${I}/${NUM_TESTS}]"
+	echo "[${I}/${NUM_TESTS}] Test '${TEST}' "
         ((I=I+1))
 
         # Cleanup ntopng
@@ -108,12 +103,14 @@ run_tests() {
         ntopng_init_conf
 
         # Init paths
-        TMP_OUT=$(mktemp)
-        TMP_OUT_JSON=${TMP_OUT}.json
-        TMP_OUT_DIFF=${TMP_OUT}.diff
-        PRE_TEST=${TMP_OUT}.pre
-        POST_TEST=${TMP_OUT}.post
-        IGNORE=${TMP_OUT}.ignore
+        TMP_FILE=$(mktemp)
+        NTOPNG_LOG=${TMP_FILE}.ntopng
+        SCRIPT_OUT=${TMP_FILE}.out
+        OUT_JSON=${TMP_FILE}.json
+        OUT_DIFF=${TMP_FILE}.diff
+        PRE_TEST=${TMP_FILE}.pre
+        POST_TEST=${TMP_FILE}.post
+        IGNORE=${TMP_FILE}.ignore
 
         # Parsing YAML
         PCAP=`cat tests/${TEST}.yaml | shyaml -q get-value input`
@@ -122,45 +119,56 @@ run_tests() {
         cat tests/${TEST}.yaml | shyaml -q get-values ignore > ${IGNORE}
 
         # Run the test
-        ntopng_run "${PCAP}" "${PRE_TEST}" "${POST_TEST}" "${TMP_OUT}"
+        ntopng_run "${PCAP}" "${PRE_TEST}" "${POST_TEST}" "${SCRIPT_OUT}" "${NTOPNG_LOG}"
 
-        # NOTE: using jq as sometimes the json is sorted differently
-        cat ${TMP_OUT} | jq -cS . > ${TMP_OUT_JSON}
+        if [ -s "${NTOPNG_LOG}" ]; then
+            # ntopng Error/Warning
 
-        if [ ! -f result/${TEST}.out ]; then
+            echo "[!] NTOPNG ERROR IN '${TEST}'"
+            cat "${NTOPNG_LOG}"
+            RC=1
+
+        elif [ ! -f result/${TEST}.out ]; then
+
+            echo "[i] SAVING OUTPUT"
 
             # Output not present, setting current output as expected
-            cp ${TMP_OUT_JSON} result/${TEST}.out
+            cat ${SCRIPT_OUT} | jq -cS . > result/${TEST}.out
 
         else
+
+            # NOTE: using jq as sometimes the json is sorted differently
+            cat ${SCRIPT_OUT} | jq -cS . > ${OUT_JSON}
 
             # Comparison of two JSONs in bash, see
             # https://stackoverflow.com/questions/31930041/using-jq-or-alternative-command-line-tools-to-compare-json-files/31933234#31933234
            
             diff --side-by-side --suppress-common-lines \
                     <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "result/${TEST}.out") \
-                    <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "${TMP_OUT_JSON}") \
-                    > "${TMP_OUT_DIFF}"
+                    <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "${OUT_JSON}") \
+                    > "${OUT_DIFF}"
 
             if [ -s "${IGNORE}" ]; then
-                TMP_TMP_OUT_DIFF=${TMP_OUT_DIFF}.1
-                cat ${TMP_OUT_DIFF} | grep -v -f "${IGNORE}" > ${TMP_TMP_OUT_DIFF}
-                cat ${TMP_TMP_OUT_DIFF} > ${TMP_OUT_DIFF}
-                /bin/rm -f ${TMP_TMP_OUT_DIFF}
+                TMP_OUT_DIFF=${OUT_DIFF}.1
+                cat ${OUT_DIFF} | grep -v -f "${IGNORE}" > ${TMP_OUT_DIFF}
+                cat ${TMP_OUT_DIFF} > ${OUT_DIFF}
+                /bin/rm -f ${TMP_OUT_DIFF}
             fi
 
-            if [ `cat "${TMP_OUT_DIFF}" | wc -l` -eq 0 ]; then
-                printf "%-32s\tOK\n" "${TEST}"
+            if [ `cat "${OUT_DIFF}" | wc -l` -eq 0 ]; then
+                echo "[i] OK"
             else
-                printf "%-32s\tERROR\n" "${TEST}"
-                cat "${TMP_OUT_DIFF}"
+                echo "[!] OUTPUT ERROR IN '${TEST}'"
+                cat "${OUT_DIFF}"
                 RC=1
             fi
 
         fi
 
-        /bin/rm -f ${TMP_OUT} ${TMP_OUT_DIFF} ${TMP_OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE}
+        /bin/rm -f ${SCRIPT_OUT} ${NTOPNG_LOG} ${OUT_DIFF} ${OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE}
     done
+
+    ntopng_cleanup
 }
 
 run_tests
