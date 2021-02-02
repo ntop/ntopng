@@ -207,7 +207,7 @@ using namespace std;
 #include "VlanAddressTree.h"
 #include "BroadcastDomains.h"
 #include "Cardinality.h"
-#include "DynamicStats.h"
+#include "PeerStats.h"
 #include "IpAddress.h"
 #include "Ping.h"
 #include "ContinuousPingStats.h"
