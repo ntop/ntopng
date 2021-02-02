@@ -19,28 +19,28 @@
  *
  */
 
-#ifndef _DYNAMIC_STATS_H_
-#define _DYNAMIC_STATS_H_
+#ifndef _PEER_STATS_H_
+#define _PEER_STATS_H_
 
 #include "ntop_includes.h"
 
 /* ******************************* */
 
-class DynamicStats {
+class PeerStats {
  private:
   struct ndpi_analyze_struct *contacted_peer_as_cli, 
                              *contacted_peer_as_srv;
   u_int16_t _max_series_len, actual_num;
 
 public:
-  DynamicStats(u_int16_t _max_series_len) {
+  PeerStats(u_int16_t _max_series_len) {
     actual_num = 0;
     this->_max_series_len = _max_series_len;
     contacted_peer_as_cli = ndpi_alloc_data_analysis(this->_max_series_len);
     contacted_peer_as_srv = ndpi_alloc_data_analysis(this->_max_series_len);
   }
   
-  ~DynamicStats() {
+  ~PeerStats() {
     if(contacted_peer_as_cli)
         ndpi_free_data_analysis(contacted_peer_as_cli);
     if(contacted_peer_as_srv)
@@ -73,4 +73,4 @@ public:
   }
 };
 
-#endif /* _CARDINALITY_H_ */
+#endif /* _PEER_STATS_H_ */

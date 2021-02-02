@@ -30,7 +30,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   dns  = new (std::nothrow) DnsStats();
   http = new (std::nothrow) HTTPstats(_host);
   icmp = new (std::nothrow) ICMPstats();
-  peers = new (std::nothrow) DynamicStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
+  peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
 
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
@@ -49,7 +49,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
 
 LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
-  peers = new (std::nothrow) DynamicStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
+  peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
   old_sites = NULL;
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;

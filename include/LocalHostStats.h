@@ -43,7 +43,7 @@ class LocalHostStats: public HostStats {
     num_host_contacted_ports_as_server,      /* # of different server ports contacted by remote peers */
     contacts_as_cli, contacts_as_srv;        /* Minute reset host contacts          */
 
-  DynamicStats *peers;
+  PeerStats *peers;
 
   void updateHostContacts();
   void saveOldSites();
