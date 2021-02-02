@@ -681,7 +681,7 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 			 u_int8_t *payload, u_int16_t payload_len) {
   bool detected;
   ndpi_protocol proto_id;
-
+  
   /* Note: do not call endProtocolDissection before ndpi_detection_process_packet. In case of
    * early giveup (e.g. sampled traffic), nDPI should process at least one packet in order to
    * be able to guess the protocol. */
@@ -690,9 +690,9 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 					   ip_packet, ip_len, packet_time,
 					   (struct ndpi_id_struct*) cli_id,
 					   (struct ndpi_id_struct*) srv_id);
-
+  
   detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
-
+  
   if(!detected && hasDissectedTooManyPackets()) {
     endProtocolDissection();
     return;
@@ -1180,7 +1180,8 @@ char* Flow::print(char *buf, u_int buf_len) const {
   }
 
   snprintf(buf, buf_len,
-	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: %u/%s][device: %u in: %u out:%u][%u/%u pkts][%llu/%llu bytes][flags src2dst: %s][flags dst2stc: %s][state: %s]"
+	   "%s %s:%u &gt; %s:%u [first: %u][last: %u][proto: %u.%u/%s][cat: %u/%s][device: %u in: %u out:%u]"
+	   "[%u/%u pkts][%llu/%llu bytes][flags src2dst: %s][flags dst2stc: %s][state: %s]"
 	   "%s%s%s"
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
 	   "%s"
@@ -2954,11 +2955,17 @@ bool Flow::isTLSProto() {
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int8_t *payload, u_int payload_len,
                     u_int8_t l4_proto, u_int8_t is_fragment,
-		    u_int16_t tcp_flags, const struct timeval *when) {
+		    u_int16_t tcp_flags, const struct timeval *when,		    
+		    u_int16_t fragment_extra_overhead) {
   bool update_iat = true;
 
   payload_len *= iface->getScalingFactor();
   updateSeen();
+
+  if(fragment_extra_overhead) {
+    /* Add artificial packet overhead */
+    stats.incStats(cli2srv_direction, 1, fragment_extra_overhead, fragment_extra_overhead);
+  }
 
   /*
     Check if it is time to enqueue the flow for periodicUpdate hook execution.
@@ -3044,7 +3051,7 @@ void Flow::addFlowStats(bool new_flow,
     thp_delta_time = difftime(last_seen, get_last_seen());
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
+<  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[first: %u][last: %u][get_last_seen: %u][%u][%u][in_bytes: %u][out_bytes: %u][bytes : %u][thpt: %.2f]",
 			       first_seen, last_seen,
 			       get_last_seen(),
 			       last_seen - first_seen,

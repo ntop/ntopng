@@ -31,6 +31,8 @@ extern int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected
 
 static bool help_printed = false;
 
+#define IMPLEMENT_SMART_FRAGMENTS
+
 /* **************************************************** */
 
 /* Method used for collateral activities */
@@ -1141,7 +1143,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
-  u_int16_t l4_len = 0;
+  u_int16_t l4_len = 0, fragment_offset = 0, fragment_extra_overhead = 0;
   u_int8_t tos;
 
   *hostFlow = NULL;
@@ -1249,9 +1251,16 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     if(ip_len > (int)h->len - ip_offset
        || (int)h->len - ip_offset < ip_tot_len
        || (iph->frag_off & htons(0x1FFF /* IP_OFFSET */))
-       || (iph->frag_off & htons(0x2000 /* More Fragments: set */)))
+       || (iph->frag_off & htons(0x2000 /* More Fragments: set */))) {
       is_fragment = true;
+      fragment_offset = ((ntohs(iph->frag_off) & 0x3fff) & 0x1FFF) * 8;
 
+#ifdef IMPLEMENT_SMART_FRAGMENTS
+      if(fragment_offset)
+	return(pass_verdict);
+#endif
+    }
+    
     l4_proto = iph->protocol;
     l4 = ((u_int8_t *) iph + ip_len);
     l4_len = ip_tot_len - ip_len; /* use len from the ip header to compute sequence numbers */
@@ -1337,6 +1346,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       src_port = udph->source,  dst_port = udph->dest;
       payload = &l4[sizeof(struct ndpi_udphdr)];
       trusted_payload_len = trusted_l4_packet_len - sizeof(struct ndpi_udphdr);
+
+#ifdef IMPLEMENT_SMART_FRAGMENTS
+      fragment_extra_overhead = ntohs(udph->len) - l4_len + sizeof(struct ndpi_iphdr);
+#endif
     } else {
       /* Packet too short: this is a faked packet */
       ntop->getTrace()->traceEvent(TRACE_INFO, "Invalid UDP packet received [%u bytes long]", trusted_l4_packet_len);
@@ -1454,11 +1467,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
     flow->incStats(src2dst_direction, len_on_wire, payload,
 		   trusted_payload_len, l4_proto, is_fragment,
-		   tcp_flags, &tv_ts);
+		   tcp_flags, &tv_ts, fragment_extra_overhead);
 #else
     flow->incStats(src2dst_direction, len_on_wire, payload,
 		   trusted_payload_len, l4_proto, is_fragment,
-		   tcp_flags, &h->ts);
+		   tcp_flags, &h->ts, fragment_extra_overhead);
 #endif
 #endif
   }
@@ -1467,7 +1480,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   flow->updateInterfaceLocalStats(src2dst_direction, 1, len_on_wire);
 
   if(!flow->isDetectionCompleted() || flow->needsExtraDissection()) {
-    if(!is_fragment)
+    if((!is_fragment)
+#ifdef IMPLEMENT_SMART_FRAGMENTS
+       || (fragment_offset == 0)
+#endif
+       )
       flow->processPacket(ip, trusted_ip_len, packet_time, payload, trusted_payload_len);
     else {
       // FIX - only handle unfragmented packets

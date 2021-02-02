@@ -387,7 +387,8 @@ class Flow : public GenericHashEntry {
   void incStats(bool cli2srv_direction, u_int pkt_len,
 		u_int8_t *payload, u_int payload_len, 
                 u_int8_t l4_proto, u_int8_t is_fragment,
-		u_int16_t tcp_flags, const struct timeval *when);
+		u_int16_t tcp_flags, const struct timeval *when,
+		u_int16_t fragment_extra_overhead);
   void addFlowStats(bool new_flow,
 		    bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
@@ -484,7 +485,8 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_srv2cli() const;
 
   bool is_hash_entry_state_idle_transition_ready() const;
-  void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const;
+  void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial,
+				   bool first_partial, const struct timeval *tv) const;
   void periodic_stats_update(const struct timeval *tv);
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
   u_int get_hash_entry_id() const;
