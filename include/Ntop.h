@@ -94,6 +94,7 @@ class Ntop {
   
   /* Local network address list */
   char *local_network_names[CONST_MAX_NUM_NETWORKS];
+  char *local_network_aliases[CONST_MAX_NUM_NETWORKS];
   AddressTree local_network_tree;
 
 #ifndef WIN32
@@ -390,6 +391,7 @@ class Ntop {
   void checkSNMPDeviceAlerts(ScriptPeriodicity p, lua_State *vm);
   void lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm);
   void getUsers(lua_State* vm);
+  bool getLocalNetworkAlias(lua_State *vm, u_int8_t network_id);
   bool isUserAdministrator(lua_State* vm);
   void getAllowedInterface(lua_State* vm);
   void getAllowedNetworks(lua_State* vm);

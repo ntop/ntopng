@@ -3027,26 +3027,64 @@ u_int8_t Ntop::getLocalNetworkId(const char *address_str) {
 /* ******************************************* */
 
 bool Ntop::addLocalNetwork(char *_net) {
-  char *net;
-  int id = local_network_tree.getNumAddresses();
+  char *net, alias[64], *position_ptr;
+  int id = local_network_tree.getNumAddresses(), pos = 0;
   
   if(id >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s",
 				 id, _net);
     return(false);
   }
-  
-  if((net = strdup(_net)) == NULL) {
+
+  // Getting the pointer and the position to the "=" indicator
+  position_ptr = strstr(_net, "=");
+	pos = (position_ptr == NULL ? 0 : position_ptr - _net);
+
+  if(pos) {
+    // "=" indicator is present inside the string
+    // Separating the alias from the network
+    net = strndup(_net, pos);
+    memcpy(alias, position_ptr + 1, strlen(_net) - pos - 1);
+  } else
+    net = strdup(_net);
+
+  if(net == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return(false);
   }
 
+  // Adding the Network to the local Networks
   local_network_tree.addAddresses(net);
 
-  free(net);
+  local_network_names[id] = strdup(net);
 
-  local_network_names[id] = strdup(_net);
+  if(net)
+    free(net);
+
+  // Adding, if available, the alias
+  if(pos)
+    local_network_aliases[id] = strdup(alias);
+
   return(true);
+}
+
+/* ******************************************* */
+bool Ntop::getLocalNetworkAlias(lua_State *vm, u_int8_t network_id) {
+  char *alias;
+
+  // Checking the local network aliases list
+  if(!local_network_aliases)
+    return false;
+
+  alias = local_network_aliases[network_id];
+
+  // Checking if the network has an alias
+  if(!alias)
+    return false;
+
+  lua_pushstring(vm, alias);
+
+  return true;
 }
 
 /* ******************************************* */
