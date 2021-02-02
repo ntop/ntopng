@@ -22,7 +22,6 @@ alert_zero_tcp_window.meta = {
    alert_key = alert_keys.ntopng.alert_zero_tcp_window,
    i18n_title = "zero_tcp_window.zero_tcp_window_title",
    icon = "fas fa-arrow-circle-up",
-   status_keep_increasing_scores = true, -- Every time a zero window is found, scores are increased
 }
 
 -- ##############################################
