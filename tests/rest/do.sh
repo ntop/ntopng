@@ -91,14 +91,12 @@ ntopng_run() {
 run_tests() {
 
     # Read tests
-    NUM_TESTS=`/bin/ls tests/*.test | wc -l`
-    TESTS=`cd tests; /bin/ls *.test`
+    NUM_TESTS=`/bin/ls tests/*.yaml | wc -l`
+    TESTS=`cd tests; /bin/ls *.yaml`
     I=1
 
-TESTS="get_alert_data_01.test"
-
     for T in ${TESTS}; do 
-        TEST=${T%.test}
+        TEST=${T%.yaml}
 
 	echo "[>] Running test '${TEST}' [${I}/${NUM_TESTS}]"
         ((I=I+1))
@@ -118,10 +116,10 @@ TESTS="get_alert_data_01.test"
         IGNORE=${TMP_OUT}.ignore
 
         # Parsing YAML
-        PCAP=`cat tests/${TEST}.test | shyaml -q get-value input`
-        cat tests/${TEST}.test | shyaml -q get-value pre > ${PRE_TEST}
-        cat tests/${TEST}.test | shyaml -q get-value post > ${POST_TEST}
-        cat tests/${TEST}.test | shyaml -q get-values ignore > ${IGNORE}
+        PCAP=`cat tests/${TEST}.yaml | shyaml -q get-value input`
+        cat tests/${TEST}.yaml | shyaml -q get-value pre > ${PRE_TEST}
+        cat tests/${TEST}.yaml | shyaml -q get-value post > ${POST_TEST}
+        cat tests/${TEST}.yaml | shyaml -q get-values ignore > ${IGNORE}
 
         # Run the test
         ntopng_run "${PCAP}" "${PRE_TEST}" "${POST_TEST}" "${TMP_OUT}"
