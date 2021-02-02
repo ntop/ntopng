@@ -254,7 +254,8 @@ class Flow : public GenericHashEntry {
   void updateSrvJA3();
   void updateHASSH(bool as_client);
   void processExtraDissectedInformation();
-  void processDetectedProtocol();
+  void processDetectedProtocol();      /* nDPI detected protocol */
+  void processDetectedProtocolData();  /* nDPI detected protocol data (e.g., ndpiFlow->host_server_name) */
   void setExtraDissectionCompleted();
   void setProtocolDetectionCompleted();
   void updateProtocol(ndpi_protocol proto_id);

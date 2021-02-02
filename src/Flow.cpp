@@ -386,20 +386,93 @@ u_int16_t Flow::getStatsProtocol() const {
 /* *************************************** */
 
 /* This function is called as soon as the protocol detection is
- * completed. See processExtraDissectedInformation for a later callback. */
+ * completed. See processExtraDissectedInformation for a later callback.
+ * NOTE: does NOT need ndpiFlow
+ */
 void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
-
-  if(ndpiFlow == NULL)
-    return;
+  Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
 
   stats_protocol = getStatsProtocol();
 
   /* Update the active flows stats */
-  if(cli_host) cli_host->incnDPIFlows(stats_protocol);
-  if(srv_host) srv_host->incnDPIFlows(stats_protocol);
+  if(cli_h) cli_h->incnDPIFlows(stats_protocol);
+  if(srv_h) srv_h->incnDPIFlows(stats_protocol);
   iface->incnDPIFlows(stats_protocol);
+
+  l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
+
+  switch(l7proto) {
+  case NDPI_PROTOCOL_DHCP:
+    if(cli_port == ntohs(67) /* client */ && cli_h)      cli_h->setDhcpServer();
+    else if(srv_port == ntohs(67) /* server */ && srv_h) srv_h->setDhcpServer();
+    break;
+
+  case NDPI_PROTOCOL_NTP:
+    if(cli_h && cli_port == ntohs(123))  {
+      cli_h->setNtpServer();
+
+      if(srv_h) srv_h->incNTPContactCardinality(cli_h); 
+    } else if(srv_h && srv_port == ntohs(123)) {
+      srv_h->setNtpServer();
+
+      if(cli_h) cli_h->incNTPContactCardinality(srv_h);
+    }
+    break;
+
+  case NDPI_PROTOCOL_MAIL_SMTPS:
+  case NDPI_PROTOCOL_MAIL_SMTP:
+    if(srv_h
+       && (srv_port == ntohs(25) || srv_port == ntohs(465) || srv_port == ntohs(587))) {
+      srv_h->setSmtpServer();
+
+      if(cli_h) cli_h->incSMTPContactCardinality(srv_h);
+    } else if(cli_h
+	      && (cli_port == ntohs(25) || cli_port == ntohs(465) || cli_port == ntohs(587))) {
+      cli_h->setSmtpServer();
+
+      if(srv_h) srv_h->incSMTPContactCardinality(cli_h);
+    }
+    break;
+
+  case NDPI_PROTOCOL_DNS:
+    if(cli_h && cli_port == ntohs(53)) {
+      cli_h->setDnsServer();
+
+      if(srv_h) srv_h->incDNSContactCardinality(cli_h);
+    } else if(srv_h && srv_port == ntohs(53))  {
+      srv_h->setDnsServer();
+
+      if(cli_h) cli_h->incDNSContactCardinality(srv_h);
+    }
+    break;
+
+  case NDPI_PROTOCOL_TOR:
+  case NDPI_PROTOCOL_TLS:
+  case NDPI_PROTOCOL_QUIC:
+    if(ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_DOH_DOT
+       && cli_h && srv_h && cli_h->isLocalHost())
+      cli_h->incDohDoTUses(srv_h);
+    break;
+
+  default:
+    break;
+  } /* switch */
+}
+
+/* *************************************** */
+
+/* This function is called as soon as the protocol detection is
+ * completed to process nDPI-dissected data (only for packet interfaces).
+ * NOTE: needs ndpiFlow
+ */
+void Flow::processDetectedProtocolData() {
+  u_int16_t l7proto;
+  Host *cli_h = get_cli_host();
+
+  if(ndpiFlow == NULL)
+    return;
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
@@ -422,11 +495,6 @@ void Flow::processDetectedProtocol() {
   }
 
   switch(l7proto) {
-  case NDPI_PROTOCOL_DHCP:
-    if(cli_port == ntohs(67) /* client */ && get_cli_host())      get_cli_host()->setDhcpServer();
-    else if(srv_port == ntohs(67) /* server */ && get_srv_host()) get_srv_host()->setDhcpServer();
-    break;
-
   case NDPI_PROTOCOL_BITTORRENT:
     if(bt_hash == NULL)
       setBittorrentHash((char*)ndpiFlow->protos.bittorrent.hash);
@@ -441,41 +509,15 @@ void Flow::processDetectedProtocol() {
       protos.mdns.answer = strdup((char*)ndpiFlow->host_server_name);
     break;
 
-  case NDPI_PROTOCOL_NTP:
-    if(cli_port == ntohs(123) && get_cli_host())      get_cli_host()->setNtpServer(), get_srv_host()->incNTPContactCardinality(get_cli_host()); 
-    else if(srv_port == ntohs(123) && get_srv_host()) get_srv_host()->setNtpServer(), get_cli_host()->incNTPContactCardinality(get_srv_host());
-    break;
-
-  case NDPI_PROTOCOL_MAIL_SMTPS:
-  case NDPI_PROTOCOL_MAIL_SMTP:
-    if(get_srv_host()
-       && (srv_port == ntohs(25) || srv_port == ntohs(465) || srv_port == ntohs(587)))
-      get_srv_host()->setSmtpServer(), get_cli_host()->incSMTPContactCardinality(get_srv_host());
-    if(get_cli_host()
-       && (cli_port == ntohs(25) || cli_port == ntohs(465) || cli_port == ntohs(587)))
-      get_cli_host()->setSmtpServer(), get_srv_host()->incSMTPContactCardinality(get_cli_host());
-    break;
-
-  case NDPI_PROTOCOL_DNS:
-    if(cli_port == ntohs(53) && get_cli_host())       { get_cli_host()->setDnsServer(); get_srv_host()->incDNSContactCardinality(get_cli_host());  }
-    else if(srv_port == ntohs(53) && get_srv_host())  { get_srv_host()->setDnsServer(); get_cli_host()->incDNSContactCardinality(get_srv_host()); }
-    break;
-
-  case NDPI_PROTOCOL_IEC60870:
-    /* See Flow::processDNSPacket and Flow::processIEC60870Packet for dissection */
-    break;
-
   case NDPI_PROTOCOL_TOR:
   case NDPI_PROTOCOL_TLS:
   case NDPI_PROTOCOL_QUIC:
-    if(ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_DOH_DOT) {
-      if(cli_host && srv_host && cli_host->isLocalHost())
-	cli_host->incDohDoTUses(srv_host);
-    } else if((ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name[0] != '\0')
-	      && cli_host && cli_host->isLocalHost())
-      cli_host->incrVisitedWebSite(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+    if(ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_DOH_DOT
+       && (ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name[0] != '\0')
+       && cli_h && cli_h->isLocalHost())
+      cli_h->incrVisitedWebSite(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
 
-    if(cli_host) cli_host->incContactedService(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+    if(cli_h) cli_h->incContactedService(ndpiFlow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
     break;
 
   case NDPI_PROTOCOL_HTTP:
@@ -492,14 +534,14 @@ void Flow::processDetectedProtocol() {
       if((doublecol = (char*)strchr((const char*)ndpiFlow->host_server_name, delimiter)) != NULL)
 	doublecol[0] = '\0';
 
-      if(cli_host) {
-	cli_host->incContactedService((char*)ndpiFlow->host_server_name);
+      if(cli_h) {
+	cli_h->incContactedService((char*)ndpiFlow->host_server_name);
 
 	if(ndpiFlow->protos.http.detected_os[0] != '\0')
-	  cli_host->inlineSetOSDetail((char*)ndpiFlow->protos.http.detected_os);
+	  cli_h->inlineSetOSDetail((char*)ndpiFlow->protos.http.detected_os);
 
-	if(cli_host->isLocalHost())
-	  cli_host->incrVisitedWebSite(host_server_name);
+	if(cli_h->isLocalHost())
+	  cli_h->incrVisitedWebSite(host_server_name);
       }
     }
     break;
@@ -898,7 +940,8 @@ void Flow::setProtocolDetectionCompleted() {
     return;
 
   stats.setDetectedProtocol(&ndpiDetectedProtocol);
-  processDetectedProtocol();
+  processDetectedProtocol();     /* Process detected protocol and doesn't need ndpiFlow not allocated for non-packet interfaces */
+  processDetectedProtocolData(); /* Process detected protocol data and needs ndpiFlow only allocated for packet interfaces      */
 
   detection_completed = true;
 
