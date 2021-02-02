@@ -1,0 +1,12 @@
+input: test_01.pcap
+
+ignore:
+  - date
+  - time
+
+pre: |
+  sleep 1
+
+post: |
+  sleep 3
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "status": "historical"}' http://localhost:3000/lua/rest/v1/get/alert/data.lua

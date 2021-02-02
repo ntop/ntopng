@@ -1,0 +1,22 @@
+input: test_01.pcap
+
+ignore:
+  - epoch
+  - uptime
+  - localtime
+  - alerts_queries
+  - mem_buffers
+  - mem_cached
+  - mem_free
+  - mem_ntopng_resident
+  - mem_shmem
+  - mem_sreclaimable
+  - mem_used
+  - mem_ntopng_virtual
+  - mem_total
+  - written_alerts
+
+pre: |
+
+post: |
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3000/lua/rest/v1/get/interface/data.lua

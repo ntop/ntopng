@@ -4,6 +4,7 @@ Prerequisites
 - curl
 - jq
 - redis-cli
+- shyaml (pip install shyaml)
 
 How to Run The Tests
 --------------------

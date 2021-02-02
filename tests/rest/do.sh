@@ -10,14 +10,16 @@ NTOPNG_TEST_CUSTOM_PROTOS="${NTOPNG_TEST_DATADIR}/protos.txt"
 NTOPNG_TEST_REDIS="2"
 NTOPNG_TEST_LOCALNETS="192.168.1.0/24"
 
+DEFAULT_PCAP="test_01.pcap"
+
 ntopng_cleanup() {
     # Make sure no other process is running
-    killall -9 ntopng || true
+    killall -9 ntopng > /dev/null 2>&1 || true
 
     sleep 1
 
     # Cleanup old test stuff
-    redis-cli -n "${NTOPNG_TEST_REDIS}" "flushdb"
+    redis-cli -n "${NTOPNG_TEST_REDIS}" "flushdb" > /dev/null 2>&1
     rm -rf "${NTOPNG_TEST_DATADIR}"
 }
 
@@ -49,9 +51,9 @@ EOF
 #
 # Run ntopng
 # Params:
-# $1 - Pcap files
-# $2 - Pre Script
-# $3 - Post Script
+# $1 - Pcap files (Optional)
+# $2 - Pre Script (Optional) 
+# $3 - Post Script (Optional) 
 # $4 - Output file
 #
 ntopng_run() {
@@ -65,15 +67,15 @@ ntopng_run() {
         echo "-i=${TESTS_PATH}/pcap/${PCAP}" >> ${NTOPNG_TEST_CONF}
     else
         # Default PCAP
-        echo "-i=${TESTS_PATH}/pcap/test_01.pcap" >> ${NTOPNG_TEST_CONF}
+        echo "-i=${TESTS_PATH}/pcap/${DEFAULT_PCAP}" >> ${NTOPNG_TEST_CONF}
     fi
 
     if [ ! -z "${2}" ]; then
-        echo "--test-script-pre=bash ${TESTS_PATH}/tests/${2} >> ${4}" >> ${NTOPNG_TEST_CONF}
+        echo "--test-script-pre=bash ${2} >> ${4}" >> ${NTOPNG_TEST_CONF}
     fi
 
     if [ ! -z "${3}" ]; then
-        echo "--test-script=bash ${TESTS_PATH}/tests/${3} >> ${4}" >> ${NTOPNG_TEST_CONF}
+        echo "--test-script=bash ${3} >> ${4}" >> ${NTOPNG_TEST_CONF}
     fi
 
     # Start the test
@@ -93,6 +95,8 @@ run_tests() {
     TESTS=`cd tests; /bin/ls *.test`
     I=1
 
+TESTS="get_alert_data_01.test"
+
     for T in ${TESTS}; do 
         TEST=${T%.test}
 
@@ -102,27 +106,22 @@ run_tests() {
         # Cleanup ntopng
         ntopng_cleanup
 
-        # Create configuration files
+        # Init ntopng configuration
         ntopng_init_conf
 
-        # Build parameters
-
+        # Init paths
         TMP_OUT=$(mktemp)
         TMP_OUT_JSON=${TMP_OUT}.json
         TMP_OUT_DIFF=${TMP_OUT}.diff
+        PRE_TEST=${TMP_OUT}.pre
+        POST_TEST=${TMP_OUT}.post
+        IGNORE=${TMP_OUT}.ignore
 
-        PCAP=""
-        if [ -f "tests/${TEST}.input" ]; then
-            PCAP=`cat tests/${TEST}.input`
-        fi
-
-        PRE_TEST=""
-
-        if [ -f "tests/${TEST}.pre" ]; then
-            PRE_TEST="${TEST}.pre"
-        fi
-
-        POST_TEST="${TEST}.test"
+        # Parsing YAML
+        PCAP=`cat tests/${TEST}.test | shyaml -q get-value input`
+        cat tests/${TEST}.test | shyaml -q get-value pre > ${PRE_TEST}
+        cat tests/${TEST}.test | shyaml -q get-value post > ${POST_TEST}
+        cat tests/${TEST}.test | shyaml -q get-values ignore > ${IGNORE}
 
         # Run the test
         ntopng_run "${PCAP}" "${PRE_TEST}" "${POST_TEST}" "${TMP_OUT}"
@@ -145,10 +144,11 @@ run_tests() {
                     <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "${TMP_OUT_JSON}") \
                     > "${TMP_OUT_DIFF}"
 
-            if [ -f "tests/${TEST}.ignore" ]; then
-                TMP_TMP_OUT_DIFF=$(mktemp)
-                cat ${TMP_OUT_DIFF} | grep -v -f "tests/${TEST}.ignore" > ${TMP_TMP_OUT_DIFF}
+            if [ -s "${IGNORE}" ]; then
+                TMP_TMP_OUT_DIFF=${TMP_OUT_DIFF}.1
+                cat ${TMP_OUT_DIFF} | grep -v -f "${IGNORE}" > ${TMP_TMP_OUT_DIFF}
                 cat ${TMP_TMP_OUT_DIFF} > ${TMP_OUT_DIFF}
+                /bin/rm -f ${TMP_TMP_OUT_DIFF}
             fi
 
             if [ `cat "${TMP_OUT_DIFF}" | wc -l` -eq 0 ]; then
@@ -161,7 +161,7 @@ run_tests() {
 
         fi
 
-        /bin/rm -f ${TMP_OUT} ${TMP_OUT_DIFF} ${TMP_OUT_JSON}
+        /bin/rm -f ${TMP_OUT} ${TMP_OUT_DIFF} ${TMP_OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE}
     done
 }
 
