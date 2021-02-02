@@ -61,12 +61,11 @@ ntopng_run() {
     OUT=""
 
     if [ ! -z "${1}" ]; then
-        # TODO handle folder or multiple pcaps
+        # TODO handle folder with multiple PCAPs
         echo "-i=${TESTS_PATH}/pcap/${PCAP}" >> ${NTOPNG_TEST_CONF}
     else
         # Default PCAP
         echo "-i=${TESTS_PATH}/pcap/test_01.pcap" >> ${NTOPNG_TEST_CONF}
-        echo "-i=${TESTS_PATH}/pcap/test_02.pcap" >> ${NTOPNG_TEST_CONF}
     fi
 
     if [ ! -z "${2}" ]; then
@@ -79,8 +78,8 @@ ntopng_run() {
 
     # Start the test
 
-    cd ../../
-    ./ntopng ${NTOPNG_TEST_CONF}
+    cd ../../; ./ntopng ${NTOPNG_TEST_CONF}
+
     cd ${TESTS_PATH}
 }
 
@@ -90,11 +89,15 @@ ntopng_run() {
 run_tests() {
 
     # Read tests
-    #TESTS=`cd tests; /bin/ls *.test`
-    TESTS="get_alert_data_01.test"
+    NUM_TESTS=`/bin/ls tests/*.test | wc -l`
+    TESTS=`cd tests; /bin/ls *.test`
+    I=1
 
     for T in ${TESTS}; do 
         TEST=${T%.test}
+
+	echo "[>] Running test '${TEST}' [${I}/${NUM_TESTS}]"
+        ((I=I+1))
 
         # Cleanup ntopng
         ntopng_cleanup
@@ -130,7 +133,6 @@ run_tests() {
         if [ ! -f result/${TEST}.out ]; then
 
             # Output not present, setting current output as expected
-            mkdir result
             cp ${TMP_OUT_JSON} result/${TEST}.out
 
         else
@@ -159,7 +161,7 @@ run_tests() {
 
         fi
 
-        #/bin/rm -f ${TMP_OUT} ${TMP_OUT_DIFF} ${TMP_OUT_JSON}
+        /bin/rm -f ${TMP_OUT} ${TMP_OUT_DIFF} ${TMP_OUT_JSON}
     done
 }
 

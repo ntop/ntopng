@@ -5,15 +5,10 @@ Prerequisites
 - jq
 - redis-cli
 
-
 How to Run The Tests
 --------------------
 
-1. Start ntopng running command
-   $ run_ntopng.sh
-   on a separate shell
+Perform the tests running
 
-
-2. Perform the tests running
-   $ do.sh
+$ do.sh
    
