@@ -17,6 +17,8 @@ local script = {
   is_alert = true,
 
   default_value = {
+    operator = "gt",
+    threshold = 1073741824, -- 1GB
     severity = alert_severities.error,
   },
 

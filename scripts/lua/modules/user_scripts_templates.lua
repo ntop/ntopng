@@ -3,6 +3,7 @@
 --
 
 local http_lint = require("http_lint")
+local format_utils = require("format_utils")
 
 -- ##############################################
 
@@ -101,8 +102,17 @@ function ThresholdCrossTemplate:describeConfig(script, hooks_conf)
         unit = " " .. i18n(script.gui.i18n_field_unit)
       end
 
-      items[#items + 1] = string.format("%s %s%s (%s)", op,
-        hook.script_conf.threshold, unit, i18n(granularity.i18n_title) or granularity.i18n_title)
+      -- Note: it would be desirable to export a 'script.unit' field
+      -- instead of 'script.gui.i18n_field_unit' to properly format
+      -- numeri values as with bytes below.
+      if script.gui.i18n_field_unit == 'field_units.bytes' then
+        local formatted_threshold = format_utils.bytesToSize(hook.script_conf.threshold)
+        items[#items + 1] = string.format("%s  (%s)", op,
+          formatted_threshold, i18n(granularity.i18n_title) or granularity.i18n_title)
+      else
+        items[#items + 1] = string.format("%s %s%s (%s)", op,
+          hook.script_conf.threshold, unit, i18n(granularity.i18n_title) or granularity.i18n_title)
+      end
     end
   end
 
