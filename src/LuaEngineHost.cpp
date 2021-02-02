@@ -363,7 +363,7 @@ static int ntop_host_is_local(lua_State* vm) {
 
 /* ****************************************** */
 
-int ntop_host_get_dynamic_stats(lua_State* vm) {
+int ntop_host_get_peers_stats(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
 
   if(!h)
@@ -515,7 +515,7 @@ static luaL_Reg _ntop_host_reg[] = {
   { "getSynScan",             ntop_host_get_syn_scan            },
   { "getScore",               ntop_host_get_score               },
   { "getBehaviourInfo",       ntop_host_get_behaviour_info      },
-  { "getDynamicStats",        ntop_host_get_dynamic_stats       },
+  { "getPeersStats",           ntop_host_get_peers_stats        },
   
   { NULL,                     NULL }
 };
