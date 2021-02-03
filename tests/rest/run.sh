@@ -28,8 +28,8 @@ TEST_NAME=""
 
 NOTIFICATIONS_ON=false
 if [ -d packager ]; then
-  source packager/utils/alerts.sh
-  NOTIFICATIONS_ON=true
+    source packager/utils/alerts.sh
+    NOTIFICATIONS_ON=true
 fi
 
 function usage {
@@ -79,27 +79,37 @@ fi
 
 # Send a success alert
 function send_success {
-    TAG="TESTS"
     TITLE="${1}"
     MESSAGE="${2}"
+    FILE_PATH="${3}"
 
     echo "[i] ${TITLE}: ${MESSAGE}"
 
+    if [ ! -z "${FILE_PATH}" ]; then
+        cat "${FILE_PATH}"
+        TITLE="${TITLE}: ${MESSAGE}"
+    fi
+
     if [ "${NOTIFICATIONS_ON}" = true ]; then
-        sendSuccess "${TAG}" "${TITLE}" "${MESSAGE}"
+        sendSuccess "${TITLE}" "${MESSAGE}" "${FILE_PATH}"
     fi
 }
 
 # Send an error alert
 function send_error {
-    TAG="TESTS"
     TITLE="${1}"
     MESSAGE="${2}"
+    FILE_PATH="${3}"
 
     echo "[!]  ${TITLE}: ${MESSAGE}"
 
+    if [ ! -z "${FILE_PATH}" ]; then
+        cat "${FILE_PATH}"
+        TITLE="${TITLE}: ${MESSAGE}"
+    fi
+
     if [ "${NOTIFICATIONS_ON}" = true ]; then
-        sendError "${TAG}" "${TITLE}" "${MESSAGE}"
+        sendError "${TITLE}" "${MESSAGE}" "${FILE_PATH}"
     fi
 }
 
@@ -219,8 +229,7 @@ run_tests() {
         if [ -s "${NTOPNG_LOG}" ]; then
             # ntopng Error/Warning
 
-            send_error "ntopng errors" "ntopng generated errors or warnings running '${TEST}'"
-            cat "${NTOPNG_LOG}"
+            send_error "ntopng Error" "ntopng generated errors or warnings running '${TEST}'" "${NTOPNG_LOG}"
             RC=1
 
         elif [ ! -f result/${TEST}.out ]; then
@@ -254,8 +263,7 @@ run_tests() {
                 ((NUM_SUCCESS=I+1))
                 echo "[i] OK"
             else
-                send_error "Test Failure" "Unexpected output from the test '${TEST}'"
-                cat "${OUT_DIFF}"
+                send_error "Test Failure" "Unexpected output from the test '${TEST}'" "${OUT_DIFF}"
                 RC=1
             fi
 
@@ -265,7 +273,7 @@ run_tests() {
     done
 
     if [ "${NUM_SUCCESS}" == "${NUM_TESTS}" ]; then
-        send_uccess "ntopng TESTS completed successfully" "All tests completed successfully with the expected output."
+        send_success "ntopng TESTS completed successfully" "All tests completed successfully with the expected output."
     fi
 
     ntopng_cleanup
