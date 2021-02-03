@@ -81,15 +81,9 @@ fi
 function send_success {
     TITLE="${1}"
     MESSAGE="${2}"
-    FILE_PATH="${3}"
-
-    if [ ! -z "${FILE_PATH}" ]; then
-        cat "${FILE_PATH}"
-        TITLE="${TITLE}: ${MESSAGE}"
-    fi
 
     if [ "${NOTIFICATIONS_ON}" = true ]; then
-        sendSuccess "${TITLE}" "${MESSAGE}" "${FILE_PATH}"
+        sendSuccess "${TITLE}" "${MESSAGE}" ""
     else
         echo "[i] ${TITLE}: ${MESSAGE}"
     fi
@@ -101,15 +95,18 @@ function send_error {
     MESSAGE="${2}"
     FILE_PATH="${3}"
 
-    if [ ! -z "${FILE_PATH}" ]; then
-        cat "${FILE_PATH}"
-        TITLE="${TITLE}: ${MESSAGE}"
-    fi
-
     if [ "${NOTIFICATIONS_ON}" = true ]; then
+        if [ ! -z "${FILE_PATH}" ]; then
+            TITLE="${TITLE}: ${MESSAGE}"
+        fi
+
         sendError "${TITLE}" "${MESSAGE}" "${FILE_PATH}"
     else
         echo "[!]  ${TITLE}: ${MESSAGE}"
+
+        if [ ! -z "${FILE_PATH}" ]; then
+            cat "${FILE_PATH}"
+        fi
     fi
 }
 
@@ -134,7 +131,7 @@ ntopng_init_conf() {
     echo "--shutdown-when-done" >> ${NTOPNG_TEST_CONF}
     echo "--disable-login=1" >> ${NTOPNG_TEST_CONF}
     echo "--dont-change-user" >> ${NTOPNG_TEST_CONF}
-    echo "--pid=/tmp/ntopng.pid" >> ${NTOPNG_TEST_CONF}
+    echo "--pid=./ntopng.pid" >> ${NTOPNG_TEST_CONF}
 
     cat <<EOF >> "${NTOPNG_TEST_CUSTOM_PROTOS}"
 # charles
@@ -176,7 +173,7 @@ ntopng_run() {
 
     # Start the test
 
-    cd ../../; ./ntopng ${NTOPNG_TEST_CONF} | grep "ERROR:\|WARNING:" > ${5}
+    cd ../../; ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep "ERROR:\|WARNING:\|Direct leak" > ${5}
 
     cd ${TESTS_PATH}
 }
