@@ -18,7 +18,7 @@ local script = {
 
   default_value = {
     operator = "gt",
-    threshold = 150,
+    threshold = 5,
     severity = alert_severities.error,
   },
 
