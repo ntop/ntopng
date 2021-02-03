@@ -51,6 +51,8 @@ function script.hooks.min(params)
     value = 0
   end
 
+  local value = alerts_api.host_delta_val(script.key, params.granularity, value)
+
   -- Check if the configured threshold is crossed by the value and possibly trigger an alert
   alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_threshold_cross, value)
 end
