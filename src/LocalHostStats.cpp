@@ -43,6 +43,10 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   num_host_contacted_ports_as_server.init(4);  /* 16 bytes  */
   contacts_as_cli.init(4);                     /* 16 bytes  */
   contacts_as_srv.init(4);                     /* 16 bytes  */
+
+  num_dns_servers.init(5);
+  num_smtp_servers.init(5);
+  num_ntp_servers.init(5);
 }
 
 /* *************************************** */
@@ -57,6 +61,9 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
   
+  num_dns_servers.init(5);
+  num_smtp_servers.init(5);
+  num_ntp_servers.init(5);
 }
 
 /* *************************************** */

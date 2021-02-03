@@ -11,7 +11,7 @@ local script = {
   -- Script category
   category = user_scripts.script_categories.network,
 
-  default_enabled = true,
+  default_enabled = false,
 
   -- This script is only for alerts generation
   is_alert = true,
@@ -29,6 +29,7 @@ local script = {
     i18n_title = "alerts_thresholds_config.smtp_contacts_title",
     i18n_description = "alerts_thresholds_config.smtp_contacts_description",
     i18n_field_unit = user_scripts.field_units.contacts,
+
     input_builder = "threshold_cross",
     field_max = 500,
     field_min = 1,
@@ -39,7 +40,11 @@ local script = {
 -- #################################################################
 
 function script.hooks.min(params)
-  local value = host.getFullInfo()
+  local value = host.getContactsStats() or nil
+
+  if not value then
+    return
+  end
 
   if value.server_contacts then
     value = value.server_contacts.smtp or 0

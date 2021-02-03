@@ -11,14 +11,14 @@ local script = {
   -- Script category
   category = user_scripts.script_categories.security,
 
-  default_enabled = true,
+  default_enabled = false,
 
   -- This script is only for alerts generation
   is_alert = true,
 
   default_value = {
     operator = "gt",
-    threshold = 150,
+    threshold = 5,
     severity = alert_severities.error,
   },
 
@@ -29,6 +29,7 @@ local script = {
     i18n_title = "alerts_thresholds_config.ntp_contacts_title",
     i18n_description = "alerts_thresholds_config.ntp_contacts_description",
     i18n_field_unit = user_scripts.field_units.contacts,
+
     input_builder = "threshold_cross",
     field_max = 500,
     field_min = 1,
@@ -39,7 +40,11 @@ local script = {
 -- #################################################################
 
 function script.hooks.min(params)
-  local value = host.getFullInfo()
+  local value = host.getContactsStats() or nil
+
+  if not value then
+    return
+  end
 
   if value.server_contacts then
     value = value.server_contacts.ntp or 0

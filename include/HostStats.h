@@ -143,6 +143,13 @@ class HostStats: public GenericTrafficElement {
   virtual void incContactedService(char *name)       { ; }
   virtual void incCliContactedHosts(IpAddress *peer) { ; }
   virtual void incSrvHostContacts(IpAddress *peer)   { ; }
+
+  virtual u_int32_t getNTPContactCardinality()  { return((u_int32_t)-1); }
+  virtual u_int32_t getDNSContactCardinality()  { return((u_int32_t)-1); }
+  virtual u_int32_t getSMTPContactCardinality() { return((u_int32_t)-1); }
+  virtual void incNTPContactCardinality(Host *h)  { ; }
+  virtual void incDNSContactCardinality(Host *h)  { ; }
+  virtual void incSMTPContactCardinality(Host *h) { ; }
 };
 
 #endif

@@ -31,6 +31,9 @@ class LocalHostStats: public HostStats {
   FrequentStringItems *top_sites;
   time_t nextSitesUpdate, nextContactsUpdate;
   u_int32_t num_contacts_as_cli, num_contacts_as_srv;
+
+  /* Estimate of the number of critical servers used by this host */
+  Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
   
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
@@ -94,6 +97,13 @@ class LocalHostStats: public HostStats {
   virtual u_int32_t getTotAvgCliContactedPeers()     { return(peers->getCliTotEstimate()); };
   virtual u_int32_t getTotAvgSrvContactedPeers()     { return(peers->getSrvTotEstimate()); };
   virtual bool getSlidingWinStatus()                 { return(peers->getSlidingWinStatus()); };
+
+  virtual u_int32_t getNTPContactCardinality()  { return(num_ntp_servers.getEstimate());  };
+  virtual u_int32_t getDNSContactCardinality()  { return(num_dns_servers.getEstimate());  };
+  virtual u_int32_t getSMTPContactCardinality() { return(num_smtp_servers.getEstimate()); };
+  virtual void incNTPContactCardinality(Host *h)  { if(h->get_ip()) num_ntp_servers.addElement(h->get_ip()->key());  };
+  virtual void incDNSContactCardinality(Host *h)  { if(h->get_ip()) num_dns_servers.addElement(h->get_ip()->key());  };
+  virtual void incSMTPContactCardinality(Host *h) { if(h->get_ip()) num_smtp_servers.addElement(h->get_ip()->key()); };
 
   virtual void incCliContactedHosts(IpAddress *peer) {
     peer->incCardinality(&num_contacted_hosts_as_client);

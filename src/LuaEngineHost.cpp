@@ -477,6 +477,21 @@ static int ntop_host_store_triggered_alert(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_host_get_contacts_stats(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_contacted_stats(vm);
+  else
+    lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_host_release_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
 
@@ -515,7 +530,8 @@ static luaL_Reg _ntop_host_reg[] = {
   { "getSynScan",             ntop_host_get_syn_scan            },
   { "getScore",               ntop_host_get_score               },
   { "getBehaviourInfo",       ntop_host_get_behaviour_info      },
-  { "getPeersStats",           ntop_host_get_peers_stats        },
+  { "getPeersStats",          ntop_host_get_peers_stats         },
+  { "getContactsStats",       ntop_host_get_contacts_stats      },
   
   { NULL,                     NULL }
 };

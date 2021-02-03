@@ -312,6 +312,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void luaDNS(lua_State *vm, bool verbose) { };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { };
   virtual void luaTCP(lua_State *vm) { };
+  virtual void lua_contacted_stats(lua_State *vm)  { };
   virtual u_int16_t getNumActiveContactsAsClient()  { return 0; };
   virtual u_int16_t getNumActiveContactsAsServer()  { return 0; };
   inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
@@ -395,6 +396,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void incOSStats(time_t when, u_int16_t proto_id,
 		       u_int64_t sent_packets, u_int64_t sent_bytes,
 		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
+
   void incCliContactedHosts(IpAddress *peer) { stats->incCliContactedHosts(peer); }
   void incCliContactedPorts(u_int16_t port)  { stats->incCliContactedPorts(port); }
   void incSrvHostContacts(IpAddress *peer)   { stats->incSrvHostContacts(peer);   }

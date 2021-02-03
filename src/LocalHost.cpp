@@ -127,10 +127,6 @@ void LocalHost::initialize() {
   iface->incNumHosts(true /* Local Host */);
   if(NetworkStats *ns = iface->getNetworkStats(local_network_id))
     ns->incNumHosts();
-
-  num_dns_servers.init(5);
-  num_smtp_servers.init(5);
-  num_ntp_servers.init(5);
   
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
@@ -227,6 +223,23 @@ const char * LocalHost::getOSDetail(char * const buf, ssize_t buf_len) {
 
 /* *************************************** */
 
+void LocalHost::lua_contacted_stats(lua_State *vm) {
+  if(!stats)
+    return;
+
+  lua_newtable(vm);
+
+  lua_push_uint32_table_entry(vm, "dns",  stats->getDNSContactCardinality());
+  lua_push_uint32_table_entry(vm, "smtp", stats->getSMTPContactCardinality());
+  lua_push_uint32_table_entry(vm, "ntp",  stats->getNTPContactCardinality());
+  
+  lua_pushstring(vm, "server_contacts");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
 void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 		    bool host_details, bool verbose,
 		    bool returnHost, bool asListElement) {
@@ -244,15 +257,7 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 
   /* *** */
   
-  lua_newtable(vm);
-
-  lua_push_uint32_table_entry(vm, "dns",  num_dns_servers.getEstimate());
-  lua_push_uint32_table_entry(vm, "smtp", num_smtp_servers.getEstimate());
-  lua_push_uint32_table_entry(vm, "ntp",  num_ntp_servers.getEstimate());
-  
-  lua_pushstring(vm, "server_contacts");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+  lua_contacted_stats(vm);
 
   /* *** */
   
