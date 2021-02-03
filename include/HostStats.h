@@ -108,6 +108,7 @@ class HostStats: public GenericTrafficElement {
   virtual void incNumFlows(bool as_client) { if(as_client) total_num_flows_as_client++; else total_num_flows_as_server++; } ;
   virtual bool hasAnomalies(time_t when) { return false; };
   virtual void luaAnomalies(lua_State* vm, time_t when) {};
+  virtual void luaPeers(lua_State *vm) 			{};
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
 
 #ifdef NTOPNG_PRO

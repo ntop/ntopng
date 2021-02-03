@@ -309,8 +309,8 @@ void LocalHost::inlineSetOSDetail(const char *_os_detail) {
 /* *************************************** */
 
 void LocalHost::lua_peers_stats(lua_State* vm) {
-  if(initial_ts_point)
-    initial_ts_point->luaPeers(vm);
+  if(stats)
+    stats->luaPeers(vm);
   else
     lua_pushnil(vm);
 }
