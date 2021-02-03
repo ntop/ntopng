@@ -260,7 +260,7 @@ run_tests() {
             fi
 
             if [ `cat "${OUT_DIFF}" | wc -l` -eq 0 ]; then
-                ((NUM_SUCCESS=I+1))
+                ((NUM_SUCCESS=NUM_SUCCESS+1))
                 echo "[i] OK"
             else
                 send_error "Test Failure" "Unexpected output from the test '${TEST}'" "${OUT_DIFF}"
