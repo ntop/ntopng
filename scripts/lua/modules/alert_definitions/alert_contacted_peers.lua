@@ -51,14 +51,14 @@ function alert_contacted_peers.format(ifid, alert, alert_type_params)
       host = host,
       host_category = host_category
    }
-   
-   if alert_type_params.value_cli > 0 then
+
+   if((type(alert_type_params.value_cli) == number) and (alert_type_params.value_cli > 0)) then
       msg_params.value_cli = alert_type_params.value_cli
       msg_params.dyn_threshold_cli = alert_type_params.dyn_threshold_cli
       triggered_as_cli = true
    end 
 
-   if alert_type_params.value_srv > 0 then
+   if((type(alert_type_params.value_srv) == number) and (alert_type_params.value_srv > 0)) then
       msg_params.value_srv = alert_type_params.value_srv
       msg_params.dyn_threshold_srv = alert_type_params.dyn_threshold_srv
       triggered_as_srv = true
