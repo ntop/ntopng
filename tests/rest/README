@@ -11,8 +11,8 @@ How to Run The Tests
 
 Perform all the tests running:
 
-$ do.sh
+$ run.sh
 
-In order to run a specific test, specify the name of the yaml file:
+In order to run a specific test, specify -y=<test name>:
 
-$ ./do.sh get_host_active_01.yaml   
+$ ./run.sh -y=get_host_active_01
