@@ -302,10 +302,11 @@ $(document).ready(function() {
             $editPoolLink.attr('href', NtopUtils.getEditPoolLink($editPoolLink.attr('href'), amData.pool || DEFAULT_POOL));
             $(`#am-edit-form select[name='pool']`).trigger('change');
 
-            if (['icmp', 'cicmp'].includes(amData.measurement)) {
+            if (SHOW_IFACE && ['icmp', 'cicmp'].includes(amData.measurement)) {
+		const value = (amData.ifname === '') ? $(`#am-edit-form .interface-group [name='iface'] option:first`).val() : amData.ifname;
                 $(`#am-edit-form .interface-group`).show();
-                $(`#am-edit-form .interface-group [name='iface']`).val(amData.ifname);
-            }
+                $(`#am-edit-form .interface-group [name='iface']`).val(value);
+	    }
             else {
                 $(`#am-edit-form .interface-group`).hide();
             }
@@ -585,7 +586,9 @@ $(document).ready(function() {
         if ($(`#input-add-host`).val().length > 0) $(`#am-add-form`)[0].reportValidity();
 
         if (['icmp', 'cicmp'].includes(selectedMeasurement)) {
-            $(`#am-add-form .interface-group`).show();
+	    if (SHOW_IFACE) {
+		$(`#am-add-form .interface-group`).show();
+	    }
         }
         else {
             $(`#am-add-form .interface-group`).hide();

@@ -377,6 +377,7 @@ local function deserializeAmPrefs(host_key, val, config_only)
     local v = json.decode(val)
 
     if v then
+      rv.show_iface = false
       rv.ifname = v.ifname or ''
       rv.threshold = tonumber(v.threshold) or 500
       rv.granularity = v.granularity or "min"
@@ -468,8 +469,10 @@ function am_utils.addHost(host, ifname, measurement, am_value, granularity, pool
   local active_monitoring_pools = require("active_monitoring_pools")
   local am_pool = active_monitoring_pools:create()
   local host_key = am_utils.getAmHostKey(host, measurement)
+  local show_iface = ntop.isPingIfaceAvailable()
 
   ntop.setHashCache(am_hosts_key, host_key, serializeAmPrefs({
+    show_iface = show_iface,
     ifname = ifname or '',
     threshold = tonumber(am_value) or 500,
     granularity = granularity or "min",
