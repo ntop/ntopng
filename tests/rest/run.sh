@@ -83,8 +83,6 @@ function send_success {
     MESSAGE="${2}"
     FILE_PATH="${3}"
 
-    echo "[i] ${TITLE}: ${MESSAGE}"
-
     if [ ! -z "${FILE_PATH}" ]; then
         cat "${FILE_PATH}"
         TITLE="${TITLE}: ${MESSAGE}"
@@ -92,6 +90,8 @@ function send_success {
 
     if [ "${NOTIFICATIONS_ON}" = true ]; then
         sendSuccess "${TITLE}" "${MESSAGE}" "${FILE_PATH}"
+    else
+        echo "[i] ${TITLE}: ${MESSAGE}"
     fi
 }
 
@@ -101,8 +101,6 @@ function send_error {
     MESSAGE="${2}"
     FILE_PATH="${3}"
 
-    echo "[!]  ${TITLE}: ${MESSAGE}"
-
     if [ ! -z "${FILE_PATH}" ]; then
         cat "${FILE_PATH}"
         TITLE="${TITLE}: ${MESSAGE}"
@@ -110,6 +108,8 @@ function send_error {
 
     if [ "${NOTIFICATIONS_ON}" = true ]; then
         sendError "${TITLE}" "${MESSAGE}" "${FILE_PATH}"
+    else
+        echo "[!]  ${TITLE}: ${MESSAGE}"
     fi
 }
 
