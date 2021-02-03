@@ -2,14 +2,14 @@
 #
 # Running this script without parameters, all tests in the tests folder will be executed.
 #
-# ./do.sh
+# ./run.sh
 #
-# In order to run a specific test, provide the name of the yaml file in the tests folder.
+# In order to run a specific test, provide the name of the test with the -y option.
 #
-# ./do.sh get_host_active_01.yaml
+# ./run.sh -y=get_host_active_01
 #
-
-RC=0
+# Clone the packager repository in the same folder to enable notifications
+#
 
 TESTS_PATH="${PWD}"
 
@@ -20,6 +20,88 @@ NTOPNG_TEST_REDIS="2"
 NTOPNG_TEST_LOCALNETS="192.168.1.0/24"
 
 DEFAULT_PCAP="test_01.pcap"
+
+MAIL_FROM=""
+MAIL_TO=""
+DISCORD_WEBHOOK=""
+TEST_NAME=""
+
+NOTIFICATIONS_ON=false
+if [ -d packager ]; then
+  source packager/utils/alerts.sh
+  NOTIFICATIONS_ON=true
+fi
+
+function usage {
+    echo "Usage: run.sh [-y=<test file>] [-f=<mail from>] [-t=<mail to>] [-d=<discord webhook>]"
+    exit 0
+}
+
+for i in "$@"
+do
+    case $i in
+	-f=*|--mail-from=*)
+	    MAIL_FROM="${i#*=}"
+	    ;;
+
+	-t=*|--mail-to=*)
+	    MAIL_TO="${i#*=}"
+	    ;;
+
+	-d=*|--discord-webhook=*)
+	    DISCORD_WEBHOOK="${i#*=}"
+	    ;;
+
+	-y=*|--test=*)
+	    TEST_NAME="${i#*=}"
+	    ;;
+
+	-h|--help)
+	    usage
+	    exit 0
+	    ;;
+
+	*)
+	    # unknown option
+	    ;;
+    esac
+done
+
+if [ "${NOTIFICATIONS_ON}" = true ]; then
+    if [ -z "$MAIL_FROM" ] || [ -z "$MAIL_TO" ] ; then
+        echo "Warning: please specify -f=<from> -t=<to> to send alerts by mail"
+    fi
+
+    if [ -z "$DISCORD_WEBHOOK" ] ; then
+        echo "Warning: please specify -d=<discord webhook url> to send alerts to Discord"
+    fi
+fi
+
+# Send a success alert
+function send_success {
+    TAG="TESTS"
+    TITLE="${1}"
+    MESSAGE="${2}"
+
+    echo "[i] ${TITLE}: ${MESSAGE}"
+
+    if [ "${NOTIFICATIONS_ON}" = true ]; then
+        sendSuccess "${TAG}" "${TITLE}" "${MESSAGE}"
+    fi
+}
+
+# Send an error alert
+function send_error {
+    TAG="TESTS"
+    TITLE="${1}"
+    MESSAGE="${2}"
+
+    echo "[!]  ${TITLE}: ${MESSAGE}"
+
+    if [ "${NOTIFICATIONS_ON}" = true ]; then
+        sendError "${TAG}" "${TITLE}" "${MESSAGE}"
+    fi
+}
 
 ntopng_cleanup() {
     # Make sure no other process is running
@@ -89,6 +171,8 @@ ntopng_run() {
     cd ${TESTS_PATH}
 }
 
+RC=0
+
 #
 # Run tests and compare the output with the expected output
 # Params:
@@ -98,12 +182,13 @@ run_tests() {
     TESTS="${1}"
     TESTS_ARR=( $TESTS )
     NUM_TESTS=${#TESTS_ARR[@]}
+    NUM_SUCCESS=0
 
     I=1
     for T in ${TESTS}; do 
         TEST=${T%.yaml}
 
-	echo "[${I}/${NUM_TESTS}] Test '${TEST}' "
+	echo "[>] Running test '${TEST}' (${I}/${NUM_TESTS})"
         ((I=I+1))
 
         # Cleanup ntopng
@@ -134,7 +219,7 @@ run_tests() {
         if [ -s "${NTOPNG_LOG}" ]; then
             # ntopng Error/Warning
 
-            echo "[!] NTOPNG ERROR IN '${TEST}'"
+            send_error "ntopng errors" "ntopng generated errors or warnings running '${TEST}'"
             cat "${NTOPNG_LOG}"
             RC=1
 
@@ -166,9 +251,10 @@ run_tests() {
             fi
 
             if [ `cat "${OUT_DIFF}" | wc -l` -eq 0 ]; then
+                ((NUM_SUCCESS=I+1))
                 echo "[i] OK"
             else
-                echo "[!] OUTPUT ERROR IN '${TEST}'"
+                send_error "Test Failure" "Unexpected output from the test '${TEST}'"
                 cat "${OUT_DIFF}"
                 RC=1
             fi
@@ -177,6 +263,10 @@ run_tests() {
 
         /bin/rm -f ${SCRIPT_OUT} ${NTOPNG_LOG} ${OUT_DIFF} ${OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE}
     done
+
+    if [ "${NUM_SUCCESS}" == "${NUM_TESTS}" ]; then
+        send_uccess "ntopng TESTS completed successfully" "All tests completed successfully with the expected output."
+    fi
 
     ntopng_cleanup
 }
@@ -187,10 +277,10 @@ run_all_tests() {
     run_tests "${TESTS}"
 }
 
-if [ -z "${1}" ]; then
+if [ -z "${TEST_NAME}" ]; then
     run_all_tests
 else
-    run_tests "${1}"
+    run_tests "${TEST_NAME}.yaml"
 fi
 
 exit $RC
