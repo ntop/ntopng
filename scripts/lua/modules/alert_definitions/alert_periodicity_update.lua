@@ -55,7 +55,7 @@ function alert_periodicity_update.format(ifid, alert, alert_type_params)
    local rsp
 
    if alert_type_params.created_or_removed == "create" then
-      rsp = "flow: "
+      rsp = "Flow "
       rsp = rsp .. hostinfo2detailshref(client, nil, hostinfo2label(client))..
 	 " <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
 	 hostinfo2detailshref(server, nil, hostinfo2label(server))..
@@ -65,7 +65,7 @@ function alert_periodicity_update.format(ifid, alert, alert_type_params)
       if not isEmptyString(msg.info) then
 	 rsp = rsp .. "[" .. msg.info .. "]"
       end
-      rsp = rsp .. ", is now periodic (frequency " .. msg["frequency"] .. " seconds)"
+      rsp = rsp .. " is now periodic (freq. " .. msg["frequency"] .. " sec)"
    else
       rsp = "Periodic flow ended: "
       rsp = rsp .. hostinfo2detailshref(client, nil, hostinfo2label(client))..
