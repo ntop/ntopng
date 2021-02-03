@@ -31,7 +31,6 @@ local script = {
     i18n_field_unit = user_scripts.field_units.contacts,
 
     input_builder = "threshold_cross",
-    field_max = 500,
     field_min = 1,
     field_operator = "gt";
   }
