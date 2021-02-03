@@ -10,6 +10,7 @@ local format_utils = require("format_utils")
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local json = require ("dkjson")
 
 -- ##############################################
 
@@ -25,44 +26,51 @@ alert_contacted_peers.meta = {
 
 -- ##############################################
 
-function alert_contacted_peers:init(value, cli_or_srv, dyn_threshold, ip, host)
+function alert_contacted_peers:init(value_srv, value_cli, dyn_threshold_srv, dyn_threshold_cli)
    -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {
-      value = value,
-      cli_or_srv = cli_or_srv,
-      dyn_threshold = dyn_threshold,
-      ip = ip,
-      host = host
+      value_cli = value_cli,
+      value_srv = value_srv,
+      dyn_threshold_cli = dyn_threshold_cli,
+      dyn_threshold_srv = dyn_threshold_srv
    }
 end
 
 -- #######################################################
 
 function alert_contacted_peers.format(ifid, alert, alert_type_params)
-   local host = alert_type_params.host
-   local numeric_ip = alert_type_params.ip
-   local ip_label = host and host.label or numeric_ip
-
-   if numeric_ip ~= host.host then
-      numeric_ip = string.format("(%s)", numeric_ip)
-   else
-      numeric_ip = ""
-   end
+   local alert_consts = require "alert_consts"
+   local host = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"]))
+   local host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info)
+   local triggered_as_srv = false
+   local triggered_as_cli = false
 
    local msg_params = {
-      host = ip_label,
-      numeric_ip = numeric_ip,
-      dyn_threshold = alert_type_params.dyn_threshold,
-      value = alert_type_params.value
+      host = host,
+      host_category = host_category
    }
+   
+   if alert_type_params.value_cli > 0 then
+      msg_params.value_cli = alert_type_params.value_cli
+      msg_params.dyn_threshold_cli = alert_type_params.dyn_threshold_cli
+      triggered_as_cli = true
+   end 
 
-   if alert_type_params.cli_or_srv == true then
-      return (i18n("alert_messages.alert_contacted_peers_as_cli", msg_params))
-   else
-      return (i18n("alert_messages.alert_contacted_peers_as_srv", msg_params))
+   if alert_type_params.value_srv > 0 then
+      msg_params.value_srv = alert_type_params.value_srv
+      msg_params.dyn_threshold_srv = alert_type_params.dyn_threshold_srv
+      triggered_as_srv = true
    end
+
+   if triggered_as_srv == true and triggered_as_cli == true then
+      return (i18n("alert_messages.contacted_peers", msg_params))
+   elseif triggered_as_srv == true then
+      return (i18n("alert_messages.contacted_peers_as_srv", msg_params))
+   else
+      return (i18n("alert_messages.contacted_peers_as_cli", msg_params))
+   end   	 
 end
 
 -- #######################################################
