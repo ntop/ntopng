@@ -537,8 +537,8 @@ void Flow::processDetectedProtocolData() {
       if(cli_h) {
 	cli_h->incContactedService((char*)ndpiFlow->host_server_name);
 
-	if(ndpiFlow->protos.http.detected_os[0] != '\0')
-	  cli_h->inlineSetOSDetail((char*)ndpiFlow->protos.http.detected_os);
+	if(ndpiFlow->http.detected_os[0] != '\0')
+	  cli_h->inlineSetOSDetail((char*)ndpiFlow->http.detected_os);
 
 	if(cli_h->isLocalHost())
 	  cli_h->incrVisitedWebSite(host_server_name);
