@@ -223,7 +223,7 @@ const char * LocalHost::getOSDetail(char * const buf, ssize_t buf_len) {
 
 /* *************************************** */
 
-void LocalHost::lua_contacted_stats(lua_State *vm) {
+void LocalHost::lua_contacts_stats(lua_State *vm) const {
   if(!stats)
     return;
 
@@ -257,7 +257,7 @@ void LocalHost::lua(lua_State* vm, AddressTree *ptree,
 
   /* *** */
   
-  lua_contacted_stats(vm);
+  lua_contacts_stats(vm);
 
   /* *** */
   
@@ -308,7 +308,7 @@ void LocalHost::inlineSetOSDetail(const char *_os_detail) {
 
 /* *************************************** */
 
-void LocalHost::lua_peers_stats(lua_State* vm) {
+void LocalHost::lua_peers_stats(lua_State* vm) const {
   if(stats)
     stats->luaPeers(vm);
   else

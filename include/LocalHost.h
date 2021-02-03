@@ -88,11 +88,12 @@ class LocalHost : public Host, public SerializableElement {
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
   virtual void updateHostTrafficPolicy(char *key);
 
-  virtual void lua_contacted_stats(lua_State *vm);
   virtual void luaHTTP(lua_State *vm)              { stats->luaHTTP(vm);         };
   virtual void luaDNS(lua_State *vm, bool verbose) { stats->luaDNS(vm, verbose); luaDoHDot(vm); };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) { stats->luaICMP(vm,isV4,verbose); };
-  virtual void lua_peers_stats(lua_State* vm);
+  virtual void lua_get_timeseries(lua_State* vm);
+  virtual void lua_peers_stats(lua_State* vm)    const;
+  virtual void lua_contacts_stats(lua_State *vm) const;
   virtual void incrVisitedWebSite(char *hostname)  { stats->incrVisitedWebSite(hostname); };
   virtual HTTPstats* getHTTPstats()                { return(stats->getHTTPstats());       };
   virtual DnsStats*  getDNSstats()                 { return(stats->getDNSstats());        };
@@ -108,7 +109,6 @@ class LocalHost : public Host, public SerializableElement {
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
-  virtual void lua_get_timeseries(lua_State* vm);  
   void custom_periodic_stats_update(const struct timeval *tv) {
   }
 

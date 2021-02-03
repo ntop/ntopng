@@ -312,7 +312,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void luaDNS(lua_State *vm, bool verbose) { };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { };
   virtual void luaTCP(lua_State *vm) { };
-  virtual void lua_contacted_stats(lua_State *vm)  { };
   virtual u_int16_t getNumActiveContactsAsClient()  { return 0; };
   virtual u_int16_t getNumActiveContactsAsServer()  { return 0; };
   inline TcpPacketStats* getTcpPacketSentStats() { return(stats->getTcpPacketSentStats()); }
@@ -350,8 +349,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline bool isHiddenFromTop() { return hidden_from_top; }
   bool isOneWayTraffic()  const;
   bool isTwoWaysTraffic() const;
-  virtual void lua_get_timeseries(lua_State* vm) { lua_pushnil(vm); };
-  virtual void lua_peers_stats(lua_State* vm)    { lua_pushnil(vm); };
+  virtual void lua_get_timeseries(lua_State* vm)        { lua_pushnil(vm); };
+  virtual void lua_peers_stats(lua_State* vm)     const { lua_pushnil(vm); };
+  virtual void lua_contacts_stats(lua_State *vm)  const { lua_pushnil(vm); };
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
 
   virtual void serialize(json_object *obj, DetailsLevel details_level);

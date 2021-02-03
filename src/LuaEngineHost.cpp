@@ -353,10 +353,8 @@ static int ntop_host_get_score(lua_State* vm) {
 static int ntop_host_is_local(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
 
-  if(!h)
-    return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, h->isLocalHost());
+  if(h)
+    lua_pushboolean(vm, h->isLocalHost());
 
   return(CONST_LUA_OK);
 }
@@ -366,11 +364,23 @@ static int ntop_host_is_local(lua_State* vm) {
 int ntop_host_get_peers_stats(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
 
-  if(!h)
-    return(CONST_LUA_ERROR);
+  lua_newtable(vm);
 
-  /* The released alert will be pushed to LUA */
-  h->lua_peers_stats(vm);
+  if(h)
+    h->lua_peers_stats(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_contacts_stats(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_contacts_stats(vm);
 
   return(CONST_LUA_OK);
 }
@@ -381,10 +391,8 @@ static int ntop_host_get_ts_key(lua_State* vm) {
   char buf_id[64];
   Host *h = ntop_host_get_context_host(vm);
 
-  if(!h)
-    return(CONST_LUA_ERROR);
-
-  lua_pushstring(vm, h->get_tskey(buf_id, sizeof(buf_id)));
+  if(h)
+    lua_pushstring(vm, h->get_tskey(buf_id, sizeof(buf_id)));
 
   return(CONST_LUA_OK);
 }
@@ -396,8 +404,6 @@ static int ntop_host_get_behaviour_info(lua_State* vm) {
 
   if(h)
     h->luaHostBehaviour(vm);
-  else
-    lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -473,21 +479,6 @@ static int ntop_host_store_triggered_alert(lua_State* vm) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
 
   return ntop_store_triggered_alert(vm, c->host);
-}
-
-/* ****************************************** */
-
-static int ntop_host_get_contacts_stats(lua_State* vm) {
-  Host *h = ntop_host_get_context_host(vm);
-
-  lua_newtable(vm);
-
-  if(h)
-    h->lua_contacted_stats(vm);
-  else
-    lua_pushnil(vm);
-
-  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
