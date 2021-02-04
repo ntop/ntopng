@@ -134,6 +134,7 @@ function ts_schema:verifyTags(tags)
   local actual_tags = {}
 
   local all_defined, missing_tag = self:allTagsDefined(tags)
+
   if not all_defined then
     traceError(TRACE_ERROR, TRACE_CONSOLE, "missing tag '" .. missing_tag .. "' in schema " .. self.name)
     return nil

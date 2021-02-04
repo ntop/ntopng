@@ -1657,6 +1657,7 @@ local lang = {
     ["exporter_ip"] = "Flow Exporter IP",
     ["exporters"] = "Exporters",
     ["flow_device_x"] = "Flow Device %{device}",
+    ["flow_device_x_interface_y"] = "Flow Device %{device} / %{interface}",
     ["flow_exporter_devices"] = "Flow Exporter Devices",
     ["flow_ratio_snmp_instructions"] = "To enable the Flow/SNMP ratio, this flow device must support SNMP and must be <a href='%{href}'>added</a> to the SNMP devices.",
     ["flow_ratio_timeseries_instructions"] = "To enable the Flow/SNMP ratio, <b>SNMP and Flow Device timeseries</b> must be enabled.",
