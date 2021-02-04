@@ -1865,7 +1865,7 @@ function getLocalNetworkAlias(network)
    local alias = ntop.getLocalNetworkAlias(network) or nil
 
    if not alias then
-      ntop.getHashCache(getLocalNetworkAliasKey(), network)      
+      alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)      
    end
 
    if not isEmptyString(alias) then
