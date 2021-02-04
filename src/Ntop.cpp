@@ -3077,13 +3077,7 @@ bool Ntop::addLocalNetwork(char *_net) {
 
 /* ******************************************* */
 bool Ntop::getLocalNetworkAlias(lua_State *vm, u_int8_t network_id) {
-  char *alias;
-
-  // Checking the local network aliases list
-  if(!local_network_aliases)
-    return false;
-
-  alias = local_network_aliases[network_id];
+  char *alias = local_network_aliases[network_id];
 
   // Checking if the network has an alias
   if(!alias)

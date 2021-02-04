@@ -4733,8 +4733,6 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
  * via flow.getInfo(). mask_host/allowed networks are not honored.
  */
 void Flow::lua_get_min_info(lua_State *vm) {
-  const IpAddress *cli_ip = get_cli_ip_addr();
-  const IpAddress *srv_ip = get_srv_ip_addr();
   char buf[64];
   char *info = getFlowInfo(buf, sizeof(buf));
   
