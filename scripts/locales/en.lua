@@ -470,6 +470,7 @@ local lang = {
     ["broadcast_domain_info"] = "It is unlikely to see ARP traffic between those IPs as they are seemingly belonging to different broadcast domains. Check for hosts and networks configurations.",
     ["broadcast_domain_too_large"] = "ARP traffic from <a href=\"%{src_mac_url}\">%{src_mac}</a>/<a href=\"%{spa_url}\">%{spa}</a> to <a href=\"%{dst_mac_url}\">%{dst_mac}</a>/<a href=\"%{tpa_url}\">%{tpa}</a> detected.",
     ["contacted_peers"] = "Too many Peers contacted by %{host} %{host_category}. As a client: [%{value_cli} > %{dyn_threshold_cli}]. As a server: [%{value_srv} > %{dyn_threshold_srv}].",
+    ["unknow_contacted_peers"] = "Too many Peers contacted by %{host} %{host_category}. Unable to retrive the values.",
     ["contacted_peers_as_cli"] = "Too many Peers contacted as a client by %{host} %{host_category} [%{value_cli} > %{dyn_threshold_cli}].",
     ["contacted_peers_as_srv"] = "Too many Peers contacted as a server by %{host} %{host_category} [%{value_srv} > %{dyn_threshold_srv}].",
     ["device_has_connected"] = "The device <a href=\"%{url}\">%{device}</a> has connected to the network.",
