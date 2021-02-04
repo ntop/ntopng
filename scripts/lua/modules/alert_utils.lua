@@ -1410,7 +1410,7 @@ $("[clicked=1]").trigger("click");
       purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. alert_consts.alertTypeLabel(_GET["alert_type"], true) .. "</b>"})
    elseif (_GET['alert_severity']) then
       purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. alert_consts.alertSeverityLabel(_GET["alert_severity"], true) .. "</b>"})
-   elseif (_GET['alert_l7_proto']) then
+   elseif (not isEmptyString(_GET['alert_l7_proto'])) then
       purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. interface.getnDPIProtoName(tonumber(_GET["alert_l7_proto"])) .. "</b>"})
    else
       purge_label = i18n("show_alerts.alerts_to_purge")
