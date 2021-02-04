@@ -10,6 +10,8 @@ local rest_utils = require "rest_utils"
 local pools = require "pools"
 local pools_lua_utils = require "pools_lua_utils"
 local tracker = require("tracker")
+local plugins_utils = require("plugins_utils")
+local user_scripts = require("user_scripts")
 
 -- ##############################################
 
@@ -131,6 +133,9 @@ function import_export_rest_utils.reset(instances)
       list[#list] = name
    end
 
+   plugins_utils.loadPlugins()
+   user_scripts.loadDefaultConfig()
+   
    rest_utils.answer(rc)
 
    -- TRACKER HOOK
