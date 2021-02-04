@@ -14,6 +14,7 @@ local custom_column_pref_key = "ntopng.prefs.custom_column"
 --            AND NetworkInterface::getFlows()
 custom_column_utils.available_custom_columns = {
    -- KEY  LABEL   Host::lua()_label  formatting  additonal_url  hidden
+   { "mac", i18n("mac_address"), "mac", get_symbolic_mac --[[ Don't touch it, already formatted --]], "left" },
    { "traffic_sent", i18n("flows_page.total_bytes_sent"), "bytes.sent", bytesToSize, "right" },
    { "traffic_rcvd", i18n("flows_page.total_bytes_rcvd"), "bytes.rcvd", bytesToSize, "right" },
    { "traffic_unknown", i18n("flows_page.total_bytes_unknown"), "bytes.ndpi.unknown", bytesToSize, "right" },
@@ -59,7 +60,7 @@ function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatte
 	 if formatted then
 	    val = host_stats_getter(host_stats, c[3])
 
-	    if val ~= nil and val > 0 then
+	    if not tonumber(val) or val > 0 then
 	       val = c[4](val)
 	    else
 	       val = ""
