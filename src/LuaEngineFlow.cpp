@@ -886,6 +886,28 @@ static int ntop_flow_get_server_country(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+
+/* ****************************************** */
+
+static int ntop_flow_get_mac(lua_State* vm, bool client) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  lua_newtable(vm);
+
+  if(f)
+    f->lua_get_mac(vm, client);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_client_mac(lua_State* vm) { return ntop_flow_get_mac(vm, true /* Client */); };
+
+/* ****************************************** */
+
+static int ntop_flow_get_server_mac(lua_State* vm) { return ntop_flow_get_mac(vm, false /* Server */); };
+
 /* ****************************************** */
 
 static int ntop_flow_get_device_proto_allowed_info(lua_State* vm) {
@@ -1209,6 +1231,8 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "getDnsQuery",              ntop_flow_get_dns_query              },
   { "getClientCountry",         ntop_flow_get_client_country         },
   { "getServerCountry",         ntop_flow_get_server_country         },
+  { "getClientMac",             ntop_flow_get_client_mac             },
+  { "getServerMac",             ntop_flow_get_server_mac             },
   { "getTLSVersion",            ntop_flow_get_tls_version            },
   
 #ifdef NTOPNG_PRO

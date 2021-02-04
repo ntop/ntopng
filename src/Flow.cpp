@@ -4683,6 +4683,16 @@ void Flow::lua_get_ip(lua_State *vm, bool client) const {
 
 /* ***************************************************** */
 
+void Flow::lua_get_mac(lua_State *vm, bool client) const {
+  char buf[24];
+  Host *h = client ? get_cli_host() : get_srv_host();
+
+  if(h)
+    lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac", Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
+}
+
+/* ***************************************************** */
+
 void Flow::lua_get_info(lua_State *vm, bool client) const {
   char buf[64];
   Host *h = client ? get_cli_host() : get_srv_host();
@@ -4696,7 +4706,7 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
       char cb[64], os[64];
       lua_push_str_table_entry(vm, client ? "cli.host" : "srv.host", h->get_visual_name(buf, sizeof(buf)));
       lua_push_uint64_table_entry(vm, client ? "cli.source_id" : "srv.source_id", 0 /* was never set by src->getSourceId()*/ );
-      lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac", Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
+
       lua_push_bool_table_entry(vm, client ? "cli.localhost" : "srv.localhost", h->isLocalHost());
       lua_push_bool_table_entry(vm, client ? "cli.systemhost" : "srv.systemhost", h->isSystemHost());
       lua_push_bool_table_entry(vm, client ? "cli.blacklisted" : "srv.blacklisted", client ? isBlacklistedClient() : isBlacklistedServer());
@@ -4709,6 +4719,8 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
       lua_push_str_table_entry(vm, client ? "cli.os" : "srv.os", h->getOSDetail(os, sizeof(os)));
     }
   }
+
+  lua_get_mac(vm, client);
 
   if(h_ip)
     lua_push_bool_table_entry(vm, client ? "cli.private" : "srv.private", h_ip->isPrivateAddress());
@@ -4728,8 +4740,8 @@ void Flow::lua_get_min_info(lua_State *vm) {
   
   lua_newtable(vm);
 
-  if(cli_ip) lua_push_str_table_entry(vm, "cli.ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
-  if(srv_ip) lua_push_str_table_entry(vm, "srv.ip", get_srv_ip_addr()->print(buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "cli.ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "srv.ip", get_srv_ip_addr()->print(buf, sizeof(buf)));
 
   if(get_cli_host() && get_cli_host()->isProtocolServer())
     lua_push_bool_table_entry(vm, "cli.protocol_server", true);

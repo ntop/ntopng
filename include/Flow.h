@@ -526,6 +526,7 @@ class Flow : public GenericHashEntry {
   void lua_get_throughput(lua_State* vm) const;
   void lua_get_time(lua_State* vm) const;
   void lua_get_ip(lua_State *vm, bool client) const;
+  void lua_get_mac(lua_State *vm, bool client) const;
   void lua_get_info(lua_State *vm, bool client) const;
   void lua_get_tls_info(lua_State *vm) const;
   void lua_get_ssh_info(lua_State *vm) const;

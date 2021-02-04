@@ -174,6 +174,19 @@ static int ntop_host_get_ip(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_host_get_mac(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_mac(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_host_get_application_bytes(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
   u_int app_id;
@@ -494,6 +507,7 @@ static int ntop_host_release_triggered_alert(lua_State* vm) {
 static luaL_Reg _ntop_host_reg[] = {
 /* Public User Scripts API, documented at doc/src/api/lua_c/host_user_scripts/host.lua */
   { "getIp",                  ntop_host_get_ip                  },
+  { "getMac",                 ntop_host_get_mac                 },
   { "getApplicationBytes",    ntop_host_get_application_bytes   },
   { "getCategoryBytes",       ntop_host_get_category_bytes      },
   { "getBytes",               ntop_host_get_bytes               },
