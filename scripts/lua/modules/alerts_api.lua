@@ -604,13 +604,14 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   local user_scripts = require "user_scripts"
   local script = params.user_script
   local threshold_config = params.user_script_config
-  local alarmed = false
+  local alarmed = false  
+  local threshold = threshold_config.threshold or threshold_config.default_contacts
 
   local alert = alert_type.new(
     params.user_script.key,
     value,
     threshold_config.operator,
-    threshold_config.threshold
+    threshold
   )
 
   alert:set_severity(threshold_config.severity)
@@ -630,7 +631,7 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   -- When there's no operator, the default "gt" function is taken from the available
   -- operation functions
   local op_fn = user_scripts.operator_functions[threshold_config.operator] or user_scripts.operator_functions.gt
-  if op_fn and op_fn(value, threshold_config.threshold) then alarmed = true end
+  if op_fn and op_fn(value, threshold) then alarmed = true end
 
   if(alarmed) then
     alert:trigger(params.alert_entity, nil, params.cur_alerts)

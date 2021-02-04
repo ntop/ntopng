@@ -4994,6 +4994,14 @@ local lang = {
       ["slower"] = "Slower Pass",
     },
   },
+  ["input_item_list"] = {
+    ["dns_input_list_title"] = "Allowed DNS",
+    ["dns_input_list_description"] = "Comma separated values of allowed DNS IPs. Example: 192.168.1.1",
+    ["ntp_input_list_title"] = "Allowed NTP",
+    ["ntp_input_list_description"] = "Comma separated values of allowed NTP IPs. Example: 192.168.1.1",
+    ["smtp_input_list_title"] = "Allowed SMTP",
+    ["smtp_input_list_description"] = "Comma separated values of allowed SMTP IPs. Example: 192.168.1.1",
+  },
   ["validation"] = {
     ["FAILED_HTTP_REQUEST"] = "The request failed, please try later.",
     ["empty_name"] = "Please insert a name.",
