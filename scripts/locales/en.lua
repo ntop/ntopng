@@ -506,6 +506,8 @@ local lang = {
     ["ntopng_update"] = "Started after software update",
     ["open_files_limit_too_small"] = "Ntopng detected that the maximum number of files MySQL can open is potentially too small. This can result in flow data loss due to errors such as [Out of resources when opening file './ntopng/flowsv6#P#p22.MYD' (Errcode: 24 - Too many open files)][23]. Make sure to increase open_files_limit or, if you just want to ignore this warning, disable the check from the preferences.",
     ["periodic_activity_not_executed"] = "Periodic activity \"%{script}\" is queued but has not been executed. No thread available for  execution.  [Pending since %{pending_since}]",
+    ["periodicity_update_new"] = "Flow %{host_info1}  <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> %{host_info2} [Application: %{l7_proto}] %{info} is now periodic (freq. %{frequency} sec)",
+    ["periodicity_update_ended"] = "Periodic flow ended: %{host_info1}  <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> %{host_info2} [Application: %{l7_proto}] %{info}",
     ["ping_host_unreachable_v3"] = "Host %{host} %{numeric_ip} is unreachable.",
     ["potentially_dangerous_protocol_description"] = "This flow can be harmful for the network because an outdated or vulnerable protocol is in use.",
     ["proto_bytes_quotas"] = "%{proto} bytes",

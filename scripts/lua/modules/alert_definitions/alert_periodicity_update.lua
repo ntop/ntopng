@@ -55,31 +55,25 @@ function alert_periodicity_update.format(ifid, alert, alert_type_params)
    local rsp
 
    if alert_type_params.created_or_removed == "create" then
-      rsp = "Flow "
-      rsp = rsp .. hostinfo2detailshref(client, nil, hostinfo2label(client))..
-	 " <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
-	 hostinfo2detailshref(server, nil, hostinfo2label(server))..
-	 " ["..i18n("port")..": "..msg.dport.."]"
+      rsp = {
+      	  host_info1 = hostinfo2detailshref(client, nil, hostinfo2label(client)),
+	  host_info2 = hostinfo2detailshref(server, nil, hostinfo2label(server)),
+	  l7_proto   = interface.getnDPIProtoName(msg.l7),
+	  info 	     = shortenString(msg.info, 24) or "",
+	  frequency  = msg.frequency or "",	  
+      }
 
-      rsp = rsp .. "["..i18n("application")..": "..interface.getnDPIProtoName(msg.l7).."]"
-      if not isEmptyString(msg.info) then
-	 rsp = rsp .. "[" .. msg.info .. "]"
-      end
-      rsp = rsp .. " is now periodic (freq. " .. msg["frequency"] .. " sec)"
+      return (i18n("alert_messages.periodicity_update_new", rsp))
    else
-      rsp = "Periodic flow ended: "
-      rsp = rsp .. hostinfo2detailshref(client, nil, hostinfo2label(client))..
-	 " <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
-	 hostinfo2detailshref(server, nil, hostinfo2label(server))..
-	 " ["..i18n("port")..": "..msg.dport.."]"
-
-      rsp = rsp .. "["..i18n("application")..": "..interface.getnDPIProtoName(msg.l7).."]"
-      if not isEmptyString(msg.info) then
-	 rsp = rsp .. "[" .. shortenString(msg.info, 24) .. "]"
-      end
+      rsp = {
+      	  host_info1 = hostinfo2detailshref(client, nil, hostinfo2label(client)),
+	  host_info2 = hostinfo2detailshref(server, nil, hostinfo2label(server)),
+	  l7_proto   = interface.getnDPIProtoName(msg.l7),
+	  info 	     = shortenString(msg.info, 24) or "",	  
+      }
+      
+      return (i18n("alert_messages.periodicity_update_ended", rsp))
    end
-
-   return(rsp)
 end
 
 -- #######################################################
