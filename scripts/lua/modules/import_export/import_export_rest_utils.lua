@@ -131,11 +131,13 @@ function import_export_rest_utils.reset(instances)
    for name, instance in pairs(instances) do
       instance:reset()
       list[#list] = name
+      
+      if name == scripts then 
+   	plugins_utils.loadPlugins()
+	user_scripts.loadDefaultConfig()      	 
+      end
    end
 
-   plugins_utils.loadPlugins()
-   user_scripts.loadDefaultConfig()
-   
    rest_utils.answer(rc)
 
    -- TRACKER HOOK
