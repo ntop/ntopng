@@ -155,7 +155,7 @@ print [[
       <div class="form-check pl-0">]]
 
     print(template.gen("on_off_switch.html", {
-     id = "allow_pcap_input",
+     id = "allow_pcap_download",
      label = i18n("manage_users.allow_pcap_download_descr"),
     }))
 
@@ -407,7 +407,7 @@ function reset_pwd_dialog(user) {
 
       if(data.language !== "")
         $('#user_language option[value="' + data.language + '"]').attr('selected','selected');
-      $('#allow_pcap_input').prop('checked', data.allow_pcap_download === true ? true : false);
+      $('#allow_pcap_download').prop('checked', data.allow_pcap_download === true ? true : false);
       if(data.host_pool_id) {
         $('#old_host_pool_id').val(data.host_pool_id);
         $('#host_pool_id option[value = '+data.host_pool_id+']').attr('selected','selected');
