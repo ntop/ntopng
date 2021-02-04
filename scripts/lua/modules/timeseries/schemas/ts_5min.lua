@@ -198,6 +198,14 @@ schema:addTag("port")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
+schema = ts_utils.newSchema("flowdev_port:ndpi", {step = 300})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("port")
+schema:addTag("protocol")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
+
 -------------------------------------------------------
 -- EVENT EXPORTER SCHEMAS
 -------------------------------------------------------

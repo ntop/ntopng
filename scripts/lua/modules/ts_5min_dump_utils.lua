@@ -176,8 +176,23 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
     if(verbose) then print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n") end
 
     for port_idx,port_value in pairs(ports) do
-      ts_utils.append("flowdev_port:traffic", {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
-                bytes_sent=port_value["bytes.out_bytes"], bytes_rcvd=port_value["bytes.in_bytes"]}, when)
+       -- Traffic
+       ts_utils.append("flowdev_port:traffic",
+		       {
+			  ifid = ifstats.id, device = flow_device_ip, port = port_idx,
+			  bytes_sent = port_value["bytes.out_bytes"], bytes_rcvd = port_value["bytes.in_bytes"]
+		       },
+		       when)
+
+       -- nDPI
+       for proto_name, proto_stats in pairs(port_value["ndpi"]) do
+          ts_utils.append("flowdev_port:ndpi",
+			  {
+			     ifid = ifstats.id, device = flow_device_ip, port = port_idx, protocol = proto_name,
+			     bytes_sent = proto_stats["bytes.sent"], bytes_rcvd = proto_stats["bytes.rcvd"]
+			  },
+			  when)
+        end
     end
   end
 end

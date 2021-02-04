@@ -787,11 +787,11 @@ class NetworkInterface : public AlertableEntity {
   inline void startDBLoop() { if(db) db->startDBLoop(); };
   inline void incDBNumDroppedFlows(DB *dumper, u_int num = 1) { if(dumper) dumper->incNumDroppedFlows(num); };
 #ifdef NTOPNG_PRO
-  inline void getFlowDevices(lua_State *vm) {
+  void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
   };
-  inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
-    if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
+  void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+    if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceInfo(vm, deviceIP, this); else lua_newtable(vm);
   };
 #endif
   inline void getSFlowDevices(lua_State *vm) {
