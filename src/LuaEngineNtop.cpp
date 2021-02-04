@@ -4208,14 +4208,18 @@ static int ntop_incr_redis(lua_State* vm) {
 static int ntop_get_hash_redis(lua_State* vm) {
   char *key, *member, *rsp;
   Redis *redis = ntop->getRedis();
-
+  u_int json_len;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
   if((member = (char*)lua_tostring(vm, 2)) == NULL)    return(CONST_LUA_PARAM_ERROR);
 
-  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  json_len = ntop->getRedis()->hstrlen(key, member);
+  if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
+  
+  if((rsp = (char*)malloc(json_len)) == NULL) return(CONST_LUA_PARAM_ERROR);
   lua_pushfstring(vm, "%s", (redis->hashGet(key, member, rsp, CONST_MAX_LEN_REDIS_VALUE) == 0) ? rsp : (char*)"");
   free(rsp);
 
