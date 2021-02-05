@@ -12,6 +12,7 @@
 #
 
 TESTS_PATH="${PWD}"
+NTOPNG_ROOT="../.."
 
 NTOPNG_TEST_DATADIR="${TESTS_PATH}/data"
 NTOPNG_TEST_CONF="${NTOPNG_TEST_DATADIR}/ntopng.conf"
@@ -173,7 +174,7 @@ ntopng_run() {
 
     # Start the test
 
-    cd ../../; ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep "ERROR:\|WARNING:\|Direct leak" > ${5}
+    cd ${NTOPNG_ROOT}; ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep "ERROR:\|WARNING:\|Direct leak" > ${5}
 
     cd ${TESTS_PATH}
 }
@@ -190,6 +191,11 @@ run_tests() {
     TESTS_ARR=( $TESTS )
     NUM_TESTS=${#TESTS_ARR[@]}
     NUM_SUCCESS=0
+
+    if [ ! -f "${NTOPNG_ROOT}/ntopng" ]; then
+        send_error "Unable to run tests" "ntopng binary not found, unable to run the tests"
+	exit 1
+    fi
 
     I=1
     for T in ${TESTS}; do 
@@ -228,6 +234,11 @@ run_tests() {
 
             send_error "ntopng Error" "ntopng generated errors or warnings running '${TEST}'" "${NTOPNG_LOG}"
             RC=1
+
+        elif [ ! -s "${SCRIPT_OUT}" ]; then
+
+	    send_error "Test Failure" "No output produced by the test '${TEST}'"
+	    RC=1
 
         elif [ ! -f result/${TEST}.out ]; then
 
