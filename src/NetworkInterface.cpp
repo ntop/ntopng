@@ -1821,6 +1821,13 @@ datalink_check:
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = eth_offset;
 #endif /* DLT_RAW */
+  } else if(pcap_datalink_type == DLT_ENC) {
+    if(packet[0] == 2 /* IPv4 */) {
+      eth_type = ETHERTYPE_IP;
+      ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
+      ip_offset = 12;
+    }
+    /* TODO support IPv6 encapsulation one day */
   } else if(pcap_datalink_type == DLT_IPV4) {
     eth_type = ETHERTYPE_IP;
     if(sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
