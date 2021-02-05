@@ -16,6 +16,13 @@ local script = {
    -- NOTE: hooks defined below
    hooks = {},
 
+   filter = {
+      -- Overrides filter.default_fields in the flow entry of user_scripts.available_subdirs
+      -- This will make default filters populated only with the source IP
+      -- NOTE: Fields must be in the filter.available_fields of the flow entry of user_scripts.available_subdirs
+      default_fields = {"srv.ip"},
+   },
+
    gui = {
       i18n_title = "New API Demo",
       i18n_description = "Demonstrate the use of the new API for flow alerts",

@@ -76,6 +76,13 @@ local available_subdirs = {
    }, {
       id = "flow",
       label = "flows",
+      -- User script execution filters (field names are those that arrive from the C Flow.cpp)
+      filter = {
+	 -- Default fields populated automatically when creating filters
+	 default_fields   = {"srv.ip", "srv.port", "proto.ndpi"},
+	 -- All possible filter fields
+	 available_fields = {"srv.ip", "srv.port", "proto.ndpi", "proto.l4", "info"} 
+      }
       -- No pools for flows
    }, {
       id = "system",
@@ -1010,7 +1017,7 @@ end
 -- @brief Update the configuration of a specific script in a configset
 function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config, additional_params)
    local configsets = user_scripts.getConfigsets()
-   -- additional_params contains additional paramas for script conf such as the severity
+   -- additional_params contains additional params for script conf such as the severity
    additional_params = additional_params or {}
    new_config = new_config or {}
    local applied_config = {}
