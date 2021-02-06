@@ -156,7 +156,7 @@ char* LocalHost::getSerializationKey(char *redis_key, uint bufsize) {
 void LocalHost::deserialize(json_object *o) {
   json_object *obj;
 
-  stats->deserialize(o);
+  if(!isBroadcastHost()) stats->deserialize(o);
 
   if(! mac) {
     u_int8_t mac_buf[6];

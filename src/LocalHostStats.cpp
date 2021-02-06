@@ -410,8 +410,8 @@ void LocalHostStats::deserializeTopSites(char* redis_key_current) {
 void LocalHostStats::serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize) {
   char redis_hour_key[256], redis_daily_key[256], redis_key_current[256];
   int iface;
-
-  if(!host->getInterface())
+  
+  if((!host->getInterface()) || (host->isBroadcastHost()))     
     return;
 
   iface = host->getInterface()->get_id();
