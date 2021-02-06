@@ -374,26 +374,27 @@ void LocalHostStats::deserializeTopSites(char* redis_key_current) {
   j = json_tokener_parse_verbose(json, &jerr);
 
   if(j != NULL) {    
-#ifdef DEBUG
-    u_int num = 0;
-    
+    //#ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
-#endif
+    //#endif
 
     if(json_object_get_type(j) == json_type_object) {
-      json_object_object_foreach(j, key, val) {
-	if(key) {
-	  enum json_type type = json_object_get_type(val);
+      struct lh_entry *entry = json_object_get_object(j)->head;
+
+      for(; entry != NULL; entry = entry->next) {
+	char *key               = (char*)entry->k;
+	struct json_object *val = (struct json_object*)entry->v;
+	enum json_type type = json_object_get_type(val);
 	  
-	  if(type == json_type_int) {
-	    u_int32_t value = json_object_get_int64(val);
-	    
+	if(type == json_type_int) {
+	  u_int32_t value = json_object_get_int64(val);
+	  
 #ifdef DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, key, value);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u", key, value);
 #endif
-	    
-	    top_sites->add(key, value);
-	  }
+	  
+	  top_sites->add(key, value);
+	  
 	}
       }
     }

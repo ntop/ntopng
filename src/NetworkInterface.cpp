@@ -1716,7 +1716,7 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
   if(sMap) sMap->purgeIdle(when);
 #endif
 
-  if (gw_macs_reload_requested)
+  if(gw_macs_reload_requested)
     reloadGwMacs();
 }
 
@@ -1861,14 +1861,14 @@ datalink_check:
 
 decode_packet_eth:
   /* Setting traffic direction based on MAC */
-  if (ethernet) {
-    if (isTrafficMirrored()) {
+  if(ethernet) {
+    if(isTrafficMirrored()) {
       /* Mirror */
-      if (isGwMac(ethernet->h_dest))
+      if(isGwMac(ethernet->h_dest))
         ingressPacket = false;
-    } else if (!areTrafficDirectionsSupported()) {
+    } else if(!areTrafficDirectionsSupported()) {
       /* Interface with no direction info */
-      if (isInterfaceMac(ethernet->h_source))
+      if(isInterfaceMac(ethernet->h_source))
         ingressPacket = false;
     }
   }
@@ -5672,7 +5672,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "ip_addresses", (char*)getLocalIPAddresses());
   bcast_domains->lua(vm);
 
-  if (top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
+  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
     char *cur_sites = top_sites->json();
     
     if(top_sites)
@@ -8457,7 +8457,7 @@ void NetworkInterface::updateServiceMap(Flow *f) {
 
 void NetworkInterface::updateSitesStats() {
   // System Interface, no Network sites for sure
-  if (id == -1)
+  if(id == -1)
     return;
 
   if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
@@ -8487,21 +8487,21 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
   /* Using the epoch */
   struct tm t_now;
 
-  if (!ntop->getRedis())
+  if(!ntop->getRedis())
     return;
 
-  if (top == 1) {
-    if (!old_sites)
+  if(top == 1) {
+    if(!old_sites)
       return;
   } else {
-    if (!old_os)
+    if(!old_os)
       return;
   }
 
   getCurrentTime(&t_now);
   minute = t_now.tm_min - (t_now.tm_min % 5);
 
-  if (top == 1)
+  if(top == 1)
     snprintf(redis_key, sizeof(redis_key), "%s_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
               get_id(), t_now.tm_mday, t_now.tm_hour, minute);
   else
@@ -8511,16 +8511,16 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
   /* String like `ntopng.cache.1_17_11_45` */
   /* An other way is to use the localtime_r and compose the string like `ntopng.cache_2_1609761600` */
   
-  if (top == 1)
+  if(top == 1)
     ntop->getRedis()->set(redis_key , old_sites, 7200);
   else
     ntop->getRedis()->set(redis_key , old_os, 7200);
 
-  if (minute == 0 && current_cycle > 0) {
+  if(minute == 0 && current_cycle > 0) {
     char hour_done[64];
     int hour = 0;
 
-    if (t_now.tm_hour == 0) 
+    if(t_now.tm_hour == 0) 
       hour = 23;
     else
       hour = t_now.tm_hour - 1;
@@ -8529,7 +8529,7 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
     /* List key = ntopng.cache.top_os_hour_done    | value = 1_17_11 */
     snprintf(hour_done, sizeof(hour_done), "%d_%d_%d", id, t_now.tm_mday, hour);
     
-    if (top == 1)
+    if(top == 1)
       ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, hour_done, 3600);
     else
       ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, hour_done, 3600);
@@ -8574,28 +8574,28 @@ void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do
 
   if(j != NULL) {    
 #ifdef DEBUG
-    u_int num = 0;
-    
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
 #endif
 
     if(json_object_get_type(j) == json_type_object) {
-      json_object_object_foreach(j, o_key, o_val) {
-	if(o_key) {
-	  enum json_type type = json_object_get_type(o_val);
+      struct lh_entry *entry = json_object_get_object(j)->head;
+
+      for(; entry != NULL; entry = entry->next) {
+	char *key               = (char*)entry->k;
+	struct json_object *val = (struct json_object*)entry->v;
+	enum json_type type = json_object_get_type(val);
 	
-	  if(type == json_type_int) {
-	    u_int32_t value = json_object_get_int64(o_val);
+	if(type == json_type_int) {
+	  u_int32_t value = json_object_get_int64(val);
 
 #ifdef DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, o_key, value);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u", key, value);
 #endif
 	  
-	    if (do_top_sites)
-	      top_sites->add(o_key, value);
-	    else
-	      top_os->add(o_key, value);
-	  }
+	  if(do_top_sites)
+	    top_sites->add(key, value);
+	  else
+	    top_os->add(key, value);
 	}
       }
     } else
@@ -8651,7 +8651,7 @@ void NetworkInterface::removeRedisSitesKey() {
   struct tm t_now;
 
   // System Interface, no Network sites for sure
-  if (id == -1)
+  if(id == -1)
     return;
 
   getCurrentTime(&t_now);
@@ -8664,7 +8664,7 @@ void NetworkInterface::addRedisSitesKey() {
   struct tm t_now;
 
   // System Interface, no Network sites for sure
-  if (id == -1)
+  if(id == -1)
     return;
 
   getCurrentTime(&t_now);
