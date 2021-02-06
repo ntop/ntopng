@@ -8543,6 +8543,7 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
 
 void NetworkInterface::getCurrentTime(struct tm *t_now) {
   time_t now = time(NULL); 
+
   memset(t_now, 0, sizeof(*t_now));
   localtime_r(&now, t_now);
 }
@@ -8551,20 +8552,24 @@ void NetworkInterface::getCurrentTime(struct tm *t_now) {
 
 void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do_top_sites) {
   char *json;
-  const u_int json_len = 16384;
+  u_int json_len;
   json_object *j;
   enum json_tokener_error jerr;
 
+  json_len = ntop->getRedis()->len(redis_key_current);
+  if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
+  
   if((json = (char*)malloc(json_len)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return;
   }
 
   if((ntop->getRedis()->get(redis_key_current, json, json_len) == -1)
-     || (json[0] == '\0')
-     )
+     || (json[0] == '\0')) {
+    free(json);
     return; /* Nothing found */
-
+  }
+  
   j = json_tokener_parse_verbose(json, &jerr);
 
   if(j != NULL) {    
@@ -8585,17 +8590,19 @@ void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, key, value);
 #endif
 	  
-    if (do_top_sites)
+	  if (do_top_sites)
 	    top_sites->add(key, value);
-    else
-      top_os->add(key, value);
+	  else
+	    top_os->add(key, value);
 	}
       }
     }
 
     json_object_put(j); /* Free memory */
   } else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);  
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
+
+  free(json);
 }
 
 /* *************************************** */
