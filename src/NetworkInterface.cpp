@@ -1732,7 +1732,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 				     Flow **flow) {
   struct ndpi_ethhdr *ethernet = NULL, dummy_ethernet;
   u_int64_t time;
-  u_int16_t eth_type, ip_offset, vlan_id = 0, eth_offset = 0;
+  u_int16_t eth_type, ip_offset = 0, vlan_id = 0, eth_offset = 0;
   u_int32_t null_type;
   int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
@@ -5447,7 +5447,7 @@ void NetworkInterface::getnDPIProtocols(lua_State *vm, ndpi_protocol_category_t 
   lua_newtable(vm);
 
   for(i=0; i<(int)num_supported_protocols; i++) {
-    char buf[8];
+    char buf[16];
 
     if(((filter == NDPI_PROTOCOL_ANY_CATEGORY)
 	|| proto_defaults[i].protoCategory == filter) &&
@@ -8578,27 +8578,30 @@ void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do
     
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
 #endif
-    
-    json_object_object_foreach(j, key, val) {
-      if(key) {
-	enum json_type type = json_object_get_type(val);
 
-	if(type == json_type_int) {
-	  u_int32_t value = json_object_get_int64(val);
+    if(json_object_get_type(j) == json_type_object) {
+      json_object_object_foreach(j, o_key, o_val) {
+	if(o_key) {
+	  enum json_type type = json_object_get_type(o_val);
+	
+	  if(type == json_type_int) {
+	    u_int32_t value = json_object_get_int64(o_val);
 
 #ifdef DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, key, value);
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, o_key, value);
 #endif
 	  
-	  if (do_top_sites)
-	    top_sites->add(key, value);
-	  else
-	    top_os->add(key, value);
+	    if (do_top_sites)
+	      top_sites->add(o_key, value);
+	    else
+	      top_os->add(o_key, value);
+	  }
 	}
       }
-    }
-
-    json_object_put(j); /* Free memory */
+    } else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid JSON content for key %s", redis_key_current);
+    
+    json_object_put(j); /* Free memory */    
   } else
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
 
