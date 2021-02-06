@@ -258,16 +258,16 @@ else
 fi
 
 dnl> Temporary using json-c from third party on Ubuntu 18/20
-dnl> due to https://bugs.launchpad.net/ubuntu/+source/json-c/+bug/1878738
-dnl> if test -f "/usr/bin/lsb_release"; then
-dnl>   UBUNTU_RELEASE=`lsb_release -r|cut -f 2|cut -f 1 -d '.'`
-dnl>   if test "$UBUNTU_RELEASE" = "18" || test "$UBUNTU_RELEASE" = "20"; then
-dnl>     cd third-party/json-c && cmake . && make && cd -
-dnl>     JSON_HOME=${HERE}/third-party/json-c
-dnl>     JSON_INC=-I$JSON_HOME
-dnl>     JSON_LIB=$JSON_HOME/libjson-c.a
-dnl>   fi
-dnl> fi
+dnl> due crashes with the package
+if test -f "/usr/bin/lsb_release"; then
+  UBUNTU_RELEASE=`lsb_release -r|cut -f 2|cut -f 1 -d '.'`
+  if test "$UBUNTU_RELEASE" = "18" || test "$UBUNTU_RELEASE" = "20"; then
+    cd third-party/json-c && cmake . && make && cd -
+    JSON_HOME=${HERE}/third-party/json-c
+    JSON_INC=-I$JSON_HOME
+    JSON_LIB=$JSON_HOME/libjson-c.a
+  fi
+fi
 
 pkg-config --exists libssl
 if test "$?" -ne 1; then
