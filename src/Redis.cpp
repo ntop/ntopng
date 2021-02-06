@@ -248,7 +248,7 @@ int Redis::info(char *rsp, u_int rsp_len) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 
   if(reply && reply->str) {
-    snprintf(rsp, rsp_len, "%s", reply->str), rc = 0;
+    snprintf(rsp, rsp_len, "%s", reply->str ? reply->str : ""), rc = 0;
   } else
     rsp[0] = 0, rc = -1;
   if(reply) freeReplyObject(reply);
@@ -352,7 +352,7 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
 
   cacheable = isCacheable(key);
   if(reply && reply->str) {
-    snprintf(rsp, rsp_len, "%s", reply->str), rc = 0;
+    snprintf(rsp, rsp_len, "%s", reply->str ? reply->str : ""), rc = 0;
   } else
     rsp[0] = 0, rc = -1;
 
@@ -433,7 +433,7 @@ int Redis::hashGet(const char * const key, const char * const field, char * cons
     ntop->getTrace()->traceEvent(TRACE_ERROR, "failure on HGET %s %s (%s)", key, field, reply->str ? reply->str : "???");
 
   if(reply && reply->str) {
-    snprintf(rsp, rsp_len, "%s", reply->str), rc = 0;
+    snprintf(rsp, rsp_len, "%s", reply->str ? reply->str : ""), rc = 0;
   } else
     rsp[0] = 0, rc = -1;
   if(reply) freeReplyObject(reply);
@@ -1179,7 +1179,7 @@ int Redis::lrpop(const char *queue_name, char *buf, u_int buf_len, bool lpop) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 
   if(reply && reply->str)
-    snprintf(buf, buf_len, "%s", reply->str), rc = 0;
+    snprintf(buf, buf_len, "%s", reply->str ? reply->str : ""), rc = 0;
   else
     buf[0] = '\0', rc = -1;
 
@@ -1217,7 +1217,7 @@ int Redis::lindex(const char *queue_name, int idx, char *buf, u_int buf_len) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 
   if(reply && reply->str)
-    snprintf(buf, buf_len, "%s", reply->str), rc = 0;
+    snprintf(buf, buf_len, "%s", reply->str ? reply->str : ""), rc = 0;
   else
     buf[0] = '\0', rc = -1;
 
