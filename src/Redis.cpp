@@ -248,7 +248,7 @@ int Redis::info(char *rsp, u_int rsp_len) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 
   if(reply && reply->str) {
-    snprintf(rsp, rsp_len, "%s", reply->str ? reply->str : ""), rc = 0;
+    snprintf(rsp, rsp_len-1, "%s", reply->str ? reply->str : ""), rc = 0;
   } else
     rsp[0] = 0, rc = -1;
   if(reply) freeReplyObject(reply);
@@ -331,7 +331,7 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
       stringCache.erase(it);
       rsp[0] = '\0';
     } else
-      snprintf(rsp, rsp_len, "%s", cached->value.c_str());
+      snprintf(rsp, rsp_len-1, "%s", cached->value.c_str());
 
 #ifdef CACHE_DEBUG
     printf("**** Read from cache %s=%s\n", key, rsp);
@@ -352,7 +352,7 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
 
   cacheable = isCacheable(key);
   if(reply && reply->str) {
-    snprintf(rsp, rsp_len, "%s", reply->str ? reply->str : ""), rc = 0;
+    snprintf(rsp, rsp_len-1, "%s", reply->str ? reply->str : ""), rc = 0;
   } else
     rsp[0] = 0, rc = -1;
 
@@ -433,7 +433,7 @@ int Redis::hashGet(const char * const key, const char * const field, char * cons
     ntop->getTrace()->traceEvent(TRACE_ERROR, "failure on HGET %s %s (%s)", key, field, reply->str ? reply->str : "???");
 
   if(reply && reply->str) {
-    snprintf(rsp, rsp_len, "%s", reply->str ? reply->str : ""), rc = 0;
+    snprintf(rsp, rsp_len-1, "%s", reply->str ? reply->str : ""), rc = 0;
   } else
     rsp[0] = 0, rc = -1;
   if(reply) freeReplyObject(reply);
