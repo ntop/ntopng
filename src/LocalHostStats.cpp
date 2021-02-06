@@ -353,19 +353,23 @@ void LocalHostStats::getCurrentTime(struct tm *t_now) {
 
 void LocalHostStats::deserializeTopSites(char* redis_key_current) {
   char *json;
-  const u_int json_len = 16384;
+  u_int json_len;
   json_object *j;
   enum json_tokener_error jerr;
 
+  json_len = ntop->getRedis()->len(redis_key_current);
+  if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
+  
   if((json = (char*)malloc(json_len)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return;
   }
 
   if((ntop->getRedis()->get(redis_key_current, json, json_len) == -1)
-     || (json[0] == '\0')
-     )
+     || (json[0] == '\0')) {
+    free(json);
     return; /* Nothing found */
+  }
 
   j = json_tokener_parse_verbose(json, &jerr);
 
@@ -375,26 +379,30 @@ void LocalHostStats::deserializeTopSites(char* redis_key_current) {
     
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
 #endif
-    
-    json_object_object_foreach(j, key, val) {
-      if(key) {
-	enum json_type type = json_object_get_type(val);
 
-	if(type == json_type_int) {
-	  u_int32_t value = json_object_get_int64(val);
-
-#ifdef DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, key, value);
-#endif
+    if(json_object_get_type(j) == json_type_object) {
+      json_object_object_foreach(j, key, val) {
+	if(key) {
+	  enum json_type type = json_object_get_type(val);
 	  
-	  top_sites->add(key, value);
+	  if(type == json_type_int) {
+	    u_int32_t value = json_object_get_int64(val);
+	    
+#ifdef DEBUG
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, key, value);
+#endif
+	    
+	    top_sites->add(key, value);
+	  }
 	}
       }
     }
-
+    
     json_object_put(j); /* Free memory */
   } else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);  
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
+
+  free(json);
 }
 
 /* *************************************** */
@@ -408,10 +416,10 @@ void LocalHostStats::serializeDeserialize(char *host_buf, struct tm *t_now, bool
 
   iface = host->getInterface()->get_id();
 
-  snprintf(redis_hour_key, sizeof(redis_hour_key), "%s_%u_%d_%u", host_buf, iface, t_now->tm_mday, t_now->tm_hour);
-  snprintf(redis_daily_key, sizeof(redis_daily_key), "%s_%u_%d", host_buf, iface, t_now->tm_mday);
+  snprintf(redis_hour_key, sizeof(redis_hour_key)-1, "%s_%u_%d_%u", host_buf, iface, t_now->tm_mday, t_now->tm_hour);
+  snprintf(redis_daily_key, sizeof(redis_daily_key)-1, "%s_%u_%d", host_buf, iface, t_now->tm_mday);
 
-  snprintf(redis_key_current, sizeof(redis_key_current), "%s.serialized_current_top_sites.%s_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+  snprintf(redis_key_current, sizeof(redis_key_current)-1, "%s.serialized_current_top_sites.%s_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
             host_buf, iface, t_now->tm_mday);
 
   if(do_serialize) {
