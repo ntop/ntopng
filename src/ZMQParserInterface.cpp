@@ -815,11 +815,11 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow * const flow, u_int32_t fi
     }
 
   case INPUT_SNMP:
-    if(value->string) return (flow->inIndex == atoi(value->string));
+    if(value->string) return (flow->inIndex == (u_int32_t)atoi(value->string));
     else return (flow->inIndex == value->int_num);
 
   case OUTPUT_SNMP:
-    if(value->string) return (flow->outIndex == atoi(value->string));
+    if(value->string) return (flow->outIndex == (u_int32_t)atoi(value->string));
     else return (flow->outIndex == value->int_num);
 
   case OBSERVATION_POINT_ID:

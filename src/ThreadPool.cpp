@@ -160,7 +160,7 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *path, NetworkInterface *if
 
 	if(adaptive_pool_size
 	   && (threadsState.size() < MAX_THREAD_POOL_SIZE)
-	   && (threadsState.size() < (ntop->get_num_interfaces() + 1 /* System Interface */))) {
+	   && (threadsState.size() < (u_int32_t)((ntop->get_num_interfaces() + 1 /* System Interface */)))) {
 	  spawn();
 
 #ifdef THREAD_DEBUG

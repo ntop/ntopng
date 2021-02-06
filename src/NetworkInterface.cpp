@@ -8569,12 +8569,13 @@ void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do
     free(json);
     return; /* Nothing found */
   }
-  
+
   j = json_tokener_parse_verbose(json, &jerr);
 
   if(j != NULL) {    
+
 #ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%u]", json, json_len);
 #endif
 
     if(json_object_get_type(j) == json_type_object) {

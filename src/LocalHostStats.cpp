@@ -374,9 +374,9 @@ void LocalHostStats::deserializeTopSites(char* redis_key_current) {
   j = json_tokener_parse_verbose(json, &jerr);
 
   if(j != NULL) {    
-    //#ifdef DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
-    //#endif
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%u]", json, json_len);
+#endif
 
     if(json_object_get_type(j) == json_type_object) {
       struct lh_entry *entry = json_object_get_object(j)->head;
