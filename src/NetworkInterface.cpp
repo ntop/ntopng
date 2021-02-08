@@ -7298,7 +7298,7 @@ void NetworkInterface::updateBroadcastDomains(u_int16_t vlan_id,
 	  /* NOTE: call this also for existing domains in order to update the hits */
 	  bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
 
-#if 1	  // #ifdef BROADCAST_DOMAINS_DEBUG
+#ifdef BROADCAST_DOMAINS_DEBUG
 	  char buf1[32], buf2[32], buf3[32];
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
 				       Utils::intoaV4(src, buf1, sizeof(buf1)),
