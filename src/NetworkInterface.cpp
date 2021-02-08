@@ -1840,6 +1840,13 @@ datalink_check:
     goto dissect_packet_end;
   }
 
+  /* 
+     Make sure this label is BEFORE detunneling of VLAN or MPLS traffic.
+     Otherwise, VLAN or MPLS traffic carried inside other tunnels, i.e., 
+     GRE or ERSPAN, won't be detunneled.
+   */
+ decode_packet_eth:
+
   while(true) {
     if(eth_type == 0x8100 /* VLAN */) {
       Ether80211q *qType = (Ether80211q*)&packet[ip_offset];
@@ -1859,7 +1866,6 @@ datalink_check:
       break;
   }
 
-decode_packet_eth:
   /* Setting traffic direction based on MAC */
   if(ethernet) {
     if(isTrafficMirrored()) {
@@ -1947,14 +1953,14 @@ decode_packet_eth:
 	/* ERSPAN Type 2 has an 8-byte header
 	   https://tools.ietf.org/html/draft-foschiano-erspan-00 */
 	if(h->caplen >= offset + sizeof(struct ndpi_ethhdr) + 8) {
-	  if(gre.proto == ETH_P_ERSPAN) {
-	    offset += 8 /* ERSPAN Type 2 header */;
+	  if(gre.proto == ETH_P_ERSPAN /* ERSPAN type II */) {
+	    offset += 8;
 	    eth_offset = offset;
 	    ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
 	    ip_offset = eth_offset + sizeof(struct ndpi_ethhdr);
 	    eth_type = ntohs(ethernet->h_proto);
 	    goto decode_packet_eth;
-	  } else if(gre.proto == ETH_P_ERSPAN2) {
+	  } else if(gre.proto == ETH_P_ERSPAN2 /* ERSPAN version 2 (type III) */) {
 	    ; /* TODO: support ERSPAN Type 3 */
 	  } else {
 	    /* Unknown encapsulation */
