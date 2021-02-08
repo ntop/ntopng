@@ -75,7 +75,43 @@
 				}
 			}
 		},
-		"/lua/rest/v1/get/interface/address.lua": {
+		"/lua/rest/v1/get/interface/bcast_domains.lua": {
+			"get": {
+				"tags": [
+					"Interfaces"
+				],
+				"summary": "Get interface broadcast domains",
+				"description": "Interface broadcast domains as detected from ARP traffic and broadcast traffic are returned",
+				"operationId": "get_interface_bcast_domains",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "ifid",
+						"in": "query",
+						"description": "Interface identifier",
+						"required": true,
+						"type": "integer",
+						"format": "int32"
+					}
+				],
+				"responses": {
+					"0": {
+						"description": "OK",
+						"schema": {
+							"$ref": "#/definitions/Interface"
+						}
+					},
+					"-2": {
+						"description": "INVALID_INTERFACE"
+					},
+					"-6": {
+						"description": "INTERNAL_ERROR"
+					}
+				}
+			}
+		},
+	        "/lua/rest/v1/get/interface/address.lua": {
 			"get": {
 				"tags": [
 					"Interfaces"
