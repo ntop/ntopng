@@ -1,18 +1,1 @@
-Prerequisites
--------------
-
-- curl
-- jq
-- redis-cli
-- shyaml (pip install shyaml)
-
-How to Run The Tests
---------------------
-
-Perform all the tests running:
-
-$ run.sh
-
-In order to run a specific test, specify -y=<test name>:
-
-$ ./run.sh -y=get_host_active_01
+Please read CONTRIBUTING.md in the root folder.
