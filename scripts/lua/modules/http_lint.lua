@@ -251,7 +251,7 @@ end
 
 local function validatePassword(p)
    -- A password (e.g. used in ntopng authentication)
-   return validateUnquoted(p)
+   return true
 end
 
 local function validateAbsolutePath(p)
