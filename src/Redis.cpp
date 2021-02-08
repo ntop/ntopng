@@ -1085,6 +1085,7 @@ u_int Redis::len(const char * const key) {
 u_int Redis::hstrlen(const char * const key, const char * const value) {
   redisReply *reply;
   u_int num = 0;
+  static bool error_sent = false;
 
   l->lock(__FILE__, __LINE__);
 
@@ -1093,9 +1094,12 @@ u_int Redis::hstrlen(const char * const key, const char * const value) {
 
   if(!reply) reconnectRedis(true);
   if(reply) {
-    if(reply->type == REDIS_REPLY_ERROR)
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
-    else
+    if(reply->type == REDIS_REPLY_ERROR) {
+      if(!error_sent) {
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
+	error_sent = true;
+      }
+    } else
       num = (u_int)reply->integer;
   }
 
