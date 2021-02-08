@@ -24,6 +24,10 @@ local script = {
     severity = alert_severities.notice,
   },
 
+  filter = {
+    default_filter = { "srv_addr", "srv_port", "l4_proto" }
+  },
+
   -- NOTE: hooks defined below
   hooks = {},
 

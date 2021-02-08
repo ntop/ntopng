@@ -14,6 +14,7 @@ local os_utils = require("os_utils")
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 local alert_consts = require "alert_consts"
+local http_lint = require("http_lint")
 
 local info = ntop.getInfo()
 
@@ -79,10 +80,18 @@ local available_subdirs = {
       -- User script execution filters (field names are those that arrive from the C Flow.cpp)
       filter = {
 	 -- Default fields populated automatically when creating filters
-	 default_fields   = {"srv.ip", "srv.port", "proto.ndpi"},
+	 default_fields   = {"srv_addr", "srv_port", "l7_proto"},
 	 -- All possible filter fields
-	 available_fields = {"srv.ip", "srv.port", "proto.ndpi", "proto.l4", "info"} 
-      }
+	 available_fields = {
+	    cli_addr = http_lint.validateIpAddress,
+	    cli_port = http_lint.validatePort,
+	    srv_addr = http_lint.validateIpAddress, 
+	    srv_port = http_lint.validatePort, 
+	    l7_proto = http_lint.validateProtocolIdOrName, 
+	    proto    = http_lint.validateProtocolIdOrName, 
+	    info     = http_lint.validateUnquoted,
+	 }, 
+      },
       -- No pools for flows
    }, {
       id = "system",
@@ -1014,8 +1023,30 @@ end
 
 -- ##############################################
 
+local function checkExclusionList(applied_config, new_filter)
+   local ctr = 1
+
+   if applied_config["filters"] == nil then
+      applied_config["filters"] = {}
+      
+      return ctr
+   end
+
+   for counter, filter in pairs(applied_config["filters"]) do
+      if table.compare(filter, new_filter) then
+         return 0
+      end
+
+      ctr = ctr + 1
+   end 
+
+   return ctr
+end
+
+-- ##############################################
+
 -- @brief Update the configuration of a specific script in a configset
-function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config, additional_params)
+function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config, additional_params, additional_filters, remove_filters)
    local configsets = user_scripts.getConfigsets()
    -- additional_params contains additional params for script conf such as the severity
    additional_params = additional_params or {}
@@ -1034,11 +1065,11 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
       -- Try to validate the configuration
       for hook, conf in pairs(new_config) do
 	 local valid = true
-    local rv_or_err = ""
+         local rv_or_err = ""
 
-      for key, value in pairs(additional_params) do
-         conf.script_conf[key] = value
-      end
+	 for key, value in pairs(additional_params) do
+	    conf.script_conf[key] = value
+	 end
 
 	 if(conf.enabled == nil) then
 	    return false, "Missing 'enabled' item"
@@ -1076,6 +1107,24 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
       -- Perform hook callbacks for config changes, or enable/disable
       for hook, hook_config in pairs(prev_config) do
 	 local hook_applied_config = applied_config[hook]
+	 
+         if additional_filters then
+	    applied_config[hook] = prev_config[hook]
+
+	    if remove_filters == true then
+	       applied_config[hook]["script_conf"]["filters"] = {}
+	    end
+
+	    for _, values in pairs(additional_filters) do
+	       local add_params = checkExclusionList(applied_config[hook]["script_conf"], values)
+
+	       if add_params > 0 then
+	          applied_config[hook]["script_conf"]["filters"][add_params] = values
+	       else
+		  return false, i18n("configsets.wrong_args_ex_list", {values})
+	       end
+            end
+	 end
 
 	 if hook_applied_config then
 	    if script.onDisable and hook_config.enabled and not hook_applied_config.enabled then
@@ -1299,6 +1348,7 @@ function user_scripts.isSystemScriptEnabled(script_key)
       return(false)
    end
 
+   -- Here the configuration is update with the exclusion list for the alerts
    local configsets = user_scripts.getConfigsets()
    local default_config = user_scripts.getDefaultConfig(configsets, "system")
    local script_config = default_config[script_key]
@@ -1310,6 +1360,14 @@ function user_scripts.isSystemScriptEnabled(script_key)
 	 end
       end
    end
+
+   -- Adding the filters for the alert exclusion list
+   for key, filters in pairs(default_filter_suppression) do
+      if not conf.script_conf["filter"][key] then
+         conf.script_conf["filter"][key] = filters
+      end
+   end
+
 
    return(false)
 end
@@ -1371,6 +1429,16 @@ function user_scripts.getTargetHookConfig(target_config, script, hook)
       end
    end
 
+   local default_filter_table = script.filter or {}
+   local default_filter_suppression = {}
+
+   -- Checking if filters are configured by default
+   if default_filter_table then
+      conf.script_conf["filter"] = {}
+      default_filter_suppression = default_filter_table.default_filter or {}
+   end
+   
+
    return conf
 end
 
@@ -1410,6 +1478,158 @@ function user_scripts.getScriptEditorUrl(script)
    end
 
    return(nil)
+end
+
+-- ##############################################
+
+-- @brief Returns the list of the default filters of a specific alert
+function user_scripts.getFilterPreset(alert)
+   local alert_json       = json.decode(alert["alert_json"])
+   local alert_generation = alert_json["alert_generation"]
+
+   if not alert_generation then
+      return ''
+   end
+
+   local script_key       = alert_generation["script_key"]
+   local subdir           = alert_generation["subdir"]
+   local filter_string    = ''
+   local script_type      = user_scripts.getScriptType(subdir)
+   local script           = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
+
+   if not script then
+      return ''
+   end
+   
+   if not script.filter then
+      return ''
+   end
+
+   local configsets = user_scripts.getConfigsets()
+   local configset = configsets[0]
+
+   for _, filters in pairs(script.filter.default_filter) do
+      local tmp_filter = ''
+      if alert[filters] then
+         filter_string = filter_string .. filters .. "=" .. alert[filters] .. ","
+      end
+   end
+
+   if not isEmptyString(filter_string) then
+      filter_string = filter_string:sub(1, -2)
+   end
+   
+   return filter_string
+end
+
+-- #################################
+
+function user_scripts.parseFilterParams(additional_params)
+   local separator  = ";"
+   local param_list = {}
+
+   -- Sanity Check
+   if additional_params:match("(.*)_$") or additional_params:match("(.*);$") then
+      additional_params = additional_params:sub(1, -2)
+   end
+
+   if isEmptyString(additional_params) then
+      return false, i18n("invalid_filters.empty")
+   end
+
+   local ex_list = split(additional_params, separator)
+   local available_filters = available_subdirs[5]["filter"]["available_fields"]
+   
+   for num, filter in pairs(ex_list) do
+      separator  = ","
+      local parameters = split(filter, separator)
+
+      for _,item in pairs(parameters) do
+	 if item ~= "" then
+	    separator        = "="
+	    local items = split(item, separator)
+
+	    if not table.len(items) == 2 then
+	       return false, i18n("invalid_filters.few_args", {args=item})
+	    end
+
+	    -- Getting the http_lint for the selected param, if no param is found
+	    -- then the filter is not correct
+	    local check_param = available_filters[items[1]]
+
+	    if check_param == nil or not check_param(items[2]) then
+	       return false, i18n("invalid_filters.incorrect_args", {args=item})
+	    end
+	 
+	    if not param_list[num] then
+	       param_list[num] = {}
+	    end
+
+	    -- Already added this param before, so 2 identical arguments given
+	    if param_list[num][items[1]] then
+	       return {}
+	    end
+
+	    param_list[num][items[1]] = items[2]
+	 end
+      end
+
+      -- String format of the filter, used by js
+      param_list[num]["str_format"] = filter
+   end
+
+   return true, param_list
+end
+
+-- ##############################################
+
+function user_scripts.excludeAlert(alert, confid, script_key, subdir)
+   local configsets = user_scripts.getConfigsets()
+
+   if(configsets[confid] == nil) then
+      return false
+   end
+
+   -- Getting the configuration
+   local config = configsets[confid].config
+   local conf   = config[subdir][script_key]
+
+   -- Cycling through the hooks conf
+   for hook, hook_config in pairs(conf) do
+      local hook_applied_config = conf[hook]["script_conf"]
+
+      -- Security check
+      if not hook_applied_config["filters"] or table.len(hook_applied_config["filters"]) == 0 then
+	 return false
+      end
+
+      -- Cycling through the filters
+      for _, values in pairs(hook_applied_config["filters"]) do
+	 local done = true
+	 -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
+	 for filter, value in pairs(values) do
+	    if filter == "str_format" then
+	       goto continue
+	    end
+	    
+	    if alert[filter] ~= value then
+	       -- The alert has a different value for that filter
+	       done = false
+	       goto continue2
+	    end
+	    ::continue::
+	 end
+
+	 if done then 
+	    return true
+	 end
+
+	 ::continue2::
+      end
+   end
+
+   -- all the filters are correct, exclude the alert
+   return false
 end
 
 -- ##############################################

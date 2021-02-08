@@ -9,15 +9,12 @@
                     </button>
                 </div>
                 <div class="modal-body">
-
                     <table class='table table-borderless' id='script-config-editor'>
                     </table>
-                    
                     <div id='script-description' class='alert alert-light' role='alert'>
                     </div>
-
                     <span class='invalid-feedback' id='apply-error'></span>
-                </div>
+		</div>
                 <div class="modal-footer">
                     <button id='btn-reset' title='Reset Default ntopng values' type='button'
                         class='btn btn-danger'>
@@ -43,4 +40,8 @@
         <option value='{{ severity.severity_id }}'>{{ i18n(severity.i18n_title) }}</option>
     {% end %}
 </select>
+</template>
+<template id="exclusion-list-template">
+<textarea name="exclusion-list" id="exclusionlist-textarea" class="w-100 form-control" rows="2"></textarea>
+<small>{{ i18n("scripts_list.exclusion_list") }}</small>
 </template>

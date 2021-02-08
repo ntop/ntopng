@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local pragma_once = 1
 local http_lint = {}
+
 local json = require "dkjson"
 local tracker = require "tracker"
 
@@ -125,6 +126,8 @@ local function validateNumber(p)
 end
 http_lint.validateNumber = validateNumber
 
+-- ##############################################
+
 local function validateSyslogFormat(p)
    if p == "plaintext" or
       p == "json" or
@@ -187,6 +190,17 @@ local function validateSingleWord(w)
    end
 end
 http_lint.validateSingleWord = validateSingleWord
+
+-- ##############################################
+
+-- @brief Returns true if inputstr is inside alert, function used to check
+--        if the filter is right or not
+local function validateScriptFilter(inputstr)   
+   return validateListOfType(inputstr, validateSingleWord)
+end
+http_lint.validateScriptFilter = validateScriptFilter
+
+-- ##############################################
 
 local function validateMessage(w)
    return true
@@ -786,6 +800,7 @@ local function validateProtocolIdOrName(p)
       validateChoiceByKeys(L4_PROTO_KEYS, p) or
       validateChoiceByKeys(ndpi_protos, p)
 end
+http_lint.validateProtocolIdOrName = validateProtocolIdOrName
 
 function http_lint.validateTrafficProfile(p)
    return validateUnquoted(p)
@@ -1390,6 +1405,9 @@ local known_parameters = {
 -- CONFIGSETS
    ["confset_id"]              = validateNumber,
    ["confset_name"]            = validateUnquoted,
+   ["filters"]	       	       = validateScriptFilter,		-- Currently active exclusion list for the alert
+   ["alert_generation"]	       = { jsonCleanup, validateJSON },
+   ["alert_exclusion_list"]    = validateListOfTypeInline(validateSingleWord),  -- Currently active exclusion list for the alert
 
 -- UI TOASTS
    ["toast_id"]        = validateSingleWord,
@@ -2065,6 +2083,8 @@ local function validateSpecialParameter(param, value)
 
    return false
 end
+
+-- ##############################################
 
 function http_lint.validationError(t, param, value, message)
    -- TODO graceful exit

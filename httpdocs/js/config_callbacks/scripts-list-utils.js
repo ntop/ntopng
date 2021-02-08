@@ -312,14 +312,26 @@ const get_unit_times = (seconds) => {
 
 /* ******************************************************* */
 
+function getSanitizedExList(alert_exclusion_list) {
+    return alert_exclusion_list.replace("\n", ";");
+}
+
+/* ******************************************************* */
+
 const apply_edits_script = (template_data, script_subdir, script_key) => {
 
    const severitySelected = $(`#script-config-editor select[name='severity']`).val();
    const alert_severity = severitySelected || undefined;
-
+   const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
+   var   alert_exclusion_list = exclusionList || undefined;
+    
    const $apply_btn = $('#btn-apply');
    const $error_label = $("#apply-error");
 
+   if (alert_exclusion_list !== undefined) {
+      alert_exclusion_list = getSanitizedExList(alert_exclusion_list);  
+   }
+    
    // remove dirty class from form
    $('#edit-form').removeClass('dirty')
    $apply_btn.attr('disabled', '');
@@ -329,6 +341,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       script_key: script_key,
       csrf: pageCsrf,
       alert_severity: alert_severity,
+      alert_exclusion_list: alert_exclusion_list,
       JSON: JSON.stringify(template_data),
       confset_id: confset_id
    })
@@ -373,7 +386,13 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
 
          const {metadata} = reset_data;
          const hasSeverity = metadata.is_alert || false;
-
+         const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
+	 var   alert_exclusion_list = exclusionList || undefined;
+     
+	 if (exclusionList) {
+	    $(`#script-config-editor textarea[name='exclusion-list']`).val('')
+	 }
+	  
          if (hasSeverity) {
             const defaultSeverity = metadata.default_value.severity;
             if (defaultSeverity !== undefined) {
@@ -1289,6 +1308,9 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
          // get alert severity if present
          appendSeveritySelect(data);
 
+	 // append the exclusion list 
+	 appendExclusionList(data);
+
          // bind on_apply event on apply button
          $("#edit-form").off("submit").on('submit', template.apply_click_event);
          $("#btn-reset").off("click").on('click', template.reset_click_event);
@@ -1456,6 +1478,44 @@ function appendSeveritySelect(data) {
       $(`#script-config-editor`).append($container);
       $(`#script-config-editor select[name='severity']`).val(severity);
    }
+}
+
+function appendExclusionList(data) {
+   
+   const hasSeverity = data.metadata.is_alert || false;
+
+   if (data.metadata.default_value === undefined) return;
+           
+   var ex_list_str = ""
+   const hooksKeys = Object.keys(data.hooks);
+   const scriptConfExList = data.hooks[hooksKeys[0]].script_conf.filters;
+   
+   if (scriptConfExList) {
+      for (const [key, value] of Object.entries(scriptConfExList)) {
+	 if (value["str_format"]) {
+	    ex_list_str += value["str_format"] + "\n";
+	 } 
+      }
+   }
+    
+   let $container;
+   let $textarea = $($(`#exclusion-list-template`).html());
+   const label = "Exclusion List";
+   if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder )) {
+      $container = $(`<tr></tr>`);
+      $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
+         $(`<label class='col-3 col-form-label'>${label}</label>`),
+         $(`<div class='col-12'></div>`).append($textarea))
+      ));
+   }
+   else {
+      $container = $(`<tr><td></td></tr>`);
+      $container.append($(`<td class='align-middle'>${label}</td>`));
+      $container.append($(`<td></td>`).append($textarea));
+   }
+
+   $(`#script-config-editor`).append($container);
+   $(`#script-config-editor Textarea[name='exclusion-list']`).val(ex_list_str);
 }
 
 function delegateActionButton(gui) {

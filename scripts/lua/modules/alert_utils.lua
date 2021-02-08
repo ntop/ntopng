@@ -909,7 +909,25 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
    local url_params = {}
    local options = options or {}
    local ifid = interface.getId()
+   local default_filter = ''
+   local additional_params = {}
+   local err     = ""
+   local update_err = ""
 
+   if get_params.filters then
+      additional_params  = get_params.filters
+
+      local success = ""
+      local params  = {}
+      
+      success, params = user_scripts.parseFilterParams(additional_params)
+
+      if success then
+	 success, update_err = user_scripts.updateScriptConfig(tonumber(get_params.confset_id), get_params.script_key, get_params.subdir, nil, nil, params)
+      else
+	 update_err = params
+      end
+   end
    -- this paramater is used to print out a card container for the table
    local is_standalone = options.is_standalone or false
 
@@ -919,12 +937,29 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
 			 id      = "delete_alert_dialog",
 			 action  = "deleteAlertById(delete_alert_id)",
 			 title   = i18n("show_alerts.delete_alert"),
-			 message = i18n("show_alerts.confirm_delete_alert").."?",
+			 message = i18n("show_alerts.confirm_delete_alert"),
 			 confirm = i18n("delete"),
 			 confirm_button = "btn-danger",
 		      }
       })
    )
+
+   print(
+      template.gen("modal_alert_filter_dialog.html", {
+      		      dialog={
+			 id		   = "filter_alert_dialog",
+			 action		   = "filterAlertByFilters(confset_id, subdir, script_key)",
+          		 title		   = i18n("show_alerts.filter_alert"),
+          		 message	   = i18n("show_alerts.confirm_filter_alert"),
+          		 field_input_title = i18n("current_filter"),
+          		 alert_filter      = "default_filter",
+	  		 confirm 	   = i18n("filter"),
+			 confirm_button    = "btn-warning",
+		      }
+      })
+   )
+
+
 
    print(
       template.gen("modal_confirm_dialog.html", {
@@ -1056,6 +1091,19 @@ function deleteAlertById(alert_key) {
   form.appendTo('body').submit();
 }
 
+function filterAlertByFilters(confset_id, subdir, script_key) {
+   var params = {};
+   params.filters = document.getElementById("name_input").value;
+   params.confset_id = confset_id;
+   params.subdir     = subdir;
+   params.script_key = script_key;
+   params.status = getCurrentStatus();
+   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[["
+
+   var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
+   form.appendTo('body').submit();
+}
+
 var alert_to_toggle = null;
 var alert_to_release = null;
 
@@ -1125,11 +1173,18 @@ function releaseAlert(idx) {
 	 status = nil; status_reset = 1
       end
 
+      -- In case of error while trying to add a new alert to exclude to the exclusion list
+      -- Done in this way cause it's a post onto the page 
+      if not isEmptyString(err) or not isEmptyString(update_err) then
+          print[[<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">x</button>"Error while excluding the alert, check the parameters and try again"</div>]]
+      end
+
       for k, t in ipairs(alert_items) do
 	 local clicked = "0"
 	 if((not alt_nav_tabs) and ((k == 1 and status == nil) or (status ~= nil and status == t["status"]))) then
 	    clicked = "1"
 	 end
+
 	 print [[
       <div class="tab-pane in" id="tab-]] print(t["div-id"]) print[[">
          <!-- Table to render --->
@@ -1153,6 +1208,7 @@ function releaseAlert(idx) {
                buttons: [']]
 
 	 local title = t["label"]
+
 
 	 if(t["chart"] ~= "") then
 	    local base_url
@@ -1321,6 +1377,10 @@ function releaseAlert(idx) {
                var alert_key = alert_key[0];
                var data = table_data[row_id];
                var explorer_url = data["column_explorer"];
+
+               if(data["column_filter"]) {
+                  datatableAddFilterButtonCallback.bind(this)(10, "confset_id = '" + data["column_confset_id"] + "'; subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-ban'></i>");
+               }                
 
                if(data["column_drilldown"]) {
                   datatableAddLinkButtonCallback.bind(this)(10, data["column_drilldown"], "<i class='fas fa-search-plus drilldown-icon'></i>", "]] print(i18n("show_alerts.expand_action")) print[[");
