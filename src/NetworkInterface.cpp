@@ -2281,72 +2281,9 @@ datalink_check:
     if((eth_type == ETHERTYPE_ARP) && (h->caplen >= (sizeof(arp_header) + sizeof(struct ndpi_ethhdr)))) {
       struct arp_header *arpp = (struct arp_header*)&packet[ip_offset];
       u_int16_t arp_opcode = ntohs(arpp->ar_op);
-      u_int32_t src = ntohl(arpp->arp_spa);
-      u_int32_t dst = ntohl(arpp->arp_tpa);
-      u_int32_t net = src & dst;
-      u_int32_t diff;
-      IpAddress cur_bcast_domain;
 
-      if(src > dst) {
-	u_int32_t r = src;
-	src = dst;
-	dst = r;
-      }
-
-      diff = dst - src;
-
-      /*
-	Following is an heuristic which tries to detect the broadcast domain
-	with its size and network-part of the address. Detection is done by checking
-	source and target protocol addresses found in arp.
-
-	Link-local addresses are excluded, as well as arp Probes with a zero source IP.
-
-	ARP Probes are defined in RFC 5227:
-	In this document, the term 'ARP Probe' is used to refer to an ARP
-	Request packet, broadcast on the local link, with an all-zero 'sender
-	IP address'.  [...]  The 'target IP
-	address' field MUST be set to the address being probed.  An ARP Probe
-	conveys both a question ("Is anyone using this address?") and an
-	implied statement ("This is the address I hope to use.").
-      */
-
-      if(diff
-	 && src /* Not a zero source IP (ARP Probe) */
-	 && (src & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */
-	 && (dst & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */) {
-	u_int32_t cur_mask;
-	u_int8_t cur_cidr;
-
-	for(cur_mask = 0xFFFFFFF0, cur_cidr = 28; cur_mask > 0x00000000; cur_mask <<= 1, cur_cidr--) {
-	  if((diff & cur_mask) == 0) { /* diff < cur_mask */
-	    net &= cur_mask;
-
-	    if((src & cur_mask) != (dst & cur_mask)) {
-	      cur_mask <<= 1, cur_cidr -= 1;
-	      net = src & cur_mask;
-	    }
-
-	    cur_bcast_domain.set(htonl(net));
-
-	    if(!checkBroadcastDomainTooLarge(cur_mask, vlan_id, ethernet->h_source, ethernet->h_dest, src, dst)) {
-	      /* NOTE: call this also for existing domains in order to update the hits */
-	      bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
-
-#ifdef BROADCAST_DOMAINS_DEBUG
-	      char buf1[32], buf2[32], buf3[32];
-	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
-					   Utils::intoaV4(src, buf1, sizeof(buf1)),
-					   Utils::intoaV4(dst, buf2, sizeof(buf2)),
-					   Utils::intoaV4(net, buf3, sizeof(buf3)),
-					   cur_cidr);
-#endif
-	    }
-
-	    break;
-	  }
-	}
-      }
+      /* Updates interface broadcast domains, according to what is seen in this ARP that glues together L2 and L3 */
+      updateBroadcastDomains(vlan_id, ethernet->h_source, ethernet->h_dest, ntohl(arpp->arp_spa), ntohl(arpp->arp_tpa));
 
       if(srcMac && dstMac && (!srcMac->isNull() || !dstMac->isNull())) {
 	setSeenMacAddresses();
@@ -2898,8 +2835,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
     }
 
     if(_src_ip
-       && (/* src_mac->isBroadcast() || */ /* <-- not necessary as src MAC can't be broadcast :-) */
-	   _src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
+       && (_src_ip->isLocalHost(&local_network_id) || _src_ip->isLocalInterfaceAddress())) {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*src) = new (std::nothrow) LocalHost(this, src_mac, vlanId, _src_ip);
       PROFILING_SECTION_EXIT(4);
@@ -2933,8 +2869,6 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
   PROFILING_SECTION_EXIT(3);
 
   if((*dst) == NULL) {
-    bool is_broad;
-    
     if(!hosts_hash->hasEmptyRoom()) {
       *dst = NULL;
       has_too_many_hosts = true;
@@ -2942,15 +2876,10 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
     }
 
     if(_dst_ip
-       && ((dst_mac && (is_broad = dst_mac->isBroadcast()))
-	   || _dst_ip->isLocalHost(&local_network_id)
-	   || _dst_ip->isLocalInterfaceAddress())) {      
+       && (_dst_ip->isLocalHost(&local_network_id) || _dst_ip->isLocalInterfaceAddress())) {      
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, _dst_ip);
       PROFILING_SECTION_EXIT(4);
-
-      if((*dst) && is_broad)
-	bcast_domains->inlineAddAddress((*dst)->get_ip(), 24 /* We use /24 just to be safe */);
     } else {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
       (*dst) = new (std::nothrow) RemoteHost(this, dst_mac, vlanId, _dst_ip);
@@ -7302,6 +7231,87 @@ bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int1
   }
 
   return false;
+}
+
+/* *************************************** */
+
+/*
+  Updates interface broadcast domains, inferring them from the range between `src` and `dst` IP addresses.
+  This function must be called when `src` and `dst` are (reasonably) assumed to be in the same broadcast domain.
+
+  For example, this function must be called when:
+  - `src` and `dst` are read inside ARP sender protocol address (spa) and target protocol address (tpa)
+  - `src` and `dst` are read from an IP packet with broadcast destination MAC (FF:FF:FF:FF:FF:FF)
+ */
+void NetworkInterface::updateBroadcastDomains(u_int16_t vlan_id,
+					      const u_int8_t *src_mac, const u_int8_t *dst_mac,
+					      u_int32_t src, u_int32_t dst) {
+  u_int32_t net = src & dst;
+  u_int32_t diff;
+  IpAddress cur_bcast_domain;
+
+  /* Smaller address in src */
+  if(src > dst) {
+    u_int32_t r = src;
+    src = dst;
+    dst = r;
+  }
+
+  /* Range between dst and src */
+  diff = dst - src;
+
+  /*
+    Following is an heuristic which tries to detect the broadcast domain
+    with its size and network-part of the address. Detection is done by checking
+    source and target protocol addresses found in arp.
+
+    Link-local addresses are excluded, as well as arp Probes with a zero source IP.
+
+    ARP Probes are defined in RFC 5227:
+    In this document, the term 'ARP Probe' is used to refer to an ARP
+    Request packet, broadcast on the local link, with an all-zero 'sender
+    IP address'.  [...]  The 'target IP
+    address' field MUST be set to the address being probed.  An ARP Probe
+    conveys both a question ("Is anyone using this address?") and an
+    implied statement ("This is the address I hope to use.").
+  */
+
+  if(diff
+     && src /* Not a zero source IP (ARP Probe) */
+     && (src & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */
+     && (dst & 0xFFFF0000) != 0xA9FE0000 /* Not a link-local IP */) {
+    u_int32_t cur_mask;
+    u_int8_t cur_cidr;
+
+    for(cur_mask = 0xFFFFFFF0, cur_cidr = 28; cur_mask > 0x00000000; cur_mask <<= 1, cur_cidr--) {
+      if((diff & cur_mask) == 0) { /* diff < cur_mask */
+	net &= cur_mask;
+
+	if((src & cur_mask) != (dst & cur_mask)) {
+	  cur_mask <<= 1, cur_cidr -= 1;
+	  net = src & cur_mask;
+	}
+
+	cur_bcast_domain.set(htonl(net));
+
+	if(!checkBroadcastDomainTooLarge(cur_mask, vlan_id, src_mac, dst_mac, src, dst)) {
+	  /* NOTE: call this also for existing domains in order to update the hits */
+	  bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
+
+#if 1	  // #ifdef BROADCAST_DOMAINS_DEBUG
+	  char buf1[32], buf2[32], buf3[32];
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
+				       Utils::intoaV4(src, buf1, sizeof(buf1)),
+				       Utils::intoaV4(dst, buf2, sizeof(buf2)),
+				       Utils::intoaV4(net, buf3, sizeof(buf3)),
+				       cur_cidr);
+#endif
+	}
+
+	break;
+      }
+    }
+  }  
 }
 
 /* *************************************** */

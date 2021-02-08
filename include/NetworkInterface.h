@@ -369,6 +369,9 @@ class NetworkInterface : public AlertableEntity {
   void reloadCustomCategories();
 
   void updateSitesStats();
+  void updateBroadcastDomains(u_int16_t vlan_id,
+			      const u_int8_t *src_mac, const u_int8_t *dst_mac,
+			      u_int32_t src, u_int32_t dst);
 
   virtual bool walker(u_int32_t *begin_slot,
 		      bool walk_all,

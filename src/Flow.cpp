@@ -120,6 +120,12 @@ Flow::Flow(NetworkInterface *_iface,
       srv_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
   }
 
+  /* Update broadcast domain, if destination MAC address is broadcast */
+  if(_cli_mac && _srv_mac
+     && _srv_mac->isBroadcast() /* Broadcast MAC address */
+     && get_cli_ip_addr()->isIPv4() && get_srv_ip_addr()->isIPv4() /* IPv4 only */)
+    getInterface()->updateBroadcastDomains(_vlanId, _cli_mac->get_mac(), _srv_mac->get_mac(), ntohl(_cli_ip->get_ipv4()), ntohl(_srv_ip->get_ipv4()));
+
   memset(&custom_app, 0, sizeof(custom_app));
 
 #ifdef NTOPNG_PRO
