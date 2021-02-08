@@ -74,9 +74,9 @@ if hash systemctl 2>/dev/null; then
         # Check previous version as up to 4.1.201014
         # service was disabled in prerm during an upgrade
         # This check will be removed at some point
-        VERS_DATE=$(echo $PREV_VERSION|cut -d"." -f3|cut -d"-" -f1)
         VERS_MAJ=$(echo $PREV_VERSION|cut -d "." -f 1)
-        VERS_MIN=$(echo $PREV_VERSION|cut -d "." -f 2)
+        VERS_MIN=$(echo $PREV_VERSION|cut -d "." -f 2|sed "s@^[^0-9]*\([0-9]\+\).*@\1@")
+        VERS_DATE=$(echo $PREV_VERSION|cut -d"." -f3|cut -d"-" -f1)
         VERS_MAJ=$(printf "%02d" $VERS_MAJ)
         VERS_MIN=$(printf "%02d" $VERS_MIN)
         if [ "$VERS_MAJ$VERS_MIN$VERS_DATE" -lt "0401201015" ]; then
