@@ -199,6 +199,7 @@ using namespace std;
 #include "RwLock.h"
 #include "Bitmask.h"
 #include "Bloom.h"
+#include "BehaviouralCounter.h"
 #include "MonitoredMetric.h"
 #include "MonitoredCounter.h"
 #include "MonitoredGauge.h"

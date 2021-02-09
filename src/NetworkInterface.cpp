@@ -5511,7 +5511,6 @@ void NetworkInterface::lua(lua_State *vm) {
   DSCPStats _dscpStats;
   SyslogStats _syslogStats;
   
-
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "name", get_name());
