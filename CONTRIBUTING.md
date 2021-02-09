@@ -65,6 +65,7 @@ the test name as name of the file, under ntopng/tests/rest/tests
 containing the below sections:
 
 - input: the name of a pcap in the 'ntopng/tests/rest/pcap' folder containing some traffic to be provided to ntopng as input
+- localnet: the local network(s) as usually specified with the -m option in ntopng
 - pre: a bash script with commands to be executed before processing the pcap in ntopng (initialization)
 - post: a bash script with commands to be executed after the pcap has been processed by ntopng and generating some json output (using the Rest API)
 - ignore: fields from the output to be ignored when comparing the output with the old JSON (this is usually used to ignore time, date or other fields that can change over time)
@@ -73,6 +74,8 @@ Example:
 
 ```
 input: traffic.pcap
+
+localnet: 192.168.1.0/24
 
 pre: |
   curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "action": "enable"}' http://localhost:3000/lua/toggle_all_user_scripts.lua

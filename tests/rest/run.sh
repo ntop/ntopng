@@ -18,7 +18,6 @@ NTOPNG_TEST_DATADIR="${TESTS_PATH}/data"
 NTOPNG_TEST_CONF="${NTOPNG_TEST_DATADIR}/ntopng.conf"
 NTOPNG_TEST_CUSTOM_PROTOS="${NTOPNG_TEST_DATADIR}/protos.txt"
 NTOPNG_TEST_REDIS="2"
-NTOPNG_TEST_LOCALNETS="192.168.1.0/24"
 
 DEFAULT_PCAP="test_01.pcap"
 
@@ -128,7 +127,6 @@ ntopng_init_conf() {
     echo "-r=@${NTOPNG_TEST_REDIS}" >> ${NTOPNG_TEST_CONF}
     echo "-p=${NTOPNG_TEST_CUSTOM_PROTOS}" >> ${NTOPNG_TEST_CONF}
     echo "-N=ntopng_test" >> ${NTOPNG_TEST_CONF}
-    echo "-m=${NTOPNG_TEST_LOCALNETS}" >> ${NTOPNG_TEST_CONF}
     echo "--shutdown-when-done" >> ${NTOPNG_TEST_CONF}
     echo "--disable-login=1" >> ${NTOPNG_TEST_CONF}
     echo "--dont-change-user" >> ${NTOPNG_TEST_CONF}
@@ -154,6 +152,7 @@ EOF
 # $3 - Post Script (Optional) 
 # $4 - Script Output file
 # $5 - ntopng Output file
+# $6 - Local networks
 #
 ntopng_run() {
     if [ ! -z "${1}" ]; then
@@ -170,6 +169,10 @@ ntopng_run() {
 
     if [ ! -z "${3}" ]; then
         echo "--test-script=bash ${3} >> ${4}" >> ${NTOPNG_TEST_CONF}
+    fi
+
+    if [ ! -z "${6}" ]; then
+        echo "-m=${6}" >> ${NTOPNG_TEST_CONF}
     fi
 
     # Start the test
@@ -222,12 +225,13 @@ run_tests() {
 
         # Parsing YAML
         PCAP=`cat tests/${TEST}.yaml | shyaml -q get-value input`
+        LOCALNET=`cat tests/${TEST}.yaml | shyaml -q get-value localnet`
         cat tests/${TEST}.yaml | shyaml -q get-value pre > ${PRE_TEST}
         cat tests/${TEST}.yaml | shyaml -q get-value post > ${POST_TEST}
         cat tests/${TEST}.yaml | shyaml -q get-values ignore > ${IGNORE}
 
         # Run the test
-        ntopng_run "${PCAP}" "${PRE_TEST}" "${POST_TEST}" "${SCRIPT_OUT}" "${NTOPNG_LOG}"
+        ntopng_run "${PCAP}" "${PRE_TEST}" "${POST_TEST}" "${SCRIPT_OUT}" "${NTOPNG_LOG}" "${LOCALNET}"
 
         if [ -s "${NTOPNG_LOG}" ]; then
             # ntopng Error/Warning
