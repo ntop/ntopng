@@ -26,6 +26,8 @@ MAIL_TO=""
 DISCORD_WEBHOOK=""
 TEST_NAME=""
 
+DEBUG_LEVEL=0
+
 NOTIFICATIONS_ON=false
 if [ -d packager ]; then
     source packager/utils/alerts.sh
@@ -33,7 +35,7 @@ if [ -d packager ]; then
 fi
 
 function usage {
-    echo "Usage: run.sh [-y=<test file>] [-f=<mail from>] [-t=<mail to>] [-d=<discord webhook>]"
+    echo "Usage: run.sh [-y=<test file>] [-f=<mail from>] [-t=<mail to>] [-d=<discord webhook>] [-D=<debug level>]"
     exit 0
 }
 
@@ -54,6 +56,10 @@ do
 
 	-y=*|--test=*)
 	    TEST_NAME="${i#*=}"
+	    ;;
+
+	-D=*|--debug=*)
+	    DEBUG_LEVEL=${i#*=}
 	    ;;
 
 	-h|--help)
@@ -177,7 +183,13 @@ ntopng_run() {
 
     # Start the test
 
-    cd ${NTOPNG_ROOT}; ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep "ERROR:\|WARNING:\|Direct leak" > ${5}
+    cd ${NTOPNG_ROOT};
+
+    if [ "${DEBUG_LEVEL}" -gt "0" ]; then
+        ./ntopng ${NTOPNG_TEST_CONF}
+    else
+        ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep "ERROR:\|WARNING:\|Direct leak" > ${5}
+    fi
 
     cd ${TESTS_PATH}
 }
