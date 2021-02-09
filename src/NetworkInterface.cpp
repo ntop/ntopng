@@ -3834,15 +3834,14 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     if(retriever->pag
        && retriever->pag->clientMode(&client_policy)
-       && f->get_cli_host()
-       && (((client_policy == location_local_only) && (!f->get_cli_host()->isLocalHost()))
-	   || ((client_policy == location_remote_only) && (f->get_cli_host()->isLocalHost()))))
+       && (((client_policy == location_local_only) && (!f->get_cli_ip_addr()->isLocalHost(&local_network_id)))
+	   || ((client_policy == location_remote_only) && (f->get_cli_ip_addr()->isLocalHost(&local_network_id)))))
       return(false);
 
     if(retriever->pag
        && retriever->pag->serverMode(&server_policy)
-       && (((server_policy == location_local_only) && (!f->get_srv_host()->isLocalHost()))
-	   || ((server_policy == location_remote_only) && (f->get_srv_host()->isLocalHost()))))
+       && (((server_policy == location_local_only) && (!f->get_srv_ip_addr()->isLocalHost(&local_network_id)))
+	   || ((server_policy == location_remote_only) && (f->get_srv_ip_addr()->isLocalHost(&local_network_id)))))
       return(false);
 
     if(retriever->pag
