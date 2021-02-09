@@ -571,6 +571,61 @@ void Ntop::start() {
 
     runHousekeepingTasks();
 
+    /*
+      Check if it is time to signal the shutdown, depending on the configuration.
+      NOTE: Shutdown when done is only meaningful for pcap-dump interfaces when
+      the file has been read.
+    */
+    if(ntop->getPrefs()->shutdownWhenDone()) {
+      u_int i;
+
+      /* Make sure all the interfaces are done with their respective packets */
+      for(i = 0; i < get_num_interfaces() && getInterface(i)->read_from_pcap_dump_done(); i++) ;
+
+      /* When they are done, signal ntopng to shutdown */
+      if(i == get_num_interfaces()) {
+
+	/* Test Script (Post Analysis) */
+	if(ntop->getPrefs()->get_test_post_script_path()) {
+	  const char *test_post_script_path = ntop->getPrefs()->get_test_post_script_path();
+
+#if 0 /* Lua support */
+	  if (Utils::hasExtension(test_post_script_path, ".lua")) {
+	    char test_path[MAX_PATH];
+	    const char *sep;
+
+	    /* Execute as Lua script */
+
+	    if((sep = strrchr(test_post_script_path, '/')) == NULL)
+	      sep = test_post_script_path;
+	    else
+	      sep++;
+
+	    snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
+		     ntop->getPrefs()->get_scripts_dir(), sep);
+
+	    if(Utils::file_exists(test_path)) {
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s", test_path);
+	      LuaEngine *l = new (std::nothrow)LuaEngine(NULL);
+	      if(l) {
+		l->run_script(test_path, iface);
+		delete l;
+	      }
+	    }
+	  } else
+#endif
+	    {
+
+	      /* Execute as Bash script */
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "> Running Post Script '%s'", test_post_script_path);
+	      Utils::exec(test_post_script_path);
+	    }
+	}
+
+	ntop->getGlobals()->shutdown();
+      }
+    }
+
 #ifndef __linux__
     gettimeofday(&end, NULL);
     
@@ -618,6 +673,8 @@ void Ntop::start() {
     } while(usec_diff < nap_usec);
 #endif    
   }
+
+
 }
 
 /* ******************************************* */

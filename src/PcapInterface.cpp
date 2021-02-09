@@ -376,51 +376,10 @@ static void* packetPollLoop(void* ptr) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_description());
 
-  /* Test Script (Post Analysis) */ 
-  if(ntop->getPrefs()->get_test_post_script_path()) {
-    const char *test_post_script_path = ntop->getPrefs()->get_test_post_script_path();
 
-#if 0 /* Lua support */
-    if (Utils::hasExtension(test_post_script_path, ".lua")) {
-      char test_path[MAX_PATH];
-      const char *sep;
-
-      /* Execute as Lua script */
-
-      if((sep = strrchr(test_post_script_path, '/')) == NULL)
-        sep = test_post_script_path;
-      else
-        sep++;
-
-      snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
-               ntop->getPrefs()->get_scripts_dir(), sep);
-
-      if(Utils::file_exists(test_path)) {
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s", test_path);
-        LuaEngine *l = new (std::nothrow)LuaEngine(NULL);
-	if(l) {
-	  l->run_script(test_path, iface);
-	  delete l;
-	}
-      }
-    } else 
-#endif
-    {
-
-      /* Execute as Bash script */
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Post Script '%s'", test_post_script_path);
-      Utils::exec(test_post_script_path);
-    }
-  }
-
-  if(ntop->getPrefs()->shutdownWhenDone())
-    ntop->getGlobals()->shutdown();
-  else {
-    while(!ntop->getGlobals()->isShutdown()) {
-      iface->purgeIdle(time(NULL));
-      sleep(1);
-    }
+  while(!ntop->getGlobals()->isShutdown()) {
+    iface->purgeIdle(time(NULL));
+    sleep(1);
   }
   
   return(NULL);
