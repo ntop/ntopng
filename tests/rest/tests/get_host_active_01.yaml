@@ -1,8 +1,11 @@
 input: test_01.pcap
 
 ignore:
+  - last_seen  # Depends on current system uptime
+  - country    # Depends on the accuracy of the localization DB and changes between MaxMind and other databases
 
 pre: |
 
 post: |
+  sleep 15
   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3000/lua/rest/v1/get/host/active.lua
