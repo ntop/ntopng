@@ -78,7 +78,8 @@ class HWCounter : BehaviouralCounter {
 
  public:
   HWCounter(u_int16_t num_learning_values = 10, double alpha = 0.5, double beta = 0.5, double gamma = 0.1 ) : BehaviouralCounter(num_learning_values) {
-    ndpi_hw_init(&hw, num_learning_values, 1 /* additive */, alpha, beta, gamma, 0.05 /* 95% */);
+    if(ndpi_hw_init(&hw, num_learning_values, 1 /* additive */, alpha, beta, gamma, 0.05 /* 95% */) != 0)
+      throw "Error while creating HW";
   }
   ~HWCounter() { ndpi_hw_free(&hw); }
 
