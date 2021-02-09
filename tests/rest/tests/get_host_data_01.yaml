@@ -1,6 +1,8 @@
 input: test_01.pcap
 
-ignore:
+ignore: # duration and last seen depend on the current system time, whereas first seen must not change
+  - duration
+  - seen.last
 
 pre: |
 
