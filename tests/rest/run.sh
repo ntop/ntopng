@@ -174,7 +174,7 @@ ntopng_run() {
 
     # Start the test
 
-    cd ${NTOPNG_ROOT}; gdb --args ./ntopng ${NTOPNG_TEST_CONF} 
+    cd ${NTOPNG_ROOT}; ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep "ERROR:\|WARNING:\|Direct leak" > ${5}
 
     cd ${TESTS_PATH}
 }

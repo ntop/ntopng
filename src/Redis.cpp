@@ -1096,7 +1096,7 @@ u_int Redis::hstrlen(const char * const key, const char * const value) {
   if(reply) {
     if(reply->type == REDIS_REPLY_ERROR) {
       if(!error_sent) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", reply->str ? reply->str : "???");
+	ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", reply->str ? reply->str : "???");
 	error_sent = true;
       }
     } else
