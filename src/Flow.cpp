@@ -1631,7 +1631,7 @@ void Flow::updateThroughputStats(float tdiff_msec,
 
 #ifdef NTOPNG_PRO
       throughputTrend.update(get_bytes_thpt()), goodputTrend.update(get_goodput_bytes_thpt());
-      thptRatioTrend.update(((double)(goodput_bytes_msec*100))/(double)bytes_msec + 1);
+      thptRatioTrend.update((bytes_msec != 0) ? (((double)(goodput_bytes_msec*100))/(double)bytes_msec) : 0);
 
 #ifdef DEBUG_TREND
       if((get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli()) > 0) {

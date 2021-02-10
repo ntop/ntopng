@@ -34,14 +34,18 @@ template <typename METRICTYPE> class MonitoredMetric {
 	losses = ewma(0, losses);
     else
       gains = ewma(0, gains),
-      losses = ewma((METRICTYPE)-delta, losses);
+        losses = ewma((METRICTYPE)-delta, losses);
 
+    anomaly_index = 0;
     if(delta /* No variation -> no anomaly */
        && last_update /* Wait at least two points */
-       && (gains || losses) /* Meaningless to calculate an anomaly when both are at zero */)
-      anomaly_index = (METRICTYPE)(100 - (100 / (float)(1 + ((float)(gains) / (float)(losses) + 1))));
-    else
-      anomaly_index = 0;
+       && (gains || losses) /* Meaningless to calculate an anomaly when both are at zero */) {
+      float gain_loss_ratio = 1;
+      if (losses != 0)
+        gain_loss_ratio = (float)(gains) / (float)(losses);
+      if (gain_loss_ratio != 0)
+        anomaly_index = (METRICTYPE)(100 - (100 / (float)(gain_loss_ratio)));
+    }
     
 #ifdef MONITOREDMETRIC_DEBUG
     if((anomaly_index > 0) && ((anomaly_index < 25) || (anomaly_index > 75)) && (gains > 0))
