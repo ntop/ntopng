@@ -133,6 +133,12 @@ class Prefs {
 #ifdef HAVE_TEST_MODE
   char *test_script_path;
 #endif
+
+#ifdef NTOPNG_PRO
+  bool print_maintenance, print_license;
+#endif
+  bool print_version;
+
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
   void setCommandLineString(int optkey, const char * optarg);

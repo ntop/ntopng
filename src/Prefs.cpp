@@ -110,6 +110,11 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
 
+#ifdef NTOPNG_PRO
+  print_maintenance = print_license = false;
+#endif
+  print_version = false;
+
   if(!(ifNames = (InterfaceInfo*)calloc(UNLIMITED_NUM_INTERFACES, sizeof(InterfaceInfo)))
      || !(deferred_interfaces_to_register = (char**)calloc(UNLIMITED_NUM_INTERFACES, sizeof(char*))))
     throw "Not enough memory";
@@ -383,7 +388,7 @@ void usage() {
 #endif
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint\n"
 	 "                                    | See https://wp.me/p1LxdS-O5 for a -I use case.\n"
-	 "--hw-timestamp-mode <mode>          | Enable hw timestamping/stripping.\n"
+	 "[--hw-timestamp-mode] <mode>        | Enable hw timestamping/stripping.\n"
 	 "                                    | Supported TS modes are:\n"
 	 "                                    | apcon - Timestamped pkts by apcon.com\n"
 	 "                                    |         hardware devices\n"
@@ -391,10 +396,10 @@ void usage() {
 	 "                                    |         hardware devices\n"
 	 "                                    | vss   - Timestamped pkts by vssmonitoring.com\n"
 	 "                                    |         hardware devices\n"
-	 "--capture-direction                 | Specify packet capture direction\n"
+	 "[--capture-direction] <dir>         | Specify packet capture direction\n"
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
 	 /* "--online-check                      | Check the license using the online service\n" */
-	 "--online-license-check              | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
+	 "[--online-license-check]            | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
 	 "[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.\n"
 	 "                                    | Useful when using ntopng behind a proxy.\n"
 	 "[--instance-name|-N <name>]         | Assign a name to this ntopng instance.\n"
@@ -403,17 +408,22 @@ void usage() {
 	 "[--check-license]                   | Check if the license is valid.\n"
 	 "[--check-maintenance]               | Check until maintenance is included\n"
 	 "                                    | in the license.\n"
+#ifdef __linux__
+         "[--vm]                              | Check the license on VMs (migration resistant).\n"
+         "                                    | This flag should be used in combination with the other options (e.g. -V).\n"
+         "                                    | Note: this changes the System ID (license should be migrated if any)\n"
 #endif
-	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
+#endif
 	 "[--version|-V]                      | Print version and license information, then quit\n"
-	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
+	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
+	 "[--print-ndpi-protocols]            | Print the nDPI protocols list\n"
 #ifndef HAVE_NEDGE
-	 "--ignore-macs                       | Ignore MAC addresses from traffic\n"
+	 "[--ignore-macs]                     | Ignore MAC addresses from traffic\n"
 #endif
-	 "--ignore-vlans                      | Ignore VLAN tags from traffic\n"
-	 "--pcap-file-purge-flows             | Enable flow purge with pcap files (debug only)\n"
-	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
-	 "--simulate-ips <num>                | Simulate IPs by choosing clients and servers among <num> random addresses\n"
+	 "[--ignore-vlans]                    | Ignore VLAN tags from traffic\n"
+	 "[--pcap-file-purge-flows]           | Enable flow purge with pcap files (debug only)\n"
+	 "[--simulate-vlans]                  | Simulate VLAN traffic (debug only)\n"
+	 "[--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses\n"
 	 "[--help|-h]                         | Help\n",
 #ifdef HAVE_NEDGE
 	 "edge "
@@ -782,6 +792,9 @@ static const struct option long_options[] = {
   { "simulate-ips",                      required_argument, NULL, 221 },
   { "zmq-encryption-key",                required_argument, NULL, 222 },
 #ifdef NTOPNG_PRO
+#ifdef __linux__
+  { "vm",                                no_argument,       NULL, 251 },
+#endif
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
   { "community",                         no_argument,       NULL, 254 },
@@ -1358,40 +1371,7 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'V':
-    printVersionInformation();
-
-#ifdef NTOPNG_PRO
-    {
-    char buf[128];
-    ntop->getTrace()->set_trace_level((u_int8_t)0);
-    ntop->registerPrefs(this, true);
-    ntop->getPro()->init_license();
-    printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
-    printf("License Type:\t%s\n", ntop->getPro()->get_license_type(buf, sizeof(buf)));
-
-    if(ntop->getPro()->demo_ends_at())
-      printf("Validity:\t%s\n", ntop->getPro()->get_demo_expiration(buf, sizeof(buf)));
-    else
-      printf("Maintenance:\t%s\n", ntop->getPro()->get_maintenance_expiration(buf, sizeof(buf)));
-
-    if(ntop->getPro()->get_encoded_license()[0] != '\0') {
-      char *enc_license = ntop->getPro()->get_encoded_license();
-      int i, len = strlen(enc_license);
-      for (i = 0; i < len; i += 69) {
-        char buff[70];
-        int clen = min((size_t) 69, strlen(&enc_license[i]));
-        memcpy(buff, &enc_license[i], clen);
-        buff[clen] = '\0';
-        if (i == 0) printf("License:\t%s\n", buff);
-        else        printf("        \t%s\n", buff);
-      }
-    }
-
-    if(ntop->getPro()->get_license()[0] != '\0')
-      printf("License Hash:\t%s\n",      ntop->getPro()->get_license());
-    }
-#endif
-    exit(0);
+    print_version = true;
     break;
 
   case 'X':
@@ -1468,20 +1448,18 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
 #ifdef NTOPNG_PRO
+#ifdef __linux__
+  case 251:
+    ntop->getPro()->set_vm_mode();
+    break;
+#endif
+
   case 252:
-    /* Disable tracing messages */
-    ntop->getTrace()->set_trace_level(0);
-    ntop->registerPrefs(this, true);
-    ntop->getPro()->check_maintenance_duration();
-    exit(0);
+    print_maintenance = true;
     break;
 
   case 253:
-    /* Disable tracing messages */
-    ntop->getTrace()->set_trace_level(0);
-    ntop->registerPrefs(this, true);
-    ntop->getPro()->check_license_validity();
-    exit(0);
+    print_license = true;
     break;
 
   case 254:
@@ -1507,6 +1485,64 @@ int Prefs::setOption(int optkey, char *optarg) {
 /* ******************************************* */
 
 int Prefs::checkOptions() {
+
+#ifdef NTOPNG_PRO
+  if(print_maintenance) {
+    /* Disable tracing messages */
+    ntop->getTrace()->set_trace_level(0);
+    ntop->registerPrefs(this, true);
+    ntop->getPro()->check_maintenance_duration();
+    exit(0);
+  }
+
+  if(print_license) {
+    /* Disable tracing messages */
+    ntop->getTrace()->set_trace_level(0);
+    ntop->registerPrefs(this, true);
+    ntop->getPro()->check_license_validity();
+    exit(0);
+  }
+#endif
+
+  if (print_version) {
+#ifdef NTOPNG_PRO
+    char buf[128];
+#endif
+
+    printVersionInformation();
+
+#ifdef NTOPNG_PRO
+    ntop->getTrace()->set_trace_level((u_int8_t)0);
+    ntop->registerPrefs(this, true);
+    ntop->getPro()->init_license();
+    printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
+    printf("License Type:\t%s\n", ntop->getPro()->get_license_type(buf, sizeof(buf)));
+
+    if(ntop->getPro()->demo_ends_at())
+      printf("Validity:\t%s\n", ntop->getPro()->get_demo_expiration(buf, sizeof(buf)));
+    else
+      printf("Maintenance:\t%s\n", ntop->getPro()->get_maintenance_expiration(buf, sizeof(buf)));
+
+    if(ntop->getPro()->get_encoded_license()[0] != '\0') {
+      char *enc_license = ntop->getPro()->get_encoded_license();
+      int i, len = strlen(enc_license);
+      for (i = 0; i < len; i += 69) {
+        char buff[70];
+        int clen = min((size_t) 69, strlen(&enc_license[i]));
+        memcpy(buff, &enc_license[i], clen);
+        buff[clen] = '\0';
+        if (i == 0) printf("License:\t%s\n", buff);
+        else        printf("        \t%s\n", buff);
+      }
+    }
+
+    if(ntop->getPro()->get_license()[0] != '\0')
+      printf("License Hash:\t%s\n",      ntop->getPro()->get_license());
+#endif
+
+    exit(0);
+  }
+
   if(install_dir)
     ntop->set_install_dir(install_dir);
 
