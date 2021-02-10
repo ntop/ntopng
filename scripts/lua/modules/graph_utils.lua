@@ -129,14 +129,15 @@ end
 
 -- ########################################################
 
-function graph_utils.getProtoVolume(ifName, start_time, end_time)
+function graph_utils.getProtoVolume(ifName, start_time, end_time, ts_options)
    ifId = getInterfaceId(ifName)
-   local series = ts_utils.listSeries("iface:ndpi", {ifid=ifId}, start_time)
+   local series = ts_utils.listSeries("iface:ndpi", {ifid = ifId}, start_time)
 
    ret = { }
+
    for _, tags in ipairs(series or {}) do
       -- NOTE: this could be optimized via a dedicated driver call
-      local data = ts_utils.query("iface:ndpi", tags, start_time, end_time)
+      local data = ts_utils.query("iface:ndpi", tags, start_time, end_time, ts_options)
 
       if(data ~= nil) and (data.statistics.total > 0) then
 	 ret[tags.protocol] = data.statistics.total
