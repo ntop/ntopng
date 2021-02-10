@@ -4276,6 +4276,7 @@ local lang = {
     ["enable_alerts_title"] = "Enable Alerts",
     ["engaged"] = "Engaged",
     ["engaged_alerts"] = "Engaged Alerts",
+    ["expand_action"]  = "Expand",
     ["explorer"] = "Explore",
     ["five_minutes"] = "Five minutes",
     ["flow_alerts"] = "Flow Alerts",

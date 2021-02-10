@@ -1323,7 +1323,7 @@ function releaseAlert(idx) {
                var explorer_url = data["column_explorer"];
 
                if(data["column_drilldown"]) {
-                  datatableAddLinkButtonCallback.bind(this)(10, data["column_drilldown"], "<i class='fas fa-search-plus drilldown-icon'></i>");
+                  datatableAddLinkButtonCallback.bind(this)(10, data["column_drilldown"], "<i class='fas fa-search-plus drilldown-icon'></i>", "]] print(i18n("show_alerts.expand_action")) print[[");
                }
 
                if(explorer_url) {
@@ -1332,7 +1332,7 @@ function releaseAlert(idx) {
                }
 
                if(]] print(ternary(t["status"] == "engaged", "true", "false")) print[[)
-                 datatableAddActionButtonCallback.bind(this)(10, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "<i class='fas fa-unlock'></i>");
+                 datatableAddActionButtonCallback.bind(this)(10, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "<i class='fas fa-unlock'></i>", true, "]] print(i18n("show_alerts.release_alert_action")) print[[");
 
                if(]] print(ternary(t["status"] ~= "engaged", "true", "false")) print[[) {
                  datatableAddDeleteButtonCallback.bind(this)(10, "delete_alert_id ='" + alert_key + "'; $('#delete_alert_dialog').modal('show');", "<i class='fas fa-trash'></i>");
