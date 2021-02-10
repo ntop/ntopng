@@ -18,6 +18,7 @@ NTOPNG_TEST_DATADIR="${TESTS_PATH}/data"
 NTOPNG_TEST_CONF="${NTOPNG_TEST_DATADIR}/ntopng.conf"
 NTOPNG_TEST_CUSTOM_PROTOS="${NTOPNG_TEST_DATADIR}/protos.txt"
 NTOPNG_TEST_REDIS="2"
+NTOPNG_TEST_HTTP_PORT="3333"
 
 DEFAULT_PCAP="test_01.pcap"
 
@@ -133,6 +134,7 @@ ntopng_init_conf() {
     echo "-r=@${NTOPNG_TEST_REDIS}" >> ${NTOPNG_TEST_CONF}
     echo "-p=${NTOPNG_TEST_CUSTOM_PROTOS}" >> ${NTOPNG_TEST_CONF}
     echo "-N=ntopng_test" >> ${NTOPNG_TEST_CONF}
+    echo "--http-port=${NTOPNG_TEST_HTTP_PORT}" >> ${NTOPNG_TEST_CONF}
     echo "--shutdown-when-done" >> ${NTOPNG_TEST_CONF}
     echo "--disable-login=1" >> ${NTOPNG_TEST_CONF}
     echo "--dont-change-user" >> ${NTOPNG_TEST_CONF}

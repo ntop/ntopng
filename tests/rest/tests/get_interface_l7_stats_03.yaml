@@ -5,4 +5,4 @@ ignore:
 pre: |
 
 post: |
-  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "ndpistats_mode": "count", "breed": true}' http://localhost:3000/lua/rest/v1/get/interface/l7/stats.lua
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "ndpistats_mode": "count", "breed": true}' http://localhost:3333/lua/rest/v1/get/interface/l7/stats.lua

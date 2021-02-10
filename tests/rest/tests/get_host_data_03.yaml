@@ -7,4 +7,4 @@ ignore: # duration and last seen depend on the current system time, whereas firs
 pre: |
 
 post: |
-  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "host" : "1.2.3.4"}' http://localhost:3000/lua/rest/v1/get/host/data.lua
+  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "host" : "1.2.3.4"}' http://localhost:3333/lua/rest/v1/get/host/data.lua
