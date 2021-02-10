@@ -313,7 +313,7 @@ const get_unit_times = (seconds) => {
 /* ******************************************************* */
 
 function getSanitizedExList(alert_exclusion_list) {
-    return alert_exclusion_list.replace("\n", ";");
+    return alert_exclusion_list.split("\n").join(";");
 }
 
 /* ******************************************************* */
