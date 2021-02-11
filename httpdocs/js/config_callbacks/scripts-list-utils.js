@@ -1308,8 +1308,10 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
          // get alert severity if present
          appendSeveritySelect(data);
 
-	 // append the exclusion list 
-	 appendExclusionList(data);
+	 if(script_subdir === "flow") {
+	    // append the exclusion list 
+	    appendExclusionList(data);
+	 } 
 
          // bind on_apply event on apply button
          $("#edit-form").off("submit").on('submit', template.apply_click_event);
@@ -1489,7 +1491,7 @@ function appendSeveritySelect(data) {
 function appendExclusionList(data) {
    var ex_list_str = ""
    const scriptConfExList = data.hooks.filter;
-   
+    
    if (scriptConfExList) {
       const scriptConfCurrFil = scriptConfExList.current_filters;
       if (scriptConfCurrFil) {
@@ -1498,9 +1500,9 @@ function appendExclusionList(data) {
 		  ex_list_str += value["str_format"] + "\n";
 	      } 
 	  }
-      }
-      
-    
+      } 
+   }
+
    let $container;
    let $textarea = $($(`#exclusion-list-template`).html());
    const label = i18n.scripts_list.exclusion_list_title;
@@ -1519,7 +1521,6 @@ function appendExclusionList(data) {
 
    $(`#script-config-editor`).append($container);
    $(`#script-config-editor Textarea[name='exclusion-list']`).val(ex_list_str);
-   }
 }
 
 function delegateActionButton(gui) {
