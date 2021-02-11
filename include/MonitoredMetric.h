@@ -42,7 +42,7 @@ template <typename METRICTYPE> class MonitoredMetric {
        && (gains || losses) /* Meaningless to calculate an anomaly when both are at zero */) {
       float gain_loss_ratio = 1;
       if (losses != 0)
-        gain_loss_ratio = (float)(gains) / (float)(losses);
+        gain_loss_ratio = (float)(gains) / (float)(losses) + 1;
       if (gain_loss_ratio != 0)
         anomaly_index = (METRICTYPE)(100 - (100 / (float)(gain_loss_ratio)));
     }
