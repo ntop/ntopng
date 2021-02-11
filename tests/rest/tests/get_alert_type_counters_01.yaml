@@ -5,5 +5,5 @@ ignore:
 pre: |
 
 post: |
-  sleep 15
+  sleep 10
   curl -s -u admin:admin "http://localhost:3333/lua/rest/v1/get/alert/type/counters.lua?ifid=0"

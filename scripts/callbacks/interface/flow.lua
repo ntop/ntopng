@@ -74,20 +74,29 @@ end
 -- #################################################################
 
 local function prioritizeL4Callabacks(l4_hooks)
+   local group_mods_by_prio = {}
+   local mods_by_prio = {}
+
    -- Set the priority to the `prio` indicated in the module, or to zero,
    -- if no `prio` is indicated
-   local mod_prios = {}
    for mod_key, mod in pairs(available_modules.modules) do
-      mod_prios[mod_key] = tonumber(mod.prio) or 0
+      local prio = tonumber(mod.prio) or 0
+      if not group_mods_by_prio[prio] then
+        group_mods_by_prio[prio] = {}
+      end
+      group_mods_by_prio[prio][mod_key] = mod
    end
 
    -- Sort available modules by descending `prio`
    -- That is from lower (negative) to higher (positive) priorities
    -- E.g., a prio -20 is executed after a prio 0 which, in turn, is executed
    -- after a prio 20
-   local mods_by_prio = {}
-   for mod_key, mod_prio in pairsByValues(mod_prios, rev) do
-      mods_by_prio[#mods_by_prio + 1] = mod_key
+   -- Modules with the same prio are sorted by key, to determinitically
+   -- evaluate modules and produce results
+   for prio, mods in pairsByKeys(group_mods_by_prio, rev) do
+      for key, mod in pairsByKeys(mods, asc) do
+         mods_by_prio[#mods_by_prio + 1] = key
+      end
    end
 
    -- Updates l4_hooks and convert modules to ordered lua arrays
