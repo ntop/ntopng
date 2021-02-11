@@ -190,7 +190,7 @@ ntopng_run() {
     if [ "${DEBUG_LEVEL}" -gt "0" ]; then
         ./ntopng ${NTOPNG_TEST_CONF}
     else
-        ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep "ERROR:\|WARNING:\|Direct leak" > ${5}
+        ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep -i "ERROR:\|WARNING:\|Direct leak" > ${5}
     fi
 
     cd ${TESTS_PATH}
