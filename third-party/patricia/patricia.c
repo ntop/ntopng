@@ -84,7 +84,7 @@ comp_with_mask (void *addr, void *dest, u_int mask)
 
   if( /* mask/8 == 0 || */ memcmp (addr, dest, mask / 8) == 0) {
     int n = mask / 8;
-    int m = ((-1) << (8 - (mask % 8)));
+    unsigned int m = (UINT32_MAX << (8 - (mask % 8)));
 
     if(mask % 8 == 0 || (((u_char *)addr)[n] & m) == (((u_char *)dest)[n] & m))
       return (1);
