@@ -674,10 +674,10 @@ class NetworkInterface : public AlertableEntity {
 		const char *groupColumn);
   int dropFlowsTraffic(AddressTree *allowed_hosts, Paginator *p);
 
-  virtual void purgeIdle(time_t when, bool force_idle = false);
-  u_int purgeIdleFlows(bool force_idle);
-  u_int purgeIdleHosts(bool force_idle);
-  u_int purgeIdleMacsASesCountriesVlans(bool force_idle);
+  virtual void purgeIdle(time_t when, bool force_idle = false, bool full_scan = false);
+  u_int purgeIdleFlows(bool force_idle, bool full_scan);
+  u_int purgeIdleHosts(bool force_idlei, bool full_scan);
+  u_int purgeIdleMacsASesCountriesVlans(bool force_idle, bool full_scan);
 
   /* Overridden in ViewInterface.cpp */
   virtual u_int64_t getNumPackets();

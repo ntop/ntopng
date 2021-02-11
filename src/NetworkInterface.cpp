@@ -1691,24 +1691,24 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 
 /* **************************************************** */
 
-void NetworkInterface::purgeIdle(time_t when, bool force_idle) {
+void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
   u_int n, m, o;
   last_pkt_rcvd = when;
 
-  if((n = purgeIdleFlows(force_idle)) > 0)
+  if((n = purgeIdleFlows(force_idle, full_scan)) > 0)
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
 				 n, getNumFlows(), ifname);
 
-  if((m = purgeIdleHosts(force_idle)) > 0)
+  if((m = purgeIdleHosts(force_idle, full_scan)) > 0)
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts on %s",
 				 m, getNumHosts(), ifname);
 
-  if((o = purgeIdleMacsASesCountriesVlans(force_idle)) > 0)
+  if((o = purgeIdleMacsASesCountriesVlans(force_idle, full_scan)) > 0)
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s",
 				 o, ifname);
 
   for(std::map<u_int64_t, NetworkInterface*>::iterator it = flowHashing.begin(); it != flowHashing.end(); ++it)
-    it->second->purgeIdle(when, force_idle);
+    it->second->purgeIdle(when, force_idle, full_scan);
 
   checkHostsToRestore();
 
@@ -5219,7 +5219,7 @@ void NetworkInterface::getNetworksStats(lua_State* vm, AddressTree *allowed_host
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleFlows(bool force_idle) {
+u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
   u_int n = 0;
   time_t last_packet_time = getTimeLastPktRcvd();
 
@@ -5237,7 +5237,7 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle) {
 				 "Purging idle flows [ifname: %s] [ifid: %i] [current size: %i]",
 				 ifname, id, flows_hash->getNumEntries());
 #endif
-    n = (flows_hash ? flows_hash->purgeIdle(&tv, force_idle) : 0);
+    n = (flows_hash ? flows_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
 
 #ifdef NTOPNG_PRO
     ntop->getPro()->purgeIdleFlows(force_idle);
@@ -5322,7 +5322,7 @@ u_int NetworkInterface::getNumMacs() {
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleHosts(bool force_idle) {
+u_int NetworkInterface::purgeIdleHosts(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   if(!force_idle && last_packet_time < next_idle_host_purge)
@@ -5340,7 +5340,7 @@ u_int NetworkInterface::purgeIdleHosts(bool force_idle) {
 #endif
 
     // ntop->getTrace()->traceEvent(TRACE_INFO, "Purging idle hosts");
-    n = (hosts_hash ? hosts_hash->purgeIdle(&tv, force_idle) : 0);
+    n = (hosts_hash ? hosts_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
 
     next_idle_host_purge = last_packet_time + HOST_PURGE_FREQUENCY;
     return(n);
@@ -5349,7 +5349,7 @@ u_int NetworkInterface::purgeIdleHosts(bool force_idle) {
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle) {
+u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   if(!force_idle && last_packet_time < next_idle_other_purge)
@@ -5360,11 +5360,11 @@ u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle) {
     u_int n;
     /* If the interface is no longer running it is safe to force all entries as idle */
 
-    n = (macs_hash ? macs_hash->purgeIdle(&tv, force_idle) : 0)
-      + (ases_hash ? ases_hash->purgeIdle(&tv, force_idle) : 0)
-      + (oses_hash ? oses_hash->purgeIdle(&tv, force_idle) : 0)
-      + (countries_hash ? countries_hash->purgeIdle(&tv, force_idle) : 0)
-      + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle) : 0);
+    n = (macs_hash ? macs_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
+      + (ases_hash ? ases_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
+      + (oses_hash ? oses_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
+      + (countries_hash ? countries_hash->purgeIdle(&tv, force_idle, full_scan) : 0)
+      + (vlans_hash ? vlans_hash->purgeIdle(&tv, force_idle, full_scan) : 0);
 
     next_idle_other_purge = last_packet_time + OTHER_PURGE_FREQUENCY;
 

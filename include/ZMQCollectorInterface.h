@@ -57,7 +57,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   virtual bool isPacketInterface() const  { return(false);      };
   void collect_flows();
 
-  virtual void purgeIdle(time_t when, bool force_idle = false);
+  virtual void purgeIdle(time_t when, bool force_idle = false, bool full_scan = false);
 
   void startPacketPolling();
   bool set_packet_filter(char *filter);

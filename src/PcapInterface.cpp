@@ -376,11 +376,12 @@ static void* packetPollLoop(void* ptr) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_description());
 
-
   while(!ntop->getGlobals()->isShutdown()) {
-    iface->purgeIdle(time(NULL));
+    iface->purgeIdle(time(NULL), false, true /* full scan */);
     sleep(1);
   }
+
+  iface->purgeIdle(time(NULL), true /* force idle */, true /* full scan */);
   
   return(NULL);
 }

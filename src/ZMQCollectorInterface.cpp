@@ -536,11 +536,11 @@ void ZMQCollectorInterface::lua(lua_State* vm) {
 
 /* **************************************************** */
 
-void ZMQCollectorInterface::purgeIdle(time_t when, bool force_idle) {
-  NetworkInterface::purgeIdle(when);
+void ZMQCollectorInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
+  NetworkInterface::purgeIdle(when, force_idle, full_scan);
 
   for(std::map<u_int64_t, NetworkInterface*>::iterator it = flowHashing.begin(); it != flowHashing.end(); ++it)
-    it->second->purgeIdle(when, force_idle);
+    it->second->purgeIdle(when, force_idle, full_scan);
 }
 
 #endif
