@@ -1780,6 +1780,7 @@ datalink_check:
     goto dissect_packet_end;
   }
 
+ decode_packet_eth: 
   while(true) {
     if(eth_type == 0x8100 /* VLAN */) {
       Ether80211q *qType = (Ether80211q*)&packet[ip_offset];
@@ -1799,7 +1800,6 @@ datalink_check:
       break;
   }
 
-decode_packet_eth:
   switch(eth_type) {
   case ETHERTYPE_PPOE:
     ip_offset += 6 /* PPPoE */;
