@@ -188,10 +188,21 @@ ntopng_run() {
     cd ${NTOPNG_ROOT};
 
     if [ "${DEBUG_LEVEL}" -gt "0" ]; then
-        ./ntopng ${NTOPNG_TEST_CONF}
+        ./ntopng ${NTOPNG_TEST_CONF} > ${5}.raw 2>&1
     else
-        ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep -i "ERROR:\|WARNING:\|Direct leak" > ${5}
+        ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep -i "ERROR:\|WARNING:\|Direct leak\|    #" > ${5}.raw
     fi
+
+    # Process output
+    touch ${5}
+    while IFS= read -r line; do
+        if [[ ${line} == *"    #"* ]] && [[ ${line} == *" 0x"* ]]; then
+            echo "${line}" | awk '{print $2}' | xargs addr2line -e ntopng >> ${5}
+        else
+            echo "${line}" >> ${5}
+        fi
+    done <${5}.raw
+    rm -f ${5}.raw
 
     cd ${TESTS_PATH}
 }
@@ -295,7 +306,7 @@ run_tests() {
 
         fi
 
-        /bin/rm -f ${SCRIPT_OUT} ${NTOPNG_LOG} ${OUT_DIFF} ${OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE}
+        /bin/rm -f ${TMP_FILE} ${SCRIPT_OUT} ${NTOPNG_LOG} ${OUT_DIFF} ${OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE}
     done
 
     if [ "${NUM_SUCCESS}" == "${NUM_TESTS}" ]; then
