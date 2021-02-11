@@ -1486,7 +1486,7 @@ function appendExclusionList(data) {
    if (scriptConfExList) {
       const scriptConfCurrFil = scriptConfExList.current_filters;
       if (scriptConfCurrFil) {
-	  for (const [key, value] of Object.entries(scriptConfExList)) {
+	  for (const [key, value] of Object.entries(scriptConfCurrFil)) {
 	      if (value["str_format"]) {
 		  ex_list_str += value["str_format"] + "\n";
 	      } 

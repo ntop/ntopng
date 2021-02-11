@@ -1407,7 +1407,7 @@ local known_parameters = {
    ["confset_name"]            = validateUnquoted,
    ["filters"]	       	       = validateScriptFilter,		-- Currently active exclusion list for the alert
    ["alert_generation"]	       = { jsonCleanup, validateJSON },
-   ["alert_exclusion_list"]    = validateListOfTypeInline(validateSingleWord),  -- Currently active exclusion list for the alert
+   ["script_exclusion_list"]    = validateListOfTypeInline(validateSingleWord),  -- Currently active exclusion list for the alert
 
 -- UI TOASTS
    ["toast_id"]        = validateSingleWord,
