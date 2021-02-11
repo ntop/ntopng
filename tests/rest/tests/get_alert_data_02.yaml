@@ -1,5 +1,7 @@
 input: malformed_dns.pcap
 
+localnet: 192.168.1.0/24
+
 ignore:
   - date
 

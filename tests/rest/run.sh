@@ -284,7 +284,7 @@ run_tests() {
             # Comparison of two JSONs in bash, see
             # https://stackoverflow.com/questions/31930041/using-jq-or-alternative-command-line-tools-to-compare-json-files/31933234#31933234
            
-            diff --side-by-side --suppress-common-lines --ignore-all-space --ignore-space-change \
+            diff --side-by-side --suppress-common-lines --ignore-all-space \
                     <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "result/${TEST}.out") \
                     <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "${OUT_JSON}") \
                     > "${OUT_DIFF}"
