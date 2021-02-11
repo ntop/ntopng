@@ -83,6 +83,9 @@ Ntop::Ntop(char *appName) {
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
 
+  for (int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
+    local_network_names[i] = local_network_aliases[i] = NULL;
+
 #ifndef WIN32
   if(can_send_icmp) {
     cping = new (std::nothrow) ContinuousPing();
@@ -251,6 +254,12 @@ void Ntop::initTimezone() {
 /* ******************************************* */
 
 Ntop::~Ntop() {
+  int num_local_networks = local_network_tree.getNumAddresses();
+  for (int i = 0; i < num_local_networks; i++) {
+    if (local_network_names[i] != NULL) free(local_network_names[i]);
+    if (local_network_aliases[i] != NULL) free(local_network_aliases[i]);
+  }
+
   if(httpd)
     delete httpd; /* Stop the http server before tearing down network interfaces */
 
