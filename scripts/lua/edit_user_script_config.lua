@@ -27,7 +27,7 @@ local subdir = _POST["script_subdir"]
 local confset_id = tonumber(_POST["confset_id"] or user_scripts.DEFAULT_CONFIGSET_ID)
 local script_key = _POST["script_key"]
 local alert_severity = _POST['alert_severity']
-local alert_exclusion_list = _POST['alert_exclusion_list']
+local alert_exclusion_list = _POST['script_exclusion_list']
 
 -- ################################################
 

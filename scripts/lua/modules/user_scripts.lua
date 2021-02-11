@@ -1116,7 +1116,26 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
 
    if script then
       local prev_config = config[subdir][script_key]
+      
+      -- Perform hook callbacks for config changes, or enable/disable
+      for hook, hook_config in pairs(prev_config) do
+	 applied_config[hook] = hook_config
+	 local hook_applied_config = applied_config[hook]
 
+	 if hook_applied_config then
+	    if script.onDisable and hook_config.enabled and not hook_applied_config.enabled then
+	       -- Hook previously disabled has been enabled
+	       script.onDisable(hook, hook_applied_config)
+	    elseif script.onEnable and not hook_config.enabled and hook_applied_config.enabled then
+	       -- Hook previously enabled has now been disabled
+	       script.onEnable(hook, hook_applied_config)
+	    elseif script.onUpdateConfig and not table.compare(hook_config, applied_config[hook]) then
+	       -- Configuration for the hook has changed
+	       script.onUpdateConfig(hook, hook_applied_config)
+	    end
+	 end
+      end
+      
       -- Updating the filters
       if additional_filters then
 	 applied_config["filter"] = prev_config["filter"]
@@ -1139,31 +1158,12 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
 	    -- There can be multiple filters, so cycle through them
 	    for _, new_filter in pairs(additional_filters["new_filters"]) do
 	       local add_params = filterIsEqual(applied_config["filter"]["current_filters"], new_filter)
-	       
+
 	       if add_params > 0 then
 		  applied_config["filter"]["current_filters"][add_params] = new_filter
 	       else
 		  return false, i18n("configsets.wrong_args_ex_list", {new_filter})
 	       end
-	    end
-	 end
-      end
-      
-      -- Perform hook callbacks for config changes, or enable/disable
-      for hook, hook_config in pairs(prev_config) do
-	 applied_config[hook] = hook_config
-	 local hook_applied_config = applied_config[hook]
-
-	 if hook_applied_config then
-	    if script.onDisable and hook_config.enabled and not hook_applied_config.enabled then
-	       -- Hook previously disabled has been enabled
-	       script.onDisable(hook, hook_applied_config)
-	    elseif script.onEnable and not hook_config.enabled and hook_applied_config.enabled then
-	       -- Hook previously enabled has now been disabled
-	       script.onEnable(hook, hook_applied_config)
-	    elseif script.onUpdateConfig and not table.compare(hook_config, applied_config[hook]) then
-	       -- Configuration for the hook has changed
-	       script.onUpdateConfig(hook, hook_applied_config)
 	    end
 	 end
       end
