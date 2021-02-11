@@ -73,15 +73,15 @@ end
 
 local additional_filters = {}
 if alert_exclusion_list ~= nil then
-  success, additional_filters = user_scripts.parseFilterParams(alert_exclusion_list)
+  success, additional_filters = user_scripts.parseFilterParams(alert_exclusion_list, subdir, true)
 
   if not success then
-    err            = additional_filters
+    err = additional_filters
     goto response
   end
 end
 
-success, err = user_scripts.updateScriptConfig(confset_id, script_key, subdir, data, additional_params, additional_filters, true)
+success, err = user_scripts.updateScriptConfig(confset_id, script_key, subdir, data, additional_params, additional_filters)
 
 ::response::
 

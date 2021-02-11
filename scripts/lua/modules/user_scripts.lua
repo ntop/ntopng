@@ -80,7 +80,7 @@ local available_subdirs = {
       -- User script execution filters (field names are those that arrive from the C Flow.cpp)
       filter = {
 	 -- Default fields populated automatically when creating filters
-	 default_fields   = {"srv_addr", "srv_port", "l7_proto"},
+	 default_fields   = {"srv_addr", "srv_port", "proto"},
 	 -- All possible filter fields
 	 available_fields = {
 	    cli_addr = http_lint.validateIpAddress,
@@ -208,6 +208,19 @@ function user_scripts.getScriptType(search_subdir)
 
    -- Not found
    return(nil)
+end
+
+-- ##############################################
+
+-- @brief Given a subdir, returns the corresponding numeric id
+local function getSubdirId(subdir_name)
+   for id, values in pairs(available_subdirs) do
+      if values["id"] == subdir_name then
+	 return id
+      end
+   end
+
+   return -1
 end
 
 -- ##############################################
@@ -1023,16 +1036,16 @@ end
 
 -- ##############################################
 
-local function checkExclusionList(applied_config, new_filter)
+local function filterIsEqual(applied_config, new_filter)
    local ctr = 1
 
-   if applied_config["filters"] == nil then
-      applied_config["filters"] = {}
+   if applied_config == nil then
+      applied_config = {}
       
       return ctr
    end
 
-   for counter, filter in pairs(applied_config["filters"]) do
+   for counter, filter in pairs(applied_config) do
       if table.compare(filter, new_filter) then
          return 0
       end
@@ -1046,7 +1059,7 @@ end
 -- ##############################################
 
 -- @brief Update the configuration of a specific script in a configset
-function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config, additional_params, additional_filters, remove_filters)
+function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config, additional_params, additional_filters)
    local configsets = user_scripts.getConfigsets()
    -- additional_params contains additional params for script conf such as the severity
    additional_params = additional_params or {}
@@ -1104,27 +1117,42 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
    if script then
       local prev_config = config[subdir][script_key]
 
+      -- Updating the filters
+      if additional_filters then
+	 applied_config["filter"] = prev_config["filter"]
+	 -- If filter reset requested, clear all the filters
+	 if additional_filters["reset_filters"] then
+	    applied_config["filter"] = {}
+	 end
+	 
+	 if not applied_config["filter"] then
+	    applied_config["filter"] = {}
+	 end
+
+	 if not applied_config["filter"]["current_filters"] then
+	    applied_config["filter"]["current_filters"] = {}
+	 end
+
+	 if table.len(additional_filters) == 0 then
+	    applied_config["filter"]["current_filters"] = {}
+	 else
+	    -- There can be multiple filters, so cycle through them
+	    for _, new_filter in pairs(additional_filters["new_filters"]) do
+	       local add_params = filterIsEqual(applied_config["filter"]["current_filters"], new_filter)
+	       
+	       if add_params > 0 then
+		  applied_config["filter"]["current_filters"][add_params] = new_filter
+	       else
+		  return false, i18n("configsets.wrong_args_ex_list", {new_filter})
+	       end
+	    end
+	 end
+      end
+      
       -- Perform hook callbacks for config changes, or enable/disable
       for hook, hook_config in pairs(prev_config) do
+	 applied_config[hook] = hook_config
 	 local hook_applied_config = applied_config[hook]
-	 
-         if additional_filters then
-	    applied_config[hook] = prev_config[hook]
-
-	    if remove_filters == true then
-	       applied_config[hook]["script_conf"]["filters"] = {}
-	    end
-
-	    for _, values in pairs(additional_filters) do
-	       local add_params = checkExclusionList(applied_config[hook]["script_conf"], values)
-
-	       if add_params > 0 then
-	          applied_config[hook]["script_conf"]["filters"][add_params] = values
-	       else
-		  return false, i18n("configsets.wrong_args_ex_list", {values})
-	       end
-            end
-	 end
 
 	 if hook_applied_config then
 	    if script.onDisable and hook_config.enabled and not hook_applied_config.enabled then
@@ -1361,14 +1389,6 @@ function user_scripts.isSystemScriptEnabled(script_key)
       end
    end
 
-   -- Adding the filters for the alert exclusion list
-   for key, filters in pairs(default_filter_suppression) do
-      if not conf.script_conf["filter"][key] then
-         conf.script_conf["filter"][key] = filters
-      end
-   end
-
-
    return(false)
 end
 
@@ -1496,8 +1516,14 @@ function user_scripts.getFilterPreset(alert)
    local filter_string    = ''
    local script_type      = user_scripts.getScriptType(subdir)
    local script           = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
-
+   local filter_to_use   = {}
+   local subdir_id        = getSubdirId(subdir)
+   
    if not script then
+      return ''
+   end
+
+   if subdir_id == -1 then
       return ''
    end
    
@@ -1505,50 +1531,75 @@ function user_scripts.getFilterPreset(alert)
       return ''
    end
 
-   local configsets = user_scripts.getConfigsets()
-   local configset = configsets[0]
+   -- Checking if the script has default filter fields or not
+   -- if not, getting the default for the subdir
+   if script["filter"]["default_fields"] then
+      filter_to_use = script["filter"]["default_fields"] or {}
+   else
+      filter_to_use = available_subdirs[subdir_id]["filter"]["default_fields"] or {}
+   end
 
-   for _, filters in pairs(script.filter.default_filter) do
-      local tmp_filter = ''
-      if alert[filters] then
-         filter_string = filter_string .. filters .. "=" .. alert[filters] .. ","
+   local filter_table = {}
+   local index        = 1
+   for _, field in pairs(filter_to_use) do
+      if alert[field] then
+	 -- Forming the string e.g. srv_addr=1.1.1.1
+	 filter_table[index] = field .. "=" .. alert[field]
+	 index = index + 1
       end
    end
 
-   if not isEmptyString(filter_string) then
-      filter_string = filter_string:sub(1, -2)
-   end
-   
-   return filter_string
+   -- Creating the required string to print into the GUI
+   return table.concat(filter_table, ",")
 end
 
 -- #################################
 
-function user_scripts.parseFilterParams(additional_params)
-   local separator  = ";"
-   local param_list = {}
+function user_scripts.parseFilterParams(additional_filters, subdir, reset_filters)
+   local separator   = ";"
+   local filter_list = {}
+   local param_list  = {}
 
-   -- Sanity Check
-   if additional_params:match("(.*)_$") or additional_params:match("(.*);$") then
-      additional_params = additional_params:sub(1, -2)
-   end
-
-   if isEmptyString(additional_params) then
+   -- Empty string given, error
+   if isEmptyString(additional_filters) then
       return false, i18n("invalid_filters.empty")
    end
-
-   local ex_list = split(additional_params, separator)
-   local available_filters = available_subdirs[5]["filter"]["available_fields"]
    
+   -- Sanity Check, Sometimes js puts a "_" or a ";" at the end of the string so removes them
+   if additional_filters:match("(.*)_$") or additional_filters:match("(.*);$") then
+      additional_filters = additional_filters:sub(1, -2)
+   end
+
+   if reset_filters == true then
+      filter_list["reset_filters"] = "true"
+   end
+
+   filter_list["new_filters"] = {}
+   param_list = filter_list["new_filters"]
+   
+   -- Splitting on the ";" - ";" is used to remove "\n" from js
+   local ex_list = split(additional_filters, separator)
+   local subdir_id = getSubdirId(subdir)
+   
+   if subdir_id == -1 then
+      return false, i18n("invalid_filters.invalid_subdir")
+   end
+   
+   -- Retrieving the available filters for the subdir. e.g. flow subdir
+   local available_filters = available_subdirs[subdir_id]["filter"]["available_fields"]
+
    for num, filter in pairs(ex_list) do
       separator  = ","
+      -- Splitting the filters
       local parameters = split(filter, separator)
 
       for _,item in pairs(parameters) do
 	 if item ~= "" then
 	    separator        = "="
+	    -- Splitting filter name and filter value
 	    local items = split(item, separator)
 
+	    -- Checking that for each filter a key and a value is given
 	    if not table.len(items) == 2 then
 	       return false, i18n("invalid_filters.few_args", {args=item})
 	    end
@@ -1567,7 +1618,7 @@ function user_scripts.parseFilterParams(additional_params)
 
 	    -- Already added this param before, so 2 identical arguments given
 	    if param_list[num][items[1]] then
-	       return {}
+	       return false, i18n("invalid_filters.double_arg", {args=item})
 	    end
 
 	    param_list[num][items[1]] = items[2]
@@ -1578,12 +1629,14 @@ function user_scripts.parseFilterParams(additional_params)
       param_list[num]["str_format"] = filter
    end
 
-   return true, param_list
+   return true, filter_list
 end
 
 -- ##############################################
 
-function user_scripts.excludeAlert(alert, confid, script_key, subdir)
+-- @brief This function is going to check if the user script needs to be excluded
+--        from the list, due to not having filters or not
+function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
    local configsets = user_scripts.getConfigsets()
 
    if(configsets[confid] == nil) then
@@ -1593,39 +1646,42 @@ function user_scripts.excludeAlert(alert, confid, script_key, subdir)
    -- Getting the configuration
    local config = configsets[confid].config
    local conf   = config[subdir][script_key]
+   local applied_filter_config = {}
 
-   -- Cycling through the hooks conf
-   for hook, hook_config in pairs(conf) do
-      local hook_applied_config = conf[hook]["script_conf"]
+   -- Checking if the script has the field "filter.current_filters"
+   if conf["filter"] then
+      applied_filter_config = conf["filter"]["current_filters"]
+   end
 
-      -- Security check
-      if not hook_applied_config["filters"] or table.len(hook_applied_config["filters"]) == 0 then
-	 return false
-      end
-
-      -- Cycling through the filters
-      for _, values in pairs(hook_applied_config["filters"]) do
-	 local done = true
-	 -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
-	 for filter, value in pairs(values) do
-	    if filter == "str_format" then
-	       goto continue
-	    end
+   if not applied_filter_config then
+      return false
+   end
+   
+   -- Cycling through the filters
+   for _, values in pairs(applied_filter_config) do
+      local done = true
+      -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
+      for filter, value in pairs(values) do
+	 -- This string is used purely for graphics purposes by js,
+	 -- so skip the check for this
+	 if filter == "str_format" then
+	    goto continue
+	 end
 	    
-	    if alert[filter] ~= value then
-	       -- The alert has a different value for that filter
-	       done = false
-	       goto continue2
-	    end
-	    ::continue::
+	 if alert[filter] ~= value then
+	    -- The alert has a different value for that filter
+	    done = false
+	    goto continue2
 	 end
-
-	 if done then 
-	    return true
-	 end
-
-	 ::continue2::
+	 ::continue::
       end
+
+      -- if 
+      if done then
+	 return true
+      end
+
+      ::continue2::
    end
 
    -- all the filters are correct, exclude the alert

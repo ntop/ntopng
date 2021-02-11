@@ -1384,6 +1384,8 @@ local lang = {
      ["empty"]    = "Empty filter list",
      ["few_args"] = "Incorrect parameters, required a filter and its value but given only one \"%{args}\"",
      ["incorrect_args"] = "Incorrect parameters, one of the parameters is not supported or incorrect \"%{args}\"",
+     ["invalid_subdir"] = "Invalid subdir given",
+     ["double_arg"] = "Two identical parameters given \"%{args}\"",
   },
   ["flow_callbacks"] = {
     ["application_detected"] = "Application Detected",
@@ -4133,7 +4135,7 @@ local lang = {
   },
   ["scripts_list"] = {
     ["alert_severity"] = "Alert Severity",
-    ["alert_exclusion_list"] = "Exclusion List",
+    ["exclusion_list_title"] = "Exclusion List",
     ["all"] = "All",
     ["are_you_sure"] = "Your edits are not saved yet! Do you really want to close this dialog?",
     ["attention"] = "Attention",

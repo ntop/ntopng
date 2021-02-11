@@ -312,8 +312,8 @@ const get_unit_times = (seconds) => {
 
 /* ******************************************************* */
 
-function getSanitizedExList(alert_exclusion_list) {
-    return alert_exclusion_list.split("\n").join(";");
+function getSanitizedScriptExList(script_exclusion_list) {
+    return script_exclusion_list.split("\n").join(";");
 }
 
 /* ******************************************************* */
@@ -323,13 +323,13 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
    const severitySelected = $(`#script-config-editor select[name='severity']`).val();
    const alert_severity = severitySelected || undefined;
    const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
-   var   alert_exclusion_list = exclusionList || undefined;
+   var   script_exclusion_list = exclusionList || undefined;
     
    const $apply_btn = $('#btn-apply');
    const $error_label = $("#apply-error");
 
-   if (alert_exclusion_list !== undefined) {
-      alert_exclusion_list = getSanitizedExList(alert_exclusion_list);  
+   if (script_exclusion_list !== undefined) {
+      script_exclusion_list = getSanitizedScriptExList(script_exclusion_list);  
    }
     
    // remove dirty class from form
@@ -341,7 +341,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       script_key: script_key,
       csrf: pageCsrf,
       alert_severity: alert_severity,
-      alert_exclusion_list: alert_exclusion_list,
+      script_exclusion_list: script_exclusion_list,
       JSON: JSON.stringify(template_data),
       confset_id: confset_id
    })
@@ -387,9 +387,9 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
          const {metadata} = reset_data;
          const hasSeverity = metadata.is_alert || false;
          const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
-	 var   alert_exclusion_list = exclusionList || undefined;
+	 var   script_exclusion_list = exclusionList || undefined;
      
-	 if (exclusionList) {
+	 if (script_exclusion_list) {
 	    $(`#script-config-editor textarea[name='exclusion-list']`).val('')
 	 }
 	  
@@ -1451,8 +1451,7 @@ function appendSeveritySelect(data) {
 
       let severity = data.metadata.default_value.severity.severity_id;
 
-      const hooksKeys = Object.keys(data.hooks);
-      const scriptConfSeverity = data.hooks[hooksKeys[0]].script_conf.severity;
+      const scriptConfSeverity = data.hooks.all.script_conf.severity;
 
       if (scriptConfSeverity) {
          severity = scriptConfSeverity.severity_id;
@@ -1481,26 +1480,23 @@ function appendSeveritySelect(data) {
 }
 
 function appendExclusionList(data) {
-   
-   const hasSeverity = data.metadata.is_alert || false;
-
-   if (data.metadata.default_value === undefined) return;
-           
    var ex_list_str = ""
-   const hooksKeys = Object.keys(data.hooks);
-   const scriptConfExList = data.hooks[hooksKeys[0]].script_conf.filters;
+   const scriptConfExList = data.hooks.filter;
    
    if (scriptConfExList) {
-      for (const [key, value] of Object.entries(scriptConfExList)) {
-	 if (value["str_format"]) {
-	    ex_list_str += value["str_format"] + "\n";
-	 } 
+      const scriptConfCurrFil = scriptConfExList.current_filters;
+      if (scriptConfCurrFil) {
+	  for (const [key, value] of Object.entries(scriptConfExList)) {
+	      if (value["str_format"]) {
+		  ex_list_str += value["str_format"] + "\n";
+	      } 
+	  }
       }
    }
     
    let $container;
    let $textarea = $($(`#exclusion-list-template`).html());
-   const label = "Exclusion List";
+   const label = i18n.scripts_list.exclusion_list_title;
    if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder )) {
       $container = $(`<tr></tr>`);
       $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(

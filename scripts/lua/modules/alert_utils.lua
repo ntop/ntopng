@@ -914,18 +914,23 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
    local err     = ""
    local update_err = ""
 
-   if get_params.filters then
-      additional_params  = get_params.filters
+   -- Checking if a new filter for the alert is added
+   if _POST["filters"] then
+      additional_filters = _POST["filters"]
 
       local success = ""
-      local params  = {}
-      
-      success, params = user_scripts.parseFilterParams(additional_params)
+      local new_filter  = {}
 
+      -- Getting the parameters
+      -- NB: THIS NEEDS TO BE DONE IN AJAX
+      success, new_filter = user_scripts.parseFilterParams(additional_filters, _POST["subdir"], false)
+      
       if success then
-	 success, update_err = user_scripts.updateScriptConfig(tonumber(get_params.confset_id), get_params.script_key, get_params.subdir, nil, nil, params)
+	 local confset_id = _POST["confset_id"]
+	 success, update_err = user_scripts.updateScriptConfig(tonumber(confset_id), _POST["script_key"], _POST["subdir"], nil, nil, new_filter)
       else
-	 update_err = params
+	 -- Error while parsing the params, error is printed
+	 update_err = new_filter
       end
    end
    -- this paramater is used to print out a card container for the table
