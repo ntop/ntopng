@@ -214,6 +214,8 @@ Prefs::~Prefs() {
   if(lan_interface)	free(lan_interface);
   if(wan_interface)	free(wan_interface);
   if(ndpi_proto_path)	free(ndpi_proto_path);
+  if(test_pre_script_path)  free(test_pre_script_path);
+  if(test_post_script_path) free(test_post_script_path);
 }
 
 /* ******************************************* */
