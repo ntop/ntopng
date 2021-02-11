@@ -330,8 +330,8 @@ Flow::~Flow() {
   if(cli2srvPktTime) delete cli2srvPktTime;
   if(srv2cliPktTime) delete srv2cliPktTime;
 
-  if(entropy.c2s) ndpi_free_data_analysis(entropy.c2s, 0);
-  if(entropy.s2c) ndpi_free_data_analysis(entropy.s2c, 0);
+  if(entropy.c2s) ndpi_free_data_analysis(entropy.c2s, 1);
+  if(entropy.s2c) ndpi_free_data_analysis(entropy.s2c, 1);
 
   if(isHTTP()) {
     if(protos.http.last_url)    free(protos.http.last_url);

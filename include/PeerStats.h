@@ -42,9 +42,9 @@ public:
   
   ~PeerStats() {
     if(contacted_peer_as_cli)
-      ndpi_free_data_analysis(contacted_peer_as_cli, 0);
+      ndpi_free_data_analysis(contacted_peer_as_cli, 1);
     if(contacted_peer_as_srv)
-      ndpi_free_data_analysis(contacted_peer_as_srv, 0);
+      ndpi_free_data_analysis(contacted_peer_as_srv, 1);
   }
 
   void init(u_int16_t _max_series_len) { ndpi_init_data_analysis(contacted_peer_as_cli, _max_series_len); };
@@ -66,8 +66,8 @@ public:
   bool getSlidingWinStatus()        { return(actual_num == _max_series_len); };
 
   void reset() {
-    if(contacted_peer_as_cli)   ndpi_free_data_analysis(contacted_peer_as_cli, 0);
-    if(contacted_peer_as_srv)   ndpi_free_data_analysis(contacted_peer_as_srv, 0);
+    if(contacted_peer_as_cli)   ndpi_free_data_analysis(contacted_peer_as_cli, 1);
+    if(contacted_peer_as_srv)   ndpi_free_data_analysis(contacted_peer_as_srv, 1);
     contacted_peer_as_cli =     ndpi_alloc_data_analysis(_max_series_len);
     contacted_peer_as_srv =     ndpi_alloc_data_analysis(_max_series_len);
   }
