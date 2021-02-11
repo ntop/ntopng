@@ -18,7 +18,7 @@ Run the Tests
 An automated test suite is available under ntopng/tests, in order
 to run it:
 
-1. Compile ntopng
+1. Compile ntopng. Please read the 'Memory Leak Detection' section in order to also enable the runtime memory leak detector.
 
 2. Make sure you have all the prerequisites installed: 
 
@@ -94,3 +94,22 @@ In order to run a specific test and avoid running all the suite, it is possible 
 cd ntopng/tests/rest
 ./run.sh -y=get_alert_data
 ```
+
+Memory Leak Detection
+=====================
+
+It is recommended to also enable the runtime memory leak detector
+based on the clang sanitizer when running the tests. This would
+check both memory errors and leaks (with no performance overhead). 
+
+In order to enable the sanitizer, please compile ntopng as below.
+
+```
+cd ntopng
+./autogen.sh
+./configure --with-sanitizer
+make
+```
+
+This will report at the end of each test any memory leak or bad
+memory access, if any.
