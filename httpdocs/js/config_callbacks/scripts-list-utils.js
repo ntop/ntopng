@@ -1451,7 +1451,14 @@ function appendSeveritySelect(data) {
 
       let severity = data.metadata.default_value.severity.severity_id;
 
-      const scriptConfSeverity = data.hooks.all.script_conf.severity;
+       const hooksKeys = Object.keys(data.hooks);
+       var index;
+       if (hooksKeys[0] === "filter") {
+	   index = hooksKeys[1];
+       } else {
+	   index = hooksKeys[0];
+       }
+       const scriptConfSeverity = data.hooks[index].script_conf.severity;
 
       if (scriptConfSeverity) {
          severity = scriptConfSeverity.severity_id;
@@ -1492,7 +1499,7 @@ function appendExclusionList(data) {
 	      } 
 	  }
       }
-   }
+      
     
    let $container;
    let $textarea = $($(`#exclusion-list-template`).html());
@@ -1512,6 +1519,7 @@ function appendExclusionList(data) {
 
    $(`#script-config-editor`).append($container);
    $(`#script-config-editor Textarea[name='exclusion-list']`).val(ex_list_str);
+   }
 }
 
 function delegateActionButton(gui) {
