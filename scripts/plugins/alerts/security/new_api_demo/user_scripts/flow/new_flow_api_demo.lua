@@ -20,7 +20,7 @@ local script = {
       -- Overrides filter.default_fields in the flow entry of user_scripts.available_subdirs
       -- This will make default filters populated only with the source IP
       -- NOTE: Fields must be in the filter.available_fields of the flow entry of user_scripts.available_subdirs
-      default_fields = {"srv.ip"},
+      default_fields = { "srv_addr", "srv_port", "proto" },
    },
 
    gui = {

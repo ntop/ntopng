@@ -83,13 +83,25 @@ local available_subdirs = {
 	 default_fields   = {"srv_addr", "srv_port", "proto"},
 	 -- All possible filter fields
 	 available_fields = {
-	    cli_addr = http_lint.validateIpAddress,
-	    cli_port = http_lint.validatePort,
-	    srv_addr = http_lint.validateIpAddress, 
-	    srv_port = http_lint.validatePort, 
-	    l7_proto = http_lint.validateProtocolIdOrName, 
-	    proto    = http_lint.validateProtocolIdOrName, 
-	    info     = http_lint.validateUnquoted,
+	    cli_addr = {
+	       lint = http_lint.validateIpAddress,
+	       getter = function(flow_info) return flow_info["cli.ip"] end
+	    },
+	    cli_port = {
+	       lint = http_lint.validatePort,
+	       getter = function(flow_info) return flow_info["cli.port"] end
+	    },
+	    srv_addr = {
+	       lint = http_lint.validateIpAddress,
+	       getter = function(flow_info) return flow_info["srv.ip"] end
+	    },
+	    srv_port = {
+	       lint = http_lint.validatePort,
+	       getter = function(flow_info) return flow_info["cli.port"] end
+	    },
+--	    l7_proto = http_lint.validateProtocolIdOrName, 
+--	    proto    = http_lint.validateProtocolIdOrName, 
+--	    info     = http_lint.validateUnquoted,
 	 }, 
       },
       -- No pools for flows
@@ -1584,49 +1596,51 @@ function user_scripts.parseFilterParams(additional_filters, subdir, reset_filter
    if subdir_id == -1 then
       return false, i18n("invalid_filters.invalid_subdir")
    end
-   
-   -- Retrieving the available filters for the subdir. e.g. flow subdir
-   local available_filters = available_subdirs[subdir_id]["filter"]["available_fields"]
 
-   for num, filter in pairs(ex_list) do
+   -- Retrieving the available filters for the subdir. e.g. flow subdir
+   local available_fields = available_subdirs[subdir_id]["filter"]["available_fields"]
+
+   for filter_num, filter in pairs(ex_list) do
       separator  = ","
       -- Splitting the filters
       local parameters = split(filter, separator)
 
-      for _,item in pairs(parameters) do
-	 if item ~= "" then
+      for _,field in pairs(parameters) do
+	 if field ~= "" then
 	    separator        = "="
 	    -- Splitting filter name and filter value
-	    local items = split(item, separator)
+	    local field_key_value = split(field, separator)
 
 	    -- Checking that for each filter a key and a value is given
-	    if not table.len(items) == 2 then
-	       return false, i18n("invalid_filters.few_args", {args=item})
+	    if not table.len(field_key_value) == 2 then
+	       return false, i18n("invalid_filters.few_args", {args=field})
 	    end
+
+	    local field_key   = field_key_value[1]
+	    local field_value = field_key_value[2]
 
 	    -- Getting the http_lint for the selected param, if no param is found
 	    -- then the filter is not correct
-	    local check_param = available_filters[items[1]]
 
-	    if check_param == nil or not check_param(items[2]) then
-	       return false, i18n("invalid_filters.incorrect_args", {args=item})
+	    if not available_fields[field_key] or not available_fields[field_key]["lint"] or not available_fields[field_key]["lint"](field_value) then
+	       return false, i18n("invalid_filters.incorrect_args", {args=field})
 	    end
-	 
-	    if not param_list[num] then
-	       param_list[num] = {}
+
+	    if not param_list[filter_num] then
+	       param_list[filter_num] = {}
 	    end
 
 	    -- Already added this param before, so 2 identical arguments given
-	    if param_list[num][items[1]] then
-	       return false, i18n("invalid_filters.double_arg", {args=item})
+	    if param_list[filter_num][field_key] then
+	       return false, i18n("invalid_filters.double_arg", {args=field})
 	    end
 
-	    param_list[num][items[1]] = items[2]
+	    param_list[filter_num][field_key] = field_value
 	 end
       end
 
       -- String format of the filter, used by js
-      param_list[num]["str_format"] = filter
+      param_list[filter_num]["str_format"] = filter
    end
 
    return true, filter_list
