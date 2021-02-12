@@ -195,7 +195,8 @@ http_lint.validateSingleWord = validateSingleWord
 
 -- @brief Returns true if inputstr is inside alert, function used to check
 --        if the filter is right or not
-local function validateScriptFilter(inputstr)   
+local function validateScriptFilter(inputstr)
+   inputstr = inputstr:gsub(" ", "")
    return validateListOfType(inputstr, validateSingleWord)
 end
 http_lint.validateScriptFilter = validateScriptFilter

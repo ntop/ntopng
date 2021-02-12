@@ -1618,6 +1618,8 @@ function user_scripts.parseFilterParams(additional_filters, subdir, reset_filter
       additional_filters = additional_filters:sub(1, -2)
    end
 
+   additional_filters = additional_filters:gsub(" ", "")
+
    if reset_filters == true then
       filter_list["reset_filters"] = "true"
    end

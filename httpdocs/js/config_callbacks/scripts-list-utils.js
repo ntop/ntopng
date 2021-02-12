@@ -313,7 +313,9 @@ const get_unit_times = (seconds) => {
 /* ******************************************************* */
 
 function getSanitizedScriptExList(script_exclusion_list) {
-    return script_exclusion_list.split("\n").join(";");
+    var ex_list_purified;
+    ex_list_purified = script_exclusion_list.split("\n").join(";");
+    return ex_list_purified.split(" ").join("");
 }
 
 /* ******************************************************* */
