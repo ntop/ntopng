@@ -89,21 +89,24 @@ local available_subdirs = {
 	 available_fields = {
 	    cli_addr = {
 	       lint = http_lint.validateIpAddress,
-	       getter = function(context) return flow.getClientIp() end
+	       match = function(context, val) return flow.getClientIp() == val end
 	    },
 	    cli_port = {
 	       lint = http_lint.validatePort,
-	       getter = function(context) return flow.getClientPort() end
+	       match = function(context, val) return flow.getClientPort() == tonumber(val) end
 	    },
 	    srv_addr = {
 	       lint = http_lint.validateIpAddress,
-	       getter = function(context) return flow.getServerIp() end
+	       match = function(context, val) return flow.getServerIp() == val end
 	    },
 	    srv_port = {
 	       lint = http_lint.validatePort,
-	       getter = function(context) return flow.getServerPort() end
+	       match = function(context, val) return flow.getServerPort() == tonumber(val) end
 	    },
---	    l7_proto = http_lint.validateProtocolIdOrName, 
+	    -- l7_proto = {
+	    --    lint = http_lint.validateProtocolIdOrName,
+	    --    match = function(context, val) return flow.getServerPort() end
+	    -- }
 --	    proto    = http_lint.validateProtocolIdOrName, 
 --	    info     = http_lint.validateUnquoted,
 	 }, 
@@ -1706,30 +1709,20 @@ function user_scripts.matchExcludeFilter(filters_config, script, subdir)
       local filter_matches = true
 
       for field_key, field_val in pairs(filter) do
-	 local actual_val
-
-	 if not available_fields[field_key] or not available_fields[field_key]["getter"] then
+	 if not available_fields[field_key] or not available_fields[field_key]["match"] then
 	    -- field_key not present among available_fields, or no getter available: - field_key is unsupported
+	    filter_matches = false
 	 else
-	    -- field_key is supported
-	    local val_getter = available_fields[field_key]["getter"]
-	    actual_val = val_getter()
-	 end
-
-	 if type(actual_val) == "number" and actual_val ~= tonumber(field_val) then -- Comparision between numbers
-	    -- Current filter not matching (check done using numbers)
-	    filter_matches = false
-	 elseif type(actual_val) ~= "number" and actual_val ~= field_val then
-	    -- Current filter not matching (check done using implicit types)
-	    filter_matches = false
+	    -- field_key is supported, let's evaluate the match function
+	    filter_matches = available_fields[field_key]["match"](nil --[[ no context --]], field_val --[[ the value --]])
 	 end
 
 	 if not filter_matches then
-	    if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": field NOT matching "..actual_val.." "..field_val) end
+	    if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": field NOT matching "..field_val) end
 	    -- There's no match. Just break, don't waste time evaluating other parts of the filter
 	    break
 	 else
-	    if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": field IS matching "..actual_val.." "..field_val) end
+	    if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": field IS matching "..field_val) end
 	    -- Don't break, continue the evaluation of this filter!
 	 end
       end
