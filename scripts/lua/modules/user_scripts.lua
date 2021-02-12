@@ -1194,8 +1194,6 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
 	    
 	    if add_params > 0 then
 	       filter_conf["filter"]["current_filters"][add_params] = new_filter
-	    else
-	       return false, i18n("configsets.wrong_args_ex_list", {new_filter})
 	    end
 	 end
       end

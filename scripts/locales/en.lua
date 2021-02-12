@@ -873,7 +873,7 @@ local lang = {
     ["bad_target"] = "Bad configuration target: \"%{target}\"",
     ["duplicate_target"] = "Target \"%{target}\" is assigned to both configuration \"%{confname1}\" and \"%{confname2}\"",
     ["error_exists"] = "The configuration name \"%{name}\" is already in use",
-    ["wrong_args_ex_list"] = "The parameters of the Exclusion list aren't correct. Uncorrect parameter: \"%{ex_list}\"",
+    ["wrong_args_ex_list"] = "The parameters of the Exclusion List aren't correct. Check if two Exclusion List aren't the same.",
     ["unknown_id"] = "No configuration found with id %{confid}",
     ["unknown_user_script"] = "Unknown user script \"%{user_script}\"",
   },
