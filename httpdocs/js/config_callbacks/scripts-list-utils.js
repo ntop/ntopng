@@ -1489,16 +1489,24 @@ function appendSeveritySelect(data) {
 }
 
 function appendExclusionList(data) {
-   var ex_list_str = ""
-   const scriptConfExList = data.hooks.filter;
+    var ex_list_str = ""
+    const scriptConfExList = data.filters;
     
    if (scriptConfExList) {
       const scriptConfCurrFil = scriptConfExList.current_filters;
       if (scriptConfCurrFil) {
-	  for (const [key, value] of Object.entries(scriptConfCurrFil)) {
-	      if (value["str_format"]) {
-		  ex_list_str += value["str_format"] + "\n";
-	      } 
+	  for (const [index, filters] of Object.entries(scriptConfCurrFil)) {
+	      for (const [name, value] of Object.entries(filters)) {
+		  // Concat the string to create a human readable string
+		  if (name === "str_format") {
+		      // Temporary check, needs to be removed in a few time
+		      continue;
+		  }
+		  ex_list_str = ex_list_str + name + "=" + value + ",";
+	      }
+		   
+	      ex_list_str = ex_list_str.slice(0, -1);
+	      ex_list_str = ex_list_str + "\n";
 	  }
       } 
    }

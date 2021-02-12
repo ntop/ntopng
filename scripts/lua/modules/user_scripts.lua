@@ -1122,6 +1122,27 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
    end
 
    local config = configsets[confid].config
+   local filter_conf = configsets[confid]
+
+   -- Creating the filters_conf if necessary
+   if not filter_conf["filters"] then
+      filter_conf["filters"] = {}
+   end
+
+   filter_conf = filter_conf["filters"]
+
+   if not filter_conf[subdir] then
+      filter_conf[subdir] = {}
+   end
+
+   filter_conf = filter_conf[subdir]
+
+   if not filter_conf[script_key] then
+      filter_conf[script_key] = {}
+   end
+
+   filter_conf = filter_conf[script_key]
+   ------------------------------------
 
    config[subdir] = config[subdir] or {}
 
@@ -1146,40 +1167,42 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
 	    end
 	 end
       end
+   end
+
+   -- Updating the filters
+   if additional_filters then
+      local new_filter_conf = filter_conf
+      -- If filter reset requested, clear all the filters
+      if additional_filters["reset_filters"] then
+	 filter_conf["filter"] = {}
+      end
       
-      -- Updating the filters
-      if additional_filters then
-	 applied_config["filter"] = prev_config["filter"]
-	 -- If filter reset requested, clear all the filters
-	 if additional_filters["reset_filters"] then
-	    applied_config["filter"] = {}
-	 end
-	 
-	 if not applied_config["filter"] then
-	    applied_config["filter"] = {}
-	 end
-
-	 if not applied_config["filter"]["current_filters"] then
-	    applied_config["filter"]["current_filters"] = {}
-	 end
-
-	 if table.len(additional_filters) == 0 then
-	    applied_config["filter"]["current_filters"] = {}
-	 else
-	    -- There can be multiple filters, so cycle through them
-	    for _, new_filter in pairs(additional_filters["new_filters"]) do
-	       local add_params = filterIsEqual(applied_config["filter"]["current_filters"], new_filter)
-
-	       if add_params > 0 then
-		  applied_config["filter"]["current_filters"][add_params] = new_filter
-	       else
-		  return false, i18n("configsets.wrong_args_ex_list", {new_filter})
-	       end
+      if not filter_conf["filter"] then
+	 filter_conf["filter"] = {}
+      end
+      
+      if not filter_conf["filter"]["current_filters"] then
+	 filter_conf["filter"]["current_filters"] = {}
+      end
+      
+      if table.len(additional_filters) == 0 then
+	 filter_conf["filter"]["current_filters"] = {}
+      else
+	 -- There can be multiple filters, so cycle through them
+	 for _, new_filter in pairs(additional_filters["new_filters"]) do
+	    local add_params = filterIsEqual(filter_conf["filter"]["current_filters"], new_filter)
+	    
+	    if add_params > 0 then
+	       filter_conf["filter"]["current_filters"][add_params] = new_filter
+	    else
+	       return false, i18n("configsets.wrong_args_ex_list", {new_filter})
 	    end
 	 end
       end
-   end
 
+      -- Updating the configuration
+      configsets[confid]["filters"][subdir][script_key] = new_filter_conf
+   end
    -- Set the new configuration
    config[subdir][script_key] = applied_config
 
@@ -1651,9 +1674,6 @@ function user_scripts.parseFilterParams(additional_filters, subdir, reset_filter
 	    param_list[filter_num][field_key] = field_value
 	 end
       end
-
-      -- String format of the filter, used by js
-      param_list[filter_num]["str_format"] = filter
    end
 
    return true, filter_list
@@ -1671,8 +1691,24 @@ function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
    end
 
    -- Getting the configuration
-   local config = configsets[confid].config
-   local conf   = config[subdir][script_key]
+   local config = configsets[confid]["filters"]
+
+   if not config then
+      return false
+   end
+   -- Security checks
+   local conf   = config[subdir]
+
+   if not conf then
+      return false
+   end
+
+   conf = conf[script_key]
+
+   if not conf then
+      return false
+   end
+   
    local applied_filter_config = {}
 
    -- Checking if the script has the field "filter.current_filters"
@@ -1689,12 +1725,6 @@ function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
       local done = true
       -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
       for filter, value in pairs(values) do
-	 -- This string is used purely for graphics purposes by js,
-	 -- so skip the check for this
-	 if filter == "str_format" then
-	    goto continue
-	 end
-	    
 	 if alert[filter] ~= value then
 	    -- The alert has a different value for that filter
 	    done = false
