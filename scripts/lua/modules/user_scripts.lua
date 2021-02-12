@@ -84,7 +84,7 @@ local available_subdirs = {
       -- User script execution filters (field names are those that arrive from the C Flow.cpp)
       filter = {
 	 -- Default fields populated automatically when creating filters
-	 default_fields   = {"srv_addr", "srv_port", "l7_proto"},
+	 default_fields   = {"srv_addr", "srv_port", "l7_proto", "proto" },
 	 -- All possible filter fields
 	 available_fields = {
 	    cli_addr = {
@@ -106,17 +106,25 @@ local available_subdirs = {
 	    l7_proto = {
 	       lint = http_lint.validateProtocolIdOrName,
 	       match = function(context, val)
-		  -- If val is the protocol name, then it is converted to protocol id
+		  -- If val is the application name, then it is converted to application id
 		  if not tonumber(val) then val = interface.getnDPIProtoId(val) end
 		  -- For integers represented as strings
 		  val = tonumber(val)
-		  -- Check for equality on either the master or application protocol
+		  -- Check for equality on either the master or application ids
 		  return flow.getnDPIMasterProtoId() == val or flow.getnDPIAppProtoId() == val
 	       end
+	    },
+	    proto = {
+	       lint = http_lint.validateProtocolIdOrName,
+	       match = function(context, val)
+		  -- If val is the protocol name, then it is converted to L4 protocol id
+		  if not tonumber(val) then val = l4_proto_to_id(val) end
+		  -- Check for equality on either the master or application protocol
+		  return flow.getProtocol() == tonumber(val)
+	       end
 	    }
---	    proto    = http_lint.validateProtocolIdOrName, 
 --	    info     = http_lint.validateUnquoted,
-	 }, 
+	 },
       },
       -- No pools for flows
    }, {

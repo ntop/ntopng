@@ -199,6 +199,17 @@ static int ntop_flow_is_remote_to_local(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_protocol(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_protocol());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_ndpi_cat_name(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1279,6 +1290,7 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "getServerKey",             ntop_flow_get_server_key             },
   { "getFlowProtoClientIP",     ntop_flow_get_proto_client_ip        },
   { "getFlowProtoServerIP",     ntop_flow_get_proto_server_ip        },
+  { "getProtocol",              ntop_flow_get_protocol               },
   { "getnDPICategoryName",      ntop_flow_get_ndpi_cat_name          },
   { "getnDPIProtocolName",      ntop_flow_get_ndpi_protocol_name     },
   { "getnDPICategoryId",        ntop_flow_get_ndpi_category_id       },
