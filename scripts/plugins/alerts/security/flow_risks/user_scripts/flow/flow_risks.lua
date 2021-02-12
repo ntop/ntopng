@@ -154,7 +154,7 @@ function script.hooks.protocolDetected(now, conf)
       -- Iterate all the currently detected flow risks
       local all_risks = flow.getRiskInfo()
 
-      for risk_str, risk_id in pairs(all_risks) do
+      for risk_str, risk_id in pairsByValues(all_risks, asc) do
 	 -- If the risk is not among those enabled, just skip it
 	 if not enabled_risks[risk_id] then
 	    goto continue
