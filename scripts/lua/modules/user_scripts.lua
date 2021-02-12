@@ -1086,7 +1086,6 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
    local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
 
    if(script) then
-
       -- Try to validate the configuration
       for hook, conf in pairs(new_config) do
 	 local valid = true
@@ -1483,6 +1482,20 @@ function user_scripts.getConfigById(configsets, configset_id, subdir)
 
    if configset and configset["config"] and configset["config"][subdir] then
       return configset["config"][subdir], configset.id
+   end
+
+   return {}, nil
+end
+
+-- ##############################################
+
+-- @brief Retrieve `subdir` filters from the configset identified with `configset_id` from all the available `configsets` passed
+function user_scripts.getFiltersById(configsets, configset_id, subdir)
+   configset_id = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
+   local configset = configsets[configset_id] or configsets[user_scripts.DEFAULT_CONFIGSET_ID]
+
+   if configset and configset["filters"] and configset["filters"][subdir] then
+      return configset["filters"][subdir], configset.id
    end
 
    return {}, nil
