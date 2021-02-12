@@ -317,6 +317,7 @@ run_tests() {
                 echo "[i] OK"
             else
                 send_error "Test Failure" "Unexpected output from the test '${TEST}'" "${OUT_DIFF}"
+                cp ${OUT_JSON} conflicts/${TEST}.out
                 RC=1
             fi
 
