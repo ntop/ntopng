@@ -31,6 +31,7 @@ local do_benchmark = false         -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
 local do_trace = false             -- Trace lua calls
 local flows_config = nil
+local flows_filters = nil
 local score_enabled = nil
 
 local available_modules = nil
@@ -140,8 +141,9 @@ function setup()
 
    local configsets = user_scripts.getConfigsets()
 
-   -- Flows config is system-wide, always take the DEFAULT_CONFIGSET_ID
+   -- Flows config and filters are system-wide, always take the DEFAULT_CONFIGSET_ID
    flows_config, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
+   flows_filters = user_scripts.getFiltersById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
    alerted_user_script = nil
 
    -- To execute flows, the viewed interface id is used instead, as flows reside in the viewed interface, not in the view
@@ -409,6 +411,14 @@ function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
       tprint("Invalid status_info")
       tprint(debug.traceback())
       return
+   end
+
+   -- Check if there is an alert filter for this guy and possibly exclude the generation
+   if cur_user_script and cur_user_script.key and flows_filters then
+      if user_scripts.matchExcludeFilter(flows_filters, cur_user_script, "flow") then
+	 -- This flow is matching an exclusion filter. return, and don't trigger anything
+	 return
+      end
    end
 
    -- Decide if this triggered status is also the alerted status, that is, the predominant

@@ -22,6 +22,10 @@ local user_scripts = {}
 
 -- ##############################################
 
+local filters_debug = false
+
+-- ##############################################
+
 user_scripts.field_units = {
   seconds = "field_units.seconds",
   bytes = "field_units.bytes",
@@ -80,24 +84,24 @@ local available_subdirs = {
       -- User script execution filters (field names are those that arrive from the C Flow.cpp)
       filter = {
 	 -- Default fields populated automatically when creating filters
-	 default_fields   = {"srv_addr", "srv_port", "proto"},
+	 default_fields   = {"srv_addr", "srv_port"},
 	 -- All possible filter fields
 	 available_fields = {
 	    cli_addr = {
 	       lint = http_lint.validateIpAddress,
-	       getter = function(flow_info) return flow_info["cli.ip"] end
+	       getter = function(context) return flow.getClientIp() end
 	    },
 	    cli_port = {
 	       lint = http_lint.validatePort,
-	       getter = function(flow_info) return flow_info["cli.port"] end
+	       getter = function(context) return flow.getClientPort() end
 	    },
 	    srv_addr = {
 	       lint = http_lint.validateIpAddress,
-	       getter = function(flow_info) return flow_info["srv.ip"] end
+	       getter = function(context) return flow.getServerIp() end
 	    },
 	    srv_port = {
 	       lint = http_lint.validatePort,
-	       getter = function(flow_info) return flow_info["cli.port"] end
+	       getter = function(context) return flow.getServerPort() end
 	    },
 --	    l7_proto = http_lint.validateProtocolIdOrName, 
 --	    proto    = http_lint.validateProtocolIdOrName, 
@@ -1677,6 +1681,71 @@ function user_scripts.parseFilterParams(additional_filters, subdir, reset_filter
    end
 
    return true, filter_list
+end
+
+-- ##############################################
+
+function user_scripts.matchExcludeFilter(filters_config, script, subdir)
+   local subdir_id = getSubdirId(subdir)
+
+   if subdir_id == -1 or not script or not script.key then
+      -- No script available
+      return false
+   end
+
+   if not filters_config or not filters_config[script.key] or not filters_config[script.key]["filter"] or not filters_config[script.key]["filter"]["current_filters"] then
+      -- No filter available for this script config
+      return false
+   end
+
+   -- Get the available fields for this given `subdir`
+   local available_fields = available_subdirs[subdir_id]["filter"]["available_fields"]
+
+   -- Iterate configured filters for this user script identified with `script.key`
+   for filter_num, filter in pairs(filters_config[script.key]["filter"]["current_filters"]) do
+      local filter_matches = true
+
+      for field_key, field_val in pairs(filter) do
+	 local actual_val
+
+	 if not available_fields[field_key] or not available_fields[field_key]["getter"] then
+	    -- field_key not present among available_fields, or no getter available: - field_key is unsupported
+	 else
+	    -- field_key is supported
+	    local val_getter = available_fields[field_key]["getter"]
+	    actual_val = val_getter()
+	 end
+
+	 if type(actual_val) == "number" and actual_val ~= tonumber(field_val) then -- Comparision between numbers
+	    -- Current filter not matching (check done using numbers)
+	    filter_matches = false
+	 elseif type(actual_val) ~= "number" and actual_val ~= field_val then
+	    -- Current filter not matching (check done using implicit types)
+	    filter_matches = false
+	 end
+
+	 if not filter_matches then
+	    if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": field NOT matching "..actual_val.." "..field_val) end
+	    -- There's no match. Just break, don't waste time evaluating other parts of the filter
+	    break
+	 else
+	    if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": field IS matching "..actual_val.." "..field_val) end
+	    -- Don't break, continue the evaluation of this filter!
+	 end
+      end
+
+      if filter_matches then
+	 -- There's a match with this filter! let's return
+	 if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": filter IS matching") end
+	 return true
+      else
+	 if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": filter NOT matching") end
+      end
+   end
+
+   -- No filter matching
+   if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": no matching filter, returning...") end
+   return false
 end
 
 -- ##############################################

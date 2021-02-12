@@ -24,9 +24,10 @@ local script = {
     severity = alert_severities.notice,
   },
 
+  
   -- For a full list check "available_subdir.flow.available_fields" in user_scripts.lua
   filter = {
-    default_fields = { "srv_addr", "srv_port", "proto" }
+    default_fields = { "srv_addr", "srv_port", }
   },
 
   -- NOTE: hooks defined below
