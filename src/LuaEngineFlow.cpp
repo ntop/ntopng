@@ -669,14 +669,69 @@ static int ntop_flow_get_goodput_ratio(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_get_client_key(lua_State* vm) {
+static int ntop_flow_get_ip(lua_State* vm, bool client) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+  char buf[64];
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  if(client)
+    lua_pushstring(vm, f->get_cli_ip_addr()->print(buf, sizeof(buf)));
+  else
+    lua_pushstring(vm, f->get_srv_ip_addr()->print(buf, sizeof(buf)));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_client_ip(lua_State* vm) {
+  return ntop_flow_get_ip(vm, true /* Client */);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_server_ip(lua_State* vm) {
+  return ntop_flow_get_ip(vm, false /* Server */);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_port(lua_State* vm, bool client) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  if(client)
+    lua_pushinteger(vm, f->get_cli_port());
+  else
+    lua_pushinteger(vm, f->get_srv_port());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_client_port(lua_State* vm) {
+  return ntop_flow_get_port(vm, true /* Client */);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_server_port(lua_State* vm) {
+  return ntop_flow_get_port(vm, false /* Server */);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_key(lua_State* vm, bool client) {
   Flow *f = ntop_flow_get_context_flow(vm);
   Host *h;
   char buf[64];
 
   if(!f) return(CONST_LUA_ERROR);
 
-  h = f->get_cli_host();
+  h = client ? f->get_cli_host() : f->get_srv_host();
   lua_pushstring(vm, h ? h->get_hostkey(buf, sizeof(buf), true /* force VLAN, required by flow.lua */) : "");
 
   return(CONST_LUA_OK);
@@ -684,17 +739,14 @@ static int ntop_flow_get_client_key(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_client_key(lua_State* vm) {
+  return ntop_flow_get_key(vm, true /* Client */);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_server_key(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-  Host *h;
-  char buf[64];
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  h = f->get_srv_host();
-  lua_pushstring(vm, h ? h->get_hostkey(buf, sizeof(buf), true /* force VLAN, required by flow.lua */) : "");
-
-  return(CONST_LUA_OK);
+  return ntop_flow_get_key(vm, false /* Server */);
 }
 
 /* ****************************************** */
@@ -1219,6 +1271,10 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "getBytesRcvd",             ntop_flow_get_bytes_rcvd             },
   { "getBytes",                 ntop_flow_get_bytes                  },
   { "getGoodputRatio",          ntop_flow_get_goodput_ratio          },
+  { "getClientIp",              ntop_flow_get_client_ip              },
+  { "getServerIp",              ntop_flow_get_server_ip              },
+  { "getClientPort",            ntop_flow_get_client_port            },
+  { "getServerPort",            ntop_flow_get_server_port            },
   { "getClientKey",             ntop_flow_get_client_key             },
   { "getServerKey",             ntop_flow_get_server_key             },
   { "getFlowProtoClientIP",     ntop_flow_get_proto_client_ip        },
