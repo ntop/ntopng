@@ -15,6 +15,7 @@ local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 local alert_consts = require "alert_consts"
 local http_lint = require("http_lint")
+local ipv4_utils = require "ipv4_utils"
 
 local info = ntop.getInfo()
 
@@ -88,16 +89,34 @@ local available_subdirs = {
 	 -- All possible filter fields
 	 available_fields = {
 	    cli_addr = {
-	       lint = http_lint.validateIpAddress,
-	       match = function(context, val) return flow.getClientIp() == val end
+	       lint = http_lint.validateNetwork,
+	       match = function(context, val)
+		  local client_ip = flow.getClientIp()
+		  -- Attempt exact match
+		  if client_ip == val then return true end
+		  -- Attempt IPv4 network match
+		  local network, netmask = ipv4_utils.cidr_2_addr(val)
+		  if network and netmask then return ipv4_utils.includes(network, netmask, client_ip) end
+		  -- No match
+		  return false
+	       end
 	    },
 	    cli_port = {
 	       lint = http_lint.validatePort,
 	       match = function(context, val) return flow.getClientPort() == tonumber(val) end
 	    },
 	    srv_addr = {
-	       lint = http_lint.validateIpAddress,
-	       match = function(context, val) return flow.getServerIp() == val end
+	       lint = http_lint.validateNetwork,
+	       match = function(context, val)
+		  local server_ip = flow.getServerIp()
+		  -- Attempt exact match
+		  if server_ip == val then return true end
+		  -- Attempt IPv4 network match
+		  local network, netmask = ipv4_utils.cidr_2_addr(val)
+		  if network and netmask then return ipv4_utils.includes(network, netmask, server_ip) end
+		  -- No match
+		  return false
+	       end
 	    },
 	    srv_port = {
 	       lint = http_lint.validatePort,
