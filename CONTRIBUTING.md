@@ -78,11 +78,11 @@ input: traffic.pcap
 localnet: 192.168.1.0/24
 
 pre: |
-  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "action": "enable"}' http://localhost:3000/lua/toggle_all_user_scripts.lua
+  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "action": "enable"}' http://localhost:3333/lua/toggle_all_user_scripts.lua
 
 post: |
   sleep 10
-  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "status": "historical-flows"}' http://localhost:3000/lua/rest/v1/get/alert/data.lua
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "status": "historical-flows"}' http://localhost:3333/lua/rest/v1/get/alert/data.lua
 
 ignore:
   - date
