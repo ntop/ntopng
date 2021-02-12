@@ -19,9 +19,9 @@ const toastConfigFlowChanges = function() {
 	    $('#toast-config-change-modal-flows').modal('hide');
 	},
 	error: function(rsp) {
-	    console.log("Unable to double max Flows. Please tune -X from the configuration file and restart ntopng.");
+	    $('#toast-config-change-modal-flows_more_content').show();
 	}
-    });
+     });
 }
 
 $('.toast-config-change-flows').click(() => {

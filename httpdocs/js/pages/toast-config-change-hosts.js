@@ -20,7 +20,7 @@ const toastConfigHostChanges = function() {
 	    $('#toast-config-change-modal-hosts').modal('hide');
 	},
 	error: function(rsp) {
-	    console.log("Unable to double max Hosts. Please tune -X from the configuration file and restart ntopng.");
+	    $('#toast-config-change-modal-hosts_more_content').show();
 	}
     });
 }
