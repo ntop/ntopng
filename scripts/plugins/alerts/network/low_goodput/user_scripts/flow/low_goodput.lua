@@ -27,7 +27,7 @@ local script = {
   
   -- For a full list check "available_subdir.flow.available_fields" in user_scripts.lua
   filter = {
-    default_fields = { "srv_addr", "srv_port", }
+    default_fields = { "srv_addr", "srv_port", "l7_proto" }
   },
 
   -- NOTE: hooks defined below
