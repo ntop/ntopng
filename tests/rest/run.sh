@@ -28,6 +28,7 @@ DISCORD_WEBHOOK=""
 TEST_NAME=""
 
 DEBUG_LEVEL=0
+KEEP_RUNNING=0
 
 NOTIFICATIONS_ON=false
 if [ -d packager ]; then
@@ -36,7 +37,16 @@ if [ -d packager ]; then
 fi
 
 function usage {
-    echo "Usage: run.sh [-y=<test file>] [-f=<mail from>] [-t=<mail to>] [-d=<discord webhook>] [-D=<debug level>]"
+    echo "Usage: run.sh [-y=<test>] [-f=<mail from>] [-t=<mail to>] [-d=<discord webhook>] [-D=<debug level>] [-K]"
+    echo ""
+    echo "Options:"
+    echo "[-y|--test]=<test>                | Run a selected test"
+    echo "[-f|--mail-from]=<address>        | Send notifications from the specified email address"
+    echo "[-t|--mail-to]=<address>          | Send notifications to the specified email address"
+    echo "[-d|--discord-webhook]=<endpoint> | Send notification to the specified Discord endpoint"
+    echo "[-D|--debug]=<level>              | Set the debug level (default 0)"
+    echo "[-K|--keep-running]               | Keep ntopng running after completing the test (with -y)"
+    echo "[-h|--help]                       | Print this help"
     exit 0
 }
 
@@ -61,6 +71,10 @@ do
 
 	-D=*|--debug=*)
 	    DEBUG_LEVEL=${i#*=}
+	    ;;
+
+	-K|--keep-running)
+	    KEEP_RUNNING=1
 	    ;;
 
 	-h|--help)
@@ -135,7 +149,9 @@ ntopng_init_conf() {
     echo "-p=${NTOPNG_TEST_CUSTOM_PROTOS}" >> ${NTOPNG_TEST_CONF}
     echo "-N=ntopng_test" >> ${NTOPNG_TEST_CONF}
     echo "--http-port=${NTOPNG_TEST_HTTP_PORT}" >> ${NTOPNG_TEST_CONF}
-    echo "--shutdown-when-done" >> ${NTOPNG_TEST_CONF}
+    if [ "${KEEP_RUNNING}" -eq "0" ]; then
+        echo "--shutdown-when-done" >> ${NTOPNG_TEST_CONF}
+    fi
     echo "--disable-login=1" >> ${NTOPNG_TEST_CONF}
     echo "--dont-change-user" >> ${NTOPNG_TEST_CONF}
     echo "--pid=./ntopng.pid" >> ${NTOPNG_TEST_CONF}
