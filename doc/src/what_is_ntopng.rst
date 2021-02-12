@@ -82,10 +82,67 @@ it means that your capture drivers have not been properly installed and that you
 
 
 .. note::   
+
    If during installation the installer complains for missing MSVCR120.DLL or MSVCR120P.DLL please
    download `Visual C++ Redistributable Package <https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package>`_
 
-   
+Software Updates
+================
+
+General instructions for updating the software can be found at
+http://packages.ntop.org/ together with the installation instructions.
+Depending on the Operating System, ntopng supports also automatic updates
+through the GUI as described in the below sections.
+
+Updating the Software on Linux
+------------------------------
+
+Instructions for updating the software via command line can be found
+at http://packages.ntop.org/. For example on Ubuntu/Debian systems the
+below commands will update the repository, check for updates and install
+the latest software update if any:
+
+.. code:: bash
+
+   apt-get update
+   apt-get upgrade
+
+Alternatively, it is also possible to check for software updates through
+the Web interface using the top-right menu as shown in the picture below.
+The system automatically checks for new updates overnight and report the
+new version if any. Otherwise it is also possible to force the check for
+new versions by clicking on *Check for updates* and waiting a few seconds
+(up to 1 minute) for the check to be performed.
+
+.. figure:: img/software_updates_check.png
+  :align: center
+  :width: 400
+  :alt: Check for Updates
+
+  Check for Updates Menu
+
+In the same menu, whenever a new ntopng version is available, it is possible
+to install it by clicking on *Install update*, as depicted below.
+
+.. figure:: img/software_updates_install.png
+  :align: center
+  :width: 400
+  :alt: Install Update
+
+  Install Update
+
+It is also possible to configure ntopng to self-update itself overnight, 
+this can be enabled through *Settings* > *Preferences* > *Updates*. By
+default ntopng does not update itself overnight as it requires restarting
+the service, but if you want you can enable this preference and let ntopng
+do everything automatically.
+ 
+.. figure:: img/software_updates_auto.png
+  :align: center
+  :alt: Automatic Updates
+
+  Automatic Updates Setting
+  
 Versions
 ========
 
