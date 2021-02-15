@@ -2100,7 +2100,9 @@ elseif (page == "config") then
          </td>
       </tr>]]
 
-   graph_utils.printPoolChangeDropdown(ifId, host_pool_id.."", have_nedge)
+   if host_pool_id ~= nil then
+      graph_utils.printPoolChangeDropdown(ifId, host_pool_id.."", have_nedge)
+   end
 
    print [[<tr>
          <th>]] print(i18n("host_config.hide_from_top")) print[[</th>
