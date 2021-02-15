@@ -1374,7 +1374,7 @@ function user_scripts.loadDefaultConfig()
    local ifid = getSystemInterfaceId()
    local configsets = user_scripts.getConfigsets()
    local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
-   local default_filters = configsets[user_scripts.DEFAULT_CONFIGSET_ID]["filters"] or {}
+   local default_filters
    
    if default_conf then
       default_conf = default_conf.config or {}
@@ -1384,6 +1384,8 @@ function user_scripts.loadDefaultConfig()
    else
       default_conf = {}
    end
+
+   default_filters = default_conf["filters"] or {}
 
    for type_id, script_type in pairs(user_scripts.script_types) do
       for _, subdir in pairs(script_type.subdirs) do
