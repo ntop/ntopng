@@ -169,6 +169,18 @@ function loadGraph(container) {
         data = response;
 
         const {nodes, edges} = data;
+
+        console.log(nodes)
+        // if there are no nodes then show a simple message
+        if (nodes.length === 0) {
+            // hide the spinner and show the message
+            $(`#load-spinner`).fadeOut(function() { 
+                $(this).remove(); 
+                $(`#empty-map-message`).fadeIn();
+            });
+            return;
+        }
+
         nodesDataset = new vis.DataSet(nodes);
         edgesDataset = new vis.DataSet(edges);
         const datasets = {nodes: nodesDataset, edges: edgesDataset};
