@@ -320,8 +320,8 @@ run_tests() {
             # https://stackoverflow.com/questions/31930041/using-jq-or-alternative-command-line-tools-to-compare-json-files/31933234#31933234
            
             diff --side-by-side --suppress-common-lines --ignore-all-space \
-                    <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "result/${TEST}.out") \
-                    <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "${OUT_JSON}") \
+                    <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "result/${TEST}.out" | sort) \
+                    <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "${OUT_JSON}" | sort) \
                     > "${OUT_DIFF}"
 
             if [ -s "${IGNORE}" ]; then
@@ -334,9 +334,14 @@ run_tests() {
             if [ `cat "${OUT_DIFF}" | wc -l` -eq 0 ]; then
                 ((NUM_SUCCESS=NUM_SUCCESS+1))
                 echo "[i] OK"
+
+                # Remove old conflicts if any
+                rm -f conflicts/${TEST}.out
             else
-                send_error "Test Failure" "Unexpected output from the test '${TEST}'" "${OUT_DIFF}"
+                # Store the new output under conflicts for debugging
                 cp ${OUT_JSON} conflicts/${TEST}.out
+
+                send_error "Test Failure" "Unexpected output from the test '${TEST}'. Please check conflicts/${TEST}.out" "${OUT_DIFF}"
                 RC=1
             fi
 
