@@ -556,20 +556,6 @@ local function formatRawFlow(ifid, alert, alert_json)
       flow = flow.."[" .. l4_proto_label .. "] "
    end
 
-   local l7proto_name = interface.getnDPIProtoName(tonumber(alert["l7_proto"]) or 0)
-
-   if alert["l7_master_proto"] and alert["l7_master_proto"] ~= "0" then
-      local l7proto_master_name = interface.getnDPIProtoName(tonumber(alert["l7_master_proto"]))
-
-      if l7proto_master_name ~= l7proto_name then
-	 l7proto_name = string.format("%s.%s", l7proto_master_name, l7proto_name)
-      end
-   end
-
-   if not isEmptyString(l7proto_name) and l4_proto_label ~= l7proto_name then
-      flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
-   end
-
    if alert_json ~= nil then
       -- render the json
       local msg = ""
@@ -582,8 +568,8 @@ local function formatRawFlow(ifid, alert, alert_json)
          local lb = ""
 	 local info
 
-	 if string.len(alert_json["info"]) > 60 then
-	    info = "<abbr title=\"".. alert_json["info"] .."\">".. shortenString(alert_json["info"], 60)
+	 if string.len(alert_json["info"]) > 24 then
+	    info = "<abbr title=\"".. alert_json["info"] .."\">".. shortenString(alert_json["info"], 24)
 	 else
 	    info = alert_json["info"]
 	 end
