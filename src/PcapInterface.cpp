@@ -375,7 +375,7 @@ static void* packetPollLoop(void* ptr) {
     } /* while */
   } while(pcap_list != NULL);
 
-  iface->purgeIdle(time(NULL), false, true /* full scan */);
+  iface->purgeIdle(time(NULL), false, true /* Full scan */);
 
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
     iface->set_read_from_pcap_dump_done();

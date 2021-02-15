@@ -593,9 +593,11 @@ void Ntop::start() {
 
       /* When they are done, signal ntopng to shutdown */
       if(i == get_num_interfaces()) {
+	/* One extra housekeeping before executing tests (this assumes all flows have been walked) */
+	runHousekeepingTasks();
 
 	/* Allow NetworkInterface::hookFlowLoop to process all enqueued flows for hook execution */
-	sleep(1); 
+	sleep(1);
 
 	/* Test Script (Post Analysis) */
 	if(ntop->getPrefs()->get_test_post_script_path()) {
