@@ -1374,7 +1374,8 @@ function user_scripts.loadDefaultConfig()
    local ifid = getSystemInterfaceId()
    local configsets = user_scripts.getConfigsets()
    local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
-
+   local default_filters = configsets[user_scripts.DEFAULT_CONFIGSET_ID]["filters"] or {}
+   
    if default_conf then
       default_conf = default_conf.config or {}
 
@@ -1408,11 +1409,12 @@ function user_scripts.loadDefaultConfig()
 	 end
       end
    end
-
+   
    configsets[user_scripts.DEFAULT_CONFIGSET_ID] = {
       id = user_scripts.DEFAULT_CONFIGSET_ID,
       name = i18n("policy_presets.default"),
       config = default_conf,
+      filters = default_filters,
    }
 
    saveConfigsets(configsets)
