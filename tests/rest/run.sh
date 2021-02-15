@@ -203,24 +203,37 @@ ntopng_run() {
 
     cd ${NTOPNG_ROOT};
 
+    touch ${5}
     if [ "${DEBUG_LEVEL}" -gt "0" ]; then
-        ./ntopng ${NTOPNG_TEST_CONF} > ${5}.raw 2>&1
+        ./ntopng ${NTOPNG_TEST_CONF}
     else
-        ./ntopng ${NTOPNG_TEST_CONF} 2>&1 | grep -i "ERROR:\|WARNING:\|Direct leak\|    #" > ${5}.raw
+        ./ntopng ${NTOPNG_TEST_CONF} > ${5} 2>&1
     fi
 
+    cd ${TESTS_PATH}
+}
+
+#
+# Run ntopng
+# Params:
+# $1 - ntopng raw output file
+# $2 - Filtered output file
+#
+filter_ntopng_log() {
+
+    cat ${1} | grep -i "ERROR:\|WARNING:\|Direct leak\|    #" > ${2}.stage1
+
     # Process output
-    touch ${5}
+    touch ${2}
     while IFS= read -r line; do
         if [[ ${line} == *"    #"* ]] && [[ ${line} == *" 0x"* ]]; then
-            echo "${line}" | awk '{print $2}' | xargs addr2line -e ntopng >> ${5}
+            echo "${line}" | awk '{print $2}' | xargs addr2line -e ntopng >> ${2}
         else
-            echo "${line}" >> ${5}
+            echo "${line}" >> ${2}
         fi
-    done <${5}.raw
-    rm -f ${5}.raw
+    done <${2}.stage1
 
-    cd ${TESTS_PATH}
+    rm -f ${2}.stage1
 }
 
 RC=0
@@ -257,6 +270,7 @@ run_tests() {
         # Init paths
         TMP_FILE=$(mktemp)
         NTOPNG_LOG=${TMP_FILE}.ntopng
+        NTOPNG_FILTERED_LOG=${TMP_FILE}.filtered
         SCRIPT_OUT=${TMP_FILE}.out
         OUT_JSON=${TMP_FILE}.json
         OUT_DIFF=${TMP_FILE}.diff
@@ -274,10 +288,15 @@ run_tests() {
         # Run the test
         ntopng_run "${PCAP}" "${PRE_TEST}" "${POST_TEST}" "${SCRIPT_OUT}" "${NTOPNG_LOG}" "${LOCALNET}"
 
-        if [ -s "${NTOPNG_LOG}" ]; then
+        # Filter/process ntopng output
+        filter_ntopng_log "${NTOPNG_LOG}" "${NTOPNG_FILTERED_LOG}"
+
+        if [ -s "${NTOPNG_FILTERED_LOG}" ]; then
             # ntopng Error/Warning
 
-            send_error "ntopng Error" "ntopng generated errors or warnings running '${TEST}'" "${NTOPNG_LOG}"
+            cp ${NTOPNG_LOG} logs/${TEST}.log
+
+            send_error "ntopng Error" "ntopng generated errors or warnings running '${TEST}'" "${NTOPNG_FILTERED_LOG}"
             RC=1
 
         elif [ ! -s "${SCRIPT_OUT}" ]; then
@@ -323,7 +342,7 @@ run_tests() {
 
         fi
 
-        /bin/rm -f ${TMP_FILE} ${SCRIPT_OUT} ${NTOPNG_LOG} ${OUT_DIFF} ${OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE}
+        /bin/rm -f ${TMP_FILE} ${SCRIPT_OUT} ${NTOPNG_LOG} ${NTOPNG_FILTERED_LOG} ${OUT_DIFF} ${OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE}
     done
 
     if [ "${NUM_SUCCESS}" == "${NUM_TESTS}" ]; then
