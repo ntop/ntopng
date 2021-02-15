@@ -170,7 +170,6 @@ function loadGraph(container) {
 
         const {nodes, edges} = data;
 
-        console.log(nodes)
         // if there are no nodes then show a simple message
         if (nodes.length === 0) {
             // hide the spinner and show the message
@@ -205,13 +204,24 @@ function stabilizeNetwork(network) {
 
     network.stabilize(1000);
 
-    setTimeout(() => {
-        saveTopologyView(network);
-    }, 1000);
+    setTimeout(() => { saveTopologyView(network) }, 1000);
 
     $(`#autolayout-modal`).modal('hide');
 }
 
+(() => {
+    // load old scale for resizable containers
+    const oldScale = NtopUtils.loadElementScale($(`.resizable-y-container`))
+    $(`.resizable-y-container`).width(oldScale.width);
+    $(`.resizable-y-container`).height(oldScale.height);
+})();
+
 $(document).ready(function() {
+
+    $(`.resizable-y-container`).on('mouseup', function() {
+        const scale = {width: $(this).width(), height: $(this).height()};
+        NtopUtils.saveElementScale($(this), scale);
+    });
+
     $(`button[data-toggle="tooltip"]`).tooltip();
 });
