@@ -381,6 +381,13 @@ static void* packetPollLoop(void* ptr) {
     sleep(1);
   }
 
+  if(ntop->getPrefs()->get_test_post_script_path()) {
+    /* Note: wait for the periodic scripts (3s frequency) before
+     * the purge idle if a post script has been configured */
+    sleep(5);
+  }
+
+  /* Run final purge idle scanning the whole hash */
   iface->purgeIdle(time(NULL), true /* force idle */, true /* full scan */);
   
   return(NULL);
