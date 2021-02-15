@@ -311,7 +311,8 @@ function shouldUpdate(list_name, list, now)
    next_update = getNextListUpdate(list, now)
 
    if next_update == -1 then
-      return false
+      return ((not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
+               (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1"))
    end
 
    if(false) then

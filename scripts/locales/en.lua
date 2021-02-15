@@ -743,7 +743,7 @@ local lang = {
     ["idle_time"] = "Idle Time Alert",
     ["ingress_traffic"] = "Ingress Traffic Alert",
     ["inner_traffic"] = "Inner Traffic Alert",
-    ["manual"] = "Manually",
+    ["manual"] = "Manual",
     ["note_add_custom_scripts"] = "%{product} looks for custom scripts in these <a href=\"%{url}\"> <i class=\"fas fa-folder\"></i> directories</a>.",
     ["note_checks_on_active_hosts"] = "Checks are only performed for active hosts.",
     ["note_consecutive_checks"] = "Consecutive checks are not necessarily performed on consecutive periods. For example, if an host goes idle, its thresholds will not be checked until it becomes active again.",
