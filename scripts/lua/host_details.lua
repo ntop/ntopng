@@ -302,11 +302,18 @@ else
    local service_map_available = false
    local num_periodicity = 0
 
+   local service_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?host=" .. host_ip
+   local periodicity_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?&host=" .. host_ip
+
    if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
       local service_map = interface.serviceMap(_GET["host"])
 
       if service_map and (table.len(service_map) > 0) then
          service_map_available = true
+      end
+
+      if host_vlan ~= 0 then
+         service_map_link = service_map_link .. "&vlan=" .. host_vlan
       end
    end
 
@@ -316,6 +323,10 @@ else
       if periodicity_map and (table.len(periodicity_map) > 0) then
          num_periodicity = table.len(periodicity_map)
          periodicity_map_available = true
+      end
+
+      if host_vlan ~= 0 then
+         periodicity_map_link = periodicity_map_link .. "&vlan=" .. host_vlan
       end
    end
 
@@ -458,7 +469,7 @@ else
 				 hidden = not periodicity_map_available,
 				 active = page == "periodicity_map",
              page_name = "periodicity_map",
-             url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?&host=" .. host_ip,
+             url = periodicity_map_link,
 				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
 			      },
 			      {
@@ -466,7 +477,7 @@ else
 				 active = page == "service_map",
 				 page_name = "service_map",
              label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
-             url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?host=" .. host_ip
+             url = service_map_link
 			      },
 			      {
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
