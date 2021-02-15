@@ -192,6 +192,12 @@ static void* packetPollLoop(void* ptr) {
   if(ntop->getPrefs()->get_test_pre_script_path()) {
     const char *test_pre_script_path = ntop->getPrefs()->get_test_pre_script_path();
 
+    /* Wait for the HTTP server to be able to serve requests
+     * from the pre script, if any */
+    while (!ntop->get_HTTPserver()->accepts_requests()
+	   && !ntop->getGlobals()->isShutdown())
+      sleep(1);
+
 #if 0 /* Lua support */
     if (Utils::hasExtension(test_pre_script_path, ".lua")) {
       char test_path[MAX_PATH];
