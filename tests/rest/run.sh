@@ -214,7 +214,7 @@ ntopng_run() {
 }
 
 #
-# Run ntopng
+# Filter ntopng log
 # Params:
 # $1 - ntopng raw output file
 # $2 - Filtered output file
@@ -234,6 +234,21 @@ filter_ntopng_log() {
     done <${2}.stage1
 
     rm -f ${2}.stage1
+}
+
+#
+# Filter test output (JSON) to remove fields that can change
+# Params:
+# $1 - JSON file
+# $2 - File with items to be ignores
+#
+filter_json() {
+    if [ -s "${2}" ]; then
+        TMP=${1}.1
+        cat ${1} | grep -v -f "${IGNORE}" > ${TMP}
+        cat ${TMP} > ${1}
+        /bin/rm -f ${TMP}
+    fi
 }
 
 RC=0
@@ -277,6 +292,8 @@ run_tests() {
         PRE_TEST=${TMP_FILE}.pre
         POST_TEST=${TMP_FILE}.post
         IGNORE=${TMP_FILE}.ignore
+        FORMATTED_OLD_OUT=${TMP_FILE}.new
+        FORMATTED_NEW_OUT=${TMP_FILE}.old
 
         # Parsing YAML
         PCAP=`cat tests/${TEST}.yaml | shyaml -q get-value input`
@@ -319,17 +336,13 @@ run_tests() {
             # Comparison of two JSONs in bash, see
             # https://stackoverflow.com/questions/31930041/using-jq-or-alternative-command-line-tools-to-compare-json-files/31933234#31933234
            
-            diff --side-by-side --suppress-common-lines --ignore-all-space \
-                    <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "result/${TEST}.out" | sort) \
-                    <(jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "${OUT_JSON}" | sort) \
-                    > "${OUT_DIFF}"
-
-            if [ -s "${IGNORE}" ]; then
-                TMP_OUT_DIFF=${OUT_DIFF}.1
-                cat ${OUT_DIFF} | grep -v -f "${IGNORE}" > ${TMP_OUT_DIFF}
-                cat ${TMP_OUT_DIFF} > ${OUT_DIFF}
-                /bin/rm -f ${TMP_OUT_DIFF}
-            fi
+            # Formatting JSON
+            jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "result/${TEST}.out" > ${FORMATTED_OLD_OUT}
+            jq -S 'def post_recurse(f): def r: (f | select(. != null) | r), .; r; def post_recurse: post_recurse(.[]?); (. | (post_recurse | arrays) |= sort)' "${OUT_JSON}" > ${FORMATTED_NEW_OUT}
+            
+            # Computing diff between old and new JSON with sorting
+            diff --side-by-side --suppress-common-lines --ignore-all-space <(cat ${FORMATTED_OLD_OUT} | sort) <(cat ${FORMATTED_NEW_OUT} | sort) >"${OUT_DIFF}"
+            filter_json "${OUT_DIFF}" "${IGNORE}"
 
             if [ `cat "${OUT_DIFF}" | wc -l` -eq 0 ]; then
                 ((NUM_SUCCESS=NUM_SUCCESS+1))
@@ -338,6 +351,10 @@ run_tests() {
                 # Remove old conflicts if any
                 rm -f conflicts/${TEST}.out
             else
+                # Computing diff between old and new JSON
+                diff --side-by-side --suppress-common-lines --ignore-all-space <(cat ${FORMATTED_OLD_OUT}) <(cat ${FORMATTED_NEW_OUT}) >"${OUT_DIFF}"
+                filter_json "${OUT_DIFF}" "${IGNORE}"
+
                 # Store the new output under conflicts for debugging
                 cp ${OUT_JSON} conflicts/${TEST}.out
 
@@ -347,7 +364,7 @@ run_tests() {
 
         fi
 
-        /bin/rm -f ${TMP_FILE} ${SCRIPT_OUT} ${NTOPNG_LOG} ${NTOPNG_FILTERED_LOG} ${OUT_DIFF} ${OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE}
+        /bin/rm -f ${TMP_FILE} ${SCRIPT_OUT} ${NTOPNG_LOG} ${NTOPNG_FILTERED_LOG} ${OUT_DIFF} ${OUT_JSON} ${PRE_TEST} ${POST_TEST} ${IGNORE} ${FORMATTED_OLD_OUT} ${FORMATTED_NEW_OUT}
     done
 
     if [ "${NUM_SUCCESS}" == "${NUM_TESTS}" ]; then
