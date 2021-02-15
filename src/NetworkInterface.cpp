@@ -2784,7 +2784,7 @@ void NetworkInterface::shutdown() {
     if(hookLoopCreated)     pthread_join(hookLoop, &res);
 
     /* purgeIdle one last time to make sure all entries will be marked as idle */
-    purgeIdle(time(NULL), true);
+    purgeIdle(time(NULL), true, true);
   }
 }
 

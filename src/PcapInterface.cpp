@@ -375,6 +375,8 @@ static void* packetPollLoop(void* ptr) {
     } /* while */
   } while(pcap_list != NULL);
 
+  iface->purgeIdle(time(NULL), false, true /* full scan */);
+
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
     iface->set_read_from_pcap_dump_done();
   }
@@ -382,20 +384,6 @@ static void* packetPollLoop(void* ptr) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_description());
 
-  while(!ntop->getGlobals()->isShutdown()) {
-    iface->purgeIdle(time(NULL), false, true /* full scan */);
-    sleep(1);
-  }
-
-  if(ntop->getPrefs()->get_test_post_script_path()) {
-    /* Note: wait for the periodic scripts (3s frequency) before
-     * the purge idle if a post script has been configured */
-    sleep(5);
-  }
-
-  /* Run final purge idle scanning the whole hash */
-  iface->purgeIdle(time(NULL), true /* force idle */, true /* full scan */);
-  
   return(NULL);
 }
 
