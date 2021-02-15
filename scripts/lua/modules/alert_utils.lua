@@ -1370,7 +1370,7 @@ function releaseAlert(idx) {
                var explorer_url = data["column_explorer"];
 
                if(data["column_filter"]) {
-                  datatableAddFilterButtonCallback.bind(this)(10, "confset_id = '" + data["column_confset_id"] + "'; subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-ban'></i>");
+                  datatableAddFilterButtonCallback.bind(this)(10, "confset_id = '" + data["column_confset_id"] + "'; subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
                }                
 
                if(data["column_drilldown"]) {
