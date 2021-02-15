@@ -3,15 +3,23 @@ Suricata Test
 
 The suricata.log file contains sample syslog output from Suricata,
 it can be used to test the Suricata log ingestion in ntopng.
+
 As first step please configure ntopng as explained in the user's
 guide at:
 
   https://www.ntop.org/guides/ntopng/advanced_features/suricata.html?highlight=suricata#ntopng-configuration
 
+Example for the impatient:
+
+  $ cat /etc/rsyslog.d/99-remote.conf
+  *.*  action(type="omfwd" target="127.0.0.1" port="9999" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
+
+  $ ntopng -i syslog://127.0.0.1:9999
+
 As second step, use netcat to replay the log to the configured
 port of the ntopng host:
 
-  cat suricata.log | ncat 127.0.0.1 9999
+  cat suricata.log | netcat 127.0.0.1 9999
 
 The sample log file contains both flows and alerts (e.g. an alert
 about a trojan AlienSpy RAT is present).
