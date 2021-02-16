@@ -75,6 +75,7 @@ local additional_filters = {}
 if alert_exclusion_list ~= nil then
   success, additional_filters = user_scripts.parseFilterParams(alert_exclusion_list, subdir, true)
 
+  tprint(success)
   if not success then
     err = additional_filters
     goto response
