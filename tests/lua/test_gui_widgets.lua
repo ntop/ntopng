@@ -28,8 +28,8 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- NOTE: THE NTOP WIDGET SCRIPTS MUST BE LOADED FIRST!
 print([[
 
-    <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets-dev/ntop-widgets.esm.js"></script>
-    <script nomodule src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets-dev/index.js"></script>
+    <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/ntop-widgets.esm.js"></script>
+    <script nomodule src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/index.js"></script>
 
 ]])
 

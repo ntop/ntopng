@@ -95,3 +95,9 @@ dump.rdb
 packages/FreeBSD/build.sh
 packages/OPNsense/build.sh
 !packages/OPNsense/plugins/net/ntopng-enterprise/src/opnsense/service/templates/OPNsense/Ntopng/ntopng
+
+# Ignore files made by the compilation of the widgets
+widgets/node_modules/
+widgets/loader
+widgets/www
+widgets/dist
