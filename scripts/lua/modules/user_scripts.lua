@@ -158,7 +158,7 @@ local available_subdirs = {
 		  -- Search for substring val inside the flow info field
 		  return not not flow.getFlowInfoField():find(val)
 	       end
-	    }
+	    },
 	    l7_cat = {
 	       lint = http_lint.validateCategory,
 	       match = function(context, val)
