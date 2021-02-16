@@ -1221,7 +1221,6 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
       
       -- Perform hook callbacks for config changes, or enable/disable
       for hook, hook_config in pairs(prev_config) do
-	 applied_config[hook] = hook_config
 	 local hook_applied_config = applied_config[hook]
 
 	 if hook_applied_config then
