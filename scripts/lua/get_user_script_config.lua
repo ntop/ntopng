@@ -88,23 +88,32 @@ end
 -- Getting filter configurations
 local filter_conf = config_set["filters"]
 if not filter_conf then
-   goto skip_filter_conf
+   goto try_filter_default_conf
 end
 
 if not filter_conf[subdir] then
-   goto skip_filter_conf
+   goto try_filter_default_conf
 end
 
 if not filter_conf[subdir][script_key] then
-   goto skip_filter_conf
+   goto try_filter_default_conf
 end
 
 if not filter_conf[subdir][script_key]["filter"] then
-   goto skip_filter_conf
+   goto try_filter_default_conf
 end
 result.filters = filter_conf[subdir][script_key]["filter"]
 
-::skip_filter_conf::
+tprint(result.filters)
+if table.len(result.filters) > 0 then
+   goto skip_filter_conf
+end
+-------------------------------
+::try_filter_default_conf::
+-- No configuration found, trying to check if there is a default filter configured
+result.filters = user_scripts.getDefaultFilters(interface.getId(), subdir, script_key)
+
+::skip_filter_conf:: 
 -------------------------------
 local hooks_config = user_scripts.getScriptConfig(config_set, script, subdir)
 

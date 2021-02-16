@@ -389,12 +389,35 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
          const {metadata} = reset_data;
          const hasSeverity = metadata.is_alert || false;
          const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
-	 var   script_exclusion_list = exclusionList || undefined;
-     
-	 if (script_exclusion_list) {
-	    $(`#script-config-editor textarea[name='exclusion-list']`).val('')
-	 }
-	  
+	 const script_exclusion_list = exclusionList || undefined;
+
+	  /* Creating the default string for the exclusion list when reset is called */
+	  if (script_exclusion_list) {
+	      let ex_list_str = ""
+	      const scriptConfExList = reset_data.filters;
+    
+	      if (scriptConfExList) {
+		  const scriptConfCurrFil = scriptConfExList.current_filters;
+		  if (scriptConfCurrFil) {
+		      for (const [index, filters] of Object.entries(scriptConfCurrFil)) {
+			  for (const [name, value] of Object.entries(filters)) {
+			      // Concat the string to create a human readable string
+			      if (name === "str_format") {
+				  // Temporary check, needs to be removed in a few time
+				  continue;
+			      }
+			      ex_list_str = ex_list_str + name + "=" + value + ",";
+			  }
+		   
+			  ex_list_str = ex_list_str.slice(0, -1);
+			  ex_list_str = ex_list_str + "\n";
+		      }
+		  }
+
+		  $(`#script-config-editor textarea[name='exclusion-list']`).val(ex_list_str);
+	      }
+	  }
+	      
          if (hasSeverity) {
             const defaultSeverity = metadata.default_value.severity;
             if (defaultSeverity !== undefined) {
@@ -764,7 +787,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       };
 
       const $time_input_box = generate_input_box(input_settings);
-
+/* Currently disabled multi-select for appl and categories
       const $multiselect_ds = generate_multi_select({
          enabled: enabled,
          name: 'item_list',
@@ -772,7 +795,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          selected_values: items_list,
          groups: apps_and_categories
       });
-
+*/
       // time-ds stands for: time duration selection
       const radio_values = {
          labels: [`${i18n.metrics.minutes}`, `${i18n.metrics.hours}`, `${i18n.metrics.days}`],
@@ -814,7 +837,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
             $duration_input.attr("readonly", "");
             $time_radio_buttons.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
-            $multiselect_ds.find('select').attr("disabled", "");
+            //$multiselect_ds.find('select').attr("disabled", "");
 
             // if the user left the input box empty then reset previous values
             if ($duration_input.val() == "") {
@@ -828,7 +851,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
 
          $time_input_box.find(`input[name='duration_value']`).removeAttr("readonly");
          $time_radio_buttons.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
-         $multiselect_ds.find('select').removeAttr("disabled");
+         //$multiselect_ds.find('select').removeAttr("disabled");
 
       };
 
@@ -842,7 +865,7 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
          $time_input_box.prepend($time_radio_buttons).prepend(
             $(`<div class='col-7'><label class='p-2'>${i18n.scripts_list.templates.flow_duration_threshold}:</label></div>`)
          ),
-         $multiselect_ds
+         //$multiselect_ds
       );
 
       // initialize table row
@@ -965,6 +988,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       };
       const $input_box_r2l = generate_input_box(input_settings_r2l);
 
+/* Currently disabled textarea
       // create textarea to append
       const $multiselect_bytes = generate_multi_select({
          enabled: enabled,
@@ -973,6 +997,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          selected_values: items_list,
          groups: apps_and_categories
       });
+*/
 
       // create radio button with its own values
       const radio_values_l2r = {
@@ -1012,7 +1037,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
                $l2r_input.attr("readonly", "");
                $radio_button_l2r.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
                $radio_button_r2l.find(`input[type='radio']`).attr("disabled", "").parent().addClass('disabled');
-               $multiselect_bytes.find('select').attr("disabled", "");
+               //$multiselect_bytes.find('select').attr("disabled", "");
 
                // if the user left the input box empty then reset previous values
                if ($r2l_input.val() == "") {
@@ -1031,7 +1056,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
             $l2r_input.removeAttr("readonly", "");
             $radio_button_l2r.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
             $radio_button_r2l.find(`input[type='radio']`).removeAttr("disabled").parent().removeClass('disabled');
-            $multiselect_bytes.find('select').removeAttr("disabled");
+            //$multiselect_bytes.find('select').removeAttr("disabled");
          }
       );
 
@@ -1044,7 +1069,7 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
          $input_box_r2l
             .prepend($radio_button_r2l)
             .prepend($(`<label class='col-7 col-form-label'>${i18n.scripts_list.templates.elephant_flows_r2l}</label>`)),
-         $multiselect_bytes
+         //$multiselect_bytes
       );
 
       // initialize table row
@@ -1491,7 +1516,7 @@ function appendSeveritySelect(data) {
 }
 
 function appendExclusionList(data) {
-    var ex_list_str = ""
+    let ex_list_str = ""
     const scriptConfExList = data.filters;
     
    if (scriptConfExList) {

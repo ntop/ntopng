@@ -141,7 +141,26 @@ local available_subdirs = {
 		  -- Check for equality on either the master or application protocol
 		  return flow.getProtocol() == tonumber(val)
 	       end
-	    }
+	    },
+	    l7_cat = {
+	       lint = http_lint.validateCategory,
+	       match = function(context, val)
+		  -- If val is the application name, then it is converted to application id
+		  if not tonumber(val) then val = interface.getnDPICategoryId(val) end
+		  -- For integers represented as strings
+		  val = tonumber(val)
+		  -- Check for equality on either the master or application ids
+		  return flow.getnDPICategoryId() == val
+	       end
+	    },
+	    dns_last_query = {
+	       lint = http_lint.validateSingleWord,
+	       match = function(context, val)
+		  -- Check for equality on either the master or application ids
+		  return flow.getDnsQuery() == val
+	       end
+	    },
+
 --	    info     = http_lint.validateUnquoted,
 	 },
       },
@@ -1224,6 +1243,7 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
       
       if not filter_conf["filter"]["current_filters"] then
 	 filter_conf["filter"]["current_filters"] = {}
+	 filter_conf["filter"]["current_filters"] = (user_scripts.getDefaultFilters(interface.getId(), subdir, script_key))["current_filters"] or {}
       end
       
       if table.len(additional_filters) == 0 then
@@ -1621,7 +1641,7 @@ function user_scripts.getFilterPreset(alert)
    if not available_subdirs[subdir_id]["filter"] then
       return ''
    end
-   
+
    -- Checking if the script has default filter fields or not
    -- if not, getting the default for the subdir
    if script["filter"] and script["filter"]["default_fields"] then
@@ -1843,6 +1863,22 @@ function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
 
    -- all the filters are correct, exclude the alert
    return false
+end
+
+-- ##############################################
+
+function user_scripts.getDefaultFilters(ifid, subdir, script_key)
+
+   local script_type = user_scripts.getScriptType(subdir)
+   local script = user_scripts.loadModule(ifid, script_type, subdir, script_key)
+   local filters = {}
+   filters["current_filters"] = {}
+
+   if script["filter"] and script["filter"]["default_filters"] then
+      filters["current_filters"] = script["filter"]["default_filters"] 
+   end
+
+   return filters
 end
 
 -- ##############################################

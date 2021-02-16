@@ -924,7 +924,7 @@ local function validateCategory(cat)
 
    return false
 end
-
+http_lint.validateCategory = validateCategory
 
 local function validateProtocolOrCategory(p)
    return validateProtocolIdOrName(p) or validateCategory(p)
