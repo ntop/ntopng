@@ -170,13 +170,6 @@ local available_subdirs = {
 		  return flow.getnDPICategoryId() == val
 	       end
 	    },
-	    dns_last_query = {
-	       lint = http_lint.validateSingleWord,
-	       match = function(context, val)
-		  -- Check for equality on either the master or application ids
-		  return flow.getDnsQuery() == val
-	       end
-	    },
 
 --	    info     = http_lint.validateUnquoted,
 	 },
