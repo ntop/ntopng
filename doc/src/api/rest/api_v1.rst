@@ -4,9 +4,11 @@ RESTful API v1 Specification
 Authentication
 --------------
 
-The HTTP authentication should be used, for example with `curl` 
+The HTTP/HTTPS authentication should be used, for example with `curl` 
 it is possible to specify username and password with 
 :code:`-u <user>:<password>`
+
+Using HTTPS is recommended for security. See  `this post <https://www.ntop.org/ntopng/best-practices-to-secure-ntopng/>`_ to enable HTTPS.
 
 Request Format
 --------------
