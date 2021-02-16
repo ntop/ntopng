@@ -1597,7 +1597,7 @@ end
 function user_scripts.getFilterPreset(alert)
    local alert_json       = json.decode(alert["alert_json"])
    local alert_generation = alert_json["alert_generation"]
-
+   
    if not alert_generation then
       return ''
    end
@@ -1609,7 +1609,7 @@ function user_scripts.getFilterPreset(alert)
    local script           = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
    local filter_to_use   = {}
    local subdir_id        = getSubdirId(subdir)
-   
+
    if not script then
       return ''
    end
@@ -1617,14 +1617,14 @@ function user_scripts.getFilterPreset(alert)
    if subdir_id == -1 then
       return ''
    end
-   
-   if not script.filter then
+
+   if not available_subdirs[subdir_id]["filter"] then
       return ''
    end
-
+   
    -- Checking if the script has default filter fields or not
    -- if not, getting the default for the subdir
-   if script["filter"]["default_fields"] then
+   if script["filter"] and script["filter"]["default_fields"] then
       filter_to_use = script["filter"]["default_fields"] or {}
    else
       filter_to_use = available_subdirs[subdir_id]["filter"]["default_fields"] or {}
