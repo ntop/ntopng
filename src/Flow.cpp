@@ -2736,6 +2736,9 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   ndpi_serialize_string_int32(s, "l7_proto", ndpiDetectedProtocol.app_protocol);
   ndpi_serialize_string_int32(s, "l7_cat", get_protocol_category());
 
+  if(isDNS())
+    ndpi_serialize_string_string(s, "dns_last_query", getDNSQuery());
+
   ndpi_serialize_string_int64(s, "cli2srv_bytes", get_bytes_cli2srv());
   ndpi_serialize_string_int64(s, "cli2srv_packets", get_packets_cli2srv());
   ndpi_serialize_string_int64(s, "srv2cli_bytes", get_bytes_srv2cli());
