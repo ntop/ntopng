@@ -221,9 +221,13 @@ ntopng_run() {
 #
 filter_ntopng_log() {
 
+    # Move to the ntopng folder to run addr2line
+    cd ${NTOPNG_ROOT};
+
+    # Filter log
     cat ${1} | grep -i "ERROR:\|WARNING:\|Direct leak\|    #" > ${2}.stage1
 
-    # Process output
+    # Process filtered log
     touch ${2}
     while IFS= read -r line; do
         if [[ ${line} == *"    #"* ]] && [[ ${line} == *" 0x"* ]]; then
@@ -232,8 +236,23 @@ filter_ntopng_log() {
             echo "${line}" >> ${2}
         fi
     done <${2}.stage1
-
     rm -f ${2}.stage1
+
+    # Move log
+    mv ${1} ${1}.stage1
+
+    # Process raw log
+    touch ${1}
+    while IFS= read -r line; do
+        if [[ ${line} == *"    #"* ]] && [[ ${line} == *" 0x"* ]]; then
+            echo "${line}" | awk '{print $2}' | xargs addr2line -e ntopng >> ${1}
+        else
+            echo "${line}" >> ${1}
+        fi
+    done <${1}.stage1
+    rm -f ${1}.stage1
+
+    cd ${TESTS_PATH}
 }
 
 #
