@@ -151,8 +151,14 @@ local available_subdirs = {
 		  -- and the actual flow bitmap of risks
 		  return (val & flow.getRiskBitmap()) ~= 0
 	       end
+	    },
+	    info = {
+	       lint = http_lint.validateSingleWord,
+	       match = function(context, val)
+		  -- Search for substring val inside the flow info field
+		  return not not flow.getFlowInfoField():find(val)
+	       end
 	    }
---	    info     = http_lint.validateUnquoted,
 	 },
       },
       -- No pools for flows
@@ -1604,9 +1610,8 @@ end
 -- ##############################################
 
 -- @brief Returns the list of the default filters of a specific alert
-function user_scripts.getFilterPreset(alert)
-   local alert_json       = json.decode(alert["alert_json"])
-   local alert_generation = alert_json["alert_generation"]
+function user_scripts.getFilterPreset(alert, alert_info)
+   local alert_generation = alert_info["alert_generation"]
    
    if not alert_generation then
       return ''
@@ -1643,9 +1648,18 @@ function user_scripts.getFilterPreset(alert)
    local filter_table = {}
    local index        = 1
    for _, field in pairs(filter_to_use) do
-      if alert[field] then
+      -- Check for field existance in the alert
+      local field_val = alert[field]
+
+      -- If the filed does not exist, try and look it up inside `alert_info`, that is,
+      -- a decoded JSON table containing variable alert data.
+      if not field_val then
+	 field_val = alert_info[field]
+      end
+
+      if field_val then
 	 -- Forming the string e.g. srv_addr=1.1.1.1
-	 filter_table[index] = field .. "=" .. alert[field]
+	 filter_table[index] = field .. "=" .. field_val
 	 index = index + 1
       end
    end

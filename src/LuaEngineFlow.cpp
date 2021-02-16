@@ -1236,6 +1236,17 @@ static int ntop_flow_has_risk(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_flow_info_field(lua_State* vm) {
+  char buf[256];
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  lua_pushstring(vm, f ? f->getFlowInfo(buf, sizeof(buf)) : "");
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_flow_set_custom_info(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1358,6 +1369,7 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "getRiskInfo",              ntop_flow_risk_info                  },
   { "getRiskBitmap",            ntop_flow_get_risk_bitmap            },
   { "hasRisk",                  ntop_flow_has_risk                   },
+  { "getFlowInfoField",         ntop_get_flow_info_field             },
   { "setCustomInfo",            ntop_flow_set_custom_info            },
   
   { NULL,                       NULL }
