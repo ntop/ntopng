@@ -2706,7 +2706,6 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   ndpi_init_serializer(&json_info, ndpi_serialization_format_json);
 
   /* AlertsManager::storeFlowAlert requires a string */
-  ndpi_serialize_string_string(&json_info, "status_info", alert_status_info ? alert_status_info : "");
   ndpi_serialize_string_string(s, "alert_json", alert_status_info ? alert_status_info : "");
   ndpi_term_serializer(&json_info);
 
