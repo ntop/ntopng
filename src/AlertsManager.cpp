@@ -73,6 +73,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
   unlink(filePath);
   sprintf(&filePath[base_offset], "%s", "alerts_v20.db");
   unlink(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts_v21.db");
+  unlink(filePath);
   filePath[base_offset] = 0;
 
   /* open the newest */
@@ -186,7 +188,8 @@ int AlertsManager::openStore() {
 	   "srv_ip           BINARY(16) NOT NULL DEFAULT 0, "
 	   "first_seen       INTEGER NOT NULL, "
 	   "score            INTEGER NOT NULL DEFAULT 0, "
-	   "flow_status      INTEGER NOT NULL DEFAULT 0  "
+	   "flow_status      INTEGER NOT NULL DEFAULT 0,  "
+	   "flow_risk_bitmap INTEGER NOT NULL DEFAULT 0   "
 	   ");"
 	   "CREATE INDEX IF NOT EXISTS t3i_tstamp    ON %s(alert_tstamp); "
 	   "CREATE INDEX IF NOT EXISTS t3i_tstamp    ON %s(alert_tstamp_end); "
@@ -543,6 +546,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
   u_int8_t protocol = 0;
   u_int16_t ndpi_master_protocol = 0, ndpi_app_protocol = 0;
   ndpi_protocol_category_t ndpi_protocol_category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
+  ndpi_risk flow_risk_bitmap = 0;
   const char *cli_ip = "", *srv_ip = "";
   const char *cli_country = "", *srv_country = "";
   const char *cli_os = "", *srv_os = "";
@@ -640,6 +644,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
           score = lua_tonumber(L, -1);
         else if(!strcmp(key, "first_seen"))
           first_seen = lua_tonumber(L, -1);
+	else if(!strcmp(key, "flow_risk_bitmap"))
+          flow_risk_bitmap = (ndpi_risk)lua_tonumber(L, -1);
 	break;
 
       case LUA_TBOOLEAN:
@@ -745,23 +751,24 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
     snprintf(query, sizeof(query),
 	     "UPDATE %s "
 	     "SET alert_counter = ?, alert_tstamp_end = ?, cli2srv_bytes = ?, srv2cli_bytes = ?, cli2srv_packets = ?, srv2cli_packets = ?, "
-	     "score = ?, alert_type = ?, alert_severity = ?, flow_status = ?, alert_json = ? "
+	     "score = ?, alert_type = ?, alert_severity = ?, flow_status = ?, alert_json = ?, flow_risk_bitmap = ? "
 	     "WHERE rowid = ? ",
 	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
     if(sqlite3_prepare_v2(db, query, -1, &stmt2, 0)
-       || sqlite3_bind_int64(stmt2, 1, static_cast<long int>(replace_alert ? cur_counter : (cur_counter + 1)))
-       || sqlite3_bind_int64(stmt2, 2, static_cast<long int>(tstamp))
-       || sqlite3_bind_int64(stmt2, 3, replace_alert ? cur_cli2srv_bytes : (cur_cli2srv_bytes + cli2srv_bytes))
-       || sqlite3_bind_int64(stmt2, 4, replace_alert ? cur_srv2cli_bytes : (cur_srv2cli_bytes + srv2cli_bytes))
-       || sqlite3_bind_int64(stmt2, 5, replace_alert ? cur_cli2srv_packets : (cur_cli2srv_packets + cli2srv_packets))
-       || sqlite3_bind_int64(stmt2, 6, replace_alert ? cur_srv2cli_packets : (cur_srv2cli_packets + srv2cli_packets))
-       || sqlite3_bind_int(stmt2,   7, score)
-       || sqlite3_bind_int(stmt2,   8, alert_type)
-       || sqlite3_bind_int(stmt2,   9, alert_severity)
-       || sqlite3_bind_int(stmt2,  10, status)
-       || sqlite3_bind_text(stmt2, 11, alert_json, -1, SQLITE_STATIC)
-       || sqlite3_bind_int64(stmt2,12, static_cast<long int>(cur_rowid))) {
+       || sqlite3_bind_int64(stmt2,  1, static_cast<long int>(replace_alert ? cur_counter : (cur_counter + 1)))
+       || sqlite3_bind_int64(stmt2,  2, static_cast<long int>(tstamp))
+       || sqlite3_bind_int64(stmt2,  3, replace_alert ? cur_cli2srv_bytes : (cur_cli2srv_bytes + cli2srv_bytes))
+       || sqlite3_bind_int64(stmt2,  4, replace_alert ? cur_srv2cli_bytes : (cur_srv2cli_bytes + srv2cli_bytes))
+       || sqlite3_bind_int64(stmt2,  5, replace_alert ? cur_cli2srv_packets : (cur_cli2srv_packets + cli2srv_packets))
+       || sqlite3_bind_int64(stmt2,  6, replace_alert ? cur_srv2cli_packets : (cur_srv2cli_packets + srv2cli_packets))
+       || sqlite3_bind_int(stmt2,    7, score)
+       || sqlite3_bind_int(stmt2,    8, alert_type)
+       || sqlite3_bind_int(stmt2,    9, alert_severity)
+       || sqlite3_bind_int(stmt2,   10, status)
+       || sqlite3_bind_text(stmt2,  11, alert_json, -1, SQLITE_STATIC)
+       || sqlite3_bind_int64(stmt2, 12, flow_risk_bitmap)
+       || sqlite3_bind_int64(stmt2, 13, static_cast<long int>(cur_rowid))) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "SQL Error: step");
       rc = -6;
       goto out;
@@ -785,8 +792,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
 	     "cli_blacklisted, srv_blacklisted, "
 	     "cli_localhost, srv_localhost, "
 	     "cli_ip, srv_ip, "
-	     "score, first_seen, flow_status) "
-	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+	     "score, first_seen, flow_status, flow_risk_bitmap) "
+	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
     if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)) {
@@ -836,7 +843,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
        || sqlite3_bind_blob(stmt3,  29, srv_ip_raw.s6_addr, sizeof(srv_ip_raw.s6_addr), SQLITE_STATIC)
        || sqlite3_bind_int(stmt3,   30, (int) score)
        || sqlite3_bind_int64(stmt3, 31, static_cast<long int>(first_seen))
-       || sqlite3_bind_int(stmt3,   32, (int) status)) {
+       || sqlite3_bind_int(stmt3,   32, (int) status)
+       || sqlite3_bind_int64(stmt3, 33, flow_risk_bitmap)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
       rc = -9;
       goto out;

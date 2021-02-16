@@ -23,7 +23,6 @@ local script = {
   default_value = {
     severity = alert_severities.notice,
   },
-
   
   -- For a full list check "available_subdir.flow.available_fields" in user_scripts.lua
   filter = {

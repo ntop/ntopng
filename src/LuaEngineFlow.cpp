@@ -1209,6 +1209,16 @@ static int ntop_flow_risk_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_risk_bitmap(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(f) lua_pushinteger(vm, f->getRiskBitmap());
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_flow_has_risk(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1346,6 +1356,7 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "getHTTPInfo",              ntop_flow_get_http_info              },
   { "getDNSInfo",               ntop_flow_get_dns_info               },
   { "getRiskInfo",              ntop_flow_risk_info                  },
+  { "getRiskBitmap",            ntop_flow_get_risk_bitmap            },
   { "hasRisk",                  ntop_flow_has_risk                   },
   { "setCustomInfo",            ntop_flow_set_custom_info            },
   

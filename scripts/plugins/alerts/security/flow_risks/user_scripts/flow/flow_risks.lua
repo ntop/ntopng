@@ -16,6 +16,11 @@ local script = {
    -- Priority
    prio = -20, -- Lower priority (executed after) than default 0 priority
 
+   -- For a full list check "available_subdir.flow.available_fields" in user_scripts.lua
+   filter = {
+      default_fields = { "srv_addr", "l7_proto", "flow_risk_bitmap" }
+   },
+
    -- NOTE: hooks defined below
    hooks = {},
 

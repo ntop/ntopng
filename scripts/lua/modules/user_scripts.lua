@@ -141,6 +141,16 @@ local available_subdirs = {
 		  -- Check for equality on either the master or application protocol
 		  return flow.getProtocol() == tonumber(val)
 	       end
+	    },
+	    flow_risk_bitmap = {
+	       lint = http_lint.validateNumber,
+	       match = function(context, val)
+		  -- Convert the string-bitmap to a number
+		  val = tonumber(val)
+		  -- Check if there's at least one risk in common between val
+		  -- and the actual flow bitmap of risks
+		  return (val & flow.getRiskBitmap()) ~= 0
+	       end
 	    }
 --	    info     = http_lint.validateUnquoted,
 	 },
@@ -1621,13 +1631,13 @@ function user_scripts.getFilterPreset(alert)
    if not available_subdirs[subdir_id]["filter"] then
       return ''
    end
-   
+
    -- Checking if the script has default filter fields or not
    -- if not, getting the default for the subdir
    if script["filter"] and script["filter"]["default_fields"] then
-      filter_to_use = script["filter"]["default_fields"] or {}
-   else
-      filter_to_use = available_subdirs[subdir_id]["filter"]["default_fields"] or {}
+      filter_to_use = script["filter"]["default_fields"]
+   elseif available_subdirs[subdir_id]["filter"]["default_fields"] then
+      filter_to_use = available_subdirs[subdir_id]["filter"]["default_fields"]
    end
 
    local filter_table = {}
