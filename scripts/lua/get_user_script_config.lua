@@ -104,7 +104,6 @@ if not filter_conf[subdir][script_key]["filter"] then
 end
 result.filters = filter_conf[subdir][script_key]["filter"]
 
-tprint(result.filters)
 if table.len(result.filters) > 0 then
    goto skip_filter_conf
 end

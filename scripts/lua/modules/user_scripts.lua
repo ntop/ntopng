@@ -1242,29 +1242,29 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
    -- Updating the filters
    if additional_filters then
       local new_filter_conf = filter_conf
+      
+      if not new_filter_conf["filter"] then
+	 new_filter_conf["filter"] = {}
+      end
+      
+      if not new_filter_conf["filter"]["current_filters"] then
+	 new_filter_conf["filter"]["current_filters"] = {}
+	 new_filter_conf["filter"]["current_filters"] = (user_scripts.getDefaultFilters(interface.getId(), subdir, script_key))["current_filters"] or {}
+      end
+
       -- If filter reset requested, clear all the filters
-      if additional_filters["reset_filters"] then
-	 filter_conf["filter"] = {}
+      if additional_filters["reset_filters"] == "true" then
+	 new_filter_conf["filter"]["current_filters"] = {}
       end
-      
-      if not filter_conf["filter"] then
-	 filter_conf["filter"] = {}
-      end
-      
-      if not filter_conf["filter"]["current_filters"] then
-	 filter_conf["filter"]["current_filters"] = {}
-	 filter_conf["filter"]["current_filters"] = (user_scripts.getDefaultFilters(interface.getId(), subdir, script_key))["current_filters"] or {}
-      end
-      
+
       if table.len(additional_filters) == 0 then
-	 filter_conf["filter"]["current_filters"] = {}
+	 new_filter_conf["filter"]["current_filters"] = {}
       else
 	 -- There can be multiple filters, so cycle through them
 	 for _, new_filter in pairs(additional_filters["new_filters"]) do
-	    local add_params = filterIsEqual(filter_conf["filter"]["current_filters"], new_filter)
-	    
+	    local add_params = filterIsEqual(new_filter_conf["filter"]["current_filters"], new_filter)
 	    if add_params > 0 then
-	       filter_conf["filter"]["current_filters"][add_params] = new_filter
+	       new_filter_conf["filter"]["current_filters"][add_params] = new_filter
 	    end
 	 end
       end
@@ -1405,7 +1405,7 @@ function user_scripts.loadDefaultConfig()
    local configsets = user_scripts.getConfigsets()
    local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
    local default_filters
-   
+
    if default_conf then
       default_conf = default_conf.config or {}
 
@@ -1416,7 +1416,7 @@ function user_scripts.loadDefaultConfig()
    end
 
    default_filters = default_conf["filters"] or {}
-
+   
    for type_id, script_type in pairs(user_scripts.script_types) do
       for _, subdir in pairs(script_type.subdirs) do
 	 local scripts = user_scripts.load(ifid, script_type, subdir, {return_all = true})
