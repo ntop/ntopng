@@ -58,6 +58,7 @@ const defaultOptions = {
 };
 
 function getTimestampByTime(time) {
+    if (time === undefined || time === '') return undefined;
     if (time === 'day') return Math.floor(Date.now() / 1000) - 86400;
     if (time === 'week') return Math.floor(Date.now() / 1000) - 604800;
     if (time === 'month') return Math.floor(Date.now() / 1000) - 2419200;
@@ -144,26 +145,16 @@ function loadGraph(container) {
 
     const dataRequest = { action: 'load_graph', map: MAP};
     // if an host has been defined inside the URL query then add it to the request
-    if (host !== "") {
-        dataRequest.host = host;
-    }
-    if (hostPoolId !== "") {
-        dataRequest.host_pool_id = hostPoolId;
-    }
-    if (vlanId !== "") {
-        dataRequest.vlan = vlanId;
-    }
-    if (unicastOnly !== "") {
-        dataRequest.unicast_only = true;
-    }
-    if (l7proto !== "") {
-        dataRequest.l7proto = l7proto;
-    }
-    if (age !== "") {
-        dataRequest.first_seen = getTimestampByTime(age);
-    }
+    const url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, {
+        host: host,
+        host_pool_id: hostPoolId,
+        vlan: vlanId,
+        unicast_only: unicastOnly,
+        l7proto: l7proto,
+        first_seen: getTimestampByTime(age)
+    });
 
-    const request = $.get(`${http_prefix}/lua/pro/enterprise/map_handler.lua`, dataRequest);
+    const request = $.get(url, dataRequest);
     request.then(function(response) {
         
         data = response;
