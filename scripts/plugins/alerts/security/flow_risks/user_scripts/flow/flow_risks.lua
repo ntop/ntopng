@@ -24,12 +24,15 @@ local script = {
    -- NOTE: hooks defined below
    hooks = {},
 
+   is_alert = true,
+   
    gui = {
       i18n_title = "flow_callbacks_config.flow_risk",
       i18n_description = "flow_callbacks_config.flow_risk_description",
-      input_builder = "multi_select",
-      i8n_multiselect_label = i18n("flow_callbacks_config.flow_risk_list"),
-
+   },
+--------------------------------------------------------
+      -- Old item list, not currently used --      
+--[[
       groups = {
 	 {
 	    elements = {
@@ -70,7 +73,11 @@ local script = {
 	 21,22,23,24
       },
    },
-
+]]
+-------------------------------------------------------
+   filter = {
+      default_filters = {}
+   },
 }
 
 -- #################################################################

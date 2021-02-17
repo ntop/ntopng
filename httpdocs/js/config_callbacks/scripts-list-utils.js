@@ -1382,14 +1382,15 @@ const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key, is
       elephant_flows: ElephantFlows(gui, hooks, script_subdir, script_key),
       multi_select: MultiSelect(gui, hooks, script_subdir, script_key)
    }
-   
+
+    const isSubdirFlow = (script_subdir === "flow")
    let template_chosen = templates[template_name];
-   if (!template_chosen && !is_alert) {
+    if (!template_chosen && !(is_alert || isSubdirFlow)) {
       template_chosen = EmptyTemplate();
       // this message is for the developers
       console.warn("The chosen template doesn't exist yet. See the avaible templates.")
    }
-   else if (!template_chosen && is_alert) {
+    else if (!template_chosen && (is_alert || isSubdirFlow)) {
       template_chosen = AlertSeverity(gui, hooks, script_subdir, script_key);
    }
    
@@ -1924,13 +1925,13 @@ $(document).ready(function () {
             className: 'text-center',
             sortable: false,
             width: 'auto',
-            render: function (data, type, script) {
-
+             render: function (data, type, script) {
+		 
                const isScriptEnabled = script.is_enabled;
-
+	       const isSubdirFlow = (script_subdir === "flow");
                const srcCodeButtonEnabled = data.edit_url && isScriptEnabled ? '' : 'disabled';
-               const editScriptButtonEnabled = ((!script.is_alert && !script.input_handler) || !isScriptEnabled) ? 'disabled' : '';
-
+		const editScriptButtonEnabled = ((!script.is_alert && !script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
+	
                return DataTableUtils.createActionButtons([
                   { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit' },
                   { class: `btn-secondary ${srcCodeButtonEnabled}`, icon: 'fa-file-code', href: data.edit_url}
