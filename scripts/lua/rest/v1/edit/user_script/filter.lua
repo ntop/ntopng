@@ -3,7 +3,7 @@
 --
 
 local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.patho
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local alert_rest_utils = require "alert_rest_utils"
 

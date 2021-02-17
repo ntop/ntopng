@@ -1088,7 +1088,7 @@ function filterAlertByFilters(confset_id, subdir, script_key) {
         type: 'POST',
 	contentType: "application/json",
 	dataType: "json",
-	url: `${http_prefix}/lua/rest/v1/get/alert/exclude_alert.lua`, /* TODO: Change */
+	url: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`, /* TODO: Change */
 	data: JSON.stringify({
 	    filters: document.getElementById("name_input").value,
             confset_id: confset_id,   
