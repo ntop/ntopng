@@ -72,15 +72,15 @@ local available_subdirs = {
       id = "interface",
       label = "interfaces",
       pools = "interface_pools",
-   }, {
+      }, {
       id = "network",
       label = "networks",
       pools = "local_network_pools",
-   }, {
+	 }, {
       id = "snmp_device",
       label = "host_details.snmp",
       pools = "snmp_device_pools",
-   }, {
+	    }, {
       id = "flow",
       label = "flows",
       -- User script execution filters (field names are those that arrive from the C Flow.cpp)
@@ -100,11 +100,19 @@ local available_subdirs = {
 		  if network and netmask then return ipv4_utils.includes(network, netmask, client_ip) end
 		  -- No match
 		  return false
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("cli_addr = '%s'", val)
 	       end
 	    },
 	    cli_port = {
 	       lint = http_lint.validatePort,
-	       match = function(context, val) return flow.getClientPort() == tonumber(val) end
+	       match = function(context, val) return flow.getClientPort() == tonumber(val) end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("cli_port = %u", val)
+	       end
 	    },
 	    srv_addr = {
 	       lint = http_lint.validateNetwork,
@@ -117,11 +125,19 @@ local available_subdirs = {
 		  if network and netmask then return ipv4_utils.includes(network, netmask, server_ip) end
 		  -- No match
 		  return false
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("srv_addr = '%s'", val)
 	       end
 	    },
 	    srv_port = {
 	       lint = http_lint.validatePort,
-	       match = function(context, val) return flow.getServerPort() == tonumber(val) end
+	       match = function(context, val) return flow.getServerPort() == tonumber(val) end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("srv_port = %u", val)
+	       end
 	    },
 	    l7_proto = {
 	       lint = http_lint.validateProtocolIdOrName,
@@ -132,6 +148,13 @@ local available_subdirs = {
 		  val = tonumber(val)
 		  -- Check for equality on either the master or application ids
 		  return flow.getnDPIMasterProtoId() == val or flow.getnDPIAppProtoId() == val
+	       end,
+	       sqlite = function(val)
+		  -- If val is the application name, then it is converted to application id
+		  if not tonumber(val) then val = interface.getnDPIProtoId(val) end
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  -- Match both on the master and app proto
+		  return string.format("(l7_proto = %u OR l7_master_proto = %u)", val, val)
 	       end
 	    },
 	    proto = {
@@ -141,6 +164,10 @@ local available_subdirs = {
 		  if not tonumber(val) then val = l4_proto_to_id(val) end
 		  -- Check for equality on either the master or application protocol
 		  return flow.getProtocol() == tonumber(val)
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("proto = %u", val)
 	       end
 	    },
 	    flow_risk_bitmap = {
@@ -151,6 +178,10 @@ local available_subdirs = {
 		  -- Check if there's at least one risk in common between val
 		  -- and the actual flow bitmap of risks
 		  return (val & flow.getRiskBitmap()) ~= 0
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("flow_risk_bitmap = %u", val)
 	       end
 	    },
 	    info = {
@@ -158,6 +189,12 @@ local available_subdirs = {
 	       match = function(context, val)
 		  -- Search for substring val inside the flow info field
 		  return not not flow.getFlowInfoField():find(val)
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  -- As the info is stored inside the JSON alert, it is necessary to
+		  -- use sqlite json_extract to access it
+		  return string.format("json_extract(alert_json, '$.info') like '%%%s%%'", val)
 	       end
 	    },
 	    l7_cat = {
@@ -169,10 +206,16 @@ local available_subdirs = {
 		  val = tonumber(val)
 		  -- Check for equality on either the master or application ids
 		  return flow.getnDPICategoryId() == val
+	       end,
+	       sqlite = function(val)
+		  -- If val is the application name, then it is converted to application id
+		  if not tonumber(val) then val = interface.getnDPICategoryId(val) end
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  -- Match both on the master and app proto
+		  return string.format("l7_cat = %u", val)
 	       end
 	    },
-
---	    info     = http_lint.validateUnquoted,
+	    --	    info     = http_lint.validateUnquoted,
 	 },
       },
       -- No pools for flows
@@ -1685,6 +1728,47 @@ function user_scripts.getFilterPreset(alert, alert_info)
 
    -- Creating the required string to print into the GUI
    return table.concat(filter_table, ",")
+end
+
+-- #################################
+
+-- @bief Given an already validated filter, returns a SQLite WHERE clause matching all filter fields
+-- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
+-- @param subdir the modules subdir
+-- @param user_script The string script identifier
+-- @param filter An already validated user script filter
+-- @return A string with the SQLite WHERE clause
+function user_scripts.prepareFilterSQLiteWhere(confset_id, subdir, user_script, filter)
+   -- Access the alert_json using SQLite `json_` functions to properly filter with fields
+   local filters_where = {}
+
+   -- This is to match elements inside the alert_json
+   local script_where = {
+      string.format("json_extract(alert_json, '$.alert_generation.confset_id') = %u", confset_id),
+      string.format("json_extract(alert_json, '$.alert_generation.subdir') = '%s'", subdir),
+      string.format("json_extract(alert_json, '$.alert_generation.script_key') = '%s'", user_script),
+   }
+
+
+   -- Now prepare each SQLite statement for every field
+   local subdir_id = getSubdirId(subdir)
+
+   -- Retrieving the available filters for the subdir. e.g. flow subdir
+   local available_fields = available_subdirs[subdir_id]["filter"]["available_fields"]
+
+   for field_key, field_val in pairs(filter) do
+      if available_fields[field_key] and available_fields[field_key]["sqlite"] then
+	 local sqlite = available_fields[field_key]["sqlite"](field_val)
+	 filters_where[#filters_where + 1] = sqlite
+      end
+   end
+
+   -- Concatenate
+   local where = table.merge(filters_where, script_where)
+   -- And merge everything with ANDs
+   where = table.concat(where, " AND ")
+
+   return where
 end
 
 -- #################################

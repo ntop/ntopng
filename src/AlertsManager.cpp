@@ -75,6 +75,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
   unlink(filePath);
   sprintf(&filePath[base_offset], "%s", "alerts_v21.db");
   unlink(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts_v22.db");
+  unlink(filePath);
   filePath[base_offset] = 0;
 
   /* open the newest */
@@ -133,7 +135,7 @@ int AlertsManager::openStore() {
 	   "alert_tstamp     INTEGER NOT NULL, "
 	   "alert_tstamp_end INTEGER DEFAULT NULL, "
 	   "alert_counter    INTEGER NOT NULL DEFAULT 1, "
-	   "alert_json       TEXT DEFAULT NULL, "
+	   "alert_json       JSON DEFAULT NULL, "
 	   "ip               BINARY(16) NOT NULL DEFAULT 0"
 	   ");"
 	   "CREATE INDEX IF NOT EXISTS t2i_type     ON %s(alert_type); "
@@ -160,7 +162,7 @@ int AlertsManager::openStore() {
 	   "alert_type       INTEGER NOT NULL, "
 	   "alert_severity   INTEGER NOT NULL, "
 	   "alert_counter    INTEGER NOT NULL DEFAULT 1, "
-	   "alert_json       TEXT DEFAULT NULL, "
+	   "alert_json       JSON DEFAULT NULL, "
 	   "vlan_id          INTEGER NOT NULL DEFAULT 0, "
 	   "proto            INTEGER NOT NULL DEFAULT 0, "
 	   "l7_master_proto  INTEGER NOT NULL DEFAULT %u, "

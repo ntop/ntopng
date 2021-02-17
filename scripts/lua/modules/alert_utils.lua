@@ -417,6 +417,28 @@ end
 
 -- #################################
 
+--@brief Deletes all stored alerts matching a user script `filter`
+-- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
+-- @param subdir the modules subdir
+-- @param user_script The string script identifier
+-- @param filter An already validated user script filter
+-- @return nil
+local function deleteAlertsMatchingUserScriptFilter(confset_id, subdir, user_script, filter)
+   local res = {}
+   local statement = "SELECT *" -- TODO: change to DELETE
+
+   local query = user_scripts.prepareFilterSQLiteWhere(confset_id, subdir, user_script, filter)
+
+   if subdir ~= "flow" then
+      -- TODO: implement
+      -- res = interface.queryAlertsRaw(statement, query, group_by, force_query)
+   else
+      res = interface.queryFlowAlertsRaw(statement, query, group_by, true)
+   end
+end
+
+-- #################################
+
 -- this function returns an object with parameters specific for one tab
 function alert_utils.getTabParameters(_get, what)
    local opts = {}
@@ -910,7 +932,10 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
       -- Getting the parameters
       -- NB: THIS NEEDS TO BE DONE IN AJAX
       success, new_filter = user_scripts.parseFilterParams(additional_filters, _POST["subdir"], false)
-      
+
+      -- TODO: uncomment and make parametric
+      -- deleteAlertsMatchingUserScriptFilter(_POST["confset_id"], _POST["subdir"], _POST["script_key"], new_filter.new_filters[1])
+
       if success then
 	 local confset_id = _POST["confset_id"]
 	 success, update_err = user_scripts.updateScriptConfig(tonumber(confset_id), _POST["script_key"], _POST["subdir"], nil, nil, new_filter)
