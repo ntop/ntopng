@@ -20,6 +20,7 @@
           {# empty #}
         {% else %}
         <div class="modal-footer">
+	  <span class="invalid-feedback" id="{{dialog.id}}_error"></span>
           {% if dialog.action ~= nil then %}
             <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
           {% else %}

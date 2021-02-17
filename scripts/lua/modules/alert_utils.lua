@@ -917,33 +917,9 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
    local url_params = {}
    local options = options or {}
    local ifid = interface.getId()
-   local default_filter = ''
    local additional_params = {}
    local err     = ""
-   local update_err = ""
 
-   -- Checking if a new filter for the alert is added
-   if _POST["filters"] then
-      additional_filters = _POST["filters"]
-
-      local success = ""
-      local new_filter  = {}
-
-      -- Getting the parameters
-      -- NB: THIS NEEDS TO BE DONE IN AJAX
-      success, new_filter = user_scripts.parseFilterParams(additional_filters, _POST["subdir"], false)
-
-      -- TODO: uncomment and make parametric
-      -- deleteAlertsMatchingUserScriptFilter(_POST["confset_id"], _POST["subdir"], _POST["script_key"], new_filter.new_filters[1])
-
-      if success then
-	 local confset_id = _POST["confset_id"]
-	 success, update_err = user_scripts.updateScriptConfig(tonumber(confset_id), _POST["script_key"], _POST["subdir"], nil, nil, new_filter)
-      else
-	 -- Error while parsing the params, error is printed
-	 update_err = new_filter
-      end
-   end
    -- this paramater is used to print out a card container for the table
    local is_standalone = options.is_standalone or false
 
@@ -1108,16 +1084,28 @@ function deleteAlertById(alert_key) {
 }
 
 function filterAlertByFilters(confset_id, subdir, script_key) {
-   var params = {};
-   params.filters = document.getElementById("name_input").value;
-   params.confset_id = confset_id;
-   params.subdir     = subdir;
-   params.script_key = script_key;
-   params.status = getCurrentStatus();
-   params.csrf = "]] print(ntop.getRandomCSRFValue()) print[["
-
-   var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
-   form.appendTo('body').submit();
+   $.ajax({
+        type: 'POST',
+	contentType: "application/json",
+	dataType: "json",
+	url: `${http_prefix}/lua/rest/v1/get/alert/exclude_alert.lua`, /* TODO: Change */
+	data: JSON.stringify({
+	    filters: document.getElementById("name_input").value,
+            confset_id: confset_id,   
+            subdir: subdir,
+            script_key: script_key,
+            status: getCurrentStatus(),
+            csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
+	}),
+	success: function(rsp) {
+            let get_params = NtopUtils.paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
+            let form = NtopUtils.paramsToForm('<form method="get"></form>', get_params);
+            form.appendTo('body').submit();
+	},
+	error: function(rsp) {
+	    $("#filter_alert_dialog_error").text(rsp.responseJSON.rsp).show();
+	},
+    });
 }
 
 var alert_to_toggle = null;
@@ -1187,12 +1175,6 @@ function releaseAlert(idx) {
 	    ["div-id"] = "table-flow-alerts-history",  ["status"] = "historical-flows"}
       elseif status == "historical-flows" then
 	 status = nil; status_reset = 1
-      end
-
-      -- In case of error while trying to add a new alert to exclude to the exclusion list
-      -- Done in this way cause it's a post onto the page 
-      if not isEmptyString(err) or not isEmptyString(update_err) then
-          print[[<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">x</button>"Error while excluding the alert, check the parameters and try again"</div>]]
       end
 
       for k, t in ipairs(alert_items) do
