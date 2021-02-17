@@ -14,7 +14,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
-local alert_utils = require "alert_utils"
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
 local flow_consts = require("flow_consts")

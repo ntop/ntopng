@@ -3514,6 +3514,7 @@ local lang = {
     ["alert_name"] = "Alert Name",
     ["edition_only"] = "%{edition} Only",
     ["filters"] = "Filters",
+    ["filtered"] = "Filtered",
     ["has_attacker"] = "Known Attacker",
     ["has_victim"] = "Known Victim",
     ["hooks"] = "Hooks",
