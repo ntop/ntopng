@@ -1099,7 +1099,8 @@ function filterAlertByFilters(confset_id, subdir, script_key) {
 	}),
 	success: function(rsp) {
             let get_params = NtopUtils.paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
-            let form = NtopUtils.paramsToForm('<form method="get"></form>', get_params);
+            get_params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+            let form = NtopUtils.paramsToForm('<form method="post"></form>', get_params);
             form.appendTo('body').submit();
 	},
 	error: function(rsp) {
