@@ -1271,9 +1271,12 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
       -- Updating the configuration
       configsets[confid]["filters"][subdir][script_key] = new_filter_conf
    end
-   -- Set the new configuration
-   config[subdir][script_key] = applied_config
-
+   
+   if table.len(applied_config) > 0 then
+      -- Set the new configuration
+      config[subdir][script_key] = applied_config
+   end
+      
    return saveConfigsets(configsets)
 end
 
