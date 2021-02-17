@@ -368,9 +368,13 @@ DUMMY=`cd ./pro; ${MAKE} build`
 PRO_INCS="${PRO_INCS} -I${HERE}/pro -I${HERE}/pro/utils -I${HERE}/pro/third-party/libb64-1.2.1/include"
 
 if test -r "../license/systemId.c"; then :
-  LICENSELIBS="-L`pwd`/../license -llicense"
+  LICENSEDIR="`pwd`/../license"
+  LICENSELIBS="-L${LICENSEDIR} -llicense"
   AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
   PRO_LIBS="${PRO_LIBS} ${LICENSELIBS}"
+  LICENSE_VERS=`${LICENSEDIR}/packages/version.sh --release`
+  LICENSE_REV=`${LICENSEDIR}/packages/version.sh --revision`
+  LICENSE_DEP="ntop-license = ${LICENSE_VERS}-${LICENSE_REV}"
 fi
 else
   AC_MSG_RESULT(not found)
@@ -779,6 +783,7 @@ AC_SUBST(PRO_HEADERS)
 AC_SUBST(PRO_MAKEFILE_INC)
 AC_SUBST(PRO_LIBS)
 AC_SUBST(PRO_INCS)
+AC_SUBST(LICENSE_DEP)
 AC_SUBST(REVISION)
 AC_SUBST(MYSQL_LIB)
 AC_SUBST(MYSQL_INC)
