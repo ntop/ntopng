@@ -76,7 +76,11 @@ local script = {
 ]]
 -------------------------------------------------------
    filter = {
-      default_filters = {}
+      default_filters = {},
+      default_fields = {
+	 "srv_addr",
+	 "flow_risk_bitmap",
+      },
    },
 }
 
