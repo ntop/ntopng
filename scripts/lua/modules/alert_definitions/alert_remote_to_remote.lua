@@ -31,28 +31,19 @@ alert_remote_to_remote.meta = {
 -- ##############################################
 
 -- @brief Prepare an alert table used to generate the alert
--- @param one_flow_param The first alert param
--- @param another_flow_param The second alert param
 -- @return A table with the alert built
-function alert_remote_to_remote:init(server_ip)
+function alert_remote_to_remote:init()
    -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {
-      server_ip = server_ip
    }
 end
 
 -- #######################################################
 
 function alert_remote_to_remote.format(ifid, alert, alert_type_params)
-   local alert_consts = require("alert_consts")
-   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
-
-   return i18n("alert_messages.remote_to_remote", {
-        entity = entity,
-        host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
-   })
+   return i18n("alerts_dashboard.remote_to_remote")
 end
 
 -- #######################################################
