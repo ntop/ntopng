@@ -1863,15 +1863,6 @@ function user_scripts.parseFilterParams(additional_filters, subdir, reset_filter
 	       return false, i18n("invalid_filters.double_arg", {args=field})
 	    end
 
-	    -- Converting the value from string (if it's a string) to the specific id
-	    if field_key == "l7_proto" then
-	       field_value = tonumber(field_value) or interface.getnDPIProtoId(field_value)
-	    elseif field_key == "proto" then
-	       field_value = tonumber(field_value) or l4_proto_to_id(field_value)
-	    elseif field_key == "l7_cat" then
-	       field_value = tonumber(field_value) or interface.getnDPICategoryId(field_value)
-	    end
-
 	    param_list[filter_num][field_key] = field_value
 	 end
       end
@@ -1984,7 +1975,19 @@ function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
       local done = true
       -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
       for filter, value in pairs(values) do
-	 if tonumber(alert[filter]) ~= tonumber(value) then
+	 local converted_value = tonumber(value) or value
+	 -- Converting the value from string (if it's a string) to the specific id
+	 if filter == "l7_proto" then
+	    converted_value = tonumber(value) or interface.getnDPIProtoId(value)
+	 elseif filter == "proto" then
+	    converted_value = tonumber(value) or l4_proto_to_id(value)
+	 elseif filter == "l7_cat" then
+	    converted_value = tonumber(value) or interface.getnDPICategoryId(value)
+	 end
+
+	 alert[filter] = tonumber(alert[filter]) or alert[filter]
+
+	 if alert[filter] ~= converted_value then
 	    -- The alert has a different value for that filter
 	    done = false
 	    goto continue2
