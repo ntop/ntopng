@@ -1287,6 +1287,7 @@ function releaseAlert(idx) {
 	    css: {
 	       textAlign: 'center',
           whiteSpace: 'nowrap',
+	       width: '5%',
 	    }
 	 },
 
@@ -1297,6 +1298,7 @@ function releaseAlert(idx) {
 	    css: {
 	       textAlign: 'center',
           whiteSpace: 'nowrap',
+	       width: '2%',
 	    }
 	 },
 
@@ -1379,7 +1381,8 @@ function releaseAlert(idx) {
 
                if(data["column_filter"]) {
                   datatableAddFilterButtonCallback.bind(this)(10, "confset_id = '" + data["column_confset_id"] + "'; subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
-               }                
+               } else if(data["column_filter_disabled"]) {
+	       	  datatableAddFilterButtonCallback.bind(this)(10, "confset_id = ''; subdir = ''; script_key = '';", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[", false);                             }
 
                if(data["column_drilldown"]) {
                   datatableAddLinkButtonCallback.bind(this)(10, data["column_drilldown"], "<i class='fas fa-search-plus drilldown-icon'></i>", "]] print(i18n("show_alerts.expand_action")) print[[");
