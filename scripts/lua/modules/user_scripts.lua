@@ -156,6 +156,11 @@ local available_subdirs = {
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  -- Match both on the master and app proto
 		  return string.format("(l7_proto = %u OR l7_master_proto = %u)", val, val)
+	       end,
+	       getId = function(val)
+		  -- If val is the application name, then it is converted to application id                                                                                                                       
+                  if not tonumber(val) then val = interface.getnDPIProtoId(val) end
+		  return val
 	       end
 	    },
 	    proto = {
@@ -169,6 +174,11 @@ local available_subdirs = {
 	       sqlite = function(val)
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("proto = %u", val)
+	       end,
+	       getId = function(val)
+		  -- If val is the application name, then it is converted to application id
+		  if not tonumber(val) then val = l4_proto_to_id(val) end
+		  return val
 	       end
 	    },
 	    flow_risk_bitmap = {
@@ -214,6 +224,11 @@ local available_subdirs = {
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  -- Match both on the master and app proto
 		  return string.format("l7_cat = %u", val)
+	       end,
+	       getId = function(val)
+		  -- If val is the application name, then it is converted to application id
+		  if not tonumber(val) then val = interface.getnDPICategoryId(val) end
+		  return val
 	       end
 	    },
 	    --	    info     = http_lint.validateUnquoted,
@@ -1960,7 +1975,8 @@ function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
    end
    
    local applied_filter_config = {}
-
+   local subdir_id = getSubdirId(subdir)
+   
    -- Checking if the script has the field "filter.current_filters"
    if conf["filter"] then
       applied_filter_config = conf["filter"]["current_filters"]
@@ -1976,17 +1992,12 @@ function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
       -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
       for filter, value in pairs(values) do
 	 local converted_value = tonumber(value) or value
-	 -- Converting the value from string (if it's a string) to the specific id
-	 if filter == "l7_proto" then
-	    converted_value = tonumber(value) or interface.getnDPIProtoId(value)
-	 elseif filter == "proto" then
-	    converted_value = tonumber(value) or l4_proto_to_id(value)
-	 elseif filter == "l7_cat" then
-	    converted_value = tonumber(value) or interface.getnDPICategoryId(value)
+	 local convert_id = available_subdirs[subdir_id]["filter"]["available_fields"][filter]["getId"]
+	 if convert_id then
+	    converted_value = convert_id(converted_value)
 	 end
 
 	 alert[filter] = tonumber(alert[filter]) or alert[filter]
-
 	 if alert[filter] ~= converted_value then
 	    -- The alert has a different value for that filter
 	    done = false
