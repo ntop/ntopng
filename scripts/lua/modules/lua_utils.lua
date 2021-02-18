@@ -1498,6 +1498,19 @@ end
 
 -- ##############################################
 
+local function  add_vlan_to_alt_name(alt_name, host_info, show_vlan)
+   -- Adding the vlan if requested
+   if show_vlan then
+      if host_info["vlan"] ~= 0 then
+	 alt_name = alt_name .. "@".. host_info["vlan"]
+      end
+   end
+
+   return alt_name
+end
+
+-- ##############################################
+
 -- Retrieve an host label from an host_info. The minimum fields of
 -- the host_info are "host" and "vlan", however a full JSON from Host::lua
 -- is needed to provide an accurate result.
@@ -1505,7 +1518,7 @@ end
 -- The following order is used to determine the label:
 --    MAC label (LBD hosts only), IP label, MDNS/DHCP name from C, resolved IP
 --
-function hostinfo2label(host_info)
+function hostinfo2label(host_info, show_vlan)
    local alt_name = nil
    local ip = host_info["ip"] or host_info["host"]
 
@@ -1515,19 +1528,21 @@ function hostinfo2label(host_info)
       alt_name = getHostAltName(host_info["mac"])
 
       if not isEmptyString(alt_name) then
-         return(alt_name)
+	 -- Adding the vlan if requested
+	 return add_vlan_to_alt_name(alt_name, host_info, show_vlan)
       end
    end
 
    alt_name = getHostAltName(ip)
 
    if not isEmptyString(alt_name) then
-      return(alt_name)
+      -- Adding the vlan if requested
+      return add_vlan_to_alt_name(alt_name, host_info, show_vlan)
    end
 
    -- Name info from C (e.g. DHCP name)
    if not isEmptyString(host_info["name"]) then
-      return host_info["name"]      
+      return add_vlan_to_alt_name(host_info["name"], host_info, show_vlan)      
    end
 
    -- Try to get the resolved name

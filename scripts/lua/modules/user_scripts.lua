@@ -1843,6 +1843,15 @@ function user_scripts.parseFilterParams(additional_filters, subdir, reset_filter
 	       return false, i18n("invalid_filters.double_arg", {args=field})
 	    end
 
+	    -- Converting the value from string (if it's a string) to the specific id
+	    if field_key == "l7_proto" then
+	       field_value = tonumber(field_value) or interface.getnDPIProtoId(field_value)
+	    elseif field_key == "proto" then
+	       field_value = tonumber(field_value) or l4_proto_to_id(field_value)
+	    elseif field_key == "l7_cat" then
+	       field_value = tonumber(field_value) or interface.getnDPICategoryId(field_value)
+	    end
+
 	    param_list[filter_num][field_key] = field_value
 	 end
       end
