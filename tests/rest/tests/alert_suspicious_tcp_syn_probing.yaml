@@ -1,5 +1,7 @@
 input: malware.pcap
 
+localnet: 192.168.7.0/24
+
 ignore:
   - date
 

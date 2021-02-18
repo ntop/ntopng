@@ -1,5 +1,7 @@
 input: web_attack_01.pcap
 
+localnet: 172.16.0.0/24
+
 ignore:
   - date
 
