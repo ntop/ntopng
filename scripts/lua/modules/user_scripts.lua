@@ -10,6 +10,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
+
 local os_utils = require("os_utils")
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
@@ -586,9 +587,32 @@ end
 
 -- ##############################################
 
-local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
-   local user_scripts_templates = require("user_scripts_templates")
+-- @brief Tries and load the script template, returning a new instance (if found)
+local function loadAndCheckScriptTemplate(script_template)
+   local res
+   local template
 
+   if not script_template then
+      -- Default
+      script_template = "user_script_template"
+   end
+
+   -- Attempt at locating the template class under modules
+   local template_path = dirs.installdir .. "/scripts/lua/modules/user_script_templates/"..script_template..".lua"
+   if ntop.exists(template_path) then
+      -- Require the template file
+      template = require("user_script_templates."..script_template)
+
+      -- Create an instance of the template
+      res = template.new()
+   end
+
+   return res
+end
+
+-- ##############################################
+
+local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
    user_script.key = mod_fname
    user_script.path = full_path
    user_script.subdir = subdir
@@ -600,8 +624,8 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
    user_script.category = checkCategory(user_script.category)
    user_script.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
 
-   if(user_script.gui and user_script.gui.input_builder) then
-      user_script.template = user_scripts_templates[user_script.gui.input_builder]
+   if user_script.gui then
+      user_script.template = loadAndCheckScriptTemplate(user_script.gui.input_builder)
 
       if(user_script.template == nil) then
 	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown template '%s' for user script '%s'", user_script.gui.input_builder, mod_fname))
@@ -614,10 +638,6 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
       if user_script.gui.input_description then
 	 user_script.gui.input_description = i18n(user_script.gui.input_description) or user_script.gui.input_description
       end
-   end
-
-   if(user_script.template == nil) then
-      user_script.template = user_scripts_templates.default
    end
 
    -- Expand hooks
