@@ -38,7 +38,7 @@ function script.hooks.protocolDetected(now, conf)
 
       alert:set_severity(conf.severity)
 
-      alert:trigger_status(cli_score, srv_score, flow_score)
+      alert:trigger_status(10 --[[ cli score --]], 10 --[[ srv score --]], 10 --[[ flow score --]])
   end
 end
 

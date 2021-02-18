@@ -404,8 +404,6 @@ end
 -- set a flow status bit. The status_info of the alerted status is
 -- saved for later use.
 function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
-   flow_score = flow_score or 0
-
    if(tonumber(status_info) ~= nil) then
       tprint("Invalid status_info")
       tprint(debug.traceback())
