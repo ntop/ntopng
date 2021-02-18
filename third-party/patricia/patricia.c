@@ -78,6 +78,10 @@ prefix_tochar (prefix_t * prefix, unsigned short family)
   else /* if(family == AF_MAC) */ return ((u_char *) & prefix->add.mac);
 }
 
+#ifndef UINT32_MAX
+#define UINT32_MAX       0xffffffffui32
+#endif
+
 int
 comp_with_mask (void *addr, void *dest, u_int mask)
 {
