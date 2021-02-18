@@ -1407,6 +1407,7 @@ local known_parameters = {
    ["confset_id"]              = validateNumber,
    ["confset_name"]            = validateUnquoted,
    ["filters"]	       	       = validateScriptFilter,		-- Currently active exclusion list for the alert
+   ["delete_alerts"]           = validateBool,
    ["alert_generation"]	       = { jsonCleanup, validateJSON },
    ["script_exclusion_list"]    = validateListOfTypeInline(validateSingleWord),  -- Currently active exclusion list for the alert
 

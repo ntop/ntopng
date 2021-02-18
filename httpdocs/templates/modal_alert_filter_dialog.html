@@ -6,16 +6,24 @@
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         </div>
         <div class="modal-body {{dialog.custom_dialog_class}}">
-          <label class="form-label" for="name_input">{*dialog.field_input_title*}</label>
-          <div class="input-group mb-6">
-            <input id="name_input" type="text" name="custom_name" class="form-control" pattern=".*\S.*" required value="{{dialog.alert_filter}}">
-          </div>
-          <label></label>
-          <div class="message {{dialog.custom_alert_class or "alert alert-warning"}}">
+	  <div class="message {{dialog.custom_alert_class or "alert alert-warning"}}">
             {*dialog.message*}
             <span id="{{dialog.id}}_more_content"></span>
           </div>
-        </div>
+	  <label class="form-label" for="name_input">{*dialog.field_input_title*}</label>
+	  <div class="input-group mb-6">
+            <input id="name_input" type="text" name="custom_name" class="form-control" pattern=".*\S.*" required value="{{dialog.alert_filter}}">
+          </div>
+          <label></label>
+          <div class="custom-control custom-switch">
+	    <input type="checkbox" class="custom-control-input" id="delete_alert_switch">
+	    <label class="custom-control-label" for="delete_alert_switch">{*dialog.delete_alerts*}</label>
+	  </div>
+	  <label></label>
+	  <div class="message {{dialog.custom_alert_class or "alert alert-danger"}} -1" id="danger_msg" style="display: none">
+            {*dialog.delete_message*}
+          </div>
+	</div>
         {% if dialog.no_footer then %}
           {# empty #}
         {% else %}
@@ -31,4 +39,16 @@
       </div>
     </div>
 </div>
-  
+
+<script>
+$(document).ready(function() {
+   $('#delete_alert_switch').on('change', function() {
+      const checked = this.checked;
+      if(checked) {
+         $('#danger_msg').show();
+      } else {
+         $('#danger_msg').hide();
+      }
+   });    
+});
+</script>

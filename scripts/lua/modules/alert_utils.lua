@@ -423,9 +423,9 @@ end
 -- @param user_script The string script identifier
 -- @param filter An already validated user script filter
 -- @return nil
-local function deleteAlertsMatchingUserScriptFilter(confset_id, subdir, user_script, filter)
+function alert_utils.deleteAlertsMatchingUserScriptFilter(confset_id, subdir, user_script, filter)
    local res = {}
-   local statement = "SELECT *" -- TODO: change to DELETE
+   local statement = "DELETE " -- TODO: change to DELETE
 
    local query = user_scripts.prepareFilterSQLiteWhere(confset_id, subdir, user_script, filter)
 
@@ -943,7 +943,9 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
 			 action		   = "filterAlertByFilters(confset_id, subdir, script_key)",
           		 title		   = i18n("show_alerts.filter_alert"),
           		 message	   = i18n("show_alerts.confirm_filter_alert"),
+			 delete_message    = i18n("show_alerts.confirm_delete_filtered_alerts"),
           		 field_input_title = i18n("current_filter"),
+			 delete_alerts     = i18n("delete_alerts"),
           		 alert_filter      = "default_filter",
 	  		 confirm 	   = i18n("filter"),
 			 confirm_button    = "btn-warning",
@@ -1095,6 +1097,7 @@ function filterAlertByFilters(confset_id, subdir, script_key) {
             subdir: subdir,
             script_key: script_key,
             status: getCurrentStatus(),
+            delete_alerts: $('#delete_alert_switch').prop('checked'),
             csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
 	}),
 	success: function(rsp) {

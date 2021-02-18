@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local user_scripts = require "user_scripts"
+local alert_utils = require "alert_utils"
 
 
 local alert_rest_utils = {}
@@ -21,7 +22,8 @@ function alert_rest_utils.exclude_alert()
    local confset_id = _POST["confset_id"]
    local subdir = _POST["subdir"]
    local script_key = _POST["script_key"]
-
+   local delete_alerts = _POST["delete_alerts"] or "false"
+   
    -- Parameters used by the various functions
    local success = ""
    local new_filter  = {}
@@ -50,6 +52,10 @@ function alert_rest_utils.exclude_alert()
    end
 
    if success then
+      if delete_alerts == "true" then
+	 alert_utils.deleteAlertsMatchingUserScriptFilter(confset_id, subdir, script_key, new_filter.new_filters[1])                                                                            
+      end
+      
       rc = rest_utils.consts.success.ok
       rest_utils.answer(rc)
    else
