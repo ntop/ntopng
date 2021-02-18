@@ -42,6 +42,16 @@ local script = {
 
 -- #################################################################
 
+local excluded_risks = {
+   [6]  = i18n("flow_risk.ndpi_tls_selfsigned_certificate"), -- handled in tls_certificate_selfsigned.lua
+   [7]  = i18n("flow_risk.ndpi_tls_obsolete_version"),       -- handled in tls_old_protocol_version.lua
+   [8]  = i18n("flow_risk.ndpi_tls_weak_cipher"),            -- handled in tls_certificate_expired.lua
+   [9]  = i18n("flow_risk.ndpi_tls_certificate_expired"),    -- handled in tls_certificate_expired.lua
+   [10] = i18n("flow_risk.ndpi_tls_certificate_mismatch"),   -- handled in tls_certificate_mismatch.lua TODO: migrate to flow risk
+}
+
+-- #################################################################
+
 -- Default scores to use for flow risks
 local DEFAULT_SCORES = {
    50 --[[ flow score   --]],
@@ -107,6 +117,10 @@ function script.hooks.protocolDetected(now, conf)
       local all_risks = flow.getRiskInfo()
 
       for risk_str, risk_id in pairsByValues(all_risks, asc) do
+	 if excluded_risks[risk_id] then
+	    goto continue
+	 end
+
 	 -- If the risk is not among those enabled, just skip it
 	 local handler
 	 if handlers[risk_id] then
@@ -121,6 +135,8 @@ function script.hooks.protocolDetected(now, conf)
 	    -- Handler expect three params, namely flow-, client- and server-scores
 	    handler.handle_risk(risk_id, table.unpack(risk2scores[risk_id] or DEFAULT_SCORES))
 	 end
+
+	 ::continue::
       end
    end
 end
