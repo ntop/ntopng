@@ -85,6 +85,11 @@ Make sure the redis service is running:
 
    service redis start
 
+.. note::
+
+   If you experience issues running the redis service on pfSense 2.4.x,
+   please try upgrading your pfSense installation to 2.5 with *pfSense-upgrade*
+
 Run the ntopng service:
 
 .. code:: bash
