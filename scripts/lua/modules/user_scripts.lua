@@ -1964,14 +1964,14 @@ function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
       local done = true
       -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
       for filter, value in pairs(values) do
-	 if alert[filter] ~= value then
+	 if tonumber(alert[filter]) ~= tonumber(value) then
 	    -- The alert has a different value for that filter
 	    done = false
 	    goto continue2
 	 end
 	 ::continue::
       end
-
+      
       -- if 
       if done then
 	 return true
