@@ -40,7 +40,7 @@ Note: in case of failures, the output of the tests is stored in the
 *ntopng/tests/rest/conflicts/* folder, in order to be able to compare
 it with the expected output in the *ntopng/tests/rest/result* folder. 
 In case of test failures due to errors or warnings in the ntopng trace,
-the full ntopng log is storage in the *ntopng/tests/rest/logs/* folder.
+the full ntopng log is stored in the *ntopng/tests/rest/logs/* folder.
 
 Create a PR
 ===========
