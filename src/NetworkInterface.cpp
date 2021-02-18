@@ -1753,11 +1753,12 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   if(h->len > ifMTU) {
     if(!mtuWarningShown) {
 #ifdef __linux__
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid packet received [len: %u][max len: %u].", h->len, ifMTU);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Packets exceeding the expected max size have been received "
+                                   "[len: %u][max len: %u].", h->len, ifMTU);
       if(!read_from_pcap_dump()) {
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "If you have TSO/GRO enabled, please disable it");
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "If TSO/GRO is enabled, please disable it for best accuracy");
         if(strchr(ifname, ':') == NULL) /* print ethtool command for standard interfaces only */
-          ntop->getTrace()->traceEvent(TRACE_WARNING, "Use sudo ethtool -K %s gro off gso off tso off", ifname);
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "using: sudo ethtool -K %s gro off gso off tso off", ifname);
       }
 #endif
       mtuWarningShown = true;
