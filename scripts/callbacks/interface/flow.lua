@@ -366,7 +366,7 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
 
    -- Only trigger the alert if its score is greater than the currently
    -- triggered alert score (when score is supported)
-   if areAlertsEnabled() and alerted_status and alerted_status_score > flow.getAlertedStatusScore() then
+   if areAlertsEnabled() and alerted_status and (not flow.isAlerted() or alerted_status_score > flow.getAlertedStatusScore()) then
       -- Only trigger if the `alerted_status` has no `status_always_notify`. When the `alerted_status`
       -- has `status_always_notify` set to true, the alert has already been triggered.
       if not alerted_status.alert_type.status_always_notify then
@@ -380,10 +380,6 @@ end
 -- #################################################################
 
 local function setStatus(status_info, flow_score, cli_score, srv_score)
-   flow_score = math.min(math.max(flow_score or 0, 0), flow_consts.max_score)
-   cli_score = math.min(math.max(cli_score or 0, 0), flow_consts.max_score)
-   srv_score = math.min(math.max(srv_score or 0, 0), flow_consts.max_score)
-
    -- A status is always set multiple times, causing flow scores to be increased every time, unless
    -- an explicity flag `status_keep_increasing_scores` is telling not to do so.
    -- There are flows (e.g., those representing security risks) where it is meaningful to increase scores multiple times
@@ -404,6 +400,10 @@ end
 -- set a flow status bit. The status_info of the alerted status is
 -- saved for later use.
 function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
+   flow_score = math.min(math.max(flow_score or 0, 0), flow_consts.max_score)
+   cli_score = math.min(math.max(cli_score or 0, 0), flow_consts.max_score)
+   srv_score = math.min(math.max(srv_score or 0, 0), flow_consts.max_score)
+
    if(tonumber(status_info) ~= nil) then
       tprint("Invalid status_info")
       tprint(debug.traceback())

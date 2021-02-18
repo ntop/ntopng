@@ -1042,6 +1042,16 @@ static int ntop_flow_get_alerted_status(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_is_alerted(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  lua_pushboolean(vm, f ? f->isFlowAlerted() : false);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_trigger_alert(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
   FlowStatus status;
@@ -1277,6 +1287,7 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "setStatus",                ntop_flow_set_status                 },
   { "isStatusSet",              ntop_flow_is_status_set              },
   { "getAlertedStatus",         ntop_flow_get_alerted_status         },
+  { "isAlerted",                ntop_flow_is_alerted                 },
   
   { "isClientUnicast",          ntop_flow_is_client_unicast          },
   { "isServerUnicast",          ntop_flow_is_server_unicast          },
