@@ -629,24 +629,37 @@ end
 
 -- ##############################################
 
--- @brief Tries and load the script template, returning a new instance (if found)
+-- @brief Tries and load a script template, returning a new instance (if found)
+--        All templates loaded here must inherit from `user_script_template.lua`
 local function loadAndCheckScriptTemplate(user_script, user_script_template)
    local res
-   local template
 
    if not user_script_template then
-      -- Default
+      -- Default name
       user_script_template = "user_script_template"
    end
 
-   -- Attempt at locating the template class under modules
-   local template_path = dirs.installdir .. "/scripts/lua/modules/user_script_templates/"..user_script_template..".lua"
-   if ntop.exists(template_path) then
-      -- Require the template file
-      template = require("user_script_templates."..user_script_template)
+   -- First, try and load the template straight from the plugin templates
+   local template_require = plugins_utils.loadTemplate(user_script.plugin.key, user_script_template)
 
+   if template_require then
+      tprint("found: "..user_script_template)
+   end
+
+   -- Then, if no template is found inside the plugin, try and load the template from the ntopng templates
+   -- in modules that can be shared across multiple plugins
+   if not template_require then
+      -- Attempt at locating the template class under modules (global to ntopng)
+      local template_path = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/user_script_templates/"..user_script_template..".lua")
+      if ntop.exists(template_path) then
+	 -- Require the template file
+	 template_require = require("user_script_templates."..user_script_template)
+      end
+   end
+
+   if template_require then
       -- Create an instance of the template
-      res = template.new(user_script)
+      res = template_require.new(user_script)
    end
 
    return res

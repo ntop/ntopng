@@ -514,7 +514,7 @@ local function load_plugin_other(plugin)
   local rv = true
 
   if ntop.exists(templates_dir) then
-    local path = os_utils.fixPath(RUNTIME_PATHS.templates.. "/" ..plugin.key)
+    local path = plugins_utils.getPluginTemplatesDir(plugin.key)
     ntop.mkdir(path)
     rv = rv and file_utils.recursive_copy(templates_dir, path)
   end
@@ -853,6 +853,30 @@ end
 
 -- ##############################################
 
+-- @brief Get the httpdocs directory of the plugin. This can be used to access
+-- javascript, css and similar files
+function plugins_utils.getHttpdocsDir(plugin_name)
+  local dir = ternary(ntop.isPlugins0Dir(), "plugins0_httpdocs", "plugins1_httpdocs")
+
+  -- See url_rewrite_patterns in HTTPserver.cpp
+  return(os_utils.fixPath(ntop.getHttpPrefix() .. "/".. dir .."/" .. plugin_name))
+end
+
+-- ##############################################
+
+-- @brief Retrieve the runtime templates directory of the plugin
+-- @param plugin_name the plugin name
+-- @return the runtime directory path
+function plugins_utils.getPluginTemplatesDir(plugin_name)
+  init_runtime_paths()
+
+  local path = RUNTIME_PATHS.templates .. "/" .. plugin_name
+
+  return os_utils.fixPath(path)
+end
+
+-- ##############################################
+
 -- @brief Retrieve the plugin associated with the user script
 -- @param script_path the runtime path of the user script
 -- @return the associated plugin
@@ -976,9 +1000,37 @@ end
 function plugins_utils.renderTemplate(plugin_name, template_file, context)
   init_runtime_paths()
 
-  local full_path = os_utils.fixPath(RUNTIME_PATHS.templates .. "/" .. plugin_name .. "/" .. template_file)
+  local full_path = os_utils.fixPath(plugins_utils.getPluginTemplatesDir(plugin_name) .. "/" .. template_file)
 
   return template_utils.gen(full_path, context, true --[[ using full path ]])
+end
+
+-- ##############################################
+
+-- @brief Load a plugin Lua template, e.g., those used for plugin user scripts
+function plugins_utils.loadTemplate(plugin_name, template_file)
+   -- Attempt at locating the template class under the plugin templates directory
+   -- Locate the template directory of the plugin containing this user script
+   local plugin_template_path = plugins_utils.getPluginTemplatesDir(plugin_name)
+
+   -- Get the actual template path, using the template name
+   local template_path = os_utils.fixPath(plugin_template_path.."/"..template_file..".lua")
+
+   -- If the plugin file exists..
+   if ntop.exists(template_path) then
+      -- Do the necessary require
+      init_runtime_paths()
+
+      lua_path_utils.package_path_prepend(RUNTIME_PATHS.templates)
+
+      local req_name = string.format("%s.%s", plugin_name, template_file)
+      local req = require(req_name)
+
+      return req
+   end
+
+   -- No template found
+   return nil
 end
 
 -- ##############################################
@@ -994,17 +1046,6 @@ function plugins_utils.loadModule(plugin_name, module_name)
    local req = require(req_name)
 
    return req
-end
-
--- ##############################################
-
--- @brief Get the httpdocs directory of the plugin. This can be used to access
--- javascript, css and similar files
-function plugins_utils.getHttpdocsDir(plugin_name)
-  local dir = ternary(ntop.isPlugins0Dir(), "plugins0_httpdocs", "plugins1_httpdocs")
-
-  -- See url_rewrite_patterns in HTTPserver.cpp
-  return(os_utils.fixPath(ntop.getHttpPrefix() .. "/".. dir .."/" .. plugin_name))
 end
 
 -- ##############################################
