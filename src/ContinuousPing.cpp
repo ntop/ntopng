@@ -58,14 +58,53 @@ static void* pollerFctn(void* ptr) {
 /* ***************************************** */
 
 ContinuousPing::ContinuousPing() {
-  try {
-    pinger = new Ping(NULL);
+  ntop_if_t *devpointer, *cur;
 
-    if(pinger)
-      pthread_create(&poller, NULL, pollerFctn, (void*)this);
+  /* Create default pinger */
+  try {
+    default_pinger = new Ping(NULL);
   } catch(...) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create continuous pinger");
-    pinger = NULL;
+    default_pinger = NULL;
+  }
+
+  /* Create pingers for all interfaces with IP */
+  if(Utils::ntop_findalldevs(&devpointer) == 0) {
+    for(cur = devpointer; cur; cur = cur->next) {
+      if(cur->name) {
+        std::string key = std::string(cur->name);
+        std::map<std::string, Ping*>::iterator it;
+
+	/* Check if already created */
+        it = if_pinger.find(key);
+        if(it == if_pinger.end()) {
+          struct sockaddr_in6 sin6;
+
+	  /* Check if there is an IP for the interface */
+	  if(Utils::readIPv4(cur->name) != 0 || 
+             Utils::readIPv6(cur->name, &sin6.sin6_addr)) {
+            Ping *pinger;
+
+	    /* Create pinger for the interface */
+            try {
+              pinger = new Ping(NULL);
+            } catch(...) {
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create continuous pinger for %s", cur->name);
+              pinger = NULL;
+            }
+
+	    if (pinger)
+              if_pinger[key] = pinger;
+	  }
+        }
+      }
+    }
+
+    Utils::ntop_freealldevs(devpointer);
+  }
+
+  if (default_pinger) {
+    pthread_create(&poller, NULL, pollerFctn, (void*)this);
   }
 }
 
@@ -80,7 +119,10 @@ ContinuousPing::~ContinuousPing() {
 
   pthread_join(poller, NULL);
 
-  delete pinger;
+  for(std::map<std::string,Ping*>::iterator it=if_pinger.begin(); it!=if_pinger.end(); ++it)
+    delete it->second;
+
+  delete default_pinger;
 }
 
 /* ***************************************** */
@@ -89,6 +131,18 @@ ContinuousPing::~ContinuousPing() {
 void ContinuousPing::ping(char *_addr, bool use_v6, char *ifname) {
   std::string key = std::string(_addr);
   std::map<std::string,ContinuousPingStats*>::iterator it;
+  Ping *pinger = default_pinger;
+
+  /* Get the pinger for the interface, if exists */
+  if (ifname) {
+    std::string key = std::string(ifname);
+    std::map<std::string, Ping*>::iterator it;
+    it = if_pinger.find(key); 
+    if(it != if_pinger.end()) {
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using pinger for %s", ifname);
+      pinger = it->second;
+    }
+  }
 
   m.lock(__FILE__, __LINE__);
 
@@ -102,7 +156,7 @@ void ContinuousPing::ping(char *_addr, bool use_v6, char *ifname) {
 #endif
       it->second->heartbeat();
     } else {
-      v4_results[key] = new (std::nothrow) ContinuousPingStats();
+      v4_results[key] = new (std::nothrow) ContinuousPingStats(pinger);
 #ifdef TRACE_PING
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding host to ping %s", _addr);
 #endif
@@ -117,7 +171,7 @@ void ContinuousPing::ping(char *_addr, bool use_v6, char *ifname) {
 #endif
       it->second->heartbeat();
     } else {
-      v6_results[key] = new (std::nothrow) ContinuousPingStats();
+      v6_results[key] = new (std::nothrow) ContinuousPingStats(pinger);
 #ifdef TRACE_PING
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding host to ping %s", _addr);
 #endif
@@ -139,13 +193,15 @@ void ContinuousPing::pingAll() {
   
   m.lock(__FILE__, __LINE__);
 
-  pinger->cleanup();
+  default_pinger->cleanup();
+  for(std::map<std::string, Ping*>::iterator it=if_pinger.begin(); it!=if_pinger.end(); ++it)
+    it->second->cleanup();
 
-  v4_pinged.clear(),
-    v6_pinged.clear();
+  v4_pinged.clear();
+  v6_pinged.clear();
   
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
-    pinger->ping((char*)it->first.c_str(), false);
+    it->second->getPinger()->ping((char*)it->first.c_str(), false);
     v4_pinged[it->first] = true;
     
     last_beat = it->second->getLastHeartbeat();
@@ -160,7 +216,7 @@ void ContinuousPing::pingAll() {
   }
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it) {
-    pinger->ping((char*)it->first.c_str(), true);
+    it->second->getPinger()->ping((char*)it->first.c_str(), true);
     v6_pinged[it->first] = true;
     last_beat = it->second->getLastHeartbeat();
 
@@ -189,7 +245,7 @@ void ContinuousPing::readPingResults() {
 #endif
   
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v4_results.begin(); it!=v4_results.end(); ++it) {
-    float f = pinger->getRTT(it->first.c_str(), false /* v6 */);
+    float f = it->second->getPinger()->getRTT(it->first.c_str(), false /* v6 */);
 
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [IPv4] %s=%f", __FUNCTION__, it->first.c_str(), f);
@@ -206,7 +262,7 @@ void ContinuousPing::readPingResults() {
   }
 
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it) {
-    float f = pinger->getRTT(it->first.c_str(), true /* v6 */);
+    float f = it->second->getPinger()->getRTT(it->first.c_str(), true /* v6 */);
 
 #ifdef TRACE_PING
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [IPv6] %s=%f", __FUNCTION__, it->first.c_str(), f);
