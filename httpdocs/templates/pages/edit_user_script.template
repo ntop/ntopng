@@ -1,0 +1,63 @@
+{#
+    (C) 2020 - ntop.org
+#}
+<div class="row">
+    <div class="col-md-12">
+        {* edit_user_script.breadcrumb *}
+    </div>
+    <div class="col-md-12">
+        <div class="alert border">
+            <div class="row">
+                <div class="col-12 col-sm-2 category">
+                    <b>{{ i18n("edit_user_script.category") }}</b>
+                    <br>
+                    <i class='{{edit_user_script.plugin.category.icon}}'></i> {{ i18n(edit_user_script.plugin.category.i18n_title) }}
+                </div>
+                <div class="col-12 col-sm-8 description">
+                    <b>{{ i18n("edit_user_script.description") }}</b>
+                    <br>
+                    {{ (i18n(edit_user_script.plugin.gui.i18n_description) or edit_user_script.plugin.gui.i18n_description) }}
+                </div>
+                <div class="col-12 col-sm-2 author">
+                    <b>{{ i18n("edit_user_script.author") }}</b>
+                    <br>
+                    {{ edit_user_script.plugin.plugin.author }}
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                      <a class="nav-link active" href="#">Paramaters</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-group row">
+                        <label for="colFormLabel" class="col-sm-1 col-form-label">{{ i18n("scripts_list.alert_severity") }}</label>
+                        <div class="col-sm-3">
+                            <select class="form-control" name="alert_severity">
+                                {% for key, severity in pairsByField(edit_user_script.alert_severities, 'severity_id', asc) do %}
+                                    <option value='{{ severity.severity_id }}'>{{ i18n(severity.i18n_title) }}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-danger">
+                    {{ i18n("scripts_list.reset_default") }}
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    {{ i18n("save") }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+</script>

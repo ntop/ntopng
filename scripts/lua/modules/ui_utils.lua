@@ -30,6 +30,14 @@ function ui_utils.render_notes(notes_items, title, is_ordered)
     })
 end
 
+function ui_utils.render_breadcrumb(title, items, icon)
+    return template_utils.gen("pages/components/breadcrumb.template", {
+        items = items,
+        i18n_title = title,
+        breadcrumb_icon = icon
+    })
+end
+
 function ui_utils.render_pools_dropdown(pools_instance, member, key)
 
     if (pools_instance == nil) then

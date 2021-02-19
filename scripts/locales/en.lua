@@ -1219,6 +1219,11 @@ local lang = {
     ["statistics_received"] = "Received",
     ["statistics_sent"] = "Sent",
   },
+  ["edit_user_script"] = {
+    ["author"] = "Author",
+    ["category"] = "Category",
+    ["description"] = "Description",
+  },
   ["email_alert_endpoint"] = {
     ["carbon_copy"] = "CC",
     ["email_recipient"] = "Email Recipient",
