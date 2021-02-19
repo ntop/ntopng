@@ -388,6 +388,8 @@ run_tests() {
 
     if [ "${NUM_SUCCESS}" == "${NUM_TESTS}" ]; then
         send_success "ntopng TESTS completed successfully" "All tests completed successfully with the expected output."
+    else
+        send_error "ntopng TESTS completed with errors" "${NUM_SUCCESS} out of ${NUM_TESTS} completed successfully." ""
     fi
 
     ntopng_cleanup
