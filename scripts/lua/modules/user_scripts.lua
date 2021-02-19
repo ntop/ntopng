@@ -105,7 +105,10 @@ local available_subdirs = {
 	       sqlite = function(val)
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("cli_addr = '%s'", val)
-	       end
+	       end,
+	       find = function(alert, filter, val)
+		  return (alert[filter] and (tostring(alert[filter]) == tostring(val)))
+	       end,
 	    },
 	    cli_port = {
 	       lint = http_lint.validatePort,
@@ -113,7 +116,10 @@ local available_subdirs = {
 	       sqlite = function(val)
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("cli_port = %u", val)
-	       end
+	       end,
+	       find = function(alert, filter, val)
+		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       end,
 	    },
 	    srv_addr = {
 	       lint = http_lint.validateNetwork,
@@ -130,7 +136,10 @@ local available_subdirs = {
 	       sqlite = function(val)
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("srv_addr = '%s'", val)
-	       end
+	       end,
+	       find = function(alert, filter, val)
+		  return (alert[filter] and (tostring(alert[filter]) == tostring(val)))
+	       end,
 	    },
 	    srv_port = {
 	       lint = http_lint.validatePort,
@@ -138,7 +147,10 @@ local available_subdirs = {
 	       sqlite = function(val)
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("srv_port = %u", val)
-	       end
+	       end,
+	       find = function(alert, filter, val)
+		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       end,
 	    },
 	    l7_proto = {
 	       lint = http_lint.validateProtocolIdOrName,
@@ -161,7 +173,10 @@ local available_subdirs = {
 		  -- If val is the application name, then it is converted to application id                                                                                                                       
                   if not tonumber(val) then val = interface.getnDPIProtoId(val) end
 		  return val
-	       end
+	       end,
+	       find = function(alert, filter, val)
+		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       end,
 	    },
 	    proto = {
 	       lint = http_lint.validateProtocolIdOrName,
@@ -179,7 +194,10 @@ local available_subdirs = {
 		  -- If val is the application name, then it is converted to application id
 		  if not tonumber(val) then val = l4_proto_to_id(val) end
 		  return val
-	       end
+	       end,
+	       find = function(alert, filter, val)
+		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       end,
 	    },
 	    flow_risk_bitmap = {
 	       lint = http_lint.validateNumber,
@@ -193,7 +211,10 @@ local available_subdirs = {
 	       sqlite = function(val)
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("flow_risk_bitmap = %u", val)
-	       end
+	       end,
+	       find = function(alert, filter, val)
+		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       end,
 	    },
 	    info = {
 	       lint = http_lint.validateSingleWord,
@@ -206,7 +227,15 @@ local available_subdirs = {
 		  -- As the info is stored inside the JSON alert, it is necessary to
 		  -- use sqlite json_extract to access it
 		  return string.format("json_extract(alert_json, '$.info') like '%%%s%%'", val)
-	       end
+	       end,
+	       find = function(alert, filter, val)
+		  -- Search for substring val inside the flow info field
+		  if alert["alert_json"] then
+		     local alert_json = json.decode(alert["alert_json"])
+		     return (alert_json[filter] and alert_json[filter]:find(val))
+		  end
+		  return false
+	       end,
 	    },
 	    l7_cat = {
 	       lint = http_lint.validateCategory,
@@ -229,7 +258,10 @@ local available_subdirs = {
 		  -- If val is the application name, then it is converted to application id
 		  if not tonumber(val) then val = interface.getnDPICategoryId(val) end
 		  return val
-	       end
+	       end,
+	       find = function(alert, filter, val)
+		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       end,
 	    },
 	    --	    info     = http_lint.validateUnquoted,
 	 },
@@ -1991,14 +2023,16 @@ function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
       local done = true
       -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
       for filter, value in pairs(values) do
-	 local converted_value = tonumber(value) or value
+	 local converted_value = value
 	 local convert_id = available_subdirs[subdir_id]["filter"]["available_fields"][filter]["getId"]
 	 if convert_id then
 	    converted_value = convert_id(converted_value)
 	 end
 
-	 alert[filter] = tonumber(alert[filter]) or alert[filter]
-	 if alert[filter] ~= converted_value then
+	 -- Possible strange pattern, so using the function find,
+	 -- defined into the available field to check the presence of the data
+	 local find_value = available_subdirs[subdir_id]["filter"]["available_fields"][filter]["find"]
+	 if not find_value(alert, filter, converted_value) then
 	    -- The alert has a different value for that filter
 	    done = false
 	    goto continue2
