@@ -31,13 +31,13 @@ function items_list:init(user_script)
    self.super:init(user_script)
 end
 
-function items_list:parseConfig(script, conf)
-   return http_lint.validateListItems(script, conf)
+function items_list:parseConfig(conf)
+   return http_lint.validateListItems(self._user_script, conf)
 end
 
 -- #######################################################
 
-function items_list:describeConfig(script, hooks_conf)
+function items_list:describeConfig(hooks_conf)
    if((not hooks_conf.all) or (not hooks_conf.all.script_conf)) then
       return '' -- disabled, nothing to show
    end

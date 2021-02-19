@@ -34,7 +34,7 @@ end
 
 -- #######################################################
 
-function threshold_cross:parseConfig(script, conf)
+function threshold_cross:parseConfig(conf)
   if(not http_lint.validateOperator(conf.operator)) then
     return false, "bad operator"
   end
@@ -48,7 +48,7 @@ end
 
 -- #######################################################
 
-function threshold_cross:describeConfig(script, hooks_conf)
+function threshold_cross:describeConfig(hooks_conf)
   local alert_consts = require("alert_consts")
   local granularities_order = {"min", "5mins", "hour", "day"}
   local items = {}
@@ -62,14 +62,14 @@ function threshold_cross:describeConfig(script, hooks_conf)
       local unit = ""
       local op = ternary(hook.script_conf.operator == "gt", ">", "<")
 
-      if(script.gui and script.gui.i18n_field_unit) then
-        unit = " " .. i18n(script.gui.i18n_field_unit)
+      if(self._user_script.gui and self._user_script.gui.i18n_field_unit) then
+        unit = " " .. i18n(self._user_script.gui.i18n_field_unit)
       end
 
-      -- Note: it would be desirable to export a 'script.unit' field
-      -- instead of 'script.gui.i18n_field_unit' to properly format
+      -- Note: it would be desirable to export a 'self._user_script.unit' field
+      -- instead of 'self._user_script.gui.i18n_field_unit' to properly format
       -- numeri values as with bytes below.
-      if script.gui.i18n_field_unit == 'field_units.bytes' then
+      if self._user_script.gui.i18n_field_unit == 'field_units.bytes' then
         local formatted_threshold = format_utils.bytesToSize(hook.script_conf.threshold)
         items[#items + 1] = string.format("%s  (%s)", op,
           formatted_threshold, i18n(granularity.i18n_title) or granularity.i18n_title)

@@ -20,13 +20,13 @@ end
 
 -- ##############################################
 
-function user_script_template:parseConfig(script, conf)
+function user_script_template:parseConfig(conf)
   return true, conf
 end
 
 -- ##############################################
 
-function user_script_template:describeConfig(script, hooks_conf)
+function user_script_template:describeConfig(hooks_conf)
   return ''
 end
 

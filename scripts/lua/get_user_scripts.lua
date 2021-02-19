@@ -95,7 +95,7 @@ for script_name, script in pairs(scripts.modules) do
       edit_url = user_scripts.getScriptEditorUrl(script),
       is_alert = script.is_alert or false,
       input_handler = input_handler,
-      value_description = script.template:describeConfig(script, hooks)
+      value_description = script.template:describeConfig(hooks)
     }
   end
 end

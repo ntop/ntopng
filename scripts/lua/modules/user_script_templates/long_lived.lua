@@ -33,17 +33,17 @@ end
 
 -- #######################################################
 
-function long_lived:parseConfig(script, conf)
+function long_lived:parseConfig(conf)
   if(tonumber(conf.min_duration) == nil) then
     return false, "bad min_duration value"
   end
 
-  return http_lint.validateListItems(script, conf)
+  return http_lint.validateListItems(self._user_script, conf)
 end
 
 -- #######################################################
 
-function long_lived:describeConfig(script, hooks_conf)
+function long_lived:describeConfig(hooks_conf)
   if not hooks_conf.all then
     return '' -- disabled, nothing to show
   end

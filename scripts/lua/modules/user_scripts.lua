@@ -1281,7 +1281,7 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
 	 end
 
 	 if conf.enabled then
-	    valid, rv_or_err = script.template:parseConfig(script, conf.script_conf)
+	    valid, rv_or_err = script.template:parseConfig(conf.script_conf)
 	 else
 	    -- Assume the config is valid when the script is disabled to simplify the check
 	    valid = true

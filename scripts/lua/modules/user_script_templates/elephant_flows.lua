@@ -33,7 +33,7 @@ end
 
 -- #######################################################
 
-function elephant_flows:parseConfig(script, conf)
+function elephant_flows:parseConfig(conf)
   if(tonumber(conf.l2r_bytes_value) == nil) then
     return false, "bad l2r_bytes_value value"
   end
@@ -42,12 +42,12 @@ function elephant_flows:parseConfig(script, conf)
     return false, "bad r2l_bytes_value value"
   end
 
-  return http_lint.validateListItems(script, conf)
+  return http_lint.validateListItems(self._user_script, conf)
 end
 
 -- #######################################################
 
-function elephant_flows:describeConfig(script, hooks_conf)
+function elephant_flows:describeConfig(hooks_conf)
   if not hooks_conf.all then
     return '' -- disabled, nothing to show
   end

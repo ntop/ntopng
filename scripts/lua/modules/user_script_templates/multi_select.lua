@@ -33,14 +33,13 @@ end
 
 -- #######################################################
 
-function multi_select:parseConfig(script, conf)
-  return http_lint.validateListItems(script, conf)
+function multi_select:parseConfig(conf)
+  return http_lint.validateListItems(self._user_script, conf)
 end
 
 -- #######################################################
 
-function multi_select:describeConfig(script, hooks_conf)
-
+function multi_select:describeConfig(hooks_conf)
   if (not hooks_conf.all) then
     return '' -- disabled, nothing to show
   end
@@ -51,7 +50,7 @@ function multi_select:describeConfig(script, hooks_conf)
   if not table.empty(conf.items) then
 
     local temp_msg = {}
-    local groups = script.gui.groups
+    local groups = self._user_script.gui.groups
 
     -- build a string containing selected elements separated by comma
     for _, group in ipairs(groups) do
