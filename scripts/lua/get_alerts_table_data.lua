@@ -210,7 +210,7 @@ for k,v in ipairs(alerts) do
       record["column_subdir"]     = alert_info.alert_generation.subdir or nil
 
       -- Checking if the filter column needs to be skipped
-      if user_scripts.excludeScriptFilters(alert, record["column_confset_id"], record["column_script_key"], record["column_subdir"]) == false then
+      if user_scripts.excludeScriptFilters(alert, alert_info, record["column_confset_id"], record["column_script_key"], record["column_subdir"]) == false then
 	record["column_filter"] = user_scripts.getFilterPreset(alert, alert_info)
       elseif record["column_subdir"] == "flow" then
       	record["column_filter_disabled"] = true

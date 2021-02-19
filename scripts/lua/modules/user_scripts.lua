@@ -106,8 +106,8 @@ local available_subdirs = {
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("cli_addr = '%s'", val)
 	       end,
-	       find = function(alert, filter, val)
-		  return (alert[filter] and (tostring(alert[filter]) == tostring(val)))
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
 	       end,
 	    },
 	    cli_port = {
@@ -117,7 +117,7 @@ local available_subdirs = {
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("cli_port = %u", val)
 	       end,
-	       find = function(alert, filter, val)
+	       find = function(alert, alert_json, filter, val)
 		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
 	       end,
 	    },
@@ -137,8 +137,8 @@ local available_subdirs = {
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("srv_addr = '%s'", val)
 	       end,
-	       find = function(alert, filter, val)
-		  return (alert[filter] and (tostring(alert[filter]) == tostring(val)))
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
 	       end,
 	    },
 	    srv_port = {
@@ -148,7 +148,7 @@ local available_subdirs = {
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("srv_port = %u", val)
 	       end,
-	       find = function(alert, filter, val)
+	       find = function(alert, alert_json, filter, val)
 		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
 	       end,
 	    },
@@ -169,13 +169,12 @@ local available_subdirs = {
 		  -- Match both on the master and app proto
 		  return string.format("(l7_proto = %u OR l7_master_proto = %u)", val, val)
 	       end,
-	       getId = function(val)
-		  -- If val is the application name, then it is converted to application id                                                                                                                       
-                  if not tonumber(val) then val = interface.getnDPIProtoId(val) end
-		  return val
-	       end,
-	       find = function(alert, filter, val)
-		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       find = function(alert, alert_json, filter, val)
+		  -- Converting value into it's id if value is under string format
+		  local value = tonumber(val)
+		  if not value then value = interface.getnDPIProtoId(val) end
+
+		  return (alert[filter] and (tonumber(alert[filter]) == value))
 	       end,
 	    },
 	    proto = {
@@ -190,13 +189,12 @@ local available_subdirs = {
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("proto = %u", val)
 	       end,
-	       getId = function(val)
-		  -- If val is the application name, then it is converted to application id
-		  if not tonumber(val) then val = l4_proto_to_id(val) end
-		  return val
-	       end,
-	       find = function(alert, filter, val)
-		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       find = function(alert, alert_json, filter, val)
+		  -- Converting value into it's id if value is under string format
+		  local value = tonumber(val)
+		  if not value then value = l4_proto_to_id(val) end
+		  
+		  return (alert[filter] and (tonumber(alert[filter]) == value))
 	       end,
 	    },
 	    flow_risk_bitmap = {
@@ -212,7 +210,7 @@ local available_subdirs = {
 		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
 		  return string.format("flow_risk_bitmap = %u", val)
 	       end,
-	       find = function(alert, filter, val)
+	       find = function(alert, alert_json, filter, val)
 		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
 	       end,
 	    },
@@ -228,10 +226,9 @@ local available_subdirs = {
 		  -- use sqlite json_extract to access it
 		  return string.format("json_extract(alert_json, '$.info') like '%%%s%%'", val)
 	       end,
-	       find = function(alert, filter, val)
+	       find = function(alert, alert_json, filter, val)
 		  -- Search for substring val inside the flow info field
-		  if alert["alert_json"] then
-		     local alert_json = json.decode(alert["alert_json"])
+		  if alert_json and val then
 		     return (alert_json[filter] and alert_json[filter]:find(val))
 		  end
 		  return false
@@ -254,16 +251,14 @@ local available_subdirs = {
 		  -- Match both on the master and app proto
 		  return string.format("l7_cat = %u", val)
 	       end,
-	       getId = function(val)
+	       find = function(alert, alert_json, filter, val)
 		  -- If val is the application name, then it is converted to application id
-		  if not tonumber(val) then val = interface.getnDPICategoryId(val) end
-		  return val
-	       end,
-	       find = function(alert, filter, val)
-		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+		  local value = tonumber(val)
+		  if not value then value = interface.getnDPICategoryId(val) end
+		  
+		  return (alert[filter] and (tonumber(alert[filter]) == value))
 	       end,
 	    },
-	    --	    info     = http_lint.validateUnquoted,
 	 },
       },
       -- No pools for flows
@@ -1980,7 +1975,7 @@ end
 
 -- @brief This function is going to check if the user script needs to be excluded
 --        from the list, due to not having filters or not
-function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
+function user_scripts.excludeScriptFilters(alert, alert_json, confid, script_key, subdir)
    local configsets = user_scripts.getConfigsets()
 
    if(configsets[confid] == nil) then
@@ -2023,16 +2018,10 @@ function user_scripts.excludeScriptFilters(alert, confid, script_key, subdir)
       local done = true
       -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
       for filter, value in pairs(values) do
-	 local converted_value = value
-	 local convert_id = available_subdirs[subdir_id]["filter"]["available_fields"][filter]["getId"]
-	 if convert_id then
-	    converted_value = convert_id(converted_value)
-	 end
-
 	 -- Possible strange pattern, so using the function find,
 	 -- defined into the available field to check the presence of the data
 	 local find_value = available_subdirs[subdir_id]["filter"]["available_fields"][filter]["find"]
-	 if not find_value(alert, filter, converted_value) then
+	 if not find_value(alert, alert_json, filter, value) then
 	    -- The alert has a different value for that filter
 	    done = false
 	    goto continue2
