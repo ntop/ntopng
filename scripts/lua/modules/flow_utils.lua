@@ -552,9 +552,9 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
      host_name = host_name.." <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
   end
   if(flow[cli_or_srv .. ".localhost"] == true) then
-     host_name = host_name .. ' <span class="badge badge-success">'..i18n("details.label_short_local_host")..'</span> '
+     host_name = host_name .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge badge-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
   else 
-     host_name = host_name .. ' <span class="badge badge-secondary">'..i18n("details.label_short_remote_host")..'</span> '
+     host_name = host_name .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge badge-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
   end
 
   return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name, nil, true --[[ perform link existance checks --]])

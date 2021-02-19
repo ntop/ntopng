@@ -333,17 +333,17 @@ function format_utils.formatAddressCategory(host)
       end
 
       if(host["localhost"] == true) then
-         addr_category = addr_category .. ' <span class="badge badge-success">'..i18n("details.label_local_host")..'</span>'
+         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge badge-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
       else 
-         addr_category = addr_category .. ' <span class="badge badge-secondary">'..i18n("details.label_remote")..'</span>'
+         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge badge-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
       end
 
       if(host["is_multicast"] == true) then 
-         addr_category = addr_category .. " <span class='badge badge-primary'>" ..i18n("multicast").. "</span> "
+         addr_category = addr_category .. " <abbr title=\"".. i18n("multicast") .."\"><span class='badge badge-primary'>" ..i18n("short_multicast").. "</span></abbr>"
       end
       
       if(host["is_broadcast"] == true) then 
-         addr_category = addr_category .. " <span class='badge badge-dark'>" ..i18n("broadcast").. "</span> "
+         addr_category = addr_category .. " <abbr title=\"".. i18n("broadcast") .."\"><span class='badge badge-dark'>" ..i18n("short_broadcast").. "</span></abbr>"
       end
       
       if(host["broadcast_domain_host"] == true) then
@@ -351,7 +351,7 @@ function format_utils.formatAddressCategory(host)
       end
       
       if(host["privatehost"] == true) then 
-         addr_category = addr_category .. ' <span class="badge badge-warning">'..i18n("details.label_private_ip")..'</span>'
+         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_private_ip") ..'\"><span class="badge badge-warning">'..i18n("details.label_short_private_ip")..'</span></abbr>'
       end
 
       if(host["dhcpHost"] == true) then
