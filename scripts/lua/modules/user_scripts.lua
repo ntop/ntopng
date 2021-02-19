@@ -630,23 +630,23 @@ end
 -- ##############################################
 
 -- @brief Tries and load the script template, returning a new instance (if found)
-local function loadAndCheckScriptTemplate(script_template)
+local function loadAndCheckScriptTemplate(user_script, user_script_template)
    local res
    local template
 
-   if not script_template then
+   if not user_script_template then
       -- Default
-      script_template = "user_script_template"
+      user_script_template = "user_script_template"
    end
 
    -- Attempt at locating the template class under modules
-   local template_path = dirs.installdir .. "/scripts/lua/modules/user_script_templates/"..script_template..".lua"
+   local template_path = dirs.installdir .. "/scripts/lua/modules/user_script_templates/"..user_script_template..".lua"
    if ntop.exists(template_path) then
       -- Require the template file
-      template = require("user_script_templates."..script_template)
+      template = require("user_script_templates."..user_script_template)
 
       -- Create an instance of the template
-      res = template.new()
+      res = template.new(user_script)
    end
 
    return res
@@ -667,7 +667,7 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
    user_script.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
 
    if user_script.gui then
-      user_script.template = loadAndCheckScriptTemplate(user_script.gui.input_builder)
+      user_script.template = loadAndCheckScriptTemplate(user_script, user_script.gui.input_builder)
 
       if(user_script.template == nil) then
 	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown template '%s' for user script '%s'", user_script.gui.input_builder, mod_fname))

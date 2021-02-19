@@ -27,9 +27,9 @@ threshold_cross.meta = {
 
 -- @brief Prepare an instance of the template
 -- @return A table with the template built
-function threshold_cross:init()
+function threshold_cross:init(user_script)
    -- Call the parent constructor
-   self.super:init()
+   self.super:init(user_script)
 end
 
 -- #######################################################

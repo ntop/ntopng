@@ -116,6 +116,8 @@ result.filters = user_scripts.getDefaultFilters(interface.getId(), subdir, scrip
 -------------------------------
 local hooks_config = user_scripts.getScriptConfig(config_set, script, subdir)
 
+-- script.template:render(hooks_config)
+
 for hook, config in pairs(hooks_config) do
   local granularity_info = alert_consts.alerts_granularities[hook]
   local label = nil

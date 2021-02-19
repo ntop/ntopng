@@ -26,9 +26,9 @@ elephant_flows.meta = {
 
 -- @brief Prepare an instance of the template
 -- @return A table with the template built
-function elephant_flows:init()
+function elephant_flows:init(user_script)
    -- Call the parent constructor
-   self.super:init()
+   self.super:init(user_script)
 end
 
 -- #######################################################

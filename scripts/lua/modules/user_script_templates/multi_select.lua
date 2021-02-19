@@ -26,9 +26,9 @@ multi_select.meta = {
 
 -- @brief Prepare an instance of the template
 -- @return A table with the template built
-function multi_select:init()
+function multi_select:init(user_script)
    -- Call the parent constructor
-   self.super:init()
+   self.super:init(user_script)
 end
 
 -- #######################################################
