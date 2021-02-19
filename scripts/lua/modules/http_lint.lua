@@ -1291,6 +1291,7 @@ local known_parameters = {
    ["admin_group"]             = validateUnquoted,
    ["radius_admin_group"]      = validateUnquoted,
    ["ts_post_data_url"]        = validateUnquoted,             -- URL for influxdb
+
    ["webhook_url"]             = { webhookCleanup, validateUnquoted },
    ["webhook_sharedsecret"]    = validateEmptyOr(validateSingleWord),
    ["webhook_username"]        = validateEmptyOr(validateSingleWord),
@@ -1743,6 +1744,7 @@ local known_parameters = {
    ["message"]                                     = validateSingleWord,
    ["script_path"]                                 = validateLuaScriptPath,
    ["error_message"]                               = validateMessage,
+   ["reason"]                                      = validateSingleWord,
 
 --
 
