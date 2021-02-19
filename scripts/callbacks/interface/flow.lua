@@ -28,7 +28,7 @@ end
 
 local do_benchmark = false         -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
-local do_trace = true             -- Trace lua calls
+local do_trace = false             -- Trace lua calls
 local flows_config = nil
 local flows_filters = nil
 local score_enabled = nil
