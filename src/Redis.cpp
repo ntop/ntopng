@@ -352,10 +352,11 @@ int Redis::get(char *key, char *rsp, u_int rsp_len, bool cache_it) {
 
   cacheable = isCacheable(key);
   if(reply && reply->str) {
-    snprintf(rsp, rsp_len-1, "%s", reply->str ? reply->str : ""), rc = 0;
-  } else
+    snprintf(rsp, rsp_len, "%s", reply->str ? reply->str : ""), rc = 0;
+  } else {
     rsp[0] = 0, rc = -1;
-
+  }
+    
   if(cache_it || cacheable) {
     u_int expire_sec = 0;
 

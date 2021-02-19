@@ -72,7 +72,6 @@ class Prefs {
   bool enable_flow_device_port_rrd_creation;
   bool enable_tiny_flows_export;
   bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
-  bool enable_ip_reassignment_alerts;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   bool use_ports_to_determine_src_and_dst;
   bool routing_mode_enabled, global_dns_forging_enabled;
@@ -348,7 +347,6 @@ class Prefs {
 
   inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);            };
   inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation);};
-  inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
   inline bool is_arp_matrix_generation_enabled()         { return(enable_arp_matrix_generation);        };
 
   inline bool do_override_dst_with_post_nat_dst()     const { return(override_dst_with_post_nat_dst);     };

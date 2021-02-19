@@ -6,7 +6,7 @@ local user_scripts = require("user_scripts")
 
 -- #################################################################
 
-local IP_REASSIGNMENT_KEY = "ntopng.prefs.ip_reassignment_alerts"
+local IP_REASSIGNMENT_KEY = "ntopng.prefs.ifid_" .. interface.getId() .. ".ip_reassignment_alerts"
 
 -- #################################################################
 
@@ -40,7 +40,7 @@ local script = {
 
 function script.onLoad(hook, hook_config)
    if hook_config and hook_config.enabled then
-      ntop.setPref(IP_REASSIGNMENT_KEY, "1")
+      ntop.setCache(IP_REASSIGNMENT_KEY, "1")
    end
 
 end
@@ -54,7 +54,8 @@ end
 -- #################################################################
 
 function script.onEnable(hook, hook_config)
-   ntop.setPref(IP_REASSIGNMENT_KEY, "1")
+   ntop.setCache(IP_REASSIGNMENT_KEY, "1")
+   tprint(IP_REASSIGNMENT_KEY)
 end
 
 -- #################################################################

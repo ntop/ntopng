@@ -223,6 +223,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   reloadHideFromTop(false);
 
+  updateIPReassignmentCode();
   updateTrafficMirrored();
   updateDynIfaceTrafficPolicy();
   updateFlowDumpDisabled();
@@ -248,6 +249,7 @@ void NetworkInterface::init() {
     discard_probing_traffic = false;
     flows_only_interface = false;
     numSubInterfaces = 0;
+    enable_ip_reassignment_alerts = false;
     pcap_datalink_type = 0, mtuWarningShown = false,
     purge_idle_flows_hosts = true, id = (u_int8_t)-1,
     last_remote_pps = 0, last_remote_bps = 0,
@@ -334,7 +336,7 @@ void NetworkInterface::init() {
   next_compq_insert_idx = next_compq_remove_idx = 0;
 
   idleFlowsToDump = activeFlowsToDump = NULL;
-
+  
   /*
     Initialize user-script queues
   */
@@ -451,6 +453,12 @@ bool NetworkInterface::getInterfaceBooleanPref(const char *pref_key, bool defaul
 #endif
 
   return interface_pref;
+}
+
+/* **************************************************** */
+
+void NetworkInterface::updateIPReassignmentCode() {
+  enable_ip_reassignment_alerts = getInterfaceBooleanPref(CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT, false);
 }
 
 /* **************************************************** */
@@ -7176,7 +7184,7 @@ TimeseriesExporter* NetworkInterface::getRRDTSExporter() {
 /* *************************************** */
 
 void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4) {
-  if(!ntop->getPrefs()->are_ip_reassignment_alerts_enabled())
+  if(are_ip_reassignment_alerts_enabled())
     return;
 
   u_int64_t mac = Utils::mac2int(_mac);

@@ -146,7 +146,8 @@ class NetworkInterface : public AlertableEntity {
   u_int16_t next_compq_insert_idx;
   u_int16_t next_compq_remove_idx;
   ParsedFlow **companionQueue;
-
+  bool enable_ip_reassignment_alerts;
+  
   /* Live Capture */
   Mutex active_captures_lock;
   u_int8_t num_live_captures;
@@ -384,6 +385,7 @@ class NetworkInterface : public AlertableEntity {
   void incrOS(char *hostname);
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
+  inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
   inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };
   virtual void startPacketPolling();
   virtual void startFlowDumping();
@@ -541,6 +543,7 @@ class NetworkInterface : public AlertableEntity {
   inline bool showDynamicInterfaceTraffic() const { return show_dynamic_interface_traffic; };
   inline bool discardProbingTraffic()       const { return discard_probing_traffic;        };
   inline bool flowsOnlyInterface()          const { return flows_only_interface;           };
+  void updateIPReassignmentCode();
   void updateTrafficMirrored();
   void updateDynIfaceTrafficPolicy();
   void updateFlowDumpDisabled();
