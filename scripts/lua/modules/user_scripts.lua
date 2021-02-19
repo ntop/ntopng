@@ -642,10 +642,6 @@ local function loadAndCheckScriptTemplate(user_script, user_script_template)
    -- First, try and load the template straight from the plugin templates
    local template_require = plugins_utils.loadTemplate(user_script.plugin.key, user_script_template)
 
-   if template_require then
-      tprint("found: "..user_script_template)
-   end
-
    -- Then, if no template is found inside the plugin, try and load the template from the ntopng templates
    -- in modules that can be shared across multiple plugins
    if not template_require then
