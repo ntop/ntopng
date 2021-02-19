@@ -353,7 +353,7 @@ Flow::~Flow() {
     if(protos.ssh.server_signature)  free(protos.ssh.server_signature);
     if(protos.ssh.hassh.client_hash) free(protos.ssh.hassh.client_hash);
     if(protos.ssh.hassh.server_hash) free(protos.ssh.hassh.server_hash);
-  } else if(isTLS()) {
+  } else if(isTLSProto()) {
     if(protos.tls.client_requested_server_name)
       free(protos.tls.client_requested_server_name);
     if(protos.tls.server_names)        free(protos.tls.server_names);
@@ -588,6 +588,10 @@ void Flow::processExtraDissectedInformation() {
       break;
 
     case NDPI_PROTOCOL_TLS:
+    /* More protocols with TLS transport (keep in sync with isTLSProto()) */
+    case NDPI_PROTOCOL_MAIL_IMAPS:
+    case NDPI_PROTOCOL_MAIL_SMTPS:
+    case NDPI_PROTOCOL_MAIL_POPS:
       protos.tls.tls_version = ndpiFlow->protos.tls_quic_stun.tls_quic.ssl_version;
 
       protos.tls.notBefore = ndpiFlow->protos.tls_quic_stun.tls_quic.notBefore,
@@ -2143,7 +2147,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       if(isSSH())
 	lua_get_ssh_info(vm);
 
-      if(isTLS())
+      if(isTLSProto())
 	lua_get_tls_info(vm);
     }
 
@@ -2953,7 +2957,7 @@ bool Flow::isBlacklistedServer() const {
 
 /* *************************************** */
 
-bool Flow::isTLSProto() {
+bool Flow::isTLSProto() const {
   u_int16_t lower = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
   return(
@@ -4876,7 +4880,7 @@ void Flow::lua_get_unicast_info(lua_State* vm) const {
 /* ***************************************************** */
 
 void Flow::lua_get_tls_info(lua_State *vm) const {
-  if(isTLS()) {
+  if(isTLSProto()) {
     lua_push_int32_table_entry(vm, "protos.tls_version", protos.tls.tls_version);
 
     if(protos.tls.server_names)
