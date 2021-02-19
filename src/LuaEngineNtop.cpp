@@ -1453,6 +1453,19 @@ static int ntop_script_get_next_vm_reload(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_has_speedtest_support(lua_State* vm) {
+
+#ifdef HAVE_EXPAT
+  lua_pushboolean(vm, true);
+#else
+  lua_pushboolean(vm, false);
+#endif
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_speedtest(lua_State* vm) {
   json_object *rc = speedtest();
 
@@ -6148,6 +6161,7 @@ static luaL_Reg _ntop_reg[] = {
   { "getNextVmReload",           ntop_script_get_next_vm_reload      },
 
   /* Speedtest */
+  { "hasSpeedtestSupport",       ntop_has_speedtest_support          },
   { "speedtest",                 ntop_speedtest                      },
 
   { NULL,          NULL}
