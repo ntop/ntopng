@@ -22,62 +22,105 @@ Prerequisites
 - uglify-es
 
 On Ubuntu/Debian
-- apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev libjson-c-dev libldap2-dev rename libsnmp-dev
+~~~~~~~~~~~~~~~~
 
-On Debian 9/10 you need to do add the `contrib` component to /etc/apt/sources.list entries, then
-- apt-get install libpng-dev libzmq5-dev default-libmysqlclient-dev
-elsewhere
-- apt-get install libmysqlclient-dev libzmq3-dev
+apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev libjson-c-dev libldap2-dev rename libsnmp-dev
 
-On Ubuntu16/18 you also need to do "apt-get install libtool-bin"
+If you plan to build packages you should also install:
 
+apt-get install debhelper dpkg-sig dkms
+
+On Debian 9/10
+~~~~~~~~~~~~~~
+
+You need to do add the `contrib` component to /etc/apt/sources.list entries, then
+
+apt-get install libpng-dev libzmq5-dev default-libmysqlclient-dev
+
+On Other Debian
+~~~~~~~~~~~~~~~
+
+apt-get install libmysqlclient-dev libzmq3-dev
+
+On Ubuntu16/18
+~~~~~~~~~~~~~~
+
+You also need to do "apt-get install libtool-bin"
 You can decide to use MariaDB (instead of MySQL) do "apt-get install libmariadb-client-lgpl-dev" instead.
 
-On Debian/Ubuntu if you plan to build packages you should also install
-- apt-get install debhelper dpkg-sig dkms
+On CentOS Stream (8)
+~~~~~~~~~~~~~~~~~~~~
 
-On Centos8
-- dnf group install "Development Tools"
-- dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-- Set "enabled=1" in file /etc/yum.repos.d/CentOS-PowerTools.repo
-- yum install http://rpms.remirepo.net/enterprise/remi-release-8.rpm
-- yum config-manager --set-enabled remi
-- yum clean all
-- yum update
-- yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect 
-- Then list the streams which provide Redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
-- yum install hiredis-devel
+dnf install http://rpms.remirepo.net/enterprise/remi-release-8.rpm
+dnf config-manager --set-enabled powertools
+dnf config-manager --set-enabled remi
+dnf group install "Development Tools"
+dnf clean all
+dnf update
+dnf install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect hiredis-devel readline-devel
 
-On Fedora 30/31/32:
-- dnf install libtool m4
-- dnf install autoconf automake
-- dnf group install "Development Tools"
-- dnf install libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mariadb-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect readline-devel
-- dnf install redis
+On Centos 8
+~~~~~~~~~~~
+dnf group install "Development Tools"
+dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+Set "enabled=1" in file /etc/yum.repos.d/CentOS-PowerTools.repo
+yum install http://rpms.remirepo.net/enterprise/remi-release-8.rpm
+yum config-manager --set-enabled remi
+yum clean all
+yum update
+yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect 
+Then list the streams which provide Redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
+yum install hiredis-devel
+
+On Fedora 30/31/32
+~~~~~~~~~~~~~~~~~~
+
+dnf install libtool m4
+dnf install autoconf automake
+dnf group install "Development Tools"
+dnf install libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mariadb-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect readline-devel
+dnf install redis
 
 On (Older) Fedora/CentOS 6-7
-- yum groupinstall "Development tools"
-- yum install git autoconf automake autogen bison flex libpcap-devel libmaxminddb-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which libcap-devel readline-devel zeromq-devel json-c-devel 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On MacOS (using http://brew.sh)
+yum groupinstall "Development tools"
+yum install git autoconf automake autogen bison flex libpcap-devel libmaxminddb-devel hiredis-devel redis glib2-devel libxml2-devel sqlite-devel gcc-c++ libtool wget libcurl-devel pango-devel cairo-devel libpng-devel mysql-devel libnetfilter_queue-devel zlib-devel which libcap-devel readline-devel zeromq-devel json-c-devel 
+
+On MacOS
+~~~~~~~~
+
+Using http://brew.sh:
+
 brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql json-c
 
-On MacOS (using mac ports)
+Using mac ports:
+
 port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git 
 
 On FreeBSD
+~~~~~~~~~~
+
 sudo pkg install gcc git autoconf automake libtool pkgconf gmake sudo libmaxminddb libsodium mysql56-client rrdtool lua53 zip json-c libzmq4 libgcrypt librdkafka bison flex libpcap rename cmake redis
 
 On Cubro EXA8
-- apt-get install libmysqlclient-dev
+~~~~~~~~~~~~~
+
+apt-get install libmysqlclient-dev
 
 On OpenSuse
-- zypper install flex bison libpcap-devel libmaxminddb-devel libsqlite3-0-devel sqlite3-devel libmysqlclient-devel czmq-devel
+~~~~~~~~~~~
 
-On Windows you can download the Redis server from
-- https://github.com/rgl/redis/downloads
+zypper install flex bison libpcap-devel libmaxminddb-devel libsqlite3-0-devel sqlite3-devel libmysqlclient-devel czmq-devel
+
+On Windows
+~~~~~~~~~~
+
+You can download the Redis server from
+https://github.com/rgl/redis/downloads
 
 Note that:
+
 - you can use ZMQ 4.x in addition to 3.x (but not 2.x)
 - make sure nobody owns /var/lib/ntopng
 - make sure to have uglify-es to minify JavaScript code, just type, in the command line, `npm install -g uglify-es` to install it (`./autogen.sh && ./configure` is required after installing uglify-es, before running `make minify`)
@@ -85,20 +128,22 @@ Note that:
 
 Source Code Compilation
 -----------------------
+
 Once you have installed all the prerequisites do
 
-# cd <compilation directory>
-# git clone https://github.com/ntop/nDPI.git
-# cd nDPI; ./autogen.sh; ./configure; make; cd ..
-# git clone https://github.com/ntop/ntopng.git
-# cd ntopng
-# ./autogen.sh
-# ./configure
-# make
+cd <compilation directory>
+git clone https://github.com/ntop/nDPI.git
+cd nDPI; ./autogen.sh; ./configure; make; cd ..
+git clone https://github.com/ntop/ntopng.git
+cd ntopng
+./autogen.sh
+./configure
+make
 
 
 Binary Packages
 ---------------
-- Debian/CentOS/Windows/MacOS/Raspberry 
-  Go to http://packages.ntop.org
+
+Debian/CentOS/Windows/MacOS/Raspberry 
+Go to http://packages.ntop.org
 
