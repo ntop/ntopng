@@ -88,6 +88,13 @@ end
 
 -- #################################################################
 
+-- This function checks whether the speedtest support has been compiled and available
+local function check_speedtest_support()
+   return ntop.hasSpeedtestSupport()
+end
+
+-- #################################################################
+
 return {
    -- Defines a list of measurements implemented by this script.
    -- The probing logic is implemented into the check() and collect_results().
@@ -157,5 +164,5 @@ return {
    },
 
    -- A setup function to possibly disable the plugin
-   setup = check_binary,
+   setup = check_speedtest_support,
 }

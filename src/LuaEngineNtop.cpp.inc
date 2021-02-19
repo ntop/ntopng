@@ -1320,6 +1320,19 @@ static int ntop_script_get_deadline(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_has_speedtest_support(lua_State* vm) {
+
+#ifdef HAVE_EXPAT
+  lua_pushboolean(vm, true);
+#else
+  lua_pushboolean(vm, false);
+#endif
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_speedtest(lua_State* vm) {
   json_object *rc = speedtest();
 
@@ -5929,6 +5942,7 @@ static const luaL_Reg ntop_reg[] = {
   { "getDeadline",               ntop_script_get_deadline            },
 
   /* Speedtest */
+  { "hasSpeedtestSupport",       ntop_has_speedtest_support          },
   { "speedtest",                 ntop_speedtest                      },
 
   { NULL,          NULL}
