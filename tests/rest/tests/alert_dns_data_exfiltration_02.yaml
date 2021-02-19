@@ -10,7 +10,7 @@ pre: |
   curl -s -u admin:admin -H "Content-Type: application/json" -d '{"filters":"srv_addr=4.2.2.4,srv_port=53,l7_proto=5,proto=17","confset_id":"0","subdir":"flow","script_key":"dns_data_exfiltration"}' http://localhost:3333/lua/rest/v1/edit/user_script/filter.lua
 
   # Allow the changed configuration to be re-read
-  sleep 5
+  sleep 6
 
 post: |
   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "status": "historical-flows"}' http://localhost:3333/lua/rest/v1/get/alert/data.lua
