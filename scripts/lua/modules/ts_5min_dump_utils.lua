@@ -118,7 +118,7 @@ end
 -- ########################################################
 
 function ts_dump.os_update_rrds(when, ifstats, verbose)
-  local os_info = interface.getOSesInfo({detailsLevel = "higher", sortColumn = "column_os"})
+  local os_info = interface.getOSesInfo()
 
   for _, os_stats in pairs(os_info["os"] or {}) do
     local OS = os_stats.os
