@@ -607,6 +607,10 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   local alarmed = false  
   local threshold = threshold_config.threshold or threshold_config.default_contacts
 
+  if not value or not threshold then
+     return
+  end
+    
   local alert = alert_type.new(
     params.user_script.key,
     value,
