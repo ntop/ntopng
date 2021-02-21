@@ -160,6 +160,16 @@ schema:addMetric("bytes_egress")
 schema:addMetric("bytes_inner")
 
 -------------------------------------------------------
+-- OSES SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("os:traffic", {step=300, rrd_fname="bytes"})
+schema:addTag("ifid")
+schema:addTag("os")
+schema:addMetric("bytes_ingress")
+schema:addMetric("bytes_egress")
+
+-------------------------------------------------------
 -- VLAN SCHEMAS
 -------------------------------------------------------
 

@@ -1617,6 +1617,7 @@ local known_parameters = {
    ["toggle_vlan_rrds"]                            = validateBool,
    ["toggle_asn_rrds"]                             = validateBool,
    ["toggle_country_rrds"]                         = validateBool,
+   ["toggle_os_rrds"]                              = validateBool,
    ["toggle_shaping_directions"]                   = validateBool,
    ["toggle_dst_with_post_nat_dst"]                = validateBool,
    ["toggle_src_with_post_nat_src"]                = validateBool,

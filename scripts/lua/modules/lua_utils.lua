@@ -3854,6 +3854,10 @@ function areCountryTimeseriesEnabled(ifid)
    return((ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"))
 end
 
+function areOSTimeseriesEnabled(ifid)
+   return((ntop.getPref("ntopng.prefs.os_rrd_creation") == "1"))
+end
+
 function areVlanTimeseriesEnabled(ifid)
    return(ntop.getPref("ntopng.prefs.vlan_rrd_creation") == "1")
 end

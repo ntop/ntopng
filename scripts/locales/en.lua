@@ -920,6 +920,11 @@ local lang = {
     ["country_parameter_missing_message"] = "Country parameter is missing (internal error?)",
     ["no_available_stats_for_country"] = "No available stats for country %{country}",
   },
+  ["os_details"] = {
+    ["os"] = "Operating System",
+    ["os_parameter_missing_message"] = "OS parameter is missing (internal error?)",
+    ["no_available_stats_for_os"] = "No available stats for OS %{os}",
+  },
   ["custom_categories"] = {
     ["add"] = "Add",
     ["add_application"] = "Add Application",
@@ -3901,6 +3906,8 @@ local lang = {
     ["toggle_captive_portal_title"] = "Captive Portal",
     ["toggle_country_rrds_description"] = "Toggle the creation of bytes timeseries for countries.",
     ["toggle_country_rrds_title"] = "Countries",
+    ["toggle_os_rrds_description"] = "Toggle the creation of bytes timeseries for Operating Systems.",
+    ["toggle_os_rrds_title"] = "OperatiOng Systems",
     ["toggle_dst_with_post_nat_dst_description"] = "Replace IPv4 destination addresses (%%IPV4_DST_ADDR) and ports (%%L4_DST_PORT) with their post-nat values (%%POST_NAT_DST_IPV4_ADDR and %%POST_NAPT_DST_TRANSPORT_PORT).",
     ["toggle_dst_with_post_nat_dst_title"] = "Use Post-Nat Destination IPv4 Addresses and Ports",
     ["toggle_elasticsearch_notification_description"] = "Toggle alerts notifications to Elasticsearch.",

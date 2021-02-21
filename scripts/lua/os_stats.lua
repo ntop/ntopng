@@ -59,15 +59,27 @@ print [[
 	     {
 			     title: "]] print(i18n("name")) print[[",
 				 field: "column_id",
-				 sortable: false,
+				 sortable: true,
                              css: {
 			        textAlign: 'left'
 			     }
 
-				 },
-			  ]]
+				 }, {
+					title: "]] print(i18n("chart")) print[[",
+					field: "column_chart",
+					sortable: false,]]
 
-print [[
+local charts_enabled = areOSTimeseriesEnabled(interface.getId())
+
+if not charts_enabled then
+   print("hidden: true,\n")
+end
+
+print[[
+						css: {
+				textAlign: 'center'
+			     }
+				 },
 			     {
 			     title: "]] print(i18n("hosts_stats.hosts")) print[[",
 				 field: "column_hosts",
@@ -96,10 +108,6 @@ print [[
 			     }
 
 				 },
-
-]]
-
-print [[
 			     {
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",

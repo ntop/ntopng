@@ -117,6 +117,19 @@ end
 
 -- ########################################################
 
+function ts_dump.os_update_rrds(when, ifstats, verbose)
+  local os_info = interface.getOSesInfo({detailsLevel = "higher", sortColumn = "column_os"})
+
+  for _, os_stats in pairs(os_info["os"] or {}) do
+    local OS = os_stats.os
+
+    ts_utils.append("os:traffic", {ifid=ifstats.id, os=OS,
+                bytes_ingress=os_stats["bytes.rcvd"], bytes_egress=os_stats["bytes.sent"]}, when)
+  end
+end
+
+-- ########################################################
+
 function ts_dump.vlan_update_rrds(when, ifstats, verbose)
   local vlan_info = interface.getVLANsInfo()
 
@@ -211,6 +224,7 @@ function ts_dump.getConfig()
   config.snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
   config.asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
   config.country_rrd_creation = ntop.getPref("ntopng.prefs.country_rrd_creation")
+  config.os_rrd_creation = ntop.getPref("ntopng.prefs.os_rrd_creation")
   config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
 
@@ -529,6 +543,11 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
     ts_dump.country_update_rrds(when, ifstats, verbose)
   end
 
+  -- create RRD for OSes
+  if config.os_rrd_creation == "1" then
+    ts_dump.os_update_rrds(when, ifstats, verbose)
+  end
+  
   -- Create RRD for vlans
   if config.vlan_rrd_creation == "1" then
     ts_dump.vlan_update_rrds(when, ifstats, verbose)
