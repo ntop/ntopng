@@ -313,9 +313,9 @@ const get_unit_times = (seconds) => {
 /* ******************************************************* */
 
 function getSanitizedScriptExList(script_exclusion_list) {
-    var ex_list_purified;
-    ex_list_purified = script_exclusion_list.split("\n").join(";");
-    return ex_list_purified.split(" ").join("");
+   var ex_list_purified;
+   ex_list_purified = script_exclusion_list.split("\n").join(";");
+   return ex_list_purified.split(" ").join("");
 }
 
 /* ******************************************************* */
@@ -325,15 +325,15 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
    const severitySelected = $(`#script-config-editor select[name='severity']`).val();
    const alert_severity = severitySelected || undefined;
    const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
-   var   script_exclusion_list = exclusionList || undefined;
-    
+   var script_exclusion_list = exclusionList || undefined;
+
    const $apply_btn = $('#btn-apply');
    const $error_label = $("#apply-error");
 
    if (script_exclusion_list !== undefined) {
-      script_exclusion_list = getSanitizedScriptExList(script_exclusion_list);  
+      script_exclusion_list = getSanitizedScriptExList(script_exclusion_list);
    }
-    
+
    // remove dirty class from form
    $('#edit-form').removeClass('dirty')
    $apply_btn.attr('disabled', '');
@@ -347,30 +347,30 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       JSON: JSON.stringify(template_data),
       confset_id: confset_id
    })
-   .done((d, status, xhr) => {
+      .done((d, status, xhr) => {
 
-      if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
+         if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
-      if (!d.success) {
+         if (!d.success) {
 
-         $error_label.text(d.error).show();
-         // re enable button
+            $error_label.text(d.error).show();
+            // re enable button
+            $apply_btn.removeAttr('disabled');
+         }
+
+         // if the operation was successfull then reload the page
+         if (d.success) reloadPageAfterPOST();
+      })
+      .fail(({ status, statusText }, a, b) => {
+
+         NtopUtils.check_status_code(status, statusText, $error_label);
+
+         if (status == 200) {
+            $error_label.text(`${i18n.expired_csrf}`).show();
+         }
+
          $apply_btn.removeAttr('disabled');
-      }
-
-      // if the operation was successfull then reload the page
-      if (d.success) reloadPageAfterPOST();
-   })
-   .fail(({ status, statusText }, a, b) => {
-
-      NtopUtils.check_status_code(status, statusText, $error_label);
-
-      if (status == 200) {
-         $error_label.text(`${i18n.expired_csrf}`).show();
-      }
-
-      $apply_btn.removeAttr('disabled');
-   });
+      });
 }
 
 const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
@@ -386,38 +386,38 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
          // if there is an error about the http request
          if (NtopUtils.check_status_code(xhr.status, xhr.statusText, $error_label)) return;
 
-         const {metadata} = reset_data;
+         const { metadata } = reset_data;
          const hasSeverity = metadata.is_alert || false;
          const exclusionList = $(`#script-config-editor textarea[name='exclusion-list']`).val();
-	 const script_exclusion_list = exclusionList || undefined;
+         const script_exclusion_list = exclusionList || undefined;
 
-	  /* Creating the default string for the exclusion list when reset is called */
-	  if (script_exclusion_list) {
-	      let ex_list_str = ""
-	      const scriptConfExList = reset_data.filters;
-    
-	      if (scriptConfExList) {
-		  const scriptConfCurrFil = scriptConfExList.current_filters;
-		  if (scriptConfCurrFil) {
-		      for (const [index, filters] of Object.entries(scriptConfCurrFil)) {
-			  for (const [name, value] of Object.entries(filters)) {
-			      // Concat the string to create a human readable string
-			      if (name === "str_format") {
-				  // Temporary check, needs to be removed in a few time
-				  continue;
-			      }
-			      ex_list_str = ex_list_str + name + "=" + value + ",";
-			  }
-		   
-			  ex_list_str = ex_list_str.slice(0, -1);
-			  ex_list_str = ex_list_str + "\n";
-		      }
-		  }
+         /* Creating the default string for the exclusion list when reset is called */
+         if (script_exclusion_list) {
+            let ex_list_str = ""
+            const scriptConfExList = reset_data.filters;
 
-		  $(`#script-config-editor textarea[name='exclusion-list']`).val(ex_list_str);
-	      }
-	  }
-	      
+            if (scriptConfExList) {
+               const scriptConfCurrFil = scriptConfExList.current_filters;
+               if (scriptConfCurrFil) {
+                  for (const [index, filters] of Object.entries(scriptConfCurrFil)) {
+                     for (const [name, value] of Object.entries(filters)) {
+                        // Concat the string to create a human readable string
+                        if (name === "str_format") {
+                           // Temporary check, needs to be removed in a few time
+                           continue;
+                        }
+                        ex_list_str = ex_list_str + name + "=" + value + ",";
+                     }
+
+                     ex_list_str = ex_list_str.slice(0, -1);
+                     ex_list_str = ex_list_str + "\n";
+                  }
+               }
+
+               $(`#script-config-editor textarea[name='exclusion-list']`).val(ex_list_str);
+            }
+         }
+
          if (hasSeverity) {
             const defaultSeverity = metadata.default_value.severity;
             if (defaultSeverity !== undefined) {
@@ -691,7 +691,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
          'itemslist-checkbox', enabled, callback_checkbox
       );
 
-      const items_list = hooks.all ? hooks.all.script_conf.items : (hooks.min.script_conf.items || []);      const $text_area = $(`
+      const items_list = hooks.all ? hooks.all.script_conf.items : (hooks.min.script_conf.items || []); const $text_area = $(`
          <td>
             <div class='form-group template w-100'>
                <textarea
@@ -720,7 +720,7 @@ const ItemsList = (gui, hooks, script_subdir, script_key) => {
       const textarea_value = $('#itemslist-textarea').val().trim();
 
       const items_list = textarea_value ? textarea_value.split(',').map(x => x.trim()) : [];
-      const hook = (hooks.all === undefined) ? "min" : "all"; 
+      const hook = (hooks.all === undefined) ? "min" : "all";
       const template_data = {
          [hook]: {
             enabled: hook_enabled,
@@ -787,15 +787,15 @@ const LongLived = (gui, hooks, script_subdir, script_key) => {
       };
 
       const $time_input_box = generate_input_box(input_settings);
-/* Currently disabled multi-select for appl and categories
-      const $multiselect_ds = generate_multi_select({
-         enabled: enabled,
-         name: 'item_list',
-         label: `${i18n.scripts_list.templates.excluded_applications}:`,
-         selected_values: items_list,
-         groups: apps_and_categories
-      });
-*/
+      /* Currently disabled multi-select for appl and categories
+            const $multiselect_ds = generate_multi_select({
+               enabled: enabled,
+               name: 'item_list',
+               label: `${i18n.scripts_list.templates.excluded_applications}:`,
+               selected_values: items_list,
+               groups: apps_and_categories
+            });
+      */
       // time-ds stands for: time duration selection
       const radio_values = {
          labels: [`${i18n.metrics.minutes}`, `${i18n.metrics.hours}`, `${i18n.metrics.days}`],
@@ -988,16 +988,16 @@ const ElephantFlows = (gui, hooks, script_subdir, script_key) => {
       };
       const $input_box_r2l = generate_input_box(input_settings_r2l);
 
-/* Currently disabled textarea
-      // create textarea to append
-      const $multiselect_bytes = generate_multi_select({
-         enabled: enabled,
-         name: 'item_list',
-         label: `${i18n.scripts_list.templates.excluded_applications}:`,
-         selected_values: items_list,
-         groups: apps_and_categories
-      });
-*/
+      /* Currently disabled textarea
+            // create textarea to append
+            const $multiselect_bytes = generate_multi_select({
+               enabled: enabled,
+               name: 'item_list',
+               label: `${i18n.scripts_list.templates.excluded_applications}:`,
+               selected_values: items_list,
+               groups: apps_and_categories
+            });
+      */
 
       // create radio button with its own values
       const radio_values_l2r = {
@@ -1251,7 +1251,7 @@ const AlertSeverity = (gui, hooks, script_subdir, script_key) => {
    const $tableEditor = $("#script-config-editor");
 
    return {
-      apply_click_event: function () { 
+      apply_click_event: function () {
 
          const template_data = {
             all: {
@@ -1262,8 +1262,8 @@ const AlertSeverity = (gui, hooks, script_subdir, script_key) => {
 
          apply_edits_script(template_data, script_subdir, script_key);
       },
-      reset_click_event: function () { 
-         reset_script_defaults(script_key, script_subdir, (data_reset) => {});
+      reset_click_event: function () {
+         reset_script_defaults(script_key, script_subdir, (data_reset) => { });
       },
       render: function () {
          $tableEditor.empty();
@@ -1335,10 +1335,10 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
          // get alert severity if present
          appendSeveritySelect(data);
 
-	 if(script_subdir === "flow") {
-	    // append the exclusion list 
-	    appendExclusionList(data);
-	 } 
+         if (script_subdir === "flow") {
+            // append the exclusion list 
+            appendExclusionList(data);
+         }
 
          // bind on_apply event on apply button
          $("#edit-form").off("submit").on('submit', template.apply_click_event);
@@ -1373,8 +1373,8 @@ const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key, is
 
    // get template name
    const template_name = gui.input_builder;
-   
-   
+
+
    const templates = {
       threshold_cross: ThresholdCross(gui, hooks, script_subdir, script_key),
       items_list: ItemsList(gui, hooks, script_subdir, script_key),
@@ -1383,17 +1383,17 @@ const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key, is
       multi_select: MultiSelect(gui, hooks, script_subdir, script_key)
    }
 
-    const isSubdirFlow = (script_subdir === "flow")
+   const isSubdirFlow = (script_subdir === "flow")
    let template_chosen = templates[template_name];
-    if (!template_chosen && !(is_alert || isSubdirFlow)) {
+   if (!template_chosen && !(is_alert || isSubdirFlow)) {
       template_chosen = EmptyTemplate();
       // this message is for the developers
       console.warn("The chosen template doesn't exist yet. See the avaible templates.")
    }
-    else if (!template_chosen && (is_alert || isSubdirFlow)) {
+   else if (!template_chosen && (is_alert || isSubdirFlow)) {
       template_chosen = AlertSeverity(gui, hooks, script_subdir, script_key);
    }
-   
+
    // check if the script has an action button
    const hasActionButton = gui.input_action_i18n !== undefined && gui.input_action_url !== undefined;
    if (hasActionButton) {
@@ -1404,7 +1404,7 @@ const TemplateBuilder = ({ gui, hooks, metadata }, script_subdir, script_key, is
       $(`.action-button-container`).hide();
       $(`#action-error`).hide();
    }
-   
+
    // restore Apply/Reset button
    $(`#btn-apply,#btn-reset`).show();
 
@@ -1452,20 +1452,20 @@ const createScriptStatusButton = (row_data) => {
          action: (is_enabled) ? 'disable' : 'enable',
          confset_id: confset_id
       })
-      .done((d, status, xhr) => {
+         .done((d, status, xhr) => {
 
-         if (!d.success) {
-            $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
-         }
+            if (!d.success) {
+               $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
+            }
 
-         if (d.success) reloadPageAfterPOST();
-      })
-      .fail(({status, statusText}) => {
-         NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
-      })
-      .always(() => {
-         $button.removeAttr("disabled").removeClass('disabled');
-      })
+            if (d.success) reloadPageAfterPOST();
+         })
+         .fail(({ status, statusText }) => {
+            NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
+         })
+         .always(() => {
+            $button.removeAttr("disabled").removeClass('disabled');
+         })
    })
 
    return $button;
@@ -1481,14 +1481,14 @@ function appendSeveritySelect(data) {
 
       let severity = data.metadata.default_value.severity.severity_id;
 
-       const hooksKeys = Object.keys(data.hooks);
-       var index;
-       if (hooksKeys[0] === "filter") {
-	   index = hooksKeys[1];
-       } else {
-	   index = hooksKeys[0];
-       }
-       const scriptConfSeverity = data.hooks[index].script_conf.severity;
+      const hooksKeys = Object.keys(data.hooks);
+      var index;
+      if (hooksKeys[0] === "filter") {
+         index = hooksKeys[1];
+      } else {
+         index = hooksKeys[0];
+      }
+      const scriptConfSeverity = data.hooks[index].script_conf.severity;
 
       if (scriptConfSeverity) {
          severity = scriptConfSeverity.severity_id;
@@ -1497,7 +1497,7 @@ function appendSeveritySelect(data) {
       let $container;
       let $select = $($(`#severity-template`).html());
       const label = i18n.scripts_list.alert_severity;
-      if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder )) {
+      if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
          $container = $(`<tr></tr>`);
          $select.addClass('d-inline');
          $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
@@ -1517,32 +1517,32 @@ function appendSeveritySelect(data) {
 }
 
 function appendExclusionList(data) {
-    let ex_list_str = ""
-    const scriptConfExList = data.filters;
-    
+   let ex_list_str = ""
+   const scriptConfExList = data.filters;
+
    if (scriptConfExList) {
       const scriptConfCurrFil = scriptConfExList.current_filters;
       if (scriptConfCurrFil) {
-	  for (const [index, filters] of Object.entries(scriptConfCurrFil)) {
-	      for (const [name, value] of Object.entries(filters)) {
-		  // Concat the string to create a human readable string
-		  if (name === "str_format") {
-		      // Temporary check, needs to be removed in a few time
-		      continue;
-		  }
-		  ex_list_str = ex_list_str + name + "=" + value + ",";
-	      }
-		   
-	      ex_list_str = ex_list_str.slice(0, -1);
-	      ex_list_str = ex_list_str + "\n";
-	  }
-      } 
+         for (const [index, filters] of Object.entries(scriptConfCurrFil)) {
+            for (const [name, value] of Object.entries(filters)) {
+               // Concat the string to create a human readable string
+               if (name === "str_format") {
+                  // Temporary check, needs to be removed in a few time
+                  continue;
+               }
+               ex_list_str = ex_list_str + name + "=" + value + ",";
+            }
+
+            ex_list_str = ex_list_str.slice(0, -1);
+            ex_list_str = ex_list_str + "\n";
+         }
+      }
    }
 
    let $container;
    let $textarea = $($(`#exclusion-list-template`).html());
    const label = i18n.scripts_list.exclusion_list_title;
-   if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder )) {
+   if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
       $container = $(`<tr></tr>`);
       $container.append($(`<td></td>`), $(`<td></td>`).append($(`<div class='form-row'></div>`).append(
          $(`<label class='col-3 col-form-label'>${label}</label>`),
@@ -1575,9 +1575,9 @@ function delegateActionButton(gui) {
       const $alert = $(`#action-error`);
       $alert.hide();
 
-      const req = $.post(`${http_prefix}/${gui.input_action_url}`, {csrf: pageCsrf});
-      req.then(function ({rc, rc_str}) {
-         
+      const req = $.post(`${http_prefix}/${gui.input_action_url}`, { csrf: pageCsrf });
+      req.then(function ({ rc, rc_str }) {
+
          // if the return code is zero then everything went alright
          if (rc == 0) {
             $alert.removeClass('alert-danger').addClass('alert-success').html(i18n.rest[rc_str]).show().fadeOut(3000);
@@ -1591,10 +1591,10 @@ function delegateActionButton(gui) {
             NtopUtils.check_status_code(jqXHR.status, jqXHR.statusText, $alert);
             return;
          }
-         const {rc_str} = jqXHR.responseJSON;
+         const { rc_str } = jqXHR.responseJSON;
          $alert.removeClass('alert-success').addClass('alert-danger').html(i18n.rest[rc_str]).show();
       });
-      req.always(function() {
+      req.always(function () {
          $button.removeAttr("disabled");
       });
    });
@@ -1605,22 +1605,22 @@ function delegateTooltips() {
       trigger: 'manual',
       html: true,
       animation: false,
-  })
-  .on('mouseenter', function () {
-      let self = this;
-      $(this).popover("show");
-      $(".popover").on('mouseleave', function () {
-          $(self).popover('hide');
+   })
+      .on('mouseenter', function () {
+         let self = this;
+         $(this).popover("show");
+         $(".popover").on('mouseleave', function () {
+            $(self).popover('hide');
+         });
+      })
+      .on('mouseleave', function () {
+         let self = this;
+         setTimeout(function () {
+            if (!$('.popover:hover').length) {
+               $(self).popover('hide');
+            }
+         }, 50);
       });
-  })
-  .on('mouseleave', function () {
-      let self = this;
-      setTimeout(function () {
-          if (!$('.popover:hover').length) {
-              $(self).popover('hide');
-          }
-      }, 50);
-  });
 }
 
 $(document).ready(function () {
@@ -1797,13 +1797,13 @@ $(document).ready(function () {
             delegateTooltips();
          }
 
-         $all_button.click(function() {
+         $all_button.click(function () {
             filterButonEvent($(this), "", "#all");
          });
-         $enabled_button.click(function() {
+         $enabled_button.click(function () {
             filterButonEvent($(this), "true", "#enabled");
          });
-         $disabled_button.click(function() {
+         $disabled_button.click(function () {
             filterButonEvent($(this), "false", "#disabled");
          });
 
@@ -1835,30 +1835,30 @@ $(document).ready(function () {
       order: [[0, "asc"]],
       buttons: {
          buttons: [
-             {
-                 text: '<i class="fas fa-sync"></i>',
-                 className: 'btn-link',
-                 action: function (e, dt, node, config) {
-                     $script_table.ajax.reload(function() {
-                        const [enabled_count, disabled_count] = count_scripts();
-                        // enable the disable all button if there are more than one enabled scripts
-                        if (enabled_count > 0) $(`#btn-disable-all`).removeAttr('disabled');
-                        $("#all-scripts").html(`${i18n.all} (${enabled_count + disabled_count})`)
-                        $(`#enabled-scripts`).html(`${i18n.enabled} (${enabled_count})`);
-                        $(`#disabled-scripts`).html(`${i18n.disabled} (${disabled_count})`);
-                     }, false);
-                 }
-             }
+            {
+               text: '<i class="fas fa-sync"></i>',
+               className: 'btn-link',
+               action: function (e, dt, node, config) {
+                  $script_table.ajax.reload(function () {
+                     const [enabled_count, disabled_count] = count_scripts();
+                     // enable the disable all button if there are more than one enabled scripts
+                     if (enabled_count > 0) $(`#btn-disable-all`).removeAttr('disabled');
+                     $("#all-scripts").html(`${i18n.all} (${enabled_count + disabled_count})`)
+                     $(`#enabled-scripts`).html(`${i18n.enabled} (${enabled_count})`);
+                     $(`#disabled-scripts`).html(`${i18n.disabled} (${disabled_count})`);
+                  }, false);
+               }
+            }
          ],
          dom: {
-             button: {
-                 className: 'btn btn-link'
-             },
-             container: {
-                 className: 'border-left ml-1 float-right'
-             }
+            button: {
+               className: 'btn btn-link'
+            },
+            container: {
+               className: 'border-left ml-1 float-right'
+            }
          }
-     },
+      },
       columns: [
          {
             data: 'title',
@@ -1925,16 +1925,16 @@ $(document).ready(function () {
             className: 'text-center',
             sortable: false,
             width: 'auto',
-             render: function (data, type, script) {
-		 
+            render: function (data, type, script) {
+
                const isScriptEnabled = script.is_enabled;
-	       const isSubdirFlow = (script_subdir === "flow");
+               const isSubdirFlow = (script_subdir === "flow");
                const srcCodeButtonEnabled = data.edit_url && isScriptEnabled ? '' : 'disabled';
-		const editScriptButtonEnabled = ((!script.is_alert && !script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
-	
+               const editScriptButtonEnabled = ((!script.is_alert && !script.input_handler && !isSubdirFlow) || !isScriptEnabled) ? 'disabled' : '';
+
                return DataTableUtils.createActionButtons([
                   { class: `btn-info ${editScriptButtonEnabled}`, modal: '#modal-script', icon: 'fa-edit' },
-                  { class: `btn-secondary ${srcCodeButtonEnabled}`, icon: 'fa-file-code', href: data.edit_url}
+                  { class: `btn-secondary ${srcCodeButtonEnabled}`, icon: 'fa-file-code', href: data.edit_url }
                ]);
             },
             createdCell: function (td, cellData, row) {
@@ -2010,7 +2010,7 @@ $(document).ready(function () {
       });
    });
 
-   $(`#disable-all-modal #btn-confirm-action`).click(async function() {
+   $(`#disable-all-modal #btn-confirm-action`).click(async function () {
 
       $(this).attr("disabled", "disabled");
       $.post(`${http_prefix}/lua/toggle_all_user_scripts.lua`, {
@@ -2019,15 +2019,15 @@ $(document).ready(function () {
          confset_id: confset_id,
          csrf: pageCsrf
       })
-      .then((result) => {
-         if (result.success) location.reload();
-      })
-      .catch((error) => {
-         console.error(error);
-      })
-      .always(() => {
-         $(`#btn-disable-all`).removeAttr("disabled");
-      })
+         .then((result) => {
+            if (result.success) location.reload();
+         })
+         .catch((error) => {
+            console.error(error);
+         })
+         .always(() => {
+            $(`#btn-disable-all`).removeAttr("disabled");
+         })
    })
 
 });

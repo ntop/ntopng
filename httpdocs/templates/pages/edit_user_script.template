@@ -73,10 +73,10 @@
                 </div>
             </div>
             <div class="card-footer">
-                <button type="submit" id="submit-button" class="btn btn-danger">
+                <button type="submit" id="reset-button" class="btn btn-danger">
                     {{ i18n("scripts_list.reset_default") }}
                 </button>
-                <button form="user-script-edits" type="submit" class="btn btn-primary">
+                <button form="user-script-edits" id="submit-button" type="submit" class="btn btn-primary">
                     {{ i18n("save") }}
                 </button>
             </div>
@@ -84,9 +84,41 @@
     </div>
 </div>
 <script type="text/javascript">
+
+// Object containing callbacks to be called when the user
+// clicks the reset button.
+const RESET_CALLBACKS = {
+    /*
+        [hookName] = pointerToTheCallback: (hookName, hookConfig, resetData) => ()
+    */
+};
+
+/**
+ * Register a reset callback that it will be called when the user clicks the reset button.
+ */
+function registerResetCallback(hookName, callback) {
+    
+    if (RESET_CALLBACKS[hookName] !== undefined) {
+        console.warn(`Overriding existing callback for the hook ${hookName}...`);
+    }
+
+    RESET_CALLBACKS[hookName] = callback;
+}
+
 $(document).ready(function() {
 
+    function toggleFields($fieldset, enabled) {
+        $fieldset.find(`input[name!='enabled'],select,textarea,.btn,button`).each(function() {
+            if (!enabled) {
+                $(this).attr("disabled", true).addClass("disabled");
+                return;
+            }
+            $(this).removeAttr("disabled").removeClass("disabled");
+        });
+    }
+
     const CSRF = "{{ ntop.getRandomCSRFValue() }}";
+    const RESET_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/get_user_script_config.lua?script_subdir={{edit_user_script.script_subdir}}&script_key={{edit_user_script.script_key}}"
     const SAVE_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/edit_user_script_config.lua";
 
     const $errorAlert = $(`#error-alert`);
@@ -96,18 +128,63 @@ $(document).ready(function() {
     $(`input[name='enabled']`).on('click', function() {
         
         // ... disable or enable the fields inside the fieldset
-        const fieldset = $(this).parents('fieldset');
+        const $fieldset = $(this).parents('fieldset');
         const enabled = $(this).is(':checked');
-
-        fieldset.find(`input[name!='enabled'],select,textarea,.btn,button`).each(function() {
-            if (!enabled) {
-                $(this).attr("disabled", true).addClass("disabled");
-                return;
-            }
-            $(this).removeAttr("disabled").removeClass("disabled");
-        });
+        toggleFields($fieldset, enabled);
     })
 
+    // On Reset Button click...
+    $(`#reset-button`).on('click', async function() {
+
+        const request = $.get(RESET_ENDPOINT);
+        request.then(function(data) {
+            
+            // for eache hook reset the default values
+            const {metadata, hooks} = data;
+
+            for (const [hookName, hook] of Object.entries(hooks)) {
+                
+                const $fieldset = $(`fieldset[id='${hookName}']`);
+                const $enabled = $fieldset.find(`[name='enabled']`);
+                const $severitySelect = $fieldset.find(`[name='severity']`);
+
+                if (hook.enabled) {
+                    $enabled.attr("checked", "checked");   
+                }
+                else {
+                    $enabled.removeAttr("checked");
+                }
+
+                // trigger the toggle click event to disable/enable fields
+                toggleFields($fieldset, hook.enabled);
+
+                // for each field inside the script conf
+                for (const [scriptField, value] of Object.entries(hook.script_conf)) {
+
+                    // reset the severity select
+                    if (scriptField === "severity") {
+                        $severitySelect.val(value.severity_id);
+                        continue;
+                    }
+
+                    // let's check if the field is contained inside the fieldset
+                    // and then set it's previous value
+                    const $field = $(`[name='${scriptField}']`);
+                    if ($field.length > 0) {
+                        $field.val(value);
+                    }
+
+                    // check if exists a reset callback for the hook and call it
+                    if (RESET_CALLBACKS[hookName] !== undefined) RESET_CALLBACKS[hookName](hookName, hook, data);
+                }
+            
+            }
+
+        });
+
+    });
+
+    // On form submitting...
     $(`#user-script-edits`).on('submit', async function(e) {
         
         e.preventDefault();
