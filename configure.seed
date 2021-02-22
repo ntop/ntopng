@@ -832,11 +832,26 @@ if test -f "packages/OPNsense/build.sh"; then
   chmod +x packages/OPNsense/build.sh
 fi
 
-echo ""
-echo "You are now ready to compile typing $GMAKE"
+echo "
+This is the ntopng configuration:
+
+System Libs       : ${LDFLAGS}
+nDPI Lib:         : ${NDPI_LIB}
+JSON Lib:         : ${JSON_LIB}
+SSL Lib:          : ${SSL_LIB}
+SNMP Lib          : ${SNMP_LIB}
+Expat Lib         : ${EXPAT_LIB}
+SQLite Lib        : ${SQLITE_LIB}
+MySQL Lib         : ${MYSQL_LIB}
+PCAP Lib          : ${LIBPCAP}
+Install path      : ${INSTALL_DIR}
+
+You are now ready to compile typing $GMAKE
+"
 
 if test "$DOWNLOAD_GEOIP" = "1"; then
   echo "Please do not forget to download GeoIP databases from either https://maxmind.com or https://db-ip.com"
+  echo ""
 fi
 
 dnl>
