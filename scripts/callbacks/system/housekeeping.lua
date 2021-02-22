@@ -10,21 +10,31 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
-local lists_utils = require "lists_utils"
-local recording_utils = require "recording_utils"
-local plugins_utils = require "plugins_utils"
-local prefs_reload_utils = require "prefs_reload_utils"
+local scripts_triggers = require "scripts_triggers"
 local now = os.time()
 
 -- Check and possibly reload changed preferences
-prefs_reload_utils.check_reload_prefs()
+if(scripts_triggers.arePrefsChanged()) then
+   local prefs_reload_utils = require "prefs_reload_utils"
+   
+   prefs_reload_utils.check_reload_prefs()
+end
 
 -- Check and possibly reload plugins
-plugins_utils.checkReloadPlugins(now)
+if(scripts_triggers.checkReloadPlugins(now)) then
+   local plugins_utils = require "plugins_utils"
+   
+   plugins_utils.checkReloadPlugins(now)
+end
 
-lists_utils.checkReloadLists()
-
-if recording_utils.isAvailable() then
+if(scripts_triggers.checkReloadLists()) then
+   local lists_utils = require "lists_utils"
+   
+   lists_utils.checkReloadLists()
+end
+   
+if scripts_triggers.isRecordingAvailable() then
+   local recording_utils = require "recording_utils"
+   
   recording_utils.checkExtractionJobs()
 end

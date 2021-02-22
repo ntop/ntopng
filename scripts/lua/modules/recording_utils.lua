@@ -7,6 +7,7 @@ require "lua_utils"
 --require "prefs_utils"
 local json = require("dkjson")
 local os_utils = require("os_utils")
+local scripts_triggers = require "scripts_triggers"
 
 local prefs = ntop.getPrefs()
 
@@ -130,13 +131,8 @@ function recording_utils.checkAvailable()
   ntop.setCache(is_running_job_pending_key, "1")
 end
 
---! @brief Check if traffic recording is available and allowed for the current user on an interface
---! @return true if recording is available, false otherwise
 function recording_utils.isAvailable()
-  if isAdministrator() and (ntop.getCache(is_available_key) == "1") then
-    return true
-  end
-  return false
+   return scripts_triggers.isRecordingAvailable()
 end
 
 --! @brief Check if traffic recording and extraction is allowed for the current user on an interface
