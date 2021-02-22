@@ -98,7 +98,7 @@ brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git
 
 Using MacPorts:
 
-sudo port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git openssl zlib json-c libmaxminddb zmq
+sudo port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git openssl zlib json-c libmaxminddb zmq libgcrypt
 
 On FreeBSD
 ~~~~~~~~~~
