@@ -1467,6 +1467,7 @@ local known_parameters = {
    ["alert_l7_proto"]          = validateNumber,                -- An alert l7 protocol
    ["alert_subtype"]           = validateSingleWord,            -- An alert subtype string
    ["alert_severity"]          = validateNumber,                -- An alert severity enum
+   ["severity"]                = validateNumber,                -- Same as alert_severity
    ["alert_granularity"]       = validateNumber,                -- An alert granularity
    ["entity"]                  = validateNumber,                -- An alert entity type
    ["asn"]                     = validateNumber,                -- An ASN number
