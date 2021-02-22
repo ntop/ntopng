@@ -32,14 +32,17 @@ end
 
 -- ##############################################
 
--- @brief Render user script templates for all the available user script hooks
--- @return The rendered template
+-- @brief Render user script HTML templates for all the available user script hooks
+--        To locate an HTML template file, user script gui.input_builder variable is taken and
+--        concatenated with ".template". For example, user script long_lived.lua has gui.input_builder == "long_lived"
+--        will cause template "long_lived.template" to be located and then rendered.
+-- @return Rendered templates in a table whose keys are hook names and whose values are rendered templates.
 function user_script_template:render(hooks_conf)
    local res = {}
    local plugins_utils = require "plugins_utils"
 
    for hook, hook_conf in pairs(hooks_conf) do
-      res[hook] = plugins_utils.renderTemplate(self._user_script.plugin.key, self._user_script.gui.template, hook_conf)
+      res[hook] = plugins_utils.renderTemplate(self._user_script.plugin.key, self._user_script.gui.input_builder..".template", hook_conf)
    end
 
    return res
