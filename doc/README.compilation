@@ -92,13 +92,13 @@ yum install git autoconf automake autogen bison flex libpcap-devel libmaxminddb-
 On MacOS
 ~~~~~~~~
 
-Using http://brew.sh:
+Using Brew (http://brew.sh):
 
 brew install redis hiredis autoconf automake libtool rrdtool wget pkg-config git mysql json-c
 
-Using mac ports:
+Using MacPorts:
 
-port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git 
+sudo port install redis hiredis autoconf automake libtool rrdtool wget pkgconfig git openssl zlib json-c libmaxminddb
 
 On FreeBSD
 ~~~~~~~~~~
