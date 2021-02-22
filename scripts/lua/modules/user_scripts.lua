@@ -17,6 +17,7 @@ local plugins_utils = require("plugins_utils")
 local alert_consts = require "alert_consts"
 local http_lint = require("http_lint")
 local ipv4_utils = require "ipv4_utils"
+local pools_lua_utils = require "pools_lua_utils"
 
 local info = ntop.getInfo()
 
@@ -1143,6 +1144,9 @@ function user_scripts.deleteConfigset(confid)
       return false, i18n("configsets.unknown_id", {confid=confid})
    end
 
+   -- Remove the configset from all the pools to could have been associated to
+   pools_lua_utils.unbind_all_configset_id(confid)
+
    configsets[confid] = nil
    return saveConfigsets(configsets)
 end
@@ -1155,6 +1159,7 @@ function user_scripts.createOrReplaceConfigset(configset)
    local existing = user_scripts.findConfigSet(configsets, configset.name)
    if existing then
       configsets[existing.id] = nil
+      pools_lua_utils.unbind_all_recipient_id(existing.id)
    end
 
    local new_confid = 0
@@ -1574,6 +1579,10 @@ end
 -- ##############################################
 
 function user_scripts.resetConfigsets()
+   for confset_id, _ in pairs(user_scripts.getConfigsets()) do
+      user_scripts.deleteConfigset(confset_id)
+   end
+
    cached_config_sets = nil
    ntop.delCache(CONFIGSETS_KEY)
    user_scripts.loadDefaultConfig()
@@ -1780,6 +1789,7 @@ function user_scripts.getFilterPreset(alert, alert_info)
 
    local filter_table = {}
    local index        = 1
+
    for _, field in pairs(filter_to_use) do
       -- Check for field existance in the alert
       local field_val = alert[field]
@@ -1997,8 +2007,9 @@ function user_scripts.excludeScriptFilters(alert, alert_json, confid, script_key
    if not config then
       return false
    end
+
    -- Security checks
-   local conf   = config[subdir]
+   local conf = config[subdir]
 
    if not conf then
       return false
