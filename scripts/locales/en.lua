@@ -2178,7 +2178,7 @@ local lang = {
     ["ndpi_url_possible_xss"] = "Possible XSS",
   },
   ["flows_page"] = {
-    ["active_flows"] = "Active %{filter} Flows",
+    ["active_flows"] = "%{filter} Active Flows",
     ["actual_throughput"] = "Actual Thpt",
     ["alerted"] = "Alerted",
     ["all_alerted"] = "All Alerted",
@@ -2227,7 +2227,7 @@ local lang = {
     ["one_way_non_multicast"] = "One-Way Non-Multicast/Non-Broadcast",
     ["outIfIdx"] = "Output Interface",
     ["port"] = " [ Port %{port} ]",
-    ["recently_active_flows"] = "Recently Active %{filter} Flows",
+    ["recently_active_flows"] = " %{filter} Recently Active Flows",
     ["remote_only"] = "Remote Only",
     ["server_as"] = "Server AS",
     ["sflow_devices"] = "sFlow Devices",

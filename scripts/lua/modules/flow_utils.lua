@@ -1942,6 +1942,7 @@ end
 -- #######################
 
 function getFlowsTableTitle()
+   local active_msg = ""
    local status_type
 
    if _GET["flow_status"] then
@@ -1950,27 +1951,31 @@ function getFlowsTableTitle()
       if(flow_status_id ~= nil) then
 	 status_type = alert_consts.statusTypeLabel(tonumber(_GET["flow_status"]), true)
       else
-	 status_type = _GET["flow_status"]
+	 status_type = firstToUpper(_GET["flow_status"])
       end
    end
 
-   local filter = (_GET["application"] or _GET["category"] or _GET["vhost"] or status_type or "")
-   local active_msg = ""
-   local filter_msg = ""
+   if _GET["flow_status_severity"] then
+      local flow_status_severity = _GET["flow_status_severity"]
 
-   if not isEmptyString(filter) then
-      filter_msg = i18n("flows_page."..filter)
-      if isEmptyString(filter_msg) then
-	 filter_msg = firstToUpper(filter)
-      end
+      local s = alert_consts.severity_groups[flow_status_severity]
+      active_msg = active_msg .. " "..  i18n(s.i18n_title)
    end
 
-   if not interface.isPacketInterface() then
-      active_msg = i18n("flows_page.recently_active_flows", {filter=filter_msg})
-   elseif interface.isPcapDumpInterface() then
-      active_msg = i18n("flows_page.flows", {filter=filter_msg})
-   else
-      active_msg = i18n("flows_page.active_flows", {filter=filter_msg})
+   if _GET["application"] then
+      active_msg = active_msg .. " "..  _GET["application"]
+   end
+
+   if _GET["category"] then
+      active_msg = active_msg .. " " .. _GET["category"]
+   end
+
+   if _GET["vhost"] then
+      active_msg = active_msg .. " " .. _GET["vhost"]
+   end
+
+   if status_type then
+      active_msg = active_msg .. " " .. status_type
    end
 
    if(_GET["network_name"] ~= nil) then
@@ -2019,6 +2024,14 @@ function getFlowsTableTitle()
 
    if(_GET["tcp_flow_state"] ~= nil) then
       active_msg = active_msg .. " ["..tcp_flow_state_utils.state2i18n(_GET["tcp_flow_state"]).."]"
+   end
+
+   if not interface.isPacketInterface() then
+      active_msg = i18n("flows_page.recently_active_flows", {filter = active_msg})
+   elseif interface.isPcapDumpInterface() then
+      active_msg = i18n("flows_page.flows", {filter = active_msg})
+   else
+      active_msg = i18n("flows_page.active_flows", {filter = active_msg})
    end
 
    return active_msg
