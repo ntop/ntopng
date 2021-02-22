@@ -29,29 +29,54 @@
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li class="nav-item">
-                      <a class="nav-link active" href="#">Paramaters</a>
+                      <a class="nav-link active" href="#">Hooks Configuration</a>
                     </li>
                 </ul>
             </div>
             <div class="card-body">
-                <form>
-                    <div class="form-group row">
-                        <label for="colFormLabel" class="col-sm-1 col-form-label">{{ i18n("scripts_list.alert_severity") }}</label>
-                        <div class="col-sm-3">
-                            <select class="form-control" name="alert_severity">
-                                {% for key, severity in pairsByField(edit_user_script.alert_severities, 'severity_id', asc) do %}
-                                    <option value='{{ severity.severity_id }}'>{{ i18n(severity.i18n_title) }}</option>
-                                {% end %}
-                            </select>
-                        </div>
-                    </div>
+                <form id="user-script-edits">
+                    <div class="hooks">
+                        {% for hook_name, rendered_template in pairs(edit_user_script.rendered_hooks) do %}
+                            {%
+                                local hook = edit_user_script.hooks_config[hook_name]
+                                local severity = hook.script_conf.severity
+                            %}
+                            <fieldset id="{{ hook_name }}">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <b class="text-black-50">{{ (i18n("edit_user_script.hooks_name." .. hook_name) or hook_name) }}</b>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="rendered">
+                                            {* rendered_template *}
+                                        </div>
+                                        {# Common fields shared across user scripts #}
+                                        <div class="commons">
+                                            <div class="form-group row">
+                                                <label for="colFormLabel" class="col-sm-2 col-form-label">{{ i18n("scripts_list.alert_severity") }}</label>
+                                                <div class="col-sm-2">
+                                                    <select class="form-control" name="alert_severity">
+                                                        {% for key, iseverity in pairsByField(edit_user_script.alert_severities, 'severity_id', asc) do %}
+                                                            <option {{ (severity.severity_id == iseverity.severity_id and 'selected' or '') }} value='{{ iseverity.severity_id }}'>{{ i18n(iseverity.i18n_title) }}</option>
+                                                        {% end %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        {% end %}
+                    </div>                    
                 </form>
+                <div class="alert alert-danger mt-2" id="error-alert" style="display: none;">
+                </div>
             </div>
             <div class="card-footer">
-                <button type="submit" class="btn btn-danger">
+                <button type="submit" id="submit-button" class="btn btn-danger">
                     {{ i18n("scripts_list.reset_default") }}
                 </button>
-                <button type="submit" class="btn btn-primary">
+                <button form="user-script-edits" type="submit" class="btn btn-primary">
                     {{ i18n("save") }}
                 </button>
             </div>
@@ -59,5 +84,93 @@
     </div>
 </div>
 <script type="text/javascript">
+$(document).ready(function() {
 
+    const CSRF = "{{ ntop.getRandomCSRFValue() }}";
+    const SAVE_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/edit_user_script_config.lua";
+
+    const $errorAlert = $(`#error-alert`);
+
+    // Handle the enabled state of each input contained in a fieldset.
+    // For each 'Enabled' toggle...
+    $(`input[name='enabled']`).on('click', function() {
+        
+        // ... disable or enable the fields inside the fieldset
+        const fieldset = $(this).parents('fieldset');
+        const enabled = $(this).is(':checked');
+
+        fieldset.find(`input[name!='enabled'],select,textarea,.btn,button`).each(function() {
+            if (!enabled) {
+                $(this).attr("disabled", true).addClass("disabled");
+                return;
+            }
+            $(this).removeAttr("disabled").removeClass("disabled");
+        });
+    })
+
+    $(`#user-script-edits`).on('submit', async function(e) {
+        
+        e.preventDefault();
+        const $submitButton = $(`#submit-button`);
+        $submitButton.attr("disabled", "disabled");
+
+        // Object to send to the ajax endpoint.
+        // The object will contains a new field (named as the fieldset id)
+        // (which is the hook's name) containing the paramaters to configure
+        // for each fieldset inside the form '#user-script-edits'.
+        const serialized = {};
+
+        // For each fieldset inside the form
+        $(this).find('fieldset').each(function() {
+
+            // get the hook name and initialize an empty object
+            const hook = {enabled: true, script_conf: {}};
+            const $fieldset = $(this);
+            const hookName = $(this).attr('id');
+            // is the hook enabled?
+            hook.enabled = $fieldset.find(`[name='enabled']`).is(":checked");;
+            // load the script conf paramaters, use only the controls with a [name] attribute!
+            $fieldset.find("input[name],select[name],textarea[name]").each(function() {
+                
+                const name = $(this).attr("name");
+                const ignore = $(this).hasClass("ignore");
+                
+                if (name === 'enabled' || ignore) return;
+
+                hook.script_conf[name] = $(this).val();
+            });
+
+            serialized[hookName] = hook;
+        });
+
+        // payload to send to the save endpoint
+        const payload = {
+            script_subdir: "{{ edit_user_script.script_subdir }}",
+            script_key: "{{ edit_user_script.script_key }}",
+            confset_id: "{{ edit_user_script.confset_id }}",
+            csrf: CSRF,
+            JSON: JSON.stringify(serialized),
+        };
+
+        const request = $.post(SAVE_ENDPOINT, payload);
+        request.then(function(data) {
+
+            const success = data.success;
+            if (!success) {
+                $errorAlert.text(data.error).show();
+            } 
+            else {
+                $errorAlert.hide();
+            }
+
+        });
+        request.fail(function() {
+
+        });
+        request.always(function() {
+            $submitButton.removeAttr("disabled");
+        });
+
+    });
+});
 </script>

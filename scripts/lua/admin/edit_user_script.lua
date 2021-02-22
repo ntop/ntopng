@@ -40,10 +40,8 @@ local script_title = i18n(selected_script.gui.i18n_title) or selected_script.gui
 local confset_name  = configset.name
 local titles        = user_scripts_utils.load_configset_titles()
 
-local template_context = {}
-local template_filename = ""
-
-local generated_template = "" -- generate the template given the filename and values loaded
+local hooks_config = user_scripts.getScriptConfig(configset, selected_script, script_subdir)
+local generated_templates = selected_script.template:render(hooks_config)
 
 local generated_breadcrumb = ui_utils.render_breadcrumb(i18n("about.user_scripts"), {
     {
@@ -51,11 +49,11 @@ local generated_breadcrumb = ui_utils.render_breadcrumb(i18n("about.user_scripts
         label = titles[script_subdir],
     },
     {
-        href = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?confset_id=" .. confset_id .. "subdir=" .. script_subdir,
+        href = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?confset_id=" .. confset_id .. "&subdir=" .. script_subdir,
         label = i18n("scripts_list.config", {}) .. " " .. confset_name
     },
     {
-        active = true,
+        active = true, 
         label = script_title
     }
     
@@ -68,7 +66,13 @@ local base_context = {
         breadcrumb = generated_breadcrumb,
         plugin = selected_script,
         alert_severities = alert_severities,
-        script_title = script_title
+        script_title = script_title,
+        rendered_hooks = generated_templates,
+        
+        hooks_config = hooks_config,
+        script_subdir = script_subdir,
+        confset_id = confset_id,
+        script_key = script_key
     }
 }
 
