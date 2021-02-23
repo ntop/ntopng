@@ -21,8 +21,6 @@
 
 #include "ntop_includes.h"
 
-#include "../third-party/patricia/patricia.c"
-
 /* **************************************** */
 
 AddressTree::AddressTree(bool handleIPv6) { init(handleIPv6); }
@@ -30,10 +28,10 @@ AddressTree::AddressTree(bool handleIPv6) { init(handleIPv6); }
 /* **************************************** */
 
 AddressTree::AddressTree(const AddressTree &at) {
-  ptree_v4 = patricia_clone(at.ptree_v4);
+  ptree_v4 = ndpi_patricia_clone(at.ptree_v4);
 
   if(at.ptree_v6)
-    ptree_v6 = patricia_clone(at.ptree_v6);
+    ptree_v6 = ndpi_patricia_clone(at.ptree_v6);
   else
     ptree_v6 = NULL;
   
@@ -53,10 +51,10 @@ static void free_ptree_data(void *data) {
 
 void AddressTree::init(bool handleIPv6) {
   numAddresses = numAddressesIPv4 = numAddressesIPv6 = 0;
-  ptree_v4 = New_Patricia(32), macs.clear();
+  ptree_v4 = ndpi_patricia_new(32), macs.clear();
 
   if(handleIPv6)
-    ptree_v6 = New_Patricia(128);
+    ptree_v6 = ndpi_patricia_new(128);
   else
     ptree_v6 = NULL;
 }
@@ -69,7 +67,7 @@ AddressTree::~AddressTree() {
 
 /* ******************************************* */
 
-patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa) {
+ndpi_patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa) {
   if(!ipa)
     return NULL;
 
@@ -78,11 +76,11 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa) {
   if((!is_v4) && (!ptree_v6))
     return(NULL);
   else {
-    patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
+    ndpi_patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
     int cur_family = is_v4 ? AF_INET : AF_INET6;
     int cur_bits = is_v4 ? 32 : 128;
     void *cur_addr = is_v4 ? (void*)&ipa->getIP()->ipType.ipv4 : (void*)&ipa->getIP()->ipType.ipv6;
-    patricia_node_t *res;
+    ndpi_patricia_node_t *res;
 
     res = Utils::ptree_match(cur_ptree, cur_family, cur_addr, cur_bits);
 
@@ -106,16 +104,16 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa) {
 
 typedef struct {
   int cur_bitlen;
-  vector<prefix_t*>larger_bitlens;
+  vector<ndpi_prefix_t*>larger_bitlens;
 } compact_tree_t;
 
 /* ******************************************* */
 
-static void compact_tree_funct(patricia_node_t *node, void *data, void *user_data) {
-  prefix_t *prefix;
+static void compact_tree_funct(ndpi_patricia_node_t *node, void *data, void *user_data) {
+  ndpi_prefix_t *prefix;
   compact_tree_t *compact = (compact_tree_t*)user_data;
 
-  if(!node || !(prefix = node->prefix))
+  if(!node || !(prefix = ndpi_patricia_get_node_prefix(node)))
     return;
 
   if(prefix->bitlen > compact->cur_bitlen)
@@ -124,7 +122,7 @@ static void compact_tree_funct(patricia_node_t *node, void *data, void *user_dat
 
 /* **************************************************** */
 
-patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
+ndpi_patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
 					 int network_bits, bool compact_after_add) {
   if(!ipa)
     return NULL;
@@ -133,8 +131,8 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
   if((!is_v4) && (!ptree_v6))
     return(NULL);
   else {
-    patricia_node_t *res;
-    patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
+    ndpi_patricia_node_t *res;
+    ndpi_patricia_tree_t *cur_ptree = is_v4 ? ptree_v4 : ptree_v6;
     int cur_family = is_v4 ? AF_INET : AF_INET6;
     int cur_bits = network_bits;
 
@@ -154,9 +152,9 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
 	compact.cur_bitlen = network_bits;
 
 	/* navigate this subtree */
-	patricia_walk_inorder(res, compact_tree_funct, &compact);
+	ndpi_patricia_walk_inorder(res, compact_tree_funct, &compact);
 
-	for(std::vector<prefix_t*>::const_iterator it = compact.larger_bitlens.begin();
+	for(std::vector<ndpi_prefix_t*>::const_iterator it = compact.larger_bitlens.begin();
 	    it != compact.larger_bitlens.end(); ++it)
 	  removePrefix(is_v4, *it);
       }
@@ -169,10 +167,10 @@ patricia_node_t *AddressTree::addAddress(const IpAddress * const ipa,
 /* ******************************************* */
 
 bool AddressTree::addAddressAndData(const char * const _what, void *user_data) {
-  patricia_node_t *node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
+  ndpi_patricia_node_t *node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
 
   if(node)
-    node->data = user_data;
+    ndpi_patricia_set_node_data(node, user_data);
   else
     return(false);
 
@@ -198,10 +196,10 @@ bool AddressTree::addAddress(const char * const _what, const int16_t user_data) 
     mac_num = Utils::mac2int(mac);
     macs[mac_num] = id;
   } else {
-    patricia_node_t *node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
+    ndpi_patricia_node_t *node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
 
     if(node)
-      node->user_data = id;
+      ndpi_patricia_set_node_u64(node, id);
     else
       return(false);
   }
@@ -257,7 +255,7 @@ bool AddressTree::match(char *addr) {
 
 /* ******************************************* */
 
-patricia_node_t* AddressTree::match(const IpAddress * const ipa, int network_bits) const {
+ndpi_patricia_node_t* AddressTree::match(const IpAddress * const ipa, int network_bits) const {
   if(!ipa)
     return(NULL);
 
@@ -275,9 +273,9 @@ patricia_node_t* AddressTree::match(const IpAddress * const ipa, int network_bit
 
 /* NOTE: this does NOT accept a char* address! Use AddressTree::find() instead. */
 int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_bits) {
-  patricia_tree_t *p;
+  ndpi_patricia_tree_t *p;
   int bits;
-  patricia_node_t *node;
+  ndpi_patricia_node_t *node;
   
   if(family == AF_INET)
     p = ptree_v4, bits = 32;
@@ -294,8 +292,8 @@ int16_t AddressTree::findAddress(int family, void *addr, u_int8_t *network_mask_
     return(-1);
   else {
     if(network_mask_bits)
-      *network_mask_bits = node->bit;
-    return(node->user_data);
+      *network_mask_bits = ndpi_patricia_get_node_bits(node);
+    return(ndpi_patricia_get_node_u64(node));
   }
 }
 
@@ -346,18 +344,18 @@ int16_t AddressTree::find(const char *addr, u_int8_t *network_mask_bits) {
 
 /* **************************************************** */
 
-static void address_tree_dump_funct(patricia_node_t * node, void *data, void *user_data) {
+static void address_tree_dump_funct(ndpi_patricia_node_t * node, void *data, void *user_data) {
   char address[128];
-  prefix_t *prefix;
+  ndpi_prefix_t *prefix;
 
-  if(!node || !(prefix = node->prefix))
+  if(!node || !(prefix = ndpi_patricia_get_node_prefix(node)))
     return;
 
   if(!Utils::ptree_prefix_print(prefix, address, sizeof(address)))
     return;
 
   if(user_data)
-    lua_push_uint64_table_entry((lua_State*)user_data, address, node->user_data);
+    lua_push_uint64_table_entry((lua_State*)user_data, address, ndpi_patricia_get_node_u64(node));
   else
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", address);
 }
@@ -367,11 +365,10 @@ static void address_tree_dump_funct(patricia_node_t * node, void *data, void *us
 void AddressTree::getAddresses(lua_State* vm) const {
   std::map<u_int64_t, int16_t>::const_iterator it;
 
-  if(ptree_v4->head)
-    patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, vm);
+  ndpi_patricia_walk_tree_inorder(ptree_v4, address_tree_dump_funct, vm);
 
-  if(ptree_v6 && ptree_v6->head)
-    patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, vm);
+  if(ptree_v6)
+    ndpi_patricia_walk_tree_inorder(ptree_v6, address_tree_dump_funct, vm);
 
   for(it = macs.begin(); it != macs.end(); ++it) {
     char key[32], val[8];
@@ -388,7 +385,7 @@ void AddressTree::getAddresses(lua_State* vm) const {
 }
 /* **************************************************** */
 
-void AddressTree::removePrefix(bool isV4, prefix_t* prefix) {
+void AddressTree::removePrefix(bool isV4, ndpi_prefix_t* prefix) {
   if(removePrefix(getTree(isV4), prefix)) {
     numAddresses--;
 
@@ -401,30 +398,30 @@ void AddressTree::removePrefix(bool isV4, prefix_t* prefix) {
 
 /* **************************************************** */
 
-bool AddressTree::removePrefix(patricia_tree_t *ptree, prefix_t* prefix) {
+bool AddressTree::removePrefix(ndpi_patricia_tree_t *ptree, ndpi_prefix_t* prefix) {
   if(!ptree || !prefix)
     return false;
 
-  patricia_node_t *candidate = patricia_search_exact(ptree, prefix);
+  ndpi_patricia_node_t *candidate = ndpi_patricia_search_exact(ptree, prefix);
 
   if(!candidate)
     return false;
 
-  patricia_remove(ptree, candidate);
+  ndpi_patricia_remove(ptree, candidate);
   return true;
 }
 
 /* **************************************************** */
 
-void AddressTree::walk(const patricia_tree_t *ptree, void_fn3_t func, void * const user_data) {
-  if(ptree && ptree->head)
-    patricia_walk_inorder(ptree->head, func, user_data);
+void AddressTree::walk(ndpi_patricia_tree_t *ptree, ndpi_void_fn3_t func, void * const user_data) {
+  if(ptree)
+    ndpi_patricia_walk_tree_inorder(ptree, func, user_data);
 }
 
 
 /* **************************************************** */
 
-void AddressTree::walk(void_fn3_t func, void * const user_data) const {
+void AddressTree::walk(ndpi_void_fn3_t func, void * const user_data) const {
   walk(ptree_v4, func, user_data);
   walk(ptree_v6, func, user_data);
 }
@@ -434,11 +431,10 @@ void AddressTree::walk(void_fn3_t func, void * const user_data) const {
 void AddressTree::dump() {
   std::map<u_int64_t, int16_t>::iterator it;
 
-  if(ptree_v4->head)
-    patricia_walk_inorder(ptree_v4->head, address_tree_dump_funct, NULL);
+  ndpi_patricia_walk_tree_inorder(ptree_v4, address_tree_dump_funct, NULL);
   
-  if(ptree_v6 && ptree_v6->head)
-    patricia_walk_inorder(ptree_v6->head, address_tree_dump_funct, NULL);
+  if(ptree_v6)
+    ndpi_patricia_walk_tree_inorder(ptree_v6, address_tree_dump_funct, NULL);
 
   for(it = macs.begin(); it != macs.end(); ++it) {
     char key[32];
@@ -455,8 +451,8 @@ void AddressTree::dump() {
 /* **************************************************** */
 
 void AddressTree::cleanup() {
-  if(ptree_v4) Destroy_Patricia(ptree_v4, free_ptree_data);
-  if(ptree_v6) Destroy_Patricia(ptree_v6, free_ptree_data);
+  if(ptree_v4) ndpi_patricia_destroy(ptree_v4, free_ptree_data);
+  if(ptree_v6) ndpi_patricia_destroy(ptree_v6, free_ptree_data);
 
   macs.clear();
 }

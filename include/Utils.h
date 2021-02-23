@@ -158,11 +158,10 @@ public:
   static DetailsLevel bool2DetailsLevel(bool max, bool higher,bool normal = false);
 
   /* Patricia Tree */
-  static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits);
-  static patricia_node_t* ptree_match(const patricia_tree_t *tree, int family, const void * const addr, int bits);
-  static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, const char * const line);
-  static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
-  static bool ptree_prefix_print(prefix_t *prefix, char *buffer, size_t bufsize);
+  static ndpi_patricia_node_t* add_to_ptree(ndpi_patricia_tree_t *tree, int family, void *addr, int bits);
+  static ndpi_patricia_node_t* ptree_match(ndpi_patricia_tree_t *tree, int family, const void * const addr, int bits);
+  static ndpi_patricia_node_t* ptree_add_rule(ndpi_patricia_tree_t *ptree, const char * const line);
+  static bool ptree_prefix_print(ndpi_prefix_t *prefix, char *buffer, size_t bufsize);
 
   static inline void update_ewma(u_int32_t sample, u_int32_t *ewma, u_int8_t alpha_percent) {
     if(alpha_percent > 100) alpha_percent = 100;

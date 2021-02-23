@@ -3752,7 +3752,7 @@ static int ntop_find_member_pool(lua_State *vm) {
   char *address;
   u_int16_t vlan_id = 0;
   bool is_mac;
-  patricia_node_t *target_node = NULL;
+  ndpi_patricia_node_t *target_node = NULL;
   u_int16_t pool_id;
   bool pool_found;
   char buf[64];
@@ -3785,12 +3785,13 @@ static int ntop_find_member_pool(lua_State *vm) {
       lua_push_uint64_table_entry(vm, "pool_id", pool_id);
 
       if(target_node != NULL) {
-        lua_push_str_table_entry(vm, "matched_prefix", (char *)inet_ntop(target_node->prefix->family,
-									 (target_node->prefix->family == AF_INET6) ?
-									 (void*)(&target_node->prefix->add.sin6) :
-									 (void*)(&target_node->prefix->add.sin),
+	ndpi_prefix_t *prefix = ndpi_patricia_get_node_prefix(target_node);
+        lua_push_str_table_entry(vm, "matched_prefix", (char *)inet_ntop(prefix->family,
+									 (prefix->family == AF_INET6) ?
+									 (void*)(&prefix->add.sin6) :
+									 (void*)(&prefix->add.sin),
 									 buf, sizeof(buf)));
-        lua_push_uint64_table_entry(vm, "matched_bitmask", target_node->bit);
+        lua_push_uint64_table_entry(vm, "matched_bitmask", ndpi_patricia_get_node_bits(target_node));
       }
     } else
       lua_pushnil(vm);

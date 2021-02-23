@@ -3131,114 +3131,58 @@ void Utils::parseMac(u_int8_t *mac, const char *symMac) {
 
 /* *********************************************** */
 
-static int fill_prefix_v4(prefix_t *p, struct in_addr *a, int b, int mb) {
-  if(b < 0 || b > mb)
-    return(-1);
-
-  memcpy(&p->add.sin, a, (mb+7)/8);
-  p->family = AF_INET, p->bitlen = b, p->ref_count = 0;
-
-  return(0);
-}
-
-/* ******************************************* */
-
-static int fill_prefix_v6(prefix_t *prefix, struct in6_addr *addr, int bits, int maxbits) {
-  if(bits < 0 || bits > maxbits)
-    return -1;
-
-  memcpy(&prefix->add.sin6, addr, (maxbits + 7) / 8);
-  prefix->family = AF_INET6, prefix->bitlen = bits, prefix->ref_count = 0;
-
-  return 0;
-}
-
-/* ******************************************* */
-
-static int fill_prefix_mac(prefix_t *prefix, u_int8_t *mac, int bits, int maxbits) {
-  if(bits < 0 || bits > maxbits)
-    return -1;
-
-  memcpy(prefix->add.mac, mac, 6);
-  prefix->family = AF_MAC, prefix->bitlen = bits, prefix->ref_count = 0;
-
-  return 0;
-}
-
-/* ******************************************* */
-
-patricia_node_t* Utils::add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
-  prefix_t prefix;
-  patricia_node_t *node;
+ndpi_patricia_node_t* Utils::add_to_ptree(ndpi_patricia_tree_t *tree, int family, void *addr, int bits) {
+  ndpi_prefix_t prefix;
+  ndpi_patricia_node_t *node;
+  u_int16_t maxbits = ndpi_patricia_get_maxbits(tree);
 
   if(family == AF_INET)
-    fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, tree->maxbits);
+    ndpi_fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, maxbits);
   else if(family == AF_INET6)
-    fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, tree->maxbits);
+    ndpi_fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, maxbits);
   else
-    fill_prefix_mac(&prefix, (u_int8_t*)addr, bits, tree->maxbits);
+    ndpi_fill_prefix_mac(&prefix, (u_int8_t*)addr, bits, maxbits);
 
-  node = patricia_lookup(tree, &prefix);
+  node = ndpi_patricia_lookup(tree, &prefix);
 
   return(node);
 }
 
 /* ******************************************* */
 
-static int remove_from_ptree(patricia_tree_t *tree, int family, void *addr, int bits) {
-  prefix_t prefix;
-  patricia_node_t *node;
-  int rc;
-
-  if(family == AF_INET)
-    fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, tree->maxbits);
-  else
-    fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, tree->maxbits);
-
-  node = patricia_lookup(tree, &prefix);
-
-  if((patricia_node_t *)0 != node)
-    rc = 0, free(node);
-  else
-    rc = -1;
-
-  return(rc);
-}
-
-/* ******************************************* */
-
-patricia_node_t* Utils::ptree_match(const patricia_tree_t *tree, int family, const void * const addr, int bits) {
-  prefix_t prefix;
+ndpi_patricia_node_t* Utils::ptree_match(ndpi_patricia_tree_t *tree, int family, const void * const addr, int bits) {
+  ndpi_prefix_t prefix;
+  u_int16_t maxbits = ndpi_patricia_get_maxbits(tree);
 
   if(addr == NULL) return(NULL);
 
   if(family == AF_INET)
-    fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, tree->maxbits);
+    ndpi_fill_prefix_v4(&prefix, (struct in_addr*)addr, bits, maxbits);
   else if(family == AF_INET6)
-    fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, tree->maxbits);
+    ndpi_fill_prefix_v6(&prefix, (struct in6_addr*)addr, bits, maxbits);
   else
-    fill_prefix_mac(&prefix, (u_int8_t*)addr, bits, tree->maxbits);
+    ndpi_fill_prefix_mac(&prefix, (u_int8_t*)addr, bits, maxbits);
 
-  if(prefix.bitlen > tree->maxbits) { /* safety check */
+  if(prefix.bitlen > maxbits) { /* safety check */
     char buf[128];
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad radix tree lookup for %s (prefix len = %u, tree max len = %u)",
       Utils::ptree_prefix_print(&prefix, buf, sizeof(buf)) ? buf : "-",
-      prefix.bitlen, tree->maxbits);
+      prefix.bitlen, maxbits);
     return NULL;
   }
 
-  return(patricia_search_best(tree, &prefix));
+  return(ndpi_patricia_search_best(tree, &prefix));
 }
 
 /* ******************************************* */
 
-patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, const char * const addr_line) {
+ndpi_patricia_node_t* Utils::ptree_add_rule(ndpi_patricia_tree_t *ptree, const char * const addr_line) {
   char *ip, *bits, *slash = NULL, *line = NULL;
   struct in_addr addr4;
   struct in6_addr addr6;
   u_int8_t mac[6];
   u_int32_t _mac[6];
-  patricia_node_t *node = NULL;
+  ndpi_patricia_node_t *node = NULL;
 
   line = strdup(addr_line);
   ip = line;
@@ -3296,67 +3240,7 @@ patricia_node_t* Utils::ptree_add_rule(patricia_tree_t *ptree, const char * cons
 
 /* ******************************************* */
 
-int Utils::ptree_remove_rule(patricia_tree_t *ptree, char *line) {
-  char *ip, *bits, *slash = NULL;
-  struct in_addr addr4;
-  struct in6_addr addr6;
-  u_int32_t  _mac[6];
-  u_int8_t mac[6];
-  int rc = -1;
-
-  ip = line;
-  bits = strchr(line, '/');
-  if(bits == NULL)
-    bits = (char*)"/32";
-  else {
-    slash = bits;
-    slash[0] = '\0';
-  }
-
-  bits++;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Rule %s/%s", ip, bits);
-
-  if(sscanf(ip, "%02X:%02X:%02X:%02X:%02X:%02X",
-	    &_mac[0], &_mac[1], &_mac[2], &_mac[3], &_mac[4], &_mac[5]) == 6) {
-    for(int i=0; i<6; i++) mac[i] = _mac[i];
-    rc = remove_from_ptree(ptree, AF_MAC, mac, 48);
-  } else if(strchr(ip, ':') != NULL) { /* IPv6 */
-    if(inet_pton(AF_INET6, ip, &addr6) == 1)
-      rc = remove_from_ptree(ptree, AF_INET6, &addr6, atoi(bits));
-    else
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error parsing IPv6 %s\n", ip);
-  } else { /* IPv4 */
-    /* inet_aton(ip, &addr4) fails parsing subnets */
-    int num_octets;
-    u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
-    u_char *ip4 = (u_char *) &addr4;
-
-    if((num_octets = sscanf(ip, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3)) >= 1) {
-      int num_bits = atoi(bits);
-
-      ip4[0] = ip4_0, ip4[1] = ip4_1, ip4[2] = ip4_2, ip4[3] = ip4_3;
-
-      if(num_bits > 32) num_bits = 32;
-
-      if(num_octets * 8 < num_bits)
-	ntop->getTrace()->traceEvent(TRACE_INFO, "Found IP smaller than netmask [%s]", line);
-
-      //addr4.s_addr = ntohl(addr4.s_addr);
-      rc = remove_from_ptree(ptree, AF_INET, &addr4, num_bits);
-    } else {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error parsing IPv4 %s\n", ip);
-    }
-  }
-
-  if(slash) slash[0] = '/';
-
-  return(rc);
-}
-
-/* ******************************************* */
-
-bool Utils::ptree_prefix_print(prefix_t *prefix, char *buffer, size_t bufsize) {
+bool Utils::ptree_prefix_print(ndpi_prefix_t *prefix, char *buffer, size_t bufsize) {
   char *a, ipbuf[64];
 
   switch(prefix->family) {

@@ -1004,11 +1004,12 @@ struct sqlite_filter_data {
   char *flows_filter;
 };
 
-static void allowed_nets_walker(patricia_node_t *node, void *data, void *user_data) {
+static void allowed_nets_walker(ndpi_patricia_node_t *node, void *data, void *user_data) {
   struct sqlite_filter_data *filterdata = (sqlite_filter_data*)user_data;
   struct in6_addr lower_addr;
   struct in6_addr upper_addr;
-  int bitlen = node->prefix->bitlen;
+  ndpi_prefix_t *prefix = ndpi_patricia_get_node_prefix(node);
+  int bitlen = prefix->bitlen;
   char lower_hex[33], upper_hex[33];
   char hosts_buf[512], flows_buf[512];
 
@@ -1032,13 +1033,13 @@ static void allowed_nets_walker(patricia_node_t *node, void *data, void *user_da
     return;
   }
 
-  if(node->prefix->family == AF_INET) {
+  if(prefix->family == AF_INET) {
     memset(&lower_addr, 0, sizeof(lower_addr)-4);
-    memcpy(((char*)&lower_addr) + 12, &node->prefix->add.sin.s_addr, 4);
+    memcpy(((char*)&lower_addr) + 12, &prefix->add.sin.s_addr, 4);
 
     bitlen += 96;
   } else
-    memcpy(&lower_addr, &node->prefix->add.sin6, sizeof(lower_addr));
+    memcpy(&lower_addr, &prefix->add.sin6, sizeof(lower_addr));
 
   /* Calculate upper address */
   memcpy(&upper_addr, &lower_addr, sizeof(upper_addr));

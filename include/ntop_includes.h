@@ -193,7 +193,6 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 using namespace std;
 
 #include "mongoose.h"
-#include "patricia.h"
 #include "ntop_defines.h"
 #include "Mutex.h"
 #include "RwLock.h"
