@@ -25,7 +25,7 @@ local user_scripts = {}
 
 -- ##############################################
 
-local filters_debug = true
+local filters_debug = false
 
 -- ##############################################
 
