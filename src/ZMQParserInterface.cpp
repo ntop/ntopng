@@ -587,20 +587,26 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
 				 flow->l7_proto.app_protocol);
 #endif
     break;
+    
   case L7_PROTO_NAME:
     break;
+    
   case OOORDER_IN_PKTS:
     flow->tcp.ooo_in_pkts = value->int_num;
     break;
+    
   case OOORDER_OUT_PKTS:
     flow->tcp.ooo_out_pkts = value->int_num;
     break;
+    
   case RETRANSMITTED_IN_PKTS:
     flow->tcp.retr_in_pkts = value->int_num;
     break;
+    
   case RETRANSMITTED_OUT_PKTS:
     flow->tcp.retr_out_pkts = value->int_num;
     break;
+    
     /* TODO add lost in/out to nProbe and here */
   case CLIENT_NW_LATENCY_MS:
     {
@@ -608,115 +614,139 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow * const flow, u_int32_t fi
       client_nw_latency = value->double_num;
       flow->tcp.clientNwLatency.tv_sec = client_nw_latency / 1e3;
       flow->tcp.clientNwLatency.tv_usec = 1e3 * (client_nw_latency - flow->tcp.clientNwLatency.tv_sec * 1e3);
-      break;
     }
+    break;
+    
   case SERVER_NW_LATENCY_MS:
     {
       float server_nw_latency;
+
       server_nw_latency = value->double_num;
       flow->tcp.serverNwLatency.tv_sec = server_nw_latency / 1e3;
       flow->tcp.serverNwLatency.tv_usec = 1e3 * (server_nw_latency - flow->tcp.serverNwLatency.tv_sec * 1e3);
-      break;
     }
+    break;
+    
   case CLIENT_TCP_FLAGS:
     flow->tcp.client_tcp_flags = value->int_num;
     break;
+    
   case SERVER_TCP_FLAGS:
     flow->tcp.server_tcp_flags = value->int_num;
     break;
+    
   case APPL_LATENCY_MS:
     flow->tcp.applLatencyMsec = value->double_num;
     break;
+    
   case TCP_WIN_MAX_IN:
     flow->tcp.in_window = value->int_num;
     break;
+    
   case TCP_WIN_MAX_OUT:
     flow->tcp.out_window = value->int_num;
     break;
+    
   case DNS_QUERY:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->dns_query) free(flow->dns_query);
       flow->dns_query = strdup(value->string);
     }
     break;
+    
   case DNS_QUERY_TYPE:
     if(value->string)
       flow->dns_query_type = atoi(value->string);
     else
       flow->dns_query_type = value->int_num;
     break;
+    
   case DNS_RET_CODE:
     if(value->string)
       flow->dns_ret_code = atoi(value->string);
     else
       flow->dns_ret_code = value->int_num;
     break;
+    
   case HTTP_URL:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->http_url) free(flow->http_url);
       flow->http_url = strdup(value->string);
     }
     break;
+    
   case HTTP_SITE:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->http_site) free(flow->http_site);
       flow->http_site = strdup(value->string);
     }
     break;
+    
   case HTTP_RET_CODE:
     if(value->string)
       flow->http_ret_code = atoi(value->string);
     else
       flow->http_ret_code = value->int_num;
     break;
+    
   case HTTP_METHOD:
-    if(value->string[0] && value->string[0] != '\n')
+    if(value->string && value->string[0] && value->string[0] != '\n')
       flow->http_method = ndpi_http_str2method(value->string, strlen(value->string));
     break;
+    
   case SSL_SERVER_NAME:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->tls_server_name) free(flow->tls_server_name);
       flow->tls_server_name = strdup(value->string);
     }
     break;
   case JA3C_HASH:
-    if(value->string[0]) {
+    if(value->string && value->string[0]) {
       if(flow->ja3c_hash) free(flow->ja3c_hash);
       flow->ja3c_hash = strdup(value->string);
     }
     break;
+
   case JA3S_HASH:
-    if(value->string[0]) {
+    if(value->string && value->string[0]) {
       if(flow->ja3s_hash) free(flow->ja3s_hash);
       flow->ja3s_hash = strdup(value->string);
     }
     break;
+
   case TLS_CIPHER:
     flow->tls_cipher = value->int_num;
     break;
+
   case SSL_UNSAFE_CIPHER:
     flow->tls_unsafe_cipher = value->int_num;
     break;
+
   case L7_PROTO_RISK:
     flow->ndpi_flow_risk_bitmap = value->int_num;
     break;
+
   case BITTORRENT_HASH:
-    if(value->string[0] && value->string[0] != '\n') {
+    if(value->string && value->string[0] && value->string[0] != '\n') {
       if(flow->bittorrent_hash) free(flow->bittorrent_hash);
       flow->bittorrent_hash = strdup(value->string);
     }
     break;
+
   case NPROBE_IPV4_ADDRESS:
     /* Do not override EXPORTER_IPV4_ADDRESS */
     if(flow->device_ip == 0 && (flow->device_ip = ntohl(inet_addr(value->string))))
       return false;
     break;
+
   case SRC_FRAGMENTS:
     flow->in_fragments = value->int_num;
     break;
+
   case DST_FRAGMENTS:
     flow->out_fragments = value->int_num;
     break;
+
   default:
     return false;
   }
