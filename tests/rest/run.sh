@@ -341,7 +341,7 @@ run_tests() {
 	    RC=1
 
         elif [ ! -f result/${TEST}.out ]; then
-
+            ((NUM_SUCCESS=NUM_SUCCESS+1))
             echo "[i] SAVING OUTPUT"
 
             # Output not present, setting current output as expected
