@@ -29,57 +29,77 @@
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li class="nav-item">
-                      <a class="nav-link active" href="#">{{ i18n("edit_user_script.hooks_config") }}</a>
+                      <a class="nav-link active" href="#params" data-toggle='tab' role="tab">{{ i18n("edit_user_script.hooks_config") }}</a>
                     </li>
+
+                    {# Add the exclusion list tab only for the flow scripts#}
+                    {% if (edit_user_script.script_subdir == "flow") then %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="#exclusion-list" data-toggle='tab' role="tab">{{ i18n("edit_user_script.exclusion_list") }}</a>
+                        </li>
+                    {% end %}
                 </ul>
             </div>
             <div class="card-body">
-                <form id="user-script-edits">
-                    <div class="hooks">
-                        {% for _, rendered_hook in ipairs(edit_user_script.rendered_hooks.templates) do %}
-                            {%
-                                local hook_name = rendered_hook.hook
-                                local hook = edit_user_script.hooks_config[hook_name]
-                                local severity = hook.script_conf.severity
-                                if severity == nil then
-                                    severity = hook.script_conf.severity.severity_id 
-                                end
-
-                                local is_alert = edit_user_script.rendered_hooks.user_script.is_alert
-                            %}
-                            <fieldset id="{{ hook_name }}">
-                                <div class="card my-1">
-                                    <div class="card-header">
-                                        <b class="text-black-50">{{ (i18n("edit_user_script.hooks_name." .. hook_name) or hook_name) }}</b>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="rendered">
-                                            {* rendered_hook.template *}
-                                        </div>
-                                        {# Common fields shared across user scripts #}
-                                        <div class="commons">
-                                            
-                                            {# Check the is_alert field to show Alert Severity. #}
-                                            {% if is_alert then %}
-                                            <div class="form-group row">
-                                                <label for="colFormLabel" class="col-sm-2 col-form-label">{{ i18n("scripts_list.alert_severity") }}</label>
-                                                <div class="col-sm-2">
-                                                    <select class="form-control" name="severity" required {{ (hook.enabled and '' or 'disabled') }}>
-                                                        {% for key, iseverity in pairsByField(edit_user_script.alert_severities, 'severity_id', asc) do %}
-                                                            <option {{ (tonumber(severity) == iseverity.severity_id and 'selected' or '') }} value='{{ iseverity.severity_id }}'>{{ i18n(iseverity.i18n_title) }}</option>
-                                                        {% end %}
-                                                    </select>
+                <div class="tab-content" id="tab-content">
+                    <div class="tab-pane fade show active" id="params">
+                        <form id="user-script-edits">
+                            <div class="hooks">
+                                {% for _, rendered_hook in ipairs(edit_user_script.rendered_hooks.templates) do %}
+                                    {%
+                                        local hook_name = rendered_hook.hook
+                                        local hook = edit_user_script.hooks_config[hook_name]
+                                        local severity = hook.script_conf.severity
+                                        if severity == nil then
+                                            severity = hook.script_conf.severity.severity_id 
+                                        end
+        
+                                        local is_alert = edit_user_script.rendered_hooks.user_script.is_alert
+                                    %}
+                                    <fieldset id="{{ hook_name }}">
+                                        <div class="card my-1">
+                                            <div class="card-header">
+                                                <b class="text-black-50">{{ (i18n("edit_user_script.hooks_name." .. hook_name) or hook_name) }}</b>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="rendered">
+                                                    {* rendered_hook.template *}
+                                                </div>
+                                                {# Common fields shared across user scripts #}
+                                                <div class="commons">
+                                                    
+                                                    {# Check the is_alert field to show Alert Severity. #}
+                                                    {% if is_alert then %}
+                                                    <div class="form-group row">
+                                                        <label for="colFormLabel" class="col-sm-2 col-form-label">{{ i18n("scripts_list.alert_severity") }}</label>
+                                                        <div class="col-sm-2">
+                                                            <select class="form-control" name="severity" required {{ (hook.enabled and '' or 'disabled') }}>
+                                                                {% for key, iseverity in pairsByField(edit_user_script.alert_severities, 'severity_id', asc) do %}
+                                                                    <option {{ (tonumber(severity) == iseverity.severity_id and 'selected' or '') }} value='{{ iseverity.severity_id }}'>{{ i18n(iseverity.i18n_title) }}</option>
+                                                                {% end %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    {% end %}
                                                 </div>
                                             </div>
-                                            {% end %}
                                         </div>
-                                    </div>
-                                </div>
-                            </fieldset>
-                        {% end %}
-                    </div>                    
-                </form>
-                <div class="alert alert-danger mt-2" id="error-alert" style="display: none;">
+                                    </fieldset>
+                                {% end %}
+                            </div>                    
+                        </form>
+                    </div>
+                    {% if (edit_user_script.script_subdir == "flow") then %}
+                        <div class="tab-pane fade show" id="exclusion-list">
+                            <div class="form-group">
+                                <label>{{ i18n("edit_user_script.exclusion_list") }}:</label>
+                                <textarea name="exclusion-list" id="exclusionlist-textarea" class="w-50 form-control" rows="6">{{ edit_user_script.filters }}</textarea>
+                                <small class="text-muted">{{ i18n("scripts_list.exclusion_list") }}</small>
+                            </div>
+                        </div>
+                    {% end %}
+                    <div class="alert alert-danger mt-2" id="error-alert" style="display: none;">
+                    </div>
                 </div>
             </div>
             <div class="card-footer">
@@ -137,6 +157,7 @@ $(document).ready(function() {
     const RESET_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/get_user_script_config.lua?script_subdir={{edit_user_script.script_subdir}}&script_key={{edit_user_script.script_key}}"
     const SAVE_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/edit_user_script_config.lua";
 
+    const $exclusionList = $(`[name='exclusion-list']`);
     const $errorAlert = $(`#error-alert`);
 
     // Handle the enabled state of each input contained in a fieldset.
@@ -256,6 +277,11 @@ $(document).ready(function() {
             csrf: CSRF,
             JSON: JSON.stringify(serialized),
         };
+
+        // check if the exclusion list is defined
+        if ($exclusionList.length > 0) {
+            payload.script_exclusion_list = $exclusionList.val();
+        }
 
         const request = $.post(SAVE_ENDPOINT, payload);
         request.then(function(data) {

@@ -1539,6 +1539,7 @@ function appendExclusionList(data) {
 
    let $container;
    let $textarea = $($(`#exclusion-list-template`).html());
+   
    const label = i18n.scripts_list.exclusion_list_title;
    if (["elephant_flows", "long_lived", "items_list"].includes(data.gui.input_builder)) {
       $container = $(`<tr></tr>`);

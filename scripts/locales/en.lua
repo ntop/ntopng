@@ -1223,6 +1223,7 @@ local lang = {
     ["author"] = "Author",
     ["category"] = "Category",
     ["description"] = "Description",
+    ["exclusion_list"] = "Exclusion List",
     ["hooks_config"] = "Hooks Configuration",
     ["success_message"] = "The User Script <b>%{script_name}</b> configuration has been saved successfully!",
     ["hooks_name"] = {

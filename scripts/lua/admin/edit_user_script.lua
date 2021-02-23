@@ -20,6 +20,19 @@ local auth = require "auth"
 local user_scripts_utils = require("user_scripts_utils")
 local alert_severities = require("alert_severities")
 
+local function format_exclusion_list_filters(filters)
+
+    local formatted = {}
+
+    for _, filter in ipairs(filters.current_filters) do
+        for key, filter_value in pairs(filter) do
+            formatted[#formatted+1] = key .. "=" .. filter_value
+        end
+    end 
+
+    return table.concat(formatted, '\n')
+end
+
 if not auth.has_capability(auth.capabilities.user_scripts) then
     rest_utils.answer(rest_utils.consts.err.not_granted)
     return
@@ -76,7 +89,8 @@ local base_context = {
         hooks_config = hooks_config,
         script_subdir = script_subdir,
         confset_id = confset_id,
-        script_key = script_key
+        script_key = script_key,
+        filters = format_exclusion_list_filters(user_scripts.getDefaultFilters(interface.getId(), script_subdir, script_key))
     }
 }
 

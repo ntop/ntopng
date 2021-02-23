@@ -41,6 +41,12 @@ function user_script_template:render(hooks_conf)
    local res = {}
    local plugins_utils = require "plugins_utils"
 
+   -- check if the input_builder is defined
+   -- TODO: define empty template for the user scripts without input_builder/template
+   if (isEmptyString(self._user_script.gui.input_builder)) then
+      return { templates = {{hook = "all", template = ""}}, user_script = self._user_script }
+   end
+
    -- Use ipairs on script type hooks to make sure hooks are always returned sorted and in the same order
    for _, hook in ipairs(table.merge({"all"} --[[ Hook "all" always go first --]], self._user_script.script_type.hooks)) do
       local hook_conf =  hooks_conf[hook]
