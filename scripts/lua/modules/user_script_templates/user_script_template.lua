@@ -41,8 +41,14 @@ function user_script_template:render(hooks_conf)
    local res = {}
    local plugins_utils = require "plugins_utils"
 
-   for hook, hook_conf in pairs(hooks_conf) do
-      res[hook] = plugins_utils.renderTemplate(self._user_script.plugin.key, self._user_script.gui.input_builder..".template", hook_conf)
+   -- Use ipairs on script type hooks to make sure hooks are always returned sorted and in the same order
+   for _, hook in ipairs(table.merge({"all"} --[[ Hook "all" always go first --]], self._user_script.script_type.hooks)) do
+      local hook_conf =  hooks_conf[hook]
+
+      -- If the hook is among those passed as parameter, add it to the result
+      if hook_conf then
+	 res[#res + 1] = {hook = hook, template = plugins_utils.renderTemplate(self._user_script.plugin.key, self._user_script.gui.input_builder..".template", hook_conf)}
+      end
    end
 
    return res
