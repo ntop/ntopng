@@ -33,7 +33,10 @@ local id2name = {
    [22] = "ndpi_unsafe_protocol",
    [23] = "ndpi_dns_suspicious_traffic",
    [24] = "ndpi_tls_missing_sni",
-   [25] = "ndpi_http_invalid_content",   
+   [25] = "ndpi_http_invalid_content",
+   [26] = "ndpi_risky_asn",
+   [27] = "ndpi_risky_domain",
+   [28] = "ndpi_malicious_ja3",
 }
 
 -- ##############################################

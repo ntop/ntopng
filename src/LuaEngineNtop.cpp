@@ -268,26 +268,17 @@ static int ntop_ip_cmp(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_load_malicious_ja3_hash(lua_State* vm) {
-  const char *ja3_hash;
+static int ntop_loadMaliciousJA3Signatures(lua_State* vm) {
+  const char *file_path;
+  int n = 0;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  ja3_hash = lua_tostring(vm, 1);
+  file_path = lua_tostring(vm, 1);
 
-  ntop->loadMaliciousJA3Hash(ja3_hash);
-  lua_pushnil(vm);
+  n = ntop->nDPILoadMaliciousJA3Signatures(file_path);
 
-  return(CONST_LUA_OK);
-}
-/* ****************************************** */
-
-static int ntop_reload_ja3_hashes(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  ntop->reloadJA3Hashes();
-  lua_pushnil(vm);
-
+  lua_pushinteger(vm, n);
   return(CONST_LUA_OK);
 }
 
@@ -508,11 +499,11 @@ static int ntop_is_freebsd(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_startCustomCategoriesReload(lua_State* vm) {
+static int ntop_initnDPIReload(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop->isnDPIReloadInProgress() || (!ntop->startCustomCategoriesReload())) {
-    /* startCustomCategoriesReload, abort */
+  if(ntop->isnDPIReloadInProgress() || (!ntop->initnDPIReload())) {
+    /* initnDPIReload abort */
     lua_pushboolean(vm, false);
     return(CONST_LUA_OK);
   }
@@ -559,11 +550,11 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
 
 /* ****************************************** */
 
-/* NOTE: ntop.startCustomCategoriesReload() must be called before this */
-static int ntop_reloadCustomCategories(lua_State* vm) {
+/* NOTE: ntop.initnDPIReload() must be called before this */
+static int ntop_finalizenDPIReload(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Starting category lists reload");
-  ntop->reloadCustomCategories();
+  ntop->finalizenDPIReload();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists reload done");
   ntop->setLastInterfacenDPIReload(time(NULL));
@@ -6063,11 +6054,13 @@ static luaL_Reg _ntop_reg[] = {
   { "elasticsearchConnection", ntop_elasticsearch_connection },
   { "getInstanceName",         ntop_get_instance_name        },
 
-  /* Custom Categories - only inteded to be called from housekeeping.lua */
-  { "startCustomCategoriesReload", ntop_startCustomCategoriesReload },
-  { "loadCustomCategoryIp",        ntop_loadCustomCategoryIp        },
-  { "loadCustomCategoryHost",      ntop_loadCustomCategoryHost      },
-  { "reloadCustomCategories",      ntop_reloadCustomCategories      },
+  /* Custom Categories, Malicious JA3 signatures
+   * Note: only inteded to be called from housekeeping.lua */
+  { "initnDPIReload",             ntop_initnDPIReload },
+  { "finalizenDPIReload",         ntop_finalizenDPIReload },
+  { "loadCustomCategoryIp",       ntop_loadCustomCategoryIp },
+  { "loadCustomCategoryHost",     ntop_loadCustomCategoryHost },
+  { "loadMaliciousJA3Signatures", ntop_loadMaliciousJA3Signatures },
 
   /* Privileges */
   { "gainWriteCapabilities",   ntop_gainWriteCapabilities },
@@ -6090,10 +6083,6 @@ static luaL_Reg _ntop_reg[] = {
   { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids },
   { "getLocalNetworkAlias",  ntop_check_local_network_alias },
   
-  /* JA3 */
-  { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
-  { "reloadJA3Hashes",      ntop_reload_ja3_hashes       },
-
   /* Mac */
   { "setMacDeviceType",     ntop_set_mac_device_type     },
 

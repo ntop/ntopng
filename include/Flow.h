@@ -580,8 +580,13 @@ class Flow : public GenericHashEntry {
   }
   inline bool hasInvalidDNSQueryChars()  { return(isDNS() && protos.dns.invalid_chars_in_query); }
   inline bool hasMaliciousSignature()    { return(has_malicious_cli_signature || has_malicious_srv_signature); }
+
+  void setRisk(ndpi_risk r);
+  void addRisk(ndpi_risk r);
+  inline ndpi_risk getRiskBitmap() const { return ndpi_flow_risk_bitmap; }
   bool hasRisk(ndpi_risk_enum r) const;
   bool hasRisks() const;
+
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   inline void  setDNSQuery(char *v) {
     if(isDNS()) {
@@ -729,8 +734,7 @@ class Flow : public GenericHashEntry {
 
   inline u_int8_t getCli2SrvECN()  { return (cli2srv_tos & 0x3); }
   inline u_int8_t getSrv2CliECN()  { return (srv2cli_tos & 0x3); }
-  inline void setRisk(ndpi_risk r) { ndpi_flow_risk_bitmap = r; }
-  inline ndpi_risk getRiskBitmap() const { return ndpi_flow_risk_bitmap; }
+
   inline float getEntropy(bool src2dst_direction) {
     struct ndpi_analyze_struct *e = src2dst_direction ? entropy.c2s : entropy.s2c;
 

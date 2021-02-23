@@ -73,8 +73,6 @@ Ntop::Ntop(char *appName) {
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
-  malicious_ja3 = malicious_ja3_shadow = NULL;
-  new_malicious_ja3 = new (std::nothrow) std::set<std::string>();
   system_interface = NULL;
   purgeLoop_started = false;
 #ifndef WIN32
@@ -305,10 +303,6 @@ Ntop::~Ntop() {
   }
 
   cleanShadownDPI();
-
-  if(new_malicious_ja3) delete new_malicious_ja3;
-  if(malicious_ja3) delete malicious_ja3;
-  if(malicious_ja3_shadow) delete malicious_ja3_shadow;
 
   if(redis)   { delete redis; redis = NULL;     }
   if(prefs)   { delete prefs; prefs = NULL;     }
@@ -2861,29 +2855,6 @@ bool Ntop::getCPULoad(float *out) {
 
 /* ******************************************* */
 
-bool Ntop::isMaliciousJA3Hash(std::string md5_hash) {
-  /* save to avoid swap */
-  std::set<std::string> *hashes = malicious_ja3;
-
-  if(!hashes)
-    return(false);
-
-  return(hashes->find(md5_hash) != hashes->end());
-}
-
-/* ******************************************* */
-
-void Ntop::reloadJA3Hashes() {
-  if(malicious_ja3_shadow)
-    delete malicious_ja3_shadow;
-
-  malicious_ja3_shadow = malicious_ja3;
-  malicious_ja3 = new_malicious_ja3;
-  new_malicious_ja3 = new (std::nothrow) std::set<std::string>();
-}
-
-/* ******************************************* */
-
 void Ntop::loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str) {
   char **keys, **values;
   Redis *redis = getRedis();
@@ -2960,12 +2931,12 @@ void Ntop::cleanShadownDPI() {
 
 /* Operations are performed in the followin order:
  *
- * 1. startCustomCategoriesReload()
+ * 1. initnDPIReload()
  * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
- * 3. reloadCustomCategories()
+ * 3. finalizenDPIReload()
  * 4. cleanShadownDPI()
  */
-bool Ntop::startCustomCategoriesReload() {
+bool Ntop::initnDPIReload() {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Started nDPI reload %s",
 			       ndpiReloadInProgress ? "[IN PROGRESS]" : "");
 
@@ -2984,7 +2955,7 @@ bool Ntop::startCustomCategoriesReload() {
 
 /* **************************************************** */
 
-void Ntop::reloadCustomCategories() {
+void Ntop::finalizenDPIReload() {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
 
   if(!ndpiReloadInProgress) {
@@ -3034,6 +3005,19 @@ void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
   
   if(what && ndpi_struct_shadow)
     ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
+}
+
+/* *************************************** */
+
+int Ntop::nDPILoadMaliciousJA3Signatures(const char *file_path) {
+  int n = 0;
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
+  
+  if(file_path && ndpi_struct_shadow)
+    n = ndpi_load_malicious_ja3_file(ndpi_struct_shadow, file_path);
+
+  return n;
 }
 
 /* *************************************** */

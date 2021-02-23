@@ -650,7 +650,7 @@ void Flow::processExtraDissectedInformation() {
 	u_int16_t risk = ndpi_validate_url(protos.http.last_url);
 
 	if(risk != NDPI_NO_RISK)
-	  ndpi_flow_risk_bitmap |= risk;
+	  addRisk(risk);
       }
 
       break;
@@ -721,7 +721,7 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 #endif
 
   if(detected) {
-    ndpi_flow_risk_bitmap = ndpiFlow->risk;
+    setRisk(ndpiFlow->risk);
     updateProtocol(proto_id);
     setProtocolDetectionCompleted();
   }
@@ -2265,6 +2265,20 @@ void Flow::lua_get_risk_info(lua_State* vm, bool as_table) {
       lua_settable(vm, -3);
     }
   }
+}
+
+/* *************************************** */
+
+void Flow::setRisk(ndpi_risk risk_bitmap) {
+  ndpi_flow_risk_bitmap = risk_bitmap;
+
+  has_malicious_cli_signature = NDPI_ISSET_BIT(ndpi_flow_risk_bitmap, NDPI_MALICIOUS_JA3);
+}
+
+/* *************************************** */
+
+void Flow::addRisk(ndpi_risk risk_bitmap) {
+  setRisk(ndpi_flow_risk_bitmap | risk_bitmap);
 }
 
 /* *************************************** */
@@ -4453,8 +4467,6 @@ void Flow::updateCliJA3() {
   if(cli_host && isTLSProto() && protos.tls.ja3.client_hash) {
     cli_host->getJA3Fingerprint()->update(protos.tls.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
-
-    has_malicious_cli_signature |= ntop->isMaliciousJA3Hash(protos.tls.ja3.client_hash);
   }
 }
 
@@ -4464,8 +4476,6 @@ void Flow::updateSrvJA3() {
   if(srv_host && isTLSProto() && protos.tls.ja3.server_hash) {
     srv_host->getJA3Fingerprint()->update(protos.tls.ja3.server_hash,
 					  srv_ebpf ? srv_ebpf->process_info.process_name : NULL);
-
-    has_malicious_srv_signature |= ntop->isMaliciousJA3Hash(protos.tls.ja3.server_hash);
   }
 }
 

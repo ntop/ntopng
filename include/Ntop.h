@@ -88,7 +88,6 @@ class Ntop {
   cpu_load_stats cpu_stats;
   float cpu_load;
   bool plugins0_active, can_send_icmp, privileges_dropped;
-  std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoSerializerQueue *internal_alerts_queue;
   Recipients recipients; /* Handle notification recipients */
   
@@ -496,17 +495,20 @@ class Ntop {
   inline time_t getLastStatsReset() { return(last_stats_reset); }
   void resetStats();
 
-  inline void loadMaliciousJA3Hash(std::string md5_hash)     { new_malicious_ja3->insert(md5_hash); }
   bool isMaliciousJA3Hash(std::string md5_hash);
-  void reloadJA3Hashes();
   struct ndpi_detection_module_struct* initnDPIStruct();    
+
   inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
-  bool startCustomCategoriesReload();
-  void checkReloadHostsBroadcastDomain();
+  bool initnDPIReload();
+  void finalizenDPIReload();
   inline bool isnDPIReloadInProgress()  { return(ndpiReloadInProgress);     }  
-  void reloadCustomCategories();
+
+  void checkReloadHostsBroadcastDomain();
+
   void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id);
+  int nDPILoadMaliciousJA3Signatures(const char *file_path);
+
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(get_ndpi_struct(), proto)); };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);

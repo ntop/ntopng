@@ -367,7 +367,6 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t getMacsHashSize();
   u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
-  void reloadCustomCategories();
 
   void updateSitesStats();
   void updateBroadcastDomains(u_int16_t vlan_id,
