@@ -11,6 +11,7 @@
 #}
 
 {%
+
     local field_unit = i18n(user_script.gui.i18n_field_unit)
     local default_operator_not_defined = isEmptyString(user_script.default_value.operator)
 %}
@@ -25,7 +26,7 @@
     </div>
 </div>
 <div class="form-group row">
-    <label class="col-sm-2 col-form-label">{{ i18n("enabled") }}</label>
+    <label class="col-sm-2 col-form-label">{{ i18n("edit_user_script.hooks_name." .. hook_name) or hook_name }}</label>
     <div class="col-2">
         <div class="input-group">
             <div class="input-group-prepend">
