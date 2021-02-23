@@ -5,8 +5,9 @@ pfsense
 
 ntopng Pro/Enterprise can be installed on pfsense using 
 the command line. This requires the configuration of the FreeBSD
-repository (FreeBSD 11 for pfSense CE, FreeBSD 12 for pfSense Plus)
-as described at https://packages.ntop.org/FreeBSD/.
+repository (FreeBSD 11 for pfSense CE 2.4, FreeBSD 12 for 
+pfSense CE 2.5 and pfSense Plus) as described at
+https://packages.ntop.org/FreeBSD/.
 
 Repository Configuration
 ========================
@@ -22,15 +23,15 @@ Log into the pfsense Shell as administrator (select option 8).
 And install the repository using the command provided at https://packages.ntop.org/FreeBSD/
 (you can cut&paste the command below according to your pfSense edition).
 
-pfSense CE
-~~~~~~~~~~
+pfSense CE 2.4
+~~~~~~~~~~~~~~
 
 .. code:: bash
 
    pkg add https://packages.ntop.org/FreeBSD/FreeBSD:11:amd64/latest/ntop-1.0.txz
 
-pfSense Plus
-~~~~~~~~~~~~
+pfSense CE 2.5 / pfSense Plus
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
