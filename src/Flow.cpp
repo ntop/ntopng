@@ -4450,7 +4450,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
 /* ***************************************************** */
 
 void Flow::updateCliJA3() {
-  if(cli_host && isTLS() && protos.tls.ja3.client_hash) {
+  if(cli_host && isTLSProto() && protos.tls.ja3.client_hash) {
     cli_host->getJA3Fingerprint()->update(protos.tls.ja3.client_hash,
 					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
 
@@ -4461,7 +4461,7 @@ void Flow::updateCliJA3() {
 /* ***************************************************** */
 
 void Flow::updateSrvJA3() {
-  if(srv_host && isTLS() && protos.tls.ja3.server_hash) {
+  if(srv_host && isTLSProto() && protos.tls.ja3.server_hash) {
     srv_host->getJA3Fingerprint()->update(protos.tls.ja3.server_hash,
 					  srv_ebpf ? srv_ebpf->process_info.process_name : NULL);
 
