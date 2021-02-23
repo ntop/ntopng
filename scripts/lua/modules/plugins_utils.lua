@@ -1000,7 +1000,14 @@ end
 function plugins_utils.renderTemplate(plugin_name, template_file, context)
   init_runtime_paths()
 
+  -- Locate the template file under the plugin directory
   local full_path = os_utils.fixPath(plugins_utils.getPluginTemplatesDir(plugin_name) .. "/" .. template_file)
+
+  -- If no template is found...
+  if not ntop.exists(full_path) then
+     -- Attempt at locating the template class under modules (global to ntopng)
+     full_path = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/user_script_templates/"..template_file)
+  end
 
   return template_utils.gen(full_path, context, true --[[ using full path ]])
 end
