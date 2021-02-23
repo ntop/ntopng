@@ -89,7 +89,9 @@ typedef struct the_prefix4_t {
   struct in_addr sin;
 } prefix4_t;
 
+#ifndef AF_MAC
 #define AF_MAC            99
+#endif
 
 typedef struct the_prefix_t {
   unsigned short family;		/* AF_INET | AF_INET6 */
