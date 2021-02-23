@@ -8,8 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. pa
 
 -- do NOT include lua_utils here, it's not necessary, keep it light!
 local callback_utils = require "callback_utils"
-local ts_utils = require("ts_utils_core")
-require("ts_second")
 
 -- Toggle debug
 local enable_second_debug = false
@@ -18,12 +16,19 @@ local ifnames = interface.getIfNames()
 -- NOTE: must use value passed by the C otherwise the seconds may not correspond
 local when = _now
 
+-- ###########################################
+
 local function interface_rrd_creation_enabled(ifid)
    return (ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0")
 end
 
+-- ###########################################
+
 callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, function(ifname, ifstats)
    if(enable_second_debug) then print("Processing "..ifname.." ifid: "..ifstats.id.."\n") end
+   local ts_utils = require("ts_utils_core")
+   require("ts_second")
+
    -- Traffic stats
    -- We check for ifstats.stats.bytes to start writing only when there's data. This
    -- prevents artificial and wrong peaks especially during the startup of ntopng.

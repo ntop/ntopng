@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local scripts_triggers    = require "scripts_triggers"
 local auth_sessions_utils = require "auth_sessions_utils"
 
 if(ntop.isPro()) then
@@ -21,7 +22,7 @@ harvestJSONTopTalkers(30)
 
 auth_sessions_utils.midnightCheck()
 
-if ntop.getPref("ntopng.prefs.midnight_stats_reset_enabled") == "1" then
+if scripts_triggers.midnightStatsResetEnabled() then
    -- Reset host/mac statistics
    ntop.resetStats()
 end
