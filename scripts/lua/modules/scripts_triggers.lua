@@ -41,16 +41,6 @@ end
 
 -- ###########################################
 
-function scripts_triggers.isDeltaSet()
-   if (ntop.getPref("ntopng.prefs.enable_ts_deltas_writes") == "1") then
-      return true
-   end
-
-   return false
-end
-
--- ###########################################
-
 function scripts_triggers.isRecordingAvailable()
    local is_available_key = "ntopng.cache.traffic_recording_available"
    if(ntop.isAdministrator() and (ntop.getCache(is_available_key) == "1")) then

@@ -1043,9 +1043,6 @@ local default_timeseries = {
       ["bytes_rcvd"] = "line"
    } },
 
-   {schema="iface:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
-   {schema="iface:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
-
    {schema="iface:packets_vs_drops",      label=i18n("graphs.packets_vs_drops")},
    {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},
 

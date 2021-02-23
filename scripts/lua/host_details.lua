@@ -2218,10 +2218,6 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:tcp_packets",            label=i18n("graphs.tcp_packets")},
       {schema="host:udp_sent_unicast",       label=i18n("graphs.udp_sent_unicast_vs_non_unicast")},
       {schema="host:dscp",                   label=i18n("graphs.dscp_classes")},
-
-      {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
-      {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
-      {schema="host:1d_delta_contacts",        label="1 Day Active Host Contacts Delta"}, -- TODO localize
    }, graph_utils.getDeviceCommonTimeseries()),
    device_timeseries_mac = host["mac"],
 })
