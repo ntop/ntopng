@@ -154,7 +154,31 @@ local available_subdirs = {
       id = "snmp_device",
       label = "host_details.snmp",
       pools = "snmp_device_pools",
-	    }, {
+      filter = {
+	 default_fields = { "alert_entity_val" },
+	 available_fields = {
+	    alert_entity_val = {
+	       lint = http_lint.validateHost, -- The IP address of an SNMP device
+	       match = function(context, val)
+		  -- Do the comparison
+		  if not context or context.alert_entity ~= alert_consts.alertEntity("snmp_device") then
+		     return false
+		  end
+
+		  -- Match the SNMP device
+		  return val == context.alert_entity_val
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("(alert_entity = %u AND alert_entity_val = '%s')", alert_consts.alertEntity("snmp_device"), val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	 },
+      },     
+   }, {
       id = "flow",
       label = "flows",
       -- User script execution filters (field names are those that arrive from the C Flow.cpp)
