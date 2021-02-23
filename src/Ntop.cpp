@@ -100,7 +100,7 @@ Ntop::Ntop(char *appName) {
   last_ndpi_reload = 0;
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
-  ndpi_finalize_initalization(ndpi_struct);
+  ndpi_finalize_initialization(ndpi_struct);
 
   internal_alerts_queue = new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
@@ -2999,7 +2999,7 @@ void Ntop::reloadCustomCategories() {
     
     /* The new categories were loaded on the current ndpi_struct_shadow */
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
-    ndpi_finalize_initalization(ndpi_struct_shadow);
+    ndpi_finalize_initialization(ndpi_struct_shadow);
     
     ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI finalizing reload...");
     
