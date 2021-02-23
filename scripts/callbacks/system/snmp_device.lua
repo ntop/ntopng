@@ -87,7 +87,7 @@ local function snmp_device_run_user_scripts(cached_device)
       local conf = user_scripts.getTargetHookConfig(device_conf, script)
 
       if(conf.enabled) then
-        alerts_api.invokeScriptHook(script, confset_id, hook_fn, device_ip, info, conf)
+        alerts_api.invokeScriptHook(script, configsets, confset_id, hook_fn, device_ip, info, conf)
       end
    end
 
@@ -111,7 +111,7 @@ local function snmp_device_run_user_scripts(cached_device)
 	    snmp_interface["if_counters"] = cached_device.if_counters[snmp_interface_index]
 	    snmp_interface["bridge"] = cached_device.bridge[snmp_interface_index]
 
-	    alerts_api.invokeScriptHook(script, confset_id, hook_fn, device_ip, snmp_interface_index, table.merge(snmp_interface, {
+	    alerts_api.invokeScriptHook(script, configsets, confset_id, hook_fn, device_ip, snmp_interface_index, table.merge(snmp_interface, {
 	       granularity = granularity,
 	       alert_entity = iface_entity,
 	       user_script = script,

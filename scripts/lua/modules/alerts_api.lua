@@ -26,8 +26,9 @@ local str_2_periodicity = {
 }
 
 local known_alerts = {}
-local current_script = nil
-local current_configset_id = nil
+local current_script
+local current_configsets   -- The configsets used for the generation of this alert obtained with user_scripts.getConfigsets()
+local current_configset_id -- The id of the configuration among the `currentconfigsets` used to generate this alert
 
 -- ##############################################
 
@@ -170,6 +171,8 @@ end
 --! @param when (optional) the time when the release event occurs
 --! @return true if the alert was successfully stored, false otherwise
 function alerts_api.store(entity_info, type_info, when)
+  local user_scripts = require "user_scripts"
+
   if(not areAlertsEnabled()) then
     return(false)
   end
@@ -205,6 +208,18 @@ function alerts_api.store(entity_info, type_info, when)
   }
 
   addAlertPoolInfo(entity_info, alert_to_store)
+
+  -- Subdir equals the entity id, e.g., "host", "interface", etc.
+  local cur_subdir = alert_consts.alertEntityRaw(entity_info.alert_entity.entity_id)
+  -- Check if the alert has a filter and thus should not be generated
+  local cur_filters = user_scripts.getFiltersById(current_configsets, current_configset_id, cur_subdir)
+
+  if current_script and current_script.key and cur_filters then
+     if user_scripts.matchExcludeFilter(cur_filters, current_script, cur_subdir, alert_to_store) then
+	-- This alert is matching an exclusion filter. return, and do anything
+	return
+     end
+  end
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
     -- NOTE: for engaged alerts this operation is performed during trigger in C
@@ -728,8 +743,9 @@ end
 
 -- ##############################################
 
-function alerts_api.invokeScriptHook(user_script, configset_id, hook_fn, p1, p2, p3)
+function alerts_api.invokeScriptHook(user_script, configsets, configset_id, hook_fn, p1, p2, p3)
   current_script = user_script
+  current_configsets = configsets 
   current_configset_id = configset_id
 
   return(hook_fn(p1, p2, p3))

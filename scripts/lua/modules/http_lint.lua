@@ -828,6 +828,7 @@ end
 local function validateInterface(i)
    return interface.isValidIfId(i)
 end
+http_lint.validateInterface = validateInterface
 
 local function validateNetwork(i)
    if not string.find(i, "/") then
@@ -897,6 +898,7 @@ local function validateNetworkWithVLAN(i)
       return validateNetwork(net)
    end
 end
+http_lint.validateNetworkWithVLAN = validateNetworkWithVLAN
 
 local function validateMac(p)
    if isMacAddress(p) then

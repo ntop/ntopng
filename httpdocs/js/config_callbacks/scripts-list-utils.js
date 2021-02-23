@@ -1335,10 +1335,8 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
          // get alert severity if present
          appendSeveritySelect(data);
 
-         if (script_subdir === "flow") {
-            // append the exclusion list 
-            appendExclusionList(data);
-         }
+	 // append the exclusion list 
+	 appendExclusionList(data);
 
          // bind on_apply event on apply button
          $("#edit-form").off("submit").on('submit', template.apply_click_event);

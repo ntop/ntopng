@@ -36,7 +36,7 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   local configsets = user_scripts.getConfigsets()
+   configsets = user_scripts.getConfigsets()
    -- Instance of local network pools to get assigned members
    pools_instance = interface_pools:create()
    -- Retrieve the confset_id (possibly) associated to this interface
@@ -77,7 +77,7 @@ function runScripts(granularity)
      local conf = user_scripts.getTargetHookConfig(iface_config, user_script, granularity)
 
      if(conf.enabled) then
-	alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
+	alerts_api.invokeScriptHook(user_script, configsets, confset_id, hook_fn, {
 				       granularity = granularity,
 				       alert_entity = entity_info,
 				       entity_info = info,

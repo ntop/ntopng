@@ -430,8 +430,7 @@ function alert_utils.deleteAlertsMatchingUserScriptFilter(confset_id, subdir, us
    local query = user_scripts.prepareFilterSQLiteWhere(confset_id, subdir, user_script, filter)
 
    if subdir ~= "flow" then
-      -- TODO: implement
-      -- res = interface.queryAlertsRaw(statement, query, group_by, force_query)
+      res = interface.queryAlertsRaw(statement, query, group_by, true)
    else
       res = interface.queryFlowAlertsRaw(statement, query, group_by, true)
    end

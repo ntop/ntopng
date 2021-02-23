@@ -25,7 +25,7 @@ local user_scripts = {}
 
 -- ##############################################
 
-local filters_debug = false
+local filters_debug = true
 
 -- ##############################################
 
@@ -70,15 +70,87 @@ local available_subdirs = {
       id = "host",
       label = "hosts",
       pools = "host_pools",
+      filter = {
+	 default_fields = { "alert_entity_val" },
+	 available_fields = {
+	    alert_entity_val = {
+	       lint = http_lint.validateNetworkWithVLAN, -- .e.g., 192.168.2.1@3, 192.168.2.0/24@0
+	       match = function(context, val)
+		  -- TODO: Add CIDR
+		  -- Do the comparison
+		  if not context or context.alert_entity ~= alert_consts.alertEntity("host") then
+		     return false
+		  end
+
+		  return table.compare(hostkey2hostinfo(val), hostkey2hostinfo(context.alert_entity_val))
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("(alert_entity = %u AND alert_entity_val = '%s')", alert_consts.alertEntity("host"), val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	 },
+      },
    }, {
       id = "interface",
       label = "interfaces",
       pools = "interface_pools",
-      }, {
+      filter = {
+	 default_fields = { "alert_entity_val" },
+	 available_fields = {
+	    alert_entity_val = {
+	       lint = http_lint.validateInterface, -- An interface id
+	       match = function(context, val)
+		  -- Do the comparison
+		  if not context or context.alert_entity ~= alert_consts.alertEntity("interface") then
+		     return false
+		  end
+
+		  -- Match on the interface id
+		  return tonumber(val) == tonumber(context.alert_entity_val)
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("(alert_entity = %u AND alert_entity_val = '%s')", alert_consts.alertEntity("interface"), val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	 },
+      },
+   }, {
       id = "network",
       label = "networks",
       pools = "local_network_pools",
-	 }, {
+      filter = {
+	 default_fields = { "alert_entity_val" },
+	 available_fields = {
+	    alert_entity_val = {
+	       lint = http_lint.validateNetworkWithVLAN, -- A local network
+	       match = function(context, val)
+		  -- Do the comparison
+		  if not context or context.alert_entity ~= alert_consts.alertEntity("network") then
+		     return false
+		  end
+
+		  -- Match on the interface id
+		  return val == context.alert_entity_val
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("(alert_entity = %u AND alert_entity_val = '%s')", alert_consts.alertEntity("network"), val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	 },
+      },
+   }, {
       id = "snmp_device",
       label = "host_details.snmp",
       pools = "snmp_device_pools",
@@ -1715,11 +1787,14 @@ end
 
 -- @brief Retrieve `subdir` filters from the configset identified with `configset_id` from all the available `configsets` passed
 function user_scripts.getFiltersById(configsets, configset_id, subdir)
-   configset_id = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
-   local configset = configsets[configset_id] or configsets[user_scripts.DEFAULT_CONFIGSET_ID]
+   if configsets then
+      configset_id = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
 
-   if configset and configset["filters"] and configset["filters"][subdir] then
-      return configset["filters"][subdir], configset.id
+      local configset = configsets[configset_id] or configsets[user_scripts.DEFAULT_CONFIGSET_ID]
+
+      if configset and configset["filters"] and configset["filters"][subdir] then
+	 return configset["filters"][subdir], configset.id
+      end
    end
 
    return {}, nil
@@ -1934,7 +2009,7 @@ end
 
 -- ##############################################
 
-function user_scripts.matchExcludeFilter(filters_config, script, subdir)
+function user_scripts.matchExcludeFilter(filters_config, script, subdir, context)
    local subdir_id = getSubdirId(subdir)
 
    if subdir_id == -1 or not script or not script.key then
@@ -1960,7 +2035,7 @@ function user_scripts.matchExcludeFilter(filters_config, script, subdir)
 	    filter_matches = false
 	 else
 	    -- field_key is supported, let's evaluate the match function
-	    filter_matches = available_fields[field_key]["match"](nil --[[ no context --]], field_val --[[ the value --]])
+	    filter_matches = available_fields[field_key]["match"](context, field_val --[[ the value --]])
 	 end
 
 	 if not filter_matches then

@@ -143,10 +143,10 @@ function runScripts(granularity)
 
       for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
 	 local user_script = available_modules.modules[mod_key]
-    local conf = user_scripts.getTargetHookConfig(host_conf, user_script, granularity)
+	 local conf = user_scripts.getTargetHookConfig(host_conf, user_script, granularity)
 
 	 if(conf.enabled) then
-	    alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
+	    alerts_api.invokeScriptHook(user_script, configsets, confset_id, hook_fn, {
 					   granularity = granularity,
 					   alert_entity = entity_info,
 					   entity_info = host_ip,
