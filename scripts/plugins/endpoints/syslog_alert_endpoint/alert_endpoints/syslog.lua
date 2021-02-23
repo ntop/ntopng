@@ -6,6 +6,7 @@ require "lua_utils"
 local json = require "dkjson"
 local alert_utils = require "alert_utils"
 local alert_consts = require "alert_consts"
+local alert_severities = require "alert_severities"
 local format_utils = require "format_utils"
 
 local syslog = {
@@ -47,6 +48,7 @@ local function readSettings(recipient)
       protocol = recipient.endpoint_conf.syslog_protocol, -- tcp or udp
       host = recipient.endpoint_conf.syslog_host,
       port = recipient.endpoint_conf.syslog_port,
+      syslog_alert_format = recipient.endpoint_conf.syslog_alert_format
    }
 
    if isEmptyString(settings.host) then
@@ -74,8 +76,9 @@ end
 
 -- ##############################################
 
-function syslog.sendMessage(settings, notif, severity, syslog_format)
+function syslog.sendMessage(settings, notif, severity)
    local syslog_severity = alert_consts.alertLevelToSyslogLevel(severity)
+   local syslog_format = settings.syslog_alert_format
    local msg
 
    if syslog_format and syslog_format == "json" then
@@ -96,11 +99,13 @@ function syslog.sendMessage(settings, notif, severity, syslog_format)
          nohtml = true,
 	 show_severity = true,
 	 show_entity = true})
+
    end
 
    if settings.host == nil then
       ntop.syslog(msg, syslog_severity)
    else
+
       local facility = 14 -- log alert
       local level = 1 -- alert (what about mapping severity?)
       local prio = (facility * 8) + level
@@ -145,7 +150,7 @@ function syslog.dequeueRecipientAlerts(recipient, budget, high_priority)
 
    -- Most recent notifications first
    for _, notification in ipairs(notifications) do
-      syslog.sendMessage(settings, notification.alert, notification.alert_severity, recipient.endpoint_conf.syslog_alert_format)
+      syslog.sendMessage(settings, notification.alert, notification.alert_severity)
    end
 
    return {success = true,  more_available = true}
@@ -160,9 +165,10 @@ function syslog.runTest(recipient)
    local notif = {
       alert_tstamp = now,
       alert_entity = alert_consts.alert_entities.test.entity_id,
+      alert_severity = alert_severities.info.severity_id
    }
 
-   local success = syslog.sendMessage(settings, notif, "info", recipient.endpoint_conf.syslog_alert_format)
+   local success = syslog.sendMessage(settings, json.encode(notif), alert_severities.info.severity_id)
 
    local message_info = i18n("prefs.syslog_sent_successfully")
    return success, message_info
