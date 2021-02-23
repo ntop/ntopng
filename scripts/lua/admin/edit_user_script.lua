@@ -2,6 +2,10 @@
 -- (C) 2021 - ntop.org
 --
 
+-- TODO: check the 'is_alert' field
+-- TODO: reset custom callback
+-- TODO: /scripts/lua/module/user_scripts/templates
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 

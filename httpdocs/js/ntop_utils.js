@@ -1009,6 +1009,17 @@ class NtopUtils {
 		return JSON.parse(currentValue);
 	}
 
+	static fillFieldIfValid($field, value) {
+
+		if (value === undefined) {
+			$field.val('');
+		}
+		else {
+			$field.val(value);
+		}
+
+	}
+
 }
 
 $(document).ready(function () {

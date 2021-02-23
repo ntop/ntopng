@@ -29,39 +29,49 @@
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs">
                     <li class="nav-item">
-                      <a class="nav-link active" href="#">Hooks Configuration</a>
+                      <a class="nav-link active" href="#">{{ i18n("edit_user_script.hooks_config") }}</a>
                     </li>
                 </ul>
             </div>
             <div class="card-body">
                 <form id="user-script-edits">
                     <div class="hooks">
-                        {% for hook_name, rendered_template in pairs(edit_user_script.rendered_hooks) do %}
+                        {% for _, rendered_hook in ipairs(edit_user_script.rendered_hooks.templates) do %}
                             {%
+                                local hook_name = rendered_hook.hook
                                 local hook = edit_user_script.hooks_config[hook_name]
                                 local severity = hook.script_conf.severity
+                                if severity == nil then
+                                    severity = hook.script_conf.severity.severity_id 
+                                end
+
+                                local is_alert = edit_user_script.rendered_hooks.user_script.is_alert
                             %}
                             <fieldset id="{{ hook_name }}">
-                                <div class="card">
+                                <div class="card my-1">
                                     <div class="card-header">
                                         <b class="text-black-50">{{ (i18n("edit_user_script.hooks_name." .. hook_name) or hook_name) }}</b>
                                     </div>
                                     <div class="card-body">
                                         <div class="rendered">
-                                            {* rendered_template *}
+                                            {* rendered_hook.template *}
                                         </div>
                                         {# Common fields shared across user scripts #}
                                         <div class="commons">
+                                            
+                                            {# Check the is_alert field to show Alert Severity. #}
+                                            {% if is_alert then %}
                                             <div class="form-group row">
                                                 <label for="colFormLabel" class="col-sm-2 col-form-label">{{ i18n("scripts_list.alert_severity") }}</label>
                                                 <div class="col-sm-2">
-                                                    <select class="form-control" name="severity">
+                                                    <select class="form-control" name="severity" required {{ (hook.enabled and '' or 'disabled') }}>
                                                         {% for key, iseverity in pairsByField(edit_user_script.alert_severities, 'severity_id', asc) do %}
-                                                            <option {{ (severity.severity_id == iseverity.severity_id and 'selected' or '') }} value='{{ iseverity.severity_id }}'>{{ i18n(iseverity.i18n_title) }}</option>
+                                                            <option {{ (tonumber(severity) == iseverity.severity_id and 'selected' or '') }} value='{{ iseverity.severity_id }}'>{{ i18n(iseverity.i18n_title) }}</option>
                                                         {% end %}
                                                     </select>
                                                 </div>
                                             </div>
+                                            {% end %}
                                         </div>
                                     </div>
                                 </div>
@@ -85,6 +95,8 @@
 </div>
 <script type="text/javascript">
 
+const DEBUG = true;
+
 // Object containing callbacks to be called when the user
 // clicks the reset button.
 const RESET_CALLBACKS = {
@@ -100,6 +112,10 @@ function registerResetCallback(hookName, callback) {
     
     if (RESET_CALLBACKS[hookName] !== undefined) {
         console.warn(`Overriding existing callback for the hook ${hookName}...`);
+    }
+
+    if (DEBUG) {
+        console.info(`Debug: Registered callback for [${hookName}].`);
     }
 
     RESET_CALLBACKS[hookName] = callback;
@@ -137,6 +153,7 @@ $(document).ready(function() {
     $(`#reset-button`).on('click', async function() {
 
         const request = $.get(RESET_ENDPOINT);
+
         request.then(function(data) {
             
             // for eache hook reset the default values
@@ -174,10 +191,11 @@ $(document).ready(function() {
                         $field.val(value);
                     }
 
-                    // check if exists a reset callback for the hook and call it
-                    if (RESET_CALLBACKS[hookName] !== undefined) RESET_CALLBACKS[hookName](hookName, hook, data);
                 }
-            
+
+                // check if exists a reset callback for the hook and call it
+                if (RESET_CALLBACKS[hookName] !== undefined) RESET_CALLBACKS[hookName](hookName, hook, data);
+        
             }
 
         });
@@ -214,11 +232,21 @@ $(document).ready(function() {
                 
                 if (name === 'enabled' || ignore) return;
 
-                hook.script_conf[name] = $(this).val();
+                const valueNumber = parseFloat($(this).val());
+                if (isNaN(valueNumber)) {
+                    hook.script_conf[name] = $(this).val();
+                    return;
+                }
+
+                hook.script_conf[name] = valueNumber;
             });
 
             serialized[hookName] = hook;
         });
+
+        if (DEBUG) {
+            console.log(serialized)
+        }
 
         // payload to send to the save endpoint
         const payload = {
@@ -235,14 +263,21 @@ $(document).ready(function() {
             const success = data.success;
             if (!success) {
                 $errorAlert.text(data.error).show();
+                return;
             } 
-            else {
-                $errorAlert.hide();
-            }
-
+            // hide the previous errors
+            $errorAlert.hide();
+            // show a success message
+            ToastUtils.showToast({
+                title: "{{ i18n('success') }}",
+                body: "{* i18n('edit_user_script.success_message', {script_name = edit_user_script.script_title}) *}",
+                level: 'success',
+                delay: 3000,
+                id: `save-userscript`
+            });
         });
         request.fail(function() {
-
+            // TODO
         });
         request.always(function() {
             $submitButton.removeAttr("disabled");

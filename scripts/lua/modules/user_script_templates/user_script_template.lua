@@ -47,11 +47,21 @@ function user_script_template:render(hooks_conf)
 
       -- If the hook is among those passed as parameter, add it to the result
       if hook_conf then
-	 res[#res + 1] = {hook = hook, template = plugins_utils.renderTemplate(self._user_script.plugin.key, self._user_script.gui.input_builder..".template", hook_conf)}
+	      res[#res + 1] = {
+            hook = hook, -- Hook Name
+            template = plugins_utils.renderTemplate(self._user_script.plugin.key, self._user_script.gui.input_builder..".template", {
+               hook_conf = hook_conf,
+               hook_name = hook,
+               user_script = self._user_script
+            }) -- Rendered Template
+      }
       end
    end
 
-   return res
+   return {
+      templates = res,
+      user_script = self._user_script
+   }
 end
 
 -- ##############################################

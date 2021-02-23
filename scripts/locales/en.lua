@@ -1223,8 +1223,14 @@ local lang = {
     ["author"] = "Author",
     ["category"] = "Category",
     ["description"] = "Description",
+    ["hooks_config"] = "Hooks Configuration",
+    ["success_message"] = "The User Script <b>%{script_name}</b> configuration has been saved successfully!",
     ["hooks_name"] = {
+      ["5mins"] = "5 Minutes",
       ["all"] = "All",
+      ["day"] = "Daily",
+      ["hour"] = "Hourly",
+      ["min"] = "Minute",
     },
   },
   ["email_alert_endpoint"] = {
