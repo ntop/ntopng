@@ -30,7 +30,7 @@ class BehaviouralCounter {
  public:
   /* Number of points to be used by the algorithm in the learning phase */
   BehaviouralCounter(u_int16_t num_learning_observations) { ; }
-  virtual ~BehaviouralCounter();
+  virtual ~BehaviouralCounter() { ; };
 
   /*
     In Parameters:

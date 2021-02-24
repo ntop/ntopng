@@ -29,11 +29,26 @@ class LocalHostStats: public HostStats {
   HTTPstats *http;
   ICMPstats *icmp;
   FrequentStringItems *top_sites;
-  time_t nextSitesUpdate, nextContactsUpdate;
+  /* nextPeriodicUpdate done every 5 min */
+  time_t nextPeriodicUpdate, nextContactsUpdate;
   u_int32_t num_contacts_as_cli, num_contacts_as_srv;
 
   /* Estimate of the number of critical servers used by this host */
   Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
+
+  /* Estimate the number of visited pages using HyperLogLog */
+  struct ndpi_hll visited_pages_hll;
+  double last_hll_visited_pages_value;
+  u_int16_t hll_learning_values;
+  u_int8_t hll_init_count; /* Default max value = 4 | This means that at least 20 min 
+			      are used before giving an estimate of the values */
+  
+  /* Holt-Winters structure, used to have a feedback regarding the visited pages */
+  BehaviouralCounter *visited_pages_hw;
+  bool hw_visited_pages_report;
+  u_int16_t hw_learning_values;
+  u_int8_t hw_init_count;
+  u_int32_t prediction, lower_bound, upper_bound;
   
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
@@ -55,6 +70,7 @@ class LocalHostStats: public HostStats {
   void getCurrentTime(struct tm *t_now);
   void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
   void deserializeTopSites(char* redis_key_current);
+  void updateVisitedPagesHll();
   
  public:
   LocalHostStats(Host *_host);

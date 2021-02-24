@@ -24,6 +24,7 @@
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
+  char buf[128];
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = NULL;
 
@@ -32,7 +33,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   icmp = new (std::nothrow) ICMPstats();
   peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
 
-  nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
+  nextPeriodicUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
   current_cycle = 0;
   
@@ -44,6 +45,24 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   contacts_as_cli.init(4);                     /* 16 bytes  */
   contacts_as_srv.init(4);                     /* 16 bytes  */
 
+  /* hll init, 8 bits -> 256 bytes per LocalHost */
+  if(ndpi_hll_init(&visited_pages_hll, 8))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Initialize HyperLogLog structure for the host: %s",
+				 _host->get_ip() ? _host->get_ip()->print(buf, sizeof(buf)) : _host->get_name(buf, sizeof(buf), false));
+  last_hll_visited_pages_value = 0;
+  hll_init_count = 0;
+  hll_learning_values = 4;
+  
+  /* hw init */
+  hw_learning_values = 12;
+  visited_pages_hw = (BehaviouralCounter *) new HWCounter(hw_learning_values);
+  if(!visited_pages_hw)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Initialize Holt-Winters structure for the host: %s",
+				 _host->get_ip() ? _host->get_ip()->print(buf, sizeof(buf)) : _host->get_name(buf, sizeof(buf), false));
+  hw_visited_pages_report = false;
+  hw_init_count = 0;
+  prediction = lower_bound = upper_bound = 0;
+  
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
   num_ntp_servers.init(5);
@@ -52,14 +71,32 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
+  char buf[128];
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
   old_sites = NULL;
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;
   icmp = NULL;
-  nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
+  nextPeriodicUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
+
+  /* hll init, 8 bits -> 256 bytes per LocalHost */
+  if(ndpi_hll_init(&visited_pages_hll, 8))
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Initialize HyperLogLog structure for the host: %s",
+				 host->get_ip() ? host->get_ip()->print(buf, sizeof(buf)) : host->get_name(buf, sizeof(buf), false));
+  last_hll_visited_pages_value = 0;
+  hll_init_count = 0;
+  hw_init_count = 0;
+  
+  /* hw init */
+  hw_learning_values = 12;
+  visited_pages_hw = (BehaviouralCounter *) new HWCounter(hw_learning_values);
+  if(!visited_pages_hw)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Initialize Holt-Winters structure for the host: %s",
+				 host->get_ip() ? host->get_ip()->print(buf, sizeof(buf)) : host->get_name(buf, sizeof(buf), false));
+  hw_visited_pages_report = false;
+  prediction = lower_bound = upper_bound = 0;
   
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
@@ -75,6 +112,8 @@ LocalHostStats::~LocalHostStats() {
   if(http)            delete http;
   if(icmp)            delete icmp;
   if(peers)           delete(peers);
+  if(&visited_pages_hll) ndpi_hll_destroy(&visited_pages_hll);
+  if(visited_pages_hw)   delete(visited_pages_hw);
 }
 
 /* *************************************** */
@@ -83,23 +122,30 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
   char *firstdot = NULL, *nextdot = NULL;
 
-  if(top_sites
-     && ntop->getPrefs()->are_top_talkers_enabled()
-     && (strstr(hostname, "in-addr.arpa") == NULL)
+  if((strstr(hostname, "in-addr.arpa") == NULL)
      && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
      ) {
-    if(ntop->isATrackerHost(hostname)) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[TRACKER] %s", hostname);
-      return; /* Ignore trackers */
+
+    /* HyperLogLog update regarding visited sites */
+    if(&visited_pages_hll)
+      ndpi_hll_add(&visited_pages_hll, hostname, sizeof(*hostname));
+
+    /* Top Sites update, done only if the preference is enabled */
+    if(top_sites
+       && ntop->getPrefs()->are_top_talkers_enabled()) {
+      if(ntop->isATrackerHost(hostname)) {
+	ntop->getTrace()->traceEvent(TRACE_INFO, "[TRACKER] %s", hostname);
+	return; /* Ignore trackers */
+      }
+      
+      firstdot = strchr(hostname, '.');
+      
+      if(firstdot)
+	nextdot = strchr(&firstdot[1], '.');
+      
+      top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
+      iface->incrVisitedWebSite(hostname);
     }
-
-    firstdot = strchr(hostname, '.');
-
-    if(firstdot)
-      nextdot = strchr(&firstdot[1], '.');
-
-    top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
-    iface->incrVisitedWebSite(hostname);
   }
 }
 
@@ -117,8 +163,13 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
     nextContactsUpdate = tv->tv_sec+HOST_CONTACTS_REFRESH;
   }
   
-  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
-    if(nextSitesUpdate > 0) {
+  if(nextPeriodicUpdate > 0 && (tv->tv_sec >= nextPeriodicUpdate)) {
+    /* hll visited sites update */
+    if(&visited_pages_hll)
+      updateVisitedPagesHll();
+    
+    /* Top Sites update */
+    if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
       if(old_sites) {
         if(host != NULL)
           this->saveOldSites();
@@ -128,7 +179,7 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
         old_sites = top_sites->json();
     }
 
-    nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
+    nextPeriodicUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 }
 
@@ -173,6 +224,14 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
       lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
   }
 
+  if(&visited_pages_hll && hll_init_count >= 4)
+    lua_push_float_table_entry(vm, "last_hll_visited_pages_estimate",
+				last_hll_visited_pages_value);
+  
+  if(visited_pages_hw && hw_init_count >= 10)
+    lua_push_bool_table_entry(vm, "last_hw_visited_pages_report",
+			      hw_visited_pages_report);
+    
   if(details_level >= details_high) {
     luaICMP(vm,host->get_ip()->isIPv4(),true);
     luaDNS(vm, true);
@@ -537,4 +596,21 @@ void LocalHostStats::resetTopSitesData() {
 
   snprintf(redis_reset_key, sizeof(redis_reset_key), "%s_%u_%d_%u_%d", host_buf, iface, t_now.tm_mday, t_now.tm_hour, minute);
   ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_RESET, redis_reset_key, 3600);
+}
+
+/* *************************************** */
+
+void LocalHostStats::updateVisitedPagesHll() {
+  last_hll_visited_pages_value = ndpi_hll_count(&visited_pages_hll);
+
+  if(hll_init_count < hll_learning_values)
+    hll_init_count++;
+
+  ndpi_hll_reset(&visited_pages_hll);
+
+  if(visited_pages_hw) 
+    hw_visited_pages_report = visited_pages_hw->addObservation((u_int32_t) last_hll_visited_pages_value, &prediction, &lower_bound, &upper_bound);
+
+  if(hw_init_count < hw_learning_values)
+    hw_init_count++;
 }
