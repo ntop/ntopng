@@ -166,13 +166,46 @@ end
 
 -- ##############################################
 
+--@brief Check if the `alert` belongs to an exclusion list
+--! @param entity_info data returned by one of the entity_info building functions
+--! @param type_info data returned by one of the type_info building functions
+--@return True if the alert matches an exclusion list, false otherwise
+local function matchExcludeFilter(entity_info, type_info)
+   local user_scripts = require "user_scripts"
+
+   -- Subdir equals the entity id, e.g., "host", "interface", etc.
+   local cur_subdir = alert_consts.alertEntityRaw(entity_info.alert_entity.entity_id)
+
+   -- Check if the alert has a filter and thus should not be generated
+   local cur_filters = user_scripts.getFiltersById(current_configsets, current_configset_id, cur_subdir)
+
+   -- Prepare the context with alert data
+   local context = {
+      alert_type = type_info.alert_type.alert_key,
+      alert_subtype = type_info.alert_subtype,
+      alert_entity = entity_info.alert_entity.entity_id,
+      alert_entity_val = entity_info.alert_entity_val,
+      alert_severity = type_info.alert_severity.severity_id,
+      alert_json = type_info.alert_type_params,
+   }
+
+   if current_script and current_script.key and cur_filters then
+      if user_scripts.matchExcludeFilter(cur_filters, current_script, cur_subdir, context) then
+	 -- This alert is matching an exclusion filter. return, and do anything
+	 return true
+      end
+   end
+
+   return false
+end
+
+-- ##############################################
+
 --! @param entity_info data returned by one of the entity_info building functions
 --! @param type_info data returned by one of the type_info building functions
 --! @param when (optional) the time when the release event occurs
 --! @return true if the alert was successfully stored, false otherwise
 function alerts_api.store(entity_info, type_info, when)
-  local user_scripts = require "user_scripts"
-
   if(not areAlertsEnabled()) then
     return(false)
   end
@@ -209,16 +242,9 @@ function alerts_api.store(entity_info, type_info, when)
 
   addAlertPoolInfo(entity_info, alert_to_store)
 
-  -- Subdir equals the entity id, e.g., "host", "interface", etc.
-  local cur_subdir = alert_consts.alertEntityRaw(entity_info.alert_entity.entity_id)
-  -- Check if the alert has a filter and thus should not be generated
-  local cur_filters = user_scripts.getFiltersById(current_configsets, current_configset_id, cur_subdir)
-
-  if current_script and current_script.key and cur_filters then
-     if user_scripts.matchExcludeFilter(cur_filters, current_script, cur_subdir, alert_to_store) then
-	-- This alert is matching an exclusion filter. return, and do anything
-	return
-     end
+  if matchExcludeFilter(entity_info, type_info) then
+     -- This alert is matching an exclusion filter. return, and do anything
+     return false
   end
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("host")) then
@@ -309,15 +335,31 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   local granularity_id = type_info.alert_granularity and type_info.alert_granularity.granularity_id or 0 --[[ 0 is aperiodic ]]
   local subtype = type_info.alert_subtype or ""
 
-  if(cur_alerts and already_triggered(cur_alerts, type_info.alert_severity.severity_id,
-	  type_info.alert_type.alert_key, granularity_sec, subtype) == true) then
-     return(true)
-  end
-
   when = when or os.time()
 
   type_info.alert_type_params = type_info.alert_type_params or {}
   addAlertGenerationInfo(type_info.alert_type_params)
+
+  -- Check whether this alert is matching an exclusion filter
+  local match_exclude_filter = matchExcludeFilter(entity_info, type_info)
+
+  if(cur_alerts and already_triggered(cur_alerts, type_info.alert_severity.severity_id,
+				      type_info.alert_type.alert_key, granularity_sec, subtype) == true) then
+     -- If there, the alert was already engaged at the time this function was called. Hence, if the alert
+     -- is matching the exclusion filter, the alert must actually be RELEASED.
+     -- NOTE: release is called without `cur_alerts` as there is no need to use this cache. Release MUST be done.
+     if match_exclude_filter then
+	return alerts_api.release(entity_info, type_info, when, nil --[[ Don't pass cur_alerts, don't want to use this cache --]])
+     else
+	-- Alert does not belong to an exclusion filter and it is already triggered. There's nothing to do, just return.
+	return true
+     end
+  end
+
+  if match_exclude_filter then
+     -- This alert is matching an exclusion filter. Return, and do not perform any trigger action.
+     return false
+  end
 
   local alert_json = json.encode(type_info.alert_type_params)
   local triggered
@@ -356,7 +398,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   triggered.action = "engage"
 
   addAlertPoolInfo(entity_info, triggered)
-  
+
   -- Emit the notification only if the notification hasn't already been emitted.
   -- This is to avoid alert storms when ntopng is restarted. Indeeed,
   -- if there are 100 alerts triggered when ntopng is switched off, chances are the
@@ -433,8 +475,18 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
 
   addAlertPoolInfo(entity_info, released)
 
-  recipients.dispatch_notification(released, current_script)
   mark_release_notified(released)
+
+  if matchExcludeFilter(entity_info, type_info) then
+     -- This alert is matching an exclusion filter, return.
+     -- NOTE: this code is placed after the in-memory release (see <entity>.releaseTriggeredAlert calls above)
+     -- as we want to remove triggered alerts matching filters from memory. The only thing that
+     -- should be avoided is the generation of notifications causing the alert to be inserted into SQLite
+     -- and also sent to external endpoints
+     return false
+  end
+
+  recipients.dispatch_notification(released, current_script)
 
   return(true)
 end
