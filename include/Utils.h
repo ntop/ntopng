@@ -79,6 +79,7 @@ public:
   static char* urlDecode(const char *src, char *dst, u_int dst_len);
   static bool purifyHTTPparam(char * const param, bool strict, bool allowURL, bool allowDots);
   static char* stripHTML(const char * const str);
+  static bool sendTCPData(char *host, int port, char *data, int timeout);
   static bool postHTTPJsonData(char *username, char *password, char *url,
 			       char *json, int timeout, HTTPTranferStats *stats);
   static bool postHTTPJsonData(char *username, char *password, char *url,

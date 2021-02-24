@@ -1297,6 +1297,32 @@ static int ntop_send_udp_data(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_send_tcp_data(lua_State* vm) {
+  bool rv = true;
+  char *host, *data;
+  int port;
+  int timeout = 0;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((host = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  port = (int32_t)lua_tonumber(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
+  if((data = (char*)lua_tostring(vm, 3)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  /* Optional timeout */
+  if(lua_type(vm, 4) == LUA_TNUMBER) timeout = lua_tonumber(vm, 4);
+
+  rv = Utils::sendTCPData(host, port, data, timeout);
+
+  lua_pushboolean(vm, rv);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_script_is_deadline_approaching(lua_State* vm) {
   struct ntopngLuaContext *ctx = getLuaVMContext(vm);
 
@@ -5739,6 +5765,9 @@ static const luaL_Reg ntop_reg[] = {
 
   /* UDP */
   { "send_udp_data",    ntop_send_udp_data },
+
+  /* TCP */
+  { "send_tcp_data",    ntop_send_tcp_data },
 
   /* IP */
   { "inet_ntoa",        ntop_inet_ntoa },

@@ -1242,6 +1242,76 @@ bool Utils::purifyHTTPparam(char * const param, bool strict, bool allowURL, bool
   return(false);
 }
 
+/* ************************************************************ */
+
+bool Utils::sendTCPData(char *host, int port, char *data, int timeout /* msec */) {
+  struct hostent *server = NULL;
+  struct sockaddr_in serv_addr;
+  int sockfd = -1;
+  int retval;
+  bool rc = false;
+
+  server = gethostbyname(host);
+  if(server == NULL)
+    return false;
+
+  memset((char*)&serv_addr, 0, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  memcpy((char*)&serv_addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
+  serv_addr.sin_port = htons(port);
+
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+  if(sockfd < 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
+    return false;
+  }
+
+#ifndef WIN32
+  if(timeout == 0) {
+    retval = fcntl(sockfd, F_SETFL, fcntl(sockfd,F_GETFL,0) | O_NONBLOCK);
+    if(retval == -1) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Error setting NONBLOCK flag");
+      closesocket(sockfd);
+      return false;
+    }
+  } else {
+    struct timeval tv_timeout;
+    tv_timeout.tv_sec  = timeout/1000;
+    tv_timeout.tv_usec = (timeout%1000)*1000;
+    retval = setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &tv_timeout, sizeof(tv_timeout));
+    if(retval == -1) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Error setting send timeout: %s", strerror(errno));
+      closesocket(sockfd);
+      return false;
+    }
+  }
+#endif
+
+  if(connect(sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0
+     && (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN ||
+	 errno == ENETUNREACH  || errno == ETIMEDOUT )) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING,"Could not connect to remote party");
+    closesocket(sockfd);
+    return false;
+  }
+
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Sending '%s' to %s:%d",
+  //  data, host, port);
+
+  rc = true;
+  retval = send(sockfd, data, strlen(data), 0);
+  if(retval <= 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Send failed: %s (%d)",
+				 strerror(errno), errno);
+    rc = false;
+  }
+
+  closesocket(sockfd);
+
+  return rc;
+}
+
 /* **************************************************** */
 
 /* holder for curl fetch */

@@ -64,6 +64,7 @@ local function validateChoiceInline(choices)
       end
    end
 end
+http_lint.validateChoiceInline = validateChoiceInline
 
 local function validateListOfType(l, validate_callback, separator)
    local separator = separator or ","
@@ -125,12 +126,16 @@ end
 http_lint.validateNumber = validateNumber
 
 local function validateSyslogFormat(p)
-   if p == "plaintext" or p == "json" then
+   if p == "plaintext" or
+      p == "json" or
+      p == "ecs"
+   then
       return true
    end
 
    return false
 end
+http_lint.validateSyslogFormat = validateSyslogFormat
 
 local function validatePort(p)
    if not validateNumber(p) then
@@ -144,6 +149,7 @@ local function validatePort(p)
       return false
    end
 end
+http_lint.validatePort = validatePort
 
 local function validateUnquoted(p)
    -- This function only verifies that value does not contain single quotes, but

@@ -257,6 +257,10 @@ function notification_configs.edit_config(endpoint_conf_name, conf_params)
    -- Overwrite the config
    set_endpoint_config_params(ec["endpoint_key"], endpoint_conf_name, safe_params)
 
+   -- Mark a change in recipients
+   local recipients = require "recipients"
+   recipients.set_recipients_change()
+
    return {status = "OK"}
 end
 
