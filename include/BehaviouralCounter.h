@@ -29,15 +29,24 @@ class BehaviouralCounter {
 
  public:
   /* Number of points to be used by the algorithm in the learning phase */
-  BehaviouralCounter(u_int16_t num_learning_values) { ; }
+  BehaviouralCounter(u_int16_t num_learning_observations) { ; }
   virtual ~BehaviouralCounter();
 
   /*
-     Return:
-     true     An anomaly has been detected
+    In Parameters:
+    - value         The measurement to evaluate
+
+    Out Parameters
+    - prediction    The predicted value for the measurement
+    - lower_bound   The lower prediction
+    - upper_bound   The upper prediction
+
+    Return:
+     true     An anomaly has been detected (i.e. prediction < lower_bound, or prediction > upper_bound)
      false    The value is within the expected range
   */
-  virtual bool addObservation(u_int32_t value);
+  virtual bool addObservation(u_int32_t value, u_int32_t *prediction,
+			      u_int32_t *lower_bound, u_int32_t *upper_bound);
 };
 
 /* ******************************** */
@@ -49,8 +58,8 @@ class RSICounter : BehaviouralCounter {
   u_int8_t lower_pctg, upper_pctg;
 
  public:
-  RSICounter(u_int16_t num_learning_values = 10, u_int8_t lower_percentage = 25, u_int8_t upper_percentage = 75) : BehaviouralCounter(num_learning_values) {
-    if(ndpi_alloc_rsi(&rsi, num_learning_values) != 0)
+  RSICounter(u_int16_t num_learning_observations = 10, u_int8_t lower_percentage = 25, u_int8_t upper_percentage = 75) : BehaviouralCounter(num_learning_observations) {
+    if(ndpi_alloc_rsi(&rsi, num_learning_observations) != 0)
       throw "Error while creating RSI";
 
     if((lower_percentage > upper_percentage) || (upper_percentage > 100))
@@ -59,9 +68,13 @@ class RSICounter : BehaviouralCounter {
   }
   ~RSICounter() { ndpi_free_rsi(&rsi); }
 
-  bool addObservation(u_int32_t value) {
+  bool addObservation(u_int32_t value, u_int32_t *prediction,
+		      u_int32_t *lower_bound, u_int32_t *upper_bound) {
     float res = ndpi_rsi_add_value(&rsi, value);
 
+    *lower_bound = (u_int32_t)lower_pctg, *upper_bound = (u_int32_t)upper_pctg,
+      *prediction = (u_int32_t)res;
+    
     if(res == -1)
       return(false); /* Too early */
     else
@@ -77,16 +90,25 @@ class HWCounter : BehaviouralCounter {
   struct ndpi_hw_struct hw;
 
  public:
-  HWCounter(u_int16_t num_learning_values = 10, double alpha = 0.5, double beta = 0.5, double gamma = 0.1 ) : BehaviouralCounter(num_learning_values) {
-    if(ndpi_hw_init(&hw, num_learning_values, 1 /* additive */, alpha, beta, gamma, 0.05 /* 95% */) != 0)
+  HWCounter(u_int16_t num_learning_observations = 10, double alpha = 0.5, double beta = 0.5, double gamma = 0.1)
+    : BehaviouralCounter(num_learning_observations) {
+    if(ndpi_hw_init(&hw, num_learning_observations, 1 /* additive */, alpha, beta, gamma, 0.05 /* 95% */) != 0)
       throw "Error while creating HW";
   }
   ~HWCounter() { ndpi_hw_free(&hw); }
 
-  bool addObservation(u_int32_t value) {
+  bool addObservation(u_int32_t value, u_int32_t *prediction,
+		      u_int32_t *lower_bound, u_int32_t *upper_bound) {
     double forecast, confidence_band;
-
-    return(ndpi_hw_add_value(&hw, value, &forecast, &confidence_band) == 1 ? true : false);
+    bool rc = ndpi_hw_add_value(&hw, value, &forecast, &confidence_band) == 1 ? true : false;
+    double l_forecast = forecast-confidence_band;
+    double h_forecast = forecast+confidence_band;
+    
+    *lower_bound = (u_int32_t)((l_forecast < 0) ? 0 : l_forecast),
+      *upper_bound = (u_int32_t)h_forecast,
+      *prediction = (u_int32_t)forecast;
+    
+    return(rc);
   }
 };
 
