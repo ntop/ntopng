@@ -3165,9 +3165,10 @@ ndpi_patricia_node_t* Utils::ptree_match(ndpi_patricia_tree_t *tree, int family,
 
   if(prefix.bitlen > maxbits) { /* safety check */
     char buf[128];
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad radix tree lookup for %s (prefix len = %u, tree max len = %u)",
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Bad radix tree lookup for %s "
+      "(prefix family = %u, len = %u (%u), tree max len = %u)",
       Utils::ptree_prefix_print(&prefix, buf, sizeof(buf)) ? buf : "-",
-      prefix.bitlen, maxbits);
+      family, prefix.bitlen, bits, maxbits);
     return NULL;
   }
 
