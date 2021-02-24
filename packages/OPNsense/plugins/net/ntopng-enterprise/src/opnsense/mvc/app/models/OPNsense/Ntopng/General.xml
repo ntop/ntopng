@@ -9,7 +9,7 @@
         </enabled>
         <interface type="InterfaceField">
             <Required>N</Required>
-            <Multiple>N</Multiple>
+            <Multiple>Y</Multiple>
         </interface>
         <localnet type="TextField">
             <Required>N</Required>
