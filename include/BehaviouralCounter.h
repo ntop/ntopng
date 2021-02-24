@@ -30,7 +30,7 @@ class BehaviouralCounter {
  public:
   /* Number of points to be used by the algorithm in the learning phase */
   BehaviouralCounter(u_int16_t num_learning_observations) { ; }
-  virtual ~BehaviouralCounter() { ; };
+  virtual ~BehaviouralCounter() {  };
 
   /*
     In Parameters:
@@ -46,13 +46,13 @@ class BehaviouralCounter {
      false    The value is within the expected range
   */
   virtual bool addObservation(u_int32_t value, u_int32_t *prediction,
-			      u_int32_t *lower_bound, u_int32_t *upper_bound);
+			      u_int32_t *lower_bound, u_int32_t *upper_bound) { return(false); };
 };
 
 /* ******************************** */
 
 /* Counter based on Relative Strenght Indicator algorithm */
-class RSICounter : BehaviouralCounter {
+class RSICounter : public BehaviouralCounter {
  private:
   struct ndpi_rsi_struct rsi;
   u_int8_t lower_pctg, upper_pctg;
@@ -85,7 +85,7 @@ class RSICounter : BehaviouralCounter {
 /* ******************************** */
 
 /* Counter based on Holt-Winters algorithm */
-class HWCounter : BehaviouralCounter {
+class HWCounter : public BehaviouralCounter {
  private:
   struct ndpi_hw_struct hw;
 

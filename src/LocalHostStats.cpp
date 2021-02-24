@@ -24,7 +24,6 @@
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
-  char buf[128];
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = NULL;
 
@@ -46,19 +45,13 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   contacts_as_srv.init(4);                     /* 16 bytes  */
 
   /* hll init, 8 bits -> 256 bytes per LocalHost */
-  if(ndpi_hll_init(&visited_pages_hll, 8))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Initialize HyperLogLog structure for the host: %s",
-				 _host->get_ip() ? _host->get_ip()->print(buf, sizeof(buf)) : _host->get_name(buf, sizeof(buf), false));
+  if(ndpi_hll_init(&visited_pages_hll, 8) != 0)
+    throw "Failed HLL initialization";
+  
   last_hll_visited_pages_value = 0;
-  hll_init_count = 0;
-  hll_learning_values = 4;
   
   /* hw init */
-  hw_learning_values = 12;
-  visited_pages_hw = (BehaviouralCounter *) new HWCounter(hw_learning_values);
-  if(!visited_pages_hw)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Initialize Holt-Winters structure for the host: %s",
-				 _host->get_ip() ? _host->get_ip()->print(buf, sizeof(buf)) : _host->get_name(buf, sizeof(buf), false));
+  visited_pages_hw = new HWCounter(12);
   hw_visited_pages_report = false;
   hw_init_count = 0;
   prediction = lower_bound = upper_bound = 0;
@@ -71,7 +64,6 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
-  char buf[128];
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
   old_sites = NULL;
@@ -83,18 +75,14 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
 
   /* hll init, 8 bits -> 256 bytes per LocalHost */
   if(ndpi_hll_init(&visited_pages_hll, 8))
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Initialize HyperLogLog structure for the host: %s",
-				 host->get_ip() ? host->get_ip()->print(buf, sizeof(buf)) : host->get_name(buf, sizeof(buf), false));
+    throw "Failed HLL initialization";
+  
   last_hll_visited_pages_value = 0;
-  hll_init_count = 0;
   hw_init_count = 0;
   
   /* hw init */
   hw_learning_values = 12;
   visited_pages_hw = (BehaviouralCounter *) new HWCounter(hw_learning_values);
-  if(!visited_pages_hw)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Initialize Holt-Winters structure for the host: %s",
-				 host->get_ip() ? host->get_ip()->print(buf, sizeof(buf)) : host->get_name(buf, sizeof(buf), false));
   hw_visited_pages_report = false;
   prediction = lower_bound = upper_bound = 0;
   
@@ -106,14 +94,15 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
 /* *************************************** */
 
 LocalHostStats::~LocalHostStats() {
-  if(top_sites)       delete top_sites;
-  if(old_sites)       free(old_sites);
-  if(dns)             delete dns;
-  if(http)            delete http;
-  if(icmp)            delete icmp;
-  if(peers)           delete(peers);
-  if(&visited_pages_hll) ndpi_hll_destroy(&visited_pages_hll);
+  if(top_sites)          delete top_sites;
+  if(old_sites)          free(old_sites);
+  if(dns)                delete dns;
+  if(http)               delete http;
+  if(icmp)               delete icmp;
+  if(peers)              delete(peers);
   if(visited_pages_hw)   delete(visited_pages_hw);
+
+  ndpi_hll_destroy(&visited_pages_hll);
 }
 
 /* *************************************** */
@@ -127,8 +116,7 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
      ) {
 
     /* HyperLogLog update regarding visited sites */
-    if(&visited_pages_hll)
-      ndpi_hll_add(&visited_pages_hll, hostname, sizeof(*hostname));
+    ndpi_hll_add(&visited_pages_hll, hostname, sizeof(*hostname));
 
     /* Top Sites update, done only if the preference is enabled */
     if(top_sites
@@ -165,8 +153,7 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
   
   if(nextPeriodicUpdate > 0 && (tv->tv_sec >= nextPeriodicUpdate)) {
     /* hll visited sites update */
-    if(&visited_pages_hll)
-      updateVisitedPagesHll();
+    updateVisitedPagesHll();
     
     /* Top Sites update */
     if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
@@ -224,13 +211,11 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
       lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
   }
 
-  if(&visited_pages_hll && hll_init_count >= 4)
-    lua_push_float_table_entry(vm, "last_hll_visited_pages_estimate",
-				last_hll_visited_pages_value);
+  lua_push_float_table_entry(vm, "last_hll_visited_pages_estimate",
+			     last_hll_visited_pages_value);
   
-  if(visited_pages_hw && hw_init_count >= 10)
-    lua_push_bool_table_entry(vm, "last_hw_visited_pages_report",
-			      hw_visited_pages_report);
+  lua_push_bool_table_entry(vm, "last_hw_visited_pages_report",
+			    hw_visited_pages_report);
     
   if(details_level >= details_high) {
     luaICMP(vm,host->get_ip()->isIPv4(),true);
@@ -602,9 +587,6 @@ void LocalHostStats::resetTopSitesData() {
 
 void LocalHostStats::updateVisitedPagesHll() {
   last_hll_visited_pages_value = ndpi_hll_count(&visited_pages_hll);
-
-  if(hll_init_count < hll_learning_values)
-    hll_init_count++;
 
   ndpi_hll_reset(&visited_pages_hll);
 

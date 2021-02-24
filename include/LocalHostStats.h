@@ -39,10 +39,6 @@ class LocalHostStats: public HostStats {
   /* Estimate the number of visited pages using HyperLogLog */
   struct ndpi_hll visited_pages_hll;
   double last_hll_visited_pages_value;
-  u_int16_t hll_learning_values;
-  u_int8_t hll_init_count; /* Default max value = 4 | This means that at least 20 min 
-			      are used before giving an estimate of the values */
-  
   /* Holt-Winters structure, used to have a feedback regarding the visited pages */
   BehaviouralCounter *visited_pages_hw;
   bool hw_visited_pages_report;
