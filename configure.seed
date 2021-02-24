@@ -262,6 +262,11 @@ dnl> due crashes with the package
 if test -f "/usr/bin/lsb_release"; then
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2|cut -f 1 -d '.'`
   if test "$UBUNTU_RELEASE" = "18" || test "$UBUNTU_RELEASE" = "20"; then
+    if test -z `which cmake`; then
+       echo "Unable to find cmake: please do sudo apt-get install cmake"
+       exit 1
+    fi
+
     cd third-party/json-c && cmake . && make && cd -
     JSON_HOME=${HERE}/third-party/json-c
     JSON_INC=-I$JSON_HOME
