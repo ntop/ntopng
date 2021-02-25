@@ -22,11 +22,17 @@ local script = {
 
   default_value = {
     severity = alert_severities.notice,
+    
   },
   
   -- For a full list check "available_subdir.flow.available_fields" in user_scripts.lua
   filter = {
-    default_fields = { "srv_addr", "srv_port", "l7_proto", }
+     default_filters = {
+	{ l7_proto = 8 },  -- MDNS protocol
+	{ l7_proto = 92 }, -- SSH  protocol
+	{ l7_proto = 26 }, -- ntop protocol
+     },
+     default_fields  = { "srv_addr", "srv_port", "l7_proto", }
   },
 
   -- NOTE: hooks defined below
