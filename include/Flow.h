@@ -68,7 +68,8 @@ class Flow : public GenericHashEntry {
     twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     l7_protocol_guessed, flow_dropped_counts_increased,
     good_tls_hs,
-    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature;
+    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature,
+    is_cli_srv_swapped;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
@@ -395,6 +396,8 @@ class Flow : public GenericHashEntry {
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
 		    u_int in_fragments, u_int out_fragments,
 		    time_t first_seen, time_t last_seen);
+  void set_swapped_cli_srv(Host *cli_h, Host *srv_h);
+  
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };
   inline bool isOneWay()                 const { return(get_packets() && (!get_packets_cli2srv() || !get_packets_srv2cli())); };
