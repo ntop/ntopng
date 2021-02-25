@@ -25,7 +25,6 @@ print("<h2 class='mb-4'>"..i18n("hosts_map").."</h2>")
 
 -- https://www.d3-graph-gallery.com/graph/bubble_template.html
 
-
 local modes = {
 	{ mode = 0, label = i18n("hosts_map_page.all_flows") },
 	{ mode = 9, label = i18n("hosts_map_page.active_alert_flows") },
@@ -189,7 +188,6 @@ print ([[
 	    <div class="card">
 			<div class="card-body">
 			<div class='d-flex align-items-center justify-content-end mb-3'>
-				<label class="m-0 mr-1">]]..i18n("filter") ..[[: </label>
 				<div class="dropdown">
 				<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and i18n("flows_page.all_flows") or (current_label .. '<i class="fas fa-filter"></i>')) ..[[
 				<span class="caret"></span></button>
@@ -197,7 +195,7 @@ print ([[
 				]])
 
 			for i,v in pairs(modes) do
-			print('<a class="dropdown-item" tabindex="-1" href="?bubble_mode='..tostring(i-1)..'">'..v.label..'</a>')
+			print('<a class="dropdown-item '.. (bubble_mode == v.mode and 'active' or '') ..'" tabindex="-1" href="?bubble_mode='..tostring(v.mode)..'">'..v.label..'</a>')
 			end
 
 			print [[
