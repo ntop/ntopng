@@ -82,10 +82,10 @@ void Bitmap::lua(lua_State* vm, const char *label) const {
 
   for(u_int i=0; i<BITMAP_NUM_BITS; i++) {
     if(issetBit(i)) {
-      char buf[16];
-
-      snprintf(buf, sizeof(buf)-1, "%u", i);
-      lua_push_bool_table_entry(vm, buf, true);
+      lua_pushboolean(vm, true); /* The boolean indicating this risk is set            */
+      lua_pushinteger(vm, i);    /* The integer risk id, used as key of this lua table */
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
     }
   }
 
