@@ -4,15 +4,16 @@
   </label>
   <div class="col-sm-5">
     <select name="syslog_alert_format" class="form-control" required>
-      {%
-      if ntop.isEnterpriseM() then
-      %}
-      <option value="ecs">ECS</option>
-      {%
-      end
-      %}
-      <option value="json">Raw JSON</option>
-      <option value="plaintext">{{ i18n("syslog_alert_endpoint.text") }}</option>
+            <option value="plaintext">{{ i18n("syslog_alert_endpoint.text") }}</option>
+            <option value="plaintextrfc">{{ i18n("syslog_alert_endpoint.text") }} (RFC 5424)</option>
+            <option value="json">Raw JSON</option>
+{%
+  if ntop.isEnterpriseM() then
+%}
+            <option value="ecs">ECS</option>
+{%
+  end
+%}
     </select>
   </div>
 </div>

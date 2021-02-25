@@ -183,6 +183,22 @@ function format_utils.bitsToSize(bits)
    return(bitsToSizeMultiplier(bits, 1000))
 end
 
+-- format an epoch using ISO 8601 format
+function format_utils.formatEpochISO8601(epoch)
+  if epoch == nil then
+    epoch = os.time()
+  end
+
+  if epoch == 0 then
+    return("")
+  else
+     local t = epoch + getFrontendTzSeconds()
+     return os.date("!%Y-%m-%dT%TZ", t)
+  end
+end
+
+os.date("!%Y-%m-%dT%TZ",t)
+
 -- format an epoch
 function format_utils.formatEpoch(epoch)
   if epoch == 0 then

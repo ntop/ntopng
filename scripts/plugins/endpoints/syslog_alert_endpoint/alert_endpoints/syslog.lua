@@ -90,13 +90,12 @@ function syslog.sendMessage(settings, notif, severity)
       else
 	 return false
       end
-   else -- syslog_format == "plaintext"
+   else -- syslog_format == "plaintext" or "plaintextrfc"
       -- prepare a plaintext message
       msg = alert_utils.formatAlertNotification(notif, {
 						   nohtml = true,
 						   show_severity = true,
 						   show_entity = true})
-
    end
 
    if settings.host == nil then
@@ -107,14 +106,26 @@ function syslog.sendMessage(settings, notif, severity)
       local level = 1 -- alert (what about mapping severity?)
       local prio = (facility * 8) + level
       local date = format_utils.formatEpoch(notif.alert_tstamp) -- "2020-11-09 18:00:00"
+      local iso_time = format_utils.formatEpochISO8601(notif.alert_tstamp)
       local host_info = ntop.getHostInformation()
       local host = host_info.ip
       local tag = "ntopng"
       local info = ntop.getInfo()
       local pid = info.pid
 
-      -- Example: <113>09/11/2020 18:31:21 192.168.1.1 ntopng[21365]: ...  
-      msg = "<"..prio..">"..date.." "..host.." "..tag.."["..pid.."]: "..msg
+      if syslog_format and syslog_format == "plaintextrfc" then
+         -- RFC5424 Format:
+         -- <PRIO>VERSION ISOTIMESTAMP HOSTNAME APPLICATION PID MESSAGEID MSG
+         -- Example:
+         -- <113>1 2020-11-19T18:31:21.003Z 192.168.1.1 ntopng 21365 ID1 -
+         msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg
+      else
+         -- Unix Format:
+         -- <PRIO>DATE TIME DEVICE APPLICATION[PID]: MSG
+         -- Example:
+         -- <113>09/11/2020 18:31:21 192.168.1.1 ntopng[21365]: ...  
+         msg = "<"..prio..">"..date.." "..host.." "..tag.."["..pid.."]: "..msg
+      end
 
       if settings.protocol == 'tcp' then
          ntop.send_tcp_data(settings.host, settings.port, msg.."\n", 1 --[[ timeout (msec) --]] )
