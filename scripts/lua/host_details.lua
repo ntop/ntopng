@@ -2229,7 +2229,7 @@ elseif(page == "traffic_report") then
 end
 
 if(not only_historical) and (host ~= nil) then
-   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js]] print(ntop.getStaticFileEpoch()) print[["></script>]]
+   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js?]] print(ntop.getStaticFileEpoch().."") print[["></script>]]
 
    print [[
    <script>
