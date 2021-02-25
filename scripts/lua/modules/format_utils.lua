@@ -197,8 +197,6 @@ function format_utils.formatEpochISO8601(epoch)
   end
 end
 
-os.date("!%Y-%m-%dT%TZ",t)
-
 -- format an epoch
 function format_utils.formatEpoch(epoch)
   if epoch == 0 then
