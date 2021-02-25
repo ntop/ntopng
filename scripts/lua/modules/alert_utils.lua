@@ -1329,6 +1329,8 @@ function releaseAlert(idx) {
             sortable: true,
 	    css: {
 	       textAlign: 'center',
+          whiteSpace: 'nowrap'
+
 	    }
 	 },
 
@@ -1348,7 +1350,8 @@ function releaseAlert(idx) {
             sortable: false,
 	    hidden: ]] print(ternary(t["status"] ~= "historical-flows", "true", "false")) print[[,
 	    css: {
-	       textAlign: 'center'
+	       textAlign: 'center',
+          whiteSpace: 'nowrap'
 	    }
 	 },
 
@@ -1368,7 +1371,7 @@ function releaseAlert(idx) {
 	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
 	    css: {
 	       textAlign: 'center',
-	       width: "10%",
+	       minWidth: "10rem",
 	    }
 	 },
 
