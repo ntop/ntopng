@@ -163,7 +163,7 @@ schema:addMetric("bytes_inner")
 -- OSES SCHEMAS
 -------------------------------------------------------
 
-schema = ts_utils.newSchema("os:traffic", {step=300, rrd_fname="bytes"})
+schema = ts_utils.newSchema("os:traffic", {step=300})
 schema:addTag("ifid")
 schema:addTag("os")
 schema:addMetric("bytes_ingress")
