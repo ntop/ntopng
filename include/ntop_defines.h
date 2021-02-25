@@ -987,9 +987,9 @@
 
 #define MAX_NUM_HTTP_REPLACEMENTS                    4
 
-#define CACHE_LINE_LEN          64
+#define CACHE_LINE_LEN                  64
 
-#define BITMAP_NUM_BITS               64
+#define BITMAP_NUM_BITS                128
 
 #define TLS_HANDSHAKE_PACKET          0x16
 #define TLS_PAYLOAD_PACKET            0x17

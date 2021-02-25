@@ -35,7 +35,7 @@ static int ntop_flow_get_status(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushinteger(vm, f->getStatusBitmap().get());
+  f->getStatusBitmap().lua(vm, "status_map");
 
   return(CONST_LUA_OK);
 }
@@ -470,7 +470,7 @@ static int ntop_flow_get_score_info(lua_State* vm) {
   status_info = f->getStatusInfo();
 
   lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "status_map", f->getStatusBitmap().get());
+  f->getStatusBitmap().lua(vm, "status_map");
   lua_push_int32_table_entry(vm, "score", f->getScore());
   if(status_info) lua_push_str_table_entry(vm, "status_info", status_info);
 

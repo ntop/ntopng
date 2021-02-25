@@ -214,7 +214,7 @@ void LocalHostStats::luaHostBehaviour(lua_State* vm) {
 			       upper_bound);
   }
 
-  lua_pushstring(vm, "contacted_hosts_behavior");
+  lua_pushstring(vm, "contacted_hosts_behaviour");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 }
@@ -607,6 +607,10 @@ void LocalHostStats::resetTopSitesData() {
 void LocalHostStats::updateContactedHostsBehaviour() {
   last_hll_contacted_hosts_value = ndpi_hll_count(&hll_contacted_hosts);
 
+  char buf[64];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %u contacts",
+			       host->get_ip()->print(buf, sizeof(buf)),
+			       last_hll_contacted_hosts_value);
   ndpi_hll_reset(&hll_contacted_hosts);
 
   if(hw_contacted_hosts) 

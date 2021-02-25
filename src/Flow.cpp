@@ -4568,7 +4568,8 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
 void Flow::lua_get_status(lua_State* vm) const {
   lua_push_bool_table_entry(vm, "flow.idle", idle());
   lua_push_uint64_table_entry(vm, "flow.status", getAlertedStatus());
-  lua_push_uint64_table_entry(vm, "status_map", status_map.get());
+
+  status_map.lua(vm, "status_map");
 
   if(isFlowAlerted()) {
     lua_push_bool_table_entry(vm, "flow.alerted", true);
