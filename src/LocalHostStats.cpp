@@ -113,10 +113,9 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
   if((strstr(hostname, "in-addr.arpa") == NULL)
      && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
      ) {
-
     /* HyperLogLog update regarding visited sites */
-    ndpi_hll_add(&hll_contacted_hosts, hostname, sizeof(*hostname));
-
+    ndpi_hll_add(&hll_contacted_hosts, hostname, strlen(hostname));
+    
     /* Top Sites update, done only if the preference is enabled */
     if(top_sites
        && ntop->getPrefs()->are_top_talkers_enabled()) {
@@ -607,12 +606,16 @@ void LocalHostStats::resetTopSitesData() {
 void LocalHostStats::updateContactedHostsBehaviour() {
   last_hll_contacted_hosts_value = ndpi_hll_count(&hll_contacted_hosts);
 
+#ifdef TRACE_ME
   char buf[64];
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %u contacts",
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %f contacts",
 			       host->get_ip()->print(buf, sizeof(buf)),
 			       last_hll_contacted_hosts_value);
   ndpi_hll_reset(&hll_contacted_hosts);
-
+#endif
+  
   if(hw_contacted_hosts) 
-    hw_contacted_hosts_report = hw_contacted_hosts->addObservation((u_int32_t) last_hll_contacted_hosts_value, &prediction, &lower_bound, &upper_bound);
+    hw_contacted_hosts_report = hw_contacted_hosts->addObservation((u_int32_t) last_hll_contacted_hosts_value,
+								   &prediction, &lower_bound, &upper_bound);
 }
