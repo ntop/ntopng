@@ -44,8 +44,23 @@ local flow_keys = {
       status_unexpected_ntp_server        = 35,
       status_zero_tcp_window              = 36,
       status_iec_invalid_transition       = 37,
-      status_remote_to_local_insecure_proto = 38,
-      
+      status_remote_to_local_insecure_proto  = 38,
+      status_ndpi_url_possible_xss        = 39,
+      status_ndpi_url_possible_sql_injection = 40,
+      status_ndpi_url_possible_rce_injection = 41,
+      status_ndpi_http_suspicious_user_agent = 42,
+      status_ndpi_http_numeric_ip_host    = 43,
+      status_ndpi_http_suspicious_url     = 44,
+      status_ndpi_http_suspicious_header  = 45,
+      status_ndpi_tls_not_carrying_https  = 46,
+      status_ndpi_suspicious_dga_domain   = 47,
+      status_ndpi_malformed_packet        = 48,
+      status_ndpi_ssh_obsolete            = 49,
+      status_ndpi_smb_insecure_version    = 50,
+      status_ndpi_tls_suspicious_esni_usage  = 51,
+      status_ndpi_unsafe_protocol         = 52,
+      status_ndpi_dns_suspicious_traffic  = 53,
+      status_ndpi_tls_missing_sni         = 54,
       
       -- Add here additional flow statuses when writing ntopng plugins.
       -- User plugins should use statuses under key user.

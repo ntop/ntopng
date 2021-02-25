@@ -114,7 +114,24 @@ local alert_keys = {
       alert_remote_to_local_insecure_proto = {NO_PEN, 99},
       alert_contacted_peers                = {NO_PEN, 100},
       alert_unexpected_behaviour           = {NO_PEN, 101},
-
+      alert_ndpi_url_possible_xss          = {NO_PEN, 102},
+      alert_ndpi_url_possible_sql_injection            = {NO_PEN, 103},
+      alert_ndpi_url_possible_rce_injection            = {NO_PEN, 104},
+      alert_ndpi_http_suspicious_user_agent            = {NO_PEN, 105},
+      alert_ndpi_http_numeric_ip_host      = {NO_PEN, 106}, 
+      alert_ndpi_http_suspicious_url       = {NO_PEN, 107},
+      alert_ndpi_http_suspicious_header    = {NO_PEN, 108},
+      alert_ndpi_tls_not_carrying_https    = {NO_PEN, 109},
+      alert_ndpi_suspicious_dga_domain     = {NO_PEN, 110},
+      alert_ndpi_malformed_packet          = {NO_PEN, 111},
+      alert_ndpi_ssh_obsolete              = {NO_PEN, 112},
+      alert_ndpi_smb_insecure_version      = {NO_PEN, 113},
+      alert_ndpi_tls_suspicious_esni_usage = {NO_PEN, 114},
+      alert_ndpi_unsafe_protocol           = {NO_PEN, 115},
+      alert_ndpi_dns_suspicious_traffic    = {NO_PEN, 116},
+      alert_ndpi_tls_missing_sni           = {NO_PEN, 117},
+      
+      
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
       -- WARNING: make sure integers do NOT OVERLAP with

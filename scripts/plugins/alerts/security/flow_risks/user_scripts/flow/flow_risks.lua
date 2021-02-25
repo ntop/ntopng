@@ -96,8 +96,26 @@ local risk2scores = {
 --   function handler.handle_risk(flow_score, cli_score, srv_score)
 -- 
 local handlers = {
+   [1]  = "ndpi_url_possible_xss_handler",
+   [2]  = "ndpi_url_possible_sql_injection_handler",
+   [3]  = "ndpi_url_possible_rce_injection_handler",
    [4]  = "ndpi_binary_application_transfer_handler",            -- "ndpi_binary_application_transfer"
    [5]  = "ndpi_known_protocol_on_non_standard_port_handler",    -- "ndpi_known_protocol_on_non_standard_port"
+   [11] = "ndpi_http_suspicious_user_agent_handler",
+   [12] = "ndpi_http_numeric_ip_host_handler",
+   [13] = "ndpi_http_suspicious_url_handler",
+   [14] = "ndpi_http_suspicious_header_handler",
+   [15] = "ndpi_tls_not_carrying_https_handler",
+   [16] = "ndpi_suspicious_dga_domain_handler",
+   [17] = "ndpi_malformed_packet_handler",
+   [18] = "ndpi_ssh_obsolete_handler",
+   [19] = "ndpi_ssh_obsolete_handler",
+   [20] = "ndpi_smb_insecure_version_handler",
+   [21] = "ndpi_tls_suspicious_esni_usage_handler",
+   [22] = "ndpi_unsafe_protocol_handler",
+   [23] = "ndpi_dns_suspicious_traffic_handler",
+   [24] = "ndpi_tls_missing_sni_handler",
+   
 }
 
 -- #################################################################
