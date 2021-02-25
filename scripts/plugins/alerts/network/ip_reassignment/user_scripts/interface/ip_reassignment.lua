@@ -40,7 +40,7 @@ local script = {
 
 function script.onLoad(hook, hook_config)
    if hook_config and hook_config.enabled then
-      ntop.setCache(IP_REASSIGNMENT_KEY, "1")
+      ntop.setPref(IP_REASSIGNMENT_KEY, "1")
    end
 
 end
@@ -54,8 +54,7 @@ end
 -- #################################################################
 
 function script.onEnable(hook, hook_config)
-   ntop.setCache(IP_REASSIGNMENT_KEY, "1")
-   tprint(IP_REASSIGNMENT_KEY)
+   ntop.setPref(IP_REASSIGNMENT_KEY, "1")
 end
 
 -- #################################################################
