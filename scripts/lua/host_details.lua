@@ -2205,6 +2205,7 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:alerted_flows",          label=i18n("graphs.total_alerted_flows")},
       {schema="host:unreachable_flows",      label=i18n("graphs.total_unreachable_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
+      {schema="host:contacts_behaviour",     label=i18n("graphs.host_contacts_behaviour")},
       {schema="host:total_alerts",           label=i18n("details.alerts")},
       {schema="host:engaged_alerts",         label=i18n("show_alerts.engaged_alerts")},
       {schema="host:host_unreachable_flows", label=i18n("graphs.host_unreachable_flows")},

@@ -113,7 +113,8 @@ local alert_keys = {
       alert_tcp_syn_scan_victim            = {NO_PEN, 98},
       alert_remote_to_local_insecure_proto = {NO_PEN, 99},
       alert_contacted_peers                = {NO_PEN, 100},
-      
+      alert_unexpected_behaviour           = {NO_PEN, 101},
+
       -- Add here additional keys for alerts generated
       -- by ntopng plugins
       -- WARNING: make sure integers do NOT OVERLAP with

@@ -36,12 +36,12 @@ class LocalHostStats: public HostStats {
   /* Estimate of the number of critical servers used by this host */
   Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
 
-  /* Estimate the number of visited pages using HyperLogLog */
-  struct ndpi_hll visited_pages_hll;
-  double last_hll_visited_pages_value;
-  /* Holt-Winters structure, used to have a feedback regarding the visited pages */
-  BehaviouralCounter *visited_pages_hw;
-  bool hw_visited_pages_report;
+  /* Estimate the number of contacted hosts using HyperLogLog */
+  struct ndpi_hll hll_contacted_hosts;
+  double last_hll_contacted_hosts_value;
+  /* Holt-Winters structure, used to have a feedback regarding the contacted hosts */
+  BehaviouralCounter *hw_contacted_hosts;
+  bool hw_contacted_hosts_report;
   u_int16_t hw_learning_values;
   u_int8_t hw_init_count;
   u_int32_t prediction, lower_bound, upper_bound;
@@ -66,7 +66,7 @@ class LocalHostStats: public HostStats {
   void getCurrentTime(struct tm *t_now);
   void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
   void deserializeTopSites(char* redis_key_current);
-  void updateVisitedPagesHll();
+  void updateContactedHostsBehaviour();
   
  public:
   LocalHostStats(Host *_host);
@@ -93,6 +93,7 @@ class LocalHostStats: public HostStats {
   virtual void luaPeers(lua_State *vm);
   virtual void incrVisitedWebSite(char *hostname);
   virtual void lua_get_timeseries(lua_State* vm);
+  virtual void luaHostBehaviour(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);
   virtual HTTPstats* getHTTPstats() { return(http); };

@@ -417,6 +417,16 @@ schema:addMetric("num_as_server")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("host:contacts_behaviour", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("hll_value")
+schema:addMetric("hw_prediction")
+schema:addMetric("hw_upper_bound")
+schema:addMetric("hw_lower_bound")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("host:l4protos", {step=300})
 schema:addTag("ifid")
 schema:addTag("host")

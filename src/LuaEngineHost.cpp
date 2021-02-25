@@ -415,6 +415,8 @@ static int ntop_host_get_ts_key(lua_State* vm) {
 static int ntop_host_get_behaviour_info(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
 
+  lua_newtable(vm);
+
   if(h)
     h->luaHostBehaviour(vm);
 

@@ -112,6 +112,7 @@ class LocalHost : public Host, public SerializableElement {
   void custom_periodic_stats_update(const struct timeval *tv) {
   }
 
+  virtual void luaHostBehaviour(lua_State* vm)    { if(stats) stats->luaHostBehaviour(vm); }
   virtual void incDohDoTUses(Host *srv_host);
 
   virtual void incNTPContactCardinality(Host *h)  { stats->incNTPContactCardinality(h);  }

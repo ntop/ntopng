@@ -110,7 +110,7 @@ class HostStats: public GenericTrafficElement {
   virtual void luaAnomalies(lua_State* vm, time_t when) {};
   virtual void luaPeers(lua_State *vm) 			{};
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
-
+  virtual void luaHostBehaviour(lua_State* vm)     { };
 #ifdef NTOPNG_PRO
   inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,
 				       u_int64_t sent_packets, u_int64_t sent_bytes,

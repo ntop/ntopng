@@ -45,14 +45,14 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   contacts_as_srv.init(4);                     /* 16 bytes  */
 
   /* hll init, 8 bits -> 256 bytes per LocalHost */
-  if(ndpi_hll_init(&visited_pages_hll, 8) != 0)
+  if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization";
   
-  last_hll_visited_pages_value = 0;
+  last_hll_contacted_hosts_value = 0;
   
   /* hw init */
-  visited_pages_hw = new HWCounter(12);
-  hw_visited_pages_report = false;
+  hw_contacted_hosts = new HWCounter(12);
+  hw_contacted_hosts_report = false;
   hw_init_count = 0;
   prediction = lower_bound = upper_bound = 0;
   
@@ -74,16 +74,15 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   num_contacts_as_cli = num_contacts_as_srv = 0;
 
   /* hll init, 8 bits -> 256 bytes per LocalHost */
-  if(ndpi_hll_init(&visited_pages_hll, 8))
+  if(ndpi_hll_init(&hll_contacted_hosts, 8))
     throw "Failed HLL initialization";
   
-  last_hll_visited_pages_value = 0;
+  last_hll_contacted_hosts_value = 0;
   hw_init_count = 0;
   
   /* hw init */
-  hw_learning_values = 12;
-  visited_pages_hw = (BehaviouralCounter *) new HWCounter(hw_learning_values);
-  hw_visited_pages_report = false;
+  hw_contacted_hosts = new HWCounter(12);
+  hw_contacted_hosts_report = false;
   prediction = lower_bound = upper_bound = 0;
   
   num_dns_servers.init(5);
@@ -100,9 +99,9 @@ LocalHostStats::~LocalHostStats() {
   if(http)               delete http;
   if(icmp)               delete icmp;
   if(peers)              delete(peers);
-  if(visited_pages_hw)   delete(visited_pages_hw);
+  if(hw_contacted_hosts) delete(hw_contacted_hosts);
 
-  ndpi_hll_destroy(&visited_pages_hll);
+  ndpi_hll_destroy(&hll_contacted_hosts);
 }
 
 /* *************************************** */
@@ -116,7 +115,7 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
      ) {
 
     /* HyperLogLog update regarding visited sites */
-    ndpi_hll_add(&visited_pages_hll, hostname, sizeof(*hostname));
+    ndpi_hll_add(&hll_contacted_hosts, hostname, sizeof(*hostname));
 
     /* Top Sites update, done only if the preference is enabled */
     if(top_sites
@@ -151,9 +150,9 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
     nextContactsUpdate = tv->tv_sec+HOST_CONTACTS_REFRESH;
   }
   
-  if(nextPeriodicUpdate > 0 && (tv->tv_sec >= nextPeriodicUpdate)) {
+  if(tv->tv_sec >= nextPeriodicUpdate) {
     /* hll visited sites update */
-    updateVisitedPagesHll();
+    updateContactedHostsBehaviour();
     
     /* Top Sites update */
     if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
@@ -198,6 +197,30 @@ void LocalHostStats::getJSONObject(json_object *my_object, DetailsLevel details_
 
 /* *************************************** */
 
+void LocalHostStats::luaHostBehaviour(lua_State* vm) {
+  lua_newtable(vm);
+    
+  lua_push_float_table_entry(vm, "hll_value",
+			     last_hll_contacted_hosts_value);
+
+  if(hw_contacted_hosts) {
+    lua_push_bool_table_entry(vm, "hw_value",
+			      hw_contacted_hosts_report);
+    lua_push_int32_table_entry(vm, "hw_prediction",
+			       prediction); 
+    lua_push_int32_table_entry(vm, "hw_lower_bound",
+			       lower_bound);
+    lua_push_int32_table_entry(vm, "hw_upper_bound",
+			       upper_bound);
+  }
+
+  lua_pushstring(vm, "contacted_hosts_behavior");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
 void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level) {
   HostStats::lua(vm, mask_host, details_level);
 
@@ -211,12 +234,8 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
       lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
   }
 
-  lua_push_float_table_entry(vm, "last_hll_visited_pages_estimate",
-			     last_hll_visited_pages_value);
+  luaHostBehaviour(vm);
   
-  lua_push_bool_table_entry(vm, "last_hw_visited_pages_report",
-			    hw_visited_pages_report);
-    
   if(details_level >= details_high) {
     luaICMP(vm,host->get_ip()->isIPv4(),true);
     luaDNS(vm, true);
@@ -585,14 +604,11 @@ void LocalHostStats::resetTopSitesData() {
 
 /* *************************************** */
 
-void LocalHostStats::updateVisitedPagesHll() {
-  last_hll_visited_pages_value = ndpi_hll_count(&visited_pages_hll);
+void LocalHostStats::updateContactedHostsBehaviour() {
+  last_hll_contacted_hosts_value = ndpi_hll_count(&hll_contacted_hosts);
 
-  ndpi_hll_reset(&visited_pages_hll);
+  ndpi_hll_reset(&hll_contacted_hosts);
 
-  if(visited_pages_hw) 
-    hw_visited_pages_report = visited_pages_hw->addObservation((u_int32_t) last_hll_visited_pages_value, &prediction, &lower_bound, &upper_bound);
-
-  if(hw_init_count < hw_learning_values)
-    hw_init_count++;
+  if(hw_contacted_hosts) 
+    hw_contacted_hosts_report = hw_contacted_hosts->addObservation((u_int32_t) last_hll_contacted_hosts_value, &prediction, &lower_bound, &upper_bound);
 }
