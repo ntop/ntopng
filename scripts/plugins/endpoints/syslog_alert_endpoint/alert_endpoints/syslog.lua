@@ -110,13 +110,15 @@ function syslog.sendMessage(settings, notif, severity)
       local level = 1 -- alert (what about mapping severity?)
       local prio = (facility * 8) + level
       local date = format_utils.formatEpoch() -- "2020-11-09 18:00:00"
+      local host_info = ntop.getHostInformation()
+      local host = host_info.ip
       local tag = "ntopng"
       local info = ntop.getInfo()
       local pid = info.pid
 
       -- Example 
-      -- Example: <113>09/11/2020 18:31:21 ntopng[21365]: ...  
-      msg = "<"..prio..">"..date.." "..tag.."["..pid.."]: "..msg
+      -- Example: <113>09/11/2020 18:31:21 192.168.1.1 ntopng[21365]: ...  
+      msg = "<"..prio..">"..date.." "..host.." "..tag.."["..pid.."]: "..msg
 
       if settings.protocol == 'tcp' then
          ntop.send_tcp_data(settings.host, settings.port, msg.."\n", 1 --[[ timeout (msec) --]] )
