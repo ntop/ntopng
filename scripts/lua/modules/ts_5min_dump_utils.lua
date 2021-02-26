@@ -359,7 +359,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   -- Contacted Hosts Behaviour
   if host["contacted_hosts_behaviour"] then
     ts_utils.append("host:contacts_behaviour", {ifid=ifstats.id, host=hostname,
-	value=(host["contacted_hosts_behaviour.hll_value"] or 0), prediction=(host["contacted_hosts_behaviour.hw_prediction"] or 0)}, when)
+	value=(host.contacted_hosts_behaviour.hll_value or 0), prediction=(host.contacted_hosts_behaviour.hw_prediction or 0)}, when)
   end
 
 
