@@ -55,7 +55,7 @@ Flow::Flow(NetworkInterface *_iface,
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0, cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
   zero_window_alert_triggered = src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
-  is_cli_srv_swapped = swap_check_done = false;
+  is_cli_srv_swapped = swap_done = swap_requested = false;
   
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
@@ -412,11 +412,12 @@ void Flow::processDetectedProtocol() {
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
+  check_swap();
+
   switch(l7proto) {
   case NDPI_PROTOCOL_DHCP:
     if(cli_port == ntohs(67) /* client */ && cli_h) {
       cli_h->setDhcpServer();
-      set_swapped_cli_srv(cli_h, srv_h);
     } else if(srv_port == ntohs(67) /* server */ && srv_h)
       srv_h->setDhcpServer();
     break;
@@ -424,8 +425,6 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_NTP:
     if(cli_h && cli_port == ntohs(123))  {
       cli_h->setNtpServer();
-      set_swapped_cli_srv(cli_h, srv_h);
-
       if(srv_h) srv_h->incNTPContactCardinality(cli_h); 
     } else if(srv_h && srv_port == ntohs(123)) {
       srv_h->setNtpServer();
@@ -444,8 +443,6 @@ void Flow::processDetectedProtocol() {
     } else if(cli_h
 	      && (cli_port == ntohs(25) || cli_port == ntohs(465) || cli_port == ntohs(587))) {
       cli_h->setSmtpServer();
-      set_swapped_cli_srv(cli_h, srv_h);
-      
       if(srv_h) srv_h->incSMTPContactCardinality(cli_h);
     }
     break;
@@ -453,7 +450,6 @@ void Flow::processDetectedProtocol() {
   case NDPI_PROTOCOL_DNS:
     if(cli_h && cli_port == ntohs(53)) {
       cli_h->setDnsServer();
-      set_swapped_cli_srv(cli_h, srv_h);
 
       if(srv_h) srv_h->incDNSContactCardinality(cli_h);
     } else if(srv_h && srv_port == ntohs(53))  {
@@ -469,11 +465,9 @@ void Flow::processDetectedProtocol() {
     if(ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_DOH_DOT
        && cli_h && srv_h && cli_h->isLocalHost())
       cli_h->incDohDoTUses(srv_h);
-    set_swapped_cli_srv(cli_h, srv_h);
     break;
 
   default:
-    set_swapped_cli_srv(cli_h, srv_h);
     break;
   } /* switch */
 }
@@ -2866,7 +2860,8 @@ void Flow::housekeep(time_t t) {
     }
     break;
   case hash_entry_state_flow_protocoldetected:
-    hookProtocolDetectedCheck(t);
+    if(!swap_requested) /* The flow will be swapped, hook execution will occur on the swapped flow. */
+      hookProtocolDetectedCheck(t);
     break;
   case hash_entry_state_active:
     /*
@@ -2877,7 +2872,12 @@ void Flow::housekeep(time_t t) {
     dumpCheck(t, false /* NOT the last dump before delete */);
     break;
   case hash_entry_state_idle:
-    hookFlowEndCheck(t);
+    if(swap_requested && !swap_done) /* Swap requested but never performed (no more packets seen) */
+      hookProtocolDetectedCheck(t);
+
+    if(!swap_requested /* Swap not requested */
+       || (swap_requested && !swap_done)) /* Or requested but never performed (no more packets seen) */
+      hookFlowEndCheck(t);
     dumpCheck(t, true /* LAST dump before delete */);
     break;
   default:
@@ -5406,13 +5406,16 @@ void Flow::triggerZeroWindowAlert(bool *as_client, bool *as_server) {
 
 /* *************************************** */
 
-void Flow::set_swapped_cli_srv(Host *cli_h, Host *srv_h) {
-  if(cli_h
-     && srv_h
-     && protocol == 6 // TCP Protocol
-     && get_cli_port() < 1024 // Well-Known Port
-     && get_cli_port() < get_srv_port()) // Client port < Server Port
-    is_cli_srv_swapped = !is_cli_srv_swapped;
+void Flow::check_swap() {
+  /*
+    This is the heuristic "For TCP flows for which the 3WH has not been observed..."
+    at https://github.com/ntop/ntopng/issues/5058
+    NOTE: for non TCP-flows, the heuristic is always applied
+  */
+  if(get_cli_ip_addr()->isNonEmptyUnicastAddress() /* Don't touch non-unicast addresses */
+     && (!isTCP() || !isTCPEstablished())
+     && get_cli_port() < 1024 && get_cli_port() < get_srv_port())
+    swap_requested = true;
 }
 
 /* *************************************** */
