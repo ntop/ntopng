@@ -282,7 +282,7 @@ end
 --        Current flow statuses sharing this function are status_tcp_severe_connection_issues
 --        and status_tcp_connection_issues
 function format_utils.formatConnectionIssues(info)
-   local res = i18n("flow_details.tcp_connection_issues")
+   local res = ""
 
    if info and info.client_issues and info.tcp_stats and type(info.tcp_stats) == "table" and info.cli2srv_pkts then
       local retx = info.tcp_stats["cli2srv.retransmissions"]

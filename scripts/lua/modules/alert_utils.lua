@@ -1288,8 +1288,7 @@ function releaseAlert(idx) {
             sortable: true,
 	    css: {
 	       textAlign: 'center',
-          whiteSpace: 'nowrap',
-	       width: '5%',
+	       width: '10%',
 	    }
 	 },
 
@@ -1299,8 +1298,7 @@ function releaseAlert(idx) {
             sortable: true,
 	    css: {
 	       textAlign: 'center',
-          whiteSpace: 'nowrap',
-	       width: '2%',
+	       width: '5%',
 	    }
 	 },
 
@@ -1319,7 +1317,8 @@ function releaseAlert(idx) {
 	    field: "column_severity",
             sortable: true,
 	    css: {
-	       textAlign: 'center'
+	       textAlign: 'center',
+               width: '2%',
 	    }
 	 },
 
@@ -1329,8 +1328,7 @@ function releaseAlert(idx) {
             sortable: true,
 	    css: {
 	       textAlign: 'center',
-          whiteSpace: 'nowrap'
-
+               width: '10%',
 	    }
 	 },
 
@@ -1351,7 +1349,7 @@ function releaseAlert(idx) {
 	    hidden: ]] print(ternary(t["status"] ~= "historical-flows", "true", "false")) print[[,
 	    css: {
 	       textAlign: 'center',
-          whiteSpace: 'nowrap'
+               width: '5%',
 	    }
 	 },
 
