@@ -583,16 +583,6 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
    if flow["cli.port"] and (flow["cli.port"] > 0 or flow["proto.l4"] == "TCP" or flow["proto.l4"] == "UDP") then cli_port = flow["cli.port"] end
    if flow["srv.port"] and (flow["srv.port"] > 0 or flow["proto.l4"] == "TCP" or flow["proto.l4"] == "UDP") then srv_port = flow["srv.port"] end
 
-   local srv_mac
-   if(not isEmptyString(flow["srv.mac"]) and flow["srv.mac"] ~= "00:00:00:00:00:00") then
-      srv_mac = flow["srv.mac"]
-   end
-
-   local cli_mac
-   if(flow["cli.mac"] ~= nil and flow["cli.mac"]~= "" and flow["cli.mac"] ~= "00:00:00:00:00:00") then
-      cli_mac = flow["cli.mac"]
-   end
-
    if add_hyperlinks then
       cli_name = formatFlowHost(flow, "cli", historical_bounds, hyperlink_suffix)
       srv_name = formatFlowHost(flow, "srv", historical_bounds, hyperlink_suffix)
