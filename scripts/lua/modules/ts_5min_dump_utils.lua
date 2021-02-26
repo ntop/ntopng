@@ -252,6 +252,7 @@ end
 -- ########################################################
 
 function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
+   
   -- Number of flows
   if(host["active_flows.as_client"]) then
     ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
@@ -356,9 +357,9 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   end
 
   -- Contacted Hosts Behaviour
-  if host["contacted_hosts_behaviour"] and host["contacted_hosts_behaviour.hw_value"] then
+  if host["contacted_hosts_behaviour"] then
     ts_utils.append("host:contacts_behaviour", {ifid=ifstats.id, host=hostname,
-            hll_value=host["contacted_hosts_behaviour.hll_value"], hw_prediction=host["contacted_hosts_behaviour.prediction"], hw_lower_bound=host["contacted_hosts_behaviour.hw_lower_bound"], hw_upper_bound=host["contacted_hosts_behaviour.upper_bound"]}, when)
+	value=(host["contacted_hosts_behaviour.hll_value"] or 0), prediction=(host["contacted_hosts_behaviour.hw_prediction"] or 0)}, when)
   end
 
 
