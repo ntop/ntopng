@@ -47,17 +47,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_known_proto_on_non_std_port.format(ifid, alert, alert_type_params)
-   local res = i18n("alerts_dashboard.known_proto_on_non_std_port")
-
-   if info then
-      local app = alert_type_params["proto.ndpi_app"] or alert_type_params["proto.ndpi"]
-
-      if app then
-	 res = i18n("alerts_dashboard.known_proto_on_non_std_port_full", {app = app, port = alert_type_params["srv.port"]})
-      end
-   end
-
-   return res
+   return
 end
 
 -- #######################################################

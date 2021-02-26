@@ -43,7 +43,7 @@ end
 -- #######################################################
 
 function alert_remote_to_remote.format(ifid, alert, alert_type_params)
-   return i18n("alerts_dashboard.remote_to_remote")
+   return
 end
 
 -- #######################################################

@@ -39,7 +39,7 @@ end
 -- #######################################################
 
 function alert_ndpi_tls_suspicious_esni_usage.format(ifid, alert, alert_type_params)
-   return i18n("flow_risk.ndpi_tls_suspicious_esni_usage")
+   return
 end
 
 -- #######################################################

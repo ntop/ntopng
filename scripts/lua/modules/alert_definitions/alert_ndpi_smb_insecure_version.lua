@@ -39,7 +39,7 @@ end
 -- #######################################################
 
 function alert_ndpi_smb_insecure_version.format(ifid, alert, alert_type_params)
-   return i18n("flow_risk.ndpi_smb_insecure_version")
+   return
 end
 
 -- #######################################################

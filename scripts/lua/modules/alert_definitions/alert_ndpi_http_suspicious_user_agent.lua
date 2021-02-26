@@ -39,7 +39,7 @@ end
 -- #######################################################
 
 function alert_ndpi_http_suspicious_user_agent.format(ifid, alert, alert_type_params)
-   return i18n("flow_risk.ndpi_http_suspicious_user_agent")
+   return
 end
 
 -- #######################################################

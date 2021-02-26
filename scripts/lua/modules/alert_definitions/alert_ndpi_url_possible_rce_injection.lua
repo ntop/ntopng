@@ -39,7 +39,7 @@ end
 -- #######################################################
 
 function alert_ndpi_url_possible_rce_injection.format(ifid, alert, alert_type_params)
-   return i18n("flow_risk.ndpi_url_possible_rce_injection")
+   return
 end
 
 -- #######################################################

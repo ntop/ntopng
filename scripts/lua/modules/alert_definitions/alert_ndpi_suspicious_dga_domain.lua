@@ -39,7 +39,7 @@ end
 -- #######################################################
 
 function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
-   return i18n("flow_risk.ndpi_suspicious_dga_domain")
+   return
 end
 
 -- #######################################################

@@ -39,7 +39,7 @@ end
 -- #######################################################
 
 function alert_ndpi_tls_not_carrying_https.format(ifid, alert, alert_type_params)
-   return i18n("flow_risk.ndpi_tls_not_carrying_https")
+   return
 end
 
 -- #######################################################

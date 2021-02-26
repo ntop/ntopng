@@ -39,7 +39,7 @@ end
 -- #######################################################
 
 function alert_ndpi_dns_suspicious_traffic.format(ifid, alert, alert_type_params)
-   return i18n("flow_risk.ndpi_dns_suspicious_traffic")
+   return
 end
 
 -- #######################################################

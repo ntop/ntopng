@@ -45,7 +45,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_suspicious_tcp_syn_probing.format(ifid, alert, alert_type_params)
-   return i18n("flow_details.suspicious_tcp_syn_probing")
+   return
 end
 
 -- #######################################################

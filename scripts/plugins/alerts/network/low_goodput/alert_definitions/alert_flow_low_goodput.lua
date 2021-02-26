@@ -52,8 +52,6 @@ function alert_flow_low_goodput.format(ifid, alert, alert_type_params)
    if alert_type_params and alert_type_params.goodput_ratio then
       return i18n("flow_details.flow_low_goodput", { ratio = format_utils.round(alert_type_params.goodput_ratio, 2) })
    end
-
-   return(i18n("alerts_dashboard.flow_low_goodput"))
 end
 
 -- #######################################################

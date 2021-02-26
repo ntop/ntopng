@@ -45,7 +45,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_tcp_connection_refused.format(ifid, alert, alert_type_params)
-   return i18n("flow_details.tcp_connection_refused")
+   return
 end
 
 -- #######################################################
