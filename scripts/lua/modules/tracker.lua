@@ -65,8 +65,6 @@ local function tracker_filter_pref(key)
      k == "probing_alerts" or
      k == "tls_alerts" or
      k == "dns_alerts" or
-     k == "ip_reassignment_alerts" or
-     k == "remote_to_remote_alerts" or
      k == "mining_alerts" or
      k == "host_blacklist" or
      k == "external_alerts" or
