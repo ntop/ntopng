@@ -10,6 +10,8 @@ local alert_consts = require "alert_consts"
 -- #################################################################
 
 local script = {
+  packet_interface_only = true,
+  
   -- Script category
   category = user_scripts.script_categories.network,
 

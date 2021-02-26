@@ -8,6 +8,8 @@ local user_scripts = require("user_scripts")
 local alert_severities = require "alert_severities"
 
 local script = {
+  packet_interface_only = true,
+   
   -- Script category
   category = user_scripts.script_categories.security,
 
