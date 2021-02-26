@@ -57,17 +57,18 @@ local script = {
 -- #################################################################
 
 local function checkFlowGoodput(now, conf)
-   local ratio = flow.getGoodputRatio()
-  
-   if(ratio <= 60) then
-      local cli_score, srv_score, flow_score = 10, 10, 10
-      local alert = alert_consts.alert_types.alert_flow_low_goodput.new(
-        ratio
-      )
+   -- Check 3WHS - skip connection not established or with no data packet exchanged
+   if flow.isTwhOK() and flow.getPackets() > 3 then
+      -- Check Goodput/Bytes Ratio
+      local ratio = flow.getGoodputRatio() 
+      if(ratio and ratio <= 60) then
+         local cli_score, srv_score, flow_score = 10, 10, 10
+         local alert = alert_consts.alert_types.alert_flow_low_goodput.new(ratio)
 
-      alert:set_severity(conf.severity)
+         alert:set_severity(conf.severity)
 
-      alert:trigger_status(cli_score, srv_score, flow_score)
+         alert:trigger_status(cli_score, srv_score, flow_score)
+      end
    end
 end
 
