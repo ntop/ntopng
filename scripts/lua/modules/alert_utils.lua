@@ -2041,7 +2041,6 @@ function alert_utils.formatAlertNotification(notif, options)
 
    if options.nohtml then
       msg = msg .. noHtml(alert_message)
-      msg = msg:gsub('&nbsp;', "")
    else
       msg = msg .. alert_message
    end
