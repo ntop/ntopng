@@ -49,13 +49,13 @@ end
 -- @return A human-readable string
 function alert_tls_certificate_selfsigned.format(ifid, alert, alert_type_params)
    if not alert_type_params then
-      return i18n("flow_details.tls_certificate_selfsigned")
+      return
    end
 
    local crts = {}
    crts[#crts + 1] = alert_type_params["tls_crt.issuerDN"]
 
-   return string.format("%s [Issuer/Subject: %s]", i18n("flow_details.tls_certificate_selfsigned"), table.concat(crts, " - "))
+   return string.format("[Issuer/Subject: %s]", table.concat(crts, " - "))
 end
 
 -- #######################################################

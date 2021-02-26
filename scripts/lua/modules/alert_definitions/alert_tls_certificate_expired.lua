@@ -50,14 +50,14 @@ end
 -- @return A human-readable string
 function alert_tls_certificate_expired.format(ifid, alert, alert_type_params)
    if not alert_type_params then
-      return i18n("flow_details.tls_certificate_expired")
+      return
    end
 
    local crts = {}
    crts[#crts + 1] = formatEpoch(alert_type_params["tls_crt.notBefore"])
    crts[#crts + 1] = formatEpoch(alert_type_params["tls_crt.notAfter"])
 
-   return string.format("%s [%s]", i18n("flow_details.tls_certificate_expired"), table.concat(crts, " - "))
+   return string.format("[%s]",  table.concat(crts, " - "))
 end
 
 -- #######################################################

@@ -46,7 +46,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_tls_old_protocol_version.format(ifid, alert, alert_type_params)
-   local msg = i18n("flow_details.tls_old_protocol_version")
+   local msg = ""
 
    if(alert_type_params and alert_type_params.tls_version) then
       local ver_str = ntop.getTLSVersionName(alert_type_params.tls_version)
