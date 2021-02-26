@@ -30,9 +30,17 @@ local script = {
   -- For a full list check "available_subdir.flow.available_fields" in user_scripts.lua
   filter = {
      default_filters = {
-	{ l7_proto = 8 },  -- MDNS protocol
-	{ l7_proto = 92 }, -- SSH  protocol
-	{ l7_proto = 26 }, -- ntop protocol
+	{ l7_proto =   8 }, -- MDNS
+	{ l7_proto =  26 }, -- ntop
+        { l7_proto =  39 }, -- Signal
+        { l7_proto =  48 }, -- QQ
+        { l7_proto =  65 }, -- IRC
+	{ l7_proto =  77 }, -- Telnet
+	{ l7_proto =  92 }, -- SSH
+        { l7_proto = 142 }, -- WhatsApp
+        { l7_proto = 185 }, -- Telegram
+        { l7_proto = 193 }, -- KakaoTalk
+        { l7_proto = 197 }, -- WeChat
      },
      default_fields  = { "srv_addr", "srv_port", "l7_proto", }
   },
