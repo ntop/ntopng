@@ -599,10 +599,13 @@ function noHtml(s)
       return (gsub( str, '(&(#?x?)([%d%a]+);)', entitySwap ))
    end
 
-   local cleaned = s:gsub("<[aA].->(.-)</[aA]>","%1")
+   local cleaned = s:gsub("<[aA] .->(.-)</[aA]>","%1")
+      :gsub("<abbr .->(.-)</abbr>","%1")
+      :gsub("<span .->(.-)</span>","%1")
       :gsub("%s*<[iI].->(.-)</[iI]>","%1")
-      :gsub("<.->(.-)</.->","%1") -- note: this does not handle nested tags
+      :gsub("<.->(.-)</.->","%1") -- note: keep as last as this does not handle nested tags
       :gsub("^%s*(.-)%s*$", "%1")
+      :gsub('&nbsp;', " ")
 
    return unescape(cleaned)
 end
