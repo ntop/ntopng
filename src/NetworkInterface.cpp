@@ -223,7 +223,6 @@ NetworkInterface::NetworkInterface(const char *name,
 
   reloadHideFromTop(false);
 
-  updateIPReassignmentCode();
   updateTrafficMirrored();
   updateDynIfaceTrafficPolicy();
   updateFlowDumpDisabled();
@@ -457,8 +456,12 @@ bool NetworkInterface::getInterfaceBooleanPref(const char *pref_key, bool defaul
 
 /* **************************************************** */
 
-void NetworkInterface::updateIPReassignmentCode() {
-  enable_ip_reassignment_alerts = getInterfaceBooleanPref(CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT, false);
+void NetworkInterface::updateIPReassignment(bool enabled) {
+  enable_ip_reassignment_alerts = enabled;
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "enable_ip_reassignment_alerts [%u][ifid: %s]", enable_ip_reassignment_alerts ? 1 : 0, get_name());
+#endif
 }
 
 /* **************************************************** */

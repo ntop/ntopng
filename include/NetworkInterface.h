@@ -542,7 +542,7 @@ class NetworkInterface : public AlertableEntity {
   inline bool showDynamicInterfaceTraffic() const { return show_dynamic_interface_traffic; };
   inline bool discardProbingTraffic()       const { return discard_probing_traffic;        };
   inline bool flowsOnlyInterface()          const { return flows_only_interface;           };
-  void updateIPReassignmentCode();
+  void updateIPReassignment(bool enabled);
   void updateTrafficMirrored();
   void updateDynIfaceTrafficPolicy();
   void updateFlowDumpDisabled();

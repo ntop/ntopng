@@ -1108,10 +1108,10 @@ function user_scripts.loadUnloadUserScripts(is_load)
 			-- onLoad/onUnload methods are ONLY called for user scripts that are enabled
 			if is_load and script.onLoad then
 			   -- This is a load operation
-			   script.onLoad(hook, hook_config)
+			   script.onLoad(hook, hook_config, confid)
 			elseif not is_load and script.onUnload then
 			   -- This is an unload operation
-			   script.onUnload(hook, hook_config)
+			   script.onUnload(hook, hook_config, confid)
 			end
 		     end
 		  end
@@ -1443,13 +1443,13 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
 	 if hook_applied_config then
 	    if script.onDisable and hook_config.enabled and not hook_applied_config.enabled then
 	       -- Hook previously disabled has been enabled
-	       script.onDisable(hook, hook_applied_config)
+	       script.onDisable(hook, hook_applied_config, confid)
 	    elseif script.onEnable and not hook_config.enabled and hook_applied_config.enabled then
 	       -- Hook previously enabled has now been disabled
-	       script.onEnable(hook, hook_applied_config)
+	       script.onEnable(hook, hook_applied_config, confid)
 	    elseif script.onUpdateConfig and not table.compare(hook_config, applied_config[hook]) then
 	       -- Configuration for the hook has changed
-	       script.onUpdateConfig(hook, hook_applied_config)
+	       script.onUpdateConfig(hook, hook_applied_config, confid)
 	    end
 	 end
       end
@@ -1501,11 +1501,12 @@ end
 
 -- @brief Toggles script `script_key` configuration on or off depending on `enable` for configuration `configset`
 --        Hooks onDisable and onEnable are called.
+-- @param configset_id The id of the configuration passed in `configset`
 -- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
 -- @param script_key The string script identifier
 -- @param subdir The string identifying the sub directory (e.g., flow, host, ...)
 -- @param enable A boolean indicating whether the script shall be toggled on or off
-local function toggleScriptConfigset(configset, script_key, subdir, enable)
+local function toggleScriptConfigset(configset_id, configset, script_key, subdir, enable)
    local script_type = user_scripts.getScriptType(subdir)
    local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
 
@@ -1524,10 +1525,10 @@ local function toggleScriptConfigset(configset, script_key, subdir, enable)
 
 	 if script.onDisable and prev_hook_config and not enable then
 	    -- Hook has been enabled for the user script
-	    script.onDisable(hook, hook_config)
+	    script.onDisable(hook, hook_config, configset_id)
 	 elseif script.onEnable and not prev_hook_config and enable then
 	    -- Hook has been disabled for the user script
-	    script.onEnable(hook, hook_config)
+	    script.onEnable(hook, hook_config, configset_id)
 	 end
       end
    end
@@ -1546,7 +1547,7 @@ function user_scripts.toggleScript(confid, script_key, subdir, enable)
    end
 
    -- Toggle the configuration (result is put in `configset`)
-   local res, err = toggleScriptConfigset(configset, script_key, subdir, enable)
+   local res, err = toggleScriptConfigset(confid, configset, script_key, subdir, enable)
    if not res then
       return res, err
    end
@@ -1570,7 +1571,7 @@ function user_scripts.toggleAllScripts(confid, subdir, enable)
 
    for script_name, script in pairs(scripts.modules) do
       -- Toggle each script individually
-      local res, err = toggleScriptConfigset(configset, script.key, subdir, enable)
+      local res, err = toggleScriptConfigset(confid, configset, script.key, subdir, enable)
       if not res then
 	 return res, err
       end

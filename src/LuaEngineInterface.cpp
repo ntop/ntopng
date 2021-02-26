@@ -2881,6 +2881,30 @@ static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_update_ip_reassignment(lua_State* vm) {
+  NetworkInterface *ntop_interface;
+  int ifid;
+  bool enabled = false;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK)
+    return(CONST_LUA_ERROR);
+
+  ifid = lua_tointeger(vm, 1);
+  ntop_interface = ntop->getInterfaceById(ifid);
+  enabled = lua_toboolean(vm, 2);
+
+  if(ntop_interface)
+    ntop_interface->updateIPReassignment(enabled);
+
+  lua_pushnil(vm);
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_update_traffic_mirrored(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4447,6 +4471,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "listHTTPhosts",            ntop_list_http_hosts },
   { "findHost",                 ntop_get_interface_find_host },
   { "findHostByMac",            ntop_get_interface_find_host_by_mac },
+  { "updateIPReassignment",             ntop_interface_update_ip_reassignment        },
   { "updateTrafficMirrored",            ntop_update_traffic_mirrored                 },
   { "updateDynIfaceTrafficPolicy",      ntop_update_dynamic_interface_traffic_policy },
   { "updateLbdIdentifier",              ntop_update_lbd_identifier                   },
