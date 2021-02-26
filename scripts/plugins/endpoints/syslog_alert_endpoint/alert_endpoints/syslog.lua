@@ -103,7 +103,7 @@ function syslog.sendMessage(settings, notif, severity)
    else
 
       local facility = 14 -- log alert
-      local level = 1 -- alert (what about mapping severity?)
+      local level = syslog_severity
       local prio = (facility * 8) + level
       local date = format_utils.formatEpoch(notif.alert_tstamp) -- "2020-11-09 18:00:00"
       local iso_time = format_utils.formatEpochISO8601(notif.alert_tstamp)
