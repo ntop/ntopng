@@ -363,6 +363,8 @@ void LocalHostStats::lua_get_timeseries(lua_State* vm) {
     lua_push_uint64_table_entry(vm, "icmp.echo_reply_pkts_sent", icmp_s.echo_reply_packets_sent);
     lua_push_uint64_table_entry(vm, "icmp.echo_reply_pkts_rcvd", icmp_s.echo_reply_packets_rcvd);
   }
+
+  luaHostBehaviour(vm);
 }
 
 /* *************************************** */
