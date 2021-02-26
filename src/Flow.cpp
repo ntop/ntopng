@@ -55,7 +55,7 @@ Flow::Flow(NetworkInterface *_iface,
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0, cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
   zero_window_alert_triggered = src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
-  is_cli_srv_swapped = false;
+  is_cli_srv_swapped = swap_check_done = false;
   
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;

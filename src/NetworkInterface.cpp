@@ -1424,6 +1424,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 		 l4_proto, &src2dst_direction, last_pkt_rcvd, last_pkt_rcvd, len_on_wire, &new_flow, true);
   PROFILING_SECTION_EXIT(0);
 
+ post_get_flow:
   if(flow == NULL) {
     incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
 	     NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
@@ -1434,6 +1435,66 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
     if(new_flow)
       flow->setIngress2EgressDirection(ingressPacket);
 #endif
+
+    if(flow->isDetectionCompleted()    /* Wait until the detection is completed to re-use the detected protocol */
+       && !flow->is_swap_check_done()  /* And until at least a packet is observed in both directions */
+       && ((src2dst_direction && flow->get_packets_srv2cli())
+	   || (!src2dst_direction && flow->get_packets_cli2srv()))) {
+      flow->set_swap_check_done(); /* Check is done, now see if the flow has to be swapped */
+
+#if 0
+      char buf[256];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "... checking %s", flow->print(buf, sizeof(buf)));
+#endif
+
+      /*
+	This is the heuristic "For TCP flows for which the 3WH has not been observed..."
+	at https://github.com/ntop/ntopng/issues/5058
+	NOTE: for non TCP-flows, the heuristic is always applied
+       */
+      if(flow->get_cli_ip_addr()->isNonEmptyUnicastAddress() /* Don't touch non-unicast addresses */
+	 && (!flow->isTCP() || !flow->isTCPEstablished())
+	 && flow->get_cli_port() < 1024 && flow->get_cli_port() < flow->get_srv_port()) {
+
+	/*
+	  Advance the existing flow and set it to idle (a new swapped flow is being created)
+	 */
+	if(flow->get_state() < hash_entry_state_active)
+	  flow->set_hash_entry_state_active();
+	flow->set_hash_entry_state_idle();
+
+	/* Create a swapped flow */
+	Mac *tmpMac = srcMac; srcMac = dstMac; dstMac = tmpMac;
+	u_int16_t tmp_port = src_port; src_port = dst_port; dst_port = tmp_port;
+	IpAddress tmp_ip; tmp_ip.set(&src_ip); src_ip.set(&dst_ip); dst_ip.set(&tmp_ip);
+
+	Flow *swapped_flow = getFlow(srcMac, dstMac, vlan_id, 0, 0, 0,
+				     l4_proto == IPPROTO_ICMP ? &icmp_info : NULL,
+				     &src_ip, &dst_ip,
+				     htons(flow->get_srv_port()), /* Client port becomes former server port */
+				     htons(flow->get_cli_port()), /* Server port becomes former client port */
+				     l4_proto, &src2dst_direction,
+				     flow->get_first_seen(), /* Preserve the first seen of the former flow that is now idle */
+				     last_pkt_rcvd, /* Last seen is the one of the packet */
+				     len_on_wire,
+				     &new_flow,
+				     true /* Create if missing */);
+
+	/* Set the detected protocol to the one of the former flow */
+	if(swapped_flow)
+	  swapped_flow->setDetectedProtocol(flow->get_detected_protocol());
+
+#if 0
+	char buf[256];
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", flow->print(buf, sizeof(buf)));
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "TO %s", swapped_flow->print(buf, sizeof(buf)));
+#endif
+
+	flow = swapped_flow;
+	goto post_get_flow;
+      }
+    }
+
     *srcHost = src2dst_direction ? flow->get_cli_host() : flow->get_srv_host();
     *dstHost = src2dst_direction ? flow->get_srv_host() : flow->get_cli_host();
     *hostFlow = flow;

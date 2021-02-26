@@ -69,7 +69,7 @@ class Flow : public GenericHashEntry {
     l7_protocol_guessed, flow_dropped_counts_increased,
     good_tls_hs,
     quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature,
-    is_cli_srv_swapped;
+    is_cli_srv_swapped, swap_check_done;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
@@ -488,6 +488,8 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv() const;
   u_int64_t get_current_packets_srv2cli() const;
 
+  inline void set_swap_check_done()      { swap_check_done = true; };
+  inline bool is_swap_check_done() const { return swap_check_done; };
   bool is_hash_entry_state_idle_transition_ready() const;
   void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial,
 				   bool first_partial, const struct timeval *tv) const;
@@ -629,6 +631,7 @@ class Flow : public GenericHashEntry {
   inline InterarrivalStats* getCli2SrvIATStats() const { return cli2srvPktTime; }
   inline InterarrivalStats* getSrv2CliIATStats() const { return srv2cliPktTime; }
 
+  inline bool isTCP()            const { return protocol == IPPROTO_TCP; };
   inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset() && isThreeWayHandshakeOK()); }
   inline bool isTCPConnecting()  const { return (src2dst_tcp_flags == TH_SYN
 						 && (!dst2src_tcp_flags || (dst2src_tcp_flags == (TH_SYN | TH_ACK)))); }
