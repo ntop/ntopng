@@ -106,7 +106,7 @@ function syslog.sendMessage(settings, notif, severity)
    else
 
       local facility = 14 -- log alert
-      local level = 1 -- alert (what about mapping severity?)
+      local level = syslog_severity
       local prio = (facility * 8) + level
       local host_info = ntop.getHostInformation()
       local host = host_info.ip
