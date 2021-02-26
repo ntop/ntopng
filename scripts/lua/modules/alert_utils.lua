@@ -2071,18 +2071,16 @@ local function processStoreAlertFromQueue(alert)
       type_info:set_severity(alert_severities.warning)
       type_info:set_subtype(string.format("%s_%s_%s", hostinfo2hostkey(router_info), alert.client_mac, alert.sender_mac))
    elseif(alert.alert_type == "mac_ip_association_change") then
-      if(ntop.getPref("ntopng.prefs.ip_reassignment_alerts") == "1") then
-         local name = getDeviceName(alert.new_mac)
-         entity_info = alerts_api.macEntity(alert.new_mac)
-         type_info = alert_consts.alert_types.alert_mac_ip_association_change.new(
-            name,
-            alert.ip,
-            alert.old_mac,
-            alert.new_mac
-         )
-         type_info:set_severity(alert_severities.warning)
-         type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
-      end
+      local name = getDeviceName(alert.new_mac)
+      entity_info = alerts_api.macEntity(alert.new_mac)
+      type_info = alert_consts.alert_types.alert_mac_ip_association_change.new(
+	 name,
+	 alert.ip,
+	 alert.old_mac,
+	 alert.new_mac
+      )
+      type_info:set_severity(alert_severities.warning)
+      type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
    elseif(alert.alert_type == "login_failed") then
       entity_info = alerts_api.userEntity(alert.user)
       type_info = alert_consts.alert_types.alert_login_failed.new()
