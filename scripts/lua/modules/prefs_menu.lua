@@ -113,9 +113,6 @@ local menu_subpages = {
     }, toggle_dst_with_post_nat_dst = {
       title       = i18n("prefs.toggle_dst_with_post_nat_dst_title"),
       description = i18n("prefs.toggle_dst_with_post_nat_dst_description"),
-    }, toggle_src_and_dst_using_ports = {
-      title       = i18n("prefs.toggle_src_and_dst_using_ports_title"),
-      description = i18n("prefs.toggle_src_and_dst_using_ports_description"),
     },
   }}, {id="in_memory",     label=i18n("prefs.cache_settings"),             advanced=true,  pro_only=false,  hidden=false, entries={
     toggle_midnight_stats_reset = {

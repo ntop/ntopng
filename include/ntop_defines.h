@@ -697,9 +697,6 @@
 #define CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_src_with_post_nat_src"
 #define CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_dst_with_post_nat_dst"
 
-/* SRC/DST selection using port numbers (heuristic) */
-#define CONST_DEFAULT_USE_PORTS_TO_DETERMINE_SRC_AND_DST NTOPNG_PREFS_PREFIX".use_ports_to_determine_src_and_dst"
-
 /* Flow Lua Calls */
 #define FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME  "protocolDetected"
 #define FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME    "periodicUpdate"

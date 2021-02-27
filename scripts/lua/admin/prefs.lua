@@ -196,12 +196,6 @@ function printInterfaces()
 	pref = "override_src_with_post_nat_src",
   })
 
-  prefsToggleButton(subpage_active, {
-	field = "toggle_src_and_dst_using_ports",
-	default = "0",
-	pref = "use_ports_to_determine_src_and_dst",
-  })
-
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />

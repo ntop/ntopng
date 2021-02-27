@@ -5325,6 +5325,13 @@ void Flow::triggerZeroWindowAlert(bool *as_client, bool *as_server) {
 
 bool Flow::check_swap(u_int32_t tcp_flags) {
   /*
+    Non-packet interfaces, i.e., ZMQ, have the swap checked earlier. This is possible as there is
+    information on both flow directions for those interfaces.
+   */
+  if(!getInterface()->isPacketInterface())
+    return false;
+
+  /*
     This is the heuristic "For TCP flows for which the 3WH has not been observed..."
     at https://github.com/ntop/ntopng/issues/5058
     NOTE: for non TCP-flows, the heuristic is always applied

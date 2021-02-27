@@ -73,7 +73,6 @@ class Prefs {
   bool enable_tiny_flows_export;
   bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
-  bool use_ports_to_determine_src_and_dst;
   bool routing_mode_enabled, global_dns_forging_enabled;
   bool device_protocol_policies_enabled, enable_vlan_trunk_bridge;
   bool enable_arp_matrix_generation;
@@ -351,7 +350,6 @@ class Prefs {
 
   inline bool do_override_dst_with_post_nat_dst()     const { return(override_dst_with_post_nat_dst);     };
   inline bool do_override_src_with_post_nat_src()     const { return(override_src_with_post_nat_src);     };
-  inline bool do_use_ports_to_determine_src_and_dst() const { return(use_ports_to_determine_src_and_dst); };
   inline bool are_device_protocol_policies_enabled()  const { return(device_protocol_policies_enabled);   };
 
   inline bool isVLANTrunkModeEnabled()                const { return(enable_vlan_trunk_bridge);           }
