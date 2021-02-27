@@ -55,8 +55,8 @@ Flow::Flow(NetworkInterface *_iface,
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0, cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
   zero_window_alert_triggered = src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
-  is_cli_srv_swapped = swap_done = swap_requested = false;
-  
+  swap_done = swap_requested = false;
+
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
@@ -1954,7 +1954,7 @@ const char* Flow::cipher_weakness2str(ndpi_cipher_weakness w) const {
 /* *************************************** */
 
 void Flow::luaScore(lua_State* vm) {
-  u_int32_t tot_cli, tot_srv;
+  u_int32_t tot;
 
   lua_newtable(vm);
 
@@ -1978,16 +1978,15 @@ void Flow::luaScore(lua_State* vm) {
 
   lua_newtable(vm);
 
-  tot_cli = 0;
+  tot = 0;
   for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++)
-    tot_cli += cli_host_score[i];
-  
-  tot_srv = 0;
-  for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++)
-    tot_srv += srv_host_score[i];
+    tot += cli_host_score[i];
+  lua_push_int32_table_entry(vm, "client_score", tot);
 
-  lua_push_int32_table_entry(vm, "client_score", is_cli_srv_swapped ? tot_srv : tot_cli);
-  lua_push_int32_table_entry(vm, "server_score", is_cli_srv_swapped ? tot_cli : tot_srv);
+  tot = 0;
+  for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++)
+    tot += srv_host_score[i];
+  lua_push_int32_table_entry(vm, "server_score", tot);
 
   lua_pushstring(vm, "host_score_total");
   lua_insert(vm, -2);
@@ -2030,8 +2029,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
   lua_get_bytes(vm);
 
   if(details_level >= details_high) {
-    lua_push_bool_table_entry(vm, "cli.allowed_host", is_cli_srv_swapped ? dst_match : src_match);
-    lua_push_bool_table_entry(vm, "srv.allowed_host", is_cli_srv_swapped ? src_match : dst_match);
+    lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
+    lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
 
     lua_get_info(vm, true /* Client */);
     lua_get_info(vm, false /* Server */);
@@ -2039,8 +2038,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(vrfId) lua_push_uint64_table_entry(vm, "vrfId", vrfId);
     lua_push_uint64_table_entry(vm, "vlan", get_vlan_id());
 
-    if(srcAS) lua_push_int32_table_entry(vm, "src_as", is_cli_srv_swapped ? dstAS : srcAS);
-    if(dstAS) lua_push_int32_table_entry(vm, "dst_as", is_cli_srv_swapped ? srcAS : dstAS);
+    if(srcAS) lua_push_int32_table_entry(vm, "src_as", srcAS);
+    if(dstAS) lua_push_int32_table_entry(vm, "dst_as", dstAS);
     if(prevAdjacentAS) lua_push_int32_table_entry(vm, "prev_adjacent_as", prevAdjacentAS);
     if(nextAdjacentAS)lua_push_int32_table_entry(vm, "next_adjacent_as", nextAdjacentAS);
 
@@ -2084,8 +2083,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
       lua_settable(vm, -3);
     }
 
-    lua_push_int32_table_entry(vm, is_cli_srv_swapped ? "srv.devtype" : "cli.devtype", (cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown);
-    lua_push_int32_table_entry(vm, is_cli_srv_swapped ? "cli.devtype" : "srv.devtype", (srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown);
+    lua_push_int32_table_entry(vm, "cli.devtype", (cli_host && cli_host->getMac()) ? cli_host->getMac()->getDeviceType() : device_unknown);
+    lua_push_int32_table_entry(vm, "srv.devtype", (srv_host && srv_host->getMac()) ? srv_host->getMac()->getDeviceType() : device_unknown);
 
 #ifdef HAVE_NEDGE
     if(iface->is_bridge_interface())
@@ -2115,21 +2114,21 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(cli_host && srv_host) {
       /* Shapers */
       lua_push_uint64_table_entry(vm,
-				  is_cli_srv_swapped ? "shaper.srv2cli_ingress" : "shaper.cli2srv_ingress",
+				  "shaper.cli2srv_ingress",
 				  flowShaperIds.cli2srv.ingress ? flowShaperIds.cli2srv.ingress->get_shaper_id() : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(vm,
-				  is_cli_srv_swapped ? "shaper.srv2cli_egress" : "shaper.cli2srv_egress",
+				  "shaper.cli2srv_egress",
 				  flowShaperIds.cli2srv.egress ? flowShaperIds.cli2srv.egress->get_shaper_id() : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(vm,
-				  is_cli_srv_swapped ? "shaper.cli2srv_ingress" : "shaper.srv2cli_ingress",
+				  "shaper.srv2cli_ingress",
 				  flowShaperIds.srv2cli.ingress ? flowShaperIds.srv2cli.ingress->get_shaper_id() : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(vm,
-				  is_cli_srv_swapped ? "shaper.cli2srv_egress" : "shaper.srv2cli_egress",
+				  "shaper.srv2cli_egress",
 				  flowShaperIds.srv2cli.egress ? flowShaperIds.srv2cli.egress->get_shaper_id() : DEFAULT_SHAPER_ID);
 
       /* Quota */
-      lua_push_str_table_entry(vm, is_cli_srv_swapped ? "srv.quota_source" : "cli.quota_source", Utils::policySource2Str(cli_quota_source));
-      lua_push_str_table_entry(vm, is_cli_srv_swapped ? "cli.quota_source" : "srv.quota_source", Utils::policySource2Str(srv_quota_source));
+      lua_push_str_table_entry(vm, "cli.quota_source", Utils::policySource2Str(cli_quota_source));
+      lua_push_str_table_entry(vm, "srv.quota_source", Utils::policySource2Str(srv_quota_source));
     }
 #endif
 
@@ -2181,8 +2180,8 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(!has_json_info)
       lua_push_str_table_entry(vm, "moreinfo.json", "{}");
 
-    if(cli_ebpf) cli_ebpf->lua(vm, is_cli_srv_swapped ? false : true);
-    if(srv_ebpf) srv_ebpf->lua(vm, is_cli_srv_swapped ? true : false);
+    if(cli_ebpf) cli_ebpf->lua(vm, true);
+    if(srv_ebpf) srv_ebpf->lua(vm, false);
 
     lua_get_throughput(vm);
 
@@ -2220,8 +2219,8 @@ void Flow::lua_tos(lua_State* vm) {
   lua_newtable(vm);
 
   lua_newtable(vm);
-  lua_push_int32_table_entry(vm, "DSCP", is_cli_srv_swapped ? getSrv2CliDSCP() : getCli2SrvDSCP());
-  lua_push_int32_table_entry(vm, "ECN",  is_cli_srv_swapped ? getSrv2CliECN() : getCli2SrvECN());
+  lua_push_int32_table_entry(vm, "DSCP", getCli2SrvDSCP());
+  lua_push_int32_table_entry(vm, "ECN",  getCli2SrvECN());
   lua_pushstring(vm, "client");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -2229,8 +2228,8 @@ void Flow::lua_tos(lua_State* vm) {
   /* *********************** */
 
   lua_newtable(vm);
-  lua_push_int32_table_entry(vm, "DSCP", is_cli_srv_swapped ? getCli2SrvDSCP() : getSrv2CliDSCP());
-  lua_push_int32_table_entry(vm, "ECN",  is_cli_srv_swapped ? getCli2SrvECN() : getSrv2CliECN());
+  lua_push_int32_table_entry(vm, "DSCP", getSrv2CliDSCP());
+  lua_push_int32_table_entry(vm, "ECN",  getSrv2CliECN());
   lua_pushstring(vm, "server");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -2438,15 +2437,7 @@ json_object* Flow::flow2json() {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
   time_t t;
-  const IpAddress *cli_ip, *srv_ip;
-
-  if(is_cli_srv_swapped) {
-    srv_ip = get_cli_ip_addr();
-    cli_ip = get_srv_ip_addr();
-  } else {
-    cli_ip = get_cli_ip_addr();
-    srv_ip = get_srv_ip_addr();
-  }
+  const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
   if((my_object = json_object_new_object()) == NULL) return(NULL);
 
@@ -2763,31 +2754,31 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
   if(isDNS())
     ndpi_serialize_string_string(s, "dns_last_query", getDNSQuery());
 
-  ndpi_serialize_string_int64(s, is_cli_srv_swapped ? "srv2cli_bytes" : "cli2srv_bytes", get_bytes_cli2srv());
-  ndpi_serialize_string_int64(s, is_cli_srv_swapped ? "srv2cli_packets" : "cli2srv_packets", get_packets_cli2srv());
-  ndpi_serialize_string_int64(s, is_cli_srv_swapped ? "cli2srv_bytes" : "srv2cli_bytes", get_bytes_srv2cli());
-  ndpi_serialize_string_int64(s, is_cli_srv_swapped ? "cli2srv_packets" : "srv2cli_packets", get_packets_srv2cli());
+  ndpi_serialize_string_int64(s, "cli2srv_bytes", get_bytes_cli2srv());
+  ndpi_serialize_string_int64(s, "cli2srv_packets", get_packets_cli2srv());
+  ndpi_serialize_string_int64(s, "srv2cli_bytes", get_bytes_srv2cli());
+  ndpi_serialize_string_int64(s, "srv2cli_packets", get_packets_srv2cli());
 
-  ndpi_serialize_string_string(s, is_cli_srv_swapped ? "srv_addr" : "cli_addr", get_cli_ip_addr()->print(buf, sizeof(buf)));
-  ndpi_serialize_string_boolean(s, is_cli_srv_swapped ? "srv_blacklisted" : "cli_blacklisted", isBlacklistedClient());
-  ndpi_serialize_string_int32(s, is_cli_srv_swapped ? "srv_port" : "cli_port", get_cli_port());
+  ndpi_serialize_string_string(s, "cli_addr", get_cli_ip_addr()->print(buf, sizeof(buf)));
+  ndpi_serialize_string_boolean(s, "cli_blacklisted", isBlacklistedClient());
+  ndpi_serialize_string_int32(s, "cli_port", get_cli_port());
 
   if(cli_host) {
-    cli_host->serialize_geocoordinates(s, is_cli_srv_swapped ? "srv" : "cli");
-    ndpi_serialize_string_string(s, is_cli_srv_swapped ? "srv_os" : "cli_os", cli_host->getOSDetail(buf, sizeof(buf)));
-    ndpi_serialize_string_int32(s, is_cli_srv_swapped ? "srv_asn" : "cli_asn", cli_host->get_asn());
-    ndpi_serialize_string_boolean(s, is_cli_srv_swapped ? "srv_localhost" : "cli_localhost", cli_host->isLocalHost());
+    cli_host->serialize_geocoordinates(s, "cli");
+    ndpi_serialize_string_string(s, "cli_os", cli_host->getOSDetail(buf, sizeof(buf)));
+    ndpi_serialize_string_int32(s, "cli_asn", cli_host->get_asn());
+    ndpi_serialize_string_boolean(s, "cli_localhost", cli_host->isLocalHost());
   }
 
-  ndpi_serialize_string_string(s, is_cli_srv_swapped ? "cli_addr" : "srv_addr", get_srv_ip_addr()->print(buf, sizeof(buf)));
-  ndpi_serialize_string_boolean(s, is_cli_srv_swapped ? "cli_blacklisted" : "srv_blacklisted", isBlacklistedServer());
-  ndpi_serialize_string_int32(s, is_cli_srv_swapped ? "cli_port" : "srv_port", get_srv_port());
+  ndpi_serialize_string_string(s, "srv_addr", get_srv_ip_addr()->print(buf, sizeof(buf)));
+  ndpi_serialize_string_boolean(s, "srv_blacklisted", isBlacklistedServer());
+  ndpi_serialize_string_int32(s, "srv_port", get_srv_port());
 
   if(srv_host) {
-    srv_host->serialize_geocoordinates(s, is_cli_srv_swapped ? "cli" : "srv");
-    ndpi_serialize_string_string(s, is_cli_srv_swapped ? "cli_os" : "srv_os", srv_host->getOSDetail(buf, sizeof(buf)));
-    ndpi_serialize_string_int32(s, is_cli_srv_swapped ? "cli_asn" : "srv_asn", srv_host->get_asn());
-    ndpi_serialize_string_boolean(s, is_cli_srv_swapped ? "cli_localhost" : "srv_localhost", srv_host->isLocalHost());
+    srv_host->serialize_geocoordinates(s, "srv");
+    ndpi_serialize_string_string(s, "srv_os", srv_host->getOSDetail(buf, sizeof(buf)));
+    ndpi_serialize_string_int32(s, "srv_asn", srv_host->get_asn());
+    ndpi_serialize_string_boolean(s, "srv_localhost", srv_host->isLocalHost());
   }
 
   ndpi_serialize_string_string(s, "community_id",
@@ -4619,10 +4610,10 @@ void Flow::lua_get_throughput(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt_trend);
 
   // throughput stats cli2srv and srv2cli breakdown
-  lua_push_float_table_entry(vm, "throughput_cli2srv_bps", is_cli_srv_swapped ? bytes_thpt_srv2cli : bytes_thpt_cli2srv);
-  lua_push_float_table_entry(vm, "throughput_srv2cli_bps", is_cli_srv_swapped ? bytes_thpt_cli2srv : bytes_thpt_srv2cli);
-  lua_push_float_table_entry(vm, "throughput_cli2srv_pps", is_cli_srv_swapped ? pkts_thpt_srv2cli : pkts_thpt_cli2srv);
-  lua_push_float_table_entry(vm, "throughput_srv2cli_pps", is_cli_srv_swapped ? pkts_thpt_cli2srv : pkts_thpt_srv2cli);
+  lua_push_float_table_entry(vm, "throughput_cli2srv_bps", bytes_thpt_cli2srv);
+  lua_push_float_table_entry(vm, "throughput_srv2cli_bps", bytes_thpt_srv2cli);
+  lua_push_float_table_entry(vm, "throughput_cli2srv_pps", pkts_thpt_cli2srv);
+  lua_push_float_table_entry(vm, "throughput_srv2cli_pps", pkts_thpt_srv2cli);
 }
 
 /* ***************************************************** */
@@ -4631,43 +4622,24 @@ void Flow::lua_get_dir_traffic(lua_State* vm, bool cli2srv) const {
   ndpi_analyze_struct *cur_analyze = (ndpi_analyze_struct*)stats.get_analize_struct(cli2srv);
   const IPPacketStats *cur_ip_stats = cli2srv ? &ip_stats_s2d : &ip_stats_d2s;
 
-  /* Need to find a better solution */
-  if(is_cli_srv_swapped) {
-    lua_push_uint64_table_entry(vm,
-				cli2srv ? "cli2srv.bytes" : "srv2cli.bytes",
-				cli2srv ? get_bytes_cli2srv() : get_bytes_srv2cli());
-    lua_push_uint64_table_entry(vm,
-				cli2srv ? "cli2srv.goodput_bytes" : "srv2cli.goodput_bytes",
-				cli2srv ? get_goodput_bytes_cli2srv() : get_goodput_bytes_srv2cli());
-    lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.packets" : "srv2cli.packets",
-				cli2srv ? get_packets_cli2srv() : get_packets_srv2cli());
-    
-    lua_push_uint64_table_entry(vm,
-				cli2srv ? "cli2srv.last" : "srv2cli.last",
-				cli2srv ? get_current_bytes_cli2srv() : get_current_bytes_srv2cli());
-  } else {
-    lua_push_uint64_table_entry(vm,
-				cli2srv ? "cli2srv.bytes" : "srv2cli.bytes",
-				cli2srv ? get_bytes_cli2srv() : get_bytes_srv2cli());
-    lua_push_uint64_table_entry(vm,
-				cli2srv ? "cli2srv.goodput_bytes" : "srv2cli.goodput_bytes",
-				cli2srv ? get_goodput_bytes_cli2srv() : get_goodput_bytes_srv2cli());
-    lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.packets" : "srv2cli.packets",
-				cli2srv ? get_packets_cli2srv() : get_packets_srv2cli());
-    
-    lua_push_uint64_table_entry(vm,
-				cli2srv ? "cli2srv.last" : "srv2cli.last",
-				cli2srv ? get_current_bytes_cli2srv() : get_current_bytes_srv2cli()); 
-  }
-  /* *************** */
-  if(is_cli_srv_swapped)
-    cli2srv = !cli2srv;
-  
+  lua_push_uint64_table_entry(vm,
+			      cli2srv ? "cli2srv.bytes" : "srv2cli.bytes",
+			      cli2srv ? get_bytes_cli2srv() : get_bytes_srv2cli());
+  lua_push_uint64_table_entry(vm,
+			      cli2srv ? "cli2srv.goodput_bytes" : "srv2cli.goodput_bytes",
+			      cli2srv ? get_goodput_bytes_cli2srv() : get_goodput_bytes_srv2cli());
+  lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.packets" : "srv2cli.packets",
+			      cli2srv ? get_packets_cli2srv() : get_packets_srv2cli());
+
+  lua_push_uint64_table_entry(vm,
+			      cli2srv ? "cli2srv.last" : "srv2cli.last",
+			      cli2srv ? get_current_bytes_cli2srv() : get_current_bytes_srv2cli());
+
   lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.pkt_len.min" : "srv2cli.pkt_len.min", ndpi_data_min(cur_analyze));
   lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.pkt_len.max" : "srv2cli.pkt_len.max", ndpi_data_max(cur_analyze));
   lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.pkt_len.avg" : "srv2cli.pkt_len.avg", ndpi_data_average(cur_analyze));
   lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.pkt_len.stddev" : "srv2cli.pkt_len.stddev", ndpi_data_stddev(cur_analyze));
-  
+
   lua_push_uint64_table_entry(vm, cli2srv ? "cli2srv.fragments" : "srv2cli.fragments", cur_ip_stats->pktFrag);
 }
 
@@ -4684,11 +4656,7 @@ void Flow::lua_get_dir_iat(lua_State* vm, bool cli2srv) const {
     lua_push_float_table_entry(vm, "avg",    s->getAvg());
     lua_push_float_table_entry(vm, "stddev", s->getStdDev());
 
-    if(!is_cli_srv_swapped)
-      lua_pushstring(vm, cli2srv ? "interarrival.cli2srv" : "interarrival.srv2cli");
-    else
-      lua_pushstring(vm, cli2srv ? "interarrival.srv2cli" : "interarrival.cli2srv");
-    
+    lua_pushstring(vm, cli2srv ? "interarrival.cli2srv" : "interarrival.srv2cli");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
@@ -4698,8 +4666,8 @@ void Flow::lua_get_dir_iat(lua_State* vm, bool cli2srv) const {
 
 void Flow::lua_get_packets(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "packets", get_packets_cli2srv() + get_packets_srv2cli());
-  lua_push_uint64_table_entry(vm, "packets.sent", is_cli_srv_swapped ? get_packets_srv2cli() : get_packets_cli2srv());
-  lua_push_uint64_table_entry(vm, "packets.rcvd", is_cli_srv_swapped ? get_packets_cli2srv() : get_packets_srv2cli());
+  lua_push_uint64_table_entry(vm, "packets.sent", get_packets_cli2srv());
+  lua_push_uint64_table_entry(vm, "packets.rcvd", get_packets_srv2cli());
   lua_push_uint64_table_entry(vm, "packets.last",
 			      get_current_packets_cli2srv() + get_current_packets_srv2cli());
 }
@@ -4720,13 +4688,6 @@ void Flow::lua_get_ip(lua_State *vm, bool client) const {
   const IpAddress *h_ip = client ? get_cli_ip_addr() :  get_srv_ip_addr();
   bool mask_host = true;
 
-  /* 
-   * If the concept of Client and Server changed, I need to consider
-   * the host regarded as Client (get_cli_host) as the server and viceversa
-   */
-  if(is_cli_srv_swapped)
-    client = !client;
-  
   if(h) {
     mask_host = Utils::maskHost(h->isLocalHost());
 
@@ -4755,14 +4716,7 @@ void Flow::lua_get_ip(lua_State *vm, bool client) const {
 void Flow::lua_get_mac(lua_State *vm, bool client) const {
   char buf[24];
   Host *h = client ? get_cli_host() : get_srv_host();
-  
-  /* 
-   * If the concept of Client and Server changed, I need to consider
-   * the host regarded as Client (get_cli_host) as the server and viceversa
-   */
-  if(is_cli_srv_swapped)
-    client = !client;
-  
+
   if(h)
     lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac", Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
 }
@@ -4775,13 +4729,6 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
   const IpAddress *h_ip = client ? get_cli_ip_addr() :  get_srv_ip_addr();
   bool mask_host = true;
 
-  /* 
-   * If the concept of Client and Server changed, I need to consider
-   * the host regarded as Client (get_cli_host) as the server and viceversa
-   */
-  if(is_cli_srv_swapped)
-    client = !client;
-  
   if(h) {
     mask_host = Utils::maskHost(h->isLocalHost());
 
@@ -4792,13 +4739,7 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
 
       lua_push_bool_table_entry(vm, client ? "cli.localhost" : "srv.localhost", h->isLocalHost());
       lua_push_bool_table_entry(vm, client ? "cli.systemhost" : "srv.systemhost", h->isSystemHost());
-
-      /* Concept of Client and Server swapped */
-      if(is_cli_srv_swapped)
-	lua_push_bool_table_entry(vm, client ? "cli.blacklisted" : "srv.blacklisted", !client ? isBlacklistedClient() : isBlacklistedServer());
-      else
-	lua_push_bool_table_entry(vm, client ? "cli.blacklisted" : "srv.blacklisted", client ? isBlacklistedClient() : isBlacklistedServer());
-      
+      lua_push_bool_table_entry(vm, client ? "cli.blacklisted" : "srv.blacklisted", client ? isBlacklistedClient() : isBlacklistedServer());
       lua_push_bool_table_entry(vm, client ? "cli.broadcast_domain_host" : "srv.broadcast_domain_host", h->isBroadcastDomainHost());
       lua_push_bool_table_entry(vm, client ? "cli.dhcpHost" : "srv.dhcpHost", h->isDhcpHost());
       lua_push_int32_table_entry(vm, client ? "cli.network_id" : "srv.network_id", h->get_local_network_id());
@@ -4827,20 +4768,18 @@ void Flow::lua_get_min_info(lua_State *vm) {
   
   lua_newtable(vm);
 
-  /* Checking if the client and server concept */
-  lua_push_str_table_entry(vm, "cli.ip", is_cli_srv_swapped ? get_srv_ip_addr()->print(buf, sizeof(buf)) : get_cli_ip_addr()->print(buf, sizeof(buf)));
-  lua_push_str_table_entry(vm, "srv.ip", is_cli_srv_swapped ? get_cli_ip_addr()->print(buf, sizeof(buf)) : get_srv_ip_addr()->print(buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "cli.ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
+  lua_push_str_table_entry(vm, "srv.ip", get_srv_ip_addr()->print(buf, sizeof(buf)));
 
   if(get_cli_host() && get_cli_host()->isProtocolServer())
-    lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "srv.protocol_server" : "cli.protocol_server", true);
+    lua_push_bool_table_entry(vm, "cli.protocol_server", true);
   else if(get_srv_host() && get_srv_host()->isProtocolServer())
-    lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "cli.protocol_server" : "srv.protocol_server", true);
+    lua_push_bool_table_entry(vm, "srv.protocol_server", true);
 
-  lua_push_int32_table_entry(vm, "cli.port", is_cli_srv_swapped ? get_srv_port() : get_cli_port());
-  lua_push_int32_table_entry(vm, "srv.port", is_cli_srv_swapped ? get_cli_port() : get_srv_port());
-  lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "srv.localhost" : "cli.localhost", cli_host ? cli_host->isLocalHost() : false);
-  lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "cli.localhost" : "srv.localhost", srv_host ? srv_host->isLocalHost() : false);
-  
+  lua_push_int32_table_entry(vm, "cli.port", get_cli_port());
+  lua_push_int32_table_entry(vm, "srv.port", get_srv_port());
+  lua_push_bool_table_entry(vm, "cli.localhost", cli_host ? cli_host->isLocalHost() : false);
+  lua_push_bool_table_entry(vm, "srv.localhost", srv_host ? srv_host->isLocalHost() : false);
   lua_push_int32_table_entry(vm, "duration", get_duration());
   lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
   lua_push_str_table_entry(vm, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
@@ -4848,11 +4787,10 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_str_table_entry(vm, "proto.ndpi_cat", get_protocol_category_name());
   lua_push_uint64_table_entry(vm, "proto.ndpi_cat_id", get_protocol_category());
   lua_push_str_table_entry(vm, "proto.ndpi_breed", get_protocol_breed_name());
-
-  lua_push_uint64_table_entry(vm, "cli2srv.bytes", is_cli_srv_swapped ? get_bytes_srv2cli() : get_bytes_cli2srv());
-  lua_push_uint64_table_entry(vm, "srv2cli.bytes", is_cli_srv_swapped ? get_bytes_cli2srv() : get_bytes_srv2cli());
-  lua_push_uint64_table_entry(vm, "cli2srv.packets", is_cli_srv_swapped ? get_packets_srv2cli() : get_packets_cli2srv());
-  lua_push_uint64_table_entry(vm, "srv2cli.packets", is_cli_srv_swapped ? get_packets_cli2srv() : get_packets_srv2cli());
+  lua_push_uint64_table_entry(vm, "cli2srv.bytes", get_bytes_cli2srv());
+  lua_push_uint64_table_entry(vm, "srv2cli.bytes", get_bytes_srv2cli());
+  lua_push_uint64_table_entry(vm, "cli2srv.packets", get_packets_cli2srv());
+  lua_push_uint64_table_entry(vm, "srv2cli.packets", get_packets_srv2cli());
   if(info) lua_push_str_table_entry(vm, "info", info);
 }
 
@@ -4885,12 +4823,12 @@ double Flow::getSrvRetrPercentage() {
 void Flow::lua_get_tcp_stats(lua_State *vm) const {
   lua_newtable(vm);
 
-  lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", is_cli_srv_swapped ? stats.get_srv2cli_tcp_retr() : stats.get_cli2srv_tcp_retr());
-  lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", is_cli_srv_swapped ? stats.get_srv2cli_tcp_ooo() : stats.get_cli2srv_tcp_ooo());
-  lua_push_uint64_table_entry(vm, "cli2srv.lost", is_cli_srv_swapped ? stats.get_srv2cli_tcp_lost() : stats.get_cli2srv_tcp_lost());
-  lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", is_cli_srv_swapped ? stats.get_cli2srv_tcp_retr() : stats.get_srv2cli_tcp_retr());
-  lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", is_cli_srv_swapped ? stats.get_cli2srv_tcp_ooo() : stats.get_srv2cli_tcp_ooo());
-  lua_push_uint64_table_entry(vm, "srv2cli.lost", is_cli_srv_swapped ? stats.get_cli2srv_tcp_lost() : stats.get_srv2cli_tcp_lost());
+  lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", stats.get_cli2srv_tcp_retr());
+  lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", stats.get_cli2srv_tcp_ooo());
+  lua_push_uint64_table_entry(vm, "cli2srv.lost", stats.get_cli2srv_tcp_lost());
+  lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", stats.get_srv2cli_tcp_retr());
+  lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", stats.get_srv2cli_tcp_ooo());
+  lua_push_uint64_table_entry(vm, "srv2cli.lost", stats.get_srv2cli_tcp_lost());
 }
 
 /* ***************************************************** */
@@ -4927,16 +4865,16 @@ void Flow::lua_device_protocol_allowed_info(lua_State *vm) {
   cli_allowed = (cli_ps == device_proto_allowed);
   srv_allowed = (srv_ps == device_proto_allowed);
 
-  lua_push_int32_table_entry(vm, is_cli_srv_swapped ? "srv.devtype" : "cli.devtype", cli_host->getMac() ? cli_host->getMac()->getDeviceType() : device_unknown);
-  lua_push_int32_table_entry(vm, is_cli_srv_swapped ? "cli.devtype" : "srv.devtype", srv_host->getMac() ? srv_host->getMac()->getDeviceType() : device_unknown);
+  lua_push_int32_table_entry(vm, "cli.devtype", cli_host->getMac() ? cli_host->getMac()->getDeviceType() : device_unknown);
+  lua_push_int32_table_entry(vm, "srv.devtype", srv_host->getMac() ? srv_host->getMac()->getDeviceType() : device_unknown);
 
-  lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "srv.allowed" : "cli.allowed", cli_allowed);
+  lua_push_bool_table_entry(vm, "cli.allowed", cli_allowed);
   if(!cli_allowed)
-    lua_push_int32_table_entry(vm, is_cli_srv_swapped ? "srv.disallowed_proto" : "cli.disallowed_proto", (cli_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol);
+    lua_push_int32_table_entry(vm, "cli.disallowed_proto", (cli_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol);
 
-  lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "cli.allowed" : "srv.allowed", srv_allowed);
+  lua_push_bool_table_entry(vm, "srv.allowed", srv_allowed);
   if(!srv_allowed)
-    lua_push_int32_table_entry(vm, is_cli_srv_swapped ? "cli.disallowed_proto" : "srv.disallowed_proto", (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol);
+    lua_push_int32_table_entry(vm, "srv.disallowed_proto", (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol);
 }
 
 /* ***************************************************** */
@@ -4947,8 +4885,8 @@ void Flow::lua_get_unicast_info(lua_State* vm) const {
 
   lua_newtable(vm);
 
-  if(cli_ip) lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "srv.broadmulticast" : "cli.broadmulticast", cli_ip->isBroadMulticastAddress());
-  if(srv_ip) lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "cli.broadmulticast" : "srv.broadmulticast", srv_ip->isBroadMulticastAddress());
+  if(cli_ip) lua_push_bool_table_entry(vm, "cli.broadmulticast", cli_ip->isBroadMulticastAddress());
+  if(srv_ip) lua_push_bool_table_entry(vm, "srv.broadmulticast", srv_ip->isBroadMulticastAddress());
 }
 
 /* ***************************************************** */
@@ -4982,21 +4920,21 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
     }
 
     if(protos.tls.ja3.client_hash) {
-      lua_push_str_table_entry(vm, is_cli_srv_swapped ? "protos.tls.ja3.server_hash" : "protos.tls.ja3.client_hash", protos.tls.ja3.client_hash);
+      lua_push_str_table_entry(vm, "protos.tls.ja3.client_hash", protos.tls.ja3.client_hash);
 
       if(has_malicious_cli_signature)
-	lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "protos.tls.ja3.server_malicious" : "protos.tls.ja3.client_malicious", true);
+	lua_push_bool_table_entry(vm, "protos.tls.ja3.client_malicious", true);
     }
 
     if(protos.tls.ja3.server_hash) {
-      lua_push_str_table_entry(vm, is_cli_srv_swapped ? "protos.tls.ja3.client_hash" : "protos.tls.ja3.server_hash", protos.tls.ja3.server_hash);
+      lua_push_str_table_entry(vm, "protos.tls.ja3.server_hash", protos.tls.ja3.server_hash);
       lua_push_str_table_entry(vm, "protos.tls.ja3.server_unsafe_cipher",
 			       cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher));
       lua_push_int32_table_entry(vm, "protos.tls.ja3.server_cipher",
 				 protos.tls.ja3.server_cipher);
 
       if(has_malicious_srv_signature)
-	lua_push_bool_table_entry(vm, is_cli_srv_swapped ? "protos.tls.ja3.client_malicious" : "protos.tls.ja3.server_malicious", true);
+	lua_push_bool_table_entry(vm, "protos.tls.ja3.server_malicious", true);
     }
   }
 }
@@ -5005,11 +4943,11 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
 
 void Flow::lua_get_ssh_info(lua_State *vm) const {
   if(isSSH()) {
-    if(protos.ssh.client_signature) lua_push_str_table_entry(vm, is_cli_srv_swapped ? "protos.ssh.server_signature" : "protos.ssh.client_signature", protos.ssh.client_signature);
-    if(protos.ssh.server_signature) lua_push_str_table_entry(vm, is_cli_srv_swapped ? "protos.ssh.client_signature" : "protos.ssh.server_signature", protos.ssh.server_signature);
+    if(protos.ssh.client_signature) lua_push_str_table_entry(vm, "protos.ssh.client_signature", protos.ssh.client_signature);
+    if(protos.ssh.server_signature) lua_push_str_table_entry(vm, "protos.ssh.server_signature", protos.ssh.server_signature);
 
-    if(protos.ssh.hassh.client_hash) lua_push_str_table_entry(vm, is_cli_srv_swapped ? "protos.ssh.hassh.server_hash" : "protos.ssh.hassh.client_hash", protos.ssh.hassh.client_hash);
-    if(protos.ssh.hassh.server_hash) lua_push_str_table_entry(vm, is_cli_srv_swapped ? "protos.ssh.hassh.client_hash" : "protos.ssh.hassh.server_hash", protos.ssh.hassh.server_hash);
+    if(protos.ssh.hassh.client_hash) lua_push_str_table_entry(vm, "protos.ssh.hassh.client_hash", protos.ssh.hassh.client_hash);
+    if(protos.ssh.hassh.server_hash) lua_push_str_table_entry(vm, "protos.ssh.hassh.server_hash", protos.ssh.hassh.server_hash);
   }
 }
 
@@ -5057,23 +4995,23 @@ void Flow::lua_get_tcp_info(lua_State *vm) const {
 			       || stats.get_srv2cli_tcp_lost()
 			       || stats.get_srv2cli_tcp_keepalive()) ? true : false);
 
-    lua_push_float_table_entry(vm, "tcp.nw_latency.client", is_cli_srv_swapped ? toMs(&serverNwLatency) : toMs(&clientNwLatency));
-    lua_push_float_table_entry(vm, "tcp.nw_latency.server", is_cli_srv_swapped ? toMs(&clientNwLatency) : toMs(&serverNwLatency));
+    lua_push_float_table_entry(vm, "tcp.nw_latency.client", toMs(&clientNwLatency));
+    lua_push_float_table_entry(vm, "tcp.nw_latency.server", toMs(&serverNwLatency));
     lua_push_float_table_entry(vm, "tcp.appl_latency", applLatencyMsec);
-    lua_push_float_table_entry(vm, "tcp.max_thpt.cli2srv", is_cli_srv_swapped ? getSrv2CliMaxThpt() : getCli2SrvMaxThpt());
-    lua_push_float_table_entry(vm, "tcp.max_thpt.srv2cli", is_cli_srv_swapped ? getCli2SrvMaxThpt() : getSrv2CliMaxThpt());
+    lua_push_float_table_entry(vm, "tcp.max_thpt.cli2srv", getCli2SrvMaxThpt());
+    lua_push_float_table_entry(vm, "tcp.max_thpt.srv2cli", getSrv2CliMaxThpt());
 
-    lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", is_cli_srv_swapped ? stats.get_srv2cli_tcp_retr() : stats.get_cli2srv_tcp_retr());
-    lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", is_cli_srv_swapped ? stats.get_srv2cli_tcp_ooo() : stats.get_cli2srv_tcp_ooo());
-    lua_push_uint64_table_entry(vm, "cli2srv.lost", is_cli_srv_swapped ? stats.get_srv2cli_tcp_lost() : stats.get_cli2srv_tcp_lost());
-    lua_push_uint64_table_entry(vm, "cli2srv.keep_alive", is_cli_srv_swapped ? stats.get_srv2cli_tcp_keepalive() : stats.get_cli2srv_tcp_keepalive());
-    lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", is_cli_srv_swapped ? stats.get_cli2srv_tcp_retr() : stats.get_srv2cli_tcp_retr());
-    lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", is_cli_srv_swapped ? stats.get_cli2srv_tcp_ooo() : stats.get_srv2cli_tcp_ooo());
-    lua_push_uint64_table_entry(vm, "srv2cli.lost", is_cli_srv_swapped ? stats.get_cli2srv_tcp_lost() : stats.get_srv2cli_tcp_lost());
-    lua_push_uint64_table_entry(vm, "srv2cli.keep_alive", is_cli_srv_swapped ? stats.get_cli2srv_tcp_keepalive() : stats.get_srv2cli_tcp_keepalive());
+    lua_push_uint64_table_entry(vm, "cli2srv.retransmissions", stats.get_cli2srv_tcp_retr());
+    lua_push_uint64_table_entry(vm, "cli2srv.out_of_order", stats.get_cli2srv_tcp_ooo());
+    lua_push_uint64_table_entry(vm, "cli2srv.lost", stats.get_cli2srv_tcp_lost());
+    lua_push_uint64_table_entry(vm, "cli2srv.keep_alive", stats.get_cli2srv_tcp_keepalive());
+    lua_push_uint64_table_entry(vm, "srv2cli.retransmissions", stats.get_srv2cli_tcp_retr());
+    lua_push_uint64_table_entry(vm, "srv2cli.out_of_order", stats.get_srv2cli_tcp_ooo());
+    lua_push_uint64_table_entry(vm, "srv2cli.lost", stats.get_srv2cli_tcp_lost());
+    lua_push_uint64_table_entry(vm, "srv2cli.keep_alive", stats.get_srv2cli_tcp_keepalive());
 
-    lua_push_uint64_table_entry(vm, "cli2srv.tcp_flags", is_cli_srv_swapped ? dst2src_tcp_flags : src2dst_tcp_flags);
-    lua_push_uint64_table_entry(vm, "srv2cli.tcp_flags", is_cli_srv_swapped ? src2dst_tcp_flags : dst2src_tcp_flags);
+    lua_push_uint64_table_entry(vm, "cli2srv.tcp_flags", src2dst_tcp_flags);
+    lua_push_uint64_table_entry(vm, "srv2cli.tcp_flags", dst2src_tcp_flags);
 
     lua_push_bool_table_entry(vm, "tcp_established", isTCPEstablished());
     lua_push_bool_table_entry(vm, "tcp_connecting", isTCPConnecting());
@@ -5087,9 +5025,6 @@ void Flow::lua_get_tcp_info(lua_State *vm) const {
 void Flow::lua_get_port(lua_State *vm, bool client) const {
   u_int16_t h_port = client ? get_cli_port() : get_srv_port();
 
-  if(is_cli_srv_swapped)
-    client = !client;
-  
   lua_push_uint64_table_entry(vm, client ? "cli.port" : "srv.port", h_port);
 }
 
@@ -5100,20 +5035,12 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
   float latitude, longitude;
   char buf[32];
 
-  if(is_cli_srv_swapped)
-    client = !client;
-
   if(h) {
     if(coords) {
       h->get_geocoordinates(&latitude, &longitude);
 
-      if(is_cli_srv_swapped) {
-	lua_push_float_table_entry(vm, client ? "srv.latitude" : "cli.latitude", latitude);
-	lua_push_float_table_entry(vm, client ? "srv.longitude" : "cli.longitude", longitude);
-      } else {
-	lua_push_float_table_entry(vm, client ? "cli.latitude" : "srv.latitude", latitude);
-	lua_push_float_table_entry(vm, client ? "cli.longitude" : "srv.longitude", longitude);
-      }
+      lua_push_float_table_entry(vm, client ? "cli.latitude" : "srv.latitude", latitude);
+      lua_push_float_table_entry(vm, client ? "cli.longitude" : "srv.longitude", longitude);
     }
 
     if(country_city) {
@@ -5373,8 +5300,8 @@ void Flow::lua_entropy(lua_State* vm) {
   if(entropy.c2s && entropy.s2c) {
     lua_newtable(vm);
 
-    lua_push_float_table_entry(vm, is_cli_srv_swapped ? "server" : "client", getEntropy(true));
-    lua_push_float_table_entry(vm, is_cli_srv_swapped ? "client" : "server", getEntropy(false));
+    lua_push_float_table_entry(vm,  "client", getEntropy(true));
+    lua_push_float_table_entry(vm,  "server", getEntropy(false));
 
     lua_pushstring(vm, "entropy");
     lua_insert(vm, -2);
