@@ -54,6 +54,7 @@ Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
 
   while(head) {
     if(!head->idle()
+       && !head->is_swap_done() /* Do NOT return flows for which swap has been done. Leave them so they will be marked as idle and disappear */
        && head->equal(src_ip, dst_ip, src_port, dst_port, vlanId, protocol, icmp_info, src2dst_direction)) {
       if(num_loops > max_num_loops) {
 	ntop->getTrace()->traceEvent(TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);

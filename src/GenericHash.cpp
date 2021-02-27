@@ -333,6 +333,12 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle, bool fu
 	buckets_checked++;
 
 	switch(head_state) {
+	case hash_entry_state_idle:
+	  /* As an idle entry is always removed immediately from the hash table
+	     This walk should never find any such entry */
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Unexpected state found [%u]", head_state);
+	  break;
+
 	case hash_entry_state_allocated:
 	  /* TCP flows with 3WH not yet completed (or collected with no TCP flags) fall here */
 	  /* Don't break */
@@ -351,15 +357,9 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle, bool fu
 	  if(force_idle) goto detach_idle_hash_entry;
 	  break;
 
-	case hash_entry_state_idle:
-	  /*
-	    Idle flows can be in the hash table as a flow can be swapped and immediately set
-	    to idle when the heuristic to determine actual client and server is used
-	    https://github.com/ntop/ntopng/issues/5058
-	  */
 	case hash_entry_state_active:
-	  if(head_state == hash_entry_state_idle
-	     || force_idle
+	  if(
+	     force_idle
 	     || (
 		 iface->is_purge_idle_interface()
 		 && head->is_hash_entry_state_idle_transition_ready())
@@ -402,18 +402,9 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle, bool fu
     advance(it, idle_entries_shadow_old_size);
 
     for(; it != idle_entries_shadow->end(); it++) {
-      if((*it)->get_state() != hash_entry_state_idle)
-	(*it)->set_hash_entry_state_idle();
-
-      /*
-	Now that the entry has been set to idle, housekeep can executed one last time
-      */
+      (*it)->set_hash_entry_state_idle();
+      /* Now that the entry has been set to idle, housekeep can executed one last time */
       (*it)->housekeep(now);
-
-      /*
-	Count the number of transitions, that is, the number of times an idle entry
-	has been inserted into the hash table
-       */
       entry_state_transition_counters.num_idle_transitions++;
     }
   }

@@ -396,7 +396,7 @@ class Flow : public GenericHashEntry {
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
 		    u_int in_fragments, u_int out_fragments,
 		    time_t first_seen, time_t last_seen);
-  void check_swap();
+  bool check_swap(u_int32_t tcp_flags);
   
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };
@@ -489,6 +489,7 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_srv2cli() const;
 
   inline bool is_swap_requested()  const { return swap_requested;  };
+  inline bool is_swap_done()       const { return swap_done;       };
   inline void set_swap_done()            { swap_done = true;       };
   bool is_hash_entry_state_idle_transition_ready() const;
   void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial,

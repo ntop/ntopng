@@ -402,6 +402,7 @@ void Flow::processDetectedProtocol() {
   u_int16_t l7proto;
   u_int16_t stats_protocol;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
+  bool swapped;
 
   stats_protocol = getStatsProtocol();
 
@@ -412,49 +413,38 @@ void Flow::processDetectedProtocol() {
 
   l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
 
-  check_swap();
+  swapped = check_swap(getTcpFlags());
+
+  /* If peers should be swapped, then pointers are inverted */
+  if(swapped) {
+    Host *tmp_h = cli_h;
+    cli_h = srv_h;
+    srv_h = tmp_h;
+  }
 
   switch(l7proto) {
   case NDPI_PROTOCOL_DHCP:
-    if(cli_port == ntohs(67) /* client */ && cli_h) {
-      cli_h->setDhcpServer();
-    } else if(srv_port == ntohs(67) /* server */ && srv_h)
-      srv_h->setDhcpServer();
+    if(srv_h) srv_h->setDhcpServer();
     break;
 
   case NDPI_PROTOCOL_NTP:
-    if(cli_h && cli_port == ntohs(123))  {
-      cli_h->setNtpServer();
-      if(srv_h) srv_h->incNTPContactCardinality(cli_h); 
-    } else if(srv_h && srv_port == ntohs(123)) {
+    if(srv_h) {
       srv_h->setNtpServer();
-
       if(cli_h) cli_h->incNTPContactCardinality(srv_h);
     }
     break;
 
   case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_SMTP:
-    if(srv_h
-       && (srv_port == ntohs(25) || srv_port == ntohs(465) || srv_port == ntohs(587))) {
+    if(srv_h) {
       srv_h->setSmtpServer();
-
       if(cli_h) cli_h->incSMTPContactCardinality(srv_h);
-    } else if(cli_h
-	      && (cli_port == ntohs(25) || cli_port == ntohs(465) || cli_port == ntohs(587))) {
-      cli_h->setSmtpServer();
-      if(srv_h) srv_h->incSMTPContactCardinality(cli_h);
     }
     break;
 
   case NDPI_PROTOCOL_DNS:
-    if(cli_h && cli_port == ntohs(53)) {
-      cli_h->setDnsServer();
-
-      if(srv_h) srv_h->incDNSContactCardinality(cli_h);
-    } else if(srv_h && srv_port == ntohs(53))  {
+    if(srv_h) {
       srv_h->setDnsServer();
-
       if(cli_h) cli_h->incDNSContactCardinality(srv_h);
     }
     break;
@@ -2860,7 +2850,7 @@ void Flow::housekeep(time_t t) {
     }
     break;
   case hash_entry_state_flow_protocoldetected:
-    if(!swap_requested) /* The flow will be swapped, hook execution will occur on the swapped flow. */
+    if(!is_swap_requested()) /* The flow will be swapped, hook execution will occur on the swapped flow. */
       hookProtocolDetectedCheck(t);
     break;
   case hash_entry_state_active:
@@ -2875,8 +2865,8 @@ void Flow::housekeep(time_t t) {
     if(swap_requested && !swap_done) /* Swap requested but never performed (no more packets seen) */
       hookProtocolDetectedCheck(t);
 
-    if(!swap_requested /* Swap not requested */
-       || (swap_requested && !swap_done)) /* Or requested but never performed (no more packets seen) */
+    if(!is_swap_requested() /* Swap not requested */
+       || (is_swap_requested() && !is_swap_done())) /* Or requested but never performed (no more packets seen) */
       hookFlowEndCheck(t);
     dumpCheck(t, true /* LAST dump before delete */);
     break;
@@ -5406,16 +5396,19 @@ void Flow::triggerZeroWindowAlert(bool *as_client, bool *as_server) {
 
 /* *************************************** */
 
-void Flow::check_swap() {
+bool Flow::check_swap(u_int32_t tcp_flags) {
   /*
     This is the heuristic "For TCP flows for which the 3WH has not been observed..."
     at https://github.com/ntop/ntopng/issues/5058
     NOTE: for non TCP-flows, the heuristic is always applied
   */
   if(get_cli_ip_addr()->isNonEmptyUnicastAddress() /* Don't touch non-unicast addresses */
-     && (!isTCP() || !isTCPEstablished())
+     && (!isTCP()
+	 || !(tcp_flags & TH_SYN) /* Neither the first SYN nor the second SYN+ACK */)
      && get_cli_port() < 1024 && get_cli_port() < get_srv_port())
     swap_requested = true;
+
+  return swap_requested;
 }
 
 /* *************************************** */
