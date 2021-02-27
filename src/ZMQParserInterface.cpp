@@ -1136,7 +1136,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 	 && ntohs(flow->src_port) < ntohs(flow->dst_port)
 	 && flow->in_pkts && flow->out_pkts /* Make sure there's traffic in both directions */
 	      && (flow->l4_proto != IPPROTO_TCP  /* Not TCP or TCP but without 3WH (See https://github.com/ntop/ntopng/issues/5058) */
-	     || !((flow->tcp.server_tcp_flags | flow->tcp.server_tcp_flags | flow->tcp.tcp_flags) & TH_SYN)))
+	     || !((flow->tcp.server_tcp_flags | flow->tcp.client_tcp_flags | flow->tcp.tcp_flags) & TH_SYN)))
       /* Attempt to determine flow client and server using port numbers
 	 useful when exported flows are mono-directional
 	 https://github.com/ntop/ntopng/issues/1978 */
