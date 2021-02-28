@@ -109,6 +109,7 @@ for k,v in ipairs(alerts) do
       column_date  = secondsToTime(tdiff).. " " ..i18n("details.ago")
    else
       column_date = format_utils.formatPastEpochShort(v["alert_tstamp"])
+      column_date = column_date:gsub("%s", "<br>")
    end
 
    if engaged == true then
