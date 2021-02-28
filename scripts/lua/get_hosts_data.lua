@@ -200,7 +200,11 @@ if(hosts_stats ~= nil) then
       elseif custom_column_utils.isCustomColumn(sortColumn) then
 	 custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(sortColumn)
 	 local val = custom_column_utils.hostStatsToColumnValue(hosts_stats[key], custom_column_key, false)
-	 vals[val + postfix] = key
+	 if tonumber(val) then
+	    vals[val + postfix] = key
+	 else
+	    vals[val..postfix] = key
+	 end
       else
 	 vals[key] = key
       end

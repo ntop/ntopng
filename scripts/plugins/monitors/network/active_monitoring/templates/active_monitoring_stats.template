@@ -126,6 +126,6 @@
     let import_csrf = "{{ ntop.getRandomCSRFValue()}}";
     const measurements_info = {*json.encode(am_stats.measurements_info)*};
     const poolsFilter = {* json.encode(am_stats.pool_filters)*};
-
+    const SHOW_IFACE = {{ ntop.isPingIfaceAvailable() }};
 </script>
 <script type='text/javascript' src='{{ plugins_utils.getHttpdocsDir("active_monitoring")}}/active_monitoring_utils.js?{{ ntop.getStaticFileEpoch() }}'></script>

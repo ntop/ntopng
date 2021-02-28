@@ -24,7 +24,7 @@ local nindex_utils = nil
 local info = ntop.getInfo()
 local auth = require "auth"
 
-local email_peer_pattern = [[^(([A-Za-z0-9._%+-]|\s)+<)?[A-Za-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,6}>?$]]
+local email_peer_pattern = [[^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)$]]
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
@@ -196,12 +196,6 @@ function printInterfaces()
 	pref = "override_src_with_post_nat_src",
   })
 
-  prefsToggleButton(subpage_active, {
-	field = "toggle_src_and_dst_using_ports",
-	default = "0",
-	pref = "use_ports_to_determine_src_and_dst",
-  })
-
   print('<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">'..i18n("save")..'</button></th></tr>')
   print('</table>')
   print [[<input name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print [[" />
@@ -236,8 +230,7 @@ function printAlerts()
 
  local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts",
 			   "row_alerts_retention_header", "row_alerts_settings_header", "row_alerts_security_header",
-			   "row_toggle_remote_to_remote_alerts",
-			   "row_toggle_ip_reassignment_alerts", "row_alerts_informative_header",
+			   "row_alerts_informative_header",
 			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert",
 			}
 
@@ -801,7 +794,7 @@ function printNetworkBehaviour()
 			field = "toggle_behaviour_analysis",
 			default = "0",
 			pref = "is_behaviour_analysis_enabled", -- redis preference
-			to_switch = {"learning-status-thead", "behaviour_analysis_learning_period", "row_behaviour_analysis_learning_status_during_learning", "row_behaviour_analysis_learning_status_post_learning"},
+			to_switch = {"learning-status-thead", "behaviour_analysis_learning_period", "row_behaviour_analysis_learning_status_during_learning", "row_behaviour_analysis_learning_status_post_learning", "iec60870_learning_period"},
    })
 
    local is_behaviour_analysis_enabled = ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1"
@@ -837,14 +830,12 @@ function printNetworkBehaviour()
       false,
       {}, nil, nil, is_behaviour_analysis_enabled --[[show]])
 
-   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..i18n("prefs.iec60870")..'</th></tr></thead>')
-
    prefsInputFieldPrefs(
       subpage_active["iec60870_learning_period"].title, 
       subpage_active["iec60870_learning_period"].description,
       "ntopng.prefs.","iec60870_learning_period",
       prefs.iec60870_learning_period,
-      "number", nil, nil, nil, {min=21600, tformat="h"})
+      "number", nil, nil, nil, {min=21600, tformat="hd"})
 
    -- #####################
    
@@ -1205,6 +1196,12 @@ function printStatsTimeseries()
     field = "toggle_country_rrds",
     default = "0",
     pref = "country_rrd_creation",
+  })
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_os_rrds",
+    default = "0",
+    pref = "os_rrd_creation",
   })
 
   if ntop.isPro() then

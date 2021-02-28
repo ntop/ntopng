@@ -37,7 +37,7 @@ local function checkExternalAlert()
       local cli_score = 100
       local srv_score = 100
 
-      local alert = alert_consts.alert_types.external_alert.new(
+      local alert = alert_consts.alert_types.alert_external.new(
         info
       )
         

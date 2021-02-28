@@ -144,6 +144,12 @@ NTOPNG_VERS=`cat ../../configure.ac | head -2 | grep 'C_INIT' | cut -d " " -f 2 
 GIT_RELEASE=`git rev-parse HEAD`
 GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
 
+LICENSEDIR="`pwd`/../../../license"
+if test -d $LICENSEDIR; then
+  LICENSE_VERS=`$LICENSEDIR/packages/version.sh --release`
+  EXTRA_DEPS="$EXTRA_DEPS, ntop-license (=$LICENSE_VERS)" 
+fi
+
 DATE=`date -R`
 KERNEL=`uname -r`
 

@@ -93,9 +93,7 @@
 #ifndef WIN32
 #include <grp.h>
 #endif
-#ifdef HAVE_TEST_MODE
-#include <libgen.h>
-#endif
+//#include <libgen.h>
 #if defined(__linux__)
 #include <linux/ethtool.h> // ethtool
 #include <linux/sockios.h> // sockios
@@ -195,7 +193,6 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 using namespace std;
 
 #include "mongoose.h"
-#include "patricia.h"
 #include "ntop_defines.h"
 #include "Mutex.h"
 #include "RwLock.h"
@@ -209,6 +206,7 @@ using namespace std;
 #include "VlanAddressTree.h"
 #include "BroadcastDomains.h"
 #include "Cardinality.h"
+#include "PeerStats.h"
 #include "IpAddress.h"
 #include "Ping.h"
 #include "ContinuousPingStats.h"
@@ -387,9 +385,10 @@ using namespace std;
 #include "ViewInterfaceFlowStats.h"
 #include "FlowTrafficStats.h"
 #include "HostStats.h"
-#include "LocalHostStats.h"
 #include "HostScore.h"
 #include "Host.h"
+#include "BehaviouralCounter.h"
+#include "LocalHostStats.h"
 #include "LocalHost.h"
 #include "RemoteHost.h"
 #include "IEC104Stats.h"

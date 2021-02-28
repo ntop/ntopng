@@ -1,0 +1,19 @@
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item" aria-current="page">
+            <i class="{{ breadcrumb_icon }}"></i>
+            {{ i18n_title }}
+        </li>
+        {% for _, item in ipairs(items) do %}
+            <li class="breadcrumb-item" aria-current="page">
+                <a {% if item.href then %} href="{{ item.href }}" {% end %} class="{{ (item.active and 'active' or '') }}">
+                    {% if item.active then %}
+                        <b>{{ item.label }}</b>
+                    {% else %}
+                        {{ item.label }}
+                    {% end %}
+                </a>
+            </li>
+        {% end %}
+    </ol>
+</nav>

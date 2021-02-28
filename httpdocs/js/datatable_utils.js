@@ -57,11 +57,15 @@ function datatableAddButtonCallback(td_idx, label, bs_class, callback_str, link,
 }
 
 function datatableAddDeleteButtonCallback(td_idx, callback_str, label) {
-   datatableAddButtonCallback.bind(this)(td_idx, label, "btn-danger", callback_str, "javascript:void(0)");
+    datatableAddButtonCallback.bind(this)(td_idx, label, "btn-danger", callback_str, "javascript:void(0)", true, 'Delete');
 }
 
-function datatableAddActionButtonCallback(td_idx, callback_str, label, visible = true) {
-   datatableAddButtonCallback.bind(this)(td_idx, label, "btn-info", callback_str, "javascript:void(0)", visible);
+function datatableAddActionButtonCallback(td_idx, callback_str, label, visible = true, title = '') {
+    datatableAddButtonCallback.bind(this)(td_idx, label, "btn-info", callback_str, "javascript:void(0)", visible, title);
+}
+    
+function datatableAddFilterButtonCallback(td_idx, callback_str, label, title = '', visible = true) {
+    datatableAddButtonCallback.bind(this)(td_idx, label, "btn-warning", callback_str, "javascript:void(0)", visible, title);
 }
 
 function datatableAddLinkButtonCallback(td_idx, link, label, title = '') {

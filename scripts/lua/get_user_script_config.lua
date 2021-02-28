@@ -57,7 +57,8 @@ end
 local result = {
   hooks = {},
   gui = {},
-  metadata = {}
+  metadata = {},
+  filters = {}
 }
 
 if(script.gui) then
@@ -84,7 +85,38 @@ if (script.is_alert) then
   result.metadata.is_alert = script.is_alert
 end
 
+-- Getting filter configurations
+local filter_conf = config_set["filters"]
+if not filter_conf then
+   goto try_filter_default_conf
+end
+
+if not filter_conf[subdir] then
+   goto try_filter_default_conf
+end
+
+if not filter_conf[subdir][script_key] then
+   goto try_filter_default_conf
+end
+
+if not filter_conf[subdir][script_key]["filter"] then
+   goto try_filter_default_conf
+end
+result.filters = filter_conf[subdir][script_key]["filter"]
+
+if table.len(result.filters) > 0 then
+   goto skip_filter_conf
+end
+-------------------------------
+::try_filter_default_conf::
+-- No configuration found, trying to check if there is a default filter configured
+result.filters = user_scripts.getDefaultFilters(interface.getId(), subdir, script_key)
+
+::skip_filter_conf:: 
+-------------------------------
 local hooks_config = user_scripts.getScriptConfig(config_set, script, subdir)
+
+-- script.template:render(hooks_config)
 
 for hook, config in pairs(hooks_config) do
   local granularity_info = alert_consts.alerts_granularities[hook]

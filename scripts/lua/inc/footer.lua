@@ -178,7 +178,6 @@ print([[
 		  // by a form request
 		  // prevent the non admin user to switch in system interface
 		  const isAdmin = ]].. (is_admin and "true" or "false") ..[[;
-		  if (!isAdmin) return;
 
 		  const flag = (isSystemSwitching && isAdmin) ? "1" : "0";
 

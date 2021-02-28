@@ -14,7 +14,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
-local alert_utils = require "alert_utils"
 local user_scripts = require("user_scripts")
 local alert_consts = require("alert_consts")
 local flow_consts = require("flow_consts")
@@ -31,6 +30,7 @@ local do_benchmark = false         -- Compute benchmarks and store their results
 local do_print_benchmark = false   -- Print benchmarks results to standard output
 local do_trace = false             -- Trace lua calls
 local flows_config = nil
+local flows_filters = nil
 local score_enabled = nil
 
 local available_modules = nil
@@ -74,20 +74,29 @@ end
 -- #################################################################
 
 local function prioritizeL4Callabacks(l4_hooks)
+   local group_mods_by_prio = {}
+   local mods_by_prio = {}
+
    -- Set the priority to the `prio` indicated in the module, or to zero,
    -- if no `prio` is indicated
-   local mod_prios = {}
    for mod_key, mod in pairs(available_modules.modules) do
-      mod_prios[mod_key] = tonumber(mod.prio) or 0
+      local prio = tonumber(mod.prio) or 0
+      if not group_mods_by_prio[prio] then
+        group_mods_by_prio[prio] = {}
+      end
+      group_mods_by_prio[prio][mod_key] = mod
    end
 
    -- Sort available modules by descending `prio`
    -- That is from lower (negative) to higher (positive) priorities
    -- E.g., a prio -20 is executed after a prio 0 which, in turn, is executed
    -- after a prio 20
-   local mods_by_prio = {}
-   for mod_key, mod_prio in pairsByValues(mod_prios, rev) do
-      mods_by_prio[#mods_by_prio + 1] = mod_key
+   -- Modules with the same prio are sorted by key, to determinitically
+   -- evaluate modules and produce results
+   for prio, mods in pairsByKeys(group_mods_by_prio, rev) do
+      for key, mod in pairsByKeys(mods, asc) do
+         mods_by_prio[#mods_by_prio + 1] = key
+      end
    end
 
    -- Updates l4_hooks and convert modules to ordered lua arrays
@@ -131,8 +140,9 @@ function setup()
 
    local configsets = user_scripts.getConfigsets()
 
-   -- Flows config is system-wide, always take the DEFAULT_CONFIGSET_ID
+   -- Flows config and filters are system-wide, always take the DEFAULT_CONFIGSET_ID
    flows_config, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
+   flows_filters = user_scripts.getFiltersById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
    alerted_user_script = nil
 
    -- To execute flows, the viewed interface id is used instead, as flows reside in the viewed interface, not in the view
@@ -356,7 +366,7 @@ local function call_modules(l4_proto, master_id, app_id, mod_fn, update_ctr)
 
    -- Only trigger the alert if its score is greater than the currently
    -- triggered alert score (when score is supported)
-   if areAlertsEnabled() and alerted_status and alerted_status_score > flow.getAlertedStatusScore() then
+   if areAlertsEnabled() and alerted_status and (not flow.isAlerted() or alerted_status_score > flow.getAlertedStatusScore()) then
       -- Only trigger if the `alerted_status` has no `status_always_notify`. When the `alerted_status`
       -- has `status_always_notify` set to true, the alert has already been triggered.
       if not alerted_status.alert_type.status_always_notify then
@@ -370,10 +380,6 @@ end
 -- #################################################################
 
 local function setStatus(status_info, flow_score, cli_score, srv_score)
-   flow_score = math.min(math.max(flow_score or 0, 0), flow_consts.max_score)
-   cli_score = math.min(math.max(cli_score or 0, 0), flow_consts.max_score)
-   srv_score = math.min(math.max(srv_score or 0, 0), flow_consts.max_score)
-
    -- A status is always set multiple times, causing flow scores to be increased every time, unless
    -- an explicity flag `status_keep_increasing_scores` is telling not to do so.
    -- There are flows (e.g., those representing security risks) where it is meaningful to increase scores multiple times
@@ -394,12 +400,22 @@ end
 -- set a flow status bit. The status_info of the alerted status is
 -- saved for later use.
 function flow.triggerStatus(status_info, flow_score, cli_score, srv_score)
-   flow_score = flow_score or 0
+   flow_score = math.min(math.max(flow_score or 0, 0), flow_consts.max_score)
+   cli_score = math.min(math.max(cli_score or 0, 0), flow_consts.max_score)
+   srv_score = math.min(math.max(srv_score or 0, 0), flow_consts.max_score)
 
    if(tonumber(status_info) ~= nil) then
       tprint("Invalid status_info")
       tprint(debug.traceback())
       return
+   end
+
+   -- Check if there is an alert filter for this guy and possibly exclude the generation
+   if cur_user_script and cur_user_script.key and flows_filters then
+      if user_scripts.matchExcludeFilter(flows_filters, cur_user_script, "flow") then
+	 -- This flow is matching an exclusion filter. return, and don't trigger anything
+	 return
+      end
    end
 
    -- Decide if this triggered status is also the alerted status, that is, the predominant

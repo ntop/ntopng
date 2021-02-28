@@ -10,14 +10,22 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
+
 local os_utils = require("os_utils")
 local json = require("dkjson")
 local plugins_utils = require("plugins_utils")
 local alert_consts = require "alert_consts"
+local http_lint = require("http_lint")
+local ipv4_utils = require "ipv4_utils"
+local pools_lua_utils = require "pools_lua_utils"
 
 local info = ntop.getInfo()
 
 local user_scripts = {}
+
+-- ##############################################
+
+local filters_debug = false
 
 -- ##############################################
 
@@ -48,6 +56,7 @@ user_scripts.operator_functions = {
 
 -- ##############################################
 
+local NUM_FILTERED_KEY = "ntopng.cache.user_scripts.exclusion_counter.subdir_%s.script_key_%s"
 local REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY = "ntopng.cache.ifid_%i.user_scripts.request.granularity_%s"
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
@@ -61,21 +70,294 @@ local available_subdirs = {
       id = "host",
       label = "hosts",
       pools = "host_pools",
+      filter = {
+	 default_fields = { "alert_entity_val" },
+	 available_fields = {
+	    alert_entity_val = {
+	       lint = http_lint.validateNetworkWithVLAN, -- .e.g., 192.168.2.1@3, 192.168.2.0/24@0
+	       match = function(context, val)
+		  -- TODO: Add CIDR
+		  -- Do the comparison
+		  if not context or context.alert_entity ~= alert_consts.alertEntity("host") then
+		     return false
+		  end
+
+		  return table.compare(hostkey2hostinfo(val), hostkey2hostinfo(context.alert_entity_val))
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("(alert_entity = %u AND alert_entity_val = '%s')", alert_consts.alertEntity("host"), val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	 },
+      },
    }, {
       id = "interface",
       label = "interfaces",
       pools = "interface_pools",
+      filter = {
+	 default_fields = { "alert_entity_val" },
+	 available_fields = {
+	    alert_entity_val = {
+	       lint = http_lint.validateInterface, -- An interface id
+	       match = function(context, val)
+		  -- Do the comparison
+		  if not context or context.alert_entity ~= alert_consts.alertEntity("interface") then
+		     return false
+		  end
+
+		  -- Match on the interface id
+		  return tonumber(val) == tonumber(context.alert_entity_val)
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("(alert_entity = %u AND alert_entity_val = '%s')", alert_consts.alertEntity("interface"), val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	 },
+      },
    }, {
       id = "network",
       label = "networks",
       pools = "local_network_pools",
+      filter = {
+	 default_fields = { "alert_entity_val" },
+	 available_fields = {
+	    alert_entity_val = {
+	       lint = http_lint.validateNetworkWithVLAN, -- A local network
+	       match = function(context, val)
+		  -- Do the comparison
+		  if not context or context.alert_entity ~= alert_consts.alertEntity("network") then
+		     return false
+		  end
+
+		  -- Match on the interface id
+		  return val == context.alert_entity_val
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("(alert_entity = %u AND alert_entity_val = '%s')", alert_consts.alertEntity("network"), val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	 },
+      },
    }, {
       id = "snmp_device",
       label = "host_details.snmp",
       pools = "snmp_device_pools",
+      filter = {
+	 default_fields = { "alert_entity_val" },
+	 available_fields = {
+	    alert_entity_val = {
+	       lint = http_lint.validateHost, -- The IP address of an SNMP device
+	       match = function(context, val)
+		  -- Do the comparison
+		  if not context or context.alert_entity ~= alert_consts.alertEntity("snmp_device") then
+		     return false
+		  end
+
+		  -- Match the SNMP device
+		  return val == context.alert_entity_val
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("(alert_entity = %u AND alert_entity_val = '%s')", alert_consts.alertEntity("snmp_device"), val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	 },
+      },     
    }, {
       id = "flow",
       label = "flows",
+      -- User script execution filters (field names are those that arrive from the C Flow.cpp)
+      filter = {
+	 -- Default fields populated automatically when creating filters
+	 default_fields   = {"srv_addr", "srv_port", "l7_proto", "proto" },
+	 -- All possible filter fields
+	 available_fields = {
+	    cli_addr = {
+	       lint = http_lint.validateNetwork,
+	       match = function(context, val)
+		  local client_ip = flow.getClientIp()
+		  -- Attempt exact match
+		  if client_ip == val then return true end
+		  -- Attempt IPv4 network match
+		  local network, netmask = ipv4_utils.cidr_2_addr(val)
+		  if network and netmask then return ipv4_utils.includes(network, netmask, client_ip) end
+		  -- No match
+		  return false
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("cli_addr = '%s'", val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	    cli_port = {
+	       lint = http_lint.validatePort,
+	       match = function(context, val) return flow.getClientPort() == tonumber(val) end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("cli_port = %u", val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       end,
+	    },
+	    srv_addr = {
+	       lint = http_lint.validateNetwork,
+	       match = function(context, val)
+		  local server_ip = flow.getServerIp()
+		  -- Attempt exact match
+		  if server_ip == val then return true end
+		  -- Attempt IPv4 network match
+		  local network, netmask = ipv4_utils.cidr_2_addr(val)
+		  if network and netmask then return ipv4_utils.includes(network, netmask, server_ip) end
+		  -- No match
+		  return false
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("srv_addr = '%s'", val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (alert[filter] == val))
+	       end,
+	    },
+	    srv_port = {
+	       lint = http_lint.validatePort,
+	       match = function(context, val) return flow.getServerPort() == tonumber(val) end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("srv_port = %u", val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       end,
+	    },
+	    l7_proto = {
+	       lint = http_lint.validateProtocolIdOrName,
+	       match = function(context, val)
+		  -- If val is the application name, then it is converted to application id
+		  if not tonumber(val) then val = interface.getnDPIProtoId(val) end
+		  -- For integers represented as strings
+		  val = tonumber(val)
+		  -- Check for equality on either the master or application ids
+		  return flow.getnDPIMasterProtoId() == val or flow.getnDPIAppProtoId() == val
+	       end,
+	       sqlite = function(val)
+		  -- If val is the application name, then it is converted to application id
+		  if not tonumber(val) then val = interface.getnDPIProtoId(val) end
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  -- Match both on the master and app proto
+		  return string.format("(l7_proto = %u OR l7_master_proto = %u)", val, val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  -- Converting value into it's id if value is under string format
+		  local value = tonumber(val)
+		  if not value then value = interface.getnDPIProtoId(val) end
+
+		  return (alert[filter] and (tonumber(alert[filter]) == value))
+	       end,
+	    },
+	    proto = {
+	       lint = http_lint.validateProtocolIdOrName,
+	       match = function(context, val)
+		  -- If val is the protocol name, then it is converted to L4 protocol id
+		  if not tonumber(val) then val = l4_proto_to_id(val) end
+		  -- Check for equality on either the master or application protocol
+		  return flow.getProtocol() == tonumber(val)
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("proto = %u", val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  -- Converting value into it's id if value is under string format
+		  local value = tonumber(val)
+		  if not value then value = l4_proto_to_id(val) end
+		  
+		  return (alert[filter] and (tonumber(alert[filter]) == value))
+	       end,
+	    },
+	    flow_risk_bitmap = {
+	       lint = http_lint.validateNumber,
+	       match = function(context, val)
+		  -- Convert the string-bitmap to a number
+		  val = tonumber(val)
+		  -- Check if there's at least one risk in common between val
+		  -- and the actual flow bitmap of risks
+		  return (val & flow.getRiskBitmap()) ~= 0
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  return string.format("flow_risk_bitmap = %u", val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  return (alert[filter] and (tonumber(alert[filter]) == tonumber(val)))
+	       end,
+	    },
+	    info = {
+	       lint = http_lint.validateSingleWord,
+	       match = function(context, val)
+		  -- Search for substring val inside the flow info field
+		  return not not flow.getFlowInfoField():find(val)
+	       end,
+	       sqlite = function(val)
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  -- As the info is stored inside the JSON alert, it is necessary to
+		  -- use sqlite json_extract to access it
+		  return string.format("json_extract(alert_json, '$.info') like '%%%s%%'", val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  -- Search for substring val inside the flow info field
+		  if alert_json and val then
+		     return (alert_json[filter] and alert_json[filter]:find(val))
+		  end
+		  return false
+	       end,
+	    },
+	    l7_cat = {
+	       lint = http_lint.validateCategory,
+	       match = function(context, val)
+		  -- If val is the application name, then it is converted to application id
+		  if not tonumber(val) then val = interface.getnDPICategoryId(val) end
+		  -- For integers represented as strings
+		  val = tonumber(val)
+		  -- Check for equality on either the master or application ids
+		  return flow.getnDPICategoryId() == val
+	       end,
+	       sqlite = function(val)
+		  -- If val is the application name, then it is converted to application id
+		  if not tonumber(val) then val = interface.getnDPICategoryId(val) end
+		  -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
+		  -- Match both on the master and app proto
+		  return string.format("l7_cat = %u", val)
+	       end,
+	       find = function(alert, alert_json, filter, val)
+		  -- If val is the application name, then it is converted to application id
+		  local value = tonumber(val)
+		  if not value then value = interface.getnDPICategoryId(val) end
+		  
+		  return (alert[filter] and (tonumber(alert[filter]) == value))
+	       end,
+	    },
+	 },
+      },
       -- No pools for flows
    }, {
       id = "system",
@@ -192,6 +474,19 @@ function user_scripts.getScriptType(search_subdir)
 
    -- Not found
    return(nil)
+end
+
+-- ##############################################
+
+-- @brief Given a subdir, returns the corresponding numeric id
+local function getSubdirId(subdir_name)
+   for id, values in pairs(available_subdirs) do
+      if values["id"] == subdir_name then
+	 return id
+      end
+   end
+
+   return -1
 end
 
 -- ##############################################
@@ -431,9 +726,41 @@ end
 
 -- ##############################################
 
-local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
-   local user_scripts_templates = require("user_scripts_templates")
+-- @brief Tries and load a script template, returning a new instance (if found)
+--        All templates loaded here must inherit from `user_script_template.lua`
+local function loadAndCheckScriptTemplate(user_script, user_script_template)
+   local res
 
+   if not user_script_template then
+      -- Default name
+      user_script_template = "user_script_template"
+   end
+
+   -- First, try and load the template straight from the plugin templates
+   local template_require = plugins_utils.loadTemplate(user_script.plugin.key, user_script_template)
+
+   -- Then, if no template is found inside the plugin, try and load the template from the ntopng templates
+   -- in modules that can be shared across multiple plugins
+   if not template_require then
+      -- Attempt at locating the template class under modules (global to ntopng)
+      local template_path = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/user_script_templates/"..user_script_template..".lua")
+      if ntop.exists(template_path) then
+	 -- Require the template file
+	 template_require = require("user_script_templates."..user_script_template)
+      end
+   end
+
+   if template_require then
+      -- Create an instance of the template
+      res = template_require.new(user_script)
+   end
+
+   return res
+end
+
+-- ##############################################
+
+local function init_user_script(user_script, mod_fname, full_path, plugin, script_type, subdir)
    user_script.key = mod_fname
    user_script.path = full_path
    user_script.subdir = subdir
@@ -443,9 +770,10 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
    user_script.script_type = script_type
    user_script.edition = plugin.edition
    user_script.category = checkCategory(user_script.category)
+   user_script.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
 
-   if(user_script.gui and user_script.gui.input_builder) then
-      user_script.template = user_scripts_templates[user_script.gui.input_builder]
+   if user_script.gui then
+      user_script.template = loadAndCheckScriptTemplate(user_script, user_script.gui.input_builder)
 
       if(user_script.template == nil) then
 	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Unknown template '%s' for user script '%s'", user_script.gui.input_builder, mod_fname))
@@ -458,10 +786,6 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
       if user_script.gui.input_description then
 	 user_script.gui.input_description = i18n(user_script.gui.input_description) or user_script.gui.input_description
       end
-   end
-
-   if(user_script.template == nil) then
-      user_script.template = user_scripts_templates.default
    end
 
    -- Expand hooks
@@ -784,10 +1108,10 @@ function user_scripts.loadUnloadUserScripts(is_load)
 			-- onLoad/onUnload methods are ONLY called for user scripts that are enabled
 			if is_load and script.onLoad then
 			   -- This is a load operation
-			   script.onLoad(hook, hook_config)
+			   script.onLoad(hook, hook_config, confid)
 			elseif not is_load and script.onUnload then
 			   -- This is an unload operation
-			   script.onUnload(hook, hook_config)
+			   script.onUnload(hook, hook_config, confid)
 			end
 		     end
 		  end
@@ -916,6 +1240,9 @@ function user_scripts.deleteConfigset(confid)
       return false, i18n("configsets.unknown_id", {confid=confid})
    end
 
+   -- Remove the configset from all the pools to could have been associated to
+   pools_lua_utils.unbind_all_configset_id(confid)
+
    configsets[confid] = nil
    return saveConfigsets(configsets)
 end
@@ -928,6 +1255,7 @@ function user_scripts.createOrReplaceConfigset(configset)
    local existing = user_scripts.findConfigSet(configsets, configset.name)
    if existing then
       configsets[existing.id] = nil
+      pools_lua_utils.unbind_all_recipient_id(existing.id)
    end
 
    local new_confid = 0
@@ -1007,10 +1335,32 @@ end
 
 -- ##############################################
 
+local function filterIsEqual(applied_config, new_filter)
+   local ctr = 1
+
+   if applied_config == nil then
+      applied_config = {}
+      
+      return ctr
+   end
+
+   for counter, filter in pairs(applied_config) do
+      if table.compare(filter, new_filter) then
+         return 0
+      end
+
+      ctr = ctr + 1
+   end 
+
+   return ctr
+end
+
+-- ##############################################
+
 -- @brief Update the configuration of a specific script in a configset
-function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config, additional_params)
+function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config, additional_params, additional_filters)
    local configsets = user_scripts.getConfigsets()
-   -- additional_params contains additional paramas for script conf such as the severity
+   -- additional_params contains additional params for script conf such as the severity
    additional_params = additional_params or {}
    new_config = new_config or {}
    local applied_config = {}
@@ -1023,15 +1373,14 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
    local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
 
    if(script) then
-
       -- Try to validate the configuration
       for hook, conf in pairs(new_config) do
 	 local valid = true
-    local rv_or_err = ""
+         local rv_or_err = ""
 
-      for key, value in pairs(additional_params) do
-         conf.script_conf[key] = value
-      end
+	 for key, value in pairs(additional_params) do
+	    conf.script_conf[key] = value
+	 end
 
 	 if(conf.enabled == nil) then
 	    return false, "Missing 'enabled' item"
@@ -1042,7 +1391,7 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
 	 end
 
 	 if conf.enabled then
-	    valid, rv_or_err = script.template:parseConfig(script, conf.script_conf)
+	    valid, rv_or_err = script.template:parseConfig(conf.script_conf)
 	 else
 	    -- Assume the config is valid when the script is disabled to simplify the check
 	    valid = true
@@ -1060,12 +1409,33 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
    end
 
    local config = configsets[confid].config
+   local filter_conf = configsets[confid]
+
+   -- Creating the filters_conf if necessary
+   if not filter_conf["filters"] then
+      filter_conf["filters"] = {}
+   end
+
+   filter_conf = filter_conf["filters"]
+
+   if not filter_conf[subdir] then
+      filter_conf[subdir] = {}
+   end
+
+   filter_conf = filter_conf[subdir]
+
+   if not filter_conf[script_key] then
+      filter_conf[script_key] = {}
+   end
+
+   filter_conf = filter_conf[script_key]
+   ------------------------------------
 
    config[subdir] = config[subdir] or {}
 
    if script then
       local prev_config = config[subdir][script_key]
-
+      
       -- Perform hook callbacks for config changes, or enable/disable
       for hook, hook_config in pairs(prev_config) do
 	 local hook_applied_config = applied_config[hook]
@@ -1073,21 +1443,57 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
 	 if hook_applied_config then
 	    if script.onDisable and hook_config.enabled and not hook_applied_config.enabled then
 	       -- Hook previously disabled has been enabled
-	       script.onDisable(hook, hook_applied_config)
+	       script.onDisable(hook, hook_applied_config, confid)
 	    elseif script.onEnable and not hook_config.enabled and hook_applied_config.enabled then
 	       -- Hook previously enabled has now been disabled
-	       script.onEnable(hook, hook_applied_config)
+	       script.onEnable(hook, hook_applied_config, confid)
 	    elseif script.onUpdateConfig and not table.compare(hook_config, applied_config[hook]) then
 	       -- Configuration for the hook has changed
-	       script.onUpdateConfig(hook, hook_applied_config)
+	       script.onUpdateConfig(hook, hook_applied_config, confid)
 	    end
 	 end
       end
    end
 
-   -- Set the new configuration
-   config[subdir][script_key] = applied_config
+   -- Updating the filters
+   if additional_filters then
+      local new_filter_conf = filter_conf
+      
+      if not new_filter_conf["filter"] then
+	 new_filter_conf["filter"] = {}
+      end
+      
+      if not new_filter_conf["filter"]["current_filters"] then
+	 new_filter_conf["filter"]["current_filters"] = {}
+	 new_filter_conf["filter"]["current_filters"] = (user_scripts.getDefaultFilters(interface.getId(), subdir, script_key))["current_filters"] or {}
+      end
 
+      -- If filter reset requested, clear all the filters
+      if additional_filters["reset_filters"] == "true" then
+	 new_filter_conf["filter"]["current_filters"] = {}
+      end
+
+      if table.len(additional_filters) == 0 then
+	 new_filter_conf["filter"]["current_filters"] = {}
+      else
+	 -- There can be multiple filters, so cycle through them
+	 for _, new_filter in pairs(additional_filters["new_filters"]) do
+	    local add_params = filterIsEqual(new_filter_conf["filter"]["current_filters"], new_filter)
+	    if add_params > 0 then
+	       new_filter_conf["filter"]["current_filters"][add_params] = new_filter
+	    end
+	 end
+      end
+
+      -- Updating the configuration
+      configsets[confid]["filters"][subdir][script_key] = new_filter_conf
+   end
+   
+   if table.len(applied_config) > 0 then
+      -- Set the new configuration
+      config[subdir][script_key] = applied_config
+   end
+      
    return saveConfigsets(configsets)
 end
 
@@ -1095,11 +1501,12 @@ end
 
 -- @brief Toggles script `script_key` configuration on or off depending on `enable` for configuration `configset`
 --        Hooks onDisable and onEnable are called.
+-- @param configset_id The id of the configuration passed in `configset`
 -- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
 -- @param script_key The string script identifier
 -- @param subdir The string identifying the sub directory (e.g., flow, host, ...)
 -- @param enable A boolean indicating whether the script shall be toggled on or off
-local function toggleScriptConfigset(configset, script_key, subdir, enable)
+local function toggleScriptConfigset(configset_id, configset, script_key, subdir, enable)
    local script_type = user_scripts.getScriptType(subdir)
    local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
 
@@ -1118,10 +1525,10 @@ local function toggleScriptConfigset(configset, script_key, subdir, enable)
 
 	 if script.onDisable and prev_hook_config and not enable then
 	    -- Hook has been enabled for the user script
-	    script.onDisable(hook, hook_config)
+	    script.onDisable(hook, hook_config, configset_id)
 	 elseif script.onEnable and not prev_hook_config and enable then
 	    -- Hook has been disabled for the user script
-	    script.onEnable(hook, hook_config)
+	    script.onEnable(hook, hook_config, configset_id)
 	 end
       end
    end
@@ -1140,7 +1547,7 @@ function user_scripts.toggleScript(confid, script_key, subdir, enable)
    end
 
    -- Toggle the configuration (result is put in `configset`)
-   local res, err = toggleScriptConfigset(configset, script_key, subdir, enable)
+   local res, err = toggleScriptConfigset(confid, configset, script_key, subdir, enable)
    if not res then
       return res, err
    end
@@ -1164,7 +1571,7 @@ function user_scripts.toggleAllScripts(confid, subdir, enable)
 
    for script_name, script in pairs(scripts.modules) do
       -- Toggle each script individually
-      local res, err = toggleScriptConfigset(configset, script.key, subdir, enable)
+      local res, err = toggleScriptConfigset(confid, configset, script.key, subdir, enable)
       if not res then
 	 return res, err
       end
@@ -1216,22 +1623,26 @@ end
 function user_scripts.loadDefaultConfig()
    local ifid = getSystemInterfaceId()
    local configsets = user_scripts.getConfigsets()
-   local default_conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
+   -- The configset
+   local default_configset = configsets[user_scripts.DEFAULT_CONFIGSET_ID] or {}
+   -- Default per user-script configuration
+   local default_conf = default_configset["config"] or {}
+   -- Default per user-script filters
+   local default_filters = default_configset["filters"] or {}
 
    if default_conf then
-      default_conf = default_conf.config or {}
-
       -- Drop possible nested values due to a previous bug
       default_conf.config = nil
-   else
-      default_conf = {}
    end
-
+   
    for type_id, script_type in pairs(user_scripts.script_types) do
       for _, subdir in pairs(script_type.subdirs) do
 	 local scripts = user_scripts.load(ifid, script_type, subdir, {return_all = true})
 
 	 for key, usermod in pairs(scripts.modules) do
+	    -- Cleanup exclusion counters
+	    ntop.delCache(string.format(NUM_FILTERED_KEY, subdir, key))
+
 	    if((usermod.default_enabled ~= nil) or (usermod.default_value ~= nil)) then
 	       default_conf[subdir] = default_conf[subdir] or {}
 	       default_conf[subdir][key] = default_conf[subdir][key] or {}
@@ -1251,11 +1662,12 @@ function user_scripts.loadDefaultConfig()
 	 end
       end
    end
-
+   
    configsets[user_scripts.DEFAULT_CONFIGSET_ID] = {
       id = user_scripts.DEFAULT_CONFIGSET_ID,
       name = i18n("policy_presets.default"),
       config = default_conf,
+      filters = default_filters,
    }
 
    saveConfigsets(configsets)
@@ -1264,6 +1676,10 @@ end
 -- ##############################################
 
 function user_scripts.resetConfigsets()
+   for confset_id, _ in pairs(user_scripts.getConfigsets()) do
+      user_scripts.deleteConfigset(confset_id)
+   end
+
    cached_config_sets = nil
    ntop.delCache(CONFIGSETS_KEY)
    user_scripts.loadDefaultConfig()
@@ -1292,6 +1708,7 @@ function user_scripts.isSystemScriptEnabled(script_key)
       return(false)
    end
 
+   -- Here the configuration is update with the exclusion list for the alerts
    local configsets = user_scripts.getConfigsets()
    local default_config = user_scripts.getDefaultConfig(configsets, "system")
    local script_config = default_config[script_key]
@@ -1364,6 +1781,16 @@ function user_scripts.getTargetHookConfig(target_config, script, hook)
       end
    end
 
+   local default_filter_table = script.filter or {}
+   local default_filter_suppression = {}
+
+   -- Checking if filters are configured by default
+   if default_filter_table then
+      conf.script_conf["filter"] = {}
+      default_filter_suppression = default_filter_table.default_filter or {}
+   end
+   
+
    return conf
 end
 
@@ -1376,6 +1803,23 @@ function user_scripts.getConfigById(configsets, configset_id, subdir)
 
    if configset and configset["config"] and configset["config"][subdir] then
       return configset["config"][subdir], configset.id
+   end
+
+   return {}, nil
+end
+
+-- ##############################################
+
+-- @brief Retrieve `subdir` filters from the configset identified with `configset_id` from all the available `configsets` passed
+function user_scripts.getFiltersById(configsets, configset_id, subdir)
+   if configsets then
+      configset_id = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
+
+      local configset = configsets[configset_id] or configsets[user_scripts.DEFAULT_CONFIGSET_ID]
+
+      if configset and configset["filters"] and configset["filters"][subdir] then
+	 return configset["filters"][subdir], configset.id
+      end
    end
 
    return {}, nil
@@ -1403,6 +1847,504 @@ function user_scripts.getScriptEditorUrl(script)
    end
 
    return(nil)
+end
+
+-- ##############################################
+
+-- @brief Returns the list of the default filters of a specific alert
+function user_scripts.getFilterPreset(alert, alert_info)
+   local alert_generation = alert_info["alert_generation"]
+   
+   if not alert_generation then
+      return ''
+   end
+
+   local script_key       = alert_generation["script_key"]
+   local subdir           = alert_generation["subdir"]
+   local filter_string    = ''
+   local script_type      = user_scripts.getScriptType(subdir)
+   local script           = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
+   local filter_to_use   = {}
+   local subdir_id        = getSubdirId(subdir)
+
+   if not script then
+      return ''
+   end
+
+   if subdir_id == -1 then
+      return ''
+   end
+
+   if not available_subdirs[subdir_id]["filter"] then
+      return ''
+   end
+
+   -- Checking if the script has default filter fields or not
+   -- if not, getting the default for the subdir
+   if script["filter"] and script["filter"]["default_fields"] then
+      filter_to_use = script["filter"]["default_fields"]
+   elseif available_subdirs[subdir_id]["filter"]["default_fields"] then
+      filter_to_use = available_subdirs[subdir_id]["filter"]["default_fields"]
+   end
+
+   local filter_table = {}
+   local index        = 1
+
+   for _, field in pairs(filter_to_use) do
+      -- Check for field existance in the alert
+      local field_val = alert[field]
+
+      -- If the filed does not exist, try and look it up inside `alert_info`, that is,
+      -- a decoded JSON table containing variable alert data.
+      if not field_val then
+	 field_val = alert_info[field]
+      end
+
+      if field_val then
+	 -- Forming the string e.g. srv_addr=1.1.1.1
+	 filter_table[index] = field .. "=" .. field_val
+	 index = index + 1
+      end
+   end
+
+   -- Creating the required string to print into the GUI
+   return table.concat(filter_table, ",")
+end
+
+-- #################################
+
+-- @bief Given an already validated filter, returns a SQLite WHERE clause matching all filter fields
+-- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
+-- @param subdir the modules subdir
+-- @param user_script The string script identifier
+-- @param filter An already validated user script filter
+-- @return A string with the SQLite WHERE clause
+function user_scripts.prepareFilterSQLiteWhere(confset_id, subdir, user_script, filter)
+   -- Access the alert_json using SQLite `json_` functions to properly filter with fields
+   local filters_where = {}
+
+   -- This is to match elements inside the alert_json
+   local script_where = {
+      string.format("json_extract(alert_json, '$.alert_generation.confset_id') = %u", confset_id),
+      string.format("json_extract(alert_json, '$.alert_generation.subdir') = '%s'", subdir),
+      string.format("json_extract(alert_json, '$.alert_generation.script_key') = '%s'", user_script),
+   }
+
+
+   -- Now prepare each SQLite statement for every field
+   local subdir_id = getSubdirId(subdir)
+
+   -- Retrieving the available filters for the subdir. e.g. flow subdir
+   local available_fields = available_subdirs[subdir_id]["filter"]["available_fields"]
+
+   for field_key, field_val in pairs(filter) do
+      if available_fields[field_key] and available_fields[field_key]["sqlite"] then
+	 local sqlite = available_fields[field_key]["sqlite"](field_val)
+	 filters_where[#filters_where + 1] = sqlite
+      end
+   end
+
+   -- Concatenate
+   local where = table.merge(filters_where, script_where)
+   -- And merge everything with ANDs
+   where = table.concat(where, " AND ")
+
+   return where
+end
+
+-- #################################
+
+function user_scripts.parseFilterParams(additional_filters, subdir, reset_filters)
+   local separator   = ";"
+   local filter_list = {}
+   local param_list  = {}
+
+   -- Empty string given, error
+   if isEmptyString(additional_filters) then
+      return false, i18n("invalid_filters.empty")
+   end
+   
+   -- Sanity Check, Sometimes js puts a "_" or a ";" at the end of the string so removes them
+   if additional_filters:match("(.*)_$") or additional_filters:match("(.*);$") then
+      additional_filters = additional_filters:sub(1, -2)
+   end
+
+   additional_filters = additional_filters:gsub(" ", "")
+
+   if reset_filters == true then
+      filter_list["reset_filters"] = "true"
+   end
+
+   filter_list["new_filters"] = {}
+   param_list = filter_list["new_filters"]
+   
+   -- Splitting on the ";" - ";" is used to remove "\n" from js
+   local ex_list = split(additional_filters, separator)
+   local subdir_id = getSubdirId(subdir)
+   
+   if subdir_id == -1 then
+      return false, i18n("invalid_filters.invalid_subdir")
+   end
+
+   -- Retrieving the available filters for the subdir. e.g. flow subdir
+   local available_fields = available_subdirs[subdir_id]["filter"]["available_fields"]
+
+   for filter_num, filter in pairs(ex_list) do
+      separator  = ","
+      -- Splitting the filters
+      local parameters = split(filter, separator)
+
+      for _,field in pairs(parameters) do
+	 if field ~= "" then
+	    separator        = "="
+	    -- Splitting filter name and filter value
+	    local field_key_value = split(field, separator)
+
+	    -- Checking that for each filter a key and a value is given
+	    if not table.len(field_key_value) == 2 then
+	       return false, i18n("invalid_filters.few_args", {args=field})
+	    end
+
+	    local field_key   = field_key_value[1]
+	    local field_value = field_key_value[2]
+
+	    -- Getting the http_lint for the selected param, if no param is found
+	    -- then the filter is not correct
+
+	    if not available_fields[field_key] or not available_fields[field_key]["lint"] or not available_fields[field_key]["lint"](field_value) then
+	       return false, i18n("invalid_filters.incorrect_args", {args=field})
+	    end
+
+	    if not param_list[filter_num] then
+	       param_list[filter_num] = {}
+	    end
+
+	    -- Already added this param before, so 2 identical arguments given
+	    if param_list[filter_num][field_key] then
+	       return false, i18n("invalid_filters.double_arg", {args=field})
+	    end
+
+	    param_list[filter_num][field_key] = field_value
+	 end
+      end
+   end
+
+   return true, filter_list
+end
+
+-- ##############################################
+
+function user_scripts.matchExcludeFilter(filters_config, script, subdir, context)
+   local subdir_id = getSubdirId(subdir)
+
+   if subdir_id == -1 or not script or not script.key then
+      -- No script available
+      return false
+   end
+
+   if not filters_config or not filters_config[script.key] or not filters_config[script.key]["filter"] or not filters_config[script.key]["filter"]["current_filters"] then
+      -- No filter available for this script config
+      return false
+   end
+
+   -- Get the available fields for this given `subdir`
+   local available_fields = available_subdirs[subdir_id]["filter"]["available_fields"]
+
+   -- Iterate configured filters for this user script identified with `script.key`
+   for filter_num, filter in pairs(filters_config[script.key]["filter"]["current_filters"]) do
+      local filter_matches = true
+
+      for field_key, field_val in pairs(filter) do
+	 if not available_fields[field_key] or not available_fields[field_key]["match"] then
+	    -- field_key not present among available_fields, or no getter available: - field_key is unsupported
+	    filter_matches = false
+	 else
+	    -- field_key is supported, let's evaluate the match function
+	    filter_matches = available_fields[field_key]["match"](context, field_val --[[ the value --]])
+	 end
+
+	 if not filter_matches then
+	    if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": field NOT matching "..field_val) end
+	    -- There's no match. Just break, don't waste time evaluating other parts of the filter
+	    break
+	 else
+	    if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": field IS matching "..field_val) end
+	    -- Don't break, continue the evaluation of this filter!
+	 end
+      end
+
+      if filter_matches then
+	 -- There's a match with this filter! let's return
+	 if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": filter IS matching") end
+	 -- Increase the counter
+	 ntop.incrCache(string.format(NUM_FILTERED_KEY, subdir, script.key))
+	 -- Return
+	 return true
+      else
+	 if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": filter NOT matching") end
+      end
+   end
+
+   -- No filter matching
+   if filters_debug then traceError(TRACE_NORMAL, TRACE_CONSOLE, script.key..": no matching filter, returning...") end
+   return false
+end
+
+-- ##############################################
+
+-- @brief This function is going to check if the user script needs to be excluded
+--        from the list, due to not having filters or not
+function user_scripts.excludeScriptFilters(alert, alert_json, confid, script_key, subdir)
+   local configsets = user_scripts.getConfigsets()
+
+   if(configsets[confid] == nil) then
+      return false
+   end
+
+   -- Getting the configuration
+   local config = configsets[confid]["filters"]
+
+   if not config then
+      return false
+   end
+
+   -- Security checks
+   local conf = config[subdir]
+
+   if not conf then
+      return false
+   end
+
+   conf = conf[script_key]
+
+   if not conf then
+      return false
+   end
+   
+   local applied_filter_config = {}
+   local subdir_id = getSubdirId(subdir)
+   
+   -- Checking if the script has the field "filter.current_filters"
+   if conf["filter"] then
+      applied_filter_config = conf["filter"]["current_filters"]
+   end
+
+   if not applied_filter_config then
+      return false
+   end
+   
+   -- Cycling through the filters
+   for _, values in pairs(applied_filter_config) do
+      local done = true
+      -- Getting the keys and values of the filters. e.g. filter=src_port, value=3900
+      for filter, value in pairs(values) do
+	 -- Possible strange pattern, so using the function find,
+	 -- defined into the available field to check the presence of the data
+	 local find_value = available_subdirs[subdir_id]["filter"]["available_fields"][filter]["find"]
+	 if not find_value(alert, alert_json, filter, value) then
+	    -- The alert has a different value for that filter
+	    done = false
+	    goto continue2
+	 end
+	 ::continue::
+      end
+      
+      -- if 
+      if done then
+	 return true
+      end
+
+      ::continue2::
+   end
+
+   -- all the filters are correct, exclude the alert
+   return false
+end
+
+-- ##############################################
+
+function user_scripts.getDefaultFilters(ifid, subdir, script_key)
+
+   local script_type = user_scripts.getScriptType(subdir)
+   local script = user_scripts.loadModule(ifid, script_type, subdir, script_key)
+   local filters = {}
+   filters["current_filters"] = {}
+
+   if script["filter"] and script["filter"]["default_filters"] then
+      filters["current_filters"] = script["filter"]["default_filters"] 
+   end
+
+   return filters
+end
+
+
+-- ##############################################
+
+local function printUserScriptsTable()
+   local ifid = interface.getId()
+
+    for _, info in ipairs(user_scripts.listSubdirs()) do
+
+        local scripts = user_scripts.load(ifid, user_scripts.getScriptType(info.id), info.id, {return_all = true})
+
+        for name, script in pairsByKeys(scripts.modules) do
+
+            local available = ""
+            local filters = {}
+            local hooks = {}
+
+            -- Hooks
+            for hook in pairsByKeys(script.hooks) do
+              hooks[#hooks + 1] = hook
+            end
+            hooks = table.concat(hooks, ", ")
+
+            -- Filters
+            if(script.is_alert) then filters[#filters + 1] = "alerts" end
+            if(script.l4_proto) then filters[#filters + 1] = "l4_proto=" .. script.l4_proto end
+            if(script.l7_proto) then filters[#filters + 1] = "l7_proto=" .. script.l7_proto end
+            if(script.packet_interface_only) then filters[#filters + 1] = "packet_interface" end
+            if(script.three_way_handshake_ok) then filters[#filters + 1] = "3wh_completed" end
+            if(script.local_only) then filters[#filters + 1] = "local_only" end
+            if(script.nedge_only) then filters[#filters + 1] = "nedge=true" end
+	    if(script.nedge_exclude) then filters[#filters + 1] = "nedge=false" end
+            filters = table.concat(filters, ", ")
+
+            if (name == "my_custom_script") then
+              goto skip
+            end
+
+            -- Availability
+            if(script.edition == "enterprise_m") then
+              available = "Enterprise M"
+            elseif(script.edition == "enterprise_l") then
+              available = "Enterprise L"
+            elseif(script.edition == "pro") then
+              available = "Pro"
+            else
+              available = "Community"
+            end
+
+            local edit_url = user_scripts.getScriptEditorUrl(script)
+
+            if(edit_url) then
+              edit_url = ' <a title="'.. i18n("plugins_overview.action_view") ..'" href="'.. edit_url ..'" class="btn btn-sm btn-secondary" ><i class="fas fa-eye"></i></a>'
+            end
+
+            print(string.format(([[
+                <tr>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td class="text-right">%u</td>
+                    <td class="text-center">%s</td></tr>
+                ]]), name, info.label, available, hooks, filters, script.num_filtered, edit_url or ""))
+            ::skip::
+          end
+    end
+end
+
+
+-- #######################################################
+
+function user_scripts.printUserScripts()
+   print([[
+            <div class='col-12 my-3'>
+                <table class='table table-bordered table-striped' id='user-scripts'>
+                    <thead>
+                        <tr>
+                            <th>]].. i18n("plugins_overview.script") ..[[</th>
+                            <th>]].. i18n("plugins_overview.type") ..[[</th>
+                            <th>]].. i18n("availability") ..[[</th>
+                            <th>]].. i18n("plugins_overview.hooks") ..[[</th>
+                            <th>]].. i18n("plugins_overview.filters") ..[[</th>
+                            <th>]].. i18n("plugins_overview.filtered") ..[[</th>
+                            <th>]].. i18n("action") ..[[</th>
+                        </tr>
+                    </thead>
+                    <tbody>]])
+   printUserScriptsTable()
+   print([[
+                    </tbody>
+                </table>
+        </div>
+    <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
+    <script type='text/javascript'>
+
+    $(document).ready(function() {
+
+        const addFilterDropdown = (title, values, column_index, datatableFilterId, tableApi) => {
+
+            const createEntry = (val, callback) => {
+                const $entry = $(`<li class='dropdown-item pointer'>${val}</li>`);
+                $entry.click(function(e) {
+
+                    $dropdownTitle.html(`<i class='fas fa-filter'></i> ${val}`);
+                    $menuContainer.find('li').removeClass(`active`);
+                    $entry.addClass(`active`);
+                    callback(e);
+                });
+
+                return $entry;
+            }
+
+            const dropdownId = `${title}-filter-menu`;
+            const $dropdownContainer = $(`<div id='${dropdownId}' class='dropdown d-inline'></div>`);
+            const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-toggle='dropdown' type='button'></button>`);
+            const $dropdownTitle = $(`<span>${title}</span>`);
+            $dropdownButton.append($dropdownTitle);
+
+            const $menuContainer = $(`<ul class='dropdown-menu' id='${title}-filter'></ul>`);
+            values.forEach((val) => {
+                const $entry = createEntry(val, (e) => {
+                    tableApi.columns(column_index).search(val).draw(true);
+                });
+                $menuContainer.append($entry);
+            });
+
+            const $allEntry = createEntry(']].. i18n('all') ..[[', (e) => {
+                $dropdownTitle.html(`${title}`);
+                $menuContainer.find('li').removeClass(`active`);
+                tableApi.columns().search('').draw(true);
+            });
+            $menuContainer.prepend($allEntry);
+
+            $dropdownContainer.append($dropdownButton, $menuContainer);
+            $(datatableFilterId).prepend($dropdownContainer);
+        }
+
+        const $userScriptsTable = $('#user-scripts').DataTable({
+            pagingType: 'full_numbers',
+            initComplete: function(settings) {
+
+                const table = settings.oInstance.api();
+                const types = [... new Set(table.columns(1).data()[0].flat())];
+                const availability = [... new Set(table.columns(2).data()[0].flat())];
+
+                addFilterDropdown(']].. i18n("availability") ..[[', availability, 2, "#user-scripts_filter", table);
+                addFilterDropdown(']].. i18n("plugins_overview.type") ..[[', types, 1, "#user-scripts_filter", table);
+            },
+            pageLength: 25,
+            language: {
+                info: "]].. i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) ..[[",
+                search: "]].. i18n('search') ..[[:",
+                infoFiltered: "",
+                paginate: {
+                    previous: '&lt;',
+                    next: '&gt;',
+                    first: '«',
+                    last: '»'
+                },
+            },
+        });
+
+    });
+
+    </script>
+]])
+
 end
 
 -- ##############################################

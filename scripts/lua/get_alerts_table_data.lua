@@ -14,6 +14,7 @@ local json = require "dkjson"
 local alerts_api = require "alerts_api"
 local alert_consts = require "alert_consts"
 local recording_utils = require "recording_utils"
+local user_scripts = require "user_scripts"
 
 sendHTTPHeader('application/json')
 
@@ -89,9 +90,9 @@ for k,v in ipairs(alerts) do
    local column_duration = ""
    local tdiff = os.time() - v["alert_tstamp"]
    local column_date = os.date("%c", v["alert_tstamp"])
-
+   local alert = v
    local alert_id = v["rowid"]
-
+   
    if v["alert_entity"] ~= nil then
       alert_entity    = tonumber(v["alert_entity"])
    else
@@ -108,6 +109,7 @@ for k,v in ipairs(alerts) do
       column_date  = secondsToTime(tdiff).. " " ..i18n("details.ago")
    else
       column_date = format_utils.formatPastEpochShort(v["alert_tstamp"])
+      column_date = column_date:gsub("%s", "<br>")
    end
 
    if engaged == true then
@@ -125,7 +127,12 @@ for k,v in ipairs(alerts) do
    local column_msg      = string.gsub(alert_utils.formatAlertMessage(ifid, v, alert_info), '"', "'")
    local column_chart     = ""
    local column_drilldown = ""
+   local column_filter  = ""
+   local column_confset_id = ""
+   local column_subdir     = ""
+   local column_script_key = ""
    local column_ndpi      = ""
+   local column_filter_disabled = false
 
    if v["l7_proto"] and v["l7_master_proto"] then
       local app = create_ndpi_proto_name(v)
@@ -196,7 +203,20 @@ for k,v in ipairs(alerts) do
    record["column_entity_val"] = alert_entity_val
    record["column_ndpi"] = column_ndpi
    record["column_chart"] = column_chart
-   record["column_drilldown"] = column_drilldown
+   record["column_drilldown"] = column_drilldown   
+   
+   if alert_info.alert_generation then
+      record["column_script_key"] = alert_info.alert_generation.script_key or nil
+      record["column_confset_id"] = alert_info.alert_generation.confset_id or nil
+      record["column_subdir"]     = alert_info.alert_generation.subdir or nil
+
+      -- Checking if the filter column needs to be skipped
+      if user_scripts.excludeScriptFilters(alert, alert_info, record["column_confset_id"], record["column_script_key"], record["column_subdir"]) == false then
+         record["column_filter"] = user_scripts.getFilterPreset(alert, alert_info)
+      elseif record["column_subdir"] == "flow" then
+         record["column_filter_disabled"] = true
+      end
+   end
 
    res_formatted[#res_formatted + 1] = record
 

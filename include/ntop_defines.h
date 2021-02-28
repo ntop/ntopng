@@ -318,7 +318,7 @@
 #define HOST_IS_NTP_SERVER             0x03
 #define HOST_IS_SMTP_SERVER            0x04
 
-
+#define MAX_DYNAMIC_STATS_VALUES       10
 
 // ICMP
 #ifndef ICMP_TIMESTAMP
@@ -633,7 +633,6 @@
 #define CONST_RUNTIME_PREFS_LOG_TO_FILE                NTOPNG_PREFS_PREFIX".log_to_file"
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQUENCY     NTOPNG_PREFS_PREFIX".housekeeping_frequency"
 #define CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION     NTOPNG_PREFS_PREFIX".flow_device_port_rrd_creation" /* 0 / 1 */
-#define CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT      NTOPNG_PREFS_PREFIX".ip_reassignment_alerts" /* 0 / 1 */
 #define CONST_RUNTIME_PREFS_THPT_CONTENT               NTOPNG_PREFS_PREFIX".thpt_content"     /* bps / pps */
 #define CONST_RUNTIME_PREFS_HOSTS_ALERTS_CONFIG        NTOPNG_PREFS_PREFIX".alerts_global.min.local_hosts"
 #define CONST_PREFS_ENABLE_DEVICE_PROTOCOL_POLICIES    NTOPNG_PREFS_PREFIX".device_protocols_policing"
@@ -697,9 +696,6 @@
 /* SRC/DST override for ZMQ interfaces */
 #define CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_src_with_post_nat_src"
 #define CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT    NTOPNG_PREFS_PREFIX".override_dst_with_post_nat_dst"
-
-/* SRC/DST selection using port numbers (heuristic) */
-#define CONST_DEFAULT_USE_PORTS_TO_DETERMINE_SRC_AND_DST NTOPNG_PREFS_PREFIX".use_ports_to_determine_src_and_dst"
 
 /* Flow Lua Calls */
 #define FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME  "protocolDetected"
@@ -871,7 +867,7 @@
 #define ALERTS_MAX_DAYS_BEFORE_PURGE         365
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v20.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v23.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"
@@ -987,9 +983,9 @@
 
 #define MAX_NUM_HTTP_REPLACEMENTS                    4
 
-#define CACHE_LINE_LEN          64
+#define CACHE_LINE_LEN                  64
 
-#define BITMAP_NUM_BITS               64
+#define BITMAP_NUM_BITS                128
 
 #define TLS_HANDSHAKE_PACKET          0x16
 #define TLS_PAYLOAD_PACKET            0x17

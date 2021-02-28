@@ -11,6 +11,8 @@ local alert_consts = require("alert_consts")
 
 -- NOTE: this module is always enabled
 local script = {
+   packet_interface_only = true,
+  
    -- Script category
    category = user_scripts.script_categories.network,
 

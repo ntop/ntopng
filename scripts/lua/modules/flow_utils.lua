@@ -552,9 +552,9 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
      host_name = host_name.." <i class='fas fa-ban' aria-hidden='true' title='Blacklisted'></i>"
   end
   if(flow[cli_or_srv .. ".localhost"] == true) then
-     host_name = host_name .. ' <span class="badge badge-success">'..i18n("details.label_local_host")..'</span> '
+     host_name = host_name .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge badge-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
   else 
-     host_name = host_name .. ' <span class="badge badge-secondary">'..i18n("details.label_remote")..'</span> '
+     host_name = host_name .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge badge-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
   end
 
   return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name, nil, true --[[ perform link existance checks --]])
@@ -582,16 +582,6 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
    local srv_port
    if flow["cli.port"] and (flow["cli.port"] > 0 or flow["proto.l4"] == "TCP" or flow["proto.l4"] == "UDP") then cli_port = flow["cli.port"] end
    if flow["srv.port"] and (flow["srv.port"] > 0 or flow["proto.l4"] == "TCP" or flow["proto.l4"] == "UDP") then srv_port = flow["srv.port"] end
-
-   local srv_mac
-   if(not isEmptyString(flow["srv.mac"]) and flow["srv.mac"] ~= "00:00:00:00:00:00") then
-      srv_mac = flow["srv.mac"]
-   end
-
-   local cli_mac
-   if(flow["cli.mac"] ~= nil and flow["cli.mac"]~= "" and flow["cli.mac"] ~= "00:00:00:00:00:00") then
-      cli_mac = flow["cli.mac"]
-   end
 
    if add_hyperlinks then
       cli_name = formatFlowHost(flow, "cli", historical_bounds, hyperlink_suffix)
@@ -1942,6 +1932,7 @@ end
 -- #######################
 
 function getFlowsTableTitle()
+   local active_msg = ""
    local status_type
 
    if _GET["flow_status"] then
@@ -1950,27 +1941,31 @@ function getFlowsTableTitle()
       if(flow_status_id ~= nil) then
 	 status_type = alert_consts.statusTypeLabel(tonumber(_GET["flow_status"]), true)
       else
-	 status_type = _GET["flow_status"]
+	 status_type = firstToUpper(_GET["flow_status"])
       end
    end
 
-   local filter = (_GET["application"] or _GET["category"] or _GET["vhost"] or status_type or "")
-   local active_msg = ""
-   local filter_msg = ""
+   if _GET["flow_status_severity"] then
+      local flow_status_severity = _GET["flow_status_severity"]
 
-   if not isEmptyString(filter) then
-      filter_msg = i18n("flows_page."..filter)
-      if isEmptyString(filter_msg) then
-	 filter_msg = firstToUpper(filter)
-      end
+      local s = alert_consts.severity_groups[flow_status_severity]
+      active_msg = active_msg .. " "..  i18n(s.i18n_title)
    end
 
-   if not interface.isPacketInterface() then
-      active_msg = i18n("flows_page.recently_active_flows", {filter=filter_msg})
-   elseif interface.isPcapDumpInterface() then
-      active_msg = i18n("flows_page.flows", {filter=filter_msg})
-   else
-      active_msg = i18n("flows_page.active_flows", {filter=filter_msg})
+   if _GET["application"] then
+      active_msg = active_msg .. " "..  _GET["application"]
+   end
+
+   if _GET["category"] then
+      active_msg = active_msg .. " " .. _GET["category"]
+   end
+
+   if _GET["vhost"] then
+      active_msg = active_msg .. " " .. _GET["vhost"]
+   end
+
+   if status_type then
+      active_msg = active_msg .. " " .. status_type
    end
 
    if(_GET["network_name"] ~= nil) then
@@ -2019,6 +2014,14 @@ function getFlowsTableTitle()
 
    if(_GET["tcp_flow_state"] ~= nil) then
       active_msg = active_msg .. " ["..tcp_flow_state_utils.state2i18n(_GET["tcp_flow_state"]).."]"
+   end
+
+   if not interface.isPacketInterface() then
+      active_msg = i18n("flows_page.recently_active_flows", {filter = active_msg})
+   elseif interface.isPcapDumpInterface() then
+      active_msg = i18n("flows_page.flows", {filter = active_msg})
+   else
+      active_msg = i18n("flows_page.active_flows", {filter = active_msg})
    end
 
    return active_msg

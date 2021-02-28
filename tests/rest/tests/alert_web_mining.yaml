@@ -1,0 +1,11 @@
+input: bitcoin.pcap
+
+ignore:
+  - date
+
+pre: |
+  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "action": "enable"}' http://localhost:3333/lua/toggle_all_user_scripts.lua
+
+post: |
+  sleep 10
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "status": "historical-flows"}' http://localhost:3333/lua/rest/v1/get/alert/data.lua

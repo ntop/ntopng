@@ -29,8 +29,22 @@ class LocalHostStats: public HostStats {
   HTTPstats *http;
   ICMPstats *icmp;
   FrequentStringItems *top_sites;
-  time_t nextSitesUpdate, nextContactsUpdate;
+  /* nextPeriodicUpdate done every 5 min */
+  time_t nextPeriodicUpdate, nextContactsUpdate;
   u_int32_t num_contacts_as_cli, num_contacts_as_srv;
+
+  /* Estimate of the number of critical servers used by this host */
+  Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
+
+  /* Estimate the number of contacted hosts using HyperLogLog */
+  struct ndpi_hll hll_contacted_hosts;
+  double last_hll_contacted_hosts_value;
+  /* Holt-Winters structure, used to have a feedback regarding the contacted hosts */
+  BehaviouralCounter *hw_contacted_hosts;
+  bool hw_contacted_hosts_report;
+  u_int16_t hw_learning_values;
+  u_int8_t hw_init_count;
+  u_int32_t prediction, lower_bound, upper_bound;
   
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
@@ -43,6 +57,8 @@ class LocalHostStats: public HostStats {
     num_host_contacted_ports_as_server,      /* # of different server ports contacted by remote peers */
     contacts_as_cli, contacts_as_srv;        /* Minute reset host contacts          */
 
+  PeerStats *peers;
+
   void updateHostContacts();
   void saveOldSites();
   void removeRedisSitesKey();
@@ -50,6 +66,7 @@ class LocalHostStats: public HostStats {
   void getCurrentTime(struct tm *t_now);
   void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
   void deserializeTopSites(char* redis_key_current);
+  void updateContactedHostsBehaviour();
   
  public:
   LocalHostStats(Host *_host);
@@ -73,8 +90,10 @@ class LocalHostStats: public HostStats {
   virtual void luaDNS(lua_State *vm, bool verbose)  { if(dns) dns->lua(vm, verbose); }
   virtual void luaHTTP(lua_State *vm)  { if(http) http->lua(vm); }
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)    { if (icmp) icmp->lua(isV4, vm, verbose); }
+  virtual void luaPeers(lua_State *vm);
   virtual void incrVisitedWebSite(char *hostname);
   virtual void lua_get_timeseries(lua_State* vm);
+  virtual void luaHostBehaviour(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);
   virtual HTTPstats* getHTTPstats() { return(http); };
@@ -85,6 +104,19 @@ class LocalHostStats: public HostStats {
 
   virtual void incCliContactedPorts(u_int16_t port)  { num_contacted_ports_as_client.addElement(port);      }
   virtual void incSrvPortsContacts(u_int16_t port)   { num_host_contacted_ports_as_server.addElement(port); }
+
+  virtual u_int32_t getSlidingAvgCliContactedPeers() { return(peers->getCliSlidingEstimate()); };
+  virtual u_int32_t getSlidingAvgSrvContactedPeers() { return(peers->getSrvSlidingEstimate()); };
+  virtual u_int32_t getTotAvgCliContactedPeers()     { return(peers->getCliTotEstimate()); };
+  virtual u_int32_t getTotAvgSrvContactedPeers()     { return(peers->getSrvTotEstimate()); };
+  virtual bool getSlidingWinStatus()                 { return(peers->getSlidingWinStatus()); };
+
+  virtual u_int32_t getNTPContactCardinality()  { return(num_ntp_servers.getEstimate());  };
+  virtual u_int32_t getDNSContactCardinality()  { return(num_dns_servers.getEstimate());  };
+  virtual u_int32_t getSMTPContactCardinality() { return(num_smtp_servers.getEstimate()); };
+  virtual void incNTPContactCardinality(Host *h)  { if(h->get_ip()) num_ntp_servers.addElement(h->get_ip()->key());  };
+  virtual void incDNSContactCardinality(Host *h)  { if(h->get_ip()) num_dns_servers.addElement(h->get_ip()->key());  };
+  virtual void incSMTPContactCardinality(Host *h) { if(h->get_ip()) num_smtp_servers.addElement(h->get_ip()->key()); };
 
   virtual void incCliContactedHosts(IpAddress *peer) {
     peer->incCardinality(&num_contacted_hosts_as_client);

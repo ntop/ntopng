@@ -92,6 +92,19 @@ end
 
 -- ##################################################################
 
+-- Migration of maps keys
+for _, ifname in pairs(interface.getIfNames()) do
+   local ifid = getInterfaceId(ifname)
+
+   old = ntop.getHashCache("ntopng.servicemap", ifname)
+   if(old ~= "") then
+      ntop.setHashCache("ntopng.servicemap", ifid)
+      ntop.delHashCache("ntopng.servicemap", ifname)
+   end
+end
+
+-- ##################################################################
+
 -- Migration from old ntop auth_type to new separeted keys
 local old_auth_val = ntop.getPref("ntopng.prefs.auth_type")
 local new_local_auth = ntop.getPref("ntopng.prefs.local.auth_enabled")

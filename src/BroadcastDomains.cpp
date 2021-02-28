@@ -44,7 +44,8 @@ BroadcastDomains::~BroadcastDomains() {
 /* *************************************** */
 
 void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network_bits) {
-  patricia_node_t *addr_node;
+  ndpi_patricia_node_t *addr_node;
+  u_int16_t domain_id;
 
   if(!inline_broadcast_domains)
     return;
@@ -55,15 +56,17 @@ void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network
   }
 
   if((addr_node = inline_broadcast_domains->match(ipa, network_bits)) != NULL) {
+    domain_id = ndpi_patricia_get_node_u64(addr_node);
+
     /* Already exists, only increment the hits */
-    domains_info[addr_node->user_data].hits++;
+    domains_info[domain_id].hits++;
 
 #ifdef DEBUG_BROADCAST_DOMAINS
     {
       char buf[128];
       
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Broadcast domain %s/%d [hits=%u]",
-				   ipa->print(buf, sizeof(buf)), network_bits, domains_info[addr_node->user_data].hits);
+				   ipa->print(buf, sizeof(buf)), network_bits, domains_info[domain_id].hits);
     }
 #endif
 
@@ -86,9 +89,11 @@ void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network
     info.is_interface_network = iface->isInterfaceNetwork(ipa, network_bits)
       || ipa->isLocalHost(&network_id); /* Don't consider local-listed addresses as ghost networks */
     info.hits = 1;
+    
+    domain_id = next_domain_id++;
 
-    addr_node->user_data = next_domain_id++;
-    domains_info[addr_node->user_data] = info;
+    ndpi_patricia_set_node_u64(addr_node, domain_id);
+    domains_info[domain_id] = info;
   }
 
   if(!next_update)
@@ -163,15 +168,16 @@ struct bcast_domain_walk_data {
   lua_State *vm;
 };
 
-static void bcast_domain_lua(patricia_node_t *node, void *data, void *user_data) {
+static void bcast_domain_lua(ndpi_patricia_node_t *node, void *data, void *user_data) {
   char address[128];
   struct bcast_domain_walk_data *bdata = (struct bcast_domain_walk_data *)user_data;
   std::map<u_int16_t, bcast_domain_info>::iterator it;
 
-  if((it = bdata->domains_info.find(node->user_data)) != bdata->domains_info.end()) {
+  if((it = bdata->domains_info.find(ndpi_patricia_get_node_u64(node))) != bdata->domains_info.end()) {
     lua_State *vm = bdata->vm;
+    ndpi_prefix_t *prefix = ndpi_patricia_get_node_prefix(node);
 
-    if((!node->prefix) || !Utils::ptree_prefix_print(node->prefix, address, sizeof(address)))
+    if((!prefix) || !Utils::ptree_prefix_print(prefix, address, sizeof(address)))
       return;
 
     lua_newtable(vm);

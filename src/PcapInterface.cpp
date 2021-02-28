@@ -188,6 +188,50 @@ static void* packetPollLoop(void* ptr) {
   /* Wait until the initialization completes */
   while(!iface->isRunning()) sleep(1);
 
+  /* Test Script (Pre Analysis) */ 
+  if(ntop->getPrefs()->get_test_pre_script_path()) {
+    const char *test_pre_script_path = ntop->getPrefs()->get_test_pre_script_path();
+
+    /* Wait for the HTTP server to be able to serve requests
+     * from the pre script, if any */
+    while (!ntop->get_HTTPserver()->accepts_requests()
+	   && !ntop->getGlobals()->isShutdown())
+      sleep(1);
+
+#if 0 /* Lua support */
+    if (Utils::hasExtension(test_pre_script_path, ".lua")) {
+      char test_path[MAX_PATH];
+      const char *sep;
+
+      /* Execute as Lua script */
+
+      if((sep = strrchr(test_pre_script_path, '/')) == NULL)
+        sep = test_pre_script_path;
+      else
+        sep++;
+
+      snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
+               ntop->getPrefs()->get_scripts_dir(), sep);
+
+      if(Utils::file_exists(test_path)) {
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s", test_path);
+        LuaEngine *l = new (std::nothrow)LuaEngine(NULL);
+	if(l) {
+	  l->run_script(test_path, iface);
+	  delete l;
+	}
+      }
+    } else 
+#endif
+    {
+
+      /* Execute as Bash script */
+      
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Pre Script '%s'", test_pre_script_path);
+      Utils::exec(test_pre_script_path);
+    }
+  }
+
   do {
     if(pcap_list != NULL) {
       char path[256], *fname;
@@ -331,6 +375,14 @@ static void* packetPollLoop(void* ptr) {
     } /* while */
   } while(pcap_list != NULL);
 
+  /* Execute purgeIdle two times to make sure things (such as throughput) will settle down */
+  for(int i = 0; i < 2; i++) {
+    /* Sleep for a purge frequency to ensure purgeIdle will be called against all entries */
+    sleep(OTHER_PURGE_FREQUENCY);
+    /* Perform a full walk of all hash tables (no new data will come) */
+    iface->purgeIdle(time(NULL), false, true /* Full scan */);
+  }
+
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
     iface->set_read_from_pcap_dump_done();
   }
@@ -338,43 +390,6 @@ static void* packetPollLoop(void* ptr) {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated packet polling for %s",
 			       iface->get_description());
 
-#ifdef HAVE_TEST_MODE
-  char test_path[MAX_PATH];
-  const char * test_script_path = ntop->getPrefs()->get_test_script_path();
-  const char *sep;
-
-  if(test_script_path) {
-    if((sep = strrchr(test_script_path, '/')) == NULL)
-      sep = test_script_path;
-    else
-      sep++;
-
-    snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
-	     ntop->getPrefs()->get_scripts_dir(),
-	     sep);
-
-    if(test_script_path && Utils::file_exists(test_path)) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s",
-				   test_path);
-
-	LuaEngine *l = new (std::nothrow)LuaEngine();
-	if(l) {
-	  l->run_script(test_path, iface);
-	  delete l;
-	}
-    }
-  }
-#endif
-
-  if(ntop->getPrefs()->shutdownWhenDone())
-    ntop->getGlobals()->shutdown();
-  else {
-    while(!ntop->getGlobals()->isShutdown()) {
-      iface->purgeIdle(time(NULL));
-      sleep(1);
-    }
-  }
-  
   return(NULL);
 }
 

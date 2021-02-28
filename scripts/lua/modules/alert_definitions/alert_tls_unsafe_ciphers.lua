@@ -45,7 +45,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_tls_unsafe_ciphers.format(ifid, alert, alert_type_params)
-   return i18n("flow_details.tls_unsafe_ciphers")
+   return
 end
 
 -- #######################################################

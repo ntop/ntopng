@@ -72,9 +72,7 @@ class Prefs {
   bool enable_flow_device_port_rrd_creation;
   bool enable_tiny_flows_export;
   bool enable_captive_portal, enable_informative_captive_portal, mac_based_captive_portal;
-  bool enable_ip_reassignment_alerts;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
-  bool use_ports_to_determine_src_and_dst;
   bool routing_mode_enabled, global_dns_forging_enabled;
   bool device_protocol_policies_enabled, enable_vlan_trunk_bridge;
   bool enable_arp_matrix_generation;
@@ -139,9 +137,14 @@ class Prefs {
   bool appliance;
 #endif
 
-#ifdef HAVE_TEST_MODE
-  char *test_script_path;
+  char *test_pre_script_path;
+  char *test_post_script_path;
+
+#ifdef NTOPNG_PRO
+  bool print_maintenance, print_license;
 #endif
+  bool print_version;
+
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
   void setCommandLineString(int optkey, const char * optarg);
@@ -230,9 +233,8 @@ class Prefs {
   inline const char* get_scripts_dir()                        { return(scripts_dir);    };
   inline const char* get_callbacks_dir()                      { return(callbacks_dir);  };
   inline const char* get_pcap_dir()                           { return(pcap_dir);       };
-#ifdef HAVE_TEST_MODE
-  inline const char* get_test_script_path()                   { return(test_script_path); };
-#endif
+  inline const char* get_test_pre_script_path()               { return(test_pre_script_path); };
+  inline const char* get_test_post_script_path()              { return(test_post_script_path); };
   inline char* get_export_endpoint()                    { return(export_endpoint);};
   inline char* get_export_zmq_encryption_key()          { return(export_zmq_encryption_key); };
   inline char* get_categorization_key()                 { return(categorization_key); };
@@ -344,12 +346,10 @@ class Prefs {
 
   inline bool is_tiny_flows_export_enabled()             { return(enable_tiny_flows_export);            };
   inline bool is_flow_device_port_rrd_creation_enabled() { return(enable_flow_device_port_rrd_creation);};
-  inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
   inline bool is_arp_matrix_generation_enabled()         { return(enable_arp_matrix_generation);        };
 
   inline bool do_override_dst_with_post_nat_dst()     const { return(override_dst_with_post_nat_dst);     };
   inline bool do_override_src_with_post_nat_src()     const { return(override_src_with_post_nat_src);     };
-  inline bool do_use_ports_to_determine_src_and_dst() const { return(use_ports_to_determine_src_and_dst); };
   inline bool are_device_protocol_policies_enabled()  const { return(device_protocol_policies_enabled);   };
 
   inline bool isVLANTrunkModeEnabled()                const { return(enable_vlan_trunk_bridge);           }

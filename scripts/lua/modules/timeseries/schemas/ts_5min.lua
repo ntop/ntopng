@@ -160,6 +160,16 @@ schema:addMetric("bytes_egress")
 schema:addMetric("bytes_inner")
 
 -------------------------------------------------------
+-- OSES SCHEMAS
+-------------------------------------------------------
+
+schema = ts_utils.newSchema("os:traffic", {step=300})
+schema:addTag("ifid")
+schema:addTag("os")
+schema:addMetric("bytes_ingress")
+schema:addMetric("bytes_egress")
+
+-------------------------------------------------------
 -- VLAN SCHEMAS
 -------------------------------------------------------
 
@@ -195,6 +205,14 @@ schema = ts_utils.newSchema("flowdev_port:traffic", {step=300, rrd_fname="bytes"
 schema:addTag("ifid")
 schema:addTag("device")
 schema:addTag("port")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
+
+schema = ts_utils.newSchema("flowdev_port:ndpi", {step = 300})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("port")
+schema:addTag("protocol")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
@@ -396,6 +414,14 @@ schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("num_as_client")
 schema:addMetric("num_as_server")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("host:contacts_behaviour", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("value")
+schema:addMetric("prediction")
 
 -- ##############################################
 

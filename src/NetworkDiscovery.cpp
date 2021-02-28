@@ -155,22 +155,24 @@ typedef struct {
   char *ifname;
 } arp_data;
 
-static void arp_scan_hosts(patricia_node_t *node, void *data, void *user_data) {
+static void arp_scan_hosts(ndpi_patricia_node_t *node, void *data, void *user_data) {
   u_int32_t netp, maskp;
   arp_data *arp_d = (arp_data*) user_data;
+  ndpi_prefix_t *prefix = ndpi_patricia_get_node_prefix(node);
 
-  if(node->prefix->family == AF_INET) {
+  if(prefix->family == AF_INET) {
     struct in_addr sender_ip;
-    u_int32_t bitlen = node->prefix->bitlen;
+    u_int32_t bitlen = prefix->bitlen;
+    void *data = ndpi_patricia_get_node_data(node);
 
     /* Do not discover networks larger than /23 */
     if(bitlen < 23) bitlen = 23;
     
-    netp = ntohl(node->prefix->add.sin.s_addr);
-    maskp = (0xFFFFFFFF << (32 - node->prefix->bitlen)) & 0xFFFFFFFF;
+    netp = ntohl(prefix->add.sin.s_addr);
+    maskp = (0xFFFFFFFF << (32 - prefix->bitlen)) & 0xFFFFFFFF;
 
-    if(node->data)
-      sender_ip.s_addr = inet_addr((char*)node->data);
+    if(data)
+      sender_ip.s_addr = inet_addr((char*)data);
     else
       sender_ip.s_addr = 0;
 
@@ -483,7 +485,7 @@ u_int16_t NetworkDiscovery::buildMDNSDiscoveryDatagram(const char *query,
   memset(pbuf, 0, pbuf_len);
 
   memcpy(eth->h_dest, (u_int8_t*)multicast_mac, sizeof(multicast_mac));
-  memcpy(eth->h_source, (u_int8_t*)sender_mac, sizeof(sender_mac));  
+  memcpy(eth->h_source, (u_int8_t*)sender_mac, 6);  
   eth->h_proto = htons(0x0800);
 
   data = &pbuf[sizeof(struct ndpi_ethhdr) + sizeof(struct ndpi_iphdr) + sizeof(struct ndpi_udphdr)];

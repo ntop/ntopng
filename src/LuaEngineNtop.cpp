@@ -268,26 +268,17 @@ static int ntop_ip_cmp(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_load_malicious_ja3_hash(lua_State* vm) {
-  const char *ja3_hash;
+static int ntop_loadMaliciousJA3Signatures(lua_State* vm) {
+  const char *file_path;
+  int n = 0;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  ja3_hash = lua_tostring(vm, 1);
+  file_path = lua_tostring(vm, 1);
 
-  ntop->loadMaliciousJA3Hash(ja3_hash);
-  lua_pushnil(vm);
+  n = ntop->nDPILoadMaliciousJA3Signatures(file_path);
 
-  return(CONST_LUA_OK);
-}
-/* ****************************************** */
-
-static int ntop_reload_ja3_hashes(lua_State* vm) {
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  ntop->reloadJA3Hashes();
-  lua_pushnil(vm);
-
+  lua_pushinteger(vm, n);
   return(CONST_LUA_OK);
 }
 
@@ -508,11 +499,11 @@ static int ntop_is_freebsd(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_startCustomCategoriesReload(lua_State* vm) {
+static int ntop_initnDPIReload(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(ntop->isnDPIReloadInProgress() || (!ntop->startCustomCategoriesReload())) {
-    /* startCustomCategoriesReload, abort */
+  if(ntop->isnDPIReloadInProgress() || (!ntop->initnDPIReload())) {
+    /* initnDPIReload abort */
     lua_pushboolean(vm, false);
     return(CONST_LUA_OK);
   }
@@ -559,11 +550,11 @@ static int ntop_loadCustomCategoryHost(lua_State* vm) {
 
 /* ****************************************** */
 
-/* NOTE: ntop.startCustomCategoriesReload() must be called before this */
-static int ntop_reloadCustomCategories(lua_State* vm) {
+/* NOTE: ntop.initnDPIReload() must be called before this */
+static int ntop_finalizenDPIReload(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Starting category lists reload");
-  ntop->reloadCustomCategories();
+  ntop->finalizenDPIReload();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Category lists reload done");
   ntop->setLastInterfacenDPIReload(time(NULL));
@@ -1453,6 +1444,19 @@ static int ntop_script_get_next_vm_reload(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_has_speedtest_support(lua_State* vm) {
+
+#ifdef HAVE_EXPAT
+  lua_pushboolean(vm, true);
+#else
+  lua_pushboolean(vm, false);
+#endif
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_speedtest(lua_State* vm) {
   json_object *rc = speedtest();
 
@@ -1664,7 +1668,17 @@ static int ntop_get_prefs(lua_State* vm) {
 static int ntop_is_ping_available(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  lua_pushboolean(vm, ntop->canSendIcmp());
+  lua_pushboolean(vm, ntop->canSendICMP());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_is_ping_iface_available(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, ntop->canSelectNetworkIfaceICMP());
 
   return(CONST_LUA_OK);
 }
@@ -1700,18 +1714,25 @@ static int ntop_ping_host(lua_State* vm) {
     if(getLuaVMUservalue(vm, ping) == NULL) {
       Ping *ping;
 
+#ifdef __linux__
+      /* We support ICMP over multiple interfaces */
       try {
 	ping = new Ping(ifname);
       } catch(...) {
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ping socket: are you root?");
 	ping = NULL;
       }
-
+#else
+      ping = ntop->getPing();
+#endif
+      
       if(ping == NULL) {
 	lua_pushnil(vm);
 	return(CONST_LUA_OK);
       } else
 	getLuaVMUservalue(vm, ping) = ping;
+
+      ping = ntop->getPing();
     }
 
     getLuaVMUservalue(vm, ping)->ping(host, is_v6);
@@ -1720,7 +1741,7 @@ static int ntop_ping_host(lua_State* vm) {
     ContinuousPing *c = ntop->getContinuousPing();
 
     if(c)
-      c->ping(host, is_v6);
+      c->ping(host, is_v6, ifname);
     else {
       lua_pushnil(vm);
       return(CONST_LUA_OK);
@@ -1815,6 +1836,18 @@ static int ntop_is_administrator(lua_State* vm) {
 
 /* ****************************************** */
 
+static bool allowLocalUserManagement(lua_State* vm) {
+  if (!ntop->isLocalUser(vm) && !ntop->isLocalAuthEnabled()) 
+   return(false);
+
+  if(!ntop->isUserAdministrator(vm))
+    return(false);
+
+  return(true);
+}
+
+/* ****************************************** */
+
 static int ntop_reset_user_password(lua_State* vm) {
   char *who, *username, *old_password, *new_password;
   bool is_admin = ntop->isUserAdministrator(vm);
@@ -1835,11 +1868,11 @@ static int ntop_reset_user_password(lua_State* vm) {
   if((new_password = (char*)lua_tostring(vm, 4)) == NULL) return(CONST_LUA_PARAM_ERROR);
 
   /* non-local users cannot change their local password */
-  if(!ntop->isLocalUser(vm))
+  if((strcmp(who, username) == 0) && !ntop->isLocalUser(vm))
     return(CONST_LUA_ERROR);
 
   /* only the administrator can change other users passwords */
-  if(!is_admin && (strcmp(who, username)))
+  if((strcmp(who, username) != 0) && !allowLocalUserManagement(vm))
     return(CONST_LUA_ERROR);
 
   /* only the administrator can use and empty old password */
@@ -1857,7 +1890,8 @@ static int ntop_change_user_role(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1875,7 +1909,9 @@ static int ntop_change_allowed_nets(lua_State* vm) {
   char *username, *allowed_nets;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1893,7 +1929,9 @@ static int ntop_change_allowed_ifname(lua_State* vm) {
   char *username, *allowed_ifname;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1911,7 +1949,9 @@ static int ntop_change_user_host_pool(lua_State* vm) {
   char *username, *host_pool_id;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1929,7 +1969,9 @@ static int ntop_change_user_full_name(lua_State* vm) {
   char *username, *full_name;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1947,7 +1989,9 @@ static int ntop_change_user_language(lua_State* vm) {
   char *username, *language;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -1966,7 +2010,9 @@ static int ntop_change_user_permission(lua_State* vm) {
   bool allow_pcap_download = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -2151,7 +2197,8 @@ static int ntop_add_user(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -2269,7 +2316,8 @@ static int ntop_delete_user(lua_State* vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if(!ntop->isUserAdministrator(vm) || !ntop->isLocalUser(vm)) return(CONST_LUA_ERROR);
+  if(!allowLocalUserManagement(vm))
+    return(CONST_LUA_ERROR);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   if((username = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
@@ -2937,11 +2985,7 @@ static int ntop_get_info(lua_State* vm) {
 #endif
   }
 
-#ifdef HAVE_TEST_MODE
-  lua_push_bool_table_entry(vm, "test_mode", true);
-#endif
-
-    return(CONST_LUA_OK);
+  return(CONST_LUA_OK);
 }
 
 /* ****************************************** */
@@ -4168,14 +4212,18 @@ static int ntop_incr_redis(lua_State* vm) {
 static int ntop_get_hash_redis(lua_State* vm) {
   char *key, *member, *rsp;
   Redis *redis = ntop->getRedis();
-
+  u_int json_len;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   if((key = (char*)lua_tostring(vm, 1)) == NULL)       return(CONST_LUA_PARAM_ERROR);
   if((member = (char*)lua_tostring(vm, 2)) == NULL)    return(CONST_LUA_PARAM_ERROR);
 
-  if((rsp = (char*)malloc(CONST_MAX_LEN_REDIS_VALUE)) == NULL) return(CONST_LUA_PARAM_ERROR);
+  json_len = ntop->getRedis()->hstrlen(key, member);
+  if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
+  
+  if((rsp = (char*)malloc(json_len)) == NULL) return(CONST_LUA_PARAM_ERROR);
   lua_pushfstring(vm, "%s", (redis->hashGet(key, member, rsp, CONST_MAX_LEN_REDIS_VALUE) == 0) ? rsp : (char*)"");
   free(rsp);
 
@@ -4619,6 +4667,29 @@ static int ntop_add_local_network(lua_State* vm) {
   ntop->addLocalNetworkList(local_network);
 
   lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_check_local_network_alias(lua_State* vm) {
+  char *local_network;
+  u_int8_t network_id = (u_int8_t)-1;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((local_network = (char*)lua_tostring(vm, 1)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  network_id = ntop->getLocalNetworkId(local_network);
+
+  if(network_id != (u_int8_t)-1) {
+    if(!ntop->getLocalNetworkAlias(vm, network_id)) {
+      lua_pushnil(vm);
+      return(CONST_LUA_ERROR);
+    }
+  }
+
   return(CONST_LUA_OK);
 }
 
@@ -5884,9 +5955,10 @@ static luaL_Reg _ntop_reg[] = {
   { "getPrefs",          ntop_get_prefs },
 
   /* Ping */
-  { "isPingAvailable",	    ntop_is_ping_available      },
-  { "pingHost",             ntop_ping_host              },
-  { "collectPingResults",   ntop_collect_ping_results   },
+  { "isPingAvailable",	    ntop_is_ping_available       },
+  { "isPingIfaceAvailable", ntop_is_ping_iface_available },
+  { "pingHost",             ntop_ping_host               },
+  { "collectPingResults",   ntop_collect_ping_results    },
 
   /* HTTP utils */
   { "httpRedirect",         ntop_http_redirect          },
@@ -5982,11 +6054,13 @@ static luaL_Reg _ntop_reg[] = {
   { "elasticsearchConnection", ntop_elasticsearch_connection },
   { "getInstanceName",         ntop_get_instance_name        },
 
-  /* Custom Categories - only inteded to be called from housekeeping.lua */
-  { "startCustomCategoriesReload", ntop_startCustomCategoriesReload },
-  { "loadCustomCategoryIp",        ntop_loadCustomCategoryIp        },
-  { "loadCustomCategoryHost",      ntop_loadCustomCategoryHost      },
-  { "reloadCustomCategories",      ntop_reloadCustomCategories      },
+  /* Custom Categories, Malicious JA3 signatures
+   * Note: only inteded to be called from housekeeping.lua */
+  { "initnDPIReload",             ntop_initnDPIReload },
+  { "finalizenDPIReload",         ntop_finalizenDPIReload },
+  { "loadCustomCategoryIp",       ntop_loadCustomCategoryIp },
+  { "loadCustomCategoryHost",     ntop_loadCustomCategoryHost },
+  { "loadMaliciousJA3Signatures", ntop_loadMaliciousJA3Signatures },
 
   /* Privileges */
   { "gainWriteCapabilities",   ntop_gainWriteCapabilities },
@@ -6007,11 +6081,8 @@ static luaL_Reg _ntop_reg[] = {
   { "reloadPeriodicScripts", ntop_reload_periodic_scripts },
   { "shouldResolveHost",     ntop_should_resolve_host     },
   { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids },
+  { "getLocalNetworkAlias",  ntop_check_local_network_alias },
   
-  /* JA3 */
-  { "loadMaliciousJA3Hash", ntop_load_malicious_ja3_hash },
-  { "reloadJA3Hashes",      ntop_reload_ja3_hashes       },
-
   /* Mac */
   { "setMacDeviceType",     ntop_set_mac_device_type     },
 
@@ -6079,6 +6150,7 @@ static luaL_Reg _ntop_reg[] = {
   { "getNextVmReload",           ntop_script_get_next_vm_reload      },
 
   /* Speedtest */
+  { "hasSpeedtestSupport",       ntop_has_speedtest_support          },
   { "speedtest",                 ntop_speedtest                      },
 
   { NULL,          NULL}

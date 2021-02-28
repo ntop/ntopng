@@ -15,6 +15,9 @@ page_utils.print_header()
 
 info = ntop.getInfo()
 
+local referer = _GET["referer"]
+local reason = _GET["reason"]
+
 print [[
   <div class="container-narrow">
 
@@ -75,15 +78,15 @@ if blacklisted then
 ]]
 end
 
+if not isEmptyString(reason) then
+  print[[
+      <span class="text-danger">]] print(i18n("login."..reason)) print[[</span>
+]]
+end
+
 print[[
 </div>
-	 <input type="hidden" class="form-control" name="referer" value="]]
-
-local r = _GET["referer"]
-
-print(r or "")
-
-print [[">
+	 <input type="hidden" class="form-control" name="referer" value="]] print(referer or "") print [[">
     <button class="btn btn-lg btn-primary btn-block" type="submit" ]]
 --   style="background-color: #ff7500; border-color: #ff7500"
 

@@ -35,7 +35,7 @@ static int ntop_flow_get_status(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
   if(!f) return(CONST_LUA_ERROR);
 
-  lua_pushinteger(vm, f->getStatusBitmap().get());
+  f->getStatusBitmap().lua(vm, "status_map");
 
   return(CONST_LUA_OK);
 }
@@ -194,6 +194,17 @@ static int ntop_flow_is_remote_to_local(lua_State* vm) {
 
   lua_pushboolean(vm, (cli_host && srv_host &&
       !cli_host->isLocalHost() && srv_host->isLocalHost()));
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_protocol(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  lua_pushinteger(vm, f->get_protocol());
   return(CONST_LUA_OK);
 }
 
@@ -459,7 +470,7 @@ static int ntop_flow_get_score_info(lua_State* vm) {
   status_info = f->getStatusInfo();
 
   lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "status_map", f->getStatusBitmap().get());
+  f->getStatusBitmap().lua(vm, "status_map");
   lua_push_int32_table_entry(vm, "score", f->getScore());
   if(status_info) lua_push_str_table_entry(vm, "status_info", status_info);
 
@@ -669,14 +680,69 @@ static int ntop_flow_get_goodput_ratio(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_flow_get_client_key(lua_State* vm) {
+static int ntop_flow_get_ip(lua_State* vm, bool client) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+  char buf[64];
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  if(client)
+    lua_pushstring(vm, f->get_cli_ip_addr()->print(buf, sizeof(buf)));
+  else
+    lua_pushstring(vm, f->get_srv_ip_addr()->print(buf, sizeof(buf)));
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_client_ip(lua_State* vm) {
+  return ntop_flow_get_ip(vm, true /* Client */);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_server_ip(lua_State* vm) {
+  return ntop_flow_get_ip(vm, false /* Server */);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_port(lua_State* vm, bool client) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(!f) return(CONST_LUA_ERROR);
+
+  if(client)
+    lua_pushinteger(vm, f->get_cli_port());
+  else
+    lua_pushinteger(vm, f->get_srv_port());
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_client_port(lua_State* vm) {
+  return ntop_flow_get_port(vm, true /* Client */);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_server_port(lua_State* vm) {
+  return ntop_flow_get_port(vm, false /* Server */);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_key(lua_State* vm, bool client) {
   Flow *f = ntop_flow_get_context_flow(vm);
   Host *h;
   char buf[64];
 
   if(!f) return(CONST_LUA_ERROR);
 
-  h = f->get_cli_host();
+  h = client ? f->get_cli_host() : f->get_srv_host();
   lua_pushstring(vm, h ? h->get_hostkey(buf, sizeof(buf), true /* force VLAN, required by flow.lua */) : "");
 
   return(CONST_LUA_OK);
@@ -684,17 +750,14 @@ static int ntop_flow_get_client_key(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_client_key(lua_State* vm) {
+  return ntop_flow_get_key(vm, true /* Client */);
+}
+
+/* ****************************************** */
+
 static int ntop_flow_get_server_key(lua_State* vm) {
-  Flow *f = ntop_flow_get_context_flow(vm);
-  Host *h;
-  char buf[64];
-
-  if(!f) return(CONST_LUA_ERROR);
-
-  h = f->get_srv_host();
-  lua_pushstring(vm, h ? h->get_hostkey(buf, sizeof(buf), true /* force VLAN, required by flow.lua */) : "");
-
-  return(CONST_LUA_OK);
+  return ntop_flow_get_key(vm, false /* Server */);
 }
 
 /* ****************************************** */
@@ -886,6 +949,28 @@ static int ntop_flow_get_server_country(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+
+/* ****************************************** */
+
+static int ntop_flow_get_mac(lua_State* vm, bool client) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  lua_newtable(vm);
+
+  if(f)
+    f->lua_get_mac(vm, client);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_get_client_mac(lua_State* vm) { return ntop_flow_get_mac(vm, true /* Client */); };
+
+/* ****************************************** */
+
+static int ntop_flow_get_server_mac(lua_State* vm) { return ntop_flow_get_mac(vm, false /* Server */); };
+
 /* ****************************************** */
 
 static int ntop_flow_get_device_proto_allowed_info(lua_State* vm) {
@@ -952,6 +1037,16 @@ static int ntop_flow_get_alerted_status(lua_State* vm) {
   if(!f) return(CONST_LUA_ERROR);
 
   lua_pushinteger(vm, f->getAlertedStatus());
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_flow_is_alerted(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  lua_pushboolean(vm, f ? f->isFlowAlerted() : false);
+
   return(CONST_LUA_OK);
 }
 
@@ -1124,6 +1219,16 @@ static int ntop_flow_risk_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_flow_get_risk_bitmap(lua_State* vm) {
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  if(f) lua_pushinteger(vm, f->getRiskBitmap());
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
 static int ntop_flow_has_risk(lua_State* vm) {
   Flow *f = ntop_flow_get_context_flow(vm);
 
@@ -1135,6 +1240,17 @@ static int ntop_flow_has_risk(lua_State* vm) {
       lua_pushboolean(vm, f->hasRisks());
   } else
     lua_pushboolean(vm, false);
+
+  return CONST_LUA_OK;
+}
+
+/* ****************************************** */
+
+static int ntop_get_flow_info_field(lua_State* vm) {
+  char buf[256];
+  Flow *f = ntop_flow_get_context_flow(vm);
+
+  lua_pushstring(vm, f ? f->getFlowInfo(buf, sizeof(buf)) : "");
 
   return CONST_LUA_OK;
 }
@@ -1171,6 +1287,7 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "setStatus",                ntop_flow_set_status                 },
   { "isStatusSet",              ntop_flow_is_status_set              },
   { "getAlertedStatus",         ntop_flow_get_alerted_status         },
+  { "isAlerted",                ntop_flow_is_alerted                 },
   
   { "isClientUnicast",          ntop_flow_is_client_unicast          },
   { "isServerUnicast",          ntop_flow_is_server_unicast          },
@@ -1197,10 +1314,15 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "getBytesRcvd",             ntop_flow_get_bytes_rcvd             },
   { "getBytes",                 ntop_flow_get_bytes                  },
   { "getGoodputRatio",          ntop_flow_get_goodput_ratio          },
+  { "getClientIp",              ntop_flow_get_client_ip              },
+  { "getServerIp",              ntop_flow_get_server_ip              },
+  { "getClientPort",            ntop_flow_get_client_port            },
+  { "getServerPort",            ntop_flow_get_server_port            },
   { "getClientKey",             ntop_flow_get_client_key             },
   { "getServerKey",             ntop_flow_get_server_key             },
   { "getFlowProtoClientIP",     ntop_flow_get_proto_client_ip        },
   { "getFlowProtoServerIP",     ntop_flow_get_proto_server_ip        },
+  { "getProtocol",              ntop_flow_get_protocol               },
   { "getnDPICategoryName",      ntop_flow_get_ndpi_cat_name          },
   { "getnDPIProtocolName",      ntop_flow_get_ndpi_protocol_name     },
   { "getnDPICategoryId",        ntop_flow_get_ndpi_category_id       },
@@ -1209,6 +1331,8 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "getDnsQuery",              ntop_flow_get_dns_query              },
   { "getClientCountry",         ntop_flow_get_client_country         },
   { "getServerCountry",         ntop_flow_get_server_country         },
+  { "getClientMac",             ntop_flow_get_client_mac             },
+  { "getServerMac",             ntop_flow_get_server_mac             },
   { "getTLSVersion",            ntop_flow_get_tls_version            },
   
 #ifdef NTOPNG_PRO
@@ -1254,7 +1378,9 @@ static luaL_Reg _ntop_flow_reg[] = {
   { "getHTTPInfo",              ntop_flow_get_http_info              },
   { "getDNSInfo",               ntop_flow_get_dns_info               },
   { "getRiskInfo",              ntop_flow_risk_info                  },
+  { "getRiskBitmap",            ntop_flow_get_risk_bitmap            },
   { "hasRisk",                  ntop_flow_has_risk                   },
+  { "getFlowInfoField",         ntop_get_flow_info_field             },
   { "setCustomInfo",            ntop_flow_set_custom_info            },
   
   { NULL,                       NULL }

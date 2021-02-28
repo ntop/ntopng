@@ -88,16 +88,17 @@ class Ntop {
   cpu_load_stats cpu_stats;
   float cpu_load;
   bool plugins0_active, can_send_icmp, privileges_dropped;
-  std::set<std::string> *new_malicious_ja3, *malicious_ja3, *malicious_ja3_shadow;
   FifoSerializerQueue *internal_alerts_queue;
   Recipients recipients; /* Handle notification recipients */
   
   /* Local network address list */
   char *local_network_names[CONST_MAX_NUM_NETWORKS];
+  char *local_network_aliases[CONST_MAX_NUM_NETWORKS];
   AddressTree local_network_tree;
 
 #ifndef WIN32
   ContinuousPing *cping;
+  Ping *ping;
 #endif
   
 #ifdef __linux__
@@ -390,6 +391,7 @@ class Ntop {
   void checkSNMPDeviceAlerts(ScriptPeriodicity p, lua_State *vm);
   void lua_periodic_activities_stats(NetworkInterface *iface, lua_State* vm);
   void getUsers(lua_State* vm);
+  bool getLocalNetworkAlias(lua_State *vm, u_int8_t network_id);
   bool isUserAdministrator(lua_State* vm);
   void getAllowedInterface(lua_State* vm);
   void getAllowedNetworks(lua_State* vm);
@@ -398,6 +400,7 @@ class Ntop {
   bool isInterfaceAllowed(lua_State* vm, int ifid)              const;
   bool isPcapDownloadAllowed(lua_State* vm, const char *ifname);
   char *preparePcapDownloadFilter(lua_State* vm, char *filter);
+  bool isLocalAuthEnabled() const;
   bool isLocalUser(lua_State* vm);
   bool checkCaptiveUserPassword(const char * const user, const char * const password, char *group) const;
   bool checkGuiUserPassword(struct mg_connection *conn, const char * const user, const char * const password, char *group, bool *localuser) const;
@@ -449,7 +452,14 @@ class Ntop {
 
   inline u_int getNumCPUs()             { return(num_cpus); }
   inline void setNumCPUs(u_int num)     { num_cpus = num; }
-  inline bool canSendIcmp()             { return(can_send_icmp); }
+  inline bool canSendICMP()               { return(can_send_icmp); }
+  inline bool canSelectNetworkIfaceICMP() {
+#ifdef __linux__
+    return(can_send_icmp);
+#else
+    return(false);
+#endif
+  }  
 
   inline NtopPro* getPro()              { return((NtopPro*)pro); };
 
@@ -485,23 +495,27 @@ class Ntop {
   inline time_t getLastStatsReset() { return(last_stats_reset); }
   void resetStats();
 
-  inline void loadMaliciousJA3Hash(std::string md5_hash)     { new_malicious_ja3->insert(md5_hash); }
   bool isMaliciousJA3Hash(std::string md5_hash);
-  void reloadJA3Hashes();
   struct ndpi_detection_module_struct* initnDPIStruct();    
+
   inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
-  bool startCustomCategoriesReload();
-  void checkReloadHostsBroadcastDomain();
+  bool initnDPIReload();
+  void finalizenDPIReload();
   inline bool isnDPIReloadInProgress()  { return(ndpiReloadInProgress);     }  
-  void reloadCustomCategories();
+
+  void checkReloadHostsBroadcastDomain();
+
   void nDPILoadIPCategory(char *what, ndpi_protocol_category_t id);
   void nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id);
+  int nDPILoadMaliciousJA3Signatures(const char *file_path);
+
   inline ndpi_protocol_category_t get_ndpi_proto_category(ndpi_protocol proto) { return(ndpi_get_proto_category(get_ndpi_struct(), proto)); };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   void reloadPeriodicScripts();
 #ifndef WIN32
   inline ContinuousPing* getContinuousPing() { return(cping); }
+  inline Ping*           getPing()           { return(ping);  }
 #endif
   inline bool hasDroppedPrivileges()         { return(privileges_dropped); }
   inline void setDroppedPrivileges()         { privileges_dropped = true; }

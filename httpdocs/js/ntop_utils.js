@@ -39,11 +39,11 @@ const REGEXES = {
 	ipv4: "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$",
 	ipv6: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\:){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$|^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$",
 	domainName: "^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][-_\.a-zA-Z0-9]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,13}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})",
-        url: "^(https?\:\/\/[^\/\\s]+(\/.*)?)$",
+	url: "^(https?\:\/\/[^\/\\s]+(\/.*)?)$",
 	macAddress: "^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$",
 	username: "^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$",
 	singleword: "^(?=[a-zA-Z0-9._\-]{3,20}$)(?!.*[_.\-]{2})[^_.\-].*[^_.\-]$",
-        email: "^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)$",
+	email: "^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)$",
 	https: "^https?://.+$",
 	token: "^[0-9a-f]{32}"
 };
@@ -967,6 +967,59 @@ class NtopUtils {
 			return [false, {}];
 		}
 	}
+
+	/**
+	 * Save the scale of element inside the local storage
+	 * @param {object} $element 
+	 * @param {object} scale
+	 */
+	static saveElementScale($element, scale = {width: 0, height: 0}) {
+		
+		const key = NtopUtils.generateScaleElementKey($element);
+		localStorage.setItem(key, JSON.stringify(scale));
+	}
+
+	static generateScaleElementKey($element) {
+		let identificator;
+		const page = location.pathname;
+		const elementId = $element.attr('id');
+
+		if (elementId !== "") {
+			identificator = elementId;
+		}
+		else {
+			const className = $element.attr('class');
+			identificator = className;
+		}
+
+		const key = `${identificator}-${page}-scale`;
+		return key;
+	}
+
+	/**
+	 * Load the old scale value ofx element from the local storage
+	 * @param {object} $element 
+	 */
+	static loadElementScale($element) {
+
+		const key = NtopUtils.generateScaleElementKey($element);
+		const currentValue = localStorage.getItem(key);
+		if (currentValue == null) return undefined;
+
+		return JSON.parse(currentValue);
+	}
+
+	static fillFieldIfValid($field, value) {
+
+		if (value === undefined) {
+			$field.val('');
+		}
+		else {
+			$field.val(value);
+		}
+
+	}
+
 }
 
 $(document).ready(function () {

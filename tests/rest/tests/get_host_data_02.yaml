@@ -1,0 +1,15 @@
+input: test_02.pcap
+
+localnet: 192.168.1.0/24
+
+ignore: # duration and last seen depend on the current system time, whereas first seen must not change
+  - duration
+  - seen.last
+  - throughput_trend_bps
+  - throughput_trend_pps
+
+pre: |
+
+post: |
+  sleep 15
+  curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0, "host" : "192.168.1.93"}' http://localhost:3333/lua/rest/v1/get/host/data.lua

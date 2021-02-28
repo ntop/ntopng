@@ -53,9 +53,6 @@ class LocalHost : public Host, public SerializableElement {
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
   std::unordered_map<u_int32_t, DoHDoTStats*> doh_dot_map;
-
-  /* Estimate of the number of critical servers used by this host */
-  Cardinality num_dns_servers, num_smtp_servers, num_ntp_servers;
   
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
@@ -94,6 +91,9 @@ class LocalHost : public Host, public SerializableElement {
   virtual void luaHTTP(lua_State *vm)              { stats->luaHTTP(vm);         };
   virtual void luaDNS(lua_State *vm, bool verbose) { stats->luaDNS(vm, verbose); luaDoHDot(vm); };
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) { stats->luaICMP(vm,isV4,verbose); };
+  virtual void lua_get_timeseries(lua_State* vm);
+  virtual void lua_peers_stats(lua_State* vm)    const;
+  virtual void lua_contacts_stats(lua_State *vm) const;
   virtual void incrVisitedWebSite(char *hostname)  { stats->incrVisitedWebSite(hostname); };
   virtual HTTPstats* getHTTPstats()                { return(stats->getHTTPstats());       };
   virtual DnsStats*  getDNSstats()                 { return(stats->getDNSstats());        };
@@ -109,15 +109,15 @@ class LocalHost : public Host, public SerializableElement {
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
-  virtual void lua_get_timeseries(lua_State* vm);  
   void custom_periodic_stats_update(const struct timeval *tv) {
   }
 
+  virtual void luaHostBehaviour(lua_State* vm)    { if(stats) stats->luaHostBehaviour(vm); }
   virtual void incDohDoTUses(Host *srv_host);
 
-  virtual void incNTPContactCardinality(Host *h)  { num_ntp_servers.addElement(h->get_ip()->key());  }
-  virtual void incDNSContactCardinality(Host *h)  { num_dns_servers.addElement(h->get_ip()->key());  }
-  virtual void incSMTPContactCardinality(Host *h) { num_smtp_servers.addElement(h->get_ip()->key()); }
+  virtual void incNTPContactCardinality(Host *h)  { stats->incNTPContactCardinality(h);  }
+  virtual void incDNSContactCardinality(Host *h)  { stats->incDNSContactCardinality(h);  }
+  virtual void incSMTPContactCardinality(Host *h) { stats->incSMTPContactCardinality(h); }
 };
 
 #endif /* _LOCAL_HOST_H_ */

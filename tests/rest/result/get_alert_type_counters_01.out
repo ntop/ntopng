@@ -1,0 +1,1 @@
+{"rc":0,"rc_str":"OK","rc_str_hr":"Success","rsp":{"historical":[],"historical-flows":[{"count":"111","type":"alert_remote_to_remote"},{"count":"2","type":"alert_tls_old_protocol_version"},{"count":"63","type":"alert_tls_certificate_expired"},{"count":"1","type":"alert_suspicious_tcp_syn_probing"},{"count":"1","type":"alert_ndpi_tls_not_carrying_https"}]}}

@@ -19,6 +19,7 @@ local discover = require "discover_utils"
 local rest_utils = require "rest_utils"
 local auth = require "auth"
 local alert_severities = require("alert_severities")
+local user_scripts_utils = require("user_scripts_utils")
 
 if not auth.has_capability(auth.capabilities.user_scripts) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -26,7 +27,6 @@ if not auth.has_capability(auth.capabilities.user_scripts) then
 end
 
 sendHTTPContentTypeHeader('text/html')
-
 
 -- get config parameters like the id and name
 local script_subdir = _GET["subdir"]
@@ -45,15 +45,7 @@ end
 local confset_name = configset.name
 
 -- create a table that holds localization about hooks name
-local titles = {
-   ["host"] = i18n("config_scripts.granularities.host"),
-   ["snmp_device"] = i18n("config_scripts.granularities.snmp_device"),
-   ["system"] = i18n("config_scripts.granularities.system"),
-   ["flow"] = i18n("config_scripts.granularities.flow"),
-   ["interface"] = i18n("config_scripts.granularities.interface"),
-   ["network"] = i18n("report.local_networks"),
-   ["syslog"] = i18n("config_scripts.granularities.syslog")
-}
+local titles = user_scripts_utils.load_configset_titles()
 
 page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config)
 --page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[script_subdir], config=confset_name }))
@@ -84,8 +76,8 @@ local script_categories = {}
 for script_name, script in pairs(scripts.modules) do
    for cat_k, cat_v in pairs(user_scripts.script_categories) do
       if script["category"]["id"] == cat_v["id"] and not script_categories[cat_k] then
-	 script_categories[cat_k] = cat_v
-	 break
+      script_categories[cat_k] = cat_v
+      break
       end
    end
 end

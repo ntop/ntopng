@@ -578,7 +578,7 @@ bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
 
 /* *************************************** */
 
-bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node) {
+bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, ndpi_patricia_node_t **found_node) {
   VlanAddressTree *cur_tree; /* must use this as tree can be swapped */
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
@@ -587,15 +587,15 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_po
   if(!tree || !(cur_tree = tree))
     return(false);
 
-  *found_node = (patricia_node_t*)ip->findAddress(cur_tree->getAddressTree(vlan_id));
+  *found_node = (ndpi_patricia_node_t*)ip->findAddress(cur_tree->getAddressTree(vlan_id));
 
   if(*found_node) {
 #ifdef HOST_POOLS_DEBUG
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Found pool for %s [pool id: %i]",
-				   ip->print(buf, sizeof(buf)), (*found_node)->user_data);
+				   ip->print(buf, sizeof(buf)), ndpi_patricia_get_node_u64(*found_node));
 #endif
-      *found_pool = (*found_node)->user_data;
+      *found_pool = ndpi_patricia_get_node_u64(*found_node);
       return(true);
   }
 
@@ -606,7 +606,7 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_po
 
 u_int16_t HostPools::getPool(Host *h) {
   u_int16_t pool_id;
-  patricia_node_t *node;
+  ndpi_patricia_node_t *node;
   bool found = false;
 
   if(h) {

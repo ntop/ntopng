@@ -302,11 +302,18 @@ else
    local service_map_available = false
    local num_periodicity = 0
 
+   local service_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?host=" .. host_ip
+   local periodicity_map_link = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?&host=" .. host_ip
+
    if(ntop.isEnterpriseL() and (ntop.getPref("ntopng.prefs.is_behaviour_analysis_enabled") == "1")) then
       local service_map = interface.serviceMap(_GET["host"])
 
       if service_map and (table.len(service_map) > 0) then
          service_map_available = true
+      end
+
+      if host_vlan ~= 0 then
+         service_map_link = service_map_link .. "&vlan=" .. host_vlan
       end
    end
 
@@ -316,6 +323,10 @@ else
       if periodicity_map and (table.len(periodicity_map) > 0) then
          num_periodicity = table.len(periodicity_map)
          periodicity_map_available = true
+      end
+
+      if host_vlan ~= 0 then
+         periodicity_map_link = periodicity_map_link .. "&vlan=" .. host_vlan
       end
    end
 
@@ -458,7 +469,7 @@ else
 				 hidden = not periodicity_map_available,
 				 active = page == "periodicity_map",
              page_name = "periodicity_map",
-             url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/periodicity_map.lua?&host=" .. host_ip,
+             url = periodicity_map_link,
 				 label = "<i class=\"fas fa-lg fa-clock\"></i> <span style='position: absolute; top: 0' class=\"badge badge-pill badge-secondary\">"..num_periodicity.."</span>",
 			      },
 			      {
@@ -466,7 +477,7 @@ else
 				 active = page == "service_map",
 				 page_name = "service_map",
              label = "<i class=\"fas fa-lg fa-concierge-bell\"></i>",
-             url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/service_map.lua?host=" .. host_ip
+             url = service_map_link
 			      },
 			      {
 				 hidden = not isAdministrator() or interface.isPcapDumpInterface(),
@@ -2100,7 +2111,9 @@ elseif (page == "config") then
          </td>
       </tr>]]
 
-   graph_utils.printPoolChangeDropdown(ifId, host_pool_id.."", have_nedge)
+   if host_pool_id ~= nil then
+      graph_utils.printPoolChangeDropdown(ifId, host_pool_id.."", have_nedge)
+   end
 
    print [[<tr>
          <th>]] print(i18n("host_config.hide_from_top")) print[[</th>
@@ -2192,6 +2205,7 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:alerted_flows",          label=i18n("graphs.total_alerted_flows")},
       {schema="host:unreachable_flows",      label=i18n("graphs.total_unreachable_flows")},
       {schema="host:contacts",               label=i18n("graphs.active_host_contacts")},
+      {schema="host:contacts_behaviour",     label=i18n("graphs.host_contacts_behaviour")},
       {schema="host:total_alerts",           label=i18n("details.alerts")},
       {schema="host:engaged_alerts",         label=i18n("show_alerts.engaged_alerts")},
       {schema="host:host_unreachable_flows", label=i18n("graphs.host_unreachable_flows")},
@@ -2205,10 +2219,6 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:tcp_packets",            label=i18n("graphs.tcp_packets")},
       {schema="host:udp_sent_unicast",       label=i18n("graphs.udp_sent_unicast_vs_non_unicast")},
       {schema="host:dscp",                   label=i18n("graphs.dscp_classes")},
-
-      {schema="host:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
-      {schema="host:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
-      {schema="host:1d_delta_contacts",        label="1 Day Active Host Contacts Delta"}, -- TODO localize
    }, graph_utils.getDeviceCommonTimeseries()),
    device_timeseries_mac = host["mac"],
 })
@@ -2219,7 +2229,7 @@ elseif(page == "traffic_report") then
 end
 
 if(not only_historical) and (host ~= nil) then
-   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js]] print(ntop.getStaticFileEpoch()) print[["></script>]]
+   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js?]] print(ntop.getStaticFileEpoch().."") print[["></script>]]
 
    print [[
    <script>

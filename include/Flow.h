@@ -68,7 +68,8 @@ class Flow : public GenericHashEntry {
     twh_over, twh_ok, dissect_next_http_packet, passVerdict,
     l7_protocol_guessed, flow_dropped_counts_increased,
     good_tls_hs,
-    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature;
+    quota_exceeded, has_malicious_cli_signature, has_malicious_srv_signature,
+    swap_done, swap_requested;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
@@ -254,7 +255,8 @@ class Flow : public GenericHashEntry {
   void updateSrvJA3();
   void updateHASSH(bool as_client);
   void processExtraDissectedInformation();
-  void processDetectedProtocol();
+  void processDetectedProtocol();      /* nDPI detected protocol */
+  void processDetectedProtocolData();  /* nDPI detected protocol data (e.g., ndpiFlow->host_server_name) */
   void setExtraDissectionCompleted();
   void setProtocolDetectionCompleted();
   void updateProtocol(ndpi_protocol proto_id);
@@ -293,6 +295,7 @@ class Flow : public GenericHashEntry {
   inline bool isProto(u_int16_t p) const { return(((ndpiDetectedProtocol.master_protocol == p)
 						   || (ndpiDetectedProtocol.app_protocol == p))
 						  ? true : false); }
+  bool isTLSProto() const;
   inline bool isTLS()  const { return(isProto(NDPI_PROTOCOL_TLS));  }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }
@@ -386,12 +389,15 @@ class Flow : public GenericHashEntry {
   void incStats(bool cli2srv_direction, u_int pkt_len,
 		u_int8_t *payload, u_int payload_len, 
                 u_int8_t l4_proto, u_int8_t is_fragment,
-		u_int16_t tcp_flags, const struct timeval *when);
+		u_int16_t tcp_flags, const struct timeval *when,
+		u_int16_t fragment_extra_overhead);
   void addFlowStats(bool new_flow,
 		    bool cli2srv_direction, u_int in_pkts, u_int in_bytes, u_int in_goodput_bytes,
 		    u_int out_pkts, u_int out_bytes, u_int out_goodput_bytes, 
 		    u_int in_fragments, u_int out_fragments,
 		    time_t first_seen, time_t last_seen);
+  bool check_swap(u_int32_t tcp_flags);
+
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };
   inline bool isOneWay()                 const { return(get_packets() && (!get_packets_cli2srv() || !get_packets_srv2cli())); };
@@ -482,8 +488,12 @@ class Flow : public GenericHashEntry {
   u_int64_t get_current_packets_cli2srv() const;
   u_int64_t get_current_packets_srv2cli() const;
 
+  inline bool is_swap_requested()  const { return swap_requested;  };
+  inline bool is_swap_done()       const { return swap_done;       };
+  inline void set_swap_done()            { swap_done = true;       };
   bool is_hash_entry_state_idle_transition_ready() const;
-  void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial, bool first_partial, const struct timeval *tv) const;
+  void hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, Host *srv_host, PartializableFlowTrafficStats *partial,
+				   bool first_partial, const struct timeval *tv) const;
   void periodic_stats_update(const struct timeval *tv);
   void  set_hash_entry_id(u_int assigned_hash_entry_id);
   u_int get_hash_entry_id() const;
@@ -523,6 +533,7 @@ class Flow : public GenericHashEntry {
   void lua_get_throughput(lua_State* vm) const;
   void lua_get_time(lua_State* vm) const;
   void lua_get_ip(lua_State *vm, bool client) const;
+  void lua_get_mac(lua_State *vm, bool client) const;
   void lua_get_info(lua_State *vm, bool client) const;
   void lua_get_tls_info(lua_State *vm) const;
   void lua_get_ssh_info(lua_State *vm) const;
@@ -575,8 +586,13 @@ class Flow : public GenericHashEntry {
   }
   inline bool hasInvalidDNSQueryChars()  { return(isDNS() && protos.dns.invalid_chars_in_query); }
   inline bool hasMaliciousSignature()    { return(has_malicious_cli_signature || has_malicious_srv_signature); }
+
+  void setRisk(ndpi_risk r);
+  void addRisk(ndpi_risk r);
+  inline ndpi_risk getRiskBitmap() const { return ndpi_flow_risk_bitmap; }
   bool hasRisk(ndpi_risk_enum r) const;
   bool hasRisks() const;
+
   inline char* getDNSQuery()        { return(isDNS() ? protos.dns.last_query : (char*)"");  }
   inline void  setDNSQuery(char *v) {
     if(isDNS()) {
@@ -597,7 +613,6 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getHTTPRetCode()   const { return isHTTP() ? protos.http.last_return_code : 0;           };
   inline const char* getHTTPMethod()  const { return isHTTP() ? ndpi_http_method2str(protos.http.last_method) : (char*)"";        };
   inline char* getHTTPContentType()   const { return(isHTTP() ? protos.http.last_content_type : (char*)""); };
-  bool isTLSProto();
 
   void setExternalAlert(json_object *a);
   void luaRetrieveExternalAlert(lua_State *vm);
@@ -617,6 +632,7 @@ class Flow : public GenericHashEntry {
   inline InterarrivalStats* getCli2SrvIATStats() const { return cli2srvPktTime; }
   inline InterarrivalStats* getSrv2CliIATStats() const { return srv2cliPktTime; }
 
+  inline bool isTCP()            const { return protocol == IPPROTO_TCP; };
   inline bool isTCPEstablished() const { return (!isTCPClosed() && !isTCPReset() && isThreeWayHandshakeOK()); }
   inline bool isTCPConnecting()  const { return (src2dst_tcp_flags == TH_SYN
 						 && (!dst2src_tcp_flags || (dst2src_tcp_flags == (TH_SYN | TH_ACK)))); }
@@ -725,7 +741,7 @@ class Flow : public GenericHashEntry {
 
   inline u_int8_t getCli2SrvECN()  { return (cli2srv_tos & 0x3); }
   inline u_int8_t getSrv2CliECN()  { return (srv2cli_tos & 0x3); }
-  inline void setRisk(ndpi_risk r) { ndpi_flow_risk_bitmap = r; }
+
   inline float getEntropy(bool src2dst_direction) {
     struct ndpi_analyze_struct *e = src2dst_direction ? entropy.c2s : entropy.s2c;
 

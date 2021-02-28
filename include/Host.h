@@ -349,7 +349,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline bool isHiddenFromTop() { return hidden_from_top; }
   bool isOneWayTraffic()  const;
   bool isTwoWaysTraffic() const;
-  virtual void lua_get_timeseries(lua_State* vm) { lua_pushnil(vm); };
+  virtual void lua_get_timeseries(lua_State* vm)        { lua_pushnil(vm); };
+  virtual void lua_peers_stats(lua_State* vm)     const { lua_pushnil(vm); };
+  virtual void lua_contacts_stats(lua_State *vm)  const { lua_pushnil(vm); };
   DeviceProtoStatus getDeviceAllowedProtocolStatus(ndpi_protocol proto, bool as_client);
 
   virtual void serialize(json_object *obj, DetailsLevel details_level);
@@ -394,6 +396,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void incOSStats(time_t when, u_int16_t proto_id,
 		       u_int64_t sent_packets, u_int64_t sent_bytes,
 		       u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
+
   void incCliContactedHosts(IpAddress *peer) { stats->incCliContactedHosts(peer); }
   void incCliContactedPorts(u_int16_t port)  { stats->incCliContactedPorts(port); }
   void incSrvHostContacts(IpAddress *peer)   { stats->incSrvHostContacts(peer);   }

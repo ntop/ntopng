@@ -1264,25 +1264,32 @@ else
       print("</td></tr>\n")
    end
 
-   local additional_status = flow["status_map"]
+   -- Print additional flow statuses
+   if flow["status_map"] then
+      local first = true
+      local num_statuses = 0
 
-   if(alerted_status ~= nil) then
-      additional_status = ntop.bitmapClear(additional_status, alerted_status)
-   end
-
-   if(additional_status ~= 0) then
-      print("<tr><th width=30%>"..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
-      for _, t in pairsByKeys(alert_consts.alert_types) do -- TODO AM: make default when the alert migration is done
+      for _, t in pairsByKeys(alert_consts.alert_types) do
 	 if t.meta and t.meta.status_key then
 	    local id = t.meta.status_key
 
-	    if  ntop.bitmapIsSet(additional_status, id) then
+	    if id ~= flow["alerted_status"] and flow["status_map"][id] then
+	       if first then
+		  print("<tr><th width=30%>"..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
+		  first = false
+	       end
+
 	       local message = alert_consts.alertTypeLabel(t.meta.alert_key, true)
 	       print(message.."<br />")
+
+	       num_statuses = num_statuses + 1
 	    end
 	 end
       end
-      print("</td></tr>\n")
+
+      if num_statuses > 0 then
+	 print("</td></tr>\n")
+      end
    end
 
    if(isScoreEnabled() and (flow.score.flow_score > 0)) then

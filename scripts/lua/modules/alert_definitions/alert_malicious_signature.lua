@@ -45,7 +45,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_malicious_signature.format(ifid, alert, alert_type_params)
-   return i18n("alerts_dashboard.malicious_signature_detected")
+   return
 end
 
 -- #######################################################

@@ -417,6 +417,27 @@ end
 
 -- #################################
 
+--@brief Deletes all stored alerts matching a user script `filter`
+-- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
+-- @param subdir the modules subdir
+-- @param user_script The string script identifier
+-- @param filter An already validated user script filter
+-- @return nil
+function alert_utils.deleteAlertsMatchingUserScriptFilter(confset_id, subdir, user_script, filter)
+   local res = {}
+   local statement = "DELETE " -- TODO: change to DELETE
+
+   local query = user_scripts.prepareFilterSQLiteWhere(confset_id, subdir, user_script, filter)
+
+   if subdir ~= "flow" then
+      res = interface.queryAlertsRaw(statement, query, group_by, true)
+   else
+      res = interface.queryFlowAlertsRaw(statement, query, group_by, true)
+   end
+end
+
+-- #################################
+
 -- this function returns an object with parameters specific for one tab
 function alert_utils.getTabParameters(_get, what)
    local opts = {}
@@ -556,20 +577,6 @@ local function formatRawFlow(ifid, alert, alert_json)
       flow = flow.."[" .. l4_proto_label .. "] "
    end
 
-   local l7proto_name = interface.getnDPIProtoName(tonumber(alert["l7_proto"]) or 0)
-
-   if alert["l7_master_proto"] and alert["l7_master_proto"] ~= "0" then
-      local l7proto_master_name = interface.getnDPIProtoName(tonumber(alert["l7_master_proto"]))
-
-      if l7proto_master_name ~= l7proto_name then
-	 l7proto_name = string.format("%s.%s", l7proto_master_name, l7proto_name)
-      end
-   end
-
-   if not isEmptyString(l7proto_name) and l4_proto_label ~= l7proto_name then
-      flow = flow.."["..i18n("application")..": " ..l7proto_name.."] "
-   end
-
    if alert_json ~= nil then
       -- render the json
       local msg = ""
@@ -582,8 +589,8 @@ local function formatRawFlow(ifid, alert, alert_json)
          local lb = ""
 	 local info
 
-	 if string.len(alert_json["info"]) > 60 then
-	    info = "<abbr title=\"".. alert_json["info"] .."\">".. shortenString(alert_json["info"], 60)
+	 if string.len(alert_json["info"]) > 24 then
+	    info = "<abbr title=\"".. alert_json["info"] .."\">".. shortenString(alert_json["info"], 24)
 	 else
 	    info = alert_json["info"]
 	 end
@@ -909,6 +916,8 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
    local url_params = {}
    local options = options or {}
    local ifid = interface.getId()
+   local additional_params = {}
+   local err     = ""
 
    -- this paramater is used to print out a card container for the table
    local is_standalone = options.is_standalone or false
@@ -919,12 +928,31 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
 			 id      = "delete_alert_dialog",
 			 action  = "deleteAlertById(delete_alert_id)",
 			 title   = i18n("show_alerts.delete_alert"),
-			 message = i18n("show_alerts.confirm_delete_alert").."?",
+			 message = i18n("show_alerts.confirm_delete_alert"),
 			 confirm = i18n("delete"),
 			 confirm_button = "btn-danger",
 		      }
       })
    )
+
+   print(
+      template.gen("modal_alert_filter_dialog.html", {
+      		      dialog={
+			 id		   = "filter_alert_dialog",
+			 action		   = "filterAlertByFilters(confset_id, subdir, script_key)",
+          		 title		   = i18n("show_alerts.filter_alert"),
+          		 message	   = i18n("show_alerts.confirm_filter_alert"),
+			 delete_message    = i18n("show_alerts.confirm_delete_filtered_alerts"),
+          		 field_input_title = i18n("current_filter"),
+			 delete_alerts     = i18n("delete_alerts"),
+          		 alert_filter      = "default_filter",
+	  		 confirm 	   = i18n("filter"),
+			 confirm_button    = "btn-warning",
+		      }
+      })
+   )
+
+
 
    print(
       template.gen("modal_confirm_dialog.html", {
@@ -1056,6 +1084,33 @@ function deleteAlertById(alert_key) {
   form.appendTo('body').submit();
 }
 
+function filterAlertByFilters(confset_id, subdir, script_key) {
+   $.ajax({
+        type: 'POST',
+	contentType: "application/json",
+	dataType: "json",
+	url: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`, /* TODO: Change */
+	data: JSON.stringify({
+	    filters: document.getElementById("name_input").value,
+            confset_id: confset_id,   
+            subdir: subdir,
+            script_key: script_key,
+            status: getCurrentStatus(),
+            delete_alerts: $('#delete_alert_switch').prop('checked'),
+            csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
+	}),
+	success: function(rsp) {
+            let get_params = NtopUtils.paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
+            get_params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+            let form = NtopUtils.paramsToForm('<form method="post"></form>', get_params);
+            form.appendTo('body').submit();
+	},
+	error: function(rsp) {
+	    $("#filter_alert_dialog_error").text(rsp.responseJSON.rsp).show();
+	},
+    });
+}
+
 var alert_to_toggle = null;
 var alert_to_release = null;
 
@@ -1130,6 +1185,7 @@ function releaseAlert(idx) {
 	 if((not alt_nav_tabs) and ((k == 1 and status == nil) or (status ~= nil and status == t["status"]))) then
 	    clicked = "1"
 	 end
+
 	 print [[
       <div class="tab-pane in" id="tab-]] print(t["div-id"]) print[[">
          <!-- Table to render --->
@@ -1153,6 +1209,7 @@ function releaseAlert(idx) {
                buttons: [']]
 
 	 local title = t["label"]
+
 
 	 if(t["chart"] ~= "") then
 	    local base_url
@@ -1231,7 +1288,7 @@ function releaseAlert(idx) {
             sortable: true,
 	    css: {
 	       textAlign: 'center',
-          whiteSpace: 'nowrap',
+	       width: '10%',
 	    }
 	 },
 
@@ -1241,7 +1298,7 @@ function releaseAlert(idx) {
             sortable: true,
 	    css: {
 	       textAlign: 'center',
-          whiteSpace: 'nowrap',
+	       width: '5%',
 	    }
 	 },
 
@@ -1260,7 +1317,8 @@ function releaseAlert(idx) {
 	    field: "column_severity",
             sortable: true,
 	    css: {
-	       textAlign: 'center'
+	       textAlign: 'center',
+               width: '2%',
 	    }
 	 },
 
@@ -1270,6 +1328,7 @@ function releaseAlert(idx) {
             sortable: true,
 	    css: {
 	       textAlign: 'center',
+               width: '10%',
 	    }
 	 },
 
@@ -1289,7 +1348,8 @@ function releaseAlert(idx) {
             sortable: false,
 	    hidden: ]] print(ternary(t["status"] ~= "historical-flows", "true", "false")) print[[,
 	    css: {
-	       textAlign: 'center'
+	       textAlign: 'center',
+               width: '5%',
 	    }
 	 },
 
@@ -1309,7 +1369,7 @@ function releaseAlert(idx) {
 	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
 	    css: {
 	       textAlign: 'center',
-	       width: "10%",
+	       minWidth: "10rem",
 	    }
 	 },
 
@@ -1322,8 +1382,13 @@ function releaseAlert(idx) {
                var data = table_data[row_id];
                var explorer_url = data["column_explorer"];
 
+               if(data["column_filter"]) {
+                  datatableAddFilterButtonCallback.bind(this)(10, "confset_id = '" + data["column_confset_id"] + "'; subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
+               } else if(data["column_filter_disabled"]) {
+	       	  datatableAddFilterButtonCallback.bind(this)(10, "confset_id = ''; subdir = ''; script_key = '';", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[", false);                             }
+
                if(data["column_drilldown"]) {
-                  datatableAddLinkButtonCallback.bind(this)(10, data["column_drilldown"], "<i class='fas fa-search-plus drilldown-icon'></i>");
+                  datatableAddLinkButtonCallback.bind(this)(10, data["column_drilldown"], "<i class='fas fa-search-plus drilldown-icon'></i>", "]] print(i18n("show_alerts.expand_action")) print[[");
                }
 
                if(explorer_url) {
@@ -1332,7 +1397,7 @@ function releaseAlert(idx) {
                }
 
                if(]] print(ternary(t["status"] == "engaged", "true", "false")) print[[)
-                 datatableAddActionButtonCallback.bind(this)(10, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "<i class='fas fa-unlock'></i>");
+                 datatableAddActionButtonCallback.bind(this)(10, "alert_to_release = "+ row_id +"; $('#release_single_alert').modal('show');", "<i class='fas fa-unlock'></i>", true, "]] print(i18n("show_alerts.release_alert_action")) print[[");
 
                if(]] print(ternary(t["status"] ~= "engaged", "true", "false")) print[[) {
                  datatableAddDeleteButtonCallback.bind(this)(10, "delete_alert_id ='" + alert_key + "'; $('#delete_alert_dialog').modal('show');", "<i class='fas fa-trash'></i>");
@@ -1410,7 +1475,7 @@ $("[clicked=1]").trigger("click");
       purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. alert_consts.alertTypeLabel(_GET["alert_type"], true) .. "</b>"})
    elseif (_GET['alert_severity']) then
       purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. alert_consts.alertSeverityLabel(_GET["alert_severity"], true) .. "</b>"})
-   elseif (_GET['alert_l7_proto']) then
+   elseif (not isEmptyString(_GET['alert_l7_proto'])) then
       purge_label = i18n("show_alerts.alerts_to_purge_x", { filter = "<b>" .. interface.getnDPIProtoName(tonumber(_GET["alert_l7_proto"])) .. "</b>"})
    else
       purge_label = i18n("show_alerts.alerts_to_purge")
@@ -1974,7 +2039,6 @@ function alert_utils.formatAlertNotification(notif, options)
 
    if options.nohtml then
       msg = msg .. noHtml(alert_message)
-      msg = msg:gsub('&nbsp;', "")
    else
       msg = msg .. alert_message
    end
@@ -2005,18 +2069,16 @@ local function processStoreAlertFromQueue(alert)
       type_info:set_severity(alert_severities.warning)
       type_info:set_subtype(string.format("%s_%s_%s", hostinfo2hostkey(router_info), alert.client_mac, alert.sender_mac))
    elseif(alert.alert_type == "mac_ip_association_change") then
-      if(ntop.getPref("ntopng.prefs.ip_reassignment_alerts") == "1") then
-         local name = getDeviceName(alert.new_mac)
-         entity_info = alerts_api.macEntity(alert.new_mac)
-         type_info = alert_consts.alert_types.alert_mac_ip_association_change.new(
-            name,
-            alert.ip,
-            alert.old_mac,
-            alert.new_mac
-         )
-         type_info:set_severity(alert_severities.warning)
-         type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
-      end
+      local name = getDeviceName(alert.new_mac)
+      entity_info = alerts_api.macEntity(alert.new_mac)
+      type_info = alert_consts.alert_types.alert_mac_ip_association_change.new(
+	 name,
+	 alert.ip,
+	 alert.old_mac,
+	 alert.new_mac
+      )
+      type_info:set_severity(alert_severities.warning)
+      type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
    elseif(alert.alert_type == "login_failed") then
       entity_info = alerts_api.userEntity(alert.user)
       type_info = alert_consts.alert_types.alert_login_failed.new()

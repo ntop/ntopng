@@ -60,7 +60,8 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_connection_issues.format(ifid, alert, alert_type_params)
-   format_utils.formatConnectionIssues(alert_type_params)
+   local res = format_utils.formatConnectionIssues(alert_type_params)
+   return res
 end
 
 -- #######################################################

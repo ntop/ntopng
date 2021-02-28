@@ -62,7 +62,11 @@ Ping::Ping(char *ifname) {
   ping_id = rand(), cnt = 0;
   running = true;
 
-#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+#ifndef __linux__
+  ifname = NULL; /* Too much of a hassle supporting it without capabilities */
+#endif
+  
+#ifdef __linux__
   if(Utils::gainWriteCapabilities() == -1)
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
@@ -75,7 +79,7 @@ Ping::Ping(char *ifname) {
   sd6 = socket(PF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 #endif
 
-#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+#ifdef __linux
   Utils::dropWriteCapabilities();
 #endif
 
@@ -111,8 +115,10 @@ Ping::Ping(char *ifname) {
     if(ifname) {
       struct sockaddr_in6 sin;
 
+      memset(&sin, 0, sizeof(sin));
       sin.sin6_family = AF_INET6;
-      if(Utils::readIPv6(ifname, &sin)) {
+
+      if(Utils::readIPv6(ifname, &sin.sin6_addr)) {
         if(::bind(sd6, (struct sockaddr *) &sin, sizeof(struct sockaddr_in6)) == -1)
           ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv6 Address, error %s",
 				       strerror(errno));

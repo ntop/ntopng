@@ -129,14 +129,15 @@ end
 
 -- ########################################################
 
-function graph_utils.getProtoVolume(ifName, start_time, end_time)
+function graph_utils.getProtoVolume(ifName, start_time, end_time, ts_options)
    ifId = getInterfaceId(ifName)
-   local series = ts_utils.listSeries("iface:ndpi", {ifid=ifId}, start_time)
+   local series = ts_utils.listSeries("iface:ndpi", {ifid = ifId}, start_time)
 
    ret = { }
+
    for _, tags in ipairs(series or {}) do
       -- NOTE: this could be optimized via a dedicated driver call
-      local data = ts_utils.query("iface:ndpi", tags, start_time, end_time)
+      local data = ts_utils.query("iface:ndpi", tags, start_time, end_time, ts_options)
 
       if(data ~= nil) and (data.statistics.total > 0) then
 	 ret[tags.protocol] = data.statistics.total
@@ -1041,9 +1042,6 @@ local default_timeseries = {
       ["bytes_sent"] = "area",
       ["bytes_rcvd"] = "line"
    } },
-
-   {schema="iface:1d_delta_traffic_volume",  label="1 Day Traffic Delta"}, -- TODO localize
-   {schema="iface:1d_delta_flows",           label="1 Day Active Flows Delta"}, -- TODO localize
 
    {schema="iface:packets_vs_drops",      label=i18n("graphs.packets_vs_drops")},
    {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},

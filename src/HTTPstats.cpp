@@ -541,7 +541,7 @@ void HTTPstats::updateStats(const struct timeval *tv) {
     bool walk_all = true;
 
     virtualHosts->walk(&begin_slot, walk_all, update_http_stats, (void*)tv);
-    virtualHosts->purgeIdle(tv, false);
+    virtualHosts->purgeIdle(tv, false, false);
     virtualHosts->purgeQueuedIdleEntries(); /* Actually reclaim memory (delete*) of idle virtual hosts */
   }
 

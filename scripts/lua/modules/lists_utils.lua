@@ -99,6 +99,12 @@ local BUILTIN_LISTS = {
       format = "hosts",
       enabled = true,
       update_interval = DEFAULT_UPDATE_INTERVAL,
+   }, ["Abuse.ch URLhaus"] = {
+      url = "https://urlhaus.abuse.ch/downloads/hostfile/",
+      category = CUSTOM_CATEGORY_MALWARE,
+      format = "hosts",
+      enabled = true,
+      update_interval = DEFAULT_UPDATE_INTERVAL,
    }, ["Disconnect.me Simple Ad List"] = {
       url = "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt",
       category = CUSTOM_CATEGORY_ADVERTISEMENT,
@@ -278,7 +284,9 @@ local function getNextListUpdate(list)
    local next_update
    
    -- align if possible
-   if interval == 3600 then
+   if interval == 0 then
+      next_update = -1
+   elseif interval == 3600 then
       next_update = ntop.roundTime(list.status.last_update, 3600, false)
    elseif interval == 86400 then
       next_update = ntop.roundTime(list.status.last_update, 86400, true --[[ UTC align ]])
@@ -301,6 +309,11 @@ function shouldUpdate(list_name, list, now)
    
    list_file = getListCacheFile(list_name, false)
    next_update = getNextListUpdate(list, now)
+
+   if next_update == -1 then
+      return ((not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
+               (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1"))
+   end
 
    if(false) then
       tprint('---------------')
@@ -551,64 +564,79 @@ end
 -- Loads hosts from a list file on disk
 local function loadFromListFile(list_name, list, user_custom_categories, stats)
    local list_fname = getListCacheFile(list_name)
-   local f = io.open(list_fname, "r")
    local num_rules = 0
    local limit_exceeded = false
 
-   if f == nil then
-      if list.status.num_hosts > 0 then
-	 -- avoid generating warnings during first startup
-	 traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
-      end
-
-      return(false)
-   end
-
    traceError(trace_level, TRACE_CONSOLE, string.format("Loading '%s' [%s]...", list_name, list.format))
 
-   for line in f:lines() do
-      if ntop.isShutdown() then
-	 break
+   if list.format == "ja3_suricata_csv" then
+      -- Load the signatures file in nDPI
+      local n = ntop.loadMaliciousJA3Signatures(list_fname)
+      if n >= 0 then
+
+         stats.num_ja3 = stats.num_ja3 + n
+         num_rules = num_rules + n
+
+      else -- Failure
+         if list.status.num_hosts > 0 then
+            -- Avoid generating warnings during first startup
+	    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
+         end
+
+         return(false)
       end
-      local trimmed = line:match("^%s*(.-)%s*$")
 
-      if((string.len(trimmed) > 0) and not(string.starts(trimmed, "#"))) then
-	 local host = trimmed
+   else
 
-	 if list.format == "hosts" then
-	    host = parse_hosts_line(trimmed)
-	 elseif list.format == "ja3_suricata_csv" then
-	    -- handled differently
-	    if handle_ja3_suricata_csv_line(trimmed) then
-	       stats.num_ja3 = stats.num_ja3 + 1
-	       num_rules = num_rules + 1
-	    end
-	    host = nil
-	 end
+      local f = io.open(list_fname, "r")
 
-	 if host then
-	    local rv = loadListItem(host, list.category, user_custom_categories, list)
+      if f == nil then
+         if list.status.num_hosts > 0 then
+            -- Avoid generating warnings during first startup
+	    traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
+         end
 
-	    if(rv == "domain") then
-	       stats.num_hosts = stats.num_hosts + 1
-	       num_rules = num_rules + 1
-	    elseif(rv == "ip") then
-	       stats.num_ips = stats.num_ips + 1
-	       num_rules = num_rules + 1
-	    end
-	 end
+         return(false)
+      end
 
-	 if((stats.num_ips >= MAX_TOTAL_IP_RULES) or
-	       (stats.num_hosts >= MAX_TOTAL_DOMAIN_RULES) or
-	       (stats.num_ja3 >= MAX_TOTAL_JA3_RULES)) then
-	    limit_exceeded = true
+      for line in f:lines() do
+         if ntop.isShutdown() then
 	    break
-	 end
+         end
+         local trimmed = line:match("^%s*(.-)%s*$")
+
+         if((string.len(trimmed) > 0) and not(string.starts(trimmed, "#"))) then
+	    local host = trimmed
+
+	    if list.format == "hosts" then
+	       host = parse_hosts_line(trimmed)
+            end
+
+	    if host then
+	       local rv = loadListItem(host, list.category, user_custom_categories, list)
+
+	       if(rv == "domain") then
+	          stats.num_hosts = stats.num_hosts + 1
+	          num_rules = num_rules + 1
+	       elseif(rv == "ip") then
+	          stats.num_ips = stats.num_ips + 1
+	          num_rules = num_rules + 1
+	       end
+	    end
+
+	    if((stats.num_ips >= MAX_TOTAL_IP_RULES) or
+	          (stats.num_hosts >= MAX_TOTAL_DOMAIN_RULES) or
+	          (stats.num_ja3 >= MAX_TOTAL_JA3_RULES)) then
+	       limit_exceeded = true
+	       break
+	    end
+         end
       end
+
+      f:close()
    end
 
    list.status.num_hosts = num_rules
-   f:close()
 
    traceError(trace_level, TRACE_CONSOLE, string.format("\tRead '%d' rules", num_rules))
 
@@ -628,7 +656,7 @@ local function reloadListsNow()
    local stats = {num_hosts = 0, num_ips = 0, num_ja3 = 0, begin = os.time(), duration = 0}
    local limit_reached_error = nil
 
-   if(not ntop.startCustomCategoriesReload()) then
+   if(not ntop.initnDPIReload()) then
       -- Too early, need to retry later
       traceError(trace_level, TRACE_CONSOLE, string.format("custom categories: too early reload"))
       return(false)
@@ -682,8 +710,7 @@ local function reloadListsNow()
    end
 
    -- Reload into memory
-   ntop.reloadCustomCategories()
-   ntop.reloadJA3Hashes()
+   ntop.finalizenDPIReload()
 
    -- Calculate stats
    stats.duration = (os.time() - stats.begin)

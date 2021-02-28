@@ -27,6 +27,7 @@ local subdir = _POST["script_subdir"]
 local confset_id = tonumber(_POST["confset_id"] or user_scripts.DEFAULT_CONFIGSET_ID)
 local script_key = _POST["script_key"]
 local alert_severity = _POST['alert_severity']
+local alert_exclusion_list = _POST['script_exclusion_list']
 
 -- ################################################
 
@@ -62,13 +63,27 @@ end
 -- ################################################
 
 local result = {}
+local success = false
+local err = ""
 
 local additional_params = {}
 if alert_severity ~= nil then
   additional_params.severity = alert_consts.alertSeverityById(alert_severity)
 end
 
-local success, err = user_scripts.updateScriptConfig(confset_id, script_key, subdir, data, additional_params)
+local additional_filters = {}
+if alert_exclusion_list ~= nil then
+  success, additional_filters = user_scripts.parseFilterParams(alert_exclusion_list, subdir, true)
+
+  if not success then
+    err = additional_filters
+    goto response
+  end
+end
+
+success, err = user_scripts.updateScriptConfig(confset_id, script_key, subdir, data, additional_params, additional_filters)
+
+::response::
 
 result.success = success
 

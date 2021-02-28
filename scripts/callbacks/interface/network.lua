@@ -78,7 +78,7 @@ function runScripts(granularity)
       local conf = user_scripts.getTargetHookConfig(subnet_conf, user_script, granularity)
 
       if(conf.enabled) then
-	 alerts_api.invokeScriptHook(user_script, confset_id, hook_fn, {
+	 alerts_api.invokeScriptHook(user_script, configsets, confset_id, hook_fn, {
 					granularity = granularity,
 					alert_entity = entity_info,
 					entity_info = info,

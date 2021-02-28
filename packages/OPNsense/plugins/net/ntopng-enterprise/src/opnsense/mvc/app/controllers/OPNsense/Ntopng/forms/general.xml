@@ -8,9 +8,9 @@
     <field>
         <id>general.interface</id>
         <label>Interfaces</label>
-        <type>dropdown</type>
-        <advanced>true</advanced>
-        <help>Select the interface to listen to. Set to none if you want to choose the interface via ntopng UI.</help>
+        <type>select_multiple</type>
+        <style>selectpicker</style>
+        <help>Select the interfaces to listen to. Leave empty to choose the interface in ntopng or to connect to nProbe only.</help>
     </field>
     <field>
         <id>general.localnet</id>

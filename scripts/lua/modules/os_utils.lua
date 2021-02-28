@@ -301,6 +301,12 @@ function os_utils.os2record(ifId, os)
       record["column_alerts"] = "0"
    end
 
+   record["column_chart"] = ""
+
+   if areOSTimeseriesEnabled(ifId) then
+      record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/os_details.lua?os='..os["os"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
+   end
+
    record["column_hosts"] = os["num_hosts"]..""
    record["column_since"] = secondsToTime(now - os["seen.first"] + 1)
    

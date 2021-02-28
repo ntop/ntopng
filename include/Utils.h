@@ -108,7 +108,7 @@ public:
   static char *ifname2devname(const char *ifname, char *devname, int devname_size);
   static void readMac(char *ifname, dump_mac_t mac_addr);
   static u_int32_t readIPv4(char *ifname);
-  static bool readIPv6(char *ifname, struct sockaddr_in6 *sin);
+  static bool readIPv6(char *ifname, struct in6_addr *sin);
   static u_int32_t getMaxIfSpeed(const char *ifname);
   static u_int16_t getIfMTU(const char *ifname);
   static int ethtoolGet(const char *ifname, int cmd, uint32_t *v);
@@ -158,11 +158,10 @@ public:
   static DetailsLevel bool2DetailsLevel(bool max, bool higher,bool normal = false);
 
   /* Patricia Tree */
-  static patricia_node_t* add_to_ptree(patricia_tree_t *tree, int family, void *addr, int bits);
-  static patricia_node_t* ptree_match(const patricia_tree_t *tree, int family, const void * const addr, int bits);
-  static patricia_node_t* ptree_add_rule(patricia_tree_t *ptree, const char * const line);
-  static int ptree_remove_rule(patricia_tree_t *ptree, char *line);
-  static bool ptree_prefix_print(prefix_t *prefix, char *buffer, size_t bufsize);
+  static ndpi_patricia_node_t* add_to_ptree(ndpi_patricia_tree_t *tree, int family, void *addr, int bits);
+  static ndpi_patricia_node_t* ptree_match(ndpi_patricia_tree_t *tree, int family, const void * const addr, int bits);
+  static ndpi_patricia_node_t* ptree_add_rule(ndpi_patricia_tree_t *ptree, const char * const line);
+  static bool ptree_prefix_print(ndpi_prefix_t *prefix, char *buffer, size_t bufsize);
 
   static inline void update_ewma(u_int32_t sample, u_int32_t *ewma, u_int8_t alpha_percent) {
     if(alpha_percent > 100) alpha_percent = 100;
@@ -228,6 +227,7 @@ public:
   static OSType getOSFromFingerprint(const char *fingerprint, const char*manuf, DeviceType devtype);
   static DeviceType getDeviceTypeFromOsDetail(const char *os_detail);
   static u_int32_t pow2(u_int32_t v);
+  static int exec(const char * const command);
 #ifdef __linux__
   static void deferredExec(const char * const command);
 #endif
@@ -242,6 +242,7 @@ public:
     are used to 'compress' alert levels into a reduced number of (grouped) levels.
    */
   static AlertLevelGroup mapAlertLevelToGroup(AlertLevel alert_level);
+  static bool hasExtension(const char *path, const char *ext);
 };
 
 #endif /* _UTILS_H_ */

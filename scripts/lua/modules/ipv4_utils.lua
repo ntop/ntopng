@@ -161,8 +161,8 @@ function ipv4_utils.includes(network, netmask, ip)
   local lower = network
   local upper = ipv4_utils.broadcast_address(network, netmask)
 
-  return (ipv4_utils.cmp(ip, lower) > 0) and
-        (ipv4_utils.cmp(ip, upper) < 0)
+  return (ipv4_utils.cmp(ip, lower) >= 0) and
+        (ipv4_utils.cmp(ip, upper) <= 0)
 end
 
 -- Get the broadcast address for the given netmask

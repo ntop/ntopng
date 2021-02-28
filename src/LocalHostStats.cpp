@@ -26,10 +26,13 @@
 LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = NULL;
+
   dns  = new (std::nothrow) DnsStats();
   http = new (std::nothrow) HTTPstats(_host);
   icmp = new (std::nothrow) ICMPstats();
-  nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
+  peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
+
+  nextPeriodicUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
   current_cycle = 0;
   
@@ -40,28 +43,65 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   num_host_contacted_ports_as_server.init(4);  /* 16 bytes  */
   contacts_as_cli.init(4);                     /* 16 bytes  */
   contacts_as_srv.init(4);                     /* 16 bytes  */
+
+  /* hll init, 8 bits -> 256 bytes per LocalHost */
+  if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
+    throw "Failed HLL initialization";
+  
+  last_hll_contacted_hosts_value = 0;
+  
+  /* hw init */
+  hw_contacted_hosts = new HWCounter(12);
+  hw_contacted_hosts_report = false;
+  hw_init_count = 0;
+  prediction = lower_bound = upper_bound = 0;
+  
+  num_dns_servers.init(5);
+  num_smtp_servers.init(5);
+  num_ntp_servers.init(5);
 }
 
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
+  peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
   old_sites = NULL;
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;
   icmp = NULL;
-  nextSitesUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
+  nextPeriodicUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
   num_contacts_as_cli = num_contacts_as_srv = 0;
+
+  /* hll init, 8 bits -> 256 bytes per LocalHost */
+  if(ndpi_hll_init(&hll_contacted_hosts, 8))
+    throw "Failed HLL initialization";
+  
+  last_hll_contacted_hosts_value = 0;
+  hw_init_count = 0;
+  
+  /* hw init */
+  hw_contacted_hosts = new HWCounter(12);
+  hw_contacted_hosts_report = false;
+  prediction = lower_bound = upper_bound = 0;
+  
+  num_dns_servers.init(5);
+  num_smtp_servers.init(5);
+  num_ntp_servers.init(5);
 }
 
 /* *************************************** */
 
 LocalHostStats::~LocalHostStats() {
-  if(top_sites)       delete top_sites;
-  if(old_sites)       free(old_sites);
-  if(dns)             delete dns;
-  if(http)            delete http;
-  if(icmp)            delete icmp;
+  if(top_sites)          delete top_sites;
+  if(old_sites)          free(old_sites);
+  if(dns)                delete dns;
+  if(http)               delete http;
+  if(icmp)               delete icmp;
+  if(peers)              delete(peers);
+  if(hw_contacted_hosts) delete(hw_contacted_hosts);
+
+  ndpi_hll_destroy(&hll_contacted_hosts);
 }
 
 /* *************************************** */
@@ -70,23 +110,28 @@ void LocalHostStats::incrVisitedWebSite(char *hostname) {
   u_int ip4_0 = 0, ip4_1 = 0, ip4_2 = 0, ip4_3 = 0;
   char *firstdot = NULL, *nextdot = NULL;
 
-  if(top_sites
-     && ntop->getPrefs()->are_top_talkers_enabled()
-     && (strstr(hostname, "in-addr.arpa") == NULL)
+  if((strstr(hostname, "in-addr.arpa") == NULL)
      && (sscanf(hostname, "%u.%u.%u.%u", &ip4_0, &ip4_1, &ip4_2, &ip4_3) != 4)
      ) {
-    if(ntop->isATrackerHost(hostname)) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "[TRACKER] %s", hostname);
-      return; /* Ignore trackers */
+    /* HyperLogLog update regarding visited sites */
+    ndpi_hll_add(&hll_contacted_hosts, hostname, strlen(hostname));
+    
+    /* Top Sites update, done only if the preference is enabled */
+    if(top_sites
+       && ntop->getPrefs()->are_top_talkers_enabled()) {
+      if(ntop->isATrackerHost(hostname)) {
+	ntop->getTrace()->traceEvent(TRACE_INFO, "[TRACKER] %s", hostname);
+	return; /* Ignore trackers */
+      }
+      
+      firstdot = strchr(hostname, '.');
+      
+      if(firstdot)
+	nextdot = strchr(&firstdot[1], '.');
+      
+      top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
+      iface->incrVisitedWebSite(hostname);
     }
-
-    firstdot = strchr(hostname, '.');
-
-    if(firstdot)
-      nextdot = strchr(&firstdot[1], '.');
-
-    top_sites->add(nextdot ? &firstdot[1] : hostname, 1);
-    iface->incrVisitedWebSite(hostname);
   }
 }
 
@@ -104,8 +149,12 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
     nextContactsUpdate = tv->tv_sec+HOST_CONTACTS_REFRESH;
   }
   
-  if(top_sites && ntop->getPrefs()->are_top_talkers_enabled() && (tv->tv_sec >= nextSitesUpdate)) {
-    if(nextSitesUpdate > 0) {
+  if(tv->tv_sec >= nextPeriodicUpdate) {
+    /* hll visited sites update */
+    updateContactedHostsBehaviour();
+    
+    /* Top Sites update */
+    if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
       if(old_sites) {
         if(host != NULL)
           this->saveOldSites();
@@ -115,7 +164,7 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
         old_sites = top_sites->json();
     }
 
-    nextSitesUpdate = tv->tv_sec + HOST_SITES_REFRESH;
+    nextPeriodicUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
 }
 
@@ -123,6 +172,10 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
 
 void LocalHostStats::updateHostContacts() {
   num_contacts_as_cli = contacts_as_cli.getEstimate(), num_contacts_as_srv = contacts_as_srv.getEstimate();
+  if(peers) {
+    peers->addElement(num_contacts_as_cli, true);
+    peers->addElement(num_contacts_as_srv, false);
+  }
   contacts_as_cli.reset(), contacts_as_srv.reset();
 }
 
@@ -143,6 +196,30 @@ void LocalHostStats::getJSONObject(json_object *my_object, DetailsLevel details_
 
 /* *************************************** */
 
+void LocalHostStats::luaHostBehaviour(lua_State* vm) {
+  lua_newtable(vm);
+    
+  lua_push_float_table_entry(vm, "hll_value",
+			     last_hll_contacted_hosts_value);
+
+  if(hw_contacted_hosts) {
+    lua_push_bool_table_entry(vm, "hw_value",
+			      hw_contacted_hosts_report);
+    lua_push_int32_table_entry(vm, "hw_prediction",
+			       prediction); 
+    lua_push_int32_table_entry(vm, "hw_lower_bound",
+			       lower_bound);
+    lua_push_int32_table_entry(vm, "hw_upper_bound",
+			       upper_bound);
+  }
+
+  lua_pushstring(vm, "contacted_hosts_behaviour");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
 void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level) {
   HostStats::lua(vm, mask_host, details_level);
 
@@ -156,6 +233,8 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
       lua_push_str_table_entry(vm, "sites.old", old_sites ? old_sites : (char*)"{}");
   }
 
+  luaHostBehaviour(vm);
+  
   if(details_level >= details_high) {
     luaICMP(vm,host->get_ip()->isIPv4(),true);
     luaDNS(vm, true);
@@ -180,6 +259,37 @@ void LocalHostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_lev
     lua_settable(vm, -3);
     
   }  
+}
+
+/* *************************************** */
+
+void LocalHostStats::luaPeers(lua_State *vm) {
+  if (peers) {
+    if (peers->getSlidingWinStatus()) {
+      lua_newtable(vm);
+
+      lua_push_int32_table_entry(vm, "contacted_peers_in_last_min_as_cli",
+                num_contacts_as_cli); 
+      lua_push_int32_table_entry(vm, "contacted_peers_in_last_min_as_srv",
+                num_contacts_as_srv); 
+      lua_push_int32_table_entry(vm, "sliding_avg_peers_as_client",
+                peers->getCliSlidingEstimate()); 
+      lua_push_int32_table_entry(vm, "sliding_avg_peers_as_server",
+                peers->getSrvSlidingEstimate());
+      lua_push_int32_table_entry(vm, "tot_avg_peers_as_client",
+                peers->getCliTotEstimate());
+      lua_push_int32_table_entry(vm, "tot_avg_peers_as_server",
+                peers->getSrvTotEstimate());
+
+      lua_pushstring(vm, "peers");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+
+      return;
+    }
+  }
+
+  lua_pushnil(vm);
 }
 
 /* *************************************** */
@@ -253,6 +363,8 @@ void LocalHostStats::lua_get_timeseries(lua_State* vm) {
     lua_push_uint64_table_entry(vm, "icmp.echo_reply_pkts_sent", icmp_s.echo_reply_packets_sent);
     lua_push_uint64_table_entry(vm, "icmp.echo_reply_pkts_rcvd", icmp_s.echo_reply_packets_rcvd);
   }
+
+  luaHostBehaviour(vm);
 }
 
 /* *************************************** */
@@ -305,48 +417,57 @@ void LocalHostStats::getCurrentTime(struct tm *t_now) {
 
 void LocalHostStats::deserializeTopSites(char* redis_key_current) {
   char *json;
-  const u_int json_len = 16384;
+  u_int json_len;
   json_object *j;
   enum json_tokener_error jerr;
 
+  json_len = ntop->getRedis()->len(redis_key_current);
+  if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
+  
   if((json = (char*)malloc(json_len)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return;
   }
 
   if((ntop->getRedis()->get(redis_key_current, json, json_len) == -1)
-     || (json[0] == '\0')
-     )
+     || (json[0] == '\0')) {
+    free(json);
     return; /* Nothing found */
+  }
 
   j = json_tokener_parse_verbose(json, &jerr);
 
   if(j != NULL) {    
 #ifdef DEBUG
-    u_int num = 0;
-    
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%u]", json, json_len);
 #endif
-    
-    json_object_object_foreach(j, key, val) {
-      if(key) {
-	enum json_type type = json_object_get_type(val);
 
+    if(json_object_get_type(j) == json_type_object) {
+      struct lh_entry *entry = json_object_get_object(j)->head;
+
+      for(; entry != NULL; entry = entry->next) {
+	char *key               = (char*)entry->k;
+	struct json_object *val = (struct json_object*)entry->v;
+	enum json_type type = json_object_get_type(val);
+	  
 	if(type == json_type_int) {
 	  u_int32_t value = json_object_get_int64(val);
-
+	  
 #ifdef DEBUG
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u) %s = %u", ++num, key, value);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u", key, value);
 #endif
 	  
 	  top_sites->add(key, value);
+	  
 	}
       }
     }
-
+    
     json_object_put(j); /* Free memory */
   } else
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);  
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
+
+  free(json);
 }
 
 /* *************************************** */
@@ -354,16 +475,16 @@ void LocalHostStats::deserializeTopSites(char* redis_key_current) {
 void LocalHostStats::serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize) {
   char redis_hour_key[256], redis_daily_key[256], redis_key_current[256];
   int iface;
-
-  if(!host->getInterface())
+  
+  if((!host->getInterface()) || (host->isBroadcastHost()))     
     return;
 
   iface = host->getInterface()->get_id();
 
-  snprintf(redis_hour_key, sizeof(redis_hour_key), "%s_%u_%d_%u", host_buf, iface, t_now->tm_mday, t_now->tm_hour);
-  snprintf(redis_daily_key, sizeof(redis_daily_key), "%s_%u_%d", host_buf, iface, t_now->tm_mday);
+  snprintf(redis_hour_key, sizeof(redis_hour_key)-1, "%s_%u_%d_%u", host_buf, iface, t_now->tm_mday, t_now->tm_hour);
+  snprintf(redis_daily_key, sizeof(redis_daily_key)-1, "%s_%u_%d", host_buf, iface, t_now->tm_mday);
 
-  snprintf(redis_key_current, sizeof(redis_key_current), "%s.serialized_current_top_sites.%s_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+  snprintf(redis_key_current, sizeof(redis_key_current)-1, "%s.serialized_current_top_sites.%s_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
             host_buf, iface, t_now->tm_mday);
 
   if(do_serialize) {
@@ -480,4 +601,23 @@ void LocalHostStats::resetTopSitesData() {
 
   snprintf(redis_reset_key, sizeof(redis_reset_key), "%s_%u_%d_%u_%d", host_buf, iface, t_now.tm_mday, t_now.tm_hour, minute);
   ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_RESET, redis_reset_key, 3600);
+}
+
+/* *************************************** */
+
+void LocalHostStats::updateContactedHostsBehaviour() {
+  last_hll_contacted_hosts_value = ndpi_hll_count(&hll_contacted_hosts);
+
+#ifdef TRACE_ME
+  char buf[64];
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s / %f contacts",
+			       host->get_ip()->print(buf, sizeof(buf)),
+			       last_hll_contacted_hosts_value);
+  ndpi_hll_reset(&hll_contacted_hosts);
+#endif
+  
+  if(hw_contacted_hosts) 
+    hw_contacted_hosts_report = hw_contacted_hosts->addObservation((u_int32_t) last_hll_contacted_hosts_value,
+								   &prediction, &lower_bound, &upper_bound);
 }

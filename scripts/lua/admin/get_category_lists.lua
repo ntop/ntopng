@@ -144,6 +144,8 @@ for key in pairsByValues(sort_to_key, sOrder) do
        update_interval_label = i18n("alerts_thresholds_config.daily")
     elseif list.update_interval == 3600 then
        update_interval_label = i18n("alerts_thresholds_config.hourly")
+    elseif list.update_interval == 0 then
+       update_interval_label = i18n("alerts_thresholds_config.manual")
     end
 
     res[#res + 1] = {

@@ -25,18 +25,17 @@ print("<h2 class='mb-4'>"..i18n("hosts_map").."</h2>")
 
 -- https://www.d3-graph-gallery.com/graph/bubble_template.html
 
-
 local modes = {
-	{ mode = 0, label = i18n("hosts_map_page.all_flows") },
-	{ mode = 9, label = i18n("hosts_map_page.active_alert_flows") },
-	{ mode = 3, label = i18n("hosts_map_page.dns_queries") },
-	{ mode = 4, label = i18n("hosts_map_page.syn_distribution") },
-	{ mode = 5, label = i18n("hosts_map_page.syn_vs_rst") },
-	{ mode = 6, label = i18n("hosts_map_page.syn_vs_synack") },
-	{ mode = 7, label = i18n("hosts_map_page.tcp_pkts_sent_vs_rcvd") },
-	{ mode = 8, label = i18n("hosts_map_page.tcp_bytes_sent_vs_rcvd") },
-	{ mode = 2, label = i18n("hosts_map_page.alerted_flows") },
-	{ mode = 1, label = i18n("hosts_map_page.unreach_flows") }
+   { mode = 0, label = i18n("hosts_map_page.all_flows") },
+   { mode = 9, label = i18n("hosts_map_page.active_alert_flows") },
+   { mode = 3, label = i18n("hosts_map_page.dns_queries") },
+   { mode = 4, label = i18n("hosts_map_page.syn_distribution") },
+   { mode = 5, label = i18n("hosts_map_page.syn_vs_rst") },
+   { mode = 6, label = i18n("hosts_map_page.syn_vs_synack") },
+   { mode = 7, label = i18n("hosts_map_page.tcp_pkts_sent_vs_rcvd") },
+   { mode = 8, label = i18n("hosts_map_page.tcp_bytes_sent_vs_rcvd") },
+   { mode = 2, label = i18n("hosts_map_page.alerted_flows") },
+   { mode = 1, label = i18n("hosts_map_page.unreach_flows") }
 }
 
 local show_remote  = true
@@ -51,9 +50,9 @@ local bubble_mode         = tonumber(_GET["bubble_mode"]) or 0
 
 local current_label
 for _, mode in ipairs(modes) do
-	if mode.mode == bubble_mode then
-		current_label = mode.label
-	end
+   if mode.mode == bubble_mode then
+      current_label = mode.label
+   end
 end
 
 if(bubble_mode == 0) then
@@ -112,14 +111,17 @@ function processHost(hostname, host)
       end
    elseif(bubble_mode == 2) then
       if((host["alerted_flows.as_server"] ~= nil)
-	    and (host["alerted_flows.as_client"] ~= nil)
+	 and (host["alerted_flows.as_client"] ~= nil)
 	 and (host["alerted_flows.as_server"] + host["alerted_flows.as_client"] > 0)) then
 	 line = { link = hostname, label = label, x = host["alerted_flows.as_server"], y = host["alerted_flows.as_client"], r = host["alerted_flows.as_server"] + host["alerted_flows.as_client"] }
 	 -- if(label == "74.125.20.109") then tprint(line) end
       end
    elseif(bubble_mode == 3) then
       if((host["dns"] ~= nil) and ((host["dns"]["sent"]["num_queries"]+host["dns"]["rcvd"]["num_queries"]) > 0)) then
-	 line = { link = hostname, label = label, x = host["dns"]["rcvd"]["num_replies_ok"], y = host["dns"]["sent"]["num_queries"], r = host["dns"]["rcvd"]["num_replies_error"] }
+	 local x =  host["dns"]["rcvd"]["num_replies_ok"]
+	 local y = host["dns"]["sent"]["num_queries"]
+	 
+	 line = { link = hostname, label = label, x = x, y = y, r = x+y }
       end
    elseif(bubble_mode == 4) then
       local stats = interface.getHostInfo(host["ip"],host["vlan"])
@@ -189,18 +191,17 @@ print ([[
 	    <div class="card">
 			<div class="card-body">
 			<div class='d-flex align-items-center justify-content-end mb-3'>
-				<label class="m-0 mr-1">]]..i18n("filter") ..[[: </label>
 				<div class="dropdown">
 				<button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">]] .. (bubble_mode == 0 and i18n("flows_page.all_flows") or (current_label .. '<i class="fas fa-filter"></i>')) ..[[
 				<span class="caret"></span></button>
 				<ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" aria-labelledby="menu1">
 				]])
 
-			for i,v in pairs(modes) do
-			print('<a class="dropdown-item" tabindex="-1" href="?bubble_mode='..tostring(i-1)..'">'..v.label..'</a>')
-			end
+for i,v in pairs(modes) do
+   print('<a class="dropdown-item '.. (bubble_mode == v.mode and 'active' or '') ..'" tabindex="-1" href="?bubble_mode='..tostring(v.mode)..'">'..v.label..'</a>')
+end
 
-			print [[
+print [[
 				</ul>
 				</div>
 				</div>
@@ -246,7 +247,7 @@ grey: 'rgba(201, 203, 207, 0.45)'
 ]]
 
 if(show_remote == true) then
-print [[
+   print [[
    {
 	       label: ']] print(remote_label) print [[',
 	       data: ]] print(remote_js) print [[,

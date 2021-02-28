@@ -174,6 +174,19 @@ static int ntop_host_get_ip(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_host_get_mac(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_get_mac(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_host_get_application_bytes(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
   u_int app_id;
@@ -353,14 +366,37 @@ static int ntop_host_get_score(lua_State* vm) {
 static int ntop_host_is_local(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
 
-  if(!h)
-    return(CONST_LUA_ERROR);
-
-  lua_pushboolean(vm, h->isLocalHost());
+  if(h)
+    lua_pushboolean(vm, h->isLocalHost());
 
   return(CONST_LUA_OK);
 }
 
+/* ****************************************** */
+
+int ntop_host_get_peers_stats(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_peers_stats(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_host_get_contacts_stats(lua_State* vm) {
+  Host *h = ntop_host_get_context_host(vm);
+
+  lua_newtable(vm);
+
+  if(h)
+    h->lua_contacts_stats(vm);
+
+  return(CONST_LUA_OK);
+}
 
 /* ****************************************** */
 
@@ -368,10 +404,8 @@ static int ntop_host_get_ts_key(lua_State* vm) {
   char buf_id[64];
   Host *h = ntop_host_get_context_host(vm);
 
-  if(!h)
-    return(CONST_LUA_ERROR);
-
-  lua_pushstring(vm, h->get_tskey(buf_id, sizeof(buf_id)));
+  if(h)
+    lua_pushstring(vm, h->get_tskey(buf_id, sizeof(buf_id)));
 
   return(CONST_LUA_OK);
 }
@@ -381,10 +415,10 @@ static int ntop_host_get_ts_key(lua_State* vm) {
 static int ntop_host_get_behaviour_info(lua_State* vm) {
   Host *h = ntop_host_get_context_host(vm);
 
+  lua_newtable(vm);
+
   if(h)
     h->luaHostBehaviour(vm);
-  else
-    lua_pushnil(vm);
 
   return(CONST_LUA_OK);
 }
@@ -475,6 +509,7 @@ static int ntop_host_release_triggered_alert(lua_State* vm) {
 static luaL_Reg _ntop_host_reg[] = {
 /* Public User Scripts API, documented at doc/src/api/lua_c/host_user_scripts/host.lua */
   { "getIp",                  ntop_host_get_ip                  },
+  { "getMac",                 ntop_host_get_mac                 },
   { "getApplicationBytes",    ntop_host_get_application_bytes   },
   { "getCategoryBytes",       ntop_host_get_category_bytes      },
   { "getBytes",               ntop_host_get_bytes               },
@@ -502,6 +537,8 @@ static luaL_Reg _ntop_host_reg[] = {
   { "getSynScan",             ntop_host_get_syn_scan            },
   { "getScore",               ntop_host_get_score               },
   { "getBehaviourInfo",       ntop_host_get_behaviour_info      },
+  { "getPeersStats",          ntop_host_get_peers_stats         },
+  { "getContactsStats",       ntop_host_get_contacts_stats      },
   
   { NULL,                     NULL }
 };

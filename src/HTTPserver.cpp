@@ -638,9 +638,9 @@ static char* make_referer(struct mg_connection *conn, char *buf, int bufsize) {
 // we came from, so that after the authorization we could redirect back.
 static void redirect_to_login(struct mg_connection *conn,
                               const struct mg_request_info *request_info,
-			      const char * const referer) {
+			      const char * const referer, const char * const reason) {
   char session_id[NTOP_SESSION_ID_LENGTH], buf[128];
-  char *referer_enc = NULL;
+  char *referer_enc = NULL, *reason_enc = NULL;
 
   if(isCaptiveConnection(conn)) {
     const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData();
@@ -677,17 +677,21 @@ static void redirect_to_login(struct mg_connection *conn,
 	      "Set-Cookie: session=%s; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;%s\r\n"  // Session ID
 	      "Set-Cookie: user=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
 	      "Set-Cookie: password=; path=/; expires=Thu, 01-Jan-1970 00:00:01 GMT; max-age=0;\r\n"
-	      "Location: %s%s%s%s\r\n\r\n",
+	      "Location: %s%s%s%s%s%s%s%s\r\n\r\n",
 	      PACKAGE_VERSION, PACKAGE_MACHINE,
 	      session_id,
 	      get_secure_cookie_attributes(request_info),
 	      ntop->getPrefs()->get_http_prefix(), Utils::getURL((char*)LOGIN_URL, buf, sizeof(buf)),
-	      referer ? (char*)"?referer=" : "",
-	      referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"");
+	      (referer || reason) ? "?" : "",
+	      referer ? (char*)"referer=" : "", referer ? (referer_enc = Utils::urlEncode(referer)) : (char*)"",
+	      (referer && reason) ? "&" : "",
+	      reason ? (char*)"reason=" : "", reason ? (reason_enc = Utils::urlEncode(reason)) : (char*)"");
   }
 
   if(referer_enc)
     free(referer_enc);
+  if(reason_enc)
+    free(reason_enc);
 }
 
 /* ****************************************** */
@@ -801,6 +805,7 @@ static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
 		      char *username, char *group, bool *localuser) {
   char user[32] = { '\0' }, password[32] = { '\0' }, referer[256] = { '\0' };
+  bool bad_user_pwd = false;
 
   if(!strcmp(request_info->request_method, "POST")) {
     char post_data[1024];
@@ -827,9 +832,11 @@ static void authorize(struct mg_connection *conn,
 
   if(isCaptiveConnection(conn)
      || ntop->isCaptivePortalUser(user)
-     || !ntop->checkGuiUserPassword(conn, user, password, group, localuser)) {
+     || (bad_user_pwd = (!ntop->checkGuiUserPassword(conn, user, password, group, localuser)))) {
     // Authentication failure, redirect to login
-    redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
+    const char *reason = NULL;
+    if (bad_user_pwd) reason = "wrong-credentials";
+    redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer, reason);
   } else {
     /* Referer url must begin with '/' */
     if((referer[0] != '/') || (strcmp(referer, AUTHORIZE_URL) == 0)) {
@@ -1032,7 +1039,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	  if(!authorized) {
 	    char referer[255];
 
-	    redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
+	    redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)), NULL);
 	    return(1); /* Handled */
 	  }
 	} else
@@ -1071,7 +1078,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 	  if(!authorized) {
 	    char referer[255];
 
-	    redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
+	    redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)), NULL);
 	    return(1); /* Handled */
 	  }
 	} else {
@@ -1171,7 +1178,7 @@ static int handle_lua_request(struct mg_connection *conn) {
       } else {
         char referer[255];
 
-        redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)));
+        redirect_to_login(conn, request_info, make_referer(conn, referer, sizeof(referer)), NULL);
       }
 
       return(1);
@@ -1240,7 +1247,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     if((!whitelisted)
        && isCaptiveConnection(conn)
        && (!isCaptiveURL(request_info->uri))) {
-      redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer);
+      redirect_to_login(conn, request_info, (referer[0] == '\0') ? NULL : referer, NULL);
       if(original_uri) request_info->uri  = original_uri;
       return(0);
     } else {

@@ -1,1 +1,0 @@
-curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "host": "1.2.3.4", "field_alias": "ip,bytes.rcvd=rdb"}' http://localhost:3000/lua/rest/v1/get/host/custom_data.lua

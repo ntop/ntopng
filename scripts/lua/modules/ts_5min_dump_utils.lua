@@ -117,6 +117,19 @@ end
 
 -- ########################################################
 
+function ts_dump.os_update_rrds(when, ifstats, verbose)
+  local os_info = interface.getOSesInfo()
+
+  for _, os_stats in pairs(os_info["os"] or {}) do
+    local OS = os_stats.os
+
+    ts_utils.append("os:traffic", {ifid=ifstats.id, os=OS,
+                bytes_ingress=os_stats["bytes.rcvd"], bytes_egress=os_stats["bytes.sent"]}, when)
+  end
+end
+
+-- ########################################################
+
 function ts_dump.vlan_update_rrds(when, ifstats, verbose)
   local vlan_info = interface.getVLANsInfo()
 
@@ -176,8 +189,23 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
     if(verbose) then print ("["..__FILE__()..":"..__LINE__().."] Processing flow device "..flow_device_ip.."\n") end
 
     for port_idx,port_value in pairs(ports) do
-      ts_utils.append("flowdev_port:traffic", {ifid=ifstats.id, device=flow_device_ip, port=port_idx,
-                bytes_sent=port_value["bytes.out_bytes"], bytes_rcvd=port_value["bytes.in_bytes"]}, when)
+       -- Traffic
+       ts_utils.append("flowdev_port:traffic",
+		       {
+			  ifid = ifstats.id, device = flow_device_ip, port = port_idx,
+			  bytes_sent = port_value["bytes.out_bytes"], bytes_rcvd = port_value["bytes.in_bytes"]
+		       },
+		       when)
+
+       -- nDPI
+       for proto_name, proto_stats in pairs(port_value["ndpi"]) do
+          ts_utils.append("flowdev_port:ndpi",
+			  {
+			     ifid = ifstats.id, device = flow_device_ip, port = port_idx, protocol = proto_name,
+			     bytes_sent = proto_stats["bytes.sent"], bytes_rcvd = proto_stats["bytes.rcvd"]
+			  },
+			  when)
+        end
     end
   end
 end
@@ -196,6 +224,7 @@ function ts_dump.getConfig()
   config.snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
   config.asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
   config.country_rrd_creation = ntop.getPref("ntopng.prefs.country_rrd_creation")
+  config.os_rrd_creation = ntop.getPref("ntopng.prefs.os_rrd_creation")
   config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
   config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
 
@@ -223,6 +252,7 @@ end
 -- ########################################################
 
 function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
+   
   -- Number of flows
   if(host["active_flows.as_client"]) then
     ts_utils.append("host:active_flows", {ifid=ifstats.id, host=hostname,
@@ -325,6 +355,17 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
     ts_utils.append("host:contacts", {ifid=ifstats.id, host=hostname,
             num_as_client=host["contacts.as_client"], num_as_server=host["contacts.as_server"]}, when)
   end
+
+  -- Contacted Hosts Behaviour
+  if host["contacted_hosts_behaviour"] then
+     if(host.contacted_hosts_behaviour.hll_value > 0) then
+	io.write(hostname.." [value: "..tostring(host.contacted_hosts_behaviour.hll_value).."][prediction: "..tostring(host.contacted_hosts_behaviour.hw_prediction).."]\n");
+     end
+     
+    ts_utils.append("host:contacts_behaviour", {ifid=ifstats.id, host=hostname,
+	value=(host.contacted_hosts_behaviour.hll_value or 0), prediction=(host.contacted_hosts_behaviour.hw_prediction or 0)}, when)
+  end
+
 
   -- L4 Protocols
   for id, _ in pairs(l4_keys) do
@@ -514,6 +555,11 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
     ts_dump.country_update_rrds(when, ifstats, verbose)
   end
 
+  -- create RRD for OSes
+  if config.os_rrd_creation == "1" then
+    ts_dump.os_update_rrds(when, ifstats, verbose)
+  end
+  
   -- Create RRD for vlans
   if config.vlan_rrd_creation == "1" then
     ts_dump.vlan_update_rrds(when, ifstats, verbose)

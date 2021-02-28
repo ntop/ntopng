@@ -152,7 +152,8 @@ LuaEngine::~LuaEngine() {
       if((ctx->iface != NULL) && ctx->live_capture.pcaphdr_sent)
 	ctx->iface->deregisterLiveCapture(ctx);
 
-#ifndef WIN32
+#ifdef __linux__
+      /* Other platforms use the singleton inside the Ntop class */
       if(ctx->ping != NULL)
 	delete ctx->ping;
 #endif

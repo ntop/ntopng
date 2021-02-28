@@ -499,6 +499,31 @@ flow_consts.flow_fields_description = {
 
    -- Misc
    ["COMMUNITY_ID"] = i18n("flow_fields_description.community_id"),
+
+   -- Numeric fields not handled by nProbe
+   ["25"]  =  i18n("flow_fields_description.ip_lenght_minimum"),
+   ["26"]  =  i18n("flow_fields_description.ip_lenght_maximum"),
+   ["422"] =  i18n("flow_fields_description.minimumLayer2TotalLength"),
+   ["423"] =  i18n("flow_fields_description.maximumLayer2TotalLength"),
+   ["428"] =  i18n("flow_fields_description.layer2OctetDeltaSumOfSquares"),
+   ["429"] =  i18n("flow_fields_description.layer2OctetTotalSumOfSquares"),
+   ["430"] =  i18n("flow_fields_description.layer2FrameDeltaCount"),
+   ["431"] =  i18n("flow_fields_description.layer2FrameTotalCount"),
+   ["184"]   =  i18n("flow_fields_description.tcpSeqNum"),
+   ["185"]   =  i18n("flow_fields_description.tcpAckNum"),
+   ["186"]   =  i18n("flow_fields_description.tcpWindowSize"),
+   ["187"]   =  i18n("flow_fields_description.tcpUrgentPtr"),
+   ["195"]   =  i18n("flow_fields_description.ipDSCP"),
+   ["196"]   =  i18n("flow_fields_description.ipPrecendence"),
+   ["204"]   =  i18n("flow_fields_description.ipPayloadLenght"),
+   ["245"]   =  i18n("flow_fields_description.dot1qCustomerVlanId"),
+   ["457"]   =  i18n("flow_fields_description.httpStatusCode"),
+   ["459"]   =  i18n("flow_fields_description.httpRequestMethod"),
+   ["460"]   =  i18n("flow_fields_description.httpRequestHost"),
+   ["461"]   =  i18n("flow_fields_description.httpRequestTarget"),
+   ["462"]   =  i18n("flow_fields_description.httpMessageVersion"),
+   ["468"]   =  i18n("flow_fields_description.httpUserAgent"),
+
 }
 
 -- ################################################################################

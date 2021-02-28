@@ -38,7 +38,7 @@ IEC104Stats::IEC104Stats() {
 /* *************************************** */
 
 IEC104Stats::~IEC104Stats() {
-  ndpi_free_data_analysis(i_s_apdu);
+  ndpi_free_data_analysis(i_s_apdu, 0);
 }
 
 /* *************************************** */
@@ -77,7 +77,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	{
 	  u_int8_t u_type = (payload[offset+1] & 0xFC) >> 2;
 	  const char *u_type_str;
-	  
+
 #ifdef IEC60870_TRACE
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "A-PDU U-%u", (payload[offset+1] & 0xFC) >> 2);
 #endif
@@ -85,19 +85,36 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	  stats.type_u++;
 
 	  switch(u_type) {
+	  case 0x01:
+	    u_type_str = "STARTDT act";
+	    break;
+
+	  case 0x02:
+	    u_type_str = "STARTDT con";
+	    break;
+
+	  case 0x04:
+	    u_type_str = "STOPDT act";
+	    break;
+
+	  case 0x08:
+	    u_type_str = "STOPDT con";
+	    break;
+
 	  case 0x10:
-	    u_type_str = "act";
+	    u_type_str = "TESTFR act";
 	    break;
 
 	  case 0x20:
-	    u_type_str = "con";
+	    u_type_str = "TESTFR con";
 	    break;
-
+	    
 	  default:
-	    u_type_str = "err";
+	    u_type_str = "???";
 	    break;
 	  }	  
-	  snprintf(infobuf, sizeof(infobuf)-1, "%s U (TESTFR %s)", tx_direction ? "->" : "<-", u_type_str);
+
+	  snprintf(infobuf, sizeof(infobuf)-1, "%s U (%s)", tx_direction ? "->" : "<-", u_type_str);
 	}
 	break;
 

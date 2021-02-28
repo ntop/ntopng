@@ -108,8 +108,9 @@ class HostStats: public GenericTrafficElement {
   virtual void incNumFlows(bool as_client) { if(as_client) total_num_flows_as_client++; else total_num_flows_as_server++; } ;
   virtual bool hasAnomalies(time_t when) { return false; };
   virtual void luaAnomalies(lua_State* vm, time_t when) {};
+  virtual void luaPeers(lua_State *vm) 			{};
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
-
+  virtual void luaHostBehaviour(lua_State* vm)     { };
 #ifdef NTOPNG_PRO
   inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,
 				       u_int64_t sent_packets, u_int64_t sent_bytes,
@@ -143,6 +144,13 @@ class HostStats: public GenericTrafficElement {
   virtual void incContactedService(char *name)       { ; }
   virtual void incCliContactedHosts(IpAddress *peer) { ; }
   virtual void incSrvHostContacts(IpAddress *peer)   { ; }
+
+  virtual u_int32_t getNTPContactCardinality()  { return((u_int32_t)-1); }
+  virtual u_int32_t getDNSContactCardinality()  { return((u_int32_t)-1); }
+  virtual u_int32_t getSMTPContactCardinality() { return((u_int32_t)-1); }
+  virtual void incNTPContactCardinality(Host *h)  { ; }
+  virtual void incDNSContactCardinality(Host *h)  { ; }
+  virtual void incSMTPContactCardinality(Host *h) { ; }
 };
 
 #endif

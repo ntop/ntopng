@@ -35,10 +35,12 @@ class ContinuousPingStats {
  private:
   time_t last_refresh;
   struct cp_stats stats;
+  Ping *pinger;
 
  public:
-  ContinuousPingStats() { reset(); heartbeat(); }
+  ContinuousPingStats(Ping *p)               { pinger = p; reset(); heartbeat(); }
 
+  inline Ping *getPinger()                   { return(pinger); }
   inline void getStats(struct cp_stats *out) { memcpy(out, &stats, sizeof(struct cp_stats));  }
   inline void heartbeat()                    { last_refresh = time(NULL);                     }
   inline void incSent()                      { stats.num_ping_sent++;                         }

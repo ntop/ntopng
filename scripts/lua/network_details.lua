@@ -131,7 +131,13 @@ elseif (page == "config") then
    print [[<tr>
 	 <th>]] print(i18n("network_details.network_alias")) print[[</th>
 	 <td>
-	       <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[[">
+         <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[[ "
+         ]] 
+         local option_name = ntop.getLocalNetworkAlias(network_name) or nil
+         if option_name then
+            print[[disabled="disabled"]]
+         end
+         print[[>
 	 </td>
       </tr>]]
 
@@ -152,6 +158,16 @@ elseif (page == "config") then
    <script>
      aysHandleForm("#network_config");
    </script>]]
+
+  print([[
+    <div class="notes bg-light border">
+      <b>]] .. i18n("notes") .. [[</b>:
+      <ul>
+        <li>
+          ]] ..  i18n("network_stats.note_aliases_not_configurable") .. [[ 
+      </ul>
+    </div>
+  ]])
 
 elseif(page == "alerts") then
     alert_utils.printAlertTables("network", network_name,

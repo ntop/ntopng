@@ -271,11 +271,11 @@ bool GenericHash::walk(u_int32_t *begin_slot,
   Active -> Idle -> Ready to be Purged -> Purged
 */
 
-u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
+u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle, bool full_scan) {
   u_int i, num_detached = 0, buckets_checked = 0;
   time_t now = time(NULL);
   /* Visit all entries when force_idle is true */
-  u_int visit_fraction = (!force_idle) ? purge_step : num_hashes;
+  u_int visit_fraction = (!force_idle && !full_scan) ? purge_step : num_hashes;
   size_t idle_entries_shadow_old_size;
   vector<GenericHashEntry*>::const_iterator it;
 
@@ -307,8 +307,9 @@ u_int GenericHash::purgeIdle(const struct timeval * tv, bool force_idle) {
       visited too few elements we keep visiting until a minimum number
       of entries is reached
     */
-    if((buckets_checked > upper_num_visited_entries)
-       || ((j > visit_fraction) && (buckets_checked > MIN_NUM_VISITED_ENTRIES)))
+    if(!full_scan && 
+       (buckets_checked > upper_num_visited_entries || 
+        (j > visit_fraction && buckets_checked > MIN_NUM_VISITED_ENTRIES)))
       break;
 
     if(++last_purged_hash == num_hashes) last_purged_hash = 0;

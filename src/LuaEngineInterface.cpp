@@ -242,7 +242,7 @@ static int ntop_interface_get_snmp_stats(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_interface && ntop_interface->getFlowInterfacesStats()) {
-    ntop_interface->getFlowInterfacesStats()->lua(vm);
+    ntop_interface->getFlowInterfacesStats()->lua(vm, ntop_interface);
     return(CONST_LUA_OK);
   } else
     return(CONST_LUA_ERROR);
@@ -2281,28 +2281,6 @@ static int ntop_get_interface_host_info(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_get_host_min_info(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
-
-  /* Optional VLAN id */
-  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
-
-  if((!ntop_interface) || !ntop_interface->getHostMinInfo(vm, get_allowed_nets(vm), host_ip, vlan_id))
-    return(CONST_LUA_ERROR);
-  else
-    return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_get_interface_host_country(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   char *host_ip;
@@ -2899,6 +2877,30 @@ static int ntop_get_interface_find_host_by_mac(lua_State* vm) {
 
   ntop_interface->findHostsByMac(vm, _mac);
   return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_update_ip_reassignment(lua_State* vm) {
+  NetworkInterface *ntop_interface;
+  int ifid;
+  bool enabled = false;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(CONST_LUA_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK)
+    return(CONST_LUA_ERROR);
+
+  ifid = lua_tointeger(vm, 1);
+  ntop_interface = ntop->getInterfaceById(ifid);
+  enabled = lua_toboolean(vm, 2);
+
+  if(ntop_interface)
+    ntop_interface->updateIPReassignment(enabled);
+
+  lua_pushnil(vm);
+  return CONST_LUA_OK;
 }
 
 /* ****************************************** */
@@ -3774,7 +3776,7 @@ static int ntop_find_member_pool(lua_State *vm) {
   char *address;
   u_int16_t vlan_id = 0;
   bool is_mac;
-  patricia_node_t *target_node = NULL;
+  ndpi_patricia_node_t *target_node = NULL;
   u_int16_t pool_id;
   bool pool_found;
   char buf[64];
@@ -3807,12 +3809,13 @@ static int ntop_find_member_pool(lua_State *vm) {
       lua_push_uint64_table_entry(vm, "pool_id", pool_id);
 
       if(target_node != NULL) {
-        lua_push_str_table_entry(vm, "matched_prefix", (char *)inet_ntop(target_node->prefix->family,
-									 (target_node->prefix->family == AF_INET6) ?
-									 (void*)(&target_node->prefix->add.sin6) :
-									 (void*)(&target_node->prefix->add.sin),
+	ndpi_prefix_t *prefix = ndpi_patricia_get_node_prefix(target_node);
+        lua_push_str_table_entry(vm, "matched_prefix", (char *)inet_ntop(prefix->family,
+									 (prefix->family == AF_INET6) ?
+									 (void*)(&prefix->add.sin6) :
+									 (void*)(&prefix->add.sin),
 									 buf, sizeof(buf)));
-        lua_push_uint64_table_entry(vm, "matched_bitmask", target_node->bit);
+        lua_push_uint64_table_entry(vm, "matched_bitmask", ndpi_patricia_get_node_bits(target_node));
       }
     } else
       lua_pushnil(vm);
@@ -4254,6 +4257,32 @@ static int ntop_get_address_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_get_host_min_info(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  char *host_ip;
+  u_int16_t vlan_id = 0;
+  char buf[64];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
+
+  /* Optional VLAN id */
+  if(lua_type(vm, 2) == LUA_TNUMBER) vlan_id = (u_int16_t)lua_tonumber(vm, 2);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+  else {
+    if(!ntop_interface->getHostMinInfo(vm, get_allowed_nets(vm), host_ip, vlan_id))
+      ntop_get_address_info(vm);
+
+    return(CONST_LUA_OK);
+  }
+}
+
+/* ****************************************** */
+
 #ifdef HAVE_NEDGE
 
 static int ntop_update_flows_shapers(lua_State* vm) {
@@ -4442,6 +4471,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "listHTTPhosts",            ntop_list_http_hosts },
   { "findHost",                 ntop_get_interface_find_host },
   { "findHostByMac",            ntop_get_interface_find_host_by_mac },
+  { "updateIPReassignment",             ntop_interface_update_ip_reassignment        },
   { "updateTrafficMirrored",            ntop_update_traffic_mirrored                 },
   { "updateDynIfaceTrafficPolicy",      ntop_update_dynamic_interface_traffic_policy },
   { "updateLbdIdentifier",              ntop_update_lbd_identifier                   },

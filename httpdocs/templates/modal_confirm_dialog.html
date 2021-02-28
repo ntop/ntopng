@@ -8,13 +8,15 @@
       <div class="modal-body {{dialog.custom_dialog_class}}">
         <div class="message {{dialog.custom_alert_class or "alert alert-warning"}}">
           {*dialog.message*}
-          <span id="{{dialog.id}}_more_content"></span>
         </div>
       </div>
       {% if dialog.no_footer then %}
         {# empty #}
       {% else %}
       <div class="modal-footer">
+	<span class="invalid-feedback" id="{{dialog.id}}_more_content" style="display: none;">
+	  {*dialog.err_msg*}
+	</span>
         {% if dialog.action ~= nil then %}
           <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
         {% else %}

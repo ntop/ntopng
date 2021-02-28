@@ -3,6 +3,24 @@
    https://github.com/compex-systems/speedtest-cli
 */
 
+/*
+ * To compile as standalone application:
+ * gcc -DTEST_SPEEDTEST -DHAVE_EXPAT -I/usr/include/json-c -ljson-c -lexpat -lcurl -lpthread -lm speedtest.c -o speedtest
+ * Run:
+ * ./speedtest
+ */
+
+#ifdef TEST_SPEEDTEST
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <math.h>
+#include <curl/curl.h>
+#include "json.h"
+#define _usleep usleep
+#endif
+
 #ifdef HAVE_EXPAT
 
 #include <float.h>
@@ -824,3 +842,22 @@ json_object* speedtest() {
 #else
 json_object* speedtest() { return(NULL); }
 #endif /* HAVE_EXPAT */
+
+#ifdef TEST_SPEEDTEST
+int main(int argc, char *argv[]) {
+  json_object *out;
+ 
+  out = speedtest();
+
+  if (out == NULL) {
+    printf("failure\n");
+    return 1;
+  }
+
+  printf("%s\n", json_object_to_json_string(out));
+
+  json_object_put(out);
+
+  return 0;
+}
+#endif

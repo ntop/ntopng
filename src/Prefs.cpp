@@ -41,15 +41,13 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_access_log = false, enable_sql_log = false;
   enable_flow_device_port_rrd_creation = false;
   reproduce_at_original_speed = false;
-  enable_ip_reassignment_alerts = false;
   enable_top_talkers = false, enable_idle_local_hosts_cache = false;
   enable_active_local_hosts_cache = false,
     enable_tiny_flows_export = true,
     enable_captive_portal = false, mac_based_captive_portal = false,
     enable_arp_matrix_generation = false,
     enable_informative_captive_portal = false,
-    override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false,
-    use_ports_to_determine_src_and_dst = false;
+    override_dst_with_post_nat_dst = false, override_src_with_post_nat_src = false;
     hostMask = no_host_mask;
   enable_mac_ndpi_stats = false;
   auto_assigned_pool_id = NO_HOST_POOL_ID;
@@ -67,9 +65,7 @@ Prefs::Prefs(Ntop *_ntop) {
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
   pcap_dir = NULL;
-#ifdef HAVE_TEST_MODE
-  test_script_path = NULL;
-#endif
+  test_pre_script_path = test_post_script_path = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
@@ -115,6 +111,11 @@ Prefs::Prefs(Ntop *_ntop) {
 #ifndef HAVE_NEDGE
   appliance = false;
 #endif
+
+#ifdef NTOPNG_PRO
+  print_maintenance = print_license = false;
+#endif
+  print_version = false;
 
   if(!(ifNames = (InterfaceInfo*)calloc(UNLIMITED_NUM_INTERFACES, sizeof(InterfaceInfo)))
      || !(deferred_interfaces_to_register = (char**)calloc(UNLIMITED_NUM_INTERFACES, sizeof(char*))))
@@ -211,6 +212,8 @@ Prefs::~Prefs() {
   if(lan_interface)	free(lan_interface);
   if(wan_interface)	free(wan_interface);
   if(ndpi_proto_path)	free(ndpi_proto_path);
+  if(test_pre_script_path)  free(test_pre_script_path);
+  if(test_post_script_path) free(test_post_script_path);
 }
 
 /* ******************************************* */
@@ -278,8 +281,13 @@ void usage() {
 	 "                                    | -w 192.168.1.1:3001\n"
 	 "                                    | -w [3ffe:2a00:100:7031::1]:3002\n"
 	 "[--https-port|-W] <[:]https port>   | HTTPS. See also -w above. Default: %u\n"
-	 "[--local-networks|-m] <local nets>  | Local nets list (default: 192.168.1.0/24)\n"
-	 "                                    | (e.g. -m \"192.168.0.0/24,172.16.0.0/16\")\n"
+	 "[--local-networks|-m] <local nets>  | Local networks list.\n"
+	 "                                    | <local nets> is a comma-separated list of networks\n"
+	 "                                    | in CIDR format. An optional '=<alias>' is supported\n"
+	 "                                    | to specify an alias.\n"
+	 "                                    | Examples:\n"
+	 "                                    | -m \"192.168.1.0/24,172.16.0.0/16\"\n"
+	 "                                    | -m \"192.168.1.0/24=LAN_1,192.168.2.0/24=LAN_2,10.0.0.0/8\"\n"
 	 "[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file\n"
 	 "                                    | (eg. protos.txt)\n"
 	 "[--redis|-r] <fmt>                  | Redis connection. <fmt> is specified as\n"
@@ -383,7 +391,7 @@ void usage() {
 #endif
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint\n"
 	 "                                    | See https://wp.me/p1LxdS-O5 for a -I use case.\n"
-	 "--hw-timestamp-mode <mode>          | Enable hw timestamping/stripping.\n"
+	 "[--hw-timestamp-mode] <mode>        | Enable hw timestamping/stripping.\n"
 	 "                                    | Supported TS modes are:\n"
 	 "                                    | apcon - Timestamped pkts by apcon.com\n"
 	 "                                    |         hardware devices\n"
@@ -391,10 +399,10 @@ void usage() {
 	 "                                    |         hardware devices\n"
 	 "                                    | vss   - Timestamped pkts by vssmonitoring.com\n"
 	 "                                    |         hardware devices\n"
-	 "--capture-direction                 | Specify packet capture direction\n"
+	 "[--capture-direction] <dir>         | Specify packet capture direction\n"
 	 "                                    | 0=RX+TX (default), 1=RX only, 2=TX only\n"
 	 /* "--online-check                      | Check the license using the online service\n" */
-	 "--online-license-check              | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
+	 "[--online-license-check]            | Check the license online\n" /* set as deprecated as soon as --online-check is supported */
 	 "[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.\n"
 	 "                                    | Useful when using ntopng behind a proxy.\n"
 	 "[--instance-name|-N <name>]         | Assign a name to this ntopng instance.\n"
@@ -403,17 +411,22 @@ void usage() {
 	 "[--check-license]                   | Check if the license is valid.\n"
 	 "[--check-maintenance]               | Check until maintenance is included\n"
 	 "                                    | in the license.\n"
+#ifdef __linux__
+         "[--vm]                              | Check the license on VMs (migration resistant).\n"
+         "                                    | This flag should be used in combination with the other options (e.g. -V).\n"
+         "                                    | Note: this changes the System ID (license should be migrated if any)\n"
 #endif
-	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
+#endif
 	 "[--version|-V]                      | Print version and license information, then quit\n"
-	 "--print-ndpi-protocols              | Print the nDPI protocols list\n"
+	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
+	 "[--print-ndpi-protocols]            | Print the nDPI protocols list\n"
 #ifndef HAVE_NEDGE
-	 "--ignore-macs                       | Ignore MAC addresses from traffic\n"
+	 "[--ignore-macs]                     | Ignore MAC addresses from traffic\n"
 #endif
-	 "--ignore-vlans                      | Ignore VLAN tags from traffic\n"
-	 "--pcap-file-purge-flows             | Enable flow purge with pcap files (debug only)\n"
-	 "--simulate-vlans                    | Simulate VLAN traffic (debug only)\n"
-	 "--simulate-ips <num>                | Simulate IPs by choosing clients and servers among <num> random addresses\n"
+	 "[--ignore-vlans]                    | Ignore VLAN tags from traffic\n"
+	 "[--pcap-file-purge-flows]           | Enable flow purge with pcap files (debug only)\n"
+	 "[--simulate-vlans]                  | Simulate VLAN traffic (debug only)\n"
+	 "[--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses\n"
 	 "[--help|-h]                         | Help\n",
 #ifdef HAVE_NEDGE
 	 "edge "
@@ -598,13 +611,10 @@ void Prefs::reloadPrefsFromRedis() {
     disable_alerts        = getDefaultBoolPrefsValue(CONST_ALERT_DISABLED_PREFS, false),
     enable_activities_debug = getDefaultBoolPrefsValue(CONST_ACTIVITIES_DEBUG_ENABLED, false),
 
-    enable_ip_reassignment_alerts = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_ALERT_IP_REASSIGNMENT, false),
-
     enable_arp_matrix_generation = getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
 
     override_dst_with_post_nat_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
     override_src_with_post_nat_src = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT, false),
-    use_ports_to_determine_src_and_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_USE_PORTS_TO_DETERMINE_SRC_AND_DST, false),
 
     max_num_packets_per_tiny_flow = getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
 							 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
@@ -765,6 +775,7 @@ static const struct option long_options[] = {
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
   { "pcap-dir",                          required_argument, NULL, '5' },
+  { "test-script-pre",                   required_argument, NULL, 206 },
   { "pcap-file-purge-flows",             no_argument,       NULL, 207 },
   { "original-speed",                    no_argument,       NULL, 208 },
   { "online-check",                      no_argument,       NULL, 209 },
@@ -778,17 +789,18 @@ static const struct option long_options[] = {
   { "ignore-macs",                       no_argument,       NULL, 216 },
 #endif
   { "ignore-vlans",                      no_argument,       NULL, 217 },
-#ifdef HAVE_TEST_MODE
   { "test-script",                       required_argument, NULL, 218 },
-#endif
   { "zmq-encryption",                    no_argument,       NULL, 219 },
   { "zmq-encryption-key-priv",           required_argument, NULL, 220 },
   { "simulate-ips",                      required_argument, NULL, 221 },
   { "zmq-encryption-key",                required_argument, NULL, 222 },
 #ifndef HAVE_NEDGE
-  { "appliance",                    no_argument,       NULL, 223 },
+  { "appliance",                         no_argument,       NULL, 223 },
 #endif
 #ifdef NTOPNG_PRO
+#ifdef __linux__
+  { "vm",                                no_argument,       NULL, 251 },
+#endif
   { "check-maintenance",                 no_argument,       NULL, 252 },
   { "check-license",                     no_argument,       NULL, 253 },
   { "community",                         no_argument,       NULL, 254 },
@@ -1354,44 +1366,16 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
   case 'V':
-    printVersionInformation();
-
-#ifdef NTOPNG_PRO
-    {
-    char buf[128];
-    ntop->getTrace()->set_trace_level((u_int8_t)0);
-    ntop->registerPrefs(this, true);
-    ntop->getPro()->init_license();
-    printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
-    printf("License Type:\t%s\n", ntop->getPro()->get_license_type(buf, sizeof(buf)));
-
-    if(ntop->getPro()->demo_ends_at())
-      printf("Validity:\t%s\n", ntop->getPro()->get_demo_expiration(buf, sizeof(buf)));
-    else
-      printf("Maintenance:\t%s\n", ntop->getPro()->get_maintenance_expiration(buf, sizeof(buf)));
-
-    if(ntop->getPro()->get_encoded_license()[0] != '\0') {
-      char *enc_license = ntop->getPro()->get_encoded_license();
-      int i, len = strlen(enc_license);
-      for (i = 0; i < len; i += 69) {
-        char buff[70];
-        int clen = min((size_t) 69, strlen(&enc_license[i]));
-        memcpy(buff, &enc_license[i], clen);
-        buff[clen] = '\0';
-        if (i == 0) printf("License:\t%s\n", buff);
-        else        printf("        \t%s\n", buff);
-      }
-    }
-
-    if(ntop->getPro()->get_license()[0] != '\0')
-      printf("License Hash:\t%s\n",      ntop->getPro()->get_license());
-    }
-#endif
-    exit(0);
+    print_version = true;
     break;
 
   case 'X':
     max_num_flows = max_val(atoi(optarg), 1024);
+    break;
+
+  case 206:
+    if(test_pre_script_path) free(test_pre_script_path);
+    test_pre_script_path = strdup(optarg);
     break;
 
   case 207:
@@ -1470,20 +1454,18 @@ int Prefs::setOption(int optkey, char *optarg) {
 #endif
 
 #ifdef NTOPNG_PRO
+#ifdef __linux__
+  case 251:
+    ntop->getPro()->set_vm_mode();
+    break;
+#endif
+
   case 252:
-    /* Disable tracing messages */
-    ntop->getTrace()->set_trace_level(0);
-    ntop->registerPrefs(this, true);
-    ntop->getPro()->check_maintenance_duration();
-    exit(0);
+    print_maintenance = true;
     break;
 
   case 253:
-    /* Disable tracing messages */
-    ntop->getTrace()->set_trace_level(0);
-    ntop->registerPrefs(this, true);
-    ntop->getPro()->check_license_validity();
-    exit(0);
+    print_license = true;
     break;
 
   case 254:
@@ -1491,12 +1473,10 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 #endif
 
-#ifdef HAVE_TEST_MODE
   case 218:
-    if(test_script_path) free(test_script_path);
-    test_script_path = strdup(optarg);
+    if(test_post_script_path) free(test_post_script_path);
+    test_post_script_path = strdup(optarg);
     break;
-#endif
 
   default:
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unknown option -%c: Ignored.", (char)optkey);
@@ -1509,6 +1489,64 @@ int Prefs::setOption(int optkey, char *optarg) {
 /* ******************************************* */
 
 int Prefs::checkOptions() {
+
+#ifdef NTOPNG_PRO
+  if(print_maintenance) {
+    /* Disable tracing messages */
+    ntop->getTrace()->set_trace_level(0);
+    ntop->registerPrefs(this, true);
+    ntop->getPro()->check_maintenance_duration();
+    exit(0);
+  }
+
+  if(print_license) {
+    /* Disable tracing messages */
+    ntop->getTrace()->set_trace_level(0);
+    ntop->registerPrefs(this, true);
+    ntop->getPro()->check_license_validity();
+    exit(0);
+  }
+#endif
+
+  if (print_version) {
+#ifdef NTOPNG_PRO
+    char buf[128];
+#endif
+
+    printVersionInformation();
+
+#ifdef NTOPNG_PRO
+    ntop->getTrace()->set_trace_level((u_int8_t)0);
+    ntop->registerPrefs(this, true);
+    ntop->getPro()->init_license();
+    printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
+    printf("License Type:\t%s\n", ntop->getPro()->get_license_type(buf, sizeof(buf)));
+
+    if(ntop->getPro()->demo_ends_at())
+      printf("Validity:\t%s\n", ntop->getPro()->get_demo_expiration(buf, sizeof(buf)));
+    else
+      printf("Maintenance:\t%s\n", ntop->getPro()->get_maintenance_expiration(buf, sizeof(buf)));
+
+    if(ntop->getPro()->get_encoded_license()[0] != '\0') {
+      char *enc_license = ntop->getPro()->get_encoded_license();
+      int i, len = strlen(enc_license);
+      for (i = 0; i < len; i += 69) {
+        char buff[70];
+        int clen = min((size_t) 69, strlen(&enc_license[i]));
+        memcpy(buff, &enc_license[i], clen);
+        buff[clen] = '\0';
+        if (i == 0) printf("License:\t%s\n", buff);
+        else        printf("        \t%s\n", buff);
+      }
+    }
+
+    if(ntop->getPro()->get_license()[0] != '\0')
+      printf("License Hash:\t%s\n",      ntop->getPro()->get_license());
+#endif
+
+    exit(0);
+  }
+
   if(install_dir)
     ntop->set_install_dir(install_dir);
 

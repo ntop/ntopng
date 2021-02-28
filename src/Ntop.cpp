@@ -73,26 +73,32 @@ Ntop::Ntop(char *appName) {
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
-  malicious_ja3 = malicious_ja3_shadow = NULL;
-  new_malicious_ja3 = new (std::nothrow) std::set<std::string>();
   system_interface = NULL;
   purgeLoop_started = false;
 #ifndef WIN32
-  cping = NULL;
+  cping = NULL, ping = NULL;
 #endif
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
 
+  for (int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
+    local_network_names[i] = local_network_aliases[i] = NULL;
+
 #ifndef WIN32
-  if(can_send_icmp)
-    cping = new (std::nothrow) ContinuousPing(NULL);
+  if(can_send_icmp) {
+    cping = new (std::nothrow) ContinuousPing();
+
+#ifndef __linux__
+    ping = new (std::nothrow)Ping(NULL /* System interface */);
+#endif
+  }
 #endif
 
   /* nDPI handling */
   last_ndpi_reload = 0;
   ndpi_struct_shadow = NULL;
   ndpi_struct = initnDPIStruct();
-  ndpi_finalize_initalization(ndpi_struct);
+  ndpi_finalize_initialization(ndpi_struct);
 
   internal_alerts_queue = new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
 
@@ -246,6 +252,12 @@ void Ntop::initTimezone() {
 /* ******************************************* */
 
 Ntop::~Ntop() {
+  int num_local_networks = local_network_tree.getNumAddresses();
+  for (int i = 0; i < num_local_networks; i++) {
+    if (local_network_names[i] != NULL) free(local_network_names[i]);
+    if (local_network_aliases[i] != NULL) free(local_network_aliases[i]);
+  }
+
   if(httpd)
     delete httpd; /* Stop the http server before tearing down network interfaces */
 
@@ -265,7 +277,9 @@ Ntop::~Ntop() {
 
 #ifndef WIN32
   if(cping)               delete cping;
+  if(ping)                delete ping;
 #endif
+  
   if(udp_socket != -1)    closesocket(udp_socket);
 
   if(trackers_automa)     ndpi_free_automa(trackers_automa);
@@ -289,10 +303,6 @@ Ntop::~Ntop() {
   }
 
   cleanShadownDPI();
-
-  if(new_malicious_ja3) delete new_malicious_ja3;
-  if(malicious_ja3) delete malicious_ja3;
-  if(malicious_ja3_shadow) delete malicious_ja3_shadow;
 
   if(redis)   { delete redis; redis = NULL;     }
   if(prefs)   { delete prefs; prefs = NULL;     }
@@ -564,6 +574,66 @@ void Ntop::start() {
 
     runHousekeepingTasks();
 
+    /*
+      Check if it is time to signal the shutdown, depending on the configuration.
+      NOTE: Shutdown when done is only meaningful for pcap-dump interfaces when
+      the file has been read.
+    */
+    if(ntop->getPrefs()->shutdownWhenDone()) {
+      u_int i;
+
+      /* Make sure all the interfaces are done with their respective packets */
+      for(i = 0; i < get_num_interfaces() && getInterface(i)->read_from_pcap_dump_done(); i++) ;
+
+      /* When they are done, signal ntopng to shutdown */
+      if(i == get_num_interfaces()) {
+	/* One extra housekeeping before executing tests (this assumes all flows have been walked) */
+	runHousekeepingTasks();
+
+	/* Allow NetworkInterface::hookFlowLoop to process all enqueued flows for hook execution */
+	sleep(1);
+
+	/* Test Script (Post Analysis) */
+	if(ntop->getPrefs()->get_test_post_script_path()) {
+	  const char *test_post_script_path = ntop->getPrefs()->get_test_post_script_path();
+
+#if 0 /* Lua support */
+	  if (Utils::hasExtension(test_post_script_path, ".lua")) {
+	    char test_path[MAX_PATH];
+	    const char *sep;
+
+	    /* Execute as Lua script */
+
+	    if((sep = strrchr(test_post_script_path, '/')) == NULL)
+	      sep = test_post_script_path;
+	    else
+	      sep++;
+
+	    snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
+		     ntop->getPrefs()->get_scripts_dir(), sep);
+
+	    if(Utils::file_exists(test_path)) {
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s", test_path);
+	      LuaEngine *l = new (std::nothrow)LuaEngine(NULL);
+	      if(l) {
+		l->run_script(test_path, iface);
+		delete l;
+	      }
+	    }
+	  } else
+#endif
+	    {
+
+	      /* Execute as Bash script */
+	      ntop->getTrace()->traceEvent(TRACE_NORMAL, "> Running Post Script '%s'", test_post_script_path);
+	      Utils::exec(test_post_script_path);
+	    }
+	}
+
+	ntop->getGlobals()->shutdown();
+      }
+    }
+
 #ifndef __linux__
     gettimeofday(&end, NULL);
     
@@ -611,6 +681,8 @@ void Ntop::start() {
     } while(usec_diff < nap_usec);
 #endif    
   }
+
+
 }
 
 /* ******************************************* */
@@ -1365,10 +1437,21 @@ void Ntop::getUserGroupLocal(const char * const user, char *group) const {
 
 /* ******************************************* */
 
+bool Ntop::isLocalAuthEnabled() const {
+  char val[64];
+
+  if((ntop->getRedis()->get((char*)PREF_NTOP_LOCAL_AUTH, val, sizeof(val)) >= 0) && val[0] == '0')
+    return(false);
+
+  return(true);
+}
+
+/* ******************************************* */
+
 bool Ntop::checkUserPasswordLocal(const char * const user, const char * const password, char *group) const {
   char val[64], password_hash[33];
 
-  if((ntop->getRedis()->get((char*)PREF_NTOP_LOCAL_AUTH, val, sizeof(val)) >= 0) && val[0] == '0')
+  if(!isLocalAuthEnabled())
     return(false);
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Checking Local auth");
@@ -2772,29 +2855,6 @@ bool Ntop::getCPULoad(float *out) {
 
 /* ******************************************* */
 
-bool Ntop::isMaliciousJA3Hash(std::string md5_hash) {
-  /* save to avoid swap */
-  std::set<std::string> *hashes = malicious_ja3;
-
-  if(!hashes)
-    return(false);
-
-  return(hashes->find(md5_hash) != hashes->end());
-}
-
-/* ******************************************* */
-
-void Ntop::reloadJA3Hashes() {
-  if(malicious_ja3_shadow)
-    delete malicious_ja3_shadow;
-
-  malicious_ja3_shadow = malicious_ja3;
-  malicious_ja3 = new_malicious_ja3;
-  new_malicious_ja3 = new (std::nothrow) std::set<std::string>();
-}
-
-/* ******************************************* */
-
 void Ntop::loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str) {
   char **keys, **values;
   Redis *redis = getRedis();
@@ -2871,12 +2931,12 @@ void Ntop::cleanShadownDPI() {
 
 /* Operations are performed in the followin order:
  *
- * 1. startCustomCategoriesReload()
+ * 1. initnDPIReload()
  * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
- * 3. reloadCustomCategories()
+ * 3. finalizenDPIReload()
  * 4. cleanShadownDPI()
  */
-bool Ntop::startCustomCategoriesReload() {
+bool Ntop::initnDPIReload() {
   ntop->getTrace()->traceEvent(TRACE_INFO, "Started nDPI reload %s",
 			       ndpiReloadInProgress ? "[IN PROGRESS]" : "");
 
@@ -2895,7 +2955,7 @@ bool Ntop::startCustomCategoriesReload() {
 
 /* **************************************************** */
 
-void Ntop::reloadCustomCategories() {
+void Ntop::finalizenDPIReload() {
   ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__, ndpi_struct_shadow);
 
   if(!ndpiReloadInProgress) {
@@ -2910,7 +2970,7 @@ void Ntop::reloadCustomCategories() {
     
     /* The new categories were loaded on the current ndpi_struct_shadow */
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
-    ndpi_finalize_initalization(ndpi_struct_shadow);
+    ndpi_finalize_initialization(ndpi_struct_shadow);
     
     ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI finalizing reload...");
     
@@ -2945,6 +3005,19 @@ void Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id) {
   
   if(what && ndpi_struct_shadow)
     ndpi_load_hostname_category(ndpi_struct_shadow, what, id);
+}
+
+/* *************************************** */
+
+int Ntop::nDPILoadMaliciousJA3Signatures(const char *file_path) {
+  int n = 0;
+
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
+  
+  if(file_path && ndpi_struct_shadow)
+    n = ndpi_load_malicious_ja3_file(ndpi_struct_shadow, file_path);
+
+  return n;
 }
 
 /* *************************************** */
@@ -3016,26 +3089,58 @@ u_int8_t Ntop::getLocalNetworkId(const char *address_str) {
 /* ******************************************* */
 
 bool Ntop::addLocalNetwork(char *_net) {
-  char *net;
-  int id = local_network_tree.getNumAddresses();
+  char *net, alias[64], *position_ptr;
+  int id = local_network_tree.getNumAddresses(), pos = 0;
   
   if(id >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s",
 				 id, _net);
     return(false);
   }
-  
-  if((net = strdup(_net)) == NULL) {
+
+  // Getting the pointer and the position to the "=" indicator
+  position_ptr = strstr(_net, "=");
+	pos = (position_ptr == NULL ? 0 : position_ptr - _net);
+
+  if(pos) {
+    // "=" indicator is present inside the string
+    // Separating the alias from the network
+    net = strndup(_net, pos);
+    memcpy(alias, position_ptr + 1, strlen(_net) - pos - 1);
+  } else
+    net = strdup(_net);
+
+  if(net == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return(false);
   }
 
+  // Adding the Network to the local Networks
   local_network_tree.addAddresses(net);
 
-  free(net);
+  local_network_names[id] = strdup(net);
 
-  local_network_names[id] = strdup(_net);
+  if(net)
+    free(net);
+
+  // Adding, if available, the alias
+  if(pos)
+    local_network_aliases[id] = strdup(alias);
+
   return(true);
+}
+
+/* ******************************************* */
+bool Ntop::getLocalNetworkAlias(lua_State *vm, u_int8_t network_id) {
+  char *alias = local_network_aliases[network_id];
+
+  // Checking if the network has an alias
+  if(!alias)
+    return false;
+
+  lua_pushstring(vm, alias);
+
+  return true;
 }
 
 /* ******************************************* */

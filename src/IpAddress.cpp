@@ -333,8 +333,8 @@ bool IpAddress::match(const AddressTree * const tree) const {
   if(tree == NULL)
     return(true);
   else {
-    const patricia_tree_t *ptree = tree->getTree((addr.ipVersion == 4) ? true : false);
-    patricia_node_t *node;
+    ndpi_patricia_tree_t *ptree = tree->getTree((addr.ipVersion == 4) ? true : false);
+    ndpi_patricia_node_t *node;
 
     if(ptree == NULL) return(true);
 

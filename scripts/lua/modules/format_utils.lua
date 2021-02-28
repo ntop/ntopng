@@ -183,6 +183,20 @@ function format_utils.bitsToSize(bits)
    return(bitsToSizeMultiplier(bits, 1000))
 end
 
+-- format an epoch using ISO 8601 format
+function format_utils.formatEpochISO8601(epoch)
+  if epoch == nil then
+    epoch = os.time()
+  end
+
+  if epoch == 0 then
+    return("")
+  else
+     local t = epoch + getFrontendTzSeconds()
+     return os.date("!%Y-%m-%dT%TZ", t)
+  end
+end
+
 -- format an epoch
 function format_utils.formatEpoch(epoch)
   if epoch == nil then
@@ -268,7 +282,7 @@ end
 --        Current flow statuses sharing this function are status_tcp_severe_connection_issues
 --        and status_tcp_connection_issues
 function format_utils.formatConnectionIssues(info)
-   local res = i18n("flow_details.tcp_connection_issues")
+   local res = ""
 
    if info and info.client_issues and info.tcp_stats and type(info.tcp_stats) == "table" and info.cli2srv_pkts then
       local retx = info.tcp_stats["cli2srv.retransmissions"]
@@ -333,17 +347,17 @@ function format_utils.formatAddressCategory(host)
       end
 
       if(host["localhost"] == true) then
-         addr_category = addr_category .. ' <span class="badge badge-success">'..i18n("details.label_local_host")..'</span>'
+         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_local_host") ..'\"><span class="badge badge-success">'..i18n("details.label_short_local_host")..'</span></abbr>'
       else 
-         addr_category = addr_category .. ' <span class="badge badge-secondary">'..i18n("details.label_remote")..'</span>'
+         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge badge-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
       end
 
       if(host["is_multicast"] == true) then 
-         addr_category = addr_category .. " <span class='badge badge-primary'>" ..i18n("multicast").. "</span> "
+         addr_category = addr_category .. " <abbr title=\"".. i18n("multicast") .."\"><span class='badge badge-primary'>" ..i18n("short_multicast").. "</span></abbr>"
       end
       
       if(host["is_broadcast"] == true) then 
-         addr_category = addr_category .. " <span class='badge badge-dark'>" ..i18n("broadcast").. "</span> "
+         addr_category = addr_category .. " <abbr title=\"".. i18n("broadcast") .."\"><span class='badge badge-dark'>" ..i18n("short_broadcast").. "</span></abbr>"
       end
       
       if(host["broadcast_domain_host"] == true) then
@@ -351,7 +365,7 @@ function format_utils.formatAddressCategory(host)
       end
       
       if(host["privatehost"] == true) then 
-         addr_category = addr_category .. ' <span class="badge badge-warning">'..i18n("details.label_private_ip")..'</span>'
+         addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_private_ip") ..'\"><span class="badge badge-warning">'..i18n("details.label_short_private_ip")..'</span></abbr>'
       end
 
       if(host["dhcpHost"] == true) then

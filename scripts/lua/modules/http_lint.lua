@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local pragma_once = 1
 local http_lint = {}
+
 local json = require "dkjson"
 local tracker = require "tracker"
 
@@ -125,8 +126,11 @@ local function validateNumber(p)
 end
 http_lint.validateNumber = validateNumber
 
+-- ##############################################
+
 local function validateSyslogFormat(p)
    if p == "plaintext" or
+      p == "plaintextrfc" or
       p == "json" or
       p == "ecs"
    then
@@ -187,6 +191,18 @@ local function validateSingleWord(w)
    end
 end
 http_lint.validateSingleWord = validateSingleWord
+
+-- ##############################################
+
+-- @brief Returns true if inputstr is inside alert, function used to check
+--        if the filter is right or not
+local function validateScriptFilter(inputstr)
+   inputstr = inputstr:gsub(" ", "")
+   return validateListOfType(inputstr, validateSingleWord)
+end
+http_lint.validateScriptFilter = validateScriptFilter
+
+-- ##############################################
 
 local function validateMessage(w)
    return true
@@ -257,7 +273,7 @@ end
 
 local function validatePassword(p)
    -- A password (e.g. used in ntopng authentication)
-   return validateUnquoted(p)
+   return true
 end
 
 local function validateAbsolutePath(p)
@@ -786,6 +802,7 @@ local function validateProtocolIdOrName(p)
       validateChoiceByKeys(L4_PROTO_KEYS, p) or
       validateChoiceByKeys(ndpi_protos, p)
 end
+http_lint.validateProtocolIdOrName = validateProtocolIdOrName
 
 function http_lint.validateTrafficProfile(p)
    return validateUnquoted(p)
@@ -812,6 +829,7 @@ end
 local function validateInterface(i)
    return interface.isValidIfId(i)
 end
+http_lint.validateInterface = validateInterface
 
 local function validateNetwork(i)
    if not string.find(i, "/") then
@@ -881,6 +899,7 @@ local function validateNetworkWithVLAN(i)
       return validateNetwork(net)
    end
 end
+http_lint.validateNetworkWithVLAN = validateNetworkWithVLAN
 
 local function validateMac(p)
    if isMacAddress(p) then
@@ -908,7 +927,7 @@ local function validateCategory(cat)
 
    return false
 end
-
+http_lint.validateCategory = validateCategory
 
 local function validateProtocolOrCategory(p)
    return validateProtocolIdOrName(p) or validateCategory(p)
@@ -1275,6 +1294,7 @@ local known_parameters = {
    ["admin_group"]             = validateUnquoted,
    ["radius_admin_group"]      = validateUnquoted,
    ["ts_post_data_url"]        = validateUnquoted,             -- URL for influxdb
+
    ["webhook_url"]             = { webhookCleanup, validateUnquoted },
    ["webhook_sharedsecret"]    = validateEmptyOr(validateSingleWord),
    ["webhook_username"]        = validateEmptyOr(validateSingleWord),
@@ -1390,6 +1410,10 @@ local known_parameters = {
 -- CONFIGSETS
    ["confset_id"]              = validateNumber,
    ["confset_name"]            = validateUnquoted,
+   ["filters"]	       	       = validateScriptFilter,		-- Currently active exclusion list for the alert
+   ["delete_alerts"]           = validateBool,
+   ["alert_generation"]	       = { jsonCleanup, validateJSON },
+   ["script_exclusion_list"]    = validateListOfTypeInline(validateSingleWord),  -- Currently active exclusion list for the alert
 
 -- UI TOASTS
    ["toast_id"]        = validateSingleWord,
@@ -1446,6 +1470,7 @@ local known_parameters = {
    ["alert_l7_proto"]          = validateNumber,                -- An alert l7 protocol
    ["alert_subtype"]           = validateSingleWord,            -- An alert subtype string
    ["alert_severity"]          = validateNumber,                -- An alert severity enum
+   ["severity"]                = validateNumber,                -- Same as alert_severity
    ["alert_granularity"]       = validateNumber,                -- An alert granularity
    ["entity"]                  = validateNumber,                -- An alert entity type
    ["asn"]                     = validateNumber,                -- An ASN number
@@ -1596,6 +1621,7 @@ local known_parameters = {
    ["toggle_vlan_rrds"]                            = validateBool,
    ["toggle_asn_rrds"]                             = validateBool,
    ["toggle_country_rrds"]                         = validateBool,
+   ["toggle_os_rrds"]                              = validateBool,
    ["toggle_shaping_directions"]                   = validateBool,
    ["toggle_dst_with_post_nat_dst"]                = validateBool,
    ["toggle_src_with_post_nat_src"]                = validateBool,
@@ -1723,6 +1749,7 @@ local known_parameters = {
    ["message"]                                     = validateSingleWord,
    ["script_path"]                                 = validateLuaScriptPath,
    ["error_message"]                               = validateMessage,
+   ["reason"]                                      = validateSingleWord,
 
 --
 
@@ -2065,6 +2092,8 @@ local function validateSpecialParameter(param, value)
 
    return false
 end
+
+-- ##############################################
 
 function http_lint.validationError(t, param, value, message)
    -- TODO graceful exit

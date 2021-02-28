@@ -826,6 +826,7 @@ function ts_utils.getPossiblyChangedSchemas()
       "iface:alerted_flows",
 
       "host:contacts", -- split in "as_client" and "as_server"
+      "host:contacts_behaviour",
       "host:ndpi_categories", --split in "bytes_sent" and "bytes_rcvd"
 
       -- Added missing ifid tag

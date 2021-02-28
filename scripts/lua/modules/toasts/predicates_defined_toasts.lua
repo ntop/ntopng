@@ -154,22 +154,24 @@ end
 
 local function create_too_many_flows_toast(toast, level)
 
+    local info = ntop.getInfo()
     local title = i18n("too_many_flows")
     local desc = i18n("about.you_have_too_many_flows",
                       {product = info["product"]})
 
     local action = {
         url = "#",
-        additional_classes = "toast-config-change",
+        additional_classes = "toast-config-change-flows",
         title = i18n("alert_messages.too_many_flows_title"),
-        js = "toast-config-change.js",
+        js = "toast-config-change-flows.js",
         dialog = {
-            id = 'toast-config-change-modal',
+            id = 'toast-config-change-modal-flows',
             action = 'toastConfigFlowChanges()',
             title = i18n("too_many_flows"),
-            message = i18n("too_many_flows_details"),
+	    err_msg = i18n("alert_messages.too_many_flows_err"),
+            message = i18n("alert_messages.too_many_flows_details"),
             custom_alert_class = 'alert alert-danger',
-            confirm = i18n('too_many_flows'),
+            confirm = i18n('double_num_flows_hosts'),
             confirm_button = 'btn-danger'
         }
     }
@@ -187,20 +189,20 @@ local function create_too_many_hosts_toast(toast, level)
                       {product = info["product"]})
     local action = {
        url = "#",
-       additional_classes = "toast-config-change",
+       additional_classes = "toast-config-change-hosts",
        title = i18n("alert_messages.too_many_hosts_title"),
-       js = "toast-config-change.js",
+       js = "toast-config-change-hosts.js",
        dialog = {
-        id = 'toast-config-change-modal',
+        id = 'toast-config-change-modal-hosts',
         action = 'toastConfigHostChanges()',
         title = i18n("too_many_hosts"),
-        message = i18n("too_many_hosts_details"),
+	err_msg = i18n("alert_messages.too_many_hosts_err"),
+        message = i18n("alert_messages.too_many_hosts_details"),
         custom_alert_class = 'alert alert-danger',
-        confirm = i18n('too_many_hosts'),
+        confirm = i18n('double_num_flows_hosts'),
         confirm_button = 'btn-danger'
        }
     }
-
 
     return toast_ui:new(toast.id, title, desc, level, action, toast.dismissable)
 end

@@ -146,7 +146,8 @@ class NetworkInterface : public AlertableEntity {
   u_int16_t next_compq_insert_idx;
   u_int16_t next_compq_remove_idx;
   ParsedFlow **companionQueue;
-
+  bool enable_ip_reassignment_alerts;
+  
   /* Live Capture */
   Mutex active_captures_lock;
   u_int8_t num_live_captures;
@@ -366,9 +367,11 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t getMacsHashSize();
   u_int32_t getHostsHashSize();
   virtual u_int32_t getFlowsHashSize();
-  void reloadCustomCategories();
 
   void updateSitesStats();
+  void updateBroadcastDomains(u_int16_t vlan_id,
+			      const u_int8_t *src_mac, const u_int8_t *dst_mac,
+			      u_int32_t src, u_int32_t dst);
 
   virtual bool walker(u_int32_t *begin_slot,
 		      bool walk_all,
@@ -381,6 +384,7 @@ class NetworkInterface : public AlertableEntity {
   void incrOS(char *hostname);
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
+  inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
   inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };
   virtual void startPacketPolling();
   virtual void startFlowDumping();
@@ -538,6 +542,7 @@ class NetworkInterface : public AlertableEntity {
   inline bool showDynamicInterfaceTraffic() const { return show_dynamic_interface_traffic; };
   inline bool discardProbingTraffic()       const { return discard_probing_traffic;        };
   inline bool flowsOnlyInterface()          const { return flows_only_interface;           };
+  void updateIPReassignment(bool enabled);
   void updateTrafficMirrored();
   void updateDynIfaceTrafficPolicy();
   void updateFlowDumpDisabled();
@@ -671,10 +676,10 @@ class NetworkInterface : public AlertableEntity {
 		const char *groupColumn);
   int dropFlowsTraffic(AddressTree *allowed_hosts, Paginator *p);
 
-  virtual void purgeIdle(time_t when, bool force_idle = false);
-  u_int purgeIdleFlows(bool force_idle);
-  u_int purgeIdleHosts(bool force_idle);
-  u_int purgeIdleMacsASesCountriesVlans(bool force_idle);
+  virtual void purgeIdle(time_t when, bool force_idle = false, bool full_scan = false);
+  u_int purgeIdleFlows(bool force_idle, bool full_scan);
+  u_int purgeIdleHosts(bool force_idlei, bool full_scan);
+  u_int purgeIdleMacsASesCountriesVlans(bool force_idle, bool full_scan);
 
   /* Overridden in ViewInterface.cpp */
   virtual u_int64_t getNumPackets();
@@ -787,11 +792,11 @@ class NetworkInterface : public AlertableEntity {
   inline void startDBLoop() { if(db) db->startDBLoop(); };
   inline void incDBNumDroppedFlows(DB *dumper, u_int num = 1) { if(dumper) dumper->incNumDroppedFlows(num); };
 #ifdef NTOPNG_PRO
-  inline void getFlowDevices(lua_State *vm) {
+  void getFlowDevices(lua_State *vm) {
     if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceList(vm); else lua_newtable(vm);
   };
-  inline void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
-    if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceInfo(vm, deviceIP); else lua_newtable(vm);
+  void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+    if(flow_interfaces_stats) flow_interfaces_stats->luaDeviceInfo(vm, deviceIP, this); else lua_newtable(vm);
   };
 #endif
   inline void getSFlowDevices(lua_State *vm) {

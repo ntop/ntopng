@@ -42,55 +42,47 @@ end
 print([[
     <div class='row my-4'>
         <div class='col-6'>
-            <ntop-widget id='first-widget' type="pie" update="5000" height='30rem'>
-                <ntop-datasource src="interface_packet_distro?ifid=0"></ntop-datasource>
+            <ntop-widget id='first-widget' type="pie" update="5000" width='30rem'>
+                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
+                    Pie (Interface/Packet Distro)
+                </h3>
+                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6'>
             <ntop-widget id='second-widget' type="radar" update="5000" width='100%' height='25rem'>
-                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
+                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
                     Radar (Interface/Packet Distro)
                 </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=0"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=15"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=1"></ntop-datasource>
                 <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
             <ntop-widget id='third-widget' display='raw' type="stackedBar" update="5000" height='28.5rem' width='100%'>
-                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
+                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
                     Stacked Bar Chart (Interface/Packet Distro)
                 </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=0"></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=1"></ntop-datasource>
                 <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
             <ntop-widget id='fourth-widget' update="5000" height='100%' width='100%'>
-                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
+                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
                     Line + 2xBars (Interface/Packet Distro)
                 </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=0" type="line" styling='{"fill": false}'></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=1" type="line" styling='{"fill": false}'></ntop-datasource>
                 <ntop-datasource src="interface_packet_distro?ifid=9" type="bar"></ntop-datasource>
             </ntop-widget>
         </div>
         <div class='col-6 my-4'>
             <ntop-widget id='fifth-widget' display='raw' update="5000" height='100%' width='100%'>
-                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
+                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
                     3x Lines (No Fill, 2xFills) (Interface/Packet Distro)
                 </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=0" type="line" styling='{"fill": false}'></ntop-datasource>
+                <ntop-datasource src="interface_packet_distro?ifid=1" type="line" styling='{"fill": false}'></ntop-datasource>
                 <ntop-datasource src="interface_packet_distro?ifid=9" type="line"></ntop-datasource>
-            </ntop-widget>
-        </div>
-        <div class='col-6 my-4'>
-            <ntop-widget id='sixth-widget' display='raw' update="5000" height='100%' width='100%'>
-                <h3 slot='header' class='mt-2 mb-4' style='flex: auto'>
-                    Scatter (Interface/Packet Distro)
-                </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=0" type="scatter"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=9" type="scatter"></ntop-datasource>
-
             </ntop-widget>
         </div>
     </div>

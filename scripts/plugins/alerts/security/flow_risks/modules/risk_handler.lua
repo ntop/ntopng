@@ -23,6 +23,10 @@ local handler = {}
 function handler.handle_risk(risk_id, flow_score, cli_score, srv_score)
    -- Set a flow status for the generic flow_risk. This will also
    -- cause an alert to be generated.
+   if risk_id == 0 then
+      return
+   end
+   
    local alert = alert_consts.alert_types.alert_flow_risk.new(
       risk_id
    )

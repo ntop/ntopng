@@ -77,11 +77,9 @@ json_object* SerializableElement::deserializeJson(const char *key) {
   u_int json_len;
   char *json = NULL;
 
-  if(!key
-     || ((json_len = ntop->getRedis()->len(key)) <= 0)
-     || (++json_len > HOST_MAX_SERIALIZED_LEN)
-     )
-    return(NULL);
+  if(!key) return(NULL);
+  json_len = ntop->getRedis()->len(key);
+  if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Deserializing %s", key);
 
@@ -100,12 +98,6 @@ json_object* SerializableElement::deserializeJson(const char *key) {
 				 json_tokener_error_desc(jerr),
 				 key,
 				 json);
-    // DEBUG
-    printf("JSON Parse error [%s] key: %s: %s",
-				 json_tokener_error_desc(jerr),
-				 key,
-				 json);
-
     free(json);
     return(NULL);
   }
