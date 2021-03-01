@@ -597,7 +597,6 @@ page_utils.add_menubar_section(
 	 {
 	    entry = page_utils.menu_entries.scripts_config,
 	    section = page_utils.menu_sections.user_scripts,
-	    url = '/lua/admin/scripts_config.lua', -- TODO remove
 	    hidden = not is_admin,
 	    entries = {
 	       {

@@ -5,9 +5,7 @@
         {{ i18n("about.user_scripts", {}) }}
       </li>
       <li class="breadcrumb-item" aria-current="page">
-        <a href="{{ ntop.getHttpPrefix() }}/lua/admin/scripts_config.lua?subdir={{ script_list.script_subdir }}">
-          {{ script_list.hooks_localizated[script_list.script_subdir] }}
-        </a>
+        {{ script_list.hooks_localizated[script_list.script_subdir] }}
       </li>
       {% if not isEmptyString(script_list.search_filter) then %}
       <li class="breadcrumb-item active" aria-current="page">

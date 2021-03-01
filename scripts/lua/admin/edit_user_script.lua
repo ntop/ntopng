@@ -61,7 +61,6 @@ local generated_templates = selected_script.template:render(hooks_config)
 
 local generated_breadcrumb = ui_utils.render_breadcrumb(i18n("about.user_scripts"), {
     {
-        href = ntop.getHttpPrefix() .. "/lua/admin/scripts_config.lua?subdir=" .. script_subdir,
         label = titles[script_subdir],
     },
     {
