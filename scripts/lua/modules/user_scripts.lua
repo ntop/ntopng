@@ -1482,6 +1482,11 @@ function user_scripts.initDefaultConfig(overwrite)
 		  end
 	       end
 	    end
+
+	    if usermod.filter and usermod.filter.default_filters then
+	       default_filters[subdir] = default_filters[subdir] or {}
+	       default_filters[subdir][key] = usermod.filter.default_filters
+	    end
 	 end
       end
    end
