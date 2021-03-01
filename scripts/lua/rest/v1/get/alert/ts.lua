@@ -85,20 +85,28 @@ if counters == nil then
    return
 end
 
-for day=1,days do
-   local day_epoch = epoch_begin + ((day-1) * day_secs)
-   res[day_epoch] = {}
-   for hour=1,24 do
-      res[day_epoch][hour] = 0
-   end
+for day = 1, days do
+   local day_epoch = epoch_begin + ((day - 1) * day_secs)
+
+   res[day_epoch] = {
+      0, --[[ Counter for alerts between 00:00 and 00:59 UTC --]]
+      0, --[[ Counter for alerts between 01:00 and 01:59 UTC --]]
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 --[[ Counter for alerts in other hours, until 23:00 to 23:59 --]]
+   }
 end
 
 local curr_epoch = epoch_begin
 
 for k,v in ipairs(counters) do
+   -- Midnight UTC of the day containing v.hour
    local day_epoch = v.hour - (v.hour % day_secs)
-   local hour = (v.hour - day_epoch) / hour_secs
-   res[day_epoch][hour] = tonumber(v.count)
+
+   -- Hour of the day containing v.hour, from 0 to 23, inclusive
+   -- NOTE: Use the `floor` to make sure hour is an integer as it will be used to index a Lua array
+   local hour = math.floor((v.hour - day_epoch) / hour_secs) 
+
+   -- Here we add 1 to the hour as Lua array are indexed starting from 1, whereas `hour` is an integer starting from zero
+   res[day_epoch][hour + 1] = tonumber(v.count)
 end -- for
 
 print(rest_utils.rc(rc, res))
