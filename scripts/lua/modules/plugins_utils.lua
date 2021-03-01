@@ -656,6 +656,7 @@ function plugins_utils.loadPlugins(community_plugins_only)
 
   -- Reload user scripts with their configurations
   local user_scripts = require "user_scripts"
+  user_scripts.initDefaultConfig()
   user_scripts.loadUnloadUserScripts(true --[[ load --]])
 
   return(true)

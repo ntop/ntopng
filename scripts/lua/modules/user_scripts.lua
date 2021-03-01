@@ -61,7 +61,7 @@ local REQUEST_PERIODIC_USER_SCRIPTS_RUN_KEY = "ntopng.cache.ifid_%i.user_scripts
 local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
 local ALL_HOOKS_CONFIG_KEY = "all"
-local CONFIGSETS_KEY = "ntopng.prefs.user_scripts.configsets_v2"
+local CONFIGSET_KEY = "ntopng.prefs.user_scripts.configset_v3"
 user_scripts.DEFAULT_CONFIGSET_ID = 0
 
 -- NOTE: the subdir id must be unique
@@ -1119,16 +1119,8 @@ end
 -- ##############################################
 
 local function saveConfigset(configset)
-   local to_delete = ntop.getHashKeysCache(CONFIGSETS_KEY) or {}
-
-   local k = string.format("%d", configset.id)
    local v = json.encode(configset)
-   ntop.setHashCache(CONFIGSETS_KEY, k, v)
-   to_delete[k] = nil
-
-   for confid in pairs(to_delete) do
-      ntop.delHashCache(CONFIGSETS_KEY, confid)
-   end
+   ntop.setCache(CONFIGSET_KEY, v)
 
    -- Reload the periodic scripts as the configuration has changed
    ntop.reloadPeriodicScripts()
@@ -1138,30 +1130,20 @@ end
 
 -- ##############################################
 
-local cached_config_sets = nil
+local cached_config_set = nil
 
 -- Return the default config set
 -- Note: Other config sets are deprecated
 function user_scripts.getConfigset()
-   if not cached_config_sets then
-      local configsets = ntop.getHashAllCache(CONFIGSETS_KEY) or {}
-      local rv = {}
+   if not cached_config_set then
+      cached_config_set = json.decode(ntop.getCache(CONFIGSET_KEY))
 
-      for _, confset_json in pairs(configsets) do
-         local confset = json.decode(confset_json)
-         if confset then
-            -- Note: loading 'default' config set only
-   	    if confset.id == user_scripts.DEFAULT_CONFIGSET_ID then
-	       rv[confset.id] = confset
-            end
-	 end
+      if not cached_config_set then
+	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Unable to load a valid configset"))
       end
-
-      -- Cache to avoid loading them again
-      cached_config_sets = rv
    end
 
-   return(cached_config_sets[user_scripts.DEFAULT_CONFIGSET_ID])
+   return cached_config_set
 end
 
 -- ##############################################
@@ -1457,13 +1439,19 @@ end
 
 -- ##############################################
 
-function user_scripts.loadDefaultConfig()
+-- @brief Initializes a default configuration for user scripts
+-- @param overwrite If true, a possibly existing configuration is overwritten with default values
+function user_scripts.initDefaultConfig(overwrite)
+   if not overwrite and json.decode(ntop.getCache(CONFIGSET_KEY)) then
+      -- Nothing to do, already initialized
+      return
+   end
+
    local ifid = getSystemInterfaceId()
-   local default_configset = user_scripts.getConfigset() or {}
    -- Default per user-script configuration
-   local default_conf = default_configset["config"] or {}
+   local default_conf = {}
    -- Default per user-script filters
-   local default_filters = default_configset["filters"] or {}
+   local default_filters = {}
 
    if default_conf then
       -- Drop possible nested values due to a previous bug
@@ -1499,8 +1487,6 @@ function user_scripts.loadDefaultConfig()
    end
    
    local configset = {
-      id = user_scripts.DEFAULT_CONFIGSET_ID,
-      name = i18n("policy_presets.default"),
       config = default_conf,
       filters = default_filters,
    }
@@ -1511,9 +1497,8 @@ end
 -- ##############################################
 
 function user_scripts.resetConfigset()
-   cached_config_sets = nil
-   ntop.delCache(CONFIGSETS_KEY)
-   user_scripts.loadDefaultConfig()
+   cached_config_set = nil
+   user_scripts.initDefaultConfig(true --[[ Overwrite a possibly existing configuration --]])
 
    return(true)
 end

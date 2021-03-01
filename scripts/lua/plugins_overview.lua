@@ -6,7 +6,6 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local plugins_utils = require("plugins_utils")
-local user_scripts = require("user_scripts")
 local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
@@ -24,7 +23,6 @@ local edition = _GET["edition"] or ""
 
 if(isAdministrator() and (_POST["action"] == "reload")) then
   plugins_utils.loadPlugins()
-  user_scripts.loadDefaultConfig()
 end
 
 -- #######################################################
