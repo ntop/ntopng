@@ -8,11 +8,6 @@ local user_scripts = require("user_scripts")
 
 -- #################################################################
 
--- Used to remember when the preferences are reloaded
-local IP_REASSIGNMENT_PREF_UPDATED = "ntopng.cache.ip_reassignment_pref_updated"
-
--- #################################################################
-
 local function dummy()
    -- Nothing to do here, the plugin is only meant to set a preference which is then
    -- read from C.
@@ -41,26 +36,11 @@ local script = {
 
 -- #################################################################
 
-function script.setup()
-   local pref_updated = ntop.getCache(IP_REASSIGNMENT_PREF_UPDATED)
-
-   -- If in-memory settings for interfaces have not yet been updated...
-   if pref_updated ~= "1" then
-      -- Fetch the configset
-      local configset = user_scripts.getConfigset()
-      local iface_config = user_scripts.getConfig(configset, "interface")
-
-      -- For each interface, get its pool configuration, and check whether this script is enabled or not
-      for ifid, _ in pairs(interface.getIfNames()) do
-	 local conf = user_scripts.getTargetHookConfig(iface_config, "ip_reassignment", "min")
-	 local enabled = conf and conf.enabled
-
-	 -- Set the in-memory pref for the interface
-	 interface.updateIPReassignment(tonumber(ifid), enabled)
-      end
-
-      -- Don't redo this code, unless a script.on<Something> event marks the configuration as changed
-      ntop.setCache(IP_REASSIGNMENT_PREF_UPDATED, "1")
+local function update_ip_reassignment(enabled)
+   -- For each interface, get its pool configuration, and check whether this script is enabled or not
+   for ifid, _ in pairs(interface.getIfNames()) do
+      -- Set the in-memory pref for the interface
+      interface.updateIPReassignment(tonumber(ifid), enabled == true)
    end
 
    return true
@@ -69,25 +49,25 @@ end
 -- #################################################################
 
 function script.onLoad(hook, hook_config)
-   ntop.delCache(IP_REASSIGNMENT_PREF_UPDATED)
+   update_ip_reassignment(hook_config and hook_config.enabled)
 end
 
 -- #################################################################
 
 function script.onUnload(hook, hook_config)
-   ntop.delCache(IP_REASSIGNMENT_PREF_UPDATED)
+   update_ip_reassignment(hook_config and hook_config.enabled)
 end
 
 -- #################################################################
 
 function script.onEnable(hook, hook_config)
-   ntop.delCache(IP_REASSIGNMENT_PREF_UPDATED)
+   update_ip_reassignment(hook_config and hook_config.enabled)
 end
 
 -- #################################################################
 
 function script.onDisable(hook, hook_config)
-   ntop.delCache(IP_REASSIGNMENT_PREF_UPDATED)
+   update_ip_reassignment(hook_config and hook_config.enabled)
 end
 
 -- #################################################################
