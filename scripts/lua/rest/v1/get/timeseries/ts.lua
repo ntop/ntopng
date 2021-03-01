@@ -138,17 +138,17 @@ else
 end
 
 if res == nil then
-  res = {}
+   res = {}
 
-  if(ts_utils.getLastError() ~= nil) then
-    res["tsLastError"] = ts_utils.getLastError()
-    res["error"] = ts_utils.getLastErrorMessage()
-    rest_utils.answer(rest_utils.consts.err.internal_error, res)
-  else
-     rest_utils.answer(rest_utils.consts.err.not_found, {})
-  end
+   if(ts_utils.getLastError() ~= nil) then
+      res["tsLastError"] = ts_utils.getLastError()
+      res["error"] = ts_utils.getLastErrorMessage()
+      rest_utils.answer(rest_utils.consts.err.internal_error, res)
+   else
+      rest_utils.answer(rest_utils.consts.success.ok, res)
+   end
 
-  return
+   return
 end
 
 -- Add metadata
