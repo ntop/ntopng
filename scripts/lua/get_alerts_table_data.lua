@@ -176,6 +176,8 @@ for k,v in ipairs(alerts) do
       end
    end
 
+   tprint("*****************************")
+   tprint(v)
    local column_id = tostring(alert_id)
    if(ntop.isEnterpriseM()) then
       if (status == "historical-flows") then

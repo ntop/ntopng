@@ -77,6 +77,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
   unlink(filePath);
   sprintf(&filePath[base_offset], "%s", "alerts_v22.db");
   unlink(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts_v23.db");
+  unlink(filePath);
   filePath[base_offset] = 0;
 
   /* open the newest */
@@ -175,7 +177,9 @@ int AlertsManager::openStore() {
 	   "cli_asn          INTEGER NOT NULL DEFAULT 0, "
 	   "srv_asn          INTEGER NOT NULL DEFAULT 0, "
 	   "cli_addr         TEXT DEFAULT NULL, "
+	   "cli_name         TEXT DEFAULT NULL, "
 	   "srv_addr         TEXT DEFAULT NULL, "
+	   "srv_name         TEXT DEFAULT NULL, "
 	   "cli_port         INTEGER NOT NULL DEFAULT 0, "
 	   "srv_port         INTEGER NOT NULL DEFAULT 0, "
 	   "cli2srv_bytes    INTEGER NOT NULL DEFAULT 0, "
@@ -189,6 +193,7 @@ int AlertsManager::openStore() {
 	   "cli_ip           BINARY(16) NOT NULL DEFAULT 0, "
 	   "srv_ip           BINARY(16) NOT NULL DEFAULT 0, "
 	   "first_seen       INTEGER NOT NULL, "
+	   "community_id     TEXT DEFAULT NULL, "
 	   "score            INTEGER NOT NULL DEFAULT 0, "
 	   "flow_status      INTEGER NOT NULL DEFAULT 0,  "
 	   "flow_risk_bitmap INTEGER NOT NULL DEFAULT 0   "
@@ -209,7 +214,10 @@ int AlertsManager::openStore() {
 	   "CREATE INDEX IF NOT EXISTS t3i_casn      ON %s(cli_asn); "
 	   "CREATE INDEX IF NOT EXISTS t3i_sasn      ON %s(srv_asn); "
 	   "CREATE INDEX IF NOT EXISTS t3i_caddr     ON %s(cli_addr); "
+	   "CREATE INDEX IF NOT EXISTS t3i_cname     ON %s(cli_name); "
 	   "CREATE INDEX IF NOT EXISTS t3i_saddr     ON %s(srv_addr); "
+	   "CREATE INDEX IF NOT EXISTS t3i_sname     ON %s(srv_name); "
+	   "CREATE INDEX IF NOT EXISTS t3i_commid    ON %s(community_id); "
 	   "CREATE INDEX IF NOT EXISTS t3i_clocal    ON %s(cli_localhost); "
 	   "CREATE INDEX IF NOT EXISTS t3i_slocal    ON %s(srv_localhost); "
 	   "CREATE INDEX IF NOT EXISTS t3i_status    ON %s(flow_status); "
@@ -228,7 +236,8 @@ int AlertsManager::openStore() {
 	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
 	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
 	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
-	   ALERTS_MANAGER_FLOWS_TABLE_NAME);
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME,
+	   ALERTS_MANAGER_FLOWS_TABLE_NAME, ALERTS_MANAGER_FLOWS_TABLE_NAME);
   m.lock(__FILE__, __LINE__);
   rc = exec_query(create_query, NULL, NULL);
   if(rc == SQLITE_ERROR) ntop->getTrace()->traceEvent(TRACE_ERROR, "SQL Error: %s", sqlite3_errmsg(db));
@@ -550,6 +559,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
   ndpi_protocol_category_t ndpi_protocol_category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
   ndpi_risk flow_risk_bitmap = 0;
   const char *cli_ip = "", *srv_ip = "";
+  const char *cli_name = "", *srv_name = "", *community_id = "";
   const char *cli_country = "", *srv_country = "";
   const char *cli_os = "", *srv_os = "";
   u_int32_t cli_asn = 0, srv_asn = 0;
@@ -595,8 +605,12 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
           cli_ip = lua_tostring(L, -1);
 	  family = (strchr(cli_ip, ':') != NULL) ? AF_INET6 : AF_INET;
 	}
+	else if(!strcmp(key, "cli_name"))
+          cli_name = lua_tostring(L, -1);
         else if(!strcmp(key, "srv_addr"))
           srv_ip = lua_tostring(L, -1);
+        else if(!strcmp(key, "srv_name"))
+          srv_name = lua_tostring(L, -1);
         else if(!strcmp(key, "cli_country"))
           cli_country = lua_tostring(L, -1);
         else if(!strcmp(key, "srv_country"))
@@ -605,6 +619,8 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
           cli_os = lua_tostring(L, -1);
         else if(!strcmp(key, "srv_os"))
           srv_os = lua_tostring(L, -1);
+	else if(!strcmp(key, "community_id"))
+          community_id = lua_tostring(L, -1);
 	break;
 
       case LUA_TNUMBER:
@@ -788,14 +804,14 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
 	     "(alert_tstamp, alert_type, alert_severity, alert_json, "
 	     "vlan_id, proto, l7_master_proto, l7_proto, l7_cat, "
 	     "cli_country, srv_country, cli_os, srv_os, cli_asn, srv_asn, "
-	     "cli_addr, srv_addr, cli_port, srv_port, "
+	     "cli_addr, cli_name, srv_addr, srv_name, cli_port, srv_port, "
 	     "cli2srv_bytes, srv2cli_bytes, "
 	     "cli2srv_packets, srv2cli_packets, "
 	     "cli_blacklisted, srv_blacklisted, "
 	     "cli_localhost, srv_localhost, "
 	     "cli_ip, srv_ip, "
-	     "score, first_seen, flow_status, flow_risk_bitmap) "
-	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+	     "score, first_seen, community_id, flow_status, flow_risk_bitmap) "
+	     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
 	     ALERTS_MANAGER_FLOWS_TABLE_NAME);
 
     if(sqlite3_prepare_v2(db, query, -1, &stmt3, 0)) {
@@ -830,23 +846,26 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
        || sqlite3_bind_int(stmt3,   14, cli_asn)
        || sqlite3_bind_int(stmt3,   15, srv_asn)
        || sqlite3_bind_text(stmt3,  16, cli_ip, -1, SQLITE_STATIC)
-       || sqlite3_bind_text(stmt3,  17, srv_ip, -1, SQLITE_STATIC)
-       || sqlite3_bind_int(stmt3,   18, cli_port)
-       || sqlite3_bind_int(stmt3,   19, srv_port)
-       || sqlite3_bind_int64(stmt3, 20, cli2srv_bytes)
-       || sqlite3_bind_int64(stmt3, 21, srv2cli_bytes)
-       || sqlite3_bind_int64(stmt3, 22, cli2srv_packets)
-       || sqlite3_bind_int64(stmt3, 23, srv2cli_packets)
-       || sqlite3_bind_int(stmt3,   24, cli_is_blacklisted ? 1 : 0)
-       || sqlite3_bind_int(stmt3,   25, srv_is_blacklisted ? 1 : 0)
-       || sqlite3_bind_int(stmt3,   26, cli_is_localhost ? 1 : 0)
-       || sqlite3_bind_int(stmt3,   27, srv_is_localhost ? 1 : 0)
-       || sqlite3_bind_blob(stmt3,  28, cli_ip_raw.s6_addr, sizeof(cli_ip_raw.s6_addr), SQLITE_STATIC)
-       || sqlite3_bind_blob(stmt3,  29, srv_ip_raw.s6_addr, sizeof(srv_ip_raw.s6_addr), SQLITE_STATIC)
-       || sqlite3_bind_int(stmt3,   30, (int) score)
-       || sqlite3_bind_int64(stmt3, 31, static_cast<long int>(first_seen))
-       || sqlite3_bind_int(stmt3,   32, (int) status)
-       || sqlite3_bind_int64(stmt3, 33, flow_risk_bitmap)) {
+       || sqlite3_bind_text(stmt3,  17, cli_name, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt3,  18, srv_ip, -1, SQLITE_STATIC)
+       || sqlite3_bind_text(stmt3,  19, srv_name, -1, SQLITE_STATIC)
+       || sqlite3_bind_int(stmt3,   20, cli_port)
+       || sqlite3_bind_int(stmt3,   21, srv_port)
+       || sqlite3_bind_int64(stmt3, 22, cli2srv_bytes)
+       || sqlite3_bind_int64(stmt3, 23, srv2cli_bytes)
+       || sqlite3_bind_int64(stmt3, 24, cli2srv_packets)
+       || sqlite3_bind_int64(stmt3, 25, srv2cli_packets)
+       || sqlite3_bind_int(stmt3,   26, cli_is_blacklisted ? 1 : 0)
+       || sqlite3_bind_int(stmt3,   27, srv_is_blacklisted ? 1 : 0)
+       || sqlite3_bind_int(stmt3,   28, cli_is_localhost ? 1 : 0)
+       || sqlite3_bind_int(stmt3,   29, srv_is_localhost ? 1 : 0)
+       || sqlite3_bind_blob(stmt3,  30, cli_ip_raw.s6_addr, sizeof(cli_ip_raw.s6_addr), SQLITE_STATIC)
+       || sqlite3_bind_blob(stmt3,  31, srv_ip_raw.s6_addr, sizeof(srv_ip_raw.s6_addr), SQLITE_STATIC)
+       || sqlite3_bind_int(stmt3,   32, (int) score)
+       || sqlite3_bind_int64(stmt3, 33, static_cast<long int>(first_seen))
+       || sqlite3_bind_text(stmt3,  34, community_id, -1, SQLITE_STATIC)
+       || sqlite3_bind_int(stmt3,   35, (int) status)
+       || sqlite3_bind_int64(stmt3, 36, flow_risk_bitmap)) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind to arguments to %s", query);
       rc = -9;
       goto out;
