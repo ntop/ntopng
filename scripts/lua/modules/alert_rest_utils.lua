@@ -19,7 +19,6 @@ local alert_rest_utils = {}
 function alert_rest_utils.exclude_alert()
    -- POST parameters
    local additional_filters = _POST["filters"]
-   local confset_id = _POST["confset_id"]
    local subdir = _POST["subdir"]
    local script_key = _POST["script_key"]
    local delete_alerts = _POST["delete_alerts"] or "false"
@@ -34,18 +33,16 @@ function alert_rest_utils.exclude_alert()
    local res = ""
    
    -- Checking that all parameters where given to the POST
-   if not additional_filters or not confset_id or not subdir or not script_key then
+   if not additional_filters or not subdir or not script_key then
       rest_utils.answer(rest_utils.consts.err.invalid_args)
       return 
    end
-
-   confset_id = tonumber(confset_id)
 
    -- Getting the parameters
    success, new_filter = user_scripts.parseFilterParams(additional_filters, subdir, false)
       
    if success then
-      success, update_err = user_scripts.updateScriptConfig(confset_id, script_key, subdir, nil, nil, new_filter)
+      success, update_err = user_scripts.updateScriptConfig(script_key, subdir, nil, nil, new_filter)
    else
       -- Error while parsing the params, error is printed
       update_err = new_filter
@@ -53,7 +50,7 @@ function alert_rest_utils.exclude_alert()
 
    if success then
       if delete_alerts == "true" then
-	 alert_utils.deleteAlertsMatchingUserScriptFilter(confset_id, subdir, script_key, new_filter.new_filters[1])                                                                            
+	 alert_utils.deleteAlertsMatchingUserScriptFilter(subdir, script_key, new_filter.new_filters[1])                                                                            
       end
       
       rc = rest_utils.consts.success.ok

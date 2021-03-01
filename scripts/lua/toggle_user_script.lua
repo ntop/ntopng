@@ -13,7 +13,6 @@ local alert_consts = require("alert_consts")
 sendHTTPContentTypeHeader('application/json')
 
 local subdir = _POST["script_subdir"]
-local confset_id = tonumber(_POST["confset_id"] or user_scripts.DEFAULT_CONFIGSET_ID)
 local script_key = _POST["script_key"]
 local action = _POST["action"]
 
@@ -50,7 +49,7 @@ end
 
 local result = {}
 
-local success, err = user_scripts.toggleScript(confset_id, script_key, subdir, (action == "enable"))
+local success, err = user_scripts.toggleScript(script_key, subdir, (action == "enable"))
 
 result.success = success
 

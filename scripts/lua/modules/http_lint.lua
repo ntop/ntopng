@@ -1408,8 +1408,6 @@ local known_parameters = {
    ["system_interface"]        = validateBool,
 
 -- CONFIGSETS
-   ["confset_id"]              = validateNumber,
-   ["confset_name"]            = validateUnquoted,
    ["filters"]	       	       = validateScriptFilter,		-- Currently active exclusion list for the alert
    ["delete_alerts"]           = validateBool,
    ["alert_generation"]	       = { jsonCleanup, validateJSON },
@@ -1884,6 +1882,7 @@ local known_parameters = {
    ["activate_remote_assist"]  = validateBool,
    ["dhcp_first_ip"]           = validateIPV4,
    ["dhcp_last_ip"]            = validateIPV4,
+   ["factory"]                 = validateBool,
    ["factory_reset"]           = validateEmpty,
    ["data_reset"]              = validateEmpty,
    ["policy_filter"]           = validateEmptyOr(validateNumber),

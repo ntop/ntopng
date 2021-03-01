@@ -344,8 +344,7 @@ const apply_edits_script = (template_data, script_subdir, script_key) => {
       csrf: pageCsrf,
       alert_severity: alert_severity,
       script_exclusion_list: script_exclusion_list,
-      JSON: JSON.stringify(template_data),
-      confset_id: confset_id
+      JSON: JSON.stringify(template_data)
    })
       .done((d, status, xhr) => {
 
@@ -379,7 +378,8 @@ const reset_script_defaults = (script_key, script_subdir, callback_reset) => {
 
    $.get(`${http_prefix}/lua/get_user_script_config.lua`, {
       script_subdir: script_subdir,
-      script_key: script_key
+      script_key: script_key,
+      factory: 'true'
    })
       .done((reset_data, status, xhr) => {
 
@@ -1315,8 +1315,8 @@ const initScriptConfModal = (script_key, script_title, script_desc, is_alert) =>
    $.get(`${http_prefix}/lua/get_user_script_config.lua`,
       {
          script_subdir: script_subdir,
-         confset_id: confset_id,
-         script_key: script_key
+         script_key: script_key,
+         factory: false
       }
    )
       .then((data, status, xhr) => {
@@ -1447,8 +1447,7 @@ const createScriptStatusButton = (row_data) => {
          script_subdir: script_subdir,
          script_key: row_data.key,
          csrf: pageCsrf,
-         action: (is_enabled) ? 'disable' : 'enable',
-         confset_id: confset_id
+         action: (is_enabled) ? 'disable' : 'enable'
       })
          .done((d, status, xhr) => {
 
@@ -1746,7 +1745,7 @@ $(document).ready(function () {
       },
       lengthChange: false,
       ajax: {
-         url: `${http_prefix}/lua/get_user_scripts.lua?confset_id=${confset_id}&script_subdir=${script_subdir}`,
+         url: `${http_prefix}/lua/get_user_scripts.lua?script_subdir=${script_subdir}`,
          type: 'get',
          dataSrc: ''
       },
@@ -2015,7 +2014,6 @@ $(document).ready(function () {
       $.post(`${http_prefix}/lua/toggle_all_user_scripts.lua`, {
          action: 'disable',
          script_subdir: script_subdir,
-         confset_id: confset_id,
          csrf: pageCsrf
       })
          .then((result) => {

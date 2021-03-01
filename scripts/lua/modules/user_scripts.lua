@@ -1066,12 +1066,8 @@ end
 -- @param is_load Boolean, indicating whether callback onLoad/onUnload should be called
 -- @return nil
 function user_scripts.loadUnloadUserScripts(is_load)
-   -- Read all existing configsets.
-   -- NOTE: A user script can have more than one configuration associated, each
-   -- one identified with an id. For example, hosts have multiple configurations,
-   -- each one applied to a different subset of pools. On the other hand, flows
-   -- and system only have only one (default) user script configuration.
-   local configsets = user_scripts.getConfigsets()
+   -- Read configset
+   local configset = user_scripts.getConfigset()
 
    -- For each subdir available, (i.e., host, flow, interface, ...)
    for _, subdir in ipairs(user_scripts.listSubdirs()) do
@@ -1079,40 +1075,38 @@ function user_scripts.loadUnloadUserScripts(is_load)
       local scripts = user_scripts.load(interface.getId(), user_scripts.getScriptType(subdir.id), subdir.id, {return_all = true})
 
       for name, script in pairsByKeys(scripts.modules) do
-	 for confid, config in pairs(configsets) do
-	    -- Call user script callbacks for
-	    -- each available configuration existing for the user script
-	    if not config.config then
-	       traceError(TRACE_ERROR,TRACE_CONSOLE, string.format("Configuration is missing"))
-	       return
-	    end
+	 -- Call user script callbacks for
+	 -- each available configuration existing for the user script
+	 if not configset.config then
+	    traceError(TRACE_ERROR,TRACE_CONSOLE, string.format("Configuration is missing"))
+	    return
+	 end
 
-	    if not config.config[subdir.id] then
-	       traceError(TRACE_ERROR,TRACE_CONSOLE, string.format("Missing subdir '%s' from config", subdir.id))
-	       return
-	    end
+	 if not configset.config[subdir.id] then
+	    traceError(TRACE_ERROR,TRACE_CONSOLE, string.format("Missing subdir '%s' from config", subdir.id))
+	    return
+	 end
 
-	    if not config.config[subdir.id][script.key] then
-	       -- Configuration can be empty (for example the first time a user script is added)
-	       traceError(TRACE_NORMAL,TRACE_CONSOLE,
-			  string.format("Script '%s' configuration is missing from subdir '%s'. New user script?", script.key, subdir.id))
-	    else
-	       local s = config.config[subdir.id][script.key]
+	 if not configset.config[subdir.id][script.key] then
+	    -- Configuration can be empty (for example the first time a user script is added)
+	    traceError(TRACE_NORMAL,TRACE_CONSOLE,
+		       string.format("Script '%s' configuration is missing from subdir '%s'. New user script?", script.key, subdir.id))
+	 else
+	    local s = configset.config[subdir.id][script.key]
 
-	       if(s ~= nil) then
-		  for hook, hook_config in pairs(s) do
-		     -- For each configuration there are multiple hooks.
-		     -- Some hooks can be enabled, whereas some other hooks can be disabled:
-		     -- methods onLoad/onUnload are only called for hooks that are enabled.
-		     if script and hook_config.enabled then
-			-- onLoad/onUnload methods are ONLY called for user scripts that are enabled
-			if is_load and script.onLoad then
-			   -- This is a load operation
-			   script.onLoad(hook, hook_config, confid)
-			elseif not is_load and script.onUnload then
-			   -- This is an unload operation
-			   script.onUnload(hook, hook_config, confid)
-			end
+	    if(s ~= nil) then
+	       for hook, hook_config in pairs(s) do
+	          -- For each configuration there are multiple hooks.
+	          -- Some hooks can be enabled, whereas some other hooks can be disabled:
+	          -- methods onLoad/onUnload are only called for hooks that are enabled.
+	          if script and hook_config.enabled then
+	             -- onLoad/onUnload methods are ONLY called for user scripts that are enabled
+		     if is_load and script.onLoad then
+		        -- This is a load operation
+		        script.onLoad(hook, hook_config)
+		     elseif not is_load and script.onUnload then
+		        -- This is an unload operation
+		        script.onUnload(hook, hook_config)
 		     end
 		  end
 	       end
@@ -1124,40 +1118,13 @@ end
 
 -- ##############################################
 
-function user_scripts.findConfigSet(configsets, name)
-   for id, configset in pairs(configsets) do
-      if(configset.name == name) then
-	 return(configset)
-      end
-   end
-
-   return(nil)
-end
-
--- ##############################################
-
-local function getNewConfigSetId(configsets)
-   local max_id = -1
-
-   for i in pairs(configsets) do
-      max_id = math.max(max_id, tonumber(i))
-   end
-
-   return(max_id+1)
-end
-
--- ##############################################
-
-local function saveConfigsets(configsets)
+local function saveConfigset(configset)
    local to_delete = ntop.getHashKeysCache(CONFIGSETS_KEY) or {}
 
-   for _, configset in pairs(configsets) do
-      local k = string.format("%d", configset.id)
-      local v = json.encode(configset)
-
-      ntop.setHashCache(CONFIGSETS_KEY, k, v)
-      to_delete[k] = nil
-   end
+   local k = string.format("%d", configset.id)
+   local v = json.encode(configset)
+   ntop.setHashCache(CONFIGSETS_KEY, k, v)
+   to_delete[k] = nil
 
    for confid in pairs(to_delete) do
       ntop.delHashCache(CONFIGSETS_KEY, confid)
@@ -1173,164 +1140,55 @@ end
 
 local cached_config_sets = nil
 
-function user_scripts.getConfigsets()
-   if cached_config_sets then
-      return(cached_config_sets)
-   end
+-- Return the default config set
+-- Note: Other config sets are deprecated
+function user_scripts.getConfigset()
+   if not cached_config_sets then
+      local configsets = ntop.getHashAllCache(CONFIGSETS_KEY) or {}
+      local rv = {}
 
-   local configsets = ntop.getHashAllCache(CONFIGSETS_KEY) or {}
-   local rv = {}
-
-   for _, confset_json in pairs(configsets) do
-      local confset = json.decode(confset_json)
-
-      if confset then
-	 rv[confset.id] = confset
-      end
-   end
-
-   -- Cache to avoid loading them again
-   cached_config_sets = rv
-
-   return(rv)
-end
-
--- ##############################################
-
--- @brief Returns all `subdir` pools which currently have `config` set as script configuration
-function user_scripts.getConfigsetPools(subdir, confid)
-   confid = tonumber(confid)
-
-   for _, available_subdir in pairs(available_subdirs) do
-      if available_subdir["id"] == subdir then
-	 if available_subdir["pools"] then
-	    -- Use load to dynamically require only the pools class of interest
-	    local required_pools, err = load(string.format('return require "%s"', available_subdir["pools"]))
-
-	    if required_pools then
-	       local ok, pools = pcall(required_pools)
-
-	       if ok then
-		  local pools_instance = pools:create()
-		  -- Retrieve all pools which have confid currently assigned
-		  return pools_instance:get_pools_by_configset_id(confid)
-	       end
-	    end
+      for _, confset_json in pairs(configsets) do
+         local confset = json.decode(confset_json)
+         if confset then
+            -- Note: loading 'default' config set only
+   	    if confset.id == user_scripts.DEFAULT_CONFIGSET_ID then
+	       rv[confset.id] = confset
+            end
 	 end
-
-	 break
       end
+
+      -- Cache to avoid loading them again
+      cached_config_sets = rv
    end
 
-   return {}
-end
-
--- ##############################################
-
-function user_scripts.deleteConfigset(confid)
-   confid = tonumber(confid)
-
-   if(confid == user_scripts.DEFAULT_CONFIGSET_ID) then
-      return false, "Cannot delete default configset"
-   end
-
-   local configsets = user_scripts.getConfigsets()
-
-   if(configsets[confid] == nil) then
-      return false, i18n("configsets.unknown_id", {confid=confid})
-   end
-
-   -- Remove the configset from all the pools to could have been associated to
-   pools_lua_utils.unbind_all_configset_id(confid)
-
-   configsets[confid] = nil
-   return saveConfigsets(configsets)
+   return(cached_config_sets[user_scripts.DEFAULT_CONFIGSET_ID])
 end
 
 -- ##############################################
 
 function user_scripts.createOrReplaceConfigset(configset)
-   local configsets = user_scripts.getConfigsets()
+   -- Skip configurations other then the only one supported (others are deprecated)
+   if configset.id ~= user_scripts.DEFAULT_CONFIGSET_ID then
+      return false
+   end
 
-   local existing = user_scripts.findConfigSet(configsets, configset.name)
+   -- Unbind recipients
+   local existing = user_scripts.getConfigset()
    if existing then
-      configsets[existing.id] = nil
       pools_lua_utils.unbind_all_recipient_id(existing.id)
    end
 
-   local new_confid = 0
-   if configset.id ~= 0 then
-      new_confid = getNewConfigSetId(configsets)
-   end
+   -- Clone config
+   configset = table.clone(configset)
+   configset.id = user_scripts.DEFAULT_CONFIGSET_ID
 
-   configsets[new_confid] = table.clone(configset)
-   configsets[new_confid].id = new_confid
-
-   local rv, err = saveConfigsets(configsets)
-
+   -- Save config
+   local rv = saveConfigset(configset)
    if not rv then
-      return rv, err
+      return rv
    end
 
-   return true, new_confid
-end
-
--- ##############################################
-
-function user_scripts.renameConfigset(confid, new_name)
-   if(confid == user_scripts.DEFAULT_CONFIGSET_ID) then
-      return false, "Cannot rename default configset"
-   end
-
-   local configsets = user_scripts.getConfigsets()
-
-   if(configsets[confid] == nil) then
-      return false, i18n("configsets.unknown_id", {confid=confid})
-   end
-
-   local existing = user_scripts.findConfigSet(configsets, new_name)
-
-   if existing then
-      if(existing.id == confid) then
-	 -- Renaming to the same name has no effect
-	 return true
-      end
-
-      return false, i18n("configsets.error_exists", {name=new_name})
-   end
-
-   configsets[confid].name = new_name
-   return saveConfigsets(configsets)
-end
-
--- ##############################################
-
-function user_scripts.cloneConfigset(confid, new_name)
-   local configsets = user_scripts.getConfigsets()
-
-   if(configsets[confid] == nil) then
-      return false, i18n("configsets.unknown_id", {confid=confid})
-   end
-
-   local existing = user_scripts.findConfigSet(configsets, new_name)
-
-   if existing then
-      return false, i18n("configsets.error_exists", {name=new_name})
-   end
-
-   local new_confid = getNewConfigSetId(configsets)
-
-   configsets[new_confid] = table.clone(configsets[confid])
-   configsets[new_confid].id = new_confid
-   configsets[new_confid].name = new_name
-
-   local rv, err = saveConfigsets(configsets)
-
-   if(not rv) then
-      return rv, err
-   end
-
-   return true, new_confid
+   return true
 end
 
 -- ##############################################
@@ -1358,16 +1216,12 @@ end
 -- ##############################################
 
 -- @brief Update the configuration of a specific script in a configset
-function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config, additional_params, additional_filters)
-   local configsets = user_scripts.getConfigsets()
+function user_scripts.updateScriptConfig(script_key, subdir, new_config, additional_params, additional_filters)
+   local configset = user_scripts.getConfigset()
    -- additional_params contains additional params for script conf such as the severity
    additional_params = additional_params or {}
    new_config = new_config or {}
    local applied_config = {}
-
-   if(configsets[confid] == nil) then
-      return false, i18n("configsets.unknown_id", {confid=confid})
-   end
 
    local script_type = user_scripts.getScriptType(subdir)
    local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
@@ -1408,27 +1262,21 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
       end
    end
 
-   local config = configsets[confid].config
-   local filter_conf = configsets[confid]
+   local config = configset.config
 
-   -- Creating the filters_conf if necessary
-   if not filter_conf["filters"] then
-      filter_conf["filters"] = {}
+   -- Creating the filters conf if necessary
+   if not configset["filters"] then
+      configset["filters"] = {}
+   end
+   if not configset["filters"][subdir] then
+      configset["filters"][subdir] = {}
+   end
+   if not configset["filters"][subdir][script_key] then
+      configset["filters"][subdir][script_key] = {}
    end
 
-   filter_conf = filter_conf["filters"]
+   local filter_conf = configset["filters"][subdir][script_key]
 
-   if not filter_conf[subdir] then
-      filter_conf[subdir] = {}
-   end
-
-   filter_conf = filter_conf[subdir]
-
-   if not filter_conf[script_key] then
-      filter_conf[script_key] = {}
-   end
-
-   filter_conf = filter_conf[script_key]
    ------------------------------------
 
    config[subdir] = config[subdir] or {}
@@ -1486,7 +1334,7 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
       end
 
       -- Updating the configuration
-      configsets[confid]["filters"][subdir][script_key] = new_filter_conf
+      configset["filters"][subdir][script_key] = new_filter_conf
    end
    
    if table.len(applied_config) > 0 then
@@ -1494,19 +1342,18 @@ function user_scripts.updateScriptConfig(confid, script_key, subdir, new_config,
       config[subdir][script_key] = applied_config
    end
       
-   return saveConfigsets(configsets)
+   return saveConfigset(configset)
 end
 
 -- ##############################################
 
 -- @brief Toggles script `script_key` configuration on or off depending on `enable` for configuration `configset`
 --        Hooks onDisable and onEnable are called.
--- @param configset_id The id of the configuration passed in `configset`
--- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
+-- @param configset A user script configuration, obtained with user_scripts.getConfigset()
 -- @param script_key The string script identifier
 -- @param subdir The string identifying the sub directory (e.g., flow, host, ...)
 -- @param enable A boolean indicating whether the script shall be toggled on or off
-local function toggleScriptConfigset(configset_id, configset, script_key, subdir, enable)
+local function toggleScriptConfigset(configset, script_key, subdir, enable)
    local script_type = user_scripts.getScriptType(subdir)
    local script = user_scripts.loadModule(interface.getId(), script_type, subdir, script_key)
 
@@ -1525,10 +1372,10 @@ local function toggleScriptConfigset(configset_id, configset, script_key, subdir
 
 	 if script.onDisable and prev_hook_config and not enable then
 	    -- Hook has been enabled for the user script
-	    script.onDisable(hook, hook_config, configset_id)
+	    script.onDisable(hook, hook_config)
 	 elseif script.onEnable and not prev_hook_config and enable then
 	    -- Hook has been disabled for the user script
-	    script.onEnable(hook, hook_config, configset_id)
+	    script.onEnable(hook, hook_config)
 	 end
       end
    end
@@ -1538,47 +1385,37 @@ end
 
 -- ##############################################
 
-function user_scripts.toggleScript(confid, script_key, subdir, enable)
-   local configsets = user_scripts.getConfigsets()
-   local configset = configsets[confid]
-
-   if not configset then
-      return false, i18n("configsets.unknown_id", {confid = confid})
-   end
+function user_scripts.toggleScript(script_key, subdir, enable)
+   local configset = user_scripts.getConfigset()
 
    -- Toggle the configuration (result is put in `configset`)
-   local res, err = toggleScriptConfigset(confid, configset, script_key, subdir, enable)
+   local res, err = toggleScriptConfigset(configset, script_key, subdir, enable)
    if not res then
       return res, err
    end
 
    -- If the toggle has been successful, write the new configset and return
-   return saveConfigsets(configsets)
+   return saveConfigset(configset)
 end
 
 -- ##############################################
 
-function user_scripts.toggleAllScripts(confid, subdir, enable)
-   local configsets = user_scripts.getConfigsets()
-   local configset = configsets[confid]
-
-   if not configset then
-      return false, i18n("configsets.unknown_id", {confid = confid})
-   end
+function user_scripts.toggleAllScripts(subdir, enable)
+   local configset = user_scripts.getConfigset()
 
    -- Toggle the configuration (result is put in `configset`)
    local scripts = user_scripts.load(getSystemInterfaceId(), user_scripts.getScriptType(subdir), subdir)
 
    for script_name, script in pairs(scripts.modules) do
       -- Toggle each script individually
-      local res, err = toggleScriptConfigset(confid, configset, script.key, subdir, enable)
+      local res, err = toggleScriptConfigset(configset, script.key, subdir, enable)
       if not res then
 	 return res, err
       end
    end
 
    -- If the toggle has been successful for all scripts, write the new configset and return
-   return saveConfigsets(configsets)
+   return saveConfigset(configset)
 end
 
 -- ##############################################
@@ -1622,9 +1459,7 @@ end
 
 function user_scripts.loadDefaultConfig()
    local ifid = getSystemInterfaceId()
-   local configsets = user_scripts.getConfigsets()
-   -- The configset
-   local default_configset = configsets[user_scripts.DEFAULT_CONFIGSET_ID] or {}
+   local default_configset = user_scripts.getConfigset() or {}
    -- Default per user-script configuration
    local default_conf = default_configset["config"] or {}
    -- Default per user-script filters
@@ -1663,23 +1498,19 @@ function user_scripts.loadDefaultConfig()
       end
    end
    
-   configsets[user_scripts.DEFAULT_CONFIGSET_ID] = {
+   local configset = {
       id = user_scripts.DEFAULT_CONFIGSET_ID,
       name = i18n("policy_presets.default"),
       config = default_conf,
       filters = default_filters,
    }
 
-   saveConfigsets(configsets)
+   saveConfigset(configset)
 end
 
 -- ##############################################
 
-function user_scripts.resetConfigsets()
-   for confset_id, _ in pairs(user_scripts.getConfigsets()) do
-      user_scripts.deleteConfigset(confset_id)
-   end
-
+function user_scripts.resetConfigset()
    cached_config_sets = nil
    ntop.delCache(CONFIGSETS_KEY)
    user_scripts.loadDefaultConfig()
@@ -1709,8 +1540,8 @@ function user_scripts.isSystemScriptEnabled(script_key)
    end
 
    -- Here the configuration is update with the exclusion list for the alerts
-   local configsets = user_scripts.getConfigsets()
-   local default_config = user_scripts.getDefaultConfig(configsets, "system")
+   local configset = user_scripts.getConfigset()
+   local default_config = user_scripts.getConfig(configset, "system")
    local script_config = default_config[script_key]
 
    if(script_config) then
@@ -1796,13 +1627,10 @@ end
 
 -- ##############################################
 
--- @brief Retrieve a `subdir` configuration from the configset identified with `configset_id` from all the available `configsets` passed
-function user_scripts.getConfigById(configsets, configset_id, subdir)
-   configset_id = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
-   local configset = configsets[configset_id] or configsets[user_scripts.DEFAULT_CONFIGSET_ID]
-
+-- @brief Retrieve a `subdir` configuration from the configset identified with `confset_id` from all the available `configsets` passed
+function user_scripts.getConfig(configset, subdir)
    if configset and configset["config"] and configset["config"][subdir] then
-      return configset["config"][subdir], configset.id
+      return configset["config"][subdir]
    end
 
    return {}, nil
@@ -1810,31 +1638,13 @@ end
 
 -- ##############################################
 
--- @brief Retrieve `subdir` filters from the configset identified with `configset_id` from all the available `configsets` passed
-function user_scripts.getFiltersById(configsets, configset_id, subdir)
-   if configsets then
-      configset_id = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
-
-      local configset = configsets[configset_id] or configsets[user_scripts.DEFAULT_CONFIGSET_ID]
-
-      if configset and configset["filters"] and configset["filters"][subdir] then
-	 return configset["filters"][subdir], configset.id
-      end
+-- @brief Retrieve `subdir` filters from the configset
+function user_scripts.getFilters(configset, subdir)
+   if configset and configset["filters"] and configset["filters"][subdir] then
+      return configset["filters"][subdir]
    end
 
    return {}, nil
-end
-
--- ##############################################
-
-function user_scripts.getDefaultConfig(configsets, subdir)
-   local conf = configsets[user_scripts.DEFAULT_CONFIGSET_ID]
-
-   if(conf == nil) then
-      return({})
-   end
-
-   return conf.config[subdir] or {}, conf.id
 end
 
 -- ##############################################
@@ -1914,22 +1724,20 @@ end
 -- #################################
 
 -- @bief Given an already validated filter, returns a SQLite WHERE clause matching all filter fields
--- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
+-- @param configset A user script configuration, obtained with user_scripts.getConfigset()
 -- @param subdir the modules subdir
 -- @param user_script The string script identifier
 -- @param filter An already validated user script filter
 -- @return A string with the SQLite WHERE clause
-function user_scripts.prepareFilterSQLiteWhere(confset_id, subdir, user_script, filter)
+function user_scripts.prepareFilterSQLiteWhere(subdir, user_script, filter)
    -- Access the alert_json using SQLite `json_` functions to properly filter with fields
    local filters_where = {}
 
    -- This is to match elements inside the alert_json
    local script_where = {
-      string.format("json_extract(alert_json, '$.alert_generation.confset_id') = %u", confset_id),
       string.format("json_extract(alert_json, '$.alert_generation.subdir') = '%s'", subdir),
       string.format("json_extract(alert_json, '$.alert_generation.script_key') = '%s'", user_script),
    }
-
 
    -- Now prepare each SQLite statement for every field
    local subdir_id = getSubdirId(subdir)
@@ -2094,15 +1902,11 @@ end
 
 -- @brief This function is going to check if the user script needs to be excluded
 --        from the list, due to not having filters or not
-function user_scripts.excludeScriptFilters(alert, alert_json, confid, script_key, subdir)
-   local configsets = user_scripts.getConfigsets()
-
-   if(configsets[confid] == nil) then
-      return false
-   end
+function user_scripts.excludeScriptFilters(alert, alert_json, script_key, subdir)
+   local configset = user_scripts.getConfigset()
 
    -- Getting the configuration
-   local config = configsets[confid]["filters"]
+   local config = configset["filters"]
 
    if not config then
       return false

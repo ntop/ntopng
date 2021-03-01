@@ -197,7 +197,7 @@ end
 
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
-function host_pools:_persist(pool_id, name, members, configset_id, recipients)
+function host_pools:_persist(pool_id, name, members, recipients)
     -- OVERRIDE
     -- Method must be overridden as host pool details and members are kept as hash caches, which are also used by the C++
 
@@ -210,7 +210,6 @@ function host_pools:_persist(pool_id, name, members, configset_id, recipients)
     -- The cache for the pool
     local pool_details_key = self:_get_pool_details_key(pool_id)
     ntop.setHashCache(pool_details_key, "name", name)
-    ntop.setHashCache(pool_details_key, "configset_id", tostring(configset_id))
 
     -- The cache for pool members
     local pool_members_key = self:_get_pool_members_key(pool_id)
@@ -249,7 +248,7 @@ function host_pools:delete_pool(pool_id)
         local cur_pool_details = self:get_pool(pool_id)
 
         if cur_pool_details then
-            -- Remove the key with all the pool details (e.g., with members, and configset_id)
+            -- Remove the key with all the pool details (e.g., with members)
             ntop.delCache(self:_get_pool_details_key(pool_id))
 
             -- Remove the key with all the pool member details
@@ -305,17 +304,6 @@ function host_pools:get_pool(pool_id, recipient_details)
         return nil -- Pool not existing
     end
 
-    -- Configset and configset details
-    local configset_id = self:_get_pool_detail(pool_id, "configset_id")
-    configset_id = tonumber(configset_id) or user_scripts.DEFAULT_CONFIGSET_ID
-    local config_sets = user_scripts.getConfigsets()
-
-    -- Configset details
-    local configset_details
-    if config_sets[configset_id] and config_sets[configset_id]["name"] then
-        configset_details = {name = config_sets[configset_id]["name"]}
-    end
-
     -- Pool members
     local members = ntop.getMembersCache(self:_get_pool_members_key(pool_id))
 
@@ -363,8 +351,6 @@ function host_pools:get_pool(pool_id, recipient_details)
         name = pool_name,
         members = members,
         member_details = member_details,
-        configset_id = configset_id,
-        configset_details = configset_details,
         recipients = recipients
     }
 

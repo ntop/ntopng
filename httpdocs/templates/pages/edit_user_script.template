@@ -154,7 +154,7 @@ $(document).ready(function() {
     }
 
     const CSRF = "{{ ntop.getRandomCSRFValue() }}";
-    const RESET_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/get_user_script_config.lua?script_subdir={{edit_user_script.script_subdir}}&script_key={{edit_user_script.script_key}}"
+    const RESET_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/get_user_script_config.lua?script_subdir={{edit_user_script.script_subdir}}&script_key={{edit_user_script.script_key}}&factory=true"
     const SAVE_ENDPOINT = "{{ ntop.getHttpPrefix() }}/lua/edit_user_script_config.lua";
 
     const $exclusionList = $(`[name='exclusion-list']`);
@@ -273,7 +273,6 @@ $(document).ready(function() {
         const payload = {
             script_subdir: "{{ edit_user_script.script_subdir }}",
             script_key: "{{ edit_user_script.script_key }}",
-            confset_id: "{{ edit_user_script.confset_id }}",
             csrf: CSRF,
             JSON: JSON.stringify(serialized),
         };

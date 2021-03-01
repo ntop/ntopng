@@ -53,11 +53,10 @@ end
 
 for config_id, configset in pairs(data) do
   if configset.name ~= nil then
-    local success, err = user_scripts.createOrReplaceConfigset(configset)
+    local success = user_scripts.createOrReplaceConfigset(configset)
 
     if not success then
       result.error = "internal-failure"
-      result.description = err
     end
   end
 end

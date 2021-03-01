@@ -18,7 +18,7 @@ local do_trace = false             -- Trace lua calls
 local available_modules = nil
 local system_ts_enabled = nil
 local system_config = nil
-local confset_id = nil
+local configset = nil
 
 -- #################################################################
 
@@ -38,8 +38,8 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   configsets = user_scripts.getConfigsets("system")
-   system_config, confset_id = user_scripts.getDefaultConfig(configsets, "system")
+   configset = user_scripts.getConfigset()
+   system_config = user_scripts.getConfig(configset, "system")
 end
 
 -- #################################################################
@@ -75,7 +75,7 @@ function runScripts(granularity)
 
     if(conf.enabled) then
       if((not user_script.is_alert) or (not suppressed_alerts)) then
-        alerts_api.invokeScriptHook(user_script, configsets, confset_id, hook_fn, {
+        alerts_api.invokeScriptHook(user_script, configset, hook_fn, {
            granularity = granularity,
            alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
            user_script_config = conf.script_conf,

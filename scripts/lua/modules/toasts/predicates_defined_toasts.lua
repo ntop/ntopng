@@ -642,7 +642,7 @@ function predicates.unexpected_plugins(toast, container)
     if (not IS_ADMIN) then return end
     if not isEmptyString(ntop.getCache(UNEXPECTED_PLUGINS_ENABLED_CACHE_KEY)) then return end
 
-    local url = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&search_script=unexpected#disabled"
+    local url = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?subdir=flow&search_script=unexpected#disabled"
 
     -- TODO: missing documentation links
     local title = i18n("user_scripts.hint.title")

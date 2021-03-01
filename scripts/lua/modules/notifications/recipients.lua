@@ -361,7 +361,7 @@ function recipients.delete_recipient(recipient_id)
 	 -- Unbind the recipient from any assigned pool
 	 pools_lua_utils.unbind_all_recipient_id(recipient_id)
 
-	 -- Remove the key with all the recipient details (e.g., with members, and configset_id)
+	 -- Remove the key with all the recipient details (e.g., with members)
 	 ntop.delCache(_get_recipient_details_key(recipient_id))
 
 	 -- Remove the recipient_id from the set of all currently existing recipient ids

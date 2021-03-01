@@ -61,7 +61,6 @@ end
 -- @return A table with a key "success" set to true is returned on success. A key "err" is set in case of failure, with one of the errors defined in rest_utils.consts.err.
 function pool_import_export:import(conf)
    local res = {}
-   local config_sets = user_scripts.getConfigsets()
    -- local recipients = recipients_mod.get_all_recipients()
 
    for pool_name, pool_list in pairs(conf) do
@@ -69,37 +68,20 @@ function pool_import_export:import(conf)
          local pool_instance = pool_instances[pool_name]
 
          for _, pool_conf in ipairs(pool_list) do
-            -- Configset lookup to remap the ID
-            local config_set = user_scripts.findConfigSet(config_sets, pool_conf.configset_details.name)
-            local success = true
-
-            if config_set then
-               local configset_id = config_set.id
-               -- tprint("Configset "..pool_conf.configset_details.name.." with ID "..pool_conf.configset_id.." mapped to "..configset_id)
-
-               -- Recipient lookup to remap the ID
-               local recipients_ids = {}
-               for _, recipient_details in pairs(pool_conf.recipients) do
-                  local recipient = recipients_mod.get_recipient_by_name(recipient_details.recipient_name)
-                  recipients_ids[#recipients_ids+1] = recipient.recipient_id 
-                  --tprint("Recipient "..recipient_details.recipient_name.." with ID "..recipient_details.recipient_id.." mapped to "..recipient.recipient_id)
-               end
-
-               -- Add Pool
-               local new_pool_id = pool_instance:add_pool(
-                  pool_conf.name,
-                  pool_conf.members,
-                  configset_id,
-                  recipients_ids
-               )
-
-            else
-               success = false
+            -- Recipient lookup to remap the ID
+            local recipients_ids = {}
+            for _, recipient_details in pairs(pool_conf.recipients) do
+               local recipient = recipients_mod.get_recipient_by_name(recipient_details.recipient_name)
+               recipients_ids[#recipients_ids+1] = recipient.recipient_id 
+               --tprint("Recipient "..recipient_details.recipient_name.." with ID "..recipient_details.recipient_id.." mapped to "..recipient.recipient_id)
             end
 
-            if not success then
-               res.err = rest_utils.consts.err.partial_import
-            end
+            -- Add Pool
+            local new_pool_id = pool_instance:add_pool(
+               pool_conf.name,
+               pool_conf.members,
+               recipients_ids
+            )
          end
       end
    end

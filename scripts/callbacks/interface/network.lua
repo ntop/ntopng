@@ -21,7 +21,7 @@ local do_trace = false             -- Trace lua calls
 local available_modules = nil
 local ifid = nil
 local network_entity = alert_consts.alert_entities.network.entity_id
-local configsets = nil
+local configset = nil
 local pools_instance = nil
 
 -- The function below ia called once (#pragma once)
@@ -36,7 +36,7 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   configsets = user_scripts.getConfigsets()
+   configset = user_scripts.getConfigset()
    -- Instance of local network pools to get assigned members
    pools_instance = local_network_pools:create()
 end
@@ -68,17 +68,15 @@ function runScripts(granularity)
    local cur_alerts = network.getAlerts(granularity_id)
    local entity_info = alerts_api.networkAlertEntity(network_key)
 
-   -- Retrieve the configset_id (possibly) associated to this network
-   local confset_id = pools_instance:get_configset_id(network_key)
-   -- Retrieve the configuration associated to the confset_id
-   local subnet_conf = user_scripts.getConfigById(configsets, confset_id, "network")
+   -- Retrieve the configuration
+   local subnet_conf = user_scripts.getConfig(configset, "network")
 
    for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
       local user_script = available_modules.modules[mod_key]
       local conf = user_scripts.getTargetHookConfig(subnet_conf, user_script, granularity)
 
       if(conf.enabled) then
-	 alerts_api.invokeScriptHook(user_script, configsets, confset_id, hook_fn, {
+	 alerts_api.invokeScriptHook(user_script, configset, hook_fn, {
 					granularity = granularity,
 					alert_entity = entity_info,
 					entity_info = info,

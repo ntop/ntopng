@@ -25,6 +25,8 @@ end
 
 sendHTTPContentTypeHeader('application/json', 'attachment; filename="scripts_configuration.json"')
 
-local conf = user_scripts.getConfigsets()
+local conf = {}
+
+conf[user_scripts.DEFAULT_CONFIGSET_ID] = user_scripts.getConfigset()
 
 print(json.encode(conf, nil))

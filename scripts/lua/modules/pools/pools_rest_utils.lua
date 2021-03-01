@@ -22,7 +22,6 @@ local pools_rest_utils = {}
 function pools_rest_utils.add_pool(pools)
    local name = _POST["pool_name"]
    local members = _POST["pool_members"]
-   local confset_id = _POST["confset_id"]
    local recipients = _POST["recipients"]
 
    if not auth.has_capability(auth.capabilities.pools) then
@@ -30,7 +29,7 @@ function pools_rest_utils.add_pool(pools)
       return
    end
 
-   if not name or not members or not confset_id then
+   if not name or not members then
       rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end
@@ -40,13 +39,10 @@ function pools_rest_utils.add_pool(pools)
 
    members_list = s:parse_members(members)
    recipients = s:parse_recipients(recipients)
-   -- confset_id as number
-   confset_id = tonumber(confset_id)
 
    local new_pool_id = s:add_pool(
       name,
       members_list --[[ an array of valid interface ids]],
-      confset_id --[[ a valid configset_id --]],
       recipients --[[ an array of valid recipient ids (names)]]
    )
 
@@ -73,7 +69,6 @@ function pools_rest_utils.edit_pool(pools)
    local pool_id = _POST["pool"]
    local name = _POST["pool_name"]
    local members = _POST["pool_members"]
-   local confset_id = _POST["confset_id"]
    local recipients = _POST["recipients"]
 
    if not auth.has_capability(auth.capabilities.pools) then
@@ -81,7 +76,7 @@ function pools_rest_utils.edit_pool(pools)
       return
    end
 
-   if not pool_id or not name or not members or not confset_id then
+   if not pool_id or not name or not members then
       rest_utils.answer(rest_utils.consts.err.invalid_args)
       return
    end
@@ -93,13 +88,10 @@ function pools_rest_utils.edit_pool(pools)
    recipients = s:parse_recipients(recipients)
    -- pool_id as number
    pool_id = tonumber(pool_id)
-   -- confset_id as number
-   confset_id = tonumber(confset_id)
 
    local res = s:edit_pool(pool_id,
       name,
       members_list --[[ an array of valid interface ids]], 
-      confset_id --[[ a valid configset_id --]],
       recipients --[[ an array of valid recipient ids (names)]]
    )
 

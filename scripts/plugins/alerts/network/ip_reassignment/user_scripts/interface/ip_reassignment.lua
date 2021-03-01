@@ -46,9 +46,9 @@ function script.setup()
 
    -- If in-memory settings for interfaces have not yet been updated...
    if pref_updated ~= "1" then
-      -- Fetch the configsets
-      local configsets = user_scripts.getConfigsets()
-      local iface_config = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID --[[ TODO: remove when single configset will be implemented --]], "interface")
+      -- Fetch the configset
+      local configset = user_scripts.getConfigset()
+      local iface_config = user_scripts.getConfig(configset, "interface")
 
       -- For each interface, get its pool configuration, and check whether this script is enabled or not
       for ifid, _ in pairs(interface.getIfNames()) do
@@ -68,25 +68,25 @@ end
 
 -- #################################################################
 
-function script.onLoad(hook, hook_config, configset_id)
+function script.onLoad(hook, hook_config)
    ntop.delCache(IP_REASSIGNMENT_PREF_UPDATED)
 end
 
 -- #################################################################
 
-function script.onUnload(hook, hook_config, configset_id)
+function script.onUnload(hook, hook_config)
    ntop.delCache(IP_REASSIGNMENT_PREF_UPDATED)
 end
 
 -- #################################################################
 
-function script.onEnable(hook, hook_config, configset_id)
+function script.onEnable(hook, hook_config)
    ntop.delCache(IP_REASSIGNMENT_PREF_UPDATED)
 end
 
 -- #################################################################
 
-function script.onDisable(hook, hook_config, configset_id)
+function script.onDisable(hook, hook_config)
    ntop.delCache(IP_REASSIGNMENT_PREF_UPDATED)
 end
 

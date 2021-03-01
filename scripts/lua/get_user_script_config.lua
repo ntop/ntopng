@@ -13,7 +13,7 @@ local alert_consts = require("alert_consts")
 sendHTTPContentTypeHeader('application/json')
 
 local subdir = _GET["script_subdir"] or "host"
-local confset_id = tonumber(_GET["confset_id"])
+local factory = _GET["factory"]
 local script_key = _GET["script_key"]
 
 local script_type = user_scripts.getScriptType(subdir)
@@ -29,17 +29,10 @@ if(script_key == nil) then
 end
 
 local config_set
-if confset_id then
-   -- If confset_id has been submitted, the user-configuration is returned
-   config_set = user_scripts.getConfigsets()[confset_id]
-else
-   -- If no confset_id has been submitted, the factory configuration is returned
+if factory and factory == "true" then
    config_set = user_scripts.getFactoryConfig()
-end
-
-if(config_set == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown configset ID: " .. confset_id)
-  return
+else
+   config_set = user_scripts.getConfigset()
 end
 
 -- ################################################

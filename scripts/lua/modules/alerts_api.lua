@@ -27,8 +27,7 @@ local str_2_periodicity = {
 
 local known_alerts = {}
 local current_script
-local current_configsets   -- The configsets used for the generation of this alert obtained with user_scripts.getConfigsets()
-local current_configset_id -- The id of the configuration among the `currentconfigsets` used to generate this alert
+local current_configset -- The configset used for the generation of this alert
 
 -- ##############################################
 
@@ -107,13 +106,12 @@ end
 
 -- ##############################################
 
-function alerts_api.addAlertGenerationInfo(alert_json, current_script, current_configset_id)
-  if alert_json and current_script and current_configset_id then
+function alerts_api.addAlertGenerationInfo(alert_json, current_script)
+  if alert_json and current_script then
     -- Add information about the script who generated this alert
     alert_json.alert_generation = {
       script_key = current_script.key,
       subdir = current_script.subdir,
-      confset_id = current_configset_id,
     }
   else
     -- NOTE: there are currently some internally generated alerts which
@@ -123,7 +121,7 @@ function alerts_api.addAlertGenerationInfo(alert_json, current_script, current_c
 end
 
 local function addAlertGenerationInfo(alert_json)
-  alerts_api.addAlertGenerationInfo(alert_json, current_script, current_configset_id)
+  alerts_api.addAlertGenerationInfo(alert_json, current_script)
 end
 
 -- ##############################################
@@ -177,7 +175,7 @@ local function matchExcludeFilter(entity_info, type_info)
    local cur_subdir = alert_consts.alertEntityRaw(entity_info.alert_entity.entity_id)
 
    -- Check if the alert has a filter and thus should not be generated
-   local cur_filters = user_scripts.getFiltersById(current_configsets, current_configset_id, cur_subdir)
+   local cur_filters = user_scripts.getFilters(current_configset, cur_subdir)
 
    -- Prepare the context with alert data
    local context = {
@@ -795,10 +793,9 @@ end
 
 -- ##############################################
 
-function alerts_api.invokeScriptHook(user_script, configsets, configset_id, hook_fn, p1, p2, p3)
+function alerts_api.invokeScriptHook(user_script, configset, hook_fn, p1, p2, p3)
   current_script = user_script
-  current_configsets = configsets 
-  current_configset_id = configset_id
+  current_configset = configset
 
   return(hook_fn(p1, p2, p3))
 end

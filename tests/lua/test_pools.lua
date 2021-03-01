@@ -105,7 +105,6 @@ assert(not has_member(pool_details["members"], "3"))
 -- tprint(s:get_available_members())
 -- tprint(s:get_assigned_members())
 -- tprint(pool_details)
--- tprint(s:get_available_configset_ids())
 -- s:delete_pool(new_pool_id)
 -- tprint(s:get_all_pools())
 
@@ -305,7 +304,6 @@ assert(res == false)
 -- assert(pool_details["name"] == "my_host_third_pool_edited")  -- There's no +1 here, host pool ids are re-used
 
 -- tprint(s:get_assigned_members())
--- tprint(s:get_available_configset_ids())
 -- tprint(s:get_all_pools())
 
 -- Cleanup

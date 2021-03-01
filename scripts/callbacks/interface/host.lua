@@ -25,7 +25,7 @@ local script_benchmark_tot_clock = 0
 local script_benchmark_tot_calls = 0
 
 local available_modules = nil
-local confisets = nil
+local configset = nil
 local ifid = nil
 local ts_enabled = nil
 local host_entity = alert_consts.alert_entities.host.entity_id
@@ -63,7 +63,7 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   configsets = user_scripts.getConfigsets()
+   configset = user_scripts.getConfigset()
    pools_instance = host_pools:create()
    ts_enabled = areHostTimeseriesEnabled()
 end
@@ -135,10 +135,8 @@ function runScripts(granularity)
    local entity_info = alerts_api.hostAlertEntity(host_ip.ip, host_ip.vlan)
 
    if in_time() then
-      -- Fetch the actual configset id using the host pool
-      local confset_id = pools_instance:get_configset_id_by_pool_id(pool_id)
-      -- Retrieve the configuration associated to the confset_id
-      local host_conf = user_scripts.getConfigById(configsets, confset_id, "host")
+      -- Retrieve the configuration
+      local host_conf = user_scripts.getConfig(configset, "host")
       local when = os.time()
 
       for mod_key, hook_fn in pairs(available_modules.hooks[granularity]) do
@@ -146,7 +144,7 @@ function runScripts(granularity)
 	 local conf = user_scripts.getTargetHookConfig(host_conf, user_script, granularity)
 
 	 if(conf.enabled) then
-	    alerts_api.invokeScriptHook(user_script, configsets, confset_id, hook_fn, {
+	    alerts_api.invokeScriptHook(user_script, configset, hook_fn, {
 					   granularity = granularity,
 					   alert_entity = entity_info,
 					   entity_info = host_ip,

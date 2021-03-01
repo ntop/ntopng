@@ -21,7 +21,7 @@ local ifid = nil
 local available_modules = nil
 local interface_entity = alert_consts.alert_entities.interface.entity_id
 local iface_config = nil
-local confset_id = nil
+local configset = nil
 local pools_instance = nil
 
 -- The function below ia called once (#pragma once)
@@ -36,13 +36,11 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   configsets = user_scripts.getConfigsets()
+   configset = user_scripts.getConfigset()
    -- Instance of local network pools to get assigned members
    pools_instance = interface_pools:create()
-   -- Retrieve the confset_id (possibly) associated to this interface
-   confset_id = pools_instance:get_configset_id(string.format("%d", ifid))
-   -- Retrieve the configuration associated to the confset_id
-   iface_config = user_scripts.getConfigById(configsets, confset_id, "interface")
+   -- Retrieve the configuration associated to the confset
+   iface_config = user_scripts.getConfig(configset, "interface")
 end
 
 -- #################################################################
@@ -77,7 +75,7 @@ function runScripts(granularity)
      local conf = user_scripts.getTargetHookConfig(iface_config, user_script, granularity)
 
      if(conf.enabled) then
-	alerts_api.invokeScriptHook(user_script, configsets, confset_id, hook_fn, {
+	alerts_api.invokeScriptHook(user_script, configset, hook_fn, {
 				       granularity = granularity,
 				       alert_entity = entity_info,
 				       entity_info = info,

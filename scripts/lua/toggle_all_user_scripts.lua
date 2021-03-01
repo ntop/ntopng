@@ -13,7 +13,6 @@ local alert_consts = require("alert_consts")
 sendHTTPContentTypeHeader('application/json')
 
 local subdir = _POST["script_subdir"] -- optional (all subdirs if not specified)
-local confset_id = tonumber(_POST["confset_id"] or user_scripts.DEFAULT_CONFIGSET_ID) -- optional (default config if not specified)
 local action = _POST["action"] -- enable/disable
 
 if(not isAdministrator()) then
@@ -52,7 +51,7 @@ for _, subdir in ipairs(subdirs) do
     return
   end
 
-  local succ, err = user_scripts.toggleAllScripts(confset_id, subdir, (action == "enable"))
+  local succ, err = user_scripts.toggleAllScripts(subdir, (action == "enable"))
 
   if not succ then
     result.error = err

@@ -143,7 +143,6 @@ local context = {
         is_all_pool = (page == "all"),
         instance = pool_instance,
         all_members = (page ~= "all" and pool_instance:get_all_members() or {}),
-        configsets = (page ~= "all" and pool_instance:get_available_configset_ids() or {}),
         assigned_members = (page ~= "all" and pool_instance:get_assigned_members() or {}),
         endpoints = rest_endpoints,
         endpoint_types = endpoints.get_types(),

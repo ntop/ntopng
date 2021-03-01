@@ -128,7 +128,6 @@ for k,v in ipairs(alerts) do
    local column_chart     = ""
    local column_drilldown = ""
    local column_filter  = ""
-   local column_confset_id = ""
    local column_subdir     = ""
    local column_script_key = ""
    local column_ndpi      = ""
@@ -207,11 +206,10 @@ for k,v in ipairs(alerts) do
    
    if alert_info.alert_generation then
       record["column_script_key"] = alert_info.alert_generation.script_key or nil
-      record["column_confset_id"] = alert_info.alert_generation.confset_id or nil
       record["column_subdir"]     = alert_info.alert_generation.subdir or nil
 
       -- Checking if the filter column needs to be skipped
-      if user_scripts.excludeScriptFilters(alert, alert_info, record["column_confset_id"], record["column_script_key"], record["column_subdir"]) == false then
+      if user_scripts.excludeScriptFilters(alert, alert_info, record["column_script_key"], record["column_subdir"]) == false then
          record["column_filter"] = user_scripts.getFilterPreset(alert, alert_info)
       elseif record["column_subdir"] == "flow" then
          record["column_filter_disabled"] = true

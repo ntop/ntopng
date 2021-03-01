@@ -52,7 +52,7 @@ function scripts_import_export:import(conf)
 
    for config_id, config_set in pairs(conf) do
       if config_set.name ~= nil then
-         local success, err = user_scripts.createOrReplaceConfigset(config_set)
+         local success = user_scripts.createOrReplaceConfigset(config_set)
          if not success then
             res.err = rest_utils.consts.err.internal_error
          end
@@ -71,7 +71,10 @@ end
 -- @brief Export configuration
 -- @return The current configuration
 function scripts_import_export:export()
-   local conf = user_scripts.getConfigsets()
+   local conf = {}
+
+   conf[user_scripts.DEFAULT_CONFIGSET_ID] = user_scripts.getConfigset()
+
    return conf
 end
 
@@ -79,7 +82,7 @@ end
 
 -- @brief Reset configuration
 function scripts_import_export:reset()
-   user_scripts.resetConfigsets()
+   user_scripts.resetConfigset()
 end
 
 -- ##############################################

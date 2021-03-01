@@ -47,7 +47,7 @@ if (not user_scripts.isSystemScriptEnabled("active_monitoring")) then
     print [[<div class="alert alert-warning" role="alert">]]
     print(i18n("host_config.active_monitor_enable", {
         url = ntop.getHttpPrefix() ..
-            '/lua/admin/edit_configset.lua?confset_id=0&subdir=system&user_script=active_monitoring#all'
+            '/lua/admin/edit_configset.lua?subdir=system&user_script=active_monitoring#all'
     }))
     print [[</div>]]
 

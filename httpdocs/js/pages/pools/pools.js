@@ -87,9 +87,6 @@ $(document).ready(function() {
                 }
             },
             {
-                data: 'configset_details.name',
-            },
-            {
                 data: null, targets: -1, className: 'text-center',
                 width: "10%",
                 render: function(_, type, pool) {
@@ -177,7 +174,6 @@ $(document).ready(function() {
 
             return {
                 pool_name: $(`#add-pool form input[name='name']`).val().trim(),
-                confset_id: $(`#add-pool form select[name='configset']`).val(),
                 pool_members: members.join(','),
                 recipients: recipients.join(',')
             };
@@ -245,7 +241,6 @@ $(document).ready(function() {
 
             // load the modal with the pool data
             $(`#edit-pool form input[name='name']`).val(pool.name);
-            $(`#edit-pool form select[name='configset']`).val(pool.configset_id);
             $(`#edit-pool form select[name='members']`).val(pool.members);
             $(`#edit-pool form select[name='members']`).selectpicker('refresh');
             $(`#edit-pool form select[name='recipients']`).val(pool.recipients.map(r => r.recipient_id) || []);
@@ -264,7 +259,6 @@ $(document).ready(function() {
             const data = {
                 pool: pool.pool_id,
                 pool_name: $(`#edit-pool form input[name='name']`).val().trim(),
-                confset_id: $(`#edit-pool form select[name='configset']`).val(),
                 recipients: recipients.join(',')
             };
 

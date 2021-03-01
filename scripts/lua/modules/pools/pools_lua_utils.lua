@@ -16,9 +16,6 @@ local pools_lua_utils = {}
 
 -- @brief Returns an array of pool Lua class instances, for all available pools
 --        e.g., {interface_pools:create(), local_network_pools:create(), snmp_device_pools:create(), ...}
---
---        This method is useful to perform operations (such as the deletion of a configset id) which are
---        global and affect all the pool instances. Indeed a configset id is shared across all pools
 function pools_lua_utils.all_pool_instances_factory()
    local pools_dir = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/pools/")
    local res = {}
@@ -46,18 +43,7 @@ end
 
 -- ##############################################
 
--- @brief Call `instance:unbind_all_configset_id` for every available pools `instance`
-function pools_lua_utils.unbind_all_configset_id(configset_id)
-   local all_instances = pools_lua_utils.all_pool_instances_factory()
-
-   for _, instance in pairs(all_instances) do
-      instance:unbind_all_configset_id(configset_id)
-   end
-end
-
--- ##############################################
-
--- @brief Call `instance:unbind_all_configset_id` for every available pools `instance`
+-- @brief Call `instance:unbind_all_recipient_id` for every available pools `instance`
 function pools_lua_utils.unbind_all_recipient_id(recipient_id)
    local all_instances = pools_lua_utils.all_pool_instances_factory()
 
@@ -68,7 +54,7 @@ end
 
 -- ##############################################
 
--- @brief Call `instance:bind_all_configset_id` for every available pools `instance`
+-- @brief Call `instance:bind_all_recipient_id` for every available pools `instance`
 function pools_lua_utils.bind_all_recipient_id(recipient_id)
    local all_instances = pools_lua_utils.all_pool_instances_factory()
 

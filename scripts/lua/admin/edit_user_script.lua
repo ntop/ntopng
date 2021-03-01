@@ -46,10 +46,9 @@ page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local script_subdir = _GET["subdir"]
-local confset_id    = _GET["confset_id"]
 local script_key    = _GET["script_key"]
 
-local configset     = user_scripts.getConfigsets()[tonumber(confset_id)]
+local configset     = user_scripts.getConfigset()
 local script_type   = user_scripts.getScriptType(script_subdir)
 local selected_script = user_scripts.loadModule(getSystemInterfaceId(), script_type, script_subdir, script_key)
 local script_title = i18n(selected_script.gui.i18n_title) or selected_script.gui.i18n_title
@@ -66,7 +65,7 @@ local generated_breadcrumb = ui_utils.render_breadcrumb(i18n("about.user_scripts
         label = titles[script_subdir],
     },
     {
-        href = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?confset_id=" .. confset_id .. "&subdir=" .. script_subdir,
+        href = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua?subdir=" .. script_subdir,
         label = i18n("scripts_list.config", {}) .. " " .. confset_name
     },
     {
@@ -88,7 +87,6 @@ local base_context = {
         
         hooks_config = hooks_config,
         script_subdir = script_subdir,
-        confset_id = confset_id,
         script_key = script_key,
         filters = format_exclusion_list_filters(user_scripts.getDefaultFilters(interface.getId(), script_subdir, script_key))
     }

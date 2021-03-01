@@ -21,7 +21,6 @@ local dirs = ntop.getDirs()
 
 sendHTTPContentTypeHeader('application/json')
 
-local confset_id = tonumber(_GET["confset_id"]) or user_scripts.DEFAULT_CONFIGSET_ID
 local subdir = _GET["script_subdir"]
 
 if(subdir == nil) then
@@ -36,17 +35,7 @@ if(script_type == nil) then
   return
 end
 
-if(confset_id == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing 'confset_id' paramter")
-  return
-end
-
-local config_set = user_scripts.getConfigsets()[confset_id]
-
-if(config_set == nil) then
-  traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown configset ID: " .. confset_id)
-  return
-end
+local config_set = user_scripts.getConfigset()
 
 -- ################################################
 

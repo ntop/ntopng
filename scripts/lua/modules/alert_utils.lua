@@ -418,16 +418,15 @@ end
 -- #################################
 
 --@brief Deletes all stored alerts matching a user script `filter`
--- @param configset A user script configuration, i.e., one of the configurations obtained with user_scripts.getConfigsets()
 -- @param subdir the modules subdir
 -- @param user_script The string script identifier
 -- @param filter An already validated user script filter
 -- @return nil
-function alert_utils.deleteAlertsMatchingUserScriptFilter(confset_id, subdir, user_script, filter)
+function alert_utils.deleteAlertsMatchingUserScriptFilter(subdir, user_script, filter)
    local res = {}
    local statement = "DELETE " -- TODO: change to DELETE
 
-   local query = user_scripts.prepareFilterSQLiteWhere(confset_id, subdir, user_script, filter)
+   local query = user_scripts.prepareFilterSQLiteWhere(subdir, user_script, filter)
 
    if subdir ~= "flow" then
       res = interface.queryAlertsRaw(statement, query, group_by, true)
@@ -939,7 +938,7 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
       template.gen("modal_alert_filter_dialog.html", {
       		      dialog={
 			 id		   = "filter_alert_dialog",
-			 action		   = "filterAlertByFilters(confset_id, subdir, script_key)",
+			 action		   = "filterAlertByFilters(subdir, script_key)",
           		 title		   = i18n("show_alerts.filter_alert"),
           		 message	   = i18n("show_alerts.confirm_filter_alert"),
 			 delete_message    = i18n("show_alerts.confirm_delete_filtered_alerts"),
@@ -1084,7 +1083,7 @@ function deleteAlertById(alert_key) {
   form.appendTo('body').submit();
 }
 
-function filterAlertByFilters(confset_id, subdir, script_key) {
+function filterAlertByFilters(subdir, script_key) {
    $.ajax({
         type: 'POST',
 	contentType: "application/json",
@@ -1092,7 +1091,6 @@ function filterAlertByFilters(confset_id, subdir, script_key) {
 	url: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`, /* TODO: Change */
 	data: JSON.stringify({
 	    filters: document.getElementById("name_input").value,
-            confset_id: confset_id,   
             subdir: subdir,
             script_key: script_key,
             status: getCurrentStatus(),
@@ -1383,9 +1381,9 @@ function releaseAlert(idx) {
                var explorer_url = data["column_explorer"];
 
                if(data["column_filter"]) {
-                  datatableAddFilterButtonCallback.bind(this)(10, "confset_id = '" + data["column_confset_id"] + "'; subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
+                  datatableAddFilterButtonCallback.bind(this)(10, "subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
                } else if(data["column_filter_disabled"]) {
-	       	  datatableAddFilterButtonCallback.bind(this)(10, "confset_id = ''; subdir = ''; script_key = '';", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[", false);                             }
+	       	  datatableAddFilterButtonCallback.bind(this)(10, "subdir = ''; script_key = '';", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[", false);                             }
 
                if(data["column_drilldown"]) {
                   datatableAddLinkButtonCallback.bind(this)(10, data["column_drilldown"], "<i class='fas fa-search-plus drilldown-icon'></i>", "]] print(i18n("show_alerts.expand_action")) print[[");
@@ -1889,19 +1887,15 @@ end
 -- #################################
 
 function alert_utils.getConfigsetAlertLink(alert_json)
-   local configsets = user_scripts.getConfigsets()
    local info = alert_json.alert_generation or (alert_json.status_info and alert_json.status_info.alert_generation)
 
    if(info and isAdministrator()) then
-      -- Ensure that the configset still exists
-      if configsets[info.confset_id] then
-	 return(' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?confset_id='..
-	    info.confset_id ..'&subdir='.. info.subdir ..'&user_script='.. info.script_key ..'#all">'..
+	 return(' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?'..
+	    'subdir='.. info.subdir ..'&user_script='.. info.script_key ..'#all">'..
 	    '<i class="fas fa-cog" title="'.. i18n("edit_configuration") ..'"></i></a>')
-    end
-  end
+   end
 
-  return('')
+   return('')
 end
 
 -- #################################

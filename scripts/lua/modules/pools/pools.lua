@@ -99,7 +99,7 @@ function pools:_initialize()
 
     if locked then
         -- Init the default pool, if not already initialized.
-        -- The default pool has always empty members, default configset id, and empty recipients
+        -- The default pool has always empty members and empty recipients
         local default_pool = self:get_pool(pools.DEFAULT_POOL_ID)
 
         if not default_pool then
@@ -241,7 +241,7 @@ function pools:_unlock() ntop.delCache(self:_get_pool_lock_key()) end
 
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
-function pools:_persist(pool_id, name, members, configset_id, recipients)
+function pools:_persist(pool_id, name, members, recipients)
     -- self:cleanup()
 
     -- Default pool name and members cannot be modified
@@ -254,7 +254,6 @@ function pools:_persist(pool_id, name, members, configset_id, recipients)
     local pool_details = {
         name = name,
         members = members,
-        configset_id = configset_id,
         recipients = recipients
     }
 
@@ -277,13 +276,13 @@ end
 
 -- ##############################################
 
-function pools:add_pool(name, members, configset_id, recipients)
+function pools:add_pool(name, members, recipients)
     local pool_id
 
     local locked = self:_lock()
 
     if locked then
-        if name and members and configset_id and recipients then
+        if name and members and recipients then
             local checks_ok = true
 
             -- Check if duplicate names exist
@@ -308,16 +307,6 @@ function pools:add_pool(name, members, configset_id, recipients)
                 end
             end
 
-            -- Check if the configset_id is valid
-            if checks_ok then
-                local available_configsets = self:get_available_configset_ids()
-
-                if not available_configsets[configset_id] then
-                    -- Configset id not found
-                    checks_ok = false
-                end
-            end
-
             -- Check if recipients are valid
             if checks_ok then
                 if not self:are_valid_recipients(recipients) then
@@ -329,7 +318,7 @@ function pools:add_pool(name, members, configset_id, recipients)
                 -- All the checks have succeeded
                 -- Now that everything is ok, the id can be assigned and the pool can be persisted with the assigned id
                 pool_id = self:_assign_pool_id()
-                self:_persist(pool_id, name, members, configset_id, recipients)
+                self:_persist(pool_id, name, members, recipients)
                 self:_set_cache_flag()
             end
         end
@@ -342,7 +331,7 @@ end
 
 -- ##############################################
 
-function pools:edit_pool(pool_id, new_name, new_members, new_configset_id, new_recipients)
+function pools:edit_pool(pool_id, new_name, new_members, new_recipients)
     local ret = false
 
     local locked = self:_lock()
@@ -364,8 +353,7 @@ function pools:edit_pool(pool_id, new_name, new_members, new_configset_id, new_r
             new_recipients = cur_pool_details["recipients"]
         end
 
-        if cur_pool_details and new_name and new_members and new_configset_id and
-            new_recipients then
+        if cur_pool_details and new_name and new_members and new_recipients then
             local checks_ok = true
 
             -- Check if new_name is not the name of any other existing pool
@@ -392,16 +380,6 @@ function pools:edit_pool(pool_id, new_name, new_members, new_configset_id, new_r
                 end
             end
 
-            -- Check if the configset_id is valid
-            if checks_ok then
-                local available_configsets = self:get_available_configset_ids()
-
-                if not available_configsets[new_configset_id] then
-                    -- Configset id not found
-                    checks_ok = false
-                end
-            end
-
             -- Check if recipients are valid
             if checks_ok and not self:are_valid_recipients(new_recipients) then
                 checks_ok = false
@@ -409,8 +387,7 @@ function pools:edit_pool(pool_id, new_name, new_members, new_configset_id, new_r
 
             if checks_ok then
                 -- If here, all checks are valid and the pool can be edited
-                self:_persist(pool_id, new_name, new_members, new_configset_id,
-                              new_recipients)
+                self:_persist(pool_id, new_name, new_members, new_recipients)
                 self:_set_cache_flag()
                 -- Pool edited successfully
                 ret = true
@@ -435,7 +412,7 @@ function pools:delete_pool(pool_id)
         local cur_pool_details = self:get_pool(pool_id)
 
         if cur_pool_details then
-            -- Remove the key with all the pool details (e.g., with members, and configset_id)
+            -- Remove the key with all the pool details (e.g., with members)
             ntop.delCache(self:_get_pool_details_key(pool_id))
 
             -- Remove the pool_id from the set of all currently existing pool ids
@@ -504,18 +481,6 @@ function pools:get_pool(pool_id, recipient_details)
                 end
             end
 
-            if pool_details["configset_id"] then
-                local configset_id = pool_details["configset_id"]
-                local config_sets = user_scripts.getConfigsets()
-
-                -- Add a new (small) table with configset details, including the name
-                if config_sets[configset_id] and
-                    config_sets[configset_id]["name"] then
-                    pool_details["configset_details"] =
-                        {name = config_sets[configset_id]["name"]}
-                end
-            end
-
             if pool_details["recipients"] then
                 local recipients = {}
                 -- get recipient metadata
@@ -575,24 +540,6 @@ end
 
 -- ##############################################
 
-function pools:get_pools_by_configset_id(configset_id)
-    local cur_pool_ids = self:_get_assigned_pool_ids()
-    local res = {}
-
-    for _, pool_id in pairs(cur_pool_ids) do
-        local pool_details = self:get_pool(pool_id)
-
-        if pool_details and pool_details["configset_id"] and
-            pool_details["configset_id"] == configset_id then
-            res[#res + 1] = pool_details
-        end
-    end
-
-    return res
-end
-
--- ##############################################
-
 -- @brief Returns a flattened table with pool_member->pool_id pairs
 function pools:get_assigned_members()
     local cur_pool_ids = self:_get_assigned_pool_ids()
@@ -605,8 +552,7 @@ function pools:get_assigned_members()
             for _, member in pairs(pool_details["members"]) do
                 res[member] = {
                     pool_id = tonumber(pool_id),
-                    name = pool_details["name"],
-                    configset_id = pool_details["configset_id"]
+                    name = pool_details["name"]
                 }
             end
         end
@@ -777,8 +723,7 @@ function pools:unbind_all_recipient_id(recipient_id)
 
             if found then
                 -- Rewrite the pool using the new recipients set
-                self:_persist(pool["pool_id"], pool["name"], pool["members"],
-                              pool["configset_id"], new_recipients)
+                self:_persist(pool["pool_id"], pool["name"], pool["members"], new_recipients)
             end
         end
 
@@ -823,8 +768,7 @@ function pools:bind_all_recipient_id(recipient_id)
 	       new_recipients[#new_recipients + 1] = tonumber(recipient_id)
 
 	       -- Rewrite the pool using the extended recipients array
-	       self:_persist(pool["pool_id"], pool["name"], pool["members"],
-			     pool["configset_id"], new_recipients)
+	       self:_persist(pool["pool_id"], pool["name"], pool["members"], new_recipients)
 	    end
 	 end
       end
@@ -893,8 +837,7 @@ function pools:_bind_member(member, pool_id)
 
             -- Persist the pool with the new `member`
             self:_persist(bind_pool["pool_id"], bind_pool["name"],
-                          bind_pool_members, bind_pool["configset_id"],
-                          bind_pool_recipients)
+                          bind_pool_members, bind_pool_recipients)
 
             -- Bind has executed successfully
             ret, err = true, pools.ERRORS.NO_ERROR
@@ -942,8 +885,7 @@ function pools:bind_member(member, pool_id)
 
                 -- Persist the existing pool without the removed `member`
                 self:_persist(cur_pool["pool_id"], cur_pool["name"],
-                              new_members, cur_pool["configset_id"],
-                              bind_pool_recipients)
+                              new_members, bind_pool_recipients)
             end
         end
 
@@ -988,94 +930,6 @@ function pools:bind_member_if_not_already_bound(member, pool_id)
     end
 
     return ret, err
-end
-
--- ##############################################
-
--- @brief Unbind a `configset_id` from all pools which are currently using it, and sets them the defauls configset.
-function pools:unbind_all_configset_id(configset_id)
-    configset_id = tonumber(configset_id)
-
-    if not configset_id then
-        -- Invalid argument
-        return
-    end
-
-    local locked = self:_lock()
-
-    if locked then
-        local all_pools = self:get_all_pools()
-
-        for _, pool in pairs(all_pools) do
-            if pool["configset_id"] == configset_id then
-                -- Rewrite the pool using the default configset id
-                self:_persist(pool["pool_id"], pool["name"], pool["members"],
-                              user_scripts.DEFAULT_CONFIGSET_ID,
-                              pool["recipients"])
-            end
-        end
-
-        self:_unlock()
-    end
-end
-
--- ##############################################
-
--- @brief Returns available confset ids which can be added to a pool
-function pools:get_available_configset_ids()
-    -- Currently, confset_ids are shared across pools of all types
-    -- so all the confset_ids can be returned here without distinction
-    local config_sets = user_scripts.getConfigsets()
-    local res = {}
-
-    for _, configset in pairs(config_sets) do
-        res[configset.id] = {
-            configset_id = configset.id,
-            configset_name = configset.name
-        }
-    end
-
-    return res
-end
-
--- ##############################################
-
--- @param member a valid pool member
--- @return The configset_id found for `member` or the default configset_id
-function pools:get_configset_id(member)
-    if not self.assigned_pool_members then
-        -- Cache it as class member
-        self.assigned_pool_members = self:get_assigned_members()
-    end
-
-    if self.assigned_pool_members[member] and
-        self.assigned_pool_members[member]["configset_id"] then
-        return self.assigned_pool_members[member]["configset_id"]
-    end
-
-    return user_scripts.DEFAULT_CONFIGSET_ID
-end
-
--- ##############################################
-
--- @param pool_id a valid pool id
--- @return The configset_id found for the given `pool_id`, or the default configset_id if `pool_id` is not found
-function pools:get_configset_id_by_pool_id(pool_id)
-    if not self.pool_id_to_configset_id then
-        -- Prepare the cache
-        self.pool_id_to_configset_id = {}
-    end
-
-    if not self.pool_id_to_configset_id[pool_id] then
-        -- Populate the cache with current pool information
-        self.pool_id_to_configset_id[pool_id] = self:get_pool(pool_id) or {}
-    end
-
-    if self.pool_id_to_configset_id[pool_id]["configset_id"] then
-        return self.pool_id_to_configset_id[pool_id]["configset_id"]
-    end
-
-    return user_scripts.DEFAULT_CONFIGSET_ID
 end
 
 -- ##############################################

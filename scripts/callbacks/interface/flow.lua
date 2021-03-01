@@ -39,7 +39,6 @@ local available_modules = nil
 local alerted_status
 local alert_type_params
 local alerted_status_score
-local confset_id
 local alerted_user_script
 local cur_user_script
 local cur_l4_proto
@@ -138,11 +137,11 @@ function setup()
       view_ifid = interface.viewedBy()
    end
 
-   local configsets = user_scripts.getConfigsets()
+   local configset = user_scripts.getConfigset()
 
    -- Flows config and filters are system-wide, always take the DEFAULT_CONFIGSET_ID
-   flows_config, confset_id = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
-   flows_filters = user_scripts.getFiltersById(configsets, user_scripts.DEFAULT_CONFIGSET_ID, "flow")
+   flows_config = user_scripts.getConfig(configset, "flow")
+   flows_filters = user_scripts.getFilters(configset, "flow")
    alerted_user_script = nil
 
    -- To execute flows, the viewed interface id is used instead, as flows reside in the viewed interface, not in the view
@@ -250,7 +249,7 @@ local function triggerFlowAlert(now, trigger_status, trigger_type_params, trigge
       -- NOTE: porting this to C is not feasable as the lua table can contain
       -- arbitrary data
       augumentFlowStatusInfo(trigger_type_params)
-      alerts_api.addAlertGenerationInfo(trigger_type_params, alerted_user_script, confset_id)
+      alerts_api.addAlertGenerationInfo(trigger_type_params, alerted_user_script)
 
       trigger_type_params = json.encode(trigger_type_params)
    end

@@ -25,7 +25,7 @@ local do_trace = false             -- Trace lua calls
 local config_alerts = nil
 local available_modules = nil
 local ifid = nil
-local confisets = nil
+local configset = nil
 local pools_instance = nil
 local snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
 
@@ -42,7 +42,7 @@ function setup(str_granularity)
       do_benchmark = do_benchmark,
    })
 
-   configsets = user_scripts.getConfigsets()
+   configset = user_scripts.getConfigset()
    -- Instance of snmp device pools to get assigned members
    pools_instance = snmp_device_pools:create()
 end
@@ -76,10 +76,8 @@ local function snmp_device_run_user_scripts(cached_device)
       now = now,
    }
 
-   -- Retrieve the confset_id (possibly) associated to this snmp device
-   local confset_id = pools_instance:get_configset_id(device_ip)
-   -- Retrieve the configuration associated to the confset_id
-   local device_conf = user_scripts.getConfigById(configsets, confset_id, "snmp_device")
+   -- Retrieve the configuration
+   local device_conf = user_scripts.getConfig(configset, "snmp_device")
 
    -- Run callback for each device
    for mod_key, hook_fn in pairs(available_modules.hooks["snmpDevice"] or {}) do
@@ -87,7 +85,7 @@ local function snmp_device_run_user_scripts(cached_device)
       local conf = user_scripts.getTargetHookConfig(device_conf, script)
 
       if(conf.enabled) then
-        alerts_api.invokeScriptHook(script, configsets, confset_id, hook_fn, device_ip, info, conf)
+        alerts_api.invokeScriptHook(script, configset, hook_fn, device_ip, info, conf)
       end
    end
 
@@ -111,7 +109,7 @@ local function snmp_device_run_user_scripts(cached_device)
 	    snmp_interface["if_counters"] = cached_device.if_counters[snmp_interface_index]
 	    snmp_interface["bridge"] = cached_device.bridge[snmp_interface_index]
 
-	    alerts_api.invokeScriptHook(script, configsets, confset_id, hook_fn, device_ip, snmp_interface_index, table.merge(snmp_interface, {
+	    alerts_api.invokeScriptHook(script, configset, hook_fn, device_ip, snmp_interface_index, table.merge(snmp_interface, {
 	       granularity = granularity,
 	       alert_entity = iface_entity,
 	       user_script = script,
