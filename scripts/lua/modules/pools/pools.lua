@@ -106,7 +106,7 @@ function pools:_initialize()
 	   -- Raw call to persist, no need to go through add_pool as here all the parameters are trusted and
 	   -- there's no need to check.
 	   -- Default pool is always created with builtin recipients
-	   self:_persist(pools.DEFAULT_POOL_ID, pools.DEFAULT_POOL_NAME,
+	   self:_persist(pools.DEFAULT_POOL_NAME,
 			 {} --[[ no members --]] ,
 			 user_scripts.DEFAULT_CONFIGSET_ID,
 			 recipients_mod.get_builtin_recipients() --[[ builtin recipients --]])
