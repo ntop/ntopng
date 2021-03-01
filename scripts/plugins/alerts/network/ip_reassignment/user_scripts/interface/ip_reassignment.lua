@@ -3,10 +3,8 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local user_scripts = require("user_scripts")
-local interface_pools = require "interface_pools"
 
 -- #################################################################
 
@@ -50,15 +48,10 @@ function script.setup()
    if pref_updated ~= "1" then
       -- Fetch the configsets
       local configsets = user_scripts.getConfigsets()
-
-      -- Instance of local network pools to get assigned members
-      local pools_instance = interface_pools:create()
+      local iface_config = user_scripts.getConfigById(configsets, user_scripts.DEFAULT_CONFIGSET_ID --[[ TODO: remove when single configset will be implemented --]], "interface")
 
       -- For each interface, get its pool configuration, and check whether this script is enabled or not
       for ifid, _ in pairs(interface.getIfNames()) do
-	 -- Retrieve the confset_id (possibly) associated to this interface
-	 local confset_id = pools_instance:get_configset_id(string.format("%d", ifid))
-	 local iface_config = user_scripts.getConfigById(configsets, confset_id, "interface")
 	 local conf = user_scripts.getTargetHookConfig(iface_config, "ip_reassignment", "min")
 	 local enabled = conf and conf.enabled
 
