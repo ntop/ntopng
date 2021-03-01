@@ -7,7 +7,7 @@ import DonutWidgetFormatter from "./charts/DonutWidgetFormatter";
 import PieWidgetFormatter from "./charts/PieWidgetFormatter";
 import MixedChartWidgetFormatter from "./charts/MixedChartWidgetFormatter";
 import RadarChartWidgetFormatter from "./charts/RadarWidgetFormatter";
-import MatrixWidgetFormatter from "./charts/MatrixWidgetFormatter";
+import BubbleWidgetFormatter from "./charts/BubbleWidgetFormatter";
 
 /**
  * The FormatterMap contains a list of constructor
@@ -19,5 +19,5 @@ export const FormatterMap = {
     STACKEDBAR: StackedBarWidgetFormatter,
     MIXED: MixedChartWidgetFormatter,
     RADAR: RadarChartWidgetFormatter,
-    MATRIX: MatrixWidgetFormatter
+    BUBBLE: BubbleWidgetFormatter
 }

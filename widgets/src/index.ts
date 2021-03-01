@@ -6,8 +6,6 @@
 
 export { Components, JSX } from './components';
 import { Chart, LineController, LineElement, PointElement, LinearScale, Title, PieController, BarController, DoughnutController, CategoryScale, ScatterController, BarElement, ArcElement, RadarController, RadialLinearScale, BubbleController, Tooltip, Legend, Filler } from 'chart.js';
-import { MatrixController } from './controllers/charts/MatrixController.js';
-import { MatrixElement } from './controllers/charts/MatrixElement.js';
 import { log } from './utils/utils';
 import { VERSION } from './version';
 
@@ -16,9 +14,9 @@ log(`🔄 Loading ntop-widget version: ${VERSION}...`)
 log("🔄 Registering Chart Controllers...");
 Chart.register(
     // Controllers
-    LineController, BarController, PieController, DoughnutController, ScatterController, RadarController, BubbleController, MatrixController,
+    LineController, BarController, PieController, DoughnutController, ScatterController, RadarController, BubbleController,
     // Elements
-    LineElement, PointElement, BarElement, ArcElement, MatrixElement,
+    LineElement, PointElement, BarElement, ArcElement,
     // Scales
     LinearScale, CategoryScale, RadialLinearScale,
     // Components
