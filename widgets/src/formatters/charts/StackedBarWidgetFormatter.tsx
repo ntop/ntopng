@@ -5,9 +5,8 @@
 import { h } from "@stencil/core";
 import { Chart, ChartConfiguration } from "chart.js";
 import { NtopWidget } from "../../components/ntop-widget/ntop-widget";
-import { DisplayFormatter } from "../../types/DisplayFormatter";
 import { ChartFormatter } from "../../types/Formatter";
-import { COLOR_PALETTE } from "../../utils/utils";
+import { normalizeDatasets, COLOR_PALETTE, formatDataByDisplay } from "../../utils/utils";
 
 /**
 * Define a new chart formatter for Bar Charts.
@@ -38,31 +37,12 @@ export default class StackedBarWidgetFormatter implements ChartFormatter {
         const canvas: HTMLCanvasElement = shadowRoot.getElementById('chart') as HTMLCanvasElement;
         const ctx = canvas.getContext('2d');
 
-        const {datasets, labels} = this.buildDatasets();
+        const {datasets, labels} = normalizeDatasets(this._parentWidget._fetchedData.rsp.datasources, this._parentWidget.displayFormatter);
         const config: ChartConfiguration<'bar'> = this.loadConfig(datasets, labels);
 
         this._chart = new Chart<'bar'>(ctx, config); 
     }
 
-    private buildDatasets() {
-        
-        const datasources = this._parentWidget._fetchedData.rsp;
-        const firstDatasource = datasources[0];
-
-        let index = 0;
-
-        const datasets = datasources.map(payload => {
-            const total = payload.data.values.reduce((prev, curr) => prev + curr);
-            return {label: payload.data.label, backgroundColor: COLOR_PALETTE[index++], data: payload.data.values.map(value => {
-                if (this._parentWidget.displayFormatter === DisplayFormatter.PERCENTAGE) {
-                    return (value / total) * 100;
-                }
-                return value;
-            })}
-        });
-
-        return {datasets: datasets, labels: firstDatasource.data.keys};
-    }
 
     update() {
         
@@ -70,8 +50,7 @@ export default class StackedBarWidgetFormatter implements ChartFormatter {
             throw new Error("The chart has not been initialized!");
         }
 
-        const {datasets, labels} = this.buildDatasets();
-
+        const {datasets, labels} = normalizeDatasets(this._parentWidget._fetchedData.rsp.datasources, this._parentWidget.displayFormatter);
         this._chart.data.datasets = datasets;
         this._chart.data.labels = labels;
 
@@ -80,7 +59,7 @@ export default class StackedBarWidgetFormatter implements ChartFormatter {
 
     protected loadConfig(datasets: Array<any>, labels: Array<string>): ChartConfiguration<'bar'> {
 
-        const formattedDatasets = this.formatDataByDisplay(datasets);
+        const formattedDatasets = formatDataByDisplay(this._parentWidget.displayFormatter, datasets);
 
         return {
             type: 'bar',
@@ -105,26 +84,4 @@ export default class StackedBarWidgetFormatter implements ChartFormatter {
     staticRender() {
         return [<div class='bar-container'><canvas id='chart'></canvas></div>]
     }
-
-    private formatDataByDisplay(datasets: Array<any>): Array<any> {
-
-        for (let dataset of datasets) {
-
-            const total = dataset.data.reduce((prev, curr) => prev + curr);
-            switch (this._parentWidget.displayFormatter) {
-                case DisplayFormatter.NONE:
-                case DisplayFormatter.RAW: {
-                    break;
-                }
-                case DisplayFormatter.PERCENTAGE: {
-                    dataset.data = dataset.data.map(value => ((100 * value) / total));
-                    break;
-                }
-            }
-
-        }
-
-        return datasets;
-    }
-
 }

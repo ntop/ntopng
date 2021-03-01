@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@stencil/core": "2.3.0",
-    "chart.js": "^3.0.0-beta.10"
+    "chart.js": "^3.0.0-beta.12"
   },
   "license": "MIT",
   "devDependencies": {

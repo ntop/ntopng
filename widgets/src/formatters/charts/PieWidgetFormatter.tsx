@@ -3,7 +3,7 @@
 */
 
 import { h } from '@stencil/core';
-import { ActiveElement, Chart, ChartConfiguration, ChartEvent } from 'chart.js';
+import { ActiveElement, Chart, ChartConfiguration, ChartEvent, TooltipItem } from 'chart.js';
 import { ChartFormatter } from "../../types/Formatter";
 import { NtopWidget } from '../../components/ntop-widget/ntop-widget';
 import { COLOR_PALETTE, formatLabel } from '../../utils/utils';
@@ -45,7 +45,7 @@ export default class PieWidgetFormatter implements ChartFormatter {
 
     private buildDatasets() {
 
-        const restResponse = this._parentWidget._fetchedData.rsp;
+        const restResponse = this._parentWidget._fetchedData.rsp.datasources;
         const firstDatasource = restResponse[0];
 
         const labels = firstDatasource.data.keys;
@@ -92,15 +92,15 @@ export default class PieWidgetFormatter implements ChartFormatter {
                     },
                     tooltip: {
                         callbacks: {
-                            label: (tooltip) => {
+                            label: (tooltip: TooltipItem<'pie' | 'doughnut'>) => {
 
-                                const {label, dataset, dataPoint} = tooltip;
+                                const {label, dataset, parsed} = tooltip;
                                 const values: number[] = dataset.data as number[];
                                 const total: number = values.reduce((previousValue: number, currentValue: number) => {
                                     return previousValue + currentValue;
                                 });
     
-                                return `${label}${formatLabel(this._parentWidget.displayFormatter, dataPoint, total)}`;
+                                return `${label}${formatLabel(this._parentWidget.displayFormatter, parsed, total)}`;
                             }
                         }
                     }

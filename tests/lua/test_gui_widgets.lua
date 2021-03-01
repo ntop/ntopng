@@ -85,6 +85,14 @@ print([[
                 <ntop-datasource src="interface_packet_distro?ifid=9" type="line"></ntop-datasource>
             </ntop-widget>
         </div>
+        <div class='col-6 my-4'>
+            <ntop-widget id='fifth-widget' type='bubble' display='raw' update="5000" height='100%' width='100%'>
+                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
+                    Bubble (Interface/Packet Distro)
+                </h3>
+                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
+            </ntop-widget>
+        </div>
     </div>
 ]])
 

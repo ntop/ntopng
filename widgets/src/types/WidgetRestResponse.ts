@@ -32,13 +32,19 @@ export interface WidgetResponsePayload {
         labels?: Array<string>;
         y?: Array<number>;
         x?: Array<number>;
+        r?: Array<number>;
         colors?: Array<string>;
     };
 
     metadata?: DatasourceMetadata;
     datasource: Datasource;
 }
-
 export interface WidgetRestResponse extends NtopngRestV1Response {
-    rsp: Array<WidgetResponsePayload>;
+    rsp: {
+        datasources: Array<WidgetResponsePayload>;
+        axes?: {
+            x: string;
+            y: string;
+        }
+    };
 }

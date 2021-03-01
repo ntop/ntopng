@@ -7,7 +7,7 @@ import { Chart, ChartConfiguration } from 'chart.js';
 import { NtopWidget } from '../../components/ntop-widget/ntop-widget';
 import { DisplayFormatter } from '../../types/DisplayFormatter';
 import { ChartFormatter } from '../../types/Formatter';
-import { COLOR_PALETTE, formatLabel } from '../../utils/utils';
+import { COLOR_PALETTE, formatDataByFormatter, formatLabel } from '../../utils/utils';
 
 export default class MixedChartWidgetFormatter implements ChartFormatter {
 
@@ -58,7 +58,7 @@ export default class MixedChartWidgetFormatter implements ChartFormatter {
 
     private buildDatasets() {
 
-        const datasources = this._parentWidget._fetchedData.rsp;
+        const datasources = this._parentWidget._fetchedData.rsp.datasources;
         const firstDatasource = datasources[0];
 
         let index = 0;
@@ -75,12 +75,7 @@ export default class MixedChartWidgetFormatter implements ChartFormatter {
                 type: ntopDatasource.type,
                 tension: 0,
                 fill: true,
-                data: payload.data.values.map(value => {
-                    if (this._parentWidget.displayFormatter === DisplayFormatter.PERCENTAGE) {
-                        return (value / total) * 100;
-                    }
-                    return value;
-                }),
+                data: payload.data.values.map(value => formatDataByFormatter(this._parentWidget.displayFormatter, value, total)),
             }
 
             if (style.fill !== undefined && !style.fill) {

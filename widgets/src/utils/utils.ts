@@ -3,6 +3,7 @@
 */
 
 import { DisplayFormatter } from "../types/DisplayFormatter";
+import { WidgetResponsePayload } from "../types/WidgetRestResponse";
 import { VERSION } from "../version";
 
 /**
@@ -37,4 +38,53 @@ export function formatLabel(displayFormatter: DisplayFormatter, currentValue: nu
         case DisplayFormatter.RAW:
             return ': ' + currentValue;
     }
+}
+
+export function formatDataByDisplay(displayFormatter: DisplayFormatter, datasets: Array<any>): Array<any> {
+
+    for (const dataset of datasets) {
+
+        const total = dataset.data.reduce((prev, curr) => prev + curr);
+        switch (displayFormatter) {
+            case DisplayFormatter.NONE:
+            case DisplayFormatter.RAW: {
+                break;
+            }
+            case DisplayFormatter.PERCENTAGE: {
+                dataset.data = dataset.data.map(value => ((100 * value) / total));
+                break;
+            }
+        }
+
+    }
+
+    return datasets;
+}
+
+export function formatDataByFormatter(displayFormatter: DisplayFormatter, value: number, total: number) {
+    if (displayFormatter === DisplayFormatter.PERCENTAGE) {
+        return (value / total) * 100;
+    }
+    return value;
+}
+
+export function normalizeDatasets(datasources: WidgetResponsePayload[], displayFormatter: DisplayFormatter) {
+
+    const firstDatasource = datasources[0];
+
+    let index = 0;
+
+    const datasets = datasources.map(payload => {
+
+        const total = payload.data.values.reduce((prev, curr) => prev + curr);
+        
+        return {label: payload.data.label, backgroundColor: COLOR_PALETTE[index++], data: payload.data.values.map(value => {
+            if (displayFormatter === DisplayFormatter.PERCENTAGE) {
+                return (value / total) * 100;
+            }
+            return value;
+        })}
+    });
+
+    return {datasets: datasets, labels: firstDatasource.data.keys};
 }

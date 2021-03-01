@@ -43,7 +43,7 @@ export default class RadarChartWidgetFormatter implements ChartFormatter {
 
     private buildDatasets() {
 
-        const datasources = this._parentWidget._fetchedData.rsp;
+        const datasources = this._parentWidget._fetchedData.rsp.datasources;
         const firstDatasource = datasources[0];
         const labels = firstDatasource.data.keys;
 
@@ -101,13 +101,14 @@ export default class RadarChartWidgetFormatter implements ChartFormatter {
                         callbacks: {
                             label: (tooltip) => {
 
-                                const {label, dataset, dataPoint} = tooltip;
+                                const {label, dataset, parsed} = tooltip;
                                 const values: number[] = dataset.data as number[];
                                 const total: number = values.reduce((previousValue: number, currentValue: number) => {
                                     return previousValue + currentValue;
                                 });
 
-                                return `${label}${formatLabel(this._parentWidget.displayFormatter, dataPoint.r, total)}`;
+                                return `${label}${formatLabel(this._parentWidget.displayFormatter, parsed.r, total)}`;
+                                //return '';
                             }
                         }
                     }
