@@ -5,5 +5,6 @@ package-lock.json: package.json
 	npm install
 
 copy: build
+	rm -rf ../httpdocs/js/ntop-widgets/*.js
 	cp dist/ntop-widgets/*.js ../httpdocs/js/ntop-widgets
 	echo "Please git add/commit ../httpdocs/js/ntop-widgets/*.js files"
