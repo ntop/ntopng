@@ -30,7 +30,7 @@ class LocalHostStats: public HostStats {
   ICMPstats *icmp;
   FrequentStringItems *top_sites;
   /* nextPeriodicUpdate done every 5 min */
-  time_t nextPeriodicUpdate, nextContactsUpdate;
+  time_t nextPeriodicUpdate;
   u_int32_t num_contacts_as_cli, num_contacts_as_srv;
 
   /* Estimate of the number of critical servers used by this host */

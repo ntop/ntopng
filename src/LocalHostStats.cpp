@@ -32,7 +32,7 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   icmp = new (std::nothrow) ICMPstats();
   peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
 
-  nextPeriodicUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
+  nextPeriodicUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
   current_cycle = 0;
   
@@ -70,7 +70,7 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;
   icmp = NULL;
-  nextPeriodicUpdate = 0, nextContactsUpdate = time(NULL)+HOST_CONTACTS_REFRESH;
+  nextPeriodicUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
 
   /* hll init, 8 bits -> 256 bytes per LocalHost */
@@ -143,15 +143,13 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
   if(dns)  dns->updateStats(tv);
   if(icmp) icmp->updateStats(tv);
   if(http) http->updateStats(tv);
-
-  if(tv->tv_sec >= nextContactsUpdate) {
-    updateHostContacts();
-    nextContactsUpdate = tv->tv_sec+HOST_CONTACTS_REFRESH;
-  }
   
   if(tv->tv_sec >= nextPeriodicUpdate) {
     /* hll visited sites update */
     updateContactedHostsBehaviour();
+
+    /* Contacted peers update */
+    updateHostContacts();
     
     /* Top Sites update */
     if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
@@ -268,9 +266,9 @@ void LocalHostStats::luaPeers(lua_State *vm) {
     if (peers->getSlidingWinStatus()) {
       lua_newtable(vm);
 
-      lua_push_int32_table_entry(vm, "contacted_peers_in_last_min_as_cli",
+      lua_push_int32_table_entry(vm, "contacted_peers_in_last_5mins_as_cli",
                 num_contacts_as_cli); 
-      lua_push_int32_table_entry(vm, "contacted_peers_in_last_min_as_srv",
+      lua_push_int32_table_entry(vm, "contacted_peers_in_last_5mins_as_srv",
                 num_contacts_as_srv); 
       lua_push_int32_table_entry(vm, "sliding_avg_peers_as_client",
                 peers->getCliSlidingEstimate()); 
