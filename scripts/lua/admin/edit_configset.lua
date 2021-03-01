@@ -47,7 +47,17 @@ local confset_name = configset.name
 -- create a table that holds localization about hooks name
 local titles = user_scripts_utils.load_configset_titles()
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config)
+local sub_menu_entries = {
+  ['host'] = page_utils.menu_entries.scripts_config_hosts,
+  ['interface'] = page_utils.menu_entries.scripts_config_interfaces,
+  ['network'] = page_utils.menu_entries.scripts_config_networks,
+  ['snmp_device'] = page_utils.menu_entries.scripts_config_snmp_devices,
+  ['flow'] = page_utils.menu_entries.scripts_config_flows,
+  ['system'] = page_utils.menu_entries.scripts_config_system,
+  ['syslog'] = page_utils.menu_entries.scripts_config_syslog
+}
+local active_entry = sub_menu_entries[script_subdir] or page_utils.menu_entries.scripts_config
+page_utils.set_active_menu_entry(active_entry)
 --page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[script_subdir], config=confset_name }))
 
 -- append the menu above the page

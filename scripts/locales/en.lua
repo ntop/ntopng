@@ -4694,6 +4694,7 @@ local lang = {
     ["producer_host"] = "Log Producer IP",
     ["producer_type"] = "Log Producer Type",
     ["producers"] = "Syslog Log Producers",
+    ["syslog"] = "Syslog",
   },
   ["system_alerts_stats"] = {
     ["internal_alerts_queue"] = "Internal Queue",
