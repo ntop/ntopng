@@ -153,6 +153,7 @@ local lang = {
   ["ip_address"] = "IP Address",
   ["ipv4"] = "IPv4",
   ["ipv6"] = "IPv6",
+  ["ja3_client_fingerprint"] = "JA3 Client Fingerprint",
   ["ja3_fingerprint"] = "JA3 Fingerprint",
   ["key"] = "Key",
   ["language"] = "Language",

@@ -27,6 +27,7 @@
 typedef struct {
   std::string app_name; /* NetLink/eBPF-like only */
   u_int32_t num_uses;
+  bool is_malicious;
 } FingerprintStats;
 
 class Fingerprint {
@@ -39,7 +40,7 @@ class Fingerprint {
  public:
   Fingerprint() { ; }
 
-  void update(const char *fp, const char *app_name);
+  void update(const char *fp, const char *app_name, bool is_malicious);
   void lua(const char *key, lua_State* vm);
 };
 
