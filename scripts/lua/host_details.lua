@@ -1532,44 +1532,19 @@ elseif(page == "dns") then
       end
    end
 elseif(page == "tls") then
-  print [[
-     <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>]] print('<A HREF="https://github.com/salesforce/ja3" target="_blank">'..i18n("ja3_fingerprint")..'</A>') print[[</th>]]
-  if not isEmptyString(companion_interface_utils.getCurrentCompanion(ifId)) then
-     print[[<th>]] print(i18n("app_name")) print[[</th>]]
-  end
-  print[[<th>]] print(i18n("num_uses")) print[[</th>]]
-  print[[</tr></thead>
-     <tbody id="host_details_ja3_tbody">
-     </tbody>
-     </table>
-
-<script>
-function update_ja3_table() {
-  $.ajax({
-    type: 'GET',
-    url: ']]
-  print(ntop.getHttpPrefix())
-  print [[/lua/get_fingerprint_data.lua',
-    data: { fingerprint_type: 'ja3', ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
-
-    print [[ },
-    success: function(content) {
-      $('#host_details_ja3_tbody').html(content);
-      $('#myTable').trigger("update");
-    }
-  });
-}
-
-update_ja3_table();
-setInterval(update_ja3_table, 5000);
-
-</script>
-]]
-
-   print(ui_utils.render_notes({
-      {content = i18n("fingerprint_note")}
-   }))
+   local fingerprint_type = 'ja3'
+   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/host/get_fingerprint_data.lua?fingerprint_type=%s&ifid=%s&host=%s", fingerprint_type, ifId, host_ip)
+   local context = {
+      json = json,
+      template = template,
+      sites = {
+         endpoint = endpoint,
+         ja3_fingerprint = ja3_fingerprint,
+         num_uses = num_uses
+      }
+   }
+   
+print(template.gen("pages/ja3_fingerprint.template", context))
 
 elseif(page == "ssh") then
   print [[
