@@ -13,7 +13,6 @@ if ntop.isPro() then
    package.path = dirs.installdir .. "/pro/scripts/lua/rest/v1/get/datasource/?.lua;" .. package.path
 end
 
-local datasource_keys = require "datasource_keys"
 local os_utils = require "os_utils"
 require ("lua_utils")
 local json = require("dkjson")
@@ -257,10 +256,11 @@ local function cache_source_types(recache)
 
 	       if datasource_file:match("%.lua$") then
 		  -- Do the require and return the required module, if successful
-		  local datasource = require(string.format("%s.%s", datasource_dir, datasource_file:gsub("%.lua$", "")))
+		  local req = string.format("%s.%s", datasource_dir, datasource_file:gsub("%.lua$", ""))
+		  local datasource = require(req)
 
 		  if datasource then
-		     source_key_source_type_cache[datasource.meta.datasource_key] = datasource
+		     source_key_source_type_cache[req] = datasource
 		  end
 	       end
 	    end
@@ -287,15 +287,17 @@ end
 
 -- ##############################################
 
--- @brief Returns a datasource, given its `datasource_key` identifier
--- @param datasource_key One of the keys defined in datasource_keys.lua
+-- @brief Returns a datasource
 -- @return The datasource that can be then instantiated with :new()
-function datasources_utils.get_source_type_by_key(datasource_key)
+function datasources_utils.get_source_type_by_key(datasource_type)
    -- Build the cache (if not already built)
    cache_source_types()
 
    -- Return the cached datasource
-   return source_key_source_type_cache[datasource_key]
+   if datasource_type == "interface_packet_distro" then
+      -- TODO: remove when datasources will be identified and requested with URIs
+      return source_key_source_type_cache["interface.packet_distro"]
+   end
 end
 
 -- ##############################################

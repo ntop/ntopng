@@ -10,37 +10,34 @@ package.path = dirs.installdir .. "/scripts/lua/modules/datamodel/?.lua;" .. pac
 
 -- Import the classes library.
 local classes = require "classes"
--- Import the base class
-local datamodel = require "datamodel"
 -- Import some colors for eyecandy
 local colors = require "graph_utils".graph_colors
+local rest_utils = require "rest_utils"
 
 -- ##############################################
 
-local slices = classes.class(datamodel)
+local slices = classes.class()
 
 -- ##############################################
 
-slices.meta = {
-   -- Default values
-   max_num_slices      = 10, -- Maximum number of slices handled
-   other_threshold_pct = 3,  -- Percentage under which the slice is ignored and value added to a slice 'other'
-}
+-- This is the base REST prefix for all the available datasources
+slices.BASE_REST_PREFIX = "/lua/rest/v1/get/datasource/"
+
+-- ##############################################
+
+-- Default values
+local default_max_num_slices      = 10 -- Maximum number of slices handled
+local default_other_threshold_pct = 3  -- Percentage under which the slice is ignored and value added to a slice 'other'
 
 -- ##############################################
 
 -- @brief Datasource constructor
-function slices:init(labels, max_num_slices, other_threshold_pct)
-   -- Call the parent constructor
-   self.super:init(labels)
+function slices:init(max_num_slices, other_threshold_pct)
+   self.max_num_slices = max_num_slices or default_max_num_slices
+   self.other_threshold_pct = other_threshold_pct or default_other_threshold_pct
 
-   if max_num_slices then
-      self.meta.max_num_slices = max_num_slices
-   end
-
-   if other_threshold_pct then
-      self.meta.other_threshold_pct = other_threshold_pct
-   end
+   self.column_labels = labels
+   self._data = {}
 end
 
 -- #######################################################
@@ -57,14 +54,13 @@ function slices:append(data_key, data_values, data_url, data_color)
       k = data_key,       -- The Key
       v = data_values,    -- The Values
       url = data_url,
-      color = colors[#self._data % #colors],
+      color = colors[(#self._data % #colors) + 1],
    }
 end
 
 -- #######################################################
 
 -- @brief Aggregates `append`ed data, enforcing `max_num_slices` and `other_threshold_pct`
---        OVERRIDE
 function slices:aggregate()
    local aggregated = {}
    local other
@@ -80,10 +76,10 @@ function slices:aggregate()
    for _, slice in ipairs(self._data) do
       local slice_key = slice.k
 
-      if cur_slice < self.meta.max_num_slices and slice.v / total_value * 100 > self.meta.other_threshold_pct then
+      if cur_slice < self.max_num_slices and slice.v / total_value * 100 > self.other_threshold_pct then
 	 -- Preserve this slice
 	 aggregated[#aggregated + 1] = slice
-      else
+      elseif slice.v > 0 then
 	 -- Start adding to the 'other' slice
 	 if not other then
 	    other = slice
@@ -143,6 +139,9 @@ end
 -- #######################################################
 
 -- Transform and return datamodel data
+-- @brief Transform data according to the specified transformation
+-- @param transformation The transformation to be applied
+-- @return transformed data
 function slices:transform(transformation)
    if transformation == "aggregate" then
       -- Transform, enforce maximum number of results, % returned
@@ -157,6 +156,97 @@ function slices:transform(transformation)
       values = self:_get_data_values(),
       colors = self:_get_data_colors()
    }
+end
+
+-- ##############################################
+
+function slices:set_label(label)
+   self.column_labels = label
+end
+
+-- ##############################################
+
+-- ##############################################
+
+-- @brief Parses params
+-- @param params_table A table with submitted params
+-- @return True if parameters parsing is successful, false otherwise
+function slices:read_params(params_table)
+   if not params_table then
+      self.parsed_params = nil
+      return false
+   end
+
+   self.parsed_params = {}
+   for _, param in pairs(self.meta.params or {}) do
+      local parsed_param = params_table[param]
+
+      -- Assumes all params mandatory and not empty
+      -- May override this behavior in subclasses
+      if isEmptyString(parsed_param) then
+	 -- Reset any possibly set param
+	 self.parsed_params = nil
+
+	 return false
+      end
+
+      self.parsed_params[param] = parsed_param
+   end
+
+   -- Ok, parsin has been successful
+   return true
+end
+
+-- ##############################################
+
+-- @brief Parses params submitted along with the REST endpoint request. If parsing fails, a REST error is sent.
+-- @param params_table A table with submitted params, either _POST or _GET
+-- @return True if parameters parsing is successful, false otherwise
+function slices:_rest_read_params(params_table)
+   if not self:read_params(params_table) then
+      rest_utils.answer(rest_utils.consts.err.widgets_missing_datasource_params)
+      return false
+   end
+
+   return true
+end
+
+-- ##############################################
+
+-- @brief Send slices data via REST
+function slices:rest_send_response()
+   -- Make sure this is a direct REST request and not just a require() that needs this class
+   if not _SERVER -- Not executing a Lua script initiated from the web server (i.e., backend execution)
+   or not _SERVER["URI"] -- Cannot reliably determine if this is a REST request
+   or not _SERVER["URI"]:starts(slices.BASE_REST_PREFIX) -- Web Lua script execution but not for this REST endpoint
+   then
+      -- Don't send any REST response
+      return
+   end
+
+   if not self:_rest_read_params(_POST) then
+      -- Params parsing has failed, error response already sent by the caller
+      return
+   end
+
+   self:fetch()
+
+   rest_utils.answer(
+      rest_utils.consts.success.ok,
+      self._data
+   )
+end
+
+-- ##############################################
+
+-- @brief Returns instance metadata, which depends on the current instance and parsed_params
+function slices:get_metadata()
+   local res = {}
+
+   -- Render a url with submitted parsed_params
+   -- TODO: add url if necessary
+
+   return res
 end
 
 -- #######################################################

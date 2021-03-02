@@ -8,7 +8,6 @@ require ("lua_utils")
 local json = require("dkjson")
 local rest_utils = require "rest_utils"
 local datasources_utils = require("datasources_utils")
-local datasource_keys = require "datasource_keys"
 
 -------------------------------------------------------------------------------
 -- Answer to a widget request
@@ -72,15 +71,8 @@ function widgets_utils.rest_response()
 	 return
       end
 
-      if not datasource_keys[datasource.ds_type] then
-	 rest_utils.answer(rest_utils.consts.err.widgets_unknown_datasource_type)
-	 return
-      end
-
-      -- Get the actual datasource key
-      local datasource_key = datasource_keys[datasource.ds_type]
       -- Fetch the datasource class using the key
-      local datasource_type = datasources_utils.get_source_type_by_key(datasource_key)
+      local datasource_type = datasources_utils.get_source_type_by_key(datasource.ds_type)
       local datasource_instance = datasource_type.new()
 
       -- Parse params into the instance
