@@ -71,8 +71,6 @@ for key, value in pairs(table) do
    res[#res]["ja3_fingerprint"] = key
 end
 
-tprint(res)
-
 rc = rest_utils.consts.success.ok
 rest_utils.answer(rc, res)
 
