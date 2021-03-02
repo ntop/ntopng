@@ -850,6 +850,12 @@ void Flow::processIEC60870Packet(bool tx_direction,
 /* End the nDPI dissection on a flow. Guess the protocol if not already
  * detected. It is safe to call endProtocolDissection() multiple times. */
 void Flow::endProtocolDissection() {
+  if(getInterface()->getIfType() == interface_type_PCAP_DUMP) {
+    if(((iface->getTimeLastPktRcvd() - get_last_seen()) < 5)
+       && (!getInterface()->read_from_pcap_dump_done()))
+      return;
+  }
+
   if(!detection_completed) {
     u_int8_t proto_guessed;
 
@@ -4467,7 +4473,8 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF * const ebpf, bool src2dst_directi
 void Flow::updateCliJA3() {
   if(cli_host && isTLSProto() && protos.tls.ja3.client_hash) {
     cli_host->getJA3Fingerprint()->update(protos.tls.ja3.client_hash,
-					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL);
+					  cli_ebpf ? cli_ebpf->process_info.process_name : NULL,
+					  has_malicious_cli_signature);
   }
 }
 
@@ -4476,7 +4483,7 @@ void Flow::updateCliJA3() {
 void Flow::updateSrvJA3() {
   if(srv_host && isTLSProto() && protos.tls.ja3.server_hash) {
     srv_host->getJA3Fingerprint()->update(protos.tls.ja3.server_hash,
-					  srv_ebpf ? srv_ebpf->process_info.process_name : NULL);
+					  srv_ebpf ? srv_ebpf->process_info.process_name : NULL, false);
   }
 }
 
@@ -4492,7 +4499,7 @@ void Flow::updateHASSH(bool as_client) {
   Fingerprint *fp;
 
   if(h && hassh && hassh[0] != '\0' && (fp = h->getHASSHFingerprint()))
-    fp->update(hassh, pebpf ? pebpf->process_info.process_name : NULL);
+    fp->update(hassh, pebpf ? pebpf->process_info.process_name : NULL, false /* We track client JA3 */);
 }
 
 /* ***************************************************** */
