@@ -31,12 +31,14 @@ local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
 local alert_type = _GET["alert_type"]
 local alert_severity = _GET["alert_severity"]
+local host_info = url2hostinfo(_GET)
 
 if isEmptyString(ifid) then
    rc = rest_utils.consts.err.invalid_interface
    print(rest_utils.rc(rc))
    return
 end
+
 
 interface.select(ifid)
 
@@ -77,7 +79,7 @@ if what == "engaged" then
    engaged = true
 end
 
-local counters = alert_utils.getNumAlertsPerHour(what, epoch_begin, epoch_end, alert_type, alert_severity)
+local counters = alert_utils.getNumAlertsPerHour(what, epoch_begin, epoch_end, alert_type, alert_severity, host_info)
 
 if counters == nil then
    rc = rest_utils.consts.err.internal_error

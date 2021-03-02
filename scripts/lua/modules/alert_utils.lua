@@ -368,13 +368,19 @@ end
 
 -- #################################
 
-function alert_utils.getNumAlertsPerHour(what, epoch_begin, epoch_end, alert_type, alert_severity)
+function alert_utils.getNumAlertsPerHour(what, epoch_begin, epoch_end, alert_type, alert_severity, host_info)
    local opts = {
       epoch_begin = epoch_begin,
       epoch_end = epoch_end,
       alert_type = alert_type,
       alert_severity = alert_severity,
    }
+
+   if host_info and host_info.host then
+      local entity_info = alerts_api.hostAlertEntity(host_info.host, host_info.vlan)
+      opts.entity = entity_info.alert_entity.entity_id
+      opts.entity_val = entity_info.alert_entity_val
+   end
 
    return performAlertsQuery("select (alert_tstamp - alert_tstamp % 3600) as hour, count(*) count", what, opts, nil, "hour")
 end
