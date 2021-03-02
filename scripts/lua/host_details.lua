@@ -498,7 +498,7 @@ if((page == "overview") or (page == nil)) then
    print("<table class=\"table table-bordered table-striped\">\n")
    if(host["ip"] ~= nil) then
       if(host["mac"]  ~= "00:00:00:00:00:00") then
-	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"]).. " " .. discover.devtype2icon(host["device_type"]))
+	 print("<tr><th width=35%>"..i18n("details.router_access_point_mac_address").."</th><td>" ..get_symbolic_mac(host["mac"], true).. " " .. discover.devtype2icon(host["device_type"]))
 	 print('</td><td>')
 
 	 if(host['localhost'] and (macinfo ~= nil)) then

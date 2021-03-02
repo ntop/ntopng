@@ -66,8 +66,8 @@ function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatte
 	       val = ""
 	    end
 
-	   if((c[6] ~= nil) and (tonumber(val) ~= 0)) then
-	      val = hostinfo2detailshref(host_stats, c[6], val)
+	    if((c[6] ~= nil) and (tonumber(val) ~= 0)) then
+	       val = hostinfo2detailshref(host_stats, c[6], val)
 	   end
 	 else
 	    val = host_stats_getter(host_stats, c[3])
