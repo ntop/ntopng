@@ -1537,10 +1537,16 @@ function hostinfo2label(host_info, show_vlan)
    end
 
    alt_name = getHostAltName(ip)
-
+   
    if not isEmptyString(alt_name) then
+      alt_name = add_vlan_to_alt_name(alt_name, host_info, show_vlan)
+      
+      if isIPv6(ip) == true then
+	 alt_name = alt_name .. " [IPv6]"
+      end
+
       -- Adding the vlan if requested
-      return add_vlan_to_alt_name(alt_name, host_info, show_vlan)
+      return alt_name
    end
 
    -- Name info from C (e.g. DHCP name)
