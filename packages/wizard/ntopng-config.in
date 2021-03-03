@@ -1,14 +1,23 @@
-#!/bin/bash
+#!@BIN_PATH@/bash
 #
 #  Copyright (C) 2002-20 - ntop.org
 #
 #  http://www.ntop.org/
 #
 
+OS="`uname`"
+
 # Global variable used to check if ntopng exists
 NTOPNG_CONFIG_PATH="/etc/ntopng"
-
 NTOPNG_STD_NAME="ntopng.conf"
+
+case $OS in
+  'FreeBSD')
+    NTOPNG_CONFIG_PATH="/usr/local/etc"
+    ;;
+  'Linux') ;;
+  *) ;;
+esac
 
 function showHelp {
     {

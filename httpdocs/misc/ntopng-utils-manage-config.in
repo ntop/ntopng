@@ -1,6 +1,18 @@
-#!/bin/bash
+#!@BIN_PATH@/bash
 
-DEFAULT_CONF_FILE="/etc/ntopng/ntopng.conf"
+OS="`uname`"
+
+NTOPNG_CONFIG_PATH="/etc/ntopng"
+
+case $OS in
+  'FreeBSD')
+    NTOPNG_CONFIG_PATH="/usr/local/etc"
+    ;;
+  'Linux') ;;
+  *) ;;
+esac
+
+DEFAULT_CONF_FILE="${NTOPNG_CONFIG_PATH}/ntopng.conf"
 
 DEFAULT_DATADIR="/var/lib/ntopng"
 OLD_DEFAULT_DATADIR="/var/tmp/ntopng"

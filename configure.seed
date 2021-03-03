@@ -50,6 +50,7 @@ AC_ARG_WITH(nedge,          [  --with-test-mode      Enable ntopng/nEdge test mo
 CFLAGS="${CFLAGS} -Wall"
 OS=""
 MAKE=make
+BIN_PATH=/usr/bin
 LIBPCAP=-lpcap
 
 if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
@@ -58,6 +59,7 @@ if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin"; then
    CXX=clang++
    if test $SYSTEM = "FreeBSD"; then
     MAKE=gmake
+    BIN_PATH=/usr/local/bin
    fi
    dnl> CXX=clang++ -fsanitize=address -fsanitize-address-use-after-scope
    OSXV=`sw_vers -productVersion`
@@ -751,6 +753,7 @@ AC_DEFINE_UNQUOTED(PACKAGE_OS, "${OS}", [OS Name])
 AC_SUBST(PWD)
 AC_SUBST(MACHINE)
 AC_SUBST(SYSTEM)
+AC_SUBST(BIN_PATH)
 AC_SUBST(EXTN)
 AC_SUBST(DATE)
 AC_SUBST(KERNEL)
@@ -820,6 +823,7 @@ AC_CONFIG_FILES(tools/json2tlv/Makefile)
 AC_CONFIG_FILES(doc/doxygen.conf)
 AC_CONFIG_FILES(httpdocs/misc/ntopng-utils-manage-config)
 AC_CONFIG_FILES(httpdocs/misc/ntopng-utils-manage-updates)
+AC_CONFIG_FILES(packages/wizard/ntopng-config)
 AC_CONFIG_FILES(packages/etc/systemd/system/ntopng.service)
 AC_CONFIG_FILES(packages/etc/systemd/system/ntopng@.service)
 
@@ -831,6 +835,10 @@ fi
 
 if test -f "httpdocs/misc/ntopng-utils-manage-updates"; then
   chmod +x httpdocs/misc/ntopng-utils-manage-updates
+fi
+
+if test -f "packages/wizard/ntopng-config"; then
+  chmod +x packages/wizard/ntopng-config
 fi
 
 if test -f "packages/OPNsense/build.sh"; then

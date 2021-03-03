@@ -1,4 +1,4 @@
-#!/bin/bash
+#!@BIN_PATH@/bash
 
 # bin paths
 LSB_RELEASE="/usr/bin/lsb_release -i"
