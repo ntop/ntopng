@@ -35,7 +35,7 @@ FlowStats::~FlowStats() {
 /* *************************************** */
 
 void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel alert_level, 
-                          u_int8_t dscp_cli2srv, u_int8_t dscp_srv2cli) {
+			 u_int8_t dscp_cli2srv, u_int8_t dscp_srv2cli, Flow *flow) {
   int i;
 
   for(i = 0; i < BITMAP_NUM_BITS; i++) {
@@ -50,6 +50,27 @@ void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel 
     dscps[dscp_srv2cli]++;
   } else 
     dscps[dscp_cli2srv]++;
+
+  if(flow) {
+    u_int16_t cli_pool = 0, srv_pool = 0;
+
+    /* If both pools aren't null */
+    if(flow->get_cli_host() && flow->get_srv_host()) {
+      cli_pool = flow->get_cli_host()->get_host_pool();
+      srv_pool = flow->get_srv_host()->get_host_pool();
+      if(cli_pool != srv_pool) {
+	/* Different pool id, inc both */
+	host_pools[cli_pool]++;
+	host_pools[srv_pool]++;
+      } else
+	/* Same pool id, inc only one time */
+	host_pools[cli_pool]++;
+    } else if (flow->get_cli_host()) {
+      host_pools[flow->get_cli_host()->get_host_pool()]++;
+    } else if (flow->get_srv_host()) {
+      host_pools[flow->get_srv_host()->get_host_pool()]++;
+    }
+  }
 }
 
 /* *************************************** */
@@ -109,6 +130,25 @@ void FlowStats::lua(lua_State* vm) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
+  /* Host pool */
+  lua_newtable(vm);
+
+  for(int i = 0; i < LIMITED_NUM_HOST_POOLS; i++) {
+    if(unlikely(host_pools[i] > 0)) {
+      lua_newtable(vm);
+
+      lua_push_uint64_table_entry(vm, "count", host_pools[i]);
+
+      lua_pushinteger(vm, i);
+      lua_insert(vm, -2);
+      lua_rawset(vm, -3);
+    }
+  }
+
+  lua_pushstring(vm, "host_pool_id");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
   /* Alert levels */
   u_int32_t count_notice_or_lower = 0, count_warning = 0, count_error_or_higher = 0;
 
@@ -147,6 +187,7 @@ void FlowStats::resetStats() {
   memset(protocols, 0, sizeof(protocols));
   memset(alert_levels, 0, sizeof(alert_levels));
   memset(dscps, 0, sizeof(dscps));
+  memset(host_pools, 0, sizeof(host_pools));
 }
 
 /* *************************************** */

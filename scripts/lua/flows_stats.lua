@@ -42,6 +42,7 @@ local port = _GET["port"]
 local icmp_type = _GET["icmp_type"]
 local icmp_code = _GET["icmp_cod"]
 local dscp_filter = _GET["dscp"]
+local host_pool = _GET["host_pool_id"]
 local traffic_profile = _GET["traffic_profile"]
 
 -- remote exporters address and interfaces
@@ -162,6 +163,10 @@ end
 
 if(dscp_filter ~= nil) then
    page_params["dscp"] = dscp_filter
+end
+
+if(host_pool ~= nil) then
+   page_params["host_pool_id"] = host_pool
 end
 
 if(traffic_profile ~= nil) then

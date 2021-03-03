@@ -2411,7 +2411,7 @@ void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
     ndpi_stats->incFlowsStats(detected_protocol.master_protocol);
   }
 
-  status_stats->incStats(getStatusBitmap(), protocol, alert_level, getCli2SrvDSCP(), getSrv2CliDSCP());
+  status_stats->incStats(getStatusBitmap(), protocol, alert_level, getCli2SrvDSCP(), getSrv2CliDSCP(), this);
 }
 
 /* *************************************** */

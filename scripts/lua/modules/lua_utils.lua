@@ -493,6 +493,55 @@ function printDSCPDropdown(base_url, page_params, dscp_list)
    print[[</ul>]]
 end
 
+-- ###################################
+
+function printHostPoolDropdown(base_url, page_params, host_pool_list)
+   local host_pool = _GET["host_pool_id"]
+   local host_pool_filter
+   if not isEmptyString(host_pool) then
+      host_pool_filter = '<span class="fas fa-filter"></span>'
+   else
+      host_pool_filter = ''
+   end
+
+   -- table.clone needed to modify some parameters while keeping the original unchanged
+   local host_pool_params = table.clone(page_params)
+   host_pool_params["host_pool_id"] = nil
+   -- Used to possibly remove tcp state filters when selecting a non-TCP l4 protocol
+   local host_pool_params_non_filter = table.clone(host_pool_params)
+   if host_pool_params_non_filter["host_pool_id"] then
+      host_pool_params_non_filter["host_pool_id"] = nil
+   end
+
+   local ordered_host_pool_list = {}
+
+   --tprint(host_pool_list)
+   for key, value in pairs(host_pool_list) do
+      ordered_host_pool_list[key] = {}
+      ordered_host_pool_list[key]["count"] = value.count
+   end
+
+   print[[\
+      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("details.host_pool")) print[[]] print(host_pool_filter) print[[<span class="caret"></span></button>\
+      <ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" id="flow_dropdown">\
+         <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, host_pool_params_non_filter)) print[[">]] print(i18n("flows_page.all_host_pool")) print[[</a></li>]]
+
+   for key, value in pairsByKeys(ordered_host_pool_list, asc) do
+	  print[[<li]]
+
+	  print([[><a class="dropdown-item ]].. (tonumber(host_pool) == key and 'active' or '') ..[[" href="]])
+
+	  local host_pool_table = ternary(key ~= 6, host_pool_params_non_filter, host_pool_params)
+
+	  host_pool_table["host_pool_id"] = key
+	  print(getPageUrl(base_url, host_pool_table))
+
+	  print[[">]] print(i18n("flows_page.host_pool_id", { key = tostring(key) })) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
+   end
+
+   print[[</ul>]]
+end
+
 -- ##############################################
 
 function printTrafficTypeFilterDropdown(base_url, page_params)

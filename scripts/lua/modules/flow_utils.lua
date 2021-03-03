@@ -94,6 +94,7 @@ function getFlowsFilter()
    local icmp_type    = _GET["icmp_type"]
    local icmp_code    = _GET["icmp_cod"]
    local dscp_filter  = _GET["dscp"]
+   local host_pool    = _GET["host_pool_id"]
    local flow_status  = _GET["flow_status"]
    local flow_status_severity = _GET["flow_status_severity"]
    local deviceIP     = _GET["deviceIP"]
@@ -266,6 +267,10 @@ function getFlowsFilter()
 
    if not isEmptyString(dscp_filter) then
       pageinfo["dscpFilter"] = tonumber(dscp_filter)
+   end
+   
+   if not isEmptyString(host_pool) then
+      pageinfo["poolFilter"] = tonumber(host_pool)
    end
 
    if not isEmptyString(tcp_state) then
@@ -1860,6 +1865,15 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
     print[[, '<div class="btn-group float-right">]]
     printDSCPDropdown(base_url, dscp_params, flowstats["dscps"] or {})
+    print [[</div>']]
+
+    -- Host Pool selector
+    -- table.clone needed to modify some parameters while keeping the original unchanged
+    local host_pool_params = table.clone(page_params)
+    host_pool_params["host_pool"] = nil
+
+    print[[, '<div class="btn-group float-right">]]
+    printHostPoolDropdown(base_url, host_pool_params, flowstats["host_pool_id"] or {})
     print [[</div>']]
 
     -- IP version selector
