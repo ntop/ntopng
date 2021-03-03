@@ -94,12 +94,14 @@ function import_export_rest_utils.export(instances, is_download)
    local rc = rest_utils.consts.success.ok
    local modules = {}
    local list = {}
+   local missing_modules = {}
 
    -- Build the list of configurations for each module
    for name, instance in pairs(instances) do
       local conf = instance:export()
       if not conf then
-         rc = rest_utils.consts.err.internal_error 
+         rc = rest_utils.consts.err.internal_error
+	 missing_modules[#missing_modules+1] = name
       else
          modules[name] = conf
          list[#list] = name
@@ -110,6 +112,11 @@ function import_export_rest_utils.export(instances, is_download)
 
    if is_download then
       -- Download as file
+
+      if rc ~= rest_utils.consts.success.ok then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "Failure exporting configuration for " .. table.concat(missing_modules, ", "))
+      end
+
       sendHTTPContentTypeHeader('application/json', 'attachment; filename="configuration.json"')
       print(json.encode(envelope, nil))
    else

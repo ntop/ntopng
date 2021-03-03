@@ -38,12 +38,17 @@ if not modules then
    return
 end
 
-if not modules["snmp"] or 
-   not modules["active_monitoring"] or 
-   not modules["notifications"] or 
-   not modules["scripts"] or 
-   not modules["pool"] then
-  rest_utils.answer(rest_utils.consts.err.configuration_file_mismatch)
+local expected_modules = { "snmp", "active_monitoring", "notifications", "scripts", "pool" }
+local missing_modules = {}
+for _, m in ipairs(expected_modules) do
+  if not modules[m] then
+    rest_utils.answer(rest_utils.consts.err.configuration_file_mismatch)
+    missing_modules[#missing_modules+1] = m
+  end
+end
+
+if #missing_modules > 0 then
+  traceError(TRACE_ERROR, TRACE_CONSOLE, "Failure importing configuration due to missing modules: " .. table.concat(missing_modules, ", "))
   return
 end
 
