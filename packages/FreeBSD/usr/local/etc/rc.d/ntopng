@@ -36,7 +36,7 @@ ntopng_precmd()
     local rundir=${ntopng_pidfile%/*}
 
     if ! id "${ntopng_user}" >/dev/null 2>&1; then
-	# nopng user does not exist: create it!
+	# ntopng user does not exist: create it!
 	pw useradd ${ntopng_user} -s /sbin/nologin -d /nonexistent -c "ntopng user" -w no
     fi
     

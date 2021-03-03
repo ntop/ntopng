@@ -495,11 +495,13 @@
 #define CONST_DEFAULT_USERS_FILE     "ntopng-users.conf"
 #define CONST_DEFAULT_INSTALL_DIR    (DATA_DIR "/ntopng")
 #if defined(__FreeBSD__)
+#define CONST_BIN_DIR                "/usr/local/bin"
 #define CONST_ALT_INSTALL_DIR        "/usr/local/share/ntopng"
 #define CONST_ALT2_INSTALL_DIR       "/usr/share/ntopng"
 #define CONST_ETC_DIR                "/usr/local/etc"
 #define CONST_DEFAULT_DATA_DIR       "/var/db/ntopng"
 #else
+#define CONST_BIN_DIR                "/usr/bin"
 #define CONST_ALT_INSTALL_DIR        "/usr/share/ntopng"
 #define CONST_ALT2_INSTALL_DIR       "/usr/local/share/ntopng"
 #define CONST_ETC_DIR                "/etc"

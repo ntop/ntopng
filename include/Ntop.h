@@ -347,12 +347,16 @@ class Ntop {
    * @return The current instance of HTTP server.
    */
   inline HTTPserver*       get_HTTPserver()          { return(httpd);            };
+
+  inline const char* get_bin_dir()                   { return(CONST_BIN_DIR);    };
+
   /**
    * @brief Get the current working directory.
    *
    * @return The absolute path of working directory.
    */
   inline char* get_working_dir()                     { return(working_dir);      };
+
   /**
    * @brief Get the installation path of ntopng.
    *

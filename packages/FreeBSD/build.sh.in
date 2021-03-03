@@ -7,7 +7,7 @@ NTOPNG_HOME=${HERE}/../..
 rm -rf ${STAGEDIR}
 mkdir -p ${STAGEDIR}
 
-#######
+# Build +MANIFEST
 
 cat >> ${STAGEDIR}/+MANIFEST <<EOF
 name:        ntopng
@@ -32,14 +32,15 @@ pkg query "  %n: { version: \"%v\", origin: %o }" redis          >> ${STAGEDIR}/
 pkg query "  %n: { version: \"%v\", origin: %o }" zstd           >> ${STAGEDIR}/+MANIFEST
 echo "}" >> ${STAGEDIR}/+MANIFEST
 
+# Add files
+
 cp -r usr ${STAGEDIR}
 mkdir -p ${STAGEDIR}/usr/local/bin ${STAGEDIR}/usr/local/share/ntopng
-cp ../../ntopng ${STAGEDIR}/usr/local/bin/ntopng
+cp ../../ntopng ${STAGEDIR}/usr/local/bin/
 strip ${STAGEDIR}/usr/local/bin/ntopng
+cp ../wizard/ntopng-config ${STAGEDIR}/usr/local/bin/
 mkdir -p ${STAGEDIR}/usr/local/etc/ntopng
 cp ../etc/ntopng/ntopng.conf ${STAGEDIR}/usr/local/etc/ntopng/ntopng.conf.sample
-
-#######
 
 mkdir -p ${STAGEDIR}/usr/local/share/man/man8
 cp ${NTOPNG_HOME}/ntopng.8 ${STAGEDIR}/usr/local/share/man/man8
@@ -63,16 +64,28 @@ find ${STAGEDIR}/usr/local/share/ntopng -name ".git*" | xargs /bin/rm -rf
 find . -name "*#" -exec /bin/rm {} ';'
 find . -name "*~" -exec /bin/rm {} ';'
 
-#######
-
 # Add GeoIP files
+
 cp ~/dat_files/* ${STAGEDIR}/usr/local/share/ntopng/httpdocs/geoip/
 
+# Build plist (list of files to package)
 
-# List of files to package
 cd $STAGEDIR
 find . -type f | sed '$d' > ${STAGEDIR}/plist
 cd $HERE
+
+# Build +POST_INSTALL
+
+cat >> ${STAGEDIR}/+POST_INSTALL <<EOF
+if ! id "ntopng" >/dev/null 2>&1; then
+  pw useradd ntopng -s /sbin/nologin -d /nonexistent -c "ntopng user" -w no
+fi
+chown ntopng:ntopng /usr/local/bin/ntopng-config
+chmod ugo+s /usr/local/bin/ntopng-config
+chown -R ntopng:ntopng /usr/local/etc/ntopng
+EOF
+
+# Build package
 
 rm -f *.txz
 pkg create -m ${STAGEDIR}/ -r ${STAGEDIR}/ -p ${STAGEDIR}/plist -o $HERE

@@ -10,10 +10,13 @@ require "lua_utils"
 local tracker = require "tracker"
 
 local os_utils = {}
-local NTOPCTL_CMD = "/usr/bin/ntopctl"
-local NTOPNG_CONFIG_TOOL = "/usr/bin/ntopng-utils-manage-config"
+
 local is_windows = ntop.isWindows()
 local is_freebsd = ntop.isFreeBSD()
+
+local dirs = ntop.getDirs()
+local NTOPCTL_CMD = dirs.bindir.."/ntopctl"
+local NTOPNG_CONFIG_TOOL = dirs.bindir.."/ntopng-utils-manage-config"
 
 -- ########################################################
 

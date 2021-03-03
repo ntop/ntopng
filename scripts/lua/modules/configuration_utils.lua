@@ -8,8 +8,9 @@ local rest_utils = require("rest_utils")
 
 local conf_utils = {}
 
+local dirs = ntop.getDirs()
+local dir = dirs.bindir.."/ntopng-config"
 local redis_key = "increased_max_num_host_or_flows"
-local dir = "/usr/bin/ntopng-config"
 
 -- ################################################################
 
