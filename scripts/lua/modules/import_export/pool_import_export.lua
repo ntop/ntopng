@@ -20,6 +20,7 @@ local interface_pools         = require "interface_pools":create()
 local host_pool_pools         = require "host_pool_pools":create()
 local local_network_pools     = require "local_network_pools":create()
 local active_monitoring_pools = require "active_monitoring_pools":create()
+local snmp_device_pools       = require "snmp_device_pools":create()
 
 local pool_instances = {
   ["host"] = host_pools,
@@ -30,6 +31,7 @@ local pool_instances = {
   ["host_pool"] = host_pool_pools,
   ["local_network"] = local_network_pools,
   ["active_monitoring"] = active_monitoring_pools,
+  ["snmp_device"] = snmp_device_pools,
 }
 
 -- ##############################################
