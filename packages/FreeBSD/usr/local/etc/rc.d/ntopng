@@ -32,6 +32,7 @@ command_args="-G ${ntopng_pidfile} -e"
 ntopng_precmd()
 {
     local ntopng_user="ntopng"
+    local ntopng_conf="/usr/local/etc/ntopng.conf"
     local ntopng_datadir="/var/db/ntopng-enterprise"
     local rundir=${ntopng_pidfile%/*}
 
@@ -42,6 +43,13 @@ ntopng_precmd()
     
     if [ ! -d $rundir ] ; then
         install -d -m 0755 -o ${ntopng_user} -g ${ntopng_user} $rundir
+    fi
+
+    if [ -f "${ntopng_conf}" ]; then
+        local curr_user=$(stat -f '%Su' ${ntopng_conf})
+        if [ "${curr_user}" != "${ntopng_user}" ]; then
+            chown -R ${ntopng_user}:${ntopng_user} ${ntopng_conf}
+        fi
     fi
 
     if [ -d "${ntopng_datadir}" ]; then
