@@ -1373,7 +1373,7 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
     columns.push({
       title: i18n.actions,
       field: "drilldown",
-      css: {width: "1%", "white-space": "nowrap", "text-align": "center"},
+      css: {width: "1%", "text-align": "center"},
     });
 
     var old_dt = graph_table.data("datatable");
