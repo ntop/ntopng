@@ -51,8 +51,8 @@ function fastChangeOption {
             fi
 
             if [[ ${TMP[@]} == "" ]]; then
-                echo "Sorry, no Value configured cannot multiply"
-                exit 0
+                # echo "No value configured, using a default"
+                ACTUAL_VALUE="131072"
             fi
 
             INPUT=$((ACTUAL_VALUE*VALUE))
@@ -75,7 +75,9 @@ function fastChangeOption {
             fi
         fi
 
-	    sed "/-$1=/c\\-$1=$INPUT" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME > /tmp/$NTOPNG_STD_NAME
+        grep -v "\-$1=" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME > /tmp/$NTOPNG_STD_NAME
+        echo "-$1=$INPUT" >> /tmp/$NTOPNG_STD_NAME
+
         mv -f /tmp/$NTOPNG_STD_NAME $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
 
         exitstatus=$?
