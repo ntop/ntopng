@@ -48,15 +48,36 @@ local confset_name = configset.name
 local titles = user_scripts_utils.load_configset_titles()
 
 local sub_menu_entries = {
-  ['host'] = page_utils.menu_entries.scripts_config_hosts,
-  ['interface'] = page_utils.menu_entries.scripts_config_interfaces,
-  ['network'] = page_utils.menu_entries.scripts_config_networks,
-  ['snmp_device'] = page_utils.menu_entries.scripts_config_snmp_devices,
-  ['flow'] = page_utils.menu_entries.scripts_config_flows,
-  ['system'] = page_utils.menu_entries.scripts_config_system,
-  ['syslog'] = page_utils.menu_entries.scripts_config_syslog
+  ['host'] = {
+     order = 0,
+     entry = page_utils.menu_entries.scripts_config_hosts
+  },
+  ['interface'] = {
+     order = 1, 
+     entry = page_utils.menu_entries.scripts_config_interfaces
+  },
+  ['network'] = {
+     order = 2,
+     entry = page_utils.menu_entries.scripts_config_networks
+  },
+  ['snmp_device'] = {
+     order = 3,
+     entry = page_utils.menu_entries.scripts_config_snmp_devices
+  },
+  ['flow'] = {
+     order = 4,
+     entry = page_utils.menu_entries.scripts_config_flows
+  },
+  ['system'] = {
+     order = 5,
+     entry = page_utils.menu_entries.scripts_config_system
+  },
+  ['syslog'] = {
+     order = 6,
+     entry = page_utils.menu_entries.scripts_config_syslog
+  }
 }
-local active_entry = sub_menu_entries[script_subdir] or page_utils.menu_entries.scripts_config
+local active_entry = sub_menu_entries[script_subdir].entry or page_utils.menu_entries.scripts_config
 page_utils.set_active_menu_entry(active_entry)
 --page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[script_subdir], config=confset_name }))
 
@@ -104,6 +125,19 @@ for type_id in discover.sortedDeviceTypeLabels() do
 end
 
 local device_types_list = {{elements = device_types}}
+
+local url = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua"
+local navbar_menu = {}
+for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
+   navbar_menu[#navbar_menu+1] = {
+      active = (script_subdir == key),
+      page_name = key,
+      label = i18n(sub_menu.entry.i18n_title),
+      url = url .. "?subdir="..key
+  }
+end
+
+page_utils.print_navbar('<i class="fab fa-superpowers"></i> ' .. i18n("internals.user_scripts"), '#', navbar_menu)
 
 local context = {
    script_list = {

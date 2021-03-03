@@ -1,27 +1,4 @@
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item" aria-current="page">
-        <i class="fab fa-superpowers"></i>
-        {{ i18n("about.user_scripts", {}) }}
-      </li>
-      <li class="breadcrumb-item" aria-current="page">
-        {{ script_list.hooks_localizated[script_list.script_subdir] }}
-      </li>
-      {% if not isEmptyString(script_list.search_filter) then %}
-      <li class="breadcrumb-item active" aria-current="page">
-        <a href='{{ ntop.getHttpPrefix() }}/lua/admin/edit_configset.lua?subdir={{script_list.script_subdir}}'>{{ i18n("scripts_list.config", {}) }} {{ script_list.confset_name }}</a>
-      </li>
-        <li class="breadcrumb-item active">
-          {{ i18n("search") }}: <b>{{ script_list.search_filter }}</b>
-        </li>
-      {% else %}
-      <li class="breadcrumb-item active" aria-current="page">
-        {{ i18n("scripts_list.config", {}) }}
-        <b>{{ script_list.confset_name }}</b>
-      </li>
-      {% end %}
-    </ol>
-  </nav>
+
   <div class="row">
     <div class="col-md-12 col-lg-12 mt-3">
       <div class="alert alert-danger d-none" id='alert-row-buttons' role="alert">

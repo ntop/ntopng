@@ -598,36 +598,7 @@ page_utils.add_menubar_section(
 	    entry = page_utils.menu_entries.scripts_config,
 	    section = page_utils.menu_sections.user_scripts,
 	    hidden = not is_admin,
-	    entries = {
-	       {
-	          entry = page_utils.menu_entries.scripts_config_hosts,
-	          url = '/lua/admin/edit_configset.lua?subdir=host',
-	       },
-               {
-	          entry = page_utils.menu_entries.scripts_config_interfaces,
-	          url = '/lua/admin/edit_configset.lua?subdir=interface',
-	       },
-               {
-	          entry = page_utils.menu_entries.scripts_config_networks,
-	          url = '/lua/admin/edit_configset.lua?subdir=network',
-	       },
-               {
-	          entry = page_utils.menu_entries.scripts_config_snmp_devices,
-	          url = '/lua/admin/edit_configset.lua?subdir=snmp_device',
-	       },
-               {
-	          entry = page_utils.menu_entries.scripts_config_flows,
-	          url = '/lua/admin/edit_configset.lua?subdir=flow',
-	       },
-               {
-	          entry = page_utils.menu_entries.scripts_config_system,
-	          url = '/lua/admin/edit_configset.lua?subdir=system',
-	       },
-               {
-	          entry = page_utils.menu_entries.scripts_config_syslog,
-	          url = '/lua/admin/edit_configset.lua?subdir=syslog',
-	       }
-	    }
+       url = '/lua/admin/edit_configset.lua?subdir=host',
 	 },
          {
             entry = page_utils.menu_entries.license,
