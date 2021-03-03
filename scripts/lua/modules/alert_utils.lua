@@ -916,7 +916,7 @@ end
 
 -- #################################
 
-function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, get_params, hide_extended_title, alt_nav_tabs, options)
+function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_flow_alerts, has_disabled_alerts, get_params, hide_extended_title, alt_nav_tabs, options, disable_delete)
    local alert_items = {}
    local url_params = {}
    local options = options or {}
@@ -1485,8 +1485,10 @@ $("[clicked=1]").trigger("click");
       purge_label = i18n("show_alerts.alerts_to_purge")
    end
 
-    print('<div id="alertsActionsPanel">')
-    print(purge_label .. ': ')
+   print('<div id="alertsActionsPanel">')
+   if not disable_delete then
+      print(purge_label .. ': ')
+   end
 	 print[[<select id="deleteZoomSelector" class="form-control" style="display:]] if has_fixed_period then print("none") else print("inline") end print[[; width:14em; margin:0 1em;">]]
 	 local all_msg = ""
 
@@ -1499,6 +1501,7 @@ $("[clicked=1]").trigger("click");
 	 else
 	    all_msg = " " .. i18n("show_alerts.in_the_selected_time_frame")
 	 end
+
 
 	 print('<option selected="selected" data-older="0" data-msg="') print(all_msg) print('">' .. i18n("all") .. '</option>\n')
 
@@ -1513,9 +1516,11 @@ $("[clicked=1]").trigger("click");
 	    -- we need to dynamically modify parameters at js-time because we switch tab
 	 local delete_params = alert_utils.getTabParameters(url_params, nil)
 	 delete_params.epoch_end = -1
-
-	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-danger"> <span id="purgeBtnMessage">]]
-	 print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
+	 print[[<button id="buttonOpenDeleteModal" data-toggle="modal" data-target="#myModal" class="btn btn-danger"]]
+	 if(disable_delete == true) then
+	    print[[ style="display:none;"]]
+	 end
+	 print[[> <span id="purgeBtnMessage">]] print(i18n("show_alerts.purge_subj_alerts", {subj='<span id="purgeBtnLabel"></span>'}))
 	 print[[</span></button>
 
          <a href="#" class="btn btn-primary" role="button" aria-disabled="true" onclick="downloadAlerts();"><i class="fas fa-download"></i></a>
