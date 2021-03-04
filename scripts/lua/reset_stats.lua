@@ -12,18 +12,45 @@ sendHTTPContentTypeHeader('application/json')
 
 local action = _POST["resetstats_mode"]
 local ifid = _POST["ifid"]
-
-interface.select(ifid)
-
 local res = { ["status"] = "ok" }
-if((action ~= nil) and (haveAdminPrivileges())) then
-   if action == "reset_drops" then
-      interface.resetCounters(true --[[ reset only drops --]])
-   elseif action == "reset_all" then
-      interface.resetCounters(false --[[ reset all counters --]])
+
+
+-- ##################################
+
+-- Function used to reset the stats
+local function reset_stats(ifids)
+   interface.select(ifids)
+      
+   if haveAdminPrivileges() then
+      if action == "reset_drops" then
+	 interface.resetCounters(true --[[ reset only drops --]])
+      elseif action == "reset_all" then
+	 interface.resetCounters(false --[[ reset all counters --]])
+      end
+   else
+      res["status"] = "unauthorized to reset interface: " .. ifids
    end
-else
-   res["status"] = "unauthorized"
+end
+
+-- ##################################
+
+if action ~= nil then
+   -- Reset counters for all interfaces
+   if not ifid then
+      local ifs = interface.getIfNames()
+
+      for ifids, name in pairs(ifs) do
+	 if ifids == -1 then
+	    goto continue
+	 end
+
+	 reset_stats(ifids)
+	 ::continue::
+      end
+   else
+      -- Reset counters for a specific interface
+      reset_stats(ifid)
+   end
 end
 
 print(json.encode(res, nil))

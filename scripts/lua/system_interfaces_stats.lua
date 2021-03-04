@@ -51,6 +51,12 @@ if(page == "overview") then
       <div class='card-body'>
         <div id="table-system-interfaces-stats"></div>
       </div>
+      <div class='card-footer w-250'>]] print(i18n("if_stats_overview.reset_counters")) print[[
+         <button id='btn_reset_all' type='button' class='btn btn-secondary' onclick='resetInterfaceCounters(false);'>]] print(i18n("if_stats_overview.all_counters")) print[[</button>&nbsp;
+
+         <button id='btn_reset_drops' type='button' class='btn btn-secondary' onclick='resetInterfaceCounters(true);'>]] print(i18n("if_stats_overview.drops_only")) print[[</button>
+      </div>
+
     </div>
 
   <script type='text/javascript'>
@@ -163,6 +169,27 @@ $("#table-system-interfaces-stats").datatable({
                                 "column_engaged_alerts": NtopUtils.addCommas});
    },
 });
+
+var resetInterfaceCounters = function(drops_only) {
+  var action = "reset_all";
+  if(drops_only) action = "reset_drops";
+  $.ajax({ type: 'post',
+    url: ']]
+print (ntop.getHttpPrefix())
+print [[/lua/reset_stats.lua',
+    data: {
+       ifid: 'all', 
+       resetstats_mode:  action, 
+       csrf: "]] print(ntop.getRandomCSRFValue()) print[["
+    },
+    success: function(rsp) {},
+    complete: function() {
+      /* reload the page to generate a new CSRF */
+      window.location.href = window.location.href;
+    }
+  });
+}
+
 </script>
  ]]
 
@@ -172,6 +199,6 @@ elseif(page == "internals") then
    -- internals_utils.printHashTablesTable(base_url)
 end
 
--- #######################################################
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+

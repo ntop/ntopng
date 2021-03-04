@@ -72,8 +72,9 @@ end
 
 local function drops_bar(fill_pct)
    local code = [[
-<div class="progress">
-  <div class="progress-bar bg-danger" role="progressbar" style="width: ]]..fill_pct..[[%;" aria-valuenow="]]..fill_pct..[[" aria-valuemin="0" aria-valuemax="100">]]..fill_pct..[[%</div>
+<div class="progress position-relative">
+  <div class="progress-bar bg-danger" role="progressbar" style="width: ]]..fill_pct..[[%;" aria-valuenow="]]..fill_pct..[[" aria-valuemin="0" aria-valuemax="100"></div>
+  <small class="justify-content-center d-flex position-absolute w-100">]]..fill_pct..[[%</small>
 </div>
 ]]
 
