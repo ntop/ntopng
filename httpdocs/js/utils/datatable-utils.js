@@ -350,13 +350,14 @@ class DataTableUtils {
 
             let button = (`
                 <a
-                    href='${action.href || action.modal}'
+                    ${ (action.href || action.modal) ? `href='${action.href || action.modal}'` : `` }
+                    ${ (action.onclick) ? `onclick='${action.onclick}'`: ``}
                     data-placement='bottom'
-                    ${action.modal ? "data-toggle='modal'" : ""}
+                    ${action.modal ? "data-toggle='modal'" : ``}
                     class='btn btn-sm ${action.class}'
-                    ${action.hidden ? "style='display: none'" : ''}
-                    ${action.external ? "target='_about'" : ""}
-                    ${action.title ? `title='${action.title}'` : ""}
+                    ${action.hidden ? "style='display: none'" : ``}
+                    ${action.external ? "target='_about'" : ``}
+                    ${action.title ? `title='${action.title}'` : ``}
                     >
                     <i class='fas ${action.icon}'></i>
                 </a>
