@@ -276,6 +276,7 @@ end
 
 -- ##############################################
 
+-- Create a new pool (unless it already exists)
 function pools:add_pool(name, members, recipients)
     local pool_id
 
@@ -287,7 +288,9 @@ function pools:add_pool(name, members, recipients)
 
             -- Check if duplicate names exist
             local same_name_pool = self:get_pool_by_name(name)
-            if same_name_pool then checks_ok = false end
+            if same_name_pool then
+	      checks_ok = false
+            end
 
             -- Check if members are valid
             if not self:are_valid_members(members) then
@@ -331,6 +334,57 @@ end
 
 -- ##############################################
 
+-- Add members and recipients (merge) to an existing pool
+function pools:add_to_pool(name, members, recipients)
+   local ret = true
+   local err = pools.ERRORS.NO_ERROR
+
+   if name then
+
+      local locked = self:_lock()
+      if locked then
+
+         -- Check if pool exists
+         local pool_details = self:get_pool_by_name(name)
+         if pool_details then
+            local pool_id = pool_details.pool_id
+
+            -- Add members
+            if members then
+               for _, member in pairs(members) do
+                  local retm, errm = self:bind_member_if_not_already_bound(member, pool_id, true)
+	          if not retm then
+	             ret = retm
+		     err = errm
+		  end
+	       end
+            end
+
+	    -- Add recipients
+	    if recipients then
+	       for _, recipient_id in pairs(recipients) do
+                  -- Check if recipient is valid
+                  if self:is_valid_recipient(recipient_id) then
+                     local retr, errr = self:_bind_recipient(recipient_id, pool_id)
+	             if not retm then
+	                ret = retr
+		        err = errr
+	             end
+		  end
+               end
+	    end
+         end
+
+         self:_unlock()
+      end
+   end
+
+   return ret, err
+end
+
+-- ##############################################
+
+-- Overwrite the pool name, members and recipients
 function pools:edit_pool(pool_id, new_name, new_members, new_recipients)
     local ret = false
 
@@ -519,7 +573,9 @@ function pools:get_pool_by_name(name)
         local pool_details = self:get_pool(pool_id)
 
         if pool_details and pool_details["name"] and pool_details["name"] ==
-            name then return pool_details end
+            name then
+	   return pool_details
+        end
     end
 
     return nil
@@ -810,17 +866,59 @@ end
 
 -- ##############################################
 
+-- @brief Bind a recipient to a pool
+--        PRIVATE FUNCTION, not to be called outside this class
+--        The caller must lock
+function pools:_bind_recipient(recipient_id, pool_id)
+   local ret, err = false, pools.ERRORS.GENERIC
+
+   -- ASSIGN the recipient to the pool with `pool_id`
+   local bind_pool = self:get_pool(pool_id, false)
+
+   if bind_pool then
+      -- Members stay the same
+      local bind_pool_members = bind_pool["members"]
+
+      -- Recipients are all pool recipients plus the recipient which is being bound
+      local bind_pool_recipients = {}
+      local already_present = false
+      for _, recipient in pairs(bind_pool["recipients"] or {}) do
+         bind_pool_recipients[#bind_pool_recipients + 1] = recipient.recipient_id
+	 if recipient.recipient_id == recipient_id then
+            already_present = true
+         end
+      end
+
+      if not already_present then
+         bind_pool_recipients[#bind_pool_recipients + 1] = recipient_id
+
+      -- Persist the pool with the new `recipient`
+         self:_persist(bind_pool["pool_id"], bind_pool["name"],
+                       bind_pool_members, bind_pool_recipients)
+      end
+
+      -- Bind has executed successfully
+      ret, err = true, pools.ERRORS.NO_ERROR
+   end
+
+   return ret, err
+end
+
+-- ##############################################
+
 -- @brief Bind a member to a pool
 --        PRIVATE FUNCTION, not to be called outside this class
 --        The caller must lock and must check the member doesn't belong to
 --        any other pool apart from pool_id, before calling
 function pools:_bind_member(member, pool_id)
-    local ret, err = false, pools.ERRORS.GENERIC
+    local ret = false
+    local err = pools.ERRORS.GENERIC
 
     -- ASSIGN the member to the pool with `pool_id`
     -- Note: If the pool_id is pools.DEFAULT_POOL_ID, then `member` is not associated to any pool, it's safe to just return
     if tonumber(pool_id) == pools.DEFAULT_POOL_ID then
-        ret, err = true, pools.ERRORS.NO_ERROR
+        ret = true
+	err = pools.ERRORS.NO_ERROR
     else
         local bind_pool = self:get_pool(pool_id, false)
 
@@ -840,7 +938,8 @@ function pools:_bind_member(member, pool_id)
                           bind_pool_members, bind_pool_recipients)
 
             -- Bind has executed successfully
-            ret, err = true, pools.ERRORS.NO_ERROR
+            ret = true
+	    err = pools.ERRORS.NO_ERROR
         end
     end
 
@@ -901,14 +1000,17 @@ end
 
 -- @brief Bind `member` to pool identified with `pool_id`. If the member is already bound to another pool
 --        then nothing is done and an error is returned
-function pools:bind_member_if_not_already_bound(member, pool_id)
+function pools:bind_member_if_not_already_bound(member, pool_id, already_locked)
     local ret, err = false, pools.ERRORS.GENERIC
 
     if not self:is_valid_member(member) then
         return false, pools.ERRORS.INVALID_MEMBER
     end
 
-    local locked = self:_lock()
+    local locked = already_locked
+    if not locked then
+       locked = self:_lock()
+    end
 
     if locked then
         local assigned_members = self:get_assigned_members()
@@ -926,7 +1028,9 @@ function pools:bind_member_if_not_already_bound(member, pool_id)
             ret, err = self:_bind_member(member, pool_id)
         end
 
-        self:_unlock()
+	if not already_locked then
+           self:_unlock()
+	end
     end
 
     return ret, err

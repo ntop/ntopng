@@ -84,6 +84,15 @@ function pool_import_export:import(conf)
                pool_conf.members,
                recipients_ids
             )
+
+	    if not new_pool_id then
+	       -- Pool not created, it is likely it exists already,
+	       -- trying importing/merging members and recipients
+	       local ret, err = pool_instance:add_to_pool(
+	          pool_conf.name,
+		  pool_conf.members,
+		  recipients_ids)
+	    end
          end
       end
    end
