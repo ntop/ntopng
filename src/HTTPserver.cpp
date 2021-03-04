@@ -1129,7 +1129,7 @@ static int handle_lua_request(struct mg_connection *conn) {
      || (strcmp(request_info->uri, "/") == 0)) {
     /* Lua Script */
     char path[255] = { 0 }, uri[2048];
-	struct stat buf;
+    struct stat buf;
     bool found;
 
     if(strstr(request_info->uri, "/lua/pro")
@@ -1167,7 +1167,32 @@ static int handle_lua_request(struct mg_connection *conn) {
 	snprintf(&path[strlen(path)], sizeof(path) - strlen(path) - 1, "%s", (char*)".lua");
 
       ntop->fixPath(path);
-      found = ((stat(path, &buf) == 0) && (S_ISREG(buf.st_mode))) ? true : false;
+
+      /* 
+	 Check if the file exists, and if the strlen of path is less than the actual
+	 number of chars it can contain.
+
+	 Check on the strlen prevents limited autentication bypass, e.g.,
+
+	 curl "http://localhost:3001/lua//.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2f.%2fdo_export_data.lua.css?ifid=0&mode=all"
+
+	 That yields a path of:
+
+	 04/Mar/2021 17:42:40 [HTTPserver.cpp:1278] [PATH] [/home/simone/ntopng/scripts/lua/././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././do_export_data.lua][254]
+
+	 That is valid and thus processed, causing limited auth bypass. Note that this attack is ineffective for:
+
+	 1. Admin pages that checks for isAdministrator() - indeed, no session is used so no admin user is associated to the session
+	 2. Pages that modify the status of ntopng that require a valid CSRF token.
+
+	 Auth bypass is only for non-admin pages that don't modify ntopng status.
+       */
+
+      if(strlen(path) < sizeof(path) - 1
+	 && (stat(path, &buf) == 0 && S_ISREG(buf.st_mode)))
+	found = true;
+      else
+	found = false;
     }
 
     if(found) {
