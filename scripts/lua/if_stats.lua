@@ -427,7 +427,7 @@ print(
 			 title   = i18n("reset_if_title"),
 			 message = i18n("reset_if_message"),
 			 confirm = i18n("reset"),
-			 confirm_button = "btn-warning",
+			 confirm_button = "btn-danger",
 		      }
       })
 )
@@ -440,7 +440,7 @@ print(
 			 title   = i18n("reset_drops_if_title"),
 			 message = i18n("reset_drops_if_message"),
 			 confirm = i18n("reset"),
-			 confirm_button = "btn-warning",
+			 confirm_button = "btn-danger",
 		      }
       })
 )
@@ -951,9 +951,9 @@ print[[
 	 tot = tot + ifstats.stats.flow_export_count + ifstats.stats.flow_export_drops
       end
 
-      print('<button id="btn_reset_all" type="button" class="btn btn-secondary" onclick="resetInterfaceCounters(false);">'..i18n("if_stats_overview.all_counters")..'</button>&nbsp;')
+      print('<button id="btn_reset_all" type="button" class="btn btn-danger" onclick="resetInterfaceCounters(false);">'..i18n("if_stats_overview.all_counters")..'</button>&nbsp;')
 
-      print('<button id="btn_reset_drops" type="button" class="btn btn-secondary" onclick="resetInterfaceCounters(true);">'..i18n("if_stats_overview.drops_only")..'</button>')
+      print('<button id="btn_reset_drops" type="button" class="btn btn-danger" onclick="resetInterfaceCounters(true);">'..i18n("if_stats_overview.drops_only")..'</button>')
       print("</td>")
 
       print("</tr>\n")

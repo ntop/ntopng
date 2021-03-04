@@ -38,7 +38,7 @@ print(
 			 title   = i18n("reset_ifs_title"),
 			 message = i18n("reset_ifs_message"),
 			 confirm = i18n("reset"),
-			 confirm_button = "btn-warning",
+			 confirm_button = "btn-danger",
 		      }
       })
 )
@@ -51,7 +51,7 @@ print(
 			 title   = i18n("reset_drops_ifs_title"),
 			 message = i18n("reset_drops_ifs_message"),
 			 confirm = i18n("reset"),
-			 confirm_button = "btn-warning",
+			 confirm_button = "btn-danger",
 		      }
       })
 )
@@ -81,9 +81,9 @@ if(page == "overview") then
         <div id="table-system-interfaces-stats"></div>
       </div>
       <div class='card-footer w-250'>]] print(i18n("if_stats_overview.reset_counters")) print[[
-         <button id='btn_reset_all' type='button' class='btn btn-secondary' onclick='resetInterfaceCounters(false);'>]] print(i18n("if_stats_overview.all_counters")) print[[</button>&nbsp;
+         <button id='btn_reset_all' type='button' class='btn btn-danger' onclick='resetInterfaceCounters(false);'>]] print(i18n("if_stats_overview.all_counters")) print[[</button>&nbsp;
 
-         <button id='btn_reset_drops' type='button' class='btn btn-secondary' onclick='resetInterfaceCounters(true);'>]] print(i18n("if_stats_overview.drops_only")) print[[</button>
+         <button id='btn_reset_drops' type='button' class='btn btn-danger' onclick='resetInterfaceCounters(true);'>]] print(i18n("if_stats_overview.drops_only")) print[[</button>
       </div>
 
     </div>
