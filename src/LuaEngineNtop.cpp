@@ -3047,6 +3047,24 @@ static int ntop_is_allowed_network(lua_State* vm) {
   return(CONST_LUA_OK);
 }
 
+
+/* ****************************************** */
+
+static int ntop_is_local_interface_address(lua_State* vm) {
+  char *host;
+  IpAddress ipa;
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+
+  host = (char*)lua_tostring(vm, 1);
+  ipa.set(host);
+
+  /* Check if this IP address is local to this machine */
+  lua_pushboolean(vm, ipa.isLocalInterfaceAddress());
+
+  return(CONST_LUA_OK);
+}
+
 /* ****************************************** */
 
 static int ntop_get_resolved_address(lua_State* vm) {
@@ -5825,6 +5843,7 @@ static luaL_Reg _ntop_reg[] = {
   { "getCookieAttributes", ntop_get_cookie_attributes },
   { "isAllowedInterface",  ntop_is_allowed_interface },
   { "isAllowedNetwork",    ntop_is_allowed_network },
+  { "isLocalInterfaceAddress", ntop_is_local_interface_address },
   { "md5",              ntop_md5 },
   { "hasRadiusSupport", ntop_has_radius_support },
   { "hasLdapSupport",   ntop_has_ldap_support },
