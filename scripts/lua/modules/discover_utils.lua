@@ -3,7 +3,7 @@
 --
 
 local json = require "dkjson"
-
+local page_utils = require "page_utils"
 require "xmlSimple"
 
 local discover = {}
@@ -1016,7 +1016,26 @@ end
 local function analyzeSSDP(ssdp)
    local rsp = {}
 
+   -- Cleanup to avoid SSRF:
+   -- - Don't be tricked into issuing queries to ourselves
+   -- - Only query the same IP of the one that has been discovered
+   for url, host in pairs(ssdp) do
+      if ntop.isLocalInterfaceAddress(host) then
+	 -- No queries to ourselves
+	 ssdp[url] = nil
+      end
+
+      if not url:starts("http://"..host) and not url:starts("https://"..host) then
+	 -- Not using HTTP or HTTPs, or the host is telling us to contact
+	 -- another host different from itself. Skip to avoid SSRF
+	 ssdp[url] = nil
+      end
+   end
+
+   -- NOTE: use page_utils.safe_html to protect agains malicious SSDP responses trying to inject code
    for url,host in pairs(ssdp) do
+      url = ntop.httpPurifyParam(url) -- Cleanup against XSS
+
       local hresp = ntop.httpGet(url, "", "", 3 --[[ seconds ]])
       local manufacturer = ""
       local modelDescription = ""
@@ -1033,13 +1052,13 @@ local function analyzeSSDP(ssdp)
 	 if(r.root ~= nil) then
 	    if(r.root.device ~= nil) then
 	       if(r.root.device.friendlyName ~= nil) then
-		  friendlyName = r.root.device.friendlyName:value()
+		  friendlyName = page_utils.safe_html(r.root.device.friendlyName:value())
 	       end
 	       if(r.root.device.modelName ~= nil) then
-		  modelName = r.root.device.modelName:value()
+		  modelName = page_utils.safe_html(r.root.device.modelName:value())
 	       end
 	       if(r.root.device.modelDescription ~= nil) then
-		  modelDescription = r.root.device.modelDescription:value()
+		  modelDescription = page_utils.safe_html(r.root.device.modelDescription:value())
 	       end
 	    end
 	 end
@@ -1047,7 +1066,7 @@ local function analyzeSSDP(ssdp)
 	 if(r.root ~= nil) then
 	    if(r.root.device ~= nil) then
 	       if(r.root.device.manufacturer ~= nil) then
-		  manufacturer = r.root.device.manufacturer:value()
+		  manufacturer = page_utils.safe_html(r.root.device.manufacturer:value())
 	       end
 
 	       if(r.root.device.serviceList ~= nil) then
@@ -1056,7 +1075,7 @@ local function analyzeSSDP(ssdp)
 
 		  for k,v in pairs(serviceList) do
 		     if(v.serviceId ~= nil) then
-			local value = v.serviceId:value()
+			local value = page_utils.safe_html(v.serviceId:value())
 			if(value ~= nil) then
 			   if(discover.debug) then io.write(value.."\n") end
 
@@ -1101,7 +1120,7 @@ local function analyzeSSDP(ssdp)
 				 base_url = base_url .. "/"
 			      end
 
-			      icon = "<img src="..base_url..v.url:value()..">"
+			      icon = "<img src="..ntop.httpPurifyParam(base_url..v.url:value())..">"
 			      -- io.write(icon.."\n")
 			      lastwidth = width -- Pick the smallest icon
 			   end
