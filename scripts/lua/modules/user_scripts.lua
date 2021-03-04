@@ -1150,7 +1150,7 @@ end
 
 function user_scripts.createOrReplaceConfigset(configset)
    -- Skip configurations other then the only one supported (others are deprecated)
-   if configset.id ~= user_scripts.DEFAULT_CONFIGSET_ID then
+   if configset.id and configset.id ~= user_scripts.DEFAULT_CONFIGSET_ID then
       return false
    end
 

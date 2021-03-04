@@ -45,18 +45,20 @@ function scripts_import_export:import(conf)
       return res
    end
 
-   if conf["0"] == nil then
+   local config_set = conf["0"]
+
+   if config_set == nil then
       res.err = rest_utils.consts.err.bad_content
       return res
    end
 
-   for config_id, config_set in pairs(conf) do
-      if config_set.name ~= nil then
-         local success = user_scripts.createOrReplaceConfigset(config_set)
-         if not success then
-            res.err = rest_utils.consts.err.internal_error
-         end
-      end
+   -- Import the default config_set only (others are deprecated)
+   -- This used to be: for config_id, config_set in pairs(conf) do
+
+   local success = user_scripts.createOrReplaceConfigset(config_set)
+
+   if not success then
+      res.err = rest_utils.consts.err.internal_error
    end
 
    if not res.err then
