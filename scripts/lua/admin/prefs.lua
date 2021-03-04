@@ -264,13 +264,13 @@ function printAlerts()
   print('><th colspan=2 class="info">'..i18n("prefs.alerts_retention")..'</th></tr></thead>')
 
   prefsInputFieldPrefs(subpage_active.entries["max_num_alerts_per_entity"].title, subpage_active.entries["max_num_alerts_per_entity"].description,
-        "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
-
+		       "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
+  
   prefsInputFieldPrefs(subpage_active.entries["max_num_flow_alerts"].title, subpage_active.entries["max_num_flow_alerts"].description,
         "ntopng.prefs.", "max_num_flow_alerts", prefs.max_num_flow_alerts, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
 
   prefsInputFieldPrefs(subpage_active.entries["max_num_days_before_delete_alert"].title, subpage_active.entries["max_num_days_before_delete_alert"].description,
-        "ntopng.prefs.", "max_num_days_before_delete_alert", prefs.max_num_days_before_delete_alert, "number", showElements, false, nil, {min=1, max=365 --[[ TODO check min/max ]], tformat="d"})
+        "ntopng.prefs.", "max_num_days_before_delete_alert", prefs.max_num_days_before_delete_alert, "number", showElements, false, nil, {min=1, tformat="d"--[[ TODO check min/max ]]})
 
   print('<tr><th colspan=2 style="text-align:right;">')
   print('<button class="btn btn-secondary" type="button" onclick="$(\'#flushAlertsData\').modal(\'show\');" style="width:230px; float:left;">'..i18n("show_alerts.reset_alert_database")..'</button>')

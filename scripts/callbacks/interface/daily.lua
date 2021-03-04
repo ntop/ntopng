@@ -46,7 +46,9 @@ end
 
 -- Deletes old alerts; alerts older then, by default, 365 days ago
 if prefs ~= nil then
-   alert_utils.deleteOldData(interface_id, os.time() - (86500 * tonumber(prefs.max_num_days_before_delete_alert)))
+   local num_seconds = ntop.getPref("ntopng.prefs.max_num_days_before_delete_alert")
+
+   alert_utils.deleteOldData(interface_id, os.time() - num_seconds)
 end
 
 -- ###########################################

@@ -121,7 +121,7 @@ end
 
 local has_pcap_dump_interface = false
 
-local function cleanupIfname(ifname)
+local function cleanupIfname(ifname, ifid)
    interface.select(ifname)
    local ifid = getInterfaceId(ifname)
 
@@ -132,6 +132,13 @@ local function cleanupIfname(ifname)
    local alerts_status_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/json/")
    ntop.rmdir(alerts_status_path)
 
+   if ifid then
+      local num_seconds = ntop.getPref("ntopng.prefs.max_num_days_before_delete_alert") or 0
+      
+      -- Remove the alerts older then the time selected
+      alert_utils.deleteOldData(tonumber(ifid), os.time() - num_seconds)
+   end
+   
    -- Remove the active devices and pools keys
    alert_utils.deleteActiveDevicesKey(ifid)
    alert_utils.deleteActivePoolsKey(ifid)
@@ -145,10 +152,11 @@ local function cleanupIfname(ifname)
 end
 
 -- Remove the json dumps previously needed for alerts generation
-for _, ifname in pairs(interface.getIfNames()) do
-   cleanupIfname(ifname)
+for ifid, ifname in pairs(interface.getIfNames()) do
+   cleanupIfname(ifname, ifid)
 end
-cleanupIfname(getSystemInterfaceName())
+
+cleanupIfname(getSystemInterfaceName(), getSystemInterfaceId())
 
 -- Also flush the export queue
 ntop.delCache("ntopng.influx_file_queue")
