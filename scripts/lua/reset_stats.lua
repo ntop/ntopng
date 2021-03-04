@@ -21,7 +21,7 @@ local res = { ["status"] = "ok" }
 local function reset_stats(ifids)
    interface.select(ifids)
       
-   if haveAdminPrivileges() then
+   if isAdministrator() then
       if action == "reset_drops" then
 	 interface.resetCounters(true --[[ reset only drops --]])
       elseif action == "reset_all" then

@@ -418,6 +418,33 @@ page_utils.print_navbar(title, url,
 			   }
    )
 
+
+print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "reset_stats_dialog",
+			 action  = "resetCounters(false)",
+			 title   = i18n("reset_if_title"),
+			 message = i18n("reset_if_message"),
+			 confirm = i18n("reset"),
+			 confirm_button = "btn-warning",
+		      }
+      })
+)
+
+print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "reset_drops_dialog",
+			 action  = "resetCounters(true)",
+			 title   = i18n("reset_drops_if_title"),
+			 message = i18n("reset_drops_if_message"),
+			 confirm = i18n("reset"),
+			 confirm_button = "btn-warning",
+		      }
+      })
+)
+
 if((page == "overview") or (page == nil)) then
    local tags = {ifid = ifstats.id}
    print("<div class='table-responsive-xl'>")
@@ -2266,8 +2293,7 @@ if ifstats.stats.discarded_probing_packets then
 end
 
 print [[
-
-var resetInterfaceCounters = function(drops_only) {
+function resetCounters(drops_only) {
   var action = "reset_all";
   if(drops_only) action = "reset_drops";
   $.ajax({ type: 'post',
@@ -2281,6 +2307,13 @@ print [[/lua/reset_stats.lua',
       window.location.href = window.location.href;
     }
   });
+}
+
+var resetInterfaceCounters = function(drops_only) {
+  if(drops_only) 
+    $('#reset_drops_dialog').modal('show');
+  else
+    $('#reset_stats_dialog').modal('show');
 }
 
 setInterval(function() {

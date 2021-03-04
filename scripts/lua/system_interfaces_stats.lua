@@ -10,6 +10,8 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 local page_utils = require("page_utils")
 local internals_utils = require "internals_utils"
+local template = require "template_utils"
+
 
 if not isAllowedSystemInterface() then
    return
@@ -27,6 +29,33 @@ local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?ifid="..interface.getId()
 local info = ntop.getInfo()
 local title = i18n("system_interfaces_status")
+
+print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "reset_stats_dialog",
+			 action  = "resetCounters(false)",
+			 title   = i18n("reset_ifs_title"),
+			 message = i18n("reset_ifs_message"),
+			 confirm = i18n("reset"),
+			 confirm_button = "btn-warning",
+		      }
+      })
+)
+
+print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "reset_drops_dialog",
+			 action  = "resetCounters(true)",
+			 title   = i18n("reset_drops_ifs_title"),
+			 message = i18n("reset_drops_ifs_message"),
+			 confirm = i18n("reset"),
+			 confirm_button = "btn-warning",
+		      }
+      })
+)
+
 
 page_utils.print_navbar(title, url,
 			{
@@ -170,7 +199,7 @@ $("#table-system-interfaces-stats").datatable({
    },
 });
 
-var resetInterfaceCounters = function(drops_only) {
+function resetCounters(drops_only) {
   var action = "reset_all";
   if(drops_only) action = "reset_drops";
   $.ajax({ type: 'post',
@@ -188,6 +217,13 @@ print [[/lua/reset_stats.lua',
       window.location.href = window.location.href;
     }
   });
+}
+
+var resetInterfaceCounters = function(drops_only) {
+  if(drops_only) 
+    $('#reset_drops_dialog').modal('show');
+  else
+    $('#reset_stats_dialog').modal('show');
 }
 
 </script>
