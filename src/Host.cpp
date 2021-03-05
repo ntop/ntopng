@@ -636,6 +636,9 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_get_num_contacts(vm);
   lua_get_num_http_hosts(vm);
 
+  lua_push_float_table_entry(vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
+  lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
+  
   luaDNS(vm, verbose);
   luaTCP(vm);
   luaICMP(vm, get_ip()->isIPv4(), false);

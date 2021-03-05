@@ -141,6 +141,14 @@ local function processHost(hostname, host)
                 r = host["active_alerted_flows"]
             }
         end
+    elseif (bubble_mode == HostsMapMode.TRAFFIC_RATIO) then
+       line = {
+	  link = hostname,
+	  label = label,
+	  x = host["bytes_ratio"],
+	  y = host["pkts_ratio"],
+	  r = host["bytes.sent"] + host["bytes.rcvd"]
+       }
     end
 
     if (line ~= nil) then
