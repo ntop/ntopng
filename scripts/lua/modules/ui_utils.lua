@@ -10,7 +10,6 @@ local template_utils = require("template_utils")
 
 local ui_utils = {}
 
-
 function ui_utils.render_configuration_footer(item)
     return template_utils.gen('pages/components/manage-configuration-link.template', {item = item})
 end
@@ -63,9 +62,13 @@ function ui_utils.render_pools_dropdown(pools_instance, member, key)
 end
 
 function ui_utils.create_navbar_title(title, subpage, title_link)
-
     if isEmptyString(subpage) then return title end
     return "<a href='".. title_link .."'>".. title .. "</a>&nbsp;/&nbsp;<span>"..subpage.."</span>"
+end
+
+--- Shortcut function to print a togglw switch inside the requested page
+function ui_utils.print_toggle_switch(context)
+    print(template_utils.gen("on_off_switch.html", context))
 end
 
 return ui_utils
