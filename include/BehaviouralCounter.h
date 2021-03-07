@@ -90,7 +90,8 @@ class HWCounter : public BehaviouralCounter {
   struct ndpi_hw_struct hw;
 
  public:
-  HWCounter(u_int16_t num_learning_observations = 10, double alpha = 0.5, double beta = 0.5, double gamma = 0.1)
+  HWCounter(u_int16_t num_learning_observations = 1 /* Basically smoothing without seasonality */,
+	    double alpha = 0.7, double beta = 0.7, double gamma = 0.9)
     : BehaviouralCounter(num_learning_observations) {
     if(ndpi_hw_init(&hw, num_learning_observations, 1 /* additive */, alpha, beta, gamma, 0.05 /* 95% */) != 0)
       throw "Error while creating HW";
