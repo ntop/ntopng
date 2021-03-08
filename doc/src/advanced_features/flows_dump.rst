@@ -32,8 +32,10 @@ No additional configuration is required as this is natively supported, and flows
 endpoint is required. The nIndex flows dump and instructions to extract data are described in detail in the 
 :ref:`Historical Flows` section.
 
-nIndex is an high-performance network-oriented database, however please note that, when collecting from a ZMQ
-interface, flows are processed by ntopng before dumping them to disk, and this is sometimes limiting the performance
+nIndex is an high-performance file-based network-oriented database, that stores data into the ntopng data directory (e.g. /var/lib/ntopng).
+When enabling it please make sure you have enough disk space on the partition where such directory resides.
+Flows are dumped on the ntopng end, meaning that in case they are receoved on a ZMQ interface, flows are processed by ntopng before dumping them to disk,
+and this is sometimes limiting the performance
 in case of an high number of flows per second. In this case the flow dump performance can be further increased
 by enabling the *direct* mode. The drawback with this mode is that flows are dumped as soon as they are collected,
 before any processing, thus less flow details will be available in the dump as flows are not augmented by ntopng.
