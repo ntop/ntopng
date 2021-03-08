@@ -49,12 +49,18 @@ function http_bridge_conf_utils.configureBridge()
       -- EXAMPLE RESPONSE STRUCTURE:
       local rsp = {
 	 -- ["users"] = {
+         --    ["Not Assigned"] = {
+	 --       ["default_policy"] = "drop",
+         --       ["policies"] = {
+	 -- 	     ["ConnectivityCheck"] = "pass"
+	 --       }
+	 --    },
 	 --    ["maina"] = {
 	 --       ["full_name"] = "Maina Fast",
 	 --       ["password"] = "ntop0101",
 	 --       ["default_policy"] = "pass",
 	 --       ["policies"] = {
-	 -- 	  [10] = "slow_pass", ["Facebook"] = "slower_pass",  ["YouTube"] = "drop"
+	 -- 	     [10] = "slow_pass", ["Facebook"] = "slower_pass",  ["YouTube"] = "drop"
 	 --       }
 	 --    },
 	 --    ["simon"] = {
@@ -62,7 +68,7 @@ function http_bridge_conf_utils.configureBridge()
 	 --       ["password"] = "ntop0202",
 	 --       ["default_policy"] = "drop",
 	 --       ["policies"] = {
-	 -- 	  ["MyCustomProtocol"]="pass", [20] = "slow_pass", [22] = "slower_pass"
+	 -- 	     ["MyCustomProtocol"]="pass", [20] = "slow_pass", [22] = "slower_pass"
 	 --       }
 	 --    }
 	 -- }
@@ -85,10 +91,17 @@ function http_bridge_conf_utils.configureBridge()
 	 end
       end
 
+      -- Read supported protocols
       local ndpi_protocols = {}
       for proto_name, proto_id in pairs(interface.getnDPIProtocols()) do
 	 -- case-insensitive
 	 ndpi_protocols[string.lower(proto_name)] = proto_id
+      end
+
+      -- Read supported categories
+      local ndpi_categories = {}
+      for cat_name, cat_id in pairs(interface.getnDPICategories()) do
+	 ndpi_categories[string.lower(cat_name)] = cat_id
       end
 
       local nedge_shapers = {}
@@ -120,26 +133,34 @@ function http_bridge_conf_utils.configureBridge()
 
 	       for proto, policy in pairs(user_config["policies"] or {}) do
 		  local proto_name = proto
+		  local proto_id_or_category = proto
+
 		  policy = nedge_shapers[string.lower(policy)]
 
-		  if tonumber(proto) == nil then
-		     if not ndpi_protocols[string.lower(proto)] then
-			host_pools_nedge.traceHostPoolEvent(TRACE_ERROR, ifname..": unable to find protocol '"..proto.."' among known protocols for user: "..username.. " pool id: "..pool_id)
+		  if tonumber(proto_id_or_category) == nil then
+		     -- proto_id_or_category is not a proto id, check for proto name or category
+		     local lowercase_name = string.lower(proto)
+
+		     if ndpi_protocols[lowercase_name] then
+			proto_id_or_category = ndpi_protocols[lowercase_name]
+			proto_name = string.format("Protocol %s/%d", proto, ndpi_protocols[lowercase_name])
+		     else if ndpi_categories[lowercase_name] then
+                        proto_id_or_category = "cat_"..ndpi_categories[lowercase_name]
+			proto_name = string.format("Category %s/%d", proto, ndpi_categories[lowercase_name])
 		     else
-			proto_name = string.format("%s/%d", proto, ndpi_protocols[string.lower(proto)])
-			proto = ndpi_protocols[string.lower(proto)]
+			host_pools_nedge.traceHostPoolEvent(TRACE_ERROR, ifname..": unable to find protocol '"..proto.."' among known protocols for user: "..username.. " pool id: "..pool_id)
+                        proto_id_or_category = nil
 		     end
 		  end
 
-		  if policy and tonumber(proto) ~= nil then
+		  if policy and proto_id_or_category then
 		     if (policy.name == "DEFAULT") and no_quota then
-			shaper_utils.deleteProtocol(ifid, pool_id, proto)
+			shaper_utils.deleteProtocol(ifid, pool_id, proto_id_or_category)
 		     else
-			shaper_utils.setProtocolShapers(ifid, pool_id, proto,
+			shaper_utils.setProtocolShapers(ifid, pool_id, proto_id_or_category,
 							policy.id, policy.id,
 							0 --[[traffic_quota--]], 0--[[time_quota--]])
-			host_pools_nedge.traceHostPoolEvent(TRACE_NORMAL, ifname..": setting protocol '"..proto_name.."' policy '"..policy.name.."' for user: "..username.. " pool id: "..pool_id)
-			-- tprint({proto=proto, name = interface.getnDPIProtoName(tonumber(proto)), pool_id=pool_id, policy_id=policy.id})
+			host_pools_nedge.traceHostPoolEvent(TRACE_NORMAL, ifname..": setting '"..proto_name.."' policy '"..policy.name.."' for user: "..username.. " pool id: "..pool_id)
 		     end
 		  end
 	       end
