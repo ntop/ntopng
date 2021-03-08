@@ -108,7 +108,7 @@ page_utils.menu_entries = {
    service_map            = {key = "service_map", i18n_title="service", section = "maps", visible_iface = true, visible_system = false},
    periodicity_map        = {key = "periodicity_map", i18n_title="periodicity", section = "maps", visible_iface = true, visible_system = false},
    geo_map                = {key = "geo_map", i18n_title = "geo_map.geo_map", section = "maps", visible_iface = true, help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#geo-map"},
-   hosts_map              = {key = "hosts_map", i18n_title = "hosts_map", section = "maps", visible_iface = true},
+   hosts_map              = {key = "hosts_map", i18n_title = "flows_page.hosts", section = "maps", visible_iface = true},
    
    -- Settings
    nedge_users            = {key = "nedge_users", i18n_title = "manage_users.manage_users", section = "admin", help_link = "https://www.ntop.org/guides/nedge/users.html#"},
