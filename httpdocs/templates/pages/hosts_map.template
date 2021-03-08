@@ -2,7 +2,7 @@
     (C) 2021 - ntop.org
 #}
 <script type="text/javascript" src="/js/Chart.bundle.min.js"></script>
-<script type='text/javascript' src='/js/widgets/widgets.js'></script>
+<script type='text/javascript' src='/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
 <div class="row">
     <div class="col-12">
