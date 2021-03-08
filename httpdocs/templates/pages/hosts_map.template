@@ -9,7 +9,10 @@
         <div class="card">
             <div class="card-body">
                 <div class='d-flex align-items-center justify-content-end mb-3'>
-                    <select style="width: 12rem;" class="form-control" id="select-bubble-mode">
+                    <label class="my-auto mr-1">
+                        {{ i18n("filter") }}:
+                    </label>
+                    <select style="width: 16rem;" class="form-control" id="select-bubble-mode">
                         {* hosts_map.select_options *}
                     </select>
                 </div>

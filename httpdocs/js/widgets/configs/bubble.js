@@ -45,12 +45,15 @@ export default {
             }
         },
         onClick: function(e) {
+            
             const element = this.getElementAtEvent(e);
+            const httpPrefix = http_prefix || location.origin;
+
             // if you click on at least 1 element ...
             if (element.length > 0) {
                 const dataset = this.config.data.datasets[element[0]._datasetIndex];
                 const data = dataset.data[element[0]._index];
-                window.location.href = http_prefix + dataset.baseUrl + data.link; // Jump to this host
+                window.location.href = new URL(dataset.baseUrl + data.link, httpPrefix).toString(); // Jump to this host
             }
         },
     }
