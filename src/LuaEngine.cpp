@@ -900,16 +900,13 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   if((strcmp(request_info->request_method, "POST") == 0) && (content_type != NULL)) {
     int content_len = mg_get_content_len(conn) + 1;
 
-    if (content_len > HTTP_MAX_POST_DATA_LEN)
-      content_len = HTTP_MAX_POST_DATA_LEN;
-
-    if((post_data = (char*)malloc(content_len * sizeof(char))) == NULL
-       || (post_data_len = mg_read(conn, post_data, content_len)) == 0) {
-      valid_csrf = 0;
-    } else if(post_data_len > content_len - 1) {
+    if (content_len > HTTP_MAX_POST_DATA_LEN) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
-				   "Too much data submitted with the form. [post_data_len: %u]",
-				   post_data_len);
+				   "Too much data submitted with the form. [data len: %u][max len: %u]",
+				   content_len, HTTP_MAX_POST_DATA_LEN);
+      valid_csrf = 0;
+    } else if((post_data = (char*)malloc(content_len * sizeof(char))) == NULL
+              || (post_data_len = mg_read(conn, post_data, content_len)) == 0) {
       valid_csrf = 0;
     } else {
       post_data[post_data_len] = '\0';

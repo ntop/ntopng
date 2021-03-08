@@ -3143,6 +3143,7 @@ local lang = {
       ["title"] = "Import <span class='selected-item'>%{import_element}</span> Configuration",
     },
     ["messages"] = {
+      ["import_all_success"] = "Configuration imported successfully. Please <b>restart %{product}</b> to make the imported configuration effective.",
       ["import_success"] = "The selected configuration has been imported successfully!",
       ["reset_all_success"] = "Factory reset request issued successfully. Please <b>restart %{product}</b> to make the configuration factory reset effective.",
       ["reset_success"] = "The selected configuration has been reset successfully!",

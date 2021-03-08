@@ -797,12 +797,18 @@ class NtopUtils {
 							params.successCallback(response);
 						}
 
+					        const key = $(`input[name='configuration']:checked`).val();
+
+					        const body = (key == 'all')
+					                ? i18n.manage_configurations.messagges.import_all_success
+							: i18n.manage_configurations.messagges.import_success;
+
 						// show a success alert message
 						ToastUtils.showToast({
 							id: 'import-configuration-alert',
 							level: 'success',
 							title: i18n.success,
-							body: i18n.manage_configurations.messagges.import_success,
+							body: body,
 							delay: 2000
 						});
 

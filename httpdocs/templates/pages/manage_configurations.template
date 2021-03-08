@@ -85,6 +85,7 @@
     i18n.manage_configurations.messagges.reset_success = "{{ i18n('manage_configurations.messages.reset_success') }}";
     i18n.manage_configurations.messagges.reset_all_success = "{* i18n('manage_configurations.messages.reset_all_success', {product=info.product})  *}";
     i18n.manage_configurations.messagges.import_success = "{{ i18n('manage_configurations.messages.import_success') }}";
+    i18n.manage_configurations.messagges.import_all_success = "{* i18n('manage_configurations.messages.import_all_success', {product=info.product}) *}";
 
 </script>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/manage-configurations.js?{{ ntop.getStaticFileEpoch() }}"></script>
