@@ -3682,15 +3682,18 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   int ndpi_proto, ndpi_cat;
   u_int16_t port;
   int16_t local_network_id;
-  u_int16_t vlan_id = 0, pool_filter, flow_status_filter;
+  u_int16_t vlan_id = 0, cli_pool, srv_pool, pool_filter, flow_status_filter;
   AlertLevelGroup flow_status_severity_filter = alert_level_group_none;
+  ndpi_patricia_node_t *srv_target_node = NULL, *cli_target_node = NULL;
+  IpAddress *cli_ip = (IpAddress *) f->get_srv_ip_addr();
+  IpAddress *srv_ip = (IpAddress *) f->get_cli_ip_addr();
   u_int8_t ip_version;
   u_int8_t l4_protocol;
   u_int8_t *mac_filter;
   LocationPolicy client_policy;
   LocationPolicy server_policy;
   TcpFlowStateFilter tcp_flow_state_filter;
-  bool unicast, unidirectional, alerted_flows;
+  bool unicast, unidirectional, alerted_flows, cli_pool_found = false, srv_pool_found = false;
   u_int32_t asn_filter;
   char* username_filter;
   char* pidname_filter;
@@ -3923,12 +3926,20 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 			    && !f->get_srv_ip_addr()->isMulticastAddress()
 			    && !f->get_srv_ip_addr()->isBroadcastAddress()))))
       return(false);
-
+    
+    if(cli_ip && !f->get_cli_host())
+      cli_pool_found = f->getInterface()->getHostPools()->findIpPool(cli_ip, f->get_vlan_id(), &cli_pool, &cli_target_node);
+  
+    if(srv_ip && !f->get_srv_host())
+      srv_pool_found = f->getInterface()->getHostPools()->findIpPool(srv_ip, f->get_vlan_id(), &srv_pool, &srv_target_node);
+    
     /* Pool filter */
     if(retriever->pag
        && retriever->pag->poolFilter(&pool_filter)
        && !((f->get_cli_host() && f->get_cli_host()->get_host_pool() == pool_filter)
-	      || (f->get_srv_host() && f->get_srv_host()->get_host_pool() == pool_filter)))
+	    || (f->get_srv_host() && f->get_srv_host()->get_host_pool() == pool_filter))
+       && !((cli_pool_found && cli_pool == pool_filter)
+	    || (srv_pool_found && srv_pool == pool_filter)))
       return(false);
 
     /* Mac filter - NOTE: must stay below the vlan_id filter */

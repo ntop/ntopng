@@ -52,23 +52,47 @@ void FlowStats::incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel 
     dscps[dscp_cli2srv]++;
 
   if(flow) {
-    u_int16_t cli_pool = 0, srv_pool = 0;
+    u_int16_t cli_pool, srv_pool;
+    bool cli_pool_found = false, srv_pool_found = false;
 
-    /* If both pools aren't null */
-    if(flow->get_cli_host() && flow->get_srv_host()) {
+    if(flow->get_cli_host()) {
       cli_pool = flow->get_cli_host()->get_host_pool();
+      cli_pool_found = true;
+    } else {
+      /* Host null, let's try using IpAddress */
+      IpAddress *ip = (IpAddress *) flow->get_cli_ip_addr();
+      ndpi_patricia_node_t *cli_target_node = NULL;
+
+      if(flow->get_cli_ip_addr())
+	cli_pool_found = flow->getInterface()->getHostPools()->findIpPool(ip, flow->get_vlan_id(), &cli_pool, &cli_target_node);
+    }
+
+    if(flow->get_srv_host()) {
       srv_pool = flow->get_srv_host()->get_host_pool();
+      srv_pool_found = true;
+    } else {      
+      /* Host null, let's try using IpAddress */
+      ndpi_patricia_node_t *srv_target_node = NULL;
+      IpAddress *ip = (IpAddress *) flow->get_srv_ip_addr();
+      
+      if(flow->get_srv_ip_addr())
+	srv_pool_found = flow->getInterface()->getHostPools()->findIpPool(ip, flow->get_vlan_id(), &srv_pool, &srv_target_node);
+    }
+
+    if(srv_pool_found && cli_pool_found) {
+      /* Both pools found */
       if(cli_pool != srv_pool) {
-	/* Different pool id, inc both */
+    	/* Different pool id, inc both */
 	host_pools[cli_pool]++;
 	host_pools[srv_pool]++;
-      } else
+      } else {
 	/* Same pool id, inc only one time */
 	host_pools[cli_pool]++;
-    } else if (flow->get_cli_host()) {
-      host_pools[flow->get_cli_host()->get_host_pool()]++;
-    } else if (flow->get_srv_host()) {
-      host_pools[flow->get_srv_host()->get_host_pool()]++;
+      }
+    } else if(srv_pool_found) {
+      host_pools[srv_pool]++;
+    } else if(cli_pool_found) {
+      host_pools[cli_pool]++;
     }
   }
 }

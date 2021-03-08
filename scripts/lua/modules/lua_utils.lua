@@ -18,6 +18,7 @@ dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/flow_dbms/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_trace"
 require "ntop_utils"
@@ -25,6 +26,7 @@ locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local dscp_consts = require "dscp_consts"
+local host_pools = require "host_pools"
 
 -- TODO: replace those globals with locals everywhere
 
@@ -496,6 +498,7 @@ end
 -- ###################################
 
 function printHostPoolDropdown(base_url, page_params, host_pool_list)
+   local host_pools_instance = host_pools:create()
    local host_pool = _GET["host_pool_id"]
    local host_pool_filter
    if not isEmptyString(host_pool) then
@@ -527,16 +530,16 @@ function printHostPoolDropdown(base_url, page_params, host_pool_list)
          <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, host_pool_params_non_filter)) print[[">]] print(i18n("flows_page.all_host_pool")) print[[</a></li>]]
 
    for key, value in pairsByKeys(ordered_host_pool_list, asc) do
-	  print[[<li]]
+      print[[<li]]
 
-	  print([[><a class="dropdown-item ]].. (tonumber(host_pool) == key and 'active' or '') ..[[" href="]])
-
-	  local host_pool_table = ternary(key ~= 6, host_pool_params_non_filter, host_pool_params)
-
-	  host_pool_table["host_pool_id"] = key
-	  print(getPageUrl(base_url, host_pool_table))
-
-	  print[[">]] print(i18n("flows_page.host_pool_id", { key = tostring(key) })) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
+      print([[><a class="dropdown-item ]].. (tonumber(host_pool) == key and 'active' or '') ..[[" href="]])
+      
+      local host_pool_table = ternary(key ~= 6, host_pool_params_non_filter, host_pool_params)
+      
+      host_pool_table["host_pool_id"] = key
+      print(getPageUrl(base_url, host_pool_table))
+      
+      print[[">]] print(host_pools_instance:get_pool_name(key)) print [[ (]] print(string.format("%d", value.count)) print [[)</a></li>]]
    end
 
    print[[</ul>]]
