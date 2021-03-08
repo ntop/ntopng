@@ -839,7 +839,7 @@ function ts_utils.getPossiblyChangedSchemas()
       "process:resident_memory",
       "redis:keys",
       "redis:memory",
-      "host:score",
+      "host:score", -- split in "client_score" and "server_score"
       "periodic_script:timeseries_writes",
       "mac:arp_rqst_sent_rcvd_rpls",
 
