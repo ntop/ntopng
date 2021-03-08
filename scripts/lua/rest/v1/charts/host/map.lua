@@ -203,5 +203,6 @@ rest_utils.answer(rc, {
                 }
             }}
         }
-    }
+    },
+    redirect_url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host="
 })
