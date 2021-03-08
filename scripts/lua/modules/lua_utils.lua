@@ -26,7 +26,6 @@ locales_utils = require "locales_utils"
 local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 local dscp_consts = require "dscp_consts"
-local host_pools = require "host_pools"
 
 -- TODO: replace those globals with locals everywhere
 
@@ -498,6 +497,8 @@ end
 -- ###################################
 
 function printHostPoolDropdown(base_url, page_params, host_pool_list)
+   local host_pools = require "host_pools"
+   
    local host_pools_instance = host_pools:create()
    local host_pool = _GET["host_pool_id"]
    local host_pool_filter
