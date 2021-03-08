@@ -57,7 +57,8 @@ dnf config-manager --set-enabled remi
 dnf group install "Development Tools"
 dnf clean all
 dnf update
-dnf install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect hiredis-devel readline-devel expat-devel uglify-js
+dnf install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect hiredis-devel readline-devel expat-devel npm
+npm install -g uglify-es
 
 On Centos 8
 ~~~~~~~~~~~
@@ -68,7 +69,8 @@ yum install http://rpms.remirepo.net/enterprise/remi-release-8.rpm
 yum config-manager --set-enabled remi
 yum clean all
 yum update
-yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect expat-devel uglify-js
+yum install openldap-devel libpcap-devel openssl-devel libcurl-devel libmaxminddb-devel sqlite-devel mysql-devel radcli-devel librdkafka-devel libcap-devel zeromq-devel rrdtool-devel json-c-devel expect expat-devel npm
+npm install -g uglify-es
 
 Then list the streams which provide Redis (dnf module list redis) and install it. For example, to install it from stream 5 run: sudo dnf module install redis:5
 
