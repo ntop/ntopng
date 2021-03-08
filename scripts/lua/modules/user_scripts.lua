@@ -1439,9 +1439,38 @@ end
 
 -- ##############################################
 
+-- @brief Migrate old configurations, if any
+function user_scripts.migrateOldConfig()
+
+   -- Check if there is a v3 already
+   local configset_v3 = ntop.getCache(CONFIGSET_KEY)
+   if isEmptyString(configset_v3) then
+
+      -- Check if there is a v2
+      local CONFIGSETS_KEY_V2 = "ntopng.prefs.user_scripts.configsets_v2"
+      local configsets_v2 = ntop.getHashAllCache(CONFIGSETS_KEY_V2)
+      if configsets_v2 then
+
+         -- Migrate v2 to v3
+         local default_confset_json = configsets_v2["0"]
+	 if default_confset_json then
+            ntop.setCache(CONFIGSET_KEY, default_confset_json)
+         end
+
+	 -- Remove v2
+         ntop.delCache(CONFIGSETS_KEY_V2)
+      end
+   end
+
+end
+
+-- ##############################################
+
 -- @brief Initializes a default configuration for user scripts
 -- @param overwrite If true, a possibly existing configuration is overwritten with default values
 function user_scripts.initDefaultConfig(overwrite)
+   user_scripts.migrateOldConfig()
+
    if not overwrite and json.decode(ntop.getCache(CONFIGSET_KEY)) then
       -- Nothing to do, already initialized
       return
