@@ -4,9 +4,12 @@
 
 const DEFINED_WIDGETS = {};
 
-function getWidgetByName(widgetName) {
-    if (widgetName in DEFINED_WIDGETS) {
-        return DEFINED_WIDGETS[widgetName];
+class WidgetUtils {
+    static getWidgetByName(widgetName) {
+        if (widgetName in DEFINED_WIDGETS) {
+            return DEFINED_WIDGETS[widgetName];
+        }
+        throw new Error(`Widget ${widgetName} not found!`)
     }
 }
 
@@ -35,9 +38,9 @@ class Widget {
      */
     async init() {
 
-        this._fetchedData = await this._fetchData();
         // register the widget to the DEFINED_WIDGETS object
         DEFINED_WIDGETS[this.name] = this;
+        this._fetchedData = await this._fetchData();
     }
 
     /**
@@ -48,7 +51,11 @@ class Widget {
     /**
      * Force the widget to reload it's data.
      */
-    update() {}
+    async destroyAndUpdate(datasources = []) {
+        this.destroy();
+        this._datasources = datasources;
+        this._fetchedData = await this._fetchData();
+    }
 
     /**
      * For each datasources provided to the constructor,
@@ -74,16 +81,10 @@ class ChartWidget extends Widget {
     constructor(name, type = 'line', datasources = [], updateTime = 0, additionalParams = {}) {
         super(name, datasources, updateTime, additionalParams);
         this._chartType = type;
-        this._chart = {};
+        this._chart = null;
     }
 
-    get _configToLoad() {
-        return this._additionalParams.config || `${this._chartType}.js`;
-    }
-
-    async init() {
-
-        await super.init();
+    async _initializeChart() {
 
         const ctx = document.getElementById(`canvas-widget-${this.name}`);
         const config = await import(`./configs/${this._configToLoad}`);
@@ -100,6 +101,25 @@ class ChartWidget extends Widget {
         });
 
         this._chart = new Chart(ctx, { data: data, type: this._chartType, options: optionsToLoad });
+
+    }
+
+    get _configToLoad() {
+        return this._additionalParams.config || `${this._chartType}.js`;
+    }
+
+    async init() {
+        await super.init();
+        this._initializeChart();
+    }
+
+    destroy() {
+        this._chart.destroy();
+    }
+
+    async destroyAndUpdate(datasources = []) {
+        await super.destroyAndUpdate(datasources);
+        this._initializeChart();
     }
 
 }

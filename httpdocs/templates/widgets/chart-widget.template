@@ -8,8 +8,8 @@
     <canvas id="canvas-widget-{{widget_name}}"></canvas>
 </div>
 <script type="text/javascript">
-$(document).ready(async function() {
+(async function() {
     const datasources = {* json.encode(widget.datasources) *};
     await new ChartWidget("{{ widget_name }}", "{{ widget.type }}", datasources, {{ widget.update_time }}).init();
-});
+})();
 </script>
