@@ -31,7 +31,7 @@ end
 local http_bridge_conf_utils = {}
 
 -- set to a non-empty value to enable HTTP configuration, e.g.,
--- http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = "localhost:8000"
+--http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = "localhost:8000"
 http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL = ""
 
 function http_bridge_conf_utils.configureBridge()
@@ -144,7 +144,7 @@ function http_bridge_conf_utils.configureBridge()
 		     if ndpi_protocols[lowercase_name] then
 			proto_id_or_category = ndpi_protocols[lowercase_name]
 			proto_name = string.format("Protocol %s/%d", proto, ndpi_protocols[lowercase_name])
-		     else if ndpi_categories[lowercase_name] then
+		     elseif ndpi_categories[lowercase_name] then
                         proto_id_or_category = "cat_"..ndpi_categories[lowercase_name]
 			proto_name = string.format("Category %s/%d", proto, ndpi_categories[lowercase_name])
 		     else

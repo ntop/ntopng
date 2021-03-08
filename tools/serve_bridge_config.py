@@ -2,7 +2,12 @@
 
 import sys
 import json
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+
+# Python 2
+#from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+
+# Python 3
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 FORMATS = ('json')
 '''
@@ -21,7 +26,8 @@ sample_bridge_config = {
             "policies" : {10 : "slow_pass",
                           "Facebook": "pass",
                           "MyCustomProtocol": "pass",
-                          "YouTube": "pass"}
+                          "YouTube": "pass",
+                          "ConnectivityCheck": "pass"}
         },
         "maina" : {
             "full_name": "Maina Fast",
