@@ -1,7 +1,0 @@
-Build
------
-npm install && npm run build
-
-Installing
-----------
-cp ../../../../ntop-widgets/dist/ntop-widgets/* .
