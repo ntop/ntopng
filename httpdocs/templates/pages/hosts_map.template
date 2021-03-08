@@ -1,0 +1,25 @@
+{#
+    (C) 2021 - ntop.org
+#}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class='d-flex align-items-center justify-content-end mb-3'>
+                    <div class="dropdown">
+                        <button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown">
+                            {* (hosts_map.bubble_mode == 0 and i18n("flows_page.all_flows") or (hosts_map.current_label .. '<i class="fas fa-filter"></i>')) *}
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right scrollable-dropdown">
+                            {* hosts_map.dropdown_menu *}
+                        </div>
+                    </div>
+                </div>
+                {* widget_gui_utils.render_chart(hosts_map.widget_name, { css_styles = { height = "60vh"}, displaying_label = ''}) *}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="/js/Chart.bundle.min.js"></script>
+<script type='text/javascript' src='/js/widgets/widgets.js'></script>

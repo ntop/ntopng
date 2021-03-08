@@ -1,0 +1,14 @@
+{#
+    (C) 2013-21 - ntop.org
+#}
+<div class="row">
+
+    {%
+        for _, name in ipairs(widget_gui_utils.get_registered_chart_names()) do %}
+        <div class="col-6 my-3">
+            {* widget_gui_utils.render_chart(name, {
+                css_styles = { height = "50vh" }   
+             })  *}
+        </div>
+    {% end %}
+</div>

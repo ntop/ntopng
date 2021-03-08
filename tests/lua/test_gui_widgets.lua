@@ -7,17 +7,22 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/datasources/?.lua;" .. package.path
 
 require "lua_utils"
-local ts_utils = require("ts_utils")
-local info = ntop.getInfo() 
 local page_utils = require("page_utils")
-local alerts_api = require("alerts_api")
-local format_utils = require("format_utils")
-local json = require "dkjson"
-local rest_utils = require "rest_utils"
+local template_utils = require("template_utils")
+local widget_gui_utils = require("widget_gui_utils")
+
+local HostsMapMode = require("hosts_map_utils").HostsMapMode
+local Datasource = widget_gui_utils.datasource
+
+local info = ntop.getInfo() 
 
 sendHTTPContentTypeHeader('text/html')
 
 page_utils.print_header(i18n("about.about_x", { product=info.product }))
+print([[
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  <script type='text/javascript' src='/js/widgets/widgets.js'></script>
+]])
 
 if not isAdministrator() then
   return
@@ -25,76 +30,22 @@ end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
--- NOTE: THE NTOP WIDGET SCRIPTS MUST BE LOADED FIRST!
-print([[
+widget_gui_utils.register_bubble_chart('All Flows', 0, {
+  Datasource("rest/v1/charts/host/map.lua", {bubble_mode = HostsMapMode.ALL_FLOWS})
+})
+widget_gui_utils.register_bubble_chart('Unreachable Flows', 0, {
+  Datasource("rest/v1/charts/host/map.lua", {bubble_mode = HostsMapMode.UNREACHABLE_FLOWS})
+})
+widget_gui_utils.register_bubble_chart('DNS Queries', 0, {
+  Datasource("rest/v1/charts/host/map.lua", {bubble_mode = HostsMapMode.DNS_QUERIES})
+})
+widget_gui_utils.register_bubble_chart('SYN vs RST', 0, {
+  Datasource("rest/v1/charts/host/map.lua", {bubble_mode = HostsMapMode.SYN_VS_RST})
+})
 
-    <script type="module" src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/ntop-widgets.esm.js"></script>
-    <script nomodule src="]].. ntop.getHttpPrefix() ..[[/js/ntop-widgets/index.js"></script>
-
-]])
-
-local ifaces = interface.getIfNames()
-local options = {}
-for id, ifname in pairs(ifaces) do
-    options[#options+1] = string.format("<option %s value='%d'>%s</option>", ternary(id == 0, 'selected', ''), id, ifname)
-end
-
-print([[
-    <div class='row my-4'>
-        <div class='col-6'>
-            <ntop-widget id='first-widget' type="pie" update="5000" width='30rem'>
-                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
-                    Pie (Interface/Packet Distro)
-                </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
-            </ntop-widget>
-        </div>
-        <div class='col-6'>
-            <ntop-widget id='second-widget' type="radar" update="5000" width='100%' height='25rem'>
-                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
-                    Radar (Interface/Packet Distro)
-                </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=1"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
-            </ntop-widget>
-        </div>
-        <div class='col-6 my-4'>
-            <ntop-widget id='third-widget' display='raw' type="stackedBar" update="5000" height='28.5rem' width='100%'>
-                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
-                    Stacked Bar Chart (Interface/Packet Distro)
-                </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=1"></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
-            </ntop-widget>
-        </div>
-        <div class='col-6 my-4'>
-            <ntop-widget id='fourth-widget' update="5000" height='100%' width='100%'>
-                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
-                    Line + 2xBars (Interface/Packet Distro)
-                </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=1" type="line" styling='{"fill": false}'></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=9" type="bar"></ntop-datasource>
-            </ntop-widget>
-        </div>
-        <div class='col-6 my-4'>
-            <ntop-widget id='fifth-widget' display='raw' update="5000" height='100%' width='100%'>
-                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
-                    3x Lines (No Fill, 2xFills) (Interface/Packet Distro)
-                </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=1" type="line" styling='{"fill": false}'></ntop-datasource>
-                <ntop-datasource src="interface_packet_distro?ifid=9" type="line"></ntop-datasource>
-            </ntop-widget>
-        </div>
-        <div class='col-6 my-4'>
-            <ntop-widget id='fifth-widget' type='bubble' display='raw' update="5000" height='100%' width='100%'>
-                <h3 slot='header' class='mt-2 mb-4' style='width: 100%'>
-                    Bubble (Interface/Packet Distro)
-                </h3>
-                <ntop-datasource src="interface_packet_distro?ifid=9"></ntop-datasource>
-            </ntop-widget>
-        </div>
-    </div>
-]])
+template_utils.render("pages/test_gui_widgets.template", {
+    widget_gui_utils = widget_gui_utils
+})
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
 
