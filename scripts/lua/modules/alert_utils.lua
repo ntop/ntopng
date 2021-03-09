@@ -813,7 +813,13 @@ function alert_utils.housekeepingAlertsMakeRoom(ifId)
    if ntop.getCache(k["flows"]) == "1" then
       ntop.delCache(k["flows"])
       local res = interface.queryFlowAlertsRaw("SELECT count(*) count") or {}
-      local count = tonumber(res[1].count)
+      local count = nil
+
+      -- res can be an empty table, so a check is needed
+      if table.len(res) >= 2 then
+	 count = tonumber(res[1].count)
+      end
+
       if count ~= nil and count >= max_num_flow_alerts then
 	 local to_keep = (max_num_flow_alerts * 0.8)
 	 to_keep = round(to_keep, 0)
