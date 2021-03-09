@@ -111,6 +111,19 @@ class NtopUtils {
 		});
 	}
 
+	static onDatetimepickerRangeChange(startRangeSelector, endRangeSelector, callback) {
+
+		$(`${startRangeSelector}, ${endRangeSelector}`).on('change.datetimepicker', function() {
+
+            const begin = $(`${startRangeSelector}`).datetimepicker('date');
+            const end = $(`${endRangeSelector}`).datetimepicker('date');
+
+            if (begin != null && end != null) {
+                callback(begin.unix(), end.unix());
+            }
+        });
+	}
+
 	static is_good_ipv4(ipv4) {
 		return new RegExp(REGEXES.ipv4).test(ipv4);
 	}

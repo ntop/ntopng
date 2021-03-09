@@ -1,0 +1,38 @@
+{#
+    (C) 2021 - ntop.org    
+#}
+<div class='row'>
+        <div class='col-6'>
+            {* ui_utils.render_datetime_range_picker() *}
+        </div>
+        <div class='col-12 mt-2'>
+            <table id='test' class='table table-bordered w-100'> 
+                <thead>
+                    <tr>
+                        <th>Index</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<script type='text/javascript'>
+    $(document).ready(function(){
+
+        let config = DataTableUtils.getStdDatatableConfig([], "<'d-flex flex-wrap'<'mr-auto'l><'dt-search'f>B>rtip");
+        config = DataTableUtils.setAjaxConfig(config, `/lua/rest/v1/get/time/data.lua?begin_epoch={{ (os.time() - 3600) }}&end_epoch={{ os.time() }}`, 'rsp');
+        config = DataTableUtils.extendConfig(config, {
+            columns: [
+                {data: 'index'}, {data: 'date'}
+            ]
+        });
+
+        const $table = $(`#test`).DataTable(config);
+
+        // On range selection reload the datatable with new data
+        NtopUtils.onDatetimepickerRangeChange(`#begin-epoch`, `#end-epoch`, function(begin, end) {
+            $table.ajax.url(`/lua/rest/v1/get/time/data.lua?begin_epoch=${begin}&end_epoch=${end}&totalRows=24`).load();
+        });
+    });
+</script>

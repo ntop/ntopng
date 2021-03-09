@@ -297,7 +297,7 @@ class DataTableUtils {
     static getStdDatatableConfig(dtButtons = [], dom = "<'d-flex flex-wrap'<'mr-auto'l><'dt-search'f>B>rtip") {
 
         if (dtButtons.length == 0) {
-            dom = "fbrtip";
+            dom = "fBrtip";
         }
 
         return {

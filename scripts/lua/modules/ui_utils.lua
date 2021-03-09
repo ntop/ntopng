@@ -66,6 +66,13 @@ function ui_utils.create_navbar_title(title, subpage, title_link)
     return "<a href='".. title_link .."'>".. title .. "</a>&nbsp;/&nbsp;<span>"..subpage.."</span>"
 end
 
+function ui_utils.render_datetime_range_picker(begin_options, end_options)
+    return template_utils.gen("pages/components/range-picker.template", {
+        begin_options = begin_options,
+        end_options = end_options
+    })
+end
+
 --- Shortcut function to print a togglw switch inside the requested page
 function ui_utils.print_toggle_switch(context)
     print(template_utils.gen("on_off_switch.html", context))

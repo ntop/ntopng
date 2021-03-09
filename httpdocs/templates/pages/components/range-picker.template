@@ -1,0 +1,72 @@
+{#
+    (C) 2021 - ntop.org    
+#}
+<div class="d-flex">
+    <div class="btn-group btn-group-toggle mr-1" data-toggle="buttons" role="group">
+        <label class="btn btn-secondary active">
+            <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
+        </label>
+        <label class="btn btn-secondary">
+            <input type="radio" name="presets" id="preset-30m" value="30,minutes"> 30m
+        </label>
+        <label class="btn btn-secondary">
+            <input type="radio" name="presets" id="preset-1h" value="1,hours"> 1h
+        </label>
+        <label class="btn btn-secondary">
+            <input type="radio" name="presets" id="preset-1d" value="1,days"> 1d
+        </label>
+        <label class="btn btn-secondary">
+            <input type="radio" name="presets" id="preset-1w" value="1,weeks"> 1w
+        </label>
+        <label class="btn btn-secondary">
+            <input type="radio" name="presets" id="preset-1M" value="1,months"> 1M
+        </label>
+        <label class="btn btn-secondary">
+            <input type="radio" name="presets" id="preset-1Y" value="1,years"> 1Y
+        </label>
+    </div>
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <span class="input-group-text">
+                <i class="fas fa-calendar-alt"></i>
+            </span>
+        </div>
+        <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker"
+            class="form-control datetimepicker-input border-right-0" data-target="#begin-epoch">
+        <div class="input-group-append">
+            <span class="input-group-text bg-white border-left-0 border-right-0">
+                <i class="fas fa-long-arrow-alt-right"></i>
+            </span>
+        </div>
+        <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker"
+            class="form-control datetimepicker-input border-left-0" data-target="#end-epoch">
+    </div>
+</div>
+<script type='text/javascript'>
+    $(document).ready(function() {
+        
+        const now = moment();
+
+        // initialize timepickers
+        $(`#begin-epoch`).datetimepicker({format: 'DD/MM/YYYY HH:mm:ss'});
+        $(`#end-epoch`).datetimepicker({format: 'DD/MM/YYYY HH:mm:ss'});
+
+        $(`#begin-epoch`).datetimepicker('defaultDate', now);
+        $(`#end-epoch`).datetimepicker('defaultDate', now.subtract(5, 'minutes'));
+
+        $("#begin-epoch").on("change.datetimepicker", function (e) {
+            $('#end-epoch').datetimepicker('minDate', e.date);
+        });
+
+        $(`[name='presets']`).on('change', function() {
+
+            const [subtract, measure] = $(this).val().split(',');
+            const end = $(`#end-epoch`).datetimepicker('date');
+
+            if (end != null) {
+               const diff = end.subtract(parseInt(subtract), measure);
+               $(`#begin-epoch`).datetimepicker('date', diff);
+            }
+        });
+    });
+</script>
