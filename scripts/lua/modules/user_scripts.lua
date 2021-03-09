@@ -1265,7 +1265,7 @@ function user_scripts.updateScriptConfig(script_key, subdir, new_config, additio
 
    if script then
       local prev_config = config[subdir][script_key]
-      
+
       -- Perform hook callbacks for config changes, or enable/disable
       for hook, hook_config in pairs(prev_config) do
 	 local hook_applied_config = applied_config[hook]
@@ -1344,7 +1344,7 @@ local function toggleScriptConfigset(configset, script_key, subdir, enable)
    end
 
    local config = user_scripts.getScriptConfig(configset, script, subdir)
-
+   
    if config then
       for hook, hook_config in pairs(config) do
 	 -- Remember the previous toggle
@@ -1361,6 +1361,11 @@ local function toggleScriptConfigset(configset, script_key, subdir, enable)
 	 end
       end
    end
+
+   if not configset["config"][subdir][script_key] then
+      configset["config"][subdir][script_key] = {}
+      configset["config"][subdir][script_key] = config
+   end				    
 
    return true
 end
