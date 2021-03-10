@@ -378,8 +378,8 @@ void usage() {
 	 "                                    |   Example:\n"
 	 "                                    |   syslog\n"
 	 "                                    |   syslog;local3\n"
-   "                                    |   Notes:\n"
-   "                                    |   <facility-text> is case-insensitive.\n"
+	 "                                    |   Notes:\n"
+	 "                                    |   <facility-text> is case-insensitive.\n"
 	 "                                    |\n"
 #endif
 #ifdef HAVE_MYSQL
