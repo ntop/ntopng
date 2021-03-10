@@ -11,10 +11,7 @@ guide at:
 
 Example for the impatient:
 
-  $ cat /etc/rsyslog.d/99-remote.conf
-  *.*  action(type="omfwd" target="127.0.0.1" port="9999" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
-
-  $ ntopng -i syslog://127.0.0.1:9999
+  ntopng -i syslog://127.0.0.1:9999
 
 As second step, use netcat to replay the log to the configured
 port of the ntopng host:
