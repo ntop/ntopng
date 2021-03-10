@@ -1994,7 +1994,7 @@ end
 function user_scripts.getDefaultFilters(ifid, subdir, script_key)
 
    local script_type = user_scripts.getScriptType(subdir)
-   local script = user_scripts.loadModule(ifid, script_type, subdir, script_key)
+   local script = user_scripts.loadModule(ifid, script_type, subdir, script_key) or {}
    local filters = {}
    filters["current_filters"] = {}
 
