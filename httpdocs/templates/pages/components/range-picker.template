@@ -2,7 +2,7 @@
     (C) 2021 - ntop.org    
 #}
 <div class="d-flex">
-    <div class="btn-group btn-group-toggle mr-1" data-toggle="buttons" role="group">
+    <div class="btn-group btn-group-toggle mr-3" data-toggle="buttons" role="group">
         <label class="btn btn-secondary active">
             <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
         </label>
@@ -25,7 +25,7 @@
             <input type="radio" name="presets" id="preset-1Y" value="1,years"> 1Y
         </label>
     </div>
-    <div class="input-group">
+    <div class="input-group ml-3">
         <div class="input-group-prepend">
             <span class="input-group-text">
                 <i class="fas fa-calendar-alt"></i>

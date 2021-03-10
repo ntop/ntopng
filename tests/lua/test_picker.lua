@@ -24,7 +24,7 @@ widget_gui_utils.render_table_picker('my-table', {
     table = {
         columns = {'Index', 'Date'},
         js_columns = ([[
-            [{data: 'index'}, {data: 'date'}]
+            [{data: 'index', width: '100px'}, {data: 'date'}]
         ]])
     }
 })
