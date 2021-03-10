@@ -835,13 +835,13 @@
 "FROM `%sflows` "\
 "WHERE IP_PROTOCOL_VERSION=%hu "
 
-#define MYSQL_INSERT_FIELDS "(VLAN_ID,L7_PROTO,IP_SRC_ADDR,L4_SRC_PORT,IP_DST_ADDR,L4_DST_PORT,PROTOCOL," \
-  "IN_BYTES,OUT_BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,NTOPNG_INSTANCE_NAME,INTERFACE_ID" \
+#define MYSQL_INSERT_FIELDS "(VLAN_ID,L7_PROTO,IP_SRC_ADDR,SRC_NAME,L4_SRC_PORT,IP_DST_ADDR,DST_NAME,L4_DST_PORT,PROTOCOL," \
+  "IN_BYTES,OUT_BYTES,PACKETS,FIRST_SWITCHED,LAST_SWITCHED,INFO,JSON,COMMUNITY_ID,NTOPNG_INSTANCE_NAME,INTERFACE_ID" \
   MYSQL_INSERT_PROFILE ")"
-#define MYSQL_INSERT_VALUES_V4 "('%u','%u','%u','%u','%u','%u','%u'," \
-  "'%ju','%ju','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'" MYSQL_PROFILE_VALUE ")"
-#define MYSQL_INSERT_VALUES_V6 "('%u','%u','%s','%u','%s','%u','%u'," \
-  "'%ju','%ju','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%u'" MYSQL_PROFILE_VALUE ")"
+#define MYSQL_INSERT_VALUES_V4 "('%u','%u','%u','%s','%u','%u','%s','%u','%u'," \
+  "'%ju','%ju','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%s', '%u'" MYSQL_PROFILE_VALUE ")"
+#define MYSQL_INSERT_VALUES_V6 "('%u','%u','%s','%s','%u','%s','%s','%u','%u'," \
+  "'%ju','%ju','%u','%u','%u','%s',COMPRESS('%s'), '%s', '%s', '%u'" MYSQL_PROFILE_VALUE ")"
 
 
 #define NSERIES_DATA_RETENTION             365 /* 1 year */

@@ -2442,6 +2442,7 @@ char* Flow::serialize(bool use_labels) {
 json_object* Flow::flow2json() {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
+  u_char community_id[200];
   time_t t;
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
@@ -2493,9 +2494,12 @@ json_object* Flow::flow2json() {
     json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_BLACKLISTED, "SRC_ADDR_BLACKLISTED", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_boolean(cli_ip->isBlacklistedAddress()));
 
-    if(get_cli_host())
+    if(get_cli_host()) {
       json_object_object_add(my_object, Utils::jsonLabel(SRC_ADDR_SERVICES, "SRC_ADDR_SERVICES", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_int(get_cli_host()->getServicesMap()));
+      json_object_object_add(my_object, Utils::jsonLabel(SRC_NAME, "SRC_NAME", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(get_cli_host()->get_visual_name(buf, sizeof(buf))));
+    }
   }
 
   if(srv_ip) {
@@ -2514,9 +2518,12 @@ json_object* Flow::flow2json() {
     json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_BLACKLISTED, "DST_ADDR_BLACKLISTED", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_boolean(srv_ip->isBlacklistedAddress()));
 
-    if(get_srv_host())
+    if(get_srv_host()) {
       json_object_object_add(my_object, Utils::jsonLabel(DST_ADDR_SERVICES, "DST_ADDR_SERVICES", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_int(get_srv_host()->getServicesMap()));
+      json_object_object_add(my_object, Utils::jsonLabel(SRC_NAME, "DST_NAME", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(get_srv_host()->get_visual_name(buf, sizeof(buf))));
+    }
   }
 
   json_object_object_add(my_object, Utils::jsonLabel(SRC_TOS, "SRC_TOS", jsonbuf, sizeof(jsonbuf)),
@@ -2618,6 +2625,8 @@ json_object* Flow::flow2json() {
 
   if(isDNS() && protos.dns.last_query)
     json_object_object_add(my_object, "DNS_QUERY", json_object_new_string(protos.dns.last_query));
+
+  json_object_object_add(my_object, "COMMUNITY_ID", json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
 
   if(isHTTP()) {
     if(host_server_name && host_server_name[0] != '\0')
