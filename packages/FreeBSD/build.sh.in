@@ -30,6 +30,7 @@ pkg query "  %n: { version: \"%v\", origin: %o }" libsodium      >> ${STAGEDIR}/
 pkg query "  %n: { version: \"%v\", origin: %o }" sqlite3        >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" redis          >> ${STAGEDIR}/+MANIFEST
 pkg query "  %n: { version: \"%v\", origin: %o }" zstd           >> ${STAGEDIR}/+MANIFEST
+pkg query "  %n: { version: \"%v\", origin: %o }" bash           >> ${STAGEDIR}/+MANIFEST
 echo "}" >> ${STAGEDIR}/+MANIFEST
 
 # Add files
