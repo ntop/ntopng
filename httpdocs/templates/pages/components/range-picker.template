@@ -45,17 +45,23 @@
 <script type='text/javascript'>
     $(document).ready(function() {
         
+        let custom = false;
+
         const now = moment();
+        const prev = moment().subtract(5, 'minutes');
 
         // initialize timepickers
-        $(`#begin-epoch`).datetimepicker({format: 'DD/MM/YYYY HH:mm:ss'});
-        $(`#end-epoch`).datetimepicker({format: 'DD/MM/YYYY HH:mm:ss'});
+        $(`#begin-epoch`).datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: prev, useCurrent: false});
+        $(`#end-epoch`).datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: now, useCurrent: false});
 
-        $(`#begin-epoch`).datetimepicker('defaultDate', now);
-        $(`#end-epoch`).datetimepicker('defaultDate', now.subtract(5, 'minutes'));
+        $(`#begin-epoch`).datetimepicker('date', prev);
+        $(`#end-epoch`).datetimepicker('date', now);
 
-        $("#begin-epoch").on("change.datetimepicker", function (e) {
-            $('#end-epoch').datetimepicker('minDate', e.date);
+        $(`#begin-epoch, #end-epoch`).on('change.datetimepicker', function(e) {
+            if (!custom) {
+                $(`[name='presets']`).parents('.btn').removeClass('active');
+                custom = true;
+            }
         });
 
         $(`[name='presets']`).on('change', function() {
@@ -66,6 +72,7 @@
             if (end != null) {
                const diff = end.subtract(parseInt(subtract), measure);
                $(`#begin-epoch`).datetimepicker('date', diff);
+               custom = false;
             }
         });
     });

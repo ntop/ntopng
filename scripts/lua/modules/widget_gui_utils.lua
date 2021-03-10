@@ -8,6 +8,7 @@ require("lua_trace")
 require("lua_utils")
 
 local json = require("dkjson")
+local ui_utils = require("ui_utils")
 local template_utils = require("template_utils")
 
 local widget_gui_utils = {}
@@ -16,7 +17,7 @@ local widget_gui_utils = {}
 local registered_widgets = {
     charts = {
         -- [widgetName] = registeredWidget
-    }
+    },
 }
 
 local function build_query_params(params)
@@ -43,12 +44,22 @@ local function build_css_styles(css_styles)
 
 end
 
-function widget_gui_utils.register_chart_widget(name, type, update_time, datasources, additional_params)
-
+local function check_widget_existance(widgets, name)
     -- check if exists a widget with the same name
-    if table.has_key(registered_widgets, name) then
+    if table.has_key(registered_widgets.charts, name) then
         traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Overriding existing [%s] widget...", name))
     end
+end
+
+---Register a new Chart.js widget to be rendered
+---@param name any
+---@param type any
+---@param update_time any
+---@param datasources any
+---@param additional_params any
+function widget_gui_utils.register_chart_widget(name, type, update_time, datasources, additional_params)
+
+    check_widget_existance(registered_widgets.charts, name)
 
     registered_widgets.charts[name] = {
         type = type,
@@ -131,7 +142,22 @@ function widget_gui_utils.render_chart(widget_name, additional_params)
 end
 
 function widget_gui_utils.datasource(name, params)
-    return { endpoint = name .. build_query_params(params) }
+    return { endpoint = name .. build_query_params(params or {}), name = name }
+end
+
+function widget_gui_utils.render_table_picker(name, context, modals)
+    template_utils.render("pages/table_picker.template", {
+        ui_utils = ui_utils,
+        json = json,
+        template_utils = template_utils,
+        modals = modals or {},
+        datasource = context.datasource, -- the data provider
+        datatable = {
+            name = name, -- the table name
+            columns = context.table.columns, -- the columns to print inside the table
+            js_columns = context.table.js_columns, -- a custom javascript code to format the columns
+        }
+    })
 end
 
 return widget_gui_utils

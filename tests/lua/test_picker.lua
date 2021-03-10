@@ -7,8 +7,9 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local template_utils = require("template_utils")
-local ui_utils = require("ui_utils")
+local widget_gui_utils = require "widget_gui_utils"
+
+local Datasource = widget_gui_utils.datasource
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -16,11 +17,16 @@ page_utils.print_header(i18n("about.about_x", { product = ":)" }))
 
 if not isAdministrator() then return end
 
-
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-template_utils.render("pages/test_picker.template", {
-    ui_utils = ui_utils
+widget_gui_utils.render_table_picker('my-table', {
+    datasource = Datasource("/lua/rest/v1/get/time/data.lua", {begin_epoch = os.time() - 3600, end_epoch = os.time(), totalRows = 10}),
+    table = {
+        columns = {'Index', 'Date'},
+        js_columns = ([[
+            [{data: 'index'}, {data: 'date'}]
+        ]])
+    }
 })
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

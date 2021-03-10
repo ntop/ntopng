@@ -1,0 +1,83 @@
+{#
+    (C) 2021 - ntop.org    
+#}
+<div class='row'>
+        <div class='col-12'>
+            <div class="d-flex  align-items-center">
+                <label class="my-auto mr-1">{{ i18n('records_to_show') }}:</label>
+                <select id='select-len' class="form-control mr-1" style="width: 4rem;">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+                {* ui_utils.render_datetime_range_picker() *}
+            </div>
+        </div>
+        <div class='col-12 mt-2'>
+            <table id='{{ datatable.name }}' class='table table-bordered w-100'> 
+                <thead>
+                    <tr>
+                        {% for _, column in ipairs(datatable.columns) do %}
+                            <th>{{ column }}</th>
+                        {% end %}
+                    </tr>
+                </thead>
+            </table>
+        </div>
+</div>
+
+{% if datatable.modals then %}
+<div class="modals">
+    {% for _, modal in ipairs(datatable.modals) do %}
+        {* modal *}
+    {% end %}
+</div>
+{% end %}
+
+<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<script type="text/javascript">
+    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+</script>
+<script type='text/javascript'>
+    $(document).ready(function(){
+
+        function reloadTable($table, begin, end, rows) {
+
+            if (begin != null && end != null) {
+                $table.ajax.url(`{* datasource.name *}?begin_epoch=${begin.unix()}&end_epoch=${end.unix()}&totalRows=${rows}`).load();
+            }
+        }
+
+        function getTimestampRange() {
+            const begin = $(`#begin-epoch`).datetimepicker('date');
+            const end = $(`#end-epoch`).datetimepicker('date');
+            return [begin, end];
+        }
+
+        let config = DataTableUtils.getStdDatatableConfig({* (datatable.buttons or '[]') *});
+        config = DataTableUtils.setAjaxConfig(config, `{* datasource.endpoint *}`, 'rsp');
+        config = DataTableUtils.extendConfig(config, {
+            {% if datatable.js_columns then %}
+                columns: {* datatable.js_columns *}
+            {% end %}
+        });
+
+        const $table = $(`#{{ datatable.name }}`).DataTable(config);
+
+		$(`#begin-epoch, #end-epoch`).on('change.datetimepicker', function(e) {
+
+            const [begin, end] = getTimestampRange();
+            const len = parseInt($(`#select-len`).val());
+
+            reloadTable($table, begin, end, len);
+        });
+
+        $(`#select-len`).on('change', function() {
+            
+            const [begin, end] = getTimestampRange();
+            const len = parseInt($(this).val());
+            reloadTable($table, begin, end, len);
+        });
+      
+    });
+</script>

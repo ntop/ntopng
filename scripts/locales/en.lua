@@ -231,6 +231,7 @@ local lang = {
   ["ram_used"] = "Used",
   ["reason"] = "Reason",
   ["received"] = "Received",
+  ["records_to_show"] = "Records to show",
   ["refresh"] = "Refresh",
   ["reload_graph"] = "Reload Graph",
   ["remote_hosts"] = "Remote Hosts",
