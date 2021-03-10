@@ -1362,7 +1362,7 @@ int Prefs::setOption(int optkey, char *optarg) {
         int syslog_facility_value = Utils::mapSyslogFacilityTextToValue(flows_syslog_facility_text);
         if (syslog_facility_value != -1) {
           flows_syslog_facility = syslog_facility_value;
-          ntop->getTrace()->traceEvent(TRACE_DEBUG, "Syslog facility for dumping flows set to %s (%d)",
+          ntop->getTrace()->traceEvent(TRACE_DEBUG, "Syslog facility for dumping flows is set to %s (%d)",
                   flows_syslog_facility_text, flows_syslog_facility);
         }
       }
