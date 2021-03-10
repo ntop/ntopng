@@ -1096,6 +1096,10 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define SCORE_MAX_SCRIPT_VALUE            1024 /* Keep in sync with flow_consts.max_score in scripts/lua/modules/flow_consts.lua */
 
+#ifndef WIN32
+#define CONST_DEFAULT_DUMP_SYSLOG_FACILITY LOG_DAEMON
+#endif
+
 //#define PROFILING
 #ifdef PROFILING
 #define PROFILING_DECLARE(n) \

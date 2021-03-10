@@ -129,6 +129,9 @@ class Prefs {
   bool json_labels_string_format;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd, *es_host;
   char *mysql_host, *mysql_dbname, *mysql_tablename, *mysql_user, *mysql_pw;
+#ifndef WIN32
+  int flows_syslog_facility;
+#endif
   int mysql_port;
   char *ls_host,*ls_port,*ls_proto;
   bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level 
@@ -315,6 +318,7 @@ class Prefs {
   inline char* get_mysql_tablename()    { return(mysql_tablename);       };
   inline char* get_mysql_user()         { return(mysql_user);            };
   inline char* get_mysql_pw()           { return(mysql_pw);              };
+  inline int get_flows_syslog_facility()      { return(flows_syslog_facility);       };
   inline char* get_ls_host()            { return(ls_host);               };
   inline char* get_ls_port()		{ return(ls_port);		 };
   inline char* get_ls_proto()		{ return(ls_proto);		 };

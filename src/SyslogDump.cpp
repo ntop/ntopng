@@ -31,7 +31,7 @@ SyslogDump::SyslogDump(NetworkInterface *_iface) : DB(_iface) {
   openlog(NULL        /* If ident is NULL, the program name is used */,
 	  LOG_PID     /* Include PID with each message */
 	  | LOG_CONS  /* Write directly to system console if there is an error while sending to system logger */,
-	  LOG_DAEMON  /* System daemons without separate facility value */);
+	  ntop->getPrefs()->get_flows_syslog_facility());
 }
 
 /* **************************************** */
