@@ -19,8 +19,12 @@ if not isAdministrator() then return end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
+local begin_epoch = _GET["begin_epoch"] or (os.time() - 3600)
+local end_epoch = _GET["end_epoch"] or (os.time())
+local totalRows = _GET["totalRows"] or 10
+
 widget_gui_utils.render_table_picker('my-table', {
-    datasource = Datasource("/lua/rest/v1/get/time/data.lua", {begin_epoch = os.time() - 3600, end_epoch = os.time(), totalRows = 10}),
+    datasource = Datasource("/lua/rest/v1/get/time/data.lua", {begin_epoch = begin_epoch, end_epoch = end_epoch, totalRows = totalRows}),
     table = {
         columns = {'Index', 'Date'},
         js_columns = ([[

@@ -2,33 +2,39 @@
     (C) 2021 - ntop.org    
 #}
 <div class='row'>
-        <div class='col-12'>
-            <div class="d-flex p-2 mb-2 navbar-shadow border-radius navbar-light bg-light align-items-center">
-               
-                {* ui_utils.render_datetime_range_picker() *}
-                <label class="my-auto ml-auto mr-1">{{ i18n('records_to_show') }}:</label>
-                <select id='select-len' class="form-control mr-1" style="width: 5rem;">
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                </select>
+    <div class='col-12'>
+        <div class="d-flex p-2 mb-2 navbar-shadow border-radius navbar-light bg-light align-items-center">
+            
+            {* ui_utils.render_datetime_range_picker() *}
+            <label class="my-auto ml-auto mr-1">{{ i18n('records_to_show') }}:</label>
+
+            {%
+                local len_entries = {10, 25, 50, 100}    
+            %}
+
+            <select id='select-len' class="form-control mr-1" style="width: 5rem;">
+                {% for _, len in ipairs(len_entries) do %}
+                    <option {{ (len == tonumber(_GET['totalRows']) and 'selected' or '') }} value="{{ len }}">{{ len }}</option>
+                {% end %}
+            </select>
+        </div>
+    </div>
+    <div class='col-12 mt-2'>
+        <div class="card card-shadow">
+            <div class="card-body">
+                <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'> 
+                    <thead>
+                        <tr>
+                            {% for _, column in ipairs(datatable.columns) do %}
+                                <th>{{ column }}</th>
+                            {% end %}
+                        </tr>
+                    </thead>
+                </table>
+                <small id="{{ datatable.name }}-query" style="display: none;" class="query">Query performed in <span class="seconds">{}</span> seconds.</small>
             </div>
         </div>
-        <div class='col-12 mt-2'>
-            <div class="card card-shadow">
-                <div class="card-body">
-                    <table id='{{ datatable.name }}' class='table table-bordered w-100'> 
-                        <thead>
-                            <tr>
-                                {% for _, column in ipairs(datatable.columns) do %}
-                                    <th>{{ column }}</th>
-                                {% end %}
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
-        </div>
+    </div>
 </div>
 
 {% if datatable.modals then %}
@@ -47,9 +53,17 @@
     $(document).ready(function(){
 
         function reloadTable($table, begin, end, rows) {
-
             if (begin != null && end != null) {
                 $table.ajax.url(`{* datasource.name *}?begin_epoch=${begin.unix()}&end_epoch=${end.unix()}&totalRows=${rows}`).load();
+            }
+        }
+
+        function printQueryTime($table) {
+            const response = $table.ajax.json();
+            // if the response contains the query time period
+            if (response.rsp.time !== undefined) {
+                $(`#{{ datatable.name }}-query`).show();
+                $(`#{{ datatable.name }}-query .seconds`).text(response.rsp.time);
             }
         }
 
@@ -59,8 +73,16 @@
             return [begin, end];
         }
 
+        function pushNewHistoryState(begin, end, len) {
+            const url = new URL(location);
+            url.searchParams.set('begin_epoch', begin.unix());
+            url.searchParams.set('end_epoch', end.unix());
+            url.searchParams.set('totalRows', len);
+            window.history.pushState({}, '', url);
+        }
+
         let config = DataTableUtils.getStdDatatableConfig({* (datatable.buttons or '[]') *});
-        config = DataTableUtils.setAjaxConfig(config, `{* datasource.endpoint *}`, 'rsp');
+        config = DataTableUtils.setAjaxConfig(config, `{* datasource.endpoint *}`, 'rsp.records');
         config = DataTableUtils.extendConfig(config, {
             {% if datatable.js_columns then %}
                 columns: {* datatable.js_columns *}
@@ -68,13 +90,16 @@
         });
 
         const $table = $(`#{{ datatable.name }}`).DataTable(config);
+        // on ajax request complete then print the query time
+        $table.on('xhr', function() { printQueryTime($table); });
 
-		$(`#begin-epoch, #end-epoch`).on('change.datetimepicker', function(e) {
+        // on apply button click
+        $(`#btn-apply`).on('click', function() {
 
             const [begin, end] = getTimestampRange();
             const len = parseInt($(`#select-len`).val());
-
             reloadTable($table, begin, end, len);
+            pushNewHistoryState(begin, end, len);
         });
 
         $(`#select-len`).on('change', function() {
@@ -82,6 +107,7 @@
             const [begin, end] = getTimestampRange();
             const len = parseInt($(this).val());
             reloadTable($table, begin, end, len);
+            pushNewHistoryState(begin, end, len);
         });
       
     });

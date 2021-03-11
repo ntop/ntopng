@@ -2,53 +2,103 @@
     (C) 2021 - ntop.org    
 #}
 <div class="d-flex">
-    <div class="btn-group btn-group-toggle mr-3" data-toggle="buttons" role="group">
-        <label class="btn btn-secondary active">
+    <div class="btn-group btn-group-toggle mr-3" role="group">
+        <label class="btn btn-warning">
             <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
         </label>
-        <label class="btn btn-secondary">
+        <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-30m" value="30,minutes"> 30m
         </label>
-        <label class="btn btn-secondary">
+        <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1h" value="1,hours"> 1h
         </label>
-        <label class="btn btn-secondary">
+        <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1d" value="1,days"> 1d
         </label>
-        <label class="btn btn-secondary">
+        <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1w" value="1,weeks"> 1w
         </label>
-        <label class="btn btn-secondary">
+        <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1M" value="1,months"> 1M
         </label>
-        <label class="btn btn-secondary">
+        <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1Y" value="1,years"> 1Y
         </label>
+        <label id="btn-custom-preset" class="btn btn-light disabled">{{ i18n("graphs.custom") }}</label>
     </div>
-    <div class="input-group ml-3">
+    <div class="input-group ml-3 mr-1">
         <div class="input-group-prepend">
             <span class="input-group-text">
                 <i class="fas fa-calendar-alt"></i>
             </span>
         </div>
-        <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker"
+        <input id='begin-epoch' style="width: 200px;" type="text" aria-label="Begin" data-toggle="datetimepicker"
             class="form-control datetimepicker-input border-right-0" data-target="#begin-epoch">
         <div class="input-group-append">
             <span class="input-group-text bg-white border-left-0 border-right-0">
                 <i class="fas fa-long-arrow-alt-right"></i>
             </span>
         </div>
-        <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker"
+        <input id='end-epoch' style="width: 150px;" type="text" aria-label="End" data-toggle="datetimepicker"
             class="form-control datetimepicker-input border-left-0" data-target="#end-epoch">
+    </div>
+    <button id="btn-apply" class="btn btn-primary mr-3">{{ i18n("apply") }}</button>
+    <div class="btn-group btn-group-sm mr-3">
+        <button class="btn btn-link" id="btn-jump-time-back">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <button class="btn btn-link mr-2" disabled id="btn-jump-time-ahead">
+            <i class="fas fa-arrow-right"></i>
+        </button>
+        <button class="btn btn-link" id="btn-zoom-in">
+            <i class="fas fa-search-plus"></i>
+        </button>
+        <button class="btn btn-link" id="btn-zoom-out">
+            <i class="fas fa-search-minus"></i>
+        </button>
+    </div>
+    <div class="btn-group btn-group-sm">
+        <button id="btn-get-permalink" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="{{ i18n('graphs.get_permanent_link') }}">
+            <i class="fas fa-lg fa-link"></i>
+        </button>
+        <button id="btn-download-graph-data" title="{{ i18n('graphs.download_chart_data') }}" data-toggle="tooltip" data-placement="bottom"  class="btn btn-link">
+            <i class="fas fa-chart-area"></i>
+        </button>
     </div>
 </div>
 <script type='text/javascript'>
     $(document).ready(function() {
         
-        let custom = false;
-
         const now = moment();
         const prev = moment().subtract(5, 'minutes');
+
+        const $btnJumpTimeBack = $(`#btn-jump-time-back`);
+        const $btnJumpTimeAhead = $(`#btn-jump-time-ahead`);
+        const $btnCustomPreset = $(`#btn-custom-preset`);
+        const $btnGetPermaLink = $(`#btn-get-permalink`);
+
+        function updateRangePicker(operation, maxDate) {
+
+            const [subtract, measure] = $(`[name='presets']:checked`).val().split(',');
+            const begin = $(`#begin-epoch`).datetimepicker('date');
+            const end = $(`#end-epoch`).datetimepicker('date');
+
+            $(`#begin-epoch`).datetimepicker('date', begin[operation](parseInt(subtract), measure));
+            $(`#end-epoch`).datetimepicker('date', end[operation](parseInt(subtract), measure));
+
+            $btnCustomPreset.parents('.btn-group').find('.btn').removeClass('btn-warning');
+            $btnCustomPreset.addClass('btn-warning').removeClass('btn-light');
+
+            // if the new end time is less than the max current date then
+            // enable the jump time ahead button, otherwise disable it
+            if (end < maxDate) {
+                $btnJumpTimeAhead.removeAttr('disabled');
+            }
+            else {
+                $btnJumpTimeAhead.attr('disabled', 'disabled');
+            }
+
+        }
 
         // initialize timepickers
         $(`#begin-epoch`).datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: prev, useCurrent: false});
@@ -57,14 +107,16 @@
         $(`#begin-epoch`).datetimepicker('date', prev);
         $(`#end-epoch`).datetimepicker('date', now);
 
-        $(`#begin-epoch, #end-epoch`).on('change.datetimepicker', function(e) {
-            if (!custom) {
-                $(`[name='presets']`).parents('.btn').removeClass('active');
-                custom = true;
-            }
-        });
-
         $(`[name='presets']`).on('change', function() {
+
+            // remove the active class
+            $(this)
+                .parents('.btn-group')
+                .find('.btn')
+                .removeClass('btn-warning')
+                .addClass('btn-light');
+
+            $(this).parents('.btn').addClass('btn-warning').removeClass('btn-light');
 
             const [subtract, measure] = $(this).val().split(',');
             const end = $(`#end-epoch`).datetimepicker('date');
@@ -72,8 +124,28 @@
             if (end != null) {
                const diff = end.subtract(parseInt(subtract), measure);
                $(`#begin-epoch`).datetimepicker('date', diff);
-               custom = false;
             }
         });
+
+        // travel back in the past by the selected preset
+        $btnJumpTimeBack.on('click', function() {
+            updateRangePicker('subtract', now);
+            // trigger the apply event
+            $(`#btn-apply`).trigger('click');
+        });
+
+        // travel ahead in the future by the selected preset
+        $btnJumpTimeAhead.on('click', function() {
+            updateRangePicker('add', now);
+            // trigger the apply event
+            $(`#btn-apply`).trigger('click');
+        });
+
+        $btnGetPermaLink.on('click', function() {
+            // TODO: get permanent link
+        });
+
+        $('[data-toggle="tooltip"]').tooltip();
+
     });
 </script>

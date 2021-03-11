@@ -18,6 +18,8 @@ local records = {}
 
 -- 1 hour is 60*60=3600
 
+local start = os.time()
+
 for i = 1, num_records, 1 do
 
     if (curr < end_epoch) then
@@ -29,4 +31,7 @@ for i = 1, num_records, 1 do
 
 end
 
-rest_utils.answer(rest_utils.consts.success.ok, records)
+rest_utils.answer(rest_utils.consts.success.ok, {
+    time = os.time() - start,
+    records = records
+})
