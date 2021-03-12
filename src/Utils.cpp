@@ -4793,3 +4793,30 @@ bool Utils::hasExtension(const char *path, const char *ext) {
 }
 
 /* ****************************************************** */
+
+#ifndef WIN32
+int Utils::mapSyslogFacilityTextToValue(const char *facility_text) {
+       if (strcasecmp(facility_text, "auth") == 0) return LOG_AUTH;
+  else if (strcasecmp(facility_text, "authpriv") == 0) return LOG_AUTHPRIV;
+  else if (strcasecmp(facility_text, "cron") == 0) return LOG_CRON;
+  else if (strcasecmp(facility_text, "daemon") == 0) return LOG_DAEMON;
+  else if (strcasecmp(facility_text, "ftp") == 0) return LOG_FTP;
+  else if (strcasecmp(facility_text, "kern") == 0) return LOG_KERN;
+  else if (strcasecmp(facility_text, "lpr") == 0) return LOG_LPR;
+  else if (strcasecmp(facility_text, "mail") == 0) return LOG_MAIL;
+  else if (strcasecmp(facility_text, "news") == 0) return LOG_NEWS;
+  else if (strcasecmp(facility_text, "security") == 0) return LOG_AUTH;
+  else if (strcasecmp(facility_text, "syslog") == 0) return LOG_SYSLOG;
+  else if (strcasecmp(facility_text, "user") == 0) return LOG_USER;
+  else if (strcasecmp(facility_text, "uucp") == 0) return LOG_UUCP;
+  else if (strcasecmp(facility_text, "local0") == 0) return LOG_LOCAL0;
+  else if (strcasecmp(facility_text, "local1") == 0) return LOG_LOCAL1;
+  else if (strcasecmp(facility_text, "local2") == 0) return LOG_LOCAL2;
+  else if (strcasecmp(facility_text, "local3") == 0) return LOG_LOCAL3;
+  else if (strcasecmp(facility_text, "local4") == 0) return LOG_LOCAL4;
+  else if (strcasecmp(facility_text, "local5") == 0) return LOG_LOCAL5;
+  else if (strcasecmp(facility_text, "local6") == 0) return LOG_LOCAL6;
+  else if (strcasecmp(facility_text, "local7") == 0) return LOG_LOCAL7;
+  else return -1;
+}
+#endif

@@ -243,6 +243,9 @@ public:
    */
   static AlertLevelGroup mapAlertLevelToGroup(AlertLevel alert_level);
   static bool hasExtension(const char *path, const char *ext);
+#ifndef WIN32
+  static int mapSyslogFacilityTextToValue(const char *facility_text);
+#endif
 };
 
 #endif /* _UTILS_H_ */

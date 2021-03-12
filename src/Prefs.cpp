@@ -136,6 +136,9 @@ Prefs::Prefs(Ntop *_ntop) {
 
   mysql_host = mysql_dbname = mysql_tablename = mysql_user = mysql_pw = NULL;
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
+  #ifndef WIN32
+  flows_syslog_facility = CONST_DEFAULT_DUMP_SYSLOG_FACILITY;
+  #endif
   ls_host = NULL;
   ls_port = NULL;
   ls_proto = NULL;
@@ -368,8 +371,17 @@ void usage() {
 	 "                                    |   ElasticSearch version 6. <mapping type> values whill therefore be\n"
 	 "                                    |   ignored when using versions greater than or equal to 6.\n"
 	 "                                    |\n"
+#ifndef WIN32
 	 "                                    | syslog        Dump in syslog\n"
+	 "                                    |   Format:\n"
+	 "                                    |   syslog[;<facility-text>]\n"
+	 "                                    |   Example:\n"
+	 "                                    |   syslog\n"
+	 "                                    |   syslog;local3\n"
+	 "                                    |   Notes:\n"
+	 "                                    |   <facility-text> is case-insensitive.\n"
 	 "                                    |\n"
+#endif
 #ifdef HAVE_MYSQL
 	 "                                    | mysql         Dump in MySQL database\n"
 	 "                                    |   Format:\n"
@@ -1344,6 +1356,16 @@ int Prefs::setOption(int optkey, char *optarg) {
 #ifndef WIN32
     else if(!strncmp(optarg, "syslog", strlen("syslog"))) {
       dump_flows_on_syslog = true;
+      char *flows_syslog_facility_text;
+      if (strchr(optarg, ';') != NULL) {
+        optarg = Utils::tokenizer(strchr(optarg, ';') + 1, ';', &flows_syslog_facility_text);
+        int syslog_facility_value = Utils::mapSyslogFacilityTextToValue(flows_syslog_facility_text);
+        if (syslog_facility_value != -1) {
+          flows_syslog_facility = syslog_facility_value;
+          ntop->getTrace()->traceEvent(TRACE_DEBUG, "Syslog facility for dumping flows is set to %s (%d)",
+                  flows_syslog_facility_text, flows_syslog_facility);
+        }
+      }
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dumping flows to syslog in JSON format");
     }
 #endif
