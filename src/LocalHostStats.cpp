@@ -79,7 +79,7 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
   
   /* des init */
-  des_contacted_hosts = new DESCounter(12);
+  des_contacted_hosts = new DESCounter();
   des_contacted_hosts_report = false;
   prediction = lower_bound = upper_bound = 0;
   
