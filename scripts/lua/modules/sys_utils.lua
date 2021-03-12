@@ -78,11 +78,29 @@ end
 -- ################################################################
 
 -- execCmd with command output
+-- If input is specified, it is provided as stdin to the command
+-- otherwise the command is executed with no input and the output returned
 -- NOTE: no check for REAL_EXEC, the command will always be executed!
-function sys_utils.execShellCmd(c)
-   local f = assert(io.popen(c, 'r'))
-   local s = assert(f:read('*a'))
-   f:close()
+function sys_utils.execShellCmd(cmd, input)
+   local f, s
+   
+   if input then
+      f = io.popen(cmd, 'w')
+      if f then
+         f:write(input)
+         s = true
+      else
+         s = false      
+      end
+   else 
+      f = assert(io.popen(cmd, 'r'))
+      s = assert(f:read('*a'))
+   end
+
+   if f then
+      f:close()
+   end     
+
    return s
 end
 
