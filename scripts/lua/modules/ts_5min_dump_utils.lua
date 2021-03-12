@@ -358,11 +358,11 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
   -- Contacted Hosts Behaviour
   if host["contacted_hosts_behaviour"] then
-     if(host.contacted_hosts_behaviour.hll_value > 0) then
-	local lower = host.contacted_hosts_behaviour.hw_lower_bound
-	local upper = host.contacted_hosts_behaviour.hw_upper_bound
-	local value = host.contacted_hosts_behaviour.hll_value
-	local prediction = host.contacted_hosts_behaviour.hw_prediction
+     if(host.contacted_hosts_behaviour.value > 0) then
+	local lower = host.contacted_hosts_behaviour.lower_bound
+	local upper = host.contacted_hosts_behaviour.upper_bound
+	local value = host.contacted_hosts_behaviour.value
+	local prediction = host.contacted_hosts_behaviour.prediction
 	local initialRun
 
 	if((lower == 0) and (upper == 0) and (prediction == 0)) then
@@ -381,7 +381,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
      end
      
     ts_utils.append("host:contacts_behaviour", {ifid=ifstats.id, host=hostname,
-	value=(host.contacted_hosts_behaviour.hll_value or 0), prediction=(host.contacted_hosts_behaviour.hw_prediction or 0)}, when)
+	value=(host.contacted_hosts_behaviour.value or 0), prediction=(host.contacted_hosts_behaviour.prediction or 0)}, when)
   end
 
 
