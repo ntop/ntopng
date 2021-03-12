@@ -48,12 +48,11 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
     throw "Failed HLL initialization";
   
-  last_hll_contacted_hosts_value = 0;
+  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
   
-  /* hw init */
-  hw_contacted_hosts = new HWCounter(12);
-  hw_contacted_hosts_report = false;
-  hw_init_count = 0;
+  /* des init */
+  des_contacted_hosts = new DESCounter();
+  des_contacted_hosts_report = false;
   prediction = lower_bound = upper_bound = 0;
   
   num_dns_servers.init(5);
@@ -77,12 +76,11 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   if(ndpi_hll_init(&hll_contacted_hosts, 8))
     throw "Failed HLL initialization";
   
-  last_hll_contacted_hosts_value = 0;
-  hw_init_count = 0;
+  hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
   
-  /* hw init */
-  hw_contacted_hosts = new HWCounter(12);
-  hw_contacted_hosts_report = false;
+  /* des init */
+  des_contacted_hosts = new DESCounter(12);
+  des_contacted_hosts_report = false;
   prediction = lower_bound = upper_bound = 0;
   
   num_dns_servers.init(5);
@@ -93,13 +91,13 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
 /* *************************************** */
 
 LocalHostStats::~LocalHostStats() {
-  if(top_sites)          delete top_sites;
-  if(old_sites)          free(old_sites);
-  if(dns)                delete dns;
-  if(http)               delete http;
-  if(icmp)               delete icmp;
-  if(peers)              delete(peers);
-  if(hw_contacted_hosts) delete(hw_contacted_hosts);
+  if(top_sites)           delete top_sites;
+  if(old_sites)           free(old_sites);
+  if(dns)                 delete dns;
+  if(http)                delete http;
+  if(icmp)                delete icmp;
+  if(peers)               delete(peers);
+  if(des_contacted_hosts) delete(des_contacted_hosts);
 
   ndpi_hll_destroy(&hll_contacted_hosts);
 }
@@ -143,11 +141,11 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
   if(dns)  dns->updateStats(tv);
   if(icmp) icmp->updateStats(tv);
   if(http) http->updateStats(tv);
-  
+
   if(tv->tv_sec >= nextPeriodicUpdate) {
     /* hll visited sites update */
     updateContactedHostsBehaviour();
-
+    
     /* Contacted peers update */
     updateHostContacts();
     
@@ -197,17 +195,17 @@ void LocalHostStats::getJSONObject(json_object *my_object, DetailsLevel details_
 void LocalHostStats::luaHostBehaviour(lua_State* vm) {
   lua_newtable(vm);
     
-  lua_push_float_table_entry(vm, "hll_value",
-			     last_hll_contacted_hosts_value);
+  lua_push_float_table_entry(vm, "value",
+			     hll_delta_value);
 
-  if(hw_contacted_hosts) {
-    lua_push_bool_table_entry(vm, "hw_value",
-			      hw_contacted_hosts_report);
-    lua_push_int32_table_entry(vm, "hw_prediction",
+  if(des_contacted_hosts) {
+    lua_push_bool_table_entry(vm, "anomaly",
+			      des_contacted_hosts_report);
+    lua_push_int32_table_entry(vm, "prediction",
 			       prediction); 
-    lua_push_int32_table_entry(vm, "hw_lower_bound",
+    lua_push_int32_table_entry(vm, "lower_bound",
 			       lower_bound);
-    lua_push_int32_table_entry(vm, "hw_upper_bound",
+    lua_push_int32_table_entry(vm, "upper_bound",
 			       upper_bound);
   }
 
@@ -604,7 +602,10 @@ void LocalHostStats::resetTopSitesData() {
 /* *************************************** */
 
 void LocalHostStats::updateContactedHostsBehaviour() {
-  last_hll_contacted_hosts_value = ndpi_hll_count(&hll_contacted_hosts);
+  /* Update the old and new hll value and do the delta */
+  old_hll_value = new_hll_value;
+  new_hll_value = ndpi_hll_count(&hll_contacted_hosts);
+  hll_delta_value = new_hll_value - old_hll_value;
 
 #ifdef TRACE_ME
   char buf[64];
@@ -615,7 +616,6 @@ void LocalHostStats::updateContactedHostsBehaviour() {
   ndpi_hll_reset(&hll_contacted_hosts);
 #endif
   
-  if(hw_contacted_hosts) 
-    hw_contacted_hosts_report = hw_contacted_hosts->addObservation((u_int32_t) last_hll_contacted_hosts_value,
-								   &prediction, &lower_bound, &upper_bound);
+  if(des_contacted_hosts) 
+    des_contacted_hosts_report = des_contacted_hosts->addObservation((u_int32_t) hll_delta_value, &prediction, &lower_bound, &upper_bound);
 }

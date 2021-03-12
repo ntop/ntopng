@@ -39,12 +39,12 @@ function script.hooks.min(params)
    local stats = host.getBehaviourInfo() or nil
 
    if stats then
-      if stats["contacted_hosts_behavior.hw_value"] ~= nil then 
-      	 local value = stats["contacted_hosts_behavior.hw_value"]	
-      	 local prediction = stats["contacted_hosts_behavior.hw_prediction"]
-      	 local estimated_value = stats["contacted_hosts_behavior.last_hll_estimate"]
-      	 local upper_bound = stats["contacted_hosts_behavior.hw_upper_bound"]
-      	 local lower_bound = stats["contacted_hosts_behavior.hw_lower_bound"]
+      if stats["contacted_hosts_behavior.anomaly"] ~= nil then 
+      	 local anomaly = stats["contacted_hosts_behavior.value"]	
+      	 local prediction = stats["contacted_hosts_behavior.prediction"]
+      	 local estimated_value = stats["contacted_hosts_behavior.value"]
+      	 local upper_bound = stats["contacted_hosts_behavior.upper_bound"]
+      	 local lower_bound = stats["contacted_hosts_behavior.lower_bound"]
 
       	 local alert = alert_consts.alert_types.alert_unexpected_behaviour.new(
             "Domain visited", -- Type of unexpected behaviour
@@ -56,7 +56,7 @@ function script.hooks.min(params)
 
          alert:set_severity(conf.severity)
 
-         if value == true then
+         if anomaly == true then
             alert:trigger(params.alert_entity, nil, params.cur_alerts)
          else
 	    alert:release(params.alert_entity, nil, params.cur_alerts)

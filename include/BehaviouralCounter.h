@@ -29,7 +29,7 @@ class BehaviouralCounter {
 
  public:
   /* Number of points to be used by the algorithm in the learning phase */
-  BehaviouralCounter(u_int16_t num_learning_observations) { ; }
+  BehaviouralCounter() { ; }
   virtual ~BehaviouralCounter() {  };
 
   /*
@@ -58,7 +58,7 @@ class RSICounter : public BehaviouralCounter {
   u_int8_t lower_pctg, upper_pctg;
 
  public:
-  RSICounter(u_int16_t num_learning_observations = 10, u_int8_t lower_percentage = 25, u_int8_t upper_percentage = 75) : BehaviouralCounter(num_learning_observations) {
+  RSICounter(u_int16_t num_learning_observations = 10, u_int8_t lower_percentage = 25, u_int8_t upper_percentage = 75) : BehaviouralCounter() {
     if(ndpi_alloc_rsi(&rsi, num_learning_observations) != 0)
       throw "Error while creating RSI";
 
@@ -82,6 +82,41 @@ class RSICounter : public BehaviouralCounter {
   }
 };
 
+/* ************************ */
+
+/* Counter based on Double Exponential smoothing algorithm */
+class DESCounter : public BehaviouralCounter {
+ private:
+  struct ndpi_des_struct des;
+  u_int8_t lower_pctg, upper_pctg;
+
+ public:
+ DESCounter(double alpha = 0.9, double beta = 0.5, float significance = 0.05) : BehaviouralCounter() {
+    if(ndpi_des_init(&des, alpha, beta, significance) != 0)
+      throw "Error while creating DES";
+  }
+  ~DESCounter() { ; }
+
+  bool addObservation(u_int32_t value, u_int32_t *prediction,
+		      u_int32_t *lower_bound, u_int32_t *upper_bound) {
+    double forecast, confidence_band;
+
+    int res = ndpi_des_add_value(&des, value, &forecast, &confidence_band);
+
+    double l_forecast = forecast-confidence_band;
+    double h_forecast = forecast+confidence_band;
+    
+    *lower_bound = (u_int32_t)((l_forecast < 0) ? 0 : l_forecast),
+    *upper_bound = (u_int32_t)((h_forecast < 0) ? 0 : h_forecast),
+    *prediction = (u_int32_t)forecast;
+    
+    if(res == 0)
+      return(false); /* Too early */
+    else
+      return(((*prediction < lower_pctg) || (*prediction > upper_pctg)) ? true : false);
+  }
+};
+
 /* ******************************** */
 
 /* Counter based on Holt-Winters algorithm */
@@ -92,7 +127,7 @@ class HWCounter : public BehaviouralCounter {
  public:
   HWCounter(u_int16_t num_learning_observations = 1 /* Basically smoothing without seasonality */,
 	    double alpha = 0.7, double beta = 0.7, double gamma = 0.9)
-    : BehaviouralCounter(num_learning_observations) {
+    : BehaviouralCounter() {
     if(ndpi_hw_init(&hw, num_learning_observations, 1 /* additive */, alpha, beta, gamma, 0.05 /* 95% */) != 0)
       throw "Error while creating HW";
   }
