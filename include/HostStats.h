@@ -39,6 +39,31 @@ class HostStats: public GenericTrafficElement {
   u_int64_t udp_sent_unicast, udp_sent_non_unicast;
   L4Stats l4stats;
 
+  time_t periodicUpdate;
+
+  /* *************************************** */
+  /* Behavioural analysis regarding the host */
+  /* Double Exponential Smoothing structure, used to have a feedback regarding the contacted hosts */
+  BehaviouralCounter *des_active_flows_srv, *des_active_flows_cli, *des_score_cli, *des_score_srv;
+  bool des_af_cli_report, des_af_srv_report, des_score_cli_report, des_score_srv_report;
+  
+  /* Behavioural counters for active flows as client */
+  u_int32_t af_cli_prediction, af_cli_lower_bound, af_cli_upper_bound;
+  u_int32_t old_af_cli, new_af_cli, delta_af_cli;
+  
+  /* Behavioural counters for active flows as server */
+  u_int32_t af_srv_prediction, af_srv_lower_bound, af_srv_upper_bound;
+  u_int32_t old_af_srv, new_af_srv, delta_af_srv;
+
+  /* Behavioural counters for the score as client */
+  u_int32_t score_cli_prediction, score_cli_lower_bound, score_cli_upper_bound;
+  u_int32_t old_score_cli, new_score_cli, delta_score_cli;
+
+  /* Behavioural counters for the score as server */
+  u_int32_t score_srv_prediction, score_srv_lower_bound, score_srv_upper_bound;
+  u_int32_t old_score_srv, new_score_srv, delta_score_srv;
+  /* **************************************** */
+  
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   // NOTE: GenericTrafficElement inherited data is updated periodically too
   u_int32_t total_activity_time /* sec */;
@@ -76,6 +101,7 @@ class HostStats: public GenericTrafficElement {
       recv_stats.incFlagStats(flags, cumulative_flags);
   };
 
+  
   virtual void computeAnomalyIndex(time_t when) {};
 
   inline Host* getHost() const { return(host); }
@@ -84,7 +110,7 @@ class HostStats: public GenericTrafficElement {
   inline void incNumHostUnreachableFlows(bool as_server) { if(as_server) host_unreachable_flows_as_server++; else host_unreachable_flows_as_client++; };
   inline void incNumFlowAlerts()                     { num_flow_alerts++; };
   inline void incTotalAlerts(AlertType alert_type)   { total_alerts++;    };
-
+  
   inline u_int32_t getTotalAlertedNumFlowsAsClient() const { return(alerted_flows_as_client);  };
   inline u_int32_t getTotalAlertedNumFlowsAsServer() const { return(alerted_flows_as_server);  };
   inline u_int32_t getTotalUnreachableNumFlowsAsClient() const { return(unreachable_flows_as_client);  };
@@ -93,11 +119,13 @@ class HostStats: public GenericTrafficElement {
   inline u_int32_t getTotalHostUnreachableNumFlowsAsServer() const { return(host_unreachable_flows_as_server);  };
   u_int32_t getTotalAlerts() const;
   inline u_int32_t getNumFlowAlerts() const { return(num_flow_alerts); };
+  void luaActiveFlowsBehaviour(lua_State *vm);
+  void luaScoreBehaviour(lua_State *vm);
   void luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua = false);
   virtual u_int16_t getNumActiveContactsAsClient() { return 0; }
   virtual u_int16_t getNumActiveContactsAsServer() { return 0; }
   virtual void resetTopSitesData() {};
-
+  
   inline void incSentStats(u_int num_pkts, u_int pkt_len) { sent_stats.incStats(num_pkts, pkt_len); };
   inline void incRecvStats(u_int num_pkts, u_int pkt_len) { recv_stats.incStats(num_pkts, pkt_len); };
   inline void incnDPIFlows(u_int16_t l7_protocol)   { if(ndpiStats) ndpiStats->incFlowsStats(l7_protocol); };
@@ -110,7 +138,8 @@ class HostStats: public GenericTrafficElement {
   virtual void luaAnomalies(lua_State* vm, time_t when) {};
   virtual void luaPeers(lua_State *vm) 			{};
   virtual void lua(lua_State* vm, bool mask_host, DetailsLevel details_level);
-  virtual void luaHostBehaviour(lua_State* vm)     { };
+  void updateStats(const struct timeval *tv);
+  virtual void luaHostBehaviour(lua_State* vm);
 #ifdef NTOPNG_PRO
   inline void incQuotaEnforcementStats(time_t when, u_int16_t ndpi_proto,
 				       u_int64_t sent_packets, u_int64_t sent_bytes,
@@ -125,6 +154,8 @@ class HostStats: public GenericTrafficElement {
       quota_enforcement_stats->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
   }
   inline void resetQuotaStats() { if(quota_enforcement_stats) quota_enforcement_stats->resetStats(); };
+  void updateActiveFlowsBehaviour();
+  void updateScoreBehaviour();
 
   void allocateQuotaEnforcementStats();
   void deleteQuotaEnforcementStats();

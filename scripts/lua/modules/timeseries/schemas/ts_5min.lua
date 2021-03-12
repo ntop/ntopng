@@ -421,7 +421,44 @@ schema = ts_utils.newSchema("host:contacts_behaviour", {step=300, metrics_type=t
 schema:addTag("ifid")
 schema:addTag("host")
 schema:addMetric("value")
-schema:addMetric("prediction")
+schema:addMetric("lower_bound")
+schema:addMetric("upper_bound")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("host:cli_active_flows_behaviour", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("value")
+schema:addMetric("lower_bound")
+schema:addMetric("upper_bound")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("host:srv_active_flows_behaviour", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("value")
+schema:addMetric("lower_bound")
+schema:addMetric("upper_bound")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("host:cli_score_behaviour", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("value")
+schema:addMetric("lower_bound")
+schema:addMetric("upper_bound")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("host:srv_score_behaviour", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addTag("host")
+schema:addMetric("value")
+schema:addMetric("lower_bound")
+schema:addMetric("upper_bound")
 
 -- ##############################################
 

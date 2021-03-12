@@ -414,6 +414,8 @@ void Host::lua_get_host_pool(lua_State *vm) const {
 /* ***************************************************** */
 
 void Host::lua_get_score(lua_State *vm) {
+  if(stats)
+    stats->luaHostBehaviour(vm);
   lua_push_uint64_table_entry(vm, "score", score.get());
   lua_push_uint64_table_entry(vm, "score.as_client", score.getClient());
   lua_push_uint64_table_entry(vm, "score.as_server", score.getServer());
@@ -575,6 +577,8 @@ void Host::lua_get_num_flows(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", getTotalNumHostUnreachableOutgoingFlows());
+  if(stats)
+    stats->luaHostBehaviour(vm);
 }
 
 /* ***************************************************** */

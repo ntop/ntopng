@@ -34,11 +34,29 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   total_num_flows_as_client = total_num_flows_as_server = 0;
   total_alerts = 0;
   num_flow_alerts = 0;
-
+  periodicUpdate = 0;
+  
   /* NOTE: deleted by ~GenericTrafficElement */
   ndpiStats = new (std::nothrow) nDPIStats();
   //printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
 
+  /* Behavioural counter init */
+  des_active_flows_cli = new DESCounter();
+  des_active_flows_srv = new DESCounter();
+  des_score_cli = new DESCounter();
+  des_score_srv = new DESCounter();
+  
+  des_af_cli_report = false, des_af_srv_report = false, des_score_cli_report = false, des_score_srv_report = false;
+  af_srv_prediction = 0, af_srv_lower_bound = 0, af_srv_upper_bound = 0;
+  af_cli_prediction = 0, af_cli_lower_bound = 0, af_cli_upper_bound = 0;
+  score_srv_prediction = 0, score_srv_lower_bound = 0, score_srv_upper_bound = 0;
+  score_cli_prediction = 0, score_cli_lower_bound = 0, score_cli_upper_bound = 0;
+  
+  old_score_srv = 0, new_score_srv = 0, delta_score_srv = 0;
+  old_score_cli = 0, new_score_cli = 0, delta_score_cli = 0;
+  old_af_srv = 0, new_af_srv = 0, delta_af_srv = 0;
+  old_af_cli = 0, new_af_cli = 0, delta_af_cli = 0;
+  
   dscpStats = new (std::nothrow) DSCPStats();
 
   last_epoch_update = 0;
@@ -58,6 +76,82 @@ HostStats::~HostStats() {
   if(quota_enforcement_stats)        delete quota_enforcement_stats;
   if(quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
 #endif
+}
+
+/* *************************************** */
+
+void HostStats::updateStats(const struct timeval *tv) {
+  if(tv->tv_sec >= periodicUpdate) {
+    updateActiveFlowsBehaviour();
+    updateScoreBehaviour();
+
+    periodicUpdate = tv->tv_sec + HOST_SITES_REFRESH; /* 5 min */
+  }
+}
+
+/* *************************************** */
+
+void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
+  lua_push_bool_table_entry(vm, "active_flows.as_client.anomaly",
+			    des_score_cli_report);
+  lua_push_int32_table_entry(vm, "active_flows.as_client.prediction",
+			     score_cli_prediction); 
+  lua_push_int32_table_entry(vm, "active_flows.as_client.lower_bound",
+			     score_cli_lower_bound);
+			     
+  lua_push_int32_table_entry(vm, "active_flows.as_client.delta",
+			     delta_score_cli);
+			     
+  lua_push_int32_table_entry(vm, "active_flows.as_client.upper_bound",
+			     score_cli_upper_bound);
+  
+  lua_push_bool_table_entry(vm, "active_flows.as_server.anomaly",
+			    des_score_srv_report);
+  lua_push_int32_table_entry(vm, "active_flows.as_server.prediction",
+			     score_srv_prediction);
+   
+  lua_push_int32_table_entry(vm, "active_flows.as_server.delta",
+			     delta_score_srv);
+  
+  lua_push_int32_table_entry(vm, "active_flows.as_server.lower_bound",
+			     score_srv_lower_bound);
+  lua_push_int32_table_entry(vm, "active_flows.as_server.upper_bound",
+			     score_srv_upper_bound);
+}
+
+/* *************************************** */
+
+void HostStats::luaScoreBehaviour(lua_State* vm) {
+  /* Client score behaviour */
+  lua_push_bool_table_entry(vm, "score.as_client.anomaly",
+			    des_af_cli_report);
+  lua_push_int32_table_entry(vm, "score.as_client.prediction",
+			     af_cli_prediction); 
+  lua_push_int32_table_entry(vm, "score.as_client.delta",
+			     delta_af_cli); 
+  lua_push_int32_table_entry(vm, "score.as_client.lower_bound",
+			     af_cli_lower_bound);
+  lua_push_int32_table_entry(vm, "score.as_client.upper_bound",
+			     af_cli_upper_bound);
+
+  /* Server score behaviour */
+  lua_push_bool_table_entry(vm, "score.as_server.anomaly",
+			    des_af_srv_report);
+  lua_push_int32_table_entry(vm, "score.as_server.prediction",
+			     af_srv_prediction); 
+  lua_push_int32_table_entry(vm, "score.as_server.delta",
+			     delta_af_srv); 
+  lua_push_int32_table_entry(vm, "score.as_server.lower_bound",
+			     af_srv_lower_bound);
+  lua_push_int32_table_entry(vm, "score.as_server.upper_bound",
+			     af_srv_upper_bound);
+}
+
+/* *************************************** */
+
+void HostStats::luaHostBehaviour(lua_State* vm) {
+  luaScoreBehaviour(vm);
+  luaActiveFlowsBehaviour(vm);
 }
 
 /* *************************************** */
@@ -258,3 +352,48 @@ void HostStats::deleteQuotaEnforcementStats() {
 }
 
 #endif
+
+/* *************************************** */
+
+void HostStats::updateActiveFlowsBehaviour() {
+  /* Update the old and new value and do the delta */
+  new_af_cli = host->getNumOutgoingFlows();
+  new_af_srv = host->getNumIncomingFlows();
+  
+  /* Client update */
+  delta_af_cli = new_af_cli - old_af_cli;
+  old_af_cli = new_af_cli;
+  
+  /* Server update */
+  delta_af_srv = new_af_srv - old_af_srv;
+  old_af_srv = new_af_srv;
+
+  if(des_active_flows_cli)
+    des_af_cli_report = des_active_flows_cli->addObservation((u_int32_t) delta_af_cli, &af_cli_prediction, &af_cli_lower_bound, &af_cli_upper_bound);
+
+  if(des_active_flows_srv)
+    des_af_srv_report = des_active_flows_srv->addObservation((u_int32_t) delta_af_srv, &af_srv_prediction, &af_srv_lower_bound, &af_srv_upper_bound);
+}
+
+/* *************************************** */
+
+void HostStats::updateScoreBehaviour() {
+  /* Update the old and new value and do the delta */
+  new_score_cli = host->getScoreAsClient();
+  new_score_srv = host->getScoreAsServer();
+
+  /* Client update */
+  delta_score_cli = new_score_cli - old_score_cli;
+  old_score_cli = new_score_cli;
+
+  /* Server update */
+  delta_score_srv = new_score_srv - old_score_srv;
+  old_score_srv = new_score_srv;
+
+  /* Client DES */
+  if(des_score_cli)
+    des_score_cli_report = des_score_cli->addObservation((u_int32_t) delta_score_cli, &score_cli_prediction, &score_cli_lower_bound, &score_cli_upper_bound);
+  /* Server DES */
+  if(des_score_srv)
+    des_score_srv_report = des_score_srv->addObservation((u_int32_t) delta_score_srv, &score_srv_prediction, &score_srv_lower_bound, &score_srv_upper_bound);
+}

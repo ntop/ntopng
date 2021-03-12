@@ -46,10 +46,9 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
 
   /* hll init, 8 bits -> 256 bytes per LocalHost */
   if(ndpi_hll_init(&hll_contacted_hosts, 8) != 0)
-    throw "Failed HLL initialization";
-  
+    throw "Failed HLL initialization";  
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
-  
+
   /* des init */
   des_contacted_hosts = new DESCounter();
   des_contacted_hosts_report = false;
@@ -75,7 +74,6 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   /* hll init, 8 bits -> 256 bytes per LocalHost */
   if(ndpi_hll_init(&hll_contacted_hosts, 8))
     throw "Failed HLL initialization";
-  
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
   
   /* des init */
@@ -193,6 +191,8 @@ void LocalHostStats::getJSONObject(json_object *my_object, DetailsLevel details_
 /* *************************************** */
 
 void LocalHostStats::luaHostBehaviour(lua_State* vm) {
+  HostStats::luaHostBehaviour(vm);
+  
   lua_newtable(vm);
     
   lua_push_float_table_entry(vm, "value",

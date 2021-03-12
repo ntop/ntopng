@@ -88,32 +88,25 @@ class RSICounter : public BehaviouralCounter {
 class DESCounter : public BehaviouralCounter {
  private:
   struct ndpi_des_struct des;
-  u_int8_t lower_pctg, upper_pctg;
 
  public:
  DESCounter(double alpha = 0.9, double beta = 0.5, float significance = 0.05) : BehaviouralCounter() {
     if(ndpi_des_init(&des, alpha, beta, significance) != 0)
       throw "Error while creating DES";
   }
-  ~DESCounter() { ; }
 
   bool addObservation(u_int32_t value, u_int32_t *prediction,
 		      u_int32_t *lower_bound, u_int32_t *upper_bound) {
     double forecast, confidence_band;
-
-    int res = ndpi_des_add_value(&des, value, &forecast, &confidence_band);
-
+    bool rc = ndpi_des_add_value(&des, value, &forecast, &confidence_band) == 1 ? true : false;
     double l_forecast = forecast-confidence_band;
     double h_forecast = forecast+confidence_band;
     
     *lower_bound = (u_int32_t)((l_forecast < 0) ? 0 : l_forecast),
-    *upper_bound = (u_int32_t)((h_forecast < 0) ? 0 : h_forecast),
-    *prediction = (u_int32_t)forecast;
+      *upper_bound = (u_int32_t)h_forecast,
+      *prediction = (u_int32_t)forecast;
     
-    if(res == 0)
-      return(false); /* Too early */
-    else
-      return(((*prediction < lower_pctg) || (*prediction > upper_pctg)) ? true : false);
+    return(rc);
   }
 };
 

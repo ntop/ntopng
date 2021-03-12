@@ -91,6 +91,7 @@ class LocalHostStats: public HostStats {
   virtual void luaPeers(lua_State *vm);
   virtual void incrVisitedWebSite(char *hostname);
   virtual void lua_get_timeseries(lua_State* vm);
+  void luaContactsBehaviour(lua_State *vm);
   virtual void luaHostBehaviour(lua_State* vm);
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State* vm, time_t when);

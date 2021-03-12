@@ -827,6 +827,10 @@ function ts_utils.getPossiblyChangedSchemas()
 
       "host:contacts", -- split in "as_client" and "as_server"
       "host:contacts_behaviour",
+      "host:cli_active_flows_behaviour",
+      "host:srv_active_flows_behaviour",
+      "host:cli_score_behaviour",
+      "host:srv_score_behaviour",
       "host:ndpi_categories", --split in "bytes_sent" and "bytes_rcvd"
 
       -- Added missing ifid tag
