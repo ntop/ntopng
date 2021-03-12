@@ -24,8 +24,8 @@ local res = {}
 
 for alert_type, alert in pairs(alert_consts.alert_types) do
    res[#res + 1] = {
-      type = alert_type, 
-      key = alert.alert_key,
+      type = alert_type,
+      key = alert.meta.alert_key,
    }
 end
 
