@@ -149,8 +149,9 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
    end
 
    if periodic_script_issue then
-      local cur_issue = script_stats.stats[periodic_script_issue]
-
+      local cur_issue = script_stats.stats[periodic_script_issue] or nil
+      local num_cur_issue = script_stats.stats["num_" .. periodic_script_issue] or nil
+      
       if periodic_script_issue == "any_issue" then
 	 local found = false
 
@@ -164,7 +165,7 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
 	 if not found then
 	    goto continue
 	 end
-      elseif not cur_issue then
+      elseif not cur_issue and not num_cur_issue then
 	 goto continue
       end
    end
