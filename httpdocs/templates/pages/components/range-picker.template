@@ -1,9 +1,16 @@
 {#
     (C) 2021 - ntop.org    
 #}
-<div class="d-flex">
+
+{%
+    -- if there are set the _GET["begin_epoch"] && _GET["end_epoch"]
+    -- then select the `Custom` Label 
+    local presetSelected = (isEmptyString(_GET['begin_epoch']) and isEmptyString(_GET['end_epoch']))   
+%}
+
+<div class="d-flex justify-content-between w-100">
     <div class="btn-group btn-group-toggle mr-3" role="group">
-        <label class="btn btn-warning">
+        <label class="btn {{ (presetSelected and 'btn-warning' or 'btn-light') }}">
             <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
         </label>
         <label class="btn btn-light">
@@ -24,22 +31,22 @@
         <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1Y" value="1,years"> 1Y
         </label>
-        <label id="btn-custom-preset" class="btn btn-light disabled">{{ i18n("graphs.custom") }}</label>
+        <label id="btn-custom-preset" class="btn {{ (not presetSelected and 'btn-warning' or 'btn-light disabled') }}">{{ i18n("graphs.custom") }}</label>
     </div>
-    <div class="input-group ml-3 mr-1">
+    <div class="input-group flex-shrink-1 ml-3 mr-1" style="width: fit-content;">
         <div class="input-group-prepend">
             <span class="input-group-text">
                 <i class="fas fa-calendar-alt"></i>
             </span>
         </div>
-        <input id='begin-epoch' style="width: 200px;" type="text" aria-label="Begin" data-toggle="datetimepicker"
+        <input id='begin-epoch' type="text" aria-label="Begin" data-toggle="datetimepicker"
             class="form-control datetimepicker-input border-right-0" data-target="#begin-epoch">
         <div class="input-group-append">
-            <span class="input-group-text bg-white border-left-0 border-right-0">
+            <span class="input-group-text bg-transparent border-left-0 border-right-0">
                 <i class="fas fa-long-arrow-alt-right"></i>
             </span>
         </div>
-        <input id='end-epoch' style="width: 150px;" type="text" aria-label="End" data-toggle="datetimepicker"
+        <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker"
             class="form-control datetimepicker-input border-left-0" data-target="#end-epoch">
     </div>
     <button id="btn-apply" class="btn btn-primary mr-3">{{ i18n("apply") }}</button>
@@ -65,26 +72,48 @@
             <i class="fas fa-chart-area"></i>
         </button>
     </div>
+    <div class="ml-auto">
+        {%
+            local len_entries = {10, 25, 50, 100}    
+        %}
+
+        <select id='select-len' class="form-control mr-1" style="width: 5rem;">
+            {% for _, len in ipairs(len_entries) do %}
+                <option {{ (len == tonumber(_GET['totalRows']) and 'selected' or '') }} value="{{ len }}">{{ len }}</option>
+            {% end %}
+        </select>
+    </div>
 </div>
+<script type="text/javascript">
+const beginEpoch = {{ (_GET['begin_epoch'] or 'undefined') }};
+const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
+</script>
 <script type='text/javascript'>
     $(document).ready(function() {
         
-        const now = moment();
-        const prev = moment().subtract(5, 'minutes');
+        const now = (endEpoch === undefined) ? moment() : moment(endEpoch, 'X');
+        const prev = (beginEpoch === undefined) ? moment().subtract(5, 'minutes') : moment(beginEpoch, 'X');
+
+        const $inputBeginEpoch = $(`#begin-epoch`);
+        const $inputEndEpoch = $(`#end-epoch`);
+        const $selectTotalRows = $(`#select-len`);
 
         const $btnJumpTimeBack = $(`#btn-jump-time-back`);
         const $btnJumpTimeAhead = $(`#btn-jump-time-ahead`);
+        const $btnZoomIn = $(`#btn-zoom-in`);
+        const $btnZoomOut = $(`#btn-zoom-out`);
+
         const $btnCustomPreset = $(`#btn-custom-preset`);
         const $btnGetPermaLink = $(`#btn-get-permalink`);
 
         function updateRangePicker(operation, maxDate) {
 
             const [subtract, measure] = $(`[name='presets']:checked`).val().split(',');
-            const begin = $(`#begin-epoch`).datetimepicker('date');
-            const end = $(`#end-epoch`).datetimepicker('date');
+            const begin = $inputBeginEpoch.datetimepicker('date');
+            const end = $inputEndEpoch.datetimepicker('date');
 
-            $(`#begin-epoch`).datetimepicker('date', begin[operation](parseInt(subtract), measure));
-            $(`#end-epoch`).datetimepicker('date', end[operation](parseInt(subtract), measure));
+            $inputBeginEpoch.datetimepicker('date', begin[operation](parseInt(subtract), measure));
+            $inputEndEpoch.datetimepicker('date', end[operation](parseInt(subtract), measure));
 
             $btnCustomPreset.parents('.btn-group').find('.btn').removeClass('btn-warning');
             $btnCustomPreset.addClass('btn-warning').removeClass('btn-light');
@@ -101,11 +130,11 @@
         }
 
         // initialize timepickers
-        $(`#begin-epoch`).datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: prev, useCurrent: false});
-        $(`#end-epoch`).datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: now, useCurrent: false});
+        $inputBeginEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: moment(), useCurrent: false});
+        $inputEndEpoch.datetimepicker({format: 'DD/MM/YYYY HH:mm:ss', maxDate: moment(), useCurrent: false});
 
-        $(`#begin-epoch`).datetimepicker('date', prev);
-        $(`#end-epoch`).datetimepicker('date', now);
+        $inputBeginEpoch.datetimepicker('date', prev);
+        $inputEndEpoch.datetimepicker('date', now);
 
         $(`[name='presets']`).on('change', function() {
 
@@ -119,11 +148,11 @@
             $(this).parents('.btn').addClass('btn-warning').removeClass('btn-light');
 
             const [subtract, measure] = $(this).val().split(',');
-            const end = $(`#end-epoch`).datetimepicker('date');
+            const end = $inputEndEpoch.datetimepicker('date');
 
             if (end != null) {
                const diff = end.subtract(parseInt(subtract), measure);
-               $(`#begin-epoch`).datetimepicker('date', diff);
+               $inputBeginEpoch.datetimepicker('date', diff);
             }
         });
 
@@ -142,10 +171,53 @@
         });
 
         $btnGetPermaLink.on('click', function() {
-            // TODO: get permanent link
+
+            const $this = $(this);
+            const dummyInput = document.createElement('input');
+            dummyInput.value = location.href;
+            document.body.appendChild(dummyInput);
+            dummyInput.select();
+            // copy the url to the clipboard from the dummy input
+            document.execCommand("copy");
+            document.body.removeChild(dummyInput);
+
+            $this.attr("title", "Copied!")
+                .tooltip("dispose")
+                .tooltip()
+                .tooltip("show");
+        });
+
+        $btnZoomIn.on('click', function() {
+
+            const begin = $inputBeginEpoch.datetimepicker('date');
+            const end = $inputEndEpoch.datetimepicker('date');
+
+            const delta = (begin.unix() + end.unix()) / 2;
+            const newBegin = moment(delta, 'X').add(20, 'minutes');
+            const newEnd = moment(delta, 'X').subtract(20, 'minutes');
+
+            console.log(newBegin, newEnd)
+
+            $inputBeginEpoch.datetimepicker('date', newBegin);
+            $inputEndEpoch.datetimepicker('date', newEnd);
+
         });
 
         $('[data-toggle="tooltip"]').tooltip();
+
+        // when the user navigates using the browser's arrows
+        // set the input boxes with their respective values
+        $(window).on('popstate', function(e) {
+            const {state} = e.originalEvent;
+            const {begin_epoch, end_epoch, totalRows} = state;    
+            $inputBeginEpoch.datetimepicker('date', moment(begin_epoch, 'X'));
+            $inputEndEpoch.datetimepicker('date', moment(end_epoch, 'X'));
+            $selectTotalRows.val(totalRows);
+        });
+
+        $inputBeginEpoch.on("change.datetimepicker", function (e) {
+            $inputEndEpoch.datetimepicker('minDate', e.date);
+        });
 
     });
 </script>

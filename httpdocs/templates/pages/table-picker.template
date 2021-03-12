@@ -4,19 +4,7 @@
 <div class='row'>
     <div class='col-12'>
         <div class="d-flex p-2 mb-2 navbar-shadow border-radius navbar-light bg-light align-items-center">
-            
             {* ui_utils.render_datetime_range_picker() *}
-            <label class="my-auto ml-auto mr-1">{{ i18n('records_to_show') }}:</label>
-
-            {%
-                local len_entries = {10, 25, 50, 100}    
-            %}
-
-            <select id='select-len' class="form-control mr-1" style="width: 5rem;">
-                {% for _, len in ipairs(len_entries) do %}
-                    <option {{ (len == tonumber(_GET['totalRows']) and 'selected' or '') }} value="{{ len }}">{{ len }}</option>
-                {% end %}
-            </select>
         </div>
     </div>
     <div class='col-12 mt-2'>
@@ -78,10 +66,18 @@
             url.searchParams.set('begin_epoch', begin.unix());
             url.searchParams.set('end_epoch', end.unix());
             url.searchParams.set('totalRows', len);
-            window.history.pushState({}, '', url);
+            window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: len}, '', url);
         }
+        
+        const datatableButton = {* (datatable.buttons or '[]') *};
+        datatableButton.push({
+            text: '<i class="fas fa-sync"></i>',
+            action: function (e, dt, node, config) {
+                $table.ajax.reload();
+            }
+        });
 
-        let config = DataTableUtils.getStdDatatableConfig({* (datatable.buttons or '[]') *});
+        let config = DataTableUtils.getStdDatatableConfig(datatableButton);
         config = DataTableUtils.setAjaxConfig(config, `{* datasource.endpoint *}`, 'rsp.records');
         config = DataTableUtils.extendConfig(config, {
             {% if datatable.js_columns then %}
