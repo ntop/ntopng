@@ -81,7 +81,7 @@ Create the script you want to execute each time the alert is triggered and put i
 
 .. note::
 
-        The script must be a shell script (.sh extention).
+        The script must be a shell script (.sh extention) with execution permission.
 
 Alert information can be provided to the script in two ways:
 
