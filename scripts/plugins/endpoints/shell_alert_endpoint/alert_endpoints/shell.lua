@@ -3,6 +3,7 @@
 --
 
 require "lua_utils"
+local sys_utils = require "sys_utils"
 local json = require "dkjson"
 local alerts_api = require "alerts_api"
 local alert_severities = require "alert_severities"
@@ -65,24 +66,45 @@ end
 
 -- ##############################################
 
-function expandArguments(cmd, myalert)
+function runScriptWithArgs(cmd, myalert)
+   local use_args = false
+
    alert = myalert -- Not sure why we need a non-local variable
-   
+
+   if(do_debug) then
+      -- tprint(myalert)
+      tprint("[Before] "..cmd)
+   end
+
+   -- Check if the user configured arguments to be mapped to alert fields
    -- Search all alert.* strings
    for word in string.gmatch(cmd, 'alert.[^,%s]+') do
-      local func, err = load("return "..word)
+      local arg_val = ""
+      use_args = true
 
-      if(func) then
-	 local ok, res = pcall(func)
-
-	 if(ok) then
-	    -- print("Found "..word)
-	    cmd = cmd:gsub(word, res)
-	 else
-	    -- print("Execution error:", res)
-	 end
+      local field_name = string.gsub(word, 'alert%.', '')
+      if field_name then
+         local field_value = myalert[field_name]
+         if field_value then
+           arg_val = field_value
+         end
       end
+
+      cmd = cmd:gsub(word, '"'..arg_val..'"')
    end
+
+   -- Mask output
+   local full_cmd = cmd.." > /dev/null"
+
+   if use_args then
+      -- Running script with expanded args   
+      os.execute(full_cmd)
+   else
+      -- Running script with the alert (json) as input (stdin)
+      sys_utils.execShellCmd(full_cmd, json.encode(myalert))
+   end
+
+   if(do_debug) then tprint("[After] "..cmd) end
 
    return(cmd)
 end
@@ -114,16 +136,7 @@ function shell.runScript(alerts, settings)
     -- Executing the script
     local exec_script = fullpath .. " " .. settings.options
 
-    if(do_debug) then
-       -- tprint(alert)
-       tprint("[Before] "..exec_script)
-    end
-
-    exec_script = expandArguments(exec_script, alert)
-    if(do_debug) then tprint("[After] "..exec_script) end
-
-    -- Mask output
-    os.execute(exec_script.." > /dev/null")
+    exec_script = runScriptWithArgs(exec_script, alert)
 
     -- Storing an alert-notice in regard of the shell script execution
     -- for security reasons
