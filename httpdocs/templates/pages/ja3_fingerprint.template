@@ -49,8 +49,15 @@ $(document).ready(function() {
 		      }
 		  },
 		  { "data": "app_name", className: "text-right" },
-		  { "data": "num_uses", className: "text-right" }
-        ]
+		  { "data": "num_uses", className: "text-right" , render: function (data, type, row, meta)
+                    {
+                      if (type === 'display')
+                        {
+                          return NtopUtils.formatValue(data);
+                        }
+                    }
+                 }
+              ]
     });
 
    const $ja3FingerprintDatatable = $(`#ja3Table`).DataTable(dtConfig);
