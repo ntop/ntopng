@@ -318,7 +318,9 @@ class Prefs {
   inline char* get_mysql_tablename()    { return(mysql_tablename);       };
   inline char* get_mysql_user()         { return(mysql_user);            };
   inline char* get_mysql_pw()           { return(mysql_pw);              };
+#ifndef WIN32
   inline int get_flows_syslog_facility() { return(flows_syslog_facility); };
+#endif
   inline char* get_ls_host()            { return(ls_host);               };
   inline char* get_ls_port()		{ return(ls_port);		 };
   inline char* get_ls_proto()		{ return(ls_proto);		 };
