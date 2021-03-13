@@ -934,12 +934,12 @@ print[[
    end
 
    if ntop.isPcapDownloadAllowed() and ifstats.isView == false and ifstats.isDynamic == false and is_packet_interface then
-      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=2>")
+      print("<tr><th>"..i18n("download").."&nbsp;<i class=\"fas fa-download fa-lg\"></i></th><td colspan=4>")
 
       local live_traffic_utils = require("live_traffic_utils")
       live_traffic_utils.printLiveTrafficForm(interface.getId())
 
-      print("</td><td colspan=3></td></tr>\n")
+      print("</td></tr>\n")
    end
 
    if isAdministrator() then

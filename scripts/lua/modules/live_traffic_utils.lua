@@ -45,8 +45,6 @@ function live_traffic_utils.printLiveTrafficForm(ifid, host_info)
 &nbsp;
   <label for="bpf_filter" class="sr-only">]] print(i18n("db_explorer.filter_bpf")) print[[</label>
   <input type="text" class="form-control" id="live-capture-bpf-filter" name="bpf_filter" placeholder="]] print(i18n("db_explorer.filter_bpf")) print[["></input>
-</div>
-<div class="input-group template mb-2">
   <button type="submit" class="btn btn-secondary mb-2" onclick="return live_capture_download_show_modal();">]] print(i18n("download_x", {what="pcap"})) print[[</button>
 </div>
 </form>
