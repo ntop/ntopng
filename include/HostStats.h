@@ -154,14 +154,15 @@ class HostStats: public GenericTrafficElement {
       quota_enforcement_stats->incCategoryStats(when, category_id, sent_bytes, rcvd_bytes);
   }
   inline void resetQuotaStats() { if(quota_enforcement_stats) quota_enforcement_stats->resetStats(); };
-  void updateActiveFlowsBehaviour();
-  void updateScoreBehaviour();
 
   void allocateQuotaEnforcementStats();
   void deleteQuotaEnforcementStats();
   inline HostPoolStats* getQuotaEnforcementStats() { return(quota_enforcement_stats); }
 #endif
 
+  void updateActiveFlowsBehaviour();
+  void updateScoreBehaviour();
+  
   virtual void luaHTTP(lua_State *vm) {}
   virtual void luaDNS(lua_State *vm, bool verbose)  {}
   virtual void luaICMP(lua_State *vm, bool isV4, bool verbose)  {}
