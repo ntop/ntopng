@@ -149,6 +149,14 @@ local function processHost(hostname, host)
 	  y = host["pkts_ratio"],
 	  r = host["bytes.sent"] + host["bytes.rcvd"]
        }
+    elseif (bubble_mode == HostsMapMode.SCORE) then
+       line = {
+	  link = hostname,
+	  label = label,
+	  x = host["score.as_client"],
+	  y = host["score.as_server"],
+	  r = host["score.as_client"] + host["score.as_server"]
+       }
     end
 
     if (line ~= nil) then

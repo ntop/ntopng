@@ -17,6 +17,7 @@ hosts_map_utils.HostsMapMode = {
     TCP_BYTES_SENT_VS_RCVD = 8,
     ACTIVE_ALERT_FLOWS = 9,
     TRAFFIC_RATIO = 10,
+    SCORE = 11,
 }
 
 hosts_map_utils.MODES = {
@@ -75,6 +76,11 @@ hosts_map_utils.MODES = {
         label   = i18n("hosts_map_page.traffic_ratio"),
         x_label = i18n("hosts_map_page.labels.b_ratio"),
         y_label = i18n("hosts_map_page.labels.p_ratio")
+    }, {
+        mode = hosts_map_utils.HostsMapMode.SCORE,
+        label   = i18n("hosts_map_page.score"),
+        x_label = i18n("hosts_map_page.labels.client_score"),
+        y_label = i18n("hosts_map_page.labels.server_score")
     }
 }
 
