@@ -80,8 +80,8 @@ Host::~Host() {
   if(flow_flood_attacker_alert) delete flow_flood_attacker_alert;
   if(flow_flood_victim_alert)   delete flow_flood_victim_alert;
 
-  if(stats)              delete stats;
-  if(stats_shadow)       delete stats_shadow;
+  if(stats)                     delete stats;
+  if(stats_shadow)              delete stats_shadow;
 
   /*
     Pool counters are updated both in and outside the datapath.
@@ -235,11 +235,11 @@ void Host::updateHostPool(bool isInlineCall, bool firstUpdate) {
 
     if(hp && hp->enforceQuotasPerPoolMember(get_host_pool())) {
       /* must allocate a structure to keep track of used quotas */
-      stats->allocateQuotaEnforcementStats();
+      if(stats) stats->allocateQuotaEnforcementStats();
     } else { /* Free the structure that is no longer needed */
       /* It is ensured by the caller that this method is called no more than 1 time per second.
       Therefore, it is safe to delete a previously allocated shadow class */
-      stats->deleteQuotaEnforcementStats();
+      if(stats) stats->deleteQuotaEnforcementStats();
     }
 
     if(hp && hp->enforceShapersPerPoolMember(get_host_pool())) {
@@ -280,7 +280,7 @@ void Host::set_mac(Mac *_mac) {
 bool Host::hasAnomalies() const {
   time_t now = time(0);
 
-  return stats->hasAnomalies(now);
+  return (stats ? stats->hasAnomalies(now) : false);
 }
 
 /* *************************************** */
@@ -291,6 +291,7 @@ void Host::lua_get_anomalies(lua_State* vm) const {
 
   if(hasAnomalies()) {
     time_t now = time(0);
+
     lua_newtable(vm);
 
     stats->luaAnomalies(vm, now);
@@ -414,8 +415,8 @@ void Host::lua_get_host_pool(lua_State *vm) const {
 /* ***************************************************** */
 
 void Host::lua_get_score(lua_State *vm) {
-  if(stats)
-    stats->luaHostBehaviour(vm);
+  if(stats) stats->luaHostBehaviour(vm);
+  
   lua_push_uint64_table_entry(vm, "score", score.get());
   lua_push_uint64_table_entry(vm, "score.as_client", score.getClient());
   lua_push_uint64_table_entry(vm, "score.as_server", score.getServer());
@@ -539,7 +540,9 @@ void Host::lua_get_time(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "seen.first", get_first_seen());
   lua_push_uint64_table_entry(vm, "seen.last", get_last_seen());
   lua_push_uint64_table_entry(vm, "duration", get_duration());
-  lua_push_uint64_table_entry(vm, "total_activity_time", stats->getTotalActivityTime());
+
+  if(stats)
+    lua_push_uint64_table_entry(vm, "total_activity_time", stats->getTotalActivityTime());
 }
 
 /* ***************************************************** */
@@ -556,7 +559,9 @@ void Host::lua_get_num_alerts(lua_State* vm) const {
 
   lua_push_uint64_table_entry(vm, "num_alerts", getNumEngagedAlerts());
   lua_push_uint64_table_entry(vm, "active_alerted_flows", getNumAlertedFlows());
-  lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
+
+  if(stats)
+    lua_push_uint64_table_entry(vm, "total_alerts", stats->getTotalAlerts());
 }
 
 /* ***************************************************** */
@@ -577,6 +582,7 @@ void Host::lua_get_num_flows(lua_State* vm) const {
   lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", getTotalNumUnreachableOutgoingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", getTotalNumHostUnreachableIncomingFlows());
   lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", getTotalNumHostUnreachableOutgoingFlows());
+
   if(stats)
     stats->luaHostBehaviour(vm);
 }
@@ -634,7 +640,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_get_os(vm);
   lua_get_host_pool(vm);
 
-  stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose, host_details));
+  if(stats)
+    stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose, host_details));
 
   lua_get_num_flows(vm);
   lua_get_num_contacts(vm);
@@ -913,7 +920,8 @@ void Host::periodic_stats_update(const struct timeval *tv) {
      && (cur_os_from_fingerprint = Utils::getOSFromFingerprint(cur_mac->getFingerprint(), cur_mac->get_manufacturer(), cur_mac->getDeviceType())) != cur_os_type)
     setOS(cur_os_from_fingerprint);
 
-  stats->updateStats(tv);
+  if(stats)
+    stats->updateStats(tv);
 
   GenericHashEntry::periodic_stats_update(tv);
 
@@ -929,10 +937,11 @@ void Host::incStats(u_int32_t when, u_int8_t l4_proto,
 		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
 		    bool peer_is_unicast) {
   if(sent_bytes || rcvd_bytes) {
-    stats->incStats(when, l4_proto, ndpi_proto, ndpi_category, custom_app,
-		    sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
-		    rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
-
+    if(stats)
+      stats->incStats(when, l4_proto, ndpi_proto, ndpi_category, custom_app,
+		      sent_packets, sent_bytes, sent_goodput_bytes, rcvd_packets,
+		      rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
+    
     updateSeen();
   }
 }
@@ -943,7 +952,8 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
   char buf[96];
   Mac *m = mac;
 
-  stats->getJSONObject(my_object, details_level);
+  if(stats)
+    stats->getJSONObject(my_object, details_level);
 
   json_object_object_add(my_object, "ip", ip.getJSONObject());
   if(vlan_id != 0)        json_object_object_add(my_object, "vlan_id",   json_object_new_int(vlan_id));
@@ -1048,7 +1058,8 @@ void Host::incNumFlows(time_t t, bool as_client) {
   }
 
   counter->inc(t, this);
-  stats->incNumFlows(as_client);
+  if(stats)
+    stats->incNumFlows(as_client);
 }
 
 /* *************************************** */
@@ -1137,8 +1148,11 @@ bool Host::checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source
   if((policer = iface->getL7Policer()) == NULL)
     return false;
 
-  is_above = policer->checkQuota(get_host_pool(), stats->getQuotaEnforcementStats(), ndpiProtocol, quota_source, now);
-
+  if(stats)
+    is_above = policer->checkQuota(get_host_pool(), stats->getQuotaEnforcementStats(), ndpiProtocol, quota_source, now);
+  else
+    is_above = false;
+  
 #ifdef SHAPER_DEBUG
   char buf[128], protobuf[32];
 
@@ -1156,12 +1170,14 @@ bool Host::checkQuota(ndpi_protocol ndpiProtocol, L7PolicySource_t *quota_source
 /* *************************************** */
 
 void Host::luaUsedQuotas(lua_State* vm) {
-  HostPoolStats *quota_stats = stats->getQuotaEnforcementStats();
-
-  if(quota_stats)
-    quota_stats->lua(vm, iface);
-  else
-    lua_newtable(vm);
+  if(stats) {
+    HostPoolStats *quota_stats = stats->getQuotaEnforcementStats();
+    
+    if(quota_stats)
+      quota_stats->lua(vm, iface);
+    else
+      lua_newtable(vm);
+  }
 }
 #endif
 
@@ -1357,13 +1373,13 @@ bool Host::isOneWayTraffic() const {
   /* When both directions are at zero, it means no periodic update has visited the host yet,
      so nothing can be said about its traffic directions. One way is only returned when 
      exactly one direction is greater than zero. */
-  return stats->getNumBytes() && !(stats->getNumBytesRcvd() && stats->getNumBytesSent());
+  return(stats ? stats->getNumBytes() && !(stats->getNumBytesRcvd() && stats->getNumBytesSent()) : false);
 };
 
 /* *************************************** */
 
 bool Host::isTwoWaysTraffic() const {
-  return stats->getNumBytesRcvd() && stats->getNumBytesSent();
+  return(stats ? stats->getNumBytesRcvd() && stats->getNumBytesSent() : false);
 }
 
 /* *************************************** */

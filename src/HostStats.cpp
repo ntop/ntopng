@@ -40,22 +40,11 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   ndpiStats = new (std::nothrow) nDPIStats();
   //printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
 
-  /* Behavioural counter init */
-  des_active_flows_cli = new DESCounter();
-  des_active_flows_srv = new DESCounter();
-  des_score_cli = new DESCounter();
-  des_score_srv = new DESCounter();
-  
-  des_af_cli_report = false, des_af_srv_report = false, des_score_cli_report = false, des_score_srv_report = false;
-  af_srv_prediction = 0, af_srv_lower_bound = 0, af_srv_upper_bound = 0;
+  af_cli_anomaly = false, af_srv_anomaly = false, score_cli_anomaly = false, score_srv_anomaly = false;
+  af_cli_value = af_srv_value = 0, af_srv_prediction = 0, af_srv_lower_bound = 0, af_srv_upper_bound = 0;
   af_cli_prediction = 0, af_cli_lower_bound = 0, af_cli_upper_bound = 0;
-  score_srv_prediction = 0, score_srv_lower_bound = 0, score_srv_upper_bound = 0;
+  score_cli_value = score_srv_value  = 0, score_srv_prediction = 0, score_srv_lower_bound = 0, score_srv_upper_bound = 0;
   score_cli_prediction = 0, score_cli_lower_bound = 0, score_cli_upper_bound = 0;
-  
-  old_score_srv = 0, new_score_srv = 0, delta_score_srv = 0;
-  old_score_cli = 0, new_score_cli = 0, delta_score_cli = 0;
-  old_af_srv = 0, new_af_srv = 0, delta_af_srv = 0;
-  old_af_cli = 0, new_af_cli = 0, delta_af_cli = 0;
   
   dscpStats = new (std::nothrow) DSCPStats();
 
@@ -92,59 +81,67 @@ void HostStats::updateStats(const struct timeval *tv) {
 /* *************************************** */
 
 void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
-  lua_push_bool_table_entry(vm, "active_flows.as_client.anomaly",
-			    des_score_cli_report);
-  lua_push_int32_table_entry(vm, "active_flows.as_client.prediction",
+  lua_newtable(vm);
+  
+  lua_push_bool_table_entry(vm, "as_client.anomaly",
+			    score_cli_anomaly);
+  lua_push_int32_table_entry(vm, "as_client.value",
+			     score_cli_value); 
+  lua_push_int32_table_entry(vm, "as_client.prediction",
 			     score_cli_prediction); 
-  lua_push_int32_table_entry(vm, "active_flows.as_client.lower_bound",
-			     score_cli_lower_bound);
-			     
-  lua_push_int32_table_entry(vm, "active_flows.as_client.delta",
-			     delta_score_cli);
-			     
-  lua_push_int32_table_entry(vm, "active_flows.as_client.upper_bound",
+  lua_push_int32_table_entry(vm, "as_client.lower_bound",
+			     score_cli_lower_bound);			     
+  lua_push_int32_table_entry(vm, "as_client.upper_bound",
 			     score_cli_upper_bound);
   
-  lua_push_bool_table_entry(vm, "active_flows.as_server.anomaly",
-			    des_score_srv_report);
-  lua_push_int32_table_entry(vm, "active_flows.as_server.prediction",
-			     score_srv_prediction);
-   
-  lua_push_int32_table_entry(vm, "active_flows.as_server.delta",
-			     delta_score_srv);
-  
-  lua_push_int32_table_entry(vm, "active_flows.as_server.lower_bound",
+  lua_push_bool_table_entry(vm, "as_server.anomaly",
+			    score_srv_anomaly);
+  lua_push_int32_table_entry(vm, "as_server.value",
+			     score_srv_value);
+  lua_push_int32_table_entry(vm, "as_server.prediction",
+			     score_srv_prediction);  
+  lua_push_int32_table_entry(vm, "as_server.lower_bound",
 			     score_srv_lower_bound);
-  lua_push_int32_table_entry(vm, "active_flows.as_server.upper_bound",
+  lua_push_int32_table_entry(vm, "as_server.upper_bound",
 			     score_srv_upper_bound);
+
+  lua_pushstring(vm, "active_flows_behaviour");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);  
 }
 
 /* *************************************** */
 
 void HostStats::luaScoreBehaviour(lua_State* vm) {
   /* Client score behaviour */
-  lua_push_bool_table_entry(vm, "score.as_client.anomaly",
-			    des_af_cli_report);
-  lua_push_int32_table_entry(vm, "score.as_client.prediction",
+
+  lua_newtable(vm);
+  lua_push_bool_table_entry(vm, "as_client.anomaly",
+			    af_cli_anomaly);
+  lua_push_int32_table_entry(vm, "as_client.value",
+			     af_cli_value); 
+  lua_push_int32_table_entry(vm, "as_client.prediction",
 			     af_cli_prediction); 
-  lua_push_int32_table_entry(vm, "score.as_client.delta",
-			     delta_af_cli); 
-  lua_push_int32_table_entry(vm, "score.as_client.lower_bound",
+  lua_push_int32_table_entry(vm, "as_client.lower_bound",
 			     af_cli_lower_bound);
-  lua_push_int32_table_entry(vm, "score.as_client.upper_bound",
+  lua_push_int32_table_entry(vm, "as_client.upper_bound",
 			     af_cli_upper_bound);
 
   /* Server score behaviour */
-  lua_push_bool_table_entry(vm, "score.as_server.anomaly",
-			    des_af_srv_report);
-  lua_push_int32_table_entry(vm, "score.as_server.prediction",
+  lua_push_bool_table_entry(vm, "as_server.anomaly",
+			    af_srv_anomaly);
+  lua_push_int32_table_entry(vm, "as_server.value",
+			     af_srv_value); 
+  lua_push_int32_table_entry(vm, "as_server.prediction",
 			     af_srv_prediction); 
-  lua_push_int32_table_entry(vm, "score.as_server.delta",
-			     delta_af_srv); 
-  lua_push_int32_table_entry(vm, "score.as_server.lower_bound",
+  lua_push_int32_table_entry(vm, "as_server.lower_bound",
 			     af_srv_lower_bound);
-  lua_push_int32_table_entry(vm, "score.as_server.upper_bound",
+  lua_push_int32_table_entry(vm, "as_server.upper_bound",
 			     af_srv_upper_bound);
+
+  lua_pushstring(vm, "score_behaviour");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);  
 }
 
 /* *************************************** */
@@ -163,7 +160,6 @@ void HostStats::checkpoint(lua_State* vm) {
   u_int64_t new_val;
 
   lua_newtable(vm);
-
   lua_newtable(vm);
 
   lua_push_uint64_table_entry(vm, "sent", (new_val = getNumBytesSent()) - checkpoints.sent_bytes);
@@ -311,44 +307,44 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
 /* *************************************** */
 
 void HostStats::allocateQuotaEnforcementStats() {
-      if(!quota_enforcement_stats) {
-        quota_enforcement_stats = new (std::nothrow) HostPoolStats(iface);
-
+  if(!quota_enforcement_stats) {
+    quota_enforcement_stats = new (std::nothrow) HostPoolStats(iface);
+    
 #ifdef HOST_POOLS_DEBUG
-        char buf[128];
-        ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Allocating quota stats for %s [quota_enforcement_stats: %p] [host pool: %i]",
-				     ip.print(buf, sizeof(buf)), (void*)quota_enforcement_stats, host_pool_id);
+    char buf[128];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Allocating quota stats for %s [quota_enforcement_stats: %p] [host pool: %i]",
+				 ip.print(buf, sizeof(buf)), (void*)quota_enforcement_stats, host_pool_id);
 #endif
-      }
+  }
 }
 
 /* *************************************** */
 
 void HostStats::deleteQuotaEnforcementStats() {
-    if(quota_enforcement_stats_shadow) {
-      delete quota_enforcement_stats_shadow;
-      quota_enforcement_stats_shadow = NULL;
+  if(quota_enforcement_stats_shadow) {
+    delete quota_enforcement_stats_shadow;
+    quota_enforcement_stats_shadow = NULL;
 
 #ifdef HOST_POOLS_DEBUG
-      char buf[128];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-           "Freeing shadow pointer of longer quota stats for %s [host pool: %i]",
-           ip.print(buf, sizeof(buf)), host_pool_id);
+    char buf[128];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Freeing shadow pointer of longer quota stats for %s [host pool: %i]",
+				 ip.print(buf, sizeof(buf)), host_pool_id);
 #endif
-    }
+  }
 
-    if(quota_enforcement_stats) {
-      quota_enforcement_stats_shadow = quota_enforcement_stats;
-      quota_enforcement_stats = NULL;
+  if(quota_enforcement_stats) {
+    quota_enforcement_stats_shadow = quota_enforcement_stats;
+    quota_enforcement_stats = NULL;
 
 #ifdef HOST_POOLS_DEBUG
-      char buf[128];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-           "Moving quota stats to the shadow pointer for %s [host pool: %i]",
-           ip.print(buf, sizeof(buf)), host_pool_id);
+    char buf[128];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Moving quota stats to the shadow pointer for %s [host pool: %i]",
+				 ip.print(buf, sizeof(buf)), host_pool_id);
 #endif
-    }
+  }
 }
 
 #endif
@@ -356,44 +352,13 @@ void HostStats::deleteQuotaEnforcementStats() {
 /* *************************************** */
 
 void HostStats::updateActiveFlowsBehaviour() {
-  /* Update the old and new value and do the delta */
-  new_af_cli = host->getNumOutgoingFlows();
-  new_af_srv = host->getNumIncomingFlows();
-  
-  /* Client update */
-  delta_af_cli = new_af_cli - old_af_cli;
-  old_af_cli = new_af_cli;
-  
-  /* Server update */
-  delta_af_srv = new_af_srv - old_af_srv;
-  old_af_srv = new_af_srv;
-
-  if(des_active_flows_cli)
-    des_af_cli_report = des_active_flows_cli->addObservation((u_int32_t) delta_af_cli, &af_cli_prediction, &af_cli_lower_bound, &af_cli_upper_bound);
-
-  if(des_active_flows_srv)
-    des_af_srv_report = des_active_flows_srv->addObservation((u_int32_t) delta_af_srv, &af_srv_prediction, &af_srv_lower_bound, &af_srv_upper_bound);
+  af_cli_anomaly = active_flows_cli.addObservation((af_cli_value = host->getNumOutgoingFlows()), &af_cli_prediction, &af_cli_lower_bound, &af_cli_upper_bound);
+  af_srv_anomaly = active_flows_srv.addObservation((af_srv_value = host->getNumIncomingFlows()), &af_srv_prediction, &af_srv_lower_bound, &af_srv_upper_bound);
 }
 
 /* *************************************** */
 
 void HostStats::updateScoreBehaviour() {
-  /* Update the old and new value and do the delta */
-  new_score_cli = host->getScoreAsClient();
-  new_score_srv = host->getScoreAsServer();
-
-  /* Client update */
-  delta_score_cli = new_score_cli - old_score_cli;
-  old_score_cli = new_score_cli;
-
-  /* Server update */
-  delta_score_srv = new_score_srv - old_score_srv;
-  old_score_srv = new_score_srv;
-
-  /* Client DES */
-  if(des_score_cli)
-    des_score_cli_report = des_score_cli->addObservation((u_int32_t) delta_score_cli, &score_cli_prediction, &score_cli_lower_bound, &score_cli_upper_bound);
-  /* Server DES */
-  if(des_score_srv)
-    des_score_srv_report = des_score_srv->addObservation((u_int32_t) delta_score_srv, &score_srv_prediction, &score_srv_lower_bound, &score_srv_upper_bound);
+  score_cli_anomaly = score_cli.addObservation((score_cli_value = host->getScoreAsClient()), &score_cli_prediction, &score_cli_lower_bound, &score_cli_upper_bound);
+  score_srv_anomaly = score_srv.addObservation((score_srv_value = host->getScoreAsServer()), &score_srv_prediction, &score_srv_lower_bound, &score_srv_upper_bound);
 }

@@ -44,24 +44,21 @@ class HostStats: public GenericTrafficElement {
   /* *************************************** */
   /* Behavioural analysis regarding the host */
   /* Double Exponential Smoothing structure, used to have a feedback regarding the contacted hosts */
-  BehaviouralCounter *des_active_flows_srv, *des_active_flows_cli, *des_score_cli, *des_score_srv;
-  bool des_af_cli_report, des_af_srv_report, des_score_cli_report, des_score_srv_report;
+  DESCounter active_flows_srv, active_flows_cli, score_cli, score_srv;
+  bool af_cli_anomaly, af_srv_anomaly, score_cli_anomaly, score_srv_anomaly;
   
   /* Behavioural counters for active flows as client */
-  u_int32_t af_cli_prediction, af_cli_lower_bound, af_cli_upper_bound;
-  u_int32_t old_af_cli, new_af_cli, delta_af_cli;
+  u_int32_t af_cli_value, af_cli_prediction, af_cli_lower_bound, af_cli_upper_bound;
   
   /* Behavioural counters for active flows as server */
-  u_int32_t af_srv_prediction, af_srv_lower_bound, af_srv_upper_bound;
-  u_int32_t old_af_srv, new_af_srv, delta_af_srv;
+  u_int32_t af_srv_value, af_srv_prediction, af_srv_lower_bound, af_srv_upper_bound;
 
   /* Behavioural counters for the score as client */
-  u_int32_t score_cli_prediction, score_cli_lower_bound, score_cli_upper_bound;
-  u_int32_t old_score_cli, new_score_cli, delta_score_cli;
-
+  u_int32_t score_cli_value, score_cli_prediction, score_cli_lower_bound, score_cli_upper_bound;
+  
   /* Behavioural counters for the score as server */
-  u_int32_t score_srv_prediction, score_srv_lower_bound, score_srv_upper_bound;
-  u_int32_t old_score_srv, new_score_srv, delta_score_srv;
+  u_int32_t score_srv_value, score_srv_prediction, score_srv_lower_bound, score_srv_upper_bound;
+
   /* **************************************** */
   
   /* Written by NetworkInterface::periodicStatsUpdate thread */

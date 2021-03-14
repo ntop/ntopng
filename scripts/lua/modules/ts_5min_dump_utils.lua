@@ -384,29 +384,26 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 						value=(host.contacted_hosts_behaviour.value or 0), lower_bound=(host.contacted_hosts_behaviour.lower_bound or 0), upper_bound = (host.contacted_hosts_behaviour.upper_bound or 0)}, when)
   end
 
-  
-  -- Score Behaviour as Client
-  if host["score.as_client.delta"] then
-    ts_utils.append("host:cli_score_behaviour", {ifid=ifstats.id, host=hostname,
-            value=(host["score.as_client.delta"] or 0), lower_bound=(host["score.as_client.lower_bound"] or 0), upper_bound = (host["score.as_client.upper_bound"] or 0)}, when)
-  end
 
-  -- Score Behaviour as Server
-  if host["score.as_server.delta"] then
-    ts_utils.append("host:srv_score_behaviour", {ifid=ifstats.id, host=hostname,
-            value=(host["score.as_server.delta"] or 0), lower_bound=(host["score.as_server.lower_bound"] or 0), upper_bound = (host["score.as_server.upper_bound"] or 0)}, when)
+  if host["score_behaviour"] then
+     local h = host["score_behaviour"]
+
+     -- tprint(h)
+     ts_utils.append("host:cli_score_behaviour", {ifid=ifstats.id, host=hostname,
+						  value=h["as_client.value"], lower_bound=h["as_client.lower_bound"], upper_bound = h["as_client.upper_bound"]}, when)
+     ts_utils.append("host:srv_score_behaviour", {ifid=ifstats.id, host=hostname,
+						  value=h["as_server.value"], lower_bound=h["as_server.lower_bound"], upper_bound = h["as_server.upper_bound"]}, when)
   end
 
   -- Active Flows Behaviour as Client
-  if host["active_flows.as_client.delta"] then
-    ts_utils.append("host:cli_score_behaviour", {ifid=ifstats.id, host=hostname,
-            value=(host["active_flows.as_client.delta"] or 0), lower_bound=(host["active_flows.as_client.lower_bound"] or 0), upper_bound = (host["active_flows.as_client.upper_bound"] or 0)}, when)
-  end
+  if host["active_flows_behaviour"] then
+     local h = host["active_flows_behaviour"]
 
-  -- Active Flows Behaviour as Server
-  if host["active_flows.as_server.delta"] then
-    ts_utils.append("host:srv_score_behaviour", {ifid=ifstats.id, host=hostname,
-            value=(host["active_flows.as_server.delta"] or 0), lower_bound=(host["active_flows.as_server.lower_bound"] or 0), upper_bound = (host["active_flows.as_server.upper_bound"] or 0)}, when)
+     -- tprint(h)
+     ts_utils.append("host:cli_active_flows_behaviour", {ifid=ifstats.id, host=hostname,
+							 value=h["as_client.value"], lower_bound=h["as_client.lower_bound"], upper_bound = h["as_client.upper_bound"]}, when)
+     ts_utils.append("host:srv_active_flows_behaviour", {ifid=ifstats.id, host=hostname,
+							 value=h["as_server.value"], lower_bound=h["as_server.lower_bound"], upper_bound = h["as_server.upper_bound"]}, when)
   end
 
   -- L4 Protocols
