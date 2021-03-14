@@ -388,7 +388,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   if host["score_behaviour"] then
      local h = host["score_behaviour"]
 
-     -- tprint(h)
+     --tprint(h)
      ts_utils.append("host:cli_score_behaviour", {ifid=ifstats.id, host=hostname,
 						  value=h["as_client.value"], lower_bound=h["as_client.lower_bound"], upper_bound = h["as_client.upper_bound"]}, when)
      ts_utils.append("host:srv_score_behaviour", {ifid=ifstats.id, host=hostname,
@@ -399,7 +399,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   if host["active_flows_behaviour"] then
      local h = host["active_flows_behaviour"]
 
-     -- tprint(h)
+     --tprint(h)
      ts_utils.append("host:cli_active_flows_behaviour", {ifid=ifstats.id, host=hostname,
 							 value=h["as_client.value"], lower_bound=h["as_client.lower_bound"], upper_bound = h["as_client.upper_bound"]}, when)
      ts_utils.append("host:srv_active_flows_behaviour", {ifid=ifstats.id, host=hostname,
