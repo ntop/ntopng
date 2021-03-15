@@ -831,6 +831,10 @@ function ts_utils.getPossiblyChangedSchemas()
       "host:srv_active_flows_behaviour",
       "host:cli_score_behaviour",
       "host:srv_score_behaviour",
+      "host:cli_active_flows_anomalies",
+      "host:srv_active_flows_anomalies",
+      "host:cli_score_anomalies",
+      "host:srv_score_anomalies",
       "host:ndpi_categories", --split in "bytes_sent" and "bytes_rcvd"
 
       -- Added missing ifid tag

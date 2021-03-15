@@ -2198,6 +2198,10 @@ graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
       {schema="host:cli_score_behaviour",         label=i18n("graphs.cli_score_behaviour"), split_directions = true},
       {schema="host:srv_active_flows_behaviour",  label=i18n("graphs.srv_active_flows_behaviour"), split_directions = true},
       {schema="host:cli_active_flows_behaviour",  label=i18n("graphs.cli_active_flows_behaviour"), split_directions = true},
+      {schema="host:srv_score_anomalies",         label=i18n("graphs.srv_score_anomalies")},
+      {schema="host:cli_score_anomalies",         label=i18n("graphs.cli_score_anomalies")},
+      {schema="host:srv_active_flows_anomalies",  label=i18n("graphs.srv_active_flows_anomalies")},
+      {schema="host:cli_active_flows_anomalies",  label=i18n("graphs.cli_active_flows_anomalies")},
    }, graph_utils.getDeviceCommonTimeseries()),
    device_timeseries_mac = host["mac"],
 })

@@ -388,14 +388,32 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
   if host["score_behaviour"] then
      local h = host["score_behaviour"]
 
+     -- Score Behaviour
      --tprint(h)
      ts_utils.append("host:cli_score_behaviour", {ifid=ifstats.id, host=hostname,
 						  value=h["as_client.value"], lower_bound=h["as_client.lower_bound"], upper_bound = h["as_client.upper_bound"]}, when)
      ts_utils.append("host:srv_score_behaviour", {ifid=ifstats.id, host=hostname,
 						  value=h["as_server.value"], lower_bound=h["as_server.lower_bound"], upper_bound = h["as_server.upper_bound"]}, when)
+     
+     -- Score Anomalies
+     local cli_anomaly = 0
+     local srv_anomaly = 0
+     if h["as_client.anomaly"] == true then
+	cli_anomaly = 1
+     end
+     if h["as_server.anomaly"] == true then
+	srv_anomaly = 1
+     end
+     
+     ts_utils.append("host:cli_score_anomalies", {ifid=ifstats.id, host=hostname,
+						  anomaly=cli_anomaly}, when)
+     
+     ts_utils.append("host:srv_score_anomalies", {ifid=ifstats.id, host=hostname,
+						  anomaly=srv_anomaly}, when)
   end
+  
 
-  -- Active Flows Behaviour as Client
+  -- Active Flows Behaviour
   if host["active_flows_behaviour"] then
      local h = host["active_flows_behaviour"]
 
@@ -404,6 +422,22 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 							 value=h["as_client.value"], lower_bound=h["as_client.lower_bound"], upper_bound = h["as_client.upper_bound"]}, when)
      ts_utils.append("host:srv_active_flows_behaviour", {ifid=ifstats.id, host=hostname,
 							 value=h["as_server.value"], lower_bound=h["as_server.lower_bound"], upper_bound = h["as_server.upper_bound"]}, when)
+
+     -- Active Flows Anomalies
+     local cli_anomaly = 0
+     local srv_anomaly = 0
+     if h["as_client.anomaly"] == true then
+	cli_anomaly = 1
+     end
+     if h["as_server.anomaly"] == true then
+	srv_anomaly = 1
+     end
+     
+     ts_utils.append("host:cli_active_flows_anomalies", {ifid=ifstats.id, host=hostname,
+						  anomaly=cli_anomaly}, when)
+     
+     ts_utils.append("host:srv_active_flows_anomalies", {ifid=ifstats.id, host=hostname,
+						  anomaly=srv_anomaly}, when)
   end
 
   -- L4 Protocols
