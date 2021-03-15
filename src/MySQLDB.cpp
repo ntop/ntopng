@@ -90,10 +90,8 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 	     "`VLAN_ID` smallint(5) unsigned DEFAULT NULL,"
 	     "`L7_PROTO` smallint(5) unsigned DEFAULT NULL,"
 	     "`IP_SRC_ADDR` varchar(48) DEFAULT NULL,"
-	     "`SRC_NAME` varchar(48) DEFAULT NULL,"
 	     "`L4_SRC_PORT` smallint(5) unsigned DEFAULT NULL,"
 	     "`IP_DST_ADDR` varchar(48) DEFAULT NULL,"
-	     "`DST_NAME` varchar(48) DEFAULT NULL,"
 	     "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
 	     "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
 	     "`IN_BYTES` bigint unsigned DEFAULT 0,"
@@ -103,7 +101,6 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 	     "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
 	     "`INFO` varchar(255) DEFAULT NULL,"
 	     "`JSON` blob,"
-	     "`COMMUNITY_ID` varchar(48) DEFAULT NULL,"
 #ifdef NTOPNG_PRO
 	     "`PROFILE` varchar(255) DEFAULT NULL,"
 #endif
@@ -131,10 +128,8 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 	     "`VLAN_ID` smallint(5) unsigned DEFAULT NULL,"
 	     "`L7_PROTO` smallint(5) unsigned DEFAULT NULL,"
 	     "`IP_SRC_ADDR` int(10) unsigned DEFAULT NULL,"
-	     "`SRC_NAME` varchar(48) DEFAULT NULL,"
 	     "`L4_SRC_PORT` smallint(5) unsigned DEFAULT NULL,"
 	     "`IP_DST_ADDR` int(10) unsigned DEFAULT NULL,"
-	     "`DST_NAME` varchar(48) DEFAULT NULL,"
 	     "`L4_DST_PORT` smallint(5) unsigned DEFAULT NULL,"
 	     "`PROTOCOL` tinyint(3) unsigned DEFAULT NULL,"
 	     "`IN_BYTES` bigint unsigned DEFAULT 0,"
@@ -144,7 +139,6 @@ bool MySQLDB::createDBSchema(bool set_db_created) {
 	     "`LAST_SWITCHED` int(10) unsigned DEFAULT NULL,"
 	     "`INFO` varchar(255) DEFAULT NULL,"
 	     "`JSON` blob,"
-	     "`COMMUNITY_ID` varchar(48) DEFAULT NULL,"
 #ifdef NTOPNG_PRO
 	     "`PROFILE` varchar(255) DEFAULT NULL,"
 #endif
@@ -601,9 +595,7 @@ char* MySQLDB::escapeAphostrophes(const char *unescaped) {
 
 int MySQLDB::flow2InsertValues(Flow *f, char *json,
 			       char *values_buf, size_t values_buf_len) const {
-  char cli_str[64], srv_str[64], *json_buf, *info_buf, buf[200];
-  char *cli_name, *srv_name, *comm_id;
-  u_char community_id[200];
+  char cli_str[64], srv_str[64], *json_buf, *info_buf, buf[64];
   u_int32_t packets, first_seen, last_seen;
   u_int64_t bytes_cli2srv, bytes_srv2cli;
   size_t len;
@@ -624,32 +616,21 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json,
   packets = f->get_partial_packets();
   first_seen = f->get_partial_first_seen();
   last_seen = f->get_partial_last_seen();
-  /* Srv and Cli resolved names */
-  if(f->get_cli_host())
-    cli_name = f->get_cli_host()->get_visual_name(buf, sizeof(buf));
-  if(f->get_srv_host())
-    srv_name = f->get_srv_host()->get_visual_name(buf, sizeof(buf));
-
-  /* Flow Community Id */
-  comm_id = (char *)f->getCommunityId(community_id, sizeof(community_id));
-
+  
   if(f->get_cli_ip_addr()->isIPv4()) {
     len = snprintf(values_buf, values_buf_len,
 		   MYSQL_INSERT_VALUES_V4,
 		   f->get_vlan_id(),
 		   f->get_detected_protocol().app_protocol,
 		   htonl(f->get_cli_ip_addr()->get_ipv4()),
-		   cli_name ? cli_name : "",
 		   f->get_cli_port(),
 		   htonl(f->get_srv_ip_addr()->get_ipv4()),
-		   srv_name ? srv_name : "",
 		   f->get_srv_port(),
 		   f->get_protocol(),
 		   (uintmax_t)bytes_cli2srv, (uintmax_t)bytes_srv2cli,
 		   packets, first_seen, last_seen,
 		   info_buf ? info_buf : "",
 		   json_buf ? json_buf : "",
-		   comm_id ? comm_id : "",
 		   ntop->getPrefs()->get_instance_name(),
 		   iface->get_id()
 #ifdef NTOPNG_PRO
@@ -662,17 +643,14 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json,
 		   f->get_vlan_id(),
 		   f->get_detected_protocol().app_protocol,
 		   f->get_cli_ip_addr()->print(cli_str, sizeof(cli_str)),
-		   cli_name ? cli_name : "",
 		   f->get_cli_port(),
 		   f->get_srv_ip_addr()->print(srv_str, sizeof(srv_str)),
-		   srv_name ? srv_name : "",
 		   f->get_srv_port(),
 		   f->get_protocol(),
 		   (uintmax_t)bytes_cli2srv, (uintmax_t)bytes_srv2cli,
 		   packets, first_seen, last_seen,
 		   info_buf ? info_buf : "",
 		   json_buf ? json_buf : "",
-		   comm_id ? comm_id : "",
 		   ntop->getPrefs()->get_instance_name(),
 		   iface->get_id()
 #ifdef NTOPNG_PRO
