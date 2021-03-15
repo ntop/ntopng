@@ -105,6 +105,9 @@ class DESCounter : public BehaviouralCounter {
     *lower_bound = (u_int32_t)((l_forecast < 0) ? 0 : l_forecast),
       *upper_bound = (u_int32_t)h_forecast,
       *prediction = (u_int32_t)forecast;
+
+    if(rc)
+      return(((value < *lower_bound) || (value > *upper_bound)) ? true : false);
     
     return(rc);
   }
