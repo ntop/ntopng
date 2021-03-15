@@ -70,6 +70,8 @@ HostStats::~HostStats() {
 /* *************************************** */
 
 void HostStats::updateStats(const struct timeval *tv) {
+  GenericTrafficElement::updateStats(tv);
+
   if(tv->tv_sec >= periodicUpdate) {
     updateActiveFlowsBehaviour();
     updateScoreBehaviour();
