@@ -30,8 +30,9 @@ template_utils.render("pages/table-picker.template", {
     json = json,
     template_utils = template_utils,
     modals = {},
-    datasource = Datasource("/lua/rest/v1/get/time/data.lua", {begin_epoch = begin_epoch, end_epoch = end_epoch, totalRows = totalRows}),
+    range_picker = {},
     datatable = {
+        datasource = Datasource("/lua/rest/v1/get/time/data.lua", {begin_epoch = begin_epoch, end_epoch = end_epoch, totalRows = totalRows}),
         name = 'my-table', -- the table name
         columns = {'Index', 'Date'}, -- the columns to print inside the table
         js_columns = ([[ [{data: 'index', width: '100px'}, {data: 'date'}] ]]), -- a custom javascript code to format the columns

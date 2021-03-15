@@ -66,11 +66,27 @@ function ui_utils.create_navbar_title(title, subpage, title_link)
     return "<a href='".. title_link .."'>".. title .. "</a>&nbsp;/&nbsp;<span>"..subpage.."</span>"
 end
 
-function ui_utils.render_datetime_range_picker(begin_options, end_options)
-    return template_utils.gen("pages/components/range-picker.template", {
-        begin_options = begin_options,
-        end_options = end_options
-    })
+---Render a Date Range Picker box.
+---@param options table The options contains the following fields: `presets`, `buttons`, `records`, `max_delta_in`, `max_delta_out`.
+---                     The field `presets` it's a table containing {day: bool, week: bool, month: bool, year: bool}
+---                     The field `buttons` it's a table containing {permalink: bool, download: bool}
+---                     The field `records` it's an array containing numbers {10, 25, 50, 100}
+---@return string
+function ui_utils.render_datetime_range_picker(options)
+
+    local presets = { day = true, week = true, month = true, year = true }
+    local buttons = { permalink = false, download = false }
+    local records = { 10, 25, 50, 100 }
+
+    options = options or {}
+
+    options.presets = ternary(options.presets ~= nil, table.merge(presets, options.presets), presets)
+    options.buttons = ternary(options.buttons ~= nil, table.merge(buttons, options.buttons), buttons)
+    options.records = ternary(options.records ~= nil, options.records, records)
+    options.max_delta_in = ternary(options.max_delta_in ~= nil, options.max_delta_in, 300)
+    options.max_delta_out = ternary(options.max_delta_in ~= nil, options.max_delta_in, 43200)
+
+    return template_utils.gen("pages/components/range-picker.template", options)
 end
 
 --- Shortcut function to print a togglw switch inside the requested page

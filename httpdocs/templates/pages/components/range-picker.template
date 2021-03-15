@@ -19,18 +19,26 @@
         <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1h" value="1,hours"> 1h
         </label>
+        {% if (presets.day == nil) or presets.day then %}
         <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1d" value="1,days"> 1d
         </label>
+        {% end %}
+        {% if (presets.week == nil) or presets.week then %}
         <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1w" value="1,weeks"> 1w
         </label>
+        {% end %}
+        {% if (presets.month == nil) or presets.month then %}
         <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1M" value="1,months"> 1M
         </label>
+        {% end %}
+        {% if (presets.year == nil) or presets.year then %}
         <label class="btn btn-light">
             <input type="radio" name="presets" id="preset-1Y" value="1,years"> 1Y
         </label>
+        {% end %}
         <label id="btn-custom-preset" class="btn {{ (not presetSelected and 'btn-warning' or 'btn-light disabled') }}">{{ i18n("graphs.custom") }}</label>
     </div>
     <div class="input-group flex-shrink-1 ml-3 mr-1" style="width: fit-content;">
@@ -65,20 +73,20 @@
         </button>
     </div>
     <div class="btn-group btn-group-sm">
+        {% if buttons.permalink then %}
         <button id="btn-get-permalink" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="{{ i18n('graphs.get_permanent_link') }}">
             <i class="fas fa-lg fa-link"></i>
         </button>
+        {% end %}
+        {% if buttons.download then %}
         <button id="btn-download-graph-data" title="{{ i18n('graphs.download_chart_data') }}" data-toggle="tooltip" data-placement="bottom"  class="btn btn-link">
             <i class="fas fa-chart-area"></i>
         </button>
+        {% end %}
     </div>
     <div class="ml-auto">
-        {%
-            local len_entries = {10, 25, 50, 100}    
-        %}
-
         <select id='select-len' class="form-control mr-1" style="width: 5rem;">
-            {% for _, len in ipairs(len_entries) do %}
+            {% for _, len in ipairs(records) do %}
                 <option {{ (len == tonumber(_GET['totalRows']) and 'selected' or '') }} value="{{ len }}">{{ len }}</option>
             {% end %}
         </select>
@@ -91,6 +99,9 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
 <script type='text/javascript'>
     $(document).ready(function() {
         
+        const MAX_ZOOM_IN = {{ (max_delta_in) }}; // 5 minutes
+        const MAX_ZOOM_OUT = {{ (max_delta_out) }}; // 12 hours
+
         const now = (endEpoch === undefined) ? moment() : moment(endEpoch, 'X');
         const prev = (beginEpoch === undefined) ? moment().subtract(5, 'minutes') : moment(beginEpoch, 'X');
 
@@ -187,20 +198,52 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
                 .tooltip("show");
         });
 
-        $btnZoomIn.on('click', function() {
+        const calculateHalfZoomIn = () => {
 
             const begin = $inputBeginEpoch.datetimepicker('date');
             const end = $inputEndEpoch.datetimepicker('date');
 
-            const delta = (begin.unix() + end.unix()) / 2;
-            const newBegin = moment(delta, 'X').add(20, 'minutes');
-            const newEnd = moment(delta, 'X').subtract(20, 'minutes');
+            const delta = end.unix() - begin.unix();
+            const zoomIn = delta / 3;
+            const halfZoomIn = (zoomIn) / 2;
 
-            console.log(newBegin, newEnd)
+            return [begin, end, delta, halfZoomIn];
+        }
+
+        $btnZoomIn.on('click', function() {
+
+            const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
+
+            const newBegin = moment(begin.unix() + halfZoomIn, 'X');
+            const newEnd = moment(end.unix() - halfZoomIn, 'X');
 
             $inputBeginEpoch.datetimepicker('date', newBegin);
             $inputEndEpoch.datetimepicker('date', newEnd);
 
+            // if delta is lower than 5 minutes then disable the zoom in button
+            if (delta < MAX_ZOOM_IN) {
+                $(this).attr("disabled", "disabled");
+            }
+
+            $btnZoomOut.removeAttr("disabled");
+        });
+
+        $btnZoomOut.on('click', function() {
+
+            const [begin, end, delta, halfZoomIn] = calculateHalfZoomIn();
+
+            const newBegin = moment(begin.unix() - halfZoomIn, 'X');
+            const newEnd = moment(end.unix() + halfZoomIn, 'X');
+
+            $inputBeginEpoch.datetimepicker('date', newBegin);
+            $inputEndEpoch.datetimepicker('date', newEnd);
+
+            // if delta is lower than 5 minutes then disable the zoom in button
+            if (delta > MAX_ZOOM_OUT) {
+                $(this).attr("disabled", "disabled");
+            }
+
+            $btnZoomIn.removeAttr("disabled");
         });
 
         $('[data-toggle="tooltip"]').tooltip();
