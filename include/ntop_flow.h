@@ -494,7 +494,7 @@
 #define DST_ADDR_BLACKLISTED  NTOP_BASE_ID+520
 #define DST_ADDR_SERVICES     NTOP_BASE_ID+521
 #define SRC_NAME              NTOP_BASE_ID+522
-#define DST_NAME              NTOP_BASE_ID+522
-#define COMMUNITY_ID          NTOP_BASE_ID+522
+#define DST_NAME              NTOP_BASE_ID+523
+#define COMMUNITY_ID          NTOP_BASE_ID+524
 
 #endif /* _NTOP_FLOW_H_ */
