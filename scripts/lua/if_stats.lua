@@ -1318,36 +1318,17 @@ setInterval(update_icmp_tables, 5000);
 
 ]]
 elseif(page == "ARP") then
-
-  print [[
-      <table id="arp_table" class="table table-bordered table-striped tablesorter">
-      <thead><tr><th>]] print(i18n("arp_page.arp_type")) print [[</th><th style='text-align:right;'>]] print(i18n("packets")) print[[</th></tr></thead>
-      <tbody id="iface_details_arp_tbody">
-      </tbody>
-      </table>
-
-<script>
-function update_arp_table() {
-  $.ajax({
-    type: 'GET',
-    url: ']]
-  print(ntop.getHttpPrefix())
-  print [[/lua/get_arp_data.lua',
-    data: { ifid: "]] print(interface.getId().."")  print [[" },
-    success: function(content) {
-      if(content) {
-         $('#iface_details_arp_tbody').html(content);
-         $('#arp_table').trigger("update");
+   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/interface/get_arp_data.lua?ifid=%s", ifId)
+   local context = {
+      json = json,
+      template = template,
+      sites = {
+         endpoint = endpoint,
       }
-    }
-  });
-}
+   }
+   
+print(template.gen("pages/arp.template", context))
 
-update_arp_table();
-setInterval(update_arp_table, 5000);
-</script>
-
-]]
 
 elseif(page == "sites") then
    if not prefs.are_top_talkers_enabled then
