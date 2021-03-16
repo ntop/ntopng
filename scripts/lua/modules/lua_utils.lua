@@ -519,12 +519,17 @@ function printHostPoolDropdown(base_url, page_params, host_pool_list)
 
    local ordered_host_pool_list = {}
 
-   --tprint(host_pool_list)
-   for key, value in pairs(host_pool_list) do
-      ordered_host_pool_list[key] = {}
-      ordered_host_pool_list[key]["count"] = value.count
+   if host_pool then
+      local id = tonumber(host_pool)
+      ordered_host_pool_list[id] = {}
+      ordered_host_pool_list[id]["count"] = host_pool_list[id]["count"]
+   else
+      for key, value in pairs(host_pool_list) do
+	 ordered_host_pool_list[key] = {}
+	 ordered_host_pool_list[key]["count"] = value.count
+      end
    end
-
+   
    print[[\
       <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("details.host_pool")) print[[]] print(host_pool_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu dropdown-menu-right scrollable-dropdown" role="menu" id="flow_dropdown">\
