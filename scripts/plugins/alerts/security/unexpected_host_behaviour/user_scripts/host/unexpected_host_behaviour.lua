@@ -3,15 +3,12 @@
 --
 
 local user_scripts = require("user_scripts")
-local alert_severities = require "alert_severities"
 local alerts_api = require "alerts_api"
-local alert_consts = require("alert_consts")
+local plugins_utils = require "plugins_utils"
 
 -- #################################################################
 
 local script = {
-   local_only = true,
-
    default_enabled = true,
    
    -- Script category
@@ -19,10 +16,6 @@ local script = {
 
    -- This script is only for alerts generation
    is_alert = true,
-   
-   default_value = {
-      severity = alert_severities.warning,
-   },
 
    -- NOTE: hooks defined below
    hooks = {},
@@ -33,34 +26,28 @@ local script = {
    }
 }
 
+local handle_behaviour_list = {
+   "contacted_hosts_behaviour",
+   "score_behaviour",
+   "active_flows_behaviour",
+}
+
 -- #################################################################
 
 function script.hooks.min(params)
    local stats = host.getBehaviourInfo() or nil
-
+   local host_ip = host.getIp() or ""
+   
    if stats then
-      if stats["contacted_hosts_behavior.anomaly"] ~= nil then 
-      	 local anomaly = stats["contacted_hosts_behavior.value"]	
-      	 local prediction = stats["contacted_hosts_behavior.prediction"]
-      	 local estimated_value = stats["contacted_hosts_behavior.value"]
-      	 local upper_bound = stats["contacted_hosts_behavior.upper_bound"]
-      	 local lower_bound = stats["contacted_hosts_behavior.lower_bound"]
-
-      	 local alert = alert_consts.alert_types.alert_unexpected_behaviour.new(
-            "Domain visited", -- Type of unexpected behaviour
-            estimated_value,
-            prediction,
-	    upper_bound,
-	    lower_bound
-         )
-
-         alert:set_severity(conf.severity)
-
-         if anomaly == true then
-            alert:trigger(params.alert_entity, nil, params.cur_alerts)
-         else
-	    alert:release(params.alert_entity, nil, params.cur_alerts)
-         end
+      for _,behaviour in ipairs(handle_behaviour_list) do
+	 if stats[behaviour] ~= nil then 
+	    handler = plugins_utils.loadModule("unexpected_host_behaviour", behaviour)
+	 end
+	 
+	 if handler and handler.handle_behaviour then
+	    -- Handler expect three params, namely flow-, client- and server-scores
+	    handler.handle_behaviour(params, stats[behaviour], host_ip)
+	 end
       end
    end
 end

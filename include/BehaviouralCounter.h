@@ -90,7 +90,7 @@ class DESCounter : public BehaviouralCounter {
   struct ndpi_des_struct des;
 
  public:
- DESCounter(double alpha = 0.9, double beta = 0.5, float significance = 0.05) : BehaviouralCounter() {
+ DESCounter(double alpha = 0.9, double beta = 0.035, float significance = 0.05) : BehaviouralCounter() {
     if(ndpi_des_init(&des, alpha, beta, significance) != 0)
       throw "Error while creating DES";
   }
