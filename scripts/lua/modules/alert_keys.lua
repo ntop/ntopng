@@ -112,7 +112,6 @@ local alert_keys = {
       alert_tcp_syn_scan_attacker          = {NO_PEN, 97},
       alert_tcp_syn_scan_victim            = {NO_PEN, 98},
       alert_remote_to_local_insecure_proto = {NO_PEN, 99},
-      alert_contacted_peers                = {NO_PEN, 100},
       alert_unexpected_behaviour           = {NO_PEN, 101},
       alert_ndpi_url_possible_xss          = {NO_PEN, 102},
       alert_ndpi_url_possible_sql_injection            = {NO_PEN, 103},
