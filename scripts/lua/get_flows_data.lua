@@ -128,6 +128,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
 
    if value["cli.allowed_host"] and not ifstats.isViewed then
       local src_name = shortenString(stripVlan(cli_name))
+      
       if(value["cli.systemhost"] == true) then src_name = src_name .. "&nbsp;<i class='fas fa-flag'></i>" end
       src_key = hostinfo2detailshref(flow2hostinfo(value, "cli"), nil, src_name, cli_tooltip, false)
 
@@ -203,21 +204,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["key_and_hash"] = string.format("%s@%s", record["key"], record["hash_id"])
 
    local column_client = src_key
-   local info = interface.getHostInfo(value["cli.ip"], value["cli.vlan"])
+   local info = interface.getHostMinInfo(value["cli.ip"], value["cli.vlan"])
 
    if info then
-      if info.broadcast_domain_host then
-	 column_client = column_client.." <i class='fas fa-sitemap fa-sm' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
-      end
-
-      if info.dhcpHost then
-	 column_client = column_client.." <i class=\'fas fa-flash fa-sm\' title=\'DHCP Host\'></i>"
-      end
-
-      if info.is_blacklisted then
-	 column_client = column_client.." <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
-      end
-
+      column_client = column_client..format_utils.formatAddressCategory(info)
       column_client = column_client..getFlag(info["country"])
    end
 
@@ -233,21 +223,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["column_client"] = column_client
 
    local column_server = dst_key
-   info = interface.getHostInfo(value["srv.ip"], value["srv.vlan"])
+   info = interface.getHostMinInfo(value["srv.ip"], value["srv.vlan"])
 
    if info then
-      if info.broadcast_domain_host then
-	 column_server = column_server.." <i class='fas fa-sitemap fa-sm' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i>"
-      end
-
-      if info.dhcpHost then
-	 column_server = column_server.." <i class=\'fas fa-flash fa-sm\' title=\'DHCP Host\'></i>"
-      end
-
-      if info.is_blacklisted then
-	 column_server = column_server.." <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
-      end
-
+      column_server = column_server..format_utils.formatAddressCategory(info)
+   
       column_server = column_server..getFlag(info["country"])
    end
 
