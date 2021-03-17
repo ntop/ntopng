@@ -104,9 +104,25 @@ local formatted_res = {}
 for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    local record = {}
    local key = value["ntopng.key"]
+   local info_cli = interface.getHostMinInfo(value["cli.ip"], value["cli.vlan"])
+   local info_srv = interface.getHostMinInfo(value["srv.ip"], value["srv.vlan"])
 
-   local srv_name = flowinfo2hostname(value, "srv")
-   local cli_name = flowinfo2hostname(value, "cli")
+   -- Retrieving first Alt Name then Name if no value is found then use ip
+   local srv_name = getHostAltName(value["srv.ip"])
+   if isEmptyString(srv_name) then
+      srv_name = info_srv["name"]
+   end
+   if isEmptyString(srv_name) then
+      srv_name = value["srv.ip"]
+   end
+
+   local cli_name = getHostAltName(value["cli.ip"])
+   if isEmptyString(cli_name) then
+      cli_name = info_cli["name"]
+   end
+   if isEmptyString(cli_name) then
+      cli_name = value["cli.ip"]
+   end
 
    local src_port, dst_port = '', ''
    local src_process, dst_process = '', ''
@@ -204,11 +220,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["key_and_hash"] = string.format("%s@%s", record["key"], record["hash_id"])
 
    local column_client = src_key
-   local info = interface.getHostMinInfo(value["cli.ip"], value["cli.vlan"])
 
-   if info then
-      column_client = column_client..format_utils.formatAddressCategory(info)
-      column_client = column_client..getFlag(info["country"])
+   if info_cli then
+      column_client = column_client..format_utils.formatAddressCategory(info_cli)
+      column_client = column_client..getFlag(info_cli["country"])
    end
 
    column_client = string.format("%s%s%s %s %s",
@@ -223,12 +238,11 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
    record["column_client"] = column_client
 
    local column_server = dst_key
-   info = interface.getHostMinInfo(value["srv.ip"], value["srv.vlan"])
 
-   if info then
-      column_server = column_server..format_utils.formatAddressCategory(info)
+   if info_srv then
+      column_server = column_server..format_utils.formatAddressCategory(info_srv)
    
-      column_server = column_server..getFlag(info["country"])
+      column_server = column_server..getFlag(info_srv["country"])
    end
 
    column_server = string.format("%s%s%s %s %s",
