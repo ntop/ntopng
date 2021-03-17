@@ -60,6 +60,9 @@ function handler.handle_behaviour(params, stats, host_ip)
       ntop.setCache(redis_cnt .. ".as_server." .. host_ip.ip .. "@" .. host_ip.vlan, curr_srv_cnt)
    end
 
+   alert_srv:set_granularity(params.granularity)
+   alert_cli:set_granularity(params.granularity)
+      
    -- Changing the severity if the counter > 3
    if curr_cli_cnt > 3 then
       alert_cli:set_severity(alert_severities.error)
