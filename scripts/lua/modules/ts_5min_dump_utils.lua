@@ -361,7 +361,6 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
             num_as_client=host["contacts.as_client"], num_as_server=host["contacts.as_server"]}, when)
   end
 
-  enable_debug = true
   if enable_debug then
      io.write(hostname.. "\n")
   end
