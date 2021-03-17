@@ -49,14 +49,16 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_unexpected_behaviour.format(ifid, alert, alert_type_params)
-    return(i18n("alerts_dashboard.unexpected_host_behavior_description",
+   local alert_consts = require("alert_consts")
+   
+   return(i18n("alerts_dashboard.unexpected_host_behavior_description",
 		{
 		   host = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])),
 		   type_of_behaviour = alert_type_params.type_of_behaviour,
 		   value = alert_type_params.value,
-		   prediction = alert_type_params.prediction,
-		   upper_bound = alert_type_params.upper_bound,
-		   lower_bound = alert_type_params.lower_bound,
+		   prediction = alert_type_params.prediction or 0,
+		   upper_bound = alert_type_params.upper_bound or 0,
+		   lower_bound = alert_type_params.lower_bound or 0,
 		}))
 end
 

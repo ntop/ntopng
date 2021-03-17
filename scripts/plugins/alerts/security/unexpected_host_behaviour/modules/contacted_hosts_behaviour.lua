@@ -15,14 +15,14 @@ local handler = {}
 -- @brief See risk_handler.lua
 function handler.handle_behaviour(params, stats, host_ip)
       -- Set flow status and trigger an alert when a suspicious file transfer is detected
-   local anomaly    = stats["anomaly"]	
-   local lower      = stats["lower_bound"]
-   local upper      = stats["upper_bound"]
-   local value      = stats["value"]
-   local prediction = stats["prediction"]
+   local anomaly     = stats["anomaly"]	
+   local lower_bound = stats["lower_bound"]
+   local upper_bound = stats["upper_bound"]
+   local value       = stats["value"]
+   local prediction  = stats["prediction"]
    
    local alert = alert_consts.alert_types.alert_unexpected_behaviour.new(
-      "Domain visited", -- Type of unexpected behaviour
+      "Domain Visited", -- Type of unexpected behaviour
       value,
       prediction,
       upper_bound,
