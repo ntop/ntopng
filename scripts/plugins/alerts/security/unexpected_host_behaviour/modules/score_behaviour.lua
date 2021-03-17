@@ -16,17 +16,17 @@ local redis_cnt = "ntopng.alert.score_behaviour."
 -- @brief See risk_handler.lua
 function handler.handle_behaviour(params, stats, host_ip)
    -- Client anomaly
-   local anomaly_cli    = stats["as_client.anomaly"]	
-   local lower_cli      = stats["as_client.lower_bound"]
-   local upper_cli      = stats["as_client.upper_bound"]
-   local value_cli      = stats["as_client.value"]
-   local prediction_cli = stats["as_client.prediction"]
+   local anomaly_cli     = stats["as_client.anomaly"]	
+   local lower_bound_cli = stats["as_client.lower_bound"]
+   local upper_bound_cli = stats["as_client.upper_bound"]
+   local value_cli       = stats["as_client.value"]
+   local prediction_cli  = stats["as_client.prediction"]
    -- Server
-   local anomaly_srv    = stats["as_server.anomaly"]	
-   local lower_srv      = stats["as_server.lower_bound"]
-   local upper_srv      = stats["as_server.upper_bound"]
-   local value_srv      = stats["as_server.value"]
-   local prediction_srv = stats["as_server.prediction"]
+   local anomaly_srv     = stats["as_server.anomaly"]	
+   local lower_bound_srv = stats["as_server.lower_bound"]
+   local upper_bound_srv = stats["as_server.upper_bound"]
+   local value_srv       = stats["as_server.value"]
+   local prediction_srv  = stats["as_server.prediction"]
 
    local curr_cli_cnt = tonumber(ntop.getCache(redis_cnt .. ".as_client." .. host_ip.ip .. "@" .. host_ip.vlan)) or 0
    local curr_srv_cnt = tonumber(ntop.getCache(redis_cnt .. ".as_server." .. host_ip.ip .. "@" .. host_ip.vlan)) or 0
@@ -60,9 +60,6 @@ function handler.handle_behaviour(params, stats, host_ip)
       ntop.setCache(redis_cnt .. ".as_server." .. host_ip.ip .. "@" .. host_ip.vlan, curr_srv_cnt)
    end
 
-   alert_srv:set_granularity(params.granularity)
-   alert_cli:set_granularity(params.granularity)
-      
    -- Changing the severity if the counter > 3
    if curr_cli_cnt > 3 then
       alert_cli:set_severity(alert_severities.error)
@@ -75,6 +72,9 @@ function handler.handle_behaviour(params, stats, host_ip)
    else
       alert_srv:set_severity(alert_severities.warning)
    end
+
+   alert_srv:set_granularity(params.granularity)
+   alert_cli:set_granularity(params.granularity)   
 
    -- Releasing or triggering the alert
    if anomaly_cli == true then

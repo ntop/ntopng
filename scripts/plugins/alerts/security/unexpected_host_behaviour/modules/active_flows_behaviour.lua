@@ -15,17 +15,17 @@ local handler = {}
 -- @brief See risk_handler.lua
 function handler.handle_behaviour(params, stats, host_ip)
    -- Client anomaly
-   local anomaly_cli    = stats["as_client.anomaly"]	
-   local lower_cli      = stats["as_client.lower_bound"]
-   local upper_cli      = stats["as_client.upper_bound"]
-   local value_cli      = stats["as_client.value"]
-   local prediction_cli = stats["as_client.prediction"]
+   local anomaly_cli     = stats["as_client.anomaly"]	
+   local lower_bound_cli = stats["as_client.lower_bound"]
+   local upper_bound_cli = stats["as_client.upper_bound"]
+   local value_cli       = stats["as_client.value"]
+   local prediction_cli  = stats["as_client.prediction"]
    -- Server
-   local anomaly_srv    = stats["as_server.anomaly"]	
-   local lower_srv      = stats["as_server.lower_bound"]
-   local upper_srv      = stats["as_server.upper_bound"]
-   local value_srv      = stats["as_server.value"]
-   local prediction_srv = stats["as_server.prediction"]
+   local anomaly_srv     = stats["as_server.anomaly"]	
+   local lower_bound_srv = stats["as_server.lower_bound"]
+   local upper_bound_srv = stats["as_server.upper_bound"]
+   local value_srv       = stats["as_server.value"]
+   local prediction_srv  = stats["as_server.prediction"]
 
    -- Client
    local alert_cli = alert_consts.alert_types.alert_unexpected_behaviour.new(
