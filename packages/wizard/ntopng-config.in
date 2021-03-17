@@ -63,7 +63,8 @@ function fastChangeOption {
             fi
 
             if [[ ${TMP[@]} == "" ]]; then
-	            echo "-$1=$2" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+	    	echo "" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+	        echo "-$1=$2" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
 
                 exitstatus=$?
                 if [ "$exitstatus" = "0" ]; then
