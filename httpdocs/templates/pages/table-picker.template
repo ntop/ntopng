@@ -84,14 +84,24 @@
             url.searchParams.set('totalRows', len);
             window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: len}, '', url);
         }
+
+        async function onRangePickerChange(pushHistroy = false) {
+            
+            const [begin, end] = getTimestampRange();
+            const len = parseInt($(`#select-len`).val());
+            await reloadChartAndTable($table, begin, end, len);
+
+            if (pushHistroy) {
+                pushNewHistoryState(begin, end, len);
+            }
+
+        }
         
         const datatableButton = {* (datatable.buttons or '[]') *};
         datatableButton.push({
             text: '<i class="fas fa-sync"></i>',
             action: async function (e, dt, node, config) {
-                const [begin, end] = getTimestampRange();
-                const len = parseInt($(`#select-len`).val());
-                await reloadChartAndTable($table, begin, end, len);
+                await onRangePickerChange();
             }
         });
 
@@ -109,19 +119,11 @@
 
         // on apply button click
         $(`#btn-apply`).on('click', async function() {
-
-            const [begin, end] = getTimestampRange();
-            const len = parseInt($(`#select-len`).val());
-            await reloadChartAndTable($table, begin, end, len);
-            pushNewHistoryState(begin, end, len);
+            await onRangePickerChange(true);
         });
 
         $(`#select-len`).on('change', async function() {
-            
-            const [begin, end] = getTimestampRange();
-            const len = parseInt($(this).val());
-            await reloadChartAndTable($table, begin, end, len);
-            pushNewHistoryState(begin, end, len);
+            await onRangePickerChange(true);
         });
       
     });
