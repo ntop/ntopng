@@ -76,6 +76,10 @@ function widget_gui_utils.register_bubble_chart(name, update_time, datasources, 
     widget_gui_utils.register_chart_widget(name, 'bubble', update_time, datasources, additional_params)
 end
 
+function widget_gui_utils.register_bar_chart(name, update_time, datasources, additional_params)
+    widget_gui_utils.register_chart_widget(name, 'bar', update_time, datasources, additional_params)
+end
+
 function widget_gui_utils.register_pie_chart(name, update_time, datasources, additional_params)
     widget_gui_utils.register_chart_widget(name, 'pie', update_time, datasources, additional_params)
 end

@@ -29,7 +29,7 @@ $(document).ready(function() {
 
     $(`#select-bubble-mode`).on('change', async function() {
         const bubbleMode = $(this).val();
-        await widget.destroyAndUpdate([{endpoint: `{* hosts_map.map_endpoint *}?bubble_mode=${bubbleMode}`}]);
+        await widget.update({bubble_mode: bubbleMode});
     });
 
 });

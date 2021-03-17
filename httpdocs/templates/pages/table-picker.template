@@ -1,6 +1,10 @@
 {#
     (C) 2021 - ntop.org    
 #}
+
+<script type="text/javascript" src="/js/Chart.bundle.min.js"></script>
+<script type='text/javascript' src='/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
+
 <div class='row'>
     <div class='col-12'>
         <div class="d-flex p-2 mb-2 navbar-shadow border-radius navbar-light bg-light align-items-center">
@@ -8,6 +12,11 @@
         </div>
     </div>
     <div class="col-12">
+        <div class="card card-shadow mt-2">
+            <div class="card-body">
+                {* chart.html *}
+            </div>
+        </div>
     </div>
     <div class='col-12 mt-2'>
         <div class="card card-shadow">
@@ -42,9 +51,14 @@
 <script type='text/javascript'>
     $(document).ready(function(){
 
-        function reloadTable($table, begin, end, rows) {
+        const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
+
+        async function reloadChartAndTable($table, begin, end, rows) {
             if (begin != null && end != null) {
+                // reload the table
                 $table.ajax.url(`{* datatable.datasource.name *}?begin_epoch=${begin.unix()}&end_epoch=${end.unix()}&totalRows=${rows}`).load();
+                // reload the chart
+                await chart.update({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: rows});
             }
         }
 
@@ -74,8 +88,10 @@
         const datatableButton = {* (datatable.buttons or '[]') *};
         datatableButton.push({
             text: '<i class="fas fa-sync"></i>',
-            action: function (e, dt, node, config) {
-                $table.ajax.reload();
+            action: async function (e, dt, node, config) {
+                const [begin, end] = getTimestampRange();
+                const len = parseInt($(`#select-len`).val());
+                await reloadChartAndTable($table, begin, end, len);
             }
         });
 
@@ -92,19 +108,19 @@
         $table.on('xhr', function() { printQueryTime($table); });
 
         // on apply button click
-        $(`#btn-apply`).on('click', function() {
+        $(`#btn-apply`).on('click', async function() {
 
             const [begin, end] = getTimestampRange();
             const len = parseInt($(`#select-len`).val());
-            reloadTable($table, begin, end, len);
+            await reloadChartAndTable($table, begin, end, len);
             pushNewHistoryState(begin, end, len);
         });
 
-        $(`#select-len`).on('change', function() {
+        $(`#select-len`).on('change', async function() {
             
             const [begin, end] = getTimestampRange();
             const len = parseInt($(this).val());
-            reloadTable($table, begin, end, len);
+            await reloadChartAndTable($table, begin, end, len);
             pushNewHistoryState(begin, end, len);
         });
       

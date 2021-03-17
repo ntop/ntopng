@@ -25,12 +25,27 @@ local begin_epoch = _GET["begin_epoch"] or (os.time() - 3600)
 local end_epoch = _GET["end_epoch"] or (os.time())
 local totalRows = _GET["totalRows"] or 10
 
+-- register an example of bar chart
+widget_gui_utils.register_bar_chart('example', 0, {
+    Datasource("/lua/rest/v1/charts/time/data.lua", {begin_epoch = begin_epoch, end_epoch = end_epoch, totalRows = totalRows})
+}, {})
+
 template_utils.render("pages/table-picker.template", {
     ui_utils = ui_utils,
     json = json,
     template_utils = template_utils,
     modals = {},
     range_picker = {},
+    chart = {
+        html = widget_gui_utils.render_chart('example', {
+            displaying_label = '',
+            css_styles = {
+                width = '100%',
+                height = '16rem'
+            }
+        }),
+        name = 'example'
+    },
     datatable = {
         datasource = Datasource("/lua/rest/v1/get/time/data.lua", {begin_epoch = begin_epoch, end_epoch = end_epoch, totalRows = totalRows}),
         name = 'my-table', -- the table name

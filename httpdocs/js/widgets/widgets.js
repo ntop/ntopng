@@ -18,7 +18,7 @@ class WidgetUtils {
  */
 class Widget {
     
-    constructor(name, datasources = [], updateTime = 0, additionalParams = {}) {
+    constructor(name, datasource = {}, updateTime = 0, additionalParams = {}) {
     
         // field containing the data fetched from the datasources provided
         this._fetchedData = [];
@@ -29,7 +29,7 @@ class Widget {
         // is expressed in milliseconds
         this._updateTime = updateTime;
 
-        this._datasources = datasources;
+        this._datasource = datasource;
         this._additionalParams = additionalParams;
     }
 
@@ -51,10 +51,22 @@ class Widget {
     /**
      * Force the widget to reload it's data.
      */
-    async destroyAndUpdate(datasources = []) {
+    async destroyAndUpdate(datasource = {}) {
         this.destroy();
-        this._datasources = datasources;
+        this._datasource = datasource;
         this._fetchedData = await this._fetchData();
+    }
+
+    async update(datasourceParams = {}) {
+        // build the new endpoint
+        const u = new URL(`${location.origin}${this._datasource.endpoint}`);
+        for (const [key, value] of Object.entries(datasourceParams)) {
+            u.searchParams.set(key, value);
+        }
+
+        this._datasource.endpoint = u.pathname + u.search;
+        this._fetchedData = await this._fetchData();
+        
     }
 
     /**
@@ -63,45 +75,67 @@ class Widget {
      */
     async _fetchData() {
         
-        const fetchedData = [];
-
-        for (const datasource of this._datasources) {
-            const req = await fetch(`${http_prefix}/lua/${datasource.endpoint}`);
-            const data = await req.json();
-            fetchedData.push(data.rsp);
-        }
-        
-        return fetchedData;
+        const req = await fetch(`${http_prefix}${this._datasource.endpoint}`);
+        const data = await req.json();
+        return data;
     }
 
 }
 
 class ChartWidget extends Widget {
 
-    constructor(name, type = 'line', datasources = [], updateTime = 0, additionalParams = {}) {
-        super(name, datasources, updateTime, additionalParams);
+    constructor(name, type = 'line', datasource = {}, updateTime = 0, additionalParams = {}) {
+        super(name, datasource, updateTime, additionalParams);
+        
         this._chartType = type;
         this._chart = null;
+        // the canvas context
+        this._ctx = document.getElementById(`canvas-widget-${this.name}`);
     }
 
     async _initializeChart() {
+        const {data, options} = await this._formatDataAndOptions();
+        this._chart = new Chart(this._ctx, { data: data, type: this._chartType, options: options });
+    }
 
-        const ctx = document.getElementById(`canvas-widget-${this.name}`);
-        const config = await import(`./configs/${this._configToLoad}`);
+    async _formatDataAndOptions() {
+
+        const data = {datasets: [], labels: []};
+
+        // dynamically import the standard configuration for the chart
+        const config = await this._loadConfiguration();
         const {dataset, options} = config.default;
-        
-        const optionsToLoad = Object.assign(this._fetchedData[0].options, options);
-        const data = {datasets: []};
 
-        this._fetchedData.forEach((rsp) => {
-            rsp.data.datasets.forEach(d => {
-                d.baseUrl = rsp.redirect_url; 
-                data.datasets.push(Object.assign(d, dataset))
-            })
-        });
+        const response = this._fetchedData.rsp;
 
-        this._chart = new Chart(ctx, { data: data, type: this._chartType, options: optionsToLoad });
+        let optionsToLoad = options || {};
+        if (response.options !== undefined) {
+            optionsToLoad = Object.assign(response.options, options);
+        }
 
+        response.data.datasets.forEach(d => {
+            d.baseUrl = response.redirect_url; 
+            data.datasets.push(Object.assign(d, dataset))
+        })
+
+        // add labels
+        if (response.data.labels !== undefined) {
+            data.labels = response.data.labels;
+        }
+
+        return {data: data, options: optionsToLoad};
+    }
+
+    /**
+     * Try to load the default configuration for the chart.
+     */
+    async _loadConfiguration() {
+        try {
+            return await import(`./configs/${this._configToLoad}`);
+        }
+        catch (e) {
+            return {default: {dataset: {}, options: {}}};
+        }
     }
 
     get _configToLoad() {
@@ -117,8 +151,20 @@ class ChartWidget extends Widget {
         this._chart.destroy();
     }
 
-    async destroyAndUpdate(datasources = []) {
-        await super.destroyAndUpdate(datasources);
+    async update(datasourceParams = {}) {
+        await super.update(datasourceParams);
+
+        const response = this._fetchedData.rsp;
+        const {data} = await this._formatDataAndOptions();
+
+        this._chart.data.labels = response.data.labels;
+        this._chart.data = data;
+
+        this._chart.update();
+    }
+
+    async destroyAndUpdate(datasource = {}) {
+        await super.destroyAndUpdate(datasource);
         this._initializeChart();
     }
 

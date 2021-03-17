@@ -85,7 +85,7 @@
         {% end %}
     </div>
     <div class="ml-auto">
-        <select id='select-len' class="form-control mr-1" style="width: 5rem;">
+        <select id='select-len' class="form-control custom-select" style="width: 5rem;">
             {% for _, len in ipairs(records) do %}
                 <option {{ (len == tonumber(_GET['totalRows']) and 'selected' or '') }} value="{{ len }}">{{ len }}</option>
             {% end %}

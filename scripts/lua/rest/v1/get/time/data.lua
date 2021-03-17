@@ -13,6 +13,7 @@ local begin_epoch   = tonumber(_GET["begin_epoch"])
 local end_epoch     = tonumber(_GET["end_epoch"])
 local num_records   = tonumber(_GET["totalRows"]) or 24
 
+
 local curr = begin_epoch
 local records = {}
 

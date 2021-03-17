@@ -9,7 +9,7 @@
 </div>
 <script type="text/javascript">
 (async function() {
-    const datasources = {* json.encode(widget.datasources) *};
-    await new ChartWidget("{{ widget_name }}", "{{ widget.type }}", datasources, {{ widget.update_time }}).init();
+    const datasource = {* json.encode(widget.datasources) *};
+    await new ChartWidget("{{ widget_name }}", "{{ widget.type }}", datasource[0], {{ widget.update_time }}).init();
 })();
 </script>
