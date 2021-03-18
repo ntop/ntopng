@@ -1,4 +1,4 @@
-#!@BIN_PATH@/bash
+#!/usr/bin/env bash
 #
 #  Copyright (C) 2002-20 - ntop.org
 #
