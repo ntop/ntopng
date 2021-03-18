@@ -58,8 +58,9 @@
 
             if (begin == null && end == null) return;
 
-            const copyParams = Object.assign({}, datasourceParams);
-            
+            const copyParams = Object.assign(datasourceParams, {});
+            console.log(copyParams)
+
             // override the existing timestamps 
             if (copyParams.begin_epoch) {
                 copyParams.begin_epoch = begin.unix();
@@ -73,7 +74,7 @@
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
             // reload the chart
-            await chart.update({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: rows});
+            await chart.update(copyParams);
         }
 
         function printQueryTime($table) {
