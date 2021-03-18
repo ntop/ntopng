@@ -54,7 +54,7 @@ function alert_lateral_movement.format(ifid, alert, alert_type_params)
       " <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i> " ..
       hostinfo2detailshref(server, nil, hostinfo2label(server))
 
-   rsp = rsp .. " ["..i18n("application")..": "..interface.getnDPIProtoName(msg.l7).."]"
+   rsp = rsp .. " ["..interface.getnDPIProtoName(msg.l7).."]"
    if not isEmptyString(msg.info) then
       rsp = rsp .. "[" .. msg.info .. "]"
    end
