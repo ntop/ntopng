@@ -1379,7 +1379,7 @@ function releaseAlert(idx) {
 	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
 	    css: {
 	       textAlign: 'center',
-	       minWidth: "10rem",
+	       minWidth: "12rem",
 	    }
 	 },
 

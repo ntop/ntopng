@@ -85,6 +85,8 @@ $(document).ready(function () {
     });
 
     const $hostMembersTable = $(`#host-members-table`).DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($hostMembersTable);
+
     const hostMemersTableFilters = new DataTableFiltersMenu({
         tableAPI: $hostMembersTable,
         filters: filters,

@@ -105,6 +105,7 @@ $(document).ready(function() {
     });
 
     const $infrastructureTable = $(`#infrastructure-table`).DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($infrastructureTable);
 
     const STATUS_COLUMN_INDEX = 3;
     const infrastructureDashboardFilterMenu = new DataTableFiltersMenu({

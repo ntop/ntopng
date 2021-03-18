@@ -159,6 +159,7 @@ $(document).ready(function() {
     });
 
     const $poolTable = $(`#table-pools`).DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($poolTable);
 
     $(`#add-pool form`).modalHandler({
         method: 'post',

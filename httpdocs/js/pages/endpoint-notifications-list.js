@@ -125,11 +125,10 @@ $(document).ready(function () {
                 render: (_, type, endpoint) => {
 
                     const isBuiltin = endpoint.endpoint_conf.builtin || false;
-                    if (isBuiltin) return '';
 
                     return DataTableUtils.createActionButtons([
-                        {class: 'btn-info', icon: 'fa-edit', modal: '#edit-endpoint-modal' },
-                        {class: 'btn-danger', icon: 'fa-trash', modal: '#remove-endpoint-modal'},
+                        {class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-endpoint-modal' },
+                        {class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-endpoint-modal'},
                     ]);
                 }
             }
@@ -152,6 +151,8 @@ $(document).ready(function () {
     });
 
     const $endpointsTable = $(`table#notification-list`).DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($endpointsTable);
+
     const endpointTypeFilterMenu = new DataTableFiltersMenu({
         filterTitle: i18n.endpoint_type,
         filters: endpointTypeFilters,

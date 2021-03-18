@@ -325,6 +325,8 @@ $(document).ready(function () {
 
     // initialize the DataTable with the created config
     const $snmpTable = $(`#table-devices`).DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($snmpTable);
+
     addPoolFilters($snmpTable).init();
     addResponsivenessFilter($snmpTable).init();
 

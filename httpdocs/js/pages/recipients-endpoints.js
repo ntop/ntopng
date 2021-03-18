@@ -230,12 +230,11 @@ $(document).ready(function () {
                     if (!recipient.endpoint_conf) return '';
 
                     const isBuiltin = (recipient.endpoint_conf && recipient.endpoint_conf.builtin) || false;
-                    if (isBuiltin) return '';
 
                     return DataTableUtils.createActionButtons([
-                        { class: 'btn-info', icon: 'fa fa-users', modal: '#users-recipient-modal' },
-                        { class: 'btn-info', icon: 'fa-edit', modal: '#edit-recipient-modal' },
-                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-recipient-modal' },
+                        { class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal' },
+                        { class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-recipient-modal' },
+                        { class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-recipient-modal' },
                     ]);
                 }
             }
@@ -270,6 +269,8 @@ $(document).ready(function () {
     });
 
     const $recipientsTable = $(`table#recipient-list`).DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($recipientsTable);
+
     const endpointTypeFilterMenu = new DataTableFiltersMenu({
         filterTitle: i18n.endpoint_type,
         filters: endpointTypeFilters,

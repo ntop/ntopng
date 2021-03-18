@@ -41,6 +41,7 @@ jQuery.fn.dataTableExt.showProgress = (percentage, type, row) => {
     return percentage;
 };
 
+
 class DataTableFiltersMenu {
 
     /**
@@ -177,7 +178,7 @@ class DataTableFiltersMenu {
         $dropdownContainer.append($dropdownButton);
         $dropdownContainer.append($menuContainer);
         // append the dropdown menu inside the filter wrapper
-        $dropdownContainer.insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent())
+        $dropdownContainer.insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent());
 
         this._selectFilterFromState(this.filterMenuKey);
     }
@@ -296,10 +297,11 @@ class DataTableUtils {
      */
     static getStdDatatableConfig(dtButtons = [], dom = "<'d-flex flex-wrap'<'mr-auto'l><'dt-search'f>B>rtip") {
 
+        // hide the buttons section if there aren't buttons inside the array
         if (dtButtons.length == 0) {
             dom = "fBrtip";
         }
-
+        
         return {
             dom: dom,
             pagingType: 'full_numbers',
@@ -489,6 +491,66 @@ class DataTableUtils {
         $modal.on('hidden.bs.modal', function (e) {
             window.location = referer;
         });
+    }
+
+    static addToggleColumnsDropdown(tableAPI) {
+
+        if (tableAPI === undefined) {
+            throw 'The $table is undefined!';
+        }
+
+        const columns = [];
+        const $datatableWrapper = $(tableAPI.context[0].nTableWrapper);
+
+        // get the table headers 
+        tableAPI.columns().every(function(i) {
+            columns.push({index: i, name: this.header().textContent});
+        });
+        
+        const $btnGroup = $(`
+            <div class="btn-group">
+                <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        `);
+
+        const $dropdownMenu = $(`<div class="dropdown-menu dropdown-menu-right" style='width: max-content;'><h6 class="dropdown-header">Show Columns</h6></div>`);
+        const $checkboxes = $(`<div class='px-4'></div>`);
+
+        for (let i = 0; i < columns.length; i++) {
+
+            const column = columns[i];
+
+            // create a checkbox and delegate a change event
+            const id = `toggle-${column.name.split().join('_')}`;
+            const $checkbox = $(`<input class="custom-control-input" checked type="checkbox" id="${id}">`)
+            const $wrapper = $(`
+                <div class="custom-control custom-switch">
+                    <label class="custom-control-label" for="${id}">
+                        ${column.name}
+                    </label>
+                </div>
+            `);
+
+            $checkbox.on('change', function (e) {
+                // Get the column API object
+                const col = tableAPI.column(column.index);
+                // Toggle the visibility
+                col.visible(!col.visible());
+            });
+
+            $wrapper.prepend($checkbox);
+            $checkboxes.append($wrapper);
+        }
+
+        $dropdownMenu.on("click.bs.dropdown", function (e) { 
+            e.stopPropagation(); 
+        });
+
+        // append the new node inside the datatable
+        $btnGroup.append($dropdownMenu.append($checkboxes)); 
+        $datatableWrapper.find('.dt-search').parent().append($btnGroup)
     }
 
 }

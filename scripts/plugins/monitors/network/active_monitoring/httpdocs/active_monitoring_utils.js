@@ -546,6 +546,8 @@ $(document).ready(function() {
     });
 
     const $amTable = $("#am-table").DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($amTable);
+
     addMeasurementFilter($amTable).init();
     addAlertedFilter($amTable).init();
 
