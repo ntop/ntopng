@@ -168,7 +168,7 @@ local function saveListsStatusToRedis(lists, caller)
    for list_name, list in pairs(lists or {}) do
       status[list_name] = list.status
    end
-   
+
    ntop.setPref(STATUS_KEY, json.encode(status))
 end
 
@@ -248,7 +248,7 @@ end
 -- ##############################################
 
 -- Force a single list reload
-function lists_utils.updateList(list_name)   
+function lists_utils.updateList(list_name)
    ntop.setCache("ntopng.cache.category_lists.update." .. list_name, "1")
    lists_utils.downloadLists()
 end
@@ -280,9 +280,9 @@ local function getNextListUpdate(list)
    else
       interval = list.update_interval
    end
-   
+
    local next_update
-   
+
    -- align if possible
    if interval == 0 then
       next_update = -1
@@ -302,11 +302,11 @@ end
 function shouldUpdate(list_name, list, now)
    local list_file
    local next_update
-   
+
    if(list.enabled == false) then
       return(false)
    end
-   
+
    list_file = getListCacheFile(list_name, false)
    next_update = getNextListUpdate(list, now)
 
@@ -323,7 +323,7 @@ function shouldUpdate(list_name, list, now)
       tprint('-')
       tprint(list)
       tprint('---------------')
-      
+
       tprint(((now >= next_update) or
 	       (not ntop.exists(list_file) and (list.status.num_errors < MAX_LIST_ERRORS)) or
 	       (ntop.getCache("ntopng.cache.category_lists.update." .. list_name) == "1")))
@@ -360,7 +360,7 @@ local function checkListsUpdate(timeout)
 	 local msg = string.format("Updating list '%s' [%s]... ", list_name, list.url)
 
 	 traceError(trace_level, TRACE_INFO, string.format("Updating list '%s'... ", list_name))
-	 
+
 	 local started_at = os.time()
 	 local res = ntop.httpFetch(list.url, temp_fname, timeout)
 
@@ -470,7 +470,7 @@ local function loadWarning(msg)
 end
 
 --@return nil on parse error, "domain" if the loaded item is an host, "ip" otherwise
-local function loadListItem(host, category, user_custom_categories, list)
+local function loadListItem(host, category, user_custom_categories, list, num_line)
    category = tonumber(category)
 
    -- Checking for "whitelisted hosts" (Format: !<host>)
@@ -508,7 +508,7 @@ local function loadListItem(host, category, user_custom_categories, list)
 	 -- Domain
 	 if((not list) or (list.format ~= "ip")) then
 	   if((string.len(host) < 4) or (string.find(host, "%.") == nil)) then
-	     traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Bad domain name '%s' in list '%s'", host, list and list.name))
+	     traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Bad domain name '%s' in list '%s' [line: %u]", host, list and list.name, num_line))
 	   else
 	     ntop.loadCustomCategoryHost(host, category)
 	     return "domain"
@@ -589,6 +589,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
    else
 
       local f = io.open(list_fname, "r")
+      local num_line = 0
 
       if f == nil then
          if list.status.num_hosts > 0 then
@@ -600,6 +601,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
       end
 
       for line in f:lines() do
+      	  num_line = num_line + 1
          if ntop.isShutdown() then
 	    break
          end
@@ -613,7 +615,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
             end
 
 	    if host then
-	       local rv = loadListItem(host, list.category, user_custom_categories, list)
+	       local rv = loadListItem(host, list.category, user_custom_categories, list, num_line)
 
 	       if(rv == "domain") then
 	          stats.num_hosts = stats.num_hosts + 1
@@ -705,7 +707,7 @@ local function reloadListsNow()
 	 if ntop.isShutdown() then
 	    break
 	 end
-	 loadListItem(host, category_id, user_custom_categories)
+	 loadListItem(host, category_id, user_custom_categories, 0)
       end
    end
 
@@ -718,7 +720,7 @@ local function reloadListsNow()
    traceError(TRACE_NORMAL, TRACE_CONSOLE,
 	      string.format("Category Lists (%u hosts, %u IPs, %u JA3) loaded in %d sec",
 			    stats.num_hosts, stats.num_ips, stats.num_ja3, stats.duration))
-   
+
    -- Save the stats
    ntop.setCache("ntopng.cache.category_lists.load_stats", json.encode(stats))
 
@@ -756,10 +758,10 @@ function lists_utils.checkReloadLists()
    end
 
    -- print("[DEBUG]  Checking reload [") if(reload_now) then print("reload now") else print("don't reload") end print("] !!!!\n")
-   
+
    if reload_now then
       -- print("[DEBUG] **** Reloading ****\n")
-      
+
       if reloadListsNow() then
 	 -- print("[DEBUG]  Success !!!!\n")
 	 -- success
@@ -778,12 +780,12 @@ end
 
 function lists_utils.startup()
    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Refreshing category lists...")
-   
+
    lists_utils.downloadLists()
    lists_utils.reloadLists()
    -- Need to do the actual reload also here as otherwise some
    -- flows may be misdetected until housekeeping.lua is executed
-   lists_utils.checkReloadLists()   
+   lists_utils.checkReloadLists()
 end
 
 -- ##############################################
