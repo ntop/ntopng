@@ -7323,7 +7323,7 @@ void NetworkInterface::updateBroadcastDomains(u_int16_t vlan_id,
 
 	cur_bcast_domain.set(htonl(net));
 
-	if(cur_mask <  0xFFFF0000 /* /16 */) {
+	if(cur_mask >  0xFFFF0000 /* /16 */) {
 	  /* NOTE: call this also for existing domains in order to update the hits */
 	  if(bcast_domains->addAddress(&cur_bcast_domain, cur_cidr)) {
 	    getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);

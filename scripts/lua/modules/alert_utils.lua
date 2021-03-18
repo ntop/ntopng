@@ -536,6 +536,7 @@ end
 
 -- #################################
 
+-- This function formats flows in alerts
 local function formatRawFlow(ifid, alert, alert_json)
    require "flow_utils"
    local time_bounds
@@ -575,7 +576,7 @@ local function formatRawFlow(ifid, alert, alert_json)
       ["srv.localhost"] = tostring(alert["srv_localhost"]) == "1",
       ["vlan"] = alert["vlan_id"]}
 
-   flow = "["..i18n("flow")..": "..(getFlowLabel(flow, false, add_links, time_bounds, {page = "alerts"}) or "").."] "
+   flow = "[ <i class=\"fas fa-stream\"></i> "..(getFlowLabel(flow, false, add_links, time_bounds, {page = "alerts"}) or "").."] "
    local l4_proto_label = l4_proto_to_string(alert["proto"] or 0) or ""
 
    if not isEmptyString(l4_proto_label) then
@@ -599,7 +600,7 @@ local function formatRawFlow(ifid, alert, alert_json)
 	 else
 	    info = alert_json["info"]
 	 end
-         msg = msg.."["..i18n("info")..": " .. info ..lb.."] "
+         msg = msg.."[" .. info ..lb.."] "
       end
 
       flow = msg
