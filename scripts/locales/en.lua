@@ -2504,6 +2504,7 @@ local lang = {
   },
   ["host_details"] = {
     ["active_alerted_flows"] = "Active Alerted Flows",
+    ["behavioural_anomalies"] = "Behavioural Counter Anomalies",
     ["blocked_traffic"] = "Blocked Traffic",
     ["client_score"] = "Client",
     ["disabled_flow_status_help"] = "Turn off flow alerts generation based on flow status",
@@ -2788,6 +2789,7 @@ local lang = {
     ["collected_flows"] = "Collected Flows",
     ["collected_logs"] = "Collected Logs",
     ["conntrack_flow_entries"] = "Conntrack Flow Entries",
+    ["counter_anomalies"] = "Counter Anomalies",
     ["direct_mode"] = "Direct Mode",
     ["discarded_probing_traffic"] = "Discarded Probing Traffic",
     ["dispatched_logs"] = "Dispatched Events",

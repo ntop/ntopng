@@ -77,6 +77,9 @@ class NetworkInterface : public AlertableEntity {
   u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts, num_dropped_flow_scripts_calls;
   u_int64_t num_written_alerts, num_alerts_queries;
   u_int64_t num_new_flows;
+  struct {
+    u_int32_t local_hosts, remote_hosts;
+  } tot_num_anomalies;
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
@@ -970,7 +973,11 @@ class NetworkInterface : public AlertableEntity {
     Budgets indicate how many flows should be dequeued (if available) to perform protocol detected, active,
     and idle callbacks.
    */
-  virtual u_int64_t dequeueFlowsForHooks(u_int protocol_detected_budget, u_int active_budget, u_int idle_budget);
+  virtual u_int64_t dequeueFlowsForHooks(u_int protocol_detected_budget,
+					 u_int active_budget, u_int idle_budget);
+  inline void incHostAnomalies(u_int32_t local, u_int32_t remote) {
+    tot_num_anomalies.local_hosts += local, tot_num_anomalies.remote_hosts += remote;
+  }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

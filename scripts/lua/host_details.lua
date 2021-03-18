@@ -734,9 +734,13 @@ if am_utils and am_utils.isMeasurementAvailable('icmp') then
    print("</tr>")
 end
 
-
 if(host["active_alerted_flows"] > 0) then
-   print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..host["active_alerted_flows"] .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
+   print("<tr><th>"..i18n("host_details.active_alerted_flows").."</th><td colspan=2></li>"..hostinfo2detailshref(host, {page = "flows", flow_status = "alerted"}, "<span id=num_flow_alerts>"..formatValue(host["active_alerted_flows"]) .. "</span>").." <span id=flow_alerts_trend></span></td></tr>\n")
+end
+
+if(host.score_behaviour.tot_num_anomalies > 0) then
+   -- TODO: Add JSON update
+   print("<tr><th>"..i18n("host_details.behavioural_anomalies").."</th><td colspan=2><span id=beh_anomalies>"..formatValue(host.score_behaviour.tot_num_anomalies).."</span><span id=beh_anomalies_trend></span></td></tr>\n")
 end
 
    if ntop.isPro() and ifstats.inline and (host["has_blocking_quota"] or host["has_blocking_shaper"]) then

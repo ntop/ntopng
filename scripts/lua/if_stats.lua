@@ -886,6 +886,17 @@ print[[
       print("<span id=if_discarded_probing_trend></span></td></tr>\n")
    end
 
+   local an = ifstats.anomalies.tot_num_anomalies
+   local tot_an = an.local_hosts + an.remote_hosts
+   if(tot_an > 0) then
+      -- TODO: Add JSON update
+      print("<tr><th>"..i18n("if_stats_overview.counter_anomalies").."</th>")
+      print("<td><b>"..i18n("total").."</b>: <span id=total_anomalies>"..formatValue(tot_an).."</span><span id=total_anomalies_trend></span></td>")
+      print("<td><b>"..i18n("local_hosts").."</b>: <span id=local_anomalies>"..formatValue(an.local_hosts).."</span><span id=local_anomalies_trend></span></td>")
+      print("<td><b>"..i18n("remote_hosts").."</b>: <span id=remote_anomalies>"..formatValue(an.remote_hosts).."</span><span id=remote_anomalies_trend></span></td>")
+      print("<td>&nbsp;</td></tr>\n") -- Cell for future usage
+   end
+
    if isAdministrator() and ifstats.isView == false then
       local ts_utils = require "ts_utils_core"
       local storage_info = storage_utils.interfaceStorageInfo(ifid)

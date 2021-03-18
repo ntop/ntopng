@@ -46,6 +46,7 @@ class HostStats: public GenericTrafficElement {
   /* Double Exponential Smoothing structure, used to have a feedback regarding the contacted hosts */
   DESCounter active_flows_srv, active_flows_cli, score_cli, score_srv;
   bool af_cli_anomaly, af_srv_anomaly, score_cli_anomaly, score_srv_anomaly;
+  u_int32_t tot_num_anomalies;
   
   /* Behavioural counters for active flows as client */
   u_int32_t af_cli_value, af_cli_prediction, af_cli_lower_bound, af_cli_upper_bound;
