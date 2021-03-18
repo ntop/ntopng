@@ -52,14 +52,28 @@
     $(document).ready(function(){
 
         const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
+        const datasourceParams = {* json.encode(datatable.datasource.params) *};
 
         async function reloadChartAndTable($table, begin, end, rows) {
-            if (begin != null && end != null) {
-                // reload the table
-                $table.ajax.url(`{* datatable.datasource.name *}?begin_epoch=${begin.unix()}&end_epoch=${end.unix()}&totalRows=${rows}`).load();
-                // reload the chart
-                await chart.update({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: rows});
+
+            if (begin == null && end == null) return;
+
+            const copyParams = Object.assign({}, datasourceParams);
+            
+            // override the existing timestamps 
+            if (copyParams.begin_epoch) {
+                copyParams.begin_epoch = begin.unix();
             }
+            if (copyParams.end_epoch) {
+                copyParams.end_epoch = end.unix();
+            }
+
+            const searchParams = new URLSearchParams(Object.entries(copyParams));
+
+            // reload the table
+            $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
+            // reload the chart
+            await chart.update({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: rows});
         }
 
         function printQueryTime($table) {
@@ -114,6 +128,8 @@
         });
 
         const $table = $(`#{{ datatable.name }}`).DataTable(config);
+        DataTableUtils.addToggleColumnsDropdown($table);
+
         // on ajax request complete then print the query time
         $table.on('xhr', function() { printQueryTime($table); });
 

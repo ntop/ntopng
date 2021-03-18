@@ -109,6 +109,7 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
         const $inputEndEpoch = $(`#end-epoch`);
         const $selectTotalRows = $(`#select-len`);
 
+        const $btnApply = $(`#btn-apply`);
         const $btnJumpTimeBack = $(`#btn-jump-time-back`);
         const $btnJumpTimeAhead = $(`#btn-jump-time-ahead`);
         const $btnZoomIn = $(`#btn-zoom-in`);
@@ -162,8 +163,11 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
             const end = $inputEndEpoch.datetimepicker('date');
 
             if (end != null) {
-               const diff = end.subtract(parseInt(subtract), measure);
+               
+                const diff = end.subtract(parseInt(subtract), measure);
                $inputBeginEpoch.datetimepicker('date', diff);
+
+               $btnApply.trigger('click');
             }
         });
 

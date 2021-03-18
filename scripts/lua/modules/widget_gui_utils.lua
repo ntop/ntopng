@@ -146,7 +146,7 @@ function widget_gui_utils.render_chart(widget_name, additional_params)
 end
 
 function widget_gui_utils.datasource(name, params)
-    return { endpoint = name .. build_query_params(params or {}), name = name }
+    return { endpoint = name .. build_query_params(params or {}), name = name, params = params }
 end
 
 function widget_gui_utils.render_table_picker(name, context, modals)
