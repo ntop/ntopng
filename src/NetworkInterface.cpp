@@ -335,7 +335,7 @@ void NetworkInterface::init() {
   next_compq_insert_idx = next_compq_remove_idx = 0;
 
   idleFlowsToDump = activeFlowsToDump = NULL;
-  
+
   /*
     Initialize user-script queues
   */
@@ -1272,7 +1272,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	return(pass_verdict);
 #endif
     }
-    
+
     l4_proto = iph->protocol;
     l4 = ((u_int8_t *) iph + ip_len);
     l4_len = ip_tot_len - ip_len; /* use len from the ip header to compute sequence numbers */
@@ -1464,11 +1464,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
       if((tcp_flags & (TH_RST | TH_FIN)) == 0) {
 	/*
 	  Ignore Zero-window on flow termination as this case
-	  is not necessary a zero windon indication 
+	  is not necessary a zero windon indication
 	*/
 	flow->updateTcpWindow(ntohs(tcph->window), src2dst_direction);
       }
-      
+
       flow->updateTcpSeqNum(when, ntohl(tcph->seq), ntohl(tcph->ack_seq), ntohs(tcph->window),
 			    tcp_flags, l4_len - (4 * tcph->doff),
 			    src2dst_direction);
@@ -1772,7 +1772,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
   memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
 
   pollQueuedeCompanionEvents();
-  bcast_domains->inlineReloadBroadcastDomains();
+  bcast_domains->reloadBroadcastDomains();
 
   /* Netfilter interfaces don't report MAC addresses on packets */
   if(getIfType() == interface_type_NETFILTER)
@@ -1870,9 +1870,9 @@ datalink_check:
     goto dissect_packet_end;
   }
 
-  /* 
+  /*
      Make sure this label is BEFORE detunneling of VLAN or MPLS traffic.
-     Otherwise, VLAN or MPLS traffic carried inside other tunnels, i.e., 
+     Otherwise, VLAN or MPLS traffic carried inside other tunnels, i.e.,
      GRE or ERSPAN, won't be detunneled.
    */
  decode_packet_eth:
@@ -2492,7 +2492,7 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
 
     Finally, do low-priority periodic update hooks. These hooks can be retried multiple times so their priority is low.
    */
-  
+
   num_done += dequeueFlows(hookFlowEnd, flow_lua_call_idle, idle_budget);
   num_done += dequeueFlows(hookProtocolDetected, flow_lua_call_protocol_detected, protocol_detected_budget);
   num_done += dequeueFlows(hookPeriodicUpdate, flow_lua_call_periodic_update, active_budget);
@@ -2562,7 +2562,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
     ntop->getTrace()->traceEvent(TRACE_INFO, "WARNING: Something is broken with flow dump");
     return(0);
   }
-	
+
   /*
     Process high-priority idle flows (they're high priority as an idle flow not dumped is lost)
    */
@@ -2762,7 +2762,7 @@ void NetworkInterface::startFlowDumping() {
 
 #ifdef __linux__
       char buf[16];
-    
+
       snprintf(buf, sizeof(buf), "flowdump ifid %u", get_id());
       pthread_setname_np(flowDumpLoop, buf);
 #endif
@@ -2906,7 +2906,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
     }
 
     if(_dst_ip
-       && (_dst_ip->isLocalHost(&local_network_id) || _dst_ip->isLocalInterfaceAddress())) {      
+       && (_dst_ip->isLocalHost(&local_network_id) || _dst_ip->isLocalInterfaceAddress())) {
       PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*dst) = new (std::nothrow) LocalHost(this, dst_mac, vlanId, _dst_ip);
       PROFILING_SECTION_EXIT(4);
@@ -2937,7 +2937,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlanId,
 /* **************************************************** */
 
 bool NetworkInterface::viewEnqueue(time_t t, Flow *f) {
-  /* 
+  /*
      Enqueue is only performed when the interface is 'viewed'.
      Enqueue needs to know the viewed interface id.
    */
@@ -2996,7 +2996,7 @@ void NetworkInterface::periodicStatsUpdate() {
   struct timeval tv = periodicUpdateInitTime();
 
   if(db)
-    db->updateStats(&tv);  
+    db->updateStats(&tv);
 
   if(!checkPeriodicStatsUpdateTime(&tv))
     return; /* Not yet the time to perform an update */
@@ -3896,7 +3896,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 	 || f->getAlertedSeverity() == alert_level_none
 	 || (flow_status_severity_filter == alert_level_group_notice_or_lower  && f->getAlertedSeverity() > alert_level_notice)
 	 || (flow_status_severity_filter == alert_level_group_warning          && f->getAlertedSeverity() != alert_level_warning)
-	 || (flow_status_severity_filter == alert_level_group_error_or_higher  && f->getAlertedSeverity() < alert_level_error)) 
+	 || (flow_status_severity_filter == alert_level_group_error_or_higher  && f->getAlertedSeverity() < alert_level_error))
 	return(false);
     }
 
@@ -3926,13 +3926,13 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 			    && !f->get_srv_ip_addr()->isMulticastAddress()
 			    && !f->get_srv_ip_addr()->isBroadcastAddress()))))
       return(false);
-    
+
     if(cli_ip && !f->get_cli_host())
       cli_pool_found = f->getInterface()->getHostPools()->findIpPool(cli_ip, f->get_vlan_id(), &cli_pool, &cli_target_node);
-  
+
     if(srv_ip && !f->get_srv_host())
       srv_pool_found = f->getInterface()->getHostPools()->findIpPool(srv_ip, f->get_vlan_id(), &srv_pool, &srv_target_node);
-    
+
     /* Pool filter */
     if(retriever->pag
        && retriever->pag->poolFilter(&pool_filter)
@@ -4019,7 +4019,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data, bool *match
       case column_info:
 	{
 	  char buf[64];
-	  
+
 	  flow_info = f->getFlowInfo(buf, sizeof(buf));
 	  retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char*)"";
 	}
@@ -5264,7 +5264,7 @@ u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   pollQueuedeCompanionEvents();
-  bcast_domains->inlineReloadBroadcastDomains();
+  bcast_domains->reloadBroadcastDomains();
 
   if(!force_idle && last_packet_time < next_idle_flow_purge)
     return(0); /* Too early */
@@ -5551,7 +5551,7 @@ void NetworkInterface::lua(lua_State *vm) {
   ProtoStats _discardedProbingStats;
   DSCPStats _dscpStats;
   SyslogStats _syslogStats;
-  
+
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "name", get_name());
@@ -5570,7 +5570,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "hasSubInterfaces", (sub_interfaces && sub_interfaces->getNumSubInterfaces()) || (flowHashingMode != flowhashing_none));
 #endif
 #endif
-  
+
   lua_push_bool_table_entry(vm, "isFlowDumpDisabled", isFlowDumpDisabled());
   lua_push_bool_table_entry(vm, "isFlowDumpRunning", db != NULL);
   lua_push_uint64_table_entry(vm, "seen.last", getTimeLastPktRcvd());
@@ -5648,7 +5648,7 @@ void NetworkInterface::lua(lua_State *vm) {
 
   if(top_sites && ntop->getPrefs()->are_top_talkers_enabled()) {
     char *cur_sites = top_sites->json();
-    
+
     if(top_sites)
       lua_push_str_table_entry(vm, "sites", cur_sites ? cur_sites : (char*)"{}");
     if(old_sites)
@@ -6361,7 +6361,7 @@ void NetworkInterface::allocateStructures() {
 
   u_int8_t numNetworks = ntop->getNumLocalNetworks();
   char buf[16];
-  
+
   try {
     if(get_id() >= 0) {
       u_int32_t num_hashes = max_val(4096, ntop->getPrefs()->get_max_num_flows()/4);
@@ -6425,7 +6425,7 @@ void NetworkInterface::allocateStructures() {
   setEntityValue(buf);
 
   refreshHasAlerts();
-  
+
   reloadGwMacs();
 }
 
@@ -7263,17 +7263,6 @@ void NetworkInterface::checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhc
 
 /* *************************************** */
 
-bool NetworkInterface::checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id, const u_int8_t *src_mac, const u_int8_t *dst_mac, u_int32_t spa, u_int32_t tpa) const {
-  if(bcast_mask < 0xFFFF0000) {
-    getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, spa, tpa, vlan_id);
-    return true; /* At most a /16 broadcast domain is acceptable */
-  }
-
-  return false;
-}
-
-/* *************************************** */
-
 /*
   Updates interface broadcast domains, inferring them from the range between `src` and `dst` IP addresses.
   This function must be called when `src` and `dst` are (reasonably) assumed to be in the same broadcast domain.
@@ -7292,6 +7281,7 @@ void NetworkInterface::updateBroadcastDomains(u_int16_t vlan_id,
   /* Smaller address in src */
   if(src > dst) {
     u_int32_t r = src;
+
     src = dst;
     dst = r;
   }
@@ -7333,29 +7323,32 @@ void NetworkInterface::updateBroadcastDomains(u_int16_t vlan_id,
 
 	cur_bcast_domain.set(htonl(net));
 
-	if(!checkBroadcastDomainTooLarge(cur_mask, vlan_id, src_mac, dst_mac, src, dst)) {
+	if(cur_mask <  0xFFFF0000 /* /16 */) {
 	  /* NOTE: call this also for existing domains in order to update the hits */
-	  bcast_domains->inlineAddAddress(&cur_bcast_domain, cur_cidr);
+	  if(bcast_domains->addAddress(&cur_bcast_domain, cur_cidr)) {
+	    getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
 
 #ifdef BROADCAST_DOMAINS_DEBUG
-	  char buf1[32], buf2[32], buf3[32];
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
-				       Utils::intoaV4(src, buf1, sizeof(buf1)),
-				       Utils::intoaV4(dst, buf2, sizeof(buf2)),
-				       Utils::intoaV4(net, buf3, sizeof(buf3)),
-				       cur_cidr);
+	    char buf1[32], buf2[32], buf3[32];
+
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
+					 Utils::intoaV4(src, buf1, sizeof(buf1)),
+					 Utils::intoaV4(dst, buf2, sizeof(buf2)),
+					 Utils::intoaV4(net, buf3, sizeof(buf3)),
+					 cur_cidr);
 #endif
+	  }
 	}
 
 	break;
       }
     }
-  }  
+  }
 }
 
 /* *************************************** */
 
-/* 
+/*
    Start the thread for the execution of flow user script hooks
  */
 bool NetworkInterface::initHookLoop() {
@@ -7367,7 +7360,7 @@ bool NetworkInterface::initHookLoop() {
 
 #ifdef __linux__
   char buf[16];
-    
+
   snprintf(buf, sizeof(buf), "hooks ifid %u", get_id());
   pthread_setname_np(hookLoop, buf);
 #endif
@@ -8483,7 +8476,7 @@ void NetworkInterface::luaServiceMap(lua_State* vm, IpAddress *ip_address,
 				     u_int16_t vlan_id, u_int16_t host_pool_id, bool unicast,
              u_int32_t first_seen, u_int16_t filter_ndpi_proto) {
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-  if(sMap) {    
+  if(sMap) {
     sMap->lua(vm, false, this, ip_address, vlan_id, host_pool_id, unicast, 0, filter_ndpi_proto, first_seen);
     return;
   }
@@ -8557,15 +8550,15 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
   minute = t_now.tm_min - (t_now.tm_min % 5);
 
   if(top == 1)
-    snprintf(redis_key, sizeof(redis_key), "%s_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+    snprintf(redis_key, sizeof(redis_key), "%s_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX,
               get_id(), t_now.tm_mday, t_now.tm_hour, minute);
   else
-    snprintf(redis_key, sizeof(redis_key), "%s.topOs_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+    snprintf(redis_key, sizeof(redis_key), "%s.topOs_%d_%d_%d_%d", (char*) NTOPNG_CACHE_PREFIX,
               get_id(), t_now.tm_mday, t_now.tm_hour, minute);
 
   /* String like `ntopng.cache.1_17_11_45` */
   /* An other way is to use the localtime_r and compose the string like `ntopng.cache_2_1609761600` */
-  
+
   if(top == 1)
     ntop->getRedis()->set(redis_key , old_sites, 7200);
   else
@@ -8575,7 +8568,7 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
     char hour_done[64];
     int hour = 0;
 
-    if(t_now.tm_hour == 0) 
+    if(t_now.tm_hour == 0)
       hour = 23;
     else
       hour = t_now.tm_hour - 1;
@@ -8583,21 +8576,21 @@ void NetworkInterface::saveOldSitesAndOs(u_int8_t top) {
     /* List key = ntopng.cache.top_sites_hour_done | value = 1_17_11 */
     /* List key = ntopng.cache.top_os_hour_done    | value = 1_17_11 */
     snprintf(hour_done, sizeof(hour_done), "%d_%d_%d", id, t_now.tm_mday, hour);
-    
+
     if(top == 1)
       ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED, hour_done, 3600);
     else
       ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, hour_done, 3600);
 
     current_cycle = 0;
-  } else 
+  } else
     current_cycle++;
 }
 
 /* *************************************** */
 
 void NetworkInterface::getCurrentTime(struct tm *t_now) {
-  time_t now = time(NULL); 
+  time_t now = time(NULL);
 
   memset(t_now, 0, sizeof(*t_now));
   localtime_r(&now, t_now);
@@ -8613,7 +8606,7 @@ void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do
 
   json_len = ntop->getRedis()->len(redis_key_current);
   if(json_len == 0) json_len = CONST_MAX_LEN_REDIS_VALUE; else json_len += 8; /* Little overhead */
-  
+
   if((json = (char*)malloc(json_len)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return;
@@ -8627,7 +8620,7 @@ void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do
 
   j = json_tokener_parse_verbose(json, &jerr);
 
-  if(j != NULL) {    
+  if(j != NULL) {
 
 #ifdef DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%u]", json, json_len);
@@ -8640,14 +8633,14 @@ void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do
 	char *key               = (char*)entry->k;
 	struct json_object *val = (struct json_object*)entry->v;
 	enum json_type type = json_object_get_type(val);
-	
+
 	if(type == json_type_int) {
 	  u_int32_t value = json_object_get_int64(val);
 
 #ifdef DEBUG
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s = %u", key, value);
 #endif
-	  
+
 	  if(do_top_sites)
 	    top_sites->add(key, value);
 	  else
@@ -8656,8 +8649,8 @@ void NetworkInterface::deserializeTopOsAndSites(char* redis_key_current, bool do
       }
     } else
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid JSON content for key %s", redis_key_current);
-    
-    json_object_put(j); /* Free memory */    
+
+    json_object_put(j); /* Free memory */
   } else
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deserialization Error: %s", json);
 
@@ -8674,9 +8667,9 @@ void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize)
 
   snprintf(redis_hour_key, sizeof(redis_hour_key), "%d_%d_%d", id, t_now->tm_mday, t_now->tm_hour);
   snprintf(redis_daily_key, sizeof(redis_daily_key), "%d_%d", id, t_now->tm_mday);
-  snprintf(redis_key_current_sites, sizeof(redis_key_current_sites), "%s.serialized_current_top_sites.%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+  snprintf(redis_key_current_sites, sizeof(redis_key_current_sites), "%s.serialized_current_top_sites.%d_%d", (char*) NTOPNG_CACHE_PREFIX,
             id, t_now->tm_mday);
-  snprintf(redis_key_current_os, sizeof(redis_key_current_os), "%s.serialized_current_top_os.%d_%d", (char*) NTOPNG_CACHE_PREFIX, 
+  snprintf(redis_key_current_os, sizeof(redis_key_current_os), "%s.serialized_current_top_os.%d_%d", (char*) NTOPNG_CACHE_PREFIX,
             id, t_now->tm_mday);
 
   if(do_serialize) {
@@ -8684,9 +8677,9 @@ void NetworkInterface::serializeDeserialize(struct tm *t_now, bool do_serialize)
     ntop->getRedis()->lpush((char*) HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED, redis_daily_key, 3600);
     ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED, redis_hour_key, 3600);
     ntop->getRedis()->lpush((char*) HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED, redis_daily_key, 3600);
-    if(top_sites->getSize()) 
+    if(top_sites->getSize())
       ntop->getRedis()->set(redis_key_current_sites , top_sites->json(2*HOST_SITES_TOP_NUMBER), 3600);
-    if(top_os->getSize()) 
+    if(top_os->getSize())
       ntop->getRedis()->set(redis_key_current_os , top_os->json(2*HOST_SITES_TOP_NUMBER), 3600);
   }
   else {
@@ -8715,7 +8708,7 @@ void NetworkInterface::removeRedisSitesKey() {
 }
 
 /* *************************************** */
-  
+
 void NetworkInterface::addRedisSitesKey() {
   struct tm t_now;
 

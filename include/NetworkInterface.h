@@ -325,9 +325,6 @@ class NetworkInterface : public AlertableEntity {
   void topItemsCommit(const struct timeval *when);
   void checkMacIPAssociation(bool triggerEvent, u_char *_mac, u_int32_t ipv4);
   void checkDhcpIPRange(Mac *sender_mac, struct dhcp_packet *dhcp_reply, u_int16_t vlan_id);
-  bool checkBroadcastDomainTooLarge(u_int32_t bcast_mask, u_int16_t vlan_id,
-				    const u_int8_t *src_mac, const u_int8_t *dst_mac,
-				    u_int32_t spa, u_int32_t tpa) const;
   void pollQueuedeCompanionEvents();
   bool getInterfaceBooleanPref(const char *pref_key, bool default_pref_value) const;
   virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,

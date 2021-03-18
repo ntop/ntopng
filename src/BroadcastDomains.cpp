@@ -43,16 +43,16 @@ BroadcastDomains::~BroadcastDomains() {
 
 /* *************************************** */
 
-void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network_bits) {
+bool BroadcastDomains::addAddress(const IpAddress * const ipa, int network_bits) {
   ndpi_patricia_node_t *addr_node;
   u_int16_t domain_id;
 
   if(!inline_broadcast_domains)
-    return;
+    return(false);
 
   if(next_domain_id == ((u_int16_t)-1)) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many broadcast domains defined on interface %s", iface->get_name());
-    return;
+    return(false);
   }
 
   if((addr_node = inline_broadcast_domains->match(ipa, network_bits)) != NULL) {
@@ -70,7 +70,7 @@ void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network
     }
 #endif
 
-    return;
+    return(false);
   }
 
 #ifdef DEBUG_BROADCAST_DOMAINS
@@ -98,6 +98,8 @@ void BroadcastDomains::inlineAddAddress(const IpAddress * const ipa, int network
 
   if(!next_update)
     next_update = time(NULL) + 1;
+
+  return(true);
 }
 
 /* *************************************** */
@@ -112,7 +114,7 @@ bool BroadcastDomains::isGhostLocalBroadcastDomain(bool is_interface_network) co
 
 /* *************************************** */
 
-void BroadcastDomains::inlineReloadBroadcastDomains(bool force_immediate_reload) {
+void BroadcastDomains::reloadBroadcastDomains(bool force_immediate_reload) {
   time_t now = time(NULL);
 
   if(force_immediate_reload)
