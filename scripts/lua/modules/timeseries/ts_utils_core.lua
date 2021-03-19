@@ -823,9 +823,13 @@ end
 --! @note This function should be updated whenever an existng schema is changed
 function ts_utils.getPossiblyChangedSchemas()
    return {
+      -- Interface timeseries
       "iface:alerted_flows",
-
+      "iface:score",
+      
+      -- Host timeseries
       "host:contacts", -- split in "as_client" and "as_server"
+      "host:score", -- split in "cli_score" and "srv_score"
       "host:contacts_behaviour",
       "host:cli_active_flows_behaviour",
       "host:srv_active_flows_behaviour",
@@ -847,7 +851,6 @@ function ts_utils.getPossiblyChangedSchemas()
       "process:resident_memory",
       "redis:keys",
       "redis:memory",
-      "host:score", -- split in "client_score" and "server_score"
       "periodic_script:timeseries_writes",
       "mac:arp_rqst_sent_rcvd_rpls",
 
