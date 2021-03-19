@@ -48,7 +48,6 @@ if(host_info["host"] ~= nil) then
 else
    -- Show ARP stats for interface
    stats = interface.getStats()
-   tprint(stats)
 
    for k,v in pairs(stats) do
       if k == "arp.requests" then
