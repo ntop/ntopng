@@ -36,8 +36,6 @@ local function save_column_preferences(table_name, columns)
     local key = string.format(REDIS_KEY, get_username(), table_name)
     local cols = split(columns, ",")
 
-    tprint(cols)
-
     ntop.setPref(key, json.encode(cols))
 
 end
