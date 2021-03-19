@@ -1200,6 +1200,9 @@ end
 -- @brief Update the configuration of a specific script in a configset
 function user_scripts.updateScriptConfig(script_key, subdir, new_config, additional_params, additional_filters)
    local configset = user_scripts.getConfigset()
+   local script_type = user_scripts.getScriptType("flow")
+   tprint(script_key)
+   tprint(subdir)
    -- additional_params contains additional params for script conf such as the severity
    additional_params = additional_params or {}
    new_config = new_config or {}
@@ -1994,7 +1997,7 @@ end
 function user_scripts.getDefaultFilters(ifid, subdir, script_key)
 
    local script_type = user_scripts.getScriptType(subdir)
-   local script = user_scripts.loadModule(ifid, script_type, subdir, script_key) or {}
+   local script = user_scripts.loadModule(ifid, script_type, subdir, script_key)
    local filters = {}
    filters["current_filters"] = {}
 
