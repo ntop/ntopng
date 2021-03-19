@@ -886,8 +886,13 @@ print[[
       print("<span id=if_discarded_probing_trend></span></td></tr>\n")
    end
 
-   local an = ifstats.anomalies.tot_num_anomalies
-   local tot_an = an.local_hosts + an.remote_hosts
+   local an = ifstats.anomalies.tot_num_anomalies or {}
+   local tot_an = 0
+   
+   if table.len(an) > 0 then
+      tot_an = an.local_hosts + an.remote_hosts
+   end
+
    if(tot_an > 0) then
       -- TODO: Add JSON update
       print("<tr><th>"..i18n("if_stats_overview.counter_anomalies").."</th>")
