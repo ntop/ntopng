@@ -94,15 +94,18 @@
         }
 
         function pushNewHistoryState(begin, end, len) {
+            
             const url = new URL(location);
-	    for (const [key, value] of Object.entries(url.searchParams)) {
+
+            for (const [key, value] of Object.entries(url.searchParams)) {
                 url.searchParams.set(key, value);
             }
 
             url.searchParams.set('begin_epoch', begin.unix());
             url.searchParams.set('end_epoch', end.unix());
             url.searchParams.set('totalRows', len);
-	    window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: len}, '', url);
+
+            window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: len}, '', url);
         }
 
         async function onRangePickerChange(pushHistroy = false) {

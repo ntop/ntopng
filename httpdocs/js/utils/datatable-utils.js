@@ -48,7 +48,7 @@ class DataTableFiltersMenu {
      *
      * @param {options}
      */
-    constructor({tableAPI, filterMenuKey, filterTitle, filters, columnIndex}) {
+    constructor({ tableAPI, filterMenuKey, filterTitle, filters, columnIndex }) {
         this.rawFilters = filters;
         this.tableAPI = tableAPI;
         this.filterTitle = filterTitle;
@@ -68,12 +68,12 @@ class DataTableFiltersMenu {
         const self = this;
 
         // when the datatable has been initialized render the dropdown
-        this.$datatableWrapper.on('init.dt', function() {
+        this.$datatableWrapper.on('init.dt', function () {
             self._render(self.rawFilters);
         });
 
         // on ajax reload then update the datatable entries
-        this.tableAPI.on('draw', function() {
+        this.tableAPI.on('draw', function () {
             self._update();
         });
 
@@ -233,7 +233,7 @@ class DataTableFiltersMenu {
 }
 
 class DataTableRangeFiltersMenu extends DataTableFiltersMenu {
-    
+
     constructor(params) {
 
         super(params);
@@ -243,32 +243,32 @@ class DataTableRangeFiltersMenu extends DataTableFiltersMenu {
         this.selectedMax = Number.MAX_VALUE;
 
         $.fn.dataTable.ext.search.push(
-            function( settings, data, dataIndex ) {
+            function (settings, data, dataIndex) {
 
                 const min = self.selectedMin || Number.MIN_VALUE;
                 const max = self.selectedMax || Number.MAX_VALUE;
 
                 const currentValue = parseFloat(data[params.columnIndex]) || 0;
 
-                return ((isNaN(min) && isNaN(max)) || 
-                    (isNaN(min) && currentValue <= max ) || 
-                    (min <= currentValue && isNaN(max) ) || 
+                return ((isNaN(min) && isNaN(max)) ||
+                    (isNaN(min) && currentValue <= max) ||
+                    (min <= currentValue && isNaN(max)) ||
                     (min <= currentValue && currentValue <= max));
             }
         );
 
         this.tableAPI.draw();
         params.rawFilters = params.filters.map((filter) => {
-        
+
             filter.regex = '';
             filter.min = filter.min || Number.MIN_VALUE;
             filter.max = filter.max || Number.MAX_VALUE;
             filter.countable = false;
-        
-            filter.callback = () => { 
+
+            filter.callback = () => {
                 self.selectedMax = filter.max;
                 self.selectedMin = filter.min;
-                self.tableAPI.draw(); 
+                self.tableAPI.draw();
             };
 
             return filter;
@@ -301,7 +301,7 @@ class DataTableUtils {
         if (dtButtons.length == 0) {
             dom = "fBrtip";
         }
-        
+
         return {
             dom: dom,
             pagingType: 'full_numbers',
@@ -352,8 +352,8 @@ class DataTableUtils {
 
             let button = (`
                 <a
-                    ${ (action.href || action.modal) ? `href='${action.href || action.modal}'` : `` }
-                    ${ (action.onclick) ? `onclick='${action.onclick}'`: ``}
+                    ${(action.href || action.modal) ? `href='${action.href || action.modal}'` : ``}
+                    ${(action.onclick) ? `onclick='${action.onclick}'` : ``}
                     data-placement='bottom'
                     ${action.modal ? "data-toggle='modal'" : ``}
                     class='btn btn-sm ${action.class}'
@@ -464,7 +464,7 @@ class DataTableUtils {
         // if the cancelIf param has been passed
         // then test the cancelIf function, if the return value
         // is true then cancel the modal opening
-        if (typeof(params.cancelIf) === 'function') {
+        if (typeof (params.cancelIf) === 'function') {
             if (params.cancelIf(data)) return;
         }
 
@@ -499,58 +499,107 @@ class DataTableUtils {
             throw 'The $table is undefined!';
         }
 
-        const columns = [];
-        const $datatableWrapper = $(tableAPI.context[0].nTableWrapper);
+        const tableID = tableAPI.table().node().id;
 
-        // get the table headers 
-        tableAPI.columns().every(function(i) {
-            columns.push({index: i, name: this.header().textContent});
-        });
-        
-        const $btnGroup = $(`
-            <div class="btn-group">
-                <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
-        `);
+        DataTableUtils._loadColumnsVisibility(tableAPI).then(function (fetchedData) {
 
-        const $dropdownMenu = $(`<div class="dropdown-menu dropdown-menu-right" style='width: max-content;'><h6 class="dropdown-header">Show Columns</h6></div>`);
-        const $checkboxes = $(`<div class='px-4'></div>`);
+            let savedColumns = [-1];
+            if (fetchedData.success) {
+                savedColumns = fetchedData.columns.map(i => parseInt(i));
+            }
+            else {
+                console.warn(fetchedData.message);
+            }
 
-        for (let i = 0; i < columns.length; i++) {
+            const columns = [];
+            const ignoredColumns = [];
+            const $datatableWrapper = $(tableAPI.context[0].nTableWrapper);
 
-            const column = columns[i];
+            // get the table headers 
+            tableAPI.columns().every(function (i) {
 
-            // create a checkbox and delegate a change event
-            const id = `toggle-${column.name.split().join('_')}`;
-            const $checkbox = $(`<input class="custom-control-input" checked type="checkbox" id="${id}">`)
-            const $wrapper = $(`
-                <div class="custom-control custom-switch">
-                    <label class="custom-control-label" for="${id}">
-                        ${column.name}
-                    </label>
+                // avoid already hidden columns
+                if (!tableAPI.column(i).visible()) {
+                    ignoredColumns.push(i);
+                    return;
+                }
+
+                columns.push({ index: i, name: this.header().textContent });
+            });
+
+            const $btnGroup = $(`
+                <div class="btn-group">
+                    <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
             `);
 
-            $checkbox.on('change', function (e) {
-                // Get the column API object
-                const col = tableAPI.column(column.index);
-                // Toggle the visibility
-                col.visible(!col.visible());
-            });
+            const $dropdownMenu = $(`<div class="dropdown-menu dropdown-menu-right" style='width: max-content;'><h6 class="dropdown-header">Show Columns</h6></div>`);
+            const $checkboxes = $(`<div class='px-4'></div>`);
 
-            $wrapper.prepend($checkbox);
-            $checkboxes.append($wrapper);
-        }
+            for (let i = 0; i < columns.length; i++) {
 
-        $dropdownMenu.on("click.bs.dropdown", function (e) { 
-            e.stopPropagation(); 
+                const column = columns[i];
+
+                // create a checkbox and delegate a change event
+                const id = `toggle-${column.name.split().join('_')}`; 
+
+                // check if the column id it's inside the savedColumns array
+                // if toggled is true then the column is not hidden
+                const toggled = savedColumns.indexOf(column.index) === -1;
+                if (!toggled) {
+                    const col = tableAPI.column(column.index);
+                    col.visible(false);
+                }
+
+                const $checkbox = $(`<input class="custom-control-input" ${(toggled ? 'checked' : '')} type="checkbox" id="${id}">`)
+                const $wrapper = $(`
+                    <div class="custom-control custom-switch">
+                        <label class="custom-control-label" for="${id}">
+                            ${column.name}
+                        </label>
+                    </div>
+                `);
+
+                $checkbox.on('change', function (e) {
+                    
+                    // Get the column API object
+                    const col = tableAPI.column(column.index);
+                    // Toggle the visibility
+                    col.visible(!col.visible());
+
+                    const hiddenColumns = [];
+                    // insert inside the array only the hidden columns
+                    tableAPI.columns().every(function(i) {
+                        if (tableAPI.column(i).visible() || ignoredColumns.indexOf(i) !== -1) return;
+                        hiddenColumns.push(i); 
+                    });
+
+                    // save the table view inside redis
+                    $.post(`${http_prefix}/lua/datatable_columns.lua`, {
+                        action: 'save', table: tableID, columns: hiddenColumns.join(','), csrf: window.__CSRF_DATATABLE__
+                    }).then(function(data) {
+                        if (data.success) return;
+                        console.warn(data.message);
+                    });
+                });
+
+                $wrapper.prepend($checkbox);
+                $checkboxes.append($wrapper);
+            }
+
+            $dropdownMenu.on("click.bs.dropdown", function (e) { e.stopPropagation(); });
+
+            // append the new node inside the datatable
+            $btnGroup.append($dropdownMenu.append($checkboxes));
+            $datatableWrapper.find('.dt-search').parent().append($btnGroup);
         });
+    }
 
-        // append the new node inside the datatable
-        $btnGroup.append($dropdownMenu.append($checkboxes)); 
-        $datatableWrapper.find('.dt-search').parent().append($btnGroup)
+    static async _loadColumnsVisibility(tableAPI) {
+        const tableID = tableAPI.table().node().id;
+        return $.get(`${http_prefix}/lua/datatable_columns.lua?table=${tableID}&action=load`);
     }
 
 }

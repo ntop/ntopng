@@ -79,6 +79,8 @@ print[[
    const systemInterfaceEnabled = ]] print(ternary(is_system_interface, "true", "false")) print[[;
    const http_prefix = "]] print(ntop.getHttpPrefix()) print[[";
 
+   window.__CSRF_DATATABLE__ = `]] print(ntop.getRandomCSRFValue()) print[[`;
+
    if(document.cookie.indexOf("tzoffset=") < 0) {
       // Tell the server the client timezone
       document.cookie = "tzoffset=" + (new Date().getTimezoneOffset() * 60 * -1);
