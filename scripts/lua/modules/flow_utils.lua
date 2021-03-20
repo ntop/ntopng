@@ -20,8 +20,6 @@ if ntop.isPro() then
    shaper_utils = require("shaper_utils")
 end
 
-local json = require ("dkjson")
-
 -- #######################
 
 function formatInterfaceId(id, idx, snmpdevice)
@@ -654,6 +652,13 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       label = label.." [ "..srv_mac.." ]"
    end
 
+   local s_info = flow2statusinfo(flow)
+   if(s_info ~= nil) then
+      if(not isEmptyString(s_info.info)) then
+	 label = label.."  [".. s_info.info .."]"
+      end
+   end
+   
    return label
 end
 
