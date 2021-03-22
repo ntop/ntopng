@@ -8,8 +8,8 @@
     local presetSelected = (isEmptyString(_GET['begin_epoch']) and isEmptyString(_GET['end_epoch']))   
 %}
 
-<div class="d-flex justify-content-between w-100">
-    <div class="btn-group btn-group-toggle mr-3" role="group">
+<div class="d-flex flex-sm-column flex-md-row justify-content-between w-100">
+    <div class="btn-group btn-group-toggle" role="group">
         <label class="btn {{ (presetSelected and 'btn-primary' or 'btn-light') }}">
             <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
         </label>
@@ -41,7 +41,7 @@
         {% end %}
         <label id="btn-custom-preset" class="btn {{ (not presetSelected and 'btn-primary' or 'btn-light disabled') }}">{{ i18n("graphs.custom") }}</label>
     </div>
-    <div class="input-group flex-shrink-1 ml-3 mr-1" style="width: fit-content;">
+    <div class="input-group my-sm-2 my-md-0 flex-shrink-1 mx-sm-0 mx-md-2" style="width: fit-content;">
         <div class="input-group-prepend">
             <span class="input-group-text">
                 <i class="fas fa-calendar-alt"></i>
@@ -57,8 +57,8 @@
         <input id='end-epoch' type="text" aria-label="End" data-toggle="datetimepicker"
             class="form-control datetimepicker-input border-left-0" data-target="#end-epoch">
     </div>
-    <button id="btn-apply" class="btn btn-primary mr-3">{{ i18n("apply") }}</button>
-    <div class="btn-group btn-group-sm mr-3">
+    <button id="btn-apply" class="btn btn-primary">{{ i18n("apply") }}</button>
+    <div class="btn-group my-sm-2 my-md-0 mx-sm-0 mx-md-2 btn-group-sm">
         <button class="btn btn-link" id="btn-jump-time-back">
             <i class="fas fa-arrow-left"></i>
         </button>
