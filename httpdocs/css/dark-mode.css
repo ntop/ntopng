@@ -343,3 +343,6 @@ text, g text.tick {
 .btn-gray {
   background-color: #414141!important;
 }
+.overlay {
+  background-color: rgba(15, 15, 15, 0.70) !important;
+}
