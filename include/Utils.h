@@ -236,7 +236,7 @@ public:
   static int snappend(char *str, size_t size, const char *tobeappended, const char *separator);
   static bool isNumber(const char *s, unsigned int s_len, bool *is_float);
   static bool isPingSupported();
-  static ScoreCategory mapScriptToScoreCategory(ScriptCategory script_category);
+  static ScoreCategory mapAlertToScoreCategory(AlertCategory script_category);
   /*
     Maps an AlertLevel into the corresponding AlertLevelGroup. Alert level groups
     are used to 'compress' alert levels into a reduced number of (grouped) levels.

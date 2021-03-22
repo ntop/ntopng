@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_tls_certificate_mismatch = classes.class(alert)
 -- ##############################################
 
 alert_tls_certificate_mismatch.meta = {
-   status_key = status_keys.ntopng.status_tls_certificate_mismatch,
    alert_key = alert_keys.ntopng.alert_tls_certificate_mismatch,
    i18n_title = "flow_details.tls_certificate_mismatch",
    icon = "fas fa-exclamation",
@@ -29,18 +27,9 @@ alert_tls_certificate_mismatch.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @param tls_info A lua table with TLS info gererated calling `flow.getTLSInfo()`
 -- @return A table with the alert built
-function alert_tls_certificate_mismatch:init(tls_info)
+function alert_tls_certificate_mismatch:init()
    -- Call the parent constructor
    self.super:init()
-
-   tls_info = tls_info or {}
-   local server_cn = tls_info["protos.tls.server_names"] or ""
-   local client_cn = tls_info["protos.tls.client_requested_server_name"] or ""
-
-   self.alert_type_params = {
-      ["tls_crt.cli"] = client_cn,
-      ["tls_crt.srv"] = server_cn,
-   }
 end
 
 -- #######################################################

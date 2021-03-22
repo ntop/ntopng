@@ -51,8 +51,8 @@ local inIfIdx  = _GET["inIfIdx"]
 local outIfIdx = _GET["outIfIdx"]
 
 local traffic_type = _GET["traffic_type"]
-local flow_status  = _GET["flow_status"]
-local flow_status_severity  = _GET["flow_status_severity"]
+local alert_type  = _GET["alert_type"]
+local alert_type_severity  = _GET["alert_type_severity"]
 local tcp_state    = _GET["tcp_flow_state"]
 local port         = _GET["port"]
 local network_id   = _GET["network"]
@@ -136,12 +136,12 @@ if(traffic_type ~= nil) then
    page_params["traffic_type"] = traffic_type
 end
 
-if(flow_status ~= nil) then
-   page_params["flow_status"] = flow_status
+if(alert_type ~= nil) then
+   page_params["alert_type"] = alert_type
 end
 
-if(flow_status_severity ~= nil) then
-   page_params["flow_status_severity"] = flow_status_severity
+if(alert_type_severity ~= nil) then
+   page_params["alert_type_severity"] = alert_type_severity
 end
 
 if(tcp_state ~= nil) then

@@ -8,6 +8,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 local json = require "dkjson"
 local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
+local alert_severities = require "alert_severities"
+local user_scripts = require "user_scripts"
 local endpoints = require("endpoints")
 
 -- ##############################################
@@ -26,12 +28,30 @@ local default_builtin_minimum_severity = alert_severities.info.severity_id -- mi
 
 -- ##############################################
 
+local function _bitmap_from_user_script_categories(user_script_categories)
+   local bitmap = 0
+
+   for _, category_id in ipairs(user_script_categories) do
+      bitmap = bitmap | (1 << category_id)
+   end
+
+   return bitmap
+end
+
+-- ##############################################
+
 -- @brief Performs Initialization operations performed during startup
 function recipients.initialize()
    -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
    -- For each builtin configuration type, a configuration and a recipient is created
+   local all_categories = {}
+   for _, category in pairs(user_scripts.script_categories) do
+      all_categories[#all_categories + 1] = category.id
+   end
+   
    for endpoint_key, endpoint in pairs(endpoints.get_types()) do
       if endpoint.builtin then
+
          -- Add the configuration
          local res = endpoints.add_config(
             endpoint_key --[[ the type of the endpoint--]],
@@ -42,10 +62,11 @@ function recipients.initialize()
 	 -- Endpoint successfully created (or existing)
 	 if res and res.endpoint_id then
 	    -- And the recipient
+
 	    local recipient_res = recipients.add_recipient(
 	       res.endpoint_id --[[ the id of the endpoint --]],
 	       "builtin_recipient_"..endpoint_key --[[ the name of the endpoint recipient --]],
-	       nil, -- User script categories
+	       all_categories,
 	       default_builtin_minimum_severity,
 	       false, -- Do Not add it to every pool automatically
 	       {} --[[ no recipient params --]]
@@ -57,8 +78,16 @@ function recipients.initialize()
    -- Register all existing recipients in C to make sure ntopng can start with all the
    -- existing recipients properly loaded and ready for notification enqueues/dequeues
    for _, recipient in pairs(recipients.get_all_recipients()) do
-      ntop.recipient_register(recipient.recipient_id)
+      ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, _bitmap_from_user_script_categories(recipient.user_script_categories))
    end
+
+   -- Now specify which recipients are "flow" recipients and tell this information to C++
+
+   local pools_alert_utils = require "pools_alert_utils"
+   local flow_pools = require "flow_pools"
+
+   local all_flow_recipients = pools_alert_utils.get_entity_recipients_by_pool_id(alert_consts.alert_entities.flow.entity_id, flow_pools.DEFAULT_POOL_ID)
+   flow_pools:create():set_flow_recipients(all_flow_recipients)
 end
 
 -- ##############################################
@@ -243,6 +272,8 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_scr
    if locked then
       local ec = endpoints.get_endpoint_config(endpoint_id)
 
+
+
       if ec["status"] == "OK" and endpoint_recipient_name then
 	 -- Is the endpoint already existing?
 	 local same_recipient = recipients.get_recipient_by_name(endpoint_recipient_name)
@@ -264,7 +295,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_scr
 	       _set_endpoint_recipient_params(endpoint_id, recipient_id, endpoint_recipient_name, user_script_categories, minimum_severity, safe_params)
 
 	       -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
-	       ntop.recipient_register(recipient_id)
+	       ntop.recipient_register(recipient_id, minimum_severity, _bitmap_from_user_script_categories(user_script_categories))
 
 	       -- Set a flag to indicate that a recipient has been created
 	       if not ec.endpoint_conf.builtin and isEmptyString(ntop.getPref(recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY)) then
@@ -331,7 +362,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_s
 
 	       -- Finally, register the recipient in C to make sure also the C knows about this edit
 	       -- and periodic scripts can be reloaded
-	       ntop.recipient_register(tonumber(rc["endpoint_id"]))
+	       ntop.recipient_register(tonumber(rc["endpoint_id"]), minimum_severity, _bitmap_from_user_script_categories(user_script_categories))
 
 	       res = {status = "OK"}
 	    end
@@ -472,7 +503,6 @@ end
 -- ##############################################
 
 function recipients.get_recipient(recipient_id, include_stats)
-   local user_scripts = require "user_scripts"
    local recipient_details
    local recipient_details_key = _get_recipient_details_key(recipient_id)
 
@@ -608,7 +638,7 @@ function recipients.dispatch_notification(notification, current_script)
 	 local is_high_priority = is_notification_high_priority(notification)
 
 	 for _, recipient_id in pairs(recipients) do
-	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.alert_severity)
+	    ntop.recipient_enqueue(recipient_id, is_high_priority, json_notification, notification.alert_severity, current_script and current_script.category and current_script.category.id)
 	 end
       end
    else

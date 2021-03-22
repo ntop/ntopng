@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_tls_old_protocol_version = classes.class(alert)
 -- ##############################################
 
 alert_tls_old_protocol_version.meta = {
-   status_key = status_keys.ntopng.status_tls_old_protocol_version,
    alert_key = alert_keys.ntopng.alert_tls_old_protocol_version,
    i18n_title = "flow_details.tls_old_protocol_version",
    icon = "fas fa-exclamation",
@@ -29,13 +27,9 @@ alert_tls_old_protocol_version.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @param tls_version A number indicating the TLS version detected, or nil when version is not available
 -- @return A table with the alert built
-function alert_tls_old_protocol_version:init(tls_version)
+function alert_tls_old_protocol_version:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-      tls_version = tls_version,
-   }
 end
 
 -- #######################################################

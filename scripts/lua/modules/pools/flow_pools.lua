@@ -42,6 +42,28 @@ function flow_pools:get_all_members() return {} end
 
 -- ##############################################
 
+--@brief Tells the C++ core about the flow recipients
+function flow_pools:set_flow_recipients(recipients)
+   -- Create a bitmap of all recipients responsible for flows (pool_id in this case is ignored)
+   local recipients_bitmap = 0
+
+   for _, recipient_id in ipairs(recipients) do
+      recipients_bitmap = recipients_bitmap | (1 << recipient_id)
+   end
+
+   -- Tell the C++ that flow recipients have changed
+   ntop.recipient_set_flow_recipients(recipients_bitmap)
+end
+
+-- ##############################################
+
+--@brief Method called after a successful execution of method persist
+function flow_pools:_post_persist(pool_id, name, members, recipients)
+   self:set_flow_recipients(recipients)
+end
+
+-- ##############################################
+
 function flow_pools:default_only()
    -- This is a dummy, default-only pool
    return true

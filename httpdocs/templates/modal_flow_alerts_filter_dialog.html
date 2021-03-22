@@ -1,0 +1,70 @@
+<div id="{{dialog.id}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{dialog.id}}_label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{*dialog.title*}: <span class="alert_label"></span></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        </div>
+        <div class="modal-body {{dialog.custom_dialog_class}}">
+	  <div class="form-group">
+	    <label>{{ i18n('current_filter') }}</label>
+	    <div class="form-check">
+	      <input class="form-check-input" type="radio" name="alert_addr" id="srv_radio" value="" checked>
+	      <label class="form-check-label" for="srv_radio">
+		<span id="srv_addr"></span>
+	      </label>
+	    </div>
+	    <div class="form-check">
+	      <input class="form-check-input" type="radio" name="alert_addr" id="cli_radio" value="">
+	      <label class="form-check-label" for="cli_radio">
+		<span id="cli_addr"></span>
+	      </label>
+	    </div>
+	  </div>
+
+	  <hr class="separator">
+
+	  <div class="message {{dialog.custom_alert_class or "alert alert-danger"}} -1" id="flow_alerts_danger_msg">
+            {*dialog.delete_message*}
+          </div>
+
+	  <div class="form-group">
+            <div class="custom-control custom-switch">
+	      <input type="checkbox" class="custom-control-input" id="delete_flow_alerts_switch" checked="checked">
+	      <label class="custom-control-label" for="delete_flow_alerts_switch">{*dialog.delete_alerts*}</label>
+	    </div>
+	  </div>
+	</div>
+        {% if dialog.no_footer then %}
+          {# empty #}
+        {% else %}
+
+	<div id="script-description" class="alert alert-light" role="alert">
+          {*dialog.message*}
+	</div>
+
+        <div class="modal-footer">
+	  <span class="invalid-feedback" id="{{dialog.id}}_error"></span>
+          {% if dialog.action ~= nil then %}
+            <button type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}" onclick="{{dialog.action}}">{*dialog.confirm*}</button>
+          {% else %}
+            <button id="btn-confirm-action" type="submit" class="btn {{dialog.confirm_button or "btn-primary"}}">{*dialog.confirm*}</button>
+          {% end %}
+        </div>
+        {% end %}
+      </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+   $('#delete_flow_alerts_switch').on('change', function() {
+      const checked = this.checked;
+      if(checked) {
+         $('#flow_alerts_danger_msg').show();
+      } else {
+         $('#flow_alerts_danger_msg').hide();
+      }
+   });    
+});
+</script>

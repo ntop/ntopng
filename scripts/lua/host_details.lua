@@ -631,21 +631,25 @@ if isScoreEnabled() then
    print("<tr><th rowspan=2>"..i18n("score").." " .. score_chart .."</th>")
    print("<th>"..i18n("host_details.client_score").."</th><th>"..i18n("host_details.server_score").."</th></tr>")
 
-   local c = host.score_pct["score_breakdown_client"]
-   local s = host.score_pct["score_breakdown_server"]
+   local c = host.score_pct and host.score_pct["score_breakdown_client"]
+   local s = host.score_pct and host.score_pct["score_breakdown_server"]
 
    print("<tr>")
    print("<td>")
    print("<div class='d-flex align-items-center'>")
-   print("<span id='score_as_client'>".. host["score.as_client"] .."</span> <span class='ml-1' id='client_score_trend'></span>")
-   scoreBreakdown(c)
+   print("<span id='score_as_client'>".. (host["score.as_client"] or 0) .."</span> <span class='ml-1' id='client_score_trend'></span>")
+   if c then
+      scoreBreakdown(c)
+   end
    print("</div>")
    print("</td>")
 
    print("<td>")
    print("<div class='d-flex align-items-center'>")
-   print("<span id='score_as_server'>".. host["score.as_server"] .."</span><span class='ml-1' id='server_score_trend'></span>")
-   scoreBreakdown(s)
+   print("<span id='score_as_server'>".. (host["score.as_server"] or 0).."</span><span class='ml-1' id='server_score_trend'></span>")
+   if s then
+      scoreBreakdown(s)
+   end
    print("</div>")
    print("</td>")
 
@@ -786,7 +790,7 @@ end
    end
 
    if interfaceHasNindexSupport() then
-      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=flows&zoom=1h&flow_status=alerted"><i class="fas fa-search-plus"></i></a>'
+      flows_th = flows_th .. ' <a class="btn btn-sm btn-info" href="?host='..hostinfo2hostkey(host_info)..'&page=historical&detail_view=flows&zoom=1h&alert_type=alerted"><i class="fas fa-search-plus"></i></a>'
    end
 
    print("<tr><th></th><th>"..i18n("details.as_client").."</th><th>"..i18n("details.as_server").."</th></tr>\n")
@@ -1696,7 +1700,7 @@ print [[
 local page_params = {
    application = _GET["application"],
    category = _GET["category"],
-   flow_status = _GET["flow_status"],
+   alert_type = _GET["alert_type"],
    tcp_flow_state = _GET["tcp_flow_state"],
    flowhosts_type = _GET["flowhosts_type"],
    traffic_type = _GET["traffic_type"],

@@ -24,21 +24,31 @@
 
 class HostScore {
  private:
-  Mutex m;
-  u_int16_t cli_score[MAX_NUM_SCORE_CATEGORIES], srv_score[MAX_NUM_SCORE_CATEGORIES];
+
+ protected:
+  u_int32_t cli_score[MAX_NUM_SCORE_CATEGORIES], srv_score[MAX_NUM_SCORE_CATEGORIES];
   
-  u_int32_t sum(const bool as_client) const;
+  static u_int64_t sum(u_int32_t const scores[]);
+  static u_int16_t incValue(u_int32_t scores[], u_int16_t score, ScoreCategory score_category);
+  static u_int16_t decValue(u_int32_t scores[], u_int16_t score, ScoreCategory score_category);
+
   void lua_breakdown(lua_State *vm, bool as_client);
   
  public:
   HostScore();
+  virtual ~HostScore() {};
 
-  inline u_int32_t get()       const { return(getClient() + getServer());  };
-  inline u_int32_t getClient() const { return(sum(true  /* as client */)); };
-  inline u_int32_t getServer() const { return(sum(false /* as server */)); };
-  
+  /* Total getters */
+  u_int64_t get()               const { return(getClient() + getServer()); };
+  virtual u_int64_t getClient() const { return(sum(cli_score /* as client */)); };
+  virtual u_int64_t getServer() const { return(sum(srv_score /* as server */)); };
+
+  /* Getters by category */
+  virtual u_int32_t getClient(ScoreCategory sc) const { return(cli_score[sc]); };
+  virtual u_int32_t getServer(ScoreCategory sc) const { return(srv_score[sc]); };
+
   u_int16_t incValue(u_int16_t score, ScoreCategory score_category, bool as_client);
-  u_int16_t decValue(u_int16_t score, ScoreCategory score_category, bool as_client);
+  virtual u_int16_t decValue(u_int16_t score, ScoreCategory score_category, bool as_client);
 
   void lua_breakdown(lua_State *vm);
 };

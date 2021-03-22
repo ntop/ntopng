@@ -20,6 +20,7 @@
  */
 
 #include "ntop_includes.h"
+#include "flow_alerts_includes.h"
 
 // #define DEBUG_IEC60870
 // #define IEC60870_TRACE
@@ -244,31 +245,18 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	    it = type_i_transitions.find(transition);
 
 	    if(it == type_i_transitions.end()) {
-	      json_object *my_object;
-
 	      if(f->get_duration() > ntop->getPrefs()->getIEC60870LearingPeriod()) {
+	        FlowAlert *alert;
+		u_int16_t c_score = 50, s_score = 10;
+
 #ifdef IEC60870_TRACE
-		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found new transition %u -> %u", last_type_i, type_id);
+                ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found new transition %u -> %u", last_type_i, type_id);
 #endif
 
-		if((my_object = json_object_new_object()) != NULL) {
-		  const char *json;
+                alert = new IECInvalidTransitionAlert(NULL, f, alert_level_error, packet_time, last_type_i, type_id);
 
-		  json_object_object_add(my_object, "timestamp", json_object_new_int(packet_time->tv_sec));
-		  json_object_object_add(my_object, "flow_key", json_object_new_int(f->key()));
-		  json_object_object_add(my_object, "flow_hash_entry_id", json_object_new_int(f->get_hash_entry_id()));
-		  json_object_object_add(my_object, "from", json_object_new_int(last_type_i));
-		  json_object_object_add(my_object, "to", json_object_new_int(type_id));
-
-		  json = json_object_to_json_string(my_object);
-
-#ifdef DEBUG_IEC60870
-		  ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json);
-#endif
-
-		  ntop->getRedis()->rpush(CONST_IEC104_FLOW_ALERT_QUEUE, json, 1024 /* Max queue size */);
-		  json_object_put(my_object); /* Free memory */
-		}
+		if (alert)
+		  f->triggerAlertSync(alert, c_score, s_score);
 		
 		type_i_transitions[transition] = 2; /* Post Learning */
 	      } else
@@ -296,34 +284,15 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	  }
 
 	  if(alerted) {
-	    json_object *my_object;
+	    FlowAlert *alert;
+            u_int16_t c_score = 50, s_score = 10;
 
-	    if((my_object = json_object_new_object()) != NULL) {
-	      const char *json;
-
-	      json_object_object_add(my_object, "timestamp", json_object_new_int(packet_time->tv_sec));
-	      json_object_object_add(my_object, "client", f->get_cli_host()->get_ip()->getJSONObject());
-	      json_object_object_add(my_object, "server", f->get_srv_host()->get_ip()->getJSONObject());
-
-	      if(f->get_vlan_id())
-		json_object_object_add(my_object, "vlanId", json_object_new_int(f->get_vlan_id()));
-
-	      json_object_object_add(my_object, "type_id", json_object_new_int(type_id));
-	      json_object_object_add(my_object, "asdu", json_object_new_int(asdu));
-	      json_object_object_add(my_object, "cause_tx", json_object_new_int(cause_tx));
-	      json_object_object_add(my_object, "negative", json_object_new_boolean(negative));
-
-	      json = json_object_to_json_string(my_object);
-
-#ifdef DEBUG_IEC60870
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] Alert %s", __FUNCTION__, json);
-#endif
-
-	      ntop->getRedis()->rpush(CONST_IEC104_ALERT_QUEUE, json, 1024 /* Max queue size */);
-
-	      json_object_put(my_object); /* Free memory */
-	    }
-	  }
+	    alert = new IECUnexpectedTypeIdAlert(NULL, f, alert_level_error, type_id, asdu, cause_tx, negative);
+	
+	    if(alert)
+	      f->triggerAlertSync(alert, c_score, s_score);
+	    
+	  } /* alerted  */
 
 	  /* Discard typeIds 127..255 */
 	} else /* payload_len < len */

@@ -125,7 +125,7 @@ HostPools::~HostPools() {
 
 /* *************************************** */
 
-void HostPools::swap(VlanAddressTree *new_trees, HostPoolStats **new_stats) {
+void HostPools::swap(VLANAddressTree *new_trees, HostPoolStats **new_stats) {
   swap_lock->lock(__FILE__, __LINE__);
 
   while(time(NULL) - latest_swap < 1) {
@@ -411,14 +411,14 @@ void HostPools::reloadPools() {
   char **pools, **pool_members, *at, *member;
   int num_pools, num_members, actual_num_members;
   u_int16_t _pool_id, vlan_id;
-  VlanAddressTree *new_tree;
+  VLANAddressTree *new_tree;
   HostPoolStats **new_stats;
   Redis *redis = ntop->getRedis();
 
   if(!iface || (iface->get_id() == -1))
     return;
 
-  new_tree = new (std::nothrow) VlanAddressTree;
+  new_tree = new (std::nothrow) VLANAddressTree;
   new_stats = new (std::nothrow) HostPoolStats*[MAX_NUM_HOST_POOLS];
   for(u_int32_t i = 0; i < MAX_NUM_HOST_POOLS; i++)
     new_stats[i] = NULL;
@@ -551,7 +551,7 @@ void HostPools::reloadPools() {
 /* *************************************** */
 
 bool HostPools::findMacPool(const u_int8_t * const mac, u_int16_t *found_pool) {
-  VlanAddressTree *cur_tree; /* must use this as tree can be swapped */
+  VLANAddressTree *cur_tree; /* must use this as tree can be swapped */
   int16_t ret;
 
   if(!tree || !(cur_tree = tree))
@@ -579,7 +579,7 @@ bool HostPools::findMacPool(Mac *mac, u_int16_t *found_pool) {
 /* *************************************** */
 
 bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, ndpi_patricia_node_t **found_node) {
-  VlanAddressTree *cur_tree; /* must use this as tree can be swapped */
+  VLANAddressTree *cur_tree; /* must use this as tree can be swapped */
 #ifdef HOST_POOLS_DEBUG
   char buf[128];
 #endif

@@ -254,8 +254,14 @@ local function load_definitions(defs_dir, runtime_path)
 	    return(false)
 	 end
 
-	 -- tprint({"copying", fname, defs_dir, runtime_path})
-	 file_utils.copy_file(fname, defs_dir, runtime_path)
+	 local ntopng_alert_definition = os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/"..fname)
+	 if ntop.exists(ntopng_alert_definition) then
+	    -- Prevent plugin alert definitions from overwriting alert definitions under modules
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Cannot copy plugin alert definition from %s (alert already defined in %s)", full_path, ntopng_alert_definition))
+	 else
+	    -- tprint({"copying", fname, defs_dir, runtime_path})
+	    file_utils.copy_file(fname, defs_dir, runtime_path)
+	 end
       end
    end
 
@@ -653,6 +659,10 @@ function plugins_utils.loadPlugins(community_plugins_only)
 
   -- Reload the periodic scripts to load the new plugins
   ntop.reloadPeriodicScripts()
+
+  -- Reload alerts configuration
+  local alerts_config = require "alerts_config"
+  alerts_config.initDefaultConfig()
 
   -- Reload user scripts with their configurations
   local user_scripts = require "user_scripts"

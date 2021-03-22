@@ -358,9 +358,9 @@ void ViewInterface::checkPointCounters(bool drops_only) {
 
 /* **************************************************** */
 
-bool ViewInterface::hasSeenVlanTaggedPackets() const {
+bool ViewInterface::hasSeenVLANTaggedPackets() const {
   for(u_int8_t s = 0; s < num_viewed_interfaces; s++) {
-    if(viewed_interfaces[s]->hasSeenVlanTaggedPackets())
+    if(viewed_interfaces[s]->hasSeenVLANTaggedPackets())
       return true;
   }
 
@@ -462,8 +462,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	/* The unsafe pointers can be used here as ViewInterface::viewed_flows_walker is
 	 * called synchronously with the ViewInterface purgeIdle. This also saves some
 	 * unnecessary hash table lookup time. */
-	cli_host = f->unsafeGetClient();
-	srv_host = f->unsafeGetServer();
+	cli_host = f->getViewSharedClient();
+	srv_host = f->getViewSharedServer();
       }
 
       f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials, first_partial, tv);
@@ -484,6 +484,19 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	  if(network_stats) network_stats->incNumFlows(f->get_last_seen(), false);
 	  if(f->getViewInterfaceFlowStats()) f->getViewInterfaceFlowStats()->setServerHost(srv_host);
 	}
+      }
+
+      /* Score increments are performed here periodically for view interfaces */
+      for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+	ScoreCategory score_category = (ScoreCategory)i;
+	u_int16_t cli_score_val = partials.get_cli_score(score_category),
+	  srv_score_val = partials.get_srv_score(score_category);
+
+	if(cli_score_val && cli_host)
+	  cli_host->incScoreValue(cli_score_val, score_category, true /* as client */);
+
+	if(srv_score_val && srv_host)
+	  srv_host->incScoreValue(srv_score_val, score_category, false /* as server */);
       }
 
       incStats(true /* ingressPacket */,

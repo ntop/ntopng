@@ -9,9 +9,40 @@ local json = require "dkjson"
 local rest_utils = require "rest_utils"
 local user_scripts = require "user_scripts"
 local alert_utils = require "alert_utils"
-
+local alert_exclusions = require "alert_exclusions"
 
 local alert_rest_utils = {}
+
+-- #################################
+
+-- @brief exclude an alert using the parameters that the POST has
+function _exclude_flow_alert(additional_filters, delete_alerts)
+   local success = false
+
+   local alert_key = tonumber(_POST["alert_key"])
+   local alert_addr = _POST["alert_addr"]
+
+   if alert_key and alert_addr then
+      success = true
+   end
+
+   if success then
+      if alert_addr then
+	 alert_exclusions.disable_alert(alert_addr, alert_key)
+	 if delete_alerts == "true" then
+	    alert_utils.deleteFlowAlertsMatching(alert_addr, alert_key)
+	 end
+      end
+   end
+
+   if success then
+      rc = rest_utils.consts.success.ok
+      rest_utils.answer(rc)
+   else
+      rc = rest_utils.consts.err.invalid_args
+      rest_utils.answer(rc)
+   end
+end
 
 -- #################################
 
@@ -31,11 +62,15 @@ function alert_rest_utils.exclude_alert()
    -- Parameters used for the rest answer
    local rc = ""
    local res = ""
+
+   if subdir == "flow" then
+      return _exclude_flow_alert(additional_filters, delete_alerts)
+   end
    
    -- Checking that all parameters where given to the POST
    if not additional_filters or not subdir or not script_key then
       rest_utils.answer(rest_utils.consts.err.invalid_args)
-      return 
+      return
    end
 
    -- Getting the parameters

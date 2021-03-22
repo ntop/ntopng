@@ -6,7 +6,6 @@
 
 local alert_keys = require "alert_keys"
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -19,7 +18,6 @@ local alert_ndpi_tls_missing_sni = classes.class(alert)
 -- ##############################################
 
 alert_ndpi_tls_missing_sni.meta = {
-   status_key = status_keys.ntopng.status_ndpi_tls_missing_sni,
    alert_key  = alert_keys.ntopng.alert_ndpi_tls_missing_sni,
    i18n_title = "alerts_dashboard.ndpi_tls_missing_sni_title",
    icon = "fas fa-exclamation",
@@ -32,8 +30,6 @@ alert_ndpi_tls_missing_sni.meta = {
 function alert_ndpi_tls_missing_sni:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {}
 end
 
 -- #######################################################

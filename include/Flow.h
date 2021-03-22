@@ -32,6 +32,9 @@ typedef struct {
   u_int64_t last, next;
 } TCPSeqNum;
 
+class FlowAlert;
+class FlowCallback;
+
 class Flow : public GenericHashEntry {
  private:
   Host *cli_host, *srv_host;
@@ -42,23 +45,31 @@ class Flow : public GenericHashEntry {
   u_int32_t vrfId;
   u_int32_t srcAS, dstAS, prevAdjacentAS, nextAdjacentAS;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags;
-  u_int8_t src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1, zero_window_alert_triggered:1, _pad:5;
-  u_int16_t cli_host_score[MAX_NUM_SCORE_CATEGORIES], srv_host_score[MAX_NUM_SCORE_CATEGORIES], flow_score;
+  u_int8_t src2dst_tcp_zero_window:1, dst2src_tcp_zero_window:1, _pad:6;
+  u_int16_t flow_score;
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
-  /* The bitmap of all possible flow statuses set by flow user script hooks. When no status is set, the 
-     flow is in status_normal.
+  /* The bitmap of all possible flow alerts set by FlowCallback subclasses. When no alert is set, the 
+     flow is in alert_normal.
 
-     A flow can have multiple statuses but at most ONE of its statuses is the alerted status
-     of a flow, which is written into `alerted_status`.
+     A flow can have multiple alerts but at most ONE of its alerts is predominant
+     of a flow, which is written into `predominant_alert`.
   */
-  Bitmap status_map;
-  FlowStatus alerted_status;       /* This is the status which has triggered the alert */
-  u_int16_t  alerted_status_score; /* The score associated to the alerted status */
-  AlertType alert_type;
-  AlertLevel alert_level;
-  char *alert_status_info;        /* Alert specific status info */
-  char *alert_status_info_shadow, *custom_flow_info;
+  Bitmap alert_map;
+  FlowAlertType predominant_alert;          /* This is the predominant alert */
+  u_int16_t  predominant_alert_score;       /* The score associated to the predominant alert */
+  AlertLevel predominant_alert_level;
+  bool alert_stats_initialized;
+
+  /*
+    Data set by FlowCallback subclasses to preserve a status on the flow. Status is accessed later by
+    FlowAlert subclasses to generate alert JSONs.
+   */
+  struct {
+    u_int64_t longlived_th, elephant_th_l2r, elephant_th_r2l;
+  } fcb_status;
+
+  char *custom_flow_info;
   struct {
     struct ndpi_analyze_struct *c2s, *s2c;
   } entropy;
@@ -96,10 +107,13 @@ class Flow : public GenericHashEntry {
   u_int32_t last_conntrack_update; 
   u_int32_t marker;
 #endif
-  char *external_alert;
+  struct {
+    AlertLevel severity_id;
+    char *source;
+    json_object *json;
+  } external_alert;
   bool trigger_immediate_periodic_update; /* needed to process external alerts */
-  FlowLuaCall current_flow_lua_call;   /* Indicate the latest flow lua call performed */
-  time_t next_lua_call_periodic_update; /* The time at which the periodic lua script on this flow shall be called */
+  time_t next_call_periodic_update; /* The time at which the periodic lua script on this flow shall be called */
   u_int32_t periodic_update_ctr;
 
   union {
@@ -238,15 +252,6 @@ class Flow : public GenericHashEntry {
 			  const struct timeval *tv,
 			  u_int64_t diff_sent_packets, u_int64_t diff_sent_bytes,
 			  u_int64_t diff_rcvd_packets, u_int64_t diff_rcvd_bytes) const;
-  /* 
-     Check (and possibly enqueues) the flow for the execution of lua user script hooks
-     - hookProtocolDetectedCheck is executed when the flow enters state hash_entry_state_flow_protocoldetected
-     - hookPeriodicUpdateCheck is executed periodically, when the flow is in state hash_entry_state_active
-     - hookFlowEndCheck is executed when the flow enters state hash_entry_state_idle
-   */
-  void hookProtocolDetectedCheck(time_t t);
-  void hookPeriodicUpdateCheck(time_t t);
-  void hookFlowEndCheck(time_t t);
   /*
     Check (and possibly enqueues) the flow for dump
    */
@@ -268,7 +273,17 @@ class Flow : public GenericHashEntry {
   void lua_entropy(lua_State* vm);
   void luaScore(lua_State* vm);
   void luaIEC104(lua_State* vm);
-  
+  void callFlowUpdate(time_t t);
+  /*
+    Method to trigger alerts, synchronous or asynchronous, depending on the last argument.
+    - Asynchronous: The alerts bitmap is updated and the predominant alert is possibly updated.
+                    Recipients enqueue is not performed.
+    - Synchronous:  The alerts bitmap is updated and the predominant alert is possibly updated.
+                    Immediate alert JSON generation and enqueue to the recipients are performed as well.
+   */
+  bool setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc);
+  void updateAlertsStats(FlowAlert *alert);
+
  public:
   Flow(NetworkInterface *_iface,
        u_int16_t _vlanId, u_int8_t _protocol,
@@ -278,12 +293,43 @@ class Flow : public GenericHashEntry {
        time_t _first_seen, time_t _last_seen);
   ~Flow();
 
-  inline Bitmap getStatusBitmap()     const     { return(status_map);           }
-  bool setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc, u_int16_t srv_inc, const char*script_key, ScriptCategory script_category);
-  bool triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, u_int16_t alerted_status_score, const char* alert_json);
-  FlowStatus getAlertedStatus() const;
-  inline AlertLevel getAlertedSeverity() const { return alert_level;        };
-  inline const char* getStatusInfo()     const { return(alert_status_info); };
+  inline Bitmap getAlertBitmap()     const     { return(alert_map); }
+
+  /* Flow callbacks have these methods to set/get certain statuses on the flow. */
+  /* Setters */
+  inline void fcb_set_longlived_th(u_int64_t th_secs) { fcb_status.longlived_th = th_secs; };
+  inline void fcb_set_elephant_th(u_int64_t th_bytes, bool l2r) { if(l2r) fcb_status.elephant_th_l2r = th_bytes; else fcb_status.elephant_th_r2l = th_bytes; };
+
+  /* Getters */
+  inline void fcb_get_longlived_th(u_int64_t *th_secs) { *th_secs = fcb_status.longlived_th; };
+  inline void fcb_get_elephant_th(u_int64_t *l2r, u_int64_t *r2l) { *l2r = fcb_status.elephant_th_l2r, *r2l = fcb_status.elephant_th_r2l; };
+
+  /* Enqueues an alert to all available flow recipients. */
+  bool enqueueAlert(FlowAlert *alert);
+
+  /*
+    Called by FlowCallback subclasses to trigger a flow alert. This is an asynchronous call, faster, but can
+    cause the alert JSON to be generated after the call.
+    The FlowCallback should implement the buildAlert() method which is called in the predominant callback to actually build the FlowAlert object.
+   */
+  bool triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_score_inc, u_int16_t srv_score_inc);
+
+  /* 
+     Called by FlowCallback subclasses to trigger a flow alert. This is a syncrhonous call, more expensive, but
+     causes the alert (FlowAlert) to be immediately enqueued to all recipients.
+   */
+  bool triggerAlertSync(FlowAlert *alert, u_int16_t cli_score_inc, u_int16_t srv_score_inc);
+  /*
+    Enqueues the predominant alert of the flow to all available flow recipients.
+   */
+  void enqueuePredominantAlert();
+
+  inline void setPredominantAlert(FlowAlertType a, u_int16_t s) { predominant_alert = a, predominant_alert_score = s; }
+  inline FlowAlertType getPredominantAlert() const { return predominant_alert; };
+  inline u_int16_t getPredominantAlertScore() const { return predominant_alert_score; };
+  inline bool isFlowAlerted()    const { return(predominant_alert.id != alert_normal); };
+
+  inline AlertLevel getAlertedSeverity()     const { return predominant_alert_level; };
 
   bool isBlacklistedFlow()   const;
   bool isBlacklistedClient() const;
@@ -304,12 +350,27 @@ class Flow : public GenericHashEntry {
   inline bool isSSDP() const { return(isProto(NDPI_PROTOCOL_SSDP)); }
   inline bool isNetBIOS() const { return(isProto(NDPI_PROTOCOL_NETBIOS)); }
   inline bool isDHCP() const { return(isProto(NDPI_PROTOCOL_DHCP)); }
+  inline bool isNTP() const  { return(isProto(NDPI_PROTOCOL_NTP));  }
+  inline bool isSMTP() const { return(isProto(NDPI_PROTOCOL_MAIL_SMTP) || isProto(NDPI_PROTOCOL_MAIL_SMTPS));  }
   inline bool isHTTP() const { return(isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isICMP() const { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
+
+  inline bool isCliDeviceAllowedProtocol() const {
+    return !cli_host || cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true) == device_proto_allowed;
+  }		      
+  inline bool isSrvDeviceAllowedProtocol() const {
+    return !srv_host || srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false) == device_proto_allowed;
+  }
   inline bool isDeviceAllowedProtocol() const {
-      return(!cli_host || !srv_host ||
-        ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, true) == device_proto_allowed) &&
-         (srv_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol, false) == device_proto_allowed)));
+    return isCliDeviceAllowedProtocol() && isSrvDeviceAllowedProtocol();
+  }
+  inline u_int16_t getCliDeviceDisallowedProtocol() const {
+    DeviceProtoStatus cli_ps = cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true);
+    return (cli_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol;
+  }
+  inline u_int16_t getSrvDeviceDisallowedProtocol() const {
+    DeviceProtoStatus srv_ps = srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false);
+    return (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol;
   }
   inline bool isMaskedFlow() const {
     int16_t network_id;
@@ -318,11 +379,10 @@ class Flow : public GenericHashEntry {
   };
   inline const char* getServerCipherClass()  const { return(isTLS() ? cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher) : NULL); }
   char* serialize(bool use_labels = false);
-  void flow2alertJson(ndpi_serializer *serializer, time_t now);
-  json_object* flow2json();
+  /* Prepares an alert JSON and puts int in the resulting `serializer`. */
+  void alert2JSON(FlowAlert *alert, ndpi_serializer *serializer);
+  json_object* flow2JSON();
   json_object* flow2es(json_object *flow_object);
-
-  void triggerZeroWindowAlert(bool *as_client, bool *as_server);
   
   inline u_int8_t getTcpFlags()        const { return(src2dst_tcp_flags | dst2src_tcp_flags);  };
   inline u_int8_t getTcpFlagsCli2Srv() const { return(src2dst_tcp_flags);                      };
@@ -401,7 +461,17 @@ class Flow : public GenericHashEntry {
   inline bool isThreeWayHandshakeOK()    const { return(twh_ok);                          };
   inline bool isDetectionCompleted()     const { return(detection_completed);             };
   inline bool isOneWay()                 const { return(get_packets() && (!get_packets_cli2srv() || !get_packets_srv2cli())); };
-  inline bool isBidirectional()          const { return(get_packets_cli2srv() && get_packets_srv2cli());                      };
+  inline bool isBidirectional()          const { return(get_packets_cli2srv() && get_packets_srv2cli()); };
+  inline bool isRemoteToRemote()         const { return (cli_host && srv_host && !cli_host->isLocalHost() && !srv_host->isLocalHost()); };
+  inline bool isLocalToRemote() const {
+    int16_t network_id;
+    return get_cli_ip_addr()->isLocalHost(&network_id) && !get_srv_ip_addr()->isLocalHost(&network_id);
+  };
+  inline bool isRemoteToLocal() const {
+    int16_t network_id;
+    return !get_cli_ip_addr()->isLocalHost(&network_id) && get_srv_ip_addr()->isLocalHost(&network_id);
+  };
+  inline bool isUnicast()                const { return (cli_ip_addr && srv_ip_addr && !cli_ip_addr->isBroadMulticastAddress() && !srv_ip_addr->isBroadMulticastAddress()); };
   inline void* get_cli_id()              const { return(cli_id);                          };
   inline void* get_srv_id()              const { return(srv_id);                          };
   inline u_int32_t get_cli_ipv4()        const { return(cli_host->get_ip()->get_ipv4());  };
@@ -437,14 +507,19 @@ class Flow : public GenericHashEntry {
   inline float get_pkts_thpt()           const { return(pkts_thpt_cli2srv + pkts_thpt_srv2cli);                   };
   inline float get_bytes_thpt()          const { return(bytes_thpt_cli2srv + bytes_thpt_srv2cli);                 };
   inline float get_goodput_bytes_thpt()  const { return(goodput_bytes_thpt_cli2srv + goodput_bytes_thpt_srv2cli); };
+  inline float get_goodput_ratio()       const { return((float)(100*get_goodput_bytes()) / ((float)get_bytes() + 1)); };
   inline time_t get_partial_first_seen() const { return(last_db_dump.first_seen); };
   inline time_t get_partial_last_seen()  const { return(last_db_dump.last_seen);  };
   inline u_int32_t get_duration()        const { return((u_int32_t)(get_last_seen() - get_first_seen())); };
   inline char* get_protocol_name()       const { return(Utils::l4proto2name(protocol));   };
+
   inline Host* get_cli_host()               const { return(cli_host);    };
   inline Host* get_srv_host()               const { return(srv_host);    };
   inline const IpAddress* get_cli_ip_addr() const { return(cli_ip_addr); };
   inline const IpAddress* get_srv_ip_addr() const { return(srv_ip_addr); };
+  inline const IpAddress* get_dns_srv_ip_addr() const { return((get_cli_port() == 53) ? get_cli_ip_addr() : get_srv_ip_addr()); };
+  inline const IpAddress* get_dhcp_srv_ip_addr() const { return((get_cli_port() == 67) ? get_cli_ip_addr() : get_srv_ip_addr()); };
+
   inline json_object* get_json_info()	    const  { return(json_info);                       };
   inline ndpi_serializer* get_tlv_info()	    const  { return(tlv_info);                       };
   inline void setICMPPayloadSize(u_int16_t size)     { if(isICMP()) protos.icmp.max_icmp_payload_size = max(protos.icmp.max_icmp_payload_size, size); };
@@ -473,8 +548,8 @@ class Flow : public GenericHashEntry {
   /* NOTE: the caller must ensure that the hosts returned by these methods are not used
    * concurrently by subinterfaces since hosts are shared between all the subinterfaces of the same
    * ViewInterface. */
-  inline Host* unsafeGetClient() { return(viewFlowStats ? viewFlowStats->unsafeGetClient() : get_cli_host()); };
-  inline Host* unsafeGetServer() { return(viewFlowStats ? viewFlowStats->unsafeGetServer() : get_srv_host()); };
+  inline Host* getViewSharedClient() { return(viewFlowStats ? viewFlowStats->getViewSharedClient() : get_cli_host()); };
+  inline Host* getViewSharedServer() { return(viewFlowStats ? viewFlowStats->getViewSharedServer() : get_srv_host()); };
 
   u_int32_t get_packetsLost();
   u_int32_t get_packetsRetr();
@@ -506,16 +581,6 @@ class Flow : public GenericHashEntry {
 		       Host *srv, u_int16_t srv_port,
 		       u_int16_t vlan_id,
 		       u_int16_t protocol);
-  /**
-   * @brief Method to call a given lua script on the flow
-   *
-   * @param flow_lua_call The time of the call that should be performed on the flow
-   * @param vm The Lua virtual machine to use
-   *
-   * @return Whether the call has been executed successfully or if there were issues during the execution
-   */
-  FlowLuaCallExecStatus performLuaCall(FlowLuaCall flow_lua_call, FlowAlertCheckLuaEngine *acle);
-
   void lua(lua_State* vm, AddressTree * ptree, DetailsLevel details_level, bool asListElement);
   void lua_get_min_info(lua_State* vm);
   void lua_duration_info(lua_State* vm);
@@ -544,6 +609,10 @@ class Flow : public GenericHashEntry {
   void lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_city) const;
   void lua_get_risk_info(lua_State* vm, bool as_table);
   
+  void getInfo(ndpi_serializer *serializer);
+  void getHTTPInfo(ndpi_serializer *serializer) const;
+  void getTLSInfo(ndpi_serializer *serializer) const;
+
   bool equal(const IpAddress *_cli_ip, const IpAddress *_srv_ip,
 	     u_int16_t _cli_port, u_int16_t _srv_port,
 	     u_int16_t _vlanId, u_int8_t _protocol,
@@ -615,7 +684,12 @@ class Flow : public GenericHashEntry {
   inline char* getHTTPContentType()   const { return(isHTTP() ? protos.http.last_content_type : (char*)""); };
 
   void setExternalAlert(json_object *a);
+  inline bool hasExternalAlert() const { return external_alert.json != NULL; };
+  inline json_object *getExternalAlert() { return external_alert.json; };
+  inline char *getExternalSource() { return external_alert.source; };
+  inline AlertLevel getExternalSeverity() { return external_alert.severity_id; };
   void luaRetrieveExternalAlert(lua_State *vm);
+
   u_int32_t getSrvTcpIssues();
   u_int32_t getCliTcpIssues();
   double getCliRetrPercentage();
@@ -641,7 +715,7 @@ class Flow : public GenericHashEntry {
   inline bool isTCPReset()       const { return (!isTCPClosed()
 						 && ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST))); };
   inline bool isTCPRefused()     const { return (!isThreeWayHandshakeOK() && (dst2src_tcp_flags & TH_RST) == TH_RST); };
-  inline bool isFlowAlerted() const      { return(alerted_status != status_normal); };
+  inline bool isTCPZeroWindow()  const { return (src2dst_tcp_zero_window || dst2src_tcp_zero_window); };
   inline void setVRFid(u_int32_t v) { vrfId = v; }
   inline void setSrcAS(u_int32_t v) { srcAS = v; }
   inline void setDstAS(u_int32_t v) { dstAS = v; }
@@ -649,7 +723,6 @@ class Flow : public GenericHashEntry {
   inline void setNextAdjacentAS(u_int32_t v) { nextAdjacentAS = v; }
 
   inline ViewInterfaceFlowStats* getViewInterfaceFlowStats() { return(viewFlowStats); }
-  u_int16_t getAlertedStatusScore() const;
 
   inline void setFlowNwLatency(const struct timeval * const tv, bool client) {
     if(client) {
@@ -731,7 +804,11 @@ class Flow : public GenericHashEntry {
 	   && is_active_entry_now_idle(10 * getInterface()->getFlowMaxIdle()));
   }
 
-  inline u_int16_t getTLSVersion()  { return(isTLS() ? (protos.tls.tls_version) : 0); }
+  inline u_int16_t getTLSVersion()   { return(isTLS() ? protos.tls.tls_version : 0); }
+  inline u_int32_t getTLSNotBefore() { return(isTLS() ? protos.tls.notBefore   : 0); };
+  inline u_int32_t getTLSNotAfter()  { return(isTLS() ? protos.tls.notAfter    : 0); };
+  inline char* getTLSCertificateIssuerDN()  { return(isTLSProto() ? protos.tls.issuerDN  : NULL); }
+  inline char* getTLSCertificateSubjectDN() { return(isTLSProto() ? protos.tls.subjectDN : NULL); }
 
   inline void setTOS(u_int8_t tos, bool is_cli_tos) { if(is_cli_tos) cli2srv_tos = tos; srv2cli_tos = tos; }
   inline u_int8_t getTOS(bool is_cli_tos) const { return (is_cli_tos ? cli2srv_tos : srv2cli_tos); }
@@ -761,6 +838,8 @@ class Flow : public GenericHashEntry {
   }
 
   u_char* getCommunityId(u_char *community_id, u_int community_id_len);
+
+  inline FlowTrafficStats* getTrafficStats() { return(&stats); };
 };
 
 #endif /* _FLOW_H_ */

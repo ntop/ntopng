@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_suspicious_tcp_probing = classes.class(alert)
 -- ##############################################
 
 alert_suspicious_tcp_probing.meta = {
-   status_key = status_keys.ntopng.status_suspicious_tcp_probing,
    alert_key = alert_keys.ntopng.alert_suspicious_tcp_probing,
    i18n_title = "flow_details.suspicious_tcp_probing",
    icon = "fas fa-exclamation",
@@ -31,10 +29,6 @@ alert_suspicious_tcp_probing.meta = {
 function alert_suspicious_tcp_probing:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-      -- No params
-   }
 end
 
 -- #######################################################

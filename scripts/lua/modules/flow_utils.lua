@@ -48,20 +48,20 @@ end
 
 -- #######################
 
--- Extracts the information serialized into status_info from the flow
+-- Extracts the information serialized into alert_info from the flow
 -- user scripts
-function flow2statusinfo(flow)
-   local status_info = flow["status_info"]
+function flow2alertinfo(flow)
+   local alert_info = flow["alert_info"]
 
-   if(status_info and (string.sub(status_info, 1, 1) == "{")) then
-      local res = json.decode(status_info)
+   if(alert_info and (string.sub(alert_info, 1, 1) == "{")) then
+      local res = json.decode(alert_info)
 
       if(res ~= nil) then
          return(res)
       end
    end
 
-   return(status_info)
+   return(alert_info)
 end
 
 -- #######################
@@ -95,6 +95,8 @@ function getFlowsFilter()
    local host_pool    = _GET["host_pool_id"]
    local flow_status  = _GET["flow_status"]
    local flow_status_severity = _GET["flow_status_severity"]
+   local alert_type  = _GET["alert_type"]
+   local alert_type_severity = _GET["alert_type_severity"]
    local deviceIP     = _GET["deviceIP"]
    local inIfIdx      = _GET["inIfIdx"]
    local outIfIdx     = _GET["outIfIdx"]
@@ -195,21 +197,21 @@ function getFlowsFilter()
       end
    end
 
-   if not isEmptyString(flow_status) then
-      if flow_status == "normal" then
+   if not isEmptyString(alert_type) then
+      if alert_type == "normal" then
 	 pageinfo["alertedFlows"] = false
 	 pageinfo["filteredFlows"] = false
-      elseif flow_status == "alerted" then
+      elseif alert_type == "alerted" then
 	 pageinfo["alertedFlows"] = true
-      elseif flow_status == "filtered" then
+      elseif alert_type == "filtered" then
 	 pageinfo["filteredFlows"] = true
       else
-	 pageinfo["statusFilter"] = tonumber(flow_status)
+	 pageinfo["statusFilter"] = tonumber(alert_type)
       end
    end
 
-   if not isEmptyString(flow_status_severity) then
-      local s = alert_consts.severity_groups[flow_status_severity]
+   if not isEmptyString(alert_type_severity) then
+      local s = alert_consts.severity_groups[alert_type_severity]
 
       if s then
 	 pageinfo["statusSeverityFilter"] = s.severity_group_id
@@ -652,7 +654,7 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
       label = label.." [ "..srv_mac.." ]"
    end
 
-   local s_info = flow2statusinfo(flow)
+   local s_info = flow2alertinfo(flow)
    if(s_info ~= nil) then
       if(not isEmptyString(s_info.info)) then
 	 label = label.."  [".. s_info.info .."]"
@@ -1624,14 +1626,14 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 
     -- Status selector
     -- table.clone needed to modify some parameters while keeping the original unchanged
-    local flow_status_params = table.clone(page_params)
-    flow_status_params["flow_status"] = nil
+    local alert_type_params = table.clone(page_params)
+    alert_type_params["alert_type"] = nil
 
     print[[, '\
        <div class="btn-group">\
-	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("status")) print(getParamFilter(page_params, "flow_status")) print[[<span class="caret"></span></button>\
+	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("status")) print(getParamFilter(page_params, "alert_type")) print[[<span class="caret"></span></button>\
 	  <ul class="dropdown-menu scrollable-dropdown" role="menu">\
-	  <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, flow_status_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
+	  <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, alert_type_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>\]]
 
        local entries = {
 	  {"normal", i18n("flows_page.normal")},
@@ -1644,7 +1646,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
        -- Add labels to allow alphabetic sort
        for status_key, status in pairs(status_stats) do
 	  if status.count > 0 then
-	     status.label =  alert_consts.statusTypeLabel(status_key, true --[[ no html --]])
+	     status.label =  alert_consts.alertTypeLabel(status_key, true --[[ no html --]])
 	  end
        end
 
@@ -1663,7 +1665,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	  entries[#entries + 1] = {"filtered", i18n("flows_page.blocked")}
        end
 
-       printDropdownEntries(entries, base_url, flow_status_params, "flow_status", page_params.flow_status)
+       printDropdownEntries(entries, base_url, alert_type_params, "alert_type", page_params.alert_type)
 
        print[[\
 	  </ul>\
@@ -1671,14 +1673,14 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     ']]
 
        -- Flow Status Severity
-       local flow_status_severity_params = table.clone(page_params)
-       flow_status_severity_params["flow_status_severity"] = nil
+       local alert_type_severity_params = table.clone(page_params)
+       alert_type_severity_params["alert_type_severity"] = nil
 
        print[[, '\
        <div class="btn-group">\
-	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.flow_status_severity")) print(getParamFilter(page_params, "flow_status_severity")) print[[<span class="caret"></span></button>\
+	  <button class="btn btn-link dropdown-toggle" data-toggle="dropdown">]] print(i18n("flows_page.alert_type_severity")) print(getParamFilter(page_params, "alert_type_severity")) print[[<span class="caret"></span></button>\
 	  <ul class="dropdown-menu scrollable-dropdown" role="menu">\
-	  <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, flow_status_severity_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>]]
+	  <li><a class="dropdown-item" href="]] print(getPageUrl(base_url, alert_type_severity_params)) print[[">]] print(i18n("flows_page.all_flows")) print[[</a></li>]]
 
        local entries
 
@@ -1692,7 +1694,7 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
 	  end
        end
 
-       printDropdownEntries(entries, base_url, flow_status_severity_params, "flow_status_severity", page_params.flow_status_severity)
+       printDropdownEntries(entries, base_url, alert_type_severity_params, "alert_type_severity", page_params.alert_type_severity)
 
        print[[\
 	  </ul>\
@@ -1954,20 +1956,20 @@ function getFlowsTableTitle()
    local active_msg = ""
    local status_type
 
-   if _GET["flow_status"] then
-      local flow_status_id = tonumber(_GET["flow_status"])
+   if _GET["alert_type"] then
+      local alert_type_id = tonumber(_GET["alert_type"])
 
-      if(flow_status_id ~= nil) then
-	 status_type = alert_consts.statusTypeLabel(tonumber(_GET["flow_status"]), true)
+      if(alert_type_id ~= nil) then
+	 status_type = alert_consts.alertTypeLabel(tonumber(_GET["alert_type"]), true)
       else
-	 status_type = firstToUpper(_GET["flow_status"])
+	 status_type = firstToUpper(_GET["alert_type"])
       end
    end
 
-   if _GET["flow_status_severity"] then
-      local flow_status_severity = _GET["flow_status_severity"]
+   if _GET["alert_type_severity"] then
+      local alert_type_severity = _GET["alert_type_severity"]
 
-      local s = alert_consts.severity_groups[flow_status_severity]
+      local s = alert_consts.severity_groups[alert_type_severity]
       active_msg = active_msg .. " "..  i18n(s.i18n_title)
    end
 

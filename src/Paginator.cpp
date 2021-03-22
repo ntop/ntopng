@@ -56,8 +56,8 @@ Paginator::Paginator() {
   filtered_flows = -1;
   pool_filter = ((u_int16_t)-1);
   mac_filter = NULL;
-  flow_status_filter = ((u_int16_t)-1);
-  flow_status_severity_filter = alert_level_group_none;
+  alert_type_filter = ((u_int16_t)-1);
+  alert_type_severity_filter = alert_level_group_none;
 
   deviceIP = 0;
   inIndex = outIndex = (u_int32_t)-1;
@@ -207,9 +207,9 @@ void Paginator::readOptions(lua_State *L, int index) {
 	else if(!strcmp(key, "dscpFilter"))
 	  dscp_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "statusFilter"))
-	  flow_status_filter = lua_tointeger(L, -1);
+	  alert_type_filter = lua_tointeger(L, -1);
 	else if(!strcmp(key, "statusSeverityFilter"))
-	  flow_status_severity_filter = (AlertLevelGroup)lua_tointeger(L, -1);
+	  alert_type_severity_filter = (AlertLevelGroup)lua_tointeger(L, -1);
 	//else
 	  //ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid int type (%d) for option %s", lua_tointeger(L, -1), key);
 	break;

@@ -21,9 +21,6 @@ local script = {
    -- This module is disabled by default
    default_enabled = false,
 
-   -- NOTE: hooks defined below
-   hooks = {},
-
    -- use this plugin only with this protocol
    l7_proto_id = 3, -- 3 == SMTP
 
@@ -46,44 +43,6 @@ local script = {
       input_description = i18n("unexpected_smtp.description"),
    }
 }
-
--- #################################################################
-
-function script.hooks.protocolDetected(now, conf)
-   if(table.len(conf.items) > 0) then
-      local ok = 0
-      local flow_info = flow.getInfo()
-      local client_ip, server_ip
-
-      if(flow_info["cli.protocol_server"]) then
-	 client_ip = flow_info["srv.ip"]
-	 server_ip = flow_info["cli.ip"]
-      else
-	 client_ip = flow_info["cli.ip"]
-	 server_ip = flow_info["srv.ip"]
-      end
-
-      for _, smtp_ip in pairs(conf.items) do
-         if server_ip == smtp_ip then
-            ok = 1
-            break
-         end
-      end
-
-      if ok == 0 then
-         local alert = alert_consts.alert_types.alert_unexpected_smtp_server.new(
-            client_ip, 
-            server_ip
-         )
-
-         alert:set_severity(conf.severity)
-         alert:set_attacker(server_ip)
-         alert:set_victim(client_ip)
-         
-         alert:trigger_status(0, 100, 100)
-      end
-   end
-end
 
 -- #################################################################
 

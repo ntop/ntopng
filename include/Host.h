@@ -38,7 +38,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool stats_reset_requested, name_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id, host_services_bitmap;
   HostStats *stats, *stats_shadow;
-  HostScore score;
+  HostScore *score;
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
   
@@ -64,7 +64,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   u_int32_t asn;
   AutonomousSystem *as;
   Country *country;
-  Vlan *vlan;
+  VLAN *vlan;
 
   OperatingSystem *os; /* Pointer to an instance of operating system, used internally to handle operating system statistics    */
   OSType os_type;      /* Operating system type, equivalent to os->get_os_type(), used by operating system setters and getters */
@@ -81,6 +81,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool hidden_from_top;
   bool is_in_broadcast_domain;
   bool is_dhcp_host;
+
+  Bitmap disabled_flow_alerts;
+  time_t disabled_flow_alerts_tstamp;
 
   void initialize(Mac *_mac, u_int16_t _vlan_id);
   void inlineSetOS(OSType _os);
@@ -325,7 +328,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual bool dropAllTraffic() const { return(false); };
   virtual bool setRemoteToRemoteAlerts() { return(false); };
   virtual void incrVisitedWebSite(char *hostname) {};
-  inline void incTotalAlerts(AlertType alert_type) { stats->incTotalAlerts(alert_type); }
+  inline void incTotalAlerts() { stats->incTotalAlerts(); }
   inline u_int32_t getTotalAlerts()       { return(stats->getTotalAlerts()); }
   virtual u_int32_t getActiveHTTPHosts()  { return(0); };
   inline u_int32_t getNumOutgoingFlows()  const { return(num_active_flows_as_client); }
@@ -339,7 +342,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline u_int32_t getTotalNumUnreachableIncomingFlows() const { return stats->getTotalUnreachableNumFlowsAsServer(); };
   inline u_int32_t getTotalNumHostUnreachableOutgoingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsClient(); };
   inline u_int32_t getTotalNumHostUnreachableIncomingFlows() const { return stats->getTotalHostUnreachableNumFlowsAsServer(); };
-  void splitHostVlan(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
+  void splitHostVLAN(const char *at_sign_str, char *buf, int bufsize, u_int16_t *vlan_id);
   char* get_country(char *buf, u_int buf_len);
   char* get_city(char *buf, u_int buf_len);
   void get_geocoordinates(float *latitude, float *longitude);
@@ -385,11 +388,12 @@ class Host : public GenericHashEntry, public AlertableEntity {
   }
   inline MudRecording getMUDRecording()    { return(mud_pref);   };
 
-  inline u_int32_t getScore()         const { return score.get(); };
-  inline u_int32_t getScoreAsClient() const { return score.getClient(); };
-  inline u_int32_t getScoreAsServer() const { return score.getServer(); };
+  inline u_int32_t getScore()         const { return score ? score->get() : 0; };
+  inline u_int32_t getScoreAsClient() const { return score ? score->getClient() : 0; };
+  inline u_int32_t getScoreAsServer() const { return score ? score->getServer() : 0; };
   u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
   u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
+  bool isFlowAlertDisabled(FlowAlertType alert_type);
 
   void setOS(OSType _os);
   OSType getOS() const;

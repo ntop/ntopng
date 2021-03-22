@@ -31,6 +31,8 @@ extern int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected
 
 static bool help_printed = false;
 
+//#define DEBUG_FLOW_CALLBACKS 1
+
 #define IMPLEMENT_SMART_FRAGMENTS
 
 /* **************************************************** */
@@ -52,10 +54,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   customIftype = custom_interface_type;
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
-  hooksEngine = NULL;
-  hooks_engine_reload = false;
-  user_scripts_reload = false;
-  hooks_engine_next_reload = 0;
+  flow_callbacks_executor = prev_flow_callbacks_executor = NULL;
   flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in NetworkInterface::startFlowDumping */
   flows_dump_json_use_labels = false; /* Dump of JSON labels disabled by default, possibly enabled in NetworkInterface::startFlowDumping */
   memset(ifMac, 0, sizeof(ifMac));
@@ -152,7 +151,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
-      flowDumpLoopCreated = false, hookLoopCreated = false, bridge_interface = false;
+      flowDumpLoopCreated = false, flowCallbacksLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = next_idle_other_purge = 0;
     cpu_affinity = -1 /* no affinity */,
       has_vlan_packets = has_ebpf_events = false;
@@ -229,7 +228,6 @@ NetworkInterface::NetworkInterface(const char *name,
   updateLbdIdentifier();
   updateDiscardProbingTraffic();
   updateFlowsOnlyInterface();
-  updateHooksEngineReload();
 }
 
 /* **************************************************** */
@@ -336,13 +334,7 @@ void NetworkInterface::init() {
   next_compq_insert_idx = next_compq_remove_idx = 0;
 
   idleFlowsToDump = activeFlowsToDump = NULL;
-
-  /*
-    Initialize user-script queues
-  */
-  hookProtocolDetected = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_PROTOCOL_DETECTED_QUEUE_LEN, "hookProtocolDetected");
-  hookPeriodicUpdate   = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_PERIODIC_UPDATE_QUEUE_LEN, "hookPeriodicUpdate");
-  hookFlowEnd          = new (std::nothrow) SPSCQueue<Flow *>(MAX_US_FLOW_END_QUEUE_LEN, "hookFlowEnd");
+  callbacksQueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CALLBACKS_QUEUE_LEN, "callbacksQueue");
 
   PROFILING_INIT();
 }
@@ -570,8 +562,6 @@ NetworkInterface::~NetworkInterface() {
   if(idleFlowsToDump)   delete idleFlowsToDump;
   if(activeFlowsToDump) delete activeFlowsToDump;
 
-  if(hooksEngine)       delete hooksEngine;
-
   if(db) {
     db->shutdown();
     delete db;
@@ -625,43 +615,29 @@ NetworkInterface::~NetworkInterface() {
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
   if(ifname)                free(ifname);
 
-  if(hookProtocolDetected) delete hookProtocolDetected;
-  if(hookPeriodicUpdate)   delete hookPeriodicUpdate;
-  if(hookFlowEnd)          delete hookFlowEnd;
+  if(callbacksQueue)        delete callbacksQueue;
 
   addRedisSitesKey();
   if(top_sites)       delete top_sites;
   if(top_os)          delete top_os;
   if(old_sites)       free(old_sites);
+
+  if(prev_flow_callbacks_executor) delete prev_flow_callbacks_executor;
+  if(flow_callbacks_executor)      delete flow_callbacks_executor;
 }
 
 /* **************************************************** */
 
-bool NetworkInterface::hookEnqueue(time_t t, Flow *f) {
+/* Enqueue flow alert to a queue for processing and later delivery to recipients */
+bool NetworkInterface::enqueueFlowAlert(FlowAlert *alert) {
   bool ret = false;
-  SPSCQueue<Flow *> *selected_queue = NULL;
-
-  /*
-    Choose the right queue to perform the enqueue
-   */
-
-  switch(f->get_state()) {
-  case hash_entry_state_flow_protocoldetected:
-    selected_queue = hookProtocolDetected;
-    break;
-  case hash_entry_state_active:
-    selected_queue = hookPeriodicUpdate;
-    break;
-  case hash_entry_state_idle:
-    selected_queue = hookFlowEnd;
-    break;
-  default:
-    break;
-  }
+  SPSCQueue<FlowAlert *> *selected_queue = callbacksQueue;
+  Flow *f = alert->getFlow();
 
   /* Perform the actual enqueue */
   if(selected_queue) {
-    if(selected_queue->enqueue(f, true)) {
+    if(selected_queue->enqueue(alert, true)) {
+
       /*
 	If enqueue was successful, increase the flow reference counter.
 	Reference counter will be deleted when doing the dequeue.
@@ -671,7 +647,7 @@ bool NetworkInterface::hookEnqueue(time_t t, Flow *f) {
       /*
 	Signal the waiter on the condition variable
        */
-      hooks_condition.signal();
+      flow_callbacks_condvar.signal();
 
       ret = true;
     } else {
@@ -681,6 +657,9 @@ bool NetworkInterface::hookEnqueue(time_t t, Flow *f) {
       ret = false;
     }
   }
+
+  if (!ret)
+    delete alert;  
 
   return ret;
 }
@@ -884,7 +863,7 @@ Flow* NetworkInterface::getFlow(Mac *srcMac, Mac *dstMac,
     return(NULL);
 
   if(vlan_id != 0)
-    setSeenVlanTaggedPackets();
+    setSeenVLANTaggedPackets();
 
   if((srcMac && Utils::macHash(srcMac->get_mac()) != 0)
      || (dstMac && Utils::macHash(dstMac->get_mac()) != 0))
@@ -1732,7 +1711,7 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle hosts on %s",
 				 m, getNumHosts(), ifname);
 
-  if((o = purgeIdleMacsASesCountriesVlans(force_idle, full_scan)) > 0)
+  if((o = purgeIdleMacsASesCountriesVLANs(force_idle, full_scan)) > 0)
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s",
 				 o, ifname);
 
@@ -2412,31 +2391,37 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 
 /* **************************************************** */
 
-u_int64_t NetworkInterface::dequeueFlows(SPSCQueue<Flow *> *q, FlowLuaCall flow_lua_call, u_int budget) {
+/* Dequeue alerted flows from callbacks (and enqueue to recipients) */
+u_int64_t NetworkInterface::dequeueAlertedFlows(SPSCQueue<FlowAlert *> *q, u_int budget) {
   u_int64_t num_done = 0;
 
   while(q->isNotEmpty()) {
-    Flow *f = q->dequeue();
+    FlowAlert *alert;
+   
+    alert = q->dequeue();
 
-    /*
-      Execute the callback (if the engine is available
-     */
-    if(hooksEngine)
-      f->performLuaCall(flow_lua_call, hooksEngine);
+    if (alert) {
+      Flow *f = alert->getFlow();
 
-#if DEBUG_FLOW_HOOKS
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued idle flow");
+      /* Enqueue alert to recipients */
+      if (!f->enqueueAlert(alert))
+        delete alert;
+
+#if DEBUG_FLOW_CALLBACKS
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flow alert");
 #endif
 
-    /*
-      Now that the job is done, the reference counter to the flow can be decreased.
-     */
-    f->decUses();
+      /*
+        Now that the job is done, the reference counter to the flow can be decreased.
+       */
+      f->decUses();
 
-    num_done++;
-    if(budget > 0 /* Budget requested */
-       && num_done >= budget /* Budget exceeded */)
-      break;
+      num_done++;
+
+      if(budget > 0 /* Budget requested */
+         && num_done >= budget /* Budget exceeded */)
+        break;
+    }
   }
 
   return num_done;
@@ -2444,59 +2429,8 @@ u_int64_t NetworkInterface::dequeueFlows(SPSCQueue<Flow *> *q, FlowLuaCall flow_
 
 /* **************************************************** */
 
-/*
-  Called periodically to decide if it is time to reload the lua engine used to execute flow user script hooks
- */
-void NetworkInterface::updateHooksEngineReload() {
-  time_t now = time(NULL);
-
-  if(user_scripts_reload) { /* A user scripts reload has been requested (e.g., due to a config change): hooks MUST be reloaded as well */
-    hooks_engine_next_reload = 0; /* Reset to force a reload as soon as possible below */
-    user_scripts_reload = false;   /* Notify ntop */
-  }
-
-  if(!hooks_engine_reload /* Make sure a reload is not already in progress */
-     && (hooks_engine_next_reload == 0 /* Need to be set for the first time (or has been reset) */
-	 || now > hooks_engine_next_reload /* Time to reload */)) {
-    hooks_engine_reload = true;
-    hooks_engine_next_reload = now + HOOKS_ENGINE_LIFETIME;
-  }
-}
-
-/* **************************************************** */
-
-u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget, u_int active_budget, u_int idle_budget) {
-  u_int64_t num_done = 0;
-
-  /*
-    Check if it is time to reload the engine.
-    First, we free the memory (if necessary) and then we allocate it.
-   */
-  if(hooks_engine_reload) {
-    if(hooksEngine) {
-      delete hooksEngine;
-      hooksEngine = NULL;
-    }
-
-    hooks_engine_reload = false;
-  }
-
-  if(!hooksEngine)
-    hooksEngine = new (nothrow) FlowAlertCheckLuaEngine(this);
-
-  /*
-    Start with highest-priority, flow hooks for idle flows. Failing to execute a hook for an idle flow is critical as there
-    will not be any chance to execute it again in the future.
-
-    Then, do mid-priority flow hooks for protocol-detected flows. Executing these hooks is crucial as well, as the flow only stays
-    in this state for a very short time and there won't be chances to execute these scripts again.
-
-    Finally, do low-priority periodic update hooks. These hooks can be retried multiple times so their priority is low.
-   */
-
-  num_done += dequeueFlows(hookFlowEnd, flow_lua_call_idle, idle_budget);
-  num_done += dequeueFlows(hookProtocolDetected, flow_lua_call_protocol_detected, protocol_detected_budget);
-  num_done += dequeueFlows(hookPeriodicUpdate, flow_lua_call_periodic_update, active_budget);
+u_int64_t NetworkInterface::dequeueFlowsForCallbacks(u_int budget) {
+  u_int64_t num_done = dequeueAlertedFlows(callbacksQueue, budget);
 
 #ifndef WIN32
   if(num_done == 0) {
@@ -2510,7 +2444,7 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
     hooks_wait_expire.tv_sec = time(NULL) + 1,
       hooks_wait_expire.tv_nsec = 0;
 
-    hooks_condition.timedWait(&hooks_wait_expire);
+    flow_callbacks_condvar.timedWait(&hooks_wait_expire);
   }
 #endif
 
@@ -2520,9 +2454,9 @@ u_int64_t NetworkInterface::dequeueFlowsForHooks(u_int protocol_detected_budget,
   */
   num_done += purgeQueuedIdleFlows();
 
-#if DEBUG_FLOW_HOOKS
+#if DEBUG_FLOW_CALLBACKS
   if(num_done > 0)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flows [%u]", num_done);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flows total [%u]", num_done);
 #endif
 
 
@@ -2650,7 +2584,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 
 /* **************************************************** */
 
-void NetworkInterface::hookFlowLoop() {
+void NetworkInterface::flowCallbacksLoop() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started flow user script hooks loop on interface %s [id: %u]...",
 			       get_description(), get_id());
@@ -2666,7 +2600,7 @@ void NetworkInterface::hookFlowLoop() {
       To guarantee some sort of fairness and prioritization, different numbers are used for each
       of the three queues. Higher numbers are used for queues with higher-priority.
      */
-    u_int64_t n = dequeueFlowsForHooks(16 /* protocol_detected_budget */, 4 /* active_budget */, 32 /* idle_budget */);
+    u_int64_t n = dequeueFlowsForCallbacks(32 /* budget */);
 
     if(n == 0) {
       /*
@@ -2713,10 +2647,10 @@ void NetworkInterface::dumpFlowLoop() {
 
 /* **************************************************** */
 
-static void* hookLoop(void* ptr) {
+static void* callbacksLoop(void* ptr) {
   NetworkInterface *_if = (NetworkInterface*)ptr;
 
-  _if->hookFlowLoop();
+  _if->flowCallbacksLoop();
   return(NULL);
 }
 
@@ -2809,9 +2743,9 @@ void NetworkInterface::shutdown() {
   if(running) {
     running = false;
 
-    if(pollLoopCreated)     pthread_join(pollLoop, &res);
-    if(flowDumpLoopCreated) pthread_join(flowDumpLoop, &res);
-    if(hookLoopCreated)     pthread_join(hookLoop, &res);
+    if(pollLoopCreated)          pthread_join(pollLoop, &res);
+    if(flowDumpLoopCreated)      pthread_join(flowDumpLoop, &res);
+    if(flowCallbacksLoopCreated) pthread_join(callbacksLoop, &res);
 
     /* purgeIdle one last time to make sure all entries will be marked as idle */
     purgeIdle(time(NULL), true, true);
@@ -3328,7 +3262,7 @@ struct os_find_info {
 
 struct vlan_find_info {
   u_int16_t vlan_id;
-  Vlan *vl;
+  VLAN *vl;
 };
 
 /* **************************************************** */
@@ -3437,7 +3371,7 @@ static bool find_country(GenericHashEntry *he, void *user_data, bool *matched) {
 
 static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data, bool *matched) {
   struct vlan_find_info *info = (struct vlan_find_info*)user_data;
-  Vlan *vl = (Vlan*)he;
+  VLAN *vl = (VLAN*)he;
 
   if((info->vl == NULL) && info->vlan_id == vl->get_vlan_id()) {
     info->vl = vl;
@@ -3626,7 +3560,7 @@ struct flowHostRetrieveList {
   /* Value */
   Host *hostValue;
   Mac *macValue;
-  Vlan *vlanValue;
+  VLAN *vlanValue;
   AutonomousSystem *asValue;
   OperatingSystem *osValue;
   Country *countryVal;
@@ -3688,6 +3622,8 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   ndpi_patricia_node_t *srv_target_node = NULL, *cli_target_node = NULL;
   IpAddress *cli_ip = (IpAddress *) f->get_srv_ip_addr();
   IpAddress *srv_ip = (IpAddress *) f->get_cli_ip_addr();
+  u_int16_t alert_type_filter;
+  AlertLevelGroup alert_type_severity_filter = alert_level_group_none;
   u_int8_t ip_version;
   u_int8_t l4_protocol;
   u_int8_t *mac_filter;
@@ -3886,13 +3822,13 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 
     /* Flow Status filter */
     if(retriever->pag
-       && retriever->pag->flowStatusFilter(&flow_status_filter)
-       && !f->getStatusBitmap().issetBit(flow_status_filter))
+       && retriever->pag->flowStatusFilter(&alert_type_filter)
+       && !f->getAlertBitmap().isSetBit(alert_type_filter))
       return(false);
 
     /* Flow Status severity filter */
     if(retriever->pag
-       && retriever->pag->flowStatusFilter(&flow_status_severity_filter)) {
+       && retriever->pag->flowStatusFilter(&alert_type_severity_filter)) {
       if(!f->isFlowAlerted()
 	 || f->getAlertedSeverity() == alert_level_none
 	 || (flow_status_severity_filter == alert_level_group_notice_or_lower  && f->getAlertedSeverity() > alert_level_notice)
@@ -4382,7 +4318,7 @@ static bool country_search_walker(GenericHashEntry *he, void *user_data, bool *m
 
 static bool vlan_search_walker(GenericHashEntry *he, void *user_data, bool *matched) {
   struct flowHostRetriever *r = (struct flowHostRetriever*)user_data;
-  Vlan *vl = (Vlan*)he;
+  VLAN *vl = (VLAN*)he;
 
   if(r->actNumEntries >= r->maxNumEntries)
     return(true); /* Limit reached */
@@ -5260,6 +5196,23 @@ void NetworkInterface::getNetworksStats(lua_State* vm, AddressTree *allowed_host
 
 /* **************************************************** */
 
+/* Used to give the interface a new callback loader to be used */
+void NetworkInterface::reloadFlowCallbacks(FlowCallbacksLoader *fcbl) {
+  /* Reload of the callbacks for this interface (e.g., interface type matters) */
+  FlowCallbacksExecutor *fce = new (std::nothrow) FlowCallbacksExecutor(fcbl, this);
+
+  if(fce == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to reload callbacks on interface %s", ifname);
+    return;
+  }
+
+  if(prev_flow_callbacks_executor) delete prev_flow_callbacks_executor;
+  prev_flow_callbacks_executor = flow_callbacks_executor;
+  flow_callbacks_executor = fce;
+}
+
+/* **************************************************** */
+
 u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
   u_int n = 0;
   time_t last_packet_time = getTimeLastPktRcvd();
@@ -5390,7 +5343,7 @@ u_int NetworkInterface::purgeIdleHosts(bool force_idle, bool full_scan) {
 
 /* **************************************************** */
 
-u_int NetworkInterface::purgeIdleMacsASesCountriesVlans(bool force_idle, bool full_scan) {
+u_int NetworkInterface::purgeIdleMacsASesCountriesVLANs(bool force_idle, bool full_scan) {
   time_t last_packet_time = getTimeLastPktRcvd();
 
   if(!force_idle && last_packet_time < next_idle_other_purge)
@@ -5576,7 +5529,7 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "isFlowDumpRunning", db != NULL);
   lua_push_uint64_table_entry(vm, "seen.last", getTimeLastPktRcvd());
   lua_push_bool_table_entry(vm, "inline", get_inline_interface());
-  lua_push_bool_table_entry(vm, "vlan",     hasSeenVlanTaggedPackets());
+  lua_push_bool_table_entry(vm, "vlan",     hasSeenVLANTaggedPackets());
   lua_push_bool_table_entry(vm, "has_macs", hasSeenMacAddresses());
   lua_push_bool_table_entry(vm, "has_seen_dhcp_addresses", hasSeenDHCPAddresses());
   /* Note: source MAC is now used to get traffic direction when not areTrafficDirectionsSupported() */
@@ -5764,17 +5717,14 @@ void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
 /* **************************************************** */
 
 void NetworkInterface::lua_queues_stats(lua_State *vm) {
-  if(idleFlowsToDump)      idleFlowsToDump->lua(vm);
-  if(activeFlowsToDump)    activeFlowsToDump->lua(vm);
-  if(hookProtocolDetected) hookProtocolDetected->lua(vm);
-  if(hookPeriodicUpdate)   hookPeriodicUpdate->lua(vm);
-  if(hookFlowEnd)          hookFlowEnd->lua(vm);
+  if(idleFlowsToDump)   idleFlowsToDump->lua(vm);
+  if(activeFlowsToDump) activeFlowsToDump->lua(vm);
+  if(callbacksQueue)    callbacksQueue->lua(vm);
 }
 
 /* **************************************************** */
 
 void NetworkInterface::runHousekeepingTasks() {
-  updateHooksEngineReload();
   periodicStatsUpdate();
 }
 
@@ -5834,8 +5784,8 @@ Mac* NetworkInterface::getMac(u_int8_t _mac[6], bool create_if_not_present, bool
 
 /* **************************************************** */
 
-Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool create_if_not_present, bool isInlineCall) {
-  Vlan *ret = NULL;
+VLAN* NetworkInterface::getVLAN(u_int16_t vlanId, bool create_if_not_present, bool isInlineCall) {
+  VLAN *ret = NULL;
 
   if(!vlans_hash) return(NULL);
 
@@ -5847,7 +5797,7 @@ Vlan* NetworkInterface::getVlan(u_int16_t vlanId, bool create_if_not_present, bo
       return(NULL);
 
     try {
-      if((ret = new Vlan(this, vlanId)) != NULL) {
+      if((ret = new VLAN(this, vlanId)) != NULL) {
 	if(!vlans_hash->add(ret,
 			    !isInlineCall /* Lock only if not inline, if inline there is no need to lock as we are sequential with the purgeIdle */)) {
           /* Note: this should never happen as we are checking hasEmptyRoom() */
@@ -6387,7 +6337,7 @@ void NetworkInterface::allocateStructures() {
 	  ases_hash      = new AutonomousSystemHash(this, ndpi_min(num_hashes, 4096), 32768);
     oses_hash      = new OperatingSystemHash(this, ndpi_min(num_hashes, 1024), 32768);
 	  countries_hash = new CountriesHash(this, ndpi_min(num_hashes, 1024), 32768);
-	  vlans_hash     = new VlanHash(this, 1024, 2048);
+	  vlans_hash     = new VLANHash(this, 1024, 2048);
 	  macs_hash      = new MacHash(this, ndpi_min(num_hashes, 8192), 32768);
       }
     }
@@ -6580,11 +6530,11 @@ static bool host_reload_hide_from_top(GenericHashEntry *host, void *user_data, b
 void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
   char kname[64];
   char **networks = NULL;
-  VlanAddressTree *new_tree;
+  VLANAddressTree *new_tree;
 
   if(!ntop->getRedis()) return;
 
-  if((new_tree = new (std::nothrow) VlanAddressTree) == NULL) {
+  if((new_tree = new (std::nothrow) VLANAddressTree) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
     return;
   }
@@ -6626,7 +6576,7 @@ void NetworkInterface::reloadHideFromTop(bool refreshHosts) {
 /* **************************************** */
 
 bool NetworkInterface::isHiddenFromTop(Host *host) {
-  VlanAddressTree *vlan_addrtree = hide_from_top;
+  VLANAddressTree *vlan_addrtree = hide_from_top;
 
   if(!vlan_addrtree) return false;
 
@@ -6836,7 +6786,7 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
 					DetailsLevel details_level) {
   struct flowHostRetriever retriever;
 
-  if(! hasSeenVlanTaggedPackets()) {
+  if(! hasSeenVLANTaggedPackets()) {
     /* VLAN statistics are calculated only if VLAN tagged traffic has been seen */
     lua_pushnil(vm);
     return 0;
@@ -6853,14 +6803,14 @@ int NetworkInterface::getActiveVLANList(lua_State* vm,
 
   if(a2zSortOrder) {
     for(int i = toSkip, num = 0; i<(int)retriever.actNumEntries && num < (int)maxHits; i++, num++) {
-      Vlan *vl = retriever.elems[i].vlanValue;
+      VLAN *vl = retriever.elems[i].vlanValue;
 
       vl->lua(vm, details_level, false);
       lua_rawseti(vm, -2, num + 1); /* Must use integer keys to preserve and iterate inorder with ipairs */
     }
   } else {
     for(int i = (retriever.actNumEntries-1-toSkip), num = 0; i >= 0 && num < (int)maxHits; i--, num++) {
-      Vlan *vl = retriever.elems[i].vlanValue;
+      VLAN *vl = retriever.elems[i].vlanValue;
 
       vl->lua(vm, details_level, false);
       lua_rawseti(vm, -2, num + 1);
@@ -7361,18 +7311,18 @@ void NetworkInterface::updateBroadcastDomains(u_int16_t vlan_id,
 /*
    Start the thread for the execution of flow user script hooks
  */
-bool NetworkInterface::initHookLoop() {
+bool NetworkInterface::initFlowCallbacksLoop() {
   if(isView()) /* Don't init the loop for view interfaces: the loop is run by every viewed interface independently */
     return true;
 
-  pthread_create(&hookLoop, NULL, ::hookLoop, (void*)this);
-  hookLoopCreated = true;
+  pthread_create(&callbacksLoop, NULL, ::callbacksLoop, (void*)this);
+  flowCallbacksLoopCreated = true;
 
 #ifdef __linux__
   char buf[16];
 
   snprintf(buf, sizeof(buf), "hooks ifid %u", get_id());
-  pthread_setname_np(hookLoop, buf);
+  pthread_setname_np(callbacksLoop, buf);
 #endif
 
   return true;
@@ -8754,6 +8704,36 @@ void NetworkInterface::incrOS(char *hostname) {
     nextdot = strchr(&firstdot[1], '.');
 
   top_os->add(nextdot ? &firstdot[1] : hostname, 1);
+}
+
+/* *************************************** */
+
+void NetworkInterface::execProtocolDetectedCallbacks(Flow *f) {
+  if(flow_callbacks_executor) {
+    FlowAlert *alert = flow_callbacks_executor->execCallbacks(f, flow_callback_protocol_detected);
+    if (alert)
+      enqueueFlowAlert(alert);
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::execPeriodicUpdateCallbacks(Flow *f) {
+  if(flow_callbacks_executor) {
+    FlowAlert *alert = flow_callbacks_executor->execCallbacks(f, flow_callback_periodic_update);
+    if (alert)
+      enqueueFlowAlert(alert);
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::execFlowEndCallbacks(Flow *f) {
+  if(flow_callbacks_executor) {
+    FlowAlert *alert = flow_callbacks_executor->execCallbacks(f, flow_callback_flow_end);
+    if (alert)
+      enqueueFlowAlert(alert);
+  }
 }
 
 /* *************************************** */

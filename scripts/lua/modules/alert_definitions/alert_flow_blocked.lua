@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_flow_blocked = classes.class(alert)
 -- ##############################################
 
 alert_flow_blocked.meta = {
-   status_key = status_keys.ntopng.status_blocked, -- A flow status key
    alert_key = alert_keys.ntopng.alert_flow_blocked,
    i18n_title = "flow_details.flow_blocked_by_bridge",
    icon = "fas fa-exclamation",
@@ -31,10 +29,6 @@ alert_flow_blocked.meta = {
 function alert_flow_blocked:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-      -- No params
-   }
 end
 
 -- #######################################################

@@ -83,7 +83,32 @@ bool Recipients::enqueue(u_int16_t recipient_id, RecipientNotificationPriority p
 
 /* *************************************** */
 
-void Recipients::register_recipient(u_int16_t recipient_id) {  
+bool Recipients::enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification, bool flow_only) {
+  bool res = false;
+
+  if(!notification)
+    return false;
+
+  m.lock(__FILE__, __LINE__);
+
+  /* 
+     Perform the actual enqueue for the given priority to all available recipients
+   */
+  for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
+    if(recipient_queues[recipient_id]
+       && (!flow_only /* Not only for flows */
+	   || recipient_queues[recipient_id]->isFlowRecipient()) /* The recipient must be a flow recipient */)
+      res |= recipient_queues[recipient_id]->enqueue(prio, notification);
+  }
+
+  m.unlock(__FILE__, __LINE__);
+
+  return res;
+}
+
+/* *************************************** */
+
+void Recipients::register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories) {  
   if(recipient_id >= MAX_NUM_RECIPIENTS)
     return;
 
@@ -91,6 +116,31 @@ void Recipients::register_recipient(u_int16_t recipient_id) {
 
   if(!recipient_queues[recipient_id])
     recipient_queues[recipient_id] = new (nothrow) RecipientQueues();
+
+  if(recipient_queues[recipient_id])
+    recipient_queues[recipient_id]->setMinimumSeverity(minimum_severity),
+      recipient_queues[recipient_id]->setEnabledCategories(enabled_categories);
+
+  // ntop->getTrace()->traceEvent(TRACE_WARNING, "registered [%u][%u][%u]", recipient_id, minimum_severity, enabled_categories);
+
+  m.unlock(__FILE__, __LINE__);
+}
+
+/* *************************************** */
+
+void Recipients::set_flow_recipients(u_int64_t flow_recipients) {
+  m.lock(__FILE__, __LINE__);
+
+  for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
+    if(recipient_queues[recipient_id]) {
+      if(flow_recipients & (1 << recipient_id)) 
+	recipient_queues[recipient_id]->setFlowRecipient(true /* This is a flow recipient */);
+      else
+	recipient_queues[recipient_id]->setFlowRecipient(false/* This is NOT a flow recipient */);
+
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "Set flow recipient [%u][%u]", recipient_id, flow_recipients & (1 << recipient_id));
+    }
+  }
 
   m.unlock(__FILE__, __LINE__);
 }

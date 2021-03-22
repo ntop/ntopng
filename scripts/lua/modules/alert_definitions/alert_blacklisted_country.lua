@@ -4,10 +4,11 @@
 
 -- ##############################################
 
-local alert_keys = require "alert_keys"
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local status_keys = require "status_keys"
+local alert_keys = require "alert_keys"
+local alert_severities = require "alert_severities"
+
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -20,12 +21,19 @@ local alert_blacklisted_country = classes.class(alert)
 -- ##############################################
 
 alert_blacklisted_country.meta = {
-   status_key = status_keys.ntopng.status_blacklisted_country,
    alert_key = alert_keys.ntopng.alert_blacklisted_country,
    i18n_title = "alerts_dashboard.blacklisted_country",
    icon = "fas fa-exclamation",
    has_victim = true,
    has_attacker = true,
+
+   -- Default values
+   default = {
+      -- Default severity, must be one of `alert_severities` and can overridden from the UI
+      severity = alert_severities.error,
+      -- Fitlters to be applied on the alert, e.g., cli_port=23
+      filters = {},
+   }
 }
 
 -- ##############################################
@@ -37,16 +45,9 @@ alert_blacklisted_country.meta = {
 -- @param cli_blacklisted Boolean indicating whether the client belongs to a blacklisted country
 -- @param srv_blacklisted Boolean indicating whether the server belongs to a blacklisted country
 -- @return A table with the alert built
-function alert_blacklisted_country:init(cli_country, srv_country, cli_blacklisted, srv_blacklisted)
+function alert_blacklisted_country:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-	 cli_country = cli_country,
-	 srv_country = srv_country,
-	 cli_blacklisted = cli_blacklisted,
-	 srv_blacklisted = srv_blacklisted,
-   }
 end
 
 -- #######################################################

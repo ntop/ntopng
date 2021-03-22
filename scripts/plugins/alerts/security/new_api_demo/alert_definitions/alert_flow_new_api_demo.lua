@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_flow_new_api_demo = classes.class(alert)
 -- ##############################################
 
 alert_flow_new_api_demo.meta = {
-   status_key = status_keys.user.status_user_02, -- A flow status key
    alert_key = alert_keys.user.alert_user_02,
    i18n_title = "New Flow API Demo",
    icon = "fas fa-exclamation",

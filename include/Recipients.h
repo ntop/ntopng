@@ -52,12 +52,30 @@ class Recipients {
   */
   bool enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification);
   /**
+  * @brief Enqueues a notification to all available recipients
+  * @param prio The priority of the notification
+  * @param notification The notification to be enqueued
+  * @param flow_only A boolean, indicating whether the notification has only to be enqueued for flow recipients
+  *
+  * @return True if the enqueue succeeded, false otherwise
+  */
+  bool enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification, bool flow_only);
+  /**
   * @brief Registers a recipient identified with `recipient_id` so its notification can be enqueued/dequeued
   * @param recipient_id An integer recipient identifier
+  * @param minimum_severity The minimum severity for notifications to use this recipient
+  * @param enabled_categories A bitmap of notification categories to use this recipient
   *
   * @return
   */
-  void register_recipient(u_int16_t recipient_id);
+  void register_recipient(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories);
+  /**
+  * @brief Sets all recipients responsible for flow alerts
+  * @param flow_recipients A bitmap of recipient ids responsible for flows
+  *
+  * @return
+  */
+  void set_flow_recipients(u_int64_t flow_recipients);
   /**
   * @brief Marks a recipient as deleted
   * @param recipient_id An integer recipient identifier

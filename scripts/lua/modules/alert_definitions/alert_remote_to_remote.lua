@@ -9,7 +9,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local format_utils = require "format_utils"
 local json = require("dkjson")
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -22,7 +21,6 @@ local alert_remote_to_remote = classes.class(alert)
 -- ##############################################
 
 alert_remote_to_remote.meta = {
-   status_key = status_keys.ntopng.status_remote_to_remote,
    alert_key = alert_keys.ntopng.alert_remote_to_remote,
    i18n_title = "alerts_dashboard.remote_to_remote",
    icon = "fas fa-exclamation",
@@ -35,9 +33,6 @@ alert_remote_to_remote.meta = {
 function alert_remote_to_remote:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-   }
 end
 
 -- #######################################################

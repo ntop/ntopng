@@ -83,6 +83,8 @@ Host::~Host() {
   if(stats)                     delete stats;
   if(stats_shadow)              delete stats_shadow;
 
+  if(score)              delete score;
+
   /*
     Pool counters are updated both in and outside the datapath.
     So decPoolNumHosts must stay in the destructor to preserve counters
@@ -135,6 +137,8 @@ void Host::housekeepAlerts(ScriptPeriodicity p) {
 void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
   char buf[64];
 
+  score = NULL; /* Lazy, possibly initialized if necessary */
+
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
@@ -143,6 +147,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
   prefs_loaded = false;
   host_services_bitmap = 0;
   mud_pref = mud_recording_default;
+  disabled_flow_alerts_tstamp = 0;
 
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
@@ -154,7 +159,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
   if((mac = _mac))
     mac->incUses();
 
-  if((vlan = iface->getVlan(_vlanId, true, true /* Inline call */)) != NULL)
+  if((vlan = iface->getVLAN(_vlanId, true, true /* Inline call */)) != NULL)
     vlan->incUses();
 
   num_resolve_attempts = 0, ssdpLocation = NULL;
@@ -416,17 +421,18 @@ void Host::lua_get_host_pool(lua_State *vm) const {
 
 void Host::lua_get_score(lua_State *vm) {
   if(stats) stats->luaHostBehaviour(vm);
-  
-  lua_push_uint64_table_entry(vm, "score", score.get());
-  lua_push_uint64_table_entry(vm, "score.as_client", score.getClient());
-  lua_push_uint64_table_entry(vm, "score.as_server", score.getServer());
-  lua_push_uint64_table_entry(vm, "score.total",     score.get());
+
+  lua_push_uint64_table_entry(vm, "score", score ? score->get() : 0);
+  lua_push_uint64_table_entry(vm, "score.as_client", score ? score->getClient() : 0);
+  lua_push_uint64_table_entry(vm, "score.as_server", score ? score->getServer() : 0);
+  lua_push_uint64_table_entry(vm, "score.total", score ? score->get() : 0);
 }
 
 /* ***************************************************** */
 
 void Host::lua_get_score_breakdown(lua_State *vm) {
-  score.lua_breakdown(vm);
+  if(score)
+    score->lua_breakdown(vm);
 }
 
 /* ***************************************************** */
@@ -1184,7 +1190,7 @@ void Host::luaUsedQuotas(lua_State* vm) {
 /* *************************************** */
 
 /* Splits a string in the format hostip@vlanid: *buf=hostip, *vlan_id=vlanid */
-void Host::splitHostVlan(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id) {
+void Host::splitHostVLAN(const char *at_sign_str, char*buf, int bufsize, u_int16_t *vlan_id) {
   int size;
   const char *vlan_ptr = strchr(at_sign_str, '@');
 
@@ -1436,13 +1442,24 @@ void Host::checkBroadcastDomain() {
 /* *************************************** */
 
 u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client) {
-  return score.incValue(score_incr, score_category, as_client);
+  if(score
+     || (score = getInterface()->isView() ? new (std::nothrow) ViewHostScore() : new (std::nothrow) HostScore())) /* Allocate if necessary */
+    return score->incValue(score_incr, score_category, as_client);
+  else {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Unable to allocate memory for score");
+    return 0;
+  }
 }
 
 /* *************************************** */
 
 u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client) {
-  return score.decValue(score_decr, score_category, as_client);
+  if(score)
+    return score->decValue(score_decr, score_category, as_client);
+  else {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Memory for score not allocated");
+    return 0;
+  }
 }
 
 /* *************************************** */
@@ -1558,3 +1575,26 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
   
   return(k);
 }
+
+/* *************************************** */
+
+bool Host::isFlowAlertDisabled(FlowAlertType alert_type) {
+  AlertExclusions *alert_exclusions = ntop->getAlertExclusions();
+  bool disabled = false;
+  if (alert_exclusions) {
+    if (alert_exclusions->checkChange(&disabled_flow_alerts_tstamp))
+      alert_exclusions->setDisabledFlowAlertsBitmap(get_ip(), &disabled_flow_alerts);
+     disabled = disabled_flow_alerts.isSetBit(alert_type.id);
+  }
+
+#if 0
+  if(disabled) {
+    char buf[64];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Disabled [%s][%u]", get_ip()->print(buf, sizeof(buf)), alert_type);
+  }
+#endif
+  
+  return disabled;
+}
+
+/* *************************************** */

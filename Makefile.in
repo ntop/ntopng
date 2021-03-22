@@ -139,8 +139,8 @@ default: hooks/.enabled $(NDPI_LIB_DEP) $(LIB_TARGETS) $(TARGET)
 
 all: default
 
-OBJECTS = $(patsubst src/%.cpp, src/%.o, $(wildcard src/*.cpp)) @PRO_OBJECTS@
-HEADERS = $(wildcard include/*.h) @PRO_HEADERS@
+OBJECTS = $(patsubst src/%.cpp, src/%.o, $(wildcard src/*.cpp)) $(patsubst src/flow_callbacks/%.cpp, src/flow_callbacks/%.o, $(wildcard src/flow_callbacks/*.cpp)) $(patsubst src/flow_alerts/%.cpp, src/flow_alerts/%.o, $(wildcard src/flow_alerts/*.cpp)) @PRO_OBJECTS@
+HEADERS = $(wildcard include/*.h) $(wildcard include/flow_callbacks/*.h) $(wildcard include/flow_alerts/*.h) @PRO_HEADERS@
 INC     = $(wildcard src/*.inc)
 OBJECTS_NO_MAIN := $(filter-out src/main.o,$(OBJECTS))
 
@@ -180,7 +180,7 @@ hooks/.enabled:
 	touch hooks/.enabled
 
 clean:
-	-rm -f src/*.o src/*~ include/*~ *~ #config.h
+	-rm -f src/*.o src/*~ src/flow_callbacks/*.o  src/flow_callbacks/*~ src/flow_alerts/*.o  src/flow_alerts/*~ include/*~ *~ #config.h
 	-rm -f $(TARGET)
 	if [ -d pro ]; then cd pro && make clean; fi
 

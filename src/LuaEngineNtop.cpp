@@ -636,6 +636,28 @@ static int ntop_reload_periodic_scripts(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_reload_flow_callbacks(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->reloadFlowCallbacks();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_reload_hosts_control(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->reloadAlertExclusions();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_should_resolve_host(lua_State* vm) {
   char *ip;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -5543,6 +5565,7 @@ static int ntop_recipient_enqueue(lua_State* vm) {
   bool rv = false;
   AlertFifoItem notification;
   AlertLevel alert_severity;
+  AlertCategory alert_category = alert_category_other;
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   recipient_id = lua_tointeger(vm, 1);
@@ -5556,13 +5579,16 @@ static int ntop_recipient_enqueue(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 4, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_severity = (AlertLevel)lua_tonumber(vm, 4);
 
-  if((notification.alert = strdup(alert))) {
-    notification.alert_severity = alert_severity;
+  if(lua_type(vm, 5) == LUA_TNUMBER)
+    alert_category = (AlertCategory)lua_tonumber(vm, 5);
 
-    rv = ntop->recipient_enqueue(recipient_id,
-				 high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
-				 &notification);
-  }
+  notification.alert = (char*)alert;
+  notification.alert_severity = alert_severity;
+  notification.alert_category = alert_category;
+
+  rv = ntop->recipient_enqueue(recipient_id,
+			       high_priority ? recipient_notification_priority_high : recipient_notification_priority_low,
+			       &notification);
 
   if(!rv) {
     NetworkInterface *iface = getCurrentInterface(vm);
@@ -5572,9 +5598,6 @@ static int ntop_recipient_enqueue(lua_State* vm) {
       if(ctx->threaded_activity_stats)
 	ctx->threaded_activity_stats->setAlertsDrops();
     }
-
-    if(notification.alert)
-      free(notification.alert);
   }
 
   lua_pushboolean(vm, rv);
@@ -5657,11 +5680,33 @@ static int ntop_recipient_delete(lua_State* vm) {
 
 static int ntop_recipient_register(lua_State* vm) {
   u_int16_t recipient_id;
+  AlertLevel minimum_severity = alert_level_none;
+  u_int8_t enabled_categories = 0xFF; /* MUST be large enough to contain MAX_NUM_SCRIPT_CATEGORIES */
 
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   recipient_id = lua_tointeger(vm, 1);
 
-  ntop->recipient_register(recipient_id);
+  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  minimum_severity = (AlertLevel)lua_tointeger(vm, 2);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  enabled_categories = lua_tointeger(vm, 3);
+
+  ntop->recipient_register(recipient_id, minimum_severity, enabled_categories);
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+/* ****************************************** */
+
+static int ntop_recipient_set_flow_recipients(lua_State* vm) {
+  u_int64_t flow_recipients = (u_int64_t)-1; /* MUST be large enough to contain MAX_NUM_RECIPIENTS */
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  flow_recipients = lua_tointeger(vm, 1);
+
+  ntop->recipient_set_flow_recipients(flow_recipients);
 
   lua_pushnil(vm);
 
@@ -6099,6 +6144,8 @@ static luaL_Reg _ntop_reg[] = {
   { "getTLSVersionName",     ntop_get_tls_version_name    },
   { "isIPv6",                ntop_is_ipv6                 },
   { "reloadPeriodicScripts", ntop_reload_periodic_scripts },
+  { "reloadFlowCallbacks",   ntop_reload_flow_callbacks   },
+  { "reloadAlertExclusions", ntop_reload_hosts_control    },
   { "shouldResolveHost",     ntop_should_resolve_host     },
   { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids },
   { "getLocalNetworkAlias",  ntop_check_local_network_alias },
@@ -6128,12 +6175,13 @@ static luaL_Reg _ntop_reg[] = {
   { "popInternalAlerts",     ntop_pop_internal_alerts         },
 
   /* Recipient queues */
-  { "recipient_enqueue",     ntop_recipient_enqueue           },
-  { "recipient_dequeue",     ntop_recipient_dequeue           },
-  { "recipient_stats",       ntop_recipient_stats             },
-  { "recipient_last_use",    ntop_recipient_last_use          },
-  { "recipient_delete",      ntop_recipient_delete            },
-  { "recipient_register",    ntop_recipient_register          },
+  { "recipient_enqueue",             ntop_recipient_enqueue            },
+  { "recipient_dequeue",             ntop_recipient_dequeue            },
+  { "recipient_stats",               ntop_recipient_stats              },
+  { "recipient_last_use",            ntop_recipient_last_use           },
+  { "recipient_delete",              ntop_recipient_delete             },
+  { "recipient_register",            ntop_recipient_register           },
+  { "recipient_set_flow_recipients", ntop_recipient_set_flow_recipients },
 
   /* nDPI */
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },

@@ -233,24 +233,45 @@ bool AddressTree::addAddresses(const char *rule, const int16_t user_data) {
 /* ******************************************* */
 
 // TODO match MAC
-bool AddressTree::match(char *addr) {
+ndpi_patricia_node_t *AddressTree::matchAndGetNode(const char * const addr) {
+  ndpi_patricia_node_t *node = NULL;
+  char addr_cpy[48];
   IpAddress address;
-  char *net_prefix = strchr(addr, '/');
+  char *net_prefix;
+  int bits;
+ 
+  strncpy(addr_cpy, addr, sizeof(addr_cpy));
 
+  net_prefix = strchr(addr_cpy, '/');
   if(net_prefix) {
-    int bits = atoi(net_prefix + 1);
-    char tmp = *net_prefix;
-    
-    *net_prefix = '\0', address.set(addr), *net_prefix = tmp;
-
-    if(address.isIPv4())
-      return(Utils::ptree_match(ptree_v4, AF_INET, &address.getIP()->ipType.ipv4, bits));
-    else
-      return(Utils::ptree_match(ptree_v6, AF_INET6, (void*)&address.getIP()->ipType.ipv6, bits));
+    *net_prefix = '\0';
+    address.set(addr_cpy);
+    bits = atoi(net_prefix + 1);
   } else {
     address.set(addr);
-    return(address.match(this));
+    bits = address.isIPv4() ? 32 : 128;
   }
+
+  if(address.isIPv4())
+    node = Utils::ptree_match(ptree_v4, AF_INET, &address.getIP()->ipType.ipv4, bits);
+  else
+    node = Utils::ptree_match(ptree_v6, AF_INET6, (void*)&address.getIP()->ipType.ipv6, bits);
+
+  return node;
+}
+
+/* ******************************************* */
+
+void *AddressTree::matchAndGetData(const char * const addr) {
+  ndpi_patricia_node_t *node = matchAndGetNode(addr);
+  if (node) return ndpi_patricia_get_node_data(node);
+  else return NULL;
+}
+
+/* ******************************************* */
+
+bool AddressTree::match(char *addr) {
+  return !!matchAndGetNode(addr);
 }
 
 /* ******************************************* */
@@ -267,6 +288,14 @@ ndpi_patricia_node_t* AddressTree::match(const IpAddress * const ipa, int networ
     return Utils::ptree_match(ptree_v4, AF_INET, &ipa->getIP()->ipType.ipv4, network_bits);
   else
     return Utils::ptree_match(ptree_v6, AF_INET6, &ipa->getIP()->ipType.ipv6, network_bits);
+}
+
+/* ******************************************* */
+
+void *AddressTree::matchAndGetData(const IpAddress * const ipa) const {
+  ndpi_patricia_node_t *node = match(ipa, ipa->isIPv4() ? 32 : 128);
+  if (node) return ndpi_patricia_get_node_data(node);
+  else return NULL;
 }
 
 /* ******************************************* */
@@ -450,9 +479,24 @@ void AddressTree::dump() {
 
 /* **************************************************** */
 
-void AddressTree::cleanup() {
-  if(ptree_v4) ndpi_patricia_destroy(ptree_v4, free_ptree_data);
-  if(ptree_v6) ndpi_patricia_destroy(ptree_v6, free_ptree_data);
+void AddressTree::cleanup(ndpi_void_fn_t free_func) {
+  if(ptree_v4) {
+    ndpi_patricia_destroy(ptree_v4, free_func);
+    ptree_v4 = NULL;
+  }
+
+  if(ptree_v6) {
+    ndpi_patricia_destroy(ptree_v6, free_func);
+    ptree_v6 = NULL;
+  }
 
   macs.clear();
 }
+
+/* **************************************************** */
+
+void AddressTree::cleanup() {
+  cleanup(free_ptree_data);
+}
+
+/* **************************************************** */

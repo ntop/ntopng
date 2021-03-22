@@ -430,7 +430,7 @@ local function validateBroadcastUnicast(mode)
    return validateChoice(modes, mode)
 end
 
-local function validateFlowStatusNumber(status)
+local function validateAlertTypeNumber(status)
    if not validateNumber(status) then
       return false
    end
@@ -439,17 +439,17 @@ local function validateFlowStatusNumber(status)
    return((num >= 0) and (num < 2^8))
 end
 
-local function validateFlowStatus(mode)
+local function validateAlertType(mode)
    local modes = {"normal", "alerted", "filtered"}
 
-   if validateFlowStatusNumber(mode) then
+   if validateAlertTypeNumber(mode) then
       return true
    end
 
    return validateChoice(modes, mode)
 end
 
-local function validateFlowStatusSeverity(mode)
+local function validateAlertTypeSeverity(mode)
    local modes = {"notice_or_lower", "warning", "error_or_higher"}
 
    return validateChoice(modes, mode)
@@ -1527,6 +1527,8 @@ local known_parameters = {
    ["script_type"]             = validateSingleWord,
    ["script_subdir"]           = validateSingleWord,
    ["script_key"]              = validateSingleWord,
+   ["alert_key"]               = validateNumber,
+   ["alert_addr"]              = validateIpAddress,
    ["search_script"]           = validateSingleWord,
    ["field_alias"]             = validateListOfTypeInline(validateFieldAlias),
    ["dscp_class"]              = validateSingleWord,
@@ -1839,9 +1841,9 @@ local known_parameters = {
    ["delete_user"]             = validateSingleWord,
    ["drop_flow_policy"]        = validateBool,                  -- true if target flow should be dropped
    ["traffic_type"]            = validateBroadcastUnicast,      -- flows_stats.lua
-   ["flow_status"]             = validateFlowStatus,            -- flows_stats.lua
-   ["flow_status_severity"]    = validateFlowStatusSeverity,    -- flows_stats.lua
-   ["flow_status_num"]         = validateFlowStatusNumber,      -- charts
+   ["alert_type"]             = validateAlertType,            -- flows_stats.lua
+   ["alert_type_severity"]    = validateAlertTypeSeverity,    -- flows_stats.lua
+   ["alert_type_num"]         = validateAlertTypeNumber,      -- charts
    ["tcp_flow_state"]          = validateTCPFlowState,          -- flows_stats.lua
    ["traffic_profile"]         = http_lint.validateTrafficProfile, -- flows_stats.lua
    ["include_unlimited"]       = validateBool,                  -- pool_details_ndpi.lua

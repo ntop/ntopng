@@ -40,8 +40,8 @@ class ViewInterfaceFlowStats {
    inline void setClientHost(Host *host) 			 { unsafe_cli = host; };
    inline void setServerHost(Host *host) 			 { unsafe_srv = host; };
    inline PartializableFlowTrafficStats* getPartializableStats() { return(&partializable_stats); };
-   inline Host* unsafeGetClient() 				 { return(unsafe_cli); };
-   inline Host* unsafeGetServer() 				 { return(unsafe_srv); };
+   inline Host* getViewSharedClient() 				 { return(unsafe_cli); };
+   inline Host* getViewSharedServer() 				 { return(unsafe_srv); };
 };
 
 #endif

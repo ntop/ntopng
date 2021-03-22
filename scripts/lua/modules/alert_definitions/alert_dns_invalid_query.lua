@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_dns_invalid_query = classes.class(alert)
 -- ##############################################
 
 alert_dns_invalid_query.meta = {
-   status_key = status_keys.ntopng.status_dns_invalid_query,
    alert_key = alert_keys.ntopng.alert_dns_invalid_query,
    i18n_title = "flow_details.dns_invalid_query",
    icon = "fas fa-exclamation",
@@ -31,10 +29,6 @@ alert_dns_invalid_query.meta = {
 function alert_dns_invalid_query:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-      -- No params
-   }
 end
 
 -- #######################################################

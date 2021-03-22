@@ -119,7 +119,7 @@ function pools_alert_utils.get_entity_recipients_by_pool_id(entity_id, pool_id, 
 	    end
 
 	    if recipient_ok then
-	       if recipient["recipient_minimum_severity"] ~= nil and 
+	       if alert_severity and recipient["recipient_minimum_severity"] ~= nil and 
                   alert_severity < recipient["recipient_minimum_severity"] then
 		  -- If the current alert severity is less than the minimum requested severity
 		  -- exclude the recipient

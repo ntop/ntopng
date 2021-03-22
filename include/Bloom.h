@@ -62,7 +62,7 @@ class Bloom {
    * @param str The value to check.
    * @return True is the hash for the provided value is set, false otherwise.
    */
-  inline bool issetBit(char *str) { return(bitmask->is_set_bit(ntophash(str))); }
+  inline bool isSetBit(char *str) { return(bitmask->is_set_bit(ntophash(str))); }
 };
 
 #endif /* _BLOOM_H_ */

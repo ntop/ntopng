@@ -34,8 +34,8 @@ class Host;
 class HostHash;
 class Mac;
 class MacHash;
-class Vlan;
-class VlanHash;
+class VLAN;
+class VLANHash;
 class AutonomousSystem;
 class AutonomousSystemHash;
 class OperatingSystem;
@@ -46,6 +46,9 @@ class DB;
 class Paginator;
 class NetworkInterfaceTsPoint;
 class ViewInterface;
+class FlowAlert;
+class FlowCallbacksLoader;
+class FlowCallbacksExecutor;
 
 #ifdef NTOPNG_PRO
 class L7Policer;
@@ -87,6 +90,9 @@ class NetworkInterface : public AlertableEntity {
   ServiceMap *sMap;
 #endif
 
+  /* The executor is per-interfaces, and uses the loader to configure itself and execute flow callbacks */
+  FlowCallbacksExecutor *flow_callbacks_executor, *prev_flow_callbacks_executor;
+
   /* Variables used by top sites periodic update */
   u_int8_t current_cycle = 0;
   FrequentStringItems *top_sites;
@@ -103,7 +109,7 @@ class NetworkInterface : public AlertableEntity {
   /* Queues for the execution of flow user scripts.
      See scripts/plugins/examples/example/user_scripts/flow/example.lua for the callbacks
    */
-  SPSCQueue<Flow *> *hookProtocolDetected, *hookPeriodicUpdate, *hookFlowEnd;
+  SPSCQueue<FlowAlert *> *callbacksQueue;
 
   /*
     Flag to indicate whether a flow JSON should be dumped along with the flow. Flow JSON contain
@@ -193,13 +199,9 @@ class NetworkInterface : public AlertableEntity {
   int pcap_datalink_type; /**< Datalink type of pcap. */
   pthread_t pollLoop,
     flowDumpLoop /* Thread for the database dump of flows */,
-    hookLoop /* Thread for the execution of flow user script hooks */;
-  FlowAlertCheckLuaEngine *hooksEngine;   /* Lua engine used to execute flow user script hooks */
-  volatile bool hooks_engine_reload;      /* Boolean indicating whether the hooksEngine should be reloaded */
-  volatile bool user_scripts_reload;      /* Boolean indicating whether a reload of user scripts has been requested */
-  time_t        hooks_engine_next_reload; /* The minimunm time for the next reload of the hooksEngine */
-  Condvar       hooks_condition;          /* Condition variable used to wait when no flows have been enqueued for hooks exec. */
-  bool pollLoopCreated, flowDumpLoopCreated, hookLoopCreated;
+    callbacksLoop /* Thread for the execution of flow user script hooks */;
+  Condvar       flow_callbacks_condvar;   /* Condition variable used to wait when no flows have been enqueued for hooks exec. */
+  bool pollLoopCreated, flowDumpLoopCreated, flowCallbacksLoopCreated;
   bool has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
@@ -237,8 +239,8 @@ class NetworkInterface : public AlertableEntity {
   /* Countries */
   CountriesHash *countries_hash;
 
-  /* Vlans */
-  VlanHash *vlans_hash; /**< Hash used to store Vlans information. */
+  /* VLANs */
+  VLANHash *vlans_hash; /**< Hash used to store Vlans information. */
 
   /* Hosts */
   HostHash *hosts_hash; /**< Hash used to store hosts information. */
@@ -247,7 +249,7 @@ class NetworkInterface : public AlertableEntity {
   StatsManager  *statsManager;
   AlertsManager *alertsManager;
   HostPools *host_pools;
-  VlanAddressTree *hide_from_top, *hide_from_top_shadow;
+  VLANAddressTree *hide_from_top, *hide_from_top_shadow;
   bool has_vlan_packets, has_ebpf_events, has_mac_addresses, has_seen_dhcp_addresses;
   bool has_seen_pods, has_seen_containers, has_external_alerts;
   time_t last_pkt_rcvd, last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
@@ -337,15 +339,10 @@ class NetworkInterface : public AlertableEntity {
   };
 
   /*
-    Dequeues flows from `q` up to `budget` and executes `flow_lua_callback` on each of them.
+    Dequeues an alerted flows from `q` up to `budget` and executes `flow_lua_callback` on each of them.
     The number of flows dequeued is returned.
    */
-  u_int64_t dequeueFlows(SPSCQueue<Flow *> *q, FlowLuaCall flow_lua_call, u_int budget);
-  /*
-    The lua engine for the execution of user script flow hooks is reused. This function
-    periodically check and possibly decides to reload the engine.
-   */
-  void updateHooksEngineReload();
+  u_int64_t dequeueAlertedFlows(SPSCQueue<FlowAlert *> *q, u_int budget);
 
  public:
   /**
@@ -358,7 +355,7 @@ class NetworkInterface : public AlertableEntity {
   NetworkInterface(const char *name, const char *custom_interface_type = NULL);
   virtual ~NetworkInterface();
 
-  bool initHookLoop(); /* Initialize the loop to dequeue flows for the execution of user script hooks */
+  bool initFlowCallbacksLoop(); /* Initialize the loop to dequeue flows for the execution of user script hooks */
   bool initFlowDump(u_int8_t num_dump_interfaces);
   u_int32_t getASesHashSize();
   u_int32_t getOSesHashSize();
@@ -439,8 +436,8 @@ class NetworkInterface : public AlertableEntity {
   inline char* get_description() const         { return(ifDescription);                                };
   inline int  get_id() const                   { return(id);                                           };
   inline bool get_inline_interface()           { return inline_interface;  }
-  virtual bool hasSeenVlanTaggedPackets() const{ return(has_vlan_packets); }
-  inline void setSeenVlanTaggedPackets()       { has_vlan_packets = true;  }
+  virtual bool hasSeenVLANTaggedPackets() const{ return(has_vlan_packets); }
+  inline void setSeenVLANTaggedPackets()       { has_vlan_packets = true;  }
   inline bool hasSeenEBPFEvents() const        { return(has_ebpf_events);  }
   inline void setSeenEBPFEvents()              { has_ebpf_events = true;   }
   inline bool hasSeenMacAddresses() const      { return(has_mac_addresses); }
@@ -457,10 +454,8 @@ class NetworkInterface : public AlertableEntity {
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
   bool getHostMinInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
-  /*
-    Enqueue flows for the execution of periodic scripts
-   */
-  bool hookEnqueue(time_t t, Flow *f);
+  /* Enqueue flow alert to a queue for processing and later delivery to recipients */
+  bool enqueueFlowAlert(FlowAlert *alert);
   /*
     Enqueue flows to be processed by the view interfaces.
     Viewed interface enqueue flows using this method so that the view
@@ -679,7 +674,7 @@ class NetworkInterface : public AlertableEntity {
   virtual void purgeIdle(time_t when, bool force_idle = false, bool full_scan = false);
   u_int purgeIdleFlows(bool force_idle, bool full_scan);
   u_int purgeIdleHosts(bool force_idlei, bool full_scan);
-  u_int purgeIdleMacsASesCountriesVlans(bool force_idle, bool full_scan);
+  u_int purgeIdleMacsASesCountriesVLANs(bool force_idle, bool full_scan);
 
   /* Overridden in ViewInterface.cpp */
   virtual u_int64_t getNumPackets();
@@ -710,7 +705,7 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void runHousekeepingTasks();
   void runShutdownTasks();
-  Vlan* getVlan(u_int16_t vlanId, bool create_if_not_present, bool is_inline_call);
+  VLAN* getVLAN(u_int16_t vlanId, bool create_if_not_present, bool is_inline_call);
   AutonomousSystem *getAS(IpAddress *ipa, bool create_if_not_present, bool is_inline_call);
   OperatingSystem *getOS(OSType os, bool create_if_not_present, bool is_inline_call);
   Country* getCountry(const char *country_name, bool create_if_not_present, bool is_inline_call);
@@ -727,6 +722,7 @@ class NetworkInterface : public AlertableEntity {
   inline StatsManager  *getStatsManager()          { return statsManager;  };
   AlertsManager *getAlertsManager() const;
   AlertsQueue* getAlertsQueue() const;
+
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
   void refreshL7Rules();
@@ -915,9 +911,12 @@ class NetworkInterface : public AlertableEntity {
     Issue a request for user scripts reload. This is called by ntopng when user scripts should be reloaded,
     e.g., after a configuration change.
    */
-  inline void request_user_scripts_reload()  { if(!user_scripts_reload) user_scripts_reload = true;    };
   virtual void updateDirectionStats()        { ; }
   void reloadDhcpRanges();
+
+  /* Used to give the interface a new callback loader to be used */
+  void reloadFlowCallbacks(FlowCallbacksLoader *fcbl);
+  
   inline bool hasConfiguredDhcpRanges()      { return(dhcp_ranges && !dhcp_ranges->last_ip.isEmpty()); };
   inline bool isFlowDumpDisabled()           { return(flow_dump_disabled); }
   inline struct ndpi_detection_module_struct* initnDPIStruct();
@@ -961,23 +960,27 @@ class NetworkInterface : public AlertableEntity {
   inline u_int32_t getNumEngagedAlerts()    const         { return num_alerts_engaged; };
   void releaseAllEngagedAlerts();
 
-  virtual void hookFlowLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */
+  virtual void flowCallbacksLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */
   virtual void dumpFlowLoop(); /* Body of the loop that dequeues flows for the database dump */
   void incNumQueueDroppedFlows(u_int32_t num);
   /*
     Dequeues enqueued flows to dump them to database
    */
   u_int64_t dequeueFlowsForDump(u_int idle_flows_budget, u_int active_flows_budget);
+
+  void execProtocolDetectedCallbacks(Flow *f);
+  void execPeriodicUpdateCallbacks(Flow *f);
+  void execFlowEndCallbacks(Flow *f);
+  inline void incHostAnomalies(u_int32_t local, u_int32_t remote) {
+    tot_num_anomalies.local_hosts += local, tot_num_anomalies.remote_hosts += remote;
+  };
   /*
     Dequeues enqueued flows to execute user script callbacks.
     Budgets indicate how many flows should be dequeued (if available) to perform protocol detected, active,
     and idle callbacks.
    */
-  virtual u_int64_t dequeueFlowsForHooks(u_int protocol_detected_budget,
-					 u_int active_budget, u_int idle_budget);
-  inline void incHostAnomalies(u_int32_t local, u_int32_t remote) {
-    tot_num_anomalies.local_hosts += local, tot_num_anomalies.remote_hosts += remote;
-  }
+  virtual u_int64_t dequeueFlowsForCallbacks(u_int budget);
+  inline FlowCallbacksExecutor* getFlowCallbackExecutor() { return(flow_callbacks_executor); }
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

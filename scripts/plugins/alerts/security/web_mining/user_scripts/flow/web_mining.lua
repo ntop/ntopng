@@ -21,26 +21,11 @@ local script = {
     items = {},
   },
 
-  -- NOTE: hooks defined below
-  hooks = {},
-
   gui = {
     i18n_title = "flow_callbacks_config.web_mining",
     i18n_description = "flow_callbacks_config.web_mining_description",
   }
 }
-
--- #################################################################
-
-function script.hooks.protocolDetected(now, conf)
-   if(flow.getnDPICategoryName() == "Mining") then
-      local alert = alert_consts.alert_types.alert_web_mining.new()
-
-      alert:set_severity(conf.severity)
-
-      alert:trigger_status(50, 10, 50)
-   end
-end
 
 -- #################################################################
 

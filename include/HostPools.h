@@ -32,7 +32,7 @@ class HostPools {
  private:
   Mutex *swap_lock;
   volatile time_t latest_swap;
-  VlanAddressTree *tree, *tree_shadow;
+  VLANAddressTree *tree, *tree_shadow;
   NetworkInterface *iface;
   u_int16_t max_num_pools;
   int32_t *num_active_hosts_inline, *num_active_hosts_offline;
@@ -56,7 +56,7 @@ class HostPools {
   void reloadPoolStats();
   static void deleteStats(HostPoolStats ***hps);
 
-  void swap(VlanAddressTree *new_trees, HostPoolStats **new_stats);
+  void swap(VLANAddressTree *new_trees, HostPoolStats **new_stats);
 
   void loadFromRedis();
 

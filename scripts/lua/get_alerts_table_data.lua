@@ -15,6 +15,7 @@ local alerts_api = require "alerts_api"
 local alert_consts = require "alert_consts"
 local recording_utils = require "recording_utils"
 local user_scripts = require "user_scripts"
+local alert_exclusions = require "alert_exclusions"
 
 sendHTTPHeader('application/json')
 
@@ -121,6 +122,7 @@ for k,v in ipairs(alerts) do
 
    local column_severity = alert_consts.alertSeverityLabel(tonumber(v["alert_severity"]))
    local column_type     = alert_consts.alertTypeLabel(tonumber(v["alert_type"]))
+   local column_type_str = alert_consts.alertTypeLabel(tonumber(v["alert_type"]), true)
    local column_count    = format_utils.formatValue(tonumber(v["alert_counter"]))
    local column_score    = format_utils.formatValue(tonumber(v["score"]))
    local alert_info      = alert_utils.getAlertInfo(v)
@@ -196,6 +198,7 @@ for k,v in ipairs(alerts) do
    record["column_count"] = column_count
    record["column_score"] = column_score
    record["column_type"] = column_type
+   record["column_type_str"] = column_type_str
    record["column_type_id"] = tonumber(v["alert_type"])
    record["column_msg"] = column_msg
    record["column_entity_id"] = alert_entity
@@ -209,10 +212,11 @@ for k,v in ipairs(alerts) do
       record["column_subdir"]     = alert_info.alert_generation.subdir or nil
 
       -- Checking if the filter column needs to be skipped
-      if user_scripts.excludeScriptFilters(alert, alert_info, record["column_script_key"], record["column_subdir"]) == false then
-         record["column_filter"] = user_scripts.getFilterPreset(alert, alert_info)
-      elseif record["column_subdir"] == "flow" then
-         record["column_filter_disabled"] = true
+      if record["column_subdir"] == "flow" then
+	 -- Enabled, show the bell to disable
+	 record["column_filter"] = v["cli_addr"].."|"..v["srv_addr"]
+      else
+	 record["column_filter"] = user_scripts.getFilterPreset(alert, alert_info)
       end
    end
 
