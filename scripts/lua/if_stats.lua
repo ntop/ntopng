@@ -1334,7 +1334,7 @@ setInterval(update_icmp_tables, 5000);
 
 ]]
 elseif(page == "ARP") then
-   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/interface/get_arp_data.lua?ifid=%s", ifId)
+   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/interface/arp.lua?ifid=%s", ifId)
    local context = {
       json = json,
       template = template,

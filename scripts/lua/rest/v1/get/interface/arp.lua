@@ -52,12 +52,12 @@ else
    for k,v in pairs(stats) do
       if k == "arp.requests" then
          res[#res + 1] = {}
-         res[#res]["arp_type"] = i18n("details.arp_requests")
+         res[#res]["type"] = i18n("details.arp_requests")
          res[#res]["packets"] = v
       end
       if k == "arp.replies" then
          res[#res + 1] = {}
-         res[#res]["arp_type"] = i18n("details.arp_replies")
+         res[#res]["type"] = i18n("details.arp_replies")
          res[#res]["packets"] = v
       end
    end
