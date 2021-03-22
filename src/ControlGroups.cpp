@@ -102,7 +102,7 @@ void ControlGroups::loadConfiguration() {
 
     /* Iterathe through the members array */
     if(json_object_object_get_ex(json, "members", &json_members)) {
-      for (int i = 0; i < json_object_array_length(json_members); i++) {
+      for (u_int i = 0; i < json_object_array_length(json_members); i++) {
 	json_member = json_object_array_get_idx(json_members, i);
 
 	/* Add each country code to the set of blacklisted countries */
@@ -113,7 +113,7 @@ void ControlGroups::loadConfiguration() {
 
     /* Iterathe through the disabled alerts */
     if(json_object_object_get_ex(json, "disabled_alerts", &json_disabled_flow_alerts)) {
-      for (int i = 0; i < json_object_array_length(json_disabled_flow_alerts); i++) {
+      for (u_int i = 0; i < json_object_array_length(json_disabled_flow_alerts); i++) {
 	json_disabled_flow_alert = json_object_array_get_idx(json_disabled_flow_alerts, i);
 
 	/* Add each country code to the set of blacklisted countries */

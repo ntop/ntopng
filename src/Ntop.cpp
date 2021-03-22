@@ -685,7 +685,7 @@ void Ntop::start() {
             char buffer[EVENT_BUF_LEN];
 
             /* Consume the event */
-            read(inotify_fd, buffer, sizeof(buffer));
+            (void)read(inotify_fd, buffer, sizeof(buffer));
 
             ntop->getTrace()->traceEvent(TRACE_DEBUG, "Directory changed");
             reloadPeriodicScripts();

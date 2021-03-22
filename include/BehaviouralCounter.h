@@ -25,11 +25,13 @@
 #include "ntop_includes.h"
 
 class BehaviouralCounter {
- private:
-
+ protected:
+  bool is_anomaly;
+  u_int32_t tot_num_anomalies;
+  
  public:
   /* Number of points to be used by the algorithm in the learning phase */
-  BehaviouralCounter() { ; }
+  BehaviouralCounter() { is_anomaly = false, tot_num_anomalies = 0; }
   virtual ~BehaviouralCounter() {  };
 
   /*
@@ -47,6 +49,8 @@ class BehaviouralCounter {
   */
   virtual bool addObservation(u_int32_t value, u_int32_t *prediction,
 			      u_int32_t *lower_bound, u_int32_t *upper_bound) { return(false); };
+  inline bool anomalyFound()            { return(is_anomaly);        };
+  inline u_int32_t getTotNumAnomalies() { return(tot_num_anomalies); };
 };
 
 /* ******************************** */
@@ -76,9 +80,13 @@ class RSICounter : public BehaviouralCounter {
       *prediction = (u_int32_t)res;
     
     if(res == -1)
-      return(false); /* Too early */
-    else
-      return(((res < lower_pctg) || (res > upper_pctg)) ? true : false);
+      is_anomaly = false; /* Too early */
+    else {
+      is_anomaly = ((res < lower_pctg) || (res > upper_pctg)) ? true : false;
+      if(is_anomaly) tot_num_anomalies++;
+    }
+    
+    return(is_anomaly);
   }
 };
 
@@ -102,12 +110,15 @@ class DESCounter : public BehaviouralCounter {
     double l_forecast = forecast-confidence_band;
     double h_forecast = forecast+confidence_band;
     
-    *lower_bound = (u_int32_t)((l_forecast < 0) ? 0 : l_forecast),
-      *upper_bound = (u_int32_t)h_forecast,
+    *lower_bound = (u_int32_t)floor(((l_forecast < 0) ? 0 : l_forecast)),
+      *upper_bound = (u_int32_t)round(h_forecast+0.5),
       *prediction = (u_int32_t)forecast;
 
-    if(rc)
-      return(((value < *lower_bound) || (value > *upper_bound)) ? true : false);
+    if(rc) {
+      is_anomaly = ((value < *lower_bound) || (value > *upper_bound)) ? true : false;
+      if(is_anomaly) tot_num_anomalies++;	
+      return(is_anomaly);
+    }
     
     return(rc);
   }
@@ -135,12 +146,15 @@ class HWCounter : public BehaviouralCounter {
     bool rc = ndpi_hw_add_value(&hw, value, &forecast, &confidence_band) == 1 ? true : false;
     double l_forecast = forecast-confidence_band;
     double h_forecast = forecast+confidence_band;
-    
-    *lower_bound = (u_int32_t)((l_forecast < 0) ? 0 : l_forecast),
-      *upper_bound = (u_int32_t)h_forecast,
+
+    *lower_bound = (u_int32_t)floor(((l_forecast < 0) ? 0 : l_forecast)),
+      *upper_bound = (u_int32_t)round(h_forecast+0.5),
       *prediction = (u_int32_t)forecast;
+
+    is_anomaly = rc;
+    if(is_anomaly) tot_num_anomalies++;
     
-    return(rc);
+    return(is_anomaly);
   }
 };
 

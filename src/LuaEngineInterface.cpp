@@ -3950,7 +3950,9 @@ static int ntop_interface_release_engaged_alerts(lua_State* vm) {
 static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   u_int16_t vlan_id = 0;
+#ifdef UNUSED
   AlertType alert_type;
+#endif
   char buf[64], *host_ip;
   Host *h;
 
@@ -3960,9 +3962,11 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
   if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   get_host_vlan_info((char*)lua_tostring(vm, 1), &host_ip, &vlan_id, buf, sizeof(buf));
 
+#ifdef UNUSED
   if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
   alert_type = (AlertType)lua_tonumber(vm, 2);
-
+#endif
+  
   h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
 
   if(h)

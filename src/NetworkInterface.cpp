@@ -1135,7 +1135,10 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
   u_int8_t *ip;
   bool is_fragment = false, new_flow;
   bool pass_verdict = true;
-  u_int16_t l4_len = 0, fragment_offset = 0, fragment_extra_overhead = 0;
+  u_int16_t l4_len = 0, fragment_offset = 0;
+#ifdef IMPLEMENT_SMART_FRAGMENTS
+  u_int16_t fragment_extra_overhead = 0;
+#endif
   u_int8_t tos;
 
   *hostFlow = NULL;
