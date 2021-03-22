@@ -21,6 +21,7 @@ local lang = {
   ["applications"] = "Apps",
   ["apply"] = "Apply",
   ["arp"] = "ARP",
+  ["arp_type"] = "ARP Type",
   ["as"] = "AS",
   ["as_number"] = "AS number",
   ["asn"] = "ASN",
