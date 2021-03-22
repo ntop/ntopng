@@ -113,7 +113,7 @@ void AlertExclusions::loadConfiguration() {
   }
 
   if(ntop->getRedis()->get((char*)ALERT_EXCLUSIONS_KEY_PREFIX, value, actual_len + 1) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find %s", ALERT_EXCLUSIONS_KEY_PREFIX);
+    //ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to find %s", ALERT_EXCLUSIONS_KEY_PREFIX);
     goto out;
   }
 
