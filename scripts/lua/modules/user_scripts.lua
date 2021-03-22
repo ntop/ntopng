@@ -654,6 +654,11 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
 	 user_script.hooks[hook] = callback
       end
    end
+
+   if not user_script.hooks then
+      -- Flow user scripts no longer have hooks. They have callbacks in C++ that have replaced hooks
+      user_script.hooks = {}
+   end
 end
 
 -- ##############################################
