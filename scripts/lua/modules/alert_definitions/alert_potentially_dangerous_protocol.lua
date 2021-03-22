@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,8 +17,7 @@ local alert_potentially_dangerous_protocol = classes.class(alert)
 -- ##############################################
 
 alert_potentially_dangerous_protocol.meta = {
-   status_key = status_keys.ntopng.status_potentially_dangerous,
-   alert_key = alert_keys.ntopng.alert_potentially_dangerous_protocol,
+   alert_key = alert_keys.ntopng.alert_potentially_dangerous,
    i18n_title = "flow_details.potentially_dangerous_protocol",
    icon = "fas fa-exclamation",
 }
@@ -31,10 +29,6 @@ alert_potentially_dangerous_protocol.meta = {
 function alert_potentially_dangerous_protocol:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-      -- No params
-   }
 end
 
 -- #######################################################

@@ -1,0 +1,107 @@
+/*
+ *
+ * (C) 2013-21 - ntop.org
+ *
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
+ */
+
+#include "ntop_includes.h"
+#include "flow_callbacks_includes.h"
+
+/* ***************************************************** */
+
+bool UnexpectedServer::isAllowedHost(const IpAddress *p) {
+  if((p == NULL) || p->isBroadcastAddress())
+    return(true);
+  else {
+    u_int64_t match_ip;
+    int rc;
+    ndpi_ip_addr_t a;
+
+    memset(&a, 0, sizeof(a));
+  
+    if(p->isIPv4())
+      a.ipv4 = p->get_ipv4();
+    else
+      memcpy(&a.ipv6, p->get_ipv6(), sizeof(struct ndpi_in6_addr));
+  
+    rc = ndpi_ptree_match_addr(whitelist, &a, &match_ip);
+  
+    if((rc != 0) || (!match_ip))
+      return(false);
+    else
+      return(true);
+  }
+}
+
+/* ***************************************************** */
+
+bool UnexpectedServer::loadConfiguration(json_object *config) {
+  FlowCallback::loadConfiguration(config); /* Parse parameters in common */
+  json_object *countries_json, *ip_json;
+
+  /*
+    Format:
+
+    { "items": [ "192.168.0.1", "172.16.0.1" ], "severity": ...
+  */
+
+  if(json_object_object_get_ex(config, "items", &countries_json)) {
+    for(int i = 0; i < json_object_array_length(countries_json); i++) {
+      IpAddress ip;
+      u_int64_t naddr = 1;
+      
+      ip_json = json_object_array_get_idx(countries_json, i);
+
+      ip.set(json_object_get_string(ip_json));
+
+      if(!ip.isEmpty()) {
+	int rc;
+	ndpi_ip_addr_t a;
+
+	memset(&a, 0, sizeof(a));
+	
+	if(ip.isIPv4()) {
+	  a.ipv4 = ip.get_ipv4();
+	
+	  rc = ndpi_ptree_insert(whitelist, &a, 32, naddr);
+	} else {
+	  memcpy(&a.ipv6, ip.get_ipv6(), sizeof(struct ndpi_in6_addr));
+	
+	  rc = ndpi_ptree_insert(whitelist, &a, 128, naddr);
+	}
+      }
+    }
+  }
+
+  return(true);
+}
+
+/* ***************************************************** */
+
+void UnexpectedServer::protocolDetected(Flow *f) {  
+  if(!isAllowedProto(f)) return;
+  
+  if(!isAllowedHost(getServerIP(f))) {
+    u_int16_t c_score = 100, s_score = 100;
+    
+    f->triggerAlertAsync(getAlertType(), c_score, s_score);   
+  }
+}
+
+/* ***************************************************** */
+

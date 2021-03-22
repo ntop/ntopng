@@ -44,17 +44,17 @@ Flow::Flow(NetworkInterface *_iface,
   cli_ip_addr = srv_ip_addr = NULL;
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
   srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
-  alert_status_info = alert_status_info_shadow = NULL;
-  alert_type = alert_none;
-  alert_level = alert_level_none;
-  alerted_status = status_normal, alerted_status_score = 0;
+  predominant_alert_level = alert_level_none;
+  predominant_alert.id = alert_normal, predominant_alert.category = alert_category_other;
+  predominant_alert_score = 0;
+  alert_stats_initialized = false;
   ndpi_flow_risk_bitmap = 0;
   detection_completed = false;
   extra_dissection_completed = false;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   doNotExpireBefore = iface->getTimeLastPktRcvd() + DONT_NOT_EXPIRE_BEFORE_SEC;
   periodic_update_ctr = 0, cli2srv_tos = srv2cli_tos = 0, iec104 = NULL;
-  zero_window_alert_triggered = src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
+  src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = false;
 
 #ifdef HAVE_NEDGE
@@ -78,17 +78,21 @@ Flow::Flow(NetworkInterface *_iface,
   bytes_thpt_srv2cli  = 0, goodput_bytes_thpt_srv2cli = 0;
   pkts_thpt_cli2srv = 0, pkts_thpt_srv2cli = 0;
   top_bytes_thpt = 0, top_goodput_bytes_thpt = 0, applLatencyMsec = 0;
-  external_alert = NULL;
+  external_alert.json = NULL;
+  external_alert.source = NULL;
+  external_alert.severity_id = alert_level_none;
   trigger_immediate_periodic_update = false;
-  current_flow_lua_call = flow_lua_call_protocol_detected; /* Lua calls start from protocoldetected */
-  next_lua_call_periodic_update = 0;
+  next_call_periodic_update = 0;
 
   last_db_dump.partial = NULL;
   last_db_dump.first_seen = last_db_dump.last_seen = 0;
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
-  memset(&cli_host_score, 0, sizeof(cli_host_score)), memset(&srv_host_score, 0, sizeof(srv_host_score)), flow_score = 0;
+  flow_score = 0;
+
+  /* Set the flow callbacks status to zero */
+  memset(&fcb_status, 0, sizeof(fcb_status));
 
   PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
@@ -200,7 +204,7 @@ Flow::Flow(NetworkInterface *_iface,
   case IPPROTO_ICMP:
     ndpiDetectedProtocol.app_protocol = NDPI_PROTOCOL_IP_ICMP,
       ndpiDetectedProtocol.master_protocol = NDPI_PROTOCOL_UNKNOWN;
-
+    
     /* Use nDPI to check potential flow risks */
     if(iface->is_ndpi_enabled()) allocDPIMemory();
     set_hash_entry_state_flow_notyetdetected();
@@ -251,7 +255,7 @@ Flow::~Flow() {
 #ifdef ALERTED_FLOWS_DEBUG
   if(iface_alert_inc && !iface_alert_dec) {
     char buf[256];
-    
+
     ntop->getTrace()->traceEvent(TRACE_WARNING, "[MISMATCH][inc but not dec][alerted: %u] %s",
 				 isFlowAlerted() ? 1 : 0, print(buf, sizeof(buf)));
   }
@@ -265,7 +269,7 @@ Flow::~Flow() {
 
     It is fundamental to only call
    */
-  Host *cli_u = unsafeGetClient(), *srv_u = unsafeGetServer();
+  Host *cli_u = getViewSharedClient(), *srv_u = getViewSharedServer();
 
   if(cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
@@ -273,9 +277,18 @@ Flow::~Flow() {
 
     for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
       ScoreCategory score_category = (ScoreCategory)i;
+      u_int16_t score_val = stats.get_cli_score(score_category);
 
-      if(cli_host_score[score_category])
-	cli_u->decScoreValue(cli_host_score[score_category], score_category, true  /* as client */);
+      if(getViewInterfaceFlowStats()) {
+	/*
+	  If this flow belong to a view, the actual score value is the one registered
+	  in the partializable stats of the view.
+	 */
+	score_val = getViewInterfaceFlowStats()->getPartializableStats()->get_cli_score(score_category);
+      }
+
+      if(score_val)
+	cli_u->decScoreValue(score_val, score_category, true  /* as client */);
     }
   }
 
@@ -288,9 +301,18 @@ Flow::~Flow() {
 
     for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
       ScoreCategory score_category = (ScoreCategory)i;
+      u_int16_t score_val = stats.get_srv_score(score_category);
 
-      if(srv_host_score[score_category])
-	srv_u->decScoreValue(srv_host_score[score_category], score_category, false /* as server */);
+      if(getViewInterfaceFlowStats()) {
+	/*
+	  If this flow belong to a view, the actual score value is the one registered
+	  in the partializable stats of the view.
+	 */
+	score_val = getViewInterfaceFlowStats()->getPartializableStats()->get_srv_score(score_category);
+      }
+
+      if(score_val)
+	srv_u->decScoreValue(score_val, score_category, false /* as server */);
     }
   }
 
@@ -301,9 +323,9 @@ Flow::~Flow() {
     Perform other operations to decrease counters increased by flow user script hooks (we're in the same thread)
    */
   if(isFlowAlerted()) {
-    iface->decNumAlertedFlows(this, alert_level);
-    if(cli_u) cli_u->decNumAlertedFlows(true /* As client */);
-    if(srv_u) srv_u->decNumAlertedFlows(false /* As server */);
+    iface->decNumAlertedFlows(this, predominant_alert_level);
+    if(get_cli_host()) get_cli_host()->decNumAlertedFlows(true /* As client */);
+    if(get_srv_host()) get_srv_host()->decNumAlertedFlows(false /* As server */);
 
 #ifdef ALERTED_FLOWS_DEBUG
     iface_alert_dec = true;
@@ -373,9 +395,8 @@ Flow::~Flow() {
 
   freeDPIMemory();
   if(icmp_info) delete(icmp_info);
-  if(external_alert) free(external_alert);
-  if(alert_status_info) free(alert_status_info);
-  if(alert_status_info_shadow) free(alert_status_info_shadow);
+  if(external_alert.json) json_object_put(external_alert.json);
+  if(external_alert.source) free(external_alert.source);
 }
 
 /* *************************************** */
@@ -686,7 +707,7 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 			 u_int8_t *payload, u_int16_t payload_len) {
   bool detected;
   ndpi_protocol proto_id;
-  
+
   /* Note: do not call endProtocolDissection before ndpi_detection_process_packet. In case of
    * early giveup (e.g. sampled traffic), nDPI should process at least one packet in order to
    * be able to guess the protocol. */
@@ -695,9 +716,9 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 					   ip_packet, ip_len, packet_time,
 					   (struct ndpi_id_struct*) cli_id,
 					   (struct ndpi_id_struct*) srv_id);
-  
+
   detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
-  
+
   if(!detected && hasDissectedTooManyPackets()) {
     endProtocolDissection();
     return;
@@ -721,7 +742,7 @@ void Flow::processPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t pa
 
   if(detection_completed && (!needsExtraDissection())) {
     setExtraDissectionCompleted();
-    updateProtocol(proto_id);    
+    updateProtocol(proto_id);
   }
 }
 
@@ -914,11 +935,11 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
 
   if((ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
      || (/*
-	   Update the protocols when adding a subprotocol, not when things 
+	   Update the protocols when adding a subprotocol, not when things
 	   are totally different
 	 */
 	 (ndpiDetectedProtocol.master_protocol == ndpiDetectedProtocol.app_protocol)
-	 && (ndpiDetectedProtocol.app_protocol != proto_id.app_protocol)))	 
+	 && (ndpiDetectedProtocol.app_protocol != proto_id.app_protocol)))
     ndpiDetectedProtocol.app_protocol = proto_id.app_protocol;
 
   /* NOTE: only overwrite the category if it was not set.
@@ -1330,7 +1351,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
   if(cli_host && srv_host) {
     bool cli_and_srv_in_same_subnet = false;
     bool cli_and_srv_in_same_country = false;
-    Vlan *vl;
+    VLAN *vl;
     int16_t cli_network_id = cli_host->get_local_network_id();
     int16_t srv_network_id = srv_host->get_local_network_id();
     int16_t stats_protocol = getStatsProtocol(); /* The protocol (among ndpi master_ and app_) that is chosen to increase stats */
@@ -1339,12 +1360,12 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     if(cli_network_id >= 0 && (cli_network_id == srv_network_id))
       cli_and_srv_in_same_subnet = true;
 
-    if(iface && (vl = iface->getVlan(vlanId, false, false /* NOT an inline call */))) {
+    if(iface && (vl = iface->getVLAN(vlanId, false, false /* NOT an inline call */))) {
       /* Note: source and destination hosts have, by definition, the same VLAN so the increase is done only one time. */
       /* Note: vl will never be null as we're in a flow with that vlan. Hence, it is guaranteed that at least
 	 two hosts exists for that vlan and that any purge attempt will be prevented. */
 #ifdef VLAN_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing Vlan %u stats", vlanId);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing VLAN %u stats", vlanId);
 #endif
       vl->incStats(tv->tv_sec, stats_protocol,
 		   partial->get_cli2srv_packets(), partial->get_cli2srv_bytes(),
@@ -1755,48 +1776,6 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
 /* *************************************** */
 
-void Flow::hookProtocolDetectedCheck(time_t t) {
-  /*
-    Enqueue the flow
-   */
-  getInterface()->hookEnqueue(t, this);
-}
-
-/* *************************************** */
-
-void Flow::hookPeriodicUpdateCheck(time_t t) {
-  if(get_state() != hash_entry_state_active)
-    return; /* periodicUpdate hook is only for active flows */
-
-  /*
-    Enqueue is conditional here as it is only performed every 5 minutes when the flow is active.
-   */
-  if(next_lua_call_periodic_update == 0)
-    next_lua_call_periodic_update = t + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS; /* Set the time of the new periodic call */
-
-  if(trigger_immediate_periodic_update ||
-     next_lua_call_periodic_update <= t) {
-    if(getInterface()->hookEnqueue(t, this)) {
-      /*
-	If the enqueue was successfull, we can update the time for the next periodic call update
-       */
-      next_lua_call_periodic_update = 0; /* Reset */
-      if(trigger_immediate_periodic_update) trigger_immediate_periodic_update = false; /* Reset if necessary */
-    }
-  }
-}
-
-/* *************************************** */
-
-void Flow::hookFlowEndCheck(time_t t) {
-  /*
-    Enqueue the flow
-  */
-  getInterface()->hookEnqueue(t, this);
-}
-
-/* *************************************** */
-
 void Flow::dumpCheck(time_t t, bool last_dump_before_free) {
   if((ntop->getPrefs()->is_flows_dump_enabled()
 #ifndef HAVE_NEDGE
@@ -1964,10 +1943,11 @@ void Flow::luaScore(lua_State* vm) {
 
   lua_newtable(vm);
   for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++) {
+    ScoreCategory score_category = (ScoreCategory)i;
     char tmp[8];
 
     snprintf(tmp, sizeof(tmp), "%u", i);
-    lua_push_int32_table_entry(vm, tmp, cli_host_score[i] + srv_host_score[i]);
+    lua_push_int32_table_entry(vm, tmp, stats.get_cli_score(score_category) + stats.get_srv_score(score_category));
   }
 
   lua_pushstring(vm, "host_categories_total");
@@ -1979,13 +1959,17 @@ void Flow::luaScore(lua_State* vm) {
   lua_newtable(vm);
 
   tot = 0;
-  for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++)
-    tot += cli_host_score[i];
+  for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++) {
+    ScoreCategory score_category = (ScoreCategory)i;
+    tot += stats.get_cli_score(score_category);
+  }
   lua_push_int32_table_entry(vm, "client_score", tot);
 
   tot = 0;
-  for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++)
-    tot += srv_host_score[i];
+  for(u_int i=0; i<MAX_NUM_SCORE_CATEGORIES; i++) {
+    ScoreCategory score_category = (ScoreCategory)i;
+    tot += stats.get_srv_score(score_category);
+  }
   lua_push_int32_table_entry(vm, "server_score", tot);
 
   lua_pushstring(vm, "host_score_total");
@@ -2097,7 +2081,7 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     if(!mask_flow) {
       char buf[64];
       char *info = getFlowInfo(buf, sizeof(buf));
-      
+
       if(host_server_name) lua_push_str_table_entry(vm, "host_server_name", host_server_name);
       if(bt_hash)          lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
       lua_push_str_table_entry(vm, "info", info ? info : (char*)"");
@@ -2198,9 +2182,6 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
 	lua_get_geoloc(vm, false /* Server */, false /* Coordinates */, true /* Country and City */);
       }
     }
-
-    if(alert_status_info)
-      lua_push_str_table_entry(vm, "status_info", alert_status_info);
 
     lua_get_risk_info(vm, true);
     lua_entropy(vm);
@@ -2405,7 +2386,7 @@ void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
     ndpi_stats->incFlowsStats(detected_protocol.master_protocol);
   }
 
-  status_stats->incStats(getStatusBitmap(), protocol, alert_level, getCli2SrvDSCP(), getSrv2CliDSCP());
+  status_stats->incStats(getAlertBitmap(), protocol, predominant_alert_level, getCli2SrvDSCP(), getSrv2CliDSCP());
 }
 
 /* *************************************** */
@@ -2416,7 +2397,7 @@ char* Flow::serialize(bool use_labels) {
 
   ntop->getPrefs()->set_json_symbolic_labels_format(use_labels);
 
-  my_object = flow2json();
+  my_object = flow2JSON();
 
   if(my_object != NULL) {
     /* JSON string */
@@ -2433,7 +2414,7 @@ char* Flow::serialize(bool use_labels) {
 
 /* *************************************** */
 
-json_object* Flow::flow2json() {
+json_object* Flow::flow2JSON() {
   json_object *my_object;
   char buf[64], jsonbuf[64], *c;
   time_t t;
@@ -2643,7 +2624,7 @@ json_object* Flow::flow2json() {
   if(ntop->getPrefs()->do_dump_extended_json()) {
     const char *info;
     char buf[64];
-    
+
     /* Add items usually dumped on nIndex (useful for debugging) */
 
     json_object_object_add(my_object, "FLOW_TIME", json_object_new_int(last_seen));
@@ -2661,7 +2642,7 @@ json_object* Flow::flow2json() {
     }
 
     info = getFlowInfo(buf, sizeof(buf));
-    
+
     if(info)
       json_object_object_add(my_object, "INFO", json_object_new_string(info));
 
@@ -2670,7 +2651,7 @@ json_object* Flow::flow2json() {
 #endif
 
     json_object_object_add(my_object, "INTERFACE_ID", json_object_new_int(iface->get_id()));
-    json_object_object_add(my_object, "STATUS", json_object_new_int((u_int8_t)getAlertedStatus()));
+    json_object_object_add(my_object, "STATUS", json_object_new_int((u_int8_t)getPredominantAlert().id));
   }
 
   return(my_object);
@@ -2712,15 +2693,13 @@ u_char* Flow::getCommunityId(u_char *community_id, u_int community_id_len) {
 
 /* Create a JSON in the alerts format
  * Using the nDPI json serializer instead of jsonc for faster speed (~2.5x) */
-void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
-  ndpi_serializer json_info;
+void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
+  ndpi_serializer *alert_json_serializer = NULL;
+  char *alert_json = NULL;
+  u_int32_t alert_json_len;
   char buf[64];
   u_char community_id[200];
-  ndpi_init_serializer(&json_info, ndpi_serialization_format_json);
-
-  /* AlertsManager::storeFlowAlert requires a string */
-  ndpi_serialize_string_string(s, "alert_json", alert_status_info ? alert_status_info : "");
-  ndpi_term_serializer(&json_info);
+  time_t now = time(NULL);
 
   ndpi_serialize_string_int32(s, "ifid", iface->get_id());
   ndpi_serialize_string_string(s, "action", "store");
@@ -2729,9 +2708,8 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
 
   ndpi_serialize_string_boolean(s, "is_flow_alert", true);
   ndpi_serialize_string_int64(s, "alert_tstamp", now);
-  ndpi_serialize_string_int64(s, "flow_status", alerted_status);
-  ndpi_serialize_string_int32(s, "alert_type", alert_type);
-  ndpi_serialize_string_int32(s, "alert_severity", alert_level);
+  ndpi_serialize_string_int64(s, "alert_type", alert->getAlertType().id);
+  ndpi_serialize_string_int32(s, "alert_severity", alert->getSeverity());
 
   // alert_entity MUST be in sync with alert_consts.lua flow alert entity
   ndpi_serialize_string_int32(s, "alert_entity", alert_entity_flow);
@@ -2785,6 +2763,18 @@ void Flow::flow2alertJson(ndpi_serializer *s, time_t now) {
 
   ndpi_serialize_string_string(s, "community_id",
 			       (char*)getCommunityId(community_id, sizeof(community_id)));
+
+   /* Serialize alert JSON */
+
+  alert_json_serializer = alert->getSerializedAlert();
+
+  if(alert_json_serializer)
+    alert_json = ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
+
+  ndpi_serialize_string_string(s, "alert_json", alert_json ? alert_json : "");
+
+  if (alert_json_serializer)
+    ndpi_term_serializer(alert_json_serializer);
 }
 
 /* *************************************** */
@@ -2842,10 +2832,12 @@ void Flow::housekeep(time_t t) {
 	endProtocolDissection();
     }
     break;
+
   case hash_entry_state_flow_protocoldetected:
     if(!is_swap_requested()) /* The flow will be swapped, hook execution will occur on the swapped flow. */
-      hookProtocolDetectedCheck(t);
+      iface->execProtocolDetectedCallbacks(this);
     break;
+
   case hash_entry_state_active:
     /*
       The hook for periodicUpdate is checked when increasing flow stats inline
@@ -2854,15 +2846,18 @@ void Flow::housekeep(time_t t) {
      */
     dumpCheck(t, false /* NOT the last dump before delete */);
     break;
+
   case hash_entry_state_idle:
     if(swap_requested && !swap_done) /* Swap requested but never performed (no more packets seen) */
-      hookProtocolDetectedCheck(t);
+      iface->execProtocolDetectedCallbacks(this);
 
     if(!is_swap_requested() /* Swap not requested */
        || (is_swap_requested() && !is_swap_done())) /* Or requested but never performed (no more packets seen) */
-      hookFlowEndCheck(t);
+      iface->execFlowEndCallbacks(this);
+
     dumpCheck(t, true /* LAST dump before delete */);
     break;
+
   default:
     break;
   }
@@ -2987,10 +2982,75 @@ bool Flow::isTLSProto() const {
 
 /* *************************************** */
 
+void Flow::callFlowUpdate(time_t t) {
+  if(get_state() != hash_entry_state_active)
+    return;
+
+  /*
+    Flow update is conditional here as it is only performed every 5 minutes when the flow is active.
+  */
+  if(next_call_periodic_update == 0)
+    next_call_periodic_update = t + FLOW_LUA_CALL_PERIODIC_UPDATE_SECS; /* Set the time of the new periodic call */
+
+  if(trigger_immediate_periodic_update || next_call_periodic_update <= t) {
+    iface->execPeriodicUpdateCallbacks(this);
+    next_call_periodic_update = 0; /* Reset */
+
+    if(trigger_immediate_periodic_update)
+      trigger_immediate_periodic_update = false; /* Reset if necessary */
+  }
+}
+
+/* *************************************** */
+
+/* Enqueue alert to recipients */
+bool Flow::enqueueAlert(FlowAlert *alert) {
+  bool first_alert = isFlowAlerted();
+  bool rv = false;
+  u_int32_t buflen;
+  AlertFifoItem notification;
+  ndpi_serializer flow_json;
+  const char *flow_str;
+
+  updateAlertsStats(alert);
+
+  ndpi_init_serializer(&flow_json, ndpi_serialization_format_json);
+
+  /* Prepare the JSON, including a JSON specific of this FlowAlertType */
+  alert2JSON(alert, &flow_json);
+
+  if(!first_alert)
+    ndpi_serialize_string_boolean(&flow_json, "replace_alert", true);
+
+  flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
+
+  /* TODO: read all the recipients responsible for flows, and enqueue only to them */
+  /* Currenty, we forcefully enqueue only to the builtin sqlite */
+    
+  notification.alert = (char*)flow_str;
+  notification.alert_severity = alert->getSeverity();
+  notification.alert_category = alert->getAlertType().category;
+
+  rv = ntop->recipients_enqueue(notification.alert_severity >= alert_level_error ? recipient_notification_priority_high : recipient_notification_priority_low,
+				&notification,
+				true /* Flow recipients only */);
+
+  if(!rv)
+    getInterface()->incNumDroppedAlerts(1);
+
+  ndpi_term_serializer(&flow_json);
+
+  delete alert;
+
+  return rv;
+}
+
+/* *************************************** */
+
 void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
 		    u_int8_t *payload, u_int payload_len,
                     u_int8_t l4_proto, u_int8_t is_fragment,
-		    u_int16_t tcp_flags, const struct timeval *when,		    
+		    u_int16_t tcp_flags, const struct timeval *when,
 		    u_int16_t fragment_extra_overhead) {
   bool update_iat = true;
 
@@ -3002,11 +3062,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len,
     stats.incStats(cli2srv_direction, 1, fragment_extra_overhead, fragment_extra_overhead);
   }
 
-  /*
-    Check if it is time to enqueue the flow for periodicUpdate hook execution.
-    NOTE: Must be in the same thread of Flow::housekeep()
-  */
-  hookPeriodicUpdateCheck(when->tv_sec);
+  callFlowUpdate((when->tv_sec));
 
   /*
     Do not update IAT during initial or final 3WH as we want to compute
@@ -3098,12 +3154,7 @@ void Flow::addFlowStats(bool new_flow,
 #endif
 
   updateSeen(last_seen);
-
-  /*
-    Check if it is time to enqueue the flow for periodicUpdate hook execution
-    NOTE: Must be in the same thread of Flow::housekeep()
-  */
-  hookPeriodicUpdateCheck(last_seen);
+  callFlowUpdate(last_seen);
 
   if(cli2srv_direction) {
     stats.incStats(true, in_pkts, in_bytes, in_goodput_bytes);
@@ -3121,7 +3172,7 @@ void Flow::addFlowStats(bool new_flow,
     having flows with seemingly zero throughput.
   */
   if(!new_flow && thp_delta_time <= 5) {
-    /* 
+    /*
        If here, delta time is too small to enable meaningful throughput calculations
        using only bytes/packets delta. In this case, totals are used and averaged
        using the overall flow lifetime.
@@ -3323,7 +3374,7 @@ char* Flow::getFlowInfo(char *buf, u_int buf_len) {
 
   if(iec104)
     return(iec104->getFlowInfo(buf, buf_len));
-      
+
   if(!isMaskedFlow()) {
     if(isDNS() && protos.dns.last_query)
       return protos.dns.last_query;
@@ -4550,14 +4601,14 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
 
 void Flow::lua_get_status(lua_State* vm) const {
   lua_push_bool_table_entry(vm, "flow.idle", idle());
-  lua_push_uint64_table_entry(vm, "flow.status", getAlertedStatus());
+  lua_push_uint64_table_entry(vm, "flow.status", getPredominantAlert().id);
 
-  status_map.lua(vm, "status_map");
+  alert_map.lua(vm, "alert_map");
 
   if(isFlowAlerted()) {
     lua_push_bool_table_entry(vm, "flow.alerted", true);
-    lua_push_uint64_table_entry(vm, "alerted_status", getAlertedStatus());
-    lua_push_uint64_table_entry(vm, "alerted_status_score", getAlertedStatusScore());
+    lua_push_uint64_table_entry(vm, "predominant_alert", getPredominantAlert().id);
+    lua_push_uint64_table_entry(vm, "predominant_alert_score", getPredominantAlertScore());
     lua_push_uint64_table_entry(vm, "alerted_severity", getAlertedSeverity());
   }
 }
@@ -4767,7 +4818,7 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
 void Flow::lua_get_min_info(lua_State *vm) {
   char buf[64];
   char *info = getFlowInfo(buf, sizeof(buf));
-  
+
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "cli.ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
@@ -4794,6 +4845,42 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "cli2srv.packets", get_packets_cli2srv());
   lua_push_uint64_table_entry(vm, "srv2cli.packets", get_packets_srv2cli());
   if(info) lua_push_str_table_entry(vm, "info", info);
+}
+
+/* ***************************************************** */
+
+/* 
+ * Get minimal flow information.
+ * NOTE: this is intended to be called only from flow user scripts
+ */
+void Flow::getInfo(ndpi_serializer *serializer) {
+  char buf[64];
+  char *info = getFlowInfo(buf, sizeof(buf));
+
+  ndpi_serialize_string_string(serializer, "cli.ip", get_cli_ip_addr()->print(buf, sizeof(buf)));
+  ndpi_serialize_string_string(serializer, "srv.ip", get_srv_ip_addr()->print(buf, sizeof(buf)));
+
+  if(get_cli_host() && get_cli_host()->isProtocolServer())
+    ndpi_serialize_string_boolean(serializer, "cli.protocol_server", true);
+  else if(get_srv_host() && get_srv_host()->isProtocolServer())
+    ndpi_serialize_string_boolean(serializer, "srv.protocol_server", true);
+
+  ndpi_serialize_string_int32(serializer, "cli.port", get_cli_port());
+  ndpi_serialize_string_int32(serializer, "srv.port", get_srv_port());
+  ndpi_serialize_string_boolean(serializer, "cli.localhost", cli_host ? cli_host->isLocalHost() : false);
+  ndpi_serialize_string_boolean(serializer, "srv.localhost", srv_host ? srv_host->isLocalHost() : false);
+  ndpi_serialize_string_int32(serializer, "duration", get_duration());
+  ndpi_serialize_string_string(serializer, "proto.l4", get_protocol_name());
+  ndpi_serialize_string_string(serializer, "proto.ndpi", get_detected_protocol_name(buf, sizeof(buf)));
+  ndpi_serialize_string_string(serializer, "proto.ndpi_app", ndpi_get_proto_name(iface->get_ndpi_struct(), ndpiDetectedProtocol.app_protocol));
+  ndpi_serialize_string_string(serializer, "proto.ndpi_cat", get_protocol_category_name());
+  ndpi_serialize_string_uint64(serializer, "proto.ndpi_cat_id", get_protocol_category());
+  ndpi_serialize_string_string(serializer, "proto.ndpi_breed", get_protocol_breed_name());
+  ndpi_serialize_string_uint64(serializer, "cli2srv.bytes", get_bytes_cli2srv());
+  ndpi_serialize_string_uint64(serializer, "srv2cli.bytes", get_bytes_srv2cli());
+  ndpi_serialize_string_uint64(serializer, "cli2srv.packets", get_packets_cli2srv());
+  ndpi_serialize_string_uint64(serializer, "srv2cli.packets", get_packets_srv2cli());
+  if(info) ndpi_serialize_string_string(serializer, "info", info);
 }
 
 /* ***************************************************** */
@@ -4864,19 +4951,20 @@ void Flow::lua_device_protocol_allowed_info(lua_State *vm) {
 
   cli_ps = cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true);
   srv_ps = srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false);
-  cli_allowed = (cli_ps == device_proto_allowed);
-  srv_allowed = (srv_ps == device_proto_allowed);
+
+  cli_allowed = isCliDeviceAllowedProtocol();
+  srv_allowed = isSrvDeviceAllowedProtocol();
 
   lua_push_int32_table_entry(vm, "cli.devtype", cli_host->getMac() ? cli_host->getMac()->getDeviceType() : device_unknown);
   lua_push_int32_table_entry(vm, "srv.devtype", srv_host->getMac() ? srv_host->getMac()->getDeviceType() : device_unknown);
 
   lua_push_bool_table_entry(vm, "cli.allowed", cli_allowed);
   if(!cli_allowed)
-    lua_push_int32_table_entry(vm, "cli.disallowed_proto", (cli_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol);
+    lua_push_int32_table_entry(vm, "cli.disallowed_proto", getCliDeviceDisallowedProtocol());
 
   lua_push_bool_table_entry(vm, "srv.allowed", srv_allowed);
   if(!srv_allowed)
-    lua_push_int32_table_entry(vm, "srv.disallowed_proto", (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol : ndpiDetectedProtocol.master_protocol);
+    lua_push_int32_table_entry(vm, "srv.disallowed_proto", getSrvDeviceDisallowedProtocol());
 }
 
 /* ***************************************************** */
@@ -4943,6 +5031,56 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
 
 /* ***************************************************** */
 
+void Flow::getTLSInfo(ndpi_serializer *serializer) const {
+  if(isTLSProto()) {
+    ndpi_serialize_string_int32(serializer, "protos.tls_version", protos.tls.tls_version);
+
+    if(protos.tls.server_names)
+      ndpi_serialize_string_string(serializer, "protos.tls.server_names", protos.tls.server_names);
+
+    if(protos.tls.client_alpn)
+      ndpi_serialize_string_string(serializer, "protos.tls.client_alpn", protos.tls.client_alpn);
+
+    if(protos.tls.client_tls_supported_versions)
+      ndpi_serialize_string_string(serializer, "protos.tls.client_tls_supported_versions", protos.tls.client_tls_supported_versions);
+
+    if(protos.tls.issuerDN)
+      ndpi_serialize_string_string(serializer, "protos.tls.issuerDN", protos.tls.issuerDN);
+
+    if(protos.tls.subjectDN)
+      ndpi_serialize_string_string(serializer, "protos.tls.subjectDN", protos.tls.subjectDN);
+
+    if(protos.tls.client_requested_server_name)
+      ndpi_serialize_string_string(serializer, "protos.tls.client_requested_server_name",
+			           protos.tls.client_requested_server_name);
+
+    if(protos.tls.notBefore && protos.tls.notAfter) {
+      ndpi_serialize_string_int32(serializer, "protos.tls.notBefore", protos.tls.notBefore);
+      ndpi_serialize_string_int32(serializer, "protos.tls.notAfter", protos.tls.notAfter);
+    }
+
+    if(protos.tls.ja3.client_hash) {
+      ndpi_serialize_string_string(serializer, "protos.tls.ja3.client_hash", protos.tls.ja3.client_hash);
+
+      if(has_malicious_cli_signature)
+	ndpi_serialize_string_boolean(serializer, "protos.tls.ja3.client_malicious", true);
+    }
+
+    if(protos.tls.ja3.server_hash) {
+      ndpi_serialize_string_string(serializer, "protos.tls.ja3.server_hash", protos.tls.ja3.server_hash);
+      ndpi_serialize_string_string(serializer, "protos.tls.ja3.server_unsafe_cipher",
+			           cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher));
+      ndpi_serialize_string_int32(serializer, "protos.tls.ja3.server_cipher",
+				  protos.tls.ja3.server_cipher);
+
+      if(has_malicious_srv_signature)
+	ndpi_serialize_string_boolean(serializer, "protos.tls.ja3.server_malicious", true);
+    }
+  }
+}
+
+/* ***************************************************** */
+
 void Flow::lua_get_ssh_info(lua_State *vm) const {
   if(isSSH()) {
     if(protos.ssh.client_signature) lua_push_str_table_entry(vm, "protos.ssh.client_signature", protos.ssh.client_signature);
@@ -4965,6 +5103,21 @@ void Flow::lua_get_http_info(lua_State *vm) const {
 
     if(host_server_name)
       lua_push_str_table_entry(vm, "protos.http.server_name", host_server_name);
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::getHTTPInfo(ndpi_serializer *serializer) const {
+  if(isHTTP()) {
+    if(protos.http.last_url) {
+      ndpi_serialize_string_string(serializer, "protos.http.last_method", ndpi_http_method2str(protos.http.last_method));
+      ndpi_serialize_string_uint64(serializer, "protos.http.last_return_code", protos.http.last_return_code);
+      ndpi_serialize_string_string(serializer, "protos.http.last_url", protos.http.last_url);
+    }
+
+    if(host_server_name)
+      ndpi_serialize_string_string(serializer, "protos.http.server_name", host_server_name);
   }
 }
 
@@ -5054,93 +5207,6 @@ void Flow::lua_get_geoloc(lua_State *vm, bool client, bool coords, bool country_
 
 /* ***************************************************** */
 
-FlowLuaCallExecStatus Flow::performLuaCall(FlowLuaCall flow_lua_call, FlowAlertCheckLuaEngine *acle) {
-  const char *lua_call_fn_name = NULL;
-
-  if(flow_lua_call != flow_lua_call_idle
-     && ntop->getGlobals()->isShutdownRequested())
-    return flow_lua_call_exec_status_not_executed_shutdown_in_progress; /* Only flow_lua_call_idle go through during a shutdown */
-
-  if(!acle)
-    return flow_lua_call_exec_status_not_executed_vm_not_allocated;
-
-  lua_State *L = acle->getState();
-  acle->setFlow(this);
-
-  switch(flow_lua_call) {
-  case flow_lua_call_protocol_detected:
-    /* Check if the call is actually pending, before execution */
-    if(current_flow_lua_call > flow_lua_call_protocol_detected) /* Periodic update or idle already executed */
-      return flow_lua_call_exec_status_not_executed_not_pending;
-    else
-      current_flow_lua_call = flow_lua_call_protocol_detected;  /* Mark the current call to protocol detected */
-
-    lua_call_fn_name = FLOW_LUA_CALL_PROTOCOL_DETECTED_FN_NAME;
-    break;
-  case flow_lua_call_periodic_update:
-    /* Check if the call is actually pending, before execution */
-    if(current_flow_lua_call > flow_lua_call_periodic_update) /* Idle call already executed */
-      return flow_lua_call_exec_status_not_executed_not_pending;
-    else
-      current_flow_lua_call = flow_lua_call_periodic_update;  /* Mark the current call to periodic update */
-
-    lua_call_fn_name = FLOW_LUA_CALL_PERIODIC_UPDATE_FN_NAME;
-    break;
-  case flow_lua_call_idle:
-    /* Check if the call is actually pending, before execution */
-    if(current_flow_lua_call > flow_lua_call_idle) /* Idle call already executed, should not occur */
-      return flow_lua_call_exec_status_not_executed_not_pending;
-    else
-      current_flow_lua_call = flow_lua_call_idle;  /* Mark the current call to idle */
-
-    lua_call_fn_name = FLOW_LUA_CALL_IDLE_FN_NAME;
-    break;
-  default:
-    return flow_lua_call_exec_status_not_executed_unknown_call;
-  }
-
-  int num_args = 3;
-
-  /* Call the function */
-  lua_getglobal(L, lua_call_fn_name); /* Called function */
-  lua_pushinteger(L, protocol);
-  lua_pushinteger(L, ndpiDetectedProtocol.master_protocol);
-  lua_pushinteger(L, ndpiDetectedProtocol.app_protocol);
-
-  if(flow_lua_call == flow_lua_call_periodic_update) {
-    /* pass the periodic_update counter as the second argument,
-     * needed to determine which periodic scripts to call. */
-    lua_pushinteger(L, periodic_update_ctr++);
-    num_args++;
-  }
-
-  if(acle->pcall(num_args,
-		 1 /* 1 result, true if the call has been executed
-		      or false if there was not time left,
-		      depending on the deadline passed as argument */)) {
-    bool executed = lua_toboolean(acle->getState(), -1);
-    lua_pop(acle->getState(), -1);
-
-    if(executed) {
-      acle->incSuccessfulPcalls(flow_lua_call);
-      return flow_lua_call_exec_status_ok;
-    } else {
-      switch(get_state()) {
-      case hash_entry_state_idle:
-	acle->incSkippedPcalls(flow_lua_call);
-	break;
-      default:
-	acle->incPendingPcalls(flow_lua_call);
-	break;
-      }
-      return(flow_lua_call_exec_status_not_executed_no_time_left);
-    }
-  } else
-    return(flow_lua_call_exec_status_not_executed_script_failure);
-}
-
-/* ***************************************************** */
-
 bool Flow::hasDissectedTooManyPackets() {
   u_int32_t num_packets;
 
@@ -5165,125 +5231,144 @@ bool Flow::hasDissectedTooManyPackets() {
 
 /* ***************************************************** */
 
-bool Flow::triggerAlert(FlowStatus status, AlertType atype, AlertLevel severity, u_int16_t alert_score, const char *alert_json) {
-  bool first_alert = !isFlowAlerted();
+void Flow::updateAlertsStats(FlowAlert *alert) {
+  AlertLevel severity = alert->getSeverity();
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
 
-  if(first_alert) {
+  if (!alert_stats_initialized) {
     /* This is the first alert for the flow, increment the counters */
     iface->incNumAlertedFlows(this, severity);
 
-    if(unsafeGetClient()) unsafeGetClient()->incNumAlertedFlows(true /* As client */);
-    if(unsafeGetServer()) unsafeGetServer()->incNumAlertedFlows(false /* As server */);
+    if(cli_h) cli_h->incNumAlertedFlows(true /* As client */);
+    if(srv_h) srv_h->incNumAlertedFlows(false /* As server */);
 
 #ifdef ALERTED_FLOWS_DEBUG
     iface_alert_inc = true;
 #endif
 
     if(cli_h)
-      cli_h->incTotalAlerts(atype);
+      cli_h->incTotalAlerts();
 
     if(srv_h)
-      srv_h->incTotalAlerts(atype);
-  } else { /* Not the first alert triggered for this flow */
-    if(alert_level != severity) { /* If the new severity is different from the old severity ...*/
-      iface->decNumAlertedFlows(this, alert_level); /* Decrease the value previously increased for the former level */
+      srv_h->incTotalAlerts();
+
+    alert_stats_initialized = true;
+  } else {
+    /* Not the first alert triggered for this flow */
+
+    if(predominant_alert_level != severity) { /* If the new severity is different from the old severity ...*/
+      iface->decNumAlertedFlows(this, predominant_alert_level); /* Decrease the value previously increased for the former level */
       iface->incNumAlertedFlows(this, severity);    /* Increase the value for the newly set level*/
     }
   }
-
-  /* Note: triggerAlert is called by flow.lua only after all the flow
-   * status are processed (once every 5 seconds), so it is safe to use the shadow */
-  if(alert_status_info_shadow)
-    free(alert_status_info_shadow);
-  alert_status_info_shadow = alert_status_info;
-
-  alert_status_info = alert_json ? strdup(alert_json) : NULL;
-  alerted_status = status;
-  alert_level = severity;
-  alert_type = atype;
-  alerted_status_score = alert_score;
-
-  /* Success - alert is dumped/notified from lua */
-  return true;
+  
+  predominant_alert_level = severity;
 }
 
-
-/* *************************************** */
+/* ***************************************************** */
 
 /*
   This method is called by Lua to set score and various other values of the flow
  */
-bool Flow::setStatus(FlowStatus status, u_int16_t flow_inc, u_int16_t cli_inc,
-		     u_int16_t srv_inc, const char* script_key,
-		     ScriptCategory script_category) {
-  ScoreCategory score_category = Utils::mapScriptToScoreCategory(script_category);
+bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc) {
+  ScoreCategory score_category = Utils::mapAlertToScoreCategory(alert_type.category);
+  u_int16_t flow_inc = min_val(cli_inc + srv_inc, SCORE_MAX_SCRIPT_VALUE);
+  Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
 
-  if(status == status_normal)
+  if(alert_type.id == alert_normal)
     return false;
 
-  if(!status_map.issetBit(status))
-    status_map.setBit(status);
+  /* Check host filter */
+  if((cli_h && cli_h->isFlowAlertDisabled(alert_type)) ||
+     (srv_h && srv_h->isFlowAlertDisabled(alert_type)))
+    return false;  
+
+  alert_map.setBit(alert_type.id);
 
   flow_score += flow_inc;
 
-  /*
-    Increase client and server host scores. Here it is OK to use unsafe pointers (see explanation in Flow::postFlowSetIdle) as
-    this function is called sequentially on all the view interfaces belonging to the same view.
+  stats.incScore(cli_inc, score_category, true  /* as client */);
+  stats.incScore(srv_inc, score_category, false /* as server */);
 
-    The actual increase is the one returned by the incValue function and it can be less thant the original increase (this is
-    because the actual increase could have caused an overflow).
-  */
-  if(unsafeGetClient())
-    cli_host_score[score_category] += unsafeGetClient()->incScoreValue(cli_inc, score_category, true  /* as client */);
+  if(!getInterface()->isView()) {
+    /* For views, score increments are done periodically */
+    if(cli_h) cli_h->incScoreValue(min_val(cli_inc, SCORE_MAX_SCRIPT_VALUE), score_category, true  /* as client */);
+    if(srv_h) srv_h->incScoreValue(min_val(srv_inc, SCORE_MAX_SCRIPT_VALUE), score_category, false /* as server */);
+  }
 
-  if(unsafeGetServer())
-    srv_host_score[score_category] += unsafeGetServer()->incScoreValue(srv_inc, score_category, false /* as server */);
+  /* Check if also the predominant alert_type should be updated */
+  if(!isFlowAlerted() /* Flow is not yet alerted */
+     || getPredominantAlertScore() < flow_inc /* The score of the current alerted alert_type is less than the score of this alert_type */)
+    setPredominantAlert(alert_type, flow_inc);
 
   return true;
+}
+
+/* *************************************** */
+
+bool Flow::triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc) {
+  bool res;
+
+  res = setAlertsBitmap(alert_type, cli_inc, srv_inc);
+
+  return res;
+}
+
+/* *************************************** */
+
+bool Flow::triggerAlertSync(FlowAlert *alert, u_int16_t cli_inc, u_int16_t srv_inc) {
+  bool res, alert_enqueued = false;
+
+  res = setAlertsBitmap(alert->getAlertType(), cli_inc, srv_inc);
+
+  /* Synchronous, this alert must be sent straight to the recipients now. Let's put it into the recipient queues. */
+  if(res) { 
+    if(iface->enqueueFlowAlert(alert))
+      alert_enqueued = true; /* Successful enqueue */
+  }
+
+  if (!alert_enqueued)
+    delete alert;
+
+  return res;
 }
 
 /* *************************************** */
 
 void Flow::setExternalAlert(json_object *a) {
-  if(!iface->hasSeenExternalAlerts())
-    iface->setSeenExternalAlerts();
-
-  if(!external_alert) {
-    /* In order to avoid concurrency issues with the getter, at most
-     * 1 pending external alert is supported. */
-    external_alert = strdup(json_object_to_json_string(a));
+ 
+  /* In order to avoid concurrency issues with the getter, at most
+   * 1 pending external alert is supported. */
+  if(!external_alert.json) {
+    json_object *val;
+ 
+    if(!iface->hasSeenExternalAlerts())
+      iface->setSeenExternalAlerts();
+ 
+    if(json_object_object_get_ex(a, "source", &val))
+      external_alert.source = strdup(json_object_get_string(val));
+ 
+    if(json_object_object_get_ex(a, "severity_id", &val))
+      external_alert.severity_id = (AlertLevel) json_object_get_int(val);
+    else
+      external_alert.severity_id = alert_level_warning;
+ 
+    external_alert.json = a;
 
     /* Manually trigger a periodic update to process the alert */
     trigger_immediate_periodic_update = true;
   }
-
-  json_object_put(a);
 }
 
 /* *************************************** */
 
 void Flow::luaRetrieveExternalAlert(lua_State *vm) {
-  if(external_alert) {
-    lua_pushstring(vm, external_alert);
-
-    /* Must delete the data to avoid returning it in the next call */
-    free(external_alert);
-    external_alert = NULL;
-  } else
+  const char *json = external_alert.json ? json_object_to_json_string(external_alert.json) : NULL;
+ 
+  if (json)
+     lua_pushstring(vm, json);
+  else
     lua_pushnil(vm);
-}
-
-/* *************************************** */
-
-FlowStatus Flow::getAlertedStatus() const {
-  return alerted_status;
-}
-
-/* *************************************** */
-
-u_int16_t Flow::getAlertedStatusScore() const {
-  return alerted_status_score;
 }
 
 /* *************************************** */
@@ -5308,18 +5393,6 @@ void Flow::lua_entropy(lua_State* vm) {
     lua_pushstring(vm, "entropy");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
-  }
-}
-
-/* *************************************** */
-
-/* Called by lua to check if a zero window alert needs to be triggered */
-void Flow::triggerZeroWindowAlert(bool *as_client, bool *as_server) {
-  *as_client = *as_server = false;
-
-  if(!zero_window_alert_triggered) {
-    if(src2dst_tcp_zero_window) *as_client = true, zero_window_alert_triggered = true;
-    if(dst2src_tcp_zero_window) *as_server = true, zero_window_alert_triggered = true;
   }
 }
 

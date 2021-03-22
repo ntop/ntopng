@@ -13,9 +13,6 @@ local script = {
    -- Script category
    category = user_scripts.script_categories.internals,
 
-   -- NOTE: hooks defined below
-   hooks = {},
-
    -- This script is only for alerts generation
    is_alert = true,
 
@@ -28,18 +25,6 @@ local script = {
       i18n_description = "flow_callbacks_config.not_purged_description",
    }
 }
-
--- #################################################################
-
-function script.hooks.periodicUpdate(now, conf)
-   if flow.isNotPurged() then
-      local not_purged_type = alert_consts.alert_types.alert_internals.new()
-
-      not_purged_type:set_severity(conf.severity)
-
-      not_purged_type:trigger_status(10, 10, 10)
-   end
-end
 
 -- #################################################################
 

@@ -27,8 +27,17 @@ RecipientQueues::RecipientQueues() {
   for(int i = 0; i < RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES; i++)
     queues_by_prio[i] = NULL,
       drops_by_prio[i] = 0,
-      uses_by_prio[i] = 0,
-      last_use = 0;
+      uses_by_prio[i] = 0;
+  last_use = 0;
+
+  /* No minimum severity */
+  minimum_severity = alert_level_none;
+
+  /* All categories enabled by default */
+  enabled_categories = 0xFF;
+
+  /* Not a flow recipient by default */
+  flow_recipient = false;
 }
 
 /* *************************************** */
@@ -64,6 +73,8 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const AlertFif
   if(prio >= RECIPIENT_NOTIFICATION_MAX_NUM_PRIORITIES
      || !notification
      || !notification->alert
+     || notification->alert_severity < minimum_severity              /* Severity too low for this recipient     */
+     || !(enabled_categories & (1 << notification->alert_category))  /* Category not enabled for this recipient */
      || (!queues_by_prio[prio] &&
 	 !(queues_by_prio[prio] = new (nothrow) AlertFifoQueue(ALERTS_NOTIFICATIONS_QUEUE_SIZE)))) {
     /* Queue not available */
@@ -71,12 +82,15 @@ bool RecipientQueues::enqueue(RecipientNotificationPriority prio, const AlertFif
     return false;
   }
 
-  /* Enqueue the notification */
-  res = queues_by_prio[prio]->enqueue(*notification);
+  /* Enqueue the notification (allocate memory for the alert string) */
+  AlertFifoItem q = *notification;
+  if((q.alert = strdup(notification->alert)))
+    res = queues_by_prio[prio]->enqueue(q);
 
-  if(!res)
+  if(!res) {
     drops_by_prio[prio]++;
-  else
+    if(q.alert) free(q.alert);
+  } else
     uses_by_prio[prio]++;
 
   return res;

@@ -301,12 +301,14 @@ function format_utils.formatConnectionIssues(info)
 	 what[#what + 1] = i18n("alerts_dashboard.x_lost", {lost = format_utils.formatValue(lost)})
       end
 
-      if info.cli2srv_pkts > 0 then
-	 what[#what + 1] = i18n("alerts_dashboard.out_of_x_total_packets", {tot = format_utils.formatValue(info.cli2srv_pkts)})
-      end
+      if retx + ooo + lost > 0 then
+	 if info.cli2srv_pkts > 0 then
+	    what[#what + 1] = i18n("alerts_dashboard.out_of_x_total_packets", {tot = format_utils.formatValue(info.cli2srv_pkts)})
+	 end
 
-      if #what > 0 then
-	 res = res.." "..string.format("[%s: %s]", i18n("client_to_server"), table.concat(what, ", "))
+	 if #what > 0 then
+	    res = res.." "..string.format("[%s: %s]", i18n("client_to_server"), table.concat(what, ", "))
+	 end
       end
    end
 
@@ -326,12 +328,15 @@ function format_utils.formatConnectionIssues(info)
       if lost > 0 then
 	 what[#what + 1] = i18n("alerts_dashboard.x_lost", {lost = format_utils.formatValue(lost)})
       end
-      if info.srv2cli_pkts > 0 then
-	 what[#what + 1] = i18n("alerts_dashboard.out_of_x_total_packets", {tot = format_utils.formatValue(info.srv2cli_pkts)})
-      end
 
-      if #what > 0 then
-	 res = res.." "..string.format("[%s: %s]", i18n("server_to_client"), table.concat(what, ", "))
+      if retx + ooo + lost > 0 then
+	 if info.srv2cli_pkts > 0 then
+	    what[#what + 1] = i18n("alerts_dashboard.out_of_x_total_packets", {tot = format_utils.formatValue(info.srv2cli_pkts)})
+	 end
+
+	 if #what > 0 then
+	    res = res.." "..string.format("[%s: %s]", i18n("server_to_client"), table.concat(what, ", "))
+	 end
       end
    end
 

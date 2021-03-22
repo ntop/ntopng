@@ -257,7 +257,7 @@ static int ntop_interface_has_vlans(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if(ntop_interface)
-    lua_pushboolean(vm, ntop_interface->hasSeenVlanTaggedPackets());
+    lua_pushboolean(vm, ntop_interface->hasSeenVLANTaggedPackets());
   else
     lua_pushboolean(vm, 0);
 
@@ -2632,45 +2632,6 @@ static int ntop_get_interface_find_flow_by_key_and_hash_id(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_get_interface_flow_alert_by_key_and_hash_id(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  u_int32_t key;
-  u_int hash_id;
-  Flow *f;
-  AddressTree *ptree = get_allowed_nets(vm);
-  
-  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-  if(ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
-
-  key = (u_int32_t)lua_tonumber(vm, 1);
-  hash_id = (u_int)lua_tonumber(vm, 2);
-
-  if(!ntop_interface) return(false);
-
-  f = ntop_interface->findFlowByKeyAndHashId(key, hash_id, ptree);
-
-  if(f) {
-    ndpi_serializer flow_json;
-    u_int32_t buflen;
-    const char *flow_str;
-
-    ndpi_init_serializer(&flow_json, ndpi_serialization_format_json);
-
-    f->flow2alertJson(&flow_json, time(NULL));
-
-    flow_str = ndpi_serializer_get_buffer(&flow_json, &buflen);
-
-    if(flow_str)
-      lua_pushstring(vm, flow_str);
-
-    ndpi_term_serializer(&flow_json);
-  }
-
-  return(CONST_LUA_OK);  
-}
-
-/* ****************************************** */
-
 static int ntop_get_interface_find_flow_by_tuple(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   IpAddress src_ip_addr, dst_ip_addr;
@@ -4005,7 +3966,7 @@ static int ntop_interface_inc_total_host_alerts(lua_State* vm) {
   h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id);
 
   if(h)
-    h->incTotalAlerts(alert_type);
+    h->incTotalAlerts();
 
   lua_pushboolean(vm, h ? true : false);
   return(CONST_LUA_OK);
@@ -4461,7 +4422,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getFlowsStats",            ntop_get_interface_flows_stats          },
   { "getFlowKey",               ntop_get_interface_flow_key             },
   { "findFlowByKeyAndHashId",   ntop_get_interface_find_flow_by_key_and_hash_id  },
-  { "flowAlertByKeyAndHashId",  ntop_get_interface_flow_alert_by_key_and_hash_id },
   { "findFlowByTuple",          ntop_get_interface_find_flow_by_tuple   },
   { "dropFlowTraffic",          ntop_drop_flow_traffic                  },
   { "dumpLocalHosts2redis",     ntop_dump_local_hosts_2_redis           },

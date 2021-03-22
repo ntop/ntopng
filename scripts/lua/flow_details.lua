@@ -802,13 +802,13 @@ else
         print("</tr>")
       end
 
-      local status_info = flow2statusinfo(flow)
+      local alert_info = flow2alertinfo(flow)
       local forbidden_proto = flow["proto.ndpi_id"]
       local forbidden_peer = nil
 
-      if status_info then
-	 forbidden_proto = status_info["devproto_forbidden_id"] or forbidden_proto
-	 forbidden_peer = status_info["devproto_forbidden_peer"]
+      if alert_info then
+	 forbidden_proto = alert_info["devproto_forbidden_id"] or forbidden_proto
+	 forbidden_peer = alert_info["devproto_forbidden_peer"]
       end
 
       local cli_mac = flow["cli.mac"] and interface.getMacInfo(flow["cli.mac"])
@@ -1245,19 +1245,10 @@ else
 
    -- ######################################
 
-   local alerted_status = nil
-
    if flow["flow.alerted"] then
-      alerted_status = flow["alerted_status"]
-      local flow_alert = interface.flowAlertByKeyAndHashId(tonumber(flow_key), tonumber(flow_hash_id)) -- new API
+      local message = alert_consts.alertTypeLabel(flow["predominant_alert"])
 
-      if flow_alert then
-	 flow_alert = json.decode(flow_alert)
-      end
-
-      local message = alert_utils.formatAlertMessage(ifid, flow_alert, json.decode(flow_alert["alert_json"]), true --[[ skip live data, we're already in the live flow page --]])
-
-      message = message .. string.format(" [%s: %d]", i18n("score"), flow["alerted_status_score"])
+      message = message .. string.format(" [%s: %d]", i18n("score"), flow["predominant_alert_score"])
 
       print("<tr><th width=30%>"..i18n("flow_details.flow_alerted").."</th><td colspan=2>")
       print(message)
@@ -1265,17 +1256,17 @@ else
    end
 
    -- Print additional flow statuses
-   if flow["status_map"] then
+   if flow["alert_map"] then
       local first = true
       local num_statuses = 0
 
       for _, t in pairsByKeys(alert_consts.alert_types) do
-	 if t.meta and t.meta.status_key then
-	    local id = t.meta.status_key
+	 if t.meta and t.meta.alert_key then
+	    local id = t.meta.alert_key
 
-	    if id ~= flow["alerted_status"] and flow["status_map"][id] then
+	    if id ~= flow["predominant_alert"] and flow["alert_map"][id] then
 	       if first then
-		  print("<tr><th width=30%>"..i18n("flow_details.additional_flow_status").."</th><td colspan=2>")
+		  print("<tr><th width=30%>"..i18n("flow_details.additional_alert_type").."</th><td colspan=2>")
 		  first = false
 	       end
 

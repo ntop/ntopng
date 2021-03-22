@@ -37,7 +37,7 @@ class FlowStats {
   FlowStats();
   ~FlowStats();
 
-  void incStats(Bitmap status_bitmap, u_int8_t l4_protocol, AlertLevel alert_level, 
+  void incStats(Bitmap alert_bitmap, u_int8_t l4_protocol, AlertLevel alert_level, 
                   u_int8_t dscp_cli2srv, u_int8_t dscp_srv2cli);
 
   void lua(lua_State* vm);

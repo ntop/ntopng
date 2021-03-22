@@ -3,7 +3,6 @@
 --
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -17,7 +16,6 @@ local external_alert = classes.class(alert)
 
 external_alert.meta = {
    alert_key = alert_keys.ntopng.alert_external,
-   status_key = status_keys.ntopng.status_external_alert,
    i18n_title = "alerts_dashboard.external_alert",
    icon = "fas fa-eye",
    status_keep_increasing_scores = true, -- Every time an external alert is set, scores are increased accordingly
@@ -28,11 +26,9 @@ external_alert.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @param info A generic table decoded from a JSON originated at the external alert source
 -- @return A table with the alert built
-function external_alert:init(info)
+function external_alert:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = info
 end
 
 -- #######################################################

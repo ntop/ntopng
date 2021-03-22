@@ -239,6 +239,12 @@ function pools:_unlock() ntop.delCache(self:_get_pool_lock_key()) end
 
 -- ##############################################
 
+--@brief Method called after a successful execution of method persist
+function pools:_post_persist(pool_id, name, members, recipients)
+end
+
+-- ##############################################
+
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
 function pools:_persist(pool_id, name, members, recipients)
@@ -258,6 +264,8 @@ function pools:_persist(pool_id, name, members, recipients)
     }
 
     ntop.setCache(pool_details_key, json.encode(pool_details))
+
+    self:_post_persist(pool_id, name, members, recipients)
 
     ntop.reloadPeriodicScripts()
 

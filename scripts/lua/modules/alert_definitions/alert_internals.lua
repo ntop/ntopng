@@ -6,7 +6,6 @@
 
 local alert_keys = require "alert_keys"
 
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -19,7 +18,6 @@ local alert_internals = classes.class(alert)
 -- ##############################################
 
 alert_internals.meta = {
-  status_key = status_keys.ntopng.status_not_purged,
   alert_key = alert_keys.ntopng.alert_internals,
   i18n_title = "flow_details.not_purged",
   icon = "fas fa-exclamation",

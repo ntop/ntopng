@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_unexpected_dns_server = classes.class(alert)
 -- ##############################################
 
 alert_unexpected_dns_server.meta = {
-   status_key = status_keys.ntopng.status_unexpected_dns_server,
    alert_key = alert_keys.ntopng.alert_unexpected_dns_server,
    i18n_title = "unexpected_dns.alert_unexpected_dns_title",
    icon = "fas fa-exclamation",
@@ -32,14 +30,9 @@ alert_unexpected_dns_server.meta = {
 -- @param one_flow_param The first alert param
 -- @param another_flow_param The second alert param
 -- @return A table with the alert built
-function alert_unexpected_dns_server:init(client_ip, server_ip)
+function alert_unexpected_dns_server:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-    client_ip = client_ip,
-    server_ip = server_ip
-   }
 end
 
 -- #######################################################

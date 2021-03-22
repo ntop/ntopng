@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_longlived = classes.class(alert)
 -- ##############################################
 
 alert_longlived.meta = {
-   status_key = status_keys.ntopng.status_longlived,
    alert_key = alert_keys.ntopng.alert_longlived,
    i18n_title = "flow_details.longlived_flow",
    icon = "fas fa-exclamation",
@@ -29,13 +27,9 @@ alert_longlived.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @param longlived_threshold Threshold, in seconds, for a flow to be considered longlived
 -- @return A table with the alert built
-function alert_longlived:init(longlived_threshold)
+function alert_longlived:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-      ["longlived.threshold"] = longlived_threshold
-   }
 end
 
 -- #######################################################

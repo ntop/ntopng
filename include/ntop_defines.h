@@ -535,8 +535,6 @@
 /* Maximum line lenght for the line protocol to write timeseries */
 #define LINE_PROTOCOL_MAX_LINE             512
 
-#define CONST_IEC104_ALERT_QUEUE           "ntopng.iec104_alert_queue"
-#define CONST_IEC104_FLOW_ALERT_QUEUE      "ntopng.iec104_flow_alert_queue"
 #define CONST_IEC104_LEARNING_TIME         21600 /* 6 hours */
 #define CONST_INFLUXDB_FILE_QUEUE          "ntopng.influx_file_queue"
 #define CONST_INFLUXDB_FLUSH_TIME          10 /* sec */
@@ -866,7 +864,7 @@
 #define ALERTS_MAX_DAYS_BEFORE_PURGE         365
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v24.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v26.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"
@@ -898,6 +896,8 @@
 #define HOURLY_SCRIPT_PATH                   "hourly.lua"
 #define DAILY_SCRIPT_PATH                    "daily.lua"
 
+#define FLOW_CALLBACKS_CONFIG        "ntopng.prefs.user_scripts.configset_v3"  /* Sync with user_scripts.lua CONFIGSET_KEY  */
+#define ALERTS_CONFIG                "ntopng.prefs.alerts_config.configset_v3" /* Sync with alerts_config.lua CONFIGSET_KEY */
 #define SYSLOG_SCRIPT_PATH           "callbacks/system/syslog.lua"
 #define SYSLOG_SCRIPT_CALLBACK_EVENT "handleEvent"
 
@@ -984,7 +984,7 @@
 
 #define CACHE_LINE_LEN                  64
 
-#define BITMAP_NUM_BITS                128
+#define BITMAP_NUM_BITS                128 /* This must be a multiple of 64 */
 
 #define TLS_HANDSHAKE_PACKET          0x16
 #define TLS_PAYLOAD_PACKET            0x17
@@ -1057,9 +1057,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 /*
   Queue lengths for user-script queues
  */
-#define MAX_US_PROTOCOL_DETECTED_QUEUE_LEN 131072
-#define MAX_US_FLOW_END_QUEUE_LEN          131072
-#define MAX_US_PERIODIC_UPDATE_QUEUE_LEN   16384  /* Smaller, lower-priority */
+#define MAX_FLOW_CALLBACKS_QUEUE_LEN       131072
 
 /*
   user-script lua engine lifetime 

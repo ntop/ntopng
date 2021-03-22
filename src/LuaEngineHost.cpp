@@ -458,7 +458,7 @@ int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *alertable, int id
     alert_severity, alert_type, alert_subtype, alert_json);
 
   if(triggered && (host = dynamic_cast<Host*>(alertable)))
-    host->incTotalAlerts(alert_type);
+    host->incTotalAlerts();
 
   return(CONST_LUA_OK);
 }

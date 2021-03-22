@@ -6,7 +6,6 @@
 
 local alert_keys = require "alert_keys"
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -19,7 +18,6 @@ local alert_ndpi_dns_suspicious_traffic = classes.class(alert)
 -- ##############################################
 
 alert_ndpi_dns_suspicious_traffic.meta = {
-   status_key = status_keys.ntopng.status_ndpi_dns_suspicious_traffic,
    alert_key  = alert_keys.ntopng.alert_ndpi_dns_suspicious_traffic,
    i18n_title = "alerts_dashboard.ndpi_dns_suspicious_traffic_title",
    icon = "fas fa-exclamation",
@@ -32,8 +30,6 @@ alert_ndpi_dns_suspicious_traffic.meta = {
 function alert_ndpi_dns_suspicious_traffic:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {}
 end
 
 -- #######################################################

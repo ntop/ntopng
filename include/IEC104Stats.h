@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+class IECInvalidTransitionAlert;
+
 class IEC104Stats {
  private:
   RwLock lock;

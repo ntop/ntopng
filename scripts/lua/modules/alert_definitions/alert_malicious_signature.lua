@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_malicious_signature = classes.class(alert)
 -- ##############################################
 
 alert_malicious_signature.meta = {
-   status_key = status_keys.ntopng.status_malicious_signature, -- A flow status key
    alert_key = alert_keys.ntopng.alert_malicious_signature,
    i18n_title = "alerts_dashboard.malicious_signature_detected",
    icon = "fas fa-ban",
@@ -31,10 +29,6 @@ alert_malicious_signature.meta = {
 function alert_malicious_signature:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {
-      -- No params
-   }
 end
 
 -- #######################################################

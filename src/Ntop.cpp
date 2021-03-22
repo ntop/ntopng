@@ -70,6 +70,13 @@ Ntop::Ntop(char *appName) {
   start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
   ndpiReloadInProgress = false;
+
+  /* Flow callbacks and flow alerts loaders */
+  flowCallbacksReloadInProgress = true, /* Lazy, will be reloaded the first time this condition is evaluated */
+    alertExclusionsReloadInProgress = true;
+  flow_callbacks_loader = NULL;
+  alert_exclusions = alert_exclusions_shadow = NULL;
+
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
@@ -80,7 +87,7 @@ Ntop::Ntop(char *appName) {
 #endif
   privileges_dropped = false;
   can_send_icmp = Utils::isPingSupported();
-
+  
   for (int i = 0; i < CONST_MAX_NUM_NETWORKS; i++)
     local_network_names[i] = local_network_aliases[i] = NULL;
 
@@ -308,6 +315,10 @@ Ntop::~Ntop() {
   if(prefs)   { delete prefs; prefs = NULL;     }
   if(globals) { delete globals; globals = NULL; }
 
+  if(flow_callbacks_loader)     delete flow_callbacks_loader;
+  if(alert_exclusions)            delete alert_exclusions;
+  if(alert_exclusions_shadow)     delete alert_exclusions_shadow;
+  
 #ifdef __linux__
   if(inotify_fd > 0)  close(inotify_fd);
 #endif
@@ -538,12 +549,15 @@ void Ntop::start() {
     get_HTTPserver()->startCaptiveServer();
 #endif
 
+  checkReloadAlertExclusions();
+  checkReloadFlowCallbacks();
+
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
 
   startPurgeLoop();
 
-  sleep(2);
+  // sleep(2);
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->checkPointCounters(true); /* Reset drop counters */
@@ -1055,6 +1069,12 @@ void Ntop::lua_alert_queues_stats(lua_State* vm) {
 
 /* ******************************************* */
 
+bool Ntop::recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, bool flow_only) {
+  return recipients.enqueue(prio, notification, flow_only);
+}
+
+/* ******************************************* */
+
 bool Ntop::recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification) {
   return recipients.enqueue(recipient_id, prio, notification);
 }
@@ -1087,10 +1107,16 @@ void Ntop::recipient_delete(u_int16_t recipient_id) {
 
 /* ******************************************* */
 
-void Ntop::recipient_register(u_int16_t recipient_id) {
-  recipients.register_recipient(recipient_id);
+void Ntop::recipient_register(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories) {
+  recipients.register_recipient(recipient_id, minimum_severity, enabled_categories);
   /* Trigger a reload of periodic scripts to refresh them with new recipients */
   reloadPeriodicScripts();
+}
+
+/* ******************************************* */
+
+void Ntop::recipient_set_flow_recipients(u_int64_t flow_recipients) {
+  recipients.set_flow_recipients(flow_recipients);
 }
 
 /* ******************************************* */
@@ -2545,18 +2571,75 @@ void Ntop::initInterface(NetworkInterface *_if) {
   }
 
   /* Other initialization activities */
-  _if->initHookLoop();
+  _if->initFlowCallbacksLoop();
   _if->checkDisaggregationMode();
+}
+
+/* ******************************************* */
+
+void Ntop::checkReloadAlertExclusions() {
+  if(alert_exclusions_shadow) { /* Dispose old memory if necessary */
+    delete alert_exclusions_shadow;
+    alert_exclusions_shadow = NULL;
+  }
+
+  if(alertExclusionsReloadInProgress /* Check if a reload has been requested */
+     || !alert_exclusions /* Control groups are not allocated */) { 
+    alertExclusionsReloadInProgress = false; /* Leave this BEFORE the actual swap and new allocation to guarantee changes are always seen */
+
+    alert_exclusions_shadow = alert_exclusions; /* Save the existing instance */
+    alert_exclusions = new (std::nothrow) AlertExclusions(); /* Allocate a new instance */
+
+    if(!alert_exclusions)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for control groups.");
+  }
+}
+
+/* ******************************************* */
+
+void Ntop::checkReloadFlowCallbacks() {
+  if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ && 
+      flow_callbacks_loader && flow_callbacks_loader->getCallbacksEdition() != ntopng_edition_community) {
+    /* Force a reload when switching to community (demo mode) */  
+    reloadFlowCallbacks();
+  }
+
+  if(flowCallbacksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
+    FlowCallbacksLoader *old, *tmp_flow_callbacks_loader = new (std::nothrow) FlowCallbacksLoader();
+
+    if(!tmp_flow_callbacks_loader) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for flow callbacks.");
+      return;
+    }
+
+    old = flow_callbacks_loader;
+
+    /* Pass the newly allocated loader to all interfaces so they will update their callbacks */
+    for(int i = 0; i < get_num_interfaces(); i++)
+      iface[i]->reloadFlowCallbacks(tmp_flow_callbacks_loader);
+
+    flow_callbacks_loader = tmp_flow_callbacks_loader;
+
+    if(old) {
+      sleep(2); /* Make sure nobody is using the old one */
+
+      delete old;
+    }
+
+    flowCallbacksReloadInProgress = false;
+  }
 }
 
 /* ******************************************* */
 
 /* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
-  for(int i = 0; i < get_num_interfaces(); i++) {
-    iface[i]->runHousekeepingTasks();
-  }
+  checkReloadAlertExclusions();
+  checkReloadFlowCallbacks();
 
+  for(int i = 0; i < get_num_interfaces(); i++)
+    iface[i]->runHousekeepingTasks();
+  
   if(globals->isShutdownRequested()) return;
 
 #ifdef NTOPNG_PRO
@@ -3044,15 +3127,6 @@ void Ntop::reloadPeriodicScripts() {
     Request a reload of all the VMs currently executing periodic activities
    */
   if(pa) pa->reloadVMs();
-
-  /*
-    Notify interfaces that a reload of user scripts should be performed.
-    Interfaces need to know this for example to reload the VM responsible for
-    the execution of flow hook user scripts.
-   */
-  for(u_int i = 0; i < get_num_interfaces(); i++) {
-    if(getInterface(i)) getInterface(i)->request_user_scripts_reload();
-  }
 };
 
 /* *************************************** */

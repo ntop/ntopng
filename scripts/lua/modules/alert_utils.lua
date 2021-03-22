@@ -443,6 +443,25 @@ end
 
 -- #################################
 
+--@brief Deletes all stored alerts matching an host and an IP
+-- @return nil
+function alert_utils.deleteFlowAlertsMatching(host_ip, alert_key)
+   local res = {}
+   local statement = "DELETE "
+
+   -- This is to match elements inside the alert_json
+   local where = {
+      string.format("(cli_addr = '%s' OR srv_addr = '%s')", host_ip, host_ip),
+      string.format("alert_type = %u", alert_key),
+   }
+
+   where = table.concat(where, " AND ")
+
+   res = interface.queryFlowAlertsRaw(statement, where, nil, true)
+end
+
+-- #################################
+
 -- this function returns an object with parameters specific for one tab
 function alert_utils.getTabParameters(_get, what)
    local opts = {}
@@ -508,24 +527,24 @@ end
 -- #################################
 
 -- Return more information for the flow alert description
-local function getFlowStatusInfo(record, status_info)
+local function getAlertTypeInfo(record, alert_info)
    local res = ""
 
    local l7proto_name = interface.getnDPIProtoName(tonumber(record["l7_proto"]) or 0)
 
    if l7proto_name == "ICMP" then -- is ICMPv4
       -- TODO: old format - remove when the all the flow alers will be generated in lua
-      local type_code = {type = status_info["icmp.icmp_type"], code = status_info["icmp.icmp_code"]}
+      local type_code = {type = alert_info["icmp.icmp_type"], code = alert_info["icmp.icmp_code"]}
 
-      if table.empty(type_code) and status_info["icmp"] then
+      if table.empty(type_code) and alert_info["icmp"] then
 	 -- This is the new format created when setting the alert from lua
-	 type_code = {type = status_info["icmp"]["type"], code = status_info["icmp"]["code"]}
+	 type_code = {type = alert_info["icmp"]["type"], code = alert_info["icmp"]["code"]}
       end
 
-      if status_info["icmp.unreach.src_ip"] then -- TODO: old format to be removed
-	 res = string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp.unreach.dst_ip"], unreach_port=status_info["icmp.unreach.dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp.unreach.protocol"])}))
-      elseif status_info["icmp"] and status_info["icmp"]["unreach"] then -- New format
-	 res = string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=status_info["icmp"]["unreach"]["dst_ip"], unreach_port=status_info["icmp"]["unreach"]["dst_port"], unreach_protocol = l4_proto_to_string(status_info["icmp"]["unreach"]["protocol"])}))
+      if alert_info["icmp.unreach.src_ip"] then -- TODO: old format to be removed
+	 res = string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=alert_info["icmp.unreach.dst_ip"], unreach_port=alert_info["icmp.unreach.dst_port"], unreach_protocol = l4_proto_to_string(alert_info["icmp.unreach.protocol"])}))
+      elseif alert_info["icmp"] and alert_info["icmp"]["unreach"] then -- New format
+	 res = string.format("[%s]", i18n("icmp_page.icmp_port_unreachable_extra", {unreach_host=alert_info["icmp"]["unreach"]["dst_ip"], unreach_port=alert_info["icmp"]["unreach"]["dst_port"], unreach_protocol = l4_proto_to_string(alert_info["icmp"]["unreach"]["protocol"])}))
       else
 	 res = string.format("[%s]", icmp_utils.get_icmp_label(4 --[[ ipv4 --]], type_code["type"], type_code["code"]))
       end
@@ -548,8 +567,8 @@ local function formatRawFlow(ifid, alert, alert_json)
    end
 
    -- TODO: adapter just to be compatible with old alerts, can be removed at some point
-   if alert_json["status_info"] then
-      alert_json = json.decode(alert_json["status_info"])
+   if alert_json["alert_info"] then
+      alert_json = json.decode(alert_json["alert_info"])
    end
 
    -- active flow lookup
@@ -606,7 +625,7 @@ local function formatRawFlow(ifid, alert, alert_json)
    end
 
    if alert_json then
-      flow = flow..getFlowStatusInfo(alert, alert_json)
+      flow = flow..getAlertTypeInfo(alert, alert_json)
    end
 
    return flow
@@ -944,12 +963,11 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
       template.gen("modal_alert_filter_dialog.html", {
       		      dialog={
 			 id		   = "filter_alert_dialog",
-			 action		   = "filterAlertByFilters(subdir, script_key)",
+			 action		   = "filterAlertByFilters(subdir, script_key, alert_key)",
           		 title		   = i18n("show_alerts.filter_alert"),
           		 message	   = i18n("show_alerts.confirm_filter_alert"),
 			 delete_message    = i18n("show_alerts.confirm_delete_filtered_alerts"),
-          		 field_input_title = i18n("current_filter"),
-			 delete_alerts     = i18n("delete_alerts"),
+			 delete_alerts     = i18n("delete_disabled_alerts"),
           		 alert_filter      = "default_filter",
 	  		 confirm 	   = i18n("filter"),
 			 confirm_button    = "btn-warning",
@@ -957,6 +975,23 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
       })
    )
 
+
+   -- Filtering for flow alerts
+   print(
+      template.gen("modal_flow_alerts_filter_dialog.html", {
+      		      dialog={
+			 id		   = "flow_alerts_filter_dialog",
+			 action		   = "filterFlowAlerts(alert_key)",
+          		 title		   = i18n("show_alerts.filter_alert"),
+          		 message	   = i18n("show_alerts.confirm_filter_alert"),
+			 delete_message    = i18n("show_alerts.confirm_delete_filtered_alerts"),
+			 delete_alerts     = i18n("delete_disabled_alerts"),
+          		 alert_filter      = "default_filter",
+	  		 confirm 	   = i18n("filter"),
+			 confirm_button    = "btn-warning",
+		      }
+      })
+   )
 
 
    print(
@@ -1089,7 +1124,7 @@ function deleteAlertById(alert_key) {
   form.appendTo('body').submit();
 }
 
-function filterAlertByFilters(subdir, script_key) {
+function filterAlertByFilters(subdir, script_key, alert_key) {
    $.ajax({
         type: 'POST',
 	contentType: "application/json",
@@ -1099,8 +1134,34 @@ function filterAlertByFilters(subdir, script_key) {
 	    filters: document.getElementById("name_input").value,
             subdir: subdir,
             script_key: script_key,
+            alert_key: alert_key,
             status: getCurrentStatus(),
             delete_alerts: $('#delete_alert_switch').prop('checked'),
+            csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
+	}),
+	success: function(rsp) {
+            let get_params = NtopUtils.paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
+            get_params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+            let form = NtopUtils.paramsToForm('<form method="post"></form>', get_params);
+            form.appendTo('body').submit();
+	},
+	error: function(rsp) {
+	    $("#filter_alert_dialog_error").text(rsp.responseJSON.rsp).show();
+	},
+    });
+}
+
+function filterFlowAlerts(alert_key) {
+   $.ajax({
+        type: 'POST',
+	contentType: "application/json",
+	dataType: "json",
+	url: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`,
+	data: JSON.stringify({
+	    alert_addr:  $("input[name='alert_addr']:checked").val(),
+            subdir: "flow",
+            alert_key: alert_key,
+            delete_alerts: $('#delete_flow_alerts_switch').prop('checked'),
             csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
 	}),
 	success: function(rsp) {
@@ -1386,8 +1447,18 @@ function releaseAlert(idx) {
                var data = table_data[row_id];
                var explorer_url = data["column_explorer"];
 
-               if(data["column_filter"]) {
-                  datatableAddFilterButtonCallback.bind(this)(10, "subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
+               if(data["column_filter"] && data["column_subdir"] == "flow") {
+                  /* Extract client and server address that come into column_filter concatenated with a pipe */
+                  const cli_srv_addr = data["column_filter"].split('|'), cli_addr = cli_srv_addr[0], srv_addr = cli_srv_addr[1];
+
+                  /* Populate client and server radio buttons */
+                  const srv_radio = " $('#srv_radio').attr('value', '" + srv_addr + "'); $('#srv_addr').html('" + srv_addr + "'); ";
+                  const cli_radio = " $('#cli_radio').attr('value', '" + cli_addr + "'); $('#cli_addr').html('" + cli_addr + "'); ";
+                  const alert_label = "$('.alert_label').html('" + data["column_type_str"] + "'); ";
+console.log(alert_label);
+                  datatableAddFilterButtonCallback.bind(this)(10, "alert_key = '" + data["column_type_id"] + "'; " + alert_label + srv_radio + cli_radio + " $('#flow_alerts_filter_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
+               } else if(data["column_filter"]) {
+                  datatableAddFilterButtonCallback.bind(this)(10, "alert_key = '" + data["column_type_id"] + "'; alert_label = $('.alert_label').html('" + data["column_type_str"] + "'); subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
                } else if(data["column_filter_disabled"]) {
 	       	  datatableAddFilterButtonCallback.bind(this)(10, "subdir = ''; script_key = '';", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[", false);                             }
 
@@ -1893,7 +1964,7 @@ end
 -- #################################
 
 function alert_utils.getConfigsetAlertLink(alert_json)
-   local info = alert_json.alert_generation or (alert_json.status_info and alert_json.status_info.alert_generation)
+   local info = alert_json.alert_generation or (alert_json.alert_info and alert_json.alert_info.alert_generation)
 
    if(info and isAdministrator()) then
 	 return(' <a href="'.. ntop.getHttpPrefix() ..'/lua/admin/edit_configset.lua?'..

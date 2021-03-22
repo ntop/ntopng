@@ -30,12 +30,11 @@ HostScore::HostScore() {
 
 /* *************************************** */
 
-u_int32_t HostScore::sum(bool as_client) const {
-  u_int32_t res = 0;
-  const u_int16_t *src = as_client ? cli_score : srv_score;
+u_int64_t HostScore::sum(u_int32_t const scores[]) {
+  u_int64_t res = 0;
 
   for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++)
-    res += src[i];
+    res += scores[i];
 
   return res;
 };
@@ -45,34 +44,11 @@ u_int32_t HostScore::sum(bool as_client) const {
 /*
   Increases a value for the `score_category` score by `score`. Client/server score is increased,
   according to parameter `as_client`. The actual increment performed is returned by the function.
-  NOTE: The actual increment performed can be less than `score`, if incrementing by `score` would have
-  caused an overflow.
-
-  HostScore::incValue must be called from the same thread of HostScore::decValue to prevent races.
 */
-u_int16_t HostScore::incValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
-  u_int16_t *dst = as_client ? cli_score : srv_score;
-  u_int16_t actual_inc = 0;
+u_int16_t HostScore::incValue(u_int32_t scores[], u_int16_t score, ScoreCategory score_category) {
+  scores[score_category] += score;
 
-  if(score_category >= MAX_NUM_SCORE_CATEGORIES || score == 0)
-    return 0;
-
-  m.lock(__FILE__, __LINE__);
-
-  if(dst[score_category] + score <= (u_int16_t)-1) {
-    /* Enough room to do a full increment by `score` */
-    actual_inc = score;
-    dst[score_category] += score;
-  } else if (dst[score_category] < (u_int16_t)-1){
-    /* Not enough room to do a full increment by `score`, let's reach the maximum possible value and set the
-       actual increment performed. */
-    actual_inc = (u_int16_t)-1 - dst[score_category];
-    dst[score_category] += actual_inc;
-  }
-
-  m.unlock(__FILE__, __LINE__);
-
-  return actual_inc;
+  return score;
 }
 
 /* *************************************** */
@@ -80,47 +56,40 @@ u_int16_t HostScore::incValue(u_int16_t score, ScoreCategory score_category, boo
 /*
   Decreases a value for the `score_category` score by `score`. Client/server score is decreased,
   according to parameter `as_client`. The actual decrement performed is returned by the function.
-  NOTE: The actual decrement is either `score` or zero if `score_category` is unknown.
-
-  HostScore::decValue must be called from the same thread of HostScore::incValue to prevent races.
 */
-u_int16_t HostScore::decValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
-  u_int16_t *dst = as_client ? cli_score : srv_score;
-
-  if((score_category >= MAX_NUM_SCORE_CATEGORIES)
-     || (score == 0))
-    return 0;
-
-  m.lock(__FILE__, __LINE__);
-
-  if(dst[score_category] - score >= 0)
-    /* Decrement leaves the destination consistent */
-    dst[score_category] -= score;
-  else
-    /* Something was wrong */
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Decrement of host score yielding a negative number.");
-
-  m.unlock(__FILE__, __LINE__);
+u_int16_t HostScore::decValue(u_int32_t scores[], u_int16_t score, ScoreCategory score_category) {
+  scores[score_category] -= score;
 
   return score;
 }
 
 /* *************************************** */
 
-void HostScore::lua_breakdown(lua_State *vm, bool as_client) {
-  u_int32_t total = 0;
-  const u_int16_t *src = as_client ? cli_score : srv_score;
+u_int16_t HostScore::incValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
+  return as_client ? incValue(cli_score, score, score_category) : incValue(srv_score, score, score_category);
+}
 
-  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++)
-    total += src[i];
+/* *************************************** */
+
+u_int16_t HostScore::decValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
+    return as_client ? decValue(cli_score, score, score_category) : decValue(srv_score, score, score_category);
+}
+
+/* *************************************** */
+
+void HostScore::lua_breakdown(lua_State *vm, bool as_client) {
+  u_int32_t total = as_client ? getClient() : getServer();
+  const u_int32_t *src = as_client ? cli_score : srv_score;
 
   if(total == 0) total = 1; /* Prevents zero-division errors */
 
   lua_newtable(vm);
 
   for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+    ScoreCategory score_category = (ScoreCategory)i;
+
     lua_pushinteger(vm, i); /* The integer category id as key */
-    lua_pushnumber(vm, src[i] / (float)total * 100); /* The % as value */
+    lua_pushnumber(vm, (as_client ? getClient(score_category) : getServer(score_category)) / (float)total * 100); /* The % as value */
     lua_settable(vm, -3);
   }
 

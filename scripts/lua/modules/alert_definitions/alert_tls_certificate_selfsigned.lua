@@ -5,7 +5,6 @@
 -- ##############################################
 
 local alert_keys = require "alert_keys"
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -18,7 +17,6 @@ local alert_tls_certificate_selfsigned = classes.class(alert)
 -- ##############################################
 
 alert_tls_certificate_selfsigned.meta = {
-   status_key = status_keys.ntopng.status_tls_certificate_selfsigned,
    alert_key = alert_keys.ntopng.alert_tls_certificate_selfsigned,
    i18n_title = "flow_details.tls_certificate_selfsigned",
    icon = "fas fa-exclamation",
@@ -29,15 +27,9 @@ alert_tls_certificate_selfsigned.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @param tls_info A lua table with TLS info gererated calling `flow.getTLSInfo()`
 -- @return A table with the alert built
-function alert_tls_certificate_selfsigned:init(tls_info)
+function alert_tls_certificate_selfsigned:init()
    -- Call the parent constructor
    self.super:init()
-
-   tls_info = tls_info or {}
-
-   self.alert_type_params = {
-      ["tls_crt.issuerDN"]  = tls_info["protos.tls.issuerDN"] or "",
-   }
 end
 
 -- #######################################################
@@ -55,7 +47,15 @@ function alert_tls_certificate_selfsigned.format(ifid, alert, alert_type_params)
    local crts = {}
    crts[#crts + 1] = alert_type_params["tls_crt.issuerDN"]
 
-   return string.format("[Issuer/Subject: %s]", table.concat(crts, " - "))
+   if alert_type_params["protos.tls.issuerDN"] then
+      crts[#crts + 1] = "Issuer: "..alert_type_params["protos.tls.issuerDN"]
+   end
+
+   if alert_type_params["protos.tls.subjectDN"] then
+      crts[#crts + 1] = "Subject: "..alert_type_params["protos.tls.subjectDN"]
+   end
+
+   return string.format("%s", table.concat(crts, " / "))
 end
 
 -- #######################################################

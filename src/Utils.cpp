@@ -4757,8 +4757,8 @@ char *Utils::ifname2devname(const char *ifname, char *devname, int devname_size)
 
 /* ****************************************************** */
 
-ScoreCategory Utils::mapScriptToScoreCategory(ScriptCategory script_category) {
-  if(script_category == script_category_security)
+ScoreCategory Utils::mapAlertToScoreCategory(AlertCategory alert_category) {
+  if(alert_category == alert_category_security)
     return(score_category_security);
   else
     return(score_category_network);

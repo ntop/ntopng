@@ -26,18 +26,20 @@
 
 class Bitmap {
 private:
-  u_int64_t bitmap[2]; /* Sync with BITMAP_NUM_BITS */
+  u_int64_t bitmap[BITMAP_NUM_BITS/64];
 
 public:
   Bitmap() { reset(); }
 
+  inline u_int32_t size() { return sizeof(bitmap)*64; }
+
   void reset();
   void setBit(u_int8_t id);
   void clearBit(u_int8_t id);
-  bool issetBit(u_int8_t id) const;
-  void bitmapOr(Bitmap b);
-  void set(Bitmap *b);
-  bool equal(Bitmap *b) const;
+  bool isSetBit(u_int8_t id) const;
+  void bitmapOr(const Bitmap b);
+  void set(const Bitmap *b);
+  bool equal(const Bitmap *b) const;
   
   void lua(lua_State* vm, const char *label) const;
 };

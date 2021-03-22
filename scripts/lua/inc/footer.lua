@@ -383,12 +383,12 @@ print[[
 			}
 
 			if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {
-				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status_severity=warning\">"
+				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=warning\">"
 				msg += "<span class=\"badge badge-warning\">"+NtopUtils.addCommas(rsp.alerted_flows_warning)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 			}
 
 			if(rsp.alerted_flows_error > 0 && !(systemInterfaceEnabled)) {
-				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status_severity=error_or_higher\">"
+				msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=error_or_higher\">"
 				msg += "<span class=\"badge badge-danger\">"+NtopUtils.addCommas(rsp.alerted_flows_error)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 			}
 		}

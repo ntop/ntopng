@@ -335,7 +335,7 @@ fi
 
 if test -d "pro"; then :
 AC_MSG_RESULT(yes)
-PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp))'
+PRO_OBJECTS='$(patsubst pro/%.cpp, pro/%.o, $(wildcard pro/*.cpp)) $(patsubst pro/flow_callbacks/%.cpp, pro/flow_callbacks/%.o, $(wildcard pro/flow_callbacks/*.cpp))'
 
 if test "${with_nedge+set}" != set; then
   if test $SYSTEM = "FreeBSD" || test $SYSTEM = "Darwin" || test $MACHINE = "armv7l" || test $MACHINE = "aarch64"; then

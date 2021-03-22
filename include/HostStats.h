@@ -82,8 +82,8 @@ class HostStats: public GenericTrafficElement {
   inline void incNumAlertedFlows(bool as_client)   { if(as_client) alerted_flows_as_client++; else alerted_flows_as_server++; };
   inline void incNumUnreachableFlows(bool as_server) { if(as_server) unreachable_flows_as_server++; else unreachable_flows_as_client++; }
   inline void incNumHostUnreachableFlows(bool as_server) { if(as_server) host_unreachable_flows_as_server++; else host_unreachable_flows_as_client++; };
-  inline void incNumFlowAlerts()                     { num_flow_alerts++; };
-  inline void incTotalAlerts(AlertType alert_type)   { total_alerts++;    };
+  inline void incNumFlowAlerts() { num_flow_alerts++; };
+  inline void incTotalAlerts()   { total_alerts++;    };
 
   inline u_int32_t getTotalAlertedNumFlowsAsClient() const { return(alerted_flows_as_client);  };
   inline u_int32_t getTotalAlertedNumFlowsAsServer() const { return(alerted_flows_as_server);  };

@@ -153,15 +153,6 @@ local function addAlertHostInfo(triggered)
    end
 end
 
-
--- ##############################################
-
---! @param type_info data returned by one of the type_info building functions
-function alerts_api.trigger_status(type_info, alert_severity, cli_score, srv_score, flow_score)
-   type_info.status_type.alert_severity = alert_severity
-   flow.triggerStatus(type_info, flow_score, cli_score, srv_score)
-end
-
 -- ##############################################
 
 --@brief Check if the `alert` belongs to an exclusion list

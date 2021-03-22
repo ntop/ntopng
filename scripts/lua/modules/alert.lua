@@ -51,10 +51,10 @@ end
 
 -- ##############################################
 
-function Alert:_build_flow_status_info()
-   local flow_status_info = {
+-- TODO: remove when alerts triggered from C++
+function Alert:_build_alert_type_info()
+   local alert_type_info = {
       status_type = {
-	 status_key = self.meta.status_key,
 	 alert_type = self.meta,
       },
       alert_severity = self.alert_severity,
@@ -63,14 +63,14 @@ function Alert:_build_flow_status_info()
    }
 
    if self.alert_attacker ~= nil then
-      flow_status_info.alert_type_params.alert_attacker = self.alert_attacker
+      alert_type_info.alert_type_params.alert_attacker = self.alert_attacker
    end
 
    if self.alert_victim ~= nil then
-      flow_status_info.alert_type_params.alert_victim = self.alert_victim
+      alert_type_info.alert_type_params.alert_victim = self.alert_victim
    end
 
-   return flow_status_info
+   return alert_type_info
 end
 
 -- ##############################################
@@ -91,22 +91,6 @@ function Alert:_check_alert_data()
    end
 
    return true
-end
-
--- ##############################################
-
-function Alert:trigger_status(cli_score, srv_score, flow_score)
-   local alerts_api = require "alerts_api"
-
-   if not self.meta.status_key then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, "alert.alert_error.configuration.no_status_key")
-   end
-
-   if not self._check_alert_data() then
-      return
-   end
-
-   alerts_api.trigger_status(self:_build_flow_status_info(), self.alert_severity, cli_score, srv_score, flow_score)
 end
 
 -- ##############################################

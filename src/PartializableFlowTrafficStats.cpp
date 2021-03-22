@@ -32,6 +32,9 @@ PartializableFlowTrafficStats::PartializableFlowTrafficStats() {
   memset(&cli2srv_tcp_stats, 0, sizeof(cli2srv_tcp_stats));
   memset(&srv2cli_tcp_stats, 0, sizeof(srv2cli_tcp_stats));
 
+  memset(&cli_host_score, 0, sizeof(cli_host_score));
+  memset(&srv_host_score, 0, sizeof(srv_host_score));
+
   memset(&protos, 0, sizeof(protos));
 }
 
@@ -48,6 +51,9 @@ PartializableFlowTrafficStats::PartializableFlowTrafficStats(const Partializable
 
   memcpy(&cli2srv_tcp_stats, &fts.cli2srv_tcp_stats, sizeof(cli2srv_tcp_stats));
   memcpy(&srv2cli_tcp_stats, &fts.srv2cli_tcp_stats, sizeof(srv2cli_tcp_stats));
+
+  memcpy(&cli_host_score, &fts.cli_host_score, sizeof(cli_host_score));
+  memcpy(&srv_host_score, &fts.srv_host_score, sizeof(srv_host_score));
 
   memcpy(&protos, &fts.protos, sizeof(protos));
 }
@@ -82,6 +88,10 @@ PartializableFlowTrafficStats PartializableFlowTrafficStats::operator-(const Par
   cur.srv2cli_tcp_stats.pktOOO -= fts.srv2cli_tcp_stats.pktOOO;
   cur.srv2cli_tcp_stats.pktLost -= fts.srv2cli_tcp_stats.pktLost;
   cur.srv2cli_tcp_stats.pktKeepAlive -= fts.srv2cli_tcp_stats.pktKeepAlive;
+
+  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++)
+    cur.cli_host_score[i] -= fts.cli_host_score[i],
+      cur.srv_host_score[i] -= fts.srv_host_score[i];
 
   switch(ndpi_get_lower_proto(ndpiDetectedProtocol)) {
   case NDPI_PROTOCOL_HTTP:
@@ -141,6 +151,15 @@ void PartializableFlowTrafficStats::incTcpStats(bool cli2srv_direction, u_int re
   cur_stats->pktRetr += retr;
   cur_stats->pktOOO += ooo;
   cur_stats->pktLost += lost;
+}
+
+
+/* *************************************** */
+
+void PartializableFlowTrafficStats::incScore(u_int16_t score, ScoreCategory score_category, bool as_client) {
+  u_int16_t *dst = as_client ? cli_host_score : srv_host_score;
+
+  dst[score_category] += min_val(score, SCORE_MAX_SCRIPT_VALUE);
 }
 
 /* *************************************** */

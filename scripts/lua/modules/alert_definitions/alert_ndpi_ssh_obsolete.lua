@@ -6,7 +6,6 @@
 
 local alert_keys = require "alert_keys"
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-local status_keys = require "status_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -19,7 +18,6 @@ local alert_ndpi_ssh_obsolete = classes.class(alert)
 -- ##############################################
 
 alert_ndpi_ssh_obsolete.meta = {
-   status_key = status_keys.ntopng.status_ndpi_ssh_obsolete,
    alert_key  = alert_keys.ntopng.alert_ndpi_ssh_obsolete,
    i18n_title = "alerts_dashboard.ndpi_ssh_obsolete_title",
    icon = "fas fa-exclamation",
@@ -32,8 +30,6 @@ alert_ndpi_ssh_obsolete.meta = {
 function alert_ndpi_ssh_obsolete:init()
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = {}
 end
 
 -- #######################################################

@@ -185,6 +185,7 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #include <vector>
 #include <list>
 #include <iostream>
+#include <type_traits>
 #include <string>
 #include <sstream>
 #include <queue>
@@ -203,7 +204,7 @@ using namespace std;
 #include "MonitoredGauge.h"
 #include "MDNS.h"
 #include "AddressTree.h"
-#include "VlanAddressTree.h"
+#include "VLANAddressTree.h"
 #include "BroadcastDomains.h"
 #include "Cardinality.h"
 #include "PeerStats.h"
@@ -259,6 +260,8 @@ using namespace std;
 #include "LdapAuthenticator.h"
 #endif
 #endif
+#include "AlertExclusions.h"
+#include "ControlGroups.h"
 #include "HostPoolStats.h"
 #include "HostPools.h"
 #include "Fingerprint.h"
@@ -309,7 +312,6 @@ using namespace std;
 #include "SPSCQueue.h"
 #include "LuaReusableEngine.h"
 #include "AlertCheckLuaEngine.h"
-#include "FlowAlertCheckLuaEngine.h"
 #include "SyslogLuaEngine.h"
 #include "FifoQueue.h"
 #include "StringFifoQueue.h"
@@ -375,7 +377,7 @@ using namespace std;
 #endif
 
 #include "Geolocation.h"
-#include "Vlan.h"
+#include "VLAN.h"
 #include "AutonomousSystem.h"
 #include "OperatingSystem.h"
 #include "Country.h"
@@ -386,6 +388,7 @@ using namespace std;
 #include "FlowTrafficStats.h"
 #include "HostStats.h"
 #include "HostScore.h"
+#include "ViewHostScore.h"
 #include "Host.h"
 #include "BehaviouralCounter.h"
 #include "LocalHostStats.h"
@@ -394,7 +397,7 @@ using namespace std;
 #include "IEC104Stats.h"
 #include "Flow.h"
 #include "FlowHash.h"
-#include "VlanHash.h"
+#include "VLANHash.h"
 #include "AutonomousSystemHash.h"
 #include "OperatingSystemHash.h"
 #include "CountriesHash.h"
@@ -407,6 +410,10 @@ using namespace std;
 #include "AddressResolution.h"
 #include "HTTPserver.h"
 #include "Paginator.h"
+#include "FlowAlert.h"
+#include "FlowCallback.h"
+#include "FlowCallbacksLoader.h"
+#include "FlowCallbacksExecutor.h"
 #include "Ntop.h"
 
 #ifdef NTOPNG_PRO

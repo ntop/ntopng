@@ -80,7 +80,7 @@ class ViewInterface : public NetworkInterface {
   virtual u_int64_t getCheckPointNumDiscardedProbingBytes() const;
   virtual void checkPointCounters(bool drops_only);
 
-  virtual bool hasSeenVlanTaggedPackets() const;
+  virtual bool hasSeenVLANTaggedPackets() const;
 
   virtual u_int32_t getFlowsHashSize();
   virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);

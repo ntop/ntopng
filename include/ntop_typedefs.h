@@ -102,6 +102,15 @@ typedef enum {
   MAX_NUM_SCRIPT_CATEGORIES = 5
 } ScriptCategory; /* Keep in sync with user_scripts.script_categories in scripts/lua/modules/user_scripts.lua  */
 
+typedef enum {
+  alert_category_other = 0,
+  alert_category_security = 1,
+  alert_category_internals = 2,
+  alert_category_network = 3,
+  alert_category_system = 4,
+  MAX_NUM_ALERT_CATEGORIES = 5
+} AlertCategory; /* TODO: keep in sync with ScriptCategory until we remove ScriptCategory */
+
 /*
   This is a subset of ScriptCategory as flow scripts fall only in this subset
  */
@@ -207,6 +216,7 @@ typedef enum {
 /* Used to queue/dequeue elements in recipient queues via AlertFifoQueue.h */
 typedef struct {
   AlertLevel alert_severity;
+  AlertCategory alert_category;
   char *alert;
 } AlertFifoItem;
 
@@ -350,15 +360,90 @@ struct string_list {
   struct string_list *prev, *next;
 };
 
-/* Status are handled in Lua (flow_consts.lua) */
-typedef u_int8_t FlowStatus;
-#define status_normal 0
-
 typedef enum {
-  flow_lua_call_protocol_detected = 0,
-  flow_lua_call_periodic_update = 1,
-  flow_lua_call_idle = 2,
-} FlowLuaCall;
+  flow_callback_protocol_detected = 0,
+  flow_callback_periodic_update,
+  flow_callback_flow_end,
+  flow_callback_flow_none /* Flow callback not bound to protoDetected, periodicUpdate, flowEnd */
+} FlowCallbacks;
+
+/* NOTE: Throw modules/alert_keys.lua as it has been merged with modules/alert_keys.lua */
+/* NOTE: keep in sync with modules/alert_keys.lua */
+typedef enum {
+  alert_normal                           = 0,
+  alert_blacklisted                      = 1,
+  alert_blacklisted_country              = 2,
+  alert_flow_blocked                     = 3,
+  alert_data_exfiltration                = 4,
+  alert_device_protocol_not_allowed      = 5,
+  alert_dns_data_exfiltration            = 6,
+  alert_dns_invalid_query                = 7,
+  alert_elephant_flow                    = 8,
+  alert_elephant_remote_to_local         = 9, /* No longer used, can be recycled */
+  alert_external                         = 10,
+  alert_longlived                        = 11,
+  alert_low_goodput                      = 12,
+  alert_malicious_signature              = 13,
+  alert_internals                        = 14,
+  alert_potentially_dangerous            = 15,
+  alert_remote_to_remote                 = 16,
+  alert_suspicious_tcp_probing           = 17,
+  alert_suspicious_tcp_syn_probing       = 18,
+  alert_tcp_connection_issues            = 19,
+  alert_tcp_connection_refused           = 20,
+  alert_tcp_severe_connection_issues     = 21, /* No longer used, merged with alert_tcp_connection_issues */
+  alert_tls_certificate_expired          = 22,
+  alert_tls_certificate_mismatch         = 23,
+  alert_tls_old_protocol_version         = 24,
+  alert_tls_unsafe_ciphers               = 25,
+  alert_udp_unidirectional               = 26,
+  alert_web_mining_detected              = 27,
+  alert_tls_certificate_selfsigned       = 28,
+  alert_suspicious_file_transfer         = 29, /* TODO rename to alert_ndpi_binary_application_transfer */
+  alert_known_proto_on_non_std_port      = 30, /* TODO rename to alert_ndpi_known_protocol_on_non_standard_port */
+  alert_flow_risk                        = 31, /* No longer used, each risk is reported individually */
+  alert_unexpected_dhcp_server           = 32,
+  alert_unexpected_dns_server            = 33,
+  alert_unexpected_smtp_server           = 34,
+  alert_unexpected_ntp_server            = 35,
+  alert_zero_tcp_window                  = 36,
+  alert_iec_invalid_transition           = 37, /* To be implemented */
+  alert_remote_to_local_insecure_proto   = 38,
+  alert_ndpi_url_possible_xss            = 39,
+  alert_ndpi_url_possible_sql_injection  = 40,
+  alert_ndpi_url_possible_rce_injection  = 41,
+  alert_ndpi_http_suspicious_user_agent  = 42,
+  alert_ndpi_http_numeric_ip_host        = 43,
+  alert_ndpi_http_suspicious_url         = 44,
+  alert_ndpi_http_suspicious_header      = 45,
+  alert_ndpi_tls_not_carrying_https      = 46,
+  alert_ndpi_suspicious_dga_domain       = 47,
+  alert_ndpi_malformed_packet            = 48,
+  alert_ndpi_ssh_obsolete                = 49,
+  alert_ndpi_smb_insecure_version        = 50,
+  alert_ndpi_tls_suspicious_esni_usage   = 51,
+  alert_ndpi_unsafe_protocol             = 52,
+  alert_ndpi_dns_suspicious_traffic      = 53,
+  alert_ndpi_tls_missing_sni             = 54,
+  alert_iec_unexpected_type_id           = 55, /* To be implemented */
+
+  MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
+  
+  /* TODO check and add support for the below flow risks:
+  alert_ndpi_http_suspicious_content
+  alert_ndpi_risky_asn
+  alert_ndpi_risky_domain
+  alert_ndpi_malicious_ja3
+  alert_ndpi_malicious_sha1
+  */
+
+  MAX_FLOW_ALERT_TYPE = 127 /* Constrained by `Bitmap alert_map` inside Flow.h */
+} FlowAlertTypeEnum;
+
+typedef struct {
+  FlowAlertTypeEnum id;
+  AlertCategory category;
+} FlowAlertType;
 
 typedef enum {
   flow_lua_call_exec_status_ok = 0,                             /* Call executed successfully                                */
@@ -368,6 +453,7 @@ typedef enum {
   flow_lua_call_exec_status_not_executed_shutdown_in_progress,  /* Call NOT executed as a shutdown was in progress           */
   flow_lua_call_exec_status_not_executed_vm_not_allocated,      /* Call NOT executed as the vm wasn't allocated              */
   flow_lua_call_exec_status_not_executed_not_pending,           /* Call NOT executed as other hooks have already been exec.  */
+  flow_lua_call_exec_status_unsupported_call,                   /* Call NOT executed as not supported                        */
 } FlowLuaCallExecStatus;
 
 typedef enum {
@@ -616,7 +702,6 @@ typedef struct {
 class NetworkStats;
 class Host;
 class Flow;
-class FlowAlertCheckLuaEngine;
 class ThreadedActivity;
 class ThreadedActivityStats;
 
@@ -828,5 +913,12 @@ typedef enum {
   service_undecided,
   service_unknown
 } ServiceAcceptance;
+
+typedef enum {
+  ntopng_edition_community,
+  ntopng_edition_pro,
+  ntopng_edition_enterprise_m,
+  ntopng_edition_enterprise_l
+} NtopngEdition;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

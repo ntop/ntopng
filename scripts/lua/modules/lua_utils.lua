@@ -2802,33 +2802,28 @@ end
 
 -- ###############################################
 
-function formatElephantFlowStatus(flowstatus_info, local2remote)
+function formatElephantAlertType(flowalert_info)
    local threshold = ""
    local res = ""
 
-   if not flowstatus_info then
+   if not flowalert_info then
       return i18n("flow_details.elephant_flow")
    end
 
-   if local2remote then
-      res = i18n("flow_details.elephant_flow_l2r")
+   local l2r_bytes = bytesToSize(flowalert_info["l2r_bytes"])
 
-      if flowstatus_info["elephant.l2r_threshold"] then
-	 threshold = flowstatus_info["elephant.l2r_threshold"]
-      end
-   else
-      res = i18n("flow_details.elephant_flow_r2l")
-
-      if flowstatus_info["elephant.r2l_threshold"] then
-	 threshold = flowstatus_info["elephant.r2l_threshold"]
-      end
+   if flowalert_info["l2r_bytes"] > flowalert_info["l2r_threshold"] then
+      l2r_bytes = l2r_bytes .." > "..bytesToSize(flowalert_info["l2r_threshold"])
    end
 
+   local r2l_bytes = bytesToSize(flowalert_info["r2l_bytes"])
+   if flowalert_info["r2l_bytes"] > flowalert_info["r2l_threshold"] then
+      r2l_bytes = r2l_bytes .. " > "..bytesToSize(flowalert_info["r2l_threshold"])
+   end
+
+   res = i18n("flow_details.elephant_flow")
    res = string.format("%s<sup><i class='fas fa-info-circle' aria-hidden='true' title='"..i18n("flow_details.elephant_flow_descr").."'></i></sup>", res)
-
-   if threshold ~= "" then
-      res = string.format("%s [%s]", res, i18n("flow_details.elephant_exceeded", {vol = bytesToSize(threshold)}))
-   end
+   res = string.format("%s %s", res, i18n("flow_details.elephant_exceeded", {l2r = l2r_bytes, r2l = r2l_bytes}))
 
    return res
 end

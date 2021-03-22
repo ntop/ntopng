@@ -66,6 +66,9 @@ end
 local function parseAlertMetadata(event_alert, flow)
    local severity = alert_severities.error
 
+   -- Alert severity is 1..255, however it is usually 1..4
+   -- where 1 is highest priority
+
    if event_alert.severity ~= nil and event_alert.severity > 1 then
       severity = alert_severities.warning
    end

@@ -44,6 +44,7 @@ class Ntop {
   pthread_t purgeLoop;    /* Loop which iterates on active interfaces to delete idle hash table entries */
   bool purgeLoop_started; /* Flag that indicates whether the purgeLoop has been started */
   bool ndpiReloadInProgress;
+  bool flowCallbacksReloadInProgress, alertExclusionsReloadInProgress;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
   char epoch_buf[11];
@@ -96,6 +97,12 @@ class Ntop {
   char *local_network_aliases[CONST_MAX_NUM_NETWORKS];
   AddressTree local_network_tree;
 
+  /* Flow Callbacks Loader */
+  FlowCallbacksLoader *flow_callbacks_loader;
+
+  /* Hosts Control (e.g., disabled alerts) */
+  AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
+
 #ifndef WIN32
   ContinuousPing *cping;
   Ping *ping;
@@ -119,6 +126,9 @@ class Ntop {
   bool checkUserPasswordLocal(const char * const user, const char * const password, char *group) const;
   bool checkUserPassword(const char * const user, const char * const password, char *group, bool *localuser) const;
   bool startPurgeLoop();
+
+  void checkReloadFlowCallbacks();
+  void checkReloadAlertExclusions();
   
  public:
   /**
@@ -435,8 +445,7 @@ class Ntop {
   void shutdownAll();
   void runHousekeepingTasks();
   void runShutdownTasks();
-  bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    };
-  
+  bool isLocalInterfaceAddress(int family, void *addr)       { return(local_interface_addresses.findAddress(family, addr) == -1 ? false : true);    }; 
   void getLocalNetworkIp(int16_t local_network_id, IpAddress **network_ip, u_int8_t *network_prefix);
   void addLocalNetworkList(const char *network);
   void createExportInterface();
@@ -447,8 +456,9 @@ class Ntop {
   inline char*     getStartTimeString() { return(epoch_buf);             }
   inline u_int32_t getLastModifiedStaticFileEpoch()         { return(last_modified_static_file_epoch); }
   inline void      setLastModifiedStaticFileEpoch(u_int32_t t) { if(t > last_modified_static_file_epoch) last_modified_static_file_epoch = t; }
-  inline u_int32_t getUptime()          { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
-  inline int getUdpSock()               { return(udp_socket); }
+  inline u_int32_t getUptime()                 { return((u_int32_t)((start_time > 0) ? (time(NULL)-start_time) : 0)); }
+  inline int getUdpSock()                      { return(udp_socket); }
+  inline AlertExclusions *getAlertExclusions() { return alert_exclusions; }
 
   inline u_int getNumCPUs()             { return(num_cpus); }
   inline void setNumCPUs(u_int num)     { num_cpus = num; }
@@ -484,12 +494,15 @@ class Ntop {
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
   inline FifoSerializerQueue* getInternalAlertsQueue()    { return(internal_alerts_queue);  }
   void lua_alert_queues_stats(lua_State* vm);
+  bool   recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, bool flow_only);
   bool   recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification);
   bool   recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification);
   void   recipient_stats(u_int16_t recipient_id, lua_State* vm);
   time_t recipient_last_use(u_int16_t recipient_id);
   void   recipient_delete(u_int16_t recipient_id);
-  void   recipient_register(u_int16_t recipient_id);
+  void   recipient_register(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories);
+  void   recipient_set_flow_recipients(u_int64_t flow_recipients);
+
 
   void sendNetworkInterfacesTermination();
   inline time_t getLastStatsReset() { return(last_stats_reset); }
@@ -501,7 +514,7 @@ class Ntop {
   inline struct ndpi_detection_module_struct* get_ndpi_struct() const { return(ndpi_struct); };
   bool initnDPIReload();
   void finalizenDPIReload();
-  inline bool isnDPIReloadInProgress()  { return(ndpiReloadInProgress);     }  
+  inline bool isnDPIReloadInProgress()  { return(ndpiReloadInProgress);     }
 
   void checkReloadHostsBroadcastDomain();
 
@@ -513,6 +526,12 @@ class Ntop {
   ndpi_protocol_category_t get_ndpi_proto_category(u_int protoid);
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   void reloadPeriodicScripts();
+  inline void reloadFlowCallbacks()   { flowCallbacksReloadInProgress = true;    };
+  inline void reloadAlertExclusions() { alertExclusionsReloadInProgress = true;  };
+
+  char *getAlertJSON(FlowAlertType fat, Flow *f) const;
+  ndpi_serializer *getAlertSerializer(FlowAlertType fat, Flow *f) const;
+  
 #ifndef WIN32
   inline ContinuousPing* getContinuousPing() { return(cping); }
   inline Ping*           getPing()           { return(ping);  }
@@ -533,6 +552,8 @@ class Ntop {
   u_int8_t getLocalNetworkId(const char *network_name);
   
   //void getLocalAddresses(lua_State* vm) { return(local_network_tree.getAddresses(vm)); };
+
+  inline FlowCallbacksLoader* getFlowCallbacksLoader() { return(flow_callbacks_loader); }
 };
 
 extern Ntop *ntop;
