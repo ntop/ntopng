@@ -207,7 +207,9 @@ void FlowCallbacksLoader::loadConfiguration() {
       } else {
 	if(strcmp(callback_key, "new_flow_api_demo") == 0
 	   || strcmp(callback_key, "flow_risks") == 0
-	   || strcmp(callback_key, "flow_logger") == 0)
+	   || strcmp(callback_key, "flow_logger") == 0
+	   || strcmp(callback_key, "tcp_probing") == 0
+	   || strcmp(callback_key, "tls_old_version") == 0)
 	  ; /* No noise for demos */
 	else
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow callback  %s", callback_key);
