@@ -55,6 +55,7 @@ $(document).ready(function() {
                         {
                           return NtopUtils.formatValue(data);
                         }
+                        return data;
                     }
                  }
               ]
