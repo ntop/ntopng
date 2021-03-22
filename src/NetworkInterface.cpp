@@ -3617,7 +3617,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   int ndpi_proto, ndpi_cat;
   u_int16_t port;
   int16_t local_network_id;
-  u_int16_t vlan_id = 0, cli_pool, srv_pool, pool_filter, flow_status_filter;
+  u_int16_t vlan_id = 0, cli_pool, srv_pool, pool_filter;
   AlertLevelGroup flow_status_severity_filter = alert_level_group_none;
   ndpi_patricia_node_t *srv_target_node = NULL, *cli_target_node = NULL;
   IpAddress *cli_ip = (IpAddress *) f->get_srv_ip_addr();
