@@ -32,10 +32,10 @@ $(document).ready(function() {
 		  { "data": "arp_type" },
 		  { "data": "packets", className: "text-right" , render: function (data, type, row, meta)
                     {
-                      if (type === 'display')
-                        {
+                      if (type === 'display') {
                           return NtopUtils.formatValue(data);
-                        }
+                      }
+                      return data;
                     }
                  }
               ]
