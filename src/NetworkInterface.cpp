@@ -2751,11 +2751,11 @@ void NetworkInterface::shutdown() {
     if(flowDumpLoopCreated)      pthread_join(flowDumpLoop, &res);
     if(flowAlertsDequeueLoopCreated) pthread_join(callbacksLoop, &res);
 
-    /* Make sure all alerts have been dequeued and processed */
-    dequeueFlowAlertsFromCallbacks(0 /* unlimited budget */);
-
     /* purgeIdle one last time to make sure all entries will be marked as idle */
     purgeIdle(time(NULL), true, true);
+
+    /* Make sure all alerts have been dequeued and processed */
+    dequeueFlowAlertsFromCallbacks(0 /* unlimited budget */);
   }
 }
 
