@@ -228,7 +228,7 @@ function printAlerts()
       showElements = false
   end
 
- local elementToSwitch = { "max_num_alerts_per_entity", "max_num_flow_alerts",
+ local elementToSwitch = { "dont_emit_flow_alerts", "max_num_alerts_per_entity", "max_num_flow_alerts",
 			   "row_alerts_retention_header", "row_alerts_settings_header", "row_alerts_security_header",
 			   "row_alerts_informative_header",
 			   "row_toggle_device_first_seen_alert", "row_toggle_device_activation_alert", "row_toggle_pool_activation_alert", "row_toggle_quota_exceeded_alert",
@@ -262,6 +262,14 @@ function printAlerts()
   print('<thead class="thead-light"><tr id="row_alerts_retention_header" ')
   if (showElements == false) then print(' style="display:none;"') end
   print('><th colspan=2 class="info">'..i18n("prefs.alerts_retention")..'</th></tr></thead>')
+
+  prefsToggleButton(subpage_active, {
+    field = "toggle_emit_flow_alerts",
+    default = "1",
+    pref = "emit_flow_alerts",
+    on_value = "1",     -- On  flow alerts are generated
+    off_value = "0",    -- Off NO flow alerts are generated
+  })
 
   prefsInputFieldPrefs(subpage_active.entries["max_num_alerts_per_entity"].title, subpage_active.entries["max_num_alerts_per_entity"].description,
 		       "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})

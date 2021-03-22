@@ -191,7 +191,7 @@ void FlowCallbacksLoader::loadConfiguration() {
 	      FlowCallback *cb = cb_all[callback_key];
 
 	      if(cb->loadConfiguration(json_script_conf)) {
-		ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully enabled callback %s", callback_key);
+		ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully enabled callback %s", callback_key);
 	      } else {
 		ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while loading callback %s configuration",
 					     callback_key);

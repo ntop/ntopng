@@ -82,7 +82,7 @@ FlowAlert *FlowCallbacksExecutor::execCallbacks(Flow *f, FlowCallbacks c) {
       default:
 	break;
     }
-
+    
     /* Check if the callback triggered a predominant alert */
     if (f->getPredominantAlert().id != predominant_alert.id) {
       predominant_alert = f->getPredominantAlert();
@@ -90,6 +90,8 @@ FlowAlert *FlowCallbacksExecutor::execCallbacks(Flow *f, FlowCallbacks c) {
     }
   }
 
+  if(ntop->getPrefs()->dontEmitFlowAlerts()) return(NULL);
+  
   return predominant_callback ? predominant_callback->buildAlert(f) : NULL;
 }
 

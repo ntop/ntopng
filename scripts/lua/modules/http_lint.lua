@@ -1735,6 +1735,7 @@ local known_parameters = {
    ["ts_high_resolution"]                          = validateNumber,
    ["lbd_hosts_as_macs"]                           = validateBool,
    ["toggle_send_telemetry_data"]                  = validateBool,
+   ["toggle_emit_flow_alerts"]                     = validateBool,   
    ["telemetry_email"]                             = validateSingleWord,
 
    -- Other
