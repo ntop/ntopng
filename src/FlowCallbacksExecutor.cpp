@@ -34,6 +34,7 @@ FlowCallbacksExecutor::~FlowCallbacksExecutor() {
   if(protocol_detected) delete protocol_detected;
   if(periodic_update)   delete periodic_update;
   if(flow_end)          delete flow_end;
+  if(flow_none)         delete flow_none;
 };
 
 /* **************************************************** */
