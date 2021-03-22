@@ -914,3 +914,9 @@ footer {
   resize: vertical;
   overflow: auto;
 }
+
+.overlay {
+  display: flex;
+  background-color: rgba(16, 16, 16, 0.1);
+  z-index: 1000;
+}
