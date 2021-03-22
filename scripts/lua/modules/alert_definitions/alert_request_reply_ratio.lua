@@ -49,8 +49,14 @@ function alert_request_reply_ratio.format(ifid, alert, alert_type_params)
 
   local entity = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"]))
   local engine_label = alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["alert_granularity"])))
-  local ratio = round(math.min((alert_type_params.replies * 100) / (alert_type_params.requests + 1), 100), 1)
+  local ratio
 
+  if((alert_type_params.replies ~= nil) and (alert_type_params.requests ~= nil)) then
+    ratio = round(math.min((alert_type_params.replies * 100) / (alert_type_params.requests + 1), 100), 1)
+  else
+    ratio = 1
+  end
+		
   -- {i18_string, what}
   local subtype_to_info = {
     dns_sent = {"alerts_dashboard.too_low_replies_received", "DNS"},
