@@ -31,8 +31,6 @@
 /* *************************************** */
 
 Geolocation::Geolocation() {
-  mmdbs_ok = false;
-
 #ifdef HAVE_MAXMINDDB
   char docs_path[MAX_PATH];
   const char *lookup_paths[] = {
@@ -48,6 +46,8 @@ Geolocation::Geolocation() {
     docs_path
   };
 
+  mmdbs_ok = false;
+  
   snprintf(docs_path, sizeof(docs_path), "%s/geoip", ntop->getPrefs()->get_docs_dir());
   ntop->fixPath(docs_path);
 
@@ -107,7 +107,10 @@ Geolocation::Geolocation() {
 #endif
 
 #ifndef WIN32
-  if(!mmdbs_ok) {
+#ifdef HAVE_MAXMINDDB
+  if(!mmdbs_ok)
+#endif
+    {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running without geolocation support.");
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "To enable geolocation follow the instructions at");
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "https://github.com/ntop/ntopng/blob/dev/doc/README.geolocation.md");
