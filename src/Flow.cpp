@@ -2788,8 +2788,10 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
 
   ndpi_serialize_string_string(s, "alert_json", alert_json ? alert_json : "");
 
-  if (alert_json_serializer)
+  if (alert_json_serializer) {
     ndpi_term_serializer(alert_json_serializer);
+    free(alert_json_serializer);
+  }
 }
 
 /* *************************************** */
