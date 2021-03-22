@@ -10,7 +10,7 @@
 
 <div class="d-flex justify-content-between w-100">
     <div class="btn-group btn-group-toggle mr-3" role="group">
-        <label class="btn {{ (presetSelected and 'btn-warning' or 'btn-light') }}">
+        <label class="btn {{ (presetSelected and 'btn-primary' or 'btn-light') }}">
             <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
         </label>
         <label class="btn btn-light">
@@ -39,7 +39,7 @@
             <input type="radio" name="presets" id="preset-1Y" value="1,years"> 1Y
         </label>
         {% end %}
-        <label id="btn-custom-preset" class="btn {{ (not presetSelected and 'btn-warning' or 'btn-light disabled') }}">{{ i18n("graphs.custom") }}</label>
+        <label id="btn-custom-preset" class="btn {{ (not presetSelected and 'btn-primary' or 'btn-light disabled') }}">{{ i18n("graphs.custom") }}</label>
     </div>
     <div class="input-group flex-shrink-1 ml-3 mr-1" style="width: fit-content;">
         <div class="input-group-prepend">
@@ -127,8 +127,8 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
             $inputBeginEpoch.datetimepicker('date', begin[operation](parseInt(subtract), measure));
             $inputEndEpoch.datetimepicker('date', end[operation](parseInt(subtract), measure));
 
-            $btnCustomPreset.parents('.btn-group').find('.btn').removeClass('btn-warning');
-            $btnCustomPreset.addClass('btn-warning').removeClass('btn-light');
+            $btnCustomPreset.parents('.btn-group').find('.btn').removeClass('btn-primary');
+            $btnCustomPreset.addClass('btn-primary').removeClass('btn-light');
 
             // if the new end time is less than the max current date then
             // enable the jump time ahead button, otherwise disable it
@@ -154,10 +154,10 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
             $(this)
                 .parents('.btn-group')
                 .find('.btn')
-                .removeClass('btn-warning')
+                .removeClass('btn-primary')
                 .addClass('btn-light');
 
-            $(this).parents('.btn').addClass('btn-warning').removeClass('btn-light');
+            $(this).parents('.btn').addClass('btn-primary').removeClass('btn-light');
 
             const [subtract, measure] = $(this).val().split(',');
             const end = $inputEndEpoch.datetimepicker('date');
