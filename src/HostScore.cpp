@@ -79,7 +79,6 @@ u_int16_t HostScore::decValue(u_int16_t score, ScoreCategory score_category, boo
 
 void HostScore::lua_breakdown(lua_State *vm, bool as_client) {
   u_int32_t total = as_client ? getClient() : getServer();
-  const u_int32_t *src = as_client ? cli_score : srv_score;
 
   if(total == 0) total = 1; /* Prevents zero-division errors */
 
