@@ -276,7 +276,7 @@ end
 -- cur_alerts.1.alert_tstamp number 1571327460
 -- cur_alerts.1.alert_entity number 1
 local function already_triggered(cur_alerts, candidate_severity, candidate_type,
-	candidate_granularity, candidate_alert_subtype)
+				 candidate_granularity, candidate_alert_subtype, remove_from_cur_alerts)
    for i = #cur_alerts, 1, -1 do
       local cur_alert = cur_alerts[i]
 
@@ -284,17 +284,49 @@ local function already_triggered(cur_alerts, candidate_severity, candidate_type,
 	 and candidate_type == cur_alert.alert_type
 	 and candidate_granularity == cur_alert.alert_granularity
          and candidate_alert_subtype == cur_alert.alert_subtype then
-	    -- Remove from cur_alerts, this will save cycles for
-	    -- subsequent calls of this method.
-	    -- Using .remove is OK here as there won't unnecessarily move memory multiple times:
-	    -- we return immeediately
-	    -- NOTE: see un-removed alerts will be released by releaseEntityAlerts in interface.lua
-	    table.remove(cur_alerts, i)
+	    if remove_from_cur_alerts then
+	       -- Remove from cur_alerts, this will save cycles for
+	       -- subsequent calls of this method.
+	       -- Using .remove is OK here as there won't unnecessarily move memory multiple times:
+	       -- we return immeediately
+	       -- NOTE: see un-removed alerts will be released by releaseEntityAlerts in interface.lua
+	       table.remove(cur_alerts, i)
+	    end
+
 	    return true
       end
    end
 
    return false
+end
+
+-- ##############################################
+
+--! @brief Checks if a stateful alert should be triggered/released or if has already been triggered/released and there is nothing to do
+--! @param cur_alerts a table containing triggered alerts for the current entity
+--! @param candidate_severity the candidate alert severity
+--! @param candidate_type the candidate alert type
+--! @param candidate_granularity the candidate alert granularity
+--! @param candidate_alert_subtype the candidate alert subtype
+--! @param trigger The intention of the caller to trigger this alert (true) or to release this alert (false)
+--! @return True if the alert should be processed, or false if there is nothing to do
+function alerts_api.do_stateful_alert(cur_alerts, candidate_severity, candidate_type, candidate_granularity, candidate_alert_subtype, trigger)
+   if not cur_alerts then
+      return false
+   end
+
+   local severity_id = candidate_severity.severity_id
+   local alert_key = candidate_type.meta.alert_key
+   local granularity = alert_consts.alerts_granularities[candidate_granularity]
+   local granularity_sec = granularity and granularity.granularity_seconds or 0
+
+   if trigger then
+      -- True if the alert has not been already triggered
+      return not already_triggered(cur_alerts, severity_id, alert_key, granularity_sec, candidate_alert_subtype)
+   else --[[ release --]]
+      -- True if the alert was triggered
+      return already_triggered(cur_alerts, severity_id, alert_key, granularity_sec, candidate_alert_subtype)
+   end
 end
 
 -- ##############################################
@@ -333,7 +365,7 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
   local match_exclude_filter = matchExcludeFilter(entity_info, type_info)
 
   if(cur_alerts and already_triggered(cur_alerts, type_info.alert_severity.severity_id,
-				      type_info.alert_type.alert_key, granularity_sec, subtype) == true) then
+				      type_info.alert_type.alert_key, granularity_sec, subtype, true) == true) then
      -- If there, the alert was already engaged at the time this function was called. Hence, if the alert
      -- is matching the exclusion filter, the alert must actually be RELEASED.
      -- NOTE: release is called without `cur_alerts` as there is no need to use this cache. Release MUST be done.
@@ -421,7 +453,7 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
   local subtype = type_info.alert_subtype or ""
 
   if(cur_alerts and (not already_triggered(cur_alerts, type_info.alert_severity.severity_id,
-	  type_info.alert_type.alert_key, granularity_sec, subtype))) then
+	  type_info.alert_type.alert_key, granularity_sec, subtype, true))) then
      return(true)
   end
 
@@ -663,6 +695,22 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   local alarmed = false  
   local threshold = threshold_config.threshold or threshold_config.default_contacts
 
+  -- Retrieve the function to be used for the threshold check.
+  -- The function depends on the operator, i.e., "gt", or "lt".
+  -- When there's no operator, the default "gt" function is taken from the available
+  -- operation functions
+  local op_fn = user_scripts.operator_functions[threshold_config.operator] or user_scripts.operator_functions.gt
+  if op_fn and op_fn(value, threshold) then alarmed = true end
+
+  -- tprint({params.cur_alerts, threshold_config.severity, alert_type.meta, params.granularity, script.key --[[ the subtype--]], alarmed})
+
+  -- Check if there is work to do before creating an instance of the alert and doing the actual trigger release
+  if not alerts_api.do_stateful_alert(params.cur_alerts, threshold_config.severity,
+				      alert_type, params.granularity, script.key --[[ the subtype --]], alarmed) then
+     -- Nothing to do. Alert either already triggered or already released
+     return
+  end
+
   local alert = alert_type.new(
     params.user_script.key,
     value,
@@ -681,13 +729,6 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   if victim ~= nil then
     alert:set_victim(victim)
   end
-  
-  -- Retrieve the function to be used for the threshold check.
-  -- The function depends on the operator, i.e., "gt", or "lt".
-  -- When there's no operator, the default "gt" function is taken from the available
-  -- operation functions
-  local op_fn = user_scripts.operator_functions[threshold_config.operator] or user_scripts.operator_functions.gt
-  if op_fn and op_fn(value, threshold) then alarmed = true end
 
   if(alarmed) then
     alert:trigger(params.alert_entity, nil, params.cur_alerts)
