@@ -3057,6 +3057,8 @@ bool Flow::enqueueAlert(FlowAlert *alert) {
 
   ndpi_term_serializer(&flow_json);
 
+  delete alert;
+
   return rv;
 }
 

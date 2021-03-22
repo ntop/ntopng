@@ -2407,8 +2407,7 @@ u_int64_t NetworkInterface::dequeueAlertedFlows(SPSCQueue<FlowAlert *> *q, u_int
       Flow *f = alert->getFlow();
 
       /* Enqueue alert to recipients */
-      if (!f->enqueueAlert(alert))
-        delete alert;
+      f->enqueueAlert(alert);
 
 #if DEBUG_FLOW_CALLBACKS
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flow alert");
