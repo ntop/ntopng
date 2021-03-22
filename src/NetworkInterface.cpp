@@ -151,7 +151,7 @@ NetworkInterface::NetworkInterface(const char *name,
 
   if(id >= 0) {
     last_pkt_rcvd = last_pkt_rcvd_remote = 0, pollLoopCreated = false,
-      flowDumpLoopCreated = false, flowCallbacksLoopCreated = false, bridge_interface = false;
+      flowDumpLoopCreated = false, flowAlertsDequeueLoopCreated = false, bridge_interface = false;
     next_idle_flow_purge = next_idle_host_purge = next_idle_other_purge = 0;
     cpu_affinity = -1 /* no affinity */,
       has_vlan_packets = has_ebpf_events = false;
@@ -2429,7 +2429,7 @@ u_int64_t NetworkInterface::dequeueAlertedFlows(SPSCQueue<FlowAlert *> *q, u_int
 
 /* **************************************************** */
 
-u_int64_t NetworkInterface::dequeueFlowsForCallbacks(u_int budget) {
+u_int64_t NetworkInterface::dequeueFlowAlertsFromCallbacks(u_int budget) {
   u_int64_t num_done = dequeueAlertedFlows(callbacksQueue, budget);
 
 #ifndef WIN32
@@ -2584,7 +2584,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget, u_int a
 
 /* **************************************************** */
 
-void NetworkInterface::flowCallbacksLoop() {
+void NetworkInterface::flowAlertsDequeueLoop() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
 			       "Started flow user script hooks loop on interface %s [id: %u]...",
 			       get_description(), get_id());
@@ -2600,7 +2600,7 @@ void NetworkInterface::flowCallbacksLoop() {
       To guarantee some sort of fairness and prioritization, different numbers are used for each
       of the three queues. Higher numbers are used for queues with higher-priority.
      */
-    u_int64_t n = dequeueFlowsForCallbacks(32 /* budget */);
+    u_int64_t n = dequeueFlowAlertsFromCallbacks(32 /* budget */);
 
     if(n == 0) {
       /*
@@ -2650,7 +2650,8 @@ void NetworkInterface::dumpFlowLoop() {
 static void* callbacksLoop(void* ptr) {
   NetworkInterface *_if = (NetworkInterface*)ptr;
 
-  _if->flowCallbacksLoop();
+  _if->flowAlertsDequeueLoop();
+
   return(NULL);
 }
 
@@ -2745,7 +2746,10 @@ void NetworkInterface::shutdown() {
 
     if(pollLoopCreated)          pthread_join(pollLoop, &res);
     if(flowDumpLoopCreated)      pthread_join(flowDumpLoop, &res);
-    if(flowCallbacksLoopCreated) pthread_join(callbacksLoop, &res);
+    if(flowAlertsDequeueLoopCreated) pthread_join(callbacksLoop, &res);
+
+    /* Make sure all alerts have been dequeued and processed */
+    dequeueFlowAlertsFromCallbacks(0 /* unlimited budget */);
 
     /* purgeIdle one last time to make sure all entries will be marked as idle */
     purgeIdle(time(NULL), true, true);
@@ -7316,7 +7320,7 @@ bool NetworkInterface::initFlowCallbacksLoop() {
     return true;
 
   pthread_create(&callbacksLoop, NULL, ::callbacksLoop, (void*)this);
-  flowCallbacksLoopCreated = true;
+  flowAlertsDequeueLoopCreated = true;
 
 #ifdef __linux__
   char buf[16];

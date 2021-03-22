@@ -201,7 +201,7 @@ class NetworkInterface : public AlertableEntity {
     flowDumpLoop /* Thread for the database dump of flows */,
     callbacksLoop /* Thread for the execution of flow user script hooks */;
   Condvar       flow_callbacks_condvar;   /* Condition variable used to wait when no flows have been enqueued for hooks exec. */
-  bool pollLoopCreated, flowDumpLoopCreated, flowCallbacksLoopCreated;
+  bool pollLoopCreated, flowDumpLoopCreated, flowAlertsDequeueLoopCreated;
   bool has_too_many_hosts, has_too_many_flows, mtuWarningShown;
   bool flow_dump_disabled;
   u_int32_t ifSpeed, numL2Devices, numHosts, numLocalHosts, scalingFactor;
@@ -960,7 +960,7 @@ class NetworkInterface : public AlertableEntity {
   inline u_int32_t getNumEngagedAlerts()    const         { return num_alerts_engaged; };
   void releaseAllEngagedAlerts();
 
-  virtual void flowCallbacksLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */
+  virtual void flowAlertsDequeueLoop(); /* Body of the loop that dequeues flows for the execution of user script hooks */
   virtual void dumpFlowLoop(); /* Body of the loop that dequeues flows for the database dump */
   void incNumQueueDroppedFlows(u_int32_t num);
   /*
@@ -979,7 +979,7 @@ class NetworkInterface : public AlertableEntity {
     Budgets indicate how many flows should be dequeued (if available) to perform protocol detected, active,
     and idle callbacks.
    */
-  virtual u_int64_t dequeueFlowsForCallbacks(u_int budget);
+  u_int64_t dequeueFlowAlertsFromCallbacks(u_int budget);
   inline FlowCallbacksExecutor* getFlowCallbackExecutor() { return(flow_callbacks_executor); }
 };
 
