@@ -92,7 +92,6 @@ void FlowCallbacksLoader::registerFlowCallbacks() {
   if((fcb = new WebMining()))                                   cb_all[fcb->getName()] = fcb;
 
 #ifdef NTOPNG_PRO
-  if((fcb = new BlacklistedFlow()))                             cb_all[fcb->getName()] = fcb;
   if((fcb = new DataExfiltration()))                            cb_all[fcb->getName()] = fcb;
   if((fcb = new DNSDataExfiltration()))                         cb_all[fcb->getName()] = fcb;
   if((fcb = new ElephantFlow()))                                cb_all[fcb->getName()] = fcb;
