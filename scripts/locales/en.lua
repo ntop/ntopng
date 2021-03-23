@@ -1690,6 +1690,7 @@ local lang = {
     ["ssh_signature"] = "SSH Signature",
     ["suspicious_client_device_protocol"] = "Client app. \"%{proto}\" not allowed for <a href=\"%{url}\">%{devtype} application policy</a>",
     ["suspicious_device_protocol"] = "Susp. Device Protocol",
+    ["suspicious_tcp_probing"] = "Suspicious TCP Probing",
     ["suspicious_server_device_protocol"] = "Server app. \"%{proto}\" not allowed for <a href=\"%{url}\">%{devtype} application policy</a>",
     ["sync_source_id"] = "Sync Source ID",
     ["tcp_connection_issues"] = "TCP Connection Issues",
