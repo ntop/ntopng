@@ -159,8 +159,7 @@ local function processHost(hostname, host)
        }
     end
 
-    if (line ~= nil) then
-        
+    if (line ~= nil) then        
         if (line.r > max_radius) then max_radius = line.r end
 
         if (host.localhost) then
