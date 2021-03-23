@@ -5291,14 +5291,14 @@ void Flow::setPredominantAlert(FlowAlertType alert_type, AlertLevel alert_severi
 
   Return true if the activities are completed successfully, of false otherwise
 */
-bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc, bool async) {
+bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, u_int8_t cli_inc, u_int8_t srv_inc, bool async) {
   ScoreCategory score_category = Utils::mapAlertToScoreCategory(alert_type.category);
   u_int16_t flow_inc;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
 
-  cli_inc = min_val(cli_inc, SCORE_MAX_SCRIPT_VALUE);
-  srv_inc = min_val(srv_inc, SCORE_MAX_SCRIPT_VALUE);
-  flow_inc = min_val(cli_inc + srv_inc, SCORE_MAX_SCRIPT_VALUE);
+  cli_inc = min_val(cli_inc, SCORE_MAX_VALUE);
+  srv_inc = min_val(srv_inc, SCORE_MAX_VALUE);
+  flow_inc = cli_inc + srv_inc;
 
 #ifdef DEBUG_SCORE
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Set alert score: %u (%u/%u)", flow_inc, cli_inc, srv_inc);
@@ -5364,7 +5364,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, 
 
 /* *************************************** */
 
-bool Flow::triggerAlertAsync(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc) {
+bool Flow::triggerAlertAsync(FlowAlertType alert_type, AlertLevel alert_severity, u_int8_t cli_inc, u_int8_t srv_inc) {
   bool res;
 
   res = setAlertsBitmap(alert_type, alert_severity, cli_inc, srv_inc, true);
@@ -5374,7 +5374,7 @@ bool Flow::triggerAlertAsync(FlowAlertType alert_type, AlertLevel alert_severity
 
 /* *************************************** */
 
-bool Flow::triggerAlertSync(FlowAlert *alert, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc) {
+bool Flow::triggerAlertSync(FlowAlert *alert, AlertLevel alert_severity, u_int8_t cli_inc, u_int8_t srv_inc) {
   bool res;
 
   res = setAlertsBitmap(alert->getAlertType(), alert_severity, cli_inc, srv_inc, false);

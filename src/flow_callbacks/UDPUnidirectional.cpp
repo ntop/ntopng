@@ -24,7 +24,7 @@
 
 void UDPUnidirectional::checkFlow(Flow *f) {
   int16_t network_id;
-  u_int16_t score = 10;
+  u_int8_t score = 10;
   
   if(f->get_protocol() != IPPROTO_UDP)                  return; /* Non UDP traffic        */
   if(f->get_bytes_srv2cli() && f->get_bytes_srv2cli())  return; /* Two way communications */

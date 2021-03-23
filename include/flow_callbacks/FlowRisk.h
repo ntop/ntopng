@@ -30,8 +30,8 @@ class FlowRisk : public FlowCallback {
   virtual FlowAlertType getAlertType() const = 0;
 
   /* Override on specific flow risks if required */
-  virtual u_int16_t getClientScore() { return 50; }
-  virtual u_int16_t getServerScore() { return 50; }
+  virtual u_int8_t getClientScore() { return 50; }
+  virtual u_int8_t getServerScore() { return 50; }
 
  public:
   FlowRisk() : FlowCallback(ntopng_edition_community,

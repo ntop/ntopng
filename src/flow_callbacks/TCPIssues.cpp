@@ -22,9 +22,9 @@
 #include "ntop_includes.h"
 #include "flow_callbacks_includes.h"
 
-static const u_int16_t min_pkt_threshold   = 10;
-static const u_int16_t normal_issues_ratio = 10; // 1/10
-static const u_int16_t severe_issues_ratio = 3;  // 1/3
+static const u_int8_t min_pkt_threshold   = 10;
+static const u_int8_t normal_issues_ratio = 10; // 1/10
+static const u_int8_t severe_issues_ratio = 3;  // 1/3
 
 /* ******************************************** */
 
@@ -63,7 +63,7 @@ bool TCPIssues::checkServerTCPIssues(Flow *f, bool *is_severe) {
 /* ******************************************** */
 
 void TCPIssues::checkFlow(Flow *f) {
-  u_int16_t c_score = 0, s_score = 0;
+  u_int8_t c_score = 0, s_score = 0;
   bool is_severe, has_issues = false;
 
   if(f->get_protocol() != IPPROTO_TCP)

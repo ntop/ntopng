@@ -38,7 +38,7 @@ bool BlacklistedCountry::hasBlacklistedCountry(Host *h) const {
 
 void BlacklistedCountry::protocolDetected(Flow *f) {
   Host *cli_host, *srv_host;
-  u_int16_t c_score = 0, s_score = 0;
+  u_int8_t c_score = 0, s_score = 0;
   bool is_server_bl = false, is_client_bl = false;
 
   if(blacklisted_countries.size() == 0)

@@ -7,10 +7,6 @@ local flow_consts = {}
 
 -- ################################################################################
 
-flow_consts.max_score = 1024 -- Keep in sync with SCORE_MAX_SCRIPT_VALUE in ntop_defines.h
-
--- ################################################################################
-
 -- IMPORTANT: keep it in sync with ParserInterface::ParserInterface()
 
 flow_consts.flow_fields_description = {

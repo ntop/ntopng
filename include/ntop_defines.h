@@ -1093,7 +1093,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
 #define ALERT_ACTION_RELEASE          "release"
 #define ALERT_ACTION_STORE            "store"
 
-#define SCORE_MAX_SCRIPT_VALUE            1024 /* Keep in sync with flow_consts.max_score in scripts/lua/modules/flow_consts.lua */
+#define SCORE_MAX_VALUE               128    /* Maximum client/server score. Flow score is 2 * SCORE_MAX_VALUE. */
 
 #ifndef WIN32
 #define CONST_DEFAULT_DUMP_SYSLOG_FACILITY LOG_DAEMON

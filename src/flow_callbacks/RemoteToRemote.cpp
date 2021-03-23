@@ -24,8 +24,8 @@
 
 void RemoteToRemote::protocolDetected(Flow *f) {
   if (f->isRemoteToRemote() && f->isUnicast()) {
-    u_int16_t c_score = 10;
-    u_int16_t s_score = 10;
+    u_int8_t c_score = 10;
+    u_int8_t s_score = 10;
     
     f->triggerAlertAsync(RemoteToRemoteAlert::getClassType(), getSeverity(), c_score, s_score);
   }

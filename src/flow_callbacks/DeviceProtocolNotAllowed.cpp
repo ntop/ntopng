@@ -24,7 +24,7 @@
 
 void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
   if (!f->isDeviceAllowedProtocol()) {
-    u_int16_t c_score, s_score;
+    u_int8_t c_score, s_score;
     const IpAddress *attacker, *victim;
 
     if (!f->isCliDeviceAllowedProtocol()) {

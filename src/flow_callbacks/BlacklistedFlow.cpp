@@ -24,10 +24,10 @@
 
 void BlacklistedFlow::protocolDetected(Flow *f) {
   if(f->isBlacklistedFlow()) {
-    u_int16_t c_score, s_score;
+    u_int8_t c_score, s_score;
     
     if(f->isBlacklistedServer())
-      c_score = SCORE_MAX_SCRIPT_VALUE, s_score = 5;
+      c_score = SCORE_MAX_VALUE, s_score = 5;
     else
       c_score = 5, s_score = 10;
 

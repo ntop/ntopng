@@ -25,7 +25,7 @@
 /* ***************************************************** */
 
 void LowGoodputFlow::checkLowGoodput(Flow *f) {
-  u_int16_t c_score = 10, s_score = 10;
+  u_int8_t c_score = 10, s_score = 10;
 
   if(!f->isTCP())                 return; /* TCP only                      */
   if(!f->isThreeWayHandshakeOK()) return; /* Three way handshake completed */

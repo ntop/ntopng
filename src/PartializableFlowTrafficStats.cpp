@@ -159,7 +159,7 @@ void PartializableFlowTrafficStats::incTcpStats(bool cli2srv_direction, u_int re
 void PartializableFlowTrafficStats::incScore(u_int16_t score, ScoreCategory score_category, bool as_client) {
   u_int16_t *dst = as_client ? cli_host_score : srv_host_score;
 
-  dst[score_category] += min_val(score, SCORE_MAX_SCRIPT_VALUE);
+  dst[score_category] += min_val(score, SCORE_MAX_VALUE);
 }
 
 /* *************************************** */

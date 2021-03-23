@@ -31,8 +31,8 @@ class FlowRiskSSHObsolete : public FlowRisk {
   FlowAlertType getAlertType() const { return FlowRiskSSHObsoleteAlert::getClassType();       }
 
   /* Uncomment to override the default scores:
-  u_int16_t getClientScore() { return 50; }
-  u_int16_t getServerScore() { return 50; }
+  u_int8_t getClientScore() { return 50; }
+  u_int8_t getServerScore() { return 50; }
   */
 
  public:

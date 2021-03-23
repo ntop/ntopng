@@ -30,8 +30,8 @@ class FlowRiskKnownProtocolOnNonStandardPort : public FlowRisk {
   FlowAlertType getAlertType() const { return FlowRiskKnownProtocolOnNonStandardPortAlert::getClassType();  }
 
   /* Overriding the default scores */
-  u_int16_t getClientScore() { return 100; }
-  u_int16_t getServerScore() { return 100; }
+  u_int8_t getClientScore() { return 100; }
+  u_int8_t getServerScore() { return 100; }
 
   /* Overriding the default severity */
   AlertLevel getSeverity() { return alert_level_info; }

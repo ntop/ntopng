@@ -30,8 +30,8 @@ class FlowRiskTLSNotCarryingHTTPS : public FlowRiskTLS {
   FlowAlertType getAlertType() const { return FlowRiskTLSNotCarryingHTTPSAlert::getClassType(); }
 
   /* Uncomment to override the default scores:
-  u_int16_t getClientScore() { return 50; }
-  u_int16_t getServerScore() { return 50; }
+  u_int8_t getClientScore() { return 50; }
+  u_int8_t getServerScore() { return 50; }
   */
 
  public:
