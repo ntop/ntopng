@@ -21,7 +21,7 @@
                             {% if tonumber(item.badge_num) and tonumber(item.badge_num) > 0 then %}
                                 <span class="badge badge-pill badge-secondary" style="float:right;margin-bottom:-10px;">{{ item.badge_num }}</span>
                             {% end %}
-                            {* item.label *}
+                            <b>{* item.label *}</b>
                         </li>
                     {% else %}
 
