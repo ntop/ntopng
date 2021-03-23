@@ -436,7 +436,7 @@ local function validateAlertTypeNumber(status)
    end
 
    local num = tonumber(status)
-   return((num >= 0) and (num < 2^8))
+   return((num >= 0) and (num < 2^32))
 end
 
 local function validateAlertType(mode)
@@ -1329,6 +1329,10 @@ local known_parameters = {
    ["network"]                 = validateNumber,                -- A network ID
    ["network_cidr"]            = validateNetwork,               -- A network expressed with the /
    ["ip"]                      = validateEmptyOr(validateIpAddress), -- An IPv4 or IPv6 address
+   ["cli_ip"]                  = validateEmptyOr(validateIpAddress), -- An IPv4 or IPv6 address
+   ["srv_ip"]                  = validateEmptyOr(validateIpAddress), -- An IPv4 or IPv6 address
+   ["cli_port"]                = validatePort,                  --Client port
+   ["srv_port"]                = validatePort,                  --Server port
    ["vhost"]                   = validateHTTPHost,              -- HTTP server name or IP address
    ["version"]                 = validateIpVersion,             -- To specify an IPv4 or IPv6
    ["vlan"]                    = validateEmptyOr(validateNumber), -- A VLAN id
