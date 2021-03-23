@@ -97,7 +97,7 @@
         <button class="btn btn-sm btn-link my-2" type="button" data-toggle="collapse" data-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
             <i class="fas fa-chevron-right"></i> <u>{{ i18n("show_hide_filters") }}</u>
         </button>
-        <div class="collapse" id="collapseFilter">
+        <div class="collapse show" id="collapseFilter">
             <div class="d-flex">
                 <input class="form-control tagify-non-editable" name="tags" placeholder="Filters"> 
                 <button data-toggle="tooltip" data-placement="bottom" title="Remove filters." class="btn btn-danger ml-1 btn-remove-tags">
@@ -113,28 +113,21 @@
 <link rel="stylesheet" href="{{ ntop.getHttpPrefix }}/css/tagify.css" />
 <script type="text/javascript" src="{{ ntop.getHttpPrefix }}/js/tagify.min.js"></script>
 <script type="text/javascript">
+
+i18n.tags = {* json.encode(tags.localization) *};
+
+const tags =  {* json.encode(tags.values) *};
+const input = $(`[name='tags']`)[0];
+
+const tagify = new Tagify(input, {
+    duplicate: false,
+    autoComplete: { enabled: false }
+});
+// add existing tags
+tagify.addTags(tags);
+
 $(document).ready(function() {
     
-    const tags =  {* json.encode(tags.values) *};
-    const input = $(`[name='tags']`)[0];
-
-    const tagify = new Tagify(input, {
-        duplicate: false,
-        autoComplete: { enabled: false }
-    })
-    .on('remove', function(e) {
-        
-        const event = new Event('tagRemoved');
-        event.detail = e.detail;
-
-        // dispatch an event to the document
-        // so it can be captured outside
-        input.dispatchEvent(event);
-    });
-
-    tagify.addTags(tags);
-
-
     // intialize tooltip
     $(`.btn-remove-tags`).tooltip();
     // clear all the filters on click

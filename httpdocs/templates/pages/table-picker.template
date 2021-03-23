@@ -68,7 +68,7 @@
         const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
 
-        async function reloadChartAndTable($table, begin, end, rows, datasourceParams) {
+        async function reloadChartAndTable($table, begin, end, rows) {
 
             if (begin == null && end == null) return;
 
@@ -124,11 +124,11 @@
             window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: len}, '', url);
         }
 
-        async function onRangePickerChange(datasourceParams, pushHistroy = false) {
+        async function onRangePickerChange(pushHistroy = false) {
             
             const [begin, end] = getTimestampRange();
             const len = parseInt($(`#select-len`).val());
-            await reloadChartAndTable($table, begin, end, len, datasourceParams);
+            await reloadChartAndTable($table, begin, end, len);
 
             if (pushHistroy) {
                 pushNewHistoryState(begin, end, len);
@@ -165,24 +165,47 @@
 
         // on apply button click
         $(`#btn-apply`).on('click', async function() {
-            await onRangePickerChange(datasourceParams, true);
+            await onRangePickerChange(true);
         });
 
         $(`#select-len`).on('change', async function() {
-            await onRangePickerChange(datasourceParams, true);
+            await onRangePickerChange(true);
         });
 
         // when an user remove the tag
-        $(`[name='tags']`).on('tagRemoved', async function(e) {
+        tagify.on('remove', async function(e) {
 
             const key = e.detail.data.key;
-            const paramsCopy = Object.assign({}, datasourceParams);
-            if (paramsCopy[key] !== undefined) {
-                delete paramsCopy[key];
+            if (datasourceParams[key] !== undefined) {
+                delete datasourceParams[key];
             }
 
-            await onRangePickerChange(paramsCopy, false);
+            await onRangePickerChange(false);
         });
       
+        $table.on('click', `a.tag-filter`, async function (e) {
+            e.preventDefault();
+
+            const text = $(this).text();
+            const href = $(this).attr('href').replace('?', '');
+            const [key, value] = href.split('=');
+            const label = i18n.tags[key].replace("%val", text);
+
+            // add/update datasource params
+            datasourceParams[key] = value;
+            
+            // does the tag exist?
+            if (tagify.getTagIndexByValue(label).length !== 0) {
+                // the tag exists! don't trigger any request...
+                return;
+            } 
+
+            // add filter!
+            tagify.addTags([{value: label, key: key, val: value}]);
+            // trigger request
+            await onRangePickerChange(false);
+        });
+
+
     });
 </script>

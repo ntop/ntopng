@@ -91,7 +91,7 @@
 
             const searchParams = new URLSearchParams(Object.entries(copyParams));
 
-	    toggleOverlays();
+	        toggleOverlays();
 	    
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
@@ -162,9 +162,9 @@
 
         // on ajax request complete then print the query time
         $table.on('xhr', function() {
-	    printQueryTime($table);
-	    toggleOverlays();
-	});
+            printQueryTime($table);
+            toggleOverlays();
+	    });
 
         // on apply button click
         $(`#btn-apply`).on('click', async function() {
@@ -176,16 +176,39 @@
         });
 
         // when an user remove the tag
-        $(`[name='tags']`).on('tagRemoved', async function(e) {
+        tagify.on('remove', async function(e) {
 
             const key = e.detail.data.key;
-            console.log(key);
             if (datasourceParams[key] !== undefined) {
                 delete datasourceParams[key];
             }
 
             await onRangePickerChange(false);
         });
+
+        $table.on('click', `a.tag-filter`, async function (e) {
+            e.preventDefault();
+
+            const text = $(this).text();
+            const href = $(this).attr('href').replace('?', '');
+            const [key, value] = href.split('=');
+            const label = i18n.tags[key].replace("%val", text);
+
+            // add/update datasource params
+            datasourceParams[key] = value;
+            
+            // does the tag exist?
+            if (tagify.getTagIndexByValue(label).length !== 0) {
+                // the tag exists! don't trigger any request...
+                return;
+            } 
+
+            // add filter!
+            tagify.addTags([{value: label, key: key, val: value}]);
+            // trigger request
+            await onRangePickerChange(false);
+        });
+
       
     });
 </script>

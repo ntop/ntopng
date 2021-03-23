@@ -37,9 +37,9 @@ template_utils.render("pages/table-picker.template", {
     modals = {},
     range_picker = {
         tags = {
-            values = {
-                {value = "Test1 = 10", key = 'test', val = 20},
-                {value = "Test2 = 20", key = 'test_2', val = 20},
+            values = {},
+            i18n = {
+                index = "Index = %val"
             }
         }
     },
@@ -57,7 +57,13 @@ template_utils.render("pages/table-picker.template", {
         datasource = Datasource("/lua/rest/v1/get/time/data.lua", {begin_epoch = begin_epoch, end_epoch = end_epoch, totalRows = totalRows}),
         name = 'my-table', -- the table name
         columns = {'Index', 'Date'}, -- the columns to print inside the table
-        js_columns = ([[ [{data: 'index', width: '100px'}, {data: 'date'}] ]]), -- a custom javascript code to format the columns
+        js_columns = ([[ [
+            {data: 'index', width: '100px', render: (index, type) => {
+                if (type !== 'display') return index;
+                return `<a class='tag-filter' href='?index=${index}'>${index}</a>`;
+            }}, 
+            {data: 'date'}] 
+        ]]), -- a custom javascript code to format the columns
     }
 })
 
