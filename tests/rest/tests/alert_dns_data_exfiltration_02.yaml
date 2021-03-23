@@ -7,7 +7,7 @@ pre: |
   curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "action": "enable"}' http://localhost:3333/lua/toggle_all_user_scripts.lua
 
   # Add a filter to avoid the invalid-query alert to be triggered. The filter specifies fields matching the flow alert so that a match will prevent the alert from being generated
-  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"filters":"srv_addr=4.2.2.4,srv_port=53,l7_proto=5,proto=17","subdir":"flow","script_key":"dns_data_exfiltration"}' http://localhost:3333/lua/rest/v1/edit/user_script/filter.lua
+  curl -s -u admin:admin -H "Content-Type: application/json" -d '{"alert_addr":"4.2.2.4","subdir":"flow","alert_key":"6"}' http://localhost:3333/lua/rest/v1/edit/user_script/filter.lua
 
   # Allow the changed configuration to be re-read
   sleep 6
