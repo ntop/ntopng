@@ -267,10 +267,6 @@ for _key, _value in pairsByKeys(vals, funct) do
       if(value.dhcpHost) then column_ip = column_ip .. "&nbsp;<i class='fas fa-flash fa-lg' title='DHCP Host'></i>" end
    end
 
-   if((host ~= nil) and (host["is_blacklisted"] == true)) then
-      column_ip = column_ip .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
-   end
-
    if(url ~= nil) then
       record["column_url"] = url
    end
@@ -317,7 +313,7 @@ for _key, _value in pairsByKeys(vals, funct) do
    end
 
    if value["has_blocking_quota"] or value["has_blocking_shaper"] then
-      column_name = column_name .. " <i class='fas fa-ban' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
+      column_name = column_name .. " <i class='fas fa-hourglass' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
    end
 
    record["column_name"] = column_name
