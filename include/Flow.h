@@ -281,7 +281,7 @@ class Flow : public GenericHashEntry {
     - Synchronous:  The alerts bitmap is updated and the predominant alert is possibly updated.
                     Immediate alert JSON generation and enqueue to the recipients are performed as well.
    */
-  bool setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc);
+  bool setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc, bool async);
   void updateAlertsStats(FlowAlert *alert);
 
  public:

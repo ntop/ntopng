@@ -5292,7 +5292,7 @@ void Flow::updateAlertsStats(FlowAlert *alert) {
   - true      An alert will be emitted and sent to recipients
   - false     No alert will be emitted: just the score will be incremented
 */
-bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc) {
+bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc, bool async) {
   ScoreCategory score_category = Utils::mapAlertToScoreCategory(alert_type.category);
   u_int16_t flow_inc;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
@@ -5303,6 +5303,12 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
 
   if(alert_type.id == alert_normal)
     return false;
+
+  /* Check if the same alert has been already triggered and
+   * accounted in the score, unless this is a "sync" alert */
+  if (async && alert_map.isSetBit(alert_type.id)) {
+    return false;
+  }
 
   /* Check host filter */
   if((cli_h && cli_h->isFlowAlertDisabled(alert_type)) ||
@@ -5337,7 +5343,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
 bool Flow::triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc) {
   bool res;
 
-  res = setAlertsBitmap(alert_type, cli_inc, srv_inc);
+  res = setAlertsBitmap(alert_type, cli_inc, srv_inc, true);
 
   return res;
 }
@@ -5347,7 +5353,7 @@ bool Flow::triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_inc, u_int1
 bool Flow::triggerAlertSync(FlowAlert *alert, u_int16_t cli_inc, u_int16_t srv_inc) {
   bool res, alert_enqueued = false;
 
-  res = setAlertsBitmap(alert->getAlertType(), cli_inc, srv_inc);
+  res = setAlertsBitmap(alert->getAlertType(), cli_inc, srv_inc, false);
 
   /* Synchronous, this alert must be sent straight to the recipients now. Let's put it into the recipient queues. */
   if(res) { 
