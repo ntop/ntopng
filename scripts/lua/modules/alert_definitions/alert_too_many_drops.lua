@@ -52,7 +52,7 @@ end
 function alert_too_many_drops.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
-  local max_drop_perc = alert_type_params.threshold or 0
+  local max_drop_perc = alert_type_params.edge or 0
 
   return(i18n("alert_messages.too_many_drops", {iface = entity, max_drops = max_drop_perc}))
 end
