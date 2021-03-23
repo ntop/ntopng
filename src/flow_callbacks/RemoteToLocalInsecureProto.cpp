@@ -72,7 +72,7 @@ void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *RemoteToLocalInsecureProto::buildAlert(Flow *f) {
-  return new RemoteToLocalInsecureProtoAlert(this, f, getSeverity());
+  return new RemoteToLocalInsecureProtoAlert(this, f);
 }
 
 /* ***************************************************** */

@@ -54,7 +54,7 @@ void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *DeviceProtocolNotAllowed::buildAlert(Flow *f) {
-  return new DeviceProtocolNotAllowedAlert(this, f, getSeverity());
+  return new DeviceProtocolNotAllowedAlert(this, f);
 }
 
 /* ***************************************************** */

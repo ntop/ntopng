@@ -33,7 +33,7 @@ void WebMining::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *WebMining::buildAlert(Flow *f) {
-  return new WebMiningAlert(this, f, getSeverity());
+  return new WebMiningAlert(this, f);
 }
 
 /* ***************************************************** */

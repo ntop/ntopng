@@ -60,7 +60,7 @@ void UDPUnidirectional::flowEnd(Flow *f)            { checkFlow(f); }
 /* ***************************************************** */
 
 FlowAlert *UDPUnidirectional::buildAlert(Flow *f) {
-  return new UDPUnidirectionalAlert(this, f, getSeverity());
+  return new UDPUnidirectionalAlert(this, f);
 }
 
 /* ***************************************************** */

@@ -28,7 +28,7 @@ class FlowRiskTLSUnsafeCiphersAlert : public FlowRiskTLSAlert {
  public:
   static FlowAlertType getClassType() { return { alert_tls_unsafe_ciphers, alert_category_security }; }
 
- FlowRiskTLSUnsafeCiphersAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowRiskTLSAlert(c, f, s) { };
+ FlowRiskTLSUnsafeCiphersAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSUnsafeCiphersAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

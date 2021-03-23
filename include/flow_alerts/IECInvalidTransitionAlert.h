@@ -35,7 +35,7 @@ class IECInvalidTransitionAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_iec_invalid_transition, alert_category_security }; }
 
-  IECInvalidTransitionAlert(FlowCallback *c, Flow *f, AlertLevel s, struct timeval *_time, u_int16_t _type_i, u_int8_t _type_id) : FlowAlert(c, f, s) {
+  IECInvalidTransitionAlert(FlowCallback *c, Flow *f, struct timeval *_time, u_int16_t _type_i, u_int8_t _type_id) : FlowAlert(c, f) {
     type_i = _type_i;
     type_id = _type_id;
     packet_epoch = _time->tv_sec;

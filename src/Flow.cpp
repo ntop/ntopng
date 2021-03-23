@@ -5376,12 +5376,16 @@ bool Flow::triggerAlertSync(FlowAlert *alert, AlertLevel alert_severity, u_int16
   res = setAlertsBitmap(alert->getAlertType(), cli_inc, srv_inc, false);
 
   /* Synchronous, this alert must be sent straight to the recipients now. Let's put it into the recipient queues. */
-  if(ntop->getPrefs()->dontEmitFlowAlerts())
-    /* Nothing to enqueue, can dispose the memory */
-    delete alert;
-  else if(res)
-    /* enqueue the alert (memory is disposed automatically upon failing enqueues) */
-    iface->enqueueFlowAlert(alert);
+  if(alert) {
+    alert->setSeverity(alert_severity);
+
+    if(ntop->getPrefs()->dontEmitFlowAlerts())
+      /* Nothing to enqueue, can dispose the memory */
+      delete alert;
+    else if(res)
+      /* enqueue the alert (memory is disposed automatically upon failing enqueues) */
+      iface->enqueueFlowAlert(alert);
+  }
 
   return res;
 }

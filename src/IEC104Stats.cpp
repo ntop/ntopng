@@ -253,7 +253,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
                 ntop->getTrace()->traceEvent(TRACE_NORMAL, "Found new transition %u -> %u", last_type_i, type_id);
 #endif
 
-                alert = new IECInvalidTransitionAlert(NULL, f, alert_level_error, packet_time, last_type_i, type_id);
+                alert = new IECInvalidTransitionAlert(NULL, f, packet_time, last_type_i, type_id);
 
 		if (alert)
 		  f->triggerAlertSync(alert, alert_level_error, c_score, s_score);
@@ -287,7 +287,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	    FlowAlert *alert;
             u_int16_t c_score = 50, s_score = 10;
 
-	    alert = new IECUnexpectedTypeIdAlert(NULL, f, alert_level_error, type_id, asdu, cause_tx, negative);
+	    alert = new IECUnexpectedTypeIdAlert(NULL, f, type_id, asdu, cause_tx, negative);
 	
 	    if(alert)
 	      f->triggerAlertSync(alert, alert_level_error, c_score, s_score);

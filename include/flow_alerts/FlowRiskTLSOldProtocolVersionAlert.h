@@ -31,7 +31,7 @@ class FlowRiskTLSOldProtocolVersionAlert : public FlowRiskTLSAlert {
  public:
   static FlowAlertType getClassType() { return { alert_tls_old_protocol_version, alert_category_security }; }
 
- FlowRiskTLSOldProtocolVersionAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowRiskTLSAlert(c, f, s) { };
+ FlowRiskTLSOldProtocolVersionAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSOldProtocolVersionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

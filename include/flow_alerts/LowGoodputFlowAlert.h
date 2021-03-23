@@ -31,7 +31,7 @@ class LowGoodputFlowAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_low_goodput, alert_category_network }; }
 
- LowGoodputFlowAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowAlert(c, f, s) {};
+ LowGoodputFlowAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~LowGoodputFlowAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }

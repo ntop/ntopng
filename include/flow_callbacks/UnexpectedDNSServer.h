@@ -36,7 +36,7 @@ protected:
   UnexpectedDNSServer() : UnexpectedServer() {};
   ~UnexpectedDNSServer() {};
   
-  FlowAlert *buildAlert(Flow *f) { return new UnexpectedDNSServerAlert(this, f, getSeverity()); }
+  FlowAlert *buildAlert(Flow *f) { return new UnexpectedDNSServerAlert(this, f); }
 
   std::string getName()          const { return(std::string("unexpected_dns")); }
 };

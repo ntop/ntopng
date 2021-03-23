@@ -33,7 +33,7 @@ class BlacklistedCountryAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_blacklisted_country, alert_category_security }; }
 
-  BlacklistedCountryAlert(FlowCallback *c, Flow *f, AlertLevel s, bool _is_server) : FlowAlert(c, f, s) { is_server = _is_server; };
+  BlacklistedCountryAlert(FlowCallback *c, Flow *f, bool _is_server) : FlowAlert(c, f) { is_server = _is_server; };
   ~BlacklistedCountryAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

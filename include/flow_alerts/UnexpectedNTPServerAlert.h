@@ -30,7 +30,7 @@ class UnexpectedNTPServerAlert : public UnexpectedServerAlert {
  public:
   static FlowAlertType getClassType() { return { alert_unexpected_ntp_server, alert_category_security }; }
 
- UnexpectedNTPServerAlert(FlowCallback *c, Flow *f, AlertLevel s) : UnexpectedServerAlert(c, f, s) {};
+ UnexpectedNTPServerAlert(FlowCallback *c, Flow *f) : UnexpectedServerAlert(c, f) {};
   ~UnexpectedNTPServerAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }

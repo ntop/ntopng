@@ -28,7 +28,7 @@ class SuspiciousTCPSYNProbingAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_suspicious_tcp_syn_probing, alert_category_security }; }
 
- SuspiciousTCPSYNProbingAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowAlert(c, f, s) { };
+ SuspiciousTCPSYNProbingAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~SuspiciousTCPSYNProbingAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

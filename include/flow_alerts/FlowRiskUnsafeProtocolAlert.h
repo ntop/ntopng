@@ -28,7 +28,7 @@ class FlowRiskUnsafeProtocolAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_ndpi_unsafe_protocol, alert_category_security }; }
 
- FlowRiskUnsafeProtocolAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowAlert(c, f, s) { };
+ FlowRiskUnsafeProtocolAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskUnsafeProtocolAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }  

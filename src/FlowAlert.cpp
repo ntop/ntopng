@@ -23,9 +23,9 @@
 
 /* **************************************************** */
 
-FlowAlert::FlowAlert(FlowCallback *c, Flow *f, AlertLevel s) {
+FlowAlert::FlowAlert(FlowCallback *c, Flow *f) {
   flow = f;
-  severity_id = s;
+  severity_id = alert_level_notice;
   if (c) callback_name = c->getName();
 }
 

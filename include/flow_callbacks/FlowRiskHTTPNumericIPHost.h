@@ -38,7 +38,7 @@ class FlowRiskHTTPNumericIPHost : public FlowRisk {
   FlowRiskHTTPNumericIPHost() : FlowRisk() {};
   ~FlowRiskHTTPNumericIPHost() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskHTTPNumericIPHostAlert(this, f, getSeverity()); }
+  FlowAlert *buildAlert(Flow *f) { return new FlowRiskHTTPNumericIPHostAlert(this, f); }
 
   std::string getName()        const { return(std::string("ndpi_http_numeric_ip_host")); }
 };

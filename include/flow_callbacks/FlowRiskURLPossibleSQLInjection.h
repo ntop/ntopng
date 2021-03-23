@@ -38,7 +38,7 @@ class FlowRiskURLPossibleSQLInjection : public FlowRisk {
   FlowRiskURLPossibleSQLInjection() : FlowRisk() {};
   ~FlowRiskURLPossibleSQLInjection() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskURLPossibleSQLInjectionAlert(this, f, getSeverity()); }
+  FlowAlert *buildAlert(Flow *f) { return new FlowRiskURLPossibleSQLInjectionAlert(this, f); }
 
   std::string getName()        const { return(std::string("ndpi_url_possible_sql_injection")); }
 };

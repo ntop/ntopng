@@ -38,7 +38,7 @@ void BlacklistedFlow::protocolDetected(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *BlacklistedFlow::buildAlert(Flow *f) {
-  return new BlacklistedFlowAlert(this, f, getSeverity());
+  return new BlacklistedFlowAlert(this, f);
 }
 
 /* ***************************************************** */

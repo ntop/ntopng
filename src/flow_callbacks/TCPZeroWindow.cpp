@@ -45,7 +45,7 @@ void TCPZeroWindow::flowEnd(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *TCPZeroWindow::buildAlert(Flow *f) {
-  return new TCPZeroWindowAlert(this, f, getSeverity());
+  return new TCPZeroWindowAlert(this, f);
 }
 
 /* ***************************************************** */

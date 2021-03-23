@@ -33,7 +33,7 @@ class UnexpectedDHCPServerAlert : public UnexpectedServerAlert {
  public:
   static FlowAlertType getClassType() { return { alert_unexpected_dhcp_server, alert_category_security }; }
 
- UnexpectedDHCPServerAlert(FlowCallback *c, Flow *f, AlertLevel s) : UnexpectedServerAlert(c, f, s) {};
+ UnexpectedDHCPServerAlert(FlowCallback *c, Flow *f) : UnexpectedServerAlert(c, f) {};
   ~UnexpectedDHCPServerAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }

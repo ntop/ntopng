@@ -52,6 +52,7 @@ FlowAlert *FlowCallbacksExecutor::execCallbacks(Flow *f, FlowCallbacks c) {
   FlowAlertType predominant_alert = f->getPredominantAlert();
   FlowCallback *predominant_callback = NULL;
   std::list<FlowCallback*> *callbacks = NULL;
+  FlowAlert *alert;
 
   switch (c) {
     case flow_callback_protocol_detected:
@@ -92,8 +93,15 @@ FlowAlert *FlowCallbacksExecutor::execCallbacks(Flow *f, FlowCallbacks c) {
 
   /* Do NOT allocate any alert, there is nothing left to do as flow alerts don't have to be emitted */
   if(ntop->getPrefs()->dontEmitFlowAlerts()) return(NULL);
+
+  /* Allocate the alert */
+  alert = predominant_callback ? predominant_callback->buildAlert(f) : NULL;
+
+  /* If the alert has been allocated successfully, set its severity */
+  if(alert)
+    alert->setSeverity(predominant_callback->getSeverity());
   
-  return predominant_callback ? predominant_callback->buildAlert(f) : NULL;
+  return alert;
 }
 
 /* **************************************************** */

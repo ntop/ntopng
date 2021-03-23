@@ -33,7 +33,7 @@ class LongLivedFlowAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_longlived, alert_category_security }; }
 
-  LongLivedFlowAlert(FlowCallback *c, Flow *f, AlertLevel s, u_int64_t _longlived_th) : FlowAlert(c, f, s) {
+  LongLivedFlowAlert(FlowCallback *c, Flow *f, u_int64_t _longlived_th) : FlowAlert(c, f) {
     longlived_th = _longlived_th;
   };
   ~LongLivedFlowAlert() { };

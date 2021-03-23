@@ -30,7 +30,7 @@ class WebMiningAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_web_mining_detected, alert_category_security }; }
 
- WebMiningAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowAlert(c, f, s) {};
+ WebMiningAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~WebMiningAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }

@@ -38,7 +38,7 @@ class FlowRiskURLPossibleXSS : public FlowRisk {
   FlowRiskURLPossibleXSS() : FlowRisk() {};
   ~FlowRiskURLPossibleXSS() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskURLPossibleXSSAlert(this, f, getSeverity()); }
+  FlowAlert *buildAlert(Flow *f) { return new FlowRiskURLPossibleXSSAlert(this, f); }
 
   std::string getName()        const { return(std::string("ndpi_url_possible_xss")); }
 };

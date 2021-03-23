@@ -28,7 +28,7 @@ class FlowRiskTLSCertificateMismatchAlert : public FlowRiskTLSAlert {
  public:
   static FlowAlertType getClassType() { return { alert_tls_certificate_mismatch, alert_category_security }; }
 
- FlowRiskTLSCertificateMismatchAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowRiskTLSAlert(c, f, s) { };
+ FlowRiskTLSCertificateMismatchAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSCertificateMismatchAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

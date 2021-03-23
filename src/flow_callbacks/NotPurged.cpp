@@ -47,7 +47,7 @@ void NotPurged::flowEnd(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *NotPurged::buildAlert(Flow *f) {
-  return new NotPurgedAlert(this, f, getSeverity());
+  return new NotPurgedAlert(this, f);
 }
 
 /* ***************************************************** */

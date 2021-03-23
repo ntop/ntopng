@@ -31,7 +31,7 @@ class FlowRiskKnownProtocolOnNonStandardPortAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_known_proto_on_non_std_port, alert_category_security }; }
 
- FlowRiskKnownProtocolOnNonStandardPortAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowAlert(c, f, s) { };
+ FlowRiskKnownProtocolOnNonStandardPortAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskKnownProtocolOnNonStandardPortAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

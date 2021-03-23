@@ -33,7 +33,7 @@ class UnexpectedDNSServerAlert : public UnexpectedServerAlert {
  public:
   static FlowAlertType getClassType() { return { alert_unexpected_dns_server, alert_category_security }; }
 
- UnexpectedDNSServerAlert(FlowCallback *c, Flow *f, AlertLevel s) : UnexpectedServerAlert(c, f, s) {};
+ UnexpectedDNSServerAlert(FlowCallback *c, Flow *f) : UnexpectedServerAlert(c, f) {};
   ~UnexpectedDNSServerAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }

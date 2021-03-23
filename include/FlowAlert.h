@@ -36,10 +36,11 @@ class FlowAlert {
   virtual ndpi_serializer* getAlertJSON(ndpi_serializer* serializer)  { return serializer; }  
 
  public:
-  FlowAlert(FlowCallback *c, Flow *f, AlertLevel s);
+  FlowAlert(FlowCallback *c, Flow *f);
   virtual ~FlowAlert();
 
   bool loadConfiguration(json_object *config);
+  inline void setSeverity(AlertLevel alert_severity) { severity_id = alert_severity; };
 
   virtual FlowAlertType getAlertType() const = 0;
   virtual std::string   getName()      const = 0;

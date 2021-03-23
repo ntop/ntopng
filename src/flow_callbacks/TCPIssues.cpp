@@ -107,7 +107,7 @@ FlowAlert *TCPIssues::buildAlert(Flow *f) {
   is_client = checkClientTCPIssues(f, &is_severe);
   is_server = checkServerTCPIssues(f, &is_severe);
 
-  return new TCPIssuesAlert(this, f, getSeverity(), is_client, is_server, is_severe);
+  return new TCPIssuesAlert(this, f, is_client, is_server, is_severe);
 }
 
 /* ***************************************************** */

@@ -28,7 +28,7 @@ class FlowRiskTLSNotCarryingHTTPSAlert : public FlowRiskTLSAlert {
  public:
   static FlowAlertType getClassType() { return { alert_ndpi_tls_not_carrying_https, alert_category_security }; }
 
- FlowRiskTLSNotCarryingHTTPSAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowRiskTLSAlert(c, f, s) { };
+ FlowRiskTLSNotCarryingHTTPSAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSNotCarryingHTTPSAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

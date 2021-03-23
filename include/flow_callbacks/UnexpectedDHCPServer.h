@@ -37,7 +37,7 @@ protected:
   UnexpectedDHCPServer() : UnexpectedServer() {};
   ~UnexpectedDHCPServer() {};
   
-  FlowAlert *buildAlert(Flow *f) { return new UnexpectedDHCPServerAlert(this, f, getSeverity()); }
+  FlowAlert *buildAlert(Flow *f) { return new UnexpectedDHCPServerAlert(this, f); }
   
   std::string getName()          const { return(std::string("unexpected_dhcp")); }
 };

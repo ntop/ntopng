@@ -33,7 +33,7 @@ class TCPIssuesAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_tcp_connection_issues, alert_category_network }; }
 
- TCPIssuesAlert(FlowCallback *c, Flow *f, AlertLevel s, bool _is_client, bool _is_server, bool _is_severe) : FlowAlert(c, f, s) {
+ TCPIssuesAlert(FlowCallback *c, Flow *f, bool _is_client, bool _is_server, bool _is_severe) : FlowAlert(c, f) {
     is_client = _is_client;
     is_server = _is_server;
     is_severe = _is_severe;

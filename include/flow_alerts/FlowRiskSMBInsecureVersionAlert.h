@@ -28,7 +28,7 @@ class FlowRiskSMBInsecureVersionAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_ndpi_smb_insecure_version, alert_category_security }; }
 
- FlowRiskSMBInsecureVersionAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowAlert(c, f, s) { };
+ FlowRiskSMBInsecureVersionAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskSMBInsecureVersionAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }

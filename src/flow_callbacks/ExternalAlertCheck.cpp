@@ -46,7 +46,7 @@ void ExternalAlertCheck::flowEnd(Flow *f) {
 /* ***************************************************** */
 
 FlowAlert *ExternalAlertCheck::buildAlert(Flow *f) {
-  return new ExternalAlertCheckAlert(this, f, f->getExternalSeverity());
+  return new ExternalAlertCheckAlert(this, f);
 }
 
 /* ***************************************************** */

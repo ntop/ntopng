@@ -40,7 +40,7 @@ class FlowRiskKnownProtocolOnNonStandardPort : public FlowRisk {
   FlowRiskKnownProtocolOnNonStandardPort() : FlowRisk() {};
   ~FlowRiskKnownProtocolOnNonStandardPort() {};
 
-  FlowAlert *buildAlert(Flow *f) { return new FlowRiskKnownProtocolOnNonStandardPortAlert(this, f, getSeverity()); }
+  FlowAlert *buildAlert(Flow *f) { return new FlowRiskKnownProtocolOnNonStandardPortAlert(this, f); }
 
   std::string getName()        const { return(std::string("known_proto_on_non_std_port")); }
 };

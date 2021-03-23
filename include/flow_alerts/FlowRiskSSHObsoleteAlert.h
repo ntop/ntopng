@@ -31,7 +31,7 @@ class FlowRiskSSHObsoleteAlert : public FlowAlert {
  public:
   static FlowAlertType getClassType() { return { alert_ndpi_ssh_obsolete, alert_category_security }; }
 
- FlowRiskSSHObsoleteAlert(FlowCallback *c, Flow *f, AlertLevel s) : FlowAlert(c, f, s) { };
+ FlowRiskSSHObsoleteAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskSSHObsoleteAlert() { };
 
   FlowAlertType getAlertType() const { return getClassType(); }
