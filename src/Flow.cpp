@@ -28,6 +28,7 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = { NDPI_PROTOCOL_UNKNOWN,
 						  NDPI_PROTOCOL_CATEGORY_UNSPECIFIED };
 // #define DEBUG_DISCOVERY
 // #define DEBUG_UA
+// #define DEBUG_SCORE
 
 /* *************************************** */
 
@@ -5299,19 +5300,34 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
   srv_inc = min_val(srv_inc, SCORE_MAX_SCRIPT_VALUE);
   flow_inc = min_val(cli_inc + srv_inc, SCORE_MAX_SCRIPT_VALUE);
 
-  if(alert_type.id == alert_normal)
+#ifdef DEBUG_SCORE
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Set alert score: %u (%u/%u)", flow_inc, cli_inc, srv_inc);
+#endif
+
+  if(alert_type.id == alert_normal) {
+#ifdef DEBUG_SCORE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (normal)");
+#endif
     return false;
+  }
 
   /* Check if the same alert has been already triggered and
    * accounted in the score, unless this is a "sync" alert */
   if(async && alert_map.isSetBit(alert_type.id)) {
+#ifdef DEBUG_SCORE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (already set)");
+#endif
     return false;
   }
 
   /* Check host filter */
   if((cli_h && cli_h->isFlowAlertDisabled(alert_type))
-     || (srv_h && srv_h->isFlowAlertDisabled(alert_type)))
-    return false;
+     || (srv_h && srv_h->isFlowAlertDisabled(alert_type))) {
+#ifdef DEBUG_SCORE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (host filter)");
+#endif
+    return false;  
+  }
 
   alert_map.setBit(alert_type.id);
 
@@ -5328,8 +5344,16 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
 
   /* Check if also the predominant alert_type should be updated */
   if(!isFlowAlerted() /* Flow is not yet alerted */
-     || getPredominantAlertScore() < flow_inc /* The score of the current alerted alert_type is less than the score of this alert_type */)
+     || getPredominantAlertScore() < flow_inc /* The score of the current alerted alert_type is less than the score of this alert_type */) {
+#ifdef DEBUG_SCORE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting predominant with score: %u", flow_inc);
+#endif
     setPredominantAlert(alert_type, flow_inc);
+#ifdef DEBUG_SCORE
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (score <= %u)", getPredominantAlertScore());
+#endif
+  }
 
   return true;
 }
