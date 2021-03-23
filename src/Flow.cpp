@@ -5294,8 +5294,12 @@ void Flow::updateAlertsStats(FlowAlert *alert) {
 */
 bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc) {
   ScoreCategory score_category = Utils::mapAlertToScoreCategory(alert_type.category);
-  u_int16_t flow_inc = min_val(cli_inc + srv_inc, SCORE_MAX_SCRIPT_VALUE);
+  u_int16_t flow_inc;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
+
+  cli_inc = min_val(cli_inc, SCORE_MAX_SCRIPT_VALUE);
+  srv_inc = min_val(srv_inc, SCORE_MAX_SCRIPT_VALUE);
+  flow_inc = min_val(cli_inc + srv_inc, SCORE_MAX_SCRIPT_VALUE);
 
   if(alert_type.id == alert_normal)
     return false;
@@ -5314,8 +5318,8 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
 
   if(!getInterface()->isView()) {
     /* For views, score increments are done periodically */
-    if(cli_h) cli_h->incScoreValue(min_val(cli_inc, SCORE_MAX_SCRIPT_VALUE), score_category, true  /* as client */);
-    if(srv_h) srv_h->incScoreValue(min_val(srv_inc, SCORE_MAX_SCRIPT_VALUE), score_category, false /* as server */);
+    if(cli_h) cli_h->incScoreValue(cli_inc, score_category, true  /* as client */);
+    if(srv_h) srv_h->incScoreValue(srv_inc, score_category, false /* as server */);
   }
   
   if(ntop->getPrefs()->dontEmitFlowAlerts()) return(false);
