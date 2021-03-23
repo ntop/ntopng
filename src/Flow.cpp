@@ -5329,7 +5329,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, 
     return false;  
   }
 
-  if(alert_map.isEmpty())
+  if(!isFlowAlerted())
     /* This is the first time an alert is set on this flow. The flow was normal and now becomes alerted. */
     setNormalToAlertedCounters();
 
