@@ -737,6 +737,43 @@ function alerts_api.checkThresholdAlert(params, alert_type, value, attacker, vic
   end
 end
 
+-- #####################################
+
+function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, as_client, threshold, behaviour_type)
+   local anomaly     = stats["anomaly"]
+   local lower_bound = stats["lower_bound"]
+   local upper_bound = stats["upper_bound"]
+   local value       = stats["value"]
+   local prediction  = stats["prediction"]
+
+   local alert_unexpected_behaviour = alert_consts.alert_types.alert_unexpected_behaviour.new(
+      behaviour_type, -- Type of unexpected behavior -- TODO: localize (use as_client)
+      value,
+      prediction,
+      upper_bound,
+      lower_bound
+   )
+
+   if threshold and tot_anomalies and tot_anomalies > threshold then
+      alert_unexpected_behaviour:set_severity(alert_severities.error)
+   else
+      alert_unexpected_behaviour:set_severity(alert_severities.warning)
+   end
+      
+   alert_unexpected_behaviour:set_granularity(params.granularity)
+
+   if as_client then
+      -- Must specify the subtype to avoid clashes
+      alert_unexpected_behaviour:set_subtype(tostring(as_client))
+   end
+      
+   if anomaly then
+      alert_unexpected_behaviour:trigger(params.alert_entity)
+   else
+      alert_unexpected_behaviour:release(params.alert_entity)
+   end
+end
+
 -- ##############################################
 
 -- An alert check function which checks for anomalies.

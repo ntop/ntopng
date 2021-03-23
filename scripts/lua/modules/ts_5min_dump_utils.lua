@@ -391,27 +391,27 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
      local h = host["score_behaviour"]
 
      if enable_behaviour_debug then
-	if(h["as_client.anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
-	io.write(hostname.."\n\t\t[Score Behaviour]\n\t\t\t[Client][value: "..tostring(h["as_client.value"]).."]lower: "..tostring(h["as_client.lower_bound"]).."][upper: "..tostring(h["as_client.upper_bound"]).."]["..rsp.."]\n")
+	if(h["as_client"]["anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
+	io.write(hostname.."\n\t\t[Score Behaviour]\n\t\t\t[Client][value: "..tostring(h["as_client"]["value"]).."]lower: "..tostring(h["as_client"]["lower_bound"]).."][upper: "..tostring(h["as_client"]["upper_bound"]).."]["..rsp.."]\n")
 	
-	if(h["as_server.anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
-	io.write("\t\t\t[Server][value: "..tostring(h["as_server.value"]).."][lower: "..tostring(h["as_server.lower_bound"]).."][upper: "..tostring(h["as_server.upper_bound"]).."]["..rsp.."]\n")
+	if(h["as_server"]["anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
+	io.write("\t\t\t[Server][value: "..tostring(h["as_server"]["value"]).."][lower: "..tostring(h["as_server"]["lower_bound"]).."][upper: "..tostring(h["as_server"]["upper_bound"]).."]["..rsp.."]\n")
      end
 
      -- Score Behaviour
      --tprint(h)
      ts_utils.append("host:cli_score_behaviour", {ifid=ifstats.id, host=hostname,
-						  value=h["as_client.value"], lower_bound=h["as_client.lower_bound"], upper_bound = h["as_client.upper_bound"]}, when)
+						  value=h["as_client"]["value"], lower_bound=h["as_client"]["lower_bound"], upper_bound = h["as_client"]["upper_bound"]}, when)
      ts_utils.append("host:srv_score_behaviour", {ifid=ifstats.id, host=hostname,
-						  value=h["as_server.value"], lower_bound=h["as_server.lower_bound"], upper_bound = h["as_server.upper_bound"]}, when)
+						  value=h["as_server"]["value"], lower_bound=h["as_server"]["lower_bound"], upper_bound = h["as_server"]["upper_bound"]}, when)
      
      -- Score Anomalies
      local cli_anomaly = 0
      local srv_anomaly = 0
-     if h["as_client.anomaly"] == true then
+     if h["as_client"]["anomaly"] == true then
 	cli_anomaly = 1
      end
-     if h["as_server.anomaly"] == true then
+     if h["as_server"]["anomaly"] == true then
 	srv_anomaly = 1
      end
      
@@ -425,25 +425,25 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
      local h = host["active_flows_behaviour"]
 
      if enable_behaviour_debug then
-	if(h["as_client.anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
-	io.write("\n\t\t[Active Flows Behaviour]\n\t\t\t[Client][value: "..tostring(h["as_client.value"]).."][lower: "..tostring(h["as_client.lower_bound"]).."][upper: "..tostring(h["as_client.upper_bound"]).."]["..rsp.."]\n");
-	if(h["as_server.anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
-	io.write("\t\t\t[Server][value: "..tostring(h["as_server.value"]).."][lower: "..tostring(h["as_server.lower_bound"]).."][upper: "..tostring(h["as_server.upper_bound"]).."]["..rsp.."]\n");
+	if(h["as_client"]["anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
+	io.write("\n\t\t[Active Flows Behaviour]\n\t\t\t[Client][value: "..tostring(h["as_client"]["value"]).."][lower: "..tostring(h["as_client"]["lower_bound"]).."][upper: "..tostring(h["as_client"]["upper_bound"]).."]["..rsp.."]\n");
+	if(h["as_server"]["anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
+	io.write("\t\t\t[Server][value: "..tostring(h["as_server"]["value"]).."][lower: "..tostring(h["as_server"]["lower_bound"]).."][upper: "..tostring(h["as_server"]["upper_bound"]).."]["..rsp.."]\n");
      end
 
      --tprint(h)
      ts_utils.append("host:cli_active_flows_behaviour", {ifid=ifstats.id, host=hostname,
-							 value=h["as_client.value"], lower_bound=h["as_client.lower_bound"], upper_bound = h["as_client.upper_bound"]}, when)
+							 value=h["as_client"]["value"], lower_bound=h["as_client"]["lower_bound"], upper_bound = h["as_client"]["upper_bound"]}, when)
      ts_utils.append("host:srv_active_flows_behaviour", {ifid=ifstats.id, host=hostname,
-							 value=h["as_server.value"], lower_bound=h["as_server.lower_bound"], upper_bound = h["as_server.upper_bound"]}, when)
+							 value=h["as_server"]["value"], lower_bound=h["as_server"]["lower_bound"], upper_bound = h["as_server"]["upper_bound"]}, when)
 
      -- Active Flows Anomalies
      local cli_anomaly = 0
      local srv_anomaly = 0
-     if h["as_client.anomaly"] == true then
+     if h["as_client"]["anomaly"] == true then
 	cli_anomaly = 1
      end
-     if h["as_server.anomaly"] == true then
+     if h["as_server"]["anomaly"] == true then
 	srv_anomaly = 1
      end
      
