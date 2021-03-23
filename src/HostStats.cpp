@@ -93,7 +93,7 @@ void HostStats::updateStats(const struct timeval *tv) {
 
 /* *************************************** */
 
-void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
+void HostStats::luaScoreBehaviour(lua_State* vm) {
   lua_newtable(vm);
   
   lua_push_bool_table_entry(vm, "as_client.anomaly",
@@ -125,7 +125,7 @@ void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
 
 /* *************************************** */
 
-void HostStats::luaScoreBehaviour(lua_State* vm) {
+void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
   /* Client score behaviour */
 
   lua_newtable(vm);
@@ -367,13 +367,13 @@ void HostStats::deleteQuotaEnforcementStats() {
 /* *************************************** */
 
 void HostStats::updateActiveFlowsBehaviour() {
-  if((af_cli_anomaly = active_flows_cli.addObservation((af_cli_value = host->getNumOutgoingFlows()), &af_cli_prediction, &af_cli_lower_bound, &af_cli_upper_bound)) == 1) tot_num_anomalies++;
-  if((af_srv_anomaly = active_flows_srv.addObservation((af_srv_value = host->getNumIncomingFlows()), &af_srv_prediction, &af_srv_lower_bound, &af_srv_upper_bound)) == 1) tot_num_anomalies++; 
+  if((af_cli_anomaly = active_flows_cli.addObservation((af_cli_value = host->getNumOutgoingFlows()), &af_cli_prediction, &af_cli_lower_bound, &af_cli_upper_bound)) == true) tot_num_anomalies++;
+  if((af_srv_anomaly = active_flows_srv.addObservation((af_srv_value = host->getNumIncomingFlows()), &af_srv_prediction, &af_srv_lower_bound, &af_srv_upper_bound)) == true) tot_num_anomalies++; 
 }
 
 /* *************************************** */
 
 void HostStats::updateScoreBehaviour() {
-  if((score_cli_anomaly = score_cli.addObservation((score_cli_value = host->getScoreAsClient()), &score_cli_prediction, &score_cli_lower_bound, &score_cli_upper_bound)) == 1) tot_num_anomalies++;
-  if((score_srv_anomaly = score_srv.addObservation((score_srv_value = host->getScoreAsServer()), &score_srv_prediction, &score_srv_lower_bound, &score_srv_upper_bound)) == 1) tot_num_anomalies++;
+  if((score_cli_anomaly = score_cli.addObservation((score_cli_value = host->getScoreAsClient()), &score_cli_prediction, &score_cli_lower_bound, &score_cli_upper_bound)) == true) tot_num_anomalies++;
+  if((score_srv_anomaly = score_srv.addObservation((score_srv_value = host->getScoreAsServer()), &score_srv_prediction, &score_srv_lower_bound, &score_srv_upper_bound)) == true) tot_num_anomalies++;
 }

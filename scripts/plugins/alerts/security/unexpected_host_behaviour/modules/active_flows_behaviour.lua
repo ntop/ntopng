@@ -27,40 +27,38 @@ function handler.handle_behaviour(params, stats, host_ip)
    local value_srv       = stats["as_server.value"]
    local prediction_srv  = stats["as_server.prediction"]
 
+   if anomaly_cli then
    -- Client
-   local alert_cli = alert_consts.alert_types.alert_unexpected_behaviour.new(
-      "Active Flows as Client", -- Type of unexpected behaviour
-      value_cli,
-      prediction_cli,
-      upper_bound_cli,
-      lower_bound_cli
-   )
+      local alert_cli = alert_consts.alert_types.alert_unexpected_behaviour.new(
+	 "Active Flows as Client", -- Type of unexpected behaviour
+	 value_cli,
+	 prediction_cli,
+	 upper_bound_cli,
+	 lower_bound_cli
+      )
+
+      alert_cli:set_granularity(params.granularity)
+      
+      alert_cli:set_severity(alert_severities.warning)
    
-   -- Server
-   local alert_srv = alert_consts.alert_types.alert_unexpected_behaviour.new(
-      "Active Flows as Server", -- Type of unexpected behaviour
-      value_srv,
-      prediction_srv,
-      upper_bound_srv,
-      lower_bound_cli
-   )
-
-   alert_cli:set_granularity(params.granularity)
-   alert_srv:set_granularity(params.granularity)
-
-   alert_cli:set_severity(alert_severities.warning)
-   alert_srv:set_severity(alert_severities.warning)
-
-   if anomaly_cli == true then
-      alert_cli:trigger(params.alert_entity, nil, params.cur_alerts)
-   else
-      alert_cli:release(params.alert_entity, nil, params.cur_alerts)
+      alert_cli:store(params.alert_entity)
    end
 
-   if anomaly_srv == true then
-      alert_srv:trigger(params.alert_entity, nil, params.cur_alerts)
-   else
-      alert_srv:release(params.alert_entity, nil, params.cur_alerts)
+   -- Server
+   if anomaly_srv then
+      local alert_srv = alert_consts.alert_types.alert_unexpected_behaviour.new(
+	 "Active Flows as Server", -- Type of unexpected behaviour
+	 value_srv,
+	 prediction_srv,
+	 upper_bound_srv,
+	 lower_bound_cli
+      )
+   
+      alert_srv:set_granularity(params.granularity)
+      
+      alert_srv:set_severity(alert_severities.warning)
+   
+      alert_srv:store(params.alert_entity)
    end
 end
 

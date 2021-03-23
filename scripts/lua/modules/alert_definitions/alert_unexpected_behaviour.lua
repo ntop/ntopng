@@ -57,8 +57,8 @@ function alert_unexpected_behaviour.format(ifid, alert, alert_type_params)
 		   type_of_behaviour = alert_type_params.type_of_behaviour,
 		   value = alert_type_params.value,
 		   prediction = alert_type_params.prediction or 0,
-		   upper_bound = alert_type_params.upper_bound or 0,
 		   lower_bound = alert_type_params.lower_bound or 0,
+		   upper_bound = alert_type_params.upper_bound or 0,
 		}))
 end
 

@@ -20,23 +20,21 @@ function handler.handle_behaviour(params, stats, host_ip)
    local upper_bound = stats["upper_bound"]
    local value       = stats["value"]
    local prediction  = stats["prediction"]
-   
-   local alert = alert_consts.alert_types.alert_unexpected_behaviour.new(
-      "Domain Visited", -- Type of unexpected behaviour
-      value,
-      prediction,
-      upper_bound,
-      lower_bound
-   )
 
-   alert:set_granularity(params.granularity)
-   
-   alert:set_severity(alert_severities.warning)
-   
    if anomaly == true then
-      alert:trigger(params.alert_entity, nil, params.cur_alerts)
-   else
-      alert:release(params.alert_entity, nil, params.cur_alerts)
+      local alert = alert_consts.alert_types.alert_unexpected_behaviour.new(
+	 "Domain Visited", -- Type of unexpected behaviour
+	 value,
+	 prediction,
+	 upper_bound,
+	 lower_bound
+      )
+
+      alert:set_granularity(params.granularity)
+      
+      alert:set_severity(alert_severities.warning)
+      
+      alert:store(params.alert_entity)
    end
 end
 
