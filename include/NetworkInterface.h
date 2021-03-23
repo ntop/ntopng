@@ -109,7 +109,7 @@ class NetworkInterface : public AlertableEntity {
   /* Queues for the execution of flow user scripts.
      See scripts/plugins/examples/example/user_scripts/flow/example.lua for the callbacks
    */
-  SPSCQueue<FlowAlert *> *callbacksQueue;
+  SPSCQueue<FlowAlert *> *flowAlertsQeueue;
 
   /*
     Flag to indicate whether a flow JSON should be dumped along with the flow. Flow JSON contain

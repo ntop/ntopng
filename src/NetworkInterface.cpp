@@ -334,7 +334,7 @@ void NetworkInterface::init() {
   next_compq_insert_idx = next_compq_remove_idx = 0;
 
   idleFlowsToDump = activeFlowsToDump = NULL;
-  callbacksQueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CALLBACKS_QUEUE_LEN, "callbacksQueue");
+  flowAlertsQeueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CALLBACKS_QUEUE_LEN, "flowAlertsQeueue");
 
   PROFILING_INIT();
 }
@@ -615,7 +615,7 @@ NetworkInterface::~NetworkInterface() {
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
   if(ifname)                free(ifname);
 
-  if(callbacksQueue)        delete callbacksQueue;
+  if(flowAlertsQeueue)      delete flowAlertsQeueue;
 
   addRedisSitesKey();
   if(top_sites)       delete top_sites;
@@ -631,7 +631,7 @@ NetworkInterface::~NetworkInterface() {
 /* Enqueue flow alert to a queue for processing and later delivery to recipients */
 bool NetworkInterface::enqueueFlowAlert(FlowAlert *alert) {
   bool ret = false;
-  SPSCQueue<FlowAlert *> *selected_queue = callbacksQueue;
+  SPSCQueue<FlowAlert *> *selected_queue = flowAlertsQeueue;
   Flow *f = alert->getFlow();
 
   /* Perform the actual enqueue */
@@ -2432,7 +2432,7 @@ u_int64_t NetworkInterface::dequeueAlertedFlows(SPSCQueue<FlowAlert *> *q, u_int
 /* **************************************************** */
 
 u_int64_t NetworkInterface::dequeueFlowAlertsFromCallbacks(u_int budget) {
-  u_int64_t num_done = dequeueAlertedFlows(callbacksQueue, budget);
+  u_int64_t num_done = dequeueAlertedFlows(flowAlertsQeueue, budget);
 
 #ifndef WIN32
   if(num_done == 0) {
@@ -5725,7 +5725,7 @@ void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
 void NetworkInterface::lua_queues_stats(lua_State *vm) {
   if(idleFlowsToDump)   idleFlowsToDump->lua(vm);
   if(activeFlowsToDump) activeFlowsToDump->lua(vm);
-  if(callbacksQueue)    callbacksQueue->lua(vm);
+  if(flowAlertsQeueue)  flowAlertsQeueue->lua(vm);
 }
 
 /* **************************************************** */

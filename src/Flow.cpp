@@ -5313,7 +5313,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
   /* Check host filter */
   if((cli_h && cli_h->isFlowAlertDisabled(alert_type)) ||
      (srv_h && srv_h->isFlowAlertDisabled(alert_type)))
-    return false;  
+    return false;
 
   alert_map.setBit(alert_type.id);
 
