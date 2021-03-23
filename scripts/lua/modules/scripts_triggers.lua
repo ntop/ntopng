@@ -21,7 +21,7 @@ end
    
 -- ###########################################
 
-function midnightStatsResetEnabled()
+function scripts_triggers.midnightStatsResetEnabled()
    if (ntop.getPref("ntopng.prefs.midnight_stats_reset_enabled") == "1") then
       return true
    end
