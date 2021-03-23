@@ -315,7 +315,7 @@ SERVICE_ALIAS=
 SERVICE_REQUIRES=
 SERVICE_WANTS=${REDIS_SERVICE}
 if test "$MACHINE" = "armv7l"; then
-  SERVICE_AFTER="network.target syslog.target ${REDIS_SERVICE}"
+  SERVICE_AFTER="network-online.target time-sync.target syslog.target ${REDIS_SERVICE}"
   if test "${with_nedge+set}" = "set"; then
     SERVICE_ALIAS="nedge.service"
   fi
