@@ -110,7 +110,7 @@ void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
 
 /* *************************************** */
 
-void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
+void HostStats::luaScoreBehaviour(lua_State* vm) {
   /* Client score behaviour */
 
   lua_newtable(vm);
