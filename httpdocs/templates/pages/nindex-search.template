@@ -13,6 +13,13 @@
     </div>
     <div class="col-12">
         <div class="card card-shadow mt-2">
+	    <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+                <div class="text-center">
+            	    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            </div>
             <div class="card-body">
                 {* chart.html *}
             </div>
@@ -20,6 +27,13 @@
     </div>
     <div class='col-12 mt-2'>
         <div class="card card-shadow">
+	    <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                          <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            </div>
             <div class="card-body">
                 <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'> 
                     <thead>
@@ -54,6 +68,12 @@
         const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
 
+	/* Show an overlay to hide loading */
+        function toggleOverlays(time = 500) {
+            $(`.overlay`).toggle(time);
+        }
+
+
         async function reloadChartAndTable($table, begin, end, rows) {
 
             if (begin == null && end == null) return;
@@ -72,6 +92,8 @@
 
             const searchParams = new URLSearchParams(Object.entries(copyParams));
 
+	    toggleOverlays();
+	    
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
             // reload the chart
@@ -140,7 +162,10 @@
         DataTableUtils.addToggleColumnsDropdown($table);
 
         // on ajax request complete then print the query time
-        $table.on('xhr', function() { printQueryTime($table); });
+        $table.on('xhr', function() {
+	    printQueryTime($table);
+	    toggleOverlays();
+	});
 
         // on apply button click
         $(`#btn-apply`).on('click', async function() {

@@ -73,6 +73,13 @@ end
 
 -- ##############################################
 
+function convertDate(vardate)
+    local m,d,y,h,i,s = string.match(vardate, '(%d+)/(%d+)/(%d+) (%d+):(%d+):(%d+)')
+    return string.format('%s/%s/%s %s:%s:%s', d,m,y,h,i,s)
+end
+
+-- ##############################################
+
 -- See also getHumanReadableInterfaceName
 function getInterfaceName(interface_id, windows_skip_description)
    if(interface_id == getSystemInterfaceId()) then
