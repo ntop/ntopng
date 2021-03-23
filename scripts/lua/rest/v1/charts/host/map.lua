@@ -23,10 +23,26 @@ local max_radius = 0
 local bubble_mode = tonumber(_GET["bubble_mode"]) or 0
 local show_remote = _GET["show_remote"] or true
 
+-- ###################################################
+
+local function shrinkTable(t, max_num)
+   local n = 1
+   local t2 = {}
+   
+   for i,v in pairsByField(t, 'r', rev) do
+      if(n < max_num) then
+	 t2[n] = v
+	 n = n + 1
+      end
+   end
+
+   return(t2)
+end
+
+-- ###################################################
+
 local function processHost(hostname, host)
-
     local line
-
     local label = hostinfo2hostkey(host)
 
     -- starts is defined inside the lua_utils module
@@ -176,8 +192,13 @@ else
     callback_utils.foreachLocalHost(ifname, processHost)
 end
 
-local ratio = max_radius / MAX_RADIUS_PX
+-- Reduce the number of hosts to a reasonable value (< max_num)
+local max_num = 999
+local_hosts  = shrinkTable(local_hosts, max_num)
+remote_hosts = shrinkTable(remote_hosts, max_num)
 
+-- Normalize values
+local ratio = max_radius / MAX_RADIUS_PX
 for i,v in pairs(local_hosts) do 
     local_hosts[i].r = math.floor(MIN_RADIUS_PX + local_hosts[i].r / ratio) 
 end
