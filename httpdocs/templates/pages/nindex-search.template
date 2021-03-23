@@ -68,11 +68,10 @@
         const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
 
-	/* Show an overlay to hide loading */
+	    /* Show an overlay to hide loading */
         function toggleOverlays(time = 500) {
             $(`.overlay`).toggle(time);
         }
-
 
         async function reloadChartAndTable($table, begin, end, rows) {
 
@@ -86,7 +85,7 @@
             if (copyParams.end_epoch) {
                 copyParams.end_epoch = end.unix();
             }
-	    if (copyParams.totalRows) {
+	        if (copyParams.totalRows) {
                 copyParams.totalRows = rows;
             }
 
@@ -174,6 +173,18 @@
 
         $(`#select-len`).on('change', async function() {
             await onRangePickerChange(true);
+        });
+
+        // when an user remove the tag
+        $(`[name='tags']`).on('tagRemoved', async function(e) {
+
+            const key = e.detail.data.key;
+            console.log(key);
+            if (datasourceParams[key] !== undefined) {
+                delete datasourceParams[key];
+            }
+
+            await onRangePickerChange(false);
         });
       
     });
