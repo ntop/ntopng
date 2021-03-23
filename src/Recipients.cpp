@@ -84,7 +84,7 @@ bool Recipients::enqueue(u_int16_t recipient_id, RecipientNotificationPriority p
 /* *************************************** */
 
 bool Recipients::enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification, bool flow_only) {
-  bool res = false;
+  bool res = true; /* Initialized to true so that if no recipient is responsible for the notification, true will be returned. */
 
   if(!notification)
     return false;
@@ -98,7 +98,7 @@ bool Recipients::enqueue(RecipientNotificationPriority prio, const AlertFifoItem
     if(recipient_queues[recipient_id]
        && (!flow_only /* Not only for flows */
 	   || recipient_queues[recipient_id]->isFlowRecipient()) /* The recipient must be a flow recipient */)
-      res |= recipient_queues[recipient_id]->enqueue(prio, notification);
+      res &= recipient_queues[recipient_id]->enqueue(prio, notification);
   }
 
   m.unlock(__FILE__, __LINE__);
