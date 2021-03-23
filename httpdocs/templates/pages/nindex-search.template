@@ -20,9 +20,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card-body">
-                {* chart.html *}
-            </div>
+            <!-- <div class="card-body">{* chart.html *}</div>  -->
         </div>
     </div>
     <div class='col-12 mt-2'>
@@ -44,7 +42,7 @@
                         </tr>
                     </thead>
                 </table>
-                <small id="{{ datatable.name }}-query" style="display: none;" class="query">Query performed in <span class="seconds">{}</span> seconds.</small>
+                <small id="{{ datatable.name }}-query" style="display: none;" class="query">{{ i18n('nindex.query_performed') }} <span class="seconds">{}</span> seconds.</small>
             </div>
         </div>
     </div>
@@ -65,7 +63,7 @@
 <script type='text/javascript'>
     $(document).ready(function(){
 
-        const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
+        // const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
 
 	    /* Show an overlay to hide loading */
@@ -96,7 +94,7 @@
             // reload the table
             $table.ajax.url(`{* datatable.datasource.name *}?${searchParams.toString()}`).load();
             // reload the chart
-            await chart.update(copyParams);
+            // await chart.update(copyParams);
         }
 
         function printQueryTime($table) {
@@ -104,7 +102,7 @@
             // if the response contains the query time period
             if (response.rsp.time !== undefined) {
                 $(`#{{ datatable.name }}-query`).show();
-                $(`#{{ datatable.name }}-query .seconds`).text(response.rsp.time);
+                $(`#{{ datatable.name }}-query .seconds`).text(response.rsp.time/1000.0); // The time is in msec
             }
         }
 

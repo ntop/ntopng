@@ -3589,6 +3589,7 @@ local lang = {
     ["max_results"] = "Max Results",
     ["packets"] = "Pkts",
     ["proto"] = "Protocol",
+    ["query_performed"] = "Query performed in",
     ["run_query"] = "Run query",
     ["select_note"] = "Use * for all fields or a comma-separated list of fields (<field1>,<field2>,...)",
     ["server"] = "Server",

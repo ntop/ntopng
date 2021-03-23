@@ -1428,8 +1428,8 @@ function updateGraphsTableView(view, graph_params, has_nindex, nindex_query, per
         if(!has_drilldown)
           $("table td:last-child, th:last-child", graph_table).remove();
 
-        if(data && data.stats && data.stats.loading_time) {
-           $("#flows-load-time").html(data.stats.loading_time);
+        if(data && data.stats && data.stats.query_duration_msec) {
+           $("#flows-query-time").html(data.stats.query_duration_msec/1000.0);
            $("#flows-processed-records").html(data.stats.num_records_processed);
            stats_div.show();
         } else

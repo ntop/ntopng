@@ -94,9 +94,11 @@
     {% if tags.enabled then %}
     <div class="w-100">
         <hr class="mt-2 mb-0">
-        <button class="btn btn-sm btn-link my-2" type="button" data-toggle="collapse" data-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
+<!--
+<button class="btn btn-sm btn-link my-2" type="button" data-toggle="collapse" data-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
             <i class="fas fa-chevron-right"></i> <u>{{ i18n("show_hide_filters") }}</u>
         </button>
+	-->
         <div class="collapse show" id="collapseFilter">
             <div class="d-flex">
                 <input class="form-control tagify-non-editable" name="tags" placeholder="Filters"> 
