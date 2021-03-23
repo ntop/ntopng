@@ -3659,10 +3659,10 @@ static int _setWriteCapabilities(int enable) {
 */
 
 int Utils::gainWriteCapabilities() {
+#if !defined(__APPLE__) && !defined(__FreeBSD__)
   if(ntop && !ntop->hasDroppedPrivileges())
     return(0);
 
-#if !defined(__APPLE__) || !defined(__FreeBSD__)
   return(_setWriteCapabilities(true));
 #else
   return(0);
@@ -3672,10 +3672,10 @@ int Utils::gainWriteCapabilities() {
 /* ****************************************************** */
 
 int Utils::dropWriteCapabilities() {
+#if !defined(__APPLE__) && !defined(__FreeBSD__)
   if(ntop && !ntop->hasDroppedPrivileges())
     return(0);
 
-#if !defined(__APPLE__) || !defined(__FreeBSD__)
   return(_setWriteCapabilities(false));
 #else
   return(0);

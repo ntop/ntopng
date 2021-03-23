@@ -2382,14 +2382,14 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
     try {
       NetworkDiscovery *d;
 
-#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && !defined(HAVE_NEDGE)
       if(Utils::gainWriteCapabilities() == -1)
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
 #endif
 
       d = ntop_interface->getNetworkDiscovery();
 
-#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && !defined(HAVE_NEDGE)
       Utils::dropWriteCapabilities();
 #endif
 
@@ -2397,7 +2397,7 @@ static int ntop_arpscan_iface_hosts(lua_State* vm) {
 	d->arpScan(vm);
     } catch(...) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to perform network scan");
-#if !defined(__APPLE__) && !defined(WIN32) && !defined(HAVE_NEDGE)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && !defined(HAVE_NEDGE)
       Utils::dropWriteCapabilities();
 #endif
     }
