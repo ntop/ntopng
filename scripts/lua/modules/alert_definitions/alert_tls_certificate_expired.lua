@@ -45,10 +45,13 @@ function alert_tls_certificate_expired.format(ifid, alert, alert_type_params)
    end
 
    local crts = {}
-   crts[#crts + 1] = formatEpoch(alert_type_params["tls_crt.notBefore"])
-   crts[#crts + 1] = formatEpoch(alert_type_params["tls_crt.notAfter"])
-
-   return string.format("[%s]",  table.concat(crts, " - "))
+   if alert_type_params["protos.tls.notBefore"] and alert_type_params["protos.tls.notAfter"] then
+      crts[#crts + 1] = formatEpoch(alert_type_params["protos.tls.notBefore"])
+      crts[#crts + 1] = formatEpoch(alert_type_params["protos.tls.notAfter"])
+      return string.format("[%s]",  table.concat(crts, " - "))
+   else
+      return ""
+   end
 end
 
 -- #######################################################
