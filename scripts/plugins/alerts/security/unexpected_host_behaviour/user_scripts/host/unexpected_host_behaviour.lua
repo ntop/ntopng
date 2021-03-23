@@ -34,7 +34,7 @@ local handle_behaviour_list = {
 
 -- #################################################################
 
-function script.hooks.min(params)
+function unexpected_host_behaviour_check(params)
    local stats = host.getBehaviourInfo() or nil
    local host_ip = host.getIp() or ""
    
@@ -51,6 +51,10 @@ function script.hooks.min(params)
       end
    end
 end
+
+-- #################################################################
+
+script.hooks["5mins"] = unexpected_host_behaviour_check
 
 -- #################################################################
 
