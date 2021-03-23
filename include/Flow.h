@@ -59,7 +59,6 @@ class Flow : public GenericHashEntry {
   FlowAlertType predominant_alert;          /* This is the predominant alert */
   u_int16_t  predominant_alert_score;       /* The score associated to the predominant alert */
   AlertLevel predominant_alert_level;
-  bool alert_stats_initialized;
 
   /*
     Data set by FlowCallback subclasses to preserve a status on the flow. Status is accessed later by
@@ -282,7 +281,7 @@ class Flow : public GenericHashEntry {
                     Immediate alert JSON generation and enqueue to the recipients are performed as well.
    */
   bool setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc, bool async);
-  void updateAlertsStats(FlowAlert *alert);
+  void setNormalToAlertedCounters();
 
  public:
   Flow(NetworkInterface *_iface,

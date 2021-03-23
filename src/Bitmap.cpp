@@ -59,6 +59,12 @@ bool Bitmap::isSetBit(u_int8_t id) const {
 
 /* ****************************************** */
 
+bool Bitmap::isEmpty() const {
+  return(!(bitmap[0] || bitmap[1]));
+}
+
+/* ****************************************** */
+
 void Bitmap::bitmapOr(const Bitmap b) {
   bitmap[0] |= b.bitmap[0], bitmap[1] |= b.bitmap[1];
 }

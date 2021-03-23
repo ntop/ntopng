@@ -48,7 +48,6 @@ Flow::Flow(NetworkInterface *_iface,
   predominant_alert_level = alert_level_none;
   predominant_alert.id = alert_normal, predominant_alert.category = alert_category_other;
   predominant_alert_score = 0;
-  alert_stats_initialized = false;
   ndpi_flow_risk_bitmap = 0;
   detection_completed = false;
   extra_dissection_completed = false;
@@ -3030,8 +3029,6 @@ bool Flow::enqueueAlert(FlowAlert *alert) {
   ndpi_serializer flow_json;
   const char *flow_str;
 
-  updateAlertsStats(alert);
-
   ndpi_init_serializer(&flow_json, ndpi_serialization_format_json);
 
   /* Prepare the JSON, including a JSON specific of this FlowAlertType */
@@ -5250,41 +5247,38 @@ bool Flow::hasDissectedTooManyPackets() {
 
 /* ***************************************************** */
 
-void Flow::updateAlertsStats(FlowAlert *alert) {
-  AlertLevel severity = alert->getSeverity();
+void Flow::setNormalToAlertedCounters() {
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
 
-  if (!alert_stats_initialized) {
-    /* This is the first alert for the flow, increment the counters */
-    iface->incNumAlertedFlows(this, severity);
-
-    if(cli_h) cli_h->incNumAlertedFlows(true /* As client */);
-    if(srv_h) srv_h->incNumAlertedFlows(false /* As server */);
-
-#ifdef ALERTED_FLOWS_DEBUG
-    iface_alert_inc = true;
-#endif
-
-    if(cli_h)
+  if(cli_h)
+    cli_h->incNumAlertedFlows(true /* As client */),
       cli_h->incTotalAlerts();
 
-    if(srv_h)
+  if(srv_h)
+    srv_h->incNumAlertedFlows(false /* As server */),
       srv_h->incTotalAlerts();
 
-    alert_stats_initialized = true;
-  } else {
-    /* Not the first alert triggered for this flow */
-
-    if(predominant_alert_level != severity) { /* If the new severity is different from the old severity ...*/
-      iface->decNumAlertedFlows(this, predominant_alert_level); /* Decrease the value previously increased for the former level */
-      iface->incNumAlertedFlows(this, severity);    /* Increase the value for the newly set level*/
-    }
-  }
+#ifdef ALERTED_FLOWS_DEBUG
+  iface_alert_inc = true;
+#endif
 }
 
 /* ***************************************************** */
 
 void Flow::setPredominantAlert(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t score) {
+  if(predominant_alert_level != alert_severity) {
+    /* The predominant alert severity that is being set is different from the current predominant alert severity */
+
+    /* Increase the value for the newly set level (if not normal) */
+    if(alert_severity != alert_level_none)
+      iface->incNumAlertedFlows(this, alert_severity);
+
+    /* Decrease the value previously increased for the previous alert (if not normal) */
+    if(predominant_alert_level != alert_level_none)
+      iface->decNumAlertedFlows(this, predominant_alert_level);
+  }
+  
+  /* Update the current predominant alert, severity, and score */
   predominant_alert = alert_type,
     predominant_alert_level = alert_severity,
     predominant_alert_score = score;
@@ -5334,6 +5328,10 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, 
 #endif
     return false;  
   }
+
+  if(alert_map.isEmpty())
+    /* This is the first time an alert is set on this flow. The flow was normal and now becomes alerted. */
+    setNormalToAlertedCounters();
 
   alert_map.setBit(alert_type.id);
 

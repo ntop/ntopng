@@ -37,10 +37,11 @@ public:
   void setBit(u_int8_t id);
   void clearBit(u_int8_t id);
   bool isSetBit(u_int8_t id) const;
+  bool isEmpty() const;
   void bitmapOr(const Bitmap b);
   void set(const Bitmap *b);
   bool equal(const Bitmap *b) const;
-  
+
   void lua(lua_State* vm, const char *label) const;
 };
 
