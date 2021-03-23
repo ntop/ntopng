@@ -186,6 +186,21 @@
             await onRangePickerChange(false);
         });
 
+	// clear all the filters on click
+        $(".btn-remove-tags").on('click', async function() {
+
+            const tags = tagify.getTagElms();
+            for (const tag of tags) {
+                const key = tag.getAttribute('key');
+                if (datasourceParams[key]) {
+                    delete datasourceParams[key];
+                }
+            }
+
+            tagify.removeAllTags();
+            await onRangePickerChange(false);
+        });
+
         $table.on('click', `a.tag-filter`, async function (e) {
             e.preventDefault();
 

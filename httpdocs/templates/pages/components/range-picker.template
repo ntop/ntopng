@@ -130,11 +130,6 @@ $(document).ready(function() {
     
     // intialize tooltip
     $(`.btn-remove-tags`).tooltip();
-    // clear all the filters on click
-    $(`.btn-remove-tags`).on('click', function() {
-        tagify.removeAllTags();
-    });
-
 });
 </script>
 {% end %}
