@@ -387,7 +387,6 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 						value=(host.contacted_hosts_behaviour.value or 0), lower_bound=(host.contacted_hosts_behaviour.lower_bound or 0), upper_bound = (host.contacted_hosts_behaviour.upper_bound or 0)}, when)
   end
 
-
   if host["score_behaviour"] then
      local h = host["score_behaviour"]
 
@@ -416,11 +415,8 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 	srv_anomaly = 1
      end
      
-     ts_utils.append("host:cli_score_anomalies", {ifid=ifstats.id, host=hostname,
-						  anomaly=cli_anomaly}, when)
-     
-     ts_utils.append("host:srv_score_anomalies", {ifid=ifstats.id, host=hostname,
-						  anomaly=srv_anomaly}, when)
+     ts_utils.append("host:cli_score_anomalies", {ifid=ifstats.id, host=hostname, anomaly=cli_anomaly}, when)     
+     ts_utils.append("host:srv_score_anomalies", {ifid=ifstats.id, host=hostname, anomaly=srv_anomaly}, when)
   end
   
 
@@ -540,7 +536,7 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
 
     -- Traffic stats
     ts_utils.append("host:traffic", {ifid=ifstats.id, host=hostname,
-          bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
+				     bytes_sent=host["bytes.sent"], bytes_rcvd=host["bytes.rcvd"]}, when)
 
     if(config.host_ts_creation == "full") then
       ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
