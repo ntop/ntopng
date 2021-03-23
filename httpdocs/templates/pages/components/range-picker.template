@@ -121,13 +121,13 @@ const input = $(`[name='tags']`)[0];
 
 const tagify = new Tagify(input, {
     duplicate: false,
+    editTags: false,
     autoComplete: { enabled: false }
 });
 // add existing tags
 tagify.addTags(tags);
 
 $(document).ready(function() {
-    
     // intialize tooltip
     $(`.btn-remove-tags`).tooltip();
 });
