@@ -370,15 +370,8 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 	local lower = host.contacted_hosts_behaviour.lower_bound
 	local upper = host.contacted_hosts_behaviour.upper_bound
 	local value = host.contacted_hosts_behaviour.value
-	local prediction = host.contacted_hosts_behaviour.prediction
 	local initialRun
 
-	if((lower == 0) and (upper == 0) and (prediction == 0)) then
-	   prediction = true
-	else
-	   prediction = false
-	end
-	
 	if(not(initialRun) and ((value < lower) or (value > upper))) then
 	   rsp = "ANOMALY"
 	else
@@ -386,7 +379,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 	end
 
 	if enable_behaviour_debug then
-	   io.write(hostname.."\n\t\t[Contacts Behaviour]\n\t\t[value: "..tostring(value).."][prediction: "..tostring(prediction).."][lower: "..tostring(lower).."][upper: "..tostring(upper).."]["..rsp.."]\n");
+	   io.write(hostname.."\n\t\t[Contacts Behaviour]\n\t\t[value: "..tostring(value).."][lower: "..tostring(lower).."][upper: "..tostring(upper).."]["..rsp.."]\n");
 	end
      end
      
@@ -400,10 +393,10 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
      if enable_behaviour_debug then
 	if(h["as_client.anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
-	io.write(hostname.."\n\t\t[Score Behaviour]\n\t\t\t[Client][value: "..tostring(h["as_client.value"]).."][prediction: "..tostring(h["as_client.prediction"]).."][lower: "..tostring(h["as_client.lower_bound"]).."][upper: "..tostring(h["as_client.upper_bound"]).."]["..rsp.."]\n")
+	io.write(hostname.."\n\t\t[Score Behaviour]\n\t\t\t[Client][value: "..tostring(h["as_client.value"]).."]lower: "..tostring(h["as_client.lower_bound"]).."][upper: "..tostring(h["as_client.upper_bound"]).."]["..rsp.."]\n")
 	
 	if(h["as_server.anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
-	io.write("\t\t\t[Server][value: "..tostring(h["as_server.value"]).."][prediction: "..tostring(h["as_server.prediction"]).."][lower: "..tostring(h["as_server.lower_bound"]).."][upper: "..tostring(h["as_server.upper_bound"]).."]["..rsp.."]\n")
+	io.write("\t\t\t[Server][value: "..tostring(h["as_server.value"]).."][lower: "..tostring(h["as_server.lower_bound"]).."][upper: "..tostring(h["as_server.upper_bound"]).."]["..rsp.."]\n")
      end
 
      -- Score Behaviour
@@ -437,9 +430,9 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
 
      if enable_behaviour_debug then
 	if(h["as_client.anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
-	io.write("\n\t\t[Active Flows Behaviour]\n\t\t\t[Client][value: "..tostring(h["as_client.value"]).."][prediction: "..tostring(h["as_client.prediction"]).."][lower: "..tostring(h["as_client.lower_bound"]).."][upper: "..tostring(h["as_client.upper_bound"]).."]["..rsp.."]\n");
+	io.write("\n\t\t[Active Flows Behaviour]\n\t\t\t[Client][value: "..tostring(h["as_client.value"]).."][lower: "..tostring(h["as_client.lower_bound"]).."][upper: "..tostring(h["as_client.upper_bound"]).."]["..rsp.."]\n");
 	if(h["as_server.anomaly"]) then rsp = "ANOMALY" else rsp = "OK" end
-	io.write("\t\t\t[Server][value: "..tostring(h["as_server.value"]).."][prediction: "..tostring(h["as_server.prediction"]).."][lower: "..tostring(h["as_server.lower_bound"]).."][upper: "..tostring(h["as_server.upper_bound"]).."]["..rsp.."]\n");
+	io.write("\t\t\t[Server][value: "..tostring(h["as_server.value"]).."][lower: "..tostring(h["as_server.lower_bound"]).."][upper: "..tostring(h["as_server.upper_bound"]).."]["..rsp.."]\n");
      end
 
      --tprint(h)

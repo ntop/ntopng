@@ -43,22 +43,7 @@ class HostStats: public GenericTrafficElement {
 
   /* *************************************** */
   /* Behavioural analysis regarding the host */
-  /* Double Exponential Smoothing structure, used to have a feedback regarding the contacted hosts */
   DESCounter active_flows_srv, active_flows_cli, score_cli, score_srv;
-  bool af_cli_anomaly, af_srv_anomaly, score_cli_anomaly, score_srv_anomaly;
-  u_int32_t tot_num_anomalies;
-  
-  /* Behavioural counters for active flows as client */
-  u_int32_t af_cli_value, af_cli_prediction, af_cli_lower_bound, af_cli_upper_bound;
-  
-  /* Behavioural counters for active flows as server */
-  u_int32_t af_srv_value, af_srv_prediction, af_srv_lower_bound, af_srv_upper_bound;
-
-  /* Behavioural counters for the score as client */
-  u_int32_t score_cli_value, score_cli_prediction, score_cli_lower_bound, score_cli_upper_bound;
-  
-  /* Behavioural counters for the score as server */
-  u_int32_t score_srv_value, score_srv_prediction, score_srv_lower_bound, score_srv_upper_bound;
 
   /* **************************************** */
   
@@ -98,7 +83,6 @@ class HostStats: public GenericTrafficElement {
     else
       recv_stats.incFlagStats(flags, cumulative_flags);
   };
-
   
   virtual void computeAnomalyIndex(time_t when) {};
 
@@ -156,9 +140,6 @@ class HostStats: public GenericTrafficElement {
   void deleteQuotaEnforcementStats();
   inline HostPoolStats* getQuotaEnforcementStats() { return(quota_enforcement_stats); }
 #endif
-
-  void updateActiveFlowsBehaviour();
-  void updateScoreBehaviour();
   
   virtual void luaHTTP(lua_State *vm) {}
   virtual void luaDNS(lua_State *vm, bool verbose)  {}

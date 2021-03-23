@@ -2988,7 +2988,7 @@ struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
 
   memset(d_port, 0, sizeof(d_port));
   ndpi_set_proto_defaults(ndpi_s, NDPI_PROTOCOL_UNRATED, NTOPNG_NDPI_OS_PROTO_ID,
-			  0, no_master, no_master, (char*)"Operating System",
+			  (char*)"Operating System",
 			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
 
   // enable all protocols

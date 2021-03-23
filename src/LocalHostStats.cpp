@@ -49,11 +49,6 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
     throw "Failed HLL initialization";  
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
 
-  /* des init */
-  des_contacted_hosts = new DESCounter();
-  des_contacted_hosts_report = false;
-  prediction = lower_bound = upper_bound = 0;
-  
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
   num_ntp_servers.init(5);
@@ -76,11 +71,6 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
     throw "Failed HLL initialization";
   hll_delta_value = 0, old_hll_value = 0, new_hll_value = 0;
   
-  /* des init */
-  des_contacted_hosts = new DESCounter();
-  des_contacted_hosts_report = false;
-  prediction = lower_bound = upper_bound = 0;
-  
   num_dns_servers.init(5);
   num_smtp_servers.init(5);
   num_ntp_servers.init(5);
@@ -95,7 +85,6 @@ LocalHostStats::~LocalHostStats() {
   if(http)                delete http;
   if(icmp)                delete icmp;
   if(peers)               delete(peers);
-  if(des_contacted_hosts) delete(des_contacted_hosts);
 
   ndpi_hll_destroy(&hll_contacted_hosts);
 }
@@ -195,19 +184,10 @@ void LocalHostStats::luaHostBehaviour(lua_State* vm) {
   
   lua_newtable(vm);
     
-  lua_push_float_table_entry(vm, "value",
-			     hll_delta_value);
-
-  if(des_contacted_hosts) {
-    lua_push_bool_table_entry(vm, "anomaly",
-			      des_contacted_hosts_report);
-    lua_push_int32_table_entry(vm, "prediction",
-			       prediction); 
-    lua_push_int32_table_entry(vm, "lower_bound",
-			       lower_bound);
-    lua_push_int32_table_entry(vm, "upper_bound",
-			       upper_bound);
-  }
+  lua_push_float_table_entry(vm, "value", hll_delta_value);
+  lua_push_bool_table_entry(vm, "anomaly",      contacted_hosts.anomalyFound());
+  lua_push_int32_table_entry(vm, "lower_bound", contacted_hosts.getLastLowerBound());
+  lua_push_int32_table_entry(vm, "upper_bound", contacted_hosts.getLastUpperBound());
 
   lua_pushstring(vm, "contacted_hosts_behaviour");
   lua_insert(vm, -2);
@@ -616,6 +596,5 @@ void LocalHostStats::updateContactedHostsBehaviour() {
   ndpi_hll_reset(&hll_contacted_hosts);
 #endif
   
-  if(des_contacted_hosts) 
-    des_contacted_hosts_report = des_contacted_hosts->addObservation((u_int32_t) hll_delta_value, &prediction, &lower_bound, &upper_bound);
+  contacted_hosts.addObservation((u_int32_t)hll_delta_value);
 }

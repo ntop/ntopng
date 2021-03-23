@@ -39,10 +39,7 @@ class LocalHostStats: public HostStats {
   /* Estimate the number of contacted hosts using HyperLogLog */
   struct ndpi_hll hll_contacted_hosts;
   double old_hll_value, new_hll_value, hll_delta_value;
-  /* Double Exponential Smoothing structure, used to have a feedback regarding the contacted hosts */
-  BehaviouralCounter *des_contacted_hosts;
-  bool des_contacted_hosts_report;
-  u_int32_t prediction, lower_bound, upper_bound;
+  DESCounter contacted_hosts;
   
   /* Written by NetworkInterface::periodicStatsUpdate thread */
   char *old_sites;
