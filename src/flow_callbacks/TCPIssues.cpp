@@ -84,7 +84,7 @@ void TCPIssues::checkFlow(Flow *f) {
   }
 
   if(has_issues)
-    f->triggerAlertAsync(TCPIssuesAlert::getClassType(), c_score, s_score);
+    f->triggerAlertAsync(TCPIssuesAlert::getClassType(), getSeverity(), c_score, s_score);
 }
 
 /* ******************************************** */

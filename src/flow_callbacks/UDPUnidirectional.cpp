@@ -49,7 +49,7 @@ void UDPUnidirectional::checkFlow(Flow *f) {
   if(!f->get_srv_ip_addr()->isLocalHost(&network_id))
     score = 50;
   
-  f->triggerAlertAsync(UDPUnidirectionalAlert::getClassType(), score /* c_score */, score /* s_score */);
+  f->triggerAlertAsync(UDPUnidirectionalAlert::getClassType(), getSeverity(), score /* c_score */, score /* s_score */);
 }
 
 /* ***************************************************** */

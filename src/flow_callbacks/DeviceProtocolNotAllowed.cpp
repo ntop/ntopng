@@ -47,7 +47,7 @@ void DeviceProtocolNotAllowed::protocolDetected(Flow *f) {
      * set_victim(victim)
      */
 
-    f->triggerAlertAsync(DeviceProtocolNotAllowedAlert::getClassType(), c_score, s_score);
+    f->triggerAlertAsync(DeviceProtocolNotAllowedAlert::getClassType(), getSeverity(), c_score, s_score);
   }
 }
 

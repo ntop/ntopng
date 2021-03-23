@@ -256,7 +256,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
                 alert = new IECInvalidTransitionAlert(NULL, f, alert_level_error, packet_time, last_type_i, type_id);
 
 		if (alert)
-		  f->triggerAlertSync(alert, c_score, s_score);
+		  f->triggerAlertSync(alert, alert_level_error, c_score, s_score);
 		
 		type_i_transitions[transition] = 2; /* Post Learning */
 	      } else
@@ -290,7 +290,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	    alert = new IECUnexpectedTypeIdAlert(NULL, f, alert_level_error, type_id, asdu, cause_tx, negative);
 	
 	    if(alert)
-	      f->triggerAlertSync(alert, c_score, s_score);
+	      f->triggerAlertSync(alert, alert_level_error, c_score, s_score);
 	    
 	  } /* alerted  */
 

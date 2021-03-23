@@ -57,7 +57,7 @@ void BlacklistedCountry::protocolDetected(Flow *f) {
   }
 
   if (is_server_bl || is_client_bl) {
-    f->triggerAlertAsync(BlacklistedCountryAlert::getClassType(), c_score, s_score);
+    f->triggerAlertAsync(BlacklistedCountryAlert::getClassType(), getSeverity(), c_score, s_score);
   }
 }
 

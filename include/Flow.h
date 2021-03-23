@@ -312,13 +312,13 @@ class Flow : public GenericHashEntry {
     cause the alert JSON to be generated after the call.
     The FlowCallback should implement the buildAlert() method which is called in the predominant callback to actually build the FlowAlert object.
    */
-  bool triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_score_inc, u_int16_t srv_score_inc);
+  bool triggerAlertAsync(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t cli_score_inc, u_int16_t srv_score_inc);
 
   /* 
      Called by FlowCallback subclasses to trigger a flow alert. This is a syncrhonous call, more expensive, but
      causes the alert (FlowAlert) to be immediately enqueued to all recipients.
    */
-  bool triggerAlertSync(FlowAlert *alert, u_int16_t cli_score_inc, u_int16_t srv_score_inc);
+  bool triggerAlertSync(FlowAlert *alert, AlertLevel alert_severity, u_int16_t cli_score_inc, u_int16_t srv_score_inc);
   /*
     Enqueues the predominant alert of the flow to all available flow recipients.
    */

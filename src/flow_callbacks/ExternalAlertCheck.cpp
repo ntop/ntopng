@@ -27,7 +27,7 @@ void ExternalAlertCheck::checkExternalAlert(Flow *f) {
     u_int16_t c_score = 100;
     u_int16_t s_score = 100;
 
-    f->triggerAlertAsync(ExternalAlertCheckAlert::getClassType(), c_score, s_score);
+    f->triggerAlertAsync(ExternalAlertCheckAlert::getClassType(), getSeverity(), c_score, s_score);
   }
 }
 

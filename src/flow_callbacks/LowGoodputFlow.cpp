@@ -52,7 +52,7 @@ void LowGoodputFlow::checkLowGoodput(Flow *f) {
     break; /* Continue with the check */
   };
 
-  f->triggerAlertAsync(LowGoodputFlowAlert::getClassType(), c_score, s_score);
+  f->triggerAlertAsync(LowGoodputFlowAlert::getClassType(), getSeverity(), c_score, s_score);
 }
 
 /* ***************************************************** */

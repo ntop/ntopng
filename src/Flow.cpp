@@ -5360,7 +5360,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
 
 /* *************************************** */
 
-bool Flow::triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc) {
+bool Flow::triggerAlertAsync(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc) {
   bool res;
 
   res = setAlertsBitmap(alert_type, cli_inc, srv_inc, true);
@@ -5370,7 +5370,7 @@ bool Flow::triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_inc, u_int1
 
 /* *************************************** */
 
-bool Flow::triggerAlertSync(FlowAlert *alert, u_int16_t cli_inc, u_int16_t srv_inc) {
+bool Flow::triggerAlertSync(FlowAlert *alert, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc) {
   bool res;
 
   res = setAlertsBitmap(alert->getAlertType(), cli_inc, srv_inc, false);

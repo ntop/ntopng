@@ -26,7 +26,7 @@ void WebMining::protocolDetected(Flow *f) {
   if (f->get_protocol_category() == CUSTOM_CATEGORY_MINING) {
     u_int16_t c_score = 50, s_score = 10;
    
-    f->triggerAlertAsync(WebMiningAlert::getClassType(), c_score, s_score);
+    f->triggerAlertAsync(WebMiningAlert::getClassType(), getSeverity(), c_score, s_score);
   }
 }
 
