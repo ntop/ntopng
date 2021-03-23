@@ -8,7 +8,7 @@
     local presetSelected = (isEmptyString(_GET['begin_epoch']) and isEmptyString(_GET['end_epoch']))   
 %}
 
-<div class="d-flex flex-sm-column flex-md-row justify-content-between w-100">
+<div class="d-flex flex-wrap flex-sm-column flex-md-row justify-content-between w-100">
     <div class="btn-group btn-group-toggle" role="group">
         <label class="btn {{ (presetSelected and 'btn-primary' or 'btn-light') }}">
             <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
@@ -91,7 +91,60 @@
             {% end %}
         </select>
     </div>
+    {% if tags.enabled then %}
+    <div class="w-100">
+        <hr class="mt-2 mb-0">
+        <button class="btn btn-sm btn-link my-2" type="button" data-toggle="collapse" data-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
+            <i class="fas fa-chevron-right"></i> <u>{{ i18n("show_hide_filters") }}</u>
+        </button>
+        <div class="collapse" id="collapseFilter">
+            <div class="d-flex">
+                <input class="form-control tagify-non-editable" name="tags" placeholder="Filters"> 
+                <button data-toggle="tooltip" data-placement="bottom" title="Remove filters." class="btn btn-danger ml-1 btn-remove-tags">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% end %}
 </div>
+
+{% if tags.enabled then %}
+<link rel="stylesheet" href="{{ ntop.getHttpPrefix }}/css/tagify.css" />
+<script type="text/javascript" src="{{ ntop.getHttpPrefix }}/js/tagify.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    
+    const tags =  {* json.encode(tags.values) *};
+    const input = $(`[name='tags']`)[0];
+
+    const tagify = new Tagify(input, {
+        duplicate: false,
+        autoComplete: { enabled: false }
+    })
+    .on('remove', function(e) {
+        
+        const event = new Event('tagRemoved');
+        event.detail = e.detail;
+
+        // dispatch an event to the document
+        // so it can be captured outside
+        input.dispatchEvent(event);
+    });
+
+    tagify.addTags(tags);
+
+
+    // intialize tooltip
+    $(`.btn-remove-tags`).tooltip();
+    // clear all the filters on click
+    $(`.btn-remove-tags`).on('click', function() {
+        tagify.removeAllTags();
+    });
+
+});
+</script>
+{% end %}
 <script type="text/javascript">
 const beginEpoch = {{ (_GET['begin_epoch'] or 'undefined') }};
 const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};

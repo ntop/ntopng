@@ -346,3 +346,7 @@ text, g text.tick {
 .overlay {
   background-color: rgba(15, 15, 15, 0.70) !important;
 }
+
+.tagify__input {
+  color: #eee !important;
+}

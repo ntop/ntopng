@@ -35,7 +35,14 @@ template_utils.render("pages/table-picker.template", {
     json = json,
     template_utils = template_utils,
     modals = {},
-    range_picker = {},
+    range_picker = {
+        tags = {
+            values = {
+                {value = "Test1 = 10", key = 'test', val = 20},
+                {value = "Test2 = 20", key = 'test_2', val = 20},
+            }
+        }
+    },
     chart = {
         html = widget_gui_utils.render_chart('example', {
             displaying_label = '',

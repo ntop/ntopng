@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
+local json = require("dkjson")
 local template_utils = require("template_utils")
 
 local ui_utils = {}
@@ -67,9 +68,10 @@ function ui_utils.create_navbar_title(title, subpage, title_link)
 end
 
 ---Render a Date Range Picker box.
----@param options table The options contains the following fields: `presets`, `buttons`, `records`, `max_delta_in`, `max_delta_out`.
+---@param options table The options contains the following fields: `presets`, `tags`, `buttons`, `records`, `max_delta_in`, `max_delta_out`.
 ---                     The field `presets` it's a table containing {day: bool, week: bool, month: bool, year: bool}
 ---                     The field `buttons` it's a table containing {permalink: bool, download: bool}
+---                     The field `tags` it's a table containing {disabled: bool, values: array}
 ---                     The field `records` it's an array containing numbers {10, 25, 50, 100}
 ---@return string
 function ui_utils.render_datetime_range_picker(options)
@@ -77,14 +79,17 @@ function ui_utils.render_datetime_range_picker(options)
     local presets = { day = true, week = true, month = true, year = true }
     local buttons = { permalink = false, download = false }
     local records = { 10, 25, 50, 100 }
+    local tags = { enabled = true, values = {}}
 
     options = options or {}
 
+    options.json = json
     options.presets = ternary(options.presets ~= nil, table.merge(presets, options.presets), presets)
     options.buttons = ternary(options.buttons ~= nil, table.merge(buttons, options.buttons), buttons)
     options.records = ternary(options.records ~= nil, options.records, records)
     options.max_delta_in = ternary(options.max_delta_in ~= nil, options.max_delta_in, 300)
     options.max_delta_out = ternary(options.max_delta_in ~= nil, options.max_delta_in, 43200)
+    options.tags = ternary(options.tags ~= nil, table.merge(tags, options.tags), tags)
 
     return template_utils.gen("pages/components/range-picker.template", options)
 end

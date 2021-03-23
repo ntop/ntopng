@@ -68,11 +68,12 @@
         const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
 
-        async function reloadChartAndTable($table, begin, end, rows) {
+        async function reloadChartAndTable($table, begin, end, rows, datasourceParams) {
 
             if (begin == null && end == null) return;
 
             const copyParams = Object.assign(datasourceParams, {});
+
             // override the existing timestamps 
             if (copyParams.begin_epoch) {
                 copyParams.begin_epoch = begin.unix();
@@ -123,11 +124,11 @@
             window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: len}, '', url);
         }
 
-        async function onRangePickerChange(pushHistroy = false) {
+        async function onRangePickerChange(datasourceParams, pushHistroy = false) {
             
             const [begin, end] = getTimestampRange();
             const len = parseInt($(`#select-len`).val());
-            await reloadChartAndTable($table, begin, end, len);
+            await reloadChartAndTable($table, begin, end, len, datasourceParams);
 
             if (pushHistroy) {
                 pushNewHistoryState(begin, end, len);
@@ -164,11 +165,23 @@
 
         // on apply button click
         $(`#btn-apply`).on('click', async function() {
-            await onRangePickerChange(true);
+            await onRangePickerChange(datasourceParams, true);
         });
 
         $(`#select-len`).on('change', async function() {
-            await onRangePickerChange(true);
+            await onRangePickerChange(datasourceParams, true);
+        });
+
+        // when an user remove the tag
+        $(`[name='tags']`).on('tagRemoved', async function(e) {
+
+            const key = e.detail.data.key;
+            const paramsCopy = Object.assign({}, datasourceParams);
+            if (paramsCopy[key] !== undefined) {
+                delete paramsCopy[key];
+            }
+
+            await onRangePickerChange(paramsCopy, false);
         });
       
     });

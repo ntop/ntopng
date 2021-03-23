@@ -920,3 +920,7 @@ footer {
   background-color: rgba(16, 16, 16, 0.1);
   z-index: 1000;
 }
+
+.tagify-non-editable .tagify__input{
+  display: none !important;
+}

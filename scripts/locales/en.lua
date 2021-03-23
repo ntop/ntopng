@@ -274,6 +274,7 @@ local lang = {
   ["short_broadcast"] = "B",
   ["short_multicast"] = "M",
   ["shortcuts"] = "Shortcuts",
+  ["show_hide_filters"] = "Show/Hide Filters",
   ["showing_x_to_y_rows"] = "Showing %{x} to %{y} of %{tot} rows",
   ["similarity"] = "Similarity",
   ["speed"] = "Speed",
