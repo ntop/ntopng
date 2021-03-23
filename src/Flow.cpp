@@ -5280,8 +5280,14 @@ void Flow::updateAlertsStats(FlowAlert *alert) {
       iface->incNumAlertedFlows(this, severity);    /* Increase the value for the newly set level*/
     }
   }
-  
-  predominant_alert_level = severity;
+}
+
+/* ***************************************************** */
+
+void Flow::setPredominantAlert(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t score) {
+  predominant_alert = alert_type,
+    predominant_alert_level = alert_severity,
+    predominant_alert_score = score;
 }
 
 /* ***************************************************** */
@@ -5291,7 +5297,7 @@ void Flow::updateAlertsStats(FlowAlert *alert) {
 
   Return true if the activities are completed successfully, of false otherwise
 */
-bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc, bool async) {
+bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc, bool async) {
   ScoreCategory score_category = Utils::mapAlertToScoreCategory(alert_type.category);
   u_int16_t flow_inc;
   Host *cli_h = get_cli_host(), *srv_h = get_srv_host();
@@ -5348,7 +5354,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting predominant with score: %u", flow_inc);
 #endif
-    setPredominantAlert(alert_type, flow_inc);
+    setPredominantAlert(alert_type, alert_severity, flow_inc);
 #ifdef DEBUG_SCORE
   } else {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (score <= %u)", getPredominantAlertScore());
@@ -5363,7 +5369,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_
 bool Flow::triggerAlertAsync(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc) {
   bool res;
 
-  res = setAlertsBitmap(alert_type, cli_inc, srv_inc, true);
+  res = setAlertsBitmap(alert_type, alert_severity, cli_inc, srv_inc, true);
 
   return res;
 }
@@ -5373,7 +5379,7 @@ bool Flow::triggerAlertAsync(FlowAlertType alert_type, AlertLevel alert_severity
 bool Flow::triggerAlertSync(FlowAlert *alert, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc) {
   bool res;
 
-  res = setAlertsBitmap(alert->getAlertType(), cli_inc, srv_inc, false);
+  res = setAlertsBitmap(alert->getAlertType(), alert_severity, cli_inc, srv_inc, false);
 
   /* Synchronous, this alert must be sent straight to the recipients now. Let's put it into the recipient queues. */
   if(alert) {

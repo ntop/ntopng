@@ -281,7 +281,7 @@ class Flow : public GenericHashEntry {
     - Synchronous:  The alerts bitmap is updated and the predominant alert is possibly updated.
                     Immediate alert JSON generation and enqueue to the recipients are performed as well.
    */
-  bool setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc, u_int16_t srv_inc, bool async);
+  bool setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t cli_inc, u_int16_t srv_inc, bool async);
   void updateAlertsStats(FlowAlert *alert);
 
  public:
@@ -324,7 +324,7 @@ class Flow : public GenericHashEntry {
    */
   void enqueuePredominantAlert();
 
-  inline void setPredominantAlert(FlowAlertType a, u_int16_t s) { predominant_alert = a, predominant_alert_score = s; }
+  inline void setPredominantAlert(FlowAlertType alert_type, AlertLevel alert_severity, u_int16_t score);
   inline FlowAlertType getPredominantAlert() const { return predominant_alert; };
   inline u_int16_t getPredominantAlertScore() const { return predominant_alert_score; };
   inline bool isFlowAlerted()    const { return(predominant_alert.id != alert_normal); };
