@@ -658,7 +658,7 @@ bool NetworkInterface::enqueueFlowAlert(FlowAlert *alert) {
     }
   }
 
-  if (!ret)
+  if(!ret)
     delete alert;  
 
   return ret;
@@ -8717,7 +8717,7 @@ void NetworkInterface::incrOS(char *hostname) {
 void NetworkInterface::execProtocolDetectedCallbacks(Flow *f) {
   if(flow_callbacks_executor) {
     FlowAlert *alert = flow_callbacks_executor->execCallbacks(f, flow_callback_protocol_detected);
-    if (alert)
+    if(alert)
       enqueueFlowAlert(alert);
   }
 }
@@ -8727,7 +8727,7 @@ void NetworkInterface::execProtocolDetectedCallbacks(Flow *f) {
 void NetworkInterface::execPeriodicUpdateCallbacks(Flow *f) {
   if(flow_callbacks_executor) {
     FlowAlert *alert = flow_callbacks_executor->execCallbacks(f, flow_callback_periodic_update);
-    if (alert)
+    if(alert)
       enqueueFlowAlert(alert);
   }
 }
@@ -8737,7 +8737,7 @@ void NetworkInterface::execPeriodicUpdateCallbacks(Flow *f) {
 void NetworkInterface::execFlowEndCallbacks(Flow *f) {
   if(flow_callbacks_executor) {
     FlowAlert *alert = flow_callbacks_executor->execCallbacks(f, flow_callback_flow_end);
-    if (alert)
+    if(alert)
       enqueueFlowAlert(alert);
   }
 }

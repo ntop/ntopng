@@ -90,6 +90,7 @@ FlowAlert *FlowCallbacksExecutor::execCallbacks(Flow *f, FlowCallbacks c) {
     }
   }
 
+  /* Do NOT allocate any alert, there is nothing left to do as flow alerts don't have to be emitted */
   if(ntop->getPrefs()->dontEmitFlowAlerts()) return(NULL);
   
   return predominant_callback ? predominant_callback->buildAlert(f) : NULL;
