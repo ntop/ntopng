@@ -5,8 +5,9 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local alert_consts = require "alert_consts"
+local alert_consts     = require "alert_consts"
 local alert_severities = require "alert_severities"
+local json             = require "dkjson"
 
 -- ##############################################
 
