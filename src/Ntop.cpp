@@ -2974,7 +2974,6 @@ void Ntop::loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_s
 
 struct ndpi_detection_module_struct* Ntop::initnDPIStruct() {
   struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(ndpi_no_prefs);
-  u_int16_t no_master[2] = { NDPI_PROTOCOL_NO_MASTER_PROTO, NDPI_PROTOCOL_NO_MASTER_PROTO };
   ndpi_port_range d_port[MAX_DEFAULT_PORTS];
   NDPI_PROTOCOL_BITMASK all;
 
