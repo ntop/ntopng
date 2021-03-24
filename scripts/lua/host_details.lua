@@ -1547,51 +1547,23 @@ elseif(page == "tls") then
       template = template,
       sites = {
          endpoint = endpoint,
-         ja3_fingerprint = ja3_fingerprint,
-         num_uses = num_uses
       }
    }
    
 print(template.gen("pages/ja3_fingerprint.template", context))
 
 elseif(page == "ssh") then
-  print [[
-     <table id="myTable" class="table table-bordered table-striped tablesorter">
-     <thead><tr><th>]] print('<A HREF="https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c" target="_blank">'..i18n("hassh_fingerprint")..'</A>') print[[</th>]]
-  if not isEmptyString(companion_interface_utils.getCurrentCompanion(ifId)) then
-     print[[<th>]] print(i18n("app_name")) print[[</th>]]
-  end
-  print[[<th>]] print(i18n("num_uses")) print[[</th></tr></thead>
-     <tbody id="host_details_hassh_tbody">
-     </tbody>
-     </table>
-
-<script>
-function update_hassh_table() {
-  $.ajax({
-    type: 'GET',
-    url: ']]
-  print(ntop.getHttpPrefix())
-  print [[/lua/get_fingerprint_data.lua',
-    data: { fingerprint_type: 'hassh', ifid: "]] print(ifId.."") print ("\" , ") print(hostinfo2json(host_info))
-
-    print [[ },
-    success: function(content) {
-      $('#host_details_hassh_tbody').html(content);
-      $('#myTable').trigger("update");
-    }
-  });
-}
-
-update_hassh_table();
-setInterval(update_hassh_table, 5000);
-
-</script>
-]]
-
-
-   print("<b>"..i18n("notes").."</b><ul><li>"..i18n("fingerprint_note").."</li></ul>")
-
+   local fingerprint_type = 'hassh'
+   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/host/fingerprint/data.lua?fingerprint_type=%s&ifid=%s&host=%s", fingerprint_type, ifId, host_ip)
+   local context = {
+      json = json,
+      template = template,
+      sites = {
+         endpoint = endpoint,
+      }
+   }
+   
+print(template.gen("pages/hassh_fingerprint.template", context))
 elseif(page == "http") then
    local http = host["http"]
    if http then

@@ -1,0 +1,67 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card card-shadow">
+            <div class="card-body">
+                <table id="hasshTable" class="table table-striped table-hover table-bordered w-100 display">
+                    <thead>                
+                        <tr>
+                            <th>{{ i18n("hassh_fingerprint") }}</th>
+                            <th>{{ i18n("app_name") }}</th>
+                            <th>{{ i18n("num_uses") }}</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="notes bg-light border">
+    <b>{{ i18n('fingerprint_note') }}</b>
+</div>
+<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
+<script type="text/javascript">
+
+   i18n.warning ="{{ i18n('warning', {}) }}";
+i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+i18n.search = "{{ i18n('search') }}";
+i18n.edit = "{{ i18n('edit') }}";
+i18n.remove = "{{ i18n('remove') }}";
+i18n.all = "{{ i18n('all') }}";
+
+$(document).ready(function() {
+    let dtConfig = DataTableUtils.getStdDatatableConfig();
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, "{* sites.endpoint *}", "rsp");
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        columns: [
+		  { "data": "hassh",
+		      render: function (data, type, row, meta)
+		      {
+			if (type === 'display')
+			  {
+			    if(row.is_malicious) {
+			      icon = '<font color=red><i class="fas fa-ban" title="{{ i18n("alerts_dashboard.malicious_signature_detected") }}"></i></font> ';
+			    } else {
+			      icon = "";
+			    }
+			    data = icon+' ' + data;
+			  }
+			return data;
+		      }
+		  },
+		  { "data": "app_name", className: "text-right" },
+		  { "data": "num_uses", className: "text-right" , render: function (data, type, row, meta)
+                    {
+                      if (type === 'display')
+                        {
+                          return NtopUtils.formatValue(data);
+                        }
+                        return data;
+                    }
+                 }
+              ]
+    });
+
+   const $hasshFingerprintDatatable = $(`#hasshTable`).DataTable(dtConfig);
+
+});
+</script>
