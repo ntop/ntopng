@@ -23,7 +23,6 @@ local shell = {
       template_name = "shell_endpoint.template"
     },
     recipient_params = {
-      {},
     },
     recipient_template = {
       plugin_key = endpoint_key,

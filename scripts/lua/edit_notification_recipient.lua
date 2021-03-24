@@ -47,7 +47,6 @@ if (action == "add") then
 					      minimum_severity,
 					      bind_to_all_pools,
 					      _POST)
-
 elseif (action == "edit") then
    response.result = recipients.edit_recipient(recipient_id,
 					       recipient_name,

@@ -221,12 +221,14 @@ local function check_endpoint_recipient_params(endpoint_key, recipient_params)
    for _, param in ipairs(endpoints.get_types()[endpoint_key].recipient_params) do
       -- param is a lua table so we access its elements
       local param_name = param["param_name"]
-      local optional = param["optional"]
+      if param_name then
+         local optional = param["optional"]
 
-      if recipient_params and recipient_params[param_name] and not safe_params[param_name] then
-	 safe_params[param_name] = recipient_params[param_name]
-      elseif not optional then
-	 return false, {status = "failed", error = {type = "missing_mandatory_param", missing_param = param_name}}
+         if recipient_params and recipient_params[param_name] and not safe_params[param_name] then
+            safe_params[param_name] = recipient_params[param_name]
+         elseif not optional then
+	    return false, {status = "failed", error = {type = "missing_mandatory_param", missing_param = param_name}}
+         end
       end
    end
 
@@ -272,9 +274,8 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, user_scr
    if locked then
       local ec = endpoints.get_endpoint_config(endpoint_id)
 
-
-
       if ec["status"] == "OK" and endpoint_recipient_name then
+
 	 -- Is the endpoint already existing?
 	 local same_recipient = recipients.get_recipient_by_name(endpoint_recipient_name)
 	 if same_recipient then
