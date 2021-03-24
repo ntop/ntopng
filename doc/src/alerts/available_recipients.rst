@@ -83,19 +83,13 @@ Create the script you want to execute each time the alert is triggered and put i
 
         The script must be a shell script (.sh extention) with execution permission.
 
-Alert information can be provided to the script in two ways:
-
-- As parameters: by specifying selected alert fields
-- As standard input: the full alert information in JSON format are provided in this case
+The full alert information are provided to the script through the standard input in JSON format.
 
 A new Endpoint should be created, by selecting the script that has been created.
 
 .. figure:: ../img/shell_endpoint.png
 
 After that, a new recipient should be created, associated with the new endpoint just created.
-
-Please note that the Options field can be used to pass arguments to the script. If the argument name matches the format "alert.<field>", the corresponding alert field value is provided as parameter to the shell script when executing.
-If no argument is configured in the Options field, then a JSON with the full alert information is provided to the script in the standard input (default).
 
 .. figure:: ../img/shell_recipient.png
 
