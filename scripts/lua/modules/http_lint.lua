@@ -798,6 +798,9 @@ local function validateApplication(app)
 end
 
 local function validateProtocolIdOrName(p)
+   -- Lower used because TCP instead of tcp wasn't seen as a l4proto
+   p = string.lower(p)
+   
    return validateChoice(ndpi_protos, p) or
       validateChoiceByKeys(L4_PROTO_KEYS, p) or
       validateChoiceByKeys(ndpi_protos, p)
