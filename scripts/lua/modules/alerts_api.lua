@@ -739,15 +739,14 @@ end
 
 -- #####################################
 
-function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, subtype, threshold, behaviour_type, subtype)
+function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, threshold, behaviour_type)
    local anomaly     = stats["anomaly"]
    local lower_bound = stats["lower_bound"]
    local upper_bound = stats["upper_bound"]
    local value       = stats["value"]
    local prediction  = stats["prediction"]
 
-   local alert_unexpected_behaviour = alert_consts.alert_types.alert_unexpected_behaviour.new(
-      behaviour_type, -- Type of unexpected behavior -- TODO: localize (use as_client)
+   local alert_unexpected_behaviour = behaviour_type.new(
       value,
       prediction,
       upper_bound,
@@ -762,11 +761,6 @@ function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, 
       
    alert_unexpected_behaviour:set_granularity(params.granularity)
 
-   if subtype then
-      -- Must specify the subtype to avoid clashes
-      alert_unexpected_behaviour:set_subtype(tostring(as_client))
-   end
-      
    if anomaly then
       alert_unexpected_behaviour:trigger(params.alert_entity)
    else

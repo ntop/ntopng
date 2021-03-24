@@ -145,7 +145,11 @@ local alert_keys = {
       alert_tcp_syn_scan_attacker          = {NO_PEN, BASE_ID + 60},
       alert_tcp_syn_scan_victim            = {NO_PEN, BASE_ID + 61},
       alert_contacted_peers                = {NO_PEN, BASE_ID + 62},
-      alert_unexpected_behaviour           = {NO_PEN, BASE_ID + 63},
+      alert_contacts_anomaly               = {NO_PEN, BASE_ID + 63}, -- scripts/plugins/alerts/security/unexpected_host_behaviour/modules/contacted_hosts_behaviour
+      alert_score_anomaly_client           = {NO_PEN, BASE_ID + 64}, -- scripts/plugins/alerts/security/unexpected_host_behaviour/modules/score_behaviour
+      alert_score_anomaly_server           = {NO_PEN, BASE_ID + 65}, -- scripts/plugins/alerts/security/unexpected_host_behaviour/modules/score_behaviour
+      alert_active_flows_anomaly_client    = {NO_PEN, BASE_ID + 66}, -- scripts/plugins/alerts/security/unexpected_host_behaviour/modules/active_flows_behaviour
+      alert_active_flows_anomaly_server    = {NO_PEN, BASE_ID + 67}, -- scripts/plugins/alerts/security/unexpected_host_behaviour/modules/active_flows_behaviour
       
       -- Add here additional keys for alerts generated
       -- by ntopng plugins

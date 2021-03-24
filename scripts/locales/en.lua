@@ -479,6 +479,13 @@ local lang = {
         ["no_victim"] = "Victim requested, but no victim set.",
       },
     },
+    ["anomalies"] = {
+       ["active_flows_as_client"] = "Active Flows Behaviour as Client",
+       ["active_flows_as_server"] = "Active Flows Behaviour as Server",
+       ["contacts"] = "Contacts Behaviour",
+       ["score_as_client"] = "Score Behaviour as Client",
+       ["score_as_server"] = "Score Behaviour as Server",
+    },
   },
   ["alert_messages"] = {
     ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",
