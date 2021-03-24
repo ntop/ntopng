@@ -150,6 +150,7 @@
         let config = DataTableUtils.getStdDatatableConfig(datatableButton);
         config = DataTableUtils.setAjaxConfig(config, `{* datatable.datasource.endpoint *}`, 'rsp.records');
         config = DataTableUtils.extendConfig(config, {
+	serverSide: true,
             {% if datatable.js_columns then %}
                 columns: {* datatable.js_columns *}
             {% end %}

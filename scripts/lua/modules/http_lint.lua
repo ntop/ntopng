@@ -1981,6 +1981,11 @@ local known_parameters = {
 
    -- See https://github.com/ntop/ntopng/issues/4275
    ["csrf"]               = validateSingleWord,
+
+   -- server side Datatables 
+   ["start"]              = validateNumber,
+   ["length"]             = validateNumber,
+   ["draw"]               = validateNumber,
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
@@ -2039,7 +2044,12 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
 
    -- paramsPairsDecode: NOTE NOTE NOTE the "val_" value must explicitly be checked by the end application
    ["key_"]                    = { validateNumber,   validateUnchecked },      -- key: an index, value: the pair key
-   ["val_"]                    = { validateNumber,   validateUnchecked }      -- key: an index, value: the pair value
+   ["val_"]                    = { validateNumber,   validateUnchecked },      -- key: an index, value: the pair value
+
+   -- server side Datatables
+   ["columns_"]                = { validateNumber, validateBool },
+   ["search_"]                 = { validateNumber, validateSingleWord },
+   ["order_"]                  = { validateNumber, validateSingleWord }
 }
 
 -- #################################################################
