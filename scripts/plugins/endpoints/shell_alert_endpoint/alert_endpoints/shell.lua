@@ -23,7 +23,7 @@ local shell = {
       template_name = "shell_endpoint.template"
     },
     recipient_params = {
-      { param_name = "shell_options" },
+      {},
     },
     recipient_template = {
       plugin_key = endpoint_key,
@@ -48,7 +48,6 @@ end
 local function recipient2sendMessageSettings(recipient)
   local settings = {
     path    = recipient.endpoint_conf.shell_script,
-    options = recipient.recipient_params.shell_options,
   }
 
   return settings
@@ -62,51 +61,6 @@ function shell.setup()
   global_state = {}
 
   return(is_enabled)
-end
-
--- ##############################################
-
-function runScriptWithArgs(cmd, myalert)
-   local use_args = false
-
-   alert = myalert -- Not sure why we need a non-local variable
-
-   if(do_debug) then
-      -- tprint(myalert)
-      tprint("[Before] "..cmd)
-   end
-
-   -- Check if the user configured arguments to be mapped to alert fields
-   -- Search all alert.* strings
-   for word in string.gmatch(cmd, 'alert.[^,%s]+') do
-      local arg_val = ""
-      use_args = true
-
-      local field_name = string.gsub(word, 'alert%.', '')
-      if field_name then
-         local field_value = myalert[field_name]
-         if field_value then
-           arg_val = field_value
-         end
-      end
-
-      cmd = cmd:gsub(word, '"'..arg_val..'"')
-   end
-
-   -- Mask output
-   local full_cmd = cmd.." > /dev/null"
-
-   if use_args then
-      -- Running script with expanded args   
-      os.execute(full_cmd)
-   else
-      -- Running script with the alert (json) as input (stdin)
-      sys_utils.execShellCmd(full_cmd, json.encode(myalert))
-   end
-
-   if(do_debug) then tprint("[After] "..cmd) end
-
-   return(cmd)
 end
 
 -- ##############################################
@@ -134,9 +88,13 @@ function shell.runScript(alerts, settings)
 
   for key, alert in ipairs(alerts) do
     -- Executing the script
-    local exec_script = fullpath .. " " .. settings.options
+    local exec_script = fullpath
 
-    exec_script = runScriptWithArgs(exec_script, alert)
+    -- Mask output
+    local cmd = exec_script .. " > /dev/null"
+
+    -- Running script with the alert (json) as input (stdin)
+    sys_utils.execShellCmd(cmd, json.encode(alert))
 
     -- Storing an alert-notice in regard of the shell script execution
     -- for security reasons
