@@ -1541,7 +1541,7 @@ elseif(page == "dns") then
    end
 elseif(page == "tls") then
    local fingerprint_type = 'ja3'
-   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/host/get_fingerprint_data.lua?fingerprint_type=%s&ifid=%s&host=%s", fingerprint_type, ifId, host_ip)
+   local endpoint = string.format(ntop.getHttpPrefix() .. "/lua/rest/v1/get/host/fingerprint/ja3.lua?fingerprint_type=%s&ifid=%s&host=%s", fingerprint_type, ifId, host_ip)
    local context = {
       json = json,
       template = template,

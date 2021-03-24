@@ -1,4 +1,4 @@
---
+ --
 -- (C) 2013-21 - ntop.org
 --
 
@@ -35,7 +35,6 @@ local fingerprint_type = _GET["fingerprint_type"]
 -- #####################################################################
 
 local stats
-local table = {}
 
 if isEmptyString(fingerprint_type) then
     rc = rest_utils.consts.err.invalid_args
@@ -59,14 +58,9 @@ if(host_info["host"] ~= nil) then
    stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
 end
 
-if stats == nil then
-    rest_utils.answer(rest_utils.consts.err.not_found)
-    return
-end
+stats = stats and stats.ja3_fingerprint or {}
 
-table = stats.ja3_fingerprint
-
-for key, value in pairs(table) do
+for key, value in pairs(stats) do
    res[#res + 1] = value
    res[#res]["ja3_fingerprint"] = key
 end
