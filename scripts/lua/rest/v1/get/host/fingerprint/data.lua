@@ -58,11 +58,17 @@ if(host_info["host"] ~= nil) then
    stats = interface.getHostInfo(host_info["host"], host_info["vlan"])
 end
 
-stats = stats and stats.ja3_fingerprint or {}
+stats = stats or {}
+
+if fingerprint_type == "ja3" then
+   stats = stats and stats.ja3_fingerprint or {}
+elseif fingerprint_type == "hassh" then
+   stats = stats and stats.hassh_fingerprint or {}
+end
 
 for key, value in pairs(stats) do
    res[#res + 1] = value
-   res[#res]["ja3_fingerprint"] = key
+   res[#res][fingerprint_type] = key
 end
 
 rc = rest_utils.consts.success.ok

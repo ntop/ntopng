@@ -33,7 +33,7 @@ $(document).ready(function() {
     dtConfig = DataTableUtils.setAjaxConfig(dtConfig, "{* sites.endpoint *}", "rsp");
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
-		  { "data": "ja3_fingerprint",
+		  { "data": "ja3",
 		      render: function (data, type, row, meta)
 		      {
 			if (type === 'display')
