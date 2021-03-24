@@ -16,8 +16,8 @@ local handler = {}
 
 -- @brief See risk_handler.lua
 function handler.handle_behaviour(params, stats, host_ip)
-   alerts_api.handlerPeerBehaviour(params, stats["as_client"], stats["tot_num_anomalies"], host_ip, 10, alert_consts.alert_types.alert_score_anomaly_client)
-   alerts_api.handlerPeerBehaviour(params, stats["as_server"], stats["tot_num_anomalies"], host_ip, 10, alert_consts.alert_types.alert_score_anomaly_server)
+   alerts_api.handlerPeerBehaviour(params, stats["as_client"], stats["tot_num_anomalies"], host_ip, 10, alert_consts.alert_types.alert_score_anomaly_client, "score_behaviour_as_client")
+   alerts_api.handlerPeerBehaviour(params, stats["as_server"], stats["tot_num_anomalies"], host_ip, 10, alert_consts.alert_types.alert_score_anomaly_server, "score_behaviour_as_server")
 end
 
 -- #################################################################

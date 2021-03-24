@@ -739,7 +739,7 @@ end
 
 -- #####################################
 
-function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, threshold, behaviour_type)
+function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, threshold, behaviour_type, subtype)
    local anomaly     = stats["anomaly"]
    local lower_bound = stats["lower_bound"]
    local upper_bound = stats["upper_bound"]
@@ -761,6 +761,10 @@ function alerts_api.handlerPeerBehaviour(params, stats, tot_anomalies, host_ip, 
       
    alert_unexpected_behaviour:set_granularity(params.granularity)
 
+   if subtype then
+      alert_unexpected_behaviour:set_subtype(subtype)
+   end
+   
    if anomaly then
       alert_unexpected_behaviour:trigger(params.alert_entity)
    else

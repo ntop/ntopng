@@ -16,7 +16,7 @@ local alert_active_flows_anomaly_client = classes.class(alert)
 
 alert_active_flows_anomaly_client.meta = {
    alert_key = alert_keys.ntopng.alert_active_flows_anomaly_client,
-   i18n_title = "alerts_dashboard.unexpected_host_behaviour_title",
+   i18n_title = "alerts_dashboard.unexpected_host_behaviour_act_flows_title",
    icon = "fas fa-exclamation",
 }
 

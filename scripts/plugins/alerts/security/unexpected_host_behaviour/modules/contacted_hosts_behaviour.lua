@@ -16,7 +16,7 @@ local handler = {}
 
 -- @brief See risk_handler.lua
 function handler.handle_behaviour(params, stats, host_ip)
-   alerts_api.handlerPeerBehaviour(params, stats, nil, host_ip, nil, alert_consts.alert_types.alert_contacts_anomaly)
+   alerts_api.handlerPeerBehaviour(params, stats, nil, host_ip, nil, alert_consts.alert_types.alert_contacts_anomaly, "contacted_host")
 end
 
 -- #################################################################
