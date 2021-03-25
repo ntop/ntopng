@@ -4345,7 +4345,11 @@ function table.slice(t, start_table, end_table)
         error("The array to slice cannot be nil!")
     end
 
-    if start_table < 1 or end_table > #t then
+    if end_table > #t then
+       end_table = #t
+    end
+
+    if start_table < 1 then
         error("Invalid bounds!")
     end
 
