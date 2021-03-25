@@ -4957,16 +4957,12 @@ void Flow::lua_snmp_info(lua_State *vm) {
 /* ***************************************************** */
 
 void Flow::lua_device_protocol_allowed_info(lua_State *vm) {
-  DeviceProtoStatus cli_ps, srv_ps;
   bool cli_allowed, srv_allowed;
 
   lua_newtable(vm);
 
   if(!cli_host || !srv_host)
     return;
-
-  cli_ps = cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true);
-  srv_ps = srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false);
 
   cli_allowed = isCliDeviceAllowedProtocol();
   srv_allowed = isSrvDeviceAllowedProtocol();
