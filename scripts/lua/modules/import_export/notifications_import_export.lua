@@ -8,7 +8,8 @@ package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.p
 require "lua_utils" 
 local import_export = require "import_export"
 local json = require "dkjson"
-local endpoints = require("endpoints")
+local endpoints = require "endpoints"
+local recipients = require "recipients"
 local rest_utils = require "rest_utils"
 
 -- ##############################################
@@ -66,6 +67,7 @@ end
 -- @brief Reset configuration
 function notifications_import_export:reset()
    endpoints.reset_configs()
+   recipients.cleanup()
 end
 
 -- ##############################################
