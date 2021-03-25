@@ -363,7 +363,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, user_s
 
 	       -- Finally, register the recipient in C to make sure also the C knows about this edit
 	       -- and periodic scripts can be reloaded
-	       ntop.recipient_register(tonumber(rc["endpoint_id"]), minimum_severity, _bitmap_from_user_script_categories(user_script_categories))
+	       ntop.recipient_register(tonumber(recipient_id), minimum_severity, _bitmap_from_user_script_categories(user_script_categories))
 
 	       res = {status = "OK"}
 	    end
@@ -783,10 +783,12 @@ end
 
 -- @brief Cleanup all but builtin recipients
 function recipients.cleanup()
-   local all_recipients = recipients.get_all_recipients(true --[[ exclude builtin recipients --]])
+   local all_recipients = recipients.get_all_recipients()
    for _, recipient in pairs(all_recipients) do
       recipients.delete_recipient(recipient.recipient_id)
    end
+
+   recipients.initialize()
 end
 
 -- ##############################################
