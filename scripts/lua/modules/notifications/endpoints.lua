@@ -429,7 +429,7 @@ end
 -- @brief Clear all the existing endpoint configurations
 -- @return Always return a table {status = "OK"}
 function endpoints.reset_configs()
-   local all_configs = endpoints.get_configs(true --[[ exclude builtin --]])
+   local all_configs = endpoints.get_configs()
 
    for _, endpoint_params in pairs(all_configs) do
       endpoints.delete_config(endpoint_params.endpoint_id)
