@@ -38,14 +38,14 @@ static bool help_printed = false;
 /* **************************************************** */
 
 /* Method used for collateral activities */
-NetworkInterface::NetworkInterface() : AlertableEntity(this, alert_entity_interface) {
+NetworkInterface::NetworkInterface() : OtherAlertableEntity(this, alert_entity_interface) {
   init();
 }
 
 /* **************************************************** */
 
 NetworkInterface::NetworkInterface(const char *name,
-				   const char *custom_interface_type) : AlertableEntity(this, alert_entity_interface) {
+				   const char *custom_interface_type) : OtherAlertableEntity(this, alert_entity_interface) {
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
@@ -55,6 +55,7 @@ NetworkInterface::NetworkInterface(const char *name,
   customIftype = custom_interface_type;
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   flow_callbacks_executor = prev_flow_callbacks_executor = NULL;
+  host_callbacks_executor = prev_host_callbacks_executor = NULL;
   flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in NetworkInterface::startFlowDumping */
   flows_dump_json_use_labels = false; /* Dump of JSON labels disabled by default, possibly enabled in NetworkInterface::startFlowDumping */
   memset(ifMac, 0, sizeof(ifMac));
@@ -334,7 +335,8 @@ void NetworkInterface::init() {
   next_compq_insert_idx = next_compq_remove_idx = 0;
 
   idleFlowsToDump = activeFlowsToDump = NULL;
-  flowAlertsQeueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CALLBACKS_QUEUE_LEN, "flowAlertsQeueue");
+  flowAlertsQueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CALLBACKS_QUEUE_LEN, "flowAlertsQueue");
+  hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlert *>(MAX_HOST_CALLBACKS_QUEUE_LEN, "hostAlertsQueue");
 
   PROFILING_INIT();
 }
@@ -550,12 +552,7 @@ NetworkInterface::~NetworkInterface() {
   }
 #endif
 
-  if(getNumPackets() > 0) {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				 "Flushing host contacts for interface %s",
-                get_description());
-    cleanup();
-  }
+  cleanup();
 
   deleteDataStructures();
 
@@ -615,7 +612,8 @@ NetworkInterface::~NetworkInterface() {
   if(mdns)                  delete mdns; /* Leave it at the end so the mdns resolver has time to initialize */
   if(ifname)                free(ifname);
 
-  if(flowAlertsQeueue)      delete flowAlertsQeueue;
+  if(flowAlertsQueue)       delete flowAlertsQueue;
+  if(hostAlertsQueue)       delete hostAlertsQueue;
 
   addRedisSitesKey();
   if(top_sites)       delete top_sites;
@@ -624,6 +622,9 @@ NetworkInterface::~NetworkInterface() {
 
   if(prev_flow_callbacks_executor) delete prev_flow_callbacks_executor;
   if(flow_callbacks_executor)      delete flow_callbacks_executor;
+
+  if(prev_host_callbacks_executor) delete prev_host_callbacks_executor;
+  if(host_callbacks_executor)      delete host_callbacks_executor;
 }
 
 /* **************************************************** */
@@ -631,7 +632,7 @@ NetworkInterface::~NetworkInterface() {
 /* Enqueue flow alert to a queue for processing and later delivery to recipients */
 bool NetworkInterface::enqueueFlowAlert(FlowAlert *alert) {
   bool ret = false;
-  SPSCQueue<FlowAlert *> *selected_queue = flowAlertsQeueue;
+  SPSCQueue<FlowAlert *> *selected_queue = flowAlertsQueue;
   Flow *f = alert->getFlow();
 
   /* Perform the actual enqueue */
@@ -660,6 +661,47 @@ bool NetworkInterface::enqueueFlowAlert(FlowAlert *alert) {
 
   if(!ret)
     delete alert;  
+
+  return ret;
+}
+
+/* **************************************************** */
+
+/* Enqueue host alert to a queue for processing and later delivery to recipients */
+bool NetworkInterface::enqueueHostAlert(HostAlert *alert) {
+  bool ret = false;
+  Host *h = alert->getHost();
+
+  if (!ntop->getPrefs()->dontEmitHostAlerts()
+      && hostAlertsQueue) {
+
+    /* Perform the actual enqueue */
+    if(hostAlertsQueue->enqueue(alert, true)) {
+
+      /*
+	If enqueue was successful, increase the host reference counter.
+	Reference counter will be deleted when doing the dequeue.
+       */
+      h->incUses();
+
+      /*
+	Signal the waiter on the condition variable
+       */
+      host_callbacks_condvar.signal();
+
+      ret = true;
+    } else {
+      /*
+	Enqueue failure.
+       */
+      ret = false;
+    }
+  }
+
+  if(!ret) {
+    if(alert->isReleased())
+      delete alert;  
+  }
 
   return ret;
 }
@@ -2395,7 +2437,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 /* **************************************************** */
 
 /* Dequeue alerted flows from callbacks (and enqueue to recipients) */
-u_int64_t NetworkInterface::dequeueAlertedFlows(SPSCQueue<FlowAlert *> *q, u_int budget) {
+u_int64_t NetworkInterface::dequeueFlowAlerts(SPSCQueue<FlowAlert *> *q, u_int budget) {
   u_int64_t num_done = 0;
 
   while(q->isNotEmpty()) {
@@ -2431,8 +2473,45 @@ u_int64_t NetworkInterface::dequeueAlertedFlows(SPSCQueue<FlowAlert *> *q, u_int
 
 /* **************************************************** */
 
+/* Same as above but for hosts */
+u_int64_t NetworkInterface::dequeueHostAlerts(SPSCQueue<HostAlert *> *q, u_int budget) {
+  u_int64_t num_done = 0;
+
+  while(q->isNotEmpty()) {
+    HostAlert *alert;
+   
+    alert = q->dequeue();
+
+    if (alert) {
+      Host *h = alert->getHost();
+
+      /* Enqueue alert to recipients */
+      h->enqueueAlert(alert);
+
+#if DEBUG_HOST_CALLBACKS
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued host alert");
+#endif
+
+      /*
+        Now that the job is done, the reference counter to the host can be decreased.
+       */
+      h->decUses();
+
+      num_done++;
+
+      if(budget > 0 /* Budget requested */
+         && num_done >= budget /* Budget exceeded */)
+        break;
+    }
+  }
+
+  return num_done;
+}
+
+/* **************************************************** */
+
 u_int64_t NetworkInterface::dequeueFlowAlertsFromCallbacks(u_int budget) {
-  u_int64_t num_done = dequeueAlertedFlows(flowAlertsQeueue, budget);
+  u_int64_t num_done = dequeueFlowAlerts(flowAlertsQueue, budget);
 
 #ifndef WIN32
   if(num_done == 0) {
@@ -2450,17 +2529,40 @@ u_int64_t NetworkInterface::dequeueFlowAlertsFromCallbacks(u_int budget) {
   }
 #endif
 
-  /* Purging of idle flows is done here as it involves decreasing certain hosts counters (such as host scores)
-     that are increased by flow user script hooks. Hence, by executing the purging here in this thread, we ensure
-     consistency of counters.
-  */
-  num_done += purgeQueuedIdleFlows();
-
 #if DEBUG_FLOW_CALLBACKS
   if(num_done > 0)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flows total [%u]", num_done);
 #endif
 
+
+  return num_done;
+}
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::dequeueHostAlertsFromCallbacks(u_int budget) {
+  u_int64_t num_done = dequeueHostAlerts(hostAlertsQueue, budget);
+
+#ifndef WIN32
+  if(num_done == 0) {
+    /*
+      No host was dequeued. Let's wait for at most 1s. Cannot wait indefinitely
+      as we must ensure purgeQueuedIdleHosts() gets executed, and also to exit when it's
+      time to shutdown.
+    */
+    struct timespec hooks_wait_expire;
+
+    hooks_wait_expire.tv_sec = time(NULL) + 1,
+      hooks_wait_expire.tv_nsec = 0;
+
+    host_callbacks_condvar.timedWait(&hooks_wait_expire);
+  }
+#endif
+
+#if DEBUG_HOST_CALLBACKS
+  if(num_done > 0)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued hosts total [%u]", num_done);
+#endif
 
   return num_done;
 }
@@ -2598,9 +2700,6 @@ void NetworkInterface::flowAlertsDequeueLoop() {
   while(isRunning()) {
     /*
       Dequeue flows for dump.
-
-      To guarantee some sort of fairness and prioritization, different numbers are used for each
-      of the three queues. Higher numbers are used for queues with higher-priority.
      */
     u_int64_t n = dequeueFlowAlertsFromCallbacks(32 /* budget */);
 
@@ -2616,6 +2715,37 @@ void NetworkInterface::flowAlertsDequeueLoop() {
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dump thread completed for %s", get_name());
+}
+
+/* **************************************************** */
+
+void NetworkInterface::hostAlertsDequeueLoop() {
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Started host user script hooks loop on interface %s [id: %u]...",
+			       get_description(), get_id());
+
+  /* Wait until it starts up */
+  while(!isRunning()) _usleep(10000);
+
+  /* Now operational */
+  while(isRunning()) {
+    /*
+      Dequeue hosts for dump.
+     */
+    u_int64_t n = dequeueHostAlertsFromCallbacks(32 /* budget */);
+
+    if(n == 0) {
+      /*
+	If windows, sleep if nothing was done during the previous cycle.
+	On non-windows, there's nothing do to as signal/waits are implemented to throttle the speed
+      */
+#ifdef WIN32
+      _usleep(10000);
+#endif
+    }
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host dump thread completed for %s", get_name());
 }
 
 /* **************************************************** */
@@ -2649,10 +2779,20 @@ void NetworkInterface::dumpFlowLoop() {
 
 /* **************************************************** */
 
-static void* callbacksLoop(void* ptr) {
+static void* flowCallbacksLoop(void* ptr) {
   NetworkInterface *_if = (NetworkInterface*)ptr;
 
   _if->flowAlertsDequeueLoop();
+
+  return(NULL);
+}
+
+/* **************************************************** */
+
+static void* hostCallbacksLoop(void* ptr) {
+  NetworkInterface *_if = (NetworkInterface*)ptr;
+
+  _if->hostAlertsDequeueLoop();
 
   return(NULL);
 }
@@ -2748,19 +2888,24 @@ void NetworkInterface::shutdown() {
 
     if(pollLoopCreated)          pthread_join(pollLoop, &res);
     if(flowDumpLoopCreated)      pthread_join(flowDumpLoop, &res);
-    if(flowAlertsDequeueLoopCreated) pthread_join(callbacksLoop, &res);
+    if(flowAlertsDequeueLoopCreated) pthread_join(flowCallbacksLoop, &res);
+    if(hostAlertsDequeueLoopCreated) pthread_join(hostCallbacksLoop, &res);
 
     /* purgeIdle one last time to make sure all entries will be marked as idle */
     purgeIdle(time(NULL), true, true);
 
     /* Make sure all alerts have been dequeued and processed */
-    dequeueFlowAlertsFromCallbacks(0 /* unlimited budget */);
+    dequeueFlowAlertsFromCallbacks(0 /* unlimited budget */),
+      dequeueHostAlertsFromCallbacks(0 /* unlimited budged */);
   }
 }
 
 /* **************************************************** */
 
 void NetworkInterface::cleanup() {
+  if(this != ntop->getSystemInterface())
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_description());
+
   next_idle_flow_purge = next_idle_host_purge = 0;
   cpu_affinity = -1,
     has_vlan_packets = false, has_ebpf_events = false, has_mac_addresses = false;
@@ -2777,8 +2922,6 @@ void NetworkInterface::cleanup() {
   if(countries_hash)  countries_hash->cleanup();
   if(vlans_hash)      vlans_hash->cleanup();
   if(macs_hash)       macs_hash->cleanup();
-
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Cleanup interface %s", get_description());
 }
 
 /* **************************************************** */
@@ -2995,10 +3138,10 @@ u_int64_t NetworkInterface::purgeQueuedIdleEntries() {
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating hash tables [%s]", get_name());
 #endif
-  GenericHash *ghs[] = { /* Flows are done separately by NetworkInterface::purgeQueuedIdleFlows() */
-			hosts_hash,
+  GenericHash *ghs[] = {hosts_hash,
+			flows_hash,
 			ases_hash,
-      oses_hash,
+			oses_hash,
 			countries_hash,
 			vlans_hash,
 			macs_hash
@@ -3011,22 +3154,6 @@ u_int64_t NetworkInterface::purgeQueuedIdleEntries() {
   }
 
   return num_purged;
-}
-
-/* **************************************************** */
-
-/*
-  Frees the memory (~Flow) used by idle flow hash table entries.
-*/
-u_int64_t NetworkInterface::purgeQueuedIdleFlows() {
-#if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Updating flow tables [%s]", get_name());
-#endif
-
-  if(!isView() && flows_hash)
-    return flows_hash->purgeQueuedIdleEntries();
-
-  return 0;
 }
 
 /* **************************************************** */
@@ -3829,7 +3956,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     /* Flow Status filter */
     if(retriever->pag
        && retriever->pag->flowStatusFilter(&alert_type_filter)
-       && !f->getAlertBitmap().isSetBit(alert_type_filter))
+       && !f->getAlertsBitmap().isSetBit(alert_type_filter))
       return(false);
 
     /* Flow Status severity filter */
@@ -5219,6 +5346,23 @@ void NetworkInterface::reloadFlowCallbacks(FlowCallbacksLoader *fcbl) {
 
 /* **************************************************** */
 
+/* Used to give the interface a new callback loader to be used */
+void NetworkInterface::reloadHostCallbacks(HostCallbacksLoader *hcbl) {
+  /* Reload of the callbacks for this interface (e.g., interface type matters) */
+  HostCallbacksExecutor *hce = new (std::nothrow) HostCallbacksExecutor(hcbl, this);
+
+  if(hce == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to reload callbacks on interface %s", ifname);
+    return;
+  }
+
+  if(prev_host_callbacks_executor) delete prev_host_callbacks_executor;
+  prev_host_callbacks_executor = host_callbacks_executor;
+  host_callbacks_executor = hce;
+}
+
+/* **************************************************** */
+
 u_int NetworkInterface::purgeIdleFlows(bool force_idle, bool full_scan) {
   u_int n = 0;
   time_t last_packet_time = getTimeLastPktRcvd();
@@ -5725,7 +5869,7 @@ void NetworkInterface::lua_periodic_activities_stats(lua_State *vm) {
 void NetworkInterface::lua_queues_stats(lua_State *vm) {
   if(idleFlowsToDump)   idleFlowsToDump->lua(vm);
   if(activeFlowsToDump) activeFlowsToDump->lua(vm);
-  if(flowAlertsQeueue)  flowAlertsQeueue->lua(vm);
+  if(flowAlertsQueue)  flowAlertsQueue->lua(vm);
 }
 
 /* **************************************************** */
@@ -7321,14 +7465,36 @@ bool NetworkInterface::initFlowCallbacksLoop() {
   if(isView()) /* Don't init the loop for view interfaces: the loop is run by every viewed interface independently */
     return true;
 
-  pthread_create(&callbacksLoop, NULL, ::callbacksLoop, (void*)this);
+  pthread_create(&flowCallbacksLoop, NULL, ::flowCallbacksLoop, (void*)this);
   flowAlertsDequeueLoopCreated = true;
 
 #ifdef __linux__
   char buf[16];
 
   snprintf(buf, sizeof(buf), "hooks ifid %u", get_id());
-  pthread_setname_np(callbacksLoop, buf);
+  pthread_setname_np(flowCallbacksLoop, buf);
+#endif
+
+  return true;
+}
+
+/* *************************************** */
+
+/*
+   Start the thread for the execution of host user script hooks
+ */
+bool NetworkInterface::initHostCallbacksLoop() {
+  if(isView()) /* Don't init the loop for view interfaces: the loop is run by every viewed interface independently */
+    return true;
+
+  pthread_create(&hostCallbacksLoop, NULL, ::hostCallbacksLoop, (void*)this);
+  hostAlertsDequeueLoopCreated = true;
+
+#ifdef __linux__
+  char buf[16];
+
+  snprintf(buf, sizeof(buf), "hooks ifid %u", get_id());
+  pthread_setname_np(hostCallbacksLoop, buf);
 #endif
 
   return true;
@@ -7963,47 +8129,6 @@ static void handle_entity_alerts(AlertCheckLuaEngine *acle, AlertableEntity *ent
 
 /* *************************************** */
 
-static bool host_alert_check(GenericHashEntry *h, void *user_data, bool *matched) {
-  vector<AlertCheckLuaEngine*> *acles = static_cast<vector<AlertCheckLuaEngine *>*>(user_data);
-  Host *host = (Host*)h;
-
-  for(vector<AlertCheckLuaEngine*>::const_iterator acle = acles->begin(); acle != acles->end(); ++acle) {
-    (*acle)->setHost(host);
-    handle_entity_alerts(*acle, host);
-
-    host->housekeepAlerts((*acle)->getPeriodicity() /* periodicity */);
-  }
-
-  /* Stop as soon as a shutdown is in progress or the process
-     could hang for too long. */
-  return ntop->getGlobals()->isShutdownRequested();
-}
-
-/* *************************************** */
-
-void NetworkInterface::checkHostsAlerts(vector<ScriptPeriodicity> *p, lua_State* vm) {
-  u_int32_t begin_slot = 0;
-  vector<AlertCheckLuaEngine*>acles;
-
-  if(!p || p->size() == 0)
-    return;
-
-  for(vector<ScriptPeriodicity>::const_iterator it = p->begin(); it != p->end(); ++it) {
-    AlertCheckLuaEngine *acle = new (nothrow) AlertCheckLuaEngine(alert_entity_host, *it, this, vm);
-
-    if(acle)
-      acles.push_back(acle);
-  }
-
-  /* ... then iterate all hosts */
-  walker(&begin_slot, true /* walk_all */, walker_hosts, host_alert_check, &acles);
-
-  for(vector<AlertCheckLuaEngine*>::const_iterator it = acles.begin(); it != acles.end(); ++it)
-    delete *it;
-}
-
-/* *************************************** */
-
 void NetworkInterface::checkNetworksAlerts(vector<ScriptPeriodicity> *p, lua_State* vm) {
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
 
@@ -8198,32 +8323,9 @@ void NetworkInterface::getEngagedAlertsCount(lua_State *vm, int entity_type, con
 
 /* *************************************** */
 
-static bool host_release_engaged_alerts(GenericHashEntry *entity, void *user_data, bool *matched) {
-  Host *host = (Host *) entity;
-  AlertCheckLuaEngine *host_script = (AlertCheckLuaEngine *)user_data;
-
-  if(host->getNumEngagedAlerts()) {
-    lua_getglobal(host_script->getState(), USER_SCRIPTS_RELEASE_ALERTS_CALLBACK);
-    host_script->setHost(host);
-    host_script->pcall(0, 0);
-  }
-
-  *matched = true;
-
-  return(false); /* false = keep on walking */
-}
-
-/* *************************************** */
-
 void NetworkInterface::releaseAllEngagedAlerts() {
   AlertCheckLuaEngine network_script(alert_entity_network, minute_script /* doesn't matter */, this, NULL);
-  AlertCheckLuaEngine host_script(alert_entity_host, minute_script /* doesn't matter */, this, NULL);
   u_int8_t num_local_networks = ntop->getNumLocalNetworks();
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
-
-  /* Hosts */
-  walker(&begin_slot, walk_all, walker_hosts, host_release_engaged_alerts, &host_script);
 
   /* Interface */
   if(getNumEngagedAlerts()) {
@@ -8714,6 +8816,12 @@ void NetworkInterface::incrOS(char *hostname) {
 
 /* *************************************** */
 
+HostCallback *NetworkInterface::getCallback(HostCallbackID t) {
+  return(host_callbacks_executor->getCallback(t)); 
+}
+
+/* *************************************** */
+
 void NetworkInterface::execProtocolDetectedCallbacks(Flow *f) {
   if(flow_callbacks_executor) {
     FlowAlert *alert = flow_callbacks_executor->execCallbacks(f, flow_callback_protocol_detected);
@@ -8740,6 +8848,13 @@ void NetworkInterface::execFlowEndCallbacks(Flow *f) {
     if(alert)
       enqueueFlowAlert(alert);
   }
+}
+
+/* *************************************** */
+
+void NetworkInterface::execHostCallbacks(Host *h) {
+  if(host_callbacks_executor)
+    host_callbacks_executor->execCallbacks(h);
 }
 
 /* *************************************** */

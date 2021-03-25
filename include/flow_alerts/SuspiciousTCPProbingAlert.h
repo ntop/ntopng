@@ -26,7 +26,7 @@
 
 class SuspiciousTCPProbingAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_suspicious_tcp_probing, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_suspicious_tcp_probing, alert_category_security }; }
 
  SuspiciousTCPProbingAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~SuspiciousTCPProbingAlert() { };

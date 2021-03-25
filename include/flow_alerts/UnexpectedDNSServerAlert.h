@@ -31,7 +31,7 @@ class UnexpectedDNSServerAlert : public UnexpectedServerAlert {
   const IpAddress* getServerIP(Flow *f) { return(f->get_dns_srv_ip_addr()); }
 
  public:
-  static FlowAlertType getClassType() { return { alert_unexpected_dns_server, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_unexpected_dns_server, alert_category_security }; }
 
  UnexpectedDNSServerAlert(FlowCallback *c, Flow *f) : UnexpectedServerAlert(c, f) {};
   ~UnexpectedDNSServerAlert() {};

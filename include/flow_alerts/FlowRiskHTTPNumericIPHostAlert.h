@@ -26,7 +26,7 @@
 
 class FlowRiskHTTPNumericIPHostAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_http_numeric_ip_host, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_http_numeric_ip_host, alert_category_security }; }
 
  FlowRiskHTTPNumericIPHostAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskHTTPNumericIPHostAlert() { };

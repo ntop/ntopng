@@ -26,7 +26,7 @@
 /* *************************************** */
 
 OperatingSystem::OperatingSystem(NetworkInterface *_iface, OSType _os_type) 
-                : GenericHashEntry(_iface), GenericTrafficElement() {
+  : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface) {
   os_type = _os_type;
 
 #ifdef AS_DEBUG

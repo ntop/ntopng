@@ -31,7 +31,7 @@ class LongLivedFlowAlert : public FlowAlert {
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_longlived, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_longlived, alert_category_security }; }
 
   LongLivedFlowAlert(FlowCallback *c, Flow *f, u_int64_t _longlived_th) : FlowAlert(c, f) {
     longlived_th = _longlived_th;

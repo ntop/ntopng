@@ -28,7 +28,7 @@ class TCPZeroWindowAlert : public FlowAlert {
  private:
 
  public:
-  static FlowAlertType getClassType() { return { alert_zero_tcp_window, alert_category_network }; }
+  static FlowAlertType getClassType() { return { flow_alert_zero_tcp_window, alert_category_network }; }
 
  TCPZeroWindowAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~TCPZeroWindowAlert() {};

@@ -28,7 +28,7 @@ class UnexpectedNTPServerAlert : public UnexpectedServerAlert {
  private:
 
  public:
-  static FlowAlertType getClassType() { return { alert_unexpected_ntp_server, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_unexpected_ntp_server, alert_category_security }; }
 
  UnexpectedNTPServerAlert(FlowCallback *c, Flow *f) : UnexpectedServerAlert(c, f) {};
   ~UnexpectedNTPServerAlert() {};

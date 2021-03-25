@@ -34,10 +34,13 @@ AlertExclusions::AlertExclusions() {
 
 /* *************************************** */
 
-static void free_ptree_bitmap(void *data) {
-  if(data) {
-    Bitmap *host_filter = static_cast<Bitmap*>(data);  
-    delete host_filter;
+static void free_excl_host_tree_data(void *data) {
+  alert_exclusion_host_tree_data *d = (alert_exclusion_host_tree_data *) data;
+
+  if(d) {
+    if (d->host_alert_filter) delete d->host_alert_filter;
+    if (d->flow_alert_filter) delete d->flow_alert_filter;
+    free(d);
   }   
 }
 
@@ -45,67 +48,101 @@ static void free_ptree_bitmap(void *data) {
 
 AlertExclusions::~AlertExclusions() {
   if (host_filters) {
-    host_filters->cleanup(free_ptree_bitmap);
+    host_filters->cleanup(free_excl_host_tree_data);
     delete host_filters;
   }
 }
 
 /* *************************************** */
 
-bool AlertExclusions::addHostDisabledFlowAlert(const char * const host, FlowAlertTypeEnum disabled_flow_alert_type) {
-  Bitmap *host_filter = NULL;
-  void *host_data;
-  bool success = false;
+alert_exclusion_host_tree_data *AlertExclusions::getHostData(const char * const host) {
+  alert_exclusion_host_tree_data *d;
 
   if (host_filters == NULL)
-    return false;
+    return NULL;
 
   /* Check if there is already a bitmap for the host */
-  host_data = host_filters->matchAndGetData(host);
+  d = (alert_exclusion_host_tree_data *) host_filters->matchAndGetData(host);
 
-  if (host_data) {
-    host_filter = static_cast<Bitmap*>(host_data);
-  } else {
-    /* Accolate a bitmap for the host */
-    host_filter = new (std::nothrow) Bitmap();
-    if (host_filter)
-      host_filters->addAddressAndData(host, host_filter);
+  if (!d) {
+    /* Allocate data for the host */
+    d = (alert_exclusion_host_tree_data *) calloc(1, sizeof(*d));
+    if (!d) return NULL; /* allocation failure */
+    host_filters->addAddressAndData(host, d);
   }
 
-  if (host_filter) {
-    /* Add filter to the bitmap */
-    host_filter->setBit(disabled_flow_alert_type);
-    success = true;
-  }
-
-  return success;
+  return d;
 }
 
 /* *************************************** */
 
-void AlertExclusions::setDisabledFlowAlertsBitmap(IpAddress *addr, Bitmap *host_b) const {
-  const Bitmap *b = &default_host_filter;
+bool AlertExclusions::addHostDisabledHostAlert(const char * const host, HostAlertTypeEnum disabled_host_alert_type) {
+  alert_exclusion_host_tree_data *d = getHostData(host);
 
-  if (host_filters != NULL && addr != NULL) {
-    void *host_data = host_filters->matchAndGetData(addr);
-    if (host_data != NULL)
-      b = static_cast<Bitmap*>(host_data);
+  if (!d)
+    return false;
+
+  if (!d->host_alert_filter) {
+    /* Allocate a bitmap for the host */
+    d->host_alert_filter = new (std::nothrow) Bitmap16();
+    if (!d->host_alert_filter) return false; /* allocation failure */
   }
 
-  host_b->set(b);
+  /* Add filter to the bitmap */
+  d->host_alert_filter->setBit(disabled_host_alert_type);
+
+  return true;
+}
+
+/* *************************************** */
+
+bool AlertExclusions::addHostDisabledFlowAlert(const char * const host, FlowAlertTypeEnum disabled_flow_alert_type) {
+  alert_exclusion_host_tree_data *d = getHostData(host);
+
+  if (!d)
+    return false;
+
+  if (!d->flow_alert_filter) {
+    /* Allocate a bitmap for the host */
+    d->flow_alert_filter = new (std::nothrow) Bitmap128();
+    if (!d->flow_alert_filter) return false; /* allocation failure */
+  }
+
+  /* Add filter to the bitmap */
+  d->flow_alert_filter->setBit(disabled_flow_alert_type);
+
+  return true;
+}
+
+/* *************************************** */
+
+void AlertExclusions::setDisabledHostAlertsBitmaps(IpAddress *addr, Bitmap16 *host_alerts, Bitmap128 *flow_alerts) const {
+  const Bitmap16 *hb = &default_host_host_alert_filter;
+  const Bitmap128 *fb = &default_host_flow_alert_filter;
+
+  if (host_filters != NULL && addr != NULL) {
+    alert_exclusion_host_tree_data *d = (alert_exclusion_host_tree_data *) host_filters->matchAndGetData(addr);
+    if (d) {
+      if (d->host_alert_filter) hb = d->host_alert_filter;
+      if (d->flow_alert_filter) fb = d->flow_alert_filter;
+    }
+  }
+
+  host_alerts->set(hb);
+  flow_alerts->set(fb);
 }
 
 /* *************************************** */
 
 void AlertExclusions::loadConfiguration() {
   json_object *json = NULL;
-  struct json_object_iterator it;
-  struct json_object_iterator itEnd;
+  struct json_object_iterator entity_it;
+  struct json_object_iterator entity_itEnd;
   enum json_tokener_error jerr = json_tokener_success;
   char *value = NULL;
   u_int actual_len = ntop->getRedis()->len(ALERT_EXCLUSIONS_KEY_PREFIX);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reloading alert exclusions"); 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reloading alert exclusions");
 
   if((value = (char *) malloc(actual_len + 1)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", ALERT_EXCLUSIONS_KEY_PREFIX);
@@ -123,33 +160,61 @@ void AlertExclusions::loadConfiguration() {
     goto out;
   }
 
-  /* Iterate over all alert exclusions */
-  it = json_object_iter_begin(json);
-  itEnd = json_object_iter_end(json);
+  /* Iterate over all alert entities */
+  entity_it = json_object_iter_begin(json);
+  entity_itEnd = json_object_iter_end(json);
 
-  while(!json_object_iter_equal(&it, &itEnd)) {
-    const char *alert_key     = json_object_iter_peek_name(&it);
-    json_object *alert_config = json_object_iter_peek_value(&it);
-    json_object *excluded_hosts;
+  while(!json_object_iter_equal(&entity_it, &entity_itEnd)) {
+    const char *alert_entity_id  = json_object_iter_peek_name(&entity_it);
+    json_object *entity_config = json_object_iter_peek_value(&entity_it);
 
-    if(json_object_object_get_ex(alert_config, "excluded_hosts", &excluded_hosts)) {
-      /* For each alert, iterate over all its excluded hosts */
-      struct json_object_iterator hosts_it = json_object_iter_begin(excluded_hosts);
-      struct json_object_iterator hosts_it_end = json_object_iter_end(excluded_hosts);
+    /* Take the alert entity from the key */
+    AlertEntity alert_entity = (AlertEntity)atoi(alert_entity_id);
 
-      while(!json_object_iter_equal(&hosts_it, &hosts_it_end)) {
-	const char *host_ip = json_object_iter_peek_name(&hosts_it);
+    /* Iterate over all entity alert exclusions */
+    struct json_object_iterator excl_it = json_object_iter_begin(entity_config);
+    struct json_object_iterator excl_itEnd = json_object_iter_end(entity_config);
 
-	/* Add the exclusion for this alert and for this host */
-	addHostDisabledFlowAlert(host_ip, (FlowAlertTypeEnum)atoi(alert_key));
+    while(!json_object_iter_equal(&excl_it, &excl_itEnd)) {
+      const char *alert_key     = json_object_iter_peek_name(&excl_it);
+      json_object *alert_config = json_object_iter_peek_value(&excl_it);
+      json_object *excluded_hosts;
 
-	json_object_iter_next(&hosts_it);
+      if(json_object_object_get_ex(alert_config, "excluded_hosts", &excluded_hosts)) {
+	/* For each alert, iterate over all its excluded hosts */
+	struct json_object_iterator hosts_it = json_object_iter_begin(excluded_hosts);
+	struct json_object_iterator hosts_it_end = json_object_iter_end(excluded_hosts);
+
+	while(!json_object_iter_equal(&hosts_it, &hosts_it_end)) {
+	  const char *host_ip = json_object_iter_peek_name(&hosts_it);
+
+	  /* Add the exclusion for this alert and for this host */
+	  switch(alert_entity) {
+	  case alert_entity_flow:
+	    addHostDisabledFlowAlert(host_ip, (FlowAlertTypeEnum)atoi(alert_key));
+	    break;
+	  case alert_entity_host:
+	    addHostDisabledHostAlert(host_ip, (HostAlertTypeEnum)atoi(alert_key));
+	  default:
+	    break;
+	  }
+
+#if 1
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Exclusion loaded [%s][alert_entity: %u][alert_key: %u]",
+				       host_ip, alert_entity, atoi(alert_key));
+#endif
+
+	  json_object_iter_next(&hosts_it);
+	}
       }
-    }
+
+      /* Move to the next element */
+      json_object_iter_next(&excl_it);
+    } /* EXCLUSIONS while */
 
     /* Move to the next element */
-    json_object_iter_next(&it);
-  } /* while */
+    json_object_iter_next(&entity_it);
+  } /* ENTITIES while */
 
  out:
   /* Free the json */

@@ -34,7 +34,6 @@ FlowCallbacksExecutor::~FlowCallbacksExecutor() {
   if(protocol_detected) delete protocol_detected;
   if(periodic_update)   delete periodic_update;
   if(flow_end)          delete flow_end;
-  if(flow_none)         delete flow_none;
 };
 
 /* **************************************************** */
@@ -43,7 +42,6 @@ void FlowCallbacksExecutor::loadFlowCallbacks(FlowCallbacksLoader *fcl) {
   protocol_detected = fcl->getProtocolDetectedCallbacks(iface);
   periodic_update   = fcl->getPeriodicUpdateCallbacks(iface);
   flow_end          = fcl->getFlowEndCallbacks(iface);
-  flow_none         = fcl->getNoneFlowCallbacks(iface);
 }
 
 /* **************************************************** */

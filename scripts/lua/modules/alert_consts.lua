@@ -4,11 +4,12 @@
 -- This file contains the alert constats
 
 local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/alert_keys/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local alert_severities = require "alert_severities"
+local alert_entities = require "alert_entities"
 local alert_consts = {}
-local alert_keys = require "alert_keys"
 local alert = require "alert" -- The alert base class
 local format_utils  = require "format_utils"
 local os_utils = require("os_utils")
@@ -54,66 +55,9 @@ alert_consts.severity_groups = {
 
 -- ##############################################
 
--- Keep in sync with ntop_typedefs.h:AlertEntity
-alert_consts.alert_entities = {
-   interface = {
-    entity_id = 0,
-    label = "Interface",
-    pools = "interface_pools", -- modules/pools/interface_pools.lua
-   }, host = {
-    entity_id = 1,
-    label = "Host",
-    pools = "host_pools", -- modules/pools/host_pools.lua
-   }, network = {
-    entity_id = 2,
-    label = "Network",
-    pools = "local_network_pools", -- modules/pools/local_network_pools.lua
-   }, snmp_device = {
-    entity_id = 3,
-    label = "SNMP device",
-    pools = "snmp_device_pools", -- modules/pools/snmp_device_pools.lua
-   }, flow = {
-    entity_id = 4,
-    label = "Flow",
-    pools = "flow_pools", -- modules/pools/flow_pools.lua
-   }, mac = {
-    entity_id = 5,
-    label = "Device",
-    pools = "mac_pools", -- modules/pools/mac_pools.lua
-   }, host_pool = {
-    entity_id = 6,
-    label = "Host Pool",
-    pools = "host_pool_pools", -- modules/pools/host_pool_pools.lua
-   }, process = {
-    entity_id = 7,
-    label = "Process",
-    pools = "system_pools", -- modules/pools/system_pools.lua
-   }, user = {
-    entity_id = 8,
-    label = "User",
-    pools = "system_pools", -- modules/pools/system_pools.lua
-   }, influx_db = {
-    entity_id = 9,
-    label = "Influx DB",
-    pools = "system_pools", -- modules/pools/system_pools.lua
-   }, test = {
-    entity_id = 10,
-    label = "Test",
-    pools = "system_pools", -- modules/pools/system_pools.lua
-   }, category_lists = {
-    entity_id = 11,
-    label = "Category Lists",
-    pools = "system_pools", -- modules/pools/system_pools.lua
-   }, am_host = {
-    entity_id = 12,
-    label = "Active Monitoring Host",
-    pools = "active_monitoring_pools", -- modules/pools/active_monitoring_pools.lua
-   }, periodic_activity = {
-    entity_id = 13,
-    label = "Periodic Activity",
-    pools = "system_pools", -- modules/pools/system_pools.lua
-  }
-}
+alert_consts.alert_entities = alert_entities
+
+-- ##############################################
 
 -- Keep in sync with C
 alert_consts.alerts_granularities = {
@@ -297,7 +241,9 @@ function alert_consts.getDefinititionDirs()
 
    return({
 	 -- Path for ntopng-defined builtin alerts
-	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions"),
+	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/flow"),
+	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/host"),
+	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/other"),
 	 -- Path for user-defined alerts written in plugins
 	 os_utils.fixPath(plugins_utils.getRuntimePath() .. "/alert_definitions"),
 	  }
@@ -356,7 +302,7 @@ local function loadAlertsDefs()
 	       goto next_script
             end
 
-            if not alert_consts.loadDefinition(def_script, mod_fname, defs_dir) then
+            if not loadDefinition(def_script, mod_fname, defs_dir) then
 	       -- Retry reload
 	       package.loaded[mod_fname] = nil
 	    end
@@ -393,7 +339,7 @@ end
 
 -- ##############################################
 
-function alert_consts.loadDefinition(def_script, mod_fname, script_path)
+function loadDefinition(def_script, mod_fname, script_path)
    local required_fields = {"alert_key", "i18n_title", "icon"}
 
    -- Check the required metadata fields
@@ -404,21 +350,39 @@ function alert_consts.loadDefinition(def_script, mod_fname, script_path)
       end
    end
 
-   -- Sanity check: make sure this is a valid alert key
-   local parsed_alert_key, status = alert_keys.parse_alert_key(def_script.meta.alert_key)
-   if not parsed_alert_key then
+   local alert_entity
+   if script_path:ends("/flow") then
+      alert_entity = alert_entities.flow
+   elseif script_path:ends("/host") then
+      alert_entity = alert_entities.host
+   else
+      -- TODO: migrate all. currently assumes other for non-flow non-host
+      alert_entity = alert_entities.other
+   end
+
+   local alert_key = def_script.meta.alert_key
+
+   if not alert_entity or not alert_key then
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Invalid alert key specified %s in %s from %s", status, mod_fname, script_path))
       return(false)
    end
+
+   -- Sanity check: make sure the alert key is not redefined
+   local alert_entity_id = alert_entity.entity_id
    
-   if(alerts_by_id[parsed_alert_key] ~= nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", parsed_alert_key, mod_fname, script_path))
+   if alerts_by_id[alert_entity_id] and alerts_by_id[alert_entity_id][alert_key] then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert key %d redefined, skipping in %s from %s", alert_key, mod_fname, script_path))
       return(false)
    end
 
-   def_script.meta.alert_key = parsed_alert_key
+   -- Add alert metadata to the script
+   def_script.meta.alert_entity = alert_entity
    alert_consts.alert_types[mod_fname] = def_script
-   alerts_by_id[parsed_alert_key] = mod_fname
+
+   if not alerts_by_id[alert_entity_id] then
+      alerts_by_id[alert_entity_id] = {}
+   end
+   alerts_by_id[alert_entity_id][alert_key] = mod_fname
 
    -- Success
    return(true)
@@ -426,8 +390,8 @@ end
  
 -- ##############################################
 
-function alert_consts.alertTypeLabel(v, nohtml)
-   local alert_key = alert_consts.alertTypeRaw(v)
+function alert_consts.alertTypeLabel(v, nohtml, alert_entity_id)
+   local alert_key = alert_consts.getAlertType(v, alert_entity_id)
 
    if(alert_key) then
       local type_info = alert_consts.alert_types[alert_key]
@@ -480,8 +444,26 @@ function alert_consts.alertType(v)
 
 -- ##############################################
 
-function alert_consts.getAlertType(alert_key)
-    return(alerts_by_id[tonumber(alert_key)])
+function alert_consts.getAlertType(alert_key, alert_entity_id)
+   -- Make sure we are working with numbers
+   alert_key = tonumber(alert_key)
+   alert_entity_id = tonumber(alert_entity_id)
+
+   if alert_entity_id and alerts_by_id[alert_entity_id] then
+      return alerts_by_id[alert_entity_id][alert_key]
+   end
+
+   -- TODO: remove fallbacks when all alerts in alert_keys.lua will be migrated and will have their own entity specified
+
+   -- Fallback 01: if no alert_entity_id is passed, alert_entity is assumed to be flow.
+   if alerts_by_id[alert_entities.flow.entity_id][alert_key] then
+      return alerts_by_id[alert_entities.flow.entity_id][alert_key]
+   end
+
+   -- Fallback 02: if no alert_entity_id is passed, alert_entity is assumed to be other.
+   if alerts_by_id[alert_entities.other.entity_id][alert_key] then
+      return alerts_by_id[alert_entities.other.entity_id][alert_key]
+   end
 end
 
 -- ##############################################
@@ -534,13 +516,6 @@ function alert_consts.alertSeverityById(severity_id)
       return alert_severities.error
    end
    return(alert_severities[key])
-end
-
--- ################################################################################
- 
-function alert_consts.alertTypeRaw(type_id)
-   type_id = tonumber(type_id)
-   return alerts_by_id[type_id]
 end
 
  -- ################################################################################

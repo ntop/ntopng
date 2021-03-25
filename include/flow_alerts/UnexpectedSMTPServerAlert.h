@@ -28,7 +28,7 @@ class UnexpectedSMTPServerAlert : public UnexpectedServerAlert {
  private: 
 
  public:
-  static FlowAlertType getClassType() { return { alert_unexpected_smtp_server, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_unexpected_smtp_server, alert_category_security }; }
 
  UnexpectedSMTPServerAlert(FlowCallback *c, Flow *f) : UnexpectedServerAlert(c, f) {};
   ~UnexpectedSMTPServerAlert() {};

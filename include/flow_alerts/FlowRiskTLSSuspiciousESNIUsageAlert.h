@@ -26,7 +26,7 @@
 
 class FlowRiskTLSSuspiciousESNIUsageAlert : public FlowRiskTLSAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_tls_suspicious_esni_usage, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_tls_suspicious_esni_usage, alert_category_security }; }
 
  FlowRiskTLSSuspiciousESNIUsageAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSSuspiciousESNIUsageAlert() { };

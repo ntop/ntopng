@@ -24,23 +24,19 @@
 
 #include "ntop_includes.h"
 
-class FlowCallbacksLoader { /* A single instance inside Ntop */
+class FlowCallbacksLoader : public CallbacksLoader { /* A single instance inside Ntop */
  private:
-  NtopngEdition callbacks_edition;
   /* These are callback instances, that is classes instantiated at runtime each one with a given configuration */
   std::map<std::string, FlowCallback*> cb_all; /* All the callbacks instantiated */
 
   std::list<FlowCallback*>* getCallbacks(NetworkInterface *iface, FlowCallbacks callback);
-  void registerFlowCallbacks(); /* Method called at runtime to register all callbacks */
+  void registerCallbacks();
   void loadConfiguration();
 
  public:
   FlowCallbacksLoader();
   virtual ~FlowCallbacksLoader();
 
-  NtopngEdition getCallbacksEdition() { return callbacks_edition; }
-
-  void reloadFlowCallbacks();
   void printCallbacks();
 
   inline std::list<FlowCallback*>* getProtocolDetectedCallbacks(NetworkInterface *iface) { return(getCallbacks(iface, flow_callback_protocol_detected)); }

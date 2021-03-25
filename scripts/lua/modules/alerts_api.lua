@@ -524,7 +524,7 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
      -- NOTE: do not pass alerts here as a parameters as deleting items while
      -- does not work in lua
 
-     local cur_alert_type = alert_consts.alert_types[alert_consts.alertTypeRaw(cur_alert.alert_type)]
+     local cur_alert_type = alert_consts.alert_types[alert_consts.getAlertType(cur_alert.alert_type)]
      -- Instantiate the alert.
      -- NOTE: No parameter is passed to :new() as parameters are NOT used when releasing alerts
      -- This may change in the future.

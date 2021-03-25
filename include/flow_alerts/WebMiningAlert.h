@@ -28,7 +28,7 @@ class WebMiningAlert : public FlowAlert {
  private:
   
  public:
-  static FlowAlertType getClassType() { return { alert_web_mining_detected, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_web_mining_detected, alert_category_security }; }
 
  WebMiningAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~WebMiningAlert() {};

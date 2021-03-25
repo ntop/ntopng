@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local alert_consts = require "alert_consts"
+local alert_entities = require "alert_entities"
 local json = require "dkjson"
 
 -- ##############################################
@@ -64,7 +65,7 @@ local function _check_host_ip_alert_key(host_ip, alert_key)
       return false
    end
 
-   if not alert_consts.alertTypeRaw(tonumber(alert_key)) then
+   if not alert_consts.getAlertType(tonumber(alert_key)) then
       -- Invalid alert key submitted
       return false
    end
@@ -94,7 +95,7 @@ end
 -- ##############################################
 
 --@brief Enables or disables an alert for an `host_ip`
-local function _toggle_alert(host_ip, alert_key, disable)
+local function _toggle_alert(alert_entity, host_ip, alert_key, disable)
    local ret = false
 
    if not _check_host_ip_alert_key(host_ip, alert_key) then
@@ -106,28 +107,35 @@ local function _toggle_alert(host_ip, alert_key, disable)
 
    if locked then
       -- In JSON, keys are always strings
-      alert_key = tostring(alert_key)
+      alert_key = tostring(alert_key) -- The key of the alert
+      local entity_id = tostring(alert_entity.entity_id) -- The entity of the alert that is being disabled, e.g., "host", or "flow"
+
       local do_persist = false
       local exclusions = _get_configured_alert_exclusions()
 
+      -- Add an entry for the current alert entity, if currently exising exclusions don't already have it
+      if not exclusions[entity_id] then
+	 exclusions[entity_id] = {}
+      end
+
       -- Add an entry for the current alert key, if currently existing exclusions don't already have it
-      if not exclusions[alert_key] then
-	 exclusions[alert_key] = {excluded_hosts = {}}
+      if not exclusions[entity_id][alert_key] then
+	 exclusions[entity_id][alert_key] = {excluded_hosts = {}}
       end
 
       -- Add an entry for excluded_hosts, if the currently existing exclusions don't already have it
-      if not exclusions[alert_key]["excluded_hosts"] then
-	 exclusions[alert_key]["excluded_hosts"] = {}
+      if not exclusions[entity_id][alert_key]["excluded_hosts"] then
+	 exclusions[entity_id][alert_key]["excluded_hosts"] = {}
       end
 
       -- Now check if there is actually some work to do
-      if not disable and exclusions[alert_key]["excluded_hosts"][host_ip] then
+      if not disable and exclusions[entity_id][alert_key]["excluded_hosts"][host_ip] then
 	 -- Enable an host_ip that was disabled
-	 exclusions[alert_key]["excluded_hosts"][host_ip] = nil
+	 exclusions[entity_id][alert_key]["excluded_hosts"][host_ip] = nil
 	 do_persist = true
-      elseif disable and not exclusions[alert_key]["excluded_hosts"][host_ip] then
+      elseif disable and not exclusions[entity_id][alert_key]["excluded_hosts"][host_ip] then
 	 -- Disable an host_ip that was not already disabled
-	 exclusions[alert_key]["excluded_hosts"][host_ip] = { --[[ Currently empty, will possibly contain values in the future, e.g., as_cli, as_srv--]]}
+	 exclusions[entity_id][alert_key]["excluded_hosts"][host_ip] = { --[[ Currently empty, will possibly contain values in the future, e.g., as_cli, as_srv--]]}
 	 do_persist = true
       end
 
@@ -144,28 +152,62 @@ end
 
 -- ##############################################
 
---@brief Marks an alert as disabled for a given `host_ip`
---@return True, if alert is disabled with success, false otherwise
-function alert_exclusions.disable_alert(host_ip, alert_key)
-   return _toggle_alert(host_ip, alert_key, true --[[ disable --]])
-end
-
--- ##############################################
-
---@brief Marks an alert as enabled for a given `host_ip`
---@return True, if alert is enabled with success, false otherwise
-function alert_exclusions.enable_alert(host_ip, alert_key)
-   return _toggle_alert(host_ip, alert_key, false --[[ enable --]])
-end
-
--- ##############################################
-
 -- @brief Returns true if `host_ip` has the alert identified with `alert_key` disabled
-function alert_exclusions.has_disabled_alert(host_ip, alert_key)
+function _has_disabled_alert(alert_entity, host_ip, alert_key)
    local exclusions = _get_configured_alert_exclusions()
    alert_key = tostring(alert_key)
+   local entity_id = tostring(alert_entity.entity_id)
 
-   return not not (exclusions[alert_key] and exclusions[alert_key]["excluded_hosts"] and exclusions[alert_key]["excluded_hosts"][host_ip])
+   return not not (exclusions[entity_id]
+		      and exclusions[entity_id][alert_key]
+		      and exclusions[entity_id][alert_key]["excluded_hosts"]
+		      and exclusions[entity_id][alert_key]["excluded_hosts"][host_ip])
+end
+
+-- ##############################################
+
+--@brief Marks a flow alert as disabled for a given `host_ip`, considered either as client or server
+--@return True, if alert is disabled with success, false otherwise
+function alert_exclusions.disable_flow_alert(host_ip, alert_key)
+   return _toggle_alert(alert_entities.flow, host_ip, alert_key, true --[[ disable --]])
+end
+
+-- ##############################################
+
+--@brief Marks a flow alert as enabled for a given `host_ip`, considered either as client or server
+--@return True, if alert is enabled with success, false otherwise
+function alert_exclusions.enable_flow_alert(host_ip, alert_key)
+   return _toggle_alert(alert_entities.flow, host_ip, alert_key, false --[[ enable --]])
+end
+
+-- ##############################################
+
+-- @brief Returns true if `host_ip` has the flow alert identified with `alert_key` disabled
+function alert_exclusions.has_disabled_flow_alert(host_ip, alert_key)
+   return _has_disabled_alert(alert_entities.flow, host_ip, alert_key)
+end
+
+-- ##############################################
+
+--@brief Marks a host alert as disabled for a given `host_ip`
+--@return True, if alert is disabled with success, false otherwise
+function alert_exclusions.disable_host_alert(host_ip, alert_key)
+   return _toggle_alert(alert_entities.host, host_ip, alert_key, true --[[ disable --]])
+end
+
+-- ##############################################
+
+--@brief Marks a host alert as enabled for a given `host_ip`
+--@return True, if alert is enabled with success, false otherwise
+function alert_exclusions.enable_host_alert(host_ip, alert_key)
+   return _toggle_alert(alert_entities.host, host_ip, alert_key, false --[[ enable --]])
+end
+
+-- ##############################################
+
+-- @brief Returns true if `host_ip` has the host alert identified with `alert_key` disabled
+function alert_exclusions.has_disabled_host_alert(host_ip, alert_key)
+   return _has_disabled_alert(alert_entities.host, host_ip, alert_key)
 end
 
 -- ##############################################

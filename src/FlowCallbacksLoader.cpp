@@ -24,19 +24,7 @@
 
 /* **************************************************** */
 
-FlowCallbacksLoader::FlowCallbacksLoader(){
-  /* Set the ntopng version matching the loaded callbacks */
-  if (ntop->getPrefs()->is_enterprise_l_edition())
-    callbacks_edition = ntopng_edition_enterprise_l;
-  else if (ntop->getPrefs()->is_enterprise_m_edition())	  
-    callbacks_edition = ntopng_edition_enterprise_m;
-  else if (ntop->getPrefs()->is_pro_edition())
-    callbacks_edition = ntopng_edition_pro;
-  else
-    callbacks_edition = ntopng_edition_community;
-
-  registerFlowCallbacks();
-  loadConfiguration();
+FlowCallbacksLoader::FlowCallbacksLoader() : CallbacksLoader() {
 }
 
 /* **************************************************** */
@@ -48,7 +36,7 @@ FlowCallbacksLoader::~FlowCallbacksLoader() {
 
 /* **************************************************** */
 
-void FlowCallbacksLoader::registerFlowCallbacks() {
+void FlowCallbacksLoader::registerCallbacks() {
   /* TODO: implement dynamic loading */
   FlowCallback *fcb;
 
@@ -130,15 +118,15 @@ void FlowCallbacksLoader::loadConfiguration() {
   struct json_object_iterator itEnd;
   enum json_tokener_error jerr = json_tokener_success;
   char *value = NULL;
-  u_int actual_len = ntop->getRedis()->len(FLOW_CALLBACKS_CONFIG);
+  u_int actual_len = ntop->getRedis()->len(CALLBACKS_CONFIG);
 
   if((value = (char *) malloc(actual_len + 1)) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", FLOW_CALLBACKS_CONFIG);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", CALLBACKS_CONFIG);
     goto out;
   }
 
-  if(ntop->getRedis()->get((char*)FLOW_CALLBACKS_CONFIG, value, actual_len + 1) != 0) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find configuration %s", FLOW_CALLBACKS_CONFIG);
+  if(ntop->getRedis()->get((char*)CALLBACKS_CONFIG, value, actual_len + 1) != 0) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find configuration %s", CALLBACKS_CONFIG);
     goto out;
   }
 

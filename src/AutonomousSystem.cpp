@@ -25,7 +25,7 @@
 
 /* *************************************** */
 
-AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : GenericHashEntry(_iface), GenericTrafficElement() {
+AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface) {
   asname = NULL;
   round_trip_time = 0;
   ntop->getGeolocation()->getAS(ipa, &asn, &asname);

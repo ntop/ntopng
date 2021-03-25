@@ -29,7 +29,7 @@ class Flow;
 class FlowCallbacksExecutor { /* One instance per ntopng Interface */
  private:
   NetworkInterface *iface;
-  std::list<FlowCallback*> *protocol_detected, *periodic_update, *flow_end, *flow_none;
+  std::list<FlowCallback*> *protocol_detected, *periodic_update, *flow_end;
 
   void loadFlowCallbacksAlerts(std::list<FlowCallback*> *cb_list);
   void loadFlowCallbacks(FlowCallbacksLoader *fcl);

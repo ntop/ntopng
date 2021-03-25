@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-VLAN::VLAN(NetworkInterface *_iface, u_int16_t _vlan_id) : GenericHashEntry(_iface), GenericTrafficElement() {
+VLAN::VLAN(NetworkInterface *_iface, u_int16_t _vlan_id) : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface) {
   vlan_id = _vlan_id;
 
 #ifdef VLAN_DEBUG

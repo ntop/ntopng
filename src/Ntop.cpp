@@ -70,13 +70,17 @@ Ntop::Ntop(char *appName) {
   start_time = last_modified_static_file_epoch = 0, epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
   ndpiReloadInProgress = false;
-
-  /* Flow callbacks and flow alerts loaders */
-  flowCallbacksReloadInProgress = true, /* Lazy, will be reloaded the first time this condition is evaluated */
-    alertExclusionsReloadInProgress = true;
+  
+  /* Callbacks loader */
+  flowCallbacksReloadInProgress = true; /* Lazy, will be reloaded the first time this condition is evaluated */
+  hostCallbacksReloadInProgress = true;
   flow_callbacks_loader = NULL;
+  host_callbacks_loader = NULL;
+  
+/* Flow alerts loader */
+  alertExclusionsReloadInProgress = true;
   alert_exclusions = alert_exclusions_shadow = NULL;
-
+  
   httpd = NULL, geo = NULL, mac_manufacturers = NULL;
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
@@ -316,8 +320,9 @@ Ntop::~Ntop() {
   if(globals) { delete globals; globals = NULL; }
 
   if(flow_callbacks_loader)     delete flow_callbacks_loader;
-  if(alert_exclusions)            delete alert_exclusions;
-  if(alert_exclusions_shadow)     delete alert_exclusions_shadow;
+  if(host_callbacks_loader)     delete host_callbacks_loader;
+  if(alert_exclusions)          delete alert_exclusions;
+  if(alert_exclusions_shadow)   delete alert_exclusions_shadow;
   
 #ifdef __linux__
   if(inotify_fd > 0)  close(inotify_fd);
@@ -551,6 +556,7 @@ void Ntop::start() {
 
   checkReloadAlertExclusions();
   checkReloadFlowCallbacks();
+  checkReloadHostCallbacks();
 
   for(int i=0; i<num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
@@ -1069,8 +1075,8 @@ void Ntop::lua_alert_queues_stats(lua_State* vm) {
 
 /* ******************************************* */
 
-bool Ntop::recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, bool flow_only) {
-  return recipients.enqueue(prio, notification, flow_only);
+bool Ntop::recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, AlertEntity alert_entity) {
+  return recipients.enqueue(prio, notification, alert_entity);
 }
 
 /* ******************************************* */
@@ -1117,6 +1123,12 @@ void Ntop::recipient_register(u_int16_t recipient_id, AlertLevel minimum_severit
 
 void Ntop::recipient_set_flow_recipients(u_int64_t flow_recipients) {
   recipients.set_flow_recipients(flow_recipients);
+}
+
+/* ******************************************* */
+
+void Ntop::recipient_set_host_recipients(u_int64_t host_recipients) {
+  recipients.set_host_recipients(host_recipients);
 }
 
 /* ******************************************* */
@@ -2572,6 +2584,7 @@ void Ntop::initInterface(NetworkInterface *_if) {
 
   /* Other initialization activities */
   _if->initFlowCallbacksLoop();
+  _if->initHostCallbacksLoop();
   _if->checkDisaggregationMode();
 }
 
@@ -2612,6 +2625,7 @@ void Ntop::checkReloadFlowCallbacks() {
       return;
     }
 
+    tmp_flow_callbacks_loader->initialize();
     old = flow_callbacks_loader;
 
     /* Pass the newly allocated loader to all interfaces so they will update their callbacks */
@@ -2632,10 +2646,47 @@ void Ntop::checkReloadFlowCallbacks() {
 
 /* ******************************************* */
 
+void Ntop::checkReloadHostCallbacks() {
+  if (!ntop->getPrefs()->is_pro_edition() /* Community mode */ && 
+      host_callbacks_loader && host_callbacks_loader->getCallbacksEdition() != ntopng_edition_community) {
+    /* Force a reload when switching to community (demo mode) */  
+    reloadHostCallbacks();
+  }
+
+  if(hostCallbacksReloadInProgress /* Reload requested from the UI upon configuration changes */) {
+    HostCallbacksLoader *old, *tmp_host_callbacks_loader = new (std::nothrow) HostCallbacksLoader();
+
+    if(!tmp_host_callbacks_loader) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory for host callbacks.");
+      return;
+    }
+
+    tmp_host_callbacks_loader->initialize();
+    old = host_callbacks_loader;
+
+    /* Pass the newly allocated loader to all interfaces so they will update their callbacks */
+    for(int i = 0; i < get_num_interfaces(); i++)
+      iface[i]->reloadHostCallbacks(tmp_host_callbacks_loader);
+
+    host_callbacks_loader = tmp_host_callbacks_loader;
+
+    if(old) {
+      sleep(2); /* Make sure nobody is using the old one */
+
+      delete old;
+    }
+
+    hostCallbacksReloadInProgress = false;
+  }
+}
+
+/* ******************************************* */
+
 /* NOTE: the multiple isShutdown checks below are necessary to reduce the shutdown time */
 void Ntop::runHousekeepingTasks() {
   checkReloadAlertExclusions();
   checkReloadFlowCallbacks();
+  checkReloadHostCallbacks();
 
   for(int i = 0; i < get_num_interfaces(); i++)
     iface[i]->runHousekeepingTasks();

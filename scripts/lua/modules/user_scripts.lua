@@ -877,7 +877,6 @@ function user_scripts.runPeriodicScripts()
    if table.len(requested) > 0 then
       interface.checkInterfaceAlerts(requested["min"], requested["5mins"], requested["hour"], requested["day"])
       interface.checkNetworksAlerts(requested["min"], requested["5mins"], requested["hour"], requested["day"])
-      interface.checkHostsAlerts(requested["min"], requested["5mins"], requested["hour"], requested["day"])
    end
 end
 
@@ -987,8 +986,9 @@ local function saveConfigset(configset)
    -- Reload the periodic scripts as the configuration has changed
    ntop.reloadPeriodicScripts()
 
-   -- Reload flow callbacks executed in C++
+   -- Reload flow and host callbacks executed in C++
    ntop.reloadFlowCallbacks()
+   ntop.reloadHostCallbacks()
 
    return true
 end

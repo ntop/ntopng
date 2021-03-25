@@ -26,7 +26,7 @@
 
 class FlowRiskURLPossibleXSSAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_url_possible_xss, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_url_possible_xss, alert_category_security }; }
 
  FlowRiskURLPossibleXSSAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskURLPossibleXSSAlert() { };

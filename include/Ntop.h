@@ -44,7 +44,7 @@ class Ntop {
   pthread_t purgeLoop;    /* Loop which iterates on active interfaces to delete idle hash table entries */
   bool purgeLoop_started; /* Flag that indicates whether the purgeLoop has been started */
   bool ndpiReloadInProgress;
-  bool flowCallbacksReloadInProgress, alertExclusionsReloadInProgress;
+  bool flowCallbacksReloadInProgress, hostCallbacksReloadInProgress, alertExclusionsReloadInProgress;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   AddressTree local_interface_addresses;
   char epoch_buf[11];
@@ -97,8 +97,9 @@ class Ntop {
   char *local_network_aliases[CONST_MAX_NUM_NETWORKS];
   AddressTree local_network_tree;
 
-  /* Flow Callbacks Loader */
+  /* Callbacks */
   FlowCallbacksLoader *flow_callbacks_loader;
+  HostCallbacksLoader *host_callbacks_loader;
 
   /* Hosts Control (e.g., disabled alerts) */
   AlertExclusions *alert_exclusions, *alert_exclusions_shadow;
@@ -128,6 +129,7 @@ class Ntop {
   bool startPurgeLoop();
 
   void checkReloadFlowCallbacks();
+  void checkReloadHostCallbacks();
   void checkReloadAlertExclusions();
   
  public:
@@ -498,7 +500,7 @@ class Ntop {
   inline void setnDPICleanupNeeded(bool needed)           { ndpi_cleanup_needed = needed; }
   inline FifoSerializerQueue* getInternalAlertsQueue()    { return(internal_alerts_queue);  }
   void lua_alert_queues_stats(lua_State* vm);
-  bool   recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, bool flow_only);
+  bool   recipients_enqueue(RecipientNotificationPriority prio, AlertFifoItem *notification, AlertEntity alert_entity);
   bool   recipient_enqueue(u_int16_t recipient_id, RecipientNotificationPriority prio, const AlertFifoItem* const notification);
   bool   recipient_dequeue(u_int16_t recipient_id, RecipientNotificationPriority prio, AlertFifoItem *notification);
   void   recipient_stats(u_int16_t recipient_id, lua_State* vm);
@@ -506,6 +508,7 @@ class Ntop {
   void   recipient_delete(u_int16_t recipient_id);
   void   recipient_register(u_int16_t recipient_id, AlertLevel minimum_severity, u_int8_t enabled_categories);
   void   recipient_set_flow_recipients(u_int64_t flow_recipients);
+  void   recipient_set_host_recipients(u_int64_t host_recipients);
 
 
   void sendNetworkInterfacesTermination();
@@ -531,6 +534,7 @@ class Ntop {
   void setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory);
   void reloadPeriodicScripts();
   inline void reloadFlowCallbacks()   { flowCallbacksReloadInProgress = true;    };
+  inline void reloadHostCallbacks()   { hostCallbacksReloadInProgress = true;    };
   inline void reloadAlertExclusions() { alertExclusionsReloadInProgress = true;  };
 
   char *getAlertJSON(FlowAlertType fat, Flow *f) const;
@@ -558,6 +562,7 @@ class Ntop {
   //void getLocalAddresses(lua_State* vm) { return(local_network_tree.getAddresses(vm)); };
 
   inline FlowCallbacksLoader* getFlowCallbacksLoader() { return(flow_callbacks_loader); }
+  inline HostCallbacksLoader* getHostCallbacksLoader() { return(host_callbacks_loader); }
 };
 
 extern Ntop *ntop;

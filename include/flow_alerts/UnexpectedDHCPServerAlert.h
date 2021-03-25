@@ -31,7 +31,7 @@ class UnexpectedDHCPServerAlert : public UnexpectedServerAlert {
   const IpAddress* getServerIP(Flow *f) { return(f->get_dhcp_srv_ip_addr()); }
 
  public:
-  static FlowAlertType getClassType() { return { alert_unexpected_dhcp_server, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_unexpected_dhcp_server, alert_category_security }; }
 
  UnexpectedDHCPServerAlert(FlowCallback *c, Flow *f) : UnexpectedServerAlert(c, f) {};
   ~UnexpectedDHCPServerAlert() {};

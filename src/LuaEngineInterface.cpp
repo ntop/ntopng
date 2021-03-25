@@ -2047,28 +2047,6 @@ static int ntop_get_interface_macs_manufacturers(lua_State* vm) {
 
 /* ****************************************** */
 
-static int ntop_check_hosts_alerts(lua_State* vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  std::vector<ScriptPeriodicity> periodicities;
-
-  if(!ntop_interface) {
-    lua_pushnil(vm);
-    return(CONST_LUA_ERROR);
-  }
-
-  if(lua_type(vm, 1) == LUA_TBOOLEAN && lua_toboolean(vm, 1) == true) periodicities.push_back(minute_script);
-  if(lua_type(vm, 2) == LUA_TBOOLEAN && lua_toboolean(vm, 2) == true) periodicities.push_back(five_minute_script);
-  if(lua_type(vm, 3) == LUA_TBOOLEAN && lua_toboolean(vm, 3) == true) periodicities.push_back(hour_script);
-  if(lua_type(vm, 4) == LUA_TBOOLEAN && lua_toboolean(vm, 4) == true) periodicities.push_back(day_script);
-
-  ntop_interface->checkHostsAlerts(&periodicities, vm);
-
-  lua_pushnil(vm);
-  return(CONST_LUA_OK);
-}
-
-/* ****************************************** */
-
 static int ntop_check_networks_alerts(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   std::vector<ScriptPeriodicity> periodicities;
@@ -4595,9 +4573,6 @@ static luaL_Reg _ntop_interface_reg[] = {
 
   /* Interface Alerts */
   { "checkInterfaceAlerts",   ntop_check_interface_alerts             },
-
-  /* Host Alerts */
-  { "checkHostsAlerts",       ntop_check_hosts_alerts                 },
 
   /* Network Alerts */
   { "checkNetworksAlerts",    ntop_check_networks_alerts              },

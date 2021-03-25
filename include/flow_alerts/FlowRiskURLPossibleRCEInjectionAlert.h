@@ -26,7 +26,7 @@
 
 class FlowRiskURLPossibleRCEInjectionAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_url_possible_rce_injection, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_url_possible_rce_injection, alert_category_security }; }
 
  FlowRiskURLPossibleRCEInjectionAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~FlowRiskURLPossibleRCEInjectionAlert() { };

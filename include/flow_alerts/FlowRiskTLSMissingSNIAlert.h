@@ -26,7 +26,7 @@
 
 class FlowRiskTLSMissingSNIAlert : public FlowRiskTLSAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_tls_missing_sni, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_tls_missing_sni, alert_category_security }; }
 
  FlowRiskTLSMissingSNIAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSMissingSNIAlert() { };

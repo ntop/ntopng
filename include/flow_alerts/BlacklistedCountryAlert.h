@@ -31,7 +31,7 @@ class BlacklistedCountryAlert : public FlowAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_blacklisted_country, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_blacklisted_country, alert_category_security }; }
 
   BlacklistedCountryAlert(FlowCallback *c, Flow *f, bool _is_server) : FlowAlert(c, f) { is_server = _is_server; };
   ~BlacklistedCountryAlert() { };

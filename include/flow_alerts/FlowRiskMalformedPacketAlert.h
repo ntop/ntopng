@@ -26,7 +26,7 @@
 
 class FlowRiskMalformedPacketAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_malformed_packet, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_malformed_packet, alert_category_security }; }
 
  FlowRiskMalformedPacketAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskMalformedPacketAlert() { };

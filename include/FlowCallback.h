@@ -26,7 +26,7 @@
 
 class FlowCallback {
  private:
-  NtopngEdition plugin_edition;
+  NtopngEdition callback_edition;
   u_int8_t has_protocol_detected:1, has_periodic_update:1, has_flow_end:1, packet_interface_only:1, nedge_exclude:1, nedge_only:1, enabled:1/* , _unused:1 */;
  
   bool isCallbackCompatibleWithInterface(NetworkInterface *iface);

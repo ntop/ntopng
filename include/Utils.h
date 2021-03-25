@@ -59,6 +59,8 @@ public:
   static float timeval2ms(const struct timeval *tv);
   static float msTimevalDiff(const struct timeval *end, const struct timeval *begin);
   static u_int32_t usecTimevalDiff(const struct timeval *end, const struct timeval *begin);
+  /* Returns the difference new_value - cur_value and then stores new_value in *cur_value */
+  static u_int64_t uintDiff(u_int64_t *cur_value, u_int64_t new_value);
   static size_t file_write(const char *path, const char *content, size_t content_len);
   static size_t file_read(const char *path, char **content);
   static bool file_exists(const char * const path);

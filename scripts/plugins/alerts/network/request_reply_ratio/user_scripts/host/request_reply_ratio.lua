@@ -12,47 +12,7 @@ local script
 -- #################################################################
 
 local function request_reply_ratio(params)
-  local dns_info = host.getDNSInfo()
-  local http_info = host.getHTTPInfo()
-
-  -- {requests, replies}
-  local to_check = {}
-
-  if(dns_info["dns"] ~= nil) then
-    to_check["dns_sent"] = {dns_info["dns"]["sent"]["num_queries"], (dns_info["dns"]["rcvd"]["num_replies_ok"] + dns_info["dns"]["rcvd"]["num_replies_error"])}
-    to_check["dns_rcvd"] = {dns_info["dns"]["rcvd"]["num_queries"], (dns_info["dns"]["sent"]["num_replies_ok"] + dns_info["dns"]["sent"]["num_replies_error"])}
-  end
-
-  if(http_info["http"] ~= nil) then
-    to_check["http_sent"] = {http_info["http"]["sender"]["query"]["total"], http_info["http"]["receiver"]["response"]["total"]}
-    to_check["http_rcvd"] = {http_info["http"]["receiver"]["query"]["total"], http_info["http"]["sender"]["response"]["total"]}
-  end
-
-  for key, values in pairs(to_check) do
-    local to_check_key = script.key .. "__" .. key
-
-    -- true to avoid generating an alert due to a value just restored from redis
-    local skip_first = true
-    local requests = alerts_api.host_delta_val(to_check_key .. "_requests", params.granularity, values[1], skip_first)
-    local replies = alerts_api.host_delta_val(to_check_key .. "_replies", params.granularity, values[2], skip_first)
-    local ratio = (replies * 100) / (requests+1)
-
-    local alert = alert_consts.alert_types.alert_request_reply_ratio.new(
-      requests,
-      replies
-      )
-
-      alert:set_severity(params.user_script_config.severity)
-      alert:set_granularity(params.granularity)
-      alert:set_subtype(key)
-
-    -- 10: some meaningful value
-    if((requests + replies > 10) and (ratio < tonumber(params.user_script_config.threshold))) then
-      alert:trigger(params.alert_entity, nil, params.cur_alerts)
-    else
-      alert:release(params.alert_entity, nil, params.cur_alerts)
-    end
-  end
+   -- Implemented in C++
 end
 
 -- #################################################################
@@ -69,7 +29,7 @@ script = {
   is_alert = true,
 
   hooks = {
-    ["5mins"] = request_reply_ratio
+    ["min"] = request_reply_ratio
   },
 
   default_value = {

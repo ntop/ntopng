@@ -26,7 +26,7 @@
 
 class InvalidDNSQueryAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_dns_invalid_query, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_dns_invalid_query, alert_category_security }; }
 
  InvalidDNSQueryAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~InvalidDNSQueryAlert() { };

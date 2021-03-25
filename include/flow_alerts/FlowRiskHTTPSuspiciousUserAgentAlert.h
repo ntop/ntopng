@@ -26,7 +26,7 @@
 
 class FlowRiskHTTPSuspiciousUserAgentAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_http_suspicious_user_agent, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_http_suspicious_user_agent, alert_category_security }; }
 
  FlowRiskHTTPSuspiciousUserAgentAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskHTTPSuspiciousUserAgentAlert() { };

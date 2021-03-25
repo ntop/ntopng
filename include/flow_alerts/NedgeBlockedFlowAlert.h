@@ -26,7 +26,7 @@
 
 class NedgeBlockedFlowAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_flow_blocked, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_flow_blocked, alert_category_security }; }
 
  NedgeBlockedFlowAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~NedgeBlockedFlowAlert() { };

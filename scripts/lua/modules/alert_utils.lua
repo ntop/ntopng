@@ -14,6 +14,7 @@ local json = require("dkjson")
 local host_pools = require "host_pools"
 local recovery_utils = require "recovery_utils"
 local alert_severities = require "alert_severities"
+local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
 local telemetry_utils = require "telemetry_utils"
@@ -44,8 +45,8 @@ end
 
 -- ##############################################
 
-local function alertTypeDescription(v)
-   local alert_key = alert_consts.alertTypeRaw(v)
+local function alertTypeDescription(v, alert_entity_id)
+   local alert_key = alert_consts.getAlertType(v, alert_entity_id)
 
    if(alert_key) then
       if alert_consts.alert_types[alert_key].format then
@@ -462,6 +463,26 @@ end
 
 -- #################################
 
+--@brief Deletes all stored alerts matching an host and an IP
+-- @return nil
+function alert_utils.deleteHostAlertsMatching(host_ip, alert_key)
+   local res = {}
+   local statement = "DELETE "
+
+   -- This is to match elements inside the alert_json
+   local where = {
+      string.format("alert_entity = %u", alert_entities.host.entity_id),
+      string.format("alert_entity_val LIKE '%s%%'", host_ip), -- Use like to disregard any @<VLAN> after the IP address
+      string.format("alert_type = %u", alert_key),
+   }
+
+   where = table.concat(where, " AND ")
+
+   res = interface.queryAlertsRaw(statement, where, nil, true)
+end
+
+-- #################################
+
 -- this function returns an object with parameters specific for one tab
 function alert_utils.getTabParameters(_get, what)
    local opts = {}
@@ -514,7 +535,7 @@ function alert_utils.checkDeleteStoredAlerts()
       }
 
       local type_info = {
-         alert_type = (alert_consts.alert_types[alert_consts.alertTypeRaw(_POST["alert_type"])]).meta,
+         alert_type = (alert_consts.alert_types[alert_consts.getAlertType(_POST["alert_type"])]).meta,
          alert_severity = alert_severities[alert_consts.alertSeverityRaw(_POST["alert_severity"])],
          alert_subtype = _POST["alert_subtype"],
          alert_granularity = alert_consts.alerts_granularities[alert_consts.sec2granularity(_POST["alert_granularity"])],
@@ -982,13 +1003,29 @@ function alert_utils.drawAlertTables(has_past_alerts, has_engaged_alerts, has_fl
       })
    )
 
-
    -- Filtering for flow alerts
    print(
       template.gen("modal_flow_alerts_filter_dialog.html", {
       		      dialog={
 			 id		   = "flow_alerts_filter_dialog",
 			 action		   = "filterFlowAlerts(alert_key)",
+          		 title		   = i18n("show_alerts.filter_alert"),
+          		 message	   = i18n("show_alerts.confirm_filter_alert"),
+			 delete_message    = i18n("show_alerts.confirm_delete_filtered_alerts"),
+			 delete_alerts     = i18n("delete_disabled_alerts"),
+          		 alert_filter      = "default_filter",
+	  		 confirm 	   = i18n("filter"),
+			 confirm_button    = "btn-warning",
+		      }
+      })
+   )
+
+   -- Filtering for host alerts
+   print(
+      template.gen("modal_host_alerts_filter_dialog.html", {
+      		      dialog={
+			 id		   = "host_alerts_filter_dialog",
+			 action		   = "filterHostAlerts(alert_key)",
           		 title		   = i18n("show_alerts.filter_alert"),
           		 message	   = i18n("show_alerts.confirm_filter_alert"),
 			 delete_message    = i18n("show_alerts.confirm_delete_filtered_alerts"),
@@ -1183,6 +1220,31 @@ function filterFlowAlerts(alert_key) {
     });
 }
 
+function filterHostAlerts(alert_key) {
+   $.ajax({
+        type: 'POST',
+	contentType: "application/json",
+	dataType: "json",
+	url: `${http_prefix}/lua/rest/v1/edit/user_script/filter.lua`,
+	data: JSON.stringify({
+	    alert_addr:  $("#alert_addr").html(),
+            subdir: "host",
+            alert_key: alert_key,
+            delete_alerts: $('#delete_host_alerts_switch').prop('checked'),
+            csrf: "]] print(ntop.getRandomCSRFValue()) print[[",
+	}),
+	success: function(rsp) {
+            let get_params = NtopUtils.paramsExtend(]] print(tableToJsObject(alert_utils.getTabParameters(url_params, nil))) print[[, {status:getCurrentStatus()});
+            get_params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
+            let form = NtopUtils.paramsToForm('<form method="post"></form>', get_params);
+            form.appendTo('body').submit();
+	},
+	error: function(rsp) {
+	    $("#filter_alert_dialog_error").text(rsp.responseJSON.rsp).show();
+	},
+    });
+}
+
 var alert_to_toggle = null;
 var alert_to_release = null;
 
@@ -1321,7 +1383,7 @@ function releaseAlert(idx) {
         sev_menu_entries = menuEntriesToDbFormat(res.severities)
         --l7_proto_entries = menuEntriesToDbFormat(res.l7_proto)
 	       end
-       end
+	    end
        
        print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))
        if t["status"] == "historical-flows" then
@@ -1464,6 +1526,12 @@ function releaseAlert(idx) {
                   const alert_label = "$('.alert_label').html('" + data["column_type_str"] + "'); ";
 console.log(alert_label);
                   datatableAddFilterButtonCallback.bind(this)(10, "alert_key = '" + data["column_type_id"] + "'; " + alert_label + srv_radio + cli_radio + " $('#flow_alerts_filter_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
+               } else if(data["column_filter"] && data["column_subdir"] == "host") {
+                  /* Populate modal data */
+                  const alert_label = "$('.alert_label').html('" + data["column_type_str"] + "'); ";
+                  const alert_addr = "$('#alert_addr').html('" + data["column_filter"] + "'); ";
+
+                  datatableAddFilterButtonCallback.bind(this)(10, "alert_key = '" + data["column_type_id"] + "'; " + alert_label + alert_addr + " $('#host_alerts_filter_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
                } else if(data["column_filter"]) {
                   datatableAddFilterButtonCallback.bind(this)(10, "alert_key = '" + data["column_type_id"] + "'; alert_label = $('.alert_label').html('" + data["column_type_str"] + "'); subdir = '" + data["column_subdir"] + "'; script_key = '" + data["column_script_key"] + "'; $('#name_input').attr('value', '" + data["column_filter"] + "'); $('#filter_alert_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
                } else if(data["column_filter_disabled"]) {
@@ -2011,7 +2079,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
   end
 
   msg = alert_json
-  local description = alertTypeDescription(alert.alert_type)
+  local description = alertTypeDescription(alert.alert_type, alert.alert_entity)
 
   if(type(description) == "string") then
      -- localization string
@@ -2034,7 +2102,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json, skip_live_data)
   end
 
   if(msg) then
-     if(alert_consts.getAlertType(alert.alert_type) == "alert_am_threshold_cross") then
+     if(alert_consts.getAlertType(alert.alert_type, alert.alert_entity) == "alert_am_threshold_cross") then
       local plugins_utils = require "plugins_utils"
       local active_monitoring_utils = plugins_utils.loadModule("active_monitoring", "am_utils")
       local host = active_monitoring_utils.key2host(alert.alert_entity_val)

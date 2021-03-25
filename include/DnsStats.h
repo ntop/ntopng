@@ -49,6 +49,14 @@ class DnsStats {
   void incStats(bool as_client, const FlowDNSStats *fts);
   void updateStats(const struct timeval * const tv);
 
+  u_int32_t getSentNumQueries()       { return sent_stats.num_queries.get(); }
+  u_int32_t getSentNumRepliesOk()     { return sent_stats.num_replies_ok.get(); }
+  u_int32_t getSentNumRepliesError()  { return sent_stats.num_replies_error.get(); }
+
+  u_int32_t getRcvdNumQueries()       { return rcvd_stats.num_queries.get(); }
+  u_int32_t getRcvdNumRepliesOk()     { return rcvd_stats.num_replies_ok.get(); }
+  u_int32_t getRcvdNumRepliesError()  { return rcvd_stats.num_replies_error.get(); }
+
   char* serialize();
   void deserialize(json_object *o);
   json_object* getJSONObject();

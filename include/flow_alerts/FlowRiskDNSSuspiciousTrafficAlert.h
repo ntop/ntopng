@@ -26,7 +26,7 @@
 
 class FlowRiskDNSSuspiciousTrafficAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_dns_suspicious_traffic, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_dns_suspicious_traffic, alert_category_security }; }
 
  FlowRiskDNSSuspiciousTrafficAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskDNSSuspiciousTrafficAlert() { };

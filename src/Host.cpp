@@ -24,7 +24,7 @@
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : GenericHashEntry(_iface),
-									   AlertableEntity(_iface, alert_entity_host) {
+									   HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostCallbacksStatus() {
   ip.set(ipAddress);
   initialize(NULL, _vlanId);
 }
@@ -32,7 +32,7 @@ Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId) : Gener
 /* *************************************** */
 
 Host::Host(NetworkInterface *_iface, Mac *_mac,
-	   u_int16_t _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), AlertableEntity(_iface, alert_entity_host) {
+	   u_int16_t _vlanId, IpAddress *_ip) : GenericHashEntry(_iface), HostAlertableEntity(_iface, alert_entity_host), Score(_iface), HostCallbacksStatus() {
   ip.set(_ip);
 
 #ifdef BROADCAST_DEBUG
@@ -83,8 +83,6 @@ Host::~Host() {
   if(stats)                     delete stats;
   if(stats_shadow)              delete stats_shadow;
 
-  if(score)              delete score;
-
   /*
     Pool counters are updated both in and outside the datapath.
     So decPoolNumHosts must stay in the destructor to preserve counters
@@ -92,6 +90,37 @@ Host::~Host() {
   */
   iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
 }
+
+/* *************************************** */
+
+/* NOTE: overrides Score::incScoreValue to handle increments for host members as well */
+u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client) {
+  NetworkStats *ns = getNetworkStats(get_local_network_id());
+
+  if(as)      as->incScoreValue(score_incr, score_category, as_client);
+  if(vlan)    vlan->incScoreValue(score_incr, score_category, as_client);
+  if(country) country->incScoreValue(score_incr, score_category, as_client);
+  if(os)      os->incScoreValue(score_incr, score_category, as_client);
+  if(ns)      ns->incScoreValue(score_incr, score_category, as_client);
+
+  return Score::incScoreValue(score_incr, score_category, as_client);
+}
+
+/* *************************************** */
+
+/* NOTE: overrides Score::decScoreValue to handle increments for host members as well */
+u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client) {
+  NetworkStats *ns = getNetworkStats(get_local_network_id());
+
+  if(as)      as->decScoreValue(score_decr, score_category, as_client);
+  if(vlan)    vlan->decScoreValue(score_decr, score_category, as_client);
+  if(country) country->decScoreValue(score_decr, score_category, as_client);
+  if(os)      os->decScoreValue(score_decr, score_category, as_client);
+  if(ns)      ns->decScoreValue(score_decr, score_category, as_client);
+
+  return Score::decScoreValue(score_decr, score_category, as_client);
+}
+
 
 /* *************************************** */
 
@@ -117,15 +146,17 @@ void Host::updateSynAckAlertsCounter(time_t when, bool synack_sent) {
 
 /* *************************************** */
 
-void Host::housekeepAlerts(ScriptPeriodicity p) {
-  switch(p) {
-  case minute_script:
-    flow_flood_attacker_alert->reset_hits(),
-      flow_flood_victim_alert->reset_hits(),
-      syn_flood_attacker_alert->reset_hits(),
-      syn_flood_victim_alert->reset_hits();
-      syn_sent_last_min = synack_recvd_last_min = 0;
-      syn_recvd_last_min = synack_sent_last_min = 0;
+/*
+  This method is executed in the thread which processes packets/flows
+  so it must be ultra-fast. Do NOT perform any time-consuming operation here.
+ */
+void Host::housekeep(time_t t) {  
+  switch(get_state()) {
+  case hash_entry_state_active:
+    iface->execHostCallbacks(this);
+    break;
+  case hash_entry_state_idle:
+    releaseAllEngagedAlerts();
     break;
   default:
     break;
@@ -137,8 +168,6 @@ void Host::housekeepAlerts(ScriptPeriodicity p) {
 void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
   char buf[64];
 
-  score = NULL; /* Lazy, possibly initialized if necessary */
-
   stats = NULL; /* it will be instantiated by specialized classes */
   stats_shadow = NULL;
   data_delete_requested = false, stats_reset_requested = false, name_reset_requested = false;
@@ -146,8 +175,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
   os = NULL, os_type = os_unknown;
   prefs_loaded = false;
   host_services_bitmap = 0;
-  mud_pref = mud_recording_default;
-  disabled_flow_alerts_tstamp = 0;
+  disabled_alerts_tstamp = 0;
 
   // readStats(); - Commented as if put here it's too early and the key is not yet set
 
@@ -416,25 +444,6 @@ void Host::lua_get_as(lua_State *vm) const {
 void Host::lua_get_host_pool(lua_State *vm) const {
   lua_push_uint64_table_entry(vm, "host_pool_id", get_host_pool());
 }
-
-/* ***************************************************** */
-
-void Host::lua_get_score(lua_State *vm) {
-  if(stats) stats->luaHostBehaviour(vm);
-
-  lua_push_uint64_table_entry(vm, "score", score ? score->get() : 0);
-  lua_push_uint64_table_entry(vm, "score.as_client", score ? score->getClient() : 0);
-  lua_push_uint64_table_entry(vm, "score.as_server", score ? score->getServer() : 0);
-  lua_push_uint64_table_entry(vm, "score.total", score ? score->get() : 0);
-}
-
-/* ***************************************************** */
-
-void Host::lua_get_score_breakdown(lua_State *vm) {
-  if(score)
-    score->lua_breakdown(vm);
-}
-
 /* ***************************************************** */
 
 void Host::lua_get_os(lua_State *vm) {
@@ -554,15 +563,6 @@ void Host::lua_get_time(lua_State* vm) const {
 /* ***************************************************** */
 
 void Host::lua_get_num_alerts(lua_State* vm) const {
-  lua_newtable(vm);
-  lua_push_uint64_table_entry(vm, "min", getNumEngagedAlerts(minute_script));
-  lua_push_uint64_table_entry(vm, "5mins", getNumEngagedAlerts(five_minute_script));
-  lua_push_uint64_table_entry(vm, "hour", getNumEngagedAlerts(hour_script));
-  lua_push_uint64_table_entry(vm, "day", getNumEngagedAlerts(day_script));
-  lua_pushstring(vm, "num_triggered_alerts");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
   lua_push_uint64_table_entry(vm, "num_alerts", getNumEngagedAlerts());
   lua_push_uint64_table_entry(vm, "active_alerted_flows", getNumAlertedFlows());
 
@@ -647,7 +647,8 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
   lua_get_host_pool(vm);
 
   if(stats)
-    stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose, host_details));
+    stats->lua(vm, mask_host, Utils::bool2DetailsLevel(verbose, host_details)),
+      stats->luaHostBehaviour(vm);
 
   lua_get_num_flows(vm);
   lua_get_num_contacts(vm);
@@ -685,9 +686,7 @@ void Host::lua(lua_State* vm, AddressTree *ptree,
 
     lua_get_geoloc(vm);
 
-    lua_get_syn_flood(vm);
     lua_get_flow_flood(vm);
-    lua_get_syn_scan(vm);
     lua_get_services(vm);
   }
 
@@ -1441,29 +1440,6 @@ void Host::checkBroadcastDomain() {
 
 /* *************************************** */
 
-u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client) {
-  if(score
-     || (score = getInterface()->isView() ? new (std::nothrow) ViewHostScore() : new (std::nothrow) HostScore())) /* Allocate if necessary */
-    return score->incValue(score_incr, score_category, as_client);
-  else {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Unable to allocate memory for score");
-    return 0;
-  }
-}
-
-/* *************************************** */
-
-u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client) {
-  if(score)
-    return score->decValue(score_decr, score_category, as_client);
-  else {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error. Memory for score not allocated");
-    return 0;
-  }
-}
-
-/* *************************************** */
-
 void Host::freeHostNames() {
   if(ssdpLocation)   { free(ssdpLocation); ssdpLocation = NULL;     }
   if(names.mdns)     { free(names.mdns); names.mdns = NULL;         }
@@ -1578,23 +1554,214 @@ char* Host::get_tskey(char *buf, size_t bufsize) {
 
 /* *************************************** */
 
-bool Host::isFlowAlertDisabled(FlowAlertType alert_type) {
+void Host::refreshDisabledAlerts() {
   AlertExclusions *alert_exclusions = ntop->getAlertExclusions();
-  bool disabled = false;
-  if (alert_exclusions) {
-    if (alert_exclusions->checkChange(&disabled_flow_alerts_tstamp))
-      alert_exclusions->setDisabledFlowAlertsBitmap(get_ip(), &disabled_flow_alerts);
-     disabled = disabled_flow_alerts.isSetBit(alert_type.id);
-  }
-
-#if 0
-  if(disabled) {
-    char buf[64];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Disabled [%s][%u]", get_ip()->print(buf, sizeof(buf)), alert_type);
-  }
-#endif
-  
-  return disabled;
+  if (alert_exclusions && alert_exclusions->checkChange(&disabled_alerts_tstamp))
+    alert_exclusions->setDisabledHostAlertsBitmaps(get_ip(), &disabled_host_alerts, &disabled_flow_alerts);
 }
 
 /* *************************************** */
+
+bool Host::isHostAlertDisabled(HostAlertType alert_type) {
+  refreshDisabledAlerts();
+  return disabled_host_alerts.isSetBit(alert_type.id);
+}
+
+/* *************************************** */
+
+bool Host::isFlowAlertDisabled(FlowAlertType alert_type) {
+  refreshDisabledAlerts();
+  return disabled_flow_alerts.isSetBit(alert_type.id);
+}
+
+/* *************************************** */
+
+/* Create a JSON in the alerts format */
+void Host::alert2JSON(HostAlert *alert, ndpi_serializer *s) {
+  ndpi_serializer *alert_json_serializer = NULL;
+  char *alert_json = NULL;
+  u_int32_t alert_json_len;
+
+  ndpi_serialize_string_int32(s, "ifid", getInterface()->get_id());
+  ndpi_serialize_string_uint64(s, "pool_id", get_host_pool());
+
+  /* See AlertableEntity::luaAlert */
+  ndpi_serialize_string_string(s, "action", alert->isReleased() ? "release" : "engage");
+  ndpi_serialize_string_int32(s, "alert_type", alert->getAlertType().id);
+  ndpi_serialize_string_string(s, "alert_subtype", "" /* No subtype for hosts */);
+  ndpi_serialize_string_int32(s, "alert_severity", alert->getSeverity());
+  ndpi_serialize_string_int32(s, "alert_entity", alert_entity_host);
+  ndpi_serialize_string_string(s, "alert_entity_val", getEntityValue().c_str());
+  ndpi_serialize_string_uint32(s, "alert_tstamp", alert->getEngageTime());
+  ndpi_serialize_string_uint32(s, "alert_tstamp_end", alert->getReleaseTime());
+
+  HostCallback *cb = getInterface()->getCallback(alert->getCallbackType());
+  ndpi_serialize_string_int32(s, "alert_granularity", cb ? cb->getPeriod() : 0);
+
+  alert_json_serializer = alert->getSerializedAlert();
+
+  if(alert_json_serializer)
+    alert_json = ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
+
+  ndpi_serialize_string_string(s, "alert_json", alert_json ? alert_json : "");
+ 
+  if(alert_json_serializer) {
+    ndpi_term_serializer(alert_json_serializer);
+    free(alert_json_serializer);
+  }
+}
+
+/* *************************************** */
+
+/* Enqueue alert to recipients */
+bool Host::enqueueAlert(HostAlert *alert) {
+  bool rv = false;
+  u_int32_t buflen;
+  AlertFifoItem notification;
+  ndpi_serializer host_json;
+  const char *host_str;
+
+  ndpi_init_serializer(&host_json, ndpi_serialization_format_json);
+
+  /* Prepare the JSON, including a JSON specific of this HostAlertType */
+  alert2JSON(alert, &host_json);
+
+  host_str = ndpi_serializer_get_buffer(&host_json, &buflen);
+
+  /* TODO: read all the recipients responsible for hosts, and enqueue only to them */
+  /* Currenty, we forcefully enqueue only to the builtin sqlite */
+    
+  notification.alert = (char*)host_str;
+  notification.alert_severity = alert->getSeverity();
+  notification.alert_category = alert->getAlertType().category;
+
+  rv = ntop->recipients_enqueue(notification.alert_severity >= alert_level_error ? recipient_notification_priority_high : recipient_notification_priority_low,
+				&notification,
+				alert_entity_host /* Host recipients */);
+
+  if(!rv)
+    getInterface()->incNumDroppedAlerts(1);
+
+  ndpi_term_serializer(&host_json);
+
+  if(alert->isReleased())
+    delete alert;
+
+  return rv;
+}
+
+/* *************************************** */
+
+void Host::releaseEngagedAlert(HostAlert *alert) {
+  ScoreCategory score_category;
+
+  /* Remove from the list of engaged alerts */
+  removeEngagedAlert(alert);
+
+  /* Dec score */
+  score_category = Utils::mapAlertToScoreCategory(alert->getAlertType().category);
+  decScoreValue(alert->getCliScore(), score_category,  true /* as client */);
+  decScoreValue(alert->getSrvScore(), score_category,  false /* as server */);
+
+  /* Enqueue the released alert to be notified */
+  iface->enqueueHostAlert(alert);
+}
+
+/* **************************************************** */
+
+/* Call this when setting host idle (before removing it from memory) */
+void Host::releaseAllEngagedAlerts() {
+  for (u_int i = 0; i < NUM_DEFINED_HOST_CALLBACKS; i++) {
+    HostCallbackID t = (HostCallbackID) i;
+    HostAlert *alert = getCallbackEngagedAlert(t);
+    if (alert && alert->hasAutoRelease()) {
+      alert->release();
+      releaseEngagedAlert(alert);
+    }
+  }
+}
+
+/* *************************************** */
+
+/*
+ * This method is called to update status and score of the flow
+ */
+bool Host::setAlertsBitmap(HostAlertType alert_type, int8_t score_as_cli_inc, int8_t score_as_srv_inc) {
+  ScoreCategory score_category;
+
+#ifdef DEBUG_SCORE
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Set host score %u/%u", score_as_cli/score_as_srv);
+#endif
+
+  if(alert_type.id == host_alert_normal) {
+#ifdef DEBUG_SCORE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (normal)");
+#endif
+    return false;
+  }
+
+  score_category = Utils::mapAlertToScoreCategory(alert_type.category);
+
+  if (score_as_cli_inc >= 0) incScoreValue(score_as_cli_inc, score_category, true /* as client */);
+  else decScoreValue(-score_as_cli_inc, score_category, true /* as client */);
+
+  if (score_as_srv_inc >= 0) incScoreValue(score_as_srv_inc, score_category, false /* as server */);
+  else decScoreValue(-score_as_srv_inc, score_category, false /* as server */);
+
+  alerts_map.setBit(alert_type.id);
+
+  return true;
+}
+
+/* *************************************** */
+
+/*
+ * This is called by the Callback to trigger an alert
+ */
+bool Host::triggerAlert(HostAlert *alert) {
+  HostAlertType alert_type = alert->getAlertType();
+  bool res;
+
+  if (alert == NULL) {
+    return false;
+  }
+
+  /* Check host filter */
+  if(isHostAlertDisabled(alert_type)) {
+#ifdef DEBUG_SCORE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (host filter)");
+#endif
+    delete alert;
+    return false;
+  }
+
+  /* Safety check (one alert is allowed per callback) */
+  if (hasCallbackEngagedAlert(alert->getCallbackType())) {
+    delete alert;
+    return false;
+  }
+
+  res = setAlertsBitmap(alert_type, alert->getCliScoreInc(), alert->getSrvScoreInc());
+
+  alert->setEngaged();
+
+  /* Add to the list of engaged alerts*/
+  addEngagedAlert(alert);
+
+  /* Enqueue the alert to be notified */
+  iface->enqueueHostAlert(alert);
+
+  return res;
+}
+
+/* *************************************** */
+
+/*
+ * This is called by the Callback to explicitly release an alert
+ */
+void Host::releaseAlert(HostAlert *alert) {
+  alert->release();  
+}
+
+/* *************************************** */
+

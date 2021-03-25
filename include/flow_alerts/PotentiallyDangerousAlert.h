@@ -26,7 +26,7 @@
 
 class PotentiallyDangerousAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_potentially_dangerous, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_potentially_dangerous, alert_category_security }; }
 
  PotentiallyDangerousAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~PotentiallyDangerousAlert() { };

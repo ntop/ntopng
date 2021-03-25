@@ -16,7 +16,7 @@ local alert_rest_utils = {}
 -- #################################
 
 -- @brief exclude an alert using the parameters that the POST has
-function _exclude_flow_alert(additional_filters, delete_alerts)
+function _exclude_flow_alert(additional_filters, delete_alerts, subdir)
    local success = false
 
    local alert_key = tonumber(_POST["alert_key"])
@@ -28,9 +28,17 @@ function _exclude_flow_alert(additional_filters, delete_alerts)
 
    if success then
       if alert_addr then
-	 alert_exclusions.disable_alert(alert_addr, alert_key)
+	 if subdir == "flow" then
+	    alert_exclusions.disable_flow_alert(alert_addr, alert_key)
+	 elseif subdir == "host" then
+	    alert_exclusions.disable_host_alert(alert_addr, alert_key)
+	 end
 	 if delete_alerts == "true" then
-	    alert_utils.deleteFlowAlertsMatching(alert_addr, alert_key)
+	    if subdir == "flow" then
+	       alert_utils.deleteFlowAlertsMatching(alert_addr, alert_key)
+	    elseif subdir == "host" then
+	       alert_utils.deleteHostAlertsMatching(alert_addr, alert_key)
+	    end
 	 end
       end
    end
@@ -63,8 +71,8 @@ function alert_rest_utils.exclude_alert()
    local rc = ""
    local res = ""
 
-   if subdir == "flow" then
-      return _exclude_flow_alert(additional_filters, delete_alerts)
+   if subdir == "flow" or subdir == "host" then
+      return _exclude_flow_alert(additional_filters, delete_alerts, subdir)
    end
    
    -- Checking that all parameters where given to the POST

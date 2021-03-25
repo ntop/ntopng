@@ -29,7 +29,7 @@ class FlowRiskSSHObsoleteAlert : public FlowAlert {
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_ssh_obsolete, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_ssh_obsolete, alert_category_security }; }
 
  FlowRiskSSHObsoleteAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskSSHObsoleteAlert() { };

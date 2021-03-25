@@ -24,7 +24,9 @@
 
 #include "ntop_includes.h"
 
-class Host : public GenericHashEntry, public AlertableEntity {
+class HostAlert;
+
+class Host : public GenericHashEntry, public HostAlertableEntity, public Score, public HostCallbacksStatus {
  protected:
   IpAddress ip;
   Mac *mac;
@@ -38,7 +40,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool stats_reset_requested, name_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id, host_services_bitmap;
   HostStats *stats, *stats_shadow;
-  HostScore *score;
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
   
@@ -53,7 +54,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
 
   char *ssdpLocation;
   bool prefs_loaded;
-  MudRecording mud_pref;
   /* END Host data: */
 
   AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
@@ -82,8 +82,11 @@ class Host : public GenericHashEntry, public AlertableEntity {
   bool is_in_broadcast_domain;
   bool is_dhcp_host;
 
-  Bitmap disabled_flow_alerts;
-  time_t disabled_flow_alerts_tstamp;
+  Bitmap16  disabled_host_alerts;
+  Bitmap128 disabled_flow_alerts;
+  time_t disabled_alerts_tstamp;
+
+  Bitmap16 alerts_map;
 
   void initialize(Mac *_mac, u_int16_t _vlan_id);
   void inlineSetOS(OSType _os);
@@ -152,9 +155,11 @@ class Host : public GenericHashEntry, public AlertableEntity {
   };
 
   virtual HostStats* allocateStats()                { return(new HostStats(this)); };
-  void updateStats(periodic_stats_update_user_data_t *periodic_stats_update_user_data);
-  void incLowGoodputFlows(time_t t, bool asClient);
-  void decLowGoodputFlows(time_t t, bool asClient);
+
+  /* Override Score members to perform incs/decs on the host and also on its members, e.g., AS. VLAN, Country. */
+  u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
+  u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
+
   inline u_int16_t get_host_pool()    const { return(host_pool_id);   };
   inline u_int16_t get_vlan_id()      const { return(vlan_id);        };
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
@@ -273,8 +278,6 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void lua_get_min_info(lua_State* vm);
   void lua_get_num_contacts(lua_State* vm);
   void lua_get_num_http_hosts(lua_State*vm);
-  void lua_get_score(lua_State* vm);
-  void lua_get_score_breakdown(lua_State* vm);
   void lua_get_os(lua_State* vm);
   void lua_get_fingerprints(lua_State *vm);
   void lua_get_geoloc(lua_State *vm);
@@ -299,6 +302,18 @@ class Host : public GenericHashEntry, public AlertableEntity {
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
+
+  inline u_int16_t syn_flood_victim_hits()   const { return syn_flood_victim_alert ? syn_flood_victim_alert->hits() : 0;     };
+  inline u_int16_t syn_flood_attacker_hits() const { return syn_flood_attacker_alert ? syn_flood_attacker_alert->hits() : 0; };
+  inline void reset_syn_flood_hits() { if(syn_flood_victim_alert) syn_flood_victim_alert->reset_hits(); if(syn_flood_attacker_alert) syn_flood_attacker_alert->reset_hits(); };
+
+  inline u_int16_t flow_flood_victim_hits()   const { return flow_flood_victim_alert ? flow_flood_victim_alert->hits() : 0;     };
+  inline u_int16_t flow_flood_attacker_hits() const { return flow_flood_attacker_alert ? flow_flood_attacker_alert->hits() : 0; };
+  inline void reset_flow_flood_hits() { if(flow_flood_victim_alert) flow_flood_victim_alert->reset_hits(); if(flow_flood_attacker_alert) flow_flood_attacker_alert->reset_hits(); };
+
+  inline u_int32_t syn_scan_victim_hits()   const { return syn_recvd_last_min > synack_sent_last_min ? syn_recvd_last_min - synack_sent_last_min : 0; };
+  inline u_int32_t syn_scan_attacker_hits() const { return syn_sent_last_min > synack_recvd_last_min ? syn_sent_last_min - synack_recvd_last_min : 0; };
+  inline void reset_syn_scan_hits() { syn_sent_last_min = synack_recvd_last_min = syn_recvd_last_min = synack_sent_last_min = 0; };
 
   void incNumFlows(time_t t, bool as_client);
   void decNumFlows(time_t t, bool as_client);
@@ -366,7 +381,7 @@ class Host : public GenericHashEntry, public AlertableEntity {
   void checkDataReset();
   void checkBroadcastDomain();
   bool hasAnomalies() const;
-  void housekeepAlerts(ScriptPeriodicity p);
+  void housekeep(time_t t); /* Virtual method, called in the datapath from GenericHash::purgeIdle */
   virtual void inlineSetOSDetail(const char *detail) { }
   virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
   void offlineSetNetbiosName(const char * const n);
@@ -386,13 +401,9 @@ class Host : public GenericHashEntry, public AlertableEntity {
       prefs_loaded = true;
     }
   }
-  inline MudRecording getMUDRecording()    { return(mud_pref);   };
 
-  inline u_int32_t getScore()         const { return score ? score->get() : 0; };
-  inline u_int32_t getScoreAsClient() const { return score ? score->getClient() : 0; };
-  inline u_int32_t getScoreAsServer() const { return score ? score->getServer() : 0; };
-  u_int16_t incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client);
-  u_int16_t decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client);
+  void refreshDisabledAlerts();
+  bool isHostAlertDisabled(HostAlertType alert_type);
   bool isFlowAlertDisabled(FlowAlertType alert_type);
 
   void setOS(OSType _os);
@@ -413,6 +424,24 @@ class Host : public GenericHashEntry, public AlertableEntity {
   virtual void incNTPContactCardinality(Host *h)  { ; }
   virtual void incDNSContactCardinality(Host *h)  { ; }
   virtual void incSMTPContactCardinality(Host *h) { ; }    
+  
+  virtual u_int32_t getNTPContactCardinality()    { return(0); }
+  virtual u_int32_t getDNSContactCardinality()    { return(0); }
+  virtual u_int32_t getSMTPContactCardinality()   { return(0); }
+
+  /* Enqueues an alert to all available host recipients. */
+  bool enqueueAlert(HostAlert *alert);
+  void alert2JSON(HostAlert *alert, ndpi_serializer *serializer);
+
+  /* Same as flow alerts */
+  inline Bitmap16 getAlertsBitmap() const { return(alerts_map); }
+  bool setAlertsBitmap(HostAlertType alert_type, int8_t score_as_cli_inc, int8_t score_as_srv_inc);
+  void releaseEngagedAlert(HostAlert *alert);
+  void releaseAllEngagedAlerts();
+
+  /* Callbacks API */
+  bool triggerAlert(HostAlert *alert);
+  void releaseAlert(HostAlert* alert);
 };
 
 #endif /* _HOST_H_ */
