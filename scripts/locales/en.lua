@@ -752,6 +752,7 @@ local lang = {
     ["trailing_msg"] = "Time Window",
     ["trailing_msg_compact"] = "Window",
     ["unexpected_host_behavior_description"] = "%{host} [%{type_of_behaviour}][Value: %{value}][Expected Range: %{lower_bound} ... %{upper_bound}]",
+    ["unexpected_host_behaviour_title"] = "Unexpected Host Behaviour",
     ["unexpected_host_behaviour_score_client_title"] = "Unexpected Host Score Behaviour -- Client",
     ["unexpected_host_behaviour_score_server_title"] = "Unexpected Host Score Behaviour -- Server",
     ["unexpected_host_behaviour_act_flows_client_title"] = "Unexpected Host Active Flows Behaviour -- Client",
