@@ -233,7 +233,7 @@ $(document).ready(function () {
 
                     return DataTableUtils.createActionButtons([
                         { class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa fa-users', modal: '#users-recipient-modal' },
-                        { class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-recipient-modal' },
+                        { class: 'btn-info' /* Builtins are editable to change theis severity */, icon: 'fa-edit', modal: '#edit-recipient-modal' },
                         { class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-recipient-modal' },
                     ]);
                 }
@@ -351,6 +351,8 @@ $(document).ready(function () {
             /* load the values inside the template */
             $(`#edit-recipient-modal form [name='recipient_id']`).val(recipient.recipient_id || DEFAULT_RECIPIENT_ID);
             $(`#edit-recipient-modal form [name='recipient_name']`).val(recipient.recipient_name);
+	    if(recipient.endpoint_conf.builtin)
+		$(`#edit-recipient-modal form [name='recipient_name']`).attr('readonly', '');
             $(`#edit-recipient-modal form [name='endpoint_conf_name']`).val(recipient.endpoint_conf_name);
             $(`#edit-recipient-modal form [name='recipient_minimum_severity']`).val(recipient.minimum_severity);
             $(`#edit-recipient-modal form [name='recipient_user_script_categories']`).val(recipient.user_script_categories);
@@ -407,11 +409,6 @@ $(document).ready(function () {
     $(`table#recipient-list`).on('click', `a[href='#edit-recipient-modal']`, function (e) {
 
         const selectedRecipient = $recipientsTable.row($(this).parent().parent()).data();
-        // prevent editing builtin
-        if (selectedRecipient.endpoint_conf.builtin) {
-            e.preventDefault();
-            return;
-        }
 
         $editRecipientModal.invokeModalInit(selectedRecipient);
     });
