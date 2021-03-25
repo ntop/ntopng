@@ -32,7 +32,7 @@ class FlowStats {
   u_int32_t protocols[0x100];
   u_int32_t alert_levels[ALERT_LEVEL_MAX_LEVEL];
   u_int32_t dscps[64]; // 64 values available for dscp
-  u_int32_t host_pools[LIMITED_NUM_HOST_POOLS];
+  u_int32_t host_pools[UNLIMITED_NUM_HOST_POOLS];
   
  public:
   FlowStats();
