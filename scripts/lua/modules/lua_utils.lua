@@ -4340,9 +4340,27 @@ function iec104_typeids2str(c)
    return(c)
 end
 
+function table.slice(t, start_table, end_table) 
+    if t == nil then
+        error("The array to slice cannot be nil!")
+    end
+
+    if start_table < 1 or end_table > #t then
+        error("Invalid bounds!")
+    end
+
+    local res = {}
+    for i = start_table, end_table, 1 do
+        res[#res + 1] = t[i]
+    end
+
+    return res
+end
+
 --
 -- IMPORTANT
 -- Leave it at the end so it can use the functions
 -- defined in this file
 --
 http_lint = require "http_lint"
+
