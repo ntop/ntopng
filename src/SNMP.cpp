@@ -21,8 +21,6 @@
 
 #include "ntop_includes.h"
 
-#ifndef HAVE_NEDGE
-
 /* Code needed by both implementations for batch mode */
 extern "C" {
 #include "../third-party/snmp/snmp.c"
@@ -1020,4 +1018,3 @@ int SNMP::snmp_get_fctn(lua_State* vm, snmp_pdu_primitive pduType, bool skip_fir
   }
 }
 
-#endif /* HAVE_NEDGE */

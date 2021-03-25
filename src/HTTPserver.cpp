@@ -1232,14 +1232,24 @@ static int handle_lua_request(struct mg_connection *conn) {
     struct stat buf;
     bool found;
 
-    if(strstr(request_info->uri, "/lua/pro")
-       && (!ntop->getPrefs()->is_pro_edition())) {
+    if(strstr(request_info->uri, "/lua/pro") &&
+#ifdef HAVE_NEDGE
+       !ntop->getPrefs()->is_nedge_edition()
+#else
+       !ntop->getPrefs()->is_pro_edition()
+#endif
+      ) {
       if(original_uri) request_info->uri  = original_uri;
       return(redirect_to_error_page(conn, request_info, "pro_only", NULL, NULL));
     }
 
-    if(strstr(request_info->uri, "/lua/pro/enterprise")
-       && (!ntop->getPrefs()->is_enterprise_m_edition())) {
+    if(strstr(request_info->uri, "/lua/pro/enterprise") &&
+#ifdef HAVE_NEDGE
+       !ntop->getPrefs()->is_nedge_enterprise_edition()
+#else
+       !ntop->getPrefs()->is_enterprise_m_edition()
+#endif
+      ) {
       if(original_uri) request_info->uri  = original_uri;
       return(redirect_to_error_page(conn, request_info, "enterprise_only", NULL, NULL));
     }

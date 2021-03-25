@@ -126,7 +126,7 @@ else
       entries = {
          {
             entry = page_utils.menu_entries.snmp,
-            hidden = not ntop.isEnterpriseM(),
+            hidden = (not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise()),
             url = "/lua/pro/enterprise/snmpdevices_stats.lua"
          },
          {
@@ -443,7 +443,7 @@ local poller_entries = {
 -- Add SNMP to the poller entries
 poller_entries[#poller_entries + 1] = {
    entry = page_utils.menu_entries.snmp,
-   hidden = not is_system_interface or not ntop.isEnterpriseM(),
+   hidden = not is_system_interface or (not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise()),
    url = "/lua/pro/enterprise/snmpdevices_stats.lua",
 }
 

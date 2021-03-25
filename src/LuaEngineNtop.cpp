@@ -3143,8 +3143,6 @@ static int ntop_resolve_host(lua_State* vm) {
 
 /* ****************************************** */
 
-#ifndef HAVE_NEDGE
-
 static int ntop_snmpv3available(lua_State* vm) {
   lua_pushboolean(vm,
 #ifdef HAVE_LIBSNMP
@@ -3399,8 +3397,6 @@ static int ntop_snmp_read_responses(lua_State* vm) {
   snmp->snmp_fetch_responses(vm, timeout);
   return(CONST_LUA_OK);
 }
-
-#endif /* HAVE_NEDGE */
 
 /* ****************************************** */
 
@@ -6089,7 +6085,6 @@ static luaL_Reg _ntop_reg[] = {
   { "verboseTrace",      ntop_verbose_trace },
 
   /* SNMP */
-#ifndef HAVE_NEDGE
   { "snmpv3available",     ntop_snmpv3available              },
   { "snmpsetavailable",    ntop_snmpsetavailable             },
 
@@ -6110,7 +6105,6 @@ static luaL_Reg _ntop_reg[] = {
   /* Batch */
   { "snmpGetBatch",          ntop_snmp_batch_get             }, /* v1/v2c/v3 */
   { "snmpReadResponses",     ntop_snmp_read_responses        },
-#endif
 
   /* Runtime */
   { "hasGeoIP",                ntop_has_geoip                },

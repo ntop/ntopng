@@ -268,9 +268,7 @@ using namespace std;
 #include "Prefs.h"
 #include "SerializableElement.h"
 #include "DnsStats.h"
-#ifndef HAVE_NEDGE
 #include "SNMP.h"
-#endif
 #include "NetworkDiscovery.h"
 #include "ICMPstats.h"
 #include "ICMPinfo.h"

@@ -18,7 +18,6 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  */
-#ifndef HAVE_NEDGE
 
 #ifndef _SNMP_H_
 #define _SNMP_H_
@@ -127,5 +126,3 @@ class SNMP {
 };
 
 #endif /* _SNMP_H_ */
-
-#endif /* HAVE_NEDGE */
