@@ -16,7 +16,7 @@ local alert_score_anomaly_server = classes.class(alert)
 
 alert_score_anomaly_server.meta = {
    alert_key = alert_keys.ntopng.alert_score_anomaly_server,
-   i18n_title = "alerts_dashboard.unexpected_host_behaviour_score_title",
+   i18n_title = "alerts_dashboard.unexpected_host_behaviour_score_server_title",
    icon = "fas fa-exclamation",
 }
 
@@ -53,7 +53,7 @@ function alert_score_anomaly_server.format(ifid, alert, alert_type_params)
    return(i18n("alerts_dashboard.unexpected_host_behavior_description",
 		{
 		   host = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])),
-		   type_of_behaviour = i18n("alert.anomalies.score_as_client") or "",
+		   type_of_behaviour = i18n("alert.anomalies.score_as_server") or "",
 		   value = alert_type_params.value,
 		   prediction = alert_type_params.prediction or 0,
 		   lower_bound = alert_type_params.lower_bound or 0,

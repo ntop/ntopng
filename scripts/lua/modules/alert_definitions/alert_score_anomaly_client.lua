@@ -16,7 +16,7 @@ local alert_score_anomaly_client = classes.class(alert)
 
 alert_score_anomaly_client.meta = {
    alert_key = alert_keys.ntopng.alert_score_anomaly_client,
-   i18n_title = "alerts_dashboard.unexpected_host_behaviour_score_title",
+   i18n_title = "alerts_dashboard.unexpected_host_behaviour_score_client_title",
    icon = "fas fa-exclamation",
 }
 
