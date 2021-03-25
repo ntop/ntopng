@@ -48,6 +48,7 @@ class Ping {
   void pollResults();
   void collectResponses(lua_State* vm, bool v6);
   float getRTT(std::string who, bool v6);
+  void start();
   void cleanup();
 };
 

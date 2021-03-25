@@ -1762,9 +1762,10 @@ static int ntop_ping_host(lua_State* vm) {
     /* This is a continuous ping instead */
     ContinuousPing *c = ntop->getContinuousPing();
 
-    if(c)
+    if(c) {
+      c->start(); /* In case not started it will now start */
       c->ping(host, is_v6, ifname);
-    else {
+    } else {
       lua_pushnil(vm);
       return(CONST_LUA_OK);
     }

@@ -60,7 +60,7 @@ void Ping::setOpts(int fd) {
 
 Ping::Ping(char *ifname) {
   ping_id = rand(), cnt = 0;
-  running = true;
+  running = false;
 
 #ifndef __linux__
   ifname = NULL; /* Too much of a hassle supporting it without capabilities */
@@ -128,17 +128,27 @@ Ping::Ping(char *ifname) {
 
   if((sd == -1) && (sd6 == -1))
     throw "Socket creation error";
-
-  pthread_create(&resultPoller, NULL, resultPollerFctn, (void*)this);
 }
 
 /* ****************************************** */
 
 Ping::~Ping() {
-  running = false;
-  pthread_join(resultPoller, NULL);
+  if(running) {
+    running = false;
+    pthread_join(resultPoller, NULL);
+  }
+  
   if(sd != -1)  close(sd);
   if(sd6 != -1) close(sd6);
+}
+
+/* ****************************************** */
+
+void Ping::start() {
+  if(!running) {
+    pthread_create(&resultPoller, NULL, resultPollerFctn, (void*)this);
+    running = true;
+  }
 }
 
 /* ****************************************** */
@@ -171,6 +181,8 @@ int Ping::ping(char *_addr, bool use_v6) {
   if(hname == NULL)
     return(-1);
 
+  start(); /* In case thread is not started yet */
+  
   if(use_v6) {
     bzero(&addr6, sizeof(addr6));
 

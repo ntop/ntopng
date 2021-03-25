@@ -35,7 +35,8 @@ class ContinuousPing {
   Ping *default_pinger;
   pthread_t poller;
   Mutex m;
-
+  bool started;
+  
   void pingAll();
   void readPingResults();
   void cleanupInactiveHosts();
@@ -45,6 +46,7 @@ class ContinuousPing {
   ContinuousPing();
   ~ContinuousPing();
 
+  void start();
   void runPingCampaign();
   void ping(char *_addr, bool use_v6, char *ifname);
   void pollResults();

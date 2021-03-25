@@ -60,6 +60,8 @@ static void* pollerFctn(void* ptr) {
 ContinuousPing::ContinuousPing() {
   ntop_if_t *devpointer, *cur;
 
+  started = false;
+  
   /* Create default pinger */
   try {
     default_pinger = new Ping(NULL);
@@ -103,9 +105,6 @@ ContinuousPing::ContinuousPing() {
     Utils::ntop_freealldevs(devpointer);
   }
 
-  if (default_pinger) {
-    pthread_create(&poller, NULL, pollerFctn, (void*)this);
-  }
 }
 
 /* ***************************************** */
@@ -117,12 +116,24 @@ ContinuousPing::~ContinuousPing() {
   for(std::map<std::string,ContinuousPingStats*>::iterator it=v6_results.begin(); it!=v6_results.end(); ++it)
     delete it->second;
 
-  pthread_join(poller, NULL);
+  if(started)
+    pthread_join(poller, NULL);
 
   for(std::map<std::string,Ping*>::iterator it=if_pinger.begin(); it!=if_pinger.end(); ++it)
     delete it->second;
 
   delete default_pinger;
+}
+
+/* ***************************************** */
+
+void ContinuousPing::start() {
+  if(!started) {
+    if(default_pinger)
+      pthread_create(&poller, NULL, pollerFctn, (void*)this);    
+    
+    started = true;
+  }
 }
 
 /* ***************************************** */
