@@ -158,6 +158,10 @@
         config = DataTableUtils.setAjaxConfig(config, `{* datatable.datasource.endpoint *}`, 'rsp.records');
         config = DataTableUtils.extendConfig(config, {
 	        serverSide: true,
+            ordering: false,
+            searching: false,
+            info: false,
+            pagingType: 'full',
             lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250], [INITIAL_ROWS_LENGTH, 50, 100, 250]],
             {% if datatable.js_columns then %}
                 columns: {* datatable.js_columns *}
