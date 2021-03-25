@@ -161,7 +161,7 @@
             ordering: false,
             searching: false,
             info: false,
-            pagingType: 'full',
+            pagingType: 'simple',
             lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250], [INITIAL_ROWS_LENGTH, 50, 100, 250]],
             {% if datatable.js_columns then %}
                 columns: {* datatable.js_columns *}
