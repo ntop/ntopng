@@ -660,10 +660,6 @@ function plugins_utils.loadPlugins(community_plugins_only)
   -- Reload the periodic scripts to load the new plugins
   ntop.reloadPeriodicScripts()
 
-  -- Reload alerts configuration
-  local alerts_config = require "alerts_config"
-  alerts_config.initDefaultConfig()
-
   -- Reload user scripts with their configurations
   local user_scripts = require "user_scripts"
   user_scripts.initDefaultConfig()

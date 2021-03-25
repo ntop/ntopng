@@ -24,7 +24,7 @@ recipients.MAX_NUM_RECIPIENTS = 64 -- Keep in sync with ntop_defines.h MAX_NUM_R
 
 recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.prefs.endpoint_hints.recipient_created"
 
-local default_builtin_minimum_severity = alert_severities.info.severity_id -- minimum severity is notice (to avoid flooding) (*****)
+local default_builtin_minimum_severity = alert_severities.notice.severity_id -- minimum severity is notice (to avoid flooding) (*****)
 
 -- ##############################################
 
