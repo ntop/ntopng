@@ -2,6 +2,11 @@
 -- (C) 2014-21 - ntop.org
 --
 
+if(i18n ~= nil) then
+   -- avoid multiple inclusions
+   return
+end
+
 i18n = require "i18n"
 local dirs = ntop.getDirs()
 
