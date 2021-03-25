@@ -111,7 +111,7 @@
             // if the response contains the query time period
             if (response.rsp.stats !== undefined) {
                 $(`#{{ datatable.name }}-query`).show();
-                $(`#{{ datatable.name }}-query .seconds`).text(response.rsp.stats.loading_time / 1000.0); // The time is in msec
+                $(`#{{ datatable.name }}-query .seconds`).text(response.rsp.stats.query_duration_msec / 1000.0); // The time is in msec
             }
         }
 
