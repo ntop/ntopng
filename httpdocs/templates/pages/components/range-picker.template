@@ -8,7 +8,7 @@
     local presetSelected = (isEmptyString(_GET['begin_epoch']) and isEmptyString(_GET['end_epoch']))   
 %}
 
-<div class="d-flex flex-wrap flex-sm-column flex-md-row justify-content-between w-100">
+<div class="d-flex flex-wrap flex-sm-column flex-md-row w-100">
     <div class="btn-group btn-group-toggle" role="group">
         <label class="btn {{ (presetSelected and 'btn-primary' or 'btn-light') }}">
             <input type="radio" name="presets" id="preset-5min" checked value="5,minutes"> 5m
@@ -84,28 +84,13 @@
         </button>
         {% end %}
     </div>
-    <div class="ml-auto">
-        <select id='select-len' class="form-control custom-select" style="width: 5rem;">
-            {% for _, len in ipairs(records) do %}
-                <option {{ (len == tonumber(_GET['totalRows']) and 'selected' or '') }} value="{{ len }}">{{ len }}</option>
-            {% end %}
-        </select>
-    </div>
     {% if tags.enabled then %}
-    <div class="w-100">
-        <hr class="mt-2 mb-0">
-<!--
-<button class="btn btn-sm btn-link my-2" type="button" data-toggle="collapse" data-target="#collapseFilter" aria-expanded="false" aria-controls="collapseFilter">
-            <i class="fas fa-chevron-right"></i> <u>{{ i18n("show_hide_filters") }}</u>
-        </button>
-	-->
-        <div class="collapse show" id="collapseFilter">
-            <div class="d-flex">
-                <input class="form-control tagify-non-editable" name="tags" placeholder="Filters"> 
-                <button data-toggle="tooltip" data-placement="bottom" title="Remove filters." class="btn btn-danger ml-1 btn-remove-tags">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
+    <div class="w-100 mt-2">
+        <div class="d-flex">
+            <input class="form-control tagify-non-editable" name="tags" placeholder="Filters"> 
+            <button data-toggle="tooltip" data-placement="bottom" title="Remove filters." class="btn btn-danger ml-1 btn-remove-tags">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     </div>
     {% end %}
@@ -126,10 +111,10 @@ const tagify = new Tagify(input, {
     editTags: false,
     autoComplete: { enabled: false }
 });
-// add existing tags
-tagify.addTags(tags);
 
 $(document).ready(function() {
+    // add existing tags
+    tagify.addTags(tags);
     // intialize tooltip
     $(`.btn-remove-tags`).tooltip();
 });

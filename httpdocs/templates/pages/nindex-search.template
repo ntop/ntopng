@@ -11,6 +11,7 @@
             {* ui_utils.render_datetime_range_picker(range_picker) *}
         </div>
     </div>
+    <!-- 
     <div class="col-12">
         <div class="card card-shadow mt-2">
 	    <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
@@ -20,9 +21,10 @@
                     </div>
                 </div>
             </div>
-            <!-- <div class="card-body">{* chart.html *}</div>  -->
+            <div class="card-body">{* chart.html *}</div>
         </div>
     </div>
+    -->
     <div class='col-12 mt-2'>
         <div class="card card-shadow">
 	    <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
@@ -63,6 +65,7 @@
 <script type='text/javascript'>
     $(document).ready(function(){
 
+        const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
         // const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
 
@@ -71,20 +74,26 @@
             $(`.overlay`).toggle(time);
         }
 
-        async function reloadChartAndTable($table, begin, end, rows) {
+        function showOverlays(time = 500) {
+            $(`.overlay`).fadeIn(time);
+        }
+
+        function hideOverlays(time = 500) {
+            $(`.overlay`).fadeOut(time);
+        }
+
+        async function reloadChartAndTable($table, begin, end) {
 
             if (begin == null && end == null) return;
 
             const copyParams = Object.assign(datasourceParams, {});
+
             // override the existing timestamps 
             if (copyParams.begin_epoch) {
                 copyParams.begin_epoch = begin.unix();
             }
             if (copyParams.end_epoch) {
                 copyParams.end_epoch = end.unix();
-            }
-	        if (copyParams.totalRows) {
-                copyParams.totalRows = rows;
             }
 
             const searchParams = new URLSearchParams(Object.entries(copyParams));
@@ -100,9 +109,9 @@
         function printQueryTime($table) {
             const response = $table.ajax.json();
             // if the response contains the query time period
-            if (response.rsp.time !== undefined) {
+            if (response.rsp.stats !== undefined) {
                 $(`#{{ datatable.name }}-query`).show();
-                $(`#{{ datatable.name }}-query .seconds`).text(response.rsp.time/1000.0); // The time is in msec
+                $(`#{{ datatable.name }}-query .seconds`).text(response.rsp.stats.loading_time / 1000.0); // The time is in msec
             }
         }
 
@@ -122,16 +131,14 @@
 
             url.searchParams.set('begin_epoch', begin.unix());
             url.searchParams.set('end_epoch', end.unix());
-            url.searchParams.set('totalRows', len);
 
-            window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix(), totalRows: len}, '', url);
+            window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix()}, '', url);
         }
 
         async function onRangePickerChange(pushHistroy = false) {
             
             const [begin, end] = getTimestampRange();
-            const len = parseInt($(`#select-len`).val());
-            await reloadChartAndTable($table, begin, end, len);
+            await reloadChartAndTable($table, begin, end);
 
             if (pushHistroy) {
                 pushNewHistoryState(begin, end, len);
@@ -150,7 +157,8 @@
         let config = DataTableUtils.getStdDatatableConfig(datatableButton);
         config = DataTableUtils.setAjaxConfig(config, `{* datatable.datasource.endpoint *}`, 'rsp.records');
         config = DataTableUtils.extendConfig(config, {
-	serverSide: true,
+	        serverSide: true,
+            lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250], [INITIAL_ROWS_LENGTH, 50, 100, 250]],
             {% if datatable.js_columns then %}
                 columns: {* datatable.js_columns *}
             {% end %}
@@ -162,7 +170,7 @@
         // on ajax request complete then print the query time
         $table.on('xhr', function() {
             printQueryTime($table);
-            toggleOverlays();
+            hideOverlays();
 	    });
 
         // on apply button click

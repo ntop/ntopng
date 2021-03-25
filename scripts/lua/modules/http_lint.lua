@@ -1402,6 +1402,7 @@ local known_parameters = {
    ["sortColumn"]              = validateSortColumn,            -- A sort column
    ["currentPage"]             = validateNumber,                -- The currently displayed page number (used for pagination)
    ["totalRows"]               = validateNumber,                -- The total number of rows
+   ["length"]                  = validateNumber,                -- The total number of rows
 
 -- AGGREGATION
    ["grouped_by"]              = validateSingleWord,            -- A group criteria
