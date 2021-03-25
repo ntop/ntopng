@@ -90,7 +90,7 @@ local rest_utils = {
    }
 }
 
-function rest_utils.rc(ret_const, response)
+function rest_utils.rc(ret_const, payload, additional_response_param)
    local ret_code = ret_const.rc
    local rc_str   = ret_const.str  -- String associated to the return code
    local rc_str_hr -- String associated to the return code, human readable
@@ -102,15 +102,24 @@ function rest_utils.rc(ret_const, response)
       rc = ret_code,
       rc_str = rc_str,
       rc_str_hr = rc_str_hr,
-      rsp = response or {}
+      rsp = payload or {}
    }
+
+   if (additional_response_param ~= nil) then
+      client_rsp = table.merge(additional_response_param, client_rsp)
+   end
 
    return json.encode(client_rsp)
 end
 
-function rest_utils.answer(ret_const, response, extra_headers)
+function rest_utils.answer(ret_const, payload, extra_headers)
    sendHTTPHeader('application/json', nil, extra_headers, ret_const.http_code)
-   print(rest_utils.rc(ret_const, response))
+   print(rest_utils.rc(ret_const, payload))
+end
+
+function rest_utils.extended_answer(ret_const, payload, additional_response_param, extra_headers)
+   sendHTTPHeader('application/json', nil, extra_headers, ret_const.http_code)
+   print(rest_utils.rc(ret_const, payload, additional_response_param))
 end
 
 return rest_utils

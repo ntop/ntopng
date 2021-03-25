@@ -141,7 +141,7 @@
             await reloadChartAndTable($table, begin, end);
 
             if (pushHistroy) {
-                pushNewHistoryState(begin, end, len);
+                pushNewHistoryState(begin, end);
             }
 
         }
