@@ -26,11 +26,12 @@ ndpi_serializer* TCPIssuesAlert::getAlertJSON(ndpi_serializer* serializer) {
 
   if (serializer) {
     FlowTrafficStats *stats = f->getTrafficStats();
+    /*
     const ndpi_analyze_struct *cli2srv_bytes_stats, *srv2cli_bytes_stats;
+    cli2srv_bytes_stats = stats->get_analize_struct(true), srv2cli_bytes_stats = stats->get_analize_struct(false);
+    */
 
     ndpi_serialize_start_of_block(serializer,   "tcp_stats");
-    cli2srv_bytes_stats = stats->get_analize_struct(true), srv2cli_bytes_stats = stats->get_analize_struct(false);
-  
     ndpi_serialize_string_int64(serializer, "cli2srv.retransmissions", stats->get_cli2srv_tcp_retr());
     ndpi_serialize_string_int64(serializer, "cli2srv.out_of_order",    stats->get_cli2srv_tcp_ooo());
     ndpi_serialize_string_int64(serializer, "cli2srv.lost",            stats->get_cli2srv_tcp_lost());

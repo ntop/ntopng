@@ -70,7 +70,6 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
       ip.set(json_object_get_string(ip_json));
 
       if(!ip.isEmpty()) {
-	int rc;
 	ndpi_ip_addr_t a;
 
 	memset(&a, 0, sizeof(a));
@@ -78,11 +77,11 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
 	if(ip.isIPv4()) {
 	  a.ipv4 = ip.get_ipv4();
 	
-	  rc = ndpi_ptree_insert(whitelist, &a, 32, naddr);
+	  ndpi_ptree_insert(whitelist, &a, 32, naddr);
 	} else {
 	  memcpy(&a.ipv6, ip.get_ipv6(), sizeof(struct ndpi_in6_addr));
 	
-	  rc = ndpi_ptree_insert(whitelist, &a, 128, naddr);
+	  ndpi_ptree_insert(whitelist, &a, 128, naddr);
 	}
       }
     }

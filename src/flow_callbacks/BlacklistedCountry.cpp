@@ -37,14 +37,11 @@ bool BlacklistedCountry::hasBlacklistedCountry(Host *h) const {
 /* ***************************************************** */
 
 void BlacklistedCountry::protocolDetected(Flow *f) {
-  Host *cli_host, *srv_host;
   u_int8_t c_score = 0, s_score = 0;
   bool is_server_bl = false, is_client_bl = false;
 
   if(blacklisted_countries.size() == 0)
     return; /* Callback enabled but no blacklisted country is configured */
-
-  cli_host = f->get_cli_host(), srv_host = f->get_srv_host();
 
   if(hasBlacklistedCountry(f->get_cli_host())) {
     is_client_bl = true;
@@ -82,7 +79,8 @@ bool BlacklistedCountry::loadConfiguration(json_object *config) {
 
   /* Iterathe through the items array with country codes */
   if(json_object_object_get_ex(config, "items", &countries_json)) {
-    for (int i = 0; i < json_object_array_length(countries_json); i++) {
+    int size = json_object_array_length(countries_json);
+    for (int i = 0; i < size; i++) {
       country_json = json_object_array_get_idx(countries_json, i);
 
       /* Add each country code to the set of blacklisted countries */
