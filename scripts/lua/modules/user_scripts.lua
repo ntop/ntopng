@@ -6,6 +6,15 @@
 -- core. Users can provide their own modules to trigger custom alerts,
 -- export data, or perform periodic tasks.
 
+
+-- Hack to avoid include loops
+if(pragma_once_user_scripts == true) then
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_user_scripts = true
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
