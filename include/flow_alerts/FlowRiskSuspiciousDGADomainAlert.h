@@ -25,6 +25,9 @@
 #include "ntop_includes.h"
 
 class FlowRiskSuspiciousDGADomainAlert : public FlowAlert {
+ private:
+  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+
  public:
   static FlowAlertType getClassType() { return { alert_ndpi_suspicious_dga_domain, alert_category_security }; }
 

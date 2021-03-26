@@ -35,7 +35,13 @@ end
 -- #######################################################
 
 function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
-   return
+   if alert_type_params.dga_domain then
+      return i18n("alert_messages.suspicious_dga_domain", {
+		     domain = alert_type_params["dga_domain"],
+      })
+   else
+      return
+   end
 end
 
 -- #######################################################
