@@ -9,7 +9,7 @@ local json = require "dkjson"
 local alert_severities = require "alert_severities"
 local alert_consts = require "alert_consts"
 local alert_severities = require "alert_severities"
-local user_scripts = require "user_scripts"
+
 local endpoints = require("endpoints")
 
 -- ##############################################
@@ -42,6 +42,7 @@ end
 
 -- @brief Performs Initialization operations performed during startup
 function recipients.initialize()
+   local user_scripts = require "user_scripts"
    -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
    -- For each builtin configuration type, a configuration and a recipient is created
    local all_categories = {}
