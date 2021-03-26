@@ -35,7 +35,7 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   total_alerts = 0;
   num_flow_alerts = 0;
   periodicUpdate = 0;
-  
+
   /* NOTE: deleted by ~GenericTrafficElement */
   ndpiStats = new (std::nothrow) nDPIStats();
   //printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
@@ -68,19 +68,49 @@ void HostStats::updateStats(const struct timeval *tv) {
 
   if(tv->tv_sec >= periodicUpdate) {
     u_int32_t num_anomalies = 0;
-    
-    if(active_flows_cli.addObservation(host->getNumOutgoingFlows())) num_anomalies++;
-    if(active_flows_srv.addObservation(host->getNumIncomingFlows())) num_anomalies++;
-    if(score_cli.addObservation(host->getScoreAsClient())) num_anomalies++;
-    if(score_srv.addObservation(host->getScoreAsServer())) num_anomalies++;
-    
+
+    if(active_flows_cli.addObservation(host->getNumOutgoingFlows())) {
+      char buf[64];
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [client flows] [value: %u]",
+				   host->get_ip()->print(buf, sizeof(buf)),
+				   host->getNumOutgoingFlows());
+      num_anomalies++;
+    }
+
+    if(active_flows_srv.addObservation(host->getNumIncomingFlows())) {
+      char buf[64];
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [server flows] [value: %u]",
+				   host->get_ip()->print(buf, sizeof(buf)),
+				   host->getNumIncomingFlows());
+      num_anomalies++;
+    }
+
+    if(score_cli.addObservation(host->getScoreAsClient())) {
+      char buf[64];
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [client score] [value: %u]",
+				   host->get_ip()->print(buf, sizeof(buf)),
+				   host->getScoreAsClient());
+      num_anomalies++;
+    }
+
+    if(score_srv.addObservation(host->getScoreAsServer())) {
+      char buf[64];
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [server score] [value: %u]",
+				   host->get_ip()->print(buf, sizeof(buf)), host->getScoreAsServer());
+      num_anomalies++;
+    }
+
     if(num_anomalies > 0) {
       if(host->isLocalHost())
 	iface->incHostAnomalies(num_anomalies, 0);
       else
 	iface->incHostAnomalies(0, num_anomalies);
     }
-    
+
     periodicUpdate = tv->tv_sec + HOST_SITES_REFRESH; /* 5 min */
   }
 }
@@ -89,7 +119,7 @@ void HostStats::updateStats(const struct timeval *tv) {
 
 void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
   /* Active flows */
-  
+
   lua_newtable(vm);
 
   lua_newtable(vm);
@@ -100,24 +130,24 @@ void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
 
   lua_pushstring(vm, "as_client");
   lua_insert(vm, -2);
-  lua_settable(vm, -3);  
+  lua_settable(vm, -3);
 
   lua_newtable(vm);
-  
+
   lua_push_bool_table_entry(vm,  "anomaly",     active_flows_srv.anomalyFound());
-  lua_push_int32_table_entry(vm, "value",       active_flows_srv.getLastValue()); 
+  lua_push_int32_table_entry(vm, "value",       active_flows_srv.getLastValue());
   lua_push_int32_table_entry(vm, "lower_bound", active_flows_srv.getLastLowerBound());
   lua_push_int32_table_entry(vm, "upper_bound", active_flows_srv.getLastUpperBound());
 
   lua_pushstring(vm, "as_server");
   lua_insert(vm, -2);
-  lua_settable(vm, -3);  
+  lua_settable(vm, -3);
 
   lua_push_int32_table_entry(vm, "tot_num_anomalies", active_flows_srv.getTotAnomalies() + active_flows_cli.getTotAnomalies());
-			     
+
   lua_pushstring(vm, "active_flows_behaviour");
   lua_insert(vm, -2);
-  lua_settable(vm, -3);  
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */
@@ -137,23 +167,23 @@ void HostStats::luaScoreBehaviour(lua_State* vm) {
   lua_pushstring(vm, "as_client");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-  
+
   lua_newtable(vm);
   /* Server score behaviour */
   lua_push_bool_table_entry(vm,  "anomaly",     score_srv.anomalyFound());
-  lua_push_int32_table_entry(vm, "value",       score_srv.getLastValue()); 
+  lua_push_int32_table_entry(vm, "value",       score_srv.getLastValue());
   lua_push_int32_table_entry(vm, "lower_bound", score_srv.getLastLowerBound());
   lua_push_int32_table_entry(vm, "upper_bound", score_srv.getLastUpperBound());
 
   lua_pushstring(vm, "as_server");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
-  
+
   lua_push_int32_table_entry(vm, "tot_num_anomalies", score_cli.getTotAnomalies() + score_srv.getTotAnomalies());
-  
+
   lua_pushstring(vm, "score_behaviour");
   lua_insert(vm, -2);
-  lua_settable(vm, -3);  
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */
@@ -266,7 +296,7 @@ void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level) {
   if(details_level >= details_higher) {
     /* Bytes anomalies */
     l4stats.luaAnomalies(vm);
-  
+
     lua_push_uint64_table_entry(vm, "total_activity_time", total_activity_time);
     lua_push_uint64_table_entry(vm, "flows.as_client", getTotalNumFlowsAsClient());
     lua_push_uint64_table_entry(vm, "flows.as_server", getTotalNumFlowsAsServer());
@@ -294,7 +324,7 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
 			 bool peer_is_unicast) {
   sent.incStats(when, sent_packets, sent_bytes),
     rcvd.incStats(when, rcvd_packets, rcvd_bytes);
-  
+
   if(ndpiStats) {
     ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes),
       ndpiStats->incCategoryStats(when, ndpi_category, sent_bytes, rcvd_bytes);
@@ -303,7 +333,7 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
 #ifdef NTOPNG_PRO
   if(custom_app.pen
      && (custom_app_stats || (custom_app_stats = new(std::nothrow) CustomAppStats(iface)))) {
-    custom_app_stats->incStats(custom_app.remapped_app_id, sent_bytes + rcvd_bytes); 
+    custom_app_stats->incStats(custom_app.remapped_app_id, sent_bytes + rcvd_bytes);
   }
 #endif
 
@@ -321,7 +351,7 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
 void HostStats::allocateQuotaEnforcementStats() {
   if(!quota_enforcement_stats) {
     quota_enforcement_stats = new (std::nothrow) HostPoolStats(iface);
-    
+
 #ifdef HOST_POOLS_DEBUG
     char buf[128];
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
