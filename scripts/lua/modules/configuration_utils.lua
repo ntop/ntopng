@@ -19,16 +19,16 @@ function conf_utils.increase_num_host_num_flows(incr_num_hosts, incr_num_flows)
 
     -- Double the value of the hosts or of the flows
     if incr_num_hosts then
-        exit_status = sys_utils.execShellCmd(dir .. " -x *2")
+        exit_status = sys_utils.execShellCmd(dir .. " -x x2")
     elseif incr_num_flows then
-        exit_status = sys_utils.execShellCmd(dir .. " -X *2")
+        exit_status = sys_utils.execShellCmd(dir .. " -X x2")
     end
 
     local res = {
         exit_status = exit_status
     }
 
-    if string.match(exit_status, "succesfully changed") then
+    if string.match(exit_status, "Succesfully changed") then
         -- Set the redis key for the restart
         ntop.setCache(redis_key, true)
         rest_utils.answer(rest_utils.consts.success.ok, res)

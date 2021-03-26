@@ -21,7 +21,7 @@ esac
 
 function showHelp {
     {
-	company="(C) 1998-20 ntop.org\n\n"
+	company="(C) 1998-21 ntop.org\n\n"
 	usage="Usage:\n\tntopng-conf\n\tor\n\tntopng-conf <command line options>\n\nOptions:\n"
 	X_option="[-X] <num>          | Set max number of active flows to <num>\n"
 	x_option="[-x] <num>          | Set max number of active hosts to <num>\n"
@@ -40,9 +40,9 @@ function fastChangeOption {
         INPUT=$2
         TMP=$(awk "/^-$1=/{print $NF}" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
 
-        if [[ $2 == \** ]]; then
+        if [[ $2 == x* ]]; then
             i=${TMP[0]}
-            VALUE=${INPUT#*\*}
+            VALUE=${INPUT#*x}
             ACTUAL_VALUE=${i#*=}
 
             if ! [[ "$VALUE" =~ ^[0-9]+$ ]]; then
