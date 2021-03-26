@@ -212,6 +212,10 @@
         tagify.on('change', async function(e) {
 
             const detail = e.detail;
+            if (detail.value === "") {
+                return;
+            }
+
             const tag = JSON.parse(detail.value)[0];
             
             // add/update datasource params
@@ -252,17 +256,18 @@
 
             // the tag key is contained inside the column's name
             const colIndex = $table.cell($(this).parent()).index().column;
-            const value = $table.cell($(this).parent()).data();
+            const data = $table.cell($(this).parent()).data();
             const key = $table.column(colIndex).name();
             const label = i18n.tags[key];
 
-            const tag = { label: label, key: key, value: value };
+            const tag = { label: label, key: key, value: (data.label) ? data.label : data };
 
             // does the tag exist?
             if (tagify.getTagIndexByValue(label).length !== 0) {
                 // the tag exists! don't trigger any request...
                 return;
             } 
+
 
             // has the tag an operator object?
             if (!Array.isArray(DEFINED_TAGS[key])) {
