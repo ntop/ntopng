@@ -120,7 +120,7 @@
             if (response.rsp.stats !== undefined) {
                 const msec = response.rsp.stats.query_duration_msec / 1000.0;
                 $(`#{{ datatable.name }}-query`).show();
-                $(`#{{ datatable.name }}-query .seconds`).text((msec < 1) ? '< 1' : msec); // The time is in msec
+                $(`#{{ datatable.name }}-query .seconds`).text((msec < 0.001) ? '< 0,001' : msec); // The time is in msec
             }
         }
 
