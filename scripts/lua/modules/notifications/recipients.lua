@@ -529,6 +529,7 @@ function recipients.get_recipient(recipient_id, include_stats)
 	       recipient_details["user_script_categories"] = {}
 	    end
 
+	    local user_scripts = require "user_scripts"
 	    for _, category in pairs(user_scripts.script_categories) do
 	       recipient_details["user_script_categories"][#recipient_details["user_script_categories"] + 1] = category.id
 	    end
