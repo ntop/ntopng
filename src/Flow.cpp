@@ -777,7 +777,11 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len, u_int64_t
     ndpiDetectedProtocol = proto_id; /* Override! */
 
     if(ndpiFlow->host_server_name[0] != '\0') {
-      if(cli_host) cli_host->incContactedService((char*)ndpiFlow->host_server_name);
+      if(cli_host) {
+	cli_host->incContactedService((char*)ndpiFlow->host_server_name);
+	cli_host->incrVisitedWebSite((char*)ndpiFlow->host_server_name);
+      }
+	
 
       if(ndpiFlow->protos.dns.is_query) {
 	char *q = strdup((const char*)ndpiFlow->host_server_name);

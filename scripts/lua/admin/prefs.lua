@@ -309,7 +309,7 @@ function printProtocolPrefs()
 
   print('<table class="table">')
 
-  print('<thead class="thead-light"><tr><th colspan=2 class="info">HTTP / TLS / QUIC</th></tr></thead>')
+  print('<thead class="thead-light"><tr><th colspan=2 class="info">HTTP / TLS / QUIC / DNS</th></tr></thead>')
 
   prefsToggleButton(subpage_active, {
     field = "toggle_top_sites",
