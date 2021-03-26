@@ -46,6 +46,14 @@
                 </table>
                 <small id="{{ datatable.name }}-query" style="display: none;" class="query">{{ i18n('nindex.query_performed') }} <span class="seconds">{}</span> seconds.</small>
             </div>
+            <div class="card-footer">
+                <button id="btn-get-permalink" class="btn btn-secondary">
+                    <i class="fas fa-link"></i> {{ i18n('graphs.get_permanent_link') }}
+                </button>
+                <button id="btn-download-records" class="btn btn-secondary">
+                    <i class="fas fa-file-download"></i> {{ i18n('graphs.download_records') }}
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -161,7 +169,11 @@
             ordering: false,
             searching: false,
             info: false,
-            pagingType: 'simple',
+            pagingType: 'full',
+            drawCallback: () => {
+                // remove fast forward button from the table
+                $("#ndpi_table_last").remove();
+            },
             lengthMenu: [[INITIAL_ROWS_LENGTH, 50, 100, 250], [INITIAL_ROWS_LENGTH, 50, 100, 250]],
             {% if datatable.js_columns then %}
                 columns: {* datatable.js_columns *}
@@ -197,7 +209,30 @@
             await onRangePickerChange(false);
         });
 
-	// clear all the filters on click
+        tagify.on('change', async function(e) {
+
+            const detail = e.detail;
+            const tag = JSON.parse(detail.value)[0];
+            
+            // add/update datasource params
+            datasourceParams[tag.key] = tag.value;
+            // trigger request
+            await onRangePickerChange(false);
+        });
+
+        $(`tags`).on('change', 'select.operator', async function(e) {
+            
+            // update the tag and the operator
+            const $tag = $(this).parents('tag');
+            const selectedOperator = $(this).val();
+
+            $tag.attr("selectedoperator", selectedOperator);
+
+            // trigger request
+            await onRangePickerChange(false);
+        });
+
+	    // clear all the filters on click
         $(".btn-remove-tags").on('click', async function() {
 
             const tags = tagify.getTagElms();
@@ -212,29 +247,32 @@
             await onRangePickerChange(false);
         });
 
-        $table.on('click', `a.tag-filter`, async function (e) {
+        $table.on('click', `a.tag-filter`, function (e) {
             e.preventDefault();
 
-            const text = $(this).text();
-            const href = $(this).attr('href').replace('?', '');
-            const [key, value] = href.split('=');
-            const label = i18n.tags[key].replace("%val", text);
+            // the tag key is contained inside the column's name
+            const colIndex = $table.cell($(this).parent()).index().column;
+            const value = $table.cell($(this).parent()).data();
+            const key = $table.column(colIndex).name();
+            const label = i18n.tags[key];
 
-            // add/update datasource params
-            datasourceParams[key] = value;
-            
+            const tag = { label: label, key: key, value: value };
+
             // does the tag exist?
             if (tagify.getTagIndexByValue(label).length !== 0) {
                 // the tag exists! don't trigger any request...
                 return;
             } 
 
-            // add filter!
-            tagify.addTags([{value: label, key: key, val: value}]);
-            // trigger request
-            await onRangePickerChange(false);
-        });
+            // has the tag an operator object?
+            if (!Array.isArray(DEFINED_TAGS[key])) {
+                tag.operators = DEFINED_TAGS[key].operators;
+                tag.selectedOperator = '=';
+            }
 
-      
+            // add filter!
+            tagify.addTags([tag]);
+        });
+    
     });
 </script>

@@ -72,22 +72,10 @@
             <i class="fas fa-search-minus"></i>
         </button>
     </div>
-    <div class="btn-group btn-group-sm">
-        {% if buttons.permalink then %}
-        <button id="btn-get-permalink" class="btn btn-link" data-toggle="tooltip" data-placement="bottom" title="{{ i18n('graphs.get_permanent_link') }}">
-            <i class="fas fa-lg fa-link"></i>
-        </button>
-        {% end %}
-        {% if buttons.download then %}
-        <button id="btn-download-graph-data" title="{{ i18n('graphs.download_chart_data') }}" data-toggle="tooltip" data-placement="bottom"  class="btn btn-link">
-            <i class="fas fa-chart-area"></i>
-        </button>
-        {% end %}
-    </div>
     {% if tags.enabled then %}
     <div class="w-100 mt-2">
         <div class="d-flex">
-            <input class="form-control tagify-non-editable" name="tags" placeholder="Filters"> 
+            <input class="form-control w-100" name="tags" placeholder="Filters"> 
             <button data-toggle="tooltip" data-placement="bottom" title="Remove filters." class="btn btn-danger ml-1 btn-remove-tags">
                 <i class="fas fa-times"></i>
             </button>
@@ -98,23 +86,72 @@
 
 {% if tags.enabled then %}
 <link rel="stylesheet" href="{{ ntop.getHttpPrefix }}/css/tagify.css" />
+<style>
+.tagify__input {
+  min-width: 175px;
+}
+
+.tagify__tag {
+  white-space: nowrap;
+  margin: 3px 0px 5px 5px;
+}
+.tagify__tag select.operator {
+  margin: 0px 4px;
+  border: 1px solid #c4c4c4;
+  border-radius: 4px;
+}
+.tagify__tag b.operator {
+  margin: 0px 4px;
+  background-color: white;
+  border: 1px solid #c4c4c4;
+  border-radius: 4px;
+  padding: 0.05em 0.2em;
+}
+.tagify__tag > div {
+  display: flex;
+  align-items: center;
+}
+</style>
 <script type="text/javascript" src="{{ ntop.getHttpPrefix }}/js/tagify.min.js"></script>
 <script type="text/javascript">
 
 i18n.tags = {* json.encode(tags.localization) *};
 
-const tags =  {* json.encode(tags.values) *};
+const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
+
+const initialTags =  {* json.encode(tags.values) *};
 const input = $(`[name='tags']`)[0];
 
 const tagify = new Tagify(input, {
     duplicate: false,
-    editTags: false,
-    autoComplete: { enabled: false }
+    delimiters : null,
+    dropdown : {
+        enabled: 1, // suggest tags after a single character input
+        classname : 'extra-properties' // custom class for the suggestions dropdown
+    },
+    autoComplete: { enabled: false },
+    templates : {
+        tag : function(tagData){
+            try{
+                return `<tag title='${tagData.value}' contenteditable='false' spellcheck="false" class='tagify__tag ${tagData.class ? tagData.class : ""}' ${this.getAttributes(tagData)}>
+                        <x title='remove tag' class='tagify__tag__removeBtn'></x>
+                        <div>
+                            ${tagData.label ? `<b>${tagData.label}</b>&nbsp;` : ``}
+                            ${tagData.operators ? `<select class='operator'>${tagData.operators.map(op => `<option ${tagData.selectedOperator === op ? 'selected' : ''} value='${op}'>${op}</option>`).join()}</select>` : `<b class='operator'>=</b>`}&nbsp;
+                            <span class='tagify__tag-text'>${tagData.value}</span>
+                        </div>
+                    </tag>`
+            }
+            catch(err){
+                console.error(`An error occured when creating a new tag: ${err}`);
+            }
+        },
+    }
 });
 
 $(document).ready(function() {
     // add existing tags
-    tagify.addTags(tags);
+    tagify.addTags(initialTags);
     // intialize tooltip
     $(`.btn-remove-tags`).tooltip();
 });
