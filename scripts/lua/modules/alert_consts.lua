@@ -1,7 +1,7 @@
 --
 -- (C) 2018 - ntop.org
 --
--- This file contains the alert constats
+-- This file contains the alert constants
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
