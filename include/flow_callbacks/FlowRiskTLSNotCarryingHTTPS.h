@@ -29,10 +29,9 @@ class FlowRiskTLSNotCarryingHTTPS : public FlowRiskTLS {
   ndpi_risk_enum handledRisk()       { return NDPI_TLS_NOT_CARRYING_HTTPS;            }
   FlowAlertType getAlertType() const { return FlowRiskTLSNotCarryingHTTPSAlert::getClassType(); }
 
-  /* Uncomment to override the default scores:
-  u_int8_t getClientScore() { return 50; }
-  u_int8_t getServerScore() { return 50; }
-  */
+  /* Uncomment to override the default scores: */
+  u_int8_t getClientScore() { return 10; }
+  u_int8_t getServerScore() { return 10; }
 
  public:
   FlowRiskTLSNotCarryingHTTPS() : FlowRiskTLS() {};
