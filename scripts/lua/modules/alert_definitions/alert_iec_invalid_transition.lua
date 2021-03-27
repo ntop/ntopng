@@ -43,23 +43,8 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_iec_invalid_transition.format(ifid, alert, alert_type_params)
-   local msg = json.decode(alert_type_params.error_msg)
-   local vlanId = alert.vlanId or 0
-   local client = ip2label(msg.client.ip, msg.vlanId)
-   local server = ip2label(msg.server.ip, msg.vlanId)
+   local rsp = "[TypeId: ".. alert_type_params.from .. " -> ".. alert_type_params.to .. "]"
 
-   local rsp = format_utils.formatEpoch(msg.timestamp)..": " ..
-      "<A HREF=\""..hostinfo2detailsurl(client) .."\">".. msg.client.ip .."</A>"..
-      " <i class=\"fas fa-exchange-alt fa-lg\" aria-hidden=\"true\" data-original-title=\"\" title=\"\"></i>" ..
-      "<A HREF=\""..hostinfo2detailsurl(server) .."\">".. msg.server.ip .."</A>"..
-      " [CauseTX: "..msg.cause_tx.."][TypeId: "..msg.type_id.."][ASDU: ".. msg.asdu.."][Negative: "
-
-   if(msg.negatiive == false) then
-      rsp = rsp .. "True]"
-   else
-      rsp = rsp .. "False]"
-   end
-   
    -- tprint(rsp)
    
    return(rsp)

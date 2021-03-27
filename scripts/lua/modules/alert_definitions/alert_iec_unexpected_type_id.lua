@@ -53,10 +53,6 @@ function alert_iec_unexpected_type_id.format(ifid, alert, alert_type_params)
       rsp = rsp .. "False]"
    end
 
-   if(rsp.info ~= nil) then
-      rsp = rsp .. "[".. rsp.info .."]"
-   end
-   
    return(rsp)
 end
 
