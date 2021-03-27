@@ -43,17 +43,19 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_iec_unexpected_type_id.format(ifid, alert, alert_type_params)
-   local msg = json.decode(alert_type_params.error_msg)
+   local rsp = "[CauseTX: "..alert_type_params.cause_tx.."][TypeId: "..alert_type_params.type_id.."][ASDU: ".. alert_type_params.asdu.."][Negative: "
 
-   local rsp = "[CauseTX: "..msg.cause_tx.."][TypeId: "..msg.type_id.."][ASDU: ".. msg.asdu.."][Negative: "
-
-   if(msg.negatiive == false) then
+   -- tprint(alert_type_params)
+   
+   if(alert_type_params.negatiive == false) then
       rsp = rsp .. "True]"
    else
       rsp = rsp .. "False]"
    end
-   
-   -- tprint(rsp)
+
+   if(rsp.info ~= nil) then
+      rsp = rsp .. "[".. rsp.info .."]"
+   end
    
    return(rsp)
 end
