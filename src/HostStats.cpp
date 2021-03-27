@@ -72,8 +72,9 @@ void HostStats::updateStats(const struct timeval *tv) {
     if(active_flows_cli.addObservation(host->getNumOutgoingFlows())) {
       char buf[64];
 
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [client flows] [value: %u]",
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [%s][client flows] [value: %u]",
 				   host->get_ip()->print(buf, sizeof(buf)),
+				   iface->get_name(),
 				   host->getNumOutgoingFlows());
       num_anomalies++;
     }
@@ -81,8 +82,9 @@ void HostStats::updateStats(const struct timeval *tv) {
     if(active_flows_srv.addObservation(host->getNumIncomingFlows())) {
       char buf[64];
 
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [server flows] [value: %u]",
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [%s][server flows] [value: %u]",
 				   host->get_ip()->print(buf, sizeof(buf)),
+				   iface->get_name(),
 				   host->getNumIncomingFlows());
       num_anomalies++;
     }
@@ -90,8 +92,9 @@ void HostStats::updateStats(const struct timeval *tv) {
     if(score_cli.addObservation(host->getScoreAsClient())) {
       char buf[64];
 
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [client score] [value: %u]",
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [%s][client score] [value: %u]",
 				   host->get_ip()->print(buf, sizeof(buf)),
+				   iface->get_name(),
 				   host->getScoreAsClient());
       num_anomalies++;
     }
@@ -99,8 +102,10 @@ void HostStats::updateStats(const struct timeval *tv) {
     if(score_srv.addObservation(host->getScoreAsServer())) {
       char buf[64];
 
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [server score] [value: %u]",
-				   host->get_ip()->print(buf, sizeof(buf)), host->getScoreAsServer());
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[ANOMALY] %s [%s][server score] [value: %u]",
+				   host->get_ip()->print(buf, sizeof(buf)),
+				   iface->get_name(),
+				   host->getScoreAsServer());
       num_anomalies++;
     }
 
