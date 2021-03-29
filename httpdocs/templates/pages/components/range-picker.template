@@ -117,6 +117,7 @@
 
 i18n.tags = {* json.encode(tags.localization) *};
 
+const TAG_OPERATORS = {* json.encode(tags.tag_operators) *};
 const DEFINED_TAGS = {* json.encode(tags.defined_tags) *};
 
 const initialTags =  {* json.encode(tags.values) *};
@@ -137,7 +138,7 @@ const tagify = new Tagify(input, {
                         <x title='remove tag' class='tagify__tag__removeBtn'></x>
                         <div>
                             ${tagData.label ? `<b>${tagData.label}</b>&nbsp;` : ``}
-                            ${tagData.operators ? `<select class='operator'>${tagData.operators.map(op => `<option ${tagData.selectedOperator === op ? 'selected' : ''} value='${op}'>${op}</option>`).join()}</select>` : `<b class='operator'>=</b>`}&nbsp;
+                            ${tagData.operators ? `<select class='operator'>${tagData.operators.map(op => `<option ${tagData.selectedOperator === op ? 'selected' : ''} value='${op}'>${TAG_OPERATORS[op]}</option>`).join()}</select>` : `<b class='operator'>=</b>`}&nbsp;
                             <span class='tagify__tag-text'>${tagData.value}</span>
                         </div>
                     </tag>`
