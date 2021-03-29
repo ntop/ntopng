@@ -9,6 +9,7 @@ local http_lint = {}
 
 local json = require "dkjson"
 local tracker = require "tracker"
+local tag_utils = require "tag_utils"
 
 -- #################################################################
 
@@ -141,7 +142,7 @@ local function validateSyslogFormat(p)
 end
 http_lint.validateSyslogFormat = validateSyslogFormat
 
-local function validatePort(p)
+local function validatePort(p)   
    if not validateNumber(p) then
       return false
    end
@@ -797,6 +798,24 @@ local function validateApplication(app)
    end
 end
 
+local function validateTagsOperator(p)
+   return (tag_utils.tag_operators[p] ~= nil)
+end
+
+local function validateFilters(other_validation)
+   return function(s)
+      local param = split(s, ",")
+
+      if param and #param == 2 then
+	 return (other_validation(param[1]) and
+		    (validateTagsOperator(param[2])))
+      end
+
+      return other_validation(s)
+   end
+end
+http_lint.validateFilters = validateFilters
+  
 local function validateProtocolIdOrName(p)
    -- Lower used because TCP instead of tcp wasn't seen as a l4proto
    p = string.lower(p)
@@ -1332,10 +1351,10 @@ local known_parameters = {
    ["network"]                 = validateNumber,                -- A network ID
    ["network_cidr"]            = validateNetwork,               -- A network expressed with the /
    ["ip"]                      = validateEmptyOr(validateIpAddress), -- An IPv4 or IPv6 address
-   ["cli_ip"]                  = validateEmptyOr(validateIpAddress), -- An IPv4 or IPv6 address
-   ["srv_ip"]                  = validateEmptyOr(validateIpAddress), -- An IPv4 or IPv6 address
-   ["cli_port"]                = validatePort,                  --Client port
-   ["srv_port"]                = validatePort,                  --Server port
+   ["cli_ip"]                  = validateEmptyOr(validateFilters(validateIpAddress)), -- An IPv4 or IPv6 address
+   ["srv_ip"]                  = validateEmptyOr(validateFilters(validateIpAddress)), -- An IPv4 or IPv6 address
+   ["cli_port"]                = validateFilters(validatePort),                  --Client port
+   ["srv_port"]                = validateFilters(validatePort),                  --Server port
    ["vhost"]                   = validateHTTPHost,              -- HTTP server name or IP address
    ["version"]                 = validateIpVersion,             -- To specify an IPv4 or IPv6
    ["vlan"]                    = validateEmptyOr(validateNumber), -- A VLAN id
@@ -1359,8 +1378,8 @@ local known_parameters = {
    ["ndpistats_mode"]          = validateNdpiStatsMode,         -- A mode for rest/v1/get/interface/l7/stats.lua
    ["l4_proto_id"]             = validateProtocolIdOrName,      -- get_historical_data.lua
    ["l7_proto_id"]             = validateProtocolIdOrName,      -- get_historical_data.lua
-   ["l4proto"]                 = validateProtocolIdOrName,      -- An nDPI application protocol ID, layer 4
-   ["l7proto"]                 = validateProtocolIdOrName,      -- An nDPI application protocol ID, layer 7
+   ["l4proto"]                 = validateFilters(validateProtocolIdOrName),      -- An nDPI application protocol ID, layer 4
+   ["l7proto"]                 = validateFilters(validateProtocolIdOrName),      -- An nDPI application protocol ID, layer 7
    ["protocol"]                = validateProtocolIdOrName,      -- An nDPI application protocol ID or name
    ["ndpi"]                    = validateApplicationsList,      -- a list applications
    ["ndpi_new_cat_id"]         = validateNumber,                -- An ndpi category id after change
