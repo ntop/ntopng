@@ -83,6 +83,9 @@ class NetworkInterface : public AlertableEntity {
   struct {
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
+  struct {
+    u_int32_t local_hosts, remote_hosts;
+  } tot_num_old_anomalies;
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
@@ -589,6 +592,7 @@ class NetworkInterface : public AlertableEntity {
 
   virtual void lua(lua_State* vm);
   void luaAlertedFlows(lua_State* vm);
+  void luaAnomalies(lua_State* vm);
   void luaPeriodicityFilteringMenu(lua_State* vm);
   void luaServiceFilteringMenu(lua_State* vm);
   void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address, u_int16_t vlan_id, u_int16_t host_pool_id, 

@@ -55,6 +55,19 @@ end
 
 -- ########################################################
 
+function ts_dump.iface_update_rrds(when, ifstats, verbose)
+   local anomalies_info = interface.getAnomalies()
+   anomalies_info = anomalies_info["anomalies"]
+   
+   local anomalies_counter = (anomalies_info["tot_num_anomalies"]["local_hosts"] + anomalies_info["tot_num_anomalies"]["remote_hosts"]) - (anomalies_info["tot_num_old_anomalies"]["local_hosts"] + anomalies_info["tot_num_old_anomalies"]["remote_hosts"])
+
+   -- Save total anomalies delta counter
+   ts_utils.append("iface:anomalies", {ifid=ifstats.id, anomalies=anomalies_counter}, when)
+
+end
+
+-- ########################################################
+
 function ts_dump.asn_update_rrds(when, ifstats, verbose)
   local asn_info = interface.getASesInfo({detailsLevel = "higher"})
 
@@ -632,6 +645,8 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when)
       return false
     end
   end
+
+  ts_dump.iface_update_rrds(when, ifstats, verbose)
 
   -- create RRD for ASN
   if config.asn_rrd_creation == "1" then

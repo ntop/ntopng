@@ -489,6 +489,12 @@ schema:addMetric("anomaly")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("iface:anomalies", {step=300, metrics_type=ts_utils.metrics.gauge})
+schema:addTag("ifid")
+schema:addMetric("anomalies")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("host:l4protos", {step=300})
 schema:addTag("ifid")
 schema:addTag("host")

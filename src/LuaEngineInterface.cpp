@@ -1852,6 +1852,21 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_interface_anomalies(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  lua_newtable(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->luaAnomalies(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_oses_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4485,6 +4500,10 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getMacManufacturers",              ntop_get_interface_macs_manufacturers },
   { "getMacDeviceTypes",                ntop_get_mac_device_types },
 
+  /* Anomalies */
+
+  { "getAnomalies",                     ntop_get_interface_anomalies },
+  
   /* Autonomous Systems */
   { "getASesInfo",                      ntop_get_interface_ases_info },
   { "getASInfo",                        ntop_get_interface_as_info },
