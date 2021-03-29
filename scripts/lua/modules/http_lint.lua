@@ -818,11 +818,14 @@ http_lint.validateFilters = validateFilters
   
 local function validateProtocolIdOrName(p)
    -- Lower used because TCP instead of tcp wasn't seen as a l4proto
-   p = string.lower(p)
+   local tmp = string.lower(p)
    
-   return validateChoice(ndpi_protos, p) or
-      validateChoiceByKeys(L4_PROTO_KEYS, p) or
-      validateChoiceByKeys(ndpi_protos, p)
+   return (validateChoice(ndpi_protos, p) or
+	      validateChoiceByKeys(L4_PROTO_KEYS, p) or
+	      validateChoiceByKeys(ndpi_protos, p)) or
+      (validateChoice(ndpi_protos, tmp) or
+	  validateChoiceByKeys(L4_PROTO_KEYS, tmp) or
+	  validateChoiceByKeys(ndpi_protos, tmp))
 end
 http_lint.validateProtocolIdOrName = validateProtocolIdOrName
 
