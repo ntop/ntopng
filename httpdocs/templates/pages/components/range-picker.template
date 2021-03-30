@@ -226,15 +226,17 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
             $(this).parents('.btn').addClass('btn-primary').removeClass('btn-light');
 
             const [subtract, measure] = $(this).val().split(',');
-            const end = $inputEndEpoch.datetimepicker('date');
 
-            if (end != null) {
-               
-                const diff = end.subtract(parseInt(subtract), measure);
-               $inputBeginEpoch.datetimepicker('date', diff);
+            const now = moment();
+            const diff = moment().subtract(parseInt(subtract), measure);
 
-               $btnApply.trigger('click');
-            }
+            $inputEndEpoch.datetimepicker('minDate', diff);
+            $inputEndEpoch.datetimepicker('maxDate', now);
+
+            $inputEndEpoch.datetimepicker('date', now);
+            $inputBeginEpoch.datetimepicker('date', diff);
+
+            $btnApply.trigger('click');
         });
 
         // travel back in the past by the selected preset
@@ -322,10 +324,9 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
         // set the input boxes with their respective values
         $(window).on('popstate', function(e) {
             const {state} = e.originalEvent;
-            const {begin_epoch, end_epoch, totalRows} = state;    
+            const {begin_epoch, end_epoch} = state;    
             $inputBeginEpoch.datetimepicker('date', moment(begin_epoch, 'X'));
             $inputEndEpoch.datetimepicker('date', moment(end_epoch, 'X'));
-            $selectTotalRows.val(totalRows);
         });
 
         $inputBeginEpoch.on("change.datetimepicker", function (e) {
