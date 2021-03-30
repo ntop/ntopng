@@ -76,6 +76,8 @@
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
         // const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
+        const $inputBeginEpoch = $(`#begin-epoch`);
+        const $inputEndEpoch = $(`#end-epoch`);
 
 	    /* Show an overlay to hide loading */
         function toggleOverlays(time = 500) {
@@ -140,6 +142,17 @@
 
             url.searchParams.set('begin_epoch', begin.unix());
             url.searchParams.set('end_epoch', end.unix());
+
+            // get all filters tags
+            const tags = tagify.getTagElms();
+            for (const tag of tags) {
+
+                const key = tag.getAttribute('key');
+                const selectedOperator = tag.getAttribute('selectedoperator');
+                const value = tag.getAttribute('value');
+
+                url.searchParams.set(key, `${value},${selectedOperator}`);
+            }
 
             window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix()}, '', url);
         }
@@ -224,7 +237,7 @@
             // add/update datasource params, default operator `=`
             datasourceParams[tag.key] = `${tag.value},eq`;
             // trigger request
-            await onRangePickerChange(false);
+            await onRangePickerChange(true);
         });
 
         $(`tags`).on('change', 'select.operator', async function(e) {
@@ -237,7 +250,7 @@
             datasourceParams[$tag.attr('key')] = `${$tag.attr('value')},${selectedOperator}`;
 
             // trigger request
-            await onRangePickerChange(false);
+            await onRangePickerChange(true);
         });
 
 	    // clear all the filters on click
@@ -252,7 +265,8 @@
             }
 
             tagify.removeAllTags();
-            await onRangePickerChange(false);
+
+            await onRangePickerChange(true);
         });
 
         $table.on('click', `a.tag-filter`, function (e) {
@@ -283,5 +297,14 @@
             tagify.addTags([tag]);
         });
     
+        // when the user navigates using the browser's arrows
+        // set the input boxes with their respective values
+        $(window).on('popstate', function(e) {
+            const {state} = e.originalEvent;
+            const {begin_epoch, end_epoch} = state;    
+            $inputBeginEpoch.datetimepicker('date', moment(begin_epoch, 'X'));
+            $inputEndEpoch.datetimepicker('date', moment(end_epoch, 'X'));
+        });
+
     });
 </script>

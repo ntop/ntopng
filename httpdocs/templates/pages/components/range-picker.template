@@ -173,7 +173,6 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
 
         const $inputBeginEpoch = $(`#begin-epoch`);
         const $inputEndEpoch = $(`#end-epoch`);
-        const $selectTotalRows = $(`#select-len`);
 
         const $btnApply = $(`#btn-apply`);
         const $btnJumpTimeBack = $(`#btn-jump-time-back`);
@@ -319,15 +318,6 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
         });
 
         $('[data-toggle="tooltip"]').tooltip();
-
-        // when the user navigates using the browser's arrows
-        // set the input boxes with their respective values
-        $(window).on('popstate', function(e) {
-            const {state} = e.originalEvent;
-            const {begin_epoch, end_epoch} = state;    
-            $inputBeginEpoch.datetimepicker('date', moment(begin_epoch, 'X'));
-            $inputEndEpoch.datetimepicker('date', moment(end_epoch, 'X'));
-        });
 
         $inputBeginEpoch.on("change.datetimepicker", function (e) {
             $inputEndEpoch.datetimepicker('minDate', e.date);
