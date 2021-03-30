@@ -78,6 +78,8 @@
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
         const $inputBeginEpoch = $(`#begin-epoch`);
         const $inputEndEpoch = $(`#end-epoch`);
+        const $btnGetPermaLink = $(`#btn-get-permalink`);
+
 
 	    /* Show an overlay to hide loading */
         function toggleOverlays(time = 500) {
@@ -304,6 +306,24 @@
             const {begin_epoch, end_epoch} = state;    
             $inputBeginEpoch.datetimepicker('date', moment(begin_epoch, 'X'));
             $inputEndEpoch.datetimepicker('date', moment(end_epoch, 'X'));
+        });
+
+
+        $btnGetPermaLink.on('click', function() {
+
+            const $this = $(this);
+            const dummyInput = document.createElement('input');
+            dummyInput.value = location.href;
+            document.body.appendChild(dummyInput);
+            dummyInput.select();
+            // copy the url to the clipboard from the dummy input
+            document.execCommand("copy");
+            document.body.removeChild(dummyInput);
+
+            $this.attr("title", "Copied!")
+                .tooltip("dispose")
+                .tooltip()
+                .tooltip("show");
         });
 
     });

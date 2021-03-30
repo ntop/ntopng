@@ -181,7 +181,6 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
         const $btnZoomOut = $(`#btn-zoom-out`);
 
         const $btnCustomPreset = $(`#btn-custom-preset`);
-        const $btnGetPermaLink = $(`#btn-get-permalink`);
 
         function updateRangePicker(operation, maxDate) {
 
@@ -250,23 +249,6 @@ const endEpoch = {{ (_GET['end_epoch'] or 'undefined') }};
             updateRangePicker('add', now);
             // trigger the apply event
             $(`#btn-apply`).trigger('click');
-        });
-
-        $btnGetPermaLink.on('click', function() {
-
-            const $this = $(this);
-            const dummyInput = document.createElement('input');
-            dummyInput.value = location.href;
-            document.body.appendChild(dummyInput);
-            dummyInput.select();
-            // copy the url to the clipboard from the dummy input
-            document.execCommand("copy");
-            document.body.removeChild(dummyInput);
-
-            $this.attr("title", "Copied!")
-                .tooltip("dispose")
-                .tooltip()
-                .tooltip("show");
         });
 
         const calculateHalfZoomIn = () => {
