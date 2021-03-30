@@ -77,6 +77,7 @@ local alert_keys = {
       alert_ndpi_dns_suspicious_traffic     = {NO_PEN, 53},
       alert_ndpi_tls_missing_sni            = {NO_PEN, 54},
       alert_iec_unexpected_type_id          = {NO_PEN, 55},
+      alert_tcp_no_data_exchanged           = {NO_PEN, 56},
       
       -- NOTE: for flow alerts not not go beyond the size of Bitmap alert_map inside Flow.h (currently 128)
 

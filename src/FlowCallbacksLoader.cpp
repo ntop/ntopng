@@ -83,6 +83,7 @@ void FlowCallbacksLoader::registerFlowCallbacks() {
   if((fcb = new RemoteToLocalInsecureProto()))                  cb_all[fcb->getName()] = fcb;
   if((fcb = new RemoteToRemote()))                              cb_all[fcb->getName()] = fcb;
   if((fcb = new TCPZeroWindow()))                               cb_all[fcb->getName()] = fcb;
+  if((fcb = new TCPNoDataExchanged()))                          cb_all[fcb->getName()] = fcb;
   if((fcb = new TCPIssues()))                                   cb_all[fcb->getName()] = fcb;
   if((fcb = new UDPUnidirectional()))                           cb_all[fcb->getName()] = fcb;
   if((fcb = new UnexpectedDNSServer()))                         cb_all[fcb->getName()] = fcb;

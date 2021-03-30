@@ -426,7 +426,8 @@ typedef enum {
   alert_ndpi_dns_suspicious_traffic      = 53,
   alert_ndpi_tls_missing_sni             = 54,
   alert_iec_unexpected_type_id           = 55, /* To be implemented */
-
+  alert_tcp_no_data_exchanged            = 56,
+  
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
   
   /* TODO check and add support for the below flow risks:

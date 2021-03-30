@@ -30,6 +30,7 @@
 #include "flow_alerts/RemoteToLocalInsecureProtoAlert.h"
 #include "flow_alerts/RemoteToRemoteAlert.h"
 #include "flow_alerts/TCPIssuesAlert.h"
+#include "flow_alerts/TCPNoDataExchangedAlert.h"
 #include "flow_alerts/TCPZeroWindowAlert.h"
 #include "flow_alerts/UDPUnidirectionalAlert.h"
 #include "flow_alerts/UnexpectedServerAlert.h"
