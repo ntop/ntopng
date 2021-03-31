@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 require "flow_utils"
+local alerts_api = require "alerts_api"
 local format_utils = require("format_utils")
 local alert_consts = require "alert_consts"
 local flow_utils = require "flow_utils"
@@ -20,6 +21,7 @@ local debug = false
 local debug_process = false -- Show flow processed information
 
 local ifstats = interface.getStats()
+local delta_cache = "ntopng.interface_filtered_traffic_" .. ifstats.id
 
 -- System host parameters
 local hosts  = _GET["hosts"]
@@ -31,14 +33,16 @@ local throughput_type = getThroughputType()
 local flows_filter = getFlowsFilter()
 local flows_stats
 local total = 0
+local filtered_traffic_stats
 
 if not flows_to_update then
    flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
    total = flows_stats["numFlows"]
    flows_stats = flows_stats["flows"]
+
 else
    flows_stats = {}
-
+   
    -- Only update the requested rows
    for _, k in pairs(split(flows_to_update, ",")) do
       local flow_key_and_hash = string.split(k, "@") or {}
@@ -52,6 +56,9 @@ else
       end
    end
 end
+
+-- This is used to get the current bytes rcvd and sent by these specific filters
+filtered_traffic_stats = interface.getFlowsTrafficStats(flows_filter["hostFilter"], flows_filter, true)
 
 -- Prepare host
 local host_list = {}

@@ -669,6 +669,12 @@ class NetworkInterface : public AlertableEntity {
 	       AddressTree *allowed_hosts,
 	       Host *host,
 	       Paginator *p);
+  int getFlowsTraffic(lua_State* vm,
+	       u_int32_t *begin_slot,
+	       bool walk_all,
+	       AddressTree *allowed_hosts,
+	       Host *host,
+	       Paginator *p);
   int getFlowsGroup(lua_State* vm,
 		AddressTree *allowed_hosts,
 		Paginator *p,
