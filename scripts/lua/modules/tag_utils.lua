@@ -28,6 +28,7 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["l7proto"]  = "L7_PROTO",
    ["l4proto"]  = "PROTOCOL",
    ["l7cat"]    = "L7_CATEGORY",
+   ["flow_risk"] = "FLOW_RISK",
    ["pkts"]     = "PACKETS",
    ["bytes"]    = "TOTAL_BYTES",
 }

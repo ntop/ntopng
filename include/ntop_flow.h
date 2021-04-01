@@ -496,6 +496,7 @@
 #define SRC_NAME              NTOP_BASE_ID+522
 #define DST_NAME              NTOP_BASE_ID+523
 #define COMMUNITY_ID          NTOP_BASE_ID+524
-#define L7_CATEGORY           NTOP_BASE_ID+525
+#define L7_CATEGORY           NTOP_BASE_ID+509
+#define FLOW_RISK             NTOP_BASE_ID+508
 
 #endif /* _NTOP_FLOW_H_ */
