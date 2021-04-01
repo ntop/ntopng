@@ -1389,7 +1389,7 @@
 				}
 			}
 		},
-		"lua/pro/rest/v1/get/host/top/local/talkers.lua": {
+		"lua/pro/rest/v1/get/interface/top/local/talkers.lua": {
 			"get": {
 				"tags": [
 					"Hosts"
@@ -1418,7 +1418,7 @@
 				}
 			}
 		},
-		"lua/pro/rest/v1/get/host/top/remote/talkers.lua": {
+		"lua/pro/rest/v1/get/interface/top/remote/talkers.lua": {
 			"get": {
                                 "tags": [
                                         "Hosts"
