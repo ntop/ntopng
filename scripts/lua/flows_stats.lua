@@ -75,11 +75,7 @@ if (page == "flows" or page == nil) then
 
    page_utils.print_page_title(active_msg)
 
-print [[
-      <div id="table-flows"></div>
-        <script>
-   var url_update = "]]
-
+   
 if(category ~= nil) then
    page_params["category"] = category
 end
@@ -173,6 +169,32 @@ if(traffic_profile ~= nil) then
   page_params["traffic_profile"] = traffic_profile
 end
 
+if table.len(page_params) > 0 then
+      print [[
+      <div class="col-12">
+         <div class="info-stats">
+            <a href="#">
+               <div class="up">
+                  <i class="fas fa-arrow-up" data-original-title="" title=""></i>
+                  <span id="upload-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                  <span id="upload-filter-traffic-value"></span>
+               </div>
+               <div class="down">
+                  <i class="fas fa-arrow-down" data-original-title="" title=""></i>
+                  <span id="download-filter-traffic-chart" class="line">0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>
+                  <span id="download-filter-traffic-value"></span>
+               </div>
+            </a>
+         </div>
+      </div>
+]]
+end
+
+   print [[
+      <div id="table-flows"></div>
+        <script>
+   var url_update = "]]
+
 print(getPageUrl(ntop.getHttpPrefix().."/lua/get_flows_data.lua", page_params))
 
 print ('";')
@@ -181,7 +203,7 @@ print ('";')
 
 	 var table = $("#table-flows").datatable({
 			url: url_update ,
-         tableCallback: function()  {
+         tableCallback: function(test_tmp)  {
             ]] initFlowsRefreshRows() print[[
          },
 ]]
@@ -316,5 +338,41 @@ end
 print[[
 </script>
 ]]
+
+if table.len(page_params) > 0 then
+   print([[
+      <script>
+         $(document).ready(function() {
+            const downloadChart = $("#download-filter-traffic-chart").peity("line", { width: 64, fill: "lightgreen" });
+            const uploadChart = $("#upload-filter-traffic-chart").peity("line", { width: 64 });
+
+            function pushNewValue(chart, newValue) {
+               const values = chart.text().split(",");
+               values.shift();
+               values.push(newValue);
+
+               chart
+                 .text(values.join(","))
+                 .change()  
+            }
+
+            function updateChart() {
+               const request = $.get("]] .. getPageUrl(ntop.getHttpPrefix() .. "/lua/rest/v1/get/flow/traffic_stats.lua", page_params) .. "&ifid=" .. interface.getId() .. [[");
+               request.then((data) => {
+                  pushNewValue(downloadChart, -data.rsp.throughput_bps_rcvd);  
+                  pushNewValue(uploadChart, data.rsp.throughput_bps_sent);
+                  $('#upload-filter-traffic-value').html(NtopUtils.bitsToSize(data.rsp.throughput_bps_sent, 1000));
+                  $('#download-filter-traffic-value').html(NtopUtils.bitsToSize(-data.rsp.throughput_bps_rcvd, 1000)); 
+               })
+            }
+
+            setInterval(() => {
+               updateChart()
+            }, 5000)             
+         })
+      </script>
+   ]])
+end
+
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

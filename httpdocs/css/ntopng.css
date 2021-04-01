@@ -586,15 +586,18 @@ main#n-container {
 }
 
 .info-stats div.down,
-.info-stats div.up {
+.downup-charts div.down,
+.info-stats div.up,
+.downup-charts div.up {
   min-width: 12rem;
 }
 
-.info-stats div.down {
+.info-stats div.down,
+.downup-charts div.down {
   margin-top: -.55rem;
 }
 
-.info-stats {
+.info-stats, .downup-charts {
   display: flex;
   align-items: center;
 }

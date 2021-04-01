@@ -274,7 +274,8 @@ void NetworkInterface::init() {
   is_dynamic_interface = false, show_dynamic_interface_traffic = false;
   dynamic_interface_criteria = 0;
   dynamic_interface_mode = flowhashing_none;
-
+  totOldBytesSent = totOldBytesRcvd = 0;
+  
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   top_os    = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = NULL;
@@ -4559,12 +4560,17 @@ int NetworkInterface::getFlowsTraffic(lua_State* vm,
   lua_newtable(vm);
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "numFlows", retriever.actNumEntries);
-  lua_push_uint64_table_entry(vm, "totBytesSent", retriever.totBytesSent);
-  lua_push_uint64_table_entry(vm, "totBytesRcvd", retriever.totBytesRcvd);
+  lua_push_uint64_table_entry(vm, "totOldBytesSent", totOldBytesSent);
+  lua_push_uint64_table_entry(vm, "totOldBytesRcvd", totOldBytesRcvd);
+  lua_push_uint64_table_entry(vm, "totNewBytesSent", retriever.totBytesSent);
+  lua_push_uint64_table_entry(vm, "totNewBytesRcvd", retriever.totBytesRcvd);
     
   lua_pushstring(vm, "flows");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  totOldBytesSent = retriever.totBytesSent;
+  totOldBytesRcvd = retriever.totBytesRcvd;
 
   return(retriever.actNumEntries);
 }
