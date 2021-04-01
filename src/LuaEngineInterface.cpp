@@ -3171,7 +3171,7 @@ static int ntop_nindex_select(lua_State* vm) {
   char *select = NULL, *where = NULL;
   bool export_results = false;
   char *timestamp_begin, *timestamp_end;
-  unsigned long skip_initial_records, max_num_hits;
+  u_int32_t skip_initial_records, max_num_hits;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   NIndexFlowDB *nindex;
   struct mg_connection *conn;
@@ -3196,10 +3196,10 @@ static int ntop_nindex_select(lua_State* vm) {
   where = (char*)lua_tostring(vm, id++);
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  skip_initial_records = (unsigned long)lua_tonumber(vm, id++);
+  skip_initial_records = (u_int32_t)lua_tonumber(vm, id++);
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  max_num_hits = (unsigned long)lua_tonumber(vm, id++);
+  max_num_hits = (u_int32_t)lua_tonumber(vm, id++);
 
   if(lua_type(vm, id) == LUA_TBOOLEAN)
     export_results = lua_toboolean(vm, id++) ? true : false;
@@ -3218,7 +3218,7 @@ static int ntop_nindex_topk(lua_State* vm) {
   u_int8_t id = 1;
   char *select_keys = NULL, *select_values = NULL,*where = NULL;
   char *timestamp_begin, *timestamp_end;
-  unsigned long skip_initial_records, max_num_hits;
+  u_int32_t skip_initial_records, max_num_hits;
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   NIndexFlowDB *nindex;
   char *_topkOperator;
@@ -3256,10 +3256,10 @@ static int ntop_nindex_topk(lua_State* vm) {
   else topkOperator = topk_select_operator_max;
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  skip_initial_records = (unsigned long)lua_tonumber(vm, id++);
+  skip_initial_records = (u_int32_t)lua_tonumber(vm, id++);
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
-  max_num_hits = (unsigned long)lua_tonumber(vm, id++);
+  max_num_hits = (u_int32_t)lua_tonumber(vm, id++);
 
   if(ntop_lua_check(vm, __FUNCTION__, id, LUA_TBOOLEAN) != CONST_LUA_OK) return(CONST_LUA_PARAM_ERROR);
   topToBottomSort = lua_toboolean(vm, id++) ? true : false;
