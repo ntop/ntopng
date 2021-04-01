@@ -79,7 +79,7 @@ class NetworkInterface : public AlertableEntity {
   std::atomic<u_int64_t> num_active_alerted_flows_error;   /* Counts all flow alerts with severity >= error   */
   u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts, num_dropped_flow_scripts_calls;
   u_int64_t num_written_alerts, num_alerts_queries;
-  u_int64_t num_new_flows, totOldBytesSent, totOldBytesRcvd;
+  u_int64_t num_new_flows;
   struct {
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;

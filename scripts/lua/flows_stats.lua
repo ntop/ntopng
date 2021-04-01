@@ -75,7 +75,7 @@ if (page == "flows" or page == nil) then
 
    page_utils.print_page_title(active_msg)
 
-   
+
 if(category ~= nil) then
    page_params["category"] = category
 end
@@ -342,6 +342,10 @@ print[[
 if table.len(page_params) > 0 then
    print([[
       <script>
+         var old_totBytesSent = 0;
+         var old_totBytesRcvd = 0;
+         var refresh_rate     = 5; /* seconds */
+
          $(document).ready(function() {
             const downloadChart = $("#download-filter-traffic-chart").peity("line", { width: 64, fill: "lightgreen" });
             const uploadChart = $("#upload-filter-traffic-chart").peity("line", { width: 64 });
@@ -353,22 +357,37 @@ if table.len(page_params) > 0 then
 
                chart
                  .text(values.join(","))
-                 .change()  
+                 .change()
             }
 
             function updateChart() {
                const request = $.get("]] .. getPageUrl(ntop.getHttpPrefix() .. "/lua/rest/v1/get/flow/traffic_stats.lua", page_params) .. "&ifid=" .. interface.getId() .. [[");
                request.then((data) => {
-                  pushNewValue(downloadChart, -data.rsp.throughput_bps_rcvd);  
-                  pushNewValue(uploadChart, data.rsp.throughput_bps_sent);
-                  $('#upload-filter-traffic-value').html(NtopUtils.bitsToSize(data.rsp.throughput_bps_sent, 1000));
-                  $('#download-filter-traffic-value').html(NtopUtils.bitsToSize(-data.rsp.throughput_bps_rcvd, 1000)); 
+                  var throughput_bps_sent = (8 * (data.rsp.flows.totBytesSent - old_totBytesSent)) / refresh_rate;
+                  var throughput_bps_rcvd = (8 * (data.rsp.flows.totBytesRcvd - old_totBytesRcvd)) / refresh_rate;
+
+                  if(throughput_bps_sent < 0) throughput_bps_sent = 0;
+                  if(throughput_bps_rcvd < 0) throughput_bps_rcvd = 0;
+
+                  if((old_totBytesSent > 0) || (old_totBytesRcvd > 0)) {
+                    /* Second iteration or later */
+                    pushNewValue(downloadChart, -throughput_bps_rcvd);
+                    pushNewValue(uploadChart, throughput_bps_sent);
+                    $('#download-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_rcvd, 1000));                  
+                    $('#upload-filter-traffic-value').html(NtopUtils.bitsToSize(throughput_bps_sent, 1000));
+                   }
+
+                  /* Keep the old value for computing the differnce at the next round */
+                  old_totBytesSent = data.rsp.flows.totBytesSent;
+                  old_totBytesRcvd = data.rsp.flows.totBytesRcvd;
                })
             }
 
             setInterval(() => {
                updateChart()
-            }, 5000)             
+            }, refresh_rate*1000);
+
+            updateChart();
          })
       </script>
    ]])
