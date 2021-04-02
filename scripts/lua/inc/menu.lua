@@ -193,7 +193,7 @@ else
 	    {
 	       entry = page_utils.menu_entries.db_explorer,
 	       hidden = not ntop.isPro() or not prefs.is_nindex_enabled or ifs.isViewed,
-	       url = "/lua/pro/nindex_stats.lua",
+	       url = "/lua/pro/nindex_query.lua",
 	    },
 	 },
       }
