@@ -2012,6 +2012,7 @@ local known_parameters = {
    ["start"]              = validateNumber,
    ["length"]             = validateNumber,
    ["draw"]               = validateNumber,
+   ["visible_columns"]          = validateEmptyOr(validateListOfTypeInline(validateSingleWord))
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix
@@ -2075,7 +2076,7 @@ local special_parameters = {   --[[Suffix validator]]     --[[Value Validator]]
    -- server side Datatables
    ["columns_"]                = { validateNumber, validateBool },
    ["search_"]                 = { validateNumber, validateSingleWord },
-   ["order_"]                  = { validateNumber, validateSingleWord }
+   ["order_"]                  = { validateNumber, validateSingleWord },
 }
 
 -- #################################################################

@@ -506,7 +506,7 @@ class DataTableUtils {
         });
     }
 
-    static addToggleColumnsDropdown(tableAPI) {
+    static addToggleColumnsDropdown(tableAPI, toggleCallback = (col, visible) => {}) {
 
         if (tableAPI === undefined) {
             throw 'The $table is undefined!';
@@ -582,6 +582,8 @@ class DataTableUtils {
                     // Toggle the visibility
                     col.visible(!col.visible());
 
+                    const visible = col.visible();
+
                     const hiddenColumns = [];
                     // insert inside the array only the hidden columns
                     tableAPI.columns().every(function(i) {
@@ -596,6 +598,11 @@ class DataTableUtils {
                         if (data.success) return;
                         console.warn(data.message);
                     });
+
+                    if (toggleCallback !== undefined) {
+                        toggleCallback(col, visible);
+                    }
+
                 });
 
                 $wrapper.prepend($checkbox);

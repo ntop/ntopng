@@ -179,13 +179,39 @@
         });
 
         let config = DataTableUtils.getStdDatatableConfig(datatableButton);
-        config = DataTableUtils.setAjaxConfig(config, `{* datatable.datasource.endpoint *}`, 'rsp.records');
         config = DataTableUtils.extendConfig(config, {
 	        serverSide: true,
             ordering: false,
             searching: false,
             info: false,
             pagingType: 'full',
+            ajax: {
+                method: 'get',
+                url: '{* datatable.datasource.endpoint *}',
+                dataSrc: 'rsp.records',
+                data: (data, settings) => {
+
+                    const tableApi = settings.oInstance.api();
+                
+                    if (data.columns !== undefined) {
+                        delete data.columns;
+                    }
+
+                    // create visibleColumns field
+                    const visibleColumns = [];
+                    tableApi.columns().every(function(idx) {
+                        
+                        const $column = tableApi.column(idx);
+                        if ($column.visible() && $column.name() !== '') {
+                            visibleColumns.push($column.name());
+                        } 
+                    });
+
+                    data.visible_columns = visibleColumns.join(',');
+
+                    return data;
+                }
+            },
             drawCallback: () => {
                 // remove fast forward button from the table
                 $("#ndpi_table_last").remove();
@@ -197,7 +223,9 @@
         });
 
         const $table = $(`#{{ datatable.name }}`).DataTable(config);
-        DataTableUtils.addToggleColumnsDropdown($table);
+        DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
+            $table.ajax.reload();
+        });
 
         // on ajax request complete then print the query time
         $table.on('xhr', function() {
