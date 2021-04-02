@@ -28,9 +28,16 @@ tag_utils.nindex_tags_to_where_v4 = {
    ["l7proto"]  = "L7_PROTO",
    ["l4proto"]  = "PROTOCOL",
    ["l7cat"]    = "L7_CATEGORY",
-   ["flow_risk"] = "FLOW_RISK",
-   ["pkts"]     = "PACKETS",
-   ["bytes"]    = "TOTAL_BYTES",
+   ["flow_risk"]   = "FLOW_RISK",
+   ["packets"]     = "PACKETS",
+   ["traffic"]     = "TOTAL_BYTES",
+   ["first_seen"]  = "FIRST_SEEN",
+   ["last_seen"]   = "LAST_SEEN",
+   ["src2dst_dscp"] = "SRC2DST_DSCP",
+   ["dst2src_dscp"] = "DST2SRC_DSCP",
+   ["info"]         = "INFO",
+   ["srv_label"]    = "DST_LABEL",
+   ["cli_label"]    = "SRC_LABEL",
 }
 
 -- #####################################
@@ -45,8 +52,13 @@ tag_utils.nindex_tags_to_where_v6 = {
    ["l7proto"]  = "L7_PROTO",
    ["l4proto"]  = "PROTOCOL",
    ["l7cat"]    = "L7_CATEGORY",
-   ["pkts"]     = "PACKETS",
-   ["bytes"]    = "TOTAL_BYTES",
+   ["packets"]      = "PACKETS",
+   ["traffic"]      = "TOTAL_BYTES",
+   ["first_seen"]   = "FIRST_SEEN",
+   ["last_seen"]    = "LAST_SEEN",
+   ["src2dst_dscp"] = "SRC2DST_DSCP",
+   ["dst2src_dscp"] = "DST2SRC_DSCP",
+   ["info"]         = "INFO",
 }
 
 -- #####################################

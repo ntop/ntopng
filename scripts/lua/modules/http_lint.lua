@@ -1387,6 +1387,7 @@ local known_parameters = {
    ["l7proto"]                 = validateFilters(validateProtocolIdOrName),      -- An nDPI application protocol ID, layer 7
    ["l7cat"]                   = validateFilters(validateCategory),      -- An nDPI category, layer 7
    ["flow_risk"]               = validateFilters(validateNumber),        -- Flow risk   
+   ["visible_columns"]         = validateSingleWord,        -- String containing the visible columns used by nindex raw flows   
    ["protocol"]                = validateProtocolIdOrName,      -- An nDPI application protocol ID or name
    ["ndpi"]                    = validateApplicationsList,      -- a list applications
    ["ndpi_new_cat_id"]         = validateNumber,                -- An ndpi category id after change
