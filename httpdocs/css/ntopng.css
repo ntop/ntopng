@@ -927,3 +927,47 @@ footer {
 .tagify-non-editable .tagify__input{
   display: none !important;
 }
+ 
+.dashboard-widget-container {
+  --tw-shadow: 0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06);
+  --tw-ring-offset-shadow: 0 0 transparent;
+  height: 250px; 
+  border: 1px solid #e5e7eb; 
+  border-radius: .375rem;
+  box-shadow: var(--tw-ring-offset-shadow,0 0 transparent),var(--tw-ring-shadow,0 0 transparent),var(--tw-shadow);
+}
+.dashboard-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-widget-header {
+  padding: .45rem 1rem;
+  margin-bottom: 0;
+  background-color: rgba(0,0,0,.02);
+  border-bottom: 1px solid rgba(0,0,0,.125);
+  font-size: 0.85rem;
+  color: rgba(107,114,128,1);
+}
+.dashboard-widget-body {
+  height: 100%;
+}
+.percentage-widget {
+  width: 100%; 
+  height: 100%; 
+  display: flex; 
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.percentage-widget .value {
+  font-size: 4rem;
+  font-weight: 600;
+}
+.percentage-widget .percentage {
+  font-size: 1.5rem;
+  margin-top: -0.50rem;
+}
+.percentage-widget .percentage.positive {
+  color: #2ca61c;
+}

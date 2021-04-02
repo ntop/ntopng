@@ -76,10 +76,10 @@
         const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
         // const chart = WidgetUtils.getWidgetByName("{{ chart.name }}");
         const datasourceParams = {* json.encode(datatable.datasource.params) *};
+
         const $inputBeginEpoch = $(`#begin-epoch`);
         const $inputEndEpoch = $(`#end-epoch`);
         const $btnGetPermaLink = $(`#btn-get-permalink`);
-
 
 	    /* Show an overlay to hide loading */
         function toggleOverlays(time = 500) {
@@ -137,25 +137,25 @@
         function pushNewHistoryState(begin, end, len) {
             
             const url = new URL(location);
+            const searchParams = new URLSearchParams();
 
-            for (const [key, value] of Object.entries(url.searchParams)) {
-                url.searchParams.set(key, value);
-            }
-
-            url.searchParams.set('begin_epoch', begin.unix());
-            url.searchParams.set('end_epoch', end.unix());
+            searchParams.set('begin_epoch', begin.unix());
+            searchParams.set('end_epoch', end.unix());
 
             // get all filters tags
             const tags = tagify.getTagElms();
+
+            // add the tag filters inside the search params object
             for (const tag of tags) {
 
                 const key = tag.getAttribute('key');
                 const selectedOperator = tag.getAttribute('selectedoperator');
                 const value = tag.getAttribute('value');
 
-                url.searchParams.set(key, `${value},${selectedOperator}`);
+                searchParams.set(key, `${value},${selectedOperator}`);
             }
 
+            url.search = searchParams.toString();
             window.history.pushState({begin_epoch: begin.unix(), end_epoch: end.unix()}, '', url);
         }
 
@@ -218,26 +218,27 @@
         tagify.on('remove', async function(e) {
 
             const key = e.detail.data.key;
+
             if (datasourceParams[key] !== undefined) {
                 delete datasourceParams[key];
             }
 
-            await onRangePickerChange(false);
+            await onRangePickerChange(true);
         });
 
-        tagify.on('change', async function(e) {
+        tagify.on('add', async function(e) {
 
             const detail = e.detail;
-            
-            if (detail.value === "") {
+
+            if (detail.data === undefined) {
                 return;
             }
 
-            const tags = JSON.parse(detail.value);
-            const tag = tags[tags.length - 1];
+            const tag = detail.data;
 
             // add/update datasource params, default operator `=`
             datasourceParams[tag.key] = `${tag.value},eq`;
+
             // trigger request
             await onRangePickerChange(true);
         });
@@ -271,7 +272,7 @@
             await onRangePickerChange(true);
         });
 
-        $table.on('click', `a.tag-filter`, function (e) {
+        $table.on('click', `a.tag-filter`, async function (e) {
             e.preventDefault();
 
             // the tag key is contained inside the column's name
@@ -283,8 +284,15 @@
             const tag = { label: label, key: key, value: (data.label) ? data.label : data };
 
             // does the tag exist?
-            if (tagify.getTagIndexByValue(label).length !== 0) {
-                // the tag exists! don't trigger any request...
+            const existingTag = tagify.getTagElms().find(htmlTag => htmlTag.getAttribute('key') === tag.key);
+            if (existingTag !== undefined && existingTag.getAttribute('value') !== tag.value) {
+                
+                // replace the tag!
+                tagify.replaceTag(existingTag, tag);
+                // update the datasource params
+                datasourceParams[tag.key] = `${tag.value},${selectedOperator}`;
+                await onRangePickerChange(true);
+
                 return;
             } 
 
@@ -307,7 +315,6 @@
             $inputBeginEpoch.datetimepicker('date', moment(begin_epoch, 'X'));
             $inputEndEpoch.datetimepicker('date', moment(end_epoch, 'X'));
         });
-
 
         $btnGetPermaLink.on('click', function() {
 
