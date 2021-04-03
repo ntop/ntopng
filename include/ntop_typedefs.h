@@ -718,9 +718,7 @@ typedef struct {
   NDPI_PROTOCOL_BITMASK clientAllowed, serverAllowed;
 } DeviceProtocolBitmask;
 
-#ifndef HAVE_NEDGE
 class SNMP;
-#endif
 
 typedef struct {
   u_int32_t pktRetr, pktOOO, pktLost, pktKeepAlive;
@@ -757,9 +755,7 @@ struct ntopngLuaContext {
 #ifndef WIN32
   Ping *ping;
 #endif
-#ifndef HAVE_NEDGE
   SNMP *snmpBatch, *snmpAsyncEngine[MAX_NUM_ASYNC_SNMP_ENGINES];
-#endif
   Host *host;
   NetworkStats *network;
   Flow *flow;
