@@ -29,7 +29,7 @@ class LowGoodputFlowAlert : public FlowAlert {
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_low_goodput, alert_category_network }; }
+  static FlowAlertType getClassType() { return { flow_alert_low_goodput, alert_category_network }; }
 
  LowGoodputFlowAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~LowGoodputFlowAlert() {};

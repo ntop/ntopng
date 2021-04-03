@@ -29,7 +29,7 @@ class ExternalAlertCheckAlert : public FlowAlert {
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
   
  public:
-  static FlowAlertType getClassType() { return { alert_external, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_external, alert_category_security }; }
 
 
  ExternalAlertCheckAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};

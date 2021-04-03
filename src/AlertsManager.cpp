@@ -83,6 +83,8 @@ AlertsManager::AlertsManager(int interface_id, const char *filename) : StoreMana
   unlink(filePath);
   sprintf(&filePath[base_offset], "%s", "alerts_v25.db");
   unlink(filePath);
+  sprintf(&filePath[base_offset], "%s", "alerts_v26.db");
+  unlink(filePath);
   filePath[base_offset] = 0;
 
   /* open the newest */
@@ -553,7 +555,7 @@ int AlertsManager::storeFlowAlert(lua_State *L, int index, u_int64_t *rowid) {
   time_t tstamp = 0;
   AlertType alert_type = 0;
   AlertLevel alert_severity = alert_level_none;
-  AlertType status = alert_normal;
+  AlertType status = flow_alert_normal;
   const char *alert_json = "";
   u_int16_t vlan_id = 0;
   u_int8_t protocol = 0;

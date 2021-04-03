@@ -29,7 +29,7 @@ class DeviceProtocolNotAllowedAlert : public FlowAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_device_protocol_not_allowed, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_device_protocol_not_allowed, alert_category_security }; }
 
  DeviceProtocolNotAllowedAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~DeviceProtocolNotAllowedAlert() { };

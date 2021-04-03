@@ -216,14 +216,20 @@ using namespace std;
 #include "TcpPacketStats.h"
 #include "DSCPStats.h"
 #include "ntop_typedefs.h"
+#include "ScoreStats.h"
+#include "ViewScoreStats.h"
+#include "Score.h"
 #include "FrequentStringItems.h"
-#include "Alert.h"
-#include "AlertableEntity.h"
 #include "Trace.h"
 #include "ProtoStats.h"
 #include "Utils.h"
-#include "Bitmap.h"
+#include "Bitmap128.h"
+#include "Bitmap16.h"
 #include "NtopGlobals.h"
+#include "Alert.h"
+#include "AlertableEntity.h"
+#include "HostAlertableEntity.h"
+#include "OtherAlertableEntity.h"
 #include "nDPIStats.h"
 #include "InterarrivalStats.h"
 #include "FlowStats.h"
@@ -261,7 +267,6 @@ using namespace std;
 #endif
 #endif
 #include "AlertExclusions.h"
-#include "ControlGroups.h"
 #include "HostPoolStats.h"
 #include "HostPools.h"
 #include "Fingerprint.h"
@@ -300,6 +305,7 @@ using namespace std;
 #ifdef HAVE_RADIUS
 #include <radcli/radcli.h>
 #endif
+
 #include "Condvar.h"
 #include "TimeseriesExporter.h"
 #include "InfluxDBTimeseriesExporter.h"
@@ -386,8 +392,7 @@ using namespace std;
 #include "BehaviouralCounter.h"
 #include "FlowTrafficStats.h"
 #include "HostStats.h"
-#include "HostScore.h"
-#include "ViewHostScore.h"
+#include "HostCallbacksStatus.h"
 #include "Host.h"
 #include "LocalHostStats.h"
 #include "LocalHost.h"
@@ -410,8 +415,13 @@ using namespace std;
 #include "Paginator.h"
 #include "FlowAlert.h"
 #include "FlowCallback.h"
+#include "HostAlert.h"
+#include "HostCallback.h"
+#include "CallbacksLoader.h"
 #include "FlowCallbacksLoader.h"
 #include "FlowCallbacksExecutor.h"
+#include "HostCallbacksLoader.h"
+#include "HostCallbacksExecutor.h"
 #include "Ntop.h"
 
 #ifdef NTOPNG_PRO

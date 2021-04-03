@@ -52,7 +52,7 @@ class Prefs {
     enable_users_login, disable_localhost_login, online_license_check,
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
-    emit_flow_alerts;
+    emit_flow_alerts, emit_host_alerts;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period;
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
@@ -400,6 +400,7 @@ class Prefs {
   inline u_int64_t* getIEC104AllowedTypeIDs()    { return(iec104_allowed_typeids);                      };
   inline u_int32_t getIEC60870LearingPeriod()    { return(iec60870_learning_period);                    };
   inline bool      dontEmitFlowAlerts()          { return(!emit_flow_alerts);                           };
+  inline bool      dontEmitHostAlerts()          { return(!emit_host_alerts);                           };
   void setIEC104AllowedTypeIDs(char *protos);
   void validate();
 };

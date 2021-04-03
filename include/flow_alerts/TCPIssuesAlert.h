@@ -31,7 +31,7 @@ class TCPIssuesAlert : public FlowAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_tcp_connection_issues, alert_category_network }; }
+  static FlowAlertType getClassType() { return { flow_alert_tcp_connection_issues, alert_category_network }; }
 
  TCPIssuesAlert(FlowCallback *c, Flow *f, bool _is_client, bool _is_server, bool _is_severe) : FlowAlert(c, f) {
     is_client = _is_client;

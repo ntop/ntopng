@@ -394,6 +394,73 @@ static int ntop_is_not_empty_file(lua_State* vm) {
 
 /* ****************************************** */
 
+int ntop_release_triggered_alert(lua_State* vm, AlertableEntity *a, int idx) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *key;
+  ScriptPeriodicity periodicity;
+  time_t when;
+  OtherAlertableEntity *alertable = dynamic_cast<OtherAlertableEntity*>(a);
+
+  if(!c->iface || !alertable) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  when = (time_t)lua_tonumber(vm, idx++);
+
+  /* The released alert will be pushed to LUA */
+  alertable->releaseAlert(vm, std::string(key), periodicity, when);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+int ntop_store_triggered_alert(lua_State* vm, AlertableEntity *a, int idx) {
+  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  char *key, *alert_subtype, *alert_json;
+  ScriptPeriodicity periodicity;
+  AlertLevel alert_severity;
+  AlertType alert_type;
+  Host *host;
+  bool triggered;
+  OtherAlertableEntity *alertable = dynamic_cast<OtherAlertableEntity*>(a);
+
+  if(!alertable || !c->iface) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((key = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_severity = (AlertLevel)lua_tointeger(vm, idx++);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  alert_type = (AlertType)lua_tonumber(vm, idx++);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((alert_subtype = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  if(ntop_lua_check(vm, __FUNCTION__, idx, LUA_TSTRING) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  if((alert_json = (char*)lua_tostring(vm, idx++)) == NULL) return(CONST_LUA_PARAM_ERROR);
+
+  triggered = alertable->triggerAlert(vm, std::string(key), periodicity, time(NULL),
+    alert_severity, alert_type, alert_subtype, alert_json);
+
+  if(triggered && (host = dynamic_cast<Host*>(alertable)))
+    host->incTotalAlerts();
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_file_dir_exists(lua_State* vm) {
   char *path;
   struct stat buf;
@@ -640,6 +707,17 @@ static int ntop_reload_flow_callbacks(lua_State* vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   ntop->reloadFlowCallbacks();
+
+  lua_pushnil(vm);
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_reload_host_callbacks(lua_State* vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  ntop->reloadHostCallbacks();
 
   lua_pushnil(vm);
   return(CONST_LUA_OK);
@@ -5695,6 +5773,7 @@ static int ntop_recipient_register(lua_State* vm) {
 
   return(CONST_LUA_OK);
 }
+
 /* ****************************************** */
 
 static int ntop_recipient_set_flow_recipients(lua_State* vm) {
@@ -5704,6 +5783,21 @@ static int ntop_recipient_set_flow_recipients(lua_State* vm) {
   flow_recipients = lua_tointeger(vm, 1);
 
   ntop->recipient_set_flow_recipients(flow_recipients);
+
+  lua_pushnil(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_recipient_set_host_recipients(lua_State* vm) {
+  u_int64_t host_recipients = (u_int64_t)-1; /* MUST be large enough to contain MAX_NUM_RECIPIENTS */
+
+  if(ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK) return(CONST_LUA_ERROR);
+  host_recipients = lua_tointeger(vm, 1);
+
+  ntop->recipient_set_host_recipients(host_recipients);
 
   lua_pushnil(vm);
 
@@ -6140,6 +6234,7 @@ static luaL_Reg _ntop_reg[] = {
   { "isIPv6",                ntop_is_ipv6                 },
   { "reloadPeriodicScripts", ntop_reload_periodic_scripts },
   { "reloadFlowCallbacks",   ntop_reload_flow_callbacks   },
+  { "reloadHostCallbacks",   ntop_reload_host_callbacks   },
   { "reloadAlertExclusions", ntop_reload_hosts_control    },
   { "shouldResolveHost",     ntop_should_resolve_host     },
   { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids },
@@ -6177,6 +6272,7 @@ static luaL_Reg _ntop_reg[] = {
   { "recipient_delete",              ntop_recipient_delete             },
   { "recipient_register",            ntop_recipient_register           },
   { "recipient_set_flow_recipients", ntop_recipient_set_flow_recipients },
+  { "recipient_set_host_recipients", ntop_recipient_set_host_recipients },
 
   /* nDPI */
   { "getnDPIProtoCategory",   ntop_get_ndpi_protocol_category },

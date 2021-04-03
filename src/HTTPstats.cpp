@@ -197,6 +197,47 @@ void HTTPstats::getResponsesDelta(const struct http_response_stats *r0, const st
 
 /* *************************************** */
 
+u_int32_t HTTPstats::getSentNumQueries() {
+   u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
+
+  getRequests(&query[AS_SENDER], &num_get, &num_post, &num_head, &num_put, &num_other);
+  
+  return num_get+num_post+num_head+num_put+num_other;
+ 
+}
+
+/* *************************************** */
+
+u_int32_t HTTPstats::getSentNumResponses() {
+  u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;
+
+  getResponses(&response[AS_SENDER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
+  
+  return num_1xx+num_2xx+num_3xx+num_4xx+num_5xx;
+}
+
+/* *************************************** */
+
+u_int32_t HTTPstats::getRcvdNumQueries() {
+  u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
+
+  getRequests(&query[AS_RECEIVER], &num_get, &num_post, &num_head, &num_put, &num_other);
+  
+  return num_get+num_post+num_head+num_put+num_other;
+}
+
+/* *************************************** */
+
+u_int32_t HTTPstats::getRcvdNumResponses() {
+  u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;
+
+  getResponses(&response[AS_RECEIVER], &num_1xx, &num_2xx, &num_3xx, &num_4xx, &num_5xx);
+  
+  return num_1xx+num_2xx+num_3xx+num_4xx+num_5xx;
+}
+
+/* *************************************** */
+
 void HTTPstats::luaAddCounters(lua_State *vm, bool as_sender) {
   u_int32_t num_get = 0, num_post = 0, num_head = 0, num_put = 0, num_other = 0;
   u_int32_t num_1xx = 0, num_2xx = 0, num_3xx = 0, num_4xx = 0, num_5xx =0;

@@ -82,13 +82,19 @@ function recipients.initialize()
       ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity, _bitmap_from_user_script_categories(recipient.user_script_categories))
    end
 
-   -- Now specify which recipients are "flow" recipients and tell this information to C++
+   -- Now specify which recipients are "flow" and "host" recipients and tell this information to C++
 
    local pools_alert_utils = require "pools_alert_utils"
    local flow_pools = require "flow_pools"
+   local host_pools = require "host_pools"
 
+   -- Flows
    local all_flow_recipients = pools_alert_utils.get_entity_recipients_by_pool_id(alert_consts.alert_entities.flow.entity_id, flow_pools.DEFAULT_POOL_ID)
    flow_pools:create():set_flow_recipients(all_flow_recipients)
+
+   -- Hosts
+   local all_host_recipients = pools_alert_utils.get_entity_recipients_by_pool_id(alert_consts.alert_entities.host.entity_id, host_pools.DEFAULT_POOL_ID)
+   host_pools:create():set_host_recipients(all_host_recipients)
 end
 
 -- ##############################################

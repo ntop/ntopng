@@ -33,9 +33,7 @@ struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = { { NULL, NULL } };
 
 extern luaL_Reg *ntop_interface_reg;
 extern luaL_Reg *ntop_reg;
-extern luaL_Reg *ntop_host_reg;
 extern luaL_Reg *ntop_network_reg;
-extern luaL_Reg *ntop_flow_reg;
 
 /* ******************************* */
 
@@ -440,9 +438,7 @@ void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
   /* ntop add-ons */
   luaRegister(L, "interface", ntop_interface_reg);
   luaRegister(L, "ntop",      ntop_reg);
-  luaRegister(L, "host",      ntop_host_reg);
   luaRegister(L, "network",   ntop_network_reg);
-  luaRegister(L, "flow",      ntop_flow_reg);
   
   if(http_mode) {
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps data on HTTP server */

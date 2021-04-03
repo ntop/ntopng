@@ -18,6 +18,7 @@ local script = {
   is_alert = true,
 
   default_value = {
+    operator = "gt",
     severity = alert_severities.error,
   },
 
@@ -29,17 +30,14 @@ local script = {
     i18n_description = "alerts_thresholds_config.alert_bytes_description",
     i18n_field_unit = user_scripts.field_units.bytes,
     input_builder = "threshold_cross",
+    field_operator = "gt";
   }
 }
 
 -- #################################################################
 
-function script.hooks.all(params)
-  local host_bytes = host.getBytes()
-  local value = alerts_api.host_delta_val(script.key, params.granularity, host_bytes["bytes.sent"] + host_bytes["bytes.rcvd"])
-
-  -- Check if the configured threshold is crossed by the value and possibly trigger an alert
-  alerts_api.checkThresholdAlert(params, alert_consts.alert_types.alert_threshold_cross, value)
+function script.hooks.min(params)
+   -- TODO: remove, implemented in C++
 end
 
 -- #################################################################

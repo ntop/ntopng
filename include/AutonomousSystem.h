@@ -26,7 +26,7 @@
 
 #include "ntop_includes.h"
 
-class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, public SerializableElement {
+class AutonomousSystem : public GenericHashEntry, public GenericTrafficElement, public SerializableElement, public Score {
  private:
   u_int32_t asn;
   char *asname;

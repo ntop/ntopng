@@ -24,13 +24,21 @@
 
 #include "ntop_includes.h"
 
+typedef struct {
+  Bitmap16 *host_alert_filter;
+  Bitmap128 *flow_alert_filter;
+} alert_exclusion_host_tree_data;
+
 class AlertExclusions {
  private:
   time_t init_tstamp; /* Timestamp, set when the class instance is created */
-  Bitmap default_host_filter; /* Allow all */
-  AddressTree *host_filters; /* A ptree holding, for each host, a Bitmap with disabled flow alerts */
+  Bitmap16  default_host_host_alert_filter; /* Allow all */
+  Bitmap128 default_host_flow_alert_filter; /* Allow all */
+  AddressTree *host_filters; /* A ptree holding, for each host, a Bitmap128 with disabled flow alerts and a Bitmap16 with disabled host alerts */
 
-  /* Add a disabled flow alert for a host */
+  /* Add a disabled host and flow alerts for a host */
+  alert_exclusion_host_tree_data *getHostData(const char * const host);
+  bool addHostDisabledHostAlert(const char * const host, HostAlertTypeEnum disabled_host_alert_type);
   bool addHostDisabledFlowAlert(const char * const host, FlowAlertTypeEnum disabled_flow_alert_type);
 
   void loadConfiguration(); /* Read the configuration from Redis and initialize internal data structures */
@@ -41,7 +49,7 @@ class AlertExclusions {
 
   /* Check whether the filters have changed since last_change, setting last_change to the latest change time */
   bool checkChange(time_t *last_change) const;
-  void setDisabledFlowAlertsBitmap(IpAddress *addr, Bitmap *bitmap) const;
+  void setDisabledHostAlertsBitmaps(IpAddress *addr, Bitmap16 *host_alerts, Bitmap128 *flow_alerts) const;
 };
 
 #endif /* _ALERT_EXCLUSIONS_H_ */

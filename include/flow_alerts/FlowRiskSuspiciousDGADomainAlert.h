@@ -29,7 +29,7 @@ class FlowRiskSuspiciousDGADomainAlert : public FlowAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_ndpi_suspicious_dga_domain, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_ndpi_suspicious_dga_domain, alert_category_security }; }
 
  FlowRiskSuspiciousDGADomainAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskSuspiciousDGADomainAlert() { };

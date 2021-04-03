@@ -31,7 +31,7 @@ class ElephantFlowAlert : public FlowAlert {
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_elephant_flow, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_elephant_flow, alert_category_security }; }
 
  ElephantFlowAlert(FlowCallback *c, Flow *f, u_int64_t _l2r_th, u_int64_t _r2l_th) : FlowAlert(c, f) { 
     l2r_th = _l2r_th;

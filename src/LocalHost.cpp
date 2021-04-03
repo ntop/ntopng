@@ -411,26 +411,6 @@ char * LocalHost::getIpBasedSerializationKey(char *redis_key, size_t size) {
  * host initializer) will be returned until this delayed method is called. 
  */
 void LocalHost::reloadPrefs() {
-  char keybuf[128], buf[64], rsp[32];
-
-  /* MUD recording */
-  if(vlan_id == 0) {
-    snprintf(keybuf, sizeof(keybuf), HOST_PREF_MUD_RECORDING, iface->get_id(), ip.print(buf, sizeof(buf)));
-
-    if(!ntop->getRedis()->get(keybuf, rsp, sizeof(rsp)) && (rsp[0] != '\0')) {
-      if(!strcmp(rsp, MUD_RECORDING_GENERAL_PURPOSE))
-        mud_pref = mud_recording_general_purpose;
-      else if(!strcmp(rsp, MUD_RECORDING_SPECIAL_PURPOSE))
-        mud_pref = mud_recording_special_purpose;
-      else if(!strcmp(rsp, MUD_RECORDING_DISABLED))
-        mud_pref = mud_recording_disabled;
-      else
-        mud_pref = mud_recording_default;
-    } else
-      mud_pref = mud_recording_default;
-  } else
-    mud_pref = mud_recording_default;
-
   Host::reloadPrefs();
 }
 

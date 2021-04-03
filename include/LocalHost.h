@@ -109,8 +109,7 @@ class LocalHost : public Host, public SerializableElement {
 
   virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
 		   bool verbose, bool returnHost, bool asListElement);
-  void custom_periodic_stats_update(const struct timeval *tv) {
-  }
+  void custom_periodic_stats_update(const struct timeval *tv) { ; }
 
   virtual void luaHostBehaviour(lua_State* vm)    { if(stats) stats->luaHostBehaviour(vm); }
   virtual void incDohDoTUses(Host *srv_host);
@@ -118,6 +117,10 @@ class LocalHost : public Host, public SerializableElement {
   virtual void incNTPContactCardinality(Host *h)  { stats->incNTPContactCardinality(h);  }
   virtual void incDNSContactCardinality(Host *h)  { stats->incDNSContactCardinality(h);  }
   virtual void incSMTPContactCardinality(Host *h) { stats->incSMTPContactCardinality(h); }
+
+  virtual u_int32_t getNTPContactCardinality()    { return(stats->getNTPContactCardinality());  }
+  virtual u_int32_t getDNSContactCardinality()    { return(stats->getDNSContactCardinality());  }
+  virtual u_int32_t getSMTPContactCardinality()   { return(stats->getSMTPContactCardinality()); }
 };
 
 #endif /* _LOCAL_HOST_H_ */

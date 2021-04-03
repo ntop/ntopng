@@ -121,8 +121,8 @@ for k,v in ipairs(alerts) do
    end
 
    local column_severity = alert_consts.alertSeverityLabel(tonumber(v["alert_severity"]))
-   local column_type     = alert_consts.alertTypeLabel(tonumber(v["alert_type"]))
-   local column_type_str = alert_consts.alertTypeLabel(tonumber(v["alert_type"]), true)
+   local column_type     = alert_consts.alertTypeLabel(tonumber(v["alert_type"]), false, v["alert_entity"])
+   local column_type_str = alert_consts.alertTypeLabel(tonumber(v["alert_type"]), true, v["alert_entity"])
    local column_count    = format_utils.formatValue(tonumber(v["alert_counter"]))
    local column_score    = format_utils.formatValue(tonumber(v["score"]))
    local alert_info      = alert_utils.getAlertInfo(v)
@@ -215,6 +215,8 @@ for k,v in ipairs(alerts) do
       if record["column_subdir"] == "flow" then
 	 -- Enabled, show the bell to disable
 	 record["column_filter"] = v["cli_addr"].."|"..v["srv_addr"]
+      elseif record["column_subdir"] == "host" then
+	 record["column_filter"] = hostkey2hostinfo(alert_entity_val)["host"]
       else
 	 record["column_filter"] = user_scripts.getFilterPreset(alert, alert_info)
       end

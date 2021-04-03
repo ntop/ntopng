@@ -38,7 +38,7 @@ Prefs::Prefs(Ntop *_ntop) {
   attacker_max_num_syn_per_sec = victim_max_num_syn_per_sec = CONST_MAX_NUM_SYN_PER_SECOND;
   ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
-  emit_flow_alerts = true;
+  emit_flow_alerts = emit_host_alerts = true;
   enable_access_log = false, enable_sql_log = false;
   enable_flow_device_port_rrd_creation = false;
   reproduce_at_original_speed = false;
@@ -681,6 +681,7 @@ void Prefs::reloadPrefsFromRedis() {
   global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
   enable_client_x509_auth    = getDefaultBoolPrefsValue(CONST_PREFS_CLIENT_X509_AUTH, false);
   emit_flow_alerts           = getDefaultBoolPrefsValue(CONST_PREFS_EMIT_FLOW_ALERTS, true);
+  emit_host_alerts           = getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
 
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();

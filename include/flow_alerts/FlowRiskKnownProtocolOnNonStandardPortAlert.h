@@ -29,7 +29,7 @@ class FlowRiskKnownProtocolOnNonStandardPortAlert : public FlowAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_known_proto_on_non_std_port, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_known_proto_on_non_std_port, alert_category_security }; }
 
  FlowRiskKnownProtocolOnNonStandardPortAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskKnownProtocolOnNonStandardPortAlert() { };

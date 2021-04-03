@@ -29,7 +29,7 @@ class FlowRiskTLSOldProtocolVersionAlert : public FlowRiskTLSAlert {
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_tls_old_protocol_version, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_tls_old_protocol_version, alert_category_security }; }
 
  FlowRiskTLSOldProtocolVersionAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSOldProtocolVersionAlert() { };

@@ -605,6 +605,7 @@
 #define CONST_SUBINTERFACES_PREFS           NTOPNG_PREFS_PREFIX".%u.sub_interfaces"
 #define CONST_PREFS_CLIENT_X509_AUTH        NTOPNG_PREFS_PREFIX".is_client_x509_auth_enabled"
 #define CONST_PREFS_EMIT_FLOW_ALERTS        NTOPNG_PREFS_PREFIX".emit_flow_alerts"
+#define CONST_PREFS_EMIT_HOST_ALERTS        NTOPNG_PREFS_PREFIX".emit_host_alerts"
 
 #define CONST_PREFS_BEHAVIOUR_ANALYSIS                  NTOPNG_PREFS_PREFIX".is_behaviour_analysis_enabled"
 #define CONST_PREFS_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD  NTOPNG_PREFS_PREFIX".behaviour_analysis_learning_period"
@@ -867,7 +868,7 @@
 #define ALERTS_MAX_DAYS_BEFORE_PURGE         365
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v26.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v27.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"
@@ -899,7 +900,7 @@
 #define HOURLY_SCRIPT_PATH                   "hourly.lua"
 #define DAILY_SCRIPT_PATH                    "daily.lua"
 
-#define FLOW_CALLBACKS_CONFIG        "ntopng.prefs.user_scripts.configset_v3"  /* Sync with user_scripts.lua CONFIGSET_KEY  */
+#define CALLBACKS_CONFIG        "ntopng.prefs.user_scripts.configset_v3"  /* Sync with user_scripts.lua CONFIGSET_KEY  */
 #define ALERTS_CONFIG                "ntopng.prefs.alerts_config.configset_v3" /* Sync with alerts_config.lua CONFIGSET_KEY */
 #define SYSLOG_SCRIPT_PATH           "callbacks/system/syslog.lua"
 #define SYSLOG_SCRIPT_CALLBACK_EVENT "handleEvent"
@@ -1061,6 +1062,7 @@ extern struct ntopngLuaContext* getUserdata(struct lua_State *vm);
   Queue lengths for user-script queues
  */
 #define MAX_FLOW_CALLBACKS_QUEUE_LEN       131072
+#define MAX_HOST_CALLBACKS_QUEUE_LEN       131072
 
 /*
   user-script lua engine lifetime 

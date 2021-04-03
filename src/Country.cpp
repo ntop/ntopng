@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-Country::Country(NetworkInterface *_iface, const char *country) : GenericHashEntry(_iface), dirstats(_iface, 0) {
+Country::Country(NetworkInterface *_iface, const char *country) : GenericHashEntry(_iface), Score(_iface), dirstats(_iface, 0) {
   country_name = strdup(country);
 
 #ifdef COUNTRY_DEBUG

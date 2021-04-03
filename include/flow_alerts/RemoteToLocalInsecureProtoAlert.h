@@ -29,7 +29,7 @@ class RemoteToLocalInsecureProtoAlert : public FlowAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);  
 
  public:
-  static FlowAlertType getClassType() { return { alert_remote_to_local_insecure_proto, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_remote_to_local_insecure_proto, alert_category_security }; }
 
  RemoteToLocalInsecureProtoAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~RemoteToLocalInsecureProtoAlert() {};

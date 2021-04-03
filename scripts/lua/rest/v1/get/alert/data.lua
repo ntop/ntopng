@@ -86,7 +86,7 @@ for _key,_value in ipairs(alerts) do
    end
 
    local severity = alert_consts.alertSeverityRaw(tonumber(_value["alert_severity"]))
-   local atype = alert_consts.alertTypeRaw(tonumber(_value["alert_type"]))
+   local atype = alert_consts.getAlertType(tonumber(_value["alert_type"]), tonumber(_value["alert_entity"]))
    local count    = tonumber(_value["alert_counter"])
    local score    = tonumber(_value["score"])
    local alert_info      = alert_utils.getAlertInfo(_value)

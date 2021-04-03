@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class VLAN : public GenericHashEntry, public GenericTrafficElement, public SerializableElement {
+class VLAN : public GenericHashEntry, public GenericTrafficElement, public SerializableElement, public Score {
  private:
   u_int16_t vlan_id;
   

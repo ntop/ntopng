@@ -29,7 +29,7 @@ class FlowRiskBinaryApplicationTransferAlert : public FlowAlert {
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_suspicious_file_transfer, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_suspicious_file_transfer, alert_category_security }; }
 
  FlowRiskBinaryApplicationTransferAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
   ~FlowRiskBinaryApplicationTransferAlert() { };

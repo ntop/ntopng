@@ -46,7 +46,7 @@ Flow::Flow(NetworkInterface *_iface,
   good_tls_hs = true, flow_dropped_counts_increased = false, vrfId = 0;
   srcAS = dstAS  = prevAdjacentAS = nextAdjacentAS = 0;
   predominant_alert_level = alert_level_none;
-  predominant_alert.id = alert_normal, predominant_alert.category = alert_category_other;
+  predominant_alert.id = flow_alert_normal, predominant_alert.category = alert_category_other;
   predominant_alert_score = 0;
   ndpi_flow_risk_bitmap = 0;
   detection_completed = false;
@@ -2396,7 +2396,7 @@ void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
     ndpi_stats->incFlowsStats(detected_protocol.master_protocol);
   }
 
-  status_stats->incStats(getAlertBitmap(), protocol, predominant_alert_level, getCli2SrvDSCP(), getSrv2CliDSCP(), this);
+  status_stats->incStats(getAlertsBitmap(), protocol, predominant_alert_level, getCli2SrvDSCP(), getSrv2CliDSCP(), this);
 }
 
 /* *************************************** */
@@ -3052,7 +3052,7 @@ bool Flow::enqueueAlert(FlowAlert *alert) {
 
   rv = ntop->recipients_enqueue(notification.alert_severity >= alert_level_error ? recipient_notification_priority_high : recipient_notification_priority_low,
 				&notification,
-				true /* Flow recipients only */);
+				alert_entity_flow /* Flow recipients */);
 
   if(!rv)
     getInterface()->incNumDroppedAlerts(1);
@@ -4623,7 +4623,7 @@ void Flow::lua_get_status(lua_State* vm) const {
   lua_push_bool_table_entry(vm, "flow.idle", idle());
   lua_push_uint64_table_entry(vm, "flow.status", getPredominantAlert().id);
 
-  alert_map.lua(vm, "alert_map");
+  alerts_map.lua(vm, "alerts_map");
 
   if(isFlowAlerted()) {
     lua_push_bool_table_entry(vm, "flow.alerted", true);
@@ -5304,7 +5304,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Set alert score: %u (%u/%u)", flow_inc, cli_inc, srv_inc);
 #endif
 
-  if(alert_type.id == alert_normal) {
+  if(alert_type.id == flow_alert_normal) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (normal)");
 #endif
@@ -5313,7 +5313,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, 
 
   /* Check if the same alert has been already triggered and
    * accounted in the score, unless this is a "sync" alert */
-  if(async && alert_map.isSetBit(alert_type.id)) {
+  if(async && alerts_map.isSetBit(alert_type.id)) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (already set)");
 #endif
@@ -5333,7 +5333,7 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, 
     /* This is the first time an alert is set on this flow. The flow was normal and now becomes alerted. */
     setNormalToAlertedCounters();
 
-  alert_map.setBit(alert_type.id);
+  alerts_map.setBit(alert_type.id);
 
   flow_score += flow_inc;
 

@@ -28,7 +28,7 @@ class FlowRiskTLSCertificateExpiredAlert : public FlowRiskTLSAlert {
  private:
 
  public:
-  static FlowAlertType getClassType() { return { alert_tls_certificate_expired, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_tls_certificate_expired, alert_category_security }; }
 
  FlowRiskTLSCertificateExpiredAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) { };
   ~FlowRiskTLSCertificateExpiredAlert() { };

@@ -35,7 +35,7 @@ FlowCallback::FlowCallback(NtopngEdition _edition,
   if(_has_periodic_update)    has_periodic_update = 1;
   if(_has_flow_end)           has_flow_end = 1;
 
-  plugin_edition = _edition;
+  callback_edition = _edition;
   enabled = 0, severity_id = alert_level_warning;
 };
 
@@ -48,7 +48,7 @@ FlowCallback::~FlowCallback() {
 
 bool FlowCallback::isCallbackCompatibleWithInterface(NetworkInterface *iface) {
   /* Check first if the license allows plugin to be enabled */
-  switch(plugin_edition) {
+  switch(callback_edition) {
   case ntopng_edition_community:
     /* Ok */
     break;

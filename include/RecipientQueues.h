@@ -39,8 +39,8 @@ class RecipientQueues {
   AlertLevel minimum_severity;
   /* Only enable enqueue/dequeue for notifications falling into these categories */
   u_int8_t enabled_categories; /* MUST be large enough to contain MAX_NUM_SCRIPT_CATEGORIES */
-  /* Bool indicating whether this is a flow recipient */
-  bool flow_recipient;
+  /* Booleans indicating whether this is a flow/host recipient */
+  bool flow_recipient, host_recipient;
 
  public:
   RecipientQueues();
@@ -78,12 +78,17 @@ class RecipientQueues {
   */
   inline void setEnabledCategories(u_int8_t _enabled_categories) { enabled_categories = _enabled_categories; };
   /**
-  * @brief Marks this recipient as a flow recipient
-  * @param _enabled True if the recipient is a flow recipient, false otherwise
+  * @brief Marks/unmarks this recipient as a flow recipient, depending on the input boolean
   *
   * @return
   */
   inline void setFlowRecipient(u_int8_t _enabled) { flow_recipient = _enabled; };
+  /**
+  * @brief Marks/unmarks this recipient as a host recipient, depending on the input boolean
+  *
+  * @return
+  */
+  inline void setHostRecipient(u_int8_t _enabled) { host_recipient = _enabled; };
   /**
    * @brief Returns queue status (drops and uses)
    * @param vm A Lua VM instance
@@ -103,6 +108,12 @@ class RecipientQueues {
    * @return A boolean
    */
   inline bool isFlowRecipient() const { return flow_recipient; };
+  /**
+   * @brief Returns true if the recipient is a host recipient
+   *
+   * @return A boolean
+   */
+  inline bool isHostRecipient() const { return host_recipient; };
 };
 
 #endif /* _RECIPIENT_QUEUES_ */

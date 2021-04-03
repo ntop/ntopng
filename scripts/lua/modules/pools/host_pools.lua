@@ -195,6 +195,21 @@ end
 
 -- ##############################################
 
+--@brief Tells the C++ core about the host recipients
+function host_pools:set_host_recipients(recipients)
+   -- Create a bitmap of all recipients responsible for hosts (pool_id in this case is ignored)
+   local recipients_bitmap = 0
+
+   for _, recipient_id in ipairs(recipients) do
+      recipients_bitmap = recipients_bitmap | (1 << recipient_id)
+   end
+
+   -- Tell the C++ that host recipients have changed
+   ntop.recipient_set_host_recipients(recipients_bitmap)
+end
+
+-- ##############################################
+
 -- @brief Persist pool details to disk. Possibly assign a pool id
 -- @param pool_id The pool_id of the pool which needs to be persisted. If nil, a new pool id is assigned
 function host_pools:_persist(pool_id, name, members, recipients)
@@ -227,6 +242,9 @@ function host_pools:_persist(pool_id, name, members, recipients)
     if not self.transaction_started then
        -- Reload pools
        ntop.reloadHostPools()
+
+       -- Set host recipients in the C++ core
+       self:set_host_recipients(recipients)
 
        -- Reload periodic scripts
        ntop.reloadPeriodicScripts()

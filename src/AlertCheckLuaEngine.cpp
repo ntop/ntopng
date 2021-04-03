@@ -34,23 +34,25 @@ AlertCheckLuaEngine::AlertCheckLuaEngine(AlertEntity alert_entity, ScriptPeriodi
   p = script_periodicity;
 
   switch(alert_entity) {
-  case alert_entity_host:
-    lua_file = "host.lua";
-    break;
+
   case alert_entity_network:
     lua_file = "network.lua";
     break;
   case alert_entity_interface:
     lua_file = "interface.lua";
     break;
-  case alert_entity_flow:
-    lua_file = "flow.lua";
-    break;
+
   case alert_entity_snmp_device:
     lua_file = "snmp_device.lua";
     break;
   case alert_entity_process:
     lua_file = "system.lua";
+    break;
+  case alert_entity_flow:
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unexpected entity 'flow'");
+    break;
+  case alert_entity_host:
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unexpected entity 'host'");
     break;
   default:
     /* Example: lua_file = "generic.lua" to handle a generic entity */

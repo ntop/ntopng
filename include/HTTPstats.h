@@ -106,6 +106,11 @@ class HTTPstats {
   void deserialize(json_object *o);
   json_object* getJSONObject();
 
+  u_int32_t getSentNumQueries();
+  u_int32_t getSentNumResponses();
+  u_int32_t getRcvdNumQueries();
+  u_int32_t getRcvdNumResponses();
+
   void lua(lua_State *vm);
   u_int32_t luaVirtualHosts(lua_State *vm, char *virtual_host, Host *h);
 

@@ -55,11 +55,11 @@ class Recipients {
   * @brief Enqueues a notification to all available recipients
   * @param prio The priority of the notification
   * @param notification The notification to be enqueued
-  * @param flow_only A boolean, indicating whether the notification has only to be enqueued for flow recipients
+  * @param alert_entity Indicates to enqueue the alert only to recipients responsible for `alert_entity` alerts
   *
   * @return True if the enqueue succeeded, false otherwise
   */
-  bool enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification, bool flow_only);
+  bool enqueue(RecipientNotificationPriority prio, const AlertFifoItem* const notification, AlertEntity alert_entity);
   /**
   * @brief Registers a recipient identified with `recipient_id` so its notification can be enqueued/dequeued
   * @param recipient_id An integer recipient identifier
@@ -76,6 +76,13 @@ class Recipients {
   * @return
   */
   void set_flow_recipients(u_int64_t flow_recipients);
+  /**
+  * @brief Sets all recipients responsible for host alerts
+  * @param host_recipients A bitmap of recipient ids responsible for hosts
+  *
+  * @return
+  */
+  void set_host_recipients(u_int64_t host_recipients);
   /**
   * @brief Marks a recipient as deleted
   * @param recipient_id An integer recipient identifier

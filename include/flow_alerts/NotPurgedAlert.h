@@ -28,7 +28,7 @@ class NotPurgedAlert : public FlowAlert {
  private:
   
  public:
-  static FlowAlertType getClassType() { return { alert_internals, alert_category_internals }; }
+  static FlowAlertType getClassType() { return { flow_alert_internals, alert_category_internals }; }
 
  NotPurgedAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~NotPurgedAlert() {};

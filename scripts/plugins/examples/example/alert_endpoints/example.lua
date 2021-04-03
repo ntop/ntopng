@@ -59,7 +59,7 @@ function example.dequeueRecipientAlerts(recipient, budget)
 
     -- Can filter the alerts based on some criteria
     if (alert.action == "engage") then
-      if (alert_consts.alertTypeRaw(alert.type) == "alert_threshold_cross") and
+      if (alert_consts.getAlertType(alert.type) == "alert_threshold_cross") and
             (alert.alert_key == "min_active_local_hosts") then
 
         -- Export the alert, e.g. by running a custom bash script

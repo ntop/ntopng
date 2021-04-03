@@ -29,7 +29,7 @@ class FlowRiskTLSCertificateSelfSignedAlert : public FlowRiskTLSAlert {
   ndpi_serializer *getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  static FlowAlertType getClassType() { return { alert_tls_certificate_selfsigned, alert_category_security }; }
+  static FlowAlertType getClassType() { return { flow_alert_tls_certificate_selfsigned, alert_category_security }; }
 
  FlowRiskTLSCertificateSelfSignedAlert(FlowCallback *c, Flow *f) : FlowRiskTLSAlert(c, f) {};
   ~FlowRiskTLSCertificateSelfSignedAlert() { };
