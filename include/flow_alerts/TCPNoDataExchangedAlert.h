@@ -24,13 +24,13 @@
 
 class TCPNoDataExchangedAlert : public FlowAlert {
  public:
-  static FlowAlertType getClassType() { return { alert_tcp_no_data_exchanged, alert_category_network }; }
+  static FlowAlertType getClassType() { return { flow_alert_tcp_no_data_exchanged, alert_category_network }; }
 
  TCPNoDataExchangedAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) {};
   ~TCPNoDataExchangedAlert() {};
 
   FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("tcp_no_data_exchanged"); }
+  std::string getName() const { return std::string("flow_alert_tcp_no_data_exchanged"); }
 };
 
 #endif /* _TCP_NO_DATA_ECHANGED_ALERT_H_ */

@@ -130,9 +130,9 @@ void HostCallbacksLoader::loadConfiguration() {
 		HostCallback *cb = cb_all[callback_key];
 
 		if(cb->loadConfiguration(json_script_conf)) {
-		  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Successfully enabled callback %s for %s", callback_key, it->first.c_str());
+		  ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully enabled callback %s for %s", callback_key, it->first.c_str());
 		} else {
-		  ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while loading callback %s configuration for %s",
+		  ntop->getTrace()->traceEvent(TRACE_ERROR, "Error while loading callback %s configuration for %s",
 					       callback_key, it->first.c_str());
 		}
 
@@ -145,7 +145,7 @@ void HostCallbacksLoader::loadConfiguration() {
 	    cb->scriptDisable(); 
 	  }
 	} else {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find host callback  %s", callback_key);
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to find host callback  %s", callback_key);
 	}
       }
     }

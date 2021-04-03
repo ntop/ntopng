@@ -142,7 +142,7 @@ void AlertExclusions::loadConfiguration() {
   char *value = NULL;
   u_int actual_len = ntop->getRedis()->len(ALERT_EXCLUSIONS_KEY_PREFIX);
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reloading alert exclusions");
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reloading alert exclusions");
 
   if((value = (char *) malloc(actual_len + 1)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", ALERT_EXCLUSIONS_KEY_PREFIX);
@@ -199,7 +199,7 @@ void AlertExclusions::loadConfiguration() {
 	    break;
 	  }
 
-#if 1
+#if 0
 	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Exclusion loaded [%s][alert_entity: %u][alert_key: %u]",
 				       host_ip, alert_entity, atoi(alert_key));
 #endif

@@ -433,6 +433,7 @@ typedef enum {
   flow_alert_ndpi_dns_suspicious_traffic      = 53,
   flow_alert_ndpi_tls_missing_sni             = 54,
   flow_alert_iec_unexpected_type_id           = 55, /* To be implemented */
+  flow_alert_tcp_no_data_exchanged            = 56,
 
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

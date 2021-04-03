@@ -53,7 +53,6 @@ function host_alert_replies_requests_ratio.format(ifid, alert, alert_type_params
   local alert_consts = require("alert_consts")
 
   local entity = firstToUpper(alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"]))
-  local engine_label = alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["alert_granularity"])))
   local ratio
 
   if((alert_type_params.replies ~= nil) and (alert_type_params.requests ~= nil)) then
@@ -77,7 +76,6 @@ function host_alert_replies_requests_ratio.format(ifid, alert, alert_type_params
   return(i18n(subtype_info[1], {
     entity = entity,
     host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
-    granularity = engine_label,
     ratio = ratio,
     requests = i18n(
       ternary(alert_type_params.requests == 1, "alerts_dashboard.one_request", "alerts_dashboard.many_requests"),
