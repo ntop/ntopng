@@ -198,7 +198,8 @@ void FlowCallbacksLoader::loadConfiguration() {
 	   || strcmp(callback_key, "flow_risks") == 0
 	   || strcmp(callback_key, "flow_logger") == 0
 	   || strcmp(callback_key, "tcp_probing") == 0
-	   || strcmp(callback_key, "tls_old_version") == 0)
+	   || strcmp(callback_key, "tls_old_version") == 0
+           || strcmp(callback_key, "iec60870_5_104") == 0)
 	  ; /* No noise for demos */
 	else
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow callback  %s", callback_key);
