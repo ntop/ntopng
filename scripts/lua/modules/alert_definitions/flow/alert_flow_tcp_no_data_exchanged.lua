@@ -4,7 +4,7 @@
 
 -- ##############################################
 
-local alert_keys = require "alert_keys"
+local flow_alert_keys = require "flow_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -17,7 +17,7 @@ local alert_tcp_no_data_exchanged = classes.class(alert)
 -- ##############################################
 
 alert_tcp_no_data_exchanged.meta = {
-   alert_key = alert_keys.ntopng.alert_tcp_no_data_exchanged,
+   alert_key = flow_alert_keys.flow_alert_tcp_no_data_exchanged,
    i18n_title = "tcp_no_data_exchanged.alert_tcp_no_data_exchanged_title",
    icon = "fas fa-arrow-circle-up",
 }
