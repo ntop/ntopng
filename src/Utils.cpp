@@ -477,14 +477,6 @@ float Utils::msTimevalDiff(const struct timeval *end, const struct timeval *begi
 
 /* ****************************************************** */
 
-u_int64_t Utils::uintDiff(u_int64_t *cur_value, u_int64_t new_value) {
-  u_int64_t res = new_value > *cur_value ? new_value - *cur_value : 0;
-  *cur_value = new_value;
-  return res;
-}
-
-/* ****************************************************** */
-
 /* Converts a ISO 8601 timestamp (exported by Suricata) to epoch.
  * Example: 2019-04-02T19:29:42.346861+0200 */
 time_t Utils::str2epoch(const char *str) {

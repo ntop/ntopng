@@ -28,21 +28,22 @@
 
 class RepliesRequestsRatioAlert : public HostAlert {
  private:
-  u_int8_t ratio;
-  u_int32_t requests;
-  u_int32_t replies;
+  u_int8_t ratio_threshold;
+  u_int8_t dns_sent_rcvd_ratio, dns_rcvd_sent_ratio;
+  u_int8_t http_sent_rcvd_ratio, http_rcvd_sent_ratio;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
   
  public:
   static HostAlertType getClassType() { return { host_alert_replies_requests_ratio, alert_category_network }; }
 
-  RepliesRequestsRatioAlert(HostCallback *c, Host *f);
+  RepliesRequestsRatioAlert(HostCallback *c, Host *f, u_int8_t _ratio_threshold);
   ~RepliesRequestsRatioAlert() {};
   
-  void setRatio(u_int8_t  v)    { ratio = v;    }
-  void setRequests(u_int32_t v) { requests = v; }
-  void setReplies(u_int32_t v)  { replies = v;  }
+  inline void setRatios(u_int8_t _dns_sent_rcvd_ratio, u_int8_t _dns_rcvd_sent_ratio, u_int8_t _http_sent_rcvd_ratio, u_int8_t _http_rcvd_sent_ratio) {
+    dns_sent_rcvd_ratio =_dns_sent_rcvd_ratio, dns_rcvd_sent_ratio = _dns_rcvd_sent_ratio;
+    http_sent_rcvd_ratio = _http_sent_rcvd_ratio, http_rcvd_sent_ratio = _http_rcvd_sent_ratio;
+  }
 
   HostAlertType getAlertType() const { return getClassType(); }
 };

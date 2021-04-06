@@ -60,30 +60,25 @@ function host_alert_replies_requests_ratio.format(ifid, alert, alert_type_params
   else
     ratio = 1
   end
-		
-  -- {i18_string, what}
-  local subtype_to_info = {
-    dns_sent = {"alerts_dashboard.too_low_replies_received", "DNS"},
-    dns_rcvd = {"alerts_dashboard.too_low_replies_sent", "DNS"},
-    http_sent = {"alerts_dashboard.too_low_replies_received", "HTTP"},
-    http_rcvd = {"alerts_dashboard.too_low_replies_sent", "HTTP"},
-    icmp_echo_sent = {"alerts_dashboard.too_low_replies_received", "ICMP ECHO"},
-    icmp_echo_rcvd = {"alerts_dashboard.too_low_replies_received", "ICMP ECHO"},
-  }
 
-  local subtype_info = subtype_to_info[alert.alert_subtype]
+  local labels = {i18n("alerts_dashboard.reqs_repls_ratio_for", {
+			  entity = entity,
+			  host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info)})}
+  
+  if alert_type_params.dns_sent_rcvd_ratio < alert_type_params.ratio then
+     labels[#labels + 1] = i18n("alerts_dashboard.dns_sent_rcvd_ratio", { ratio = alert_type_params.dns_sent_rcvd_ratio, threshold = alert_type_params.ratio})
+  end
+  if alert_type_params.dns_rcvd_sent_ratio < alert_type_params.ratio then
+     labels[#labels + 1] = i18n("alerts_dashboard.dns_rcvd_sent_ratio", { ratio = alert_type_params.dns_rcvd_sent_ratio, threshold = alert_type_params.ratio})
+  end
+  if alert_type_params.http_sent_rcvd_ratio < alert_type_params.ratio then
+     labels[#labels + 1] = i18n("alerts_dashboard.http_sent_rcvd_ratio", { ratio = alert_type_params.http_sent_rcvd_ratio, threshold = alert_type_params.ratio})
+  end
+  if alert_type_params.http_rcvd_sent_ratio < alert_type_params.ratio then
+     labels[#labels + 1] = i18n("alerts_dashboard.http_rcvd_sent_ratio", { ratio = alert_type_params.http_rcvd_sent_ratio, threshold = alert_type_params.ratio})
+  end
 
-  return(i18n(subtype_info[1], {
-    entity = entity,
-    host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
-    ratio = ratio,
-    requests = i18n(
-      ternary(alert_type_params.requests == 1, "alerts_dashboard.one_request", "alerts_dashboard.many_requests"),
-      {count = formatValue(alert_type_params.requests), what = subtype_info[2]}),
-    replies =  i18n(
-      ternary(alert_type_params.replies == 1, "alerts_dashboard.one_reply", "alerts_dashboard.many_replies"),
-      {count = formatValue(alert_type_params.replies), what = subtype_info[2]}),
-  }))
+  return table.concat(labels, " ")
 end
 
 -- #######################################################

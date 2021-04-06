@@ -23,8 +23,10 @@
 
 /* ***************************************************** */
 
-RepliesRequestsRatioAlert::RepliesRequestsRatioAlert(HostCallback *c, Host *f) : HostAlert(c, f) {
-  ratio = requests = replies = 0;
+RepliesRequestsRatioAlert::RepliesRequestsRatioAlert(HostCallback *c, Host *f, u_int8_t _ratio_threshold) : HostAlert(c, f) {
+  ratio_threshold = _ratio_threshold;
+  dns_sent_rcvd_ratio = dns_rcvd_sent_ratio = 0;
+  http_sent_rcvd_ratio = http_rcvd_sent_ratio = 0;
 };
 
 /* ***************************************************** */
@@ -34,10 +36,12 @@ ndpi_serializer* RepliesRequestsRatioAlert::getAlertJSON(ndpi_serializer* serial
     return NULL;
 
   /* Sync fields with host_alert_dns_requests_errors_ratio.lua */
-  ndpi_serialize_string_uint32(serializer, "ratio", ratio);
-  ndpi_serialize_string_uint64(serializer, "requests", requests);
-  ndpi_serialize_string_uint64(serializer, "replies", replies);
-  
+  ndpi_serialize_string_uint32(serializer, "ratio", ratio_threshold);
+  ndpi_serialize_string_uint32(serializer, "dns_sent_rcvd_ratio", dns_sent_rcvd_ratio);
+  ndpi_serialize_string_uint32(serializer, "dns_rcvd_sent_ratio", dns_rcvd_sent_ratio);
+  ndpi_serialize_string_uint32(serializer, "http_sent_rcvd_ratio", http_sent_rcvd_ratio);
+  ndpi_serialize_string_uint32(serializer, "http_rcvd_sent_ratio", http_rcvd_sent_ratio);
+
   return serializer;
 
 }
