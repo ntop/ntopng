@@ -82,7 +82,7 @@ class NetworkInterface : public OtherAlertableEntity {
   std::atomic<u_int64_t> num_active_alerted_flows_warning; /* Counts all flow alerts with severity == warning */
   std::atomic<u_int64_t> num_active_alerted_flows_error;   /* Counts all flow alerts with severity >= error   */
   u_int32_t num_dropped_alerts, prev_dropped_alerts, checked_dropped_alerts, num_dropped_flow_scripts_calls;
-  u_int64_t num_written_alerts, num_alerts_queries;
+  u_int64_t num_written_alerts, num_alerts_queries, score_as_cli, score_as_srv;
   u_int64_t num_new_flows;
   struct {
     u_int32_t local_hosts, remote_hosts;
@@ -393,6 +393,8 @@ class NetworkInterface : public OtherAlertableEntity {
   void checkDisaggregationMode();
   void incrVisitedWebSite(char *hostname);
   void incrOS(char *hostname);
+  inline void incScoreValue(u_int16_t score_incr, bool as_client)  { as_client ? score_as_cli += score_incr : score_as_srv += score_incr; };
+  inline void decScoreValue(u_int16_t score_incr, bool as_client)  { as_client ? score_as_cli -= score_incr : score_as_srv -= score_incr; };
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
   inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
@@ -603,8 +605,10 @@ class NetworkInterface : public OtherAlertableEntity {
   virtual u_int32_t getFlowMaxIdle();
 
   virtual void lua(lua_State* vm);
+  void luaScore(lua_State* vm);
   void luaAlertedFlows(lua_State* vm);
   void luaAnomalies(lua_State* vm);
+  void luaNdpiStats(lua_State* vm);
   void luaPeriodicityFilteringMenu(lua_State* vm);
   void luaServiceFilteringMenu(lua_State* vm);
   void luaPeriodicityStats(lua_State* vm, IpAddress *ip_address, u_int16_t vlan_id, u_int16_t host_pool_id, 

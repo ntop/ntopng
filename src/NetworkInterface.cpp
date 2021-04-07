@@ -292,6 +292,7 @@ void NetworkInterface::init() {
   gettimeofday(&last_periodic_stats_update, NULL);
   num_live_captures = 0, num_dropped_alerts = 0, prev_dropped_alerts = 0;
   num_written_alerts = num_alerts_queries = 0;
+  score_as_cli = score_as_srv = 0;
   memset(live_captures, 0, sizeof(live_captures));
   num_alerts_engaged = 0;
   tot_num_anomalies.local_hosts = tot_num_anomalies.remote_hosts = 0;
@@ -5822,7 +5823,8 @@ void NetworkInterface::lua(lua_State *vm) {
   }
 
   luaAnomalies(vm);
-
+  luaScore(vm);
+  
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats,
 	   &_ndpiStats, &_pktStats, &_tcpPacketStats, &_discardedProbingStats,
            &_dscpStats, &_syslogStats);
@@ -5830,6 +5832,7 @@ void NetworkInterface::lua(lua_State *vm) {
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
   _localStats.lua(vm);
+  luaNdpiStats(vm);
   _ndpiStats.lua(this, vm, true);
   _pktStats.lua(vm, "pktSizeDistribution");
   _tcpPacketStats.lua(vm, "tcpPacketStats");
@@ -8894,6 +8897,26 @@ void NetworkInterface::execFlowEndCallbacks(Flow *f) {
     if(alert)
       enqueueFlowAlert(alert);
   }
+}
+
+/* *************************************** */
+
+void NetworkInterface::luaScore(lua_State *vm) {
+  /* Score */
+  lua_newtable(vm);
+  lua_push_uint32_table_entry(vm, "score_as_cli", score_as_cli); 
+  lua_push_uint32_table_entry(vm, "score_as_srv", score_as_srv);
+  lua_pushstring(vm, "score");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+void NetworkInterface::luaNdpiStats(lua_State *vm) {
+  /* nDPI stats */
+  if(ndpiStats)
+    ndpiStats->lua(this, vm, true);
 }
 
 /* *************************************** */

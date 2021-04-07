@@ -1385,6 +1385,7 @@ local known_parameters = {
    ["l7_proto_id"]             = validateProtocolIdOrName,      -- get_historical_data.lua
    ["l4proto"]                 = validateFilters(validateProtocolIdOrName),      -- An nDPI application protocol ID, layer 4
    ["l7proto"]                 = validateFilters(validateProtocolIdOrName),      -- An nDPI application protocol ID, layer 7
+   ["filtered_query"]          = validateBool,            -- Parameter used to download nindex flows
    ["l7cat"]                   = validateFilters(validateCategory),      -- An nDPI category, layer 7
    ["flow_risk"]               = validateFilters(validateNumber),        -- Flow risk   
    ["visible_columns"]         = validateSingleWord,        -- String containing the visible columns used by nindex raw flows   
@@ -1808,6 +1809,10 @@ local known_parameters = {
    ["dismiss_external_providers_reminder"]         = validateBool,
    ["dismiss_missing_geoip_reminder"]              = validateBool,
 --
+
+-- TOP STATS
+   ["only_data"]               = validateEmptyOr(validateBool),                  -- Used by top talkers, if true then only important data is returned
+--   
 
 -- PAGE SPECIFIC
    ["hour"]                    = validateEmptyOr(validateSingleWord),

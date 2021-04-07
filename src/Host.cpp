@@ -102,7 +102,8 @@ u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category
   if(country) country->incScoreValue(score_incr, score_category, as_client);
   if(os)      os->incScoreValue(score_incr, score_category, as_client);
   if(ns)      ns->incScoreValue(score_incr, score_category, as_client);
-
+  if(iface)   iface->incScoreValue(score_incr, as_client);
+  
   return Score::incScoreValue(score_incr, score_category, as_client);
 }
 
@@ -117,7 +118,8 @@ u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category
   if(country) country->decScoreValue(score_decr, score_category, as_client);
   if(os)      os->decScoreValue(score_decr, score_category, as_client);
   if(ns)      ns->decScoreValue(score_decr, score_category, as_client);
-
+  if(iface)   iface->decScoreValue(score_decr, as_client);
+  
   return Score::decScoreValue(score_decr, score_category, as_client);
 }
 

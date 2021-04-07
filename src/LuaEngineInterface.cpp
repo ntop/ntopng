@@ -1867,6 +1867,36 @@ static int ntop_get_interface_anomalies(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_get_ndpi_interface_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  lua_newtable(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->luaNdpiStats(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_get_interface_score(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  lua_newtable(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  ntop_interface->luaScore(vm);
+
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_oses_info(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4431,6 +4461,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getnDPICategoryId",        ntop_get_ndpi_category_id },
   { "getnDPICategoryName",      ntop_get_ndpi_category_name },
   { "getnDPIFlowsCount",        ntop_get_ndpi_interface_flows_count },
+  { "getnDPIStats",             ntop_get_ndpi_interface_stats },
   { "getFlowsStatus",           ntop_get_ndpi_interface_flows_status },
   { "getnDPIProtoBreed",        ntop_get_ndpi_protocol_breed },
   { "getnDPIProtocols",         ntop_get_ndpi_protocols },
@@ -4457,6 +4488,7 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getFlowsStats",            ntop_get_interface_flows_stats          },
   { "getFlowsTrafficStats",     ntop_get_interface_traffic_info         },
   { "getFlowKey",               ntop_get_interface_flow_key             },
+  { "getScore",                 ntop_get_interface_score                },
   { "findFlowByKeyAndHashId",   ntop_get_interface_find_flow_by_key_and_hash_id  },
   { "findFlowByTuple",          ntop_get_interface_find_flow_by_tuple   },
   { "dropFlowTraffic",          ntop_drop_flow_traffic                  },
@@ -4518,7 +4550,6 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getMacDeviceTypes",                ntop_get_mac_device_types },
 
   /* Anomalies */
-
   { "getAnomalies",                     ntop_get_interface_anomalies },
   
   /* Autonomous Systems */
