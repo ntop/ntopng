@@ -44,7 +44,7 @@ $(document).ready(function(){
         ajax: {
             method: 'get',
             url: '{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/data.lua?ifid={{interface.getStats().id}}&status=historical',
-            dataSrc: 'rsp',
+            dataSrc: 'rsp.records',
             data: (data, settings) => {
                 delete data.columns;
                 delete data.search;
