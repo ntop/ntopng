@@ -2438,13 +2438,13 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
 /* **************************************************** */
 
 /* Dequeue alerted flows from callbacks (and enqueue to recipients) */
-u_int64_t NetworkInterface::dequeueFlowAlerts(SPSCQueue<FlowAlert *> *q, u_int budget) {
+u_int64_t NetworkInterface::dequeueFlowAlerts(u_int budget) {
   u_int64_t num_done = 0;
 
-  while(q->isNotEmpty()) {
+  while(flowAlertsQueue->isNotEmpty()) {
     FlowAlert *alert;
    
-    alert = q->dequeue();
+    alert = flowAlertsQueue->dequeue();
 
     if (alert) {
       Flow *f = alert->getFlow();
@@ -2475,13 +2475,13 @@ u_int64_t NetworkInterface::dequeueFlowAlerts(SPSCQueue<FlowAlert *> *q, u_int b
 /* **************************************************** */
 
 /* Same as above but for hosts */
-u_int64_t NetworkInterface::dequeueHostAlerts(SPSCQueue<HostAlert *> *q, u_int budget) {
+u_int64_t NetworkInterface::dequeueHostAlerts(u_int budget) {
   u_int64_t num_done = 0;
 
-  while(q->isNotEmpty()) {
+  while(hostAlertsQueue->isNotEmpty()) {
     HostAlert *alert;
    
-    alert = q->dequeue();
+    alert = hostAlertsQueue->dequeue();
 
     if (alert) {
       Host *h = alert->getHost();
@@ -2512,7 +2512,7 @@ u_int64_t NetworkInterface::dequeueHostAlerts(SPSCQueue<HostAlert *> *q, u_int b
 /* **************************************************** */
 
 u_int64_t NetworkInterface::dequeueFlowAlertsFromCallbacks(u_int budget) {
-  u_int64_t num_done = dequeueFlowAlerts(flowAlertsQueue, budget);
+  u_int64_t num_done = dequeueFlowAlerts(budget);
 
 #ifndef WIN32
   if(num_done == 0) {
@@ -2542,7 +2542,7 @@ u_int64_t NetworkInterface::dequeueFlowAlertsFromCallbacks(u_int budget) {
 /* **************************************************** */
 
 u_int64_t NetworkInterface::dequeueHostAlertsFromCallbacks(u_int budget) {
-  u_int64_t num_done = dequeueHostAlerts(hostAlertsQueue, budget);
+  u_int64_t num_done = dequeueHostAlerts(budget);
 
 #ifndef WIN32
   if(num_done == 0) {

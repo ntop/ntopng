@@ -350,12 +350,12 @@ class NetworkInterface : public OtherAlertableEntity {
   };
 
   /*
-    Dequeues an alerted flows from `q` up to `budget` and executes `flow_lua_callback` on each of them.
+    Dequeues alerted flows up to `budget` and executes `flow_lua_callback` on each of them.
     The number of flows dequeued is returned.
    */
-  u_int64_t dequeueFlowAlerts(SPSCQueue<FlowAlert *> *q, u_int budget);
+  u_int64_t dequeueFlowAlerts(u_int budget);
 
-  u_int64_t dequeueHostAlerts(SPSCQueue<HostAlert *> *q, u_int budget); /* Same as above but for hosts */
+  u_int64_t dequeueHostAlerts(u_int budget); /* Same as above but for hosts */
 
  public:
   /**
