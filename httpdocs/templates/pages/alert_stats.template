@@ -1,0 +1,56 @@
+{#
+    (C) 2021 - ntop.org
+
+    This is the template to generate the Alerts page.
+#}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card card-shadow">
+            <div class="card-body">
+                <table class="table table-bordered table-striped w-100" id="table-alerts">
+                    <thead>
+                        <th>{{ i18n("show_alerts.alert_datetime") }}</th>
+                        <th>{{ i18n("show_alerts.alert_duration") }}</th>
+                        <th>{{ i18n("show_alerts.alert_count") }}</th>
+                        <th>{{ i18n("show_alerts.alert_severity") }}</th>
+                        <th>{{ i18n("show_alerts.alert_type") }}</th>
+                        <th>{{ i18n("score") }}</th>
+                        <th>{{ i18n("application") }}</th>
+                        <th>{{ i18n("show_alerts.alert_description") }}</th>
+                        <th>{{ i18n("show_alerts.alert_actions") }}</th>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet" />
+<script type="text/javascript">
+$(document).ready(function(){
+
+    let dtConfig = DataTableUtils.getStdDatatableConfig([
+        {
+            text: '<i class="fas fa-sync"></i>',
+            action: () => { $alertsTable.ajax.reload(); }
+        }
+    ]);
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        serverSide: true,
+        ajax: {
+            method: 'get',
+            url: '{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/alert/stub.lua',
+            dataSrc: 'rsp.records',
+            data: (data, settings) => {
+                delete data.columns;
+                delete data.search;
+                return data;
+            }
+        }
+    });
+    const $alertsTable = $('#table-alerts').DataTable(dtConfig);
+});
+</script>
