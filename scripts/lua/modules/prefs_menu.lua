@@ -246,6 +246,9 @@ local menu_subpages = {
     },toggle_emit_flow_alerts = {
       title       = i18n("prefs.toggle_emit_flow_alerts_title"),
       description = i18n("prefs.toggle_emit_flow_alerts_description"),
+    },toggle_emit_host_alerts = {
+      title       = i18n("prefs.toggle_emit_host_alerts_title"),
+      description = i18n("prefs.toggle_emit_host_alerts_description"),
     }
   }}, { id ="traffic_behaviour",
     label=i18n("prefs.traffic_behaviour"),  

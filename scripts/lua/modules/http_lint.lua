@@ -1770,6 +1770,7 @@ local known_parameters = {
    ["lbd_hosts_as_macs"]                           = validateBool,
    ["toggle_send_telemetry_data"]                  = validateBool,
    ["toggle_emit_flow_alerts"]                     = validateBool,   
+   ["toggle_emit_host_alerts"]                     = validateBool,   
    ["telemetry_email"]                             = validateSingleWord,
 
    -- Other

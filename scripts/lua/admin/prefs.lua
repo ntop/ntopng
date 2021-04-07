@@ -271,6 +271,14 @@ function printAlerts()
     off_value = "0",    -- Off NO flow alerts are generated
   })
 
+  prefsToggleButton(subpage_active, {
+    field = "toggle_emit_host_alerts",
+    default = "1",
+    pref = "emit_host_alerts",
+    on_value = "1",     -- On  alerts are generated
+    off_value = "0",    -- Off NO alerts are generated
+  })
+
   prefsInputFieldPrefs(subpage_active.entries["max_num_alerts_per_entity"].title, subpage_active.entries["max_num_alerts_per_entity"].description,
 		       "ntopng.prefs.", "max_num_alerts_per_entity", prefs.max_num_alerts_per_entity, "number", showElements, false, nil, {min=1, --[[ TODO check min/max ]]})
   
