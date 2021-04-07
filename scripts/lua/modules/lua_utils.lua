@@ -2623,8 +2623,16 @@ end
 function split(s, delimiter)
    result = {};
    if(s ~= nil) then
-      for match in (s..delimiter):gmatch("(.-)"..delimiter) do
-	 table.insert(result, match);
+      if delimiter == nil then
+         -- No delimiter, split all characters
+         for match in s:gmatch"." do
+   	    table.insert(result, match);
+         end
+      else
+         -- Split by delimiter
+         for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+   	    table.insert(result, match);
+         end
       end
    end
    return result;

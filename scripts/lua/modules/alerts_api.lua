@@ -229,6 +229,8 @@ function alerts_api.store(entity_info, type_info, when)
     alert_json = alert_json,
   }
 
+tprint(alert_to_store)
+
   addAlertPoolInfo(entity_info, alert_to_store)
 
   if matchExcludeFilter(entity_info, type_info) then

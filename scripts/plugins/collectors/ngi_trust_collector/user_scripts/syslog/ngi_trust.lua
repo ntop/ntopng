@@ -8,6 +8,8 @@ require "lua_utils"
 require "flow_utils"
 local json = require ("dkjson")
 local alert_severities = require "alert_severities"
+local alert_consts = require("alert_consts")
+local alerts_api = require("alerts_api")
 local user_scripts = require("user_scripts")
 
 local syslog_module = {
@@ -69,11 +71,29 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
 
    traceError(TRACE_NORMAL, TRACE_CONSOLE, "NGI Trust Event Time = "..time_now.." "..(ternary(in_alarm == "1", "ENGAGED", "RELEASED")))
 
-   -- TODO build and process alert
+   local m = split(mac_address)
+   if #m < 12 then
+      num_unhandled = num_unhandled + 1
+      interface.incSyslogStats(1, 0, num_unhandled, num_alerts, 0, 0)
+      return
+   end
+   local mac = m[ 1]..m[ 2]..":"..m[ 3]..m[ 4]..":"..m[ 5]..m[ 6]..":"..
+               m[ 7]..m[ 8]..":"..m[ 9]..m[10]..":"..m[11]..m[12]
 
-   -- local external_host_alert = {}
-   -- local alert_json = json.encode(external_host_alert)
-   --interface.processHostAlert(alert_json)
+   alerts_api.store(alerts_api.macEntity(mac), {
+      alert_type = alert_consts.alert_types.alert_ngi_trust_event.meta,
+      alert_severity = severity,
+      alert_type_params = {
+         mac = mac,
+         time_now = time_now,
+         last_measurement_timestamp = last_measurement_timestamp,
+	 last_state = last_state,
+         state_unchanged_since = state_unchanged_since,
+         abnormality_grade = abnormality_grade,
+         in_alarm = in_alarm,
+         alarm_notifications_sent = alarm_notifications_sent,
+      },
+   })
 
    num_alerts = num_alerts + 1
    interface.incSyslogStats(1, 0, num_unhandled, num_alerts, 0, 0)

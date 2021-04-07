@@ -79,6 +79,7 @@ local other_alert_keys = {
    alert_active_flows_anomaly_client    =  OTHER_BASE_KEY + 66, -- scripts/plugins/alerts/security/unexpected_host_behaviour/modules/active_flows_behaviour
    alert_active_flows_anomaly_server    =  OTHER_BASE_KEY + 67, -- scripts/plugins/alerts/security/unexpected_host_behaviour/modules/active_flows_behaviour
    alert_broadcast_domain_too_large     =  OTHER_BASE_KEY + 68,
+   alert_ngi_trust_event                =  OTHER_BASE_KEY + 69,
 }
 
 -- ##############################################
