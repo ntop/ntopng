@@ -899,8 +899,8 @@ typedef struct cpu_load_stats {
 } cpu_load_stats;
 
 typedef struct grouped_alerts_counters {
-  std::map<AlertType, u_int32_t> types;
-  std::map<AlertLevel, u_int32_t> severities;
+  std::map<std::pair<AlertEntity, AlertType>, u_int32_t> types;
+  std::map<std::pair<AlertEntity, AlertLevel>, u_int32_t> severities;
 } grouped_alerts_counters;
 
 /* ICMP stats required for timeseries generation */
@@ -912,7 +912,7 @@ typedef struct ts_icmp_stats {
 } ts_icmp_stats;
 
 class AlertableEntity;
-typedef void (alertable_callback)(AlertableEntity *alertable, void *user_data);
+typedef void (alertable_callback)(AlertEntity alert_entity_type, AlertableEntity *alertable, void *user_data);
 
 typedef struct bcast_domain_info {
   bool is_interface_network;

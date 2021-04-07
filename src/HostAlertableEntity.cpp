@@ -109,8 +109,8 @@ void HostAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
   for (u_int i = 0; i < NUM_DEFINED_HOST_CALLBACKS; i++) {
     HostAlert *alert = engaged_alerts[i];
     if (alert) {
-      counters->severities[alert->getSeverity()]++;
-      counters->types[alert->getAlertType().id]++;
+      counters->severities[std::make_pair(getEntityType(), alert->getSeverity())]++;
+      counters->types[std::make_pair(getEntityType(), alert->getAlertType().id)]++;
     }
   }
 

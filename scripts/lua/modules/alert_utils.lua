@@ -305,7 +305,7 @@ local function engagedAlertsQuery(params)
   local currentPage = tonumber(params.currentPage or 1)
   local totalRows = 0
 
-  --~ tprint(string.format("type=%s sev=%s entity=%s val=%s", type_filter, severity_filter, entity_type_filter, entity_value_filter))
+  -- tprint(string.format("type=%s sev=%s entity=%s val=%s", type_filter, severity_filter, entity_type_filter, entity_value_filter))
   local alerts = interface.getEngagedAlerts(entity_type_filter, entity_value_filter, type_filter, severity_filter)
   local sort_2_col = {}
 
@@ -666,15 +666,39 @@ local function getMenuEntries(status, selection_name, get_params)
    params.alert_type = nil
    params.l7_proto = nil
 
-   if selection_name == "severity" then
-      actual_entries = performAlertsQuery("select alert_severity id, count(*) count", status, params, nil, "alert_severity" --[[ group by ]])
-   elseif selection_name == "type" then
-      actual_entries = performAlertsQuery("select alert_type id, count(*) count", status, params, nil, "alert_type" --[[ group by ]])
-   elseif selection_name == "l7_proto" then
-      actual_entries = performAlertsQuery("select l7_proto id, count(*) count", status, params, nil, "l7_proto" --[[ group by ]])
-  end
+   local select_clause = {}    -- Contains the selection which is <alert_entity>, <selection_name>
+   local group_by_clause = {}  -- The clause used to group alerts. It is <alert_entity>, <selection_name> for all non-flow alerts
 
-   return(actual_entries)
+   if status == "historical-flows" then
+      -- Flows don't have the alert_entity as a table column so we just put the entity id as a placeholder
+      select_clause[#select_clause + 1] = string.format("%u entity", alert_entities.flow.entity_id)
+   else
+      -- TODO: entities will be removed when every entity will have its own database table
+      select_clause[#select_clause + 1] = "alert_entity entity"
+      group_by_clause[#group_by_clause + 1] = "alert_entity"
+   end
+
+   if selection_name == "severity" then
+      select_clause[#select_clause + 1] = "alert_severity id"
+      group_by_clause[#group_by_clause + 1] = "alert_severity"
+   elseif selection_name == "type" then
+      select_clause[#select_clause + 1] = "alert_type id"
+      group_by_clause[#group_by_clause + 1] = "alert_type"
+   elseif selection_name == "l7_proto" then
+      select_clause[#select_clause + 1] = "l7_proto id"
+      group_by_clause[#group_by_clause + 1] = "l7_proto"
+   end
+
+   select_clause[#select_clause + 1] = "count(*) count"
+
+   local select_str = "SELECT "..table.concat(select_clause, ", ")
+   local group_by_str =  table.concat(group_by_clause, ", ")
+
+   actual_entries = performAlertsQuery(select_str, status, params, nil, group_by_str --[[ group by ]])
+
+   -- tprint({select_str, group_by_str, status, params})
+
+   return actual_entries
 end
 
 -- #################################
@@ -694,7 +718,7 @@ end
 
 -- #################################
 
-local function drawDropdown(status, selection_name, active_entry, entries_table, button_label, get_params, actual_entries)
+local function drawDropdown(status, selection_name, active_entry, button_label, get_params, actual_entries)
    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
    local id_to_label
    if selection_name == "severity" then
@@ -704,7 +728,7 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
    elseif selection_name == "l7_proto" then
       id_to_label = interface.getnDPIProtoName
    end
-   
+
    actual_entries = actual_entries or getMenuEntries(status, selection_name, get_params)
 
    local buttons = '<div class="btn-group">'
@@ -731,13 +755,15 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
    -- add a label to each entry
    for _, entry in pairs(actual_entries) do
       local id = tonumber(entry["id"])
-      entry.label = firstToUpper(id_to_label(id, true))
+      local alert_entity = tonumber(entry["entity"])
+
+      entry.label = firstToUpper(id_to_label(id, true, alert_entity))
    end
 
    for _, entry in pairsByField(actual_entries, 'label', asc) do
       local id = tonumber(entry["id"])
+      local alert_entity = tonumber(entry["entity"])
       local count = entry["count"]
-
       if(id >= 0) then
         local label = entry.label
 
@@ -746,8 +772,16 @@ local function drawDropdown(status, selection_name, active_entry, entries_table,
         -- buttons = buttons..'<li'..class_active..'><a class="dropdown-item" href="'..ntop.getHttpPrefix()..'/lua/show_alerts.lua?status='..status
         buttons = buttons..'<li><a class="dropdown-item '..class_active..'" href="?status='..status
         buttons = buttons..dropdownUrlParams(get_params)
+	buttons = buttons..'&entity='..(alert_entity or '')
         buttons = buttons..'&alert_'..selection_name..'='..id..'">'
-        buttons = buttons..firstToUpper(label)..' ('..count..')</a></li>'
+	buttons = buttons..firstToUpper(label)
+
+	-- Add the formatted alert entity between square brackets
+	if alert_entity then
+	   buttons = buttons..' ['..alert_consts.alertEntityLabel(alert_entity)..']'
+	end
+
+        buttons = buttons..' ('..count..')</a></li>'
       end
    end
 
@@ -872,21 +906,6 @@ function alert_utils.housekeepingAlertsMakeRoom(ifId)
       end
    end
 
-end
-
--- #################################
-
-local function menuEntriesToDbFormat(entries)
-  local res = {}
-
-  for entry_id, entry_val in pairs(entries) do
-    res[#res + 1] = {
-      id = tostring(entry_id),
-      count = tostring(entry_val),
-    }
-  end
-
-  return(res)
 end
 
 -- #################################
@@ -1358,20 +1377,16 @@ function releaseAlert(idx) {
 	 end
 
 	 if(not options.hide_filters)  then
-	    -- alert_consts.alert_severity_keys and alert_consts.alert_type_keys are defined in lua_utils
-	    local alert_severities = {}
-	    for s, _ in pairs(alert_severities) do alert_severities[#alert_severities +1 ] = s end
-	    local alert_types = {}
-       for s, _ in pairs(alert_consts.alert_types) do alert_types[#alert_types +1 ] = s end
-       local l7_proto = {}
-	    local type_menu_entries = nil
-       local sev_menu_entries = nil
-       local l7_proto_entries = nil
 
-       local a_type, a_severity, a_l7_proto = nil, nil, nil
+	    local l7_proto = {}
+	    local type_menu_entries = nil
+	    local sev_menu_entries = nil
+	    local l7_proto_entries = nil
+
+	    local a_type, a_severity, a_l7_proto = nil, nil, nil
 	    if clicked == "1" then
-          if tonumber(_GET["alert_type"]) ~= nil then a_type = alert_consts.alertTypeLabel(_GET["alert_type"], true) end
-          if tonumber(_GET["alert_l7_proto"]) ~= nil then a_l7_proto = tonumber(_GET["alert_l7_proto"]) end
+	       if tonumber(_GET["alert_type"]) ~= nil then a_type = alert_consts.alertTypeLabel(_GET["alert_type"], true, _GET["entity"]) end
+	       if tonumber(_GET["alert_l7_proto"]) ~= nil then a_l7_proto = tonumber(_GET["alert_l7_proto"]) end
 	       if tonumber(_GET["alert_severity"]) ~= nil then a_severity = alert_consts.alertSeverityLabel(_GET["alert_severity"], true) end
 	    end
 
@@ -1379,17 +1394,23 @@ function releaseAlert(idx) {
 	       local res = interface.getEngagedAlertsCount(tonumber(_GET["entity"]), _GET["entity_val"])
 
 	       if(res ~= nil) then
-		  type_menu_entries = menuEntriesToDbFormat(res.type)
-        sev_menu_entries = menuEntriesToDbFormat(res.severities)
-        --l7_proto_entries = menuEntriesToDbFormat(res.l7_proto)
+		  type_menu_entries = {}
+		  for _, cnt in pairs(res.type) do
+		     type_menu_entries[#type_menu_entries + 1] = {id = cnt.alert_type, entity = cnt.alert_entity, count = cnt.count}
+		  end
+
+		  sev_menu_entries = {}
+		  for _, cnt in pairs(res.severities) do
+		     sev_menu_entries[#sev_menu_entries + 1] = {id = cnt.alert_severity, entity = cnt.alert_entity, count = cnt.count}
+		  end
 	       end
 	    end
-       
-       print(drawDropdown(t["status"], "type", a_type, alert_types, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))
-       if t["status"] == "historical-flows" then
-         print(drawDropdown(t["status"], "l7_proto", a_l7_proto, l7_proto, i18n("application"), get_params, l7_proto_entries))                    
-       end
-	    print(drawDropdown(t["status"], "severity", a_severity, alert_severities, i18n("alerts_dashboard.alert_severity"), get_params, sev_menu_entries))
+
+	    print(drawDropdown(t["status"], "type", a_type, i18n("alerts_dashboard.alert_type"), get_params, type_menu_entries))
+	    if t["status"] == "historical-flows" then
+	       print(drawDropdown(t["status"], "l7_proto", a_l7_proto, i18n("application"), get_params, l7_proto_entries))                    
+	    end
+	    print(drawDropdown(t["status"], "severity", a_severity, i18n("alerts_dashboard.alert_severity"), get_params, sev_menu_entries))
 	 elseif((not isEmptyString(_GET["entity_val"])) and (not hide_extended_title)) then
 	    if entity == "host" then
 	       title = title .. " - " .. firstToUpper(alert_consts.formatAlertEntity(getInterfaceId(ifname), entity, _GET["entity_val"], nil))

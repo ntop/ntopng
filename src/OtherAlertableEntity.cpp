@@ -193,8 +193,8 @@ void OtherAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
       for(it = engaged_alerts[p].begin(); it != engaged_alerts[p].end(); ++it) {
 	const Alert *alert = &it->second;
 	
-	counters->severities[alert->alert_severity]++;
-	counters->types[alert->alert_type]++;
+	counters->severities[std::make_pair(getEntityType(), alert->alert_severity)]++;
+	counters->types[std::make_pair(getEntityType(), alert->alert_type)]++;
       }
 
       unlock(p, __FILE__, __LINE__);
