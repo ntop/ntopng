@@ -622,6 +622,8 @@ class NetworkInterface : public OtherAlertableEntity {
   inline void flushServiceMap()              { if(sMap) sMap->flush(); };
   inline PeriodicityMap* getPeriodicityMap() { return(pMap);           };
   inline void flushPeriodicityMap()          { if(pMap) pMap->flush(); };
+  inline float getThroughputBps()            { return bytes_thpt.getThpt(); };
+  inline float getThroughputPps()            { return pkts_thpt.getThpt();  };
   void updateFlowPeriodicity(Flow *f);
   void updateServiceMap(Flow *f);  
 #endif

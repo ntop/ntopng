@@ -1852,6 +1852,25 @@ static int ntop_get_interface_ases_info(lua_State* vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_get_throughput(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_newtable(vm);
+
+  if(!ntop_interface)
+    return(CONST_LUA_ERROR);
+
+  lua_push_float_table_entry(vm, "throughput_bps", ntop_interface->getThroughputBps());
+  lua_push_float_table_entry(vm, "throughput_pps", ntop_interface->getThroughputPps());
+
+  
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
 static int ntop_get_interface_anomalies(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4537,7 +4556,8 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "serviceMapSetMultipleStatus",      ntop_interface_service_map_set_multiple_status },
   { "periodicityFilteringMenu",         ntop_get_interface_periodicity_proto_filtering_menu },
   { "serviceFilteringMenu",             ntop_get_interface_service_proto_filtering_menu },
-
+  { "getThroughput",                    ntop_interface_get_throughput },
+  
   /* Addresses */
   { "getAddressInfo",                   ntop_get_address_info },
 
