@@ -38,6 +38,7 @@ class FlowHitsAlert : public HostAlert {
   void toggleAttacker(bool _is_attacker) { is_attacker = _is_attacker; }
   void setHits(u_int64_t _hits) { hits = _hits;}
   void setThreshold(u_int64_t _hits_threshold) { hits_threshold = _hits_threshold; }
+  inline bool isAttacker() const { return is_attacker; }
 };
 
 #endif /* _FLOW_HITS_ALERT_H_ */

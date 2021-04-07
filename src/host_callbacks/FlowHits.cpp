@@ -41,10 +41,15 @@ void FlowHits::triggerFlowHitsAlert(Host *h, HostAlert *engaged, bool attacker,
      h->triggerAlert(alert);
 
   } else {
-
-    /* Update engaged alert */
-    alert->setHits(hits);
-
+    /*
+      Perform an update only if:
+      - The existing alert is attacker an the function is called as attacker
+      - The existing alert is victim and the function is called as victim 
+    */
+    if(alert->isAttacker() == attacker) { 
+      /* Update engaged alert */
+      alert->setHits(hits);
+    }
   }
 }
 
