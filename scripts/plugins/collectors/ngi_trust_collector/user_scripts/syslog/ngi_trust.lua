@@ -66,7 +66,10 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
    --traceError(TRACE_NORMAL, TRACE_CONSOLE, "NGI Trust Event")
    --tprint(event)
 
-   local severity = alert_severities.warning
+   local severity = alert_severities.notice
+   if event.in_alarm == 1 then
+      severity = alert_severities.warning
+   end
 
    alerts_api.store(alerts_api.macEntity(event.mac_address), {
       alert_type = alert_consts.alert_types.alert_ngi_trust_event.meta,
