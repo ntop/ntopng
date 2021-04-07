@@ -27,6 +27,8 @@ end
 --
 
 local rc = rest_utils.consts.success.ok
+local recordsFiltered = 0
+local recordsTotal = 0
 local res = {}
 
 local ifid = _GET["ifid"]
@@ -65,6 +67,8 @@ for _key,_value in ipairs(alerts) do
    local record = {}
    local alert_entity
    local alert_entity_val
+
+   recordsTotal = recordsTotal + 1
 
    if _value["alert_entity"] ~= nil then
       alert_entity    = alert_consts.alertEntityLabel(_value["alert_entity"], true)
@@ -112,5 +116,9 @@ for _key,_value in ipairs(alerts) do
 	  
 end -- for
 
-rest_utils.answer(rc, res)
+rest_utils.extended_answer(rc, {records = res}, {
+   ["draw"] = tonumber(_GET["draw"]),
+   ["recordsFiltered"] = recordsFiltered,
+   ["recordsTotal"] = recordsTotal
+})
 

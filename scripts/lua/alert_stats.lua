@@ -38,8 +38,8 @@ page_utils.print_navbar(i18n("alerts_dashboard.alerts"), url, {
         label = "Local Networks",
     },
     {
-        active = page == "snmp",
-        page_name = "snmp",
+        active = page == "snmp_device",
+        page_name = "snmp_device",
         label = "SNMP Devices",
     },
     {
@@ -63,10 +63,12 @@ local context = {
     template_utils = template_utils,
     json = json,
     ui_utils = ui_utils,
-    
+    alert_stats = {
+        entity = page
+    }
 }
 
-print(template_utils.gen("pages/alert_stats.template", context))
+template_utils.render("pages/alert_stats.template", context)
 
 -- append the menu down below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

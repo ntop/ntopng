@@ -38,18 +38,30 @@ $(document).ready(function(){
             action: () => { $alertsTable.ajax.reload(); }
         }
     ]);
+    //rest/v1/get/host/alert/data.lua
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         serverSide: true,
         ajax: {
             method: 'get',
-            url: '{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/alert/stub.lua',
-            dataSrc: 'rsp.records',
+            url: '{{ ntop.getHttpPrefix() }}/lua/rest/v1/get/{{ alert_stats.entity }}/alert/data.lua?ifid={{interface.getStats().id}}&status=historical',
+            dataSrc: 'rsp',
             data: (data, settings) => {
                 delete data.columns;
                 delete data.search;
                 return data;
             }
-        }
+        },
+        columns: [
+            {data: 'date'},
+            {data: 'duration'},
+            {data: 'count'},
+            {data: 'severity'},
+            {data: 'type'},
+            {data: 'score'},
+            {data: 'application'},
+            {data: 'description'},
+            {data: null, targets: -1, render(){ return ''}}
+        ]
     });
     const $alertsTable = $('#table-alerts').DataTable(dtConfig);
 });
