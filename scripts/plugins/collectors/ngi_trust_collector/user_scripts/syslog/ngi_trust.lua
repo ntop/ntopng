@@ -45,54 +45,34 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
    local num_alerts = 0
 
    -- Examples:
-   -- Source      time_now                      last_measurement_timestamp   mac_address    last_state state_unchanged_since        abnormality_grade in_alarm alarm_notifications_sent
-   -- "NGI_TRUST","2021-03-05T14: 00:06.759950","2021-03-05T10:55:17.505034","50C7BF010196","1",       "2021-03-05T10:55:17.505034","25.5",           "1",     "0"
-   -- "NGI_TRUST","2021-03-05T14: 59:03.960753","2021-03-05T14:40:18.094783","50C7BF010196","0",       "2021-03-05T14:40:18.094783","24.6",           "0",     "0"
+   -- {"identifier": "NGI_TRUST", "time_epoch": 1617790158.720995, "last_measurement_timestamp": 1617790151.016749, "mac_address": "ECB5FA13B46F", "last_state": 1, "state_unchanged_since": 1617790151.016749, "abnormality_grade": 0.5, "in_alarm": 1, "alarm_notifications_sent": 0}
+   -- {"identifier": "NGI_TRUST", "time_epoch": 1617790158.720995, "last_measurement_timestamp": 1617790154.016749, "mac_address": "ECB5FA13B46F", "last_state": 1, "state_unchanged_since": 1617790154.016749, "abnormality_grade": 0.1, "in_alarm": 0, "alarm_notifications_sent": 0}
 
    -- Parsing log
-   local json_array = "["..message.."]"
-   local event = json.decode(json_array)
-   if event == nil or type(event) ~= "table" or #event < 9 then
+   local event = json.decode(message)
+   if event == nil or type(event) ~= "table" or isEmptyString(event["mac_address"]) then
       num_unhandled = num_unhandled + 1
       interface.incSyslogStats(1, 0, num_unhandled, num_alerts, 0, 0)
       return
    end
 
-   local source = event[1]
-   local time_now = event[2]
-   local last_measurement_timestamp = event[3]
-   local mac_address = event[4]
-   local last_state = event[5]
-   local state_unchanged_since = event[6]
-   local abnormality_grade = event[7]
-   local in_alarm = event[8]
-   local alarm_notifications_sent = event[9]
+   local m = split(event.mac_address)
+   if #m == 12 then
+      local mac = m[ 1]..m[ 2]..":"..m[ 3]..m[ 4]..":"..m[ 5]..m[ 6]..":"..
+                  m[ 7]..m[ 8]..":"..m[ 9]..m[10]..":"..m[11]..m[12]
+      event.mac_address = mac
+   end
+
+   --traceError(TRACE_NORMAL, TRACE_CONSOLE, "NGI Trust Event")
+   --tprint(event)
+
    local severity = alert_severities.warning
 
-   traceError(TRACE_NORMAL, TRACE_CONSOLE, "NGI Trust Event Time = "..time_now.." "..(ternary(in_alarm == "1", "ENGAGED", "RELEASED")))
-
-   local m = split(mac_address)
-   if #m < 12 then
-      num_unhandled = num_unhandled + 1
-      interface.incSyslogStats(1, 0, num_unhandled, num_alerts, 0, 0)
-      return
-   end
-   local mac = m[ 1]..m[ 2]..":"..m[ 3]..m[ 4]..":"..m[ 5]..m[ 6]..":"..
-               m[ 7]..m[ 8]..":"..m[ 9]..m[10]..":"..m[11]..m[12]
-
-   alerts_api.store(alerts_api.macEntity(mac), {
+   alerts_api.store(alerts_api.macEntity(event.mac_address), {
       alert_type = alert_consts.alert_types.alert_ngi_trust_event.meta,
+      alert_subtype = event.mac_address.."-"..event.in_alarm.."-"..event.time_epoch, -- TODO add real subtype
       alert_severity = severity,
-      alert_type_params = {
-         mac = mac,
-         time_now = time_now,
-         last_measurement_timestamp = last_measurement_timestamp,
-	 last_state = last_state,
-         state_unchanged_since = state_unchanged_since,
-         abnormality_grade = abnormality_grade,
-         in_alarm = in_alarm,
-         alarm_notifications_sent = alarm_notifications_sent,
-      },
+      alert_type_params = event,
    })
 
    num_alerts = num_alerts + 1

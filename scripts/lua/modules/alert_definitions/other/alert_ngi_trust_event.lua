@@ -9,6 +9,7 @@ local other_alert_keys = require "other_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local format_utils = require "format_utils"
 
 -- ##############################################
 
@@ -19,7 +20,7 @@ local alert_ngi_trust_event = classes.class(alert)
 alert_ngi_trust_event.meta = {
   alert_key = other_alert_keys.alert_ngi_trust_event,
   i18n_title = "alerts_dashboard.ngi_trust_event",
-  icon = "fas fa-exchange-alt",
+  icon = "fas fa-home",
 }
 
 -- ##############################################
@@ -41,10 +42,19 @@ end
 -- #######################################################
 
 function alert_ngi_trust_event.format(ifid, alert, alert_type_params)
-  return(i18n("alert_messages.ngi_trust_event", {
-    mac = alert_type_params.mac, 
-    mac_url = getMacUrl(alert_type_params.mac),
-  }))
+   local i18n_key = "alert_messages.ngi_trust_event"
+   if alert_type_params.in_alarm == 0 then
+      i18n_key = "alert_messages.ngi_trust_event_released"
+   end
+
+   return(i18n(i18n_key, {
+      mac = alert_type_params.mac_address, 
+      mac_url = getMacUrl(alert_type_params.mac_address),
+      time = format_utils.formatEpoch(math.floor(alert_type_params.time_epoch)),
+      last_state = alert_type_params.last_state,
+      state_unchanged_since = format_utils.formatEpoch(math.floor(alert_type_params.state_unchanged_since)),
+      abnormality_grade = alert_type_params.abnormality_grade,
+   }))
 end
 
 -- #######################################################
