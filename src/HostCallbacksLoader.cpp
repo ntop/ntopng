@@ -50,7 +50,6 @@ void HostCallbacksLoader::registerCallbacks() {
   if((fcb = new DNSTraffic()))                 cb_all[fcb->getName()] = fcb;
 
 #ifdef NTOPNG_PRO
-  if((fcb = new HTTPRepliesRequestsRatio()))   cb_all[fcb->getName()] = fcb;
   if((fcb = new DNSRepliesRequestsRatio()))    cb_all[fcb->getName()] = fcb;
   if((fcb = new ScoreHostCallback()))          cb_all[fcb->getName()] = fcb;
 #endif

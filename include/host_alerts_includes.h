@@ -27,7 +27,6 @@
 #include "host_alerts/SYNScanAlert.h"
 #include "host_alerts/SYNFloodAlert.h"
 #include "host_alerts/RepliesRequestsRatioAlert.h"
-#include "host_alerts/HTTPRepliesRequestsRatioAlert.h"
 #include "host_alerts/DNSRepliesRequestsRatioAlert.h"
 #include "host_alerts/ServerContactsAlert.h"
 #include "host_alerts/DNSServerContactsAlert.h"

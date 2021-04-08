@@ -40,7 +40,6 @@
 
 #ifdef NTOPNG_PRO
 #include "host_callbacks/RepliesRequestsRatio.h"
-#include "host_callbacks/HTTPRepliesRequestsRatio.h"
 #include "host_callbacks/DNSRepliesRequestsRatio.h"
 #include "host_callbacks/ScoreHostCallback.h"
 #endif
