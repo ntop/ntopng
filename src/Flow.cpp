@@ -2783,6 +2783,14 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_string(s, "community_id",
 			       (char*)getCommunityId(community_id, sizeof(community_id)));
 
+  if(protos.tls.ja3.client_hash)
+    ndpi_serialize_string_string(s, "ja3_client_hash",
+				 protos.tls.ja3.client_hash);
+
+  if(protos.tls.ja3.server_hash)
+    ndpi_serialize_string_string(s, "ja3_server_hash",
+				 protos.tls.ja3.server_hash);
+
    /* Serialize alert JSON */
 
   alert_json_serializer = alert->getSerializedAlert();
