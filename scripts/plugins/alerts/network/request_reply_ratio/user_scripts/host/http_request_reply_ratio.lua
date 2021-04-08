@@ -40,8 +40,8 @@ script = {
   },
 
   gui = {
-    i18n_title = "entity_thresholds.request_reply_ratio_title",
-    i18n_description = "entity_thresholds.request_reply_ratio_description",
+    i18n_title = "entity_thresholds.http_request_reply_ratio_title",
+    i18n_description = "entity_thresholds.http_request_reply_ratio_description",
     i18n_field_unit = user_scripts.field_units.percentage,
     input_builder = "threshold_cross",
     field_max = 100,

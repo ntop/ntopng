@@ -23,24 +23,7 @@
 
 /* ***************************************************** */
 
-DNSRequestsErrorsRatioAlert::DNSRequestsErrorsRatioAlert(HostCallback *c, Host *f) : HostAlert(c, f) {
-  sent = false;
-  positives = errors = 0;
+HTTPRepliesRequestsRatioAlert::HTTPRepliesRequestsRatioAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool _is_sent_rcvd) : RepliesRequestsRatioAlert(c, f, severity, cli_score, srv_score, _is_sent_rcvd) {
 };
-
-/* ***************************************************** */
-
-ndpi_serializer* DNSRequestsErrorsRatioAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if(serializer == NULL)
-    return NULL;
-
-  /* Sync fields with host_alert_dns_requests_errors_ratio.lua */
-  ndpi_serialize_string_string(serializer, "type", sent ? "dns_sent" : "dns_rcvd");
-  ndpi_serialize_string_uint64(serializer, "positives", positives);
-  ndpi_serialize_string_uint64(serializer, "errors", errors);
-  
-  return serializer;
-
-}
 
 /* ***************************************************** */

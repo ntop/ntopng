@@ -55,15 +55,15 @@ class HostCallbacksStatus { /* Container to keep per-callback status (e.g., traf
   inline u_int64_t cb_status_delta_p2p_bytes(u_int64_t new_value) { return Utils::uintDiff(&p2p_bytes, new_value); };
   inline u_int64_t cb_status_delta_dns_bytes(u_int64_t new_value) { return Utils::uintDiff(&dns_bytes, new_value); };
 
-  inline u_int8_t cb_status_delta_http_ratio(u_int32_t new_reqs, u_int32_t new_repls, bool sent_vs_rcvd) {
+  inline u_int8_t cb_status_delta_http_ratio(u_int32_t new_repls, u_int32_t new_reqs, bool sent_vs_rcvd) {
     return sent_vs_rcvd
-      ? Utils::uintDiff(&http_reqs_sent, new_reqs) * 100 / (Utils::uintDiff(&http_repls_rcvd, new_repls) + 1)
-      : Utils::uintDiff(&http_reqs_rcvd, new_reqs) * 100 / (Utils::uintDiff(&http_repls_sent, new_repls) + 1);
+      ? Utils::uintDiff(&http_repls_sent, new_repls) * 100 / (Utils::uintDiff(&http_reqs_rcvd, new_reqs) + 1)
+      : Utils::uintDiff(&http_repls_rcvd, new_repls) * 100 / (Utils::uintDiff(&http_reqs_sent, new_reqs) + 1);
   };
-  inline u_int8_t cb_status_delta_dns_ratio(u_int32_t new_reqs, u_int32_t new_repls, bool sent_vs_rcvd) {
+  inline u_int8_t cb_status_delta_dns_ratio(u_int32_t new_repls, u_int32_t new_reqs, bool sent_vs_rcvd) {
     return sent_vs_rcvd
-      ? Utils::uintDiff(&dns_reqs_sent, new_reqs) * 100 / (Utils::uintDiff(&dns_repls_rcvd, new_repls) + 1)
-      : Utils::uintDiff(&dns_reqs_rcvd, new_reqs) * 100 / (Utils::uintDiff(&dns_repls_sent, new_repls) + 1);
+      ? Utils::uintDiff(&dns_repls_sent, new_repls) * 100 / (Utils::uintDiff(&dns_reqs_rcvd, new_reqs) + 1)
+      : Utils::uintDiff(&dns_repls_rcvd, new_repls) * 100 / (Utils::uintDiff(&dns_reqs_sent, new_reqs) + 1);
   };
 };
 

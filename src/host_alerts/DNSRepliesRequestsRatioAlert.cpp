@@ -19,30 +19,11 @@
  *
  */
 
-#ifndef _DNS_REQUESTS_ERRORS_RATIO_ALERT_H_
-#define _DNS_REQUESTS_ERRORS_RATIO_ALERT_H_
+#include "host_alerts_includes.h"
 
+/* ***************************************************** */
 
-#include "ntop_includes.h"
-
-
-class DNSRequestsErrorsRatioAlert : public HostAlert {
- private:
-  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-  bool sent;
-  u_int32_t positives, errors;
-
- public:
-  static HostAlertType getClassType() { return { host_alert_dns_requests_errors_ratio, alert_category_network }; }
-
-  DNSRequestsErrorsRatioAlert(HostCallback *c, Host *f);
-  ~DNSRequestsErrorsRatioAlert() {};
- 
-  void toggleSent(bool v) { sent = v; };
-  void setPositives(u_int32_t v) { positives = v; }
-  void setErrors(u_int32_t v) { errors = v; }
-
-  HostAlertType getAlertType() const { return getClassType(); }
+DNSRepliesRequestsRatioAlert::DNSRepliesRequestsRatioAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool _is_sent_rcvd) : RepliesRequestsRatioAlert(c, f, severity, cli_score, srv_score, _is_sent_rcvd) {
 };
 
-#endif /* _DNS_REQUESTS_ERRORS_RATIO_ALERT_H_ */
+/* ***************************************************** */

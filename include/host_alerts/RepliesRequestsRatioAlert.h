@@ -29,23 +29,22 @@
 class RepliesRequestsRatioAlert : public HostAlert {
  private:
   u_int8_t ratio_threshold;
-  u_int8_t dns_sent_rcvd_ratio, dns_rcvd_sent_ratio;
-  u_int8_t http_sent_rcvd_ratio, http_rcvd_sent_ratio;
+  u_int32_t requests, replies;
+  u_int8_t ratio;
+  bool is_sent_rcvd; /* If true, requests are sent and replies are received. If false, requests are received and replies are sent */
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
   
  public:
-  static HostAlertType getClassType() { return { host_alert_replies_requests_ratio, alert_category_network }; }
-
-  RepliesRequestsRatioAlert(HostCallback *c, Host *f, u_int8_t _ratio_threshold);
+  RepliesRequestsRatioAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool _is_sent_rcvd);
   ~RepliesRequestsRatioAlert() {};
   
-  inline void setRatios(u_int8_t _dns_sent_rcvd_ratio, u_int8_t _dns_rcvd_sent_ratio, u_int8_t _http_sent_rcvd_ratio, u_int8_t _http_rcvd_sent_ratio) {
-    dns_sent_rcvd_ratio =_dns_sent_rcvd_ratio, dns_rcvd_sent_ratio = _dns_rcvd_sent_ratio;
-    http_sent_rcvd_ratio = _http_sent_rcvd_ratio, http_rcvd_sent_ratio = _http_rcvd_sent_ratio;
+  inline void setRepliesRequestsRatios(u_int8_t _ratio_threshold, u_int8_t _ratio, u_int32_t _requests, u_int32_t _replies) {
+    ratio_threshold = _ratio_threshold;
+    ratio = _ratio, requests = _requests, replies = _replies;
   }
 
-  HostAlertType getAlertType() const { return getClassType(); }
+  inline bool isSentReceived() const { return is_sent_rcvd; }
 };
 
 #endif /* _REPLIES_REQUESTS_RATIO_ALERT_H_ */

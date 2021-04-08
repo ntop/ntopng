@@ -447,18 +447,18 @@ typedef struct {
 
 /* TODO: sync with alert_keys.lua */
 typedef enum {
-  host_alert_normal                    =  0,
-  host_alert_dns_requests_errors_ratio =  1,
-  host_alert_replies_requests_ratio    =  2,
-  host_alert_smtp_server_contacts      =  3,
-  host_alert_dns_server_contacts       =  4,
-  host_alert_ntp_server_contacts       =  5,
-  host_alert_flow_flood                =  6,
-  host_alert_syn_scan                  =  7,
-  host_alert_syn_flood                 =  8,
-  host_alert_score                     =  9,
-  host_alert_p2p_traffic               = 10,
-  host_alert_dns_traffic               = 11,
+  host_alert_normal                      =  0,
+  host_alert_http_replies_requests_ratio =  1,
+  host_alert_dns_replies_requests_ratio  =  2,
+  host_alert_smtp_server_contacts        =  3,
+  host_alert_dns_server_contacts         =  4,
+  host_alert_ntp_server_contacts         =  5,
+  host_alert_flow_flood                  =  6,
+  host_alert_syn_scan                    =  7,
+  host_alert_syn_flood                   =  8,
+  host_alert_score                       =  9,
+  host_alert_p2p_traffic                 = 10,
+  host_alert_dns_traffic                 = 11,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
   MAX_HOST_ALERT_TYPE = 16 /* Constrained by `Bitmap16 alert_map` inside Host.h and Bitmap16 engaged_alerts_map inside HostAlertableEntity */
@@ -470,8 +470,8 @@ typedef struct {
 } HostAlertType;
 
 typedef enum {
-  host_callback_dns_requests_errors_ratio =  0,
-  host_callback_replies_requests_ratio,
+  host_callback_http_replies_requests_ratio = 0,
+  host_callback_dns_replies_requests_ratio,
   host_callback_syn_flood,
   host_callback_syn_scan,
   host_callback_flow_flood,
