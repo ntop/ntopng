@@ -168,7 +168,6 @@
             const href = $(`#btn-download-records`).attr('href');
             const newDownloadURL = new URL(href, location.origin);
             newDownloadURL.search = new URLSearchParams(datasourceParams); 
-            console.log(newDownloadURL.toString());
             $(`#btn-download-records`).attr('href', newDownloadURL.toString());
 
             if (pushHistroy) {
