@@ -617,13 +617,13 @@ class NetworkInterface : public OtherAlertableEntity {
                       bool unicast, u_int32_t first_seen, u_int16_t filter_ndpi_proto);
   void luaSubInterface(lua_State *vm);
   void luaServiceMapStatus(lua_State *vm);
+  inline float getThroughputBps()            { return bytes_thpt.getThpt(); };
+  inline float getThroughputPps()            { return pkts_thpt.getThpt();  };
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
   inline ServiceMap* getServiceMap()         { return(sMap);           };
   inline void flushServiceMap()              { if(sMap) sMap->flush(); };
   inline PeriodicityMap* getPeriodicityMap() { return(pMap);           };
   inline void flushPeriodicityMap()          { if(pMap) pMap->flush(); };
-  inline float getThroughputBps()            { return bytes_thpt.getThpt(); };
-  inline float getThroughputPps()            { return pkts_thpt.getThpt();  };
   void updateFlowPeriodicity(Flow *f);
   void updateServiceMap(Flow *f);  
 #endif
