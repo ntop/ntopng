@@ -447,7 +447,7 @@ class Ntop {
   void removeTrailingSlash(char *str);
   void daemonize();
   void shutdownPeriodicActivities();
-  void shutdown();
+  void shutdownInterfaces();
   void shutdownAll();
   void runHousekeepingTasks();
   void runShutdownTasks();

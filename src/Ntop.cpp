@@ -2723,7 +2723,7 @@ void Ntop::shutdownPeriodicActivities() {
 
 /* ******************************************* */
 
-void Ntop::shutdown() {
+void Ntop::shutdownInterfaces() {
   for(int i=0; i<num_defined_interfaces; i++) {
     EthStats *stats = iface[i]->getStats();
 
@@ -2747,6 +2747,9 @@ void Ntop::shutdownAll() {
    Periodic activites should not run during interfaces shutdown */
   ntop->shutdownPeriodicActivities();
 
+  /* Perform shutdown operations on all active interfaces */
+  ntop->shutdownInterfaces();
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing shutdown script");
 
   /* Exec shutdown script before shutting down ntopng */
@@ -2757,8 +2760,6 @@ void Ntop::shutdownAll() {
   }
 
   ntop->getGlobals()->shutdown();
-  sleep(1); /* Wait until all threads know that we're shutting down... */
-  ntop->shutdown();
 
 #ifndef WIN32
   /*
