@@ -4143,6 +4143,20 @@ end
 
 -- ###########################################
 
+function build_query_params(params)
+
+    local query = "?"
+    local t = {}
+ 
+    for key, value in pairs(params) do
+        t[#t+1] = string.format("%s=%s", key, value)
+    end
+
+    return query .. table.concat(t, '&')
+end
+
+-- ###########################################
+
 function create_ndpi_proto_name(v)
    local app = ""
 
