@@ -1688,7 +1688,7 @@ void Host::releaseAllEngagedAlerts() {
 /*
  * This method is called to update status and score of the flow
  */
-bool Host::setAlertsBitmap(HostAlertType alert_type, int8_t score_as_cli_inc, int8_t score_as_srv_inc) {
+bool Host::setAlertsBitmap(HostAlertType alert_type, u_int8_t score_as_cli_inc, u_int8_t score_as_srv_inc) {
   ScoreCategory score_category;
 
 #ifdef DEBUG_SCORE
@@ -1704,11 +1704,8 @@ bool Host::setAlertsBitmap(HostAlertType alert_type, int8_t score_as_cli_inc, in
 
   score_category = Utils::mapAlertToScoreCategory(alert_type.category);
 
-  if (score_as_cli_inc >= 0) incScoreValue(score_as_cli_inc, score_category, true /* as client */);
-  else decScoreValue(-score_as_cli_inc, score_category, true /* as client */);
-
-  if (score_as_srv_inc >= 0) incScoreValue(score_as_srv_inc, score_category, false /* as server */);
-  else decScoreValue(-score_as_srv_inc, score_category, false /* as server */);
+  incScoreValue(score_as_cli_inc, score_category, true /* as client */);
+  incScoreValue(score_as_srv_inc, score_category, false /* as server */);
 
   alerts_map.setBit(alert_type.id);
 
@@ -1743,7 +1740,7 @@ bool Host::triggerAlert(HostAlert *alert) {
     return false;
   }
 
-  res = setAlertsBitmap(alert_type, alert->getCliScoreInc(), alert->getSrvScoreInc());
+  res = setAlertsBitmap(alert_type, alert->getCliScore(), alert->getSrvScore());
 
   alert->setEngaged();
 

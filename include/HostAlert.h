@@ -38,8 +38,6 @@ class HostAlert {
   time_t release_time;
   u_int8_t score_as_cli;
   u_int8_t score_as_srv;
-  int8_t score_inc_as_cli;
-  int8_t score_inc_as_srv;
 
   /* 
      Adds to the passed `serializer` (generated with `getAlertSerializer`) information specific to this alert
@@ -47,31 +45,23 @@ class HostAlert {
   virtual ndpi_serializer* getAlertJSON(ndpi_serializer* serializer)  { return serializer; }  
 
  public:
-  //HostAlert(HostCallback *c, Host *h);
   HostAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score);
   virtual ~HostAlert();
 
-  inline void setSeverity(AlertLevel alert_severity) { severity_id = alert_severity; };
-  inline AlertLevel getSeverity()           const { return(severity_id);   }  
+  inline void setSeverity(AlertLevel alert_severity) { severity_id = alert_severity; }
+  inline AlertLevel getSeverity() const              { return(severity_id);          }  
 
   inline u_int8_t getCliScore() { return score_as_cli; }
   inline u_int8_t getSrvScore() { return score_as_srv; }
-
-  /* Uncomment in case of plugins requiring a score update */
-  //inline void setCliScore(u_int8_t score) { score_inc_as_cli += score - score_as_cli; score_as_cli = score; }
-  //inline void setSrvScore(u_int8_t score) { score_inc_as_srv += score - score_as_srv; score_as_srv = score; }
-
-  inline int8_t getCliScoreInc() { int8_t tmp = score_inc_as_cli; score_inc_as_cli = 0; return tmp; }
-  inline int8_t getSrvScoreInc() { int8_t tmp = score_inc_as_srv; score_inc_as_srv = 0; return tmp; }
 
   virtual HostAlertType getAlertType() const = 0;
 
   /* Alert automatically released when the condition is no longer satisfied. */
   virtual bool hasAutoRelease()  { return true; }
 
-  inline Host *getHost()                    const { return(host);          }
-  inline HostCallbackID getCallbackType() const { return(callback_id); }
-  inline std::string getCallbackName()      const { return(callback_name); }
+  inline Host *getHost() const                  { return(host);          }
+  inline HostCallbackID getCallbackType() const { return(callback_id);   }
+  inline std::string getCallbackName() const    { return(callback_name); }
 
   inline void setEngaged()       { expiring = released = false; }
 
