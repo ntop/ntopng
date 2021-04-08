@@ -26,7 +26,7 @@
 
 #include "ntop_includes.h"
 
-class OperatingSystem : public GenericHashEntry, public GenericTrafficElement, public SerializableElement, public Score {
+class OperatingSystem : public GenericHashEntry, public GenericTrafficElement, public SerializableElement {
  private:
   OSType os_type;
 

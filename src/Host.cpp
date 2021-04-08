@@ -97,10 +97,10 @@ Host::~Host() {
 u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client) {
   NetworkStats *ns = getNetworkStats(get_local_network_id());
 
+  /* Do increments only on members that don't change during the lifecycle of the host */
   if(as)      as->incScoreValue(score_incr, score_category, as_client);
   if(vlan)    vlan->incScoreValue(score_incr, score_category, as_client);
   if(country) country->incScoreValue(score_incr, score_category, as_client);
-  if(os)      os->incScoreValue(score_incr, score_category, as_client);
   if(ns)      ns->incScoreValue(score_incr, score_category, as_client);
   if(iface)   iface->incScoreValue(score_incr, as_client);
   
@@ -113,10 +113,10 @@ u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category
 u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category, bool as_client) {
   NetworkStats *ns = getNetworkStats(get_local_network_id());
 
+  /* Keep decements in sync with Host::incScoreValue */
   if(as)      as->decScoreValue(score_decr, score_category, as_client);
   if(vlan)    vlan->decScoreValue(score_decr, score_category, as_client);
   if(country) country->decScoreValue(score_decr, score_category, as_client);
-  if(os)      os->decScoreValue(score_decr, score_category, as_client);
   if(ns)      ns->decScoreValue(score_decr, score_category, as_client);
   if(iface)   iface->decScoreValue(score_decr, as_client);
   
