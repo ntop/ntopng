@@ -135,7 +135,7 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   longrun_priority_pool      = new (std::nothrow) ThreadPool(false, num_threads);
   timeseries_pool            = new (std::nothrow) ThreadPool(false, 1);
   notifications_pool         = new (std::nothrow) ThreadPool(false, 1);
-  periodic_user_scripts_pool = new (std::nothrow) ThreadPool(true /* Adaptive pool size */, 2 /* Initial pool size */);
+  periodic_user_scripts_pool = new (std::nothrow) ThreadPool(false, 1);
   discover_pool              = new (std::nothrow) ThreadPool(false, 1);
   housekeeping_pool          = new (std::nothrow) ThreadPool(false, 1);
   no_priority_pool           = new (std::nothrow) ThreadPool(false, num_threads_no_priority);
