@@ -19,23 +19,12 @@
  *
  */
 
-#ifndef _TLS_MALICIOUS_SIGNATURE_ALERT_H_
-#define _TLS_MALICIOUS_SIGNATURE_ALERT_H_
+#include "flow_callbacks_includes.h"
 
-#include "ntop_includes.h"
+ndpi_serializer* TLSMaliciousSignatureAlert::getAlertJSON(ndpi_serializer* serializer) {
+  Flow *f = getFlow();
 
-class TLSMaliciousSignatureAlert : public FlowAlert {
- private:
-  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+  ndpi_serialize_string_string(serializer, "ja3_client_hash", f->getJa3CliHash());
 
- public:
-  static FlowAlertType getClassType() { return { flow_alert_malicious_signature, alert_category_security }; }
-
- TLSMaliciousSignatureAlert(FlowCallback *c, Flow *f) : FlowAlert(c, f) { };
-  ~TLSMaliciousSignatureAlert() { };
-
-  FlowAlertType getAlertType() const { return getClassType(); }
-  std::string getName() const { return std::string("alert_malicious_signature"); }
-};
-
-#endif /* _TLS_MALICIOUS_SIGNATURE_ALERT_H_ */
+  return serializer;
+}

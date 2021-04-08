@@ -18,7 +18,7 @@ local alert_malicious_signature = classes.class(alert)
 
 alert_malicious_signature.meta = {
    alert_key = flow_alert_keys.flow_alert_malicious_signature,
-   i18n_title = "alerts_dashboard.malicious_signature_detected",
+   i18n_title = "flow_risk.malicious_signature_detected",
    icon = "fas fa-ban",
 }
 
@@ -39,7 +39,9 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_malicious_signature.format(ifid, alert, alert_type_params)
-   return
+   return(i18n("alerts_dashboard.malicious_signature_detected", {
+		  ja3_hash = alert_type_params["ja3_client_hash"]
+   }))
 end
 
 -- #######################################################

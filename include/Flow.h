@@ -329,7 +329,9 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getPredominantAlertScore() const { return predominant_alert_score; };
   inline bool isFlowAlerted()    const { return(predominant_alert.id != flow_alert_normal); };
   inline AlertLevel getAlertedSeverity()     const { return predominant_alert_level; };
-
+  
+  inline char* getJa3CliHash() { return(protos.tls.ja3.client_hash); }
+  
   bool isBlacklistedFlow()   const;
   bool isBlacklistedClient() const;
   bool isBlacklistedServer() const;
@@ -340,7 +342,7 @@ class Flow : public GenericHashEntry {
   inline bool isProto(u_int16_t p) const { return(((ndpiDetectedProtocol.master_protocol == p)
 						   || (ndpiDetectedProtocol.app_protocol == p))
 						  ? true : false); }
-  bool isTLSProto() const;
+  bool isTLSProto() const; 
   inline bool isTLS()  const { return(isProto(NDPI_PROTOCOL_TLS));  }
   inline bool isSSH()  const { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()  const { return(isProto(NDPI_PROTOCOL_DNS));  }

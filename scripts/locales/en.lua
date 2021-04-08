@@ -663,7 +663,7 @@ local lang = {
     ["local_origin_remote_target"] = "Local Origin - Remote Target",
     ["login_failed"] = "Login Failed",
     ["mac_ip_association_change"] = "IP/MAC Change",
-    ["malicious_signature_detected"] = "Possibly Malicious JA3 Signature",
+    ["malicious_signature_detected"] = "[Client JA3 Hash: %{ja3_hash}]",
     ["many_replies"] = "%{count} %{what} replies",
     ["many_requests"] = "%{count} %{what} requests",
     ["memory_ts"] = "Memory Timeseries",
@@ -2278,6 +2278,7 @@ local lang = {
     ["ndpi_url_possible_rce_injection"] = "Possible Remote Code Execution (RCE)",
     ["ndpi_url_possible_sql_injection"] = "Possible SQL Injection",
     ["ndpi_url_possible_xss"] = "Possible XSS",
+    ["malicious_signature_detected"] = "Possibly Client Malicious JA3 Signature",
   },
   ["flows_page"] = {
     ["active_flows"] = "%{filter} Active Flows",
