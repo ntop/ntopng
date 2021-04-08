@@ -32,7 +32,7 @@ class DNSServerContactsAlert : public ServerContactsAlert {
  public:
   static HostAlertType getClassType() { return { host_alert_dns_server_contacts, alert_category_security }; }
 
-  DNSServerContactsAlert(HostCallback *c, Host *f, u_int64_t _contacts, u_int64_t _contacts_threshold);
+  DNSServerContactsAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _contacts, u_int64_t _contacts_threshold);
   ~DNSServerContactsAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }

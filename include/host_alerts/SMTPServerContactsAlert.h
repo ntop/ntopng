@@ -32,7 +32,7 @@ class SMTPServerContactsAlert : public ServerContactsAlert {
  public:
   static HostAlertType getClassType() { return { host_alert_smtp_server_contacts, alert_category_security }; }
 
-  SMTPServerContactsAlert(HostCallback *c, Host *f, u_int64_t _contacts, u_int64_t _contacts_threshold);
+  SMTPServerContactsAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _contacts, u_int64_t _contacts_threshold);
   ~SMTPServerContactsAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }

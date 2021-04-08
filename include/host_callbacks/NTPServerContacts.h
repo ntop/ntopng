@@ -28,7 +28,7 @@ class NTPServerContacts : public ServerContacts {
 private:
   u_int32_t getContactedServers(Host *h) const { return h->getNTPContactCardinality(); };
   HostAlertType getAlertType() const { return NTPServerContactsAlert::getClassType(); };
-  HostAlert *allocAlert(HostCallback *c, Host *f, u_int64_t _contacts, u_int64_t _contacts_threshold) { return new NTPServerContactsAlert(c, f, _contacts, _contacts_threshold); };
+  HostAlert *allocAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _contacts, u_int64_t _contacts_threshold) { return new NTPServerContactsAlert(c, f, severity, cli_score, srv_score, _contacts, _contacts_threshold); };
 
  public:
   NTPServerContacts();

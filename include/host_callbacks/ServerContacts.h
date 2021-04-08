@@ -31,7 +31,7 @@ private:
   /* Methods that must be overridden by subclasses to fetch subclass alert type and subclass valute to be checked against the threshold */
   virtual u_int32_t getContactedServers(Host *h) const = 0;
   virtual HostAlertType getAlertType() const = 0;
-  virtual HostAlert *allocAlert(HostCallback *c, Host *f, u_int64_t _contacts, u_int64_t _contacts_threshold) = 0;
+  virtual HostAlert *allocAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _contacts, u_int64_t _contacts_threshold) = 0;
 
  public:
   ServerContacts();

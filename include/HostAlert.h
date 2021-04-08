@@ -47,17 +47,19 @@ class HostAlert {
   virtual ndpi_serializer* getAlertJSON(ndpi_serializer* serializer)  { return serializer; }  
 
  public:
-  HostAlert(HostCallback *c, Host *h);
+  //HostAlert(HostCallback *c, Host *h);
   HostAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score);
   virtual ~HostAlert();
 
   inline void setSeverity(AlertLevel alert_severity) { severity_id = alert_severity; };
   inline AlertLevel getSeverity()           const { return(severity_id);   }  
 
-  inline void setCliScore(u_int8_t score) { score_inc_as_cli += score - score_as_cli; score_as_cli = score; }
-  inline void setSrvScore(u_int8_t score) { score_inc_as_srv += score - score_as_srv; score_as_srv = score; }
   inline u_int8_t getCliScore() { return score_as_cli; }
   inline u_int8_t getSrvScore() { return score_as_srv; }
+
+  /* Uncomment in case of plugins requiring a score update */
+  //inline void setCliScore(u_int8_t score) { score_inc_as_cli += score - score_as_cli; score_as_cli = score; }
+  //inline void setSrvScore(u_int8_t score) { score_inc_as_srv += score - score_as_srv; score_as_srv = score; }
 
   inline int8_t getCliScoreInc() { int8_t tmp = score_inc_as_cli; score_inc_as_cli = 0; return tmp; }
   inline int8_t getSrvScoreInc() { int8_t tmp = score_inc_as_srv; score_inc_as_srv = 0; return tmp; }

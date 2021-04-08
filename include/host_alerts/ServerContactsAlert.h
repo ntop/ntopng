@@ -33,7 +33,7 @@ class ServerContactsAlert : public HostAlert {
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
-  ServerContactsAlert(HostCallback *c, Host *f, u_int64_t _syns, u_int64_t _syns_threshold);
+  ServerContactsAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _syns, u_int64_t _syns_threshold);
   ~ServerContactsAlert() {};
 };
 

@@ -23,8 +23,7 @@
 
 /* **************************************************** */
 
-HostAlert::HostAlert(HostCallback *c, Host *h) : HostAlert(c, h, alert_level_notice, 0, 0) {
-}
+//HostAlert::HostAlert(HostCallback *c, Host *h) : HostAlert(c, h, alert_level_notice, 0, 0) {}
 
 /* **************************************************** */
 
@@ -36,9 +35,8 @@ HostAlert::HostAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli
   callback_name = c->getName();
   engage_time = time(NULL);
   release_time = 0;
-  score_as_cli = cli_score;
-  score_as_srv = srv_score;
-  score_inc_as_cli = score_inc_as_srv = 0;
+  score_as_cli = score_inc_as_cli = cli_score;
+  score_as_srv = score_inc_as_srv = srv_score;
 }
 
 /* **************************************************** */

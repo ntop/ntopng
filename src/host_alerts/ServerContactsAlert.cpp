@@ -23,7 +23,7 @@
 
 /* ***************************************************** */
 
-ServerContactsAlert::ServerContactsAlert(HostCallback *c, Host *f, u_int64_t _contacts, u_int64_t _contacts_threshold) : HostAlert(c, f) {
+ServerContactsAlert::ServerContactsAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _contacts, u_int64_t _contacts_threshold) : HostAlert(c, f, severity, cli_score, srv_score) {
   contacts = _contacts,
     contacts_threshold = _contacts_threshold;
 };
