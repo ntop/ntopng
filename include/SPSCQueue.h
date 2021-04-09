@@ -79,22 +79,24 @@ template <typename T> class SPSCQueue {
   /**
    * Pop an item from the tail
    * Return the item (which is removed from the queue)
+   * Note: isNotEmpty() should be called before. Similar to std lists,
+   * if the container is not empty the function never throws exceptions.
+   * Otherwise, it causes undefined behavior.
    */
   inline T dequeue() {
     u_int32_t next_tail;
     
     next_tail = (shadow_tail + 1) & (queue_size-1);
-    if (next_tail != head) {
-      T item = queue[next_tail];
-      shadow_tail = next_tail;
+    if (next_tail == head)
+      throw "Empty queue";
 
-      if ((shadow_tail & QUEUE_WATERMARK_MASK) == 0)
-        tail = shadow_tail;
+    T item = queue[next_tail];
+    shadow_tail = next_tail;
 
-      return item;
-    }
+    if ((shadow_tail & QUEUE_WATERMARK_MASK) == 0)
+      tail = shadow_tail;
 
-    return static_cast<T>(NULL);
+    return item;
   }
 
   inline bool wait() {

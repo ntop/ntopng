@@ -3033,7 +3033,7 @@ void Flow::callFlowUpdate(time_t t) {
 /* *************************************** */
 
 /* Enqueue alert to recipients */
-bool Flow::enqueueAlert(FlowAlert *alert) {
+bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
   bool first_alert = isFlowAlerted();
   bool rv = false;
   u_int32_t buflen;

@@ -430,8 +430,8 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   virtual u_int32_t getSMTPContactCardinality()   { return(0); }
 
   /* Enqueues an alert to all available host recipients. */
-  bool enqueueAlert(HostAlert *alert);
-  void alert2JSON(HostAlert *alert, ndpi_serializer *serializer);
+  bool enqueueAlertToRecipients(HostAlert *alert, bool released);
+  void alert2JSON(HostAlert *alert, bool released, ndpi_serializer *serializer);
 
   /* Same as flow alerts */
   inline Bitmap16 getAlertsBitmap() const { return(alerts_map); }

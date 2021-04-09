@@ -468,6 +468,9 @@ typedef struct {
   AlertCategory category;
 } HostAlertType;
 
+class HostAlert;
+typedef std::pair<HostAlert *, bool> HostAlertReleasedPair;
+
 typedef enum {
   host_callback_http_replies_requests_ratio = 0,
   host_callback_dns_replies_requests_ratio,

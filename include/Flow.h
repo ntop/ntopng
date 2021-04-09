@@ -304,7 +304,7 @@ class Flow : public GenericHashEntry {
   inline void fcb_get_elephant_th(u_int64_t *l2r, u_int64_t *r2l) { *l2r = fcb_status.elephant_th_l2r, *r2l = fcb_status.elephant_th_r2l; };
 
   /* Enqueues an alert to all available flow recipients. */
-  bool enqueueAlert(FlowAlert *alert);
+  bool enqueueAlertToRecipients(FlowAlert *alert);
 
   /*
     Called by FlowCallback subclasses to trigger a flow alert. This is an asynchronous call, faster, but can

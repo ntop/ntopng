@@ -1579,7 +1579,7 @@ bool Host::isFlowAlertDisabled(FlowAlertType alert_type) {
 /* *************************************** */
 
 /* Create a JSON in the alerts format */
-void Host::alert2JSON(HostAlert *alert, ndpi_serializer *s) {
+void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   ndpi_serializer *alert_json_serializer = NULL;
   char *alert_json = NULL;
   u_int32_t alert_json_len;
@@ -1588,7 +1588,7 @@ void Host::alert2JSON(HostAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_uint64(s, "pool_id", get_host_pool());
 
   /* See AlertableEntity::luaAlert */
-  ndpi_serialize_string_string(s, "action", alert->isReleased() ? "release" : "engage");
+  ndpi_serialize_string_string(s, "action", released ? "release" : "engage");
   ndpi_serialize_string_int32(s, "alert_type", alert->getAlertType().id);
   ndpi_serialize_string_string(s, "alert_subtype", "" /* No subtype for hosts */);
   ndpi_serialize_string_int32(s, "alert_severity", alert->getSeverity());
@@ -1616,7 +1616,7 @@ void Host::alert2JSON(HostAlert *alert, ndpi_serializer *s) {
 /* *************************************** */
 
 /* Enqueue alert to recipients */
-bool Host::enqueueAlert(HostAlert *alert) {
+bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
   bool rv = false;
   u_int32_t buflen;
   AlertFifoItem notification;
@@ -1626,7 +1626,7 @@ bool Host::enqueueAlert(HostAlert *alert) {
   ndpi_init_serializer(&host_json, ndpi_serialization_format_json);
 
   /* Prepare the JSON, including a JSON specific of this HostAlertType */
-  alert2JSON(alert, &host_json);
+  alert2JSON(alert, released, &host_json);
 
   host_str = ndpi_serializer_get_buffer(&host_json, &buflen);
 
@@ -1646,7 +1646,7 @@ bool Host::enqueueAlert(HostAlert *alert) {
 
   ndpi_term_serializer(&host_json);
 
-  if(alert->isReleased())
+  if(released)
     delete alert;
 
   return rv;
@@ -1677,7 +1677,9 @@ void Host::releaseAllEngagedAlerts() {
     HostCallbackID t = (HostCallbackID) i;
     HostAlert *alert = getCallbackEngagedAlert(t);
     if (alert && alert->hasAutoRelease()) {
+
       alert->release();
+
       releaseEngagedAlert(alert);
     }
   }

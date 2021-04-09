@@ -118,7 +118,7 @@ class NetworkInterface : public OtherAlertableEntity {
      See scripts/plugins/examples/example/user_scripts/flow/example.lua for the callbacks
    */
   SPSCQueue<FlowAlert *> *flowAlertsQueue;
-  SPSCQueue<HostAlert *> *hostAlertsQueue;
+  SPSCQueue<HostAlertReleasedPair> *hostAlertsQueue;
 
   /*
     Flag to indicate whether a flow JSON should be dumped along with the flow. Flow JSON contain

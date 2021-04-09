@@ -338,7 +338,7 @@ void NetworkInterface::init() {
 
   idleFlowsToDump = activeFlowsToDump = NULL;
   flowAlertsQueue = new (std::nothrow) SPSCQueue<FlowAlert *>(MAX_FLOW_CALLBACKS_QUEUE_LEN, "flowAlertsQueue");
-  hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlert *>(MAX_HOST_CALLBACKS_QUEUE_LEN, "hostAlertsQueue");
+  hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlertReleasedPair>(MAX_HOST_CALLBACKS_QUEUE_LEN, "hostAlertsQueue");
 
   PROFILING_INIT();
 }
@@ -674,11 +674,11 @@ bool NetworkInterface::enqueueHostAlert(HostAlert *alert) {
   bool ret = false;
   Host *h = alert->getHost();
 
-  if (!ntop->getPrefs()->dontEmitHostAlerts()
-      && hostAlertsQueue) {
+  if (!ntop->getPrefs()->dontEmitHostAlerts() && hostAlertsQueue) {
+    HostAlertReleasedPair alert_info(alert, alert->isReleased());
 
     /* Perform the actual enqueue */
-    if(hostAlertsQueue->enqueue(alert, true)) {
+    if(hostAlertsQueue->enqueue(alert_info, true)) {
 
       /*
 	If enqueue was successful, increase the host reference counter.
@@ -2443,31 +2443,26 @@ u_int64_t NetworkInterface::dequeueFlowAlerts(u_int budget) {
   u_int64_t num_done = 0;
 
   while(flowAlertsQueue->isNotEmpty()) {
-    FlowAlert *alert;
-   
-    alert = flowAlertsQueue->dequeue();
+    FlowAlert *alert = flowAlertsQueue->dequeue();
+    Flow *f = alert->getFlow();
 
-    if (alert) {
-      Flow *f = alert->getFlow();
-
-      /* Enqueue alert to recipients */
-      f->enqueueAlert(alert);
+    /* Enqueue alert to recipients */
+    f->enqueueAlertToRecipients(alert);
 
 #if DEBUG_FLOW_CALLBACKS
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flow alert");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued flow alert");
 #endif
 
-      /*
-        Now that the job is done, the reference counter to the flow can be decreased.
-       */
-      f->decUses();
+    /*
+      Now that the job is done, the reference counter to the flow can be decreased.
+     */
+    f->decUses();
 
-      num_done++;
+    num_done++;
 
-      if(budget > 0 /* Budget requested */
-         && num_done >= budget /* Budget exceeded */)
-        break;
-    }
+    if(budget > 0 /* Budget requested */
+       && num_done >= budget /* Budget exceeded */)
+      break;
   }
 
   return num_done;
@@ -2480,31 +2475,28 @@ u_int64_t NetworkInterface::dequeueHostAlerts(u_int budget) {
   u_int64_t num_done = 0;
 
   while(hostAlertsQueue->isNotEmpty()) {
-    HostAlert *alert;
-   
-    alert = hostAlertsQueue->dequeue();
+    HostAlertReleasedPair alert_info = hostAlertsQueue->dequeue();
+    HostAlert *alert = alert_info.first;
+    bool released = alert_info.second;
+    Host *h = alert->getHost();
 
-    if (alert) {
-      Host *h = alert->getHost();
-
-      /* Enqueue alert to recipients */
-      h->enqueueAlert(alert);
+    /* Enqueue alert to recipients */
+    h->enqueueAlertToRecipients(alert, released);
 
 #if DEBUG_HOST_CALLBACKS
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued host alert");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Dequeued host alert");
 #endif
 
-      /*
-        Now that the job is done, the reference counter to the host can be decreased.
-       */
-      h->decUses();
+    /*
+      Now that the job is done, the reference counter to the host can be decreased.
+     */
+    h->decUses();
 
-      num_done++;
+    num_done++;
 
-      if(budget > 0 /* Budget requested */
-         && num_done >= budget /* Budget exceeded */)
-        break;
-    }
+    if(budget > 0 /* Budget requested */
+       && num_done >= budget /* Budget exceeded */)
+      break;
   }
 
   return num_done;
