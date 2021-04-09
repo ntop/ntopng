@@ -44,9 +44,9 @@ class HostAlertableEntity : public AlertableEntity {
 
   bool addEngagedAlert(HostAlert *a);
   bool removeEngagedAlert(HostAlert *a);
-  bool isEngagedAlert(HostAlertType alert_type) { return engaged_alerts_map.isSetBit(alert_type.id); }
+  inline bool isEngagedAlert(HostAlertType alert_type) { return engaged_alerts_map.isSetBit(alert_type.id); }
   bool hasCallbackEngagedAlert(HostCallbackID callback_id);
-  HostAlert *getCallbackEngagedAlert(HostCallbackID t) { return engaged_alerts[t]; }
+  inline HostAlert *getCallbackEngagedAlert(HostCallbackID t) { return engaged_alerts[t]; }
   HostAlert *findEngagedAlert(HostAlertType alert_type, HostCallbackID callback_id);
 
   void countAlerts(grouped_alerts_counters *counters);

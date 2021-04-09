@@ -1672,37 +1672,32 @@ void Host::releaseAllEngagedAlerts() {
 bool Host::triggerAlert(HostAlert *alert) {
   ScoreCategory score_category;
   HostAlertType alert_type;
-  bool alert_disabled = false;
 
-  if (alert == NULL)
+  if(alert == NULL)
     return false;
 
   alert_type = alert->getAlertType();
 
-  if (isHostAlertDisabled(alert_type))
-    alert_disabled = true;
-  else
-    alert->setEngaged();
+  if(isHostAlertDisabled(alert_type)) {
+#ifdef DEBUG_SCORE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding disabled alert");
+#endif
+    alert->setExpiring(); /* Mark this alert as expiring to have it released soon */
+    return false;
+  }
+
+  /* Leave this AFTER the isHostAlertDisabled check */
+  alert->setEngaged();
 
   if (hasCallbackEngagedAlert(alert->getCallbackType())) {
     if (getCallbackEngagedAlert(alert->getCallbackType()) == alert) {
       /* This is a refresh (see alert->isExpired()) */
       return true;
     } else {
-      /* One engaged alert is allowed per callback */
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error: One engaged alert is allowed per callback");
       delete alert;
       return false;
     }
-  }
-
-  /* Check host filter */
-  if(alert_disabled
-     || alert_type.id == host_alert_normal /* Safety check */) {
-#ifdef DEBUG_SCORE
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (host filter)");
-#endif
-    delete alert;
-    return false;
   }
 
 #ifdef DEBUG_SCORE

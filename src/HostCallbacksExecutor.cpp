@@ -89,18 +89,24 @@ void HostCallbacksExecutor::execCallbacks(Host *h) {
       /* Initializing (auto-release) alert to expiring, to check if
        * it needs to be released when not engaged again */
       alert = h->getCallbackEngagedAlert(ct);
-      if (alert && alert->hasAutoRelease())
+
+      if(alert && alert->hasAutoRelease())
         alert->setExpiring();
 
       /* Call Handler */
       cb->periodicUpdate(h, alert);
 
       /* Check if alert is expired and should be released
-       * Note: call getCallbackEngagedAlert again in case the
-       * alert ahs been explicitly released by the callback. */
+       * NOTE: call getCallbackEngagedAlert again in case the
+       * alert ahs been explicitly released by the callback.
+       */
       alert = h->getCallbackEngagedAlert(ct);
-      if (alert && alert->isExpired())
-        h->releaseAlert(alert);
+      if(alert /* There's an engaged alert */
+	 && (/* Alert has not been `refreshed` inside the callback */
+	     alert->isExpired()
+	     /* Alert has been disabled while it was engaged and a trigger didn't refresh it */
+	     || h->isHostAlertDisabled(alert->getAlertType())))
+	h->releaseAlert(alert);
     }
   }
 
