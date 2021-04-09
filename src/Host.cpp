@@ -1700,23 +1700,19 @@ bool Host::setAlertsBitmap(HostAlertType alert_type, u_int8_t score_as_cli_inc, 
  * This is called by the Callback to trigger an alert
  */
 bool Host::triggerAlert(HostAlert *alert) {
-  HostAlertType alert_type = alert->getAlertType();
+  HostAlertType alert_type;
+  bool alert_disabled = false;
   bool res;
 
-  if (alert == NULL) {
+  if (alert == NULL)
     return false;
-  }
 
-  /* Check host filter */
-  if(isHostAlertDisabled(alert_type)) {
-#ifdef DEBUG_SCORE
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (host filter)");
-#endif
-    delete alert;
-    return false;
-  }
+  alert_type = alert->getAlertType();
 
-  alert->setEngaged();
+  if (isHostAlertDisabled(alert_type))
+    alert_disabled = true;
+  else
+    alert->setEngaged();
 
   if (hasCallbackEngagedAlert(alert->getCallbackType())) {
     if (getCallbackEngagedAlert(alert->getCallbackType()) == alert) {
@@ -1727,6 +1723,15 @@ bool Host::triggerAlert(HostAlert *alert) {
       delete alert;
       return false;
     }
+  }
+
+  /* Check host filter */
+  if(alert_disabled) {
+#ifdef DEBUG_SCORE
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (host filter)");
+#endif
+    delete alert;
+    return false;
   }
 
   res = setAlertsBitmap(alert_type, alert->getCliScore(), alert->getSrvScore());
