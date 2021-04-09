@@ -198,38 +198,9 @@ static void* packetPollLoop(void* ptr) {
 	   && !ntop->getGlobals()->isShutdown())
       sleep(1);
 
-#if 0 /* Lua support */
-    if (Utils::hasExtension(test_pre_script_path, ".lua")) {
-      char test_path[MAX_PATH];
-      const char *sep;
-
-      /* Execute as Lua script */
-
-      if((sep = strrchr(test_pre_script_path, '/')) == NULL)
-        sep = test_pre_script_path;
-      else
-        sep++;
-
-      snprintf(test_path, sizeof(test_path), "%s/lua/modules/test/%s",
-               ntop->getPrefs()->get_scripts_dir(), sep);
-
-      if(Utils::file_exists(test_path)) {
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Executing script %s", test_path);
-        LuaEngine *l = new (std::nothrow)LuaEngine(NULL);
-	if(l) {
-	  l->run_script(test_path, iface);
-	  delete l;
-	}
-      }
-    } else 
-#endif
-    {
-
-      /* Execute as Bash script */
-      
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Pre Script '%s'", test_pre_script_path);
-      Utils::exec(test_pre_script_path);
-    }
+    /* Execute as Bash script */      
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running Pre Script '%s'", test_pre_script_path);
+    Utils::exec(test_pre_script_path);
   }
 
   do {
@@ -306,7 +277,7 @@ static void* packetPollLoop(void* ptr) {
 	  continue;
 	}
       }
-
+      
       if((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
 	if(iface->reproducePcapOriginalSpeed()) {
 	  struct timeval now;
@@ -375,14 +346,18 @@ static void* packetPollLoop(void* ptr) {
     } /* while */
   } while(pcap_list != NULL);
 
+#if 1
+  iface->purgeIdle(time(NULL), false, true /* Full scan */);
+#else
   /* Execute purgeIdle two times to make sure things (such as throughput) will settle down */
   for(int i = 0; i < 2; i++) {
     /* Sleep for a purge frequency to ensure purgeIdle will be called against all entries */
-    sleep(OTHER_PURGE_FREQUENCY);
+    sleep(OTHER_PURGE_FREQUENCY); /* <=== This will make shutdown very very slow.... */
     /* Perform a full walk of all hash tables (no new data will come) */
     iface->purgeIdle(time(NULL), false, true /* Full scan */);
   }
-
+#endif
+ 
   if(iface->read_from_pcap_dump() && !iface->reproducePcapOriginalSpeed()) {
     iface->set_read_from_pcap_dump_done();
   }

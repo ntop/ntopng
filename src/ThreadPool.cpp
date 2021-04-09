@@ -65,6 +65,8 @@ ThreadPool::~ThreadPool() {
 #ifdef THREAD_DEBUG
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Threads still running %d", pool_size-i);
 #endif
+
+    pthread_cond_signal(&condvar);
     pthread_join(*it, &res);
   }
 

@@ -166,7 +166,7 @@ void* resolveLoop(void* ptr) {
   AddressResolution *a = (AddressResolution*)ptr;
   Redis *r = ntop->getRedis();
   u_int no_resolution_loops = 0;
-  const u_int max_num_idle_loops = 3;
+  const u_int max_num_idle_loops = 1;
 
   Utils::setThreadName("resolveLoop");
   
@@ -183,6 +183,8 @@ void* resolveLoop(void* ptr) {
       if(no_resolution_loops < max_num_idle_loops) no_resolution_loops++;
       sleep(no_resolution_loops);
     }
+
+    if(ntop->getGlobals()->isShutdownRequested()) break;
   }
 
   return(NULL);
