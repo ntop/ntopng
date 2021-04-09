@@ -86,8 +86,6 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   Bitmap128 disabled_flow_alerts;
   time_t disabled_alerts_tstamp;
 
-  Bitmap16 alerts_map;
-
   void initialize(Mac *_mac, u_int16_t _vlan_id);
   void inlineSetOS(OSType _os);
   bool statsResetRequested();
@@ -433,14 +431,11 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool enqueueAlertToRecipients(HostAlert *alert, bool released);
   void alert2JSON(HostAlert *alert, bool released, ndpi_serializer *serializer);
 
-  /* Same as flow alerts */
-  inline Bitmap16 getAlertsBitmap() const { return(alerts_map); }
-  bool setAlertsBitmap(HostAlertType alert_type, u_int8_t score_as_cli_inc, u_int8_t score_as_srv_inc);
-  void releaseAllEngagedAlerts();
-
   /* Callbacks API */
   bool triggerAlert(HostAlert *alert);
   void releaseAlert(HostAlert* alert);
+
+  void releaseAllEngagedAlerts();
 };
 
 #endif /* _HOST_H_ */

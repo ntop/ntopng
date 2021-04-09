@@ -1659,39 +1659,9 @@ void Host::releaseAllEngagedAlerts() {
   for (u_int i = 0; i < NUM_DEFINED_HOST_CALLBACKS; i++) {
     HostCallbackID t = (HostCallbackID) i;
     HostAlert *alert = getCallbackEngagedAlert(t);
-    if (alert) {
+    if (alert)
       releaseAlert(alert);
-    }
   }
-}
-
-/* *************************************** */
-
-/*
- * This method is called to update status and score of the flow
- */
-bool Host::setAlertsBitmap(HostAlertType alert_type, u_int8_t score_as_cli_inc, u_int8_t score_as_srv_inc) {
-  ScoreCategory score_category;
-
-#ifdef DEBUG_SCORE
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Set host score %u/%u", score_as_cli/score_as_srv);
-#endif
-
-  if(alert_type.id == host_alert_normal) {
-#ifdef DEBUG_SCORE
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (normal)");
-#endif
-    return false;
-  }
-
-  score_category = Utils::mapAlertToScoreCategory(alert_type.category);
-
-  incScoreValue(score_as_cli_inc, score_category, true /* as client */);
-  incScoreValue(score_as_srv_inc, score_category, false /* as server */);
-
-  alerts_map.setBit(alert_type.id);
-
-  return true;
 }
 
 /* *************************************** */
@@ -1700,9 +1670,9 @@ bool Host::setAlertsBitmap(HostAlertType alert_type, u_int8_t score_as_cli_inc, 
  * This is called by the Callback to trigger an alert
  */
 bool Host::triggerAlert(HostAlert *alert) {
+  ScoreCategory score_category;
   HostAlertType alert_type;
   bool alert_disabled = false;
-  bool res;
 
   if (alert == NULL)
     return false;
@@ -1726,7 +1696,8 @@ bool Host::triggerAlert(HostAlert *alert) {
   }
 
   /* Check host filter */
-  if(alert_disabled) {
+  if(alert_disabled
+     || alert_type.id == host_alert_normal /* Safety check */) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (host filter)");
 #endif
@@ -1734,7 +1705,15 @@ bool Host::triggerAlert(HostAlert *alert) {
     return false;
   }
 
-  res = setAlertsBitmap(alert_type, alert->getCliScore(), alert->getSrvScore());
+#ifdef DEBUG_SCORE
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Set host score %u/%u", score_as_cli/score_as_srv);
+#endif
+
+  score_category = Utils::mapAlertToScoreCategory(alert_type.category);
+
+  incScoreValue(alert->getCliScore(), score_category, true /* as client */);
+  incScoreValue(alert->getSrvScore(), score_category, false /* as server */);
+
 
   /* Add to the list of engaged alerts*/
   addEngagedAlert(alert);
@@ -1742,7 +1721,7 @@ bool Host::triggerAlert(HostAlert *alert) {
   /* Enqueue the alert to be notified */
   iface->enqueueHostAlert(alert);
 
-  return res;
+  return true;
 }
 
 /* *************************************** */
