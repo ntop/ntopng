@@ -436,7 +436,6 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   /* Same as flow alerts */
   inline Bitmap16 getAlertsBitmap() const { return(alerts_map); }
   bool setAlertsBitmap(HostAlertType alert_type, u_int8_t score_as_cli_inc, u_int8_t score_as_srv_inc);
-  void releaseEngagedAlert(HostAlert *alert);
   void releaseAllEngagedAlerts();
 
   /* Callbacks API */

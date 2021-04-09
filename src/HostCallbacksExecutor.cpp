@@ -58,10 +58,8 @@ void HostCallbacksExecutor::releaseAllDisabledAlerts(Host *h) {
 
     if (!cb) { /* callback disabled, check engaged alerts with auto release */
       HostAlert *alert = h->getCallbackEngagedAlert(t);
-      if (alert && alert->hasAutoRelease()) {
-        alert->release();
-        h->releaseEngagedAlert(alert);
-      }
+      if (alert && alert->hasAutoRelease())
+        h->releaseAlert(alert);
     }
   }
 }
@@ -97,12 +95,12 @@ void HostCallbacksExecutor::execCallbacks(Host *h) {
       /* Call Handler */
       cb->periodicUpdate(h, alert);
 
-      /* Check if alert should be released */
+      /* Check if alert is expired and should be released
+       * Note: call getCallbackEngagedAlert again in case the
+       * alert ahs been explicitly released by the callback. */
       alert = h->getCallbackEngagedAlert(ct);
-      if (alert) {
-        if (alert->isExpired() && !alert->isReleased()) alert->release();
-        if (alert->isReleased()) h->releaseEngagedAlert(alert);
-      }
+      if (alert && alert->isExpired())
+        h->releaseAlert(alert);
     }
   }
 

@@ -1652,23 +1652,6 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
   return rv;
 }
 
-/* *************************************** */
-
-void Host::releaseEngagedAlert(HostAlert *alert) {
-  ScoreCategory score_category;
-
-  /* Remove from the list of engaged alerts */
-  removeEngagedAlert(alert);
-
-  /* Dec score */
-  score_category = Utils::mapAlertToScoreCategory(alert->getAlertType().category);
-  decScoreValue(alert->getCliScore(), score_category,  true /* as client */);
-  decScoreValue(alert->getSrvScore(), score_category,  false /* as server */);
-
-  /* Enqueue the released alert to be notified */
-  iface->enqueueHostAlert(alert);
-}
-
 /* **************************************************** */
 
 /* Call this when setting host idle (before removing it from memory) */
@@ -1676,11 +1659,8 @@ void Host::releaseAllEngagedAlerts() {
   for (u_int i = 0; i < NUM_DEFINED_HOST_CALLBACKS; i++) {
     HostCallbackID t = (HostCallbackID) i;
     HostAlert *alert = getCallbackEngagedAlert(t);
-    if (alert && alert->hasAutoRelease()) {
-
-      alert->release();
-
-      releaseEngagedAlert(alert);
+    if (alert) {
+      releaseAlert(alert);
     }
   }
 }
@@ -1736,15 +1716,20 @@ bool Host::triggerAlert(HostAlert *alert) {
     return false;
   }
 
-  /* Safety check (one alert is allowed per callback) */
+  alert->setEngaged();
+
   if (hasCallbackEngagedAlert(alert->getCallbackType())) {
-    delete alert;
-    return false;
+    if (getCallbackEngagedAlert(alert->getCallbackType()) == alert) {
+      /* This is a refresh (see alert->isExpired()) */
+      return true;
+    } else {
+      /* One engaged alert is allowed per callback */
+      delete alert;
+      return false;
+    }
   }
 
   res = setAlertsBitmap(alert_type, alert->getCliScore(), alert->getSrvScore());
-
-  alert->setEngaged();
 
   /* Add to the list of engaged alerts*/
   addEngagedAlert(alert);
@@ -1758,10 +1743,25 @@ bool Host::triggerAlert(HostAlert *alert) {
 /* *************************************** */
 
 /*
- * This is called by the Callback to explicitly release an alert
+ * This is called by the Callback (or by the HostCallbacksExecutor
+ * for expired alerts with auto release) to release an alert
  */
 void Host::releaseAlert(HostAlert *alert) {
-  alert->release();  
+  ScoreCategory score_category;
+
+  /* Set as released */
+  alert->release();
+
+  /* Remove from the list of engaged alerts */
+  removeEngagedAlert(alert);
+
+  /* Dec score */
+  score_category = Utils::mapAlertToScoreCategory(alert->getAlertType().category);
+  decScoreValue(alert->getCliScore(), score_category,  true /* as client */);
+  decScoreValue(alert->getSrvScore(), score_category,  false /* as server */);
+
+  /* Enqueue the released alert to be notified */
+  iface->enqueueHostAlert(alert);
 }
 
 /* *************************************** */
