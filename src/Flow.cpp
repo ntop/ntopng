@@ -274,22 +274,6 @@ Flow::~Flow() {
   if(cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
     cli_u->decNumFlows(get_last_seen(), true);
-
-    for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
-      ScoreCategory score_category = (ScoreCategory)i;
-      u_int16_t score_val = stats.get_cli_score(score_category);
-
-      if(getViewInterfaceFlowStats()) {
-	/*
-	  If this flow belong to a view, the actual score value is the one registered
-	  in the partializable stats of the view.
-	 */
-	score_val = getViewInterfaceFlowStats()->getPartializableStats()->get_cli_score(score_category);
-      }
-
-      if(score_val)
-	cli_u->decScoreValue(score_val, score_category, true  /* as client */);
-    }
   }
 
   if(!cli_host && cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow constructor (viewed interfaces) */
@@ -298,39 +282,10 @@ Flow::~Flow() {
   if(srv_u) {
     srv_u->decUses(); /* Decrease the number of uses */
     srv_u->decNumFlows(get_last_seen(), false);
-
-    for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
-      ScoreCategory score_category = (ScoreCategory)i;
-      u_int16_t score_val = stats.get_srv_score(score_category);
-
-      if(getViewInterfaceFlowStats()) {
-	/*
-	  If this flow belong to a view, the actual score value is the one registered
-	  in the partializable stats of the view.
-	 */
-	score_val = getViewInterfaceFlowStats()->getPartializableStats()->get_srv_score(score_category);
-      }
-
-      if(score_val)
-	srv_u->decScoreValue(score_val, score_category, false /* as server */);
-    }
   }
 
   if(!srv_host && srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow constructor (viewed interfaces) */
     delete srv_ip_addr;
-
-  /*
-    Perform other operations to decrease counters increased by flow user script hooks (we're in the same thread)
-   */
-  if(isFlowAlerted()) {
-    iface->decNumAlertedFlows(this, predominant_alert_level);
-    if(get_cli_host()) get_cli_host()->decNumAlertedFlows(true /* As client */);
-    if(get_srv_host()) get_srv_host()->decNumAlertedFlows(false /* As server */);
-
-#ifdef ALERTED_FLOWS_DEBUG
-    iface_alert_dec = true;
-#endif
-  }
 
   /*
     Finish deleting other flow data structures
@@ -2844,6 +2799,43 @@ bool Flow::isNetfilterIdleFlow() const {
 
 /* *************************************** */
 
+void Flow::decAllFlowScores() {
+  Host *cli_u = getViewSharedClient(), *srv_u = getViewSharedServer();
+
+  for(int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
+    ScoreCategory score_category = (ScoreCategory)i;
+    u_int16_t cli_score_val = stats.get_cli_score(score_category);
+    u_int16_t srv_score_val = stats.get_srv_score(score_category);
+
+    if(getViewInterfaceFlowStats()) {
+      /*
+	If this flow belong to a view, the actual score value is the one registered
+	in the partializable stats of the view.
+      */
+      cli_score_val = getViewInterfaceFlowStats()->getPartializableStats()->get_cli_score(score_category);
+      srv_score_val = getViewInterfaceFlowStats()->getPartializableStats()->get_srv_score(score_category);
+    }
+
+    if(cli_u && cli_score_val) cli_u->decScoreValue(cli_score_val, score_category, true  /* as client */);
+    if(srv_u && srv_score_val) srv_u->decScoreValue(srv_score_val, score_category, false /* as server */);
+  }
+    /*
+    Perform other operations to decrease counters increased by flow user script hooks (we're in the same thread)
+   */
+
+  if(isFlowAlerted()) {
+    iface->decNumAlertedFlows(this, predominant_alert_level);
+    if(cli_u) cli_u->decNumAlertedFlows(true /* As client */);
+    if(srv_u) srv_u->decNumAlertedFlows(false /* As server */);
+
+#ifdef ALERTED_FLOWS_DEBUG
+    iface_alert_dec = true;
+#endif
+  }
+}
+
+/* *************************************** */
+
 /*
   This method is executed in the thread which processes packets/flows
   so it must be ultra-fast. Do NOT perform any time-consuming operation here.
@@ -2885,6 +2877,12 @@ void Flow::housekeep(time_t t) {
       iface->execFlowEndCallbacks(this);
 
     dumpCheck(t, true /* LAST dump before delete */);
+
+    /*
+      Score decrements MUST be performed here as this is the same thread of callbacks execution where
+      scores are increased
+     */
+    decAllFlowScores();
     break;
 
   default:

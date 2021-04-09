@@ -282,6 +282,8 @@ class Flow : public GenericHashEntry {
    */
   bool setAlertsBitmap(FlowAlertType alert_type, AlertLevel alert_severity, u_int8_t cli_inc, u_int8_t srv_inc, bool async);
   void setNormalToAlertedCounters();
+  /* Decreases scores on both client and server hosts when the flow is being destructed */
+  void decAllFlowScores();
 
  public:
   Flow(NetworkInterface *_iface,
