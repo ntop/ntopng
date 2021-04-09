@@ -316,7 +316,11 @@ for _key, _value in pairsByKeys(vals, funct) do
       column_name = column_name .. " <i class='fas fa-hourglass' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
    end
 
-   record["column_name"] = column_name
+   if(column_name == host.ip) then
+      record["column_name"] = ""
+   else
+      record["column_name"] = column_name
+   end
 
    if value["vlan"] > 0 then
       record["column_vlan"] = value["vlan"]
