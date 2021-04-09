@@ -27,8 +27,8 @@ function conf_utils.increase_num_host_num_flows(incr_num_hosts, incr_num_flows)
     local res = {
         exit_status = exit_status
     }
-
-    if string.match(exit_status, "Succesfully changed") then
+    
+    if string.find(exit_status, "succesfully changed") then
         -- Set the redis key for the restart
         ntop.setCache(redis_key, true)
         rest_utils.answer(rest_utils.consts.success.ok, res)
