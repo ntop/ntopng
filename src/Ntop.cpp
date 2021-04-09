@@ -542,9 +542,6 @@ void Ntop::start() {
    * After this call, startup.lua has completed. */
   pa->startPeriodicActivitiesLoop();
 
-  if(globals->isShutdownRequested())
-    return;
-
   if(get_HTTPserver())
     get_HTTPserver()->start_accepting_requests();
 
@@ -2690,8 +2687,6 @@ void Ntop::runHousekeepingTasks() {
 
   for(int i = 0; i < get_num_interfaces(); i++)
     iface[i]->runHousekeepingTasks();
-  
-  if(globals->isShutdownRequested()) return;
 
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
