@@ -2,12 +2,12 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{*dialog.title*}: <span class="alert_label"></span></h5>
+          <h5 class="modal-title">{{ i18n('current_filter') }}: <span class="alert_label"></span></h5>
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         </div>
         <div class="modal-body {{dialog.custom_dialog_class}}">
 	  <div class="form-group">
-	    <label>{{ i18n('current_filter') }}</label>
+	    <label>{{ i18n('current_filter') }} "<b><span class="alert_label"></b>". {{ i18n('current_filter_for') }}:</span></label>
 	    <div class="form-check">
 	      <input class="form-check-input" type="radio" name="alert_addr" id="srv_radio" value="" checked>
 	      <label class="form-check-label" for="srv_radio">
