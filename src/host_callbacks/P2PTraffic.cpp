@@ -35,11 +35,8 @@ void P2PTraffic::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   u_int64_t delta;
 
   if((delta = h->cb_status_delta_p2p_bytes(h->get_ndpi_stats()->getCategoryBytes(NDPI_PROTOCOL_CATEGORY_FILE_SHARING))) > p2p_bytes_threshold) {
-    if (!alert) {
-      /* Trigger new alert */
-      alert = allocAlert(this, h, getSeverity(), 50, 0, delta, p2p_bytes_threshold);
-      if (alert) h->triggerAlert(alert);
-    }
+    if (!alert) alert = allocAlert(this, h, getSeverity(), 50, 0, delta, p2p_bytes_threshold);
+    if (alert) h->triggerAlert(alert);
   }
 }
 

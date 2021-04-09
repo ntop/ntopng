@@ -34,11 +34,8 @@ void ServerContacts::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   u_int32_t contacted_servers = 0;
 
   if((contacted_servers = getContactedServers(h)) >= contacts_threshold) {
-    if (!alert) {
-      /* Trigger new alert */
-      alert = allocAlert(this, h, alert_level_error, 50, 0, contacted_servers, contacts_threshold);
-      if (alert) h->triggerAlert(alert);
-    }
+    if (!alert) alert = allocAlert(this, h, alert_level_error, 50, 0, contacted_servers, contacts_threshold);
+    if (alert) h->triggerAlert(alert);
   }
 }
 

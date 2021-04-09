@@ -35,11 +35,7 @@ void FlowHits::triggerFlowHitsAlert(Host *h, HostAlert *engaged, bool attacker,
   FlowHitsAlert *alert = static_cast<FlowHitsAlert*>(engaged);
 
   if (!alert) {
-
-     /* Trigger new alert */
-     alert = allocAlert(h, alert_level_error, cli_score, srv_score, hits, threshold, attacker); 
-     h->triggerAlert(alert);
-
+    alert = allocAlert(h, alert_level_error, cli_score, srv_score, hits, threshold, attacker); 
   } else {
     /*
       Perform an update only if:
@@ -51,6 +47,9 @@ void FlowHits::triggerFlowHitsAlert(Host *h, HostAlert *engaged, bool attacker,
       alert->setHits(hits);
     }
   }
+
+  if (alert)
+    h->triggerAlert(alert);
 }
 
 /* ***************************************************** */
