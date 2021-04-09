@@ -1682,7 +1682,11 @@ bool Host::triggerAlert(HostAlert *alert) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding disabled alert");
 #endif
-    alert->setExpiring(); /* Mark this alert as expiring to have it released soon */
+    if(getCallbackEngagedAlert(alert->getCallbackType()) == alert) /* Alert is engaged */
+      alert->setExpiring(); /* Mark this alert as expiring to have it released soon */
+    else /* Triggered alert is not yet engaged */
+      delete alert; /* Delete it right now, don't even let it continue */
+
     return false;
   }
 
