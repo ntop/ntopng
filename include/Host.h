@@ -56,10 +56,18 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   bool prefs_loaded;
   /* END Host data: */
 
-  AlertCounter *syn_flood_attacker_alert, *syn_flood_victim_alert;
-  AlertCounter *flow_flood_attacker_alert, *flow_flood_victim_alert;
-  u_int32_t syn_sent_last_min, synack_recvd_last_min; /* syn scan counters (attacker) */
-  u_int32_t syn_recvd_last_min, synack_sent_last_min; /* syn scan counters (victim) */
+  /* Counters used by host alerts */
+  struct {
+    AlertCounter *attacker_counter, *victim_counter;
+  } syn_flood;
+  struct {
+    AlertCounter *attacker_counter, *victim_counter;
+  } flow_flood;
+  struct {
+    u_int32_t syn_sent_last_min, synack_recvd_last_min; /* (attacker) */
+    u_int32_t syn_recvd_last_min, synack_sent_last_min; /* (victim) */
+  } syn_scan; 
+
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
   AutonomousSystem *as;
@@ -301,17 +309,17 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     if(as) as->updateRoundTripTime(rtt_msecs);
   }
 
-  inline u_int16_t syn_flood_victim_hits()   const { return syn_flood_victim_alert ? syn_flood_victim_alert->hits() : 0;     };
-  inline u_int16_t syn_flood_attacker_hits() const { return syn_flood_attacker_alert ? syn_flood_attacker_alert->hits() : 0; };
-  inline void reset_syn_flood_hits() { if(syn_flood_victim_alert) syn_flood_victim_alert->reset_hits(); if(syn_flood_attacker_alert) syn_flood_attacker_alert->reset_hits(); };
+  inline u_int16_t syn_flood_victim_hits()   const { return syn_flood.victim_counter ? syn_flood.victim_counter->hits() : 0;     };
+  inline u_int16_t syn_flood_attacker_hits() const { return syn_flood.attacker_counter ? syn_flood.attacker_counter->hits() : 0; };
+  inline void reset_syn_flood_hits() { if(syn_flood.victim_counter) syn_flood.victim_counter->reset_hits(); if(syn_flood.attacker_counter) syn_flood.attacker_counter->reset_hits(); };
 
-  inline u_int16_t flow_flood_victim_hits()   const { return flow_flood_victim_alert ? flow_flood_victim_alert->hits() : 0;     };
-  inline u_int16_t flow_flood_attacker_hits() const { return flow_flood_attacker_alert ? flow_flood_attacker_alert->hits() : 0; };
-  inline void reset_flow_flood_hits() { if(flow_flood_victim_alert) flow_flood_victim_alert->reset_hits(); if(flow_flood_attacker_alert) flow_flood_attacker_alert->reset_hits(); };
+  inline u_int16_t flow_flood_victim_hits()   const { return flow_flood.victim_counter ? flow_flood.victim_counter->hits() : 0;     };
+  inline u_int16_t flow_flood_attacker_hits() const { return flow_flood.attacker_counter ? flow_flood.attacker_counter->hits() : 0; };
+  inline void reset_flow_flood_hits() { if(flow_flood.victim_counter) flow_flood.victim_counter->reset_hits(); if(flow_flood.attacker_counter) flow_flood.attacker_counter->reset_hits(); };
 
-  inline u_int32_t syn_scan_victim_hits()   const { return syn_recvd_last_min > synack_sent_last_min ? syn_recvd_last_min - synack_sent_last_min : 0; };
-  inline u_int32_t syn_scan_attacker_hits() const { return syn_sent_last_min > synack_recvd_last_min ? syn_sent_last_min - synack_recvd_last_min : 0; };
-  inline void reset_syn_scan_hits() { syn_sent_last_min = synack_recvd_last_min = syn_recvd_last_min = synack_sent_last_min = 0; };
+  inline u_int32_t syn_scan_victim_hits()   const { return syn_scan.syn_recvd_last_min > syn_scan.synack_sent_last_min ? syn_scan.syn_recvd_last_min - syn_scan.synack_sent_last_min : 0; };
+  inline u_int32_t syn_scan_attacker_hits() const { return syn_scan.syn_sent_last_min > syn_scan.synack_recvd_last_min ? syn_scan.syn_sent_last_min - syn_scan.synack_recvd_last_min : 0; };
+  inline void reset_syn_scan_hits() { syn_scan.syn_sent_last_min = syn_scan.synack_recvd_last_min = syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min = 0; };
 
   void incNumFlows(time_t t, bool as_client);
   void decNumFlows(time_t t, bool as_client);

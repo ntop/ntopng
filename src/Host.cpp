@@ -75,10 +75,10 @@ Host::~Host() {
 
   freeHostNames();
 
-  if(syn_flood_attacker_alert)  delete syn_flood_attacker_alert;
-  if(syn_flood_victim_alert)    delete syn_flood_victim_alert;
-  if(flow_flood_attacker_alert) delete flow_flood_attacker_alert;
-  if(flow_flood_victim_alert)   delete flow_flood_victim_alert;
+  if(syn_flood.attacker_counter)  delete syn_flood.attacker_counter;
+  if(syn_flood.victim_counter)    delete syn_flood.victim_counter;
+  if(flow_flood.attacker_counter) delete flow_flood.attacker_counter;
+  if(flow_flood.victim_counter)   delete flow_flood.victim_counter;
 
   if(stats)                     delete stats;
   if(stats_shadow)              delete stats_shadow;
@@ -127,23 +127,23 @@ u_int16_t Host::decScoreValue(u_int16_t score_decr, ScoreCategory score_category
 /* *************************************** */
 
 void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
-  AlertCounter *counter = syn_sent ? syn_flood_attacker_alert : syn_flood_victim_alert;
+  AlertCounter *counter = syn_sent ? syn_flood.attacker_counter : syn_flood.victim_counter;
 
   counter->inc(when, this);
 
   if(syn_sent)
-    syn_sent_last_min++;
+    syn_scan.syn_sent_last_min++;
   else
-    syn_recvd_last_min++;
+    syn_scan.syn_recvd_last_min++;
 }
 
 /* *************************************** */
 
 void Host::updateSynAckAlertsCounter(time_t when, bool synack_sent) {
   if(synack_sent)
-    synack_sent_last_min++;
+    syn_scan.synack_sent_last_min++;
   else
-    synack_recvd_last_min++;
+    syn_scan.synack_recvd_last_min++;
 }
 
 /* *************************************** */
@@ -207,12 +207,12 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
   is_in_broadcast_domain = false;
 
   PROFILING_SUB_SECTION_ENTER(iface, "Host::initialize: new AlertCounter", 17);
-  syn_flood_attacker_alert  = new (std::nothrow) AlertCounter();
-  syn_flood_victim_alert    = new (std::nothrow) AlertCounter();
-  flow_flood_attacker_alert = new (std::nothrow) AlertCounter();
-  flow_flood_victim_alert   = new (std::nothrow) AlertCounter();
-  syn_sent_last_min = synack_recvd_last_min = 0;
-  syn_recvd_last_min = synack_sent_last_min = 0;
+  syn_flood.attacker_counter  = new (std::nothrow) AlertCounter();
+  syn_flood.victim_counter    = new (std::nothrow) AlertCounter();
+  flow_flood.attacker_counter = new (std::nothrow) AlertCounter();
+  flow_flood.victim_counter   = new (std::nothrow) AlertCounter();
+  syn_scan.syn_sent_last_min = syn_scan.synack_recvd_last_min = 0;
+  syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
 
   if(ip.getVersion() /* IP is set */) {
@@ -499,9 +499,9 @@ void Host::lua_get_geoloc(lua_State *vm) {
 void Host::lua_get_syn_flood(lua_State *vm) const {
   u_int16_t hits;
 
-  if((hits = syn_flood_victim_alert->hits()))
+  if((hits = syn_flood.victim_counter->hits()))
     lua_push_uint64_table_entry(vm, "hits.syn_flood_victim", hits);
-  if((hits = syn_flood_attacker_alert->hits()))
+  if((hits = syn_flood.attacker_counter->hits()))
     lua_push_uint64_table_entry(vm, "hits.syn_flood_attacker", hits);
 }
 
@@ -510,9 +510,9 @@ void Host::lua_get_syn_flood(lua_State *vm) const {
 void Host::lua_get_flow_flood(lua_State *vm) const {
   u_int16_t hits;
 
-  if((hits = flow_flood_victim_alert->hits()))
+  if((hits = flow_flood.victim_counter->hits()))
     lua_push_uint64_table_entry(vm, "hits.flow_flood_victim", hits);
-  if((hits = flow_flood_attacker_alert->hits()))
+  if((hits = flow_flood.attacker_counter->hits()))
     lua_push_uint64_table_entry(vm, "hits.flow_flood_attacker", hits);
 }
 
@@ -539,14 +539,14 @@ void Host::lua_get_syn_scan(lua_State *vm) const {
   u_int32_t hits;
 
   hits = 0;
-  if (syn_sent_last_min > synack_recvd_last_min)
-    hits = syn_sent_last_min - synack_recvd_last_min;
+  if (syn_scan.syn_sent_last_min > syn_scan.synack_recvd_last_min)
+    hits = syn_scan.syn_sent_last_min - syn_scan.synack_recvd_last_min;
   if(hits)
     lua_push_uint64_table_entry(vm, "hits.syn_scan_attacker", hits);
 
   hits = 0;
-  if (syn_recvd_last_min > synack_sent_last_min)
-    hits = syn_recvd_last_min - synack_sent_last_min;
+  if (syn_scan.syn_recvd_last_min > syn_scan.synack_sent_last_min)
+    hits = syn_scan.syn_recvd_last_min - syn_scan.synack_sent_last_min;
   if(hits)
     lua_push_uint64_table_entry(vm, "hits.syn_scan_victim", hits);
 }
@@ -1057,10 +1057,10 @@ void Host::incNumFlows(time_t t, bool as_client) {
   AlertCounter *counter;
 
   if(as_client) {
-    counter = flow_flood_attacker_alert;
+    counter = flow_flood.attacker_counter;
     num_active_flows_as_client++;
   } else {
-    counter = flow_flood_victim_alert;
+    counter = flow_flood.victim_counter;
     num_active_flows_as_server++;
   }
 
