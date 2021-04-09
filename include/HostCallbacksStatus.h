@@ -30,18 +30,15 @@ class HostCallbacksStatus { /* Container to keep per-callback status (e.g., traf
     last_call_5min;     /* The last time 5minute callbacks were executed */
   u_int64_t p2p_bytes;  /* Holds the P2P bytes and is used to compute the delta of P2P bytes across consecutive callback calls */
   u_int64_t dns_bytes;  /* Holds the DNS bytes and is used to compute the delta of DNS bytes across consecutive callback calls */
-  u_int32_t http_reqs_sent, http_reqs_rcvd;  /* Counters for HTTP requests sent/received */
-  u_int32_t http_repls_sent, http_repls_rcvd;  /* Counters for HTTP replies sent/received */
   u_int32_t dns_reqs_sent, dns_reqs_rcvd;    /* Counters for DNS requests sent/received */
-  u_int32_t dns_repls_sent, dns_repls_rcvd;    /* Counters for DNS replies sent/received */
+  u_int32_t dns_repls_sent, dns_repls_rcvd;  /* Counters for DNS replies sent/received */
 
  public:
   HostCallbacksStatus() {
     last_call_min = last_call_5min = 0;
     /* Set members to their maximum values to discard the first delta */
     p2p_bytes = dns_bytes = (u_int64_t)-1; 
-    http_reqs_sent = http_reqs_rcvd = http_repls_sent = http_repls_rcvd = (u_int32_t)-1,
-      dns_reqs_sent = dns_reqs_rcvd = dns_repls_sent = dns_repls_rcvd = (u_int32_t)-1;
+    dns_reqs_sent = dns_reqs_rcvd = dns_repls_sent = dns_repls_rcvd = (u_int32_t)-1;
   }
   virtual ~HostCallbacksStatus() {};
 
@@ -55,11 +52,6 @@ class HostCallbacksStatus { /* Container to keep per-callback status (e.g., traf
   inline u_int64_t cb_status_delta_p2p_bytes(u_int64_t new_value) { return Utils::uintDiff(&p2p_bytes, new_value); };
   inline u_int64_t cb_status_delta_dns_bytes(u_int64_t new_value) { return Utils::uintDiff(&dns_bytes, new_value); };
 
-  inline u_int8_t cb_status_delta_http_ratio(u_int32_t new_repls, u_int32_t new_reqs, bool sent_vs_rcvd) {
-    return sent_vs_rcvd
-      ? Utils::uintDiff(&http_repls_sent, new_repls) * 100 / (Utils::uintDiff(&http_reqs_rcvd, new_reqs) + 1)
-      : Utils::uintDiff(&http_repls_rcvd, new_repls) * 100 / (Utils::uintDiff(&http_reqs_sent, new_reqs) + 1);
-  };
   inline u_int8_t cb_status_delta_dns_ratio(u_int32_t new_repls, u_int32_t new_reqs, bool sent_vs_rcvd) {
     return sent_vs_rcvd
       ? Utils::uintDiff(&dns_repls_sent, new_repls) * 100 / (Utils::uintDiff(&dns_reqs_rcvd, new_reqs) + 1)
