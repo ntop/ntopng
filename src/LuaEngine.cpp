@@ -89,14 +89,6 @@ LuaEngine::LuaEngine(lua_State *vm) {
 
   loaded_script_path = NULL;
 
-#ifdef HAVE_NEDGE
-  if(!ntop->getPro()->has_valid_license()) {
-    ntop->getGlobals()->shutdown();
-    ntop->shutdownAll();
-    exit(0);
-  }
-#endif
-
   L = luaL_newstate();
 
   if(!L) {
