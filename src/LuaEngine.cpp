@@ -92,7 +92,7 @@ LuaEngine::LuaEngine(lua_State *vm) {
 #ifdef HAVE_NEDGE
   if(!ntop->getPro()->has_valid_license()) {
     ntop->getGlobals()->shutdown();
-    ntop->shutdown();
+    ntop->shutdownAll();
     exit(0);
   }
 #endif

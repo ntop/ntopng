@@ -962,7 +962,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     if(! ntop->getGlobals()->isShutdown()) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "License expired, shutting down...");
       ntop->getGlobals()->shutdown();
-      ntop->shutdown();
+      ntop->shutdownAll();
     }
   }
 #endif

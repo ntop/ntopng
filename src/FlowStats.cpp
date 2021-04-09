@@ -36,7 +36,7 @@ FlowStats::~FlowStats() {
 
 void FlowStats::incStats(Bitmap128 alert_bitmap, u_int8_t l4_protocol, AlertLevel alert_level, 
 			 u_int8_t dscp_cli2srv, u_int8_t dscp_srv2cli, Flow *flow) {
-  int i;
+  u_int i;
 
   for(i = 0; i < alert_bitmap.numBits(); i++) {
     if(alert_bitmap.isSetBit(i))
