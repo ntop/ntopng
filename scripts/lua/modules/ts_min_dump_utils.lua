@@ -332,6 +332,12 @@ end
 
 -- ########################################################
 
+function ts_dump.iface_update_anomalies(when, ifstats, verbose)
+   ts_utils.append("iface:hosts_anomalies", {ifid=ifstats.id, num_local_hosts_anomalies=ifstats.anomalies.num_local_hosts_anomalies, num_remote_hosts_anomalies=ifstats.anomalies.num_remote_hosts_anomalies}, when)
+end
+
+-- ########################################################
+
 function ts_dump.run_min_dump(_ifname, ifstats, config, when)
   dumpTopTalkers(_ifname, ifstats, verbose)
 
@@ -349,6 +355,7 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when)
   ts_dump.iface_update_general_stats(when, ifstats, verbose)
   ts_dump.iface_update_l4_stats(when, ifstats, verbose)
   ts_dump.iface_update_dscp_stats(when, ifstats, verbose)
+  ts_dump.iface_update_anomalies(when, ifstats, verbose)
 
   -- Check both if global flows dump is enabled (config.is_dump_flows_enabled)
   -- and also if flows dump is enabled for the current interface (ifstats.isFlowDumpDisabled)

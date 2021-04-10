@@ -1038,10 +1038,8 @@ local default_timeseries = {
    {schema="iface:http_hosts",            label=i18n("graphs.active_http_servers"), nedge_exclude=1},
    {schema="iface:traffic",               label=i18n("traffic")},
    {schema="iface:score",                 label=i18n("score"), enterprise_only=true, metrics_labels = { i18n("graphs.cli_score"), i18n("graphs.srv_score")}},
-   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_rxtx"), layout={
-      ["bytes_sent"] = "area",
-      ["bytes_rcvd"] = "line"
-   } },
+   {schema="iface:traffic_rxtx",          label=i18n("graphs.traffic_rxtx"), layout={ ["bytes_sent"] = "area", ["bytes_rcvd"] = "line" } },
+   {schema="iface:hosts_anomalies",       label=i18n("graphs.hosts_anomalies"), layout={ ["num_local_hosts_anomalies"] = "area", ["num_remote_hosts_anomalies"] = "area" }, metrics_labels = { i18n("graphs.loc_host_anomalies"), i18n("graphs.rem_host_anomalies")}  },
 
    {schema="iface:packets_vs_drops",      label=i18n("graphs.packets_vs_drops")},
    {schema="iface:nfq_pct",               label=i18n("graphs.num_nfq_pct"), nedge_only=1},

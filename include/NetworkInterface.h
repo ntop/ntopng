@@ -87,9 +87,6 @@ class NetworkInterface : public OtherAlertableEntity {
   struct {
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
-  struct {
-    u_int32_t local_hosts, remote_hosts;
-  } tot_num_old_anomalies;
   bool has_stored_alerts;
   AlertsQueue *alertsQueue;
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)

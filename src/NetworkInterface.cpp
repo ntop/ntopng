@@ -296,7 +296,6 @@ void NetworkInterface::init() {
   memset(live_captures, 0, sizeof(live_captures));
   num_alerts_engaged = 0;
   tot_num_anomalies.local_hosts = tot_num_anomalies.remote_hosts = 0;
-  tot_num_old_anomalies.local_hosts = tot_num_old_anomalies.remote_hosts = 0;
   num_active_alerted_flows_notice = 0,
     num_active_alerted_flows_warning = 0,
     num_active_alerted_flows_error = 0;
@@ -8933,19 +8932,8 @@ void NetworkInterface::luaAnomalies(lua_State *vm) {
   if(has_too_many_flows) lua_push_bool_table_entry(vm, "too_many_flows", true);
   if(has_too_many_hosts) lua_push_bool_table_entry(vm, "too_many_hosts", true);
 
-  lua_newtable(vm);
-  lua_push_uint32_table_entry(vm, "local_hosts", tot_num_anomalies.local_hosts); /* Originate by local hosts */
-  lua_push_uint32_table_entry(vm, "remote_hosts", tot_num_anomalies.remote_hosts);
-  lua_pushstring(vm, "tot_num_anomalies");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
-  lua_newtable(vm);
-  lua_push_uint32_table_entry(vm, "local_hosts", tot_num_old_anomalies.local_hosts); /* Originate by local hosts */
-  lua_push_uint32_table_entry(vm, "remote_hosts", tot_num_old_anomalies.remote_hosts);
-  lua_pushstring(vm, "tot_num_old_anomalies");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
+  lua_push_uint32_table_entry(vm, "num_local_hosts_anomalies", tot_num_anomalies.local_hosts);
+  lua_push_uint32_table_entry(vm, "num_remote_hosts_anomalies", tot_num_anomalies.remote_hosts);
   
   lua_pushstring(vm, "anomalies");
   lua_insert(vm, -2);
