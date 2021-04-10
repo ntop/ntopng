@@ -2439,9 +2439,12 @@ print [[
 	var last_pkt_ooo =  ]] print(tostring(ifstats.tcpPacketStats.out_of_order)) print [[;
 	var last_pkt_lost = ]] print(tostring(ifstats.tcpPacketStats.lost)) print [[;
 
-	$('#pkt_retransmissions').html(NtopUtils.fint(rsp.tcpPacketStats.retransmissions)+" Pkts");  $('#pkt_retransmissions_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.retransmissions, last_pkt_retransmissions));
-	$('#pkt_ooo').html(NtopUtils.fint(rsp.tcpPacketStats.out_of_order)+" Pkts");  $('#pkt_ooo_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.out_of_order, last_pkt_ooo));
-	$('#pkt_lost').html(NtopUtils.fint(rsp.tcpPacketStats.lost)+" Pkts"); $('#pkt_lost_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.lost, last_pkt_lost));
+	$('#pkt_retransmissions').html(NtopUtils.fint(rsp.tcpPacketStats.retransmissions)+" Pkts");
+        $('#pkt_retransmissions_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.retransmissions, last_pkt_retransmissions));
+	$('#pkt_ooo').html(NtopUtils.fint(rsp.tcpPacketStats.out_of_order)+" Pkts");
+        $('#pkt_ooo_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.out_of_order, last_pkt_ooo));
+	$('#pkt_lost').html(NtopUtils.fint(rsp.tcpPacketStats.lost)+" Pkts");
+         $('#pkt_lost_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.lost, last_pkt_lost));
 	last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;
 	last_pkt_ooo = rsp.tcpPacketStats.out_of_order;
 	last_pkt_lost = rsp.tcpPacketStats.lost;
@@ -2457,10 +2460,10 @@ print [[
 	last_dropped_alerts = rsp.dropped_alerts;
         $('#dropped_alerts').html(last_dropped_alerts);
 
-        $('#local_hosts_anomalies').html(rsp.num_local_hosts_anomalies);
+        $('#local_hosts_anomalies').html(NtopUtils.fint(rsp.num_local_hosts_anomalies));
         $('#local_hosts_anomalies_trend').html(NtopUtils.get_trend(rsp.num_local_hosts_anomalies, last_num_local_hosts_anomalies));
         last_num_local_hosts_anomalies = rsp.num_local_hosts_anomalies;
-        $('#remote_hosts_anomalies').html(rsp.num_remote_hosts_anomalies);
+        $('#remote_hosts_anomalies').html(NtopUtils.fint(rsp.num_remote_hosts_anomalies));
         $('#remote_hosts_anomalies_trend').html(NtopUtils.get_trend(rsp.num_remote_hosts_anomalies, last_num_remote_hosts_anomalies));
         last_num_remote_hosts_anomalies = rsp.num_remote_hosts_anomalies;
 
