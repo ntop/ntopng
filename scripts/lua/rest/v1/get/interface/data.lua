@@ -170,6 +170,9 @@ function dumpInterfaceStats(ifid)
       res["packets_upload"] = ifstats["eth"]["egress"]["packets"]
       res["packets_download"] = ifstats["eth"]["ingress"]["packets"]
 
+      res["num_local_hosts_anomalies"] = ifstats.anomalies.num_local_hosts_anomalies
+      res["num_remote_hosts_anomalies"] = ifstats.anomalies.num_remote_hosts_anomalies
+      
       local ingress_thpt = ifstats["eth"]["ingress"]["throughput"]
       local egress_thpt  = ifstats["eth"]["egress"]["throughput"]
       res["throughput"] = {

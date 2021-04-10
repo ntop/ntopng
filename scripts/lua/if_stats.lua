@@ -717,6 +717,13 @@ print[[
 
    print("<tr><th colspan=7 nowrap>"..i18n("if_stats_overview.traffic_statistics").."</th></tr>\n")
 
+
+   print("<tr><th nowrap>"..i18n("report.traffic_anomalies")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:hosts_anomalies'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th>")
+   print("<th width=20%>"..i18n("report.traffic_anomalies_local_hosts").."</th><td><span id=local_hosts_anomalies>"..formatValue(ifstats.anomalies.num_local_hosts_anomalies).."</span> <span id=local_hosts_anomalies_trend></span></td>")
+   print("<th width=20%>"..i18n("report.traffic_anomalies_remote_hosts").."</th><td><span id=remote_hosts_anomalies>"..formatValue(ifstats.anomalies.num_remote_hosts_anomalies).."</span> <span id=remote_hosts_anomalies_trend></span></td>")
+   print("</tr>\n")
+
+   
    print("<tr><th nowrap>"..i18n("report.total_traffic")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_bytes>"..bytesToSize(ifstats.stats.bytes).."</span> [<span id=if_pkts>".. formatValue(ifstats.stats.packets) .. " ".. label .."</span>] ")
 
    print("<span id=pkts_trend></span></td>")
@@ -2266,6 +2273,9 @@ print("var last_out_pkts  = " .. ifstats.eth.egress.packets .. ";\n")
 print("var last_drops = " .. ifstats.stats.drops .. ";\n")
 print("var last_engaged_alerts = " .. ifstats.num_alerts_engaged .. ";\n")
 print("var last_dropped_alerts = " .. ifstats.num_dropped_alerts .. ";\n")
+print("var last_num_local_hosts_anomalies = " .. ifstats.anomalies.num_local_hosts_anomalies .. ";\n")
+print("var last_num_remote_hosts_anomalies = " .. ifstats.anomalies.num_remote_hosts_anomalies .. ";\n")
+
 
 if(ifstats.zmqRecvStats ~= nil) then
    print("var last_zmq_time = 0;\n")
@@ -2446,6 +2456,13 @@ print [[
 	$('#dropped_alerts_trend').html(NtopUtils.get_trend(rsp.dropped_alerts, last_dropped_alerts));
 	last_dropped_alerts = rsp.dropped_alerts;
         $('#dropped_alerts').html(last_dropped_alerts);
+
+        $('#local_hosts_anomalies').html(rsp.num_local_hosts_anomalies);
+        $('#local_hosts_anomalies_trend').html(NtopUtils.get_trend(rsp.num_local_hosts_anomalies, last_num_local_hosts_anomalies));
+        last_num_local_hosts_anomalies = rsp.num_local_hosts_anomalies;
+        $('#remote_hosts_anomalies').html(rsp.num_remote_hosts_anomalies);
+        $('#remote_hosts_anomalies_trend').html(NtopUtils.get_trend(rsp.num_remote_hosts_anomalies, last_num_remote_hosts_anomalies));
+        last_num_remote_hosts_anomalies = rsp.num_remote_hosts_anomalies;
 
 	if((rsp.packets + rsp.drops) > 0) {
           pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2);
