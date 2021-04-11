@@ -1523,14 +1523,12 @@ function releaseAlert(idx) {
     {
 	    title: "]]print(i18n("show_alerts.alert_actions")) print[[",
 	    css: {
-	       textAlign: 'center',
-	       minWidth: "12rem",
+          textAlign: 'center'
 	    }
 	 },
 
       ], tableCallback: function() {
             var table_data = $("#]] print(t["div-id"]) print[[").data("datatable").resultset.data;
-
             datatableForEachRow("#]] print(t["div-id"]) print[[", function(row_id) {
                var alert_key = $("td:nth(8)", this).html().split("|");
                var alert_key = alert_key[0];
@@ -1545,7 +1543,6 @@ function releaseAlert(idx) {
                   const srv_radio = " $('#srv_radio').attr('value', '" + srv_addr + "'); $('#srv_addr').html('" + srv_addr + "'); ";
                   const cli_radio = " $('#cli_radio').attr('value', '" + cli_addr + "'); $('#cli_addr').html('" + cli_addr + "'); ";
                   const alert_label = "$('.alert_label').html('" + data["column_type_str"] + "'); ";
-console.log(alert_label);
                   datatableAddFilterButtonCallback.bind(this)(10, "alert_key = '" + data["column_type_id"] + "'; " + alert_label + srv_radio + cli_radio + " $('#flow_alerts_filter_dialog').modal('show');", "<i class='fas fa-bell-slash'></i>", "]] print(i18n("filter")) print[[");
                } else if(data["column_filter"] && data["column_subdir"] == "host") {
                   /* Populate modal data */
@@ -1572,7 +1569,7 @@ console.log(alert_label);
 
                if(]] print(ternary(t["status"] ~= "engaged", "true", "false")) print[[) {
                  datatableAddDeleteButtonCallback.bind(this)(10, "delete_alert_id ='" + alert_key + "'; $('#delete_alert_dialog').modal('show');", "<i class='fas fa-trash'></i>");
-}
+               }
 
                $("form", this).submit(function() {
                   // add "status" parameter to the form

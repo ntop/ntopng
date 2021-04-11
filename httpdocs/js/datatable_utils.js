@@ -53,7 +53,11 @@ function datatableForEachRow(table, callbacks) {
 }
 
 function datatableAddButtonCallback(td_idx, label, bs_class, callback_str, link, visible = true, title = '') {
-   $("td:nth-child("+td_idx+")", $(this)).append('<a href="' + link + `" title='${title}' data-placement="bottom" class="btn btn-sm mx-1 ${bs_class} ${!visible ? 'disabled' : ''}" onclick="` + callback_str + '" role="button">' + label + '</a>');
+   if ($("td:nth-child("+td_idx+")", $(this)).find('div.d-flex').length == 0) {
+      $("td:nth-child("+td_idx+")", $(this)).empty();
+      $("td:nth-child("+td_idx+")", $(this)).append($("<div class='d-flex justify-content-center'></div>"));
+   }
+   $("td:nth-child("+td_idx+")", $(this)).find('.d-flex').append('<a href="' + link + `" title='${title}' data-placement="bottom" class="btn btn-sm mx-1 ${bs_class} ${!visible ? 'disabled' : ''}" onclick="` + callback_str + '" role="button">' + label + '</a>');
 }
 
 function datatableAddDeleteButtonCallback(td_idx, callback_str, label) {
