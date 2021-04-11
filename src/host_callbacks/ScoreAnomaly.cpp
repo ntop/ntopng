@@ -37,7 +37,7 @@ void ScoreAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   if(h->has_score_anomaly(true))  cli_score = score_value;
   if(h->has_score_anomaly(false)) srv_score = score_value;
 
-  cli_score = 10;
+  cli_score = 10; ntop->getTrace()->traceEvent(TRACE_NORMAL, "ScoreAnomaly::periodicUpdate()");
   
   if(cli_score || srv_score) {
     bool is_client_alert = (cli_score > 0) ? true : false;
