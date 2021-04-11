@@ -37,6 +37,8 @@ local id2name = {
    [26] = "ndpi_risky_asn",
    [27] = "ndpi_risky_domain",
    [28] = "ndpi_malicious_ja3",
+   [29] = "ndpi_malicious_sha1_certificate",
+   [30] = "ndpi_desktop_or_file_sharing_session",
 }
 
 -- ##############################################

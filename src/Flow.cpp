@@ -3394,6 +3394,9 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 /* *************************************** */
 
 char* Flow::getFlowInfo(char *buf, u_int buf_len) {
+  if((custom_flow_info == NULL) && hasRisk(NDPI_DESKTOP_OR_FILE_SHARING_SESSION))
+    return((char*)"<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
+
   if(custom_flow_info)
     return(custom_flow_info);
 

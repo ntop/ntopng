@@ -88,18 +88,21 @@ for key, value in ipairs(flows_stats) do
       info = getRTPInfo(flows_stats[key])
    end
 
-   -- safety checks against injections
-   info = noHtml(info)
-   info = info:gsub('"', '')
-   local alt_info = info
-
-   if italic then
-      info = string.format("<i>%s</i>", info)
+   if(starts(info, "<i class")) then
+      flows_stats[key]["info"] = info
+   else
+      -- safety checks against injections
+      info = noHtml(info)
+      info = info:gsub('"', '')
+      local alt_info = info
+      
+      if italic then
+	 info = string.format("<i>%s</i>", info)
+      end
+      info = shortenString(info)
+      flows_stats[key]["info"] = "<span data-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
    end
-
-   info = shortenString(info)
-
-   flows_stats[key]["info"] = "<span data-toggle='tooltip' title='"..alt_info.."'>"..info.."</span>"
+     
 
    if(flows_stats[key]["profile"] ~= nil) then
       flows_stats[key]["info"] = formatTrafficProfile(flows_stats[key]["profile"])..flows_stats[key]["info"]
