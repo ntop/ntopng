@@ -36,25 +36,35 @@ HostCallbacksLoader::~HostCallbacksLoader() {
 
 /* **************************************************** */
 
+void HostCallbacksLoader::registerCallback(HostCallback *cb) {
+  if(cb_all.find(cb->getName()) != cb_all.end()) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ignoring duplicate host callback %s", cb->getName().c_str());
+    delete cb;
+  } else
+    cb_all[cb->getName()] = cb;
+}
+
+/* **************************************************** */
+
 void HostCallbacksLoader::registerCallbacks() {
   /* TODO: implement dynamic loading */
   HostCallback *fcb;
 
-  if((fcb = new FlowFlood()))                  cb_all[fcb->getName()] = fcb;
-  if((fcb = new SYNScan()))                    cb_all[fcb->getName()] = fcb;
-  if((fcb = new SYNFlood()))                   cb_all[fcb->getName()] = fcb;
-  if((fcb = new DNSServerContacts()))          cb_all[fcb->getName()] = fcb;
-  if((fcb = new SMTPServerContacts()))         cb_all[fcb->getName()] = fcb;
-  if((fcb = new NTPServerContacts()))          cb_all[fcb->getName()] = fcb;
-  if((fcb = new P2PTraffic()))                 cb_all[fcb->getName()] = fcb;
-  if((fcb = new DNSTraffic()))                 cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowAnomaly()))                cb_all[fcb->getName()] = fcb;
+  if((fcb = new FlowFlood()))                  registerCallback(fcb);
+  if((fcb = new SYNScan()))                    registerCallback(fcb);
+  if((fcb = new SYNFlood()))                   registerCallback(fcb);
+  if((fcb = new DNSServerContacts()))          registerCallback(fcb);
+  if((fcb = new SMTPServerContacts()))         registerCallback(fcb);
+  if((fcb = new NTPServerContacts()))          registerCallback(fcb);
+  if((fcb = new P2PTraffic()))                 registerCallback(fcb);
+  if((fcb = new DNSTraffic()))                 registerCallback(fcb);
+  if((fcb = new FlowAnomaly()))                registerCallback(fcb);
 
 #ifdef NTOPNG_PRO
-  if((fcb = new DNSRepliesRequestsRatio()))    cb_all[fcb->getName()] = fcb;
-  if((fcb = new ScoreHostCallback()))          cb_all[fcb->getName()] = fcb;
+  if((fcb = new DNSRepliesRequestsRatio()))    registerCallback(fcb);
+  if((fcb = new ScoreHostCallback()))          registerCallback(fcb);
 #endif
-
+  
   // printCallbacks();
 }
 
@@ -145,7 +155,7 @@ void HostCallbacksLoader::loadConfiguration() {
 	    cb->scriptDisable(); 
 	  }
 	} else {
-	  ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to find host callback  %s", callback_key);
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find host callback %s", callback_key);
 	}
       }
     }

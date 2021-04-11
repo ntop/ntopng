@@ -31,7 +31,8 @@ class HostCallbacksLoader : public CallbacksLoader {
 
   void registerCallbacks();
   void loadConfiguration();
-
+  void registerCallback(HostCallback *cb);
+  
  public:
   HostCallbacksLoader();
   virtual ~HostCallbacksLoader();

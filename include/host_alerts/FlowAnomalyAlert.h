@@ -26,11 +26,20 @@
 
 class FlowAnomalyAlert : public HostAlert {
  private:
-  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer) { return(serializer); }
-  
+  bool is_client_alert;
+
+  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer) {
+    if(serializer == NULL)
+      return NULL;
+    
+    ndpi_serialize_string_boolean(serializer, "is_client_alert", is_client_alert);
+    
+    return(serializer);
+  }
+
  public:
-  FlowAnomalyAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score)
-    : HostAlert(c, h, severity, cli_score, srv_score) { ; }
+  FlowAnomalyAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool _is_client_alert)
+    : HostAlert(c, h, severity, cli_score, srv_score) { is_client_alert = _is_client_alert; }
   ~FlowAnomalyAlert() {};
 
   static HostAlertType getClassType() { return { host_alert_flows_anomaly, alert_category_network }; }

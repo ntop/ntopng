@@ -50,20 +50,18 @@ function host_alert_flow_anomaly.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
   local value = alert_type_params.value
-  local i18n_key
-
-  if alert_type_params.is_attacker then
-    i18n_key = "alert_messages.flow_anomaly_attacker"
+  local alert_json = json.decode(alert.alert_json)
+  local is_client_alert = alert_json.is_client_alert
+  local role
+  local host = alert.alert_entity_val
+  
+  if(is_client_alert) then
+     role = "client"
   else
-    i18n_key = "alert_messages.flow_anomaly_victim"
+     role = "server"
   end
 
-  return i18n(i18n_key, {
-    entity = firstToUpper(entity),
-    host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
-    value = string.format("%u", math.ceil(value)),
-    threshold = alert_type_params.threshold,
-  })
+  return i18n("alert_messages.flow_number_anomaly", { role = role, host = host })
 end
 
 -- #######################################################

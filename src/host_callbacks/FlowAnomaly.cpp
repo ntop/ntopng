@@ -36,11 +36,11 @@ void FlowAnomaly::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   
   if(h->has_flows_anomaly(true))  cli_score = score_value;
   if(h->has_flows_anomaly(false)) srv_score = score_value;
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "checking...");
-
+  
   if(cli_score || srv_score) {
-    if (!alert) alert = allocAlert(this, h, alert_level_warning, cli_score, srv_score);
+    bool is_client_alert = (cli_score > 0) ? true : false;
+    
+    if (!alert) alert = allocAlert(this, h, alert_level_warning, cli_score, srv_score, is_client_alert);
     if (alert) h->triggerAlert(alert);
   }
 }

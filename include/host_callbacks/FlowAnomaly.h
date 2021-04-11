@@ -26,13 +26,13 @@
 
 class FlowAnomaly : public HostCallback {
 private:
-
+  
 public:
   FlowAnomaly();
   ~FlowAnomaly() {};
 
-  FlowAnomalyAlert *allocAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score) {
-    return new FlowAnomalyAlert(c, h, severity, cli_score, srv_score);
+  FlowAnomalyAlert *allocAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool is_client_alert) {
+    return new FlowAnomalyAlert(c, h, severity, cli_score, srv_score, is_client_alert);
   };
 
   bool loadConfiguration(json_object *config);

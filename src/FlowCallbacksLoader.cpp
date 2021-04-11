@@ -36,73 +36,82 @@ FlowCallbacksLoader::~FlowCallbacksLoader() {
 
 /* **************************************************** */
 
+void FlowCallbacksLoader::registerCallback(FlowCallback *cb) {
+  if(cb_all.find(cb->getName()) != cb_all.end()) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ignoring duplicate flow callback %s", cb->getName().c_str());
+    delete cb;
+  } else
+    cb_all[cb->getName()] = cb;
+  
+}
+/* **************************************************** */
+
 void FlowCallbacksLoader::registerCallbacks() {
   /* TODO: implement dynamic loading */
   FlowCallback *fcb;
 
-  if((fcb = new BlacklistedFlow()))                             cb_all[fcb->getName()] = fcb;
-  if((fcb = new BlacklistedCountry()))                          cb_all[fcb->getName()] = fcb;
-  if((fcb = new DeviceProtocolNotAllowed()))                    cb_all[fcb->getName()] = fcb;
+  if((fcb = new BlacklistedFlow()))                             registerCallback(fcb);
+  if((fcb = new BlacklistedCountry()))                          registerCallback(fcb);
+  if((fcb = new DeviceProtocolNotAllowed()))                    registerCallback(fcb);
 #ifndef NTOPNG_PRO
-  if((fcb = new ExternalAlertCheck()))                          cb_all[fcb->getName()] = fcb;
+  if((fcb = new ExternalAlertCheck()))                          registerCallback(fcb);
 #endif
-  if((fcb = new FlowRiskBinaryApplicationTransfer()))           cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskDNSSuspiciousTraffic()))                cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskHTTPNumericIPHost()))                   cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskHTTPSuspiciousHeader()))                cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskHTTPSuspiciousUserAgent()))             cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskHTTPSuspiciousURL()))                   cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskKnownProtocolOnNonStandardPort()))      cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskMalformedPacket()))                     cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskSMBInsecureVersion()))                  cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskSSHObsolete()))                         cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskSuspiciousDGADomain()))                 cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskTLSMissingSNI()))                       cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskTLSNotCarryingHTTPS()))                 cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskTLSSuspiciousESNIUsage()))              cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskUnsafeProtocol()))                      cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskURLPossibleXSS()))                      cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskURLPossibleRCEInjection()))             cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskURLPossibleSQLInjection()))             cb_all[fcb->getName()] = fcb;
-  if((fcb = new IECUnexpectedTypeId()))                         cb_all[fcb->getName()] = fcb;
-  if((fcb = new IECInvalidTransition()))                        cb_all[fcb->getName()] = fcb;
-  if((fcb = new LowGoodputFlow()))                              cb_all[fcb->getName()] = fcb;
-  if((fcb = new NotPurged()))                                   cb_all[fcb->getName()] = fcb;  
-  if((fcb = new RemoteToLocalInsecureProto()))                  cb_all[fcb->getName()] = fcb;
-  if((fcb = new RemoteToRemote()))                              cb_all[fcb->getName()] = fcb;
-  if((fcb = new TCPZeroWindow()))                               cb_all[fcb->getName()] = fcb;
-  if((fcb = new TCPNoDataExchanged()))                          cb_all[fcb->getName()] = fcb;
-  if((fcb = new TCPIssues()))                                   cb_all[fcb->getName()] = fcb;
-  if((fcb = new UDPUnidirectional()))                           cb_all[fcb->getName()] = fcb;
-  if((fcb = new UnexpectedDNSServer()))                         cb_all[fcb->getName()] = fcb;
-  if((fcb = new UnexpectedDHCPServer()))                        cb_all[fcb->getName()] = fcb;
-  if((fcb = new UnexpectedNTPServer()))                         cb_all[fcb->getName()] = fcb;
-  if((fcb = new UnexpectedSMTPServer()))                        cb_all[fcb->getName()] = fcb;
-  if((fcb = new WebMining()))                                   cb_all[fcb->getName()] = fcb;
+  if((fcb = new FlowRiskBinaryApplicationTransfer()))           registerCallback(fcb);
+  if((fcb = new FlowRiskDNSSuspiciousTraffic()))                registerCallback(fcb);
+  if((fcb = new FlowRiskHTTPNumericIPHost()))                   registerCallback(fcb);
+  if((fcb = new FlowRiskHTTPSuspiciousHeader()))                registerCallback(fcb);
+  if((fcb = new FlowRiskHTTPSuspiciousUserAgent()))             registerCallback(fcb);
+  if((fcb = new FlowRiskHTTPSuspiciousURL()))                   registerCallback(fcb);
+  if((fcb = new FlowRiskKnownProtocolOnNonStandardPort()))      registerCallback(fcb);
+  if((fcb = new FlowRiskMalformedPacket()))                     registerCallback(fcb);
+  if((fcb = new FlowRiskSMBInsecureVersion()))                  registerCallback(fcb);
+  if((fcb = new FlowRiskSSHObsolete()))                         registerCallback(fcb);
+  if((fcb = new FlowRiskSuspiciousDGADomain()))                 registerCallback(fcb);
+  if((fcb = new FlowRiskTLSMissingSNI()))                       registerCallback(fcb);
+  if((fcb = new FlowRiskTLSNotCarryingHTTPS()))                 registerCallback(fcb);
+  if((fcb = new FlowRiskTLSSuspiciousESNIUsage()))              registerCallback(fcb);
+  if((fcb = new FlowRiskUnsafeProtocol()))                      registerCallback(fcb);
+  if((fcb = new FlowRiskURLPossibleXSS()))                      registerCallback(fcb);
+  if((fcb = new FlowRiskURLPossibleRCEInjection()))             registerCallback(fcb);
+  if((fcb = new FlowRiskURLPossibleSQLInjection()))             registerCallback(fcb);
+  if((fcb = new IECUnexpectedTypeId()))                         registerCallback(fcb);
+  if((fcb = new IECInvalidTransition()))                        registerCallback(fcb);
+  if((fcb = new LowGoodputFlow()))                              registerCallback(fcb);
+  if((fcb = new NotPurged()))                                   registerCallback(fcb);  
+  if((fcb = new RemoteToLocalInsecureProto()))                  registerCallback(fcb);
+  if((fcb = new RemoteToRemote()))                              registerCallback(fcb);
+  if((fcb = new TCPZeroWindow()))                               registerCallback(fcb);
+  if((fcb = new TCPNoDataExchanged()))                          registerCallback(fcb);
+  if((fcb = new TCPIssues()))                                   registerCallback(fcb);
+  if((fcb = new UDPUnidirectional()))                           registerCallback(fcb);
+  if((fcb = new UnexpectedDNSServer()))                         registerCallback(fcb);
+  if((fcb = new UnexpectedDHCPServer()))                        registerCallback(fcb);
+  if((fcb = new UnexpectedNTPServer()))                         registerCallback(fcb);
+  if((fcb = new UnexpectedSMTPServer()))                        registerCallback(fcb);
+  if((fcb = new WebMining()))                                   registerCallback(fcb);
 
 #ifdef NTOPNG_PRO
-  if((fcb = new DataExfiltration()))                            cb_all[fcb->getName()] = fcb;
-  if((fcb = new DNSDataExfiltration()))                         cb_all[fcb->getName()] = fcb;
-  if((fcb = new ElephantFlow()))                                cb_all[fcb->getName()] = fcb;
-  if((fcb = new PotentiallyDangerous()))                        cb_all[fcb->getName()] = fcb;
-  if((fcb = new ExternalAlertCheckPro()))                       cb_all[fcb->getName()] = fcb;
-  if((fcb = new InvalidDNSQuery()))                             cb_all[fcb->getName()] = fcb;
-  if((fcb = new LongLivedFlow()))                               cb_all[fcb->getName()] = fcb;
-  if((fcb = new SuspiciousTCPProbing()))                        cb_all[fcb->getName()] = fcb;
-  if((fcb = new SuspiciousTCPSYNProbing()))                     cb_all[fcb->getName()] = fcb;
-  if((fcb = new TCPConnectionRefused()))                        cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskTLSCertificateExpired()))               cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskTLSCertificateMismatch()))              cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskTLSOldProtocolVersion()))               cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskTLSUnsafeCiphers()))                    cb_all[fcb->getName()] = fcb;
-  if((fcb = new FlowRiskTLSCertificateSelfSigned()))            cb_all[fcb->getName()] = fcb;
-  if((fcb = new TLSMaliciousSignature()))                       cb_all[fcb->getName()] = fcb;
-  if((fcb = new NedgeBlockedFlow()))                            cb_all[fcb->getName()] = fcb;
+  if((fcb = new DataExfiltration()))                            registerCallback(fcb);
+  if((fcb = new DNSDataExfiltration()))                         registerCallback(fcb);
+  if((fcb = new ElephantFlow()))                                registerCallback(fcb);
+  if((fcb = new PotentiallyDangerous()))                        registerCallback(fcb);
+  if((fcb = new ExternalAlertCheckPro()))                       registerCallback(fcb);
+  if((fcb = new InvalidDNSQuery()))                             registerCallback(fcb);
+  if((fcb = new LongLivedFlow()))                               registerCallback(fcb);
+  if((fcb = new SuspiciousTCPProbing()))                        registerCallback(fcb);
+  if((fcb = new SuspiciousTCPSYNProbing()))                     registerCallback(fcb);
+  if((fcb = new TCPConnectionRefused()))                        registerCallback(fcb);
+  if((fcb = new FlowRiskTLSCertificateExpired()))               registerCallback(fcb);
+  if((fcb = new FlowRiskTLSCertificateMismatch()))              registerCallback(fcb);
+  if((fcb = new FlowRiskTLSOldProtocolVersion()))               registerCallback(fcb);
+  if((fcb = new FlowRiskTLSUnsafeCiphers()))                    registerCallback(fcb);
+  if((fcb = new FlowRiskTLSCertificateSelfSigned()))            registerCallback(fcb);
+  if((fcb = new TLSMaliciousSignature()))                       registerCallback(fcb);
+  if((fcb = new NedgeBlockedFlow()))                            registerCallback(fcb);
 #endif
 
-  /* Run consistency checks */
 #if 0
-    if(!(_has_protocol_detected || _has_periodic_update || _has_flow_end)) {
+  if(!(_has_protocol_detected || _has_periodic_update || _has_flow_end)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Flow callback %s does not define any callback: ignored", getName());
     throw "Invalid plugin definition";
   }
@@ -202,7 +211,7 @@ void FlowCallbacksLoader::loadConfiguration() {
            || strcmp(callback_key, "iec60870_5_104") == 0)
 	  ; /* No noise for demos */
 	else
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow callback  %s", callback_key);
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find flow callback %s", callback_key);
       }
     }
 

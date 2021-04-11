@@ -30,6 +30,8 @@ class FlowCallbacksLoader : public CallbacksLoader { /* A single instance inside
   std::map<std::string, FlowCallback*> cb_all; /* All the callbacks instantiated */
 
   std::list<FlowCallback*>* getCallbacks(NetworkInterface *iface, FlowCallbacks callback);
+  void registerCallback(FlowCallback *cb);
+  
   void registerCallbacks();
   void loadConfiguration();
 
