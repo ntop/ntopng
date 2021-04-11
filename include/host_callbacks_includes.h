@@ -39,6 +39,7 @@
 #include "host_callbacks/DNSTraffic.h"
 
 #include "host_callbacks/FlowAnomaly.h"
+#include "host_callbacks/ScoreAnomaly.h"
 
 #ifdef NTOPNG_PRO
 #include "host_callbacks/RepliesRequestsRatio.h"

@@ -59,6 +59,7 @@ void HostCallbacksLoader::registerCallbacks() {
   if((fcb = new P2PTraffic()))                 registerCallback(fcb);
   if((fcb = new DNSTraffic()))                 registerCallback(fcb);
   if((fcb = new FlowAnomaly()))                registerCallback(fcb);
+  if((fcb = new ScoreAnomaly()))               registerCallback(fcb);
 
 #ifdef NTOPNG_PRO
   if((fcb = new DNSRepliesRequestsRatio()))    registerCallback(fcb);

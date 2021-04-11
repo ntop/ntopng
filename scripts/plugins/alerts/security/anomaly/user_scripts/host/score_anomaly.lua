@@ -9,7 +9,7 @@ local alert_severities = require "alert_severities"
 
 local script = {
   -- Script category
-  category = user_scripts.script_categories.network,
+  category = user_scripts.script_categories.security,
 
   default_enabled = true,
 
@@ -24,8 +24,8 @@ local script = {
   hooks = {},
 
   gui = {
-    i18n_title = "alerts_thresholds_config.flows_anomaly_title",
-    i18n_description = "alerts_thresholds_config.flows_anomaly_description",
+    i18n_title = "alerts_thresholds_config.score_anomaly_title",
+    i18n_description = "alerts_thresholds_config.score_anomaly_description",
   }
 }
 
