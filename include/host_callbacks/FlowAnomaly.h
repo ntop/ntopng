@@ -39,7 +39,7 @@ public:
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
   
   HostCallbackID getID() const { return host_callback_flow_anomaly; }
-  std::string getName()  const { return(std::string("flow_anomaly")); }
+  std::string getName()  const { return(std::string("flows_anomaly")); }
 };
 
 #endif
