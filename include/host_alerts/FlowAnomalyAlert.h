@@ -32,6 +32,9 @@ class FlowAnomalyAlert : public HostAlert {
   FlowAnomalyAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score)
     : HostAlert(c, h, severity, cli_score, srv_score) { ; }
   ~FlowAnomalyAlert() {};
+
+  static HostAlertType getClassType() { return { host_alert_flows_anomaly, alert_category_network }; }
+  HostAlertType getAlertType() const  { return getClassType(); }
 };
 
 #endif /* _FLOW_ANOMALY_ALERT_H_ */

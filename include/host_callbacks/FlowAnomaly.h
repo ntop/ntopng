@@ -19,30 +19,27 @@
  *
  */
 
-#ifndef _P2P_TRAFFIC_H_
-#define _P2P_TRAFFIC_H_
+#ifndef _FLOW_ANOMALY_H_
+#define _FLOW_ANOMALY_H_
 
 #include "ntop_includes.h"
 
-class P2PTraffic : public HostCallback {
+class FlowAnomaly : public HostCallback {
 private:
-  u_int64_t p2p_bytes_threshold;  
 
-  HostAlert *allocAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score,
-			u_int64_t _p2p_bytes, u_int64_t _p2p_bytes_threshold) {
-    return new P2PTrafficAlert(c, f, severity, cli_score, srv_score, _p2p_bytes, _p2p_bytes_threshold);
-  };
-  
 public:
-  P2PTraffic();
-  ~P2PTraffic() {};
-  
+  FlowAnomaly();
+  ~FlowAnomaly() {};
+
+  FlowAnomalyAlert *allocAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score) {
+    return new FlowAnomalyAlert(c, h, severity, cli_score, srv_score);
+  };
+
+  bool loadConfiguration(json_object *config);
   void periodicUpdate(Host *h, HostAlert *engaged_alert);
-
-  bool loadConfiguration(json_object *config);  
-
-  HostCallbackID getID() const { return host_callback_p2p_traffic; }
-  std::string getName()  const { return(std::string("p2p")); }
+  
+  HostCallbackID getID() const { return host_callback_flow_anomaly; }
+  std::string getName()  const { return(std::string("flow_anomaly")); }
 };
 
 #endif

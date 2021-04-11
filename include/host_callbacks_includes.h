@@ -38,6 +38,8 @@
 #include "host_callbacks/P2PTraffic.h"
 #include "host_callbacks/DNSTraffic.h"
 
+#include "host_callbacks/FlowAnomaly.h"
+
 #ifdef NTOPNG_PRO
 #include "host_callbacks/RepliesRequestsRatio.h"
 #include "host_callbacks/DNSRepliesRequestsRatio.h"

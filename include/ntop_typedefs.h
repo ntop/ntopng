@@ -445,7 +445,7 @@ typedef struct {
   AlertCategory category;
 } FlowAlertType;
 
-/* TODO: sync with alert_keys.lua */
+/* TODO: sync with scripts/lua/modules/alert_keys/host_alert_keys.lua */
 typedef enum {
   host_alert_normal                      =  0,
   host_alert_dns_replies_requests_ratio  =  1,
@@ -485,6 +485,7 @@ typedef enum {
   host_callback_score_host,
   host_callback_p2p_traffic,
   host_callback_dns_traffic,
+  host_callback_flow_anomaly,
 
   NUM_DEFINED_HOST_CALLBACKS, /* Leave it as last member */ 
 } HostCallbackID;

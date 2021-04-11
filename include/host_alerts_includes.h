@@ -36,6 +36,8 @@
 #include "host_alerts/DNSTrafficAlert.h"
 #include "host_alerts/ScoreAlert.h"
 
+#include "host_alerts/FlowAnomalyAlert.h"
+
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 
 #endif /* _HOST_ALERTS_INCLUDES_H_ */

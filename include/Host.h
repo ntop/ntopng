@@ -444,6 +444,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void releaseAlert(HostAlert* alert);
 
   void releaseAllEngagedAlerts();
+
+  inline bool has_flows_anomaly(bool as_client) { return(stats->has_flows_anomaly(as_client)); }
+  inline bool has_score_anomaly(bool as_client) { return(stats->has_score_anomaly(as_client)); }
 };
 
 #endif /* _HOST_H_ */

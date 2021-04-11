@@ -29,6 +29,7 @@ class HostStats: public GenericTrafficElement {
   NetworkInterface *iface;
   Host *host;
 
+  u_int8_t client_flows_anomaly:1, server_flows_anomaly:1, client_score_anomaly:1, server_score_anomaly:1, _notused:4;
   u_int32_t total_alerts;
   u_int32_t unreachable_flows_as_client, unreachable_flows_as_server;
   /* Used concurrently in view interfaces, possibly removed after https://github.com/ntop/ntopng/issues/4596 */
@@ -161,6 +162,9 @@ class HostStats: public GenericTrafficElement {
   virtual void incNTPContactCardinality(Host *h)  { ; }
   virtual void incDNSContactCardinality(Host *h)  { ; }
   virtual void incSMTPContactCardinality(Host *h) { ; }
+
+  inline bool has_flows_anomaly(bool as_client) { return(as_client ? client_flows_anomaly : server_flows_anomaly); }
+  inline bool has_score_anomaly(bool as_client) { return(as_client ? client_score_anomaly : server_score_anomaly); }
 };
 
 #endif

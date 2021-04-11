@@ -35,7 +35,8 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
   total_alerts = 0;
   num_flow_alerts = 0;
   periodicUpdate = 0;
-
+  client_flows_anomaly = server_flows_anomaly = client_score_anomaly = server_score_anomaly = 0;
+  
   /* NOTE: deleted by ~GenericTrafficElement */
   ndpiStats = new (std::nothrow) nDPIStats();
   //printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
@@ -77,7 +78,9 @@ void HostStats::updateStats(const struct timeval *tv) {
 				   iface->get_name(),
 				   host->getNumOutgoingFlows());
       num_anomalies++;
-    }
+      client_flows_anomaly = 1;
+    } else
+      client_flows_anomaly = 0;
 
     if(active_flows_srv.addObservation(host->getNumIncomingFlows())) {
       char buf[64];
@@ -87,7 +90,9 @@ void HostStats::updateStats(const struct timeval *tv) {
 				   iface->get_name(),
 				   host->getNumIncomingFlows());
       num_anomalies++;
-    }
+      server_flows_anomaly = 1;
+    } else
+      server_flows_anomaly = 0;
 
     if(score_cli.addObservation(host->getScoreAsClient())) {
       char buf[64];
@@ -97,7 +102,9 @@ void HostStats::updateStats(const struct timeval *tv) {
 				   iface->get_name(),
 				   host->getScoreAsClient());
       num_anomalies++;
-    }
+      client_score_anomaly = 1;
+    } else
+      server_flows_anomaly = 0;
 
     if(score_srv.addObservation(host->getScoreAsServer())) {
       char buf[64];
@@ -107,7 +114,9 @@ void HostStats::updateStats(const struct timeval *tv) {
 				   iface->get_name(),
 				   host->getScoreAsServer());
       num_anomalies++;
-    }
+      server_score_anomaly = 1;
+    } else
+      server_flows_anomaly = 0;
 
     if(num_anomalies > 0) {
       if(host->isLocalHost())

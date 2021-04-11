@@ -16,6 +16,11 @@ local host_alert_keys = {
    host_alert_score                       =  8,
    host_alert_p2p_traffic                 =  9,
    host_alert_dns_traffic                 = 10,
+   host_alert_flows_anomaly               = 11,
+   host_alert_score_anomaly               = 12,
+
+
+
    -- NOTE: for host alerts not not go beyond the size of Bitmap16 alert_map inside Host.h
 }
 
