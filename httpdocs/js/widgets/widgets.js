@@ -41,6 +41,13 @@ class Widget {
         // register the widget to the DEFINED_WIDGETS object
         DEFINED_WIDGETS[this.name] = this;
         this._fetchedData = await this._fetchData();
+
+        if (this._updateTime > 0) {
+            setInterval(async () => {
+                await this.update(this._datasource.params);
+            }, this._updateTime);
+        }
+
     }
 
     /**
@@ -58,6 +65,7 @@ class Widget {
     }
 
     async update(datasourceParams = {}) {
+
         // build the new endpoint
         const u = new URL(`${location.origin}${this._datasource.endpoint}`);
         for (const [key, value] of Object.entries(datasourceParams)) {
@@ -65,8 +73,7 @@ class Widget {
         }
 
         this._datasource.endpoint = u.pathname + u.search;
-        this._fetchedData = await this._fetchData();
-        
+        this._fetchedData = await this._fetchData();   
     }
 
     /**
@@ -74,10 +81,8 @@ class Widget {
      * do a GET request to a REST endpoint.
      */
     async _fetchData() {
-        
         const req = await fetch(`${http_prefix}${this._datasource.endpoint}`);
-        const data = await req.json();
-        return data;
+        return await req.json();
     }
 
 }
@@ -103,8 +108,8 @@ class ChartWidget extends Widget {
         const data = {datasets: [], labels: []};
 
         // dynamically import the standard configuration for the chart
-        const config = await this._loadConfiguration();
-        const {dataset, options} = config.default;
+        const loadedConfig = await this._loadConfiguration();
+        const {dataset, options} = loadedConfig.default;
 
         const response = this._fetchedData.rsp;
 

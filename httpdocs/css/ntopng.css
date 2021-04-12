@@ -931,15 +931,12 @@ footer {
 .dashboard-widget-container {
   --tw-shadow: 0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06);
   --tw-ring-offset-shadow: 0 0 transparent;
-  height: 250px; 
+  height: auto; 
   border: 1px solid #e5e7eb; 
   border-radius: .375rem;
-  box-shadow: var(--tw-ring-offset-shadow,0 0 transparent),var(--tw-ring-shadow,0 0 transparent),var(--tw-shadow);
-}
-.dashboard-widget {
-  height: 100%;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--tw-ring-offset-shadow,0 0 transparent),var(--tw-ring-shadow,0 0 transparent),var(--tw-shadow);
 }
 .dashboard-widget-header {
   padding: .45rem 1rem;
@@ -970,4 +967,7 @@ footer {
 }
 .percentage-widget .percentage.positive {
   color: #2ca61c;
+}
+.percentage-widget .percentage.negative {
+  color: #e93d3d;
 }
