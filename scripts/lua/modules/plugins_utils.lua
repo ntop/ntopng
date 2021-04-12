@@ -19,6 +19,9 @@ local dirs = ntop.getDirs()
 -- enable debug tracing
 local do_trace = false
 
+-- How deep the recursive plugins search should go into subdirectories
+local MAX_RECURSION = 2
+
 plugins_utils.COMMUNITY_SOURCE_DIR = os_utils.fixPath(dirs.scriptdir .. "/plugins")
 plugins_utils.PRO_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/pro_plugins")
 plugins_utils.ENTERPRISE_M_SOURCE_DIR = os_utils.fixPath(dirs.installdir .. "/pro/scripts/enterprise_m_plugins")
@@ -112,9 +115,15 @@ local function recursivePluginsSearch(edition, source_dir, max_recursion, plugin
 	 else
 	    plugins[plugin_name] = metadata
 	 end
-      elseif ntop.isdir(plugin_dir) and max_recursion > 0 then
-	 -- Recursively see if this is a directory containing other plugins
-	 recursivePluginsSearch(edition, plugin_dir, max_recursion - 1, plugins, plugins_with_deps)
+      elseif ntop.isdir(plugin_dir) then
+	 if max_recursion > 0 then
+	    -- Recursively see if this is a directory containing other plugins
+	    recursivePluginsSearch(edition, plugin_dir, max_recursion - 1, plugins, plugins_with_deps)
+	 else
+	    -- Maxmimum recursion hit. must stop
+	    traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Unable to load '%s'. Missing 'manifest.lua'", plugin_dir))
+	    return
+	 end
       end
 
       ::continue::
@@ -148,7 +157,7 @@ local function listPlugins(community_plugins_only)
       local edition = source_conf[1]
       local source_dir = source_conf[2]
 
-      recursivePluginsSearch(edition, source_dir, 3, plugins, plugins_with_deps)
+      recursivePluginsSearch(edition, source_dir, MAX_RECURSION, plugins, plugins_with_deps)
    end
 
    -- Add plugins without dependencies to the result
