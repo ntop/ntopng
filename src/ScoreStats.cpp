@@ -72,7 +72,7 @@ u_int16_t ScoreStats::incValue(u_int16_t score, ScoreCategory score_category, bo
 /* *************************************** */
 
 u_int16_t ScoreStats::decValue(u_int16_t score, ScoreCategory score_category, bool as_client) {
-    return as_client ? decValue(cli_score, score, score_category) : decValue(srv_score, score, score_category);
+  return as_client ? decValue(cli_score, score, score_category) : decValue(srv_score, score, score_category);
 }
 
 /* *************************************** */

@@ -22,9 +22,7 @@
 #ifndef _SCORE_ALERT_H_
 #define _SCORE_ALERT_H_
 
-
 #include "ntop_includes.h"
-
 
 class ScoreAlert : public HostAlert {
  private:
@@ -35,7 +33,7 @@ class ScoreAlert : public HostAlert {
  public:
   static HostAlertType getClassType() { return { host_alert_score, alert_category_security }; }
 
-  ScoreAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score);
+  ScoreAlert(HostCallback *c, Host *f, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, u_int64_t _score, u_int64_t _threshold);
   ~ScoreAlert() {};
   
   HostAlertType getAlertType() const { return getClassType(); }

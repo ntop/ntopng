@@ -96,6 +96,7 @@ Host::~Host() {
 /* NOTE: overrides Score::incScoreValue to handle increments for host members as well */
 u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category, bool as_client) {
   NetworkStats *ns = getNetworkStats(get_local_network_id());
+  u_int16_t score_inc;
 
   /* Do increments only on members that don't change during the lifecycle of the host */
   if(as)      as->incScoreValue(score_incr, score_category, as_client);
@@ -103,8 +104,11 @@ u_int16_t Host::incScoreValue(u_int16_t score_incr, ScoreCategory score_category
   if(country) country->incScoreValue(score_incr, score_category, as_client);
   if(ns)      ns->incScoreValue(score_incr, score_category, as_client);
   if(iface)   iface->incScoreValue(score_incr, as_client);
-  
-  return Score::incScoreValue(score_incr, score_category, as_client);
+  score_inc = Score::incScoreValue(score_incr, score_category, as_client);
+
+  update_max_score();
+
+  return score_inc;
 }
 
 /* *************************************** */
@@ -155,6 +159,7 @@ void Host::updateSynAckAlertsCounter(time_t when, bool synack_sent) {
 void Host::housekeep(time_t t) {  
   switch(get_state()) {
   case hash_entry_state_active:
+    reset_max_score(); 
     iface->execHostCallbacks(this);
     break;
   case hash_entry_state_idle:
@@ -213,6 +218,7 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId) {
   flow_flood.victim_counter   = new (std::nothrow) AlertCounter();
   syn_scan.syn_sent_last_min = syn_scan.synack_recvd_last_min = 0;
   syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min = 0;
+  max_score.current = max_score.last = 0;
   PROFILING_SUB_SECTION_EXIT(iface, 17);
 
   if(ip.getVersion() /* IP is set */) {
@@ -1712,7 +1718,6 @@ bool Host::triggerAlert(HostAlert *alert) {
 
   incScoreValue(alert->getCliScore(), score_category, true /* as client */);
   incScoreValue(alert->getSrvScore(), score_category, false /* as server */);
-
 
   /* Add to the list of engaged alerts*/
   addEngagedAlert(alert);

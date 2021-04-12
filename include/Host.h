@@ -67,6 +67,9 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     u_int32_t syn_sent_last_min, synack_recvd_last_min; /* (attacker) */
     u_int32_t syn_recvd_last_min, synack_sent_last_min; /* (victim) */
   } syn_scan; 
+  struct {
+    u_int32_t current /* computing */, last /* in the last interval */;
+  } max_score;
 
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* Need atomic as inc/dec done on different threads */
   u_int32_t asn;
@@ -320,6 +323,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   inline u_int32_t syn_scan_victim_hits()   const { return syn_scan.syn_recvd_last_min > syn_scan.synack_sent_last_min ? syn_scan.syn_recvd_last_min - syn_scan.synack_sent_last_min : 0; };
   inline u_int32_t syn_scan_attacker_hits() const { return syn_scan.syn_sent_last_min > syn_scan.synack_recvd_last_min ? syn_scan.syn_sent_last_min - syn_scan.synack_recvd_last_min : 0; };
   inline void reset_syn_scan_hits() { syn_scan.syn_sent_last_min = syn_scan.synack_recvd_last_min = syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min = 0; };
+
+  void update_max_score() { u_int32_t curr = getScore(); if (curr > max_score.current) max_score.current = curr; }
+  void reset_max_score() { max_score.last = max_score.current; max_score.current = 0; }
+  u_int32_t get_max_score() { return max_score.last; }
 
   void incNumFlows(time_t t, bool as_client);
   void decNumFlows(time_t t, bool as_client);
