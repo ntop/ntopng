@@ -632,36 +632,28 @@ NetworkInterface::~NetworkInterface() {
 
 /* Enqueue flow alert to a queue for processing and later delivery to recipients */
 bool NetworkInterface::enqueueFlowAlert(FlowAlert *alert) {
-  bool ret = false;
-  SPSCQueue<FlowAlert *> *selected_queue = flowAlertsQueue;
   Flow *f = alert->getFlow();
+  bool ret = false;
 
   /* Perform the actual enqueue */
-  if(selected_queue) {
-    if(selected_queue->enqueue(alert, true)) {
+  if(flowAlertsQueue
+     && flowAlertsQueue->enqueue(alert, true)) {
 
-      /*
-	If enqueue was successful, increase the flow reference counter.
-	Reference counter will be deleted when doing the dequeue.
-       */
-      f->incUses();
+    /*
+      If enqueue was successful, increase the flow reference counter.
+      Reference counter will be deleted when doing the dequeue.
+     */
+    f->incUses();
 
-      /*
-	Signal the waiter on the condition variable
-       */
-      flow_callbacks_condvar.signal();
+    /*
+      Signal the waiter on the condition variable
+     */
+    flow_callbacks_condvar.signal();
 
-      ret = true;
-    } else {
-      /*
-	Enqueue failure.
-       */
-      ret = false;
-    }
-  }
-
-  if(!ret)
+    ret = true;
+  } else {
     delete alert;  
+  }
 
   return ret;
 }
@@ -670,36 +662,27 @@ bool NetworkInterface::enqueueFlowAlert(FlowAlert *alert) {
 
 /* Enqueue host alert to a queue for processing and later delivery to recipients */
 bool NetworkInterface::enqueueHostAlert(HostAlert *alert) {
-  bool ret = false;
+  HostAlertReleasedPair alert_info(alert, alert->isReleased());
   Host *h = alert->getHost();
+  bool ret = false;
 
-  if (!ntop->getPrefs()->dontEmitHostAlerts() && hostAlertsQueue) {
-    HostAlertReleasedPair alert_info(alert, alert->isReleased());
+  if (!ntop->getPrefs()->dontEmitHostAlerts() 
+      && hostAlertsQueue
+      && hostAlertsQueue->enqueue(alert_info, true)) {
 
-    /* Perform the actual enqueue */
-    if(hostAlertsQueue->enqueue(alert_info, true)) {
+    /*
+      If enqueue was successful, increase the host reference counter.
+      Reference counter will be deleted when doing the dequeue.
+     */
+    h->incUses();
 
-      /*
-	If enqueue was successful, increase the host reference counter.
-	Reference counter will be deleted when doing the dequeue.
-       */
-      h->incUses();
+    /*
+      Signal the waiter on the condition variable
+     */
+    host_callbacks_condvar.signal();
 
-      /*
-	Signal the waiter on the condition variable
-       */
-      host_callbacks_condvar.signal();
-
-      ret = true;
-    } else {
-      /*
-	Enqueue failure.
-       */
-      ret = false;
-    }
-  }
-
-  if(!ret) {
+    ret = true;
+  } else {
     if(alert->isReleased())
       delete alert;  
   }
