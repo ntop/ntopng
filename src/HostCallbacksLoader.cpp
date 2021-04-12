@@ -156,7 +156,7 @@ void HostCallbacksLoader::loadConfiguration() {
 	    cb->scriptDisable(); 
 	  }
 	} else {
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to find host callback %s", callback_key);
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to find host callback %s", callback_key);
 	}
       }
     }
