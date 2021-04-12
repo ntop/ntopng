@@ -54,7 +54,7 @@ function sqlite.dequeueRecipientAlerts(recipient, budget, high_priority)
 
      for i=1, budget do
        local notification = ntop.recipient_dequeue(recipient.recipient_id, high_priority)
-       if notification then 
+       if notification then
 	  notifications[#notifications + 1] = notification.alert
        else
 	  break

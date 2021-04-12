@@ -97,8 +97,10 @@ bool Recipients::enqueue(RecipientNotificationPriority prio, const AlertFifoItem
   for(int recipient_id = 0; recipient_id < MAX_NUM_RECIPIENTS; recipient_id++) {
     if(recipient_queues[recipient_id]
        && ((alert_entity == alert_entity_flow && recipient_queues[recipient_id]->isFlowRecipient()) /* The recipient must be a flow recipient */
-	   || (alert_entity == alert_entity_host && recipient_queues[recipient_id]->isHostRecipient())))
-      res &= recipient_queues[recipient_id]->enqueue(prio, notification);
+	   || (alert_entity == alert_entity_host && recipient_queues[recipient_id]->isHostRecipient()))) {
+      bool success = recipient_queues[recipient_id]->enqueue(prio, notification);
+      res &= success;
+    }
   }
 
   m.unlock(__FILE__, __LINE__);
