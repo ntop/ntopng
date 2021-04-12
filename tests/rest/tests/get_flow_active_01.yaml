@@ -1,6 +1,8 @@
 input: test_01.pcap
 
 ignore:
+  - bps
+  - pps
 
 pre: |
 

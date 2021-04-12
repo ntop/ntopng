@@ -3,6 +3,8 @@ input: test_01.pcap
 ignore:
   - last_seen  # Depends on current system uptime
   - country    # Depends on the accuracy of the localization DB and changes between MaxMind and other databases
+  - bps
+  - pps
 
 pre: |
 
