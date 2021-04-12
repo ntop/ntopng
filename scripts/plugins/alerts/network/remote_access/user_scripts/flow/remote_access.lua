@@ -22,8 +22,8 @@ local script = {
   },
 
   gui = {
-    i18n_title = "remote_access.title",
-    i18n_description = "remote_access.description",
+    i18n_title = "alerts_dashboard.remote_access_title",
+    i18n_description = "alerts_dashboard.remote_access_description",
   }
 }
 

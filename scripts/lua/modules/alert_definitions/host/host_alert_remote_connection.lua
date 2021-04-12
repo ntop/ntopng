@@ -22,7 +22,7 @@ local host_alert_remote_connection = classes.class(alert)
 
 host_alert_remote_connection.meta = {
   alert_key = host_alert_keys.host_alert_remote_connection,
-  i18n_title = "remote_connection.alert.title",
+  i18n_title = "alerts_dashboard.remote_connection_title",
   icon = "fas fa-info",
 }
 
@@ -48,7 +48,7 @@ function host_alert_remote_connection.format(ifid, alert, alert_type_params)
    local alert_consts = require "alert_consts"
    local host = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
 
-   return i18n("remote_connection.alert.description", {
+   return i18n("alerts_dashboard.remote_connection_alert_descr", {
 		  host = host,
 		  connections = alert_type_params["num_flows"],
    })

@@ -19,7 +19,7 @@ local alert_remote_access = classes.class(alert)
 
 alert_remote_access.meta = {
    alert_key  = flow_alert_keys.flow_alert_remote_access,
-   i18n_title = "remote_access.alert.title",
+   i18n_title = "alerts_dashboard.remote_access_title",
    icon = "fas fa-info",
 }
 
@@ -41,7 +41,7 @@ function alert_remote_access.format(ifid, alert, alert_type_params)
       time = "< 1"
    end
 
-   return (i18n("remote_access.alert.description", { sec = time }))
+   return (i18n("alerts_dashboard.remote_access_alert_descr", { sec = time }))
 end
 
 -- #######################################################

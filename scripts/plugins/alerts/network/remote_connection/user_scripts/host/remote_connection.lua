@@ -24,8 +24,8 @@ local script = {
   },
   
   gui = {
-    i18n_title = "remote_connection.title",
-    i18n_description = "remote_connection.description",
+    i18n_title = "alerts_dashboard.remote_connection_title",
+    i18n_description = "alerts_dashboard.remote_connection_description",
   }
 }
 
