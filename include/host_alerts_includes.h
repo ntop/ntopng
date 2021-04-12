@@ -37,6 +37,7 @@
 #include "host_alerts/ScoreAlert.h"
 
 #include "host_alerts/FlowAnomalyAlert.h"
+#include "host_alerts/RemoteConnectionAlert.h"
 #include "host_alerts/ScoreAnomalyAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */

@@ -8909,8 +8909,8 @@ void NetworkInterface::execFlowEndCallbacks(Flow *f) {
 void NetworkInterface::luaScore(lua_State *vm) {
   /* Score */
   lua_newtable(vm);
-  lua_push_uint32_table_entry(vm, "score_as_cli", score_as_cli); 
-  lua_push_uint32_table_entry(vm, "score_as_srv", score_as_srv);
+  lua_push_uint64_table_entry(vm, "score_as_cli", score_as_cli); 
+  lua_push_uint64_table_entry(vm, "score_as_srv", score_as_srv);
   lua_pushstring(vm, "score");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

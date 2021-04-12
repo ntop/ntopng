@@ -78,6 +78,7 @@ void FlowCallbacksLoader::registerCallbacks() {
   if((fcb = new IECInvalidTransition()))                        registerCallback(fcb);
   if((fcb = new LowGoodputFlow()))                              registerCallback(fcb);
   if((fcb = new NotPurged()))                                   registerCallback(fcb);  
+  if((fcb = new RemoteAccess()))                                registerCallback(fcb);
   if((fcb = new RemoteToLocalInsecureProto()))                  registerCallback(fcb);
   if((fcb = new RemoteToRemote()))                              registerCallback(fcb);
   if((fcb = new TCPZeroWindow()))                               registerCallback(fcb);

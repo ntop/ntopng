@@ -39,6 +39,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   
   bool stats_reset_requested, name_reset_requested, data_delete_requested;
   u_int16_t vlan_id, host_pool_id, host_services_bitmap;
+  u_int8_t num_remote_access;
   HostStats *stats, *stats_shadow;
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
@@ -141,7 +142,10 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
     Return true if this host is a server for known protocols 
   */
   inline bool  isProtocolServer()     const  { return(isDhcpServer() || isDnsServer() || isSmtpServer() || isNtpServer()); }
-						      
+  inline void incrRemoteAccess()      { if(num_remote_access == 255) num_remote_access = 0; else num_remote_access++; };
+  inline void decrRemoteAccess()      { if(num_remote_access == 0) num_remote_access = 255; else num_remote_access--; };
+  inline u_int8_t getRemoteAccess()   { return(num_remote_access); };
+  
   bool isBroadcastHost()              const  { return(ip.isBroadcastAddress() || (mac && mac->isBroadcast())); }
   bool isMulticastHost()              const  { return(ip.isMulticastAddress()); }
 

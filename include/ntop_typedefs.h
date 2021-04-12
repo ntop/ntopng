@@ -434,7 +434,8 @@ typedef enum {
   flow_alert_ndpi_tls_missing_sni             = 54,
   flow_alert_iec_unexpected_type_id           = 55, /* To be implemented */
   flow_alert_tcp_no_data_exchanged            = 56,
-
+  flow_alert_remote_access                    = 57,
+  
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 
   MAX_FLOW_ALERT_TYPE = 127 /* Constrained by `Bitmap128 alert_map` inside Flow.h */
@@ -463,6 +464,7 @@ typedef enum {
   host_alert_dns_traffic                 = 10,
   host_alert_flows_anomaly               = 11,
   host_alert_score_anomaly               = 12,
+  host_alert_remote_connection           = 13,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */ 
   MAX_HOST_ALERT_TYPE = 16 /* Constrained by Bitmap16 engaged_alerts_map inside HostAlertableEntity */
@@ -490,6 +492,7 @@ typedef enum {
   host_callback_dns_traffic,
   host_callback_flow_anomaly,
   host_callback_score_anomaly,
+  host_callback_remote_connection,
 
   NUM_DEFINED_HOST_CALLBACKS, /* Leave it as last member */ 
 } HostCallbackID;
