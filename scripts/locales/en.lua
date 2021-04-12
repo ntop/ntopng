@@ -728,6 +728,7 @@ local lang = {
     ["remote_to_local_insecure_proto"] = "Remote to Local Insecure Protocol",
     ["remote_to_remote"] = "Remote to Remote",
     ["reqs_repls_ratio_for"] = "Ratio Too Low for %{entity}%{host_category} ",
+    ["score_anomaly"] = "Score Anomaly",
     ["search_criteria"] = "Dashboard Settings",
     ["server_country_blacklisted"] = "Server country %{country} is blacklisted",
     ["shell_script"] = "Endpoint Shell Script Executed",
