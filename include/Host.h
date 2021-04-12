@@ -143,7 +143,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   */
   inline bool  isProtocolServer()     const  { return(isDhcpServer() || isDnsServer() || isSmtpServer() || isNtpServer()); }
   inline void incrRemoteAccess()      { if(num_remote_access == 255) num_remote_access = 0; else num_remote_access++; };
-  inline void decrRemoteAccess()      { if(num_remote_access == 0) num_remote_access = 255; else num_remote_access--; };
+  inline void decrRemoteAccess()      { if(num_remote_access == 0) num_remote_access = 0; else num_remote_access--; };
   inline u_int8_t getRemoteAccess()   { return(num_remote_access); };
   
   bool isBroadcastHost()              const  { return(ip.isBroadcastAddress() || (mac && mac->isBroadcast())); }

@@ -32,11 +32,10 @@ void RemoteAccess::protocolDetected(Flow *f) {
   case NDPI_PROTOCOL_CATEGORY_VPN:
   case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
     if(cli) cli->incrRemoteAccess();
-    if(srv) srv->incrRemoteAccess();
 
     break;
   default:
-    ;
+    break;
   }
 }
 
@@ -44,19 +43,18 @@ void RemoteAccess::protocolDetected(Flow *f) {
 
 void RemoteAccess::flowEnd(Flow *f) {
   Host *cli = f->get_cli_host(), *srv = f->get_srv_host();
-  u_int8_t c_score = 10, s_score = 10;
+  u_int8_t c_score = 5, s_score = 5;
   
   switch(f->get_protocol_category()) {
   case NDPI_PROTOCOL_CATEGORY_REMOTE_ACCESS:
   case NDPI_PROTOCOL_CATEGORY_VPN:
   case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
     if(cli) cli->decrRemoteAccess();
-    if(srv) srv->decrRemoteAccess();
 
     f->triggerAlertAsync(RemoteAccessAlert::getClassType(), getSeverity(), c_score, s_score);
     break;
   default:
-    ;
+    break;
   }
 }
 

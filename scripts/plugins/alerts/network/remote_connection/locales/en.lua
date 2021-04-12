@@ -8,6 +8,6 @@ return {
 
    alert = {
       title = "Remote Connection",
-      description = "The Host: [%{host}] currently is taking part to %{connections} flows with a remote access protocol",
+      description = "The %{host} currently is taking part to %{connections} flows with a remote access protocol",
    },
 }

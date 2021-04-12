@@ -45,12 +45,13 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function host_alert_remote_connection.format(ifid, alert, alert_type_params)
-  local host = alert.alert_entity_val
+   local alert_consts = require "alert_consts"
+   local host = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
 
-  return i18n("remote_connection.alert.description", {
-		 host = host,
-		 connections = alert_type_params["num_flows"],
-  })
+   return i18n("remote_connection.alert.description", {
+		  host = host,
+		  connections = alert_type_params["num_flows"],
+   })
 end
 
 -- #######################################################

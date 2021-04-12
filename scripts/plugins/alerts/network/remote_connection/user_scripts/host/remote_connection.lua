@@ -19,6 +19,10 @@ local script = {
   -- See below
   hooks = {},
 
+  default_value = {
+   severity = alert_severities.notice,
+  },
+  
   gui = {
     i18n_title = "remote_connection.title",
     i18n_description = "remote_connection.description",

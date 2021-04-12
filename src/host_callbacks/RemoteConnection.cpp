@@ -30,12 +30,12 @@ RemoteConnection::RemoteConnection() : HostCallback(ntopng_edition_community) {}
 
 void RemoteConnection::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   HostAlert *alert = engaged_alert;
-  u_int8_t cli_score = 0, srv_score = 0, num_remote_access = 0;
+  u_int8_t cli_score = 5, srv_score = 5, num_remote_access = 0;
 
   if(h) num_remote_access = h->getRemoteAccess();
 
   if(num_remote_access > 0) {
-    if (!alert) alert = allocAlert(this, h, alert_level_info, cli_score, srv_score, num_remote_access);
+    if (!alert) alert = allocAlert(this, h, alert_level_notice, cli_score, srv_score, num_remote_access);
     if (alert) h->triggerAlert(alert);
   }
 }
