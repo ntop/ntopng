@@ -307,12 +307,12 @@ function page_utils.print_header(title)
    ]]
     if (dark_mode) then
       print[[<link href="]] print(http_prefix) print[[/css/minified/bootstrap-orange.min.css" rel="stylesheet">]]
-      print[[<link href="]] print(http_prefix) print[[/css/minified/dark-mode.min.css" rel="stylesheet">]]
+      print[[<link href="]] print(http_prefix) print[[/css/minified/dark-mode.min.css?]] print(static_file_epoch) print[[" rel="stylesheet">]]
     else
       print[[ <link href="]] print(http_prefix) print[[/bootstrap-4.4.0-dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">]]
     end
     print[[
-    <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css" rel="stylesheet">
+    <link href="]] print(http_prefix) print[[/css/minified/ntopng.min.css?]] print(static_file_epoch) print[[" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/fontawesome-custom.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/tempusdominus.min.css" rel="stylesheet">
     <link href="]] print(http_prefix) print[[/css/minified/heatmap.min.css" rel="stylesheet">
