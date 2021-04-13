@@ -236,6 +236,8 @@
 #define TLS_CIPHER            NTOP_BASE_ID+493
 #define SSL_UNSAFE_CIPHER     NTOP_BASE_ID+494
 #define L7_PROTO_RISK         NTOP_BASE_ID+509
+#define HASSHC_HASH           NTOP_BASE_ID+525
+#define HASSHS_HASH           NTOP_BASE_ID+526
 
 /* SIP */
 #define SIP_CALL_ID NTOP_BASE_ID+130

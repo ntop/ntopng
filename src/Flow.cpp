@@ -2418,6 +2418,24 @@ json_object* Flow::flow2JSON() {
 			     json_object_new_string(Utils::formatMac(srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
   }
 
+  if(ntop->getPrefs()->do_dump_flows_on_syslog()) {
+    if(cli_host && cli_host->getMac() && !cli_host->getMac()->isNull())
+      json_object_object_add(my_object, Utils::jsonLabel(IN_SRC_MAC, "IN_SRC_MAC", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(Utils::formatMac(cli_host ? cli_host->get_mac() : NULL, buf, sizeof(buf))));
+
+    if(srv_host && srv_host->getMac() && !srv_host->getMac()->isNull())
+      json_object_object_add(my_object, Utils::jsonLabel(OUT_DST_MAC, "OUT_DST_MAC", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(Utils::formatMac(srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
+  
+    if(isTLS() && protos.tls.ja3.client_hash)
+      json_object_object_add(my_object, Utils::jsonLabel(JA3C_HASH, "JA3C_HASH", jsonbuf, sizeof(jsonbuf)),
+           json_object_new_string(protos.tls.ja3.client_hash));
+
+    if(isSSH() && protos.ssh.hassh.client_hash)
+      json_object_object_add(my_object, Utils::jsonLabel(HASSHC_HASH, "HASSHC_HASH", jsonbuf, sizeof(jsonbuf)),
+           json_object_new_string(protos.ssh.hassh.client_hash));
+  }
+
   if(cli_ip) {
     if(cli_ip->isIPv4()) {
       json_object_object_add(my_object, Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf, sizeof(jsonbuf)),
