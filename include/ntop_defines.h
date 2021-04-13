@@ -868,7 +868,7 @@
 #define ALERTS_MAX_DAYS_BEFORE_PURGE         365
 #define ALERTS_MANAGER_FLOWS_TABLE_NAME      "flows_alerts"
 #define ALERTS_MANAGER_TABLE_NAME            "alerts"
-#define ALERTS_MANAGER_STORE_NAME            "alerts_v29.db"
+#define ALERTS_MANAGER_STORE_NAME            "alerts_v30.db"
 #define ALERTS_MANAGER_QUEUE_NAME            "ntopng.alerts.ifid_%i.queue"
 #define ALERTS_MANAGER_MAKE_ROOM_ALERTS      "ntopng.cache.alerts.ifid_%i.make_room_closed_alerts"
 #define ALERTS_MANAGER_MAKE_ROOM_FLOW_ALERTS "ntopng.cache.alerts.ifid_%i.make_room_flow_alerts"

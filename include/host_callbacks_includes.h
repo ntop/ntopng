@@ -43,8 +43,6 @@
 #include "host_callbacks/ScoreAnomaly.h"
 
 #ifdef NTOPNG_PRO
-#include "host_callbacks/RepliesRequestsRatio.h"
-#include "host_callbacks/DNSRepliesRequestsRatio.h"
 #include "host_callbacks/ScoreHostCallback.h"
 #endif
 

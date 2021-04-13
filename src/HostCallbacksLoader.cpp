@@ -63,7 +63,6 @@ void HostCallbacksLoader::registerCallbacks() {
   if((fcb = new RemoteConnection()))           registerCallback(fcb);
 
 #ifdef NTOPNG_PRO
-  if((fcb = new DNSRepliesRequestsRatio()))    registerCallback(fcb);
   if((fcb = new ScoreHostCallback()))          registerCallback(fcb);
 #endif
   
