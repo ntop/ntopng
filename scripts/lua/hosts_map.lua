@@ -45,18 +45,18 @@ end
 
 -- register the bubble chart for the hosts map
 widget_gui_utils.register_bubble_chart(widget_name, 0, {
-					  Datasource(map_endpoint, {bubble_mode = bubble_mode})
+	Datasource(map_endpoint, {bubble_mode = bubble_mode})
 })
 
 template_utils.render("pages/hosts_map.template", {
-			 widget_gui_utils = widget_gui_utils,
-			 hosts_map = {
-			    select_options = table.concat(select_options, ''),
-			    bubble_mode = bubble_mode,
-			    current_label = current_label,
-			    widget_name = widget_name,
-			    map_endpoint = map_endpoint
-			 }
+	widget_gui_utils = widget_gui_utils,
+	hosts_map = {
+		select_options = table.concat(select_options, ''),
+		bubble_mode = bubble_mode,
+		current_label = current_label,
+		widget_name = widget_name,
+		map_endpoint = map_endpoint
+	}
 })
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -117,7 +117,7 @@ function widget_gui_utils.render_chart(widget_name, additional_params)
     local css_styles = additional_params.css_styles or {}
 
     if not (table.has_key(registered_widgets.charts, widget_name)) then
-        return ""
+        return string.format("Chart %s not found!", widget_name)
     end
 
     local widget = registered_widgets.charts[widget_name]
@@ -135,21 +135,6 @@ end
 
 function widget_gui_utils.datasource(name, params)
     return { endpoint = name .. build_query_params(params or {}), name = name, params = params }
-end
-
-function widget_gui_utils.render_table_picker(name, context, modals)
-    template_utils.render("pages/table_picker.template", {
-        ui_utils = ui_utils,
-        json = json,
-        template_utils = template_utils,
-        modals = modals or {},
-        datasource = context.datasource, -- the data provider
-        datatable = {
-            name = name, -- the table name
-            columns = context.table.columns, -- the columns to print inside the table
-            js_columns = context.table.js_columns, -- a custom javascript code to format the columns
-        }
-    })
 end
 
 return widget_gui_utils

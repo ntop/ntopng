@@ -29,10 +29,10 @@ local function shrinkTable(t, max_num)
    local n = 1
    local t2 = {}
    
-   for i,v in pairsByField(t, 'r', rev) do
+   for i,v in pairsByField(t, 'z', rev) do
       if(n < max_num) then
-	 t2[n] = v
-	 n = n + 1
+        t2[n] = v
+        n = n + 1
       end
    end
 
@@ -54,20 +54,24 @@ local function processHost(hostname, host)
 
     if (bubble_mode == HostsMapMode.ALL_FLOWS) then
         line = {
-            link = hostname,
-            label = label,
+            meta = {
+                url_query = "host="..hostname,
+                label = label,
+            },
             x = host["active_flows.as_server"],
             y = host["active_flows.as_client"],
-            r = host["bytes.sent"] + host["bytes.rcvd"]
+            z = host["bytes.sent"] + host["bytes.rcvd"]
         }
     elseif (bubble_mode == HostsMapMode.UNREACHABLE_FLOWS) then
         if (host["unreachable_flows.as_server"] + host["unreachable_flows.as_client"] > 0) then
             line = {
-                link = hostname,
-                label = label,
+                meta = {
+                    url_query = "host="..hostname,
+                    label = label,
+                },
                 x = host["unreachable_flows.as_server"],
                 y = host["unreachable_flows.as_client"],
-                r = host["bytes.sent"] + host["bytes.rcvd"]
+                z = host["bytes.sent"] + host["bytes.rcvd"]
             }
         end
     elseif (bubble_mode == HostsMapMode.ALERTED_FLOWS) then
@@ -75,12 +79,13 @@ local function processHost(hostname, host)
             (host["alerted_flows.as_client"] ~= nil) and
             (host["alerted_flows.as_server"] + host["alerted_flows.as_client"] > 0)) then
             line = {
-                link = hostname,
-                label = label,
+                meta = {
+                    url_query = "host="..hostname,
+                    label = label,
+                },
                 x = host["alerted_flows.as_server"],
                 y = host["alerted_flows.as_client"],
-                r = host["alerted_flows.as_server"] +
-                    host["alerted_flows.as_client"]
+                z = host["alerted_flows.as_server"] + host["alerted_flows.as_client"]
             }
             -- if(label == "74.125.20.109") then tprint(line) end
         end
@@ -91,92 +96,116 @@ local function processHost(hostname, host)
 
             local x = host["dns"]["rcvd"]["num_replies_ok"]
             local y = host["dns"]["sent"]["num_queries"]
-            line = {link = hostname, label = label, x = x, y = y, r = x + y}
+            line = {
+                meta = {
+                    url_query = "host="..hostname,
+                    label = label,
+                }, 
+                x = x, 
+                y = y, 
+                z = x + y
+            }
         end
     elseif (bubble_mode == HostsMapMode.SYN_DISTRIBUTION) then
 
         local stats = interface.getHostInfo(host["ip"], host["vlan"])
 
         line = {
-            link = hostname,
-            label = label,
+            meta = {
+                url_query = "host="..hostname,
+                label = label,
+            },
             x = stats["pktStats.sent"]["tcp_flags"]["syn"],
             y = stats["pktStats.recv"]["tcp_flags"]["syn"],
-            r = host["active_flows.as_client"] + host["active_flows.as_server"]
+            z = host["active_flows.as_client"] + host["active_flows.as_server"]
         }
     elseif (bubble_mode == HostsMapMode.SYN_VS_RST) then
         
         local stats = interface.getHostInfo(host["ip"], host["vlan"])
         line = {
-            link = hostname,
-            label = label,
+            meta = {
+                url_query = "host="..hostname,
+                label = label,
+            },
             x = stats["pktStats.sent"]["tcp_flags"]["syn"],
             y = stats["pktStats.recv"]["tcp_flags"]["rst"],
-            r = host["active_flows.as_client"] + host["active_flows.as_server"]
+            z = host["active_flows.as_client"] + host["active_flows.as_server"]
         }
     elseif (bubble_mode == HostsMapMode.SYN_VS_SYNACK) then
         
         local stats = interface.getHostInfo(host["ip"], host["vlan"])
         line = {
-            link = hostname,
-            label = label,
+            meta = {
+                url_query = "host="..hostname,
+                label = label,
+            },
             x = stats["pktStats.sent"]["tcp_flags"]["syn"],
             y = stats["pktStats.recv"]["tcp_flags"]["synack"],
-            r = host["active_flows.as_client"] + host["active_flows.as_server"]
+            z = host["active_flows.as_client"] + host["active_flows.as_server"]
         }
     elseif (bubble_mode == HostsMapMode.TCP_PKTS_SENT_VS_RCVD) then
         
         local stats = interface.getHostInfo(host["ip"], host["vlan"])
         line = {
-            link = hostname,
-            label = label,
+            meta = {
+                url_query = "host="..hostname,
+                label = label,
+            },
             x = stats["tcp.packets.sent"],
             y = stats["tcp.packets.rcvd"],
-            r = stats["tcp.bytes.sent"] + stats["tcp.bytes.rcvd"]
+            z = stats["tcp.bytes.sent"] + stats["tcp.bytes.rcvd"]
         }
     elseif (bubble_mode == HostsMapMode.TCP_BYTES_SENT_VS_RCVD) then
         
         local stats = interface.getHostInfo(host["ip"], host["vlan"])
 
         line = {
-            link = hostname,
-            label = label,
+            meta = {
+                url_query = "host="..hostname,
+                label = label,
+            },
             x = stats["tcp.bytes.sent"],
             y = stats["tcp.bytes.rcvd"],
-            r = stats["tcp.bytes.sent"] + stats["tcp.bytes.rcvd"]
+            z = stats["tcp.bytes.sent"] + stats["tcp.bytes.rcvd"]
         }
        
     elseif (bubble_mode == HostsMapMode.ACTIVE_ALERT_FLOWS) then
         
         if (host["active_alerted_flows"] > 0) then
             line = {
-                link = hostname,
-                label = label,
+                meta = {
+                    url_query = "host="..hostname,
+                    label = label,
+                },
                 x = host["active_flows.as_server"],
                 y = host["active_flows.as_client"],
-                r = host["active_alerted_flows"]
+                z = host["active_alerted_flows"]
             }
         end
     elseif (bubble_mode == HostsMapMode.TRAFFIC_RATIO) then
        line = {
-	  link = hostname,
-	  label = label,
-	  x = host["bytes_ratio"],
-	  y = host["pkts_ratio"],
-	  r = host["bytes.sent"] + host["bytes.rcvd"]
+            meta = {
+                url_query = "host="..hostname,
+                label = label,
+            },
+            x = host["bytes_ratio"],
+            y = host["pkts_ratio"],
+            z = host["bytes.sent"] + host["bytes.rcvd"]
        }
     elseif (bubble_mode == HostsMapMode.SCORE) then
        line = {
-	  link = hostname,
-	  label = label,
-	  x = host["score.as_client"],
-	  y = host["score.as_server"],
-	  r = host["score.as_client"] + host["score.as_server"]
+            meta = {
+                url_query = "host="..hostname,
+                label = label,
+            },
+            x = host["score.as_client"],
+            y = host["score.as_server"],
+            z = host["score.as_client"] + host["score.as_server"]
        }
     end
 
     if (line ~= nil) then        
-        if (line.r > max_radius) then max_radius = line.r end
+        if (line.z > max_radius) then max_radius = line.z end
 
         if (host.localhost) then
             table.insert(local_hosts, line)
@@ -200,37 +229,42 @@ remote_hosts = shrinkTable(remote_hosts, max_num)
 -- Normalize values
 local ratio = max_radius / MAX_RADIUS_PX
 for i,v in pairs(local_hosts) do 
-    local_hosts[i].r = math.floor(MIN_RADIUS_PX + local_hosts[i].r / ratio) 
+    local_hosts[i].z = math.floor(MIN_RADIUS_PX + local_hosts[i].z / ratio) 
 end
 
 if (show_remote) then
     for i,v in pairs(remote_hosts) do 
-        remote_hosts[i].r = math.floor(MIN_RADIUS_PX + remote_hosts[i].r / ratio) 
+        remote_hosts[i].z = math.floor(MIN_RADIUS_PX + remote_hosts[i].z / ratio) 
     end
 end
 
+local base_url = ntop.getHttpPrefix() .. "/lua/host_details.lua"
+
 rest_utils.answer(rc, {
-    data = {
-        datasets = {
-            {data = local_hosts, label = "Local Hosts", backgroundColor = 'rgba(153, 102, 255, 0.45)'},
-            {data = remote_hosts, label = "Remote Hosts", backgroundColor = 'rgba(255, 159, 64, 0.45)'},
+    series = {
+        {data = local_hosts, name = "Local Hosts", base_url = base_url},
+        {data = remote_hosts, name = "Remote Hosts", base_url = base_url},
+    },
+    colors = {"rgba(153, 102, 255, 0.45)", "rgba(255, 159, 64, 0.45)"},
+    xaxis = {
+        type = 'numeric',
+        title = {
+            text = MODES[bubble_mode + 1].x_label,
+        },
+        labels = {
+            ntop_utils_formatter = MODES[bubble_mode + 1].x_formatter or 'none',
         }
     },
-    options = {
-        scales = {
-            xAxes = {{
-                scaleLabel = {
-                    display = true,
-                    labelString = MODES[bubble_mode + 1].x_label
-                }
-            }},
-            yAxes = {{
-                scaleLabel = {
-                    display = true,
-                    labelString = MODES[bubble_mode + 1].y_label
-                }
-            }}
+    yaxis = {
+        type = 'numeric',
+        title = {
+            text = MODES[bubble_mode + 1].y_label,
+        },
+        labels = {
+            ntop_utils_formatter = MODES[bubble_mode + 1].y_formatter or 'none',
         }
     },
-    redirect_url = ntop.getHttpPrefix() .. "/lua/host_details.lua?host="
+    dataLabels = {
+        enabled = false
+    },
 })

@@ -4,13 +4,16 @@
 <script type="text/javascript" src="/js/Chart.bundle.min.js"></script>
 <script type='text/javascript' src='/js/widgets/widgets.js?{{ ntop.getStaticFileEpoch() }}'></script>
 
+<link rel="stylesheet" href='{{ ntop.getHttpPrefix() }}/css/apexcharts.css'/>
+<script type='text/javascript' src='{{ ntop.getHttpPrefix() }}/js/apexchart/apexcharts.min.js?{{ ntop.getStaticFileEpoch() }}'></script>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-body">
                 <div class='d-flex align-items-center justify-content-end mb-3'>
                     <label class="my-auto mr-1">
-                        {{ i18n("filter") }}:
+                        {{ i18n("filter_by") }}:
                     </label>
                     <select style="width: 16rem;" class="form-control" id="select-bubble-mode">
                         {* hosts_map.select_options *}
@@ -24,12 +27,12 @@
 <script type="text/javascript">
 $(document).ready(function() {
 
-    const widgetName = "{{ hosts_map.widget_name }}";
-    const widget = WidgetUtils.getWidgetByName(widgetName);
+    const WIDGET_NAME = "{{ hosts_map.widget_name }}";
+    const widget = WidgetUtils.getWidgetByName(WIDGET_NAME);
 
     $(`#select-bubble-mode`).on('change', async function() {
         const bubbleMode = $(this).val();
-        await widget.update({bubble_mode: bubbleMode});
+        await widget.destroyAndUpdate({bubble_mode: bubbleMode});
     });
 
 });

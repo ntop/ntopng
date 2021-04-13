@@ -5,6 +5,13 @@
 const DEFINED_WIDGETS = {};
 
 class WidgetUtils {
+
+    static registerWidget(widget) {
+        if (widget === null) throw new Error(`The passed widget reference is null!`);
+        if (widget.name in DEFINED_WIDGETS) throw new Error(`The widget ${widget.name} is already defined!`);
+        DEFINED_WIDGETS[widget.name] = widget;
+    }
+
     static getWidgetByName(widgetName) {
         if (widgetName in DEFINED_WIDGETS) {
             return DEFINED_WIDGETS[widgetName];
@@ -39,29 +46,25 @@ class Widget {
     async init() {
 
         // register the widget to the DEFINED_WIDGETS object
-        DEFINED_WIDGETS[this.name] = this;
+        WidgetUtils.registerWidget(this);
         this._fetchedData = await this._fetchData();
 
         if (this._updateTime > 0) {
-            setInterval(async () => {
-                await this.update(this._datasource.params);
-            }, this._updateTime);
+            setInterval(async () => { await this.update(this._datasource.params); }, this._updateTime);
         }
-
     }
 
     /**
      * Destroy the widget freeing the resources used.
      */
-    destroy() {}
+    async destroy() {}
 
     /**
      * Force the widget to reload it's data.
      */
-    async destroyAndUpdate(datasource = {}) {
-        this.destroy();
-        this._datasource = datasource;
-        this._fetchedData = await this._fetchData();
+    async destroyAndUpdate(datasourceParams = {}) {
+        await this.destroy();
+        await this.update(datasourceParams);
     }
 
     async update(datasourceParams = {}) {
@@ -93,58 +96,109 @@ class ChartWidget extends Widget {
         super(name, datasource, updateTime, additionalParams);
         
         this._chartType = type;
-        this._chart = null;
-        // the canvas context
-        this._ctx = document.getElementById(`canvas-widget-${this.name}`);
+        this._chart = {};
+        this._$htmlChart = document.querySelector(`#canvas-widget-${name}`);
     }
 
-    async _initializeChart() {
-        const {data, options} = await this._formatDataAndOptions();
-        this._chart = new Chart(this._ctx, { data: data, type: this._chartType, options: options });
+    _generateConfig() {
+        const config = {
+            series: [],
+            tooltip: {
+                x: {
+                    formatter: function(_, opt) {
+
+                        const config = opt.w.config;
+                        const {series} = config;
+                        const {dataPointIndex, seriesIndex} = opt;
+                        const data = series[seriesIndex].data[dataPointIndex];
+
+                        if (data.meta !== undefined)
+                            return data.meta.label || data.x;
+
+                        return data.x;
+                    }
+                },
+                z: {
+                    formatter: () => '',
+                    title: ''
+                }
+            },
+            chart: {
+                type: this._chartType,
+                events: {
+                    click: function(event, chartContext, config) {
+                        
+                        const {seriesIndex, dataPointIndex} = config;
+                        const {series} = config.config;
+
+                        if (seriesIndex === -1) return;
+                        if (series === undefined) return;
+                        
+                        const serie = series[seriesIndex];
+                        if (serie.base_url !== undefined) {
+                            const search = serie.data[dataPointIndex].meta.url_query;
+                            location.href = `${serie.base_url}?${search}`;
+                        }
+                    }
+                },
+                height: '100%',
+            },
+            xaxis: {
+                tooltip: {
+                    enabled: false
+                }
+            }
+        };
+        return config;
     }
 
-    async _formatDataAndOptions() {
+    _buildAxisFormatter(config, axisName) {
 
-        const data = {datasets: [], labels: []};
+        const axis = config[axisName];
 
-        // dynamically import the standard configuration for the chart
-        const loadedConfig = await this._loadConfiguration();
-        const {dataset, options} = loadedConfig.default;
+        // enable formatters
+        if (axis.labels.ntop_utils_formatter !== undefined && axis.labels.ntop_utils_formatter !== 'none') {
 
-        const response = this._fetchedData.rsp;
+            const selectedFormatter = axis.labels.ntop_utils_formatter;
 
-        let optionsToLoad = options || {};
-        if (response.options !== undefined) {
-            optionsToLoad = Object.assign(response.options, options);
-        }
-
-        response.data.datasets.forEach(d => {
-            d.baseUrl = response.redirect_url; 
-            data.datasets.push(Object.assign(d, dataset))
-        })
-
-        // add labels
-        if (response.data.labels !== undefined) {
-            data.labels = response.data.labels;
-        }
-
-        return {data: data, options: optionsToLoad};
-    }
-
-    /**
-     * Try to load the default configuration for the chart.
-     */
-    async _loadConfiguration() {
-        try {
-            return await import(`./configs/${this._configToLoad}`);
-        }
-        catch (e) {
-            return {default: {dataset: {}, options: {}}};
+            if (NtopUtils[selectedFormatter] === undefined) {
+                console.error(`xaxis: Formatting function '${selectedFormatter}' didn't found inside NtopUtils.`);
+            }
+            else {
+                axis.labels.formatter = NtopUtils[selectedFormatter];
+            }
         }
     }
 
-    get _configToLoad() {
-        return this._additionalParams.config || `${this._chartType}.js`;
+    _buildConfig() {
+
+        const config = this._generateConfig();
+        const rsp = this._fetchedData.rsp;
+
+        // add additional params fetched from the datasource
+        const additionals = ['series', 'xaxis', 'yaxis', 'colors', 'dataLabels'];
+        for (const additional of additionals) {
+            
+            if (rsp[additional] === undefined) continue;
+
+            if (config[additional] !== undefined) {
+                config[additional] = Object.assign(config[additional], rsp[additional]);
+            }
+            else {
+                config[additional] = rsp[additional];
+            }
+        }
+
+        this._buildAxisFormatter(config, 'xaxis');
+        this._buildAxisFormatter(config, 'yaxis');
+
+        return config;
+    }
+
+    _initializeChart() {
+        const config = this._buildConfig();
+        this._chart = new ApexCharts(this._$htmlChart, config);
+        this._chart.render();
     }
 
     async init() {
@@ -152,20 +206,19 @@ class ChartWidget extends Widget {
         this._initializeChart();
     }
 
-    destroy() {
+    async destroy() {
+        await super.destroy();
         this._chart.destroy();
+        this._chart = null;
     }
 
     async update(datasourceParams = {}) {
         await super.update(datasourceParams);
-
-        const response = this._fetchedData.rsp;
-        const {data} = await this._formatDataAndOptions();
-
-        this._chart.data.labels = response.data.labels;
-        this._chart.data = data;
-
-        this._chart.update();
+        if (this._chart != null) {
+            // expecting that rsp contains an object called series
+            const {series} = this._fetchedData.rsp;
+            this._chart.updateSeries(series);
+        }
     }
 
     async destroyAndUpdate(datasource = {}) {

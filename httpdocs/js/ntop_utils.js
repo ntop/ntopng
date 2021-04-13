@@ -194,14 +194,13 @@ class NtopUtils {
 
 		if (i <= 1) {
 			return Math.round(bits / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i]
-		} else {
+		} 
+		else {
 			var ret = parseFloat(bits / Math.pow(1000, i)).toFixed(2)
 			if (ret % 1 == 0)
 				ret = Math.round(ret)
 			return ret + ' ' + sizes[i]
 		}
-		//    console.log('bits:' + bits+ ' ' + parseFloat(bits / Math.pow(1000, i)))
-		//    return Math.round(bits / Math.pow(1000, i), 2) + ' ' + sizes[i];
 	}
 
 	static export_rate(eps) {
@@ -362,6 +361,11 @@ class NtopUtils {
 		if (str.length < len)
 			return str;
 		return str.substring(0, len) + "...";
+	}
+
+	static toFixed2(num) {
+		if (!num) return "";
+		return num.toFixed(2);
 	}
 
 	// Convert bytes to human readable format

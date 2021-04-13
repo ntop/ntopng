@@ -65,7 +65,9 @@ hosts_map_utils.MODES = {
         mode = hosts_map_utils.HostsMapMode.TCP_BYTES_SENT_VS_RCVD,
         label   = i18n("hosts_map_page.tcp_bytes_sent_vs_rcvd"),
         x_label = i18n("hosts_map_page.labels.tcp_b_s"),
-        y_label = i18n("hosts_map_page.labels.tcp_b_r")
+        y_label = i18n("hosts_map_page.labels.tcp_b_r"),
+        x_formatter = "bytesToSize",
+        y_formatter = "bytesToSize",
     }, {
         mode = hosts_map_utils.HostsMapMode.ACTIVE_ALERT_FLOWS,
         label   = i18n("hosts_map_page.active_alert_flows"),
@@ -75,7 +77,8 @@ hosts_map_utils.MODES = {
         mode = hosts_map_utils.HostsMapMode.TRAFFIC_RATIO,
         label   = i18n("hosts_map_page.traffic_ratio"),
         x_label = i18n("hosts_map_page.labels.b_ratio"),
-        y_label = i18n("hosts_map_page.labels.p_ratio")
+        y_label = i18n("hosts_map_page.labels.p_ratio"),
+        y_formatter = "toFixed2"
     }, {
         mode = hosts_map_utils.HostsMapMode.SCORE,
         label   = i18n("hosts_map_page.score"),

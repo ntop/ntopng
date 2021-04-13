@@ -102,4 +102,19 @@ function ui_utils.print_toggle_switch(context)
     print(template_utils.gen("on_off_switch.html", context))
 end
 
+function ui_utils.render_table_picker(name, context, modals)
+    template_utils.render("pages/table_picker.template", {
+        ui_utils = ui_utils,
+        json = json,
+        template_utils = template_utils,
+        modals = modals or {},
+        datasource = context.datasource, -- the data provider
+        datatable = {
+            name = name, -- the table name
+            columns = context.table.columns, -- the columns to print inside the table
+            js_columns = context.table.js_columns, -- a custom javascript code to format the columns
+        }
+    })
+end
+
 return ui_utils
