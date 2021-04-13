@@ -252,10 +252,6 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local host = interface.getHostInfo(hosts_stats[key].ip, hosts_stats[key].vlan)
 
-   if((host ~= nil) and (host.country ~= nil) and (host.country ~= "")) then
-      column_ip = column_ip .."&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a> "
-   end
-
    local icon = discover.getOsIcon(value["os"])
    if(host ~= nil) then
       icon = icon .." ".. discover.devtype2icon(host.devtype)

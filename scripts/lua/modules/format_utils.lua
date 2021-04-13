@@ -346,7 +346,7 @@ end
 function format_utils.formatAddressCategory(host)
    local addr_category = ""
 
-   if host ~= nil then 
+   if host ~= nil then      
       if(host["is_blacklisted"] == true) then
          addr_category = addr_category .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
       end
@@ -375,6 +375,10 @@ function format_utils.formatAddressCategory(host)
 
       if(host["dhcpHost"] == true) then
          addr_category = addr_category .. ' <i class=\"fas fa-bolt\" title=\"'..i18n("details.label_dhcp")..'\"></i>'
+      end
+
+      if(host["country"]) then
+	 addr_category = addr_category .. " <a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a>"
       end
    end
 
