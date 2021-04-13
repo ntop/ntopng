@@ -23,7 +23,7 @@ local host_alert_score = classes.class(alert)
 
 host_alert_score.meta = {
   alert_key = host_alert_keys.host_alert_score,
-  i18n_title = "alerts_dashboard.score_threshold_cross",
+  i18n_title = "alerts_dashboard.threashold_cross",
   icon = "fas fa-arrow-circle-up",
 }
 
@@ -52,16 +52,13 @@ end
 function host_alert_score.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatAlertEntity(ifid, alert_consts.alertEntityRaw(alert["alert_entity"]), alert["alert_entity_val"])
-  local engine_label = alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["alert_granularity"])))
 
-  tprint(alert)
-  tprint(alert_consts.alertEngineLabel(alert_consts.alertEngine(alert_consts.sec2granularity(alert["alert_granularity"]))))
   return i18n("alert_messages.host_alert_score", {
     entity = entity,
     host_category = format_utils.formatAddressCategory((json.decode(alert.alert_json)).alert_generation.host_info),
     value = string.format("%u", math.ceil(alert_type_params.value)),
     op = "&".. (alert_type_params.operator or "gt") ..";",
-    threshold = alert_type_params.threshold,
+    threshold = alert_type_params.threshold,		 
   })
 end
 

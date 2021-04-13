@@ -382,13 +382,17 @@ function user_scripts.getSubdirectoryPath(script_type, subdir, is_pro)
   local prefix = plugins_utils.getRuntimePath() .. "/callbacks"
   local path
 
-  if not isEmptyString(subdir) and subdir ~= "." then
+  if subdir == "host" then
+     path = string.format("%s/scripts/lua/modules/callback_definitions/%s", dirs.installdir, subdir)
+  elseif not isEmptyString(subdir) and subdir ~= "." then
     path = string.format("%s/%s/%s", prefix, script_type.parent_dir, subdir)
   else
     path = string.format("%s/%s", prefix, script_type.parent_dir)
   end
 
-  return os_utils.fixPath(path)
+  local res = os_utils.fixPath(path)
+
+  return res
 end
 
 -- ##############################################
@@ -603,7 +607,11 @@ local function loadAndCheckScriptTemplate(user_script, user_script_template)
    end
 
    -- First, try and load the template straight from the plugin templates
-   local template_require = plugins_utils.loadTemplate(user_script.plugin.key, user_script_template)
+   local template_require
+
+   if user_script.plugin then
+      template_require = plugins_utils.loadTemplate(user_script.plugin.key, user_script_template)
+   end
 
    -- Then, if no template is found inside the plugin, try and load the template from the ntopng templates
    -- in modules that can be shared across multiple plugins
@@ -634,9 +642,13 @@ local function init_user_script(user_script, mod_fname, full_path, plugin, scrip
    user_script.source_path = plugins_utils.getUserScriptSourcePath(user_script.path)
    user_script.plugin = plugin
    user_script.script_type = script_type
-   user_script.edition = plugin.edition
+   user_script.edition = plugin and plugin.edition
    user_script.category = checkCategory(user_script.category)
    user_script.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
+
+   if subdir == "host" then
+      user_script.hooks = {min = true}
+   end
 
    if user_script.gui then
       user_script.template = loadAndCheckScriptTemplate(user_script, user_script.gui.input_builder)
@@ -677,10 +689,12 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
    local setup_ok = true
 
    -- Recheck the edition as the demo mode may expire
-   if((plugin.edition == "pro" and (not ntop.isPro())) or
-      ((plugin.edition == "enterprise" and (not ntop.isEnterpriseM())))) then
-      traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, plugin.edition))
-      return(nil)
+   if plugin then
+      if((plugin.edition == "pro" and (not ntop.isPro())) or
+	 ((plugin.edition == "enterprise" and (not ntop.isEnterpriseM())))) then
+	 traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Skipping user script '%s' with '%s' edition", mod_fname, plugin.edition))
+	 return(nil)
+      end
    end
 
    traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
@@ -705,7 +719,7 @@ local function loadAndCheckScript(mod_fname, full_path, plugin, script_type, sub
       return(nil)
    end
 
-   if(subdir ~= "flow" and table.empty(user_script.hooks)) then
+   if(subdir ~= "flow" and subdir ~= "host" and table.empty(user_script.hooks)) then
       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("No 'hooks' defined in user script '%s', skipping", mod_fname))
       return(nil)
    end
@@ -803,7 +817,7 @@ function user_scripts.load(ifid, script_type, subdir, options)
 	    local full_path = os_utils.fixPath(checks_dir .. "/" .. fname)
 	    local plugin = plugins_utils.getUserScriptPlugin(full_path)
 
-	    if(plugin == nil) then
+	    if(plugin == nil) and subdir ~= "host" --[[ TODO: remove check when migration done --]] then
 	       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Skipping unknown user script '%s'", mod_fname))
 	       goto next_module
 	    end
@@ -860,10 +874,10 @@ function user_scripts.loadModule(ifid, script_type, subdir, mod_fname)
       local full_path = os_utils.fixPath(checks_dir .. "/" .. mod_fname .. ".lua")
       local plugin = plugins_utils.getUserScriptPlugin(full_path)
 
-      if(ntop.exists(full_path) and (plugin ~= nil)) then
+      if ntop.exists(full_path) then
 	 local user_script = loadAndCheckScript(mod_fname, full_path, plugin, script_type, subdir)
 
-	 return(user_script)
+	 return user_script
       end
    end
 

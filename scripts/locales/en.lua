@@ -503,6 +503,7 @@ local lang = {
     ["flow_flood_attacker"] = "%{entity}%{host_category} is a flow flooder [%{value} &gt; %{threshold} client flows/sec for ~3 sec]",
     ["flow_flood_victim"] = "%{entity}%{host_category} is under flow flood attack [%{value} &gt; %{threshold} server flows/sec for ~3 sec]",
     ["flow_number_anomaly"] = "Detected %{role} flow number anomaly for host %{host}",
+    ["host_alert_score"] = "Score exceeded by %{entity}%{host_category} [%{value} %{op} %{threshold}]",
     ["host_alert_dns_server_contacts"] = "Too many DNS servers contacted by %{entity}%{host_category} [%{value} &gt; %{threshold} servers]",
     ["host_alert_dns_traffic"] = "DNS traffic exceeded by %{entity}%{host_category} [%{value} %{op} %{threshold}]",
     ["host_alert_score"] = "Score exceeded by %{entity}%{host_category} [%{value} %{op} %{threshold}]",
