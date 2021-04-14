@@ -90,7 +90,8 @@ end
 -- @param device_ip the SNMP device IP address
 -- @param info information about the device and its interfaces.
 function script.hooks.snmpDevice(device_ip, info)
-  --tprint(info)
+  local device_name = snmp_utils.get_snmp_device_sysname(device_ip)
+
   print("SNMP:snmpDevice hook called: " .. device_ip)
 
   local alert_info = {
@@ -99,6 +100,7 @@ function script.hooks.snmpDevice(device_ip, info)
      alert_granularity = info.granularity,
      alert_type_params = {
 	device = device_ip,
+	device_name = device_name,
      },
   }
 
@@ -115,11 +117,13 @@ end
 
 -- An hook executed at every poll of the SNMP device, for each interface.
 -- @param device_ip the SNMP device IP address
+-- @param device_name the SNMP device name
 -- @param if_index numeric index of the interface
 -- @param info information about the interface
 -- @notes Check out skip_virtual_interfaces
 function script.hooks.snmpDeviceInterface(device_ip, if_index, info)
-  --tprint(info)
+  local device_name = snmp_utils.get_snmp_device_sysname(device_ip)
+
   print("SNMP:snmpDeviceInterface hook called: " .. device_ip .. "@" .. if_index)
 
   alerts_api.store(info.alert_entity, {
@@ -127,6 +131,7 @@ function script.hooks.snmpDeviceInterface(device_ip, if_index, info)
      alert_severity = alert_severities.warning,
      alert_type_params = {
 	device = device_ip,
+	device_name = device_name,
 	interface = if_index,
 	interface_name = info["name"],
      },

@@ -26,18 +26,20 @@ alert_port_mac_changed.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @param device_ip A string with the ip address of the snmp device
+-- @param device_name The device name
 -- @param if_index The index of the port that changed
 -- @param interface_name The string with the name of the port that changed
 -- @param mac The string with the mac address that changed port
 -- @param prev_seen_device A string with the ip address of the previous snmp device
 -- @param prev_seen_port The index of the previous port
 -- @return A table with the alert built
-function alert_port_mac_changed:init(device_ip, if_index, interface_name, mac, prev_seen_device, prev_seen_port)
+function alert_port_mac_changed:init(device_ip, device_name, if_index, interface_name, mac, prev_seen_device, prev_seen_port)
    -- Call the parent constructor
    self.super:init()
 
    self.alert_type_params = {
       device = device_ip,
+      device_name = device_name,
       interface = if_index,
       interface_name = interface_name,
       mac = mac,
