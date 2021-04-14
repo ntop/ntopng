@@ -441,7 +441,9 @@ void usage() {
 #endif
 #endif
 	 "[--version|-V]                      | Print version and license information, then quit\n"
+#ifdef NTOPNG_PRO
 	 "[--version-json]                    | Print version and license information in JSON format, then quit\n"
+#endif
 	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
 	 "[--print-ndpi-protocols]            | Print the nDPI protocols list\n"
 #ifndef HAVE_NEDGE
@@ -801,7 +803,9 @@ static const struct option long_options[] = {
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
   { "pcap-dir",                          required_argument, NULL, '5' },
+#ifdef NTOPNG_PRO
   { "version-json",                      no_argument,       NULL, 205 },
+#endif
   { "test-script-pre",                   required_argument, NULL, 206 },
   { "pcap-file-purge-flows",             no_argument,       NULL, 207 },
   { "original-speed",                    no_argument,       NULL, 208 },
@@ -1593,6 +1597,7 @@ int Prefs::checkOptions() {
 
     exit(0);
   } else if(print_version_json) {
+#ifdef NTOPNG_PRO
     time_t license_until = (time_t)-1, maintenance_until = (time_t)-1;
     char outbuf[256], edition[64];
     
@@ -1614,7 +1619,7 @@ int Prefs::checkOptions() {
 #endif
       );
 
-#ifdef NTOPNG_PRO
+
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->init_license();
@@ -1623,22 +1628,18 @@ int Prefs::checkOptions() {
       license_until = (time_t)-1;
     
     maintenance_until = ntop->getPro()->maintenance_ends_at();
-#endif
     
     printf("%s\n",
 	   getLicenseJSON((char*)PACKAGE_VERSION,
 			  (char*)PACKAGE_OS,
 			  edition,
-#ifdef NTOPNG_PRO			  
 			  (char*)ntop->getPro()->get_system_id(),
-#else
-			  (char*)"",
-#endif
 			  license_until,
 			  maintenance_until,
 			  outbuf, sizeof(outbuf)));
 
     exit(0);
+#endif
   }
 
   if(install_dir)
