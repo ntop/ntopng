@@ -25,9 +25,10 @@
 #include "ntop_includes.h"
 
 class ServerContacts : public HostCallback {
-private:
-  static const u_int64_t contacts_threshold = 5;
+protected:
+  u_int64_t contacts_threshold;
 
+private:
   /* Methods that must be overridden by subclasses to fetch subclass alert type and subclass valute to be checked against the threshold */
   virtual u_int32_t getContactedServers(Host *h) const = 0;
   virtual HostAlertType getAlertType() const = 0;

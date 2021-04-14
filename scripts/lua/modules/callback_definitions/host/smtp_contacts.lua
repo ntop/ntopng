@@ -14,12 +14,19 @@ local smtp_contacts = {
   default_enabled = false,
 
   default_value = {
-    severity = alert_severities.error,
+     operator = "gt",
+     threshold = 5,
+     severity = alert_severities.error,
   },
 
   gui = {
     i18n_title = "alerts_thresholds_config.smtp_contacts_title",
     i18n_description = "alerts_thresholds_config.smtp_contacts_description",
+    i18n_field_unit = user_scripts.field_units.contacts,
+    input_builder = "threshold_cross",
+    field_max = 65535,
+    field_min = 1,
+    field_operator = "gt";
   }
 }
 
