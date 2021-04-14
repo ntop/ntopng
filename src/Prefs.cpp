@@ -1597,7 +1597,7 @@ int Prefs::checkOptions() {
 
     exit(0);
   } else if(print_version_json) {
-#ifdef NTOPNG_PRO
+#if defined(NTOPNG_PRO) && (!defined(FORCE_VALID_LICENSE))
     time_t license_until = (time_t)-1, maintenance_until = (time_t)-1;
     char outbuf[256], edition[64];
     
