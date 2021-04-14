@@ -21,6 +21,16 @@
 
 #include "ntop_includes.h"
 
+#ifdef NTOPNG_PRO
+extern "C" {
+#ifdef WIN32
+#include "license.h"
+#else
+#include "../../license/license.h"
+#endif
+}
+#endif
+
 /* ******************************************* */
 
 Prefs::Prefs(Ntop *_ntop) {
@@ -116,7 +126,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #ifdef NTOPNG_PRO
   print_maintenance = print_license = false;
 #endif
-  print_version = false;
+  print_version = print_version_json = false;
 
   if(!(ifNames = (InterfaceInfo*)calloc(UNLIMITED_NUM_INTERFACES, sizeof(InterfaceInfo)))
      || !(deferred_interfaces_to_register = (char**)calloc(UNLIMITED_NUM_INTERFACES, sizeof(char*))))
@@ -431,6 +441,7 @@ void usage() {
 #endif
 #endif
 	 "[--version|-V]                      | Print version and license information, then quit\n"
+	 "[--version-json]                    | Print version and license information in JSON format, then quit\n"
 	 "[--verbose|-v] <level>              | Verbose tracing [0 (min).. 6 (debug)]\n"
 	 "[--print-ndpi-protocols]            | Print the nDPI protocols list\n"
 #ifndef HAVE_NEDGE
@@ -790,6 +801,7 @@ static const struct option long_options[] = {
   { "callbacks-dir",                     required_argument, NULL, '3' },
   { "prefs-dir",                         required_argument, NULL, '4' },
   { "pcap-dir",                          required_argument, NULL, '5' },
+  { "version-json",                      no_argument,       NULL, 205 },
   { "test-script-pre",                   required_argument, NULL, 206 },
   { "pcap-file-purge-flows",             no_argument,       NULL, 207 },
   { "original-speed",                    no_argument,       NULL, 208 },
@@ -1254,7 +1266,7 @@ int Prefs::setOption(int optkey, char *optarg) {
           dump_json_flows_on_disk = dump_ext_json = true;
         else if(strncmp(&nindex_opt[1], "load", 4) == 0)
           load_json_flows_from_disk_to_nindex = true;
-        else if (strncmp(&nindex_opt[1], "debug", 5) == 0)
+        else if(strncmp(&nindex_opt[1], "debug", 5) == 0)
           dump_ext_json = true;
       }
       dump_flows_on_nindex = true;      
@@ -1337,13 +1349,13 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 	/* Check for non-default SQL port on -F line */
 	char* mysql_port_str;
-	if ((mysql_port_str = strchr(mysql_host, '@'))) {
+	if((mysql_port_str = strchr(mysql_host, '@'))) {
 	  *(mysql_port_str++) = '\0';
 
 	  errno = 0;
 	  long l = strtol(mysql_port_str, NULL, 10);
 
-	  if (errno || !l)
+	  if(errno || !l)
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid mysql port, using default port %d [%s]",
 					 CONST_DEFAULT_MYSQL_PORT,
 					 strerror(errno));
@@ -1358,12 +1370,16 @@ int Prefs::setOption(int optkey, char *optarg) {
     }
 #ifndef WIN32
     else if(!strncmp(optarg, "syslog", strlen("syslog"))) {
-      dump_flows_on_syslog = true;
       char *flows_syslog_facility_text;
-      if (strchr(optarg, ';') != NULL) {
+
+      dump_flows_on_syslog = true;
+      if(strchr(optarg, ';') != NULL) {
+	int syslog_facility_value;
+	
         optarg = Utils::tokenizer(strchr(optarg, ';') + 1, ';', &flows_syslog_facility_text);
-        int syslog_facility_value = Utils::mapSyslogFacilityTextToValue(flows_syslog_facility_text);
-        if (syslog_facility_value != -1) {
+	syslog_facility_value = Utils::mapSyslogFacilityTextToValue(flows_syslog_facility_text);
+
+        if(syslog_facility_value != -1) {
           flows_syslog_facility = syslog_facility_value;
           ntop->getTrace()->traceEvent(TRACE_DEBUG, "Syslog facility for dumping flows is set to %s (%d)",
                   flows_syslog_facility_text, flows_syslog_facility);
@@ -1392,6 +1408,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'V':
     print_version = true;
+    break;
+
+  case 205:
+    print_version_json = true;
     break;
 
   case 'X':
@@ -1533,7 +1553,7 @@ int Prefs::checkOptions() {
   }
 #endif
 
-  if (print_version) {
+  if(print_version) {
 #ifdef NTOPNG_PRO
     char buf[128];
 #endif
@@ -1544,6 +1564,7 @@ int Prefs::checkOptions() {
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
     ntop->getPro()->init_license();
+    
     printf("Edition:\t%s\n",      ntop->getPro()->get_edition());
     printf("License Type:\t%s\n", ntop->getPro()->get_license_type(buf, sizeof(buf)));
 
@@ -1558,9 +1579,10 @@ int Prefs::checkOptions() {
       for (i = 0; i < len; i += 69) {
         char buff[70];
         int clen = min((size_t) 69, strlen(&enc_license[i]));
-        memcpy(buff, &enc_license[i], clen);
+
+	memcpy(buff, &enc_license[i], clen);
         buff[clen] = '\0';
-        if (i == 0) printf("License:\t%s\n", buff);
+        if(i == 0) printf("License:\t%s\n", buff);
         else        printf("        \t%s\n", buff);
       }
     }
@@ -1568,6 +1590,53 @@ int Prefs::checkOptions() {
     if(ntop->getPro()->get_license()[0] != '\0')
       printf("License Hash:\t%s\n",      ntop->getPro()->get_license());
 #endif
+
+    exit(0);
+  } else if(print_version_json) {
+    time_t license_until = (time_t)-1, maintenance_until = (time_t)-1;
+    char outbuf[256], edition[64];
+    
+    snprintf(edition, sizeof(edition), "%s%s",
+#ifndef HAVE_NEDGE
+#ifdef NTOPNG_PRO
+	     "Enterprise/Professional"
+#else
+	     "Community"
+#endif
+#else
+	     "Edge"
+#endif
+	     ,
+#ifdef NTOPNG_EMBEDDED_EDITION
+	     "/Embedded"
+#else
+	     ""
+#endif
+      );
+
+#ifdef NTOPNG_PRO
+    ntop->getTrace()->set_trace_level((u_int8_t)0);
+    ntop->registerPrefs(this, true);
+    ntop->getPro()->init_license();
+    
+    if((license_until = ntop->getPro()->demo_ends_at()) == 0)
+      license_until = (time_t)-1;
+    
+    maintenance_until = ntop->getPro()->maintenance_ends_at();
+#endif
+    
+    printf("%s\n",
+	   getLicenseJSON((char*)PACKAGE_VERSION,
+			  (char*)PACKAGE_OS,
+			  edition,
+#ifdef NTOPNG_PRO			  
+			  (char*)ntop->getPro()->get_system_id(),
+#else
+			  (char*)"",
+#endif
+			  license_until,
+			  maintenance_until,
+			  outbuf, sizeof(outbuf)));
 
     exit(0);
   }
@@ -1601,7 +1670,7 @@ int Prefs::checkOptions() {
   if(https_binding_address1 == NULL) https_binding_address1 = strdup(CONST_ANY_ADDRESS);
   if(https_binding_address2 == NULL) https_binding_address2 = strdup(CONST_ANY_ADDRESS);
 
-  if (strcmp(ntop->get_working_dir(), CONST_OLD_DEFAULT_DATA_DIR) == 0 && !is_user_set()) {
+  if(strcmp(ntop->get_working_dir(), CONST_OLD_DEFAULT_DATA_DIR) == 0 && !is_user_set()) {
     /* Using the old /var/tmp/ntopng with the default user:
      * keep using 'nobody' to preserve backward compaitibility */
     set_user(CONST_OLD_DEFAULT_NTOP_USER);

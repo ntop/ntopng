@@ -147,7 +147,7 @@ class Prefs {
 #ifdef NTOPNG_PRO
   bool print_maintenance, print_license;
 #endif
-  bool print_version;
+  bool print_version, print_version_json;
 
   inline void help()      { usage();     }
   inline void nDPIhelp()  { nDPIusage(); }
