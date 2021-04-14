@@ -61,7 +61,13 @@ function host_alert_score_anomaly.format(ifid, alert, alert_type_params)
      role = "server"
   end
 
-  return i18n("alert_messages.score_number_anomaly", { role = role, host = host })
+  return i18n("alert_messages.score_number_anomaly", {
+		 role = role,
+		 host = host,
+		 score = alert_type_params["value"],
+		 lower_bound = alert_type_params["lower_bound"],
+		 upper_bound = alert_type_params["upper_bound"],
+  })
 end
 
 -- #######################################################

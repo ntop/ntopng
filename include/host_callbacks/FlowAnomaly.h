@@ -31,8 +31,8 @@ public:
   FlowAnomaly();
   ~FlowAnomaly() {};
 
-  FlowAnomalyAlert *allocAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool is_client_alert) {
-    return new FlowAnomalyAlert(c, h, severity, cli_score, srv_score, is_client_alert);
+  FlowAnomalyAlert *allocAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool is_client_alert, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound) {
+    return new FlowAnomalyAlert(c, h, severity, cli_score, srv_score, is_client_alert, _value, _lower_bound, _upper_bound);
   };
 
   bool loadConfiguration(json_object *config);

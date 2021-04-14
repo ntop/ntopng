@@ -27,19 +27,28 @@
 class ScoreAnomalyAlert : public HostAlert {
  private:
   bool is_client_alert;
-
+  u_int32_t value, lower_bound, upper_bound;
+  
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer) {
     if(serializer == NULL)
       return NULL;
     
     ndpi_serialize_string_boolean(serializer, "is_client_alert", is_client_alert);
-    
+    ndpi_serialize_string_uint64(serializer, "value", value);
+    ndpi_serialize_string_uint64(serializer, "lower_bound", lower_bound);
+    ndpi_serialize_string_uint64(serializer, "upper_bound", upper_bound);
+
     return(serializer);
   }
 
  public:
-  ScoreAnomalyAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool _is_client_alert)
-    : HostAlert(c, h, severity, cli_score, srv_score) { is_client_alert = _is_client_alert; }
+ ScoreAnomalyAlert(HostCallback *c, Host *h, AlertLevel severity, u_int8_t cli_score, u_int8_t srv_score, bool _is_client_alert, u_int32_t _value, u_int32_t _lower_bound, u_int32_t _upper_bound)
+    : HostAlert(c, h, severity, cli_score, srv_score) {
+    is_client_alert = _is_client_alert;
+    value = _value;
+    lower_bound = _lower_bound;
+    upper_bound = _upper_bound;
+  }
   ~ScoreAnomalyAlert() {};
 
   static HostAlertType getClassType() { return { host_alert_score_anomaly, alert_category_security }; }

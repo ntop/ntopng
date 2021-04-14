@@ -61,7 +61,13 @@ function host_alert_flow_anomaly.format(ifid, alert, alert_type_params)
      role = "server"
   end
 
-  return i18n("alert_messages.flow_number_anomaly", { role = role, host = host })
+  return i18n("alert_messages.flow_number_anomaly", {
+		 role = role,
+		 host = host,
+		 value = alert_type_params["value"],
+		 lower_bound = alert_type_params["lower_bound"],
+		 upper_bound = alert_type_params["upper_bound"],
+  })
 end
 
 -- #######################################################

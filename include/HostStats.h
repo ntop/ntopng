@@ -164,7 +164,14 @@ class HostStats: public GenericTrafficElement {
   virtual void incSMTPContactCardinality(Host *h) { ; }
 
   inline bool has_flows_anomaly(bool as_client) { return(as_client ? client_flows_anomaly : server_flows_anomaly); }
+  inline u_int32_t value_flows_anomaly(bool as_client) { return(as_client ? active_flows_cli.getLastValue() : active_flows_srv.getLastValue()); }
+  inline u_int32_t lower_bound_flows_anomaly(bool as_client) { return(as_client ? active_flows_cli.getLastLowerBound() : active_flows_srv.getLastLowerBound()); }
+  inline u_int32_t upper_bound_flows_anomaly(bool as_client) { return(as_client ? active_flows_cli.getLastUpperBound() : active_flows_srv.getLastUpperBound()); }
+
   inline bool has_score_anomaly(bool as_client) { return(as_client ? client_score_anomaly : server_score_anomaly); }
+  inline u_int32_t value_score_anomaly(bool as_client) { return(as_client ? score_cli.getLastValue() : score_srv.getLastValue()); }
+  inline u_int32_t lower_bound_score_anomaly(bool as_client) { return(as_client ? score_cli.getLastLowerBound() : score_srv.getLastLowerBound()); }
+  inline u_int32_t upper_bound_score_anomaly(bool as_client) { return(as_client ? score_cli.getLastUpperBound() : score_srv.getLastUpperBound()); }
 };
 
 #endif
