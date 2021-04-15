@@ -176,14 +176,14 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
 
 /* *************************************** */
 
-void LocalHostStats::resetTrafficStats() {
 #if defined(NTOPNG_PRO)
+void LocalHostStats::resetTrafficStats() {
   traffic_stats.ntp_traffic_sent = 0;
   traffic_stats.dns_traffic_sent = 0;
   traffic_stats.ntp_traffic_rcvd = 0;
   traffic_stats.dns_traffic_rcvd = 0;
-#endif
 }
+#endif
   
 /* *************************************** */
 
