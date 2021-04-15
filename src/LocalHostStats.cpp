@@ -33,8 +33,14 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */ );
 
   nextPeriodicUpdate = 0;
+  nextHourlyPeriodicUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
   current_cycle = 0;
+  
+#if defined(NTOPNG_PRO)
+  traffic_stats.ntp_traffic_sent = traffic_stats.dns_traffic_sent = traffic_stats.ntp_traffic_rcvd = traffic_stats.dns_traffic_rcvd = 0;
+  traffic_stats.ip = host->get_ip();
+#endif
   
   num_contacted_hosts_as_client.init(8);       /* 128 bytes */
   num_host_contacts_as_server.init(8);         /* 128 bytes */
@@ -64,8 +70,12 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   http = NULL;
   icmp = NULL;
   nextPeriodicUpdate = 0;
+  nextHourlyPeriodicUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = 0;
-
+#if defined(NTOPNG_PRO)
+  traffic_stats.ntp_traffic_sent = traffic_stats.dns_traffic_sent = traffic_stats.ntp_traffic_rcvd = traffic_stats.dns_traffic_rcvd = 0;
+  traffic_stats.ip = host->get_ip();
+#endif
   /* hll init, 8 bits -> 256 bytes per LocalHost */
   if(ndpi_hll_init(&hll_contacted_hosts, 8))
     throw "Failed HLL initialization";
@@ -86,6 +96,9 @@ LocalHostStats::~LocalHostStats() {
   if(icmp)                delete icmp;
   if(peers)               delete(peers);
 
+#if defined(NTOPNG_PRO)
+  iface->updateCheckTrafficMap(host->get_ip(), host->getMac(), host->get_vlan_id(), traffic_stats);
+#endif
   ndpi_hll_destroy(&hll_contacted_hosts);
 }
 
@@ -129,6 +142,7 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
   if(icmp) icmp->updateStats(tv);
   if(http) http->updateStats(tv);
 
+  /* 5 Min Update */
   if(tv->tv_sec >= nextPeriodicUpdate) {
     /* hll visited sites update */
     updateContactedHostsBehaviour();
@@ -149,8 +163,28 @@ void LocalHostStats::updateStats(const struct timeval *tv) {
 
     nextPeriodicUpdate = tv->tv_sec + HOST_SITES_REFRESH;
   }
+
+  /* Hourly Update */
+  if(tv->tv_sec >= nextHourlyPeriodicUpdate) {
+#if defined(NTOPNG_PRO)
+    iface->updateCheckTrafficMap(host->get_ip(), host->getMac(), host->get_vlan_id(), traffic_stats);
+    resetTrafficStats();
+#endif
+    nextHourlyPeriodicUpdate = tv->tv_sec + HOST_TRAFFIC_REFRESH;    
+  }
 }
 
+/* *************************************** */
+
+void LocalHostStats::resetTrafficStats() {
+#if defined(NTOPNG_PRO)
+  traffic_stats.ntp_traffic_sent = 0;
+  traffic_stats.dns_traffic_sent = 0;
+  traffic_stats.ntp_traffic_rcvd = 0;
+  traffic_stats.dns_traffic_rcvd = 0;
+#endif
+}
+  
 /* *************************************** */
 
 void LocalHostStats::updateHostContacts() {
@@ -372,7 +406,24 @@ void LocalHostStats::incStats(time_t when, u_int8_t l4_proto,
   HostStats::incStats(when, l4_proto, ndpi_proto, ndpi_category, custom_app,
 		      sent_packets, sent_bytes, sent_goodput_bytes,
 		      rcvd_packets, rcvd_bytes, rcvd_goodput_bytes, peer_is_unicast);
-
+#if defined(NTOPNG_PRO)
+  if(iface->isTrafficMapEnabled()) {
+    /* NOTE: right now ntp stats goes with pkts and dns with bytes */
+    switch(ndpi_proto) {
+    case NDPI_PROTOCOL_DNS:
+      traffic_stats.dns_traffic_sent += sent_bytes;
+      traffic_stats.dns_traffic_rcvd += rcvd_bytes;
+      break;
+    case NDPI_PROTOCOL_NTP: 
+      traffic_stats.ntp_traffic_sent += sent_packets;
+      traffic_stats.ntp_traffic_rcvd += rcvd_packets;
+      break;
+    default:
+      break;
+    }
+  }
+#endif
+  
   if(l4_proto == IPPROTO_UDP) {
     if(peer_is_unicast)
       udp_sent_unicast += sent_bytes;

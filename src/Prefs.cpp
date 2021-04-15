@@ -21,6 +21,7 @@
 
 #include "ntop_includes.h"
 
+#ifndef FORCE_VALID_LICENSE
 #ifdef NTOPNG_PRO
 extern "C" {
 #ifdef WIN32
@@ -29,6 +30,7 @@ extern "C" {
 #include "../../license/license.h"
 #endif
 }
+#endif
 #endif
 
 /* ******************************************* */

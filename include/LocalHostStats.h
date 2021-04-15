@@ -29,8 +29,13 @@ class LocalHostStats: public HostStats {
   HTTPstats *http;
   ICMPstats *icmp;
   FrequentStringItems *top_sites;
+#if defined(NTOPNG_PRO)
+  TrafficStatsMonitor traffic_stats;
+#endif
   /* nextPeriodicUpdate done every 5 min */
   time_t nextPeriodicUpdate;
+  /* nextHourlyPeriodicUpdate done every 60 min */
+  time_t nextHourlyPeriodicUpdate;
   u_int32_t num_contacts_as_cli, num_contacts_as_srv;
 
   /* Estimate of the number of critical servers used by this host */
@@ -62,7 +67,9 @@ class LocalHostStats: public HostStats {
   void serializeDeserialize(char *host_buf, struct tm *t_now, bool do_serialize);
   void deserializeTopSites(char* redis_key_current);
   void updateContactedHostsBehaviour();
-  
+#if defined(NTOPNG_PRO)
+  void resetTrafficStats();
+#endif
  public:
   LocalHostStats(Host *_host);
   LocalHostStats(LocalHostStats &s);

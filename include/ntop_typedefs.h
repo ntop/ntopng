@@ -227,6 +227,16 @@ typedef struct {
   char *alert;
 } AlertFifoItem;
 
+typedef struct {
+  IpAddress *ip;
+  /* DNS traffic counted in bytes */
+  u_int32_t dns_traffic_sent;
+  u_int32_t dns_traffic_rcvd;
+  /* NTP traffic counted in packtes */
+  u_int32_t ntp_traffic_sent;
+  u_int32_t ntp_traffic_rcvd;
+} TrafficStatsMonitor;
+
 struct zmq_msg_hdr_v0 {
   char url[32];
   u_int32_t version;

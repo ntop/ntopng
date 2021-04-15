@@ -325,6 +325,7 @@ using namespace std;
 #include "RecipientQueues.h"
 #include "Recipients.h"
 #ifdef NTOPNG_PRO
+#include "CheckTrafficMap.h"
 #include "PeriodicityMatchInfo.h"
 #include "PeriodicityStats.h"
 #include "PeriodicityHash.h"

@@ -98,6 +98,11 @@ class NetworkInterface : public OtherAlertableEntity {
   FlowCallbacksExecutor *flow_callbacks_executor, *prev_flow_callbacks_executor;
   HostCallbacksExecutor *host_callbacks_executor, *prev_host_callbacks_executor;
 
+#if defined(NTOPNG_PRO)
+  /* Map containing various stats resetted every day */
+  CheckTrafficMap *check_traffic_stats;
+#endif
+  
   /* Variables used by top sites periodic update */
   u_int8_t current_cycle = 0;
   FrequentStringItems *top_sites;
@@ -394,6 +399,12 @@ class NetworkInterface : public OtherAlertableEntity {
   inline void decScoreValue(u_int16_t score_incr, bool as_client)  { as_client ? score_as_cli -= score_incr : score_as_srv -= score_incr; };
   inline void setCPUAffinity(int core_id)      { cpu_affinity = core_id; };
   inline void getIPv4Address(bpf_u_int32 *a, bpf_u_int32 *m) { *a = ipv4_network, *m = ipv4_network_mask; };
+#if defined(NTOPNG_PRO)
+  void luaTrafficMap(lua_State *vm);
+  void enableTrafficMap(bool enable);
+  inline bool isTrafficMapEnabled() { return(check_traffic_stats != NULL); };
+  inline bool updateCheckTrafficMap(IpAddress *ip, Mac *mac, u_int16_t vlan_id, TrafficStatsMonitor updated_stats) { return(check_traffic_stats) ? check_traffic_stats->updateElement(ip, mac, vlan_id, updated_stats) : false; };
+#endif
   inline bool are_ip_reassignment_alerts_enabled()       { return(enable_ip_reassignment_alerts); };
   inline AddressTree* getInterfaceNetworks()   { return(&interface_networks); };
   virtual void startPacketPolling();

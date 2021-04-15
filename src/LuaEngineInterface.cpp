@@ -3312,6 +3312,33 @@ static int ntop_nindex_enabled(lua_State* vm) {
 
 #endif
 
+#ifdef NTOPNG_PRO
+
+/* ****************************************** */
+
+static int ntop_interface_enable_traffic_map(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+  bool enable = false;
+
+  if(lua_type(vm, 1) == LUA_TBOOLEAN) enable = (bool)lua_toboolean(vm, 1);
+  
+  ntop_interface->enableTrafficMap(enable);
+    
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+static int ntop_interface_get_traffic_map_stats(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
+
+  ntop_interface->luaTrafficMap(vm);
+    
+  return(CONST_LUA_OK);
+}
+
+#endif
+
 /* ****************************************** */
 
 static void* pcapDumpLoop(void* ptr) {
@@ -4691,6 +4718,12 @@ static luaL_Reg _ntop_interface_reg[] = {
   { "getContainersStats",     ntop_interface_get_containers_stats     },
   { "reloadCompanions",       ntop_interface_reload_companions        },
 
+#ifdef NTOPNG_PRO
+  /* Traffic Map */
+  { "getTrafficMap",          ntop_interface_get_traffic_map_stats    },
+  { "enableTrafficMap",       ntop_interface_enable_traffic_map       },
+#endif
+  
   /* Syslog */
   { "isSyslogInterface",      ntop_interface_is_syslog_interface      },
   { "incSyslogStats",         ntop_interface_inc_syslog_stats         },

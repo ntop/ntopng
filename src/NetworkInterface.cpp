@@ -275,7 +275,7 @@ void NetworkInterface::init() {
   is_dynamic_interface = false, show_dynamic_interface_traffic = false;
   dynamic_interface_criteria = 0;
   dynamic_interface_mode = flowhashing_none;
-  
+
   top_sites = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   top_os    = new (std::nothrow) FrequentStringItems(HOST_SITES_TOP_NUMBER);
   old_sites = NULL;
@@ -310,6 +310,7 @@ void NetworkInterface::init() {
   custom_app_stats = NULL;
   flow_interfaces_stats = NULL;
   policer = NULL;
+  check_traffic_stats = NULL;
 #endif
   ndpiStats = NULL;
   dscpStats = NULL;
@@ -6527,7 +6528,7 @@ void NetworkInterface::allocateStructures() {
     dscpStats        = new DSCPStats();
 
     gw_macs          = new MacHash(this, 32, 64);
-
+    
     if(!isViewed()) {
       alertsManager = new AlertsManager(id, ALERTS_MANAGER_STORE_NAME);
       alertsQueue   = new AlertsQueue(this);
@@ -6555,6 +6556,7 @@ void NetworkInterface::allocateStructures() {
      ) {
     pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows()/8, 3600 /* 1h idleness */);
     sMap = new (std::nothrow) ServiceMap(this, ntop->getPrefs()->get_max_num_flows()/8, 86400 /* 1d idleness */);
+    
   } else
     pMap = NULL, sMap = NULL;
 #endif
@@ -8936,6 +8938,30 @@ void NetworkInterface::luaAnomalies(lua_State *vm) {
   lua_settable(vm, -3);
 }
 
+#ifdef NTOPNG_PRO
+/* *************************************** */
+
+void NetworkInterface::enableTrafficMap(bool enable) {
+  if(enable) {
+    if(!check_traffic_stats) {
+      check_traffic_stats = new (std::nothrow) CheckTrafficMap();
+    }
+  } else { 
+    if(check_traffic_stats) {
+      delete(check_traffic_stats);
+      check_traffic_stats = NULL;
+    }
+  }
+}
+
+/* *************************************** */
+
+void NetworkInterface::luaTrafficMap(lua_State *vm) {
+  check_traffic_stats ? check_traffic_stats->lua_get_threshold_stats(vm) : lua_pushnil(vm);
+}
+
+#endif
+  
 /* *************************************** */
 
 void NetworkInterface::execHostCallbacks(Host *h) {
