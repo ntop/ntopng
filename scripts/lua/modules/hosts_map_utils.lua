@@ -10,14 +10,16 @@ hosts_map_utils.HostsMapMode = {
     UNREACHABLE_FLOWS  = 1,
     ALERTED_FLOWS = 2,
     DNS_QUERIES = 3,
-    SYN_DISTRIBUTION = 4,
-    SYN_VS_RST = 5,
-    SYN_VS_SYNACK = 6,
-    TCP_PKTS_SENT_VS_RCVD = 7,
-    TCP_BYTES_SENT_VS_RCVD = 8,
-    ACTIVE_ALERT_FLOWS = 9,
-    TRAFFIC_RATIO = 10,
-    SCORE = 11,
+    DNS_BYTES = 4,
+    NTP_PACKETS = 5,
+    SYN_DISTRIBUTION = 6,
+    SYN_VS_RST = 7,
+    SYN_VS_SYNACK = 8,
+    TCP_PKTS_SENT_VS_RCVD = 9,
+    TCP_BYTES_SENT_VS_RCVD = 10,
+    ACTIVE_ALERT_FLOWS = 11,
+    TRAFFIC_RATIO = 12,
+    SCORE = 13,
 }
 
 hosts_map_utils.MODES = {
@@ -41,6 +43,16 @@ hosts_map_utils.MODES = {
         label   = i18n("hosts_map_page.dns_queries"),
         x_label = i18n("hosts_map_page.labels.dns_p_r"),
         y_label = i18n("hosts_map_page.labels.dns_s")
+    }, {
+        mode = hosts_map_utils.HostsMapMode.DNS_BYTES,
+        label   = i18n("hosts_map_page.dns_bytes"),
+        x_label = i18n("hosts_map_page.labels.dns_r"),
+	y_label = i18n("hosts_map_page.labels.dns_sent")
+    }, {
+        mode = hosts_map_utils.HostsMapMode.NTP_PACKETS,
+        label   = i18n("hosts_map_page.ntp_packets"),
+	x_label = i18n("hosts_map_page.labels.ntp_r"),
+        y_label = i18n("hosts_map_page.labels.ntp_s")
     }, {
         mode = hosts_map_utils.HostsMapMode.SYN_DISTRIBUTION,
         label   = i18n("hosts_map_page.syn_distribution"),

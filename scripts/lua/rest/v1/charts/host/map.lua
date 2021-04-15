@@ -106,6 +106,42 @@ local function processHost(hostname, host)
                 z = x + y
             }
         end
+    elseif (bubble_mode == HostsMapMode.DNS_BYTES) then
+       host = interface.getHostInfo(hostname)
+       if ((host["ndpi"] ~= nil) and
+           (host["ndpi"]["DNS"] ~= nil) and 
+ 	   ((host["ndpi"]["DNS"]["bytes.sent"] + host["ndpi"]["DNS"]["bytes.rcvd"]) > 0)) then
+
+            local x = host["ndpi"]["DNS"]["bytes.rcvd"]
+            local y = host["ndpi"]["DNS"]["bytes.sent"]
+            line = {
+                meta = {
+                    url_query = "host="..hostname,
+                    label = label,
+                }, 
+                x = x, 
+                y = y, 
+                z = x + y
+            }
+        end
+    elseif (bubble_mode == HostsMapMode.NTP_PACKETS) then
+       host = interface.getHostInfo(hostname)
+       if ((host["ndpi"] ~= nil) and
+	  (host["ndpi"]["NTP"] ~= nil) and 
+ 	  ((host["ndpi"]["NTP"]["packets.sent"] + host["ndpi"]["NTP"]["packets.rcvd"]) > 0)) then
+
+            local x = host["ndpi"]["NTP"]["packets.rcvd"]
+            local y = host["ndpi"]["NTP"]["packets.sent"]
+            line = {
+                meta = {
+                    url_query = "host="..hostname,
+                    label = label,
+                }, 
+                x = x, 
+                y = y, 
+                z = x + y
+            }
+        end
     elseif (bubble_mode == HostsMapMode.SYN_DISTRIBUTION) then
 
         local stats = interface.getHostInfo(host["ip"], host["vlan"])
