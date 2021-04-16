@@ -28,7 +28,7 @@ class IpAddress;
 
 class AddressTree {
  protected:
-  u_int16_t numAddresses, numAddressesIPv4, numAddressesIPv6;
+  u_int32_t numAddresses, numAddressesIPv4, numAddressesIPv6;
   ndpi_patricia_tree_t* getPatricia(char* what);
   ndpi_patricia_tree_t *ptree_v4, *ptree_v6;
   std::map<u_int64_t, int16_t> macs;
@@ -45,9 +45,9 @@ class AddressTree {
   void cleanup();
   void cleanup(ndpi_void_fn_t free_func);
 
-  inline u_int16_t getNumAddresses()     const { return(numAddresses);     }
-  inline u_int16_t getNumAddressesIPv4() const { return(numAddressesIPv4); }
-  inline u_int16_t getNumAddressesIPv6() const { return(numAddressesIPv6); }
+  inline u_int32_t getNumAddresses()     const { return(numAddresses);     }
+  inline u_int32_t getNumAddressesIPv4() const { return(numAddressesIPv4); }
+  inline u_int32_t getNumAddressesIPv6() const { return(numAddressesIPv6); }
 
   inline ndpi_patricia_tree_t * getTree(bool isV4) const { return(isV4 ? ptree_v4 : ptree_v6); }
 
