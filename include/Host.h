@@ -289,6 +289,7 @@ class Host : public GenericHashEntry, public HostAlertableEntity, public Score, 
   void lua_get_num_total_flows(lua_State* vm) const;
   void lua_get_num_flows(lua_State* vm)     const;
   void lua_get_min_info(lua_State* vm);
+  void lua_get_ndpi_info(lua_State* vm);
   void lua_get_num_contacts(lua_State* vm);
   void lua_get_num_http_hosts(lua_State*vm);
   void lua_get_os(lua_State* vm);

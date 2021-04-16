@@ -3609,8 +3609,9 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 /* **************************************************** */
 
 bool NetworkInterface::getHostMinInfo(lua_State* vm,
-           AddressTree *allowed_hosts,
-				   char *host_ip, u_int16_t vlan_id) {
+				      AddressTree *allowed_hosts,
+				      char *host_ip, u_int16_t vlan_id,
+				      bool only_ndpi_stats) {
   Host *h;
   bool ret;
 
@@ -3618,7 +3619,12 @@ bool NetworkInterface::getHostMinInfo(lua_State* vm,
 
   if(h) {
     lua_newtable(vm);
-    h->lua_get_min_info(vm);
+
+    if(only_ndpi_stats)
+      h->lua_get_ndpi_info(vm);
+    else
+      h->lua_get_min_info(vm);
+    
     ret = true;
   } else
     ret = false;

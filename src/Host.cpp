@@ -464,6 +464,15 @@ void Host::lua_get_os(lua_State *vm) {
 
 /* ***************************************************** */
 
+void Host::lua_get_ndpi_info(lua_State *vm) {
+  if(stats)
+    stats->luaNdpiStats(vm);
+  else
+    lua_pushnil(vm);
+}
+  
+/* ***************************************************** */
+
 void Host::lua_get_min_info(lua_State *vm) {
   char buf[64];
 

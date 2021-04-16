@@ -101,6 +101,7 @@ class HostStats: public GenericTrafficElement {
   inline u_int32_t getTotalHostUnreachableNumFlowsAsServer() const { return(host_unreachable_flows_as_server);  };
   u_int32_t getTotalAlerts() const;
   inline u_int32_t getNumFlowAlerts() const { return(num_flow_alerts); };
+  void luaNdpiStats(lua_State *vm);
   void luaActiveFlowsBehaviour(lua_State *vm);
   void luaScoreBehaviour(lua_State *vm);
   void luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua = false);

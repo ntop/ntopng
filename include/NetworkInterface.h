@@ -477,7 +477,7 @@ class NetworkInterface : public OtherAlertableEntity {
   struct ndpi_detection_module_struct* get_ndpi_struct() const;
   inline bool is_purge_idle_interface()        { return(purge_idle_flows_hosts);               };
   int dumpFlow(time_t when, Flow *f);
-  bool getHostMinInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+  bool getHostMinInfo(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id, bool only_ndpi_stats);
 
   /* Enqueue alert to a queue for processing and later delivery to recipients */
   bool enqueueFlowAlert(FlowAlert *alert);

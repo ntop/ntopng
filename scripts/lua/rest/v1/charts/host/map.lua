@@ -107,7 +107,7 @@ local function processHost(hostname, host)
             }
         end
     elseif (bubble_mode == HostsMapMode.DNS_BYTES) then
-       host = interface.getHostInfo(hostname)
+       host = interface.getnDPIHostStats(hostname)
        if ((host["ndpi"] ~= nil) and
            (host["ndpi"]["DNS"] ~= nil) and 
  	   ((host["ndpi"]["DNS"]["bytes.sent"] + host["ndpi"]["DNS"]["bytes.rcvd"]) > 0)) then
@@ -125,7 +125,7 @@ local function processHost(hostname, host)
             }
         end
     elseif (bubble_mode == HostsMapMode.NTP_PACKETS) then
-       host = interface.getHostInfo(hostname)
+       host = interface.getnDPIHostStats(hostname)
        if ((host["ndpi"] ~= nil) and
 	  (host["ndpi"]["NTP"] ~= nil) and 
  	  ((host["ndpi"]["NTP"]["packets.sent"] + host["ndpi"]["NTP"]["packets.rcvd"]) > 0)) then

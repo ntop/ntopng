@@ -166,6 +166,15 @@ void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
 
 /* *************************************** */
 
+void HostStats::luaNdpiStats(lua_State* vm) {
+  if(ndpiStats)
+    ndpiStats->lua(iface, vm, true, false);
+  else
+    lua_pushnil(vm);
+}
+
+/* *************************************** */
+
 void HostStats::luaScoreBehaviour(lua_State* vm) {
   /* Client score behaviour */
 
