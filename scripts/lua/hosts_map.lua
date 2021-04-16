@@ -40,7 +40,23 @@ local select_options = {}
 
 -- generate the dropdown menu
 for i,v in pairs(MODES) do
+   -- Check for pro hosts map only
+   if((v["pro"] ~= nil) and
+      (v["pro"] == true) and
+      (ntop.isPro() == false)) then
+      goto continue
+   end
+
+   -- Check for the visible functions
+   -- Do not add the entry into the menu if it is false
+   if((v["visible"] ~= nil) and
+      (v["visible"]() == false)) then
+      goto continue
+   end
+   
    select_options[#select_options+1] = '<option '.. (bubble_mode == v.mode and 'selected' or '') ..' value="'..tostring(v.mode)..'">'..v.label..'</option>'
+   
+   ::continue::
 end
 
 -- register the bubble chart for the hosts map

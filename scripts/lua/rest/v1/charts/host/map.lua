@@ -128,7 +128,7 @@ local function processHost(hostname, host)
        host = interface.getTrafficMapHostStats(hostname)
        if ((host ~= nil) and
 	  (host["ntp_traffic"] ~= nil) and
-	  ((hosthost["ntp_traffic"]["sent"] + host["ntp_traffic"]["rcvd"]) > 0)) then
+	  ((host["ntp_traffic"]["sent"] + host["ntp_traffic"]["rcvd"]) > 0)) then
 
             local x = host["ntp_traffic"]["rcvd"]
             local y = host["ntp_traffic"]["sent"]

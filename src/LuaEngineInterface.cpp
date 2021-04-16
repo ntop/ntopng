@@ -3328,7 +3328,20 @@ static int ntop_interface_enable_traffic_map(lua_State* vm) {
 }
 
 /* ****************************************** */
+ 
+static int ntop_interface_get_traffic_map_enabled(lua_State* vm) {
+  NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
+  if(!ntop_interface)
+    lua_pushboolean(vm, false);
+  else
+    lua_pushboolean(vm, ntop_interface->isTrafficMapEnabled());
+    
+  return(CONST_LUA_OK);
+}
+
+/* ****************************************** */
+  
 static int ntop_interface_get_traffic_map_stats(lua_State* vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
@@ -4774,6 +4787,7 @@ static luaL_Reg _ntop_interface_reg[] = {
 #ifdef NTOPNG_PRO
   /* Traffic Map */
   { "getTrafficMap",          ntop_interface_get_traffic_map_stats    },
+  { "trafficMapEnabled",      ntop_interface_get_traffic_map_enabled  },
   { "enableTrafficMap",       ntop_interface_enable_traffic_map       },
   { "getTrafficMapHostStats", ntop_interface_get_traffic_map_host_stats },
   

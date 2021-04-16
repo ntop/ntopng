@@ -3612,6 +3612,9 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 void NetworkInterface::luaTrafficMapHostStats(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id) {
   Host *h;
 
+  if(!check_traffic_stats)
+    return;
+
   h = findHostByIP(allowed_hosts, host_ip, vlan_id);
 
   if(h)

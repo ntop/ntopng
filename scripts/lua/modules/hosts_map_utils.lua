@@ -47,12 +47,18 @@ hosts_map_utils.MODES = {
         mode = hosts_map_utils.HostsMapMode.DNS_BYTES,
         label   = i18n("hosts_map_page.dns_bytes"),
         x_label = i18n("hosts_map_page.labels.dns_r"),
-	y_label = i18n("hosts_map_page.labels.dns_sent")
+	y_label = i18n("hosts_map_page.labels.dns_sent"),
+        x_formatter = "bytesToSize",
+        y_formatter = "bytesToSize",
+	pro = true,
+	visible = interface.trafficMapEnabled,
     }, {
         mode = hosts_map_utils.HostsMapMode.NTP_PACKETS,
         label   = i18n("hosts_map_page.ntp_packets"),
 	x_label = i18n("hosts_map_page.labels.ntp_r"),
-        y_label = i18n("hosts_map_page.labels.ntp_s")
+        y_label = i18n("hosts_map_page.labels.ntp_s"),
+	pro = true,
+	visible = interface.trafficMapEnabled,
     }, {
         mode = hosts_map_utils.HostsMapMode.SYN_DISTRIBUTION,
         label   = i18n("hosts_map_page.syn_distribution"),
