@@ -614,6 +614,9 @@ class NetworkInterface : public OtherAlertableEntity {
   virtual u_int32_t getFlowMaxIdle();
 
   virtual void lua(lua_State* vm);
+#ifdef NTOPNG_PRO
+  void luaTrafficMapHostStats(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id);
+#endif
   void luaScore(lua_State* vm);
   void luaAlertedFlows(lua_State* vm);
   void luaAnomalies(lua_State* vm);

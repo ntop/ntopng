@@ -3608,6 +3608,21 @@ bool NetworkInterface::getHostInfo(lua_State* vm,
 
 /* **************************************************** */
 
+#ifdef NTOPNG_PRO
+void NetworkInterface::luaTrafficMapHostStats(lua_State* vm, AddressTree *allowed_hosts, char *host_ip, u_int16_t vlan_id) {
+  Host *h;
+
+  h = findHostByIP(allowed_hosts, host_ip, vlan_id);
+
+  if(h)
+    check_traffic_stats->lua_get_host_stats(vm, h->get_ip(), h->getMac(), h->get_vlan_id());
+  else
+    lua_pushnil(vm);
+}
+#endif
+
+/* **************************************************** */
+
 bool NetworkInterface::getHostMinInfo(lua_State* vm,
 				      AddressTree *allowed_hosts,
 				      char *host_ip, u_int16_t vlan_id,

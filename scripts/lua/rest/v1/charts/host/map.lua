@@ -107,13 +107,13 @@ local function processHost(hostname, host)
             }
         end
     elseif (bubble_mode == HostsMapMode.DNS_BYTES) then
-       host = interface.getnDPIHostStats(hostname)
-       if ((host["ndpi"] ~= nil) and
-           (host["ndpi"]["DNS"] ~= nil) and 
- 	   ((host["ndpi"]["DNS"]["bytes.sent"] + host["ndpi"]["DNS"]["bytes.rcvd"]) > 0)) then
+       host = interface.getTrafficMapHostStats(hostname)
+       if ((host ~= nil) and
+	  (host["dns_traffic"] ~= nil) and
+	  ((host["dns_traffic"]["sent"] + host["dns_traffic"]["rcvd"]) > 0)) then
 
-            local x = host["ndpi"]["DNS"]["bytes.rcvd"]
-            local y = host["ndpi"]["DNS"]["bytes.sent"]
+            local x = host["dns_traffic"]["rcvd"]
+            local y = host["dns_traffic"]["sent"]
             line = {
                 meta = {
                     url_query = "host="..hostname,
@@ -125,13 +125,13 @@ local function processHost(hostname, host)
             }
         end
     elseif (bubble_mode == HostsMapMode.NTP_PACKETS) then
-       host = interface.getnDPIHostStats(hostname)
-       if ((host["ndpi"] ~= nil) and
-	  (host["ndpi"]["NTP"] ~= nil) and 
- 	  ((host["ndpi"]["NTP"]["packets.sent"] + host["ndpi"]["NTP"]["packets.rcvd"]) > 0)) then
+       host = interface.getTrafficMapHostStats(hostname)
+       if ((host ~= nil) and
+	  (host["ntp_traffic"] ~= nil) and
+	  ((hosthost["ntp_traffic"]["sent"] + host["ntp_traffic"]["rcvd"]) > 0)) then
 
-            local x = host["ndpi"]["NTP"]["packets.rcvd"]
-            local y = host["ndpi"]["NTP"]["packets.sent"]
+            local x = host["ntp_traffic"]["rcvd"]
+            local y = host["ntp_traffic"]["sent"]
             line = {
                 meta = {
                     url_query = "host="..hostname,
