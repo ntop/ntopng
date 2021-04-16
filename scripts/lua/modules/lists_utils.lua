@@ -508,7 +508,7 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
 	 -- Domain
 	 if((not list) or (list.format ~= "ip")) then
 	   if((string.len(host) < 4) or (string.find(host, "%.") == nil)) then
-	     traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Bad domain name '%s' in list '%s' [line: %u]", host, list and list.name, num_line))
+	     traceError(TRACE_INFO, TRACE_CONSOLE, string.format("Bad domain name '%s' in list '%s' [line: %u]", host, list and list.name, num_line))
 	   else
 	     ntop.loadCustomCategoryHost(host, category)
 	     return "domain"
