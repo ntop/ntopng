@@ -7493,21 +7493,22 @@ void NetworkInterface::updateBroadcastDomains(u_int16_t vlan_id,
 	cur_bcast_domain.set(htonl(net));
 
 	if(cur_mask >  0xFFFF0000 /* /16 */) {
+
 	  /* NOTE: call this also for existing domains in order to update the hits */
-	  if(bcast_domains->addAddress(&cur_bcast_domain, cur_cidr)) {
-	    getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
+	  bcast_domains->addAddress(&cur_bcast_domain, cur_cidr);
 
 #ifdef BROADCAST_DOMAINS_DEBUG
-	    char buf1[32], buf2[32], buf3[32];
+	  char buf1[32], buf2[32], buf3[32];
 
-	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s <-> %s [%s - %u]",
 					 Utils::intoaV4(src, buf1, sizeof(buf1)),
 					 Utils::intoaV4(dst, buf2, sizeof(buf2)),
 					 Utils::intoaV4(net, buf3, sizeof(buf3)),
 					 cur_cidr);
 #endif
-	  }
-	}
+	} else {
+	  getAlertsQueue()->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
+        }
 
 	break;
       }
