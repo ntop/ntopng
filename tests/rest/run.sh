@@ -13,6 +13,7 @@
 
 TESTS_PATH="${PWD}"
 NTOPNG_ROOT="../.."
+NTOPNG_BIN="./ntopng"
 
 NTOPNG_TEST_DATADIR="${TESTS_PATH}/data"
 NTOPNG_TEST_CONF="${NTOPNG_TEST_DATADIR}/ntopng.conf"
@@ -44,7 +45,7 @@ function usage {
     echo "[-f|--mail-from]=<address>        | Send notifications from the specified email address"
     echo "[-t|--mail-to]=<address>          | Send notifications to the specified email address"
     echo "[-d|--discord-webhook]=<endpoint> | Send notification to the specified Discord endpoint"
-    echo "[-D|--debug]=<level>              | Set the debug level (default 0)"
+    echo "[-D|--debug]=<level>              | Set the debug level (0 - default, 1 - verbose, 2 - gdb)"
     echo "[-K|--keep-running]               | Keep ntopng running after completing the test (with -y)"
     echo "[-h|--help]                       | Print this help"
     exit 0
@@ -96,6 +97,10 @@ if [ "${NOTIFICATIONS_ON}" = true ]; then
     if [ -z "$DISCORD_WEBHOOK" ] ; then
         echo "Warning: please specify -d=<discord webhook url> to send alerts to Discord"
     fi
+fi
+
+if [ "${DEBUG_LEVEL}" -eq "2" ]; then
+    NTOPNG_BIN="gdb --tui --args ${NTOPNG_BIN}"
 fi
 
 # Send a success alert
@@ -205,9 +210,9 @@ ntopng_run() {
 
     touch ${5}
     if [ "${DEBUG_LEVEL}" -gt "0" ]; then
-        ./ntopng ${NTOPNG_TEST_CONF}
+        ${NTOPNG_BIN} ${NTOPNG_TEST_CONF}
     else
-        ./ntopng ${NTOPNG_TEST_CONF} > ${5} 2>&1
+        ${NTOPNG_BIN} ${NTOPNG_TEST_CONF} > ${5} 2>&1
     fi
 
     cd ${TESTS_PATH}
