@@ -37,6 +37,7 @@ page_utils.print_navbar(i18n("hosts_map"), url, {
 
 -- print the modes inside the dropdown
 local select_options = {}
+local label_bubble_mode = ""
 
 -- generate the dropdown menu
 for i,v in pairsByField(MODES, 'label', asc) do
@@ -52,7 +53,10 @@ for i,v in pairsByField(MODES, 'label', asc) do
       goto continue
    end
    
-   select_options[#select_options+1] = '<option '.. (bubble_mode == v.mode and 'selected' or '') ..' value="'..tostring(v.mode)..'">'..v.label..'</option>'
+   if (bubble_mode == v.mode) then label_bubble_mode = v.label end
+
+   local href = ntop.getHttpPrefix() .. "/lua/hosts_map.lua?bubble_mode="..v.mode
+   select_options[#select_options+1] = '<a class="dropdown-item '.. (bubble_mode == v.mode and 'active' or '') ..'"  href="'.. href ..'">'..v.label..'</a>'
    
    ::continue::
 end
@@ -69,7 +73,8 @@ template_utils.render("pages/hosts_map.template", {
 		bubble_mode = bubble_mode,
 		current_label = current_label,
 		widget_name = widget_name,
-		map_endpoint = map_endpoint
+		map_endpoint = map_endpoint,
+      label_bubble_mode = label_bubble_mode
 	}
 })
 

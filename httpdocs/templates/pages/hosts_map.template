@@ -15,11 +15,22 @@
                     <label class="my-auto mr-1">
                         {{ i18n("filter_by") }}:
                     </label>
-                    <select style="width: 16rem;" class="form-control" id="select-bubble-mode">
-                        {* hosts_map.select_options *}
-                    </select>
+                   
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          {{ hosts_map.label_bubble_mode }}
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            {* hosts_map.select_options *}
+                        </div>
+                    </div>
                 </div>
                 {* widget_gui_utils.render_chart(hosts_map.widget_name, { css_styles = { height = "60vh"}, displaying_label = ''}) *}
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-secondary" id="btn-reload-map">
+                    <i class='fas fa-sync'></i> {{ i18n("reload_map") }}
+                </button>
             </div>
         </div>
     </div>
@@ -28,11 +39,12 @@
 $(document).ready(function() {
 
     const WIDGET_NAME = "{{ hosts_map.widget_name }}";
+    const BUBBLE_MODE = "{{ hosts_map.bubble_mode }}";
+    
     const widget = WidgetUtils.getWidgetByName(WIDGET_NAME);
 
-    $(`#select-bubble-mode`).on('change', async function() {
-        const bubbleMode = $(this).val();
-        await widget.destroyAndUpdate({bubble_mode: bubbleMode});
+    $(`#btn-reload-map`).on('click', async function() {
+        await widget.update({bubble_mode: BUBBLE_MODE});
     });
 
 });

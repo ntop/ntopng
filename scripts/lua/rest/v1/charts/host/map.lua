@@ -281,6 +281,11 @@ rest_utils.answer(rc, {
         {data = local_hosts, name = "Local Hosts", base_url = base_url},
         {data = remote_hosts, name = "Remote Hosts", base_url = base_url},
     },
+    grid = {
+        padding = {
+            left = 6
+        },
+    },
     colors = {"rgba(153, 102, 255, 0.45)", "rgba(255, 159, 64, 0.45)"},
     xaxis = {
         type = 'numeric',
@@ -295,9 +300,11 @@ rest_utils.answer(rc, {
         type = 'numeric',
         title = {
             text = MODES[bubble_mode + 1].y_label,
+            offsetX = 6
         },
         labels = {
             ntop_utils_formatter = MODES[bubble_mode + 1].y_formatter or 'none',
+           
         }
     },
     dataLabels = {
