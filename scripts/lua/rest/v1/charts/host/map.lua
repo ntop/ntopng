@@ -298,6 +298,7 @@ rest_utils.answer(rc, {
     },
     yaxis = {
         type = 'numeric',
+        forceNiceScale = true,
         title = {
             text = MODES[bubble_mode + 1].y_label,
             offsetX = 6
