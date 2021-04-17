@@ -39,11 +39,9 @@ page_utils.print_navbar(i18n("hosts_map"), url, {
 local select_options = {}
 
 -- generate the dropdown menu
-for i,v in pairs(MODES) do
+for i,v in pairsByField(MODES, 'label', asc) do
    -- Check for pro hosts map only
-   if((v["pro"] ~= nil) and
-      (v["pro"] == true) and
-      (ntop.isPro() == false)) then
+   if((v["pro"] ~= nil) and (v["pro"] == true) and (ntop.isPro() == false)) then
       goto continue
    end
 
