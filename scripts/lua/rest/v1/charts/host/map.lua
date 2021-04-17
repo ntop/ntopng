@@ -281,6 +281,11 @@ rest_utils.answer(rc, {
         {data = local_hosts, name = "Local Hosts", base_url = base_url},
         {data = remote_hosts, name = "Remote Hosts", base_url = base_url},
     },
+    chart = {
+        zoom = {
+            autoScaleYaxis = true
+        }
+    },
     grid = {
         padding = {
             left = 6
