@@ -43,7 +43,7 @@ end
 
 local function processHost(hostname, host)
     local line
-    local label = hostinfo2hostkey(host)
+    local label = host.name
 
     -- starts is defined inside the lua_utils module
     if ((label == nil) or (string.len(label) == 0) or starts(label, "@")) then
