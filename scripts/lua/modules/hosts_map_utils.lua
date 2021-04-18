@@ -107,7 +107,7 @@ hosts_map_utils.MODES = {
         mode = hosts_map_utils.HostsMapMode.BLACKLISTED_FLOWS_HOSTS,
         label   = i18n("hosts_map_page.blacklisted_flows_hosts"),
         x_label = i18n("hosts_map_page.labels.blacklisted_as_client"),
-        y_label = i18n("hosts_map_page.labels.blaclisted_as_server")
+        y_label = i18n("hosts_map_page.labels.blacklisted_as_server")
     }
 }
 
