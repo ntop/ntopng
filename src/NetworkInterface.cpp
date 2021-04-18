@@ -8967,7 +8967,7 @@ void NetworkInterface::luaAnomalies(lua_State *vm) {
 /* *************************************** */
 
 void NetworkInterface::enableTrafficMap(bool enable) {
-  if(enable) {
+  if(enable == true) {
     if(!check_traffic_stats) {
       check_traffic_stats = new (std::nothrow) CheckTrafficMap();
     }
