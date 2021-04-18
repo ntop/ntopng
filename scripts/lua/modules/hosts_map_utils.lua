@@ -20,6 +20,7 @@ hosts_map_utils.HostsMapMode = {
     ACTIVE_ALERT_FLOWS = 11,
     TRAFFIC_RATIO = 12,
     SCORE = 13,
+    BLACKLISTED_FLOWS_HOSTS = 14,
 }
 
 hosts_map_utils.MODES = {
@@ -102,6 +103,11 @@ hosts_map_utils.MODES = {
         label   = i18n("hosts_map_page.score"),
         x_label = i18n("hosts_map_page.labels.client_score"),
         y_label = i18n("hosts_map_page.labels.server_score")
+    }, {
+        mode = hosts_map_utils.HostsMapMode.BLACKLISTED_FLOWS_HOSTS,
+        label   = i18n("hosts_map_page.blacklisted_flows_hosts"),
+        x_label = i18n("hosts_map_page.labels.blacklisted_as_client"),
+        y_label = i18n("hosts_map_page.labels.blaclisted_as_server")
     }
 }
 

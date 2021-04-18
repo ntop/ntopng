@@ -238,6 +238,16 @@ local function processHost(hostname, host)
             y = host["score.as_server"],
             z = host["score.as_client"] + host["score.as_server"]
        }
+    elseif (bubble_mode == HostsMapMode.BLACKLISTED_FLOWS_HOSTS) then
+       line = {
+            meta = {
+                url_query = "host="..hostname,
+                label = label,
+            },
+            x = host.num_blacklisted_flows.as_client,
+            y = host.num_blacklisted_flows.as_server,
+            z = host.num_blacklisted_flows.as_client + host.num_blacklisted_flows.as_server
+       }
     end
 
     if (line ~= nil) then        
